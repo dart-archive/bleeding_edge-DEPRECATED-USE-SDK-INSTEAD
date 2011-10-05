@@ -12,26 +12,26 @@ vars = {
 
 deps = {
   "runtime":
-    Var("dart_branch") + "/runtime",
+    Var("dart_branch") + "/dart/runtime",
 
   "corelib":
-    Var("dart_branch") + "/corelib",
+    Var("dart_branch") + "/dart/corelib",
 
   "language":
-    Var("dart_branch") + "/language",
+    Var("dart_branch") + "/dart/language",
 
   "tests":
-    Var("dart_branch") + "/tests",
+    Var("dart_branch") + "/dart/tests",
 
   "tools":
-    Var("dart_branch") + "/tools",
+    Var("dart_branch") + "/dart/tools",
 
   # Stuff needed for GYP to run.
   "third_party/gyp":
     "http://gyp.googlecode.com/svn/trunk" + Var("gyp_rev"),
 
   "co19":
-    Var("dart_branch") + "/co19",
+    Var("dart_branch") + "/dart/co19",
 
   "co19/tests/co19/src":
     Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
