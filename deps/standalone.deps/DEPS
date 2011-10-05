@@ -1,0 +1,55 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+vars = {
+  "chromium_url": "http://src.chromium.org/svn",
+  "gyp_rev": "@937",
+  "co19_rev": "@54",
+  "co19_repo": "https://co19.googlecode.com/svn/trunk/co19/",
+}
+
+deps = {
+  "runtime":
+    "/branches/bleeding_edge/runtime",
+
+  "corelib":
+    "/branches/bleeding_edge/corelib",
+
+  "language":
+    "/branches/bleeding_edge/language",
+
+  "benchmarks":
+    "/branches/bleeding_edge/internal/golem/benchmarks",
+
+  "tests":
+    "/branches/bleeding_edge/tests",
+
+  "tools":
+    "/branches/bleeding_edge/tools",
+
+  # Stuff needed for GYP to run.
+  "third_party/gyp":
+    "http://gyp.googlecode.com/svn/trunk" + Var("gyp_rev"),
+
+  "co19":
+    "/branches/bleeding_edge/co19",
+
+  "co19/tests/co19/src":
+    Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
+}
+
+deps_os = {
+  "win": {
+    "third_party/cygwin":
+      Var("chromium_url") + "/trunk/deps/third_party/cygwin@66844",
+  },
+}
+
+hooks = [
+  {
+    # A change to a .gyp, .gypi, or to GYP itself should run the generator.
+    "pattern": ".",
+    "action": ["python", "tools/generate_projects.py", "runtime"],
+  },
+]

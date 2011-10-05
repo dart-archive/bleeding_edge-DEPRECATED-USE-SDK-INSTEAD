@@ -1,0 +1,94 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+vars = {
+  "gyp_rev": "@937",
+  "co19_rev": "@54",
+  "co19_repo": "https://co19.googlecode.com/svn/trunk/co19/",
+}
+
+deps = {
+  "compiler":
+    "/branches/bleeding_edge/compiler",
+
+  "corelib":
+    "/branches/bleeding_edge/corelib",
+
+  "benchmarks":
+    "/branches/bleeding_edge/internal/golem/benchmarks",
+
+  "language":
+    "/branches/bleeding_edge/language",
+
+  "tests":
+    "/branches/bleeding_edge/tests",
+
+  "tools":
+    "/branches/bleeding_edge/tools",
+
+  # dartc runs the VM's tests.
+  "runtime":
+    "/branches/bleeding_edge/runtime",
+
+  # dartc compiles the client code as a test.
+  "client":
+    "/branches/bleeding_edge/client",
+
+  # dartc compiles the sites (dartboard) code as a test.
+   "sites":
+     "/branches/bleeding_edge/sites",
+ 
+   # dartc compiles the samples code as a test.
+   "samples":
+     "/branches/bleeding_edge/samples",
+
+  # Stuff needed for GYP to run.
+  "third_party/gyp":
+    "http://gyp.googlecode.com/svn/trunk" + Var("gyp_rev"),
+
+  # Build time dependencies for dartc
+  "third_party/apache_ant":
+    "/branches/bleeding_edge/third_party/apache_ant",
+
+  "third_party/args4j":
+    "/branches/bleeding_edge/third_party/args4j",
+
+  "third_party/closure_compiler_src":
+    "http://closure-compiler.googlecode.com/svn/trunk",
+
+  "third_party/guava":
+    "/branches/bleeding_edge/third_party/guava",
+
+  "third_party/hamcrest":
+    "/branches/bleeding_edge/third_party/hamcrest",
+
+  "third_party/json":
+    "/branches/bleeding_edge/third_party/json",
+
+  "third_party/junit":
+    "/branches/bleeding_edge/third_party/junit",
+
+  "third_party/rhino":
+    "/branches/bleeding_edge/third_party/rhino",
+
+  "third_party/v8":
+    "http://v8.googlecode.com/svn/branches/3.4",
+
+  "co19":
+    "/branches/bleeding_edge/co19",
+
+  "co19/tests/co19/src":
+    Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
+}
+
+hooks = [
+  {
+    "pattern": ".",
+    "action": ["python", "compiler/scripts/generate_my_projects.py"],
+  },
+  {
+    "pattern": ".",
+    "action": ["python", "tools/generate_projects.py", "compiler"],
+  },
+]
