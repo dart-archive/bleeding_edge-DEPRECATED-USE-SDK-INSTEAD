@@ -7,33 +7,31 @@ vars = {
   "gyp_rev": "@937",
   "co19_rev": "@54",
   "co19_repo": "https://co19.googlecode.com/svn/trunk/co19/",
+  "dart_branch": "/branches/bleeding_edge"
 }
 
 deps = {
   "runtime":
-    "/branches/bleeding_edge/runtime",
+    Var("dart_branch") + "/runtime",
 
   "corelib":
-    "/branches/bleeding_edge/corelib",
+    Var("dart_branch") + "/corelib",
 
   "language":
-    "/branches/bleeding_edge/language",
-
-  "benchmarks":
-    "/branches/bleeding_edge/internal/golem/benchmarks",
+    Var("dart_branch") + "/language",
 
   "tests":
-    "/branches/bleeding_edge/tests",
+    Var("dart_branch") + "/tests",
 
   "tools":
-    "/branches/bleeding_edge/tools",
+    Var("dart_branch") + "/tools",
 
   # Stuff needed for GYP to run.
   "third_party/gyp":
     "http://gyp.googlecode.com/svn/trunk" + Var("gyp_rev"),
 
   "co19":
-    "/branches/bleeding_edge/co19",
+    Var("dart_branch") + "/co19",
 
   "co19/tests/co19/src":
     Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
