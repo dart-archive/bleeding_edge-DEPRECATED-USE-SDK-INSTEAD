@@ -1,0 +1,31 @@
+<!-- Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+  <head>
+    <title>sunflower</title>
+    <link type="text/css" rel="stylesheet" href="sunflower.css">
+  </head>
+  <body>
+    <h1>drfibonacci's* Sunflower Spectacular</h1>
+    <h2>* Count the clockwise and counter-clockwise spiral arms at the edges</h2>
+    <div>
+        <img src="math.png">
+    </div>
+    <div>
+        <canvas id="canvas" width="300" height="300"></canvas>
+    </div>
+    <div>
+        <label># seeds (n):</label>
+    </div>
+    <div class="rangeOption">
+      <input id="slider" type="range" max="1000" value="0" />
+      <label class="minLabel">0</label>
+      <label class="maxLabel">1000</label>
+    </div>
+    <!-- Include script LAST to ensure DOM is ready -->
+    <script type="text/javascript" src="Sunflower.app.js"></script>
+  </body>
+</html>
+

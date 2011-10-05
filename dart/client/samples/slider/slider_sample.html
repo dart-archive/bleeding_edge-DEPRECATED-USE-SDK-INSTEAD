@@ -1,0 +1,34 @@
+<!-- Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Slider Menu Sample App</title>
+    <link rel="stylesheet" type="text/css" href="/view/resources/view.css"/>
+    <link rel="stylesheet" type="text/css" href="slider_sample.css"/>
+
+    <script type="application/dart" src="slider_sample.dart"></script>
+    <script type="text/javascript">
+      (function() {
+        if (!document.implementation.hasFeature('Dart')) {
+          var scriptElement = document.createElement('script');
+          scriptElement.setAttribute("type", "text/javascript");
+          scriptElement.setAttribute("src", "slider_sample.js");
+          var head = document.getElementsByTagName("head")[0];
+          head.appendChild(scriptElement);
+        }
+       })();
+    </script>
+  </head>
+  <body>
+    <h2 id="status">
+      dart is not running
+    </h2>
+    <div id="menu"></div>
+    <div id="message"></div>
+    <div id="next">Next</div>
+    <div id="prev">Prev</div>
+  </body>
+</html>

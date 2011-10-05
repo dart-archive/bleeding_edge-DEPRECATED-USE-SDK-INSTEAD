@@ -1,0 +1,77 @@
+/* Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file. */
+
+#appTitle {
+  font-size: 20px;
+}
+
+.isolate {
+  border: 2px solid green;
+  margin: 20px;
+  width: 400px;
+  height: 200px;
+  padding: 10px;
+}
+
+#isolateTemplate {
+  display: none;
+}
+
+.isolateMain {
+  background-image: -webkit-gradient(linear,left bottom,right top,from(white),to(lightgray));
+}
+
+.isolateA {
+  background-image: -webkit-gradient(linear,left bottom,right top,from(lightgreen),to(lightgray));
+}
+
+.isolateB {
+  background-image: -webkit-gradient(linear,left bottom,right top,from(#0099FF),to(lightgray));
+}
+
+.isolateTitle {
+  font-size: 20px;
+}
+
+.messageBox {
+  padding: 2px;
+  border: 1px solid black;
+  background: white;
+  height: 50%;
+}
+
+.messageText {
+  font-weight: bold;
+}
+
+.replyText {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+#greetingText {
+  margin-top: 15px;
+}
+
+.delayTextbox {
+  width: 60px;
+  text-align: right;
+}
+
+.spacer {
+  margin-top: 50px;
+}
+
+.systemInfo {
+  font-size: 14px;
+}
+
+#vmStatus {
+  font-weight: bold;
+}
+
+.chirpButton {
+  float: right;
+}

@@ -1,0 +1,616 @@
+/* Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file. */
+
+/*
+  TODO:
+  - style context menus
+  - make tests run async ... and be cute.
+*/
+body {
+  margin: 0px;
+  padding: 0px;
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  /* TODO: Package font for non-macs. */
+  font-family: Gill Sans MT, Gill Sans;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+/** Sandbar **/
+#sandbar {
+  position: absolute;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: -webkit-box;
+  -webkit-box-align: center;
+  -webkit-box-pack: justify;
+  -webkit-box-shadow: 0 5px 5px rgba(0, 0, 0, 0.4);
+  height: 33px;
+  background: #332;
+  padding-right: 10px;
+}
+#sandbar-controls img {
+  display: block;
+}
+#sandbar-controls {
+  -webkit-box-flex: 0;
+  display: -webkit-box;
+  -webkit-box-align: center;
+}
+#sandbar-name {
+  display: block;
+  color: #fff;
+  font-size: 10pt;
+  padding: 0 5px;
+  font: 13px/27px Arial,sans-serif;
+  text-shadow: 1px 1px 1px #666;
+}
+#sandbar-title {
+  -webkit-box-flex: 0;
+  font-size: 28px;
+  font-weight: 100;
+  padding-left: 5px;
+  /* text-shadow is meant to give title a stark, even thinner appearance */
+  text-shadow: 1px 1px 1px #666;
+  color: #6ef;
+}
+/* ObjectBar */
+#objectbar {
+  position: absolute;
+  top: 33px;
+  left: 0;
+  width: 32px;
+  bottom: 0;
+  z-index: 1001;
+  background: #443;
+  padding-top: 10px;
+  -webkit-box-shadow: 3px 4px 3px rgba(0, 0, 0, 0.4);
+}
+div.tableobject, div.graphobject {
+  height: 24px;
+  cursor: pointer;
+}
+div.tableobject.selected {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  border-right: 1px solid #443;
+}
+div.tableobject {
+  background: url(img/tableobject.png) no-repeat 50% 50%;
+}
+div.graphobject {
+  background: url(img/graphobject.png) no-repeat 50% 50%;
+}
+div.tableobject:hover div.objecttext,
+div.graphobject:hover div.objecttext {
+  display: block;
+}
+div.objecttext {
+  background: #353535;
+  position: absolute;
+  left: 42px;
+  color: #fff;
+  font-weight: 100;
+  white-space: nowrap;
+  padding: 5px 8px 5px 5px;
+  -webkit-box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
+  -webkit-border-radius: 2px;
+  display: none;
+  opacity: 0.9;
+}
+div.objectcall {
+  float: left;
+  background: #353535;
+  -webkit-transform: rotate(45deg);
+  width: 0;
+  border-left: 15px solid #353535;
+  border-top: 15px solid #353535;
+  margin: 0 3px 0 -8px;
+}
+#stylebar {
+  background: #cccccc;
+  border-bottom: 1px solid #bbbbbb;
+}
+#debugbar {
+  box-sizing: border-box;
+  position: absolute;
+  background: #000;
+  right: 0;
+  left: 32px;
+  bottom: 0;
+  padding-left: 20px;
+  z-index: 999;
+  -webkit-transition: all 200ms ease-in-out;
+  height: 0;
+  overflow: hidden;
+}
+#debugbar.on {
+  height: 32px;
+  padding-top: 5px;
+}
+
+#spreadsheet {
+  position: absolute;
+  background: #fff;
+  top: 33px;
+  left: 32px;
+  right: 0;
+  /* TODO: Make zero when debugbar is repositioned. */
+  bottom: 0;
+  z-index: 1;
+  /* TODO: Should be able to remove eventually */
+  overflow: auto;
+}
+#spreadsheet::-webkit-scrollbar,
+#tableScrollContainer::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+#spreadsheet::-webkit-scrollbar-button:start:decrement,
+#spreadsheet::-webkit-scrollbar-button:end:increment,
+#tableScrollContainer::-webkit-scrollbar-button:start:decrement,
+#tableScrollContainer::-webkit-scrollbar-button:end:increment {
+  height: 4px;
+  width: 4px;
+  display: block;
+  background-color: transparent;
+}
+#spreadsheet::-webkit-scrollbar-track-piece,
+#tableScrollContainer::-webkit-scrollbar-track-piece {
+  background-color: #ccc;
+  -webkit-border-radius: 4px;
+  border: 1px solid #fff;
+}
+#spreadsheet::-webkit-scrollbar-thumb:vertical,
+#spreadsheet::-webkit-scrollbar-thumb:horizontal,
+#tableScrollContainer::-webkit-scrollbar-thumb:vertical,
+#tableScrollContainer::-webkit-scrollbar-thumb:horizontal {
+  background-color: #666;
+  -webkit-border-radius: 4px;
+  border: 1px solid #fff;
+}
+/* the vertical and horizontal line that is drawn during resizing columns or rows */
+.rowColDragger {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  background-color: rgba(40,40,40,0.5);
+  z-index: 1000;
+  pointer-events: none;
+  display: none;
+}
+#columnDragger {
+  margin-left: -2px;
+  width: 3px;
+  height: 100%;
+}
+#rowDragger {
+  margin-top: -2px;
+  height: 3px;
+  width: 100%;
+}
+#debug {
+  height: 35px;
+  background: #cccccc;
+  border-top: 1px solid #bbbbbb;
+}
+#selection {
+  position: absolute;
+  border: 1px solid #6ef;
+  background-color: rgba(102, 238, 255, 0.3);
+  padding: 1px;
+  margin-left: -2px;
+  margin-top: -2px;
+  pointer-events: none;
+}
+#selection-thumb {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border: 1px solid #278;
+  -webkit-border-radius: 3px;
+  bottom: -2px;
+  right: -2px;
+  background-color: #fff;
+}
+#rowHandle {
+  display: -webkit-box;
+  position: absolute;
+  z-index: 3;
+}
+#columnHandle {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  position: absolute;
+  z-index: 3;
+}
+#formulaDiv {
+  position: absolute;
+  border: 0px;
+  padding: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+/* Use the same text style for the following two rules */
+#formulaInput {
+  border: 0px;
+  padding: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+#formulaInputMeasure {
+  position: absolute;
+  width: auto;
+  height: auto;
+  visibility: hidden;
+}
+#formulaSelectingCell {
+  position: absolute;
+  border: 2px dashed #109618;
+  z-index: 3;
+  pointer-events: none;
+}
+.recalculate {
+}
+
+body {
+  -webkit-user-select: none;
+}
+table.spreadsheet {
+  border-spacing: 0;
+  -webkit-user-select: none;
+  table-layout: fixed;
+  cursor: cell;
+}
+table.spreadsheet td, table.spreadsheet th {
+  border: 1px solid #d6d6d6;
+  border-width: 0 1px 1px 0;
+  padding: 2px 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+  -webkit-transition: border 200ms ease-in-out;
+}
+tr.with-inner-menu td {
+  /* NOTE: The bottom border must be kept in sync with the total height of .inner-menu */
+  border-width: 0 1px 38px 0;
+}
+.inner-menu {
+  box-sizing: border-box;
+  position: absolute;
+  left:0;
+  right:0;
+  background: url(/img/inner-menu-bg.png);
+  overflow: hidden;
+  border-top: 1px solid #666;
+  border-bottom: 1px solid #666;
+}
+.inner-menu-buttons {
+  margin: 5px 0 5px 50px;
+}
+.inner-menu-button:active {
+  background: -webkit-gradient(linear,left top,left bottom,from(#ccc),to(#ddd));
+}
+.inner-menu-button:hover, .inner-menu-button:active {
+  border: 1px solid #666;
+}
+.inner-menu-button {
+  background: -webkit-gradient(linear,left top,left bottom,from(#ddd),to(#eee));
+  -webkit-box-shadow: inset 0 1px 5px #ccc;
+  border: 1px solid #999;
+  -webkit-border-radius: 4px;
+  height: 24px;
+  margin-right: 1px;
+  padding-top: 3px;
+}
+.inner-menu-button > .b {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -256px 0px;
+}
+.inner-menu-button > .b-selected {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -256px 0px;
+}
+.inner-menu-button > .i {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -272px 0px;
+}
+.inner-menu-button > .i-selected {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -272px 0px;
+}
+.inner-menu-button > .u {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -496px 0px;
+}
+.inner-menu-button > .u-selected {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -496px 0px;
+}
+.inner-menu-button > .s {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -832px 0px;
+}
+.inner-menu-button > .s-selected {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -832px 0px;
+}
+/* Text color picker button */
+.inner-menu-button > .t {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -288px 0px;
+}
+/* Background color picker button */
+.inner-menu-button > .k {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/spreadsheets/icons1.png) no-repeat 0px 0px;
+}
+.inner-menu-button > .l {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -304px 0px;
+}
+.inner-menu-button > .l-selected {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -304px 0px;
+}
+.inner-menu-button > .c {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -320px 0px;
+}
+.inner-menu-button > .c-selected {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -320px 0px;
+}
+.inner-menu-button > .r {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -336px 0px;
+}
+.inner-menu-button > .r-selected {
+  width: 16px;
+  height: 16px;
+  background: url(https://ssl.gstatic.com/docs/common/icons8.png) no-repeat -336px 0px;
+}
+/* Numeric format */
+.inner-menu-button > .n {
+  width: 16px;
+  height: 16px;
+  background: url(img/123.png);
+}
+.inner-menu-button > .n-selected {
+  width: 16px;
+  height: 16px;
+  background: url(img/123.png);
+}
+
+/* Color picker */
+.color-picker {
+  position: relative;
+  left: 0px;
+  top: 21px;
+  background: rgba(255,255,255,0.925);
+  border: solid 1px #b4b4b4;
+  -webkit-box-shadow: 3px 4px 3px rgba(0, 0, 0, 0.2);
+  -webkit-border-radius: 5px;
+  -webkit-padding-start: 0px;
+ }
+.color-picker-item {
+  -webkit-border-radius: 4px;
+}
+.color-picker-item-selected {
+  -webkit-border-radius: 4px;
+  margin-top: -1px;
+  margin-left: -1px;
+  border: 1px solid black;
+}
+
+/* Value picker */
+.value-picker {
+  padding-top: 21px;
+  margin-left: -6px;
+  text-align: left;
+}
+ul.value-picker-ul {
+  position: absolute;  padding-top: 4px;
+  padding-bottom: 4px;
+  margin: 0px;
+  background: rgba(255,255,255,0.925);
+  border: solid 1px #b4b4b4;
+  -webkit-box-shadow: 3px 4px 3px rgba(0, 0, 0, 0.2);
+  -webkit-border-radius: 5px;
+  -webkit-padding-start: 0px;
+}
+li.value-picker-item {
+  list-style: none;
+  -webkit-border-radius: 0px;
+  display: block;
+  font-family: Gill Sans MT, Gill Sans;
+  font-size: 14px;
+  line-height: 100%;
+  padding: 5px 20px;
+  margin: 0px;
+}
+li.value-picker-item-selected {
+  list-style: none;
+  -webkit-border-radius: 0px;
+  display: block;
+  font-family: Gill Sans MT, Gill Sans;
+  font-size: 14px;
+  line-height: 100%;
+  padding: 5px 20px;
+  margin: 0px;
+  background-color: rgba(0, 0, 0, .15);
+}
+li.value-picker-item-enabled {
+  color: #666;
+}
+li.value-picker-item-disabled {
+  pointer-events: none;
+  color: #aaa;
+}
+li.value-picker-item-enabled:hover {
+  list-style: none;
+  display: block;
+  font: Gill Sans;
+  font-size: 14px;
+  line-height: 100%;
+  padding: 5px 20px;
+  margin: 0px;
+  color: white;
+  background-color: #0078ff;
+  cursor: default;
+}
+
+td.rowHeader, td.columnHeader, td.cornerHeader {
+  text-align: center;
+  background: #e1e1e1;
+  border: 1px solid #bcbcbc;
+  border-width: 0 1px 1px 0;
+  color: #666;
+}
+td.rowHeader-selected, td.columnHeader-selected {
+  text-align: center;
+  background: #bfbfbf;
+  border: 1px solid #bcbcbc;
+  border-width: 0 1px 1px 0;
+  color: #666;
+}
+td.dependency {
+  background-color: #efe;
+}
+td.forwardDependency {
+  background-color: #fee;
+}
+td.menuBar {
+  border: 0px;
+}
+/* TODO: Remove redundancy here in the element & class.
+   Also some of these rules can probably be pruned further. */
+button.button {
+  box-sizing: content-box;
+  display: block;
+  min-width: 20px;
+  height: 20px;
+  margin: 0 0 1px 1px;
+  border: 1px solid rgba(10,10,10,0.4);
+  background: rgba(20,20,20,0.3);
+  font-size: 16px;
+  border-radius: 5px;
+  color: rgba(0,0,0,0.7);
+  z-index: 999;
+}
+button.button.hovered {
+  background: rgba(80,80,80,0.3);
+}
+/* Context Menu */
+ul.contextMenu {
+  position: absolute;
+  background: rgba(255,255,255,0.925);
+  border: solid 1px #b4b4b4;
+  -webkit-border-radius: 5px;
+  -webkit-padding-start: 0px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin: 0px;
+  -webkit-box-shadow: 3px 4px 3px rgba(0, 0, 0, 0.2);
+}
+li.contextMenuItem {
+  list-style: none;
+  -webkit-border-radius: 0px;
+  display: block;
+  font: Gill Sans;
+  font-size: 14px;
+  line-height: 100%;
+  padding: 5px 20px;
+  margin: 0px;
+}
+li.contextMenuItem-enabled {
+  color: #666;
+}
+li.contextMenuItem-disabled {
+  pointer-events: none;
+  color: #aaa;
+}
+li.contextMenuItem-enabled:hover {
+  list-style: none;
+  display: block;
+  font: Gill Sans;
+  font-size: 14px;
+  line-height: 100%;
+  padding: 5px 20px;
+  margin: 0px;
+  color: white;
+  background-color: #0078ff;
+  cursor: default;
+}
+.fadeOut {
+  /* fade out effect */
+  opacity: 0;
+  z-index: -100;
+  -webkit-transition-property: opacity, z-index;
+  -webkit-transition-duration: 0.15s, 0s;
+  -webkit-transition-timing-function: ease-in, linear;
+  -webkit-transition-delay: 0s, 0.15s;
+  pointer-events: none;
+}
+.fadeIn {
+  /* fade in effect */
+  opacity: 1;
+  z-index: 1000;
+  -webkit-transition-property: opacity;
+  -webkit-transition-duration: 0.35s;
+  -webkit-transition-timing-function: ease-out;
+  -webkit-transition-delay: 0s;
+}
+/* Graph Canvas */
+canvas.graphCanvas {
+  position: absolute;
+  left: 100px;
+  top: 100px;
+  border: 2px solid black;
+  background-color: white;
+}
+/* Server-side chart div */
+div.chartDiv {
+  position: absolute;
+  left: 750px;
+  top: 100px;
+  border: 2px solid black;
+  background-color: white;
+}
+/* Spreadsheet resize handle */
+.resizeDragger {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 2px solid gray;
+  cursor: move;
+}
+.tableScrollContainer {
+  overflow: auto;
+  z-index: 3000; /* fixme */
+}

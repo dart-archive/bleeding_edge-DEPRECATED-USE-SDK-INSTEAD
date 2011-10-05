@@ -1,0 +1,54 @@
+<!-- Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+  <head>
+    <title>Isolate Sample</title>
+
+    <link rel="stylesheet" type="text/css" href="isolate_sample.css"/>
+
+    <script type="application/dart" src="isolate_sample.dart"></script>
+    <script type="text/javascript">
+      (function() {
+        if (!document.implementation.hasFeature('Dart')) {
+          var scriptElement = document.createElement('script');
+          scriptElement.setAttribute("type", "text/javascript");
+          scriptElement.setAttribute("src", "isolate_sample.js");
+          var head = document.getElementsByTagName("head")[0];
+          head.appendChild(scriptElement);
+        }
+       })();
+    </script>
+
+  </head>
+  <body>
+    <div id="appTitle"></div>
+
+    <div class="isolate isolateMain">
+      <div class="isolateName">This is the main isolate.</div>
+      <input type="text" id="greetingText" value="hello" />
+      <div><input type="button" class="sendButton" value = "send message to A" /></div>
+      <div><input type="button" class="sendButton" value = "send message to B"/></div>
+      <div class="replyText"></div>
+    </div>
+
+    <div id="isolateTemplate">
+      <div class="isolate">
+        <div class="isolateTitle">isolate <span class="isolateName"></span></div>
+        <div class="messageBox"></div>
+        <input class="replyCheckbox" type="checkbox" checked="checked" /><label>Send reply</label>
+        <div>delay reply: <input class="delayTextbox" type="text" value="1200" />ms</div>
+        <input class="chirpButton" type="button" value="chirp" />
+      </div>
+    </div>
+
+
+    <div id="isolateParent"></div>
+
+    <div class="spacer"></div>
+    <div class="systemInfo">app version: .03</div>
+    <div class="systemInfo">running on vm: <span id="vmStatus">dart is not running</span></div>
+
+  </body>
+</html>

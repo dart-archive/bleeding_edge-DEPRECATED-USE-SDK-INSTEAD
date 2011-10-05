@@ -1,0 +1,62 @@
+/* Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file. */
+/** Add css rules here for your application. */
+
+body,div {
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+	display:block;
+}
+
+/** Example rules used by the template application (remove for your app) */
+h1 {
+  font-size: 2em;
+  font-weight: bold;
+  color: #777777;
+  margin: 10px 0px 10px;
+  text-align: center;
+}
+
+h2 {
+  font-size: 1em;
+  color: #777777;
+  margin: 10px 0px 10px;
+  text-align: center;
+}
+
+label {
+  vertical-align: top;
+}
+
+.rangeOption {
+  float: initial;
+  width: 150px;
+}
+
+.rangeOption input {
+  display:block;
+  width: 100%;
+}
+
+.rangeOption .minLabel {
+  float: left;
+}
+
+.rangeOption .minLabel label {
+  margin-left: -50%;
+}
+
+.rangeOption .maxLabel {
+  float: right;
+}
+
+.rangeOption .maxLabel label {
+  margin-left: 50%;
+}
+
+math {
+  margin: 10px;
+  font-size: x-large;
+}
