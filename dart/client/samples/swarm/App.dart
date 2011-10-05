@@ -58,7 +58,7 @@ class App {
    * Assumption: if a splash screen exists, an element #appSplash contains it.
    */
   void eraseSplashScreen() {
-    final splash = document.queryOne("#appSplash");
+    final splash = document.query("#appSplash");
     // Delete it if found, but it's okay for it not to be -- maybe
     // somebody just didn't want to use our splash mechanism.
     if (splash !== null) {

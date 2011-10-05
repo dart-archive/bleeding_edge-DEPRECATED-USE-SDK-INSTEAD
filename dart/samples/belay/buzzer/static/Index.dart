@@ -16,13 +16,13 @@ class Index {
     "http://localhost:9014/belay/generateProfile";
 
   Index(this.belay) {
-    window.document.queryOne('#create').on.click.add(
+    window.document.query('#create').on.click.add(
       void _(__) { generate(); }
     );
   }
 
   void generate() {
-    InputElement titleElt = window.document.queryOne('#title');
+    InputElement titleElt = window.document.query('#title');
     String title = titleElt.value;
     Bcap genCap = belay.capServer.restore(GENERATE_CAP_URL);
 

@@ -732,9 +732,9 @@ class ArticleView extends View {
           </div>
         </div>''');
 
-    final title = node.queryOne('.title');
-    final snippet = node.queryOne('.snippet');
-    final img = item.hasThumbnail ? node.queryOne('img') : null;
+    final title = node.query('.title');
+    final snippet = node.query('.snippet');
+    final img = item.hasThumbnail ? node.query('img') : null;
 
     // Note: also populates title and snippet elements.
     final metrics = articleLayout.computeLayout(item, title, snippet);
@@ -742,7 +742,7 @@ class ArticleView extends View {
     // Remove the snippet entirely if it's empty. This keeps it from taking up
     // space and pushing the padding down.
     if ((item.textBody == null) || (item.textBody.trim() == '')) {
-      node.queryOne('.caption').remove();
+      node.query('.caption').remove();
     }
 
     return node;
@@ -863,7 +863,7 @@ class StoryContentView extends View {
   Element render() {
     final storyContent = new Element.html(
         '<div class="story-content">${item.htmlBody}</div>');
-    for (Element element in storyContent.query(
+    for (Element element in storyContent.queryAll(
         "iframe, script, style, object, embed, frameset, frame")) {
       element.remove();
     }
@@ -872,7 +872,7 @@ class StoryContentView extends View {
     // Modify all links to open in new windows....
     // TODO(jacobr): would it be better to add an event listener on click that
     // intercepts these instead?
-    for (final anchor in storyContent.query('a')) {
+    for (final anchor in storyContent.queryAll('a')) {
       anchor.target = '_blank';
     }
 
@@ -893,7 +893,7 @@ class StoryContentView extends View {
         </div>
       </div>''');
 
-    container.queryOne('.paged-story').replaceWith(_pagedStory.node);
+    container.query('.paged-story').replaceWith(_pagedStory.node);
 
     return container;
   }

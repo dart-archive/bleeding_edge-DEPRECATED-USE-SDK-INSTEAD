@@ -19,7 +19,7 @@ class Buzzer {
   Bcap readCap;
 
   void onBzrClicked() {
-    TextAreaElement elt = window.document.queryOne("#body");
+    TextAreaElement elt = window.document.query("#body");
     String body = elt.value;
     Map buzz = { "body": body };
     postCap.post(buzz);
@@ -36,7 +36,7 @@ class Buzzer {
     }
     item.nodes.add(makeP('buzzer-body', buzz['body']));
 
-    window.document.queryOne("#buzzer-items").elements.add(item);
+    window.document.query("#buzzer-items").elements.add(item);
   }
 
   void revive() {
@@ -70,15 +70,15 @@ class Buzzer {
     postCap = belay.info["postCap"];
     readCap = belay.info["readCap"];
 
-    Element titleElt = window.document.queryOne("#title");
+    Element titleElt = window.document.query("#title");
     titleElt.text = belay.info["title"];
 
     topDiv = window.document.body.nodes.first;
     
-    window.document.queryOne('#post').on['click'].add(
+    window.document.query('#post').on['click'].add(
       void _(event) { onBzrClicked(); });
 
-    Element elt = window.document.queryOne('.buzzer-post-chit');
+    Element elt = window.document.query('.buzzer-post-chit');
     belay.capDraggable(
       elt,
       RC_POST,

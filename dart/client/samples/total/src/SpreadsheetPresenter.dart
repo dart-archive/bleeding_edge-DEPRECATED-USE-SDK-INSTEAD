@@ -540,7 +540,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   // Create the cell display dropdown.
   SelectElement _createCellDisplay(Document doc, String parentId, List<String> values) {
-    Element parent = doc.queryOne('#$parentId');
+    Element parent = doc.query('#$parentId');
     SelectElement element = doc.createElement("select");
     StringBuffer sb = new StringBuffer();
     values.forEach((String value) {

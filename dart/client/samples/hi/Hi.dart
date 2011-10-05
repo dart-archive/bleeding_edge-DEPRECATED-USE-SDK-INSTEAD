@@ -7,5 +7,5 @@
 #import('../../html/html.dart');
 
 main() {
-  document.queryOne('#status').innerHTML = 'Hi, Dart';
+  document.query('#status').innerHTML = 'Hi, Dart';
 }

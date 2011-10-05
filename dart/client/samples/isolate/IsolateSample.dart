@@ -52,16 +52,16 @@ class IsolateSample  {
    */
   void ready() {
 
-    document.queryOne("#appTitle").text = "Hello, isolates.";
-    document.queryOne("#vmStatus").text = isVm().toString();
+    document.query("#appTitle").text = "Hello, isolates.";
+    document.query("#vmStatus").text = isVm().toString();
 
     Element replyElement =
-        document.queryOne(".isolateMain .replyText");
+        document.query(".isolateMain .replyText");
 
     createIsolate("A");
     createIsolate("B");
 
-    for (Element element in document.query(".sendButton")) {
+    for (Element element in document.queryAll(".sendButton")) {
       element.on.click.add(Isolate.bind((Event e) {
         replyElement.text = "waiting for reply...";
 
@@ -69,7 +69,7 @@ class IsolateSample  {
         // example, "send message to A".
         String buttonText = e.currentTarget.dynamic.attributes["value"];
         String isolateName = buttonText[buttonText.length - 1];
-        String greeting = document.queryOne("#greetingText").dynamic.value;
+        String greeting = document.query("#greetingText").dynamic.value;
         var message = { "id": MessageId.GREETING, "args" : [ greeting ] };
         ports[isolateName].call(message).receive(
             (var message, SendPort replyTo) {
@@ -126,11 +126,11 @@ class DemoIsolate extends Isolate {
     this.chirpPort = chirpPort;
     div = document.createElement("div");
     div.classes = ["isolate", "isolate${isolateName}"];
-    div.innerHTML = document.queryOne("#isolateTemplate").
+    div.innerHTML = document.query("#isolateTemplate").
         firstElementChild.dynamic.innerHTML;
-    div.queryOne(".isolateName").text = isolateName;
-    document.queryOne("#isolateParent").nodes.add(div);
-    div.queryOne(".chirpButton").on.click.add(
+    div.query(".isolateName").text = isolateName;
+    document.query("#isolateParent").nodes.add(div);
+    div.query(".chirpButton").on.click.add(
         Isolate.bind(void _(Event) { chirpPort.call(
               "this is a chirp message from isolate " + isolateName);
     }), false);
@@ -141,10 +141,10 @@ class DemoIsolate extends Isolate {
    * the user has unchecked the reply checkbox).
    */
   void greeting(String message, SendPort replyTo) {
-      div.queryOne(".messageBox").dynamic.innerHTML =
+      div.query(".messageBox").dynamic.innerHTML =
         "received message: <span class='messageText'>'${message}'</span>";
-      if (div.queryOne(".replyCheckbox").dynamic.checked) {
-        InputElement element = div.queryOne(".delayTextbox");
+      if (div.query(".replyCheckbox").dynamic.checked) {
+        InputElement element = div.query(".delayTextbox");
         int millis = Math.parseInt(element.value);
         window.setTimeout(Isolate.bind(() {
           replyTo.send("this is a reply from isolate '${isolateName}'", null);

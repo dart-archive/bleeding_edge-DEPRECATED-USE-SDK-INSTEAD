@@ -14,7 +14,7 @@ class Total {
   SpreadsheetPresenter _presenter;
 
   Total() {
-    ButtonElement recalcButton = document.queryOne("#recalcButton");
+    ButtonElement recalcButton = document.query("#recalcButton");
     recalcButton.innerHTML = "Recalculate";
     recalcButton.on.click.add((Event e) {
       _presenter.recalculateAll();
@@ -40,7 +40,7 @@ void main() {
   document.on.keyDown.add((KeyboardEvent event) {
     // TODO: Browsers need to fix the keyCode/keyIdentifier situation.
     if (event.ctrlKey && event.keyCode == 68 /* d */) {
-      Element db = document.queryOne('#debugbar');
+      Element db = document.query('#debugbar');
       if (db.classes.contains('on')) {
         db.classes.remove('on');
       } else {

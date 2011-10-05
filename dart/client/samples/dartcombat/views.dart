@@ -207,7 +207,7 @@ class EnemyGridView extends View {
   void setEnemyReady() {
     if (!_enemyReady) {
       _enemyReady = true;
-      _rootNode.queryOne(".notready").remove();
+      _rootNode.query(".notready").remove();
     }
   }
 
@@ -238,7 +238,7 @@ class EnemyGridView extends View {
    * shots failed due to network errors).
    */
   void removeMaybeHit(int x, int y) {
-    for (Element node in _rootNode.query(".maybe-hit")) {
+    for (Element node in _rootNode.queryAll(".maybe-hit")) {
       int xoffset = x * 50;
       int yoffset = y * 50;
       if (node.style.getPropertyValue("top") == "${yoffset}px"

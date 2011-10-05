@@ -100,8 +100,8 @@ class PlayerState extends Isolate {
     totalMisses = 0;
     boatsSunk = 0;
 
-    _ownView = new PlayerGridView(this, document.queryOne("#p${id}own"));
-    _enemyView = new EnemyGridView(this, document.queryOne("#p${id}enemy"));
+    _ownView = new PlayerGridView(this, document.query("#p${id}own"));
+    _enemyView = new EnemyGridView(this, document.query("#p${id}enemy"));
     if (_portForTest != null) {
       _portForTest.call(["_TEST:handleSetup", id]);
     }

@@ -13,17 +13,17 @@ class SliderSample  {
   SliderSample() : menuItems = const["Apple", "Banana", "Cherry", "Durian"] {}
 
   void ready() {
-    document.queryOne("#status").innerHTML = "Slider Menu Sample App";
+    document.query("#status").innerHTML = "Slider Menu Sample App";
     sliderMenu = new SliderMenu(menuItems, (selectedText) {
-      document.queryOne("#message").innerHTML = "Selected '${selectedText}'";
+      document.query("#message").innerHTML = "Selected '${selectedText}'";
     });
-    document.queryOne("#menu").nodes.add(sliderMenu.node);
+    document.query("#menu").nodes.add(sliderMenu.node);
 
-    document.queryOne('#next').on.click.add((e) {
+    document.query('#next').on.click.add((e) {
       sliderMenu.selectNext(true);
     });
 
-    document.queryOne('#prev').on.click.add((e) {
+    document.query('#prev').on.click.add((e) {
       sliderMenu.selectPrevious(true);
     });
 
