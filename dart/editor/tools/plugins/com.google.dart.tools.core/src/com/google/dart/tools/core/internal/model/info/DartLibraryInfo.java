@@ -16,8 +16,6 @@ package com.google.dart.tools.core.internal.model.info;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
 
-import org.eclipse.core.resources.IResource;
-
 /**
  * Instances of the class <code>DartLibraryInfo</code> maintain the cached data shared by all equal
  * libraries.
@@ -37,29 +35,6 @@ public class DartLibraryInfo extends OpenableElementInfo {
    * An array containing all of the libraries that are imported by this library.
    */
   private DartLibrary[] importedLibraries = DartLibrary.EMPTY_LIBRARY_ARRAY;
-
-  /**
-   * An array containing all of the resources that are included in this library.
-   */
-  private IResource[] resources = EMPTY_RESOURCE_ARRAY;
-
-  /**
-   * An empty array of resources used to initialize instances.
-   */
-  private static final IResource[] EMPTY_RESOURCE_ARRAY = new IResource[0];
-
-  /**
-   * Add the given resource to the list of resources associated with the library.
-   * 
-   * @param resource the resource to be added to the list
-   */
-  public void addResource(IResource resource) {
-    int oldCount = resources.length;
-    IResource[] newResources = new IResource[oldCount + 1];
-    System.arraycopy(resources, 0, newResources, 0, oldCount);
-    newResources[oldCount] = resource;
-    resources = newResources;
-  }
 
   /**
    * Return the compilation unit that defines this library.
@@ -90,15 +65,6 @@ public class DartLibraryInfo extends OpenableElementInfo {
   }
 
   /**
-   * Return an array containing all of the resources that are included in this library.
-   * 
-   * @return an array containing all of the resources that are included in this library
-   */
-  public IResource[] getResources() {
-    return resources;
-  }
-
-  /**
    * Set the compilation unit that defines this library to the given compilation unit.
    * 
    * @param unit the compilation unit that defines this library
@@ -124,14 +90,5 @@ public class DartLibraryInfo extends OpenableElementInfo {
    */
   public void setName(String newName) {
     name = newName;
-  }
-
-  /**
-   * Set the resources that are included in this library to those in the given list.
-   * 
-   * @param resources an array containing all of the resources that are included in this library
-   */
-  public void setResources(IResource[] resources) {
-    this.resources = resources;
   }
 }

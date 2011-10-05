@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.ElementChangedListener;
 
 import org.eclipse.core.resources.IResource;
@@ -223,11 +224,11 @@ public class DeltaProcessingState implements IResourceChangeListener {
         DartLibrary[] libraries = dartProject.getDartLibraries();
         for (DartLibrary dartLibrary : libraries) {
           CompilationUnit[] cus = dartLibrary.getCompilationUnits();
-          IResource[] resArray = dartLibrary.getResources();
+          DartResource[] resArray = dartLibrary.getResources();
           HashSet<String> resources = new HashSet<String>(cus.length);
-          for (IResource res : resArray) {
+          for (DartResource res : resArray) {
             if (res != null) {
-              resources.add(res.getFullPath().toPortableString());
+              resources.add(res.getResource().getFullPath().toPortableString());
             }
           }
           libraryToResourceMap.put(dartLibrary, resources);

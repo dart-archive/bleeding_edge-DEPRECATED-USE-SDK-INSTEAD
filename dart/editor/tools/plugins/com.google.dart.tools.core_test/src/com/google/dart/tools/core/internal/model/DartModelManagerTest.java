@@ -22,11 +22,11 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -217,7 +217,7 @@ public class DartModelManagerTest extends TestCase {
     CompilationUnit[] units = library.getCompilationUnits();
     assertNotNull(units);
     assertEquals(2, units.length);
-    IResource[] resources = library.getResources();
+    DartResource[] resources = library.getResources();
     assertNotNull(resources);
     assertEquals(1, resources.length);
   }

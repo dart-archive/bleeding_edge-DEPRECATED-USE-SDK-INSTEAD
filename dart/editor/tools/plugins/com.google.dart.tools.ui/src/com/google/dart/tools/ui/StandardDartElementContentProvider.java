@@ -536,8 +536,7 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
   private Object[] getDartLibraryChildren(Object parent, DartLibrary dartLibrary)
       throws DartModelException {
     DartElement[] dartLibraryChildren = dartLibrary.getChildren();
-    IResource[] resources = dartLibrary.getResources();
-    List<Object> children = new ArrayList<Object>(dartLibraryChildren.length + resources.length + 1);
+    List<Object> children = new ArrayList<Object>(dartLibraryChildren.length + 1);
     ImportedDartLibraryContainer importedLibsContainer = new ImportedDartLibraryContainer(parent,
         dartLibrary);
     // Only add this LibrariesContainer if it has children.
@@ -554,9 +553,6 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
     }
     for (DartElement dartElement : dartLibraryChildren) {
       children.add(dartElement);
-    }
-    for (IResource res : resources) {
-      children.add(res);
     }
     return children.toArray(new Object[children.size()]);
   }

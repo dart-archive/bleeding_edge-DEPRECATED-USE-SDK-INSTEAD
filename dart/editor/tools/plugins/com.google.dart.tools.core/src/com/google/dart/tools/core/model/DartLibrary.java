@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.model;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.io.File;
@@ -40,7 +39,7 @@ public interface DartLibrary extends OpenableElement, ParentElement {
    * @return the file representing the resource that was added
    * @throws DartModelException if the directive cannot be added
    */
-  public IFile addResource(File file, IProgressMonitor monitor) throws DartModelException;
+  public DartResource addResource(File file, IProgressMonitor monitor) throws DartModelException;
 
   /**
    * Add a #source directive that will cause the given file to be included in this library. This
@@ -136,14 +135,12 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public DartLibrary[] getImportedLibraries() throws DartModelException;
 
   /**
-   * Return an array containing all of the resources that are included in this library. This list
-   * does not include compilation units. The returned resources are not included in the list of
-   * children for the library.
+   * Return an array containing all of the resources that are included in this library.
    * 
    * @return an array containing all of the resources that are included in this library
    * @throws DartModelException if the list of resources could not be determined for some reason
    */
-  public IResource[] getResources() throws DartModelException;
+  public DartResource[] getResources() throws DartModelException;
 
   /**
    * Return <code>true</code> if this library is defined in a workspace resource, or

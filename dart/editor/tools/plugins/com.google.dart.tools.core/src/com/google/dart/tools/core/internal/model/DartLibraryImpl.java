@@ -40,6 +40,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceUtilities;
@@ -171,16 +172,18 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
-  public IFile addResource(File file, IProgressMonitor monitor) throws DartModelException {
+  public DartResource addResource(File file, IProgressMonitor monitor) throws DartModelException {
     //
     // Create a link to the file.
     //
-    IFile resource;
+    IFile resourceFile;
     try {
-      resource = IProjectUtilities.addLinkToProject(getDartProject().getProject(), file, monitor);
+      resourceFile = IProjectUtilities.addLinkToProject(getDartProject().getProject(), file,
+          monitor);
     } catch (CoreException exception) {
       throw new DartModelException(exception);
     }
+    DartResourceImpl resource = new DartResourceImpl(this, resourceFile);
     //
     // Add the text of the directive to this library's defining file.
     //
@@ -189,7 +192,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       // Add the resource to the list of resources associated with the library.
       //
       DartLibraryInfo info = (DartLibraryInfo) getElementInfo();
-      info.addResource(resource);
+      info.addChild(resource);
     }
     return resource;
   }
@@ -199,13 +202,13 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     //
     // Create a link to the file.
     //
-    IFile resource;
+    IFile unitFile;
     try {
-      resource = IProjectUtilities.addLinkToProject(getDartProject().getProject(), file, monitor);
+      unitFile = IProjectUtilities.addLinkToProject(getDartProject().getProject(), file, monitor);
     } catch (CoreException exception) {
       throw new DartModelException(exception);
     }
-    CompilationUnitImpl unit = new CompilationUnitImpl(this, resource,
+    CompilationUnitImpl unit = new CompilationUnitImpl(this, unitFile,
         DefaultWorkingCopyOwner.getInstance());
     //
     // Add the text of the directive to this library's defining file.
@@ -388,8 +391,9 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
-  public IResource[] getResources() throws DartModelException {
-    return ((DartLibraryInfo) getElementInfo()).getResources();
+  public DartResource[] getResources() throws DartModelException {
+    List<DartResource> compilationUnits = getChildrenOfType(DartResource.class);
+    return compilationUnits.toArray(new DartResource[compilationUnits.size()]);
   }
 
   @Override
@@ -516,9 +520,13 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         if (source == null) {
           return null;
         }
-        IFile[] resources = ResourceUtil.getResources(source);
-        if (resources != null && resources.length == 1) {
-          resourceList.add(resources[0]);
+        IFile[] resourceFiles = ResourceUtil.getResources(source);
+        if (resourceFiles != null && resourceFiles.length == 1) {
+          IFile resourceFile = resourceFiles[0];
+          if (resourceFile.isAccessible()) {
+            resourceList.add(resourceFile);
+            children.add(new DartResourceImpl(DartLibraryImpl.this, resourceFile));
+          }
         }
         return null;
       }
@@ -580,9 +588,6 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     if (!importedLibraries.isEmpty()) {
       libraryInfo.setImportedLibraries(importedLibraries.toArray(new DartLibraryImpl[importedLibraries.size()]));
     }
-    if (!resourceList.isEmpty()) {
-      libraryInfo.setResources(resourceList.toArray(new IResource[resourceList.size()]));
-    }
     return true;
   }
 
@@ -624,7 +629,14 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         HTMLFileImpl file = new HTMLFileImpl(this, libraryFile.getProject().getFile(
             new Path(htmlPath)));
         return file.getHandleFromMemento(tokenizer, owner);
-
+      case MEMENTO_DELIMITER_VARIABLE:
+        if (!tokenizer.hasMoreTokens()) {
+          return this;
+        }
+        String resourcePath = tokenizer.nextToken();
+        DartResourceImpl resource = new DartResourceImpl(this, libraryFile.getProject().getFile(
+            new Path(resourcePath)));
+        return resource.getHandleFromMemento(tokenizer, owner);
     }
     return null;
   }

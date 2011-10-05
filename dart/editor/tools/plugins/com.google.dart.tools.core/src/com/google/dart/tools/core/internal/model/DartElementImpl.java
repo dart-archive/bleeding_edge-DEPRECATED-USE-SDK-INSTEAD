@@ -59,7 +59,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    * CRITICAL! Do not use colon (:) as a delimiter. It is used in the indexer as a delimiter between
    * the memento and other information. Using it as a delimiter here would break the indexer.
    * 
-   * Suggested characters for additional delimiters: '*', ')', '}', ']', '?', '&'
+   * Suggested characters for additional delimiters: '*', ')', '}', ']', '?'
    */
 
   /**
@@ -118,9 +118,9 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
   public static final char MEMENTO_DELIMITER_LIBRARY_FOLDER = '>';
 
   /**
-   * The character used before the name of a variable.
+   * The character used before the name of an HTML file.
    */
-  public static final char MEMENTO_DELIMITER_VARIABLE = '[';
+  public static final char MEMENTO_DELIMITER_RESOURCE = '&';
 
   /**
    * The character used before the name of a method.
@@ -136,6 +136,11 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    * The character used before the name of a type.
    */
   public static final char MEMENTO_DELIMITER_TYPE = '%';
+
+  /**
+   * The character used before the name of a variable.
+   */
+  public static final char MEMENTO_DELIMITER_VARIABLE = '[';
 
   /**
    * An empty array of resources.
