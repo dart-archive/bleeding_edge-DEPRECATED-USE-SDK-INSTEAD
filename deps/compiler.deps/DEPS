@@ -70,7 +70,7 @@ deps = {
     "http://v8.googlecode.com/svn/branches/3.4",
 
   "co19":
-    Var("dart_branch") + "co19",
+    Var("dart_branch") + "/co19",
 
   "co19/tests/co19/src":
     Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
