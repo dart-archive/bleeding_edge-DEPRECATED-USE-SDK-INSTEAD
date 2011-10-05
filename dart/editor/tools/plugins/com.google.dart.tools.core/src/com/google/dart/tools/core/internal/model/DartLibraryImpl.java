@@ -103,7 +103,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     }
     URI uri;
     try {
-      uri = new URI("file:" + libraryFile.getPath());
+      // We need to use the 3-arg constructor of URI in order to properly escape file system chars.
+      uri = new URI("file", libraryFile.getPath(), null);
     } catch (URISyntaxException e) {
       throw new AssertionError(e);
     }

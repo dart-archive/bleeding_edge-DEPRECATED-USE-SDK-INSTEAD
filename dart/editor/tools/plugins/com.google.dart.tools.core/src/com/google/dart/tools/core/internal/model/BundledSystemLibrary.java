@@ -48,8 +48,14 @@ public class BundledSystemLibrary extends SystemLibrary {
     if (entry == null) {
       return null;
     }
+
     try {
-      return FileLocator.resolve(entry).toURI();
+      URL resolvedUrl = FileLocator.resolve(entry);
+
+      // We need to use the 3-arg constructor of URI in order to properly escape file system chars.
+      URI resolvedUri = new URI(resolvedUrl.getProtocol(), resolvedUrl.getPath(), null);
+
+      return resolvedUri;
     } catch (URISyntaxException e) {
       throw new AssertionError(e);
     } catch (IOException e) {

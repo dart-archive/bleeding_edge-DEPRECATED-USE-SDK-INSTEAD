@@ -102,4 +102,17 @@ public class BundledSystemLibraryManagerTest extends TestCase {
       assertTrue(message.contains(fullUri.toString()));
     }
   }
+
+  /**
+   * Test for correct handling of spaces in the file path.
+   * 
+   * @throws Exception
+   */
+  public void testTranslate4() throws Exception {
+    URI shortUri = new URI("dart", "//core/wo ot.dart", null);
+    URI fullUri = libraryManager.expandRelativeDartUri(shortUri);
+    URI translatedURI = libraryManager.translateDartUri(fullUri);
+
+    assertNull(translatedURI);
+  }
 }
