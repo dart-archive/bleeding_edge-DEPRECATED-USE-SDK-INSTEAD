@@ -1,0 +1,20 @@
+URL: http://code.google.com/p/hamcrest
+License: BSD
+License File: LICENSE
+
+Description:
+Provides a library of matcher objects (also known as constraints or
+predicates) allowing 'match' rules to be defined declaratively, to be used in
+other frameworks. Typical scenarios include testing frameworks, mocking
+libraries and UI validation rules.
+
+Google specific notes:
+The original jars contained both source code and compiled classes.
+These were split, following Google standard naming convention, like this:
+
+    hamcrest-core-1.1.jar
+    hamcrest-core-1.1-src.jar
+
+When adding new versions of this library, please continue to follow this
+practice, as it enables IDE integration to attach sources, and avoids warnings
+from our build tools.

@@ -1,0 +1,32 @@
+@charset utf-8;
+@import url(test);
+
+@mixin z-base {
+    a:hover, a:active { outline: none; }
+    a, a:active, a:visited { color: #607890; }
+    a:hover { color: #036; }
+    @debug test; }
+
+@media print {
+    @include z-base; }
+
+// Test comment
+/* Css comment */
+body {
+    $font: Georgia;
+
+    margin-bottom: .5em;
+    font-family: $font, sans-serif;
+    *font:13px/1.231 sans-serif; }
+
+.test {
+    color: red;
+    &:after {
+        content: 'blue'; }}
+
+pre, code, kbd, samp {
+    font: 12px/10px;
+    font-family: monospace, sans-serif; }
+
+abbr[title], dfn[title] {
+    border:2px; }

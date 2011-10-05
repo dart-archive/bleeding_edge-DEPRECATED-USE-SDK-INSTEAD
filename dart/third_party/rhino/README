@@ -1,0 +1,6 @@
+URL: http://www.mozilla.org/rhino
+Version:  1.7R2
+License:  Mozilla Public License 1.1 (and dual licensed under GPL v2)
+Description: Mozilla Rhino is an implementation of JavaScript for the JVM.  See http://developer.mozilla.org/en/docs/Rhino_License
+
+Local Modifications: None.  

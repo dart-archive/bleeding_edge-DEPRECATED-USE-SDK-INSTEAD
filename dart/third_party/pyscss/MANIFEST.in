@@ -1,0 +1,2 @@
+recursive-include scss *
+exclude *.pyc *.orig

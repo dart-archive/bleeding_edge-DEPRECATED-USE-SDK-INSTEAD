@@ -1,0 +1,16 @@
+Metadata-Version: 1.0
+Name: oauth2client
+Version: 1.0beta4
+Summary: OAuth 2.0 client library
+Home-page: http://code.google.com/p/google-api-python-client/
+Author: Joe Gregorio
+Author-email: jcgregorio@google.com
+License: Apache 2.0
+Description: The oauth2client is a client library for OAuth 2.0.
+Keywords: google oauth 2.0 http client
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX
+Classifier: Topic :: Internet :: WWW/HTTP

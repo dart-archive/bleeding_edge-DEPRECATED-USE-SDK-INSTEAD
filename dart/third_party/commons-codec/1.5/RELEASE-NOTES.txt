@@ -1,0 +1,38 @@
+$Id: RELEASE-NOTES.txt 1080872 2011-03-12 06:49:16Z ggregory $
+
+The Commons Codec team is pleased to announce the commons-codec-1.5 release!
+
+The codec package contains simple encoder and decoders for
+     various formats such as Base64 and Hexadecimal.  In addition to these
+     widely used encoders and decoders, the codec package also maintains a
+     collection of phonetic encoding utilities.
+
+Changes in this version include:
+
+New features:
+o Add test(s) to check that encodeBase64() does not chunk output.  Issue: CODEC-93. Thanks to sebb. 
+o ArrayIndexOutOfBoundsException when doing multiple reads() on encoding Base64InputStream.  Issue: CODEC-105. Thanks to zak. 
+o Add the Cologne Phonetic to codec.lang.  Issue: CODEC-106. Thanks to it2mmeyerfa. 
+o org.apache.commons.codec.net.URLCodec.ESCAPE_CHAR isn't final but should be.  Issue: CODEC-111. Thanks to ggregory. 
+o Base64.encodeBase64(byte[] binaryData, boolean isChunked, boolean urlSafe, int maxResultSize) throws IAE for valid maxResultSize if isChunked is false.  Issue: CODEC-112. Thanks to sebb. 
+o org.apache.commons.codec.language.RefinedSoundex.US_ENGLISH_MAPPING should be package protected MALICIOUS_CODE.  Issue: CODEC-113. Thanks to ggregory. 
+o org.apache.commons.codec.language.Soundex.US_ENGLISH_MAPPING should be package protected MALICIOUS_CODE.  Issue: CODEC-114. Thanks to ggregory. 
+o DoubleMetaphone.maxCodeLen should probably be private.  Issue: CODEC-115. Thanks to sebb. 
+o Split Caverphone class into two classes for Caverphone 1.0 and 2.0.  Issue: CODEC-118. Thanks to ggregory. 
+
+Fixed Bugs:
+o new Base64().encode() appends a CRLF, and chunks results into 76 character lines.  Issue: CODEC-89. 
+o Many test cases use getBytes() which uses the default platform encoding so tests may fail on some platforms.  Issue: CODEC-92. 
+o Base64 default constructor behaviour changed to enable chunking in 1.4.  Issue: CODEC-97. Thanks to mjryall. 
+o Base64.encodeBase64String() shouldn't chunk.  Issue: CODEC-99. Thanks to julius. 
+o Base64InputStream#read(byte[]) incorrectly returns 0 at end of any stream which is multiple of 3 bytes long.  Issue: CODEC-101. Thanks to balusc. 
+o Typo in DecoderException message thrown from Hex.decodeHex.  Issue: CODEC-103. Thanks to gnuf. 
+o Caverphone encodes names starting and ending with "mb" incorrectly.  Issue: CODEC-117. Thanks to ggregory. 
+
+
+Removed:
+o Remove deprecated package private method Base64.discardWhitespace(byte[])  Issue: CODEC-116. Thanks to ggregory. 
+
+Have fun!
+-Commons Codec team
+

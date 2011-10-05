@@ -1,0 +1,13 @@
+This project has local changes by the Dart project authors.  This source code
+is governed by the license in the LICENSE file.  Local changes include:
+  * Changes to support CSS3 syntax.
+  * Added Dart class generation for CSS class names and stylets.
+  * Added CSS specific properties for Dart layout. 
+
+Python-scss drop 0.8.50 (August 5, 2011 commit 77a6060716)
+
+http://packages.python.org/scss
+https://github.com/klen/python-scss
+
+
+See README.rst

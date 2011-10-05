@@ -1,0 +1,16 @@
+URL: http://deftserver.appspot.com
+License: Apache License 2.0
+License File: LICENSE
+Repository: https://github.com/rschildmeijer/deft
+Commit: 44a67974a50c509cb47ca173d77225c3fb9e9d37
+
+Description:
+Provides a single-threaded, asynchronous web server for the JVM.
+
+Local Modifications:
+Added org.deftserver.io.IOLoop::reset() to properly close all
+SelectableChannels registered with the IOLoop.
+Patch: ioloop-reset.diff
+
+Google specific notes:
+Used by EnDash.

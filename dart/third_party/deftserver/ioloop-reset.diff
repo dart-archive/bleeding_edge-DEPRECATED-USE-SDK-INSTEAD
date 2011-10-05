@@ -1,0 +1,33 @@
+diff --git a/src/main/java/org/deftserver/io/IOLoop.java b/src/main/java/org/deftserver/io/IOLoop.java
+index f64d3d8..20db7dd 100644
+--- a/src/main/java/org/deftserver/io/IOLoop.java
++++ b/src/main/java/org/deftserver/io/IOLoop.java
+@@ -7,6 +7,7 @@ import java.nio.channels.ClosedChannelException;
+ import java.nio.channels.SelectableChannel;
+ import java.nio.channels.SelectionKey;
+ import java.nio.channels.Selector;
++import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.HashMap;
+ import java.util.Iterator;
+@@ -19,6 +20,7 @@ import org.deftserver.io.callback.JMXDebuggableCallbackManager;
+ import org.deftserver.io.timeout.JMXDebuggableTimeoutManager;
+ import org.deftserver.io.timeout.Timeout;
+ import org.deftserver.io.timeout.TimeoutManager;
++import org.deftserver.util.Closeables;
+ import org.deftserver.util.MXBeanUtil;
+ import org.deftserver.web.AsyncCallback;
+ import org.slf4j.Logger;
+@@ -112,6 +114,12 @@ public class IOLoop implements IOLoopMXBean {
+ 		running = false;
+ 		logger.debug("Stopping IOLoop...");
+ 	}
++
++  public void reset() {
++    for (SelectableChannel channel : new ArrayList<SelectableChannel>(handlers.keySet())) {
++      Closeables.closeQuietly(this, channel);
++    }
++  }
+ 	
+ 	/**
+ 	 * Registers a new {@code IOHandler} with this {@code IOLoop}.

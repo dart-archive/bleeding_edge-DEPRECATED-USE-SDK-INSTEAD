@@ -1,0 +1,8 @@
+URL: http://www.ecoficial.com/apachemirror/commons/codec/binaries/commons-codec-1.5-bin.tar.gz
+Version: 1.5
+License: Apache License 2.0
+License File: LICENSE
+
+Description:
+Commons Codec provides implementations of common encoders and decoders such as
+Base64, Hex, Phonetic and URLs.

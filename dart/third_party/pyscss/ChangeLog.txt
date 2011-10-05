@@ -1,0 +1,177 @@
+Changes
+=======
+
+## 2011-08-05 0.8.50
+--------------------
+* Improve version
+
+## 2011-07-25 0.8.3
+-------------------
+* Fix multipart string values in functions
+* Fix watch mode
+* Drop last semicolon in rule only with compress=option enabled.
+
+## 2011-07-24 0.8.22
+--------------------
+* Fix -moz-linear-gradient
+* Thanks lgriesterer
+
+## 2011-07-10 0.8.2
+-------------------
+* Fix :not selectors
+
+## 2011-06-24 0.8.1
+-------------------
+* Fix color functions
+
+## 2011-06-20 0.8.0
+-------------------
+* Big scss refactoring begin
+
+## 2011-06-19 0.7.2
+-------------------
+* Add argv parse to tools.main
+* Fix watch mode
+
+## 2011-02-27 0.7.0
+-------------------
+* Add link on pyScss
+* Fix None type bug
+* Add if() function
+
+## 2011-02-25 0.6.5
+-------------------
+* Add option path
+* Add image functions: image-width, image-height, image-url, inline-image
+* Add @function and @return
+* Add --watch mode
+
+## 2011-02-24 0.6.3
+-------------------
+* Fix recursion bug in variable redefinition
+* Add unwnown properties
+* Add @option @warn:true
+* Fix selector interpolation bug
+* Fix bug in url( address )
+
+## 2011-02-21 0.6.0
+-------------------
+* Add warnings ( not found mix and etc )
+* Add @warn
+* Add 'add', 'or', 'not' operators in expressions
+* Add mode compass support
+
+## 2011-02-20 0.5.9
+-------------------
+* Add @options sort, @option comments, @option cache
+* Upgrade scss command tools ( more options, see scss --help )
+
+## 2011-02-19 0.5.7
+-------------------
+* Fix unused import ipdb
+* Add color functions
+* Add compass helpers: append-selector, elements-of-type, headlings, nest
+* Add real expression parse in @if nodes
+* Add "@else if"
+* Upgrade interactive mode. history support and tab completion
+* Add color name parse ( red + blue = #f0f )
+* Change sorting declarations in Zen order http://code.google.com/p/zen-coding/wiki/ZenCSSPropertiesEn
+* Fix url path bug, improve perfomance
+* Add @option, compress output
+
+## 2011-02-19 0.5.0
+-------------------
+* Real conversion between numbers ( 10px + 2em = 36px )
+* Add full rgba, hsl, hsla support
+* Add red, green, blue, mix rgba functions
+* Add hue, saturation, lightness, adjust_hue, lighten, darken, saturate, desaturate, grayscale, complement hsl functions
+* Add alpha, opacity, rgba, opacify, fade-in, fade-out, transparentize
+* Add quote, unqoute string functions
+* Add percentage, round, floor, ceil, abs number functions
+* Add comparable, unitless, unit, type-of functions
+* Add interactive mode
+
+## 2011-02-18 0.4.9
+-------------------
+* Rename compile script from pscss to scss
+
+## 2011-02-16 0.4.8
+-------------------
+* Fix pseudo selector bug
+* Fix declareset interpolation var in name
+* Add initial documentation
+
+## 2011-02-11 0.4.2
+-------------------
+* True op parsing, prepare to compaire values
+
+## 2011-02-10 0.3.9
+-------------------
+* Real parse function params
+* Now you can use vars in url()
+
+## 2011-02-09 0.3.6
+-------------------
+* Add @font-face support
+
+## 2011-01-28 0.3.5
+-------------------
+* Fix nesting
+
+## 2011-01-25 0.3.3
+-------------------
+* Fix tests
+* Add rgb(  ) support
+
+## 2011-01-24 0.3.1
+-------------------
+* Ignore recursion
+
+## 2010-12-27 0.3.0
+-------------------
+* Add precache scss files
+* Move tests in scss
+* Add pscss console command
+
+## 2010-12-27 0.2.16
+--------------------
+* Fix number minus bug
+
+## 2010-12-26 0.2.15
+--------------------
+* Fix var definition
+* Fix dotted value
+
+## 2010-12-25 0.2.11
+--------------------
+* Not ignore css comments by default
+* More stable version
+* Fix comments
+* Fix enumerate
+* Fix @for
+* Fix vars
+
+## 2010-12-22 0.1.1
+-------------------
+* Add !default support for variable assigment
+* Add true, false, int parse in @if condition
+* Fix division and / bug
+* Fix @extend rule
+* Fix selector filter bug
+* Add parens support in operation
+* Add @for directive
+
+## 2010-12-20 0.0.5
+-------------------
+* Add math operation
+* Add parent references
+* Add scss comments
+* Add @if @else
+
+## 2010-12-20 0.0.2
+-------------------
+* Push in pypi 
+
+## 2010-12-20 0.0.1
+-------------------
+* First public version.

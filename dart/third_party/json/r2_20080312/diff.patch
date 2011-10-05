@@ -1,0 +1,11 @@
+--- src/org/json/JSONArray.java	2008-03-13 10:15:40.020000000 -0700
++++ src/org/json/JSONArray.java	2008-03-13 10:15:05.816679000 -0700
+@@ -137,7 +137,7 @@
+             case ']':
+             case ')':
+                 if (q != c) {
+-                    throw x.syntaxError("Expected a '" + new String(c) + "'");
++                    throw x.syntaxError("Expected a '" + c + "'");
+                 }
+                 return;
+             default:
