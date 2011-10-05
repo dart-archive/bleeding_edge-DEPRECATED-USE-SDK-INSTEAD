@@ -52,6 +52,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -257,11 +258,11 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
   @Override
   public CompilationUnit getCompilationUnit(IFile file) {
-    if (!DartCore.isDartLikeFileName(file.getName())) {
-      // TODO move the following exception name into some messages.properties file
-      throw new IllegalArgumentException(
-          "Compilation unit name must end with .dart, or one of the registered Dart-like extensions");
-    }
+    // TODO externalize the following String message
+    Assert.isTrue(
+        DartCore.isDartLikeFileName(file.getName()),
+        "Compilation unit name must end with .dart, or one of the registered Dart-like extensions. Illegal dart file name: "
+            + file.getName());
     return new CompilationUnitImpl(this, file, DefaultWorkingCopyOwner.getInstance());
   }
 
