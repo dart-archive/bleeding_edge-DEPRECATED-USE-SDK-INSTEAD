@@ -1,24 +1,37 @@
-class CountDownClock {
-  static Window window;
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  static void main(window) {
-    CountDownClock.window = window;
-    new CountDownClock();
-  }
+#library('Clock');
+
+#import('dart:dom');
+
+#source('Ball.dart');
+#source('Balls.dart');
+#source('ClockNumber.dart');
+#source('ClockNumbers.dart');
+#source('Colon.dart');
+#source('Util.dart');
+
+void main() {
+  new CountDownClock();
+}
+
+class CountDownClock {
 
   static final int NUMBER_SPACING = 19;
   static final int BALL_WIDTH = 19;
   static final int BALL_HEIGHT = 19;
 
-  Array<ClockNumber> hours;
-  Array<ClockNumber> minutes;
-  Array<ClockNumber> seconds;
+  List<ClockNumber> hours;
+  List<ClockNumber> minutes;
+  List<ClockNumber> seconds;
   Balls balls;
 
   CountDownClock() :
-      hours = new Array<ClockNumber>(2),
-      minutes = new Array<ClockNumber>(2),
-      seconds = new Array<ClockNumber>(2),
+      hours = new List<ClockNumber>(2),
+      minutes = new List<ClockNumber>(2),
+      seconds = new List<ClockNumber>(2),
       balls = new Balls() {
     createNumbers();
     updateTime();
@@ -37,16 +50,16 @@ class CountDownClock {
   }
 
   void updateTime() {
-    int time = Util.currentTimeMillis() / 1000;
+    int time = Util.currentTimeMillis() ~/ 1000;
     time %= 86400;
-    setDigits(pad2(time / 3600), hours);
+    setDigits(pad2(time ~/ 3600), hours);
     time %= 3600;
-    setDigits(pad2((time / 60)), minutes);
+    setDigits(pad2((time ~/ 60)), minutes);
     time %= 60;
     setDigits(pad2(time), seconds);
   }
 
-  void setDigits(String digits, Array<ClockNumber> numbers) {
+  void setDigits(String digits, List<ClockNumber> numbers) {
     for (int i = 0; i < numbers.length; ++i) {
       int digit = digits.charCodeAt(i) - '0'.charCodeAt(0);
       numbers[i].setPixels(ClockNumbers.PIXELS[digit]);
@@ -71,10 +84,10 @@ class CountDownClock {
   }
 
   void createNumbers() {
-    HTMLDivElement root = CountDownClock.window.document.createElement('div');
+    HTMLDivElement root = window.document.createElement('div');
     Util.rel(root);
     root.style.setProperty("textAlign", 'center');
-    CountDownClock.window.document.getElementById("canvas-content").appendChild(root);
+    window.document.getElementById("canvas-content").appendChild(root);
 
     int x = 0;
 
@@ -106,3 +119,4 @@ class CountDownClock {
     }
   }
 }
+

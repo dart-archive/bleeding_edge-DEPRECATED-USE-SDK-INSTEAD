@@ -1,52 +1,44 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class Balls {
   // Reference to Ball.RADIUS fails in JS at the moment... b/4460048
-  static final double RADIUS2 = 14 * 14; // Ball.RADIUS * Ball.RADIUS;
+  static final double RADIUS2 = Ball.RADIUS * Ball.RADIUS;
 
   // TODO: "static const Array<String> PNGS" doesn't parse
-  static final Array PNGS = ["images/ball-d9d9d9.png",
+  static final List<String> PNGS = ["images/ball-d9d9d9.png",
       "images/ball-009a49.png", "images/ball-13acfa.png",
       "images/ball-265897.png", "images/ball-b6b4b5.png",
       "images/ball-c0000b.png", "images/ball-c9c9c9.png"];
 
-  HTMLDivElement root;
-  int lastTime;
-  var balls;
+  HTMLDivElement _root;
+  int _lastTime;
+  List<Ball> _balls;
 
-  Balls() :
-      lastTime = Util.currentTimeMillis(),
-      balls = new Array<Ball>() {
-    root = CountDownClock.window.document.createElement('div');
-    CountDownClock.window.document.body.appendChild(root);
-    root.style.setProperty("zIndex", '100');
-    Util.abs(root);
-    Util.posSize(root, 0, 0, 0, 0);
+  Balls() {
+    _lastTime = Util.currentTimeMillis();
+    _balls = new List<Ball>();
+    _root = window.document.createElement('div');
+    window.document.body.appendChild(_root);
+    _root.style.setProperty("zIndex", '100');
+    Util.abs(_root);
+    Util.posSize(_root, 0, 0, 0, 0);
   }
 
   void tick() {
     int now = Util.currentTimeMillis();
-    double delta = (now - lastTime) / 1000.0;
-    if (delta > 0.1) {
-      delta = 0.1;
-    }
-    lastTime = now;
-
-    for (int i = 0; i < balls.length; ++i) {
-      Ball ball = balls[i];
-      if (!ball.tick(delta)) {
-        balls.removeAt(i);
-        --i;
-      }
-    }
-
+    double delta = Math.min((now - _lastTime) / 1000.0, 0.1);
+    _lastTime = now;
+    // incrementally move each ball, removing balls that are offscreen
+    _balls = _balls.filter((ball) => ball.tick(delta));
     collideBalls(delta);
   }
 
   void collideBalls(double delta) {
     // TODO: Make this nasty O(n^2) stuff better.
-    for (int i = 0; i < balls.length; ++i) {
-      for (int j = i + 1; j < balls.length; ++j) {
-        Ball b0 = balls[i];
-        Ball b1 = balls[j];
+    _balls.forEach((b0) {
+      _balls.forEach((b1) {
 
         // See if the two balls are intersecting.
         double dx = (b0.x - b1.x).abs();
@@ -81,8 +73,8 @@ class Balls {
           b1.vx += dx * impactSpeed;
           b1.vy += dy * impactSpeed;
         }
-      }
-    }
+      });
+    });
   }
 
   double newDistanceSquared(double delta, Ball b0, Ball b1) {
@@ -97,6 +89,6 @@ class Balls {
   }
 
   void add(int x, int y, int color) {
-    balls.add(new Ball(root, x, y, color));
+    _balls.add(new Ball(_root, x, y, color));
   }
 }

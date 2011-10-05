@@ -1,3 +1,7 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class Ball {
   static final double GRAVITY = 400.0;
   static final double RESTITUTION = 0.8;
@@ -19,7 +23,7 @@ class Ball {
 
   Ball(Element root, int x, int y, int color) {
     this.root = root;
-    this.elem = CountDownClock.window.document.createElement('img');
+    this.elem = window.document.createElement('img');
     elem.src = Balls.PNGS[color];
     Util.abs(elem);
     Util.pos(elem, x, y);
