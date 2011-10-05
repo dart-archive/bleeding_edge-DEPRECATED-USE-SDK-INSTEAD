@@ -23,7 +23,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MockLibrarySource extends MockSource implements LibrarySource {
+public class MockLibrarySource extends MockSource implements LibrarySource, DartSource {
   private final Map<String, MockDartSource> sourceMap;
 
   public MockLibrarySource(String name) throws URISyntaxException {
@@ -41,6 +41,21 @@ public class MockLibrarySource extends MockSource implements LibrarySource {
   }
 
   @Override
+  public LibrarySource getLibrary() {
+    return this;
+  }
+
+  @Override
+  public String getRelativePath() {
+    String path = getUri().getSchemeSpecificPart();
+    int lastSlash = path.lastIndexOf('/');
+    if (lastSlash > -1) {
+      path = path.substring(lastSlash + 1);
+    }
+    return path;
+  }
+
+  @Override
   public DartSource getSourceFor(String relPath) {
     return sourceMap.get(relPath);
   }
@@ -48,13 +63,12 @@ public class MockLibrarySource extends MockSource implements LibrarySource {
   @Override
   public Reader getSourceReader() throws IOException {
     StringBuilder builder = new StringBuilder(100);
-    builder.append("library { source = [");
+    builder.append("#library(\"mylib" + getName() + "\");\n");
     for (MockDartSource sourceFile : sourceMap.values()) {
-      builder.append(" \"");
+      builder.append("#source(\"");
       builder.append(sourceFile.getName());
-      builder.append("\", ");
+      builder.append("\");\n");
     }
-    builder.append("] }");
     return new StringReader(builder.toString());
   }
 }
