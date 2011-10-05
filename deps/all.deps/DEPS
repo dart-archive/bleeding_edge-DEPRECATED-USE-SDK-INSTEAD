@@ -6,6 +6,7 @@ vars = {
   "gyp_rev": "@937",
   "co19_rev": "@54",
   "co19_repo": "https://co19.googlecode.com/svn/trunk/co19/",
+  "chromium_url": "http://src.chromium.org/svn",
   "pyparsing_rev": "@211",
 }
 
@@ -33,6 +34,13 @@ deps = {
   # Module needed for Python-scss to run.
   "dart/third_party/pyparsing":
     "http://pyparsing.svn.sourceforge.net/svnroot/pyparsing" + Var("pyparsing_rev"),
+}
+
+deps_os = {
+  "win": {
+    "dart/runtime/third_party/cygwin":
+      Var("chromium_url") + "/trunk/deps/third_party/cygwin@66844",
+  },
 }
 
 # TODO(iposva): Move the necessary tools so that hooks can be run
