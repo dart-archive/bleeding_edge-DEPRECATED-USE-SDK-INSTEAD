@@ -157,6 +157,7 @@ build system.  The PDE build system has to run under Eclipse.
         cleanup the build.tmp and build.out directory
         -->
         <delete failonerror="false" includeemptydirs="true">
+            <fileset dir="${build.downloads}" />
             <fileset dir="${build.tmp}" />
             <fileset dir="${build.out}" />
         </delete>
