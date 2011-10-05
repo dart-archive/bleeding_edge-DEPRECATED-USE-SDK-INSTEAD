@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<title>Welcome to dartty chat</title>
+<script src="code.js"></script>
+</head>
+<body onload="handleLoad()">
+<h1>Dartty chat (JavaScript version)</h1>
+<div id="statusSection">
+<p id="statusText">Status...</p>
+</div>
+<div id="joinSection">
+<label>Handle:</label>
+<input id="handleInput" type="text" value=""/>
+<button id="joinButton" onclick="handleJoin()">Be dartted</button>
+</div>
+<div id="chatSection">
+<label>Message:</label>
+<input id="messageInput" type="text" value=""/>
+<button id="postButton" onclick="handlePostMessage()">Dart this</button>
+<button id="leaveButton" onclick="handleLeave()">Undart</button>
+<div id="messages">
+<p>Messages...</p>
+</div>
+</div>
+<div id="footerSection">
+<p>Nice footer...</p>
+</div>
+</body>
+</html>

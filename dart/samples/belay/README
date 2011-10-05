@@ -1,0 +1,54 @@
+Belay in Dart
+=============
+
+Introduction
+------------
+This sample application demonstrates a web application written in Dart using
+the BCAP protocol. It interacts with the rest of the Belay infrastructure and
+other Belay based applications to demonstrate a flexible approach to cloud
+authentication.
+
+This Dart application demonstrates several things:
+  * Client-side written in Dart
+  * Server-side written in Dart with the fling server framework
+  * Client/Server async communication in Dart
+  * Interoperability with JavaScript libraries
+  * Interoperability with other web pages written in JavaScript
+  * A binding of the BCAP abstract API into Dart
+
+Running
+-------
+1. You need the rest of the Belay infrastructure running on your machine:
+  a. Install AppEngine SDK from: http://code.google.com/appengine/downloads.html
+  b. Download the source from: http://code.google.com/p/google-belay/
+  c. Follow the README in the Belay tree to start the servers
+
+2. Make sure you've built the dart/client tree:
+  cd dart/client
+  ../tools/build.py --arch=dartc
+
+3. Run the Buzzer application server:
+  cd dart/samples/belay/buzzer
+  ../../../client/out/Debug_dartc/fling/fling/fling BuzzerServer.dart
+
+4. Open a browser and:
+  a. Browse to http://localhost:9000/pick-station.html
+  b. Click on "Launch my station"
+     -- you now have the JavaScript Belay infrastructure up and running
+
+5. In a new window:
+  a. Browse to http://localhost:9014/index.html
+     -- this browses to this Dart based Buzzer application
+  b. Type in a title for a new blog and click submit
+     -- you now have blog
+  c. Type something into the text box and click Bzr
+     -- you now have blogged
+  d. close the window
+  e. From the "Station" window, you'll see your new blog listed,
+     click the "open" link on the right for it.
+
+References
+----------
+Belay project: https://sites.google.com/site/belayresearchproject/home
+Belay code:    http://code.google.com/p/google-belay/
+
