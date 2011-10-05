@@ -1,0 +1,119 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="com.google.dart.tools.core" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="com.google.dart.tools.core" id="libraries" name="Dart Libraries"/>
+      </appInfo>
+      <documentation>
+         The libraries extension-point allows libraries that are bundled in Eclipse plugins to be represented within the Eclipse model and referenced by source in the Eclipse workspace.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="0" maxOccurs="unbounded">
+            <element ref="library"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="library">
+      <annotation>
+         <documentation>
+            A Dart library
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="name" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The short name used to refer to this library. For example, if the short name is &quot;dom.lib&quot;, then the library can be referenced using the URL &quot;dart:dom.lib&quot;.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="host" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The host in the library&apos;s URL spec. For example, in the URL &quot;dart://dom/dom.lib&quot;, the host is &quot;dom&quot;.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="path" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The path to the *.lib file within the plugin containing the library.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="visible" type="boolean">
+            <annotation>
+               <documentation>
+                  By default, bundled libraries are displayed to the user so that they can optionally import them when generating a new application or library. If you do not want a library displayed to the user (e.g. the Core library) then set this attribute to &quot;false&quot;.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         1.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         The DOM library is bundled with the Dart Editor using the following extension:
+&lt;pre&gt;
+   &lt;extension point=&quot;com.google.dart.tools.core.libraries&quot;&gt;
+      &lt;library
+            name=&quot;dom.lib&quot;
+            host=&quot;dom&quot;
+            path=&quot;dart_dom.lib&quot;&gt;
+      &lt;/library&gt;
+   &lt;/extension&gt;
+&lt;/pre&gt;
+Given the declaration above, the DOM library can be referenced using the short URL &quot;dart:&lt;name&gt;&quot; or in this case &quot;dart:dom.lib&quot;. This is expanded automatically to the full URL for the library &quot;dart://&lt;host&gt;/&lt;path&gt;&quot; or in this case &quot;dart://dom/dom.lib&quot;. The full path is build and installation dependent and should not be used *.lib or app files.
+      </documentation>
+   </annotation>
+
+
+
+
+</schema>

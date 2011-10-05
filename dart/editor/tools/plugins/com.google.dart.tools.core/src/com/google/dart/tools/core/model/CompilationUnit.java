@@ -1,0 +1,138 @@
+/*
+ * Copyright (c) 2011, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+package com.google.dart.tools.core.model;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+
+/**
+ * The interface <code>CompilationUnit</code> defines the behavior of objects representing files
+ * containing Dart source code that needs to be compiled.
+ */
+public interface CompilationUnit extends CodeAssistElement, SourceFileElement<CompilationUnit>,
+    OpenableElement, ParentElement, SourceManipulation, SourceReference {
+  /**
+   * Create and return a type in this compilation unit with the given contents. If this compilation
+   * unit does not exist, one will be created.
+   * <p>
+   * Optionally, the new type can be positioned before the specified sibling. If
+   * <code>sibling</code> is <code>null</code>, the type will be appended to the end of this
+   * compilation unit.
+   * <p>
+   * It is possible that a type with the same name already exists in this compilation unit. The
+   * value of the <code>force</code> parameter affects the resolution of such a conflict:
+   * <ul>
+   * <li> <code>true</code> - in this case the type is created with the new contents</li>
+   * <li> <code>false</code> - in this case a {@link DartModelException} is thrown</li>
+   * </ul>
+   * 
+   * @param contents the source contents of the type declaration to add
+   * @param sibling the existing element which the type will be inserted immediately before (if
+   *          <code>null</code>, then this type will be inserted as the last type declaration
+   * @param force a <code>boolean</code> flag indicating how to deal with duplicates
+   * @param monitor the progress monitor to notify
+   * @return the newly inserted type
+   * @throws DartModelException if the element could not be created. Reasons include:
+   *           <ul>
+   *           <li>The specified sibling element does not exist (ELEMENT_DOES_NOT_EXIST)</li> <li> A
+   *           {@link org.eclipse.core.runtime.CoreException} occurred while updating an underlying
+   *           resource <li> The specified sibling is not a child of this compilation unit
+   *           (INVALID_SIBLING) <li> The contents could not be recognized as a type declaration
+   *           (INVALID_CONTENTS) <li> There was a naming collision with an existing type
+   *           (NAME_COLLISION)
+   *           </ul>
+   */
+  public Type createType(String contents, DartElement sibling, boolean force,
+      IProgressMonitor monitor) throws DartModelException;
+
+  /**
+   * Return <code>true</code> if this compilation unit defines a library (by including a library
+   * directive).
+   * 
+   * @return <code>true</code> if this compilation unit defines a library
+   */
+  public boolean definesLibrary();
+
+  /**
+   * Finds the elements in this Dart file that correspond to the given element. An element A
+   * corresponds to an element B if:
+   * <ul>
+   * <li>A has the same element name as B.
+   * <li>If A is a method, A must have the same number of arguments as B and the simple names of the
+   * argument types must be equal, if known.
+   * <li>The parent of A corresponds to the parent of B recursively up to their respective Dart
+   * files.
+   * <li>A exists.
+   * </ul>
+   * Returns <code>null</code> if no such Dart elements can be found or if the given element is not
+   * included in a Dart file.
+   * 
+   * @param element the given element
+   * @return the found elements in this Dart file that correspond to the given element
+   */
+  public DartElement[] findElements(DartElement element);
+
+  /**
+   * Returns the most narrow element including the given offset.
+   * 
+   * @param offset the offset included by the retrieved element
+   * @return the most narrow element which includes the given offset
+   * @throws DartModelException if the contents of the compilation unit cannot be accessed
+   */
+  public DartElement getElementAt(int offset) throws DartModelException;
+
+  /**
+   * Return an array containing the top-level function type aliases defined in this compilation
+   * unit.
+   * 
+   * @return the top-level function type aliases defined in this compilation unit
+   * @throws DartModelException if the function type aliases defined in this compilation unit cannot
+   *           be determined
+   */
+  public DartFunctionTypeAlias[] getFunctionTypeAliases() throws DartModelException;
+
+  /**
+   * Return an array containing the global (top-level) variables defined in this compilation unit.
+   * 
+   * @return the global variables defined in this compilation unit
+   * @throws DartModelException if the global variables defined in this compilation unit cannot be
+   *           determined
+   */
+  public DartVariableDeclaration[] getGlobalVariables() throws DartModelException;
+
+  /**
+   * Return the library containing this compilation unit, or <code>null</code> if this compilation
+   * unit is not defined in a library.
+   * 
+   * @return the library containing this compilation unit
+   */
+  public DartLibrary getLibrary();
+
+  /**
+   * Return the top-level type declared in this compilation unit with the given simple type name.
+   * The type name must be valid. This is a handle-only method. The type may or may not exist.
+   * 
+   * @param name the simple name of the requested type in the compilation unit
+   * @return a handle onto the corresponding type. The type may or may not exist.
+   * @see DartConventions#validateTypeName(String name)
+   */
+  public Type getType(String name);
+
+  /**
+   * Return an array containing the top-level types defined in this compilation unit.
+   * 
+   * @return the top-level types defined in this compilation unit
+   * @throws DartModelException if the types defined in this compilation unit cannot be determined
+   */
+  public Type[] getTypes() throws DartModelException;
+}

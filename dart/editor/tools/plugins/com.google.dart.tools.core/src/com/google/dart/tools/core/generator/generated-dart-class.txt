@@ -1,0 +1,3 @@
+class %className%%extends%%implements% {
+
+}

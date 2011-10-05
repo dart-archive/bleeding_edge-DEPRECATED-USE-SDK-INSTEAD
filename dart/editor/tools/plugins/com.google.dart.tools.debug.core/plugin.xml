@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="debugUIFactory" name="Dart Debug UI Factory" schema="schema/debugUIFactory.exsd"/>
+
+   <extension point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            delegate="com.google.dart.tools.debug.core.configs.DartServerLaunchConfigurationDelegate"
+            id="com.google.dart.tools.debug.core.serverLaunchConfig"
+            modes="run,debug"
+            name="%launchconfig.server.name"
+            sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
+            sourcePathComputerId="com.google.dart.tools.debug.core.sourcePathComputer">
+      </launchConfigurationType>
+
+      <launchConfigurationType
+            delegate="com.google.dart.tools.debug.core.configs.DartRemoteLaunchConfigurationDelegate"
+            id="com.google.dart.tools.debug.core.remoteLaunchConfig"
+            modes="debug"
+            name="%launchconfig.remote.name"
+            sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
+            sourcePathComputerId="com.google.dart.tools.debug.core.sourcePathComputer">
+      </launchConfigurationType>
+
+      <launchConfigurationType
+            delegate="com.google.dart.tools.debug.core.configs.DartChromeLaunchConfigurationDelegate"
+            id="com.google.dart.tools.debug.core.chromeLaunchConfig"
+            modes="run,debug"
+            name="%launchconfig.chrome.name"
+            sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
+            sourcePathComputerId="com.google.dart.tools.debug.core.sourcePathComputer">
+      </launchConfigurationType>
+   </extension>
+
+   <!-- breakpoints -->
+
+   <extension
+      id="breakpointMarker"
+      point="org.eclipse.core.resources.markers">
+
+      <super type="org.eclipse.debug.core.lineBreakpointMarker"/>
+      <persistent value="true"/>
+   </extension>
+
+   <extension point="org.eclipse.debug.core.breakpoints">
+      <breakpoint
+            class="com.google.dart.tools.debug.core.breakpoints.DartBreakpoint"
+            id="com.google.dart.tools.debug.core.lineBreakpoint"
+            markerType="com.google.dart.tools.debug.core.breakpointMarker"
+            name="Dart breakpoint">
+      </breakpoint>
+   </extension>
+
+   <!-- source locator -->
+
+   <extension point="org.eclipse.debug.core.sourceLocators">
+      <sourceLocator
+         name="Dart Source Lookup Director"
+         class="com.google.dart.tools.debug.core.internal.sourceLookup.DartSourceLookupDirector"
+         id="com.google.dart.tools.debug.core.sourceLookupDirector">
+      </sourceLocator>
+   </extension>
+
+   <extension point="org.eclipse.debug.core.sourcePathComputers">
+      <sourcePathComputer
+         class="com.google.dart.tools.debug.core.internal.sourceLookup.DartSourcePathComputerDelegate"
+         id="com.google.dart.tools.debug.core.sourcePathComputer">
+       </sourcePathComputer>
+   </extension>
+   
+   <!-- debugger expression evaluation -->
+   <!-- extension point="org.eclipse.debug.core.watchExpressionDelegates">
+      <watchExpressionDelegate
+         debugModel="com.google.dart.tools.debug.core"
+         delegateClass="com.google.dart.tools.debug.core.internal.WatchExpressionDelegate"/>
+   </extension -->
+
+</plugin>

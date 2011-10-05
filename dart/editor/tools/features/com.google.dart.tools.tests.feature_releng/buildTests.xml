@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     Sep 6, 2011 4:04:51 PM                                                        
+
+     Dart Tools Tests Build    
+     Build the Dart Tools tests and the exercise then onve the Dart code
+                   
+     Mark R Russell (mrrussell@google.com)                                                                
+     ====================================================================== -->
+<project name="Dart Tools Tests Build" default="test">
+    <description>
+            Build the Dart Tools tests and the exercise then over the Dart code
+    </description>
+    
+    <import file="../com.google.dart.tools.deploy.feature_releng/build-common.xml" />
+    <!-- ================================= 
+          target: test              
+          Master target to controll the running of the tests
+         ================================= -->
+    <target name="test" depends="doTests,check_results" description="Exercise the Dart Tools tests">
+    </target>
+    <!--
+        setup the classpaths and create properties for the run of tests
+    -->
+    <target name="setupTests">
+        <path id="build.pde.test.port.locator.class.path">
+            <pathelement
+                location="${build.source}/build/pde.test.utils_3.3.jar" />
+            <fileset dir="${build.target.abs}/eclipse/plugins">
+                <include name="org.junit_3.*/**/junit.jar" />
+            </fileset>
+        </path>
+        <path id="build.pde.test.listener.class.path">
+            <path refid="build.pde.test.port.locator.class.path" />
+            <fileset dir="${build.target.abs}/eclipse/plugins">
+                <include name="org.apache.ant_*/**/ant.jar" />
+                <include name="org.apache.ant_*/**/ant-junit.jar" />
+                <include name="org.eclipse.jdt.junit_*.jar" />
+                <include name="org.eclipse.jdt.junit.core_*.jar" />
+                <include name="org.eclipse.debug.core_*.jar" />
+                <include name="org.eclipse.osgi_*.jar" />
+                <include name="org.eclipse.core.resources_*.jar" />
+                <include name="org.eclipse.swt_*.jar" />
+                <include name="org.eclipse.equinox.preferences_*.jar" />
+                <include name="org.junit_3.*/**/junit.jar" />
+                <include name="org.eclipse.core.runtime_*.jar" />
+                <include name="org.eclipse.equinox.common_*.jar" />
+                <include name="org.eclipse.ui.workbench_*.jar" />
+                <include name="org.eclipse.jface_*.jar" />
+                <include name="org.eclipse.swt*.jar" />
+                <include name="org.eclipse.swt.*.jar" />
+            </fileset>
+        </path>
+        <property name="build.test.suite" value="com.google.dart.tools.ui_test" />
+        <pathconvert pathsep=" " property="build.test.classname.list">
+            <path>
+                <!-- Only include those files which end in 'Test.java', and do not 
+                    start with 'Abstract'. -->
+                <fileset dir="${build.stage.plugins}/${build.test.suite}/src">
+                    <include name="com/google/dart/tools/TestOverAll.java" />
+                </fileset>
+            </path>
+            <!-- Convert path structure for each file into the fully-qualified class
+                name corresponding to the file. To do this, we get rid of absolute
+                path name prefixes on each file, up to and inclding the "src" segment. 
+                We also remove the .java extension from each file. Then, each modified 
+                file path is converted into package format (i.e. the path separator 
+                characters are replaced with dots). -->
+            <chainedmapper>
+                <mapper
+                    type="regexp"
+                    from="^.*src\${file.separator}(.*)\.java"
+                    to="\1" />
+                <mapper
+                    type="package"
+                    from="*"
+                    to="*" />
+            </chainedmapper>
+        </pathconvert>
+        
+    </target>
+    
+    <!--
+    get the port used to communicate between Eclipse and the test listener
+    -->
+    <target name="getPort">
+        <java
+            dir="${build.tmp}"
+            classname="pde.test.utils.PDETestPortLocator"
+            failonerror="true"
+            fork="yes"
+            classpathref="build.pde.test.port.locator.class.path" />
+        <waitfor
+            maxwait="10"
+            maxwaitunit="second"
+            checkevery="100"
+            checkeveryunit="millisecond">
+            <available file="${build.tmp}/pde_test_port.properties" />
+        </waitfor>
+        <property file="${build.tmp}/pde_test_port.properties" prefix="build." />
+        <echo message="Using port ${build.pde.test.port} for listening to PDE Test run" />
+    </target>
+    
+    <!--
+    run the tests in DartTools
+    -->
+    <target name="doTests" depends="deploy, setupTests, getPort">
+        <property name="build.eclipse.test_application"
+                  value="org.eclipse.pde.junit.runtime.coretestapplication" />
+        <property name="build.test.platform.vm.args" value="" />
+        <property name="build.test.platform.command.args" value="" />
+        <property name="build.site.name" value="DashTests" />
+        <property name="build.test.eclipse.workspace" value="${build.stage.abs}/workspace-test" />
+        <property name="build.test.reports.dir" value="${build.out}/reports" />
+        <echoproperties prefix="build." />
+        <fileset dir="${build.target.abs}/eclipse/plugins" 
+                 includes="org.eclipse.equinox.launcher_*.jar"
+                 id="fs.eclipse.target.laincher" />
+        <pathconvert property="eclipse.target.launcher.jar" refid="fs.eclipse.target.laincher" />
+        <echo message="starting Eclipse with ${eclipse.target.launcher.jar}" />
+        <echo message=" runnign application ${build.eclipse.test_application}"/>
+        <parallel>
+            <sequential>
+                <echo message="running test listener" />
+                <java classname="pde.test.utils.PDETestResultsCollector"
+                      fork="yes"
+                      classpathref="build.pde.test.listener.class.path">
+                      <arg line="${build.test.suite} ${build.pde.test.port}" />
+                </java>
+            </sequential>
+            <sequential>
+                <!-- Give the listener a few seconds to start up. -->
+                <sleep seconds="5" />
+                <echo message="Launching eclipse with ${eclipse.target.launcher.jar}" />
+                <java jar="${eclipse.target.launcher.jar}" fork="true" failonerror="false">
+                    <jvmarg line="${build.test.platform.vm.args}" />
+                    <jvmarg value="-Xmx1024m" />
+                    <jvmarg value="-XX:MaxPermSize=256m" />
+                    <jvmarg value="-ea" />
+                    <arg value="-consolelog" />
+                    <arg value="-debug" />
+                    <arg line="-application ${build.eclipse.test_application}" />
+                    <arg line="${build.test.platform.command.args}" />
+                    <arg value="-data" />
+                    <arg value="${build.test.eclipse.workspace}" />
+                    <arg value="-clean" />
+                    <arg line="-port ${build.pde.test.port}" />
+                    <arg line="-testpluginname ${build.test.suite}" />
+                    <!-- This is only needed for SWTBot testing, but it doesn't cause
+                        any ill effects for non-SWTBot tests. -->
+                    <arg line="-loaderpluginname org.eclipse.jdt.junit.runtime" />
+                    <arg line="-classNames ${build.test.classname.list}" />
+                </java>
+            </sequential>
+        </parallel>
+        <mkdir dir="${build.test.reports.dir}" />
+        <move todir="${build.test.reports.dir}">
+            <fileset dir=".">
+                <include name="**/TEST-*.xml" />
+            </fileset>
+        </move>
+    </target>
+    
+    <!-- We have not set "failonerror='true'" for either the test runner
+        or test collector, because we want the HTML report to be generated
+        even when the tests fail. Unfortunately, this will cause ant to
+        report "BUILD SUCCESSFUL, even if the tests fail. To get around this 
+        problem, the -check_results task will parse the generated XML report
+        and look for the substrings 'failures="0"' and 'errors="0"'. If either
+        of these strings cannot be found, then a <fail> task is run.-->
+    <target name="check_results" depends="generateHtml">
+        
+        <loadfile
+            srcfile="${build.test.reports.dir}/TEST-${build.test.suite}.xml"
+            property="build.results.summary">
+            <filterchain>
+                <headfilter lines="10" />
+            </filterchain>
+        </loadfile>
+        
+        <!-- TODO: This condition assumes that there is a single report file with a 
+            single <testsuite> tag. If we start generating more report files, or if each
+            may end up containing more than one <testsuite> tag, then this condition
+            needs to be modified. Rework this condition so that it is more 
+            robust. -->
+        <condition property="tests.passed">
+            <and>
+                <available file="${build.test.reports.dir}/TEST-${build.test.suite}.xml" />
+                <contains
+                    string="${build.results.summary}"
+                    substring="errors=&quot;0&quot;" />
+                <contains
+                    string="${build.results.summary}"
+                    substring="failures=&quot;0&quot;" />
+            </and>
+        </condition>
+        <fail
+            message="FAILED - some tests failed - see the XML report in ${build.test.reports.dir} for more details"
+            unless="tests.passed" />
+        <echo
+            message="SUCCESS - all tests passed - see the XML report in ${build.test.reports.dir} for more details" />
+    </target>
+
+    <!--
+    create an HTML version of the Junit output
+    -->
+    <target name="generateHtml">
+        <!--
+        <junitreport>
+            <fileset dir="${build.test.reports.dir}">
+                <include name="TEST-${build.test.suite}.xml" />
+            </fileset>
+            <report todir="${build.out}/html" >
+            </report>    
+        </junitreport>
+        -->
+    </target>
+    
+    <!--
+        deploy the tests to the out directory so they cna be used by the test runner
+    -->
+    <target name="deploy" depends="build" description="Deploy the built Dart tests">
+        <property file="${build.stage.scripts}/build.properties" prefix="build.pde."/>
+        <unzip dest="${build.target.dropins}" > 
+            <fileset dir="${build.stage.abs}/${build.pde.buildLabel}" includes="*.zip" />
+        </unzip>
+    </target>
+
+    <!--
+        call the PDE and build the test feature
+    -->
+    <target name="build" depends="setupBuild" description="Build the Dart Tools tests">
+        <dirset dir="${build.runtime}/eclipse/plugins" id="pde.ds">
+            <include name="*pde.build_*" />
+        </dirset>
+        <pathconvert property="pde.build.dir" refid="pde.ds" setonempty="false"/>
+        <property name="pde.scripts.update" location="${pde.build.dir}/scripts" />
+        <echo message="PDE is located in ${pde.build.dir}" /> 
+        <mkdir dir="${build.stage.scripts}" />
+        <copy todir="${build.stage.scripts}" file="build.properties" />
+        <property file="${build.stage.scripts}/build.properties" prefix="pde." />
+        <echoproperties prefix="pde." />
+        <runAntBuildInEclipse script="${pde.scripts.update}/build.xml" eclipse="3.7"
+                              builddir="${build.stage.scripts}" />
+
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: setupRuntimeEclipse
+         - - - - - - - - - - - - - - - - - -->
+    <target name="setupRuntimeEclipse">
+        <setupEclipse location="${build.runtime}" eclipse="${build.runtime.eclipse.version}"
+                      arch="${build.eclipse.arch}" />
+        <fileset dir="${build.runtime}/eclipse/plugins" id="launcherFs" >
+            <include name="*launcher_*.jar" />
+        </fileset>
+        <pathconvert property="eclipse.runtime.launcher.jar" refid="launcherFs" />
+    </target>
+
+    <target name="setupBuild" depends="init, setupRuntimeEclipse">
+        <setupEclipse location="${build.target}" eclipse="${build.target.eclipse.version}"
+                      arch="${build.eclipse.arch}" />
+        <setupDeltaPack location="${build.target}" eclipse="${build.target.eclipse.version}" />
+        <copy todir="${build.stage.plugins}">
+            <fileset dir="${build.source}/tools/plugins">
+                <include name="*_test/**" />
+            </fileset>
+        </copy>
+        <copy todir="${build.stage.features}">
+            <fileset dir="${build.source}/tools/features">
+                <include name="com.google.dart.tools.tests.feature*/**" />
+            </fileset>
+        </copy>
+        <property name="com.google.dart.core.tests" 
+                  value="${build.stage.plugins}/com.google.dart.tools.core_test" />
+
+        <mkdir dir="${com.google.dart.core.tests}/src-compiler-javatests" />
+        <!--
+        <copy todir="${com.google.dart.core.tests}/src-compiler-javatests">
+            <fileset dir="${build.source.root}/compiler/javatests" />
+        </copy>
+        -->
+        <unzip dest="${build.target.dropins}" src="${build.out}/DartBuild-linux.gtk.${build.eclipse.arch}.zip">
+            <patternset>
+                <include name="**/plugins/com.google.dart*/**" />
+                <include name="**/features/com.google.dart*/**" />
+            </patternset>
+        </unzip>
+    </target>
+    
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: init                      
+    initialize the build environment by cleaning up the  directory and 
+    creating the needed directories
+       - - - - - - - - - - - - - - - - - -->
+    <target name="init">
+        <property environment="env" />
+        <echoproperties prefix="env." />
+
+        <tstamp>
+            <format property="build.date" pattern="yyyyMMddHHmm" />
+        </tstamp>
+        <echoProperty propertyName="ant.file" />
+        <echoProperty propertyName="ant.home" />
+        <echoProperty propertyName="ant.version" />
+        <echoProperty propertyName="java.home" />
+        <echoProperty propertyName="java.vendor" />
+        <echoProperty propertyName="java.version" />
+        <echoProperty propertyName="user.name" />
+        <echoProperty propertyName="dataLocation" />
+        <condition property="data.location" value="${dataLocation}">
+            <isset property="dataLocation" />
+        </condition>
+        <property name="data.location" location="./build-settings" />
+        <echoProperty propertyName="data.location" />
+        <!--
+          validate that the data location is a directory
+        -->
+        <fail>Error: 
+            data.location must be set to a valid directory containing the configuration properties file.
+            the current value is ${data.location}.
+            <condition>
+                <not>
+                    <available file="${data.location}" type="dir" />
+                </not>
+            </condition>
+        </fail>
+        <property name="user.property.file" location="${data.location}/${user.name}.properties" /> 
+        <property name="default-user.property.file" location="${data.location}/default-user.properties" /> 
+        <property name="eclipse.property.file" location="${data.location}/eclipse-platform.properties" />
+        <echo message="reading ${eclipse.property.file}" />
+        <property file="${eclipse.property.file}" />
+        <echo message="reading ${user.property.file}" />
+        <property file="${user.property.file}" />
+        <!--
+          validate that the default-user.property file exists
+        -->
+        <fail>Error: 
+            ${default-user.property.file} must exist.
+            <condition>
+                <not>
+                    <available file="${default-user.property.file}" type="file" />
+                </not>
+            </condition>
+        </fail>
+        
+        <!-- 
+          validate the the build.source is a directory
+        -->
+        <fail>Error: 
+            build.source must be set to the root of the dart Eclipse tree it must be a directory 
+            containing the source for the dart Eclipse product.  
+            The current value is ${build.source}.
+            <condition>
+                <not>
+                    <available file="${build.source}" type="dir" />
+                </not>
+            </condition>
+        </fail>
+        <!--
+          validate that ${build.source}/docs/README.txt exists
+        -->
+        <fail>Error: 
+            It appears that build.source is not pointing to the root of the dart Eclipse tree.
+            The build is trying to verify that file ${build.source}/docs/README.txt is a file. 
+            The current value is ${build.source}/dart/bundle/README.txt.
+            <condition>
+                <not>
+                    <available file="${build.source}/docs/README.txt" type="file" />
+                </not>
+            </condition>
+        </fail>
+        
+        <condition property="build.revision" value="${env.BUILDBOT_GOT_REVISION}">
+            <isset property="env.BUILDBOT_GOT_REVISION" />
+        </condition>
+        <property name="build.revision" value="unknown" />
+        <dirname file="${build.source}" property="build.source.root"/>
+        
+        <property file="${default-user.property.file}" />
+        <property name="build.stage.scripts" location="${build.stage}/scripts" />
+        <echoproperties prefix="java." />
+        <property name="build.runtime.abs" location="${build.runtime}" />
+        <property name="build.target.abs" location="${build.target}" />
+        <property name="build.stage.abs" location="${build.stage}" />
+        <echoproperties prefix="build." />
+        <echoproperties prefix="build." destfile="/var/tmp/${build.builder}-build.properties"/>
+        <echoProperty propertyName="eclipse-sdk.3.8.url" />
+        <echoProperty propertyName="eclipse-sdk.3.8.linux.gtk.x86.zip" />
+        <echoProperty propertyName="eclipse-sdk.3.7.url" />
+        <echoProperty propertyName="eclipse-sdk.3.7.linux.gtk.x86.zip" />
+        <echoProperty propertyName="eclipse-sdk.3.6.url" />
+        <echoProperty propertyName="eclipse-sdk.3.6.linux.gtk.x86.zip" />
+        <!--
+        cleanup the build.tmp directory
+        -->
+        <delete failonerror="false" includeemptydirs="true">
+            <fileset dir="${build.tmp}" />
+        </delete>
+        <!--
+        create the build structure
+        -->
+        <mkdir dir="${build.downloads}" />
+
+        <mkdir dir="${build.runtime}" />
+        <mkdir dir="${build.target}" />
+        <mkdir dir="${build.stage.plugins}" />
+        <mkdir dir="${build.stage.features}" />
+        <mkdir dir="${build.out}" />
+
+    </target>
+
+</project>

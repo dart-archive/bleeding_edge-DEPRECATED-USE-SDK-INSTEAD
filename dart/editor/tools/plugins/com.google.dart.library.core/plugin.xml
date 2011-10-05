@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="com.google.dart.tools.core.libraries">
+      <library
+            name="core"
+            host="core"
+            path="corelib.dart">
+      </library>
+      <library
+            host="core"
+            name="coreimpl"
+            path="corelib_impl.dart"
+            visible="false">
+      </library>
+   </extension>
+
+</plugin>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         id="application"
+         point="org.eclipse.core.runtime.applications">
+      <application>
+         <run
+               class="com.google.dart.tools.deploy.DartIDEApplication">
+         </run>
+      </application>
+   </extension>
+ 
+   <extension
+         point="org.eclipse.ui.menus">
+              <menuContribution
+            locationURI="menu:file?after=new.ext">
+         <command
+               commandId="com.google.dart.tools.ui.file.new"
+               style="push">
+         </command>
+         <command
+               commandId="com.google.dart.tools.ui.application.new"
+               style="push">
+         </command>
+      </menuContribution>
+      <menuContribution
+            locationURI="menu:file?after=open.ext">
+         <command
+               commandId="com.google.dart.tools.ui.file.open"
+               style="push">
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="com.google.dart.tools.ui.file.open"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+O">
+      </key>
+      <key
+            commandId="com.google.dart.tools.ui.omnibox"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+3">
+      </key>
+   </extension>
+   
+   <extension
+         id="product"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="com.google.dart.tools.deploy.application"
+            name="Dart Editor">
+         <property
+               name="windowImages"
+               value="icons/white_16_16.gif,icons/white_32_32.gif,icons/white_48_48.gif,icons/white_64_64.gif,icons/white_128_128.gif">
+         </property>
+         <property
+               name="aboutText"
+               value="An awesome editor for Dart programming.">
+         </property>
+         <property
+               name="aboutImage"
+               value="icons/white_116_116.gif">
+         </property>
+         <property
+               name="appName"
+               value="Dart Editor">
+         </property>
+         <property
+               name="startupProgressRect"
+               value="40,360,368,15">
+         </property>
+         <property
+               name="preferenceCustomization"
+               value="plugin_customization.ini">
+         </property>
+         <property
+               name="startupForegroundColor"
+               value="B3B3B3">
+         </property>
+         <property
+               name="startupMessageRect"
+               value="40,340,368,15">
+         </property>
+      </product>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.activities">
+      <activity
+            description="Dart Development Activities"
+            id="com.google.dart.development"
+            name="Dart Development">
+      </activity>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*convertLineDelimiters">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org.eclipse.search/org.eclipse.search.OpenSearchDialog">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*externaltools.*">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*delimiter.*">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*restartWorkbench">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*cheatsheets.*">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*update.*">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\.equinox\.p2\.ui\..*">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org.eclipse.team.*">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*openLocalFile">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*toggleInsertMode">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*showInformation">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*.helpContents">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*.helpSearch">
+      </activityPatternBinding>
+      <!-- contributed by org.eclipse.ui.workbench -->
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\.ui\.edit\.findIncremental.*">
+      </activityPatternBinding>
+      <!-- contributed by org.eclipse.ui.workbench -->
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\.ui\.edit\.text\.gotoLastEditPosition">
+      </activityPatternBinding>
+      <!-- Added by BasicTextEditorActionContributor -->
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\.ui\.edit\.text\.hippieCompletion">
+      </activityPatternBinding>
+      <!-- Get rid of default "Open Resource" action -->
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\.ui\..*OpenWorkspaceFile.*">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\.ui\.navigate\.next">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\.ui\.navigate\.previous">
+      </activityPatternBinding>
+   </extension>
+   
+   <!-- Launch and Debug contributions -->
+   
+   <extension
+         point="org.eclipse.ui.activities">
+      <activity
+            description="Dart Launch Activities"
+            id="com.google.dart.development.launch"
+            name="Dart Launch Activities">
+      </activity>
+
+      <!-- remove org.eclipse.debug.internal.ui.actions.RunDropDownAction
+           and org.eclipse.debug.internal.ui.actions.DebugDropDownAction -->
+       <activityPatternBinding
+            activityId="com.google.dart.development.launch"
+            pattern="org.eclipse.debug.ui/org.eclipse.debug.internal.ui.actions.*DropDownAction">
+      </activityPatternBinding>
+
+      <!-- remove org.eclipse.debug.ui.contextualLaunch.debug.submenu, org.eclipse.debug.ui.contextualLaunch.run.submenu
+           and org.eclipse.debug.ui.contextualLaunch.profile.submenu -->
+      <activityPatternBinding
+            activityId="com.google.dart.development.launch"
+            pattern="org.eclipse.debug.ui/org.eclipse.debug.ui.contextualLaunch.*">
+      </activityPatternBinding>
+
+      <!-- internal web browser contributions -->
+      <activityPatternBinding
+            activityId="com.google.dart.development.launch"
+            pattern="org.eclipse.ui.browser/org.eclipse.ui.browser.edito.*">
+      </activityPatternBinding>
+     </extension>
+  
+    <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <file-association
+            content-type="org.eclipse.core.runtime.text"
+            file-extensions="css">
+      </file-association>
+   </extension>
+   
+
+
+</plugin>

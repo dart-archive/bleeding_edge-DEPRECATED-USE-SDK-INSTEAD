@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="com.google.dart.tools.core.libraries">
+      <library
+            name="html"
+            host="html"
+            path="html.dart">
+      </library>
+      <library
+            name="bootstrap_hacks"
+            host="html"
+            path="bootstrap_hacks.dart">
+      </library>
+   </extension>
+   
+</plugin>

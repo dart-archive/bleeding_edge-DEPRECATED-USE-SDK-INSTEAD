@@ -1,0 +1,9 @@
+<html>
+  <head>
+    <title>SomeRandomTitle</title>
+  </head>
+  <body>
+    <h1>SomeRandomTitle</h1>
+    <script type="text/javascript" src="js/ANewDartType.app.js"></script>
+  </body>
+</html>

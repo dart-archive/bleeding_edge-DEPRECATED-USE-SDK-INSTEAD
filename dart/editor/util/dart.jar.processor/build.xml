@@ -1,0 +1,22 @@
+<project default="jar">
+
+    <target name="clean">
+        <delete dir="build"/>
+    	  <delete file="dist/JarProcessor.jar"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes"/>
+    </target>
+
+    <target name="jar" depends="compile">
+        <mkdir dir="dist"/>
+        <jar destfile="dist/JarProcessor.jar" basedir="build/classes">
+            <manifest>
+                <attribute name="Main-Class" value="JarProcessor"/>
+            </manifest>
+        </jar>
+    </target>
+
+</project>

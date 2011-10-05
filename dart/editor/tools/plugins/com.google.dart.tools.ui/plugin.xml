@@ -1,0 +1,3515 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension-point id="dartElementFilters" name="%elementFiltersName" schema="schema/dartElementFilters.exsd"/>
+   <extension-point id="dartEditorTextHovers" name="%javaEditorTextHoversName" schema="schema/dartEditorTextHovers.exsd"/>
+   <extension-point id="dartDocCompletionProcessor" name="%javadocCompletionProcessor" schema="schema/dartDocCompletionProcessor.exsd"/>
+   <extension-point id="quickFixProcessors" name="%quickFixProcessorExtensionPoint" schema="schema/quickFixProcessors.exsd"/>
+   <extension-point id="quickAssistProcessors" name="%quickAssistProcessorExtensionPoint" schema="schema/quickAssistProcessors.exsd"/>
+   <extension-point id="foldingStructureProviders" name="%foldingStructureProvidersExtensionPoint" schema="schema/foldingStructureProviders.exsd"/>
+   <extension-point id="dartCompletionProposalComputer" name="%javaCompletionProposalComputer" schema="schema/dartCompletionProposalComputer.exsd"/>
+   <extension-point id="dartCompletionProposalSorters" name="%javaCompletionProposalSorters" schema="schema/dartCompletionProposalSorters.exsd"/>
+   <extension-point id="documentationProvider" name="%documentationProvider" schema="schema/DocumentationProvider.exsd"/>
+   <extension-point id="com.google.dart.tools.ui.cleanUps" name="Clean Ups" schema="schema/com.google.dart.tools.ui.cleanUps.exsd"/>
+
+   <extension point="com.google.dart.tools.ui.cleanUps">
+      <cleanUpConfigurationUI
+         class="com.google.dart.tools.ui.internal.cleanup.preference.CodeFormatingTabPage"
+         name="%CleanUpTabPage.CodeOrganizing.name"
+         cleanUpKind="saveAction">
+      </cleanUpConfigurationUI>
+      
+      <cleanUpOptionsInitializer
+         class="com.google.dart.tools.ui.internal.cleanup.DefaultCleanUpOptionsInitializer"
+         cleanUpKind="cleanUp">
+      </cleanUpOptionsInitializer>
+      <cleanUp
+         class="com.google.dart.tools.ui.internal.cleanup.CodeFormatCleanUp"
+         id="com.google.dart.tools.ui.cleanUps">
+      </cleanUp>
+    </extension>
+
+   <extension
+      point="org.eclipse.ui.decorators">
+      <decorator
+         label="%OverrideIndicatorLabelDecorator.label"
+         lightweight="true"
+         location="BOTTOM_RIGHT"      
+         state="true"
+         class="com.google.dart.tools.ui.OverrideIndicatorLabelDecorator"
+         id="com.google.dart.tools.ui.override.decorator">
+         <description>
+            %OverrideIndicatorLabelDecorator.description
+         </description>
+         <enablement>
+            <objectClass
+               name="org.eclipse.wst.jsdt.core.IFunction">
+            </objectClass>
+         </enablement>
+      </decorator>   
+   </extension>
+   
+   <extension point="org.eclipse.core.runtime.adapters">
+      <factory 
+            class="com.google.dart.tools.ui.DartElementAdapterFactory" 
+            adaptableType="com.google.dart.tools.core.model.DartElement">
+            
+            <!--<adapter type="org.eclipse.core.resources.IResource"/>--> <!-- Adds the Open With... action -->
+            
+            <adapter type="org.eclipse.ui.IPersistableElement"/>
+            <!--<adapter type="org.eclipse.ui.IContributorResourceAdapter"/>--> <!-- Adds the Replace With action -->
+            <adapter type="org.eclipse.ui.ide.IContributorResourceAdapter2"/>
+            <adapter type="org.eclipse.ui.IContainmentAdapter"/>
+            
+            <!-- adapter type="org.eclipse.search.ui.ISearchPageScoreComputer"/-->
+            
+            <adapter type="org.eclipse.ui.model.IWorkbenchAdapter"/>
+            <adapter type="org.eclipse.ui.views.properties.IPropertySource"/>
+            <adapter type="org.eclipse.ui.views.tasklist.ITaskListResourceAdapter"/>
+            
+            <adapter type="com.google.dart.tools.ui.internal.IResourceLocator"/>
+      </factory>
+      
+      <factory 
+            class="com.google.dart.tools.ui.DartProjectAdapterFactory" 
+            adaptableType="com.google.dart.tools.core.model.DartProject">
+            <adapter type="org.eclipse.core.resources.IProject"/>
+      </factory>
+      
+      <factory 
+            class="com.google.dart.tools.ui.ResourceAdapterFactory" 
+            adaptableType="org.eclipse.core.resources.IResource">
+            <adapter type="com.google.dart.tools.core.model.DartElement"/>
+      </factory>
+      
+      <!-- factory 
+            class="org.eclipse.wst.jsdt.internal.ui.MarkerAdapterFactory" 
+            adaptableType="org.eclipse.core.resources.IMarker">
+            <adapter type="org.eclipse.search.ui.ISearchPageScoreComputer"/>
+      </factory-->
+      
+      <factory 
+            class="com.google.dart.tools.ui.internal.text.editor.EditorInputAdapterFactory" 
+            adaptableType="org.eclipse.ui.IEditorInput">
+            <!-- adapter type="org.eclipse.search.ui.ISearchPageScoreComputer"/ -->
+            <adapter type="com.google.dart.tools.core.model.DartElement"/>
+      </factory>
+      
+      <factory 
+            class="org.eclipse.wst.jsdt.internal.ui.LogicalPackageAdapterFactory" 
+            adaptableType="org.eclipse.wst.jsdt.internal.ui.browsing.LogicalPackage">
+            <!-- adapter type="org.eclipse.search.ui.ISearchPageScoreComputer"/-->
+            <adapter type="org.eclipse.core.resources.mapping.ResourceMapping"/>
+      </factory>
+      
+      <factory 
+            class="org.eclipse.wst.jsdt.internal.ui.refactoring.RefactoringAdapterFactory" 
+            adaptableType="org.eclipse.wst.jsdt.internal.corext.refactoring.changes.CompilationUnitChange">
+            
+            <adapter type="org.eclipse.ltk.ui.refactoring.TextEditChangeNode"/>
+      </factory>
+      
+        <factory
+            class="org.eclipse.wst.jsdt.internal.ui.refactoring.RefactoringAdapterFactory"
+            adaptableType="org.eclipse.ltk.core.refactoring.MultiStateTextFileChange">
+            
+            <adapter type="org.eclipse.ltk.ui.refactoring.TextEditChangeNode"/>
+        </factory>
+
+   </extension>        
+
+   <!-- content assist processors - do not change their order -->  
+   <!-- Dart and Dart doc category -->
+   <extension
+      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
+      id="javaTypeProposalCategory"
+      name="%JavaTypesCategory">
+      <proposalCategory
+         icon="$nl$/icons/full/elcl16/jtypeassist_co.gif"/>
+   </extension>
+   <extension
+      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
+      id="javaNoTypeProposalCategory"
+      name="%JavaProposalCategory">
+      <proposalCategory
+         icon="$nl$/icons/full/elcl16/javaassist_co.gif"/>
+   </extension>
+   <extension
+      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
+      id="defaultProposalCategory"
+      name="%DefaultProposalCategory">
+      <proposalCategory/>
+   </extension>
+   <extension
+      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
+      id="templateProposalCategory"
+      name="%TemplateProposalCategory">
+      <proposalCategory
+         icon="$nl$/icons/full/elcl16/templateprop_co.gif"/>
+   </extension>
+   <extension
+      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
+      id="textProposalCategory"
+      name="%TextProposalCategory">
+      <proposalCategory
+         icon="$nl$/icons/full/elcl16/wordassist_co.gif"/>
+   </extension>
+    
+   <!-- Dart completions -->
+   <extension
+      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
+      id="DartTypeCompletionProposalComputer">
+      <dartCompletionProposalComputer 
+         class="com.google.dart.tools.ui.internal.text.dart.DartTypeCompletionProposalComputer"
+         categoryId="com.google.dart.tools.ui.javaTypeProposalCategory">
+         <partition type="__dftl_partition_content_type"/>
+      <partition type="__dart_string"/>
+      <partition type="__dart_multiline_string"/>
+      </dartCompletionProposalComputer>
+   </extension>
+   <extension
+      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
+      id="DartNoTypeCompletionProposalComputer">
+      <dartCompletionProposalComputer 
+         class="com.google.dart.tools.ui.internal.text.dart.DartNoTypeCompletionProposalComputer"
+         categoryId="com.google.dart.tools.ui.javaNoTypeProposalCategory">
+         <partition type="__dftl_partition_content_type"/>
+         <partition type="__dart_string"/>
+      </dartCompletionProposalComputer>
+   </extension>
+   <!-- Dart doc completions -->   
+   <!-- extension
+      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
+      id="JavadocCompletionProposalComputer">
+      <dartCompletionProposalComputer 
+         class="com.google.dart.tools.ui.internal.text.dart.DartDocCompletionProposalComputer"
+         categoryId="com.google.dart.tools.ui.javaNoTypeProposalCategory">
+         <partition type="__dart_doc"/>
+      </dartCompletionProposalComputer>
+   </extension -->
+   <!-- extension
+      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
+      id="JavadocHTMLCompletionProposalComputer">
+      <dartCompletionProposalComputer 
+         class="com.google.dart.tools.ui.internal.text.dart.HTMLTagCompletionProposalComputer"
+         categoryId="com.google.dart.tools.ui.javaNoTypeProposalCategory">
+         <partition type="__dart_doc"/>
+      </dartCompletionProposalComputer>
+   </extension -->
+   <!-- template proposals -->
+   <!-- extension
+      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
+      id="TemplateProposalComputer">
+      <dartCompletionProposalComputer
+         class="com.google.dart.tools.ui.internal.text.dart.TemplateCompletionProposalComputer"
+         categoryId="com.google.dart.tools.ui.templateProposalCategory">
+         <partition type="__dftl_partition_content_type"/>
+         <partition type="__dart_singleline_comment"/> < - to get NLS templates - >
+         <partition type="__dart_doc"/>
+      </dartCompletionProposalComputer>
+   </extension -->
+   <!-- hippie word completions -->   
+   <extension
+      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
+      id="HippieCompletionProposalComputer">
+      <dartCompletionProposalComputer
+         class="com.google.dart.tools.ui.internal.text.dart.HippieProposalComputer"
+         categoryId="com.google.dart.tools.ui.textProposalCategory">
+         <partition type="__dart_singleline_comment"/>
+         <partition type="__dart_multiline_comment"/>
+         <partition type="__dart_string"/>
+         <partition type="__dart_multiline_string"/>
+         <partition type="__dart_doc"/>
+      </dartCompletionProposalComputer>
+   </extension>
+   
+   <!-- the parameterized content assist action and keybindings for our contributed computers -->
+   <extension
+      point="org.eclipse.ui.commands">
+      <command
+         categoryId="org.eclipse.ui.category.edit"
+         description="%SpecificContentAssist.desc"
+         id="com.google.dart.tools.ui.specific_content_assist.command"
+         name="%SpecificContentAssist.name"
+         defaultHandler="com.google.dart.tools.ui.internal.text.dart.DartContentAssistHandler">
+         <commandParameter
+            id="com.google.dart.tools.ui.specific_content_assist.category_id"
+            name="%SpecificContentAssist.param"
+            optional="false"
+            values="com.google.dart.tools.ui.internal.text.dart.ContentAssistComputerParameter"/>
+      </command>
+            <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.ui.omni.OmniBoxHandler"
+            description="%command.omnibox.description"
+            id="com.google.dart.tools.ui.omnibox"
+            name="%command.omnibox.name"/>
+   </extension>
+   
+   <extension
+      point="com.google.dart.tools.ui.dartCompletionProposalSorters">
+      <proposalSorter
+         id="com.google.dart.tools.ui.RelevanceSorter"
+         name="%RelevanceSorter.name"
+         class="com.google.dart.tools.ui.internal.text.dart.RelevanceSorter"/>
+      <proposalSorter
+         id="com.google.dart.tools.ui.AlphabeticSorter"
+         name="%AlphabeticSorter.name"
+         class="com.google.dart.tools.ui.internal.text.dart.AlphabeticSorter"/>
+   </extension>
+   
+   <!-- Note: Do not change the sequence of those hover contributions -->
+   <extension
+         point="com.google.dart.tools.ui.dartEditorTextHovers">
+      <hover
+            label="%sequentialHover"
+            description="%sequentialHoverDescription"
+            class="com.google.dart.tools.ui.functions.java.hover.BestMatchHover"
+            id="org.eclipse.wst.jsdt.ui.BestMatchHover">
+      </hover>
+      <hover
+            label="%problemHover"
+            description="%problemHoverDescription"
+            class="com.google.dart.tools.ui.functions.java.hover.ProblemHover"
+            id="org.eclipse.wst.jsdt.ui.ProblemHover">
+      </hover>
+      <hover
+            label="%nlsStringHover"
+            description="%nlsStringHoverDescription"
+            class="com.google.dart.tools.ui.functions.java.hover.NLSStringHover"
+            id="org.eclipse.wst.jsdt.ui.NLS">
+      </hover>
+      <hover
+            label="%javadocHover"
+            description="%javadocHoverDescription"
+            class="com.google.dart.tools.ui.functions.java.hover.JavadocHover"
+            id="org.eclipse.wst.jsdt.ui.JavadocHover">
+      </hover>
+      <hover
+            label="%sourceHover"
+            description="%sourceHoverDescription"
+            class="com.google.dart.tools.ui.functions.java.hover.JavaSourceHover"
+            id="org.eclipse.wst.jsdt.ui.JavaSourceHover">
+      </hover>
+<!--
+      <hover
+            label="%annotationHover"
+            description="%annotationHoverDescription"
+            class="com.google.dart.tools.ui.functions.java.hover.AnnotationHover"
+            id="org.eclipse.wst.jsdt.ui.AnnotationHover">
+      </hover>
+-->
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            name="%dart.perspective.name"
+            icon="$nl$/icons/full/eview16/dperspective.png"
+            class="com.google.dart.tools.ui.DartPerspective"
+            id="com.google.dart.tools.ui.DartPerspective">
+         <description>
+            %dart.perspective.description
+         </description>
+      </perspective>    
+   </extension>
+   
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <!-- shortcuts to Dart perspective -->
+      <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <perspectiveShortcut id="com.google.dart.tools.ui.DartPerspective"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="org.eclipse.debug.ui.DebugPerspective">
+         <perspectiveShortcut id="com.google.dart.tools.ui.DartPerspective"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="org.eclipse.wst.web.ui.webDevPerspective">
+         <perspectiveShortcut id="com.google.dart.tools.ui.DartPerspective"/>
+      </perspectiveExtension> 
+      <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
+         <perspectiveShortcut id="com.google.dart.tools.ui.DartPerspective"/>
+      </perspectiveExtension>
+      
+      <!-- shortcuts from Dart perspective -->
+      <perspectiveExtension targetID="com.google.dart.tools.ui.DartPerspective">
+         <perspectiveShortcut id="org.eclipse.jdt.ui.JavaPerspective"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="com.google.dart.tools.ui.DartPerspective">
+         <perspectiveShortcut id="org.eclipse.debug.ui.DebugPerspective"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="com.google.dart.tools.ui.DartPerspective">
+         <perspectiveShortcut id="org.eclipse.wst.web.ui.webDevPerspective"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="com.google.dart.tools.ui.DartPerspective">
+         <perspectiveShortcut id="org.eclipse.ui.resourcePerspective"/>
+      </perspectiveExtension>
+       
+      <!-- view shortcuts in Dart perspective -->    
+      <perspectiveExtension targetID="com.google.dart.tools.ui.DartPerspective">
+         <showInPart id="org.eclipse.ui.navigator.ProjectExplorer"/>
+         <showInPart id="org.eclipse.team.ui.GenericHistoryView"/>
+         <showInPart id="org.eclipse.ui.views.ResourceNavigator"/>
+         <actionSet id="com.google.dart.tools.ui.DartActionSet"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="org.eclipse.wst.jsdt.ui.JavaBrowsingPerspective">
+         <showInPart id="org.eclipse.wst.jsdt.ui.PackageExplorer"/>
+         <showInPart id="org.eclipse.team.ui.GenericHistoryView"/>
+         <showInPart id="org.eclipse.ui.views.ResourceNavigator"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="org.eclipse.debug.ui.DebugPerspective">
+         <showInPart id="org.eclipse.wst.jsdt.ui.PackageExplorer"/>
+      </perspectiveExtension>
+      
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.projectNatureImages">
+      <image
+            icon="$nl$/icons/full/ovr16/java_ovr.gif"
+            natureId="org.eclipse.wst.jsdt.core.jsNature"
+            id="org.eclipse.ui.javaProjectNatureImage">
+      </image>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="%viewCategoryName"
+            id="com.google.dart.tools.ui.dart">
+      </category>
+      
+      <view
+            name="%DartcMetricsView"
+            icon="$nl$/icons/full/eview16/javadoc.gif"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.internal.dartc.metrics.MetricsView"
+            id="com.google.dart.tools.ui.internal.metricsView">
+      </view>
+      
+      <!-- TODO Update the icon from Josh/Luke -->
+      <view
+            name="%libraryViewName"
+            icon="$nl$/icons/full/eview16/package.gif"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.internal.libraryview.LibraryExplorerPart"
+            id="com.google.dart.tools.ui.LibraryExplorer">
+      </view>
+      
+      <!-- Errors view -->
+    
+      <view
+            name="%problemsViewName"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.internal.problemsview.ProblemsView"
+            icon="icons/full/eview16/problems_view.gif"
+            id="com.google.dart.tools.ui.ProblemsView">
+      </view>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.newWizards">
+       <category
+             id="com.google.dart.category"
+             name="Dart">
+       </category>
+       <wizard
+             category="com.google.dart.category"
+             class="com.google.dart.tools.ui.wizard.NewFileWizard"
+             finalPerspective="com.google.dart.tools.ui.DartPerspective"
+             icon="icons/full/obj16/library_obj.gif"
+             id="com.google.dart.file.wizard"
+             name="%NewFileWizard">
+       </wizard>
+       <wizard
+             category="com.google.dart.category"
+             class="com.google.dart.tools.ui.wizard.NewApplicationWizard"
+             finalPerspective="com.google.dart.tools.ui.DartPerspective"
+             icon="icons/full/obj16/library_obj.gif"
+             id="com.google.dart.library1.wizard"
+             name="%NewLibraryWizard">
+       </wizard>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            name="%dartPropertiesPageName"
+            class="com.google.dart.tools.ui.internal.properties.DartSettingsPropertyPage"
+            id="com.google.dart.tools.ui.DartSettingsPropertyPage">
+         <enabledWhen>
+           <adapt type="org.eclipse.core.resources.IProject">
+                <test property="org.eclipse.core.resources.projectNature" value="com.google.dart.tools.core.dartNature"/>
+           </adapt>         
+         </enabledWhen>
+      </page>
+ 
+   </extension>
+   <extension
+         point="org.eclipse.ui.elementFactories">
+      <factory
+            class="com.google.dart.tools.ui.internal.text.editor.ExternalCompilationUnitEditorInputFactory"
+            id="com.google.dart.tools.ui.ExternalCompilationUnitEditorInputFactory">
+      </factory>
+   </extension>
+
+   <extension
+         id="darteditor"
+         point="org.eclipse.ui.editors">
+      <editor
+            name="%CompilationUnitEditorName"
+            default="true"
+            icon="$nl$/icons/full/dart16/dart.png"
+            contributorClass="com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditorActionContributor"
+            class="com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor"
+            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
+            id="com.google.dart.tools.ui.text.editor.CompilationUnitEditor"
+            extensions="dart">
+            <contentTypeBinding contentTypeId="com.google.dart.tools.core.dartSourceFile" /> 
+      </editor>
+
+      <editor
+            name="%HtmlFileEditorName"
+            default="true"
+            icon="$nl$/icons/full/obj16/file_obj.gif"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            class="com.google.dart.tools.ui.internal.htmleditor.HtmlFileEditor"
+            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
+            id="com.google.dart.tools.ui.htmleditor.htmlEditor"
+            extensions="html,htm">
+      </editor>
+      
+      <editor
+            name="%TextFileEditorName"
+            default="true"
+            icon="$nl$/icons/full/obj16/file_obj.gif"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            class="com.google.dart.tools.ui.internal.text.editor.SimpleTextEditor"
+            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
+            id="com.google.dart.tools.ui.text.editor.TextEditor">
+      </editor>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.themes">
+        <themeElementCategory label="%javaPresentation.label" id="org.eclipse.wst.jsdt.ui.presentation"/>
+      <fontDefinition
+            label="%javaEditorFontDefiniton.label"
+            defaultsTo="org.eclipse.jface.textfont"
+            categoryId="org.eclipse.wst.jsdt.ui.presentation"
+            id="com.google.dart.tools.ui.editors.textfont">
+         <description>
+            %javaEditorFontDefintion.description
+         </description>
+      </fontDefinition>
+      <fontDefinition
+            label="%javadocDisplayFontDefiniton.label"
+            defaultsTo="org.eclipse.jface.dialogfont"
+            categoryId="org.eclipse.wst.jsdt.ui.presentation"
+            id="org.eclipse.wst.jsdt.ui.javadocfont">
+         <description>
+            %javadocDisplayFontDefiniton.description
+         </description>
+      </fontDefinition>
+      <colorDefinition
+            label="%JavadocViewBackgroundColor.label"
+            categoryId="org.eclipse.wst.jsdt.ui.presentation"
+            value="COLOR_INFO_BACKGROUND"
+            id="org.eclipse.wst.jsdt.ui.JavadocView.backgroundColor">
+         <description>
+            %JavadocViewBackgroundColor.description
+         </description>
+      </colorDefinition>
+      <colorDefinition
+            label="%DeclarationViewBackgroundColor.label"
+            categoryId="org.eclipse.wst.jsdt.ui.presentation"
+            value="COLOR_INFO_BACKGROUND"
+            id="org.eclipse.wst.jsdt.ui.DeclarationView.backgroundColor">
+         <description>
+            %DeclarationViewBackgroundColor.description
+         </description>
+      </colorDefinition>
+     <colorDefinition
+            label="%coloredLabels.qualifier.label"
+            categoryId="org.eclipse.wst.jsdt.ui.presentation"
+            value="COLOR_DARK_GRAY"
+            id="org.eclipse.wst.jsdt.ui.ColoredLabels.qualifier">
+         <description>
+            %coloredLabels.qualifier.description
+         </description>
+      </colorDefinition>
+      <colorDefinition
+            label="%coloredLabels.decorations.label"
+            categoryId="org.eclipse.wst.jsdt.ui.presentation"
+            value="149,125,71"
+            id="org.eclipse.wst.jsdt.ui.ColoredLabels.decorations">
+         <description>
+            %coloredLabels.decorations.description
+         </description>
+      </colorDefinition>      
+      <colorDefinition
+            label="%coloredLabels.counter.label"
+            categoryId="org.eclipse.wst.jsdt.ui.presentation"
+            value="0,127,174"
+            id="org.eclipse.wst.jsdt.ui.ColoredLabels.counter">
+         <description>
+            %coloredLabels.counter.description
+         </description>
+      </colorDefinition>
+      <colorDefinition
+            label="%coloredLabels.inherited.label"
+            categoryId="org.eclipse.wst.jsdt.ui.presentation"
+            value="COLOR_DARK_BLUE"
+            id="org.eclipse.wst.jsdt.ui.ColoredLabels.inherited">
+         <description>
+            %coloredLabels.inherited.description
+         </description>
+      </colorDefinition>
+    </extension>
+   
+   
+   <extension
+         point="org.eclipse.ui.editors.annotationTypes">
+      <type
+         name="org.eclipse.wst.jsdt.ui.error"
+         super="org.eclipse.ui.workbench.texteditor.error"
+         markerType="org.eclipse.wst.jsdt.core.problem"
+         markerSeverity="2">
+      </type>
+      <type
+         name="org.eclipse.wst.jsdt.ui.warning"
+         super="org.eclipse.ui.workbench.texteditor.warning"
+         markerType="org.eclipse.wst.jsdt.core.problem"
+         markerSeverity="1">
+      </type>
+      <type
+         name="org.eclipse.wst.jsdt.ui.info"
+         super="org.eclipse.ui.workbench.texteditor.info"
+         markerType="org.eclipse.wst.jsdt.core.problem"
+         markerSeverity="0">
+      </type>
+      <type
+         name="org.eclipse.wst.jsdt.ui.occurrences">
+      </type>
+      <type
+         name="org.eclipse.wst.jsdt.ui.overrideIndicator">
+      </type>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="org.eclipse.wst.jsdt.ui.error"
+            annotationImageProvider="org.eclipse.wst.jsdt.internal.ui.javaeditor.JavaAnnotationImageProvider">
+      </specification>
+      <specification
+            annotationType="org.eclipse.wst.jsdt.ui.warning"
+            annotationImageProvider="org.eclipse.wst.jsdt.internal.ui.javaeditor.JavaAnnotationImageProvider">
+      </specification>
+      <specification
+            annotationType="org.eclipse.wst.jsdt.ui.info"
+            annotationImageProvider="org.eclipse.wst.jsdt.internal.ui.javaeditor.JavaAnnotationImageProvider">
+      </specification>
+     <specification
+            annotationType="org.eclipse.wst.jsdt.ui.occurrences"
+            label="%OccurrenceAnnotation.label"
+            icon="$nl$/icons/full/obj16/searchm_obj.gif"
+            textPreferenceKey="javaScriptOccurrenceIndication"
+            textPreferenceValue="false"
+            highlightPreferenceKey="javaScriptOccurrenceHighlighting"
+            highlightPreferenceValue="true"
+            contributesToHeader="false"
+            overviewRulerPreferenceKey="javaScriptOccurrenceIndicationInOverviewRuler"
+            overviewRulerPreferenceValue="true"
+            verticalRulerPreferenceKey="javaScriptOccurrenceIndicationInVerticalRuler"
+            verticalRulerPreferenceValue="false"
+            colorPreferenceKey="javaScriptOccurrenceIndicationColor"
+            colorPreferenceValue="212,212,212"
+            presentationLayer="4"
+            showInNextPrevDropdownToolbarActionKey="javaScriptShowOccurrenceInNextPrevDropdownToolbarAction"
+            showInNextPrevDropdownToolbarAction="true"
+            isGoToNextNavigationTargetKey="javaScriptIsOccurrenceGoToNextNavigationTarget"
+           isGoToNextNavigationTarget="false"
+            isGoToPreviousNavigationTargetKey="javaScriptIsOccurrenceGoToPreviousNavigationTarget"
+           isGoToPreviousNavigationTarget="false">
+     </specification>
+     <specification
+            annotationType="org.eclipse.wst.jsdt.ui.overrideIndicator"
+            label="%OverrideIndicator.label"
+            icon="$nl$/icons/full/ovr16/over_co.gif"
+         annotationImageProvider ="org.eclipse.wst.jsdt.internal.ui.javaeditor.OverrideIndicatorImageProvider"
+            textPreferenceKey="javaScriptOverrideIndicator"
+            textPreferenceValue="false"
+            highlightPreferenceKey="javaScriptOverrideIndicatorHighlighting"
+            highlightPreferenceValue="false"
+            contributesToHeader="false"
+            overviewRulerPreferenceKey="javaScriptOverrideIndicatorInOverviewRuler"
+            overviewRulerPreferenceValue="false"
+            verticalRulerPreferenceKey="javaScriptOverrideIndicatorInVerticalRuler"
+            verticalRulerPreferenceValue="true"
+            colorPreferenceKey="javaScriptOverrideIndicatorColor"
+            colorPreferenceValue="180,207,205"
+            presentationLayer="3"
+            showInNextPrevDropdownToolbarActionKey="javaScriptShowoverrideIndicatorInNextPrevDropdownToolbarAction"
+            showInNextPrevDropdownToolbarAction="false"
+            isGoToNextNavigationTargetKey="javaScriptIsOverrideIndicatorGoToNextNavigationTarget"
+           isGoToNextNavigationTarget="false"
+            isGoToPreviousNavigationTargetKey="javaScriptIsOverrideIndicatorGoToPreviousNavigationTarget"
+           isGoToPreviousNavigationTarget="false">
+     </specification>
+
+      <!-- linked annotations -->
+      <!-- these are deprecated as of 3.2, do not use. -->
+     <specification
+            annotationType="org.eclipse.wst.jsdt.ui.link.master"
+            colorPreferenceValue="70,100,165"
+            colorPreferenceKey="linked.focus.color"
+            isGoToPreviousNavigationTarget="false"
+            isGoToPreviousNavigationTargetKey="linked.focus.navigation.previous"
+            showInNextPrevDropdownToolbarAction="false"
+            showInNextPrevDropdownToolbarActionKey="linked.focus.navigation.dropdown"
+            isGoToNextNavigationTarget="false"
+            isGoToNextNavigationTargetKey="linked.focus.navigation.next"
+            contributesToHeader="false"
+            overviewRulerPreferenceValue="false"
+            presentationLayer="4"
+            label="%linked.focus.label"
+            textPreferenceValue="true"
+            textPreferenceKey="linked.focus.text"
+            highlightPreferenceKey="linked.focus.highlight"
+            highlightPreferenceValue="false"
+            textStylePreferenceKey="linked.focus.text.style"
+            textStylePreferenceValue="BOX"
+            verticalRulerPreferenceKey="linked.focus.verticalruler"
+            verticalRulerPreferenceValue="false"
+            includeOnPreferencePage="false"
+            overviewRulerPreferenceKey="linked.focus.overviewruler">
+      </specification>      
+      <specification
+            annotationType="org.eclipse.wst.jsdt.ui.link.slave"
+            colorPreferenceValue="180,215,255"
+            colorPreferenceKey="linked.slave.color"
+            isGoToPreviousNavigationTarget="false"
+            isGoToPreviousNavigationTargetKey="linked.slave.navigation.previous"
+            showInNextPrevDropdownToolbarAction="false"
+            showInNextPrevDropdownToolbarActionKey="linked.slave.navigation.dropdown"
+            isGoToNextNavigationTarget="false"
+            isGoToNextNavigationTargetKey="linked.slave.navigation.next"
+            contributesToHeader="false"
+            overviewRulerPreferenceValue="false"
+            presentationLayer="4"
+            label="%linked.slave.label"
+            textPreferenceValue="false"
+            textPreferenceKey="linked.slave.text"
+            highlightPreferenceKey="linked.slave.highlight"
+            highlightPreferenceValue="true"
+            textStylePreferenceKey="linked.slave.text.style"
+            textStylePreferenceValue="NONE"
+            verticalRulerPreferenceKey="linked.slave.verticalruler"
+            verticalRulerPreferenceValue="false"
+            includeOnPreferencePage="false"
+            overviewRulerPreferenceKey="linked.slave.overviewruler">
+      </specification>      
+      <specification
+            annotationType="org.eclipse.wst.jsdt.ui.link.target"
+            colorPreferenceValue="70,100,165"
+            colorPreferenceKey="linked.target.color"
+            isGoToPreviousNavigationTarget="false"
+            isGoToPreviousNavigationTargetKey="linked.target.navigation.previous"
+            showInNextPrevDropdownToolbarAction="false"
+            showInNextPrevDropdownToolbarActionKey="linked.target.navigation.dropdown"
+            isGoToNextNavigationTarget="false"
+            isGoToNextNavigationTargetKey="linked.target.navigation.next"
+            contributesToHeader="false"
+            overviewRulerPreferenceValue="false"
+            presentationLayer="4"
+            label="%linked.target.label"
+            textPreferenceValue="true"
+            textPreferenceKey="linked.target.text"
+            highlightPreferenceKey="linked.target.highlight"
+            highlightPreferenceValue="false"
+            textStylePreferenceKey="linked.target.text.style"
+            textStylePreferenceValue="BOX"
+            verticalRulerPreferenceKey="linked.target.verticalruler"
+            verticalRulerPreferenceValue="false"
+            includeOnPreferencePage="false"
+            overviewRulerPreferenceKey="linked.target.overviewruler">
+      </specification>
+      <specification
+            annotationType="org.eclipse.wst.jsdt.ui.link.exit"
+            colorPreferenceValue="0,180,0"
+            colorPreferenceKey="linked.exit.color"
+            isGoToPreviousNavigationTarget="false"
+            isGoToPreviousNavigationTargetKey="linked.exit.navigation.previous"
+            showInNextPrevDropdownToolbarAction="false"
+            showInNextPrevDropdownToolbarActionKey="linked.exit.navigation.dropdown"
+            isGoToNextNavigationTarget="false"
+            isGoToNextNavigationTargetKey="linked.exit.navigation.next"
+            contributesToHeader="false"
+            overviewRulerPreferenceValue="false"
+            presentationLayer="4"
+            label="%linked.exit.label"
+            textPreferenceValue="true"
+            textPreferenceKey="linked.exit.text"
+            highlightPreferenceKey="linked.exit.highlight"
+            highlightPreferenceValue="false"
+            textStylePreferenceKey="linked.exit.text.style"
+            textStylePreferenceValue="IBEAM"
+            verticalRulerPreferenceKey="linked.exit.verticalruler"
+            verticalRulerPreferenceValue="false"
+            includeOnPreferencePage="false"
+            overviewRulerPreferenceKey="linked.exit.overviewruler">
+      </specification>
+   </extension>
+
+      <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            label="%javaEditorPresentationActionSet.label"
+            visible="false"
+            id="com.google.dart.tools.ui.config.java.actionSet.presentation">
+         <action
+               allowLabelUpdate="true"
+               style="toggle"
+               toolbarPath="org.eclipse.ui.edit.text.actionSet.presentation/Presentation"
+               id="org.eclipse.wst.jsdt.ui.edit.text.java.toggleMarkOccurrences"
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.toggleMarkOccurrences"
+               disabledIcon="$nl$/icons/full/dtool16/mark_occurrences.gif"
+               icon="$nl$/icons/full/etool16/mark_occurrences.gif"
+               helpContextId="toggle_mark_occurrences_action_context"
+               label="%toggleMarkOccurrences.label"
+               retarget="true"
+               tooltip="%toggleMarkOccurrences.tooltip">
+         </action>
+      </actionSet>
+   </extension>
+
+   <extension
+         id="JavaDocumentSetupParticipant"
+         name="%javaDocumentSetupParticipant"
+         point="org.eclipse.core.filebuffers.documentSetup">
+      <participant
+            contentTypeId="com.google.dart.tools.core.dartSourceFile"
+            extensions="dart"
+            class="com.google.dart.tools.ui.internal.text.editor.DartDocumentSetupParticipant">
+      </participant>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectorTargets">
+      <target
+            id="com.google.dart.tools.ui.dartCode"
+            name="%DartEditorHyperlinkTarget">
+            <context type="org.eclipse.ui.texteditor.ITextEditor"/>
+      </target>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
+<!--      
+    TODO(pquitslund): add hyperlink detectors for app and lib files
+-->      
+      <hyperlinkDetector
+            class="com.google.dart.tools.ui.internal.text.editor.DartElementHyperlinkDetector"
+            id="com.google.dart.tools.ui.internal.text.editor.DartElementHyperlinkDetector"
+            name="%DartElementHyperlinkDetector"
+            targetId="com.google.dart.tools.ui.dartCode">
+      </hyperlinkDetector>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            name="%dartPrefName"
+            class="com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage"
+            id="com.google.dart.tools.ui.preferences.DartBasePreferencePage">
+      </page>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.keywords">
+      <keyword
+            label="%preferenceKeywords.general"
+            id="org.eclipse.wst.jsdt.ui.general"/>
+      <keyword
+            label="%preferenceKeywords.appearance"
+            id="org.eclipse.wst.jsdt.ui.appearance"/>
+      <keyword
+            label="%preferenceKeywords.sortorder"
+            id="org.eclipse.wst.jsdt.ui.sortorder"/>
+      <keyword
+            label="%preferenceKeywords.typefilter"
+            id="org.eclipse.wst.jsdt.ui.typefilter"/>
+      <keyword
+            label="%preferenceKeywords.buildpathoptions"
+            id="org.eclipse.wst.jsdt.ui.buildpathoptions"/>
+      <keyword
+            label="%preferenceKeywords.buildpath"
+            id="org.eclipse.wst.jsdt.ui.buildpath"/>      
+      <keyword
+            label="%preferenceKeywords.cpvars"
+            id="org.eclipse.wst.jsdt.ui.cpvars"/>
+      <keyword
+            label="%preferenceKeywords.userlibs"
+            id="org.eclipse.wst.jsdt.ui.userlibs"/>
+      <keyword
+            label="%preferenceKeywords.codestyle"
+            id="org.eclipse.wst.jsdt.ui.codestyle"/>
+      <keyword
+            label="%preferenceKeywords.codetemplates"
+            id="org.eclipse.wst.jsdt.ui.codetemplates"/>
+      <keyword
+            label="%preferenceKeywords.formatter"
+            id="org.eclipse.wst.jsdt.ui.formatter"/>  
+      <keyword
+            label="%preferenceKeywords.cleanup"
+            id="org.eclipse.wst.jsdt.ui.cleanup"/>     
+      <keyword
+            label="%preferenceKeywords.organizeimports"
+            id="org.eclipse.wst.jsdt.ui.organizeimports"/>
+      <keyword
+            label="%preferenceKeywords.compliance"
+            id="org.eclipse.wst.jsdt.ui.compliance"/>      
+      <keyword
+            label="%preferenceKeywords.building"
+            id="org.eclipse.wst.jsdt.ui.building"/>
+      <keyword
+            label="%preferenceKeywords.severities"
+            id="org.eclipse.wst.jsdt.ui.severities"/>      
+      <keyword
+            label="%preferenceKeywords.javadocproblems"
+            id="org.eclipse.wst.jsdt.ui.javadocproblems"/>   
+      <keyword
+            label="%preferenceKeywords.todo"
+            id="org.eclipse.wst.jsdt.ui.todo"/>            
+      <keyword
+            label="%preferenceKeywords.javaeditor"
+            id="org.eclipse.wst.jsdt.ui.javaeditor"/>      
+      <keyword
+            label="%preferenceKeywords.contentassist"
+            id="org.eclipse.wst.jsdt.ui.contentassist"/>   
+      <keyword
+            label="%preferenceKeywords.hover"
+            id="org.eclipse.wst.jsdt.ui.hover"/>
+      <keyword
+            label="%preferenceKeywords.syntaxcoloring"
+            id="org.eclipse.wst.jsdt.ui.syntaxcoloring"/>   
+      <keyword
+            label="%preferenceKeywords.templates"
+            id="org.eclipse.wst.jsdt.ui.templates"/>
+      <keyword
+            label="%preferenceKeywords.propertieseditor"
+            id="org.eclipse.wst.jsdt.ui.propertieseditor"/>
+      <keyword
+            label="%preferenceKeywords.folding"
+            id="org.eclipse.wst.jsdt.ui.folding"/>
+      <keyword
+            label="%preferenceKeywords.markoccurrences"
+            id="org.eclipse.wst.jsdt.ui.markoccurrences"/>
+      <keyword
+            label="%preferenceKeywords.smarttyping"
+            id="org.eclipse.wst.jsdt.ui.smarttyping"/>
+     <keyword
+            label="%preferenceKeywords.saveparticipant"
+            id="org.eclipse.wst.jsdt.ui.saveparticipant"/>
+   </extension>  
+
+<!-- =========================================================================== -->
+<!-- Dart Launching and debugging                                                -->
+<!-- =========================================================================== -->
+<!--   <extension
+         point="org.eclipse.ui.ide.resourceFilters">
+      <filter
+            selected="false"
+            pattern="*.class">
+      </filter>
+   </extension>-->
+   
+
+   
+
+-->   
+<!-- =========================================================================== -->
+<!-- Dart Coding Action Set (Adding the source, refactor and navigate menu)  -->
+<!-- =========================================================================== -->
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            label="%JavaActionSet.label"
+            description="%JavaActionSet.description"
+            visible="false"
+            id="com.google.dart.tools.ui.DartActionSet">
+         <!--
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.navigate.open.type.in.hierarchy"
+               label="%OpenTypeInHierarchyAction.label"
+               helpContextId="org.eclipse.wst.jsdt.ui.open_type_in_hierarchy_action"
+               tooltip="%OpenTypeInHierarchyAction.tooltip"
+               class="org.eclipse.wst.jsdt.internal.ui.actions.OpenTypeInHierarchyAction"
+               menubarPath="navigate/open.ext2"
+               id="openTypeInHierarchy">
+         </action>
+         -->
+         <!--
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.generate.javadoc"
+               label="%GenerateJavadocAction.label"
+               helpContextId="org.eclipse.wst.jsdt.ui.generate_javadoc_action"
+               class="org.eclipse.wst.jsdt.internal.ui.actions.GenerateJavadocAction"
+               icon="$nl$/icons/full/etool16/javadoc.gif"
+               menubarPath="project/additions"
+               id="exportJavadoc">
+         </action>
+         
+         <action
+               id="openType"
+               toolbarPath="org.eclipse.search.searchActionSet/Search"
+               class="com.google.dart.tools.ui.internal.actions.OpenTypeAction"
+               definitionId="org.eclipse.wst.jsdt.ui.navigate.open.type"
+               icon="$nl$/icons/full/etool16/opentype.gif"
+               helpContextId="org.eclipse.wst.jsdt.ui.open_type_action"
+               label="%OpenTypeAction.label"
+               menubarPath="navigate/open.ext2"
+               tooltip="%OpenTypeAction.tooltip">
+         </action>
+         -->
+      </actionSet>
+   </extension>   
+   
+<!-- Begin JavaScript Open action contributions  -->
+<!-- Action sets are contributed after they have been sorted. To enfore that   -->
+<!-- the open action set is contributed before the CodeActionSet we prefix it  -->
+<!-- with an A_                                                                -->
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            label="%OpenActionSet.label"
+            description="%OpenActionSet.description"
+            visible="false"
+            id="org.eclipse.wst.jsdt.ui.A_OpenActionSet">
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.open.call.hierarchy"
+               label="%OpenCallHierarchyAction.label"
+               retarget="true"
+               menubarPath="navigate/open.ext"
+               id="org.eclipse.wst.jsdt.ui.actions.OpenCallHierarchy">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.open.type.hierarchy"
+               label="%OpenTypeHierarchyAction.label"
+               retarget="true"
+               menubarPath="navigate/open.ext"
+               id="org.eclipse.wst.jsdt.ui.actions.OpenTypeHierarchy">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.dart.open.editor"
+               label="%OpenAction.label"
+               tooltip="%OpenAction.tooltip"
+               retarget="true"
+               menubarPath="navigate/open.ext"
+               allowLabelUpdate="true"
+               id="org.eclipse.wst.jsdt.ui.actions.Open">
+         </action>
+      </actionSet>
+   </extension>
+   <extension
+         point="org.eclipse.ui.actionSetPartAssociations">
+      <actionSetPartAssociation
+            targetID="org.eclipse.wst.jsdt.ui.A_OpenActionSet">
+         <!-- part
+               id="org.eclipse.search.SearchResultView">
+         </part -->
+         <part
+               id="org.eclipse.wst.jsdt.ui.PackageExplorer">
+         </part>
+         <part
+               id="org.eclipse.wst.jsdt.ui.TypeHierarchy">
+         </part>
+         <part
+               id="org.eclipse.wst.jsdt.ui.CompilationUnitEditor">
+         </part>
+         <part
+               id="org.eclipse.wst.jsdt.ui.PropertiesFileEditor">
+         </part>
+         <part
+               id="org.eclipse.wst.jsdt.ui.ProjectsView">
+         </part>
+         <part
+               id="org.eclipse.wst.jsdt.ui.PackagesView">
+         </part>
+         <part
+               id="org.eclipse.wst.jsdt.ui.TypesView">
+         </part>
+         <part
+               id="org.eclipse.wst.jsdt.ui.MembersView">
+         </part>
+         <part
+               id="org.eclipse.wst.jsdt.ui.SourceView">
+         </part>
+      </actionSetPartAssociation>
+   </extension>
+<!-- End JavaScript Open action contributions  -->
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            label="%CodingActionSet.label"
+            description="%CodingActionSet.description"
+            visible="false"
+            id="com.google.dart.tools.ui.CodingActionSet">
+
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.copy.qualified.name"
+               label="%CopyQualifiedName.label"
+               retarget="true"
+               menubarPath="edit/copy"
+               icon="$nl$/icons/full/elcl16/cpyqual_menu.gif"
+               id="org.eclipse.wst.jsdt.ui.actions.CopyQualifiedName">
+         </action>
+<!-- =========================================================================== -->
+<!-- Navigate Menu                                                               -->
+<!-- =========================================================================== -->
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.open.external.javadoc"
+               label="%OpenExternalJavadocAction.label"
+               retarget="true"
+               menubarPath="navigate/open.ext"
+               id="org.eclipse.wst.jsdt.ui.actions.OpenExternalJavaDoc">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.open.super.implementation"
+               label="%OpenSuperImplementationAction.label"
+               tooltip="%OpenSuperImplementationAction.tooltip"
+               retarget="true"
+               menubarPath="navigate/open.ext"
+               id="org.eclipse.wst.jsdt.ui.actions.OpenSuperImplementation">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.navigate.gotopackage"
+               label="%GoToPackageAction.label"
+               retarget="true"
+               menubarPath="navigate/goTo/"
+               id="org.eclipse.wst.jsdt.ui.actions.GoToPackage">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.navigate.gototype"
+               label="%GoToTypeAction.label"
+               retarget="true"
+               menubarPath="navigate/goTo/"
+               id="com.google.dart.tools.ui.actions.GoToType">
+         </action>
+<!-- =========================================================================== -->
+<!-- Refactoring Menu                                                            -->
+<!-- =========================================================================== -->
+         <menu
+               label="%Refactoring.menu.label"
+               path="edit"
+               id="org.eclipse.wst.jsdt.ui.refactoring.menu">
+            <separator name="undoRedoGroup"/>
+            <separator name="reorgGroup"/>
+            <separator name="codingGroup"/>
+            <separator name="reorgGroup2"/>
+            <separator name="typeGroup"/>
+            <separator name="codingGroup2"/>
+            <separator name="typeGroup2"/>
+            <separator name="scriptGroup"/>
+         </menu>
+         
+<!-- reorg group  -->
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.move.element"
+               label="%Refactoring.moveAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/reorgGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.Move">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.rename.element"
+               label="%Refactoring.renameAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/reorgGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.Rename">
+         </action>
+         
+<!-- coding group  -->         
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.inline"
+               label="%Refactoring.inlineAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.Inline">
+         </action>
+<!-- UNTIL REFACTORING SUPPORT
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.constant"
+               label="%Refactoring.extractConstantAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.ExtractConstant">
+         </action>
+  -->         
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.local.variable"
+               label="%Refactoring.extractTempAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.ExtractTemp">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.method"
+               label="%Refactoring.extractMethodAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.ExtractMethod">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.modify.method.parameters"
+               label="%Refactoring.modifyParametersAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.ModifyParameters">
+         </action>
+         
+<!-- reorg group 2 -->
+<!-- UNTIL REFACTORING SUPPORT
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.promote.local.variable"
+               label="%Refactoring.convertLocalToFieldAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/reorgGroup2"
+               id="org.eclipse.wst.jsdt.ui.actions.ConvertLocalToField">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.move.inner.to.top.level"
+               label="%Refactoring.convertNestedToTopAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/reorgGroup2"
+               id="org.eclipse.wst.jsdt.ui.actions.ConvertNestedToTop">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.convert.anonymous.to.nested"
+               label="%Refactoring.convertAnonymousToNestedAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/reorgGroup2"
+               id="org.eclipse.wst.jsdt.ui.actions.ConvertAnonymousToNested">
+         </action>
+  -->         
+         
+         
+         
+<!-- type group  -->
+<!-- UNTIL REFACTORING SUPPORT
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.pull.up"
+               label="%Refactoring.pullUpAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.PullUp">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.push.down"
+               label="%Refactoring.pushDownAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.PushDown">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.use.supertype"
+               label="%Refactoring.useSupertypeAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.UseSupertype">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.interface"
+               label="%Refactoring.extractInterfaceAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.ExtractInterface">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.superclass"
+               label="%Refactoring.extractSupertypeAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup"
+               id="org.eclipse.wst.jsdt.ui.actions.ExtractSuperclass">
+         </action>
+-->         
+           
+<!-- coding group 2  -->
+<!--         
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.replace.invocations"
+               label="%Refactoring.replaceInvocationsAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup2"
+               id="org.eclipse.wst.jsdt.ui.actions.ReplaceInvocations">
+         </action>
+-->
+<!-- UNTIL REFACTORING SUPPORT
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.self.encapsulate.field"
+               label="%Refactoring.selfEncapsulateFieldAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup2"
+               id="org.eclipse.wst.jsdt.ui.actions.SelfEncapsulateField">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.parameter"
+               label="%Refactoring.introduceParameterAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup2"
+               id="org.eclipse.wst.jsdt.ui.actions.IntroduceParameter">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.factory"
+               label="%Refactoring.introduceFactoryAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup2"
+               id="org.eclipse.wst.jsdt.ui.actions.IntroduceFactory">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.indirection"
+               label="%Refactoring.introduceIndirectionAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup2"
+               id="org.eclipse.wst.jsdt.ui.actions.IntroduceIndirection">
+         </action>
+-->
+
+<!-- type group 2 -->
+ <!-- UNTIL REFACTORING SUPPORT
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.infer.type.arguments"
+               label="%Refactoring.inferTypeArgumentsAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup2"
+               id="org.eclipse.wst.jsdt.ui.actions.InferTypeArguments">
+         </action>
+         <action
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.change.type"
+               label="%Refactoring.changeTypeAction.label"
+               retarget="true"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup2"
+               id="org.eclipse.wst.jsdt.ui.actions.ChangeType">
+         </action>
+-->
+
+<!-- script group  -->
+<!-- UNTIL REFACTORING SUPPORT
+        <action
+              class="org.eclipse.wst.jsdt.internal.ui.refactoring.actions.ShowRefactoringHistoryAction"
+              definitionId="org.eclipse.wst.jsdt.ui.refactor.show.refactoring.history"
+              id="org.eclipse.ltk.ui.actions.ShowRefactoringHistory"
+              label="%Refactoring.showHistory.label"
+              menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/scriptGroup"/>         
+        <action
+               class="org.eclipse.wst.jsdt.internal.ui.refactoring.actions.ApplyRefactoringScriptAction"
+               definitionId="org.eclipse.wst.jsdt.ui.refactor.apply.refactoring.script"
+               id="org.eclipse.ltk.ui.actions.ApplyRefactoringStript"
+               label="%Refactoring.applyScript.label"
+               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/scriptGroup"/>
+        <action
+              class="org.eclipse.wst.jsdt.internal.ui.refactoring.actions.CreateRefactoringScriptAction"
+              definitionId="org.eclipse.wst.jsdt.ui.refactor.create.refactoring.script"
+              id="org.eclipse.ltk.ui.actions.CreateRefactoringScript"
+              label="%Refactoring.createScript.label"
+              menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/scriptGroup"/>
+        <action
+              class="org.eclipse.wst.jsdt.internal.ui.refactoring.actions.MigrateJarFileAction"
+              definitionId="org.eclipse.wst.jsdt.ui.refactor.migrate.jar"
+              id="org.eclipse.wst.jsdt.ui.actions.MigrateJarFile"
+              label="%Refactoring.migrateJar.label"
+              menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/scriptGroup"/>
+-->
+         
+<!-- =========================================================================== -->
+<!-- Source Menu                                                                 -->
+<!-- =========================================================================== -->
+         <menu
+               label="%SourceMenu.label"
+               path="edit"
+               id="com.google.dart.tools.ui.source.menu">
+          <separator
+                  name="commentGroup">
+            </separator>
+            <separator
+                  name="editGroup">
+            </separator>
+            <separator
+                  name="importGroup">
+            </separator>
+            <separator
+                  name="generateGroup">
+            </separator>
+            <separator
+                  name="codeGroup">
+            </separator>
+            <separator
+                  name="externalizeGroup">
+            </separator>
+            <separator
+                  name="convertGroup">
+            </separator>
+         </menu>
+<!-- Externalize Group -->
+ <!-- UNTIL REFACTORING SUPPORT
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.find.broken.nls.keys"
+               label="%FindNLSProblems.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/externalizeGroup"
+               id="com.google.dart.tools.ui.actions.FindNLSProblems">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.externalize.strings"
+               label="%ExternalizeStringsAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/externalizeGroup"
+               id="com.google.dart.tools.actions.ExternalizeStrings">
+         </action>
+-->         
+<!-- Code Group -->
+<!-- UNTIL REFACTORING SUPPORT
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.surround.with.quickMenu"
+               label="%SurroundWithTemplateAction.label"
+               style="pulldown"
+               class="com.google.dart.tools.internal.ui.actions.SurroundWithTemplateMenuAction"
+               menubarPath="com.google.dart.tools.ui.source.menu/codeGroup"
+               id="com.google.dart.tools.internal.ui.actions.SurroundWithTemplateMenuAction">
+         </action>
+-->
+<!-- Generate Group -->
+<!-- UNTIL REFACTORING SUPPORT
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.generate.constructor.using.fields"
+               label="%GenerateConstructorUsingFieldsAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/generateGroup"
+               id="com.google.dart.tools.ui.actions.GenerateConstructorUsingFields">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.create.getter.setter"
+               label="%GenerateGetterSetterAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/generateGroup"
+               id="com.google.dart.tools.ui.actions.GenerateGetterSetter">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.override.methods"
+               label="%OverrideMethodsAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/generateGroup"
+               id="com.google.dart.tools.ui.actions.OverrideMethods">
+         </action>
+-->         
+<!-- Import Group -->
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.clean.up"
+               label="%CleanUpAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/importGroup"
+               id="com.google.dart.tools.ui.actions.CleanUp">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.sort.members"
+               label="%SortMembersAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/importGroup"
+               id="com.google.dart.tools.ui.actions.SortMembers">
+         </action>
+<!-- edit group -->
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.quick.format"
+               label="%FormatElementAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/editGroup"
+               id="com.google.dart.tools.ui.actions.FormatElement">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.format"
+               label="%FormatAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/editGroup"
+               id="com.google.dart.tools.ui.actions.Format">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.indent"
+               label="%IndentAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/editGroup"
+               id="com.google.dart.tools.ui.actions.Indent">
+         </action>
+         <action
+               definitionId="org.eclipse.ui.edit.text.shiftLeft"
+               label="%ShiftLeftAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/editGroup"
+               id="com.google.dart.tools.ui.actions.ShiftLeft">
+         </action>
+         <action
+               definitionId="org.eclipse.ui.edit.text.shiftRight"
+               label="%ShiftRightAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/editGroup"
+               id="com.google.dart.tools.ui.actions.ShiftRight">
+         </action>
+<!-- Comment Group -->
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.add.javadoc.comment"
+               label="%AddJavaDocCommentAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/commentGroup"
+               id="com.google.dart.tools.ui.actions.AddJavaDocComment">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.uncomment"
+               label="%UncommentAction.label"
+               retarget="true"
+               id="com.google.dart.tools.ui.actions.Uncomment">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.comment"
+               label="%CommentAction.label"
+               retarget="true"
+               id="com.google.dart.tools.ui.actions.Comment">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.remove.block.comment"
+               label="%RemoveBlockCommentAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/commentGroup"
+               id="com.google.dart.tools.ui.actions.RemoveBlockComment">
+         </action>
+         <action
+               definitionId="ocom.google.dart.tools.ui.edit.text.java.add.block.comment"
+               label="%AddBlockCommentAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/commentGroup"
+               id="com.google.dart.tools.ui.actions.AddBlockComment">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.java.toggle.comment"
+               label="%ToggleCommentAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.source.menu/commentGroup"
+               id="com.google.dart.tools.ui.actions.ToggleComment">
+         </action>
+      </actionSet>
+   </extension>
+
+   <!-- TODO(devoncarew): commented out until we support the actions in the source and refactor menus. -->
+   <!-- At that time, this actionset should also be re-enabled for the Dart editor. -->
+   <!-- extension
+         point="org.eclipse.ui.actionSetPartAssociations">
+      <actionSetPartAssociation
+            targetID="com.google.dart.tools.ui.CodingActionSet">
+         <part
+               id="org.eclipse.ui.navigator.ProjectExplorer">
+         </part>
+      </actionSetPartAssociation>
+   </extension -->
+
+<!-- End JavaScript Action Set (Adding the source, refactor and navigate menu -->
+
+   <extension
+         point="org.eclipse.ui.actionSetPartAssociations">
+      <actionSetPartAssociation
+            targetID="com.google.dart.tools.ui.config.java.actionSet.presentation">
+         <part
+               id="org.eclipse.wst.jsdt.ui.CompilationUnitEditor">
+         </part>
+      </actionSetPartAssociation>
+   </extension>
+   <!-- DartX.todo()
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <viewerContribution
+            targetID="#DartRulerContext"
+            id="org.eclipse.wst.jsdt.internal.ui.javaeditor.QuickFixRulerMenuAction">
+         <action
+               label="%action.label.0"
+               helpContextId="org.eclipse.wst.jsdt.ui.quick_fix_action"
+               class="org.eclipse.wst.jsdt.internal.ui.javaeditor.JavaSelectRulerAction"
+               menubarPath="additions"
+               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.correction.assist.proposals"
+               id="org.eclipse.wst.jsdt.internal.ui.javaeditor.JavaSelectRulerMenuAction">
+         </action>
+      </viewerContribution>
+   </extension>
+   -->
+
+<!-- =========================================================================== -->
+<!-- JDT/UI command definitions                                                  -->
+<!-- =========================================================================== -->
+
+   <extension
+         point="org.eclipse.ui.contexts">
+      <context
+            name="%context.editingJavaSource.name"
+            description="%context.editingJavaSource.description"
+            parentId="org.eclipse.ui.textEditorScope"
+            id="com.google.dart.tools.ui.dartEditorScope">
+      </context>
+      <!-- Not really the scope for the JavScript View.. just extends the editor
+           scope for now.  
+       -->
+      <context
+            name="%context.name.0"
+            description="%context.description.0"
+            parentId="com.google.dart.tools.ui.dartEditorScope"
+            id="com.google.dart.tools.ui.dartViewScope">
+      </context>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.commands">
+<!-- categories -->
+      <category
+            name="%category.source.name"
+            description="%category.source.description"
+            id="org.eclipse.wst.jsdt.ui.category.source">
+      </category>
+      <category
+            name="%category.refactoring.name"
+            description="%category.refactoring.description"
+            id="org.eclipse.wst.jsdt.ui.category.refactoring">
+      </category>
+<!-- file -->
+      <command
+            categoryId="org.eclipse.ui.category.file"
+            defaultHandler="com.google.dart.tools.ui.internal.handlers.OpenFileHandler"
+            description="%Command.openFile.description"
+            id="com.google.dart.tools.ui.file.open"
+            name="%Command.openFile.name">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.file"
+            defaultHandler="com.google.dart.tools.ui.internal.handlers.NewFileHandler"
+            description="%Command.newFile.description"
+            id="com.google.dart.tools.ui.file.new"
+            name="%Command.newFile.name">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.file"
+            defaultHandler="com.google.dart.tools.ui.internal.handlers.NewApplicationHandler"
+            description="%Command.newApplication.description"
+            id="com.google.dart.tools.ui.application.new"
+            name="%Command.newApplication.name">
+      </command>
+      
+<!-- edit -->
+      <command
+            name="%ActionDefinition.selectEnclosing.name"
+            description="%ActionDefinition.selectEnclosing.description"
+            categoryId="org.eclipse.ui.category.edit"
+            id="com.google.dart.tools.ui.edit.text.dart.select.enclosing">
+      </command>
+      <command
+            name="%ActionDefinition.selectNext.name"
+            description="%ActionDefinition.selectNext.description"
+            categoryId="org.eclipse.ui.category.edit"
+            id="com.google.dart.tools.ui.edit.text.dart.select.next">
+      </command>
+      <command
+            name="%ActionDefinition.selectPrevious.name"
+            description="%ActionDefinition.selectPrevious.description"
+            categoryId="org.eclipse.ui.category.edit"
+            id="com.google.dart.tools.ui.edit.text.dart.select.previous">
+      </command>
+      <command
+            name="%ActionDefinition.selectLast.name"
+            description="%ActionDefinition.selectLast.description"
+            categoryId="org.eclipse.ui.category.edit"
+            id="com.google.dart.tools.ui.edit.text.dart.select.last">
+      </command>
+      <command
+            name="%ActionDefinition.showInPackageView.name"
+            description="%ActionDefinition.showInPackageView.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="com.google.dart.tools.ui.edit.text.dart.show.in.package.view">
+      </command>
+      <command
+            name="%ActionDefinition.foldingCollapseMembers.name"
+            description="%ActionDefinition.foldingCollapseMembers.description"
+            categoryId="org.eclipse.ui.category.textEditor"
+            id="com.google.dart.tools.ui.text.folding.collapseMembers">
+      </command>
+      <command
+            name="%ActionDefinition.foldingCollapseComments.name"
+            description="%ActionDefinition.foldingCollapseComments.description"
+            categoryId="org.eclipse.ui.category.textEditor"
+            id="com.google.dart.tools.ui.text.folding.collapseComments">
+      </command>
+<!-- source -->
+      <command
+            name="%ActionDefinition.sourceQuickMenu.name"
+            description="%ActionDefinition.sourceQuickMenu.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.source.quickMenu">
+      </command>
+      <command
+            name="%ActionDefinition.comment.name"
+            description="%ActionDefinition.comment.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.comment">
+      </command>
+      <command
+            name="%ActionDefinition.uncomment.name"
+            description="%ActionDefinition.uncomment.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.uncomment">
+      </command>
+      <command
+            name="%ActionDefinition.toggleComment.name"
+            description="%ActionDefinition.toggleComment.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.toggle.comment">
+      </command>
+      <command
+            name="%ActionDefinition.format.name"
+            description="%ActionDefinition.format.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.format">
+      </command>
+      <command
+            name="%ActionDefinition.quickformat.name"
+            description="%ActionDefinition.quickformat.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.quick.format">
+      </command>
+      <command
+            name="%ActionDefinition.sortMembers.name"
+            description="%ActionDefinition.sortMembers.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.sort.members">
+      </command>
+      <!--
+      <command
+            name="%ActionDefinition.addImport.name"
+            description="%ActionDefinition.addImport.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.add.import">
+      </command>
+      <command
+            name="%ActionDefinition.organizeImports.name"
+            description="%ActionDefinition.organizeImports.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.organize.imports">
+      </command>
+      -->
+      <command
+            name="%ActionDefinition.overrideMethods.name"
+            description="%ActionDefinition.overrideMethods.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.override.methods">
+      </command>
+      <command
+            name="%ActionDefinition.getterSetter.name"
+            description="%ActionDefinition.getterSetter.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.create.getter.setter">
+      </command>
+      <command
+            name="%ActionDefinition.generateHashCode.name"
+            description="%ActionDefinition.generateHashCode.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.generate.hashcode.equals">
+      </command>
+      <command
+            name="%ActionDefinition.delegateMethods.name"
+            description="%ActionDefinition.delegateMethods.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.create.delegate.methods">
+      </command>
+      <command
+            name="%ActionDefinition.addJavadocComment.name"
+            description="%ActionDefinition.addJavadocComment.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.add.dartdoc.comment">
+      </command>
+      <command
+            name="%ActionDefinition.addUnimplementedConstructors.name"
+            description="%ActionDefinition.addUnimplementedConstructors.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.add.unimplemented.constructors">
+      </command>
+      <command
+            name="%ActionDefinition.generateConstructorUsingFields.name"
+            description="%ActionDefinition.generateConstructorsUsingFields.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.generate.constructor.using.fields">
+      </command>
+      <command
+            name="%ActionDefinition.surroundWith.tryCatch.name"
+            description="%ActionDefinition.surroundWith.tryCatch.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.surround.with.try.catch">
+      </command>
+      <command
+            name="%ActionDefinition.cleanUp.name"
+            description="%ActionDefinition.cleanUp.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.clean.up">
+      </command>
+      <!--
+      <command
+            name="%ActionDefinition.copyQualifiedName.name"
+            description="%ActionDefinition.copyQualifiedName.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.copy.qualified.name">
+      </command>
+      <command
+            name="%ActionDefinition.findNLSProblems.name"
+            description="%ActionDefinition.findNLSProblems.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.find.broken.nls.keys">
+      </command>
+      -->
+      <command
+            name="%ActionDefinition.externalizeStrings.name"
+            description="%ActionDefinition.externalizeStrings.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.externalize.strings">
+      </command>
+      <command
+            name="%ActionDefinition.addBlockComment.name"
+            description="%ActionDefinition.addBlockComment.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.add.block.comment">
+      </command>
+      <command
+            name="%ActionDefinition.removeBlockComment.name"
+            description="%ActionDefinition.removeBlockComment.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.remove.block.comment">
+      </command>
+      <command
+            name="%ActionDefinition.indent.name"
+            description="%ActionDefinition.indent.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.dart.indent">
+      </command>
+     <command
+           name="%toggleMarkOccurrences.label"
+           description="%toggleMarkOccurrences.description"
+           categoryId="org.eclipse.wst.jsdt.ui.category.source"
+           id="com.google.dart.tools.ui.edit.text.dart.toggleMarkOccurrences">
+     </command>
+      <command
+            name="%ActionDefinition.removeOccurrenceAnnotations.name"
+            description="%ActionDefinition.removeOccurrenceAnnotations.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="com.google.dart.tools.ui.edit.text.remove.occurrence.annotations">
+      </command>
+
+      <command
+            name="%ActionDefinition.corrections.renameInFile.name"
+            description="%ActionDefinition.corrections.renameInFile.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.renameInFile.assist">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.assignToLocal.name"
+            description="%ActionDefinition.corrections.assignToLocal.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.assignToLocal.assist">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.assignToField.name"
+            description="%ActionDefinition.corrections.assignToField.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.assignToField.assist">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.assignParamToField.name"
+            description="%ActionDefinition.corrections.assignParamToField.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.assignParamToField.assist">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.addBlock.name"
+            description="%ActionDefinition.corrections.addBlock.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.addBlock.assist">
+      </command> 
+      <command
+            name="%ActionDefinition.corrections.addThrowsDecl.name"
+            description="%ActionDefinition.corrections.addThrowsDecl.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.addThrowsDecl">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.addCast.name"
+            description="%ActionDefinition.corrections.addCast.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.addCast">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.qualifyField.name"
+            description="%ActionDefinition.corrections.qualifyField.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.qualifyField">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.changeToStatic.name"
+            description="%ActionDefinition.corrections.changeToStatic.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.changeToStatic">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.addNonNLS.name"
+            description="%ActionDefinition.corrections.addNonNLS.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.addNonNLS">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.addImport.name"
+            description="%ActionDefinition.corrections.addImport.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.addImport">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.addSuppressWarnings.name"
+            description="%ActionDefinition.corrections.addSuppressWarnings.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.addSuppressWarnings">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.splitJoinVariableDeclaration.name"
+            description="%ActionDefinition.corrections.splitJoinVariableDeclaration.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.splitJoinVariableDeclaration.assist">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.extractLocal.name"
+            description="%ActionDefinition.corrections.extractLocal.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.extractLocal.assist">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.extractConstant.name"
+            description="%ActionDefinition.corrections.extractConstant.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.extractConstant.assist">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.convertLocalToField.name"
+            description="%ActionDefinition.corrections.convertLocalToField.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.convertLocalToField.assist">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.inlineLocal.name"
+            description="%ActionDefinition.corrections.inlineLocal.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.inlineLocal.assist">
+      </command>
+      <command
+            name="%ActionDefinition.corrections.convertAnonymousToLocal.name"
+            description="%ActionDefinition.corrections.convertAnonymousToLocal.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.correction.convertAnonymousToLocal.assist">
+      </command>  
+      <command
+            name="%ActionDefinition.surroundWith.quickMenu.name"
+            description="%ActionDefinition.surroundWith.quickMenu.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.source"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.surround.with.quickMenu">
+      </command>
+<!-- perspectives -->
+      <command
+            name="%PerspectiveCommand.javaBrowsing.name"
+            description="%PerspectiveCommand.javaBrowsing.description"
+            categoryId="org.eclipse.ui.category.perspectives"
+            id="org.eclipse.wst.jsdt.ui.JavaBrowsingPerspective" />
+      <command
+            name="%PerspectiveCommand.java.name"
+            description="%PerspectiveCommand.java.description"
+            categoryId="org.eclipse.ui.category.perspectives"
+            id="com.google.dart.tools.ui.DartPerspective" />
+            
+<!-- views -->
+      <command
+            name="%ViewCommand.typeHierarchy.name"
+            description="%ViewCommand.typeHierarchy.description"
+            categoryId="org.eclipse.ui.category.views"
+            id="org.eclipse.wst.jsdt.ui.TypeHierarchy">
+      </command>
+      
+      <command
+            name="%ViewCommand.packageExplorer.name"
+            description="%ViewCommand.packageExplorer.description"
+            categoryId="org.eclipse.ui.category.views"
+            id="org.eclipse.wst.jsdt.ui.PackageExplorer">
+      </command>
+      
+      <command
+            name="%ViewCommand.projectsView.name"
+            description="%ViewCommand.projectsView.description"
+            categoryId="org.eclipse.ui.category.views"
+            id="org.eclipse.wst.jsdt.ui.ProjectsView">
+      </command>
+      
+      <command
+            name="%ViewCommand.packagesView.name"
+            description="%ViewCommand.packagesView.description"
+            categoryId="org.eclipse.ui.category.views"
+            id="org.eclipse.wst.jsdt.ui.PackagesView">
+      </command>
+      
+      <command
+            name="%ViewCommand.typesView.name"
+            description="%ViewCommand.typesView.description"
+            categoryId="org.eclipse.ui.category.views"
+            id="org.eclipse.wst.jsdt.ui.TypesView">
+      </command>
+
+      <command
+            name="%ViewCommand.membersView.name"
+            description="%ViewCommand.membersView.description"
+            categoryId="org.eclipse.ui.category.views"
+            id="org.eclipse.wst.jsdt.ui.MembersView">
+      </command>
+      
+      <command
+            name="%ViewCommand.sourceView.name"
+            description="%ViewCommand.sourceView.description"
+            categoryId="org.eclipse.ui.category.views"
+            id="org.eclipse.wst.jsdt.ui.SourceView">
+      </command>
+      
+      <command
+            name="%ViewCommand.javadocView.name"
+            description="%ViewCommand.javadocView.description"
+            categoryId="org.eclipse.ui.category.views"
+            id="org.eclipse.wst.jsdt.ui.JavadocView">
+      </command>
+      
+      <command
+            name="%ViewCommand.callHierarchy.name"
+            description="%ViewCommand.callHierarchy.description"
+            categoryId="org.eclipse.ui.category.views"
+            id="org.eclipse.wst.jsdt.callhierarchy.view">
+      </command>
+
+<!-- refactoring -->
+      <command
+            name="%ActionDefinition.refactorQuickMenu.name"
+            description="%ActionDefinition.refactorQuickMenu.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.refactor.quickMenu">
+      </command>
+      <command
+            name="%ActionDefinition.renameElement.name"
+            description="%ActionDefinition.renameElement.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.rename.element">
+      </command>
+      <command
+            name="%ActionDefinition.moveElement.name"
+            description="%ActionDefinition.moveElement.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.move.element">
+      </command>
+      <command
+            name="%ActionDefinition.modifyMethodParameters.name"
+            description="%ActionDefinition.modifyMethodParameters.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.modify.method.parameters">
+      </command>
+      <command
+            name="%ActionDefinition.convertAnonymousToNested.name"
+            description="%ActionDefinition.convertAnonymousToNested.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.convert.anonymous.to.nested">
+      </command>
+      <command
+            name="%ActionDefinition.convertNestedToTopLevel.name"
+            description="%ActionDefinition.convertNestedToTopLevel.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.move.inner.to.top.level">
+      </command>
+      <command
+            name="%ActionDefinition.pushDown.name"
+            description="%ActionDefinition.pushDown.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.push.down">
+      </command>
+      <command
+            name="%ActionDefinition.pullUp.name"
+            description="%ActionDefinition.pullUp.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.pull.up">
+      </command>
+      <command
+            name="%ActionDefinition.extractInterface.name"
+            description="%ActionDefinition.extractInterface.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.interface">
+      </command>
+      <command
+            name="%ActionDefinition.extractSupertype.name"
+            description="%ActionDefinition.extractSupertype.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.superclass">
+      </command>
+      <command
+            name="%ActionDefinition.changeType.name"
+            description="%ActionDefinition.changeType.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.change.type">
+      </command>
+      <command
+            name="%ActionDefinition.useSupertype.name"
+            description="%ActionDefinition.useSupertype.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.use.supertype">
+      </command>
+      <command
+            name="%ActionDefinition.inferTypeArguments.name"
+            description="%ActionDefinition.inferTypeArguments.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.infer.type.arguments">
+      </command>
+      <command
+            name="%ActionDefinition.inline.name"
+            description="%ActionDefinition.inline.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.inline">
+      </command>
+      <command
+            name="%ActionDefinition.extractMethod.name"
+            description="%ActionDefinition.extractMethod.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.method">
+      </command>
+      <command
+            name="%ActionDefinition.extractLocalVariable.name"
+            description="%ActionDefinition.extractLocalVariable.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.local.variable">
+      </command>
+      <command
+            name="%ActionDefinition.extractConstant.name"
+            description="%ActionDefinition.extractConstant.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.constant">
+      </command>
+      <command
+            name="%ActionDefinition.replaceInvocations.name"
+            description="%ActionDefinition.replaceInvocations.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.replace.invocations">
+      </command>
+      <command
+            name="%ActionDefinition.introduceIndirection.name"
+            description="%ActionDefinition.introduceIndirection.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.indirection">
+      </command>
+      <command
+            name="%ActionDefinition.introduceParameter.name"
+            description="%ActionDefinition.introduceParameter.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.parameter">
+      </command>
+      <command
+            name="%ActionDefinition.introduceFactory.name"
+            description="%ActionDefinition.introduceFactory.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.factory">
+      </command>
+      <command
+            name="%ActionDefinition.convertLocalToField.name"
+            description="%ActionDefinition.convertLocalToField.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.promote.local.variable">
+      </command>
+      <command
+            name="%ActionDefinition.selfEncapsulateField.name"
+            description="%ActionDefinition.selfEncapsulateField.description"
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.self.encapsulate.field">
+      </command>
+      <command
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            description="%ActionDefinition.apply.description"
+            id="org.eclipse.wst.jsdt.ui.refactor.apply.refactoring.script"
+            name="%ActionDefinition.apply.name">
+      </command>
+      <command
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            description="%ActionDefinition.create.description"
+            id="org.eclipse.wst.jsdt.ui.refactor.create.refactoring.script"
+            name="%ActionDefinition.create.name">
+       </command>
+      <command
+            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            description="%ActionDefinition.migrate.description"
+            id="org.eclipse.wst.jsdt.ui.refactor.migrate.jar"
+            name="%ActionDefinition.migrate.name">
+       </command>
+<!-- navigate -->
+      <command
+            name="%ActionDefinition.gotoNextMember.name"
+            description="%ActionDefinition.gotoNextMember.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="com.google.dart.tools.ui.edit.text.dart.goto.next.member">
+      </command>
+      <command
+            name="%ActionDefinition.gotoPreviousMember.name"
+            description="%ActionDefinition.gotoPreviousMember.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="com.google.dart.tools.ui.edit.text.dart.goto.previous.member">
+      </command>
+      <command
+            name="%ActionDefinition.gotoMatchingBracket.name"
+            description="%ActionDefinition.gotoMatchingBracket.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="com.google.dart.tools.ui.edit.text.dart.goto.matching.bracket">
+      </command>
+      <command
+            name="%ActionDefinition.show.outline.name"
+            description="%ActionDefinition.show.outline.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="com.google.dart.tools.ui.edit.text.dart.show.outline">
+      </command>
+      <command
+            name="%ActionDefinition.open.hierarchy.name"
+            description="%ActionDefinition.open.hierarchy.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="com.google.dart.tools.ui.edit.text.dart.open.hierarchy">
+      </command>
+      <command
+            name="%ActionDefinition.open.structure.name"
+            description="%ActionDefinition.open.structure.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="org.eclipse.wst.jsdt.ui.navigate.java.open.structure">
+      </command>
+      <command
+            name="%ActionDefinition.openType.name"
+            description="%ActionDefinition.openType.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="org.eclipse.wst.jsdt.ui.navigate.open.type">
+      </command>
+      <command
+            name="%ActionDefinition.openTypeInHierarchy.name"
+            description="%ActionDefinition.openTypeInHierarchy.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="org.eclipse.wst.jsdt.ui.navigate.open.type.in.hierarchy">
+      </command>
+      <command
+            name="%ActionDefinition.openEditor.name"
+            description="%ActionDefinition.openEditor.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="com.google.dart.tools.ui.edit.text.dart.open.editor">
+      </command>
+      <command
+            name="%ActionDefinition.openSuperImplementation.name"
+            description="%ActionDefinition.openSuperImplementation.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.open.super.implementation">
+      </command>
+      <command
+            name="%ActionDefinition.openExternalJavadoc.name"
+            description="%ActionDefinition.openExternalJavadoc.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.open.external.javadoc">
+      </command>
+      <command
+            name="%ActionDefinition.openTypeHierarchy.name"
+            description="%ActionDefinition.openTypeHierarchy.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.open.type.hierarchy">
+      </command>
+      <command
+            name="%ActionDefinition.openCallHierarchy.name"
+            description="%ActionDefinition.openCallHierarchy.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="org.eclipse.wst.jsdt.ui.edit.text.java.open.call.hierarchy">
+      </command>
+      
+      <command
+            name="%ActionDefinition.gotoPackage.name"
+            description="%ActionDefinition.gotoPackage.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="org.eclipse.wst.jsdt.ui.navigate.gotopackage">
+      </command>
+      <command
+            name="%ActionDefinition.gotoType.name"
+            description="%ActionDefinition.gotoType.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="com.google.dart.tools.ui.navigate.gototype">
+      </command>
+      
+<!-- project -->
+      <command
+            name="%ActionDefinition.generateJavadoc.name"
+            description="%ActionDefinition.generateJavadoc.description"
+            categoryId="org.eclipse.ui.category.project"
+            id="org.eclipse.wst.jsdt.ui.generate.javadoc">
+      </command>
+      
+   </extension>
+   
+   
+   
+   <extension
+         point="org.eclipse.ui.ide.markerResolution">
+      <markerResolutionGenerator
+            markerType="org.eclipse.wst.jsdt.core.problem"
+            class="com.google.dart.tools.ui.functions.correction.CorrectionMarkerResolutionGenerator">
+      </markerResolutionGenerator>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.markerResolution">
+      <markerResolutionGenerator
+            markerType="org.eclipse.wst.jsdt.core.buildpath_problem"
+            class="org.eclipse.wst.jsdt.internal.ui.wizards.buildpaths.UserLibraryMarkerResolutionGenerator">
+      </markerResolutionGenerator>
+   </extension>
+   
+   <extension point="org.eclipse.ui.ide.markerSupport">
+      <markerTypeCategory name="%markerCategory.problem">
+         <markerTypeReference id="org.eclipse.wst.jsdt.core.problem"/>
+      </markerTypeCategory>
+      <markerTypeCategory name="%markerCategory.buildpath_problem">
+         <markerTypeReference id="org.eclipse.wst.jsdt.core.buildpath_problem"/>
+         <!-- <markerTypeReference id="org.eclipse.wst.jsdt.launching.jreContainerMarker"/> -->
+      </markerTypeCategory>
+      
+    <markerGrouping id="org.eclipse.wst.jsdt.ui.java_marker_category" label="%MarkerCategory.name"/>
+    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.buildpath"
+        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
+        label="%MarkerCategory.buildpath"
+        priority="100"/>
+    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.fatal"
+        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
+        label="%MarkerCategory.fatal"
+        priority="90"/>
+    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.documentation"
+        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
+        label="%MarkerCategory.documentation"
+        priority="80"/>
+    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.potential"
+        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
+        label="%MarkerCategory.potential"
+        priority="70"/>        
+    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.codestyle"
+        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
+        label="%MarkerCategory.codestyle"
+        priority="60"/>
+    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.restrictedAPI"
+        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
+        label="%MarkerCategory.restrictedAPI"
+        priority="50"/>        
+    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.deprecation"
+        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
+        label="%MarkerCategory.deprecation"
+        priority="40"/>
+    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.generictypes"
+        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
+        label="%MarkerCategory.generictypes"
+        priority="30"/>
+    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.unnecessary"
+        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
+        label="%MarkerCategory.unnecessary"
+        priority="20"/>          
+    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.nls"
+        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
+        label="%MarkerCategory.nls"
+        priority="10"/>
+    <markerAttributeGrouping markerType="org.eclipse.wst.jsdt.core.problem" attribute="categoryId">
+        <markerAttributeMapping value="10" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.buildpath"/>
+        <markerAttributeMapping value="20" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.fatal"/>
+        <markerAttributeMapping value="30" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.fatal"/>
+        <markerAttributeMapping value="40" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.fatal"/>
+        <markerAttributeMapping value="50" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.fatal"/>
+        <markerAttributeMapping value="60" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.fatal"/>
+        <markerAttributeMapping value="70" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.documentation"/>
+        <markerAttributeMapping value="80" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.codestyle"/>
+        <markerAttributeMapping value="90" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.potential"/>
+        <markerAttributeMapping value="100" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.potential"/>
+        <markerAttributeMapping value="110" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.deprecation"/>
+        <markerAttributeMapping value="120" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.unnecessary"/>
+        <markerAttributeMapping value="130" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.generictypes"/>
+        <markerAttributeMapping value="140" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.nls"/>
+        <markerAttributeMapping value="150" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.restrictedAPI"/>
+     </markerAttributeGrouping>
+     <markerAttributeGrouping markerType="org.eclipse.wst.jsdt.core.buildpath_problem"
+        defaultGroupingEntry="org.eclipse.wst.jsdt.ui.category.buildpath"/>
+   </extension>
+   
+
+   
+
+
+   
+   <extension
+         point="org.eclipse.ui.popupMenus">    
+      <objectContribution
+            objectClass="org.eclipse.wst.jsdt.internal.ui.packageview.JsGlobalScopeContainer"
+            id="org.eclipse.wst.jsdt.ui.configure.JsGlobalScopeContainer">
+         <action
+               label="%ConfigJsGlobalScopeContainer.label"
+               tooltip="%ConfigJsGlobalScopeContainer.tooltip"
+               class="org.eclipse.wst.jsdt.internal.ui.actions.ConfigureContainerAction"
+               menubarPath="additions"
+               enablesFor="1"
+               id="ConfigureContainer">
+         </action>
+      </objectContribution>
+   </extension>
+   
+   <extension
+      point= "com.google.dart.tools.ui.foldingStructureProviders">
+      <provider
+         id="com.google.dart.tools.ui.text.defaultFoldingProvider"
+         name= "%defaultFoldingStructureProviderName"
+         class="com.google.dart.tools.ui.text.folding.DefaultDartFoldingStructureProvider"
+         preferencesClass="com.google.dart.tools.ui.internal.text.folding.DefaultJavaFoldingPreferenceBlock">
+      </provider>
+   </extension>
+
+    <extension point="org.eclipse.core.runtime.preferences">
+        <initializer class="com.google.dart.tools.ui.internal.text.DartUIPreferenceInitializer"/>
+    </extension>
+
+   <extension
+         id="modelProvider"
+         name="%JavaModelProvider.name"
+         point="org.eclipse.core.resources.modelProviders">
+      <modelProvider
+            class="org.eclipse.wst.jsdt.internal.ui.model.JavaModelProvider"/>
+      <extends-model id="org.eclipse.core.resources.modelProvider"/>
+      <enablement>
+          <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.wst.jsdt.core.jsNature" />
+      </enablement>
+   </extension>
+
+   <extension point="org.eclipse.ui.decorators">
+      <decorator
+         class="com.google.dart.tools.ui.internal.libraryview.DartLightweightDecorator"
+         id="com.google.dart.tools.ui.navigator.lightweightDecorator"
+         label="Dart"
+         lightweight="true"
+         location="BOTTOM_LEFT"
+         state="true">
+
+         <enablement>
+            <or>
+               <objectClass name="org.eclipse.core.resources.IResource">
+               </objectClass>
+               <objectClass name="com.google.dart.tools.core.model.DartElement">
+               </objectClass>
+            </or>
+         </enablement>
+      </decorator>
+   </extension>
+
+   <extension
+      point="org.eclipse.ui.themes">
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.matchingBracketsColor"
+         isEditable="false"
+         label="%Dummy.label"
+         value="192,192,192">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_multi_line_comment"
+         isEditable="false"
+         label="%Dummy.label"
+         value="63,127,95">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_keyword"
+         isEditable="false"
+         label="%Dummy.label"
+         value="127,0,85">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_keyword_return"
+         isEditable="false"
+         label="%Dummy.label"
+         value="127,0,85">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_string"
+         isEditable="false"
+         label="%Dummy.label"
+         value="42,0,255">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_default"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_single_line_comment"
+         isEditable="false"
+         label="%Dummy.label"
+         value="63,127,95">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_operator"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_doc_keyword"
+         isEditable="false"
+         label="%Dummy.label"
+         value="127,159,191">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_doc_tag"
+         isEditable="false"
+         label="%Dummy.label"
+         value="127,127,159">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_bracket"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_comment_task_tag"
+         isEditable="false"
+         label="%Dummy.label"
+         value="127,159,191">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_doc_link"
+         isEditable="false"
+         label="%Dummy.label"
+         value="63,63,191">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.java_doc_default"
+         isEditable="false"
+         label="%Dummy.label"
+         value="63,95,191">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.content_assist_proposals_background"
+         isEditable="false"
+         label="%Dummy.label"
+         value="255,255,255">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.content_assist_proposals_foreground"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.content_assist_parameters_background"
+         isEditable="false"
+         label="%Dummy.label"
+         value="255,255,255">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.content_assist_parameters_foreground"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.content_assist_completion_replacement_background"
+         isEditable="false"
+         label="%Dummy.label"
+         value="255,255,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.content_assist_completion_replacement_foreground"
+         isEditable="false"
+         label="%Dummy.label"
+         value="255,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.pf_coloring_value"
+         isEditable="false"
+         label="%Dummy.label"
+         value="42,0,255">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.pf_coloring_key"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.pf_coloring_argument"
+         isEditable="false"
+         label="%Dummy.label"
+         value="127,0,85">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.pf_coloring_assignment"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.pf_coloring_comment"
+         isEditable="false"
+         label="%Dummy.label"
+         value="63,127,95">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.staticFieldHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,192">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.staticFinalFieldHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.fieldHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,192">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.autoboxingHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="171,48,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.methodDeclarationNameHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.annotationElementReferenceHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.staticMethodInvocationHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.abstractMethodInvocationHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.inheritedMethodInvocationHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.methodHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.localVariableDeclarationHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.localVariableHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.parameterVariableHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.deprecatedMemberHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.typeVariableDeclarationHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="100,70,50">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.classHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,80,50">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.enumHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="100,70,50">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.interfaceHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="50,63,112">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.annotationHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="100,100,100">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.typeArgumentHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="13,100,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.typeParameterHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="100,70,50">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.methodDeclarationHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+      <colorDefinition
+         id="org.eclipse.wst.jsdt.ui.methodDeclarationHighlighting"
+         isEditable="false"
+         label="%Dummy.label"
+         value="0,0,0">
+      </colorDefinition>
+     
+      <theme
+         id="org.eclipse.ui.ide.systemDefault">
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.matchingBracketsColor"
+            value="COLOR_WIDGET_NORMAL_SHADOW">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_multi_line_comment"
+            value="COLOR_LIST_SELECTION">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_keyword"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_keyword_return"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_string"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_single_line_comment"
+            value="COLOR_LIST_SELECTION">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_operator"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_doc_keyword"
+            value="COLOR_LIST_SELECTION">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_doc_tag"
+            value="COLOR_WIDGET_NORMAL_SHADOW">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_bracket"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_comment_task_tag"
+            value="COLOR_WIDGET_NORMAL_SHADOW">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_default"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_doc_link"
+            value="COLOR_LIST_SELECTION">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.java_doc_default"
+            value="COLOR_LIST_SELECTION">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.content_assist_proposals_background"
+            value="COLOR_LIST_BACKGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.content_assist_proposals_foreground"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.content_assist_parameters_background"
+            value="COLOR_LIST_BACKGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.content_assist_parameters_foreground"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.content_assist_completion_replacement_background"
+            value="COLOR_INFO_BACKGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.content_assist_completion_replacement_foreground"
+            value="COLOR_INFO_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.pf_coloring_value"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.pf_coloring_key"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.pf_coloring_argument"
+            value="COLOR_LIST_SELECTION">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.pf_coloring_assignment"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.pf_coloring_comment"
+            value="COLOR_LIST_SELECTION">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.staticFieldHighlighting"
+            value="COLOR_LIST_SELECTION">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.staticFinalFieldHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.fieldHighlighting"
+            value="COLOR_LIST_SELECTION">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.autoboxHighlighting"
+            value="COLOR_WIDGET_DARK_SHADOW">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.abstractMethodDeclarationNameHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.annotationElementReferenceHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.staticMethodInvocationHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.abstractMethodInvocationHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.inheritedMethodInvocationHighlighting"
+            value="COLOR_LIST_SELECTION">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.methodHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.localVariableDeclarationHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.localVariableHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.parameterVariableHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.deprecatedMemberHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.typeVariableDeclarationHighlighting"
+            value="COLOR_WIDGET_DARK_SHADOW">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.classHighlighting"
+            value="COLOR_WIDGET_DARK_SHADOW">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.enumHighlighting"
+            value="COLOR_WIDGET_DARK_SHADOW">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.interfaceHighlighting"
+            value="COLOR_LIST_SELECTION">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.annotationHighlighting"
+            value="COLOR_WIDGET_DARK_SHADOW">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.typeArgumentHighlighting"
+            value="COLOR_WIDGET_DARK_SHADOW">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.typeParameterHighlighting"
+            value="COLOR_WIDGET_DARK_SHADOW">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.methodDeclarationNameHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+         <colorOverride
+            id="org.eclipse.wst.jsdt.ui.staticMethodDeclarationHighlighting"
+            value="COLOR_LIST_FOREGROUND">
+         </colorOverride>
+      </theme>
+   </extension>
+   
+   <!-- Dart development keybindings -->
+   <extension
+         point="org.eclipse.ui.bindings">
+      <scheme
+            id="com.google.dart.tools.dartAcceleratorConfiguration"
+            name="Dart Development">
+      </scheme>
+      
+      <!-- key
+            commandId="....correction.assist.proposals"
+            sequence="M1+1"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow" /-->
+      
+      <key
+            commandId="com.google.dart.tools.ui.file.new"
+            sequence="M1+N"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+            
+      <key
+            commandId="org.eclipse.ui.window.maximizePart"
+            sequence="M1+M"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <!-- Cmd+M is used for Minimize Window in cocoa -->
+      <key
+            platform="cocoa"
+            sequence="M1+M"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.window.maximizePart"
+            platform="cocoa"
+            sequence="M4+M"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+            
+      <key
+            commandId="org.eclipse.ui.file.close"
+            sequence="M1+W"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.file.closeAll"
+            sequence="M1+M2+W"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />     
+      <key
+            commandId="org.eclipse.ui.file.save"
+            sequence="M1+S"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.file.saveAll"
+            sequence="M1+M2+S"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" /> 
+       <key
+            commandId="org.eclipse.ui.edit.undo"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            sequence="M1+Z"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.edit.redo"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            sequence="M1+Y"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            platform="carbon"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            sequence="M1+Y"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.edit.redo"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            sequence="M1+M2+Z"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" 
+            platform="carbon"/>
+      <key
+            commandId="org.eclipse.ui.edit.cut"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            sequence="M1+X"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.edit.copy"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            sequence="M1+C"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.edit.paste"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            sequence="M1+V"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.edit.selectAll"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            sequence="M1+A"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.edit.delete"
+            sequence="DEL"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.edit.findReplace"
+            sequence="M1+F"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.navigate.next"
+            sequence="M1+."
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.navigate.previous"
+            sequence="M1+,"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.navigate.backwardHistory"
+            sequence="M3+ARROW_LEFT"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            platform="carbon"
+            sequence="M3+ARROW_LEFT"
+            commandId=""
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            platform="carbon"
+            commandId="org.eclipse.ui.navigate.backwardHistory"
+            sequence="COMMAND+["
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            platform="carbon"
+            commandId="org.eclipse.ui.navigate.backwardHistory"
+            sequence="COMMAND+ALT+ARROW_LEFT"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.navigate.forwardHistory"
+            sequence="M3+ARROW_RIGHT"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            platform="carbon"
+            sequence="M3+ARROW_RIGHT"
+            commandId=""
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            platform="carbon"
+            commandId="org.eclipse.ui.navigate.forwardHistory"
+            sequence="COMMAND+]"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <key
+            platform="carbon"
+            commandId="org.eclipse.ui.navigate.forwardHistory"
+            sequence="COMMAND+ALT+ARROW_RIGHT"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+      <!-- key
+            commandId="org.eclipse.ui.window.openEditorDropDown"
+            sequence="M1+E"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" /-->
+      <key
+            commandId="org.eclipse.ui.edit.text.contentAssist.proposals"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+SPACE"/>  <!-- Command+SPACE+* is reserved on carbon, hardcode to CTRL -->
+      <key
+            commandId="org.eclipse.ui.window.showKeyAssist"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            sequence="M1+M2+L"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+
+
+      <!-- Special localized content assist key bindings to prevent conflict with IME -->
+      <key
+            locale="zh"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+SPACE"/>
+      <key
+            locale="zh"
+            commandId="org.eclipse.ui.edit.text.contentAssist.proposals"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M3+/"/>      
+      <key
+            locale="ja"
+            platform="gtk"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+SPACE"/>
+      <key
+            locale="ja"
+            platform="gtk"
+            commandId="org.eclipse.ui.edit.text.contentAssist.proposals"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M3+/"/>
+      <key
+            locale="ko"
+            platform="motif"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+SPACE"/>
+      <key
+            locale="ko"
+            platform="motif"
+            commandId="org.eclipse.ui.edit.text.contentAssist.proposals"
+            contextId="org.eclipse.ui.contexts.dialogAndWindow"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M3+/"/>
+      <!-- Editor bindings -->      
+      <key
+            sequence="M1+/"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.toggle.comment"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+            sequence="M1+M2+P"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.goto.matching.bracket"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="F3"
+            contextId="com.google.dart.tools.ui.dartViewScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.open.editor"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M1+F3"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="org.eclipse.wst.jsdt.ui.navigate.java.open.structure"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M3+O"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.show.outline"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.delete.line"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+D"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.delete.line.to.end"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M2+DEL"/>
+      <key
+            commandId="org.eclipse.ui.edit.findNext"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+K"/>
+      <key
+            commandId="org.eclipse.ui.edit.findPrevious"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M2+K"/>
+      <key
+            commandId="org.eclipse.ui.edit.findIncremental"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+J"/>
+      <key
+            commandId="org.eclipse.ui.edit.findIncrementalReverse"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M2+J"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.line"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+L"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.scroll.lineUp"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+ARROW_UP"/>  <!-- hardcode CTRL to avoid overwriting Command+UP on carbon -->
+      <key
+            commandId="org.eclipse.ui.edit.text.scroll.lineDown"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+ARROW_DOWN"/>  <!-- hardcode CTRL to avoid overwriting Command+DOWN on carbon -->
+      <key
+            commandId="org.eclipse.ui.edit.text.toggleOverwrite"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="INSERT"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.showRulerContextMenu"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+F10"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.gotoLastEditPosition"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+Q"/>  <!-- Command+Q is quit on carbon, so don't overwrite it -->
+      <key
+            commandId="org.eclipse.ui.edit.text.smartEnter"
+            contextId="org.eclipse.ui.textEditorScope"
+            sequence="M2+CR"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M1+M2+CR"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.smartEnterInverse"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M3+ARROW_UP"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.moveLineUp"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M3+ARROW_DOWN"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.moveLineDown"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M1+M3+ARROW_UP"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.copyLineUp"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M1+M3+ARROW_DOWN"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.copyLineDown"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.join.lines"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M3+J"/>
+      <!-- disable the key binding for Carbon as it conflicts with another one in the SDK -->
+      <key
+            platform="carbon"
+            commandId=""
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M3+J"/>
+      <key
+            sequence="M1+M2+X"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.upperCase"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M1+M2+Y"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.lowerCase"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M1+ARROW_RIGHT"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.goto.wordNext"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.lineEnd"
+            sequence="END"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId=""
+            platform="carbon"
+            sequence="M1+ARROW_RIGHT"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.lineEnd"
+            platform="carbon"
+            sequence="M1+ARROW_RIGHT"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.select.lineEnd"
+            sequence="M2+END"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId=""
+            platform="carbon"
+            sequence="M2+END"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.select.lineEnd"
+            platform="carbon"
+            sequence="M1+M2+ARROW_RIGHT"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.select.textEnd"
+            platform="carbon"
+            sequence="M2+END"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.textEnd"
+            sequence="M1+END"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId=""
+            platform="carbon"
+            sequence="END"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.textEnd"
+            platform="carbon"
+            sequence="END"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="ALT+ARROW_RIGHT"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.goto.wordNext"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M1+ARROW_LEFT"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.goto.wordPrevious"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.lineStart"
+            sequence="HOME"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId=""
+            platform="carbon"
+            sequence="M1+ARROW_LEFT"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.lineStart"
+            platform="carbon"
+            sequence="M1+ARROW_LEFT"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.select.lineStart"
+            sequence="M2+HOME"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId=""
+            platform="carbon"
+            sequence="M2+HOME"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.select.lineStart"
+            platform="carbon"
+            sequence="M1+M2+ARROW_LEFT"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.select.textStart"
+            platform="carbon"
+            sequence="M2+HOME"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.textStart"
+            sequence="M1+HOME"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId=""
+            platform="carbon"
+            sequence="HOME"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.textStart"
+            platform="carbon"
+            sequence="HOME"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="ALT+ARROW_LEFT"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.goto.wordPrevious"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M1+DEL"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.deleteNextWord"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M1+DEL"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId=""
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="ALT+DEL"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.deleteNextWord"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M1+BS"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.deletePreviousWord"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M1+BS"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId=""
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="ALT+BS"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.deletePreviousWord"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M1+M2+ARROW_RIGHT"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.select.wordNext"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M1+M2+ARROW_RIGHT"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId=""
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="ALT+SHIFT+ARROW_RIGHT"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.select.wordNext"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M1+M2+ARROW_LEFT"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.select.wordPrevious"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M1+M2+ARROW_LEFT"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId=""
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="ALT+SHIFT+ARROW_LEFT"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.select.wordPrevious"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.edit.text.toggleInsertMode"
+            contextId="org.eclipse.ui.textEditorScope"
+            sequence="M1+M2+INSERT"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="F2"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.showInformation"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M2+M3+A"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.toggleBlockSelectionMode"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M2+M3+A"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId=""
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="COMMAND+ALT+A"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.toggleBlockSelectionMode"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+            
+      <key
+            commandId="org.eclipse.ui.edit.text.hippieCompletion"
+            contextId="org.eclipse.ui.textEditorScope"
+            sequence="M3+/"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <!-- Alt+/ does not work on carbon - use Ctrl+. instead. 
+             org.eclipse.ui.navigate.next uses M1+. -->
+      <key
+            platform="carbon"
+            commandId=""
+            contextId="org.eclipse.ui.textEditorScope"
+            sequence="M3+/"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            commandId="org.eclipse.ui.edit.text.hippieCompletion"
+            contextId="org.eclipse.ui.textEditorScope"
+            sequence="M4+."
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+            
+   </extension>
+
+   <!-- define a working copy owner for the editor -->
+   <extension point="com.google.dart.tools.core.workingCopyOwner">
+      <owner class="com.google.dart.tools.ui.internal.text.editor.DocumentWorkingCopyOwner"/>
+   </extension>
+   
+   <extension point="org.eclipse.ui.startup">
+      <startup class="com.google.dart.tools.ui.DartUIStartup"/>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.trim.command2">
+         <toolbar
+               id="omni.toolbar">
+            <control
+               class="com.google.dart.tools.ui.omni.OmniBoxControlContribution">
+            </control>
+         </toolbar>
+         <toolbar
+               id="feedback.toolbar">
+            <control
+               class="com.google.dart.tools.ui.feedback.FeedbackControlContribution">
+            </control>
+         </toolbar>
+      </menuContribution>
+   </extension>
+
+</plugin>

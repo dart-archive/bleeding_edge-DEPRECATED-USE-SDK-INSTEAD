@@ -1,0 +1,11 @@
+{
+   "browser": {
+      "check_default_browser": false
+   },
+   "profile": {
+      "content_settings": {
+         "pref_version": 1
+      },
+      "exited_cleanly": true
+   }
+}

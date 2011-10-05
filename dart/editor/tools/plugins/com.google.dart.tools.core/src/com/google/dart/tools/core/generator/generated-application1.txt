@@ -1,0 +1,10 @@
+library {
+  import = [
+    "dart:dom.lib"
+  ]
+  source = [
+    "%className%.dart"
+  ]
+  resource = [
+  ]
+}

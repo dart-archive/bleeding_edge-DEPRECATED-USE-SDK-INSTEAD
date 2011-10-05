@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   
+   <extension
+         point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+         id="com.google.dart.tools.debug.dartPropertyTester"
+         namespace="com.google.dart.tools.debug"
+         properties="isDartProject"
+         type="org.eclipse.core.runtime.IAdaptable"
+         class="com.google.dart.tools.debug.ui.internal.util.DartPropertyTester">
+      </propertyTester>
+      <propertyTester
+         id="com.google.dart.tools.debug.dartPropertyTester"
+         namespace="com.google.dart.tools.debug"
+         properties="isInDartProject"
+         type="org.eclipse.core.runtime.IAdaptable"
+         class="com.google.dart.tools.debug.ui.internal.util.DartPropertyTester">
+      </propertyTester>
+   </extension>
+   
+   <!-- Client launch configuration -->
+   <!-- extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            delegate="com.google.dart.tools.debug.ui.internal.client.DartJsLaunchConfigurationDelegate"
+            id="com.google.dart.tools.debug.core.clientLaunchConfig"
+            modes="run,debug"
+            name="%dart.launch.config.client.name">
+      </launchConfigurationType>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="com.google.dart.tools.debug.core.clientLaunchConfig"
+            icon="icons/dart_app.png"
+            id="com.google.dart.tools.debug.ui.dartJsLaunchConfigurationTypeImage">
+      </launchConfigurationTypeImage>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="com.google.dart.tools.debug.ui.internal.client.DartJsLaunchConfigurationTabGroup"
+            id="com.google.dart.tools.debug.ui.dartJsLaunchConfigurationTabGroup"
+            type="com.google.dart.tools.debug.core.clientLaunchConfig">
+      </launchConfigurationTabGroup>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabs">
+      <tab
+            class="com.google.dart.tools.debug.ui.internal.client.MainDartJsLaunchConfigurationTab"
+            group="com.google.dart.tools.debug.ui.dartJsLaunchConfigurationTabGroup"
+            id="com.google.dart.tools.debug.ui.dartJsLaunchConfigurationTab"
+            name="%dart.launch.config.tab.main">
+      </tab>
+   </extension -->
+
+   <!-- TODO(devoncarew): commented out for the 8/1/2011 demo -->
+   <!-- extension
+         point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+            class="com.google.dart.tools.debug.ui.internal.client.DartJsApplicationLaunchShortcut"
+            icon="icons/dart_app.png"
+            id="com.google.dart.tools.debug.ui.dartJsAppShortcut"
+            label="%dart.launch.shortcut.label"
+            modes="run,debug">
+         <configurationType
+               id="com.google.dart.tools.debug.core.clientLaunchConfig">
+         </configurationType>
+         <contextualLaunch>
+            <enablement>
+               <with
+                     variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <iterate>
+                     <adapt
+                           type="org.eclipse.core.resources.IResource">
+                        <or>
+                           <test
+                                 property="org.eclipse.core.resources.extension"
+                                 value="app">
+                           </test>
+                           <test
+                                 property="org.eclipse.core.resources.extension"
+                                 value="html">
+                           </test>
+                        </or>
+                     </adapt>
+                  </iterate>
+               </with>
+            </enablement>
+         </contextualLaunch>
+      </shortcut>
+   </extension -->
+
+   <!-- Server launch configuration -->
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="com.google.dart.tools.debug.core.serverLaunchConfig"
+            icon="icons/chromium_16_server.png"
+            id="com.google.dart.tools.debug.core.serverLaunchConfigImage">
+      </launchConfigurationTypeImage>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="com.google.dart.tools.debug.ui.internal.server.DartServerTabGroup"
+            id="com.google.dart.tools.debug.core.serverLaunchConfigTabGroup"
+            type="com.google.dart.tools.debug.core.serverLaunchConfig">
+      </launchConfigurationTabGroup>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+            class="com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut"
+            icon="icons/chromium_16_server.png"
+            id="com.google.dart.tools.debug.ui.dartServerShortcut"
+            label="%dart.serverlaunch.shortcut.label"
+            modes="run,debug">
+         <configurationType
+               id="com.google.dart.tools.debug.core.serverLaunchConfig">
+         </configurationType>
+         <contextualLaunch>
+            <enablement>
+               <with variable="selection">
+                  <count value="1">
+                  </count>
+                  <iterate>
+                     <adapt type="org.eclipse.core.resources.IResource">
+                        <and>
+                           <test property="com.google.dart.tools.debug.isDartProject"/>
+                           <test property="org.eclipse.core.resources.extension" value="app"/>
+                        </and>
+                     </adapt>
+                  </iterate>
+               </with>
+            </enablement>
+         </contextualLaunch>
+      </shortcut>
+   </extension>
+
+   <!-- Chrome launch configuration -->
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="com.google.dart.tools.debug.core.chromeLaunchConfig"
+            icon="icons/chromium_16.png"
+            id="com.google.dart.tools.debug.core.chromeLaunchConfigImage">
+      </launchConfigurationTypeImage>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="com.google.dart.tools.debug.ui.internal.chrome.DartChromeTabGroup"
+            id="com.google.dart.tools.debug.core.chromeLaunchConfigTabGroup"
+            type="com.google.dart.tools.debug.core.chromeLaunchConfig">
+      </launchConfigurationTabGroup>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+            class="com.google.dart.tools.debug.ui.internal.chrome.DartChromeLaunchShortcut"
+            icon="icons/chromium_16.png"
+            id="com.google.dart.tools.debug.ui.dartChromeShortcut"
+            label="%dart.chromelaunch.shortcut.label"
+            modes="run,debug">
+         <configurationType
+               id="com.google.dart.tools.debug.core.chromeLaunchConfig">
+         </configurationType>
+         <contextualLaunch>
+            <enablement>
+               <with variable="selection">
+                  <count value="1">
+                  </count>
+                  <iterate>
+                     <adapt type="org.eclipse.core.resources.IResource">
+                        <or>
+                           <and>
+                              <test property="com.google.dart.tools.debug.isInDartProject"/>
+                              <or>
+                                 <test property="org.eclipse.core.resources.extension" value="html"/>
+                                 <test property="org.eclipse.core.resources.extension" value="dart"/>
+                                 <test property="org.eclipse.core.resources.extension" value="app"/>
+                              </or>
+                           </and>
+                           <test property="com.google.dart.tools.debug.isDartProject"/>
+                        </or>
+                     </adapt>
+                  </iterate>
+               </with>
+            </enablement>
+         </contextualLaunch>
+      </shortcut>
+   </extension>
+   
+   <!-- Remote launch configuration -->
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="com.google.dart.tools.debug.core.remoteLaunchConfig"
+            icon="icons/chromium_16_remote.png"
+            id="com.google.dart.tools.debug.core.remoteLaunchConfigImage">
+      </launchConfigurationTypeImage>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="com.google.dart.tools.debug.ui.internal.remote.DartRemoteTabGroup"
+            id="com.google.dart.tools.debug.core.remoteLaunchConfigTabGroup"
+            type="com.google.dart.tools.debug.core.remoteLaunchConfig">
+      </launchConfigurationTabGroup>
+   </extension>
+
+   <!-- preference page -->
+
+   <extension point="org.eclipse.ui.preferencePages">
+      <page
+         class="com.google.dart.tools.debug.ui.internal.preferences.DebugPreferencePage"
+         id="com.google.dart.tools.debug.debugPreferencePage"
+         category="com.google.dart.tools.ui.preferences.DartBasePreferencePage"
+         name="%debugPreferencePageName">
+      </page>
+   </extension>
+
+   <!-- breakpoints -->
+
+   <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor"
+            class="com.google.dart.tools.debug.ui.internal.breakpoints.DartBreakpointAdapterFactory">
+         <adapter
+               type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget">
+         </adapter>
+      </factory>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.editorActions">
+      <editorContribution
+            targetID="com.google.dart.tools.ui.text.editor.CompilationUnitEditor"
+            id="com.google.dart.tools.debug.ui.breakpointActions">
+         <action
+               label="%toggleBreakpoints.label"
+               class="com.google.dart.tools.debug.ui.internal.breakpoints.DartToggleBreakpointDelegate"
+               actionID="RulerDoubleClick"
+               id="com.google.dart.tools.debug.breakpointActions.toggle">
+         </action>
+      </editorContribution>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <viewerContribution
+            targetID="#DartRulerContext"
+            id="com.google.dart.tools.debug.ui.CompilationUnitRulerPopupActions">
+         <action
+               label="%enableBreakpoint.label"
+               class="org.eclipse.debug.ui.actions.RulerEnableDisableBreakpointActionDelegate"
+               menubarPath="debug"
+               id="com.google.dart.tools.debug.breakpointActions.menuEnableDisable">
+         </action>
+         <action
+               class="com.google.dart.tools.debug.ui.internal.breakpoints.DartToggleBreakpointDelegate"
+               icon="icons/obj16/brkp_obj.gif"
+               id="com.google.dart.tools.debug.breakpointActions.menuToggle"
+               label="%toggleBreakpoints.label"
+               menubarPath="debug">
+         </action>
+      </viewerContribution>
+   </extension>
+
+   <!-- debug model presentation -->
+
+   <extension point="org.eclipse.debug.ui.debugModelPresentations">
+      <debugModelPresentation
+         class="com.google.dart.tools.debug.ui.internal.DartDebugModelPresentation"
+         id="com.google.dart.tools.debug.core">
+      </debugModelPresentation>
+   </extension>
+
+   <!-- Debug UI factory -->
+
+   <extension point="com.google.dart.tools.debug.core.debugUIFactory">
+      <uiFactory class="com.google.dart.tools.debug.ui.internal.chrome.DebugUIHelperImpl"/>
+   </extension>
+
+   <!-- debugger view -->
+
+   <extension point="org.eclipse.ui.views">
+      <view
+            class="com.google.dart.tools.debug.ui.internal.view.DebuggerView"
+            id="com.google.dart.tools.debug.debuggerView"
+            name="Debugger"
+            restorable="true"
+            category="com.google.dart.tools.ui.dart"
+            icon="icons/obj16/debug_exc.gif">
+      </view>
+   </extension>
+
+ <!--extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="false"
+            id="com.google.dart.tools.ui.launch.chrome"
+            nameFilter="*.html"
+            objectClass="org.eclipse.core.resources.IFile">
+         <action
+               class="com.google.dart.tools.ui.launch.context.DebugInChromeAction"
+               enablesFor="1"
+               icon="icons/full/etool16/debug_exc.gif"
+               id="com.google.dart.tools.ui.launch.DebugInChromeAction"
+               label="Debug"
+               menubarPath="additions">
+         </action>
+         <action
+               class="com.google.dart.tools.ui.launch.context.RunInChromeAction"
+               enablesFor="1"
+               icon="icons/full/etool16/run_exc.gif"
+               id="com.google.dart.tools.ui.launch.RunInChromeAction"
+               label="Run"
+               menubarPath="additions">
+         </action>
+      </objectContribution>
+   </extension-->
+
+   <!--extension point="org.eclipse.ui.actionSets">
+      <actionSet
+            label="Launch and Debug Actions"
+            visible="true"
+            id="com.google.dart.tools.deploy.launchActionSet">
+         <action
+               id="com.google.dart.tools.ui.launch.DebugToolbarAction"
+               toolbarPath="debug"
+               hoverIcon="icons/full/etool16/debug_exc.gif"
+               class="com.google.dart.tools.ui.launch.DebugToolbarAction"
+               disabledIcon="icons/full/dtool16/debug_exc.gif"
+               icon="icons/full/etool16/debug_exc.gif"
+               helpContextId="debug_action_context"
+               label="Debug"
+               style="pulldown">
+         </action>
+         <action
+               id="com.google.dart.tools.ui.launch.RunToolbarAction"
+               toolbarPath="debug"
+               hoverIcon="icons/full/etool16/run_exc.gif"
+               class="com.google.dart.tools.ui.launch.RunToolbarAction"
+               disabledIcon="icons/full/dtool16/run_exc.gif"
+               icon="icons/full/etool16/run_exc.gif"
+               helpContextId="run_action_context"
+               label="Run"
+               style="pulldown">
+         </action>
+      </actionSet>
+   </extension-->
+
+</plugin>

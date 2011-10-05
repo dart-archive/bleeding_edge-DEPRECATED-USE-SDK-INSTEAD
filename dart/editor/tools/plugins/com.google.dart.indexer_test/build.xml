@@ -1,0 +1,22 @@
+<project name="com.google.gca.eclipse.analysis.indexer_test" 
+         default="build" 
+         basedir=".">
+
+    <!-- Project-specific properties -->
+    <property name="gwt.plugin.root" location="../.." />
+    <property name="plugin_name" value="${ant.project.name}" />
+    <property name="project.tail" value="plugins/${plugin_name}" />
+
+    <import file="${gwt.plugin.root}/common.ant.xml" />
+
+    <property name="plugin.version" value="${gdt.version}" />
+
+    <import file="../plugins.common.ant.xml" />
+
+    <target name="build">
+        <copy.plugin.src />
+        <gwt.plugin.eclipseantrunner builddir="."
+                                     buildfile="build.xml"
+                                     buildtarget="buildInEclipse" />
+    </target>
+</project>

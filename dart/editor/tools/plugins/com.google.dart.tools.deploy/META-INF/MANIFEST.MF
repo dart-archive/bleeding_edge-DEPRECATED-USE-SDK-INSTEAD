@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Dart Editor Deploy
+Bundle-Localization: plugin
+Bundle-SymbolicName: com.google.dart.tools.deploy; singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: com.google.dart.tools.deploy.Activator
+Bundle-Vendor: Dart project authors
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.core.filesystem,
+ org.eclipse.ui,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.console,
+ com.google.dart.tools.core,
+ com.google.dart.tools.ui,
+ com.google.dart.library.core,
+ com.google.dart.library.dom
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy

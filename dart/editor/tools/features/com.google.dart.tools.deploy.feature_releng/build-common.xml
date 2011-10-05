@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     Sep 6, 2011 4:17:37 PM                                                        
+
+     Dart Tools build common Ant Script    
+     Common targets and macros for the build of Dart Tools
+                   
+     mrrussell                                                                
+     ====================================================================== -->
+<project name="Dart Tools build common Ant Script" default="notStandalone">
+    <description>
+            description
+    </description>
+
+    <!-- ================================= 
+          target: notStandalone              
+         ================================= -->
+    <target name="notStandalone">
+        <fail>
+            This ant script is not designed to ran as a standalone script
+            it is intended to be included by other ant scripts
+        </fail>
+    </target>
+    <!--
+    ********************************************************************************
+      Macro: echoProperty
+
+        echo a property to the screen
+
+      required attributes:
+       propertyName      - the property name to echo
+
+      optional attributes:
+       none
+
+      ant properties required
+       none
+
+      ant properties set
+       none
+
+    ********************************************************************************
+    -->
+    <macrodef name="echoProperty">
+        <attribute name="propertyName" />
+        <sequential>
+            <echo message="@{propertyName} = ${@{propertyName}}" />
+        </sequential>
+    </macrodef>
+
+    <!--
+    ********************************************************************************
+      Macro: setupEclipse
+
+        Install Eclipse from the Eclipse Classic zip file into the given location, this macro is 
+        used for seting up the runtime Eclipse and the target Eclipse for tests
+
+      required attributes:
+       location      - where to install eclipse
+       eclipse       - the version of eclipse to use
+
+      optional attributes:
+       none
+
+      ant properties required
+       eclipse-sdk.@{eclipse}.url  - the URL to download Eclipse from
+       eclipse-sdk.@{eclipse}.url  - the file name 
+
+      ant properties set
+       none
+
+    ********************************************************************************
+    -->
+    <macrodef name="setupEclipse">
+        <attribute name="location" />
+        <attribute name="eclipse" />
+        <attribute name="arch" />
+        <sequential>
+            <echo message="setting up Eclipse @{eclipse} (@{arch}) in @{location}" />
+            <mkdir dir="${build.downloads}" />
+            <get src="${eclipse-sdk.@{eclipse}.url}/${eclipse-sdk.@{eclipse}.linux.gtk.@{arch}.zip}"
+                  dest="${build.downloads}/eclipse.@{eclipse}.@{arch}.tar.gz" 
+                  verbose="true" 
+                  usetimestamp="true"/>
+            <untar src="${build.downloads}/eclipse.@{eclipse}.@{arch}.tar.gz" dest="@{location}" compression="gzip" />
+        </sequential>
+    </macrodef>
+
+    <!--
+    ********************************************************************************
+      Macro: setupTargetEclipse
+
+        Install target Eclipse from the plugins and features stored in SVN into the given 
+        location.  This macro is only used for building the products, not the tests
+
+      required attributes:
+       location      - where to install eclipse
+       eclipse       - the version of eclipse to use
+
+      optional attributes:
+       none
+
+      ant properties required
+       eclipse-sdk.@{eclipse}.url  - the URL to download Eclipse from
+       eclipse-sdk.@{eclipse}.zip  - the file name 
+       build.source.root - the root of the source tree
+
+      ant properties set
+       none
+
+    ********************************************************************************
+    -->
+    <macrodef name="setupTargetEclipse">
+        <attribute name="location" />
+        <attribute name="eclipse" />
+        <attribute name="arch" />
+        <sequential>
+          <echo message="setting up target Eclipse @{eclipse} (@{arch}) in @{location}" />
+          <mkdir dir="@{location}/eclipse" />
+          <copy todir="@{location}/eclipse">
+              <fileset dir="${build.thirdparty}/eclipse/3.7.0" />
+          </copy>
+        </sequential>
+    </macrodef>
+
+    <!--
+    ********************************************************************************
+      Macro: setupDeltaPack
+
+        install the delta pack inthe given location
+
+      required attributes:
+       location      - where to install eclipse
+       eclipse       - the version of eclipse to use
+
+      optional attributes:
+       none
+
+      ant properties required
+       delta-pack.@{eclipse}.url  - the URL to download Eclipse from
+       delta-pack.@{eclipse}.url  - the file name 
+       build.downloads - the location where dowloaded files are stored.
+
+      ant properties set
+       none
+
+    ********************************************************************************
+    -->
+    <macrodef name="setupDeltaPack">
+        <attribute name="location" />
+        <attribute name="eclipse" />
+        <sequential>
+            <echo message="setting up delta pack @{eclipse} in @{location}" />
+            <get src="${delta-pack.@{eclipse}.url}/${delta-pack.@{eclipse}.zip}"
+                  dest="${build.downloads}/eclipse-deltapack.@{eclipse}.zip" 
+                  verbose="true" 
+                  usetimestamp="true"/>
+            <unzip src="${build.downloads}/eclipse-deltapack.@{eclipse}.zip" dest="@{location}" />
+        </sequential>
+    </macrodef>
+
+    <!--
+    ********************************************************************************
+      Macro: installDirIntoTargetEclipse
+
+        Install from an update site into a version of eclipse
+
+      required attributes:
+       uniqueId     - Identitier used to create unique ant properties names
+       updateSite   - the update site to install
+       uis          - a comma seperated list of installable units
+
+      optional attributes:
+       none
+
+      ant properties required
+       build.downloads       - the location where dowloaded files are stored.
+       build.tmp             - temparary location for build work
+       build.target          - the location of the eclipse target
+       director.1.0.0.url    - the url to get director
+       director.1.0.0.file   - the file to download
+
+      ant properties set
+       director              - the director exwcutable
+
+    ********************************************************************************
+    -->
+    <macrodef name="installDirIntoTargetEclipse">
+      <attribute name="updateSite" />
+      <attribute name="ius" />
+      <attribute name="uniqueId" />
+      <sequential>
+        <echo message="installIntoEclipse @{uniqueId}" />
+        <makeurl file="@{updateSite}" property="tmp.update.site.url.@{uniqueId}"/>
+        <property name="workspace-director-@{uniqueId}" 
+                  location="${build.runtime}/workspace-director-@{uniqueId}" /> 
+        <echo>
+            java jar="${eclipse.runtime.launcher.jar}" fork="true" 
+                 output="${build.stage.scripts}/install-@{uniqueId}.out"
+                 failonerror="false"
+                  errorproperty="eclipse-director-@{uniqueId}-rc"
+             arg value="-data"
+             arg value="${workspace-director-@{uniqueId}}"
+             arg value="-application"
+             arg value="org.eclipse.equinox.p2.director"
+             arg value="-repository"
+             arg value="${tmp.update.site.url.@{uniqueId}}"
+             arg value="-installIU"
+             arg value="@{ius}"
+             arg value="-tag"
+             arg value="@{uniqueId}"
+             arg value="-destination"
+             arg value="${build.target}/eclipse"
+             arg value="-profile"
+             arg value="SDKProfile"
+             arg value="-vmargs"
+             arg value="-Xmx64M"
+             arg value="-Xmx256M"
+         </echo>
+
+          <delete failonerror="false">
+              <fileset dir="${workspace-director-@{uniqueId}}" />
+          </delete>
+          <echo message="Launching Eclipse with ${eclipse.runtime.launcher.jar}" />
+          <java jar="${eclipse.runtime.launcher.jar}" fork="true" 
+                failonerror="false"
+                errorproperty="eclipse-director-@{uniqueId}-rc">
+              <arg value="-data" />
+              <arg value="${workspace-director-@{uniqueId}}" />
+              <arg value="-debug" />
+              <arg value="-application" />
+              <arg value="org.eclipse.equinox.p2.director" />
+              <arg value="-repository" />
+              <arg value="${tmp.update.site.url.@{uniqueId}}" />
+              <arg value="-installIU" />
+              <arg value="@{ius}" />
+              <arg value="-tag" />
+              <arg value="@{uniqueId}" />
+              <arg value="-destination" />
+              <arg value="${build.target}/eclipse" />
+              <arg value="-profile" />
+              <arg value="SDKProfile" />
+              <arg value="-vmargs" />
+              <arg value="-Xmx64M" />
+              <arg value="-Xmx256M" />
+          </java>
+          
+          <echo message="" />
+          <echo message="Director exited with ${eclipse-director-@{uniqueId}-rc}" />
+          <fail message="Director build Failed">
+              <condition>
+                  <not>
+                      <equals arg1="" arg2="${eclipse-director-@{uniqueId}-rc}" trim="true" />
+                  </not>
+              </condition>
+          </fail>
+      </sequential>
+    </macrodef>
+    
+    <!--
+    ********************************************************************************
+      Macro: runAntBuildInEclipse
+
+        Run an ant script in Eclipse
+
+      required attributes:
+       script       - The ant script to run
+       eclipse      - the version of eclipse to run
+       builddir     - the directory where the PDE configuration is stored
+
+      optional attributes:
+       none
+
+      ant properties required
+       build.tmp             - temparary location for build work
+       build.target          - the location of the eclipse target
+       build.runtime         - the location of the runime Eclipse
+       build.stage           - the location for staging the code.
+       build.stage.scripts   - the location of the build scripts
+
+      ant properties set
+       eclipse.@{eclipse}.launcher.jar - the launcher for this version of Java
+
+    ********************************************************************************
+    -->
+    <macrodef name="runAntBuildInEclipse">
+        <attribute name="script" />
+        <attribute name="eclipse" />
+        <attribute name="builddir" />
+        <sequential>
+            <echo message="Launching Eclipse with ${eclipse.runtime.launcher.jar}" />
+            <property name="eclipse.pde.build.out" location="${build.tmp}/pde.build.out" />
+            <java jar="${eclipse.runtime.launcher.jar}" fork="true" 
+                  failonerror="false"
+                  errorproperty="build.eclipse.pde.build.error"
+                  output="${eclipse.pde.build.out}">
+                <arg value="-data" />
+                <arg value="${build.stage}/workspace" />
+                <arg value="-application" />
+                <arg value="org.eclipse.ant.core.antRunner" />
+                <arg value="-f" />
+                <arg value="@{script}" />
+                <arg value="-Dbuilder=@{builddir}" />
+                <arg value="-Dbuild.tmp=${build.tmp}" />
+                <arg value="-Dbuild.target=${build.target}" />
+                <arg value="-Dbuild.stage=${build.stage}" />
+                <arg value="-verbose" />
+                <arg value="-noinput" />
+                <arg value="-vmargs" />
+                <arg value="-Xms256M" />
+                <arg value="-Xmx512M" />
+            </java>
+            
+            <condition property="tmp.pde.output" value="${build.eclipse.pde.output}">
+                <istrue value="${build.running.headless}" />
+            </condition>
+            
+            <echo message="" />
+            <echo message="PDE exited with ${build.eclipse.pde.build.error}" />
+            <echo message="" />
+            
+            <antcall target="displayEclipseOutput" inheritall="true" />
+            
+            <fail message="PDE build Failed">
+                <condition>
+                    <not>
+                        <equals arg1="" arg2="${build.eclipse.pde.build.error}" trim="true" />
+                    </not>
+                </condition>
+            </fail>
+        </sequential>
+    </macrodef>
+
+    <target name="displayEclipseOutput" depends="doDisplayEclipseOutput, doDisplayEclipseFiles" />
+
+    <target name="testDisplayEclipseOutput">
+        <echo message="testDisplayEclipseOutput" />
+        <echoProperty propertyname="build.running.headless"/>
+        <echoProperty propertyname="build.display.output"/>
+        
+        <condition property="display.eclipse.output" value="true">
+            <and>
+              <not>
+                  <equals arg1="" arg2="${build.eclipse.pde.build.error}" trim="true" />
+              </not>
+              <or>
+                  <istrue value="${build.running.headless}" />
+                  <istrue value="${build.display.output}" />
+              </or>
+            </and>
+        </condition>
+        
+    </target>
+    
+    <target name="doDisplayEclipseFiles" depends="testDisplayEclipseOutput"
+            unless="display.eclipse.output">
+        <echo message="PDE output redirected to ${eclipse.pde.build.out}" />
+        <echo message="Workspace log ${build.stage}/workspace/.metadata/.log" />
+    </target>
+
+    <target name="doDisplayEclipseOutput" depends="testDisplayEclipseOutput" 
+            if="display.eclipse.output">
+        <echo message="Build Output:" />
+        <dirname file="${eclipse.pde.build.out}" property="tmp.out.dir"/>
+        <basename file="${eclipse.pde.build.out}" property="tmp.out.file"/>
+        <concat >
+            <fileset dir="${tmp.out.dir}" includes="${tmp.out.file}" />
+        </concat>
+        <echo message="" />
+        <echo message="" />
+        <echo message="**************************************************************************" />
+        <echo message="**************************************************************************" />
+        <echo message="**************************************************************************" />
+        <echo message="" />
+        <echo message="" />
+        <echo message="Eclipse log file" />
+        <concat >
+            <fileset dir="${build.stage}/workspace/.metadata" includes=".log" />
+        </concat>
+    </target>
+
+</project>

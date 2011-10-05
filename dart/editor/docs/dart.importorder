@@ -1,0 +1,16 @@
+#Organize Import Order
+#Fri Oct 15 16:10:45 EDT 2010
+13=\#javax
+12=javax
+11=\#java
+10=java
+9=\#org
+8=org
+7=\#net
+6=net
+5=\#junit
+4=junit
+3=\#com
+2=com
+1=\#com.google
+0=com.google

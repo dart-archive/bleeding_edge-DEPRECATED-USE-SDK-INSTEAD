@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="com.google.dart.tools.feature"
+      label="%featureName"
+      version="0.1.0.qualifier"
+      provider-name="%providerName"
+      plugin="com.google.dart.tools.ui">
+
+   <description url="http://www.example.com/description">
+      %description
+   </description>
+
+   <copyright url="http://www.example.com/copyright">
+      %copyright
+   </copyright>
+
+   <license url="http://www.example.com/license">
+      %license
+   </license>
+
+   <includes
+         id="org.chromium.sdk"
+         version="0.0.0"
+         search-location="both"/>
+
+   <plugin
+         id="com.google.dart.compiler.js"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.google.dart.tools.core"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.google.dart.tools.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.google.dart.tools.debug.core"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.google.dart.tools.debug.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.google.dart.indexer"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.google.dart.library.core"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="true"/>
+
+   <plugin
+         id="com.google.dart.library.dom"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="true"/>
+
+</feature>

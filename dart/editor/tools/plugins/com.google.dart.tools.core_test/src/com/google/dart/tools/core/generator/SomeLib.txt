@@ -1,0 +1,2 @@
+#library("SomeLib");
+#import("dart:dom");
