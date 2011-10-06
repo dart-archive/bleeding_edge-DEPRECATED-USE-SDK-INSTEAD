@@ -38,7 +38,7 @@ deps = {
 
 deps_os = {
   "win": {
-    "dart/runtime/third_party/cygwin":
+    "dart/third_party/cygwin":
       Var("chromium_url") + "/trunk/deps/third_party/cygwin@66844",
   },
 }
