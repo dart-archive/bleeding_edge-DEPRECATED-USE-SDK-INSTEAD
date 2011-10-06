@@ -27,7 +27,7 @@ class DateUtils {
   static DateTime getDateTime(double daysSince18991230) {
     double daysSinceEpoch = daysSince18991230 - DAYS_FROM_1900_TO_1970;
     double millisSinceEpoch = daysSinceEpoch * MILLISECONDS_PER_DAY;
-    return new DateTime.fromEpoch(millisSinceEpoch, new TimeZone.utc());
+    return new DateTime.fromEpoch(millisSinceEpoch, const TimeZone.utc());
   }
 
   static double getTime(int hour, int minute, int second) {
