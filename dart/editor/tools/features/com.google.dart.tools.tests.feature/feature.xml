@@ -3,8 +3,7 @@
       id="com.google.dart.tools.tests.feature"
       label="%featureName"
       version="0.1.0.qualifier"
-      provider-name="Dart project authors"
-      plugin="%providerName">
+      provider-name="%providerName">
 
    <description>
       %description
