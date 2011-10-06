@@ -519,7 +519,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     helpSearchAction = ActionFactory.HELP_SEARCH.create(window);
     register(helpSearchAction);
 
-    aboutAction = new AboutDartAction();
+    aboutAction = new AboutDartAction(window);
     register(aboutAction);
 
     openPreferencesAction = ActionFactory.PREFERENCES.create(window);

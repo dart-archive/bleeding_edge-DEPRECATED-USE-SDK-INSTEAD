@@ -27,9 +27,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 
 /**
@@ -40,8 +38,9 @@ public class AboutDartDialog extends Shell {
   private static final ImageDescriptor ABOUT_IMG_DESC = ImageDescriptor.createFromURL(Platform.getBundle(
       DartUI.ID_PLUGIN).getEntry(DialogsMessages.AboutDartDialog_about_image));
 
-  public AboutDartDialog(Display display) {
-    super(display, SWT.CLOSE | SWT.TITLE);
+  public AboutDartDialog(Shell shell) {
+    super(shell, SWT.CLOSE | SWT.TITLE);
+
     setText(DialogsMessages.AboutDartDialog_title_text);
     setLayout(GridLayoutFactory.fillDefaults().spacing(0, 0).margins(0, 0).create());
 
@@ -91,22 +90,12 @@ public class AboutDartDialog extends Shell {
   protected Point getInitialLocation(Point initialSize) {
     Composite parent = getParent();
 
-    Monitor monitor = getDisplay().getPrimaryMonitor();
-    if (parent != null) {
-      monitor = parent.getMonitor();
-    }
-
-    Rectangle monitorBounds = monitor.getClientArea();
-    Point centerPoint;
-    if (parent != null) {
-      centerPoint = Geometry.centerPoint(parent.getBounds());
-    } else {
-      centerPoint = Geometry.centerPoint(monitorBounds);
-    }
+    Rectangle parentBounds = parent.getClientArea();
+    Point centerPoint = Geometry.centerPoint(parent.getBounds());
 
     return new Point(centerPoint.x - (initialSize.x / 2), Math.max(
-        monitorBounds.y,
-        Math.min(centerPoint.y - (initialSize.y * 2 / 3), monitorBounds.y + monitorBounds.height
+        parentBounds.y,
+        Math.min(centerPoint.y - (initialSize.y * 2 / 3), parentBounds.y + parentBounds.height
             - initialSize.y)));
   }
 
