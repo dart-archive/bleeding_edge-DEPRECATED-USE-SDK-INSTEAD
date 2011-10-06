@@ -198,21 +198,6 @@ public class DartCompilerUtilities {
       this.source = new DartSourceString(unitUri.getPath(), sourceString);
     }
 
-    // Recursively search for the library by name.
-    private LibraryUnit findImportedLibrary(LibraryUnit unit, String name) {
-      if (unit.getName().equals(name)) {
-        return unit;
-      }
-      LibraryUnit found = null;
-      for (LibraryUnit imported : unit.getImports()) {
-        found = findImportedLibrary(imported, name);
-        if (found != null) {
-          break;
-        }
-      }
-      return found;
-    }
-
     @Override
     public void run() throws Exception {
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
@@ -221,9 +206,12 @@ public class DartCompilerUtilities {
 
       // Try to find the core library in the enclosing set of libraries, otherwise the typeAnalyzer
       // will be void of core types.
-      LibraryUnit coreUnit = findImportedLibrary(enclosingLibrary.getLibraryUnit(), "corelib");
-      LibraryElement coreLibrary = coreUnit != null ? coreUnit.getElement() : new LibraryUnit(
-          new UrlLibrarySource(new URI("dart:core"), libraryManager)).getElement();
+      LibraryUnit coreUnit = DartCompiler.getCoreLib(enclosingLibrary.getLibraryUnit());
+      if (coreUnit == null) {
+        throw new RuntimeException("Unable to locate core library");
+      }
+      LibraryElement coreLibrary = coreUnit.getElement();
+
       SourceDelta delta = new SourceDelta() {
 
         @Override
