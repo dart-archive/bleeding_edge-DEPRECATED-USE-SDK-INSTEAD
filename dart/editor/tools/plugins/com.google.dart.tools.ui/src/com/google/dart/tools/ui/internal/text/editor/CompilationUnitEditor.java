@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.editor;
@@ -164,7 +162,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     @Override
     public void doOperation(int operation) {
 
-      if (getTextWidget() == null || !isEditorInputModifiable()) {
+      if (getTextWidget() == null) { //|| !isEditorInputModifiable()) {
         return;
       }
 
@@ -483,7 +481,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     /**
      * Creates a new updater for the given <code>category</code>.
-     *
+     * 
      * @param category the new category.
      */
     public ExclusivePositionUpdater(String category) {
@@ -633,7 +631,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     /**
      * Return Java element recomputed from stored visual properties.
-     *
+     * 
      * @return Java element
      */
     public DartElement getElement() {
@@ -646,7 +644,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     /**
      * Return offset recomputed from stored visual properties.
-     *
+     * 
      * @return Offset in the document
      */
     public int getOffset() {
@@ -664,7 +662,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     /**
      * Return offset recomputed from stored visual properties.
-     *
+     * 
      * @param newElement Enclosing element
      * @return Offset in the document
      */
@@ -706,7 +704,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     /**
      * Returns the offset used to reveal the given element based on the given selection offset.
-     *
+     * 
      * @param element the element
      * @param offset the selection offset
      * @return the offset to reveal the given element based on the given selection offset
@@ -736,7 +734,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     /**
      * Store visual properties of the given offset.
-     *
+     * 
      * @param offset Offset in the document
      */
     public void setOffset(int offset) {
@@ -759,7 +757,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     /**
      * Does the given Java element contain the given offset?
-     *
+     * 
      * @param element Java element
      * @param offset Offset
      * @return <code>true</code> iff the Java element contains the offset
@@ -773,7 +771,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     /**
      * Returns the updated java element for the old java element.
-     *
+     * 
      * @param element Old Java element
      * @return Updated Java element
      */
@@ -806,7 +804,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     /**
      * Computes the element line of a java element (the start of the element, or the line with the
      * element's name range).
-     *
+     * 
      * @param document the displayed document for line information
      * @param element the java element, may be <code>null</code>
      * @return the element's start line, or -1
@@ -830,7 +828,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     /**
      * Returns the length of the given Java element.
-     *
+     * 
      * @param element Java element
      * @return Length of the given Java element
      */
@@ -850,7 +848,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     /**
      * Returns the offset of the given Java element.
-     *
+     * 
      * @param element Java element
      * @return Offset of the given Java element
      */
@@ -1253,7 +1251,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    * XXX remove once the underlying problem (https://bugs.eclipse.org/bugs/show_bug.cgi?id=66176) is
    * solved.
    * </p>
-   *
+   * 
    * @return the lock reconcilers may use to synchronize on
    */
   public Object getReconcilerLock() {
@@ -1548,7 +1546,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    * <code>true</code> the editor's input element is reconciled in advance. If it is
    * <code>false</code> this method only returns a result if the editor's input element does not
    * need to be reconciled.
-   *
+   * 
    * @param offset the offset included by the retrieved element
    * @param reconcile <code>true</code> if working copy should be reconciled
    * @return the most narrow element which includes the given offset
@@ -1679,7 +1677,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
   /**
    * Tells whether this is the active editor in the active page.
-   *
+   * 
    * @return <code>true</code> if this is the active editor in the active page
    * @see IWorkbenchPage#getActiveEditor
    */
@@ -1825,7 +1823,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
   /**
    * Adds the given listener. Has no effect if an identical listener was not already registered.
-   *
+   * 
    * @param listener The reconcile listener to be added
    */
   final void addReconcileListener(IDartReconcilingListener listener) {
@@ -1836,7 +1834,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
   /**
    * Removes the given listener. Has no effect if an identical listener was not already registered.
-   *
+   * 
    * @param listener the reconcile listener to be removed
    */
   final void removeReconcileListener(IDartReconcilingListener listener) {
