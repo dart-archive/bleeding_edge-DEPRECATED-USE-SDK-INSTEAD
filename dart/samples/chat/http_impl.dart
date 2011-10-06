@@ -1388,13 +1388,13 @@ class SocketConnection {
                    int this._port,
                    Socket this._socket);
 
-  void _markReturned() => _returnTime = new DateTime.now();
-  Time _idleTime(DateTime now) => now.difference(_returnTime);
+  void _markReturned() => _returnTime = new Date.now();
+  Time _idleTime(Date now) => now.difference(_returnTime);
 
   String _host;
   int _port;
   Socket _socket;
-  DateTime _returnTime;
+  Date _returnTime;
 }
 
 
@@ -1475,7 +1475,7 @@ class HTTPClientImplementation implements HTTPClient{
     // If there is currently no eviction timer start one.
     if (_evictionTimer == null) {
       void _handleEviction(Timer timer) {
-        DateTime now = new DateTime.now();
+        Date now = new Date.now();
         _openSockets.forEach(
             void _(String key, Queue<SocketConnection> connections) {
               // As returned connections are added at the head of the

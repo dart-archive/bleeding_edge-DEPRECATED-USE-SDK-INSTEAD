@@ -232,7 +232,7 @@ class Chat {
   }
 
   String formatMessageTime(String received) {
-    DateTime dateTime = new DateTime.fromString(received);
+    Date dateTime = new Date.fromString(received);
     String formattedTime = "";
     if (dateTime.time.hours < 10) formattedTime += "0";
     formattedTime += dateTime.time.hours.toString();

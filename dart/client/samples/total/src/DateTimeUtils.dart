@@ -6,32 +6,32 @@ class DateUtils {
   static final int DAYS_FROM_1900_TO_1970 = 25569;
   static final int MILLISECONDS_PER_DAY = 86400000;
   static final int MILLISECONDS_PER_HOUR = 3600000;
-  static DateTime _EPOCH;
+  static Date _EPOCH;
 
   // Return the 1899-12-30 spreadsheet epoch
-  static DateTime get EPOCH() {
+  static Date get EPOCH() {
     if (_EPOCH == null) {
-      _EPOCH = new DateTime(1899, 12, 30, 0, 0, 0, 0);
+      _EPOCH = new Date(1899, 12, 30, 0, 0, 0, 0);
     }
     return _EPOCH;
   }
 
   static double getDate(int year, int month, int day) {
-    DateTime dateTime = new DateTime(year, month, day, 12, 0, 0, 0);
+    Date dateTime = new Date(year, month, day, 12, 0, 0, 0);
     int milliseconds = dateTime.difference(EPOCH).duration;
     double days = (milliseconds / MILLISECONDS_PER_DAY).floor();
     return days;
   }
 
-  // Return a DateTime object corresponding to the given number of days after 1899-12-30.
-  static DateTime getDateTime(double daysSince18991230) {
+  // Return a Date object corresponding to the given number of days after 1899-12-30.
+  static Date getDateTime(double daysSince18991230) {
     double daysSinceEpoch = daysSince18991230 - DAYS_FROM_1900_TO_1970;
     double millisSinceEpoch = daysSinceEpoch * MILLISECONDS_PER_DAY;
-    return new DateTime.fromEpoch(millisSinceEpoch, const TimeZone.utc());
+    return new Date.fromEpoch(millisSinceEpoch, const TimeZone.utc());
   }
 
   static double getTime(int hour, int minute, int second) {
-    DateTime dateTime = new DateTime(1899, 12, 30, hour, minute, second, 0);
+    Date dateTime = new Date(1899, 12, 30, hour, minute, second, 0);
     int milliseconds = dateTime.difference(EPOCH).duration;
     double days = milliseconds / MILLISECONDS_PER_DAY;
     return days;
@@ -63,7 +63,7 @@ class DateUtils {
 
   // Return the number of days between 1899-12-30 and the current time.
   static double now() {
-    DateTime now = new DateTime.now();
+    Date now = new Date.now();
     int milliseconds = now.difference(EPOCH).duration;
     milliseconds += MILLISECONDS_PER_HOUR; // FIXME - something is one hour behind
     double days = milliseconds / MILLISECONDS_PER_DAY;
@@ -78,9 +78,9 @@ class DateUtils {
     if (m != null) {
       int month = _parseInt(m[1]);
       int day = _parseInt(m[2]);
-      DateTime now = new DateTime.now();
+      Date now = new Date.now();
       int thisYear = now.year;
-      DateTime dateTime = new DateTime(thisYear, month, day, 0, 0, 0, 0);
+      Date dateTime = new Date(thisYear, month, day, 0, 0, 0, 0);
       int milliseconds = dateTime.difference(EPOCH).duration;
       milliseconds += MILLISECONDS_PER_HOUR; // FIXME - something is one hour behind
       double days = milliseconds / MILLISECONDS_PER_DAY;
@@ -99,7 +99,7 @@ class DateUtils {
       } else if (year < 100) {
         year += 1900;
       }
-      DateTime dateTime = new DateTime(year, month, day, 0, 0, 0, 0);
+      Date dateTime = new Date(year, month, day, 0, 0, 0, 0);
       int milliseconds = dateTime.difference(EPOCH).duration;
       milliseconds += MILLISECONDS_PER_HOUR; // FIXME - something is one hour behind
       double days = milliseconds / MILLISECONDS_PER_DAY;

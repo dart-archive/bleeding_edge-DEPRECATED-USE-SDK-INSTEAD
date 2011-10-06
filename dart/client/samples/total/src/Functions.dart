@@ -215,7 +215,7 @@ class Functions {
         double x = stack[top].asDouble(location);
         int days = x.floor().toInt();
         Time t = new Time(days, 0, 0, 0, 0);
-        DateTime dateTime = DateUtils.EPOCH.add(t);
+        Date dateTime = DateUtils.EPOCH.add(t);
         stack[top] = new DoubleValue(dateTime.day.toDouble());
       });
     _newFunc("DEGREES", 1, void _(CellLocation location, List<Value> stack, int top, int nargs) {
@@ -301,7 +301,7 @@ class Functions {
         double x = stack[top].asDouble(location);
         int days = x.floor().toInt();
         Time t = new Time(days, 0, 0, 0, 0);
-        DateTime dateTime = DateUtils.EPOCH.add(t);
+        Date dateTime = DateUtils.EPOCH.add(t);
         stack[top] = new DoubleValue(dateTime.month.toDouble());
       });
     _newFunc("NOT", 1, void _(CellLocation location, List<Value> stack, int top, int nargs) {
@@ -397,7 +397,7 @@ class Functions {
         double x = stack[top].asDouble(location);
         int days = x.floor().toInt();
         Time t = new Time(days, 0, 0, 0, 0);
-        DateTime dateTime = DateUtils.EPOCH.add(t);
+        Date dateTime = DateUtils.EPOCH.add(t);
         stack[top] = new DoubleValue(dateTime.year.toDouble());
       });
 

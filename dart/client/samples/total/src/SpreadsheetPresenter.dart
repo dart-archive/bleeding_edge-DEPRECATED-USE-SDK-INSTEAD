@@ -766,8 +766,8 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   // Return the number of milliseconds since the epoch
   int _currentTimeMllis() {
-    DateTime now = new DateTime.now();
-    DateTime then = new DateTime.fromEpoch(0, now.timeZone);
+    Date now = new Date.now();
+    Date then = new Date.fromEpoch(0, now.timeZone);
     return now.difference(then).duration;
   }
 

@@ -59,15 +59,15 @@ class User {
     markActivity();
   }
 
-  void markActivity() => _lastActive = new DateTime.now();
-  Time idleTime(DateTime now) => now.difference(_lastActive);
+  void markActivity() => _lastActive = new Date.now();
+  Time idleTime(Date now) => now.difference(_lastActive);
 
   String get handle() => _handle;
   String get sessionId() => _sessionId;
 
   String _handle;
   String _sessionId;
-  DateTime _lastActive;
+  Date _lastActive;
 }
 
 
@@ -80,16 +80,16 @@ class Message {
       const [ "join", "message", "leave", "timeout"];
 
   Message.join(this._from)
-      : _received = new DateTime.now(), _type = JOIN;
+      : _received = new Date.now(), _type = JOIN;
   Message(this._from, this._message)
-      : _received = new DateTime.now(), _type = MESSAGE;
+      : _received = new Date.now(), _type = MESSAGE;
   Message.leave(this._from)
-      : _received = new DateTime.now(), _type = LEAVE;
+      : _received = new Date.now(), _type = LEAVE;
   Message.timeout(this._from)
-      : _received = new DateTime.now(), _type = TIMEOUT;
+      : _received = new Date.now(), _type = TIMEOUT;
 
   User get from() => _from;
-  DateTime get received() => _received;
+  Date get received() => _received;
   String get message() => _message;
   void set messageNumber(int n) => _messageNumber = n;
 
@@ -104,7 +104,7 @@ class Message {
   }
 
   User _from;
-  DateTime _received;
+  Date _received;
   int _type;
   String _message;
   int _messageNumber;
@@ -192,7 +192,7 @@ class Topic {
   void _handleTimer(Timer timer) {
     Set inactiveSessions = new Set();
     // Collect all sessions which have not been active for some time.
-    DateTime now = new DateTime.now();
+    Date now = new Date.now();
     _activeUsers.forEach(
         void _(String sessionId, User user) {
           if (user.idleTime(now).duration > DEFAULT_IDLE_TIMEOUT) {
@@ -496,7 +496,7 @@ class ChatServer extends Isolate {
               responseData["messages"] = messages;
               responseData["activeUsers"] = _topic.activeUsers;
               responseData["upTime"] =
-                  new DateTime.now().difference(_serverStart).duration;
+                  new Date.now().difference(_serverStart).duration;
             } else {
               responseData["disconnect"] = true;
             }
@@ -525,7 +525,7 @@ class ChatServer extends Isolate {
   void main() {
     _logRequests = false;
     _topic = new Topic();
-    _serverStart = new DateTime.now();
+    _serverStart = new Date.now();
     _messageCount = 0;
     _messageRate = new Rate();
 
@@ -637,7 +637,7 @@ class ChatServer extends Isolate {
   Topic _topic;
   Timer _cleanupTimer;
   Timer _loggingTimer;
-  DateTime _serverStart;
+  Date _serverStart;
 
   bool _logging;
   int _messageCount;
@@ -661,7 +661,7 @@ class Rate {
   Rate([int this._timeRange = 1000, int buckets = 10])
       : _buckets = new List(buckets + 1),  // Current bucket is not in the sum.
         _currentBucket = 0,
-        _currentBucketTime = new DateTime.now().value,
+        _currentBucketTime = new Date.now().value,
         _bucketTimeRange = (_timeRange / buckets).toInt(),
         _sum = 0 {
     for (int i = 0; i < _buckets.length; i++) {
@@ -686,7 +686,7 @@ class Rate {
   // matching the current time. Subtract all buckets vacated from the
   // sum as bucket for current time is located.
   void _timePassed() {
-    int time = new DateTime.now().value;
+    int time = new Date.now().value;
     if (time < _currentBucketTime + _bucketTimeRange) {
       // Still same bucket.
       return;

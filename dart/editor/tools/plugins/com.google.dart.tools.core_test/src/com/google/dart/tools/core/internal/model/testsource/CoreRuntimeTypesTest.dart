@@ -24,10 +24,7 @@ class CoreRuntimeTypesTest {
     testMapOperators();
     testMapMethods();
     testLiterals();
-
-    // TODO(ngeoffray): re-enable this test once static const fields
-    // in interfaces are correctly emitted TODO(4336711).
-    // testDateMethods();
+    testDateMethods();
   }
 
   // TODO(jimhug): Move the next three methods into a shared utility class.
@@ -255,12 +252,12 @@ class CoreRuntimeTypesTest {
     // Pushing this into Jan 2nd to make the year independent of timezone.
     // TODO(jimhug): Pursue a better solution to TZ issues.
     var msec = 115201000;
-    var d = new DateTime(msec);
-    assertEquals(d.getSeconds(), 1);
-    assertEquals(d.getYear(), 1970);
+    var d = new Date.fromEpoch(msec, const TimeZone.utc());
+    assertEquals(d.seconds, 1);
+    assertEquals(d.year, 1970);
 
-    d = new DateTime();
-    assertEquals(d.getYear() >= 2011, true);
+    d = new Date.now();
+    assertEquals(d.year >= 2011, true);
   }
 
   static testLiterals() {

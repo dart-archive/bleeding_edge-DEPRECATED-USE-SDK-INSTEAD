@@ -18,7 +18,7 @@
 #source("CopyPasteManager.dart");
 #source("CssStyles.dart");
 #source("CSVReader.dart");
-#source("DateUtils.dart");
+#source("DateTimeUtils.dart");
 #source("UndoableAction.dart");
 #source("DomUtils.dart");
 #source("Exceptions.dart");

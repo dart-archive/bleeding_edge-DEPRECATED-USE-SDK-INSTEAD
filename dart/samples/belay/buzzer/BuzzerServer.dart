@@ -13,7 +13,7 @@
 //
 
 class Buzz {
-  DateTime time;
+  Date time;
   String body;
   String via;
   Buzz(this.time, this.body, this.via) { }
@@ -47,7 +47,7 @@ class PostHandler extends BcapFlingHandler {
 
   void post() {
     var request = bcapRequest();
-    Buzz buzz = new Buzz(new DateTime.now(), request["body"],
+    Buzz buzz = new Buzz(new Date.now(), request["body"],
                          request.containsKey("via") ? request["via"] : null);
     feed.posts.addLast(buzz);
     logger.info("New buzz: " + request["body"]);

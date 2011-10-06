@@ -168,7 +168,7 @@ class Feed {
 /** A single article or posting to display. */
 class Article {
   final String id;
-  DateTime date;
+  Date date;
   final String title;
   final String author;
   final bool hasThumbnail;
@@ -236,7 +236,7 @@ class Article {
     final author = decoder.readString();
     final dateInSeconds = decoder.readInt();
     final snippet = decoder.readString();
-    final date = new DateTime.fromEpoch(dateInSeconds*1000, new TimeZone.utc());
+    final date = new Date.fromEpoch(dateInSeconds*1000, new TimeZone.utc());
     return new Article(source, id, date, title, author, srcUrl, hasThumbnail,
         snippet);
   }

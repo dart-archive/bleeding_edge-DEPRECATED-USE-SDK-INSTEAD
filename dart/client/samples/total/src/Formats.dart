@@ -224,20 +224,20 @@ class Formats {
     _numericFormatDescriptions.add("10.12%"); // 9
 
     _numericFormats.add(String _(double x) {
-      DateTime dt = DateUtils.getDateTime(x);
+      Date dt = DateUtils.getDateTime(x);
       return "${dt.month}/${dt.day}/${dt.year}";
     });
     _numericFormatDescriptions.add("MM/DD/YYYY"); // 10
 
     _numericFormats.add(String _(double x) {
-      DateTime dt = DateUtils.getDateTime(x);
+      Date dt = DateUtils.getDateTime(x);
       return "${_monthNames[dt.month - 1]} ${dt.day}, ${dt.year}";
     });
     _numericFormatDescriptions.add("Month Day, Year"); // 11
 
     _numericFormats.add(String _(double x) {
       x -= x.floor(); // ignore days
-      DateTime dt = DateUtils.getDateTime(x);
+      Date dt = DateUtils.getDateTime(x);
       String hh = StringUtils.twoDigits(dt.hours);
       String mm = StringUtils.twoDigits(dt.minutes);
       String ss = StringUtils.twoDigits(dt.seconds);
@@ -246,7 +246,7 @@ class Formats {
     _numericFormatDescriptions.add("HH:MM:SS (Time)"); // 12
 
     _numericFormats.add(String _(double x) {
-      DateTime dt = DateUtils.getDateTime(x);
+      Date dt = DateUtils.getDateTime(x);
       String hh = StringUtils.twoDigits(dt.hours);
       String mm = StringUtils.twoDigits(dt.minutes);
       String ss = StringUtils.twoDigits(dt.seconds);
@@ -257,7 +257,7 @@ class Formats {
     _numericFormats.add(String _(double x) {
       double days = x.floor();
       x -= days;
-      DateTime dt = DateUtils.getDateTime(x);
+      Date dt = DateUtils.getDateTime(x);
       String mm = StringUtils.twoDigits(dt.minutes);
       String ss = StringUtils.twoDigits(dt.seconds);
       return "${24 * days + dt.hours}:${mm}:${ss}";

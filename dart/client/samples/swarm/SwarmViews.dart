@@ -710,7 +710,7 @@ class ArticleView extends View {
     Element node;
 
     final byline = item.author.length > 0 ? item.author : item.dataSource.title;
-    final date = DateTimeUtils.toRecentTimeString(item.date);
+    final date = DateUtils.toRecentTimeString(item.date);
 
     var storyClass = 'story no-thumb';
     var thumbnail = '';
@@ -876,7 +876,7 @@ class StoryContentView extends View {
       anchor.target = '_blank';
     }
 
-    final date = DateTimeUtils.toRecentTimeString(item.date);
+    final date = DateUtils.toRecentTimeString(item.date);
     final container = new Element.html('''
       <div class="story-view">
         <div class="story-text-view">
