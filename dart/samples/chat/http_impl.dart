@@ -1389,7 +1389,7 @@ class SocketConnection {
                    Socket this._socket);
 
   void _markReturned() => _returnTime = new Date.now();
-  Time _idleTime(Date now) => now.difference(_returnTime);
+  Duration _idleTime(Date now) => now.difference(_returnTime);
 
   String _host;
   int _port;
@@ -1482,7 +1482,7 @@ class HTTPClientImplementation implements HTTPClient{
               // list remove from the tail.
               while (!connections.isEmpty()) {
                 SocketConnection socketConn = connections.last();
-                if (socketConn._idleTime(now).duration >
+                if (socketConn._idleTime(now).inMilliseconds >
                     DEFAULT_EVICTION_TIMEOUT) {
                   connections.removeLast();
                 } else {

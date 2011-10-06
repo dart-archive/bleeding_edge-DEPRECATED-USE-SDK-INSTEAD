@@ -768,7 +768,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   int _currentTimeMllis() {
     Date now = new Date.now();
     Date then = new Date.fromEpoch(0, now.timeZone);
-    return now.difference(then).duration;
+    return now.difference(then).inMilliseconds;
   }
 
   void _formulaCellSelectingInsertReference(RowCol clickLocation, RowCol dragLocation) {

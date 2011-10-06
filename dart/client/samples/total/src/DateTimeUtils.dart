@@ -18,7 +18,7 @@ class DateUtils {
 
   static double getDate(int year, int month, int day) {
     Date dateTime = new Date(year, month, day, 12, 0, 0, 0);
-    int milliseconds = dateTime.difference(EPOCH).duration;
+    int milliseconds = dateTime.difference(EPOCH).inMilliseconds;
     double days = (milliseconds / MILLISECONDS_PER_DAY).floor();
     return days;
   }
@@ -32,7 +32,7 @@ class DateUtils {
 
   static double getTime(int hour, int minute, int second) {
     Date dateTime = new Date(1899, 12, 30, hour, minute, second, 0);
-    int milliseconds = dateTime.difference(EPOCH).duration;
+    int milliseconds = dateTime.difference(EPOCH).inMilliseconds;
     double days = milliseconds / MILLISECONDS_PER_DAY;
     return days;
   }
@@ -64,7 +64,7 @@ class DateUtils {
   // Return the number of days between 1899-12-30 and the current time.
   static double now() {
     Date now = new Date.now();
-    int milliseconds = now.difference(EPOCH).duration;
+    int milliseconds = now.difference(EPOCH).inMilliseconds;
     milliseconds += MILLISECONDS_PER_HOUR; // FIXME - something is one hour behind
     double days = milliseconds / MILLISECONDS_PER_DAY;
     return days;
@@ -81,7 +81,7 @@ class DateUtils {
       Date now = new Date.now();
       int thisYear = now.year;
       Date dateTime = new Date(thisYear, month, day, 0, 0, 0, 0);
-      int milliseconds = dateTime.difference(EPOCH).duration;
+      int milliseconds = dateTime.difference(EPOCH).inMilliseconds;
       milliseconds += MILLISECONDS_PER_HOUR; // FIXME - something is one hour behind
       double days = milliseconds / MILLISECONDS_PER_DAY;
       return days;
@@ -100,7 +100,7 @@ class DateUtils {
         year += 1900;
       }
       Date dateTime = new Date(year, month, day, 0, 0, 0, 0);
-      int milliseconds = dateTime.difference(EPOCH).duration;
+      int milliseconds = dateTime.difference(EPOCH).inMilliseconds;
       milliseconds += MILLISECONDS_PER_HOUR; // FIXME - something is one hour behind
       double days = milliseconds / MILLISECONDS_PER_DAY;
       return days;

@@ -51,7 +51,7 @@ class User {
   }
 
   void markActivity() => _lastActive = new Date.now();
-  Time idleTime(Date now) => now.difference(_lastActive);
+  Duration idleTime(Date now) => now.difference(_lastActive);
 
   String get handle() => _handle;
   String get sessionId() => _sessionId;
@@ -186,7 +186,7 @@ class Topic {
     Date now = new Date.now();
     _activeUsers.forEach(
         void _(String sessionId, User user) {
-          if (user.idleTime(now).duration > DEFAULT_IDLE_TIMEOUT) {
+          if (user.idleTime(now).inMilliseconds > DEFAULT_IDLE_TIMEOUT) {
             inactiveSessions.add(sessionId);
           }
         });
@@ -487,7 +487,7 @@ class ChatServer extends Isolate {
               responseData["messages"] = messages;
               responseData["activeUsers"] = _topic.activeUsers;
               responseData["upTime"] =
-                  new Date.now().difference(_serverStart).duration;
+                  new Date.now().difference(_serverStart).inMilliseconds;
             } else {
               responseData["disconnect"] = true;
             }
