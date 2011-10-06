@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartContext;
 import com.google.dart.compiler.ast.DartExpression;
@@ -1393,7 +1394,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     String source = getSource();
     DartUnit unit = null;
     try {
-      unit = DartCompilerUtilities.parseSource(getElementName(), source);
+      unit = DartCompilerUtilities.parseSource(getElementName(), source,
+          new ArrayList<DartCompilationError>());
     } catch (Exception exception) {
       return false;
     }
