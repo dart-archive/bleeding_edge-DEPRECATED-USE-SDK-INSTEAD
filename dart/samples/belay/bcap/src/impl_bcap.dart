@@ -53,10 +53,10 @@ class BcapImpl implements Bcap {
     server.privateInvoke(ser, method, serData, ski, fki);
   }
 
-  void get_(sk = null, fk = null) { invoke("GET", null, sk, fk); }
-  void put(arg, sk = null, fk = null) { invoke("PUT", arg, sk, fk); }
-  void post(arg, sk = null, fk = null) { invoke("POST", arg, sk, fk); }
-  void delete(sk = null, fk = null) { invoke("DELETE", null, sk, fk); }
+  void get_([sk = null, fk = null]) { invoke("GET", null, sk, fk); }
+  void put(arg, [sk = null, fk = null]) { invoke("PUT", arg, sk, fk); }
+  void post(arg, [sk = null, fk = null]) { invoke("POST", arg, sk, fk); }
+  void delete([sk = null, fk = null]) { invoke("DELETE", null, sk, fk); }
 
   bool operator ==(Object other) {
     if (other is Bcap) {
@@ -147,8 +147,9 @@ class BcapServerImpl implements BcapServer {
   
   static BcapInterface deadInterface = null;
 
-  BcapServerImpl(String this.instanceID, String snapshot = null,
-                 SaveState this.saveState = null)
+  BcapServerImpl(String this.instanceID,
+                 [String snapshot = null,
+                  SaveState this.saveState = null])
     : implMap = new Map<String, BcapInterface>(),
       reviveMap = new Map<String, Object>(),
       reviver = (BcapHandler _(String key) { return null; }) {
@@ -317,7 +318,7 @@ class BcapServerImpl implements BcapServer {
     return _mint(capID);
   }
 
-  Bcap grant(BcapHandler handler, String key = null) {
+  Bcap grant(BcapHandler handler, [String key = null]) {
     return _grant(new BcapHandlerInterface(this, handler), key);
   }
 
@@ -325,11 +326,11 @@ class BcapServerImpl implements BcapServer {
     return grant(reviver(key), key);
   }
 
-  Bcap grantFunc(BcapSyncFunction f, String key = null) {
+  Bcap grantFunc(BcapSyncFunction f, [String key = null]) {
     return grant(new BcapFunctionHandler(f), key);
   }
 
-  Bcap grantAsyncFunc(BcapAsyncFunction f, String key = null) {
+  Bcap grantAsyncFunc(BcapAsyncFunction f, [String key = null]) {
     return grant(new BcapAsyncFunctionHandler(f), key);
   }
 

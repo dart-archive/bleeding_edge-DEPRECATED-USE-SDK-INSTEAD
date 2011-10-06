@@ -155,7 +155,7 @@ class BcapTunnelImpl implements BcapServerInterface {
     port.postMessage(msg.toJSON());
   }
 
-  BcapTunnelImpl(this.port, this.resolver, this.outpostHandler = null) {
+  BcapTunnelImpl(this.port, this.resolver, [this.outpostHandler = null]) {
     nextTxId = 0;
     transactions = new Map<int, ContinuationPair>();
 

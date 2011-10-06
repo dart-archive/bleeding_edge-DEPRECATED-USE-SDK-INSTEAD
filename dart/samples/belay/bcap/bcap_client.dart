@@ -27,8 +27,8 @@ class BcapClientServer extends BcapServerImpl {
   static RegExp urlRegex = null;
   
   BcapClientServer(String instanceID,
-                   String snapshot = null,
-                   SaveState saveState = null)
+                   [String snapshot = null,
+                    SaveState saveState = null])
     : super(instanceID, snapshot, saveState) {
       if (urlRegex === null) {
         urlRegex = new RegExp('^https?:', '');
@@ -56,7 +56,7 @@ class BcapClientServer extends BcapServerImpl {
     }
   }
 
-  Bcap wrapURL(String url, String key = null) {
+  Bcap wrapURL(String url, [String key = null]) {
     return new BcapImpl(url, this);
   }
 }

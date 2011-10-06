@@ -33,10 +33,8 @@ listDartFiles ../../compiler | \
 listDartFiles ../../client | \
   grep -v NegativeTest | \
   grep -v Value.dart | \
-  grep -v '/generated/' | \
-  xargs java -jar out/dart.jar
-
-listDartFiles ../../internal | \
+  grep -v '/html/generated/' | \
+  grep -v '/generated/src/interface/WebKitCSSMatrix.dart' |
   xargs java -jar out/dart.jar
 
 listDartFiles ../../tests | \
@@ -46,12 +44,6 @@ listDartFiles ../../tests | \
   xargs java -jar out/dart.jar
 
 listDartFiles ../../samples | \
-  xargs java -jar out/dart.jar
-
-listDartFiles ../../sites | \
-  xargs java -jar out/dart.jar
-
-listDartFiles ../../utils | \
   xargs java -jar out/dart.jar
 
 listDartFiles .. | \

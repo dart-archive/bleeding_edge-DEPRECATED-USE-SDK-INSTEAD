@@ -33,7 +33,7 @@ class BcapFlingUtil {
     response.finish();
   }
 
-  static void errorResponse(HttpResponse response, int code, String msg = '') {
+  static void errorResponse(HttpResponse response, int code, [String msg = '']) {
     response.setStatusCode(code);
     if (msg.length > 0) {
       response.setHeader('Content-Type', "text/plain;charset=UTF-8");
@@ -42,7 +42,7 @@ class BcapFlingUtil {
     response.finish();
   }
   
-  static void errorMethodNotAllowed(HttpResponse response, String method = '') {
+  static void errorMethodNotAllowed(HttpResponse response, [String method = '']) {
     String message = "Method Not Allowed";
     if (method.length > 0) {
       message = "Method $method Not Allowed";
@@ -87,7 +87,7 @@ class BcapFlingHandler {
     BcapFlingUtil.bcapNullResponse(response);
   }
 
-  void errorResponse(int code, String msg = '') {
+  void errorResponse(int code, [String msg = '']) {
     BcapFlingUtil.errorResponse(response, code, msg);
   }
   void errorMethodNotAllowed() {

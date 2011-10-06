@@ -18,7 +18,7 @@ class BcapError {
   final int status;
   final String message;
   
-  const BcapError(int this.status = 500, String this.message = '');
+  const BcapError([int this.status = 500, String this.message = '']);
   
   static final BcapError badRequest = const BcapError(400, 'Bad Request');
   static final BcapError notFound = const BcapError(404, 'Not Found');
@@ -36,10 +36,10 @@ interface Bcap {
   // Bcaps are always serializable
   String serialize();
 
-  void get_(Success sk = null, Failure fk = null);
-  void put(/* JSON */ data, Success sk = null, Failure fk = null);
-  void post(/* JSON */ data, Success sk = null, Failure fk = null);
-  void delete(Success sk = null, Failure fk = null);
+  void get_([Success sk, Failure fk]);
+  void put(/* JSON */ data, [Success sk, Failure fk]);
+  void post(/* JSON */ data, [Success sk, Failure fk]);
+  void delete([Success sk, Failure fk]);
 }
 
 class BcapHandler {
@@ -93,8 +93,7 @@ typedef BcapServerInterface Resolver(String instID);
 typedef void SaveState(String state);
 
 interface BcapServer extends BcapServerInterface factory BcapServerImpl {
-  BcapServer(String instanceID, String snapshot = null,
-             SaveState saveState = null);
+  BcapServer(String instanceID, [String snapshot, SaveState saveState]);
 
   void setReviver(Reviver newReviver);
   void setResolver(Resolver newResolver);
@@ -104,9 +103,9 @@ interface BcapServer extends BcapServerInterface factory BcapServerImpl {
 
   String snapshot();
 
-  Bcap grant(BcapHandler handler, String key = null);
-  Bcap grantFunc(BcapSyncFunction f, String key = null);
-  Bcap grantAsyncFunc(BcapAsyncFunction f, String key = null);
+  Bcap grant(BcapHandler handler, [String key]);
+  Bcap grantFunc(BcapSyncFunction f, [String key]);
+  Bcap grantAsyncFunc(BcapAsyncFunction f, [String key]);
 
   Bcap grantKey(String key);
   Bcap restore(String ser);
