@@ -28,10 +28,10 @@ class HelpDialog extends DialogView {
           </p>
 
           <p>
-          <a href="http://dartlang.org">
-          <img src="Dart_Logo_21.png" /></a>
+          <div id="dart-logo">  
           <a href="http://dartlang.org">
           Dart, the programming language</a>.
+          </div>
           </p>
         </div>
         ''');
