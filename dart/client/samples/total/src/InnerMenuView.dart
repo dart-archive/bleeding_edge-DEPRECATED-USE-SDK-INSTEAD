@@ -61,6 +61,7 @@ class InnerMenuView {
   ColorPicker _backgroundColorPicker;
   // The interior UI of the menu.
   DivElement _bar;
+  Function _callToHide;
   int _currentRowHeight;
   int _initialRowHeight;
   ValuePicker _numericFormatPicker;
@@ -92,7 +93,8 @@ class InnerMenuView {
    * It will automatically hide if the row becomes detached from its table
    * (e.g. due to scrolling).
    */
-  InnerMenuView(this._window, this._row, this._selectionManager, Style style, int initialHeight) {
+  InnerMenuView(this._window, this._row, this._selectionManager, Style style, int initialHeight,
+      this._callToHide) {
     // Ensure statics are initialized
     Formats formats = new Formats();
 
@@ -103,8 +105,11 @@ class InnerMenuView {
     _bar = document.createElement("div");
     _bar.classes.add("inner-menu");
 
+    // Close the menu when the non-button area is clicked
+    // We use the supplied _callToHide function to initiate the hiding
     Element buttons = document.createElement("div");
     buttons.classes.add("inner-menu-buttons");
+    buttons.on.click.add((Event e) { _callToHide(); });
 
     _textStyleButtons = new List<Element>(4);
     _textStyleButtons[0] = _addButton(buttons, "inner-menu-button", "b", _textStyle);

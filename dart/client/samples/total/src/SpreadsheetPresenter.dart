@@ -156,7 +156,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     _copyPasteManager = new CopyPasteManager(_selectionManager, _spreadsheet);
 
     // Disable default right-click behavior
-    _window.document.on.contextMenu.add((Event event) { return false; });
+    _window.on.contextMenu.add((Event event) { return false; });
 
     // Capture mouse move and mouse up events at the document-level, displatching to
     // 'drag' and 'undrag' functions supplied by the most recently invoked 'mouseDown'
@@ -1621,7 +1621,8 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
       _hideInnerMenu(false);
     }
     _activeInnerMenu = new InnerMenuView(_window, row, _selectionManager, style,
-        _spreadsheet.layout.getRowHeight(rowIndex));
+        _spreadsheet.layout.getRowHeight(rowIndex),
+        (){ _hideInnerMenu(true); _repositionFormulaInput(null, false); });
     _innerMenuRowIndex = rowIndex;
   }
 
