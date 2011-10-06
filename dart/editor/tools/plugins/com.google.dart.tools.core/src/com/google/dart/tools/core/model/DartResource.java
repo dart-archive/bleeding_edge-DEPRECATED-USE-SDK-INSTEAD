@@ -13,9 +13,17 @@
  */
 package com.google.dart.tools.core.model;
 
+import java.net.URI;
+
 /**
  * The interface <code>DartResource</code> defines the behavior of files contained within a project
  * that are included because of a #resource directive.
  */
 public interface DartResource extends DartElement {
+  /**
+   * Return the URI of the resource represented by this element.
+   * 
+   * @return the URI of the resource represented by this element
+   */
+  public URI getUri();
 }

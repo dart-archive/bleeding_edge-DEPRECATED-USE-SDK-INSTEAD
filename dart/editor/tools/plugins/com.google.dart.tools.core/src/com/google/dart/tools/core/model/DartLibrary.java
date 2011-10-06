@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.io.File;
+import java.net.URI;
 
 /**
  * The interface <code>DartLibrary</code> defines the behavior of objects representing a Dart
@@ -133,6 +134,15 @@ public interface DartLibrary extends OpenableElement, ParentElement {
    * @throws DartModelException if the imported libraries cannot be determined
    */
   public DartLibrary[] getImportedLibraries() throws DartModelException;
+
+  /**
+   * Return a resource corresponding to the given URI. This is a handle-only method. The resource
+   * may or may not be present.
+   * 
+   * @param uri the URI corresponding to the resource to be returned
+   * @return a resource corresponding to the given URI
+   */
+  public DartResource getResource(URI uri);
 
   /**
    * Return an array containing all of the resources that are included in this library.

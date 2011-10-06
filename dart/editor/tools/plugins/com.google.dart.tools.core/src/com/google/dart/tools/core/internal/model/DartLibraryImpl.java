@@ -44,6 +44,7 @@ import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceUtilities;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
@@ -392,6 +393,11 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
+  public DartResource getResource(URI uri) {
+    return new DartResourceImpl(this, uri);
+  }
+
+  @Override
   public DartResource[] getResources() throws DartModelException {
     List<DartResource> compilationUnits = getChildrenOfType(DartResource.class);
     return compilationUnits.toArray(new DartResource[compilationUnits.size()]);
@@ -521,14 +527,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         if (source == null) {
           return null;
         }
-        IFile[] resourceFiles = ResourceUtil.getResources(source);
-        if (resourceFiles != null && resourceFiles.length == 1) {
-          IFile resourceFile = resourceFiles[0];
-          if (resourceFile.isAccessible()) {
-            resourceList.add(resourceFile);
-            children.add(new DartResourceImpl(DartLibraryImpl.this, resourceFile));
-          }
-        }
+        URI uri = URIUtilities.makeAbsolute(source.getUri());
+        children.add(new DartResourceImpl(DartLibraryImpl.this, uri));
         return null;
       }
 
@@ -630,14 +630,19 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         HTMLFileImpl file = new HTMLFileImpl(this, libraryFile.getProject().getFile(
             new Path(htmlPath)));
         return file.getHandleFromMemento(tokenizer, owner);
-      case MEMENTO_DELIMITER_VARIABLE:
+      case MEMENTO_DELIMITER_RESOURCE:
         if (!tokenizer.hasMoreTokens()) {
           return this;
         }
-        String resourcePath = tokenizer.nextToken();
-        DartResourceImpl resource = new DartResourceImpl(this, libraryFile.getProject().getFile(
-            new Path(resourcePath)));
-        return resource.getHandleFromMemento(tokenizer, owner);
+        String resourceUri = tokenizer.nextToken();
+        try {
+          DartResourceImpl resource = new DartResourceImpl(this, new URI(resourceUri));
+          return resource.getHandleFromMemento(tokenizer, owner);
+        } catch (URISyntaxException exception) {
+          DartCore.logError("Illegal URI found in memento for a resource: \"" + resourceUri + "\"",
+              exception);
+          return null;
+        }
     }
     return null;
   }
@@ -755,5 +760,4 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     }
     return null;
   }
-
 }

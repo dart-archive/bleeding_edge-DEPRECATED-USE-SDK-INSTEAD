@@ -52,6 +52,7 @@ Export-Package: com.google.dart.tools.core,
  com.google.dart.tools.core.utilities.bindings,
  com.google.dart.tools.core.utilities.compiler,
  com.google.dart.tools.core.utilities.general,
+ com.google.dart.tools.core.utilities.net,
  com.google.dart.tools.core.utilities.performance,
  com.google.dart.tools.core.utilities.resource,
  com.google.dart.tools.core.workingcopy

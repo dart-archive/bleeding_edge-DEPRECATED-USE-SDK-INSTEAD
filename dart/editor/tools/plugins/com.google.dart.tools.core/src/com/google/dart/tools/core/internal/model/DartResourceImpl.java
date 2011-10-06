@@ -17,6 +17,7 @@ import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartResourceInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartResource;
@@ -26,7 +27,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 
+import java.net.URI;
 import java.util.Map;
 
 /**
@@ -35,23 +38,45 @@ import java.util.Map;
  */
 public class DartResourceImpl extends OpenableElementImpl implements DartResource {
   /**
-   * The file being represented by this element.
+   * The file represented by this element, or <code>null</code> if the resource is included in a
+   * library that is not open.
    */
   private IFile file;
+
+  /**
+   * The URI of the resource represented by this element.
+   */
+  private URI uri;
 
   /**
    * Initialize a newly created resource element to be a child of the given library.
    * 
    * @param library the library containing the element
-   * @param file the file being represented by the element
+   * @param file the file represented by the element
    */
   protected DartResourceImpl(DartLibraryImpl library, IFile file) {
     super(library);
     this.file = file;
+    this.uri = file.getLocationURI();
+  }
+
+  /**
+   * Initialize a newly created resource element to be a child of the given library.
+   * 
+   * @param library the library containing the element
+   * @param uri the URI represented by the element
+   */
+  protected DartResourceImpl(DartLibraryImpl library, URI uri) {
+    super(library);
+    this.file = getResource(uri);
+    this.uri = uri;
   }
 
   @Override
   public String getElementName() {
+    if (file == null) {
+      return new Path(uri.getPath()).lastSegment();
+    }
     return file.getName();
   }
 
@@ -63,6 +88,11 @@ public class DartResourceImpl extends OpenableElementImpl implements DartResourc
   @Override
   public IResource getUnderlyingResource() throws DartModelException {
     return file;
+  }
+
+  @Override
+  public URI getUri() {
+    return uri;
   }
 
   @Override
@@ -97,7 +127,7 @@ public class DartResourceImpl extends OpenableElementImpl implements DartResourc
 
   @Override
   protected String getHandleMementoName() {
-    return file.getProjectRelativePath().toPortableString();
+    return uri.toString();
   }
 
   @Override
@@ -106,5 +136,27 @@ public class DartResourceImpl extends OpenableElementImpl implements DartResourc
       return newDoesNotExistStatus();
     }
     return DartModelStatusImpl.VERIFIED_OK;
+  }
+
+  /**
+   * Return the resource associated with the given URI, or <code>null</code> if the URI does not
+   * correspond to an existing resource.
+   * 
+   * @param uri the URI representing the resource to be returned
+   * @return the resource associated with the given URI
+   */
+  private IFile getResource(URI uri) {
+    try {
+      IFile[] resourceFiles = ResourceUtil.getResources(uri);
+      if (resourceFiles != null && resourceFiles.length == 1) {
+        IFile resource = resourceFiles[0];
+        if (resource.exists()) {
+          return resource;
+        }
+      }
+    } catch (Exception exception) {
+      return null;
+    }
+    return null;
   }
 }
