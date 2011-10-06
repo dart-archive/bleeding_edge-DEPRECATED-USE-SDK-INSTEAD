@@ -229,6 +229,12 @@ build system.  The PDE build system has to run under Eclipse.
         <property name="samples.out.dir" 
                   value="${build.stage.features}/com.google.dart.tools.deploy.feature/include/samples" />
     
+        <!-- Clock -->
+        <copy todir="${samples.out.dir}/clock">
+            <fileset dir="${build.source.root}/samples/clock">
+            </fileset>
+        </copy>
+
         <!-- Hi -->
         <!-- copy todir="${samples.out.dir}/hi">
             <fileset dir="${build.source.root}/client/samples/hi">
