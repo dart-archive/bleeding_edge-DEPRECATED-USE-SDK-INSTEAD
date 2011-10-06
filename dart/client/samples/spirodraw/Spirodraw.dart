@@ -299,7 +299,7 @@ class Spirodraw {
   
 }
 
-static int gcf(int n, int d) {
+int gcf(int n, int d) {
   if (n==d)
     return n;
   int max = Math.max(n, d);

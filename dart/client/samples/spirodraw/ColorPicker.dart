@@ -12,7 +12,7 @@ class ColorPicker {
   static final int BH = 10;
   static final int BW = 10;
   static final int BP = 1;
-  final Array<PickerListener> _listeners;
+  final List<PickerListener> _listeners;
   HTMLCanvasElement canvasElement;
   String _selectedColor = 'red';
   final int height = 160;
