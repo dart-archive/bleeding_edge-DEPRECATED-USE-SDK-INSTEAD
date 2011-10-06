@@ -265,16 +265,17 @@ class UploadFeed(webapp.RequestHandler):
       sectionTitle = data['section']
       section = findSectionByTitle(sectionTitle)
       if section != None:
+        if feed.key() in section.feeds:
+          logging.warn('Already contains feed %s, replacing' % feedId)
+          section.feeds.remove(feed.key())
+
         # Add the feed to the section.
-        if not feed in section.feeds:
-          section.feeds.append(feed.key())
-          section.put()
+        section.feeds.insert(0, feed.key())
+        section.put()
 
         # Add the articles.
-        if collectFeed(feed, data):
-          print 'you win!'
-        else:
-          print 'nooooo'
+        collectFeed(feed, data)
+
       else:
         logging.error('Could not find section %s to add the feed to' %
             sectionTitle)
