@@ -337,6 +337,9 @@ public class BindingUtils {
       return getDartElement(typeBinding);
     }
     ClassElement element = typeBinding.getElement();
+    if (element.isDynamic()) {
+      return null;
+    }
     String typeName = element.getName();
     try {
       LibraryElement declaringLibraryElement = element.getLibrary();
