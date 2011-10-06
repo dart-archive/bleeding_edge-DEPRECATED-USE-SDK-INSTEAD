@@ -56,11 +56,12 @@
 </li>
 <li>
 <pre>
-pushd /Library/WebServer/Document
+pushd /Library/WebServer/Documents/
 # If you are replacing old data:
 # rm -rf data/
 unzip ~/Downloads/CannedData.zip
 chmod -R +r data
+chmod -R +w data
 # Warning: this step takes a while
 # It downloads all images from all of the stories and inlines them in the HTML
 path/to/dart/dart/client/samples/swarm/cacheimages.py data/

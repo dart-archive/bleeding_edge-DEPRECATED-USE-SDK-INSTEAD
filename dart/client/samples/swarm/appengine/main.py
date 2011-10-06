@@ -358,22 +358,31 @@ class DataHandler(webapp.RequestHandler):
 
   # Get canned static data
   def canDataZip(self):
-    result = zipfile.ZipFile(self.response.out, 'a')
+    # We need to zip into an in-memory buffer to get the right string encoding
+    # behavior.
+    data = StringIO.StringIO()
+    result = zipfile.ZipFile(data, 'w')
 
     articles = []
     result.writestr('data/user.data',
         self.getUserData(articles).encode('utf-8'))
-
+    logging.info('  adding articles %s' % len(articles))
     images = []
     for article in articles:
       article.ensureThumbnail()
       path = 'data/' + article.key().name() + '.html'
-      result.writestr(path, article.content.encode('utf-8'))
+      result.writestr(path.encode('utf-8'), article.content.encode('utf-8'))
       if article.thumbnail:
         path = 'data/' + article.key().name() + '.jpg'
-        result.writestr(path, article.thumbnail)
+        result.writestr(path.encode('utf-8'), article.thumbnail)
 
     result.close()
+    logging.info('writing CannedData.zip')
+    self.response.headers['Content-Type'] = 'multipart/x-zip'
+    disposition = 'attachment; filename=CannedData.zip'
+    self.response.headers['Content-Disposition'] = disposition
+    self.response.out.write(data.getvalue())
+    data.close()
 
 
 class SetDefaultFeeds(webapp.RequestHandler):
@@ -459,6 +468,7 @@ class UserLoginHandler(webapp.RequestHandler):
   def collectFeeds(self, prefs, content):
     data = json.loads(content)
 
+    queue_name = self.request.get('queue_name', 'priority-queue')
     sections = {}
     for feedData in data['subscriptions']:
       feed = Feed.get_or_insert(feedData['id'])
@@ -470,6 +480,10 @@ class UserLoginHandler(webapp.RequestHandler):
 
       # TODO(jimhug): Use Reader preferences to sort feeds in a section.
       sections[categoryId][1].append(feed.key())
+
+      # Kick off a high priority feed update
+      taskqueue.add(url='/update/feed', queue_name=queue_name,
+                    params={'id': feed.key().name()})
 
     sectionKeys = []
     for name, (title, feeds) in sections.items():
@@ -573,6 +587,10 @@ def collectArticle(feed, data):
   Reads an article from the given JSON object and populates the datastore with
   it.
   '''
+  if not 'title' in data:
+    # Skip this articles without titles
+    return True
+
   articleId = data['id']
   article = Article.get_or_insert(articleId)
   # TODO(jimhug): This aborts too early - at lease for one adafruit case.
