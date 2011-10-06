@@ -67,8 +67,8 @@ class Spirodraw {
   void onResize() {
     height = window.innerHeight;
     width = window.innerWidth - 270;
-    yc = height/2;
-    xc = width/2;
+    yc = height~/2;
+    xc = width~/2;
     frontCanvas.height = height;
     frontCanvas.width = width;
     backCanvas.height = height;
