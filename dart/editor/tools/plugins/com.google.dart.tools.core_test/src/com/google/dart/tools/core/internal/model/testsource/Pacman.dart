@@ -4288,7 +4288,7 @@ class PacMan {
    * per second, or less frequently if the framerate has been adjusted.
    */
   static void tick() {
-    var time = new Date().getTime();
+    var time = new Date.now().value;
     lastTimeDelta += (time - lastTime) - tickInterval;
 
     // We don't want to catch up too much because the actors will jump far
@@ -4746,7 +4746,7 @@ class PacMan {
       PacMan.timing[i] = Math.round(timing * PM.TARGET_FPS);
     }
 
-    lastTime = new Date().getTime();
+    lastTime = new Date.now().value;
     lastTimeDelta = 0;
     lastTimeSlownessCount = 0;
 
