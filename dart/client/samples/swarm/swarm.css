@@ -284,7 +284,6 @@ input:focus {
   z-index: 10;
   position: absolute;
   font: bold 14px Arial , sans-serif;
-  overflow: hidden;
 }
 
 .query-name-shadow {
@@ -318,9 +317,17 @@ input:focus {
   bottom: 0;
 }
 
-.section-view  > .touch-scrollbar  , .story-section  > .touch-scrollbar {
-  background: rgba(0,0,0,0.39);
-  z-index: 30;
+.touch-scrollbar {
+  position: absolute;
+  background: #888;
+  opacity: .4;
+  -webkit-transition-property: opacity;
+  -webkit-transition-duration: .3s;
+  z-index: 1000;
+}
+
+.touch-scrollbar.drag  , .touch-scrollbar:hover {
+  opacity: .8;
 }
 
 .story-section {
@@ -362,17 +369,22 @@ input:focus {
   opacity: .6;
 }
 
-.caption .snippet  , .story .title {
+.snippet  , .story .title {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 }
 
+.snippet {
+  margin-top: -5px;
+  font: normal 13px arial , sans-serif;
+  line-height: 18px;
+  opacity: .6;
+}
+
 .story .title {
   font-weight: bold;
-  position: absolute;
-  left: 89px;
-  right: 16px;
+  margin-left: 75px;
   line-height: 18px;
   height: 38px;
   opacity: .6;
@@ -380,16 +392,6 @@ input:focus {
 
 .story.no-thumb .title  , .story.no-thumb .byline {
   left: 16px;
-}
-
-.caption {
-  top: 0;
-  font: normal 13px arial , sans-serif;
-  line-height: 18px;
-  z-index: 1;
-  overflow: hidden;
-  opacity: .6;
-  margin-top: 70px;
 }
 
 .story-shadow {
@@ -405,27 +407,26 @@ input:focus {
 .story .byline  , .story .dateline {
   color: #999;
   font-size: 12px;
-  top: 52px;
-  position: absolute;
+  line-height: 18px;
+}
+
+.story .dateline {
+  position: relative;
+  top: -18px;
+}
+
+.story .dateline {
+  text-align: right;
+  opacity: .6;
   line-height: 18px;
 }
 
 .story .byline {
-  left: 89px;
-  right: 85px;
-  overflow: hidden;
+  margin-left: 75px;
   text-overflow: ellipsis;
   white-space: nowrap;
-  overflow: hidden;
   opacity: .6;
-}
-
-.story .dateline {
-  right: 16px;
-  text-align: right;
-  position: absolute;
-  opacity: .6;
-  line-height: 18px;
+  display: inline-box;
 }
 
 .story.story-unread .dateline  , .story.story-unread .text  , .story.story-unread .title  , .story.story-unread .byline  , .story.story-unread img  , .story.story-unread .caption {

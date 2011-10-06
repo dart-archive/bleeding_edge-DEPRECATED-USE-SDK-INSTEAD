@@ -209,8 +209,6 @@ class GenericListView<D> extends View {
       _containerElem = node;
     }
 
-    _reserveArea();
-
     if (_scrollable) {
       scroller = new Scroller(
           _containerElem,
@@ -218,8 +216,8 @@ class GenericListView<D> extends View {
           !_vertical /* horizontalScrollEnabled */,
           true /* momentumEnabled */,
           () {
-            num width = _layout.getEstimatedWidth(_viewLength);
-            num height = _layout.getEstimatedHeight(_viewLength);
+            num width = _layout.getWidth(_viewLength);
+            num height = _layout.getHeight(_viewLength);
             width = width != null ? width : 0;
             height = height != null ? height : 0;
             return new Size(width, height);
@@ -375,17 +373,21 @@ class GenericListView<D> extends View {
   void _onPageSelected() {
     if (_pages.target !=
         _layout.getPage(_activeInterval.start, _viewLength)) {
-      _throwTo(_layout.getPageStartIndex(_pages.target.value, _viewLength));
+      _throwTo(_layout.getOffset(
+          _layout.getPageStartIndex(_pages.target.value, _viewLength)));
     }
+  }
+
+  num get _offset() {
+    return scroller.verticalEnabled ?
+        scroller.getVerticalOffset() : scroller.getHorizontalOffset();
   }
 
   /** 
    * Calculates visible interval, based on the scroller position.
    */
   Interval getVisibleInterval() {
-    final offset = scroller.verticalEnabled ?
-        scroller.getVerticalOffset() : scroller.getHorizontalOffset();
-    return _layout.computeVisibleInterval(offset, _viewLength, 0);
+    return _layout.computeVisibleInterval(_offset, _viewLength, 0);
   }
 
   void renderVisibleItems(bool lengthChanged) {
@@ -543,17 +545,11 @@ class GenericListView<D> extends View {
     // TODO(jacobr): move this to a util library or modify this class so that
     // the data is an List not a Collection.
     int i = 0;
-    bool match = false;
-    int index;
     for (D item in _data) {
-      if (!match && item == targetItem) {
-        index = i;
-        match = true;
+      if (item == targetItem) {
+        return i;
       }
       i++;
-    }
-    if (match == true) {
-      return index;
     }
     return null;
   }
@@ -590,43 +586,23 @@ class GenericListView<D> extends View {
 
   void showView(D targetItem) {
     int index = findIndex(targetItem);
-    Interval targetInterval = getVisibleInterval();
-
     if (index != null) {
-      if (isAfterVisible(index, targetInterval)) {
-        _throwTo(index);
-      } else if (isBeforeVisible(index, targetInterval)) {
-        // Find the first target range that excludes this item
-        var distance = targetInterval.end - targetInterval.start;
-        var otherIndex = Math.max(0, targetInterval.start - distance);
-        _throwTo(otherIndex);
+      if (_layout.getOffset(index) < -_offset) {
+        _throwTo(_layout.getOffset(index));
+      } else if (_layout.getOffset(index + 1) > (-_offset + _viewLength)) {
+        // TODO(jacobr): for completeness we should check whether
+        // the current view is longer than _viewLength in which case
+        // there are some nasty edge cases.
+        _throwTo(_layout.getOffset(index + 1) - _viewLength);
       }
     }
   }
-  
-  /**
-   * Tests whether the desired item index is below (greater than) the
-   * current view.
-   */
-  bool isAfterVisible(int index, Interval targetInterval) {
-    //TODO(efortuna): clean up -- less magic numbers
-    // -1 to account for half articles
-    return (targetInterval.end - 1) <= index; 
-  }
 
-  /**
-   * Tests whether the desired item index is above (less than) the
-   * current view.
-   */
-  bool isBeforeVisible(int index, Interval targetInterval) {
-    return targetInterval.start >= index;
-  }
-
-  void _throwTo(int index) {
+  void _throwTo(num offset) {
     if (_vertical) {
-      scroller.throwTo(0, -_layout.getOffset(index));
+      scroller.throwTo(0, -offset);
     } else {
-      scroller.throwTo(-_layout.getOffset(index), 0);
+      scroller.throwTo(-offset, 0);
     }
   }
 }

@@ -109,7 +109,7 @@ input:focus {
 }
 
 .query h2 {
-  color: #1155CC; /* #333; */
+  color: #1155CC;
   padding: 20px 16px 16px 16px;
   left: 0;
   right: 0;
@@ -122,7 +122,6 @@ input:focus {
   z-index: 10;
   position: absolute;
   font: bold 14px Arial, sans-serif;
-  overflow: hidden;
 }
 
 .query-name-shadow {
@@ -156,11 +155,18 @@ input:focus {
   bottom: 0;
 }
 
-.section-view > .touch-scrollbar,
-.story-section > .touch-scrollbar {
-  background: rgba(0, 0, 0, .39);
-/**   border: 1px solid rgba(255, 255, 255, 0.33); TODO(jacobr): should we provide this order? **/
-  z-index: 30;
+.touch-scrollbar {
+  position: absolute;
+  background: #888;
+  opacity: 0.4;
+  -webkit-transition-property: opacity;
+  -webkit-transition-duration: 0.3s;
+  z-index: 1000;
+}
+
+.touch-scrollbar.drag,
+.touch-scrollbar:hover {
+  opacity: 0.8;
 }
 
 .story-section {
@@ -206,18 +212,23 @@ input:focus {
   opacity: 0.6;
 }
 
-.caption .snippet,
+.snippet,
 .story .title {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 }
 
+.snippet {
+  margin-top: -5px;
+  font: normal 13px arial,sans-serif;
+  line-height: 18px;
+  opacity: 0.6;
+}
+
 .story .title {
   font-weight: bold;
-  position: absolute;
-  left: 89px;
-  right: 16px;
+  margin-left: 75px;
   line-height: 18px;
   /* TODO(rnystrom): The following prevents it from running over the byline, but
      it cuts off part of the title if it's longer than two lines. */
@@ -228,16 +239,6 @@ input:focus {
 .story.no-thumb .title,
 .story.no-thumb .byline {
   left: 16px;
-}
-
-.caption {
-  top: 0;
-  font: normal 13px arial,sans-serif;
-  line-height: 18px;
-  z-index: 1;
-  overflow: hidden;
-  opacity: 0.6;
-  margin-top: 70px;
 }
 
 .story-shadow {
@@ -254,28 +255,27 @@ input:focus {
 .story .dateline {
   color: #999;
   font-size: 12px;
-  top: 52px;
-  position: absolute;
   line-height: 18px;
 }
 
-.story .byline {
-  left: 89px;
-  right: 85px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  opacity: 0.6;
+.story .dateline {
+  position: relative;
+  top: -18px;
 }
 
 /* TODO(jacobr): handle intersection with byline better... */
 .story .dateline {
-  right:16px;
   text-align: right;
-  position: absolute;
   opacity: 0.6;
   line-height: 18px;
+}
+
+.story .byline {
+  margin-left: 75px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.6;
+  display: inline-box;
 }
 
 /* TODO(jacobr): this is backwards. we should have a read classname instead */

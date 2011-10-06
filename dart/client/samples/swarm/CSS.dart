@@ -49,7 +49,7 @@ class CSS {
   static final String LOADING_SECTION = 'loading-section';
   static final String STORY_SECTION = 'story-section';
   static final String STORY = 'story';
-  static final String CAPTION = 'caption';
+  static final String SNIPPET = 'snippet';
   static final String STORY_SHADOW = 'story-shadow';
   static final String STORY_VIEW = 'story-view';
   static final String PAGE_NUMBER = 'page-number';
@@ -82,13 +82,13 @@ class CSS {
 
   // CSS state class selectors:
   static final String SEL = 'sel';
-  static final String SNIPPET = 'snippet';
   static final String TITLE = 'title';
   static final String NO_THUMB = 'no-thumb';
   static final String BYLINE = 'byline';
   static final String DATELINE = 'dateline';
   static final String STORY_UNREAD = 'story-unread';
   static final String TEXT = 'text';
+  static final String CAPTION = 'caption';
   static final String STORY_HEADER = 'story-header';
   static final String STORY_BYLINE = 'story-byline';
   static final String STORY_DATELINE = 'story-dateline';

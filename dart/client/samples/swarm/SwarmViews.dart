@@ -543,10 +543,10 @@ class DataSourceView extends CompositeView  {
         true, /* scrollable */
         true, /* vertical */
         swarm.state.currentArticle, /* selectedItem */
-        false /* snapToArticles */,
+        !Device.supportsTouch /* snapToArticles */,
         false /* paginate */,
         true /* removeClippedViews */,
-        false /* showScrollbar */));
+        !Device.supportsTouch /* showScrollbar */));
     itemsView.addClass('story-section');
 
     node.nodes.add(new Element.html('<div class="query-name-shadow"></div>'));
@@ -669,18 +669,17 @@ class ArticleViewLayout {
    * computed but no actual layout is performed.
    */
   ArticleViewMetrics computeLayout(Article item,
-      Element titleContainer,
-      Element snippetContainer) {
-
+      StringBuffer titleBuffer,
+      StringBuffer snippetBuffer) {
     int titleWidth = width - BODY_MARGIN_LEFT;
 
     if (item.hasThumbnail) {
       titleWidth = width - TITLE_MARGIN_LEFT;
     }
 
-    final titleLines = measureTitleText.addLineBrokenText(titleContainer,
+    final titleLines = measureTitleText.addLineBrokenText(titleBuffer,
         item.title, titleWidth, MAX_TITLE_LINES);
-    final bodyLines = measureBodyText.addLineBrokenText(snippetContainer,
+    final bodyLines = measureBodyText.addLineBrokenText(snippetBuffer,
         item.textBody, width - BODY_MARGIN_LEFT, MAX_BODY_LINES);
 
     int height = bodyLines * LINE_HEIGHT + TOTAL_MARGIN;
@@ -712,37 +711,33 @@ class ArticleView extends View {
     final byline = item.author.length > 0 ? item.author : item.dataSource.title;
     final date = DateUtils.toRecentTimeString(item.date);
 
-    var storyClass = 'story no-thumb';
-    var thumbnail = '';
+    String storyClass = 'story no-thumb';
+    String thumbnail = '';
 
     if (item.hasThumbnail) {
       storyClass = 'story';
       thumbnail = '<img src="${item.thumbUrl}"></img>';
     }
 
-    node = new Element.html('''
-        <div class="$storyClass">
-          <div class="story-shadow"></div>
-          $thumbnail
-          <div class="title"></div>
-          <div class="byline">$byline</div>
-          <div class="dateline">$date</div>
-          <div class="caption">
-            <div class="snippet"></div>
-          </div>
-        </div>''');
-
-    final title = node.query('.title');
-    final snippet = node.query('.snippet');
-    final img = item.hasThumbnail ? node.query('img') : null;
+    final title = new StringBuffer();
+    final snippet = new StringBuffer();
 
     // Note: also populates title and snippet elements.
     final metrics = articleLayout.computeLayout(item, title, snippet);
 
+    node = new Element.html('''
+<div class="$storyClass">
+  $thumbnail
+  <div class="title">$title</div>
+  <div class="byline">$byline</div>
+  <div class="dateline">$date</div>
+  <div class="snippet">$snippet</div>
+</div>''');
+
     // Remove the snippet entirely if it's empty. This keeps it from taking up
     // space and pushing the padding down.
     if ((item.textBody == null) || (item.textBody.trim() == '')) {
-      node.query('.caption').remove();
+      node.query('.snippet').remove();
     }
 
     return node;
@@ -789,7 +784,7 @@ class ArticleView extends View {
  
   /**
    * Notify the view to jump to a different area if we are selecting an 
-   * article that is currently outside of view.
+   * article that is currently outside of the visible area.
    */ 
   void _updateViewForSelectedArticle() {
     Article selArticle = swarm.state.selectedArticle.value;
@@ -800,18 +795,13 @@ class ArticleView extends View {
         swarm.frontView.detachedView.itemsView.showView(selArticle);
       } else {
         if(swarm.frontView.currentSection.inCurrentView(selArticle)) {
-          // This happens if we are animating between sections and
-          // don't have a new currentView yet.
+          // Scroll horizontally if needed.
+          swarm.frontView.currentSection.dataSourceView.showView(
+              selArticle.dataSource);
           DataSourceView dataView = swarm.frontView.currentSection
               .findView(selArticle.dataSource);
           if(dataView != null) {
-            // Moving vertically.
             dataView.itemsView.showView(selArticle);
-          } else {
-            //TODO(efortuna): deal with additional feeds to move 
-            // horizontally. If we are moving to a new feed horizontally
-            // because the views are lazily populated, this hasn't been
-            // created yet.
           }
         }
       }
