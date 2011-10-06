@@ -6,7 +6,8 @@ vars = {
   "gyp_rev": "@937",
   "co19_rev": "@54",
   "co19_repo": "https://co19.googlecode.com/svn/trunk/co19/",
-  "dart_branch": "/branches/bleeding_edge/dart"
+  "dart_branch": "/branches/bleeding_edge/dart",
+  "closure_compiler_rev": "@1494", 
 }
 
 deps = {
@@ -49,7 +50,7 @@ deps = {
     Var("dart_branch") + "/third_party/args4j",
 
   "third_party/closure_compiler_src":
-    "http://closure-compiler.googlecode.com/svn/trunk",
+    "http://closure-compiler.googlecode.com/svn/trunk" + Var("closure_compiler_rev"),
 
   "third_party/guava":
     Var("dart_branch") + "/third_party/guava",

@@ -8,6 +8,7 @@ vars = {
   "co19_repo": "https://co19.googlecode.com/svn/trunk/co19/",
   "chromium_url": "http://src.chromium.org/svn",
   "pyparsing_rev": "@211",
+  "closure_compiler_rev": "@1494",
 }
 
 deps = {
@@ -26,7 +27,7 @@ deps = {
     "http://v8.googlecode.com/svn/branches/3.4",
 
   "dart/third_party/closure_compiler_src":
-    "http://closure-compiler.googlecode.com/svn/trunk",
+    "http://closure-compiler.googlecode.com/svn/trunk" + Var("closure_compiler_rev"),
 
   "dart/tests/co19/src":
     Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
