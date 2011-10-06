@@ -659,12 +659,6 @@ public class PropertyDescriptorHelper {
       DartParameter.class, "isConst", boolean.class, StructuralPropertyDescriptor.MANDATORY);
 
   /**
-   * A flag indicating whether the parameter is variadic.
-   */
-  public static final StructuralPropertyDescriptor DART_PARAMETER_IS_VARIADIC = new SimplePropertyDescriptor(
-      DartParameter.class, "isVariadic", boolean.class, StructuralPropertyDescriptor.MANDATORY);
-
-  /**
    * The name of the parameter being defined.
    */
   public static final StructuralPropertyDescriptor DART_PARAMETER_NAME = new ChildPropertyDescriptor(
@@ -1111,7 +1105,6 @@ public class PropertyDescriptorHelper {
         properties.add(DART_PARAMETER_DEFAULT_EXPRESSION);
         properties.add(DART_PARAMETER_FUNCTION_PARAMETERS);
         properties.add(DART_PARAMETER_IS_CONST);
-        properties.add(DART_PARAMETER_IS_VARIADIC);
         properties.add(DART_PARAMETER_NAME);
         properties.add(DART_PARAMETER_TYPE_NAME);
       } else if (type == DartParenthesizedExpression.class) {

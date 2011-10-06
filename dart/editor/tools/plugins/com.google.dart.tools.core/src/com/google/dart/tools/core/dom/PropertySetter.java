@@ -683,8 +683,6 @@ public class PropertySetter extends PropertyVisitor {
       // node.setFunctionParameters(propertyValue);
     } else if (property == PropertyDescriptorHelper.DART_PARAMETER_IS_CONST) {
       // node.setIsConst(propertyValue);
-    } else if (property == PropertyDescriptorHelper.DART_PARAMETER_IS_VARIADIC) {
-      // node.setIsVariadic(propertyValue);
     } else if (property == PropertyDescriptorHelper.DART_PARAMETER_NAME) {
       // node.setName(propertyValue);
     } else if (property == PropertyDescriptorHelper.DART_PARAMETER_TYPE_NAME) {

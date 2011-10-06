@@ -590,8 +590,6 @@ public class PropertyGetter extends PropertyVisitor {
       return node.getFunctionParameters();
     } else if (property == PropertyDescriptorHelper.DART_PARAMETER_IS_CONST) {
       return Boolean.valueOf(node.getModifiers().isConstant());
-    } else if (property == PropertyDescriptorHelper.DART_PARAMETER_IS_VARIADIC) {
-      return Boolean.valueOf(node.getModifiers().isVariadic());
     } else if (property == PropertyDescriptorHelper.DART_PARAMETER_NAME) {
       return node.getName();
     } else if (property == PropertyDescriptorHelper.DART_PARAMETER_TYPE_NAME) {

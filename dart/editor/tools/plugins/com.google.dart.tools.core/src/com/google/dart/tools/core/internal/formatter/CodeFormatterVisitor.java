@@ -1561,7 +1561,7 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
   @Override
   public DartNode visitParameter(DartParameter param) {
     // TODO use alignment, esp for default vals & fn params
-    if (param.getModifiers().isConstant() || param.getModifiers().isVariadic()) {
+    if (param.getModifiers().isConstant()) {
       scribe.printComment();
       if (scribe.printModifiers()) {
         scribe.space();
@@ -1576,18 +1576,10 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
       scribe.space();
     }
 
-    if (param.getModifiers().isVariadic()) {
-      scribe.printNextToken(Token.ELLIPSIS, preferences.insert_space_before_ellipsis);
-      if (preferences.insert_space_after_ellipsis) {
-        scribe.space();
-      }
-      scribe.printNextToken(Token.IDENTIFIER, false);
-    } else {
-      /*
-       * Print the argument name
-       */
-      param.getName().accept(this);
-    }
+    /*
+     * Print the argument name
+     */
+    param.getName().accept(this);
 
     if (param.getFunctionParameters() != null) {
       // TODO make a new pref for pre/post spaces in function params
