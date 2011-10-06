@@ -32,7 +32,11 @@ class InnerMenuView {
     button.nodes.add(div);
     parent.nodes.add(button);
 
-    button.on.click.add((Event e) { clickedFunc(div); });
+    // Don't allow click to bubble to the button container
+    button.on.click.add((Event e) {
+      e.cancelBubble = true;
+      clickedFunc(div);
+    });
     return div;
   }
 
@@ -171,6 +175,9 @@ class InnerMenuView {
         _row.on['DOMNodeRemoved'].remove(g);
       }
     });
+
+    // Initialize boolean
+    _transitionDidComplete = false;
   }
 
   // Hides the InnerMenu
@@ -207,14 +214,14 @@ class InnerMenuView {
     }
 
     // Must take into account the top of the table due to scrolling.
-    int tableTop = _row.offsetParent.getBoundingClientRect().top;
+    int tableTop = _row.offsetParent.getBoundingClientRect().top.toInt();
 
     // Get the current bounding box of the row we're attached to.
     ClientRect rowRect = _row.getBoundingClientRect();
     CSSStyleDeclaration style = _bar.style;
 
-    int top = rowRect.top + _initialRowHeight - tableTop;
-    int height = rowRect.height - _initialRowHeight;
+    int top = rowRect.top.toInt() + _initialRowHeight - tableTop;
+    int height = rowRect.height.toInt() - _initialRowHeight;
 
     _currentRowHeight = height;
 
