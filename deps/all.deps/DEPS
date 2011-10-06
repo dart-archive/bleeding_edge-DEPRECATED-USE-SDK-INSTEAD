@@ -28,7 +28,7 @@ deps = {
   "dart/third_party/closure_compiler_src":
     "http://closure-compiler.googlecode.com/svn/trunk",
 
-  "dart/co19/tests/co19/src":
+  "dart/tests/co19/src":
     Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
 
   # Module needed for Python-scss to run.

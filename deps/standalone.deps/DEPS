@@ -30,10 +30,7 @@ deps = {
   "third_party/gyp":
     "http://gyp.googlecode.com/svn/trunk" + Var("gyp_rev"),
 
-  "co19":
-    Var("dart_branch") + "/dart/co19",
-
-  "co19/tests/co19/src":
+  "tests/co19/src":
     Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
 }
 
