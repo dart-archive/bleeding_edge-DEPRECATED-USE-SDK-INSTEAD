@@ -1,0 +1,18 @@
+Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+
+A sample news reader application.
+
+Building and running:
+
+1. ensure the dartc compiler is built:
+  $ cd dart/
+  $ ./tools/build.py --arch=ia32
+
+2. run the update.py script:
+  $ cd client/samples/swarm/
+  $ python update.py
+
+4. open the generated file in a browser:
+  $ google-chrome ../../outcode/swarm-js.html

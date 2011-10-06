@@ -60,3 +60,7 @@ math {
   margin: 10px;
   font-size: x-large;
 }
+
+.image {
+  background: url(math.png) no-repeat;
+}

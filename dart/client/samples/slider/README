@@ -1,0 +1,21 @@
+Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+
+Very simple sample app showing use of the [SliderMenu] view.
+
+Building and running:
+
+1. go to the top-level directory of the project:
+  $ cd dart/
+
+2. build the dartc compiler:
+  $ ./tools/build.py --arch=ia32
+
+3. run the htmlconverter tool, that converts the dart code to javascript:
+  $ cd client/
+  $ python ./tools/htmlconverter.py \
+    samples/slider/slider_sample.html -o out/
+
+4. open the generated file in a browser:
+  $ google-chrome out/client/samples/slider/slider_sample-js.html

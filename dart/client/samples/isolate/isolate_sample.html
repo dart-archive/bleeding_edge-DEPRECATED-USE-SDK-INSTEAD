@@ -8,21 +8,9 @@
 
     <link rel="stylesheet" type="text/css" href="isolate_sample.css"/>
 
-    <script type="application/dart" src="isolate_sample.dart"></script>
-    <script type="text/javascript">
-      (function() {
-        if (!document.implementation.hasFeature('Dart')) {
-          var scriptElement = document.createElement('script');
-          scriptElement.setAttribute("type", "text/javascript");
-          scriptElement.setAttribute("src", "isolate_sample.js");
-          var head = document.getElementsByTagName("head")[0];
-          head.appendChild(scriptElement);
-        }
-       })();
-    </script>
-
   </head>
   <body>
+    <script type="application/dart" src="isolate_sample.dart"></script>
     <div id="appTitle"></div>
 
     <div class="isolate isolateMain">
