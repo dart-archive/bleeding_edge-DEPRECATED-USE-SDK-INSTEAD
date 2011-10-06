@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 typedef bool EnabledFunction();
-typedef Function CallbackFunction(Element elmt, int value);
+typedef void CallbackFunction(Element elmt, int value);
 
 class ElementFunc {
   Element _element;

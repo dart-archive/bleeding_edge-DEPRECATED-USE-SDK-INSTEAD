@@ -214,7 +214,7 @@ class SYLKReader extends Reader {
     sylk.add('C;Y2;X2;K.05375');
     sylk.add('F;P8;F%3R');
     sylk.add('C;Y2;X3;K${years}');
-    sylk.add('F;P1;FD0R');
+    sylk.add('F;P2;FD0R');
     sylk.add('C;Y2;X4;K=ROUND((R2C1 * ((R2C2/12)/(1 - POWER((1 + (R2C2/12)), (-12 * R2C3))))), 2)');
     sylk.add('F;P5;F\$2R');
     sylk.add('C;Y3;X1;K"Payment #"');
@@ -226,7 +226,7 @@ class SYLKReader extends Reader {
     sylk.add('C;Y3;X4;K"Principal"');
     sylk.add('F;SD;FD0C');
     sylk.add('C;Y4;X1;K1');
-    sylk.add('F;P1;FD0C');
+    sylk.add('F;P2;FD0C');
     sylk.add('C;Y4;X2;K=R2C1');
     sylk.add('F;P5;F\$2R');
     sylk.add('C;Y4;X3;K=(RC[-1] * R2C2)/12');
@@ -235,7 +235,7 @@ class SYLKReader extends Reader {
     sylk.add('F;P5;F\$2R');
     for (int j = 5; j < payments + 4; j++) {
       sylk.add('C;Y${j};X1;K=R[-1]C + 1');
-      sylk.add('F;P1;FD0C');
+      sylk.add('F;P2;FD0C');
       sylk.add('C;Y${j};X2;K=R[-1]C - R[-1]C[2]');
       sylk.add('F;P5;F\$2R');
       sylk.add('C;Y${j};X3;K=(RC[-1] * R2C2)/12');

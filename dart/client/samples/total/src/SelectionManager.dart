@@ -150,10 +150,10 @@ class SelectionManager {
     ClientRect minP = minCellElmt.getBoundingClientRect();
     ClientRect maxP = maxCellElmt.getBoundingClientRect();
     return new BoundingBox(
-        minP.left - orgP.left,
-        minP.top - orgP.top,
-        maxP.left - minP.left + maxCellElmt.clientWidth,
-        maxP.top - minP.top + maxCellElmt.clientHeight);
+        (minP.left - orgP.left).toInt(),
+        (minP.top - orgP.top).toInt(),
+        (maxP.left - minP.left + maxCellElmt.clientWidth).toInt(),
+        (maxP.top - minP.top + maxCellElmt.clientHeight).toInt());
   }
 
   CellRange getSelectionRange() {

@@ -41,7 +41,13 @@ class Formats {
   static final int FORMAT_HOURS = 14;
   static final int FORMAT_BOOLEAN = 15;
 
-  static NumericFormat get DEFAULT_NUMERIC_FORMAT() => String _(double x) => x.toString();
+  static NumericFormat get DEFAULT_NUMERIC_FORMAT() => String _(double x) {
+    if (x == x.floor()) {
+      return x.toInt().toString();
+    } else {
+      return x.toString();
+    }
+  };
 
   static TextFormat get DEFAULT_TEXT_FORMAT() => String _(String x) => x;
 
@@ -132,7 +138,7 @@ class Formats {
     }
     double power = Math.pow(10.0, decimalPlaces);
     x = ((x + (0.5 / power)) * power).floor();
-    String xs = x.toString();
+    String xs = x.toInt().toString();
     while (xs.length <= decimalPlaces) {
       xs = "0${xs}";
     }
@@ -173,7 +179,7 @@ class Formats {
     _numericFormatDescriptions.add("Default"); // 0
 
     _numericFormats.add((double x) => x.toString());
-    _numericFormatDescriptions.add("Numeric"); // 1
+    _numericFormatDescriptions.add("Decimal"); // 1
 
     _numericFormats.add(String _(double x) {
       SplitDecimal sd = split(x, 0);

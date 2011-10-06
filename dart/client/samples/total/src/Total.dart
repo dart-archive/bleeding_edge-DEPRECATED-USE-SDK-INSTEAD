@@ -14,7 +14,7 @@ class Total {
   SpreadsheetPresenter _presenter;
 
   Total() {
-    ButtonElement recalcButton = document.query("#recalcButton");
+    Element recalcButton = document.query("#recalcButton");
     recalcButton.innerHTML = "Recalculate";
     recalcButton.on.click.add((Event e) {
       _presenter.recalculateAll();

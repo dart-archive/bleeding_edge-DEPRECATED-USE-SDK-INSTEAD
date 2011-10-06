@@ -26,7 +26,6 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   // The number of pixels around a row/column boundary for which a resize dragger will be shown
   static final int _DRAGGER_TOLERANCE = 4;
 
-
   // The currently active inner menu
   InnerMenuView _activeInnerMenu;
 
@@ -68,12 +67,12 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   // We increment this ID for each request to show inner menu, to detect situation
   // when user requested showing, but quickly moved to a different cell.
-  int _innerMenuShowRequestId = 0;
+  int _innerMenuShowRequestId;
 
   // True if the inner menu is being shown.  This will remain true even while
   // the menu is being hidden and re-shown due to movement of the selection.
   bool _innerMenuShown;
-
+  
   EventListener _move;
   PopupHandler _popupHandler;
   Element _resizeDragger;
@@ -120,10 +119,6 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   SpreadsheetPresenter(this._spreadsheet, this._window, this._rowShift, this._columnShift,
       this._rows, this._columns) {
-    _innerMenuShown = false;
-
-    _cellDisplay = CELL_DISPLAY_VALUES;
-
     Document doc = _window.document;
 
     // Must do this first
@@ -184,6 +179,19 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         _undrag = null;
       }
     });
+
+    // Initialize variables
+    _cellDisplay = CELL_DISPLAY_VALUES;
+    _dragging = false;
+    _formulaCellSelecting = false;
+    _formulaCellSelectingTextEnd = -1;
+    _formulaCellSelectingTextStart = -1;
+    _formulaCellWidth = 0;
+    _formulaEditing = false;
+    _innerMenuRowIndex = -1;
+    _innerMenuShown = false;
+    _innerMenuShowRequestId = 0;
+    _scrolledByKeyboard = false;
   }
 
   // Clear the cells of the current selection, preserving styles (?).
@@ -370,7 +378,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     int calculated = _spreadsheet.endRecalc();
     int end = _currentTimeMllis();
 
-    double t = end - start;
+    int t = end - start;
     double s = _spreadsheet.calculated * 1000.0 / t;
     print("Recalculated ${calculated}, rendered ${num} cells in ${t} msec (${s} cells/sec)");
 
@@ -1248,8 +1256,8 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     // Set x and y to the mouse coordinates, relative to the top left of the spreadsheet table
     void getRelativeCoordinates(MouseEvent e) {
       ClientRect boundingRect = _table.getBoundingClientRect();
-      int scrollOffsetX = -boundingRect.left;
-      int scrollOffsetY = -boundingRect.top;
+      int scrollOffsetX = -boundingRect.left.toInt();
+      int scrollOffsetY = -boundingRect.top.toInt();
       x = e.x + scrollOffsetX;
       y = e.y + scrollOffsetY;
     }
