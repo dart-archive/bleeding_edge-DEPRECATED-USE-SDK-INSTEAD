@@ -46,11 +46,11 @@ def createChromeApp(buildRoot, antTarget, resultFile):
 
   # Call Dartium (could be any Chrome--but we know Dartium will be there) and
   # ask it to create the .crx file for us using the checked in developer key.
-  chrome = CLIENT_PATH + '/tests/dartium/chrome'
+  chrome = CLIENT_PATH + '/tests/drt/chrome'
 
   # On Mac Chrome is under a .app folder
   if platform.system() == 'Darwin':
-    chrome = CLIENT_PATH + '/tests/dartium/Chromium.app/Contents/MacOS/Chromium'
+    chrome = CLIENT_PATH + '/tests/drt/Chromium.app/Contents/MacOS/Chromium'
 
   keyFile = CLIENT_PATH + '/samples/swarm/swarm-dev.pem'
   execute(chrome, '--pack-extension=' + buildDir,
