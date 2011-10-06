@@ -209,6 +209,10 @@ public class NodeFinder extends GenericVisitor {
     int nodeStart = node.getSourceStart();
     int nodeEnd = nodeStart + node.getSourceLength();
     if (nodeEnd < fStart || fEnd < nodeStart) {
+      if (nodeEnd == -2) {
+        // TODO Remove this workaround for a parser bug: no source positions set
+        return true;
+      }
       return false;
     }
     if (nodeStart <= fStart && fEnd <= nodeEnd) {

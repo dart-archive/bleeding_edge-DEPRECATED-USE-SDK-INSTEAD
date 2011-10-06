@@ -198,12 +198,32 @@ public class DartCompilerUtilities {
       this.source = new DartSourceString(unitUri.getPath(), sourceString);
     }
 
+    // Recursively search for the library by name.
+    private LibraryUnit findImportedLibrary(LibraryUnit unit, String name) {
+      if (unit.getName().equals(name)) {
+        return unit;
+      }
+      LibraryUnit found = null;
+      for (LibraryUnit imported : unit.getImports()) {
+        found = findImportedLibrary(imported, name);
+        if (found != null) {
+          break;
+        }
+      }
+      return found;
+    }
+
     @Override
     public void run() throws Exception {
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
       LibrarySource libSrc = new UrlLibrarySource(new URI("dart:core"), libraryManager);
-      LibraryElement coreLibrary = new LibraryUnit(libSrc).getElement();
       LibraryElement enclosingLibrary = cachedLibraries.get(librarySource.wrappedSource).getElement();
+
+      // Try to find the core library in the enclosing set of libraries, otherwise the typeAnalyzer
+      // will be void of core types.
+      LibraryUnit coreUnit = findImportedLibrary(enclosingLibrary.getLibraryUnit(), "corelib");
+      LibraryElement coreLibrary = coreUnit != null ? coreUnit.getElement() : new LibraryUnit(
+          new UrlLibrarySource(new URI("dart:core"), libraryManager)).getElement();
       SourceDelta delta = new SourceDelta() {
 
         @Override
@@ -455,7 +475,8 @@ public class DartCompilerUtilities {
 
   public static int parserExceptionCount = 0;
 
-  private static LRUCache<LibrarySource, LibraryUnit> cachedLibraries = new LRUCache<LibrarySource, LibraryUnit>();
+  private static LRUCache<LibrarySource, LibraryUnit> cachedLibraries = new LRUCache<LibrarySource, LibraryUnit>(
+      10);
 
   public static DartNode analyzeDelta(LibrarySource library, String sourceString,
       DartUnit suppliedUnit, DartNode completionNode, int completionLocation,
@@ -468,8 +489,6 @@ public class DartCompilerUtilities {
         LibraryUnit newLib = cachedLibraries.get(library);
         if (newLib == null) {
           cachedLibraries.put(library, resolvedLib);
-        } else {
-          resolvedLib = newLib;
         }
       }
       return completionNode;
