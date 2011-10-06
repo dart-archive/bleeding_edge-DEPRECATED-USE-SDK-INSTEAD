@@ -79,6 +79,6 @@ hooks = [
   # Downloads the latest green dartium build
   {
     "pattern": ".",
-    "action": ["python", "dart/tools/get_dartium.py", "runhooks"],
+    "action": ["python", "dart/tools/get_drt.py", "runhooks"],
   },
 ]
