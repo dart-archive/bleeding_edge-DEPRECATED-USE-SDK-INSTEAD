@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.editor;
@@ -29,10 +27,10 @@ import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartElementLabels;
+import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
-import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.ProblemsLabelDecorator.ProblemsLabelChangedEvent;
 import com.google.dart.tools.ui.actions.GenerateActionGroup;
@@ -58,7 +56,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -142,95 +139,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       if (isChecked() && fEditor != null) {
         fEditor.synchronizeOutlinePage(fEditor.computeHighlightRangeSourceReference(), false);
       }
-    }
-  }
-
-  /**
-   * The element change listener of the java outline viewer.
-   * 
-   * @see IElementChangedListener
-   */
-  protected class ElementChangedListener implements
-      com.google.dart.tools.core.model.ElementChangedListener {
-
-    @Override
-    public void elementChanged(final ElementChangedEvent e) {
-
-      if (getControl() == null) {
-        return;
-      }
-
-      Display d = getControl().getDisplay();
-      if (d != null) {
-        d.asyncExec(new Runnable() {
-          @Override
-          public void run() {
-            CompilationUnit cu = (CompilationUnit) fInput;
-            DartElement base = cu;
-            if (fTopLevelTypeOnly) {
-              try {
-                if (cu.getTypes().length > 0) {
-                  if (fOutlineViewer != null) {
-                    fOutlineViewer.refresh(true);
-                  }
-                  return;
-                }
-              } catch (DartModelException ex) {
-                // ignore it
-              }
-            }
-            DartElementDelta delta = findElement(base, e.getDelta());
-            if (delta != null && fOutlineViewer != null) {
-              fOutlineViewer.reconcile(delta);
-            }
-          }
-        });
-      }
-    }
-
-    protected DartElementDelta findElement(DartElement unit, DartElementDelta delta) {
-
-      if (delta == null || unit == null) {
-        return null;
-      }
-
-      DartElement element = delta.getElement();
-
-      if (unit.equals(element)) {
-        if (isPossibleStructuralChange(delta)) {
-          return delta;
-        }
-        return null;
-      }
-
-      if (element.getElementType() >= DartElement.COMPILATION_UNIT) {
-        return null;
-      }
-
-      DartElementDelta[] children = delta.getAffectedChildren();
-      if (children == null || children.length == 0) {
-        return null;
-      }
-
-      for (int i = 0; i < children.length; i++) {
-        DartElementDelta d = findElement(unit, children[i]);
-        if (d != null) {
-          return d;
-        }
-      }
-
-      return null;
-    }
-
-    private boolean isPossibleStructuralChange(DartElementDelta cuDelta) {
-      if (cuDelta.getKind() != DartElementDelta.CHANGED) {
-        return true; // add or remove
-      }
-      int flags = cuDelta.getFlags();
-      if ((flags & DartElementDelta.F_CHILDREN) != 0) {
-        return true;
-      }
-      return (flags & (DartElementDelta.F_CONTENT | DartElementDelta.F_FINE_GRAINED)) == DartElementDelta.F_CONTENT;
     }
   }
 
@@ -638,6 +546,95 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   }
 
+  /**
+   * The element change listener of the java outline viewer.
+   * 
+   * @see IElementChangedListener
+   */
+  protected class ElementChangedListener implements
+      com.google.dart.tools.core.model.ElementChangedListener {
+
+    @Override
+    public void elementChanged(final ElementChangedEvent e) {
+
+      if (getControl() == null) {
+        return;
+      }
+
+      Display d = getControl().getDisplay();
+      if (d != null) {
+        d.asyncExec(new Runnable() {
+          @Override
+          public void run() {
+            CompilationUnit cu = (CompilationUnit) fInput;
+            DartElement base = cu;
+            if (fTopLevelTypeOnly) {
+              try {
+                if (cu.getTypes().length > 0) {
+                  if (fOutlineViewer != null) {
+                    fOutlineViewer.refresh(true);
+                  }
+                  return;
+                }
+              } catch (DartModelException ex) {
+                // ignore it
+              }
+            }
+            DartElementDelta delta = findElement(base, e.getDelta());
+            if (delta != null && fOutlineViewer != null) {
+              fOutlineViewer.reconcile(delta);
+            }
+          }
+        });
+      }
+    }
+
+    protected DartElementDelta findElement(DartElement unit, DartElementDelta delta) {
+
+      if (delta == null || unit == null) {
+        return null;
+      }
+
+      DartElement element = delta.getElement();
+
+      if (unit.equals(element)) {
+        if (isPossibleStructuralChange(delta)) {
+          return delta;
+        }
+        return null;
+      }
+
+      if (element.getElementType() >= DartElement.COMPILATION_UNIT) {
+        return null;
+      }
+
+      DartElementDelta[] children = delta.getAffectedChildren();
+      if (children == null || children.length == 0) {
+        return null;
+      }
+
+      for (int i = 0; i < children.length; i++) {
+        DartElementDelta d = findElement(unit, children[i]);
+        if (d != null) {
+          return d;
+        }
+      }
+
+      return null;
+    }
+
+    private boolean isPossibleStructuralChange(DartElementDelta cuDelta) {
+      if (cuDelta.getKind() != DartElementDelta.CHANGED) {
+        return true; // add or remove
+      }
+      int flags = cuDelta.getFlags();
+      if ((flags & DartElementDelta.F_CHILDREN) != 0) {
+        return true;
+      }
+      return (flags & (DartElementDelta.F_CONTENT | DartElementDelta.F_FINE_GRAINED)) == DartElementDelta.F_CONTENT;
+    }
+  }
+
 //  class ClassOnlyAction extends Action {
 //
 //    public ClassOnlyAction() {
@@ -795,7 +792,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   private final TogglePresentationAction fTogglePresentation;
 
-  private ToggleLinkingAction fToggleLinkingAction;
+  //private ToggleLinkingAction fToggleLinkingAction;
 
   private CompositeActionGroup fActionGroups;
 
@@ -1300,12 +1297,13 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     DartX.todo();
 //    fCustomFiltersActionGroup.fillActionBars(actionBars);
 
-    IMenuManager viewMenuManager = actionBars.getMenuManager();
-    viewMenuManager.add(new Separator("EndFilterGroup")); //$NON-NLS-1$
-
-    fToggleLinkingAction = new ToggleLinkingAction(this);
+//    IMenuManager viewMenuManager = actionBars.getMenuManager();
+//    viewMenuManager.add(new Separator("EndFilterGroup")); //$NON-NLS-1$
+//
+//    fToggleLinkingAction = new ToggleLinkingAction(this);
 //    viewMenuManager.add(new ClassOnlyAction());
-    viewMenuManager.add(fToggleLinkingAction);
+//    viewMenuManager.add(fToggleLinkingAction);
+
     toolBarManager.add(new CollapseAllAction(getOutlineViewer()));
 
     DartX.todo();
