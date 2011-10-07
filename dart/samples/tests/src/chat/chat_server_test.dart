@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library("chat_server_test.dart");
 #import("../../../chat/http.dart");
 #import("../../../../client/json/dart_json.dart");
 #import("../../../chat/chat_server_lib.dart");
