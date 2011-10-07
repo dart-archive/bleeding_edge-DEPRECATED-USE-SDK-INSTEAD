@@ -1174,7 +1174,11 @@ public class DartModelManager {
    * @return <code>true</code> if the library unit references the file
    */
   private boolean containsReference(DartUnit libraryUnit, URI sourceUri, URI targetUri) {
-    for (DartDirective directive : libraryUnit.getDirectives()) {
+    List<DartDirective> directives = libraryUnit.getDirectives();
+    if (directives == null) {
+      return false;
+    }
+    for (DartDirective directive : directives) {
       if (directive instanceof DartSourceDirective) {
         DartSourceDirective source = (DartSourceDirective) directive;
         if (isReference(source.getSourceUri().getValue(), sourceUri, targetUri)) {
@@ -1541,6 +1545,11 @@ public class DartModelManager {
       return null;
     }
     try {
+      // TODO(brianwilkerson) This used to check for the existence of a #library directive, as per
+      // the Javadoc, but that check was removed for the demo. We need to understand the semantics
+      // for what constitutes a valid library file and add those checks in here. I believe that the
+      // current semantic is that a file is a library file if it contains either a #library
+      // directive or a main method.
       DartUnit unit = DartCompilerUtilities.parseSource(file.getName(),
           FileUtilities.getContents(file), null);
       return unit;

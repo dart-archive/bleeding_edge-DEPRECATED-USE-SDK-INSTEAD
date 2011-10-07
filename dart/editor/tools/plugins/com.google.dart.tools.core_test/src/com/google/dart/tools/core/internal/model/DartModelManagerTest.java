@@ -172,12 +172,12 @@ public class DartModelManagerTest extends TestCase {
     }
   }
 
-  public void test_DartModelManager_parseLibraryFile_invalid() throws Exception {
-    File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
-        new Path("test_data/Geometry/point.dart")).toFile();
-    DartUnit libraryUnit = parseLibraryFile(libraryFile);
-    assertNull(libraryUnit);
-  }
+//  public void test_DartModelManager_parseLibraryFile_invalid() throws Exception {
+//    File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
+//        new Path("test_data/Geometry/point.dart")).toFile();
+//    DartUnit libraryUnit = parseLibraryFile(libraryFile);
+//    assertNull(libraryUnit);
+//  }
 
   public void test_DartModelManager_parseLibraryFile_valid() throws Exception {
     File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
