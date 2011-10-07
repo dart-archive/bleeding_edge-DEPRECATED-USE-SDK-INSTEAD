@@ -49,12 +49,12 @@ class DateUtils {
     }
     // TODO: use @"" syntax
     // MM-DD
-    RegExp mmdd = const RegExp("^(\\d\\d?)[-/](\\d\\d?)\$", "");
+    RegExp mmdd = const RegExp("^(\\d\\d?)[-/](\\d\\d?)\$");
     if (mmdd.hasMatch(value)) {
       return true;
     }
     // MM-DD-YY or MM-DD-YYYY
-    RegExp mmddyyyy = const RegExp("^(\\d\\d?)[-/](\\d\\d?)[-/](\\d\\d\\d?\\d?)\$", "");
+    RegExp mmddyyyy = const RegExp("^(\\d\\d?)[-/](\\d\\d?)[-/](\\d\\d\\d?\\d?)\$");
     if (mmddyyyy.hasMatch(value)) {
       return true;
     }
@@ -73,7 +73,7 @@ class DateUtils {
   // Parse a date and return the number of days between 1899-12-30 and the given date.
   // The acceptable formats are as described in the comments for isDate(String).
   static double parseDate(String value) {
-    RegExp mmdd = const RegExp("^(\\d\\d?)[-/](\\d\\d?)\$", "");
+    RegExp mmdd = const RegExp("^(\\d\\d?)[-/](\\d\\d?)\$");
     Match m = mmdd.firstMatch(value);
     if (m != null) {
       int month = _parseInt(m[1]);
@@ -87,7 +87,7 @@ class DateUtils {
       return days;
     }
 
-    RegExp mmddyyyy = const RegExp("^(\\d\\d?)[-/](\\d\\d?)[-/](\\d\\d\\d?\\d?)\$", "");
+    RegExp mmddyyyy = const RegExp("^(\\d\\d?)[-/](\\d\\d?)[-/](\\d\\d\\d?\\d?)\$");
     m = mmddyyyy.firstMatch(value);
     if (m != null) {
       int month = _parseInt(m[1]);
