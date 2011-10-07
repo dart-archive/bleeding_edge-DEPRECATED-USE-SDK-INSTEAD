@@ -1,0 +1,57 @@
+Chat server 
+-----------
+
+This sample implements a simple chat server using Dart for both the
+client and server code. The server is implementing a sub-set of the
+HTTP protocol using the socket support in the Dart VM. The client is
+implemented using the Dart DOM API and compiled to JavaScript for
+running in the browser.
+
+
+Files
+-----
+README                   # This file.
+
+http.dart                # HTTP protocol interface.
+http_impl.dart           # HTTP protocol implementation.
+chat_server_lib.dart     # Chat server implementation.
+chat_server.dart         # Chat server startup.
+
+dart_client/             # Code for Dart client.
+  index.html             # Client main page.
+  chat.dart              # Client Dart code.
+static/                  # Static content used by the application.
+
+chat_stress_client.dart  # Test program for sending chat messages.
+
+js_client/               # Code for an equivalent client using plain JavaScript.
+
+
+How to run
+----------
+
+First of all make sure that the Dart VM and Dart compiler are build by
+running the following from the root of the Dart checkout:
+
+$ tools/build.py --arch=dartc --mode=release
+$ tools/build.py --arch=ia32 --mode=release
+
+All the commands below should be executed in the samples/chat
+directory.
+
+$ cd samples/chat
+
+First step is to compile the client Dart source into JavaScript for
+the browser.
+
+$ ../../out/Release_dartc/dartc dart_client/chat.dart
+
+This will create the JavaScript for the Dart application in the out
+directory.
+
+Next step is to start the server
+
+$ ../../out/Release_ia32/dart_bin chat_server.dart
+
+Now navigate you Chrome browser to http://localhost:8123 and start
+chatting.

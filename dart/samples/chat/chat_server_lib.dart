@@ -534,7 +534,7 @@ class ChatServer extends Isolate {
     _requestHandlers["/dart_client/index.html"] =
         (HTTPRequest request, HTTPResponse response) =>
            _fileHandler(request, response);
-    _requestHandlers["/dart_client/out/src/chat.app.js"] =
+    _requestHandlers["/out/dart_client/chat.dart.app.js"] =
         (HTTPRequest request, HTTPResponse response) =>
            _fileHandler(request, response);
     _requestHandlers["/favicon.ico"] =
@@ -653,8 +653,8 @@ class Rate {
       : _buckets = new List(buckets + 1),  // Current bucket is not in the sum.
         _currentBucket = 0,
         _currentBucketTime = new Date.now().value,
-        _bucketTimeRange = (_timeRange / buckets).toInt(),
         _sum = 0 {
+    _bucketTimeRange = (_timeRange / buckets).toInt();
     for (int i = 0; i < _buckets.length; i++) {
       _buckets[i] = 0;
     }

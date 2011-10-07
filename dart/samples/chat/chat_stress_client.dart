@@ -7,7 +7,7 @@
 
 
 class ChatStressClient {
-  ChatStressClient() : verbose = false, messagesToSend = 1000;
+  ChatStressClient() : verbose = false, messagesToSend = 100;
 
   void run() {
     HTTPClient httpClient;  // HTTP client connection factory.
@@ -49,6 +49,7 @@ class ChatStressClient {
       HTTPClientResponse response;
 
       void leaveResponseHandler(String data) {
+        httpClient.shutdown();
       }
 
       Map leaveRequest = new Map();
@@ -56,11 +57,11 @@ class ChatStressClient {
       leaveRequest["sessionId"] = sessionId;
       request = httpClient.open("POST", "127.0.0.1", port, "/leave");
       request.writeString(JSON.stringify(leaveRequest));
-      request.setResponseReceived(
+      request.responseReceived =
           void _(HTTPClientResponse r) {
             response = r;
             response.dataEnd = leaveResponseHandler;
-          });
+          };
       request.writeDone();
     }
 
@@ -84,11 +85,11 @@ class ChatStressClient {
       messageRequest["maxMessages"] = 100;
       request = httpClient.open("POST", "127.0.0.1", port, "/receive");
       request.writeString(JSON.stringify(messageRequest));
-      request.setResponseReceived(
+      request.responseReceived =
           void _(HTTPClientResponse r) {
             response = r;
             response.dataEnd = receiveResponseHandler;
-          });
+          };
       request.writeDone();
     }
 
@@ -119,11 +120,11 @@ class ChatStressClient {
       messageRequest["message"] = "message " + sendMessageCount;
       request = httpClient.open("POST", "127.0.0.1", port, "/message");
       request.writeString(JSON.stringify(messageRequest));
-      request.setResponseReceived(
+      request.responseReceived =
           void _(HTTPClientResponse r) {
             response = r;
             response.dataEnd = sendResponseHandler;
-          });
+          };
       request.writeDone();
     };
 
@@ -147,11 +148,11 @@ class ChatStressClient {
       joinRequest["handle"] = "test1";
       request = httpClient.open("POST", "127.0.0.1", port, "/join");
       request.writeString(JSON.stringify(joinRequest));
-      request.setResponseReceived(
+      request.responseReceived =
           void _(HTTPClientResponse r) {
             response = r;
             response.dataEnd = joinResponseHandler;
-          });
+          };
       request.writeDone();
     }
 

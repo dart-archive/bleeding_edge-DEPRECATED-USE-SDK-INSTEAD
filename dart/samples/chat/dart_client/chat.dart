@@ -2,22 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#import("dart:dom");
+#import("dart:json");
+
+void main() {
+  new Chat();
+}
+
 class Chat {
 
-  static void main(Window window) {
-    new Chat(window).run();
-  }
-
-  Chat(this._window) {
-  }
-
-  void run() {
-    _window.addEventListener(
-        "DOMContentLoaded", void _(Event event) { ready(); } , false);
+  Chat() {
+    window.addEventListener(
+        "DOMContentLoaded", (Event event) => ready(), false);
   }
 
   void ready() {
-    HTMLDocument doc = _window.document;
+    HTMLDocument doc = window.document;
     _joinButton = doc.getElementById("joinButton");
     _leaveButton = doc.getElementById("leaveButton");
     _postButton = doc.getElementById("postButton");
@@ -27,36 +27,38 @@ class Chat {
     _messageInput = doc.getElementById("messageInput");
     _messages = doc.getElementById("messages");
     _statusText = doc.getElementById("statusText");
-    _joinButton.onclick =  void _(Event e) { handleJoin(); };
-    _leaveButton.onclick = void _(Event e) { handleLeave(); };
-    _postButton.onclick = void _(Event e) { handlePostMessage(); };
+    _joinButton.onclick = handleJoin;
+    _leaveButton.onclick = handleLeave;
+    _postButton.onclick = handlePostMessage;
+    _handleInput.onkeydown = handleInputKeyDown;
+    _messageInput.onkeydown = messageInputKeyDown;
     uiJoin();
   }
 
-  void handleJoin() {
+  void handleJoin(Event e) {
     var handleValue = _handleInput.value;
     var joinRequest = new Map();
     joinRequest["request"] = "join";
     joinRequest["handle"] = handleValue;
     sendRequest("/join",
                 joinRequest,
-                void _(Map response) { onJoin(response); },
-                void _() { onJoinFailed(); });
+                (Map response) => onJoin(response),
+                () => onJoinFailed());
     uiJoining();
   }
 
-  void handleLeave() {
+  void handleLeave(Event e) {
     var leaveRequest = new Map();
     leaveRequest["request"] = "leave";
     leaveRequest["sessionId"] = _session;
     sendRequest("/leave",
                 leaveRequest,
-                void _(Map response) { onLeave(response); },
-                void _() { onLeaveFailed(); });
+                (Map response) => onLeave(response),
+                () => onLeaveFailed());
     uiLeaving();
   }
 
-  void handlePostMessage() {
+  void handlePostMessage(Event e) {
     var messageText = _messageInput.value;
     var messageRequest = new Map();
     messageRequest["request"] = "message";
@@ -64,8 +66,16 @@ class Chat {
     messageRequest["message"] = messageText;
     sendRequest("/message",
                 messageRequest,
-                void _(Map response) { onMessagePost(response); },
-                void _() { onMessagePostFailed(); });
+                (Map response) => onMessagePost(response),
+                () => onMessagePostFailed());
+  }
+
+  void handleInputKeyDown(UIEvent e) {
+    if (e.keyCode == 13) handleJoin(e);
+  }
+
+  void messageInputKeyDown(UIEvent e) {
+    if (e.keyCode == 13) handlePostMessage(e);
   }
 
   void pollServer() {
@@ -76,8 +86,8 @@ class Chat {
     receiveRequest["maxMessages"] = 10;
     _pollRequest = sendRequest("/receive",
                                receiveRequest,
-                               void _(Map response) { onPoll(response); },
-                               void _() { onPollFailed(); });
+                               (Map response) => onPoll(response),
+                               () => onPollFailed());
   }
 
   void onJoin(Map response) {
@@ -154,15 +164,16 @@ class Chat {
   }
 
   XMLHttpRequest sendRequest(String url, Map json, var onSuccess, var onError) {
-    XMLHttpRequest request = _window.createXMLHttpRequest();
-    request.onreadystatechange = void _(Event event) {
-      if (request.readyState != 4) return;
-      if (request.status == 200) {
-        onSuccess(JSON.parse(request.responseText));
-      } else {
-        onError();
-      }
-    };
+    XMLHttpRequest request = window.createXMLHttpRequest();
+    request.onreadystatechange =
+        void _(Event event) {
+          if (request.readyState != 4) return;
+          if (request.status == 200) {
+            onSuccess(JSON.parse(request.responseText));
+          } else {
+            onError();
+          }
+        };
     request.open("POST", url, true);
     request.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
     request.send(JSON.stringify(json));
@@ -177,9 +188,10 @@ class Chat {
     while (_messages.firstChild != null) {
       _messages.removeChild(_messages.firstChild);
     }
-    showStatus("Welcome to dartty chat. " +
+    showStatus("Welcome to dart chat sample. " +
                "This chat service is build using Dart for both the server and the client. " +
                "Enter your handle to join.");
+    _handleInput.focus();
   }
 
   void uiJoining() {
@@ -203,11 +215,12 @@ class Chat {
     enableButton(_leaveButton);
     hideElement(_joinSection);
     showElement(_chatSection);
+    _messageInput.focus();
     showStatus("Status...");
   }
 
   void uiAddMessage(Map message) {
-    HTMLParagraphElement p = _window.document.createElement('p');
+    HTMLParagraphElement p = window.document.createElement('p');
     String formattedTime = formatMessageTime(message["received"]);
     String from = message["from"];
     String text = "$formattedTime $from ";
@@ -232,24 +245,24 @@ class Chat {
   }
 
   String formatMessageTime(String received) {
-    Date dateTime = new Date.fromString(received);
+    Date date = new Date.fromString(received);
     String formattedTime = "";
-    if (dateTime.time.hours < 10) formattedTime += "0";
-    formattedTime += dateTime.time.hours.toString();
+    if (date.hours < 10) formattedTime += "0";
+    formattedTime += date.hours.toString();
     formattedTime += ":";
-    if (dateTime.time.minutes < 10) formattedTime += "0";
-    formattedTime += dateTime.time.minutes.toString();
+    if (date.minutes < 10) formattedTime += "0";
+    formattedTime += date.minutes.toString();
     formattedTime += ":";
-    if (dateTime.time.seconds < 10) formattedTime += "0";
-    formattedTime += dateTime.time.seconds.toString();
+    if (date.seconds < 10) formattedTime += "0";
+    formattedTime += date.seconds.toString();
     return formattedTime;
   }
 
   String formatUpTime(int upTime) {
-    upTime = (upTime / 1000).floor();
-    int hours = (upTime / (60 * 60)).floor();
+    var upTime = (upTime ~/ 1000);
+    int hours = (upTime ~/ (60 * 60));
     upTime = upTime % (60 * 60);
-    int minutes = (upTime / 60).floor();
+    int minutes = (upTime ~/ 60);
     upTime = upTime % 60;
     int seconds = upTime;
     String formattedTime = "";
@@ -290,13 +303,12 @@ class Chat {
   }
 
   void write(String message) {
-    HTMLDocument doc = _window.document;
+    HTMLDocument doc = window.document;
     HTMLParagraphElement p = doc.createElement('p');
     p.innerText = message;
     doc.body.appendChild(p);
   }
 
-  final Window _window;
   HTMLButtonElement _joinButton;
   HTMLButtonElement _leaveButton;
   HTMLButtonElement _postButton;

@@ -1168,9 +1168,10 @@ class HTTPClientRequestImplementation
 
   HTTPClientRequestImplementation(String this._method,
                                   String this._uri,
-                                  HTTPClientConnection this._connection)
-      : super(this._connection),
+                                  HTTPClientConnection connection)
+      : super(connection),
         _state = START {
+    _connection = connection;
     // Default GET requests to have no content.
     if (_method == "GET") {
       _contentLength = 0;
@@ -1283,8 +1284,10 @@ class HTTPClientRequestImplementation
 class HTTPClientResponseImplementation
     extends HTTPRequestOrResponse
     implements HTTPClientResponse {
-  HTTPClientResponseImplementation(HTTPClientConnection this._connection)
-      : super(_connection);
+  HTTPClientResponseImplementation(HTTPClientConnection connection)
+      : super(connection) {
+    _connection = connection;
+  }
 
   int get statusCode() { return _statusCode; }
   int get reasonPhrase() { return _reasonPhrase; }
@@ -1319,8 +1322,9 @@ class HTTPClientResponseImplementation
 
 class HTTPClientConnection extends HTTPConnectionBase {
   HTTPClientConnection(HTTPClientImplementation this._client,
-                       SocketConnection this._socketConn)
-      : super(_socketConn._socket) {
+                       SocketConnection socketConn)
+      : super(socketConn._socket) {
+    _socketConn = socketConn;
     // Register HTTP parser callbacks.
     _httpParser.requestStart =
         (method, uri) => _requestStartHandler(method, uri);
