@@ -4,7 +4,7 @@
 
 #library('hi');
 
-#import('../../html/html.dart');
+#import('dart:html');
 
 main() {
   document.query('#status').innerHTML = 'Hi, Dart';
