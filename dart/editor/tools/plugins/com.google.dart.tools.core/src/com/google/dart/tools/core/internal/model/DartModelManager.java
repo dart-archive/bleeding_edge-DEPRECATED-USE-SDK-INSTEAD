@@ -1543,11 +1543,7 @@ public class DartModelManager {
     try {
       DartUnit unit = DartCompilerUtilities.parseSource(file.getName(),
           FileUtilities.getContents(file), null);
-      List<DartDirective> directives = unit.getDirectives();
-      if (directives != null && directives.size() > 0
-          && directives.get(0) instanceof DartLibraryDirective) {
-        return unit;
-      }
+      return unit;
     } catch (Exception exception) {
       DartCore.logError("Could not parse a compilation unit to determine whether it is a library",
           exception);

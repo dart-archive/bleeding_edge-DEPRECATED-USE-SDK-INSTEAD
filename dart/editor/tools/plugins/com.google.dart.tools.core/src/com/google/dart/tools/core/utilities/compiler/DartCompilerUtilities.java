@@ -25,7 +25,6 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SourceDelta;
 import com.google.dart.compiler.SystemLibraryManager;
-import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -201,7 +200,6 @@ public class DartCompilerUtilities {
     @Override
     public void run() throws Exception {
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
-      LibrarySource libSrc = new UrlLibrarySource(new URI("dart:core"), libraryManager);
       LibraryElement enclosingLibrary = cachedLibraries.get(librarySource.wrappedSource).getElement();
 
       // Try to find the core library in the enclosing set of libraries, otherwise the typeAnalyzer
@@ -353,7 +351,7 @@ public class DartCompilerUtilities {
 
     @Override
     public void run() throws Exception {
-      result = new DartParser(sourceRef, source, this).parseUnit(null);
+      result = new DartParser(sourceRef, source, this).parseUnit(sourceRef);
     }
 
     @Override
