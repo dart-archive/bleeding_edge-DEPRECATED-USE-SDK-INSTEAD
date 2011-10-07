@@ -1,20 +1,19 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.actions;
 
+import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CodeAssistElement;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -62,23 +61,32 @@ public class SelectionConverter {
    */
   public static DartElement[] codeResolve(DartEditor editor, boolean primaryOnly)
       throws DartModelException {
-    return codeResolve(getInput(editor, primaryOnly),
+    return codeResolve(editor, getInput(editor, primaryOnly),
         (ITextSelection) editor.getSelectionProvider().getSelection());
   }
 
-  public static DartElement[] codeResolve(DartElement input, ITextSelection selection)
-      throws DartModelException {
+  public static DartElement[] codeResolve(DartEditor editor, DartElement input,
+      ITextSelection selection) throws DartModelException {
     if (input instanceof CodeAssistElement) {
+      DartElement[] elements;
       if (input instanceof CompilationUnit) {
         DartModelUtil.reconcile((CompilationUnit) input);
+        elements = ((CompilationUnit) input).codeSelect(editor == null ? null : editor.getAST(),
+            selection.getOffset() + selection.getLength(), 0, DefaultWorkingCopyOwner.getInstance());
+      } else {
+        elements = ((CodeAssistElement) input).codeSelect(
+            selection.getOffset() + selection.getLength(), 0);
       }
-      DartElement[] elements = ((CodeAssistElement) input).codeSelect(selection.getOffset()
-          + selection.getLength(), 0);
       if (elements.length > 0) {
         return elements;
       }
     }
     return EMPTY_RESULT;
+  }
+
+  public static DartElement[] codeResolve(DartElement input, ITextSelection selection)
+      throws DartModelException {
+    return codeResolve(null, input, selection);
   }
 
   /**
@@ -90,7 +98,7 @@ public class SelectionConverter {
    */
   public static DartElement[] codeResolveForked(DartEditor editor, boolean primaryOnly)
       throws InvocationTargetException, InterruptedException {
-    return performForkedCodeResolve(getInput(editor, primaryOnly),
+    return performForkedCodeResolve(editor, getInput(editor, primaryOnly),
         (ITextSelection) editor.getSelectionProvider().getSelection());
   }
 
@@ -98,7 +106,7 @@ public class SelectionConverter {
       throws InvocationTargetException, InterruptedException {
     DartElement input = getInput(editor);
     ITextSelection selection = (ITextSelection) editor.getSelectionProvider().getSelection();
-    DartElement[] result = performForkedCodeResolve(input, selection);
+    DartElement[] result = performForkedCodeResolve(editor, input, selection);
     if (result.length == 0) {
       result = new DartElement[] {input};
     }
@@ -300,15 +308,16 @@ public class SelectionConverter {
     return EditorUtility.getEditorInputJavaElement(editor, primaryOnly);
   }
 
-  private static DartElement[] performForkedCodeResolve(final DartElement input,
-      final ITextSelection selection) throws InvocationTargetException, InterruptedException {
+  private static DartElement[] performForkedCodeResolve(final DartEditor editor,
+      final DartElement input, final ITextSelection selection) throws InvocationTargetException,
+      InterruptedException {
     final class CodeResolveRunnable implements IRunnableWithProgress {
       DartElement[] result;
 
       @Override
       public void run(IProgressMonitor monitor) throws InvocationTargetException {
         try {
-          result = codeResolve(input, selection);
+          result = codeResolve(editor, input, selection);
         } catch (DartModelException e) {
           throw new InvocationTargetException(e);
         }

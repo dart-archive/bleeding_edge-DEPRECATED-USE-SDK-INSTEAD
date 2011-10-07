@@ -871,21 +871,18 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
   }
 
   @Override
-  public DartElement[] codeSelect(int offset, int length) throws DartModelException {
-    return codeSelect(offset, length, DefaultWorkingCopyOwner.getInstance());
-  }
-
-  @Override
-  public DartElement[] codeSelect(int offset, int length, WorkingCopyOwner workingCopyOwner)
-      throws DartModelException {
-    // return super.codeSelect(this, offset, length, workingCopyOwner);
+  public DartElement[] codeSelect(DartUnit ast, int offset, int length,
+      WorkingCopyOwner workingCopyOwner) throws DartModelException {
     DartCore.notYetImplemented();
     // TODO(brianwilkerson) This is probably not the right semantics for this method for all clients
     // because we will only ever return a single element, but it works for the Open Declaration
     // action.
     PerformanceManager.Timer timer = PerformanceManager.getInstance().start(CODE_SELECT_ID);
     try {
-      DartUnit unit = DartCompilerUtilities.resolveUnit(this);
+      DartUnit unit = ast;
+      if (unit == null) {
+        unit = DartCompilerUtilities.resolveUnit(this);
+      }
       if (unit != null) {
         DartElementLocator locator = new DartElementLocator(this, offset, offset + length);
         DartElement element = locator.searchWithin(unit);
@@ -897,6 +894,17 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     } finally {
       timer.end();
     }
+  }
+
+  @Override
+  public DartElement[] codeSelect(int offset, int length) throws DartModelException {
+    return codeSelect(offset, length, DefaultWorkingCopyOwner.getInstance());
+  }
+
+  @Override
+  public DartElement[] codeSelect(int offset, int length, WorkingCopyOwner workingCopyOwner)
+      throws DartModelException {
+    return codeSelect(null, offset, length, workingCopyOwner);
   }
 
   @Override

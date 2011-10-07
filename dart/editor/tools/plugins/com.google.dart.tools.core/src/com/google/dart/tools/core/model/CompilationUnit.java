@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.core.model;
 
+import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
@@ -21,6 +24,34 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
 public interface CompilationUnit extends CodeAssistElement, SourceFileElement<CompilationUnit>,
     OpenableElement, ParentElement, SourceManipulation, SourceReference {
+  /**
+   * Return the Dart elements corresponding to the given selected text in this compilation unit. The
+   * <code>offset</code> is the 0-based index of the first selected character. The
+   * <code>length</code> is the number of selected characters. It considers types in the working
+   * copies with the given owner first. In other words, the owner's working copies will take
+   * precedence over their original compilation units in the workspace.
+   * <p>
+   * Note that if the <code>length</code> is 0 and the <code>offset</code> is inside an identifier
+   * or the index just after an identifier then this identifier is considered as the selection.
+   * <p>
+   * Note that if a working copy is empty, it will be as if the original compilation unit had been
+   * deleted.
+   * 
+   * @param ast the AST structure representing the current state of this compilation unit
+   * @param offset the given offset position
+   * @param length the number of selected characters
+   * @param owner the owner of working copies that take precedence over their original compilation
+   *          units
+   * @return the Dart elements corresponding to the given selected text
+   * @throws DartModelException if code resolve could not be performed. Reasons include:
+   *           <ul>
+   *           <li>This Dart element does not exist (ELEMENT_DOES_NOT_EXIST) </li> <li> The range
+   *           specified is not within this element's source range (INDEX_OUT_OF_BOUNDS)
+   *           </ul>
+   */
+  public DartElement[] codeSelect(DartUnit ast, int offset, int length, WorkingCopyOwner owner)
+      throws DartModelException;
+
   /**
    * Create and return a type in this compilation unit with the given contents. If this compilation
    * unit does not exist, one will be created.
