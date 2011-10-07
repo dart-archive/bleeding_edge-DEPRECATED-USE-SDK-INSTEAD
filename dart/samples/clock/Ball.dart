@@ -21,9 +21,8 @@ class Ball {
   double ax, ay;
   double age;
 
-  Ball(Element root, int x, int y, int color) {
-    this.root = root;
-    this.elem = window.document.createElement('img');
+  Ball(Element this.root, int this.x, int this.y, int color) {
+    elem = window.document.createElement('img');
     elem.src = Balls.PNGS[color];
     Util.abs(elem);
     Util.pos(elem, x, y);
@@ -34,9 +33,6 @@ class Ball {
 
     vx = randomVelocity();
     vy = randomVelocity();
-
-    this.x = x;
-    this.y = y;
   }
 
   // return false => remove me

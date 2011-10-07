@@ -12,10 +12,8 @@ class ClockNumber {
   List<List<int>> pixels;
   int ballColor;
 
-  ClockNumber(CountDownClock app, int pos, int ballColor) {
-    this.imgs = new List<List<HTMLImageElement>>(HEIGHT);
-    this.app = app;
-    this.ballColor = ballColor;
+  ClockNumber(CountDownClock this.app, int pos, int this.ballColor) {
+    imgs = new List<List<HTMLImageElement>>(HEIGHT);
 
     root = window.document.createElement('div');
     Util.abs(root);

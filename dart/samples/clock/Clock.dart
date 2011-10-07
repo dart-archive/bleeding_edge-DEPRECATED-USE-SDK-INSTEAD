@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('Clock');
-
 #import('dart:dom');
 
 #source('Ball.dart');
@@ -23,9 +21,7 @@ class CountDownClock {
   static final int BALL_WIDTH = 19;
   static final int BALL_HEIGHT = 19;
 
-  List<ClockNumber> hours;
-  List<ClockNumber> minutes;
-  List<ClockNumber> seconds;
+  List<ClockNumber> hours, minutes, seconds;
   Balls balls;
 
   CountDownClock() :
@@ -35,18 +31,10 @@ class CountDownClock {
       balls = new Balls() {
     createNumbers();
     updateTime();
-    window.setInterval(
-      function() {
-        // TODO: is 'this' bound correctly yet?
-        updateTime();
-      }, 1000);
+    window.setInterval(f() => updateTime(), 1000);
 
     balls.tick();
-    window.setInterval(
-      function() {
-        // TODO: is 'this' bound correctly yet?
-        this.balls.tick();
-      }, 50);
+    window.setInterval(f() => balls.tick(), 50);
   }
 
   void updateTime() {
