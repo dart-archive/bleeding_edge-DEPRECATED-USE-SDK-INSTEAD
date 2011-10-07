@@ -52,10 +52,10 @@ public class DartElementComparator extends ViewerComparator {
   private static final int PROJECTS = 2;
 
   private static final int RESOURCEFOLDERS = 7;
-  private static final int DART_APP = 8;
+
   private static final int DART_LIB = 9;
-  private static final int DART_APP_FILE = 10;
-  private static final int DART_LIB_FILE = 11;
+
+  private static final int DART_FILE = 11;
   private static final int RESOURCES = 12;
   private static final int IMPORTED_LIBS_CONTAINER = 13;
   private static final int IMPORTED_LIB_CONTAINER = 14;
@@ -114,9 +114,11 @@ public class DartElementComparator extends ViewerComparator {
         case DartElement.DART_PROJECT:
           return PROJECTS;
         case DartElement.COMPILATION_UNIT:
-          return RESOURCES;
+          return DART_FILE;
         case DartElement.LIBRARY:
           return DART_LIB;
+        case DartElement.DART_RESOURCE:
+          return RESOURCES;
       }
       return DARTELEMENTS;
     } else if (objectElement instanceof IFile) {

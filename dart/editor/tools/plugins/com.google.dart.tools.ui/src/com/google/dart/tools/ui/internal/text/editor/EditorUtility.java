@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.SourceRange;
@@ -63,6 +64,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.ide.IGotoMarker;
 import org.eclipse.ui.part.FileEditorInput;
@@ -89,7 +91,7 @@ public class EditorUtility {
 
   /**
    * Maps the localized modifier name to a code in the same manner as #findModifier.
-   *
+   * 
    * @param modifierName the modifier name
    * @return the SWT modifier bit, or <code>0</code> if no match was found
    */
@@ -134,7 +136,7 @@ public class EditorUtility {
   /**
    * Returns an array of all editors that have an unsaved content. If the identical content is
    * presented in more than one editor, only one of those editor parts is part of the result.
-   *
+   * 
    * @return an array of all dirty editor parts.
    */
   public static IEditorPart[] getDirtyEditors() {
@@ -160,7 +162,7 @@ public class EditorUtility {
 
   /**
    * Returns the editors to save before performing global Java-related operations.
-   *
+   * 
    * @param saveUnknownEditors <code>true</code> iff editors with unknown buffer management should
    *          also be saved
    * @return the editors to save
@@ -218,12 +220,15 @@ public class EditorUtility {
       return new JarEntryEditorInput((IStorage) input);
     }
 
+    if (input instanceof IFileStore) {
+      return new FileStoreEditorInput((IFileStore) input);
+    }
     return null;
   }
 
   /**
    * Returns the given editor's input as Java element.
-   *
+   * 
    * @param editor the editor
    * @param primaryOnly if <code>true</code> only primary working copies will be returned
    * @return the given editor's input as Java element or <code>null</code> if none
@@ -246,7 +251,7 @@ public class EditorUtility {
   /**
    * Returns the Java project for a given editor input or <code>null</code> if no corresponding Java
    * project exists.
-   *
+   * 
    * @param input the editor input
    * @return the corresponding Java project
    */
@@ -266,7 +271,7 @@ public class EditorUtility {
 
   /**
    * Returns the modifier string for the given SWT modifier modifier bits.
-   *
+   * 
    * @param stateMask the SWT modifier bits
    * @return the modifier string
    */
@@ -290,7 +295,7 @@ public class EditorUtility {
 
   /**
    * Tests if a CU is currently shown in an editor
-   *
+   * 
    * @return the IEditorPart if shown, null if element is not open in an editor
    */
   public static IEditorPart isOpenInEditor(Object inputElement) {
@@ -315,7 +320,7 @@ public class EditorUtility {
   /**
    * Opens a Java editor for an element such as <code>DartElement</code>, <code>IFile</code>, or
    * <code>IStorage</code>. The editor is activated by default.
-   *
+   * 
    * @return an open editor or <code>null</code> if an external editor was opened
    * @throws PartInitException if the editor could not be opened or the input element is not valid
    */
@@ -326,13 +331,28 @@ public class EditorUtility {
 
   /**
    * Opens the editor currently associated with the given element (DartElement, IFile, IStorage...)
-   *
+   * 
    * @return an open editor or <code>null</code> if an external editor was opened
    * @throws PartInitException if the editor could not be opened or the input element is not valid
    */
   public static IEditorPart openInEditor(Object inputElement, boolean activate)
       throws DartModelException, PartInitException {
 
+    if (inputElement instanceof DartResource) {
+      DartResource resource = (DartResource) inputElement;
+      if (resource.getUnderlyingResource() != null) {
+        inputElement = resource.getUnderlyingResource();
+      } else {
+        URI uri = ((DartResource) inputElement).getUri();
+        if (uri.getScheme().equals("file")) {
+          IFileStore fileStore = EFS.getLocalFileSystem().getStore(uri);
+          if (fileStore != null) {
+            inputElement = fileStore;
+          }
+        }
+
+      }
+    }
     if (inputElement instanceof IFile) {
       return openInEditor((IFile) inputElement, activate);
     }
@@ -502,7 +522,7 @@ public class EditorUtility {
 
   /**
    * Appends to modifier string of the given SWT modifier bit to the given modifierString.
-   *
+   * 
    * @param modifierString the modifier string
    * @param modifier an int with SWT modifier bit
    * @return the concatenated modifier string

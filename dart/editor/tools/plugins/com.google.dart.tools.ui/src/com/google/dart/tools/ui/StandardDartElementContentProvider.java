@@ -26,6 +26,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.ParentElement;
@@ -278,7 +279,8 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
       }
     } else {
       // don't allow to drill down into a compilation unit
-      if (element instanceof CompilationUnit || element instanceof IFile) {
+      if (element instanceof CompilationUnit || element instanceof IFile
+          || element instanceof DartResource) {
         return false;
       }
     }

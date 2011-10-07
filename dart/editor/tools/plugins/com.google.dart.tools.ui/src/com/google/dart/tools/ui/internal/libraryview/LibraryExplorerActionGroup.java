@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.libraryview;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.NavigateActionGroup;
@@ -24,7 +25,6 @@ import com.google.dart.tools.ui.actions.RunInBrowserAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.text.editor.CompositeActionGroup;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -179,7 +179,7 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
       return;
     }
 
-    if (element instanceof IResource) {
+    if (element instanceof DartResource) {
       menu.add(navigateActionGroup.getOpenAction());
       return;
     }
