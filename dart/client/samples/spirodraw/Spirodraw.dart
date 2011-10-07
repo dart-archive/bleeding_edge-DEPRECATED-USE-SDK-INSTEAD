@@ -162,8 +162,7 @@ class Spirodraw {
       rad+=stepSize;
       drawFrame(rad);
       num nTurns = rad / PI2;
-      numTurns.innerText = nTurns.floor().toString() + "/" 
-        + maxTurns.toString();
+      numTurns.innerText = '${nTurns.floor()}/$maxTurns';
       window.webkitRequestAnimationFrame(animate, frontCanvas);
     } else {
       stop();
@@ -174,7 +173,7 @@ class Spirodraw {
     refresh();
     rad = 0.0;
     run = true;
-    window.webkitRequestAnimationFrame((int time){animate(time);},frontCanvas);
+    window.webkitRequestAnimationFrame(animate, frontCanvas); 
   }
 
   int calcTurns() {
@@ -211,7 +210,7 @@ class Spirodraw {
     wheelRadiusSlider.valueAsNumber = Math.random() * 9;
     penRadiusSlider.valueAsNumber = Math.random() * 9;
     penWidthSlider.valueAsNumber = 1 + Math.random() * 9;
-    colorPicker.setSelected(Math.random() * 215);
+    colorPicker.selectedColor = Math.random() * 215;
     start();
   }
 

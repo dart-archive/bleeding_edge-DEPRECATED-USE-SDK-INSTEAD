@@ -6,17 +6,17 @@ typedef void PickerListener(String selectedColor);
 
 class ColorPicker {
 
-  static final List hexValues = ["00", "33", "66", "99", "CC", "FF"];
-  static final int COLS = 18;
+  static final hexValues = ['00', '33', '66', '99', 'CC', 'FF'];
+  static final COLS = 18;
   // Block height, width, padding
-  static final int BH = 10;
-  static final int BW = 10;
-  static final int BP = 1;
+  static final BH = 10;
+  static final BW = 10;
+  static final BP = 1;
   final List<PickerListener> _listeners;
   HTMLCanvasElement canvasElement;
   String _selectedColor = 'red';
-  final int height = 160;
-  final int width = 180;
+  final height = 160;
+  final width = 180;
   CanvasRenderingContext2D ctx;
   
   ColorPicker(this.canvasElement) :
@@ -29,6 +29,12 @@ class ColorPicker {
   }
   
   String get selectedColor() => _selectedColor;
+  
+  void set selectedColor(num i) {
+    _selectedColor = getHexString(i.floor());
+    showSelected();
+    fireSelected();
+  }
   
   void onMouseMove(MouseEvent event) {
     int x = event.offsetX;
@@ -47,8 +53,7 @@ class ColorPicker {
     int y = event.offsetY - 40;
     if ((y < 0) || (x >= width))
       return;
-    setSelected(getColorIndex(x, y));
-    fireSelected();
+    selectedColor = getColorIndex(x, y);
   }
 
   /**
@@ -98,12 +103,6 @@ class ColorPicker {
     ctx.fillRect(0, 0, width / 2, 30);
   }
   
-  void setSelected(num i) {
-    _selectedColor = getHexString(i.floor());
-    showSelected();
-    fireSelected();
-  }
- 
   String getHexString(int i) {
     int r = i ~/ 36;
     int g = (i % 36) ~/ 6;
