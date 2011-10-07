@@ -33,8 +33,8 @@ import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.builder.ArtifactProvider;
 import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
+import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.cache.LRUCache;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
@@ -419,18 +419,18 @@ public class DartCompilerUtilities {
           return true;
         }
       };
-      DartArtifactProvider provider = new LocalArtifactProvider(new ArtifactProvider() {
+      DartArtifactProvider provider = new LocalArtifactProvider(RootArtifactProvider.getInstance()) {
         @Override
-        public boolean isOutOfDate(Source source, Source base, String extension) {
+        protected boolean isOutOfDateInParent(Source source, Source base, String extension) {
           if (forceFullAST || equalUris(libraryManager, unitUri, source.getUri())) {
             return true;
           }
           if (parsedUnits != null && parsedUnits.containsKey(source.getUri())) {
             return true;
           }
-          return super.isOutOfDate(source, base, extension);
+          return super.isOutOfDateInParent(source, base, extension);
         }
-      });
+      };
       libraryResult = DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider,
           this);
 

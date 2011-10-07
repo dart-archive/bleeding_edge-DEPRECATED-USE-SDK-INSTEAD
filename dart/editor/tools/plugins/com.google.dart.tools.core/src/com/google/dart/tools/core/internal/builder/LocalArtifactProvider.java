@@ -18,33 +18,23 @@ import com.google.dart.compiler.Source;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A read-through caching implementation of {@link DartArtifactProvider} that pulls existing content
  * from a parent artifact provider but caches new content in memory.
  */
-public class LocalArtifactProvider extends DartArtifactProvider {
+public class LocalArtifactProvider extends CachingArtifactProvider {
+
   /**
-   * Answer the local URI for the specified artifact
+   * The parent artifact provider (not <code>null</code>)
    */
-  private static URI getLocalUri(Source source, String part, String extension) {
-    String path = source.getUri().toString();
-    if (part != null && path.length() > 0) {
-      path += "$" + part;
-    }
-    path += extension;
-    return URI.create(path);
-  }
-
   private final DartArtifactProvider parent;
-  private final Map<URI, String> cache = new HashMap<URI, String>();
 
+  /**
+   * Construct a new instance with the specified parent
+   * 
+   * @param parent the parent artifact provider (not <code>null</code>)
+   */
   public LocalArtifactProvider(DartArtifactProvider parent) {
     if (parent == null) {
       throw new IllegalArgumentException();
@@ -58,35 +48,11 @@ public class LocalArtifactProvider extends DartArtifactProvider {
    */
   @Override
   public Reader getArtifactReader(Source source, String part, String extension) throws IOException {
-    final URI uri = getLocalUri(source, part, extension);
-    String content = cache.get(uri);
-    if (content != null) {
-      return new StringReader(content);
+    Reader reader = super.getArtifactReader(source, part, extension);
+    if (reader != null) {
+      return reader;
     }
     return parent.getArtifactReader(source, part, extension);
-  }
-
-  // TODO (danrubel): convert first argument to Source so that it matches other methods?
-  @Override
-  public URI getArtifactUri(Source source, String part, String extension) {
-    return parent.getArtifactUri(source, part, extension);
-  }
-
-  /**
-   * Return a writer that will cache its contents locally in memory rather than wherever the parent
-   * provider chooses (e.g. on disk).
-   */
-  @Override
-  public Writer getArtifactWriter(Source source, String part, String extension) throws IOException {
-    final URI uri = getLocalUri(source, part, extension);
-    StringWriter writer = new StringWriter(4096) {
-      @Override
-      public void close() throws IOException {
-        super.close();
-        cache.put(uri, toString());
-      }
-    };
-    return writer;
   }
 
   /**
@@ -95,11 +61,16 @@ public class LocalArtifactProvider extends DartArtifactProvider {
    */
   @Override
   public boolean isOutOfDate(Source source, Source base, String extension) {
-    final URI uri = getLocalUri(base, "", extension);
-    String content = cache.get(uri);
-    if (content != null) {
+    if (!super.isOutOfDate(source, base, extension)) {
       return false;
     }
+    return isOutOfDateInParent(source, base, extension);
+  }
+
+  /**
+   * Call the parent artifact provider to determine if the content is up to date
+   */
+  protected boolean isOutOfDateInParent(Source source, Source base, String extension) {
     return parent.isOutOfDate(source, base, extension);
   }
 }

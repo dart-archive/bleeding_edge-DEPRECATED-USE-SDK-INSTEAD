@@ -38,24 +38,23 @@ public class ArtifactProviderTest extends TestCase {
   }
 
   public void test_ArtifactProvider_getArtifactUri() throws Exception {
-    DartArtifactProvider provider = new ArtifactProvider();
+    DartArtifactProvider provider = RootArtifactProvider.newInstanceForTesting();
     URI uri = provider.getArtifactUri(getSource(), "", RANDOM_EXT);
     assertEquals(RANDOM_EXT, uri.getPath().substring(uri.getPath().lastIndexOf(".") + 1));
   }
 
   public void test_ArtifactProvider_readNonExistant() throws Exception {
-    DartArtifactProvider provider = new ArtifactProvider();
+    DartArtifactProvider provider = RootArtifactProvider.newInstanceForTesting();
     Reader reader = provider.getArtifactReader(getSource(), "", "doesnotexist");
     assertNull(reader);
   }
 
   public void test_ArtifactProvider_writeThenRead() throws Exception {
-    DartArtifactProvider provider = new ArtifactProvider();
+    DartArtifactProvider provider = RootArtifactProvider.newInstanceForTesting();
     Writer writer = provider.getArtifactWriter(getSource(), "", RANDOM_EXT);
     writer.append(RANDOM_CONTENT);
     writer.close();
 
-    provider = new ArtifactProvider();
     Reader reader = provider.getArtifactReader(getSource(), "", RANDOM_EXT);
     char[] cbuf = new char[1000];
     int len = reader.read(cbuf);

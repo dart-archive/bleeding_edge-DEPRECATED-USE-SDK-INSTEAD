@@ -14,7 +14,7 @@
 package com.google.dart.tools.debug.ui.internal.client;
 
 import com.google.dart.tools.core.generator.DartHtmlGenerator;
-import com.google.dart.tools.core.internal.builder.ArtifactProvider;
+import com.google.dart.tools.core.internal.builder.DartBuilder;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
@@ -154,7 +154,7 @@ public class DartJsLaunchConfigurationDelegate extends LaunchConfigurationDelega
     }
 
     // Otherwise, assume it is a Dart app, and return a web page displaying it
-    File appJsFile = ArtifactProvider.getJsAppArtifactFile(file);
+    File appJsFile = DartBuilder.getJsAppArtifactFile(file);
     if (!appJsFile.exists()) {
       throwCoreException("Compiled Dart application does not exist: " + appJsFile);
     }

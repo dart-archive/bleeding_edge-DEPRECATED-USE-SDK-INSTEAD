@@ -15,13 +15,17 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
+import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.backend.js.AbstractJsBackend;
+import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.tools.core.DartCore;
@@ -29,6 +33,7 @@ import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.Extensions;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -44,13 +49,23 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubMonitor;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.net.URI;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +74,80 @@ import java.util.Map;
  * projects.
  */
 public class DartBuilder extends IncrementalProjectBuilder {
+
+  /**
+   * An artifact provider for tracking prerequisite projects. All artifacts are cached in memory via
+   * {@link RootArtifactProvider} except for the final app.js file which is written to disk.
+   */
+  private class ArtifactProvider extends DartArtifactProvider {
+    private final RootArtifactProvider rootProvider = RootArtifactProvider.getInstance();
+    private final Collection<IProject> prerequisiteProjects = new HashSet<IProject>();
+
+    public void clean() {
+      prerequisiteProjects.clear();
+      rootProvider.clearCachedArtifacts();
+    }
+
+    @Override
+    public Reader getArtifactReader(Source source, String part, String extension)
+        throws IOException {
+      IResource res = ResourceUtil.getResource(source);
+      if (res != null) {
+        IProject project = res.getProject();
+        prerequisiteProjects.add(project);
+      }
+      File appJsFile = getAppJsFile(source, part, extension);
+      if (appJsFile != null) {
+        return new BufferedReader(new FileReader(appJsFile));
+      }
+      return rootProvider.getArtifactReader(source, part, extension);
+    }
+
+    @Override
+    public URI getArtifactUri(Source source, String part, String extension) {
+      return rootProvider.getArtifactUri(source, part, extension);
+    }
+
+    @Override
+    public Writer getArtifactWriter(Source source, String part, String extension)
+        throws IOException {
+      final File appJsFile = getAppJsFile(source, part, extension);
+      if (appJsFile != null) {
+        return new BufferedWriter(new FileWriter(appJsFile));
+      }
+      return rootProvider.getArtifactWriter(source, part, extension);
+    }
+
+    public IProject[] getPrerequisiteProjects() {
+      return prerequisiteProjects.toArray(new IProject[prerequisiteProjects.size()]);
+    }
+
+    @Override
+    public boolean isOutOfDate(Source source, Source base, String extension) {
+      return rootProvider.isOutOfDate(source, base, extension);
+    }
+
+    /**
+     * Answer the final application JS file if that is what is specified
+     * 
+     * @return the file or <code>null</code> if it is not specified
+     */
+    private File getAppJsFile(Source source, String part, String extension) throws AssertionError {
+      if (!AbstractJsBackend.EXTENSION_APP_JS.equals(extension) || !"".equals(part)) {
+        return null;
+      }
+      File srcFile = ResourceUtil.getFile(source);
+      if (srcFile == null) {
+        if (source == null) {
+          throw new AssertionError("Cannot write " + AbstractJsBackend.EXTENSION_APP_JS
+              + " for null source");
+        }
+        throw new AssertionError("Expected file for " + source.getName());
+      }
+      return getJsAppArtifactFile(new Path(srcFile.getPath()));
+    }
+  }
+
   private class ErrorCheckingPhase implements DartCompilationPhase {
     @Override
     public DartUnit exec(DartUnit unit, DartCompilerContext context, CoreTypeProvider typeProvider) {
@@ -75,6 +164,29 @@ public class DartBuilder extends IncrementalProjectBuilder {
     }
   }
 
+  /**
+   * Answer the JavaScript application file for the specified source.
+   * 
+   * @param source the application source file (not <code>null</code>)
+   * @return the application file (may not exist)
+   */
+  public static File getJsAppArtifactFile(IPath sourceLocation) {
+    return sourceLocation.removeFileExtension().addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
+  }
+
+  /**
+   * Answer the JavaScript application file for the specified source.
+   * 
+   * @param source the application source file (not <code>null</code>)
+   * @return the application file (may not exist)
+   */
+  public static File getJsAppArtifactFile(IResource source) {
+    return getJsAppArtifactFile(source.getLocation());
+  }
+
+  /**
+   * The artifact provider for this source.
+   */
   private final ArtifactProvider provider = new ArtifactProvider();
 
   @SuppressWarnings("rawtypes")
@@ -82,11 +194,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
   protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
     // If *anything* changes then find each Dart App and build it
     if (hasDartSourceChanged()) {
-      try {
-        buildAllApplications(monitor);
-      } finally {
-        provider.refreshAndMarkDerived(new NullProgressMonitor());
-      }
+      buildAllApplications(monitor);
     }
 
     // Return the projects upon which this project depends
@@ -193,6 +301,8 @@ public class DartBuilder extends IncrementalProjectBuilder {
       //3. Have the Messenger tell the MetricsManager that a new build is in
       DartCompiler.compileLib(libSource, config, provider, listener);
       config.getCompilerMetrics().done();
+//      System.out.println("******** Built Library " + libSource.getName());
+//      config.getCompilerMetrics().write(System.out);
       MetricsMessenger.getSingleton().fireUpdates(config,
           new Path(libSource.getName()).lastSegment());
 
@@ -208,18 +318,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
   @Override
   protected void clean(IProgressMonitor monitor) throws CoreException {
-    IProject project = getProject();
-    // TODO(brianwilkerson) Figure out how to give reasonable feedback.
-//    DartProject dartProject = DartCore.create(project);
-//    monitor.beginTask(
-//        "Cleaning " + (dartProject == null ? project.getName() : dartProject.getElementName()), 1);
-//    try {
-    provider.deleteDerivedDartResources(project, new NullProgressMonitor());
-    provider.deleteBundledLibraryOutput();
-    provider.clearPrerequisiteProjects();
-//    } finally {
-//      monitor.done();
-//    }
+    provider.clean();
   }
 
   /**
@@ -242,7 +341,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
   private void emitArtifactDetailsToConsole(DartLibraryImpl libImpl) throws DartModelException {
     DartCore.getConsole().clear();
-    File artifactFile = ArtifactProvider.getJsAppArtifactFile(libImpl.getCorrespondingResource());
+    File artifactFile = getJsAppArtifactFile(libImpl.getCorrespondingResource());
     if (artifactFile != null) {
       DartCore.getConsole().println(
           DartBuilderMessages.DartBuilder_console_js_file_description + ": "
@@ -268,7 +367,8 @@ public class DartBuilder extends IncrementalProjectBuilder {
       public boolean visit(IResourceDelta delta) {
         IResource resource = delta.getResource();
         if (resource.getType() != IResource.FILE) {
-          return true;
+          // Visit children only if we have not already found a changed source file
+          return !shouldBuild[0];
         }
         String name = resource.getName();
         if (name.endsWith(Extensions.DOT_DART)) {

@@ -40,7 +40,7 @@ public class LocalArtifactProviderTest extends TestCase {
   }
 
   public void test_ArtifactProvider_getArtifactUri() throws Exception {
-    DartArtifactProvider globalProvider = new ArtifactProvider();
+    DartArtifactProvider globalProvider = RootArtifactProvider.newInstanceForTesting();
     DartArtifactProvider localProvider = new LocalArtifactProvider(globalProvider);
 
     URI uri = localProvider.getArtifactUri(getSource(), "", RANDOM_EXT);
@@ -48,7 +48,7 @@ public class LocalArtifactProviderTest extends TestCase {
   }
 
   public void test_ArtifactProvider_readNonExistant() throws Exception {
-    DartArtifactProvider globalProvider = new ArtifactProvider();
+    DartArtifactProvider globalProvider = RootArtifactProvider.newInstanceForTesting();
     DartArtifactProvider localProvider = new LocalArtifactProvider(globalProvider);
 
     Reader reader = localProvider.getArtifactReader(getSource(), "", "doesnotexist");
@@ -56,7 +56,7 @@ public class LocalArtifactProviderTest extends TestCase {
   }
 
   public void test_ArtifactProvider_writeGlobalThenRead() throws Exception {
-    DartArtifactProvider globalProvider = new ArtifactProvider();
+    DartArtifactProvider globalProvider = RootArtifactProvider.newInstanceForTesting();
     DartArtifactProvider localProvider = new LocalArtifactProvider(globalProvider);
 
     Writer writer = globalProvider.getArtifactWriter(getSource(), "", RANDOM_EXT);
@@ -75,7 +75,7 @@ public class LocalArtifactProviderTest extends TestCase {
   }
 
   public void test_ArtifactProvider_writeLocalThenRead() throws Exception {
-    DartArtifactProvider globalProvider = new ArtifactProvider();
+    DartArtifactProvider globalProvider = RootArtifactProvider.newInstanceForTesting();
     DartArtifactProvider localProvider = new LocalArtifactProvider(globalProvider);
 
     Writer writer = localProvider.getArtifactWriter(getSource(), "", RANDOM_EXT2);

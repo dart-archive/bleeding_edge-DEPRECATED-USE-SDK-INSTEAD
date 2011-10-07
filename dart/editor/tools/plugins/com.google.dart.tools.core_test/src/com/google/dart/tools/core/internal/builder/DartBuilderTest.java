@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.test.util.MoneyProjectUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
@@ -59,6 +60,8 @@ public class DartBuilderTest extends TestCase {
     long expectedLength = outputFile.length();
     assertTrue(expectedLength > 0);
     for (int i = 0; i < 10; i++) {
+      CompilationUnit unit = MoneyProjectUtilities.getMoneyCompilationUnit("simple_money.dart");
+      unit.getResource().getLocation().toFile().setLastModified(System.currentTimeMillis());
       project.build(buildKind, null);
       long actualLength = outputFile.length();
       assertEquals(
