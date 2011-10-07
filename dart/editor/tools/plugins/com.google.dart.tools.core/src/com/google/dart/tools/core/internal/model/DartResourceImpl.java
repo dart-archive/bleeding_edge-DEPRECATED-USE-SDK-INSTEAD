@@ -132,7 +132,7 @@ public class DartResourceImpl extends OpenableElementImpl implements DartResourc
 
   @Override
   protected IStatus validateExistence(IResource underlyingResource) {
-    if (!underlyingResource.exists()) {
+    if (underlyingResource == null || !underlyingResource.exists()) {
       return newDoesNotExistStatus();
     }
     return DartModelStatusImpl.VERIFIED_OK;
