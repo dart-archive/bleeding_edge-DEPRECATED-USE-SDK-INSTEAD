@@ -323,6 +323,14 @@ build system.  The PDE build system has to run under Eclipse.
              <fileset dir="${build.source.root}/client/html" />
         </copy>
 
+        <property name="dart.library.json.dir" 
+                  value="${build.stage.plugins}/com.google.dart.library.json" />
+
+        <mkdir dir="${dart.library.json.dir}/src-json" />
+        <copy todir="${dart.library.json.dir}/src-json">
+             <fileset dir="${build.source.root}/client/json" />
+        </copy>
+
         <!-- replace the path based imports with the symbolic ones -->
 
         <!-- #import('../../html/html.dart'); ==> #import('dart:html'); -->
