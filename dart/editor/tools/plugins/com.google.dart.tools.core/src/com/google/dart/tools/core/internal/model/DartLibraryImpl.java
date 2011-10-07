@@ -393,14 +393,19 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
+  public DartResource getResource(IFile file) {
+    return new DartResourceImpl(this, file);
+  }
+
+  @Override
   public DartResource getResource(URI uri) {
     return new DartResourceImpl(this, uri);
   }
 
   @Override
   public DartResource[] getResources() throws DartModelException {
-    List<DartResource> compilationUnits = getChildrenOfType(DartResource.class);
-    return compilationUnits.toArray(new DartResource[compilationUnits.size()]);
+    List<DartResource> resources = getChildrenOfType(DartResource.class);
+    return resources.toArray(new DartResource[resources.size()]);
   }
 
   @Override

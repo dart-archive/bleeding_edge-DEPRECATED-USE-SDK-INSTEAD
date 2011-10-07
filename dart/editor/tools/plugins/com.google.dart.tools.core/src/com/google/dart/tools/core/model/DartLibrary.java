@@ -136,6 +136,16 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public DartLibrary[] getImportedLibraries() throws DartModelException;
 
   /**
+   * Return the Dart resource with the specified file in this library (for example, some IFile with
+   * file name <code>"readme.txt"</code>). The name has to be a valid resource name. This is a
+   * handle-only method. The resource may or may not be present.
+   * 
+   * @param file the file of the resource to be returned
+   * @return the resource with the specified name in this package
+   */
+  public DartResource getResource(IFile file);
+
+  /**
    * Return a resource corresponding to the given URI. This is a handle-only method. The resource
    * may or may not be present.
    * 
