@@ -247,10 +247,6 @@ class SwarmState extends UIState {
    */
   void clearCurrentArticle() {
     currentArticle.value = null;
-    // This part below is silly, but it is so we can retrigger the change
-    // listener when moving between views.
-    selectedArticle.value = null;
-    selectedArticle.value = _articleIterator.current;
   }
 
   /**
@@ -294,9 +290,6 @@ class SwarmState extends UIState {
     _articleIterator =
         new BiIterator<Article>(_feedIterator.current.articles,
         _articleIterator.currentIndex.listeners);
-    // Trigger the change listener for selected article.
-    selectedArticle.value = null;
-    selectedArticle.value = _articleIterator.current;
   }
 
   Section get currentSection() => _sectionIterator.current;
