@@ -23,7 +23,8 @@ class App {
     // "interactive" is when the DOMContentLoaded event fires, but haven't
     // found that specified; if that's not true it leaves a race bug.)
     if (document.readyState == "interactive" ||
-        document.readyState == "complete") {
+        document.readyState == "complete" ||
+        document.readyState == "loaded") {
       this.onLoad();
     } else {
       window.on.contentLoaded.add(

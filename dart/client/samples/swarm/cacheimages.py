@@ -6,10 +6,8 @@
 This script finds all HTML pages in a folder and downloads all images, replacing
 the urls with local ones.
 '''
-import optparse
-import os
+import os, sys, optparse, subprocess, multiprocessing
 from os.path import abspath, basename, dirname, join
-import sys
 
 SWARM_PATH = dirname(abspath(__file__))
 CLIENT_PATH = dirname(dirname(SWARM_PATH))
@@ -18,6 +16,19 @@ CLIENT_TOOLS_PATH = join(CLIENT_PATH, 'tools')
 # Add the client tools directory so we can find htmlconverter.py.
 sys.path.append(CLIENT_TOOLS_PATH)
 import htmlconverter
+converter = CLIENT_TOOLS_PATH + '/htmlconverter.py'
+
+# This has to be a top level function to use with multiprocessing
+def convertImgs(infile):
+  global options
+  try:
+    htmlconverter.convertForOffline(
+        infile, infile,
+        verbose=options.verbose,
+        encode_images=options.inline_images)
+    print 'Converted ' + infile
+  except BaseException, e:
+    print 'Caught error: %s' % e
 
 def Flags():
   """ Constructs a parser for extracting flags from the command line. """
@@ -33,6 +44,7 @@ def Flags():
   return parser
 
 def main():
+  global options
   parser = Flags()
   options, args = parser.parse_args()
   print "args: %s" % args
@@ -43,15 +55,16 @@ def main():
   dirname = args[0]
   print 'Searching directory ' + dirname
 
+  files = []
   for root, dirs, fnames in os.walk(dirname):
     for fname in fnames:
       if fname.endswith('.html'):
-        infile = join(root, fname)
-        print 'Converting ' + infile
-        htmlconverter.convertForOffline(
-            infile, infile,
-            verbose = options.verbose,
-            encode_images = options.inline_images)
+        files.append(join(root, fname))
+
+  count = 4 * multiprocessing.cpu_count()
+  pool = multiprocessing.Pool(processes=count)
+  # Note: need a timeout to get keyboard interrupt due to a Python bug
+  pool.map_async(convertImgs, files).get(3600) # one hour
 
 if __name__ == '__main__':
   main()

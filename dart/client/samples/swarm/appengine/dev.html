@@ -52,18 +52,22 @@
 	    Order deny,allow
 	    Allow from all
 	&lt;/Directory&gt;
+
+        AddType text/html .data
 </pre>
 </li>
 <li>
 <pre>
-pushd /Library/WebServer/Documents/
+sudo apachectl restart
+pushd /Library/WebServer/Document
 # If you are replacing old data:
 # rm -rf data/
 unzip ~/Downloads/CannedData.zip
-chmod -R +r data
-chmod -R +w data
+chmod -R +rw data
 # Warning: this step takes a while
 # It downloads all images from all of the stories and inlines them in the HTML
+# You can skip this if you're iterating on the app, it's only needed for
+# "full offline" demo mode
 path/to/dart/dart/client/samples/swarm/cacheimages.py data/
 </pre>
 <li>Download a copy of swarm-js.html from this server (or create with update.py) and save it as: /Library/WebServer/Document/index.html</li>
