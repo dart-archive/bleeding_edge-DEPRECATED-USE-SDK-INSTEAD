@@ -18,25 +18,33 @@ This Dart application demonstrates several things:
 
 Running
 -------
-1. You need the rest of the Belay infrastructure running on your machine:
-  a. Install AppEngine SDK from: http://code.google.com/appengine/downloads.html
-  b. Download the source from: http://code.google.com/p/google-belay/
-  c. Follow the README in the Belay tree to start the servers
+1. The Belay infrastructure requires AppEngine. Do one of the following:
+  a. If you have AppEngine SDK installed already, either be sure
+     dev_appserver.py is on your PATH, or note the location of it.
+  b. Use the AppEngine SDK that is part of the dart tree. In particular,
+     dev_appserver.py is located in {dart}/third_party/appengine-python/1.5.4/
+  c. Install the AppEngine SDK from:
+     http://code.google.com/appengine/downloads.html
 
-2. Make sure you've built the dart/client tree:
-  cd dart/client
-  ../tools/build.py --arch=dartc
+2. You need the rest of the Belay infrastructure running on your machine:
+  a. Download the Belay source from: http://code.google.com/p/google-belay/
+  b. Start the belay servers:
+     cd {belay}
+     ./run.sh {loc-of-dev_appserver.py} start
 
 3. Run the Buzzer application server:
-  cd dart/samples/belay/buzzer
-  ../../../client/out/Debug_dartc/fling/fling/fling BuzzerServer.dart
+     cd {dart}/samples/belay/buzzer
+     ./start-server
+     -- this will build dartc and the fling web-server if needed, then start
+     -- the Buzzer server. You know it is ready when it prints:
+     Buzzer [INFO ] Started server at http://localhost:9014/
 
 4. Open a browser and:
   a. Browse to http://localhost:9000/pick-station.html
   b. Click on "Launch my station"
      -- you now have the JavaScript Belay infrastructure up and running
 
-5. In a new window:
+5. In a new browser window:
   a. Browse to http://localhost:9014/index.html
      -- this browses to this Dart based Buzzer application
   b. Type in a title for a new blog and click submit
