@@ -429,9 +429,11 @@ public class DartCompilerUtilities {
           return super.isOutOfDateInParent(source, base, extension);
         }
       };
-      libraryResult = DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider,
-          this);
-
+      // Any calls to compiler involving artifact provider must be synchronized
+      synchronized (compilerLock) {
+        libraryResult = DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider,
+            this);
+      }
       if (libraryResult != null && unitUri != null) {
         for (DartUnit unit : libraryResult.getUnits()) {
           DartSource source = unit.getSource();
@@ -458,6 +460,11 @@ public class DartCompilerUtilities {
     }
 
   }
+
+  /**
+   * Synchronize against this field when calling the compiler and passing an artifact provider
+   */
+  private static final Object compilerLock = new Object();
 
   public static int parserExceptionCount = 0;
 
@@ -734,6 +741,14 @@ public class DartCompilerUtilities {
           "Failed to parse " + unitUri, runnable.exception)));
     }
     return runnable.unitResult;
+  }
+
+  public static void secureCompileLib(LibrarySource libSource, CompilerConfiguration config,
+      DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
+    synchronized (compilerLock) {
+      // Any calls to compiler involving artifact provider must be synchronized
+      DartCompiler.compileLib(libSource, config, provider, listener);
+    }
   }
 
   /**

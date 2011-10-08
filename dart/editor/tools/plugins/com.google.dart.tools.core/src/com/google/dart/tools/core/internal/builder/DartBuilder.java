@@ -17,7 +17,6 @@ import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationPhase;
-import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
@@ -39,6 +38,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.HTMLFile;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
 import static com.google.dart.tools.core.internal.builder.BuilderUtil.clearErrorMarkers;
 
@@ -299,7 +299,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
       //1. Have the compiler build the Library
       //2. Tell the CompilerMetrics that the Compiler is done
       //3. Have the Messenger tell the MetricsManager that a new build is in
-      DartCompiler.compileLib(libSource, config, provider, listener);
+      DartCompilerUtilities.secureCompileLib(libSource, config, provider, listener);
       config.getCompilerMetrics().done();
 //      System.out.println("******** Built Library " + libSource.getName());
 //      config.getCompilerMetrics().write(System.out);
