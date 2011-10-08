@@ -27,7 +27,7 @@ import java.io.Writer;
 import java.net.URI;
 import java.util.Random;
 
-public class ArtifactProviderTest extends TestCase {
+public class RootArtifactProviderTest extends TestCase {
 
   private static final String RANDOM_EXT = "jsx" + new Random().nextInt();
   private static final String RANDOM_CONTENT = "some-random-text-" + new Random().nextFloat();
@@ -37,19 +37,19 @@ public class ArtifactProviderTest extends TestCase {
     return ((DartLibraryImpl) lib).getLibrarySourceFile().getSourceFor("currency.dart");
   }
 
-  public void test_ArtifactProvider_getArtifactUri() throws Exception {
+  public void test_RootArtifactProvider_getArtifactUri() throws Exception {
     DartArtifactProvider provider = RootArtifactProvider.newInstanceForTesting();
     URI uri = provider.getArtifactUri(getSource(), "", RANDOM_EXT);
     assertEquals(RANDOM_EXT, uri.getPath().substring(uri.getPath().lastIndexOf(".") + 1));
   }
 
-  public void test_ArtifactProvider_readNonExistant() throws Exception {
+  public void test_RootArtifactProvider_readNonExistant() throws Exception {
     DartArtifactProvider provider = RootArtifactProvider.newInstanceForTesting();
     Reader reader = provider.getArtifactReader(getSource(), "", "doesnotexist");
     assertNull(reader);
   }
 
-  public void test_ArtifactProvider_writeThenRead() throws Exception {
+  public void test_RootArtifactProvider_writeThenRead() throws Exception {
     DartArtifactProvider provider = RootArtifactProvider.newInstanceForTesting();
     Writer writer = provider.getArtifactWriter(getSource(), "", RANDOM_EXT);
     writer.append(RANDOM_CONTENT);
