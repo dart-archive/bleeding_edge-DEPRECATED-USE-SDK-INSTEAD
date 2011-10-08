@@ -32,9 +32,15 @@ def convertOne(infile, options):
     os.putenv('DART_JVMARGS', '-Xmx512m')
 
   if 'dart' in options.target:
-    htmlconverter.convertForDartium(infile, outfile.replace('.html', '-dart.html'), False)
+    htmlconverter.convertForDartium(
+        infile,
+        outfile.replace('.html', '-dart.html'),
+        options.verbose)
   if 'js' in options.target:
-    htmlconverter.convertForChromium(infile, options.optimize, outfile.replace('.html', '-js.html'), False)
+    htmlconverter.convertForChromium(
+        infile, options.optimize, options.dartc_extra_flags,
+        outfile.replace('.html', '-js.html'),
+        options.verbose)
 
 
 def Flags():
@@ -52,6 +58,14 @@ def Flags():
       help="Use optimizer in dartc",
       default=False,
       action="store_true")
+  result.add_option("--verbose",
+      help="Print verbose output",
+      default=False,
+      action="store_true")
+  result.add_option("--dartc_extra_flags",
+      help="Additional flag text to pass to dartc",
+      default="",
+      action="store")
   #result.set_usage("update.py input.html -o OUTDIR -t chromium,dartium")
   return result
 
