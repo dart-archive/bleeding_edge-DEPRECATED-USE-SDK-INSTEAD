@@ -41,8 +41,10 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
    * {@link URI#URI(String)} with the result of this method.
    */
   private static String getLocalUriPart(Source source, String part, String extension) {
-    // Obtain the encoded scheme specific part so that we don't decode then encode
-    StringBuilder builder = new StringBuilder(source.getUri().getRawSchemeSpecificPart());
+    // even though the source uri uniquely identifies the source, we must use getName()
+    // because the same source file can be referenced by two different libraries
+    // and getName() returns a unique string which includes the library name
+    StringBuilder builder = new StringBuilder(source.getName());
     if (part != null && part.length() > 0) {
       builder.append("$");
       builder.append(part);
@@ -111,11 +113,15 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
 
   /**
    * Return <code>true</code> if the artifact is cached locally.
+   * 
+   * @param source the source file
+   * @param base the base of the artifact to which the comparison is made
+   * @param extension the artifact extension
    */
   @Override
   public boolean isOutOfDate(Source source, Source base, String extension) {
     synchronized (cache) {
-      CacheElement elem = cache.get(getLocalUriPart(source, "", extension));
+      CacheElement elem = cache.get(getLocalUriPart(base, "", extension));
       return elem == null || elem.lastModified < source.getLastModified();
     }
   }
