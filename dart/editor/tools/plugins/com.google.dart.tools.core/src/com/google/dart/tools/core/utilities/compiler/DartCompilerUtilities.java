@@ -231,11 +231,6 @@ public class DartCompilerUtilities {
           libraryManager) {
 
         @Override
-        public boolean allowNoSuchType() {
-          return true;
-        }
-
-        @Override
         public boolean checkOnly() {
           return true;
         }
@@ -248,6 +243,11 @@ public class DartCompilerUtilities {
         @Override
         public boolean resolveDespiteParseErrors() {
           return true;
+        }
+
+        @Override
+        public boolean shouldWarnOnNoSuchType() {
+          return false;
         }
 
         @Override
