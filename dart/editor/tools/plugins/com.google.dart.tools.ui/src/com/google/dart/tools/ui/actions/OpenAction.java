@@ -52,7 +52,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * This action opens a Java editor on a Java element or file.
+ * This action opens a Dart editor on a Dart element or file.
  * <p>
  * The action is applicable to selections containing elements of type <code>ICompilationUnit</code>,
  * <code>IMember</code> or <code>IFile</code>.
@@ -99,7 +99,7 @@ public class OpenAction extends SelectionDispatchAction {
    * 
    * @param object the element to open
    * @return the real element to open
-   * @throws JavaModelException if an error occurs while accessing the Java model
+   * @throws DartModelException if an error occurs while accessing the Dart model
    * @noreference This method is not intended to be referenced by clients.
    */
   public Object getElementToOpen(Object object) throws DartModelException {
@@ -146,8 +146,7 @@ public class OpenAction extends SelectionDispatchAction {
       if (fEditor != null) {
         IEditorStatusLine statusLine = (IEditorStatusLine) fEditor.getAdapter(IEditorStatusLine.class);
         if (statusLine != null) {
-          statusLine.setMessage(true, "Current text selection does not resolve to a Dart element",
-              null);
+          statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null);
           statusSet = true;
         }
       }
