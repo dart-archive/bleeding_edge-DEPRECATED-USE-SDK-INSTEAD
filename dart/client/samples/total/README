@@ -1,0 +1,16 @@
+Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+
+Total: a spreadsheet app written in Dart
+
+Building and running:
+
+1. go to the total sample directory:
+  $ cd dart/client/samples/total
+
+2. build and run the dartc compiler:
+  $ ./bin/start-server &
+
+3. open the generated file in a browser:
+  $ google-chrome http://localhost:9090/Total.html
