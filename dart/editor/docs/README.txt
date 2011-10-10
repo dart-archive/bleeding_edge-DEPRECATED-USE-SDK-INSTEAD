@@ -194,3 +194,8 @@ right-click on the "com.google.dart.tools.ui" project. Go to "Run As", and selec
 "Eclipse Application". Another instance of Eclipse should launch, running the Dart
 plugin!
     
+====================================
+  Building Dart Editor
+====================================
+    
+Run the build_rcp.xml ant script in the com.google.dart.tools.deploy.feature_releng project.
