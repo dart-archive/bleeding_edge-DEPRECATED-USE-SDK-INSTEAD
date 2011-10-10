@@ -22,7 +22,6 @@ import com.google.dart.indexer.locations.Location;
 
 import org.eclipse.core.resources.IFile;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,6 +44,4 @@ public abstract class StorageTransaction {
 
   public abstract void removeStaleLocationsFromDestination(Layer layer, Location destination,
       HashSet<Location> staleSourceLocations);
-
-  public abstract void setErrorFilesList(ArrayList<IFile> filesWithErrors);
 }

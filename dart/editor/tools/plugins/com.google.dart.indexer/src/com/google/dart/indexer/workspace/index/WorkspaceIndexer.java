@@ -131,6 +131,15 @@ public class WorkspaceIndexer {
     }
   }
 
+  /**
+   * Add the given targets to the queue of targets waiting to be indexed.
+   * 
+   * @param targets the targets to be added to the indexing queue
+   */
+  public void enqueueTargets(IndexingTarget[] targets) {
+    queue.enqueue(targets);
+  }
+
   public void execute(Query query) throws IndexTemporarilyNonOperational, IndexRequiresFullRebuild,
       IndexIsStillBuilding {
     if (IndexerPlugin.getLogger().isTracing(IndexerDebugOptions.STORE_CONTENTS_BEFORE_EACH_QUERY)) {
@@ -218,7 +227,7 @@ public class WorkspaceIndexer {
     }
 
     IndexTransaction transaction = session.createTransaction(index);
-    LinkedList<IFile> dequeued = new LinkedList<IFile>();
+    LinkedList<IndexingTarget> dequeued = new LinkedList<IndexingTarget>();
     try {
       boolean didSomething = false;
       try {
@@ -377,8 +386,9 @@ public class WorkspaceIndexer {
     return projects;
   }
 
-  private boolean doIndexPendingFiles(IndexTransaction transaction, LinkedList<IFile> dequeued,
-      long stopProcessingAt, IProgressMonitor monitor) throws IndexRequestFailed {
+  private boolean doIndexPendingFiles(IndexTransaction transaction,
+      LinkedList<IndexingTarget> dequeued, long stopProcessingAt, IProgressMonitor monitor)
+      throws IndexRequestFailed {
     boolean didSomething = false;
     int filesIndexedAfterCheckpoint = 0;
     int filesIndexed = 0;
@@ -386,19 +396,19 @@ public class WorkspaceIndexer {
       if (monitor.isCanceled()) {
         return true;
       }
-      IFile file = queue.dequeue();
-      if (file == null) {
+      IndexingTarget target = queue.dequeue();
+      if (target == null) {
         break;
       }
-      dequeued.addLast(file);
+      dequeued.addLast(target);
       didSomething = true;
       try {
         synchronized (this) {
-          indexFile(file, transaction, false);
+          indexTarget(target, transaction, false);
         }
-      } catch (FileIndexingFailed e) {
-        IndexerPlugin.getLogger().logError(e);
-        transaction.addErrorFile(file, e);
+      } catch (TargetIndexingFailed exception) {
+        IndexerPlugin.getLogger().logError(exception);
+        transaction.addErrorTarget(target, exception);
       }
       monitor.worked(1);
       monitor.subTask(queue.size() + " files left to index");
@@ -409,23 +419,23 @@ public class WorkspaceIndexer {
         // session.getStorage().checkpoint();
         filesIndexedAfterCheckpoint = 0;
       }
-      IProject project = file.getProject();
+      IProject project = target.getProject();
       if (!queue.hasQueuedFilesIn(project)) {
         synchronized (this) {
           this.notifyAll();
         }
       }
     } while (stopProcessingAt == -1 || System.currentTimeMillis() < stopProcessingAt);
-    IFile[] filesWithErrors = transaction.getFilesWithErrors();
-    if (filesWithErrors.length > 0) {
-      monitor.subTask(filesWithErrors.length + " files to reindex");
-      for (int a = 0; a < filesWithErrors.length; a++) {
+    IndexingTarget[] targetsWithErrors = transaction.getTargetsWithErrors();
+    if (targetsWithErrors.length > 0) {
+      monitor.subTask(targetsWithErrors.length + " files to reindex");
+      for (IndexingTarget target : targetsWithErrors) {
         try {
           synchronized (this) {
-            indexFile(filesWithErrors[a], transaction, true);
+            indexTarget(target, transaction, true);
           }
-        } catch (FileIndexingFailed e) {
-          IndexerPlugin.getLogger().logError(e);
+        } catch (TargetIndexingFailed exception) {
+          IndexerPlugin.getLogger().logError(exception);
         }
       }
     }
@@ -454,22 +464,22 @@ public class WorkspaceIndexer {
     return IndexerPlugin.getDefault().getStateLocation().toFile().getAbsolutePath();
   }
 
-  private void indexFile(IFile file, IndexTransaction transaction, boolean isRetry)
+  private void indexTarget(IndexingTarget target, IndexTransaction transaction, boolean isRetry)
       throws IndexRequestFailed, IndexRequiresFullRebuild, IndexTemporarilyNonOperational,
-      FileIndexingFailed {
+      TargetIndexingFailed {
     // IndexerPlugin.getLogger().trace(IndexerDebugOptions.MISCELLANEOUS,
     // "WorkspaceIndexer.indexFile(" + file + ")");
     try {
-      if (file.exists()) {
-        transaction.indexFile(file);
+      if (target.getFile().exists()) {
+        transaction.indexTarget(target);
       } else {
-        IFile[] affectedFiles = transaction.removeFile(file);
+        IFile[] affectedFiles = transaction.removeTarget(target);
         queue.enqueue(affectedFiles);
       }
-    } catch (RuntimeException e) {
-      throw new FileIndexingFailed(file, e, isRetry);
-    } catch (Error e) {
-      throw new FileIndexingFailed(file, e, isRetry);
+    } catch (RuntimeException exception) {
+      throw new TargetIndexingFailed(target, exception, isRetry);
+    } catch (Error exception) {
+      throw new TargetIndexingFailed(target, exception, isRetry);
     }
   }
 

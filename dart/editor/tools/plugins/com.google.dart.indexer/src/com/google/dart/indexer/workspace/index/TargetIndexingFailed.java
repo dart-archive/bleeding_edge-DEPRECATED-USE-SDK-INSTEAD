@@ -13,29 +13,19 @@
  */
 package com.google.dart.indexer.workspace.index;
 
-import org.eclipse.core.resources.IFile;
-
-public class FileIndexingFailed extends Exception {
-
+public class TargetIndexingFailed extends Exception {
   private static final long serialVersionUID = 1L;
 
-  // private final IFile file;
-  // private final boolean isRetry;
-
-  private static String formatMessage(IFile file, boolean isRetry) {
-    return "Failed to index file (" + (isRetry ? "retry" : "first attempt") + "): " + file;
+  private static String formatMessage(IndexingTarget target, boolean isRetry) {
+    return "Failed to index file (" + (isRetry ? "retry" : "first attempt") + "): "
+        + target.getFile().getLocation();
   }
 
-  public FileIndexingFailed(IFile file, Error cause, boolean isRetry) {
-    super(formatMessage(file, isRetry), cause);
-    // this.file = file;
-    // this.isRetry = isRetry;
+  public TargetIndexingFailed(IndexingTarget target, Error cause, boolean isRetry) {
+    super(formatMessage(target, isRetry), cause);
   }
 
-  public FileIndexingFailed(IFile file, RuntimeException cause, boolean isRetry) {
-    super(formatMessage(file, isRetry), cause);
-    // this.file = file;
-    // this.isRetry = isRetry;
+  public TargetIndexingFailed(IndexingTarget target, RuntimeException cause, boolean isRetry) {
+    super(formatMessage(target, isRetry), cause);
   }
-
 }

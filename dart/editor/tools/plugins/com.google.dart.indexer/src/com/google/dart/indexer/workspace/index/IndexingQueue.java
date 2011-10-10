@@ -25,15 +25,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class IndexingQueue {
-  class ProjectState {
+public class IndexingQueue {
+  private class ProjectState {
     private final IProject project;
 
     int queuedFiles;
 
     int prioritizationRequestCount;
 
-    final LinkedList<IFile> queue = new LinkedList<IFile>();
+    final LinkedList<IndexingTarget> queue = new LinkedList<IndexingTarget>();
 
     public ProjectState(IProject project) {
       if (project == null) {
@@ -42,16 +42,16 @@ class IndexingQueue {
       this.project = project;
     }
 
-    public IFile dequeue() {
-      IFile result = queue.removeFirst();
+    public IndexingTarget dequeue() {
+      IndexingTarget result = queue.removeFirst();
       --queuedFiles;
       --queuedFilesInAllProjects;
       removeIfEmpty();
       return result;
     }
 
-    public void enqueue(IFile file) {
-      queue.addLast(file);
+    public void enqueue(IndexingTarget target) {
+      queue.addLast(target);
       incrementCounters();
     }
 
@@ -63,8 +63,8 @@ class IndexingQueue {
       return queuedFiles == 0 && prioritizationRequestCount == 0;
     }
 
-    public void reenqueue(IFile file) {
-      queue.addFirst(file);
+    public void reenqueue(IndexingTarget target) {
+      queue.addFirst(target);
       ++queuedFiles;
       ++queuedFilesInAllProjects;
       incrementCounters();
@@ -126,21 +126,28 @@ class IndexingQueue {
   }
 
   public void addedFile(IFile file) {
-    enqueue(file);
+    enqueue(new ResourceIndexingTarget(file));
   }
 
   public void changedFile(IFile file) {
-    enqueue(file);
+    enqueue(new ResourceIndexingTarget(file));
   }
 
   public void deletedFile(IFile file) {
-    enqueue(file);
+    enqueue(new ResourceIndexingTarget(file));
   }
 
   public synchronized void enqueue(IFile[] changedFiles) {
     state = QueueState.NORMAL;
     for (int i = 0; i < changedFiles.length; i++) {
-      doEnqueueFile(changedFiles[i]);
+      doEnqueueTarget(new ResourceIndexingTarget(changedFiles[i]));
+    }
+  }
+
+  public synchronized void enqueue(IndexingTarget[] targets) {
+    state = QueueState.NORMAL;
+    for (int i = 0; i < targets.length; i++) {
+      doEnqueueTarget(targets[i]);
     }
   }
 
@@ -194,7 +201,7 @@ class IndexingQueue {
     state = QueueState.NORMAL;
     doClearQueue();
     for (int i = 0; i < filesToIndex.length; i++) {
-      doEnqueueFile(filesToIndex[i]);
+      doEnqueueTarget(new ResourceIndexingTarget(filesToIndex[i]));
     }
   }
 
@@ -221,7 +228,7 @@ class IndexingQueue {
     }
   }
 
-  synchronized IFile dequeue() {
+  synchronized IndexingTarget dequeue() {
     while (!priorityOrderedProjectsWithRemainingWork.isEmpty()) {
       IProject project = priorityOrderedProjectsWithRemainingWork.get(0);
       ProjectState state = findOrCreateState(project);
@@ -245,25 +252,24 @@ class IndexingQueue {
     return null;
   }
 
-  synchronized void reenqueue(IFile file) {
+  synchronized void reenqueue(IndexingTarget target) {
     state = QueueState.NORMAL; // why?..
-
-    IProject project = file.getProject();
+    IProject project = target.getProject();
     ProjectState projectState = findOrCreateState(project);
-    projectState.reenqueue(file);
+    projectState.reenqueue(target);
   }
 
   private void doClearQueue() {
     projectsToStates.clear();
   }
 
-  private void doEnqueueFile(IFile file) {
-    findOrCreateState(file.getProject()).enqueue(file);
+  private void doEnqueueTarget(IndexingTarget target) {
+    findOrCreateState(target.getProject()).enqueue(target);
   }
 
-  private synchronized void enqueue(IFile file) {
+  private synchronized void enqueue(IndexingTarget target) {
     state = QueueState.NORMAL;
-    doEnqueueFile(file);
+    doEnqueueTarget(target);
   }
 
   private ProjectState findOrCreateState(IProject project) {

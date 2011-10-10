@@ -134,11 +134,6 @@ public class GenericStorageTransaction extends StorageTransaction {
     storage.writeLocationInfo(destination, destinationInfo, layer);
   }
 
-  @Override
-  public void setErrorFilesList(ArrayList<IFile> filesWithErrors) {
-    // TODO Auto-generated method stub
-  }
-
   public void writeFileInfo(IFile file, FileInfo info) {
     storage.writeFileInfo(file, info);
   }

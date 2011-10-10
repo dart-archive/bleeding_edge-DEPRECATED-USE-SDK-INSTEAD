@@ -21,6 +21,7 @@ import com.google.dart.indexer.exceptions.IndexTemporarilyNonOperational;
 import com.google.dart.indexer.index.IndexSessionStats;
 import com.google.dart.indexer.index.configuration.IndexConfigurationInstance;
 import com.google.dart.indexer.index.queries.Query;
+import com.google.dart.indexer.workspace.index.IndexingTarget;
 import com.google.dart.indexer.workspace.index.WorkspaceIndexer;
 
 import org.eclipse.core.resources.IFile;
@@ -158,6 +159,15 @@ public class WorkspaceIndexingDriver {
    */
   public void enqueueChangedFiles(IFile[] changedFiles) {
     indexer.enqueueChangedFiles(changedFiles);
+  }
+
+  /**
+   * Add the given targets to the queue of targets waiting to be indexed.
+   * 
+   * @param targets the targets to be added to the indexing queue
+   */
+  public void enqueueTargets(IndexingTarget[] targets) {
+    indexer.enqueueTargets(targets);
   }
 
   public void execute(Query query) throws IndexTemporarilyNonOperational {

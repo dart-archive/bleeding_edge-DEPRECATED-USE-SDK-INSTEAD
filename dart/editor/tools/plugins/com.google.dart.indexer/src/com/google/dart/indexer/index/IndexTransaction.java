@@ -30,6 +30,7 @@ import com.google.dart.indexer.index.updating.FileInfoUpdaterImpl;
 import com.google.dart.indexer.locations.Location;
 import com.google.dart.indexer.storage.FileTransaction;
 import com.google.dart.indexer.storage.StorageTransaction;
+import com.google.dart.indexer.workspace.index.IndexingTarget;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Platform;
@@ -50,7 +51,7 @@ public class IndexTransaction {
 
   private final IndexConfigurationInstance configuration;
 
-  private ArrayList<IFile> filesWithErrors = new ArrayList<IFile>();
+  private ArrayList<IndexingTarget> targetsWithErrors = new ArrayList<IndexingTarget>();
   private ArrayList<Throwable> errors = new ArrayList<Throwable>();
 
   private final StorageTransaction storageTransaction;
@@ -67,8 +68,8 @@ public class IndexTransaction {
     this.configuration = configuration;
   }
 
-  public void addErrorFile(IFile file, Throwable error) {
-    filesWithErrors.add(file);
+  public void addErrorTarget(IndexingTarget target, Throwable error) {
+    targetsWithErrors.add(target);
     errors.add(error);
   }
 
@@ -82,7 +83,6 @@ public class IndexTransaction {
             "Processor failed while transaction was ending: " + processor.getClass().getName());
       }
     }
-    storageTransaction.setErrorFilesList(filesWithErrors);
     storageTransaction.commit();
   }
 
@@ -90,12 +90,13 @@ public class IndexTransaction {
     return errors.toArray(new Throwable[errors.size()]);
   }
 
-  public IFile[] getFilesWithErrors() {
-    return filesWithErrors.toArray(new IFile[filesWithErrors.size()]);
+  public IndexingTarget[] getTargetsWithErrors() {
+    return targetsWithErrors.toArray(new IndexingTarget[targetsWithErrors.size()]);
   }
 
-  public void indexFile(IFile file) throws IndexRequestFailed {
+  public void indexTarget(IndexingTarget target) throws IndexRequestFailed {
     try {
+      IFile file = target.getFile();
       Processor[] processors = configuration.findProcessors(file);
       if (processors.length == 0) {
         return;
@@ -107,7 +108,7 @@ public class IndexTransaction {
       removeInformationThatWillBeReconstructed(file, fileTransaction.getOriginalFileInfo());
       FileInfoUpdater updater = new FileInfoUpdaterImpl(fileTransaction, file);
       for (int i = 0; i < processors.length; i++) {
-        processors[i].processFile(file, updater);
+        processors[i].processTarget(target, updater);
       }
       fileTransaction.commit();
     } catch (IndexRequestFailedUnchecked e) {
@@ -115,7 +116,8 @@ public class IndexTransaction {
     }
   }
 
-  public IFile[] removeFile(IFile file) {
+  public IFile[] removeTarget(IndexingTarget target) {
+    IFile file = target.getFile();
     FileInfo info = storageTransaction.removeFileInfo(file);
     if (info == null) {
       return new IFile[0];

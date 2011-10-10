@@ -18,24 +18,24 @@ import com.google.dart.indexer.exceptions.IndexRequestFailed;
 import com.google.dart.indexer.index.IndexSession;
 import com.google.dart.indexer.index.IndexTransaction;
 import com.google.dart.indexer.index.readonly.Index;
-
-import org.eclipse.core.resources.IFile;
+import com.google.dart.indexer.workspace.index.IndexingTarget;
 
 import java.io.File;
 
 public class IndexTesting {
-  public static Index buildIndex(IndexSession session, IFile file) throws IndexRequestFailed {
+  public static Index buildIndex(IndexSession session, IndexingTarget target)
+      throws IndexRequestFailed {
     Index index = session.createEmptyRegularIndex();
-    IndexTesting.updateIndex(index, session, file);
+    IndexTesting.updateIndex(index, session, target);
     session.getStorage().checkpoint();
     File metadata = new File(getWorkspaceIndexMetadataLocation());
     return session.createRegularIndex(metadata);
   }
 
-  public static void updateIndex(Index index, IndexSession session, IFile file)
+  public static void updateIndex(Index index, IndexSession session, IndexingTarget target)
       throws IndexRequestFailed {
     IndexTransaction transaction = session.createTransaction(index);
-    transaction.indexFile(file);
+    transaction.indexTarget(target);
     transaction.close();
   }
 

@@ -15,8 +15,7 @@ package com.google.dart.indexer.index.configuration;
 
 import com.google.dart.indexer.exceptions.IndexRequestFailed;
 import com.google.dart.indexer.index.updating.FileInfoUpdater;
-
-import org.eclipse.core.resources.IFile;
+import com.google.dart.indexer.workspace.index.IndexingTarget;
 
 import java.util.Map;
 
@@ -39,7 +38,8 @@ public interface Processor {
   public void initialize(ContributorWrapper[] calculators,
       Map<String, Processor> idsToUsedProcessors);
 
-  public void processFile(IFile file, FileInfoUpdater updater) throws IndexRequestFailed;
+  public void processTarget(IndexingTarget target, FileInfoUpdater updater)
+      throws IndexRequestFailed;
 
   /**
    * Notification that the current transaction has ended. This method allows processors to cache
