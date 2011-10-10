@@ -346,19 +346,6 @@ build system.  The PDE build system has to run under Eclipse.
 
         <!-- replace the path based imports with the symbolic ones -->
 
-        <!-- #import('../../html/html.dart'); ==> #import('dart:html'); -->
-        <replace dir="${samples.out.dir}"
-          token="#import('../../html/html.dart');"
-          value="#import('dart:html');">
-          <include name="**/*.dart"/>
-        </replace>
-
-        <replace dir="${samples.out.dir}"
-          token='#import("../../../html/html.dart");'
-          value='#import("dart:html");'>
-          <include name="**/*.dart"/>
-        </replace>
-
         <replace dir="${samples.out.dir}"
           token="#import('../../"
           value="#import('../../libraries/">
@@ -391,12 +378,6 @@ build system.  The PDE build system has to run under Eclipse.
         <copy todir="${libraries.out.dir}/view">
             <fileset dir="${build.source.root}/client/view"/>
         </copy>
-
-        <replace dir="${libraries.out.dir}"
-          token="#import('../html/html.dart');"
-          value="#import('dart:html');">
-          <include name="**/*.dart"/>
-        </replace>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
