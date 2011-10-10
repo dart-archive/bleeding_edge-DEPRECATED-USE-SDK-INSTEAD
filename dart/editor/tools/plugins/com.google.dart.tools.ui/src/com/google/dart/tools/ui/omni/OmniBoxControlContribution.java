@@ -113,6 +113,9 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   //used to track whether text is being modified programmatically (e.g., watermark-setting)
   private boolean listenForTextModify = true;
 
+  //used when we want to advance focus off of the text control (ideally to restore previous)
+  private Control previousFocusControl;
+
   public OmniBoxControlContribution() {
     super(CONTRIB_ID);
   }
@@ -133,6 +136,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   }
 
   public void giveFocus() {
+    previousFocusControl = control.getDisplay().getFocusControl();
     control.setFocus();
     clearWatermark();
   }
@@ -147,7 +151,11 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   }
 
   protected void defocus() {
-    control.getShell().setFocus();
+    if (previousFocusControl != null) {
+      previousFocusControl.setFocus();
+    } else {
+      control.getParent().setFocus();
+    }
   }
 
   protected void handleMouseEnter() {
@@ -274,6 +282,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
       @Override
       public boolean close() {
         setWatermarkText();
+        defocus();
         return super.close();
       }
 
@@ -295,7 +304,10 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
       control.addListener(SWT.Deactivate, new Listener() {
         @Override
         public void handleEvent(Event event) {
-          popup.close();
+          //selecting the scrollbar will deactivate but in that case we don't want to close
+          if (event.display.getFocusControl() != popup.table) {
+            popup.close();
+          }
           control.removeListener(SWT.Deactivate, this);
         }
       });
