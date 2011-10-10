@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.utilities.ast;
 
+import com.google.dart.compiler.ast.DartArrayAccess;
+import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -26,6 +28,7 @@ import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.LibraryElement;
@@ -163,12 +166,43 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
     return foundElement;
   }
 
-  /**
-   * Determine whether the given node is within the specified range.
-   * 
-   * @param node the node being tested
-   * @throws DartElementFoundException if the node matches the target range
-   */
+  @Override
+  public Void visitArrayAccess(DartArrayAccess node) {
+    super.visitArrayAccess(node);
+    if (foundElement == null) {
+      int start = node.getSourceStart();
+      int end = start + node.getSourceLength();
+      if (start <= startOffset && endOffset <= end) {
+        DartExpression target = node.getTarget();
+        wordRegion = new Region(target.getSourceStart() + target.getSourceLength(), end);
+        Element targetSymbol = node.getReferencedElement();
+        findElementFor(targetSymbol);
+        throw new DartElementFoundException();
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitBinaryExpression(DartBinaryExpression node) {
+    super.visitBinaryExpression(node);
+    if (foundElement == null) {
+      int start = node.getSourceStart();
+      int end = start + node.getSourceLength();
+      if (start <= startOffset && endOffset <= end) {
+        DartExpression leftOperand = node.getArg1();
+        DartExpression rightOperand = node.getArg2();
+        wordRegion = computeOperatorRegion(
+            leftOperand.getSourceStart() + leftOperand.getSourceLength(),
+            rightOperand.getSourceStart() - 1);
+        Element targetSymbol = node.getReferencedElement();
+        findElementFor(targetSymbol);
+        throw new DartElementFoundException();
+      }
+    }
+    return null;
+  }
+
   @Override
   public Void visitIdentifier(DartIdentifier node) {
     if (foundElement == null) {
@@ -238,24 +272,7 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
               foundElement = null;
             }
           } else {
-            LibraryElement definingLibraryElement = BindingUtils.getLibrary(targetSymbol);
-            DartLibrary definingLibrary = null;
-            if (definingLibraryElement != null) {
-              definingLibrary = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-                  definingLibraryElement);
-            }
-            if (definingLibrary == null) {
-              definingLibrary = compilationUnit.getLibrary();
-            }
-            foundElement = BindingUtils.getDartElement(definingLibrary, targetSymbol);
-            if (foundElement instanceof SourceReference) {
-              try {
-                SourceRange range = ((SourceReference) foundElement).getNameRange();
-                candidateRegion = new Region(range.getOffset(), range.getLength());
-              } catch (DartModelException exception) {
-                // Ignored
-              }
-            }
+            findElementFor(targetSymbol);
           }
         }
         throw new DartElementFoundException();
@@ -270,12 +287,6 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
     return null;
   }
 
-  /**
-   * Determine whether the given node is a hyperlink candidate based on the start and end offsets.
-   * 
-   * @param node the node being tested
-   * @throws HyperlinkCandidateFoundException
-   */
   @Override
   public Void visitStringLiteral(DartStringLiteral node) {
     if (foundElement == null) {
@@ -283,10 +294,7 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
       int length = node.getSourceLength();
       int end = start + length;
       if (start <= startOffset && end >= endOffset) {
-        // TODO(brianwilkerson) It would be nice to remove the quotes from the highlight range, but
-        // we don't currently have any way to determine whether the string used one quote or three,
-        // or even whether it was a raw string.
-        wordRegion = new Region(start, length);
+        wordRegion = computeInternalStringRegion(start, length);
         DartNode parent = node.getParent();
         if (parent instanceof DartImportDirective
             && ((DartImportDirective) parent).getLibraryUri() == node) {
@@ -342,5 +350,119 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
       }
     }
     return null;
+  }
+
+  @Override
+  public Void visitUnaryExpression(DartUnaryExpression node) {
+    super.visitUnaryExpression(node);
+    if (foundElement == null) {
+      int start = node.getSourceStart();
+      int end = start + node.getSourceLength();
+      if (start <= startOffset && endOffset <= end) {
+        DartExpression operand = node.getArg();
+        wordRegion = computeOperatorRegion(start, operand.getSourceStart() - 1);
+        Element targetSymbol = node.getReferencedElement();
+        findElementFor(targetSymbol);
+        throw new DartElementFoundException();
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Compute a region that represents the portion of the string literal between the opening and
+   * closing quotes.
+   * 
+   * @param nodeStart the index of the first character of the string literal
+   * @param nodeLength the length of the string literal (including quotes)
+   * @return the region that was computed
+   */
+  private IRegion computeInternalStringRegion(int nodeStart, int nodeLength) {
+    int start = nodeStart;
+    int end = nodeStart + nodeLength - 1;
+    try {
+      String source = compilationUnit.getBuffer().getContents();
+      if (source.charAt(start) == '@') {
+        start++;
+      }
+      if (source.charAt(start) == '\'') {
+        while (source.charAt(start) == '\'') {
+          start++;
+        }
+        while (source.charAt(end) == '\'') {
+          end--;
+        }
+      } else {
+        while (source.charAt(start) == '"') {
+          start++;
+        }
+        while (source.charAt(end) == '"') {
+          end--;
+        }
+      }
+    } catch (DartModelException exception) {
+    }
+    if (start >= end) {
+      return new Region(nodeStart, nodeLength);
+    }
+    return new Region(start, end - start + 1);
+  }
+
+  /**
+   * Compute a region representing the portion of the source containing a binary operator.
+   * 
+   * @param left the index of the first character to the right of the left operand
+   * @param right the index of the first character to the left of the right operand
+   * @return the region that was computed
+   */
+  private IRegion computeOperatorRegion(int left, int right) {
+    int start = left;
+    int end = right;
+    try {
+      String source = compilationUnit.getBuffer().getContents();
+      // TODO(brianwilkerson) This doesn't handle comments that occur between left and right, but
+      // should.
+      while (Character.isWhitespace(source.charAt(start))) {
+        start++;
+      }
+      while (Character.isWhitespace(source.charAt(end))) {
+        end--;
+      }
+    } catch (DartModelException exception) {
+    }
+    if (start > end) {
+      return new Region(left, right - left + 1);
+    }
+    return new Region(start, end - start + 1);
+  }
+
+  /**
+   * Given a compiler element representing some portion of the code base, set {@link #foundElement}
+   * to the editor model element that corresponds to it.
+   * 
+   * @param targetSymbol the compiler element representing some portion of the code base
+   */
+  private void findElementFor(Element targetSymbol) {
+    if (targetSymbol == null) {
+      return;
+    }
+    LibraryElement definingLibraryElement = BindingUtils.getLibrary(targetSymbol);
+    DartLibrary definingLibrary = null;
+    if (definingLibraryElement != null) {
+      definingLibrary = BindingUtils.getDartElement(compilationUnit.getLibrary(),
+          definingLibraryElement);
+    }
+    if (definingLibrary == null) {
+      definingLibrary = compilationUnit.getLibrary();
+    }
+    foundElement = BindingUtils.getDartElement(definingLibrary, targetSymbol);
+    if (foundElement instanceof SourceReference) {
+      try {
+        SourceRange range = ((SourceReference) foundElement).getNameRange();
+        candidateRegion = new Region(range.getOffset(), range.getLength());
+      } catch (DartModelException exception) {
+        // Ignored
+      }
+    }
   }
 }
