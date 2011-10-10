@@ -33,6 +33,7 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
@@ -401,6 +402,11 @@ public class BindingUtils {
   public static DartLibrary getDartElement(DartLibrary library, LibraryElement libraryBinding) {
     URI libraryUri = ((DartLibraryImpl) library).getLibrarySourceFile().getUri();
     URI targetUri = libraryBinding.getLibraryUnit().getSource().getUri();
+    URI resolvedTargetUri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(
+        targetUri);
+    if (resolvedTargetUri != null) {
+      targetUri = resolvedTargetUri;
+    }
     HashSet<URI> visitedLibraries = new HashSet<URI>();
     return findLibrary(library, libraryUri, targetUri, visitedLibraries);
     // TODO(brianwilkerson) If we could not find the library it might be because we could not access
