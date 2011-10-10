@@ -89,8 +89,21 @@ build system.  The PDE build system has to run under Eclipse.
         <property name="eclipse.property.file" location="${data.location}/eclipse-platform.properties" />
         <echo message="reading ${eclipse.property.file}" />
         <property file="${eclipse.property.file}" />
+        
+        <!--
+          validate that the default-user.property file exists
+        -->
+        <fail>Error: 
+            ${user.property.file} must exist.
+            <condition>
+                <not>
+                    <available file="${user.property.file}" type="file" />
+                </not>
+            </condition>
+        </fail>
         <echo message="reading ${user.property.file}" />
         <property file="${user.property.file}" />
+        
         <!--
           validate that the default-user.property file exists
         -->
@@ -120,9 +133,9 @@ build system.  The PDE build system has to run under Eclipse.
           validate that ${build.source}/docs/README.txt exists
         -->
         <fail>Error: 
-            It appears that build.source is not pointing to the root of the Dart Eclipse tree.
+            It appears that build.source is not pointing to the "editor" directory in the Dart source tree.
             The build is trying to verify that file ${build.source}/docs/README.txt is a file. 
-            The current value is ${build.source}/dart/bundle/README.txt.
+            The current value of "build.source" is ${build.source}.
             <condition>
                 <not>
                     <available file="${build.source}/docs/README.txt" type="file" />

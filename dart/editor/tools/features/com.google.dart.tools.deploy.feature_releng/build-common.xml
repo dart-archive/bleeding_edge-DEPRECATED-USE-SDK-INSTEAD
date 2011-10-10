@@ -82,6 +82,7 @@
                   dest="${build.downloads}/eclipse.@{eclipse}.@{arch}.tar.gz" 
                   verbose="true" 
                   usetimestamp="true"/>
+            <mkdir dir="@{location}"/>
             <untar src="${build.downloads}/eclipse.@{eclipse}.@{arch}.tar.gz" dest="@{location}" compression="gzip" />
         </sequential>
     </macrodef>
