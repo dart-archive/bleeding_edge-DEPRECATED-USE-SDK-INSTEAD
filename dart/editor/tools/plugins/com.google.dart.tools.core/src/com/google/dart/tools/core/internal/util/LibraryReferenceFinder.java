@@ -199,8 +199,7 @@ public class LibraryReferenceFinder {
         if (srcLocation.endsWith('.' + JavascriptBackend.EXTENSION_APP_JS)) {
           String fileName = extractFileNameFromSrc(srcLocation);
           fileName = fileName.substring(0,
-              fileName.length() - JavascriptBackend.EXTENSION_APP_JS.length())
-              + Extensions.DART; // "app.js".length()
+              fileName.length() - JavascriptBackend.EXTENSION_APP_JS.length() - 1);
           libraryList.add(fileName);
         }
       } else if (scriptType.equals("application/dart")) {

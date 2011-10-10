@@ -171,7 +171,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
    * @return the application file (may not exist)
    */
   public static File getJsAppArtifactFile(IPath sourceLocation) {
-    return sourceLocation.removeFileExtension().addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
+    return sourceLocation.addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
   }
 
   /**
