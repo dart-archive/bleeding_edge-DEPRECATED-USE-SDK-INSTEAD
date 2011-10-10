@@ -26,7 +26,7 @@ class PopupHandler {
       }
       Element target = e.target;
       while (target != null && target != body && target != _activePopup) {
-        target = target.parentElement;
+        target = target.parent;
       }
       if (target != _activePopup) {
         deactivatePopup();

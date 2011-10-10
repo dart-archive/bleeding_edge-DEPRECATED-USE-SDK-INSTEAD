@@ -209,7 +209,7 @@ class InnerMenuView {
   }
 
   void updateSize() {
-    if (_row.parentElement == null) {
+    if (_row.parent == null) {
       return;
     }
 
@@ -241,10 +241,10 @@ class InnerMenuView {
       Element element = _textAlignmentButtons[i];
       if (style.textAlignment == _textAlignmentValues[i]) {
         element.attributes["class"] = "${_textAlignmentClassNames[i]}-selected";
-        element.parentElement.style.setProperty("border", "1px solid black");
+        element.parent.style.setProperty("border", "1px solid black");
       } else {
         element.attributes["class"] = _textAlignmentClassNames[i];
-        element.parentElement.style.removeProperty("border");
+        element.parent.style.removeProperty("border");
       }
     }
 
@@ -318,7 +318,7 @@ class InnerMenuView {
   void _finishHide() {
     _transitionDidComplete = true;
     _unpinHeight(_row);
-    if (_bar.parentElement != null) {
+    if (_bar.parent != null) {
       _bar.remove();
     }
   }
@@ -345,10 +345,10 @@ class InnerMenuView {
   void _selectTextStyle(int index, String className, bool selected) {
     Element element = _textStyleButtons[index];
     if (selected) {
-      element.parentElement.style.setProperty("border", "1px solid black");
+      element.parent.style.setProperty("border", "1px solid black");
       className = "${className}-selected";
     } else {
-      element.parentElement.style.removeProperty("border");
+      element.parent.style.removeProperty("border");
     }
     element.attributes["class"] = className;
   }
@@ -382,10 +382,10 @@ class InnerMenuView {
       if (!selected && className == _textAlignmentClassNames[i]) {
         align = _textAlignmentValues[i];
         div.attributes["class"] = "${className}-selected";
-        div.parentElement.style.setProperty("border", "1px solid black");
+        div.parent.style.setProperty("border", "1px solid black");
       } else {
         _textAlignmentButtons[i].attributes["class"] = _textAlignmentClassNames[i];
-        _textAlignmentButtons[i].parentElement.style.removeProperty("border");
+        _textAlignmentButtons[i].parent.style.removeProperty("border");
       }
     }
 
@@ -402,10 +402,10 @@ class InnerMenuView {
     String className = div.attributes["class"];
     if (className.length == 1) {
       div.attributes["class"] = "${className}-selected";
-      div.parentElement.style.setProperty("border", "1px solid black");
+      div.parent.style.setProperty("border", "1px solid black");
     } else {
       div.attributes["class"] = className.substring(0, 1);
-      div.parentElement.style.removeProperty("border");
+      div.parent.style.removeProperty("border");
     }
 
     int textStyle = 0;
