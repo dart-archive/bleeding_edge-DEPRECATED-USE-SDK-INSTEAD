@@ -9,11 +9,6 @@
             host="html"
             path="html.dart">
       </library>
-      <library
-            name="bootstrap_hacks"
-            host="html"
-            path="bootstrap_hacks.dart">
-      </library>
    </extension>
    
 </plugin>
