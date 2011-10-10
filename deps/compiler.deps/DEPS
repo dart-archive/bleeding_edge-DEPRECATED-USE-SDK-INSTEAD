@@ -5,7 +5,7 @@
 vars = {
   "gyp_rev": "@937",
   "co19_rev": "@1",
-  "co19_repo": "https://co19.googlecode.com/svn/trunk/co19/",
+  "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",
   "dart_branch": "/branches/bleeding_edge/dart",
   "closure_compiler_rev": "@1494", 
 }
