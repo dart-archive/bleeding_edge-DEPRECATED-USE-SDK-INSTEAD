@@ -401,6 +401,11 @@ public class BindingUtils {
    */
   public static DartLibrary getDartElement(DartLibrary library, LibraryElement libraryBinding) {
     URI libraryUri = ((DartLibraryImpl) library).getLibrarySourceFile().getUri();
+    URI resolvedLibraryUri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(
+        libraryUri);
+    if (resolvedLibraryUri != null) {
+      libraryUri = resolvedLibraryUri;
+    }
     URI targetUri = libraryBinding.getLibraryUnit().getSource().getUri();
     URI resolvedTargetUri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(
         targetUri);
@@ -791,6 +796,11 @@ public class BindingUtils {
     try {
       for (DartLibrary importedLibrary : getAllImportedLibraries(library)) {
         URI importedLibraryUri = ((DartLibraryImpl) importedLibrary).getLibrarySourceFile().getUri();
+        URI resolvedImportedLibraryUri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(
+            importedLibraryUri);
+        if (resolvedImportedLibraryUri != null) {
+          importedLibraryUri = resolvedImportedLibraryUri;
+        }
         if (!visitedLibraries.contains(importedLibraryUri)) {
           DartLibrary foundLibrary = findLibrary(importedLibrary, importedLibraryUri, targetUri,
               visitedLibraries);
