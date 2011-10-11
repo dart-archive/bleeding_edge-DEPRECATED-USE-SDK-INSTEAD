@@ -1373,7 +1373,14 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
   }
 
   public void updateTimeStamp(CompilationUnitImpl original) throws DartModelException {
-    long timeStamp = ((IFile) original.getResource()).getModificationStamp();
+    if (original == null) {
+      return;
+    }
+    IFile originalResource = (IFile) original.getResource();
+    if (originalResource == null) {
+      return;
+    }
+    long timeStamp = originalResource.getModificationStamp();
     if (timeStamp == IResource.NULL_STAMP) {
       throw new DartModelException(new DartModelStatusImpl(
           DartModelStatusConstants.INVALID_RESOURCE));
