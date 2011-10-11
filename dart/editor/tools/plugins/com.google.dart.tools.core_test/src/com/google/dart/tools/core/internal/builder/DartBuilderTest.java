@@ -45,10 +45,10 @@ public class DartBuilderTest extends TestCase {
     moneyProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
     sampleProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
 
-    File moneyOutputFile = moneyProject.getLocation().append("money.app.js").toFile();
+    File moneyOutputFile = moneyProject.getLocation().append("money.dart.app.js").toFile();
     assertTrue(moneyOutputFile.length() > 0);
 
-    File sampleOutputFile = sampleProject.getLocation().append("sampler.app.js").toFile();
+    File sampleOutputFile = sampleProject.getLocation().append("sampler.dart.app.js").toFile();
     assertTrue(sampleOutputFile.length() > 0);
   }
 
@@ -56,7 +56,7 @@ public class DartBuilderTest extends TestCase {
     DartProject dartProject = MoneyProjectUtilities.getMoneyProject();
     IProject project = dartProject.getProject();
     project.build(buildKind, null);
-    File outputFile = project.getLocation().append("money.app.js").toFile();
+    File outputFile = project.getLocation().append("money.dart.app.js").toFile();
     long expectedLength = outputFile.length();
     assertTrue(expectedLength > 0);
     for (int i = 0; i < 10; i++) {

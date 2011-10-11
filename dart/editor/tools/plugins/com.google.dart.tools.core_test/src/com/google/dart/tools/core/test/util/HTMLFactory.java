@@ -25,7 +25,7 @@ public final class HTMLFactory {
    */
   public static String allScriptTypes() {
     return "<html><head>" + "<script type=\"application/dart\" src=\"special.dart\"/>"
-        + "<script type=\"text/javascript\" src=\"main.app.js\"/>"
+        + "<script type=\"text/javascript\" src=\"main.dart.app.js\"/>"
         + "<script type=\"text/javascript\" src=\"other.js\"/>"
         + "<script type=\"text/ruby\" src=\"script.rb\"/>" + "</head><body></body></html>";
   }
