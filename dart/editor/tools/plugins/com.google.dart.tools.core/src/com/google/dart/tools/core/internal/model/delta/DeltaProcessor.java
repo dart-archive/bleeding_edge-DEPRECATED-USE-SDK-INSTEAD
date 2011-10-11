@@ -121,16 +121,23 @@ public class DeltaProcessor {
     }
     DartUnit dartUnit = DartCompilerUtilities.parseSource(dartSrc, contents, parseErrors);
     List<DartDirective> directives = dartUnit.getDirectives();
-    Collection<String> sourcesList = new ArrayList<String>();
-    Collection<String> resourcesList = new ArrayList<String>();
-    for (DartDirective directive : directives) {
-      if (directive instanceof DartSourceDirective) {
-        DartSourceDirective foo = (DartSourceDirective) directive;
-        sourcesList.add(foo.getSourceUri().getValue());
-      } else if (directive instanceof DartResourceDirective) {
-        DartResourceDirective foo = (DartResourceDirective) directive;
-        resourcesList.add(foo.getResourceUri().getValue());
+    Collection<String> sourcesList;
+    Collection<String> resourcesList;
+    if (directives != null) {
+      sourcesList = new ArrayList<String>(directives.size() + 1);
+      resourcesList = new ArrayList<String>(directives.size());
+      for (DartDirective directive : directives) {
+        if (directive instanceof DartSourceDirective) {
+          DartSourceDirective foo = (DartSourceDirective) directive;
+          sourcesList.add(foo.getSourceUri().getValue());
+        } else if (directive instanceof DartResourceDirective) {
+          DartResourceDirective foo = (DartResourceDirective) directive;
+          resourcesList.add(foo.getResourceUri().getValue());
+        }
       }
+    } else {
+      sourcesList = new ArrayList<String>(1);
+      resourcesList = new ArrayList<String>(0);
     }
 
     // To match result returned by DartCompiler.analyzeLibrary
