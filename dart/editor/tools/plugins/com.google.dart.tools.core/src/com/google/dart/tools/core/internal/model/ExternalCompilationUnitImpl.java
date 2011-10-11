@@ -24,6 +24,7 @@ import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IResource;
@@ -88,8 +89,7 @@ public class ExternalCompilationUnitImpl extends CompilationUnitImpl {
 
   @Override
   public IPath getPath() {
-    return URIUtil.toPath(SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(
-        source.getUri()));
+    return URIUtil.toPath(URIUtilities.safelyResolveDartUri(source.getUri()));
   }
 
   /**

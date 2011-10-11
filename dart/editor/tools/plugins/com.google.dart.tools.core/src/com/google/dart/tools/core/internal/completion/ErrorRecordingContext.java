@@ -25,6 +25,7 @@ import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -100,8 +101,7 @@ class ErrorRecordingContext implements DartCompilerContext {
     // TODO(brianwilkerson) This should really return configuration.getSystemLibraryFor(...), but
     // that method is currently broken.
     try {
-      return new UrlLibrarySource(
-          SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(new URI(importSpec)));
+      return new UrlLibrarySource(URIUtilities.safelyResolveDartUri(new URI(importSpec)));
     } catch (URISyntaxException exception) {
       return null;
     }

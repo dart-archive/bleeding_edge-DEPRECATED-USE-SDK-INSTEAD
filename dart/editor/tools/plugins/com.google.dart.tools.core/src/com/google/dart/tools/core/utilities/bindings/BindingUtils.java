@@ -33,7 +33,6 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
@@ -45,6 +44,7 @@ import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import org.eclipse.core.resources.IResource;
 
@@ -400,18 +400,8 @@ public class BindingUtils {
    * @return the Dart model element corresponding to the resolved library
    */
   public static DartLibrary getDartElement(DartLibrary library, LibraryElement libraryBinding) {
-    URI libraryUri = ((DartLibraryImpl) library).getLibrarySourceFile().getUri();
-    URI resolvedLibraryUri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(
-        libraryUri);
-    if (resolvedLibraryUri != null) {
-      libraryUri = resolvedLibraryUri;
-    }
-    URI targetUri = libraryBinding.getLibraryUnit().getSource().getUri();
-    URI resolvedTargetUri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(
-        targetUri);
-    if (resolvedTargetUri != null) {
-      targetUri = resolvedTargetUri;
-    }
+    URI libraryUri = URIUtilities.safelyResolveDartUri(((DartLibraryImpl) library).getLibrarySourceFile().getUri());
+    URI targetUri = URIUtilities.safelyResolveDartUri(libraryBinding.getLibraryUnit().getSource().getUri());
     HashSet<URI> visitedLibraries = new HashSet<URI>();
     return findLibrary(library, libraryUri, targetUri, visitedLibraries);
     // TODO(brianwilkerson) If we could not find the library it might be because we could not access
@@ -795,12 +785,7 @@ public class BindingUtils {
     visitedLibraries.add(libraryUri);
     try {
       for (DartLibrary importedLibrary : getAllImportedLibraries(library)) {
-        URI importedLibraryUri = ((DartLibraryImpl) importedLibrary).getLibrarySourceFile().getUri();
-        URI resolvedImportedLibraryUri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(
-            importedLibraryUri);
-        if (resolvedImportedLibraryUri != null) {
-          importedLibraryUri = resolvedImportedLibraryUri;
-        }
+        URI importedLibraryUri = URIUtilities.safelyResolveDartUri(((DartLibraryImpl) importedLibrary).getLibrarySourceFile().getUri());
         if (!visitedLibraries.contains(importedLibraryUri)) {
           DartLibrary foundLibrary = findLibrary(importedLibrary, importedLibraryUri, targetUri,
               visitedLibraries);

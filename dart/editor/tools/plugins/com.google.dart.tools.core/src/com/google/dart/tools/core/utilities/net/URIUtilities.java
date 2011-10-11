@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.utilities.net;
 
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+
 import java.io.File;
 import java.net.URI;
 
@@ -38,6 +40,27 @@ public final class URIUtilities {
       if (path != null) {
         return new File(path).getAbsoluteFile().toURI();
       }
+    }
+    return uri;
+  }
+
+  /**
+   * Attempt to resolve the given URI. Return the resolved URI, or the original URI if the original
+   * URI could not be resolved.
+   * 
+   * @param uri the URI to be resolved
+   * @return the resolved URI
+   */
+  public static URI safelyResolveDartUri(URI uri) {
+    try {
+      URI resolvedUri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(uri);
+      if (resolvedUri != null) {
+        return resolvedUri;
+      }
+      // TODO(devoncarew): we need to track down why the URI is invalid
+      // ex.: dart://core/corelib_impl.dart/corelib_impl.dart
+    } catch (RuntimeException exception) {
+      // Fall through to returned the URI that was provided.
     }
     return uri;
   }

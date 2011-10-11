@@ -15,7 +15,7 @@ package com.google.dart.tools.core.internal.util;
 
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SystemLibraryManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -38,14 +38,8 @@ public class ResourceUtil {
       return null;
     }
     try {
-      URI uri = source.getUri();
-      uri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(uri);
-      if (uri == null) {
-        // TODO(devoncarew): we need to track down why the URI is invalid
-        // ex.: dart://core/corelib_impl.dart/corelib_impl.dart
-        return null;
-      }
-      if (uri.isAbsolute()) {
+      URI uri = URIUtilities.safelyResolveDartUri(source.getUri());
+      if (uri.isAbsolute() && "file".equals(uri.getScheme())) {
         return new File(uri);
       }
       String relativePath = uri.getPath();

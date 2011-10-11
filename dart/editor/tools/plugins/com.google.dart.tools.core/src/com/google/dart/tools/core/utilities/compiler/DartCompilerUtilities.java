@@ -41,6 +41,7 @@ import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IResource;
@@ -793,8 +794,10 @@ public class DartCompilerUtilities {
       return firstUri.getPath().equals(secondUri.getPath());
     } else if (secondScheme == null || !firstScheme.equals(secondScheme)) {
       return false;
-    } else if (SystemLibraryManager.isDartUri(firstUri)) {
-      return manager.resolveDartUri(firstUri).equals(manager.resolveDartUri(secondUri));
+    } else if (SystemLibraryManager.isDartUri(firstUri)
+        || SystemLibraryManager.isDartUri(secondUri)) {
+      return URIUtilities.safelyResolveDartUri(firstUri).equals(
+          URIUtilities.safelyResolveDartUri(secondUri));
     }
     return URIUtil.toPath(firstUri).equals(URIUtil.toPath(secondUri));
   }

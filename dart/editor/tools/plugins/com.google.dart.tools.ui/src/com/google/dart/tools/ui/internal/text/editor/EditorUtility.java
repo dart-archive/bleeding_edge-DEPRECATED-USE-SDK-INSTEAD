@@ -13,10 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -27,6 +25,7 @@ import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
@@ -540,7 +539,6 @@ public class EditorUtility {
   }
 
   private static IEditorInput getEditorInput(DartElement element) throws DartModelException {
-    SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
     while (element != null) {
       if (element instanceof CompilationUnit) {
         CompilationUnit unit = ((CompilationUnit) element).getPrimary();
@@ -550,7 +548,7 @@ public class EditorUtility {
         }
         if (unit instanceof ExternalCompilationUnitImpl) {
           ExternalCompilationUnitImpl cu = (ExternalCompilationUnitImpl) unit;
-          URI uri = libraryManager.resolveDartUri(cu.getUri());
+          URI uri = URIUtilities.safelyResolveDartUri(cu.getUri());
           if (JarEntryStorage.isJarUri(uri)) {
             return new JarEntryEditorInput(new JarEntryStorage(uri));
           }

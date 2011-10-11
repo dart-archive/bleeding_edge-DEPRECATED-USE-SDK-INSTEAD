@@ -13,12 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.problem.CategorizedProblem;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -28,6 +26,7 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.SourceFileElement;
 import com.google.dart.tools.core.problem.Problem;
 import com.google.dart.tools.core.problem.ProblemRequestor;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -1595,10 +1594,9 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       if (uri == null) {
         return null;
       }
-      SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
       for (DartLibrary library : DartModelManager.getInstance().getDartModel().getBundledLibraries()) {
         for (CompilationUnit unit : library.getCompilationUnits()) {
-          URI unitUri = libraryManager.resolveDartUri(unit.getSourceRef().getUri());
+          URI unitUri = URIUtilities.safelyResolveDartUri(unit.getSourceRef().getUri());
           if (uri.equals(unitUri)) {
             return unit;
           }

@@ -31,14 +31,16 @@ public class URIUtilitiesTest extends TestCase {
 
   public void test_URIUtilities_makeAbsolute_relative_fileScheme() throws Exception {
     URI uri = new URI("file", "foo/bar", null);
-    String result = URIUtilities.makeAbsolute(uri).toString();
-    assertTrue(result, result.endsWith("/foo/bar"));
+    URI result = URIUtilities.makeAbsolute(uri);
+    assertNotNull(result);
+    assertTrue(result.toString(), result.toString().endsWith("/foo/bar"));
   }
 
   public void test_URIUtilities_makeAbsolute_relative_fileWithSpace() throws Exception {
     URI uri = new URI("file", "fo o/bar", null);
-    String result = URIUtilities.makeAbsolute(uri).toString();
-    assertTrue(result, result.endsWith("/fo%20o/bar"));
+    URI result = URIUtilities.makeAbsolute(uri);
+    assertNotNull(result);
+    assertTrue(result.toString(), result.toString().endsWith("/fo%20o/bar"));
   }
 
   public void test_URIUtilities_makeAbsolute_relative_nonFileScheme() throws Exception {
@@ -48,7 +50,30 @@ public class URIUtilitiesTest extends TestCase {
 
   public void test_URIUtilities_makeAbsolute_relative_noScheme() throws Exception {
     URI uri = new URI(null, "foo/bar", null);
-    String result = URIUtilities.makeAbsolute(uri).toString();
-    assertTrue(result, result.endsWith("/foo/bar"));
+    URI result = URIUtilities.makeAbsolute(uri);
+    assertNotNull(result);
+    assertTrue(result.toString(), result.toString().endsWith("/foo/bar"));
+  }
+
+  public void test_URIUtilities_safelyResolveDartUri_invalidDart() throws Exception {
+    String path = "core/corelib_impl.dart/corelib_impl.dart";
+    URI uri = new URI("dart", path, null);
+    URI result = URIUtilities.safelyResolveDartUri(uri);
+    assertNotNull(result);
+    assertTrue(result.toString(), result.toString().endsWith(path));
+  }
+
+  public void test_URIUtilities_safelyResolveDartUri_nonDart() throws Exception {
+    URI uri = new URI("file", "relative/path.dart", null);
+    URI result = URIUtilities.safelyResolveDartUri(uri);
+    assertEquals(uri, result);
+  }
+
+  public void test_URIUtilities_safelyResolveDartUri_validDart() throws Exception {
+    String path = "core.lib";
+    URI uri = new URI("dart", path, null);
+    URI result = URIUtilities.safelyResolveDartUri(uri);
+    assertNotNull(result);
+    assertTrue(result.toString(), result.toString().endsWith(path));
   }
 }
