@@ -72,7 +72,7 @@ Enable "Wrap Long Element Tags"
 
 Window->Preferences->General->Editors->Text Editors->Spelling
 Enable spell checking
-Use <DART_TRUNK>/eclipse/docs/english.dictionary".
+Use <DART_TRUNK>/editor/docs/english.dictionary".
 
 ------------ Output Filtering --------------
 
@@ -122,12 +122,12 @@ Click "Configure", and make sure that all actions are disabled except:
 ---------- Code style/formatting ----------
 
 Window->Preferences->Java->Code Style->Formatter->Import...
-  <DART_TRUNK>/eclipse/docs/dart-format.xml
+  <DART_TRUNK>/editor/docs/dart-format.xml
 
 ----------- Import organization -----------
 
 Window->Preferences->Java->Code Style->Organize Imports->Import...
-  <DART_TRUNK>/eclipse/docs/dart.importorder
+  <DART_TRUNK>/editor/docs/dart.importorder
 
 ------------ Member sort order ------------
 
@@ -169,7 +169,7 @@ File -> Import -> General -> Existing Projects into Workspace
 
 Import the existing projects in <DART_TRUNK>/compiler/eclipse.workspace
 
-Import the existing projects in <DART_TRUNK>/eclipse
+Import the existing projects in <DART_TRUNK>/editor
   (including the "docs" project containing this README.txt file)
 
 Import the project in <DART_TRUNK>/third_party/closure_compiler_src
