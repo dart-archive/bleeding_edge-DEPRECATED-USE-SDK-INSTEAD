@@ -1,5 +1,3 @@
-#library('%className%');
-
 #import('dart:dom');
 
 class %className%%extends%%implements% {
