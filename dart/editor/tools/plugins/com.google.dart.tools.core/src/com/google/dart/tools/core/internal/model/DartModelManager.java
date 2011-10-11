@@ -14,7 +14,11 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.ast.DartDirective;
+import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartLibraryDirective;
+import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
@@ -46,6 +50,7 @@ import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
@@ -1445,20 +1450,23 @@ public class DartModelManager {
     Set<File> files = new HashSet<File>();
     files.add(libraryFile);
     URI libraryUri = libraryFile.getParentFile().toURI();
-    for (DartDirective directive : libraryUnit.getDirectives()) {
-      try {
-        URI uri = null;
-        if (directive instanceof DartSourceDirective) {
-          uri = new URI(((DartSourceDirective) directive).getSourceUri().getValue());
-        } else if (directive instanceof DartResourceDirective) {
-          uri = new URI(((DartResourceDirective) directive).getResourceUri().getValue());
+    List<DartDirective> directives = libraryUnit.getDirectives();
+    if (directives != null) {
+      for (DartDirective directive : libraryUnit.getDirectives()) {
+        try {
+          URI uri = null;
+          if (directive instanceof DartSourceDirective) {
+            uri = new URI(((DartSourceDirective) directive).getSourceUri().getValue());
+          } else if (directive instanceof DartResourceDirective) {
+            uri = new URI(((DartResourceDirective) directive).getResourceUri().getValue());
+          }
+          if (uri != null) {
+            uri = URIUtil.makeAbsolute(uri, libraryUri);
+            files.add(new File(uri));
+          }
+        } catch (URISyntaxException exception) {
+          // If we cannot get the URI for the source, ignore it.
         }
-        if (uri != null) {
-          uri = URIUtil.makeAbsolute(uri, libraryUri);
-          files.add(new File(uri));
-        }
-      } catch (URISyntaxException exception) {
-        // If we cannot get the URI for the source, ignore it.
       }
     }
     // add html files
@@ -1546,14 +1554,25 @@ public class DartModelManager {
       return null;
     }
     try {
-      // TODO(brianwilkerson) This used to check for the existence of a #library directive, as per
-      // the Javadoc, but that check was removed for the demo. We need to understand the semantics
-      // for what constitutes a valid library file and add those checks in here. I believe that the
-      // current semantic is that a file is a library file if it contains either a #library
-      // directive or a main method.
+
       DartUnit unit = DartCompilerUtilities.parseSource(file.getName(),
           FileUtilities.getContents(file), null);
-      return unit;
+      List<DartDirective> directives = unit.getDirectives();
+      if (directives != null && directives.size() > 0
+          && directives.get(0) instanceof DartLibraryDirective) {
+        return unit;
+      }
+      // check if there is a main method
+      List<DartNode> topLevelNodes = unit.getTopLevelNodes();
+      for (DartNode node : topLevelNodes) {
+        if (node instanceof DartMethodDefinition) {
+          DartExpression functionName = ((DartMethodDefinition) node).getName();
+          if (((DartIdentifier) functionName).getTargetName().equals(DartFunction.MAIN)) {
+            return unit;
+          }
+        }
+      }
+
     } catch (Exception exception) {
       DartCore.logError("Could not parse a compilation unit to determine whether it is a library",
           exception);

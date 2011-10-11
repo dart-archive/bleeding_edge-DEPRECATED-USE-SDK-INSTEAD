@@ -18,6 +18,12 @@ package com.google.dart.tools.core.model;
  * definition of a function within Dart source code.
  */
 public interface DartFunction extends CompilationUnitElement, ParentElement, SourceReference {
+
+  /**
+   * The function main
+   */
+  public static String MAIN = "main";
+
   /**
    * Return an array containing all of the local variables and parameters defined for this function,
    * or an empty array if this function does not have any local variables or parameters.
