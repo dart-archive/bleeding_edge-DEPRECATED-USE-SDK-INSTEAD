@@ -30,6 +30,9 @@ public final class ActionMessages extends NLS {
   public static String OpenResourceAction_error_title;
   public static String OpenResourceAction_error_message;
 
+  public static String EditAction_label;
+  public static String EditAction_description;
+
   public static String AboutDartAction_about_text;
 
   public static String AboutDartAction_about_tooltip;

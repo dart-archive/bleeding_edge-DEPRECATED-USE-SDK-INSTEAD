@@ -1478,18 +1478,11 @@
                id="com.google.dart.tools.ui.actions.RemoveBlockComment">
          </action>
          <action
-               definitionId="ocom.google.dart.tools.ui.edit.text.java.add.block.comment"
+               definitionId="com.google.dart.tools.ui.edit.text.java.add.block.comment"
                label="%AddBlockCommentAction.label"
                retarget="true"
                menubarPath="com.google.dart.tools.ui.source.menu/commentGroup"
                id="com.google.dart.tools.ui.actions.AddBlockComment">
-         </action>
-         <action
-               definitionId="com.google.dart.tools.ui.edit.text.java.toggle.comment"
-               label="%ToggleCommentAction.label"
-               retarget="true"
-               menubarPath="com.google.dart.tools.ui.source.menu/commentGroup"
-               id="com.google.dart.tools.ui.actions.ToggleComment">
          </action>
       </actionSet>
    </extension>

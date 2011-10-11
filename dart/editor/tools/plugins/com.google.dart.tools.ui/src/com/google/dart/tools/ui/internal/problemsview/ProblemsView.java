@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
  *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.problemsview;
@@ -97,6 +95,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.SelectionProviderAction;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
@@ -110,6 +109,7 @@ import java.util.List;
  * This view is a replacement for the default Problems view. It has much less UI surface area, and
  * actively sorts the problems and warnings so the most import one shows up first in the list.
  */
+@SuppressWarnings("restriction")
 public class ProblemsView extends ViewPart implements MarkersChangeService.MarkerChangeListener {
   static class TypeLabelProvider extends ColumnLabelProvider {
     @Override
@@ -136,9 +136,12 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     public CopyMarkerAction() {
       super(tableViewer, "&Copy");
 
+      setEnabled(false);
       setActionDefinitionId(IWorkbenchCommandConstants.EDIT_COPY);
       setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(
           ISharedImages.IMG_TOOL_COPY));
+      setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(
+          ISharedImages.IMG_TOOL_COPY_DISABLED));
     }
 
     @Override
@@ -164,6 +167,16 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       if (builder.length() > 0) {
         copyToClipboard(builder.toString());
       }
+    }
+
+    @Override
+    public void selectionChanged(ISelection selection) {
+      setEnabled(!selection.isEmpty());
+    }
+
+    @Override
+    public void selectionChanged(IStructuredSelection selection) {
+      setEnabled(!selection.isEmpty());
     }
 
     private void copyToClipboard(String str) {
@@ -412,6 +425,59 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
+  private class GoToMarkerAction extends SelectionProviderAction {
+
+    private static final String GOINTO_RESOURCE_IMG_PATH = "elcl16/gotoobj_tsk.gif"; //$NON-NLS-1$
+    private static final String GOINTO_RESOURCE_DISABLED_IMG_PATH = "dlcl16/gotoobj_tsk.gif"; //$NON-NLS-1$
+
+    public GoToMarkerAction() {
+      super(tableViewer, "Go to");
+      setEnabled(false);
+      setActionDefinitionId(IWorkbenchCommandConstants.NAVIGATE_GO_INTO);
+      setImageDescriptor(IDEWorkbenchPlugin.getIDEImageDescriptor(GOINTO_RESOURCE_IMG_PATH));
+      setDisabledImageDescriptor(IDEWorkbenchPlugin.getIDEImageDescriptor(GOINTO_RESOURCE_DISABLED_IMG_PATH));
+    }
+
+    @Override
+    public void run() {
+      openSelectedMarker();
+    }
+
+    @Override
+    public void selectionChanged(ISelection selection) {
+      setEnabled(!selection.isEmpty());
+    }
+
+    @Override
+    public void selectionChanged(IStructuredSelection selection) {
+      setEnabled(!selection.isEmpty() && selection.size() == 1);
+    }
+  }
+
+  private class SelectAllMarkerAction extends SelectionProviderAction {
+
+    public SelectAllMarkerAction() {
+      super(tableViewer, "Select All");
+      setEnabled(false);
+      setActionDefinitionId(IWorkbenchCommandConstants.EDIT_SELECT_ALL);
+    }
+
+    @Override
+    public void run() {
+      tableViewer.getTable().selectAll();
+    }
+
+    @Override
+    public void selectionChanged(ISelection selection) {
+      setEnabled(!selection.isEmpty());
+    }
+
+    @Override
+    public void selectionChanged(IStructuredSelection selection) {
+      setEnabled(!selection.isEmpty());
+    }
+  }
+
 //  private class ShowInfosAction extends Action {
 //    public ShowInfosAction() {
 //      super("Show todos and informational messages", AS_CHECK_BOX);
@@ -653,6 +719,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   private Clipboard clipboard;
 
   private CopyMarkerAction copyAction;
+  private GoToMarkerAction goToMarkerAction;
+  private SelectAllMarkerAction selectAllMarkerAction;
 
   private Job job;
 
@@ -684,6 +752,15 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
         }
       }
     });
+
+    // Create actions; must be done after the construction of the tableViewer
+    goToMarkerAction = new GoToMarkerAction();
+    copyAction = new CopyMarkerAction();
+    selectAllMarkerAction = new SelectAllMarkerAction();
+
+    tableViewer.addSelectionChangedListener(copyAction);
+    tableViewer.addSelectionChangedListener(goToMarkerAction);
+    tableViewer.addSelectionChangedListener(selectAllMarkerAction);
 
     tableSorter = new TableSorter();
     tableViewer.setComparator(tableSorter);
@@ -744,6 +821,12 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   @Override
   public void dispose() {
+
+    if (selectAllMarkerAction != null) {
+      selectAllMarkerAction.dispose();
+      selectAllMarkerAction = null;
+    }
+
     if (copyAction != null) {
       copyAction.dispose();
       copyAction = null;
@@ -752,6 +835,11 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     if (clipboard != null) {
       clipboard.dispose();
       clipboard = null;
+    }
+
+    if (goToMarkerAction != null) {
+      goToMarkerAction.dispose();
+      goToMarkerAction = null;
     }
 
     MarkersChangeService.getService().removeListener(this);
@@ -993,7 +1081,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       menuManager.add(new Separator());
     }
 
+    menuManager.add(goToMarkerAction);
     menuManager.add(copyAction);
+    menuManager.add(selectAllMarkerAction);
   }
 
   private void focusOn(IWorkbenchPart part, ISelection selection) {
@@ -1058,9 +1148,10 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   }
 
   private void registerContextMenu() {
-    copyAction = new CopyMarkerAction();
 
     getViewSite().getActionBars().setGlobalActionHandler(ActionFactory.COPY.getId(), copyAction);
+    getViewSite().getActionBars().setGlobalActionHandler(ActionFactory.SELECT_ALL.getId(),
+        selectAllMarkerAction);
 
     MenuManager mm = new MenuManager();
     mm.setRemoveAllWhenShown(true);

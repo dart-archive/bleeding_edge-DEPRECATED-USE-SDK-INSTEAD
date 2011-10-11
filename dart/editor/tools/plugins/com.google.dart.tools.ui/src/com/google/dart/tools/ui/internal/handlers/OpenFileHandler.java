@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -19,6 +19,7 @@ import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.internal.actions.WorkbenchRunnableAdapter;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -51,6 +52,9 @@ import java.lang.reflect.InvocationTargetException;
  * application or library containing the selected file.
  */
 public class OpenFileHandler extends AbstractHandler {
+
+  public static final String COMMAND_ID = DartUI.class.getPackage().getName() + ".file.open"; //$NON-NLS-1$
+
   private static final String FILTER_PATH_KEY = "openFileFilterPath"; //$NON-NLS-1$
 
   @Override
@@ -140,7 +144,7 @@ public class OpenFileHandler extends AbstractHandler {
 
   /**
    * Prompt the user to select a file to be opened.
-   * 
+   *
    * @return The absolute path of the selected file or <code>null</code> if the user canceled the
    *         operation.
    */

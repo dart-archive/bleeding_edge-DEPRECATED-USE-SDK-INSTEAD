@@ -33,7 +33,6 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.ProblemsLabelDecorator.ProblemsLabelChangedEvent;
-import com.google.dart.tools.ui.actions.GenerateActionGroup;
 import com.google.dart.tools.ui.internal.actions.AbstractToggleLinkingAction;
 import com.google.dart.tools.ui.internal.libraryview.LibraryExplorerContentProvider;
 import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
@@ -82,8 +81,6 @@ import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.actions.ActionContext;
-import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 import org.eclipse.ui.model.WorkbenchAdapter;
 import org.eclipse.ui.part.IPageSite;
@@ -119,7 +116,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
     /**
      * Constructs a new action.
-     * 
+     *
      * @param outlinePage the Java outline page
      */
     public ToggleLinkingAction(DartOutlinePage outlinePage) {
@@ -144,7 +141,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   /**
    * The tree viewer used for displaying the outline.
-   * 
+   *
    * @see TreeViewer
    */
   protected class DartOutlineViewer extends TreeViewer {
@@ -178,7 +175,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     /**
      * Investigates the given element change event and if affected incrementally updates the Java
      * outline.
-     * 
+     *
      * @param delta the Java element delta used to reconcile the Java outline
      */
     public void reconcile(DartElementDelta delta) {
@@ -794,7 +791,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   //private ToggleLinkingAction fToggleLinkingAction;
 
-  private CompositeActionGroup fActionGroups;
+  //private CompositeActionGroup fActionGroups;
 
   private IPropertyChangeListener fPropertyChangeListener;
 
@@ -888,27 +885,27 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     manager.addMenuListener(new IMenuListener() {
       @Override
       public void menuAboutToShow(IMenuManager m) {
-        contextMenuAboutToShow(m);
+        //contextMenuAboutToShow(m);
       }
     });
     fMenu = manager.createContextMenu(tree);
     tree.setMenu(fMenu);
 
     IPageSite site = getSite();
-    site.registerContextMenu(DartToolsPlugin.getPluginId() + ".outline", manager, fOutlineViewer); //$NON-NLS-1$
+    //site.registerContextMenu(DartToolsPlugin.getPluginId() + ".outline", manager, fOutlineViewer); //$NON-NLS-1$
 
     updateSelectionProvider(site);
 
     // we must create the groups after we have set the selection provider to the
     // site
     DartX.todo();
-    fActionGroups = new CompositeActionGroup(new ActionGroup[] {
+    //fActionGroups = new CompositeActionGroup(new ActionGroup[] {
 //        new OpenViewActionGroup(this), new CCPActionGroup(this),
-    new GenerateActionGroup(this),
+//    new GenerateActionGroup(this),
 //        new RefactorActionGroup(this),
 //        new JavaSearchActionGroup(this)
 //        new DartSearchActionGroup(this)
-        });
+//        });
 
     // register global actions
     IActionBars actionBars = site.getActionBars();
@@ -929,7 +926,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
         ITextEditorActionDefinitionIds.TOGGLE_SHOW_SELECTED_ELEMENT_ONLY, fTogglePresentation);
 
     DartX.todo();
-    fActionGroups.fillActionBars(actionBars);
+    //fActionGroups.fillActionBars(actionBars);
 
     IStatusLineManager statusLineManager = actionBars.getStatusLineManager();
     if (statusLineManager != null) {
@@ -990,9 +987,9 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     }
 
     DartX.todo();
-    if (fActionGroups != null) {
-      fActionGroups.dispose();
-    }
+    //if (fActionGroups != null) {
+    //  fActionGroups.dispose();
+    //}
 
     fTogglePresentation.setEditor(null);
 
@@ -1143,7 +1140,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
   /**
    * Convenience method to add the action installed under the given actionID to the specified group
    * of the menu.
-   * 
+   *
    * @param menu the menu manager
    * @param group the group to which to add the action
    * @param actionID the ID of the new action
@@ -1172,13 +1169,13 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
     IStructuredSelection selection = (IStructuredSelection) getSelection();
     DartX.todo();
-    fActionGroups.setContext(new ActionContext(selection));
-    fActionGroups.fillContextMenu(menu);
+    //fActionGroups.setContext(new ActionContext(selection));
+    //fActionGroups.fillContextMenu(menu);
   }
 
   /**
    * Returns the <code>JavaOutlineViewer</code> of this view.
-   * 
+   *
    * @return the {@link DartOutlineViewer}
    */
   protected final DartOutlineViewer getOutlineViewer() {
@@ -1187,7 +1184,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   /**
    * Returns the <code>IShowInSource</code> for this view.
-   * 
+   *
    * @return the {@link IShowInSource}
    */
   protected IShowInSource getShowInSource() {
@@ -1201,7 +1198,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   /**
    * Returns the <code>IShowInTarget</code> for this view.
-   * 
+   *
    * @return the {@link IShowInTarget}
    */
   protected IShowInTarget getShowInTarget() {
@@ -1228,7 +1225,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   /**
    * Returns whether only the contents of the top level type is to be shown.
-   * 
+   *
    * @return <code>true</code> if only the contents of the top level type is to be shown.
    */
   protected final boolean isTopLevelTypeOnly() {
@@ -1264,7 +1261,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   /**
    * Checks whether a given Java element is an inner type.
-   * 
+   *
    * @param element the java element
    * @return <code>true</code> iff the given element is an inner type
    */
@@ -1313,7 +1310,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
   }
 
   /*
-	 * 
+	 *
 	 */
   private void updateSelectionProvider(IPageSite site) {
     ISelectionProvider provider = fOutlineViewer;

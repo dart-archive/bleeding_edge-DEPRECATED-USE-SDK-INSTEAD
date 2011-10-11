@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -50,7 +50,7 @@ import org.eclipse.ui.handlers.IHandlerService;
  * The {@link CompositeActionGroup} for the {@link LibraryExplorerPart}. This action group brings
  * together actions and action groups contribute actions such as New, Cut, Copy, Paste, Delete,
  * Collapse All, and Link With Editor to the Libraries Explorer View.;
- * 
+ *
  * @see CompositeActionGroup
  * @see LibraryExplorerPart
  */
@@ -117,11 +117,6 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
     // Toggle Linking
     toggleLinkingAction = new ToggleLinkingAction(part);
     toggleLinkingAction.setActionDefinitionId(IWorkbenchCommandConstants.NAVIGATE_TOGGLE_LINK_WITH_EDITOR);
-
-    // TODO: Doc this
-    //registerActions(part.getSite());
-
-//    selectAllAction = new SelectAllAction(fPart.getTreeViewer());
   }
 
   @Override
@@ -139,7 +134,7 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
     ISelection selection = getContext().getSelection();
 
     if (selection.isEmpty() || !(selection instanceof IStructuredSelection)) {
-      // Nothing selected - go with Open File and Open Application
+      // Nothing selected - go with New File, New Application, and Open File
       menu.add(newFileWizardAction);
       menu.add(newApplicationWizardAction);
       menu.add(new Separator());
@@ -175,19 +170,19 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
 
     if (element instanceof CompilationUnit) {
       // .dart file
-      menu.add(navigateActionGroup.getOpenAction());
+      menu.add(navigateActionGroup.getEditAction());
       return;
     }
 
     if (element instanceof HTMLFile) {
-      menu.add(navigateActionGroup.getOpenAction());
+      menu.add(navigateActionGroup.getEditAction());
       menu.add(new Separator());
       menu.add(runInBrowserAction);
       return;
     }
 
     if (element instanceof DartResource) {
-      menu.add(navigateActionGroup.getOpenAction());
+      menu.add(navigateActionGroup.getEditAction());
       return;
     }
   }
@@ -202,7 +197,7 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
     Object element = selection.getFirstElement();
     if (viewer.isExpandable(element)) {
 
-      IAction openAction = navigateActionGroup.getOpenAction();
+      IAction openAction = navigateActionGroup.getEditAction();
       if (openAction != null && openAction.isEnabled()
           && OpenStrategy.getOpenMethod() == OpenStrategy.DOUBLE_CLICK) {
         return;
@@ -227,12 +222,12 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
 
   /**
    * Called by Library Explorer.
-   * 
+   *
    * @param event the open event
    * @param activate <code>true</code> if the opened editor should be activated
    */
   void handleOpen(ISelection event, boolean activate) {
-    IAction openAction = navigateActionGroup.getOpenAction();
+    IAction openAction = navigateActionGroup.getEditAction();
     if (openAction != null && openAction.isEnabled()) {
       openAction.run();
       return;

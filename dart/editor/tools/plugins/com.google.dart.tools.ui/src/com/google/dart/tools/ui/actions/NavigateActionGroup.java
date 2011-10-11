@@ -34,7 +34,7 @@ import org.eclipse.ui.actions.ActionGroup;
  * <p>
  * The OpenViewActionGroup has been commented out but not deleted, in case we want the action group
  * in the future.
- * 
+ *
  * @noextend This class is not intended to be subclassed by clients.
  */
 public final class NavigateActionGroup extends ActionGroup {
@@ -47,7 +47,7 @@ public final class NavigateActionGroup extends ActionGroup {
    * Creates a new <code>NavigateActionGroup</code>. The group requires that the selection provided
    * by the part's selection provider is of type
    * {@link org.eclipse.jface.viewers.IStructuredSelection}.
-   * 
+   *
    * @param part the view part that owns this action group
    */
   public NavigateActionGroup(IViewPart part) {
@@ -58,7 +58,7 @@ public final class NavigateActionGroup extends ActionGroup {
   /**
    * Creates a new <code>NavigateActionGroup</code>. The group requires that the selection provided
    * by the given selection provider is of type {@link IStructuredSelection}.
-   * 
+   *
    * @param site the site that will own the action group.
    * @param specialSelectionProvider the selection provider used instead of the sites selection
    *          provider.
@@ -91,12 +91,15 @@ public final class NavigateActionGroup extends ActionGroup {
   }
 
   /**
-   * Returns the open action managed by this action group.
-   * 
-   * @return the open action. Returns <code>null</code> if the group doesn't provide any open action
+   * Returns the edit action managed by this action group.
+   *
+   * @return the edit action. Returns <code>null</code> if the group doesn't provide any edit action
    */
-  public IAction getOpenAction() {
-    return openEditorActionGroup.getOpenAction();
+  public IAction getEditAction() {
+    IAction editAction = openEditorActionGroup.getOpenAction();
+    editAction.setText(ActionMessages.EditAction_label);
+    editAction.setDescription(ActionMessages.EditAction_description);
+    return editAction;
   }
 
   @Override

@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
@@ -87,7 +88,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
    * Get a location relative to the active workbench window for presenting the omnibox popup. This
    * service is required outside the control in case the omnibox is invoked by a command (e.g.,
    * keybinding).
-   * 
+   *
    * @param window the host window
    * @return the location to root the popup
    */
@@ -184,6 +185,8 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   private Text createTextControl(Composite parent) {
     Text text = new Text(parent, SEARCH_BOX_STYLE_BITS);
     text.setToolTipText(OmniBoxMessages.OmniBoxControlContribution_control_tooltip);
+    // Disables the default context menu for native SWT text boxes
+    text.setMenu(new Menu(parent));
     return text;
   }
 
@@ -323,7 +326,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
     control.setForeground(control.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
   }
 
-  //set text without notifying listeners 
+  //set text without notifying listeners
   private void silentSetControlText(String txt) {
     listenForTextModify = false;
     control.setText(txt);

@@ -52,8 +52,8 @@ public class CompilationUnitEditorActionContributor extends
 
     fToggleInsertModeAction.setActionDefinitionId(ITextEditorActionDefinitionIds.TOGGLE_INSERT_MODE);
 
-    fToggleCommentAction = new RetargetTextEditorAction(b, "ToggleComment.", //$NON-NLS-1$
-        IJavaEditorActionDefinitionIds.TOGGLE_COMMENT);
+    fToggleCommentAction = new RetargetTextEditorAction(b, "ToggleComment."); //$NON-NLS-1$
+    fToggleCommentAction.setActionDefinitionId(IJavaEditorActionDefinitionIds.TOGGLE_COMMENT);
 
     if (_showOffset) {
       fOffsetStatusField = new StatusLineContributionItem(

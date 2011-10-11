@@ -23,5 +23,8 @@ public class HandlerMessages extends NLS {
     NLS.initializeMessages(BUNDLE_NAME, HandlerMessages.class);
   }
 
+  public static String OpenFile_label;
+  public static String OpenFile_description;
   public static String OpenFile_taskName;
+
 }
