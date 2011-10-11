@@ -305,14 +305,19 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      */
     @Override
     public boolean visit(DartMethodDefinition node, DartContext ctx) {
-      DartExpression functionName = node.getName();
-      DartFunctionImpl functionImpl = new DartFunctionImpl(compilationUnit, functionName == null
-          ? null : ((DartIdentifier) functionName).getTargetName());
+      DartExpression functionNameNode = node.getName();
+      String functionName = functionNameNode == null ? null
+          : ((DartIdentifier) functionNameNode).getTargetName();
+      if (com.google.dart.tools.core.model.DartFunction.MAIN.equals(functionName)) {
+        definesLibrary = true;
+      }
+      DartFunctionImpl functionImpl = new DartFunctionImpl(compilationUnit, functionName);
       DartFunctionInfo functionInfo = new DartFunctionInfo();
       int start = node.getSourceStart();
       functionInfo.setSourceRangeStart(start);
       functionInfo.setSourceRangeEnd(start + node.getSourceLength() - 1);
-      functionInfo.setNameRange(functionName == null ? null : new SourceRangeImpl(functionName));
+      functionInfo.setNameRange(functionNameNode == null ? null : new SourceRangeImpl(
+          functionNameNode));
       functionInfo.setReturnTypeName(extractTypeName(node.getFunction().getReturnTypeNode(), false));
 
       List<DartElementImpl> functionChildren = getParameters(functionImpl, node.getFunction());
