@@ -449,6 +449,16 @@ public class DartCore extends Plugin {
   }
 
   /**
+   * Log the given exception as one representing an informational message.
+   * 
+   * @param message an explanation of why the error occurred or what it means
+   * @param exception the exception being logged
+   */
+  public static void logInformation(String message, Throwable exception) {
+    getPlugin().getLog().log(new Status(Status.INFO, PLUGIN_ID, message, exception));
+  }
+
+  /**
    * This method exists as a convenient marker for methods that have not yet been fully implemented.
    * It should be deleted before this product ships.
    */

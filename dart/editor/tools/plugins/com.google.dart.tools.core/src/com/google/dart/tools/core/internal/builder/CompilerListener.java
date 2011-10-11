@@ -16,8 +16,10 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.core.internal.util.Util;
+import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartModelException;
 
 import static com.google.dart.tools.core.internal.builder.BuilderUtil.createErrorMarker;
 import static com.google.dart.tools.core.internal.builder.BuilderUtil.createWarningMarker;
@@ -30,11 +32,26 @@ import org.eclipse.core.resources.IResource;
  * errors and translating them into {@link IResource} markers.
  */
 class CompilerListener extends DartCompilerListener {
+  /**
+   * The number of times that we have logged a message about compilation errors that were reported
+   * for which we could not associate a source file and were forced to associate the marker with the
+   * top-level library.
+   */
   private static int missingSourceCount = 0;
+
+  /**
+   * The top-level library containing the code being compiled.
+   */
+  private DartLibrary library;
+
+  /**
+   * The project associated with the library.
+   */
   private final IProject project;
 
-  CompilerListener(IProject project) {
+  CompilerListener(DartLibrary library, IProject project) {
     this.project = project;
+    this.library = library;
   }
 
   @Override
@@ -63,15 +80,26 @@ class CompilerListener extends DartCompilerListener {
     if (res == null) {
       // Don't flood the log
       missingSourceCount++;
-      if (missingSourceCount <= 5) {
-        RuntimeException ex = new RuntimeException("No source associated with compilation error ("
-            + missingSourceCount + "): " + error.getMessage());
-        Util.log(ex, ex.getMessage());
-        // TODO (danrubel): generalize the logging mechanism for all plugins,
-        // include code to prevent log flooding
-        // include message in log indicating that further messages will not be logged
+      if (missingSourceCount == 5) {
+        RuntimeException exception = new RuntimeException(
+            "No source associated with compilation error (" + missingSourceCount
+                + ", final warning): " + error.getMessage());
+        DartCore.logInformation(exception.getMessage(), exception);
+      } else if (missingSourceCount < 5) {
+        RuntimeException exception = new RuntimeException(
+            "No source associated with compilation error (" + missingSourceCount + "): "
+                + error.getMessage());
+        DartCore.logInformation(exception.getMessage(), exception);
+        // TODO (danrubel): generalize the logging mechanism for all plugins
       }
-      res = project;
+      try {
+        res = library.getDefiningCompilationUnit().getCorrespondingResource();
+      } catch (DartModelException exception) {
+        // Fall through to use the project as a resource
+      }
+      if (res == null) {
+        res = project;
+      }
     }
     return res;
   }

@@ -29,7 +29,6 @@ import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -42,7 +41,6 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
 import static com.google.dart.tools.core.internal.builder.BuilderUtil.clearErrorMarkers;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -234,13 +232,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
    * @param monitor the progress monitor (not <code>null</code>)
    */
   protected void buildLibrary(DartLibrary lib, final IProgressMonitor monitor) {
-    if (!(lib instanceof DartLibraryImpl)) {
-      lib = new DartLibraryImpl((DartProjectImpl) lib.getDartProject(),
-          (IFile) ((DartLibraryImpl) lib).getCorrespondingResource());
-    }
-
     DartLibraryImpl libImpl = (DartLibraryImpl) lib;
-
     try {
       // # compilation units * # phases (3) 
       //     + fudge factor for bundled library such as core and dom (# classes * 3 phases)
@@ -293,7 +285,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
           return true;
         }
       };
-      final CompilerListener listener = new CompilerListener(getProject());
+      final CompilerListener listener = new CompilerListener(lib, getProject());
 
       //Try:
       //1. Have the compiler build the Library
@@ -308,6 +300,9 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
       emitArtifactDetailsToConsole(libImpl);
 
+      // TODO(brianwilkerson) Figure out how to get the library units out of the compiler so that
+      // they can be used to drive the indexer.
+      // queueFilesForIndexer(...);
     } catch (Throwable exception) {
 //      createErrorMarker(getProject(), 0, 0, 0, exception.getMessage());
       Util.log(exception, "Exception while building " + lib.getElementName());
@@ -379,4 +374,22 @@ public class DartBuilder extends IncrementalProjectBuilder {
     });
     return shouldBuild[0];
   }
+
+//  private void queueFilesForIndexer(Collection<LibraryUnit> libraries) {
+//    ArrayList<IndexingTarget> targets = new ArrayList<IndexingTarget>();
+//    for (LibraryUnit libraryUnit : libraries) {
+//      DartLibrary library = null; //DartModelManager.getInstance().getLibraryWithUri(libraryUnit.getSource().getUri());
+//      if (library != null) {
+//        // TODO(brianwilkerson) Remove the enclosing test once the indexer is no longer tied to
+//        // resources.
+//        for (DartUnit unit : libraryUnit.getUnits()) {
+//          if (!unit.isDiet()) {
+//            CompilationUnit compilationUnit = library.getCompilationUnit(unit.getSourceName());
+//            targets.add(new CompilationUnitIndexingTarget(compilationUnit, unit));
+//          }
+//        }
+//      }
+//    }
+//    StandardDriver.getInstance().enqueueTargets(targets.toArray(new IndexingTarget[targets.size()]));
+//  }
 }
