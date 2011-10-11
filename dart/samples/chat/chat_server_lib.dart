@@ -6,18 +6,45 @@
 #import("http.dart");
 #import("../../client/json/dart_json.dart");
 
+typedef void RequestHandler(HTTPRequest request, HTTPResponse response);
+
+class ChatServer extends IsolatedServer {
+  ChatServer() : super() {
+    addHandler("/",
+               (HTTPRequest request, HTTPResponse response) 
+               => redirectPageHandler(request, response, "dart_client/index.html"));
+    addHandler("/js_client/index.html",
+               (HTTPRequest request, HTTPResponse response) => fileHandler(request, response));
+    addHandler("/js_client/code.js",
+               (HTTPRequest request, HTTPResponse response) => fileHandler(request, response));
+    addHandler("/dart_client/index.html",
+               (HTTPRequest request, HTTPResponse response) => fileHandler(request, response));
+    addHandler("/out/dart_client/chat.dart.app.js",
+               (HTTPRequest request, HTTPResponse response) => fileHandler(request, response));
+    addHandler("/favicon.ico",
+               (HTTPRequest request, HTTPResponse response)
+               => fileHandler(request, response, "static/favicon.ico"));
+
+    addHandler("/join", _joinHandler);
+    addHandler("/leave", _leaveHandler);
+    addHandler("/message", _messageHandler);
+    addHandler("/receive", _receiveHandler);
+  }
+}
 
 class ServerMain {
-  ServerMain.start()
+  ServerMain.start(IsolatedServer server, String hostAddress, int tcpPort)
       : _statusPort = new ReceivePort(),
         _serverPort = null {
-    new ChatServer().spawn().then((SendPort port) {
+    server.spawn().then((SendPort port) {
       _serverPort = port;
-      start();
+      _start(hostAddress, tcpPort);
     });
+    // We can only guess this is the right URL. At least it gives a hint to the user.
+    print('Server started http://${hostAddress}:${tcpPort}/');
   }
 
-  void start() {
+  void _start(String hostAddress, int tcpPort) {
     // Handle status messages from the server.
     _statusPort.receive(
         void _(var message, SendPort replyTo) {
@@ -26,9 +53,9 @@ class ServerMain {
         });
 
     // Send server start message to the server.
-    var command = new ChatServerCommand.start(ChatServer.DEFAULT_HOST,
-                                              ChatServer.DEFAULT_PORT,
-                                              true);
+    var command = new ChatServerCommand.start(hostAddress,
+                                              tcpPort,
+                                              false);
     _serverPort.send(command, _statusPort.toSendPort());
   }
 
@@ -213,9 +240,9 @@ class ChatServerCommand {
   static final START = 0;
   static final STOP = 1;
 
-  ChatServerCommand.start([String this._host = ChatServer.DEFAULT_HOST,
-                           int this._port = ChatServer.DEFAULT_PORT,
-                           bool this._logging = false])
+  ChatServerCommand.start(String this._host,
+                          int this._port,
+                          bool this._logging)
       : _command = START;
   ChatServerCommand.stop() : _command = STOP;
 
@@ -273,9 +300,7 @@ class ChatServerStatus {
 }
 
 
-class ChatServer extends Isolate {
-  static final DEFAULT_PORT = 8123;
-  static final DEFAULT_HOST = "127.0.0.1";
+class IsolatedServer extends Isolate {
   static final String redirectPageHtml = """
 <html>
 <head><title>Welcome to the dart server</title></head>
@@ -295,25 +320,28 @@ class ChatServer extends Isolate {
     response.writeDone();
   }
 
-  // The front page just redirects to index.html.
-  void _frontPageHandler(HTTPRequest request, HTTPResponse response) {
+  IsolatedServer() : super() {
+    _requestHandlers = new Map();
+  }
+
+  void redirectPageHandler(HTTPRequest request, HTTPResponse response, String redirectPath) {
     if (_redirectPage == null) {
       _redirectPage = redirectPageHtml.charCodes();
     }
     response.statusCode = HTTPStatus.FOUND;
     response.setHeader(
-        "Location", "http://$_host:$_port/dart_client/index.html");
+        "Location", "http://$_host:$_port/${redirectPath}");
     response.contentLength = _redirectPage.length;
     response.writeList(_redirectPage, 0, _redirectPage.length);
     response.writeDone();
   }
 
   // Serve the content of a file.
-  void _fileHandler(
+  void fileHandler(
       HTTPRequest request, HTTPResponse response, [String fileName = null]) {
     final int BUFFER_SIZE = 4096;
     if (fileName == null) {
-      fileName = request.path.substringToEnd(1);
+      fileName = request.path.substring(1);
     }
     File file = new File(fileName, false);
     if (file != null) {
@@ -323,7 +351,8 @@ class ChatServer extends Isolate {
       String mimeType = "text/html; charset=UTF-8";
       int lastDot = fileName.lastIndexOf(".", fileName.length);
       if (lastDot != -1) {
-        String extension = fileName.substringToEnd(lastDot);
+        String extension = fileName.substring(lastDot);
+        if (extension == ".css") { mimeType = "text/css"; }
         if (extension == ".js") { mimeType = "application/javascript"; }
         if (extension == ".ico") { mimeType = "image/vnd.microsoft.icon"; }
       }
@@ -513,46 +542,16 @@ class ChatServer extends Isolate {
     request.dataEnd = dataEndHandler;
   }
 
+  void addHandler(String path, void handler(HTTPRequest request, HTTPResponse response)) {
+    _requestHandlers[path] = handler;
+  }
+
   void main() {
     _logRequests = false;
     _topic = new Topic();
     _serverStart = new Date.now();
     _messageCount = 0;
     _messageRate = new Rate();
-
-    // Setup request handlers.
-    _requestHandlers = new Map();
-    _requestHandlers["/"] =
-        (HTTPRequest request, HTTPResponse response) =>
-           _frontPageHandler(request, response);
-    _requestHandlers["/js_client/index.html"] =
-        (HTTPRequest request, HTTPResponse response) =>
-           _fileHandler(request, response);
-    _requestHandlers["/js_client/code.js"] =
-        (HTTPRequest request, HTTPResponse response) =>
-           _fileHandler(request, response);
-    _requestHandlers["/dart_client/index.html"] =
-        (HTTPRequest request, HTTPResponse response) =>
-           _fileHandler(request, response);
-    _requestHandlers["/out/dart_client/chat.dart.app.js"] =
-        (HTTPRequest request, HTTPResponse response) =>
-           _fileHandler(request, response);
-    _requestHandlers["/favicon.ico"] =
-        (HTTPRequest request, HTTPResponse response) =>
-        _fileHandler(request, response, "static/favicon.ico");
-
-    _requestHandlers["/join"] =
-        (HTTPRequest request, HTTPResponse response) =>
-           _joinHandler(request, response);
-    _requestHandlers["/leave"] =
-        (HTTPRequest request, HTTPResponse response) =>
-           _leaveHandler(request, response);
-    _requestHandlers["/message"] =
-        (HTTPRequest request, HTTPResponse response) =>
-           _messageHandler(request, response);
-    _requestHandlers["/receive"] =
-        (HTTPRequest request, HTTPResponse response) =>
-           _receiveHandler(request, response);
 
     // Start a timer for cleanup events.
     _cleanupTimer =
@@ -589,12 +588,16 @@ class ChatServer extends Isolate {
             }
           } else if (message.isStop) {
             replyTo.send(new ChatServerStatus.stopping(), null);
-            _cleanupTimer.cancel();
-            _server.close();
-            this.port.close();
+            stop();
             replyTo.send(new ChatServerStatus.stopped(), null);
           }
         });
+  }
+
+  stop() {
+    _server.close();
+    _cleanupTimer.cancel();
+    this.port.close();
   }
 
   void _requestReceivedHandler(HTTPRequest request, HTTPResponse response) {
@@ -615,6 +618,7 @@ class ChatServer extends Isolate {
     if (requestHandler != null) {
       requestHandler(request, response);
     } else {
+      print('No request handler found for ${request.path}');
       _notFoundHandler(request, response);
     }
   }
