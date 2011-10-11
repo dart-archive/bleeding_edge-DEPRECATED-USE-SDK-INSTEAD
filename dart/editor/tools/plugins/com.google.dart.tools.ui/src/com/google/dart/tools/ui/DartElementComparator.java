@@ -75,7 +75,7 @@ public class DartElementComparator extends ViewerComparator {
    * Constructor.
    */
   public DartElementComparator() {
-    super(null); // delay initialization of collator
+    super(String.CASE_INSENSITIVE_ORDER);
     DartX.todo("functions, factories");
     fMemberOrderCache = DartToolsPlugin.getDefault().getMemberOrderPreferenceCache();
   }
@@ -207,7 +207,15 @@ public class DartElementComparator extends ViewerComparator {
 
   private String getElementName(Object element) {
     if (element instanceof DartElement) {
-      return ((DartElement) element).getElementName();
+      String name = ((DartElement) element).getElementName();
+
+      // Remove the private identifier from elements for comparison purposes. Otherwise all the 
+      // private classes sort before all the public ones.
+      if (name.startsWith("_")) {
+        return name.substring(1);
+      }
+
+      return name;
 //    } else if (element instanceof PackageFragmentRootContainer) {
 //      return ((PackageFragmentRootContainer) element).getLabel();
     } else {
