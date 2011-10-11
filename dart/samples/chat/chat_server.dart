@@ -6,15 +6,12 @@
 #import("chat_server_lib.dart");
 
 
-final DEFAULT_PORT = 8123;
-final DEFAULT_HOST = "127.0.0.1";
-
 void main() {
   // For profiling stopping after some time is convenient. Set
   // stopAfter for that.
   int stopAfter;
 
-  ServerMain serverMain = new ServerMain.start(new ChatServer(), DEFAULT_HOST, DEFAULT_PORT);
+  ServerMain serverMain = new ServerMain.start();
 
   // Start a shutdown timer if requested.
   if (stopAfter != null) {
