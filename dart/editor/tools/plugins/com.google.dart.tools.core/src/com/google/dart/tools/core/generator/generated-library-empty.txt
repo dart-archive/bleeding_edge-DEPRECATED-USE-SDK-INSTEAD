@@ -1,9 +1,0 @@
-library {
-  import = [
-    "dart:dom.lib"
-  ]
-  source = [
-  ]
-  resource = [
-  ]
-}
