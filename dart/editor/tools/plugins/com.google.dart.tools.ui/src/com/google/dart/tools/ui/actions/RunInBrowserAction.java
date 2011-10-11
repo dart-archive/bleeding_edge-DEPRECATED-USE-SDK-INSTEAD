@@ -40,6 +40,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPartListener;
@@ -187,9 +188,20 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
       }
 
       if (file != null) {
+        boolean isSaveNeeded = isSaveAllNeeded(page);
+
+        if (isSaveNeeded) {
+          if (!saveDirtyEditors(page)) {
+            // The user cancelled the launch.
+            return;
+          }
+        }
+
         RunInBrowserJob job = new RunInBrowserJob(page, file);
 
-        job.schedule();
+        // If we saved any files, delay for a bit to allow the builder to fire off a build.
+        // Once the builder starts, we will automatically wait for it to complete before launching.
+        job.schedule(isSaveNeeded ? 100 : 0);
       }
     } catch (DartModelException e) {
       ExceptionHandler.handle(e, window.getShell(), ActionMessages.OpenInBrowserAction_title,
@@ -310,6 +322,21 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
 
   private boolean isHtmlFile(IResource resource) {
     return resource instanceof IFile && resource.getName().endsWith(".html");
+  }
+
+  private boolean isSaveAllNeeded(IWorkbenchPage page) {
+    IEditorReference[] editors = page.getEditorReferences();
+    for (int i = 0; i < editors.length; i++) {
+      IEditorReference ed = editors[i];
+      if (ed.isDirty()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean saveDirtyEditors(IWorkbenchPage page) {
+    return page.saveAllEditors(false);
   }
 
 }
