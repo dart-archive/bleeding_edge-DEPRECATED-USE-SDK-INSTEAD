@@ -19,6 +19,7 @@ import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.NavigateActionGroup;
+import com.google.dart.tools.ui.actions.OpenExternalFileDialogAction;
 import com.google.dart.tools.ui.actions.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.RunInBrowserAction;
@@ -75,6 +76,8 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
 
   private OpenNewApplicationWizardAction newApplicationWizardAction;
 
+  private OpenExternalFileDialogAction openFileAction;
+
   public LibraryExplorerActionGroup(LibraryExplorerPart part) {
     //super();
     this.part = part;
@@ -99,9 +102,11 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
 
     newFileWizardAction = new OpenNewFileWizardAction();
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
+    openFileAction = new OpenExternalFileDialogAction(part.getSite().getWorkbenchWindow());
 
     runInBrowserAction = new RunInBrowserAction(part.getSite().getWorkbenchWindow());
     closeLibraryAction = new CloseLibraryAction(part.getSite().getWorkbenchWindow());
+    closeLibraryAction.setText(LibraryExplorerMessages.LibraryExplorer_close_library_action);
 
     // Global View Actions
 
@@ -137,6 +142,8 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
       // Nothing selected - go with Open File and Open Application
       menu.add(newFileWizardAction);
       menu.add(newApplicationWizardAction);
+      menu.add(new Separator());
+      menu.add(openFileAction);
       return;
     }
 
