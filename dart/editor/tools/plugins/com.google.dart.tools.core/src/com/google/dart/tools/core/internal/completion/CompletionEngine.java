@@ -959,7 +959,10 @@ public class CompletionEngine {
     if (TypeKind.of(type) == TypeKind.VOID || TypeKind.of(type) == TypeKind.DYNAMIC) {
       if (target instanceof DartIdentifier) {
         Element element = ((DartIdentifier) target).getTargetSymbol();
-        type = element.getType();
+        if (element != null) {
+          // TODO Remove after verifying correct AST
+          type = element.getType();
+        }
       }
     }
     return type;
