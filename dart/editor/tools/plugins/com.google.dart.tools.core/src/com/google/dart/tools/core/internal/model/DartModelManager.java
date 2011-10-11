@@ -91,6 +91,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The unique instance of the class <code>DartModelManager</code> is used to manage the elements in
@@ -1440,8 +1441,8 @@ public class DartModelManager {
     return new DefaultScope();
   }
 
-  private List<File> getFilesForLibrary(File libraryFile, DartUnit libraryUnit) {
-    List<File> files = new ArrayList<File>();
+  private Set<File> getFilesForLibrary(File libraryFile, DartUnit libraryUnit) {
+    Set<File> files = new HashSet<File>();
     files.add(libraryFile);
     URI libraryUri = libraryFile.getParentFile().toURI();
     for (DartDirective directive : libraryUnit.getDirectives()) {

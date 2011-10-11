@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.ast.DartLibraryDirective;
+import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.internal.compiler.TestDartSource;
@@ -23,6 +24,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartResource;
+import com.google.dart.tools.core.test.util.FileOperation;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
@@ -35,7 +37,7 @@ import org.eclipse.core.runtime.Path;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.List;
+import java.util.Set;
 
 public class DartModelManagerTest extends TestCase {
   public void test_DartModelManager_getBaseLibraryName_directive() throws Exception {
@@ -61,12 +63,35 @@ public class DartModelManagerTest extends TestCase {
     File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
         new Path("test_data/Geometry/geometry.dart")).toFile();
     DartUnit libraryUnit = parseLibraryFile(libraryFile);
-    List<File> fileList = getFilesForLibrary(libraryFile, libraryUnit);
-    assertNotNull(fileList);
-    assertEquals(3, fileList.size());
-    assertContainsFile(libraryFile, fileList);
-    assertContainsFile(new File(libraryFile.getParentFile(), "point.dart"), fileList);
-    assertContainsFile(new File(libraryFile.getParentFile(), "license.txt"), fileList);
+    Set<File> fileSet = getFilesForLibrary(libraryFile, libraryUnit);
+    assertNotNull(fileSet);
+    assertEquals(3, fileSet.size());
+    assertContainsFile(libraryFile, fileSet);
+    assertContainsFile(new File(libraryFile.getParentFile(), "point.dart"), fileSet);
+    assertContainsFile(new File(libraryFile.getParentFile(), "license.txt"), fileSet);
+  }
+
+  public void test_DartModelManager_getFilesForLibrary_duplicate() throws Exception {
+    final String libraryFileName = "duplicates.dart";
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDirectory) throws Exception {
+        File libraryFile = new File(tempDirectory, libraryFileName);
+        String secondFileName = "source.dart";
+        String thirdFileName = "unique.dart";
+        DartUnit libraryUnit = new DartUnit(new TestDartSource(libraryFileName, ""));
+        libraryUnit.addDirective(new DartSourceDirective(DartStringLiteral.get(libraryFileName)));
+        libraryUnit.addDirective(new DartSourceDirective(DartStringLiteral.get(secondFileName)));
+        libraryUnit.addDirective(new DartSourceDirective(DartStringLiteral.get(secondFileName)));
+        libraryUnit.addDirective(new DartSourceDirective(DartStringLiteral.get(thirdFileName)));
+        Set<File> fileSet = getFilesForLibrary(libraryFile, libraryUnit);
+        assertNotNull(fileSet);
+        assertEquals(3, fileSet.size());
+        assertContainsFile(libraryFile, fileSet);
+        assertContainsFile(new File(tempDirectory, secondFileName), fileSet);
+        assertContainsFile(new File(tempDirectory, thirdFileName), fileSet);
+      }
+    });
   }
 
   public void test_DartModelManager_getInstance() {
@@ -187,13 +212,13 @@ public class DartModelManagerTest extends TestCase {
   }
 
   /**
-   * Assert that the given list of files contains the given file.
+   * Assert that the given set of files contains the given file.
    * 
    * @param expectedFile the file that is expected to be in the list
-   * @param fileList the list of files being tested
+   * @param fileSet the set of files being tested
    */
-  private void assertContainsFile(File expectedFile, List<File> fileList) {
-    for (File file : fileList) {
+  private void assertContainsFile(File expectedFile, Set<File> fileSet) {
+    for (File file : fileSet) {
       if (file.equals(expectedFile)) {
         return;
       }
@@ -244,12 +269,12 @@ public class DartModelManagerTest extends TestCase {
    * @throws Exception if the method could not be executed or itself throws an exception
    */
   @SuppressWarnings("unchecked")
-  private List<File> getFilesForLibrary(File libraryFile, DartUnit libraryUnit) throws Exception {
+  private Set<File> getFilesForLibrary(File libraryFile, DartUnit libraryUnit) throws Exception {
     DartModelManager manager = DartModelManager.getInstance();
     Method method = DartModelManager.class.getDeclaredMethod("getFilesForLibrary", File.class,
         DartUnit.class);
     method.setAccessible(true);
-    return (List<File>) method.invoke(manager, libraryFile, libraryUnit);
+    return (Set<File>) method.invoke(manager, libraryFile, libraryUnit);
   }
 
   /**
