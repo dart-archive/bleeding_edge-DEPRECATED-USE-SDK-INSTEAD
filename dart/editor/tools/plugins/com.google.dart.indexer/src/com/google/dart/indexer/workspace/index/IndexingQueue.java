@@ -55,9 +55,9 @@ public class IndexingQueue {
       incrementCounters();
     }
 
-    public IProject getProject() {
-      return project;
-    }
+//    public IProject getProject() {
+//      return project;
+//    }
 
     public boolean isEmpty() {
       return queuedFiles == 0 && prioritizationRequestCount == 0;

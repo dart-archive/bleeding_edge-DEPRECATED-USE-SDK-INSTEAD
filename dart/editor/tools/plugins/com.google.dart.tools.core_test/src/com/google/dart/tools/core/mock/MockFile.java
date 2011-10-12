@@ -26,7 +26,7 @@ import java.io.Reader;
 import java.io.StringBufferInputStream;
 import java.net.URI;
 
-@SuppressWarnings({"unchecked", "deprecation"})
+@SuppressWarnings("deprecation")
 public class MockFile extends MockResource implements IFile {
   private String contents = "";
 

@@ -54,14 +54,13 @@ public class CompilationUnitChange extends TextFileChange {
     setTextType("java"); //$NON-NLS-1$
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  @SuppressWarnings("rawtypes")
   @Override
   public Object getAdapter(Class adapter) {
     if (CompilationUnit.class.equals(adapter)) {
       return fCUnit;
     }
+
     return super.getAdapter(adapter);
   }
 

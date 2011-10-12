@@ -42,12 +42,9 @@ public final class MultiStateCompilationUnitChange extends MultiStateTextFileCha
     setTextType("java"); //$NON-NLS-1$
   }
 
-  /*
-   * @see org.eclipse.ltk.core.refactoring.Change#getAdapter(java.lang.Class)
-   */
+  @SuppressWarnings("rawtypes")
   @Override
   public final Object getAdapter(final Class adapter) {
-
     if (CompilationUnit.class.equals(adapter)) {
       return fUnit;
     }

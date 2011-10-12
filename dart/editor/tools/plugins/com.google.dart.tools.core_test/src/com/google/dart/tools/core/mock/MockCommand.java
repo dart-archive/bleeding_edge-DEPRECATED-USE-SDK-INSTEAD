@@ -23,6 +23,7 @@ public class MockCommand implements ICommand {
   private String builderName;
   private boolean[] building = new boolean[16];
 
+  @SuppressWarnings("unchecked")
   @Override
   public Map getArguments() {
     return args;

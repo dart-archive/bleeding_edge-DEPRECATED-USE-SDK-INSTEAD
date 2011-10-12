@@ -78,7 +78,7 @@ public class InMemoryFileSystem extends FileSystem {
   public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) {
     name += ".";
     synchronized (MEMORY_FILES) {
-      for (int i = 0;; i++) {
+      while (true) {
         String n = name + (RandomUtils.getSecureLong() >>> 1) + suffix;
         if (!exists(n)) {
           getObjectFile(n);

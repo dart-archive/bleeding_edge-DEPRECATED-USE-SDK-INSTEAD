@@ -98,10 +98,6 @@ public class CompilationUnitImpl2Test extends TestCase {
     getCompUnit("testsource/OperatorTest.dart");
   }
 
-  public void test_CompilationUnitImpl_getSource_Pacman() throws Exception {
-    getCompUnit("testsource/Pacman.dart");
-  }
-
   public void test_CompilationUnitImpl_getSource_SpreadArgumentTest() throws Exception {
     getCompUnit("testsource/SpreadArgumentTest.dart");
   }

@@ -187,9 +187,8 @@ public class MockResource implements IResource {
     return null;
   }
 
-  @SuppressWarnings("rawtypes")
   @Override
-  public Map getPersistentProperties() throws CoreException {
+  public Map<QualifiedName, String> getPersistentProperties() throws CoreException {
     return null;
   }
 
@@ -226,9 +225,8 @@ public class MockResource implements IResource {
     return null;
   }
 
-  @SuppressWarnings("rawtypes")
   @Override
-  public Map getSessionProperties() throws CoreException {
+  public Map<QualifiedName, Object> getSessionProperties() throws CoreException {
     return null;
   }
 

@@ -109,6 +109,7 @@ public class DartProjectImplTest extends TestCase {
    * @return the result of executing the method
    * @throws Exception if the method could not be executed or itself throws an exception
    */
+  @SuppressWarnings("unchecked")
   private List<String> getChildPaths(DartProjectImpl impl, DartProjectInfo info) throws Exception {
     Method method = DartProjectImpl.class.getDeclaredMethod("getChildPaths", DartProjectInfo.class);
     method.setAccessible(true);

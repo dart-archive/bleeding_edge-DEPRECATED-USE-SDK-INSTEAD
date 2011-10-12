@@ -686,6 +686,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   /**
    * Adds the keyboard navigation submenu to the specified menu.
    */
+  @SuppressWarnings("unused")
   private void addKeyboardShortcuts(MenuManager menu) {
     MenuManager subMenu = new MenuManager(IDEWorkbenchMessages.Workbench_shortcuts, "shortcuts"); //$NON-NLS-1$
     menu.add(subMenu);
