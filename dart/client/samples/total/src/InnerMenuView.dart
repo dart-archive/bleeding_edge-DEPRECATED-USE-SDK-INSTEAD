@@ -92,8 +92,8 @@ class InnerMenuView {
     return _row;
   }
 
-  /* 
-   * Constructs and shows an InnerMenu. Use hide() to make it dissapear
+  /**
+   * Constructs and shows an InnerMenu. Use hide() to make it disappear
    * It will automatically hide if the row becomes detached from its table
    * (e.g. due to scrolling).
    */
@@ -210,6 +210,8 @@ class InnerMenuView {
 
   void updateSize() {
     if (_row.parent == null) {
+      // The row we were attached to has disappeared (e.g., by scrolling), so clean up the menu bar
+      _bar.remove();
       return;
     }
 

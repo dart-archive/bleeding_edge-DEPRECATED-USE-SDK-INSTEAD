@@ -1659,7 +1659,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   void _updateInnerMenu() {
     if (_activeInnerMenu != null) {
-        _activeInnerMenu.updateSize();
+      _activeInnerMenu.updateSize();
     }
   }
 
