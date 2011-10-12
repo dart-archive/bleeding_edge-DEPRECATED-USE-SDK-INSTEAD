@@ -1,0 +1,60 @@
+#!/usr/bin/env python2.6
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import optparse
+import os
+import subprocess
+import sys
+
+ROOT=os.path.abspath(
+  os.path.join(os.path.dirname(sys.argv[0]), '../../../'))
+def rootPath(*args):
+  return os.path.join(ROOT, *args)
+
+HERE = rootPath('samples/total')
+def herePath(*args):
+  return os.path.join(HERE, *args)
+
+sys.path.append(rootPath('tools'))
+import utils
+
+def GetOutputPath(mode):
+  return rootPath(
+    'runtime',
+    utils.GetBuildRoot(utils.GuessOS(), mode, utils.GuessArchitecture()),
+    'dart_bin')
+
+def BuildDart(mode):
+  if subprocess.call([
+      '../tools/build.py',
+      '--mode=%s' % mode],
+      cwd = rootPath('runtime')) != 0:
+    return False
+  if subprocess.call([
+      '../tools/build.py',
+      '--mode=%s' % mode],
+      cwd = rootPath('compiler')) != 0:
+    return False
+  return True
+
+def RunTotal(mode):
+  subprocess.call(
+    [GetOutputPath(mode), 'TotalRunner.dart'],
+    cwd = herePath('src'))
+
+if __name__ == '__main__':
+  parser = optparse.OptionParser()
+  parser.add_option('--no-build',
+    dest = 'build',
+    action = 'store_false',
+    default = True,
+    help = 'Skip reubilding of dart')
+  parser.add_option('--mode',
+    dest = 'mode',
+    default = "release",
+    help = 'Mode to use when building dependencies (release or debug)')
+  options, args = parser.parse_args()
+  if not options.build or BuildDart(options.mode):
+    RunTotal(options.mode)
