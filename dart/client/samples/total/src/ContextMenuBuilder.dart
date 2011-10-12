@@ -164,7 +164,8 @@ class ContextMenuBuilder {
     Document doc = window.document;
 
     CanvasElement graphCanvas = doc.createElement("canvas");
-    graphCanvas.id = "graphCanvas";
+    graphCanvas.id = "graphCanvas-${_spreadsheet.name}";
+    graphCanvas.attributes["class"] = "graphCanvas";
     graphCanvas.classes.add("graphCanvas");
     graphCanvas.classes.add("fadeOut");
     graphCanvas.width = 600;
@@ -176,7 +177,8 @@ class ContextMenuBuilder {
     doc.body.nodes.add(graphCanvas);
 
     DivElement chartDiv = doc.createElement("div");
-    chartDiv.id = "chartDiv";
+    chartDiv.id = "chartDiv-{$_spreadsheet.name}";
+    chartDiv.attributes["class"] = "chartDiv";
     chartDiv.classes.add("chartDiv");
     chartDiv.classes.add("fadeOut");
     chartDiv.style.setProperty("width", HtmlUtils.toPx(600));

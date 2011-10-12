@@ -15,7 +15,8 @@ class HtmlTable {
   DivElement get formulaCellSelectingDiv() {
     if (_formulaCellSelectingDiv == null) {
       _formulaCellSelectingDiv = _table.document.createElement("div");
-      _formulaCellSelectingDiv.id = "formulaSelectingCell";
+      _formulaCellSelectingDiv.id = "formulaSelectingCell-${_spreadsheet.name}";
+      _formulaCellSelectingDiv.attributes["class"] = "formulaSelectingCell";
     }
     _table.nodes.add(_formulaCellSelectingDiv);
     return _formulaCellSelectingDiv;

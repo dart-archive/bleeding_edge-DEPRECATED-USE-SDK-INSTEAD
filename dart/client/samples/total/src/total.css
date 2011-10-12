@@ -30,7 +30,7 @@ body {
   -webkit-box-align: center;
   -webkit-box-pack: justify;
   -webkit-box-shadow: 0 5px 5px rgba(0, 0, 0, 0.4);
-  height: 33px;
+  height: 33px; /* CssStyles.SANDBAR_HEIGHT */
   background: #332;
   padding-right: 10px;
 }
@@ -62,9 +62,9 @@ body {
 /* ObjectBar */
 #objectbar {
   position: absolute;
-  top: 33px;
+  top: 33px; /* CssStyles.SANDBAR_HEIGHT */
   left: 0;
-  width: 32px;
+  width: 32px; /* CssStyles.OBJECTBAR_WIDTH */
   bottom: 0;
   z-index: 1001;
   background: #443;
@@ -122,7 +122,7 @@ div.objectcall {
   position: absolute;
   background: #000;
   right: 0;
-  left: 32px;
+  left: 32px; /* CssStyles.OBJECTBAR_WIDTH */
   bottom: 0;
   padding-left: 20px;
   z-index: 999;
@@ -135,11 +135,11 @@ div.objectcall {
   padding-top: 5px;
 }
 
-#spreadsheet {
+.spreadsheetContainer {
   position: absolute;
   background: #fff;
-  top: 33px;
-  left: 32px;
+  top: 33px; /* CssStyles.SANDBAR_HEIGHT */
+  left: 32px; /* CssStyles.OBJECTBAR_WIDTH */
   right: 0;
   /* TODO: Make zero when debugbar is repositioned. */
   bottom: 0;
@@ -147,30 +147,30 @@ div.objectcall {
   /* TODO: Should be able to remove eventually */
   overflow: auto;
 }
-#spreadsheet::-webkit-scrollbar,
-#tableScrollContainer::-webkit-scrollbar {
+.spreadsheetContainer::-webkit-scrollbar,
+.tableScrollContainer::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
-#spreadsheet::-webkit-scrollbar-button:start:decrement,
-#spreadsheet::-webkit-scrollbar-button:end:increment,
-#tableScrollContainer::-webkit-scrollbar-button:start:decrement,
-#tableScrollContainer::-webkit-scrollbar-button:end:increment {
+.spreadsheetContainer::-webkit-scrollbar-button:start:decrement,
+.spreadsheetContainer::-webkit-scrollbar-button:end:increment,
+.tableScrollContainer::-webkit-scrollbar-button:start:decrement,
+.tableScrollContainer::-webkit-scrollbar-button:end:increment {
   height: 4px;
   width: 4px;
   display: block;
   background-color: transparent;
 }
-#spreadsheet::-webkit-scrollbar-track-piece,
-#tableScrollContainer::-webkit-scrollbar-track-piece {
+.spreadsheetContainer::-webkit-scrollbar-track-piece,
+.tableScrollContainer::-webkit-scrollbar-track-piece {
   background-color: #ccc;
   -webkit-border-radius: 4px;
   border: 1px solid #fff;
 }
-#spreadsheet::-webkit-scrollbar-thumb:vertical,
-#spreadsheet::-webkit-scrollbar-thumb:horizontal,
-#tableScrollContainer::-webkit-scrollbar-thumb:vertical,
-#tableScrollContainer::-webkit-scrollbar-thumb:horizontal {
+.spreadsheetContainer::-webkit-scrollbar-thumb:vertical,
+.spreadsheetContainer::-webkit-scrollbar-thumb:horizontal,
+.tableScrollContainer::-webkit-scrollbar-thumb:vertical,
+.tableScrollContainer::-webkit-scrollbar-thumb:horizontal {
   background-color: #666;
   -webkit-border-radius: 4px;
   border: 1px solid #fff;
@@ -185,12 +185,12 @@ div.objectcall {
   pointer-events: none;
   display: none;
 }
-#columnDragger {
+.columnDragger {
   margin-left: -2px;
   width: 3px;
   height: 100%;
 }
-#rowDragger {
+.rowDragger {
   margin-top: -2px;
   height: 3px;
   width: 100%;
@@ -200,7 +200,7 @@ div.objectcall {
   background: #cccccc;
   border-top: 1px solid #bbbbbb;
 }
-#selection {
+.selection {
   position: absolute;
   border: 1px solid #6ef;
   background-color: rgba(102, 238, 255, 0.3);
@@ -209,7 +209,7 @@ div.objectcall {
   margin-top: -2px;
   pointer-events: none;
 }
-#selection-thumb {
+.selection-thumb {
   position: absolute;
   width: 3px;
   height: 3px;
@@ -219,18 +219,18 @@ div.objectcall {
   right: -2px;
   background-color: #fff;
 }
-#rowHandle {
+.rowHandle {
   display: -webkit-box;
   position: absolute;
   z-index: 3;
 }
-#columnHandle {
+.columnHandle {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   position: absolute;
   z-index: 3;
 }
-#formulaDiv {
+.formulaDiv {
   position: absolute;
   border: 0px;
   padding: 0px;
@@ -240,7 +240,7 @@ div.objectcall {
   margin-bottom: 0px;
 }
 /* Use the same text style for the following two rules */
-#formulaInput {
+.formulaInput {
   border: 0px;
   padding: 0px;
   margin-left: 0px;
@@ -248,13 +248,13 @@ div.objectcall {
   margin-top: 0px;
   margin-bottom: 0px;
 }
-#formulaInputMeasure {
+.formulaInputMeasure {
   position: absolute;
   width: auto;
   height: auto;
   visibility: hidden;
 }
-#formulaSelectingCell {
+.formulaSelectingCell {
   position: absolute;
   border: 2px dashed #109618;
   z-index: 3;
@@ -271,6 +271,7 @@ table.spreadsheet {
   -webkit-user-select: none;
   table-layout: fixed;
   cursor: cell;
+  border: 1px solid black;
 }
 table.spreadsheet td, table.spreadsheet th {
   border: 1px solid #d6d6d6;
@@ -601,6 +602,15 @@ div.chartDiv {
   top: 100px;
   border: 2px solid black;
   background-color: white;
+}
+/* Spreadsheet move handle */
+.moveDragger {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 2px solid gray;
+  cursor: move;
+  z-index: 3;
 }
 /* Spreadsheet resize handle */
 .resizeDragger {

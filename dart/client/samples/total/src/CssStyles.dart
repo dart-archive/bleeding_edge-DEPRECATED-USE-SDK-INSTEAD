@@ -24,8 +24,14 @@ class CssStyles {
   // Smallest allowable height for a row
   static final int MIN_ROW_HEIGHT = 25; // px
 
+  // Width of the object bar on the left side of the page
+  static final int OBJECTBAR_WIDTH = 32; // px
+
   // Width of the row headers to the left of the spreadsheet
   static final int ROW_HEADER_WIDTH = 50; // px
+
+  // Height of the sandbar on the top of the page
+  static final int SANDBAR_HEIGHT = 33; // px
 
   // Scrollbar width
   static final int SCROLLBAR_WIDTH = 10; // px

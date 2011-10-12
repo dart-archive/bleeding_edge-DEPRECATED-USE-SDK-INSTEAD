@@ -62,6 +62,7 @@ class Spreadsheet {
   SpreadsheetListener _listener;
   int _maxCol;
   int _maxRow;
+  String _name;
   bool _rowColumnCountsDirty;
 
   // A map from row indices to the default style for new cells in that row.
@@ -88,6 +89,10 @@ class Spreadsheet {
     return _layout;
   }
 
+  String get name() {
+    return _name;
+  }
+
   UndoStack get undoStack() {
     return _undoStack;
   }
@@ -97,6 +102,8 @@ class Spreadsheet {
       _idGenerator = new IdGenerator();
     }
     _id = _idGenerator.next();
+    // Provide a default name for the sheet
+    _name = "#${_id}";
     _layout = new SpreadsheetLayout();
     _undoStack = new UndoStack();
     _alwaysRecalculateCells = new Set<RowCol>();
@@ -104,6 +111,12 @@ class Spreadsheet {
     _dirtyCells = new Set<RowCol>();
     _columnStyles = new Map<int, RowColStyle>();
     _rowStyles = new Map<int, RowColStyle>();
+  }
+
+  factory Spreadsheet.name(String name) {
+    Spreadsheet s = new Spreadsheet();
+    s._name = name;
+    return s;
   }
 
   // Public API

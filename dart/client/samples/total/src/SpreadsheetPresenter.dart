@@ -74,6 +74,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   bool _innerMenuShown;
 
   EventListener _move;
+  Element _moveDragger;
   PopupHandler _popupHandler;
   Element _resizeDragger;
   int _rowShift;
@@ -126,14 +127,16 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
     // Create UI elements
     _spreadsheetElement = doc.createElement("div");
-    _spreadsheetElement.id = "spreadsheet";
+    _spreadsheetElement.id = "spreadsheet-${_spreadsheet.name}";
+    _spreadsheetElement.attributes["class"] = "spreadsheetContainer";
     doc.body.nodes.add(_spreadsheetElement);
 
     _tableScrollContainer = doc.createElement("div");
-    _tableScrollContainer.id = "tableScrollContainer";
+    _tableScrollContainer.id = "tableScrollContainer-${_spreadsheet.name}";
     _tableScrollContainer.attributes["class"] = "tableScrollContainer";
     _spreadsheetElement.nodes.add(_tableScrollContainer);
 
+    _createMoveDragger(doc);
     _createResizeDragger(doc);
     _createTable(doc);
 
@@ -575,16 +578,18 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   void _createFormulaInput(Document doc) {
     _formulaDiv = doc.createElement("div");
-    _formulaDiv.id = "formulaDiv";
-    _formulaDiv.attributes["class"] = "fadeOut";
+    _formulaDiv.id = "formulaDiv-${_spreadsheet.name}";
+    _formulaDiv.attributes["class"] = "formulaDiv fadeOut";
     _spreadsheetElement.nodes.add(_formulaDiv);
 
     _formulaInput = doc.createElement("input");
-    _formulaInput.id = "formulaInput";
+    _formulaInput.id = "formulaInput-${_spreadsheet.name}";
+    _formulaInput.attributes["class"] = "formulaInput";
     _formulaDiv.nodes.add(_formulaInput);
 
     _formulaInputMeasure = doc.createElement("div");
-    _formulaInputMeasure.id = "formulaInputMeasure";
+    _formulaInputMeasure.id = "formulaInputMeasure-${_spreadsheet.name}";
+    _formulaInputMeasure.attributes["class"] = "formulaInputMeasure";
     _spreadsheetElement.nodes.add(_formulaInputMeasure);
 
     _formulaInput.on.click.add((MouseEvent e) {
@@ -651,9 +656,42 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     });
   }
 
+  void _createMoveDragger(Document doc) {
+    _moveDragger = doc.createElement("div");
+    _moveDragger.id = "moveDragger-${_spreadsheet.name}";
+    _moveDragger.attributes["class"] = "moveDragger";
+    _moveDragger.style.setProperty("left", HtmlUtils.toPx(0));
+    _moveDragger.style.setProperty("top", HtmlUtils.toPx(0));
+    _spreadsheetElement.nodes.add(_moveDragger);
+
+    _moveDragger.on.mouseDown.add((MouseEvent e) {
+      int mouseStartX = e.x;
+      int mouseStartY = e.y;
+      ClientRect rect = _spreadsheetElement.getBoundingClientRect();
+      int startX = rect.left;
+      int startY = rect.top;
+      _window.document.body.style.setProperty("cursor", "move");
+
+      _setDragFunction((MouseEvent e) {
+        int x = startX + e.x - mouseStartX;
+        int y = startY + e.y - mouseStartY;
+
+        x = Math.max(x, CssStyles.OBJECTBAR_WIDTH);
+        y = Math.max(y, CssStyles.SANDBAR_HEIGHT);
+        // Move the spreadsheet container
+        _spreadsheetElement.style.setProperty("left", HtmlUtils.toPx(x));
+        _spreadsheetElement.style.setProperty("top", HtmlUtils.toPx(y));
+      });
+
+      _setUndragFunction((MouseEvent e) {
+        _window.document.body.style.setProperty("cursor", "auto");
+      });
+    });
+  }
+
   void _createResizeDragger(Document doc) {
     _resizeDragger = doc.createElement("div");
-    _resizeDragger.id = "resizeDragger";
+    _resizeDragger.id = "resizeDragger-${_spreadsheet.name}";
     _resizeDragger.attributes["class"] = "resizeDragger";
     _spreadsheetElement.nodes.add(_resizeDragger);
 
@@ -717,12 +755,12 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   // Initialize the HTML elements used to indicate dragging
   void _createSpreadsheetLayout(Document doc) {
     DivElement columnDraggerElement = doc.createElement("div");
-    columnDraggerElement.attributes["class"] = "rowColDragger";
-    columnDraggerElement.id = "columnDragger";
+    columnDraggerElement.id = "columnDragger-${_spreadsheet.name}";
+    columnDraggerElement.attributes["class"] = "columnDragger rowColDragger";
 
     DivElement rowDraggerElement = doc.createElement("div");
-    rowDraggerElement.attributes["class"] = "rowColDragger";
-    rowDraggerElement.id = "rowDragger";
+    rowDraggerElement.id = "rowDragger-${_spreadsheet.name}";
+    rowDraggerElement.attributes["class"] = "rowDragger rowColDragger";
 
     _spreadsheetElement.nodes.add(columnDraggerElement);
     _spreadsheetElement.nodes.add(rowDraggerElement);
@@ -748,7 +786,8 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
     // Inner div
     _tableScrollDiv = doc.createElement("div");
-    _tableScrollDiv.id = "tableScrollDiv";
+    _tableScrollDiv.id = "tableScrollDiv-${_spreadsheet.name}";
+    _tableScrollDiv.attributes["class"] = "tableScrollDiv";
     _tableScrollContainer.style.setProperty("left", "0px");
     _tableScrollContainer.style.setProperty("top", "0px");
     _tableScrollContainer.nodes.add(_tableScrollDiv);
