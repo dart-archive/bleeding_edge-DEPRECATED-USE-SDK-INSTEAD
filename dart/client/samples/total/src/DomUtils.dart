@@ -10,9 +10,7 @@ class DomUtils {
   /**
    * Returns an element's absolute bottom coordinate in the document's coordinate system.
    */
-  static int getAbsoluteBottom(Element elem) {
-    return getAbsoluteTop(elem) + elem.offsetHeight;
-  }
+  static int getAbsoluteBottom(Element elem) => getAbsoluteTop(elem) + elem.offsetHeight;
 
   /**
    * Returns an element's absolute left coordinate in the document's coordinate system.
@@ -34,9 +32,7 @@ class DomUtils {
   /**
    * Returns an element's absolute right coordinate in the document's coordinate system.
    */
-  static int getAbsoluteRight(Element elem) {
-    return getAbsoluteLeft(elem) + elem.offsetWidth;
-  }
+  static int getAbsoluteRight(Element elem) => getAbsoluteLeft(elem) + elem.offsetWidth;
 
   /**
    * Returns an element's absolute top coordinate in the document's coordinate system.

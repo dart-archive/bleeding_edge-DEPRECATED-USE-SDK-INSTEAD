@@ -12,9 +12,7 @@ class FormulaException implements TotalException {
   // when Dart supports optional args, message will be optional
   const FormulaException(String this._message);
 
-  String toString() {
-    return _message;
-  }
+  String toString() => _message;
 }
 
 class BadFormulaException extends FormulaException {
@@ -55,7 +53,5 @@ class RuntimeException implements TotalException {
   // when Dart supports optional args, message will be optional
   const RuntimeException(String this._message);
 
-  String toString() {
-    return _message;
-  }
+  String toString() => _message;
 }

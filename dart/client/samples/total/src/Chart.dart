@@ -19,25 +19,19 @@ class Chart {
   String _title;
   int _width;
 
-  int get height() {
-    return _height;
-  }
+  int get height() => _height;
 
   void set height(int height) {
     _height = height;
   }
 
-  String get title() {
-    return _title;
-  }
+  String get title() => _title;
 
   void set title(String title) {
     _title = title;
   }
 
-  int get width() {
-    return _width;
-  }
+  int get width() => _width;
 
   void set width(int width) {
     _width = width;

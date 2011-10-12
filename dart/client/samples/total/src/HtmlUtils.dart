@@ -6,9 +6,7 @@ class HtmlUtils {
 
   // Strips the 'px' (pixels) suffix from a string CSS value and parses the
   // result as an integer.
-  static int fromPx(String px) {
-    return Math.parseInt(px.substring(0, px.length - 2));
-  }
+  static int fromPx(String px) => Math.parseInt(px.substring(0, px.length - 2));
 
   // Workaround until String.replaceAll is functional
   static String quoteHtml(String s) {
@@ -47,7 +45,5 @@ class HtmlUtils {
   }
 
   // Appends 'px' (pixels) to an integer for use in CSS values.
-  static String toPx(int length) {
-    return "${length}px";
-  }
+  static String toPx(int length) => "${length}px";
 }

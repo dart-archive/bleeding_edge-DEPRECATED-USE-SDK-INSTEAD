@@ -23,9 +23,7 @@ class HtmlTable {
   }
 
   // FIXME
-  ElementEvents get on() {
-    return _table.on;
-  }
+  ElementEvents get on() => _table.on;
 
   HtmlTable(this._spreadsheet, Element parent) {
     Document doc = parent.document;
@@ -77,14 +75,10 @@ class HtmlTable {
     _table.deleteRow(index);
   }
 
-  ClientRect getBoundingClientRect() {
-    return _table.getBoundingClientRect();
-  }
+  ClientRect getBoundingClientRect() => _table.getBoundingClientRect();
 
   // FIXME?
-  TableRowElement getRowElement(int row) {
-    return _table.rows[row];
-  }
+  TableRowElement getRowElement(int row) => _table.rows[row];
 
   // Add or remove a class name from a table cell.
   void modifyClasses(Set<CellLocation> locations, String className, bool add,
@@ -104,9 +98,7 @@ class HtmlTable {
     });
   }
 
-  int numRows() {
-    return _table.rows.length;
-  }
+  int numRows() => _table.rows.length;
 
   int redraw(SelectionManager selectionManager,
       int rows, int columns, int rowShift, int columnShift, int cellDisplay) {

@@ -13,22 +13,16 @@ class Cell {
   bool _isStyleDirty;
   Style _style;
 
-  CellContent get content() {
-    return _content;
-  }
+  CellContent get content() => _content;
 
   /**
    * Return the Set of (row, col) references to the cells that depend on this cell directly.
    *
    * 'null' indicates the empty set.
    */
-  Set<CellLocation> get dependents() {
-    return _dependents;
-  }
+  Set<CellLocation> get dependents() => _dependents;
 
-  Style get style() {
-    return _style;
-  }
+  Style get style() => _style;
 
   Cell() {
     _style = new Style();
@@ -87,9 +81,7 @@ class Cell {
   /**
    * Return true if the cell's value should be refreshed on every spreadsheet recalculation.
    */
-  bool alwaysRecalculate() {
-    return _content == null ? false : _content.alwaysRecalculate();
-  }
+  bool alwaysRecalculate() => _content == null ? false : _content.alwaysRecalculate();
 
   /**
    * Clear the set of dependents.
@@ -109,61 +101,43 @@ class Cell {
   }
 
   // Return the content as a string
-  String getContentString() {
-    return _content == null ? "" : _content.getContent();
-  }
+  String getContentString() => _content == null ? "" : _content.getContent();
 
   /**
    * Return the datatype of this cell, one of [Value.TYPE_BOOLEAN], [Value.TYPE_DOUBLE],
    * [Value.TYPE_DATE_TIME], [Value.TYPE_DOUBLE], [Value.TYPE_STRING], or [Value.TYPE_TIME],
    * or [Value.TYPE_UNKNOWN] if unknown.
    */
-  int getDatatype() {
-    return _content == null ? Value.TYPE_UNKNOWN : _content.getDatatype();
-  }
+  int getDatatype() => _content == null ? Value.TYPE_UNKNOWN : _content.getDatatype();
 
   /**
    * Return a displayable version of the datatype associated with this cell.
    */
-  String getDatatypeAsString() {
-    return Value.getDatatypeAsString(getDatatype());
-  }
+  String getDatatypeAsString() => Value.getDatatypeAsString(getDatatype());
 
   /**
    * Return the Set of (row, col) references to the cells on which this cell depends directly.
    *
    * 'null' indicates the empty set.
    */
-  Set<CellLocation> getDependencies() {
-    return _content == null ? null : _content.getDependencies();
-  }
+  Set<CellLocation> getDependencies() => _content == null ? null : _content.getDependencies();
 
-  double getDoubleValue() {
-    return getValue().asDouble(null);
-  }
+  double getDoubleValue() => getValue().asDouble(null);
 
   // Return the cell contents in 'RC' form, suitable for pasting into another cell.
-  String getPasteContent() {
-    return _content == null ? "" : _content.getPasteContent();
-  }
+  String getPasteContent() => _content == null ? "" : _content.getPasteContent();
 
-  String getStringValue() {
-    return getValue().asString(null);
-  }
+  String getStringValue() => getValue().asString(null);
 
   /**
    * Return a displayable HTML version of the Style associated with this cell.
    */
-  String getStyleAsHtml() {
-    return _style.toHtml();
-  }
+  String getStyleAsHtml() => _style.toHtml();
 
   /**
    * Return what the user typed to produce the cell.
    */
-  String getUserContent() {
-    return _content == null ? "" : _content.getContent();
-  }
+  String getUserContent() => _content == null ? "" : _content.getContent();
 
   /**
    * Return the computed value of this cell, or throw a ValueException if there is
@@ -202,44 +176,32 @@ class Cell {
   /**
    * Return true if this cell requires recomputation.
    */
-  bool isDirty() {
-    return _isStyleDirty || (_content == null ? false : _content.isDirty());
-  }
+  bool isDirty() => _isStyleDirty || (_content == null ? false : _content.isDirty());
 
   /**
    * A cell with [:null:] content is considered empty for the purposes of the "COUNTA" function.
    */
-  bool isEmpty() {
-    return _content == null;
-  }
+  bool isEmpty() => _content == null;
 
   /**
    * Return true if this cell contains a formula.
    */
-  bool isFormula() {
-    return _content == null ? false : _content.isFormula();
-  }
+  bool isFormula() => _content == null ? false : _content.isFormula();
 
   /**
    * Return true if this cell contains a numeric value.
    */
-  bool isNumeric() {
-    return _content == null ? false : _content.isNumeric();
-  }
+  bool isNumeric() => _content == null ? false : _content.isNumeric();
 
   /**
    * Return true if this cell contains a String value.
    */
-  bool isString() {
-    return _content == null ? false : _content.isString();
-  }
+  bool isString() => _content == null ? false : _content.isString();
 
   /**
    * Return true if the Style associated with this cell is the default style.
    */
-  bool isStyleDefault() {
-    return _style.isDefault();
-  }
+  bool isStyleDefault() => _style.isDefault();
 
   /**
    * Update formula dependencies for an insertion.
@@ -317,7 +279,5 @@ class Cell {
   /**
    * Return a formatted HTML version of the content of this cell.
    */
-  String toHtml() {
-    return _content == null ? "" : _content.toHtml(_style);
-  }
+  String toHtml() => _content == null ? "" : _content.toHtml(_style);
 }

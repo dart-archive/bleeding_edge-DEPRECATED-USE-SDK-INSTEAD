@@ -9,13 +9,9 @@ class ElementFunc {
   Element _element;
   EnabledFunction _func;
 
-  Element get element() {
-    return _element;
-  }
+  Element get element() => _element;
 
-  EnabledFunction get func() {
-    return _func;
-  }
+  EnabledFunction get func() => _func;
 
   ElementFunc(this._element, this._func) { }
 }

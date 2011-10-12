@@ -40,44 +40,26 @@ class Token {
   static int get Z_LOWER()   { return _c("z"); }  // 122
   static int get Z_UPPER()   { return _c("Z"); }  // 90
 
-  static int _c(String s) {
-    return s.charCodeAt(0);
-  }
+  static int _c(String s) => s.charCodeAt(0);
 
   Token() {
   }
 
-  bool isAddOp() {
-    return false;
-  }
+  bool isAddOp() => false;
 
-  bool isColon() {
-    return false;
-  }
+  bool isColon() => false;
 
-  bool isComma() {
-    return false;
-  }
+  bool isComma() => false;
 
-  bool isComparisonOp() {
-    return false;
-  }
+  bool isComparisonOp() => false;
 
-  bool isLParen() {
-    return false;
-  }
+  bool isLParen() => false;
 
-  bool isMinus() {
-    return false;
-  }
+  bool isMinus() => false;
 
-  bool isMulOp() {
-    return false;
-  }
+  bool isMulOp() => false;
 
-  bool isRParen() {
-    return false;
-  }
+  bool isRParen() => false;
 
   // Offset the references in this token to account for the given range moving
   // by the given offset.
@@ -86,25 +68,15 @@ class Token {
   //
   // Return a new Token if this one must change, otherwise return null.
   Token offsetReferences(CellRange range, RowCol offset, CellLocation tokenLocation,
-      bool tokenInRange) {
-    return null;
-  }
+      bool tokenInRange) => null;
 
-  String toA1String(CellLocation location) {
-    return toString();
-  }
+  String toA1String(CellLocation location) => toString();
 
-  String toDebugString() {
-    return "TOKEN";
-  }
+  String toDebugString() => "TOKEN";
 
-  String toString() {
-    return "TOKEN";
-  }
+  String toString() => "TOKEN";
 
-  String toUserString() {
-    return toString();
-  }
+  String toUserString() => toString();
 }
 
 // A token holding a reference to another cell.
@@ -117,25 +89,15 @@ class CellRefToken extends Token {
   bool _rowRelative;
   Spreadsheet _spreadsheet;
 
-  int get col() {
-    return _col;
-  }
+  int get col() => _col;
 
-  bool get colRelative() {
-    return _colRelative;
-  }
+  bool get colRelative() => _colRelative;
 
-  int get row() {
-    return _row;
-  }
+  int get row() => _row;
 
-  bool get rowRelative() {
-    return _rowRelative;
-  }
+  bool get rowRelative() => _rowRelative;
 
-  Spreadsheet get spreadsheet() {
-    return _spreadsheet;
-  }
+  Spreadsheet get spreadsheet() => _spreadsheet;
 
   CellRefToken(CellLocation location, this._rowRelative, this._colRelative, this._original) : super() {
     _spreadsheet = location.spreadsheet;
@@ -156,9 +118,7 @@ class CellRefToken extends Token {
 
   CellRefToken._private() : super() { }
 
-  CellLocation getCellLocation(CellLocation location) {
-    return new CellLocation(_spreadsheet, new RowCol(getRow(location), getCol(location)));
-  }
+  CellLocation getCellLocation(CellLocation location) => new CellLocation(_spreadsheet, new RowCol(getRow(location), getCol(location)));
 
   int getCol(CellLocation location) {
     if (_colRelative) {
@@ -243,19 +203,13 @@ class CellRefToken extends Token {
 
   // TODO: Output sheet if not the default sheet. We'll need to pass in the
   // sheet we are printing for.
-  String toDebugString() {
-    return "RCRefToken[${this}]";
-  }
+  String toDebugString() => "RCRefToken[${this}]";
 
-  String toString() {
-    // TODO: Output sheet if not the default sheet. We'll need to pass in the
-    // sheet we are printing for.
-    return "R${_ref(_row, _rowRelative)}C${_ref(_col, _colRelative)}";
-  }
+  // TODO: Output sheet if not the default sheet. We'll need to pass in the
+  // sheet we are printing for.
+  String toString() => "R${_ref(_row, _rowRelative)}C${_ref(_col, _colRelative)}";
 
-  String toUserString() {
-    return _original == null ? toString() : _original;
-  }
+  String toUserString() => _original == null ? toString() : _original;
 
   String _ref(int index, bool relative) {
     if (relative && index == 0) {
@@ -273,13 +227,9 @@ class CellRefToken extends Token {
 class InvalidCellRefToken extends Token {
   InvalidCellRefToken() : super() { }
 
-  String toDebugString() {
-    return "InvalidCellRefToken";
-  }
+  String toDebugString() => "InvalidCellRefToken";
 
-  String toString() {
-    return "!UNDEFINED";
-  }
+  String toString() => "!UNDEFINED";
 }
 
 // A token to represent a reference to a range of cells.
@@ -289,17 +239,11 @@ class RangeToken extends Token {
   CellRefToken _endRef;
   CellRefToken _startRef;
 
-  CellRefToken get endRef() {
-    return _endRef;
-  }
+  CellRefToken get endRef() => _endRef;
 
-  Spreadsheet get spreadsheet() {
-    return _startRef.spreadsheet;
-  }
+  Spreadsheet get spreadsheet() => _startRef.spreadsheet;
 
-  CellRefToken get startRef() {
-    return _startRef;
-  }
+  CellRefToken get startRef() => _startRef;
 
   RangeToken(this._startRef, this._endRef) : super() {
     // TODO: Add validation
@@ -410,9 +354,7 @@ class RangeToken extends Token {
     return null;
   }
 
-  String toDebugString() {
-    return "RangeToken[${startRef},${endRef}]";
-  }
+  String toDebugString() => "RangeToken[${startRef},${endRef}]";
 }
 
 // A token that holds a function name.
@@ -420,19 +362,13 @@ class RangeToken extends Token {
 class FunctionNameToken extends Token {
   String _name;
 
-  String get name() {
-    return _name;
-  }
+  String get name() => _name;
 
   FunctionNameToken(this._name) : super() { }
 
-  String toDebugString() {
-    return "FunctionNameToken[${this}]";
-  }
+  String toDebugString() => "FunctionNameToken[${this}]";
 
-  String toString() {
-    return _name;
-  }
+  String toString() => _name;
 }
 
 // A token that holds a double.
@@ -440,15 +376,11 @@ class FunctionNameToken extends Token {
 class NumberToken extends Token {
   double _value;
 
-  double get value() {
-    return _value;
-  }
+  double get value() => _value;
 
   NumberToken(this._value) : super() { }
 
-  String toDebugString() {
-    return "NumberToken[${this}]";
-  }
+  String toDebugString() => "NumberToken[${this}]";
 
   // Canonicalize numbers by removing trailing zeroes
   // 1234.000 ==> 1200
@@ -477,39 +409,27 @@ class NumberToken extends Token {
 class StringToken extends Token {
   String _value;
 
-  String get value() {
-    return _value;
-  }
+  String get value() => _value;
 
   StringToken(this._value) : super() { }
 
-  String toDebugString() {
-    return "StringToken[${this}]";
-  }
+  String toDebugString() => "StringToken[${this}]";
 
-  String toString() {
-    return '"${StringUtils.escapeStringLiteral(_value)}"';
-  }
+  String toString() => '"${StringUtils.escapeStringLiteral(_value)}"';
 }
 
 class BooleanToken extends NumberToken {
   bool _bValue;
 
-  bool get bValue() {
-    return _bValue;
-  }
+  bool get bValue() => _bValue;
 
   BooleanToken(bool bValue) : super(bValue ? 1.0 : 0.0) {
     this._bValue = bValue;
   }
 
-  String toDebugString() {
-    return "BooleanToken[${this}]";
-  }
+  String toDebugString() => "BooleanToken[${this}]";
 
-  String toString() {
-    return _bValue ? "TRUE" : "FALSE";
-  }
+  String toString() => _bValue ? "TRUE" : "FALSE";
 }
 
 // A token that holds an operator.
@@ -533,9 +453,7 @@ class OperatorToken extends Token {
 
   int _type;
 
-  int get type() {
-    return _type;
-  }
+  int get type() => _type;
 
   OperatorToken(int op) : super() {
     switch (op) {
@@ -560,38 +478,22 @@ class OperatorToken extends Token {
     }
   }
 
-  bool isAddOp() {
-    return type == OP_PLUS || type == OP_MINUS;
-  }
+  bool isAddOp() => type == OP_PLUS || type == OP_MINUS;
 
-  bool isColon() {
-    return type == OP_COLON;
-  }
+  bool isColon() => type == OP_COLON;
 
-  bool isComma() {
-    return type == OP_COMMA;
-  }
+  bool isComma() => type == OP_COMMA;
 
-  bool isComparisonOp() {
-    return type == OP_LESS || type == OP_GREATER || type == OP_EQUAL || type == OP_NOT_EQUAL
+  bool isComparisonOp() => type == OP_LESS || type == OP_GREATER || type == OP_EQUAL || type == OP_NOT_EQUAL
         || type == OP_LESS_THAN_EQUAL || type == OP_GREATER_THAN_EQUAL;
-  }
 
-  bool isLParen() {
-    return type == OP_LPAREN;
-  }
+  bool isLParen() => type == OP_LPAREN;
 
-  bool isMinus() {
-    return type == OP_MINUS;
-  }
+  bool isMinus() => type == OP_MINUS;
 
-  bool isMulOp() {
-    return type == OP_TIMES || type == OP_DIVIDE;
-  }
+  bool isMulOp() => type == OP_TIMES || type == OP_DIVIDE;
 
-  bool isRParen() {
-    return type == OP_RPAREN;
-  }
+  bool isRParen() => type == OP_RPAREN;
 
   Value operate(Value left, Value right) {
     double l = left.asDouble(null);
@@ -626,9 +528,7 @@ class OperatorToken extends Token {
     }
   }
 
-  String toDebugString() {
-    return "OperatorToken[${this}]";
-  }
+  String toDebugString() => "OperatorToken[${this}]";
 
   String toString() {
     switch (_type) {
@@ -671,13 +571,9 @@ class WhitespaceToken extends Token {
 
   WhitespaceToken(this._whitespace) : super() { }
 
-  String toDebugString() {
-    return "WhitespaceToken[${this}]";
-  }
+  String toDebugString() => "WhitespaceToken[${this}]";
 
-  String toString() {
-    return _whitespace;
-  }
+  String toString() => _whitespace;
 }
 
 // TODO: Add a way to refer to another spreadsheet when making references to cells.
@@ -703,31 +599,19 @@ class Scanner {
     return value;
   }
 
-  static bool isDigit(int c) {
-    return c >= Token.ZERO && c <= Token.NINE;
-  }
+  static bool isDigit(int c) => c >= Token.ZERO && c <= Token.NINE;
 
-  static bool isLetter(int c) {
-    return (c >= Token.A_UPPER && c <= Token.Z_UPPER) || (c >= Token.A_LOWER && c <= Token.Z_LOWER);
-  }
+  static bool isLetter(int c) => (c >= Token.A_UPPER && c <= Token.Z_UPPER) || (c >= Token.A_LOWER && c <= Token.Z_LOWER);
 
-  static bool isNewline(int c) {
-    return c == Token.CR;
-  }
+  static bool isNewline(int c) => c == Token.CR;
 
-  static bool isOperator(int c) {
-    return c == Token.PLUS || c == Token.MINUS || c == Token.STAR || c == Token.SLASH
+  static bool isOperator(int c) => c == Token.PLUS || c == Token.MINUS || c == Token.STAR || c == Token.SLASH
         || c == Token.LPAREN || c == Token.RPAREN || c == Token.COMMA || c == Token.COLON
         || c == Token.LESS || c == Token.EQUAL || c == Token.GREATER;
-  }
 
-  static bool isWhitespace(int c) {
-    return c == Token.SPACE || c == Token.TAB;
-  }
+  static bool isWhitespace(int c) => c == Token.SPACE || c == Token.TAB;
 
-  static bool isWhitespaceOrNewline(int c) {
-    return c == Token.SPACE || c == Token.TAB || c == Token.CR;
-  }
+  static bool isWhitespaceOrNewline(int c) => c == Token.SPACE || c == Token.TAB || c == Token.CR;
 
   // A=1, B=2, ..., Z=26
   static int letterToInt(int letter) {

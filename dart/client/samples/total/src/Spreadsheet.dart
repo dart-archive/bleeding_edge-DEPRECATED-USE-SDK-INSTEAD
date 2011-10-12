@@ -78,24 +78,16 @@ class Spreadsheet {
   /**
    * Return the number of cells calculated since the most recent call to [beginRecalc].
    */
-  int get calculated() {
-    return _calculated;
-  }
+  int get calculated() => _calculated;
 
   /**
    * Return the [SpreadsheetLayout] for this spreadsheet.
    */
-  SpreadsheetLayout get layout() {
-    return _layout;
-  }
+  SpreadsheetLayout get layout() => _layout;
 
-  String get name() {
-    return _name;
-  }
+  String get name() => _name;
 
-  UndoStack get undoStack() {
-    return _undoStack;
-  }
+  UndoStack get undoStack() => _undoStack;
 
   Spreadsheet() : _maxRow = 0, _maxCol = 0, _calculated = 0, _rowColumnCountsDirty = false {
     if (_idGenerator == null) {
@@ -171,9 +163,7 @@ class Spreadsheet {
    * Mark the end of a recalculation and get the number of cells that have been
    * recalculated since the last call to beginRecalc.
    */
-  int endRecalc() {
-    return _calculated;
-  }
+  int endRecalc() => _calculated;
 
   /**
    * Execute a command and place it on the Undo stack.
@@ -207,17 +197,13 @@ class Spreadsheet {
   /**
    * Return the pixel position of the end of a given column.
    */
-  int getColumnEnd(int index) {
-    return _layout.getColumnEnd(index);
-  }
+  int getColumnEnd(int index) => _layout.getColumnEnd(index);
 
   /**
    * Return the number of pixels to shift in order to place the column [origin] in
    * the leftmost position.
    */
-  int getColumnShift(int origin) {
-    return _layout.getColumnShift(origin);
-  }
+  int getColumnShift(int origin) => _layout.getColumnShift(origin);
 
   /**
    * Return the style associated with a column, or [:null:] if none.
@@ -225,34 +211,26 @@ class Spreadsheet {
    * When a previously empty cell in the column is given new contents, the column's style (if any)
    * will be merged with sheet and row styles and applied to the cell.
    */
-  RowColStyle getColumnStyle(int column) {
-    return _columnStyles[column];
-  }
+  RowColStyle getColumnStyle(int column) => _columnStyles[column];
 
   /**
    * Return the width of a givencolumn.
    */
-  int getColumnWidth(int index) {
-    return _layout.getColumnWidth(index);
-  }
+  int getColumnWidth(int index) => _layout.getColumnWidth(index);
 
   /**
    * Return the default column width.  If [index] is 0, return the width of the row header column
    * (i.e., the column containing the row names "1", "2", "3", etc.); otherwise, return the width
    * of an ordinary data column.
    */
-  int getDefaultColumnWidth(int index) {
-    return _layout.getDefaultColumnWidth(index);
-  }
+  int getDefaultColumnWidth(int index) => _layout.getDefaultColumnWidth(index);
 
   /**
    * Return the default row height.  If [index] is 0, return the height of the column header row
    * (i.e, the row containing the column names "A", "B", "C", etc.); otherwise, return the height
    * of an ordinary data row.
    */
-  int getDefaultRowHeight(int index) {
-    return _layout.getDefaultRowHeight(index);
-  }
+  int getDefaultRowHeight(int index) => _layout.getDefaultRowHeight(index);
 
   /**
    * Return the value at a given [RowCol] as a double.  A cell containing a String will return
@@ -267,24 +245,18 @@ class Spreadsheet {
   /**
    * Return the pixel position of the end of a given row.
    */
-  int getRowEnd(int index) {
-    return _layout.getRowEnd(index);
-  }
+  int getRowEnd(int index) => _layout.getRowEnd(index);
 
   /**
    * Return the height of a row.
    */
-  int getRowHeight(int index) {
-    return _layout.getRowHeight(index);
-  }
+  int getRowHeight(int index) => _layout.getRowHeight(index);
 
   /**
    * Return the number of pixels to shift in order to place row [origin] in
    * the topmost position.
    */
-  int getRowShift(int origin) {
-    return _layout.getRowShift(origin);
-  }
+  int getRowShift(int origin) => _layout.getRowShift(origin);
 
   /**
    * Return the style associated with a row, or [:null:] if none.
@@ -292,9 +264,7 @@ class Spreadsheet {
    * When a previously empty cell in the row is given new contents, the row style (if any)
    * will be merged with sheet and column styles and applied to the cell.
    */
-  RowColStyle getRowStyle(int row) {
-    return _rowStyles[row];
-  }
+  RowColStyle getRowStyle(int row) => _rowStyles[row];
 
   /**
    * Return the style associated with the entire spreadsheet, or [:null:] if none.
@@ -302,9 +272,7 @@ class Spreadsheet {
    * When a previously empty cell is given new contents, the sheet style (if any)
    * will be merged with row and column styles and applied to the cell.
    */
-  RowColStyle getSheetStyle() {
-    return _sheetStyle;
-  }
+  RowColStyle getSheetStyle() => _sheetStyle;
 
   /**
    * Evaluate the given cell as a double value.  Throws a [ValueException] if the cell
@@ -321,9 +289,7 @@ class Spreadsheet {
     return cell.getValue();
   }
 
-  int hashCode() {
-    return _id * 2654435769;
-  }
+  int hashCode() => _id * 2654435769;
 
   /**
    * Increase the value of the counter returned by [calculated].

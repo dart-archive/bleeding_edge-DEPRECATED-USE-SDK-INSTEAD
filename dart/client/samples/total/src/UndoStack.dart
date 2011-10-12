@@ -21,16 +21,12 @@ class UndoStack {
   /**
    * Return [:true:] if there is a command on the stack that can be "redone."
    */
-  bool canRedo() {
-    return _undoPosition < _undoStack.length - 1;
-  }
+  bool canRedo() => _undoPosition < _undoStack.length - 1;
 
   /**
    * Return [:true:] if there is a command on the stack that can be "undone."
    */
-  bool canUndo() {
-    return _undoPosition >= 0;
-  }
+  bool canUndo() => _undoPosition >= 0;
 
   /**
    * Execute a command and make it the next "undoable" command.

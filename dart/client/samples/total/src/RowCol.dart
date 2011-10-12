@@ -27,13 +27,9 @@ class RowCol {
   final int _col;
   final int _row;
 
-  int get col() {
-    return _col;
-  }
+  int get col() => _col;
 
-  int get row() {
-    return _row;
-  }
+  int get row() => _row;
 
   RowCol(this._row, this._col) { }
 
@@ -44,28 +40,16 @@ class RowCol {
     return other._row == _row && other._col == _col;
   }
 
-  RowCol operator +(RowCol other) {
-    return new RowCol(_row + other._row, _col + other._col);
-  }
+  RowCol operator +(RowCol other) => new RowCol(_row + other._row, _col + other._col);
 
-  int hashCode() {
-    return (51 + hashOneValue(_row)) * 51 + hashOneValue(_col);
-  }
+  int hashCode() => (51 + hashOneValue(_row)) * 51 + hashOneValue(_col);
 
-  bool isValidCell() {
-    return _row > 0 && _col > 0;
-  }
+  bool isValidCell() => _row > 0 && _col > 0;
 
-  String toA1String() {
-    return "${StringUtils.columnString(_col)}${_row}";
-  }
+  String toA1String() => "${StringUtils.columnString(_col)}${_row}";
 
-  String toString() {
-    return "R${_row}C${_col}";
-  }
+  String toString() => "R${_row}C${_col}";
 
-  RowCol translate(int deltaRow, int deltaCol) {
-    return new RowCol(_row + deltaRow, _col + deltaCol);
-  }
+  RowCol translate(int deltaRow, int deltaCol) => new RowCol(_row + deltaRow, _col + deltaCol);
 }
 

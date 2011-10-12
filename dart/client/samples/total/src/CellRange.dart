@@ -9,25 +9,15 @@ class CellRange {
   RowCol _minCorner;
   Spreadsheet _spreadsheet;
 
-  int get columns() {
-    return _maxCorner.col - _minCorner.col + 1;
-  }
+  int get columns() => _maxCorner.col - _minCorner.col + 1;
 
-  RowCol get maxCorner() {
-    return _maxCorner;
-  }
+  RowCol get maxCorner() => _maxCorner;
 
-  RowCol get minCorner() {
-    return _minCorner;
-  }
+  RowCol get minCorner() => _minCorner;
 
-  int get rows() {
-    return _maxCorner.row - _minCorner.row + 1;
-  }
+  int get rows() => _maxCorner.row - _minCorner.row + 1;
 
-  Spreadsheet get spreadsheet() {
-    return _spreadsheet;
-  }
+  Spreadsheet get spreadsheet() => _spreadsheet;
 
   CellRange(this._spreadsheet, this._minCorner, this._maxCorner) {
     int minRow = _minCorner.row;
@@ -109,25 +99,17 @@ class CellRange {
   }
 
   // Return true if this selection represents a contiguous set of columns
-  bool isColumnSelection() {
-    return _minCorner.row == 0 && _minCorner.col != 0;
-  }
+  bool isColumnSelection() => _minCorner.row == 0 && _minCorner.col != 0;
 
-  bool isInRange(CellLocation location) {
-    return location.spreadsheet === _spreadsheet &&
+  bool isInRange(CellLocation location) => location.spreadsheet === _spreadsheet &&
       location.row >= _minCorner.row && location.col >= _minCorner.col &&
       location.row <= _maxCorner.row && location.col <= _maxCorner.col;
-  }
 
   // Return true if this selection represents a contiguous set of rows
-  bool isRowSelection() {
-    return _minCorner.col == 0 && _minCorner.row != 0;
-  }
+  bool isRowSelection() => _minCorner.col == 0 && _minCorner.row != 0;
 
   // Return true if this selection represents the entire spreadsheet
-  bool isSheetSelection() {
-    return _minCorner.col == 0 && _minCorner.row == 0;
-  }
+  bool isSheetSelection() => _minCorner.col == 0 && _minCorner.row == 0;
 
   // For unbounded ranges (entire spreadsheet, or whole rows or columns), return a bounded range
   // that is the intersection of the range with the active area of the spreadsheet.

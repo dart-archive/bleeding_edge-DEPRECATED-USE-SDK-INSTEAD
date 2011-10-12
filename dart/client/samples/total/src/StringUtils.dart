@@ -98,9 +98,7 @@ class StringUtils {
     return sb.toString();
   }
 
-  static bool isDigit(int s) {
-    return s >= ZERO && s <= NINE;
-  }
+  static bool isDigit(int s) => s >= ZERO && s <= NINE;
 
   // Returns true if the given string matches ^[+-]?[0-9]*\.?[0-9]*([eE][+-]?[0-9]+)?$
   static bool isNumeric(String value) {
@@ -216,7 +214,5 @@ class StringUtils {
     }
   }
 
-  static int _c(String s) {
-    return s.charCodeAt(0);
-  }
+  static int _c(String s) => s.charCodeAt(0);
 }

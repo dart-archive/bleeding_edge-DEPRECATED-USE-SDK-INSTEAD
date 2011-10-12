@@ -150,29 +150,17 @@ class Style {
   TextFormat _textFormat;
   int _textFormatIndex; // CUSTOM == custom format
 
-  int get backgroundColor() {
-    return _backgroundColor;
-  }
+  int get backgroundColor() => _backgroundColor;
 
-  NumericFormat get numericFormat() {
-    return _numericFormat;
-  }
+  NumericFormat get numericFormat() => _numericFormat;
 
-  int get numericFormatIndex() {
-    return _numericFormatIndex;
-  }
+  int get numericFormatIndex() => _numericFormatIndex;
 
-  int get textAlignment() {
-    return _textAlignment;
-  }
+  int get textAlignment() => _textAlignment;
 
-  int get textColor() {
-    return _textColor;
-  }
+  int get textColor() => _textColor;
 
-  int get textFormatIndex() {
-    return _textFormatIndex;
-  }
+  int get textFormatIndex() => _textFormatIndex;
 
   /**
    * Returns a default style with no settings.
@@ -323,9 +311,7 @@ class Style {
     return f(input);
   }
 
-  String formatText(String input) {
-    return getTextFormat()(input);
-  }
+  String formatText(String input) => getTextFormat()(input);
 
   String getTextAlignmentString() {
     switch (_textAlignment) {
@@ -339,9 +325,7 @@ class Style {
     }
   }
 
-  TextFormat getTextFormat() {
-    return _textFormat;
-  }
+  TextFormat getTextFormat() => _textFormat;
 
   TextFormat getTextFormatByIndex(int formatIndex) {
     if (_textFormats == null) {
@@ -387,14 +371,10 @@ class Style {
     return _textFormats[formatIndex];
   }
 
-  bool isDefault() {
-    return this === _defaultInstance;
-  }
+  bool isDefault() => this === _defaultInstance;
 
-  bool isEmpty() {
-    return _backgroundColor == UNSET && _textColor == UNSET && _textAlignment == UNSET
+  bool isEmpty() => _backgroundColor == UNSET && _textColor == UNSET && _textAlignment == UNSET
         && _textFormatIndex == UNSET && _numericFormatIndex == UNSET;
-  }
 
   Style setBackgroundColor(int backgroundColor) {
     assert(backgroundColor >= 0 && backgroundColor < Formats.numColorDescriptions);
@@ -450,13 +430,9 @@ class Style {
     return result;
   }
 
-  String toHtml() {
-    return _toString(true);
-  }
+  String toHtml() => _toString(true);
 
-  String toString() {
-    return _toString(false);
-  }
+  String toString() => _toString(false);
 
   String _toString(bool html) {
     StringBuffer sb = new StringBuffer();

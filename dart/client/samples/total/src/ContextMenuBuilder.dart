@@ -262,11 +262,7 @@ class ContextMenuBuilder {
     _spreadsheet.execute(command);
   }
 
-  bool hasMultiCellSelection() {
-    return !_selectionManager.isSingleCellSelection();
-  }
+  bool hasMultiCellSelection() => !_selectionManager.isSingleCellSelection();
 
-  bool hasSelection() {
-    return !_selectionManager.isSelectionEmpty();
-  }
+  bool hasSelection() => !_selectionManager.isSelectionEmpty();
 }

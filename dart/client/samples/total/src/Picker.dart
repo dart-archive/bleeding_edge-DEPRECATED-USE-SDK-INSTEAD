@@ -39,9 +39,7 @@ class Picker {
    */
   int _selectedIndex = 0;
 
-  int get selectedIndex() {
-    return _selectedIndex;
-  }
+  int get selectedIndex() => _selectedIndex;
 
   /**
    * Sets the selected index of the [Picker] and modifies the item class names as needed.

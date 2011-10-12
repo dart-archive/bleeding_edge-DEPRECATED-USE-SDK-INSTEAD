@@ -27,30 +27,20 @@ class SpreadsheetLayout {
   }
 
   // Return the pixel position of the end of a given column
-  int getColumnEnd(int index) {
-    return _getEnd(COL, index);
-  }
+  int getColumnEnd(int index) => _getEnd(COL, index);
 
   // Return the number of pixels to shift in order to place the column 'origin' in
   // the leftmost position
-  int getColumnShift(int origin) {
-    return _getShift(COL, origin);
-  }
+  int getColumnShift(int origin) => _getShift(COL, origin);
 
   // Return the width of a column
-  int getColumnWidth(int index) {
-    return _getSize(COL, index);
-  }
+  int getColumnWidth(int index) => _getSize(COL, index);
 
   // Return the default column width
-  int getDefaultColumnWidth(int index) {
-    return index == 0 ? CssStyles.ROW_HEADER_WIDTH : CssStyles.DEFAULT_COLUMN_WIDTH;
-  }
+  int getDefaultColumnWidth(int index) => index == 0 ? CssStyles.ROW_HEADER_WIDTH : CssStyles.DEFAULT_COLUMN_WIDTH;
 
   // Return the default row height
-  int getDefaultRowHeight(int index) {
-    return index == 0 ? CssStyles.COLUMN_HEADER_HEIGHT : CssStyles.DEFAULT_ROW_HEIGHT;
-  }
+  int getDefaultRowHeight(int index) => index == 0 ? CssStyles.COLUMN_HEADER_HEIGHT : CssStyles.DEFAULT_ROW_HEIGHT;
 
   // Return a copy of the sizes array
   List<List<int>> getRowColumnSizes() {
@@ -66,20 +56,14 @@ class SpreadsheetLayout {
   }
 
   // Return the pixel position of the end of a given row
-  int getRowEnd(int index) {
-    return _getEnd(ROW, index);
-  }
+  int getRowEnd(int index) => _getEnd(ROW, index);
 
   // Return the height of a row
-  int getRowHeight(int index) {
-    return _getSize(ROW, index);
-  }
+  int getRowHeight(int index) => _getSize(ROW, index);
 
   // Return the number of pixels to shift in order to place row 'origin' in
   // the topmost position
-  int getRowShift(int origin) {
-    return _getShift(ROW, origin);
-  }
+  int getRowShift(int origin) => _getShift(ROW, origin);
 
   // Insert a new column with the given size
   void insertColumn(int index, int size) {
@@ -150,9 +134,7 @@ class SpreadsheetLayout {
 
   // Return the number of pixels to shift in order to place row or column 'origin' in
   // the topmost/leftmost position
-  int _getShift(int rowOrCol, int origin) {
-    return _getEnd(rowOrCol, origin) - _getEnd(rowOrCol, 0);
-  }
+  int _getShift(int rowOrCol, int origin) => _getEnd(rowOrCol, origin) - _getEnd(rowOrCol, 0);
 
   // Return the size of the given row or column
   int _getSize(int rowOrCol, int index) {

@@ -102,9 +102,7 @@ class StringFormula implements Formula {
     }
   }
 
-  bool alwaysRecalculate() {
-    return _alwaysRecalculate;
-  }
+  bool alwaysRecalculate() => _alwaysRecalculate;
 
   // Evaluate an expression given as a list of tokens in postfix order, using a stack
   Value calculate() {

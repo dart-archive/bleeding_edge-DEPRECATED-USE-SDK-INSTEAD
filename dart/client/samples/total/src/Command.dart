@@ -10,9 +10,7 @@ class Command {
   String _description;
   Spreadsheet _spreadsheet;
 
-  String get description() {
-    return _description;
-  }
+  String get description() => _description;
 
   /**
    * Constructs a new command on a given spreadsheet.
@@ -28,9 +26,7 @@ class Command {
     throw new NotImplementedException();
   }
 
-  String toString() {
-    return "Command[${_description}]";
-  }
+  String toString() => "Command[${_description}]";
 
   /**
    * Undo the action.

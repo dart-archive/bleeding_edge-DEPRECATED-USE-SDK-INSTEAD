@@ -11,22 +11,13 @@ class CellLocation {
   final RowCol _rowCol;
   final Spreadsheet _spreadsheet;
 
-  int get col() {
-    return _rowCol.col;
-  }
+  int get col() => _rowCol.col;
 
-  int get row() {
-    return _rowCol.row;
-  }
+  int get row() => _rowCol.row;
 
-  RowCol get rowCol() {
-    return _rowCol;
-  }
+  RowCol get rowCol() => _rowCol;
 
-  Spreadsheet get spreadsheet() {
-    return _spreadsheet;
-  }
-
+  Spreadsheet get spreadsheet() => _spreadsheet;
 
   CellLocation(this._spreadsheet, this._rowCol) { }
 
@@ -37,22 +28,14 @@ class CellLocation {
     return _spreadsheet === other._spreadsheet && other._rowCol == _rowCol;
   }
 
-  CellLocation operator +(RowCol rowCol) {
-    return new CellLocation(_spreadsheet, _rowCol + rowCol);
-  }
+  CellLocation operator +(RowCol rowCol) => new CellLocation(_spreadsheet, _rowCol + rowCol);
 
   // Convenience method for 'spreadsheet.getCell(rowCol)'
-  Cell getCell() {
-    return _spreadsheet.getCell(_rowCol);
-  }
+  Cell getCell() => _spreadsheet.getCell(_rowCol);
 
-  int hashCode() {
-    return (_spreadsheet.hashCode() * 31) ^ _rowCol.hashCode();
-  }
+  int hashCode() => (_spreadsheet.hashCode() * 31) ^ _rowCol.hashCode();
 
-  bool isValidCell() {
-    return _rowCol.isValidCell();
-  }
+  bool isValidCell() => _rowCol.isValidCell();
 
   // Convenience method for 'spreadsheet.markDirty(rowCol)'
   void markDirty() {
@@ -60,9 +43,7 @@ class CellLocation {
   }
 
   // Convenience method for 'spreadsheet.setCellContentFromString(rowCol, content)'
-  Cell setCellFromContentString(String content) {
-    return _spreadsheet.setCellFromContentString(_rowCol, content);
-  }
+  Cell setCellFromContentString(String content) => _spreadsheet.setCellFromContentString(_rowCol, content);
 
   String toString() {
     // TODO: Sheets should have names, and we should use them here.

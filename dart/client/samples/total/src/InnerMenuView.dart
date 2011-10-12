@@ -16,9 +16,7 @@ class InnerMenuView {
   ];
 
   // Return the height of the menu
-  static int getInnerMenuHeight() {
-    return CssStyles.INNER_MENU_HEIGHT;
-  }
+  static int getInnerMenuHeight() => CssStyles.INNER_MENU_HEIGHT;
 
   static DivElement _addButton(Element parent,
       String classOfButton,
@@ -84,13 +82,9 @@ class InnerMenuView {
   // Needed to access webkitRequestAnimationFrame and getComputedStyle.
   Window _window;
 
-  int get currentRowHeight() {
-    return _currentRowHeight;
-  }
+  int get currentRowHeight() => _currentRowHeight;
 
-  TableRowElement get row() {
-    return _row;
-  }
+  TableRowElement get row() => _row;
 
   /**
    * Constructs and shows an InnerMenu. Use hide() to make it disappear
@@ -204,9 +198,7 @@ class InnerMenuView {
     }, _row);
   }
 
-  bool isAttachedTo(TableRowElement row) {
-    return _row == row;
-  }
+  bool isAttachedTo(TableRowElement row) => _row == row;
 
   void updateSize() {
     if (_row.parent == null) {

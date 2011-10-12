@@ -30,17 +30,11 @@ class SpreadsheetFunction {
   // void func(List<Value> stack, int top, int nargs)
   // args are in stack[top], stack[top + 1], ..., stack[top + nargs - 1]
   // result should be placed in stack[top]
-  NumericFunction get func() {
-    return _func;
-  }
+  NumericFunction get func() => _func;
 
-  String get name() {
-    return _name;
-  }
+  String get name() => _name;
 
-  int get nargs() {
-    return _nargs;
-  }
+  int get nargs() => _nargs;
 
   SpreadsheetFunction(this._name, this._nargs, this._func) { }
 }
@@ -88,9 +82,7 @@ class Functions {
     return count;
   }
 
-  static double _exp(double x) {
-    return Math.pow(Math.E, x);
-  }
+  static double _exp(double x) => Math.pow(Math.E, x);
 
   // Assume arguments are positive
   // FIXME: GCD should not work on doubles.
@@ -121,9 +113,7 @@ class Functions {
     return values;
   }
 
-  static double _lcm(double a, double b) {
-    return (a * b) / _gcd(a, b);
-  }
+  static double _lcm(double a, double b) => (a * b) / _gcd(a, b);
 
   // Function name ==> double func(double accum, double newValue)
   Map<String, AggregateFunction> _aggregateFunctions;
@@ -781,9 +771,7 @@ class Functions {
     _aggregateInitialValues["PRODUCT"] = 1.0;
   }
 
-  bool alwaysRecalculate(String functionName) {
-    return _alwaysRecalculateFunctions.contains(functionName);
-  }
+  bool alwaysRecalculate(String functionName) => _alwaysRecalculateFunctions.contains(functionName);
 
   // TODO:  implement a visitor pattern in order to reduce redundant code in datatype() and
   // evaluate()
@@ -937,10 +925,8 @@ class Functions {
     }
   }
 
-  bool _isDate(int datatype) {
-    return datatype == Value.TYPE_DATE || datatype == Value.TYPE_TIME ||
+  bool _isDate(int datatype) => datatype == Value.TYPE_DATE || datatype == Value.TYPE_TIME ||
         datatype == Value.TYPE_DATE_TIME;
-  }
 
   // TODO: bounds checking
   void _lookup(CellLocation location, List<Value> stack, int top, int nargs, bool horizontal) {

@@ -7,17 +7,11 @@ class SplitDecimal {
   String intPart;
   bool isNegative;
 
-  String get lparen() {
-    return isNegative ? "(" : "";
-  }
+  String get lparen() => isNegative ? "(" : "";
 
-  String get rparen() {
-    return isNegative ? ")" : "";
-  }
+  String get rparen() => isNegative ? ")" : "";
 
-  String get sign() {
-    return isNegative ? "-" : "";
-  }
+  String get sign() => isNegative ? "-" : "";
 
   SplitDecimal(this.intPart, this.fracPart, this.isNegative) { }
 }
@@ -95,17 +89,11 @@ class Formats {
       const <String>["--", "Left", "Center", "Right"];
 
   // TODO: don't expose internal array
-  static List<String> get htmlColors() {
-    return _htmlColors;
-  }
+  static List<String> get htmlColors() => _htmlColors;
 
-  static int get numColorDescriptions() {
-    return _colorDescriptions.length;
-  }
+  static int get numColorDescriptions() => _colorDescriptions.length;
 
-  static int get numTextAlignmentDescriptions() {
-    return _textAlignmentDescriptions.length;
-  }
+  static int get numTextAlignmentDescriptions() => _textAlignmentDescriptions.length;
 
   static String addCommas(String sx, int groupLength) {
     String output = "";
@@ -117,18 +105,14 @@ class Formats {
     return "${sx}${output}";
   }
 
-  static String getColorDescription(int index) {
-    return _colorDescriptions[index];
-  }
+  static String getColorDescription(int index) => _colorDescriptions[index];
 
   static String getHtmlColor(int colorIndex) {
     assert(colorIndex >= 0 && colorIndex < _htmlColors.length);
     return _htmlColors[colorIndex];
   }
 
-  static String getTextAlignmentDescription(int index) {
-    return _textAlignmentDescriptions[index];
-  }
+  static String getTextAlignmentDescription(int index) => _textAlignmentDescriptions[index];
 
   static SplitDecimal split(double x, int decimalPlaces) {
     bool isNegative = false;
@@ -151,18 +135,12 @@ class Formats {
   List<NumericFormat> _numericFormats;
   List<String> _textFormatDescriptions;
 
-  int get numNumericFormats() {
-    return _numericFormats.length;
-  }
+  int get numNumericFormats() => _numericFormats.length;
 
-  int get numTextFormats() {
-    return _textFormatDescriptions.length;
-  }
+  int get numTextFormats() => _textFormatDescriptions.length;
 
   // TODO: don't expose internal array
-  List<String> get numericFormatDescriptions() {
-    return _numericFormatDescriptions;
-  }
+  List<String> get numericFormatDescriptions() => _numericFormatDescriptions;
 
   factory Formats() {
     if (_instance == null) {
@@ -311,15 +289,9 @@ class Formats {
   }
 
   // Return the numeric formatting function with the given index
-  NumericFormat getNumericFormat(int index) {
-    return _numericFormats[index];
-  }
+  NumericFormat getNumericFormat(int index) => _numericFormats[index];
 
-  String getNumericFormatDescription(int index) {
-    return _numericFormatDescriptions[index];
-  }
+  String getNumericFormatDescription(int index) => _numericFormatDescriptions[index];
 
-  String getTextFormatDescription(int index) {
-    return _textFormatDescriptions[index];
-  }
+  String getTextFormatDescription(int index) => _textFormatDescriptions[index];
 }

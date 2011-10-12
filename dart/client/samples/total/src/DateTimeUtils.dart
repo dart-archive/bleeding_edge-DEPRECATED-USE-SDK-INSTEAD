@@ -111,9 +111,7 @@ class DateUtils {
 
   // Return the number of days between 1899-12-30 and the current time, truncated to
   // an integer.
-  static double today() {
-    return now().floor();
-  }
+  static double today() => now().floor();
 
   // Parse an integer, stripping leading zeros to avoid an octal parsing bug.
   static int _parseInt(String s) {

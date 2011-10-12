@@ -43,9 +43,7 @@ class Value {
    * [TYPE_RANGE], [TYPE_STRING], [TYPE_DATE], [TYPE_TIME], or [TYPE_DATE_TIME].  If the datatype
    * is unknown, [TYPE_UNKNOWN] is returned.
    */
-  int get datatype() {
-    return _datatype;
-  }
+  int get datatype() => _datatype;
 
   Value(this._datatype) { }
 
@@ -53,9 +51,7 @@ class Value {
    * Return the value as a boolean.  For numeric values, 0 equates to [:false:] and all other
    * values equate to [:true:].
    */
-  bool asBoolean(CellLocation location) {
-    return asDouble(location) != 0.0;
-  }
+  bool asBoolean(CellLocation location) => asDouble(location) != 0.0;
 
   /**
    * Returns a [CellRefToken] from this [Value].  If this [Value] is not a [RefValue],
@@ -95,17 +91,13 @@ class Value {
    *
    * The implementation in this superclass returns [:false:].
    */
-  bool isString(CellLocation location) {
-    return false;
-  }
+  bool isString(CellLocation location) => false;
 
   /**
    * For reference values, the reference is evaluated relative to the given (sheet, row, col)
    * [location]. For non-reference [Value]s, [lookup] returns the value itself.
    */
-  Value lookup(CellLocation location) {
-    return this;
-  }
+  Value lookup(CellLocation location) => this;
 
   /**
    * Returns a String representation of this [Value] for debugging.  The return value is not
@@ -120,68 +112,50 @@ class Value {
 class NumericValue extends Value {
   double _value;
 
-  double get value() {
-    return _value;
-  }
+  double get value() => _value;
 
   NumericValue(this._value, int datatype) : super(datatype) { }
 
-  double asDouble(CellLocation location) {
-    return _value;
-  }
+  double asDouble(CellLocation location) => _value;
 
-  String toString() {
-    return "NumericValue[${value}]";
-  }
+  String toString() => "NumericValue[${value}]";
 }
 
 class BooleanValue extends NumericValue {
 
   BooleanValue(bool b) : super(b ? 1.0 : 0.0, TYPE_BOOLEAN) { }
 
-  bool asBoolean(CellLocation location) {
-    return value != 0.0;
-  }
+  bool asBoolean(CellLocation location) => value != 0.0;
 
-  String toString() {
-    return "BooleanValue[${value == 0.0 ? "FALSE" : "TRUE"}]";
-  }
+  String toString() => "BooleanValue[${value == 0.0 ? "FALSE" : "TRUE"}]";
 }
 
 class DateValue extends NumericValue {
 
   DateValue(double date) : super(date, TYPE_DATE) { }
 
-  String toString() {
-    return "DateValue[${value}]";
-  }
+  String toString() => "DateValue[${value}]";
 }
 
 class DateTimeValue extends NumericValue {
 
   DateTimeValue(double dateTime) : super(dateTime, TYPE_DATE_TIME) { }
 
-  String toString() {
-    return "DateTimeValue[${value}]";
-  }
+  String toString() => "DateTimeValue[${value}]";
 }
 
 class DoubleValue extends NumericValue {
 
   DoubleValue(double value) : super(value, TYPE_DOUBLE) { }
 
-  String toString() {
-    return "DoubleValue[${value}]";
-  }
+  String toString() => "DoubleValue[${value}]";
 }
 
 class TimeValue extends NumericValue {
 
   TimeValue(double time) : super(time, TYPE_TIME) { }
 
-  String toString() {
-    return "TimeValue[${value}]";
-  }
+  String toString() => "TimeValue[${value}]";
 }
 
 class StringValue extends Value {
@@ -190,38 +164,24 @@ class StringValue extends Value {
   StringValue(this._s) : super(TYPE_STRING) { }
 
   // Strings are interpreted as 0.0 when used as inputs to a numeric computation
-  double asDouble(CellLocation location) {
-    return 0.0;
-  }
+  double asDouble(CellLocation location) => 0.0;
 
-  String asString(CellLocation location) {
-    return _s;
-  }
+  String asString(CellLocation location) => _s;
 
-  bool isString(CellLocation location) {
-    return true;
-  }
+  bool isString(CellLocation location) => true;
 
-  String toString() {
-    return "StringValue[${_s}]";
-  }
+  String toString() => "StringValue[${_s}]";
 }
 
 class RefValue extends Value {
 
   RefValue(int datatype) : super(datatype) { }
 
-  double asDouble(CellLocation location) {
-    return lookup(location).asDouble(null);
-  }
+  double asDouble(CellLocation location) => lookup(location).asDouble(null);
 
-  String asString(CellLocation location) {
-    return lookup(location).asString(null);
-  }
+  String asString(CellLocation location) => lookup(location).asString(null);
 
-  bool isString(CellLocation location) {
-    return lookup(location).isString(null);
-  }
+  bool isString(CellLocation location) => lookup(location).isString(null);
 
   /**
    * Returns the value stored at the location specified by this value's underlying reference
@@ -244,18 +204,14 @@ class CellRefTokenValue extends RefValue {
 
   CellRefTokenValue(this._crt) : super(TYPE_CELLREF) { }
 
-  CellRefToken asCellRefToken() {
-    return _crt;
-  }
+  CellRefToken asCellRefToken() => _crt;
 
   RangeToken asRangeToken() {
     // Create a range consisting of a single cell
     return new RangeToken(_crt, _crt);
   }
 
-  String toString() {
-    return "CellRefTokenValue[${_crt.toDebugString()}]";
-  }
+  String toString() => "CellRefTokenValue[${_crt.toDebugString()}]";
 }
 
 class RangeTokenValue extends RefValue {
@@ -263,15 +219,9 @@ class RangeTokenValue extends RefValue {
 
   RangeTokenValue(this._rt) : super(TYPE_RANGE) {}
 
-  CellRefToken asCellRefToken() {
-    return _rt.startRef;
-  }
+  CellRefToken asCellRefToken() => _rt.startRef;
 
-  RangeToken asRangeToken() {
-    return _rt;
-  }
+  RangeToken asRangeToken() => _rt;
 
-  String toString() {
-    return "RangeTokenValue[${_rt.toDebugString()}]";
-  }
+  String toString() => "RangeTokenValue[${_rt.toDebugString()}]";
 }

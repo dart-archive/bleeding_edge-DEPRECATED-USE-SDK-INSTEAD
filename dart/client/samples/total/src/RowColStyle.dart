@@ -38,13 +38,9 @@ class RowColStyle {
   int _id;
   Style _style;
 
-  int get id() {
-    return _id;
-  }
+  int get id() => _id;
 
-  Style get style() {
-    return _style;
-  }
+  Style get style() => _style;
 
   RowColStyle(this._style) {
     if (_style == null) {
@@ -57,7 +53,5 @@ class RowColStyle {
   }
 
   // These objects are immutable.
-  bool operator==(Object o) {
-    return o === this;
-  }
+  bool operator==(Object o) => o === this;
 }

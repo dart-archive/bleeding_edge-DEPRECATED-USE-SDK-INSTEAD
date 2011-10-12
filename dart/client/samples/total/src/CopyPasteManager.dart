@@ -72,9 +72,7 @@ class CopyPasteManager {
   /**
    * Return [:true:] if the local copy buffer is non-empty.
    */
-  bool hasCopiedData() {
-    return _selectionContents != null;
-  }
+  bool hasCopiedData() => _selectionContents != null;
 
   /**
    * Paste data from the local copy buffer into the spreadsheet, starting at the

@@ -14,9 +14,7 @@ class IndexedValue {
   int _index;
   String _sValue;
 
-  int get index() {
-    return _index;
-  }
+  int get index() => _index;
 
   IndexedValue.blank(this._index) {
     _class = BLANK;

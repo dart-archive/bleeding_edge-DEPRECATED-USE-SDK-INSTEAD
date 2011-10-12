@@ -13,7 +13,5 @@ class IdGenerator {
   }
 
   // Return the next value in sequence
-  int next() {
-    return _id++;
-  }
+  int next() => _id++;
 }

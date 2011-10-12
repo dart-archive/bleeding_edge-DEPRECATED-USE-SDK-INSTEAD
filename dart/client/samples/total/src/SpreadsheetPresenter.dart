@@ -102,21 +102,13 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   // Public getters
 
-  SelectionManager get selectionManager() {
-    return _selectionManager;
-  }
+  SelectionManager get selectionManager() => _selectionManager;
 
-  Spreadsheet get spreadsheet() {
-    return _spreadsheet;
-  }
+  Spreadsheet get spreadsheet() => _spreadsheet;
 
-  Element get spreadsheetElement() {
-    return _spreadsheetElement;
-  }
+  Element get spreadsheetElement() => _spreadsheetElement;
 
-  Window get window() {
-    return _window;
-  }
+  Window get window() => _window;
 
   SpreadsheetPresenter(this._spreadsheet, this._window, this._rowShift, this._columnShift,
       this._rows, this._columns) {
@@ -207,9 +199,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     _copyPasteManager.copySelection();
   }
 
-  bool hasCopiedData() {
-    return _copyPasteManager.hasCopiedData();
-  }
+  bool hasCopiedData() => _copyPasteManager.hasCopiedData();
 
   void onColumnInserted(int col) {
     _columns++;
@@ -1020,16 +1010,12 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   }
 
   // Return the end position of the given column, taking a shift into account
-  int _getShiftedColumnEnd(int index, int shift) {
-    return _spreadsheet.getColumnEnd(index) - _spreadsheet.getColumnEnd(shift) +
-        _spreadsheet.getColumnEnd(0);
-  }
+  int _getShiftedColumnEnd(int index, int shift) => _spreadsheet.getColumnEnd(index) -
+      _spreadsheet.getColumnEnd(shift) + _spreadsheet.getColumnEnd(0);
 
   // Return the end position of the given row, taking a shift into account
-  int _getShiftedRowEnd(int index, int shift) {
-    return (_spreadsheet.getRowEnd(index) - _spreadsheet.getRowEnd(shift) +
-        _spreadsheet.getRowEnd(0));
-  }
+  int _getShiftedRowEnd(int index, int shift) => (_spreadsheet.getRowEnd(index) -
+      _spreadsheet.getRowEnd(shift) + _spreadsheet.getRowEnd(0));
 
   // Calculates the permutation required in order to sort the given portion of a column,
   // returning the results in the 'order' list. 'order' must have size maxRow - minRow + 1
@@ -1058,14 +1044,10 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   }
 
   // Return the number of _rows currently being displayed (not counting the column header row)
-  int _getVisibleTableHeight() {
-    return _getShiftedRowEnd(_rowShift + _rows, _rowShift);
-  }
+  int _getVisibleTableHeight() => _getShiftedRowEnd(_rowShift + _rows, _rowShift);
 
   // Return the number of _columns currently being displayed (not counting the row header column)
-  int _getVisibleTableWidth() {
-    return _getShiftedColumnEnd(_columnShift + _columns, _columnShift);
-  }
+  int _getVisibleTableWidth() => _getShiftedColumnEnd(_columnShift + _columns, _columnShift);
 
   // Resize the formula input field to fit the contained text
   void _growFormulaInput() {
@@ -1315,13 +1297,9 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
       }
     }
 
-    int getXOrY(int rowOrCol) {
-      return rowOrCol == COL ? x : y;
-    }
+    int getXOrY(int rowOrCol) => rowOrCol == COL ? x : y;
 
-    String getWidthOrHeight(int rowOrCol) {
-      return rowOrCol == COL ? "width" : "height";
-    }
+    String getWidthOrHeight(int rowOrCol) => rowOrCol == COL ? "width" : "height";
 
     // Trim the drag indicator and display it at the hover row/column
     void setDrag(int rowOrCol, bool visible) {

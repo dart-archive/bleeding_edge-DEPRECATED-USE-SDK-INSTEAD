@@ -46,9 +46,7 @@ class ZoomTracker {
 
   void removeListener(ZoomListener listener) {
     bool found = false;
-    _listeners = _listeners.filter(bool _(element) {
-      return found || !(found = (element == listener));
-    });
+    _listeners = _listeners.filter(bool _(element) => found || !(found = (element == listener)));
   }
 
   double _getZoom() {

@@ -31,25 +31,19 @@ class SelectionManager {
   Spreadsheet _spreadsheet;
   HtmlTable _table;
 
-  CellLocation get selectedCell() {
-    return _selectedCell;
-  }
+  CellLocation get selectedCell() => _selectedCell;
 
   void set selectedCell(CellLocation value) {
     _selectedCell = value;
   }
 
-  CellLocation get selectionCorner() {
-    return _selectionCorner;
-  }
+  CellLocation get selectionCorner() => _selectionCorner;
 
   void set selectionCorner(CellLocation value) {
     _selectionCorner = value;
   }
 
-  Spreadsheet get spreadsheet() {
-    return _spreadsheet;
-  }
+  Spreadsheet get spreadsheet() => _spreadsheet;
 
   SelectionManager(this._spreadsheet, SpreadsheetPresenter presenter, Window window, this._table)
       : _selectedCell = null, _selectionCorner = null, _originRow = 0, _originColumn = 0 {
@@ -158,9 +152,7 @@ class SelectionManager {
         (maxP.top - minP.top + maxCellElmt.clientHeight).toInt());
   }
 
-  CellRange getSelectionRange() {
-    return _getSelectionRange(_selectedCell, _selectionCorner);
-  }
+  CellRange getSelectionRange() => _getSelectionRange(_selectedCell, _selectionCorner);
 
   bool isColumnSelected(int column) {
     CellRange r = _getSelectionRange(_selectedCell, _selectionCorner);
@@ -178,13 +170,9 @@ class SelectionManager {
     return r.minCorner.row <= row && r.maxCorner.row >= row;
   }
 
-  bool isSelectionEmpty() {
-    return _selectedCell == null;
-  }
+  bool isSelectionEmpty() => _selectedCell == null;
 
-  bool isSingleCellSelection() {
-    return _selectedCell == _selectionCorner;
-  }
+  bool isSingleCellSelection() => _selectedCell == _selectionCorner;
 
   void selectionChanged() {
     if (_listener != null) {
@@ -268,7 +256,5 @@ class SelectionManager {
   }
 
   // Return the value closest to x in the range [min, max]
-  int _pin(int x, int min, int max) {
-    return Math.max(Math.min(x, max), min);
-  }
+  int _pin(int x, int min, int max) => Math.max(Math.min(x, max), min);
 }

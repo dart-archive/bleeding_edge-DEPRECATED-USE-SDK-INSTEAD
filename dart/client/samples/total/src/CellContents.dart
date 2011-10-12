@@ -23,25 +23,19 @@ class CellContent {
    *
    * The implementation in this superclass returns false.
    */
-  bool alwaysRecalculate() {
-    return false;
-  }
+  bool alwaysRecalculate() => false;
 
   /**
    * Create a clone (new instance that is an exact copy).
    *
    * Subclasses must override this method to clone their specific content.
    */
-  CellContent clone() {
-    return new CellContent();
-  }
+  CellContent clone() => new CellContent();
 
   /**
    * Return what the user typed to produce the content.
    */
-  String getContent() {
-    return "";
-  }
+  String getContent() => "";
 
   /**
    * Return the datatype of this content, one of [Functions.NUMBER], [Functions.DATE],
@@ -62,16 +56,12 @@ class CellContent {
    *
    * 'null' indicates the empty set.
    */
-  Set<CellLocation> getDependencies() {
-    return null;
-  }
+  Set<CellLocation> getDependencies() => null;
 
   /**
    * Return the cell contents in 'RC' form, suitable for pasting into another cell.
    */
-  String getPasteContent() {
-    return getContent();
-  }
+  String getPasteContent() => getContent();
 
   /**
    * Return the computed value of this content.
@@ -92,27 +82,21 @@ class CellContent {
    * Return new content if this content was modified; otherwise null
    */
   CellContent invalidateReferences(CellLocation thisLocation, CellRange range,
-      RowCol shiftOffset) {
-    return null;
-  }
+      RowCol shiftOffset) => null;
 
   /**
    * Return true if this cell content requires recomputation.
    *
    * The implementation in this superclass returns false.
    */
-  bool isDirty() {
-    return false;
-  }
+  bool isDirty() => false;
 
   /**
    * Return true if this cell content contains a formula.
    *
    * The implementation in this superclass returns false.
    */
-  bool isFormula() {
-    return false;
-  }
+  bool isFormula() => false;
 
   /**
    * Return true if this content may be represented by a numeric value.  The datatype is
@@ -129,9 +113,7 @@ class CellContent {
    * retrieved by calling [getDatatype] and if it is equal to [Functions.STRING]
    * then [:true:] is returned, otherwise [:false:] is returned.
    */
-  bool isString() {
-    return getDatatype() == Value.TYPE_STRING;
-  }
+  bool isString() => getDatatype() == Value.TYPE_STRING;
 
   /**
    * Update formula dependencies for an insertion.
@@ -144,9 +126,7 @@ class CellContent {
    *
    * Return new content if the content was modified; otherwise null.
    */
-  CellContent modifyDependenciesForShift(CellRange range, RowCol offset) {
-    return null;
-  }
+  CellContent modifyDependenciesForShift(CellRange range, RowCol offset) => null;
 
   /**
    * Set the content to be dirty, so that the next call to isDirty will return true if
@@ -193,17 +173,11 @@ class ValueContent extends CellContent {
 
   ValueContent(this._value, this._content) : super() { }
 
-  CellContent clone() {
-    return new ValueContent(_content, _value);
-  }
+  CellContent clone() => new ValueContent(_content, _value);
 
-  String getContent() {
-    return _content;
-  }
+  String getContent() => _content;
 
-  Value getValue() {
-    return _value;
-  }
+  Value getValue() => _value;
 }
 
 /**
@@ -229,25 +203,15 @@ class FormulaContent extends CellContent {
     _state = DIRTY;
   }
 
-  bool alwaysRecalculate() {
-    return _formula.alwaysRecalculate();
-  }
+  bool alwaysRecalculate() => _formula.alwaysRecalculate();
 
-  CellContent clone() {
-    return new FormulaContent(_location, _formula);
-  }
+  CellContent clone() => new FormulaContent(_location, _formula);
 
-  String getContent() {
-    return _formula.getFormula(false);
-  }
+  String getContent() => _formula.getFormula(false);
 
-  Set<CellLocation> getDependencies() {
-    return _formula.getDependencies();
-  }
+  Set<CellLocation> getDependencies() => _formula.getDependencies();
 
-  String getPasteContent() {
-    return _formula.getFormula(true);
-  }
+  String getPasteContent() => _formula.getFormula(true);
 
   Value getValue() {
     // Evaluate each cell only once per recalculate pass
@@ -281,13 +245,9 @@ class FormulaContent extends CellContent {
   }
 
   // Returns true if this cell is in a dirty or in progress state.
-  bool isDirty() {
-    return _state != UP_TO_DATE && _state != ERROR;
-  }
+  bool isDirty() => _state != UP_TO_DATE && _state != ERROR;
 
-  bool isFormula() {
-    return true;
-  }
+  bool isFormula() => true;
 
   CellContent modifyDependenciesForShift(CellRange range, RowCol offset) {
     Formula newFormula = _formula.modifyDependenciesForShift(range, offset);
