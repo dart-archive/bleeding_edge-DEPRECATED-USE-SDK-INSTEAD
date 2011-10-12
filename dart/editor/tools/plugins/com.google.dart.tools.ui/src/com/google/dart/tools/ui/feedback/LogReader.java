@@ -94,7 +94,7 @@ public class LogReader {
    */
   public static String readLog() throws UnsupportedEncodingException, IOException {
     File file = Platform.getLogFileLocation().toFile();
-    return toString(new TailInputStream(file, MAX_FILE_LENGTH), "UTF-8");//$NON-NLS-1$
+    return scrub(toString(new TailInputStream(file, MAX_FILE_LENGTH), "UTF-8"));//$NON-NLS-1$
   }
 
   /**
@@ -111,6 +111,18 @@ public class LogReader {
       DartToolsPlugin.log("unable to access log", e); //$NON-NLS-1$
       return "log unavailable: " + e.getMessage(); //$NON-NLS-1$
     }
+  }
+
+  /**
+   * Remove obvious references to user details.
+   */
+  private static String scrub(String logString) {
+    // Users/johndoe/dev/ws/... -> ${user.home}/dev/ws/... 
+    String userHome = System.getProperty("user.home");//$NON-NLS-1$
+    if (userHome != null) {
+      logString = logString.replace(userHome, "${user.home}");//$NON-NLS-1$
+    }
+    return logString;
   }
 
   private static String toString(InputStream input, String encoding) throws IOException {
