@@ -17,6 +17,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UrlDartSource;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -880,7 +881,8 @@ public class CompletionEngine {
       for (DartCompilationError err : parseErrors) {
         DartCore.logError(err.getMessage(), null);
         System.out.println(err.getMessage());
-        System.out.println(err.getSource().getUri());
+        Source source = err.getSource();
+        System.out.println(source == null ? "<unknown source file>" : source.getUri());
       }
       return;
     }

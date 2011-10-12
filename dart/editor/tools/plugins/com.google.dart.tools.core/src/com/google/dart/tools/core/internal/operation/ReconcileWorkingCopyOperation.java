@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.operation;
 
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
@@ -262,9 +263,11 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
       DartCore.notYetImplemented();
       // TODO(brianwilkerson) We don't currently have any way to get arguments,
       // severity, or id.
-      problemArray[nextIndex++] = new DefaultProblem(error.getSource().getName().toCharArray(),
-          error.getMessage(), 0, arguments, ProblemSeverities.Error, startPosition, startPosition
-              + error.getLineNumber(), error.getLineNumber(), error.getColumnNumber());
+      Source source = error.getSource();
+      problemArray[nextIndex++] = new DefaultProblem((source == null ? ""
+          : error.getSource().getName()).toCharArray(), error.getMessage(), 0, arguments,
+          ProblemSeverities.Error, startPosition, startPosition + error.getLineNumber(),
+          error.getLineNumber(), error.getColumnNumber());
     }
     problems.put(DartCore.DART_PROBLEM_MARKER_TYPE, problemArray);
   }
