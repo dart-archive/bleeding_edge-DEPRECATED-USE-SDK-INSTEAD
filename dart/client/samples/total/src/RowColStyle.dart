@@ -8,7 +8,7 @@
  * This method adds a unique change order id to the Style class, enabling
  * the application to prioritize styles when merging.
  *
- * This class is immutable; if the style changes, create a new one. 
+ * This class is immutable; if the style changes, create a new one.
  */
 class RowColStyle {
   static IdGenerator _idGenerator;

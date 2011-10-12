@@ -278,27 +278,19 @@ class SetStyleCommand extends Command {
     bool isSheet = _cellRange.isSheetSelection();
     bool isCol = _cellRange.isColumnSelection();
     bool isRow = _cellRange.isRowSelection();
-    if (isSheet || isRow || isCol) {
-      RowColStyle s;
-      if (isSheet) {
-        s = _spreadsheet.getSheetStyle();
-      } else if (isRow) {
-        s = _spreadsheet.getRowStyle(_cellRange.minCorner.row);
-      } else if (isCol) {
-        s = _spreadsheet.getColumnStyle(_cellRange.minCorner.col);
+    RowColStyle s;
+    if (isSheet) {
+      s = _spreadsheet.getSheetStyle();
+      _spreadsheet.setSheetStyle(_updateStyle(s));
+    } else if (isRow) {
+      for (int row = _cellRange.minCorner.row; row <= _cellRange.maxCorner.row; row++) {
+        s = _spreadsheet.getRowStyle(row);
+        _spreadsheet.setRowStyle(row, _updateStyle(s));
       }
-      Style oldStyle = s == null ? new Style() : s.style;
-      // Perform the style setting action
-      Style newStyle = _action(oldStyle, _index);
-      if (newStyle != oldStyle) {
-        RowColStyle newRCStyle = new RowColStyle(newStyle);
-        if (isSheet) {
-          _spreadsheet.setSheetStyle(newRCStyle);
-        } else if (isRow) {
-          _spreadsheet.setRowStyle(_cellRange.minCorner.row, newRCStyle);
-        } else {
-          _spreadsheet.setColumnStyle(_cellRange.minCorner.col, newRCStyle);
-        }
+    } else if (isCol) {
+      for (int col = _cellRange.minCorner.col; col <= _cellRange.maxCorner.col; col++) {
+        s = _spreadsheet.getColumnStyle(col);
+        _spreadsheet.setColumnStyle(col, _updateStyle(s));
       }
     }
 
@@ -325,5 +317,15 @@ class SetStyleCommand extends Command {
       _oldCellStyles[i].undoAction(_spreadsheet);
     };
     _oldCellStyles = null;
+  }
+
+  // Return a RowColStyle that is the result of performing the style setting action on
+  // an existing RowColStyle.
+  RowColStyle _updateStyle(RowColStyle s) {
+    Style oldStyle = s == null ? new Style() : s.style;
+    // Perform the style setting action
+    Style newStyle = _action(oldStyle, _index);
+    RowColStyle newRCStyle = new RowColStyle(newStyle);
+    return newRCStyle;
   }
 }

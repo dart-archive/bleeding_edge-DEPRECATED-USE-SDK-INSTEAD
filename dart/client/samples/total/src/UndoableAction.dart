@@ -19,9 +19,9 @@ interface UndoableAction {
 class CellAction implements UndoableAction {
   // The location of the cell that has changed
   RowCol _rowCol;
-  
+
   CellAction(this._rowCol) {}
-  
+
   // Apply does nothing
   void undoAction(Spreadsheet spreadsheet) {}
 }
@@ -32,7 +32,7 @@ class CellAction implements UndoableAction {
 class CellContentAction extends CellAction {
   // The old content
   CellContent _originalContent;
-  
+
   CellContentAction(RowCol rowCol, this._originalContent) : super(rowCol) {}
 
   void undoAction(Spreadsheet spreadsheet) {
@@ -46,7 +46,7 @@ class CellContentAction extends CellAction {
 class CellStyleAction extends CellAction {
   // The old style
   Style _originalStyle;
-  
+
   CellStyleAction(RowCol rowCol, this._originalStyle) : super(rowCol) {}
 
   void undoAction(Spreadsheet spreadsheet) {
@@ -67,12 +67,12 @@ class CellStyleAction extends CellAction {
 class RowColAction implements UndoableAction {
   // The index of the row or column that has changed
   int _index;
-  
+
   // One of Spreadsheet.ROW, Spreadsheet.COL, or Spreadsheet.SHEET.
   int _rowOrCol;
-  
+
   RowColAction(this._index, this._rowOrCol) {}
-  
+
   // Apply does nothing
   void undoAction(Spreadsheet spreadsheet) {}
 }
@@ -83,9 +83,9 @@ class RowColAction implements UndoableAction {
 class RowColStyleAction extends RowColAction {
   // The original style before the delta is applied
   RowColStyle _originalStyle;
-  
+
   RowColStyleAction(int index, int rowOrCol, this._originalStyle) : super(index, rowOrCol) {}
-  
+
   void undoAction(Spreadsheet spreadsheet) {
     if (_rowOrCol == Spreadsheet.ROW) {
       spreadsheet.setRowStyle(_index, _originalStyle);

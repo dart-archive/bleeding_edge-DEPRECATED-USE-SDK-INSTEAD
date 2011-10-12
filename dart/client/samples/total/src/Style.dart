@@ -86,7 +86,7 @@ class Style {
   static Style _defaultInstance;
 
   static List<TextFormat> _textFormats;
-  
+
   /**
    * Returns a [Style] that is the result of applying [style1] atop [style2], or vice versa.
    * The later-defined style is applied atop the earlier-defined style.  If either

@@ -43,7 +43,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   List<DivElement> _dragIndicators;
 
   bool _dragging;
-  
+
   // When the user is editing formula and clicks on some cell, we start cell selection
   bool _formulaCellSelecting;
 
@@ -54,7 +54,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   int _formulaCellWidth;
   Element _formulaDiv;
-  
+
   // When the user activates the formula input box, allow the left and right arrow keys
   // to move within the formula rather than moving the selected cell
   bool _formulaEditing;
@@ -72,7 +72,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   // True if the inner menu is being shown.  This will remain true even while
   // the menu is being hidden and re-shown due to movement of the selection.
   bool _innerMenuShown;
-  
+
   EventListener _move;
   PopupHandler _popupHandler;
   Element _resizeDragger;

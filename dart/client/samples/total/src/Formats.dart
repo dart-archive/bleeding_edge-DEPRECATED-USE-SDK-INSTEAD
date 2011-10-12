@@ -56,14 +56,14 @@ class Formats {
    */
   static final List<String> _colorDescriptions = const <String>[
     "--",
-    "White", "Black", "20% Grey", "50% Gray", "60% Gray", "75% Gray", "85% Gray",
-    "Red", "Green", "Blue", "Orange", "Lime Green", "Forest Green",
-    "Aqua", "Sky Blue", "Purple", "Magenta", "Amber", "Bright Yellow",
-    "Bright Green", "Cyan", "Light Blue", "Dark Rose", "Light Rose", "Pale Orange",
-    "Light Yellow", "Pale Cyan", "Bluish Gray", "Pinkish Gray", "Flamingo Pink", "Peach",
-    "Amber Yellow", "Bluish Gray", "Cyanish Gray", "Light Azure", "Light Violet", "Vivid Orange",
-    "Olive", "Strong Green", "Strong Cyan", "Moderate Blue", "Strong Red", "Strong Orange Red",
-    "Deep Olive", "Deep Green", "Deep Azure", "Strong Blue", "Moderate Blue"
+    "White", "Black", "Red", "Green", "Blue",
+    "15% Grey", "30% Grey", "45% Gray", "60% Gray", "75% Gray", "85% Gray",
+    "Orange", "Lime Green", "Forest Green", "Aqua", "Sky Blue", "Purple",
+    "Magenta", "Amber", "Bright Yellow", "Bright Green", "Cyan", "Light Blue",
+    "Dark Rose", "Light Rose", "Pale Orange", "Light Yellow", "Pale Cyan", "Bluish Gray",
+    "Pinkish Gray", "Flamingo Pink", "Peach", "Amber Yellow","Cyanish Gray", "Bluish Gray",
+    "Light Azure", "Light Violet", "Vivid Orange", "Olive", "Strong Green", "Strong Cyan",
+    "Moderate Blue", "Strong Red", "Strong Orange Red", "Deep Olive", "Deep Green", "Deep Azure"
   ];
 
   /**
@@ -71,7 +71,7 @@ class Formats {
    */
   static final List<String> _htmlColors = const <String>[
     "#FFFFFF", "#FFFFFF", "#000000", "#FF0000", "#00FF00", "#0000FF",
-    "#242424", "#484848", "#6D6D6D", "#919191", "#B6B6B6", "#DADADA",
+    "#242424", "#484848", "#737373", "#919191", "#B6B6B6", "#DADADA",
     "#FF9900", "#99CC00", "#339966", "#33CCCC", "#3366FF", "#800080",
     "#FF00FF", "#FFCC00", "#FFFF00", "#00FF00", "#00FFFF", "#00CCFF",
     "#993366", "#FF99CC", "#FADCB3", "#FFFF99", "#CCFFFF", "#C2D1F0",
@@ -116,7 +116,7 @@ class Formats {
     }
     return "${sx}${output}";
   }
-  
+
   static String getColorDescription(int index) {
     return _colorDescriptions[index];
   }
@@ -125,7 +125,7 @@ class Formats {
     assert(colorIndex >= 0 && colorIndex < _htmlColors.length);
     return _htmlColors[colorIndex];
   }
-  
+
   static String getTextAlignmentDescription(int index) {
     return _textAlignmentDescriptions[index];
   }

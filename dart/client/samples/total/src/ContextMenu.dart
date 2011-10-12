@@ -8,7 +8,7 @@ typedef void CallbackFunction(Element elmt, int value);
 class ElementFunc {
   Element _element;
   EnabledFunction _func;
-  
+
   Element get element() {
     return _element;
   }
