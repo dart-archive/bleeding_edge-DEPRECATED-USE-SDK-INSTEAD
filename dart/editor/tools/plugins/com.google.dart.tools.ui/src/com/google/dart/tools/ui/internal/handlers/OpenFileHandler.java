@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -78,6 +78,9 @@ public class OpenFileHandler extends AbstractHandler {
 
               monitor.beginTask(HandlerMessages.OpenFile_taskName, 30);
               libFile[0] = DartCore.openLibrary(selectedFile, new NullProgressMonitor());
+              if (libFile[0] != null) {
+                libFile[0].setTopLevel(true);
+              }
               monitor.worked(1);
               IFile[] resources = ResourceUtil.getResources(selectedFile);
               if (resources.length == 0) {
@@ -144,7 +147,7 @@ public class OpenFileHandler extends AbstractHandler {
 
   /**
    * Prompt the user to select a file to be opened.
-   *
+   * 
    * @return The absolute path of the selected file or <code>null</code> if the user canceled the
    *         operation.
    */

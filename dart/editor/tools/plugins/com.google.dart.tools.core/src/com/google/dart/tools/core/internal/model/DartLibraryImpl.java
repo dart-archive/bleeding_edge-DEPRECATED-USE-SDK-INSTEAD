@@ -33,7 +33,6 @@ import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -60,6 +59,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.QualifiedName;
 
 import java.io.File;
 import java.net.URI;
@@ -91,6 +91,13 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
    * An empty array of libraries.
    */
   public static final DartLibraryImpl[] EMPTY_ARRAY = new DartLibraryImpl[0];
+
+  /**
+   * The qualified name used to access the persistent property indicating whether the file
+   * associated with the defining compilation unit defines a top-level library.
+   */
+  private static final QualifiedName TOP_LEVEL_PROPERTY_NAME = new QualifiedName(
+      DartCore.PLUGIN_ID, "topLevel");
 
   /**
    * Answer a library source for the specified file
@@ -393,6 +400,24 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
+  public List<DartLibrary> getReferencingLibraries() throws DartModelException {
+    List<DartLibrary> libraries = new ArrayList<DartLibrary>();
+    for (DartProject project : DartModelManager.getInstance().getDartModel().getDartProjects()) {
+      for (DartLibrary candidate : project.getDartLibraries()) {
+        if (!equals(candidate)) {
+          for (DartLibrary importedLibrary : candidate.getImportedLibraries()) {
+            if (equals(importedLibrary)) {
+              libraries.add(candidate);
+              break;
+            }
+          }
+        }
+      }
+    }
+    return libraries;
+  }
+
+  @Override
   public DartResource getResource(IFile file) {
     return new DartResourceImpl(this, file);
   }
@@ -440,12 +465,34 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
+  public boolean isTopLevel() {
+    try {
+      IFile definingResource = getDefiningResource();
+      if (definingResource != null) {
+        return definingResource.getPersistentProperty(TOP_LEVEL_PROPERTY_NAME) != null;
+      }
+    } catch (CoreException exception) {
+      // Fall through to return the default value.
+    }
+    return false;
+  }
+
+  @Override
   public IResource resource() {
     return null;
   }
 
   @Override
-  protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm,
+  public void setTopLevel(boolean topLevel) {
+    try {
+      getDefiningResource().setPersistentProperty(TOP_LEVEL_PROPERTY_NAME, topLevel ? "true" : null);
+    } catch (CoreException exception) {
+      // Ignore
+    }
+  }
+
+  @Override
+  protected boolean buildStructure(OpenableElementInfo info, final IProgressMonitor monitor,
       Map<DartElement, DartElementInfo> newElements, final IResource underlyingResource)
       throws DartModelException {
     final DartLibraryInfo libraryInfo = (DartLibraryInfo) info;
@@ -473,6 +520,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       libraryInfo.setDefiningCompilationUnit(definingUnit);
       children.add(definingUnit);
     }
+    final DartModelManager modelManager = DartModelManager.getInstance();
     unit.accept(new DartNodeTraverser<Void>() {
       @Override
       public Void visitImportDirective(DartImportDirective node) {
@@ -483,32 +531,45 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         LibrarySource lib;
         try {
           lib = sourceFile.getImportFor(relativePath);
-        } catch (Exception e) {
-          Util.log(e, "Failed to resolve import " + relativePath + " in " + sourceFile);
+        } catch (Exception exception) {
+          DartCore.logError("Failed to resolve import " + relativePath + " in " + sourceFile,
+              exception);
           return null;
         }
         if (lib == null) {
+          DartCore.logError("Failed to resolve import " + relativePath + " in " + sourceFile);
+          return null;
+        } else if (SystemLibraryManager.isDartUri(lib.getUri())) {
+          // It is a bundled library.
+          importedLibraries.add(new DartLibraryImpl(lib));
           return null;
         }
 
-        // Find resource in workspace corresponding to imported library
+        // Find a resource in the workspace corresponding to the imported library.
         IFile[] libraryFiles = ResourceUtil.getResources(lib);
         if (libraryFiles != null && libraryFiles.length == 1) {
           IFile libFile = libraryFiles[0];
-          DartProjectImpl dartProject = DartModelManager.getInstance().create(libFile.getProject());
+          DartProjectImpl dartProject = modelManager.create(libFile.getProject());
           importedLibraries.add(new DartLibraryImpl(dartProject, libFile, lib));
           return null;
         }
 
-        // Find external library on disk
+        // Find an external library on disk.
         File libFile = ResourceUtil.getFile(lib);
         if (libFile != null) {
-          importedLibraries.add(new DartLibraryImpl(libFile));
+          try {
+            importedLibraries.add((DartLibraryImpl) modelManager.openLibrary(libFile, monitor));
+          } catch (DartModelException exception) {
+            // I believe that this should not happen, but I'm leaving it in until I can confirm this.
+            DartCore.logInformation("Failed to open imported library " + relativePath + " in "
+                + sourceFile, exception);
+            importedLibraries.add(new DartLibraryImpl(libFile));
+          }
           return null;
         }
 
-        // Must be a bundled library
-        importedLibraries.add(new DartLibraryImpl(lib));
+        // Otherwise, the library could not be resolved.
+        DartCore.logError("Failed to resolve import " + relativePath + " in " + sourceFile);
         return null;
       }
 
@@ -741,6 +802,23 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       return true;
     }
     return false;
+  }
+
+  /**
+   * Return the resource associated with the defining compilation unit.
+   * 
+   * @return the resource associated with the defining compilation unit
+   */
+  private IFile getDefiningResource() {
+    try {
+      CompilationUnit compilationUnit = getDefiningCompilationUnit();
+      if (compilationUnit == null) {
+        return null;
+      }
+      return (IFile) compilationUnit.getUnderlyingResource();
+    } catch (DartModelException exception) {
+      return null;
+    }
   }
 
   /**

@@ -430,6 +430,15 @@ public class DartCore extends Plugin {
   }
 
   /**
+   * Log the given message as an error.
+   * 
+   * @param message an explanation of why the error occurred or what it means
+   */
+  public static void logError(String message) {
+    getPlugin().getLog().log(new Status(Status.ERROR, PLUGIN_ID, message, null));
+  }
+
+  /**
    * Log the given exception as one representing an error.
    * 
    * @param message an explanation of why the error occurred or what it means

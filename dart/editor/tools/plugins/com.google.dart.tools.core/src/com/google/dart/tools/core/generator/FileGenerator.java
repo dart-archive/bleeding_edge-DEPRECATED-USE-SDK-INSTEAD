@@ -182,6 +182,7 @@ public class FileGenerator extends AbstractGenerator {
       } else {
         library.addResource(systemFile, monitor);
       }
+      library.setTopLevel(true);
     } else {
       // TODO The validator should be updated to ensure that this case is never reached.
       // should never get here, validator should be updated if it does.

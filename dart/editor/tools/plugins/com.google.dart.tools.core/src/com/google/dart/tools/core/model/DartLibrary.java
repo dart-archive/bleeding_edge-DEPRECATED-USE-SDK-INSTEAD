@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.io.File;
 import java.net.URI;
+import java.util.List;
 
 /**
  * The interface <code>DartLibrary</code> defines the behavior of objects representing a Dart
@@ -136,6 +137,14 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public DartLibrary[] getImportedLibraries() throws DartModelException;
 
   /**
+   * Return a possibly empty list of the libraries that reference this library.
+   * 
+   * @return a list of the libraries that reference this library
+   * @throws DartModelException if the list of libraries could not be determined
+   */
+  public List<DartLibrary> getReferencingLibraries() throws DartModelException;
+
+  /**
    * Return the Dart resource with the specified file in this library (for example, some IFile with
    * file name <code>"readme.txt"</code>). The name has to be a valid resource name. This is a
    * handle-only method. The resource may or may not be present.
@@ -170,4 +179,19 @@ public interface DartLibrary extends OpenableElement, ParentElement {
    * @return <code>true</code> if the library exists in the workspace
    */
   public boolean isLocal();
+
+  /**
+   * Return <code>true</code> if this library is a top-level library. A top-level library is one
+   * that the user has explicitly opened.
+   * 
+   * @return <code>true</code> if this library is a top-level library
+   */
+  public boolean isTopLevel();
+
+  /**
+   * Set whether this library is a top-level library to match the given value
+   * 
+   * @param topLevel <code>true</code> if this library is a top-level library
+   */
+  public void setTopLevel(boolean topLevel);
 }

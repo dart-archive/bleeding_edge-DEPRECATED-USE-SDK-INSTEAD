@@ -162,7 +162,9 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
             DartProject dartProject = (DartProject) obProject;
             DartLibrary[] libraries = dartProject.getDartLibraries();
             for (DartLibrary dartLibrary : libraries) {
-              childrenList.add(dartLibrary);
+              if (dartLibrary.isTopLevel()) {
+                childrenList.add(dartLibrary);
+              }
             }
             HTMLFile[] htmlFiles = dartProject.getHTMLFiles();
             for (HTMLFile htmlFile : htmlFiles) {
@@ -192,7 +194,7 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
         // if this DartLibrary is local, then include its' children, otherwise
         // return no children, this prevents locally defined libraries from
         // being listed out unnecessarily.
-        if (!dartLibrary.isLocal()) {
+        if (!dartLibrary.isTopLevel()) {
           return getDartLibraryChildren(element, dartLibrary);
         }
       }

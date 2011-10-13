@@ -97,6 +97,9 @@ public class ApplicationGenerator extends AbstractGenerator {
     subMonitor.done();
 
     DartLibrary library = DartCore.openLibrary(applicationFile, monitor);
+    if (library != null) {
+      library.setTopLevel(true);
+    }
     IFile[] files = ResourceUtil.getResources(applicationFile);
     iApplicationFile = files[0];
 

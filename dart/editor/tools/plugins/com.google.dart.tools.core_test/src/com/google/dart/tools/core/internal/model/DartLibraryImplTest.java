@@ -437,60 +437,8 @@ public class DartLibraryImplTest extends TestCase {
     assertEquals(1, importedLibraries.length);
   }
 
-  public void test_DartLibraryImpl_getNonDartResources() {
-    // TODO Implement this
-  }
-
-  public void test_DartLibraryImpl_isLocal_lib1() throws Exception {
-    assertEquals(true, getDartLib1().isLocal());
-  }
-
-  public void test_DartLibraryImpl_isLocal_lib2() throws Exception {
-    assertEquals(true, getDartLib2().isLocal());
-  }
-
-  public void test_DartLibraryImpl_isLocal_lib3() throws Exception {
-    DartLibraryImpl lib = getDartLib3();
-    assertEquals(true, lib.isLocal());
-//    lib.getDartProject().close();
-//    try {
-//      assertEquals(false, lib.isLocal());
-//    } finally {
-//      // force #getDartLib3() to reopen library
-//      dartLib3 = null;
-//      getDartLib3();
-//    }
-//    assertEquals(true, lib.isLocal());
-  }
-
-  public void test_DartLibraryImpl_isLocal_lib3Alt() throws Exception {
-    DartLibraryImpl lib = getDartLib3Alt();
-    assertEquals(true, lib.isLocal());
-//    lib.getDartProject().close();
-//    try {
-//      assertEquals(false, lib.isLocal());
-//    } finally {
-//      // force #getDartLib3() to reopen library
-//      dartLib3 = null;
-//      getDartLib3();
-//    }
-//    assertEquals(true, lib.isLocal());
-  }
-
-  public void test_DartLibraryImpl_isLocal_libDom() throws Exception {
-    assertEquals(false, getDartLibDom().isLocal());
-  }
-
-  public void test_DartLibraryImpl_isLocal_libEmpty() throws Exception {
-    assertEquals(true, getDartLibEmpty().isLocal());
-  }
-
-  public void test_DartLibraryImpl_isLocal_libExternal() throws Exception {
-    assertEquals(false, getDartLibExternal().isLocal());
-  }
-
-  public void test_DartLibraryImpl_isLocal_libHtml() throws Exception {
-    assertEquals(false, getDartLibHtml().isLocal());
+  public void test_DartLibraryImpl_isTopLevel() throws Exception {
+    assertFalse(getDartLibEmpty().isTopLevel());
   }
 
   public void test_DartLibraryImpl_nonExistantBundledLib() throws Exception {
@@ -503,6 +451,14 @@ public class DartLibraryImplTest extends TestCase {
     String memento = "= {file:/some/path/to/missing_bundled_lib.dart!src/NonExistingClass.dart";
     ExternalCompilationUnitImpl actual = (ExternalCompilationUnitImpl) DartCore.create(memento);
     assertNotNull(actual);
+  }
+
+  public void test_DartLibraryImpl_setTopLevel() throws Exception {
+    DartLibraryImpl library = getDartLibEmpty();
+    library.setTopLevel(true);
+    assertTrue(library.isTopLevel());
+    library.setTopLevel(false);
+    assertFalse(library.isTopLevel());
   }
 
   public void xtest_DartLibraryImpl_getImportedLibraries_libHtml() throws Exception {
