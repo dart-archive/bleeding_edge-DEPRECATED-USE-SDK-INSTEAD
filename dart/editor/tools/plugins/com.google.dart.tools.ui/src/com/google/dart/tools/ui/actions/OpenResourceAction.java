@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -24,6 +24,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -56,10 +57,13 @@ public class OpenResourceAction extends Action implements IWorkbenchAction {
    */
   public OpenResourceAction(IWorkbenchWindow window) {
     this.window = window;
+
     setId(ID);
     setText(ActionMessages.OpenResourceAction_label);
     setImageDescriptor(null);
     setActionDefinitionId(ID_ORG_ECLIPSE_UI_OPEN_RESOURCE_ACTION);
+    setAccelerator(SWT.MOD1 | SWT.MOD2 | 'R');
+
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
         IIDEHelpContextIds.OPEN_WORKSPACE_FILE_ACTION);
   }
@@ -112,7 +116,7 @@ public class OpenResourceAction extends Action implements IWorkbenchAction {
 
   /**
    * Query the user for the resources that should be opened
-   *
+   * 
    * @return the resource that should be opened.
    */
   private final Object[] queryFileResource() {
