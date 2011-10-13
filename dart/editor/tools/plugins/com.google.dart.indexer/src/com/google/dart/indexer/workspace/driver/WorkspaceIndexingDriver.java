@@ -175,7 +175,6 @@ public class WorkspaceIndexingDriver {
       synchronized (indexer) {
         indexer.prioritizeQuery(query);
         try {
-          long startTime = System.currentTimeMillis();
           while (!isShutdown) {
             try {
               indexer.execute(query);
@@ -183,16 +182,7 @@ public class WorkspaceIndexingDriver {
             } catch (IndexRequiresFullRebuild e) {
             } catch (IndexIsStillBuilding e) {
             }
-            // TODO (4588349): This is a bandaid not a fix
-            // Don't wait for results longer than 10 sec
-            long delta = System.currentTimeMillis() - startTime;
-            if (delta > 10000) {
-              IndexerPlugin.getLogger().logInfo(
-                  "Stopped waiting for indexer after " + (delta / 1000) + " seconds with "
-                      + indexer.getQueueSize() + " files remaining to be indexed");
-              throw new IndexTemporarilyNonOperational("Stopped waiting for indexer after "
-                  + (delta / 1000) + " seconds");
-            }
+            // TODO(devoncarew): why 1000ms here?
             indexer.wait(1000);
           }
         } finally {
@@ -259,17 +249,20 @@ public class WorkspaceIndexingDriver {
     // XXX FIXME race condition: changes might be lost here
     indexingJob.cancel();
     isShutdown = true;
+
     try {
       indexingJob.join();
     } catch (InterruptedException exception) {
       IndexerPlugin.getLogger().logError("Might not have joined indexing job during shutdown",
           exception);
     }
-    try {
-      Thread.sleep(500);
-    } catch (InterruptedException exception) {
-      IndexerPlugin.getLogger().logError("Sleep interrupted during shutdown", exception);
-    }
+
+//    try {
+//      Thread.sleep(500);
+//    } catch (InterruptedException exception) {
+//      IndexerPlugin.getLogger().logError("Sleep interrupted during shutdown", exception);
+//    }
+
     indexer.dispose();
   }
 

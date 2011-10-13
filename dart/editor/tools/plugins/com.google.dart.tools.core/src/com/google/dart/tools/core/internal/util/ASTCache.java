@@ -119,7 +119,7 @@ public class ASTCache {
           if (libraryUnit != null) {
             for (CompilationUnit unitInLibrary : library.getCompilationUnits()) {
               IResource resource = unitInLibrary.getResource();
-              if (resource != null) {
+              if (resource != null && resource.getLocationURI() != null) {
                 CacheEntry entryInLibrary = getOrCreateCacheEntry(unitInLibrary);
                 entryInLibrary.ast = libraryUnit.getUnit(resource.getLocationURI().toString());
               }

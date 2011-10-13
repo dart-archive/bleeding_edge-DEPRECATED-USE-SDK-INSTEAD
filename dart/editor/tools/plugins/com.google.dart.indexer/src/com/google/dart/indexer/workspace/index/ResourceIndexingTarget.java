@@ -44,4 +44,9 @@ public class ResourceIndexingTarget implements IndexingTarget {
   public IProject getProject() {
     return file.getProject();
   }
+
+  @Override
+  public String toString() {
+    return getFile().toString();
+  }
 }

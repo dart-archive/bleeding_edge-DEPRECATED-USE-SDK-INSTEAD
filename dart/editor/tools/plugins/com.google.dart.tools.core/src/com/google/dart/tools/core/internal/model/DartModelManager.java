@@ -1598,7 +1598,7 @@ public class DartModelManager {
     // Platform.getContentTypeManager().removeContentTypeChangeListener(this);
 
     // Stop indexing
-    StandardDriver.getInstance().shutdown();
+    StandardDriver.shutdown();
 
     // Stop listening to preferences changes
     preferences.removePreferenceChangeListener(propertyListener);
