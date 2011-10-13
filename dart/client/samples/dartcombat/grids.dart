@@ -37,11 +37,11 @@ class BoatGrid {
   }
 
   List<int> shoot(GridState state, int x, int y) {
-    assert(x >= 0, "X not within bounds");
-    assert(y >= 0, "Y not within bounds");
-    assert(x < Constants.SIZE, "X not within bounds");
-    assert(y < Constants.SIZE, "Y not within bounds");
-    assert(state.valueAt(x, y) == null, "repeated shot");
+    assert(x >= 0);
+    assert(y >= 0);
+    assert(x < Constants.SIZE);
+    assert(y < Constants.SIZE);
+    assert(state.valueAt(x, y) == null); // repeated shot
     Boat b = boatMap[x][y];
     if (b == null) {
       state.miss(x, y);
