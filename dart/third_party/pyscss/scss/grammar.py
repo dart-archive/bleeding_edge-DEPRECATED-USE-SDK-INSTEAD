@@ -10,7 +10,7 @@ __all__ = ("STYLESHEET", "OTHER_VALUE", "quotedString", "EXPRESSION", "IDENT", "
            "DECLARATION", "DECLARATION_NAME", "SELECTOR_TREE", "SELECTOR_GROUP", "SELECTOR", "MIXIN", "INCLUDE",
            "MIXIN_PARAM", "EXTEND", "FONT_FACE", "OPTION", "FUNCTION_DEFINITION", "FUNCTION_RETURN",
            "IF", "ELSE", "IF_BODY", "FOR", "FOR_BODY", "CHARSET", "MEDIA", "WARN", "SEP_VAL_STRING", "POINT",
-           "PERCENTAGE_VALUE", "ANIMATION_DECLARATIONS", "ANIMATION_BODY",
+           "PERCENTAGE_VALUE", "ANIMATION_DECLARATIONS", "ANIMATION_BODY", "REPEAT_VALUE",
 )
 
 
@@ -18,7 +18,7 @@ __all__ = ("STYLESHEET", "OTHER_VALUE", "quotedString", "EXPRESSION", "IDENT", "
 COMMA, COLON, SEMICOLON = [Suppress(c) for c in ",:;"]
 OPT_SEMICOLON = Optional(SEMICOLON)
 LACC, RACC, LPAREN, RPAREN = [Suppress(c) for c in "{}()"]
-LLACC, LRACC, LBRACK, RBRACK = [Literal(c) for c in "{}[]"]
+LLACC, LRACC, LBRACK, RBRACK, LLPAREN, LRPAREN = [Literal(c) for c in "{}[]()"]
 
 # Comment
 CSS_COMMENT = cStyleComment + Optional(lineEnd)
@@ -30,6 +30,7 @@ VARIABLE = Regex(r"-?\$[-a-zA-Z_][-a-zA-Z0-9_]*")
 PERCENTAGE_VALUE = Regex(r"-?\d+(?:\.\d*)?|\.\d+") + '%'
 OTHER_VALUE = Regex(r"-?\d+(?:\.\d*)?|\.\d+") + Optional(oneOf("em ex px cm mm in pt pc deg fr s "))
 NUMBER_VALUE = PERCENTAGE_VALUE | OTHER_VALUE
+REPEAT_VALUE = Suppress("[") + Regex(r"-?\d+(?:\.\d*)?|\.\d+") + Suppress("]")
 PATH = Regex(r"[-\w\d_\.]*\/{1,2}[-\w\d_\.\/]*") | Regex(r"((https?|ftp|file):((//)|(\\\\))+[\w\d:#@%/;$()~_?\+-=\\\.&]*)")
 POINT_PART = (NUMBER_VALUE | Regex(r"(top|bottom|left|right)"))
 POINT = POINT_PART + POINT_PART
@@ -37,7 +38,7 @@ POINT = POINT_PART + POINT_PART
 # Values
 EXPRESSION = Forward()
 INTERPOLATION_VAR = Suppress("#") + LACC + EXPRESSION + RACC
-SIMPLE_VALUE = NUMBER_VALUE | PATH | IDENT | COLOR_VALUE | quotedString
+SIMPLE_VALUE = NUMBER_VALUE | PATH | IDENT | COLOR_VALUE | quotedString | REPEAT_VALUE
 DIV_STRING = SIMPLE_VALUE + OneOrMore(Literal("/") + SIMPLE_VALUE)
 
 PARAMS = LPAREN + (POINT|EXPRESSION) + ZeroOrMore(COMMA + (POINT|EXPRESSION)) + RPAREN
@@ -48,7 +49,7 @@ MATH_OPERATOR = Regex(r"(\+|-|/|\*|and|or|==|!=|<=|<|>|>=)\s+")
 EXPRESSION << ((VALUE | PARENS) + ZeroOrMore(MATH_OPERATOR + (VALUE | PARENS)))
 
 # Declaration
-TERM = ( DIV_STRING | EXPRESSION | INTERPOLATION_VAR ) + Optional(",")
+TERM = Optional(LLPAREN) + ( DIV_STRING | EXPRESSION | INTERPOLATION_VAR ) + Optional(LRPAREN) + Optional(",")
 DECLARATION_NAME = Optional("*") + OneOrMore(IDENT | INTERPOLATION_VAR)
 DECLARATION = Forward()
 DECLARATION << (
@@ -63,7 +64,7 @@ DECLARATION << (
 ELEMENT_NAME = Combine(OneOrMore(IDENT | '&')) | Literal("*")
 ATTRIB = LBRACK + SkipTo("]") + RBRACK
 CLASS_NAME = Word('.', alphanums + "-_")
-HASH = Regex(r"#[-a-zA-Z_][-a-zA-Z0-9_]+")
+HASH = Regex(r"#[-a-zA-Z_][-a-zA-Z0-9_]*")
 FILTER = HASH | CLASS_NAME | ATTRIB
 
 ## PSEUDO = Regex(r':{1,2}[A-Za-z0-9-_]+')
@@ -81,9 +82,6 @@ SELECTOR_GROUP.skipWhitespace = True
 SELECTOR_TREE << (
                   SELECTOR_GROUP + ZeroOrMore(Word(",>+", max=1) + SELECTOR_GROUP)
                  )
-
-#@stylet
-STYLET = "@stylet" + ELEMENT_NAME
 
 # @debug
 DEBUG = "@debug" + EXPRESSION + OPT_SEMICOLON
@@ -104,7 +102,8 @@ VAR_DEFINITION = Regex(r"\$[a-zA-Z_][-a-zA-Z0-9_]*") + COLON + (SEP_VAL_STRING |
 
 RULESET = Forward()
 IF = Forward()
-CONTENT = CSS_COMMENT | SCSS_COMMENT | WARN | DEBUG | IF | INCLUDE | VAR_DEFINITION | RULESET | DECLARATION | STYLET
+#CONTENT = CSS_COMMENT | SCSS_COMMENT | WARN | DEBUG | IF | INCLUDE | VAR_DEFINITION | RULESET | DECLARATION | STYLET
+CONTENT = CSS_COMMENT | SCSS_COMMENT | WARN | DEBUG | IF | INCLUDE | VAR_DEFINITION | RULESET | DECLARATION
 
 # SCSS control directives
 IF_BODY = LACC + ZeroOrMore(CONTENT) + RACC
@@ -195,6 +194,10 @@ ANIMATION_BODY = LLACC + ZeroOrMore(ANIMATION_PARAMS) + LRACC
 ANIMATION = "@-webkit-keyframes" + White() + IDENT + ANIMATION_BODY
 # TODO(jmesserly): Need to support other browser prefixes.
 
+#@stylet
+STYLET_BODY = LACC + ZeroOrMore(CONTENT) + RACC
+STYLET = "@stylet" + ELEMENT_NAME + STYLET_BODY
+
 # Css stylesheet
 STYLESHEET = ZeroOrMore(
     FONT_FACE
@@ -211,4 +214,5 @@ STYLESHEET = ZeroOrMore(
     | VARIABLES
     | EXPRESSION
     | ANIMATION
+    | STYLET
 )

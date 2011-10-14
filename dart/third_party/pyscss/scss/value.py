@@ -158,6 +158,13 @@ class PointValue(Value):
     def __str__(self):
         return self.value
 
+class RepeatValue(Value):
+    @property
+    def value(self):
+        return ''.join(map(str, self.data))
+
+    def __str__(self):
+        return '[%s]' % self.value
 
 class QuotedStringValue(StringValue):
 

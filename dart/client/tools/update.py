@@ -3,27 +3,26 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This script builds and then uploads the Swarm app to AppEngine,
+# This script builds and then uploads the Dart client sample app to AppEngine,
 # where it is accessible by visiting http://dart.googleplex.com.
 import os
 import subprocess
 import sys
 
-from os.path import abspath, basename, dirname, exists, join, split
+from os.path import abspath, basename, dirname, exists, join, split, relpath
 import base64, re, os, shutil, subprocess, sys, tempfile, optparse
 
-SWARM_PATH = dirname(abspath(__file__))
-CLIENT_PATH = dirname(dirname(SWARM_PATH))
-CLIENT_TOOLS_PATH = join(CLIENT_PATH, 'tools')
+APP_PATH = os.getcwd()
+CLIENT_TOOLS_PATH = dirname(abspath(__file__))
+CLIENT_PATH = dirname(CLIENT_TOOLS_PATH)
 
 # Add the client tools directory so we can find htmlconverter.py.
 sys.path.append(CLIENT_TOOLS_PATH)
 import htmlconverter
 
-HTML_FILES = ['swarm.html']
-
 def convertOne(infile, options):
-  outfile = join('outcode', basename(infile))
+  outDirBase = 'outcode'
+  outfile = join(outDirBase, infile)
   print 'converting %s to %s' % (infile, outfile)
 
   # TODO(jmesserly): this is a workaround for an OOM error in DartC
@@ -34,6 +33,7 @@ def convertOne(infile, options):
   if 'dart' in options.target:
     htmlconverter.convertForDartium(
         infile,
+        outDirBase,
         outfile.replace('.html', '-dart.html'),
         options.verbose)
   if 'js' in options.target:
@@ -46,10 +46,6 @@ def convertOne(infile, options):
 def Flags():
   """ Consturcts a parser for extracting flags from the command line. """
   result = optparse.OptionParser()
-  result.add_option("-i", "--inputs",
-      help="The input html versions to generate from",
-      metavar="[swarm]",
-      default='swarm,')
   result.add_option("-t", "--target",
       help="The target html to generate",
       metavar="[js,dart]",
@@ -69,6 +65,15 @@ def Flags():
   #result.set_usage("update.py input.html -o OUTDIR -t chromium,dartium")
   return result
 
+def getAllHtmlFiles():
+  htmlFiles = []
+  for filename in os.listdir(APP_PATH):
+    fName, fExt = os.path.splitext(filename)
+    if fExt.lower() == '.html':
+      htmlFiles.append(filename)
+
+  return htmlFiles
+
 def main():
   os.chdir(CLIENT_PATH) # TODO(jimhug): I don't like chdir's in scripts...
 
@@ -78,9 +83,9 @@ def main():
   #  parser.print_help()
   #  return 1
 
-  SWARM_PATH = 'samples/swarm'
-  for file in HTML_FILES:
-    infile = join(SWARM_PATH, file)
+  REL_APP_PATH = relpath(APP_PATH)
+  for file in getAllHtmlFiles():
+    infile = join(REL_APP_PATH, file)
     convertOne(infile, options)
 
 if __name__ == '__main__':
