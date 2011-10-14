@@ -112,6 +112,10 @@ public class DartCompilerUtilities {
     }
 
     protected abstract String getTargetName();
+
+    @Override
+    public void unitCompiled(DartUnit unit) {
+    }
   }
 
   private static class DartURIStringSource implements DartSource {

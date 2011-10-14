@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.formatter;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartMethodDefinition;
@@ -145,6 +146,10 @@ public class CodeSnippetParsingUtil {
       @Override
       public void typeError(DartCompilationError event) {
         compilationResult.problemCount += 1;
+      }
+
+      @Override
+      public void unitCompiled(DartUnit unit) {
       }
     };
     DartScannerParserContext ctx = new DartScannerParserContext(null, sourceCode, listener);

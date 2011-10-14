@@ -15,6 +15,8 @@ package com.google.dart.tools.core.internal.compiler;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.DartUnit;
 
 /**
  * Instances of the class <code>SilentDartCompilerListener</code> implement a compiler listener that
@@ -36,5 +38,9 @@ public class SilentDartCompilerListener extends DartCompilerListener {
 
   @Override
   public void typeError(DartCompilationError event) {
+  }
+
+  @Override
+  public void unitCompiled(DartUnit unit) {
   }
 }

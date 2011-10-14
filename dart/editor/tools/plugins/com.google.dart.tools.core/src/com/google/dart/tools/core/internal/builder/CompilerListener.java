@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -128,5 +129,9 @@ class CompilerListener extends DartCompilerListener {
       createWarningMarker(res, error.getStartPosition(), error.getLength(), error.getLineNumber(),
           error.getMessage());
     }
+  }
+
+  @Override
+  public void unitCompiled(DartUnit unit) {
   }
 }
