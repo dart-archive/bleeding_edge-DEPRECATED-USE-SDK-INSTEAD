@@ -204,6 +204,35 @@ public class DartModelImpl extends OpenableElementImpl implements DartModel {
   }
 
   @Override
+  public List<DartLibrary> getUnreferencedLibraries() throws DartModelException {
+    // The libraries that have not yet been proven to be referenced.
+    List<DartLibrary> unreferenced = new ArrayList<DartLibrary>();
+    // The libraries that are referenced but whose imports have not yet been examined.
+    List<DartLibrary> referenced = new ArrayList<DartLibrary>();
+    for (DartProject project : getChildrenOfType(DartProject.class)) {
+      for (DartLibrary library : project.getDartLibraries()) {
+        if (library.isTopLevel()) {
+          referenced.add(library);
+        } else {
+          unreferenced.add(library);
+        }
+      }
+    }
+    // Process the libraries until there are no more libraries to be processed or until it becomes
+    // pointless because all of the libraries have already been proven to be unreferenced.
+    while (!referenced.isEmpty() && !unreferenced.isEmpty()) {
+      DartLibrary referencedLibrary = referenced.remove(0);
+      for (DartLibrary importedLibrary : referencedLibrary.getImportedLibraries()) {
+        if (unreferenced.contains(importedLibrary)) {
+          unreferenced.remove(importedLibrary);
+          referenced.add(importedLibrary);
+        }
+      }
+    }
+    return unreferenced;
+  }
+
+  @Override
   public IWorkspace getWorkspace() {
     return ResourcesPlugin.getWorkspace();
   }

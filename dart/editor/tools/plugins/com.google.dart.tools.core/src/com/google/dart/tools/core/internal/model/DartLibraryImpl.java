@@ -478,6 +478,11 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
+  public boolean isUnreferenced() throws DartModelException {
+    return getDartModel().getUnreferencedLibraries().contains(this);
+  }
+
+  @Override
   public IResource resource() {
     return null;
   }

@@ -17,6 +17,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import java.util.List;
+
 /**
  * The interface <code>DartModel</code> defines the behavior of the root Dart element corresponding
  * to the workspace.
@@ -156,6 +158,15 @@ public interface DartModel extends DartElement {
    *           accessing its corresponding resource
    */
   public IResource[] getNonDartResources() throws DartModelException;
+
+  /**
+   * Return a list containing all of the libraries that are not referenced. A library is referenced
+   * if it is either a top-level library or if it is imported by a referenced library.
+   * 
+   * @return all of the libraries that are not referenced
+   * @throws DartModelException if the list of libraries cannot be determined
+   */
+  public List<DartLibrary> getUnreferencedLibraries() throws DartModelException;
 
   /**
    * Return the workspace corresponding to this element.

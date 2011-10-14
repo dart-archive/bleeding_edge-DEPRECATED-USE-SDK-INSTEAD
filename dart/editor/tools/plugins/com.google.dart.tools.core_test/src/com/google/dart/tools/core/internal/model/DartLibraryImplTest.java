@@ -441,6 +441,25 @@ public class DartLibraryImplTest extends TestCase {
     assertFalse(getDartLibEmpty().isTopLevel());
   }
 
+  public void test_DartLibraryImpl_isUnreferenced_imported() throws Exception {
+    DartLibraryImpl library = getDartLib2();
+    DartLibraryImpl importedLibrary = getDartLibEmpty();
+    assertTrue(importedLibrary.isUnreferenced());
+    library.setTopLevel(true);
+    assertFalse(importedLibrary.isUnreferenced());
+    library.setTopLevel(false);
+    assertTrue(importedLibrary.isUnreferenced());
+  }
+
+  public void test_DartLibraryImpl_isUnreferenced_topLevel() throws Exception {
+    DartLibraryImpl library = getDartLibEmpty();
+    assertTrue(library.isUnreferenced());
+    library.setTopLevel(true);
+    assertFalse(library.isUnreferenced());
+    library.setTopLevel(false);
+    assertTrue(library.isUnreferenced());
+  }
+
   public void test_DartLibraryImpl_nonExistantBundledLib() throws Exception {
     String memento = "= {file:/some/path/to/missing_bundled_lib.dart";
     DartLibraryImpl actual = (DartLibraryImpl) DartCore.create(memento);

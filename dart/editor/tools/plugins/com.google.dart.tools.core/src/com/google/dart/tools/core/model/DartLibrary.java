@@ -189,6 +189,15 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public boolean isTopLevel();
 
   /**
+   * Return <code>true</code> if this library is unreferenced. A library is referenced if it is
+   * either a top-level library or if it is imported by a referenced library.
+   * 
+   * @return <code>true</code> if this library is unreferenced
+   * @throws DartModelException if it cannot be determined whether this library is referenced
+   */
+  public boolean isUnreferenced() throws DartModelException;
+
+  /**
    * Set whether this library is a top-level library to match the given value
    * 
    * @param topLevel <code>true</code> if this library is a top-level library

@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.tools.core.mock.MockProject;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 
@@ -22,6 +23,8 @@ import junit.framework.TestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
+
+import java.util.List;
 
 public class DartModelImplTest extends TestCase {
   public void test_DartModelImpl_copy() {
@@ -76,6 +79,16 @@ public class DartModelImplTest extends TestCase {
     IResource[] resources = model.getNonDartResources();
     assertNotNull(resources);
     assertEquals(0, resources.length);
+  }
+
+  public void test_DartModelImpl_getUnreferencedLibraries() throws DartModelException {
+    DartModelImpl model = new DartModelImpl();
+    List<DartLibrary> result = model.getUnreferencedLibraries();
+    assertNotNull(result);
+    // TODO(brianwilkerson) Clean up other tests so that we can more fully test the results. Right
+    // now other tests are creating libraries in the workspace and leaving them around, but we can't
+    // know which tests will run before this one, so we don't have a predictable state.
+//    assertEquals(0, result.size());
   }
 
   public void test_DartModelImpl_getWorkspace() {
