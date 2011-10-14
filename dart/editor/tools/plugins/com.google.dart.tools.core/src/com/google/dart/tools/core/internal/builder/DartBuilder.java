@@ -29,6 +29,7 @@ import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -62,6 +63,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -81,9 +83,21 @@ public class DartBuilder extends IncrementalProjectBuilder {
     private final RootArtifactProvider rootProvider = RootArtifactProvider.getInstance();
     private final Collection<IProject> prerequisiteProjects = new HashSet<IProject>();
 
-    public void clean() {
+    public void clean(IProgressMonitor monitor) {
       prerequisiteProjects.clear();
       rootProvider.clearCachedArtifacts();
+
+      for (DartLibrary library : getDartLibraries()) {
+        try {
+          File file = getJsAppArtifactFile(library.getCorrespondingResource());
+
+          if (file != null && file.exists()) {
+            file.delete();
+          }
+        } catch (DartModelException exception) {
+          DartCore.logError(exception);
+        }
+      }
     }
 
     @Override
@@ -143,6 +157,24 @@ public class DartBuilder extends IncrementalProjectBuilder {
         throw new AssertionError("Expected file for " + source.getName());
       }
       return getJsAppArtifactFile(new Path(srcFile.getPath()));
+    }
+
+    private List<DartLibrary> getDartLibraries() {
+      List<DartLibrary> libraries = new ArrayList<DartLibrary>();
+
+      IProject currentProject = getProject();
+
+      try {
+        for (DartLibrary library : DartModelManager.getInstance().getDartModel().getDartLibraries()) {
+          if (currentProject.equals(library.getDartProject().getProject())) {
+            libraries.add(library);
+          }
+        }
+      } catch (DartModelException exception) {
+        DartCore.logError(exception);
+      }
+
+      return libraries;
     }
   }
 
@@ -313,7 +345,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
   @Override
   protected void clean(IProgressMonitor monitor) throws CoreException {
-    provider.clean();
+    provider.clean(monitor);
   }
 
   /**
