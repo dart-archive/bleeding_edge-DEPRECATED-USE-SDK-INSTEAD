@@ -268,7 +268,7 @@ class TestMain {
           // Once all clients are running send server start message to
           // the server. Use port 0 for an ephemeral port. The actual
           // port will be returned with the server started message.
-          serverPort.send(new ChatServerCommand.start("127.0.0.1", 0),
+          serverPort.send(new ChatServerCommand.start("127.0.0.1", 0, false),
                           serverStatusPort.toSendPort());
         }
       });

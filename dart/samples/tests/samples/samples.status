@@ -4,10 +4,6 @@
 
 prefix samples
 
-[ $arch == ia32 ]
-chat_server_test: Skip    # Bug 5417893
-http_test: Skip           # Bug 5417893
-
 [ $arch == dartc ]
 *: Skip
 
