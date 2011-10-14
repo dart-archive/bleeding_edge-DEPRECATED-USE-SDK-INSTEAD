@@ -309,7 +309,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
         @Override
         public boolean incremental() {
-          return false; // TODO Restore to true
+          return true;
         }
 
         @Override
