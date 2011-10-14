@@ -155,7 +155,7 @@ public class OpenFileHandler extends AbstractHandler {
     FileDialog dialog = new FileDialog(shell, SWT.OPEN);
     String allFilesFilter = isWindowsPlatform() ? "*.*" : "*";
     dialog.setFilterNames(new String[] {"Dart Files", "All Files (" + allFilesFilter + ")"});
-    dialog.setFilterExtensions(new String[] {"*.app;*.lib;*.dart", allFilesFilter});
+    dialog.setFilterExtensions(new String[] {"*.dart", allFilesFilter});
     IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettings();
     String filterPath = settings.get(FILTER_PATH_KEY);
     if (filterPath == null) {
