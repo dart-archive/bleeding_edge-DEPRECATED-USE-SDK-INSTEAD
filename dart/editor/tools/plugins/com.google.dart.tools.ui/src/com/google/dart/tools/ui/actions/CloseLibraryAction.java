@@ -17,7 +17,6 @@ import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.libraryview.LibraryExplorerPart;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -86,9 +85,6 @@ public class CloseLibraryAction extends Action implements IWorkbenchAction, ISel
               ActionMessages.CloseLibraryAction_error_message);
         }
       }
-
-      // TODO (keertip) : remove once element changed events are fired 
-      LibraryExplorerPart.getFromActivePerspective().getTreeViewer().refresh();
 
       return Status.OK_STATUS;
     }

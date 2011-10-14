@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.libraryview;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
 import com.google.dart.tools.core.model.DartModel;
@@ -467,7 +468,9 @@ public class LibraryExplorerContentProvider extends StandardDartElementContentPr
 
     // The following takes care of the cases if the element type is a compilation unit, library or
     // library configuration file
-    if (elementType == DartElement.COMPILATION_UNIT || elementType == DartElement.LIBRARY) {
+    if (elementType == DartElement.LIBRARY && (flags & DartElementDelta.F_TOP_LEVEL) > 0) {
+      postRefresh(DartModelManager.getInstance().getDartModel(), ORIGINAL, element, runnables);
+    } else if (elementType == DartElement.COMPILATION_UNIT || elementType == DartElement.LIBRARY) {
       if (kind == DartElementDelta.CHANGED) {
         postRefresh(element, ORIGINAL, element, runnables);
       } else if (kind == DartElementDelta.ADDED) {

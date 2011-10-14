@@ -208,6 +208,12 @@ public interface DartElementDelta {
   public int F_PRIMARY_RESOURCE = 0x040000;
 
   /**
+   * Change flag indicating that the top-level property of a library has changed. This flag is only
+   * valid if the element is a {@link DartLibrary}.
+   */
+  public int F_TOP_LEVEL = 0x080000;
+
+  /**
    * Change flag indicating that a reconcile operation has affected the compilation unit AST created
    * in a previous reconcile operation. Use {@link #getCompilationUnitAST()} to retrieve the AST (if
    * any is available). This flag is only valid if the element is an {@link ICompilationUnit} in

@@ -27,6 +27,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.indexer.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
+import com.google.dart.tools.core.internal.model.delta.DartElementDeltaImpl;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartLibraryInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
@@ -36,10 +37,12 @@ import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartElementDelta;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartResource;
+import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceUtilities;
@@ -489,10 +492,17 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
   @Override
   public void setTopLevel(boolean topLevel) {
-    try {
-      getDefiningResource().setPersistentProperty(TOP_LEVEL_PROPERTY_NAME, topLevel ? "true" : null);
-    } catch (CoreException exception) {
-      // Ignore
+    if (topLevel != isTopLevel()) {
+      try {
+        getDefiningResource().setPersistentProperty(TOP_LEVEL_PROPERTY_NAME,
+            topLevel ? "true" : null);
+        DartElementDeltaImpl delta = new DartElementDeltaImpl(this);
+        delta.changed(DartElementDelta.F_TOP_LEVEL);
+        DartModelManager.getInstance().getDeltaProcessor().fire(delta,
+            ElementChangedEvent.POST_CHANGE);
+      } catch (CoreException exception) {
+        // Ignore
+      }
     }
   }
 
