@@ -143,8 +143,6 @@ public class PropertySetter extends PropertyVisitor {
   public Object visitAssertion(DartAssertion node) {
     if (property == PropertyDescriptorHelper.DART_ASSERTION_EXPRESSION) {
       // node.setExpression((DartExpression) propertyValue);
-    } else if (property == PropertyDescriptorHelper.DART_ASSERTION_MESSAGE) {
-      // node.setMessage((DartExpression) propertyValue);
     } else {
       visitStatement(node);
     }

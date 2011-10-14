@@ -130,8 +130,6 @@ public class PropertyGetter extends PropertyVisitor {
   public Object visitAssertion(DartAssertion node) {
     if (property == PropertyDescriptorHelper.DART_ASSERTION_EXPRESSION) {
       return node.getExpression();
-    } else if (property == PropertyDescriptorHelper.DART_ASSERTION_MESSAGE) {
-      return node.getMessage();
     } else {
       return visitStatement(node);
     }

@@ -149,8 +149,6 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
   public StructuralPropertyDescriptor visitAssertion(DartAssertion node) {
     if (childNode == node.getExpression()) {
       return PropertyDescriptorHelper.DART_ASSERTION_EXPRESSION;
-    } else if (childNode == node.getMessage()) {
-      return PropertyDescriptorHelper.DART_ASSERTION_MESSAGE;
     } else {
       return visitStatement(node);
     }

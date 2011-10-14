@@ -746,8 +746,6 @@ public final class ASTRewriteAnalyzer {
         }
         ensureSpaceBeforeReplace(node);
         int offset = rewriteRequiredNode(node, PropertyDescriptorHelper.DART_ASSERTION_EXPRESSION);
-        rewriteNode(node, PropertyDescriptorHelper.DART_ASSERTION_MESSAGE, offset,
-            ASTRewriteFormatter.ASSERT_COMMENT);
       } catch (CoreException e) {
         handleException(e);
       }

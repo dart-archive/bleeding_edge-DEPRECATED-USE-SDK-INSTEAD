@@ -141,7 +141,6 @@ public class ASTRewriteFormatter {
 
   public final static Prefix NONE = new ConstPrefix(""); //$NON-NLS-1$
   public final static Prefix SPACE = new ConstPrefix(" "); //$NON-NLS-1$
-  public final static Prefix ASSERT_COMMENT = new ConstPrefix(" : "); //$NON-NLS-1$
 
   /**
    * Evaluates the edit on the given string.

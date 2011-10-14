@@ -133,13 +133,6 @@ public class PropertyDescriptorHelper {
       StructuralPropertyDescriptor.MANDATORY, StructuralPropertyDescriptor.NO_CYCLE_RISK);
 
   /**
-   * The message in an assertion statement.
-   */
-  public static final StructuralPropertyDescriptor DART_ASSERTION_MESSAGE = new ChildPropertyDescriptor(
-      DartAssertion.class, "message", DartExpression.class, StructuralPropertyDescriptor.OPTIONAL,
-      StructuralPropertyDescriptor.NO_CYCLE_RISK);
-
-  /**
    * The expression computing the left operand of the binary operator.
    */
   public static final StructuralPropertyDescriptor DART_BINARY_EXPRESSION_LEFT_OPERAND = new ChildPropertyDescriptor(
@@ -984,7 +977,6 @@ public class PropertyDescriptorHelper {
         properties.add(DART_ARRAY_LITERAL_EXPRESSIONS);
       } else if (type == DartAssertion.class) {
         properties.add(DART_ASSERTION_EXPRESSION);
-        properties.add(DART_ASSERTION_MESSAGE);
       } else if (type == DartBinaryExpression.class) {
         properties.add(DART_BINARY_EXPRESSION_LEFT_OPERAND);
         properties.add(DART_BINARY_EXPRESSION_OPERATOR);

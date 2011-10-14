@@ -440,10 +440,6 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
       scribe.space();
     }
     node.getExpression().accept(this);
-    if (node.getMessage() != null) {
-      scribe.printNextToken(Token.COMMA, preferences.insert_space_after_comma_in_annotation);
-      node.getMessage().accept(this);
-    }
     scribe.printNextToken(Token.RPAREN, preferences.insert_space_before_closing_paren_in_annotation);
     scribe.printNextToken(Token.SEMICOLON, preferences.insert_space_before_semicolon);
     scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
