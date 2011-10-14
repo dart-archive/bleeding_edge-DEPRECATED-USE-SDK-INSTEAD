@@ -1,11 +1,17 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// VMOptions=
+// VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
+
 
 #library("chat_server_test.dart");
-#import("../../../chat/http.dart");
-#import("../../../../client/json/dart_json.dart");
-#import("../../../chat/chat_server_lib.dart");
+#import("../../../../chat/http.dart");
+#import("../../../../../client/json/dart_json.dart");
+#import("../../../../chat/chat_server_lib.dart");
 
 
 // Message to start chat test client running in an isolate.

@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("http_test.dart");
-#import("../../../chat/http.dart");
-#import("../../../../client/json/dart_json.dart");
-#import("../../../chat/chat_server_lib.dart");
+#import("../../../../chat/http.dart");
+#import("../../../../../client/json/dart_json.dart");
+#import("../../../../chat/chat_server_lib.dart");
 
 
 class TestServerMain {
