@@ -480,8 +480,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     saveAction = ActionFactory.SAVE.create(window);
     register(saveAction);
 
-    saveAsAction = ActionFactory.SAVE_AS.create(window);
-    register(saveAsAction);
+    //TODO (keertip) : renable when we have save as implemented
+//    saveAsAction = ActionFactory.SAVE_AS.create(window);
+//    register(saveAsAction);
 
     saveAllAction = ActionFactory.SAVE_ALL.create(window);
     register(saveAllAction);
@@ -813,7 +814,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new GroupMarker(IWorkbenchActionConstants.CLOSE_EXT));
     menu.add(new Separator());
     menu.add(saveAction);
-    menu.add(saveAsAction);
+    //TODO (keertip) : renable when we have save as implemented
+    //  menu.add(saveAsAction);
     menu.add(saveAllAction);
     menu.add(actionFactory.getRevertItem());
     //menu.add(new Separator());
