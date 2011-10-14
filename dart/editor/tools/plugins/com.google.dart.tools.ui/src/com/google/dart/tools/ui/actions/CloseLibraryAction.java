@@ -13,13 +13,18 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.libraryview.LibraryExplorerPart;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -29,6 +34,10 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
+import org.eclipse.ui.progress.UIJob;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Close Library action. Removes a library from the Libraries view (but keeps the source code on
@@ -36,6 +45,54 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
  */
 public class CloseLibraryAction extends Action implements IWorkbenchAction, ISelectionListener,
     ISelectionChangedListener {
+
+  class CloseLibraryJob extends UIJob {
+    List<DartLibrary> libraries;
+
+    public CloseLibraryJob(List<DartLibrary> libraries) {
+      super(ActionMessages.CloseLibraryAction_jobTitle);
+
+      this.libraries = libraries;
+
+      // Synchronize on the workspace root to catch any builds that are in progress.
+      setRule(ResourcesPlugin.getWorkspace().getRoot());
+
+      // Make sure we display a progress dialog if we do block.
+      setUser(true);
+    }
+
+    @Override
+    public IStatus runInUIThread(IProgressMonitor monitor) {
+
+      for (DartLibrary library : libraries) {
+        library.setTopLevel(false);
+      }
+      List<DartLibrary> unreferencedLibraries = new ArrayList<DartLibrary>();
+
+      try {
+        unreferencedLibraries = DartModelManager.getInstance().getDartModel().getUnreferencedLibraries();
+      } catch (DartModelException e) {
+        ExceptionHandler.handle(e, window.getShell(),
+            ActionMessages.CloseLibraryAction_error_title,
+            ActionMessages.CloseLibraryAction_error_message);
+      }
+
+      for (DartLibrary library : unreferencedLibraries) {
+        try {
+          library.delete(new SubProgressMonitor(monitor, 1));
+        } catch (DartModelException e) {
+          ExceptionHandler.handle(e, window.getShell(),
+              ActionMessages.CloseLibraryAction_error_title,
+              ActionMessages.CloseLibraryAction_error_message);
+        }
+      }
+
+      // TODO (keertip) : remove once element changed events are fired 
+      LibraryExplorerPart.getFromActivePerspective().getTreeViewer().refresh();
+
+      return Status.OK_STATUS;
+    }
+  }
 
   public static final String ID = DartToolsPlugin.PLUGIN_ID + ".closeLibraryAction"; //$NON-NLS-1$
 
@@ -58,20 +115,14 @@ public class CloseLibraryAction extends Action implements IWorkbenchAction, ISel
     //do nothing
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void run() {
-    for (Object object : selection.toList()) {
-      try {
-        ((DartLibrary) object).delete(new NullProgressMonitor());
-      } catch (DartModelException e) {
 
-        ExceptionHandler.handle(e, window.getShell(),
-            ActionMessages.CloseLibraryAction_error_title,
-            ActionMessages.CloseLibraryAction_error_message);
-      }
-    }
+    List<DartLibrary> libraries = selection.toList();
+    CloseLibraryJob job = new CloseLibraryJob(libraries);
 
-    LibraryExplorerPart.getFromActivePerspective().getTreeViewer().refresh();
+    job.schedule();
 
   }
 
