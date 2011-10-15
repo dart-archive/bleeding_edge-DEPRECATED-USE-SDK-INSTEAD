@@ -288,11 +288,9 @@ build system.  The PDE build system has to run under Eclipse.
             <fileset dir="${build.source.root}/client/samples/total">
               <exclude name="bin/**"/>
               <exclude name=".project"/>
-              <exclude name="codereview.settings"/>
               <exclude name="src/Server.dart"/>
             </fileset>
         </copy>
-        <replace file="${samples.out.dir}/total/src/Total.html" token='src="Total.dart.app.js"' value='src="Total.app.js"'/>
 
         <!-- copy bundled Dart libraries -->
         <property name="dart.compiler.js.dir" 
