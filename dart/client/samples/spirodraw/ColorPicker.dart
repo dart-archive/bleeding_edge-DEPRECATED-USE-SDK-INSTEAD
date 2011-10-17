@@ -6,7 +6,7 @@ typedef void PickerListener(String selectedColor);
 
 class ColorPicker {
 
-  static final hexValues = ['00', '33', '66', '99', 'CC', 'FF'];
+  static final hexValues = const ['00', '33', '66', '99', 'CC', 'FF'];
   static final COLS = 18;
   // Block height, width, padding
   static final BH = 10;

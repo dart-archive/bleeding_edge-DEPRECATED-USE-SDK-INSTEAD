@@ -15,6 +15,7 @@ main() {
 class Sunflower {
   
   Sunflower() {
+    PHI = (Math.sqrt(5) + 1) / 2;
     var doc = window.document;
     
     HTMLCanvasElement canvas = doc.getElementById("canvas");
@@ -34,7 +35,7 @@ class Sunflower {
   void drawFrame() {
     ctx.clearRect(0, 0, MAX_D, MAX_D);
     for (var i=0; i<seeds; i++) {
-      var theta = i * PI2 / PHI;
+      var theta = i * TAU / PHI;
       var r = Math.sqrt(i) * SCALE_FACTOR;
       var x = xc + r * Math.cos(theta);
       var y = yc - r * Math.sin(theta);
@@ -48,7 +49,7 @@ class Sunflower {
     ctx.setLineWidth(2);
     ctx.setFillColor(ORANGE);
     ctx.setStrokeColor(ORANGE);
-    ctx.arc(x, y, SEED_RADIUS, 0, PI2, false);
+    ctx.arc(x, y, SEED_RADIUS, 0, TAU, false);
     ctx.fill();
     ctx.closePath();
     ctx.stroke();
@@ -60,8 +61,8 @@ class Sunflower {
 
   static final SEED_RADIUS = 2;
   static final SCALE_FACTOR = 4;
-  static final PI2 = Math.PI * 2;
-  static final PHI = (Math.sqrt(5)+1) / 2;
+  static final TAU = Math.PI * 2;
+  var PHI;
   static final MAX_D = 300;
   static final String ORANGE = "orange";
 

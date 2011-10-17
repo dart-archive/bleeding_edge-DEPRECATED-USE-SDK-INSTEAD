@@ -5,7 +5,7 @@
 class ClientChart extends Chart {
 
   static final List<String> _strokeColors =
-      ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#000000"];
+     const ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#000000"];
 
   CanvasElement _canvas;
 

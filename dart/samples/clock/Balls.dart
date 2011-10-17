@@ -6,7 +6,7 @@ class Balls {
   static final double RADIUS2 = Ball.RADIUS * Ball.RADIUS;
 
   // TODO: "static const Array<String> PNGS" doesn't parse
-  static final List<String> PNGS = ["images/ball-d9d9d9.png",
+  static final List<String> PNGS = const ["images/ball-d9d9d9.png",
       "images/ball-009a49.png", "images/ball-13acfa.png",
       "images/ball-265897.png", "images/ball-b6b4b5.png",
       "images/ball-c0000b.png", "images/ball-c9c9c9.png"];
