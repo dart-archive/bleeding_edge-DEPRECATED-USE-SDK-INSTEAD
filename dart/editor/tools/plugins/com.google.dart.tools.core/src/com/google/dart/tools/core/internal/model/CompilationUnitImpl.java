@@ -269,23 +269,28 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     @Override
     public boolean visit(DartFieldDefinition node, DartContext ctx) {
       for (DartField fieldNode : node.getFields()) {
-        DartVariableImpl variableImpl = new DartVariableImpl(compilationUnit,
-            fieldNode.getName().toString());
-        DartVariableInfo variableInfo = new DartVariableInfo();
-        variableInfo.setSourceRangeStart(fieldNode.getSourceStart());
-        variableInfo.setSourceRangeEnd(fieldNode.getSourceStart() + fieldNode.getSourceLength());
-        variableInfo.setNameRange(new SourceRangeImpl(fieldNode.getName()));
-        variableInfo.setTypeName(extractTypeName(node.getType(), false));
-        variableInfo.setModifiers(fieldNode.getModifiers());
+        Modifiers modifiers = fieldNode.getModifiers();
+        if (modifiers.isGetter() || modifiers.isSetter()) {
+          visit(fieldNode.getAccessor(), ctx);
+        } else {
+          DartVariableImpl variableImpl = new DartVariableImpl(compilationUnit,
+              fieldNode.getName().toString());
+          DartVariableInfo variableInfo = new DartVariableInfo();
+          variableInfo.setSourceRangeStart(fieldNode.getSourceStart());
+          variableInfo.setSourceRangeEnd(fieldNode.getSourceStart() + fieldNode.getSourceLength());
+          variableInfo.setNameRange(new SourceRangeImpl(fieldNode.getName()));
+          variableInfo.setTypeName(extractTypeName(node.getType(), false));
+          variableInfo.setModifiers(modifiers);
 
-        FunctionGatherer functionGatherer = new FunctionGatherer(fieldNode, variableImpl,
-            newElements);
-        functionGatherer.accept(fieldNode);
-        List<DartFunctionImpl> functions = functionGatherer.getFunctions();
-        variableInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
+          FunctionGatherer functionGatherer = new FunctionGatherer(fieldNode, variableImpl,
+              newElements);
+          functionGatherer.accept(fieldNode);
+          List<DartFunctionImpl> functions = functionGatherer.getFunctions();
+          variableInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
 
-        newElements.put(variableImpl, variableInfo);
-        topLevelElements.add(variableImpl);
+          newElements.put(variableImpl, variableInfo);
+          topLevelElements.add(variableImpl);
+        }
       }
       return false;
     }
