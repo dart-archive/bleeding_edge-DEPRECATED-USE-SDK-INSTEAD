@@ -82,6 +82,11 @@ public class BindingUtils {
     private HashMap<String, List<DartFunctionTypeAlias>> functionTypeAliasMap = new HashMap<String, List<DartFunctionTypeAlias>>();
 
     /**
+     * A table mapping function names to a list of top-level functions defined with that name.
+     */
+    private HashMap<String, List<com.google.dart.tools.core.model.DartFunction>> functionMap = new HashMap<String, List<com.google.dart.tools.core.model.DartFunction>>();
+
+    /**
      * Initialize a newly created cache entry to have the given modification stamp.
      * 
      * @param modificationStamp the modification stamp of the library file
@@ -416,13 +421,26 @@ public class BindingUtils {
    * @param methodBinding the resolved method used to locate the model element
    * @return the Dart model element corresponding to the resolved method
    */
-  public static Method getDartElement(DartLibrary library, MethodElement methodBinding) {
+  public static com.google.dart.tools.core.model.DartFunction getDartElement(DartLibrary library,
+      MethodElement methodBinding) {
     if (methodBinding == null) {
       return null;
     }
     EnclosingElement enclosingElement = methodBinding.getEnclosingElement();
     if (enclosingElement == null) {
-      // TODO(brianwilkerson) This is a top-level function.
+      // We don't have enough information to find the method or function.
+      return null;
+    } else if (enclosingElement instanceof LibraryElement) {
+      // This is a top-level function.
+      DartLibrary definingLibrary = getDartElement(library, (LibraryElement) enclosingElement);
+      if (definingLibrary == null) {
+        definingLibrary = library;
+      }
+      List<com.google.dart.tools.core.model.DartFunction> matchingFunctions = getImmediateFunctions(
+          definingLibrary, methodBinding.getName());
+      if (matchingFunctions.size() == 1) {
+        return matchingFunctions.get(0);
+      }
       DartCore.notYetImplemented();
       return null;
     }
@@ -540,7 +558,8 @@ public class BindingUtils {
    * @param methodBinding the resolved method used to locate the model element
    * @return the Dart model element corresponding to the resolved method
    */
-  public static Method getDartElement(MethodElement methodBinding) {
+  public static com.google.dart.tools.core.model.DartFunction getDartElement(
+      MethodElement methodBinding) {
     return getDartElement(null, methodBinding);
   }
 
@@ -855,6 +874,34 @@ public class BindingUtils {
   }
 
   /**
+   * Traverse the entire library looking for all of the top-level functions with the given name.
+   * 
+   * @param library the library containing the functions to be searched
+   * @param functionName the name of the functions to be returned
+   * @throws DartModelException if some portion of the workspace cannot be traversed
+   */
+  private static List<com.google.dart.tools.core.model.DartFunction> getImmediateFunctions(
+      DartLibrary library, String functionName) {
+    if (library == null) {
+      return new ArrayList<com.google.dart.tools.core.model.DartFunction>();
+    }
+    CacheEntry entry = getLibraryCache(library);
+    if (entry == null) {
+      return new ArrayList<com.google.dart.tools.core.model.DartFunction>();
+    }
+    HashMap<String, List<com.google.dart.tools.core.model.DartFunction>> functionMap = entry.functionMap;
+    if (functionMap != null) {
+      List<com.google.dart.tools.core.model.DartFunction> functionList = functionMap.get(functionName);
+      if (functionList != null) {
+        return functionList;
+      }
+    }
+    List<com.google.dart.tools.core.model.DartFunction> matchingFunctions = new ArrayList<com.google.dart.tools.core.model.DartFunction>();
+//    addImmediateFunctionsUncached(matchingFunctions, library, functionName);
+    return matchingFunctions;
+  }
+
+  /**
    * Traverse the entire workspace looking for all of the types with the given name.
    * 
    * @param matchingTypes the list to which matching types are to be added
@@ -900,14 +947,35 @@ public class BindingUtils {
           entry = new CacheEntry(modificationStamp);
           libraryCache.put(id, entry);
           for (CompilationUnit unit : library.getCompilationUnits()) {
-            for (Type type : unit.getTypes()) {
-              String typeName = type.getElementName();
-              List<Type> typeList = entry.typeMap.get(typeName);
-              if (typeList == null) {
-                typeList = new ArrayList<Type>();
-                entry.typeMap.put(typeName, typeList);
+            for (DartElement child : unit.getChildren()) {
+              if (child instanceof Type) {
+                Type type = (Type) child;
+                String typeName = type.getElementName();
+                List<Type> typeList = entry.typeMap.get(typeName);
+                if (typeList == null) {
+                  typeList = new ArrayList<Type>();
+                  entry.typeMap.put(typeName, typeList);
+                }
+                typeList.add(type);
+              } else if (child instanceof DartFunctionTypeAlias) {
+                DartFunctionTypeAlias alias = (DartFunctionTypeAlias) child;
+                String aliasName = alias.getElementName();
+                List<DartFunctionTypeAlias> aliasList = entry.functionTypeAliasMap.get(aliasName);
+                if (aliasList == null) {
+                  aliasList = new ArrayList<DartFunctionTypeAlias>();
+                  entry.functionTypeAliasMap.put(aliasName, aliasList);
+                }
+                aliasList.add(alias);
+              } else if (child instanceof com.google.dart.tools.core.model.DartFunction) {
+                com.google.dart.tools.core.model.DartFunction function = (com.google.dart.tools.core.model.DartFunction) child;
+                String functionName = function.getElementName();
+                List<com.google.dart.tools.core.model.DartFunction> functionList = entry.functionMap.get(functionName);
+                if (functionList == null) {
+                  functionList = new ArrayList<com.google.dart.tools.core.model.DartFunction>();
+                  entry.functionMap.put(functionName, functionList);
+                }
+                functionList.add(function);
               }
-              typeList.add(type);
             }
           }
         }

@@ -27,6 +27,7 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.indexer.location.MethodLocation;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.Method;
 
 /**
@@ -86,10 +87,12 @@ public class MethodInvocationContributor extends ScopedDartContributor {
   }
 
   private void processMethod(DartIdentifier functionName, MethodElement binding) {
-    Method method = getDartElement(binding);
-    if (method != null) {
+    DartFunction function = getDartElement(binding);
+    if (function instanceof Method) {
+      Method method = (Method) function;
       recordRelationship(new MethodLocation(method, new SourceRangeImpl(functionName)),
           peekTarget());
     }
+
   }
 }

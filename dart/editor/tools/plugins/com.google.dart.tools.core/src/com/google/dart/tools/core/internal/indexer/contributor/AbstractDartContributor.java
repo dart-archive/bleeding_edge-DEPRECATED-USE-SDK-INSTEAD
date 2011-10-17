@@ -38,10 +38,10 @@ import com.google.dart.tools.core.internal.indexer.location.TypeLocation;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
-import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
@@ -128,7 +128,7 @@ public abstract class AbstractDartContributor extends DartNodeTraverser<Void> im
    * @param methodBinding the resolved method used to locate the model element
    * @return the Dart model element corresponding to the resolved method
    */
-  protected Method getDartElement(MethodElement methodBinding) {
+  protected DartFunction getDartElement(MethodElement methodBinding) {
     DartLibrary library = compilationUnit.getAncestor(DartLibrary.class);
     return BindingUtils.getDartElement(library, methodBinding);
   }

@@ -22,6 +22,7 @@ import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.tools.core.internal.indexer.location.MethodLocation;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.Method;
 
 /**
@@ -35,8 +36,9 @@ public class MethodOverrideContributor extends AbstractDartContributor {
     if (symbol instanceof MethodElement) {
       MethodElement methodElement = (MethodElement) symbol;
       MethodElement overridenMethodElement = findOverriddenMethod(methodElement);
-      Method method = getDartElement(overridenMethodElement);
-      if (method != null) {
+      DartFunction function = getDartElement(overridenMethodElement);
+      if (function instanceof Method) {
+        Method method = (Method) function;
         recordRelationship(node,
             new MethodLocation(method, getSourceRange(method, overridenMethodElement)));
       }

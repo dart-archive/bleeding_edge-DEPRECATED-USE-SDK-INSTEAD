@@ -74,8 +74,8 @@ public class BindingUtilsTest extends TestCase {
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartClass classNode = getType(ast, type.getElementName());
     DartMethodDefinition methodNode = getMethod(classNode, expectedMethod.getElementName());
-    Method actualMethod = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-        methodNode.getSymbol());
+    com.google.dart.tools.core.model.DartFunction actualMethod = BindingUtils.getDartElement(
+        compilationUnit.getLibrary(), methodNode.getSymbol());
     assertEquals(expectedMethod, actualMethod);
   }
 
@@ -86,14 +86,15 @@ public class BindingUtilsTest extends TestCase {
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartClass classNode = getType(ast, type.getElementName());
     DartMethodDefinition methodNode = getMethod(classNode, expectedMethod.getElementName());
-    Method actualMethod = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-        methodNode.getSymbol());
+    com.google.dart.tools.core.model.DartFunction actualMethod = BindingUtils.getDartElement(
+        compilationUnit.getLibrary(), methodNode.getSymbol());
     assertEquals(expectedMethod, actualMethod);
   }
 
   public void test_BindingUtils_getDartElement_method_null() throws Exception {
     DartLibrary library = getMoneyLibrary();
-    Method method = BindingUtils.getDartElement(library, (MethodElement) null);
+    com.google.dart.tools.core.model.DartFunction method = BindingUtils.getDartElement(library,
+        (MethodElement) null);
     assertNull(method);
   }
 
