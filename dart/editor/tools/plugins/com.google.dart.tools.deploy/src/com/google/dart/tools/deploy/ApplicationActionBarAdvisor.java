@@ -116,7 +116,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private IWorkbenchAction openPreferencesAction;
 
-  private IWorkbenchAction saveAsAction;
+  //private IWorkbenchAction saveAsAction;
 
   private IWorkbenchAction hideShowEditorAction;
 
@@ -169,8 +169,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private IWorkbenchAction importResourcesAction;
 
   private IWorkbenchAction exportResourcesAction;
-
-  private IWorkbenchAction cleanAction;
 
   private IWorkbenchAction cleanAllAction;
 
@@ -280,7 +278,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     helpSearchAction = null;
     aboutAction = null;
     openPreferencesAction = null;
-    saveAsAction = null;
+    //saveAsAction = null;
     hideShowEditorAction = null;
     lockToolBarAction = null;
     showViewMenuAction = null;
@@ -306,7 +304,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 //    newWizardDropDownAction = null;
     importResourcesAction = null;
     exportResourcesAction = null;
-    cleanAction = null;
     cleanAllAction = null;
     showInQuickMenu = null;
     newQuickMenu = null;
@@ -436,7 +433,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menuBar.add(createFileMenu());
     menuBar.add(createEditMenu());
     menuBar.add(createNavigateMenu());
-    menuBar.add(createBuildMenu());
+    //menuBar.add(createBuildMenu());
     menuBar.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
     menuBar.add(createWindowMenu());
     menuBar.add(createHelpMenu());
@@ -471,16 +468,13 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     exportResourcesAction = ActionFactory.EXPORT.create(window);
     register(exportResourcesAction);
 
-    cleanAction = new CleanLibrariesAction(window, false); //IDEActionFactory.BUILD_CLEAN.create(window);
-    register(cleanAction);
-
-    cleanAllAction = new CleanLibrariesAction(window, true);
+    cleanAllAction = new CleanLibrariesAction(window);
     register(cleanAllAction);
 
     saveAction = ActionFactory.SAVE.create(window);
     register(saveAction);
 
-    //TODO (keertip) : renable when we have save as implemented
+    //TODO (keertip) : re-enable when we have save as implemented
 //    saveAsAction = ActionFactory.SAVE_AS.create(window);
 //    register(saveAsAction);
 
@@ -741,10 +735,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   /**
    * Creates and returns the Build menu (roughly equivalent to the eclipse "Project" menu).
    */
+  @SuppressWarnings("unused")
   private MenuManager createBuildMenu() {
     MenuManager menu = new MenuManager(WorkbenchMessages.build_menu,
         IWorkbenchActionConstants.M_PROJECT);
-    //menu.add(cleanAction);
     menu.add(cleanAllAction);
     menu.add(new GroupMarker(IWorkbenchActionConstants.BUILD_EXT));
     menu.add(new Separator());
@@ -934,7 +928,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
    * Creates and returns the Window menu.
    */
   private MenuManager createWindowMenu() {
-    MenuManager menu = new MenuManager(IDEWorkbenchMessages.Workbench_window,
+    MenuManager menu = new MenuManager(WorkbenchMessages.tools_menu,
         IWorkbenchActionConstants.M_WINDOW);
 
     //menu.add(newWindowAction);
@@ -944,6 +938,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     addViewActions(menu);
     menu.add(new Separator());
     //addKeyboardShortcuts(menu);
+
+    menu.add(cleanAllAction);
+
     Separator sep = new Separator(IWorkbenchActionConstants.MB_ADDITIONS);
     sep.setVisible(!Util.isMac());
     menu.add(sep);

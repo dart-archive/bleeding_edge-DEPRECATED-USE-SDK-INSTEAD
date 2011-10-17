@@ -27,6 +27,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
@@ -57,6 +58,9 @@ public class AboutDartDialog extends Shell {
    */
   protected void createContents() {
     setSize(394, 364);
+
+    setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
+
     Label graphic = new Label(this, SWT.SHADOW_NONE | SWT.CENTER);
     GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(316, 416).applyTo(
         graphic);
