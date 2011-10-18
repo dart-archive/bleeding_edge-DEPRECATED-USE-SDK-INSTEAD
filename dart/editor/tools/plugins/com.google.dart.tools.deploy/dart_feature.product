@@ -4,7 +4,7 @@
 <product name="Dart Editor" uid="com.google.dart.tools.product.deploy" id="com.google.dart.tools.deploy.product" application="com.google.dart.tools.deploy.application" version="1.0.0.qualifier" useFeatures="true" includeLaunchers="true">
 
    <aboutInfo>
-      <image path="/com.google.dart.tools.deploy/icons/white_116_116.gif"/>
+      <image path="/com.google.dart.tools.deploy/icons/dart_116_116.gif"/>
       <text>
          An awesome editor for Dart programming.
       </text>
@@ -21,7 +21,7 @@
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts -Declipse.vm=/System/Library/Frameworks/JavaVM.framework -Xdock:icon=../Resources/Eclipse.icns</vmArgsMac>
    </launcherArgs>
 
-   <windowImages i16="/com.google.dart.tools.deploy/icons/white_16_16.gif" i32="/com.google.dart.tools.deploy/icons/white_32_32.gif" i48="/com.google.dart.tools.deploy/icons/white_48_48.gif" i64="/com.google.dart.tools.deploy/icons/white_64_64.gif" i128="/com.google.dart.tools.deploy/icons/white_128_128.gif"/>
+   <windowImages i16="/com.google.dart.tools.deploy/icons/dart_16_16.gif" i32="/com.google.dart.tools.deploy/icons/dart_32_32.gif" i48="/com.google.dart.tools.deploy/icons/dart_48_48.gif" i64="/com.google.dart.tools.deploy/icons/dart_64_64.gif" i128="/com.google.dart.tools.deploy/icons/dart_128_128.gif"/>
 
    <splash
       location="com.google.dart.tools.deploy"
@@ -29,11 +29,11 @@
       startupMessageRect="40,340,368,15"
       startupForegroundColor="B3B3B3" />
    <launcher name="DartEditor">
-      <linux icon="/com.google.dart.tools.deploy/icons/white_48_48.xpm"/>
-      <macosx icon="/com.google.dart.tools.deploy/icons/white.icns"/>
+      <linux icon="/com.google.dart.tools.deploy/icons/dart_48_48.xpm"/>
+      <macosx icon="/com.google.dart.tools.deploy/icons/dart.icns"/>
       <solaris/>
       <win useIco="true">
-         <ico path="/com.google.dart.tools.deploy/icons/white.ico"/>
+         <ico path="/com.google.dart.tools.deploy/icons/dart.ico"/>
          <bmp/>
       </win>
    </launcher>
