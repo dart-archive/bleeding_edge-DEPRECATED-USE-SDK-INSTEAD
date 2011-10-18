@@ -1264,7 +1264,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   }
 
   /*
-   * @see com.google.dart.tools.ui.functions.java.IJavaReconcilingListener#reconciled (DartUnit,
+   * @see com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener#reconciled (DartUnit,
    * boolean, IProgressMonitor)
    */
   @Override
@@ -1285,7 +1285,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       ((IDartReconcilingListener) listeners[i]).reconciled(ast, forced, progressMonitor);
     }
 
-    // Update Java Outline page selection
+    // Update Outline page selection
     if (!forced && !progressMonitor.isCanceled()) {
       Shell shell = getSite().getShell();
       if (shell != null && !shell.isDisposed()) {

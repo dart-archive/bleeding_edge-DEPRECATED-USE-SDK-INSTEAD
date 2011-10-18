@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.functions;
@@ -29,13 +27,13 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * Reconciling strategy for Java code. This is a composite strategy containing the regular java
- * model reconciler and the comment spelling strategy.
+ * Reconciling strategy for Dart code. This is a composite strategy containing the regular model
+ * reconciler and the comment spelling strategy.
  */
 public class DartCompositeReconcilingStrategy extends CompositeReconcilingStrategy {
 
   private ITextEditor fEditor;
-  private DartReconcilingStrategy fJavaStrategy;
+  private DartReconcilingStrategy dartStrategy;
 
   /**
    * Creates a new Java reconciling strategy.
@@ -47,9 +45,9 @@ public class DartCompositeReconcilingStrategy extends CompositeReconcilingStrate
   public DartCompositeReconcilingStrategy(ISourceViewer viewer, ITextEditor editor,
       String documentPartitioning) {
     fEditor = editor;
-    fJavaStrategy = new DartReconcilingStrategy(editor);
+    dartStrategy = new DartReconcilingStrategy(editor);
     DartX.todo("spelling");
-    setReconcilingStrategies(new IReconcilingStrategy[] {fJavaStrategy,
+    setReconcilingStrategies(new IReconcilingStrategy[] {dartStrategy,
     // new JavaSpellingReconcileStrategy(viewer, EditorsUI.getSpellingService(),
     // DartPartitions.DART_PARTITIONING)
     });
@@ -59,7 +57,7 @@ public class DartCompositeReconcilingStrategy extends CompositeReconcilingStrate
    * Called before reconciling is started.
    */
   public void aboutToBeReconciled() {
-    fJavaStrategy.aboutToBeReconciled();
+    dartStrategy.aboutToBeReconciled();
 
   }
 
@@ -87,7 +85,7 @@ public class DartCompositeReconcilingStrategy extends CompositeReconcilingStrate
    * @param notify <code>true</code> if listeners should be notified
    */
   public void notifyListeners(boolean notify) {
-    fJavaStrategy.notifyListeners(notify);
+    dartStrategy.notifyListeners(notify);
   }
 
   /*

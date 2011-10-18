@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
  *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.text;
@@ -37,16 +35,19 @@ import com.google.dart.tools.ui.internal.text.editor.ICompilationUnitDocumentPro
 import com.google.dart.tools.ui.internal.text.functions.AbstractDartScanner;
 import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
 import com.google.dart.tools.ui.internal.text.functions.DartCommentScanner;
+import com.google.dart.tools.ui.internal.text.functions.DartCompositeReconcilingStrategy;
 import com.google.dart.tools.ui.internal.text.functions.DartElementProvider;
 import com.google.dart.tools.ui.internal.text.functions.DartMultilineStringScanner;
 import com.google.dart.tools.ui.internal.text.functions.DartOutlineInformationControl;
 import com.google.dart.tools.ui.internal.text.functions.DartPresentationReconciler;
+import com.google.dart.tools.ui.internal.text.functions.DartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.HTMLAnnotationHover;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.text.functions.SingleTokenDartScanner;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -610,20 +611,19 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
   public IReconciler getReconciler(ISourceViewer sourceViewer) {
 
     DartX.todo("spelling");
-    // final ITextEditor editor = getEditor();
-    // if (editor != null && editor.isEditable()) {
-    //
-    // DartCompositeReconcilingStrategy strategy = new
-    // DartCompositeReconcilingStrategy(
-    // sourceViewer, editor, getConfiguredDocumentPartitioning(sourceViewer));
-    // DartReconciler reconciler = new DartReconciler(editor, strategy, false);
-    // reconciler.setIsIncrementalReconciler(false);
-    // reconciler.setIsAllowedToModifyDocument(false);
-    // reconciler.setProgressMonitor(new NullProgressMonitor());
-    // reconciler.setDelay(500);
-    //
-    // return reconciler;
-    // }
+    final ITextEditor editor = getEditor();
+    if (editor != null && editor.isEditable()) {
+
+      DartCompositeReconcilingStrategy strategy = new DartCompositeReconcilingStrategy(
+          sourceViewer, editor, getConfiguredDocumentPartitioning(sourceViewer));
+      DartReconciler reconciler = new DartReconciler(editor, strategy, false);
+      reconciler.setIsIncrementalReconciler(false);
+      reconciler.setIsAllowedToModifyDocument(false);
+      reconciler.setProgressMonitor(new NullProgressMonitor());
+      reconciler.setDelay(500);
+
+      return reconciler;
+    }
     return null;
   }
 
