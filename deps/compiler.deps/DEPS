@@ -7,7 +7,7 @@ vars = {
   "co19_rev": "@1",
   "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",
   "dart_branch": "/branches/bleeding_edge/dart",
-  "closure_compiler_rev": "@1494", 
+  "closure_compiler_rev": "@1519", 
 }
 
 deps = {
