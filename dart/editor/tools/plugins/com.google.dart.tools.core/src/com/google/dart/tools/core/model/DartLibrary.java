@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.model;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.io.File;
@@ -82,16 +81,6 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public Type findType(String typeName) throws DartModelException;
 
   /**
-   * Return the compilation unit with the specified file in this library (for example, some IFile
-   * with file name <code>"Object.dart"</code>). The name has to be a valid compilation unit name.
-   * This is a handle-only method. The compilation unit may or may not be present.
-   * 
-   * @param file the file of the compilation unit to be returned
-   * @return the compilation unit with the specified name in this package
-   */
-  public CompilationUnit getCompilationUnit(IFile file);
-
-  /**
    * Return the compilation unit with the specified name in this library (for example,
    * <code>"Object.dart"</code>). The name has to be a valid compilation unit name. This is a
    * handle-only method. The compilation unit may or may not be present.
@@ -100,6 +89,16 @@ public interface DartLibrary extends OpenableElement, ParentElement {
    * @return the compilation unit with the specified name in this package
    */
   public CompilationUnit getCompilationUnit(String name);
+
+  /**
+   * Return the compilation unit with the specified file in this library (for example, some URI with
+   * file name <code>"Object.dart"</code>). The name has to be a valid compilation unit name. This
+   * is a handle-only method. The compilation unit may or may not be present.
+   * 
+   * @param uri the uri of the compilation unit to be returned
+   * @return the compilation unit with the specified name in this package
+   */
+  public CompilationUnit getCompilationUnit(URI uri);
 
   /**
    * Return an array containing all of the compilation units defined in this library.
@@ -143,16 +142,6 @@ public interface DartLibrary extends OpenableElement, ParentElement {
    * @throws DartModelException if the list of libraries could not be determined
    */
   public List<DartLibrary> getReferencingLibraries() throws DartModelException;
-
-  /**
-   * Return the Dart resource with the specified file in this library (for example, some IFile with
-   * file name <code>"readme.txt"</code>). The name has to be a valid resource name. This is a
-   * handle-only method. The resource may or may not be present.
-   * 
-   * @param file the file of the resource to be returned
-   * @return the resource with the specified name in this package
-   */
-  public DartResource getResource(IFile file);
 
   /**
    * Return a resource corresponding to the given URI. This is a handle-only method. The resource

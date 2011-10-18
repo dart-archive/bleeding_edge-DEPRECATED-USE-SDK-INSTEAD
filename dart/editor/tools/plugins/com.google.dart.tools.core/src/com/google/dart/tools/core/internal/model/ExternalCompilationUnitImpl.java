@@ -27,6 +27,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import org.eclipse.core.filesystem.URIUtil;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -51,7 +52,7 @@ public class ExternalCompilationUnitImpl extends CompilationUnitImpl {
   }
 
   public ExternalCompilationUnitImpl(DartLibraryImpl library, String relPath, DartSource source) {
-    super(library, null, DefaultWorkingCopyOwner.getInstance());
+    super(library, (IFile) null, DefaultWorkingCopyOwner.getInstance());
     this.relPath = relPath;
     this.source = source;
   }

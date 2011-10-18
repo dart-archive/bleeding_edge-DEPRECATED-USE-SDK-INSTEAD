@@ -19,18 +19,17 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.UrlDartSource;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartDirective;
+import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.indexer.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
-import com.google.dart.tools.core.internal.model.DartResourceImpl;
 import com.google.dart.tools.core.internal.model.ModelUpdater;
 import com.google.dart.tools.core.internal.model.OpenableElementImpl;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
@@ -53,8 +52,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SafeRunner;
@@ -62,12 +61,15 @@ import org.eclipse.core.runtime.SafeRunner;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Instances of the class <code>DeltaProcessor</code> are used by <code>DartModelManager</code> to
@@ -91,74 +93,17 @@ import java.util.List;
  * TODO(jwren) Remove the DEBUG flag and replace with Eclipse-tracing
  */
 public class DeltaProcessor {
+  public enum DirectiveType {
+    IMPORT, SRC, RES
+  }
+
   private final static int NON_DART_RESOURCE = -1;
   public static boolean DEBUG = false;
+
   public static boolean VERBOSE = false;
 
   // must not collide with ElementChangedEvent event masks
   public static final int DEFAULT_CHANGE_EVENT = 0;
-
-  private static final String IMPORT = "import", SRC = "src", RES = "res";
-
-  /**
-   * Answer a map of collections containing the various directive URIs contained within the
-   * specified source. To match result returned by DartCompiler.analyzeLibrary, include the library
-   * itself in the list of sources.
-   * <p>
-   * TODO (jwren) Change API to return object representation instead of a map of collections
-   */
-  public static HashMap<String, Collection<String>> parseDirectives(DartSource dartSrc)
-      throws IOException, DartModelException {
-    Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
-    Reader reader = dartSrc.getSourceReader();
-    String contents;
-    boolean readFailed = true;
-    try {
-      contents = FileUtilities.getContents(reader);
-      readFailed = false;
-    } finally {
-      Closeables.close(reader, readFailed);
-    }
-    DartUnit dartUnit = DartCompilerUtilities.parseSource(dartSrc, contents, parseErrors);
-    List<DartDirective> directives = dartUnit.getDirectives();
-    Collection<String> sourcesList;
-    Collection<String> resourcesList;
-    if (directives != null) {
-      sourcesList = new ArrayList<String>(directives.size() + 1);
-      resourcesList = new ArrayList<String>(directives.size());
-      for (DartDirective directive : directives) {
-        if (directive instanceof DartSourceDirective) {
-          DartSourceDirective foo = (DartSourceDirective) directive;
-          sourcesList.add(foo.getSourceUri().getValue());
-        } else if (directive instanceof DartResourceDirective) {
-          DartResourceDirective foo = (DartResourceDirective) directive;
-          resourcesList.add(foo.getResourceUri().getValue());
-        }
-      }
-    } else {
-      sourcesList = new ArrayList<String>(1);
-      resourcesList = new ArrayList<String>(0);
-    }
-
-    // To match result returned by DartCompiler.analyzeLibrary
-    // include the library itself in the list of sources
-    // See LibraryUnit#getSelfSourcePath()
-    String self = dartSrc.getUri().getSchemeSpecificPart();
-    int lastSlash = self.lastIndexOf('/');
-    if (lastSlash > -1) {
-      self = self.substring(lastSlash + 1);
-    }
-    // ensure that the sourcesList doesn't already have self, then add to the list
-    if (!sourcesList.contains(self)) {
-      sourcesList.add(self);
-    }
-
-    HashMap<String, Collection<String>> result = new HashMap<String, Collection<String>>(3);
-    result.put(SRC, sourcesList);
-    result.put(RES, resourcesList);
-
-    return result;
-  }
 
   /**
    * The global state of delta processing.
@@ -394,7 +339,6 @@ public class DeltaProcessor {
           fire(null, ElementChangedEvent.POST_CHANGE);
         } finally {
           this.state.resetOldDartProjectNames();
-          this.state.resetLibraryToSourcesMap();
         }
         return;
 
@@ -467,143 +411,187 @@ public class DeltaProcessor {
   private void contentChanged(DartElementImpl element, IResourceDelta delta) {
     if (element.getElementType() == DartElement.COMPILATION_UNIT) {
       currentDelta().changed(element, DartElementDelta.CHANGED);
-      // if this CompilationUnit defines a library, update potential source and resource diffs
+      // if this CompilationUnit defines a library, update potential directive differences
       if (((CompilationUnit) element).definesLibrary()) {
-        DartLibraryImpl dartLibrary = (DartLibraryImpl) element.getParent();
+        // reference the DartLibraryImpl
+        DartLibraryImpl library = (DartLibraryImpl) element.getParent();
 
-        HashMap<String, HashSet<String>> directivesMap = parseDirectiveSetsFromIFile(dartLibrary,
-            (IFile) delta.getResource());
+        // Compute and cache the set of directives in the model, aka: use the referenced library to
+        // see what was in the model just before this delta processor process was triggered.
+        // This cache contains the set of sources in the String path form:
+        // [file:/Users/user/dart/HelloWorld/HelloWorld.dart, file:/Users/user/dart/HelloWorld/A.dart]
+        CachedDirectives oldCachedDirectives = getCachedDirectives(library);
 
-        // TODO (jwren) The two blocks of code below should be split into their own methods or method calls.
+        // Compute and cache the set of directives in the file, aka: using the parser to compute
+        // what the sets of directives are.
+        // This cache contains the set of sources in the String path form:
+        // [file:/Users/user/dart/HelloWorld/HelloWorld.dart, file:/Users/user/dart/HelloWorld/A.dart]
+        CachedDirectives newCachedDirectives = getCachedDirectives((IFile) delta.getResource());
 
-        // SOURCES
+        contentChanged_fileDirectives(DirectiveType.SRC, oldCachedDirectives.getSources(),
+            newCachedDirectives.getSources(), library);
 
-        // compute the set of sources after the change, we do this by calling a private method which
-        // uses the DartParser to compute the set of sources
-        HashSet<String> newSourceSet = directivesMap.get(SRC);
+        contentChanged_fileDirectives(DirectiveType.RES, oldCachedDirectives.getResources(),
+            newCachedDirectives.getResources(), library);
 
-        // compute the set of sources before this change
-        HashSet<String> oldSourceSet = state.getOldLibraryToSourcesMap().get(dartLibrary);
+        contentChanged_importDirectives(oldCachedDirectives.getImports(),
+            newCachedDirectives.getImports(), library);
+      }
+    }
+    // else, no non-compilation unit resource changes can affect the model
+  }
 
-        // if we could not compute one of the two sets of sources, return
-        // or if the sets are equal, also return
-        boolean doEvaluateSources = true;
-        if (newSourceSet == null || oldSourceSet == null || newSourceSet.equals(oldSourceSet)) {
-          doEvaluateSources = false;
+  private void contentChanged_fileDirectives(DirectiveType directiveType, Set<String> oldStrSet,
+      Set<String> newStrSet, DartLibraryImpl library) {
+    // Simple assertions, this method can only handle the SRC and RES directive types:
+    Assert.isTrue(directiveType == DirectiveType.SRC || directiveType == DirectiveType.RES);
+
+    // if we could not compute one of the two sets of sources/resources, return
+    // or if the sets are equal, also return
+    if (newStrSet == null || oldStrSet == null || newStrSet.equals(oldStrSet)) {
+      return;
+    }
+
+    // for each of the old sources, detect removes
+    for (String oldPathElt : oldStrSet) {
+      if (!newStrSet.contains(oldPathElt)) {
+        // REMOVE
+        URI uri = null;
+        try {
+          // The single argument constructor is valid since oldPathElt comes from a URI#toString() call.
+          uri = new URI(oldPathElt);
+        } catch (URISyntaxException e) {
+          DartCore.logError(e);
         }
-
-        if (doEvaluateSources) {
-          // for each of the old sources, detect removes
-          for (String sourcePath : oldSourceSet) {
-            if (!newSourceSet.contains(sourcePath)) {
-              // REMOVE
-              IPath path = new Path(sourcePath);
-              IFile file = (IFile) ResourcesPlugin.getWorkspace().getRoot().findMember(path);
-              if (file != null) {
-                CompilationUnit compilationUnit = dartLibrary.getCompilationUnit(file);
-                if (compilationUnit != null) {
-                  // make sure to update the model here!
-                  removeFromParentInfo((CompilationUnitImpl) compilationUnit);
-                  currentDelta().changed(dartLibrary, DartElementDelta.CHANGED);
-                  currentDelta().removed(compilationUnit);
-                  // TODO(jwren) unlink the resource
-                }
-              }
-              if (DEBUG) {
-                System.out.println("DeltaProcessor.contentChanged() SRC-REMOVE: " + sourcePath);
-              }
-            }
+        if (uri != null) {
+          OpenableElementImpl openableDartElement = null;
+          if (directiveType == DirectiveType.SRC) {
+            openableDartElement = (OpenableElementImpl) library.getCompilationUnit(uri);
+          } else if (directiveType == DirectiveType.RES) {
+            openableDartElement = (OpenableElementImpl) library.getResource(uri);
           }
-
-          // for each of the new sources, detect adds
-          for (String sourcePath : newSourceSet) {
-            if (!oldSourceSet.contains(sourcePath)) {
-              // ADD
-              IPath path = new Path(sourcePath);
-              IFile file = (IFile) ResourcesPlugin.getWorkspace().getRoot().findMember(path);
-
-              if (file != null) {
-                CompilationUnit compilationUnit = dartLibrary.getCompilationUnit(file);
-                if (compilationUnit != null) {
-                  // make sure to update the model here!
-                  addToParentInfo((CompilationUnitImpl) compilationUnit);
-                  currentDelta().changed(dartLibrary, DartElementDelta.CHANGED);
-                  currentDelta().added(compilationUnit);
-                }
-                if (DEBUG) {
-                  System.out.println("DeltaProcessor.contentChanged() SRC-ADD: " + sourcePath);
-                }
-              }
-            }
+          if (openableDartElement != null) {
+            // make sure to update the model here!
+            removeFromParentInfo(openableDartElement);
+            currentDelta().changed(library, DartElementDelta.CHANGED);
+            currentDelta().removed(openableDartElement);
+            // TODO(jwren) unlink the resource
           }
-        }
-        // REPEAT the same pattern, but now for resources, not sources in the library
-        // RESOURCES
-
-        HashSet<String> newResourceSet = directivesMap.get(RES);
-
-        // compute the set of resources before this change
-        HashSet<String> oldResourceSet = state.getOldLibraryToResourcesMap().get(dartLibrary);
-
-        // if we could not compute one of the two sets of resources, return
-        // or if the sets are equal, also return
-        boolean doEvaluateResources = true;
-        if (newResourceSet == null || oldResourceSet == null
-            || newResourceSet.equals(oldResourceSet)) {
-          doEvaluateResources = false;
-        }
-
-        if (doEvaluateResources) {
-          // for each of the old resources, detect removes
-          for (String resourcePath : oldResourceSet) {
-            if (!newResourceSet.contains(resourcePath)) {
-              // REMOVE
-              IPath path = new Path(resourcePath);
-              IFile file = (IFile) ResourcesPlugin.getWorkspace().getRoot().findMember(path);
-              if (file != null) {
-                DartResource dartResource = dartLibrary.getResource(file);
-                if (dartResource != null) {
-                  removeFromParentInfo((DartResourceImpl) dartResource);
-                  currentDelta().changed(dartLibrary, DartElementDelta.CHANGED);
-                  currentDelta().removed(dartResource);
-                }
-              } else {
-                // TODO(jwren) handle the case where the file needs to be link into the workspace
-              }
-              if (DEBUG) {
-                System.out.println("DeltaProcessor.contentChanged() RES-REMOVE: " + resourcePath);
-              }
-            }
-          }
-
-          // for each of the new resources, detect adds
-          for (String resourcePath : newResourceSet) {
-            if (!oldResourceSet.contains(resourcePath)) {
-              // ADD
-              IPath path = new Path(resourcePath);
-              IFile file = (IFile) ResourcesPlugin.getWorkspace().getRoot().findMember(path);
-              if (file != null) {
-                DartResource dartResource = dartLibrary.getResource(file);
-                if (dartResource != null) {
-                  addToParentInfo((DartResourceImpl) dartResource);
-                  currentDelta().changed(dartLibrary, DartElementDelta.CHANGED);
-                  currentDelta().added(dartResource);
-                }
-              } else {
-                // TODO(jwren) handle the case where the file needs to be link into the workspace
-              }
-              if (DEBUG) {
-                System.out.println("DeltaProcessor.contentChanged() RES-ADD: " + resourcePath);
-              }
-
-            }
+          if (DEBUG) {
+            System.out.println("DeltaProcessor.contentChanged_fileDirectives() REMOVE: "
+                + oldPathElt);
           }
         }
       }
-    } else {
-      if (DEBUG) {
-        System.err.println("DeltaProcessor.createElement() TODO this case isn't covered yet: "
-            + element.getClass());
+    }
+
+    // for each of the new sources, detect adds
+    for (String newPathElt : newStrSet) {
+      if (!oldStrSet.contains(newPathElt)) {
+        // ADD
+        URI uri = null;
+        try {
+          // The single argument constructor is valid since newPathElt comes from a URI#toString() call.
+          uri = new URI(newPathElt);
+        } catch (URISyntaxException e) {
+          DartCore.logError(e);
+        }
+        if (uri != null) {
+          OpenableElementImpl openableDartElement = null;
+          if (directiveType == DirectiveType.SRC) {
+            openableDartElement = (OpenableElementImpl) library.getCompilationUnit(uri);
+          } else if (directiveType == DirectiveType.RES) {
+            openableDartElement = (OpenableElementImpl) library.getResource(uri);
+          }
+          if (openableDartElement != null) {
+            // make sure to update the model here!
+            addToParentInfo(openableDartElement);
+            currentDelta().changed(library, DartElementDelta.CHANGED);
+            currentDelta().added(openableDartElement);
+            // TODO(jwren) link the new resource, if needed
+          }
+          if (DEBUG) {
+            System.out.println("DeltaProcessor.contentChanged_fileDirectives() ADD: " + newPathElt);
+          }
+        }
+      }
+    }
+  }
+
+  private void contentChanged_importDirectives(Set<String> oldStrSet, Set<String> newStrSet,
+      DartLibraryImpl library) {
+    // if we could not compute one of the two sets of imports, return
+    // or if the sets are equal, also return
+    if (newStrSet == null || oldStrSet == null || newStrSet.equals(oldStrSet)) {
+      return;
+    }
+
+    // for each of the old sources, detect removes
+    for (String oldPathElt : oldStrSet) {
+      if (!newStrSet.contains(oldPathElt)) {
+        // REMOVE
+
+        //IPath path = new Path(oldPathElt);
+//          if (oldPathElt.startsWith("dart:")) {
+//            // TODO 
+//          } else {
+//            DartLibrary needle = null;
+//            try {
+//              DartLibrary[] libs = library.getImportedLibraries();
+//              for (int i = 0; i < libs.length; i++) {
+//                if (libs[i] != null && libs[i].getDefiningCompilationUnit().getResource() != null) {
+//                  if (libs[i].getDefiningCompilationUnit().getResource().getFullPath().toPortableString().equals(
+//                      oldPathElt)) {
+//                    needle = libs[i];
+//                    break;
+//                  }
+//                }
+//              }
+//            } catch (DartModelException e) {
+//              DartCore.logError(e);
+//            }
+//            if (needle != null) {
+//              try {
+//                // our 
+//                DartLibraryInfo libInfo = (DartLibraryInfo) library.getElementInfo();
+//                libInfo.removeImport(needle);
+//                currentDelta().changed(library, DartElementDelta.CHANGED);
+//                // Note, we don't
+//                //currentDelta().removed(openableDartElement);
+//              } catch (DartModelException e) {
+//                DartCore.logError(e);
+//              }
+//            }
+//          }
+        if (DEBUG) {
+          System.out.println("DeltaProcessor.contentChanged_importDirectives() REMOVE: "
+              + oldPathElt);
+        }
+      }
+    }
+
+    // for each of the new sources, detect adds
+    for (String newPathElt : newStrSet) {
+      if (!oldStrSet.contains(newPathElt)) {
+        // ADD
+//          IPath path = new Path(newPathElt);
+//          IFile file = (IFile) ResourcesPlugin.getWorkspace().getRoot().findMember(path);
+//          if (file != null) {
+//            OpenableElementImpl openableDartElement = null;
+//            if (directiveType == DirectiveType.SRC) {
+//              openableDartElement = (OpenableElementImpl) library.getCompilationUnit(file);
+//            } else if (directiveType == DirectiveType.RES) {
+//              openableDartElement = (OpenableElementImpl) library.getResource(file);
+//            }
+//            if (openableDartElement != null) {
+//              // make sure to update the model here!
+//              addToParentInfo(openableDartElement);
+//              currentDelta().changed(library, DartElementDelta.CHANGED);
+//              currentDelta().added(openableDartElement);
+//            }
+        if (DEBUG) {
+          System.out.println("DeltaProcessor.contentChanged_importDirectives() ADD: " + newPathElt);
+        }
       }
     }
   }
@@ -897,6 +885,147 @@ public class DeltaProcessor {
   }
 
   /**
+   * Using the passed {@link DartLibrary}, this method caches the directives into a
+   * {@link CachedDirectives} object.
+   * <p>
+   * The {@link CachedDirectives} object is returned with the {@link String} directives in the form
+   * <code>[file:/Users/user/dart/HelloWorld/HelloWorld.dart, file:/Users/user/dart/HelloWorld/A.dart]</code>.
+   * 
+   * @param library the library to be used when generating the returned {@link CachedDirectives}
+   */
+  private CachedDirectives getCachedDirectives(DartLibrary library) {
+    try {
+      DartLibrary[] libraries = library.getImportedLibraries();
+      CompilationUnit[] compilationUnits = library.getCompilationUnits();
+      DartResource[] dartResources = library.getResources();
+
+      if (libraries == null || compilationUnits == null || dartResources == null) {
+        return new CachedDirectives();
+      } else if (libraries.length == 0 && compilationUnits.length == 0 && dartResources.length == 0) {
+        return new CachedDirectives();
+      }
+
+      Set<String> importsSet = new HashSet<String>(libraries.length);
+      Set<String> sourcesSet = new HashSet<String>(compilationUnits.length + 1);
+      Set<String> resourceSet = new HashSet<String>(dartResources.length);
+
+      for (int i = 0; i < libraries.length; i++) {
+        DartLibrary lib = libraries[i];
+        IResource libIResource = lib.getDefiningCompilationUnit().getResource();
+        if (libIResource != null) {
+          importsSet.add(libIResource.getLocationURI().toString());
+        } else {
+          // This covers the use case where the imported library is of the form "dart:dom".
+          importsSet.add(lib.getDisplayName());
+        }
+      }
+      for (int i = 0; i < compilationUnits.length; i++) {
+        CompilationUnit compilationUnit = compilationUnits[i];
+        if (compilationUnit != null && compilationUnit.getResource() != null) {
+          sourcesSet.add(compilationUnit.getResource().getLocationURI().toString());
+        }
+      }
+      for (int i = 0; i < dartResources.length; i++) {
+        DartResource dartResource = dartResources[i];
+        if (dartResource != null && dartResource.getResource() != null) {
+          resourceSet.add(dartResource.getResource().getLocationURI().toString());
+        }
+      }
+
+      return new CachedDirectives(importsSet, sourcesSet, resourceSet);
+    } catch (DartModelException e) {
+      DartCore.logError(
+          "Exception while attempting to compute the CachedDiectives using some DartLibrary object.",
+          e);
+    }
+    return new CachedDirectives();
+  }
+
+  /**
+   * Only called by {@link #contentChanged(DartElementImpl, IResourceDelta)}, this method takes some
+   * {@link IResource} library and uses {@link #parseDirectives(DartSource)} to return the set of
+   * paths (relative to the workspace) of the sources included in the library.
+   * <p>
+   * The {@link CachedDirectives} object is returned with the {@link String} directives in the form
+   * <code>[file:/Users/user/dart/HelloWorld/HelloWorld.dart, file:/Users/user/dart/HelloWorld/A.dart]</code>.
+   * <p>
+   * <code>null</code> can be returned if the the set couldn't be computed.
+   */
+  private CachedDirectives getCachedDirectives(IFile cuIFile) {
+    // TODO(jwren) Do we want to pass in a CompilationUnitImpl instead since we can then ask for its Source?
+    Set<String> importsSet = new HashSet<String>();
+    Set<String> sourcesSet = new HashSet<String>();
+    Set<String> resourcesSet = new HashSet<String>();
+    // sanity check, return quickly if the passed resource is null, or doesn't exist
+    if (cuIFile == null || !cuIFile.exists()) {
+      return new CachedDirectives();
+    }
+    try {
+      File libFile = new File(cuIFile.getLocationURI());
+      UrlLibrarySource libSrc = new UrlLibrarySource(libFile);
+      UrlDartSource dartSrc = new UrlDartSource(libFile, libSrc);
+      // TODO(jwren) revisit this, much of the code in parseDirectives is already in DartLibraryImpl,
+      // we should have one method instead of two.
+      CachedDirectives literalCachedDirectives = parseDirectives(dartSrc);
+      // IMPORTS
+      Set<String> importUriSpecs = literalCachedDirectives.getImports();
+      IFile importedLibIFile = null;
+      for (String importText : importUriSpecs) {
+        if (importText.startsWith("dart:")) {
+          importsSet.add(importText);
+        } else {
+          // TODO(jwren) Does this cover absolute, and all relative, path entries?
+          String portableString = cuIFile.getParent().getFullPath().append(importText).toPortableString();
+          importedLibIFile = ResourcesPlugin.getWorkspace().getRoot().getFile(
+              new Path(portableString));
+          if (importedLibIFile != null && importedLibIFile.exists()) {
+            importsSet.add(importedLibIFile.getLocationURI().toString());
+          }
+        }
+      }
+      // SRC
+      Set<String> sourceUriSpecs = literalCachedDirectives.getSources();
+      IFile srcIFile = null;
+      for (String sourceText : sourceUriSpecs) {
+        // TODO(jwren) Does this cover absolute, and all relative, path entries?
+        String portableString = cuIFile.getParent().getFullPath().append(sourceText).toPortableString();
+        // sanity check- check that this file exists and we were able to compute the correct path
+        srcIFile = ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(portableString));
+        if (srcIFile != null && srcIFile.exists()) {
+          sourcesSet.add(srcIFile.getLocationURI().toString());
+        } else {
+          // TODO(jwren) handle else case- user has referenced a file which isn't linked into the workspace
+//          IPath path = cuIFile.getLocation().removeLastSegments(1).append(new Path(sourceText));
+//          File srcFile = path.toFile();
+//          CompilationUnit cu = library.linkSource(srcFile);
+//          if (portableString != null) {
+//            sourcesSet.add(portableString);
+//          }
+        }
+      }
+      // RES
+      Set<String> resUriSpecs = literalCachedDirectives.getResources();
+      IFile resIFile = null;
+      for (String resourceText : resUriSpecs) {
+        // TODO(jwren) Does this cover absolute, and all relative, path entries?
+        String portableString = cuIFile.getParent().getFullPath().append(resourceText).toPortableString();
+        resIFile = ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(portableString));
+        if (resIFile != null && resIFile.exists()) {
+          resourcesSet.add(resIFile.getLocationURI().toString());
+        } else {
+          // TODO(jwren) handle else case- user has referenced a file which isn't linked into the workspace
+//          if (portableString != null) {
+//            resourcesSet.add(portableString);
+//          }
+        }
+      }
+    } catch (Exception e) {
+      DartCore.logError("Failed to process delta for " + cuIFile, e);
+    }
+    return new CachedDirectives(importsSet, sourcesSet, resourcesSet);
+  }
+
+  /**
    * Returns whether the given element is a primary compilation unit in working copy mode.
    */
   private boolean isPrimaryWorkingCopy(DartElement element, int elementType) {
@@ -1025,70 +1154,66 @@ public class DeltaProcessor {
   }
 
   /**
-   * Only called by {@link #contentChanged(DartElementImpl, IResourceDelta)}, this method takes some
-   * {@link IResource} library (or application) and uses the {@link LibraryParser} to return the set
-   * of paths (relative to the workspace) of the sources included in the library.
+   * Returns a {@link CachedDirectives} object containing the literal directive {@link String} text
+   * from the passed {@link DartSource}.
    * <p>
-   * <code>null</code> can be returned if the the set couldn't be computed.
-   * <p>
-   * TODO (jwren) Change API to return object representation instead of a map of sets
+   * For instance, the {@link CachedDirectives#getSources()} return the sources in the form of
+   * <code>[HelloWorld.dart, B.dart, A.dart]</code>, this is different than the other methods in
+   * this class such as {@link #getCachedDirectives(DartLibrary)} and
+   * {@link #getCachedDirectives(IFile)}.
    */
-  private HashMap<String, HashSet<String>> parseDirectiveSetsFromIFile(DartLibraryImpl library,
-      IFile cuIFile) {
-    HashSet<String> srcSet = new HashSet<String>();
-    HashSet<String> resSet = new HashSet<String>();
-    // sanity check, return quickly if the passed resource is null, or doesn't exist
-    if (cuIFile == null || !cuIFile.exists()) {
-      return null;
-    }
+  private CachedDirectives parseDirectives(DartSource dartSrc) throws IOException,
+      DartModelException {
+    Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
+    Reader reader = dartSrc.getSourceReader();
+    String contents;
+    boolean readFailed = true;
     try {
-      File libFile = new File(cuIFile.getLocationURI());
-      UrlLibrarySource libSrc = new UrlLibrarySource(libFile);
-      UrlDartSource dartSrc = new UrlDartSource(libFile, libSrc);
-      HashMap<String, Collection<String>> directiveMap = parseDirectives(dartSrc);
-      // SRC
-      Collection<String> sourceUriSpecs = directiveMap.get(SRC);
-      IFile srcIFile = null;
-      for (String sourceText : sourceUriSpecs) {
-        String portableString = cuIFile.getParent().getFullPath().append(sourceText).toPortableString();
-        // sanity check- check that this file exists and we were able to compute the correct path
-        srcIFile = ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(portableString));
-        if (srcIFile != null && srcIFile.exists()) {
-          srcSet.add(portableString);
-        } else {
-          // TODO(jwren) handle else case- user has referenced a file which isn't linked into the workspace
-          //IPath path = cuIFile.getLocation().removeLastSegments(1).append(new Path(sourceText));
-          //File srcFile = path.toFile();
-          //CompilationUnit cu = library.linkSource(srcFile);
-          if (portableString != null) {
-            srcSet.add(portableString);
-          }
-        }
-      }
-      // RES
-      Collection<String> resUriSpecs = directiveMap.get(RES);
-      IFile resFile = null;
-      for (String resourceText : resUriSpecs) {
-        // TODO have the sourceText and library directory resolved into a smarter version of the following
-        String portableString = cuIFile.getParent().getFullPath().append(resourceText).toPortableString();
-        // sanity check- check that this file exists and we were able to compute the correct path
-        resFile = ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(portableString));
-        if (resFile != null && resFile.exists()) {
-          resSet.add(portableString);
-        } else {
-          // TODO(jwren) handle else case- user has referenced a file which isn't linked into the workspace
-          if (portableString != null) {
-            resSet.add(portableString);
-          }
-        }
-      }
-    } catch (Exception e) {
-      DartCore.logError("Failed to process delta for " + cuIFile, e);
+      contents = FileUtilities.getContents(reader);
+      readFailed = false;
+    } finally {
+      Closeables.close(reader, readFailed);
     }
-    HashMap<String, HashSet<String>> result = new HashMap<String, HashSet<String>>(3);
-    result.put(SRC, srcSet);
-    result.put(RES, resSet);
-    return result;
+    DartUnit dartUnit = DartCompilerUtilities.parseSource(dartSrc, contents, parseErrors);
+    List<DartDirective> directives = dartUnit.getDirectives();
+    Set<String> importsSet;
+    Set<String> sourcesSet;
+    Set<String> resourcesSet;
+    if (directives != null) {
+      importsSet = new HashSet<String>(directives.size());
+      sourcesSet = new HashSet<String>(directives.size() + 1);
+      resourcesSet = new HashSet<String>(directives.size());
+      for (DartDirective directive : directives) {
+        if (directive instanceof DartSourceDirective) {
+          DartSourceDirective srcDirective = (DartSourceDirective) directive;
+          sourcesSet.add(srcDirective.getSourceUri().getValue());
+        } else if (directive instanceof DartResourceDirective) {
+          DartResourceDirective resDirective = (DartResourceDirective) directive;
+          resourcesSet.add(resDirective.getResourceUri().getValue());
+        } else if (directive instanceof DartImportDirective) {
+          DartImportDirective importDirective = (DartImportDirective) directive;
+          importsSet.add(importDirective.getLibraryUri().getValue());
+        }
+      }
+    } else {
+      importsSet = new HashSet<String>(0);
+      sourcesSet = new HashSet<String>(1);
+      resourcesSet = new HashSet<String>(0);
+    }
+
+    // To match result returned by DartCompiler.analyzeLibrary
+    // include the library itself in the list of sources
+    // See LibraryUnit#getSelfSourcePath()
+    String self = dartSrc.getUri().getSchemeSpecificPart();
+    int lastSlash = self.lastIndexOf('/');
+    if (lastSlash > -1) {
+      self = self.substring(lastSlash + 1);
+    }
+    // ensure that the sourcesList doesn't already have self, then add to the list
+    if (!sourcesSet.contains(self)) {
+      sourcesSet.add(self);
+    }
+    return new CachedDirectives(importsSet, sourcesSet, resourcesSet);
   }
 
   /**

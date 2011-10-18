@@ -56,7 +56,6 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -272,16 +271,6 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
-  public CompilationUnit getCompilationUnit(IFile file) {
-    // TODO externalize the following String message
-    Assert.isTrue(
-        DartCore.isDartLikeFileName(file.getName()),
-        "Compilation unit name must end with .dart, or one of the registered Dart-like extensions. Illegal dart file name: "
-            + file.getName());
-    return new CompilationUnitImpl(this, file, DefaultWorkingCopyOwner.getInstance());
-  }
-
-  @Override
   public CompilationUnit getCompilationUnit(String name) {
     if (!DartCore.isDartLikeFileName(name)) {
       // TODO move the following exception name into some messages.properties file
@@ -313,6 +302,16 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     // do not actually exist.
     //
     return null;
+  }
+
+  @Override
+  public CompilationUnit getCompilationUnit(URI uri) {
+    // TODO(jwren) revisit this assertion, this was thrown from it: "Illegal dart file name: file:/Users/user/dart/HelloWorld/B.dart"
+//    Assert.isTrue(
+//        SystemLibraryManager.isDartUri(uri),
+//        "Compilation unit name must end with .dart, or one of the registered Dart-like extensions. Illegal dart file name: "
+//            + uri.toString());
+    return new CompilationUnitImpl(this, uri, DefaultWorkingCopyOwner.getInstance());
   }
 
   @Override
@@ -418,11 +417,6 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       }
     }
     return libraries;
-  }
-
-  @Override
-  public DartResource getResource(IFile file) {
-    return new DartResourceImpl(this, file);
   }
 
   @Override

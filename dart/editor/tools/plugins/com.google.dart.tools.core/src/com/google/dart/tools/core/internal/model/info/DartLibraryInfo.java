@@ -37,6 +37,26 @@ public class DartLibraryInfo extends OpenableElementInfo {
   private DartLibrary[] importedLibraries = DartLibrary.EMPTY_LIBRARY_ARRAY;
 
   /**
+   * Adds the passed {@link DartLibrary} to the {@link #importedLibraries} array. If the library
+   * already is in the array, then it is not added.
+   */
+  public void addImport(DartLibrary library) {
+    int length = importedLibraries.length;
+    if (length == 0) {
+      importedLibraries = new DartLibrary[] {library};
+    } else {
+      for (int i = 0; i < length; i++) {
+        if (importedLibraries[i].equals(library)) {
+          return; // already included
+        }
+      }
+      System.arraycopy(importedLibraries, 0, importedLibraries = new DartLibrary[length + 1], 0,
+          length);
+      importedLibraries[length] = library;
+    }
+  }
+
+  /**
    * Return the compilation unit that defines this library.
    * 
    * @return the compilation unit that defines this library
@@ -62,6 +82,25 @@ public class DartLibraryInfo extends OpenableElementInfo {
    */
   public String getName() {
     return name;
+  }
+
+  public void removeImport(DartLibrary library) {
+    for (int i = 0, length = importedLibraries.length; i < length; i++) {
+      DartLibrary element = importedLibraries[i];
+      if (element.equals(library)) {
+        if (length == 1) {
+          importedLibraries = DartLibrary.EMPTY_LIBRARY_ARRAY;
+        } else {
+          DartLibrary[] newChildren = new DartLibrary[length - 1];
+          System.arraycopy(importedLibraries, 0, newChildren, 0, i);
+          if (i < length - 1) {
+            System.arraycopy(importedLibraries, i + 1, newChildren, i, length - 1 - i);
+          }
+          importedLibraries = newChildren;
+        }
+        break;
+      }
+    }
   }
 
   /**

@@ -16,22 +16,17 @@ package com.google.dart.tools.core.internal.model.delta;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.util.Util;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.ElementChangedListener;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -79,10 +74,6 @@ public class DeltaProcessingState implements IResourceChangeListener {
    * any project addition/deletion has started.
    */
   private HashSet<String> dartProjectNamesCache;
-
-  private HashMap<DartLibrary, HashSet<String>> libraryToSourceMap;
-
-  private HashMap<DartLibrary, HashSet<String>> libraryToResourceMap;
 
   /**
    * A list of DartElement used as a scope for external archives refresh during POST_CHANGE. This is
@@ -209,72 +200,6 @@ public class DeltaProcessingState implements IResourceChangeListener {
   }
 
   /**
-   * Generates and returns mapping between each {@link DartLibrary} to its {@link Set} of resources.
-   * This mapping is cached until {@link #resetLibraryToSourcesMap()} is called.
-   * 
-   * @see #resetLibraryToSourcesMap()
-   */
-  public HashMap<DartLibrary, HashSet<String>> getOldLibraryToResourcesMap() {
-    if (libraryToResourceMap == null) {
-      libraryToResourceMap = new HashMap<DartLibrary, HashSet<String>>();
-    }
-    try {
-      DartProject[] dartProjects = DartModelManager.getInstance().getDartModel().getDartProjects();
-      for (DartProject dartProject : dartProjects) {
-        DartLibrary[] libraries = dartProject.getDartLibraries();
-        for (DartLibrary dartLibrary : libraries) {
-          CompilationUnit[] cus = dartLibrary.getCompilationUnits();
-          DartResource[] resArray = dartLibrary.getResources();
-          HashSet<String> resources = new HashSet<String>(cus.length);
-          for (DartResource res : resArray) {
-            if (res != null) {
-              resources.add(res.getResource().getFullPath().toPortableString());
-            }
-          }
-          libraryToResourceMap.put(dartLibrary, resources);
-        }
-      }
-    } catch (DartModelException dme) {
-      DartCore.logError("Exception while attempting to compute the DartLibrary to sources map.",
-          dme);
-    }
-    return libraryToResourceMap;
-  }
-
-  /**
-   * Generates and returns mapping between each {@link DartLibrary} to its {@link Set} of sources.
-   * This mapping is cached until {@link #resetLibraryToSourcesMap()} is called.
-   * 
-   * @see #resetLibraryToSourcesMap()
-   */
-  public HashMap<DartLibrary, HashSet<String>> getOldLibraryToSourcesMap() {
-    if (libraryToSourceMap == null) {
-      libraryToSourceMap = new HashMap<DartLibrary, HashSet<String>>();
-    }
-    try {
-      DartProject[] dartProjects = DartModelManager.getInstance().getDartModel().getDartProjects();
-      for (DartProject dartProject : dartProjects) {
-        DartLibrary[] libraries = dartProject.getDartLibraries();
-        for (DartLibrary dartLibrary : libraries) {
-          CompilationUnit[] cus = dartLibrary.getCompilationUnits();
-          HashSet<String> sources = new HashSet<String>(cus.length);
-          for (CompilationUnit cu : cus) {
-            final IResource resource = cu.getResource();
-            if (resource != null) {
-              sources.add(resource.getFullPath().toPortableString());
-            }
-          }
-          libraryToSourceMap.put(dartLibrary, sources);
-        }
-      }
-    } catch (DartModelException dme) {
-      DartCore.logError("Exception while attempting to compute the DartLibrary to sources map.",
-          dme);
-    }
-    return libraryToSourceMap;
-  }
-
-  /**
    * Removes the passed {@link ElementChangedListener} from the {@link #elementChangedListeners}
    * array.
    * 
@@ -347,15 +272,6 @@ public class DeltaProcessingState implements IResourceChangeListener {
         return;
       }
     }
-  }
-
-  /**
-   * Calling this method resets the library to sources map cache by setting
-   * {@link #libraryToSourceMap} to <code>null</code>.
-   */
-  public synchronized void resetLibraryToSourcesMap() {
-    libraryToSourceMap = null;
-    libraryToResourceMap = null;
   }
 
   /**
