@@ -262,14 +262,12 @@ build system.  The PDE build system has to run under Eclipse.
               <exclude name="app.yaml"/>
             </fileset>
         </copy>
-        <replace file="${samples.out.dir}/isolate/isolate_sample.html" token='"isolate_sample.js"' value='"isolate_sample.app.js"'/>
 
         <!-- Slider -->
         <copy todir="${samples.out.dir}/slider">
             <fileset dir="${build.source.root}/client/samples/slider">
             </fileset>
         </copy>
-        <replace file="${samples.out.dir}/slider/slider_sample.html" token='"slider_sample.js"' value='"slider_sample.app.js"'/>
 
         <!-- Swarm -->
         <!-- copy todir="${samples.out.dir}/swarm">
@@ -357,9 +355,6 @@ build system.  The PDE build system has to run under Eclipse.
 
         <copy todir="${libraries.out.dir}/base">
             <fileset dir="${build.source.root}/client/base"/>
-        </copy>
-        <copy todir="${libraries.out.dir}/json">
-            <fileset dir="${build.source.root}/client/json"/>
         </copy>
         <copy todir="${libraries.out.dir}/layout">
             <fileset dir="${build.source.root}/client/layout"/>
