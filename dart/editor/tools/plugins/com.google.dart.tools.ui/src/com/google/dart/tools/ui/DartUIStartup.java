@@ -38,51 +38,78 @@ public class DartUIStartup implements IStartup {
     }
 
     @Override
+    protected void canceling() {
+      getThread().interrupt();
+    }
+
+    @Override
     protected IStatus run(IProgressMonitor monitor) {
-      indexerWarmup();
+      try {
+        indexerWarmup();
+
+        delay(500);
+
+        if (!getThread().isInterrupted()) {
+          compilerWarmup();
+        }
+      } catch (InterruptedException ie) {
+
+      }
+
+      synchronized (startupSync) {
+        startupJob = null;
+      }
+
+      return Status.OK_STATUS;
+    }
+
+    private void compilerWarmup() {
+      // TODO(devoncarew): once the warmUpCompiler() method is performing useful work,
+      // time it and find out how many calls gets us the best bang for the buck. If the
+      // 3rd call speeds up significantly, then call warmUpCompiler() twice.
+
+      //long start = System.currentTimeMillis();
+
+      DartCompilerUtilities.warmUpCompiler();
+
+      //System.out.println("compiler: " + (System.currentTimeMillis() - start) + "ms");
+    }
+
+    private void delay(int timeInMillis) throws InterruptedException {
+      if (!getThread().isInterrupted()) {
+        Thread.sleep(timeInMillis);
+      }
+    }
+
+    private void indexerWarmup() throws InterruptedException {
+      // This will initialize the Dart Tools Core plugin as well as the indexer plugin.
+      DartModelManager.getInstance().getDartModel();
 
       delay(500);
 
-      compilerWarmup();
+      if (!getThread().isInterrupted()) {
+        // Warm up the type cache.
+        DartIndexer.warmUpIndexer();
+      }
+    }
+  }
 
-      return Status.OK_STATUS;
+  private static StartupJob startupJob;
+  private static Object startupSync = new Object();
+
+  public static void cancelStartup() {
+    synchronized (startupSync) {
+      if (startupJob != null) {
+        startupJob.cancel();
+      }
     }
   }
 
   @Override
   public void earlyStartup() {
-    StartupJob startupJob = new StartupJob();
-
-    startupJob.schedule(500);
-  }
-
-  void compilerWarmup() {
-    // TODO(devoncarew): once the warmUpCompiler() method is performing useful work,
-    // time it and find out how many calls gets us the best bang for the buck. If the
-    // 3rd call speeds up significantly, then call warmUpCompiler() twice.
-
-    //long start = System.currentTimeMillis();
-
-    DartCompilerUtilities.warmUpCompiler();
-
-    //System.out.println("compiler: " + (System.currentTimeMillis() - start) + "ms");
-  }
-
-  void indexerWarmup() {
-    // This will initialize the Dart Tools Core plugin as well as the indexer plugin.
-    DartModelManager.getInstance().getDartModel();
-
-    delay(500);
-
-    // Warm up the type cache.
-    DartIndexer.warmUpIndexer();
-  }
-
-  private void delay(int timeInMillis) {
-    try {
-      Thread.sleep(timeInMillis);
-    } catch (InterruptedException e) {
-
+    synchronized (startupSync) {
+      startupJob = new StartupJob();
+      startupJob.schedule(500);
     }
   }
 

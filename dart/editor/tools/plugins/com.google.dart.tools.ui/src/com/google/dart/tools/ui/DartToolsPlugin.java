@@ -780,6 +780,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   @Override
   public void stop(BundleContext context) throws Exception {
     try {
+      DartUIStartup.cancelStartup();
+
       if (imageDescriptorRegistry != null) {
         imageDescriptorRegistry.dispose();
       }
