@@ -416,11 +416,10 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
         // - the operation did produce some delta(s)
         // - but the operation has not modified any resource
         if (isTopLevelOperation()) {
-          // if ((deltaProcessor.dartModelDeltas.size() > previousDeltaCount ||
-          // !deltaProcessor.reconcileDeltas.isEmpty())
-          // && !hasModifiedResource()) {
-          // deltaProcessor.fire(null, DeltaProcessor.DEFAULT_CHANGE_EVENT);
-          // } // else deltas are fired while processing the resource delta
+          if ((deltaProcessor.dartModelDeltas.size() > previousDeltaCount || !deltaProcessor.reconcileDeltas.isEmpty())
+              && !hasModifiedResource()) {
+            deltaProcessor.fire(null, DeltaProcessor.DEFAULT_CHANGE_EVENT);
+          } // else deltas are fired while processing the resource delta
         }
       } finally {
         popOperation();
