@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartContext;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
@@ -25,13 +24,13 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
-import com.google.dart.compiler.ast.DartVisitor;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -134,43 +133,11 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       this.compilationUnit = compilationUnit;
     }
 
-    @Override
-    public void endVisit(DartUnit node, DartContext ctx) {
-      try {
-        CompilationUnitInfo info = (CompilationUnitInfo) compilationUnit.getElementInfo();
-        info.setDefinesLibrary(definesLibrary);
-        info.setChildren(topLevelElements.toArray(new DartElement[topLevelElements.size()]));
-      } catch (DartModelException exception) {
-        // This should never happen
-      }
-    }
-
-    /**
-     * Parse a top-level function type alias and add a DartFunctionTypeAlias as a child of the
-     * compilation unit to represent it.
-     */
-    @Override
-    public boolean visit(com.google.dart.compiler.ast.DartFunctionTypeAlias node, DartContext ctx) {
-      DartFunctionTypeAliasImpl aliasImpl = new DartFunctionTypeAliasImpl(compilationUnit,
-          node.getName().getTargetName());
-      DartFunctionTypeAliasInfo aliasInfo = new DartFunctionTypeAliasInfo();
-      int start = node.getSourceStart();
-      aliasInfo.setSourceRangeStart(start);
-      aliasInfo.setSourceRangeEnd(start + node.getSourceLength() - 1);
-      aliasInfo.setNameRange(new SourceRangeImpl(node.getName()));
-      aliasInfo.setReturnTypeName(extractTypeName(node.getReturnTypeNode(), false));
-      List<DartElementImpl> parameters = getParameters(aliasImpl, node.getParameters());
-      aliasInfo.setChildren(parameters.toArray(new DartElementImpl[parameters.size()]));
-      newElements.put(aliasImpl, aliasInfo);
-      topLevelElements.add(aliasImpl);
-      return false;
-    }
-
     /**
      * Parse a top-level type and add a Type as a child of the compilation unit to represent it.
      */
     @Override
-    public boolean visit(DartClass node, DartContext ctx) {
+    public Void visitClass(DartClass node) {
       String className = node.getClassName();
       DartTypeImpl typeImpl = new DartTypeImpl(compilationUnit, className);
       DartTypeInfo typeInfo = new DartTypeInfo();
@@ -195,7 +162,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
             FunctionGatherer functionGatherer = new FunctionGatherer(fieldNode, fieldImpl,
                 newElements);
-            functionGatherer.accept(fieldNode);
+            fieldNode.accept(functionGatherer);
             List<DartFunctionImpl> functions = functionGatherer.getFunctions();
             fieldInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
           }
@@ -219,12 +186,12 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
           FunctionGatherer functionGatherer = new FunctionGatherer(methodNode, methodImpl,
               newElements);
-          functionGatherer.accept(methodNode);
+          methodNode.accept(functionGatherer);
           methodChildren.addAll(functionGatherer.getFunctions());
 
           LocalVariableGatherer variableGatherer = new LocalVariableGatherer(methodNode,
               methodImpl, newElements);
-          variableGatherer.accept(methodNode);
+          methodNode.accept(variableGatherer);
           methodChildren.addAll(variableGatherer.getLocalVariables());
 
           methodInfo.setChildren(methodChildren.toArray(new DartElementImpl[methodChildren.size()]));
@@ -261,7 +228,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       typeInfo.setNameRange(new SourceRangeImpl(typeName));
       typeInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
       topLevelElements.add(typeImpl);
-      return false;
+      return null;
     }
 
     /**
@@ -269,11 +236,11 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      * represent it.
      */
     @Override
-    public boolean visit(DartFieldDefinition node, DartContext ctx) {
+    public Void visitFieldDefinition(DartFieldDefinition node) {
       for (DartField fieldNode : node.getFields()) {
         Modifiers modifiers = fieldNode.getModifiers();
         if (modifiers.isGetter() || modifiers.isSetter()) {
-          visit(fieldNode.getAccessor(), ctx);
+          visitMethodDefinition(fieldNode.getAccessor());
         } else {
           DartVariableImpl variableImpl = new DartVariableImpl(compilationUnit,
               fieldNode.getName().toString());
@@ -286,7 +253,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
           FunctionGatherer functionGatherer = new FunctionGatherer(fieldNode, variableImpl,
               newElements);
-          functionGatherer.accept(fieldNode);
+          fieldNode.accept(functionGatherer);
           List<DartFunctionImpl> functions = functionGatherer.getFunctions();
           variableInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
 
@@ -294,16 +261,37 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
           topLevelElements.add(variableImpl);
         }
       }
-      return false;
+      return null;
+    }
+
+    /**
+     * Parse a top-level function type alias and add a DartFunctionTypeAlias as a child of the
+     * compilation unit to represent it.
+     */
+    @Override
+    public Void visitFunctionTypeAlias(com.google.dart.compiler.ast.DartFunctionTypeAlias node) {
+      DartFunctionTypeAliasImpl aliasImpl = new DartFunctionTypeAliasImpl(compilationUnit,
+          node.getName().getTargetName());
+      DartFunctionTypeAliasInfo aliasInfo = new DartFunctionTypeAliasInfo();
+      int start = node.getSourceStart();
+      aliasInfo.setSourceRangeStart(start);
+      aliasInfo.setSourceRangeEnd(start + node.getSourceLength() - 1);
+      aliasInfo.setNameRange(new SourceRangeImpl(node.getName()));
+      aliasInfo.setReturnTypeName(extractTypeName(node.getReturnTypeNode(), false));
+      List<DartElementImpl> parameters = getParameters(aliasImpl, node.getParameters());
+      aliasInfo.setChildren(parameters.toArray(new DartElementImpl[parameters.size()]));
+      newElements.put(aliasImpl, aliasInfo);
+      topLevelElements.add(aliasImpl);
+      return null;
     }
 
     /**
      * Record the existence of the #library directive.
      */
     @Override
-    public boolean visit(DartLibraryDirective node, DartContext ctx) {
+    public Void visitLibraryDirective(DartLibraryDirective node) {
       definesLibrary = true;
-      return false;
+      return null;
     }
 
     /**
@@ -311,7 +299,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      * compilation unit to represent it.
      */
     @Override
-    public boolean visit(DartMethodDefinition node, DartContext ctx) {
+    public Void visitMethodDefinition(DartMethodDefinition node) {
       DartExpression functionNameNode = node.getName();
       String functionName = functionNameNode == null ? null
           : ((DartIdentifier) functionNameNode).getTargetName();
@@ -331,18 +319,31 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
       LocalVariableGatherer variableGatherer = new LocalVariableGatherer(node, functionImpl,
           newElements);
-      variableGatherer.accept(node);
+      node.accept(variableGatherer);
       functionChildren.addAll(variableGatherer.getLocalVariables());
 
       FunctionGatherer functionGatherer = new FunctionGatherer(node, functionImpl, newElements);
-      functionGatherer.accept(node);
+      node.accept(functionGatherer);
       functionChildren.addAll(functionGatherer.getFunctions());
 
       functionInfo.setChildren(functionChildren.toArray(new DartElementImpl[functionChildren.size()]));
 
       newElements.put(functionImpl, functionInfo);
       topLevelElements.add(functionImpl);
-      return false;
+      return null;
+    }
+
+    @Override
+    public Void visitUnit(DartUnit node) {
+      super.visitUnit(node);
+      try {
+        CompilationUnitInfo info = (CompilationUnitInfo) compilationUnit.getElementInfo();
+        info.setDefinesLibrary(definesLibrary);
+        info.setChildren(topLevelElements.toArray(new DartElement[topLevelElements.size()]));
+      } catch (DartModelException exception) {
+        // This should never happen
+      }
+      return null;
     }
 
     /**
@@ -415,9 +416,10 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     }
 
     @Override
-    public boolean visit(DartFunctionExpression node, DartContext ctx) {
+    public Void visitFunctionExpression(DartFunctionExpression node) {
       if (node == parentNode) {
-        return true;
+        super.visitFunctionExpression(node);
+        return null;
       }
       DartFunctionImpl functionImpl = new DartFunctionImpl(parentElement, node.getFunctionName());
       functionImpl.occurrenceCount = functionCount++;
@@ -433,14 +435,14 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       List<DartElementImpl> functionChildren = getParameters(functionImpl, node.getFunction());
 
       FunctionGatherer functionGatherer = new FunctionGatherer(node, functionImpl, newElements);
-      functionGatherer.accept(node);
+      node.accept(functionGatherer);
       functionChildren.addAll(functionGatherer.getFunctions());
 
       functionInfo.setChildren(functionChildren.toArray(new DartElementImpl[functionChildren.size()]));
 
       newElements.put(functionImpl, functionInfo);
       functions.add(functionImpl);
-      return false;
+      return null;
     }
   }
 
@@ -466,7 +468,6 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     public LocalVariableGatherer(DartNode parentNode, DartElementImpl parent,
         Map<DartElement, DartElementInfo> newElements) {
       super(newElements);
-      //this.parentNode = parentNode;
       this.parentElement = parent;
     }
 
@@ -480,12 +481,12 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     }
 
     @Override
-    public boolean visit(DartFunctionExpression node, DartContext ctx) {
-      return false;
+    public Void visitFunctionExpression(DartFunctionExpression node) {
+      return null;
     }
 
     @Override
-    public boolean visit(DartVariableStatement node, DartContext ctx) {
+    public Void visitVariableStatement(DartVariableStatement node) {
       for (DartVariable variable : node.getVariables()) {
         DartVariableImpl variableImpl = new DartVariableImpl(parentElement, new String(
             variable.getVariableName().toCharArray()));
@@ -502,14 +503,15 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
         FunctionGatherer functionGatherer = new FunctionGatherer(variable, variableImpl,
             newElements);
-        functionGatherer.accept(variable);
+        variable.accept(functionGatherer);
         List<DartFunctionImpl> functions = functionGatherer.getFunctions();
         variableInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
 
         newElements.put(variableImpl, variableInfo);
         variables.add(variableImpl);
       }
-      return true;
+      super.visitVariableStatement(node);
+      return null;
     }
   }
 
@@ -517,7 +519,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
    * The abstract class <code>StructureBuilder</code> are used to build the structure corresponding
    * to a compilation unit by visiting the AST structure for the compilation unit.
    */
-  private static abstract class StructureBuilder extends DartVisitor {
+  private static abstract class StructureBuilder extends DartNodeTraverser<Void> {
     /**
      * A table mapping newly created elements to the info objects that correspond to them.
      */
@@ -574,7 +576,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
         FunctionGatherer functionGatherer = new FunctionGatherer(parameter, variableImpl,
             newElements);
-        functionGatherer.accept(parameter);
+        parameter.accept(functionGatherer);
         List<DartFunctionImpl> functions = functionGatherer.getFunctions();
         variableInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
 
@@ -1444,7 +1446,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     if (unit == null) {
       return false;
     }
-    new CompilationUnitStructureBuilder(this, newElements).accept(unit);
+    unit.accept(new CompilationUnitStructureBuilder(this, newElements));
     //
     // Update the time stamp (might be IResource.NULL_STAMP if original does not
     // exist).
