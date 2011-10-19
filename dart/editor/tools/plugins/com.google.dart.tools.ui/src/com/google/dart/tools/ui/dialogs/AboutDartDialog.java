@@ -61,32 +61,32 @@ public class AboutDartDialog extends Shell {
 
     setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
 
-    Label graphic = new Label(this, SWT.SHADOW_NONE | SWT.CENTER);
+    Label graphic = newLabel(SWT.SHADOW_NONE | SWT.CENTER);
     GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(316, 416).applyTo(
         graphic);
     graphic.setImage(DartToolsPlugin.getImageDescriptorRegistry().get(ABOUT_IMG_DESC));
 
-    Label productNameLabel = new Label(this, SWT.BOLD);
+    Label productNameLabel = newLabel(SWT.BOLD);
     productNameLabel.setFont(JFaceResources.getBannerFont());
     productNameLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
     productNameLabel.setText(DialogsMessages.AboutDartDialog_product_label);
 
-    Label versionLabel = new Label(this, SWT.NONE);
+    Label versionLabel = newLabel(SWT.NONE);
     GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).indent(5, 8).applyTo(versionLabel);
     versionLabel.setText(DialogsMessages.AboutDartDialog_version_string_prefix + getVersion());
 
-    Label copyrightLabel = new Label(this, SWT.NONE);
+    Label copyrightLabel = newLabel(SWT.NONE);
     GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).indent(5, 5).applyTo(
         copyrightLabel);
     copyrightLabel.setText(DialogsMessages.AboutDartDialog_copyright);
 
-    Label copyrightLabel2 = new Label(this, SWT.NONE);
+    Label copyrightLabel2 = newLabel(SWT.NONE);
     GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).indent(5, 3).applyTo(
         copyrightLabel2);
     copyrightLabel2.setText(DialogsMessages.AboutDartDialog_copyright_line2);
 
     //spacer
-    new Label(this, SWT.NONE);
+    newLabel(SWT.NONE);
 
     setLocation(getInitialLocation(getSize()));
   }
@@ -105,5 +105,11 @@ public class AboutDartDialog extends Shell {
 
   private String getVersion() {
     return DartToolsPlugin.getVersionString();
+  }
+
+  private Label newLabel(int style) {
+    Label label = new Label(this, style);
+    label.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
+    return label;
   }
 }
