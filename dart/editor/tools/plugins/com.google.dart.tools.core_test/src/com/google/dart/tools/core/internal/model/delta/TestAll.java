@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.internal.model;
+package com.google.dart.tools.core.internal.model.delta;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -19,21 +19,8 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(CompilationUnitImplTest.class);
-//    suite.addTestSuite(CompilationUnitImpl2Test.class);
-    suite.addTestSuite(DartElementImplTest.class);
-    suite.addTestSuite(DartLibraryImplTest.class);
-    suite.addTestSuite(DartModelImplTest.class);
-    suite.addTestSuite(DartModelManagerTest.class);
-    suite.addTestSuite(DartProjectImplTest.class);
-    suite.addTestSuite(DartProjectNatureTest.class);
-    suite.addTestSuite(FieldImplTest.class);
-    suite.addTestSuite(HTMLFileImplTest.class);
-    suite.addTestSuite(MethodImplTest.class);
-    suite.addTestSuite(TypeImplTest.class);
+    suite.addTestSuite(CachedDirectivesTest.class);
 
-    suite.addTest(com.google.dart.tools.core.internal.model.delta.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.internal.model.info.TestAll.suite());
     return suite;
   }
 }
