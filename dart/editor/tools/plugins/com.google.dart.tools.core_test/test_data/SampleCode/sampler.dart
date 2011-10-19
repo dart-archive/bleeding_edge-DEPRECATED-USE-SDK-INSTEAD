@@ -73,6 +73,6 @@ void set topLevelSetter(String value) {
   _PrivateTopLevelVariable = value;
 }
 
-double topLevelFunction() {
-  return PublicTopLevelFinalVariable;
+double topLevelFunction(double offset) {
+  return PublicTopLevelFinalVariable + offset;
 }
