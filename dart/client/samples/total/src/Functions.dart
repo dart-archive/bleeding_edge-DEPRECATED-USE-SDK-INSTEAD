@@ -454,7 +454,8 @@ class Functions {
         }
         stack[top] = new DoubleValue(val);
       });
-    _newFunc("RANDBETWEEN", 2, void _(CellLocation location, List<Value> stack, int top, int nargs) {
+    _newFunc("RANDBETWEEN", 2,
+      void _(CellLocation location, List<Value> stack, int top, int nargs) {
         double b = stack[top].asDouble(location).floor();
         double t = stack[top + 1].asDouble(location).floor();
         if (b > t) {
@@ -586,7 +587,8 @@ class Functions {
         }
         stack[top] = new BooleanValue(true);
       });
-    _newFunc("CONCATENATE", -2, void _(CellLocation location, List<Value> stack, int top, int nargs) {
+    _newFunc("CONCATENATE", -2,
+      void _(CellLocation location, List<Value> stack, int top, int nargs) {
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < nargs; i++) {
           sb.add(stack[top + i].asString(location));
@@ -677,7 +679,8 @@ class Functions {
        }
        stack[top] = new DoubleValue(min);
       });
-    _newFunc("MULTINOMIAL", -1, void _(CellLocation location, List<Value> stack, int top, int nargs) {
+    _newFunc("MULTINOMIAL", -1,
+      void _(CellLocation location, List<Value> stack, int top, int nargs) {
         double sumN = stack[top].asDouble(location) + stack[top + 1].asDouble(location);
         double sumK = stack[top].asDouble(location);
         double product = 1.0;

@@ -17,6 +17,13 @@ class ContextMenuBuilder {
 
   void build() {
     int idx = 0;
+    _contextMenu.addMenuItem("New Spreadsheet", idx++,
+      () => true,
+      void _(Element elmt, int value) {
+        Window window = _presenter.window;
+        SpreadsheetPresenter presenter = new SpreadsheetPresenter.blank(window);
+        presenter.recalculateViewport();
+      });
     _contextMenu.addMenuItem("Cut", idx++,
         hasSelection,
         void _(Element elmt, int value) {
@@ -174,7 +181,7 @@ class ContextMenuBuilder {
       graphCanvas.classes.remove("fadeIn");
       graphCanvas.classes.add("fadeOut");
     });
-    doc.body.nodes.add(graphCanvas);
+    _contextMenu.parent.nodes.add(graphCanvas);
 
     DivElement chartDiv = doc.createElement("div");
     chartDiv.id = "chartDiv-{$_spreadsheet.name}";
@@ -233,7 +240,7 @@ class ContextMenuBuilder {
       });
     });
     chartDiv.nodes.add(chartType);
-    doc.body.nodes.add(chartDiv);
+    _contextMenu.parent.nodes.add(chartDiv);
 
     _contextMenu.addMenuItem("Draw Graph", idx++,
         hasSelection,

@@ -275,7 +275,7 @@ class HtmlTable {
       }
 
       int col = c + columnShift;
-      String html = c > 0 ? StringUtils.columnString(col) : "";
+      String html = c == 0 ? HtmlUtils.quoteHtml(_spreadsheet.name) : StringUtils.columnString(col);
       if (displayStyles) {
         RowColStyle s;
         if (c == 0) {

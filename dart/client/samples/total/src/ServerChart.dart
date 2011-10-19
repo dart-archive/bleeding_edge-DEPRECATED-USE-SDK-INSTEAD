@@ -121,15 +121,18 @@ class ServerLineChart extends ServerXYChart {
 
 // TODO:  horizontal charts require switched axes
 //class ServerHorizontalGroupedBarChart extends ServerChart {
-//  ServerHorizontalGroupedBarChart(Window window, CellRange range) : super(window, range, "cht=bhg") { }
+//  ServerHorizontalGroupedBarChart(Window window, CellRange range)
+//      : super(window, range, "cht=bhg") { }
 //}
 //
 //class ServerHorizontalStackedBarChart extends ServerChart {
-//  ServerHorizontalStackedBarChart(Window window, CellRange range) : super(window, range, "cht=bhs") { }
+//  ServerHorizontalStackedBarChart(Window window, CellRange range)
+//      : super(window, range, "cht=bhs") { }
 //}
 //
 //class ServerHorizontalOverlappedBarChart extends ServerChart {
-//  ServerHorizontalOverlappedBarChart(Window window, CellRange range) : super(window, range, "cht=bho") { }
+//  ServerHorizontalOverlappedBarChart(Window window, CellRange range)
+//      : super(window, range, "cht=bho") { }
 //}
 
 class ServerPieChart extends ServerChart {

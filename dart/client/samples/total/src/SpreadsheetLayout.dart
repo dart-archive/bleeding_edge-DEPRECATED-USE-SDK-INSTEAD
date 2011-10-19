@@ -37,10 +37,12 @@ class SpreadsheetLayout {
   int getColumnWidth(int index) => _getSize(COL, index);
 
   // Return the default column width
-  int getDefaultColumnWidth(int index) => index == 0 ? CssStyles.ROW_HEADER_WIDTH : CssStyles.DEFAULT_COLUMN_WIDTH;
+  int getDefaultColumnWidth(int index) =>
+      index == 0 ? CssStyles.ROW_HEADER_WIDTH : CssStyles.DEFAULT_COLUMN_WIDTH;
 
   // Return the default row height
-  int getDefaultRowHeight(int index) => index == 0 ? CssStyles.COLUMN_HEADER_HEIGHT : CssStyles.DEFAULT_ROW_HEIGHT;
+  int getDefaultRowHeight(int index) =>
+      index == 0 ? CssStyles.COLUMN_HEADER_HEIGHT : CssStyles.DEFAULT_ROW_HEIGHT;
 
   // Return a copy of the sizes array
   List<List<int>> getRowColumnSizes() {

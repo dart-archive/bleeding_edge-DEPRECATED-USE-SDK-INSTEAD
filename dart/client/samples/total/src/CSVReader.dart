@@ -35,7 +35,8 @@ class CSVReader extends Reader {
     int payments = years * 12;
     List<String> csv = new List<String>(payments + 4);
     csv[0] = "\"Loan Amount\",\"Interest Rate\",\"Years\",\"Monthly Payment\"";
-    csv[1] = "375000,.05375,${years},\"=ROUND((R2C1*((R2C2/12)/(1-POWER((1+(R2C2/12)),(-12*R2C3))))),2)\"";
+    csv[1] = "375000,.05375,${years},\"=ROUND((R2C1*((R2C2/12)/(1-POWER((1+(R2C2/12)),"
+        + "(-12*R2C3))))),2)\"";
     csv[2] = "\"Payment #\",\"Balance\",\"Interest\",\"Principal\"";
     csv[3] = "1,\"=R2C1\",\"=(RC[-1]*R2C2)/12\",\"=R2C4-RC[-1]\"";
     for (int i = 4; i < payments + 3; i++) {

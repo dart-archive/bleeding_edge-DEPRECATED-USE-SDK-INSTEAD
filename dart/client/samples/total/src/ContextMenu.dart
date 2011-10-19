@@ -19,8 +19,11 @@ class ElementFunc {
 class ContextMenu {
   Element _contextMenu;
   List<ElementFunc> _enableFunctions;
+  Element _parent;
   Spreadsheet _spreadsheet;
   SpreadsheetPresenter _spreadsheetPresenter;
+
+  Element get parent() => _parent;
 
   ContextMenu(this._spreadsheetPresenter) {
     Document doc = _spreadsheetPresenter.window.document;
@@ -29,7 +32,11 @@ class ContextMenu {
     _contextMenu.style.setProperty("top", "0px");
     _contextMenu.classes.add("contextMenu");
     _contextMenu.classes.add("fadeOut");
-    _spreadsheetPresenter.spreadsheetElement.nodes.add(_contextMenu);
+
+    // Parent off the document body to avoid problems when the menu
+    // extends past the border of its owner spreadsheet
+    _parent = doc.body;
+    _parent.nodes.add(_contextMenu);
     _spreadsheet = _spreadsheetPresenter.spreadsheet;
   }
 

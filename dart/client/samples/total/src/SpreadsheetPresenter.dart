@@ -26,6 +26,8 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   // The number of pixels around a row/column boundary for which a resize dragger will be shown
   static final int _DRAGGER_TOLERANCE = 4;
 
+  static int _zIndex = 1;
+
   // The currently active inner menu
   InnerMenuView _activeInnerMenu;
 
@@ -110,6 +112,13 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   Window get window() => _window;
 
+  factory SpreadsheetPresenter.blank(Window window) {
+    Spreadsheet spreadsheet = new Spreadsheet();
+    SpreadsheetPresenter presenter = new SpreadsheetPresenter(spreadsheet, window, 0,0, 25, 10);
+    spreadsheet.setListener(presenter);
+    return presenter;
+  }
+
   SpreadsheetPresenter(this._spreadsheet, this._window, this._rowShift, this._columnShift,
       this._rows, this._columns) {
     Document doc = _window.document;
@@ -117,20 +126,23 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     // Must do this first
     _popupHandler = new PopupHandler(doc);
 
-    // Create UI elements
+    // Create UI elements under a common parent
+    Element parent = doc.query("#spreadsheets");
+
     _spreadsheetElement = doc.createElement("div");
     _spreadsheetElement.id = "spreadsheet-${_spreadsheet.name}";
     _spreadsheetElement.attributes["class"] = "spreadsheetContainer";
-    doc.body.nodes.add(_spreadsheetElement);
+    _spreadsheetElement.style.setProperty("z-index", "${_zIndex++}");
+    parent.nodes.add(_spreadsheetElement);
 
     _tableScrollContainer = doc.createElement("div");
     _tableScrollContainer.id = "tableScrollContainer-${_spreadsheet.name}";
     _tableScrollContainer.attributes["class"] = "tableScrollContainer";
     _spreadsheetElement.nodes.add(_tableScrollContainer);
 
+    _createTable(doc);
     _createMoveDragger(doc);
     _createResizeDragger(doc);
-    _createTable(doc);
 
     _createSpreadsheetLayout(doc);
     _createFormulaInput(doc);
@@ -324,8 +336,10 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
       }
     }
     // Fit the selection around the pasted area
-    int selectionWidth = _selectionManager.selectionCorner.col - _selectionManager.selectedCell.col;
-    int selectionHeight = _selectionManager.selectionCorner.row - _selectionManager.selectedCell.row;
+    int selectionWidth = _selectionManager.selectionCorner.col
+        - _selectionManager.selectedCell.col;
+    int selectionHeight = _selectionManager.selectionCorner.row
+        - _selectionManager.selectedCell.row;
     _selectionManager.selectionCorner = new CellLocation(_spreadsheet,
         new RowCol(pasteAnchor.row + selectionHeight, pasteAnchor.col + selectionWidth));
     _selectionManager.updateSelection();
@@ -650,11 +664,14 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     _moveDragger = doc.createElement("div");
     _moveDragger.id = "moveDragger-${_spreadsheet.name}";
     _moveDragger.attributes["class"] = "moveDragger";
-    _moveDragger.style.setProperty("left", HtmlUtils.toPx(0));
-    _moveDragger.style.setProperty("top", HtmlUtils.toPx(0));
+    _moveDragger.style.setProperty("left", HtmlUtils.toPx(3));
+    _moveDragger.style.setProperty("top", HtmlUtils.toPx(3));
     _spreadsheetElement.nodes.add(_moveDragger);
 
     _moveDragger.on.mouseDown.add((MouseEvent e) {
+      _moveToTop();
+      _hideInnerMenu(true);
+
       int mouseStartX = e.x;
       int mouseStartY = e.y;
       ClientRect rect = _spreadsheetElement.getBoundingClientRect();
@@ -686,16 +703,16 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     _spreadsheetElement.nodes.add(_resizeDragger);
 
     _resizeDragger.on.mouseDown.add((MouseEvent e) {
+      _moveToTop();
+
       // Hide popups
       _hideFormula();
       _popupHandler.deactivatePopup();
 
       int mouseStartX = e.x;
       int mouseStartY = e.y;
-      int startX = HtmlUtils.fromPx(
-          _resizeDragger.style.getPropertyValue("left"));
-      int startY = HtmlUtils.fromPx(
-          _resizeDragger.style.getPropertyValue("top"));
+      int startX = HtmlUtils.fromPx(_resizeDragger.style.getPropertyValue("left"));
+      int startY = HtmlUtils.fromPx(_resizeDragger.style.getPropertyValue("top"));
       _window.document.body.style.setProperty("cursor", "move");
 
       _setDragFunction((MouseEvent e) {
@@ -707,7 +724,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         _resizeDragger.style.setProperty("top", HtmlUtils.toPx(y));
 
         int column = _getMaxRowOrColumn(x, COL);
-        int row = _getMaxRowOrColumn(y, ROW);
+        int row = _getMaxRowOrColumn(y, ROW) + 1;
         if (column == -1 || row == -1) {
           return;
         }
@@ -1108,6 +1125,11 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         && col > _columnShift && col <= _columnShift + _columns;
   }
 
+  void _moveToTop() {
+    // Move the table to the top
+    _spreadsheetElement.style.setProperty("z-index", "${_zIndex++}");
+  }
+
   // update table row and column headers
   void _redrawHeaders() {
     _setTableWidth(_getVisibleTableWidth());
@@ -1118,21 +1140,14 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   }
 
   void _refreshResizeDragger() {
-    int x = _getVisibleTableWidth();
-    int y = _getVisibleTableHeight();
-    if (_innerMenuShown) {
-      y += InnerMenuView.getInnerMenuHeight();
+    // We may be called before the dragger is ready
+    if (_resizeDragger == null) {
+      return;
     }
-    // If there is no vertical scrollbar, move the dragger to the right of the horizontal scrollbar
-    if (_rows >= _spreadsheet.rowCount()) {
-      x += CssStyles.SCROLLBAR_WIDTH;
-    }
-    // If there is not horizontal scrollbar, move the dragger below the vertical scrollbar
-    if (_columns >= _spreadsheet.columnCount()) {
-      y += CssStyles.SCROLLBAR_WIDTH;
-    }
-    _resizeDragger.style.setProperty("left", HtmlUtils.toPx(x));
-    _resizeDragger.style.setProperty("top", HtmlUtils.toPx(y));
+    ClientRect rect = _table.getBoundingClientRect();
+
+    _resizeDragger.style.setProperty("left", HtmlUtils.toPx(rect.width));
+    _resizeDragger.style.setProperty("top", HtmlUtils.toPx(rect.height));
   }
 
   // Remove the HTML elements corresponding to the given column
@@ -1209,7 +1224,6 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     // update the inner menu
     _updateInnerMenu();
   }
-
 
   void _scheduleShowInnerMenu(Style style) {
     int requestId = ++_innerMenuShowRequestId;
@@ -1307,8 +1321,12 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         setDragPosition(rowOrCol, _getRowOrColEnd(rowOrCol, hoverRowColumn[rowOrCol]));
         int other = 1 - rowOrCol;
         int maxVisible = rowOrCol == COL ? _rows : _columns;
+	int size = _getRowOrColEnd(other, maxVisible);
+        if (rowOrCol == COL && _activeInnerMenu != null) {
+          size += _activeInnerMenu.currentRowHeight;
+        }
         _dragIndicators[rowOrCol].style.setProperty(getWidthOrHeight(other),
-            HtmlUtils.toPx(_getRowOrColEnd(other, maxVisible)));
+            HtmlUtils.toPx(size));
       }
       _dragIndicators[rowOrCol].style.setProperty("display", visible ? "block" : "none");
     }
@@ -1509,6 +1527,8 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     _setMove(mouseMove);
 
     _table.on.mouseDown.add((MouseEvent e) {
+      _moveToTop();
+
       // Right click toggles and positions the context menu
       if (e.button == 2 || (e.button == 0 && e.ctrlKey)) {
         ClientRect boundingRect = _table.getBoundingClientRect();
@@ -1619,7 +1639,8 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   void _showInnerMenu(Style style) {
     if (_selectionManager.selectedCell === null || _selectionManager.selectionCorner === null) {
       // Debugging - log when this happens
-      print("_showInnerMenu called with cell=${_selectionManager.selectedCell} and corner=${_selectionManager.selectionCorner}");
+      print("_showInnerMenu called with cell=${_selectionManager.selectedCell} "
+          + "and corner=${_selectionManager.selectionCorner}");
       return;
     }
 
@@ -1647,26 +1668,26 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     }
     _activeInnerMenu = new InnerMenuView(_window, row, _selectionManager, style,
         _spreadsheet.layout.getRowHeight(rowIndex),
+        (){ _tableSizeChanged(); },
         (){ _hideInnerMenu(true); _repositionFormulaInput(null, false); });
     _innerMenuRowIndex = rowIndex;
   }
 
   // Update the scroll mechanism due to a change in the visible table area
   void _tableSizeChanged() {
-    _tableScrollContainer.style.setProperty("width",
-        HtmlUtils.toPx(_getVisibleTableWidth() + CssStyles.SCROLLBAR_WIDTH));
+    ClientRect rect = _table.getBoundingClientRect();
 
-    // Adjust scroll container height to include the inner menu if present
-    int containerHeight = _getVisibleTableHeight() + CssStyles.SCROLLBAR_WIDTH;
-    if (_innerMenuShown) {
-       containerHeight += InnerMenuView.getInnerMenuHeight();
-    }
-    _tableScrollContainer.style.setProperty("height", HtmlUtils.toPx(containerHeight));
+    _tableScrollContainer.style.setProperty("width", HtmlUtils.toPx(rect.width + 10));
+    _spreadsheetElement.style.setProperty("width", HtmlUtils.toPx(rect.width));
 
-    _tableScrollDiv.style.setProperty("width",
+    _tableScrollContainer.style.setProperty("height", HtmlUtils.toPx(rect.height + 10));
+    _spreadsheetElement.style.setProperty("height", HtmlUtils.toPx(rect.height));
+
+    _tableScrollDiv.style.setProperty("width", 
         HtmlUtils.toPx(_spreadsheet.getColumnEnd(_spreadsheet.columnCount())));
+    int extra = _activeInnerMenu == null ? 0 : _activeInnerMenu.currentRowHeight;
     _tableScrollDiv.style.setProperty("height",
-        HtmlUtils.toPx(_spreadsheet.getRowEnd(_spreadsheet.rowCount())));
+        HtmlUtils.toPx(_spreadsheet.getRowEnd(_spreadsheet.rowCount()) + extra));
 
     // Reposition the scroll bars
     _scroll(_rowShift, _columnShift);

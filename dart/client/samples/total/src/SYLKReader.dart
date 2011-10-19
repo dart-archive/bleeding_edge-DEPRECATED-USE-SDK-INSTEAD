@@ -113,7 +113,8 @@ class SYLKReader extends Reader {
       // x even ==> x / 2
       // x odd ==> 3 * x + 1
       // Note that (x - 2*trunc(x/2)) is 0 when x is even and 1 when x is odd
-      sylk.add("C;X1;Y${row};K=(R[-1]C-2*TRUNC(R[-1]C/2))*(3*R[-1]C+1)+(1-(R[-1]C-2*TRUNC(R[-1]C/2)))*(R[-1]C/2)");
+      sylk.add("C;X1;Y${row};K=(R[-1]C-2*TRUNC(R[-1]C/2))*(3*R[-1]C+1)+"
+        + "(1-(R[-1]C-2*TRUNC(R[-1]C/2)))*(R[-1]C/2)");
     }
     return sylk;
   }

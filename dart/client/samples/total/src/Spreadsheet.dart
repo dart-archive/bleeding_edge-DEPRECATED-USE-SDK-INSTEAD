@@ -184,14 +184,15 @@ class Spreadsheet {
   }
 
   /**
-   * Retrieve and return the given cell from the spreadsheet.
+   * Retrieve and return the given cell from the spreadsheet.  If the cell index
+   * is outside the valid spreadsheet area, a [RuntimeException] will be thrown.
+   *
    */
   Cell getCell(RowCol rowCol) {
     if (!rowCol.isValidCell()) {
       throw new RuntimeException("Cell index out of bounds: ${rowCol.row}, ${rowCol.col}");
     }
-    Cell cell = _cells[rowCol];
-    return cell;
+    return _cells[rowCol];
   }
 
   /**
@@ -279,9 +280,7 @@ class Spreadsheet {
    * is not present.  Tracks the number of dirty cells calculated.
    */
   Value getValue(RowCol rowCol) {
-    if (!rowCol.isValidCell()) {
-      throw new RuntimeException("Cell index out of bounds: ${rowCol.row}, ${rowCol.col}");
-    }
+    // getCell will call rowCol.isValidCell
     Cell cell = getCell(rowCol);
     if (cell == null) {
       throw new ValueException();
@@ -476,6 +475,7 @@ class Spreadsheet {
     if (_rowColumnCountsDirty) {
       _refreshRowColumnCounts();
     }
+
     return _maxRow;
   }
 
@@ -532,6 +532,8 @@ class Spreadsheet {
       // Add cell to list of cells to always recalculate
       _alwaysRecalculateCells.add(rowCol);
     }
+    setRowCount(rowCol.row);
+    setColumnCount(rowCol.col);
     markDirty(rowCol);
   }
 
@@ -548,10 +550,7 @@ class Spreadsheet {
    * An exception is thrown if the requested cell RowCol is invalid.
    */
   Cell setCellFromContentString(RowCol rowCol, String contents) {
-    if (!rowCol.isValidCell()) {
-      throw new RuntimeException("Cell index out of bounds: ${rowCol.row}, ${rowCol.col}");
-    }
-
+    // getCell will call rowCol.isValidCell
     Cell cell = getCell(rowCol);
     if (cell == null) {
       cell = _createEmptyCell(rowCol);

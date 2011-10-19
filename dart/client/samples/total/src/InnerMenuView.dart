@@ -66,6 +66,7 @@ class InnerMenuView {
   Function _callToHide;
   int _currentRowHeight;
   int _initialRowHeight;
+  Function _innerMenuMoved;
   ValuePicker _numericFormatPicker;
   List<Element> _pickerElts;
 
@@ -92,7 +93,7 @@ class InnerMenuView {
    * (e.g. due to scrolling).
    */
   InnerMenuView(this._window, this._row, this._selectionManager, Style style, int initialHeight,
-      this._callToHide) {
+      this._innerMenuMoved, this._callToHide) {
     // Ensure statics are initialized
     Formats formats = new Formats();
 
@@ -221,6 +222,8 @@ class InnerMenuView {
 
     style.setProperty("top", HtmlUtils.toPx(top));
     style.setProperty("height", HtmlUtils.toPx(height));
+
+    _innerMenuMoved();
   }
 
   // Update the style buttons for the selected style.

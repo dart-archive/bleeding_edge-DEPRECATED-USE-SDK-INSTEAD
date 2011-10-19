@@ -44,7 +44,7 @@ body {
 }
 #sandbar-name {
   display: block;
-  color: #fff;
+  color: white;
   font-size: 10pt;
   padding: 0 5px;
   font: 13px/27px Arial,sans-serif;
@@ -95,7 +95,7 @@ div.objecttext {
   background: #353535;
   position: absolute;
   left: 42px;
-  color: #fff;
+  color: white;
   font-weight: 100;
   white-space: nowrap;
   padding: 5px 8px 5px 5px;
@@ -134,18 +134,17 @@ div.objectcall {
   height: 32px;
   padding-top: 5px;
 }
+#spreadhseets {
+  pointer-events: none;
+}
 
 .spreadsheetContainer {
   position: absolute;
-  background: #fff;
   top: 33px; /* CssStyles.SANDBAR_HEIGHT */
   left: 32px; /* CssStyles.OBJECTBAR_WIDTH */
   right: 0;
-  /* TODO: Make zero when debugbar is repositioned. */
   bottom: 0;
   z-index: 1;
-  /* TODO: Should be able to remove eventually */
-  overflow: auto;
 }
 .spreadsheetContainer::-webkit-scrollbar,
 .tableScrollContainer::-webkit-scrollbar {
@@ -165,7 +164,7 @@ div.objectcall {
 .tableScrollContainer::-webkit-scrollbar-track-piece {
   background-color: #ccc;
   -webkit-border-radius: 4px;
-  border: 1px solid #fff;
+  border: 1px solid white;
 }
 .spreadsheetContainer::-webkit-scrollbar-thumb:vertical,
 .spreadsheetContainer::-webkit-scrollbar-thumb:horizontal,
@@ -173,7 +172,7 @@ div.objectcall {
 .tableScrollContainer::-webkit-scrollbar-thumb:horizontal {
   background-color: #666;
   -webkit-border-radius: 4px;
-  border: 1px solid #fff;
+  border: 1px solid white;
 }
 /* the vertical and horizontal line that is drawn during resizing columns or rows */
 .rowColDragger {
@@ -217,7 +216,7 @@ div.objectcall {
   -webkit-border-radius: 3px;
   bottom: -2px;
   right: -2px;
-  background-color: #fff;
+  background-color: white;
 }
 .rowHandle {
   display: -webkit-box;
@@ -568,8 +567,8 @@ li.contextMenuItem-enabled:hover {
   background-color: #0078ff;
   cursor: default;
 }
+/* Fade out effect */
 .fadeOut {
-  /* fade out effect */
   opacity: 0;
   z-index: -100;
   -webkit-transition-property: opacity, z-index;
@@ -578,8 +577,8 @@ li.contextMenuItem-enabled:hover {
   -webkit-transition-delay: 0s, 0.15s;
   pointer-events: none;
 }
+/* Fade in effect */
 .fadeIn {
-  /* fade in effect */
   opacity: 1;
   z-index: 1000;
   -webkit-transition-property: opacity;
@@ -606,8 +605,8 @@ div.chartDiv {
 /* Spreadsheet move handle */
 .moveDragger {
   position: absolute;
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border: 2px solid gray;
   cursor: move;
   z-index: 3;
@@ -615,13 +614,15 @@ div.chartDiv {
 /* Spreadsheet resize handle */
 .resizeDragger {
   position: absolute;
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border: 2px solid gray;
   cursor: move;
+  z-index: 3;
 }
 .tableScrollContainer {
-  overflow: auto;
+  background: white;
+  overflow: scroll;
   z-index: 3000; /* fixme */
 }
 .errorMessage {

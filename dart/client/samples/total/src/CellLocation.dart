@@ -43,7 +43,8 @@ class CellLocation {
   }
 
   // Convenience method for 'spreadsheet.setCellContentFromString(rowCol, content)'
-  Cell setCellFromContentString(String content) => _spreadsheet.setCellFromContentString(_rowCol, content);
+  Cell setCellFromContentString(String content) =>
+      _spreadsheet.setCellFromContentString(_rowCol, content);
 
   String toString() {
     // TODO: Sheets should have names, and we should use them here.

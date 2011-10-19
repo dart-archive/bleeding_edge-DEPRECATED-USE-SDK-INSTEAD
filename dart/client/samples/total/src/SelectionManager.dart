@@ -22,6 +22,8 @@ interface SelectionListener {
 }
 
 class SelectionManager {
+  static ZoomTracker _zoomTracker;
+
   SelectionListener _listener;
   int _originColumn;
   int _originRow;
@@ -62,9 +64,13 @@ class SelectionManager {
     _selectionDiv.nodes.add(thumb);
 
     // Update selection after changing zoom factor, to reduce problems with position precision
-    new ZoomTracker(window).addListener((double oldZoom, double newZoom) {
-      updateSelection();
-    });
+    // Only create a single tracker per page
+    if (_zoomTracker == null) {
+      _zoomTracker = new ZoomTracker(window);
+      _zoomTracker.addListener((double oldZoom, double newZoom) {
+        updateSelection();
+      });
+    }
   }
 
   // Move the selection by a given (row, col) amount
@@ -252,7 +258,8 @@ class SelectionManager {
       return new CellRange.columns(corner1.spreadsheet, minCol, maxCol);
     }
 
-    return new CellRange(corner1.spreadsheet, new RowCol(minRow, minCol), new RowCol(maxRow, maxCol));
+    return new CellRange(corner1.spreadsheet, new RowCol(minRow, minCol),
+        new RowCol(maxRow, maxCol));
   }
 
   // Return the value closest to x in the range [min, max]

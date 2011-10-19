@@ -99,7 +99,8 @@ class CellRefToken extends Token {
 
   Spreadsheet get spreadsheet() => _spreadsheet;
 
-  CellRefToken(CellLocation location, this._rowRelative, this._colRelative, this._original) : super() {
+  CellRefToken(CellLocation location, this._rowRelative, this._colRelative, this._original)
+      : super() {
     _spreadsheet = location.spreadsheet;
     _row = location.row;
     _col = location.col;
@@ -118,7 +119,8 @@ class CellRefToken extends Token {
 
   CellRefToken._private() : super() { }
 
-  CellLocation getCellLocation(CellLocation location) => new CellLocation(_spreadsheet, new RowCol(getRow(location), getCol(location)));
+  CellLocation getCellLocation(CellLocation location) => new CellLocation(_spreadsheet,
+      new RowCol(getRow(location), getCol(location)));
 
   int getCol(CellLocation location) {
     if (_colRelative) {
@@ -180,8 +182,8 @@ class CellRefToken extends Token {
 
     if (newRow != _row || newCol != _col) {
       // Something changed. Create a new token from this one and return it.
-      return new CellRefToken(
-          new CellLocation(_spreadsheet, new RowCol(newRow, newCol)), _rowRelative, _colRelative, null);
+      return new CellRefToken(new CellLocation(_spreadsheet, new RowCol(newRow, newCol)),
+          _rowRelative, _colRelative, null);
     }
 
     return null;
@@ -484,8 +486,8 @@ class OperatorToken extends Token {
 
   bool isComma() => type == OP_COMMA;
 
-  bool isComparisonOp() => type == OP_LESS || type == OP_GREATER || type == OP_EQUAL || type == OP_NOT_EQUAL
-        || type == OP_LESS_THAN_EQUAL || type == OP_GREATER_THAN_EQUAL;
+  bool isComparisonOp() => type == OP_LESS || type == OP_GREATER || type == OP_EQUAL
+      || type == OP_NOT_EQUAL || type == OP_LESS_THAN_EQUAL || type == OP_GREATER_THAN_EQUAL;
 
   bool isLParen() => type == OP_LPAREN;
 
@@ -601,13 +603,14 @@ class Scanner {
 
   static bool isDigit(int c) => c >= Token.ZERO && c <= Token.NINE;
 
-  static bool isLetter(int c) => (c >= Token.A_UPPER && c <= Token.Z_UPPER) || (c >= Token.A_LOWER && c <= Token.Z_LOWER);
+  static bool isLetter(int c) => (c >= Token.A_UPPER && c <= Token.Z_UPPER)
+      || (c >= Token.A_LOWER && c <= Token.Z_LOWER);
 
   static bool isNewline(int c) => c == Token.CR;
 
-  static bool isOperator(int c) => c == Token.PLUS || c == Token.MINUS || c == Token.STAR || c == Token.SLASH
-        || c == Token.LPAREN || c == Token.RPAREN || c == Token.COMMA || c == Token.COLON
-        || c == Token.LESS || c == Token.EQUAL || c == Token.GREATER;
+  static bool isOperator(int c) => c == Token.PLUS || c == Token.MINUS || c == Token.STAR
+      || c == Token.SLASH || c == Token.LPAREN || c == Token.RPAREN || c == Token.COMMA
+      || c == Token.COLON || c == Token.LESS || c == Token.EQUAL || c == Token.GREATER;
 
   static bool isWhitespace(int c) => c == Token.SPACE || c == Token.TAB;
 
@@ -845,8 +848,8 @@ class Scanner {
     }
 
     String original = _input.substring(start, _pos);
-    return new CellRefToken(
-      new CellLocation(_location.spreadsheet, new RowCol(row, col)), rowRelative, colRelative, original);
+    return new CellRefToken(new CellLocation(_location.spreadsheet, new RowCol(row, col)),
+        rowRelative, colRelative, original);
   }
 
   StringToken getString() {
