@@ -784,35 +784,6 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
   }
 
   /**
-   * Return the resource associated with the given URI, or <code>null</code> if the URI does not
-   * correspond to an existing resource.
-   * 
-   * @param uri the URI representing the resource to be returned
-   * @return the resource associated with the given URI
-   */
-  private static IFile getResource(URI uri) {
-    // TODO This method should be added to ResourceUtil.
-    // The method ResourceUtil.getResource(File) doesn't check for existence. It would
-    // be nice if the semantics of these two methods could be the same (I think the
-    // File version should be updated).
-    // Also, if we're going to check for existence, then perhaps we should return the
-    // existing resource if multiple possible resources are returned but only one of
-    // them actually exists.
-    try {
-      IFile[] resourceFiles = ResourceUtil.getResources(uri);
-      if (resourceFiles != null && resourceFiles.length == 1) {
-        IFile resource = resourceFiles[0];
-        if (resource.exists()) {
-          return resource;
-        }
-      }
-    } catch (Exception exception) {
-      return null;
-    }
-    return null;
-  }
-
-  /**
    * Initialize a newly created compilation unit to be an element in the given container.
    * 
    * @param container the library or library folder containing the compilation unit
@@ -831,7 +802,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
    * @param owner the working copy owner
    */
   public CompilationUnitImpl(CompilationUnitContainer container, URI uri, WorkingCopyOwner owner) {
-    super(container, getResource(uri), owner);
+    super(container, ResourceUtil.getResource(uri), owner);
     if (getFile() == null) {
       throw new IllegalArgumentException("The URI \"" + uri
           + "\" does not map to an existing resource.");

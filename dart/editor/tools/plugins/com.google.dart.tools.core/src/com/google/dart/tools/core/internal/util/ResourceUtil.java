@@ -54,11 +54,15 @@ public class ResourceUtil {
    * Answer the Eclipse resource associated with the specified file or <code>null</code> if none
    */
   public static IFile getResource(File file) {
-    IFile[] resources = getResources(file);
-    if (resources == null || resources.length == 0) {
-      return null;
+    IFile[] resources = ResourceUtil.getResources(file);
+    if (resources != null) {
+      for (IFile iFile : resources) {
+        if (iFile.exists()) {
+          return iFile;
+        }
+      }
     }
-    return resources[0];
+    return null;
   }
 
   /**
@@ -66,6 +70,25 @@ public class ResourceUtil {
    */
   public static IFile getResource(Source source) {
     return getResource(getFile(source));
+  }
+
+  /**
+   * Return the resource associated with the given URI, or <code>null</code> if the URI does not
+   * correspond to an existing resource.
+   * 
+   * @param uri the URI representing the resource to be returned
+   * @return the resource associated with the given URI
+   */
+  public static IFile getResource(URI uri) {
+    IFile[] resourceFiles = ResourceUtil.getResources(uri);
+    if (resourceFiles != null) {
+      for (IFile iFile : resourceFiles) {
+        if (iFile.exists()) {
+          return iFile;
+        }
+      }
+    }
+    return null;
   }
 
   /**

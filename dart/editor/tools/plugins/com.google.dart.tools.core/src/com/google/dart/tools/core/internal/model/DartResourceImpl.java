@@ -68,7 +68,7 @@ public class DartResourceImpl extends OpenableElementImpl implements DartResourc
    */
   protected DartResourceImpl(DartLibraryImpl library, URI uri) {
     super(library);
-    this.file = getResource(uri);
+    this.file = ResourceUtil.getResource(uri);
     this.uri = uri;
   }
 
@@ -138,25 +138,4 @@ public class DartResourceImpl extends OpenableElementImpl implements DartResourc
     return DartModelStatusImpl.VERIFIED_OK;
   }
 
-  /**
-   * Return the resource associated with the given URI, or <code>null</code> if the URI does not
-   * correspond to an existing resource.
-   * 
-   * @param uri the URI representing the resource to be returned
-   * @return the resource associated with the given URI
-   */
-  private IFile getResource(URI uri) {
-    try {
-      IFile[] resourceFiles = ResourceUtil.getResources(uri);
-      if (resourceFiles != null && resourceFiles.length == 1) {
-        IFile resource = resourceFiles[0];
-        if (resource.exists()) {
-          return resource;
-        }
-      }
-    } catch (Exception exception) {
-      return null;
-    }
-    return null;
-  }
 }
