@@ -56,7 +56,7 @@
             name="Dart Editor">
          <property
                name="windowImages"
-               value="icons/white_16_16.gif,icons/white_32_32.gif,icons/white_48_48.gif,icons/white_64_64.gif,icons/white_128_128.gif">
+               value="icons/dart_16_16.gif,icons/dart_32_32.gif,icons/dart_48_48.gif,icons/dart_64_64.gif,icons/dart_128_128.gif">
          </property>
          <property
                name="aboutText"
@@ -64,7 +64,7 @@
          </property>
          <property
                name="aboutImage"
-               value="icons/white_116_116.gif">
+               value="icons/dart_116_116.gif">
          </property>
          <property
                name="appName"
