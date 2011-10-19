@@ -16,6 +16,7 @@ package com.google.dart.tools.core.dom.visitor;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartPlainVisitor;
+import com.google.dart.tools.core.DartCore;
 
 /**
  * Instances of the class <code>SafeDartNodeTraverser</code> implement a {@link DartPlainVisitor
@@ -50,6 +51,9 @@ public class SafeDartNodeTraverser<R> extends DartNodeTraverser<R> {
       node.visitChildren(this);
     } catch (Exception exception) {
       // Ignore the exception and proceed in order to visit the rest of the structure.
+      DartCore.logInformation(
+          "Exception caught while traversing an AST structure. Please report to the dartc team.",
+          exception);
     }
   }
 }
