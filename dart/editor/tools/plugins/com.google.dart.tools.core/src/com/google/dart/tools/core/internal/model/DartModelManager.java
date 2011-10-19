@@ -13,9 +13,11 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
@@ -1255,7 +1257,16 @@ public class DartModelManager {
       DartLibrary[] libraries = newDartProject.getDartLibraries();
       if (libraries == null || libraries.length <= 0) {
         throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
-            "No libraries found while opening a new project"));
+            "No libraries found while opening a new project: " + newProject.getLocation()));
+      }
+      //
+      // Finally, now that the library's project fully exists, make sure that all of the imported
+      // libraries exist as projects. This avoids a race condition in which building the library's
+      // structure on two different threads causes us to create the same project on two different
+      // threads, resulting in errors.
+      //
+      for (File file : getImportedLibraryFiles(libraryFile, libraryUnit)) {
+        openLibrary(file, monitor);
       }
       return libraries[0];
     } catch (CoreException exception) {
@@ -1452,7 +1463,7 @@ public class DartModelManager {
     URI libraryUri = libraryFile.getParentFile().toURI();
     List<DartDirective> directives = libraryUnit.getDirectives();
     if (directives != null) {
-      for (DartDirective directive : libraryUnit.getDirectives()) {
+      for (DartDirective directive : directives) {
         try {
           URI uri = null;
           if (directive instanceof DartSourceDirective) {
@@ -1465,7 +1476,7 @@ public class DartModelManager {
             files.add(new File(uri));
           }
         } catch (URISyntaxException exception) {
-          // If we cannot get the URI for the source, ignore it.
+          // If we cannot get the URI for the source or resource, ignore it.
         }
       }
     }
@@ -1493,6 +1504,28 @@ public class DartModelManager {
           } catch (IOException exception) {
             DartCore.logError(exception);
           }
+        }
+      }
+    }
+    return files;
+  }
+
+  private Set<File> getImportedLibraryFiles(File libraryFile, DartUnit libraryUnit) {
+    Set<File> files = new HashSet<File>();
+    URI libraryUri = libraryFile.getParentFile().toURI();
+    List<DartDirective> directives = libraryUnit.getDirectives();
+    if (directives != null) {
+      for (DartDirective directive : directives) {
+        try {
+          if (directive instanceof DartImportDirective) {
+            URI uri = new URI(((DartImportDirective) directive).getLibraryUri().getValue());
+            if (uri != null && !SystemLibraryManager.isDartUri(uri)) {
+              uri = URIUtil.makeAbsolute(uri, libraryUri);
+              files.add(new File(uri));
+            }
+          }
+        } catch (URISyntaxException exception) {
+          // If we cannot get the URI for the library, ignore it.
         }
       }
     }
