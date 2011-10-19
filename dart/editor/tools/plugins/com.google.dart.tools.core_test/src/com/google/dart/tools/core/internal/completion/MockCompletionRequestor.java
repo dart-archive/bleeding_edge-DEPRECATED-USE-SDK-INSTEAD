@@ -14,15 +14,20 @@
 package com.google.dart.tools.core.internal.completion;
 
 import com.google.dart.tools.core.completion.CompletionContext;
+import com.google.dart.tools.core.completion.CompletionMetrics;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.problem.Problem;
+
+import static junit.framework.Assert.fail;
 
 import java.util.Collection;
 import java.util.HashSet;
 
 class MockCompletionRequestor extends CompletionRequestor {
-  int state = 0;
+  private int state = 0;
+  private int exceptionCount = 0;
+  private long resolveLibraryTime = 0;
   Collection<String> suggestions = new HashSet<String>();
 
   @Override
@@ -76,10 +81,45 @@ class MockCompletionRequestor extends CompletionRequestor {
     super.endReporting();
   }
 
+  public int getExceptionCount() {
+    return exceptionCount;
+  }
+
+  @Override
+  public CompletionMetrics getMetrics() {
+    return new CompletionMetrics() {
+      @Override
+      public void completionException(Exception e) {
+        exceptionCount++;
+      }
+
+      @Override
+      public void resolveLibraryTime(long ms) {
+        resolveLibraryTime += ms;
+      }
+    };
+  }
+
+  public long getResolveLibraryTime() {
+    return resolveLibraryTime;
+  }
+
   /**
    * Validate the requestor content
+   * 
+   * @return <code>true</code> if suggestions were generated, or <code>false</code> none
    */
-  public void validate() {
-    CompletionEngineTest.assertEquals("Expected endReporting to have been called", 3, state);
+  public boolean validate() {
+    if (state == 0) {
+      return false;
+    }
+    if (state == 3) {
+      return suggestions.size() > 0;
+    }
+    if (exceptionCount > 0) {
+      return false;
+    }
+    fail("Expected endReporting to have been called (current state = " + state + ")");
+    return false;
   }
 }

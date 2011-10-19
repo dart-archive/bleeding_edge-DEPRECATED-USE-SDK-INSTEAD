@@ -25,6 +25,9 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import java.net.URISyntaxException;
 import java.util.Hashtable;
 
+/**
+ * Short specific code completion tests
+ */
 public class CompletionEngineTest extends TestCase {
 
 //  public void testCompletion_ifStmt_field1() throws Exception {
@@ -38,29 +41,28 @@ public class CompletionEngineTest extends TestCase {
 //    MockCompletionRequestor requestor = testCompletion("class Foo { int myField = 7; mth() { if (!) }}");
 //    requestor.assertSuggested("myField");
 //  }
-//
-//  public void testCompletion_ifStmt_field2() throws Exception {
-//    MockCompletionRequestor requestor = testCompletion("class Foo { int myField = 7; mth() { if (m!) {}}}");
-//    requestor.assertSuggested("myField");
-//  }
-//
-//  public void testCompletion_ifStmt_field2a() throws Exception {
-//    // failure expected because parser can't handle if with no block
-//    MockCompletionRequestor requestor = testCompletion("class Foo { int myField = 7; mth() { if (m!) }}");
-//    requestor.assertSuggested("myField");
-//  }
-//
+
+  public void testCompletion_ifStmt_field2() throws Exception {
+    MockCompletionRequestor requestor = testCompletion("class Foo { int myField = 7; mth() { if (m!) {}}}");
+    requestor.assertSuggested("myField");
+  }
+
+  public void testCompletion_ifStmt_field2a() throws Exception {
+    MockCompletionRequestor requestor = testCompletion("class Foo { int myField = 7; mth() { if (m!) }}");
+    requestor.assertSuggested("myField");
+  }
+
 //  public void testCompletion_ifStmt_field2b() throws Exception {
 //    // failure expected because compiler claims myField is not resolvable
 //    MockCompletionRequestor requestor = testCompletion("class Foo { myField = 7; mth() { if (m!) {}}}");
 //    requestor.assertSuggested("myField");
 //  }
-//
-//  public void testCompletion_ifStmt_localVar() throws Exception {
-//    MockCompletionRequestor requestor = testCompletion("class Foo { mth() { int value = 7; if (v!) {}}}");
-//    requestor.assertSuggested("value");
-//  }
-//
+
+  public void testCompletion_ifStmt_localVar() throws Exception {
+    MockCompletionRequestor requestor = testCompletion("class Foo { mth() { int value = 7; if (v!) {}}}");
+    requestor.assertSuggested("value");
+  }
+
 //  public void testCompletion_ifStmt_localVara() throws Exception {
 //    // failure expected because compiler claims value is not resolvable
 //    MockCompletionRequestor requestor = testCompletion("class Foo { mth() { value = 7; if (v!) {}}}");
@@ -102,10 +104,10 @@ public class CompletionEngineTest extends TestCase {
     requestor.assertSuggested("Collection");
   }
 
-//  public void testCompletion_staticField1() throws Exception {
-//    MockCompletionRequestor requestor = testCompletion("class Sunflower {static final num MAX_D = 300;num xc, yc;Sunflower() {xc = yc = MA! }}");
-//    requestor.assertSuggested("MAX_D");
-//  }
+  public void testCompletion_staticField1() throws Exception {
+    MockCompletionRequestor requestor = testCompletion("class Sunflower {static final num MAX_D = 300;num xc, yc;Sunflower() {xc = yc = MA! }}");
+    requestor.assertSuggested("MAX_D");
+  }
 
   /**
    * Generate a series of code completion suggestions for the specified source at the location
@@ -134,7 +136,7 @@ public class CompletionEngineTest extends TestCase {
     MockDartSource sourceFile = new MockDartSource(library, "Foo.dart", "");
     engine.complete(library, sourceFile, modifiedSource, index, 0);
 
-    requestor.validate();
+    assertTrue("Expected code completion suggestions", requestor.validate());
     return requestor;
   }
 }

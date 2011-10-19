@@ -20,6 +20,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(CompletionEngineTest.class);
+    //suite.addTestSuite(CompletionEngineTest2.class);
     return suite;
   }
 }

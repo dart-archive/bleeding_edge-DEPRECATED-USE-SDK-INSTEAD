@@ -17,7 +17,6 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UrlDartSource;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -66,6 +65,7 @@ import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeAnalyzer;
 import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.completion.CompletionMetrics;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.dom.NodeFinder;
@@ -125,6 +125,60 @@ import java.util.Stack;
  * the code patterns involved.
  */
 public class CompletionEngine {
+
+  /**
+   * Default metrics used if either DEBUG or DEBUG_TIMING options are true
+   */
+  private class DebugMetrics extends CompletionMetrics {
+    @Override
+    public void completionBegin(CompilationUnit sourceUnit, int completionPosition) {
+      if (DEBUG) {
+        System.out.print("COMPLETION IN "); //$NON-NLS-1$
+        System.out.print(sourceUnit.getPath());
+        System.out.print(" AT POSITION "); //$NON-NLS-1$
+        System.out.println(completionPosition);
+        System.out.println("COMPLETION - Source :"); //$NON-NLS-1$
+        try {
+          System.out.println(sourceUnit.getSource());
+        } catch (DartModelException e) {
+          System.out.println(e);
+        }
+      }
+    }
+
+    @Override
+    public void completionException(Exception e) {
+      DartCore.logError(e);
+      if (DEBUG) {
+        System.out.println("Exception caught by CompletionEngine:"); //$NON-NLS-1$
+        e.printStackTrace(System.out);
+      }
+    }
+
+    @Override
+    public void resolveLibraryFailed(Collection<DartCompilationError> parseErrors) {
+      reportResolveLibraryFailed(parseErrors);
+    }
+
+    @Override
+    public void resolveLibraryTime(long ms) {
+      if (DEBUG_TIMING) {
+        System.out.println("Code Assist (resolve library): " + ms);
+      }
+    }
+
+    @Override
+    public void visitorNotImplementedYet(DartNode node, DartNode sourceNode,
+        Class<? extends DartNodeTraverser<Void>> astClass) {
+      if (DEBUG) {
+        System.out.print("Need visitor for node: " + node.getClass().getSimpleName());
+        if (sourceNode != node) {
+          System.out.print(" for " + sourceNode.getClass().getSimpleName());
+        }
+        System.out.println(" in " + astClass.getSimpleName());
+      }
+    }
+  }
 
   /**
    * In cases where the analysis is driven by an identifier, a finer-grained analysis is required.
@@ -770,6 +824,7 @@ public class CompletionEngine {
   private boolean isCompletionAfterDot;
   private DartUnit parsedUnit;
   private CompilationUnit currentCompilationUnit;
+  private CompletionMetrics metrics;
 
   /**
    * @param options
@@ -783,18 +838,16 @@ public class CompletionEngine {
     this.owner = owner;
     this.monitor = monitor;
     typeCache = new HashMap<Object, Object>();
+    metrics = requestor.getMetrics();
+    if (metrics == null && (DEBUG || DEBUG_TIMING)) {
+      metrics = new DebugMetrics();
+    }
   }
 
   public void complete(CompilationUnit sourceUnit, int completionPosition, int pos)
       throws DartModelException {
-
-    if (DEBUG) {
-      System.out.print("COMPLETION IN "); //$NON-NLS-1$
-      System.out.print(sourceUnit.getPath());
-      System.out.print(" AT POSITION "); //$NON-NLS-1$
-      System.out.println(completionPosition);
-      System.out.println("COMPLETION - Source :"); //$NON-NLS-1$
-      System.out.println(sourceUnit.getSource());
+    if (metrics != null) {
+      metrics.completionBegin(sourceUnit, completionPosition);
     }
     if (monitor != null) {
       monitor.beginTask(Messages.engine_completing, IProgressMonitor.UNKNOWN);
@@ -821,18 +874,33 @@ public class CompletionEngine {
 
       complete(library, sourceFile, sourceParam, completionPosition, pos);
 
+    } catch (ClassCastException e) {
+      if (metrics != null) {
+        metrics.completionException(e);
+      } else {
+        DartCore.logError(e);
+      }
+    } catch (DartModelException e) {
+      if (metrics != null) {
+        metrics.completionException(e);
+      } else {
+        DartCore.logError(e);
+      }
     } catch (IndexOutOfBoundsException e) {
-      DartCore.logError(e);
-      if (DEBUG) {
-        System.out.println("Exception caught by CompletionEngine:"); //$NON-NLS-1$
-        e.printStackTrace(System.out);
+      if (metrics != null) {
+        metrics.completionException(e);
+      } else {
+        DartCore.logError(e);
       }
     } catch (NullPointerException ex) {
-      DartCore.logError(ex);
-      if (DEBUG) {
-        System.out.println("Exception caught by CompletionEngine:"); //$NON-NLS-1$
-        ex.printStackTrace(System.out);
+      if (metrics != null) {
+        metrics.completionException(ex);
+      } else {
+        DartCore.logError(ex);
       }
+    }
+    if (metrics != null) {
+      metrics.completionEnd();
     }
   }
 
@@ -844,7 +912,9 @@ public class CompletionEngine {
     source = sourceContent;
     actualCompletionPosition = completionPosition - 1;
     offset = pos;
-    isCompletionAfterDot = source.charAt(actualCompletionPosition) == '.';
+    isCompletionAfterDot = actualCompletionPosition >= 0
+        && source.charAt(actualCompletionPosition) == '.';
+    CompletionMetrics metrics = requestor.getMetrics();
 
     DartCompilerListener listener = SilentDartCompilerListener.INSTANCE;
     ParserContext ctx = new DartScannerParserContext(sourceFile, source, listener);
@@ -869,20 +939,20 @@ public class CompletionEngine {
     if (resolvedMember == null) {
       resolvedMember = finder.getEnclosingField();
     }
-    long resolutionStartTime = DEBUG_TIMING ? System.currentTimeMillis() : 0L;
-    DartNode analyzedNode = DartCompilerUtilities.analyzeDelta(library, source, parsedUnit,
-        resolvedNode, completionPosition, parseErrors);
-    if (DEBUG_TIMING) {
-      System.out.println("Code Assist (resolve library): "
-          + (System.currentTimeMillis() - resolutionStartTime));
+    DartNode analyzedNode = null;
+    if (resolvedNode != null) {
+      long resolutionStartTime = DEBUG_TIMING ? System.currentTimeMillis() : 0L;
+      analyzedNode = DartCompilerUtilities.analyzeDelta(library, source, parsedUnit, resolvedNode,
+          completionPosition, parseErrors);
+      if (metrics != null) {
+        metrics.resolveLibraryTime(System.currentTimeMillis() - resolutionStartTime);
+      }
     }
     if (analyzedNode == null) {
-      DartCore.logError("Could not resolve AST: " + fileName, null);
-      for (DartCompilationError err : parseErrors) {
-        DartCore.logError(err.getMessage(), null);
-        System.out.println(err.getMessage());
-        Source source = err.getSource();
-        System.out.println(source == null ? "<unknown source file>" : source.getUri());
+      if (metrics != null) {
+        metrics.resolveLibraryFailed(parseErrors);
+      } else {
+        reportResolveLibraryFailed(parseErrors);
       }
       return;
     }
@@ -1405,6 +1475,17 @@ public class CompletionEngine {
     createCompletionsForStaticVariables(identifier, classDef);
   }
 
+  private void reportResolveLibraryFailed(Collection<DartCompilationError> parseErrors) {
+    DartCore.logError("Could not resolve AST: " + fileName, null);
+    for (DartCompilationError err : parseErrors) {
+      DartCore.logError(err.getMessage(), null);
+      if (DEBUG) {
+        System.out.println(err.getMessage());
+        System.out.println(err.getSource().getUri());
+      }
+    }
+  }
+
   private void setSourceLoc(InternalCompletionProposal proposal, DartNode name, String prefix) {
     // Bug in source positions causes name node to have its parent's source locations.
     // That causes sourceLoc to be incorrect, which also causes completion list to close
@@ -1421,11 +1502,8 @@ public class CompletionEngine {
 
   private void visitorNotImplementedYet(DartNode node, DartNode sourceNode,
       Class<? extends DartNodeTraverser<Void>> astClass) {
-    // TODO Remove debugging println, or convert to trace output
-    System.out.print("Need visitor for node: " + node.getClass().getSimpleName());
-    if (sourceNode != node) {
-      System.out.print(" for " + sourceNode.getClass().getSimpleName());
+    if (metrics != null) {
+      metrics.visitorNotImplementedYet(node, sourceNode, astClass);
     }
-    System.out.println(" in " + astClass.getSimpleName());
   }
 }

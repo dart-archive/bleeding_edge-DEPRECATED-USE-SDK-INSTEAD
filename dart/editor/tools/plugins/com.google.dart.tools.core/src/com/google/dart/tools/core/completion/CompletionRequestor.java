@@ -167,6 +167,14 @@ public abstract class CompletionRequestor {
   }
 
   /**
+   * Answer the object used to report completion metrics or <code>null</code> if none. By default,
+   * this method returns <code>null</code>, but subclasses may override as desired.
+   */
+  public CompletionMetrics getMetrics() {
+    return null;
+  }
+
+  /**
    * Return <code>true</code> if a proposal of a given kind with a required proposal of the given
    * kind is allowed.
    * 
