@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<!-- ======================================================================= -->
+<!-- Search Plugin                                                           -->
+<!-- ======================================================================= -->
+
+<plugin>
+
+  <!-- Search extension point definitions -->
+  
+  <extension-point name="%searchPages" id="searchPages" schema="schema/searchPages.exsd"/>
+  <extension-point name="%searchResultSorters" id="searchResultSorters" schema="schema/searchResultSorters.exsd"/>
+  <extension-point name="%searchResultViewPages" id="searchResultViewPages" schema="schema/searchResultViewPages.exsd"/>
+  <extension-point name="%textSearchEngine" id="textSearchEngine" schema="schema/textSearchEngine.exsd"/>
+  <extension-point name="%textSearchQueryProvider" id="textSearchQueryProvider" schema="schema/textSearchQueryProvider.exsd"/>
+  
+  <!-- Extensions -->
+  
+  <extension point="org.eclipse.core.resources.markers" id="searchmarker" name="%searchMarker">
+    <super type="org.eclipse.core.resources.textmarker"/>
+    <attribute name="line"/>
+    <attribute name="potentialMatch"/>
+  </extension>
+  
+  <extension point="org.eclipse.ui.editors.annotationTypes">
+      <type
+        name="com.google.dart.tools.search.results"
+    markerType="com.google.dart.tools.search.searchmarker">
+      </type>
+  </extension>
+  
+  <extension 
+    point="org.eclipse.ui.ide.markerImageProviders">
+    <imageprovider 
+      id="org.eclipse.ui.searchMarkerProvider"
+      markertype="com.google.dart.tools.search.searchmarker"
+      icon="$nl$/icons/full/obj16/searchm_obj.gif">
+    </imageprovider>
+  </extension>
+  
+  <extension point="org.eclipse.core.resources.markers" id="filteredsearchmarker" name="%filteredSearchMarker">
+    <super type="org.eclipse.core.resources.textmarker"/>
+    <attribute name="line"/>
+    <attribute name="potentialMatch"/>
+  </extension>
+  
+  <extension point="org.eclipse.ui.editors.annotationTypes">
+      <type
+        name="com.google.dart.tools.search.filteredResults"
+    markerType="com.google.dart.tools.search.filteredsearchmarker">
+      </type>
+  </extension>
+  
+  <extension 
+    point="org.eclipse.ui.ide.markerImageProviders">
+    <imageprovider 
+      id="org.eclipse.ui.filteredSearchMarkerProvider"
+      markertype="com.google.dart.tools.search.filteredsearchmarker"
+      icon="$nl$/icons/full/obj16/searchm_obj.gif">
+    </imageprovider>
+  </extension>
+  
+  <extension point="org.eclipse.ui.commands">
+    <category
+      name="%searchCategory.name"
+      description="%searchCategory.description"
+      id="com.google.dart.tools.search.ui.category.search"
+    />
+
+    <command
+      categoryId="com.google.dart.tools.search.ui.category.search"
+      id="com.google.dart.tools.search.ui.openSearchDialog"
+      name= "%ActionDefinition.openSearchDialog.name"
+      description="%ActionDefinition.openSearchDialog.description"
+    />
+
+    <command
+      categoryId="com.google.dart.tools.search.ui.category.search"
+      id="com.google.dart.tools.search.ui.openFileSearchPage"
+      name= "%ActionDefinition.openFileSearchPage.name"
+      description="%ActionDefinition.openFileSearchPage.description"
+    />
+    <command 
+      categoryId="com.google.dart.tools.search.ui.category.search" 
+        id="com.google.dart.tools.search.ui.performTextSearchWorkspace" 
+      name="%command.performTextSearchWorkspace.name" 
+      description="%command.performTextSearchWorkspace.description"
+      />
+    <command 
+      categoryId="com.google.dart.tools.search.ui.category.search" 
+        id="com.google.dart.tools.search.ui.performTextSearchFile" 
+      name="%command.performTextSearchFile.name" 
+      description="%command.performTextSearchFile.description"
+      />
+  </extension>
+  
+  <!-- action sets -->
+  <extension point="org.eclipse.ui.actionSets">
+    <actionSet
+      id="com.google.dart.tools.search.searchActionSet"
+          label="%search"
+      visible="true">
+  
+      <!-- =================================================================== -->
+      <!-- Search Menu (TEMPORARY)                                             -->
+      <!-- =================================================================== -->
+      
+      <menu
+              id="com.google.dart.tools.search.menu"
+              label="%searchMenu.label"
+              path="navigate">
+        <groupMarker name="internalDialogGroup"/>   <!-- not to be used by clients  -->
+        <groupMarker name="dialogGroup"/>           <!-- to be used by clients      -->
+        <separator name="fileSearchContextMenuActionsGroup"/> <!-- to be used by clients      -->
+             <separator name="contextMenuActionsGroup"/> <!-- to be used by clients -->
+             <separator name="occurencesActionsGroup"/> <!-- to be used by clients -->
+             <separator name="extraSearchGroup"/> <!-- to be used by clients -->
+          </menu>
+          
+      <!-- dialog group  -->
+      <action id="com.google.dart.tools.search.OpenFileSearchPage"
+        definitionId="com.google.dart.tools.search.ui.openFileSearchPage"
+        menubarPath="com.google.dart.tools.search.menu/internalDialogGroup"
+        label="%openFileSearchPageAction.label"
+        icon="$nl$/icons/full/elcl16/tsearch_obj.gif"
+        helpContextId="file_search_action_context"
+        class="com.google.dart.tools.search.internal.ui.OpenFileSearchPageAction"/>
+       </actionSet>
+  </extension>
+    
+  <extension point="org.eclipse.ui.views">
+     <view
+            name="%newSearchResultViewName"
+            icon="icons/full/eview16/search_results.gif"
+            category="org.eclipse.ui"
+            class="com.google.dart.tools.search2.internal.ui.SearchView"
+            allowMultiple="true"
+            id="com.google.dart.tools.search.ui.views.SearchView">
+        </view>
+  </extension>
+   
+<!-- Default search results view -->
+     <extension
+      id="FileSearchPage"
+        point="com.google.dart.tools.search.searchResultViewPages">
+    <viewPage
+      id="com.google.dart.tools.search.text.FileSearchResultPage"
+      searchResultClass="com.google.dart.tools.search.internal.ui.text.FileSearchResult"
+      helpContextId="com.google.dart.tools.search.file_search_result_page"
+      class="com.google.dart.tools.search.internal.ui.text.FileSearchPage">
+    </viewPage>
+  </extension>
+  
+  <extension point="com.google.dart.tools.search.searchPages">
+    <page
+      id="com.google.dart.tools.search.internal.ui.text.TextSearchPage"
+      label="%fileSearch"
+      icon="icons/full/elcl16/tsearch_obj.gif"
+      sizeHint="250,160"
+      tabPosition="1"
+      extensions="*:1"
+      showScopeSection="true"    
+      canSearchEnclosingProjects="true"
+      class="com.google.dart.tools.search.internal.ui.text.TextSearchPage">
+    </page>
+  </extension>
+  
+    <extension
+       point="org.eclipse.ui.keywords">
+      <keyword
+            label="%preferenceKeywords.general"
+            id="com.google.dart.tools.search.ui"/>
+  </extension>
+  
+  <extension
+       point="org.eclipse.ui.editors.markerAnnotationSpecification">
+       <specification
+            annotationType="com.google.dart.tools.search.results"
+              label="%SearchMarkerPreference.label"
+              icon="$nl$/icons/full/obj16/searchm_obj.gif"
+              textPreferenceKey="searchResultIndication"
+              textPreferenceValue="false"
+              highlightPreferenceKey="searchResultHighlighting"
+              highlightPreferenceValue="true"
+              overviewRulerPreferenceKey="searchResultIndicationInOverviewRuler"
+              overviewRulerPreferenceValue="true"
+              verticalRulerPreferenceKey="searchResultIndicationInVerticalRuler"
+              verticalRulerPreferenceValue="true"
+              colorPreferenceKey="searchResultIndicationColor"
+              colorPreferenceValue="206,204,247"
+              presentationLayer="3"
+              showInNextPrevDropdownToolbarActionKey="showSearchResultInNextPrevDropdownToolbarAction"
+              showInNextPrevDropdownToolbarAction="true"
+              isGoToNextNavigationTargetKey="isSearchResultGoToNextNavigationTarget"
+              isGoToNextNavigationTarget="false"
+              isGoToPreviousNavigationTargetKey="isSearchResultGoToPreviousNavigationTarget"
+              isGoToPreviousNavigationTarget="false"
+              textStylePreferenceKey="searchResultTextStyle"
+              textStylePreferenceValue="NONE">
+       </specification>
+       <specification
+            annotationType="com.google.dart.tools.search.filteredResults"
+              label="%FilteredSearchMarkerPreference.label"
+              icon="$nl$/icons/full/obj16/searchm_obj.gif"
+              textPreferenceKey="filteredSearchResultIndication"
+              textPreferenceValue="false"
+              highlightPreferenceKey="filteredSearchResultHighlighting"
+              highlightPreferenceValue="false"
+              overviewRulerPreferenceKey="filteredSearchResultIndicationInOverviewRuler"
+              overviewRulerPreferenceValue="false"
+              verticalRulerPreferenceKey="filteredSearchResultIndicationInVerticalRuler"
+              verticalRulerPreferenceValue="false"
+              colorPreferenceKey="filteredSearchResultIndicationColor"
+              colorPreferenceValue="237,237,252"
+              presentationLayer="3"
+              showInNextPrevDropdownToolbarActionKey="showFilteredSearchResultInNextPrevDropdownToolbarAction"
+              showInNextPrevDropdownToolbarAction="false"
+              isGoToNextNavigationTargetKey="isFilteredSearchResultGoToNextNavigationTarget"
+              isGoToNextNavigationTarget="false"
+              isGoToPreviousNavigationTargetKey="isFilteredSearchResultGoToPreviousNavigationTarget"
+              isGoToPreviousNavigationTarget="false"
+              textStylePreferenceKey="filteredSearchResultTextStyle"
+              textStylePreferenceValue="SQUIGGLES">
+       </specification>
+  </extension>
+  
+ <extension
+       point="org.eclipse.core.runtime.preferences">
+    <initializer class="com.google.dart.tools.search.internal.ui.SearchPreferenceInitializer"/>
+ </extension>
+   <extension
+      point="org.eclipse.ui.themes">
+      <colorDefinition
+         label="%match_highlight.label"
+         categoryId="org.eclipse.ui.workbenchMisc"
+         value="206,204,247"
+         id="com.google.dart.tools.search.ui.match.highlight">
+         <description>
+            %match_highlight.description
+         </description>
+      </colorDefinition>
+   </extension>
+</plugin>

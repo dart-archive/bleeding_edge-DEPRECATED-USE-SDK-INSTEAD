@@ -1,0 +1,237 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="com.google.dart.tools.search" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="com.google.dart.tools.search" id="searchPages" name="Search Pages"/>
+      </appInfo>
+      <documentation>
+         This extension point allows a plug-in to register search 
+pages for specialized searches. When the search action 
+is performed on a resource, the search infrastructure 
+locates the most specific registered search page for it.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="page" minOccurs="0" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  a fully qualified identifier of the target extension point
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  an optional identifier of the extension instance
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  an optional name of the extension instance
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="page">
+      <annotation>
+         <appInfo>
+            <meta.element labelAttribute="label" icon="icon"/>
+         </appInfo>
+      </annotation>
+      <complexType>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  a unique name that will be used to identify this 
+search page
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="label" type="string" use="required">
+            <annotation>
+               <documentation>
+                  a translatable label that will be used in the search 
+page tab
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  a name of the class which implements &lt;samp&gt;com.google.dart.tools.search.ui.ISearchPage&lt;/samp&gt;. We recommend subclassing 
+&lt;samp&gt;org.eclipse.jface.dialogs.DialogPage&lt;/samp&gt;.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.jface.dialogs.DialogPage:com.google.dart.tools.search.ui.ISearchPage"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="icon" type="string">
+            <annotation>
+               <documentation>
+                  a relative name of the image that will be used 
+for all resources that match the specified extensions. 
+If omitted, the search page&apos;s tab will only contain a label.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="resource"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="sizeHint" type="string">
+            <annotation>
+               <documentation>
+                  a hint for the initial size of the page. This is a string 
+containing the width and height separated by 
+comma (e.g. &quot;50, 60&quot;). In the case this hint is 
+omitted the page will be no larger than the other pages.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="tabPosition" type="string">
+            <annotation>
+               <documentation>
+                  an integer defining where the page is placed in the page 
+book. The value does not define the absolute position 
+but the position relative to the other pages. The ordering 
+of pages is as follows:
+&lt;ol&gt;
+&lt;li&gt; 
+if neither page defines the tab position then they are 
+ordered alphabetically according to their labels 
+&lt;/li&gt;
+&lt;li&gt;
+if both pages have the tab position specified then the 
+page with the lower value comes first. If the values 
+are equal then the pages are treated as if the values 
+would not exist (see 1.) 
+&lt;/li&gt;
+&lt;li&gt;
+if only one page has the value specified then this 
+page comes first
+&lt;/ol&gt;
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="extensions" type="string">
+            <annotation>
+               <documentation>
+                  a comma separated list with file extensions on which the search page can operate. Each extension must also include a weight (0 meaning lowest weight) which enables the search infrastructure to find the best fitting page. The weight is separated from the extension by a colon. If a search page can search all possible resources then &quot;*&quot; can be used.
+&lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; If there is an &lt;code&gt;com.google.dart.tools.search.ui.ISearchPageScoreComputer&lt;/code&gt; adapter for the selected element which returns a higher weight, then this higher weight will be used.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="searchViewHelpContextId" type="string">
+            <annotation>
+               <documentation>
+                  an optional help context ID of the Search view displaying results of this page. If this attribute is missing then the default search help context ID (&lt;samp&gt;com.google.dart.tools.search.search_view_context&lt;/samp&gt;) is used.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="showScopeSection" type="boolean">
+            <annotation>
+               <documentation>
+                  If this attribute is missing or set to &quot;false&quot;, then the scope section is not shown in the Search dialog.
+To see the scope section, this attribute has to be set to &quot;true&quot;.
+Plug-ins which add their own Search page and want to see the scope section have to add this to their plugin.xml.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="enabled" type="boolean">
+            <annotation>
+               <documentation>
+                  If this attribute is missing or set to &quot;false&quot;, then the page is not initially shown in the Search dialog.
+The page can be activated by the user via the &quot;Customize...&quot; button on the Search dialog.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="canSearchEnclosingProjects" type="boolean">
+            <annotation>
+               <documentation>
+                  If this attribute is missing or set to &quot;false&quot;, the &quot;Enclosing Projects&quot; search scope is not shown in the search dialog&apos;s scope part.
+If the attribute &quot;showScopeSection&quot; is missing or set to &quot;false&quot;, this attribute will be ignored.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         The following is an example of a search page extension 
+definition: 
+
+&lt;p&gt;
+&lt;pre&gt;
+   &lt;extension point=&quot;com.google.dart.tools.search.searchPages&quot;&gt; 
+      &lt;page 
+         id=&quot;com.google.dart.tools.search.ui.text.TextSearchPage&quot; 
+         label=&quot;Text Search&quot; 
+         icon=&quot;icons/full/obj16/tsearch_pref.gif&quot; 
+         sizeHint=&quot;250,160&quot; 
+         tabPosition=&quot;1&quot; 
+         extensions=&quot;*:1&quot; 
+         showScopeSection=&quot;true&quot;
+         class=&quot;com.google.dart.tools.search.ui.text.TextSearchPage&quot;&gt;
+      &lt;/page&gt; 
+   &lt;/extension&gt; 
+&lt;/pre&gt;
+&lt;/p&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiInfo"/>
+      </appInfo>
+      <documentation>
+         The contributed class must implement &lt;code&gt;com.google.dart.tools.search.ui.ISearchPage&lt;/code&gt;
+      </documentation>
+   </annotation>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="implementation"/>
+      </appInfo>
+      <documentation>
+         The search infrastructure provides a search page 
+for full-text search.
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Copyright (c) 2001, 2009 IBM Corporation and others.&lt;br&gt;
+All rights reserved. This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution, and is available at &lt;a href=&quot;http://www.eclipse.org/legal/epl-v10.html&quot;&gt;http://www.eclipse.org/legal/epl-v10.html&lt;/a&gt;
+      </documentation>
+   </annotation>
+
+</schema>
