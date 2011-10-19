@@ -19,7 +19,6 @@ import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
-import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
@@ -27,6 +26,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.indexer.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
+import com.google.dart.tools.core.dom.visitor.SafeDartNodeTraverser;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaImpl;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartLibraryInfo;
@@ -530,7 +530,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       children.add(definingUnit);
     }
     final DartModelManager modelManager = DartModelManager.getInstance();
-    unit.accept(new DartNodeTraverser<Void>() {
+    unit.accept(new SafeDartNodeTraverser<Void>() {
       @Override
       public Void visitImportDirective(DartImportDirective node) {
         String relativePath = getRelativePath(node.getLibraryUri());
@@ -541,12 +541,13 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         try {
           lib = sourceFile.getImportFor(relativePath);
         } catch (Exception exception) {
-          DartCore.logError("Failed to resolve import " + relativePath + " in " + sourceFile,
-              exception);
+          DartCore.logError(
+              "Failed to resolve import " + relativePath + " in " + sourceFile.getUri(), exception);
           return null;
         }
         if (lib == null) {
-          DartCore.logError("Failed to resolve import " + relativePath + " in " + sourceFile);
+          DartCore.logError("Failed to resolve import " + relativePath + " in "
+              + sourceFile.getUri());
           return null;
         } else if (SystemLibraryManager.isDartUri(lib.getUri())) {
           // It is a bundled library.
@@ -571,7 +572,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           } catch (DartModelException exception) {
             // I believe that this should not happen, but I'm leaving it in until I can confirm this.
             DartCore.logInformation("Failed to open imported library " + relativePath + " in "
-                + sourceFile, exception);
+                + sourceFile.getUri(), exception);
             importedLibraries.add(new DartLibraryImpl(libFile));
           }
           return null;
