@@ -1459,17 +1459,27 @@ public class DartModelManager {
 
   private Set<File> getFilesForLibrary(File libraryFile, DartUnit libraryUnit) {
     Set<File> files = new HashSet<File>();
+    if (libraryFile == null || libraryUnit == null) {
+      return files;
+    }
     files.add(libraryFile);
-    URI libraryUri = libraryFile.getParentFile().toURI();
+    File libDirectory = libraryFile.getParentFile();
+    URI libraryUri = libDirectory.toURI();
     List<DartDirective> directives = libraryUnit.getDirectives();
     if (directives != null) {
       for (DartDirective directive : directives) {
         try {
           URI uri = null;
           if (directive instanceof DartSourceDirective) {
-            uri = new URI(((DartSourceDirective) directive).getSourceUri().getValue());
+            DartStringLiteral literal = ((DartSourceDirective) directive).getSourceUri();
+            if (literal != null) {
+              uri = new URI(literal.getValue());
+            }
           } else if (directive instanceof DartResourceDirective) {
-            uri = new URI(((DartResourceDirective) directive).getResourceUri().getValue());
+            DartStringLiteral literal = ((DartResourceDirective) directive).getResourceUri();
+            if (literal != null) {
+              uri = new URI(literal.getValue());
+            }
           }
           if (uri != null) {
             uri = URIUtil.makeAbsolute(uri, libraryUri);
@@ -1481,7 +1491,6 @@ public class DartModelManager {
       }
     }
     // add html files
-    File libDirectory = libraryFile.getParentFile();
     if (libDirectory.exists() && libDirectory.isDirectory()) {
       File[] htmlFiles = libDirectory.listFiles(new FilenameFilter() {
         @Override
@@ -1499,10 +1508,12 @@ public class DartModelManager {
             for (String name : libraryNames) {
               if (name.equalsIgnoreCase(libraryName)) {
                 files.add(htmlFile);
+                break;
               }
             }
           } catch (IOException exception) {
-            DartCore.logError(exception);
+            DartCore.logInformation("Could not read \"" + htmlFile.getAbsolutePath()
+                + "\" to find references to \"" + libraryFile.getAbsolutePath() + "\"", exception);
           }
         }
       }
