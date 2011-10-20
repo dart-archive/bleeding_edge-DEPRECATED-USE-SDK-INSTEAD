@@ -695,38 +695,18 @@ class HTTPRequestImplementation
     // Nothing to do.
   }
 
+  // Escaped characters in uri are expected to have been parsed.
   void _parseRequestUri(String uri) {
     int position;
     position = uri.indexOf("?", 0);
-    _queryParameters = new Map();
     if (position == -1) {
-      _path = _uri;
+      _path = HTTPUtil.decodeUrlEncodedString(_uri);
       _queryString = null;
+      _queryParameters = new Map();
     } else {
-      _path = _uri.substring(0, position);
-      _queryString = _uri.substringToEnd(position + 1);
-
-      // Simple parsing of the query string into request parameters.
-      // TODO(sgjesse): Handle all detail e.g. encoding.
-      int currentPosition = 0;
-      while (currentPosition < _queryString.length) {
-        position = _queryString.indexOf("=", currentPosition);
-        if (position == -1) {
-          break;
-        }
-        String name = _queryString.substring(currentPosition, position);
-        currentPosition = position + 1;
-        position = _queryString.indexOf("&", currentPosition);
-        String value;
-        if (position == -1) {
-          value = _queryString.substringToEnd(currentPosition);
-          currentPosition = _queryString.length;
-        } else {
-          value = _queryString.substring(currentPosition, position);
-          currentPosition = position + 1;
-        }
-        _queryParameters[name] = value;
-      }
+      _path = HTTPUtil.decodeUrlEncodedString(_uri.substring(0, position));
+      _queryString = _uri.substring(position + 1);
+      _queryParameters = HTTPUtil.splitQueryString(_queryString);
     }
   }
 
