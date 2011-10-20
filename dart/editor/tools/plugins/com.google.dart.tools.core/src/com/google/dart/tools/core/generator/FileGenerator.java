@@ -148,7 +148,7 @@ public class FileGenerator extends AbstractGenerator {
       // HTML file
       String name = fileName.substring(0, fileName.indexOf('.'));
       substitutions.put("title", name); //$NON-NLS-1$
-      substitutions.put("dartPath", name + ".app.js"); //$NON-NLS-1$ //$NON-NLS-2$
+      substitutions.put("dartPath", name + ".dart.app.js"); //$NON-NLS-1$ //$NON-NLS-2$
 
       nameOfSrcTxt = "generated-html.txt";
 
