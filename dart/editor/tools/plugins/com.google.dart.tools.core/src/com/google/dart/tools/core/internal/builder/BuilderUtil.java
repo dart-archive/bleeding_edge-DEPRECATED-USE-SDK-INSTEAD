@@ -117,6 +117,13 @@ class BuilderUtil {
     if (res == null || !res.exists()) {
       return;
     }
+
+    // Remove newlines and indent spaces from the compiler's error messages.
+    if (errMsg.indexOf('\n') != -1) {
+      errMsg = errMsg.replace('\n', ' ');
+      errMsg = errMsg.replaceAll(" +", " ");
+    }
+
     try {
       IMarker marker = res.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
       marker.setAttribute(IMarker.SEVERITY, severity);

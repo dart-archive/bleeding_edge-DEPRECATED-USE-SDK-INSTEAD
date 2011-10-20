@@ -8,7 +8,7 @@ class %className%%extends%%implements% {
   void run() {
     write("Hello World!");
   }
-  
+
   void write(String message) {
     // the DOM library defines a global "window" variable
     HTMLDocument doc = window.document;
