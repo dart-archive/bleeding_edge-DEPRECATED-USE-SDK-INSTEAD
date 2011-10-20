@@ -454,30 +454,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
-  private class SelectAllMarkerAction extends SelectionProviderAction {
-
-    public SelectAllMarkerAction() {
-      super(tableViewer, "Select All");
-      setEnabled(false);
-      setActionDefinitionId(IWorkbenchCommandConstants.EDIT_SELECT_ALL);
-    }
-
-    @Override
-    public void run() {
-      tableViewer.getTable().selectAll();
-    }
-
-    @Override
-    public void selectionChanged(ISelection selection) {
-      setEnabled(!selection.isEmpty());
-    }
-
-    @Override
-    public void selectionChanged(IStructuredSelection selection) {
-      setEnabled(!selection.isEmpty());
-    }
-  }
-
 //  private class ShowInfosAction extends Action {
 //    public ShowInfosAction() {
 //      super("Show todos and informational messages", AS_CHECK_BOX);
@@ -720,7 +696,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   private CopyMarkerAction copyAction;
   private GoToMarkerAction goToMarkerAction;
-  private SelectAllMarkerAction selectAllMarkerAction;
 
   private Job job;
 
@@ -756,11 +731,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     // Create actions; must be done after the construction of the tableViewer
     goToMarkerAction = new GoToMarkerAction();
     copyAction = new CopyMarkerAction();
-    selectAllMarkerAction = new SelectAllMarkerAction();
 
     tableViewer.addSelectionChangedListener(copyAction);
     tableViewer.addSelectionChangedListener(goToMarkerAction);
-    tableViewer.addSelectionChangedListener(selectAllMarkerAction);
 
     tableSorter = new TableSorter();
     tableViewer.setComparator(tableSorter);
@@ -821,12 +794,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   @Override
   public void dispose() {
-
-    if (selectAllMarkerAction != null) {
-      selectAllMarkerAction.dispose();
-      selectAllMarkerAction = null;
-    }
-
     if (copyAction != null) {
       copyAction.dispose();
       copyAction = null;
@@ -1085,8 +1052,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       menuManager.add(goToMarkerAction);
       menuManager.add(copyAction);
     }
-
-    menuManager.add(selectAllMarkerAction);
   }
 
   private void focusOn(IWorkbenchPart part, ISelection selection) {
@@ -1151,10 +1116,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   }
 
   private void registerContextMenu() {
-
     getViewSite().getActionBars().setGlobalActionHandler(ActionFactory.COPY.getId(), copyAction);
-    getViewSite().getActionBars().setGlobalActionHandler(ActionFactory.SELECT_ALL.getId(),
-        selectAllMarkerAction);
 
     MenuManager mm = new MenuManager();
     mm.setRemoveAllWhenShown(true);
