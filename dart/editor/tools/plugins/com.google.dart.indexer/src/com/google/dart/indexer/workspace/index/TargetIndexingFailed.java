@@ -18,7 +18,7 @@ public class TargetIndexingFailed extends Exception {
 
   private static String formatMessage(IndexingTarget target, boolean isRetry) {
     return "Failed to index file (" + (isRetry ? "retry" : "first attempt") + "): "
-        + target.getFile().getLocation();
+        + target.getUri();
   }
 
   public TargetIndexingFailed(IndexingTarget target, Error cause, boolean isRetry) {

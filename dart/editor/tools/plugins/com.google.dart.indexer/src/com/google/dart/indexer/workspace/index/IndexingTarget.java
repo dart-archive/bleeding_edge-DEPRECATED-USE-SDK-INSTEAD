@@ -16,12 +16,22 @@ package com.google.dart.indexer.workspace.index;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 
+import java.net.URI;
+
 /**
  * The interface <code>IndexingTarget</code> defines the behavior of objects representing a single
  * target to be indexed by the indexer. These targets are placed on the {@link IndexingQueue} and
  * processed by the {@link WorkspaceIndexer}.
  */
 public interface IndexingTarget {
+  /**
+   * Return <code>true</code> if this target exists. A non-existent target is used to signal that
+   * the information associated with the target needs to be removed from the index.
+   * 
+   * @return <code>true</code> if this target exists
+   */
+  public boolean exists();
+
   /**
    * Return the file associated with this target.
    * 
@@ -35,4 +45,11 @@ public interface IndexingTarget {
    * @return the project associated with this target
    */
   public IProject getProject();
+
+  /**
+   * Return the URI uniquely identifying this target.
+   * 
+   * @return the URI uniquely identifying this target
+   */
+  public URI getUri();
 }

@@ -470,7 +470,7 @@ public class WorkspaceIndexer {
     // IndexerPlugin.getLogger().trace(IndexerDebugOptions.MISCELLANEOUS,
     // "WorkspaceIndexer.indexFile(" + file + ")");
     try {
-      if (target.getFile().exists()) {
+      if (target.exists()) {
         transaction.indexTarget(target);
       } else {
         IFile[] affectedFiles = transaction.removeTarget(target);

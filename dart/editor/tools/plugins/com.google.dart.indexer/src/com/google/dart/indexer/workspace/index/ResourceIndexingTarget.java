@@ -16,6 +16,8 @@ package com.google.dart.indexer.workspace.index;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 
+import java.net.URI;
+
 /**
  * Instances of the class <code>ResourceIndexingTarget</code> implement an indexing target
  * representing an {@link IFile}.
@@ -36,6 +38,11 @@ public class ResourceIndexingTarget implements IndexingTarget {
   }
 
   @Override
+  public boolean exists() {
+    return file.exists();
+  }
+
+  @Override
   public IFile getFile() {
     return file;
   }
@@ -43,6 +50,11 @@ public class ResourceIndexingTarget implements IndexingTarget {
   @Override
   public IProject getProject() {
     return file.getProject();
+  }
+
+  @Override
+  public URI getUri() {
+    return file.getLocationURI();
   }
 
   @Override

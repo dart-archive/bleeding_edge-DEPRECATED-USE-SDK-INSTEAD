@@ -13,13 +13,19 @@
  */
 package com.google.dart.tools.core.internal.indexer.task;
 
+import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.indexer.workspace.index.IndexingTarget;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.URIUtil;
+
+import java.io.File;
+import java.net.URI;
 
 /**
  * Instances of the class <code>CompilationUnitIndexingTarget</code> implement an indexing target
@@ -47,6 +53,33 @@ public class CompilationUnitIndexingTarget implements IndexingTarget {
     this.ast = ast;
   }
 
+  @Override
+  public boolean exists() {
+    try {
+      IFile file = (IFile) compilationUnit.getCorrespondingResource();
+      if (file != null) {
+        return file.exists();
+      }
+    } catch (DartModelException exception) {
+      // Fall through to try accessing the information using the source reference.
+    }
+    try {
+      DartSource source = compilationUnit.getSourceRef();
+      if (source != null) {
+        URI uri = URIUtilities.safelyResolveDartUri(source.getUri());
+        if (uri != null) {
+          File file = URIUtil.toFile(uri);
+          if (file != null) {
+            return file.exists();
+          }
+        }
+      }
+    } catch (DartModelException exception) {
+      // Fall through to return false.
+    }
+    return false;
+  }
+
   public DartUnit getAST() {
     return ast;
   }
@@ -67,5 +100,29 @@ public class CompilationUnitIndexingTarget implements IndexingTarget {
   @Override
   public IProject getProject() {
     return compilationUnit.getDartProject().getProject();
+  }
+
+  @Override
+  public URI getUri() {
+    try {
+      IFile file = (IFile) compilationUnit.getCorrespondingResource();
+      if (file != null) {
+        return file.getLocationURI();
+      }
+    } catch (DartModelException exception) {
+      // Fall through to try accessing the information using the source reference.
+    }
+    try {
+      DartSource source = compilationUnit.getSourceRef();
+      if (source != null) {
+        URI uri = URIUtilities.safelyResolveDartUri(source.getUri());
+        if (uri != null) {
+          return uri;
+        }
+      }
+    } catch (DartModelException exception) {
+      // Fall through to return false.
+    }
+    return null;
   }
 }
