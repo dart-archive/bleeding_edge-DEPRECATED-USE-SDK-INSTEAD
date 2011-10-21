@@ -89,7 +89,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
    * Get a location relative to the active workbench window for presenting the omnibox popup. This
    * service is required outside the control in case the omnibox is invoked by a command (e.g.,
    * keybinding).
-   * 
+   *
    * @param window the host window
    * @return the location to root the popup
    */
@@ -269,6 +269,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
     control.addFocusListener(new FocusListener() {
       @Override
       public void focusGained(FocusEvent e) {
+        clearWatermark();
       }
 
       @Override
