@@ -46,9 +46,7 @@ import com.google.dart.tools.core.utilities.net.URIUtilities;
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.Status;
 
 import java.io.IOException;
@@ -69,8 +67,7 @@ public class DartCompilerUtilities {
    * The abstract class <code>CompilerRunner</code> defines behavior common to classes used to
    * safely invoke the parser, record compilation errors, and capture any parser exception.
    */
-  private static abstract class CompilerRunner extends DartCompilerListener implements
-      ISafeRunnable {
+  private static abstract class CompilerRunner extends DartCompilerListener {
     private final Collection<DartCompilationError> parseErrors;
     protected Throwable exception;
 
@@ -92,16 +89,23 @@ public class DartCompilerUtilities {
       }
     }
 
-    @Override
     public void handleException(Throwable exception) {
       this.exception = exception;
+    }
 
-      // Log exceptions, but don't flood the log
-      if (parserExceptionCount < 5) {
-        DartCore.logError("Exception on [" + getThreadName() + "] when parsing:\n"
-            + getTargetName(), exception);
+    public final void runSafe() {
+      try {
+        run();
+      } catch (Exception e) {
+        // Don't log here... let caller determine what to do
+        handleException(e);
+      } catch (LinkageError e) {
+        DartCore.logError(e);
+        handleException(e);
+      } catch (AssertionError e) {
+        DartCore.logError(e);
+        handleException(e);
       }
-      parserExceptionCount++;
     }
 
     @Override
@@ -111,19 +115,27 @@ public class DartCompilerUtilities {
       }
     }
 
-    protected abstract String getTargetName();
-
     @Override
     public void unitCompiled(DartUnit unit) {
     }
+
+    /**
+     * Do not call this method directly. Call {@link #runSafe()} which in turn calls this method and
+     * redirects any exceptions to {@link #handleException(Throwable)}. Subclasses should implement
+     * this method to perform the actual operation.
+     */
+    protected abstract void run() throws Exception;
   }
 
+  /**
+   * An in-memory {@link DartSource} referenced by {@link LibraryWithSuppliedSources}
+   */
   private static class DartURIStringSource implements DartSource {
-    private LibrarySource library;
-    private URI uri;
-    private String relPath;
-    private String source;
-    private long lastModified = System.currentTimeMillis();
+    private final LibrarySource library;
+    private final URI uri;
+    private final String relPath;
+    private final String source;
+    private final long lastModified = System.currentTimeMillis();
 
     private DartURIStringSource(LibrarySource library, URI uri, String relPath, String source) {
       this.library = library;
@@ -169,8 +181,9 @@ public class DartCompilerUtilities {
   }
 
   /**
-   * Internal class for safely calling the parser, recording compilation errors, and capturing any
-   * parser exception.
+   * Internal class for safely calling
+   * {@link DartCompiler#analyzeDelta(SourceDelta, LibraryElement, LibraryElement, DartNode, int, int, CompilerConfiguration, DartCompilerListener)}
+   * , recording compilation errors, and capturing any parser exception.
    * <p>
    * TODO Unify with ResolverRunnable - compilerConfig could be shared
    */
@@ -268,25 +281,16 @@ public class DartCompilerUtilities {
       analyzedNode = DartCompiler.analyzeDelta(delta, enclosingLibrary, coreLibrary,
           completionNode, completionLocation, 0, config, this);
     }
-
-    @Override
-    protected String getTargetName() {
-      String targetName = null;
-      targetName = unitUri.toString();
-      if (targetName == null) {
-        targetName = librarySource.getName();
-      }
-      return targetName;
-    }
-
   }
 
+  /**
+   * An in-memory {@link LibrarySource} wrapping an underlying library and containing
+   * {@link DartURIStringSource} to represent in memory changes to on disk sources
+   */
   private static class LibraryWithSuppliedSources implements LibrarySource {
-    private LibrarySource wrappedSource;
-
-    private SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
-
-    private Map<URI, String> suppliedSources;
+    private final LibrarySource wrappedSource;
+    private final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+    private final Map<URI, String> suppliedSources;
 
     private LibraryWithSuppliedSources(LibrarySource wrappedSource, Map<URI, String> suppliedSources) {
       this.wrappedSource = wrappedSource;
@@ -339,8 +343,7 @@ public class DartCompilerUtilities {
   }
 
   /**
-   * Internal class for safely calling the parser, recording compilation errors, and capturing any
-   * parser exception.
+   * Internal class for safely calling the parser, and capturing any parser exception.
    */
   private static final class ParserRunnable extends CompilerRunner {
     private final DartSource sourceRef;
@@ -358,16 +361,12 @@ public class DartCompilerUtilities {
     public void run() throws Exception {
       result = new DartParser(sourceRef, source, this).parseUnit(sourceRef);
     }
-
-    @Override
-    protected String getTargetName() {
-      return source;
-    }
   }
 
   /**
-   * Internal class for safely calling the parser, recording compilation errors, and capturing any
-   * parser exception.
+   * Internal class for safely calling the
+   * {@link DartCompiler#analyzeLibrary(LibrarySource, Map, CompilerConfiguration, DartArtifactProvider, DartCompilerListener)}
+   * , recording compilation errors, and capturing any parser exception.
    */
   private static final class ResolverRunnable extends CompilerRunner {
     private LibrarySource librarySource;
@@ -434,11 +433,7 @@ public class DartCompilerUtilities {
           return super.isOutOfDateInParent(source, base, extension);
         }
       };
-      // Any calls to compiler involving artifact provider must be synchronized
-      synchronized (compilerLock) {
-        libraryResult = DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider,
-            this);
-      }
+      libraryResult = secureAnalyzeLibrary(librarySource, parsedUnits, config, provider, this);
       if (libraryResult != null && unitUri != null) {
         for (DartUnit unit : libraryResult.getUnits()) {
           DartSource source = unit.getSource();
@@ -451,27 +446,12 @@ public class DartCompilerUtilities {
         }
       }
     }
-
-    @Override
-    protected String getTargetName() {
-      String targetName = null;
-      if (unitUri != null) {
-        targetName = unitUri.toString();
-      }
-      if (targetName == null) {
-        targetName = librarySource.getName();
-      }
-      return targetName;
-    }
-
   }
 
   /**
    * Synchronize against this field when calling the compiler and passing an artifact provider
    */
   private static final Object compilerLock = new Object();
-
-  public static int parserExceptionCount = 0;
 
   private static LRUCache<LibrarySource, LibraryUnit> cachedLibraries = new LRUCache<LibrarySource, LibraryUnit>(
       10);
@@ -497,7 +477,7 @@ public class DartCompilerUtilities {
     suppliedSources.put(unitUri, sourceString);
     DeltaAnalysisRunnable runnable = new DeltaAnalysisRunnable(library, unitUri, suppliedSources,
         suppliedUnit, completionNode, completionLocation, parseErrors);
-    SafeRunner.run(runnable);
+    runnable.runSafe();
     if (runnable.exception != null) {
       throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
           "Failed to parse " + library.getName(), runnable.exception)));
@@ -518,7 +498,7 @@ public class DartCompilerUtilities {
   public static DartUnit parseSource(DartSource sourceRef, String source,
       final Collection<DartCompilationError> parseErrors) throws DartModelException {
     ParserRunnable runnable = new ParserRunnable(sourceRef, source, parseErrors);
-    SafeRunner.run(runnable);
+    runnable.runSafe();
     if (runnable.exception != null) {
       throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
           "Failed to parse " + sourceRef.getName(), runnable.exception)));
@@ -615,7 +595,7 @@ public class DartCompilerUtilities {
       final Collection<DartCompilationError> parseErrors) throws DartModelException {
     ResolverRunnable runnable = new ResolverRunnable(library.getLibrarySourceFile(), null, null,
         forceFullAST, parseErrors);
-    SafeRunner.run(runnable);
+    runnable.runSafe();
     if (runnable.exception != null) {
       throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
           "Failed to parse " + library.getElementName(), runnable.exception)));
@@ -669,7 +649,7 @@ public class DartCompilerUtilities {
       throws DartModelException {
     ResolverRunnable runnable = new ResolverRunnable(library, createMap(suppliedUnits), false,
         parseErrors);
-    SafeRunner.run(runnable);
+    runnable.runSafe();
     if (runnable.exception != null) {
       throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
           "Failed to parse " + library.getName(), runnable.exception)));
@@ -740,7 +720,7 @@ public class DartCompilerUtilities {
       throws DartModelException {
     ResolverRunnable runnable = new ResolverRunnable(librarySource, unitUri, suppliedSources,
         false, parseErrors);
-    SafeRunner.run(runnable);
+    runnable.runSafe();
     if (runnable.exception != null) {
       throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
           "Failed to parse " + unitUri, runnable.exception)));
@@ -748,6 +728,23 @@ public class DartCompilerUtilities {
     return runnable.unitResult;
   }
 
+  /**
+   * A synchronized call to
+   * {@link DartCompiler#analyzeLibrary(LibrarySource, Map, CompilerConfiguration, DartArtifactProvider, DartCompilerListener)}
+   */
+  public static LibraryUnit secureAnalyzeLibrary(LibrarySource librarySource,
+      Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
+      DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
+    synchronized (compilerLock) {
+      // Any calls to compiler involving artifact provider must be synchronized
+      return DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider, listener);
+    }
+  }
+
+  /**
+   * A synchronized call to
+   * {@link DartCompiler#compileLib(LibrarySource, CompilerConfiguration, DartArtifactProvider, DartCompilerListener)}
+   */
   public static void secureCompileLib(LibrarySource libSource, CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
     synchronized (compilerLock) {
@@ -804,15 +801,5 @@ public class DartCompilerUtilities {
           URIUtilities.safelyResolveDartUri(secondUri));
     }
     return URIUtil.toPath(firstUri).equals(URIUtil.toPath(secondUri));
-  }
-
-  private static String getThreadName() {
-    Thread thread = Thread.currentThread();
-    String name = thread.getName();
-    if (name != null) {
-      return name;
-    } else {
-      return thread.toString();
-    }
   }
 }
