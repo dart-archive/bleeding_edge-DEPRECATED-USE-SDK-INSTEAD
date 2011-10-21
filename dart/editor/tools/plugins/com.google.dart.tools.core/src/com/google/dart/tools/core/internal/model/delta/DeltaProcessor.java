@@ -990,24 +990,23 @@ public class DeltaProcessor {
       // TODO(jwren) revisit this, much of the code in parseDirectives is already in DartLibraryImpl,
       // we should have one method instead of two.
       CachedDirectives literalCachedDirectives = parseDirectives(dartSrc);
+      LibrarySource librarySrc = dartSrc.getLibrary();
       // IMPORTS
       Set<String> importUriSpecs = literalCachedDirectives.getImports();
       for (String importText : importUriSpecs) {
         if (importText.startsWith("dart:")) {
           importsSet.add(importText);
         } else {
-          // TODO(jwren) Does this cover absolute, and all relative, path entries?
-          LibrarySource importedLibSrc = dartSrc.getLibrary().getImportFor(importText);
+          LibrarySource importedLibSrc = librarySrc.getImportFor(importText);
           importsSet.add(importedLibSrc.getUri().toString());
         }
       }
       // SRC
       Set<String> sourceUriSpecs = literalCachedDirectives.getSources();
       for (String sourceText : sourceUriSpecs) {
-        // TODO(jwren) Does this cover absolute, and all relative, path entries?
-        DartSource dartSourceDirective = dartSrc.getLibrary().getSourceFor(sourceText);
-        if (dartSourceDirective != null && dartSourceDirective.exists()) {
-          sourcesSet.add(dartSourceDirective.getUri().toString());
+        DartSource importedSrcDirective = librarySrc.getSourceFor(sourceText);
+        if (importedSrcDirective != null && importedSrcDirective.exists()) {
+          sourcesSet.add(importedSrcDirective.getUri().toString());
         }
         //else {
         // TODO(jwren) handle else case- user has referenced a file which isn't linked into the workspace
@@ -1022,10 +1021,9 @@ public class DeltaProcessor {
       // RES
       Set<String> resUriSpecs = literalCachedDirectives.getResources();
       for (String resourceText : resUriSpecs) {
-        // TODO(jwren) Does this cover absolute, and all relative, path entries?
-        DartSource dartResourceDirective = dartSrc.getLibrary().getSourceFor(resourceText);
-        if (dartResourceDirective != null && dartResourceDirective.exists()) {
-          resourcesSet.add(dartResourceDirective.getUri().toString());
+        DartSource importedResDirective = librarySrc.getSourceFor(resourceText);
+        if (importedResDirective != null && importedResDirective.exists()) {
+          resourcesSet.add(importedResDirective.getUri().toString());
         }
         //else {
         // TODO(jwren) handle else case- user has referenced a file which isn't linked into the workspace
