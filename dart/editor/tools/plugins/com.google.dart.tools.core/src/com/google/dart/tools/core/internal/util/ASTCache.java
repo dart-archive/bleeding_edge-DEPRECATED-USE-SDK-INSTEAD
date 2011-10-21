@@ -122,6 +122,11 @@ public class ASTCache {
               if (resource != null && resource.getLocationURI() != null) {
                 CacheEntry entryInLibrary = getOrCreateCacheEntry(unitInLibrary);
                 entryInLibrary.ast = libraryUnit.getUnit(resource.getLocationURI().toString());
+                if (entryInLibrary.ast == null) {
+                  //TODO ugly hack to work around the fact that the compiler appends the file name to the file URI
+                  entryInLibrary.ast = libraryUnit.getUnit(library.getCorrespondingResource().getLocationURI().toString()
+                      + "/" + resource.getName());
+                }
               }
             }
           }
