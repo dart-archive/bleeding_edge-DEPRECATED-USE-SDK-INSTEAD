@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -28,6 +28,7 @@ import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -88,7 +89,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
    * Get a location relative to the active workbench window for presenting the omnibox popup. This
    * service is required outside the control in case the omnibox is invoked by a command (e.g.,
    * keybinding).
-   *
+   * 
    * @param window the host window
    * @return the location to root the popup
    */
@@ -272,6 +273,22 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
 
       @Override
       public void focusLost(FocusEvent e) {
+        //GTK linux requires special casing to handle the case where a click
+        //outside the search box (or popup) should cause the popup to close
+        //We identify this case by keying off focus changes --- if focus
+        //is transfered to another control we trigger a close
+        if (Util.isLinux()) {
+          //Exec async to esnure that it occurs after the focus change
+          Display.getDefault().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+              Control focusControl = Display.getDefault().getFocusControl();
+              if (focusControl != control && focusControl != popup.table) {
+                popup.close();
+              }
+            }
+          });
+        }
         if (popupClosed()) {
           setWatermarkText();
         }

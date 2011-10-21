@@ -39,6 +39,8 @@ import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -57,6 +59,7 @@ import org.eclipse.swt.graphics.TextLayout;
 import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -448,6 +451,29 @@ public class OmniBoxPopup extends BasePopupDialog {
     table.addListener(SWT.MeasureItem, listener);
     table.addListener(SWT.EraseItem, listener);
     table.addListener(SWT.PaintItem, listener);
+    //In GTK linux, the table is hungry for focus and steals it on updates
+    //When the table has focus it grabs key events that are intended for the
+    //search entry box; to make things right, we need to punt focus back
+    //to the search box
+    if (Util.isLinux()) {
+      table.addFocusListener(new FocusListener() {
+
+        @Override
+        public void focusGained(FocusEvent e) {
+          Display.getDefault().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+              //punt focus back to the text box
+              getFocusControl().setFocus();
+            }
+          });
+        }
+
+        @Override
+        public void focusLost(FocusEvent e) {
+        }
+      });
+    }
 
     return composite;
   }
