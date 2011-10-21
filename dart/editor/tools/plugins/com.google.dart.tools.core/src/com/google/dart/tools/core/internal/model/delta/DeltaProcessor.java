@@ -606,9 +606,15 @@ public class DeltaProcessor {
             // This covers the "dart:dom" use case.
             LibrarySource importedLibrarySource;
             try {
+              // TODO(jwren) currently, if the user types in something that isn't valid,
+              // (i.e. "dart:A"), then an exception is thrown, the exception is being logged as an
+              // info below.
+              // See http://code.google.com/p/dart/issues/detail?id=203
               importedLibrarySource = librarySource.getImportFor(uri.toString());
             } catch (IOException e) {
-              DartCore.logError(e);
+              DartCore.logInformation("The URI " + uri.toString()
+                  + " could not be computed as a valid library import for this library: "
+                  + librarySource.getName() + ".", e);
               continue;
             }
             DartLibrary dartLibrary = new DartLibraryImpl(importedLibrarySource);
