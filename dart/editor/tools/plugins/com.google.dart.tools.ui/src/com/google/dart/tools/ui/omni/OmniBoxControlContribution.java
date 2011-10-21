@@ -89,7 +89,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
    * Get a location relative to the active workbench window for presenting the omnibox popup. This
    * service is required outside the control in case the omnibox is invoked by a command (e.g.,
    * keybinding).
-   *
+   * 
    * @param window the host window
    * @return the location to root the popup
    */
@@ -153,7 +153,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   }
 
   protected void defocus() {
-    if (previousFocusControl != null) {
+    if (previousFocusControl != null && !previousFocusControl.isDisposed()) {
       previousFocusControl.setFocus();
     } else {
       control.getParent().setFocus();
@@ -162,6 +162,8 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
 
   protected void handleMouseEnter() {
     inControl = true;
+    //cache on mouse enter to ensure we can restore focus after an invocation initiated by a mouse click
+    previousFocusControl = Display.getDefault().getFocusControl();
   }
 
   protected void handleMouseExit() {
