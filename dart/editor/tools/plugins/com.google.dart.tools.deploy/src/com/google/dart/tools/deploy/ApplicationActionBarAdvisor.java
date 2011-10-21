@@ -18,7 +18,6 @@ import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
-import com.google.dart.tools.ui.actions.OpenResourceAction;
 import com.google.dart.tools.ui.actions.RunInBrowserAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
 
@@ -175,8 +174,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private QuickMenuAction showInQuickMenu;
 
   private QuickMenuAction newQuickMenu;
-
-  private OpenResourceAction openResourceAction;
 
   // IDE-specific retarget actions
   //private CommandContributionItem minimizeItem;
@@ -563,9 +560,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     goIntoAction = ActionFactory.GO_INTO.create(window);
     register(goIntoAction);
 
-    openResourceAction = new OpenResourceAction(window);
-    register(openResourceAction);
-
     upAction = ActionFactory.UP.create(window);
     register(upAction);
 
@@ -897,7 +891,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     //goToSubMenu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 
     menu.add(new Separator(IWorkbenchActionConstants.OPEN_EXT));
-    menu.add(openResourceAction);
     for (int i = 2; i < 5; ++i) {
       menu.add(new GroupMarker(IWorkbenchActionConstants.OPEN_EXT + i));
     }
