@@ -806,9 +806,11 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     // TODO(brianwilkerson) This won't add a blank line if this is the first directive of its kind.
     buffer.replace(insertionPoint, 0, directiveName + "('" + relativePath + "');"
         + SourceUtilities.LINE_SEPARATOR);
+    workingCopy.makeConsistent(monitor);
+
     if (!hadUnsavedChanges) {
       // Save the changes we just made.
-      workingCopy.makeConsistent(monitor);
+      workingCopy.commitWorkingCopy(true, monitor);
       return true;
     }
     return false;
