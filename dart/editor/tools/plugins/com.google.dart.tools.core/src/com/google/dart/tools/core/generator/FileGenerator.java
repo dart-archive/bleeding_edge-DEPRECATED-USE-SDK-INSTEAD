@@ -212,6 +212,10 @@ public class FileGenerator extends AbstractGenerator {
     return fileName;
   }
 
+  public DartLibrary getLibrary() {
+    return library;
+  }
+
   public File getSystemFile() {
     // Sanity Check. Fail fast for null elements.
     Assert.isNotNull(fileName);

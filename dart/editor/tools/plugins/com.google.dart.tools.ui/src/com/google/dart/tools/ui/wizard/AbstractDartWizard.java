@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.wizard;
@@ -25,6 +23,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPerspectiveDescriptor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -91,6 +90,26 @@ public abstract class AbstractDartWizard extends Wizard implements IWorkbenchWiz
   }
 
   /**
+   * Open the editor on the specified input.
+   * 
+   * @param editorId the identifier for the editor to be opened
+   * @param input the input to be edited
+   * @return <code>true</code> if the editor was successfully opened
+   */
+  protected boolean openEditor(String editorId, IEditorInput input) {
+    try {
+      IWorkbenchPage activePage = workbench.getActiveWorkbenchWindow().getActivePage();
+      activePage.openEditor(input, editorId);
+      return true;
+    } catch (Throwable e) {
+      String message = "Failed to open editor " + editorId + " on " + input.getToolTipText();
+      DartToolsPlugin.log(message, e);
+      MessageDialog.openError(getShell(), "Open Editor Exception", message);
+      return false;
+    }
+  }
+
+  /**
    * Open the editor on the specified file
    * 
    * @param editorId the identifier for the editor to be opened
@@ -109,5 +128,4 @@ public abstract class AbstractDartWizard extends Wizard implements IWorkbenchWiz
       return false;
     }
   }
-
 }

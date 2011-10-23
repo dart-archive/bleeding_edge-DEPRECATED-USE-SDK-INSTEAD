@@ -15,12 +15,19 @@ package com.google.dart.tools.ui.wizard;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.FileGenerator;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.internal.text.editor.ExternalCompilationUnitEditorInput;
 
+import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 
@@ -95,6 +102,24 @@ public class NewFileWizard extends AbstractDartWizard implements INewWizard {
     if (file != null) {
       String fileName = file.getName();
       if (DartCore.isDartLikeFileName(fileName)) {
+        DartElement element = DartCore.create(file);
+        if (element == null) {
+          try {
+            DartLibraryImpl library = (DartLibraryImpl) fileGenerator.getLibrary();
+            IPath libraryPath = library.getDefiningCompilationUnit().getCorrespondingResource().getLocation();
+            String relativePath = file.getLocation().makeRelativeTo(
+                libraryPath.removeLastSegments(1)).toString();
+            IEditorInput input = new ExternalCompilationUnitEditorInput(
+                EFS.getStore(file.getLocationURI()), new ExternalCompilationUnitImpl(library,
+                    relativePath));
+            if (openEditor(DartUI.ID_CU_EDITOR, input)
+                || openEditor(DartUI.ID_DEFAULT_TEXT_EDITOR, input)) {
+              return;
+            }
+          } catch (Exception exception) {
+            // If we couldn't open as an external unit, fall through to try the default approach.
+          }
+        }
         if (!openEditor(DartUI.ID_CU_EDITOR, file)) {
           openEditor(DartUI.ID_DEFAULT_TEXT_EDITOR, file);
         }

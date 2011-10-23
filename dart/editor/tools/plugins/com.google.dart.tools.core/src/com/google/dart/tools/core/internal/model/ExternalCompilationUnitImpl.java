@@ -58,6 +58,21 @@ public class ExternalCompilationUnitImpl extends CompilationUnitImpl {
   }
 
   @Override
+  public CompilationUnitImpl cloneCachingContents() {
+    return new ExternalCompilationUnitImpl((DartLibraryImpl) getParent(), relPath, source) {
+      private char[] cachedContents;
+
+      @Override
+      public char[] getContents() {
+        if (this.cachedContents == null) {
+          this.cachedContents = ExternalCompilationUnitImpl.this.getContents();
+        }
+        return this.cachedContents;
+      }
+    };
+  }
+
+  @Override
   public boolean exists() {
     return getDartSource() != null;
   }
