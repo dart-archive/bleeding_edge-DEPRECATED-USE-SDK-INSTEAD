@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.ui.internal.dialogs.ResourceSelectionDialog;
+import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
@@ -169,24 +170,29 @@ public abstract class AbstractDartWizardPage extends WizardPage {
   protected DartLibrary getSelectedLibrary() {
     ISelection selectedFolder = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getSelection();
     DartLibrary foundLibrary = null;
+    Object element = null;
     if (selectedFolder instanceof TreeSelection) {
-      Object firstElement = ((TreeSelection) selectedFolder).getFirstElement();
-      if (firstElement != null) {
-        if (firstElement instanceof DartElement) {
-          foundLibrary = getParentDartLibrary((DartElement) firstElement);
-          if (foundLibrary == null && firstElement instanceof HTMLFile) {
-            HTMLFile htmlFile = (HTMLFile) firstElement;
-            try {
-              DartLibrary[] libraries = htmlFile.getReferencedLibraries();
-              if (libraries.length > 0) {
-                foundLibrary = libraries[0];
-              }
-            } catch (DartModelException e) {
+      element = ((TreeSelection) selectedFolder).getFirstElement();
+    }
+    if (element == null) {
+      element = EditorUtility.getActiveEditorJavaInput();
+    }
+    if (element != null) {
+      if (element instanceof DartElement) {
+        foundLibrary = getParentDartLibrary((DartElement) element);
+        if (foundLibrary == null && element instanceof HTMLFile) {
+          HTMLFile htmlFile = (HTMLFile) element;
+          try {
+            DartLibrary[] libraries = htmlFile.getReferencedLibraries();
+            if (libraries.length > 0) {
+              foundLibrary = libraries[0];
             }
+          } catch (DartModelException e) {
           }
         }
       }
     }
+
     if (foundLibrary != null) {
       return foundLibrary;
     } else {
