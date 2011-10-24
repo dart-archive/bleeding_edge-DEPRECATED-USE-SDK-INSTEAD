@@ -80,28 +80,6 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   public static final DartLibraryImpl[] EMPTY_LIBRARY_ARRAY = new DartLibraryImpl[0];
 
   /**
-   * The file containing the definition of this library.
-   */
-  private IFile libraryFile;
-
-  /**
-   * The structured representation of the library file that defines this library.
-   */
-  private LibrarySource sourceFile;
-
-  /**
-   * An empty array of libraries.
-   */
-  public static final DartLibraryImpl[] EMPTY_ARRAY = new DartLibraryImpl[0];
-
-  /**
-   * The qualified name used to access the persistent property indicating whether the file
-   * associated with the defining compilation unit defines a top-level library.
-   */
-  private static final QualifiedName TOP_LEVEL_PROPERTY_NAME = new QualifiedName(
-      DartCore.PLUGIN_ID, "topLevel");
-
-  /**
    * Answer a library source for the specified file
    * 
    * @param libraryFile the *.dart library configuration file
@@ -135,6 +113,28 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     }
     return newLibrarySourceFile(location.toFile());
   }
+
+  /**
+   * The file containing the definition of this library.
+   */
+  private IFile libraryFile;
+
+  /**
+   * The structured representation of the library file that defines this library.
+   */
+  private LibrarySource sourceFile;
+
+  /**
+   * An empty array of libraries.
+   */
+  public static final DartLibraryImpl[] EMPTY_ARRAY = new DartLibraryImpl[0];
+
+  /**
+   * The qualified name used to access the persistent property indicating whether the file
+   * associated with the defining compilation unit defines a top-level library.
+   */
+  private static final QualifiedName TOP_LEVEL_PROPERTY_NAME = new QualifiedName(
+      DartCore.PLUGIN_ID, "topLevel");
 
   /**
    * Initialize a newly created library to be contained in the given project.
@@ -347,11 +347,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       // If we cannot access the info we compute the name from the file name, just like we will if
       // the library directive does not contain a literal.
     }
-    String name = new Path(getElementName()).lastSegment();
-    if (name.endsWith(Extensions.DOT_DART)) {
-      name = name.substring(0, name.length() - Extensions.DOT_DART.length());
-    }
-    return name;
+    return getImplicitLibraryName();
   }
 
   /**
@@ -376,6 +372,17 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   @Override
   public int getElementType() {
     return DartElement.LIBRARY;
+  }
+
+  /**
+   * This method is called when there is no Library directive to specify the name of a library.
+   */
+  public String getImplicitLibraryName() {
+    String name = new Path(getElementName()).lastSegment();
+    if (name.endsWith(Extensions.DOT_DART)) {
+      name = name.substring(0, name.length() - Extensions.DOT_DART.length());
+    }
+    return name;
   }
 
   @Override

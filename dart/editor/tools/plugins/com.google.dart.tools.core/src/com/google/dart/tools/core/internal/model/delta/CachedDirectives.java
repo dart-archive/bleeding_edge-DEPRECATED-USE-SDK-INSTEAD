@@ -26,13 +26,15 @@ public class CachedDirectives {
 
   public static final Set<String> EMPTY_STR_SET = Collections.unmodifiableSet(new HashSet<String>(0));
 
+  private final String libraryName;
+
   private final Set<String> imports, sources, resources;
 
   /**
    * The empty constructor for {@link CachedDirectives} creates three empty sets.
    */
   public CachedDirectives() {
-    this(EMPTY_STR_SET, EMPTY_STR_SET, EMPTY_STR_SET);
+    this("", EMPTY_STR_SET, EMPTY_STR_SET, EMPTY_STR_SET);
   }
 
   /**
@@ -43,7 +45,9 @@ public class CachedDirectives {
    * @param sources some set of "source" {@link String}s
    * @param resources some set of "resource" {@link String}s
    */
-  public CachedDirectives(Set<String> imports, Set<String> sources, Set<String> resources) {
+  public CachedDirectives(String libraryName, Set<String> imports, Set<String> sources,
+      Set<String> resources) {
+    this.libraryName = libraryName;
     this.imports = Collections.unmodifiableSet(imports);
     this.sources = Collections.unmodifiableSet(sources);
     this.resources = Collections.unmodifiableSet(resources);
@@ -55,6 +59,14 @@ public class CachedDirectives {
    */
   public Set<String> getImports() {
     return imports;
+  }
+
+  /**
+   * Returns the library name which was created using the <code>libraryName</code> constructor
+   * argument.
+   */
+  public String getLibraryName() {
+    return libraryName;
   }
 
   /**

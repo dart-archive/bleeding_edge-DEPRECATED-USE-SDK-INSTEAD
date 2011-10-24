@@ -22,6 +22,7 @@ import com.google.dart.compiler.UrlDartSource;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartImportDirective;
+import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartUnit;
@@ -439,7 +440,7 @@ public class DeltaProcessor {
           librarySource = new UrlLibrarySource(iFile.getLocationURI(),
               SystemLibraryManagerProvider.getSystemLibraryManager());
           dartSource = new UrlDartSource(libFile, librarySource);
-          newCachedDirectives = getCachedDirectives(dartSource);
+          newCachedDirectives = getCachedDirectives(dartSource, library);
         }
 
         contentChanged_fileDirectives(DirectiveType.SRC, oldCachedDirectives.getSources(),
@@ -450,6 +451,9 @@ public class DeltaProcessor {
 
         contentChanged_importDirectives(oldCachedDirectives.getImports(),
             newCachedDirectives.getImports(), library, librarySource);
+
+        contentChanged_libraryNameDirective(oldCachedDirectives.getLibraryName(),
+            newCachedDirectives.getLibraryName(), library, librarySource);
       }
     }
     // else, no non-compilation unit resource changes can affect the model
@@ -630,6 +634,24 @@ public class DeltaProcessor {
           System.out.println("DeltaProcessor.contentChanged_importDirectives() ADD: " + newPathElt);
         }
       }
+    }
+  }
+
+  private void contentChanged_libraryNameDirective(String oldLibraryName, String newLibraryName,
+      DartLibraryImpl library, LibrarySource librarySource) {
+    // if we could not compute one of the two library names, return
+    // or if the sets are equal, also return
+    if (oldLibraryName == null || newLibraryName == null || oldLibraryName.equals(newLibraryName)) {
+      return;
+    }
+    // else, !oldLibraryName.equals(newLibraryName)
+    DartLibraryInfo libraryInfo;
+    try {
+      libraryInfo = (DartLibraryInfo) library.getElementInfo();
+      libraryInfo.setName(newLibraryName);
+      currentDelta().changed(library, DartElementDelta.CHANGED);
+    } catch (DartModelException e) {
+      DartCore.logError(e);
     }
   }
 
@@ -942,6 +964,7 @@ public class DeltaProcessor {
         return new CachedDirectives();
       }
 
+      String libraryName = library.getDisplayName();
       Set<String> importsSet = new HashSet<String>(libraries.length);
       Set<String> sourcesSet = new HashSet<String>(compilationUnits.length + 1);
       Set<String> resourceSet = new HashSet<String>(dartResources.length);
@@ -969,7 +992,7 @@ public class DeltaProcessor {
         }
       }
 
-      return new CachedDirectives(importsSet, sourcesSet, resourceSet);
+      return new CachedDirectives(libraryName, importsSet, sourcesSet, resourceSet);
     } catch (DartModelException e) {
       DartCore.logError(
           "Exception while attempting to compute the CachedDiectives using some DartLibrary object.",
@@ -988,7 +1011,8 @@ public class DeltaProcessor {
    * <p>
    * <code>null</code> can be returned if the the set couldn't be computed.
    */
-  private CachedDirectives getCachedDirectives(DartSource dartSrc) {
+  private CachedDirectives getCachedDirectives(DartSource dartSrc, DartLibraryImpl library) {
+    String libraryName = null;
     Set<String> importsSet = new HashSet<String>();
     Set<String> sourcesSet = new HashSet<String>();
     Set<String> resourcesSet = new HashSet<String>();
@@ -997,6 +1021,13 @@ public class DeltaProcessor {
       // we should have one method instead of two.
       CachedDirectives literalCachedDirectives = parseDirectives(dartSrc);
       LibrarySource librarySrc = dartSrc.getLibrary();
+      // LIBRARY NAME
+      libraryName = literalCachedDirectives.getLibraryName();
+      if (libraryName == null || libraryName.length() == 0) {
+        // if there is no #library(..) directive, then use the implicit name, computed in the same
+        // way from DartLibraryImpl#getDisplayName()
+        libraryName = library.getImplicitLibraryName();
+      }
       // IMPORTS
       Set<String> importUriSpecs = literalCachedDirectives.getImports();
       for (String importText : importUriSpecs) {
@@ -1038,7 +1069,7 @@ public class DeltaProcessor {
     } catch (Exception e) {
       DartCore.logError("Failed to process delta for " + dartSrc.getUri().toString(), e);
     }
-    return new CachedDirectives(importsSet, sourcesSet, resourcesSet);
+    return new CachedDirectives(libraryName, importsSet, sourcesSet, resourcesSet);
   }
 
   /**
@@ -1192,6 +1223,7 @@ public class DeltaProcessor {
     }
     DartUnit dartUnit = DartCompilerUtilities.parseSource(dartSrc, contents, parseErrors);
     List<DartDirective> directives = dartUnit.getDirectives();
+    String libraryName = "";
     Set<String> importsSet;
     Set<String> sourcesSet;
     Set<String> resourcesSet;
@@ -1209,6 +1241,9 @@ public class DeltaProcessor {
         } else if (directive instanceof DartImportDirective) {
           DartImportDirective importDirective = (DartImportDirective) directive;
           importsSet.add(importDirective.getLibraryUri().getValue());
+        } else if (directive instanceof DartLibraryDirective) {
+          DartLibraryDirective libraryDirective = (DartLibraryDirective) directive;
+          libraryName = libraryDirective.getName().getValue();
         }
       }
     } else {
@@ -1229,7 +1264,7 @@ public class DeltaProcessor {
     if (!sourcesSet.contains(self)) {
       sourcesSet.add(self);
     }
-    return new CachedDirectives(importsSet, sourcesSet, resourcesSet);
+    return new CachedDirectives(libraryName, importsSet, sourcesSet, resourcesSet);
   }
 
   /**

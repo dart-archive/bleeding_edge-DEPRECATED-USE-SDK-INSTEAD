@@ -22,25 +22,31 @@ import java.util.Set;
 
 public class CachedDirectivesTest extends TestCase {
 
+  private static final String EMPTY_STR = "";
+
   public void test_CachedDirectives_CachedDirectives_default() {
     CachedDirectives cd = new CachedDirectives();
 
+    Assert.isNotNull(cd.getLibraryName());
     Assert.isNotNull(cd.getImports());
     Assert.isNotNull(cd.getResources());
     Assert.isNotNull(cd.getSources());
 
+    Assert.isTrue(cd.getLibraryName().length() == 0);
     Assert.isTrue(cd.getImports().isEmpty());
     Assert.isTrue(cd.getResources().isEmpty());
     Assert.isTrue(cd.getSources().isEmpty());
   }
 
   public void test_CachedDirectives_CachedDirectives_non_default() {
-    Set<String> imports = set("a");
-    Set<String> sources = set("b");
-    Set<String> resources = set("c");
+    String name = "a";
+    Set<String> imports = set("b");
+    Set<String> sources = set("c");
+    Set<String> resources = set("d");
 
-    CachedDirectives cd = new CachedDirectives(imports, sources, resources);
+    CachedDirectives cd = new CachedDirectives(name, imports, sources, resources);
 
+    Assert.isTrue(name.equals(cd.getLibraryName()));
     Assert.isTrue(imports.equals(cd.getImports()));
     Assert.isTrue(sources.equals(cd.getSources()));
     Assert.isTrue(resources.equals(cd.getResources()));
@@ -49,7 +55,7 @@ public class CachedDirectivesTest extends TestCase {
   public void test_CachedDirectives_getImports() {
     Set<String> imports = set("1", "2", "3", "4", "4");
 
-    CachedDirectives cd = new CachedDirectives(imports, CachedDirectives.EMPTY_STR_SET,
+    CachedDirectives cd = new CachedDirectives(EMPTY_STR, imports, CachedDirectives.EMPTY_STR_SET,
         CachedDirectives.EMPTY_STR_SET);
 
     Assert.isTrue(cd.getImports().size() == imports.size());
@@ -65,10 +71,29 @@ public class CachedDirectivesTest extends TestCase {
     }
   }
 
+  public void test_CachedDirectives_getLibraryName() {
+    String libraryName = "name";
+
+    CachedDirectives cd = new CachedDirectives(libraryName, CachedDirectives.EMPTY_STR_SET,
+        CachedDirectives.EMPTY_STR_SET, CachedDirectives.EMPTY_STR_SET);
+
+    Assert.isTrue(cd.getLibraryName().equals(libraryName));
+    Assert.isTrue(cd.getSources().isEmpty());
+    Assert.isTrue(cd.getResources().isEmpty());
+    Assert.isTrue(cd.getImports().isEmpty());
+
+    try {
+      cd.getImports().add("2");
+      fail("UnsupportedOperationException expected but not thrown");
+    } catch (UnsupportedOperationException e) {
+      // expected
+    }
+  }
+
   public void test_CachedDirectives_getResources() {
     Set<String> resources = set("1", "2", "3", "4", "4");
 
-    CachedDirectives cd = new CachedDirectives(CachedDirectives.EMPTY_STR_SET,
+    CachedDirectives cd = new CachedDirectives(EMPTY_STR, CachedDirectives.EMPTY_STR_SET,
         CachedDirectives.EMPTY_STR_SET, resources);
 
     Assert.isTrue(cd.getImports().isEmpty());
@@ -87,7 +112,7 @@ public class CachedDirectivesTest extends TestCase {
   public void test_CachedDirectives_getSources() {
     Set<String> sources = set("1", "2", "3", "4", "4");
 
-    CachedDirectives cd = new CachedDirectives(CachedDirectives.EMPTY_STR_SET, sources,
+    CachedDirectives cd = new CachedDirectives(EMPTY_STR, CachedDirectives.EMPTY_STR_SET, sources,
         CachedDirectives.EMPTY_STR_SET);
 
     Assert.isTrue(cd.getImports().isEmpty());
