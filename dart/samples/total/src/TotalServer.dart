@@ -7,8 +7,6 @@
 #import("../../chat/chat_server_lib.dart");
 #import("../../chat/http.dart");
 #import("Dartc.dart");
-#source("GetSpreadsheet.dart");
-#source("SYLKProducer.dart");
 
 void main() {
   final String host = '0.0.0.0';
@@ -48,9 +46,6 @@ class TotalServer extends IsolatedServer {
       addHandler("/img/$fileName",  (HTTPRequest request, HTTPResponse response)
                  => fileHandler(request, response, "${CLIENT_DIR}/img/$fileName"));
     }
-    addHandler('/spreadsheet/get', GetSpreadsheet.getSample);
-    addHandler('/spreadsheet/list', GetSpreadsheet.listSamples);
-
     addHandler("/adm/Adminz.js",
                (HTTPRequest request, HTTPResponse response)
                  => fileHandler(request, response, "${CLIENT_DIR}/Adminz.js"));

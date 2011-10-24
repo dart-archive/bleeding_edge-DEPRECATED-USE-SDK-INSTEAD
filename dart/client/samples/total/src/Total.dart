@@ -23,15 +23,13 @@ class Total {
 
   void run() {
     _spreadsheet = new Spreadsheet();
-    SYLKReader reader = new SYLKReader();
-    reader.request("mortgage", (String data) {
-        List<String> sylk = data.split('\n');
-        reader.loadSpreadsheet(_spreadsheet, sylk);
-        _presenter = new SpreadsheetPresenter(_spreadsheet, window,
-            0, 0, DEFAULT_VISIBLE_ROWS, DEFAULT_VISIBLE_COLUMNS);
-        _spreadsheet.setListener(_presenter);
-        _presenter.recalculateViewport();
-      });
+    Reader reader = new SYLKReader();
+    List<String> data = reader.makeExample("mortgage");
+    reader.loadSpreadsheet(_spreadsheet, data);
+    _presenter = new SpreadsheetPresenter(_spreadsheet, window,
+      0, 0, DEFAULT_VISIBLE_ROWS, DEFAULT_VISIBLE_COLUMNS);
+    _spreadsheet.setListener(_presenter);
+    _presenter.recalculateViewport();
   }
 }
 

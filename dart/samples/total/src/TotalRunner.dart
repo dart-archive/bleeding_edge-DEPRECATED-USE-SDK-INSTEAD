@@ -15,7 +15,6 @@ void main() {
   void keepServerRunning(int status, ServerRunner runner) {
     switch (runner.lastExitString) {
       case RESTART:
-        runner.lastExitString = '';
         runner.run(keepServerRunning);
         break;
       case EXIT:
@@ -56,8 +55,8 @@ class ServerRunner {
 
     dart.start();
 
-    readMore(false, dart.stdout, new List<int>(_BUFSIZE), new StringBuffer());
-    readMore(false, dart.stderr, new List<int>(_BUFSIZE), new StringBuffer());
+    readMore(false, dart.stdoutStream, new List<int>(_BUFSIZE), new StringBuffer());
+    readMore(false, dart.stderrStream, new List<int>(_BUFSIZE), new StringBuffer());
   }
 
   void readMore(bool fromCallback, InputStream i, List<int> buf, StringBuffer readSoFar) {
