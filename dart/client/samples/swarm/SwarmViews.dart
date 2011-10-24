@@ -909,7 +909,7 @@ class SectionView extends CompositeView {
    * Hides the loading text, reloads the data sources, and shows them.
    */
   void showSources() {
-    Css.setDisplay(loadingText.node.style, 'none');
+    loadingText.node.style.display = 'none';
 
     // Lazy initialize the data source view.
     if (dataSourceView == null) {
@@ -929,11 +929,11 @@ class SectionView extends CompositeView {
 
       pageNumberView = addChild(new PageNumberView(pageState));
 
-      Css.setOpacity(node.style, '1');
+      node.style.opacity = '1';
     } else {
       addChild(dataSourceView);
       addChild(pageNumberView);
-      Css.setOpacity(node.style, '1');
+      node.style.opacity = '1';
     }
 
     // TODO(jacobr): get rid of this call to reconfigure when it is not needed.
@@ -945,12 +945,12 @@ class SectionView extends CompositeView {
    */
   void hideSources() {
     if (dataSourceView != null) {
-      Css.setOpacity(node.style, '0.6');
+      node.style.opacity = '0.6';
       removeChild(dataSourceView);
       removeChild(pageNumberView);
     }
 
-    Css.setDisplay(loadingText.node.style, 'block');
+    loadingText.node.style.display = 'block';
   }
 
   set storyMode(bool inStoryMode) {

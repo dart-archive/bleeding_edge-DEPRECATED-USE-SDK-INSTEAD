@@ -274,14 +274,14 @@ class GenericListView<D> extends View {
     int width = _layout.getWidth(_viewLength);
     int height = _layout.getHeight(_viewLength);
     if (width != null) {
-      Css.setWidth(style, '${width}px');
+      style.width = '${width}px';
     }
     if (height != null) {
-      Css.setHeight(style, '${height}px');
+      style.height = '${height}px';
     }
     // TODO(jacobr): this should be specified by the default CSS for a
     // GenericListView.
-    Css.setOverflow(style, 'hidden');
+    style.overflow = 'hidden';
   }
 
 
@@ -560,7 +560,7 @@ class GenericListView<D> extends View {
     } else {
       FxUtil.setTranslate(node, _layout.getOffset(index), 0, 0);
     }
-    Css.setZIndex(node.style, index.toString());
+    node.style.zIndex = index.toString();
   }
 
   void _select(int index, bool selected) {
