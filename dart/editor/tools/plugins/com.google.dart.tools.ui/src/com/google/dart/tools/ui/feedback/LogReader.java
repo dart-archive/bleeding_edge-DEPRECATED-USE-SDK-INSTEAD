@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.feedback;
 
-import com.google.dart.tools.ui.DartToolsPlugin;
-
 import org.eclipse.core.runtime.Platform;
 
 import java.io.File;
@@ -108,7 +106,6 @@ public class LogReader {
     try {
       return LogReader.readLog();
     } catch (Exception e) {
-      DartToolsPlugin.log("unable to access log", e); //$NON-NLS-1$
       return "log unavailable: " + e.getMessage(); //$NON-NLS-1$
     }
   }
