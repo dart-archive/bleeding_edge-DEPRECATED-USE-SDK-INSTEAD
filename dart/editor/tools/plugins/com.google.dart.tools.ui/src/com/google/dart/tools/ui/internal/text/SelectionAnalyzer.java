@@ -1,24 +1,21 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text;
 
-import com.google.dart.compiler.ast.DartContext;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.tools.core.model.GenericVisitor;
+import com.google.dart.compiler.ast.DartNodeTraverser;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.IRegion;
@@ -33,7 +30,7 @@ import java.util.List;
  * this early stage to solicit feedback from pioneering adopters on the understanding that any code
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
-public class SelectionAnalyzer extends GenericVisitor {
+public class SelectionAnalyzer extends DartNodeTraverser<Void> {
 
   private Selection fSelection;
   private boolean fTraverseSelectedNode;
@@ -72,8 +69,8 @@ public class SelectionAnalyzer extends GenericVisitor {
     }
     DartNode firstNode = fSelectedNodes.get(0);
     DartNode lastNode = fSelectedNodes.get(fSelectedNodes.size() - 1);
-    int start = firstNode.getStartPosition();
-    return new Region(start, lastNode.getStartPosition() + lastNode.getLength() - start);
+    int start = firstNode.getSourceStart();
+    return new Region(start, lastNode.getSourceStart() + lastNode.getSourceLength() - start);
   }
 
   public DartNode[] getSelectedNodes() {
@@ -92,6 +89,37 @@ public class SelectionAnalyzer extends GenericVisitor {
       return false;
     }
     return fSelectedNodes.get(0) instanceof DartExpression;
+  }
+
+  @Override
+  public Void visitNode(DartNode node) {
+    // The selection lies behind the node.
+    if (fSelection.liesOutside(node)) {
+      return null;
+    } else if (fSelection.covers(node)) {
+      if (isFirstNode()) {
+        handleFirstSelectedNode(node);
+      } else {
+        handleNextSelectedNode(node);
+      }
+      if (fTraverseSelectedNode) {
+        node.visitChildren(this);
+      }
+      return null;
+    } else if (fSelection.coveredBy(node)) {
+      fLastCoveringNode = node;
+      node.visitChildren(this);
+      return null;
+    } else if (fSelection.endsIn(node)) {
+      if (handleSelectionEndsIn(node)) {
+        node.visitChildren(this);
+      }
+      return null;
+    }
+    // There is a possibility that the user has selected trailing semicolons that don't belong to
+    // the statement. So dive into it to check if sub nodes are fully covered.
+    node.visitChildren(this);
+    return null;
   }
 
   protected Selection getSelection() {
@@ -119,31 +147,6 @@ public class SelectionAnalyzer extends GenericVisitor {
 
   protected void reset() {
     fSelectedNodes = null;
-  }
-
-  @Override
-  protected boolean visitNode(DartNode node, DartContext context) {
-    // The selection lies behind the node.
-    if (fSelection.liesOutside(node)) {
-      return false;
-    } else if (fSelection.covers(node)) {
-      if (isFirstNode()) {
-        handleFirstSelectedNode(node);
-      } else {
-        handleNextSelectedNode(node);
-      }
-      return fTraverseSelectedNode;
-    } else if (fSelection.coveredBy(node)) {
-      fLastCoveringNode = node;
-      return true;
-    } else if (fSelection.endsIn(node)) {
-      return handleSelectionEndsIn(node);
-    }
-    // There is a possibility that the user has selected trailing semicolons
-    // that don't belong
-    // to the statement. So dive into it to check if sub nodes are fully
-    // covered.
-    return true;
   }
 
   private boolean isFirstNode() {

@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -26,7 +24,6 @@ import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartConditional;
-import com.google.dart.compiler.ast.DartContext;
 import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDefault;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
@@ -53,6 +50,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNewExpression;
+import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
@@ -74,306 +72,308 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
-import com.google.dart.compiler.ast.DartVisitor;
 import com.google.dart.compiler.ast.DartWhileStatement;
 
 /**
  * Base class that can be extended to visit a single AST node, calling a specific method on it.
  */
-public class NodeClassifier extends DartVisitor {
-
+public class NodeClassifier extends DartNodeTraverser<Void> {
   @Override
-  public boolean visit(DartArrayAccess x, DartContext ctx) {
-    return false;
+  public Void visitArrayAccess(DartArrayAccess node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartArrayLiteral x, DartContext ctx) {
-    return false;
+  public Void visitArrayLiteral(DartArrayLiteral node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartAssertion node, DartContext ctx) {
-    return false;
+  public Void visitAssertion(DartAssertion node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartBinaryExpression x, DartContext ctx) {
-    return false;
+  public Void visitBinaryExpression(DartBinaryExpression node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartBlock x, DartContext ctx) {
-    return false;
+  public Void visitBlock(DartBlock node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartBooleanLiteral x, DartContext ctx) {
-    return false;
+  public Void visitBooleanLiteral(DartBooleanLiteral node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartBreakStatement x, DartContext ctx) {
-    return false;
+  public Void visitBreakStatement(DartBreakStatement node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartCase x, DartContext ctx) {
-    return false;
+  public Void visitCase(DartCase node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartCatchBlock x, DartContext ctx) {
-    return false;
+  public Void visitCatchBlock(DartCatchBlock node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartClass x, DartContext ctx) {
-    return false;
+  public Void visitClass(DartClass node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartConditional x, DartContext ctx) {
-    return false;
+  public Void visitConditional(DartConditional node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartContinueStatement x, DartContext ctx) {
-    return false;
+  public Void visitContinueStatement(DartContinueStatement node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartDefault x, DartContext ctx) {
-    return false;
+  public Void visitDefault(DartDefault node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartDoubleLiteral x, DartContext ctx) {
-    return false;
+  public Void visitDoubleLiteral(DartDoubleLiteral node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartDoWhileStatement x, DartContext ctx) {
-    return false;
+  public Void visitDoWhileStatement(DartDoWhileStatement node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartEmptyStatement x, DartContext ctx) {
-    return false;
+  public Void visitEmptyStatement(DartEmptyStatement node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartExprStmt x, DartContext ctx) {
-    return false;
+  public Void visitExprStmt(DartExprStmt node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartField x, DartContext ctx) {
-    return true;
+  public Void visitField(DartField node) {
+    node.visitChildren(this);
+    return null;
   }
 
   @Override
-  public boolean visit(DartFieldDefinition x, DartContext ctx) {
-    return false;
+  public Void visitFieldDefinition(DartFieldDefinition node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartForInStatement x, DartContext ctx) {
-    return true;
+  public Void visitForInStatement(DartForInStatement node) {
+    node.visitChildren(this);
+    return null;
   }
 
   @Override
-  public boolean visit(DartForStatement x, DartContext ctx) {
-    return false;
+  public Void visitForStatement(DartForStatement node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartFunction x, DartContext ctx) {
-    return false;
+  public Void visitFunction(DartFunction node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartFunctionExpression x, DartContext ctx) {
-    return false;
+  public Void visitFunctionExpression(DartFunctionExpression node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartFunctionObjectInvocation node, DartContext ctx) {
-    return false;
+  public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartFunctionTypeAlias node, DartContext ctx) {
-    return true;
+  public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+    node.visitChildren(this);
+    return null;
   }
 
   @Override
-  public boolean visit(DartIdentifier x, DartContext ctx) {
-    return false;
+  public Void visitIdentifier(DartIdentifier node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartIfStatement x, DartContext ctx) {
-    return false;
+  public Void visitIfStatement(DartIfStatement node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartInitializer x, DartContext ctx) {
-    return false;
+  public Void visitInitializer(DartInitializer node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartIntegerLiteral x, DartContext ctx) {
-    return false;
+  public Void visitIntegerLiteral(DartIntegerLiteral node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartInvocation x, DartContext ctx) {
-    return true;
+  public Void visitInvocation(DartInvocation node) {
+    node.visitChildren(this);
+    return null;
   }
 
   @Override
-  public boolean visit(DartLabel x, DartContext ctx) {
-    return false;
+  public Void visitLabel(DartLabel node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartMapLiteral x, DartContext ctx) {
-    return false;
+  public Void visitMapLiteral(DartMapLiteral node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartMapLiteralEntry x, DartContext ctx) {
-    return false;
+  public Void visitMapLiteralEntry(DartMapLiteralEntry node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartMethodDefinition x, DartContext ctx) {
-    return false;
+  public Void visitMethodDefinition(DartMethodDefinition node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartMethodInvocation node, DartContext ctx) {
-    return false;
+  public Void visitMethodInvocation(DartMethodInvocation node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartNativeBlock x, DartContext ctx) {
-    return false;
+  public Void visitNativeBlock(DartNativeBlock node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartNewExpression x, DartContext ctx) {
-    return false;
+  public Void visitNewExpression(DartNewExpression node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartNullLiteral x, DartContext ctx) {
-    return false;
+  public Void visitNullLiteral(DartNullLiteral node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartParameter x, DartContext ctx) {
-    return false;
+  public Void visitParameter(DartParameter node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartParenthesizedExpression x, DartContext ctx) {
-    return false;
+  public Void visitParenthesizedExpression(DartParenthesizedExpression node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartPropertyAccess x, DartContext ctx) {
-    return false;
+  public Void visitPropertyAccess(DartPropertyAccess node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartReturnStatement x, DartContext ctx) {
-    return false;
+  public Void visitReturnStatement(DartReturnStatement node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartStringInterpolation node, DartContext ctx) {
-    return false;
+  public Void visitStringInterpolation(DartStringInterpolation node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartStringLiteral x, DartContext ctx) {
-    return false;
+  public Void visitStringLiteral(DartStringLiteral node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartSuperConstructorInvocation node, DartContext ctx) {
-    return false;
+  public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartSuperExpression x, DartContext ctx) {
-    return false;
+  public Void visitSuperExpression(DartSuperExpression node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartSwitchStatement x, DartContext ctx) {
-    return false;
+  public Void visitSwitchStatement(DartSwitchStatement node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartThisExpression x, DartContext ctx) {
-    return false;
+  public Void visitThisExpression(DartThisExpression node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartThrowStatement x, DartContext ctx) {
-    return false;
+  public Void visitThrowStatement(DartThrowStatement node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartTryStatement x, DartContext ctx) {
-    return false;
+  public Void visitTryStatement(DartTryStatement node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartTypeExpression x, DartContext ctx) {
-    return false;
+  public Void visitTypeExpression(DartTypeExpression node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartTypeNode x, DartContext ctx) {
-    return false;
+  public Void visitTypeNode(DartTypeNode node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartTypeParameter x, DartContext ctx) {
-    return false;
+  public Void visitTypeParameter(DartTypeParameter node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartUnaryExpression x, DartContext ctx) {
-    return false;
+  public Void visitUnaryExpression(DartUnaryExpression node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartUnit x, DartContext ctx) {
-    return false;
+  public Void visitUnit(DartUnit node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartUnqualifiedInvocation node, DartContext ctx) {
-    return false;
+  public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartVariable x, DartContext ctx) {
-    return false;
+  public Void visitVariable(DartVariable node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartVariableStatement x, DartContext ctx) {
-    return false;
+  public Void visitVariableStatement(DartVariableStatement node) {
+    return null;
   }
 
   @Override
-  public boolean visit(DartWhileStatement x, DartContext ctx) {
-    return false;
+  public Void visitWhileStatement(DartWhileStatement node) {
+    return null;
   }
 }

@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.editor;
@@ -21,9 +19,9 @@ import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.GenericVisitor;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
@@ -54,34 +52,32 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   /**
    * Collects positions from the AST.
    */
-  private class PositionCollector extends GenericVisitor {
+  private class PositionCollector extends DartNodeTraverser<Void> {
 
     /** The semantic token */
     private SemanticToken fToken = new SemanticToken();
 
     /*
-     * @see org.eclipse.wst.jsdt.core.dom.ASTVisitor#visit(org.eclipse.wst.jsdt.core
-     * .dom.BooleanLiteral)
+     * TODO In the previous version of this class the visit methods were never invoked, but I don't
+     * know whether that is the correct behavior (in which case they should be removed) or whether
+     * that was a bug (in which case they should be renamed).
      */
+
     public boolean visit(DartBooleanLiteral node) {
-      return visitLiteral(node);
+      return visitLiteralNode(node);
     }
 
     public boolean visit(DartDoubleLiteral node) {
-      return visitLiteral(node);
+      return visitLiteralNode(node);
     }
 
-    /*
-     * @see org.eclipse.wst.jsdt.core.dom.ASTVisitor#visit(org.eclipse.wst.jsdt.core
-     * .dom.SimpleName)
-     */
     public boolean visit(DartIdentifier node) {
       fToken.update(node);
       for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
         SemanticHighlighting semanticHighlighting = fJobSemanticHighlightings[i];
         if (fJobHighlightings[i].isEnabled() && semanticHighlighting.consumes(fToken)) {
-          int offset = node.getStartPosition();
-          int length = node.getLength();
+          int offset = node.getSourceStart();
+          int length = node.getSourceLength();
           if (offset > -1 && length > 0) {
             addPosition(offset, length, fJobHighlightings[i]);
           }
@@ -92,25 +88,19 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
       return false;
     }
 
-    /*
-     * @see org.eclipse.wst.jsdt.core.dom.ASTVisitor#visit(org.eclipse.wst.jsdt.core
-     * .dom.NumberLiteral)
-     */
     public boolean visit(DartIntegerLiteral node) {
-      return visitLiteral(node);
+      return visitLiteralNode(node);
     }
 
-    /*
-     * @see org.eclipse.wst.jsdt.internal.corext.dom.GenericVisitor#visitNode(org
-     * .eclipse.wst.jsdt.core.dom.ASTNode)
-     */
-    protected boolean visitNode(DartNode node) {
+    @Override
+    public Void visitNode(DartNode node) {
       DartX.todo();
       // if ((node.getFlags() & DartNode.MALFORMED) == DartNode.MALFORMED) {
       // retainPositions(node.getStartPosition(), node.getLength());
       // return false;
       // }
-      return true;
+      node.visitChildren(this);
+      return null;
     }
 
     /**
@@ -159,13 +149,13 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
       }
     }
 
-    private boolean visitLiteral(DartExpression node) {
+    private boolean visitLiteralNode(DartExpression node) {
       fToken.update(node);
       for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
         SemanticHighlighting semanticHighlighting = fJobSemanticHighlightings[i];
         if (fJobHighlightings[i].isEnabled() && semanticHighlighting.consumesLiteral(fToken)) {
-          int offset = node.getStartPosition();
-          int length = node.getLength();
+          int offset = node.getSourceStart();
+          int length = node.getSourceLength();
           if (offset > -1 && length > 0) {
             addPosition(offset, length, fJobHighlightings[i]);
           }
@@ -397,7 +387,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     // FIXME: remove positions not covered by subtrees
     for (int i = 0, n = subtrees.length; i < n; i++) {
       // subtrees[i].accept(fCollector);
-      fCollector.accept(subtrees[i]);
+      subtrees[i].accept(fCollector);
     }
     List<Position> oldPositions = fRemovedPositions;
     List<Position> newPositions = new ArrayList<Position>(fNOfRemovedPositions);

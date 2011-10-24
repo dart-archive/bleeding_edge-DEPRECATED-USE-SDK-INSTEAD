@@ -14,16 +14,15 @@
 package com.google.dart.tools.core.dom;
 
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartContext;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.GenericVisitor;
 import com.google.dart.tools.core.model.SourceRange;
 
 /**
@@ -32,10 +31,10 @@ import com.google.dart.tools.core.model.SourceRange;
  * this early stage to solicit feedback from pioneering adopters on the understanding that any code
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
-public class NodeFinder extends GenericVisitor {
+public class NodeFinder extends DartNodeTraverser<Void> {
   public static NodeFinder find(DartNode root, int start, int length) {
     NodeFinder finder = new NodeFinder(start, length);
-    finder.accept(root);
+    root.accept(finder);
     return finder;
   }
 
@@ -84,7 +83,7 @@ public class NodeFinder extends GenericVisitor {
   public static DartNode perform(DartNode root, int start, int length, CompilationUnit source)
       throws DartModelException {
     NodeFinder finder = new NodeFinder(start, length);
-    finder.accept(root);
+    root.accept(finder);
     DartNode result = finder.getCoveredNode();
     if (result == null) {
       return null;
@@ -134,21 +133,6 @@ public class NodeFinder extends GenericVisitor {
     fEnd = offset + length;
   }
 
-  @Override
-  public void endVisit(DartClass x, DartContext ctx) {
-    classDef = null;
-  }
-
-  @Override
-  public void endVisit(DartField x, DartContext ctx) {
-    field = null;
-  }
-
-  @Override
-  public void endVisit(DartMethodDefinition x, DartContext ctx) {
-    method = null;
-  }
-
   /**
    * Returns the covered node. If more than one node is covered by the selection, the returned node
    * is the first covered node found in a top-down traversal of the AST.
@@ -187,33 +171,39 @@ public class NodeFinder extends GenericVisitor {
   }
 
   @Override
-  public boolean visit(DartClass x, DartContext ctx) {
-    classDef = x;
-    return visitNode(x, ctx);
+  public Void visitClass(DartClass node) {
+    classDef = node;
+    visitNode(node);
+    classDef = null;
+    return null;
   }
 
   @Override
-  public boolean visit(DartField x, DartContext ctx) {
-    field = x;
-    return visitNode(x, ctx);
+  public Void visitField(DartField node) {
+    field = node;
+    visitNode(node);
+    field = null;
+    return null;
   }
 
   @Override
-  public boolean visit(DartMethodDefinition x, DartContext ctx) {
-    method = x;
-    return visitNode(x, ctx);
+  public Void visitMethodDefinition(DartMethodDefinition node) {
+    method = node;
+    visitNode(node);
+    method = null;
+    return null;
   }
 
   @Override
-  protected boolean visitNode(DartNode node, DartContext context) {
+  public Void visitNode(DartNode node) {
     int nodeStart = node.getSourceStart();
     int nodeEnd = nodeStart + node.getSourceLength();
     if (nodeEnd < fStart || fEnd < nodeStart) {
       if (nodeEnd == -2) {
         // TODO Remove this workaround for a parser bug: no source positions set
-        return true;
+        node.visitChildren(this);
       }
-      return false;
+      return null;
     }
     if (nodeStart <= fStart && fEnd <= nodeEnd) {
       fCoveringNode = node;
@@ -222,20 +212,24 @@ public class NodeFinder extends GenericVisitor {
       enclosingClass = classDef;
     }
     if (fStart <= nodeStart && nodeEnd <= fEnd) {
-      if (fCoveringNode == node) { // nodeStart == fStart && nodeEnd == fEnd
+      if (fCoveringNode == node) {
+        // nodeStart == fStart && nodeEnd == fEnd
         fCoveredNode = node;
         enclosingMethod = method;
         enclosingField = field;
         enclosingClass = classDef;
-        return true; // look further for node with same length as parent
-      } else if (fCoveredNode == null) { // no better found
+        // look further for node with same length as parent
+        node.visitChildren(this);
+      } else if (fCoveredNode == null) {
+        // no better found
         fCoveredNode = node;
         enclosingMethod = method;
         enclosingField = field;
         enclosingClass = classDef;
       }
-      return false;
+      return null;
     }
-    return true;
+    node.visitChildren(this);
+    return null;
   }
 }

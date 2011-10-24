@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.compiler.ast.DartBlock;
-import com.google.dart.compiler.ast.DartContext;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartForStatement;
@@ -91,13 +90,13 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     @Override
-    public boolean visit(DartBlock x, DartContext ctx) {
+    public Void visitBlock(DartBlock node) {
       result = getBlockBalance(document, offset, fPartitioning) <= 0;
-      return false;
+      return null;
     }
 
     @Override
-    public boolean visit(DartDoWhileStatement doStatement, DartContext ctx) {
+    public Void visitDoWhileStatement(DartDoWhileStatement doStatement) {
       IRegion doRegion = createRegion(doStatement, info.delta);
       DartStatement body = doStatement.getBody();
       IRegion bodyRegion = createRegion(body, info.delta);
@@ -106,11 +105,11 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           && offset + length <= bodyRegion.getOffset()) {
         result = body != null;
       }
-      return false;
+      return null;
     }
 
     @Override
-    public boolean visit(DartForStatement node, DartContext ctx) {
+    public Void visitForStatement(DartForStatement node) {
       DartExpression expression = node.getCondition();
       IRegion expressionRegion = createRegion(expression, info.delta);
       DartStatement body = node.getBody();
@@ -121,11 +120,11 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           && offset + length <= bodyRegion.getOffset()) {
         result = body != null;
       }
-      return false;
+      return null;
     }
 
     @Override
-    public boolean visit(DartIfStatement ifStatement, DartContext ctx) {
+    public Void visitIfStatement(DartIfStatement ifStatement) {
       DartExpression expression = ifStatement.getCondition();
       IRegion expressionRegion = createRegion(expression, info.delta);
       DartStatement thenStatement = ifStatement.getThenStatement();
@@ -135,7 +134,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       if (expressionRegion.getOffset() + expressionRegion.getLength() <= offset
           && offset + length <= thenRegion.getOffset()) {
         result = thenStatement != null;
-        return false;
+        return null;
       }
 
       DartStatement elseStatement = ifStatement.getElseStatement();
@@ -148,11 +147,11 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         result = elseToken != null && elseToken.getOffset() + elseToken.getLength() <= offset
             && offset + length < elseRegion.getOffset();
       }
-      return false;
+      return null;
     }
 
     @Override
-    public boolean visit(DartWhileStatement node, DartContext ctx) {
+    public Void visitWhileStatement(DartWhileStatement node) {
       DartExpression expression = node.getCondition();
       IRegion expressionRegion = createRegion(expression, info.delta);
       DartStatement body = node.getBody();
@@ -163,7 +162,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           && offset + length <= bodyRegion.getOffset()) {
         result = body != null;
       }
-      return false;
+      return null;
     }
 
     boolean getResult() {
@@ -1041,7 +1040,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     NodeBracketer bracketer = new NodeBracketer(document, info, offset, length);
-    bracketer.accept(node);
+    node.accept(bracketer);
     return bracketer.getResult();
   }
 

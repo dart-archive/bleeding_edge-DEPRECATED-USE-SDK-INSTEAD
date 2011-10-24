@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.editor.selectionactions;
@@ -52,9 +50,9 @@ public abstract class StructureSelectionAction extends Action {
 
   protected static SourceRange getSelectedNodeSourceRange(SourceReference sr, DartNode nodeToSelect)
       throws DartModelException {
-    int offset = nodeToSelect.getStartPosition();
-    int end = Math.min(sr.getSourceRange().getLength(), nodeToSelect.getStartPosition()
-        + nodeToSelect.getLength() - 1);
+    int offset = nodeToSelect.getSourceStart();
+    int end = Math.min(sr.getSourceRange().getLength(), nodeToSelect.getSourceStart()
+        + nodeToSelect.getSourceLength() - 1);
     return createSourceRange(offset, end);
   }
 
@@ -139,7 +137,7 @@ public abstract class StructureSelectionAction extends Action {
       Selection selection = Selection.createFromStartLength(oldSourceRange.getOffset(),
           oldSourceRange.getLength());
       SelectionAnalyzer selAnalyzer = new SelectionAnalyzer(selection, true);
-      selAnalyzer.accept(root);
+      root.accept(selAnalyzer);
       return internalGetNewSelectionRange(oldSourceRange, sr, selAnalyzer);
     } catch (DartModelException e) {
       DartToolsPlugin.log(e); // dialog would be too heavy here

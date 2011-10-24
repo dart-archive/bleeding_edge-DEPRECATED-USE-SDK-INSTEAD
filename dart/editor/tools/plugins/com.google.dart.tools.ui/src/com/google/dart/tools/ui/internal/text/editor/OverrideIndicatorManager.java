@@ -1,24 +1,21 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.ast.DartContext;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.ast.DartVisitor;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
@@ -158,13 +155,13 @@ class OverrideIndicatorManager implements IDartReconcilingListener {
 
     final Map<Annotation, Position> annotationMap = new HashMap<Annotation, Position>(50);
 
-    DartVisitor visitor = new DartVisitor() {
+    DartNodeTraverser<Void> visitor = new DartNodeTraverser<Void>() {
       /*
        * @see org.eclipse.wst.jsdt.core.dom.ASTVisitor#visit(org.eclipse.wst.jsdt
        * .core.dom.FunctionDeclaration)
        */
       @Override
-      public boolean visit(DartMethodDefinition node, DartContext ctx) {
+      public Void visitMethodDefinition(DartMethodDefinition node) {
         //TODO (pquitslund): add annotation support for methods
 //        IFunctionBinding binding = node.resolveBinding();
 //        if (binding != null) {
@@ -197,10 +194,11 @@ class OverrideIndicatorManager implements IDartReconcilingListener {
 //
 //          }
 //        }
-        return true;
+        node.visitChildren(this);
+        return null;
       }
     };
-    visitor.accept(ast);
+    ast.accept(visitor);
 
     if (progressMonitor.isCanceled()) {
       return;
