@@ -54,8 +54,8 @@ class Dartc {
           // TODO(rchandia) increase read size when stream handling works better
           int BUFSIZE = 1;
 
-          _readAll(false, compiler.stdoutStream, new List<int>(BUFSIZE), messages);
-          _readAll(false, compiler.stderrStream, new List<int>(BUFSIZE), messages);
+          _readAll(false, compiler.stdout, new List<int>(BUFSIZE), messages);
+          _readAll(false, compiler.stderr, new List<int>(BUFSIZE), messages);
         }
         compiler.close();
         callback(status, messages.toString());
