@@ -15,37 +15,40 @@ package com.google.dart.tools.ui.internal.preferences;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
 
-import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.osgi.framework.Version;
+import org.eclipse.ui.internal.editors.text.EditorsPlugin;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
 /**
  * Page for setting general Dart plug-in preferences (the root of all Dart preferences).
  */
+@SuppressWarnings("restriction")
 public class DartBasePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
   public static final String JAVA_BASE_PREF_PAGE_ID = "com.google.dart.tools.ui.preferences.DartBasePreferencePage"; //$NON-NLS-1$
 
-  private static String getVersionText() {
-    Version version = DartToolsPlugin.getDefault().getBundle().getVersion();
+  private Button lineNumbersCheck;
 
-    return version.getMajor() + "." + version.getMinor() + "." + version.getMicro(); //$NON-NLS-1$ //$NON-NLS-2$
-  }
+  private Button printMarginCheck;
+  private Text printMarginText;
 
   public DartBasePreferencePage() {
-    super();
-
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
 
-    setDescription("Dart Editor v" + getVersionText()); //$NON-NLS-1$
+    setDescription(PreferencesMessages.DartBasePreferencePage_editor_preferences);
 
     noDefaultAndApplyButton();
   }
@@ -56,25 +59,97 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   }
 
   @Override
+  public boolean performOk() {
+    IPreferenceStore editorPreferences = EditorsPlugin.getDefault().getPreferenceStore();
+
+    editorPreferences.setValue(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_LINE_NUMBER_RULER,
+        lineNumbersCheck.getSelection());
+
+    editorPreferences.setValue(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN,
+        printMarginCheck.getSelection());
+
+    if (printMarginCheck.getSelection()) {
+      editorPreferences.setValue(
+          AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN,
+          printMarginText.getText());
+    }
+
+    return true;
+  }
+
+  @Override
   protected Control createContents(Composite parent) {
-    Composite result = new Composite(parent, SWT.NONE);
-    GridLayout layout = new GridLayout();
-    layout.marginHeight = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_MARGIN);
-    layout.marginWidth = 0;
-    layout.verticalSpacing = convertVerticalDLUsToPixels(10);
-    layout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
-    result.setLayout(layout);
+    Composite composite = new Composite(parent, SWT.NONE);
 
-    Composite composite = new Composite(result, SWT.NONE);
-    composite.setLayout(GridLayoutFactory.fillDefaults().margins(0, 0).spacing(0, 0).create());
+    GridDataFactory.fillDefaults().grab(true, false).indent(0, 10).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        composite);
+    GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
 
-    Label header = new Label(composite, SWT.NONE);
-    header.setText(PreferencesMessages.DartBasePreferencePage_header_text);
-    new Label(composite, SWT.NONE); //spacer
-    Label description = new Label(composite, SWT.NONE);
-    description.setText(PreferencesMessages.DartBasePreferencePage_description_text);
+    Group generalGroup = new Group(composite, SWT.NONE);
+    generalGroup.setText(PreferencesMessages.DartBasePreferencePage_general);
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        generalGroup);
+    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(generalGroup);
 
-    return result;
+    // line numbers
+    lineNumbersCheck = createCheckBox(generalGroup,
+        PreferencesMessages.DartBasePreferencePage_show_line_numbers,
+        PreferencesMessages.DartBasePreferencePage_show_line_numbers_tooltip);
+
+    // print margin
+    printMarginCheck = createCheckBox(generalGroup,
+        PreferencesMessages.DartBasePreferencePage_show_print_margin,
+        PreferencesMessages.DartBasePreferencePage_show_print_margin_tooltip);
+    printMarginCheck.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        printMarginText.setEnabled(printMarginCheck.getSelection());
+      }
+    });
+
+    printMarginText = new Text(generalGroup, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
+    printMarginText.setTextLimit(5);
+    GridDataFactory.fillDefaults().indent(20, 0).applyTo(printMarginText);
+
+    // TODO(devoncarew): implement the text font preference
+//    // text font
+//    Group textGroup = new Group(composite, SWT.NONE);
+//    textGroup.setText(PreferencesMessages.DartBasePreferencePage_text_font);
+//    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+//        textGroup);
+//    GridLayoutFactory.fillDefaults().numColumns(2).margins(8, 8).applyTo(textGroup);
+//
+//    Label label = new Label(textGroup, SWT.NONE);
+//    label.setText("blah blah 12pt");
+//    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(label);
+//
+//    Button selectFontButton = new Button(textGroup, SWT.PUSH);
+//    selectFontButton.setText(PreferencesMessages.DartBasePreferencePage_select);
+
+    initFromPrefs();
+
+    return composite;
+  }
+
+  private Button createCheckBox(Composite composite, String label, String tooltip) {
+    final Button checkBox = new Button(composite, SWT.CHECK);
+
+    checkBox.setText(label);
+    checkBox.setToolTipText(tooltip);
+
+    return checkBox;
+  }
+
+  private void initFromPrefs() {
+    IPreferenceStore editorPreferences = EditorsPlugin.getDefault().getPreferenceStore();
+
+    lineNumbersCheck.setSelection(editorPreferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_LINE_NUMBER_RULER));
+
+    printMarginCheck.setSelection(editorPreferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN));
+    printMarginText.setText(editorPreferences.getString(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN));
+
+    printMarginText.setEnabled(printMarginCheck.getSelection());
   }
 
 }

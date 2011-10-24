@@ -739,6 +739,7 @@ public final class PreferencesMessages extends NLS {
   public static String ComplianceConfigurationBlock_jrecompliance_info;
   public static String ComplianceConfigurationBlock_jrecompliance_info_project;
   public static String ProblemSeveritiesConfigurationBlock_section_generics;
+
   public static String DartBasePreferencePage_dialogs;
   public static String DartBasePreferencePage_do_not_hide_description;
   public static String DartBasePreferencePage_do_not_hide_button;
@@ -746,6 +747,15 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_do_not_hide_dialog_message;
   public static String DartBasePreferencePage_description_text;
   public static String DartBasePreferencePage_header_text;
+  public static String DartBasePreferencePage_show_line_numbers;
+  public static String DartBasePreferencePage_show_line_numbers_tooltip;
+  public static String DartBasePreferencePage_show_print_margin;
+  public static String DartBasePreferencePage_show_print_margin_tooltip;
+  public static String DartBasePreferencePage_editor_preferences;
+  public static String DartBasePreferencePage_general;
+  public static String DartBasePreferencePage_select;
+  public static String DartBasePreferencePage_text_font;
+
   public static String CodeAssistConfigurationBlock_matchCamelCase_label;
   public static String ComplianceConfigurationBlock_version16;
   public static String ComplianceConfigurationBlock_src_greater_compliance;
