@@ -460,6 +460,11 @@ public class DartLibraryImplTest extends TestCase {
     assertTrue(library.isUnreferenced());
   }
 
+  public void test_DartLibraryImpl_newLibrarySourceFile() throws Exception {
+    DartLibraryImpl library = getDartLibExternal();
+    assertTrue(library.getLibrarySourceFile().getUri().toString().startsWith("file:/"));
+  }
+
   public void test_DartLibraryImpl_nonExistantBundledLib() throws Exception {
     String memento = "= {file:/some/path/to/missing_bundled_lib.dart";
     DartLibraryImpl actual = (DartLibraryImpl) DartCore.create(memento);

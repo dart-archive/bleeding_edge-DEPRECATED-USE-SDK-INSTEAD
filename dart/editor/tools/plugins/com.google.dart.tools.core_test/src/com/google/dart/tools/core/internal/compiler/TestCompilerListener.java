@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.compiler;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
 
 import static org.junit.Assert.assertEquals;
