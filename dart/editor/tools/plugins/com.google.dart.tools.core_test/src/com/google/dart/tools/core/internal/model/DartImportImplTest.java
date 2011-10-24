@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.UrlLibrarySource;
-import com.google.dart.indexer.standard.StandardDriver;
 import com.google.dart.tools.core.test.util.MoneyProjectUtilities;
 
 import junit.framework.TestCase;
@@ -56,12 +55,6 @@ public class DartImportImplTest extends TestCase {
     LibrarySource libSrc = new UrlLibrarySource(new URI("dart:dom"));
     DartImportImpl element = new DartImportImpl(container, libSrc);
     assertBundledLib(element, "dart_dom.lib");
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    // Prevent indexer from interfering with the tests
-    StandardDriver.shutdownForTests();
   }
 
   private void assertBundledLib(DartImportImpl element, final String expectedLibName) {

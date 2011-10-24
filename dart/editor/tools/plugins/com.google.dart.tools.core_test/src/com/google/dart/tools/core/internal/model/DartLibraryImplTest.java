@@ -19,7 +19,6 @@ import com.google.dart.compiler.DefaultLibrarySource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
-import com.google.dart.indexer.standard.StandardDriver;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -493,12 +492,6 @@ public class DartLibraryImplTest extends TestCase {
     assertEquals(1, importedLibraries.length);
     DartLibraryImpl domLib = assertContainsLibImpl(importedLibraries, "dart:dom");
     assertEquals(getDartLibDom(), domLib);
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    // Prevent indexer from interfering with the tests
-    StandardDriver.shutdownForTests();
   }
 
   private CompilationUnitImpl assertContainsCompUnit(DartElement[] elements, String elemPath,

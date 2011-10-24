@@ -18,12 +18,7 @@ import com.google.dart.indexer.workspace.driver.WorkspaceIndexingDriver;
 public class StandardDriver {
   private static WorkspaceIndexingDriver DRIVER = StandardIndexerFactory.createDriver();
 
-  private static boolean testsRunning;
-
   public static synchronized WorkspaceIndexingDriver getInstance() {
-    if (testsRunning) {
-      throw new IllegalStateException("Standard workspace driver creation prohibited when testing");
-    }
     if (DRIVER == null) {
       DRIVER = StandardIndexerFactory.createDriver();
     }
@@ -35,15 +30,5 @@ public class StandardDriver {
       DRIVER.shutdown();
     }
     DRIVER = null;
-  }
-
-  public static void shutdownForTests() {
-    testsRunning = true;
-    if (DRIVER != null) {
-      if (!DRIVER.isShutdown()) {
-        DRIVER.shutdown();
-      }
-      DRIVER = null;
-    }
   }
 }
