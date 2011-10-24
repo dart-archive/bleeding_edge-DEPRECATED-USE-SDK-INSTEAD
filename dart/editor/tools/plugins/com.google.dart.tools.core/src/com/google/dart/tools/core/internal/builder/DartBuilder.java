@@ -33,7 +33,6 @@ import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
@@ -337,7 +336,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
       // queueFilesForIndexer(...);
     } catch (Throwable exception) {
 //      createErrorMarker(getProject(), 0, 0, 0, exception.getMessage());
-      Util.log(exception, "Exception while building " + lib.getElementName());
+      DartCore.logInformation("Exception caught while building " + lib.getElementName(), exception);
     } finally {
       monitor.done();
     }
