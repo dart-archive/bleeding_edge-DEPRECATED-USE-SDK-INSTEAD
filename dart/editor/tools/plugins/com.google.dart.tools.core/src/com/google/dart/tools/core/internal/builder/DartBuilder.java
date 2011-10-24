@@ -28,6 +28,7 @@ import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
@@ -55,10 +56,12 @@ import org.eclipse.core.runtime.SubMonitor;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
@@ -324,8 +327,13 @@ public class DartBuilder extends IncrementalProjectBuilder {
       //3. Have the Messenger tell the MetricsManager that a new build is in
       DartCompilerUtilities.secureCompileLib(libSource, config, provider, listener);
       config.getCompilerMetrics().done();
-//      System.out.println("******** Built Library " + libSource.getName());
-//      config.getCompilerMetrics().write(System.out);
+      if (DartCoreDebug.BUILD) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream(400);
+        PrintStream ps = new PrintStream(out);
+        ps.println("Built Library " + libSource.getName());
+        config.getCompilerMetrics().write(ps);
+        DartCoreDebug.log(out.toString());
+      }
       MetricsMessenger.getSingleton().fireUpdates(config,
           new Path(libSource.getName()).lastSegment());
 

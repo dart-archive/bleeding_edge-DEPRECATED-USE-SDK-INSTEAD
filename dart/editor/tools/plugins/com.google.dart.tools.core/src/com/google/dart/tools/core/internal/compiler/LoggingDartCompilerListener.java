@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright 2011 Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -16,27 +16,30 @@ package com.google.dart.tools.core.internal.compiler;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.tools.core.DartCore;
 
 /**
- * Instances of the class <code>SilentDartCompilerListener</code> implement a compiler listener that
- * ignores errors and warnings.
+ * Log compilation errors for debugging purposes
  */
-public class SilentDartCompilerListener extends DartCompilerListener {
+public class LoggingDartCompilerListener extends DartCompilerListener {
   /**
    * A compiler listener that can be shared.
    */
-  public static final SilentDartCompilerListener INSTANCE = new SilentDartCompilerListener();
+  public static final LoggingDartCompilerListener INSTANCE = new LoggingDartCompilerListener();
 
   @Override
   public void compilationError(DartCompilationError event) {
+    DartCore.logError("Compilation error: " + event);
   }
 
   @Override
   public void compilationWarning(DartCompilationError event) {
+    DartCore.logError("Compilation warning: " + event);
   }
 
   @Override
   public void typeError(DartCompilationError event) {
+    DartCore.logError("Type error: " + event);
   }
 
   @Override

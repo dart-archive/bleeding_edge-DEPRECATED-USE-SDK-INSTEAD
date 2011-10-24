@@ -191,7 +191,6 @@ public class DartCompilerUtilities {
     private int completionLocation;
     private DartNode completionNode;
     private LibraryWithSuppliedSources librarySource;
-    private URI unitUri;
     private DartUnit parsedUnit;
     private DartSourceString source;
     private DartNode analyzedNode;
@@ -207,7 +206,6 @@ public class DartCompilerUtilities {
       completionNode.getClass(); // quick null check
       parseErrors.getClass(); // quick null check
       this.librarySource = new LibraryWithSuppliedSources(librarySource, suppliedSources);
-      this.unitUri = unitUri;
       this.parsedUnit = suppliedUnit;
       this.completionNode = completionNode;
       this.completionLocation = completionLocation;
@@ -750,20 +748,6 @@ public class DartCompilerUtilities {
     synchronized (compilerLock) {
       // Any calls to compiler involving artifact provider must be synchronized
       DartCompiler.compileLib(libSource, config, provider, listener);
-    }
-  }
-
-  /**
-   * Perform some work that will cause compiler classes to be loaded, Dart core and dom classes to
-   * be resolved, and possibly cause some compiler classes to be jitted.
-   */
-  public static void warmUpCompiler() {
-    // TODO(devoncarew): this does not seem to warm up much at all - we'll need to do some real
-    // compiling. (try adding directives to compile html or dom, all this gets is core)
-    try {
-      parseSource("hello", "class hello {\n}\n");
-    } catch (DartModelException ex) {
-      DartCore.logError(ex);
     }
   }
 

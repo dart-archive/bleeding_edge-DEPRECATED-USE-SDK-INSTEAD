@@ -1,0 +1,2 @@
+com.google.dart.tools.core/debug/build = false
+com.google.dart.tools.core/debug/warmup = false

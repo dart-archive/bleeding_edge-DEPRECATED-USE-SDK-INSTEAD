@@ -13,9 +13,10 @@
  */
 package com.google.dart.tools.ui;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.indexer.DartIndexer;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerWarmup;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -64,15 +65,12 @@ public class DartUIStartup implements IStartup {
     }
 
     private void compilerWarmup() {
-      // TODO(devoncarew): once the warmUpCompiler() method is performing useful work,
-      // time it and find out how many calls gets us the best bang for the buck. If the
-      // 3rd call speeds up significantly, then call warmUpCompiler() twice.
-
-      //long start = System.currentTimeMillis();
-
-      DartCompilerUtilities.warmUpCompiler();
-
-      //System.out.println("compiler: " + (System.currentTimeMillis() - start) + "ms");
+      long start = System.currentTimeMillis();
+      DartCompilerWarmup.warmUpCompiler();
+      if (DartCoreDebug.WARMUP) {
+        long delta = System.currentTimeMillis() - start;
+        DartCoreDebug.log("Warmup Compiler : " + delta);
+      }
     }
 
     private void delay(int timeInMillis) throws InterruptedException {
@@ -83,13 +81,23 @@ public class DartUIStartup implements IStartup {
 
     private void indexerWarmup() throws InterruptedException {
       // This will initialize the Dart Tools Core plugin as well as the indexer plugin.
+      long start = System.currentTimeMillis();
       DartModelManager.getInstance().getDartModel();
+      if (DartCoreDebug.WARMUP) {
+        long delta = System.currentTimeMillis() - start;
+        DartCoreDebug.log("Warmup Model : " + delta);
+      }
 
       delay(500);
 
       if (!getThread().isInterrupted()) {
         // Warm up the type cache.
+        start = System.currentTimeMillis();
         DartIndexer.warmUpIndexer();
+        if (DartCoreDebug.WARMUP) {
+          long delta = System.currentTimeMillis() - start;
+          DartCoreDebug.log("Warmup Indexer : " + delta);
+        }
       }
     }
   }
