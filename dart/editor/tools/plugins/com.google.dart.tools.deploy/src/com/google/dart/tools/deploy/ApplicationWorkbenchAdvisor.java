@@ -16,8 +16,15 @@ package com.google.dart.tools.deploy;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole.MessageStream;
 
+import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.filesystem.IFileTree;
+import org.eclipse.core.internal.localstore.UnifiedTree;
+import org.eclipse.core.internal.resources.Resource;
+import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
@@ -30,6 +37,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Preferences;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -472,12 +480,34 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     Job job = new WorkspaceJob(IDEWorkbenchMessages.Workspace_refreshing) {
       @Override
       public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
-        root.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+        refreshResources((IWorkspaceRoot) root, monitor);
         return Status.OK_STATUS;
       }
     };
     job.setRule(root);
     job.schedule();
+  }
+
+  private void refreshResources(IWorkspaceRoot root, IProgressMonitor monitor) throws CoreException {
+    IProject[] projects = root.getProjects();
+    for (IProject target : projects) {
+      if (!target.isAccessible()) {
+        continue;
+      }
+
+      RefreshLinkedVisitor visitor = new RefreshLinkedVisitor(monitor);
+      IFileStore fileStore = ((Resource) target).getStore();
+      //try to get all info in one shot, if file system supports it
+      IFileTree fileTree = fileStore.getFileSystem().fetchFileTree(fileStore,
+          new SubProgressMonitor(monitor, 0));
+      UnifiedTree tree = fileTree == null ? new UnifiedTree(target) : new UnifiedTree(target,
+          fileTree);
+      tree.accept(visitor, IResource.DEPTH_INFINITE);
+      IStatus result = visitor.getErrorStatus();
+      if (!result.isOK()) {
+        Activator.logError(new ResourceException(result));
+      }
+    }
   }
 
 }
