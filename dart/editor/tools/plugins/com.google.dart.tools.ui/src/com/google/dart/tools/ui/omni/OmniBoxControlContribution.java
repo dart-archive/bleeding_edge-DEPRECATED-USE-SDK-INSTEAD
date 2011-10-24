@@ -296,7 +296,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
             @Override
             public void run() {
               Control focusControl = Display.getDefault().getFocusControl();
-              if (focusControl != control && focusControl != popup.table) {
+              if (focusControl != control && popup != null && focusControl != popup.table) {
                 popup.close();
               }
             }
