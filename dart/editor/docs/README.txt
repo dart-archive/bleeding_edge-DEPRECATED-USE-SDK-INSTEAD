@@ -19,7 +19,7 @@ Notes about Dart Editor workspace setup, development, build, and deploy.
   Get the Source
 ====================================
 
-* See http://dartlang.org to check out the Dart source.
+* See http://code.google.com/p/dart/wiki/GettingTheSource to check out the Dart source.
    
 ====================================
   Workspace Configuration
@@ -31,7 +31,7 @@ is under the "Eclipse" menu, not under "Window".
 ------------- Dependent Plugins -----------
 
 Install the Chrome developer tools...
-   Update Site: dart/trunk/dart/third_party/chromesdk/0.3.0
+   Update Site: dart/third_party/chromesdk/0.3.0
    You just need the ChromeDevTools SDK feature.
 
 ------------- Linked Resources ------------
@@ -73,10 +73,6 @@ Enable "Wrap Long Element Tags"
 Window->Preferences->General->Editors->Text Editors->Spelling
 Enable spell checking
 Use <DART_TRUNK>/editor/docs/english.dictionary".
-
------------- Output Filtering --------------
-
-<NONE>
 
 ----------- Code Templates ----------------
 
@@ -167,8 +163,6 @@ Set to ignore:
 
 File -> Import -> General -> Existing Projects into Workspace
 
-Import the existing projects in <DART_TRUNK>/compiler/eclipse.workspace
-
 Import the existing projects in <DART_TRUNK>/editor
   (including the "docs" project containing this README.txt file)
 
@@ -178,24 +172,27 @@ Import the project in <DART_TRUNK>/third_party/closure_compiler_src
   Building Closure
 ====================================
 
-We now build the closure compiler from source. To do this, right click on closure-compiler/build.xml
+We require the closure compiler to build dartc. To build it, right click on closure-compiler/build.xml
 and choose Run As > Ant Build (the default option, not the Ant Build... option). This will create
 the closure-compiler/build/compiler.jar library, which will be picked up by the 
 com.google.dart.compiler.js project.
 
-Refresh the closure-compiler project for Eclipse to see the new files.
+Alternatively, run ant from the third_party/closure_compiler directory.
+
+Refresh the closure-compiler and com.google.dart.compiler.js projects for Eclipse to see the new
+files.
 
 ====================================
-  Launching the Plugin
+  Launching the Dart Editor
 ====================================
 
-Once your projects have been imported, go to the Package Explorer and
-right-click on the "com.google.dart.tools.ui" project. Go to "Run As", and select
-"Eclipse Application". Another instance of Eclipse should launch, running the Dart
-plugin!
-    
+Once your projects have been imported, go to the Package Explorer and open the 
+dart_feature.product file in the com.google.dart.tools.deploy project. Under the
+Testing section, click on the 'Launch an Eclipse Application' link. Another instance of
+Eclipse should launch, running the Dart Editor!
+
 ====================================
-  Building Dart Editor
+  Building the Dart Editor
 ====================================
-    
-Run the build_rcp.xml ant script in the com.google.dart.tools.deploy.feature_releng project.
+
+See the dart/editor/build/README.txt file for build instructions.
