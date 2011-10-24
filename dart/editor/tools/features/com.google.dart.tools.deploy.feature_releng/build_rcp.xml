@@ -290,6 +290,18 @@ build system.  The PDE build system has to run under Eclipse.
             </fileset>
         </copy>
 
+        <replace dir="${samples.out.dir}"
+          token='script type="application/dart"'
+          value='script type="text/javascript"'>
+          <include name="**/*.html"/>
+        </replace>
+
+        <replace dir="${samples.out.dir}"
+          token='.dart"'
+          value='.dart.app.js"'>
+          <include name="**/*.html"/>
+        </replace>
+
         <!-- copy bundled Dart libraries -->
         <property name="dart.compiler.js.dir" 
                   value="${build.stage.plugins}/com.google.dart.compiler.js" />
