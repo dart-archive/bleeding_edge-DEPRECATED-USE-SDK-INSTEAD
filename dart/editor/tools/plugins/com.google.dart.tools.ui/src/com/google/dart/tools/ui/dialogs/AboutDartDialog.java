@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -43,7 +43,7 @@ public class AboutDartDialog extends Shell {
     super(shell, SWT.CLOSE | SWT.TITLE);
 
     setText(DialogsMessages.AboutDartDialog_title_text);
-    setLayout(GridLayoutFactory.fillDefaults().spacing(0, 0).margins(0, 0).create());
+    setLayout(GridLayoutFactory.fillDefaults().spacing(0, 5).margins(0, 0).create());
 
     createContents();
   }
@@ -72,21 +72,19 @@ public class AboutDartDialog extends Shell {
     productNameLabel.setText(DialogsMessages.AboutDartDialog_product_label);
 
     Label versionLabel = newLabel(SWT.NONE);
-    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).indent(5, 8).applyTo(versionLabel);
+    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(versionLabel);
     versionLabel.setText(DialogsMessages.AboutDartDialog_version_string_prefix + getVersion());
 
     Label revisionsLabel = newLabel(SWT.NONE);
-    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).indent(5, 8).applyTo(revisionsLabel);
+    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(revisionsLabel);
     revisionsLabel.setText("Build @REVISION@");
 
     Label copyrightLabel = newLabel(SWT.NONE);
-    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).indent(5, 5).applyTo(
-        copyrightLabel);
+    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(copyrightLabel);
     copyrightLabel.setText(DialogsMessages.AboutDartDialog_copyright);
 
     Label copyrightLabel2 = newLabel(SWT.NONE);
-    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).indent(5, 3).applyTo(
-        copyrightLabel2);
+    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(copyrightLabel2);
     copyrightLabel2.setText(DialogsMessages.AboutDartDialog_copyright_line2);
 
     //spacer
