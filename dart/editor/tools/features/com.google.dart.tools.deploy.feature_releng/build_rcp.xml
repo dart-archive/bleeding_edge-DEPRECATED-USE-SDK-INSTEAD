@@ -150,7 +150,7 @@ build system.  The PDE build system has to run under Eclipse.
         <property name="build.revision" value="unknown" />
         <dirname file="${build.source}" property="build.source.root"/>
 
-	<property name="build.thirdparty" location="${build.source.root}/third_party" />
+        <property name="build.thirdparty" location="${build.source.root}/third_party" />
         
         <property file="${default-user.property.file}" />
         <property name="build.stage.scripts" location="${build.stage}/scripts" />
@@ -238,6 +238,11 @@ build system.  The PDE build system has to run under Eclipse.
             <replacefilter token="@REVISION@" value="${build.revision}" />
         </replace>
         
+        <replace dir="${build.stage.plugins}/com.google.dart.tools.ui" >
+            <include name="**/AboutDartDialog.java" />
+            <replacefilter token="@REVISION@" value="${build.revision}" />
+        </replace>
+
         <!-- create the samples directory -->
         <property name="samples.out.dir" 
                   value="${build.stage.features}/com.google.dart.tools.deploy.feature/include/samples" />
