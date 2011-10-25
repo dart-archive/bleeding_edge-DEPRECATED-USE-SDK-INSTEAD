@@ -70,7 +70,7 @@ import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.internal.compiler.SilentDartCompilerListener;
-import com.google.dart.tools.core.internal.completion.LocalVariableFinder.LocalName;
+import com.google.dart.tools.core.internal.completion.ScopedNameFinder.ScopedName;
 import com.google.dart.tools.core.internal.completion.ast.BlockCompleter;
 import com.google.dart.tools.core.internal.completion.ast.FunctionCompleter;
 import com.google.dart.tools.core.internal.completion.ast.MethodInvocationCompleter;
@@ -362,6 +362,11 @@ public class CompletionEngine {
               // { x; v! x; } or { v! x; }
               proposeIdentifierPrefixCompletions(typeCompleter);
               break;
+            case FunctionLiteral:
+              // at top level
+              // final num PI2 = Mat!
+              proposeTypesForPrefix(identifier);
+              break;
             case ClassBody:
               // class x extends A! (A may be empty string)
               // class x implements I! (parser error if I is empty string)
@@ -429,6 +434,7 @@ public class CompletionEngine {
         proposeTypesForPrefix(identifier, false);
       } else {
         // TODO top-level element
+        proposeTypesForPrefix(identifier, false);
       }
     }
   }
@@ -1085,20 +1091,30 @@ public class CompletionEngine {
   private void createCompletionsForLocalVariables(DartNode terminalNode, DartIdentifier node,
       DartClassMember<? extends DartExpression> method) {
     String prefix = extractFilterPrefix(node);
-    LocalVariableFinder vars = new LocalVariableFinder();
+    ScopedNameFinder vars = new ScopedNameFinder();
     terminalNode.accept(vars);
-    Map<String, LocalName> localNames = vars.getLocals();
-    for (LocalName para : localNames.values()) {
+    Map<String, ScopedName> localNames = vars.getLocals();
+    for (ScopedName para : localNames.values()) {
       String name = para.getName();
       if (prefix != null && !name.startsWith(prefix)) {
         continue;
       }
       Element element = para.getSymbol();
-      String typeName = ((InterfaceType) element.getType()).toString();
+      boolean isSetter = element.getModifiers().isSetter();
+      boolean isGetter = element.getModifiers().isGetter();
+      boolean isMethod = element.getKind() == ElementKind.METHOD;
+      String typeName = isMethod ? ((MethodElement) element).getReturnType().getElement().getName()
+          : element.getType().toString();
+      int kind = isMethod ? CompletionProposal.METHOD_REF : (isGetter || isSetter)
+          ? CompletionProposal.FIELD_REF : CompletionProposal.LOCAL_VARIABLE_REF;
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-          CompletionProposal.LOCAL_VARIABLE_REF, actualCompletionPosition - offset);
+          kind, actualCompletionPosition - offset);
       proposal.setSignature(typeName.toCharArray());
+      proposal.setIsGetter(isGetter);
+      proposal.setIsSetter(isSetter);
       proposal.setCompletion(name.toCharArray());
+      proposal.setDeclarationSignature(name.toCharArray());
+      proposal.setTypeName(typeName.toCharArray());
       proposal.setName(name.toCharArray());
       setSourceLoc(proposal, node, prefix);
       proposal.setRelevance(1);

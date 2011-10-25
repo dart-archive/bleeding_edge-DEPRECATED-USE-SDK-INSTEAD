@@ -15,18 +15,23 @@ package com.google.dart.tools.core.internal.completion;
 
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartCatchBlock;
+import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartForInStatement;
 import com.google.dart.compiler.ast.DartForStatement;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
+import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartSwitchMember;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.VariableElement;
 
 import java.util.HashMap;
@@ -38,9 +43,9 @@ import java.util.Map;
  * variable and parameter names visible to the initial child node. In case of name shadowing, the
  * first name seen is the most specific one so names are not redefined.
  */
-public class LocalVariableFinder extends DartNodeTraverser<Void> {
+public class ScopedNameFinder extends DartNodeTraverser<Void> {
 
-  public abstract static class LocalName {
+  public abstract static class ScopedName {
 
     public abstract String getName();
 
@@ -49,7 +54,55 @@ public class LocalVariableFinder extends DartNodeTraverser<Void> {
     public abstract Element getSymbol();
   }
 
-  private static class Param extends LocalName {
+  private static class Field extends ScopedName {
+    private DartField field;
+
+    Field(DartField field) {
+      this.field = field;
+    }
+
+    @Override
+    public String getName() {
+      return field.getName().getTargetName();
+    }
+
+    @Override
+    public DartNode getNode() {
+      return field;
+    }
+
+    @Override
+    public FieldElement getSymbol() {
+      return field.getSymbol();
+    }
+
+  }
+
+  private static class Method extends ScopedName {
+    private DartMethodDefinition method;
+
+    Method(DartMethodDefinition method) {
+      this.method = method;
+    }
+
+    @Override
+    public String getName() {
+      return method.getSymbol().getName();
+    }
+
+    @Override
+    public DartNode getNode() {
+      return method;
+    }
+
+    @Override
+    public Element getSymbol() {
+      return method.getSymbol();
+    }
+
+  }
+
+  private static class Param extends ScopedName {
     private DartParameter param;
 
     Param(DartParameter param) {
@@ -72,7 +125,7 @@ public class LocalVariableFinder extends DartNodeTraverser<Void> {
     }
   }
 
-  private static class Var extends LocalName {
+  private static class Var extends ScopedName {
     private DartVariable var;
 
     Var(DartVariable var) {
@@ -96,9 +149,9 @@ public class LocalVariableFinder extends DartNodeTraverser<Void> {
   }
 
   private DartNode immediateChild;
-  private Map<String, LocalName> locals = new HashMap<String, LocalName>();
+  private Map<String, ScopedName> locals = new HashMap<String, ScopedName>();
 
-  public Map<String, LocalName> getLocals() {
+  public Map<String, ScopedName> getLocals() {
     return locals;
   }
 
@@ -162,9 +215,44 @@ public class LocalVariableFinder extends DartNodeTraverser<Void> {
   }
 
   @Override
+  public Void visitUnit(DartUnit unit) {
+    for (DartNode node : unit.getTopLevelNodes()) {
+      if (node == immediateChild) {
+        continue;
+      }
+      if (node instanceof DartFieldDefinition) {
+        DartFieldDefinition field = (DartFieldDefinition) node;
+        addToScope(field);
+      } else if (node instanceof DartMethodDefinition) {
+        DartMethodDefinition method = (DartMethodDefinition) node;
+        addToScope(method);
+      }
+    }
+    return null;
+  }
+
+  @Override
   public Void visitVariableStatement(DartVariableStatement node) {
     addVariables(node);
     return visitNode(node);
+  }
+
+  private void addToScope(DartFieldDefinition fieldDef) {
+    for (DartField field : fieldDef.getFields()) {
+      String name = field.getName().getTargetName();
+      if (locals.get(name) != null) {
+        return;
+      }
+      locals.put(name, new Field(field));
+    }
+  }
+
+  private void addToScope(DartMethodDefinition method) {
+    String name = method.getSymbol().getName();
+    if (locals.get(name) != null) {
+      return;
+    }
+    locals.put(name, new Method(method));
   }
 
   private void addToScope(DartParameter var) {
