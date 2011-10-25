@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -28,6 +29,7 @@ import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -39,6 +41,7 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorRegistry;
@@ -54,6 +57,7 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.progress.UIJob;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -86,13 +90,7 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
 
     @Override
     public IStatus runInUIThread(IProgressMonitor monitor) {
-      try {
-        String editorId = IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID;
-        page.openEditor(new FileEditorInput(file), editorId, true, MATCH_BOTH);
-      } catch (PartInitException e) {
-        ExceptionHandler.handle(e, window.getShell(), ActionMessages.OpenInBrowserAction_title,
-            ActionMessages.OpenInBrowserAction_couldNotOpenFile);
-      }
+      launchBrowserForHtmlFile(page, file);
 
       return Status.OK_STATUS;
     }
@@ -102,6 +100,10 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
    * The id of this action.
    */
   public static final String ACTION_ID = DartToolsPlugin.PLUGIN_ID + ".runInBrowserAction"; //$NON-NLS-1$
+
+  public static File getJsAppArtifactFile(IPath sourceLocation) {
+    return sourceLocation.addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
+  }
 
   private IWorkbenchWindow window;
 
@@ -169,6 +171,48 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
   public void selectionChanged(SelectionChangedEvent event) {
     if (event.getSelection() instanceof IStructuredSelection) {
       handleSelectionChanged((IStructuredSelection) event.getSelection());
+    }
+  }
+
+  void launchBrowserForHtmlFile(IWorkbenchPage page, IFile file) {
+    DartElement element = DartCore.create(file);
+
+    if (element == null) {
+      MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_unableToLaunch,
+          ActionMessages.OpenInBrowserAction_notInDartLib);
+    } else if (!(element instanceof HTMLFile)) {
+      MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_unableToLaunch,
+          ActionMessages.OpenInBrowserAction_notAnHtmlFile);
+    } else {
+      // check that the js output file exists
+      HTMLFile htmlFile = (HTMLFile) element;
+
+      try {
+        if (htmlFile.getReferencedLibraries().length > 0) {
+          DartLibrary library = htmlFile.getReferencedLibraries()[0];
+          File jsOutFile = getJsAppArtifactFile(library.getCorrespondingResource().getLocation());
+
+          if (jsOutFile.exists()) {
+            try {
+              String editorId = IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID;
+              page.openEditor(new FileEditorInput(file), editorId, true, MATCH_BOTH);
+            } catch (PartInitException e) {
+              ExceptionHandler.handle(e, window.getShell(),
+                  ActionMessages.OpenInBrowserAction_title,
+                  ActionMessages.OpenInBrowserAction_couldNotOpenFile);
+            }
+          } else {
+            MessageDialog.openError(
+                window.getShell(),
+                ActionMessages.OpenInBrowserAction_unableToLaunch,
+                NLS.bind(ActionMessages.OpenInBrowserAction_noJSFile, file.getName(),
+                    library.getDisplayName()));
+          }
+        }
+      } catch (DartModelException ex) {
+        ExceptionHandler.handle(ex, window.getShell(), ActionMessages.OpenInBrowserAction_title,
+            ActionMessages.OpenInBrowserAction_couldNotOpenFile);
+      }
     }
   }
 

@@ -273,6 +273,13 @@ public class DartBuilder extends IncrementalProjectBuilder {
       monitor.beginTask("Building " + lib.getElementName(),
           lib.getCompilationUnits().length * 2 + 630);
 
+      // Delete the previous compiler output, if it exists.
+      File file = getJsAppArtifactFile(lib.getCorrespondingResource());
+
+      if (file != null && file.exists()) {
+        file.delete();
+      }
+
       // Call the Dart to JS compiler
       final LibrarySource libSource = libImpl.getLibrarySourceFile();
       final CompilerMetrics metrics = new CompilerMetrics();
@@ -374,7 +381,6 @@ public class DartBuilder extends IncrementalProjectBuilder {
   }
 
   private void emitArtifactDetailsToConsole(DartLibraryImpl libImpl) throws DartModelException {
-    DartCore.getConsole().clear();
     File artifactFile = getJsAppArtifactFile(libImpl.getCorrespondingResource());
     if (artifactFile != null) {
       DartCore.getConsole().println(

@@ -250,6 +250,10 @@ public final class ActionMessages extends NLS {
   public static String OpenInBrowserAction_errorMessage;
 
   public static String OpenInBrowserAction_title;
+  public static String OpenInBrowserAction_unableToLaunch;
+  public static String OpenInBrowserAction_notInDartLib;
+  public static String OpenInBrowserAction_notAnHtmlFile;
+  public static String OpenInBrowserAction_noJSFile;
 
   public static String OpenInBrowserAction_toolTip;
 
