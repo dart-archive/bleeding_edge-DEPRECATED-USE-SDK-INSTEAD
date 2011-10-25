@@ -77,6 +77,7 @@ import com.google.dart.tools.core.internal.completion.ast.MethodInvocationComple
 import com.google.dart.tools.core.internal.completion.ast.ParameterCompleter;
 import com.google.dart.tools.core.internal.completion.ast.PropertyAccessCompleter;
 import com.google.dart.tools.core.internal.completion.ast.TypeCompleter;
+import com.google.dart.tools.core.internal.model.DartFunctionTypeAliasImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
 import com.google.dart.tools.core.internal.util.CharOperation;
@@ -358,6 +359,8 @@ public class CompletionEngine {
                 proposeTypesForPrefix(identifier);
               }
               break;
+            case ForInitialization:
+              // {for (in!t x = 0; i < 5; i++); }
             case TypeFunctionOrVariable:
               // { x; v! x; } or { v! x; }
               proposeIdentifierPrefixCompletions(typeCompleter);
@@ -612,23 +615,24 @@ public class CompletionEngine {
       // parameter type prefix: bar(B!) {} or bar(1, B!) {}
       if (node instanceof ParameterCompleter) {
         ParameterCompleter param = (ParameterCompleter) node;
-        DartTypeNode type = param.getTypeNode();
-        if (type == null) {
-          // when completion is requested on the first word of a param decl we assume it is a type
-          DartExpression typeName = param.getName();
-          if (typeName.getSourceStart() <= actualCompletionPosition
-              && typeName.getSourceStart() + typeName.getSourceLength() >= actualCompletionPosition) {
-            if (typeName instanceof DartIdentifier) {
-              DartIdentifier typeId = (DartIdentifier) typeName;
-              List<SearchMatch> matches = findTypesWithPrefix(typeId);
-              if (matches == null || matches.size() == 0) {
-                return null;
-              }
-              for (SearchMatch match : matches) {
-                String prefix = extractFilterPrefix(typeId);
-                createTypeCompletionsForParameterDecl(typeId, match, prefix);
-              }
-            } else if (typeName instanceof DartPropertyAccess) {
+        // when completion is requested on the first word of a param decl we assume it is a type
+        DartExpression typeName = param.getName();
+        if (typeName.getSourceStart() <= actualCompletionPosition
+            && typeName.getSourceStart() + typeName.getSourceLength() >= actualCompletionPosition) {
+          if (typeName instanceof DartIdentifier) {
+            DartIdentifier typeId = (DartIdentifier) typeName;
+            List<SearchMatch> matches = findTypesWithPrefix(typeId);
+            if (matches == null || matches.size() == 0) {
+              return null;
+            }
+            for (SearchMatch match : matches) {
+              String prefix = extractFilterPrefix(typeId);
+              createTypeCompletionsForParameterDecl(typeId, match, prefix);
+            }
+          } else if (typeName instanceof DartPropertyAccess) {
+            DartPropertyAccess prop = (DartPropertyAccess) typeName;
+            if (isCompletionAfterDot
+                || actualCompletionPosition + 1 >= prop.getName().getSourceStart()) {
               // { class X { X(this.!c) : super() {}}
               typeName.accept(this);
             }
@@ -1234,7 +1238,7 @@ public class CompletionEngine {
   private void createCompletionsForStaticVariables(DartIdentifier identifier, DartClass classDef) {
     ClassElement elem = classDef.getSymbol();
     Type type = elem.getType();
-    createCompletionsForPropertyAccess(identifier, type, false, false);
+    createCompletionsForPropertyAccess(identifier, type, false, true);
   }
 
   private void createProposalsForLiterals(DartNode node, String... names) {
@@ -1307,7 +1311,21 @@ public class CompletionEngine {
 
   private void createTypeCompletionsForParameterDecl(DartNode node, SearchMatch match, String prefix) {
     DartElement element = match.getElement();
-    if (!(element instanceof com.google.dart.tools.core.model.Type)) {
+    String name;
+    boolean isInterface;
+    if (element instanceof DartFunctionTypeAliasImpl) {
+      DartFunctionTypeAliasImpl alias = (DartFunctionTypeAliasImpl) element;
+      name = alias.getElementName();
+      isInterface = false;
+    } else if (element instanceof com.google.dart.tools.core.model.Type) {
+      com.google.dart.tools.core.model.Type type = (com.google.dart.tools.core.model.Type) element;
+      name = type.getElementName();
+      try {
+        isInterface = type.isInterface();
+      } catch (DartModelException ex) {
+        isInterface = false;
+      }
+    } else {
       return;
     }
     boolean disallowPrivate = true;
@@ -1317,8 +1335,6 @@ public class CompletionEngine {
         prefix = null;
       }
     }
-    com.google.dart.tools.core.model.Type type = (com.google.dart.tools.core.model.Type) element;
-    String name = type.getElementName();
     if (disallowPrivate && name.startsWith("_")) {
       return;
     }
@@ -1327,11 +1343,7 @@ public class CompletionEngine {
     char[] nameChars = name.toCharArray();
     proposal.setCompletion(nameChars);
     proposal.setSignature(nameChars);
-    try {
-      proposal.setIsInterface(type.isInterface());
-    } catch (DartModelException ex) {
-      // no one cares
-    }
+    proposal.setIsInterface(isInterface);
     setSourceLoc(proposal, node, prefix);
     proposal.setRelevance(1);
     requestor.accept(proposal);
@@ -1406,8 +1418,24 @@ public class CompletionEngine {
     List<SearchMatch> matches = listener.getMatches();
     try {
       int idx = 0;
-      // TODO remove this loop if the current comp unit has no additional types
       for (com.google.dart.tools.core.model.Type localType : getCurrentCompilationUnit().getTypes()) {
+        String typeName = localType.getElementName();
+        if (typeName.startsWith(prefix)) { // this test is case sensitive
+          SearchMatch match = new SearchMatch(MatchQuality.EXACT, MatchKind.NOT_A_REFERENCE,
+              localType, localType.getSourceRange());
+          boolean found = false;
+          for (SearchMatch foundMatch : matches) {
+            if (foundMatch.getElement().getElementName().equals(typeName)) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            matches.add(idx++, match);
+          }
+        }
+      }
+      for (com.google.dart.tools.core.model.DartFunctionTypeAlias localType : getCurrentCompilationUnit().getFunctionTypeAliases()) {
         String typeName = localType.getElementName();
         if (typeName.startsWith(prefix)) { // this test is case sensitive
           SearchMatch match = new SearchMatch(MatchQuality.EXACT, MatchKind.NOT_A_REFERENCE,
@@ -1433,7 +1461,7 @@ public class CompletionEngine {
   }
 
   private CompilationUnit getCurrentCompilationUnit() {
-    // TODO verify that this is actually useful -- if type search finds local defs it is not
+    // This is actually useful -- type search does not find local defs
     return currentCompilationUnit;
   }
 

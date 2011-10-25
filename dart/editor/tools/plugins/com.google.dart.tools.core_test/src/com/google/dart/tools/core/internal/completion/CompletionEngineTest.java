@@ -30,17 +30,42 @@ import java.util.Hashtable;
  */
 public class CompletionEngineTest extends TestCase {
 
-//  public void testCompletion_ifStmt_field1() throws Exception {
-//    // failure expected due to resolver NPE
-//    MockCompletionRequestor requestor = testCompletion("class Foo { int myField = 7; mth() { if (!) {}}}");
-//    requestor.assertSuggested("myField");
+//  public void testCompletion_alias_field() throws Exception {
+//    // fails because test framework does not set compilation unit
+//    // tests cannot check completion of any type defined in the test
+//    MockCompletionRequestor requestor = testCompletion("typedef int fnint(int k); fn!int x;");
+//    requestor.assertSuggested("fnint");
 //  }
-//
-//  public void testCompletion_ifStmt_field1a() throws Exception {
-//    // failure expected because parser can't handle if with no test or block
-//    MockCompletionRequestor requestor = testCompletion("class Foo { int myField = 7; mth() { if (!) }}");
-//    requestor.assertSuggested("myField");
-//  }
+
+  public void testCompletion_constructor_field() throws Exception {
+    MockCompletionRequestor requestor = testCompletion("class X { X(this.field); int f!ield;}");
+    requestor.assertSuggested("field");
+  }
+
+  public void testCompletion_forStmt_incVar() throws Exception {
+    MockCompletionRequestor requestor = testCompletion("class Foo { mth() { for (int i = 0; i < 5; i!++); }}");
+    requestor.assertSuggested("i");
+  }
+
+  public void testCompletion_forStmt_testVar() throws Exception {
+    MockCompletionRequestor requestor = testCompletion("class Foo { mth() { for (int i = 0; i! < 5; i++); }}");
+    requestor.assertSuggested("i");
+  }
+
+  public void testCompletion_forStmt_typeInit() throws Exception {
+    MockCompletionRequestor requestor = testCompletion("class Foo { mth() { for (in!t i = 0; i < 5; i++); }}");
+    requestor.assertSuggested("int");
+  }
+
+  public void testCompletion_ifStmt_field1() throws Exception {
+    MockCompletionRequestor requestor = testNonCompletion("class Foo { int myField = 7; mth() { if (!) {}}}");
+    requestor.assertNotSuggested("myField");
+  }
+
+  public void testCompletion_ifStmt_field1a() throws Exception {
+    MockCompletionRequestor requestor = testNonCompletion("class Foo { int myField = 7; mth() { if (!) }}");
+    requestor.assertNotSuggested("myField");
+  }
 
   public void testCompletion_ifStmt_field2() throws Exception {
     MockCompletionRequestor requestor = testCompletion("class Foo { int myField = 7; mth() { if (m!) {}}}");
@@ -52,33 +77,30 @@ public class CompletionEngineTest extends TestCase {
     requestor.assertSuggested("myField");
   }
 
-//  public void testCompletion_ifStmt_field2b() throws Exception {
-//    // failure expected because compiler claims myField is not resolvable
-//    MockCompletionRequestor requestor = testCompletion("class Foo { myField = 7; mth() { if (m!) {}}}");
-//    requestor.assertSuggested("myField");
-//  }
+  public void testCompletion_ifStmt_field2b() throws Exception {
+    MockCompletionRequestor requestor = testNonCompletion("class Foo { myField = 7; mth() { if (m!) {}}}");
+    requestor.assertNotSuggested("myField");
+  }
 
   public void testCompletion_ifStmt_localVar() throws Exception {
     MockCompletionRequestor requestor = testCompletion("class Foo { mth() { int value = 7; if (v!) {}}}");
     requestor.assertSuggested("value");
   }
 
-//  public void testCompletion_ifStmt_localVara() throws Exception {
-//    // failure expected because compiler claims value is not resolvable
-//    MockCompletionRequestor requestor = testCompletion("class Foo { mth() { value = 7; if (v!) {}}}");
-//    requestor.assertSuggested("value");
-//  }
-//
-//  public void testCompletion_ifStmt_topLevelVar() throws Exception {
-//    MockCompletionRequestor requestor = testCompletion("int topValue = 7; class Foo { mth() { if (t!) {}}}");
-//    requestor.assertSuggested("topValue");
-//  }
-//
-//  public void testCompletion_ifStmt_topLevelVara() throws Exception {
-//    // failure expected because topValue not recognized w/o type declaration
-//    MockCompletionRequestor requestor = testCompletion("topValue = 7; class Foo { mth() { if (t!) {}}}");
-//    requestor.assertSuggested("topValue");
-//  }
+  public void testCompletion_ifStmt_localVara() throws Exception {
+    MockCompletionRequestor requestor = testNonCompletion("class Foo { mth() { value = 7; if (v!) {}}}");
+    requestor.assertNotSuggested("value");
+  }
+
+  public void testCompletion_ifStmt_topLevelVar() throws Exception {
+    MockCompletionRequestor requestor = testCompletion("int topValue = 7; class Foo { mth() { if (t!) {}}}");
+    requestor.assertSuggested("topValue");
+  }
+
+  public void testCompletion_ifStmt_topLevelVara() throws Exception {
+    MockCompletionRequestor requestor = testNonCompletion("topValue = 7; class Foo { mth() { if (t!) {}}}");
+    requestor.assertNotSuggested("topValue");
+  }
 
   public void testCompletion_newMemberType1() throws Exception {
     MockCompletionRequestor requestor = testCompletion("class Foo { ! }");
@@ -109,14 +131,18 @@ public class CompletionEngineTest extends TestCase {
     requestor.assertSuggested("MAX_D");
   }
 
-  /**
-   * Generate a series of code completion suggestions for the specified source at the location
-   * within the source denoted by an exclaimation point ("!"). An exception is thrown if the source
-   * does not contain "!".
-   */
-  private MockCompletionRequestor testCompletion(String originalSource) throws URISyntaxException,
-      DartModelException {
+  public void testCompletion_topLevelField_init1() throws Exception {
+    MockCompletionRequestor requestor = testCompletion("final num PI2 = Mat!");
+    requestor.assertSuggested("Math");
+  }
 
+  public void testCompletion_topLevelField_init2() throws Exception {
+    MockCompletionRequestor requestor = testCompletion("final num PI2 = Mat!h.PI;");
+    requestor.assertSuggested("Math");
+  }
+
+  private MockCompletionRequestor runTest(String originalSource) throws URISyntaxException,
+      DartModelException {
     int index = originalSource.indexOf('!');
     assertTrue("Expected exclamation point ('!') within the source"
         + " denoting the position at which code completion should occur", index != -1);
@@ -135,8 +161,25 @@ public class CompletionEngineTest extends TestCase {
     MockLibrarySource library = new MockLibrarySource("FooLib");
     MockDartSource sourceFile = new MockDartSource(library, "Foo.dart", "");
     engine.complete(library, sourceFile, modifiedSource, index, 0);
+    return requestor;
+  }
 
+  /**
+   * Generate a series of code completion suggestions for the specified source at the location
+   * within the source denoted by an exclaimation point ("!"). An exception is thrown if the source
+   * does not contain "!".
+   */
+  private MockCompletionRequestor testCompletion(String originalSource) throws URISyntaxException,
+      DartModelException {
+    MockCompletionRequestor requestor = runTest(originalSource);
     assertTrue("Expected code completion suggestions", requestor.validate());
+    return requestor;
+  }
+
+  private MockCompletionRequestor testNonCompletion(String originalSource)
+      throws URISyntaxException, DartModelException {
+    MockCompletionRequestor requestor = runTest(originalSource);
+    assertFalse("Expected code completion suggestions", requestor.validate());
     return requestor;
   }
 }
