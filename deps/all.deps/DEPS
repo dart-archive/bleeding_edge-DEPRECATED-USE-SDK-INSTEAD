@@ -77,6 +77,10 @@ hooks = [
   },
   {
     "pattern": ".",
+    "action": ["python", "dart/tools/generate_projects.py", "frog"],
+  },
+  {
+    "pattern": ".",
     "action": ["dart/third_party/gyp/gyp", "--depth=dart",
                "-Idart/tools/gyp/all.gypi", "dart/dart.gyp"],
   },
