@@ -7,7 +7,7 @@
  *
  * Objects of this class are immutable: they do not change after creation.
  */
-class RowCol {
+class RowCol implements Hashable {
 
   static int hashOneValue(int val) {
     final int fnvPrime = 0x01000193;

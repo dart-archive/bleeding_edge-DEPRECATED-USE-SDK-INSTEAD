@@ -7,7 +7,7 @@
  *
  * This class is immutable: instances cannot be changed after creation.
  */
-class CellLocation {
+class CellLocation implements Hashable {
   final RowCol _rowCol;
   final Spreadsheet _spreadsheet;
 

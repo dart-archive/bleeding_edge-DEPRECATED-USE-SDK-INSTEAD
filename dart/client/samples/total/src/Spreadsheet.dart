@@ -37,7 +37,7 @@ typedef void RowColCellActionFunction(RowCol rowCol, Cell value);
  * });
  * int calculated = spreadsheet.endRecalc();
  */
-class Spreadsheet {
+class Spreadsheet implements Hashable {
   // Flags used to indicate which of a row or column we are dealing with. Used in various other
   // classes.
   static final int COL = 0;
@@ -105,7 +105,7 @@ class Spreadsheet {
     _rowStyles = new Map<int, RowColStyle>();
   }
 
-  factory Spreadsheet.name(String name) {
+  factory Spreadsheet.fromName(String name) {
     Spreadsheet s = new Spreadsheet();
     s._name = name;
     return s;
