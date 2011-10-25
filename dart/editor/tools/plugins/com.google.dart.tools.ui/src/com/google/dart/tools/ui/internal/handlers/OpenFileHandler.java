@@ -20,7 +20,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
-import com.google.dart.tools.ui.actions.ActionMessages;
+import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.actions.WorkbenchRunnableAdapter;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
@@ -36,6 +36,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -99,8 +100,8 @@ public class OpenFileHandler extends AbstractHandler {
           })); // workspace lock
 
     } catch (InvocationTargetException e) {
-      ExceptionHandler.handle(e, shell, ActionMessages.FormatAllAction_error_title,
-          ActionMessages.FormatAllAction_error_message);
+      ExceptionHandler.handle(e, shell, HandlerMessages.OpenFile_label,
+          HandlerMessages.OpenFile_errorMessage);
     } catch (InterruptedException e) {
       // canceled by user
     }
@@ -108,6 +109,9 @@ public class OpenFileHandler extends AbstractHandler {
     try {
       if (files[0] != null) {
         EditorUtility.openInEditor(files[0], true);
+      } else if (libFile[0] == null) {
+        MessageDialog.openError(shell, HandlerMessages.OpenFile_label,
+            Messages.format(HandlerMessages.OpenFile_errorFileNotInLibrary, selectedFile.getName()));
       }
     } catch (PartInitException e) {
       throwFailedToOpen(selectedFile, e);
