@@ -35,6 +35,10 @@ deps = {
   # Module needed for Python-scss to run.
   "dart/third_party/pyparsing":
     "http://pyparsing.svn.sourceforge.net/svnroot/pyparsing" + Var("pyparsing_rev"),
+
+  # Experimental frog compiler.
+  "dart/frog":
+    "/experimental/frog",
 }
 
 deps_os = {
