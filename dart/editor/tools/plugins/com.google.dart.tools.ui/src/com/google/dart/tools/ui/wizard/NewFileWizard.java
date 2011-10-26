@@ -15,8 +15,10 @@ package com.google.dart.tools.ui.wizard;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.FileGenerator;
+import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -118,6 +120,16 @@ public class NewFileWizard extends AbstractDartWizard implements INewWizard {
             }
           } catch (Exception exception) {
             // If we couldn't open as an external unit, fall through to try the default approach.
+          }
+        }
+        if (element instanceof CompilationUnitImpl) {
+          CompilationUnit cu = (CompilationUnitImpl) element;
+          if (cu.definesLibrary()) {
+            // Re-set the top-level to be true, to trigger a refresh on the libraries view.
+            // This covers the case where the new file wizard is being used to generate a new
+            // library, in which case the library model element was not available to set the
+            // top-level flag. See FileGenerator#execute().
+            cu.getLibrary().setTopLevel(true);
           }
         }
         if (!openEditor(DartUI.ID_CU_EDITOR, file)) {

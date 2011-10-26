@@ -135,6 +135,7 @@ public class FileGenerator extends AbstractGenerator {
       if (library != null) {
         substitutions.put("directives", ""); //$NON-NLS-1$ //$NON-NLS-2$
       } else {
+        // need the #library directive in the following, otherwise it isn't a defining compilation unit!
         substitutions.put("directives", "#library('" + className
             + "');" + SourceUtilities.LINE_SEPARATOR + SourceUtilities.LINE_SEPARATOR); //$NON-NLS-1$ //$NON-NLS-2$
 
