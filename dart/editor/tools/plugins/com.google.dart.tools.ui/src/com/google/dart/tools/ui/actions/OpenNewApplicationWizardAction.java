@@ -13,37 +13,32 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.wizard.NewApplicationWizard;
-import com.google.dart.tools.ui.wizard.NewFileWizard;
-import com.google.dart.tools.ui.wizard.NewFileWizardPage;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.INewWizard;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
 /**
- * Action that opens the new file wizard.
+ * Action that opens the new application wizard.
  * 
- * @see NewFileWizard
- * @see NewFileWizardPage
+ * @see NewApplicationWizard
  */
 public class OpenNewApplicationWizardAction extends AbstractOpenWizardAction implements
     IWorkbenchAction {
 
-  private static final String ID = "com.google.dart.tools.ui.app.new";
+  private static final String ACTION_ID = "com.google.dart.tools.ui.app.new";
 
   /**
-   * Creates an instance of the <code>OpenNewDartApplicationWizardAction</code>.
+   * Creates an instance of the <code>OpenNewApplicationWizardAction</code>.
    */
   public OpenNewApplicationWizardAction() {
     setText(ActionMessages.OpenNewApplication2WizardAction_text);
     setDescription(ActionMessages.OpenNewApplication2WizardAction_description);
     setToolTipText(ActionMessages.OpenNewApplication2WizardAction_tooltip);
-    //TODO (pquitslund) add an image
-    setId(ID); //$NON-NLS-N$
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.OPEN_ACTION);
+    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/library_new.png"));
+    setId(ACTION_ID);
   }
 
   @Override

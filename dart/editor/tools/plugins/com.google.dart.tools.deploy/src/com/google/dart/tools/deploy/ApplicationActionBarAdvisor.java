@@ -81,13 +81,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     }
   }
 
-//  private static final String IMG_FILE_NEW_WIZ = "icons/full/etool16/newfile_wiz.gif"; //$NON-NLS-1$
-  private static final String IMG_APP_NEW_WIZ = "icons/full/etool16/newprj_wiz.gif"; //$NON-NLS-1$
-
-  /**
-   * Adds the perspective actions to the specified menu.
-   */
-
   private final IWorkbenchWindow window;
 
   // generic actions
@@ -458,7 +451,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     //register(runInBrowserAction);
 
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
-    newApplicationWizardAction.setImageDescriptor(Activator.getImageDescriptor(IMG_APP_NEW_WIZ));
     register(newApplicationWizardAction);
 
     importResourcesAction = ActionFactory.IMPORT.create(window);
