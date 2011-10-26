@@ -30,6 +30,8 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
  */
 public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements IWorkbenchAction {
 
+  private static final String ACTION_ID = "com.google.dart.tools.ui.file.new";
+
   /**
    * Creates an instance of the <code>OpenNewFileWizardAction</code>.
    */
@@ -38,7 +40,7 @@ public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements
     setDescription(ActionMessages.OpenNewFileWizardAction_description);
     setToolTipText(ActionMessages.OpenNewFileWizardAction_tooltip);
     //TODO (pquitslund) add an image
-    setId("com.google.dart.tools.ui.file.new"); //$NON-NLS-N$
+    setId(ACTION_ID); //$NON-NLS-N$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.OPEN_ACTION);
   }
 
