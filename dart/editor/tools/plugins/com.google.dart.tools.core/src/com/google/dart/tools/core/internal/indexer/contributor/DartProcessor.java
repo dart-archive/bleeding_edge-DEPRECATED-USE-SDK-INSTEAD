@@ -24,6 +24,9 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.indexer.task.CompilationUnitIndexingTarget;
 import com.google.dart.tools.core.internal.util.ASTCache;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartModelException;
 
 import org.eclipse.core.resources.IFile;
 
@@ -83,7 +86,19 @@ public class DartProcessor implements Processor {
       IFile file = target.getFile();
       String fileName = file.getName();
       if (DartCore.isDartLikeFileName(fileName)) {
-        CompilationUnit compilationUnit = (CompilationUnit) DartCore.create(file);
+        CompilationUnit compilationUnit = null;
+        DartElement element = DartCore.create(file);
+        if (element instanceof CompilationUnit) {
+          compilationUnit = (CompilationUnit) element;
+        } else if (element instanceof DartLibrary) {
+          try {
+            compilationUnit = ((DartLibrary) element).getDefiningCompilationUnit();
+          } catch (DartModelException exception) {
+            DartCore.logError(
+                "Could not get defining compilation unit for " + element.getElementName(),
+                exception);
+          }
+        }
         if (compilationUnit != null && compilationUnit.exists()) {
           DartUnit unit = astCache.getAST(compilationUnit);
           if (unit != null) {
@@ -93,11 +108,6 @@ public class DartProcessor implements Processor {
           // This compilation unit is not on the build path of a Dart project, so
           // we are skipping it.
         }
-        // TODO(brianwilkerson) Figure out why this was being done and whether we need to do the
-        // equivalent. One guess is that everything might need to be re-indexed if the "classpath" has
-        // changed.
-        //    } else if (DartCore.isDartLibraryFile(fileName)) {
-        //      enqueueSourceFiles(file);
       }
     }
   }
