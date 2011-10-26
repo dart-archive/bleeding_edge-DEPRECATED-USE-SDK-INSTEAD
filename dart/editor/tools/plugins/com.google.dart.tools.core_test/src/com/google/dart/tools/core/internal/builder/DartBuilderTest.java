@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.test.util.MoneyProjectUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
@@ -21,6 +22,7 @@ import com.google.dart.tools.core.test.util.TestUtilities;
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 
 import java.io.File;
@@ -45,18 +47,24 @@ public class DartBuilderTest extends TestCase {
     moneyProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
     sampleProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
 
-    File moneyOutputFile = moneyProject.getLocation().append("money.dart.app.js").toFile();
+    File moneyOutputFile = getOutputFile(dartMoneyProject, "money.app.js");
     assertTrue(moneyOutputFile.length() > 0);
 
-    File sampleOutputFile = sampleProject.getLocation().append("sampler.dart.app.js").toFile();
+    File sampleOutputFile = getOutputFile(dartSampleProject, "sampler.app.js");
     assertTrue(sampleOutputFile.length() > 0);
   }
 
+  private File getOutputFile(DartProject project, String outputFileName) throws DartModelException {
+    CompilationUnit definingCU = project.getDartLibraries()[0].getDefiningCompilationUnit();
+    IResource resource = definingCU.getCorrespondingResource();
+    return resource.getLocation().removeLastSegments(1).append(outputFileName).toFile();
+  }
+
   private void testBuild(int buildKind, String buildType) throws Exception {
-    DartProject dartProject = MoneyProjectUtilities.getMoneyProject();
-    IProject project = dartProject.getProject();
+    DartProject dartMoneyProject = MoneyProjectUtilities.getMoneyProject();
+    IProject project = dartMoneyProject.getProject();
     project.build(buildKind, null);
-    File outputFile = project.getLocation().append("money.dart.app.js").toFile();
+    File outputFile = getOutputFile(dartMoneyProject, "money.app.js");
     long expectedLength = outputFile.length();
     assertTrue(expectedLength > 0);
     for (int i = 0; i < 10; i++) {
