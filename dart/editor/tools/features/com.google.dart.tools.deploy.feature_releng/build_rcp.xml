@@ -154,6 +154,7 @@ build system.  The PDE build system has to run under Eclipse.
         
         <property file="${default-user.property.file}" />
         <property name="build.stage.scripts" location="${build.stage}/scripts" />
+        <property name="build.source.lib" location="${build.source}/libraries" />
         <echoproperties prefix="java." />
         <echoproperties prefix="build." />
         <property name="build.runtime.abs" location="${build.runtime}" />
@@ -167,11 +168,12 @@ build system.  The PDE build system has to run under Eclipse.
         <echoProperty propertyName="eclipse-sdk.3.6.url" />
         <echoProperty propertyName="eclipse-sdk.3.6.linux.gtk.x86.zip" />
         <!--
-        cleanup the build.tmp and build.out directory
+        cleanup build directories
         -->
         <delete failonerror="false" includeemptydirs="true">
             <fileset dir="${build.tmp}" />
             <fileset dir="${build.out}" />
+            <fileset dir="${build.source.lib}" />
         </delete>
         <!--
         create the build structure
@@ -231,6 +233,12 @@ build system.  The PDE build system has to run under Eclipse.
             </fileset>
         </copy>
         
+        <mkdir dir="${build.source.lib}" />
+        <copy todir="${build.source.lib}">
+            <fileset dir="${build.dartc.out}/Debug_dartc/compiler/lib">
+                <include name="*lib.jar"/>
+            </fileset>
+        </copy>
         <replace dir="${build.stage.features}/com.google.dart.tools.deploy.feature">
             <include name="*.html" />
             <include name="*.mappings" />
