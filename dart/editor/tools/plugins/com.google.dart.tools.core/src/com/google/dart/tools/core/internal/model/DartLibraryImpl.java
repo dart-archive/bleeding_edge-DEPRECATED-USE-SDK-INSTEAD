@@ -844,17 +844,20 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
    * @return the result of parsing the file that defines this library
    */
   private DartUnit parseLibraryFile() {
+    String fileName = null;
     try {
       if (sourceFile != null) {
-        return DartCompilerUtilities.parseSource(sourceFile.getName(),
+        fileName = sourceFile.getName();
+        return DartCompilerUtilities.parseSource(fileName,
             FileUtilities.getContents(sourceFile.getSourceReader()), null);
       }
       if (libraryFile != null && libraryFile.exists()) {
-        return DartCompilerUtilities.parseSource(libraryFile.getName(),
-            IFileUtilities.getContents(libraryFile), null);
+        fileName = libraryFile.getName();
+        return DartCompilerUtilities.parseSource(fileName, IFileUtilities.getContents(libraryFile),
+            null);
       }
     } catch (Exception exception) {
-      DartCore.logError("Could not read and parse a library file", exception);
+      DartCore.logError("Could not read and parse the file " + fileName, exception);
       // Fall through to return null.
     }
     return null;
