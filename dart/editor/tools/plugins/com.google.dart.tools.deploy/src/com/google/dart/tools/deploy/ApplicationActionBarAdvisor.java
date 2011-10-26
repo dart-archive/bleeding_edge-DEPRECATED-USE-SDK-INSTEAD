@@ -16,7 +16,7 @@ package com.google.dart.tools.deploy;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
-import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
+import com.google.dart.tools.ui.actions.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.actions.RunInBrowserAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
@@ -81,7 +81,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     }
   }
 
-  private static final String IMG_FILE_NEW_WIZ = "icons/full/etool16/newfile_wiz.gif"; //$NON-NLS-1$
+//  private static final String IMG_FILE_NEW_WIZ = "icons/full/etool16/newfile_wiz.gif"; //$NON-NLS-1$
+  private static final String IMG_APP_NEW_WIZ = "icons/full/etool16/newprj_wiz.gif"; //$NON-NLS-1$
+
   /**
    * Adds the perspective actions to the specified menu.
    */
@@ -210,7 +212,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private final WorkbenchActionFactory actionFactory;
 
-  private IWorkbenchAction newFileWizardAction;
+  private IWorkbenchAction newApplicationWizardAction;
   private OpenOnlineDocsAction openOnlineDocsAction;
 
   /**
@@ -372,7 +374,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     coolBar.add(new GroupMarker(IIDEActionConstants.GROUP_FILE));
     { // File Group
       IToolBarManager fileToolBar = actionBarConfigurer.createToolBarManager();
-      fileToolBar.add(newFileWizardAction);
+      fileToolBar.add(newApplicationWizardAction);
       fileToolBar.add(new GroupMarker(IWorkbenchActionConstants.NEW_EXT));
       fileToolBar.add(new GroupMarker(IWorkbenchActionConstants.SAVE_GROUP));
       fileToolBar.add(saveAction);
@@ -455,9 +457,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     runInBrowserAction = new RunInBrowserAction(window);
     //register(runInBrowserAction);
 
-    newFileWizardAction = new OpenNewFileWizardAction();
-    newFileWizardAction.setImageDescriptor(Activator.getImageDescriptor(IMG_FILE_NEW_WIZ));
-    register(newFileWizardAction);
+    newApplicationWizardAction = new OpenNewApplicationWizardAction();
+    newApplicationWizardAction.setImageDescriptor(Activator.getImageDescriptor(IMG_APP_NEW_WIZ));
+    register(newApplicationWizardAction);
 
     importResourcesAction = ActionFactory.IMPORT.create(window);
     register(importResourcesAction);

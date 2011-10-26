@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.wizard.NewFileWizardPage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
 /**
  * Action that opens the new file wizard.
@@ -28,7 +29,10 @@ import org.eclipse.ui.PlatformUI;
  * @see NewFileWizard
  * @see NewFileWizardPage
  */
-public class OpenNewApplicationWizardAction extends AbstractOpenWizardAction {
+public class OpenNewApplicationWizardAction extends AbstractOpenWizardAction implements
+    IWorkbenchAction {
+
+  private static final String ID = "com.google.dart.tools.ui.app.new";
 
   /**
    * Creates an instance of the <code>OpenNewDartApplicationWizardAction</code>.
@@ -38,7 +42,13 @@ public class OpenNewApplicationWizardAction extends AbstractOpenWizardAction {
     setDescription(ActionMessages.OpenNewApplication2WizardAction_description);
     setToolTipText(ActionMessages.OpenNewApplication2WizardAction_tooltip);
     //TODO (pquitslund) add an image
+    setId(ID); //$NON-NLS-N$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.OPEN_ACTION);
+  }
+
+  @Override
+  public void dispose() {
+
   }
 
   @Override
