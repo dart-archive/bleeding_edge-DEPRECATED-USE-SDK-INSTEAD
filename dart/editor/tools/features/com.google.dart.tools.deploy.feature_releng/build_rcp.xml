@@ -361,14 +361,14 @@ build system.  The PDE build system has to run under Eclipse.
 
         <replace dir="${samples.out.dir}"
           token="#import('../../"
-          value="#import('../../libraries/">
+          value="#import('../libraries/">
           <include name="**/*.dart"/>
         </replace>
 
         <!-- copy over the dart libraries used by the samples -->
 
         <property name="libraries.out.dir" 
-                  value="${build.stage.features}/com.google.dart.tools.deploy.feature/include/libraries" />
+                  value="${build.stage.features}/com.google.dart.tools.deploy.feature/include/samples/libraries" />
 
         <copy todir="${libraries.out.dir}/base">
             <fileset dir="${build.source.root}/client/base"/>
