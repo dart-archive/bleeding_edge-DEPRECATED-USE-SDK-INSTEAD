@@ -82,13 +82,13 @@ class FlakyProxy {
     proxy = new ReceivePort();
 
     proxy.receive((message, SendPort reply) {
-      window.setTimeout(Isolate.bind(() {
+      window.setTimeout(() {
         if (randomlyFail()) {
           reply.send(const [false, "There was an error"], null);
         } else {
           _target.send(message, reply);
         }
-      }), 200);
+      }, 200);
     });
   }
 

@@ -62,7 +62,7 @@ class IsolateSample  {
     createIsolate("B");
 
     for (Element element in document.queryAll(".sendButton")) {
-      element.on.click.add(Isolate.bind((Event e) {
+      element.on.click.add((Event e) {
         replyElement.text = "waiting for reply...";
 
         // get the last letter on the button (assuming the button text is, for
@@ -75,7 +75,7 @@ class IsolateSample  {
             (var message, SendPort replyTo) {
               replyElement.text = message;
         });
-      }));
+      });
     }
 
     chirpPort.receive((var message, SendPort replyTo) {
@@ -84,7 +84,7 @@ class IsolateSample  {
   }
 
   static void main() {
-    Dom.ready(Isolate.bind(void _() { new IsolateSample().ready(); }));
+    Dom.ready(void _() { new IsolateSample().ready(); });
   }
 
   // TODO(mattsh) get this off the System object once it's available
@@ -131,9 +131,9 @@ class DemoIsolate extends Isolate {
     div.query(".isolateName").text = isolateName;
     document.query("#isolateParent").nodes.add(div);
     div.query(".chirpButton").on.click.add(
-        Isolate.bind(void _(Event) { chirpPort.call(
+        void _(Event) { chirpPort.call(
               "this is a chirp message from isolate " + isolateName);
-    }), false);
+    }, false);
   }
 
   /**
@@ -146,9 +146,9 @@ class DemoIsolate extends Isolate {
       if (div.query(".replyCheckbox").dynamic.checked) {
         InputElement element = div.query(".delayTextbox");
         int millis = Math.parseInt(element.value);
-        window.setTimeout(Isolate.bind(() {
+        window.setTimeout(() {
           replyTo.send("this is a reply from isolate '${isolateName}'", null);
-        }), millis);
+        }, millis);
       }
   }
 }

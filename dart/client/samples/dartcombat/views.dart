@@ -84,10 +84,8 @@ class PlaceBoatView extends View {
       : super(rootNode.document), _rootNode = rootNode {}
 
   void attach() {
-    _rootNode.on.mouseDown.add(
-        Isolate.bind((e) { handleMouseDown(e); }));
-    _rootNode.on.mouseUp.add(
-        Isolate.bind((e) { handleMouseUp(e); }));
+    _rootNode.on.mouseDown.add(handleMouseDown);
+    _rootNode.on.mouseUp.add(handleMouseUp);
   }
 
   void handleMouseDown(e) {
@@ -103,7 +101,7 @@ class PlaceBoatView extends View {
     _possibleBoat = ViewUtil.createDiv(this, "icons boat2");
     ViewUtil.placeNodeAt(_possibleBoat, _boatStartX, _boatStartY);
     _rootNode.nodes.add(_possibleBoat);
-    _moveListener = Isolate.bind((e) { handleMouseMove(e); });
+    _moveListener = handleMouseMove;
     _rootNode.on.mouseMove.add(_moveListener);
     e.preventDefault();
   }
@@ -190,11 +188,10 @@ class EnemyGridView extends View {
         "${table}<div class='notready'>ENEMY IS NOT READY</div>";
     statusBar = new ShootingStatusView(state, doc);
     _rootNode.nodes.add(statusBar._rootNode);
-    _rootNode.on.click.add(
-        Isolate.bind((Event e) {
+    _rootNode.on.click.add((Event e) {
           MouseEvent mouseEvent = e;
           handleClick(mouseEvent);
-        }), false);
+        }, false);
   }
 
   /** Interpret clicks as a shooting action. */
