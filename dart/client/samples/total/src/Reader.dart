@@ -11,7 +11,5 @@ class Reader {
   }
 
   void loadSpreadsheet(Spreadsheet spreadsheet, List<String> data) { }
-
-  List<String> makeExample(String id) { }
 }
 
