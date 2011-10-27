@@ -77,7 +77,7 @@ hooks = [
   },
   {
     "pattern": ".",
-    "action": ["dart/third_party/gyp/gyp", "--depth=dart",
+    "action": ["python", "dart/third_party/gyp/gyp", "--depth=dart",
                "-Idart/tools/gyp/all.gypi", "dart/dart.gyp"],
   },
   # Downloads the latest green dartium build
