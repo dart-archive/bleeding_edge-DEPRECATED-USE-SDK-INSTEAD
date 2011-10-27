@@ -343,8 +343,9 @@ class IsolatedServer extends Isolate {
     if (fileName == null) {
       fileName = request.path.substring(1);
     }
-    File file = new File(fileName, false);
-    if (file != null) {
+    File file = new File(fileName);
+    if (file.existsSync()) {
+      file.openSync();
       int totalRead = 0;
       List<int> buffer = new List<int>(BUFFER_SIZE);
 
@@ -358,11 +359,11 @@ class IsolatedServer extends Isolate {
         if (extension == ".png") { mimeType = "image/png"; }
       }
       response.setHeader("Content-Type", mimeType);
-      response.contentLength = file.length;
+      response.contentLength = file.lengthSync();
 
       void writeFileData() {
-        while (totalRead < file.length) {
-          var read = file.readList(buffer, 0, BUFFER_SIZE);
+        while (totalRead < file.lengthSync()) {
+          var read = file.readListSync(buffer, 0, BUFFER_SIZE);
           totalRead += read;
 
           // Write this buffer and get a callback when it makes sense
@@ -371,7 +372,7 @@ class IsolatedServer extends Isolate {
           if (!allWritten) break;
         }
 
-        if (totalRead == file.length) {
+        if (totalRead == file.lengthSync()) {
           response.writeDone();
         }
       }
