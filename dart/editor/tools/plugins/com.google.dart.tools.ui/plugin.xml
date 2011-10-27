@@ -485,6 +485,13 @@
             symbolicFontName="com.google.dart.tools.ui.editors.textfont"
             id="com.google.dart.tools.ui.text.editor.TextEditor">
       </editor>
+      <editor
+            class="com.google.dart.tools.ui.internal.intro.IntroEditor"
+            default="false"
+            icon="icons/dart_16_16.gif"
+            id="com.google.dart.tools.ui.intro.editor"
+            name="Welcome">
+      </editor>
    </extension>
    
    <extension

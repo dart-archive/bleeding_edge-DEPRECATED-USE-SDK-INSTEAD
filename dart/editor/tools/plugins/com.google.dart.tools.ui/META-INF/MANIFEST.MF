@@ -27,6 +27,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: com.google.dart.tools.ui,
  com.google.dart.tools.ui.actions,
  com.google.dart.tools.ui.internal.handlers,
+ com.google.dart.tools.ui.internal.intro;x-friends:="com.google.dart.tools.deploy",
  com.google.dart.tools.ui.internal.text.dart;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.text.editor;x-friends:="com.google.dart.tools.ui_test,com.google.dart.tools.debug.ui",
  com.google.dart.tools.ui.internal.text.functions;x-friends:="com.google.dart.tools.ui_test",

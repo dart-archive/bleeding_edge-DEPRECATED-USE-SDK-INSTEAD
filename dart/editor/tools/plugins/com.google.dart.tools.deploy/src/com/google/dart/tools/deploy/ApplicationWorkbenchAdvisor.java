@@ -15,6 +15,10 @@ package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole.MessageStream;
+import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.IFileTree;
@@ -238,6 +242,15 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
         }
       });
 
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          if (shouldShowWelcome()) {
+            new OpenIntroEditorAction().run();
+          }
+        }
+      });
+
     } finally {// Resume background jobs after we startup
       Job.getJobManager().resume();
     }
@@ -266,6 +279,15 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 //    ImageDescriptor newImage = DartWorkbenchImages.getImageDescriptor(DartWorkbenchImages.IMG_ETOOL_BUILD_EXEC);
 //    service.registerIconForFamily(newImage, ResourcesPlugin.FAMILY_MANUAL_BUILD);
 //    service.registerIconForFamily(newImage, ResourcesPlugin.FAMILY_AUTO_BUILD);
+  }
+
+  protected boolean shouldShowWelcome() {
+    try {
+      return DartModelManager.getInstance().getDartModel().getDartProjects().length == 0;
+    } catch (DartModelException e) {
+      DartToolsPlugin.log(e);
+    }
+    return false;
   }
 
   /**
