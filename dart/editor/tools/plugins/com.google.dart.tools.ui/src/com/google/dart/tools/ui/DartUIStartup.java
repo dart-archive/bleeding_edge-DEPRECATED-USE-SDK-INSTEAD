@@ -48,8 +48,6 @@ public class DartUIStartup implements IStartup {
       try {
         indexerWarmup();
 
-        delay(500);
-
         if (!getThread().isInterrupted()) {
           compilerWarmup();
         }
@@ -73,12 +71,6 @@ public class DartUIStartup implements IStartup {
       }
     }
 
-    private void delay(int timeInMillis) throws InterruptedException {
-      if (!getThread().isInterrupted()) {
-        Thread.sleep(timeInMillis);
-      }
-    }
-
     private void indexerWarmup() throws InterruptedException {
       // This will initialize the Dart Tools Core plugin as well as the indexer plugin.
       long start = System.currentTimeMillis();
@@ -87,8 +79,6 @@ public class DartUIStartup implements IStartup {
         long delta = System.currentTimeMillis() - start;
         DartCoreDebug.log("Warmup Model : " + delta);
       }
-
-      delay(500);
 
       if (!getThread().isInterrupted()) {
         // Warm up the type cache.
