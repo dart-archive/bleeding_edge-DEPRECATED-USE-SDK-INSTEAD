@@ -159,7 +159,7 @@ public class IntroEditor extends EditorPart {
     buf.append("<p>" + bold("2. Look around.  Click ") + img("run_image") + bold(" to run.")
         + "</p>");
     buf.append("<li style=\"text\" bindent=\"20\" indent=\"20\">"
-        + "<span color=\"header\">(compiles to Javascript and runs in Chrome).</span></li>");
+        + "<span color=\"header\">(compiles to JavaScript and runs in Chrome)</span></li>");
     buf.append("<p>" + bold("3. Have fun.  Write awesome code.") + "</p>");
     buf.append("</form>");
 
