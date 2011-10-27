@@ -194,7 +194,7 @@ public class DartModelStatusImpl extends Status implements DartModelStatus,
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append("Java Model Status ["); //$NON-NLS-1$
+    builder.append("Dart Model Status ["); //$NON-NLS-1$
     builder.append(getMessage());
     builder.append("]"); //$NON-NLS-1$
     return builder.toString();

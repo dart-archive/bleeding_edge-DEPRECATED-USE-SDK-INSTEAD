@@ -65,6 +65,14 @@ public final class DartConventions {
     private String nullName;
     private String underscore;
 
+    public String initialChar(String name) {
+      return Messages.bind(initialChar, name);
+    }
+
+    public String internalChar(String name) {
+      return Messages.bind(internalChar, name);
+    }
+
     private MessageHolder initForCompilationUnit() {
       // dollar = Messages.convention_unitName_dollar;
       empty = Messages.convention_unitName_empty;
@@ -348,12 +356,14 @@ public final class DartConventions {
     }
     char currentChar = identifier.charAt(0);
     if (!Character.isLetter(currentChar) && currentChar != '_' && currentChar != '$') {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1, messageHolder.initialChar, null);
+      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
+          messageHolder.initialChar(identifier), null);
     }
     for (int i = 1; i < length; i++) {
       currentChar = identifier.charAt(i);
       if (!Character.isLetterOrDigit(currentChar) && currentChar != '_' && currentChar != '$') {
-        return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1, messageHolder.internalChar, null);
+        return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
+            messageHolder.internalChar(identifier), null);
       }
     }
     return DartModelStatusImpl.VERIFIED_OK;
