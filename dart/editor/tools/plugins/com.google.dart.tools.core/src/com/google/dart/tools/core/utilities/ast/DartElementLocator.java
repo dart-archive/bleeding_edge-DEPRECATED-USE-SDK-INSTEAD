@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.utilities.ast;
 
+import com.google.dart.compiler.DartSource;
+import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
@@ -355,11 +357,19 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
             && ((DartResourceDirective) parent).getResourceUri() == node) {
           DartLibrary library = compilationUnit.getLibrary();
           try {
-            URI resourceUri = compilationUnit.getSourceRef().getLibrary().getSourceFor(
-                node.getValue()).getUri();
-            DartResource resource = library.getResource(resourceUri);
-            if (resource != null && resource.exists()) {
-              foundElement = resource;
+            DartSource unitSource = compilationUnit.getSourceRef();
+            if (unitSource != null) {
+              LibrarySource librarySource = unitSource.getLibrary();
+              if (librarySource != null) {
+                DartSource resourceSource = librarySource.getSourceFor(node.getValue());
+                if (resourceSource != null) {
+                  URI resourceUri = resourceSource.getUri();
+                  DartResource resource = library.getResource(resourceUri);
+                  if (resource != null && resource.exists()) {
+                    foundElement = resource;
+                  }
+                }
+              }
             }
           } catch (DartModelException exception) {
             foundElement = null;
