@@ -197,12 +197,7 @@ public final class DartConventions {
       return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
           Messages.convention_unitName_notDartName, null);
     }
-    String identifier = name.substring(0, index);
-    IStatus status = validateIdentifier(identifier, MessageHolder.forCompilationUnit());
-    if (!status.isOK()) {
-      return status;
-    }
-    status = ResourcesPlugin.getWorkspace().validateName(name, IResource.FILE);
+    IStatus status = ResourcesPlugin.getWorkspace().validateName(name, IResource.FILE);
     if (!status.isOK()) {
       return status;
     }
