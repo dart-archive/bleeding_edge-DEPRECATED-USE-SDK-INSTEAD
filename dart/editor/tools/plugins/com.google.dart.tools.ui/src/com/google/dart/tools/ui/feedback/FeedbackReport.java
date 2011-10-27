@@ -30,8 +30,7 @@ public class FeedbackReport {
    * Create a new feedback instance with default values.
    */
   public FeedbackReport() {
-    this("", FeedbackUtils.getOSName(), DartToolsPlugin.getVersionString(),
-        LogReader.readLogSafely());
+    this("", FeedbackUtils.getOSName(), DartToolsPlugin.getBuildId(), LogReader.readLogSafely());
   }
 
   /**

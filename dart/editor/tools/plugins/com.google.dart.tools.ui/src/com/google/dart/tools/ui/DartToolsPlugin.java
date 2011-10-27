@@ -197,6 +197,13 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   }
 
   /**
+   * Returns the SVN revision number as a String suitable for display.
+   */
+  public static String getBuildId() {
+    return "@REVISION@";
+  }
+
+  /**
    * Returns an image descriptor for the image file at the given plug-in relative path.
    * 
    * @param path the path

@@ -77,7 +77,7 @@ public class AboutDartDialog extends Shell {
 
     Label revisionsLabel = newLabel(SWT.NONE);
     GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(revisionsLabel);
-    revisionsLabel.setText("Build @REVISION@");
+    revisionsLabel.setText("Build " + DartToolsPlugin.getBuildId());
 
     Label copyrightLabel = newLabel(SWT.NONE);
     GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(copyrightLabel);

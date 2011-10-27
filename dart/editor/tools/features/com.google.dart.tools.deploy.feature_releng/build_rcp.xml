@@ -247,7 +247,7 @@ build system.  The PDE build system has to run under Eclipse.
         </replace>
         
         <replace dir="${build.stage.plugins}/com.google.dart.tools.ui" >
-            <include name="**/AboutDartDialog.java" />
+            <include name="**/DartToolsPlugin.java" />
             <replacefilter token="@REVISION@" value="${build.revision}" />
         </replace>
 
