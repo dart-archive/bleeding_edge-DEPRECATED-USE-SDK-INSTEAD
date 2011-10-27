@@ -52,7 +52,7 @@ class ErrorRecordingContext implements DartCompilerContext {
   private List<DartCompilationError> errors = new ArrayList<DartCompilationError>();
 
   @Override
-  public void compilationError(DartCompilationError event) {
+  public void onError(DartCompilationError event) {
     errors.add(event);
   }
 
@@ -119,10 +119,5 @@ class ErrorRecordingContext implements DartCompilerContext {
   @Override
   public boolean shouldWarnOnNoSuchType() {
     return false;
-  }
-
-  @Override
-  public void typeError(DartCompilationError event) {
-    errors.add(event);
   }
 }

@@ -76,14 +76,7 @@ public class DartCompilerUtilities {
     }
 
     @Override
-    public void compilationError(DartCompilationError event) {
-      if (parseErrors != null) {
-        parseErrors.add(event);
-      }
-    }
-
-    @Override
-    public void compilationWarning(DartCompilationError event) {
+    public void onError(DartCompilationError event) {
       if (parseErrors != null) {
         parseErrors.add(event);
       }
@@ -105,13 +98,6 @@ public class DartCompilerUtilities {
       } catch (AssertionError e) {
         DartCore.logError(e);
         handleException(e);
-      }
-    }
-
-    @Override
-    public void typeError(DartCompilationError event) {
-      if (parseErrors != null) {
-        parseErrors.add(event);
       }
     }
 

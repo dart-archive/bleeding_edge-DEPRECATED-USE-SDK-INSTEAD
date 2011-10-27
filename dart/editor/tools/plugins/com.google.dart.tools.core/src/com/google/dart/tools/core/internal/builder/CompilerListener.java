@@ -16,6 +16,8 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.ErrorSeverity;
+import com.google.dart.compiler.SubSystem;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -56,18 +58,14 @@ class CompilerListener extends DartCompilerListener {
   }
 
   @Override
-  public void compilationError(DartCompilationError error) {
-    processError(error);
-  }
-
-  @Override
-  public void compilationWarning(DartCompilationError error) {
-    processWarning(error);
-  }
-
-  @Override
-  public void typeError(DartCompilationError error) {
-    processWarning(error);
+  public void onError(DartCompilationError event) {
+    if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+      processWarning(event);
+    }  else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+      processError(event);
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+      processWarning(event);
+    }
   }
 
   /**

@@ -55,25 +55,15 @@ public class TestCompilerListener extends DartCompilerListener {
   public void assertAllErrorsReported() {
     assertEquals("Not all expected errors were reported", total, current);
   }
-
+  
   @Override
-  public void compilationError(DartCompilationError event) {
+  public void onError(DartCompilationError event) {
     assertTrue("More errors (" + (current + 1) + ") than expected (" + total + "):\n" + event,
         current < total);
     assertEquals("Wrong error message", messages[current], event.getMessage());
     assertEquals("Wrong line number", line[current], event.getLineNumber());
     assertEquals("Wrong column number", column[current], event.getColumnNumber());
     current++;
-  }
-
-  @Override
-  public void compilationWarning(DartCompilationError event) {
-    compilationError(event);
-  }
-
-  @Override
-  public void typeError(DartCompilationError event) {
-    compilationError(event);
   }
 
   @Override

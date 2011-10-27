@@ -15,6 +15,8 @@ package com.google.dart.tools.core.internal.compiler;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.ErrorSeverity;
+import com.google.dart.compiler.SubSystem;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 
@@ -26,20 +28,18 @@ public class LoggingDartCompilerListener extends DartCompilerListener {
    * A compiler listener that can be shared.
    */
   public static final LoggingDartCompilerListener INSTANCE = new LoggingDartCompilerListener();
-
+  
   @Override
-  public void compilationError(DartCompilationError event) {
-    DartCore.logError("Compilation error: " + event);
-  }
-
-  @Override
-  public void compilationWarning(DartCompilationError event) {
-    DartCore.logError("Compilation warning: " + event);
-  }
-
-  @Override
-  public void typeError(DartCompilationError event) {
-    DartCore.logError("Type error: " + event);
+  public void onError(DartCompilationError event) {
+    if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+      DartCore.logError("Compilation error: " + event);
+    }
+    if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+      DartCore.logError("Compilation warning: " + event);
+    }
+    if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+      DartCore.logError("Type error: " + event);
+    }
   }
 
   @Override

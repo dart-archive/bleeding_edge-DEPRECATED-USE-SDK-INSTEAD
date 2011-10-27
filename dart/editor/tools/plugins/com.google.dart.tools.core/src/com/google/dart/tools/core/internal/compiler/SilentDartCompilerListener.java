@@ -28,15 +28,7 @@ public class SilentDartCompilerListener extends DartCompilerListener {
   public static final SilentDartCompilerListener INSTANCE = new SilentDartCompilerListener();
 
   @Override
-  public void compilationError(DartCompilationError event) {
-  }
-
-  @Override
-  public void compilationWarning(DartCompilationError event) {
-  }
-
-  @Override
-  public void typeError(DartCompilationError event) {
+  public void onError(DartCompilationError event) {
   }
 
   @Override

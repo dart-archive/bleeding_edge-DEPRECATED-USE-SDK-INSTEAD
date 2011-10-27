@@ -134,17 +134,7 @@ public class CodeSnippetParsingUtil {
     compilationResult.scanLines(sourceCode);
     DartCompilerListener listener = new DartCompilerListener() {
       @Override
-      public void compilationError(DartCompilationError event) {
-        compilationResult.problemCount += 1;
-      }
-
-      @Override
-      public void compilationWarning(DartCompilationError event) {
-        compilationResult.problemCount += 1;
-      }
-
-      @Override
-      public void typeError(DartCompilationError event) {
+      public void onError(DartCompilationError event) {
         compilationResult.problemCount += 1;
       }
 
