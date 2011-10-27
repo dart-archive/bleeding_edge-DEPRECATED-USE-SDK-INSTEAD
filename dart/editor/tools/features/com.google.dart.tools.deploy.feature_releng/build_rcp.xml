@@ -234,11 +234,11 @@ build system.  The PDE build system has to run under Eclipse.
         </copy>
         
         <mkdir dir="${build.source.lib}" />
-        <copy todir="${build.source.lib}">
+        <!-- copy todir="${build.source.lib}">
             <fileset dir="${build.dartc.out}/Debug_dartc/compiler/lib">
                 <include name="*lib.jar"/>
             </fileset>
-        </copy>
+        </copy -->
         <replace dir="${build.stage.features}/com.google.dart.tools.deploy.feature">
             <include name="*.html" />
             <include name="*.mappings" />
@@ -370,7 +370,13 @@ build system.  The PDE build system has to run under Eclipse.
         <replace dir="${samples.out.dir}"
           token="#import('../../"
           value="#import('../libraries/">
-          <include name="**/*.dart"/>
+            <include name="**/*.dart"/>
+        </replace>
+
+        <replace dir="${samples.out.dir}"
+          token='href="../../'
+          value='href="../libraries/'>
+            <include name="**/*.html"/>
         </replace>
 
         <!-- copy over the dart libraries used by the samples -->
