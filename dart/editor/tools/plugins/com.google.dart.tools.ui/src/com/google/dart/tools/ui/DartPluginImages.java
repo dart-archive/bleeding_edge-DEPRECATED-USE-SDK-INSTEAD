@@ -626,7 +626,8 @@ public class DartPluginImages {
       "cleanup_wiz.png"); //$NON-NLS-1$
   public static final ImageDescriptor DESC_TOOL_SHOW_EMPTY_PKG = createUnManaged(T_ETOOL,
       "show_empty_pkg.gif"); //$NON-NLS-1$
-
+  public static final ImageDescriptor DESC_TOOL_NEW_FILE = createUnManaged(T_ETOOL,
+      "newfile_wiz.gif"); //$NON-NLS-1$
   public static final ImageDescriptor DESC_TOOL_SHOW_SEGMENTS = createUnManaged(T_ETOOL,
       "segment_edit.gif"); //$NON-NLS-1$
   public static final ImageDescriptor DESC_TOOL_OPENTYPE = createUnManaged(T_ETOOL, "opentype.gif"); //$NON-NLS-1$

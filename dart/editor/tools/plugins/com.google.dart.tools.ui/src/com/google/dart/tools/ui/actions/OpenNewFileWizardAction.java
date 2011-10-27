@@ -13,12 +13,21 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.internal.model.DartModelImpl;
+import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
 import com.google.dart.tools.ui.wizard.NewFileWizard;
 import com.google.dart.tools.ui.wizard.NewFileWizardPage;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.INewWizard;
+import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
@@ -28,25 +37,48 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
  * @see NewFileWizard
  * @see NewFileWizardPage
  */
-public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements IWorkbenchAction {
+public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements IWorkbenchAction,
+    ISelectionListener {
 
   private static final String ACTION_ID = "com.google.dart.tools.ui.file.new";
 
   /**
    * Creates an instance of the <code>OpenNewFileWizardAction</code>.
    */
-  public OpenNewFileWizardAction() {
+  public OpenNewFileWizardAction(IWorkbenchWindow window) {
     setText(ActionMessages.OpenNewFileWizardAction_text);
     setDescription(ActionMessages.OpenNewFileWizardAction_description);
     setToolTipText(ActionMessages.OpenNewFileWizardAction_tooltip);
-    //TODO (pquitslund) add an image
+    setImageDescriptor(DartPluginImages.DESC_TOOL_NEW_FILE);
     setId(ACTION_ID); //$NON-NLS-N$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.OPEN_ACTION);
+    window.getSelectionService().addSelectionListener(this);
   }
 
   @Override
   public void dispose() {
 
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart,
+   * org.eclipse.jface.viewers.ISelection)
+   */
+  @Override
+  public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+    DartModelImpl dartModel = DartModelManager.getInstance().getDartModel();
+    try {
+      if (dartModel.getDartLibraries().isEmpty()) {
+        setEnabled(false);
+        return;
+      }
+    } catch (DartModelException e) {
+      DartToolsPlugin.log(e);
+    }
+
+    setEnabled(true);
   }
 
   @Override

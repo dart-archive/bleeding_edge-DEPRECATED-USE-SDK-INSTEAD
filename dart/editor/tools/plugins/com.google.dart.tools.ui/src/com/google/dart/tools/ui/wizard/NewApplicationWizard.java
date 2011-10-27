@@ -16,12 +16,16 @@ package com.google.dart.tools.ui.wizard;
 import com.google.dart.tools.core.generator.ApplicationGenerator;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.internal.handlers.NewFileCommandState;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.INewWizard;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
+import org.eclipse.ui.services.ISourceProviderService;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -35,6 +39,8 @@ public class NewApplicationWizard extends AbstractDartWizard implements INewWiza
 
   private final ApplicationGenerator appGenerator = new ApplicationGenerator();
 
+  private IWorkbench workbench;
+
   public NewApplicationWizard() {
 
     setWindowTitle(WizardMessages.NewApplicationWizard_title);
@@ -46,6 +52,12 @@ public class NewApplicationWizard extends AbstractDartWizard implements INewWiza
   @Override
   public void addPages() {
     addPage(new NewApplicationWizardPage(appGenerator));
+  }
+
+  @Override
+  public void init(IWorkbench workbench, IStructuredSelection selection) {
+    super.init(workbench, selection);
+    this.workbench = workbench;
   }
 
   @Override
@@ -96,7 +108,13 @@ public class NewApplicationWizard extends AbstractDartWizard implements INewWiza
       if (file.exists()) {
         openEditor(DartUI.ID_CU_EDITOR, file);
       }
+
+      ISourceProviderService service = (ISourceProviderService) workbench.getActiveWorkbenchWindow().getService(
+          ISourceProviderService.class);
+
+      NewFileCommandState newFileCommandStateProvider = (NewFileCommandState) service.getSourceProvider(NewFileCommandState.NEW_FILE_STATE);
+
+      newFileCommandStateProvider.checkState();
     }
   }
-
 }

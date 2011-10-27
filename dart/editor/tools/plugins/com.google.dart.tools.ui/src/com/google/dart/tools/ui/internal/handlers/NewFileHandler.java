@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.wizard.NewFileWizard;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
  * Opens the {@link NewFileWizard}.
@@ -29,8 +30,11 @@ public class NewFileHandler extends AbstractHandler {
 
   @Override
   public Object execute(ExecutionEvent event) throws ExecutionException {
-    new OpenNewFileWizardAction().run();
+
+    new OpenNewFileWizardAction(HandlerUtil.getActiveWorkbenchWindow(event)).run();
+
     //unused by the framework
     return null;
   }
+
 }

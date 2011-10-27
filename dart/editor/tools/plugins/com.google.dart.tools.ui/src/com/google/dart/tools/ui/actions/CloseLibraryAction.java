@@ -17,6 +17,7 @@ import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.handlers.NewFileCommandState;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -34,6 +35,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 import org.eclipse.ui.progress.UIJob;
+import org.eclipse.ui.services.ISourceProviderService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,6 +87,11 @@ public class CloseLibraryAction extends Action implements IWorkbenchAction, ISel
               ActionMessages.CloseLibraryAction_error_message);
         }
       }
+
+      ISourceProviderService service = (ISourceProviderService) window.getService(ISourceProviderService.class);
+
+      NewFileCommandState newFileCommandStateProvider = (NewFileCommandState) service.getSourceProvider(NewFileCommandState.NEW_FILE_STATE);
+      newFileCommandStateProvider.checkState();
 
       return Status.OK_STATUS;
     }

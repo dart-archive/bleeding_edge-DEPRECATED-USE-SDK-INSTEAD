@@ -100,7 +100,7 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
 
 //    fViewActionGroup.fillFilters(viewer);
 
-    newFileWizardAction = new OpenNewFileWizardAction();
+    newFileWizardAction = new OpenNewFileWizardAction(part.getSite().getWorkbenchWindow());
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
     openFileAction = new OpenExternalFileDialogAction(part.getSite().getWorkbenchWindow());
 
