@@ -365,20 +365,6 @@ build system.  The PDE build system has to run under Eclipse.
              <fileset dir="${build.source.root}/client/json" />
         </copy>
 
-        <!-- replace the path based imports with the symbolic ones -->
-
-        <replace dir="${samples.out.dir}"
-          token="#import('../../"
-          value="#import('../libraries/">
-            <include name="**/*.dart"/>
-        </replace>
-
-        <replace dir="${samples.out.dir}"
-          token='href="../../'
-          value='href="../libraries/'>
-            <include name="**/*.html"/>
-        </replace>
-
         <!-- copy over the dart libraries used by the samples -->
 
         <property name="libraries.out.dir" 
@@ -402,6 +388,40 @@ build system.  The PDE build system has to run under Eclipse.
         <copy todir="${libraries.out.dir}/view">
             <fileset dir="${build.source.root}/client/view"/>
         </copy>
+        
+        <!-- patch up the html library references -->
+        <property name="include.dir" 
+                  value="${build.stage.features}/com.google.dart.tools.deploy.feature/include" />
+                  
+        <replace dir="${include.dir}"
+          token='../../../html/html.dart'
+          value='dart:html'>
+            <include name="**/*.dart"/>
+        </replace>
+        <replace dir="${include.dir}"
+          token='../../html/html.dart'
+          value='dart:html'>
+            <include name="**/*.dart"/>
+        </replace>
+        <replace dir="${include.dir}"
+          token='../html/html.dart'
+          value='dart:html'>
+            <include name="**/*.dart"/>
+        </replace>
+        
+        <!-- replace the path based imports with the symbolic ones -->
+
+        <replace dir="${samples.out.dir}"
+          token="#import('../../"
+          value="#import('../libraries/">
+            <include name="**/*.dart"/>
+        </replace>
+
+        <replace dir="${samples.out.dir}"
+          token='href="../../'
+          value='href="../libraries/'>
+            <include name="**/*.html"/>
+        </replace>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
