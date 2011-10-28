@@ -61,15 +61,15 @@ class TotalServer extends IsolatedServer {
   void restartServer(HTTPRequest request, HTTPResponse response) {
     writeData(request, response, 'Restarting, KBBS', 'text/plain');
     stop();
-    print("GRACEFUL RESTART!! TODO: make server exit gracefully");
-    throw "GRACEFUL RESTART!! TODO: make server exit gracefully";
+    print("GRACEFUL RESTART!!");
+    exit(42);
   }
 
   void stopServer(HTTPRequest request, HTTPResponse response) {
     writeData(request, response, 'Exiting, KTHXBYE', 'text/plain');
     stop();
-    print("GRACEFUL EXIT!! TODO: make server exit gracefully");
-    throw "GRACEFUL EXIT!! TODO: make server exit gracefully";
+    print("GRACEFUL EXIT!!");
+    exit(0);
   }
 
   void writeData(HTTPRequest request, HTTPResponse response, String message, String mimeType) {
