@@ -49,6 +49,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -75,15 +76,15 @@ public class DartCompilerUtilities {
       this.parseErrors = parseErrors;
     }
 
+    public void handleException(Throwable exception) {
+      this.exception = exception;
+    }
+
     @Override
     public void onError(DartCompilationError event) {
       if (parseErrors != null) {
         parseErrors.add(event);
       }
-    }
-
-    public void handleException(Throwable exception) {
-      this.exception = exception;
     }
 
     public final void runSafe() {
@@ -762,7 +763,32 @@ public class DartCompilerUtilities {
       if (secondScheme != null && !secondScheme.equals("file")) {
         return false;
       }
-      return firstUri.getPath().equals(secondUri.getPath());
+
+      String firstPath = firstUri.getPath();
+      String secondPath = secondUri.getPath();
+
+      if (firstPath.equals(secondPath)) {
+        return true;
+      }
+
+      // handle relative uris
+      // TODO(devoncarew): we should look into whether using relative URIs is a good idea
+
+      String currentPath = new File(".").toURI().normalize().getPath();
+
+      if (firstPath.endsWith(secondPath)) {
+        if (firstPath.equals(currentPath + secondPath)) {
+          return true;
+        }
+      }
+
+      if (secondPath.endsWith(firstPath)) {
+        if (secondPath.equals(currentPath + firstPath)) {
+          return true;
+        }
+      }
+
+      return false;
     } else if (secondScheme == null || !firstScheme.equals(secondScheme)) {
       return false;
     } else if (SystemLibraryManager.isDartUri(firstUri)
