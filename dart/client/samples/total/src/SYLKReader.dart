@@ -109,12 +109,7 @@ class SYLKReader extends Reader {
             break;
 
           default:
-            text = '''ID;P
-B;X1;Y3
-C;Y1;X1;K${req.status}
-C;Y2;X1;K"spreadsheet/get"
-C;Y3;X1;K"not found"
-''';
+            text = 'ID;P';
             break;
         }
 
