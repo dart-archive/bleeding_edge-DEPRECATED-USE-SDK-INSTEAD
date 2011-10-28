@@ -357,13 +357,12 @@ def _BuildCartC(dartcpath):
     dartcpath: the DartC "compiler" directory
 
   Returns:
-    the status f the build of dartc
+    the status of the build of dartc
   """
   cwd = os.getcwd()
   os.chdir(dartcpath)
   try:
-    args = [sys.executable, '../tools/build.py', '--mode', 'debug',
-            '--arch', 'dartc']
+    args = [sys.executable, '../tools/build.py', '--mode', 'debug']
     print ' '.join(args)
     status = subprocess.call(args)
   finally:
