@@ -29,8 +29,7 @@ def BuildFling(mode):
   # Build dartc
   if subprocess.call([
       '../tools/build.py',
-      '--mode=%s' % mode,
-      '--arch=dartc'],
+      '--mode=%s' % mode],
       cwd = rootPath('compiler')) != 0:
     return False
   if subprocess.call([

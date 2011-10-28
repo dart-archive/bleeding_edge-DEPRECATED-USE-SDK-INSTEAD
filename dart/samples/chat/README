@@ -33,7 +33,6 @@ How to run
 First of all make sure that the Dart VM and Dart compiler are build by
 running the following from the root of the Dart checkout:
 
-$ tools/build.py --arch=dartc --mode=release
 $ tools/build.py --arch=ia32 --mode=release
 
 All the commands below should be executed in the samples/chat
@@ -44,7 +43,7 @@ $ cd samples/chat
 First step is to compile the client Dart source into JavaScript for
 the browser.
 
-$ ../../out/Release_dartc/dartc dart_client/chat.dart
+$ ../../out/Release_ia32/dartc dart_client/chat.dart
 
 This will create the JavaScript for the Dart application in the out
 directory.
