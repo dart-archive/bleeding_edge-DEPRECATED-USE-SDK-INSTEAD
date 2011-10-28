@@ -5,7 +5,7 @@
 #library('isolate_sample');
 
 #import('../../base/base.dart');
-#import('dart:html');
+#import('../../html/html.dart');
 
 #source('IsolateSample.dart');
 

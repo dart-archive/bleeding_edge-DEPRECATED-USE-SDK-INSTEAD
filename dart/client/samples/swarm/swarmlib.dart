@@ -11,7 +11,7 @@
 #import('../../observable/observable.dart');
 #import('../../touch/touch.dart');
 #import('../../util/utilslib.dart');
-#import('dart:html');
+#import('../../html/html.dart');
 
 #source('App.dart');
 #source('BiIterator.dart');

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("Total");
-#import("dart:html");
+#import("../../../html/html.dart");
 #import("TotalLib.dart");
 
 class Total {
