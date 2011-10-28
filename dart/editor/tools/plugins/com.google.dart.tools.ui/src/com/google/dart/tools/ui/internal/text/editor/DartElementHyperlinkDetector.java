@@ -75,12 +75,11 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
     DartEditor dartEditor = (DartEditor) textEditor;
     DartUnit ast = dartEditor.getAST();
     if (ast != null) {
-      final DartElementLocator visitor = new DartElementLocator(input, offset, offset); //start, end);
-      visitor.searchWithin(ast);
-      DartElement foundElement = visitor.getFoundElement();
+      final DartElementLocator locator = new DartElementLocator(input, offset, offset); //start, end);
+      DartElement foundElement = locator.searchWithin(ast);
       if (foundElement != null) {
-        IRegion wordRegion = visitor.getWordRegion();
-        final IRegion candidateRegion = visitor.getCandidateRegion();
+        IRegion wordRegion = locator.getWordRegion();
+        final IRegion candidateRegion = locator.getCandidateRegion();
         if (candidateRegion != null) {
           return new IHyperlink[] {new DartElementHyperlink(foundElement, wordRegion,
               new OpenAction(dartEditor) {

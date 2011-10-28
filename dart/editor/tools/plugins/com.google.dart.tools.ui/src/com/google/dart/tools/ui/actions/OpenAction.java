@@ -19,17 +19,16 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.SourceReference;
+import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
-import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
-import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -37,6 +36,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.util.OpenStrategy;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -46,7 +46,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -106,6 +105,45 @@ public class OpenAction extends SelectionDispatchAction {
     return object;
   }
 
+  /**
+   * Note: this method is for internal use only. Clients should not call this method.
+   * 
+   * @param element the element to process
+   * @param candidateRegion
+   * @noreference This method is not intended to be referenced by clients.
+   */
+  public void run(DartElement element, IRegion candidateRegion) {
+    if (element == null) {
+      return;
+    }
+    IStatus status = Status.OK_STATUS;
+    try {
+      Object elementToOpen = getElementToOpen(element);
+      boolean activateOnOpen = fEditor != null ? true : OpenStrategy.activateOnOpen();
+      IEditorPart part = EditorUtility.openInEditor(elementToOpen, activateOnOpen);
+      if (part != null && elementToOpen instanceof DartElement) {
+        selectInEditor(part, (DartElement) elementToOpen, candidateRegion);
+      }
+    } catch (PartInitException exception) {
+      String message = Messages.format(ActionMessages.OpenAction_error_problem_opening_editor,
+          new String[] {
+              DartElementLabels.getTextLabel(element, DartElementLabels.ALL_DEFAULT),
+              exception.getStatus().getMessage()});
+      status = new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, IStatus.ERROR, message, null);
+    } catch (CoreException exception) {
+      String message = Messages.format(ActionMessages.OpenAction_error_problem_opening_editor,
+          new String[] {
+              DartElementLabels.getTextLabel(element, DartElementLabels.ALL_DEFAULT),
+              exception.getStatus().getMessage()});
+      status = new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, IStatus.ERROR, message, null);
+      DartToolsPlugin.log(exception);
+    }
+    if (!status.isOK()) {
+      ErrorDialog.openError(getShell(), getDialogTitle(), ActionMessages.OpenAction_error_message,
+          status);
+    }
+  }
+
   @Override
   public void run(IStructuredSelection selection) {
     if (!checkEnabled(selection)) {
@@ -119,44 +157,61 @@ public class OpenAction extends SelectionDispatchAction {
     if (!isProcessable()) {
       return;
     }
-    try {
-      DartElement[] elements = SelectionConverter.codeResolveForked(fEditor, false);
-      elements = selectOpenableElements(elements);
-      if (elements == null || elements.length == 0) {
-        IEditorStatusLine statusLine = (IEditorStatusLine) fEditor.getAdapter(IEditorStatusLine.class);
-        if (statusLine != null) {
-          statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null);
-        }
-        getShell().getDisplay().beep();
-        return;
-      }
-
-      DartElement element = elements[0];
-      if (elements.length > 1) {
-        element = SelectionConverter.selectJavaElement(elements, getShell(), getDialogTitle(),
-            ActionMessages.OpenAction_select_element);
-        if (element == null) {
-          return;
-        }
-      }
-
-      run(new Object[] {element});
-    } catch (InvocationTargetException e) {
-      boolean statusSet = false;
-      if (fEditor != null) {
-        IEditorStatusLine statusLine = (IEditorStatusLine) fEditor.getAdapter(IEditorStatusLine.class);
-        if (statusLine != null) {
-          statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null);
-          statusSet = true;
-        }
-      }
-      if (!statusSet) {
-        ExceptionHandler.handle(e, getShell(), getDialogTitle(),
-            ActionMessages.OpenAction_error_message);
-      }
-    } catch (InterruptedException e) {
-      // ignore
+    DartElement element = EditorUtility.getEditorInputJavaElement(fEditor, false);
+    if (!(element instanceof CompilationUnit)) {
+      return;
     }
+    DartElementLocator locator = new DartElementLocator((CompilationUnit) element,
+        selection.getOffset(), selection.getOffset());
+    DartElement targetElement = locator.searchWithin(fEditor.getAST());
+    if (targetElement == null) {
+      IEditorStatusLine statusLine = (IEditorStatusLine) fEditor.getAdapter(IEditorStatusLine.class);
+      if (statusLine != null) {
+        statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null);
+      }
+      getShell().getDisplay().beep();
+      return;
+    }
+    IRegion candidateRegion = locator.getCandidateRegion();
+    run(targetElement, locator.getCandidateRegion());
+//    try {
+//      DartElement[] elements = SelectionConverter.codeResolveForked(fEditor, false);
+//      elements = selectOpenableElements(elements);
+//      if (elements == null || elements.length == 0) {
+//        IEditorStatusLine statusLine = (IEditorStatusLine) fEditor.getAdapter(IEditorStatusLine.class);
+//        if (statusLine != null) {
+//          statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null);
+//        }
+//        getShell().getDisplay().beep();
+//        return;
+//      }
+//
+//      DartElement element = elements[0];
+//      if (elements.length > 1) {
+//        element = SelectionConverter.selectJavaElement(elements, getShell(), getDialogTitle(),
+//            ActionMessages.OpenAction_select_element);
+//        if (element == null) {
+//          return;
+//        }
+//      }
+//
+//      run(new Object[] {element});
+//    } catch (InvocationTargetException e) {
+//      boolean statusSet = false;
+//      if (fEditor != null) {
+//        IEditorStatusLine statusLine = (IEditorStatusLine) fEditor.getAdapter(IEditorStatusLine.class);
+//        if (statusLine != null) {
+//          statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null);
+//          statusSet = true;
+//        }
+//      }
+//      if (!statusSet) {
+//        ExceptionHandler.handle(e, getShell(), getDialogTitle(),
+//            ActionMessages.OpenAction_error_message);
+//      }
+//    } catch (InterruptedException e) {
+//      // ignore
+//    }
   }
 
   /**
@@ -217,6 +272,14 @@ public class OpenAction extends SelectionDispatchAction {
 
   protected void selectInEditor(IEditorPart part, DartElement element) {
     DartUI.revealInEditor(part, element);
+  }
+
+  protected void selectInEditor(IEditorPart part, DartElement element, IRegion candidateRegion) {
+    if (candidateRegion == null) {
+      DartUI.revealInEditor(part, element);
+    } else {
+      EditorUtility.revealInEditor(part, candidateRegion.getOffset(), candidateRegion.getLength());
+    }
   }
 
   private boolean checkEnabled(IStructuredSelection selection) {
