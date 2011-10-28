@@ -55,20 +55,15 @@ class Dartc {
       });
 
     compiler.start();
-    // TODO(rchandia) increase read size when stream handling works better
-    int BUFSIZE = 1;
 
-    _readAll(false, compiler.stdout, new List<int>(BUFSIZE), messages);
-    _readAll(false, compiler.stderr, new List<int>(BUFSIZE), messages);
+    compiler.stdout.dataHandler = () => _readAll(compiler.stdout, messages);
+    compiler.stderr.dataHandler = () => _readAll(compiler.stderr, messages);
   }
 }
 
-void _readAll(bool fromCallback, InputStream input, List<int> buffer, StringBuffer output) {
-  if (fromCallback) {
-    output.add(new String.fromCharCodes(buffer));
-  }
-  while (input.read(buffer, 0, buffer.length, () => _readAll(true, input, buffer, output))) {
-    output.add(new String.fromCharCodes(buffer));
+void _readAll(InputStream input, StringBuffer output) {
+  while (input.available() != 0) {
+    output.add(new String.fromCharCodes(input.read()));
   }
 }
 

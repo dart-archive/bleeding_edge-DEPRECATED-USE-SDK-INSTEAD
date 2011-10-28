@@ -34,9 +34,6 @@ class ServerRunner {
   List<String> _exitStrings;
   String _serverMain;
 
-  // TODO: fix this to use a bigger buffer when streams work better
-  int _BUFSIZE = 1;
-
   String lastExitString;
 
   // TODO: Release or Debug? We should be able to find automatically
@@ -56,16 +53,13 @@ class ServerRunner {
 
     dart.start();
 
-    readMore(false, dart.stdout, new List<int>(_BUFSIZE), new StringBuffer());
-    readMore(false, dart.stderr, new List<int>(_BUFSIZE), new StringBuffer());
+    dart.stdout.dataHandler = () => readMore(dart.stdout, new StringBuffer());
+    dart.stderr.dataHandler = () => readMore(dart.stderr, new StringBuffer());
   }
 
-  void readMore(bool fromCallback, InputStream i, List<int> buf, StringBuffer readSoFar) {
-    if (fromCallback) {
-      processBuffer(buf, readSoFar);
-    }
-    while(i.read(buf, 0, buf.length, () => readMore(true, i, buf, readSoFar))) {
-      processBuffer(buf, readSoFar);
+  void readMore(InputStream i, StringBuffer readSoFar) {
+    while(i.available() != 0) {
+      processBuffer(i.read(), readSoFar);
     }
   }
 
