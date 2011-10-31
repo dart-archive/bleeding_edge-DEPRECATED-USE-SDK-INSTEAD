@@ -27,7 +27,7 @@ public class TestAll {
     suite.addTest(com.google.dart.tools.core.indexer.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.TestAll.suite());
     // suite.addTest(com.google.dart.tools.core.model.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.search.TestAll.suite());
+//    suite.addTest(com.google.dart.tools.core.search.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.utilities.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.workingcopy.TestAll.suite());
     return suite;
