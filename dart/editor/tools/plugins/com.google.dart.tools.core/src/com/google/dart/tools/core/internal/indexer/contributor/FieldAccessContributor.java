@@ -17,10 +17,10 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
-import com.google.dart.tools.core.internal.indexer.location.VariableLocation;
 import com.google.dart.tools.core.internal.indexer.location.FieldLocation;
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
+import com.google.dart.tools.core.internal.indexer.location.VariableLocation;
 import com.google.dart.tools.core.model.CompilationUnitElement;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 
@@ -31,7 +31,10 @@ import com.google.dart.tools.core.model.Field;
 public class FieldAccessContributor extends ScopedDartContributor {
   @Override
   public Void visitIdentifier(DartIdentifier node) {
-    Symbol symbol = node.getTargetSymbol();
+    Symbol symbol = node.getReferencedElement();
+    if (symbol == null) {
+      symbol = node.getTargetSymbol();
+    }
     if (symbol instanceof FieldElement) {
       processVariable(node, (FieldElement) symbol);
     }
@@ -41,12 +44,22 @@ public class FieldAccessContributor extends ScopedDartContributor {
   private void processVariable(DartIdentifier node, FieldElement binding) {
     if (binding.getKind() == ElementKind.FIELD) {
       CompilationUnitElement fieldOrVariable = getDartElement(binding);
+      // TODO(brianwilkerson) In both cases below the "target" is wrong. We're pointing to the right
+      // model element, but have the wrong source range. It should be "new SourceRangeImpl(node)".
       if (fieldOrVariable instanceof Field) {
-        recordRelationship(new FieldLocation((Field) fieldOrVariable, new SourceRangeImpl(node)),
-            peekTarget());
+        Field field = (Field) fieldOrVariable;
+        try {
+          recordRelationship(peekTarget(), new FieldLocation(field, field.getNameRange()));
+        } catch (DartModelException exception) {
+          // Ignored
+        }
       } else if (fieldOrVariable instanceof DartVariableDeclaration) {
-        recordRelationship(new VariableLocation((DartVariableDeclaration) fieldOrVariable,
-            new SourceRangeImpl(node)), peekTarget());
+        DartVariableDeclaration variable = (DartVariableDeclaration) fieldOrVariable;
+        try {
+          recordRelationship(peekTarget(), new VariableLocation(variable, variable.getNameRange()));
+        } catch (DartModelException exception) {
+          // Ignored
+        }
       }
     }
   }

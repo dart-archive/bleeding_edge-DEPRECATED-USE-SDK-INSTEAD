@@ -17,8 +17,9 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.type.InterfaceType;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.indexer.location.TypeLocation;
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
 
 /**
@@ -45,7 +46,13 @@ public class TypeReferencesContributor extends ScopedDartContributor {
   private void processType(DartIdentifier node, InterfaceType binding) {
     Type type = getDartElement(binding.asRawType());
     if (type != null) {
-      recordRelationship(peekTarget(), new TypeLocation(type, new SourceRangeImpl(node)));
+      try {
+        // TODO(brianwilkerson) The "target" is wrong. We're pointing to the right model element,
+        // but have the wrong source range. It should be "new SourceRangeImpl(node)".
+        recordRelationship(peekTarget(), new TypeLocation(type, type.getNameRange()));
+      } catch (DartModelException exception) {
+        DartCore.logError("Could not get range for type " + type.getElementName(), exception);
+      }
     }
   }
 }

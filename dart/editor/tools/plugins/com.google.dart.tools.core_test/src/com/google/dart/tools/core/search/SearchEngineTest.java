@@ -15,6 +15,10 @@ package com.google.dart.tools.core.search;
 
 import com.google.dart.tools.core.internal.search.scope.WorkspaceSearchScope;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.Field;
+import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 
 import static com.google.dart.tools.core.test.util.MoneyProjectUtilities.getMoneyProject;
@@ -57,10 +61,40 @@ public class SearchEngineTest extends TestCase {
     SearchEngine engine = SearchEngineFactory.createSearchEngine();
     GatheringSearchListener listener = new GatheringSearchListener();
     engine.searchConstructorDeclarations(new WorkspaceSearchScope(),
-        SearchPatternFactory.createPrefixPattern("Mone", true), null, listener,
+        SearchPatternFactory.createPrefixPattern("Simpl", true), null, listener,
         new NullProgressMonitor());
     List<SearchMatch> matches = listener.getMatches();
     assertEquals(1, matches.size());
+  }
+
+  public void test_SearchEngine_searchReferences_field() throws Exception {
+    DartProject moneyProject = getMoneyProject();
+    DartLibrary[] libraries = moneyProject.getDartLibraries();
+    assertNotNull(libraries);
+    assertEquals(1, libraries.length);
+    Type type = libraries[0].getCompilationUnit("simple_money.dart").getType("SimpleMoney");
+    Field field = type.getField("amount");
+    SearchEngine engine = SearchEngineFactory.createSearchEngine();
+    GatheringSearchListener listener = new GatheringSearchListener();
+    engine.searchReferences(field, new WorkspaceSearchScope(), null, listener,
+        new NullProgressMonitor());
+    List<SearchMatch> matches = listener.getMatches();
+    assertEquals(4, matches.size());
+  }
+
+  public void test_SearchEngine_searchReferences_method() throws Exception {
+    DartProject moneyProject = getMoneyProject();
+    DartLibrary[] libraries = moneyProject.getDartLibraries();
+    assertNotNull(libraries);
+    assertEquals(1, libraries.length);
+    Type type = libraries[0].getCompilationUnit("simple_money.dart").getType("SimpleMoney");
+    Method method = type.getMethod("getAmount", new String[0]);
+    SearchEngine engine = SearchEngineFactory.createSearchEngine();
+    GatheringSearchListener listener = new GatheringSearchListener();
+    engine.searchReferences(method, new WorkspaceSearchScope(), null, listener,
+        new NullProgressMonitor());
+    List<SearchMatch> matches = listener.getMatches();
+    assertEquals(2, matches.size());
   }
 
   public void test_SearchEngine_searchTypeDeclarations() throws Exception {
@@ -71,9 +105,8 @@ public class SearchEngineTest extends TestCase {
         SearchPatternFactory.createPrefixPattern("Money", true), null, listener,
         new NullProgressMonitor());
     List<SearchMatch> matches = listener.getMatches();
-    assertEquals(2, matches.size());
-    assertTrue((isType(matches.get(0), "Money") && isType(matches.get(1), "MoneyTest"))
-        || (isType(matches.get(0), "MoneyTest") && isType(matches.get(1), "Money")));
+    assertEquals(1, matches.size());
+    assertTrue(isType(matches.get(0), "Money"));
   }
 
   private boolean isType(SearchMatch match, String typeName) {

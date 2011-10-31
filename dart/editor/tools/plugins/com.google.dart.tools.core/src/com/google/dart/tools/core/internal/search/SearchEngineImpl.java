@@ -25,6 +25,7 @@ import com.google.dart.tools.core.internal.indexer.contributor.FieldAccessContri
 import com.google.dart.tools.core.internal.indexer.contributor.MethodInvocationContributor;
 import com.google.dart.tools.core.internal.indexer.contributor.TypeReferencesContributor;
 import com.google.dart.tools.core.internal.indexer.location.DartElementLocation;
+import com.google.dart.tools.core.internal.indexer.location.FieldLocation;
 import com.google.dart.tools.core.internal.indexer.location.ReferenceKind;
 import com.google.dart.tools.core.internal.indexer.location.SyntheticLocation;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
@@ -80,8 +81,9 @@ public final class SearchEngineImpl implements SearchEngine {
      * match.
      * 
      * @return the target locations that form relationships that constitute a match
+     * @throws DartModelException if the valid targets could not be computed
      */
-    public Location[] getValidTargets();
+    public Location[] getValidTargets() throws DartModelException;
 
     /**
      * Return the result of looking in the index for search results.
@@ -217,9 +219,8 @@ public final class SearchEngineImpl implements SearchEngine {
       }
 
       @Override
-      public Location[] getValidTargets() {
-        DartCore.notYetImplemented();
-        return null;
+      public Location[] getValidTargets() throws DartModelException {
+        return new Location[] {new FieldLocation(field, field.getNameRange())};
       }
 
       @Override
@@ -438,11 +439,14 @@ public final class SearchEngineImpl implements SearchEngine {
   }
 
   /**
-   * Search for all of the type declarations that are defined in the given scope, and match the
-   * given pattern.
+   * Use the given helper object to search for all of the results that are defined in the given
+   * scope, and match the given pattern.
    * 
-   * @param scope the scope containing the type declarations to be searched
-   * @param pattern the pattern used to determine which type declarations are to be returned
+   * @param helper an object used to encode the information that is specific to each individual
+   *          search operation
+   * @param scope the scope containing the results to be returned
+   * @param pattern the pattern used to determine which results are to be returned, or
+   *          <code>null</code> if all results are to be returned
    * @param listener the listener that will be notified when matches are found
    * @param monitor the progress monitor to use for reporting progress to the user. It is the
    *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
@@ -475,21 +479,25 @@ public final class SearchEngineImpl implements SearchEngine {
     //
     // Then search the working copies for more possible matches.
     //
-    SearchLayerUpdater layerUpdater = new SearchLayerUpdater(locations, helper.getValidTargets());
-    DartContributor contributor = helper.getContributor();
-    for (CompilationUnit workingCopy : currentWorkingCopies) {
-      if (progress.isCanceled()) {
-        throw new OperationCanceledException();
+    try {
+      SearchLayerUpdater layerUpdater = new SearchLayerUpdater(locations, helper.getValidTargets());
+      DartContributor contributor = helper.getContributor();
+      for (CompilationUnit workingCopy : currentWorkingCopies) {
+        if (progress.isCanceled()) {
+          throw new OperationCanceledException();
+        }
+        contributor.initialize(workingCopy, layerUpdater);
+        try {
+          DartUnit ast = DartCompilerUtilities.parseUnit(workingCopy);
+          ast.accept(contributor);
+        } catch (DartModelException exception) {
+          DartCore.logError(
+              "Could not parse " + workingCopy.getResource().getLocation().toString(), exception);
+        }
+        progress.worked(1);
       }
-      contributor.initialize(workingCopy, layerUpdater);
-      try {
-        DartUnit ast = DartCompilerUtilities.parseUnit(workingCopy);
-        ast.accept(contributor);
-      } catch (DartModelException exception) {
-        DartCore.logError("Could not parse " + workingCopy.getResource().getLocation().toString(),
-            exception);
-      }
-      progress.worked(1);
+    } catch (DartModelException exception) {
+      DartCore.logInformation("Could not search working copies for matches", exception);
     }
     //
     // Filter the matches and report them to the listener.
@@ -504,7 +512,10 @@ public final class SearchEngineImpl implements SearchEngine {
         DartElement element = DartIndexer.unpackElementOrNull(location);
         if (element != null && scope.encloses(element)
             && !isSuperseded(element, currentWorkingCopies)) {
-          MatchQuality quality = pattern.matches(element);
+          MatchQuality quality = MatchQuality.EXACT;
+          if (pattern != null) {
+            quality = pattern.matches(element);
+          }
           if (quality != null) {
             listener.matchFound(new SearchMatch(quality, map(dartLocation.getReferenceKind()),
                 element, dartLocation.getSourceRange()));
