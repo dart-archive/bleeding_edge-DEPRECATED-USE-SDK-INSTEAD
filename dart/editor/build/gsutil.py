@@ -47,12 +47,22 @@ class GsUtil(object):
       home_gs_util = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
     else:
       home_gs_util = gsutil_loc
+    path = os.environ['PATH']
+    if path is not None:
+      pathelements = path.split(os.pathsep)
+      for pathelement in pathelements:
+        gs_util_candidate = os.path.join(pathelement, 'gsutil')
+        if os.path.exists(gs_util_candidate):
+          path_gs_util = gs_util_candidate
+          break
 
     gsutil = None
     if os.path.exists(bot_gs_util):
       gsutil = bot_gs_util
     elif os.path.exists(home_gs_util):
       gsutil = home_gs_util
+    elif path_gs_util is not None:
+      gsutil = path_gs_util
     else:
       raise Exception('could not find gsutil.'
                       '  Tried {0} and {1}'.format(bot_gs_util, home_gs_util))

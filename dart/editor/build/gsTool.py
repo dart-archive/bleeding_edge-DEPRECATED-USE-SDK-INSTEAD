@@ -25,8 +25,14 @@ def _BuildOptions():
   """
   usage = """usage: %prog [options] cleanup|promote
   where:
-    cleanup will cleanup the Google storage continupus bucket
+    cleanup will cleanup the Google storage continuous bucket
     promote will promote code between different stages
+
+    If you do not specify the location of GSUtil with --gsutilloc the
+    program will look in:
+    /b/build/scripts/slave/gsutil (BuildBot location)
+    ~/gsutil/gsutil (local disk)
+    search your path for gsutil
 
     Examples:
       cleanup Google Storage saving the last 100 (default value) revision
@@ -69,9 +75,13 @@ def _BuildOptions():
   result.add_option_group(group)
 
   result.add_option('--gsbucketuri',
-                    help='Google Storage bucket URI.',
+                    help='Dart Continuous Google Storage bucket URI.',
                     action='store')
-  result.add_option('--dryrun', help='just print what it would do',
+  result.add_option('--gsutilloc',
+                    help='location of gsutil the program',
+                    action='store')
+  result.add_option('--dryrun', help='don\'t do anything that would change'
+                    ' Google Storage',
                     action='store_true')
 
   return result
@@ -116,7 +126,7 @@ def main():
     parser.print_help()
     sys.exit(2)
 
-  gsu = gsutil.GsUtil(options.dryrun)
+  gsu = gsutil.GsUtil(options.dryrun, options.gsutilloc)
 
   if options.continuous:
     bucket_from = CONTINUOUS
