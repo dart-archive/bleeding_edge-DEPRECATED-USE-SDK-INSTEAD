@@ -28,6 +28,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
+import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
@@ -620,7 +621,7 @@ public class DartCore extends Plugin {
       return false;
     }
     for (String extension : extensions) {
-      if (fileName.endsWith('.' + extension)) {
+      if (StringUtilities.endsWithIgnoreCase(fileName, '.' + extension)) {
         return true;
       }
     }
