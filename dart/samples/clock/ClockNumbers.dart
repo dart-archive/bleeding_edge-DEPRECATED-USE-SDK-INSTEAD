@@ -51,7 +51,6 @@ class ClockNumbers {
        const[ 1, 1, 1, 1 ],
        const[ 0, 0, 0, 1 ],
        const[ 0, 0, 0, 1 ],
-       const[ 0, 0, 0, 1 ],
        const[ 1, 1, 1, 1 ]
     ], const [
        const[ 1, 1, 1, 1 ],
