@@ -318,6 +318,13 @@ public class CompletionEngine {
           if (q instanceof DartIdentifier) {
             DartIdentifier qualifier = (DartIdentifier) q;
             proposeIdentifierPrefixCompletions(qualifier);
+          } else if (q instanceof DartTypeNode) {
+            DartTypeNode type = (DartTypeNode) q;
+            DartNode name = type.getIdentifier();
+            if (name instanceof DartIdentifier) {
+              DartIdentifier id = (DartIdentifier) name;
+              proposeTypesForPrefix(id, false);
+            }
           }
         }
       }
@@ -538,7 +545,6 @@ public class CompletionEngine {
               DartMethodDefinition methodDef = (DartMethodDefinition) node.getParent();
               DartExpression methodName = methodDef.getName();
               if (methodName instanceof DartIdentifier) {
-                DartIdentifier methodId = (DartIdentifier) methodName;
                 // TODO check for supertype methods whose name starts with identifier and
                 // matches the return type, if found propose a new method matching its signature
                 proposeTypesForNewParam();
@@ -1423,6 +1429,9 @@ public class CompletionEngine {
     }
     int begin = node.getSourceStart();
     int dot = actualCompletionPosition + 1;
+    if (dot < begin) {
+      return null;
+    }
     String name = source.substring(begin, begin + node.getSourceLength());
     String prefix = name.substring(0, Math.min(name.length(), dot - begin));
     return prefix.length() == 0 ? null : prefix;

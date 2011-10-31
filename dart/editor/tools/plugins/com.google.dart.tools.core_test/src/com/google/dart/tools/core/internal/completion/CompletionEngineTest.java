@@ -42,14 +42,9 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets003() throws Exception {
-    test("class Z {!1Ma!2p m = const !3Map!4();mth() {var x = new List.!6fr!7om(['a']);}}",
-        "1+void", "2+Maps", "3+Arrays", "4+Maps", "6+from", "7+from");
-  }
-
-  public void testCommentSnippets003x() throws Exception {
-    // fails due to recently-introduced bug in completion engine (should be part of previous)
-    test("class Z {Map m = const Map();mth() {var x = new Li!5st.!6fr!7om(['a']);}}", "5+List",
-        "6-forEach", "7-filter");
+    test("class Z {!1Ma!2p m = const !3Map!4();mth() {var x = new Li!5st.!6fr!7om(['a']);}}",
+        "1+void", "2+Maps", "3+Arrays", "4+Maps", "5+List", "6+from", "7+from", "6-forEach",
+        "7-filter");
   }
 
   public void testCommentSnippets004() throws Exception {
