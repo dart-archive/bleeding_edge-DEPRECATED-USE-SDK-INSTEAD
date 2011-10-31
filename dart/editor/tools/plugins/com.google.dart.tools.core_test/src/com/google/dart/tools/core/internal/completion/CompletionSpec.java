@@ -15,7 +15,8 @@ class CompletionSpec {
    * <code>validationStrings</code>. Validation strings contain the name of a prediction with a two
    * character prefix. The first character of the prefix corresponds to an X in the
    * <code>originalSource</code>. The second character is either a '+' or a '-' indicating whether
-   * the string is a positive or negative result.
+   * the string is a positive or negative result. If logical not is needed in the source it can be
+   * represented by '!!'.
    * 
    * @param originalSource The source for a completion test that contains completion points
    * @param validationStrings The positive and negative predictions
@@ -29,7 +30,7 @@ class CompletionSpec {
       if (index < 0) {
         break;
       }
-      int n = 1;
+      int n = 1; // only delete one char for double-bangs
       char id = modifiedSource.charAt(index + 1);
       if (id != '!') {
         n = 2;
@@ -84,7 +85,7 @@ class CompletionSpec {
       }
       if (!badResults.isEmpty()) {
         err.append("No results for tests:");
-        for (Character ch : badPoints) {
+        for (Character ch : badResults) {
           err.append(' ').append(ch);
         }
       }

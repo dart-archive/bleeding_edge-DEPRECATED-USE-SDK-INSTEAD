@@ -300,9 +300,18 @@ public class CompletionEngine {
               }
             }
           } else {
-            // { a.! } or { a.x! }
-            boolean isInstance = completionNode.getQualifier() instanceof DartThisExpression;
-            createCompletionsForQualifiedMemberAccess(propertyName, type, isInstance);
+            if (type instanceof InterfaceType) {
+              DartNode q = completionNode.getQualifier();
+              if (q instanceof DartTypeNode) {
+                createCompletionsForFactoryInvocation(propertyName, (InterfaceType) type);
+              } else {
+                createCompletionsForQualifiedMemberAccess(propertyName, type, false);
+              }
+            } else {
+              // { a.! } or { a.x! }
+              boolean isInstance = completionNode.getQualifier() instanceof DartThisExpression;
+              createCompletionsForQualifiedMemberAccess(propertyName, type, isInstance);
+            }
           }
         } else {
           DartNode q = completionNode.getQualifier();
@@ -372,7 +381,7 @@ public class CompletionEngine {
               break;
             case ClassBody:
               // class x extends A! (A may be empty string)
-              // class x implements I! (parser error if I is empty string)
+              // class x implements I! (I may be empty string)
               // interface x extends I!
               DartClass classDef = (DartClass) typeCompleter.getParent();
               boolean isClassDef = classDef.getSuperclass() == typeCompleter;
@@ -458,7 +467,7 @@ public class CompletionEngine {
       if (node instanceof BlockCompleter) {
         BlockCompleter block = (BlockCompleter) node;
         Stack<Mark> stack = block.getCompletionParsingContext();
-        if (stack.isEmpty() || stack.peek() == Mark.Block) {
+        if (stack.isEmpty() || stack.peek() == Mark.Block || stack.peek() == Mark.ClassMember) {
           // between statements: { ! } or { ! x; ! y; ! }
           boolean isStatic = resolvedMember.getModifiers().isStatic();
           createCompletionsForLocalVariables(block, null, resolvedMember);
@@ -479,6 +488,7 @@ public class CompletionEngine {
     @Override
     public Void visitBooleanLiteral(DartBooleanLiteral node) {
       createProposalsForLiterals(node, "false", "true");
+      // TODO Should we add identifiers here?
       return null;
     }
 
@@ -506,7 +516,7 @@ public class CompletionEngine {
       DartIdentifier name = node.getName();
       int begin = name.getSourceStart();
       int len = name.getSourceLength();
-      if (begin <= actualCompletionPosition && actualCompletionPosition <= begin + len) {
+      if (begin <= actualCompletionPosition + 1 && actualCompletionPosition < begin + len) {
         // bug in visitor does not visit name
         return node.accept(new IdentifierCompletionProposer(name));
       }
@@ -531,7 +541,7 @@ public class CompletionEngine {
                 DartIdentifier methodId = (DartIdentifier) methodName;
                 // TODO check for supertype methods whose name starts with identifier and
                 // matches the return type, if found propose a new method matching its signature
-                proposeTypesForPrefix(methodId);
+                proposeTypesForNewParam();
               } else {
                 // TODO qualified names
               }
@@ -569,6 +579,7 @@ public class CompletionEngine {
         DartIdentifier functionName = completionNode.getFunctionName();
         int nameStart = functionName.getSourceStart();
         if (actualCompletionPosition >= nameStart + functionName.getSourceLength()) {
+          // TODO Determine purpose of this branch; it may be historical and obsolete
           createCompletionsForLocalVariables(completionNode, null, resolvedMember);
           if (resolvedMember.getParent() instanceof DartClass) {
             DartClass classDef = (DartClass) resolvedMember.getParent();
@@ -593,13 +604,29 @@ public class CompletionEngine {
 
     @Override
     public Void visitNewExpression(DartNewExpression node) {
-      // { new ! }
-      List<SearchMatch> matches = findTypesWithPrefix(null);
-      if (matches == null || matches.size() == 0) {
-        return null;
-      }
-      for (SearchMatch match : matches) {
-        createTypeCompletionsForConstructor(null, match, "");
+      if (source.charAt(actualCompletionPosition) == 'w') {
+        // no space after 'new' { new! }
+        if (resolvedMember != null) {
+          // TODO generalize and reuse single definition of this block
+          boolean isStatic = resolvedMember.getModifiers().isStatic();
+          createCompletionsForLocalVariables(node, null, resolvedMember);
+          Element parentElement = resolvedMember.getSymbol().getEnclosingElement();
+          if (parentElement instanceof ClassElement) {
+            Type type = ((ClassElement) parentElement).getType();
+            createCompletionsForPropertyAccess(null, type, false, isStatic);
+            createCompletionsForMethodInvocation(null, type, false, isStatic);
+          }
+          return null;
+        }
+      } else {
+        // { new ! }
+        List<SearchMatch> matches = findTypesWithPrefix(null);
+        if (matches == null || matches.size() == 0) {
+          return null;
+        }
+        for (SearchMatch match : matches) {
+          createTypeCompletionsForConstructor(null, match, "");
+        }
       }
       return null;
     }
