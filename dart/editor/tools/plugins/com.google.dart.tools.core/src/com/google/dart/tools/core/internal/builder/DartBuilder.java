@@ -84,6 +84,13 @@ public class DartBuilder extends IncrementalProjectBuilder {
   private class ArtifactProvider extends DartArtifactProvider {
     private final RootArtifactProvider rootProvider = RootArtifactProvider.getInstance();
     private final Collection<IProject> prerequisiteProjects = new HashSet<IProject>();
+    private int writeArtifactCount;
+    private int outOfDateCount;
+
+    public void beginBuild() {
+      writeArtifactCount = 0;
+      outOfDateCount = 0;
+    }
 
     public void clean(IProgressMonitor monitor) {
       prerequisiteProjects.clear();
@@ -129,16 +136,29 @@ public class DartBuilder extends IncrementalProjectBuilder {
       if (appJsFile != null) {
         return new BufferedWriter(new FileWriter(appJsFile));
       }
+      writeArtifactCount++;
       return rootProvider.getArtifactWriter(source, part, extension);
+    }
+
+    public int getOutOfDateCount() {
+      return outOfDateCount;
     }
 
     public IProject[] getPrerequisiteProjects() {
       return prerequisiteProjects.toArray(new IProject[prerequisiteProjects.size()]);
     }
 
+    public int getWriteArtifactCount() {
+      return writeArtifactCount;
+    }
+
     @Override
     public boolean isOutOfDate(Source source, Source base, String extension) {
-      return rootProvider.isOutOfDate(source, base, extension);
+      boolean isOutOfDate = rootProvider.isOutOfDate(source, base, extension);
+      if (isOutOfDate) {
+        outOfDateCount++;
+      }
+      return isOutOfDate;
     }
 
     /**
@@ -332,13 +352,16 @@ public class DartBuilder extends IncrementalProjectBuilder {
       //1. Have the compiler build the Library
       //2. Tell the CompilerMetrics that the Compiler is done
       //3. Have the Messenger tell the MetricsManager that a new build is in
+      provider.beginBuild();
       DartCompilerUtilities.secureCompileLib(libSource, config, provider, listener);
       config.getCompilerMetrics().done();
       if (DartCoreDebug.BUILD) {
         ByteArrayOutputStream out = new ByteArrayOutputStream(400);
         PrintStream ps = new PrintStream(out);
         ps.println("Built Library " + libSource.getName());
-        config.getCompilerMetrics().write(ps);
+        ps.println(provider.getOutOfDateCount() + " artifacts out of date");
+        ps.println(provider.getWriteArtifactCount() + " artifacts written");
+        metrics.write(ps);
         DartCoreDebug.log(out.toString());
       }
       MetricsMessenger.getSingleton().fireUpdates(config,

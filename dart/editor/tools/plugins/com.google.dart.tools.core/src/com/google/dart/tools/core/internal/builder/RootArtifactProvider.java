@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.compiler.DartArtifactProvider;
 
 /**
  * A singleton which caches artifacts for the session
@@ -31,7 +30,7 @@ public class RootArtifactProvider extends CachingArtifactProvider {
   /**
    * Answer a new instance for testing purposes only
    */
-  public static DartArtifactProvider newInstanceForTesting() {
+  public static RootArtifactProvider newInstanceForTesting() {
     return new RootArtifactProvider();
   }
 

@@ -25,17 +25,27 @@ import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.UrlSource;
 import com.google.dart.compiler.backend.js.AbstractJsBackend;
+import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.compiler.LoggingDartCompilerListener;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.osgi.service.datalocation.Location;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URL;
 
 /**
  * Utility class for "warming up" the compiler by loading artifacts and performing some simple
@@ -48,6 +58,8 @@ public class DartCompilerWarmup {
    */
   private static class ArtifactProvider extends CachingArtifactProvider {
     private final DartArtifactProvider rootProvider;
+    private int writeArtifactCount = 0;
+    private int outOfDateCount = 0;
 
     public ArtifactProvider(DartArtifactProvider rootProvider) {
       this.rootProvider = rootProvider;
@@ -98,7 +110,16 @@ public class DartCompilerWarmup {
 
         return super.getArtifactWriter(source, part, extension);
       }
+      writeArtifactCount++;
       return rootProvider.getArtifactWriter(source, part, extension);
+    }
+
+    public int getOutOfDateCount() {
+      return outOfDateCount;
+    }
+
+    public int getWriteArtifactCount() {
+      return writeArtifactCount;
     }
 
     @Override
@@ -106,7 +127,11 @@ public class DartCompilerWarmup {
       if (source.getName().equals(WARMUP_DART)) {
         return super.isOutOfDate(source, base, extension);
       }
-      return rootProvider.isOutOfDate(source, base, extension);
+      boolean isOutOfDate = rootProvider.isOutOfDate(source, base, extension);
+      if (isOutOfDate) {
+        outOfDateCount++;
+      }
+      return isOutOfDate;
     }
   }
 
@@ -166,37 +191,141 @@ public class DartCompilerWarmup {
   private static final String WARMUP_DART = "warmup.dart";
 
   /**
-   * For testing purposes only.
-   * 
+   * Perform some work that will cause compiler classes and artifacts to be loaded, Dart core and
+   * dom classes to be resolved, and possibly cause some compiler classes to be jitted.
+   */
+  public static void warmUpCompiler() {
+    RootArtifactProvider rootProvider = RootArtifactProvider.getInstance();
+    LoggingDartCompilerListener listener = LoggingDartCompilerListener.INSTANCE;
+    File cacheFile = getArtifactCacheFile();
+    if (cacheFile != null) {
+      loadCachedArtifacts(rootProvider, cacheFile);
+    }
+    warmUpCompiler(rootProvider, listener);
+    if (cacheFile != null && !cacheFile.exists()) {
+      saveCachedArtifacts(rootProvider, cacheFile);
+    }
+  }
+
+  /**
    * @see #warmUpCompiler()
    */
-  public static void warmUpCompiler(DartArtifactProvider rootProvider, DartCompilerListener listener) {
-    String warmupSrcCode = "#import('dart:dom');\n"
-        + "main() {if (window != null) print('success');}";
+  public static void warmUpCompiler(CachingArtifactProvider rootProvider,
+      DartCompilerListener listener) {
+
+    String warmupSrcCode = "#import('dart:html');\n" // dart:html should pull in dart:dom
+        + "#import('dart:json');\n" + "main() {if (window != null) print('success');}";
 
     DartSource dartSrc = new DartSourceString(WARMUP_DART, warmupSrcCode);
 
     SystemLibraryManager sysLibMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
     LibrarySource libSrc = new DartCompilerWarmup.LibraryDartSource(dartSrc, sysLibMgr);
     CompilerOptions options = new CompilerOptions();
-    DartArtifactProvider provider = new ArtifactProvider(rootProvider);
+    final CompilerMetrics metrics = new CompilerMetrics();
+    ArtifactProvider provider = new ArtifactProvider(rootProvider);
 
     try {
-      CompilerConfiguration config = new DefaultCompilerConfiguration(options, sysLibMgr);
+      CompilerConfiguration config = new DefaultCompilerConfiguration(options, sysLibMgr) {
+        @Override
+        public CompilerMetrics getCompilerMetrics() {
+          return metrics;
+        }
+      };
       DartCompilerUtilities.secureCompileLib(libSrc, config, provider, listener);
     } catch (IOException e) {
       DartCore.logError(e);
     }
+    if (DartCoreDebug.WARMUP) {
+      ByteArrayOutputStream out = new ByteArrayOutputStream(400);
+      PrintStream ps = new PrintStream(out);
+      ps.println("Warmup Compile:");
+      ps.println(warmupSrcCode);
+      ps.println(provider.getOutOfDateCount() + " artifacts out of date during compile");
+      ps.println(provider.getWriteArtifactCount() + " artifacts written during compile");
+      ps.println(rootProvider.getCacheSize() + " artifacts cached after warmup");
+      metrics.write(ps);
+      DartCoreDebug.log(out.toString());
+    }
   }
 
   /**
-   * Perform some work that will cause compiler classes to be loaded, Dart core and dom classes to
-   * be resolved, and possibly cause some compiler classes to be jitted.
+   * Answer the artifact.cache file
+   * 
+   * @return the file (may not exist) or <code>null</code> if it could not be determined
    */
-  public static void warmUpCompiler() {
-    RootArtifactProvider rootProvider = RootArtifactProvider.getInstance();
-    LoggingDartCompilerListener listener = LoggingDartCompilerListener.INSTANCE;
-    warmUpCompiler(rootProvider, listener);
+  private static File getArtifactCacheFile() {
+    Location workspaceLoc = Platform.getInstanceLocation();
+    if (workspaceLoc == null) {
+      DartCore.logInformation("Load precompiled artifacts failed: workspace location null", null);
+      return null;
+    }
+    URL workspaceUrl = null;
+    try {
+      workspaceUrl = FileLocator.toFileURL(workspaceLoc.getURL());
+    } catch (IOException e) {
+      DartCore.logError("Load precompiled artifacts failed", e);
+      return null;
+    }
+    if (workspaceUrl == null) {
+      DartCore.logInformation("Load precompiled artifacts failed: workspace URL null", null);
+      return null;
+    }
+    File workspaceDir = new File(workspaceUrl.getFile());
+    if (!workspaceDir.exists()) {
+      DartCore.logInformation("Load precompiled artifacts failed: workspace dir does not exist: "
+          + workspaceDir, null);
+      return null;
+    }
+    File cacheFile = new File(workspaceDir, "artifact.cache");
+    return cacheFile;
   }
 
+  /**
+   * Load artifacts from disk if they were cached from the prior session's warmup
+   * 
+   * @param provider the artifact provider to be populated (not <code>null</code>)
+   * @param cacheFile the file from which artifacts should be loaded (not <code>null</code>)
+   */
+  private static void loadCachedArtifacts(CachingArtifactProvider provider, File cacheFile) {
+    if (!cacheFile.exists()) {
+      DartCoreDebug.log(DartCoreDebug.WARMUP, "No cached artifacts file " + cacheFile);
+      return;
+    }
+    int artifactCount;
+    long delta;
+    try {
+      long start = System.currentTimeMillis();
+      artifactCount = provider.loadCachedArtifacts(cacheFile);
+      delta = System.currentTimeMillis() - start;
+    } catch (IOException e) {
+      DartCore.logError("Load precompiled artifacts failed", e);
+      return;
+    }
+    if (DartCoreDebug.WARMUP) {
+      DartCoreDebug.log("Loaded " + artifactCount + " cached artifacts in " + delta + " ms from "
+          + cacheFile);
+    }
+  }
+
+  /**
+   * Save artifacts to disk to be loaded during the next session's warmup
+   * 
+   * @param provider the artifact provider to be populated (not <code>null</code>)
+   * @param cacheFile the file to which artifacts should be saved (not <code>null</code>)
+   */
+  private static void saveCachedArtifacts(RootArtifactProvider provider, File cacheFile) {
+    int artifactCount;
+    long delta;
+    try {
+      long start = System.currentTimeMillis();
+      artifactCount = provider.saveCachedArtifacts(cacheFile);
+      delta = System.currentTimeMillis() - start;
+    } catch (IOException e) {
+      DartCore.logError("Failed to save artifacts: " + cacheFile, e);
+      return;
+    }
+    if (DartCoreDebug.WARMUP) {
+      DartCoreDebug.log("Saved " + artifactCount + " artifacts in " + delta + " ms to " + cacheFile);
+    }
+  }
 }

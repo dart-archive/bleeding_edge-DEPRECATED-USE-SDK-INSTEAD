@@ -35,4 +35,16 @@ public class DartCoreDebug {
   private static boolean isOptionTrue(String optionSuffix) {
     return "true".equalsIgnoreCase(Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix));
   }
+
+  /**
+   * Log the specified message if the condition is true
+   * 
+   * @param condition <code>true</code> if the message should be logged
+   * @param message the message
+   */
+  public static void log(boolean condition, String message) {
+    if (condition) {
+      log(message);
+    }
+  }
 }

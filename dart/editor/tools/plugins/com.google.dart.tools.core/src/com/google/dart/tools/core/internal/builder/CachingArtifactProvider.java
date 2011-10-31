@@ -13,9 +13,15 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
+import com.google.common.io.Closeables;
 import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.Source;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -24,6 +30,7 @@ import java.io.Writer;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * An in memory caching implementation of {@link DartArtifactProvider} that caches all content in
@@ -111,6 +118,12 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
     };
   }
 
+  public int getCacheSize() {
+    synchronized (cache) {
+      return cache.size();
+    }
+  }
+
   /**
    * Return <code>true</code> if the artifact is cached locally.
    * 
@@ -124,5 +137,119 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
       CacheElement elem = cache.get(getLocalUriPart(base, "", extension));
       return elem == null || elem.lastModified < source.getLastModified();
     }
+  }
+
+  /**
+   * Read artifacts from the specified file and add them to the cache
+   * 
+   * @param file the zip file from which the artifacts are read (not <code>null</code>)
+   * @return the number of artifacts written
+   * @see #saveCachedArtifacts(File)
+   */
+  public int loadCachedArtifacts(File file) throws IOException {
+    long now = System.currentTimeMillis();
+    int count = 0;
+    BufferedReader reader = new BufferedReader(new FileReader(file));
+    boolean failed = true;
+    try {
+      int state = 0;
+      int contentLength = 0;
+      StringBuilder key = new StringBuilder(200);
+      char[] buf = new char[4096];
+      synchronized (cache) {
+        while (true) {
+          int ch = reader.read();
+          if (ch == -1) {
+            if (state != 0) {
+              throw new IllegalStateException("Failed to read cache content");
+            }
+            break;
+          }
+          switch (state) {
+
+            case 0: // skip whitespace
+              if (Character.isDigit(ch)) {
+                state = 1;
+                contentLength = ch - '0';
+              }
+              break;
+
+            case 1: // content length
+              if (ch != ',') {
+                contentLength = 10 * contentLength + ch - '0';
+              } else {
+                state = 2;
+                key.setLength(0);
+              }
+              break;
+
+            case 2: // key and content
+              if (ch != '\n') {
+                key.append((char) ch);
+              } else {
+                state = 0;
+                if (buf.length < contentLength) {
+                  buf = new char[contentLength + 200];
+                }
+                int readLength = reader.read(buf, 0, contentLength);
+                if (readLength != contentLength) {
+                  throw new IllegalStateException("Expected " + contentLength
+                      + " characters, but read " + readLength);
+                }
+                CacheElement elem = new CacheElement();
+                elem.content = new String(buf, 0, contentLength);
+                elem.lastModified = now;
+                cache.put(key.toString(), elem);
+                count++;
+              }
+              break;
+
+            default:
+              throw new IllegalStateException("Invalid state: " + state);
+          }
+        }
+      }
+      failed = false;
+    } finally {
+      Closeables.close(reader, failed);
+      if (failed) {
+        clearCachedArtifacts();
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Write the currently cached artifacts to the specified file
+   * 
+   * @param file the zip file to which the artifacts are written (not <code>null</code>)
+   * @return the number of artifacts written
+   * @see #loadCachedArtifacts(File)
+   */
+  @SuppressWarnings("unchecked")
+  public int saveCachedArtifacts(File file) throws IOException {
+    int count = 0;
+    Entry<String, CacheElement>[] entries;
+    synchronized (cache) {
+      entries = cache.entrySet().toArray(new Entry[cache.size()]);
+    }
+    BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+    boolean failed = true;
+    try {
+      for (Entry<String, CacheElement> entry : entries) {
+        String content = entry.getValue().content;
+        writer.append(Integer.toString(content.length()));
+        writer.append(',');
+        writer.append(entry.getKey());
+        writer.append('\n');
+        writer.append(content);
+        writer.append('\n');
+        count++;
+      }
+      failed = false;
+    } finally {
+      Closeables.close(writer, failed);
+    }
+    return count;
   }
 }
