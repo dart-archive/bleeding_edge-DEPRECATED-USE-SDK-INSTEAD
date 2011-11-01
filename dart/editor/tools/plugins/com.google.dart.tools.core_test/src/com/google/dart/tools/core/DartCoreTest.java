@@ -96,4 +96,41 @@ public class DartCoreTest extends TestCase {
     assertEquals(1, extensions.length);
     assertEquals("dart", extensions[0]);
   }
+
+  public void test_DartCore_isCSSLikeFileName() {
+    assertTrue(DartCore.isCSSLikeFileName("name.css"));
+    assertTrue(DartCore.isCSSLikeFileName("name.CSS"));
+    assertTrue(DartCore.isCSSLikeFileName("name.cSS"));
+    assertFalse(DartCore.isCSSLikeFileName("name.cs"));
+    assertFalse(DartCore.isCSSLikeFileName("namecss"));
+  }
+
+  public void test_DartCore_isDartGeneratedFile() {
+    assertTrue(DartCore.isDartGeneratedFile("name.js"));
+    assertTrue(DartCore.isDartGeneratedFile("name.JS"));
+    assertTrue(DartCore.isDartGeneratedFile("name.jS"));
+    assertFalse(DartCore.isDartGeneratedFile("name.j"));
+    assertFalse(DartCore.isDartGeneratedFile("namejs"));
+  }
+
+  public void test_DartCore_isDartLikeFileName() {
+    assertTrue(DartCore.isDartLikeFileName("name.dart"));
+    assertTrue(DartCore.isDartLikeFileName("name.DART"));
+    assertTrue(DartCore.isDartLikeFileName("name.dART"));
+    assertFalse(DartCore.isDartLikeFileName("name.dar"));
+    assertFalse(DartCore.isDartLikeFileName("namedart"));
+  }
+
+  public void test_DartCore_isHTMLLikeFileName() {
+    assertTrue(DartCore.isHTMLLikeFileName("name.html"));
+    assertTrue(DartCore.isHTMLLikeFileName("name.HTML"));
+    assertTrue(DartCore.isHTMLLikeFileName("name.hTML"));
+    assertFalse(DartCore.isHTMLLikeFileName("name.ht"));
+    assertFalse(DartCore.isHTMLLikeFileName("namehtml"));
+    // again for "htm"
+    assertTrue(DartCore.isHTMLLikeFileName("name.htm"));
+    assertTrue(DartCore.isHTMLLikeFileName("name.HTM"));
+    assertTrue(DartCore.isHTMLLikeFileName("name.hTM"));
+    assertFalse(DartCore.isHTMLLikeFileName("namehtm"));
+  }
 }
