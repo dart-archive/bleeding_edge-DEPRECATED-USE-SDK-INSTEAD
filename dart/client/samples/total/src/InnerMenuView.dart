@@ -47,11 +47,14 @@ class InnerMenuView {
   // cell.
   static void _pinHeight(Window window, TableRowElement row) {
     Element firstCell = row.cells[0];
-    CSSStyleDeclaration s = window.getComputedStyle(firstCell, "");
-    int height = firstCell.clientHeight
-        - HtmlUtils.fromPx(s.getPropertyValue('padding-top'))
-        - HtmlUtils.fromPx(s.getPropertyValue('padding-bottom'));
-    firstCell.style.setProperty('height', HtmlUtils.toPx(height));
+    final firstCellRect = firstCell.rect;
+    final style = firstCell.computedStyle;
+    window.requestLayoutFrame(() {
+      int height = firstCellRect.value.client.height
+          - HtmlUtils.fromPx(style.value.getPropertyValue('padding-top'))
+          - HtmlUtils.fromPx(style.value.getPropertyValue('padding-bottom'));
+      firstCell.style.setProperty('height', HtmlUtils.toPx(height));
+    });
   }
 
   // Reverses the damage done by _pinHeight.
@@ -209,21 +212,25 @@ class InnerMenuView {
     }
 
     // Must take into account the top of the table due to scrolling.
-    int tableTop = _row.offsetParent.getBoundingClientRect().top.toInt();
+    final offsetParentRect = _row.offsetParent.rect;
+    final rowRect = _row.rect;
+    window.requestLayoutFrame(() {
+      int tableTop = offsetParentRect.value.bounding.top.toInt();
 
-    // Get the current bounding box of the row we're attached to.
-    ClientRect rowRect = _row.getBoundingClientRect();
-    CSSStyleDeclaration style = _bar.style;
+      // Get the current bounding box of the row we're attached to.
+      ClientRect boundingRowRect = rowRect.value.bounding;
+      CSSStyleDeclaration style = _bar.style;
 
-    int top = rowRect.top.toInt() + _initialRowHeight - tableTop;
-    int height = rowRect.height.toInt() - _initialRowHeight;
+      int top = boundingRowRect.top.toInt() + _initialRowHeight - tableTop;
+      int height = boundingRowRect.height.toInt() - _initialRowHeight;
 
-    _currentRowHeight = height;
+      _currentRowHeight = height;
 
-    style.setProperty("top", HtmlUtils.toPx(top));
-    style.setProperty("height", HtmlUtils.toPx(height));
+      style.setProperty("top", HtmlUtils.toPx(top));
+      style.setProperty("height", HtmlUtils.toPx(height));
 
-    _innerMenuMoved();
+      _innerMenuMoved();
+    });
   }
 
   // Update the style buttons for the selected style.

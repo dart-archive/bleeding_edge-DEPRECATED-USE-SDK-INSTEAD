@@ -937,7 +937,7 @@ class SectionView extends CompositeView {
     }
 
     // TODO(jacobr): get rid of this call to reconfigure when it is not needed.
-    dataSourceView.scroller.reconfigure();
+    dataSourceView.scroller.reconfigure(() {});
   }
 
   /**

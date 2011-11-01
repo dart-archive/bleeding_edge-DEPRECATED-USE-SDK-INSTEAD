@@ -102,7 +102,7 @@ class SelectionManager {
 
   // Return a BoundingBox for the given CellRange, clipped to the visible region of the table
   // TODO:  deal with full row and/or column selection
-  BoundingBox getBoundingBoxForRange(CellRange r) {
+  Future<BoundingBox> getBoundingBoxForRange(CellRange r) {
     // Modify the overlay for entire row/column selection
     int minRow = r.minCorner.row;
     int maxRow = r.maxCorner.row;
@@ -137,6 +137,8 @@ class SelectionManager {
       return null;
     }
 
+    final completer = new Completer<BoundingBox>(); 
+
     // Clip the range to the visible region
     int minPinned = _pin(minRow - _originRow, 1, maxVisibleRow);
     TableRowElement minRowElmt = _table.getRowElement(minPinned);
@@ -147,15 +149,23 @@ class SelectionManager {
     TableCellElement maxCellElmt =
         maxRowElmt.cells[_pin(maxCol - _originColumn, 1, maxVisibleCol)];
 
-    // We need bounding box relative to the container which will be offset by css
-    ClientRect orgP = _table.getBoundingClientRect();
-    ClientRect minP = minCellElmt.getBoundingClientRect();
-    ClientRect maxP = maxCellElmt.getBoundingClientRect();
-    return new BoundingBox(
-        (minP.left - orgP.left).toInt(),
-        (minP.top - orgP.top).toInt(),
-        (maxP.left - minP.left + maxCellElmt.clientWidth).toInt(),
-        (maxP.top - minP.top + maxCellElmt.clientHeight).toInt());
+    // We need bounding box relative to the container which will be offset by
+    // css.
+    final tableRect = _table.rect;
+    final minCellElmtRect = minCellElmt.rect;
+    final maxCellElmtRect = maxCellElmt.rect;
+
+    window.requestLayoutFrame(() {
+      ClientRect orgP = tableRect.bounding;
+      ClientRect minP = minCellElmtRect.bounding;
+      ClientRect maxP = maxCellElmtRect.bounding;
+      completer.complete(new BoundingBox(
+          (minP.left - orgP.left).toInt(),
+          (minP.top - orgP.top).toInt(),
+          (maxP.left - minP.left + maxCellElmtRect.client.width).toInt(),
+          (maxP.top - minP.top + maxCellElmtRect.client.height).toInt()));
+    });
+    return completer.future;
   }
 
   CellRange getSelectionRange() => _getSelectionRange(_selectedCell, _selectionCorner);
@@ -217,16 +227,17 @@ class SelectionManager {
       return;
     }
 
-    BoundingBox box = getBoundingBoxForRange(r);
-    if (box != null) {
-      _selectionDiv.style.setProperty("left", HtmlUtils.toPx(box.left));
-      _selectionDiv.style.setProperty("top", HtmlUtils.toPx(box.top));
-      _selectionDiv.style.setProperty("width", HtmlUtils.toPx(box.width));
-      _selectionDiv.style.setProperty("height", HtmlUtils.toPx(box.height));
-      _selectionDiv.style.removeProperty("display");
-    } else {
-      _selectionDiv.style.setProperty("display", "none");
-    }
+    getBoundingBoxForRange(r).then((BoundingBox box) {
+      if (box != null) {
+        _selectionDiv.style.setProperty("left", HtmlUtils.toPx(box.left));
+        _selectionDiv.style.setProperty("top", HtmlUtils.toPx(box.top));
+        _selectionDiv.style.setProperty("width", HtmlUtils.toPx(box.width));
+        _selectionDiv.style.setProperty("height", HtmlUtils.toPx(box.height));
+        _selectionDiv.style.removeProperty("display");
+      } else {
+        _selectionDiv.style.setProperty("display", "none");
+      }
+    });
   }
 
   // Return the selection range for the given corners.

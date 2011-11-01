@@ -674,21 +674,24 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
       int mouseStartX = e.x;
       int mouseStartY = e.y;
-      ClientRect rect = _spreadsheetElement.getBoundingClientRect();
-      int startX = rect.left;
-      int startY = rect.top;
-      _window.document.body.style.setProperty("cursor", "move");
 
-      _setDragFunction((MouseEvent e) {
-        int x = startX + e.x - mouseStartX;
-        int y = startY + e.y - mouseStartY;
+      _spreadsheetElement.rect.then((ElementRect elementRect) {
+        ClientRect rect = elementRect.bounding;
+        int startX = rect.left;
+        int startY = rect.top;
+        _window.document.body.style.setProperty("cursor", "move");
 
-        x = Math.max(x, CssStyles.OBJECTBAR_WIDTH);
-        y = Math.max(y, CssStyles.SANDBAR_HEIGHT);
-        // Move the spreadsheet container
-        _spreadsheetElement.style.setProperty("left", HtmlUtils.toPx(x));
-        _spreadsheetElement.style.setProperty("top", HtmlUtils.toPx(y));
-      });
+        _setDragFunction((MouseEvent e) {
+          int x = startX + e.x - mouseStartX;
+          int y = startY + e.y - mouseStartY;
+
+          x = Math.max(x, CssStyles.OBJECTBAR_WIDTH);
+          y = Math.max(y, CssStyles.SANDBAR_HEIGHT);
+          // Move the spreadsheet container
+          _spreadsheetElement.style.setProperty("left", HtmlUtils.toPx(x));
+          _spreadsheetElement.style.setProperty("top", HtmlUtils.toPx(y));
+        });
+        });
 
       _setUndragFunction((MouseEvent e) {
         _window.document.body.style.setProperty("cursor", "auto");
@@ -884,16 +887,18 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
       CSSStyleDeclaration divStyle = div.style;
       int borderWidth = 2 + 2;
       CellRange cellRange = new CellRange(_spreadsheet, minCorner, maxCorner);
-      BoundingBox box = _selectionManager.getBoundingBoxForRange(cellRange);
-      if (box != null) {
-        divStyle.setProperty("left", HtmlUtils.toPx(box.left));
-        divStyle.setProperty("top", HtmlUtils.toPx(box.top));
-        divStyle.setProperty("width", HtmlUtils.toPx(box.width - borderWidth));
-        divStyle.setProperty("height", HtmlUtils.toPx(box.height - borderWidth));
-        divStyle.removeProperty("display");
-      } else {
-        divStyle.setProperty("display", "none");
-      }
+      _selectionManager.getBoundingBoxForRange(cellRange).then(
+          (BoundingBox box) {
+        if (box != null) {
+          divStyle.setProperty("left", HtmlUtils.toPx(box.left));
+          divStyle.setProperty("top", HtmlUtils.toPx(box.top));
+          divStyle.setProperty("width", HtmlUtils.toPx(box.width - borderWidth));
+          divStyle.setProperty("height", HtmlUtils.toPx(box.height - borderWidth));
+          divStyle.removeProperty("display");
+        } else {
+          divStyle.setProperty("display", "none");
+        }
+      });
     }
   }
 
@@ -1069,10 +1074,12 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   // Resize the formula input field to fit the contained text
   void _growFormulaInput() {
     _formulaInputMeasure.text = _formulaInput.value;
-    int textWidth = _formulaInputMeasure.clientWidth;
-    int width = Math.max(textWidth + 25, _formulaCellWidth);
-    _formulaDiv.style.setProperty("width", HtmlUtils.toPx(width));
-    _formulaInput.style.setProperty("width", HtmlUtils.toPx(width));
+    _formulaInputMeasure.rect.then((ElementRect rect) {
+      int textWidth = rect.client.width;
+      int width = Math.max(textWidth + 25, _formulaCellWidth);
+      _formulaDiv.style.setProperty("width", HtmlUtils.toPx(width));
+      _formulaInput.style.setProperty("width", HtmlUtils.toPx(width));
+    });
   }
 
   // Fade out the formula input field
@@ -1140,14 +1147,16 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   }
 
   void _refreshResizeDragger() {
-    // We may be called before the dragger is ready
-    if (_resizeDragger == null) {
-      return;
-    }
-    ClientRect rect = _table.getBoundingClientRect();
+    _table.rect.then((ElementRect elementRect) {
+      // We may be called before the dragger is ready
+      if (_resizeDragger == null) {
+        return;
+      }
+      ClientRect rect = elementRect.bounding;
 
-    _resizeDragger.style.setProperty("left", HtmlUtils.toPx(rect.width));
-    _resizeDragger.style.setProperty("top", HtmlUtils.toPx(rect.height));
+      _resizeDragger.style.setProperty("left", HtmlUtils.toPx(rect.width));
+      _resizeDragger.style.setProperty("top", HtmlUtils.toPx(rect.height));
+    });
   }
 
   // Remove the HTML elements corresponding to the given column
@@ -1287,15 +1296,6 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     int start;
     int x;
     int y;
-
-    // Set x and y to the mouse coordinates, relative to the top left of the spreadsheet table
-    void getRelativeCoordinates(MouseEvent e) {
-      ClientRect boundingRect = _table.getBoundingClientRect();
-      int scrollOffsetX = -boundingRect.left.toInt();
-      int scrollOffsetY = -boundingRect.top.toInt();
-      x = e.x + scrollOffsetX;
-      y = e.y + scrollOffsetY;
-    }
 
     // Sets the drag indicator to the given position, given as an absolute offset from
     // the upper-left corner of the spreadsheet
@@ -1467,61 +1467,69 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     CellLocation currentSelectedSingleCell = null;
 
     void mouseMove(MouseEvent e) {
-      getRelativeCoordinates(e);
+      _table.rect.then((ElementRect rect) {
+        // Set x and y to the mouse coordinates, relative to the top left of
+        // the spreadsheet table.
+        ClientRect boundingRect = rect.bounding;
+        int scrollOffsetX = -boundingRect.left.toInt();
+        int scrollOffsetY = -boundingRect.top.toInt();
+        x = e.x + scrollOffsetX;
+        y = e.y + scrollOffsetY;
 
-      // Update the dragger position and optionally the actual row/column size
-      if (dragRowColumn(false)) {
-        return;
-      }
-
-      // Show a row/column dragging indicator when hovering over row/column 0
-      if (x < _spreadsheet.getColumnWidth(0) && x > 0) {
-        hoverRowColumn[ROW] = _getRowOrColumn(y, ROW);
-      } else {
-        hoverRowColumn[ROW] = -1;
-      }
-      if (y < _spreadsheet.getRowHeight(0) && y > 0) {
-        hoverRowColumn[COL] = _getRowOrColumn(x, COL);
-      } else {
-        hoverRowColumn[COL] = -1;
-      }
-      if (hoverRowColumn[COL] != -1) {
-        hoverRowColumn[ROW] = -1;
-        setDrag(COL, true);
-        setDrag(ROW, false);
-      } else {
-        setDrag(COL, false);
-        if (hoverRowColumn[ROW] != -1) {
-          setDrag(ROW, true);
-        } else {
-          setDrag(ROW, false);
+        // Update the dragger position and optionally the actual row/column size
+        if (dragRowColumn(false)) {
+          return;
         }
-      }
-      if (hoverRowColumn[COL] != -1) {
-        _table.setColResizeCursor();
-      } else if (hoverRowColumn[ROW] != -1) {
-        _table.setRowResizeCursor();
-      } else {
-        _table.setCellCursor();
-      }
 
-      // If dragging a selections, update the selection's second corner
-      if (!draggingSelection) {
-        return;
-      }
-      Element target = e.target;
-      CellLocation location = _getCellLocation(target);
-      if (location == null) {
-        return;
-      }
-      _selectionManager.selectionCorner = location;
-      // If the drag has selected more than one cell then we no longer
-      // have a current single cell selection.
-      if (!_selectionManager.isSingleCellSelection()) {
-        currentSelectedSingleCell = null;
-      }
-      _selectionManager.updateSelection();
-      _redrawHeaders();
+        // Show a row/column dragging indicator when hovering over row/column 0
+        if (x < _spreadsheet.getColumnWidth(0) && x > 0) {
+          hoverRowColumn[ROW] = _getRowOrColumn(y, ROW);
+        } else {
+          hoverRowColumn[ROW] = -1;
+        }
+        if (y < _spreadsheet.getRowHeight(0) && y > 0) {
+          hoverRowColumn[COL] = _getRowOrColumn(x, COL);
+        } else {
+          hoverRowColumn[COL] = -1;
+        }
+        if (hoverRowColumn[COL] != -1) {
+          hoverRowColumn[ROW] = -1;
+          setDrag(COL, true);
+          setDrag(ROW, false);
+        } else {
+          setDrag(COL, false);
+          if (hoverRowColumn[ROW] != -1) {
+            setDrag(ROW, true);
+          } else {
+            setDrag(ROW, false);
+          }
+        }
+        if (hoverRowColumn[COL] != -1) {
+          _table.setColResizeCursor();
+        } else if (hoverRowColumn[ROW] != -1) {
+          _table.setRowResizeCursor();
+        } else {
+          _table.setCellCursor();
+        }
+
+        // If dragging a selections, update the selection's second corner
+        if (!draggingSelection) {
+          return;
+        }
+        Element target = e.target;
+        CellLocation location = _getCellLocation(target);
+        if (location == null) {
+          return;
+        }
+        _selectionManager.selectionCorner = location;
+        // If the drag has selected more than one cell then we no longer
+        // have a current single cell selection.
+        if (!_selectionManager.isSingleCellSelection()) {
+          currentSelectedSingleCell = null;
+        }
+        _selectionManager.updateSelection();
+        _redrawHeaders();
+      });
     }
 
     _setMove(mouseMove);
@@ -1531,10 +1539,12 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
       // Right click toggles and positions the context menu
       if (e.button == 2 || (e.button == 0 && e.ctrlKey)) {
-        ClientRect boundingRect = _table.getBoundingClientRect();
-        int scrollOffsetX = -boundingRect.left;
-        int scrollOffsetY = -boundingRect.top;
-        _contextMenu.show(e.x + scrollOffsetX, e.y + scrollOffsetY);
+        _table.rect.then((ElementRect rect) {
+          ClientRect boundingRect = rect.bounding;
+          int scrollOffsetX = -boundingRect.left;
+          int scrollOffsetY = -boundingRect.top;
+          _contextMenu.show(e.x + scrollOffsetX, e.y + scrollOffsetY);
+        });
         return;
       }
 
@@ -1675,24 +1685,27 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   // Update the scroll mechanism due to a change in the visible table area
   void _tableSizeChanged() {
-    ClientRect rect = _table.getBoundingClientRect();
+    _table.rect.then((ElementRect elementRect) {
+      ClientRect rect = elementRect.bounding;
 
-    _tableScrollContainer.style.setProperty("width", HtmlUtils.toPx(rect.width + 10));
-    _spreadsheetElement.style.setProperty("width", HtmlUtils.toPx(rect.width));
+      _tableScrollContainer.style.width = HtmlUtils.toPx(rect.width + 10);
+      _spreadsheetElement.style.width = HtmlUtils.toPx(rect.width);
 
-    _tableScrollContainer.style.setProperty("height", HtmlUtils.toPx(rect.height + 10));
-    _spreadsheetElement.style.setProperty("height", HtmlUtils.toPx(rect.height));
+      _tableScrollContainer.style.height = HtmlUtils.toPx(rect.height + 10);
+      _spreadsheetElement.style.height = HtmlUtils.toPx(rect.height);
 
-    _tableScrollDiv.style.setProperty("width", 
-        HtmlUtils.toPx(_spreadsheet.getColumnEnd(_spreadsheet.columnCount())));
-    int extra = _activeInnerMenu == null ? 0 : _activeInnerMenu.currentRowHeight;
-    _tableScrollDiv.style.setProperty("height",
-        HtmlUtils.toPx(_spreadsheet.getRowEnd(_spreadsheet.rowCount()) + extra));
+      _tableScrollDiv.style.width = HtmlUtils.toPx(
+          _spreadsheet.getColumnEnd(_spreadsheet.columnCount()));
+      int extra = _activeInnerMenu == null ?
+          0 : _activeInnerMenu.currentRowHeight;
+      _tableScrollDiv.style.height = HtmlUtils.toPx(_spreadsheet.getRowEnd(
+          _spreadsheet.rowCount()) + extra);
 
-    // Reposition the scroll bars
-    _scroll(_rowShift, _columnShift);
-    // Move the resize dragger to the bottom-right corner
-    _refreshResizeDragger();
+      // Reposition the scroll bars
+      _scroll(_rowShift, _columnShift);
+      // Move the resize dragger to the bottom-right corner
+      _refreshResizeDragger();
+    });
   }
 
   void _updateInnerMenu() {

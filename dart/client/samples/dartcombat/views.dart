@@ -89,72 +89,75 @@ class PlaceBoatView extends View {
   }
 
   void handleMouseDown(e) {
-    final pos = ViewUtil.positionFromEvent(_rootNode, e);
-    _boatStartX = pos[0];
-    _boatStartY = pos[1];
-    // error case when the mouse was released out of the boat-placing area
-    if (_moveListener != null) {
-      _rootNode.on.mouseMove.remove(_moveListener, false);
-      _possibleBoat.remove();
-      _moveListener = null;
-    }
-    _possibleBoat = ViewUtil.createDiv(this, "icons boat2");
-    ViewUtil.placeNodeAt(_possibleBoat, _boatStartX, _boatStartY);
-    _rootNode.nodes.add(_possibleBoat);
-    _moveListener = handleMouseMove;
-    _rootNode.on.mouseMove.add(_moveListener);
     e.preventDefault();
+    ViewUtil.positionFromEvent(_rootNode, e).then((List<int> pos) {
+      _boatStartX = pos[0];
+      _boatStartY = pos[1];
+      // error case when the mouse was released out of the boat-placing area
+      if (_moveListener != null) {
+        _rootNode.on.mouseMove.remove(_moveListener, false);
+        _possibleBoat.remove();
+        _moveListener = null;
+      }
+      _possibleBoat = ViewUtil.createDiv(this, "icons boat2");
+      ViewUtil.placeNodeAt(_possibleBoat, _boatStartX, _boatStartY);
+      _rootNode.nodes.add(_possibleBoat);
+      _moveListener = handleMouseMove;
+      _rootNode.on.mouseMove.add(_moveListener);
+    });
   }
 
   void handleMouseMove(e) {
-    final pos = ViewUtil.positionFromEvent(_rootNode, e);
-    if (_boatLastX == pos[0] && _boatLastY == pos[1]) {
-      return;
-    }
-    _boatLastX = pos[0];
-    _boatLastY = pos[1];
-    int deltaX = _boatLastX - _boatStartX;
-    int deltaY = _boatLastY - _boatStartY;
-
-    String dir;
-    bool flip = false;
-    int boatSize = 2;
-    if (deltaX.abs() >= deltaY.abs()) {
-      dir = deltaX < 0 ? "right" : "left";
-      boatSize = Math.max(2, Math.min(5, deltaX.abs() + 1));
-    } else {
-      dir = deltaY < 0 ? "up" : "down";
-      boatSize = Math.max(2, Math.min(5, deltaY.abs() + 1));
-    }
-
-    _possibleBoat.attributes["class"] = "icons boat${boatSize} boatdir-${dir}";
     e.preventDefault();
+    ViewUtil.positionFromEvent(_rootNode, e).then((List<int> pos) {
+      if (_boatLastX == pos[0] && _boatLastY == pos[1]) {
+        return;
+      }
+      _boatLastX = pos[0];
+      _boatLastY = pos[1];
+      int deltaX = _boatLastX - _boatStartX;
+      int deltaY = _boatLastY - _boatStartY;
+
+      String dir;
+      bool flip = false;
+      int boatSize = 2;
+      if (deltaX.abs() >= deltaY.abs()) {
+        dir = deltaX < 0 ? "right" : "left";
+        boatSize = Math.max(2, Math.min(5, deltaX.abs() + 1));
+      } else {
+        dir = deltaY < 0 ? "up" : "down";
+        boatSize = Math.max(2, Math.min(5, deltaY.abs() + 1));
+      }
+
+      _possibleBoat.attributes["class"] = "icons boat${boatSize} boatdir-${dir}";
+    });
   }
 
   /** Handle end of positioning of a boat. */
   void handleMouseUp(e) {
     _rootNode.on.mouseMove.remove(_moveListener, false);
     _moveListener = null;
-    final pos = ViewUtil.positionFromEvent(_rootNode, e);
-    int _boatEndX = pos[0];
-    int _boatEndY = pos[1];
+    ViewUtil.positionFromEvent(_rootNode, e).then((List<int> pos) {
+      int _boatEndX = pos[0];
+      int _boatEndY = pos[1];
 
-    int deltaX = _boatEndX - _boatStartX;
-    int deltaY = _boatEndY - _boatStartY;
-    Boat boat;
+      int deltaX = _boatEndX - _boatStartX;
+      int deltaY = _boatEndY - _boatStartY;
+      Boat boat;
 
-    if (deltaX.abs() >= deltaY.abs()) {
-      int boatSize = Math.max(2, Math.min(5, deltaX.abs() + 1));
-      boat = new Boat(deltaX < 0 ? (_boatStartX - boatSize + 1) : _boatStartX,
-          _boatStartY, true, boatSize);
-    } else {
-      int boatSize = Math.max(2, Math.min(5, deltaY.abs() + 1));
-      boat = new Boat(_boatStartX,
-          deltaY < 0 ? (_boatStartY - boatSize + 1) : _boatStartY,
-          false, boatSize);
-    }
+      if (deltaX.abs() >= deltaY.abs()) {
+        int boatSize = Math.max(2, Math.min(5, deltaX.abs() + 1));
+        boat = new Boat(deltaX < 0 ? (_boatStartX - boatSize + 1) : _boatStartX,
+            _boatStartY, true, boatSize);
+      } else {
+        int boatSize = Math.max(2, Math.min(5, deltaY.abs() + 1));
+        boat = new Boat(_boatStartX,
+            deltaY < 0 ? (_boatStartY - boatSize + 1) : _boatStartY,
+            false, boatSize);
+      }
 
-    state.addBoat(boat);
+      state.addBoat(boat);
+    });
   }
 }
 
@@ -196,8 +199,9 @@ class EnemyGridView extends View {
 
   /** Interpret clicks as a shooting action. */
   void handleClick(MouseEvent e) {
-    final pos = ViewUtil.positionFromEvent(_rootNode, e);
-    state.shoot(pos[0], pos[1]);
+    ViewUtil.positionFromEvent(_rootNode, e).then((List<int> pos) {
+      state.shoot(pos[0], pos[1]);
+    });
   }
 
   /** Update the view to indicate the enemy is ready. */
@@ -273,10 +277,14 @@ class ShootingStatusView extends View {
 class ViewUtil {
 
   /** Extract the position of a mouse event in a containing 500x500 grid. */
-  static List<int> positionFromEvent(Element gridNode, MouseEvent e) {
-    int x = (e.pageX - gridNode.offsetLeft) ~/ 50;
-    int y = (e.pageY - gridNode.offsetTop) ~/ 50;
-    return const [x, y];
+  static Future<List<int>> positionFromEvent(Element gridNode, MouseEvent e) {
+    final completer = new Completer<List<int>>();
+    gridNode.rect.then((ElementRect rect) {
+      int x = (e.pageX - rect.offset.left) ~/ 50;
+      int y = (e.pageY - rect.offset.top) ~/ 50;
+      completer.complete(const [x, y]);
+    });
+    return completer.future;
   }
 
   /** Given a grid node (square or boat) place it at a grid coordinate. */

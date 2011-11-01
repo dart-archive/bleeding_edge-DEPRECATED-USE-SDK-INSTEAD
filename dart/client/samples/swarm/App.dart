@@ -25,7 +25,9 @@ class App {
     if (document.readyState == "interactive" ||
         document.readyState == "complete" ||
         document.readyState == "loaded") {
-      this.onLoad();
+      // We use setTimeout to insure that onLoad is always called in an async
+      // manner even if the document is already loaded.
+      window.setTimeout(() => onLoad(), 0);
     } else {
       window.on.contentLoaded.add(
         // TODO(sigmund):  Consider eliminating the call to "wrap", for

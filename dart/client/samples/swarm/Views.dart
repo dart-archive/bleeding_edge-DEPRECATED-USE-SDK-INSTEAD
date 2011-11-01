@@ -220,7 +220,9 @@ class GenericListView<D> extends View {
             num height = _layout.getHeight(_viewLength);
             width = width != null ? width : 0;
             height = height != null ? height : 0;
-            return new Size(width, height);
+            final completer = new Completer<Size>();
+            completer.complete(new Size(width, height));
+            return completer.future;
           },
           _paginate && _snapToItems ?
               Scroller.FAST_SNAP_DECELERATION_FACTOR : 1);
@@ -287,21 +289,15 @@ class GenericListView<D> extends View {
 
   void onResize() {
     int lastViewLength = _viewLength;
-    calculateViewLength();
-    if (_viewLength != lastViewLength) {
-      if (_scrollbar != null) {
-        _scrollbar.refresh();
+    node.rect.then((ElementRect rect) {
+      _viewLength = _vertical ? rect.offset.height : rect.offset.width;
+      if (_viewLength != lastViewLength) {
+        if (_scrollbar != null) {
+          _scrollbar.refresh();
+        }
+        renderVisibleItems(true);
       }
-      renderVisibleItems(true);
-    }
-  }
-
- void calculateViewLength() {
-    if (_vertical) {
-      _viewLength = node.offsetHeight;
-    } else {
-      _viewLength = node.offsetWidth;
-    }
+    }); 
   }
 
   void enterDocument() {

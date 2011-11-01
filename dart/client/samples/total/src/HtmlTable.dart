@@ -75,7 +75,7 @@ class HtmlTable {
     _table.deleteRow(index);
   }
 
-  ClientRect getBoundingClientRect() => _table.getBoundingClientRect();
+  Future<ElementRect> get rect() => _table.rect;
 
   // FIXME?
   TableRowElement getRowElement(int row) => _table.rows[row];
