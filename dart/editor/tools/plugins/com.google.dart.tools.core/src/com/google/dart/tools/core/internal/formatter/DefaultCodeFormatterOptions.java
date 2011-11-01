@@ -2992,7 +2992,7 @@ public class DefaultCodeFormatterOptions {
     join_wrapped_lines = true;
     put_empty_statement_on_new_line = true;
     tab_size = 2;
-    page_width = 100;
+    page_width = 80;
     tab_char = SPACE;
     use_tabs_only_for_leading_indentations = false;
     wrap_before_binary_operator = true;
@@ -3265,7 +3265,7 @@ public class DefaultCodeFormatterOptions {
     join_wrapped_lines = true;
     put_empty_statement_on_new_line = false;
     tab_size = 2;
-    page_width = 100;
+    page_width = 80;
     tab_char = SPACE; // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=49081
     use_tabs_only_for_leading_indentations = false;
     wrap_before_binary_operator = true;
