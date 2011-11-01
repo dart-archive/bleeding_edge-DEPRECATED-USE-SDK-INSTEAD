@@ -49,7 +49,7 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCommentSnippets004() throws Exception {
     test("class A {!1int x;!2mth() {!3in!4t y = this.!5x!6;}}", "1+void", "1+int", "2+List", "3+x",
-        "4+int", "5+mth", "6+x"); // "3-y" fails because y is being added to the scoped names
+        "3-y", "4+int", "5+mth", "6+x");
   }
 
   public void testCommentSnippets005() throws Exception {
@@ -71,8 +71,8 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCommentSnippets009() throws Exception {
     // space, char, eol are important
-    // need to investigate failure
-//    test("class x implements !1\n{}", "1+Map", "1-Math");
+    test("class x extends!5 !2M!3 !4implements!6 !1\n{}", "1+Map", "1-Math", "2+Maps", "3+Maps",
+        "4-Maps", "5-Maps", "6-Map");
   }
 
   public void testCommentSnippets010() throws Exception {
@@ -142,6 +142,10 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCommentSnippets025() throws Exception {
     test("class q {num m() {var q; num x=!1 q + !2/**/;}}", "1+q", "2+q");
+  }
+
+  public void testCommentSnippets026() throws Exception {
+    test("interface a implements !1{}", "1+List");
   }
 
   public void testCompletion_alias_field() throws Exception {

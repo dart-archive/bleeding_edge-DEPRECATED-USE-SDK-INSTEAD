@@ -21,6 +21,7 @@ import com.google.dart.compiler.ast.DartForInStatement;
 import com.google.dart.compiler.ast.DartForStatement;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
@@ -150,6 +151,15 @@ public class ScopedNameFinder extends DartNodeTraverser<Void> {
 
   private DartNode immediateChild;
   private Map<String, ScopedName> locals = new HashMap<String, ScopedName>();
+  private int position;
+
+  public ScopedNameFinder() {
+    this(-1);
+  }
+
+  public ScopedNameFinder(int position) {
+    this.position = position;
+  }
 
   public Map<String, ScopedName> getLocals() {
     return locals;
@@ -239,15 +249,22 @@ public class ScopedNameFinder extends DartNodeTraverser<Void> {
 
   private void addToScope(DartFieldDefinition fieldDef) {
     for (DartField field : fieldDef.getFields()) {
-      String name = field.getName().getTargetName();
-      if (locals.get(name) != null) {
+      DartIdentifier name = field.getName();
+      if (!isInRange(name)) {
+        continue;
+      }
+      String nameString = name.getTargetName();
+      if (locals.get(nameString) != null) {
         return;
       }
-      locals.put(name, new Field(field));
+      locals.put(nameString, new Field(field));
     }
   }
 
   private void addToScope(DartMethodDefinition method) {
+    if (!isInRange(method.getName())) {
+      return;
+    }
     String name = method.getSymbol().getName();
     if (locals.get(name) != null) {
       return;
@@ -256,6 +273,9 @@ public class ScopedNameFinder extends DartNodeTraverser<Void> {
   }
 
   private void addToScope(DartParameter var) {
+    if (!isInRange(var)) {
+      return;
+    }
     String name = var.getParameterName();
     if (locals.get(name) != null) {
       return;
@@ -264,6 +284,9 @@ public class ScopedNameFinder extends DartNodeTraverser<Void> {
   }
 
   private void addToScope(DartVariable var) {
+    if (!isInRange(var)) {
+      return;
+    }
     String name = var.getVariableName();
     if (locals.get(name) != null) {
       return;
@@ -289,5 +312,18 @@ public class ScopedNameFinder extends DartNodeTraverser<Void> {
         addVariables((DartVariableStatement) stmt);
       }
     }
+  }
+
+  private boolean isInRange(DartNode node) {
+    if (position < 0) {
+      // if source position is not set then all nodes are in range
+      return true;
+    }
+    int start = node.getSourceStart();
+    if (start < 0) {
+      // assume nodes without source position are in range
+      return true;
+    }
+    return start <= position;
   }
 }

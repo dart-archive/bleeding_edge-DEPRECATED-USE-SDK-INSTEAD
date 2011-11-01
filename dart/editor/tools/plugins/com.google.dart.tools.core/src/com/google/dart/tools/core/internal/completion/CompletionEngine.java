@@ -502,8 +502,41 @@ public class CompletionEngine {
     @Override
     public Void visitClass(DartClass node) {
       String classSrc = source.substring(node.getSourceStart(), actualCompletionPosition + 1);
+      int completionPos = actualCompletionPosition + 1 - node.getSourceStart();
       boolean beforeBrace = classSrc.indexOf('{') < 0;
-      if (!beforeBrace) {
+      if (beforeBrace) {
+        int extendsLoc = classSrc.indexOf("extends");
+        int implementsLoc = classSrc.indexOf("implements");
+        if (extendsLoc < 0 && implementsLoc < 0) {
+          return null;
+        }
+        boolean isClassDef = false;
+        if (extendsLoc > 0) {
+          int extendsEnd = extendsLoc + "extends".length();
+          if (completionPos <= extendsEnd) {
+            return null;
+          }
+          DartNode sc = node.getSuperclass();
+          if (sc == null) {
+            isClassDef = false; // parsing an interface
+          } else {
+            if (actualCompletionPosition >= sc.getSourceStart() && implementsLoc < 0) {
+              return null;
+            }
+            if (implementsLoc < completionPos || implementsLoc < 0) {
+              isClassDef = true;
+            }
+          }
+        }
+        if (implementsLoc > 0) {
+          isClassDef = false;
+          int implementsEnd = implementsLoc + "implements".length();
+          if (implementsLoc < completionPos && completionPos <= implementsEnd) {
+            return null;
+          }
+        }
+        proposeClassOrInterfaceNamesForPrefix(null, isClassDef);
+      } else {
         // for top-level elements, try type names
         proposeTypesForNewParam();
         createProposalsForLiterals(node, "void");
@@ -1128,7 +1161,7 @@ public class CompletionEngine {
   private void createCompletionsForLocalVariables(DartNode terminalNode, DartIdentifier node,
       DartClassMember<? extends DartExpression> method) {
     String prefix = extractFilterPrefix(node);
-    ScopedNameFinder vars = new ScopedNameFinder();
+    ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
     terminalNode.accept(vars);
     Map<String, ScopedName> localNames = vars.getLocals();
     for (ScopedName para : localNames.values()) {
