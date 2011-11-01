@@ -52,8 +52,6 @@ def main():
   editorpath = os.path.abspath(os.path.join(scriptdir, '..'))
   thirdpartypath = os.path.abspath(os.path.join(scriptdir, '..', '..',
                                                 'third_party'))
-  dartcpath = os.path.abspath(os.path.join(scriptdir, '..', '..', 'compiler'))
-  dartcoutpath = os.path.join(dartcpath, 'out')
   antpath = os.path.join(thirdpartypath, 'apache_ant', 'v1_7_1')
   bzip2libpath = os.path.join(thirdpartypath, 'bzip2')
   buildpath = os.path.join(editorpath, 'tools', 'features',
@@ -84,50 +82,48 @@ def main():
     parser.print_help()
     return 2
 
-  status = _BuildCartC(dartcpath)
+  buildout = os.path.join(buildroot, options.out)
+
+  print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
+  _PrintSeparator("running the build to produce the Zipped RCP's")
+  status = _RunAnt('.', 'build_rcp.xml', options.revision, options.name,
+                   buildroot, buildout, editorpath)
+  property_file = os.path.join('/var/tmp/' + options.name +
+                               '-build.properties')
+  #the ant script writes a property file in a known location so
+  #we can read it. This build script is currently not using any post
+  #processin
+  properties = _ReadPropertyFile(property_file)
+
+  if status and properties['build.runtime']:
+    _PrintErrorLog(properties['build.runtime'])
+    #This build script is currently not using any post processing
+    #so this line is commented out
+    # If the preprocessor needs to be run in the 
+    #  if not status and properties['build.tmp']:
+    #    postProcessZips(properties['build.tmp'], buildout)
+
   if not status:
-    buildout = os.path.join(buildroot, options.out)
-
-    print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
-    _PrintSeparator("running the build to produce the Zipped RCP's")
-    status = _RunAnt('.', 'build_rcp.xml', options.revision, options.name,
-                     buildroot, buildout, editorpath, dartcoutpath)
-    property_file = os.path.join('/var/tmp/' + options.name +
-                                 '-build.properties')
-    #the ant script writes a property file in a known location so
-    #we can read it. This build script is currently not using any post
-    #processin
-    properties = _ReadPropertyFile(property_file)
-
-    if status and properties['build.runtime']:
-      _PrintErrorLog(properties['build.runtime'])
-      #This build script is currently not using any post processing
-      #so this line is commented out
-      # If the preprocessor needs to be run in the 
-      #  if not status and properties['build.tmp']:
-      #    postProcessZips(properties['build.tmp'], buildout)
-
+    #if the build passed run the deploy artifacts
+    _PrintSeparator("Deploying the built RCP's to Google Storage")
+    status = _DeployArtifacts(buildout, options.dest,
+                              properties['build.tmp'], options.revision)
     if not status:
-      #if the build passed run the deploy artifacts
-      _PrintSeparator("Deploying the built RCP's to Google Storage")
-      status = _DeployArtifacts(buildout, options.dest,
-                                properties['build.tmp'], options.revision)
-      if not status:
-        _PrintSeparator('Running the tests')
-        status = _RunAnt('../com.google.dart.tools.tests.feature_releng',
-                         'buildTests.xml',
-                         options.revision, options.name, buildroot, buildout,
-                         editorpath, dartcoutpath)
-        properties = _ReadPropertyFile(property_file)
-        if status and properties['build.runtime']:
-          #if there is a build.runtime and the status is not 
-          #zero see if there are any *.log entries 
-          _PrintErrorLog(properties['build.runtime'])
+      _PrintSeparator('Running the tests')
+      status = _RunAnt('../com.google.dart.tools.tests.feature_releng',
+                       'buildTests.xml',
+                       options.revision, options.name, buildroot, buildout,
+                       editorpath)
+      properties = _ReadPropertyFile(property_file)
+      if status and properties['build.runtime']:
+        #if there is a build.runtime and the status is not 
+        #zero see if there are any *.log entries 
+        _PrintErrorLog(properties['build.runtime'])
   return status
 
 
 def _RunAnt(build_dir, antfile, revision, name, buildroot,
-            buildout, sourcepath, dartcoutpath):
+            buildout, sourcepath):
   """Run the given Ant script from the given directory.
 
   Args:
@@ -138,7 +134,6 @@ def _RunAnt(build_dir, antfile, revision, name, buildroot,
     buildroot: root of the build source tree
     buildout: the location to copy output
     sourcepath: the path to the root of the source
-    dartcoutpath: the location of the dartc output
 
   Returns:
     returns the status of the ant call
@@ -167,7 +162,6 @@ def _RunAnt(build_dir, antfile, revision, name, buildroot,
           '-Dbuild.root=' + buildroot,
           '-Dbuild.out=' + buildout,
           '-Dbuild.source=' + sourcepath,
-          '-Dbuild.dartc.out=' + dartcoutpath,
           '-nouserlib',
          ]
   extra_args = os.environ.get('ANT_EXTRA_ARGS')
@@ -345,28 +339,6 @@ def _DeployArtifacts(fromd, to, tmp, svnid):
     if deploydir:
       shutil.rmtree(deploydir)
 
-  return status
-
-
-def _BuildCartC(dartcpath):
-  """Build DartC to get the various bundled libraries.
-
-  this will be accomplished by calling the external python dartc build script
-
-  Args:
-    dartcpath: the DartC "compiler" directory
-
-  Returns:
-    the status of the build of dartc
-  """
-  cwd = os.getcwd()
-  os.chdir(dartcpath)
-  try:
-    args = [sys.executable, '../tools/build.py', '--mode', 'debug']
-    print ' '.join(args)
-    status = subprocess.call(args)
-  finally:
-    os.chdir(cwd)
   return status
 
 
