@@ -4,7 +4,7 @@
 
 prefix samples
 
-[ $arch == dartc ]
+[ $component == dartc ]
 *: Skip
 
 [ $arch == x64 ]
@@ -16,8 +16,8 @@ prefix samples
 [ $arch == arm ]
 *: Skip
 
-[ $arch == chromium ]
+[ $component == chromium ]
 *: Skip
 
-[ $arch == dartium ]
+[ $component == dartium ]
 *: Skip
