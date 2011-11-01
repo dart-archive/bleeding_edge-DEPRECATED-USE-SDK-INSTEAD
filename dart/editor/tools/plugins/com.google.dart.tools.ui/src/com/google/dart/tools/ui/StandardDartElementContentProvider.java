@@ -27,7 +27,6 @@ import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartResource;
-import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.ParentElement;
 
@@ -165,12 +164,6 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
               if (dartLibrary.isTopLevel()) {
                 childrenList.add(dartLibrary);
               }
-            }
-            HTMLFile[] htmlFiles = dartProject.getHTMLFiles();
-            for (HTMLFile htmlFile : htmlFiles) {
-//              if (htmlFile.getReferencedLibraries().length != 0) {
-              childrenList.add(htmlFile);
-//              }
             }
           }
           return childrenList.toArray(new DartElement[childrenList.size()]);

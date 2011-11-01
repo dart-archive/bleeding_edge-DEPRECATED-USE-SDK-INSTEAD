@@ -376,6 +376,9 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
   /**
    * This method is called when there is no Library directive to specify the name of a library.
+   * <p>
+   * The implicit library name is the name of the defining {@link CompilationUnit} without the
+   * appended <code>.dart</code> extension.
    */
   public String getImplicitLibraryName() {
     String name = new Path(getElementName()).lastSegment();

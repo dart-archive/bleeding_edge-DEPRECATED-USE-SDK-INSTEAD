@@ -28,7 +28,6 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
@@ -399,12 +398,6 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   @Override
   public int getElementType() {
     return DartElement.DART_PROJECT;
-  }
-
-  @Override
-  public HTMLFile[] getHTMLFiles() throws DartModelException {
-    List<HTMLFile> libraryList = getChildrenOfType(HTMLFile.class);
-    return libraryList.toArray(new HTMLFile[libraryList.size()]);
   }
 
   @Override

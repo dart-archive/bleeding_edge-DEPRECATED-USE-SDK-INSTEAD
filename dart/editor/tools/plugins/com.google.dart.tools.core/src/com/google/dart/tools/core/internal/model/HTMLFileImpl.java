@@ -49,7 +49,7 @@ public class HTMLFileImpl extends OpenableElementImpl implements HTMLFile {
    * @param project the project containing the element
    * @param file the file being represented by the element
    */
-  protected HTMLFileImpl(DartLibraryImpl library, IFile file) {
+  public HTMLFileImpl(DartLibraryImpl library, IFile file) {
     super(library);
     this.file = file;
   }

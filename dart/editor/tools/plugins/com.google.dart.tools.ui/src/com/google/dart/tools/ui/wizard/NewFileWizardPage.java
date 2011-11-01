@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.wizard;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.AbstractGenerator;
 import com.google.dart.tools.core.generator.FileGenerator;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.model.DartLibrary;
 
@@ -71,7 +72,7 @@ public class NewFileWizardPage extends AbstractDartWizardPage {
   public void createControl(Composite parent) {
     // If there is a selected library, then set the library in the fileGenerator
     library = getSelectedLibrary();
-    fileGenerator.setLibrary(library);
+    fileGenerator.setLibrary((DartLibraryImpl) library);
 
     Composite container = new Composite(parent, SWT.NULL);
     setControl(container);

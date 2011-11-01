@@ -14,12 +14,16 @@
 package com.google.dart.tools.core.generator;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.internal.model.HTMLFileImpl;
+import com.google.dart.tools.core.internal.model.info.DartLibraryInfo;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.util.StatusUtil;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.general.SourceUtilities;
+import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Assert;
@@ -43,7 +47,7 @@ public class FileGenerator extends AbstractGenerator {
 
   private String fileLocation;
 
-  private DartLibrary library = null;
+  private DartLibraryImpl library = null;
 
   private IFile iFile = null;
 
@@ -117,7 +121,7 @@ public class FileGenerator extends AbstractGenerator {
     // library in that directory, that is also loaded into the editor.
     File directory = new File(fileLocation);
     if (library == null && directory.exists()/* destination directory exists */) {
-      library = DartCore.findLibraryInDirectory(directory);
+      library = (DartLibraryImpl) DartCore.findLibraryInDirectory(directory);
     }
 
     subMonitor.newChild(15);
@@ -128,7 +132,7 @@ public class FileGenerator extends AbstractGenerator {
     boolean isSrc = false;
 
     if (DartCore.isDartLikeFileName(fileName)) {
-      // Dart file
+      // DART file
       String className = fileName.substring(0, fileName.indexOf('.'));
       substitutions.put("className", className); //$NON-NLS-1$
 
@@ -149,7 +153,11 @@ public class FileGenerator extends AbstractGenerator {
       // HTML file
       String name = fileName.substring(0, fileName.indexOf('.'));
       substitutions.put("title", name); //$NON-NLS-1$
-      substitutions.put("dartPath", name + ".dart.app.js"); //$NON-NLS-1$ //$NON-NLS-2$
+      String jsGeneratedFileName = name;
+      if (library != null) {
+        jsGeneratedFileName = library.getImplicitLibraryName();
+      }
+      substitutions.put("dartPath", jsGeneratedFileName + ".dart.app.js"); //$NON-NLS-1$ //$NON-NLS-2$
 
       nameOfSrcTxt = "generated-html.txt";
 
@@ -181,7 +189,20 @@ public class FileGenerator extends AbstractGenerator {
       if (isSrc) {
         library.addSource(systemFile, monitor);
       } else {
-        library.addResource(systemFile, monitor);
+        // else, add the #resource for all non-html resource files
+        if (!DartCore.isHTMLLikeFileName(fileName)) {
+          library.addResource(systemFile, monitor);
+        } else {
+          // Even though we aren't having the #resource(..) added for new HTML files, we do need the
+          // new file linked into the project so that the resource change listener will be able to
+          // trigger the DeltaProcessor.
+          IFile iFile = IProjectUtilities.addLinkToProject(library.getDartProject().getProject(),
+              systemFile, monitor);
+          // Finally, create and add the new HTMLFile into the model
+          HTMLFileImpl htmlFile = new HTMLFileImpl(library, iFile);
+          DartLibraryInfo libraryInfo = (DartLibraryInfo) library.getElementInfo();
+          libraryInfo.addChild(htmlFile);
+        }
       }
       library.setTopLevel(true);
     } else {
@@ -233,7 +254,7 @@ public class FileGenerator extends AbstractGenerator {
     this.fileName = fileName;
   }
 
-  public void setLibrary(DartLibrary library) {
+  public void setLibrary(DartLibraryImpl library) {
     this.library = library;
   }
 

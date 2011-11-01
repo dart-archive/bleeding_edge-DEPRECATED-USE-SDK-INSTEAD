@@ -114,15 +114,6 @@ public interface DartProject extends ParentElement, OpenableElement {
   public IPath getDefaultOutputFullPath();
 
   /**
-   * Return an array containing all of the HTML files defined in this project.
-   * 
-   * @return an array containing all of the HTML files defined in this project
-   * @throws DartModelException if the HTML files defined in this project cannot be determined for
-   *           some reason
-   */
-  public HTMLFile[] getHTMLFiles() throws DartModelException;
-
-  /**
    * Return an array of non-Dart resources directly contained in this project. It does not
    * transitively answer non-Dart resources contained in folders; these would have to be explicitly
    * iterated over.

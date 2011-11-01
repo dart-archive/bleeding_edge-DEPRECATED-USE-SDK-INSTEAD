@@ -48,6 +48,7 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
+import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -703,6 +704,10 @@ public class DeltaProcessor {
         CompilationUnit cu = (CompilationUnit) DartCore.create(resource);
         element = cu;
         break;
+      case DartElement.HTML_FILE:
+        HTMLFile htmlFile = (HTMLFile) DartCore.create(resource);
+        element = htmlFile;
+        break;
     }
     if (element == null) {
       return null;
@@ -896,6 +901,8 @@ public class DeltaProcessor {
         } else {
           if (DartCore.isDartLikeFileName(res.getName())) {
             return DartElement.COMPILATION_UNIT;
+          } else if (DartCore.isHTMLLikeFileName(res.getName())) {
+            return DartElement.HTML_FILE;
           }
         }
         return NON_DART_RESOURCE;
