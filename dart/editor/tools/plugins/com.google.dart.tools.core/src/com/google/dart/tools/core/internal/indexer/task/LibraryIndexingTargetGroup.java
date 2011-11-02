@@ -24,6 +24,11 @@ import java.util.HashMap;
  */
 public class LibraryIndexingTargetGroup implements IndexingTargetGroup {
   /**
+   * The library associated with this group.
+   */
+  private DartLibrary library;
+
+  /**
    * A table mapping libraries to the groups that correspond to them.
    */
   private static final HashMap<DartLibrary, LibraryIndexingTargetGroup> LibraryMap = new HashMap<DartLibrary, LibraryIndexingTargetGroup>();
@@ -37,9 +42,23 @@ public class LibraryIndexingTargetGroup implements IndexingTargetGroup {
   public static LibraryIndexingTargetGroup getGroupFor(DartLibrary library) {
     LibraryIndexingTargetGroup group = LibraryMap.get(library);
     if (group == null) {
-      group = new LibraryIndexingTargetGroup();
+      group = new LibraryIndexingTargetGroup(library);
       LibraryMap.put(library, group);
     }
     return group;
+  }
+
+  /**
+   * Initialize a newly created group to represent the given library.
+   * 
+   * @param library the library associated with this group
+   */
+  public LibraryIndexingTargetGroup(DartLibrary library) {
+    this.library = library;
+  }
+
+  @Override
+  public String toString() {
+    return library.getElementName();
   }
 }

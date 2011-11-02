@@ -23,6 +23,11 @@ import java.util.HashMap;
  */
 public class ResourceIndexingTargetGroup implements IndexingTargetGroup {
   /**
+   * The project associated with this group.
+   */
+  private IProject project;
+
+  /**
    * A table mapping projects to the groups that correspond to them.
    */
   private static final HashMap<IProject, ResourceIndexingTargetGroup> ProjectMap = new HashMap<IProject, ResourceIndexingTargetGroup>();
@@ -36,9 +41,23 @@ public class ResourceIndexingTargetGroup implements IndexingTargetGroup {
   public static ResourceIndexingTargetGroup getGroupFor(IProject project) {
     ResourceIndexingTargetGroup group = ProjectMap.get(project);
     if (group == null) {
-      group = new ResourceIndexingTargetGroup();
+      group = new ResourceIndexingTargetGroup(project);
       ProjectMap.put(project, group);
     }
     return group;
+  }
+
+  /**
+   * Initialize a newly created group to represent the given project.
+   * 
+   * @param project the project associated with this group
+   */
+  public ResourceIndexingTargetGroup(IProject project) {
+    this.project = project;
+  }
+
+  @Override
+  public String toString() {
+    return project.getName();
   }
 }
