@@ -16,10 +16,10 @@ package com.google.dart.indexer.workspace.index;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +28,6 @@ import java.util.Set;
 public class IndexingQueue {
   private class ProjectState {
     private final IProject project;
-
-    int queuedFiles;
 
     int prioritizationRequestCount;
 
@@ -44,50 +42,43 @@ public class IndexingQueue {
 
     public IndexingTarget dequeue() {
       IndexingTarget result = queue.removeFirst();
-      --queuedFiles;
-      --queuedFilesInAllProjects;
       removeIfEmpty();
       return result;
     }
 
     public void enqueue(IndexingTarget target) {
+      URI targetUri = target.getUri();
+      for (IndexingTarget queuedTarget : queue) {
+        URI queuedUri = queuedTarget.getUri();
+        if (queuedUri != null && queuedUri.equals(targetUri)) {
+          return;
+        }
+      }
       queue.addLast(target);
       incrementCounters();
     }
 
-//    public IProject getProject() {
-//      return project;
-//    }
-
     public boolean isEmpty() {
-      return queuedFiles == 0 && prioritizationRequestCount == 0;
+      return queue.size() == 0 && prioritizationRequestCount == 0;
     }
 
     public void reenqueue(IndexingTarget target) {
       queue.addFirst(target);
-      ++queuedFiles;
-      ++queuedFilesInAllProjects;
       incrementCounters();
     }
 
     @Override
     public String toString() {
-      return queuedFiles + " in " + project;
+      return queue.size() + " in " + project;
     }
 
-    void incrementCounters() {
-      ++queuedFiles;
-      ++queuedFilesInAllProjects;
-      if (prioritizationRequestCount > 0 && queuedFiles == 1) {
-        // The project is a prioritized project (i.e. a request is waiting for
-        // the project to be indexed).
-        // However, this project has already been indexed and has been removed
-        // from the queue.
-        // We don't want to add the project to the tail of the list,
-        // because this will mess up the natural priority grouping.
-        // Instead, we'll reset the queue to the full list of prioritized
-        // projects,
-        // and the indexed ones will be removed the next time dequeue() is
+    private void incrementCounters() {
+      if (prioritizationRequestCount > 0 && queue.size() == 1) {
+        // The project is a prioritized project (i.e. a request is waiting for the project to be
+        // indexed). However, this project has already been indexed and has been removed from the
+        // queue. We don't want to add the project to the tail of the list, because this will mess
+        // up the natural priority grouping. Instead, we'll reset the queue to the full list of
+        // prioritized projects, and the indexed ones will be removed the next time dequeue() is
         // called.
         priorityOrderedProjectsWithRemainingWork.clear();
         priorityOrderedProjectsWithRemainingWork.addAll(priorityOrderedProjects);
@@ -113,8 +104,6 @@ public class IndexingQueue {
 
   private ProjectState lastProjectStateWithRemainingWork = null;
 
-  private int queuedFilesInAllProjects = 0;
-
   private QueueState state = QueueState.NORMAL;
 
   public synchronized void abnormalState(QueueState state) {
@@ -125,52 +114,90 @@ public class IndexingQueue {
     doClearQueue();
   }
 
-  public void addedFile(IFile file) {
+  public synchronized void addedFile(IFile file) {
     enqueue(new ResourceIndexingTarget(file));
   }
 
-  public void changedFile(IFile file) {
+  public synchronized void changedFile(IFile file) {
     enqueue(new ResourceIndexingTarget(file));
   }
 
-  public void deletedFile(IFile file) {
+  public synchronized void deletedFile(IFile file) {
     enqueue(new ResourceIndexingTarget(file));
+  }
+
+  public synchronized IndexingTarget dequeue() {
+    while (!priorityOrderedProjectsWithRemainingWork.isEmpty()) {
+      IProject project = priorityOrderedProjectsWithRemainingWork.get(0);
+      ProjectState state = findOrCreateState(project);
+      if (state.queue.size() == 0) {
+        priorityOrderedProjectsWithRemainingWork.remove(0);
+        continue;
+      }
+      return state.dequeue();
+    }
+    if (lastProjectStateWithRemainingWork != null
+        && lastProjectStateWithRemainingWork.queue.size() > 0) {
+      return lastProjectStateWithRemainingWork.dequeue();
+    }
+    for (ProjectState state : projectsToStates.values()) {
+      if (state.queue.size() > 0) {
+        lastProjectStateWithRemainingWork = state;
+        return state.dequeue();
+      }
+    }
+    return null;
   }
 
   public synchronized void enqueue(IFile[] changedFiles) {
     state = QueueState.NORMAL;
-    for (int i = 0; i < changedFiles.length; i++) {
-      doEnqueueTarget(new ResourceIndexingTarget(changedFiles[i]));
+    for (IFile file : changedFiles) {
+      doEnqueueTarget(new ResourceIndexingTarget(file));
     }
   }
 
   public synchronized void enqueue(IndexingTarget[] targets) {
     state = QueueState.NORMAL;
-    for (int i = 0; i < targets.length; i++) {
-      doEnqueueTarget(targets[i]);
+    for (IndexingTarget target : targets) {
+      doEnqueueTarget(target);
     }
   }
 
   /**
-   * Utility method used to update monitor state by an IndexingJob
+   * Return the number of targets waiting to be indexed.
    * 
-   * @return current size of a queue
+   * @return current size of the queue
    */
   public synchronized int getQueueSize() {
     return size();
   }
 
+  /**
+   * Return <code>true</code> if there are any targets waiting to be indexed that are contained in
+   * the given project.
+   * 
+   * @param project the project being tested
+   * @return <code>true</code> if there are any targets waiting to be indexed that are contained in
+   *         the given project
+   */
   public synchronized boolean hasQueuedFilesIn(IProject project) {
     ProjectState projectState = projectsToStates.get(project);
-    if (projectState == null || projectState.queuedFiles == 0) {
+    if (projectState == null || projectState.queue.size() == 0) {
       return false;
     }
     return true;
   }
 
+  /**
+   * Return <code>true</code> if there are any targets waiting to be indexed that are contained in
+   * any of the given projects.
+   * 
+   * @param projects the projects being tested
+   * @return <code>true</code> if there are any targets waiting to be indexed that are contained in
+   *         any of the given projects
+   */
   public synchronized boolean hasQueuedFilesIn(Set<IProject> projects) {
-    for (Iterator<IProject> iterator = projects.iterator(); iterator.hasNext();) {
-      IProject project = iterator.next();
+    for (IProject project : projects) {
       if (hasQueuedFilesIn(project)) {
         return true;
       }
@@ -197,23 +224,32 @@ public class IndexingQueue {
     }
   }
 
+  public synchronized void reenqueue(IndexingTarget target) {
+    state = QueueState.NORMAL; // why?..
+    IProject project = target.getProject();
+    ProjectState projectState = findOrCreateState(project);
+    projectState.reenqueue(target);
+  }
+
   public synchronized void replaceWith(IFile[] filesToIndex) {
     state = QueueState.NORMAL;
     doClearQueue();
-    for (int i = 0; i < filesToIndex.length; i++) {
-      doEnqueueTarget(new ResourceIndexingTarget(filesToIndex[i]));
+    for (IFile file : filesToIndex) {
+      doEnqueueTarget(new ResourceIndexingTarget(file));
     }
   }
 
   public synchronized int size() {
-    return queuedFilesInAllProjects;
+    int size = 0;
+    for (ProjectState projectState : projectsToStates.values()) {
+      size += projectState.queue.size();
+    }
+    return size;
   }
 
   @Override
   public synchronized String toString() {
-    StringBuilder buf = new StringBuilder();
-    buf.append(getClass().getSimpleName());
-    return buf.toString();
+    return getClass().getSimpleName();
   }
 
   public synchronized void unprioritizeProject(IProject project) {
@@ -228,37 +264,6 @@ public class IndexingQueue {
     }
   }
 
-  synchronized IndexingTarget dequeue() {
-    while (!priorityOrderedProjectsWithRemainingWork.isEmpty()) {
-      IProject project = priorityOrderedProjectsWithRemainingWork.get(0);
-      ProjectState state = findOrCreateState(project);
-      if (state.queuedFiles == 0) {
-        priorityOrderedProjectsWithRemainingWork.remove(0);
-        continue;
-      }
-      return state.dequeue();
-    }
-    if (lastProjectStateWithRemainingWork != null
-        && lastProjectStateWithRemainingWork.queuedFiles > 0) {
-      return lastProjectStateWithRemainingWork.dequeue();
-    }
-    for (Iterator<ProjectState> iterator = projectsToStates.values().iterator(); iterator.hasNext();) {
-      ProjectState state = iterator.next();
-      if (state.queuedFiles > 0) {
-        lastProjectStateWithRemainingWork = state;
-        return state.dequeue();
-      }
-    }
-    return null;
-  }
-
-  synchronized void reenqueue(IndexingTarget target) {
-    state = QueueState.NORMAL; // why?..
-    IProject project = target.getProject();
-    ProjectState projectState = findOrCreateState(project);
-    projectState.reenqueue(target);
-  }
-
   private void doClearQueue() {
     projectsToStates.clear();
   }
@@ -267,7 +272,7 @@ public class IndexingQueue {
     findOrCreateState(target.getProject()).enqueue(target);
   }
 
-  private synchronized void enqueue(IndexingTarget target) {
+  private void enqueue(IndexingTarget target) {
     state = QueueState.NORMAL;
     doEnqueueTarget(target);
   }
