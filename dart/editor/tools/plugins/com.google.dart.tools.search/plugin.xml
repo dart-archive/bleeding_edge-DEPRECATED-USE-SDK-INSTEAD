@@ -94,41 +94,7 @@
       description="%command.performTextSearchFile.description"
       />
   </extension>
-  
-  <!-- action sets -->
-  <extension point="org.eclipse.ui.actionSets">
-    <actionSet
-      id="com.google.dart.tools.search.searchActionSet"
-          label="%search"
-      visible="true">
-  
-      <!-- =================================================================== -->
-      <!-- Search Menu (TEMPORARY)                                             -->
-      <!-- =================================================================== -->
       
-      <menu
-              id="com.google.dart.tools.search.menu"
-              label="%searchMenu.label"
-              path="navigate">
-        <groupMarker name="internalDialogGroup"/>   <!-- not to be used by clients  -->
-        <groupMarker name="dialogGroup"/>           <!-- to be used by clients      -->
-        <separator name="fileSearchContextMenuActionsGroup"/> <!-- to be used by clients      -->
-             <separator name="contextMenuActionsGroup"/> <!-- to be used by clients -->
-             <separator name="occurencesActionsGroup"/> <!-- to be used by clients -->
-             <separator name="extraSearchGroup"/> <!-- to be used by clients -->
-          </menu>
-          
-      <!-- dialog group  -->
-      <action id="com.google.dart.tools.search.OpenFileSearchPage"
-        definitionId="com.google.dart.tools.search.ui.openFileSearchPage"
-        menubarPath="com.google.dart.tools.search.menu/internalDialogGroup"
-        label="%openFileSearchPageAction.label"
-        icon="$nl$/icons/full/elcl16/tsearch_obj.gif"
-        helpContextId="file_search_action_context"
-        class="com.google.dart.tools.search.internal.ui.OpenFileSearchPageAction"/>
-       </actionSet>
-  </extension>
-    
   <extension point="org.eclipse.ui.views">
      <view
             name="%newSearchResultViewName"
