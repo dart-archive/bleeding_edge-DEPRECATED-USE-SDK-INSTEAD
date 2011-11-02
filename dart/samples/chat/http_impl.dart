@@ -928,9 +928,9 @@ class HTTPConnectionBase {
       : _sendBuffers = new Queue(),
         _httpParser = new HTTPParser() {
     // Register handler for socket events.
-    _socket.setDataHandler(() => _dataHandler());
-    _socket.setCloseHandler(() => _closeHandler());
-    _socket.setErrorHandler(() => _errorHandler());
+    _socket.dataHandler = _dataHandler;
+    _socket.closeHandler = _closeHandler;
+    _socket.errorHandler = _errorHandler;
   }
 
   // Add data to be send. If the flag keepBuffer is false (the
@@ -980,7 +980,7 @@ class HTTPConnectionBase {
 
         // If all data has been sent notify the callback.
         if (_sendBuffers.isEmpty() && callback != null) {
-          _socket.setWriteHandler(null);
+          _socket.writeHandler = null;
           callback();
         }
       }
@@ -990,7 +990,7 @@ class HTTPConnectionBase {
         SendBuffer buffer = _sendBuffers.first();
         buffer._write(_socket);
         if (!buffer._isSent) {
-          _socket.setWriteHandler(continueSending);
+          _socket.writeHandler = continueSending;
           break;
         } else {
           _sendBuffers.removeFirst();
@@ -1126,7 +1126,7 @@ class HTTPServerImplementation implements HTTPServer {
     _connections = new Queue<HTTPConnection>();
     _connectionsCount = 0;
     _server = new ServerSocket(host, port, 5);
-    _server.setConnectionHandler(connectionHandler);
+    _server.connectionHandler = connectionHandler;
   }
 
   void close() => _server.close();
