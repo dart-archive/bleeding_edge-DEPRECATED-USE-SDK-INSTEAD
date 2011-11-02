@@ -77,6 +77,20 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
   }
 
   /**
+   * Return the last modified time if the artifact is cached locally, or -1 if not
+   * 
+   * @param source the source file
+   * @param base the base of the artifact to which the comparison is made
+   * @param extension the artifact extension
+   */
+  public long getArtifactLastModified(Source source, Source base, String extension) {
+    synchronized (cache) {
+      CacheElement elem = cache.get(getLocalUriPart(base, "", extension));
+      return elem != null ? elem.lastModified : -1;
+    }
+  }
+
+  /**
    * If content is cached locally, then return a reader for that content, otherwise return
    * <code>null</code>.
    */
@@ -125,7 +139,8 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
   }
 
   /**
-   * Return <code>true</code> if the artifact is cached locally.
+   * Return <code>true</code> if the artifact is cached locally and was generated after the last
+   * modification to source.
    * 
    * @param source the source file
    * @param base the base of the artifact to which the comparison is made
@@ -133,10 +148,7 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
    */
   @Override
   public boolean isOutOfDate(Source source, Source base, String extension) {
-    synchronized (cache) {
-      CacheElement elem = cache.get(getLocalUriPart(base, "", extension));
-      return elem == null || elem.lastModified < source.getLastModified();
-    }
+    return getArtifactLastModified(source, base, extension) < source.getLastModified();
   }
 
   /**
@@ -147,13 +159,19 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
    * @see #saveCachedArtifacts(File)
    */
   public int loadCachedArtifacts(File file) throws IOException {
-    long now = System.currentTimeMillis();
     int count = 0;
     BufferedReader reader = new BufferedReader(new FileReader(file));
     boolean failed = true;
     try {
+
+      // First 2 characters, "v2", indicate the version
+      if (reader.read() != 'v' || reader.read() != '2' || reader.read() != '\n') {
+        return 0;
+      }
+
       int state = 0;
       int contentLength = 0;
+      long lastModified = 0;
       StringBuilder key = new StringBuilder(200);
       char[] buf = new char[4096];
       synchronized (cache) {
@@ -179,11 +197,19 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
                 contentLength = 10 * contentLength + ch - '0';
               } else {
                 state = 2;
+              }
+              break;
+
+            case 2: // last modified
+              if (ch != ',') {
+                lastModified = 10 * lastModified + ch - '0';
+              } else {
+                state = 3;
                 key.setLength(0);
               }
               break;
 
-            case 2: // key and content
+            case 3: // key and content
               if (ch != '\n') {
                 key.append((char) ch);
               } else {
@@ -198,7 +224,7 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
                 }
                 CacheElement elem = new CacheElement();
                 elem.content = new String(buf, 0, contentLength);
-                elem.lastModified = now;
+                elem.lastModified = lastModified;
                 cache.put(key.toString(), elem);
                 count++;
               }
@@ -236,9 +262,13 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
     BufferedWriter writer = new BufferedWriter(new FileWriter(file));
     boolean failed = true;
     try {
+      writer.append("v2\n");
       for (Entry<String, CacheElement> entry : entries) {
-        String content = entry.getValue().content;
+        CacheElement value = entry.getValue();
+        String content = value.content;
         writer.append(Integer.toString(content.length()));
+        writer.append(',');
+        writer.append(Long.toString(value.lastModified));
         writer.append(',');
         writer.append(entry.getKey());
         writer.append('\n');

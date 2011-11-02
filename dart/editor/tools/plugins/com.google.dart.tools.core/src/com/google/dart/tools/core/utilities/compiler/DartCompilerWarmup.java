@@ -244,7 +244,7 @@ public class DartCompilerWarmup {
       ps.println(provider.getWriteArtifactCount() + " artifacts written during compile");
       ps.println(rootProvider.getCacheSize() + " artifacts cached after warmup");
       metrics.write(ps);
-      DartCoreDebug.log(out.toString());
+      DartCore.logInformation(out.toString());
     }
   }
 
@@ -256,7 +256,7 @@ public class DartCompilerWarmup {
   private static File getArtifactCacheFile() {
     Location workspaceLoc = Platform.getInstanceLocation();
     if (workspaceLoc == null) {
-      DartCore.logInformation("Load precompiled artifacts failed: workspace location null", null);
+      DartCore.logInformation("Load precompiled artifacts failed: workspace location null");
       return null;
     }
     URL workspaceUrl = null;
@@ -267,13 +267,13 @@ public class DartCompilerWarmup {
       return null;
     }
     if (workspaceUrl == null) {
-      DartCore.logInformation("Load precompiled artifacts failed: workspace URL null", null);
+      DartCore.logInformation("Load precompiled artifacts failed: workspace URL null");
       return null;
     }
     File workspaceDir = new File(workspaceUrl.getFile());
     if (!workspaceDir.exists()) {
       DartCore.logInformation("Load precompiled artifacts failed: workspace dir does not exist: "
-          + workspaceDir, null);
+          + workspaceDir);
       return null;
     }
     File cacheFile = new File(workspaceDir, "artifact.cache");
@@ -288,7 +288,9 @@ public class DartCompilerWarmup {
    */
   private static void loadCachedArtifacts(CachingArtifactProvider provider, File cacheFile) {
     if (!cacheFile.exists()) {
-      DartCoreDebug.log(DartCoreDebug.WARMUP, "No cached artifacts file " + cacheFile);
+      if (DartCoreDebug.WARMUP) {
+        DartCore.logInformation("No cached artifacts file " + cacheFile);
+      }
       return;
     }
     int artifactCount;
@@ -297,13 +299,17 @@ public class DartCompilerWarmup {
       long start = System.currentTimeMillis();
       artifactCount = provider.loadCachedArtifacts(cacheFile);
       delta = System.currentTimeMillis() - start;
+      // If failed to read artifacts, then delete file so that it will be recreated
+      if (artifactCount == 0) {
+        cacheFile.delete();
+      }
     } catch (IOException e) {
       DartCore.logError("Load precompiled artifacts failed", e);
       return;
     }
     if (DartCoreDebug.WARMUP) {
-      DartCoreDebug.log("Loaded " + artifactCount + " cached artifacts in " + delta + " ms from "
-          + cacheFile);
+      DartCore.logInformation("Loaded " + artifactCount + " cached artifacts in " + delta
+          + " ms from " + cacheFile);
     }
   }
 
@@ -325,7 +331,8 @@ public class DartCompilerWarmup {
       return;
     }
     if (DartCoreDebug.WARMUP) {
-      DartCoreDebug.log("Saved " + artifactCount + " artifacts in " + delta + " ms to " + cacheFile);
+      DartCore.logInformation("Saved " + artifactCount + " artifacts in " + delta + " ms to "
+          + cacheFile);
     }
   }
 }

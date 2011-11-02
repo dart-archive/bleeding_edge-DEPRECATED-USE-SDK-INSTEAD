@@ -32,27 +32,36 @@ public class CachingArtifactProviderTest extends TestCase {
 
       @Override
       public void run(File tempDir) throws Exception {
-        File cacheFile = new File(tempDir, "artifacts.zip");
-
-        // Populate and save artifacts
-        CachingArtifactProvider provider = new CachingArtifactProvider() {
-        };
-        writeArtifact(provider, getSource1(), "", "js", getArtifact1());
-        writeArtifact(provider, getSource2(), "boo", "js", getArtifact2());
-        assertEquals(2, provider.getCacheSize());
-        int saveCount = provider.saveCachedArtifacts(cacheFile);
-        assertEquals(2, saveCount);
-
-        // Load and validate artifacts
-        provider = new CachingArtifactProvider() {
-        };
-        int loadCount = provider.loadCachedArtifacts(cacheFile);
-        assertEquals(saveCount, loadCount);
-        assertEquals(saveCount, provider.getCacheSize());
-        readArtifact(provider, getSource1(), "", "js", getArtifact1());
-        readArtifact(provider, getSource2(), "boo", "js", getArtifact2());
+        test_CachingArtifactProvider_saveAndLoad(tempDir);
       }
     });
+  }
+
+  public void test_CachingArtifactProvider_saveAndLoad(File tempDir) throws IOException {
+    File cacheFile = new File(tempDir, "artifacts.zip");
+    long now = System.currentTimeMillis();
+
+    // Populate and save artifacts
+    CachingArtifactProvider provider = new CachingArtifactProvider() {
+    };
+    writeArtifact(provider, getSource1(), "", "js", getArtifact1());
+    writeArtifact(provider, getSource2(), "boo", "js", getArtifact2());
+    assertEquals(2, provider.getCacheSize());
+    int saveCount = provider.saveCachedArtifacts(cacheFile);
+    assertEquals(2, saveCount);
+    long lastModified1 = provider.getArtifactLastModified(getSource1(), getSource1(), "js");
+    assertTrue(lastModified1 >= now);
+    assertTrue(lastModified1 <= System.currentTimeMillis());
+
+    // Load and validate artifacts
+    provider = new CachingArtifactProvider() {
+    };
+    int loadCount = provider.loadCachedArtifacts(cacheFile);
+    assertEquals(saveCount, loadCount);
+    assertEquals(saveCount, provider.getCacheSize());
+    readArtifact(provider, getSource1(), "", "js", getArtifact1());
+    readArtifact(provider, getSource2(), "boo", "js", getArtifact2());
+    assertEquals(lastModified1, provider.getArtifactLastModified(getSource1(), getSource1(), "js"));
   }
 
   private String getArtifact1() {

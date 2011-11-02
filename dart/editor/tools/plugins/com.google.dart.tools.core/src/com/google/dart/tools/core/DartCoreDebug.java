@@ -25,26 +25,7 @@ public class DartCoreDebug {
   public static final boolean BUILD = isOptionTrue("debug/build");
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
 
-  /**
-   * Echo the specified message to the log
-   */
-  public static void log(String message) {
-    DartCore.logInformation(message, null);
-  }
-
   private static boolean isOptionTrue(String optionSuffix) {
     return "true".equalsIgnoreCase(Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix));
-  }
-
-  /**
-   * Log the specified message if the condition is true
-   * 
-   * @param condition <code>true</code> if the message should be logged
-   * @param message the message
-   */
-  public static void log(boolean condition, String message) {
-    if (condition) {
-      log(message);
-    }
   }
 }

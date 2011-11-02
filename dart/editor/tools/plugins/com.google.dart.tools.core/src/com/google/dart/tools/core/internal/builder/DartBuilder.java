@@ -362,7 +362,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
         ps.println(provider.getOutOfDateCount() + " artifacts out of date");
         ps.println(provider.getWriteArtifactCount() + " artifacts written");
         metrics.write(ps);
-        DartCoreDebug.log(out.toString());
+        DartCore.logInformation(out.toString());
       }
       MetricsMessenger.getSingleton().fireUpdates(config,
           new Path(libSource.getName()).lastSegment());

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.indexer.DartIndexer;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -67,7 +68,7 @@ public class DartUIStartup implements IStartup {
       DartCompilerWarmup.warmUpCompiler();
       if (DartCoreDebug.WARMUP) {
         long delta = System.currentTimeMillis() - start;
-        DartCoreDebug.log("Warmup Compiler : " + delta);
+        DartCore.logInformation("Warmup Compiler : " + delta);
       }
     }
 
@@ -77,7 +78,7 @@ public class DartUIStartup implements IStartup {
       DartModelManager.getInstance().getDartModel();
       if (DartCoreDebug.WARMUP) {
         long delta = System.currentTimeMillis() - start;
-        DartCoreDebug.log("Warmup Model : " + delta);
+        DartCore.logInformation("Warmup Model : " + delta);
       }
 
       if (!getThread().isInterrupted()) {
@@ -86,7 +87,7 @@ public class DartUIStartup implements IStartup {
         DartIndexer.warmUpIndexer();
         if (DartCoreDebug.WARMUP) {
           long delta = System.currentTimeMillis() - start;
-          DartCoreDebug.log("Warmup Indexer : " + delta);
+          DartCore.logInformation("Warmup Indexer : " + delta);
         }
       }
     }
