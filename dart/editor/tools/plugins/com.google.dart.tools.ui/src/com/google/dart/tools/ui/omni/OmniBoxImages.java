@@ -32,6 +32,7 @@ public class OmniBoxImages {
 
   private static final ImageDescriptor CLASS_ICON = DartPluginImages.DESC_DART_CLASS_PUBLIC;
   private static final ImageDescriptor INTERFACE_ICON = DartPluginImages.DESC_OBJS_INTERFACE;
+  private static final ImageDescriptor FILE_SEARCH_ICON = DartToolsPlugin.getImageDescriptor("icons/full/obj16/file_search.gif"); //$NON-NLS-1$
 
   /**
    * Generic file image descriptor.
@@ -56,6 +57,15 @@ public class OmniBoxImages {
       }
     }
     return getGenericFileDescriptor();
+  }
+
+  /**
+   * Get an image descriptor for a file search.
+   * 
+   * @return a file search image descriptor
+   */
+  public static ImageDescriptor getFileSearchImageDescriptor() {
+    return FILE_SEARCH_ICON;
   }
 
   /**

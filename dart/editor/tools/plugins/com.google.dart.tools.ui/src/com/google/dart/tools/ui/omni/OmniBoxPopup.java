@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.omni;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.omni.elements.EditorProvider;
 import com.google.dart.tools.ui.omni.elements.FileProvider;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
 import com.google.dart.tools.ui.omni.elements.TypeProvider;
@@ -208,6 +207,10 @@ public class OmniBoxPopup extends BasePopupDialog {
       resourceManager = null;
     }
     return super.close();
+  }
+
+  public String getFilterTextExactCase() {
+    return filterControl.getText();
   }
 
   public boolean isDisposed() {
@@ -748,18 +751,17 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   private OmniProposalProvider[] createProviders() {
-    return new OmniProposalProvider[] {
-        new PreviousPicksProvider(), new TypeProvider(getProgressMonitor()),
-        new FileProvider(getProgressMonitor()), new EditorProvider(),
-//        new ViewProvider(),
-//        new CommandProvider(), new ActionProvider(),
-//        new PreferenceProvider(),
-//        new PropertiesProvider()
+    return new OmniProposalProvider[] {new PreviousPicksProvider(),
+//        new TextSearchProvider(this),
+    new TypeProvider(getProgressMonitor()), new FileProvider(getProgressMonitor()),
+//        new EditorProvider(),
+//        new ActionProvider(),
+//        new PreferenceProvider()
     };
   }
 
   private String getFilterText() {
-    return filterControl.getText().toLowerCase();
+    return getFilterTextExactCase().toLowerCase();
   }
 
   private KeyAdapter getKeyAdapter() {
