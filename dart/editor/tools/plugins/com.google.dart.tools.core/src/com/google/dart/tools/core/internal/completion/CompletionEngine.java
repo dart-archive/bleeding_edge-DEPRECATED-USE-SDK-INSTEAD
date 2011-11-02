@@ -77,6 +77,7 @@ import com.google.dart.tools.core.internal.completion.ast.MethodInvocationComple
 import com.google.dart.tools.core.internal.completion.ast.ParameterCompleter;
 import com.google.dart.tools.core.internal.completion.ast.PropertyAccessCompleter;
 import com.google.dart.tools.core.internal.completion.ast.TypeCompleter;
+import com.google.dart.tools.core.internal.completion.ast.TypeParameterCompleter;
 import com.google.dart.tools.core.internal.model.DartFunctionTypeAliasImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
@@ -736,7 +737,10 @@ public class CompletionEngine {
 
     @Override
     public Void visitTypeParameter(DartTypeParameter node) {
-      // need new AST node
+      // class test <String> {}
+      if (node instanceof TypeParameterCompleter) {
+        proposeTypeNamesForPrefix(node.getName());
+      }
       // typedef T Deserializer<T!>(InputDataStream input);
       return null;
     }
@@ -1542,6 +1546,17 @@ public class CompletionEngine {
     String prefix = extractFilterPrefix(identifier);
     for (SearchMatch match : matches) {
       createTypeCompletionsForTypeDecl(identifier, match, prefix, isClass, !isClass);
+    }
+  }
+
+  private void proposeTypeNamesForPrefix(DartIdentifier identifier) {
+    List<SearchMatch> matches = findTypesWithPrefix(identifier);
+    if (matches == null || matches.size() == 0) {
+      return;
+    }
+    String prefix = extractFilterPrefix(identifier);
+    for (SearchMatch match : matches) {
+      createTypeCompletionsForTypeDecl(identifier, match, prefix, false, false);
     }
   }
 

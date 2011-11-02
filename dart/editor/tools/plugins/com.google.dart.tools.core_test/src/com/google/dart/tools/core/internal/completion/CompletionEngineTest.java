@@ -148,6 +148,14 @@ public class CompletionEngineTest extends TestCase {
     test("interface a implements !1{}", "1+List");
   }
 
+  public void testCommentSnippets027() throws Exception {
+    test("class test <!1String!2> {}", "1+List", "2+String", "2-List");
+  }
+
+  public void testCommentSnippets028() throws Exception {
+    test("typedef T Deserializer<T!1>(List input);", "1+TimeZone", "1-String");//"1+T", fails
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test
