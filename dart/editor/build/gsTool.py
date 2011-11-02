@@ -7,12 +7,14 @@ found in the LICENSE file.
 
 Cleanup the Google Storage dart-editor-archive-continuous bucket.
 """
+
 import optparse
 import os
 import sys
 import gsutil
 
 CONTINUOUS = 'gs://dart-editor-archive-continuous'
+TESTING = 'gs://dart-editor-archive-testing'
 INTEGRATION = 'gs://dart-editor-archive-integration'
 RELEASE = 'gs://dart-editor-archive-release'
 
@@ -53,6 +55,8 @@ def _BuildOptions():
   result.set_default('dryrun', False)
   result.set_default('continuous', False)
   result.set_default('integration', False)
+  result.set_default('testing', False)
+  result.set_default('fullcontrolgroup', 'editors')
   group = optparse.OptionGroup(result, 'Cleanup',
                                'options used to cleanup Google Storage')
   group.add_option('--keepcount',
@@ -64,14 +68,19 @@ def _BuildOptions():
   group = optparse.OptionGroup(result, 'Promote',
                                'options used to promote code')
   group.add_option('--revision',
-                   help='the svn revision to promote',
+                   help='The svn revision to promote',
                    action='store')
   group.add_option('--continuous',
-                   help='promote from continuous',
+                   help='Promote from continuous',
                    action='store_true')
   group.add_option('--integration',
-                   help='promote from integration',
+                   help='Promote from integration',
                    action='store_true')
+  group.add_option('--fullcontrolgroup',
+                   help='The Google Storage group to get full_control'
+                   ' of the new objects.  Valid values owners|editors|team.'
+                   ' The default is editors',
+                   action='store')
   result.add_option_group(group)
 
   result.add_option('--gsbucketuri',
@@ -81,6 +90,9 @@ def _BuildOptions():
                     help='location of gsutil the program',
                     action='store')
   result.add_option('--dryrun', help='don\'t do anything that would change'
+                    ' Google Storage',
+                    action='store_true')
+  result.add_option('--testing', help='user test bucket in '
                     ' Google Storage',
                     action='store_true')
 
@@ -106,15 +118,27 @@ def main():
       print 'You must specify a --revision to specify which revision to promote'
       parser.print_help()
       sys.exit(3)
-    if options.continuous is None and options.integration is None:
-      print 'You must specify one of --continuous or --integration'
+    if not (options.continuous or options.integration or options.testing):
+      print 'You must specify one of --continuous or --integration or --testing'
       parser.print_help()
       sys.exit(4)
     if options.continuous and options.integration:
       print 'continuous and integration can not be specified at the same time'
       parser.print_help()
       sys.exit(5)
-
+    if (options.continuous or options.integration) and options.testing:
+      print """Warning --continuous or --integration  and --testing are
+       specified.  The --testing flag will take precedence and all data will
+       go to the testing bucket {0}""".format(TESTING)
+    full_control_group = options.fullcontrolgroup
+    if (full_control_group != 'editors' and
+        full_control_group != 'owners'
+        and full_control_group != 'team'):
+      print ('--fullcontrolgroup is specified as {0} this value is not valid.'
+             ' Valid values are editors|owners|team.'.
+             format(options.fullcontrolgroup))
+      parser.print_help()
+      sys.exit(6)
   elif args[0] == 'cleanup':
     command = 'cleanup'
     if options.keepcount is None:
@@ -122,13 +146,19 @@ def main():
       parser.print_help()
       sys.exit(6)
   else:
-    print 'At least one command must be specified'
+    print 'Invalid command specified: {0}.  See help below'.format(args[0])
     parser.print_help()
     sys.exit(2)
 
   gsu = gsutil.GsUtil(options.dryrun, options.gsutilloc)
 
-  if options.continuous:
+  if options.testing:
+    bucket_from = CONTINUOUS
+    bucket_to = TESTING
+    print """The --testing attribute is specified.  All data will go to the
+    testing bucket {0}.  Press enter to continue""".format(TESTING)
+    raw_input('Press Enter to continue')
+  elif options.continuous:
     bucket_from = CONTINUOUS
     bucket_to = INTEGRATION
   elif options.integration:
@@ -136,10 +166,17 @@ def main():
     bucket_to = RELEASE
 
   if command == 'cleanup':
-    version_dirs = _ReadBucket(gsu, options.gsbucketuri)
+    #if the testing flag is set remove the date from the testing bucket
+    if options.testing:
+      bucket = TESTING
+    #otherwise use the value passed as --gsbucketuri
+    else:
+      bucket = options.gsbucketuri
+    version_dirs = _ReadBucket(gsu, bucket)
     _RemoveElements(gsu, version_dirs, options.keepcount)
   elif command == 'promote':
-    _PromoteBuild(gsu, options.revision, bucket_from, bucket_to)
+    _PromoteBuild(gsu, options.revision, bucket_from, bucket_to,
+                  full_control_group)
 
 
 def _ReadBucket(gsu, bucket):
@@ -196,7 +233,8 @@ def _RemoveElements(gsu, version_dirs, keepcount):
                                                        keepcount)
 
 
-def _PromoteBuild(gsu, revision, from_bucket, to_bucket):
+def _PromoteBuild(gsu, revision, from_bucket, to_bucket,
+                  group_with_full_control):
   """Promote a build to another environment.
 
     because Google Storage does not support symbolic links two copies need
@@ -206,6 +244,7 @@ def _PromoteBuild(gsu, revision, from_bucket, to_bucket):
     revision: the revision to promote
     from_bucket: the bucket to promote from
     to_bucket: the bucket to promote from
+    group_with_full_control: the group that gets full control of the objects
   """
   print '_PromoteBuild({0} , {1}, {2})'.format(gsu, from_bucket, to_bucket)
 
@@ -217,8 +256,22 @@ def _PromoteBuild(gsu, revision, from_bucket, to_bucket):
       to_element = element.replace(from_bucket, to_bucket)
       print 'promoting {0} to {1}'.format(from_element, to_element)
       gsu.Copy(from_element, to_element)
+      acl = gsu.GetAcl(to_element)
+      if acl is None:
+        _PrintFailure('non-fatal failure, could not get'
+                      ' ACL for {0}'.format(to_element))
+      else:
+        newacl = gsu.CreateAcl(acl, group_with_full_control)
+        gsu.SetAcl(to_element, newacl)
       to_element = to_element.replace(revision, 'latest')
       gsu.Copy(from_element, to_element)
+      acl = gsu.GetAcl(to_element)
+      if acl is None:
+        _PrintFailure('non-fatal failure, could not get'
+                      ' ACL for {0}'.format(to_element))
+      else:
+        newacl = gsu.CreateAcl(acl, group_with_full_control)
+        gsu.SetAcl(to_element, newacl)
   else:
     print 'could not find element with {0} as it\'s revision'.format(revision)
 

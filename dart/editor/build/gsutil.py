@@ -10,6 +10,8 @@ Cleanup the Google Storage dart-editor-archive-continuous bucket.
 import os
 import string
 import subprocess
+import tempfile
+import xml.etree.ElementTree as ET
 
 
 class GsUtil(object):
@@ -17,6 +19,7 @@ class GsUtil(object):
 
   _gsutil = None
   _dryrun = False
+  _group_ids = {}
 
   def __init__(self, dryrun=False, gsutil_loc=None):
     """Initialize the class by finding the gsutil programs location.
@@ -29,6 +32,11 @@ class GsUtil(object):
     """
     self._gsutil = self._FindGsUtil(gsutil_loc)
     self._dryrun = dryrun
+    for line in open('groupIds.txt', 'r'):
+      (first, _, rest) = line.strip().partition(',')
+      self._group_ids[first] = rest
+    for key in self._group_ids.iterkeys():
+      print '{0} = |{1}|'.format(key, self._group_ids[key])
 
   def _FindGsUtil(self, gsutil_loc):
     """Find the location of the gsutil program.
@@ -166,6 +174,135 @@ class GsUtil(object):
       (out, err) = p.communicate()
       if p.returncode:
         failure_message = 'failed to remove {0}\n'.format(item_uri)
+        self._LogStream(err, failure_message, True)
+      else:
+        self._LogStream(out, '')
+
+  def GetAcl(self, item_uri):
+    """Get the ACL on an object in GoogleStorage.
+
+    Args:
+      item_uri: the uri of the item to get the acl for
+
+    Returns:
+      the ACL for the object or None if it could nto be found
+    """
+    args = []
+    args.append(self._gsutil)
+    args.append('getacl')
+    args.append(item_uri)
+    #echo the command to the screen
+    print ' '.join(args)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    (out, err) = p.communicate()
+    if p.returncode:
+      failure_message = 'failed to getacl {0}\n'.format(item_uri)
+      self._LogStream(err, failure_message, True)
+      message = None
+    else:
+      message = ''
+      for ch in out:
+        message += ch
+    return message
+
+  def CreateAcl(self, acl, who='editors'):
+    """Create the new ACL for the Object.
+
+    Args:
+      acl: the xml document representing the ACL
+      who: who should be added onto the team list
+
+    Returns:
+      xml document with updated ACL
+    """
+    root = ET.fromstring(acl)
+  #  root = dom.getroot()
+    entries = root.find('Entries')
+    foundentries = entries.findall('Entry')
+    foundallusers = False
+    for entry in foundentries:
+      scope = entry.find('Scope')
+      scopetype = scope.get('type')
+      if scopetype is not None and scopetype == 'AllUsers':
+        foundallusers = True
+
+    teamentry = ET.SubElement(entries, 'Entry')
+    teamscope = ET.SubElement(teamentry, 'Scope', type='GroupById')
+    teamid = ET.SubElement(teamscope, 'ID')
+    teamid.text = self._group_ids[who]
+    teampremission = ET.SubElement(teamentry, 'Permission')
+    teampremission.text = 'FULL_CONTROL'
+
+    if not foundallusers:
+      allentry = ET.SubElement(entries, 'Entry')
+      ET.SubElement(allentry, 'Scope', type='AllUsers')
+      allpremission = ET.SubElement(allentry, 'Permission')
+      allpremission.text = 'READ'
+
+    return ET.tostring(root)
+
+  def SetCannedAcl(self, object_uri, canned_acl):
+    """Set a canned ACL on an object in GoogleStorage.
+
+    for canned ACL's see
+    http://code.google.com/apis/storage/docs/accesscontrol.html
+
+    Args:
+      object_uri: the uri of the item to set the acl on
+      canned_acl: predefined ACL defined at the URI above
+    """
+    self._GsutilSetAcl(object_uri, canned_acl)
+
+  def SetAcl(self, object_uri, acl_content):
+    """Set the ACL on an object in GoogleStorage.
+
+    Args:
+      object_uri: the uri of the item to set the acl on
+      acl_content:an XML document setting the ACL
+    """
+    xmlfile = None
+    try:
+      if not self._dryrun:
+        #the ACL is an XML document.  Write to to a temp file and
+        #  then pass the temp file to the gsutil command
+        xmlfile = tempfile.NamedTemporaryFile(suffix='.xml', prefix='GsACL',
+                                              delete=True)
+        try:
+          f = open(xmlfile.name, 'w')
+          f.write(acl_content)
+        finally:
+          f.close()
+
+        self._GsutilSetAcl(object_uri, xmlfile.name)
+    finally:
+      if xmlfile is not None:
+        xmlfile.close()
+
+  def _GsutilSetAcl(self, object_uri, acl):
+    """Call gsutil to set the given ACL on a Google Storeage object.
+
+    Failing to set an ACL is not considered a fatal error so a message is
+    printed but the program continues
+
+    Args:
+      object_uri: the object to set the ACL on
+      acl: The ACL to set for object_uri.  This can be a canned acl or a file
+            containing the xml document for the ACL
+    """
+    args = []
+    args.append(self._gsutil)
+    args.append('setacl')
+    args.append(acl)
+    args.append(object_uri)
+    #echo the command to the screen
+    print ' '.join(args)
+    if not self._dryrun:
+      p = subprocess.Popen(args, stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE)
+      (out, err) = p.communicate()
+      if p.returncode:
+        failure_message = 'failed to setacl {0}\n'.format(object_uri)
         self._LogStream(err, failure_message, True)
       else:
         self._LogStream(out, '')
