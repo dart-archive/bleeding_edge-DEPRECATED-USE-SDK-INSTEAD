@@ -41,10 +41,10 @@ class ServerRunner {
   void run(ExitCallback exitCallback) {
     Process dart = new Process(DART_EXEC_PATH, [_serverMain]);
 
-    dart.setExitHandler((int status) {
+    dart.exitHandler = (int status) {
         dart.close();
         exitCallback(status, this);
-      });
+      };
 
     dart.start();
 

@@ -49,10 +49,10 @@ class Dartc {
     Process compiler = new Process(DARTC_EXEC_PATH, args);
 
     StringBuffer messages = new StringBuffer();
-    compiler.setExitHandler((int status) {
+    compiler.exitHandler = (int status) {
         compiler.close();
         callback(status, messages.toString());
-      });
+      };
 
     compiler.start();
 
