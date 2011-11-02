@@ -37,13 +37,30 @@ public interface IndexingTarget {
    * 
    * @return the file associated with this target
    */
+  @Deprecated
   public IFile getFile();
+
+  /**
+   * Return the indexing group containing this target.
+   * 
+   * @return the indexing group containing this target
+   */
+  public IndexingTargetGroup getGroup();
+
+  /**
+   * Return an indication of when the target was last modified. The stamp can be any monotonically
+   * increasing value, such as a modification time for a file or a simple counter.
+   * 
+   * @return the modification stamp associated with the target
+   */
+  public long getModificationStamp();
 
   /**
    * Return the project associated with this target.
    * 
    * @return the project associated with this target
    */
+  @Deprecated
   public IProject getProject();
 
   /**

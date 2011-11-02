@@ -48,6 +48,16 @@ public class ResourceIndexingTarget implements IndexingTarget {
   }
 
   @Override
+  public IndexingTargetGroup getGroup() {
+    return ResourceIndexingTargetGroup.getGroupFor(file.getProject());
+  }
+
+  @Override
+  public long getModificationStamp() {
+    return file.getModificationStamp();
+  }
+
+  @Override
   public IProject getProject() {
     return file.getProject();
   }

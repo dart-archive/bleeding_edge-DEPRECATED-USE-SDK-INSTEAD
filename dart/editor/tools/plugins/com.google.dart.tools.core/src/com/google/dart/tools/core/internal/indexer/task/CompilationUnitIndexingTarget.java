@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.indexer.task;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.indexer.workspace.index.IndexingTarget;
+import com.google.dart.indexer.workspace.index.IndexingTargetGroup;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
@@ -95,6 +96,38 @@ public class CompilationUnitIndexingTarget implements IndexingTarget {
     } catch (DartModelException exception) {
       return null;
     }
+  }
+
+  @Override
+  public IndexingTargetGroup getGroup() {
+    return LibraryIndexingTargetGroup.getGroupFor(compilationUnit.getLibrary());
+  }
+
+  @Override
+  public long getModificationStamp() {
+    try {
+      IFile file = (IFile) compilationUnit.getCorrespondingResource();
+      if (file != null) {
+        return file.getModificationStamp();
+      }
+    } catch (DartModelException exception) {
+      // Fall through to try accessing the information using the source reference.
+    }
+    try {
+      DartSource source = compilationUnit.getSourceRef();
+      if (source != null) {
+        URI uri = URIUtilities.safelyResolveDartUri(source.getUri());
+        if (uri != null) {
+          File file = URIUtil.toFile(uri);
+          if (file != null) {
+            return file.lastModified();
+          }
+        }
+      }
+    } catch (DartModelException exception) {
+      // Fall through to return zero.
+    }
+    return 0;
   }
 
   @Override
