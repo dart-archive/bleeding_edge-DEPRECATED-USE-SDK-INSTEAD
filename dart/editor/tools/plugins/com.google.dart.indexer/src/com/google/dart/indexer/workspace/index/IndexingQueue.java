@@ -26,18 +26,18 @@ import java.util.Map;
 import java.util.Set;
 
 public class IndexingQueue {
-  private class ProjectState {
-    private final IProject project;
+  private class GroupState {
+    private final IndexingTargetGroup group;
 
     int prioritizationRequestCount;
 
     final LinkedList<IndexingTarget> queue = new LinkedList<IndexingTarget>();
 
-    public ProjectState(IProject project) {
-      if (project == null) {
-        throw new NullPointerException("project is null");
+    public GroupState(IndexingTargetGroup group) {
+      if (group == null) {
+        throw new NullPointerException("group is null");
       }
-      this.project = project;
+      this.group = group;
     }
 
     public IndexingTarget dequeue() {
@@ -69,7 +69,7 @@ public class IndexingQueue {
 
     @Override
     public String toString() {
-      return queue.size() + " in " + project;
+      return queue.size() + " in " + group;
     }
 
     private void incrementCounters() {
@@ -80,29 +80,29 @@ public class IndexingQueue {
         // up the natural priority grouping. Instead, we'll reset the queue to the full list of
         // prioritized projects, and the indexed ones will be removed the next time dequeue() is
         // called.
-        priorityOrderedProjectsWithRemainingWork.clear();
-        priorityOrderedProjectsWithRemainingWork.addAll(priorityOrderedProjects);
+        priorityOrderedGroupsWithRemainingWork.clear();
+        priorityOrderedGroupsWithRemainingWork.addAll(priorityOrderedGroups);
       }
     }
 
     private void removeIfEmpty() {
       if (isEmpty()) {
-        projectsToStates.remove(project);
+        groupsToStates.remove(group);
       }
     }
   }
 
-  private final Map<IProject, ProjectState> projectsToStates = new HashMap<IProject, ProjectState>();
+  private final Map<IndexingTargetGroup, GroupState> groupsToStates = new HashMap<IndexingTargetGroup, GroupState>();
 
-  private final Set<IProject> priorityProjects = new HashSet<IProject>();
+  private final Set<IndexingTargetGroup> priorityGroups = new HashSet<IndexingTargetGroup>();
 
-  private final List<IProject> priorityOrderedProjects = new ArrayList<IProject>();
+  private final List<IndexingTargetGroup> priorityOrderedGroups = new ArrayList<IndexingTargetGroup>();
 
-  // always a subset of priorityOrderedProjects
-  // projects are removed from the head when no remaining work is left
-  private final List<IProject> priorityOrderedProjectsWithRemainingWork = new ArrayList<IProject>();
+  // always a subset of priorityOrderedGroups
+  // groups are removed from the head when no remaining work is left
+  private final List<IndexingTargetGroup> priorityOrderedGroupsWithRemainingWork = new ArrayList<IndexingTargetGroup>();
 
-  private ProjectState lastProjectStateWithRemainingWork = null;
+  private GroupState lastProjectStateWithRemainingWork = null;
 
   private QueueState state = QueueState.NORMAL;
 
@@ -127,11 +127,11 @@ public class IndexingQueue {
   }
 
   public synchronized IndexingTarget dequeue() {
-    while (!priorityOrderedProjectsWithRemainingWork.isEmpty()) {
-      IProject project = priorityOrderedProjectsWithRemainingWork.get(0);
-      ProjectState state = findOrCreateState(project);
+    while (!priorityOrderedGroupsWithRemainingWork.isEmpty()) {
+      IndexingTargetGroup group = priorityOrderedGroupsWithRemainingWork.get(0);
+      GroupState state = findOrCreateState(group);
       if (state.queue.size() == 0) {
-        priorityOrderedProjectsWithRemainingWork.remove(0);
+        priorityOrderedGroupsWithRemainingWork.remove(0);
         continue;
       }
       return state.dequeue();
@@ -140,7 +140,7 @@ public class IndexingQueue {
         && lastProjectStateWithRemainingWork.queue.size() > 0) {
       return lastProjectStateWithRemainingWork.dequeue();
     }
-    for (ProjectState state : projectsToStates.values()) {
+    for (GroupState state : groupsToStates.values()) {
       if (state.queue.size() > 0) {
         lastProjectStateWithRemainingWork = state;
         return state.dequeue();
@@ -149,6 +149,7 @@ public class IndexingQueue {
     return null;
   }
 
+  @Deprecated
   public synchronized void enqueue(IFile[] changedFiles) {
     state = QueueState.NORMAL;
     for (IFile file : changedFiles) {
@@ -180,9 +181,10 @@ public class IndexingQueue {
    * @return <code>true</code> if there are any targets waiting to be indexed that are contained in
    *         the given project
    */
+  @Deprecated
   public synchronized boolean hasQueuedFilesIn(IProject project) {
-    ProjectState projectState = projectsToStates.get(project);
-    if (projectState == null || projectState.queue.size() == 0) {
+    GroupState state = groupsToStates.get(project);
+    if (state == null || state.queue.size() == 0) {
       return false;
     }
     return true;
@@ -196,9 +198,43 @@ public class IndexingQueue {
    * @return <code>true</code> if there are any targets waiting to be indexed that are contained in
    *         any of the given projects
    */
+  @Deprecated
   public synchronized boolean hasQueuedFilesIn(Set<IProject> projects) {
     for (IProject project : projects) {
       if (hasQueuedFilesIn(project)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Return <code>true</code> if there are any targets waiting to be indexed that are contained in
+   * the given group.
+   * 
+   * @param group the group being tested
+   * @return <code>true</code> if there are any targets waiting to be indexed that are contained in
+   *         the given group
+   */
+  public synchronized boolean hasQueuedTargetsIn(IndexingTargetGroup group) {
+    GroupState state = groupsToStates.get(group);
+    if (state == null || state.queue.size() == 0) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Return <code>true</code> if there are any targets waiting to be indexed that are contained in
+   * any of the given projects.
+   * 
+   * @param groups the projects being tested
+   * @return <code>true</code> if there are any targets waiting to be indexed that are contained in
+   *         any of the given projects
+   */
+  public synchronized boolean hasQueuedTargetsIn(Set<IndexingTargetGroup> groups) {
+    for (IndexingTargetGroup group : groups) {
+      if (hasQueuedTargetsIn(group)) {
         return true;
       }
     }
@@ -215,22 +251,28 @@ public class IndexingQueue {
     return state;
   }
 
-  public synchronized void prioritizeProject(IProject project) {
-    if (priorityProjects.add(project)) {
-      priorityOrderedProjects.add(project);
-      priorityOrderedProjectsWithRemainingWork.add(project);
-      ProjectState state = findOrCreateState(project);
+  public synchronized void prioritizeGroup(IndexingTargetGroup group) {
+    if (priorityGroups.add(group)) {
+      priorityOrderedGroups.add(group);
+      priorityOrderedGroupsWithRemainingWork.add(group);
+      GroupState state = findOrCreateState(group);
       ++state.prioritizationRequestCount;
     }
   }
 
+  @Deprecated
+  public synchronized void prioritizeProject(IProject project) {
+    prioritizeGroup(ResourceIndexingTargetGroup.getGroupFor(project));
+  }
+
   public synchronized void reenqueue(IndexingTarget target) {
     state = QueueState.NORMAL; // why?..
-    IProject project = target.getProject();
-    ProjectState projectState = findOrCreateState(project);
+    IndexingTargetGroup group = target.getGroup();
+    GroupState projectState = findOrCreateState(group);
     projectState.reenqueue(target);
   }
 
+  @Deprecated
   public synchronized void replaceWith(IFile[] filesToIndex) {
     state = QueueState.NORMAL;
     doClearQueue();
@@ -241,8 +283,8 @@ public class IndexingQueue {
 
   public synchronized int size() {
     int size = 0;
-    for (ProjectState projectState : projectsToStates.values()) {
-      size += projectState.queue.size();
+    for (GroupState state : groupsToStates.values()) {
+      size += state.queue.size();
     }
     return size;
   }
@@ -252,24 +294,29 @@ public class IndexingQueue {
     return getClass().getSimpleName();
   }
 
-  public synchronized void unprioritizeProject(IProject project) {
-    ProjectState state = projectsToStates.get(project);
+  public synchronized void unprioritizeGroup(IndexingTargetGroup group) {
+    GroupState state = groupsToStates.get(group);
     if (state == null || 0 == state.prioritizationRequestCount) {
       return;
     }
     if (--state.prioritizationRequestCount == 0) {
-      priorityProjects.remove(project);
-      priorityOrderedProjects.remove(project);
-      priorityOrderedProjectsWithRemainingWork.remove(project);
+      priorityGroups.remove(group);
+      priorityOrderedGroups.remove(group);
+      priorityOrderedGroupsWithRemainingWork.remove(group);
     }
   }
 
+  @Deprecated
+  public synchronized void unprioritizeProject(IProject project) {
+    unprioritizeGroup(ResourceIndexingTargetGroup.getGroupFor(project));
+  }
+
   private void doClearQueue() {
-    projectsToStates.clear();
+    groupsToStates.clear();
   }
 
   private void doEnqueueTarget(IndexingTarget target) {
-    findOrCreateState(target.getProject()).enqueue(target);
+    findOrCreateState(target.getGroup()).enqueue(target);
   }
 
   private void enqueue(IndexingTarget target) {
@@ -277,11 +324,11 @@ public class IndexingQueue {
     doEnqueueTarget(target);
   }
 
-  private ProjectState findOrCreateState(IProject project) {
-    ProjectState projectState = projectsToStates.get(project);
+  private GroupState findOrCreateState(IndexingTargetGroup group) {
+    GroupState projectState = groupsToStates.get(group);
     if (projectState == null) {
-      projectState = new ProjectState(project);
-      projectsToStates.put(project, projectState);
+      projectState = new GroupState(group);
+      groupsToStates.put(group, projectState);
     }
     return projectState;
   }
