@@ -99,19 +99,21 @@ class Member implements Named {
   List<Parameter> get parameters() => [];
 
   // TODO(jimhug): Fix these names once get/set are truly pseudo-keywords.
-  abstract Value get_(MethodGenerator context, Node node, Value target);
+  // TODO(jmesserly): isDynamic isn't a great name for this, something better?
+  abstract Value get_(MethodGenerator context, Node node, Value target,
+      [bool isDynamic]);
 
   abstract Value set_(MethodGenerator context, Node node, Value target,
-      Value value, [bool checked]);
+      Value value, [bool isDynamic]);
 
   bool canInvoke(MethodGenerator context, Arguments args) {
     return canGet && new Value(returnType, null).canInvoke(context, '\$call', args);
   }
 
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
-      [bool checked=true]) {
-    var newTarget = get_(context, node, target);
-    return newTarget.invoke(context, '\$call', node, args, checked);
+      [bool isDynamic=false]) {
+    var newTarget = get_(context, node, target, isDynamic);
+    return newTarget.invoke(context, '\$call', node, args, isDynamic);
   }
 
   bool override(Member other) {
@@ -163,21 +165,20 @@ class TypeMember extends Member {
 
   void resolve(Type inType) {}
 
-  Value get_(MethodGenerator context, Node node, Value target) {
-    // TODO(jmesserly): is just using the raw type name good enough to ensure we
-    // don't have type name collisions on the JS side?
-    // TODO(jmesserly): assert(target == null);
-    // TODO(jimhug): named args.
+  Value get_(MethodGenerator context, Node node, Value target,
+      [bool isDynamic=false]) {
+    assert(target == null || target.type.isTop);
+    // TODO(jmesserly): named args
     return new Value(type, type.jsname, false, false, true);
   }
 
   Value set_(MethodGenerator context, Node node, Value target, Value value,
-      [bool checked=true]) {
+      [bool isDynamic=false]) {
     world.error('can not set type', type.definition.span);
   }
 
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
-      [bool checked=true]) {
+      [bool isDynamic=false]) {
     world.error('can not invoke type', type.definition.span);
   }
 }
@@ -310,8 +311,11 @@ class FieldMember extends Member {
     return _computedValue;
   }
 
-  Value get_(MethodGenerator context, Node node, Value target) {
-    declaringType.markUsed();
+  Value get_(MethodGenerator context, Node node, Value target,
+      [bool isDynamic=false]) {
+    if (!isDynamic) {
+      declaringType.markUsed();
+    }
     if (isStatic) {
       // Make sure to compute the value of all static fields, even if we don't
       // use this value immediately.
@@ -337,9 +341,9 @@ class FieldMember extends Member {
   }
 
   Value set_(MethodGenerator context, Node node, Value target, Value value,
-      [bool checked=true]) {
-    var lhs = get_(context, node, target);
-    value = value.convertTo(context, type, node, checked);
+      [bool isDynamic=false]) {
+    var lhs = get_(context, node, target, isDynamic);
+    value = value.convertTo(context, type, node, isDynamic);
     return new Value(type, '${lhs.code} = ${value.code}');
   }
 }
@@ -389,19 +393,18 @@ class PropertyMember extends Member {
     }
   }
 
-  Value get_(MethodGenerator context, Node node, Value target) {
+  Value get_(MethodGenerator context, Node node, Value target,
+      [bool isDynamic=false]) {
     if (getter == null) {
-      // TODO(jmesserly): fix this! should call noSuchMethod.
-      world.warning('no getter on ${declaringType.name}.$name', node.span);
-      return new Value(null, '${target.code}.$name()/*NoGetter*/');
+      return target.invokeNoSuchMethod(context, 'get:$name', node);
     }
     return getter.invoke(context, node, target, Arguments.EMPTY);
   }
 
   Value set_(MethodGenerator context, Node node, Value target, Value value,
-      [bool checked=true]) {
+      [bool isDynamic=false]) {
     return setter.invoke(context, node, target, new Arguments(null, [value]),
-      checked);
+      isDynamic);
   }
 
   addFromParent(Member parentMember) {
@@ -488,29 +491,30 @@ class ConcreteMember extends Member {
   // TODO(jimhug): Add support for type params.
   bool override(Member other) => baseMember.override(other);
 
-  Value get_(MethodGenerator context, Node node, Value target) {
-    Value ret = baseMember.get_(context, node, target);
+  Value get_(MethodGenerator context, Node node, Value target,
+      [bool isDynamic=false]) {
+    Value ret = baseMember.get_(context, node, target, isDynamic);
     return new Value(returnType, ret.code);
   }
 
   Value set_(MethodGenerator context, Node node, Value target, Value value,
-      [bool checked=true]) {
+      [bool isDynamic=false]) {
     // TODO(jimhug): Check arg types in context of concrete type.
-    Value ret = baseMember.set_(context, node, target, value, checked);
+    Value ret = baseMember.set_(context, node, target, value, isDynamic);
     return new Value(returnType, ret.code);
   }
 
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
-      [bool checked=true]) {
+      [bool isDynamic=false]) {
     // TODO(jimhug): Check arg types in context of concrete type.
-    Value ret = baseMember.invoke(context, node, target, args, checked);
+    Value ret = baseMember.invoke(context, node, target, args, isDynamic);
     var code = ret.code;
     if (isConstructor) {
       // TODO(jimhug): Egregious hack - won't live through the weekend.
       code = code.replaceFirst(
           declaringType.genericType.jsname, declaringType.jsname);
     }
-    world.gen.genMethod(this);
+    declaringType.genMethod(this);
     return new Value(returnType, code);
   }
 }
@@ -650,12 +654,14 @@ class MethodMember extends Member {
   void providePropertySyntax() => _providePropertySyntax = true;
 
   Value set_(MethodGenerator context, Node, Value target, Value value,
-      [bool checked=true]) {
+      [bool isDynamic=false]) {
     world.error('can not set method', definition.span);
   }
 
-  Value get_(MethodGenerator context, Node node, Value target) {
-    world.gen.genMethod(this); // TODO(jimhug): Would prefer to invoke!
+  Value get_(MethodGenerator context, Node node, Value target,
+      [bool isDynamic=false]) {
+    // TODO(jimhug): Would prefer to invoke!
+    declaringType.genMethod(this);
     _provideOptionalParamInfo = true;
     if (isStatic) {
       var type = declaringType.isTop ? '' : '${declaringType.jsname}.';
@@ -709,16 +715,14 @@ class MethodMember extends Member {
    * [node] provides a [SourceSpan] for any error messages.
    */
   Value invoke(MethodGenerator context, Node node, Value target,
-      Arguments args, [bool checked=true]) {
+      Arguments args, [bool isDynamic=false]) {
     // TODO(jimhug): Fix this hack for ensuring a method is resolved.
     if (parameters == null) {
       world.info('surprised to need to resolve: ${declaringType.name}.$name');
       this.resolve(declaringType);
     }
 
-    if (!isGenerated) {
-      world.gen.genMethod(this);
-    }
+    declaringType.genMethod(this);
 
     if (isStatic || isFactory) {
       declaringType.markUsed();
@@ -743,7 +747,7 @@ class MethodMember extends Member {
         var msg = _argCountMsg(args.length, parameters.length);
         return _argError(context, node, target, args, msg);
       }
-      arg = arg.convertTo(context, parameters[i].type, node, checked);
+      arg = arg.convertTo(context, parameters[i].type, node, isDynamic);
       if (isConst && arg.isConst) {
         argsCode.add(arg.canonicalCode);
       } else {
@@ -760,7 +764,7 @@ class MethodMember extends Member {
         if (arg == null) {
           arg = parameters[i].value;
         } else {
-          arg = arg.convertTo(context, parameters[i].type, node, checked);
+          arg = arg.convertTo(context, parameters[i].type, node, isDynamic);
           namedArgsUsed++;
         }
 
@@ -1234,13 +1238,19 @@ class MemberSet {
     return _treatAsField;
   }
 
-  Value get_(MethodGenerator context, Node node, Value target) {
-    if (members.length == 1) return members[0].get_(context, node, target);
+  Value get_(MethodGenerator context, Node node, Value target,
+      [bool isDynamic=false]) {
+    if (members.length == 1) {
+      return members[0].get_(context, node, target, isDynamic);
+    }
+    final targets = members.filter((m) => m.canGet);
+    if (targets.length == 1) {
+      return targets[0].get_(context, node, target, isDynamic);
+    }
 
     Value returnValue = null;
-    for (var member in members) {
-      if (!member.canGet) continue;
-      final value = member.get_(context, node, target);
+    for (var member in targets) {
+      final value = member.get_(context, node, target, isDynamic:true);
       returnValue = _tryUnion(returnValue, value, node);
     }
     if (returnValue == null) {
@@ -1257,19 +1267,19 @@ class MemberSet {
   }
 
   Value set_(MethodGenerator context, Node node, Value target, Value value,
-      [bool checked=true]) {
+      [bool isDynamic=false]) {
     if (members.length == 1) {
-      return members[0].set_(context, node, target, value, checked);
+      return members[0].set_(context, node, target, value, isDynamic);
     }
     final targets = members.filter((m) => m.canSet);
     if (targets.length == 1) {
-      return targets[0].set_(context, node, target, value, checked);
+      return targets[0].set_(context, node, target, value, isDynamic);
     }
 
     Value returnValue = null;
     for (var member in targets) {
-      final setValue = member.set_(context, node, target, value, checked:false);
-      returnValue = _tryUnion(returnValue, setValue, node);
+      final res = member.set_(context, node, target, value, isDynamic:true);
+      returnValue = _tryUnion(returnValue, res, node);
     }
     if (returnValue == null) {
       return _makeError(node, target, 'setter');
@@ -1287,19 +1297,19 @@ class MemberSet {
   }
 
   Value invoke(MethodGenerator context, Node node, Value target,
-      Arguments args, [bool checked=true]) {
+      Arguments args, [bool isDynamic=false]) {
     if (members.length == 1) {
-      return members[0].invoke(context, node, target, args, checked);
+      return members[0].invoke(context, node, target, args, isDynamic);
     }
     final targets = members.filter((m) => m.canInvoke(context, args));
     if (targets.length == 1) {
-      return targets[0].invoke(context, node, target, args, checked);
+      return targets[0].invoke(context, node, target, args, isDynamic);
     }
 
     Value returnValue = null;
     for (var member in targets) {
-      final value = member.invoke(context, node, target, args, checked:false);
-      returnValue = _tryUnion(returnValue, value, node);
+      final res = member.invoke(context, node, target, args, isDynamic:true);
+      returnValue = _tryUnion(returnValue, res, node);
     }
 
     if (returnValue == null) {

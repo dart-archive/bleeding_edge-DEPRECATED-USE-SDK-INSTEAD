@@ -110,9 +110,9 @@ class WorldGenerator {
     }
   }
 
-  genMethod(Member meth, [MethodGenerator enclosingMethod = null]) {
-    if (!meth.isGenerated && meth.declaringType.isClass &&
-          meth.definition != null && !meth.isAbstract) {
+  genMethod(Member meth, [MethodGenerator enclosingMethod=null]) {
+    if (!meth.isGenerated && meth.declaringType.isClass
+        && meth.definition != null && !meth.isAbstract) {
       new MethodGenerator(meth, enclosingMethod).run();
     }
   }
@@ -1847,6 +1847,8 @@ class MethodGenerator implements TreeVisitor {
         argsCode.add(arg.code);
       }
     }
+
+    world.coreimpl.types['ListFactory'].markUsed();
 
     final code = '[${Strings.join(argsCode, ", ")}]';
     var value = new Value(world.listType, code);

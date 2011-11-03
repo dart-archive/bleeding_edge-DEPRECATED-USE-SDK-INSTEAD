@@ -45,10 +45,10 @@ class Value {
   }
 
   set_(MethodGenerator context, String name, Node node, Value value,
-      [bool checked=true]) {
+      [bool isDynamic=false]) {
     var member = _resolveMember(context, name, node);
     if (member != null) {
-      member = member.set_(context, node, this, value, checked);
+      member = member.set_(context, node, this, value, isDynamic);
     }
     // member.set_ returns null if no signatures match the given node.
     if (member != null) {
@@ -60,7 +60,7 @@ class Value {
   }
 
   invoke(MethodGenerator context, String name, Node node, Arguments args,
-      [bool checked=true]) {
+      [bool isDynamic=false]) {
     // TODO(jimhug): The != method is weird - understand it better.
     if (type.isVar && name == '\$ne') {
       if (args.values.length != 1) {
@@ -91,7 +91,7 @@ class Value {
     if (member == null) {
       return invokeNoSuchMethod(context, name, node, args);
     } else {
-      return member.invoke(context, node, this, args, checked);
+      return member.invoke(context, node, this, args, isDynamic);
     }
   }
 
@@ -163,20 +163,20 @@ class Value {
 
   /**
    * Assign or convert this value to another type.
-   * Right now we use this for converting between function types. In the future
-   * we can use this for other kinds of type checks.
+   * This is used for converting between function types, and inserting type
+   * checks when --enable_type_checks is enabled.
    */
   Value convertTo(MethodGenerator context, Type toType, Node node,
-      [bool checked=true]) {
+      [bool isDynamic=false]) {
+
+    // Check types if enabled, unless this is a dynamic operation
+    bool checked = options.enableTypeChecks && !isDynamic;
 
     var callMethod = toType.getCallMethod();
     if (callMethod != null) {
-      if (checked && options.enableTypeChecks && !toType.isAssignable(type)) {
+      if (checked && !toType.isAssignable(type)) {
         convertWarning(toType, node);
       }
-
-      // TODO(jmesserly): better error if passing a non-function to something
-      // that expects a function.
 
       int arity = callMethod.parameters.length;
       var myCall = type.getCallMethod();
@@ -186,6 +186,7 @@ class Value {
       }
     }
 
+    // Don't add runtime asserts unless we have type checks turned on.
     if (!options.enableTypeChecks) {
       return this;
     }
@@ -197,15 +198,36 @@ class Value {
       convertWarning(toType, node);
     }
 
-    // Add a runtime type check
+    return _typeAssert(context, toType, node);
+  }
 
+  /**
+   * Generates a run time type assertion for the given value. This works like
+   * [instanceOf], but it allows null since Dart types are nullable.
+   * Also it will throw a TypeError if it gets the wrong type.
+   */
+  // TODO(jmesserly): this generated code is too verbose.
+  Value _typeAssert(MethodGenerator context, Type toType, Node node) {
+    if (toType is ParameterType) {
+      ParameterType p = toType;
+      toType = p.extendsType;
+    }
+
+    // TODO(jmesserly): I don't like the duplication with instanceOf
     var temp = context.getTemp(this);
-    var test = context.assignTemp(temp, this);
-    // TODO(jmesserly): this generates a second temp because of assignTemp
-    // Also it generates an unecessary !!.
-    test = test.instanceOf(context, toType, node.span);
+    String testCode;
+    if (toType.library.isCore && toType.typeofName != null) {
+      testCode = "typeof(${temp.code}) == '${toType.typeofName}'";
+    } else if (toType.isClass && toType is !ConcreteType) {
+      toType.markUsed();
+      testCode = '${temp.code} instanceof ${toType.jsname}';
+    } else {
+      toType.isTested = true;
+      testCode = '${temp.code}.is\$${toType.jsname}';
+    }
+    testCode = '(${context.assignTemp(temp, this).code} == null || $testCode)';
+    var test = new Value(world.boolType, testCode);
 
-    // TODO(jmesserly): this generated code is too verbose
     var err = world.corelib.types['TypeError'];
     world.gen.genMethod(err.members['toString']);
     var args = new Arguments(null, [temp,
@@ -276,6 +298,7 @@ class Value {
   }
 
   void convertWarning(Type toType, Node node) {
+    // TODO(jmesserly): better error messages for type conversion failures
     world.warning('type "${type.name}" is not assignable to "${toType.name}"',
         node.span);
   }

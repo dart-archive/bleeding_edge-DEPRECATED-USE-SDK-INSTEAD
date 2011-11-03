@@ -16,6 +16,7 @@ class Type implements Named, Hashable {
   Type(this.name): isTested = false;
 
   void markUsed() {}
+  abstract void genMethod(Member method);
 
   TypeMember get typeMember() {
     if (_typeMember == null) {
@@ -297,6 +298,10 @@ class ParameterType extends Type {
 
   MethodMember getCallMethod() => extendsType.getCallMethod();
 
+  void genMethod(Member method) {
+    extendsType.genMethod(method);
+  }
+
   // TODO(jmesserly): should be like this:
   //bool isSubtypeOf(Type child) => extendsType.isSubtypeOf(child);
   bool isSubtypeOf(Type child) => true;
@@ -408,6 +413,10 @@ class ConcreteType extends Type {
   void markUsed() {
     genericType.markUsed();
   }
+  void genMethod(Member method) {
+    genericType.genMethod(method);
+  }
+
 
   getFactory(Type type, String constructorName) {
     return genericType.getFactory(type, constructorName);
@@ -508,6 +517,9 @@ class DefinedType extends Type {
 
   Map<String, ConcreteType> _concreteTypes;
 
+  /** Methods to be generated once we know for sure that the type is used. */
+  Map<String, Member> _lazyGenMethods;
+
   bool isUsed = false;
   bool isNativeType = false;
 
@@ -591,7 +603,24 @@ class DefinedType extends Type {
     if (isUsed) return;
 
     isUsed = true;
+
+    if (_lazyGenMethods != null) {
+      for (var method in orderValuesByKeys(_lazyGenMethods)) {
+        world.gen.genMethod(method);
+      }
+      _lazyGenMethods = null;
+    }
+
     if (parent != null) parent.markUsed();
+  }
+
+  void genMethod(Member method) {
+    if (isUsed) {
+      world.gen.genMethod(method);
+    } else if (isClass) {
+      if (_lazyGenMethods == null) _lazyGenMethods = {};
+      _lazyGenMethods[method.name] = method;
+    }
   }
 
   List<Type> _resolveInterfaces(List<TypeReference> types) {
