@@ -24,20 +24,20 @@ import encoder
 THUMB_SIZE = (57, 57)
 READER_API = 'http://www.google.com/reader/api/0'
 
+MAX_SECTIONS = 5
+MAX_ARTICLES = 20
+
 class UserData(db.Model):
   credentials = CredentialsProperty()
   sections = db.ListProperty(db.Key)
 
-  def getEncodedData(self, articles=None, maxSections=5, maxArticles=20):
+  def getEncodedData(self, articleKeys=None):
     enc = encoder.Encoder()
     # TODO(jimhug): Only return initially visible section in first reply.
-    if maxSections is None:
-      maxSections = len(self.sections)
-    else:
-      maxSections = min(maxSections, len(self.sections))
+    maxSections = min(MAX_SECTIONS, len(self.sections))
     enc.writeInt(maxSections)
     for section in db.get(self.sections[:maxSections]):
-      section.encode(enc, maxArticles, articles)
+      section.encode(enc, articleKeys)
     return enc.getRaw()
 
 
@@ -45,41 +45,39 @@ class Section(db.Model):
   title = db.TextProperty()
   feeds = db.ListProperty(db.Key)
 
-  def encode(self, enc, maxArticles, articles=None):
+  def fixedTitle(self):
+    return self.title.split('_')[0]
+
+  def encode(self, enc, articleKeys=None):
     # TODO(jimhug): Need to optimize format and support incremental updates.
     enc.writeString(self.key().name())
-    enc.writeString(self.title)
+    enc.writeString(self.fixedTitle())
     enc.writeInt(len(self.feeds))
     for feed in db.get(self.feeds):
-      feed.ensureEncodedFeed(maxArticles)
-      enc.writeRaw(feed.encodedFeed2)
-      if articles is not None:
-        articles.extend(feed.getArticles(maxArticles))
+      feed.ensureEncodedFeed()
+      enc.writeRaw(feed.encodedFeed3)
+      if articleKeys is not None:
+        articleKeys.extend(feed.topArticles)
 
 class Feed(db.Model):
   title = db.TextProperty()
   iconUrl = db.TextProperty()
   lastUpdated = db.IntegerProperty()
 
-  encodedFeed2 = db.TextProperty()
+  encodedFeed3 = db.TextProperty()
+  topArticles = db.ListProperty(db.Key)
 
-  def ensureEncodedFeed(self, maxArticles):
-    if self.encodedFeed2 is None:
+  def ensureEncodedFeed(self, force=False):
+    if force or self.encodedFeed3 is None:
       enc = encoder.Encoder()
-      self.encode(enc, maxArticles)
-      self.encodedFeed2 = enc.getRaw()
+      articleSet = []
+      self.encode(enc, MAX_ARTICLES, articleSet)
+      logging.info('articleSet length is %s' % len(articleSet))
+      self.topArticles = articleSet
+      self.encodedFeed3 = enc.getRaw()
       self.put()
 
-  def getArticles(self, maxArticles):
-    "If we're canning data, get the set of articles to show"
-    articleSet = []
-    for article in self.article_set.order('-date'):
-      articleSet.append(article)
-      if len(articleSet) >= maxArticles:
-        break
-    return articleSet
-
-  def encode(self, enc, maxArticles):
+  def encode(self, enc, maxArticles, articleSet):
     enc.writeString(self.key().name())
     enc.writeString(self.title)
     enc.writeString(self.iconUrl)
@@ -87,11 +85,10 @@ class Feed(db.Model):
     logging.info('encoding feed: %s' % self.title)
     encodedArts = []
 
-    for article in self.article_set.order('-date'):
+    for article in self.article_set.order('-date').fetch(limit=maxArticles):
       encodedArts.append(article.encodeHeader())
+      articleSet.append(article.key())
 
-      if len(encodedArts) >= maxArticles:
-        break
     enc.writeInt(len(encodedArts))
     enc.writeRaw(''.join(encodedArts))
 
@@ -315,7 +312,7 @@ class DataHandler(webapp.RequestHandler):
     else:
       self.error(404)
 
-  def getUserData(self, articles=None):
+  def getUserData(self, articleKeys=None):
     user = users.get_current_user()
     user_id = user.user_id()
 
@@ -327,7 +324,7 @@ class DataHandler(webapp.RequestHandler):
       if prefs is None:
         # TODO(jimhug): Graceful failure for unknown users.
         pass
-      data = prefs.getEncodedData(articles)
+      data = prefs.getEncodedData(articleKeys)
       # TODO(jimhug): memcache.set(key, data)
 
     return data
@@ -341,10 +338,10 @@ class DataHandler(webapp.RequestHandler):
 
     user = users.get_current_user()
     prefs = UserData.get_by_key_name(user.user_id())
-    articles = []
-    data = prefs.getEncodedData(articles)
+    articleKeys = []
+    data = prefs.getEncodedData(articleKeys)
     lines.append('  static final Map<String,String> data = const {')
-    for article in articles:
+    for article in db.get(articleKeys):
       key = makeDartSafe(urllib.quote(article.key().name())+'.html')
       lines.append('    %s:%s, ' % (key, makeDartSafe(article.content)))
 
@@ -363,12 +360,12 @@ class DataHandler(webapp.RequestHandler):
     data = StringIO.StringIO()
     result = zipfile.ZipFile(data, 'w')
 
-    articles = []
+    articleKeys = []
     result.writestr('data/user.data',
-        self.getUserData(articles).encode('utf-8'))
-    logging.info('  adding articles %s' % len(articles))
+        self.getUserData(articleKeys).encode('utf-8'))
+    logging.info('  adding articles %s' % len(articleKeys))
     images = []
-    for article in articles:
+    for article in db.get(articleKeys):
       article.ensureThumbnail()
       path = 'data/' + article.key().name() + '.html'
       result.writestr(path.encode('utf-8'), article.content.encode('utf-8'))
@@ -549,7 +546,7 @@ class FeedCollector(webapp.RequestHandler):
 
 def findSectionByTitle(title):
   for section in Section.all():
-    if section.title == title:
+    if section.fixedTitle() == title:
       return section
   return None
 
@@ -577,8 +574,7 @@ def collectFeed(feed, data, continuation=None):
     # TODO(jimhug): Enable this continuation check when more robust
     #self.fetchn(feed, feedId, data['continuation'])
 
-  # Invalidate cache
-  feed.encodedFeed2 = None
+  feed.ensureEncodedFeed(force=True)
   feed.put()
   return True
 
