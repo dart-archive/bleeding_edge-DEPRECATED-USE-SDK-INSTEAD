@@ -692,14 +692,6 @@ public class DeltaProcessor {
           }
         }
         break;
-      case DartElement.LIBRARY:
-        // TODO investigate this case: What is the resource in this case? Perhaps
-        // I'm misremembering, but I thought that libraries didn't have any resource associated with
-        // them. If the resource is the .lib file, then this will return the library configuration
-        // file rather than the library.
-        DartLibrary library = (DartLibrary) DartCore.create(resource);
-        element = library;
-        break;
       case DartElement.COMPILATION_UNIT:
         CompilationUnit cu = (CompilationUnit) DartCore.create(resource);
         element = cu;
