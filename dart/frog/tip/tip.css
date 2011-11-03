@@ -1,0 +1,43 @@
+/* Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file. */
+
+.code {
+  font-family: Monaco, 'Courier New', 'DejaVu Sans Mono',
+    'Bitstream Vera Sans Mono', monospace;
+  font-size: 10pt;
+  width: 48%;
+  background-color: #ffc;
+  overflow-x: auto;
+  padding-top: 7px;
+  padding-left: 7px;
+  border: solid 1px #999;
+  box-shadow: 0 1px 1px #ccc;
+  -moz-box-shadow: 0 1px 1px #ccc;
+  -webkit-box-shadow: 0 1px 1px #ccc;
+  white-space: pre;
+  word-wrap: normal;
+
+  height: 45%;
+  position: absolute;
+}
+
+#code {
+  left: 5px;
+  top: 40px;
+}
+#generated {
+  right: 5px;
+  top: 40px;
+}
+#console {
+  left: 5px;
+  bottom: 10px;
+}
+#output {
+  right: 5px;
+  bottom: 15px;
+  height: 45%;
+  width: 48%;
+  position: absolute;
+}

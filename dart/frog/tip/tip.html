@@ -1,0 +1,49 @@
+<!-- Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<!DOCTYPE html>
+
+<!-- TODO(jimhug): Aren't we supposed to be all about beautiful UIs?... -->
+<html>
+<head>
+  <title>Dart Tip</title>
+  <link rel="stylesheet" type="text/css" href="tip.css"></link>
+</head>
+<body>
+<b>Dart Tip</b>
+<!-- TODO(jimhug): Should this be legal?  If so, how to mark on Dart side? -->
+<button onclick="runTip()">Run</button>
+<p>
+<textarea id="code" class="code">
+#import("dart:dom");
+
+void main() {
+  var element = document.createElement('div');
+  element.innerHTML = "Hello html from Dart!";
+  document.body.appendChild(element);
+
+  HTMLCanvasElement canvas = document.createElement('canvas');
+  document.body.appendChild(canvas);
+
+  var context = canvas.getContext('2d');
+  context.setFillColor('purple');
+  context.fillRect(10, 10, 30, 30);
+}
+</textarea>
+
+<textarea id="generated" class="code" readonly></textarea>
+
+<div id="console" class="code" readonly></div>
+<iframe id="output"></iframe>
+
+<script type="application/javascript" src="compiler.js"></script>
+<script type="application/javascript">
+// TODO(jimhug): Ugly hack to override console output.
+print = function(obj) {
+  document.getElementById('console').innerHTML +=
+    '<div>' + obj + '</div>';
+};
+</script>
+</body>
+</html>
