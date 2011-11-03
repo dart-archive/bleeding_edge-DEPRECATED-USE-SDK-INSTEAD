@@ -18,11 +18,10 @@ import com.google.dart.tools.search.ui.ISearchQuery;
 import com.google.dart.tools.search.ui.ISearchResult;
 import com.google.dart.tools.search.ui.NewSearchUI;
 
-import java.util.ArrayList;
-
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.window.Window;
 
+import java.util.ArrayList;
 
 /**
  * Invoke the resource creation wizard selection Wizard. This action will retarget to the active
@@ -40,6 +39,7 @@ class ShowSearchHistoryDialogAction extends Action {
     fSearchView = searchView;
   }
 
+  @Override
   public void run() {
     ISearchQuery[] queries = NewSearchUI.getQueries();
 
@@ -62,8 +62,7 @@ class ShowSearchHistoryDialogAction extends Action {
       Object[] result = dlg.getResult();
       if (result != null && result.length == 1) {
         ISearchResult searchResult = (ISearchResult) result[0];
-        InternalSearchUI.getInstance().showSearchResult(fSearchView, searchResult,
-            dlg.isOpenInNewView());
+        InternalSearchUI.getInstance().showSearchResult(fSearchView, searchResult, false);
       }
     }
 

@@ -14,17 +14,12 @@
 package com.google.dart.tools.search2.internal.ui;
 
 import com.google.dart.tools.search.internal.ui.SearchPlugin;
-import com.google.dart.tools.search.internal.ui.SearchPreferencePage;
 import com.google.dart.tools.search.internal.ui.util.SWTUtil;
 import com.google.dart.tools.search.ui.ISearchQuery;
 import com.google.dart.tools.search.ui.ISearchResult;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.dialogs.StatusDialog;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -34,10 +29,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -49,10 +41,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.SelectionDialog;
 
 import java.util.ArrayList;
@@ -64,116 +54,6 @@ import java.util.List;
  */
 public class SearchHistorySelectionDialog extends SelectionDialog {
 
-  private static class HistoryConfigurationDialog extends StatusDialog {
-
-    private static final int DEFAULT_ID = 100;
-
-    private int fHistorySize;
-    private Text fHistorySizeTextField;
-    private final List<ISearchResult> fCurrentList;
-    private final List<Object> fCurrentRemoves;
-
-    public HistoryConfigurationDialog(Shell parent, List<ISearchResult> currentList,
-        List<Object> removedEntries) {
-      super(parent);
-      fCurrentList = currentList;
-      fCurrentRemoves = removedEntries;
-      setTitle(SearchMessages.SearchHistorySelectionDialog_history_size_title);
-      fHistorySize = SearchPreferencePage.getHistoryLimit();
-      setHelpAvailable(false);
-    }
-
-    @Override
-    protected void buttonPressed(int buttonId) {
-      if (buttonId == DEFAULT_ID) {
-        IPreferenceStore store = SearchPlugin.getDefault().getPreferenceStore();
-        fHistorySizeTextField.setText(store.getDefaultString(SearchPreferencePage.LIMIT_HISTORY));
-        validateDialogState();
-      }
-      super.buttonPressed(buttonId);
-    }
-
-    @Override
-    protected void createButtonsForButtonBar(Composite parent) {
-      createButton(parent, DEFAULT_ID,
-          SearchMessages.SearchHistorySelectionDialog_restore_default_button, false);
-      super.createButtonsForButtonBar(parent);
-    }
-
-    /*
-     * Overrides method from Dialog
-     */
-    @Override
-    protected Control createDialogArea(Composite container) {
-      Composite ancestor = (Composite) super.createDialogArea(container);
-      GridLayout layout = (GridLayout) ancestor.getLayout();
-      layout.numColumns = 2;
-      ancestor.setLayout(layout);
-
-      Label limitText = new Label(ancestor, SWT.NONE);
-      limitText.setText(SearchMessages.SearchHistorySelectionDialog_history_size_description);
-      limitText.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-
-      fHistorySizeTextField = new Text(ancestor, SWT.BORDER | SWT.RIGHT);
-      fHistorySizeTextField.setTextLimit(2);
-      fHistorySizeTextField.setText(String.valueOf(fHistorySize));
-      fHistorySizeTextField.addModifyListener(new ModifyListener() {
-        @Override
-        public void modifyText(ModifyEvent e) {
-          validateDialogState();
-        }
-      });
-
-      GridData gridData = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
-      gridData.widthHint = convertWidthInCharsToPixels(6);
-      fHistorySizeTextField.setLayoutData(gridData);
-      fHistorySizeTextField.setSelection(0, fHistorySizeTextField.getText().length());
-      applyDialogFont(ancestor);
-
-      return ancestor;
-    }
-
-    @Override
-    protected boolean isResizable() {
-      return true;
-    }
-
-    @Override
-    protected void okPressed() {
-      IPreferenceStore store = SearchPlugin.getDefault().getPreferenceStore();
-      store.setValue(SearchPreferencePage.LIMIT_HISTORY, fHistorySize);
-
-      // establish history size
-      for (int i = fCurrentList.size() - 1; i >= fHistorySize; i--) {
-        fCurrentRemoves.add(fCurrentList.get(i));
-        fCurrentList.remove(i);
-      }
-      super.okPressed();
-    }
-
-    protected final boolean validateDialogState() {
-      IStatus status = null;
-      try {
-        String historySize = fHistorySizeTextField.getText();
-        int size = Integer.parseInt(historySize);
-        if (size < 1 || size >= 100) {
-          status = new Status(IStatus.ERROR, SearchPlugin.getID(), IStatus.ERROR,
-              SearchMessages.SearchHistorySelectionDialog_history_size_error, null);
-        } else {
-          fHistorySize = size;
-        }
-      } catch (NumberFormatException e) {
-        status = new Status(IStatus.ERROR, SearchPlugin.getID(), IStatus.ERROR,
-            SearchMessages.SearchHistorySelectionDialog_history_size_error, null);
-      }
-      if (status == null) {
-        status = Status.OK_STATUS;
-      }
-      updateStatus(status);
-      return !status.matches(IStatus.ERROR);
-    }
-
-  }
   private static final class SearchesLabelProvider extends LabelProvider {
 
     private ArrayList<Image> fImages = new ArrayList<Image>();
@@ -217,10 +97,6 @@ public class SearchHistorySelectionDialog extends SelectionDialog {
   private TableViewer fViewer;
   private Button fRemoveButton;
 
-  private boolean fIsOpenInNewView;
-
-  private Link fLink;
-
   public SearchHistorySelectionDialog(Shell parent, List<ISearchResult> input) {
     super(parent);
     setTitle(SearchMessages.SearchesDialog_title);
@@ -242,13 +118,6 @@ public class SearchHistorySelectionDialog extends SelectionDialog {
     validateDialogState();
   }
 
-  /**
-   * @return the isOpenInNewView
-   */
-  public boolean isOpenInNewView() {
-    return fIsOpenInNewView;
-  }
-
   @Override
   protected void buttonPressed(int buttonId) {
     if (buttonId == REMOVE_ID) {
@@ -265,24 +134,15 @@ public class SearchHistorySelectionDialog extends SelectionDialog {
       }
       return;
     }
-    if (buttonId == IDialogConstants.OPEN_ID) {
-      fIsOpenInNewView = true;
-      buttonId = IDialogConstants.OK_ID;
-    }
     super.buttonPressed(buttonId);
   }
 
   @Override
   protected void createButtonsForButtonBar(Composite parent) {
     createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OPEN_LABEL, true);
-    createButton(parent, IDialogConstants.OPEN_ID,
-        SearchMessages.SearchHistorySelectionDialog_open_in_new_button, false);
     createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
   }
 
-  /*
-   * Overrides method from Dialog
-   */
   @Override
   protected Control createDialogArea(Composite container) {
     Composite ancestor = (Composite) super.createDialogArea(container);
@@ -333,21 +193,6 @@ public class SearchHistorySelectionDialog extends SelectionDialog {
       }
     });
 
-    fLink = new Link(parent, SWT.NONE);
-    configureHistoryLink();
-    fLink.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        HistoryConfigurationDialog dialog = new HistoryConfigurationDialog(getShell(), fInput,
-            fRemovedEntries);
-        if (dialog.open() == Window.OK) {
-          fViewer.refresh();
-          configureHistoryLink();
-        }
-      }
-    });
-    fLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
-
     applyDialogFont(ancestor);
 
     // set input & selections last, so all the widgets are created.
@@ -356,9 +201,6 @@ public class SearchHistorySelectionDialog extends SelectionDialog {
     return ancestor;
   }
 
-  /*
-   * Overrides method from Dialog
-   */
   @Override
   protected Label createMessageArea(Composite composite) {
     Composite parent = new Composite(composite, SWT.NONE);
@@ -390,9 +232,6 @@ public class SearchHistorySelectionDialog extends SelectionDialog {
     return DIALOG_PERSISTSIZE;
   }
 
-  /*
-   * Overrides method from Dialog
-   */
   @Override
   protected void okPressed() {
     // Build a list of selected children.
@@ -425,11 +264,5 @@ public class SearchHistorySelectionDialog extends SelectionDialog {
     if (openInNewButton != null) {
       openInNewButton.setEnabled(elementsSelected == 1);
     }
-  }
-
-  private void configureHistoryLink() {
-    int historyLimit = SearchPreferencePage.getHistoryLimit();
-    fLink.setText(Messages.format(SearchMessages.SearchHistorySelectionDialog_configure_link_label,
-        new Integer(historyLimit)));
   }
 }
