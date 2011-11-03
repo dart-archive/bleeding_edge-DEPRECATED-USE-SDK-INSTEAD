@@ -149,11 +149,15 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets027() throws Exception {
-    test("class test <!1String!2> {}", "1+List", "2+String", "2-List");
+    test("class test <X extends !1String!2> {}", "1+List", "2+String", "2-List");
   }
 
   public void testCommentSnippets028() throws Exception {
-    test("typedef T Deserializer<T!1>(List input);", "1+TimeZone", "1-String");//"1+T", fails
+    test("typedef T Y<T extends !1>(List input);", "1+TimeZone", "1+String");
+  }
+
+  public void testCommentSnippets029() throws Exception {
+    test("class test {factory test<X extends !1List!2>(){}}", "1+TimeZone", "2+List");
   }
 
   public void testCompletion_alias_field() throws Exception {

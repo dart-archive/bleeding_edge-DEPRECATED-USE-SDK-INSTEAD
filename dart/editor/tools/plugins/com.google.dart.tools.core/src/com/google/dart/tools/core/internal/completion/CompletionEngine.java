@@ -373,7 +373,7 @@ public class CompletionEngine {
                 proposeTypesForNewParam();
                 break;
               } else {
-                proposeTypesForPrefix(identifier);
+                proposeTypesForPrefix(identifier, false);
               }
               break;
             case ForInitialization:
@@ -385,7 +385,9 @@ public class CompletionEngine {
             case FunctionLiteral:
               // at top level
               // final num PI2 = Mat!
-              proposeTypesForPrefix(identifier);
+            case TypeParameter:
+              // class X<K extends Ha!shable> {}
+              proposeTypesForPrefix(identifier, false);
               break;
             case ClassBody:
               // class x extends A! (A may be empty string)
@@ -566,6 +568,22 @@ public class CompletionEngine {
 
     @Override
     public Void visitFunction(DartFunction node) {
+      DartNode parentNode = node.getParent();
+      if (parentNode instanceof DartMethodDefinition) {
+        // Apparently the visitor ignores type parameters for factory methods
+        DartMethodDefinition parent = (DartMethodDefinition) parentNode;
+        if (parent.getSymbol().isConstructor()) {
+          List<DartTypeParameter> typeParameters = parent.getTypeParameters();
+          for (DartTypeParameter type : typeParameters) {
+            int start = type.getSourceStart();
+            int len = type.getSourceLength();
+            if (start <= actualCompletionPosition && actualCompletionPosition <= start + len) {
+              type.accept(this);
+              return null;
+            }
+          }
+        }
+      }
       if (node instanceof FunctionCompleter) {
         // new parameter: bar(!) {} or bar(! int x) {} or bar(x, B !) {}
         List<DartParameter> params = node.getParams();
@@ -737,11 +755,21 @@ public class CompletionEngine {
 
     @Override
     public Void visitTypeParameter(DartTypeParameter node) {
-      // class test <String> {}
+      // class test <K extends ! {}
+      // typedef T Foo<T!>(Object input);
       if (node instanceof TypeParameterCompleter) {
-        proposeTypeNamesForPrefix(node.getName());
+        if (node.getBound() != null) {
+          DartNode name = node.getBound().getIdentifier();
+          int start = node.getSourceStart();
+          String src = source.substring(start, start + node.getSourceLength());
+          int n = src.indexOf("extends");
+          if (actualCompletionPosition - start >= n + "extends".length()) {
+            if (name instanceof DartIdentifier) {
+              proposeTypeNamesForPrefix(((DartIdentifier) name));
+            }
+          }
+        }
       }
-      // typedef T Deserializer<T!>(InputDataStream input);
       return null;
     }
 
