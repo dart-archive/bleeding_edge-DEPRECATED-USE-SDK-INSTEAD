@@ -314,10 +314,11 @@ function $varMethod(name, methods) {
   };
 }
 
-// TODO(vsm): Don't monkey patch Object and make this work on
-// non-Chrome browsers.
 Object.prototype.get$typeName = function() {
-  return this.constructor.name;
+  // TODO(vsm): how can we make this go down the fast path for Chrome?
+  //(for Chrome: return this.constructor.name;)
+  var str = Object.prototype.toString.call(this);
+  return str.substring(8, str.length - 1);
 }
 
 function $patchMethod(obj, name, methods) {
@@ -2398,7 +2399,7 @@ ArrayBasedScanner$String.prototype.tokenizeGreaterThan = function(next) {
           return next;
 
       }
-      $throw(new FallThroughError("leg/scanner/scanner.dart", 388))
+      $throw(new FallThroughError());
 
     default:
 
@@ -3364,7 +3365,7 @@ AbstractScanner.prototype.tokenizeGreaterThan = function(next) {
           return next;
 
       }
-      $throw(new FallThroughError("leg/scanner/scanner.dart", 388))
+      $throw(new FallThroughError());
 
     default:
 
@@ -4166,7 +4167,7 @@ AbstractScanner$S.prototype.tokenizeGreaterThan = function(next) {
           return next;
 
       }
-      $throw(new FallThroughError("leg/scanner/scanner.dart", 388))
+      $throw(new FallThroughError());
 
     default:
 
@@ -5177,7 +5178,7 @@ BodyParser.prototype.parsePrimary = function(token) {
 
         }
       }
-      $throw(new FallThroughError("leg/scanner/parser.dart", 470))
+      $throw(new FallThroughError());
 
     case 97/*null.IDENTIFIER_TOKEN*/:
 
@@ -8930,7 +8931,7 @@ MethodGenerator.prototype.visitSwitchStatement = function(node) {
     var caseExits = this._visitAllStatements(case_.statements, false);
     if ($ne(case_, node.cases.$index(node.cases.length - 1)) && !caseExits) {
       var span = case_.statements.$index(case_.statements.length - 1).get$span();
-      this.writer.writeln(('\$throw(new FallThroughError("' + span.file.filename + '",') + (' ' + span.file.getLine(span.start) + '))'));
+      this.writer.writeln('\$throw(new FallThroughError());');
     }
     this.writer.exitBlock('');
     this._popBlock();

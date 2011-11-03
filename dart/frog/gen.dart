@@ -1315,7 +1315,6 @@ class MethodGenerator implements TreeVisitor {
   }
 
   bool visitSwitchStatement(SwitchStatement node) {
-    // TODO(jimhug): Lots of negative tests to check for.
     var test = visitValue(node.test);
     writer.enterBlock('switch (${test.code}) {');
     for (var case_ in node.cases) {
@@ -1341,11 +1340,7 @@ class MethodGenerator implements TreeVisitor {
 
       if (case_ != node.cases[node.cases.length - 1] && !caseExits) {
         var span = case_.statements[case_.statements.length - 1].span;
-        //TODO(efortuna): This error message isn't 100% correct because
-        // constructors are not being built correctly. Check back for correct
-        // output when constructors are fixed.
-        writer.writeln('\$throw(new FallThroughError("${span.file.filename}",' +
-            ' ${span.file.getLine(span.start)}))');
+        writer.writeln('\$throw(new FallThroughError());');
       }
       writer.exitBlock('');
       _popBlock();

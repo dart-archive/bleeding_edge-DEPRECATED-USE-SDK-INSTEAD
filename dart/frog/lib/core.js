@@ -311,10 +311,11 @@ function $varMethod(name, methods) {
   };
 }
 
-// TODO(vsm): Don't monkey patch Object and make this work on
-// non-Chrome browsers.
 Object.prototype.get$typeName = function() {
-  return this.constructor.name;
+  // TODO(vsm): how can we make this go down the fast path for Chrome?
+  //(for Chrome: return this.constructor.name;)
+  var str = Object.prototype.toString.call(this);
+  return str.substring(8, str.length - 1);
 }
 
 function $patchMethod(obj, name, methods) {
