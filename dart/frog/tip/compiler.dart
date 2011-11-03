@@ -121,8 +121,9 @@ void runTip() {
 }
 
 void initialize(String systemPath, [String userPath = null]) {
-  parseOptions(systemPath, [null, null, DART_FILENAME]);
-  initializeWorld(new DomFileSystem(userPath));
+  DomFileSystem fs = new DomFileSystem(userPath);
+  parseOptions(systemPath, [null, null, DART_FILENAME], fs);
+  initializeWorld(fs);
 }
 
 void main() {
