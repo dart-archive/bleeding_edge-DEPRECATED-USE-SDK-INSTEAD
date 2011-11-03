@@ -17037,8 +17037,8 @@ World.prototype.withTiming = function(name, f) {
   this.info(('' + name + ' in ' + sw.elapsedInMs() + 'msec'));
   return result;
 }
-// ********** Code for Options **************
-function Options(homedir, args, files) {
+// ********** Code for FrogOptions **************
+function FrogOptions(homedir, args, files) {
   this.enableLeg = false
   this.enableAsserts = false
   this.enableTypeChecks = false
@@ -17430,7 +17430,7 @@ function lang_compile(homedir, args, files) {
 }
 var options;
 function parseOptions(homedir, args, files) {
-  options = new Options(homedir, args, files);
+  options = new FrogOptions(homedir, args, files);
 }
 function _getCallStubName(name, args) {
   var nameBuilder = new StringBufferImpl(('' + name + '\$' + args.get$bareCount() + ''));

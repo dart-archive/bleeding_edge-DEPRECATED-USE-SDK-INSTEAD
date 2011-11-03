@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** General options used by the compiler. */
-Options options;
+FrogOptions options;
 
 /** Extracts options from command-line arguments. */
 void parseOptions(String homedir, List<String> args, FileSystem files) {
   assert(options == null);
-  options = new Options(homedir, args, files);
+  options = new FrogOptions(homedir, args, files);
 }
 
 // TODO(sigmund): make into a generic option parser...
-class Options {
+class FrogOptions {
   /** Location of corelib and other special dart libraries. */
   String libDir;
 
@@ -44,7 +44,7 @@ class Options {
    */
   List<String> childArgs;
 
-  Options(String homedir, List<String> args, FileSystem files) {
+  FrogOptions(String homedir, List<String> args, FileSystem files) {
     libDir = homedir + '/lib'; // Default value for --libdir.
     bool ignoreUnrecognizedFlags = false;
     bool passedLibDir = false;
