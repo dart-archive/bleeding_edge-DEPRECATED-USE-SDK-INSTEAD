@@ -126,7 +126,7 @@
       sizeHint="250,160"
       tabPosition="1"
       extensions="*:1"
-      showScopeSection="true"    
+      showScopeSection="false"    
       canSearchEnclosingProjects="true"
       class="com.google.dart.tools.search.internal.ui.text.TextSearchPage">
     </page>

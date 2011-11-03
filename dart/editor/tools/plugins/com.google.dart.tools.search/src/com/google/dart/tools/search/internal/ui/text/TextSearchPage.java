@@ -216,7 +216,7 @@ public class TextSearchPage extends DialogPage implements ISearchPage /* ,IRepla
   private Button fIsRegExCheckbox;
 
   private CLabel fStatusLabel;
-  private Button fSearchDerivedCheckbox;
+//  private Button fSearchDerivedCheckbox;
 
   private ISearchPageContainer fContainer;
 
@@ -415,19 +415,19 @@ public class TextSearchPage extends DialogPage implements ISearchPage /* ,IRepla
     description.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
     description.setFont(group.getFont());
 
-    fSearchDerivedCheckbox = new Button(group, SWT.CHECK);
-    fSearchDerivedCheckbox.setText(SearchMessages.TextSearchPage_searchDerived_label);
-
-    fSearchDerivedCheckbox.setSelection(fSearchDerived);
-    fSearchDerivedCheckbox.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        fSearchDerived = fSearchDerivedCheckbox.getSelection();
-        writeConfiguration();
-      }
-    });
-    fSearchDerivedCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
-    fSearchDerivedCheckbox.setFont(group.getFont());
+//    fSearchDerivedCheckbox = new Button(group, SWT.CHECK);
+//    fSearchDerivedCheckbox.setText(SearchMessages.TextSearchPage_searchDerived_label);
+//
+//    fSearchDerivedCheckbox.setSelection(fSearchDerived);
+//    fSearchDerivedCheckbox.addSelectionListener(new SelectionAdapter() {
+//      @Override
+//      public void widgetSelected(SelectionEvent e) {
+//        fSearchDerived = fSearchDerivedCheckbox.getSelection();
+//        writeConfiguration();
+//      }
+//    });
+//    fSearchDerivedCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+//    fSearchDerivedCheckbox.setFont(group.getFont());
   }
 
   private void addTextPatternControls(Composite group) {
