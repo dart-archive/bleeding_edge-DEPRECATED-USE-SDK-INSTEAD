@@ -226,7 +226,7 @@ public class InternalSearchUI {
     job.setPriority(Job.BUILD);
     job.setUser(true);
 
-    IWorkbenchSiteProgressService service = getProgressService();
+    IWorkbenchSiteProgressService service = getProgressService(view);
     if (service != null) {
       service.schedule(job, 0, true);
     } else {
@@ -339,8 +339,7 @@ public class InternalSearchUI {
     }
   }
 
-  private IWorkbenchSiteProgressService getProgressService() {
-    ISearchResultViewPart view = getSearchView();
+  private IWorkbenchSiteProgressService getProgressService(ISearchResultViewPart view) {
     if (view != null) {
       IWorkbenchPartSite site = view.getSite();
       if (site != null) {

@@ -101,7 +101,7 @@
             icon="icons/full/eview16/search_results.gif"
             category="org.eclipse.ui"
             class="com.google.dart.tools.search2.internal.ui.SearchView"
-            allowMultiple="true"
+            allowMultiple="false"
             id="com.google.dart.tools.search.ui.views.SearchView">
         </view>
   </extension>

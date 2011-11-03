@@ -21,25 +21,18 @@ import com.google.dart.tools.search.ui.ISearchResult;
 import com.google.dart.tools.search.ui.ISearchResultViewPart;
 import com.google.dart.tools.search.ui.NewSearchUI;
 
-import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-
 /**
- *
+ * Manages the search view.
  */
 public class SearchViewManager {
 
   private IQueryListener fNewQueryListener;
-  private int fViewCount = 0;
-
-  private LinkedList<SearchView> fLRUSearchViews;
 
   public SearchViewManager(QueryManager queryManager) {
     fNewQueryListener = new IQueryListener() {
@@ -65,8 +58,6 @@ public class SearchViewManager {
 
     queryManager.addQueryListener(fNewQueryListener);
 
-    fLRUSearchViews = new LinkedList<SearchView>();
-
   }
 
   public ISearchResultViewPart activateSearchView(boolean useForNewSearch) {
@@ -85,17 +76,7 @@ public class SearchViewManager {
     }
     if (activePage != null) {
       try {
-        ISearchResultViewPart viewPart = findLRUSearchResultView(activePage, useForNewSearch);
-        String secondaryId = null;
-        if (viewPart == null) {
-          if (activePage.findViewReference(NewSearchUI.SEARCH_VIEW_ID) != null) {
-            secondaryId = String.valueOf(++fViewCount); // avoid a secondary ID because of bug 125315
-          }
-        } else {
-          secondaryId = viewPart.getViewSite().getSecondaryId();
-        }
-        return (ISearchResultViewPart) activePage.showView(NewSearchUI.SEARCH_VIEW_ID, secondaryId,
-            IWorkbenchPage.VIEW_ACTIVATE);
+        return (ISearchResultViewPart) activePage.showView(NewSearchUI.SEARCH_VIEW_ID);
       } catch (PartInitException ex) {
         ExceptionHandler.handle(ex, SearchMessages.Search_Error_openResultView_title,
             SearchMessages.Search_Error_openResultView_message);
@@ -119,17 +100,17 @@ public class SearchViewManager {
     queryManager.removeQueryListener(fNewQueryListener);
   }
 
-  public ISearchResultViewPart getActiveSearchView() {
+  public SearchView getActiveSearchView() {
     IWorkbenchPage activePage = SearchPlugin.getActivePage();
     if (activePage != null) {
-      return findLRUSearchResultView(activePage, false);
+      return (SearchView) activePage.findView(NewSearchUI.SEARCH_VIEW_ID);
     }
     return null;
   }
 
   public boolean isShown(ISearchQuery query) {
-    for (Iterator<SearchView> iter = fLRUSearchViews.iterator(); iter.hasNext();) {
-      SearchView view = iter.next();
+    SearchView view = getActiveSearchView();
+    if (view != null) {
       ISearchResult currentSearchResult = view.getCurrentSearchResult();
       if (currentSearchResult != null && query == currentSearchResult.getQuery()) {
         return true;
@@ -139,50 +120,19 @@ public class SearchViewManager {
   }
 
   public void searchViewActivated(SearchView view) {
-    fLRUSearchViews.remove(view);
-    fLRUSearchViews.addFirst(view);
+
   }
 
   public void searchViewClosed(SearchView view) {
-    fLRUSearchViews.remove(view);
   }
 
   protected boolean showNewSearchQuery(ISearchQuery query) {
-    if (!fLRUSearchViews.isEmpty()) {
-      SearchView view = fLRUSearchViews.getFirst();
+    SearchView view = getActiveSearchView();
+    if (view != null) {
       view.showSearchResult(query.getSearchResult());
       return true;
     }
     return false;
-  }
-
-  private ISearchResultViewPart findLRUSearchResultView(IWorkbenchPage page,
-      boolean avoidPinnedViews) {
-    boolean viewFoundInPage = false;
-    for (Iterator<SearchView> iter = fLRUSearchViews.iterator(); iter.hasNext();) {
-      SearchView view = iter.next();
-      if (page.equals(view.getSite().getPage())) {
-//        if (!avoidPinnedViews) {
-        return view;
-//        }
-//        viewFoundInPage = true;
-      }
-    }
-    if (!viewFoundInPage) {
-      // find unresolved views
-      IViewReference[] viewReferences = page.getViewReferences();
-      for (int i = 0; i < viewReferences.length; i++) {
-        IViewReference curr = viewReferences[i];
-        if (NewSearchUI.SEARCH_VIEW_ID.equals(curr.getId()) && page.equals(curr.getPage())) {
-          SearchView view = (SearchView) curr.getView(true);
-          if (view != null && (!avoidPinnedViews)) {
-            return view;
-          }
-
-        }
-      }
-    }
-    return null;
   }
 
 }
