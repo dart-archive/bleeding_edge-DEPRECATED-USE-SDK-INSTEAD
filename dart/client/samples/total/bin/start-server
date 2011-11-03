@@ -23,7 +23,7 @@ import utils
 def GetOutputPath(mode):
   return rootPath(
     'compiler',
-    utils.GetBuildRoot(utils.GuessOS(), mode, 'dartc'))
+    utils.GetBuildRoot(utils.GuessOS(), mode, utils.GuessArchitecture()))
 
 def BuildFling(mode):
   # Build dartc
