@@ -54,26 +54,10 @@ Type getType(TypeAnnotation annotation, types) {
   }
 }
 
-class PartialFunctionElement extends Element {
-  final Token beginToken;
-  final Token endToken;
-  FunctionExpression node;
+class FunctionElement extends Element {
   Type type;
 
-  PartialFunctionElement(SourceString name,
-                         Token this.beginToken,
-                         Token this.endToken)
-    : super(name);
-
-  FunctionExpression parseNode(Canceler canceler, Logger logger) {
-    if (node != null) return node;
-
-    BodyListener listener = new BodyListener(canceler, logger);
-    new BodyParser(listener).parseFunction(beginToken);
-    logger.log("parsed function: ${listener.functionExpression}");
-    node = listener.functionExpression;
-    return node;
-  }
+  FunctionElement(SourceString name) : super(name);
 
   FunctionType computeType(Compiler compiler, types) {
     if (type != null) return type;

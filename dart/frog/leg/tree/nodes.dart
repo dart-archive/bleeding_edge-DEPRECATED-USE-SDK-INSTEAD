@@ -7,6 +7,7 @@ interface Visitor<R> {
   R visitExpressionStatement(ExpressionStatement node);
   R visitFunctionExpression(FunctionExpression node);
   R visitIdentifier(Identifier node);
+  R visitIf(If node);
   R visitLiteralBool(LiteralBool node);
   R visitLiteralDouble(LiteralDouble node);
   R visitLiteralInt(LiteralInt node);
@@ -47,8 +48,13 @@ class Node implements Hashable {
 
   toString() => unparse();
 
-  // TODO(ahe): Turn this into a call to a visitor pretty printer.
-  String unparse() => (new DebugUnparser().unparse(this));
+  String unparse() {
+    try {
+      return new DebugUnparser().unparse(this);
+    } catch (var e) {
+      return '<<unparse error: ${super.toString()}>>';
+    }
+  }
 
   abstract Token getBeginToken();
 
@@ -161,6 +167,33 @@ class Block extends Statement {
   Token getBeginToken() => statements.getBeginToken();
 
   Token getEndToken() => statements.getEndToken();
+}
+
+class If extends Statement {
+  final NodeList condition;
+  final Statement thenPart;
+  final Statement elsePart;
+
+  final Token ifToken;
+  final Token elseToken;
+
+  If(this.condition, this.thenPart, this.elsePart,
+     this.ifToken, this.elseToken);
+
+  bool get hasElsePart() => elsePart !== null;
+
+  void validate() {
+    // TODO(ahe): Check that condition has size one.
+  }
+
+  accept(Visitor visitor) => visitor.visitIf(this);
+
+  Token getBeginToken() => ifToken;
+
+  Token getEndToken() {
+    if (elsePart === null) return thenPart.getEndToken();
+    return elsePart.getEndToken();
+  }
 }
 
 class FunctionExpression extends Expression {
@@ -287,20 +320,18 @@ class Parameter extends Node {
 
 class Return extends Statement {
   final Expression expression;
-  final Token token;
+  final Token beginToken;
+  final Token endToken;
 
-  const Return(this.token, this.expression);
+  const Return(this.beginToken, this.endToken, this.expression);
+
+  bool get hasExpression() => expression !== null;
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 
-  Token getBeginToken() => token;
+  Token getBeginToken() => beginToken;
 
-  Token getEndToken() {
-    if (expression !== null && expression.getEndToken() !== null) {
-      return expression.getEndToken();
-    }
-    return token;
-  }
+  Token getEndToken() => endToken;
 }
 
 class ExpressionStatement extends Statement {
@@ -333,7 +364,7 @@ class VariableDefinitions extends Statement {
   final NodeList definitions;
   VariableDefinitions(this.type, this.modifiers, this.definitions,
                       this.endToken);
-  
+
   accept(Visitor visitor) => visitor.visitVariableDefinitions(this);
 
   Token getBeginToken() {

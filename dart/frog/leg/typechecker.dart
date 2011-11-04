@@ -115,6 +115,13 @@ class TypeCheckerVisitor implements Visitor<Type> {
     fail(node);
   }
 
+  Type visitIf(If node) {
+    visit(node.condition);
+    visit(node.thenPart);
+    if (node.hasElsePart) visit(node.elsePart);
+    return types.VOID;
+  }
+
   Type visitSend(Send node) {
     Element target = elements[node];
     if (target !== null) {

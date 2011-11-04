@@ -78,6 +78,12 @@ class ResolverVisitor implements Visitor<Element> {
     return element;
   }
 
+  visitIf(If node) {
+    visit(node.condition);
+    visit(node.thenPart);
+    if (node.elsePart !== null) visit(node.elsePart);
+  }
+
   visitSend(Send node) {
     Identifier selector = node.selector;
     Element target = compiler.universe.find(selector.source);

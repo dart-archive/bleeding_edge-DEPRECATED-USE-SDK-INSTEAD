@@ -88,6 +88,14 @@ class SsaBuilder implements Visitor {
     compiler.cancel();
   }
 
+  visitIf(If node) {
+    compiler.cancel("ssa/builder.dart: visitIf not implemented");
+    // TODO(floitsch): Implement this.
+    // visit(node.condition);
+    // visit(node.thenPart);
+    // if (node.elsePart !== null) visit(node.elsePart);
+  }
+
   visitSend(Send node) {
     // TODO(kasperl): This only works for very special cases. Make
     // this way more general soon.

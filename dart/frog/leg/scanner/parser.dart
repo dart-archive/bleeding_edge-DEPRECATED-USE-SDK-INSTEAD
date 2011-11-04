@@ -6,10 +6,10 @@
  * An event generating parser of Dart programs. This parser expects
  * all tokens in a linked list.
  */
-class Parser {
-  final Listener listener;
+class Parser<L extends Listener> {
+  final L listener;
 
-  Parser(Listener this.listener);
+  Parser(L this.listener);
 
   // TODO(ahe): Rename this method. It is too subtle compared to token.next.
   Token next(Token token) => checkEof(token.next);
@@ -315,10 +315,7 @@ class Parser {
   }
 }
 
-class BodyParser extends Parser {
-  // TODO(ahe): Breaks with frog.
-  // BodyListener get listener() => super.listener;
-
+class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
   BodyParser(BodyListener listener) : super(listener);
 
   Token parseFunction(Token token) {
@@ -332,32 +329,38 @@ class BodyParser extends Parser {
   }
 
   Token parseFormalParameters(Token token) {
-    listener.beginFormalParameters(token);
+    Token begin = token;
+    listener.beginFormalParameters(begin);
     expect(const SourceString("("), token);
+    int parameterCount = 0;
     if (optional(const SourceString(")"), token.next)) {
-      listener.endFormalParameters(token.next);
+      listener.endFormalParameters(parameterCount, begin, token.next);
       return token.next.next;
     }
     do {
       token = parseType(next(token)); // TODO(ahe): Types are optional.
       token = parseIdentifier(token);
+      ++parameterCount;
     } while (optional(const SourceString(","), token));
-    listener.endFormalParameters(token);
+    listener.endFormalParameters(parameterCount, begin, token);
     return expect(const SourceString(")"), token);
   }
 
   Token parseFunctionBody(Token token) {
     if (optional(const SourceString(";"), token)) {
-      listener.emptyFunctionBody(token);
+      listener.endFunctionBody(0, null, token);
       return token.next;
     }
     // TODO(ahe): Handle "=>" syntax.
-    listener.beginFunctionBody(token);
+    Token begin = token;
+    int statementCount = 0;
+    listener.beginFunctionBody(begin);
     token = checkEof(expect(const SourceString("{"), token));
     while (!optional(const SourceString("}"), token)) {
       token = parseStatement(token);
+      ++statementCount;
     }
-    listener.endFunctionBody(token);
+    listener.endFunctionBody(statementCount, begin, token);
     return expect(const SourceString("}"), token);
   }
 
@@ -385,10 +388,11 @@ class BodyParser extends Parser {
   }
 
   Token parseReturnStatement(Token token) {
-    listener.beginReturnStatement(token);
+    Token begin = token;
+    listener.beginReturnStatement(begin);
     assert(const SourceString("return") == token.value);
     token = parseExpression(next(token));
-    listener.endReturnStatement(token);
+    listener.endReturnStatement(true, begin, token);
     return expectSemicolon(token);
   }
 
@@ -517,29 +521,37 @@ class BodyParser extends Parser {
   }
 
   Token parseArgumentsOpt(Token token) {
-    if (optional(const SourceString("("), token)) {
-      listener.beginArguments(token);
-      if (optional(const SourceString(")"), token.next)) {
-        listener.endArguments(token.next);
-        return token.next.next;
-      }
-      do {
-        token = parseExpression(next(token));
-      } while (optional(const SourceString(","), token));
-      listener.endArguments(token);
-      return expect(const SourceString(")"), token);
+    if (!optional(const SourceString("("), token)) return token;
+    else return parseArguments(token);
+  }
+
+  Token parseArguments(Token token) {
+    Token begin = token;
+    listener.beginArguments(begin);
+    assert(const SourceString("(") == token.value);
+    int argumentCount = 0;
+    if (optional(const SourceString(")"), token.next)) {
+      listener.endArguments(argumentCount, begin, token.next);
+      return token.next.next;
     }
-    return token;
+    do {
+      token = parseExpression(next(token));
+      ++argumentCount;
+    } while (optional(const SourceString(","), token));
+    listener.endArguments(argumentCount, begin, token);
+    return expect(const SourceString(")"), token);
   }
 
   Token parseVariablesDeclaration(Token token) {
+    int count = 1;
     listener.beginVariablesDeclaration(token);
     token = parseFinalVarOrType(token);
     token = parseOptionallyInitializedIdentifier(token);
     while (optional(const SourceString(','), token)) {
       token = parseOptionallyInitializedIdentifier(next(token));
+      ++count;
     }
-    listener.endVariablesDeclaration(token);
+    listener.endVariablesDeclaration(count, token);
     return expectSemicolon(token);
   }
 
@@ -563,23 +575,31 @@ class BodyParser extends Parser {
   }
 
   Token parseIfStatement(Token token) {
-    listener.beginIfStatement(token);
+    Token ifToken = token;
+    listener.beginIfStatement(ifToken);
     token = expect(Keyword.IF, token);
-    token = expect(const SourceString('('), token);
-    token = parseExpression(token);
-    token = expect(const SourceString(')'), token);
+    expect(const SourceString('('), token);
+    token = parseArguments(token);
     token = parseStatement(token);
+    Token elseToken = null;
     if (optional(Keyword.ELSE, token)) {
+      elseToken = token;
       token = parseStatement(token.next);
     }
+    listener.endIfStatement(ifToken, elseToken);
     return token;
   }
 
   Token parseBlock(Token token) {
+    Token begin = token;
+    listener.beginBlock(begin);
+    int statementCount = 0;
     token = expect(const SourceString('{'), token);
     while (!optional(const SourceString("}"), token)) {
       token = parseStatement(token);
+      ++statementCount;
     }
+    listener.endBlock(statementCount, begin, token);
     return expect(const SourceString("}"), token);
   }
 }

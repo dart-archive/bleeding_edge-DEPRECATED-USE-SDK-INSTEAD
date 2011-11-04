@@ -42,10 +42,10 @@ class AbstractLink<T> implements Link<T> {
 
   void printOn(StringBuffer buffer, [String separatedBy = '']) {
     if (isEmpty()) return;
-    buffer.add(head.toString());
+    buffer.add(head);
     for (Link link = tail; !link.isEmpty(); link = link.tail) {
-      buffer.add(link.head.toString());
       buffer.add(separatedBy);
+      buffer.add(link.head);
     }
   }
 

@@ -13,7 +13,7 @@ Node parse(String text) {
   BodyParser parser = new BodyParser(listener);
   Token endToken = parser.parseExpression(tokens);
   assert(endToken.value == const SourceString(';'));
-  return listener.popExpression();
+  return listener.popNode();
 }
 
 Token scan(String text) => new StringScanner(text).tokenize();

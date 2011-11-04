@@ -14,7 +14,7 @@ class Listener {
   Identifier previousIdentifier = null;
   final Canceler canceler;
 
-  Link<DeclarationBuilder> builders;
+  Link<DeclarationBuilder> builders; // TODO(ahe): Use a stack of nodes instead.
   Link<Element> topLevelElements;
 
   Listener(Canceler this.canceler)
@@ -180,115 +180,40 @@ class DeclarationBuilder {
   Element build() => (builderFunction)(this);
 }
 
-/**
- * Tracks nested functions, for example, f() { g() { h() {} } }.
- */
-class FunctionContext {
-  FunctionContext previous;
-  LinkBuilder<Statement> statements;
-  ExpressionContext expressionContext;
-  Link<Expression> name;
-  Link<Expression> returnType;
-  Token beginFormalsToken;
-  Token beginBlockToken;
-  NodeList formals;
-
-  FunctionContext(this.previous) : statements = new LinkBuilder<Statement>();
-
-  void push(Statement statement) {
-    statements.addLast(statement);
-  }
-
-  FunctionExpression buildFunction(Token endToken) {
-    assert(expressionContext == null ||
-           expressionContext.expressions.isEmpty());
-    var statements = new NodeList(beginBlockToken, statements.toLink(),
-                                  endToken);
-    Block block = new Block(statements);
-    return new FunctionExpression(name.head, formals, block,
-                                  new TypeAnnotation(returnType.head));
-  }
-
-  void buildFormals(Token endToken) {
-    formals = new NodeList(beginFormalsToken, const EmptyLink<Node>(), endToken,
-                           const SourceString(","));
-  }
-}
-
-/**
- * Tracks nested expressions, for example, f(g(h())).
- */
-class ExpressionContext {
-  ExpressionContext previous;
-  Link<Expression> expressions;
-  NodeList nodes;
-  Token beginToken;
-
-  ExpressionContext(this.previous)
-    : expressions = const EmptyLink<Expression>();
-
-  void push(Expression expression) {
-    expressions = expressions.prepend(expression);
-  }
-
-  Node pop() {
-    assert(!expressions.isEmpty());
-    Node head = expressions.head;
-    expressions = expressions.tail;
-    return head;
-  }
-
-  Link<Expression> popAll() {
-    Link<Expression> result = expressions;
-    expressions = const EmptyLink<Expression>();
-    return result;
-  }
-}
-
 class BodyListener extends Listener {
   final Logger logger;
-  FunctionContext functionContext;
-  ExpressionContext expressionContext;
-  FunctionExpression functionExpression;
+  Link<Node> nodes = const EmptyLink(); /* <Node> Frog bug #322 + #323 */
 
-  BodyListener(Canceler canceler, Logger this.logger)
-    : super(canceler),
-      expressionContext = new ExpressionContext(null);
+  BodyListener(Canceler canceler, Logger this.logger) : super(canceler);
 
   void beginFormalParameters(Token token) {
-    functionContext.beginFormalsToken = token;
   }
 
-  void endFormalParameters(Token token) {
-    functionContext.buildFormals(token);
+  void endFormalParameters(int count, Token beginToken, Token endToken) {
+    pushNode(makeNodeList(count, beginToken, endToken, ","));
   }
 
   void beginArguments(Token token) {
-    pushExpressionContext(token);
   }
 
-  void endArguments(Token token) {
-    NodeList nodes = new NodeList(expressionContext.beginToken,
-                                  popAllExpressions().reverse(), token,
-                                  const SourceString(","));
-    popExpressionContext();
-    expressionContext.nodes = nodes;
+  void endArguments(int count, Token beginToken, Token endToken) {
+    pushNode(makeNodeList(count, beginToken, endToken, ","));
   }
 
   void beginReturnStatement(Token token) {
   }
 
-  void endReturnStatement(Token token) {
-    Link<Expression> expressions = popAllExpressions();
-    assert(expressions.isEmpty() || expressions.tail.isEmpty());
-    pushStatement(new Return(token, expressions.head));
+  void endReturnStatement(bool hasExpression,
+                          Token beginToken, Token endToken) {
+    Expression expression = hasExpression ? popNode() : null;
+    pushNode(new Return(beginToken, endToken, expression));
   }
 
   void beginExpressionStatement(Token token) {
   }
 
   void endExpressionStatement(Token token) {
-    pushStatement(new ExpressionStatement(popExpression(), token));
+    pushNode(new ExpressionStatement(popNode(), token));
   }
 
   void onError(Token token, var error) {
@@ -297,72 +222,74 @@ class BodyListener extends Listener {
   }
 
   void handleLiteralInt(Token token) {
-    pushExpression(new LiteralInt(token, onError));
+    pushNode(new LiteralInt(token, onError));
   }
 
   void handleLiteralDouble(Token token) {
-    pushExpression(new LiteralDouble(token, onError));
+    pushNode(new LiteralDouble(token, onError));
   }
 
   void handleLiteralBool(Token token) {
-    pushExpression(new LiteralBool(token, onError));
+    pushNode(new LiteralBool(token, onError));
   }
 
   void handleLiteralString(Token token) {
-    pushExpression(new LiteralString(token));
+    pushNode(new LiteralString(token));
   }
 
   void binaryExpression(Token token) {
-    NodeList arguments = new NodeList(null, new Link<Node>(popExpression()),
+    NodeList arguments = new NodeList(null, new Link<Node>(popNode()),
                                       null, null);
-    pushExpression(new Send(popExpression(), new Operator(token), arguments));
+    pushNode(new Send(popNode(), new Operator(token), arguments));
   }
 
   void beginSend(Token token) {
   }
 
   void endSend(Token token) {
-    pushExpression(new Send(null, popExpression(), expressionContext.nodes));
+    NodeList arguments = popNode();
+    Node selector = popNode();
+    // TODO(ahe): Handle receiver.
+    pushNode(new Send(null, selector, arguments));
   }
 
   void identifier(Token token) {
-    pushExpression(new Identifier(token));
+    pushNode(new Identifier(token));
   }
 
   void voidType(Token token) {
-    pushExpression(new Identifier(token));
+    pushNode(new Identifier(token));
   }
 
   void beginFunction(Token token) {
-    functionContext = new FunctionContext(functionContext);
   }
 
   void beginFunctionName(Token token) {
-    functionContext.returnType = popAllExpressions();
   }
 
   void endFunctionName(Token token) {
-    functionContext.name = popAllExpressions();
   }
 
   void beginFunctionBody(Token token) {
-    functionContext.beginBlockToken = token;
   }
 
-  void endFunctionBody(Token token) {
-    functionExpression = functionContext.buildFunction(token);
-  }
-
-  void emptyFunctionBody(Token token) {
-    functionExpression = functionContext.buildFunction(token);
+  void endFunctionBody(int count, Token beginToken, Token endToken) {
+    Block block = new Block(makeNodeList(count, beginToken, endToken, null));
+    Node formals = popNode();
+    Node name = popNode();
+    // TODO(ahe): Return types are optional.
+    Node type = new TypeAnnotation(popNode());
+    pushNode(new FunctionExpression(name, formals, block, type));
   }
 
   void beginVariablesDeclaration(Token token) {
   }
 
-  void endVariablesDeclaration(Token token) {
-    NodeList variables = new NodeList(null, popAllExpressions().reverse());
-    pushStatement(new VariableDefinitions(null, null, variables, token));
+  void endVariablesDeclaration(int count, Token endToken) {
+    // TODO(ahe): Pick one name for this concept, either
+    // VariablesDeclaration or VariableDefinitions.
+    NodeList variables = makeNodeList(count, null, null, ",");
+    pushNode(new VariableDefinitions(null, null, variables, endToken));
   }
 
   void beginInitializedIdentifier(Token token) {
@@ -372,15 +299,14 @@ class BodyListener extends Listener {
   }
 
   void beginInitializer(Token token) {
-    pushExpressionContext(token);
   }
 
   void endInitializer(Token assignmentOperator) {
-    Expression initializer = popExpression();
     Operator operator = new Operator(assignmentOperator);
-    popExpressionContext();
+    Expression initializer = popNode();
     NodeList arguments = new NodeList.singleton(initializer);
-    pushExpression(new Send(popExpression(), operator, arguments));
+    Expression name = popNode();
+    pushNode(new Send(name, operator, arguments));
   }
 
   void handleVarKeyword(Token token) {
@@ -389,26 +315,62 @@ class BodyListener extends Listener {
   void beginIfStatement(Token token) {
   }
 
-  void pushExpression(Expression expression) {
-    // logger.log("pushExpression($expression)");
-    expressionContext.push(expression);
+  void endIfStatement(Token ifToken, Token elseToken) {
+    Statement elsePart = (elseToken === null) ? null : popNode();
+    Statement thenPart = popNode();
+    NodeList condition = popNode();
+    pushNode(new If(condition, thenPart, elsePart, ifToken, elseToken));
   }
 
-  Node popExpression() => expressionContext.pop();
-
-  Link<Expression> popAllExpressions() => expressionContext.popAll();
-
-  void pushExpressionContext(Token token) {
-    expressionContext = new ExpressionContext(expressionContext);
-    expressionContext.beginToken = token;
+  void beginBlock(Token token) {
   }
 
-  void popExpressionContext() {
-    assert(expressionContext.expressions.isEmpty());
-    expressionContext = expressionContext.previous;
+  void endBlock(int count, Token beginToken, Token endToken) {
+    pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
   }
 
-  void pushStatement(Statement statement) {
-    functionContext.push(statement);
+  void pushNode(Node node) {
+    nodes = nodes.prepend(node);
+  }
+
+  Node popNode() {
+    assert(!nodes.isEmpty());
+    Node node = nodes.head;
+    nodes = nodes.tail;
+    return node;
+  }
+
+  NodeList makeNodeList(int count, Token beginToken, Token endToken,
+                        String delimiter) {
+    Link<Node> nodes = const EmptyLink<Node>();
+    for (; count > 0; --count) {
+      // This effectively reverses the order of nodes so they end up
+      // in correct (source) order.
+      nodes = nodes.prepend(popNode());
+    }
+    SourceString sourceDelimiter =
+        (delimiter == null) ? null : new SourceString(delimiter);
+    return new NodeList(beginToken, nodes, endToken, sourceDelimiter);
+  }
+}
+
+class PartialFunctionElement extends FunctionElement {
+  final Token beginToken;
+  final Token endToken;
+  FunctionExpression node;
+
+  PartialFunctionElement(SourceString name,
+                         Token this.beginToken,
+                         Token this.endToken)
+    : super(name);
+
+  FunctionExpression parseNode(Canceler canceler, Logger logger) {
+    if (node != null) return node;
+
+    BodyListener listener = new BodyListener(canceler, logger);
+    new BodyParser(listener).parseFunction(beginToken);
+    node = listener.popNode();
+    logger.log("parsed function: $node");
+    return node;
   }
 }

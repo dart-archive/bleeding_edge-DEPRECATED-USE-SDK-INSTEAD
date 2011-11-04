@@ -43,6 +43,16 @@ class DebugUnparser implements Visitor {
     node.source.printOn(sb);
   }
 
+  visitIf(If node) {
+    node.ifToken.value.printOn(sb);
+    visit(node.condition);
+    visit(node.thenPart);
+    if (node.hasElsePart) {
+      node.elseToken.value.printOn(sb);
+      visit(node.elsePart);
+    }
+  }
+
   visitLiteralBool(LiteralBool node) {
     node.token.value.printOn(sb);
   }
@@ -67,7 +77,7 @@ class DebugUnparser implements Visitor {
       SourceString delimiter = node.delimiter;
       if (delimiter == null) delimiter = new SourceString(separator);
       for (Node element in node.nodes) {
-        if (!first) sb.add(delimiter);
+        if (!first) delimiter.printOn(sb);
         first = false;
         visit(element);
       }
@@ -88,11 +98,12 @@ class DebugUnparser implements Visitor {
   }
 
   visitReturn(Return node) {
-    sb.add('return');
-    if (node.expression !== null) {
+    node.beginToken.value.printOn(sb);
+    if (node.hasExpression) {
       sb.add(' ');
       visit(node.expression);
     }
+    node.endToken.value.printOn(sb);
   }
 
   visitSend(Send node) {

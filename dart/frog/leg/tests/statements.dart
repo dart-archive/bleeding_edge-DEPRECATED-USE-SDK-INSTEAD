@@ -5,6 +5,7 @@
 void main() {
   print(3);
   print(4);
+  /*
   if (true) {
     print('hest');
   }
@@ -13,4 +14,5 @@ void main() {
   } else {
     print('fisk');
   }
+  */
 }
