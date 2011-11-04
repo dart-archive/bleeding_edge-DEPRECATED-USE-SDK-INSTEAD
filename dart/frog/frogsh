@@ -7707,6 +7707,7 @@ ResolverVisitor.prototype.visitIf = function(node) {
 }
 ResolverVisitor.prototype.visitSend = function(node) {
   var target = null;
+  this.visit(node.receiver);
   var name = node.selector.get$source();
   if ($eq(name, const$248/*const SourceString('print')*/) || $eq(name, const$249/*const SourceString('+')*/) || $eq(name, const$250/*const SourceString('-')*/) || $eq(name, const$251/*const SourceString('*')*/) || $eq(name, const$252/*const SourceString('/')*/) || $eq(name, const$253/*const SourceString('~/')*/)) {
   }

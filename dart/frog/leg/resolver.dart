@@ -77,6 +77,7 @@ class ResolverVisitor implements Visitor<Element> {
 
   visitSend(Send node) {
     Element target = null;
+    visit(node.receiver);
     SourceString name = node.selector.source;
     if (name == const SourceString('print') ||
         name == const SourceString('+') ||
