@@ -110,8 +110,6 @@ public class FileGenerator extends AbstractGenerator {
       // this is the check to see if the fileLocation is pointing to the location of the selected library, as mentioned above
       if (directoryOfLibrary != null && directoryOfLibrary.equals(fileLocation)) {
         // do nothing, current library is correct.
-        // Sanity Check
-        Assert.isTrue(library.getDefiningCompilationUnit().definesLibrary());
       } else {
         library = null;
       }
