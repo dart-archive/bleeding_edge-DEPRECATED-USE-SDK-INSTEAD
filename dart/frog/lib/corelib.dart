@@ -98,13 +98,11 @@ this.dstType = dstType;
 }
 
 class FallThroughError {
-  final String url;
-  final int line;
 
-  const FallThroughError(this.url, this.line);
+  const FallThroughError();
 
   String toString() {
-    return "Switch case fall-through in $url at line $line.";
+    return "Switch case fall-through.";
   }
 }
 
