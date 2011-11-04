@@ -5017,7 +5017,7 @@ BodyParser.prototype.parseExpression = function(token) {
   if (this.isAssignmentOperator(token)) {
     var operator = token;
     token = this.parseExpression(this.next(token));
-    this.listener.handleBinaryExpression(operator);
+    this.listener.handleAssignmentExpression(operator);
   }
   return token;
 }
@@ -5554,6 +5554,15 @@ BodyListener.prototype.handleBinaryExpression = function(token) {
   var arguments = new NodeList(null, LinkFactory.Link$factory(this.popNode()), null, null);
   this.pushNode(new Send(this.popNode(), new Operator(token), arguments));
 }
+BodyListener.prototype.handleAssignmentExpression = function(token) {
+  var arguments = new NodeList.singleton$ctor(this.popNode());
+  var node = this.popNode();
+  if (!(node instanceof Send)) this.canceler.cancel(('not assignable: ' + node + ''));
+  var send = node;
+  if (!send.get$isPropertyAccess()) this.canceler.cancel(('not assignable: ' + node + ''));
+  if ((send instanceof SetterSend)) this.canceler.cancel('chained assignment');
+  this.pushNode(new SetterSend(send.receiver, send.selector, token, arguments));
+}
 BodyListener.prototype.handleConditionalExpression = function(question, colon) {
   var elseExpression = this.popNode();
   var thenExpression = this.popNode();
@@ -5880,11 +5889,12 @@ Node.prototype.toString = function() {
   return this.unparse();
 }
 Node.prototype.unparse = function() {
+  var unparser = new DebugUnparser();
   try {
-    return new DebugUnparser().unparse(this);
+    return unparser.unparse(this);
   } catch (e) {
     e = $toDartException(e);
-    return ('<<unparse error: ' + Object.prototype.toString.call(this) + '>>');
+    return ('<<unparse error: ' + Object.prototype.toString.call(this) + ': ' + unparser.sb + '>>');
   }
 }
 // ********** Code for Expression **************
@@ -5907,6 +5917,9 @@ Send.prototype.get$arguments = function() {
 Send.prototype.accept = function(visitor) {
   return visitor.visitSend(this);
 }
+Send.prototype.get$isPropertyAccess = function() {
+  return this.argumentsNode == null;
+}
 Send.prototype.getBeginToken = function() {
   return firstBeginToken(this.receiver, this.selector);
 }
@@ -5917,6 +5930,16 @@ Send.prototype.getEndToken = function() {
     return this.selector.getEndToken();
   }
   return this.receiver.getBeginToken();
+}
+// ********** Code for SetterSend **************
+function SetterSend(receiver0, selector0, assignmentOperator, argumentsNode0) {
+  this.assignmentOperator = assignmentOperator;
+  Send.call(this, receiver0, selector0, argumentsNode0);
+  // Initializers done
+}
+$inherits(SetterSend, Send);
+SetterSend.prototype.accept = function(visitor) {
+  return visitor.visitSetterSend(this);
 }
 // ********** Code for NodeList **************
 function NodeList(beginToken, nodes, endToken, delimiter) {
@@ -6348,6 +6371,15 @@ DebugUnparser.prototype.visitSend = function(node) {
     if (!(node.selector instanceof Operator)) this.sb.add('.');
   }
   this.visit(node.selector);
+  this.visit(node.argumentsNode, ', ');
+}
+DebugUnparser.prototype.visitSetterSend = function(node) {
+  if (node.receiver != null) {
+    this.visit(node.receiver);
+    this.sb.add('.');
+  }
+  this.visit(node.selector);
+  node.assignmentOperator.get$value().printOn$1(this.sb);
   this.visit(node.argumentsNode, ', ');
 }
 DebugUnparser.prototype.visitTypeAnnotation = function(node) {
@@ -7723,6 +7755,9 @@ ResolverVisitor.prototype.visitSend = function(node) {
   this.visit(node.argumentsNode);
   return target;
 }
+ResolverVisitor.prototype.visitSetterSend = function(node) {
+  this.compiler.unimplemented('ResolverVisitor::visitSetterSend');
+}
 ResolverVisitor.prototype.visitLiteralInt = function(node) {
 
 }
@@ -7998,6 +8033,9 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
     }
     this.compiler.cancel(('unresolved send ' + name + '.'));
   }
+}
+TypeCheckerVisitor.prototype.visitSetterSend = function(node) {
+  return this.types.DYNAMIC;
 }
 TypeCheckerVisitor.prototype.visitLiteralInt = function(node) {
   return this.types.INT;

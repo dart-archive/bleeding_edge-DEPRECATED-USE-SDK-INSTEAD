@@ -247,6 +247,16 @@ class BodyListener extends Listener {
     pushNode(new Send(popNode(), new Operator(token), arguments));
   }
 
+  void handleAssignmentExpression(Token token) {
+    NodeList arguments = new NodeList.singleton(popNode());
+    Node node = popNode();
+    if (node is !Send) canceler.cancel('not assignable: $node');
+    Send send = node;
+    if (!send.isPropertyAccess) canceler.cancel('not assignable: $node');
+    if (send is SetterSend) canceler.cancel('chained assignment');
+    pushNode(new SetterSend(send.receiver, send.selector, token, arguments));
+  }
+
   void handleConditionalExpression(Token question, Token colon) {
     Node elseExpression = popNode();
     Node thenExpression = popNode();

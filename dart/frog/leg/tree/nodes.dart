@@ -17,6 +17,7 @@ interface Visitor<R> {
   R visitParameter(Parameter node);
   R visitReturn(Return node);
   R visitSend(Send node);
+  R visitSetterSend(SetterSend node);
   R visitTypeAnnotation(TypeAnnotation node);
   R visitVariableDefinitions(VariableDefinitions node);
 }
@@ -49,10 +50,11 @@ class Node implements Hashable {
   toString() => unparse();
 
   String unparse() {
+    DebugUnparser unparser = new DebugUnparser();
     try {
-      return new DebugUnparser().unparse(this);
+      return unparser.unparse(this);
     } catch (var e) {
-      return '<<unparse error: ${super.toString()}>>';
+      return '<<unparse error: ${super.toString()}: ${unparser.sb}>>';
     }
   }
 
@@ -102,6 +104,15 @@ class Send extends Expression {
     }
     return receiver.getBeginToken();
   }
+}
+
+class SetterSend extends Send {
+  final Token assignmentOperator;
+  const SetterSend(
+      receiver, selector, this.assignmentOperator, argumentsNode)
+      : super(receiver, selector, argumentsNode);
+
+  accept(Visitor visitor) => visitor.visitSetterSend(this);
 }
 
 class NewExpression extends Expression {

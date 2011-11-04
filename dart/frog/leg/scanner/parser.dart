@@ -408,7 +408,7 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
     if (isAssignmentOperator(token)) {
       Token operator = token;
       token = parseExpression(next(token));
-      listener.handleBinaryExpression(operator);
+      listener.handleAssignmentExpression(operator);
     }
     return token;
   }

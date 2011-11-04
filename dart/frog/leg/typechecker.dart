@@ -161,6 +161,11 @@ class TypeCheckerVisitor implements Visitor<Type> {
     }
   }
 
+  visitSetterSend(SetterSend node) {
+    // TODO(karlklose): Implement this correctly.
+    return types.DYNAMIC;
+  }
+
   Type visitLiteralInt(LiteralInt node) {
     return types.INT;
   }

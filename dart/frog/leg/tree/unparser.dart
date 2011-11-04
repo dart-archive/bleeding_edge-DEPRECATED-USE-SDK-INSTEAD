@@ -115,6 +115,16 @@ class DebugUnparser implements Visitor {
     visit(node.argumentsNode, ', ');
   }
 
+  visitSetterSend(SetterSend node) {
+    if (node.receiver !== null) {
+      visit(node.receiver);
+      sb.add('.');
+    }
+    visit(node.selector);
+    node.assignmentOperator.value.printOn(sb);
+    visit(node.argumentsNode, ', ');
+  }
+
   visitTypeAnnotation(TypeAnnotation node) {
     visit(node.typeName);
   }
