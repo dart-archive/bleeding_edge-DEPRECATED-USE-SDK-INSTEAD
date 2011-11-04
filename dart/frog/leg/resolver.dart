@@ -76,25 +76,26 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   visitSend(Send node) {
-    Element target = visit(node.selector);
-    if (target == null) {
-      SourceString name = node.selector.source;
-      if (name == const SourceString('print') ||
-          name == const SourceString('+') ||
-          name == const SourceString('-') ||
-          name == const SourceString('*') ||
-          name == const SourceString('/') ||
-          name == const SourceString('~/')) {
-        // Do nothing.
-      } else {
+    Element target = null;
+    SourceString name = node.selector.source;
+    if (name == const SourceString('print') ||
+        name == const SourceString('+') ||
+        name == const SourceString('-') ||
+        name == const SourceString('*') ||
+        name == const SourceString('/') ||
+        name == const SourceString('~/')) {
+      // Do nothing.
+    } else {
+      target = visit(node.selector);
+      if (target == null) {
         // Complain: we could not resolve the method.
         fail(node);
+      } else {
+        // TODO(ngeoffray): the code generator should actually add it
+        // instead.
+        // Add the source of the method to the work list.
+        compiler.worklist.add(node.selector.source);
       }
-    } else {
-      // TODO(ngeoffray): the code generator should actually add it
-      // instead.
-      // Add the source of the method to the work list.
-      compiler.worklist.add(node.selector.source);
     }
     visit(node.argumentsNode);
     return target;

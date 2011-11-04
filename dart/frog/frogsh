@@ -7706,17 +7706,18 @@ ResolverVisitor.prototype.visitIf = function(node) {
   this.visit(node.elsePart);
 }
 ResolverVisitor.prototype.visitSend = function(node) {
-  var target = this.visit(node.selector);
-  if (target == null) {
-    var name = node.selector.get$source();
-    if ($eq(name, const$248/*const SourceString('print')*/) || $eq(name, const$249/*const SourceString('+')*/) || $eq(name, const$250/*const SourceString('-')*/) || $eq(name, const$251/*const SourceString('*')*/) || $eq(name, const$252/*const SourceString('/')*/) || $eq(name, const$253/*const SourceString('~/')*/)) {
-    }
-    else {
-      this.fail(node);
-    }
+  var target = null;
+  var name = node.selector.get$source();
+  if ($eq(name, const$248/*const SourceString('print')*/) || $eq(name, const$249/*const SourceString('+')*/) || $eq(name, const$250/*const SourceString('-')*/) || $eq(name, const$251/*const SourceString('*')*/) || $eq(name, const$252/*const SourceString('/')*/) || $eq(name, const$253/*const SourceString('~/')*/)) {
   }
   else {
-    this.compiler.worklist.add(node.selector.get$source());
+    target = this.visit(node.selector);
+    if (target == null) {
+      this.fail(node);
+    }
+    else {
+      this.compiler.worklist.add(node.selector.get$source());
+    }
   }
   this.visit(node.argumentsNode);
   return target;
