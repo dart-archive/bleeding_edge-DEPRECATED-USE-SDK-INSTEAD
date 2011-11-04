@@ -11,7 +11,7 @@ class VMFileSystem implements FileSystem {
     var f = new File(outfile);
     var stream = f.openOutputStream();
     stream.write(text.charCodes());
-    stream.end();
+    stream.close();
   }
 
   String readAll(String filename) {
