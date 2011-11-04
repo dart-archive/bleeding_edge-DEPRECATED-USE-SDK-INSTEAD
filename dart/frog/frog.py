@@ -58,6 +58,22 @@ def GetDart():
   dart = join(os.pardir, dart)
   return dart
 
+def GetD8():
+  system = utils.GuessOS()
+  d8 = join(utils.GetBuildRoot(system, 'release', 'ia32'), 'd8')
+  if exists(d8): return d8
+  # Try at the top level
+  d8 = join(os.pardir, d8)
+  if exists(d8): return d8
+
+  # Try a debug version
+  d8 = join(utils.GetBuildRoot(system, 'debug', 'ia32'), 'd8')
+  if exists(d8): return d8
+  # Try at the top level
+  d8 = join(os.pardir, d8)
+  return d8
+
+D8 = GetD8()
 
 def execute(cmd):
   """Execute a command in a subprocess. """
@@ -134,8 +150,12 @@ def main(args):
     return 1
 
   if subprocess.call("node --help >/dev/null 2>&1", shell=True):
-    print "Executing node failed. See frog/README.txt for instructions"
-    return 1
+    if not exists(D8):
+      print "No engine available for running JS code."
+      print "See frog/README.txt for instructions."
+      return 1
+    elif 'node' in options.js_cmd:
+      options.js_cmd = D8
 
   return compileAndRun(options, dartArgs, dart)
 

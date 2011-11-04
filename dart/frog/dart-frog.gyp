@@ -8,6 +8,7 @@
       'target_name': 'frog',
       'dependencies': [
         '../runtime/dart-runtime.gyp:dart_bin',
+        '../third_party/v8/src/d8.gyp:d8',
       ],
       'type': 'none',
       'actions': [
@@ -35,6 +36,7 @@
       'target_name': 'frogsh',
       'dependencies': [
         '../runtime/dart-runtime.gyp:dart_bin',
+        '../third_party/v8/src/d8.gyp:d8',
       ],
       'type': 'none',
       'actions': [
