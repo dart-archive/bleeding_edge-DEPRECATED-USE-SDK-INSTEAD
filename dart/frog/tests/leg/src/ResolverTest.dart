@@ -19,12 +19,12 @@ class LoggerCanceler implements Logger, Canceler {
 }
 
 Node parse(String text) {
-  Token tokens = scan(text + ';');
+  Token tokens = scan(text);
   LoggerCanceler lc = new LoggerCanceler();
   BodyListener listener = new BodyListener(lc, lc);
   BodyParser parser = new BodyParser(listener);
-  Token endToken = parser.parseExpression(tokens);
-  assert(endToken.value == const SourceString(';'));
+  Token endToken = parser.parseOptionallyInitializedIdentifier(tokens);
+  assert(endToken.kind == EOF_TOKEN);
   return listener.popNode();
 }
 
@@ -34,12 +34,7 @@ buildIdentifier(String name) {
   return new Identifier(scan(name));
 }
 
-buildInitialization(String name) {
-  var receiver = buildIdentifier(name);
-  var selector = buildIdentifier('=');
-  var arguments = parse('x(1)').argumentsNode;
-  return new Send(receiver, selector, arguments);
-}
+buildInitialization(String name) => parse('$name = 1');
 
 createLocals(List variables) {
   var locals = [];
