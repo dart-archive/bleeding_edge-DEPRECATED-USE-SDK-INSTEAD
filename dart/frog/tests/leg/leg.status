@@ -6,6 +6,3 @@ prefix leg
 
 [ $component == dartc ]
 *: Fail # Too many type errors in frog.
-
-[ $component == vm && $mode == debug ]
-ResolverTest: Crash

@@ -15,7 +15,7 @@ class Parser<L extends Listener> {
   Token next(Token token) => checkEof(token.next);
 
   Token checkEof(Token token) {
-    if (token == null) {
+    if (token.kind == EOF_TOKEN) {
       listener.unexpectedEof();
       throw "Unexpected EOF";
     }
@@ -23,7 +23,7 @@ class Parser<L extends Listener> {
   }
 
   void parseUnit(Token token) {
-    while (token != null) {
+    while (token.kind != EOF_TOKEN) {
       switch (token.value) {
         case Keyword.INTERFACE:
           token = parseInterface(token);
@@ -403,7 +403,32 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
     return expectSemicolon(token);
   }
 
-  Token parseExpression(Token token) => parseBinaryExpression(token, 4);
+  Token parseExpression(Token token) {
+    token = parseConditionalExpression(token);
+    if (isAssignmentOperator(token)) {
+      Token operator = token;
+      token = parseExpression(next(token));
+      listener.handleBinaryExpression(operator);
+    }
+    return token;
+  }
+
+  bool isAssignmentOperator(Token token) {
+    return 2 == getPrecedence(token);
+  }
+
+  Token parseConditionalExpression(Token token) {
+    token = parseBinaryExpression(token, 4);
+    if (optional(const SourceString("?"), token)) {
+      Token question = token;
+      token = parseExpression(next(token));
+      Token colon = token;
+      token = expect(const SourceString(":"), token);
+      token = parseExpression(token);
+      listener.handleConditionalExpression(question, colon);
+    }
+    return token;
+  }
 
   Token parseBinaryExpression(Token token, int precedence) {
     assert(precedence >= 4);
@@ -412,7 +437,7 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
       while (getPrecedence(token) == level) {
         Token operator = token;
         token = parseBinaryExpression(next(token), level + 1);
-        listener.binaryExpression(operator);
+        listener.handleBinaryExpression(operator);
       }
     }
     return token;
@@ -521,7 +546,10 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
   }
 
   Token parseArgumentsOpt(Token token) {
-    if (!optional(const SourceString("("), token)) return token;
+    if (!optional(const SourceString("("), token)) {
+      listener.handleNoArgumentsOpt(token);
+      return token;
+    }
     else return parseArguments(token);
   }
 

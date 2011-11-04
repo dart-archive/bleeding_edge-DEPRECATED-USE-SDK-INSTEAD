@@ -11,6 +11,7 @@ interface Scanner<T> {
   void appendByteStringToken(int kind, T value);
   void appendKeywordToken(Keyword keyword);
   void appendWhiteSpace(int next);
+  void appendEofToken();
   T asciiString(int start);
   T utf8String(int start, int offset);
   Token firstToken();
@@ -34,6 +35,7 @@ class AbstractScanner<T> implements Scanner<T> {
   abstract void appendByteStringToken(int kind, T value);
   abstract void appendKeywordToken(Keyword keyword);
   abstract void appendWhiteSpace(int next);
+  abstract void appendEofToken();
   abstract T asciiString(int start);
   abstract T utf8String(int start, int offset);
   abstract Token firstToken();
@@ -49,6 +51,7 @@ class AbstractScanner<T> implements Scanner<T> {
     while (next != -1) {
       next = bigSwitch(next);
     }
+    appendEofToken();
     return firstToken();
   }
 

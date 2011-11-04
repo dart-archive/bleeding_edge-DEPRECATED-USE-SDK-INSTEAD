@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void main() {
-  // var hello = 'Hello';
-  // var world = 'world';
-  // print(hello + ", " + world + "!");
+  /*
+  var hello = 'Hello';
+  var world = 'world';
+  var s = 0;
+  s = world;
+  print(hello + ", " + world + "!");
+  */
 }

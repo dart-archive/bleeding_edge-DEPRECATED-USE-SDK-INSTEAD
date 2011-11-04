@@ -47,18 +47,27 @@ def DiagnoseError(arguments, stdout):
 
 
 def main(args):
+  def b(s):
+    """Adds ANSI escape-code for bold-face"""
+    return "\033[1m%s\033[0m" % s
+
   print 'Started'
   start = time.time()
   RunCommand('./frog.py', '--js_out=frogsh',
              '--vm_flags=--compile_all --enable_type_checks --enable_asserts',
              '--', 'frog.dart')
-  vmdone = time.time()
-  elapsed = vmdone - start
-  print 'Compiling on Dart VM took \033[1m%s\033[0m seconds' % elapsed
+  elapsed = time.time() - start
+  print 'Compiling on Dart VM took %s seconds %s' % (b(elapsed),
+                                                     b('in checked mode'))
+  start = time.time()
+  RunCommand('./frog.py', '--js_out=frogsh', '--', 'frog.dart')
+  elapsed = time.time() - start
+  print 'Compiling on Dart VM took %s seconds' % b(elapsed)
+  start = time.time()
   RunCommand('./frogsh', '--out=frogsh', 'frog.dart', 'tests/hello.dart')
-  elapsed = time.time() - vmdone
+  elapsed = time.time() - start
   size = os.path.getsize('./frogsh') / 1024
-  print 'Bootstrapping took \033[1m%s\033[0m seconds' % elapsed
+  print 'Bootstrapping took %s seconds' % b(elapsed)
   print 'Generated frogsh is \033[1m%d\033[0m kB' % size
 
   RunCommand('../tools/build.py', '--mode=release')

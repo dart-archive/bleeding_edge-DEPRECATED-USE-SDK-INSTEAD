@@ -4,12 +4,24 @@
 
 #import("../../../leg/leg.dart");
 #import("../../../leg/scanner.dart");
+#import("../../../leg/elements/elements.dart");
 #import("../../../leg/tree.dart");
 #import("../../../leg/util.dart");
 
+class LoggerCanceler implements Logger, Canceler {
+  void cancel([String reason]) {
+    throw new CompilerCancelledException(reason);
+  }
+
+  void log(message) {
+    // Do nothing.
+  }
+}
+
 Node parse(String text) {
   Token tokens = scan(text + ';');
-  BodyListener listener = new BodyListener(null, null);
+  LoggerCanceler lc = new LoggerCanceler();
+  BodyListener listener = new BodyListener(lc, lc);
   BodyParser parser = new BodyParser(listener);
   Token endToken = parser.parseExpression(tokens);
   assert(endToken.value == const SourceString(';'));

@@ -47,7 +47,7 @@ class Token {
 
   Token(int this.kind, int this.charOffset);
 
-  abstract get value();
+  get value() => 'EOF';
 
   String toString() => new String.fromCharCodes([kind]);
 }

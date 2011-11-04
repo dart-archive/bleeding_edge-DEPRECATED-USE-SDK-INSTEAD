@@ -200,6 +200,10 @@ class BodyListener extends Listener {
     pushNode(makeNodeList(count, beginToken, endToken, ","));
   }
 
+  void handleNoArgumentsOpt(Token token) {
+    pushNode(null);
+  }
+
   void beginReturnStatement(Token token) {
   }
 
@@ -237,10 +241,18 @@ class BodyListener extends Listener {
     pushNode(new LiteralString(token));
   }
 
-  void binaryExpression(Token token) {
+  void handleBinaryExpression(Token token) {
     NodeList arguments = new NodeList(null, new Link<Node>(popNode()),
                                       null, null);
     pushNode(new Send(popNode(), new Operator(token), arguments));
+  }
+
+  void handleConditionalExpression(Token question, Token colon) {
+    Node elseExpression = popNode();
+    Node thenExpression = popNode();
+    Node condition = popNode();
+    // TODO(ahe): Create an AST node.
+    canceler.cancel('conditional expression not implemented yet');
   }
 
   void beginSend(Token token) {
@@ -331,12 +343,14 @@ class BodyListener extends Listener {
 
   void pushNode(Node node) {
     nodes = nodes.prepend(node);
+    logger.log("push $nodes");
   }
 
   Node popNode() {
     assert(!nodes.isEmpty());
     Node node = nodes.head;
     nodes = nodes.tail;
+    logger.log("pop $nodes");
     return node;
   }
 
