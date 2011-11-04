@@ -16,7 +16,7 @@ class Evaluator {
   Library _lib;
 
   static void initWorld(String homedir, List<String> args, FileSystem files) {
-    parseOptions(homedir, args);
+    parseOptions(homedir, args, files);
     initializeWorld(files);
     world.process();
     world.resolveAll();
