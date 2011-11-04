@@ -96,7 +96,19 @@ class SsaBuilder implements Visitor {
       visit(node.argumentsNode);
       var right = pop();
       var left = pop();
-      push(new HAdd([ left, right ]));
+      Operator op = node.selector;
+      // TODO(floitsch): switch to switch (bug 314).
+      if (const SourceString("+") == op.source) {
+        push(new HAdd([left, right]));
+      } else if (const SourceString("-") == op.source) {
+        push(new HSubtract([left, right]));
+      } else if (const SourceString("*") == op.source) {
+        push(new HMultiply([left, right]));
+      } else if (const SourceString("/") == op.source) {
+        push(new HDivide([left, right]));
+      } else if (const SourceString("~/") == op.source) {
+        push(new HTruncatingDivide([left, right]));
+      }
     } else {
       visit(node.argumentsNode);
       var arguments = [];
@@ -133,7 +145,11 @@ class SsaBuilder implements Visitor {
   }
 
   visitOperator(Operator node) {
-    compiler.cancel();
+    compiler.unimplemented("SsaBuilder::visitOperator");
+  }
+
+  visitParameter(Parameter node) {
+    compiler.unimplemented("SsaBuilder::visitParameter");
   }
 
   visitReturn(Return node) {
@@ -149,5 +165,6 @@ class SsaBuilder implements Visitor {
 
   visitVariableDefinitions(VariableDefinitions node) {
     // TODO(floitsch): Implement this.
+    compiler.unimplemented("SsaBuilder::visitVariableDefinitions");
   }
 }

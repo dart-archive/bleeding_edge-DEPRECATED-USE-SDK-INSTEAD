@@ -29,6 +29,10 @@ class Compiler implements Canceler, Logger {
     tasks = [scanner, resolver, checker, builder, optimizer, generator];
   }
 
+  void unimplemented(String methodName) {
+    cancel("$methodName not implemented");
+  }
+
   void cancel([String reason]) {
     throw new CompilerCancelledException(reason);
   }
@@ -76,6 +80,10 @@ class Compiler implements Canceler, Logger {
     StringBuffer buffer = new StringBuffer();
     buffer.add(PRINT_SUPPORT);
     buffer.add(ADD_SUPPORT);
+    buffer.add(DIV_SUPPORT);
+    buffer.add(SUB_SUPPORT);
+    buffer.add(MUL_SUPPORT);
+    buffer.add(TDIV_SUPPORT);
     List<String> codeBlocks = universe.generatedCode.getValues();
     for (int i = codeBlocks.length - 1; i >= 0; i--) {
       buffer.add(codeBlocks[i]);
@@ -125,5 +133,34 @@ var print = (typeof console == 'object')
 final String ADD_SUPPORT = """
 function \$add(a, b) {
   return a + b;
+}
+""";
+
+final String DIV_SUPPORT = """
+function \$div(a, b) {
+  return a / b;
+}
+"""; 
+
+final String SUB_SUPPORT = """
+function \$sub(a, b) {
+  return a - b;
+}
+""";
+
+final String MUL_SUPPORT = """
+function \$mul(a, b) {
+  return a * b;
+}
+""";
+
+final String TDIV_SUPPORT = """
+function \$tdiv(a, b) {
+  var tmp = this / other;
+  if (tmp < 0) {
+    return Math.ceil(tmp);
+  } else {
+    return Math.floor(tmp);
+  }
 }
 """;

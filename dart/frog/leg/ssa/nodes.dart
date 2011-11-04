@@ -5,11 +5,15 @@
 interface HVisitor<R> {
   R visitAdd(HAdd node);
   R visitBasicBlock(HBasicBlock node);
+  R visitDivide(HDivide node);
   R visitExit(HExit node);
   R visitGoto(HGoto node);
   R visitInvoke(HInvoke node);
   R visitLiteral(HLiteral node);
+  R visitSubtract(HSubtract node);
+  R visitMultiply(HMultiply node);
   R visitReturn(HReturn node);
+  R visitTruncatingDivide(HTruncatingDivide node);
 }
 
 class HGraphVisitor {
@@ -106,12 +110,18 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
 
   visitInstruction(HInstruction) {}
 
-  visitAdd(HAdd node) => visitInvoke(node);
+  visitArithmetic(HInvoke node, String operation) => visitInvoke(node);
+
+  visitAdd(HAdd node) => visitArithmetic(node, '+');
+  visitDivide(HDivide node) => visitArithmetic(node, '/');
   visitExit(HExit node) => visitInstruction(node);
   visitGoto(HGoto node) => visitInstruction(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
+  visitSubtract(HSubtract node) => visitArithmetic(node, '-');
+  visitMultiply(HMultiply node) => visitArithmetic(node, '*');
   visitReturn(HReturn node) => visitInstruction(node);
+  visitTruncatingDivide(HTruncatingDivide node) => visitArithmetic(node, '~/');
 }
 
 class HBasicBlock {
@@ -317,6 +327,30 @@ class HAdd extends HInvoke {
   HAdd(inputs) : super(const SourceString('+'), inputs);
   hasSideEffects() => inputs[0] is !HLiteral;
   accept(HVisitor visitor) => visitor.visitAdd(this);
+}
+
+class HDivide extends HInvoke {
+  HDivide(inputs) : super(const SourceString('/'), inputs);
+  hasSideEffects() => inputs[0] is !HLiteral;
+  accept(HVisitor visitor) => visitor.visitDivide(this);
+}
+
+class HMultiply extends HInvoke {
+  HMultiply(inputs) : super(const SourceString('*'), inputs);
+  hasSideEffects() => inputs[0] is !HLiteral;
+  accept(HVisitor visitor) => visitor.visitMultiply(this);
+}
+
+class HSubtract extends HInvoke {
+  HSubtract(inputs) : super(const SourceString('-'), inputs);
+  hasSideEffects() => inputs[0] is !HLiteral;
+  accept(HVisitor visitor) => visitor.visitSubtract(this);
+}
+
+class HTruncatingDivide extends HInvoke {
+  HTruncatingDivide(inputs) : super(const SourceString('~/'), inputs);
+  hasSideEffects() => inputs[0] is !HLiteral;
+  accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 }
 
 class HExit extends HInstruction {

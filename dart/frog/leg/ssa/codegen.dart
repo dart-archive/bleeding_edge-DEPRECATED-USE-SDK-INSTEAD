@@ -93,6 +93,10 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
+  visitDivide(HDivide node) {
+    invoke(const SourceString('\$div'), node.inputs);
+  }
+
   visitExit(HExit node) {
     unreachable();
   }
@@ -109,8 +113,20 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(node.value);
   }
 
+  visitMultiply(HMultiply node) {
+    invoke(const SourceString('\$mul'), node.inputs);
+  }
+
   visitReturn(HReturn node) {
     buffer.add('return ');
     use(node.inputs[0]);
+  }
+
+  visitSubtract(HSubtract node) {
+    invoke(const SourceString('\$sub'), node.inputs);
+  }
+
+  visitTruncatingDivide(HTruncatingDivide node) {
+    invoke(const SourceString('\$tdiv'), node.inputs);
   }
 }

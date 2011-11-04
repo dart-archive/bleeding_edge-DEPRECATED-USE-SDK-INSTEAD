@@ -85,7 +85,10 @@ class ResolverVisitor implements Visitor<Element> {
       SourceString name = selector.source;
       if (name == const SourceString('print') ||
           name == const SourceString('+') ||
-          name == const SourceString('*')) {
+          name == const SourceString('-') ||
+          name == const SourceString('*') ||
+          name == const SourceString('/') ||
+          name == const SourceString('~/')) {
         // Do nothing.
       } else {
         // Complain: we could not resolve the method.

@@ -151,12 +151,14 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitAdd(HAdd node) => visitInvoke(node);
 
+  String visitDivide(HDivide node) => visitInvoke(node);
+
+  String visitExit(HExit node) => "exit";
+
   String visitGoto(HGoto node) {
     HBasicBlock target = currentBlock.successors[0];
     return "Goto (B${target.id})";
   }
-
-  String visitExit(HExit node) => "exit";
 
   String visitInvoke(HInvoke invoke) {
     StringBuffer arguments = new StringBuffer();
@@ -169,5 +171,11 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitLiteral(HLiteral literal) => "Literal ${literal.value}";
 
+  String visitMultiply(HMultiply node) => visitInvoke(node);
+
   String visitReturn(HReturn node) => "Return ${temporaryId(node.inputs[0])}";
+
+  String visitSubtract(HSubtract node) => visitInvoke(node);
+
+  String visitTruncatingDivide(HTruncatingDivide node) => visitInvoke(node);
 }

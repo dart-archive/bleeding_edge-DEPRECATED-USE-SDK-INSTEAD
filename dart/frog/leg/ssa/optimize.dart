@@ -42,14 +42,27 @@ class SsaConstantFolder extends HBaseVisitor {
     return node;
   }
 
-  HInstruction visitAdd(HAdd node) {
+  HInstruction visitArithmetic(HInvoke node, String operation) {
     bool isNumber(input) {
       return input is HLiteral && input.value is num;
     }
     List inputs = node.inputs;
     assert(inputs.length == 2);
     if (isNumber(inputs[0]) && isNumber(inputs[1])) {
-      return new HLiteral(inputs[0].value + inputs[1].value);
+      switch (operation) {
+      case '+': return new HLiteral(inputs[0].value + inputs[1].value);
+      case '-': return new HLiteral(inputs[0].value - inputs[1].value);
+      case '*': return new HLiteral(inputs[0].value * inputs[1].value);
+      case '/': {
+        if (inputs[1].value == 0) return node;
+        return new HLiteral(inputs[0].value / inputs[1].value);
+      }
+      case '~/': {
+        if (inputs[1].value == 0) return node;
+        return new HLiteral(inputs[0].value ~/ inputs[1].value);
+      }
+      default: unreachable();
+      }
     }
     return node;
   }
