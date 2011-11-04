@@ -8318,12 +8318,23 @@ WorldGenerator.prototype.writeType = function(type) {
     }
   }
   if (type.get$interfaces() != null) {
-    var $list = type.get$interfaces();
-    for (var $i = 0;$i < $list.length; $i++) {
-      var interface_ = $list.$index($i);
+    var seen = new HashSetImplementation();
+    var worklist = [];
+    worklist.addAll(type.get$interfaces());
+    seen.addAll(type.get$interfaces());
+    while (!worklist.isEmpty()) {
+      var interface_ = worklist.removeLast();
       this._maybeIsTest(type, interface_);
       if ((interface_ instanceof ConcreteType) && interface_.get$genericType().isTested) {
         this._maybeIsTest(type, interface_.get$genericType());
+      }
+      var $list = interface_.get$interfaces();
+      for (var $i = 0;$i < $list.length; $i++) {
+        var other = $list.$index($i);
+        if (!seen.contains(other)) {
+          worklist.addLast(other);
+          seen.add(other);
+        }
       }
     }
   }

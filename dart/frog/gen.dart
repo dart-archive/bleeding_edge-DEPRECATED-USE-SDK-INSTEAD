@@ -197,10 +197,21 @@ class WorldGenerator {
     }
 
     if (type.interfaces != null) {
-      for (var interface_ in type.interfaces) {
+      final seen = new Set();
+      final worklist = [];
+      worklist.addAll(type.interfaces);
+      seen.addAll(type.interfaces);
+      while (!worklist.isEmpty()) {
+        var interface_ = worklist.removeLast();
         _maybeIsTest(type, interface_);
         if (interface_ is ConcreteType && interface_.genericType.isTested) {
           _maybeIsTest(type, interface_.genericType);
+        }
+        for (var other in interface_.interfaces) {
+          if (!seen.contains(other)) {
+            worklist.addLast(other);
+            seen.add(other);
+          }
         }
       }
     }
