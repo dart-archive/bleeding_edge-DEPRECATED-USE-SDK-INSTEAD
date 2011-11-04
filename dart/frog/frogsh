@@ -6868,7 +6868,7 @@ HInvoke.prototype.accept = function(visitor) {
 }
 // ********** Code for HAdd **************
 function HAdd(inputs0) {
-  HInvoke.call(this, const$250/*const SourceString('+')*/, inputs0);
+  HInvoke.call(this, const$246/*const SourceString('+')*/, inputs0);
   // Initializers done
 }
 $inherits(HAdd, HInvoke);
@@ -6880,7 +6880,7 @@ HAdd.prototype.accept = function(visitor) {
 }
 // ********** Code for HDivide **************
 function HDivide(inputs0) {
-  HInvoke.call(this, const$253/*const SourceString('/')*/, inputs0);
+  HInvoke.call(this, const$249/*const SourceString('/')*/, inputs0);
   // Initializers done
 }
 $inherits(HDivide, HInvoke);
@@ -6892,7 +6892,7 @@ HDivide.prototype.accept = function(visitor) {
 }
 // ********** Code for HMultiply **************
 function HMultiply(inputs0) {
-  HInvoke.call(this, const$252/*const SourceString('*')*/, inputs0);
+  HInvoke.call(this, const$248/*const SourceString('*')*/, inputs0);
   // Initializers done
 }
 $inherits(HMultiply, HInvoke);
@@ -6904,7 +6904,7 @@ HMultiply.prototype.accept = function(visitor) {
 }
 // ********** Code for HSubtract **************
 function HSubtract(inputs0) {
-  HInvoke.call(this, const$251/*const SourceString('-')*/, inputs0);
+  HInvoke.call(this, const$247/*const SourceString('-')*/, inputs0);
   // Initializers done
 }
 $inherits(HSubtract, HInvoke);
@@ -6916,7 +6916,7 @@ HSubtract.prototype.accept = function(visitor) {
 }
 // ********** Code for HTruncatingDivide **************
 function HTruncatingDivide(inputs0) {
-  HInvoke.call(this, const$254/*const SourceString('~/')*/, inputs0);
+  HInvoke.call(this, const$250/*const SourceString('~/')*/, inputs0);
   // Initializers done
 }
 $inherits(HTruncatingDivide, HInvoke);
@@ -7564,17 +7564,16 @@ ResolverTask.prototype.get$name = function() {
 ResolverTask.prototype.resolve = function(tree) {
   var $this = this; // closure support
   return this.measure((function () {
-    var visitor = new ResolverVisitor($this.compiler, new Types());
+    var visitor = new ResolverVisitor($this.compiler);
     visitor.visit(tree);
-    return visitor.elements;
+    return visitor.mapping;
   })
   );
 }
 // ********** Code for ResolverVisitor **************
-function ResolverVisitor(compiler0, types) {
-  this.types = types;
+function ResolverVisitor(compiler0) {
   this.context = new Context(null, compiler0.universe.scope, compiler0.universe.elements);
-  this.elements = new HashMapImplementation$Node$Element();
+  this.mapping = new HashMapImplementation$Node$Element();
   this.compiler = compiler0;
   // Initializers done
 }
@@ -7584,7 +7583,7 @@ ResolverVisitor.prototype.fail = function(node) {
 ResolverVisitor.prototype.visit = function(node) {
   var element = node.accept(this);
   if (element != null) {
-    this.elements.$setindex(node, element);
+    this.mapping.$setindex(node, element);
   }
   return element;
 }
@@ -7601,19 +7600,19 @@ ResolverVisitor.prototype.visitExpressionStatement = function(node) {
   this.visit(node.expression);
 }
 ResolverVisitor.prototype.visitFunctionExpression = function(node) {
-  var elements0 = $map([]);
+  var parameterElements = $map([]);
   for (var link = node.parameters.nodes;
    !link.isEmpty(); link = link.get$tail()) {
     var parameter = link.get$head();
     var parameterElement = this.visit(parameter);
-    elements0.$setindex(parameter.get$name(), parameterElement);
+    parameterElements.$setindex(parameter.get$name(), parameterElement);
   }
   var element = null;
   var name = node.name;
   if (name != null) {
     element = this.context.lookup(name.get$source());
   }
-  this.visitIn(node.body, new Context(this.context, element, elements0));
+  this.visitIn(node.body, new Context(this.context, element, parameterElements));
   return element;
 }
 ResolverVisitor.prototype.visitIdentifier = function(node) {
@@ -7631,7 +7630,7 @@ ResolverVisitor.prototype.visitSend = function(node) {
   var target = this.compiler.universe.find(selector.get$source());
   if (target == null) {
     var name = selector.get$source();
-    if ($eq(name, const$249/*const SourceString('print')*/) || $eq(name, const$250/*const SourceString('+')*/) || $eq(name, const$251/*const SourceString('-')*/) || $eq(name, const$252/*const SourceString('*')*/) || $eq(name, const$253/*const SourceString('/')*/) || $eq(name, const$254/*const SourceString('~/')*/)) {
+    if ($eq(name, const$245/*const SourceString('print')*/) || $eq(name, const$246/*const SourceString('+')*/) || $eq(name, const$247/*const SourceString('-')*/) || $eq(name, const$248/*const SourceString('*')*/) || $eq(name, const$249/*const SourceString('/')*/) || $eq(name, const$250/*const SourceString('~/')*/)) {
     }
     else {
       this.fail(node);
@@ -7694,6 +7693,7 @@ VariableDefinitionsVisitor.prototype.visitSend = function(node) {
 VariableDefinitionsVisitor.prototype.visitIdentifier = function(node) {
   var variableElement = new Element(node.get$source(), this.resolver.context.element);
   this.resolver.context.elements.$setindex(node.token.get$value(), variableElement);
+  this.resolver.mapping.$setindex(node, variableElement);
 }
 VariableDefinitionsVisitor.prototype.visitNodeList = function(node) {
   for (var link = node.nodes;
@@ -7814,10 +7814,10 @@ FunctionType.prototype.toString = function() {
 }
 // ********** Code for Types **************
 function Types() {
-  this.VOID = new SimpleType(const$245, new Element(const$245/*const SourceString('void')*/));
-  this.INT = new SimpleType(const$246, new Element(const$246/*const SourceString('int')*/));
-  this.DYNAMIC = new SimpleType(const$247, new Element(const$247/*const SourceString('Dynamic')*/));
-  this.STRING = new SimpleType(const$248, new Element(const$248/*const SourceString('String')*/));
+  this.VOID = new SimpleType(const$251, new Element(const$251/*const SourceString('void')*/));
+  this.INT = new SimpleType(const$252, new Element(const$252/*const SourceString('int')*/));
+  this.DYNAMIC = new SimpleType(const$253, new Element(const$253/*const SourceString('Dynamic')*/));
+  this.STRING = new SimpleType(const$254, new Element(const$254/*const SourceString('String')*/));
   // Initializers done
 }
 Types.prototype.isSubtype = function(r, s) {
@@ -7892,7 +7892,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
   else {
     var selector = node.selector;
     var name = selector.get$source();
-    if ($eq(name, const$249/*const SourceString('print')*/) || $eq(name, const$250/*const SourceString('+')*/)) {
+    if ($eq(name, const$245/*const SourceString('print')*/) || $eq(name, const$246/*const SourceString('+')*/)) {
       return this.types.DYNAMIC;
     }
     this.compiler.cancel(('unresolved send ' + name + '.'));
@@ -7931,7 +7931,7 @@ TypeCheckerVisitor.prototype.visitReturn = function(node) {
   return this.types.VOID;
 }
 TypeCheckerVisitor.prototype.visitTypeAnnotation = function(node) {
-  if (node.typeName != null && $ne(node.typeName.get$source(), const$245/*const SourceString('void')*/)) {
+  if (node.typeName != null && $ne(node.typeName.get$source(), const$251/*const SourceString('void')*/)) {
     this.compiler.cancel(('unsupported type ' + node.typeName + ''));
   }
   return this.types.VOID;
@@ -17734,16 +17734,16 @@ var const$241 = new StringWrapper("return")/*const SourceString("return")*/;
 var const$242 = new StringWrapper('=')/*const SourceString('=')*/;
 var const$243 = new StringWrapper(',')/*const SourceString(',')*/;
 var const$244 = new StringWrapper('(')/*const SourceString('(')*/;
-var const$245 = new StringWrapper('void')/*const SourceString('void')*/;
-var const$246 = new StringWrapper('int')/*const SourceString('int')*/;
-var const$247 = new StringWrapper('Dynamic')/*const SourceString('Dynamic')*/;
-var const$248 = new StringWrapper('String')/*const SourceString('String')*/;
-var const$249 = new StringWrapper('print')/*const SourceString('print')*/;
-var const$250 = new StringWrapper('+')/*const SourceString('+')*/;
-var const$251 = new StringWrapper('-')/*const SourceString('-')*/;
-var const$252 = new StringWrapper('*')/*const SourceString('*')*/;
-var const$253 = new StringWrapper('/')/*const SourceString('/')*/;
-var const$254 = new StringWrapper('~/')/*const SourceString('~/')*/;
+var const$245 = new StringWrapper('print')/*const SourceString('print')*/;
+var const$246 = new StringWrapper('+')/*const SourceString('+')*/;
+var const$247 = new StringWrapper('-')/*const SourceString('-')*/;
+var const$248 = new StringWrapper('*')/*const SourceString('*')*/;
+var const$249 = new StringWrapper('/')/*const SourceString('/')*/;
+var const$250 = new StringWrapper('~/')/*const SourceString('~/')*/;
+var const$251 = new StringWrapper('void')/*const SourceString('void')*/;
+var const$252 = new StringWrapper('int')/*const SourceString('int')*/;
+var const$253 = new StringWrapper('Dynamic')/*const SourceString('Dynamic')*/;
+var const$254 = new StringWrapper('String')/*const SourceString('String')*/;
 var const$255 = new StringWrapper("+")/*const SourceString("+")*/;
 var const$256 = new StringWrapper("-")/*const SourceString("-")*/;
 var const$257 = new StringWrapper("*")/*const SourceString("*")*/;

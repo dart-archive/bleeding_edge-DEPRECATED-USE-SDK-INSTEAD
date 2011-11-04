@@ -8,24 +8,23 @@ class ResolverTask extends CompilerTask {
 
   Map<Node, Element> resolve(Node tree) {
     return measure(() {
-      ResolverVisitor visitor = new ResolverVisitor(compiler, new Types());
+      ResolverVisitor visitor = new ResolverVisitor(compiler);
       visitor.visit(tree);
-      return visitor.elements;
+      return visitor.mapping;
     });
   }
 }
 
 class ResolverVisitor implements Visitor<Element> {
   final Compiler compiler;
-  final Map<Node, Element> elements;
-  final Types types;
+  final Map<Node, Element> mapping;
 
   Context context;
 
-  ResolverVisitor(Compiler compiler, this.types)
+  ResolverVisitor(Compiler compiler)
     : context = new Context(null, compiler.universe.scope,
                             compiler.universe.elements),
-      elements = new Map<Node, Element>(),
+      mapping = new Map<Node, Element>(),
       this.compiler = compiler;
 
   fail(Node node) {
@@ -35,7 +34,7 @@ class ResolverVisitor implements Visitor<Element> {
   visit(Node node) {
     Element element = node.accept(this);
     if (element !== null) {
-      elements[node] = element;
+      mapping[node] = element;
     }
     return element;
   }
@@ -56,19 +55,19 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    var elements = {};
+    var parameterElements = {};
     for (var link = node.parameters.nodes; !link.isEmpty();
          link = link.tail) {
       var parameter = link.head;
       Element parameterElement = visit(parameter);
-      elements[parameter.name] = parameterElement;
+      parameterElements[parameter.name] = parameterElement;
     }
     var element = null;
     Identifier name = node.name;
     if (name !== null) {
       element = context.lookup(name.source);
     }
-    visitIn(node.body, new Context(context, element, elements));
+    visitIn(node.body, new Context(context, element, parameterElements));
     return element;
   }
 
@@ -170,6 +169,7 @@ class VariableDefinitionsVisitor implements Visitor<Element> {
     Element variableElement =
         new Element(node.source, resolver.context.element);
     resolver.context.elements[node.token.value] = variableElement;
+    resolver.mapping[node] = variableElement;
   }
 
   visitNodeList(NodeList node) {

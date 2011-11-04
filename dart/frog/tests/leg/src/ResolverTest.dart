@@ -45,12 +45,12 @@ createLocals(List variables) {
 }
 
 testLocals(List variables) {
-  ResolverVisitor visitor =
-      new ResolverVisitor(new Compiler(null), new Types());
+  ResolverVisitor visitor = new ResolverVisitor(new Compiler(null));
   Map map = visitor.visit(createLocals(variables));
   // A VariableDefinitions does not have an element.
   Expect.equals(null, map);
   Expect.equals(variables.length, visitor.context.elements.length);
+  Expect.equals(variables.length, visitor.mapping.length);
 
   for (final variable in variables) {
     final name = variable[0];
