@@ -1446,7 +1446,13 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     if (unit == null) {
       return false;
     }
-    unit.accept(new CompilationUnitStructureBuilder(this, newElements));
+    try {
+      unit.accept(new CompilationUnitStructureBuilder(this, newElements));
+    } catch (Exception exception) {
+      DartCore.logInformation("Failed to build the structure for the compilation unit "
+          + getCorrespondingResource().getLocation(), exception);
+      return false;
+    }
     //
     // Update the time stamp (might be IResource.NULL_STAMP if original does not
     // exist).

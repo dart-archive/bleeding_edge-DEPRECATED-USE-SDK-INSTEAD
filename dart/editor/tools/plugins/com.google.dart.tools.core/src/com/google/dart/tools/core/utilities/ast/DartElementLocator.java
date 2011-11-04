@@ -304,7 +304,16 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
 
   @Override
   public Void visitNode(DartNode node) {
-    node.accept(childVisitor);
+    try {
+      node.accept(childVisitor);
+    } catch (DartElementFoundException exception) {
+      throw exception;
+    } catch (Exception exception) {
+      // Ignore the exception and proceed in order to visit the rest of the structure.
+      DartCore.logInformation(
+          "Exception caught while traversing an AST structure. Please report to the dartc team.",
+          exception);
+    }
     return null;
   }
 
