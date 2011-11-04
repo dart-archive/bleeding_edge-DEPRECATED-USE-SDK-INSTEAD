@@ -485,7 +485,7 @@ public class DartCore extends Plugin {
    * @param exception the exception being logged
    */
   public static void logInformation(String message, Throwable exception) {
-    getPlugin().getLog().log(new Status(Status.INFO, PLUGIN_ID, message, exception));
+    getPlugin().getLog().log(new Status(Status.INFO, PLUGIN_ID, "INFO: " + message, exception));
   }
 
   /**

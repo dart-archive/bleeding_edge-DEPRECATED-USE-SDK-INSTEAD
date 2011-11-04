@@ -123,7 +123,12 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
 //             reconcileFlags,
 //             progressMonitor);
         List<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
-        ast = DartCompilerUtilities.resolveUnit(source, parseErrors);
+        try {
+          ast = DartCompilerUtilities.resolveUnit(source, parseErrors);
+        } catch (Exception exception) {
+          DartCore.logInformation("Could not reconcile \""
+              + source.getCorrespondingResource().getLocation() + "\"", exception);
+        }
         convertErrors(parseErrors, problems);
         if (progressMonitor != null) {
           progressMonitor.worked(1);
