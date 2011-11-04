@@ -18,20 +18,19 @@ class ResolverTask extends CompilerTask {
 class ResolverVisitor implements Visitor<Element> {
   final Compiler compiler;
   final Map<Node, Element> mapping;
-
-  Context context;
+  Scope context;
 
   ResolverVisitor(Compiler compiler)
-    : context = new Context(null, compiler.universe.scope,
-                            compiler.universe.elements),
+    : this.compiler = compiler,
       mapping = new Map<Node, Element>(),
-      this.compiler = compiler;
+      context = new Scope(new TopScope(compiler.universe));
 
   fail(Node node) {
     compiler.cancel('cannot resolve ${node}');
   }
 
   visit(Node node) {
+    if (node == null) return null;
     Element element = node.accept(this);
     if (element !== null) {
       mapping[node] = element;
@@ -39,15 +38,15 @@ class ResolverVisitor implements Visitor<Element> {
     return element;
   }
 
-  visitIn(Node node, Context ctx) {
-    Context parent = context;
-    context = ctx;
+  visitIn(Node node, Scope scope) {
+    context = scope;
     Element element = visit(node);
-    context = parent;
+    context = context.parent;
+    return element;
   }
 
   visitBlock(Block node) {
-    visit(node.statements);
+    visitIn(node.statements, new Scope(context));
   }
 
   visitExpressionStatement(ExpressionStatement node) {
@@ -55,24 +54,17 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    var parameterElements = {};
-    for (var link = node.parameters.nodes; !link.isEmpty();
-         link = link.tail) {
-      var parameter = link.head;
-      Element parameterElement = visit(parameter);
-      parameterElements[parameter.name] = parameterElement;
-    }
-    var element = null;
-    Identifier name = node.name;
-    if (name !== null) {
-      element = context.lookup(name.source);
-    }
-    visitIn(node.body, new Context(context, element, parameterElements));
-    return element;
+    // TODO(ngeoffray): FunctionExpression is currently a top-level
+    // method definition.
+    // TODO(ngeoffray): Handle parameters.
+    if (!node.parameters.nodes.isEmpty()) fail(node);
+    Element enclosingElement = visit(node.name);
+    visitIn(node.body, new Scope.enclosing(context, enclosingElement));
+    return enclosingElement;
   }
 
   visitIdentifier(Identifier node) {
-    var element = context.lookup(node.source);
+    Element element = context.lookup(node.source);
     if (element == null) fail(node);
     return element;
   }
@@ -80,14 +72,13 @@ class ResolverVisitor implements Visitor<Element> {
   visitIf(If node) {
     visit(node.condition);
     visit(node.thenPart);
-    if (node.elsePart !== null) visit(node.elsePart);
+    visit(node.elsePart);
   }
 
   visitSend(Send node) {
-    Identifier selector = node.selector;
-    Element target = compiler.universe.find(selector.source);
+    Element target = visit(node.selector);
     if (target == null) {
-      SourceString name = selector.source;
+      SourceString name = node.selector.source;
       if (name == const SourceString('print') ||
           name == const SourceString('+') ||
           name == const SourceString('-') ||
@@ -100,8 +91,10 @@ class ResolverVisitor implements Visitor<Element> {
         fail(node);
       }
     } else {
+      // TODO(ngeoffray): the code generator should actually add it
+      // instead.
       // Add the source of the method to the work list.
-      compiler.worklist.add(selector.source);
+      compiler.worklist.add(node.selector.source);
     }
     visit(node.argumentsNode);
     return target;
@@ -129,10 +122,6 @@ class ResolverVisitor implements Visitor<Element> {
     fail(node);
   }
 
-  visitParameter(Parameter node) {
-    return new Element(node.name.source, context.element);
-  }
-
   visitReturn(Return node) {
     visit(node.expression);
     return null;
@@ -144,6 +133,11 @@ class ResolverVisitor implements Visitor<Element> {
   visitVariableDefinitions(VariableDefinitions node) {
     Visitor visitor = new VariableDefinitionsVisitor(node, this);
     visitor.visit(node.definitions);
+  }
+
+  Element setElement(Node node, Element element) {
+    mapping[node] = element;
+    context.add(element);
   }
 }
 
@@ -157,7 +151,7 @@ class VariableDefinitionsVisitor implements Visitor<Element> {
     assert(node.arguments.tail.isEmpty()); // Sanity check
     Identifier selector = node.selector;
     SourceString name = selector.source;
-    if (name != const SourceString('=')) resolver.fail(node);
+    assert(name == const SourceString('='));
     resolver.visit(node.arguments.head);
 
     // Visit the receiver after visiting the initializer, to not put
@@ -167,9 +161,8 @@ class VariableDefinitionsVisitor implements Visitor<Element> {
 
   visitIdentifier(Identifier node) {
     Element variableElement =
-        new Element(node.source, resolver.context.element);
-    resolver.context.elements[node.token.value] = variableElement;
-    resolver.mapping[node] = variableElement;
+        new Element(node.source, resolver.context.enclosingElement);
+    resolver.setElement(node, variableElement);
   }
 
   visitNodeList(NodeList node) {
@@ -181,25 +174,39 @@ class VariableDefinitionsVisitor implements Visitor<Element> {
   visit(Node node) => node.accept(this);
 }
 
-class Context {
-  final Context parent;
+class Scope {
+  final Scope parent;
   final Map<SourceString, Element> elements;
-  final Element element;
+  final Element enclosingElement;
 
-  // TODO(karlklose): add currentClass, currentLibrary.
+  Scope(Scope parent)
+    : this.enclosing(parent, parent.enclosingElement);
 
-  Context(this.parent, this.element, [elements])
-    : this.elements = (elements === null) ? {} : elements;
+  Scope.enclosing(Scope this.parent, this.enclosingElement)
+    : this.elements = {};
+
+  Scope.top() : parent = null, elements = const {}, enclosingElement = null;
 
   Element lookup(SourceString name) {
-    // TODO(karlklose): add parameter 'Library inLibrary' for library
-    // private lookup.
-    if (elements != null && elements[name] !== null) {
-      return elements[name];
-    } else if (parent !== null) {
-      return parent.lookup(name);
-    } else {
-     return null;
-    }
+    Element element = elements[name];
+    if (element !== null) return element;
+    return parent.lookup(name);
+  }
+
+  void add(Element element) {
+    elements[element.name] = element;
+  }
+}
+
+// TODO(ngeoffray): this top scope should have libraryElement as
+// enclosingElement.
+class TopScope extends Scope {
+  Universe universe;
+
+  TopScope(Universe this.universe) : super.top();
+  Element lookup(SourceString name) => universe.find(name);
+
+  void add(Element element) {
+    throw "Cannot add an element in the top scope";
   }
 }

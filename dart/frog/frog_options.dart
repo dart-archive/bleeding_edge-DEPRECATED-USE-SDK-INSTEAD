@@ -63,6 +63,7 @@ class FrogOptions {
           continue loop;
 
         case '--leg_only':
+          enableLeg = true;
           legOnly = true;
           continue loop;
 
