@@ -53,14 +53,14 @@ def main(args):
 
   print 'Started'
   start = time.time()
-  RunCommand('./frog.py', '--js_out=frogsh',
+  RunCommand('./frog.py',
              '--vm_flags=--compile_all --enable_type_checks --enable_asserts',
-             '--', 'frog.dart')
+             '--',  '--out=frogsh', 'frog.dart')
   elapsed = time.time() - start
   print 'Compiling on Dart VM took %s seconds %s' % (b(elapsed),
                                                      b('in checked mode'))
   start = time.time()
-  RunCommand('./frog.py', '--js_out=frogsh', '--', 'frog.dart')
+  RunCommand('./frog.py', '--out=frogsh', 'frog.dart')
   elapsed = time.time() - start
   print 'Compiling on Dart VM took %s seconds' % b(elapsed)
   start = time.time()

@@ -12,15 +12,11 @@ To use frog:
 1) Frog is now included in the checkout of the public repo of the bleeding_edge
    branch. The code will be located under dart/frog.
 
-2) You need to build the VM before you can use Frog.  Right now, the easiest
-   way to do this is from the dart directory,
-     dart$ tools/build.py --mode=release --arch=ia32
-
-3) Make sure you have 'node' in your path (http://nodejs.org/, and
+2) Make sure you have 'node' in your path (http://nodejs.org/, and
    https://github.com/joyent/node/wiki/Installation for how to install)
    # TODO(jimhug): Move this dependency to third_party.
 
-4) From the dart/frog directory, run the presubmit script to check your
+3) From the dart/frog directory, run the presubmit script to check your
    installation is all working.
      frog$ ./presubmit.py
 
@@ -63,7 +59,7 @@ component is from running selfhosted on node.js.
 
 To build the self-hosted compiler called frogsh (for frog self-hosted), run:
 
-  $ ./frog.py --js_out=frogsh -- frog.dart
+  $ ./frog.py --out=frogsh frog.dart
 
 You can also build and check the self-hosted compiler from itself by running:
   $ ./frogsh --out=frogsh frog.dart tests/hello.dart

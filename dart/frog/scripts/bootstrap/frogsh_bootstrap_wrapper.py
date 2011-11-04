@@ -13,9 +13,9 @@ import frog
 
 def main(args):
   for arg in args:
-    index = arg.find('--js_out=')
+    index = arg.find('--out=')
     if index != -1:
-      js_out = arg[9:len(arg)];
+      js_out = arg[6:len(arg)];
 
   # TODO(ngeoffray): Compile frogsh without checks integrated.
   # if js_out.find('Release') != -1:

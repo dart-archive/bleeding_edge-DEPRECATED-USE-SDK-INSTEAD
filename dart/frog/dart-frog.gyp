@@ -53,7 +53,7 @@
           'action': [
             'python',
             'scripts/bootstrap/frogsh_bootstrap_wrapper.py',
-            '--js_out=<(PRODUCT_DIR)/frog/bin/frogsh', '--', 'frog.dart',
+            '--out=<(PRODUCT_DIR)/frog/bin/frogsh', 'frog.dart',
           ],
           'message': 'Generating frogsh file'
         },
