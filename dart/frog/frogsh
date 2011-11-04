@@ -8268,7 +8268,11 @@ WorldGenerator.prototype.genMethod = function(meth, enclosingMethod) {
 }
 WorldGenerator.prototype._maybeIsTest = function(onType, checkType) {
   if (!checkType.isTested) return;
-  this.writer.writeln(('' + onType.get$jsname() + '.prototype.is\$' + checkType.get$jsname() + ' =') + ' function(){return this;};');
+  var value = 'false';
+  if (onType.isSubtypeOf(checkType)) {
+    value = 'function(){return this;}';
+  }
+  this.writer.writeln(('' + onType.get$jsname() + '.prototype.is\$' + checkType.get$jsname() + ' = ') + ('' + value + ';'));
 }
 WorldGenerator.prototype.writeType = function(type) {
   if (type.name != null && (type instanceof ConcreteType) && $eq(type.get$library(), world.get$coreimpl()) && type.name.startsWith('ListFactory')) {
@@ -8324,20 +8328,11 @@ WorldGenerator.prototype.writeType = function(type) {
   if (!(type instanceof ConcreteType)) {
     this._maybeIsTest(type, type);
   }
-  if (type.get$isGeneric()) {
-    var $list = this._orderValues(type._concreteTypes);
-    for (var $i = 0;$i < $list.length; $i++) {
-      var ct = $list.$index($i);
-      this._maybeIsTest(type, ct);
-    }
-  }
-  else if ((type instanceof ConcreteType)) {
+  if (type.get$genericType()._concreteTypes != null) {
     var $list = this._orderValues(type.get$genericType()._concreteTypes);
     for (var $i = 0;$i < $list.length; $i++) {
       var ct = $list.$index($i);
-      if (ct.isTested && !type.isSubtypeOf(ct)) {
-        this.writer.writeln(('' + type.get$jsname() + '.prototype.is\$' + ct.get$jsname() + ' = false;'));
-      }
+      this._maybeIsTest(type, ct);
     }
   }
   if (type.get$interfaces() != null) {
@@ -8347,9 +8342,13 @@ WorldGenerator.prototype.writeType = function(type) {
     seen.addAll(type.get$interfaces());
     while (!worklist.isEmpty()) {
       var interface_ = worklist.removeLast();
-      this._maybeIsTest(type, interface_);
-      if ((interface_ instanceof ConcreteType) && interface_.get$genericType().isTested) {
-        this._maybeIsTest(type, interface_.get$genericType());
+      this._maybeIsTest(type, interface_.get$genericType());
+      if (interface_.get$genericType()._concreteTypes != null) {
+        var $list = this._orderValues(interface_.get$genericType()._concreteTypes);
+        for (var $i = 0;$i < $list.length; $i++) {
+          var ct = $list.$index($i);
+          this._maybeIsTest(type, ct);
+        }
       }
       var $list = interface_.get$interfaces();
       for (var $i = 0;$i < $list.length; $i++) {

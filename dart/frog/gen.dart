@@ -120,8 +120,13 @@ class WorldGenerator {
   _maybeIsTest(Type onType, Type checkType) {
     if (!checkType.isTested) return;
 
-    writer.writeln('${onType.jsname}.prototype.is\$${checkType.jsname} ='
-        + ' function(){return this;};');
+    var value = 'false';
+    if (onType.isSubtypeOf(checkType)) {
+      value = 'function(){return this;}';
+    }
+
+    writer.writeln('${onType.jsname}.prototype.is\$${checkType.jsname} = '
+        + '$value;');
   }
 
   writeType(Type type) {
@@ -171,7 +176,8 @@ class WorldGenerator {
 
     if (!type.isTop) {
       if (type is ConcreteType) {
-        writer.writeln('\$inherits(${type.jsname}, ${type.genericType.jsname});');
+        writer.writeln(
+            '\$inherits(${type.jsname}, ${type.genericType.jsname});');
       } else if (!type.isNativeType) {
         if (type.parent != null && !type.parent.isObject) {
           writer.writeln('\$inherits(${type.jsname}, ${type.parent.jsname});');
@@ -179,20 +185,14 @@ class WorldGenerator {
       }
     }
 
+    // Concrete types (like List<String>) will this already defined on their
+    // prototype from the generic type (like List)
     if (type is! ConcreteType) {
       _maybeIsTest(type, type);
     }
-
-    if (type.isGeneric) {
-      for (var ct in _orderValues(type._concreteTypes)) {
-        _maybeIsTest(type, ct);
-      }
-    } else if (type is ConcreteType) {
+    if (type.genericType._concreteTypes != null) {
       for (var ct in _orderValues(type.genericType._concreteTypes)) {
-        if (ct.isTested && !type.isSubtypeOf(ct)) {
-          writer.writeln(
-            '${type.jsname}.prototype.is\$${ct.jsname} = false;');
-        }
+        _maybeIsTest(type, ct);
       }
     }
 
@@ -203,9 +203,11 @@ class WorldGenerator {
       seen.addAll(type.interfaces);
       while (!worklist.isEmpty()) {
         var interface_ = worklist.removeLast();
-        _maybeIsTest(type, interface_);
-        if (interface_ is ConcreteType && interface_.genericType.isTested) {
-          _maybeIsTest(type, interface_.genericType);
+        _maybeIsTest(type, interface_.genericType);
+        if (interface_.genericType._concreteTypes != null) {
+          for (var ct in _orderValues(interface_.genericType._concreteTypes)) {
+            _maybeIsTest(type, ct);
+          }
         }
         for (var other in interface_.interfaces) {
           if (!seen.contains(other)) {
