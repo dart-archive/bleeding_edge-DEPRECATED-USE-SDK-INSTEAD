@@ -26,7 +26,7 @@ void main() {
   rl.on("line", (command) {
     try {
       var result = eval.eval(command);
-      if (result != null) print(result);
+      if (result !== null) print(result);
     } catch (CompilerException e) {
       // Do nothing, since a message was already printed
     } catch (var e, stack) {

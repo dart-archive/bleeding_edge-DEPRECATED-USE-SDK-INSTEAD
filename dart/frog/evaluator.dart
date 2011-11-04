@@ -62,19 +62,25 @@ class Evaluator {
     }
   }
 
+  _removeMember(String name) {
+    _lib.topType._resolvedMembers.remove(name);
+    Member removed = _lib.topType.members.remove(name);
+    if (removed != null) world._topNames.remove(removed.jsname);
+  }
+
   Evaluator(JsEvaluator this._jsEvaluator) {
     if (_marked == null) {
       throw new UnsupportedOperationException(
           "Must call Evaluator.initWorld before creating a Evaluator.");
     }
     this._jsEvaluator.eval(world.gen.writer.text);
-    _lib = new Library(new SourceFile("#ifrog", ""));
+    _lib = new Library(new SourceFile("_ifrog_", ""));
     _lib.imports.add(new LibraryImport(world.corelib));
     _lib.resolve();
   }
 
   var eval(String dart) {
-    var source = new SourceFile("#ifrog", dart);
+    var source = new SourceFile("_ifrog_", dart);
     // TODO(jimhug): This is usually frowned on - one gen per world...
     var gen = new WorldGenerator(null, new CodeWriter());
 
@@ -84,24 +90,39 @@ class Evaluator {
     var methGen = new MethodGenerator(method, null);
 
     if (parsed is ExpressionStatement) {
-      code = parsed.body.visit(methGen).code;
+      var body = parsed.body;
+      // Auto-declare variables that haven't been declared yet, so users can
+      // write "a = 1" rather than "var a = 1"
+      if (body is BinaryExpression && body.op.kind == TokenKind.ASSIGN &&
+          body.x is VarExpression) {
+        var name = body.x.name.name;
+        var member = _lib.topType.getMember(name);
+        if (member is! FieldMember && member is! PropertyMember) {
+          if (member != null) _removeMember(name);
+          var def = new VariableDefinition([], world.varType, [body.x.name],
+              [null], parsed.span);
+          _lib.topType.addField(def);
+        }
+      }
+      code = body.visit(methGen).code;
     } else if (parsed is VariableDefinition) {
-      // TODO(nweiz): Make this more user-friendly (don't require explicit
-      // variable declarations, allow overwriting variables/functions).
       var emptyDef = new VariableDefinition(parsed.modifiers, parsed.type,
           parsed.names, new List(parsed.names.length), parsed.span);
       _lib.topType.addField(emptyDef);
       parsed.visit(methGen);
       code = methGen.writer.text;
     } else if (parsed is FunctionDefinition) {
-      _lib.topType.addMethod(parsed.name.name, parsed);
-      MethodMember definedMethod = _lib.topType.getMember(parsed.name.name);
+      var methodName = parsed.name.name;
+      _removeMember(methodName);
+      _lib.topType.addMethod(methodName, parsed);
+      MethodMember definedMethod = _lib.topType.getMember(methodName);
       definedMethod.resolve(_lib.topType);
       var definedMethGen = new MethodGenerator(definedMethod, null);
       definedMethGen.run();
       definedMethGen.writeDefinition(gen.writer, null);
       code = gen.writer.text;
     } else if (parsed is TypeDefinition) {
+      _removeMember(parsed.name.name);
       var type = _lib.addType(parsed.name.name, parsed, parsed.isClass);
       type.resolve();
       gen.writeType(type);
