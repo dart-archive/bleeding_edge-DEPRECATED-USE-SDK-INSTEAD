@@ -68,7 +68,7 @@ def main(args):
   if args[1:]:
     test_cmd.extend(args[1:])
   else:
-    test_cmd.extend(['language', 'corelib', 'leg'])
+    test_cmd.extend(['language', 'corelib', 'leg', 'peg'])
   RunCommand(*test_cmd, verbose=True)
   leg_test_dir = os.path.join('leg', 'tests')
   for current_dir, directories, filenames in os.walk(leg_test_dir):
