@@ -260,7 +260,11 @@ class World {
 
   bool runLeg() {
     if (!options.enableLeg) return false;
-    return withTiming('try leg compile', () => leg.compile(this));
+    bool res = withTiming('try leg compile', () => leg.compile(this));
+    if (!res && options.legOnly) {
+      fatal("Leg could not compile ${options.dartScript}");
+    }
+    return res;
   }
 
   void runCompilationPhases() {

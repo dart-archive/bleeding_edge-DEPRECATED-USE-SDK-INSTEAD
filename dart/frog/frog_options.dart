@@ -24,6 +24,7 @@ class FrogOptions {
 
   // Options that modify behavior significantly
   bool enableLeg = false;
+  bool legOnly = false;
   bool enableAsserts = false;
   bool enableTypeChecks = false;
   bool verifyImplements = false; // TODO(jimhug): Implement
@@ -59,6 +60,10 @@ class FrogOptions {
       switch (arg) {
         case '--enable_leg':
           enableLeg = true;
+          continue loop;
+
+        case '--leg_only':
+          legOnly = true;
           continue loop;
 
         case '--enable_asserts':

@@ -17058,10 +17058,14 @@ World.prototype.compile = function() {
 World.prototype.runLeg = function() {
   var $this = this; // closure support
   if (!options.enableLeg) return false;
-  return this.withTiming('try leg compile', (function () {
+  var res = this.withTiming('try leg compile', (function () {
     return compile($this);
   })
   );
+  if (!res && options.legOnly) {
+    this.fatal(("Leg could not compile " + options.dartScript + ""));
+  }
+  return res;
 }
 World.prototype.runCompilationPhases = function() {
   var $this = this; // closure support
@@ -17215,6 +17219,7 @@ World.prototype.withTiming = function(name, f) {
 // ********** Code for FrogOptions **************
 function FrogOptions(homedir, args, files) {
   this.enableLeg = false
+  this.legOnly = false
   this.enableAsserts = false
   this.enableTypeChecks = false
   this.verifyImplements = false
@@ -17239,6 +17244,11 @@ function FrogOptions(homedir, args, files) {
       case '--enable_leg':
 
         this.enableLeg = true;
+        continue loop;
+
+      case '--leg_only':
+
+        this.legOnly = true;
         continue loop;
 
       case '--enable_asserts':
