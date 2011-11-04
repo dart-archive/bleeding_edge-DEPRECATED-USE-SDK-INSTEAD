@@ -50,7 +50,7 @@ class Compiler implements Canceler, Logger {
     if (GENERATE_SSA_TRACE) {
       print("------------------");
       print(new HTracer.singleton());
-      print("------------------");      
+      print("------------------");
     }
     log('compilation succeeded');
     return true;

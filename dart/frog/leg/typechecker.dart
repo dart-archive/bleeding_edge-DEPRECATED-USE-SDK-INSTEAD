@@ -120,7 +120,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     if (target !== null) {
       // TODO(karlklose): Move that to a function that also
       // calculates FunctionTypes for other target types.
-      FunctionType funType = target.type;
+      FunctionType funType = target.computeType(compiler, types);
       Link<Type> formals = funType.parameterTypes;
       Link<Node> arguments = node.arguments;
       while ((!formals.isEmpty()) && (!arguments.isEmpty())) {

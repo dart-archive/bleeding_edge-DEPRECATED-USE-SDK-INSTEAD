@@ -22,6 +22,7 @@ class Listener {
       topLevelElements = const EmptyLink<Element>();
 
   void beginLibraryTag(Token token) {
+    canceler.cancel("Cannot handle library tags");
     libraryTagCount++;
   }
 
@@ -30,7 +31,9 @@ class Listener {
     push(token, buildClassElement);
   }
 
-  Element buildClassElement(DeclarationBuilder declaration) => null;
+  Element buildClassElement(DeclarationBuilder declaration) {
+    canceler.cancel("Cannot handle classes");
+  }
 
   void endClass(Token token) {
     handleDeclaration(pop(), token);
@@ -41,7 +44,9 @@ class Listener {
     push(token, buildInterfaceElement);
   }
 
-  Element buildInterfaceElement(DeclarationBuilder declaration) => null;
+  Element buildInterfaceElement(DeclarationBuilder declaration) {
+    canceler.cancel("Cannot handle interfaces");
+  }
 
   void endInterface(Token token) {
     handleDeclaration(pop(), token);
@@ -52,7 +57,9 @@ class Listener {
     push(token, buildFunctionTypeAliasElement);
   }
 
-  Element buildFunctionTypeAliasElement(DeclarationBuilder declaration) => null;
+  Element buildFunctionTypeAliasElement(DeclarationBuilder declaration) {
+    canceler.cancel("Cannot handle typedefs");
+  }
 
   void endFunctionTypeAlias(Token token) {
     handleDeclaration(pop(), token);
@@ -78,7 +85,9 @@ class Listener {
     builders.head.name = previousIdentifier.source;
   }
 
-  Element buildField(DeclarationBuilder declaration) => null;
+  Element buildField(DeclarationBuilder declaration) {
+    canceler.cancel("Cannot handle fields");
+  }
 
   void endTopLevelMember(Token token) {
     handleDeclaration(pop(), token);

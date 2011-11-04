@@ -4607,14 +4607,14 @@ Parser.prototype.parseUnit = function(token) {
         token = this.parseNamedFunctionAlias(token);
         break;
 
-      case const$237/*const SourceString("#")*/:
-
-        token = this.parseLibraryTags(token);
-        break;
-
       default:
 
-        token = this.parseTopLevelMember(token);
+        if ($eq(token.get$value(), const$237/*const SourceString("#")*/)) {
+          token = this.parseLibraryTags(token);
+        }
+        else {
+          token = this.parseTopLevelMember(token);
+        }
         break;
 
     }
@@ -5289,6 +5289,7 @@ function Listener(canceler) {
   // Initializers done
 }
 Listener.prototype.beginLibraryTag = function(token) {
+  this.canceler.cancel("Cannot handle library tags");
   this.libraryTagCount++;
 }
 Listener.prototype.beginClass = function(token) {
@@ -5296,7 +5297,7 @@ Listener.prototype.beginClass = function(token) {
   this.push(token, this.get$buildClassElement());
 }
 Listener.prototype.buildClassElement = function(declaration) {
-  return null;
+  this.canceler.cancel("Cannot handle classes");
 }
 Listener.prototype.get$buildClassElement = function() {
   return Listener.prototype.buildClassElement.bind(this);
@@ -5309,7 +5310,7 @@ Listener.prototype.beginInterface = function(token) {
   this.push(token, this.get$buildInterfaceElement());
 }
 Listener.prototype.buildInterfaceElement = function(declaration) {
-  return null;
+  this.canceler.cancel("Cannot handle interfaces");
 }
 Listener.prototype.get$buildInterfaceElement = function() {
   return Listener.prototype.buildInterfaceElement.bind(this);
@@ -5322,7 +5323,7 @@ Listener.prototype.beginFunctionTypeAlias = function(token) {
   this.push(token, this.get$buildFunctionTypeAliasElement());
 }
 Listener.prototype.buildFunctionTypeAliasElement = function(declaration) {
-  return null;
+  this.canceler.cancel("Cannot handle typedefs");
 }
 Listener.prototype.get$buildFunctionTypeAliasElement = function() {
   return Listener.prototype.buildFunctionTypeAliasElement.bind(this);
@@ -5348,7 +5349,7 @@ Listener.prototype.topLevelField = function(token) {
   this.builders.get$head().name = this.previousIdentifier.get$source();
 }
 Listener.prototype.buildField = function(declaration) {
-  return null;
+  this.canceler.cancel("Cannot handle fields");
 }
 Listener.prototype.get$buildField = function() {
   return Listener.prototype.buildField.bind(this);
@@ -7694,7 +7695,7 @@ TypeCheckerVisitor.prototype.visitIdentifier = function(node) {
 TypeCheckerVisitor.prototype.visitSend = function(node) {
   var target = this.elements.$index(node);
   if (target != null) {
-    var funType = target.type;
+    var funType = target.computeType(this.compiler, this.types);
     var formals = funType.parameterTypes;
     var arguments = node.get$arguments();
     while ((!formals.isEmpty()) && (!arguments.isEmpty())) {

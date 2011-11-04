@@ -34,11 +34,13 @@ class Parser {
         case Keyword.TYPEDEF:
           token = parseNamedFunctionAlias(token);
           break;
-        case const SourceString("#"):
-          token = parseLibraryTags(token);
-          break;
         default:
-          token = parseTopLevelMember(token);
+          // TODO(ahe): Work around frog switch bug #314.
+          if (token.value == const SourceString("#")) {
+            token = parseLibraryTags(token);
+          } else {
+            token = parseTopLevelMember(token);
+          }
           break;
       }
     }

@@ -62,7 +62,7 @@ def main(args):
   print 'Generated frogsh is \033[1m%d\033[0m kB' % size
 
   RunCommand('../tools/build.py', '--mode=release')
-  test_cmd = ['../tools/test.py', '--component=frog,frogsh',
+  test_cmd = ['../tools/test.py', '--component=frog,frogsh,leg',
               '--report', '--timeout=5', '--progress=color',
               '--mode=release']
   if args[1:]:
@@ -70,6 +70,7 @@ def main(args):
   else:
     test_cmd.extend(['language', 'corelib', 'leg', 'peg'])
   RunCommand(*test_cmd, verbose=True)
+
   leg_test_dir = os.path.join('leg', 'tests')
   for current_dir, directories, filenames in os.walk(leg_test_dir):
     for filename in filenames:
