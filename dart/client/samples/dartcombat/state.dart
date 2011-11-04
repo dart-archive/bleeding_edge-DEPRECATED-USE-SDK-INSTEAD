@@ -143,12 +143,13 @@ class PlayerState extends Isolate {
   void singleShot(int x, int y) {
     if (_canShoot(x, y)) {
       _recordPendingShot(x, y);
-      Promise<int> res = enemy.shoot(x, y); // async shot!
-      res.addCompleteHandler((int result) {
+      Future<int> res = enemy.shoot(x, y); // async shot!
+      res.then((int result) {
         _recordShotResult(result, x, y);
       });
-      res.addErrorHandler((String error) {
+      res.handleException((String error) {
         _recordFailedShot(x, y);
+        return true;
       });
     }
   }
@@ -161,16 +162,17 @@ class PlayerState extends Isolate {
   void superShot(int x, int y, bool parallel) {
     if (_canShoot(x, y)) {
       _recordPendingShot(x, y);
-      Promise<int> firstShot = enemy.shoot(x, y);
-      firstShot.addCompleteHandler((int res) {
+      Future<int> firstShot = enemy.shoot(x, y);
+      firstShot.then((int res) {
         _recordShotResult(res, x, y);
         if (res == Constants.HIT) {
           // no miss, but no sunk, search around
           _exploreAllDirections(x, y, parallel);
         }
       });
-      firstShot.addErrorHandler((String error) {
+      firstShot.handleException((String error) {
         _recordFailedShot(x, y);
+        return true;
       });
     }
   }
@@ -180,25 +182,27 @@ class PlayerState extends Isolate {
   static final UP_DIR = const [0, -1];
   static final DOWN_DIR = const [0, 1];
 
-  Promise<bool> _exploreAllDirections(int x, int y, bool parallel) {
-    Promise<bool> superShot = new Promise<bool>();
+  Future<bool> _exploreAllDirections(int x, int y, bool parallel) {
+    Completer<bool> superShot = new Completer<bool>();
     if (parallel) {
-      final arr = new List<Promise<bool>>();
+      final arr = new List<Future<bool>>();
       arr.add(_exploreDirectionHelper(LEFT_DIR, x, y));
       arr.add(_exploreDirectionHelper(RIGHT_DIR, x, y));
       arr.add(_exploreDirectionHelper(UP_DIR, x, y));
       arr.add(_exploreDirectionHelper(DOWN_DIR, x, y));
-      superShot.waitFor(arr, 4);
+      Futures.wait(arr).then((arrValues) {
+        superShot.complete(true);
+      });
     } else {
       _seqExploreDirectionHelper(LEFT_DIR, x, y, superShot,
           _seqExploreDirectionHelper(RIGHT_DIR, x, y, superShot,
             _seqExploreDirectionHelper(UP_DIR, x, y, superShot,
               _seqExploreDirectionHelper(DOWN_DIR, x, y, superShot, null))))(false);
     }
-    return superShot;
+    return superShot.future;
   }
   Function _seqExploreDirectionHelper(List<int> dir, int x, int y,
-      Promise<bool> seq, void _next(bool res)) {
+      Completer<bool> seq, void _next(bool res)) {
     return (bool res) {
       if (res) {
         seq.complete(true);
@@ -209,21 +213,21 @@ class PlayerState extends Isolate {
     };
   }
 
-  Promise<bool> _exploreDirectionHelper(List<int> dir, int x, int y) {
-    Promise<bool> sunk = new Promise<bool>();
+  Future<bool> _exploreDirectionHelper(List<int> dir, int x, int y) {
+    Completer<bool> sunk = new Completer<bool>();
     _followDir(x + dir[0], y + dir[1], dir[0], dir[1], sunk);
-    return sunk;
+    return sunk.future;
   }
 
-  void _followDir(int x, int y, int incX, int incY, Promise<bool> sunk) {
+  void _followDir(int x, int y, int incX, int incY, Completer<bool> sunk) {
     if (_canShoot(x, y)) {
       _recordPendingShot(x, y);
-      Promise<int> shot = enemy.shoot(x, y);
-      shot.addCompleteHandler((int res) {
+      Future<int> shot = enemy.shoot(x, y);
+      shot.then((int res) {
         _recordShotResult(res, x, y);
         switch (res) {
           case Constants.HIT:
-            if (!sunk.isDone() && !sunk.isCancelled()) {
+            if (!sunk.future.isComplete) {
               _followDir(x + incX, y + incY, incX, incY, sunk);
             }
             break;
@@ -235,9 +239,10 @@ class PlayerState extends Isolate {
             break;
         }
       });
-      shot.addErrorHandler((String error) {
+      shot.handleException((String error) {
         _recordFailedShot(x, y);
-        sunk.fail(error);
+        sunk.completeException(error);
+        return true;
       });
       // We don't actually chain sunk.cancel with shot.cancel because individual
       // shots can't be cancelled.

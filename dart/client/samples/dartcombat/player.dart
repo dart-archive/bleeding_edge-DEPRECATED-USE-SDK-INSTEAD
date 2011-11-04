@@ -7,7 +7,7 @@ interface Player factory PlayerImpl {
 
   Player();
 
-  final Promise<SendPort> portToPlayer;
+  final Future<SendPort> portToPlayer;
 
   void setup(Window window, int player);
 
@@ -21,10 +21,10 @@ interface Enemy factory EnemyImpl {
   Enemy(SendPort port);
 
   /** tell the enemy that we are ready, receive confirmation asynchronously. */
-  Promise<int> ready();
+  Future<int> ready();
 
   /** shoot asynchronously. */
-  Promise<int> shoot(int x, int y);
+  Future<int> shoot(int x, int y);
 }
 
 
@@ -33,7 +33,7 @@ interface Enemy factory EnemyImpl {
  * contains the actual player state.
  */
 class PlayerImpl implements Player {
-  final Promise<SendPort> portToPlayer;
+  final Future<SendPort> portToPlayer;
 
   PlayerImpl() : portToPlayer = new PlayerState().spawn();
 
@@ -65,8 +65,8 @@ class EnemyImpl implements Enemy {
 
   EnemyImpl(this.portToEnemy) {}
 
-  Promise<int> ready() {
-    Promise<int> res = new Promise<int>();
+  Future<int> ready() {
+    Completer<int> res = new Completer<int>();
     ReceivePort port = portToEnemy.call(
         { "action" : MessageIds.ENEMY_IS_READY });
     port.receive((var message, SendPort replyTo) {
@@ -74,14 +74,14 @@ class EnemyImpl implements Enemy {
       if (success) {
         res.complete(0);
       } else {
-        res.fail(message[1]);
+        res.completeException(message[1]);
       }
     });
-    return res;
+    return res.future;
   }
 
-  Promise<int> shoot(int x, int y) {
-    Promise<int> res = new Promise<int>();
+  Future<int> shoot(int x, int y) {
+    Completer<int> res = new Completer<int>();
     ReceivePort port = portToEnemy.call(
         { "action" : MessageIds.SHOOT, "args" : [x, y] });
     port.receive((var message, SendPort replyTo) {
@@ -89,10 +89,10 @@ class EnemyImpl implements Enemy {
       if (success) {
         res.complete(message[1][0]);
       } else {
-        res.fail(message[1]);
+        res.completeException(message[1]);
       }
     });
-    return res;
+    return res.future;
   }
 }
 

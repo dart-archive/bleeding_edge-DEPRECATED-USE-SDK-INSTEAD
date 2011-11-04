@@ -18706,12 +18706,12 @@ interface Document extends Element /*, common.NodeSelector */ {
 
   String get webkitVisibilityState();
 
-  Promise<Range> caretRangeFromPoint([int x, int y]);
+  Future<Range> caretRangeFromPoint([int x, int y]);
 
   // TODO(jacobr): remove.
   Element createElement([String tagName]);
 
-  Promise<Element> elementFromPoint([int x, int y]);
+  Future<Element> elementFromPoint([int x, int y]);
 
   bool execCommand([String command, bool userInterface, String value]);
 
@@ -19108,7 +19108,7 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
 
   String get webkitVisibilityState() => _documentPtr.webkitVisibilityState;
 
-  Promise<Range> caretRangeFromPoint([int x = null, int y = null]) {
+  Future<Range> caretRangeFromPoint([int x = null, int y = null]) {
     throw 'TODO(jacobr): impl promise.';
     // return LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y));
   }
@@ -19121,7 +19121,7 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
     return LevelDom.wrapEvent(_documentPtr.createEvent(eventType));
   }
 
-  Promise<Element> elementFromPoint([int x = null, int y = null]) {
+  Future<Element> elementFromPoint([int x = null, int y = null]) {
     throw 'TODO(jacobr): impl using promise';
     // return LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y));
   }
