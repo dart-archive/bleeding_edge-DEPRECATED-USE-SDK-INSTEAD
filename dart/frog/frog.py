@@ -25,6 +25,16 @@ HOME = dirname(realpath(__file__))
 sys.path.append(join(HOME, os.pardir, 'tools'))
 import utils
 
+CODE = '''#import('%(HOME)s/lang.dart');
+#import('%(HOME)s/file_system_vm.dart');
+
+void main() {
+  if (!compile(%(HOME)r, %(args)r, new VMFileSystem())) {
+    throw 'frog: compilation failed.';
+  }
+}
+'''
+
 HTML = '''<html>
   <head><title>Frog</title><head>
   <body>
@@ -76,6 +86,9 @@ def parseOptions(args):
     default='',
     help='Flags to pass to the VM that is running frog itself.')
 
+  optionParser.add_option('--js_out',
+    help='Specifies output js file and disables automatic running.')
+
   optionParser.add_option('--js_cmd',
     default = 'node --crankshaft', # node is really slow without this.
     metavar='FILE', help='The shell cmd to use to run output JS code.')
@@ -93,7 +106,7 @@ def parseOptions(args):
   optionParser.add_option('--verbose',
       help='Verbose output', default=False, action='store_true')
 
-  optionParser.set_usage("frog.py <dart-script-file> [<dart-options>]")
+  optionParser.set_usage("frog <dart-script-file> [<dart-options>]")
   return optionParser.parse_args(args)
 
 
@@ -101,10 +114,10 @@ def main(args):
   if '--' in args:
     index = args.index('--')
     pythonArgs = args[1:index]
-    dartArgs = args[index + 1:]
+    dartArgs = ['python', args[0]] + args[index+1:]
   else:
     pythonArgs = []
-    dartArgs = args[1:]
+    dartArgs = ['python'] + args
 
   options, extraArgs = parseOptions(pythonArgs)
   if options.verbose:
@@ -135,12 +148,6 @@ def compileAndRun(options, args, dart):
       args = args[:i+1]
       break
 
-  outfile_given = False
-  for i in range(len(args)):
-    if args[i].startswith('--out'):
-      outfile_given = True
-      break;
-
   if options.verbose: print "nodeArgs %s" % ' '.join(nodeArgs);
 
   workdir = options.workdir
@@ -156,10 +163,11 @@ def compileAndRun(options, args, dart):
       if not os.path.exists(workdir):
         os.mkdir(workdir)
 
-  if not outfile_given:
+  GODART = join(workdir, 'go.dart')
+  if options.js_out:
+    outfile = options.js_out
+  else:
     outfile = join(workdir, 'out.js')
-    args = ['--out=%s' % outfile] + args
-
   outhtml = join(workdir, 'out.html')
 
   browser = options.browser
@@ -171,13 +179,19 @@ def compileAndRun(options, args, dart):
       # TODO(vsm): This is only available on Goobuntu.
       browser = 'google-chrome'
 
-  args = ['--libdir=%s/lib' % HOME] + args
+  args = args[:2] + ['--out=%s' % outfile, '--libdir=%s/lib' % HOME] + args[2:]
+
+  f = open(GODART, 'w')
+  go_contents = CODE % { 'HOME' : HOME, 'args': args }
+  f.write(go_contents)
+  f.close()
+
+  if options.verbose: print "Wrote wrapper to %s:\n%s" % (GODART, go_contents);
 
   compiler_cmd = [dart]
   if options.vm_flags:
     compiler_cmd.extend(options.vm_flags.split(' '))
-  compiler_cmd.append('frogc.dart');
-  compiler_cmd.extend(args)
+  compiler_cmd.append(GODART);
   exit_code = execute(compiler_cmd)
   if exit_code:
     if options.verbose: print ("cmd exited with status %d" % exit_code)
@@ -187,7 +201,7 @@ def compileAndRun(options, args, dart):
     return exit_code
 
   result = 0
-  if not outfile_given:
+  if not options.js_out:
     if not options.html:
       js_cmd = options.js_cmd
       result = execute(js_cmd.split(' ') + [outfile] + nodeArgs)
