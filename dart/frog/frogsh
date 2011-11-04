@@ -522,6 +522,7 @@ ListFactory$K = ListFactory;
 ListFactory$KeywordState = ListFactory;
 ListFactory$String = ListFactory;
 ListFactory$T = ListFactory;
+ListFactory$Type = ListFactory;
 ListFactory$V = ListFactory;
 // ********** Code for ListIterator **************
 function ListIterator(array) {
@@ -1094,6 +1095,22 @@ $inherits(HashMapImplementation$String$String, HashMapImplementation);
 HashMapImplementation$String$String._computeLoadLimit = function(capacity) {
   return $truncdiv((capacity * 3), 4);
 }
+// ********** Code for HashMapImplementation$Type$Type **************
+function HashMapImplementation$Type$Type() {
+  // Initializers done
+  if (HashMapImplementation._deletedKey == null) {
+    HashMapImplementation._deletedKey = new Object();
+  }
+  this._numberOfEntries = 0;
+  this._numberOfDeleted = 0;
+  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._values = new ListFactory$Type(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+}
+$inherits(HashMapImplementation$Type$Type, HashMapImplementation);
+HashMapImplementation$Type$Type._computeLoadLimit = function(capacity) {
+  return $truncdiv((capacity * 3), 4);
+}
 // ********** Code for HashSetImplementation **************
 function HashSetImplementation() {
   // Initializers done
@@ -1168,6 +1185,12 @@ function HashSetImplementation$String() {
   this._backingMap = new HashMapImplementation$String$String();
 }
 $inherits(HashSetImplementation$String, HashSetImplementation);
+// ********** Code for HashSetImplementation$Type **************
+function HashSetImplementation$Type() {
+  // Initializers done
+  this._backingMap = new HashMapImplementation$Type$Type();
+}
+$inherits(HashSetImplementation$Type, HashSetImplementation);
 // ********** Code for HashSetIterator **************
 function HashSetIterator(set_) {
   this._nextValidIndex = -1;
@@ -16022,8 +16045,8 @@ ConcreteType.prototype.resolveMember = function(memberName) {
   var ret = new MemberSet(mem);
   if (mem.get$isStatic()) return ret;
   var $list = this.genericType.get$subtypes();
-  for (var $i = 0;$i < $list.length; $i++) {
-    var t = $list.$index($i);
+  for (var $i = this.genericType.get$subtypes().iterator(); $i.hasNext(); ) {
+    var t = $i.next();
     var m = t.members.$index(memberName);
     if ($ne(m, null)) ret.add(m);
   }
@@ -16042,7 +16065,7 @@ function DefinedType(name0, library, definition0, isClass) {
   this.isNativeType = false
   this.library = library;
   this.isClass = isClass;
-  this.directSubtypes = [];
+  this.directSubtypes = new HashSetImplementation$Type();
   this.constructors = $map([]);
   this.members = $map([]);
   this.factories = new FactoryMap();
@@ -16173,35 +16196,16 @@ DefinedType.prototype._resolveInterfaces = function(types) {
   return interfaces0;
 }
 DefinedType.prototype.addDirectSubtype = function(type) {
-  var present = this.directSubtypes.some((function (t) {
-    return $eq(t, type);
-  })
-  );
-  if (!present) {
-    this.directSubtypes.add(type);
-  }
+  this.directSubtypes.add(type);
 }
 DefinedType.prototype.get$subtypes = function() {
-  var $this = this; // closure support
   if (this._subtypes == null) {
-    this._subtypes = [];
-    function _addSubtype(type) {
-      if (!($this.get$subtypes().some((function (t) {
-        return $eq(t, type);
-      })
-      ))) {
-        $this._subtypes.add(type);
-      }
-    }
+    this._subtypes = new HashSetImplementation$Type();
     var $list = this.directSubtypes;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var st = $list.$index($i);
-      _addSubtype(st);
-      var $list0 = st.get$subtypes();
-      for (var $i0 = 0;$i0 < $list0.length; $i0++) {
-        var st1 = $list0.$index($i0);
-        _addSubtype(st1);
-      }
+    for (var $i = this.directSubtypes.iterator(); $i.hasNext(); ) {
+      var st = $i.next();
+      this._subtypes.add(st);
+      this._subtypes.addAll(st.get$subtypes());
     }
   }
   return this._subtypes;
@@ -16496,8 +16500,8 @@ DefinedType.prototype.resolveMember = function(memberName) {
   }
   else {
     var $list = this.get$subtypes();
-    for (var $i = 0;$i < $list.length; $i++) {
-      var t = $list.$index($i);
+    for (var $i = this.get$subtypes().iterator(); $i.hasNext(); ) {
+      var t = $i.next();
       var m;
       if (!this.isClass && t.get$isClass()) {
         m = t.getMember(memberName);

@@ -503,8 +503,8 @@ class DefinedType extends Type {
   List<Type> interfaces;
   Type factory_;
 
-  List<Type> directSubtypes;
-  List<Type> _subtypes; // TODO(jimhug): Should be Set when Type is hashable.
+  Set<Type> directSubtypes;
+  Set<Type> _subtypes;
 
   List<ParameterType> typeParameters;
   Collection<Type> _typeArgsInOrder;
@@ -524,7 +524,7 @@ class DefinedType extends Type {
   bool isNativeType = false;
 
   DefinedType(String name, this.library, Definition definition, this.isClass)
-      : super(name), directSubtypes = [], constructors = {},
+      : super(name), directSubtypes = new Set<Type>(), constructors = {},
         members = {}, factories = new FactoryMap(), _resolvedMembers = {} {
     setDefinition(definition);
   }
@@ -644,29 +644,15 @@ class DefinedType extends Type {
   addDirectSubtype(Type type) {
     // Ensure that this is only called during resolve pass
     assert(_subtypes == null);
-    // TODO(jimhug): Ask for contains on Collection.
-    bool present = directSubtypes.some((t) => t == type);
-    if (!present) {
-      directSubtypes.add(type);
-    }
+    directSubtypes.add(type);
   }
 
-  // TODO(jimhug): Would be better as an interable - if we had generators...
-  List<Type> get subtypes() {
+  Set<Type> get subtypes() {
     if (_subtypes == null) {
-      _subtypes = [];
-
-      void _addSubtype(Type type) {
-        if (!(subtypes.some((t) => t == type))) {
-          _subtypes.add(type);
-        }
-      }
-
+      _subtypes = new Set<Type>();
       for (var st in directSubtypes) {
-        _addSubtype(st);
-        for (var st1 in st.subtypes) {
-          _addSubtype(st1);
-        }
+        _subtypes.add(st);
+        _subtypes.addAll(st.subtypes);
       }
     }
     return _subtypes;
