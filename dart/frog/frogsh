@@ -13599,7 +13599,7 @@ lang_Parser.prototype.topLevelDefinition = function() {
 
     default:
 
-      return this.declaration();
+      return this.declaration(true);
 
   }
 }
@@ -13631,7 +13631,7 @@ lang_Parser.prototype.classDefinition = function(kind) {
   if (this._maybeEat(6/*TokenKind.LBRACE*/)) {
     while (!this._maybeEat(7/*TokenKind.RBRACE*/)) {
       if (this.isPrematureEndOfFile()) break;
-      body.add(this.declaration());
+      body.add(this.declaration(true));
     }
   }
   else {
@@ -13745,13 +13745,13 @@ lang_Parser.prototype.finishDefinition = function(start, modifiers, di) {
 
   }
 }
-lang_Parser.prototype.declaration = function() {
+lang_Parser.prototype.declaration = function(includeOperators) {
   var start = this._peekToken.start;
   if (this._peekKind(74/*TokenKind.FACTORY*/)) {
     return this.factoryConstructorDeclaration();
   }
   var modifiers = this._readModifiers();
-  return this.finishDefinition(start, modifiers, this.declaredIdentifier(true));
+  return this.finishDefinition(start, modifiers, this.declaredIdentifier(includeOperators));
 }
 lang_Parser.prototype.factoryConstructorDeclaration = function() {
   var start = this._peekToken.start;
@@ -13843,11 +13843,11 @@ lang_Parser.prototype.statement = function() {
 
     case 96/*TokenKind.FINAL*/:
 
-      return this.declaration();
+      return this.declaration(false);
 
     case 111/*TokenKind.VAR*/:
 
-      return this.declaration();
+      return this.declaration(false);
 
     default:
 

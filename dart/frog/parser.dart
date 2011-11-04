@@ -338,14 +338,15 @@ class Parser {
     }
   }
 
-  declaration() {
+  declaration([bool includeOperators=true]) {
     int start = _peekToken.start;
     if (_peekKind(TokenKind.FACTORY)) {
       return factoryConstructorDeclaration();
     }
 
     var modifiers = _readModifiers();
-    return finishDefinition(start, modifiers, declaredIdentifier(true));
+    return finishDefinition(start, modifiers,
+        declaredIdentifier(includeOperators));
   }
 
   factoryConstructorDeclaration() {
@@ -421,9 +422,9 @@ class Parser {
         return emptyStatement();
 
       case TokenKind.FINAL:
-        return declaration();
+        return declaration(false);
       case TokenKind.VAR:
-        return declaration();
+        return declaration(false);
 
       default:
         // Covers var decl, func decl, labeled stmt and real expressions.
