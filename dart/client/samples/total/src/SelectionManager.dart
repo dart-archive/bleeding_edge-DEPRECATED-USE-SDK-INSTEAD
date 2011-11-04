@@ -156,14 +156,14 @@ class SelectionManager {
     final maxCellElmtRect = maxCellElmt.rect;
 
     window.requestLayoutFrame(() {
-      ClientRect orgP = tableRect.bounding;
-      ClientRect minP = minCellElmtRect.bounding;
-      ClientRect maxP = maxCellElmtRect.bounding;
+      ClientRect orgP = tableRect.value.bounding;
+      ClientRect minP = minCellElmtRect.value.bounding;
+      ClientRect maxP = maxCellElmtRect.value.bounding;
       completer.complete(new BoundingBox(
           (minP.left - orgP.left).toInt(),
           (minP.top - orgP.top).toInt(),
-          (maxP.left - minP.left + maxCellElmtRect.client.width).toInt(),
-          (maxP.top - minP.top + maxCellElmtRect.client.height).toInt()));
+          (maxP.left - minP.left + maxCellElmtRect.value.client.width).toInt(),
+          (maxP.top - minP.top + maxCellElmtRect.value.client.height).toInt()));
     });
     return completer.future;
   }
