@@ -545,6 +545,8 @@ class MethodGenerator implements TreeVisitor {
 
   bool get isClosure() => (enclosingMethod != null);
 
+  bool get isStatic() => method.isStatic;
+
   Value getTemp(Value value) {
     return value.needsTemp ? forceTemp(value) : value;
   }
@@ -1420,7 +1422,7 @@ class MethodGenerator implements TreeVisitor {
   }
 
   _checkNonStatic(Node node) {
-    if (method.isStatic) {
+    if (isStatic) {
       world.warning('not allowed in static method', node.span);
     }
   }

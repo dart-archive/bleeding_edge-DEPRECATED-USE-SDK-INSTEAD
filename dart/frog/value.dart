@@ -109,6 +109,7 @@ class Value {
     return member != null && member.canInvoke(context, args);
   }
 
+  // TODO(jimhug): Better type here - currently is union(Member, MemberSet)
   _tryResolveMember(MethodGenerator context, String name) {
     var member = null;
     if (!type.isVar) {
@@ -118,6 +119,7 @@ class Value {
         member = type.resolveMember(name);
       }
     }
+
     if (member == null) {
       // TODO(jmesserly): shouldn't look in world except for "var"
       member = context.findMembers(name);
@@ -127,7 +129,12 @@ class Value {
 
   _resolveMember(MethodGenerator context, String name, Node node) {
     var member = _tryResolveMember(context, name);
-    if (member == null) {
+    if (member != null) {
+      if (isType && !member.isStatic) {
+        world.error('can not refer to instance member as static', node.span);
+      }
+      return member;
+    } else {
       // TODO(jmesserly): we suppress warnings if someone has overridden
       // noSuchMethod, and we know it will call their version. Is that right?
       if (_tryResolveMember(context, 'noSuchMethod').members.length > 1) {
@@ -145,8 +152,8 @@ class Value {
       if (context.findMembers(name) == null) {
         world.warning('$name is not defined anywhere in the world.', node.span);
       }
+      return null;
     }
-    return member;
   }
 
   checkFirstClass(SourceSpan span) {

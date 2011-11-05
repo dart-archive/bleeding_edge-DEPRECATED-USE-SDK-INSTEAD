@@ -820,7 +820,7 @@ class DefinedType extends Type {
         && definition.modifiers[0].kind == TokenKind.FACTORY) {
       // constructorName for a factory is the type.
       if (factories.getFactory(method.constructorName, method.name) != null) {
-        world.error('duplicate factory definition of ${method.name}',
+        world.error('duplicate factory definition of "${method.name}"',
           definition.span);
         return;
       }
@@ -836,20 +836,20 @@ class DefinedType extends Type {
         members[propName] = prop;
       }
       if (prop is! PropertyMember) {
-        world.error('property conflicts with field name: $propName',
+        world.error('property conflicts with field "$propName"',
           definition.span);
         return;
       }
       if (methodName[0] == 'g') {
         if (prop.getter != null) {
-          world.error('duplicate getter definition for $propName',
+          world.error('duplicate getter definition for "$propName"',
             definition.span);
         }
         // TODO(jimhug): Validate zero parameters
         prop.getter = method;
       } else {
         if (prop.setter != null) {
-          world.error('duplicate setter definition for $propName',
+          world.error('duplicate setter definition for "$propName"',
             definition.span);
         }
         // TODO(jimhug): Validate one parameters - match with getter?
@@ -859,7 +859,7 @@ class DefinedType extends Type {
     }
 
     if (members.containsKey(methodName)) {
-      world.error('duplicate method definition of ${method.name}',
+      world.error('duplicate method definition of "${method.name}"',
         definition.span);
       return;
     }
@@ -870,7 +870,7 @@ class DefinedType extends Type {
     for (int i=0; i < definition.names.length; i++) {
       var name = definition.names[i].name;
       if (members.containsKey(name)) {
-        world.error('duplicate field definition of $name',
+        world.error('duplicate field definition of "$name"',
           definition.span);
         return;
       }
@@ -988,7 +988,6 @@ class DefinedType extends Type {
       }
     } else {
       // TODO(jimhug): Will probably check types more than once - errors?
-      //print('look')
       if (interfaces != null && interfaces.length > 0) {
         for (var i in interfaces) {
           var ret = i.getMember(memberName);

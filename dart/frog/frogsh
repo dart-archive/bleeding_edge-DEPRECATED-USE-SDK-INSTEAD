@@ -8778,6 +8778,9 @@ MethodGenerator.prototype.findMembers = function(name) {
 MethodGenerator.prototype.get$isClosure = function() {
   return (this.enclosingMethod != null);
 }
+MethodGenerator.prototype.get$isStatic = function() {
+  return this.method.get$isStatic();
+}
 MethodGenerator.prototype.getTemp = function(value) {
   return $notnull_bool(value.needsTemp) ? this.forceTemp(value) : value;
 }
@@ -8882,7 +8885,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if ($notnull_bool(this._usedTemps.get$length() > 0 || this._freeTemps.length > 0)) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 651, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 653, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo(y);
@@ -9531,7 +9534,7 @@ MethodGenerator.prototype.visitEmptyStatement = function(node) {
   return false;
 }
 MethodGenerator.prototype._checkNonStatic = function(node) {
-  if ($notnull_bool(this.method.get$isStatic())) {
+  if ($notnull_bool(this.get$isStatic())) {
     world.warning('not allowed in static method', node.span);
   }
 }
@@ -10011,7 +10014,7 @@ MethodGenerator.prototype.visitNullExpression = function(node) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2018, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2020, 12);
   if ($notnull_bool(!!(($0 = node.value) && $0.is$List))) {
     var items = [];
     var $list = node.value;
@@ -10292,8 +10295,7 @@ Library.prototype.findTypeByName = function(name0) {
     }
     if ($notnull_bool($ne(newRet, null))) {
       if ($notnull_bool($ne(ret, null) && $ne(ret, newRet))) {
-        world.error(('conflicting types for "' + name0 + '"'), ret.get$span());
-        world.error(('conflicting types for "' + name0 + '"'), newRet.get$span());
+        world.error(('conflicting types for "' + name0 + '"'), ret.get$span(), newRet.get$span());
       }
       else {
         ret = newRet;
@@ -10311,9 +10313,7 @@ Library.prototype.lookup = function(name0, span0) {
   var newRet = this.topType.getMember(name0);
   if ($notnull_bool($ne(newRet, null))) {
     if ($notnull_bool($ne(ret, null) && $ne(ret, newRet))) {
-      world.error(('conflicting members for "' + name0 + '"'), span0);
-      world.error(('conflicting members for "' + name0 + '"'), ret.get$span());
-      world.error(('conflicting members for "' + name0 + '"'), newRet.get$span());
+      world.error(('conflicting members for "' + name0 + '"'), span0, ret.get$span(), newRet.get$span());
     }
     else {
       ret = newRet;
@@ -10326,9 +10326,7 @@ Library.prototype.lookup = function(name0, span0) {
       newRet = imported.get$library().topType.getMember(name0);
       if ($notnull_bool($ne(newRet, null))) {
         if ($notnull_bool($ne(ret, null) && $ne(ret, newRet))) {
-          world.error(('conflicting members for "' + name0 + '"'), span0);
-          world.error(('conflicting members for "' + name0 + '"'), ret.get$span());
-          world.error(('conflicting members for "' + name0 + '"'), newRet.get$span());
+          world.error(('conflicting members for "' + name0 + '"'), span0, ret.get$span(), newRet.get$span());
         }
         else {
           ret = newRet;
@@ -10411,7 +10409,7 @@ _LibraryVisitor.prototype.addSource = function(source) {
     return def.visit($this);
   })
   );
-  $assert(this.sources.length == 0 || this.isTop, "sources.length == 0 || isTop", "library.dart", 296, 12);
+  $assert(this.sources.length == 0 || this.isTop, "sources.length == 0 || isTop", "library.dart", 293, 12);
   this.isTop = false;
   var newSources = this.sources;
   this.sources = [];
@@ -10468,9 +10466,6 @@ _LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
         return;
       }
       var newLib = this.library.addImport($assert_String(filename), $assert_String(prefix));
-      if ($notnull_bool(newLib.get$name() == null && !filename.startsWith('dart:'))) {
-        world.info(('imported library "' + name + '" has no #library directive'), node.span);
-      }
       break;
 
     case "source":
@@ -10844,6 +10839,9 @@ FieldMember.prototype.resolve = function(inType) {
   this.type = inType.resolveType(this.definition.type, false);
   if ($notnull_bool(this.isStatic && this.type.get$hasTypeParams())) {
     world.error('using type parameter in static context', this.definition.type.span);
+  }
+  if ($notnull_bool(this.isStatic && this.isFinal && this.value == null)) {
+    world.error('static final field is missing initializer', this.get$span());
   }
   this.get$library()._addMember(this);
 }
@@ -11810,6 +11808,9 @@ MemberSet.prototype.get$containsMethods = function() {
 }
 MemberSet.prototype.add = function(member) {
   return this.members.add(member);
+}
+MemberSet.prototype.get$isStatic = function() {
+  return this.members.length == 1 && this.members.$index(0).get$isStatic();
 }
 MemberSet.prototype.canInvoke = function(context, args) {
   return this.members.some((function (m) {
@@ -16714,7 +16715,7 @@ DefinedType.prototype.addMethod = function(methodName, definition0) {
   }
   if ($notnull_bool(definition0.modifiers != null && definition0.modifiers.length == 1 && definition0.modifiers.$index(0).kind == 75/*TokenKind.FACTORY*/)) {
     if ($notnull_bool(this.factories.getFactory(method.get$constructorName(), $assert_String(method.get$name())) != null)) {
-      world.error(('duplicate factory definition of ' + method.get$name() + ''), definition0.span);
+      world.error(('duplicate factory definition of "' + method.get$name() + '"'), definition0.span);
       return;
     }
     this.factories.addFactory(method.get$constructorName(), $assert_String(method.get$name()), (method && method.is$Member()));
@@ -16728,25 +16729,25 @@ DefinedType.prototype.addMethod = function(methodName, definition0) {
       this.members.$setindex(propName, prop);
     }
     if ($notnull_bool(!(prop instanceof PropertyMember))) {
-      world.error(('property conflicts with field name: ' + propName + ''), definition0.span);
+      world.error(('property conflicts with field "' + propName + '"'), definition0.span);
       return;
     }
     if ($notnull_bool(methodName[0] == 'g')) {
       if ($notnull_bool(prop.getter != null)) {
-        world.error(('duplicate getter definition for ' + propName + ''), definition0.span);
+        world.error(('duplicate getter definition for "' + propName + '"'), definition0.span);
       }
       prop.getter = (method && method.is$MethodMember());
     }
     else {
       if ($notnull_bool(prop.setter != null)) {
-        world.error(('duplicate setter definition for ' + propName + ''), definition0.span);
+        world.error(('duplicate setter definition for "' + propName + '"'), definition0.span);
       }
       prop.setter = (method && method.is$MethodMember());
     }
     return;
   }
   if ($notnull_bool(this.members.containsKey(methodName))) {
-    world.error(('duplicate method definition of ' + method.get$name() + ''), definition0.span);
+    world.error(('duplicate method definition of "' + method.get$name() + '"'), definition0.span);
     return;
   }
   this.members.$setindex(methodName, method);
@@ -16756,7 +16757,7 @@ DefinedType.prototype.addField = function(definition0) {
    $notnull_bool(i < definition0.names.length); i++) {
     var name0 = definition0.names.$index(i).get$name();
     if ($notnull_bool(this.members.containsKey(name0))) {
-      world.error(('duplicate field definition of ' + name0 + ''), definition0.span);
+      world.error(('duplicate field definition of "' + name0 + '"'), definition0.span);
       return;
     }
     var value = null;
@@ -16986,7 +16987,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
   return this;
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
-  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1136, 12);
+  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1135, 12);
   var names = [this.name];
   var typeMap = $map([]);
   for (var i = 0;
@@ -17004,7 +17005,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return ret;
 }
 DefinedType.prototype.getCallStub = function(args) {
-  $assert(this.get$isFunction(), "isFunction", "type.dart", 1156, 12);
+  $assert(this.get$isFunction(), "isFunction", "type.dart", 1155, 12);
   var name0 = _getCallStubName('call', args);
   if ($notnull_bool(this.varStubs == null)) this.varStubs = $map([]);
   var stub = this.varStubs.$index(name0);
@@ -17157,7 +17158,13 @@ Value.prototype._tryResolveMember = function(context, name) {
 }
 Value.prototype._resolveMember = function(context, name, node) {
   var member = this._tryResolveMember(context, name);
-  if ($notnull_bool(member == null)) {
+  if ($notnull_bool($ne(member, null))) {
+    if ($notnull_bool(this.isType && !member.get$isStatic())) {
+      world.error('can not refer to instance member as static', node.span);
+    }
+    return member;
+  }
+  else {
     if ($notnull_bool(this._tryResolveMember(context, 'noSuchMethod').members.length > 1)) {
       return null;
     }
@@ -17172,8 +17179,8 @@ Value.prototype._resolveMember = function(context, name, node) {
     if ($notnull_bool(context.findMembers(name) == null)) {
       world.warning(('' + name + ' is not defined anywhere in the world.'), node.span);
     }
+    return null;
   }
-  return member;
 }
 Value.prototype.checkFirstClass = function(span) {
   if ($notnull_bool(this.isType)) {
@@ -17328,8 +17335,8 @@ Value.prototype.invokeNoSuchMethod = function(context, name, node, args) {
   return this._tryResolveMember(context, 'noSuchMethod').invoke$4(context, node, this, new Arguments(null, noSuchArgs));
 }
 Value.prototype.invokeSpecial = function(name, args, returnType) {
-  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 410, 12);
-  $assert(!args.get$hasNames(), "!args.hasNames", "value.dart", 411, 12);
+  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 417, 12);
+  $assert(!args.get$hasNames(), "!args.hasNames", "value.dart", 418, 12);
   var argsString = args.getCode();
   if ($notnull_bool(name == '\$index' || name == '\$setindex')) {
     return new Value(returnType, ('' + this.code + '.' + name + '(' + argsString + ')'), false, true, false);
@@ -17745,7 +17752,7 @@ World.prototype.resolveAll = function() {
     lib.resolve();
   }
 }
-World.prototype._message = function(message, span, span1, throwing) {
+World.prototype._message = function(message, span, span1, span2, throwing) {
   var text = message;
   if ($notnull_bool(span != null)) {
     text = span.toMessageString(message);
@@ -17754,31 +17761,34 @@ World.prototype._message = function(message, span, span1, throwing) {
   if ($notnull_bool(span1 != null)) {
     print(span1.toMessageString(message));
   }
+  if ($notnull_bool(span2 != null)) {
+    print(span2.toMessageString(message));
+  }
   if ($notnull_bool(throwing)) {
     $throw(new CompilerException(message, span));
   }
 }
-World.prototype.error = function(message, span, span1) {
+World.prototype.error = function(message, span, span1, span2) {
   this.errors++;
-  this._message(('error: ' + message + ''), span, span1, options.throwOnErrors);
+  this._message(('error: ' + message + ''), span, span1, span2, options.throwOnErrors);
 }
-World.prototype.warning = function(message, span, span1) {
+World.prototype.warning = function(message, span, span1, span2) {
   this.warnings++;
   if ($notnull_bool(options.showWarnings)) {
-    this._message(('warning: ' + message + ''), span, span1, options.throwOnWarnings);
+    this._message(('warning: ' + message + ''), span, span1, span2, options.throwOnWarnings);
   }
 }
-World.prototype.fatal = function(message, span, span1) {
+World.prototype.fatal = function(message, span, span1, span2) {
   this.errors++;
   this.seenFatal = true;
-  this._message(('fatal: ' + message + ''), span, span1, $assert_bool(options.throwOnFatal || options.throwOnErrors));
+  this._message(('fatal: ' + message + ''), span, span1, span2, $assert_bool(options.throwOnFatal || options.throwOnErrors));
 }
-World.prototype.internalError = function(message, span, span1) {
-  this._message(('We are sorry, but... ' + message + ''), span, span1, true);
+World.prototype.internalError = function(message, span, span1, span2) {
+  this._message(('We are sorry, but... ' + message + ''), span, span1, span2, true);
 }
-World.prototype.info = function(message, span, span1) {
+World.prototype.info = function(message, span, span1, span2) {
   if ($notnull_bool(options.showInfo)) {
-    this._message(('info: ' + message + ''), span, span1, false);
+    this._message(('info: ' + message + ''), span, span1, span2, false);
   }
 }
 World.prototype.get$hasErrors = function() {

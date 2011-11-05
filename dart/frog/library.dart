@@ -176,8 +176,7 @@ class Library {
       if (newRet != null) {
         // TODO(jimhug): Should not need ret != newRet here or below.
         if (ret != null  && ret != newRet) {
-          world.error('conflicting types for "$name"', ret.span);
-          world.error('conflicting types for "$name"', newRet.span);
+          world.error('conflicting types for "$name"', ret.span, newRet.span);
         } else {
           ret = newRet;
         }
@@ -198,9 +197,8 @@ class Library {
     // TODO(jimhug): Shares too much code with body of loop.
     if (newRet != null) {
       if (ret != null && ret != newRet) {
-        world.error('conflicting members for "$name"', span);
-        world.error('conflicting members for "$name"', ret.span);
-        world.error('conflicting members for "$name"', newRet.span);
+        world.error('conflicting members for "$name"',
+          span, ret.span, newRet.span);
       } else {
         ret = newRet;
       }
@@ -213,9 +211,8 @@ class Library {
         newRet = imported.library.topType.getMember(name);
         if (newRet != null) {
           if (ret != null && ret != newRet) {
-            world.error('conflicting members for "$name"', span);
-            world.error('conflicting members for "$name"', ret.span);
-            world.error('conflicting members for "$name"', newRet.span);
+            world.error('conflicting members for "$name"',
+              span, ret.span, newRet.span);
           } else {
             ret = newRet;
           }
@@ -354,10 +351,7 @@ class _LibraryVisitor implements TreeVisitor {
         }
 
         var newLib = library.addImport(filename, prefix);
-        if (newLib.name == null && !filename.startsWith('dart:')) {
-          world.info('imported library "$name" has no #library directive',
-            node.span);
-        }
+        // TODO(jimhug): Add check that imported library has a #library
         break;
 
       case "source":

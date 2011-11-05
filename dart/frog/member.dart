@@ -295,6 +295,10 @@ class FieldMember extends Member {
         definition.type.span);
     }
 
+    if (isStatic && isFinal && value == null) {
+      world.error('static final field is missing initializer', span);
+    }
+
     library._addMember(this);
   }
 
@@ -1241,6 +1245,9 @@ class MemberSet {
   bool get containsMethods() => members.some((m) => m is MethodMember);
 
   void add(Member member) => members.add(member);
+
+  // TODO(jimhug): Always false, or is this needed?
+  bool get isStatic() => members.length == 1 && members[0].isStatic;
 
   bool canInvoke(MethodGenerator context, Arguments args) =>
     members.some((m) => m.canInvoke(context, args));
