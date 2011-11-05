@@ -51,24 +51,30 @@ def main(args):
     """Adds ANSI escape-code for bold-face"""
     return "\033[1m%s\033[0m" % s
 
+  # VM Checked, produces checked
   print 'Started'
   start = time.time()
   RunCommand('./frog.py',
              '--vm_flags=--compile_all --enable_type_checks --enable_asserts',
-             '--',  '--out=frogsh', 'frog.dart')
+             '--', '--enable_type_checks', '--out=frogsh', 'frog.dart')
   elapsed = time.time() - start
   print 'Compiling on Dart VM took %s seconds %s' % (b(elapsed),
                                                      b('in checked mode'))
+
+  # VM Normal, produces checked
   start = time.time()
-  RunCommand('./frog.py', '--out=frogsh', 'frog.dart')
+  RunCommand('./frog.py', '--out=frogsh', '--enable_type_checks', 'frog.dart')
   elapsed = time.time() - start
   print 'Compiling on Dart VM took %s seconds' % b(elapsed)
+
+  # Selfhost Checked
   start = time.time()
-  RunCommand('./frogsh', '--out=frogsh', 'frog.dart', 'tests/hello.dart')
+  RunCommand('./frogsh', '--out=frogsh', '--enable_type_checks', 'frog.dart',
+             '--enable_type_checks', 'tests/hello.dart')
   elapsed = time.time() - start
   size = os.path.getsize('./frogsh') / 1024
-  print 'Bootstrapping took %s seconds' % b(elapsed)
-  print 'Generated frogsh is \033[1m%d\033[0m kB' % size
+  print 'Bootstrapping took %s seconds %s' % (b(elapsed), b('in checked mode'))
+  print 'Generated %s frogsh is %s kB' % (b('checked'), b(size))
 
   RunCommand('../tools/build.py', '--mode=release')
   test_cmd = ['../tools/test.py', '--component=frog,frogsh,leg',

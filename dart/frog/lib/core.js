@@ -174,6 +174,13 @@ function $assert(test, text, url, line, column) {
   if (!test) $throw(new AssertError(text, url, line, column));
 }
 
+function $notnull_bool(test) {
+  if (test == null || typeof(test) != 'boolean') {
+    $throw(new TypeError('must be "true" or "false"'));
+  }
+  return test === true;
+}
+
 function $throw(e) {
   // If e is not a value, we can use V8's captureStackTrace utility method.
   // TODO(jmesserly): capture the stack trace on other JS engines.

@@ -107,6 +107,10 @@ class WorldGenerator {
           }
         }
       }
+      // Type check functions for builtin JS types
+      if (type.typeCheckCode != null) {
+        writer.writeln(type.typeCheckCode);
+      }
     }
   }
 
@@ -185,8 +189,8 @@ class WorldGenerator {
       }
     }
 
-    // Concrete types (like List<String>) will this already defined on their
-    // prototype from the generic type (like List)
+    // Concrete types (like List<String>) will have this already defined on
+    // their prototype from the generic type (like List)
     if (type is! ConcreteType) {
       _maybeIsTest(type, type);
     }
@@ -948,7 +952,12 @@ class MethodGenerator implements TreeVisitor {
   }
 
   visitBool(Expression node) {
-    return visitTypedValue(node, world.boolType);
+    // Boolean conversions in if/while/do/for/conditions require non-null bool.
+
+    // TODO(jmesserly): why do we have this rule? It seems inconsistent with
+    // the rest of the type system, and just causes bogus asserts unless all
+    // bools are initialized to false.
+    return visitValue(node).convertToNonNullBool(this, node);
   }
 
   visitValue(Expression node) {

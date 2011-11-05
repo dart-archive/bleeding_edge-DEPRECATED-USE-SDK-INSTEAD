@@ -43,8 +43,8 @@ class TokenizerTest {
 
     tokenTest('0123q 0123 0xabcg 3.14 1e10',
              ['0123q', '0123', '0xabc', 'g', '3.14', '1e10'],
-             [TokenKind.ERROR, TokenKind.NUMBER, TokenKind.HEX_NUMBER,
-              TokenKind.IDENTIFIER, TokenKind.NUMBER, TokenKind.NUMBER]);
+             [TokenKind.ERROR, TokenKind.INTEGER, TokenKind.HEX_INTEGER,
+              TokenKind.IDENTIFIER, TokenKind.DOUBLE, TokenKind.DOUBLE]);
 
     tokenTest('\$"foo" @"bar" \$abc @\'foo\' \$\'bar\'',
               ['\$"foo"', '@"bar"', '\$abc', "@'foo'", "\$'bar'"],

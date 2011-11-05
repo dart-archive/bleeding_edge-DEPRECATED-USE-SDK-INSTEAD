@@ -945,8 +945,12 @@ class Parser {
     return new TypeReference(span, world.boolType);
   }
 
-  _numTypeRef(SourceSpan span) {
-    return new TypeReference(span, world.numType);
+  _intTypeRef(SourceSpan span) {
+    return new TypeReference(span, world.intType);
+  }
+
+  _doubleTypeRef(SourceSpan span) {
+    return new TypeReference(span, world.doubleType);
   }
 
   _stringTypeRef(SourceSpan span) {
@@ -1005,16 +1009,21 @@ class Parser {
         return new LiteralExpression(false,_boolTypeRef(_makeSpan(start)),
           'false', _makeSpan(start));
 
-      case TokenKind.HEX_NUMBER:
+      case TokenKind.HEX_INTEGER:
         var t = _next();
         // Remove the 0x or 0X before parsing the hex number.
         return new LiteralExpression(parseHex(t.text.substring(2)),
-          _numTypeRef(_makeSpan(start)), t.text, _makeSpan(start));
+          _intTypeRef(_makeSpan(start)), t.text, _makeSpan(start));
 
-      case TokenKind.NUMBER:
+      case TokenKind.INTEGER:
+        var t = _next();
+        return new LiteralExpression(Math.parseInt(t.text),
+          _intTypeRef(_makeSpan(start)), t.text, _makeSpan(start));
+
+      case TokenKind.DOUBLE:
         var t = _next();
         return new LiteralExpression(Math.parseDouble(t.text),
-          _numTypeRef(_makeSpan(start)), t.text, _makeSpan(start));
+          _doubleTypeRef(_makeSpan(start)), t.text, _makeSpan(start));
 
       case TokenKind.STRING:
         return stringLiteralExpr();

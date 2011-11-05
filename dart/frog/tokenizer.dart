@@ -186,7 +186,7 @@ class TokenizerBase extends TokenizerHelpers {
 
   Token finishHex() {
     eatHexDigits();
-    return _finishToken(TokenKind.HEX_NUMBER);
+    return _finishToken(TokenKind.HEX_INTEGER);
   }
 
   Token finishNumber() {
@@ -197,16 +197,18 @@ class TokenizerBase extends TokenizerHelpers {
       _nextChar();
       if (isDigit(_peekChar())) {
         eatDigits();
+        return finishNumberExtra(TokenKind.DOUBLE);
       } else {
         _index--;
       }
     }
 
-    return finishNumberExtra();
+    return finishNumberExtra(TokenKind.INTEGER);
   }
 
-  Token finishNumberExtra() {
+  Token finishNumberExtra(int kind) {
     if (_maybeEatChar(101/*e*/) || _maybeEatChar(69/*E*/)) {
+      kind = TokenKind.DOUBLE;
       _maybeEatChar(45/*-*/);
       _maybeEatChar(43/*+*/);
       eatDigits();
@@ -217,7 +219,7 @@ class TokenizerBase extends TokenizerHelpers {
       return _errorToken();
     }
 
-    return _finishToken(TokenKind.NUMBER);
+    return _finishToken(kind);
   }
 
   Token finishMultilineString(int quote) {
@@ -367,7 +369,7 @@ class TokenizerBase extends TokenizerHelpers {
   Token finishDot() {
     if (isDigit(_peekChar())) {
       eatDigits();
-      return finishNumberExtra();
+      return finishNumberExtra(TokenKind.DOUBLE);
     } else {
       return _finishToken(TokenKind.DOT);
     }

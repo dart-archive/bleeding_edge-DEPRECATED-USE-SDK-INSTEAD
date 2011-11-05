@@ -157,8 +157,33 @@ class Value {
 
   /** Generate a call to an unknown function type. */
   Value _varCall(MethodGenerator context, Arguments args) {
+    // TODO(jmesserly): calls to unknown functions will bypass type checks,
+    // which normally happen on the caller side, or in the generated stub for
+    // dynamic method calls. What should we do?
     var stub = world.functionType.getCallStub(args);
     return new Value(null, '$code.${stub.name}(${args.getCode()})');
+  }
+
+  /** True if convertTo would generate a conversion. */
+  // TODO(jmesserly): I don't like how this is coupled to convertTo.
+  bool needsConversion(Type toType) {
+    var callMethod = toType.getCallMethod();
+    if (callMethod != null) {
+      int arity = callMethod.parameters.length;
+      var myCall = type.getCallMethod();
+      if (myCall == null || myCall.parameters.length != arity) {
+        return true;
+      }
+    }
+    if (options.enableTypeChecks) {
+      Type fromType = type;
+      if (type.isVar && code != 'null') {
+        fromType = world.objectType;
+      }
+      bool bothNum = type.isNum && toType.isNum;
+      return fromType.isSubtypeOf(toType) || bothNum;
+    }
+    return false;
   }
 
   /**
@@ -166,11 +191,12 @@ class Value {
    * This is used for converting between function types, and inserting type
    * checks when --enable_type_checks is enabled.
    */
+  // WARNING: this needs to be kept in sync with needsConversion above.
   Value convertTo(MethodGenerator context, Type toType, Node node,
       [bool isDynamic=false]) {
 
-    // Check types if enabled, unless this is a dynamic operation
-    bool checked = options.enableTypeChecks && !isDynamic;
+    // Issue type warnings unless we are processing a dynamic operation.
+    bool checked = !isDynamic;
 
     var callMethod = toType.getCallMethod();
     if (callMethod != null) {
@@ -191,14 +217,53 @@ class Value {
       return this;
     }
 
-    if (type.isSubtypeOf(toType)) {
-      return this; // widening conversion
-    } else if (checked && !toType.isSubtypeOf(type)) {
+    // If we're assigning from a var, pretend it's Object for the purpose of
+    // runtime checks.
+
+    // TODO(jmesserly): I'm a little bothered by the fact that we can't call
+    // isSubtypeOf directly. If we tracked null literals as the bottom type,
+    // and then only allowed Dynamic to be bottom for generic type args, I think
+    // we'd get the right behavior from isSubtypeOf.
+    Type fromType = type;
+    if (type.isVar && code != 'null') {
+      fromType = world.objectType;
+    }
+
+    // TODO(jmesserly): remove the special case for "num" when our num handling
+    // is better.
+    bool bothNum = type.isNum && toType.isNum;
+    if (!checked || fromType.isSubtypeOf(toType) || bothNum) {
+      // No checks needed for a widening conversion.
+      return this;
+    }
+
+    if (!toType.isSubtypeOf(type)) {
       // According to the static types, this conversion can't work.
       convertWarning(toType, node);
     }
 
+    // Generate a runtime check
     return _typeAssert(context, toType, node);
+  }
+
+  // TODO(jmesserly): this generates an unnecessary check for the 90%
+  // case where the thing passed in was a non-overloaded == or != expression
+  // We'll want to eliminate these, probably by tracking non-null bools in the
+  // type system.
+  Value convertToNonNullBool(MethodGenerator context, Node node) {
+    if (!type.isAssignable(world.boolType)) {
+      convertWarning(world.boolType, node);
+    }
+    if (!options.enableTypeChecks) {
+      return this;
+    } else {
+      // TODO(jmesserly): this is hacky.
+      if (code.startsWith('\$notnull_bool')) {
+        return this;
+      } else {
+        return new Value(world.boolType, '\$notnull_bool($code)');
+      }
+    }
   }
 
   /**
@@ -206,38 +271,47 @@ class Value {
    * [instanceOf], but it allows null since Dart types are nullable.
    * Also it will throw a TypeError if it gets the wrong type.
    */
-  // TODO(jmesserly): this generated code is too verbose.
   Value _typeAssert(MethodGenerator context, Type toType, Node node) {
     if (toType is ParameterType) {
       ParameterType p = toType;
       toType = p.extendsType;
     }
 
-    // TODO(jmesserly): I don't like the duplication with instanceOf
-    var temp = context.getTemp(this);
-    String testCode;
+    if (toType.isObject || toType.isVar) {
+      world.internalError('We thought ${type.name} is not a subtype of ${toType.name}?');
+    }
+
+    // TODO(jmesserly): better assert for integers?
+    if (toType.isNum) toType = world.numType;
+
+    // Generate a check like these:
+    //   obj && obj.is$TypeName()
+    //   $assert_int(obj)
+    //
+    // We rely on the fact that calling an undefined method produces a JS
+    // TypeError. Alternatively we could define fallbacks on Object that throw.
+    String check;
     if (toType.library.isCore && toType.typeofName != null) {
-      testCode = "typeof(${temp.code}) == '${toType.typeofName}'";
-    } else if (toType.isClass && toType is !ConcreteType) {
-      toType.markUsed();
-      testCode = '${temp.code} instanceof ${toType.jsname}';
+      check = '\$assert_${toType.name}($code)';
+
+      if (toType.typeCheckCode == null) {
+        toType.typeCheckCode = '''
+function \$assert_${toType.name}(x) {
+  if (x == null || typeof(x) == "${toType.typeofName}") return x;
+  throw new TypeError("'" + x + "' is not a ${toType.name}.");
+}''';
+      }
     } else {
       toType.isTested = true;
-      testCode = '${temp.code}.is\$${toType.jsname}';
+
+      // If we track nullability, we could simplify this check.
+      var temp = context.getTemp(this);
+      check = '(${context.assignTemp(temp, this).code} &&';
+      check += ' ${temp.code}.is\$${toType.jsname}())';
+      if (this != temp) context.freeTemp(temp);
     }
-    testCode = '(${context.assignTemp(temp, this).code} == null || $testCode)';
-    var test = new Value(world.boolType, testCode);
 
-    var err = world.corelib.types['TypeError'];
-    world.gen.genMethod(err.members['toString']);
-    var args = new Arguments(null, [temp,
-        new Value(world.stringType, '"${toType.name}"')]);
-    var typeErr = err.getConstructor('').invoke(context, node, null, args);
-
-    var result = new Value(toType, '(${test.code} ? ${temp.code} : '
-        + '\$throw(${typeErr.code}))');
-    if (temp != this) context.freeTemp(temp);
-    return result;
+    return new Value(toType, check);
   }
 
   /**

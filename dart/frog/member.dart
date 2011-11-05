@@ -689,6 +689,30 @@ class MethodMember extends Member {
     return true;
   }
 
+  /** Returns true if any of the arguments will need conversion. */
+  // TODO(jmesserly): I don't like how this is coupled to invoke
+  bool needsArgumentConversion(Arguments args) {
+    int bareCount = args.bareCount;
+    for (int i = 0; i < bareCount; i++) {
+      var arg = args.values[i];
+      if (arg.needsConversion(parameters[i].type)) {
+        return false;
+      }
+    }
+
+    if (bareCount < parameters.length) {
+      genParameterValues();
+      for (int i = bareCount; i < parameters.length; i++) {
+        var arg = args.getValue(parameters[i].name);
+        if (arg != null && arg.needsConversion(parameters[i].type)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   static String _argCountMsg(int actual, int expected, [bool atLeast=false]) {
     // TODO(jimhug): better messages with default named args.
     return 'wrong number of arguments, expected ' +
@@ -1000,6 +1024,7 @@ class MethodMember extends Member {
           var op = TokenKind.rawOperatorFromMethod(name);
           code = '${target.code} $op ${argsCode[0]}';
         }
+
         return new Value(returnType, code);
       } else {
         var value;
@@ -1451,7 +1476,7 @@ class FactoryMap {
     return getFactoriesFor(typeName)[name];
   }
 
-  void forEach(void f(MethodMember member)) {
+  void forEach(void f(Member member)) {
     factories.forEach((_, Map constructors) {
       constructors.forEach((_, Member member) {
         f(member);

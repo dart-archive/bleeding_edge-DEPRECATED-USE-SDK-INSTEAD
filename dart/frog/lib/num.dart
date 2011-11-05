@@ -44,6 +44,9 @@ interface num extends Comparable, Hashable {
   String toStringAsPrecision(int precision);
   String toRadixString(int radix);
 
+  // TODO(jmesserly): we need to do something in the Frog type system to know
+  // to know that most int operations are closed over integers.
+
   // TODO(jimhug): Bit-operations stolen from int
   int operator &(int other);
   int operator |(int other);

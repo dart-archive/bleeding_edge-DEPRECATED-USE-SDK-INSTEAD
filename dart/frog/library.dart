@@ -114,7 +114,7 @@ class Library {
     final type = new DefinedType(name, this, def, false);
     type.addMethod('\$call', func);
     type.members['\$call'].resolve(inType);
-    // Functions should implement Function. See "Function Types" in the spec.
+    // Function types implement the Function interface.
     type.interfaces = [world.functionType];
     return type;
   }

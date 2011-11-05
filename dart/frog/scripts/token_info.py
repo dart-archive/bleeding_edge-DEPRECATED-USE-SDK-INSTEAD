@@ -132,8 +132,9 @@ tokens = [
 
   Token('STRING', "", 0),
   Token('STRING_PART', "", 0),
-  Token('NUMBER', "", 0),
-  Token('HEX_NUMBER', "", 0),
+  Token('INTEGER', "", 0),
+  Token('HEX_INTEGER', "", 0),
+  Token('DOUBLE', "", 0),
 
   Token('WHITESPACE', "", 0),
   Token('COMMENT', "", 0),

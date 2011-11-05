@@ -92,6 +92,8 @@ class World {
 
   Type objectType;
   Type numType;
+  Type intType;
+  Type doubleType;
   Type boolType;
   Type stringType;
   Type listType;
@@ -125,6 +127,8 @@ class World {
 
     objectType = _addToCoreLib('Object', true);
     numType = _addToCoreLib('num', false);
+    intType = _addToCoreLib('int', false);
+    doubleType = _addToCoreLib('double', false);
     boolType = _addToCoreLib('bool', false);
     stringType = _addToCoreLib('String', false);
     listType = _addToCoreLib('List', false);

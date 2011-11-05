@@ -137,10 +137,13 @@ class VarMethodStub extends VarMember {
     // figure out which types can be patched reliably.
     // I don't think our other native libs have this issue.
     if (member is MethodMember && member.declaringType.library != world.dom) {
+      MethodMember method = member;
+      if (method.needsArgumentConversion(args)) {
+        return false;
+      }
+
       // If we have the right number of parameters, or all defaults would be
       // filled in as "undefined" anyway, we can just call the method directly.
-      MethodMember method = member;
-      method.genParameterValues();
       for (int i = args.length; i < method.parameters.length; i++) {
         if (method.parameters[i].value.code != 'null') {
           return false;

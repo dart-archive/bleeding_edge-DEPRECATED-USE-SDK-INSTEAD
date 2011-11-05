@@ -9,10 +9,16 @@
 void main() {
   // Get the home directory from our executable.
   var homedir = path.dirname(fs.realpathSync(process.argv[1]));
-  if (compile(homedir, process.argv, new NodeFileSystem())) {
+
+  // Note: we create a copy of argv here because the one that is passed in is
+  // potentially a JS Array object from outside the sandbox. Hence it will have
+  // the wrong prototype.
+  var argv = new List.from(process.argv);
+
+  if (compile(homedir, argv, new NodeFileSystem())) {
     var code = world.getGeneratedCode();
     if (!options.compileOnly) {
-      process.argv = [process.argv[0], process.argv[1]];
+      process.argv = [argv[0], argv[1]];
       process.argv.addAll(options.childArgs);
       vm.runInNewContext(code, createSandbox());
     }

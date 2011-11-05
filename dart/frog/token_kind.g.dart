@@ -181,167 +181,170 @@ class TokenKind {
   /** [TokenKind] representing string part tokens. */
   static final int STRING_PART = 59;
 
-  /** [TokenKind] representing number tokens. */
-  static final int NUMBER = 60;
+  /** [TokenKind] representing integer tokens. */
+  static final int INTEGER = 60;
 
-  /** [TokenKind] representing hex number tokens. */
-  static final int HEX_NUMBER = 61;
+  /** [TokenKind] representing hex integer tokens. */
+  static final int HEX_INTEGER = 61;
+
+  /** [TokenKind] representing double tokens. */
+  static final int DOUBLE = 62;
 
   /** [TokenKind] representing whitespace tokens. */
-  static final int WHITESPACE = 62;
+  static final int WHITESPACE = 63;
 
   /** [TokenKind] representing comment tokens. */
-  static final int COMMENT = 63;
+  static final int COMMENT = 64;
 
   /** [TokenKind] representing error tokens. */
-  static final int ERROR = 64;
+  static final int ERROR = 65;
 
   /** [TokenKind] representing incomplete string tokens. */
-  static final int INCOMPLETE_STRING = 65;
+  static final int INCOMPLETE_STRING = 66;
 
   /** [TokenKind] representing incomplete comment tokens. */
-  static final int INCOMPLETE_COMMENT = 66;
+  static final int INCOMPLETE_COMMENT = 67;
 
   /** [TokenKind] representing incomplete multiline string dq tokens. */
-  static final int INCOMPLETE_MULTILINE_STRING_DQ = 67;
+  static final int INCOMPLETE_MULTILINE_STRING_DQ = 68;
 
   /** [TokenKind] representing incomplete multiline string sq tokens. */
-  static final int INCOMPLETE_MULTILINE_STRING_SQ = 68;
+  static final int INCOMPLETE_MULTILINE_STRING_SQ = 69;
 
   /** [TokenKind] representing identifier tokens. */
-  static final int IDENTIFIER = 69;
+  static final int IDENTIFIER = 70;
 
   /** [TokenKind] representing pseudo-keyword 'abstract' tokens. */
-  static final int ABSTRACT = 70;
+  static final int ABSTRACT = 71;
 
   /** [TokenKind] representing pseudo-keyword 'assert' tokens. */
-  static final int ASSERT = 71;
+  static final int ASSERT = 72;
 
   /** [TokenKind] representing pseudo-keyword 'class' tokens. */
-  static final int CLASS = 72;
+  static final int CLASS = 73;
 
   /** [TokenKind] representing pseudo-keyword 'extends' tokens. */
-  static final int EXTENDS = 73;
+  static final int EXTENDS = 74;
 
   /** [TokenKind] representing pseudo-keyword 'factory' tokens. */
-  static final int FACTORY = 74;
+  static final int FACTORY = 75;
 
   /** [TokenKind] representing pseudo-keyword 'get' tokens. */
-  static final int GET = 75;
+  static final int GET = 76;
 
   /** [TokenKind] representing pseudo-keyword 'implements' tokens. */
-  static final int IMPLEMENTS = 76;
+  static final int IMPLEMENTS = 77;
 
   /** [TokenKind] representing pseudo-keyword 'import' tokens. */
-  static final int IMPORT = 77;
+  static final int IMPORT = 78;
 
   /** [TokenKind] representing pseudo-keyword 'interface' tokens. */
-  static final int INTERFACE = 78;
+  static final int INTERFACE = 79;
 
   /** [TokenKind] representing pseudo-keyword 'library' tokens. */
-  static final int LIBRARY = 79;
+  static final int LIBRARY = 80;
 
   /** [TokenKind] representing pseudo-keyword 'native' tokens. */
-  static final int NATIVE = 80;
+  static final int NATIVE = 81;
 
   /** [TokenKind] representing pseudo-keyword 'negate' tokens. */
-  static final int NEGATE = 81;
+  static final int NEGATE = 82;
 
   /** [TokenKind] representing pseudo-keyword 'operator' tokens. */
-  static final int OPERATOR = 82;
+  static final int OPERATOR = 83;
 
   /** [TokenKind] representing pseudo-keyword 'set' tokens. */
-  static final int SET = 83;
+  static final int SET = 84;
 
   /** [TokenKind] representing pseudo-keyword 'source' tokens. */
-  static final int SOURCE = 84;
+  static final int SOURCE = 85;
 
   /** [TokenKind] representing pseudo-keyword 'static' tokens. */
-  static final int STATIC = 85;
+  static final int STATIC = 86;
 
   /** [TokenKind] representing pseudo-keyword 'typedef' tokens. */
-  static final int TYPEDEF = 86;
+  static final int TYPEDEF = 87;
 
   /** [TokenKind] representing keyword 'break' tokens. */
-  static final int BREAK = 87;
+  static final int BREAK = 88;
 
   /** [TokenKind] representing keyword 'case' tokens. */
-  static final int CASE = 88;
+  static final int CASE = 89;
 
   /** [TokenKind] representing keyword 'catch' tokens. */
-  static final int CATCH = 89;
+  static final int CATCH = 90;
 
   /** [TokenKind] representing keyword 'const' tokens. */
-  static final int CONST = 90;
+  static final int CONST = 91;
 
   /** [TokenKind] representing keyword 'continue' tokens. */
-  static final int CONTINUE = 91;
+  static final int CONTINUE = 92;
 
   /** [TokenKind] representing keyword 'default' tokens. */
-  static final int DEFAULT = 92;
+  static final int DEFAULT = 93;
 
   /** [TokenKind] representing keyword 'do' tokens. */
-  static final int DO = 93;
+  static final int DO = 94;
 
   /** [TokenKind] representing keyword 'else' tokens. */
-  static final int ELSE = 94;
+  static final int ELSE = 95;
 
   /** [TokenKind] representing keyword 'false' tokens. */
-  static final int FALSE = 95;
+  static final int FALSE = 96;
 
   /** [TokenKind] representing keyword 'final' tokens. */
-  static final int FINAL = 96;
+  static final int FINAL = 97;
 
   /** [TokenKind] representing keyword 'finally' tokens. */
-  static final int FINALLY = 97;
+  static final int FINALLY = 98;
 
   /** [TokenKind] representing keyword 'for' tokens. */
-  static final int FOR = 98;
+  static final int FOR = 99;
 
   /** [TokenKind] representing keyword 'if' tokens. */
-  static final int IF = 99;
+  static final int IF = 100;
 
   /** [TokenKind] representing keyword 'in' tokens. */
-  static final int IN = 100;
+  static final int IN = 101;
 
   /** [TokenKind] representing keyword 'is' tokens. */
-  static final int IS = 101;
+  static final int IS = 102;
 
   /** [TokenKind] representing keyword 'new' tokens. */
-  static final int NEW = 102;
+  static final int NEW = 103;
 
   /** [TokenKind] representing keyword 'null' tokens. */
-  static final int NULL = 103;
+  static final int NULL = 104;
 
   /** [TokenKind] representing keyword 'return' tokens. */
-  static final int RETURN = 104;
+  static final int RETURN = 105;
 
   /** [TokenKind] representing keyword 'super' tokens. */
-  static final int SUPER = 105;
+  static final int SUPER = 106;
 
   /** [TokenKind] representing keyword 'switch' tokens. */
-  static final int SWITCH = 106;
+  static final int SWITCH = 107;
 
   /** [TokenKind] representing keyword 'this' tokens. */
-  static final int THIS = 107;
+  static final int THIS = 108;
 
   /** [TokenKind] representing keyword 'throw' tokens. */
-  static final int THROW = 108;
+  static final int THROW = 109;
 
   /** [TokenKind] representing keyword 'true' tokens. */
-  static final int TRUE = 109;
+  static final int TRUE = 110;
 
   /** [TokenKind] representing keyword 'try' tokens. */
-  static final int TRY = 110;
+  static final int TRY = 111;
 
   /** [TokenKind] representing keyword 'var' tokens. */
-  static final int VAR = 111;
+  static final int VAR = 112;
 
   /** [TokenKind] representing keyword 'void' tokens. */
-  static final int VOID = 112;
+  static final int VOID = 113;
 
   /** [TokenKind] representing keyword 'while' tokens. */
-  static final int WHILE = 113;
+  static final int WHILE = 114;
 
   static String kindToString(int kind) {
     switch(kind) {
@@ -404,8 +407,9 @@ class TokenKind {
       case TokenKind.SETINDEX: return "[]=";
       case TokenKind.STRING: return "string";
       case TokenKind.STRING_PART: return "string part";
-      case TokenKind.NUMBER: return "number";
-      case TokenKind.HEX_NUMBER: return "hex number";
+      case TokenKind.INTEGER: return "integer";
+      case TokenKind.HEX_INTEGER: return "hex integer";
+      case TokenKind.DOUBLE: return "double";
       case TokenKind.WHITESPACE: return "whitespace";
       case TokenKind.COMMENT: return "comment";
       case TokenKind.ERROR: return "error";

@@ -6,6 +6,12 @@ class Type implements Named, Hashable {
   final String name;
   bool isTested;
 
+  /**
+   * For core types (int, String, etc) this is the generated type assertion
+   * function (uses JS "typeof"). This field is null for all other types.
+   */
+  String typeCheckCode;
+
   String _jsname;
 
   Member _typeMember;
@@ -49,6 +55,8 @@ class Type implements Named, Hashable {
   bool get isFunction() => false;
   bool get isList() => false;
   bool get isNum() => false;
+  bool get isInt() => false;
+  bool get isDouble() => false;
   bool get isVoid() => false;
 
   // Strangely Dart treats calls on Function much like calls on var.
@@ -177,7 +185,7 @@ class Type implements Named, Hashable {
    *       and: Ti << Si, 1 <= i <= n
    *   - T << U and U << S.
    *
-   * << is a partial order on types. T is a subtype of S, written T <: S, i
+   * << is a partial order on types. T is a subtype of S, written T <: S, iff
    * [Bottom/Dynamic]T << S.
    */
   // TODO(jmesserly): this function could be expensive. Memoize results?
@@ -223,7 +231,7 @@ class Type implements Named, Hashable {
       return true;
     }
 
-    // And now for some fun: T << U and U << S => T << S
+    // And now for some fun: T << U and U << S -> T << S
     // To implement this, we need to enumerate a set of types C such that
     // U will be an element of C. We can do this by either enumerating less
     // specific types of T, or more specific types of S.
@@ -595,6 +603,9 @@ class DefinedType extends Type {
       (name == 'num' || name == 'int' || name == 'double');
   }
 
+  bool get isInt() => this == world.intType;
+  bool get isDouble() => this == world.doubleType;
+
   MethodMember getCallMethod() => members['\$call'];
 
   Map<String, Member> getAllMembers() => new Map.from(members);
@@ -772,7 +783,7 @@ class DefinedType extends Type {
         }
       }
     } else if (definition is FunctionTypeDefinition) {
-      // Functions should implement Function. See "Function Types" in the spec.
+      // Function types implement the Function interface.
       this.interfaces = [world.functionType];
     }
 
