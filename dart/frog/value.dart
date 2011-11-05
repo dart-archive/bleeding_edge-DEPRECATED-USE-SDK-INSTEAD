@@ -113,7 +113,7 @@ class Value {
     var member = null;
     if (!type.isVar) {
       if (isSuper) {
-        member = type.members[name];
+        return type.getMember(name);
       } else {
         member = type.resolveMember(name);
       }

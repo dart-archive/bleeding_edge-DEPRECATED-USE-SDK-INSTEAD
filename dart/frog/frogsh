@@ -16762,7 +16762,7 @@ Value.prototype._tryResolveMember = function(context, name) {
   var member = null;
   if (!this.type.get$isVar()) {
     if (this.isSuper) {
-      member = this.type.members.$index(name);
+      return this.type.getMember(name);
     }
     else {
       member = this.type.resolveMember(name);
