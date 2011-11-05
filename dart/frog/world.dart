@@ -325,7 +325,8 @@ class World {
     if (library == null) {
       library = new Library(readFile(filename));
       info('read library ${filename}');
-      if (!library.isCore) {
+      if (!library.isCore &&
+          !library.imports.some((li) => li.library.isCore)) {
         library.imports.add(new LibraryImport(corelib));
       }
       libraries[filename] = library;
@@ -339,8 +340,7 @@ class World {
       final todo = _todo;
       _todo = [];
       for (var lib in todo) {
-        // TODO(jimhug): I don't like such active constructors.
-        new LibraryVisitor(lib);
+        lib.visitSources();
       }
     }
   }

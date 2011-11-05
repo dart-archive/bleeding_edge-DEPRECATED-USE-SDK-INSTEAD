@@ -13,9 +13,35 @@ class Parameter {
 
   Parameter(this.definition);
 
-  resolve(Type inType) {
+  resolve(Member method, Type inType) {
     name = definition.name.name;
     type = inType.resolveType(definition.type, false);
+
+    if (method.isStatic && type.hasTypeParams) {
+      world.error('using type parameter in static context', definition.span);
+    }
+
+    if (definition.value != null) {
+      // To match VM, detect cases where value was not actually specified in
+      // code and don't signal errors.
+      // TODO(jimhug): Clean up after issue #352 is resolved.
+      if (definition.value is NullExpression &&
+          definition.value.span.start == definition.span.start) {
+        return;
+      }
+      if (method.isAbstract) {
+        world.error('default value not allowed on abstract methods',
+          definition.span);
+      } else if (!inType.isClass) {
+          world.error('default value not allowed on interface methods',
+            definition.span);
+      } else if (method.name == '\$call' && method.definition.body == null) {
+        // TODO(jimhug): Need simpler way to detect "true" function types vs.
+        //   regular methods being used as function types for closures.
+        world.error('default value not allowed on function type',
+          definition.span);
+      }
+    }
   }
 
   genValue(MethodMember method, MethodGenerator context) {
@@ -33,7 +59,6 @@ class Parameter {
     ret.type = newType;
     ret.name = name;
     return ret;
-    //ret.value = value; // TODO(jimhug): Any interaction with generics?
   }
 
   bool get isOptional() => definition != null && definition.value != null;
@@ -580,7 +605,7 @@ class MethodMember extends Member {
 
   Type get functionType() {
     if (_functionType == null) {
-      _functionType = declaringType.library.getOrAddFunctionType(name,
+      _functionType = library.getOrAddFunctionType(name,
         definition, declaringType);
       // TODO(jimhug): Better resolution checks.
       if (parameters == null) {
@@ -1190,12 +1215,8 @@ class MethodMember extends Member {
     parameters = [];
     for (var formal in definition.formals) {
       var param = new Parameter(formal);
-      param.resolve(inType);
+      param.resolve(this, inType);
       parameters.add(param);
-      if (isStatic && param.type.hasTypeParams) {
-        world.error('using type parameter in static context',
-          formal.span);
-      }
     }
 
     if (!isLambda) {
@@ -1223,14 +1244,6 @@ class MemberSet {
 
   bool canInvoke(MethodGenerator context, Arguments args) =>
     members.some((m) => m.canInvoke(context, args));
-
-  Library get library() {
-    var ret = members[0].declaringType.library;
-    for (var m in members) {
-      if (m.declaringType.library != ret) return null;
-    }
-    return ret;
-  }
 
   Value _makeError(Node node, Value target, String action) {
     if (!target.type.isVar) {

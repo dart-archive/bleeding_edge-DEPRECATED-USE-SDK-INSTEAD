@@ -63,8 +63,9 @@ class Library {
 
   /** Adds an import to the library. */
   addImport(String fullname, String prefix) {
-    // TODO(jimhug): Check for duplicates.
-    imports.add(new LibraryImport(world.getOrAddLibrary(fullname), prefix));
+    var newLib = world.getOrAddLibrary(fullname);
+    imports.add(new LibraryImport(newLib, prefix));
+    return newLib;
   }
 
   addNative(String fullname) {
@@ -242,36 +243,58 @@ class Library {
     }
   }
 
+  visitSources() {
+    var visitor = new _LibraryVisitor(this);
+    visitor.addSource(baseSource);
+  }
+
   toString() => baseSource.filename;
 }
 
 
-class LibraryVisitor implements TreeVisitor {
+class _LibraryVisitor implements TreeVisitor {
   final Library library;
   Type currentType;
   List<SourceFile> sources;
 
-  LibraryVisitor(this.library) {
+  bool seenImport = false;
+  bool seenSource = false;
+  bool seenResource = false;
+  bool isTop = true;
+
+  _LibraryVisitor(this.library) {
     currentType = library.topType;
     sources = [];
-    addSource(library.baseSource);
   }
 
-  addSourceFromName(String name) {
+  addSourceFromName(String name, SourceSpan span) {
+    var filename = library.makeFullPath(name);
+    if (filename == library.baseSource.filename) {
+      world.error('library can not source itself', span);
+      return;
+    } else if (sources.some((s) => s.filename == filename)) {
+      world.error('file "$filename" has already been sourced', span);
+      return;
+    }
+
     var source = world.readFile(library.makeFullPath(name));
     sources.add(source);
   }
 
   addSource(SourceFile source) {
+    if (library.sources.some((s) => s.filename == source.filename)) {
+      // TODO(jimhug): good error location.
+      world.error('duplicate source file "${source.filename}"', null);
+      return;
+    }
     library.sources.add(source);
     final parser = new Parser(source, /*diet:*/options.dietParse);
     final unit = parser.compilationUnit();
 
-    for (final def in unit) {
-      def.visit(this);
-    }
+    unit.forEach((def) => def.visit(this));
 
-    // TODO(jimhug): Enforce restrictions on source and import directives.
+    assert(sources.length == 0 || isTop);
+    isTop = false;
     var newSources = sources;
     sources = [];
     for (var source in newSources) {
@@ -280,6 +303,11 @@ class LibraryVisitor implements TreeVisitor {
   }
 
   void visitDirectiveDefinition(DirectiveDefinition node) {
+    if (!isTop) {
+      world.error('directives not allowed in sourced file', node.span);
+      return;
+    }
+
     var name;
     switch (node.name.name) {
       case "library":
@@ -290,12 +318,16 @@ class LibraryVisitor implements TreeVisitor {
           if (name == 'node' || name == 'dom') {
             library.topType.isNativeType = true;
           }
+          if (seenImport || seenSource || seenResource) {
+            world.error('#library must be first directive in file', node.span);
+          }
         } else {
           world.error('already specified library name', node.span);
         }
         break;
 
       case "import":
+        seenImport = true;
         name = getFirstStringArg(node);
         var prefix = tryGetNamedStringArg(node, 'prefix');
         if (node.arguments.length > 2 ||
@@ -305,26 +337,47 @@ class LibraryVisitor implements TreeVisitor {
               + ' but found ${node.arguments.length}', node.span);
         } else if (prefix != null && prefix.indexOf('.', 0) >= 0) {
           world.error('library prefix canot contain "."', node.span);
+        } else if (seenSource || seenResource) {
+          world.error('#imports must come before any #source or #resource',
+            node.span);
         }
 
         // Empty prefix and no prefix are equivalent
         if (prefix == '') prefix = null;
 
-        library.addImport(library.makeFullPath(name), prefix);
+        var filename = library.makeFullPath(name);
+
+        if (library.imports.some((li) => li.library.baseSource == filename)) {
+          // TODO(jimhug): Can you import a lib twice with different prefixes?
+          world.error('duplicate import of "$name"', node.span);
+          return;
+        }
+
+        var newLib = library.addImport(filename, prefix);
+        if (newLib.name == null && !filename.startsWith('dart:')) {
+          world.info('imported library "$name" has no #library directive',
+            node.span);
+        }
         break;
 
       case "source":
+        seenSource = true;
         name = getSingleStringArg(node);
-        addSourceFromName(name);
+        addSourceFromName(name, node.span);
+        if (seenResource) {
+          world.error('#sources must come before any #resource', node.span);
+        }
         break;
 
       case "native":
+        // TODO(jimhug): Fit this into spec?
         name = getSingleStringArg(node);
         library.addNative(library.makeFullPath(name));
         break;
 
       case "resource":
         // TODO(jmesserly): should we do anything else here?
+        seenResource = true;
         getFirstStringArg(node);
         break;
 

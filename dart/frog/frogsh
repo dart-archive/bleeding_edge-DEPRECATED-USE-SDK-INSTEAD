@@ -811,7 +811,7 @@ HashMapImplementation._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Volumes/Data/dart/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -978,7 +978,7 @@ HashMapImplementation$E$E._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation$E$E.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Volumes/Data/dart/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1343,7 +1343,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/Volumes/Data/dart/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
+  $assert(index == this.get$length(), "index == length", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -1353,7 +1353,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/Volumes/Data/dart/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
+  $assert(index == this.get$length(), "index == length", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -10196,7 +10196,9 @@ Library.prototype.makeFullPath = function(filename) {
   return joinPaths(this.sourceDir, filename);
 }
 Library.prototype.addImport = function(fullname, prefix) {
-  this.imports.add(new LibraryImport(world.getOrAddLibrary(fullname), prefix));
+  var newLib = world.getOrAddLibrary(fullname);
+  this.imports.add(new LibraryImport(newLib, prefix));
+  return newLib;
 }
 Library.prototype.addNative = function(fullname) {
   this.natives.add(world.reader.readFile(fullname));
@@ -10355,31 +10357,62 @@ Library.prototype.resolve = function() {
     type.resolve();
   }
 }
+Library.prototype.visitSources = function() {
+  var visitor = new _LibraryVisitor(this);
+  visitor.addSource(this.baseSource);
+}
 Library.prototype.toString = function() {
   return this.baseSource.filename;
 }
-// ********** Code for LibraryVisitor **************
-function LibraryVisitor(library) {
+// ********** Code for _LibraryVisitor **************
+function _LibraryVisitor(library) {
+  this.seenImport = false
+  this.seenSource = false
+  this.seenResource = false
+  this.isTop = true
   this.library = library;
   // Initializers done
   this.currentType = this.library.topType;
   this.sources = [];
-  this.addSource(this.library.baseSource);
 }
-LibraryVisitor.prototype.get$library = function() { return this.library; };
-LibraryVisitor.prototype.addSourceFromName = function(name) {
+_LibraryVisitor.prototype.get$library = function() { return this.library; };
+_LibraryVisitor.prototype.get$isTop = function() { return this.isTop; };
+_LibraryVisitor.prototype.set$isTop = function(value) { return this.isTop = value; };
+_LibraryVisitor.prototype.addSourceFromName = function(name, span) {
+  var filename = this.library.makeFullPath(name);
+  if ($notnull_bool($eq(filename, this.library.baseSource.filename))) {
+    world.error('library can not source itself', span);
+    return;
+  }
+  else if ($notnull_bool(this.sources.some((function (s) {
+    return s.filename == filename;
+  })
+  ))) {
+    world.error(('file "' + filename + '" has already been sourced'), span);
+    return;
+  }
   var source = world.readFile(this.library.makeFullPath(name));
   this.sources.add(source);
 }
-LibraryVisitor.prototype.addSource = function(source) {
+_LibraryVisitor.prototype.addSource = function(source) {
+  var $this = this; // closure support
   var $0;
+  if ($notnull_bool(this.library.sources.some((function (s) {
+    return s.filename == source.filename;
+  })
+  ))) {
+    world.error(('duplicate source file "' + source.filename + '"'));
+    return;
+  }
   this.library.sources.add(source);
   var parser = new lang_Parser(source, options.dietParse, 0);
   var unit = parser.compilationUnit();
-  for (var $i = 0;$i < unit.length; $i++) {
-    var def = unit.$index($i);
-    def.visit(this);
-  }
+  unit.forEach((function (def) {
+    return def.visit($this);
+  })
+  );
+  $assert(this.sources.length == 0 || this.isTop, "sources.length == 0 || isTop", "library.dart", 296, 12);
+  this.isTop = false;
   var newSources = this.sources;
   this.sources = [];
   for (var $i = newSources.iterator(); $i.hasNext(); ) {
@@ -10387,7 +10420,11 @@ LibraryVisitor.prototype.addSource = function(source) {
     this.addSource((source0 && source0.is$SourceFile()));
   }
 }
-LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
+_LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
+  if ($notnull_bool(!this.isTop)) {
+    world.error('directives not allowed in sourced file', node.span);
+    return;
+  }
   var name;
   switch (node.name.name) {
     case "library":
@@ -10398,6 +10435,9 @@ LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
         if ($notnull_bool($eq(name, 'node') || $eq(name, 'dom'))) {
           this.library.topType.isNativeType = true;
         }
+        if ($notnull_bool(this.seenImport || this.seenSource || this.seenResource)) {
+          world.error('#library must be first directive in file', node.span);
+        }
       }
       else {
         world.error('already specified library name', node.span);
@@ -10406,6 +10446,7 @@ LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
 
     case "import":
 
+      this.seenImport = true;
       name = this.getFirstStringArg(node);
       var prefix = this.tryGetNamedStringArg(node, 'prefix');
       if ($notnull_bool(node.arguments.length > 2 || node.arguments.length == 2 && prefix == null)) {
@@ -10414,14 +10455,32 @@ LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
       else if ($notnull_bool($ne(prefix, null) && prefix.indexOf('.', 0) >= 0)) {
         world.error('library prefix canot contain "."', node.span);
       }
+      else if ($notnull_bool(this.seenSource || this.seenResource)) {
+        world.error('#imports must come before any #source or #resource', node.span);
+      }
       if ($notnull_bool($eq(prefix, ''))) prefix = null;
-      this.library.addImport(this.library.makeFullPath($assert_String(name)), $assert_String(prefix));
+      var filename = this.library.makeFullPath($assert_String(name));
+      if ($notnull_bool(this.library.imports.some((function (li) {
+        return $eq(li.get$library().baseSource, filename);
+      })
+      ))) {
+        world.error(('duplicate import of "' + name + '"'), node.span);
+        return;
+      }
+      var newLib = this.library.addImport($assert_String(filename), $assert_String(prefix));
+      if ($notnull_bool(newLib.get$name() == null && !filename.startsWith('dart:'))) {
+        world.info(('imported library "' + name + '" has no #library directive'), node.span);
+      }
       break;
 
     case "source":
 
+      this.seenSource = true;
       name = this.getSingleStringArg(node);
-      this.addSourceFromName($assert_String(name));
+      this.addSourceFromName($assert_String(name), node.span);
+      if ($notnull_bool(this.seenResource)) {
+        world.error('#sources must come before any #resource', node.span);
+      }
       break;
 
     case "native":
@@ -10432,6 +10491,7 @@ LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
 
     case "resource":
 
+      this.seenResource = true;
       this.getFirstStringArg(node);
       break;
 
@@ -10441,13 +10501,13 @@ LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
 
   }
 }
-LibraryVisitor.prototype.getSingleStringArg = function(node) {
+_LibraryVisitor.prototype.getSingleStringArg = function(node) {
   if ($notnull_bool(node.arguments.length != 1)) {
     world.error(('expected exactly one argument but found ' + node.arguments.length + ''), node.span);
   }
   return this.getFirstStringArg(node);
 }
-LibraryVisitor.prototype.getFirstStringArg = function(node) {
+_LibraryVisitor.prototype.getFirstStringArg = function(node) {
   if ($notnull_bool(node.arguments.length < 1)) {
     world.error(('expected at least one argument but found ' + node.arguments.length + ''), node.span);
   }
@@ -10457,7 +10517,7 @@ LibraryVisitor.prototype.getFirstStringArg = function(node) {
   }
   return this._parseStringArgument((arg && arg.is$ArgumentNode()));
 }
-LibraryVisitor.prototype.tryGetNamedStringArg = function(node, argName) {
+_LibraryVisitor.prototype.tryGetNamedStringArg = function(node, argName) {
   var $0;
   var args = node.arguments.filter((function (a) {
     return a.label != null && a.label.name == argName;
@@ -10474,14 +10534,14 @@ LibraryVisitor.prototype.tryGetNamedStringArg = function(node, argName) {
     return this._parseStringArgument((arg && arg.is$ArgumentNode()));
   }
 }
-LibraryVisitor.prototype._parseStringArgument = function(arg) {
+_LibraryVisitor.prototype._parseStringArgument = function(arg) {
   var expr = arg.value;
   if ($notnull_bool(!(expr instanceof LiteralExpression) || !expr.type.type.get$isString())) {
     world.error('expected string', expr.get$span());
   }
   return parseStringLiteral($assert_String(expr.get$value()));
 }
-LibraryVisitor.prototype.visitTypeDefinition = function(node) {
+_LibraryVisitor.prototype.visitTypeDefinition = function(node) {
   var oldType = this.currentType;
   this.currentType = this.library.addType(node.name.name, node, node.isClass);
   var $list = node.body;
@@ -10491,13 +10551,13 @@ LibraryVisitor.prototype.visitTypeDefinition = function(node) {
   }
   this.currentType = (oldType && oldType.is$lang_Type());
 }
-LibraryVisitor.prototype.visitVariableDefinition = function(node) {
+_LibraryVisitor.prototype.visitVariableDefinition = function(node) {
   this.currentType.addField(node);
 }
-LibraryVisitor.prototype.visitFunctionDefinition = function(node) {
+_LibraryVisitor.prototype.visitFunctionDefinition = function(node) {
   this.currentType.addMethod(node.name.name, node);
 }
-LibraryVisitor.prototype.visitFunctionTypeDefinition = function(node) {
+_LibraryVisitor.prototype.visitFunctionTypeDefinition = function(node) {
   var type = this.library.addType(node.func.name.name, node, false);
   type.addMethod('\$call', node.func);
 }
@@ -10512,9 +10572,26 @@ lang_Parameter.prototype.get$name = function() { return this.name; };
 lang_Parameter.prototype.set$name = function(value) { return this.name = value; };
 lang_Parameter.prototype.get$value = function() { return this.value; };
 lang_Parameter.prototype.set$value = function(value) { return this.value = value; };
-lang_Parameter.prototype.resolve = function(inType) {
+lang_Parameter.prototype.resolve = function(method, inType) {
   this.name = this.definition.name.name;
   this.type = inType.resolveType(this.definition.type, false);
+  if ($notnull_bool(method.get$isStatic() && this.type.get$hasTypeParams())) {
+    world.error('using type parameter in static context', this.definition.span);
+  }
+  if ($notnull_bool(this.definition.value != null)) {
+    if ($notnull_bool((this.definition.value instanceof NullExpression) && this.definition.value.span.start == this.definition.span.start)) {
+      return;
+    }
+    if ($notnull_bool(method.get$isAbstract())) {
+      world.error('default value not allowed on abstract methods', this.definition.span);
+    }
+    else if ($notnull_bool(!inType.get$isClass())) {
+      world.error('default value not allowed on interface methods', this.definition.span);
+    }
+    else if ($notnull_bool(method.name == '\$call' && method.get$definition().body == null)) {
+      world.error('default value not allowed on function type', this.definition.span);
+    }
+  }
 }
 lang_Parameter.prototype.genValue = function(method, context) {
   var $0;
@@ -10614,7 +10691,7 @@ Member.prototype.override = function(other) {
   return true;
 }
 Member.prototype.get$generatedFactoryName = function() {
-  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 132, 12);
+  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 157, 12);
   var prefix = ('' + this.declaringType.get$jsname() + '.' + this.get$constructorName() + '\$');
   if ($notnull_bool(this.name == '')) {
     return ('' + prefix + 'factory');
@@ -10664,7 +10741,7 @@ TypeMember.prototype.resolve = function(inType) {
 
 }
 TypeMember.prototype.get_ = function(context, node, target, isDynamic) {
-  $assert(target == null || target.type.get$isTop(), "target == null || target.type.isTop", "member.dart", 170, 12);
+  $assert(target == null || target.type.get$isTop(), "target == null || target.type.isTop", "member.dart", 195, 12);
   return new Value(this.type, this.type.get$jsname(), false, false, true);
 }
 TypeMember.prototype.set_ = function(context, node, target, value, isDynamic) {
@@ -11104,7 +11181,7 @@ MethodMember.prototype.get$constructorName = function() {
 }
 MethodMember.prototype.get$functionType = function() {
   if ($notnull_bool(this._functionType == null)) {
-    this._functionType = this.declaringType.get$library().getOrAddFunctionType(this.name, this.definition, this.declaringType);
+    this._functionType = this.get$library().getOrAddFunctionType(this.name, this.definition, this.declaringType);
     if ($notnull_bool(this.parameters == null)) {
       this.resolve(this.declaringType);
     }
@@ -11694,11 +11771,8 @@ MethodMember.prototype.resolve = function(inType) {
   for (var $i = 0;$i < $list.length; $i++) {
     var formal = $list.$index($i);
     var param = new lang_Parameter(formal);
-    param.resolve(inType);
+    param.resolve(this, inType);
     this.parameters.add(param);
-    if ($notnull_bool(this.isStatic && param.type.get$hasTypeParams())) {
-      world.error('using type parameter in static context', formal.get$span());
-    }
   }
   if ($notnull_bool(!this.isLambda)) {
     this.get$library()._addMember(this);
@@ -11742,15 +11816,6 @@ MemberSet.prototype.canInvoke = function(context, args) {
     return m.canInvoke(context, args);
   })
   );
-}
-MemberSet.prototype.get$library = function() {
-  var ret = this.members.$index(0).declaringType.get$library();
-  var $list = this.members;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var m = $list.$index($i);
-    if ($notnull_bool($ne(m.declaringType.get$library(), ret))) return null;
-  }
-  return ret;
 }
 MemberSet.prototype._makeError = function(node, target, action) {
   if ($notnull_bool(!target.type.get$isVar())) {
@@ -17646,7 +17711,10 @@ World.prototype.getOrAddLibrary = function(filename) {
   if ($notnull_bool(library == null)) {
     library = new Library(this.readFile(filename));
     this.info(('read library ' + filename + ''));
-    if ($notnull_bool(!library.get$isCore())) {
+    if ($notnull_bool(!library.get$isCore() && !library.imports.some((function (li) {
+      return li.get$library().get$isCore();
+    })
+    ))) {
       library.imports.add(new LibraryImport(this.corelib));
     }
     this.libraries.$setindex(filename, library);
@@ -17660,7 +17728,7 @@ World.prototype.process = function() {
     this._todo = [];
     for (var $i = 0;$i < todo.length; $i++) {
       var lib = todo.$index($i);
-      new LibraryVisitor(lib);
+      lib.visitSources();
     }
   }
 }
