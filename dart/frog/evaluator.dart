@@ -34,6 +34,8 @@ class Evaluator {
     options.throwOnFatal = true;
   }
 
+  // TODO(jimhug): Should be calling world.genMethod - but I'm scared to
+  //   make the change myself because we don't have any test coverage here.
   static void _markMethodUsed(Member m) {
     if (m == null || m.isGenerated || m.definition == null || m.isAbstract) {
       return;

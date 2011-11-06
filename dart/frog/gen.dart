@@ -115,8 +115,7 @@ class WorldGenerator {
   }
 
   genMethod(Member meth, [MethodGenerator enclosingMethod=null]) {
-    if (!meth.isGenerated && meth.declaringType.isClass
-        && meth.definition != null && !meth.isAbstract) {
+    if (!meth.isGenerated && !meth.isAbstract && meth.definition != null) {
       new MethodGenerator(meth, enclosingMethod).run();
     }
   }

@@ -32,9 +32,6 @@ class Parameter {
       if (method.isAbstract) {
         world.error('default value not allowed on abstract methods',
           definition.span);
-      } else if (!inType.isClass) {
-          world.error('default value not allowed on interface methods',
-            definition.span);
       } else if (method.name == '\$call' && method.definition.body == null) {
         // TODO(jimhug): Need simpler way to detect "true" function types vs.
         //   regular methods being used as function types for closures.
@@ -1159,7 +1156,7 @@ class MethodMember extends Member {
     isStatic = inType.isTop;
     isConst = false;
     isFactory = false;
-    isAbstract = false;
+    isAbstract = !declaringType.isClass;
     if (definition.modifiers != null) {
       for (var mod in definition.modifiers) {
         if (mod.kind == TokenKind.STATIC) {
@@ -1179,7 +1176,12 @@ class MethodMember extends Member {
           isFactory = true;
         } else if (mod.kind == TokenKind.ABSTRACT) {
           if (isAbstract) {
-           world.error('duplicate abstract modifier', mod.span);
+            if (declaringType.isClass) {
+              world.error('duplicate abstract modifier', mod.span);
+            } else {
+              world.error('abstract modifier not allowed on interface members',
+                mod.span);
+            }
           }
           isAbstract = true;
         } else {
@@ -1193,15 +1195,21 @@ class MethodMember extends Member {
     }
 
     if (isAbstract) {
-      if (definition.body != null) {
+      if (definition.body != null &&
+          declaringType.definition is! FunctionTypeDefinition) {
+        // TODO(jimhug): Creating function types for concrete methods is
+        //   steadily feeling uglier...
         world.error('abstract method can not have a body',
           definition.body.span);
       }
-      if (isStatic) {
+      if (isStatic &&
+          declaringType.definition is! FunctionTypeDefinition) {
         world.error('static method can not be abstract', definition.span);
       }
     } else {
-      // TODO(jimhug): proper checks for bodies on non-interfaces
+      if (definition.body == null && !isConstructor) {
+        world.error('method needs a body', span);
+      }
     }
 
     if (isConstructor) {

@@ -8455,7 +8455,7 @@ WorldGenerator.prototype.writeTypes = function(lib) {
   }
 }
 WorldGenerator.prototype.genMethod = function(meth, enclosingMethod) {
-  if ($notnull_bool(!meth.isGenerated && meth.declaringType.get$isClass() && $ne(meth.get$definition(), null) && !meth.get$isAbstract())) {
+  if ($notnull_bool(!meth.isGenerated && !meth.get$isAbstract() && $ne(meth.get$definition(), null))) {
     new MethodGenerator(meth, enclosingMethod).run();
   }
 }
@@ -8885,7 +8885,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if ($notnull_bool(this._usedTemps.get$length() > 0 || this._freeTemps.length > 0)) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 653, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 652, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo(y);
@@ -10014,7 +10014,7 @@ MethodGenerator.prototype.visitNullExpression = function(node) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2020, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2019, 12);
   if ($notnull_bool(!!(($0 = node.value) && $0.is$List))) {
     var items = [];
     var $list = node.value;
@@ -10580,9 +10580,6 @@ lang_Parameter.prototype.resolve = function(method, inType) {
     if ($notnull_bool(method.get$isAbstract())) {
       world.error('default value not allowed on abstract methods', this.definition.span);
     }
-    else if ($notnull_bool(!inType.get$isClass())) {
-      world.error('default value not allowed on interface methods', this.definition.span);
-    }
     else if ($notnull_bool(method.name == '\$call' && method.get$definition().body == null)) {
       world.error('default value not allowed on function type', this.definition.span);
     }
@@ -10686,7 +10683,7 @@ Member.prototype.override = function(other) {
   return true;
 }
 Member.prototype.get$generatedFactoryName = function() {
-  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 157, 12);
+  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 154, 12);
   var prefix = ('' + this.declaringType.get$jsname() + '.' + this.get$constructorName() + '\$');
   if ($notnull_bool(this.name == '')) {
     return ('' + prefix + 'factory');
@@ -10736,7 +10733,7 @@ TypeMember.prototype.resolve = function(inType) {
 
 }
 TypeMember.prototype.get_ = function(context, node, target, isDynamic) {
-  $assert(target == null || target.type.get$isTop(), "target == null || target.type.isTop", "member.dart", 195, 12);
+  $assert(target == null || target.type.get$isTop(), "target == null || target.type.isTop", "member.dart", 192, 12);
   return new Value(this.type, this.type.get$jsname(), false, false, true);
 }
 TypeMember.prototype.set_ = function(context, node, target, value, isDynamic) {
@@ -11708,7 +11705,7 @@ MethodMember.prototype.resolve = function(inType) {
   this.isStatic = inType.get$isTop();
   this.isConst = false;
   this.isFactory = false;
-  this.isAbstract = false;
+  this.isAbstract = !this.declaringType.get$isClass();
   if ($notnull_bool(this.definition.modifiers != null)) {
     var $list = this.definition.modifiers;
     for (var $i = 0;$i < $list.length; $i++) {
@@ -11733,7 +11730,12 @@ MethodMember.prototype.resolve = function(inType) {
       }
       else if ($notnull_bool(mod.kind == 71/*TokenKind.ABSTRACT*/)) {
         if ($notnull_bool(this.isAbstract)) {
-          world.error('duplicate abstract modifier', mod.get$span());
+          if ($notnull_bool(this.declaringType.get$isClass())) {
+            world.error('duplicate abstract modifier', mod.get$span());
+          }
+          else {
+            world.error('abstract modifier not allowed on interface members', mod.get$span());
+          }
         }
         this.isAbstract = true;
       }
@@ -11746,14 +11748,17 @@ MethodMember.prototype.resolve = function(inType) {
     this.isStatic = true;
   }
   if ($notnull_bool(this.isAbstract)) {
-    if ($notnull_bool(this.definition.body != null)) {
+    if ($notnull_bool(this.definition.body != null && !(this.declaringType.get$definition() instanceof FunctionTypeDefinition))) {
       world.error('abstract method can not have a body', this.definition.body.span);
     }
-    if ($notnull_bool(this.isStatic)) {
+    if ($notnull_bool(this.isStatic && !(this.declaringType.get$definition() instanceof FunctionTypeDefinition))) {
       world.error('static method can not be abstract', this.definition.span);
     }
   }
   else {
+    if ($notnull_bool(this.definition.body == null && !this.get$isConstructor())) {
+      world.error('method needs a body', this.get$span());
+    }
   }
   if ($notnull_bool(this.get$isConstructor())) {
     this.returnType = this.declaringType;
