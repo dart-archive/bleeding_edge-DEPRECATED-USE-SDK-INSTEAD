@@ -378,6 +378,8 @@ class PropertyMember extends Member {
   MethodMember getter;
   MethodMember setter;
 
+  Member _overriddenField;
+
   bool _provideFieldSyntax = false;
 
   // TODO(jimhug): What is the right span for this beast?
@@ -411,6 +413,7 @@ class PropertyMember extends Member {
       // TODO(jimhug):
       // other.returnType.ensureAssignableFrom(returnType, null, true);
       if (other.isProperty) addFromParent(other);
+      else _overriddenField = other;
       return true;
     } else {
       world.error('property can only override field or property',
@@ -422,6 +425,9 @@ class PropertyMember extends Member {
   Value get_(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
     if (getter == null) {
+      if (_overriddenField != null) {
+        return _overriddenField.get_(context, node, target, isDynamic);
+      }
       return target.invokeNoSuchMethod(context, 'get:$name', node);
     }
     return getter.invoke(context, node, target, Arguments.EMPTY);
@@ -429,6 +435,13 @@ class PropertyMember extends Member {
 
   Value set_(MethodGenerator context, Node node, Value target, Value value,
       [bool isDynamic=false]) {
+    if (setter == null) {
+      if (_overriddenField != null) {
+        return _overriddenField.set_(context, node, target, value, isDynamic);
+      }
+      return target.invokeNoSuchMethod(context, 'set:$name', node,
+        new Arguments(null, [value]));
+    }
     return setter.invoke(context, node, target, new Arguments(null, [value]),
       isDynamic);
   }

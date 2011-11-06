@@ -10944,6 +10944,7 @@ PropertyMember.prototype.override = function(other) {
   if ($notnull_bool(!$notnull_bool(Member.prototype.override.call(this, other)))) return false;
   if ($notnull_bool(other.get$isProperty() || other.get$isField())) {
     if ($notnull_bool(other.get$isProperty())) this.addFromParent(other);
+    else this._overriddenField = other;
     return true;
   }
   else {
@@ -10953,11 +10954,20 @@ PropertyMember.prototype.override = function(other) {
 }
 PropertyMember.prototype.get_ = function(context, node, target, isDynamic) {
   if ($notnull_bool(this.getter == null)) {
+    if ($notnull_bool(this._overriddenField != null)) {
+      return this._overriddenField.get_(context, node, target, isDynamic);
+    }
     return target.invokeNoSuchMethod(context, ('get:' + this.name + ''), node);
   }
   return this.getter.invoke(context, node, target, Arguments.get$EMPTY(), false);
 }
 PropertyMember.prototype.set_ = function(context, node, target, value, isDynamic) {
+  if ($notnull_bool(this.setter == null)) {
+    if ($notnull_bool(this._overriddenField != null)) {
+      return this._overriddenField.set_(context, node, target, value, isDynamic);
+    }
+    return target.invokeNoSuchMethod(context, ('set:' + this.name + ''), node, new Arguments(null, [value]));
+  }
   return this.setter.invoke(context, node, target, new Arguments(null, [value]), isDynamic);
 }
 PropertyMember.prototype.addFromParent = function(parentMember) {
