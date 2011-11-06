@@ -1432,7 +1432,8 @@ class MethodGenerator implements TreeVisitor {
     if (parentType == null) {
       world.error('no super class', node.span);
     }
-    return new Value(parentType, 'this', true);
+    return new Value(parentType, 'this',
+      /*isSuper:*/true, /*needsTemp:*/false);
   }
 
   _getOutermostMethod() {
@@ -1452,10 +1453,12 @@ class MethodGenerator implements TreeVisitor {
       var outermostMethod = _getOutermostMethod();
       outermostMethod._checkNonStatic(node);
       outermostMethod.needsThis = true;
-      return new Value(outermostMethod.method.declaringType, '\$this');
+      return new Value(outermostMethod.method.declaringType, '\$this',
+        /*isSuper:*/false, /*needsTemp:*/false);
     } else {
       _checkNonStatic(node);
-      return new Value(method.declaringType, 'this');
+      return new Value(method.declaringType, 'this',
+        /*isSuper:*/false, /*needsTemp:*/false);
     }
   }
 
@@ -1664,8 +1667,9 @@ class MethodGenerator implements TreeVisitor {
     if (kind != 0) {
       tmptarget = getTemp(target);
       tmpindex = getTemp(index);
+      index = assignTemp(tmpindex, index);
       var right = tmptarget.invoke(this, '\$index',
-          position, new Arguments(null, [assignTemp(tmpindex, index)]));
+          position, new Arguments(null, [tmpindex]));
       right = captureOriginal(right);
       y = right.invoke(this, TokenKind.binaryMethodName(kind),
           position, new Arguments(null, [y]));
@@ -1717,40 +1721,28 @@ class MethodGenerator implements TreeVisitor {
           return _visitAssign(kind, node.self, operand, node, null);
         }
       case TokenKind.NOT:
-        // TODO(jimhug): turn into method invoke?
+        // TODO(jimhug): Issue #359 seeks to clarify this behavior.
         if (value.type.isBool && value.isConst) {
           var newVal = !value.actualValue;
           return new EvaluatedValue(value.type, newVal, '${newVal}', node.span);
         } else {
-          return new Value(world.boolType, '!${value.code}');
+          var newVal = value.convertToNonNullBool(this, node);
+          return new Value(world.boolType, '!${newVal.code}');
         }
 
-      case TokenKind.ADD: // this should be a noop?
+      case TokenKind.ADD:
+        // TODO(jimhug): Issue #359 seeks to clarify this behavior.
+        return value.convertTo(this, world.numType, node);
+
       case TokenKind.SUB:
       case TokenKind.BIT_NOT:
-        // TODO(jimhug): turn into method invokes more thoroughly
-        if (value.type.isNum) {
-          if (value.isConst) {
-            if (node.op.kind == TokenKind.ADD) {
-              return value;
-            } else if (node.op.kind == TokenKind.SUB) {
-              var newVal = -value.actualValue;
-              return new EvaluatedValue(
-                  value.type, newVal, '$newVal', node.span);
-            } else {
-              var newVal = (~value.actualValue.toInt()).toDouble();
-              return new EvaluatedValue(
-                  value.type, newVal, '$newVal', node.span);
-            }
-          }
-          return new Value(value.type, '${node.op}${value.code}');
+        if (node.op.kind == TokenKind.BIT_NOT) {
+          return value.invoke(this, '\$bit_not', node, Arguments.EMPTY);
+        } else if (node.op.kind == TokenKind.SUB) {
+          return value.invoke(this, '\$negate', node, Arguments.EMPTY);
         } else {
-          String name;
-          if (node.op.kind == TokenKind.BIT_NOT) name = '\$bit_not';
-          else if (node.op.kind == TokenKind.SUB) name = '\$negate';
-          else world.internalError(
-            'unimplemented: unary ${node.op} on var', node.span);
-          return new Value(world.varType, '$name(${value.code})');
+          world.internalError('unimplemented: unary ${node.op}',
+            node.span);
         }
       default:
         world.internalError('unimplemented: ${node.op}', node.span);

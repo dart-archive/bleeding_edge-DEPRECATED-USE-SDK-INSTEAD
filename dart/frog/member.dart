@@ -860,14 +860,14 @@ class MethodMember extends Member {
       return _invokeConstructor(context, node, target, args, argsString);
     }
 
-    if (name.startsWith('\$')) {
-      return _invokeBuiltin(context, node, target, args, argsCode);
-    }
-
-    // TODO(jmesserly): can target ever be null in super call?
+    // TODO(jimhug): target really shouldn't ever be null...
     if (target != null && target.isSuper) {
       return new Value(returnType,
           '${declaringType.jsname}.prototype.$jsname.call($argsString)');
+    }
+
+    if (name.startsWith('\$')) {
+      return _invokeBuiltin(context, node, target, args, argsCode);
     }
 
     if (isFactory) {
@@ -1031,7 +1031,6 @@ class MethodMember extends Member {
   Value _invokeBuiltin(MethodGenerator context, Node node, Value target,
       Arguments args, argsCode) {
     var allConst = target.isConst && args.values.every((arg) => arg.isConst);
-    // TODO(jimhug): Handle super calls on special methods.
     // Handle some fast paths for Number, String, List and DOM.
     if (declaringType.isNum) {
       // TODO(jimhug): This fails in bad ways when argsCode[1] is not num.
@@ -1137,8 +1136,7 @@ class MethodMember extends Member {
         // TODO(jimhug): Maybe check rhs.
         return new Value(returnType, '${target.code} $op ${argsCode[0]}');
       }
-      return new Value(returnType,
-        '$name(${target.code}, ${argsCode[0]})');
+      return new Value(returnType, '$name(${target.code}, ${argsCode[0]})');
     }
 
     if (name == '\$call') {
@@ -1147,7 +1145,9 @@ class MethodMember extends Member {
         '${target.code}(${Strings.join(argsCode, ", ")})');
     }
 
-    return target.invokeSpecial(jsname, args, returnType);
+    // Fall back to normal method invocation.
+    var argsString = Strings.join(argsCode, ', ');
+    return new Value(returnType, '${target.code}.$jsname($argsString)');
   }
 
 
@@ -1194,17 +1194,21 @@ class MethodMember extends Member {
       isStatic = true;
     }
 
+    // TODO(jimhug): need a better annotation for being an operator method
+    if (name.startsWith('\$') && !name.startsWith('\$call') && isStatic) {
+      world.error('operator method may not be static "${name}"', span);
+    }
+
     if (isAbstract) {
       if (definition.body != null &&
           declaringType.definition is! FunctionTypeDefinition) {
         // TODO(jimhug): Creating function types for concrete methods is
         //   steadily feeling uglier...
-        world.error('abstract method can not have a body',
-          definition.body.span);
+        world.error('abstract method can not have a body', span);
       }
       if (isStatic &&
           declaringType.definition is! FunctionTypeDefinition) {
-        world.error('static method can not be abstract', definition.span);
+        world.error('static method can not be abstract', span);
       }
     } else {
       if (definition.body == null && !isConstructor) {
