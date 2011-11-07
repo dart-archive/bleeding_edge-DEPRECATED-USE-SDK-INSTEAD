@@ -209,7 +209,7 @@ class BodyListener extends Listener {
     pushNode(makeNodeList(count, beginToken, endToken, ","));
   }
 
-  void handleNoArgumentsOpt(Token token) {
+  void handleNoArguments(Token token) {
     pushNode(null);
   }
 
@@ -262,8 +262,8 @@ class BodyListener extends Listener {
     if (node is !Send) canceler.cancel('not assignable: $node');
     Send send = node;
     if (!send.isPropertyAccess) canceler.cancel('not assignable: $node');
-    if (send is SetterSend) canceler.cancel('chained assignment');
-    pushNode(new SetterSend(send.receiver, send.selector, token, arguments));
+    if (send is SendSet) canceler.cancel('chained assignment');
+    pushNode(new SendSet(send.receiver, send.selector, token, arguments));
   }
 
   void handleConditionalExpression(Token question, Token colon) {

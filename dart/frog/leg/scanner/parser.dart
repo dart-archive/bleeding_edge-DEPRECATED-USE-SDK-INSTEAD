@@ -563,10 +563,11 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
 
   Token parseArgumentsOpt(Token token) {
     if (!optional('(', token)) {
-      listener.handleNoArgumentsOpt(token);
+      listener.handleNoArguments(token);
       return token;
+    } else {
+      return parseArguments(token);
     }
-    else return parseArguments(token);
   }
 
   Token parseArguments(Token token) {

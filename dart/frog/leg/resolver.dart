@@ -97,8 +97,8 @@ class ResolverVisitor implements Visitor<Element> {
     return target;
   }
 
-  visitSetterSend(SetterSend node) {
-    compiler.unimplemented('ResolverVisitor::visitSetterSend');
+  visitSendSet(SendSet node) {
+    compiler.unimplemented('ResolverVisitor::visitSendSet');
   }
 
   visitLiteralInt(LiteralInt node) {

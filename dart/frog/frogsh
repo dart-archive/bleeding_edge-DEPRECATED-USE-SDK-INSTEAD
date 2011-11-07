@@ -816,7 +816,7 @@ HashMapImplementation._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/karl/dart-workspace/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -983,7 +983,7 @@ HashMapImplementation$E$E._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation$E$E.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/karl/dart-workspace/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1365,7 +1365,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/usr/local/google/karl/dart-workspace/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
+  $assert(index == this.get$length(), "index == length", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -1375,7 +1375,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/usr/local/google/karl/dart-workspace/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
+  $assert(index == this.get$length(), "index == length", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -5469,15 +5469,17 @@ BodyParser.prototype.parseSend = function(token) {
 }
 BodyParser.prototype.parseArgumentsOpt = function(token) {
   if ($notnull_bool(!$notnull_bool(this.optional('(', token)))) {
-    this.listener.handleNoArgumentsOpt(token);
+    this.listener.handleNoArguments(token);
     return token;
   }
-  else return this.parseArguments(token);
+  else {
+    return this.parseArguments(token);
+  }
 }
 BodyParser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "leg/scanner/parser.dart", 575, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "leg/scanner/parser.dart", 576, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments(argumentCount, begin, token.next);
@@ -5721,7 +5723,7 @@ BodyListener.prototype.beginArguments = function(token) {
 BodyListener.prototype.endArguments = function(count, beginToken, endToken) {
   this.pushNode(this.makeNodeList(count, beginToken, endToken, ","));
 }
-BodyListener.prototype.handleNoArgumentsOpt = function(token) {
+BodyListener.prototype.handleNoArguments = function(token) {
   this.pushNode(null);
 }
 BodyListener.prototype.beginReturnStatement = function(token) {
@@ -5765,8 +5767,8 @@ BodyListener.prototype.handleAssignmentExpression = function(token) {
   if ($notnull_bool(!(node instanceof Send))) this.canceler.cancel(('not assignable: ' + node + ''));
   var send = node;
   if ($notnull_bool(!$notnull_bool(send.get$isPropertyAccess()))) this.canceler.cancel(('not assignable: ' + node + ''));
-  if ($notnull_bool((send instanceof SetterSend))) this.canceler.cancel('chained assignment');
-  this.pushNode(new SetterSend(send.receiver, send.selector, token, arguments));
+  if ($notnull_bool((send instanceof SendSet))) this.canceler.cancel('chained assignment');
+  this.pushNode(new SendSet(send.receiver, send.selector, token, arguments));
 }
 BodyListener.prototype.handleConditionalExpression = function(question, colon) {
   var elseExpression = this.popNode();
@@ -6201,15 +6203,15 @@ Send.prototype.getEndToken = function() {
   }
   return this.receiver.getBeginToken();
 }
-// ********** Code for SetterSend **************
-function SetterSend(receiver0, selector0, assignmentOperator, argumentsNode0) {
+// ********** Code for SendSet **************
+function SendSet(receiver0, selector0, assignmentOperator, argumentsNode0) {
   this.assignmentOperator = assignmentOperator;
   Send.call(this, receiver0, selector0, argumentsNode0);
   // Initializers done
 }
-$inherits(SetterSend, Send);
-SetterSend.prototype.accept = function(visitor) {
-  return visitor.visitSetterSend(this);
+$inherits(SendSet, Send);
+SendSet.prototype.accept = function(visitor) {
+  return visitor.visitSendSet(this);
 }
 // ********** Code for NodeList **************
 function NodeList(beginToken, nodes, endToken, delimiter) {
@@ -6648,7 +6650,7 @@ DebugUnparser.prototype.visitSend = function(node) {
   this.visit(node.selector);
   this.visit(node.argumentsNode, ', ');
 }
-DebugUnparser.prototype.visitSetterSend = function(node) {
+DebugUnparser.prototype.visitSendSet = function(node) {
   if ($notnull_bool(node.receiver != null)) {
     this.visit(node.receiver);
     this.sb.add('.');
@@ -6838,8 +6840,8 @@ SsaBuilder.prototype.visitSend = function(node) {
     this.push(new HInvoke(selector.get$source(), arguments));
   }
 }
-SsaBuilder.prototype.visitSetterSend = function(node) {
-  this.compiler.unimplemented('SsaBuilder.visitSetterSend');
+SsaBuilder.prototype.visitSendSet = function(node) {
+  this.compiler.unimplemented('SsaBuilder.visitSendSet');
 }
 SsaBuilder.prototype.visitLiteralInt = function(node) {
   this.push(new HLiteral(node.get$value()));
@@ -8129,8 +8131,8 @@ ResolverVisitor.prototype.visitSend = function(node) {
   this.visit(node.argumentsNode);
   return target;
 }
-ResolverVisitor.prototype.visitSetterSend = function(node) {
-  this.compiler.unimplemented('ResolverVisitor::visitSetterSend');
+ResolverVisitor.prototype.visitSendSet = function(node) {
+  this.compiler.unimplemented('ResolverVisitor::visitSendSet');
 }
 ResolverVisitor.prototype.visitLiteralInt = function(node) {
 
@@ -8467,7 +8469,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
     this.compiler.cancel(('unresolved send ' + name + '.'));
   }
 }
-TypeCheckerVisitor.prototype.visitSetterSend = function(node) {
+TypeCheckerVisitor.prototype.visitSendSet = function(node) {
   return this.types.dynamicType;
 }
 TypeCheckerVisitor.prototype.visitLiteralInt = function(node) {

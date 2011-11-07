@@ -187,7 +187,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     }
   }
 
-  visitSetterSend(SetterSend node) {
+  visitSendSet(SendSet node) {
     // TODO(karlklose): Implement this correctly.
     return types.dynamicType;
   }

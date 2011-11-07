@@ -115,7 +115,7 @@ class DebugUnparser implements Visitor {
     visit(node.argumentsNode, ', ');
   }
 
-  visitSetterSend(SetterSend node) {
+  visitSendSet(SendSet node) {
     if (node.receiver !== null) {
       visit(node.receiver);
       sb.add('.');

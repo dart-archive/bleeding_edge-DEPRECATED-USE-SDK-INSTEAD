@@ -17,7 +17,7 @@ interface Visitor<R> {
   R visitParameter(Parameter node);
   R visitReturn(Return node);
   R visitSend(Send node);
-  R visitSetterSend(SetterSend node);
+  R visitSendSet(SendSet node);
   R visitTypeAnnotation(TypeAnnotation node);
   R visitVariableDefinitions(VariableDefinitions node);
 }
@@ -106,13 +106,12 @@ class Send extends Expression {
   }
 }
 
-class SetterSend extends Send {
+class SendSet extends Send {
   final Token assignmentOperator;
-  const SetterSend(
-      receiver, selector, this.assignmentOperator, argumentsNode)
-      : super(receiver, selector, argumentsNode);
+  const SendSet(receiver, selector, this.assignmentOperator, argumentsNode)
+    : super(receiver, selector, argumentsNode);
 
-  accept(Visitor visitor) => visitor.visitSetterSend(this);
+  accept(Visitor visitor) => visitor.visitSendSet(this);
 }
 
 class NewExpression extends Expression {

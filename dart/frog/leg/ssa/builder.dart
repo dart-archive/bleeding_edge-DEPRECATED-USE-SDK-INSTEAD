@@ -143,8 +143,8 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  visitSetterSend(SetterSend node) {
-    compiler.unimplemented('SsaBuilder.visitSetterSend');
+  visitSendSet(SendSet node) {
+    compiler.unimplemented('SsaBuilder.visitSendSet');
   }
 
   void visitLiteralInt(LiteralInt node) {
