@@ -18,6 +18,16 @@ class Parser {
   final SourceFile source;
   /** Enables diet parse, which skips function bodies. */
   final bool diet;
+  /**
+   * Throw an IncompleteSourceException if the parser encounters a premature end
+   * of file or an incomplete multiline string.
+   */
+  final bool throwOnIncomplete;
+  /**
+   * Allow semicolons to be omitted at the end of lines.
+   * // TODO(nweiz): make this work for more than just end-of-file
+   */
+  final bool optionalSemicolons;
 
   // TODO(jimhug): Is it possible to handle initializers cleanly?
   bool _inInitializers;
@@ -25,7 +35,8 @@ class Parser {
   Token _previousToken;
   Token _peekToken;
 
-  Parser(this.source, [this.diet = false, int startOffset = 0]) {
+  Parser(this.source, [this.diet = false, this.throwOnIncomplete = false,
+      this.optionalSemicolons = false, int startOffset = 0]) {
     tokenizer = new Tokenizer(source, true, startOffset);
     _peekToken = tokenizer.next();
     _previousToken = null;
@@ -42,7 +53,11 @@ class Parser {
   //   loops.  Consider embracing exceptions for more errors to reduce
   //   the danger here.
   bool isPrematureEndOfFile() {
-    if (_maybeEat(TokenKind.END_OF_FILE)) {
+    if (throwOnIncomplete && _maybeEat(TokenKind.END_OF_FILE) ||
+        _maybeEat(TokenKind.INCOMPLETE_MULTILINE_STRING_DQ) ||
+        _maybeEat(TokenKind.INCOMPLETE_MULTILINE_STRING_SQ)) {
+      throw new IncompleteSourceException(_previousToken);
+    } else if (_maybeEat(TokenKind.END_OF_FILE)) {
       _error('unexpected end of file', _peekToken.span);
       return true;
     } else {
@@ -89,10 +104,14 @@ class Parser {
   }
 
   void _eatSemicolon() {
+    if (optionalSemicolons && _peekKind(TokenKind.END_OF_FILE)) return;
     _eat(TokenKind.SEMICOLON);
   }
 
   void _errorExpected(String expected) {
+    // Throw an IncompleteSourceException if that's the problem and
+    // throwOnIncomplete is true
+    if (throwOnIncomplete) isPrematureEndOfFile();
     var tok = _next();
     var message = 'expected $expected, but found $tok';
     _error(message, tok.span);
@@ -1650,5 +1669,16 @@ class Parser {
       _errorExpected('label');
       return null;
     }
+  }
+}
+
+class IncompleteSourceException implements Exception {
+  final Token token;
+
+  IncompleteSourceException(this.token);
+
+  String toString() {
+    if (token.span == null) return 'Unexpected $token';
+    return token.span.toMessageString('Unexpected $token');
   }
 }

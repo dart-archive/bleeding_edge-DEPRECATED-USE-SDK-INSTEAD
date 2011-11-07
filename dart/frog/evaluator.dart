@@ -87,7 +87,8 @@ class Evaluator {
     var gen = new WorldGenerator(null, new CodeWriter());
 
     var code;
-    var parsed = new Parser(source).evalUnit();
+    var parsed = new Parser(source, throwOnIncomplete: true,
+        optionalSemicolons: true).evalUnit();
     var method = new MethodMember("_ifrog_dummy", _lib.topType, null);
     var methGen = new MethodGenerator(method, null);
 

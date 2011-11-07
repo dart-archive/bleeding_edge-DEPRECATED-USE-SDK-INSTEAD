@@ -987,7 +987,7 @@ class MethodGenerator implements TreeVisitor {
   // ******************* Statements *******************
 
   bool visitDietStatement(DietStatement node) {
-    var parser = new Parser(node.span.file, /*diet:*/false, node.span.start);
+    var parser = new Parser(node.span.file, startOffset: node.span.start);
     visitStatementsInBlock(parser.block());
     return false;
   }

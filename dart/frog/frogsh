@@ -814,7 +814,7 @@ HashMapImplementation._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/home/ngeoffray/dart-all2/bleeding_edge/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -971,7 +971,7 @@ HashMapImplementation$E$E._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation$E$E.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/home/ngeoffray/dart-all2/bleeding_edge/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1336,7 +1336,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/usr/local/google/home/ngeoffray/dart-all2/bleeding_edge/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
+  $assert(index == this.get$length(), "index == length", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -1346,7 +1346,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/usr/local/google/home/ngeoffray/dart-all2/bleeding_edge/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
+  $assert(index == this.get$length(), "index == length", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -8386,7 +8386,7 @@ TypeCheckerVisitor.prototype.visitExpressionStatement = function(node) {
   return this.type(node.expression);
 }
 TypeCheckerVisitor.prototype.visitFunctionExpression = function(node) {
-  var functionType = this.elements.$index(node).computeType(this.compiler, this.types);
+  var functionType = this.elements.$index(node.name).computeType(this.compiler, this.types);
   var returnType = functionType.returnType;
   var previous = this.expectedReturnType;
   this.expectedReturnType = returnType;
@@ -9373,7 +9373,7 @@ MethodGenerator.prototype.visitVoid = function(node) {
 }
 MethodGenerator.prototype.visitDietStatement = function(node) {
   var $0;
-  var parser = new lang_Parser(node.span.file, false, node.span.start);
+  var parser = new lang_Parser(node.span.file, false, false, false, node.span.start);
   this.visitStatementsInBlock((($0 = parser.block()) && $0.is$lang_Statement()));
   return false;
 }
@@ -10607,7 +10607,7 @@ _LibraryVisitor.prototype.addSource = function(source) {
     return;
   }
   this.library.sources.add(source);
-  var parser = new lang_Parser(source, options.dietParse, 0);
+  var parser = new lang_Parser(source, options.dietParse, false, false, 0);
   var unit = parser.compilationUnit();
   unit.forEach((function (def) {
     return def.visit($this);
@@ -14063,9 +14063,11 @@ TokenKind.kindFromAssign = function(kind) {
   return -1;
 }
 // ********** Code for lang_Parser **************
-function lang_Parser(source, diet, startOffset) {
+function lang_Parser(source, diet, throwOnIncomplete, optionalSemicolons, startOffset) {
   this.source = source;
   this.diet = diet;
+  this.throwOnIncomplete = throwOnIncomplete;
+  this.optionalSemicolons = optionalSemicolons;
   // Initializers done
   this.tokenizer = new Tokenizer(this.source, true, startOffset);
   this._peekToken = this.tokenizer.next();
@@ -14074,7 +14076,10 @@ function lang_Parser(source, diet, startOffset) {
 }
 lang_Parser.prototype.get$source = function() { return this.source; };
 lang_Parser.prototype.isPrematureEndOfFile = function() {
-  if ($notnull_bool(this._maybeEat(1/*TokenKind.END_OF_FILE*/))) {
+  if ($notnull_bool(this.throwOnIncomplete && this._maybeEat(1/*TokenKind.END_OF_FILE*/) || this._maybeEat(68/*TokenKind.INCOMPLETE_MULTILINE_STRING_DQ*/) || this._maybeEat(69/*TokenKind.INCOMPLETE_MULTILINE_STRING_SQ*/))) {
+    $throw(new IncompleteSourceException(this._previousToken));
+  }
+  else if ($notnull_bool(this._maybeEat(1/*TokenKind.END_OF_FILE*/))) {
     this._lang_error('unexpected end of file', this._peekToken.get$span());
     return true;
   }
@@ -14112,9 +14117,11 @@ lang_Parser.prototype._eat = function(kind) {
   }
 }
 lang_Parser.prototype._eatSemicolon = function() {
+  if ($notnull_bool(this.optionalSemicolons && this._peekKind(1/*TokenKind.END_OF_FILE*/))) return;
   this._eat(10/*TokenKind.SEMICOLON*/);
 }
 lang_Parser.prototype._errorExpected = function(expected) {
+  if ($notnull_bool(this.throwOnIncomplete)) this.isPrematureEndOfFile();
   var tok = this._lang_next();
   var message = ('expected ' + expected + ', but found ' + tok + '');
   this._lang_error($assert_String(message), tok.get$span());
@@ -14738,7 +14745,7 @@ lang_Parser.prototype._finishDeclaredId = function(type0) {
   return this.finishPostfixExpression(new DeclaredIdentifier(type0, name, this._makeSpan(type0.get$span().start)));
 }
 lang_Parser.prototype._fixAsType = function(x) {
-  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 771, 12);
+  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 790, 12);
   if ($notnull_bool(this._maybeEat(53/*TokenKind.GT*/))) {
     var base = this._makeType(x.x);
     var typeParam = this._makeType(x.y);
@@ -14746,7 +14753,7 @@ lang_Parser.prototype._fixAsType = function(x) {
     return this._finishDeclaredId(type0);
   }
   else {
-    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 782, 14);
+    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 801, 14);
     var base = this._makeType(x.x);
     var paramBase = this._makeType(x.y);
     var firstParam = this.addTypeArguments((paramBase && paramBase.is$TypeReference()), 1);
@@ -15207,7 +15214,7 @@ lang_Parser.parseHex = function(hex) {
   for (var i = 0;
    $notnull_bool(i < hex.length); i++) {
     var digit = lang_Parser._hexDigit(hex.charCodeAt(i));
-    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1238, 14);
+    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1257, 14);
     result = (result << 4) + $assert_num(digit);
   }
   return result;
@@ -15589,6 +15596,15 @@ lang_Parser.prototype._makeLabel = function(expr) {
     this._errorExpected('label');
     return null;
   }
+}
+// ********** Code for IncompleteSourceException **************
+function IncompleteSourceException(token) {
+  this.token = token;
+  // Initializers done
+}
+IncompleteSourceException.prototype.toString = function() {
+  if ($notnull_bool(this.token.get$span() == null)) return ('Unexpected ' + this.token + '');
+  return this.token.get$span().toMessageString(('Unexpected ' + this.token + ''));
 }
 // ********** Code for lang_Node **************
 function lang_Node(span) {
