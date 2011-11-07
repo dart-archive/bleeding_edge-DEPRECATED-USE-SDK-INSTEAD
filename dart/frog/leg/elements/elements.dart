@@ -24,7 +24,7 @@ class Element implements Hashable {
   final SourceString name;
 
   abstract Node parseNode(Canceler canceler, Logger logger);
-  abstract Type computeType(Compiler compiler, Map types);
+  abstract Type computeType(Compiler compiler, Types types);
 
   Element(this.name, [this.enclosingElement]);
 
@@ -40,18 +40,9 @@ class Element implements Hashable {
  */
 Type getType(TypeAnnotation annotation, types) {
   if (annotation == null || annotation.typeName == null) {
-    return types.DYNAMIC;
+    return types.dynamic;
   }
-  final name = annotation.typeName.source;
-  if (name == types.VOID.name) {
-    return types.VOID;
-  } else if (name == types.INT.name) {
-    return types.INT;
-  } else if (name == types.STRING.name) {
-    return types.STRING;
-  } else {
-    throw "Unreachable";
-  }
+  return types.lookup(annotation.typeName.source);
 }
 
 class FunctionElement extends Element {
@@ -64,6 +55,7 @@ class FunctionElement extends Element {
 
     FunctionExpression node = parseNode(compiler, compiler);
     Type returnType = getType(node.returnType, types);
+    if (returnType === null) compiler.cancel('unknown type $returnType');
     LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
     for (var link = node.parameters.nodes; !link.isEmpty(); link = link.tail) {
       compiler.cancel('parameters not supported.');

@@ -132,7 +132,8 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
-    Visitor visitor = new VariableDefinitionsVisitor(node, this);
+    VariableDefinitionsVisitor visitor =
+        new VariableDefinitionsVisitor(node, this);
     visitor.visit(node.definitions);
   }
 
