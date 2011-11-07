@@ -162,12 +162,12 @@ class DateImplementation implements Date {
              hours, minutes, seconds, milliseconds) :
     new Date(years, jsMonth, day,
              hours, minutes, seconds, milliseconds).valueOf();
-  if (isNan(value)) throw Error("Invalid Date");
+  if (isNaN(value)) throw Error("Invalid Date");
   return value;''';
 
   static int _valueFromString(String str) native
   '''var value = Date.parse(str);
-  if (isNan(value)) throw Error("Invalid Date");
+  if (isNaN(value)) throw Error("Invalid Date");
   return value;''';
 
   static int _now() native "return new Date().valueOf();";
