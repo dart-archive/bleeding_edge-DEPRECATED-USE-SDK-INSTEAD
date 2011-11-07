@@ -16,6 +16,7 @@
 #source('compiler.dart');
 #source('resolver.dart');
 #source('scanner_task.dart');
+#source('parser_task.dart');
 #source('script.dart');
 #source('typechecker.dart');
 #source('universe.dart');

@@ -9,6 +9,7 @@ class Compiler implements Canceler, Logger {
 
   List<CompilerTask> tasks;
   ScannerTask scanner;
+  ParserTask parser;
   ResolverTask resolver;
   TypeCheckerTask checker;
   SsaBuilderTask builder;
@@ -21,12 +22,13 @@ class Compiler implements Canceler, Logger {
     universe = new Universe();
     worklist = new Queue<SourceString>.from([MAIN]);
     scanner = new ScannerTask(this);
+    parser = new ParserTask(this);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
-    tasks = [scanner, resolver, checker, builder, optimizer, generator];
+    tasks = [scanner, parser, resolver, checker, builder, optimizer, generator];
   }
 
   void unimplemented(String methodName) {
@@ -66,7 +68,7 @@ class Compiler implements Canceler, Logger {
       SourceString name = worklist.removeLast();
       Element element = universe.find(name);
       if (element === null) cancel('Could not find $name');
-      Node tree = element.parseNode(this, this);
+      Node tree = parser.parse(element);
       Map<Node, Element> elements = resolver.resolve(tree);
       checker.check(tree, elements);
       HGraph graph = builder.build(tree);

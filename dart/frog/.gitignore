@@ -22,3 +22,6 @@ Makefile
 # Build output
 /xcodebuild/
 /out/
+
+# Frog compiled JS files.
+*.dart.js

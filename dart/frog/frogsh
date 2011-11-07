@@ -811,7 +811,7 @@ HashMapImplementation._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/home/kasperl/Dart/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -978,7 +978,7 @@ HashMapImplementation$E$E._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation$E$E.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/home/kasperl/Dart/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1343,7 +1343,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/home/kasperl/Dart/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
+  $assert(index == this.get$length(), "index == length", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -1353,7 +1353,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/home/kasperl/Dart/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
+  $assert(index == this.get$length(), "index == length", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -7780,12 +7780,13 @@ function Compiler(script) {
   this.universe = new Universe();
   this.worklist = DoubleLinkedQueue.DoubleLinkedQueue$from$factory([const$3/*Compiler.MAIN*/]);
   this.scanner = new ScannerTask(this);
+  this.parser = new ParserTask(this);
   this.resolver = new ResolverTask(this);
   this.checker = new TypeCheckerTask(this);
   this.builder = new SsaBuilderTask(this);
   this.optimizer = new SsaOptimizerTask(this);
   this.generator = new SsaCodeGeneratorTask(this);
-  this.tasks = [this.scanner, this.resolver, this.checker, this.builder, this.optimizer, this.generator];
+  this.tasks = [this.scanner, this.parser, this.resolver, this.checker, this.builder, this.optimizer, this.generator];
 }
 Compiler.prototype.unimplemented = function(methodName) {
   this.cancel(("" + methodName + " not implemented"));
@@ -7820,7 +7821,7 @@ Compiler.prototype.runCompiler = function() {
     var name = this.worklist.removeLast();
     var element = this.universe.find(name);
     if ($notnull_bool(element == null)) this.cancel(('Could not find ' + name + ''));
-    var tree = element.parseNode(this, this);
+    var tree = this.parser.parse(element);
     var elements = this.resolver.resolve(tree);
     this.checker.check(tree, elements);
     var graph = this.builder.build(tree);
@@ -8092,6 +8093,22 @@ ScannerTask.prototype.scanElements = function(text) {
   var parser = new Parser(listener);
   parser.parseUnit(tokens);
   return listener.topLevelElements;
+}
+// ********** Code for ParserTask **************
+function ParserTask(compiler0) {
+  CompilerTask.call(this, compiler0);
+  // Initializers done
+}
+$inherits(ParserTask, CompilerTask);
+ParserTask.prototype.get$name = function() {
+  return 'Parser';
+}
+ParserTask.prototype.parse = function(element) {
+  var $this = this; // closure support
+  return this.measure((function () {
+    return element.parseNode($this.compiler, $this.compiler);
+  })
+  );
 }
 // ********** Code for leg_Script **************
 function leg_Script(file) {
