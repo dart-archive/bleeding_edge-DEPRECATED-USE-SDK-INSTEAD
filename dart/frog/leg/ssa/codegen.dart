@@ -106,6 +106,11 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitInvoke(HInvoke node) {
+    // TODO(floitsch): Pass the element to the worklist and not just the
+    // source.
+    if (node.selector != const SourceString("print")) {
+      compiler.worklist.add(node.selector);      
+    }
     invoke(node.selector, node.inputs);
   }
 

@@ -6,10 +6,10 @@ class SsaBuilderTask extends CompilerTask {
   SsaBuilderTask(Compiler compiler) : super(compiler);
   String get name() => 'SSA builder';
 
-  HGraph build(Node tree) {
+  HGraph build(Node tree, Map<Node, Element> elements) {
     return measure(() {
       FunctionExpression function = tree;
-      HGraph graph = compileMethod(function.body);
+      HGraph graph = compileMethod(function.body, elements);
       assert(graph.isValid());
       if (GENERATE_SSA_TRACE) {
         Identifier name = tree.name;
@@ -20,8 +20,8 @@ class SsaBuilderTask extends CompilerTask {
     });
   }
 
-  HGraph compileMethod(Node body) {
-    SsaBuilder builder = new SsaBuilder(compiler);
+  HGraph compileMethod(Node body, Map<Node, Element> elements) {
+    SsaBuilder builder = new SsaBuilder(compiler, elements);
     HGraph graph = builder.build(body);
     return graph;
   }
@@ -29,17 +29,20 @@ class SsaBuilderTask extends CompilerTask {
 
 class SsaBuilder implements Visitor {
   final Compiler compiler;
-
+  final Map<Node, Element> elements;
+  
   HBasicBlock block;
   HGraph graph;
   List<HInstruction> stack;
+  Map<Element, HInstruction> definitions;
 
-  SsaBuilder(this.compiler);
+  SsaBuilder(this.compiler, this.elements);
 
   HGraph build(Node body) {
     graph = new HGraph();
     block = new HBasicBlock();
     stack = new List<HInstruction>();
+    definitions = new Map<Element, HInstruction>();
     body.accept(this);
     // TODO(floitsch): add implicit return. For now just make it a Goto.
     if (block.last === null || block.last is !HReturn) {
@@ -85,7 +88,12 @@ class SsaBuilder implements Visitor {
   }
 
   visitIdentifier(Identifier node) {
-    compiler.unimplemented('SsaBuilder.visitIdentifier');
+    Element element = elements[node];
+    // TODO(floitsch): bail out if we don't know the element type.
+    assert(element !== null);
+    HInstruction def = definitions[element];
+    assert(def !== null);
+    stack.add(def);
   }
 
   visitIf(If node) {
@@ -117,6 +125,11 @@ class SsaBuilder implements Visitor {
       } else if (const SourceString("~/") == op.source) {
         push(new HTruncatingDivide([left, right]));
       }
+    } else if (node.isPropertyAccess) {
+      if (node.receiver !== null) {
+        compiler.unimplemented("SsaBuilder.visitSend with receiver");
+      }
+      visit(node.selector);
     } else {
       visit(node.argumentsNode);
       var arguments = [];
@@ -172,7 +185,24 @@ class SsaBuilder implements Visitor {
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
-    // TODO(floitsch): Implement this.
-    compiler.unimplemented("SsaBuilder.visitVariableDefinitions");
+    for (Link<Node> link = node.definitions.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      Node definition = link.head;
+      if (definition is Identifier) {
+        compiler.unimplemented(
+            "SsaBuilder.visitVariableDefinitions without initial value");
+      } else {
+        assert(definition is Send);
+        Send init = definition;
+        assert(init.selector.dynamic.source == const SourceString("="));
+        Identifier id = init.receiver;
+        Link<Node> link = init.arguments;
+        assert(!link.isEmpty() && link.tail.isEmpty());
+        visit(link.head);
+        HInstruction initialValue = pop();
+        definitions[elements[id]] = initialValue;
+      }
+    }
   }
 }

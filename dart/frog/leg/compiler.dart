@@ -71,7 +71,7 @@ class Compiler implements Canceler, Logger {
       Node tree = parser.parse(element);
       Map<Node, Element> elements = resolver.resolve(tree);
       checker.check(tree, elements);
-      HGraph graph = builder.build(tree);
+      HGraph graph = builder.build(tree, elements);
       optimizer.optimize(graph);
       String code = generator.generate(tree, graph);
       universe.addGeneratedCode(element, code);

@@ -4,6 +4,7 @@
 
 #library('ssa');
 
+#import('../elements/elements.dart');
 #import('../leg.dart');
 #import('../scanner.dart');
 #import('../tree.dart');

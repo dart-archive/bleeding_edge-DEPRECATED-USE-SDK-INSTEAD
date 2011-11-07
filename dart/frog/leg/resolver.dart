@@ -91,11 +91,6 @@ class ResolverVisitor implements Visitor<Element> {
       if (target == null) {
         // Complain: we could not resolve the method.
         fail(node);
-      } else {
-        // TODO(ngeoffray): the code generator should actually add it
-        // instead.
-        // Add the source of the method to the work list.
-        compiler.worklist.add(node.selector.source);
       }
     }
     visit(node.argumentsNode);
