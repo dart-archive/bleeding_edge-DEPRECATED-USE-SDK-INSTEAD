@@ -102,6 +102,12 @@ class Listener {
   void beginTypeVariables(Token token) {
   }
 
+  void endTypeVariables(Token token) {
+  }
+
+  void handleNoTypeVariables(Token token) {
+  }
+
   void identifier(Token token) {
     previousIdentifier = new Identifier(token);
   }

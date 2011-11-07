@@ -192,12 +192,19 @@ class Parser<L extends Listener> {
 
   Token parseTypeVariablesOpt(Token token) {
     if (!optional('<', token)) {
+      listener.handleNoTypeVariables(token);
       return token;
     }
+    return parseTypeVariables(token);
+  }
+
+  Token parseTypeVariables(Token token) {
+    expect(const SourceString("<"), token);
     listener.beginTypeVariables(token);
     do {
       token = parseTypeVariable(next(token));
     } while (optional(',', token));
+    listener.endTypeVariables(token);
     return expect('>', token);
   }
 
