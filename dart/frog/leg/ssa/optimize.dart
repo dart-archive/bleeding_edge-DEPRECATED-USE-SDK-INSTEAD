@@ -95,11 +95,34 @@ class SsaDeadCodeEliminator extends HGraphVisitor {
   }
 }
 
+class SsaValueSet {
+  final Map<HInstruction, HInstruction> map;
+  SsaValueSet() : map = new Map<HInstruction, HInstruction>();
+
+  void add(HInstruction instruction) {
+    assert(!map.containsKey(instruction));
+    map[instruction] = instruction;
+  }
+
+  HInstruction lookup(HInstruction instruction) {
+    // TODO(kasperl): Stop using an ordinary map and build something
+    // sensible instead.
+    return map[instruction];
+  }
+
+  void kill(int flags) {
+    // TODO(kasperl): Only kill the values affected by the kind of
+    // side effects specified in the flags.
+    map.clear();
+  }
+}
+
+
 class SsaGlobalValueNumberer extends HGraphVisitor {
   final Compiler compiler;
-  final Map<HInstruction, HInstruction> values;
+  final SsaValueSet values;
   SsaGlobalValueNumberer(this.compiler)
-    : values = new Map<HInstruction, HInstruction>();
+    : values = new SsaValueSet();
 
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
@@ -108,19 +131,25 @@ class SsaGlobalValueNumberer extends HGraphVisitor {
   void visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
     while (instruction !== null) {
-      if (instruction.hasSideEffects()) {
-        values.clear();
-      } else {
-        HInstruction other = values[instruction];
+      int flags = instruction.getChangesFlags();
+      if (flags != 0) {
+        assert(!instruction.useGvn());
+        values.kill(flags);
+      } else if (instruction.useGvn()) {
+        HInstruction other = values.lookup(instruction);
         if (other !== null) {
+          // TODO(kasperl): Stop relying on == on instructions.
+          assert(other == instruction && instruction == other);
           block.rewrite(instruction, other);
           block.remove(instruction);
         } else {
-          values[instruction] = instruction;
+          values.add(instruction);
         }
       }
       instruction = instruction.next;
     }
+    // TODO(kasperl): Make sure we kill every value killed on any path
+    // between this block and the dominated blocks.
   }
 }
 
@@ -151,7 +180,7 @@ class SsaInstructionMerger extends HInstructionVisitor {
       if (inputs[i].usedBy.length != 1) return;
       if (inputs[i] !== previousUnused) return;
       // Our arguments are in the correct location to be inlined.
-      inputs[i].setCanBeGeneratedAtUseSite();
+      inputs[i].setGenerateAtUseSite();
       previousUnused = previousUnused.previous;
     }
   }

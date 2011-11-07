@@ -236,16 +236,37 @@ class HInstruction implements Hashable {
                                       // in a basic block.
   HInstruction previous = null;
   HInstruction next = null;
-  bool _canBeGeneratedAtUseSite = false;
+  int flags = 0;
 
-  HInstruction(this.inputs);
+  // Changes flags.
+  static final int FLAG_CHANGES_SOMETHING    = 0;
+  static final int FLAG_CHANGES_COUNT        = FLAG_CHANGES_SOMETHING + 1;
 
-  bool canBeGeneratedAtUseSite() => _canBeGeneratedAtUseSite;
-  void setCanBeGeneratedAtUseSite() {
-    _canBeGeneratedAtUseSite = true;
+  // Other flags.
+  static final int FLAG_GENERATE_AT_USE_SITE = FLAG_CHANGES_COUNT;
+  static final int FLAG_USE_GVN              = FLAG_GENERATE_AT_USE_SITE + 1;
+
+  HInstruction(this.inputs) {
+    prepareGvn();
   }
 
-  bool canBeSkipped() => canBeGeneratedAtUseSite();
+  bool getFlag(int position) => (flags & (1 << position)) != 0;
+  void setFlag(int position) { flags |= (1 << position); }
+  void clearFlag(int position) { flags &= ~(1 << position); }
+
+  int getChangesFlags() => flags & ((1 << FLAG_CHANGES_COUNT) - 1);
+  bool hasSideEffects() => getChangesFlags() != 0;
+  void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
+  void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
+  void prepareGvn() { setAllSideEffects();  }
+
+  bool generateAtUseSite() => getFlag(FLAG_GENERATE_AT_USE_SITE);
+  void setGenerateAtUseSite() { setFlag(FLAG_GENERATE_AT_USE_SITE); }
+
+  bool useGvn() => getFlag(FLAG_USE_GVN);
+  void setUseGvn() { setFlag(FLAG_USE_GVN); }
+
+  bool canBeSkipped() => generateAtUseSite();
 
   List<HInstruction> get usedBy() {
     if (_usedBy == null) return const <HInstruction>[];
@@ -253,8 +274,6 @@ class HInstruction implements Hashable {
   }
 
   bool isInBasicBlock() => _usedBy !== null;
-
-  abstract bool hasSideEffects();
 
   String inputsToString() {
     void addAsCommaSeparated(StringBuffer buffer, List<HInstruction> list) {
@@ -322,46 +341,55 @@ class HInvoke extends HInstruction {
   final SourceString selector;
   HInvoke(this.selector, inputs) : super(inputs);
   toString() => 'invoke: $selector';
-  hasSideEffects() => true;
   accept(HVisitor visitor) => visitor.visitInvoke(this);
 }
 
 class HArithmetic extends HInvoke {
   HArithmetic(selector, inputs) : super(selector, inputs);
+  void prepareGvn() {
+    // Arithmetic expressions can take part in global value numbering
+    // and do not have any side-effects if the left-hand side is a
+    // literal.
+    if (inputs[0] is !HLiteral) return;
+    clearAllSideEffects();
+    setUseGvn();
+  }
   abstract num evaluate(num a, num b);
 }
 
 class HAdd extends HArithmetic {
   HAdd(inputs) : super(const SourceString('+'), inputs);
-  hasSideEffects() => inputs[0] is !HLiteral;
+  void prepareGvn() {
+    // Only if the left-hand side is a literal number are we
+    // sure the operation will not have any side-effects.
+    if (!inputs[0].isLiteralNumber()) return;
+    clearAllSideEffects();
+    setUseGvn();
+  }
   accept(HVisitor visitor) => visitor.visitAdd(this);
   num evaluate(num a, num b) => a + b;
 }
 
 class HDivide extends HArithmetic {
   HDivide(inputs) : super(const SourceString('/'), inputs);
-  hasSideEffects() => inputs[0] is !HLiteral;
   accept(HVisitor visitor) => visitor.visitDivide(this);
   num evaluate(num a, num b) => a / b;
 }
 
 class HMultiply extends HArithmetic {
   HMultiply(inputs) : super(const SourceString('*'), inputs);
-  hasSideEffects() => inputs[0] is !HLiteral;
   accept(HVisitor visitor) => visitor.visitMultiply(this);
   num evaluate(num a, num b) => a * b;
 }
 
 class HSubtract extends HArithmetic {
   HSubtract(inputs) : super(const SourceString('-'), inputs);
-  hasSideEffects() => inputs[0] is !HLiteral;
   accept(HVisitor visitor) => visitor.visitSubtract(this);
   num evaluate(num a, num b) => a - b;
 }
 
 class HTruncatingDivide extends HArithmetic {
   HTruncatingDivide(inputs) : super(const SourceString('~/'), inputs);
-  hasSideEffects() => inputs[0] is !HLiteral;
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
   num evaluate(num a, num b) => a ~/ b;
 }
@@ -370,7 +398,6 @@ class HExit extends HInstruction {
   HExit() : super(const <HInstruction>[]);
   canBeSkipped() => true;
   toString() => 'exit';
-  hasSideEffects() => true;
   accept(HVisitor visitor) => visitor.visitExit(this);
 }
 
@@ -378,15 +405,17 @@ class HGoto extends HInstruction {
   HGoto() : super(const <HInstruction>[]);
   canBeSkipped() => true;
   toString() => 'goto';
-  hasSideEffects() => true;
   accept(HVisitor visitor) => visitor.visitGoto(this);
 }
 
 class HLiteral extends HInstruction {
   final value;
   HLiteral(this.value) : super([]);
+  void prepareGvn() {
+    clearAllSideEffects();
+    setUseGvn();
+  }
   toString() => 'literal: $value';
-  hasSideEffects() => false;
   // TODO(kasperl): Stop overloading == on instructions.
   operator ==(var other) => other is HLiteral && value == other.value;
   accept(HVisitor visitor) => visitor.visitLiteral(this);
@@ -397,6 +426,5 @@ class HLiteral extends HInstruction {
 class HReturn extends HInstruction {
   HReturn(value) : super([value]);
   toString() => 'return';
-  hasSideEffects() => true;
   accept(HVisitor visitor) => visitor.visitReturn(this);
 }

@@ -62,7 +62,7 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void use(HInstruction argument) {
-    if (argument.canBeGeneratedAtUseSite()) {
+    if (argument.generateAtUseSite()) {
       visit(argument);
     } else {
       buffer.add(temporary(argument));
