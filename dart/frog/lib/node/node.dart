@@ -11,10 +11,6 @@
 #library('node');
 #native('io_node.js');
 
-Process process; // native
-Console console; // native
-Function require; // native
-
 VM get vm() native;
 FS get fs() native;
 Path get path() native;
@@ -57,22 +53,23 @@ class ServerResponse native "ServerResponse" {
   void end([String data, String encoding = 'utf8']) native;
 }
 
-class Console native "Console" {
+class console native "console" {
   // TODO(jimhug): Map node.js's ability to take multiple args to what?
-  void log(String text) native;
-  void info(String text) native;
-  void warn(String text) native;
-  void error(String text) native;
+  static void log(String text) native;
+  static void info(String text) native;
+  static void warn(String text) native;
+  static void error(String text) native;
 }
 
-class Process native "Process" {
-  List<String> argv;
+// TODO(nweiz): change this class name to "Process"
+class process native "process" {
+  static List<String> argv;
   // TODO(nweiz): add Stream type information
-  var stdin;
-  var stdout;
+  static stdin;
+  static stdout;
 
-  void exit([int code = 0]) native;
-  String cwd() native;
+  static void exit([int code = 0]) native;
+  static String cwd() native;
 }
 
 class VM native "VM" {

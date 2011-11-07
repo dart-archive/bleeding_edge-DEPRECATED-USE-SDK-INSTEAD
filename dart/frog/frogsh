@@ -1964,7 +1964,7 @@ function get$http() {
 function get$readline() {
   return require('readline');
 }
-// ********** Code for Process **************
+// ********** Code for process **************
 // ********** Code for top level **************
 function createSandbox() {
   return {'require': require, 'process': process, 'console': console};
