@@ -814,7 +814,7 @@ HashMapImplementation._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/home/kasperl/Dart/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/home/ngeoffray/dart-all2/bleeding_edge/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -971,7 +971,7 @@ HashMapImplementation$E$E._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation$E$E.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/home/kasperl/Dart/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/home/ngeoffray/dart-all2/bleeding_edge/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1336,7 +1336,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/home/kasperl/Dart/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
+  $assert(index == this.get$length(), "index == length", "/usr/local/google/home/ngeoffray/dart-all2/bleeding_edge/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -1346,7 +1346,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/home/kasperl/Dart/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
+  $assert(index == this.get$length(), "index == length", "/usr/local/google/home/ngeoffray/dart-all2/bleeding_edge/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -2960,7 +2960,7 @@ AbstractLink.prototype.iterator = function() {
 AbstractLink.prototype.printOn = function(buffer, separatedBy) {
   var $0;
   if ($notnull_bool(this.isEmpty())) return;
-  buffer.add(this.get$head());
+  buffer.add($notnull_bool(this.get$head() == null) ? 'null' : this.get$head());
   for (var link = this.get$tail();
    $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link())) {
     buffer.add(separatedBy);
@@ -8028,6 +8028,14 @@ ResolverTask.prototype.resolve = function(tree) {
   })
   );
 }
+// ********** Code for ErrorMessages **************
+function ErrorMessages() {}
+ErrorMessages.canNotResolve = function(id) {
+  return ("cannot resolve " + id + "");
+}
+ErrorMessages.duplicateDefinition = function(id) {
+  return ("duplicate definition of " + id + "");
+}
 // ********** Code for ResolverVisitor **************
 function ResolverVisitor(compiler0) {
   this.compiler = compiler0;
@@ -8035,16 +8043,12 @@ function ResolverVisitor(compiler0) {
   this.context = new Scope(new TopScope(compiler0.universe));
   // Initializers done
 }
-ResolverVisitor.prototype.fail = function(node) {
-  this.compiler.cancel(('cannot resolve ' + node + ''));
+ResolverVisitor.prototype.fail = function(node, message) {
+  this.compiler.cancel(message);
 }
 ResolverVisitor.prototype.visit = function(node) {
   if ($notnull_bool(node == null)) return null;
-  var element = node.accept(this);
-  if ($notnull_bool(element != null)) {
-    this.mapping.$setindex(node, element);
-  }
-  return element;
+  return node.accept(this);
 }
 ResolverVisitor.prototype.visitIn = function(node, scope) {
   this.context = scope;
@@ -8059,14 +8063,15 @@ ResolverVisitor.prototype.visitExpressionStatement = function(node) {
   this.visit(node.expression);
 }
 ResolverVisitor.prototype.visitFunctionExpression = function(node) {
-  if ($notnull_bool(!$notnull_bool(node.parameters.nodes.isEmpty()))) this.fail(node);
+  if ($notnull_bool(!$notnull_bool(node.parameters.nodes.isEmpty()))) this.fail(node, "Unimplemented in the resolver");
   var enclosingElement = this.visit(node.name);
   this.visitIn(node.body, new Scope.enclosing$ctor(this.context, enclosingElement));
   return enclosingElement;
 }
 ResolverVisitor.prototype.visitIdentifier = function(node) {
   var element = this.context.lookup(node.get$source());
-  if ($notnull_bool(element == null)) this.fail(node);
+  if ($notnull_bool(element == null)) this.fail(node, ErrorMessages.canNotResolve(node));
+  this.useElement(node, element);
   return element;
 }
 ResolverVisitor.prototype.visitIf = function(node) {
@@ -8075,17 +8080,13 @@ ResolverVisitor.prototype.visitIf = function(node) {
   this.visit(node.elsePart);
 }
 ResolverVisitor.prototype.visitSend = function(node) {
-  var $0;
   var target = null;
   this.visit(node.receiver);
   var name = node.selector.get$source();
   if ($notnull_bool($eq(name, const$231/*const SourceString('print')*/) || $eq(name, const$232/*const SourceString('+')*/) || $eq(name, const$233/*const SourceString('-')*/) || $eq(name, const$234/*const SourceString('*')*/) || $eq(name, const$235/*const SourceString('/')*/) || $eq(name, const$236/*const SourceString('~/')*/))) {
   }
   else {
-    target = (($0 = this.visit(node.selector)) && $0.is$Element());
-    if ($notnull_bool(target == null)) {
-      this.fail(node);
-    }
+    this.visit(node.selector);
   }
   this.visit(node.argumentsNode);
   return target;
@@ -8113,7 +8114,7 @@ ResolverVisitor.prototype.visitNodeList = function(node) {
   }
 }
 ResolverVisitor.prototype.visitOperator = function(node) {
-  this.fail(node);
+  this.fail(node, "Unimplemented in the resolver");
 }
 ResolverVisitor.prototype.visitReturn = function(node) {
   this.visit(node.expression);
@@ -8126,9 +8127,12 @@ ResolverVisitor.prototype.visitVariableDefinitions = function(node) {
   var visitor = new VariableDefinitionsVisitor(node, this);
   visitor.visit(node.definitions);
 }
-ResolverVisitor.prototype.setElement = function(node, element) {
+ResolverVisitor.prototype.defineElement = function(node, element) {
   this.mapping.$setindex(node, element);
-  this.context.add(element);
+  return this.context.add(element);
+}
+ResolverVisitor.prototype.useElement = function(node, element) {
+  this.mapping.$setindex(node, element);
 }
 // ********** Code for VariableDefinitionsVisitor **************
 function VariableDefinitionsVisitor(definitions, resolver) {
@@ -8138,16 +8142,19 @@ function VariableDefinitionsVisitor(definitions, resolver) {
 }
 VariableDefinitionsVisitor.prototype.visitSend = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty(), "node.arguments.tail.isEmpty()", "leg/resolver.dart", 153, 12);
+  $assert(node.get$arguments().get$tail().isEmpty(), "node.arguments.tail.isEmpty()", "leg/resolver.dart", 158, 12);
   var selector = node.selector;
   var name = selector.get$source();
-  $assert($eq(name, const$237/*const SourceString('=')*/), "name == const SourceString('=')", "leg/resolver.dart", 156, 12);
+  $assert($eq(name, const$237/*const SourceString('=')*/), "name == const SourceString('=')", "leg/resolver.dart", 161, 12);
   this.resolver.visit((($0 = node.get$arguments().get$head()) && $0.is$Node()));
   this.visit(node.receiver);
 }
 VariableDefinitionsVisitor.prototype.visitIdentifier = function(node) {
   var variableElement = new Element(node.get$source(), this.resolver.context.enclosingElement);
-  this.resolver.setElement(node, variableElement);
+  var existing = this.resolver.defineElement(node, variableElement);
+  if ($notnull_bool($ne(existing, variableElement))) {
+    this.resolver.fail(node, ErrorMessages.duplicateDefinition(node));
+  }
 }
 VariableDefinitionsVisitor.prototype.visitNodeList = function(node) {
   var $0;
@@ -8185,7 +8192,9 @@ Scope.prototype.lookup = function(name) {
   return this.parent.lookup(name);
 }
 Scope.prototype.add = function(element) {
+  if ($notnull_bool(this.elements.containsKey(element.name))) return this.elements.$index(element.name);
   this.elements.$setindex(element.name, element);
+  return element;
 }
 // ********** Code for TopScope **************
 function TopScope(universe) {

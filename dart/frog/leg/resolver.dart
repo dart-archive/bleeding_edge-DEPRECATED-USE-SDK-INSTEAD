@@ -15,6 +15,14 @@ class ResolverTask extends CompilerTask {
   }
 }
 
+class ErrorMessages {
+  static String canNotResolve(id)
+      => "cannot resolve $id";
+
+  static String duplicateDefinition(id)
+      => "duplicate definition of $id";
+}
+
 class ResolverVisitor implements Visitor<Element> {
   final Compiler compiler;
   final Map<Node, Element> mapping;
@@ -25,17 +33,13 @@ class ResolverVisitor implements Visitor<Element> {
       mapping = new Map<Node, Element>(),
       context = new Scope(new TopScope(compiler.universe));
 
-  fail(Node node) {
-    compiler.cancel('cannot resolve ${node}');
+  fail(Node node, [String message = "Unimplemented in the resolver"]) {
+    compiler.cancel(message);
   }
 
   visit(Node node) {
     if (node == null) return null;
-    Element element = node.accept(this);
-    if (element !== null) {
-      mapping[node] = element;
-    }
-    return element;
+    return node.accept(this);
   }
 
   visitIn(Node node, Scope scope) {
@@ -65,7 +69,8 @@ class ResolverVisitor implements Visitor<Element> {
 
   visitIdentifier(Identifier node) {
     Element element = context.lookup(node.source);
-    if (element == null) fail(node);
+    if (element == null) fail(node, ErrorMessages.canNotResolve(node));
+    useElement(node, element);
     return element;
   }
 
@@ -87,11 +92,7 @@ class ResolverVisitor implements Visitor<Element> {
         name == const SourceString('~/')) {
       // Do nothing.
     } else {
-      target = visit(node.selector);
-      if (target == null) {
-        // Complain: we could not resolve the method.
-        fail(node);
-      }
+      visit(node.selector);
     }
     visit(node.argumentsNode);
     return target;
@@ -137,9 +138,13 @@ class ResolverVisitor implements Visitor<Element> {
     visitor.visit(node.definitions);
   }
 
-  Element setElement(Node node, Element element) {
+  Element defineElement(Node node, Element element) {
     mapping[node] = element;
-    context.add(element);
+    return context.add(element);
+  }
+
+  Element useElement(Node node, Element element) {
+    mapping[node] = element;
   }
 }
 
@@ -164,7 +169,10 @@ class VariableDefinitionsVisitor implements Visitor<Element> {
   visitIdentifier(Identifier node) {
     Element variableElement =
         new Element(node.source, resolver.context.enclosingElement);
-    resolver.setElement(node, variableElement);
+    Element existing = resolver.defineElement(node, variableElement);
+    if (existing != variableElement) {
+      resolver.fail(node, ErrorMessages.duplicateDefinition(node));
+    }
   }
 
   visitNodeList(NodeList node) {
@@ -195,8 +203,10 @@ class Scope {
     return parent.lookup(name);
   }
 
-  void add(Element element) {
+  Element add(Element element) {
+    if (elements.containsKey(element.name)) return elements[element.name];
     elements[element.name] = element;
+    return element;
   }
 }
 

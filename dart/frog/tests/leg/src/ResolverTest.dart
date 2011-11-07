@@ -14,7 +14,7 @@ class LoggerCanceler implements Logger, Canceler {
   }
 
   void log(message) {
-    // Do nothing.
+    // print(message);
   }
 }
 
@@ -53,9 +53,9 @@ createLocals(List variables) {
 
 testLocals(List variables) {
   ResolverVisitor visitor = new ResolverVisitor(new Compiler(null));
-  Map map = visitor.visit(createLocals(variables));
+  Element element = visitor.visit(createLocals(variables));
   // A VariableDefinitions does not have an element.
-  Expect.equals(null, map);
+  Expect.equals(null, element);
   Expect.equals(variables.length, visitor.context.elements.length);
   Expect.equals(variables.length, visitor.mapping.length);
 
@@ -67,7 +67,26 @@ testLocals(List variables) {
   }
 }
 
+
+createStatement(String text) {
+  Token tokens = scan(text);
+  LoggerCanceler lc = new LoggerCanceler();
+  BodyListener listener = new BodyListener(lc, lc);
+  BodyParser parser = new BodyParser(listener);
+  Token endToken = parser.parseStatement(tokens);
+  assert(endToken.kind == EOF_TOKEN);
+  return listener.popNode();
+}
+
 main() {
+  testLocalsOne();
+  testLocalsTwo();
+  testLocalsThree();
+  testLocalsFour();
+  testLocalsFive();
+}
+
+testLocalsOne() {
   testLocals([["foo", false]]);
   testLocals([["foo", false], ["bar", false]]);
   testLocals([["foo", false], ["bar", false], ["foobar", false]]);
@@ -80,6 +99,69 @@ main() {
   testLocals([["foo", false], ["bar", true], ["foobar", true]]);
   testLocals([["foo", true], ["bar", true], ["foobar", true]]);
 
-  // TODO(ngeoffray): Does not break yet.
-  // testLocals([["foo", false], ["foo", false]]);
+  String msg = '';
+  try {
+    testLocals([["foo", false], ["foo", false]]);
+  } catch (CompilerCancelledException ex) {
+    msg = ex.reason;
+  }
+  Expect.equals(msg, ErrorMessages.duplicateDefinition("foo"));
+}
+
+
+testLocalsTwo() {
+  ResolverVisitor visitor = new ResolverVisitor(new Compiler(null));
+  Node tree = createStatement("if (true) { var a = 1; var b = 2; }");
+  Element element = visitor.visit(tree);
+  Expect.equals(null, element);
+  Expect.equals(0, visitor.context.elements.length);
+  Expect.equals(2, visitor.mapping.length);
+
+  List<Element> elements = visitor.mapping.getValues();
+  Expect.notEquals(elements[0], elements[1]);
+}
+
+testLocalsThree() {
+  ResolverVisitor visitor = new ResolverVisitor(new Compiler(null));
+  Node tree = createStatement("{ var a = 1; if (true) { a; } }");
+  Element element = visitor.visit(tree);
+  Expect.equals(null, element);
+  Expect.equals(0, visitor.context.elements.length);
+  Expect.equals(2, visitor.mapping.length);
+  List<Element> elements = visitor.mapping.getValues();
+  Expect.equals(elements[0], elements[1]);
+}
+
+testLocalsFour() {
+  ResolverVisitor visitor = new ResolverVisitor(new Compiler(null));
+  Node tree = createStatement("{ var a = 1; if (true) { var a = 1; } }");
+  Element element = visitor.visit(tree);
+  Expect.equals(null, element);
+  Expect.equals(0, visitor.context.elements.length);
+  Expect.equals(2, visitor.mapping.length);
+  List<Element> elements = visitor.mapping.getValues();
+  Expect.notEquals(elements[0], elements[1]);
+}
+
+testLocalsFive() {
+  ResolverVisitor visitor = new ResolverVisitor(new Compiler(null));
+  Node tree =
+      createStatement("if (true) { var a = 1; a; } else { var a = 2; a;}");
+  Element element = visitor.visit(tree);
+  Expect.equals(null, element);
+  Expect.equals(0, visitor.context.elements.length);
+  Expect.equals(4, visitor.mapping.length);
+
+  List statements1 = tree.thenPart.statements.nodes.toList();
+  Identifier def1 = statements1[0].definitions.nodes.head.receiver;
+  Identifier id1 = statements1[1].expression.selector;
+  Expect.equals(visitor.mapping[def1], visitor.mapping[id1]);
+
+  List statements2 = tree.elsePart.statements.nodes.toList();
+  Identifier def2 = statements2[0].definitions.nodes.head.receiver;
+  Identifier id2 = statements2[1].expression.selector;
+  Expect.equals(visitor.mapping[def2], visitor.mapping[id2]);
+
+  Expect.notEquals(visitor.mapping[def1], visitor.mapping[def2]);
+  Expect.notEquals(visitor.mapping[id1], visitor.mapping[id2]);
 }
