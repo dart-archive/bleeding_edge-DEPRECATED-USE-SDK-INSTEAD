@@ -12,7 +12,7 @@ class SsaBuilderTask extends CompilerTask {
       HGraph graph = compileMethod(function.body, elements);
       assert(graph.isValid());
       if (GENERATE_SSA_TRACE) {
-        Identifier name = tree.name;
+        Identifier name = function.name;
         new HTracer.singleton().traceCompilation(name.source.toString());
         new HTracer.singleton().traceGraph('builder', graph);
       }
@@ -141,6 +141,10 @@ class SsaBuilder implements Visitor {
       Identifier selector = node.selector;
       push(new HInvoke(selector.source, arguments));
     }
+  }
+
+  visitSetterSend(SetterSend node) {
+    compiler.unimplemented('SsaBuilder.visitSetterSend');
   }
 
   void visitLiteralInt(LiteralInt node) {
