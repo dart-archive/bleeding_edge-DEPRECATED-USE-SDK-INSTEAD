@@ -13,7 +13,7 @@ class %className%%extends%%implements% {
     // the DOM library defines a global "window" variable
     HTMLDocument doc = window.document;
     HTMLParagraphElement p = doc.createElement('p');
-    p.innerText = message;
+    p.textContent = message;
     doc.body.appendChild(p);
   }
 }
