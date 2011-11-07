@@ -324,7 +324,7 @@ public class CompletionEngine {
             DartNode name = type.getIdentifier();
             if (name instanceof DartIdentifier) {
               DartIdentifier id = (DartIdentifier) name;
-              proposeTypesForPrefix(id, false);
+              proposeTypesForPrefix(id);
             }
           }
         }
@@ -373,13 +373,15 @@ public class CompletionEngine {
                 proposeTypesForNewParam();
                 break;
               } else {
-                proposeTypesForPrefix(identifier, false);
+                proposeGenericTypeCompletions(typeCompleter);
+                proposeTypesForPrefix(identifier);
               }
               break;
             case ForInitialization:
               // {for (in!t x = 0; i < 5; i++); }
             case TypeFunctionOrVariable:
               // { x; v! x; } or { v! x; }
+              proposeGenericTypeCompletions(typeCompleter);
               proposeIdentifierPrefixCompletions(typeCompleter);
               break;
             case FunctionLiteral:
@@ -387,7 +389,7 @@ public class CompletionEngine {
               // final num PI2 = Mat!
             case TypeParameter:
               // class X<K extends Ha!shable> {}
-              proposeTypesForPrefix(identifier, false);
+              proposeTypesForPrefix(identifier);
               break;
             case ClassBody:
               // class x extends A! (A may be empty string)
@@ -401,12 +403,13 @@ public class CompletionEngine {
               // class x { ! }
               // TODO check for supertype methods whose name starts with identifier
               // if found propose a new method matching its signature
-              proposeTypesForPrefix(identifier);
+              proposeGenericTypeCompletions(typeCompleter);
+              proposeTypesForPrefix(identifier, true);
               break;
             case TopLevelElement:
               if (completionNode.getParent() instanceof DartFunctionTypeAlias) {
                 // typedef T!
-                proposeTypesForPrefix(identifier);
+                proposeTypesForPrefix(identifier, true);
               }
               break;
           }
@@ -508,14 +511,14 @@ public class CompletionEngine {
       int completionPos = actualCompletionPosition + 1 - node.getSourceStart();
       boolean beforeBrace = classSrc.indexOf('{') < 0;
       if (beforeBrace) {
-        int extendsLoc = classSrc.indexOf("extends");
-        int implementsLoc = classSrc.indexOf("implements");
+        int extendsLoc = classSrc.indexOf(C_EXTENDS);
+        int implementsLoc = classSrc.indexOf(C_IMPLEMENTS);
         if (extendsLoc < 0 && implementsLoc < 0) {
           return null;
         }
         boolean isClassDef = false;
         if (extendsLoc > 0) {
-          int extendsEnd = extendsLoc + "extends".length();
+          int extendsEnd = extendsLoc + C_EXTENDS.length();
           if (completionPos <= extendsEnd) {
             return null;
           }
@@ -533,7 +536,7 @@ public class CompletionEngine {
         }
         if (implementsLoc > 0) {
           isClassDef = false;
-          int implementsEnd = implementsLoc + "implements".length();
+          int implementsEnd = implementsLoc + C_IMPLEMENTS.length();
           if (implementsLoc < completionPos && completionPos <= implementsEnd) {
             return null;
           }
@@ -762,8 +765,8 @@ public class CompletionEngine {
           DartNode name = node.getBound().getIdentifier();
           int start = node.getSourceStart();
           String src = source.substring(start, start + node.getSourceLength());
-          int n = src.indexOf("extends");
-          if (actualCompletionPosition - start >= n + "extends".length()) {
+          int n = src.indexOf(C_EXTENDS);
+          if (actualCompletionPosition - start >= n + C_EXTENDS.length()) {
             if (name instanceof DartIdentifier) {
               proposeTypeNamesForPrefix(((DartIdentifier) name));
             }
@@ -933,6 +936,10 @@ public class CompletionEngine {
   private DartUnit parsedUnit;
   private CompilationUnit currentCompilationUnit;
   private CompletionMetrics metrics;
+
+  private static final String C_EXTENDS = "extends";
+  private static final String C_IMPLEMENTS = "implements";
+  private static final String C_VOID = "void";
 
   /**
    * @param options
@@ -1407,6 +1414,29 @@ public class CompletionEngine {
     }
   }
 
+  private void createTypeCompletionsForGenericType(DartNode node, Type type, String prefix) {
+    String name = type.getElement().getName();
+    boolean disallowPrivate = true;
+    if (prefix != null) {
+      disallowPrivate = !prefix.startsWith("_");
+      if (prefix.length() == 0) {
+        prefix = null;
+      }
+    }
+    if (disallowPrivate && name.startsWith("_")) {
+      return;
+    }
+    InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+        CompletionProposal.TYPE_REF, actualCompletionPosition - offset);
+    char[] nameChars = name.toCharArray();
+    proposal.setCompletion(nameChars);
+    proposal.setSignature(nameChars);
+    proposal.setIsInterface(true); // TODO For now, use the Interface icon for generic types
+    setSourceLoc(proposal, node, prefix);
+    proposal.setRelevance(1);
+    requestor.accept(proposal);
+  }
+
   private void createTypeCompletionsForParameterDecl(DartNode node, SearchMatch match, String prefix) {
     DartElement element = match.getElement();
     String name;
@@ -1577,6 +1607,18 @@ public class CompletionEngine {
     }
   }
 
+  private void proposeGenericTypeCompletions(DartNode node) {
+    if (classElement == null) {
+      // TODO Handle top-level functions
+      return;
+    }
+    String prefix = extractFilterPrefix(node);
+    List<? extends Type> typeParams = classElement.getTypeParameters();
+    for (Type type : typeParams) {
+      createTypeCompletionsForGenericType(node, type, prefix);
+    }
+  }
+
   private void proposeTypeNamesForPrefix(DartIdentifier identifier) {
     List<SearchMatch> matches = findTypesWithPrefix(identifier);
     if (matches == null || matches.size() == 0) {
@@ -1589,6 +1631,7 @@ public class CompletionEngine {
   }
 
   private void proposeTypesForNewParam() {
+    proposeGenericTypeCompletions(null);
     // TODO Combine with proposeTypesForPrefix()
     List<SearchMatch> matches = findTypesWithPrefix(null);
     if (matches == null || matches.size() == 0) {
@@ -1600,7 +1643,7 @@ public class CompletionEngine {
   }
 
   private void proposeTypesForPrefix(DartIdentifier identifier) {
-    proposeTypesForPrefix(identifier, true);
+    proposeTypesForPrefix(identifier, false); // disallow void in most places
   }
 
   private void proposeTypesForPrefix(DartIdentifier identifier, boolean allowVoid) {
@@ -1614,11 +1657,11 @@ public class CompletionEngine {
     }
     if (allowVoid) {
       if (prefix == null || prefix.length() == 0) {
-        createProposalsForLiterals(identifier, "void");
+        createProposalsForLiterals(identifier, C_VOID);
       } else {
         String id = identifier.getTargetName();
-        if (id.length() <= "void".length() && "void".startsWith(id)) {
-          createProposalsForLiterals(identifier, "void");
+        if (id.length() <= C_VOID.length() && C_VOID.startsWith(id)) {
+          createProposalsForLiterals(identifier, C_VOID);
         }
       }
     }

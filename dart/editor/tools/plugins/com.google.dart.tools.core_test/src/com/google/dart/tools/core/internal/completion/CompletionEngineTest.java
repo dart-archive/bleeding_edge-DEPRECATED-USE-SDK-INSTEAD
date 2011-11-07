@@ -160,6 +160,11 @@ public class CompletionEngineTest extends TestCase {
     test("class test {factory test<X extends !1List!2>(){}}", "1+TimeZone", "2+List");
   }
 
+  public void testCommentSnippets030() throws Exception {
+    test("class Bar<T extends Foo> {const Bar(!1T!2 k);T!3 m(T!4 a, T!5 b){}T!6 f = null;}", "1+T",
+        "2+T", "3+T", "4+T", "5+T", "6+T");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test
