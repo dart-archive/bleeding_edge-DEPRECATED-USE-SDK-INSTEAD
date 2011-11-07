@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.omni;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.omni.elements.FileProvider;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
+import com.google.dart.tools.ui.omni.elements.TextSearchProvider;
 import com.google.dart.tools.ui.omni.elements.TypeProvider;
 
 import org.eclipse.core.commands.Command;
@@ -138,7 +139,7 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   protected Map<String, Object> elementMap = new HashMap<String, Object>();
 
-  private LinkedList<Object> previousPicksList = new LinkedList<Object>();
+  private LinkedList<OmniElement> previousPicksList = new LinkedList<OmniElement>();
   protected Map<String, OmniProposalProvider> providerMap;
   // private Font italicsFont;
   private Color grayColor;
@@ -541,13 +542,11 @@ public class OmniBoxPopup extends BasePopupDialog {
     return invokingCommandKeySequences;
   }
 
-  protected void handleElementSelected(String text, Object selectedElement) {
-    if (selectedElement instanceof OmniElement) {
-      addPreviousPick(text, selectedElement);
-      storeDialog(getDialogSettings());
-      OmniElement element = (OmniElement) selectedElement;
-      element.execute();
-    }
+  protected void handleElementSelected(String text, OmniElement selectedElement) {
+    addPreviousPick(text, selectedElement.getMemento());
+    storeDialog(getDialogSettings());
+    OmniElement element = selectedElement;
+    element.execute();
   }
 
   protected void toggleShowAllMatches() {
@@ -569,6 +568,7 @@ public class OmniBoxPopup extends BasePopupDialog {
     // perfect match, to be selected in the table if not null
     OmniElement perfectMatch = (OmniElement) elementMap.get(filter);
 
+    @SuppressWarnings("rawtypes")
     List[] entries = computeMatchingEntries(filter, perfectMatch, numItems);
 
     int selectionIndex = refreshTable(perfectMatch, entries);
@@ -612,7 +612,7 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   }
 
-  private void addPreviousPick(String text, Object element) {
+  private void addPreviousPick(String text, OmniElement element) {
     // previousPicksList:
     // Remove element from previousPicksList so there are no duplicates
     // If list is max size, remove last(oldest) element
@@ -669,6 +669,7 @@ public class OmniBoxPopup extends BasePopupDialog {
     }
   }
 
+  @SuppressWarnings({"rawtypes", "unchecked"})
   private List[] computeMatchingEntries(String filter, OmniElement perfectMatch, int maxCount) {
 
     // collect matches in an array of lists
@@ -734,7 +735,7 @@ public class OmniBoxPopup extends BasePopupDialog {
       OmniEntry entry = perfectMatch.match(filter, providers[0]);
       if (entry != null) {
         if (entries[0] == null) {
-          entries[0] = new ArrayList();
+          entries[0] = new ArrayList<OmniEntry>();
           indexPerProvider[0] = 0;
         }
         entries[0].add(entry);
@@ -751,9 +752,9 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   private OmniProposalProvider[] createProviders() {
-    return new OmniProposalProvider[] {new PreviousPicksProvider(),
-//        new TextSearchProvider(this),
-    new TypeProvider(getProgressMonitor()), new FileProvider(getProgressMonitor()),
+    return new OmniProposalProvider[] {
+        new PreviousPicksProvider(), new TextSearchProvider(this),
+        new TypeProvider(getProgressMonitor()), new FileProvider(getProgressMonitor()),
 //        new EditorProvider(),
 //        new ActionProvider(),
 //        new PreferenceProvider()
@@ -881,7 +882,7 @@ public class OmniBoxPopup extends BasePopupDialog {
       String[] textArray = dialogSettings.getArray(TEXT_ARRAY);
       elementMap = new HashMap<String, Object>();
       textMap = new HashMap<Object, ArrayList<String>>();
-      previousPicksList = new LinkedList<Object>();
+      previousPicksList = new LinkedList<OmniElement>();
       if (orderedElements != null && orderedProviders != null && textEntries != null
           && textArray != null) {
         int arrayIndex = 0;
@@ -917,17 +918,17 @@ public class OmniBoxPopup extends BasePopupDialog {
     String[] orderedElements = new String[previousPicksList.size()];
     String[] orderedProviders = new String[previousPicksList.size()];
     String[] textEntries = new String[previousPicksList.size()];
-    ArrayList arrayList = new ArrayList();
+    ArrayList<String> arrayList = new ArrayList<String>();
     for (int i = 0; i < orderedElements.length; i++) {
-      OmniElement quickAccessElement = (OmniElement) previousPicksList.get(i);
-      ArrayList elementText = textMap.get(quickAccessElement);
+      OmniElement omniElement = previousPicksList.get(i);
+      ArrayList<String> elementText = textMap.get(omniElement);
       Assert.isNotNull(elementText);
-      orderedElements[i] = quickAccessElement.getId();
-      orderedProviders[i] = quickAccessElement.getProvider().getId();
+      orderedElements[i] = omniElement.getId();
+      orderedProviders[i] = omniElement.getProvider().getId();
       arrayList.addAll(elementText);
       textEntries[i] = elementText.size() + ""; //$NON-NLS-1$
     }
-    String[] textArray = (String[]) arrayList.toArray(new String[arrayList.size()]);
+    String[] textArray = arrayList.toArray(new String[arrayList.size()]);
     dialogSettings.put(ORDERED_ELEMENTS, orderedElements);
     dialogSettings.put(ORDERED_PROVIDERS, orderedProviders);
     dialogSettings.put(TEXT_ENTRIES, textEntries);

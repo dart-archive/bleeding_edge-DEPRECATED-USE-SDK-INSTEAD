@@ -26,10 +26,55 @@ import org.eclipse.jface.resource.ImageDescriptor;
  */
 public class TextSearchElement extends OmniElement {
 
-  private String searchText;
+  /**
+   * An executed text search (restored from a memento). Notably, executed searches do not update
+   * their search filter text.
+   */
+  static final class Memento extends TextSearchElement {
+
+    public Memento(TextSearchProvider provider, String searchText) {
+      super(provider);
+      this.searchText = searchText;
+    }
+
+    @Override
+    public OmniElement getMemento() {
+      return this;
+    }
+
+    @Override
+    protected String getSearchText() {
+      return searchText;
+    }
+
+    @Override
+    protected void updateSearchText() {
+      //do not update cache
+    }
+  }
+
+  protected String searchText;
 
   public TextSearchElement(TextSearchProvider provider) {
     super(provider);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (!(obj instanceof TextSearchElement)) {
+      return false;
+    }
+    TextSearchElement other = (TextSearchElement) obj;
+    if (this.searchText == other.searchText) {
+      return true;
+    }
+    if (this.searchText != null) {
+      return this.searchText.equals(other.searchText);
+    }
+    return false;
   }
 
   @Override
@@ -50,12 +95,41 @@ public class TextSearchElement extends OmniElement {
   @Override
   public String getLabel() {
     //cache the value shown in the label so we can use it to execute the search
-    searchText = getSearchText();
+    updateSearchText();
     return Messages.format(OmniBoxMessages.TextSearchElement_occurences, searchText);
   }
 
-  private String getSearchText() {
+  @Override
+  public String getMatchText() {
+    return getSearchText();
+  }
+
+  @Override
+  public int getMatchTextOffset() {
+    //Occurrences of ''{0}''
+    return OmniBoxMessages.TextSearchElement_occurences.indexOf('{') - 1;
+  }
+
+  @Override
+  public OmniElement getMemento() {
+    return new Memento((TextSearchProvider) getProvider(), searchText);
+  }
+
+  @Override
+  public int hashCode() {
+    int hash = 13;
+    if (searchText != null) {
+      hash += searchText.hashCode();
+    }
+    return hash;
+  }
+
+  protected String getSearchText() {
     return ((TextSearchProvider) getProvider()).getSearchText();
+  }
+
+  protected void updateSearchText() {
+    searchText = getSearchText();
   }
 
 }

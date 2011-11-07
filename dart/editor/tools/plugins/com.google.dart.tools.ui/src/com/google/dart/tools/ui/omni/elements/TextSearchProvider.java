@@ -28,17 +28,21 @@ public class TextSearchProvider extends OmniProposalProvider {
 
   private final OmniBoxPopup omniBoxPopup;
 
+  private static final String ID = TextSearchProvider.class.getName();
+  private static final int TEXT_INDEX = ID.length() + 1;
+
   public TextSearchProvider(OmniBoxPopup omniBoxPopup) {
     this.omniBoxPopup = omniBoxPopup;
   }
 
   @Override
   public OmniElement getElementForId(String id) {
-    OmniElement[] elements = getElements(id);
-    if (elements.length == 0) {
+    if (id == null || (id.length() <= TEXT_INDEX)) {
       return null;
     }
-    return elements[0];
+    //strip id leader to get the search pattern
+    id = id.substring(TEXT_INDEX);
+    return new TextSearchElement.Memento(this, id);
   }
 
   @Override
@@ -48,7 +52,7 @@ public class TextSearchProvider extends OmniProposalProvider {
 
   @Override
   public String getId() {
-    return getClass().getName();
+    return ID;
   }
 
   @Override
