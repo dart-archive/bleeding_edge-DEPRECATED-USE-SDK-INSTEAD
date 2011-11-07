@@ -358,7 +358,8 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
         } else if (parent instanceof DartSourceDirective
             && ((DartSourceDirective) parent).getSourceUri() == node) {
           DartLibrary library = compilationUnit.getLibrary();
-          CompilationUnit sourcedUnit = library.getCompilationUnit(node.getValue());
+          String fileName = getFileName(library, node.getValue());
+          CompilationUnit sourcedUnit = library.getCompilationUnit(fileName);
           if (sourcedUnit != null && sourcedUnit.exists()) {
             foundElement = sourcedUnit;
           }
@@ -502,5 +503,21 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
         // Ignored
       }
     }
+  }
+
+  /**
+   * Extract the file name from the given URI. Return the file name that was extracted, or the
+   * original URI if the format of the URI could not be recognized.
+   * 
+   * @param library the library that the URI might be relative to
+   * @param uri the string representation of the URI
+   * @return the file name that was extracted
+   */
+  private String getFileName(DartLibrary library, String uri) {
+    int index = uri.lastIndexOf('/');
+    if (index >= 0) {
+      return uri.substring(index + 1);
+    }
+    return uri;
   }
 }
