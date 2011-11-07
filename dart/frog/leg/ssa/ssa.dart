@@ -16,3 +16,4 @@
 #source('optimize.dart');
 #source('tracer.dart');
 #source('validate.dart');
+#source('value_set.dart');

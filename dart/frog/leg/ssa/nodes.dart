@@ -228,8 +228,7 @@ class HBasicBlock {
   }
 }
 
-// TODO(kasperl): Make instructions non-hashable again.
-class HInstruction implements Hashable {
+class HInstruction {
   int id;
   final List<HInstruction> inputs;
   List<HInstruction> _usedBy = null;  // If [null] then the instruction is not
@@ -242,8 +241,11 @@ class HInstruction implements Hashable {
   static final int FLAG_CHANGES_SOMETHING    = 0;
   static final int FLAG_CHANGES_COUNT        = FLAG_CHANGES_SOMETHING + 1;
 
+  // Depends flags (one for each changes flag).
+  static final int FLAG_DEPENDS_ON_SOMETHING = FLAG_CHANGES_COUNT;
+
   // Other flags.
-  static final int FLAG_GENERATE_AT_USE_SITE = FLAG_CHANGES_COUNT;
+  static final int FLAG_GENERATE_AT_USE_SITE = FLAG_DEPENDS_ON_SOMETHING + 1;
   static final int FLAG_USE_GVN              = FLAG_GENERATE_AT_USE_SITE + 1;
 
   HInstruction(this.inputs) {
@@ -254,11 +256,14 @@ class HInstruction implements Hashable {
   void setFlag(int position) { flags |= (1 << position); }
   void clearFlag(int position) { flags &= ~(1 << position); }
 
+  static int computeDependsOnFlags(int flags) => flags << FLAG_CHANGES_COUNT;
+
   int getChangesFlags() => flags & ((1 << FLAG_CHANGES_COUNT) - 1);
   bool hasSideEffects() => getChangesFlags() != 0;
+  void prepareGvn() { setAllSideEffects();  }
+
   void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
   void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
-  void prepareGvn() { setAllSideEffects();  }
 
   bool generateAtUseSite() => getFlag(FLAG_GENERATE_AT_USE_SITE);
   void setGenerateAtUseSite() { setFlag(FLAG_GENERATE_AT_USE_SITE); }
@@ -292,9 +297,26 @@ class HInstruction implements Hashable {
     return buffer.toString();
   }
 
-  // TODO(kasperl): Stop overloading == on instructions.
-  operator ==(HInstruction other) => false;
-  hashCode() => 0;
+  bool equals(HInstruction other) {
+    assert(useGvn() && other.useGvn());
+    // Check that the type and the flags match.
+    if (!typeEquals(other)) return false;
+    if (flags != other.flags) return false;
+    // Check that the inputs match.
+    final int inputsLength = inputs.length;
+    final List<HInstruction> otherInputs = other.inputs;
+    if (inputsLength != otherInputs.length) return false;
+    for (int i = 0; i < inputsLength; i++) {
+      if (inputs[i] !== otherInputs[i]) return false;
+    }
+    // Check that the data in the instruction matches.
+    return dataEquals(other);
+  }
+
+  // These methods should be overwritten by instructions that
+  // participate in global value numbering.
+  bool typeEquals(HInstruction other) => false;
+  bool dataEquals(HInstruction other) => false;
 
   abstract accept(HVisitor visitor);
 
@@ -368,30 +390,40 @@ class HAdd extends HArithmetic {
   }
   accept(HVisitor visitor) => visitor.visitAdd(this);
   num evaluate(num a, num b) => a + b;
+  bool typeEquals(other) => other is HAdd;
+  bool dataEquals(HInstruction other) => true;
 }
 
 class HDivide extends HArithmetic {
   HDivide(inputs) : super(const SourceString('/'), inputs);
   accept(HVisitor visitor) => visitor.visitDivide(this);
   num evaluate(num a, num b) => a / b;
+  bool typeEquals(other) => other is HDivide;
+  bool dataEquals(HInstruction other) => true;
 }
 
 class HMultiply extends HArithmetic {
   HMultiply(inputs) : super(const SourceString('*'), inputs);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
   num evaluate(num a, num b) => a * b;
+  bool typeEquals(other) => other is HMultiply;
+  bool dataEquals(HInstruction other) => true;
 }
 
 class HSubtract extends HArithmetic {
   HSubtract(inputs) : super(const SourceString('-'), inputs);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
   num evaluate(num a, num b) => a - b;
+  bool typeEquals(other) => other is HSubtract;
+  bool dataEquals(HInstruction other) => true;
 }
 
 class HTruncatingDivide extends HArithmetic {
   HTruncatingDivide(inputs) : super(const SourceString('~/'), inputs);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
   num evaluate(num a, num b) => a ~/ b;
+  bool typeEquals(other) => other is HTruncatingDivide;
+  bool dataEquals(HInstruction other) => true;
 }
 
 class HExit extends HInstruction {
@@ -416,11 +448,11 @@ class HLiteral extends HInstruction {
     setUseGvn();
   }
   toString() => 'literal: $value';
-  // TODO(kasperl): Stop overloading == on instructions.
-  operator ==(var other) => other is HLiteral && value == other.value;
   accept(HVisitor visitor) => visitor.visitLiteral(this);
   bool isLiteralNumber() => value is num;
   bool isLiteralString() => value is String;
+  bool typeEquals(other) => other is HLiteral;
+  bool dataEquals(other) => value == other.value;
 }
 
 class HReturn extends HInstruction {

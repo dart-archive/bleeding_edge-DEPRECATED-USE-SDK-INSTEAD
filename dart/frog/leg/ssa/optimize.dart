@@ -95,34 +95,11 @@ class SsaDeadCodeEliminator extends HGraphVisitor {
   }
 }
 
-class SsaValueSet {
-  final Map<HInstruction, HInstruction> map;
-  SsaValueSet() : map = new Map<HInstruction, HInstruction>();
-
-  void add(HInstruction instruction) {
-    assert(!map.containsKey(instruction));
-    map[instruction] = instruction;
-  }
-
-  HInstruction lookup(HInstruction instruction) {
-    // TODO(kasperl): Stop using an ordinary map and build something
-    // sensible instead.
-    return map[instruction];
-  }
-
-  void kill(int flags) {
-    // TODO(kasperl): Only kill the values affected by the kind of
-    // side effects specified in the flags.
-    map.clear();
-  }
-}
-
-
 class SsaGlobalValueNumberer extends HGraphVisitor {
   final Compiler compiler;
-  final SsaValueSet values;
+  final ValueSet values;
   SsaGlobalValueNumberer(this.compiler)
-    : values = new SsaValueSet();
+    : values = new ValueSet();
 
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
