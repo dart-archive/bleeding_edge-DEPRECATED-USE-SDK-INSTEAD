@@ -811,7 +811,7 @@ HashMapImplementation._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/home/kasperl/Dart/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -978,7 +978,7 @@ HashMapImplementation$E$E._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation$E$E.prototype._grow = function(newCapacity) {
-  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
+  $assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/home/kasperl/Dart/dart/corelib/src/implementation/hash_map_set.dart", 153, 12);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1343,7 +1343,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
+  $assert(index == this.get$length(), "index == length", "/home/kasperl/Dart/dart/corelib/src/implementation/linked_hash_map.dart", 75, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -1353,7 +1353,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  $assert(index == this.get$length(), "index == length", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
+  $assert(index == this.get$length(), "index == length", "/home/kasperl/Dart/dart/corelib/src/implementation/linked_hash_map.dart", 86, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -6689,13 +6689,13 @@ SsaBuilder.prototype.visitExpressionStatement = function(node) {
   this.pop();
 }
 SsaBuilder.prototype.visitFunctionExpression = function(node) {
-  this.compiler.cancel();
+  this.compiler.unimplemented('SsaBuilder.visitFunctionExpression');
 }
 SsaBuilder.prototype.visitIdentifier = function(node) {
-  this.compiler.cancel();
+  this.compiler.unimplemented('SsaBuilder.visitIdentifier');
 }
 SsaBuilder.prototype.visitIf = function(node) {
-  this.compiler.cancel("ssa/builder.dart: visitIf not implemented");
+  this.compiler.unimplemented('SsaBuilder.visitIf');
 }
 SsaBuilder.prototype.visitSend = function(node) {
   var $0;
@@ -6752,10 +6752,10 @@ SsaBuilder.prototype.visitNodeList = function(node) {
   }
 }
 SsaBuilder.prototype.visitOperator = function(node) {
-  this.compiler.unimplemented("SsaBuilder::visitOperator");
+  this.compiler.unimplemented("SsaBuilder.visitOperator");
 }
 SsaBuilder.prototype.visitParameter = function(node) {
-  this.compiler.unimplemented("SsaBuilder::visitParameter");
+  this.compiler.unimplemented("SsaBuilder.visitParameter");
 }
 SsaBuilder.prototype.visitReturn = function(node) {
   this.visit(node.expression);
@@ -6767,7 +6767,7 @@ SsaBuilder.prototype.visitTypeAnnotation = function(node) {
 
 }
 SsaBuilder.prototype.visitVariableDefinitions = function(node) {
-  this.compiler.unimplemented("SsaBuilder::visitVariableDefinitions");
+  this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions");
 }
 // ********** Code for SsaCodeGeneratorTask **************
 function SsaCodeGeneratorTask(compiler0) {

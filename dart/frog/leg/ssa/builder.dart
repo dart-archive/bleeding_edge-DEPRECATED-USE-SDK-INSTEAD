@@ -81,15 +81,15 @@ class SsaBuilder implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    compiler.cancel();
+    compiler.unimplemented('SsaBuilder.visitFunctionExpression');
   }
 
   visitIdentifier(Identifier node) {
-    compiler.cancel();
+    compiler.unimplemented('SsaBuilder.visitIdentifier');
   }
 
   visitIf(If node) {
-    compiler.cancel("ssa/builder.dart: visitIf not implemented");
+    compiler.unimplemented('SsaBuilder.visitIf');
     // TODO(floitsch): Implement this.
     // visit(node.condition);
     // visit(node.thenPart);
@@ -153,11 +153,11 @@ class SsaBuilder implements Visitor {
   }
 
   visitOperator(Operator node) {
-    compiler.unimplemented("SsaBuilder::visitOperator");
+    compiler.unimplemented("SsaBuilder.visitOperator");
   }
 
   visitParameter(Parameter node) {
-    compiler.unimplemented("SsaBuilder::visitParameter");
+    compiler.unimplemented("SsaBuilder.visitParameter");
   }
 
   visitReturn(Return node) {
@@ -173,6 +173,6 @@ class SsaBuilder implements Visitor {
 
   visitVariableDefinitions(VariableDefinitions node) {
     // TODO(floitsch): Implement this.
-    compiler.unimplemented("SsaBuilder::visitVariableDefinitions");
+    compiler.unimplemented("SsaBuilder.visitVariableDefinitions");
   }
 }
