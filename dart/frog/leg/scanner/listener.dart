@@ -183,8 +183,11 @@ class DeclarationBuilder {
 class BodyListener extends Listener {
   final Logger logger;
   Link<Node> nodes = const EmptyLink(); /* <Node> Frog bug #322 + #323 */
+  Function onError;
 
-  BodyListener(Canceler canceler, Logger this.logger) : super(canceler);
+  BodyListener(Canceler canceler, Logger this.logger) : super(canceler) {
+    onError = handleOnError; // Cuts parser time in half or more.
+  }
 
   void beginFormalParameters(Token token) {
   }
@@ -220,7 +223,7 @@ class BodyListener extends Listener {
     pushNode(new ExpressionStatement(popNode(), token));
   }
 
-  void onError(Token token, var error) {
+  void handleOnError(Token token, var error) {
     canceler.cancel("internal error @ ${token.charOffset}: '${token.value}'" +
                     ": ${error}");
   }
