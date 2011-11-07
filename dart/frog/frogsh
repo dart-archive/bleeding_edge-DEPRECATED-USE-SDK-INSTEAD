@@ -2097,8 +2097,8 @@ ArrayBasedScanner.prototype.addToCharOffset = function(offset) {
 ArrayBasedScanner.prototype.appendWhiteSpace = function(next) {
 
 }
-// ********** Code for ArrayBasedScanner$String **************
-function ArrayBasedScanner$String() {
+// ********** Code for ArrayBasedScanner$SourceString **************
+function ArrayBasedScanner$SourceString() {
   this.charOffset = -1;
   this.tokenStart = -1;
   this.byteOffset = -1;
@@ -2106,13 +2106,13 @@ function ArrayBasedScanner$String() {
   // Initializers done
   this.tail = this.tokens;
 }
-$inherits(ArrayBasedScanner$String, ArrayBasedScanner);
-ArrayBasedScanner$String.prototype.advance = function() {
+$inherits(ArrayBasedScanner$SourceString, ArrayBasedScanner);
+ArrayBasedScanner$SourceString.prototype.advance = function() {
   var next = this.nextByte();
   this.charOffset++;
   return next;
 }
-ArrayBasedScanner$String.prototype.select = function(choice, yes, no) {
+ArrayBasedScanner$SourceString.prototype.select = function(choice, yes, no) {
   var next = this.advance();
   if ($notnull_bool(next == choice)) {
     this.appendStringToken(1024/*null.UNKNOWN_TOKEN*/, yes);
@@ -2123,31 +2123,31 @@ ArrayBasedScanner$String.prototype.select = function(choice, yes, no) {
     return next;
   }
 }
-ArrayBasedScanner$String.prototype.appendStringToken = function(kind, value) {
+ArrayBasedScanner$SourceString.prototype.appendStringToken = function(kind, value) {
   this.tail.next = new StringToken(kind, value, this.tokenStart);
   this.tail = this.tail.next;
 }
-ArrayBasedScanner$String.prototype.appendKeywordToken = function(keyword) {
+ArrayBasedScanner$SourceString.prototype.appendKeywordToken = function(keyword) {
   this.tail.next = new KeywordToken(keyword, this.tokenStart);
   this.tail = this.tail.next;
 }
-ArrayBasedScanner$String.prototype.appendEofToken = function() {
+ArrayBasedScanner$SourceString.prototype.appendEofToken = function() {
   this.tail.next = new Token(0/*null.EOF_TOKEN*/, this.charOffset);
   this.tail = this.tail.next;
 }
-ArrayBasedScanner$String.prototype.beginToken = function() {
+ArrayBasedScanner$SourceString.prototype.beginToken = function() {
   this.tokenStart = this.charOffset;
 }
-ArrayBasedScanner$String.prototype.firstToken = function() {
+ArrayBasedScanner$SourceString.prototype.firstToken = function() {
   return this.tokens.next;
 }
-ArrayBasedScanner$String.prototype.addToCharOffset = function(offset) {
+ArrayBasedScanner$SourceString.prototype.addToCharOffset = function(offset) {
   this.charOffset += offset;
 }
-ArrayBasedScanner$String.prototype.appendWhiteSpace = function(next) {
+ArrayBasedScanner$SourceString.prototype.appendWhiteSpace = function(next) {
 
 }
-ArrayBasedScanner$String.prototype.tokenize = function() {
+ArrayBasedScanner$SourceString.prototype.tokenize = function() {
   var next = this.advance();
   while ($notnull_bool(next != -1)) {
     next = this.bigSwitch(next);
@@ -2155,7 +2155,7 @@ ArrayBasedScanner$String.prototype.tokenize = function() {
   this.appendEofToken();
   return this.firstToken();
 }
-ArrayBasedScanner$String.prototype.bigSwitch = function(next) {
+ArrayBasedScanner$SourceString.prototype.bigSwitch = function(next) {
   this.beginToken();
   switch (next) {
     case 9/*null.$TAB*/:
@@ -2379,7 +2379,7 @@ ArrayBasedScanner$String.prototype.bigSwitch = function(next) {
 
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeTag = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeTag = function(next) {
   if ($notnull_bool(this.byteOffset == 0)) {
     if ($notnull_bool(this.peek() == 33/*null.$BANG*/)) {
       do {
@@ -2392,7 +2392,7 @@ ArrayBasedScanner$String.prototype.tokenizeTag = function(next) {
   this.appendStringToken(35/*null.HASH_TOKEN*/, "#");
   return this.advance();
 }
-ArrayBasedScanner$String.prototype.tokenizeTilde = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeTilde = function(next) {
   next = this.advance();
   if ($notnull_bool(next == 47/*null.$SLASH*/)) {
     return this.select(61/*null.$EQ*/, "~/=", "~/");
@@ -2402,7 +2402,7 @@ ArrayBasedScanner$String.prototype.tokenizeTilde = function(next) {
     return next;
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeOpenBracket = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeOpenBracket = function(next) {
   next = this.advance();
   if ($notnull_bool(next == 93/*null.$RBRACKET*/)) {
     return this.select(61/*null.$EQ*/, "[]=", "[]");
@@ -2412,10 +2412,10 @@ ArrayBasedScanner$String.prototype.tokenizeOpenBracket = function(next) {
     return next;
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeCaret = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeCaret = function(next) {
   return this.select(61/*null.$EQ*/, "^=", "^");
 }
-ArrayBasedScanner$String.prototype.tokenizeBar = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeBar = function(next) {
   next = this.advance();
   switch (next) {
     case 124/*null.$BAR*/:
@@ -2435,7 +2435,7 @@ ArrayBasedScanner$String.prototype.tokenizeBar = function(next) {
 
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeAmpersand = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeAmpersand = function(next) {
   next = this.advance();
   switch (next) {
     case 38/*null.$AMPERSAND*/:
@@ -2455,13 +2455,13 @@ ArrayBasedScanner$String.prototype.tokenizeAmpersand = function(next) {
 
   }
 }
-ArrayBasedScanner$String.prototype.tokenizePercent = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizePercent = function(next) {
   return this.select(61/*null.$EQ*/, "%=", "%");
 }
-ArrayBasedScanner$String.prototype.tokenizeMultiply = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeMultiply = function(next) {
   return this.select(61/*null.$EQ*/, "*=", "*");
 }
-ArrayBasedScanner$String.prototype.tokenizeMinus = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeMinus = function(next) {
   next = this.advance();
   switch (next) {
     case 45/*null.$MINUS*/:
@@ -2481,7 +2481,7 @@ ArrayBasedScanner$String.prototype.tokenizeMinus = function(next) {
 
   }
 }
-ArrayBasedScanner$String.prototype.tokenizePlus = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizePlus = function(next) {
   next = this.advance();
   switch (next) {
     case 43/*null.$PLUS*/:
@@ -2501,7 +2501,7 @@ ArrayBasedScanner$String.prototype.tokenizePlus = function(next) {
 
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeExclamation = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeExclamation = function(next) {
   next = this.advance();
   if ($notnull_bool(next == 61/*null.$EQ*/)) {
     return this.select(61/*null.$EQ*/, "!==", "!=");
@@ -2509,7 +2509,7 @@ ArrayBasedScanner$String.prototype.tokenizeExclamation = function(next) {
   this.appendStringToken(33/*null.BANG_TOKEN*/, "!");
   return next;
 }
-ArrayBasedScanner$String.prototype.tokenizeEquals = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeEquals = function(next) {
   next = this.advance();
   if ($notnull_bool(next == 61/*null.$EQ*/)) {
     return this.select(61/*null.$EQ*/, "===", "==");
@@ -2517,7 +2517,7 @@ ArrayBasedScanner$String.prototype.tokenizeEquals = function(next) {
   this.appendStringToken(61/*null.EQ_TOKEN*/, "=");
   return next;
 }
-ArrayBasedScanner$String.prototype.tokenizeGreaterThan = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeGreaterThan = function(next) {
   next = this.advance();
   switch (next) {
     case 61/*null.$EQ*/:
@@ -2553,7 +2553,7 @@ ArrayBasedScanner$String.prototype.tokenizeGreaterThan = function(next) {
 
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeLessThan = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeLessThan = function(next) {
   next = this.advance();
   switch (next) {
     case 61/*null.$EQ*/:
@@ -2572,7 +2572,7 @@ ArrayBasedScanner$String.prototype.tokenizeLessThan = function(next) {
 
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeNumber = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeNumber = function(next) {
   var start = this.byteOffset;
   while ($notnull_bool(true)) {
     next = this.advance();
@@ -2609,7 +2609,7 @@ ArrayBasedScanner$String.prototype.tokenizeNumber = function(next) {
     }
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeHexOrNumber = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeHexOrNumber = function(next) {
   var x = this.peek();
   if ($notnull_bool(x == 120/*null.$x*/ || x == 88/*null.$X*/)) {
     this.advance();
@@ -2617,7 +2617,7 @@ ArrayBasedScanner$String.prototype.tokenizeHexOrNumber = function(next) {
   }
   return this.tokenizeNumber(next);
 }
-ArrayBasedScanner$String.prototype.tokenizeHex = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeHex = function(next) {
   var start = this.byteOffset;
   var hasDigits = false;
   while ($notnull_bool(true)) {
@@ -2660,7 +2660,7 @@ ArrayBasedScanner$String.prototype.tokenizeHex = function(next) {
     }
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeDotOrNumber = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeDotOrNumber = function(next) {
   var start = this.byteOffset;
   next = this.advance();
   switch (next) {
@@ -2690,7 +2690,7 @@ ArrayBasedScanner$String.prototype.tokenizeDotOrNumber = function(next) {
 
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeFractionPart = function(next, start) {
+ArrayBasedScanner$SourceString.prototype.tokenizeFractionPart = function(next, start) {
   var done = false;
   LOOP:
   while ($notnull_bool(!$notnull_bool(done))) {
@@ -2729,7 +2729,7 @@ ArrayBasedScanner$String.prototype.tokenizeFractionPart = function(next, start) 
   this.appendByteStringToken(100/*null.DOUBLE_TOKEN*/, this.asciiString(start));
   return next;
 }
-ArrayBasedScanner$String.prototype.tokenizeExponent = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeExponent = function(next) {
   if ($notnull_bool(next == 43/*null.$PLUS*/ || next == 45/*null.$MINUS*/)) {
     next = this.advance();
   }
@@ -2761,7 +2761,7 @@ ArrayBasedScanner$String.prototype.tokenizeExponent = function(next) {
     next = this.advance();
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeSlashOrComment = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeSlashOrComment = function(next) {
   next = this.advance();
   switch (next) {
     case 42/*null.$STAR*/:
@@ -2784,7 +2784,7 @@ ArrayBasedScanner$String.prototype.tokenizeSlashOrComment = function(next) {
 
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeSingleLineComment = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeSingleLineComment = function(next) {
   while ($notnull_bool(true)) {
     next = this.advance();
     switch (next) {
@@ -2797,7 +2797,7 @@ ArrayBasedScanner$String.prototype.tokenizeSingleLineComment = function(next) {
     }
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeMultiLineComment = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeMultiLineComment = function(next) {
   next = this.advance();
   while ($notnull_bool(true)) {
     switch (next) {
@@ -2824,7 +2824,7 @@ ArrayBasedScanner$String.prototype.tokenizeMultiLineComment = function(next) {
     }
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeIdentifier = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeIdentifier = function(next) {
   var start = this.byteOffset;
   var state = null;
   if ($notnull_bool(97/*null.$a*/ <= next && next <= 122/*null.$z*/)) {
@@ -2867,7 +2867,7 @@ ArrayBasedScanner$String.prototype.tokenizeIdentifier = function(next) {
     next = this.advance();
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeRawString = function(next) {
+ArrayBasedScanner$SourceString.prototype.tokenizeRawString = function(next) {
   var start = this.byteOffset;
   next = this.advance();
   if ($notnull_bool(next == 34/*null.$DQ*/ || next == 39/*null.$SQ*/)) {
@@ -2877,7 +2877,7 @@ ArrayBasedScanner$String.prototype.tokenizeRawString = function(next) {
     $throw(new MalformedInputException(this.charOffset));
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeString = function(next, start, raw) {
+ArrayBasedScanner$SourceString.prototype.tokenizeString = function(next, start, raw) {
   var q = next;
   next = this.advance();
   if ($notnull_bool(q == next)) {
@@ -2897,7 +2897,7 @@ ArrayBasedScanner$String.prototype.tokenizeString = function(next, start, raw) {
     return this.tokenizeSingleLineString(next, q, start);
   }
 }
-ArrayBasedScanner$String.prototype.tokenizeSingleLineString = function(next, q1, start) {
+ArrayBasedScanner$SourceString.prototype.tokenizeSingleLineString = function(next, q1, start) {
   while ($notnull_bool(next != -1)) {
     if ($notnull_bool(next == q1)) {
       this.appendByteStringToken(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
@@ -2916,7 +2916,7 @@ ArrayBasedScanner$String.prototype.tokenizeSingleLineString = function(next, q1,
   }
   $throw(new MalformedInputException(this.charOffset));
 }
-ArrayBasedScanner$String.prototype.tokenizeSingleLineRawString = function(next, q1, start) {
+ArrayBasedScanner$SourceString.prototype.tokenizeSingleLineRawString = function(next, q1, start) {
   next = this.advance();
   while ($notnull_bool(next != -1)) {
     if ($notnull_bool(next == q1)) {
@@ -2930,7 +2930,7 @@ ArrayBasedScanner$String.prototype.tokenizeSingleLineRawString = function(next, 
   }
   $throw(new MalformedInputException(this.charOffset));
 }
-ArrayBasedScanner$String.prototype.tokenizeMultiLineString = function(q, start, raw) {
+ArrayBasedScanner$SourceString.prototype.tokenizeMultiLineString = function(q, start, raw) {
   var next = this.advance();
   while ($notnull_bool(next != -1)) {
     if ($notnull_bool(next == q)) {
@@ -2953,7 +2953,7 @@ ArrayBasedScanner$String.prototype.tokenizeMultiLineString = function(q, start, 
 function LinkFactory() {}
 LinkFactory.Link$factory = function(head, tail) {
   var $0;
-  return new LinkEntry(head, (($0 = $notnull_bool((tail == null)) ? const$227/*const EmptyLink<DeclarationBuilder>()*/ : tail) && $0.is$Link$T()));
+  return new LinkEntry(head, (($0 = $notnull_bool((tail == null)) ? const$228/*const EmptyLink<DeclarationBuilder>()*/ : tail) && $0.is$Link$T()));
 }
 // ********** Code for AbstractLink **************
 function AbstractLink() {}
@@ -3029,7 +3029,7 @@ LinkTail.prototype.get$tail = function() {
   return null;
 }
 LinkTail.prototype.toList = function() {
-  return const$226/*const []*/;
+  return const$227/*const []*/;
 }
 LinkTail.prototype.isEmpty = function() {
   return true;
@@ -3109,8 +3109,8 @@ function LinkBuilderImplementation() {
 LinkBuilderImplementation.prototype.get$head = function() { return this.head; };
 LinkBuilderImplementation.prototype.set$head = function(value) { return this.head = value; };
 LinkBuilderImplementation.prototype.toLink = function() {
-  if ($notnull_bool(this.head == null)) return const$227/*const EmptyLink<DeclarationBuilder>()*/;
-  this.lastLink.realTail = const$227/*const EmptyLink<DeclarationBuilder>()*/;
+  if ($notnull_bool(this.head == null)) return const$228/*const EmptyLink<DeclarationBuilder>()*/;
+  this.lastLink.realTail = const$228/*const EmptyLink<DeclarationBuilder>()*/;
   var link = this.head;
   this.lastLink = null;
   this.head = null;
@@ -4755,38 +4755,39 @@ Parser.prototype.next = function(token) {
   return this.checkEof(token.next);
 }
 Parser.prototype.checkEof = function(token) {
-  if ($notnull_bool(token.kind == 0/*null.EOF_TOKEN*/)) {
+  if ($notnull_bool(token.kind === 0/*null.EOF_TOKEN*/)) {
     this.listener.unexpectedEof();
-    $throw("Unexpected EOF");
+    $throw('Unexpected EOF');
   }
   return token;
 }
 Parser.prototype.parseUnit = function(token) {
-  while ($notnull_bool(token.kind != 0/*null.EOF_TOKEN*/)) {
-    switch (token.get$value()) {
-      case const$203/*Keyword.INTERFACE*/:
+  while ($notnull_bool(token.kind !== 0/*null.EOF_TOKEN*/)) {
+    var value = token.get$stringValue();
+    switch (true) {
+      case value === 'interface':
 
         token = this.parseInterface(token);
         break;
 
-      case const$191/*Keyword.CLASS*/:
+      case value === 'class':
 
         token = this.parseClass(token);
         break;
 
-      case const$219/*Keyword.TYPEDEF*/:
+      case value === 'typedef':
 
         token = this.parseNamedFunctionAlias(token);
         break;
 
+      case value === '#':
+
+        token = this.parseLibraryTags(token);
+        break;
+
       default:
 
-        if ($notnull_bool($eq(token.get$value(), const$237/*const SourceString("#")*/))) {
-          token = this.parseLibraryTags(token);
-        }
-        else {
-          token = this.parseTopLevelMember(token);
-        }
+        token = this.parseTopLevelMember(token);
         break;
 
     }
@@ -4812,10 +4813,10 @@ Parser.prototype.parseNamedFunctionAlias = function(token) {
   token = this.parseTypeVariablesOpt(token);
   token = this.parseParameters(token);
   this.listener.endFunctionTypeAlias(token);
-  return this.expect(const$236/*const SourceString(";")*/, token);
+  return this.expect(';', token);
 }
 Parser.prototype.parseReturnTypeOpt = function(token) {
-  if ($notnull_bool($eq(token.get$value(), const$183/*Keyword.VOID*/))) {
+  if ($notnull_bool(token.get$stringValue() === 'void')) {
     this.listener.voidType(token);
     return this.next(token);
   }
@@ -4824,22 +4825,23 @@ Parser.prototype.parseReturnTypeOpt = function(token) {
   }
 }
 Parser.prototype.parseParameters = function(token) {
-  this.expect(const$234/*const SourceString("(")*/, token);
-  if ($notnull_bool(this.optional(const$235/*const SourceString(")")*/, this.next(token)))) {
+  this.expect('(', token);
+  if ($notnull_bool(this.optional(')', this.next(token)))) {
     return this.next(this.next(token));
   }
   do {
     token = this.parseTypeOpt(this.next(token));
     token = this.parseIdentifier(token);
   }
-  while ($notnull_bool(this.optional(const$230/*const SourceString(",")*/, token)))
-  return this.expect(const$235/*const SourceString(")")*/, token);
+  while ($notnull_bool(this.optional(',', token)))
+  return this.expect(')', token);
 }
 Parser.prototype.parseTypeOpt = function(token) {
+  var nextValue = token.next.get$stringValue();
   switch (true) {
-    case this.optional(const$228/*const SourceString("<")*/, this.next(token)):
-    case this.optional(const$229/*const SourceString(".")*/, this.next(token)):
-    case this.isIdentifier(this.next(token)):
+    case nextValue === '<':
+    case nextValue === '.':
+    case this.isIdentifier(token.next):
 
       return this.parseType(token);
 
@@ -4850,12 +4852,13 @@ Parser.prototype.parseTypeOpt = function(token) {
   }
 }
 Parser.prototype.isIdentifier = function(token) {
-  switch (token.kind) {
-    case 97/*null.IDENTIFIER_TOKEN*/:
+  var kind = token.kind;
+  switch (true) {
+    case kind === 97/*null.IDENTIFIER_TOKEN*/:
 
       return true;
 
-    case 107/*null.KEYWORD_TOKEN*/:
+    case kind === 107/*null.KEYWORD_TOKEN*/:
 
       return token.get$value().isPseudo;
 
@@ -4866,37 +4869,38 @@ Parser.prototype.isIdentifier = function(token) {
   }
 }
 Parser.prototype.parseSupertypesClauseOpt = function(token) {
-  if ($notnull_bool(this.optional(const$193/*Keyword.EXTENDS*/, token))) {
+  if ($notnull_bool(this.optional('extends', token))) {
     do {
       token = this.parseType(this.next(token));
     }
-    while ($notnull_bool(this.optional(const$230/*const SourceString(",")*/, token)))
+    while ($notnull_bool(this.optional(',', token)))
   }
   return token;
 }
 Parser.prototype.parseFactoryClauseOpt = function(token) {
-  if ($notnull_bool(this.optional(const$195/*Keyword.FACTORY*/, token))) {
+  if ($notnull_bool(this.optional('factory', token))) {
     return this.parseType(this.next(token));
   }
   return token;
 }
 Parser.prototype.skipBlock = function(token) {
-  if ($notnull_bool(!$notnull_bool(this.optional(const$232/*const SourceString("{")*/, token)))) {
+  if ($notnull_bool(!$notnull_bool(this.optional('{', token)))) {
     return this.listener.expectedBlock(token);
   }
   token = this.next(token);
   var nesting = 1;
   do {
-    switch (token.kind) {
-      case 123/*null.LBRACE_TOKEN*/:
+    var kind = token.kind;
+    switch (true) {
+      case kind === 123/*null.LBRACE_TOKEN*/:
 
         nesting++;
         break;
 
-      case 125/*null.RBRACE_TOKEN*/:
+      case kind === 125/*null.RBRACE_TOKEN*/:
 
         nesting--;
-        if ($notnull_bool(nesting == 0)) {
+        if ($notnull_bool(nesting === 0)) {
           return token;
         }
         break;
@@ -4905,7 +4909,7 @@ Parser.prototype.skipBlock = function(token) {
     token = this.next(token);
   }
   while ($notnull_bool(token != null))
-  $throw("Internal error: unreachable code");
+  $throw('Internal error: unreachable code');
 }
 Parser.prototype.parseClass = function(token) {
   this.listener.beginClass(token);
@@ -4917,21 +4921,17 @@ Parser.prototype.parseClass = function(token) {
   return this.parseClassBody(token);
 }
 Parser.prototype.parseNativeClassClauseOpt = function(token) {
-  if ($notnull_bool(this.optional(const$207/*Keyword.NATIVE*/, token))) {
+  if ($notnull_bool(this.optional('native', token))) {
     return this.parseString(this.next(token));
   }
   return token;
 }
 Parser.prototype.parseString = function(token) {
-  switch (token.kind) {
-    case 39/*null.STRING_TOKEN*/:
-
-      return this.next(token);
-
-    default:
-
-      return this.listener.expected(const$233/*const SourceString("string")*/, token);
-
+  if ($notnull_bool(token.kind === 39/*null.STRING_TOKEN*/)) {
+    return this.next(token);
+  }
+  else {
+    return this.listener.expected(('string' && 'string'.is$SourceString()), token);
   }
 }
 Parser.prototype.parseIdentifier = function(token) {
@@ -4944,19 +4944,19 @@ Parser.prototype.parseIdentifier = function(token) {
   return this.next(token);
 }
 Parser.prototype.parseTypeVariablesOpt = function(token) {
-  if ($notnull_bool(!$notnull_bool(this.optional(const$228/*const SourceString("<")*/, token)))) {
+  if ($notnull_bool(!$notnull_bool(this.optional('<', token)))) {
     return token;
   }
   this.listener.beginTypeVariables(token);
   do {
     token = this.parseTypeVariable(this.next(token));
   }
-  while ($notnull_bool(this.optional(const$230/*const SourceString(",")*/, token)))
-  return this.expect(const$231/*const SourceString(">")*/, token);
+  while ($notnull_bool(this.optional(',', token)))
+  return this.expect('>', token);
 }
 Parser.prototype.expect = function(string, token) {
-  if ($notnull_bool($ne(string, token.get$value()))) {
-    return this.listener.expected(string, token);
+  if ($notnull_bool(string !== token.get$stringValue())) {
+    return this.listener.expected((string && string.is$SourceString()), token);
   }
   return token.next;
 }
@@ -4968,10 +4968,10 @@ Parser.prototype.parseTypeVariable = function(token) {
   return token;
 }
 Parser.prototype.optional = function(value, token) {
-  return $eq(value, token.get$value());
+  return value === token.get$stringValue();
 }
 Parser.prototype.parseSuperclassClauseOpt = function(token) {
-  if ($notnull_bool(this.optional(const$193/*Keyword.EXTENDS*/, token))) {
+  if ($notnull_bool(this.optional('extends', token))) {
     return this.parseType(this.next(token));
   }
   return token;
@@ -4979,7 +4979,7 @@ Parser.prototype.parseSuperclassClauseOpt = function(token) {
 Parser.prototype.parseType = function(token) {
   if ($notnull_bool(this.isIdentifier(token))) {
     token = this.parseIdentifier(token);
-    while ($notnull_bool(this.optional(const$229/*const SourceString(".")*/, token))) {
+    while ($notnull_bool(this.optional('.', token))) {
       token = this.parseIdentifier(this.next(token));
     }
   }
@@ -4989,22 +4989,22 @@ Parser.prototype.parseType = function(token) {
   return this.parseTypeArgumentsOpt(token);
 }
 Parser.prototype.parseTypeArgumentsOpt = function(token) {
-  if ($notnull_bool(this.optional(const$228/*const SourceString("<")*/, token))) {
+  if ($notnull_bool(this.optional('<', token))) {
     this.listener.beginTypeArguments(this.next(token));
     do {
       token = this.parseType(this.next(token));
     }
-    while ($notnull_bool(this.optional(const$230/*const SourceString(",")*/, token)))
-    return this.expect(const$231/*const SourceString(">")*/, token);
+    while ($notnull_bool(this.optional(',', token)))
+    return this.expect('>', token);
   }
   return token;
 }
 Parser.prototype.parseImplementsOpt = function(token) {
-  if ($notnull_bool(this.optional(const$199/*Keyword.IMPLEMENTS*/, token))) {
+  if ($notnull_bool(this.optional('implements', token))) {
     do {
       token = this.parseType(this.next(token));
     }
-    while ($notnull_bool(this.optional(const$230/*const SourceString(",")*/, token)))
+    while ($notnull_bool(this.optional(',', token)))
   }
   return token;
 }
@@ -5019,11 +5019,12 @@ Parser.prototype.parseTopLevelMember = function(token) {
   var previous = token;
   LOOP:
   while ($notnull_bool(token != null)) {
-    switch (token.kind) {
-      case 123/*null.LBRACE_TOKEN*/:
-      case 59/*null.SEMICOLON_TOKEN*/:
-      case 40/*null.LPAREN_TOKEN*/:
-      case 61/*null.EQ_TOKEN*/:
+    var kind = token.kind;
+    switch (true) {
+      case kind === 123/*null.LBRACE_TOKEN*/:
+      case kind === 59/*null.SEMICOLON_TOKEN*/:
+      case kind === 40/*null.LPAREN_TOKEN*/:
+      case kind === 61/*null.EQ_TOKEN*/:
 
         break LOOP;
 
@@ -5036,19 +5037,19 @@ Parser.prototype.parseTopLevelMember = function(token) {
     }
   }
   token = this.parseIdentifier(previous);
-  if ($notnull_bool(this.optional(const$234/*const SourceString("(")*/, token))) {
+  if ($notnull_bool(this.optional('(', token))) {
     this.listener.topLevelMethod(start);
   }
-  else if ($notnull_bool(this.optional(const$238/*const SourceString("=")*/, token) || this.optional(const$236/*const SourceString(";")*/, token))) {
+  else if ($notnull_bool(this.optional('=', token) || this.optional(';', token))) {
     this.listener.topLevelField(start);
   }
   else {
     token = this.listener.unexpected(token);
   }
-  while ($notnull_bool(token != null && token.kind != 123/*null.LBRACE_TOKEN*/ && token.kind != 59/*null.SEMICOLON_TOKEN*/)) {
+  while ($notnull_bool(token != null && token.kind !== 123/*null.LBRACE_TOKEN*/ && token.kind !== 59/*null.SEMICOLON_TOKEN*/)) {
     token = this.next(token);
   }
-  if ($notnull_bool(!$notnull_bool(this.optional(const$236/*const SourceString(";")*/, token)))) {
+  if ($notnull_bool(!$notnull_bool(this.optional(';', token)))) {
     token = this.skipBlock(token);
   }
   this.listener.endTopLevelMember(token);
@@ -5057,12 +5058,12 @@ Parser.prototype.parseTopLevelMember = function(token) {
 Parser.prototype.parseLibraryTags = function(token) {
   this.listener.beginLibraryTag(token);
   token = this.parseIdentifier(this.next(token));
-  token = this.expect(const$234/*const SourceString("(")*/, token);
-  while ($notnull_bool(token != null && token.kind != 40/*null.LPAREN_TOKEN*/ && token.kind != 41/*null.RPAREN_TOKEN*/)) {
+  token = this.expect('(', token);
+  while ($notnull_bool(token != null && token.kind !== 40/*null.LPAREN_TOKEN*/ && token.kind !== 41/*null.RPAREN_TOKEN*/)) {
     token = this.next(token);
   }
-  token = this.expect(const$235/*const SourceString(")")*/, token);
-  return this.expect(const$236/*const SourceString(";")*/, token);
+  token = this.expect(')', token);
+  return this.expect(';', token);
 }
 // ********** Code for BodyParser **************
 function BodyParser(listener0) {
@@ -5082,9 +5083,9 @@ BodyParser.prototype.parseFunction = function(token) {
 BodyParser.prototype.parseFormalParameters = function(token) {
   var begin = token;
   this.listener.beginFormalParameters(begin);
-  this.expect(const$234/*const SourceString("(")*/, token);
+  this.expect('(', token);
   var parameterCount = 0;
-  if ($notnull_bool(this.optional(const$235/*const SourceString(")")*/, token.next))) {
+  if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endFormalParameters(parameterCount, begin, token.next);
     return token.next.next;
   }
@@ -5093,41 +5094,47 @@ BodyParser.prototype.parseFormalParameters = function(token) {
     token = this.parseIdentifier(token);
     ++parameterCount;
   }
-  while ($notnull_bool(this.optional(const$230/*const SourceString(",")*/, token)))
+  while ($notnull_bool(this.optional(',', token)))
   this.listener.endFormalParameters(parameterCount, begin, token);
-  return this.expect(const$235/*const SourceString(")")*/, token);
+  return this.expect(')', token);
 }
 BodyParser.prototype.parseFunctionBody = function(token) {
-  if ($notnull_bool(this.optional(const$236/*const SourceString(";")*/, token))) {
+  if ($notnull_bool(this.optional(';', token))) {
     this.listener.endFunctionBody(0, null, token);
     return token.next;
   }
   var begin = token;
   var statementCount = 0;
   this.listener.beginFunctionBody(begin);
-  token = this.checkEof(this.expect(const$232/*const SourceString("{")*/, token));
-  while ($notnull_bool(!$notnull_bool(this.optional(const$239/*const SourceString("}")*/, token)))) {
+  token = this.checkEof(this.expect('{', token));
+  while ($notnull_bool(!$notnull_bool(this.optional('}', token)))) {
     token = this.parseStatement(token);
     ++statementCount;
   }
   this.listener.endFunctionBody(statementCount, begin, token);
-  return this.expect(const$239/*const SourceString("}")*/, token);
+  return this.expect('}', token);
 }
 BodyParser.prototype.parseStatement = function(token) {
   this.checkEof(token);
-  if ($notnull_bool($eq(token.get$value(), const$240/*const SourceString('{')*/))) {
-    return this.parseBlock(token);
-  }
-  switch (token.get$value()) {
-    case const$167/*Keyword.RETURN*/:
+  var value = token.get$stringValue();
+  switch (true) {
+    case token.kind === 97/*null.IDENTIFIER_TOKEN*/:
+
+      return this.parseExpressionStatement(token);
+
+    case value === '{':
+
+      return this.parseBlock(token);
+
+    case value === 'return':
 
       return this.parseReturnStatement(token);
 
-    case const$181/*Keyword.VAR*/:
+    case value === 'var':
 
       return this.parseVariablesDeclaration(token);
 
-    case const$157/*Keyword.IF*/:
+    case value === 'if':
 
       return this.parseIfStatement(token);
 
@@ -5138,12 +5145,12 @@ BodyParser.prototype.parseStatement = function(token) {
   }
 }
 BodyParser.prototype.expectSemicolon = function(token) {
-  return this.expect(const$236/*const SourceString(";")*/, token);
+  return this.expect(';', token);
 }
 BodyParser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement(begin);
-  $assert($eq(const$241/*const SourceString("return")*/, token.get$value()), "const SourceString(\"return\") == token.value", "leg/scanner/parser.dart", 393, 12);
+  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "leg/scanner/parser.dart", 395, 12);
   token = this.parseExpression(this.next(token));
   this.listener.endReturnStatement(true, begin, token);
   return this.expectSemicolon(token);
@@ -5164,183 +5171,197 @@ BodyParser.prototype.parseExpression = function(token) {
   return token;
 }
 BodyParser.prototype.isAssignmentOperator = function(token) {
-  return 2 == this.getPrecedence(token);
+  return 2 === this.getPrecedence(token);
 }
 BodyParser.prototype.parseConditionalExpression = function(token) {
   token = this.parseBinaryExpression(token, 4);
-  if ($notnull_bool(this.optional(const$242/*const SourceString("?")*/, token))) {
+  if ($notnull_bool(this.optional('?', token))) {
     var question = token;
     token = this.parseExpression(this.next(token));
     var colon = token;
-    token = this.expect(const$243/*const SourceString(":")*/, token);
+    token = this.expect(':', token);
     token = this.parseExpression(token);
     this.listener.handleConditionalExpression(question, colon);
   }
   return token;
 }
 BodyParser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "leg/scanner/parser.dart", 434, 12);
+  $assert(precedence >= 4, "precedence >= 4", "leg/scanner/parser.dart", 436, 12);
   token = this.parsePrimary(token);
-  for (var level = this.getPrecedence(token);
+  var tokenLevel = this.getPrecedence(token);
+  for (var level = tokenLevel;
    $notnull_bool(level >= precedence); --level) {
-    while ($notnull_bool(this.getPrecedence(token) == level)) {
+    while ($notnull_bool(tokenLevel === level)) {
       var operator = token;
       token = this.parseBinaryExpression(this.next(token), level + 1);
       this.listener.handleBinaryExpression(operator);
+      tokenLevel = this.getPrecedence(token);
     }
   }
   return token;
 }
 BodyParser.prototype.getPrecedence = function(token) {
   if ($notnull_bool(token == null)) return 0;
-  var value = token.get$value();
-  if ($notnull_bool(!(value instanceof StringWrapper))) return 0;
-  switch (value.toString()) {
-    case "%=":
+  var value = token.get$stringValue();
+  if ($notnull_bool(value == null)) return 0;
+  switch (true) {
+    case value === '(':
+
+      return 0;
+
+    case value === '+':
+
+      return 12;
+
+    case value === ')':
+
+      return 0;
+
+    case value === '%=':
 
       return 2;
 
-    case "&=":
+    case value === '&=':
 
       return 2;
 
-    case "*=":
+    case value === '*=':
 
       return 2;
 
-    case "+=":
+    case value === '+=':
 
       return 2;
 
-    case "-=":
+    case value === '-=':
 
       return 2;
 
-    case "/=":
+    case value === '/=':
 
       return 2;
 
-    case "<<=":
+    case value === '<<=':
 
       return 2;
 
-    case "=":
+    case value === '=':
 
       return 2;
 
-    case ">>=":
+    case value === '>>=':
 
       return 2;
 
-    case ">>>=":
+    case value === '>>>=':
 
       return 2;
 
-    case "^=":
+    case value === '^=':
 
       return 2;
 
-    case "|=":
+    case value === '|=':
 
       return 2;
 
-    case "~/=":
+    case value === '~/=':
 
       return 2;
 
-    case "?":
+    case value === '?':
 
       return 3;
 
-    case "||":
+    case value === '||':
 
       return 4;
 
-    case "&&":
+    case value === '&&':
 
       return 5;
 
-    case "|":
+    case value === '|':
 
       return 6;
 
-    case "^":
+    case value === '^':
 
       return 7;
 
-    case "&":
+    case value === '&':
 
       return 8;
 
-    case "!=":
+    case value === '!=':
 
       return 9;
 
-    case "!==":
+    case value === '!==':
 
       return 9;
 
-    case "==":
+    case value === '==':
 
       return 9;
 
-    case "===":
+    case value === '===':
 
       return 9;
 
-    case "<":
+    case value === '<':
 
       return 10;
 
-    case "<=":
+    case value === '<=':
 
       return 10;
 
-    case ">":
+    case value === '>':
 
       return 10;
 
-    case ">=":
+    case value === '>=':
 
       return 10;
 
-    case "is":
+    case value === 'is':
 
       return 10;
 
-    case "<<":
+    case value === '<<':
 
       return 11;
 
-    case ">>":
+    case value === '>>':
 
       return 11;
 
-    case ">>>":
+    case value === '>>>':
 
       return 11;
 
-    case "+":
+    case value === '+':
 
       return 12;
 
-    case "-":
+    case value === '-':
 
       return 12;
 
-    case "%":
+    case value === '%':
 
       return 13;
 
-    case "*":
+    case value === '*':
 
       return 13;
 
-    case "/":
+    case value === '/':
 
       return 13;
 
-    case "~/":
+    case value === '~/':
 
       return 13;
 
@@ -5351,45 +5372,47 @@ BodyParser.prototype.getPrecedence = function(token) {
   }
 }
 BodyParser.prototype.parsePrimary = function(token) {
-  switch (token.kind) {
-    case 105/*null.INT_TOKEN*/:
+  var kind = token.kind;
+  switch (true) {
+    case kind === 97/*null.IDENTIFIER_TOKEN*/:
+
+      return this.parseSend(token);
+
+    case kind === 105/*null.INT_TOKEN*/:
 
       return this.parseLiteralInt(token);
 
-    case 100/*null.DOUBLE_TOKEN*/:
+    case kind === 100/*null.DOUBLE_TOKEN*/:
 
       return this.parseLiteralDouble(token);
 
-    case 39/*null.STRING_TOKEN*/:
+    case kind === 39/*null.STRING_TOKEN*/:
 
       return this.parseLiteralString(token);
 
-    case 107/*null.KEYWORD_TOKEN*/:
+    case kind === 107/*null.KEYWORD_TOKEN*/:
 
       {
-        switch (token.get$value()) {
-          case const$177/*Keyword.TRUE*/:
-          case const$149/*Keyword.FALSE*/:
+        var value = token.get$stringValue();
+        switch (true) {
+          case value === 'true':
+          case value === 'false':
 
             return this.parseLiteralBool(token);
 
           default:
 
             this.listener.unexpected(token);
-            $throw("not yet implemented");
+            $throw('not yet implemented');
 
         }
       }
       $throw(new FallThroughError());
 
-    case 97/*null.IDENTIFIER_TOKEN*/:
-
-      return this.parseSend(token);
-
     default:
 
       this.listener.unexpected(token);
-      $throw("not yet implemented");
+      $throw('not yet implemented');
 
   }
 }
@@ -5417,7 +5440,7 @@ BodyParser.prototype.parseSend = function(token) {
   return token;
 }
 BodyParser.prototype.parseArgumentsOpt = function(token) {
-  if ($notnull_bool(!$notnull_bool(this.optional(const$234/*const SourceString("(")*/, token)))) {
+  if ($notnull_bool(!$notnull_bool(this.optional('(', token)))) {
     this.listener.handleNoArgumentsOpt(token);
     return token;
   }
@@ -5426,9 +5449,9 @@ BodyParser.prototype.parseArgumentsOpt = function(token) {
 BodyParser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments(begin);
-  $assert($eq(const$234/*const SourceString("(")*/, token.get$value()), "const SourceString(\"(\") == token.value", "leg/scanner/parser.dart", 559, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "leg/scanner/parser.dart", 568, 12);
   var argumentCount = 0;
-  if ($notnull_bool(this.optional(const$235/*const SourceString(")")*/, token.next))) {
+  if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments(argumentCount, begin, token.next);
     return token.next.next;
   }
@@ -5436,16 +5459,16 @@ BodyParser.prototype.parseArguments = function(token) {
     token = this.parseExpression(this.next(token));
     ++argumentCount;
   }
-  while ($notnull_bool(this.optional(const$230/*const SourceString(",")*/, token)))
+  while ($notnull_bool(this.optional(',', token)))
   this.listener.endArguments(argumentCount, begin, token);
-  return this.expect(const$235/*const SourceString(")")*/, token);
+  return this.expect(')', token);
 }
 BodyParser.prototype.parseVariablesDeclaration = function(token) {
   var count = 1;
   this.listener.beginVariablesDeclaration(token);
   token = this.parseFinalVarOrType(token);
   token = this.parseOptionallyInitializedIdentifier(token);
-  while ($notnull_bool(this.optional(const$245/*const SourceString(',')*/, token))) {
+  while ($notnull_bool(this.optional(',', token))) {
     token = this.parseOptionallyInitializedIdentifier(this.next(token));
     ++count;
   }
@@ -5455,7 +5478,7 @@ BodyParser.prototype.parseVariablesDeclaration = function(token) {
 BodyParser.prototype.parseOptionallyInitializedIdentifier = function(token) {
   this.listener.beginInitializedIdentifier(token);
   token = this.parseIdentifier(token);
-  if ($notnull_bool(this.optional(const$244/*const SourceString('=')*/, token))) {
+  if ($notnull_bool(this.optional('=', token))) {
     var assignment = token;
     this.listener.beginInitializer(token);
     token = this.parseExpression(this.next(token));
@@ -5466,17 +5489,17 @@ BodyParser.prototype.parseOptionallyInitializedIdentifier = function(token) {
 }
 BodyParser.prototype.parseFinalVarOrType = function(token) {
   this.listener.handleVarKeyword(token);
-  return this.expect(const$181/*Keyword.VAR*/, token);
+  return this.expect('var', token);
 }
 BodyParser.prototype.parseIfStatement = function(token) {
   var ifToken = token;
   this.listener.beginIfStatement(ifToken);
-  token = this.expect(const$157/*Keyword.IF*/, token);
-  this.expect(const$246/*const SourceString('(')*/, token);
+  token = this.expect('if', token);
+  this.expect('(', token);
   token = this.parseArguments(token);
   token = this.parseStatement(token);
   var elseToken = null;
-  if ($notnull_bool(this.optional(const$147/*Keyword.ELSE*/, token))) {
+  if ($notnull_bool(this.optional('else', token))) {
     elseToken = token;
     token = this.parseStatement(token.next);
   }
@@ -5487,13 +5510,13 @@ BodyParser.prototype.parseBlock = function(token) {
   var begin = token;
   this.listener.beginBlock(begin);
   var statementCount = 0;
-  token = this.expect(const$240/*const SourceString('{')*/, token);
-  while ($notnull_bool(!$notnull_bool(this.optional(const$239/*const SourceString("}")*/, token)))) {
+  token = this.expect('{', token);
+  while ($notnull_bool(!$notnull_bool(this.optional('}', token)))) {
     token = this.parseStatement(token);
     ++statementCount;
   }
   this.listener.endBlock(statementCount, begin, token);
-  return this.expect(const$239/*const SourceString("}")*/, token);
+  return this.expect('}', token);
 }
 // ********** Code for Listener **************
 function Listener(canceler) {
@@ -5504,8 +5527,8 @@ function Listener(canceler) {
   this.topLevelMemberCount = 0
   this.previousIdentifier = null
   this.canceler = canceler;
-  this.builders = const$227/*const EmptyLink<DeclarationBuilder>()*/;
-  this.topLevelElements = const$227/*const EmptyLink<DeclarationBuilder>()*/;
+  this.builders = const$228/*const EmptyLink<DeclarationBuilder>()*/;
+  this.topLevelElements = const$228/*const EmptyLink<DeclarationBuilder>()*/;
   // Initializers done
 }
 Listener.prototype.beginLibraryTag = function(token) {
@@ -5645,7 +5668,7 @@ DeclarationBuilder.prototype.build = function() {
 }
 // ********** Code for BodyListener **************
 function BodyListener(canceler0, logger) {
-  this.nodes = const$227/*const EmptyLink<DeclarationBuilder>()*/
+  this.nodes = const$228/*const EmptyLink<DeclarationBuilder>()*/
   this.logger = logger;
   Listener.call(this, canceler0);
   // Initializers done
@@ -5806,7 +5829,7 @@ BodyListener.prototype.popNode = function() {
 }
 BodyListener.prototype.makeNodeList = function(count, beginToken, endToken, delimiter) {
   var $0;
-  var nodes0 = const$227/*const EmptyLink<DeclarationBuilder>()*/;
+  var nodes0 = const$228/*const EmptyLink<DeclarationBuilder>()*/;
   for (; $notnull_bool(count > 0); --count) {
     nodes0 = (($0 = nodes0.prepend(this.popNode())) && $0.is$Link$Node());
   }
@@ -5833,10 +5856,10 @@ PartialFunctionElement.prototype.parseNode = function(canceler, logger) {
 // ********** Code for StringScanner **************
 function StringScanner(string) {
   this.string = string;
-  ArrayBasedScanner$String.call(this);
+  ArrayBasedScanner$SourceString.call(this);
   // Initializers done
 }
-$inherits(StringScanner, ArrayBasedScanner$String);
+$inherits(StringScanner, ArrayBasedScanner$SourceString);
 StringScanner.prototype.nextByte = function() {
   return this.charAt(++this.byteOffset);
 }
@@ -5847,15 +5870,42 @@ StringScanner.prototype.charAt = function(index) {
   return $notnull_bool((this.string.length > $assert_num(index))) ? this.string.charCodeAt(index) : -1;
 }
 StringScanner.prototype.asciiString = function(start) {
-  return this.string.substring(start, this.byteOffset);
+  return new SubstringWrapper(this.string, start, this.byteOffset);
 }
 StringScanner.prototype.utf8String = function(start, offset) {
-  return this.string.substring(start, this.byteOffset + offset + 1);
+  return new SubstringWrapper(this.string, start, this.byteOffset + offset + 1);
 }
 StringScanner.prototype.appendByteStringToken = function(kind, value) {
-  this.tail.next = new StringToken(kind, value, this.tokenStart);
+  this.tail.next = new StringToken.fromSource$ctor(kind, value, this.tokenStart);
   this.tail = this.tail.next;
 }
+// ********** Code for SubstringWrapper **************
+function SubstringWrapper(internalString, begin, end) {
+  this.internalString = internalString;
+  this.begin = begin;
+  this.end = end;
+  // Initializers done
+}
+SubstringWrapper.prototype.is$SourceString = function(){return this;};
+SubstringWrapper.prototype.hashCode = function() {
+  return this.toString().hashCode();
+}
+SubstringWrapper.prototype.$eq = function(other) {
+  return !!(other && other.is$SourceString) && this.toString() == other.toString();
+}
+SubstringWrapper.prototype.printOn = function(sb) {
+  sb.add(this);
+}
+SubstringWrapper.prototype.toString = function() {
+  return this.internalString.substring(this.begin, this.end);
+}
+SubstringWrapper.prototype.get$stringValue = function() {
+  return null;
+}
+SubstringWrapper.prototype.printOn$1 = function($0) {
+  return this.printOn(($0 && $0.is$StringBuffer()));
+}
+;
 // ********** Code for Token **************
 function Token(kind, charOffset) {
   this.kind = kind;
@@ -5864,6 +5914,9 @@ function Token(kind, charOffset) {
 }
 Token.prototype.get$charOffset = function() { return this.charOffset; };
 Token.prototype.get$value = function() {
+  return const$224/*const SourceString('EOF')*/;
+}
+Token.prototype.get$stringValue = function() {
   return 'EOF';
 }
 Token.prototype.toString = function() {
@@ -5877,17 +5930,28 @@ function KeywordToken(value, charOffset0) {
 }
 $inherits(KeywordToken, Token);
 KeywordToken.prototype.get$value = function() { return this.value; };
+KeywordToken.prototype.get$stringValue = function() {
+  return this.value.syntax;
+}
 KeywordToken.prototype.toString = function() {
   return this.value.syntax;
 }
 // ********** Code for StringToken **************
 function StringToken(kind0, value0, charOffset0) {
-  this.value = new StringWrapper(value0);
+  StringToken.fromSource$ctor.call(this, kind0, new StringWrapper(value0), charOffset0);
+  // Initializers done
+}
+StringToken.fromSource$ctor = function(kind0, value, charOffset0) {
+  this.value = value;
   Token.call(this, kind0, charOffset0);
   // Initializers done
 }
+StringToken.fromSource$ctor.prototype = StringToken.prototype;
 $inherits(StringToken, Token);
 StringToken.prototype.get$value = function() { return this.value; };
+StringToken.prototype.get$stringValue = function() {
+  return this.value.get$stringValue();
+}
 StringToken.prototype.toString = function() {
   return this.value.toString();
 }
@@ -5907,6 +5971,9 @@ StringWrapper.prototype.printOn = function(sb) {
   sb.add(this.internalString);
 }
 StringWrapper.prototype.toString = function() {
+  return this.internalString;
+}
+StringWrapper.prototype.get$stringValue = function() {
   return this.internalString;
 }
 StringWrapper.prototype.printOn$1 = function($0) {
@@ -5948,6 +6015,9 @@ Keyword.prototype.printOn = function(sb) {
 Keyword.prototype.toString = function() {
   return this.syntax;
 }
+Keyword.prototype.get$stringValue = function() {
+  return this.syntax;
+}
 Keyword.prototype.printOn$1 = function($0) {
   return this.printOn(($0 && $0.is$StringBuffer()));
 }
@@ -5971,7 +6041,7 @@ KeywordState.get$KEYWORD_STATE = function() {
 }
 KeywordState.computeKeywordStateTable = function(start, strings, offset, length) {
   var result = new ListFactory$KeywordState(26);
-  $assert(length != 0, "length != 0", "leg/scanner/keyword.dart", 160, 12);
+  $assert(length != 0, "length != 0", "leg/scanner/keyword.dart", 161, 12);
   var chunk = 0;
   var chunkStart = -1;
   for (var i = offset;
@@ -5991,7 +6061,7 @@ KeywordState.computeKeywordStateTable = function(start, strings, offset, length)
     result.$setindex(chunk - 97/*null.$a*/, KeywordState.computeKeywordStateTable(start + 1, strings, chunkStart, offset + length - chunkStart));
   }
   else {
-    $assert(length == 1, "length == 1", "leg/scanner/keyword.dart", 182, 14);
+    $assert(length == 1, "length == 1", "leg/scanner/keyword.dart", 183, 14);
     return new LeafKeywordState($assert_String(strings.$index(offset)));
   }
   return new ArrayKeywordState(result);
@@ -6705,19 +6775,19 @@ SsaBuilder.prototype.visitSend = function(node) {
     var right = this.pop();
     var left = this.pop();
     var op = node.selector;
-    if ($notnull_bool($eq(const$258/*const SourceString("+")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$241/*const SourceString("+")*/, op.get$source()))) {
       this.push(new HAdd([left, right]));
     }
-    else if ($notnull_bool($eq(const$259/*const SourceString("-")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$242/*const SourceString("-")*/, op.get$source()))) {
       this.push(new HSubtract([left, right]));
     }
-    else if ($notnull_bool($eq(const$260/*const SourceString("*")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$243/*const SourceString("*")*/, op.get$source()))) {
       this.push(new HMultiply([left, right]));
     }
-    else if ($notnull_bool($eq(const$261/*const SourceString("/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$244/*const SourceString("/")*/, op.get$source()))) {
       this.push(new HDivide([left, right]));
     }
-    else if ($notnull_bool($eq(const$262/*const SourceString("~/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$245/*const SourceString("~/")*/, op.get$source()))) {
       this.push(new HTruncatingDivide([left, right]));
     }
   }
@@ -6845,7 +6915,7 @@ SsaCodeGenerator.prototype.visit = function(node) {
   return node.accept(this);
 }
 SsaCodeGenerator.prototype.visitAdd = function(node) {
-  this.invoke(const$266/*const SourceString('\$add')*/, node.inputs);
+  this.invoke(const$249/*const SourceString('\$add')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitBasicBlock = function(node) {
   var instruction = node.first;
@@ -6864,7 +6934,7 @@ SsaCodeGenerator.prototype.visitBasicBlock = function(node) {
   }
 }
 SsaCodeGenerator.prototype.visitDivide = function(node) {
-  this.invoke(const$267/*const SourceString('\$div')*/, node.inputs);
+  this.invoke(const$250/*const SourceString('\$div')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitExit = function(node) {
   unreachable();
@@ -6879,7 +6949,7 @@ SsaCodeGenerator.prototype.visitLiteral = function(node) {
   this.buffer.add(node.value);
 }
 SsaCodeGenerator.prototype.visitMultiply = function(node) {
-  this.invoke(const$268/*const SourceString('\$mul')*/, node.inputs);
+  this.invoke(const$251/*const SourceString('\$mul')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitReturn = function(node) {
   var $0;
@@ -6887,10 +6957,10 @@ SsaCodeGenerator.prototype.visitReturn = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
 }
 SsaCodeGenerator.prototype.visitSubtract = function(node) {
-  this.invoke(const$269/*const SourceString('\$sub')*/, node.inputs);
+  this.invoke(const$252/*const SourceString('\$sub')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitTruncatingDivide = function(node) {
-  this.invoke(const$270/*const SourceString('\$tdiv')*/, node.inputs);
+  this.invoke(const$253/*const SourceString('\$tdiv')*/, node.inputs);
 }
 // ********** Code for HGraphVisitor **************
 function HGraphVisitor() {
@@ -7023,7 +7093,7 @@ function HBasicBlock() {
   this.first = null
   this.last = null
   this.predecessors = [];
-  this.successors = const$226/*const []*/;
+  this.successors = const$227/*const []*/;
   // Initializers done
 }
 HBasicBlock.prototype.is$HBasicBlock = function(){return this;};
@@ -7121,7 +7191,7 @@ HInstruction.prototype.canBeSkipped = function() {
   return this.canBeGeneratedAtUseSite();
 }
 HInstruction.prototype.get$usedBy = function() {
-  if ($notnull_bool(this._usedBy == null)) return const$226/*const []*/;
+  if ($notnull_bool(this._usedBy == null)) return const$227/*const []*/;
   return this._usedBy;
 }
 HInstruction.prototype.isInBasicBlock = function() {
@@ -7183,7 +7253,7 @@ HInvoke.prototype.accept = function(visitor) {
 }
 // ********** Code for HAdd **************
 function HAdd(inputs0) {
-  HInvoke.call(this, const$249/*const SourceString('+')*/, inputs0);
+  HInvoke.call(this, const$231/*const SourceString('+')*/, inputs0);
   // Initializers done
 }
 $inherits(HAdd, HInvoke);
@@ -7195,7 +7265,7 @@ HAdd.prototype.accept = function(visitor) {
 }
 // ********** Code for HDivide **************
 function HDivide(inputs0) {
-  HInvoke.call(this, const$252/*const SourceString('/')*/, inputs0);
+  HInvoke.call(this, const$234/*const SourceString('/')*/, inputs0);
   // Initializers done
 }
 $inherits(HDivide, HInvoke);
@@ -7207,7 +7277,7 @@ HDivide.prototype.accept = function(visitor) {
 }
 // ********** Code for HMultiply **************
 function HMultiply(inputs0) {
-  HInvoke.call(this, const$251/*const SourceString('*')*/, inputs0);
+  HInvoke.call(this, const$233/*const SourceString('*')*/, inputs0);
   // Initializers done
 }
 $inherits(HMultiply, HInvoke);
@@ -7219,7 +7289,7 @@ HMultiply.prototype.accept = function(visitor) {
 }
 // ********** Code for HSubtract **************
 function HSubtract(inputs0) {
-  HInvoke.call(this, const$250/*const SourceString('-')*/, inputs0);
+  HInvoke.call(this, const$232/*const SourceString('-')*/, inputs0);
   // Initializers done
 }
 $inherits(HSubtract, HInvoke);
@@ -7231,7 +7301,7 @@ HSubtract.prototype.accept = function(visitor) {
 }
 // ********** Code for HTruncatingDivide **************
 function HTruncatingDivide(inputs0) {
-  HInvoke.call(this, const$253/*const SourceString('~/')*/, inputs0);
+  HInvoke.call(this, const$235/*const SourceString('~/')*/, inputs0);
   // Initializers done
 }
 $inherits(HTruncatingDivide, HInvoke);
@@ -7243,7 +7313,7 @@ HTruncatingDivide.prototype.accept = function(visitor) {
 }
 // ********** Code for HExit **************
 function HExit() {
-  HInstruction.call(this, const$226/*const []*/);
+  HInstruction.call(this, const$227/*const []*/);
   // Initializers done
 }
 $inherits(HExit, HInstruction);
@@ -7261,7 +7331,7 @@ HExit.prototype.accept = function(visitor) {
 }
 // ********** Code for HGoto **************
 function HGoto() {
-  HInstruction.call(this, const$226/*const []*/);
+  HInstruction.call(this, const$227/*const []*/);
   // Initializers done
 }
 $inherits(HGoto, HInstruction);
@@ -7942,7 +8012,7 @@ ResolverVisitor.prototype.visitSend = function(node) {
   var target = null;
   this.visit(node.receiver);
   var name = node.selector.get$source();
-  if ($notnull_bool($eq(name, const$248/*const SourceString('print')*/) || $eq(name, const$249/*const SourceString('+')*/) || $eq(name, const$250/*const SourceString('-')*/) || $eq(name, const$251/*const SourceString('*')*/) || $eq(name, const$252/*const SourceString('/')*/) || $eq(name, const$253/*const SourceString('~/')*/))) {
+  if ($notnull_bool($eq(name, const$230/*const SourceString('print')*/) || $eq(name, const$231/*const SourceString('+')*/) || $eq(name, const$232/*const SourceString('-')*/) || $eq(name, const$233/*const SourceString('*')*/) || $eq(name, const$234/*const SourceString('/')*/) || $eq(name, const$235/*const SourceString('~/')*/))) {
   }
   else {
     target = (($0 = this.visit(node.selector)) && $0.is$Element());
@@ -8007,7 +8077,7 @@ VariableDefinitionsVisitor.prototype.visitSend = function(node) {
   $assert(node.get$arguments().get$tail().isEmpty(), "node.arguments.tail.isEmpty()", "leg/resolver.dart", 157, 12);
   var selector = node.selector;
   var name = selector.get$source();
-  $assert($eq(name, const$244/*const SourceString('=')*/), "name == const SourceString('=')", "leg/resolver.dart", 160, 12);
+  $assert($eq(name, const$236/*const SourceString('=')*/), "name == const SourceString('=')", "leg/resolver.dart", 160, 12);
   this.resolver.visit((($0 = node.get$arguments().get$head()) && $0.is$Node()));
   this.visit(node.receiver);
 }
@@ -8032,7 +8102,7 @@ function Scope(parent0) {
 }
 Scope.top$ctor = function() {
   this.parent = null;
-  this.elements = const$247/*const {}*/;
+  this.elements = const$229/*const {}*/;
   this.enclosingElement = null;
   // Initializers done
 }
@@ -8176,10 +8246,10 @@ FunctionType.prototype.toString = function() {
 }
 // ********** Code for Types **************
 function Types() {
-  this.VOID = new SimpleType(const$254, new Element(const$254/*const SourceString('void')*/));
-  this.INT = new SimpleType(const$255, new Element(const$255/*const SourceString('int')*/));
-  this.DYNAMIC = new SimpleType(const$256, new Element(const$256/*const SourceString('Dynamic')*/));
-  this.STRING = new SimpleType(const$257, new Element(const$257/*const SourceString('String')*/));
+  this.VOID = new SimpleType(const$237, new Element(const$237/*const SourceString('void')*/));
+  this.INT = new SimpleType(const$238, new Element(const$238/*const SourceString('int')*/));
+  this.DYNAMIC = new SimpleType(const$239, new Element(const$239/*const SourceString('Dynamic')*/));
+  this.STRING = new SimpleType(const$240, new Element(const$240/*const SourceString('String')*/));
   // Initializers done
 }
 Types.prototype.isSubtype = function(r, s) {
@@ -8255,7 +8325,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
   else {
     var selector = node.selector;
     var name = selector.get$source();
-    if ($notnull_bool($eq(name, const$248/*const SourceString('print')*/) || $eq(name, const$249/*const SourceString('+')*/))) {
+    if ($notnull_bool($eq(name, const$230/*const SourceString('print')*/) || $eq(name, const$231/*const SourceString('+')*/))) {
       return this.types.DYNAMIC;
     }
     this.compiler.cancel(('unresolved send ' + name + '.'));
@@ -8298,7 +8368,7 @@ TypeCheckerVisitor.prototype.visitReturn = function(node) {
   return this.types.VOID;
 }
 TypeCheckerVisitor.prototype.visitTypeAnnotation = function(node) {
-  if ($notnull_bool(node.typeName != null && $ne(node.typeName.get$source(), const$254/*const SourceString('void')*/))) {
+  if ($notnull_bool(node.typeName != null && $ne(node.typeName.get$source(), const$237/*const SourceString('void')*/))) {
     this.compiler.cancel(('unsupported type ' + node.typeName + ''));
   }
   return this.types.VOID;
@@ -8325,7 +8395,7 @@ Universe.prototype.addGeneratedCode = function(element, code) {
 }
 // ********** Code for top level **************
 function unreachable() {
-  $throw(const$265/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
+  $throw(const$248/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
 }
 function compile(world) {
   var file = world.readFile(options.dartScript);
@@ -9379,7 +9449,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
 }
 MethodGenerator.prototype._genToDartException = function(ex) {
   var $0;
-  var types = const$393/*const [
+  var types = const$376/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   for (var $i = types.iterator(); $i.hasNext(); ) {
@@ -18358,51 +18428,34 @@ var const$215 = new Keyword("source", true)/*const Keyword("source", true)*/;
 var const$217 = new Keyword("static", true)/*const Keyword("static", true)*/;
 var const$219 = new Keyword("typedef", true)/*const Keyword("typedef", true)*/;
 var const$221 = new IllegalAccessException()/*const IllegalAccessException()*/;
-var const$226 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
-var const$227 = new LinkTail()/*const EmptyLink<DeclarationBuilder>()*/;
-var const$228 = new StringWrapper("<")/*const SourceString("<")*/;
-var const$229 = new StringWrapper(".")/*const SourceString(".")*/;
-var const$230 = new StringWrapper(",")/*const SourceString(",")*/;
-var const$231 = new StringWrapper(">")/*const SourceString(">")*/;
-var const$232 = new StringWrapper("{")/*const SourceString("{")*/;
-var const$233 = new StringWrapper("string")/*const SourceString("string")*/;
-var const$234 = new StringWrapper("(")/*const SourceString("(")*/;
-var const$235 = new StringWrapper(")")/*const SourceString(")")*/;
-var const$236 = new StringWrapper(";")/*const SourceString(";")*/;
-var const$237 = new StringWrapper("#")/*const SourceString("#")*/;
-var const$238 = new StringWrapper("=")/*const SourceString("=")*/;
-var const$239 = new StringWrapper("}")/*const SourceString("}")*/;
-var const$240 = new StringWrapper('{')/*const SourceString('{')*/;
-var const$241 = new StringWrapper("return")/*const SourceString("return")*/;
-var const$242 = new StringWrapper("?")/*const SourceString("?")*/;
-var const$243 = new StringWrapper(":")/*const SourceString(":")*/;
-var const$244 = new StringWrapper('=')/*const SourceString('=')*/;
-var const$245 = new StringWrapper(',')/*const SourceString(',')*/;
-var const$246 = new StringWrapper('(')/*const SourceString('(')*/;
-var const$247 = new ImmutableMap([])/*const {}*/;
-var const$248 = new StringWrapper('print')/*const SourceString('print')*/;
-var const$249 = new StringWrapper('+')/*const SourceString('+')*/;
-var const$250 = new StringWrapper('-')/*const SourceString('-')*/;
-var const$251 = new StringWrapper('*')/*const SourceString('*')*/;
-var const$252 = new StringWrapper('/')/*const SourceString('/')*/;
-var const$253 = new StringWrapper('~/')/*const SourceString('~/')*/;
-var const$254 = new StringWrapper('void')/*const SourceString('void')*/;
-var const$255 = new StringWrapper('int')/*const SourceString('int')*/;
-var const$256 = new StringWrapper('Dynamic')/*const SourceString('Dynamic')*/;
-var const$257 = new StringWrapper('String')/*const SourceString('String')*/;
-var const$258 = new StringWrapper("+")/*const SourceString("+")*/;
-var const$259 = new StringWrapper("-")/*const SourceString("-")*/;
-var const$260 = new StringWrapper("*")/*const SourceString("*")*/;
-var const$261 = new StringWrapper("/")/*const SourceString("/")*/;
-var const$262 = new StringWrapper("~/")/*const SourceString("~/")*/;
-var const$265 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
-var const$266 = new StringWrapper('\$add')/*const SourceString('\$add')*/;
-var const$267 = new StringWrapper('\$div')/*const SourceString('\$div')*/;
-var const$268 = new StringWrapper('\$mul')/*const SourceString('\$mul')*/;
-var const$269 = new StringWrapper('\$sub')/*const SourceString('\$sub')*/;
-var const$270 = new StringWrapper('\$tdiv')/*const SourceString('\$tdiv')*/;
+var const$224 = new StringWrapper('EOF')/*const SourceString('EOF')*/;
+var const$227 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
+var const$228 = new LinkTail()/*const EmptyLink<DeclarationBuilder>()*/;
+var const$229 = new ImmutableMap([])/*const {}*/;
+var const$230 = new StringWrapper('print')/*const SourceString('print')*/;
+var const$231 = new StringWrapper('+')/*const SourceString('+')*/;
+var const$232 = new StringWrapper('-')/*const SourceString('-')*/;
+var const$233 = new StringWrapper('*')/*const SourceString('*')*/;
+var const$234 = new StringWrapper('/')/*const SourceString('/')*/;
+var const$235 = new StringWrapper('~/')/*const SourceString('~/')*/;
+var const$236 = new StringWrapper('=')/*const SourceString('=')*/;
+var const$237 = new StringWrapper('void')/*const SourceString('void')*/;
+var const$238 = new StringWrapper('int')/*const SourceString('int')*/;
+var const$239 = new StringWrapper('Dynamic')/*const SourceString('Dynamic')*/;
+var const$240 = new StringWrapper('String')/*const SourceString('String')*/;
+var const$241 = new StringWrapper("+")/*const SourceString("+")*/;
+var const$242 = new StringWrapper("-")/*const SourceString("-")*/;
+var const$243 = new StringWrapper("*")/*const SourceString("*")*/;
+var const$244 = new StringWrapper("/")/*const SourceString("/")*/;
+var const$245 = new StringWrapper("~/")/*const SourceString("~/")*/;
+var const$248 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+var const$249 = new StringWrapper('\$add')/*const SourceString('\$add')*/;
+var const$250 = new StringWrapper('\$div')/*const SourceString('\$div')*/;
+var const$251 = new StringWrapper('\$mul')/*const SourceString('\$mul')*/;
+var const$252 = new StringWrapper('\$sub')/*const SourceString('\$sub')*/;
+var const$253 = new StringWrapper('\$tdiv')/*const SourceString('\$tdiv')*/;
 var const$3 = new StringWrapper('main')/*const SourceString('main')*/;
-var const$393 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$376 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
 var const$5 = new EmptyQueueException()/*const EmptyQueueException()*/;

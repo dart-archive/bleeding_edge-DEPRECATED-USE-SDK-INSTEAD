@@ -131,6 +131,7 @@ class Keyword implements SourceString {
   }
 
   String toString() => syntax;
+  String get stringValue() => syntax;
 }
 
 /**

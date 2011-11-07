@@ -47,7 +47,8 @@ class Token {
 
   Token(int this.kind, int this.charOffset);
 
-  get value() => 'EOF';
+  get value() => const SourceString('EOF');
+  String get stringValue() => 'EOF';
 
   String toString() => new String.fromCharCodes([kind]);
 }
@@ -57,6 +58,7 @@ class Token {
  */
 class KeywordToken extends Token {
   final Keyword value;
+  String get stringValue() => value.syntax;
 
   KeywordToken(Keyword this.value, int charOffset)
     : super(KEYWORD_TOKEN, charOffset);
@@ -69,9 +71,13 @@ class KeywordToken extends Token {
  */
 class StringToken extends Token {
   final SourceString value;
+  String get stringValue() => value.stringValue;
 
   StringToken(int kind, String value, int charOffset)
-    : super(kind, charOffset), value = new SourceString(value);
+    : this.fromSource(kind, new SourceString(value), charOffset);
+
+  StringToken.fromSource(int kind, SourceString this.value, int charOffset)
+    : super(kind, charOffset);
 
   String toString() => value.toString();
 }
@@ -80,6 +86,8 @@ interface SourceString extends Hashable factory StringWrapper {
   const SourceString(String string);
 
   void printOn(StringBuffer sb);
+
+  String get stringValue();
 }
 
 class StringWrapper implements SourceString {
@@ -98,4 +106,6 @@ class StringWrapper implements SourceString {
   }
 
   String toString() => internalString;
+
+  String get stringValue() => internalString;
 }

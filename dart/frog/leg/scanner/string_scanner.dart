@@ -6,7 +6,7 @@
  * Scanner that reads from a String and creates tokens that points to
  * substrings.
  */
-class StringScanner extends ArrayBasedScanner<String> {
+class StringScanner extends ArrayBasedScanner<SourceString> {
   final String string;
 
   StringScanner(String this.string) : super();
@@ -17,15 +17,40 @@ class StringScanner extends ArrayBasedScanner<String> {
 
   int charAt(index) => (string.length > index) ? string.charCodeAt(index) : -1;
 
-  String asciiString(int start) => string.substring(start, byteOffset);
-
-  String utf8String(int start, int offset) {
-    return string.substring(start, byteOffset + offset + 1);
+  SourceString asciiString(int start) {
+    return new SubstringWrapper(string, start, byteOffset);
   }
 
-  void appendByteStringToken(int kind, String value) {
+  SourceString utf8String(int start, int offset) {
+    return new SubstringWrapper(string, start, byteOffset + offset + 1);
+  }
+
+  void appendByteStringToken(int kind, SourceString value) {
     // assert(kind != $a || keywords.get(value) == null);
-    tail.next = new StringToken(kind, value, tokenStart);
+    tail.next = new StringToken.fromSource(kind, value, tokenStart);
     tail = tail.next;
   }
+}
+
+class SubstringWrapper implements SourceString {
+  final String internalString;
+  final int begin;
+  final int end;
+
+  const SubstringWrapper(String this.internalString,
+                         int this.begin, int this.end);
+
+  int hashCode() => toString().hashCode();
+
+  bool operator ==(other) {
+    return other is SourceString && toString() == other.toString();
+  }
+
+  void printOn(StringBuffer sb) {
+    sb.add(this);
+  }
+
+  String toString() => internalString.substring(begin, end);
+
+  String get stringValue() => null;
 }
