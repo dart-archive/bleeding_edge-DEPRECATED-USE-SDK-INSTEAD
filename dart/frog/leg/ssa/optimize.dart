@@ -42,29 +42,37 @@ class SsaConstantFolder extends HBaseVisitor {
     return node;
   }
 
-  HInstruction visitArithmetic(HInvoke node, String operation) {
-    bool isNumber(input) {
-      return input is HLiteral && input.value is num;
-    }
-    List inputs = node.inputs;
+  HInstruction visitArithmetic(HArithmetic node) {
+    List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 2);
-    if (isNumber(inputs[0]) && isNumber(inputs[1])) {
-      switch (operation) {
-      case '+': return new HLiteral(inputs[0].value + inputs[1].value);
-      case '-': return new HLiteral(inputs[0].value - inputs[1].value);
-      case '*': return new HLiteral(inputs[0].value * inputs[1].value);
-      case '/': {
-        if (inputs[1].value == 0) return node;
-        return new HLiteral(inputs[0].value / inputs[1].value);
-      }
-      case '~/': {
-        if (inputs[1].value == 0) return node;
-        return new HLiteral(inputs[0].value ~/ inputs[1].value);
-      }
-      default: unreachable();
+    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
+      HLiteral op1 = inputs[0];
+      HLiteral op2 = inputs[1];
+      // TODO(floitsch): don't use try/catch but use a closure instead and
+      // let the ~/ check that the right-hand-side is not 0.
+      try {
+        num folded = node.evaluate(op1.value, op2.value);
+        return new HLiteral(folded);
+      } catch(IntegerDivisionByZeroException e) {
+        // TODO(floitsch): return an exception throwing node.
+        return node;
       }
     }
     return node;
+  }
+
+  HInstruction visitAdd(HAdd node) {
+    // String + is defined for all literals. We don't need to know which
+    // literal type the right-hand side is.
+    // TODO(floitsch): is String + literal a compile-time expression? If not
+    // we must pay attention not to canonicalize the concatenated string with
+    // an already existing string.
+    if (node.inputs[0].isLiteralString() && node.inputs[1] is HLiteral) {
+      HLiteral op1 = node.inputs[0];
+      HLiteral op2 = node.inputs[1];
+      return new HLiteral(op1.value + op2.value);
+    }
+    return visitArithmetic(node);
   }
 }
 

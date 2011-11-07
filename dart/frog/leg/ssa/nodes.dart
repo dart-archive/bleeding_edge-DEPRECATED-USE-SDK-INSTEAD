@@ -110,18 +110,18 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
 
   visitInstruction(HInstruction) {}
 
-  visitArithmetic(HInvoke node, String operation) => visitInvoke(node);
+  visitArithmetic(HArithmetic node) => visitInvoke(node);
 
-  visitAdd(HAdd node) => visitArithmetic(node, '+');
-  visitDivide(HDivide node) => visitArithmetic(node, '/');
+  visitAdd(HAdd node) => visitArithmetic(node);
+  visitDivide(HDivide node) => visitArithmetic(node);
   visitExit(HExit node) => visitInstruction(node);
   visitGoto(HGoto node) => visitInstruction(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
-  visitSubtract(HSubtract node) => visitArithmetic(node, '-');
-  visitMultiply(HMultiply node) => visitArithmetic(node, '*');
+  visitSubtract(HSubtract node) => visitArithmetic(node);
+  visitMultiply(HMultiply node) => visitArithmetic(node);
   visitReturn(HReturn node) => visitInstruction(node);
-  visitTruncatingDivide(HTruncatingDivide node) => visitArithmetic(node, '~/');
+  visitTruncatingDivide(HTruncatingDivide node) => visitArithmetic(node);
 }
 
 class HBasicBlock {
@@ -308,6 +308,9 @@ class HInstruction implements Hashable {
     assert(isValid());
   }
 
+  bool isLiteralNumber() => false;
+  bool isLiteralString() => false;
+
   bool isValid() {
     HValidator validator = new HValidator();
     validator.visitInstruction(this);
@@ -323,34 +326,44 @@ class HInvoke extends HInstruction {
   accept(HVisitor visitor) => visitor.visitInvoke(this);
 }
 
-class HAdd extends HInvoke {
+class HArithmetic extends HInvoke {
+  HArithmetic(selector, inputs) : super(selector, inputs);
+  abstract num evaluate(num a, num b);
+}
+
+class HAdd extends HArithmetic {
   HAdd(inputs) : super(const SourceString('+'), inputs);
   hasSideEffects() => inputs[0] is !HLiteral;
   accept(HVisitor visitor) => visitor.visitAdd(this);
+  num evaluate(num a, num b) => a + b;
 }
 
-class HDivide extends HInvoke {
+class HDivide extends HArithmetic {
   HDivide(inputs) : super(const SourceString('/'), inputs);
   hasSideEffects() => inputs[0] is !HLiteral;
   accept(HVisitor visitor) => visitor.visitDivide(this);
+  num evaluate(num a, num b) => a / b;
 }
 
-class HMultiply extends HInvoke {
+class HMultiply extends HArithmetic {
   HMultiply(inputs) : super(const SourceString('*'), inputs);
   hasSideEffects() => inputs[0] is !HLiteral;
   accept(HVisitor visitor) => visitor.visitMultiply(this);
+  num evaluate(num a, num b) => a * b;
 }
 
-class HSubtract extends HInvoke {
+class HSubtract extends HArithmetic {
   HSubtract(inputs) : super(const SourceString('-'), inputs);
   hasSideEffects() => inputs[0] is !HLiteral;
   accept(HVisitor visitor) => visitor.visitSubtract(this);
+  num evaluate(num a, num b) => a - b;
 }
 
-class HTruncatingDivide extends HInvoke {
+class HTruncatingDivide extends HArithmetic {
   HTruncatingDivide(inputs) : super(const SourceString('~/'), inputs);
   hasSideEffects() => inputs[0] is !HLiteral;
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
+  num evaluate(num a, num b) => a ~/ b;
 }
 
 class HExit extends HInstruction {
@@ -377,6 +390,8 @@ class HLiteral extends HInstruction {
   // TODO(kasperl): Stop overloading == on instructions.
   operator ==(var other) => other is HLiteral && value == other.value;
   accept(HVisitor visitor) => visitor.visitLiteral(this);
+  bool isLiteralNumber() => value is num;
+  bool isLiteralString() => value is String;
 }
 
 class HReturn extends HInstruction {
