@@ -64,7 +64,7 @@ public class SearchEngineTest extends TestCase {
         SearchPatternFactory.createPrefixPattern("Simpl", true), null, listener,
         new NullProgressMonitor());
     List<SearchMatch> matches = listener.getMatches();
-    assertEquals(1, matches.size());
+    assertEquals(2, matches.size());
   }
 
   public void test_SearchEngine_searchReferences_field() throws Exception {
@@ -95,6 +95,20 @@ public class SearchEngineTest extends TestCase {
         new NullProgressMonitor());
     List<SearchMatch> matches = listener.getMatches();
     assertEquals(2, matches.size());
+  }
+
+  public void test_SearchEngine_searchReferences_type() throws Exception {
+    DartProject moneyProject = getMoneyProject();
+    DartLibrary[] libraries = moneyProject.getDartLibraries();
+    assertNotNull(libraries);
+    assertEquals(1, libraries.length);
+    Type type = libraries[0].getCompilationUnit("simple_money.dart").getType("SimpleMoney");
+    SearchEngine engine = SearchEngineFactory.createSearchEngine();
+    GatheringSearchListener listener = new GatheringSearchListener();
+    engine.searchReferences(type, new WorkspaceSearchScope(), null, listener,
+        new NullProgressMonitor());
+    List<SearchMatch> matches = listener.getMatches();
+    assertEquals(8, matches.size()); // I believe that this should eventually be 17.
   }
 
   public void test_SearchEngine_searchTypeDeclarations() throws Exception {

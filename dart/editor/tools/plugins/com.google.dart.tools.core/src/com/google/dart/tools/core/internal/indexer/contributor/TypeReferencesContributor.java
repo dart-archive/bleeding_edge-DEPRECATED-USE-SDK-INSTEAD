@@ -14,6 +14,8 @@
 package com.google.dart.tools.core.internal.indexer.contributor;
 
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.type.InterfaceType;
@@ -29,8 +31,19 @@ import com.google.dart.tools.core.model.Type;
 public class TypeReferencesContributor extends ScopedDartContributor {
   @Override
   public Void visitIdentifier(DartIdentifier node) {
-    Symbol binding = node.getTargetSymbol();
-    if (binding instanceof ClassElement) {
+    Symbol binding = node.getReferencedElement();
+    if (binding == null) {
+      binding = node.getTargetSymbol();
+    }
+    if (binding == null) {
+      DartNode parent = node.getParent();
+      if (parent instanceof DartTypeNode) {
+        com.google.dart.compiler.type.Type type = ((DartTypeNode) parent).getType();
+        if (type instanceof InterfaceType) {
+          processType(node, (InterfaceType) type);
+        }
+      }
+    } else if (binding instanceof ClassElement) {
       process(node, (ClassElement) binding);
     }
     return super.visitIdentifier(node);
