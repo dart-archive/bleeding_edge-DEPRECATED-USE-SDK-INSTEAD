@@ -7,7 +7,7 @@
 
 // TODO(jmesserly): we might want a version of this that return an iterable,
 // however JS, Python and Ruby versions are all eager.
-List map(Iterable source, var mapper) {
+List map(Iterable source, mapper(source)) {
   List result = new List();
   if (source is List) {
     List list = source; // TODO: shouldn't need this
@@ -36,7 +36,7 @@ reduce(Iterable source, callback, [initialValue]) {
   return current;
 }
 
-List zip(Iterable left, Iterable right, var mapper) {
+List zip(Iterable left, Iterable right, mapper(left, right)) {
   List result = new List();
   var x = left.iterator();
   var y = right.iterator();
@@ -103,8 +103,8 @@ String stripLeadingNewline(String text) {
 }
 
 /**
- * The [Collection] interface is the public interface of all
- * collections.
+ * A [FixedCollection] is a collection of [length] items all of which have the
+ * identical [value]
  */
 class FixedCollection<E> implements Collection<E> {
   final E value;
@@ -120,6 +120,7 @@ class FixedCollection<E> implements Collection<E> {
   bool some(bool f(E element)) => Collections.some(this, f);
   bool isEmpty() => length == 0;
 }
+
 class FixedIterator<E> implements Iterator<E> {
   final E value;
   final int length;

@@ -200,30 +200,40 @@ function $stackTraceOf(e) {
 // Translate a JavaScript exception to a Dart exception
 // TODO(jmesserly): cross browser support. This is Chrome specific.
 function $toDartException(e) {
+  var res = e;
   if (e instanceof TypeError) {
     switch(e.type) {
-    case "property_not_function":
-    case "called_non_callable":
-      if (e.arguments[0] == "undefined") {
-        return new NullPointerException();
-      }
-      return new ObjectNotClosureException();
-    case "non_object_property_call":
-    case "non_object_property_load":
-      return new NullPointerException();
-    case "undefined_method":
-      if (e.arguments[0] == "call" || e.arguments[0] == "apply") {
-        return new ObjectNotClosureException();
-      }
-      // TODO(jmesserly): can this ever happen?
-      return new NoSuchMethodException("", e.arguments[0], []);
+      case "property_not_function":
+      case "called_non_callable":
+        if (e.arguments[0] == null) {
+          res = new NullPointerException();
+        } else {
+          res = new ObjectNotClosureException();
+        }
+        break;
+      case "non_object_property_call":
+      case "non_object_property_load":
+        res = new NullPointerException();
+        break;
+      case "undefined_method":
+        if (e.arguments[0] == "call" || e.arguments[0] == "apply") {
+          res = new ObjectNotClosureException();
+        } else {
+          // TODO(jmesserly): can this ever happen?
+          res = new NoSuchMethodException("", e.arguments[0], []);
+        }
+        break;
     }
   } else if (e instanceof RangeError) {
     if (e.message.indexOf('call stack') >= 0) {
-      return new StackOverflowException();
+      res = new StackOverflowException();
     }
   }
-  return e;
+  // TODO(jmesserly): setting the stack property is not a long term solution.
+  // Also it causes the exception to print as if it were a TypeError or
+  // RangeError, instead of using the proper toString.
+  res.stack = e.stack;
+  return res;
 }
 
 // TODO(jimhug): I can't figure out the quoting rules to put this in

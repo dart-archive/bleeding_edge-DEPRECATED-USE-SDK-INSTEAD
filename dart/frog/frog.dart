@@ -20,6 +20,9 @@ void main() {
     if (!options.compileOnly) {
       process.argv = [argv[0], argv[1]];
       process.argv.addAll(options.childArgs);
+      // TODO(jmesserly): we shouldn't force the child process to patch argv.
+      // Instead, we should be injecting code into the child to fix argv's
+      // prototype (and possible the proto of require, process, and console).
       vm.runInNewContext(code, createSandbox());
     }
   } else {

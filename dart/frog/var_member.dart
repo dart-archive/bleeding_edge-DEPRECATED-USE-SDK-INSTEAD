@@ -58,6 +58,10 @@ class VarMember {
  */
 // TODO(jmesserly): we don't currently put $optional on lambdas.
 // Also, maybe a string encoding would perform better?
+// TODO(jmesserly): $genStub is a hole in the run-time type checker.
+// It bypasses the checks we would do at the callsite for methods.
+// Also, it won't work properly for native JS functions (those don't have
+// an accurate .length)
 class VarFunctionStub extends VarMember {
   final Arguments args;
 

@@ -443,19 +443,21 @@ class BlockScope {
       if (s.isMethodScope && s._closedOver.contains(name)) return true;
     }
 
-    // Ensure that we don't shadow another name from the global scope.
+    // Ensure that we don't shadow another name that would've been accessible,
+    // like to level names.
+    // (This lookup might report errors, which is a bit strange.
+    // But probably harmless since we have to pay for the lookup anyway.)
     final type = enclosingMethod.method.declaringType;
-    if (type.resolveMember(name) != null) return true;
-
-    // This lookup might report errors, which is a bit strange.
-    // But probably harmless since we have to pay for the lookup anyway.
     if (type.library.lookup(name, null) != null) return true;
 
     // Nobody else needs this name. It's safe to reuse.
     return false;
   }
 
-  Value create(String name, Type type, Node location) {
+
+  Value create(String name, Type type, Node location,
+      [bool isParameter = false]) {
+
     var jsName = world.toJsIdentifier(name);
     if (_vars.containsKey(name)) {
       if (location != null) {
@@ -465,14 +467,21 @@ class BlockScope {
       }
     }
 
-    int index = 0;
-    while (_isDefinedInParent(jsName)) {
-      jsName = '$name${index++}';
+    // Make sure variables don't shadow any names we might need to access.
+    if (!isParameter) {
+      int index = 0;
+      while (_isDefinedInParent(jsName)) {
+        jsName = '$name${index++}';
+      }
     }
 
     var ret = new Value(type, jsName, false, false); // TODO: needsTemp:false);
     _vars[name] = ret;
     return ret;
+  }
+
+  Value declareParameter(Parameter p) {
+    return create(p.name, p.type, p.definition, isParameter:true);
   }
 
   /** Declares a variable in the current scope for this identifier. */
@@ -761,7 +770,7 @@ class MethodGenerator implements TreeVisitor {
         initializers.add('this.${field.jsname} = ${paramValue.code};');
         initializedFields.add(name);
       } else {
-        var paramValue = _scope.create(p.name, p.type, p.definition);
+        var paramValue = _scope.declareParameter(p);
         _paramCode.add(paramValue.code);
       }
     }
@@ -1084,10 +1093,12 @@ class MethodGenerator implements TreeVisitor {
       world.gen.genMethod(err.members['toString']);
       var span = node.test.span;
 
+      // TODO(jmesserly): do we need to include path/line/column here?
+      // It should be captured in the stack trace.
       var line = span.file.getLine(span.start);
       var column = span.file.getColumn(line, span.start);
       writer.writeln('\$assert(${test.code}, "${_escapeString(span.text)}",' +
-        ' "${span.file.filename}", ${line + 1}, ${column + 1});');
+        ' "${basename(span.file.filename)}", ${line + 1}, ${column + 1});');
     }
     return false;
   }
@@ -1217,12 +1228,15 @@ class MethodGenerator implements TreeVisitor {
     return false;
   }
 
-  void _genToDartException(String ex) {
+  void _genToDartException(String ex, Node node) {
     var types = const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException'];
+    var target = new Value(null, 'this');
     for (var name in types) {
       world.corelib.types[name].markUsed();
+      world.corelib.types[name].members['toString'].invoke(
+          this, node, target, Arguments.EMPTY);
     }
     writer.writeln('$ex = \$toDartException($ex);');
   }
@@ -1245,7 +1259,7 @@ class MethodGenerator implements TreeVisitor {
         var trace = _scope.declare(catch_.trace);
         writer.writeln('var ${trace.code} = \$stackTraceOf(${ex.code});');
       }
-      _genToDartException(ex.code);
+      _genToDartException(ex.code, node);
 
       if (!ex.type.isVar) {
         var test = ex.instanceOf(this, ex.type, catch_.exception.span,
@@ -1265,7 +1279,7 @@ class MethodGenerator implements TreeVisitor {
         trace = _scope.create('\$trace', world.varType, null);
         writer.writeln('var ${trace.code} = \$stackTraceOf(${ex.code});');
       }
-      _genToDartException(ex.code);
+      _genToDartException(ex.code, node);
 
       // We need a rethrow unless we encounter a "var" catch
       bool needsRethrow = true;
