@@ -15,7 +15,7 @@
         {
           'action_name': 'generate_frog',
           'inputs': [
-            '<!@(["python", "scripts/list_dart_files.py"])',
+            '<!@(["python", "scripts/list_frog_files.py"])',
             'scripts/bootstrap/frog_bootstrap_wrapper.py',
             'scripts/bootstrap/frog_wrapper.py',
             'frog.py',
@@ -43,7 +43,7 @@
         {
           'action_name': 'generate_frogsh',
           'inputs': [
-            '<!@(["python", "scripts/list_dart_files.py"])',
+            '<!@(["python", "scripts/list_frog_files.py"])',
             'scripts/bootstrap/frogsh_bootstrap_wrapper.py',
             'frog.py',
           ],
