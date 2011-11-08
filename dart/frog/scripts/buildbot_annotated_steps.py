@@ -74,7 +74,8 @@ def TestFrog(arch, mode):
           '--progress=buildbot',
           '-v',
           'language',
-          'corelib']
+          'corelib',
+          'isolate']
   if flags:
     cmd.append('--flag=' + flags)
   return subprocess.call(cmd)
