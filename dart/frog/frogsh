@@ -7366,14 +7366,17 @@ SsaBuilder.prototype.visitExpressionStatement = function(node) {
   this.visit(node.expression);
   this.pop();
 }
+SsaBuilder.prototype.visitFor = function(node) {
+  this.compiler.unimplemented("SsaBuilder.visitFor");
+}
 SsaBuilder.prototype.visitFunctionExpression = function(node) {
   this.compiler.unimplemented('SsaBuilder.visitFunctionExpression');
 }
 SsaBuilder.prototype.visitIdentifier = function(node) {
   var element = this.elements.$index(node);
-  $assert(element != null, "element !== null", "builder.dart", 120, 12);
+  $assert(element != null, "element !== null", "builder.dart", 124, 12);
   var def = this.definitions.$index(element);
-  $assert(def != null, "def !== null", "builder.dart", 122, 12);
+  $assert(def != null, "def !== null", "builder.dart", 126, 12);
   this.stack.add(def);
 }
 SsaBuilder.prototype.joinDefinitions = function(joinBlock, incoming1, incoming2) {
@@ -7525,7 +7528,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 297, 12);
+  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 301, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   return this.definitions.$setindex(this.elements.$index(node), value);
@@ -7539,7 +7542,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions without initial value");
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 312, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 316, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }

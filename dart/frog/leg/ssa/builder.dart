@@ -110,6 +110,10 @@ class SsaBuilder implements Visitor {
     pop();
   }
 
+  visitFor(For node) {
+    compiler.unimplemented("SsaBuilder.visitFor");
+  }
+
   visitFunctionExpression(FunctionExpression node) {
     compiler.unimplemented('SsaBuilder.visitFunctionExpression');
   }
