@@ -96,6 +96,23 @@ def TestFrog(arch, mode):
   if flags:
     cmd.append('--flag=' + flags)
 
+  status = subprocess.call(cmd)
+  if status != 0:
+    return status
+
+  print ('@@@BUILD_STEP frog co19 tests: %s@@@' %arch)
+  cmd  = [sys.executable,
+          '../tools/test.py',
+          '--mode=' + testpy_mode,
+          '--component=' + arch,
+          '--time',
+          '--report',
+          '--progress=buildbot',
+          '-v',
+          'co19']
+  if flags:
+    cmd.append('--flag=' + flags)
+
   return subprocess.call(cmd)
 
 def main():
