@@ -129,7 +129,8 @@ class SsaBuilder implements Visitor {
       if (node.receiver !== null) {
         compiler.unimplemented("SsaBuilder.visitSend with receiver");
       }
-      visit(node.selector);
+      Element element = elements[node];
+      stack.add(definitions[element]);
     } else {
       visit(node.argumentsNode);
       var arguments = [];
@@ -144,7 +145,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitSendSet(SendSet node) {
-    compiler.unimplemented('SsaBuilder.visitSendSet');
+    stack.add(updateDefinition(node));
   }
 
   void visitLiteralInt(LiteralInt node) {
@@ -188,6 +189,17 @@ class SsaBuilder implements Visitor {
     // We currently ignore type annotations for generating code.
   }
 
+  HInstruction updateDefinition(SendSet node) {
+    if (node.receiver != null) {
+      compiler.unimplemented("SsaBuilder: property access");
+    }
+    Link<Node> link = node.arguments;
+    assert(!link.isEmpty() && link.tail.isEmpty());
+    visit(link.head);
+    HInstruction value = pop();
+    return definitions[elements[node]] = value;
+  }
+
   visitVariableDefinitions(VariableDefinitions node) {
     for (Link<Node> link = node.definitions.nodes;
          !link.isEmpty();
@@ -197,15 +209,8 @@ class SsaBuilder implements Visitor {
         compiler.unimplemented(
             "SsaBuilder.visitVariableDefinitions without initial value");
       } else {
-        assert(definition is Send);
-        Send init = definition;
-        assert(init.selector.dynamic.source == const SourceString("="));
-        Identifier id = init.receiver;
-        Link<Node> link = init.arguments;
-        assert(!link.isEmpty() && link.tail.isEmpty());
-        visit(link.head);
-        HInstruction initialValue = pop();
-        definitions[elements[id]] = initialValue;
+        assert(definition is SendSet);
+        updateDefinition(definition);
       }
     }
   }

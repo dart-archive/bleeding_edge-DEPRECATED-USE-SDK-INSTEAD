@@ -153,13 +153,13 @@ testLocalsFive() {
   Expect.equals(4, visitor.mapping.length);
 
   List statements1 = tree.thenPart.statements.nodes.toList();
-  Identifier def1 = statements1[0].definitions.nodes.head.receiver;
-  Identifier id1 = statements1[1].expression.selector;
+  Node def1 = statements1[0].definitions.nodes.head;
+  Node id1 = statements1[1].expression;
   Expect.equals(visitor.mapping[def1], visitor.mapping[id1]);
 
   List statements2 = tree.elsePart.statements.nodes.toList();
-  Identifier def2 = statements2[0].definitions.nodes.head.receiver;
-  Identifier id2 = statements2[1].expression.selector;
+  Node def2 = statements2[0].definitions.nodes.head;
+  Node id2 = statements2[1].expression;
   Expect.equals(visitor.mapping[def2], visitor.mapping[id2]);
 
   Expect.notEquals(visitor.mapping[def1], visitor.mapping[def2]);

@@ -16,7 +16,7 @@ class ResolverTask extends CompilerTask {
 }
 
 class ErrorMessages {
-  static String canNotResolve(id)
+  static String cannotResolve(id)
       => "cannot resolve $id";
 
   static String duplicateDefinition(id)
@@ -69,7 +69,7 @@ class ResolverVisitor implements Visitor<Element> {
 
   visitIdentifier(Identifier node) {
     Element element = context.lookup(node.source);
-    if (element == null) fail(node, ErrorMessages.canNotResolve(node));
+    if (element == null) fail(node, ErrorMessages.cannotResolve(node));
     useElement(node, element);
     return element;
   }
@@ -92,14 +92,24 @@ class ResolverVisitor implements Visitor<Element> {
         name == const SourceString('~/')) {
       // Do nothing.
     } else {
-      visit(node.selector);
+      // TODO(ngeoffray): Use the receiver to do the lookup.
+      target = context.lookup(node.selector.source);
+      if (target == null) fail(node, ErrorMessages.cannotResolve(node));
     }
     visit(node.argumentsNode);
-    return target;
+    return useElement(node, target);
   }
 
   visitSendSet(SendSet node) {
-    compiler.unimplemented('ResolverVisitor::visitSendSet');
+    Element receiver = visit(node.receiver);
+    if (receiver != null) {
+      compiler.unimplemented('Resolver: property access');
+    }
+    // TODO(ngeoffray): Use the receiver to do the lookup.
+    Element target = context.lookup(node.selector.source);
+    if (target == null) fail(node, ErrorMessages.cannotResolve(node));
+    visit(node.argumentsNode);
+    return useElement(node, target);
   }
 
   visitLiteralInt(LiteralInt node) {
@@ -144,7 +154,7 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   Element useElement(Node node, Element element) {
-    mapping[node] = element;
+    return mapping[node] = element;
   }
 }
 
@@ -154,30 +164,31 @@ class VariableDefinitionsVisitor implements Visitor<Element> {
 
   VariableDefinitionsVisitor(this.definitions, this.resolver);
 
-  visitSend(Send node) {
+  visitSendSet(SendSet node) {
     assert(node.arguments.tail.isEmpty()); // Sanity check
+    if (node.receiver !== null) {
+      resolver.compiler.unimplemented("receiver on a variable definition");
+    }
     Identifier selector = node.selector;
-    SourceString name = selector.source;
-    assert(name == const SourceString('='));
     resolver.visit(node.arguments.head);
 
-    // Visit the receiver after visiting the initializer, to not put
-    // the receiver in the scope.
-    visit(node.receiver);
+    // Visit the selector after visiting the initializer, to not put
+    // the selector in the scope.
+    Element target = visit(node.selector);
+    return target;
   }
 
   visitIdentifier(Identifier node) {
-    Element variableElement =
-        new Element(node.source, resolver.context.enclosingElement);
-    Element existing = resolver.defineElement(node, variableElement);
-    if (existing != variableElement) {
-      resolver.fail(node, ErrorMessages.duplicateDefinition(node));
-    }
+    return new Element(node.source, resolver.context.enclosingElement);
   }
 
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
-      visit(link.head);
+      Element element = visit(link.head);
+      Element existing = resolver.defineElement(link.head, element);
+      if (existing != element) {
+        resolver.fail(node, ErrorMessages.duplicateDefinition(link.head));
+      }
     }
   }
 

@@ -7,5 +7,6 @@ void main() {
   var world = 'world';
   var s = 0;
   s = world;
+  hello = 'Greetings';
   print(hello + ", " + world + "!");
 }

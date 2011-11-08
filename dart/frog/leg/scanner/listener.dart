@@ -480,11 +480,10 @@ class BodyListener extends ElementListener {
   }
 
   void endInitializer(Token assignmentOperator) {
-    Operator operator = new Operator(assignmentOperator);
     Expression initializer = popNode();
     NodeList arguments = new NodeList.singleton(initializer);
     Expression name = popNode();
-    pushNode(new Send(name, operator, arguments));
+    pushNode(new SendSet(null, name, assignmentOperator, arguments));
   }
 
   void endIfStatement(Token ifToken, Token elseToken) {
