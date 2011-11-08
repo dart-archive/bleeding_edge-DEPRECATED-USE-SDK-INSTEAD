@@ -169,7 +169,7 @@ class Listener {
   void voidType(Token token) { // TODO(ahe): Rename this method.
   }
 
-  Token expected(SourceString string, Token token) {
+  Token expected(String string, Token token) {
     throw new ParserError("Expected '$string', but got '$token' @ " +
                           "${token.charOffset}");
   }
@@ -285,7 +285,7 @@ class ElementListener extends Listener {
     previousIdentifier = new Identifier(token);
   }
 
-  Token expected(SourceString string, Token token) {
+  Token expected(String string, Token token) {
     canceler.cancel("Expected '$string', but got '$token' " +
                     "@ ${token.charOffset}");
   }
@@ -448,7 +448,7 @@ class BodyListener extends ElementListener {
   }
 
   void voidType(Token token) {
-    pushNode(new Identifier(token));
+    pushNode(new TypeAnnotation(new Identifier(token)));
   }
 
   void endFunctionBody(int count, Token beginToken, Token endToken) {
@@ -456,15 +456,24 @@ class BodyListener extends ElementListener {
     Node formals = popNode();
     Node name = popNode();
     // TODO(ahe): Return types are optional.
-    Node type = new TypeAnnotation(popNode());
+    TypeAnnotation type = popNode();
     pushNode(new FunctionExpression(name, formals, block, type));
+  }
+
+  void handleVarKeyword(Token token) {
+    pushNode(new Identifier(token));
+  }
+
+  void handleFinalKeyword(Token token) {
+    pushNode(new Identifier(token));
   }
 
   void endVariablesDeclaration(int count, Token endToken) {
     // TODO(ahe): Pick one name for this concept, either
     // VariablesDeclaration or VariableDefinitions.
     NodeList variables = makeNodeList(count, null, null, ",");
-    pushNode(new VariableDefinitions(null, null, variables, endToken));
+    TypeAnnotation type = popNode();
+    pushNode(new VariableDefinitions(type, null, variables, endToken));
   }
 
   void endInitializer(Token assignmentOperator) {
@@ -484,6 +493,10 @@ class BodyListener extends ElementListener {
 
   void endBlock(int count, Token beginToken, Token endToken) {
     pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
+  }
+
+  void endType(Token token) {
+    pushNode(new TypeAnnotation(popNode()));
   }
 
   void pushNode(Node node) {

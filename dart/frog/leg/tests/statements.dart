@@ -14,5 +14,7 @@ void main() {
   } else {
     print('fisk');
   }
+  int foo() {}
+  int i = 0;
   */
 }

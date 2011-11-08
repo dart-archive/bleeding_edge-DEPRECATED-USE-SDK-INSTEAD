@@ -233,6 +233,7 @@ class Parser<L extends Listener> {
   }
 
   Token parseType(Token token) {
+    // TODO(ahe): Rename this method to parseTypeOrVar?
     if (isIdentifier(token)) {
       token = parseIdentifier(token);
       while (optional('.', token)) {
@@ -241,11 +242,14 @@ class Parser<L extends Listener> {
       }
     } else if (optional('var', token)) {
       listener.handleVarKeyword(token);
+      listener.endType(token);
       return next(token);
     } else {
       token = listener.expectedType(token);
     }
-    return parseTypeArgumentsOpt(token);
+    token = parseTypeArgumentsOpt(token);
+    listener.endType(token);
+    return token;
   }
 
   Token parseTypeArgumentsOpt(Token token) {
@@ -380,7 +384,7 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
     final value = token.stringValue;
     switch (true) {
       case token.kind === IDENTIFIER_TOKEN:
-        return parseExpressionStatement(token);
+        return parseExpressionStatementOrDeclaration(token);
       case value === '{':
         return parseBlock(token);
       case value === 'return':
@@ -406,6 +410,25 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
     token = parseExpression(next(token));
     listener.endReturnStatement(true, begin, token);
     return expectSemicolon(token);
+  }
+
+  Token parseExpressionStatementOrDeclaration(Token token) {
+    assert(token.kind === IDENTIFIER_TOKEN);
+    Token peek1 = next(token);
+    if (peek1.kind === IDENTIFIER_TOKEN) {
+      return parseLocalDeclaration(token, peek1);
+    } else {
+      return parseExpressionStatement(token);
+    }
+  }
+
+  Token parseLocalDeclaration(Token token, Token peek1) {
+    Token peek2 = next(peek1);
+    if (peek2.stringValue === '(') {
+      return parseFunction(token);
+    } else {
+      return parseVariablesDeclaration(token);
+    }
   }
 
   Token parseExpressionStatement(Token token) {
@@ -617,9 +640,14 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
   }
 
   Token parseFinalVarOrType(Token token) {
-    // TODO(ahe): Handle types or final.
-    listener.handleVarKeyword(token);
-    return expect('var', token);
+    String value = token.stringValue;
+    switch (true) {
+      case 'final' === value:
+        listener.handleFinalKeyword(token);
+        return next(token);
+      default:
+        return parseType(token);
+    }
   }
 
   Token parseIfStatement(Token token) {
