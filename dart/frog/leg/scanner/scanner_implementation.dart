@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('scanner_implementation');
-#import('scanner.dart');
-#source('scanner/array_based_scanner.dart');
+#import('scannerlib.dart');
+#source('array_based_scanner.dart');
 
 final int $TAB = 9;
 final int $LF = 10;

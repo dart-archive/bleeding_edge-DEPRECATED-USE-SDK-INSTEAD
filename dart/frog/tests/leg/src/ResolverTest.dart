@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("../../../leg/leg.dart");
-#import("../../../leg/scanner.dart");
+#import("../../../leg/scanner/scannerlib.dart");
 #import("../../../leg/elements/elements.dart");
 #import("../../../leg/tree.dart");
 #import("../../../leg/util/util.dart");

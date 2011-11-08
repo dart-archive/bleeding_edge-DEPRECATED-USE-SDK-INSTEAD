@@ -7,8 +7,8 @@
 #import('../lang.dart', prefix: 'frog');
 
 #import('elements/elements.dart');
-#import('scanner.dart');
-#import('scanner_implementation.dart');
+#import('scanner/scannerlib.dart');
+#import('scanner/scanner_implementation.dart');
 #import('ssa/ssa.dart');
 #import('tree/tree.dart');
 #import('util/util.dart');

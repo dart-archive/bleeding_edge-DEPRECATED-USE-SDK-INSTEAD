@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('tree');
-// TODO(ahe): Move Token to scanner.dart.
-#import('../scanner.dart');
+
+#import('../scanner/scannerlib.dart');
 #import('../util/util.dart');
+
 #source('nodes.dart');
 #source('unparser.dart');
