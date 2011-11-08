@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartModelException;
@@ -25,7 +26,6 @@ import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.ImportedDartLibrary;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
 import com.google.dart.tools.ui.internal.DartWorkbenchAdapter;
@@ -34,6 +34,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.DecorationOverlayIcon;
+import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.ISharedImages;
@@ -60,6 +62,8 @@ public class DartElementImageProvider {
 
   private static ImageDescriptor DESC_OBJ_PROJECT_CLOSED;
   private static ImageDescriptor DESC_OBJ_PROJECT;
+
+  private static ImageDescriptor DESC_READ_ONLY;
 
   public static Image getDecoratedImage(ImageDescriptor baseImage, int adornments, Point size) {
     return DartToolsPlugin.getImageDescriptorRegistry().get(
@@ -144,6 +148,7 @@ public class DartElementImageProvider {
     ISharedImages images = DartToolsPlugin.getDefault().getWorkbench().getSharedImages();
     DESC_OBJ_PROJECT_CLOSED = images.getImageDescriptor(IDE.SharedImages.IMG_OBJ_PROJECT_CLOSED);
     DESC_OBJ_PROJECT = images.getImageDescriptor(IDE.SharedImages.IMG_OBJ_PROJECT);
+    DESC_READ_ONLY = DartToolsPlugin.getImageDescriptor("icons/full/ovr16/lock_ovr.png");
   }
 
   private ImageDescriptorRegistry fRegistry;
@@ -260,9 +265,18 @@ public class DartElementImageProvider {
     Point size = useSmallSize(flags) ? SMALL_SIZE : BIG_SIZE;
     ImageDescriptor baseDesc = getBaseImageDescriptor(element, flags);
     if (baseDesc != null) {
+      if (element instanceof CompilationUnit) {
+        CompilationUnit cu = (CompilationUnit) element;
+
+        if (cu.isReadOnly()) {
+          baseDesc = decorateReadOnly(baseDesc);
+        }
+      }
+
       int adornmentFlags = computeJavaAdornmentFlags(element, flags);
       return new DartElementImageDescriptor(baseDesc, adornmentFlags, size);
     }
+
     return new DartElementImageDescriptor(DartPluginImages.DESC_OBJS_GHOST, 0, size);
   }
 
@@ -320,12 +334,13 @@ public class DartElementImageProvider {
       return getDartImageDescriptor((DartElement) element, flags);
     } else if (element instanceof IFile) {
       IFile file = (IFile) element;
-      DartX.todo();
-      // if (JavaScriptCore.isJavaScriptLikeFileName(file.getName())) {
-      // // image for a CU not on the build path
-      // return getCUResourceImageDescriptor(file, flags);
-      // }
-      return getWorkbenchImageDescriptor(file, flags);
+      ImageDescriptor imageDescriptor = getWorkbenchImageDescriptor(file, flags);
+
+      if (file.isReadOnly()) {
+        return decorateReadOnly(imageDescriptor);
+      } else {
+        return imageDescriptor;
+      }
     } else if (element instanceof IAdaptable) {
       return getWorkbenchImageDescriptor((IAdaptable) element, flags);
     } else if (element instanceof ImportedDartLibraryContainer
@@ -367,6 +382,11 @@ public class DartElementImageProvider {
       }
     }
     return flags;
+  }
+
+  private ImageDescriptor decorateReadOnly(ImageDescriptor imageDescriptor) {
+    return new DecorationOverlayIcon(DartToolsPlugin.getImageDescriptorRegistry().get(
+        imageDescriptor), DESC_READ_ONLY, IDecoration.BOTTOM_RIGHT);
   }
 
   private Image getImageLabel(ImageDescriptor descriptor) {
