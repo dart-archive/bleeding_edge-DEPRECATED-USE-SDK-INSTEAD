@@ -5,16 +5,16 @@
 #library('scanner');
 
 #import('scanner_implementation.dart');
-#import('leg.dart');
-#import('util/util.dart');
-#import('tree/tree.dart');
-#import('elements/elements.dart');
+#import('../leg.dart');
+#import('../util/util.dart');
+#import('../tree/tree.dart');
+#import('../elements/elements.dart');
 
-#source('scanner/scanner.dart');
-#source('scanner/scanner_task.dart');
-#source('scanner/parser.dart');
-#source('scanner/parser_task.dart');
-#source('scanner/listener.dart');
-#source('scanner/string_scanner.dart');
-#source('scanner/token.dart');
-#source('scanner/keyword.dart');
+#source('scanner.dart');
+#source('scanner_task.dart');
+#source('parser.dart');
+#source('parser_task.dart');
+#source('listener.dart');
+#source('string_scanner.dart');
+#source('token.dart');
+#source('keyword.dart');
