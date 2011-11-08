@@ -59,8 +59,8 @@ class FunctionElement extends Element {
     LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
     for (var link = node.parameters.nodes; !link.isEmpty(); link = link.tail) {
       compiler.cancel('parameters not supported.');
-      var parameter = link.head;
-      parameterTypes.addLast(getType(parameter.typeAnnotation, types));
+      VariableDefinitions parameter = link.head;
+      parameterTypes.addLast(getType(parameter.type, types));
     }
     type = new FunctionType(returnType, parameterTypes.toLink());
     return type;

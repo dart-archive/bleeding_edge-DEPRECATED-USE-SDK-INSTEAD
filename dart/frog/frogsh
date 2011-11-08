@@ -5192,7 +5192,7 @@ Parser.prototype.parseNamedFunctionAlias = function(token) {
   token = this.parseReturnTypeOpt(this.next(token));
   token = this.parseIdentifier(token);
   token = this.parseTypeVariablesOpt(token);
-  token = this.parseParameters(token);
+  token = this.parseFormalParameters(token);
   this.listener.endFunctionTypeAlias(token);
   return this.expect(';', token);
 }
@@ -5205,16 +5205,24 @@ Parser.prototype.parseReturnTypeOpt = function(token) {
     return this.parseTypeOpt(token);
   }
 }
-Parser.prototype.parseParameters = function(token) {
+Parser.prototype.parseFormalParameters = function(token) {
+  var begin = token;
+  this.listener.beginFormalParameters(begin);
   this.expect('(', token);
-  if ($notnull_bool(this.optional(')', this.next(token)))) {
-    return this.next(this.next(token));
+  var parameterCount = 0;
+  if ($notnull_bool(this.optional(')', token.next))) {
+    this.listener.endFormalParameters(parameterCount, begin, token.next);
+    return token.next.next;
   }
   do {
+    this.listener.beginFormalParameter(token);
     token = this.parseTypeOpt(this.next(token));
     token = this.parseIdentifier(token);
+    this.listener.endFormalParameter(token);
+    ++parameterCount;
   }
   while ($notnull_bool(this.optional(',', token)))
+  this.listener.endFormalParameters(parameterCount, begin, token);
   return this.expect(')', token);
 }
 Parser.prototype.parseTypeOpt = function(token) {
@@ -5228,6 +5236,7 @@ Parser.prototype.parseTypeOpt = function(token) {
 
     default:
 
+      this.listener.handleNoType(token);
       return token;
 
   }
@@ -5474,24 +5483,6 @@ BodyParser.prototype.parseFunction = function(token) {
   token = this.parseFormalParameters(token);
   return this.parseFunctionBody(token);
 }
-BodyParser.prototype.parseFormalParameters = function(token) {
-  var begin = token;
-  this.listener.beginFormalParameters(begin);
-  this.expect('(', token);
-  var parameterCount = 0;
-  if ($notnull_bool(this.optional(')', token.next))) {
-    this.listener.endFormalParameters(parameterCount, begin, token.next);
-    return token.next.next;
-  }
-  do {
-    token = this.parseType(this.next(token));
-    token = this.parseIdentifier(token);
-    ++parameterCount;
-  }
-  while ($notnull_bool(this.optional(',', token)))
-  this.listener.endFormalParameters(parameterCount, begin, token);
-  return this.expect(')', token);
-}
 BodyParser.prototype.parseFunctionBody = function(token) {
   if ($notnull_bool(this.optional(';', token))) {
     this.listener.endFunctionBody(0, null, token);
@@ -5544,13 +5535,13 @@ BodyParser.prototype.expectSemicolon = function(token) {
 BodyParser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement(begin);
-  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 409, 12);
+  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 399, 12);
   token = this.parseExpression(this.next(token));
   this.listener.endReturnStatement(true, begin, token);
   return this.expectSemicolon(token);
 }
 BodyParser.prototype.parseExpressionStatementOrDeclaration = function(token) {
-  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 416, 12);
+  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 406, 12);
   var peek1 = this.next(token);
   if ($notnull_bool(peek1.kind === 97/*null.IDENTIFIER_TOKEN*/)) {
     return this.parseLocalDeclaration(token, peek1);
@@ -5599,7 +5590,7 @@ BodyParser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 BodyParser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 469, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 459, 12);
   token = this.parsePrimary(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = tokenLevel;
@@ -5864,7 +5855,7 @@ BodyParser.prototype.parseArgumentsOpt = function(token) {
 BodyParser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 602, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 592, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments(argumentCount, begin, token.next);
@@ -5985,6 +5976,12 @@ Listener.prototype.beginExpressionStatement = function(token) {
 Listener.prototype.endExpressionStatement = function(token) {
 
 }
+Listener.prototype.beginFormalParameter = function(token) {
+
+}
+Listener.prototype.endFormalParameter = function(token) {
+
+}
 Listener.prototype.beginFormalParameters = function(token) {
 
 }
@@ -6103,6 +6100,9 @@ Listener.prototype.handleLiteralString = function(token) {
 
 }
 Listener.prototype.handleNoArguments = function(token) {
+
+}
+Listener.prototype.handleNoType = function(token) {
 
 }
 Listener.prototype.handleNoTypeVariables = function(token) {
@@ -6283,6 +6283,11 @@ function BodyListener(canceler, logger) {
   this.onError = this.get$handleOnError();
 }
 $inherits(BodyListener, ElementListener);
+BodyListener.prototype.endFormalParameter = function(token) {
+  var name = new NodeList.singleton$ctor(this.popNode());
+  var type = this.popNode();
+  this.pushNode(new VariableDefinitions(type, null, name, token));
+}
 BodyListener.prototype.endFormalParameters = function(count, beginToken, endToken) {
   this.pushNode(this.makeNodeList(count, beginToken, endToken, ","));
 }
@@ -6391,7 +6396,7 @@ BodyListener.prototype.pushNode = function(node) {
 }
 BodyListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 510, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 525, 12);
   var node = this.nodes.get$head();
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link$Node());
   this.logger.log(("pop " + this.nodes + ""));
@@ -7005,19 +7010,6 @@ $inherits(Operator, Identifier);
 Operator.prototype.accept = function(visitor) {
   return visitor.visitOperator(this);
 }
-// ********** Code for Parameter **************
-function Parameter() {}
-$inherits(Parameter, Node);
-Parameter.prototype.get$name = function() { return this.name; };
-Parameter.prototype.accept = function(visitor) {
-  return visitor.visitParameter(this);
-}
-Parameter.prototype.getBeginToken = function() {
-  return firstBeginToken(this.typeAnnotation, this.name);
-}
-Parameter.prototype.getEndToken = function() {
-  return this.name.getEndToken();
-}
 // ********** Code for Return **************
 function Return(beginToken, endToken, expression) {
   this.beginToken = beginToken;
@@ -7161,13 +7153,6 @@ DebugUnparser.prototype.visitNodeList = function(node) {
 DebugUnparser.prototype.visitOperator = function(node) {
   this.visitIdentifier(node);
 }
-DebugUnparser.prototype.visitParameter = function(node) {
-  if ($notnull_bool(node.typeAnnotation != null)) {
-    this.visit(node.typeAnnotation);
-    this.sb.add(' ');
-  }
-  this.visit(node.name);
-}
 DebugUnparser.prototype.visitReturn = function(node) {
   node.beginToken.get$value().printOn$1(this.sb);
   if ($notnull_bool(node.get$hasExpression())) {
@@ -7237,7 +7222,7 @@ FunctionElement.prototype.computeType = function(compiler, types) {
    $notnull_bool(!$notnull_bool(link.isEmpty())); link = link.get$tail()) {
     compiler.cancel('parameters not supported.');
     var parameter = link.get$head();
-    parameterTypes.addLast(getType(parameter.typeAnnotation, types));
+    parameterTypes.addLast(getType(parameter.type, types));
   }
   this.type = new FunctionType(returnType, (($0 = parameterTypes.toLink()) && $0.is$Link$Type()));
   return this.type;
@@ -7400,9 +7385,6 @@ SsaBuilder.prototype.visitNodeList = function(node) {
 SsaBuilder.prototype.visitOperator = function(node) {
   this.compiler.unimplemented("SsaBuilder.visitOperator");
 }
-SsaBuilder.prototype.visitParameter = function(node) {
-  this.compiler.unimplemented("SsaBuilder.visitParameter");
-}
 SsaBuilder.prototype.visitReturn = function(node) {
   this.visit(node.expression);
   var value = this.pop();
@@ -7418,7 +7400,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 197, 12);
+  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 193, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   return this.definitions.$setindex(this.elements.$index(node), value);
@@ -7432,7 +7414,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions without initial value");
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 212, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 208, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }
@@ -9095,9 +9077,6 @@ TypeCheckerVisitor.prototype.visitNodeList = function(node) {
 TypeCheckerVisitor.prototype.visitOperator = function(node) {
   return this.types.dynamicType;
 }
-TypeCheckerVisitor.prototype.visitParameter = function(node) {
-  return null;
-}
 TypeCheckerVisitor.prototype.checkAssignable = function(node, s, t) {
   if ($notnull_bool(!$notnull_bool(this.types.isAssignable(s, t)))) {
     var error = CompilerError.notAssignable(s, t);
@@ -9963,7 +9942,7 @@ MethodGenerator.prototype.writeBody = function() {
       initializedFields.add(p.get$name());
     }
     else {
-      var paramValue = this._scope.declareParameter((p && p.is$lang_Parameter()));
+      var paramValue = this._scope.declareParameter((p && p.is$Parameter()));
       this._paramCode.add(paramValue.code);
     }
   }
@@ -11536,20 +11515,20 @@ _LibraryVisitor.prototype.visitFunctionTypeDefinition = function(node) {
   var type = this.library.addType(node.func.name.name, node, false);
   type.addMethod('\$call', node.func);
 }
-// ********** Code for lang_Parameter **************
-function lang_Parameter(definition) {
+// ********** Code for Parameter **************
+function Parameter(definition) {
   this.isInitializer = false
   this.definition = definition;
   // Initializers done
 }
-lang_Parameter.prototype.is$lang_Parameter = function(){return this;};
-lang_Parameter.prototype.get$definition = function() { return this.definition; };
-lang_Parameter.prototype.set$definition = function(value) { return this.definition = value; };
-lang_Parameter.prototype.get$name = function() { return this.name; };
-lang_Parameter.prototype.set$name = function(value) { return this.name = value; };
-lang_Parameter.prototype.get$value = function() { return this.value; };
-lang_Parameter.prototype.set$value = function(value) { return this.value = value; };
-lang_Parameter.prototype.resolve = function(method, inType) {
+Parameter.prototype.is$Parameter = function(){return this;};
+Parameter.prototype.get$definition = function() { return this.definition; };
+Parameter.prototype.set$definition = function(value) { return this.definition = value; };
+Parameter.prototype.get$name = function() { return this.name; };
+Parameter.prototype.set$name = function(value) { return this.name = value; };
+Parameter.prototype.get$value = function() { return this.value; };
+Parameter.prototype.set$value = function(value) { return this.value = value; };
+Parameter.prototype.resolve = function(method, inType) {
   this.name = this.definition.name.name;
   if ($notnull_bool(this.name.startsWith('this.'))) {
     this.name = this.name.substring(5);
@@ -11574,7 +11553,7 @@ lang_Parameter.prototype.resolve = function(method, inType) {
     world.error('initializer parameters only allowed on constructors', this.definition.span);
   }
 }
-lang_Parameter.prototype.genValue = function(method, context) {
+Parameter.prototype.genValue = function(method, context) {
   var $0;
   if ($notnull_bool(this.definition.value == null || this.value != null)) return;
   if ($notnull_bool(context == null)) {
@@ -11583,14 +11562,14 @@ lang_Parameter.prototype.genValue = function(method, context) {
   this.value = (($0 = this.definition.value.visit(context)) && $0.is$Value());
   this.value = this.value.convertTo(context, this.type, this.definition.value, false);
 }
-lang_Parameter.prototype.copyWithNewType = function(newType) {
-  var ret = new lang_Parameter(this.definition);
+Parameter.prototype.copyWithNewType = function(newType) {
+  var ret = new Parameter(this.definition);
   ret.type = newType;
   ret.name = this.name;
   ret.isInitializer = this.isInitializer;
   return ret;
 }
-lang_Parameter.prototype.get$isOptional = function() {
+Parameter.prototype.get$isOptional = function() {
   return this.definition != null && this.definition.value != null;
 }
 // ********** Code for Member **************
@@ -12784,7 +12763,7 @@ MethodMember.prototype.resolve = function(inType) {
   var $list = this.definition.formals;
   for (var $i = 0;$i < $list.length; $i++) {
     var formal = $list.$index($i);
-    var param = new lang_Parameter(formal);
+    var param = new Parameter(formal);
     param.resolve(this, inType);
     this.parameters.add(param);
   }

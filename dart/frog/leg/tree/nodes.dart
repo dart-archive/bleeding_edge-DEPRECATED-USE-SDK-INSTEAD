@@ -14,7 +14,6 @@ interface Visitor<R> {
   R visitLiteralString(LiteralString node);
   R visitNodeList(NodeList node);
   R visitOperator(Operator node);
-  R visitParameter(Parameter node);
   R visitReturn(Return node);
   R visitSend(Send node);
   R visitSendSet(SendSet node);
@@ -311,21 +310,6 @@ class Operator extends Identifier {
   const Operator(Token token) : super(token);
 
   accept(Visitor visitor) => visitor.visitOperator(this);
-}
-
-class Parameter extends Node {
-  final Identifier name;
-  final TypeAnnotation typeAnnotation;
-
-  const Parameter(this.name, [this.typeAnnotation]);
-
-  accept(Visitor visitor) => visitor.visitParameter(this);
-
-  Token getBeginToken() {
-    return firstBeginToken(typeAnnotation, name);
-  }
-
-  Token getEndToken() => name.getEndToken();
 }
 
 class Return extends Statement {

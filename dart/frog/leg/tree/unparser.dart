@@ -89,14 +89,6 @@ class DebugUnparser implements Visitor {
     visitIdentifier(node);
   }
 
-  visitParameter(Parameter node) {
-    if (node.typeAnnotation !== null) {
-      visit(node.typeAnnotation);
-      sb.add(' ');
-    }
-    visit(node.name);
-  }
-
   visitReturn(Return node) {
     node.beginToken.value.printOn(sb);
     if (node.hasExpression) {

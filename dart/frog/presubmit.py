@@ -51,15 +51,24 @@ def main(args):
     """Adds ANSI escape-code for bold-face"""
     return "\033[1m%s\033[0m" % s
 
-  # VM Checked, produces checked
+  # VM Checked/CompileAll, produces checked
   print 'Started'
   start = time.time()
   RunCommand('./frog.py',
              '--vm_flags=--compile_all --enable_type_checks --enable_asserts',
              '--', '--enable_type_checks', '--out=frogsh', 'frog.dart')
   elapsed = time.time() - start
-  print 'Compiling on Dart VM took %s seconds %s' % (b(elapsed),
-                                                     b('in checked mode'))
+  mode = 'in checked mode + compile all'
+  print 'Compiling on Dart VM took %s seconds %s' % (b(elapsed), b(mode))
+
+  # VM Checked, produces checked
+  start = time.time()
+  RunCommand('./frog.py',
+             '--vm_flags=--enable_type_checks --enable_asserts',
+             '--', '--enable_type_checks', '--out=frogsh', 'frog.dart')
+  elapsed = time.time() - start
+  mode = 'in checked mode'
+  print 'Compiling on Dart VM took %s seconds %s' % (b(elapsed), b(mode))
 
   # VM Normal, produces checked
   start = time.time()

@@ -219,10 +219,6 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return types.dynamicType;
   }
 
-  Type visitParameter(Parameter node) {
-    return null;
-  }
-
   checkAssignable(Node node, Type s, Type t) {
     if (!types.isAssignable(s, t)) {
       var error = CompilerError.notAssignable(s, t);

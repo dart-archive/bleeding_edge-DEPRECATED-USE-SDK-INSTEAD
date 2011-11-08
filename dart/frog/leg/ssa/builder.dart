@@ -174,10 +174,6 @@ class SsaBuilder implements Visitor {
     compiler.unimplemented("SsaBuilder.visitOperator");
   }
 
-  visitParameter(Parameter node) {
-    compiler.unimplemented("SsaBuilder.visitParameter");
-  }
-
   visitReturn(Return node) {
     visit(node.expression);
     var value = pop();

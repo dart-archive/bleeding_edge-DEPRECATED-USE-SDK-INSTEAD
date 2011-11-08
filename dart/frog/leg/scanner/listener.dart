@@ -27,6 +27,12 @@ class Listener {
   void endExpressionStatement(Token token) {
   }
 
+  void beginFormalParameter(Token token) {
+  }
+
+  void endFormalParameter(Token token) {
+  }
+
   void beginFormalParameters(Token token) {
   }
 
@@ -152,6 +158,9 @@ class Listener {
   }
 
   void handleNoArguments(Token token) {
+  }
+
+  void handleNoType(Token token) {
   }
 
   void handleNoTypeVariables(Token token) {
@@ -370,6 +379,12 @@ class BodyListener extends ElementListener {
 
   BodyListener(Canceler canceler, Logger this.logger) : super(canceler) {
     onError = handleOnError; // Cuts parser time in half or more.
+  }
+
+  void endFormalParameter(Token token) {
+    NodeList name = new NodeList.singleton(popNode());
+    TypeAnnotation type = popNode();
+    pushNode(new VariableDefinitions(type, null, name, token));
   }
 
   void endFormalParameters(int count, Token beginToken, Token endToken) {

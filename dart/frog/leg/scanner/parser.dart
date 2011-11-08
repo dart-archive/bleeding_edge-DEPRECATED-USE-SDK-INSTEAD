@@ -65,7 +65,7 @@ class Parser<L extends Listener> {
     token = parseReturnTypeOpt(next(token));
     token = parseIdentifier(token);
     token = parseTypeVariablesOpt(token);
-    token = parseParameters(token);
+    token = parseFormalParameters(token);
     listener.endFunctionTypeAlias(token);
     return expect(';', token);
   }
@@ -79,16 +79,23 @@ class Parser<L extends Listener> {
     }
   }
 
-  Token parseParameters(Token token) {
+  Token parseFormalParameters(Token token) {
+    Token begin = token;
+    listener.beginFormalParameters(begin);
     expect('(', token);
-    if (optional(')', next(token))) {
-      return next(next(token));
+    int parameterCount = 0;
+    if (optional(')', token.next)) {
+      listener.endFormalParameters(parameterCount, begin, token.next);
+      return token.next.next;
     }
     do {
-      // TODO(ahe): Handle 'final' and 'var'.
+      listener.beginFormalParameter(token);
       token = parseTypeOpt(next(token));
       token = parseIdentifier(token);
+      listener.endFormalParameter(token);
+      ++parameterCount;
     } while (optional(',', token));
+    listener.endFormalParameters(parameterCount, begin, token);
     return expect(')', token);
   }
 
@@ -100,6 +107,7 @@ class Parser<L extends Listener> {
       case isIdentifier(token.next):
         return parseType(token);
       default:
+        listener.handleNoType(token);
         return token;
     }
   }
@@ -341,24 +349,6 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
     listener.endFunctionName(token);
     token = parseFormalParameters(token);
     return parseFunctionBody(token);
-  }
-
-  Token parseFormalParameters(Token token) {
-    Token begin = token;
-    listener.beginFormalParameters(begin);
-    expect('(', token);
-    int parameterCount = 0;
-    if (optional(')', token.next)) {
-      listener.endFormalParameters(parameterCount, begin, token.next);
-      return token.next.next;
-    }
-    do {
-      token = parseType(next(token)); // TODO(ahe): Types are optional.
-      token = parseIdentifier(token);
-      ++parameterCount;
-    } while (optional(',', token));
-    listener.endFormalParameters(parameterCount, begin, token);
-    return expect(')', token);
   }
 
   Token parseFunctionBody(Token token) {
