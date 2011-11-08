@@ -143,6 +143,10 @@ class ResolverVisitor implements Visitor<Element> {
     return null;
   }
 
+  visitThrow(Throw node) {
+    visit(node.expression);
+  }
+
   visitTypeAnnotation(TypeAnnotation node) {
   }
 

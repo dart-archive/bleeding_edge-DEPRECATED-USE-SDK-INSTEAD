@@ -19,4 +19,8 @@ void main() {
   for (int j = 0; j < 10; j += 1) {
     print('kat');
   }
+
+  if (false) throw;
+
+  if (false) throw 'dwarf';
 }

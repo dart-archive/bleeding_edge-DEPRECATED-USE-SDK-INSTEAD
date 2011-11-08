@@ -385,6 +385,8 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
         return parseIfStatement(token);
       case value === 'for':
         return parseForStatement(token);
+      case value === 'throw':
+        return parseThrowStatement(token);
       // TODO(ahe): Handle other statements.
       default:
         return parseExpressionStatement(token);
@@ -684,5 +686,19 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
     }
     listener.endBlock(statementCount, begin, token);
     return expect('}', token);
+  }
+
+  Token parseThrowStatement(Token token) {
+    Token throwToken = token;
+    listener.beginThrowStatement(throwToken);
+    token = expect('throw', token);
+    if (optional(';', token)) {
+      listener.endRethrowStatement(throwToken, token);
+      return token.next;
+    } else {
+      token = parseExpression(token);
+      listener.endThrowStatement(throwToken, token);
+      return expectSemicolon(token);
+    }
   }
 }

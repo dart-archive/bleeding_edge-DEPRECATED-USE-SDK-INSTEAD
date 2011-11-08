@@ -5537,6 +5537,10 @@ BodyParser.prototype.parseStatement = function(token) {
 
       return this.parseForStatement(token);
 
+    case value === 'throw':
+
+      return this.parseThrowStatement(token);
+
     default:
 
       return this.parseExpressionStatement(token);
@@ -5549,13 +5553,13 @@ BodyParser.prototype.expectSemicolon = function(token) {
 BodyParser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement(begin);
-  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 401, 12);
+  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 403, 12);
   token = this.parseExpression(this.next(token));
   this.listener.endReturnStatement(true, begin, token);
   return this.expectSemicolon(token);
 }
 BodyParser.prototype.parseExpressionStatementOrDeclaration = function(token) {
-  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 408, 12);
+  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 410, 12);
   var peek1 = this.next(token);
   if ($notnull_bool(peek1.kind === 97/*null.IDENTIFIER_TOKEN*/)) {
     return this.parseLocalDeclaration(token, peek1);
@@ -5604,7 +5608,7 @@ BodyParser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 BodyParser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 461, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 463, 12);
   token = this.parsePrimary(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = tokenLevel;
@@ -5869,7 +5873,7 @@ BodyParser.prototype.parseArgumentsOpt = function(token) {
 BodyParser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 594, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 596, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments(argumentCount, begin, token.next);
@@ -5960,6 +5964,20 @@ BodyParser.prototype.parseBlock = function(token) {
   }
   this.listener.endBlock(statementCount, begin, token);
   return this.expect('}', token);
+}
+BodyParser.prototype.parseThrowStatement = function(token) {
+  var throwToken = token;
+  this.listener.beginThrowStatement(throwToken);
+  token = this.expect('throw', token);
+  if ($notnull_bool(this.optional(';', token))) {
+    this.listener.endRethrowStatement(throwToken, token);
+    return token.next;
+  }
+  else {
+    token = this.parseExpression(token);
+    this.listener.endThrowStatement(throwToken, token);
+    return this.expectSemicolon(token);
+  }
 }
 // ********** Code for ParserTask **************
 function ParserTask(compiler) {
@@ -6079,6 +6097,15 @@ Listener.prototype.beginSend = function(token) {
 
 }
 Listener.prototype.endSend = function(token) {
+
+}
+Listener.prototype.beginThrowStatement = function(token) {
+
+}
+Listener.prototype.endThrowStatement = function(throwToken, endToken) {
+
+}
+Listener.prototype.endRethrowStatement = function(throwToken, endToken) {
 
 }
 Listener.prototype.beginTopLevelMember = function(token) {
@@ -6429,6 +6456,13 @@ BodyListener.prototype.endType = function(token) {
   var $0;
   this.pushNode(new TypeAnnotation((($0 = this.popNode()) && $0.is$Identifier())));
 }
+BodyListener.prototype.endThrowStatement = function(throwToken, endToken) {
+  var expression = this.popNode();
+  this.pushNode(new Throw(expression, throwToken, endToken));
+}
+BodyListener.prototype.endRethrowStatement = function(throwToken, endToken) {
+  this.pushNode(new Throw(null, throwToken, endToken));
+}
 BodyListener.prototype.pushNode = function(node) {
   var $0;
   this.nodes = (($0 = this.nodes.prepend(node)) && $0.is$Link$Node());
@@ -6436,7 +6470,7 @@ BodyListener.prototype.pushNode = function(node) {
 }
 BodyListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 539, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 557, 12);
   var node = this.nodes.get$head();
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link$Node());
   this.logger.log(("pop " + this.nodes + ""));
@@ -7102,6 +7136,23 @@ ExpressionStatement.prototype.accept = function(visitor) {
 ExpressionStatement.prototype.getBeginToken = function() {
   return this.expression.getBeginToken();
 }
+// ********** Code for Throw **************
+function Throw(expression, throwToken, endToken) {
+  this.expression = expression;
+  this.throwToken = throwToken;
+  this.endToken = endToken;
+  // Initializers done
+}
+$inherits(Throw, Statement);
+Throw.prototype.accept = function(visitor) {
+  return visitor.visitThrow(this);
+}
+Throw.prototype.getBeginToken = function() {
+  return this.throwToken;
+}
+Throw.prototype.getEndToken = function() {
+  return this.endToken;
+}
 // ********** Code for TypeAnnotation **************
 function TypeAnnotation(typeName) {
   this.typeName = typeName;
@@ -7245,6 +7296,13 @@ DebugUnparser.prototype.visitSendSet = function(node) {
   this.visit(node.selector);
   node.assignmentOperator.get$value().printOn$1(this.sb);
   this.visit(node.argumentsNode, ', ');
+}
+DebugUnparser.prototype.visitThrow = function(node) {
+  node.throwToken.get$value().printOn$1(this.sb);
+  if ($notnull_bool(node.expression != null)) {
+    this.visit(node.expression);
+  }
+  node.endToken.get$value().printOn$1(this.sb);
 }
 DebugUnparser.prototype.visitTypeAnnotation = function(node) {
   this.visit(node.typeName);
@@ -7533,6 +7591,9 @@ SsaBuilder.prototype.visitReturn = function(node) {
   this.graph.setSuccessors(this.block, [this.graph.exit]);
   this.block = null;
 }
+SsaBuilder.prototype.visitThrow = function(node) {
+  this.compiler.unimplemented("SsaBuilder.visitThrow");
+}
 SsaBuilder.prototype.visitTypeAnnotation = function(node) {
 
 }
@@ -7542,7 +7603,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 293, 12);
+  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 297, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   return this.definitions.$setindex(this.elements.$index(node), value);
@@ -7556,7 +7617,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions without initial value");
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 308, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 312, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }
@@ -8879,6 +8940,9 @@ ResolverVisitor.prototype.visitReturn = function(node) {
   this.visit(node.expression);
   return null;
 }
+ResolverVisitor.prototype.visitThrow = function(node) {
+  this.visit(node.expression);
+}
 ResolverVisitor.prototype.visitTypeAnnotation = function(node) {
 
 }
@@ -8901,7 +8965,7 @@ function VariableDefinitionsVisitor(definitions, resolver) {
 }
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty(), "node.arguments.tail.isEmpty()", "resolver.dart", 172, 12);
+  $assert(node.get$arguments().get$tail().isEmpty(), "node.arguments.tail.isEmpty()", "resolver.dart", 176, 12);
   if ($notnull_bool(node.receiver != null)) {
     this.resolver.compiler.unimplemented("receiver on a variable definition");
   }
@@ -9188,6 +9252,10 @@ TypeCheckerVisitor.prototype.checkAssignable = function(node, s, t) {
 TypeCheckerVisitor.prototype.visitReturn = function(node) {
   var expressionType = this.type(node.expression);
   this.checkAssignable(node, this.expectedReturnType, expressionType);
+  return this.types.voidType;
+}
+TypeCheckerVisitor.prototype.visitThrow = function(node) {
+  if ($notnull_bool(node.expression != null)) this.type(node.expression);
   return this.types.voidType;
 }
 TypeCheckerVisitor.prototype.visitTypeAnnotation = function(node) {

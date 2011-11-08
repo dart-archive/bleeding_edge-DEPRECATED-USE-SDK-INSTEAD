@@ -18,6 +18,7 @@ interface Visitor<R> {
   R visitReturn(Return node);
   R visitSend(Send node);
   R visitSendSet(SendSet node);
+  R visitThrow(Throw node);
   R visitTypeAnnotation(TypeAnnotation node);
   R visitVariableDefinitions(VariableDefinitions node);
 }
@@ -357,6 +358,20 @@ class ExpressionStatement extends Statement {
   accept(Visitor visitor) => visitor.visitExpressionStatement(this);
 
   Token getBeginToken() => expression.getBeginToken();
+}
+
+class Throw extends Statement {
+  final Expression expression;
+
+  final Token throwToken;
+  final Token endToken;
+
+  const Throw(this.expression, this.throwToken, this.endToken);
+
+  accept(Visitor visitor) => visitor.visitThrow(this);
+
+  Token getBeginToken() => throwToken;
+  Token getEndToken() => endToken;
 }
 
 class TypeAnnotation extends Node {

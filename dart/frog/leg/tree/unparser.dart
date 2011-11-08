@@ -127,6 +127,14 @@ class DebugUnparser implements Visitor {
     visit(node.argumentsNode, ', ');
   }
 
+  visitThrow(Throw node) {
+    node.throwToken.value.printOn(sb);
+    if (node.expression !== null) {
+      visit(node.expression);
+    }
+    node.endToken.value.printOn(sb);
+  }
+
   visitTypeAnnotation(TypeAnnotation node) {
     visit(node.typeName);
   }

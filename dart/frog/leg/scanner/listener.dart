@@ -109,6 +109,15 @@ class Listener {
   void endSend(Token token) {
   }
 
+  void beginThrowStatement(Token token) {
+  }
+
+  void endThrowStatement(Token throwToken, Token endToken) {
+  }
+
+  void endRethrowStatement(Token throwToken, Token endToken) {
+  }
+
   void beginTopLevelMember(Token token) {
   }
 
@@ -528,6 +537,15 @@ class BodyListener extends ElementListener {
 
   void endType(Token token) {
     pushNode(new TypeAnnotation(popNode()));
+  }
+
+  void endThrowStatement(Token throwToken, Token endToken) {
+    Expression expression = popNode();
+    pushNode(new Throw(expression, throwToken, endToken));
+  }
+
+  void endRethrowStatement(Token throwToken, Token endToken) {
+    pushNode(new Throw(null, throwToken, endToken));
   }
 
   void pushNode(Node node) {

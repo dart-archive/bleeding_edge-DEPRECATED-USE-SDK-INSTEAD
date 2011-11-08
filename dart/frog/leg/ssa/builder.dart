@@ -281,6 +281,10 @@ class SsaBuilder implements Visitor {
     block = null;
   }
 
+  visitThrow(Throw node) {
+    compiler.unimplemented("SsaBuilder.visitThrow");
+  }
+
   visitTypeAnnotation(TypeAnnotation node) {
     // We currently ignore type annotations for generating code.
   }

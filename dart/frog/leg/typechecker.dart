@@ -232,6 +232,11 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return types.voidType;
   }
 
+  Type visitThrow(Throw node) {
+    if (node.expression !== null) type(node.expression);
+    return types.voidType;
+  }
+
   Type visitTypeAnnotation(TypeAnnotation node) {
     if (node.typeName === null) return types.dynamicType;
     final name = node.typeName.source;
