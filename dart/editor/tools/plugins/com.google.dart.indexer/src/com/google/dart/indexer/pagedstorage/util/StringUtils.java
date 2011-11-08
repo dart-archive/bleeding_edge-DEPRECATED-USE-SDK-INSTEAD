@@ -16,27 +16,45 @@ package com.google.dart.indexer.pagedstorage.util;
 /**
  * A few String utility functions.
  */
-public class StringUtils {
+public final class StringUtils {
   private static final String INDENTS[] = new String[] {"", "  ", "    ", "      "};
 
   public static String indent(int level) {
-    return INDENTS[level];
+    if (level < 0) {
+      return "";
+    } else if (level < INDENTS.length) {
+      return INDENTS[level];
+    }
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < level; i++) {
+      builder.append("  ");
+    }
+    return builder.toString();
   }
 
   public static String join(String[] path) {
-    return join(path, "//");
+    return join(path, 0, -1, "//");
+  }
+
+  public static String join(String[] path, int start, int end, String delimiter) {
+    int length = path.length;
+    if (end < 0) {
+      end = length;
+    } else if (end > length) {
+      end = length;
+    }
+    StringBuilder builder = new StringBuilder();
+    for (int i = start; i < end; i++) {
+      if (i > start) {
+        builder.append(delimiter);
+      }
+      builder.append(path[i]);
+    }
+    return builder.toString();
   }
 
   public static String join(String[] path, String delimiter) {
-    StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < path.length; i++) {
-      String component = path[i];
-      if (i > 0) {
-        builder.append(delimiter);
-      }
-      builder.append(component);
-    }
-    return builder.toString();
+    return join(path, 0, -1, delimiter);
   }
 
   private StringUtils() {
