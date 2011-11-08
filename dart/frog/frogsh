@@ -5284,7 +5284,7 @@ Parser.prototype.parseString = function(token) {
     return this.next(token);
   }
   else {
-    return this.listener.expected(('string' && 'string'.is$SourceString()), token);
+    return this.listener.expected('string', token);
   }
 }
 Parser.prototype.parseIdentifier = function(token) {
@@ -5304,7 +5304,7 @@ Parser.prototype.parseTypeVariablesOpt = function(token) {
   return this.parseTypeVariables(token);
 }
 Parser.prototype.parseTypeVariables = function(token) {
-  this.expect($assert_String(const$229/*const SourceString("<")*/), token);
+  this.expect('<', token);
   this.listener.beginTypeVariables(token);
   do {
     token = this.parseTypeVariable(this.next(token));
@@ -5315,7 +5315,7 @@ Parser.prototype.parseTypeVariables = function(token) {
 }
 Parser.prototype.expect = function(string, token) {
   if ($notnull_bool(string !== token.get$stringValue())) {
-    return this.listener.expected((string && string.is$SourceString()), token);
+    return this.listener.expected(string, token);
   }
   return token.next;
 }
@@ -5341,6 +5341,10 @@ Parser.prototype.parseType = function(token) {
     while ($notnull_bool(this.optional('.', token))) {
       token = this.parseIdentifier(this.next(token));
     }
+  }
+  else if ($notnull_bool(this.optional('var', token))) {
+    this.listener.handleVarKeyword(token);
+    return this.next(token);
   }
   else {
     token = this.listener.expectedType(token);
@@ -5509,7 +5513,7 @@ BodyParser.prototype.expectSemicolon = function(token) {
 BodyParser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement(begin);
-  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 402, 12);
+  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 405, 12);
   token = this.parseExpression(this.next(token));
   this.listener.endReturnStatement(true, begin, token);
   return this.expectSemicolon(token);
@@ -5545,7 +5549,7 @@ BodyParser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 BodyParser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 443, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 446, 12);
   token = this.parsePrimary(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = tokenLevel;
@@ -5810,7 +5814,7 @@ BodyParser.prototype.parseArgumentsOpt = function(token) {
 BodyParser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 576, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 579, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments(argumentCount, begin, token.next);
@@ -5880,86 +5884,105 @@ BodyParser.prototype.parseBlock = function(token) {
   return this.expect('}', token);
 }
 // ********** Code for Listener **************
-function Listener(canceler) {
-  this.classCount = 0
-  this.aliasCount = 0
-  this.interfaceCount = 0
-  this.libraryTagCount = 0
-  this.topLevelMemberCount = 0
-  this.previousIdentifier = null
-  this.canceler = canceler;
-  this.builders = const$228/*const EmptyLink<DeclarationBuilder>()*/;
-  this.topLevelElements = const$228/*const EmptyLink<DeclarationBuilder>()*/;
-  // Initializers done
+function Listener() {}
+Listener.prototype.beginArguments = function(token) {
+
 }
-Listener.prototype.beginLibraryTag = function(token) {
-  this.canceler.cancel("Cannot handle library tags");
-  this.libraryTagCount++;
+Listener.prototype.endArguments = function(count, beginToken, endToken) {
+
+}
+Listener.prototype.beginBlock = function(token) {
+
+}
+Listener.prototype.endBlock = function(count, beginToken, endToken) {
+
 }
 Listener.prototype.beginClass = function(token) {
-  this.classCount++;
-  this.push(token, this.get$buildClassElement());
-}
-Listener.prototype.buildClassElement = function(declaration) {
-  this.canceler.cancel("Cannot handle classes");
-}
-Listener.prototype.get$buildClassElement = function() {
-  return Listener.prototype.buildClassElement.bind(this);
+
 }
 Listener.prototype.endClass = function(token) {
-  this.handleDeclaration(this.pop(), token);
+
 }
-Listener.prototype.beginInterface = function(token) {
-  this.interfaceCount++;
-  this.push(token, this.get$buildInterfaceElement());
+Listener.prototype.beginExpressionStatement = function(token) {
+
 }
-Listener.prototype.buildInterfaceElement = function(declaration) {
-  this.canceler.cancel("Cannot handle interfaces");
+Listener.prototype.endExpressionStatement = function(token) {
+
 }
-Listener.prototype.get$buildInterfaceElement = function() {
-  return Listener.prototype.buildInterfaceElement.bind(this);
+Listener.prototype.beginFormalParameters = function(token) {
+
 }
-Listener.prototype.endInterface = function(token) {
-  this.handleDeclaration(this.pop(), token);
+Listener.prototype.endFormalParameters = function(count, beginToken, endToken) {
+
+}
+Listener.prototype.beginFunction = function(token) {
+
+}
+Listener.prototype.beginFunctionBody = function(token) {
+
+}
+Listener.prototype.endFunctionBody = function(count, beginToken, endToken) {
+
+}
+Listener.prototype.beginFunctionName = function(token) {
+
+}
+Listener.prototype.endFunctionName = function(token) {
+
 }
 Listener.prototype.beginFunctionTypeAlias = function(token) {
-  this.aliasCount++;
-  this.push(token, this.get$buildFunctionTypeAliasElement());
-}
-Listener.prototype.buildFunctionTypeAliasElement = function(declaration) {
-  this.canceler.cancel("Cannot handle typedefs");
-}
-Listener.prototype.get$buildFunctionTypeAliasElement = function() {
-  return Listener.prototype.buildFunctionTypeAliasElement.bind(this);
+
 }
 Listener.prototype.endFunctionTypeAlias = function(token) {
-  this.handleDeclaration(this.pop(), token);
+
+}
+Listener.prototype.beginIfStatement = function(token) {
+
+}
+Listener.prototype.endIfStatement = function(ifToken, elseToken) {
+
+}
+Listener.prototype.beginInitializedIdentifier = function(token) {
+
+}
+Listener.prototype.endInitializedIdentifier = function() {
+
+}
+Listener.prototype.beginInitializer = function(token) {
+
+}
+Listener.prototype.endInitializer = function(assignmentOperator) {
+
+}
+Listener.prototype.beginInterface = function(token) {
+
+}
+Listener.prototype.endInterface = function(token) {
+
+}
+Listener.prototype.beginLibraryTag = function(token) {
+
+}
+Listener.prototype.beginReturnStatement = function(token) {
+
+}
+Listener.prototype.endReturnStatement = function(hasExpression, beginToken, endToken) {
+
+}
+Listener.prototype.beginSend = function(token) {
+
+}
+Listener.prototype.endSend = function(token) {
+
 }
 Listener.prototype.beginTopLevelMember = function(token) {
-  this.topLevelMemberCount++;
-}
-Listener.prototype.topLevelMethod = function(token) {
-  this.push(token, this.get$buildMethod());
-  this.builders.get$head().name = this.previousIdentifier.get$source();
-}
-Listener.prototype.buildMethod = function(declaration) {
-  return new PartialFunctionElement(declaration.name, declaration.beginToken, declaration.endToken);
-}
-Listener.prototype.get$buildMethod = function() {
-  return Listener.prototype.buildMethod.bind(this);
-}
-Listener.prototype.topLevelField = function(token) {
-  this.push(token, this.get$buildField());
-  this.builders.get$head().name = this.previousIdentifier.get$source();
-}
-Listener.prototype.buildField = function(declaration) {
-  this.canceler.cancel("Cannot handle fields");
-}
-Listener.prototype.get$buildField = function() {
-  return Listener.prototype.buildField.bind(this);
+
 }
 Listener.prototype.endTopLevelMember = function(token) {
-  this.handleDeclaration(this.pop(), token);
+
+}
+Listener.prototype.beginTypeArguments = function(token) {
+
 }
 Listener.prototype.beginTypeVariable = function(token) {
 
@@ -5973,53 +5996,192 @@ Listener.prototype.beginTypeVariables = function(token) {
 Listener.prototype.endTypeVariables = function(token) {
 
 }
+Listener.prototype.beginVariablesDeclaration = function(token) {
+
+}
+Listener.prototype.endVariablesDeclaration = function(count, endToken) {
+
+}
+Listener.prototype.handleAssignmentExpression = function(token) {
+
+}
+Listener.prototype.handleBinaryExpression = function(token) {
+
+}
+Listener.prototype.handleConditionalExpression = function(question, colon) {
+
+}
+Listener.prototype.handleLiteralBool = function(token) {
+
+}
+Listener.prototype.handleLiteralDouble = function(token) {
+
+}
+Listener.prototype.handleLiteralInt = function(token) {
+
+}
+Listener.prototype.handleLiteralString = function(token) {
+
+}
+Listener.prototype.handleNoArguments = function(token) {
+
+}
 Listener.prototype.handleNoTypeVariables = function(token) {
 
 }
-Listener.prototype.identifier = function(token) {
-  this.previousIdentifier = new Identifier(token);
+Listener.prototype.handleVarKeyword = function(token) {
+
 }
-Listener.prototype.beginTypeArguments = function(token) {
+Listener.prototype.identifier = function(token) {
+
+}
+Listener.prototype.topLevelField = function(token) {
+
+}
+Listener.prototype.topLevelMethod = function(token) {
+
+}
+Listener.prototype.voidType = function(token) {
 
 }
 Listener.prototype.expected = function(string, token) {
-  this.canceler.cancel(("Expected '" + string + "', but got '" + token + "' ") + ("@ " + token.charOffset + ""));
+  $throw(new ParserError(("Expected '" + string + "', but got '" + token + "' @ ") + ("" + token.charOffset + "")));
 }
 Listener.prototype.unexpectedEof = function() {
-  this.canceler.cancel("Unexpected end of file");
+  $throw(new ParserError("Unexpected end of file"));
 }
 Listener.prototype.notIdentifier = function(token) {
-  this.canceler.cancel(("Expected identifier, but got '" + token + "' ") + ("@ " + token.charOffset + ""));
+  $throw(new ParserError(("Expected identifier, but got '" + token + "' @ ") + ("" + token.charOffset + "")));
 }
 Listener.prototype.expectedType = function(token) {
-  this.canceler.cancel(("Expected a type, but got '" + token + "' @ " + token.charOffset + ""));
+  $throw(new ParserError(("Expected a type, but got '" + token + "' @ ") + ("" + token.charOffset + "")));
 }
 Listener.prototype.expectedBlock = function(token) {
-  this.canceler.cancel(("Expected a block, but got '" + token + "' @ " + token.charOffset + ""));
+  $throw(new ParserError(("Expected a block, but got '" + token + "' @ ") + ("" + token.charOffset + "")));
 }
 Listener.prototype.unexpected = function(token) {
+  $throw(new ParserError(("Unexpected token '" + token + "' @ " + token.charOffset + "")));
+}
+// ********** Code for ParserError **************
+function ParserError(reason) {
+  this.reason = reason;
+  // Initializers done
+}
+// ********** Code for ElementListener **************
+function ElementListener(canceler) {
+  this.previousIdentifier = null
+  this.canceler = canceler;
+  this.builders = const$228/*const EmptyLink<DeclarationBuilder>()*/;
+  this.topLevelElements = const$228/*const EmptyLink<DeclarationBuilder>()*/;
+  // Initializers done
+}
+$inherits(ElementListener, Listener);
+ElementListener.prototype.beginLibraryTag = function(token) {
+  this.canceler.cancel("Cannot handle library tags");
+}
+ElementListener.prototype.beginClass = function(token) {
+  this.push(token, this.get$buildClassElement());
+}
+ElementListener.prototype.buildClassElement = function(declaration) {
+  this.canceler.cancel("Cannot handle classes");
+}
+ElementListener.prototype.get$buildClassElement = function() {
+  return ElementListener.prototype.buildClassElement.bind(this);
+}
+ElementListener.prototype.endClass = function(token) {
+  this.handleDeclaration(this.pop(), token);
+}
+ElementListener.prototype.beginInterface = function(token) {
+  this.push(token, this.get$buildInterfaceElement());
+}
+ElementListener.prototype.buildInterfaceElement = function(declaration) {
+  this.canceler.cancel("Cannot handle interfaces");
+}
+ElementListener.prototype.get$buildInterfaceElement = function() {
+  return ElementListener.prototype.buildInterfaceElement.bind(this);
+}
+ElementListener.prototype.endInterface = function(token) {
+  this.handleDeclaration(this.pop(), token);
+}
+ElementListener.prototype.beginFunctionTypeAlias = function(token) {
+  this.push(token, this.get$buildFunctionTypeAliasElement());
+}
+ElementListener.prototype.buildFunctionTypeAliasElement = function(declaration) {
+  this.canceler.cancel("Cannot handle typedefs");
+}
+ElementListener.prototype.get$buildFunctionTypeAliasElement = function() {
+  return ElementListener.prototype.buildFunctionTypeAliasElement.bind(this);
+}
+ElementListener.prototype.endFunctionTypeAlias = function(token) {
+  this.handleDeclaration(this.pop(), token);
+}
+ElementListener.prototype.topLevelMethod = function(token) {
+  this.push(token, this.get$buildMethod());
+  this.builders.get$head().name = this.previousIdentifier.get$source();
+}
+ElementListener.prototype.buildMethod = function(declaration) {
+  return new PartialFunctionElement(declaration.name, declaration.beginToken, declaration.endToken);
+}
+ElementListener.prototype.get$buildMethod = function() {
+  return ElementListener.prototype.buildMethod.bind(this);
+}
+ElementListener.prototype.topLevelField = function(token) {
+  this.push(token, this.get$buildField());
+  this.builders.get$head().name = this.previousIdentifier.get$source();
+}
+ElementListener.prototype.buildField = function(declaration) {
+  this.canceler.cancel("Cannot handle fields");
+}
+ElementListener.prototype.get$buildField = function() {
+  return ElementListener.prototype.buildField.bind(this);
+}
+ElementListener.prototype.endTopLevelMember = function(token) {
+  this.handleDeclaration(this.pop(), token);
+}
+ElementListener.prototype.identifier = function(token) {
+  this.previousIdentifier = new Identifier(token);
+}
+ElementListener.prototype.expected = function(string, token) {
+  this.canceler.cancel(("Expected '" + string + "', but got '" + token + "' ") + ("@ " + token.charOffset + ""));
+}
+ElementListener.prototype.unexpectedEof = function() {
+  this.canceler.cancel("Unexpected end of file");
+}
+ElementListener.prototype.notIdentifier = function(token) {
+  this.canceler.cancel(("Expected identifier, but got '" + token + "' ") + ("@ " + token.charOffset + ""));
+}
+ElementListener.prototype.expectedType = function(token) {
+  this.canceler.cancel(("Expected a type, but got '" + token + "' @ " + token.charOffset + ""));
+}
+ElementListener.prototype.expectedBlock = function(token) {
+  this.canceler.cancel(("Expected a block, but got '" + token + "' @ " + token.charOffset + ""));
+}
+ElementListener.prototype.unexpected = function(token) {
   this.canceler.cancel(("Unexpected token '" + token + "' @ " + token.charOffset + ""));
 }
-Listener.prototype.push = function(token, builder) {
+ElementListener.prototype.push = function(token, builder) {
   var $0;
   this.builders = (($0 = this.builders.prepend(new DeclarationBuilder(token, builder))) && $0.is$Link$DeclarationBuilder());
 }
-Listener.prototype.addElement = function(element) {
+ElementListener.prototype.addElement = function(element) {
   var $0;
   this.topLevelElements = (($0 = this.topLevelElements.prepend(element)) && $0.is$Link$Element());
 }
-Listener.prototype.pop = function() {
+ElementListener.prototype.pop = function() {
   var $0;
   var declaration = this.builders.get$head();
   this.builders = (($0 = this.builders.get$tail()) && $0.is$Link$DeclarationBuilder());
   return declaration;
 }
-Listener.prototype.handleDeclaration = function(declaration, token) {
+ElementListener.prototype.handleDeclaration = function(declaration, token) {
   declaration.endToken = token;
   declaration.endToken = token;
   this.addElement(declaration.build());
 }
-Listener.prototype.voidType = function(token) {
+ElementListener.prototype.voidType = function(token) {
+
+}
+ElementListener.prototype.handleVarKeyword = function(token) {
 
 }
 // ********** Code for DeclarationBuilder **************
@@ -6037,19 +6199,13 @@ DeclarationBuilder.prototype.build = function() {
 function BodyListener(canceler, logger) {
   this.nodes = const$228/*const EmptyLink<DeclarationBuilder>()*/
   this.logger = logger;
-  Listener.call(this, canceler);
+  ElementListener.call(this, canceler);
   // Initializers done
   this.onError = this.get$handleOnError();
 }
-$inherits(BodyListener, Listener);
-BodyListener.prototype.beginFormalParameters = function(token) {
-
-}
+$inherits(BodyListener, ElementListener);
 BodyListener.prototype.endFormalParameters = function(count, beginToken, endToken) {
   this.pushNode(this.makeNodeList(count, beginToken, endToken, ","));
-}
-BodyListener.prototype.beginArguments = function(token) {
-
 }
 BodyListener.prototype.endArguments = function(count, beginToken, endToken) {
   this.pushNode(this.makeNodeList(count, beginToken, endToken, ","));
@@ -6057,15 +6213,9 @@ BodyListener.prototype.endArguments = function(count, beginToken, endToken) {
 BodyListener.prototype.handleNoArguments = function(token) {
   this.pushNode(null);
 }
-BodyListener.prototype.beginReturnStatement = function(token) {
-
-}
 BodyListener.prototype.endReturnStatement = function(hasExpression, beginToken, endToken) {
   var expression = $notnull_bool(hasExpression) ? this.popNode() : null;
   this.pushNode(new Return(beginToken, endToken, expression));
-}
-BodyListener.prototype.beginExpressionStatement = function(token) {
-
 }
 BodyListener.prototype.endExpressionStatement = function(token) {
   this.pushNode(new ExpressionStatement(this.popNode(), token));
@@ -6107,9 +6257,6 @@ BodyListener.prototype.handleConditionalExpression = function(question, colon) {
   var condition = this.popNode();
   this.canceler.cancel('conditional expression not implemented yet');
 }
-BodyListener.prototype.beginSend = function(token) {
-
-}
 BodyListener.prototype.endSend = function(token) {
   var arguments = this.popNode();
   var selector = this.popNode();
@@ -6121,18 +6268,6 @@ BodyListener.prototype.identifier = function(token) {
 BodyListener.prototype.voidType = function(token) {
   this.pushNode(new Identifier(token));
 }
-BodyListener.prototype.beginFunction = function(token) {
-
-}
-BodyListener.prototype.beginFunctionName = function(token) {
-
-}
-BodyListener.prototype.endFunctionName = function(token) {
-
-}
-BodyListener.prototype.beginFunctionBody = function(token) {
-
-}
 BodyListener.prototype.endFunctionBody = function(count, beginToken, endToken) {
   var $0;
   var block = new Block(this.makeNodeList(count, beginToken, endToken, null));
@@ -6141,21 +6276,9 @@ BodyListener.prototype.endFunctionBody = function(count, beginToken, endToken) {
   var type = new TypeAnnotation((($0 = this.popNode()) && $0.is$Identifier()));
   this.pushNode(new FunctionExpression(name, formals, block, type));
 }
-BodyListener.prototype.beginVariablesDeclaration = function(token) {
-
-}
 BodyListener.prototype.endVariablesDeclaration = function(count, endToken) {
   var variables = this.makeNodeList(count, null, null, ",");
   this.pushNode(new VariableDefinitions(null, null, variables, endToken));
-}
-BodyListener.prototype.beginInitializedIdentifier = function(token) {
-
-}
-BodyListener.prototype.endInitializedIdentifier = function() {
-
-}
-BodyListener.prototype.beginInitializer = function(token) {
-
 }
 BodyListener.prototype.endInitializer = function(assignmentOperator) {
   var operator = new Operator(assignmentOperator);
@@ -6164,20 +6287,11 @@ BodyListener.prototype.endInitializer = function(assignmentOperator) {
   var name = this.popNode();
   this.pushNode(new Send(name, operator, arguments));
 }
-BodyListener.prototype.handleVarKeyword = function(token) {
-
-}
-BodyListener.prototype.beginIfStatement = function(token) {
-
-}
 BodyListener.prototype.endIfStatement = function(ifToken, elseToken) {
   var elsePart = $notnull_bool((elseToken == null)) ? null : this.popNode();
   var thenPart = this.popNode();
   var condition = this.popNode();
   this.pushNode(new If(condition, thenPart, elsePart, ifToken, elseToken));
-}
-BodyListener.prototype.beginBlock = function(token) {
-
 }
 BodyListener.prototype.endBlock = function(count, beginToken, endToken) {
   this.pushNode(new Block(this.makeNodeList(count, beginToken, endToken, null)));
@@ -6189,7 +6303,7 @@ BodyListener.prototype.pushNode = function(node) {
 }
 BodyListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 369, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 495, 12);
   var node = this.nodes.get$head();
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link$Node());
   this.logger.log(("pop " + this.nodes + ""));
@@ -7138,19 +7252,19 @@ SsaBuilder.prototype.visitSend = function(node) {
     var right = this.pop();
     var left = this.pop();
     var op = node.selector;
-    if ($notnull_bool($eq(const$247/*const SourceString("+")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$246/*const SourceString("+")*/, op.get$source()))) {
       this.push(new HAdd([left, right]));
     }
-    else if ($notnull_bool($eq(const$248/*const SourceString("-")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$247/*const SourceString("-")*/, op.get$source()))) {
       this.push(new HSubtract([left, right]));
     }
-    else if ($notnull_bool($eq(const$249/*const SourceString("*")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$248/*const SourceString("*")*/, op.get$source()))) {
       this.push(new HMultiply([left, right]));
     }
-    else if ($notnull_bool($eq(const$250/*const SourceString("/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$249/*const SourceString("/")*/, op.get$source()))) {
       this.push(new HDivide([left, right]));
     }
-    else if ($notnull_bool($eq(const$251/*const SourceString("~/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$250/*const SourceString("~/")*/, op.get$source()))) {
       this.push(new HTruncatingDivide([left, right]));
     }
   }
@@ -7219,7 +7333,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
     else {
       $assert((definition instanceof Send), "definition is Send", "builder.dart", 200, 16);
       var init = definition;
-      $assert($eq(init.selector.get$dynamic().get$source(), const$252/*const SourceString("=")*/), "init.selector.dynamic.source == const SourceString(\"=\")", "builder.dart", 202, 16);
+      $assert($eq(init.selector.get$dynamic().get$source(), const$251/*const SourceString("=")*/), "init.selector.dynamic.source == const SourceString(\"=\")", "builder.dart", 202, 16);
       var id = init.receiver;
       var link0 = init.get$arguments();
       $assert(!$notnull_bool(link0.isEmpty()) && link0.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 205, 16);
@@ -7305,7 +7419,7 @@ SsaCodeGenerator.prototype.visit = function(node) {
   return node.accept(this);
 }
 SsaCodeGenerator.prototype.visitAdd = function(node) {
-  this.invoke(const$255/*const SourceString('\$add')*/, node.inputs);
+  this.invoke(const$254/*const SourceString('\$add')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitBasicBlock = function(node) {
   var instruction = node.first;
@@ -7324,7 +7438,7 @@ SsaCodeGenerator.prototype.visitBasicBlock = function(node) {
   }
 }
 SsaCodeGenerator.prototype.visitDivide = function(node) {
-  this.invoke(const$257/*const SourceString('\$div')*/, node.inputs);
+  this.invoke(const$256/*const SourceString('\$div')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitExit = function(node) {
   unreachable();
@@ -7333,7 +7447,7 @@ SsaCodeGenerator.prototype.visitGoto = function(node) {
   unreachable();
 }
 SsaCodeGenerator.prototype.visitInvoke = function(node) {
-  if ($notnull_bool($ne(node.selector, const$258/*const SourceString("print")*/))) {
+  if ($notnull_bool($ne(node.selector, const$257/*const SourceString("print")*/))) {
     this.compiler.worklist.add(node.selector);
   }
   this.invoke(node.selector, node.inputs);
@@ -7342,7 +7456,7 @@ SsaCodeGenerator.prototype.visitLiteral = function(node) {
   this.buffer.add(node.value);
 }
 SsaCodeGenerator.prototype.visitMultiply = function(node) {
-  this.invoke(const$259/*const SourceString('\$mul')*/, node.inputs);
+  this.invoke(const$258/*const SourceString('\$mul')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitReturn = function(node) {
   var $0;
@@ -7350,10 +7464,10 @@ SsaCodeGenerator.prototype.visitReturn = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
 }
 SsaCodeGenerator.prototype.visitSubtract = function(node) {
-  this.invoke(const$260/*const SourceString('\$sub')*/, node.inputs);
+  this.invoke(const$259/*const SourceString('\$sub')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitTruncatingDivide = function(node) {
-  this.invoke(const$261/*const SourceString('\$tdiv')*/, node.inputs);
+  this.invoke(const$260/*const SourceString('\$tdiv')*/, node.inputs);
 }
 // ********** Code for HGraphVisitor **************
 function HGraphVisitor() {
@@ -7704,7 +7818,7 @@ HArithmetic.prototype.prepareGvn = function() {
 }
 // ********** Code for HAdd **************
 function HAdd(inputs) {
-  HArithmetic.call(this, const$232/*const SourceString('+')*/, inputs);
+  HArithmetic.call(this, const$231/*const SourceString('+')*/, inputs);
   // Initializers done
 }
 $inherits(HAdd, HArithmetic);
@@ -7727,7 +7841,7 @@ HAdd.prototype.dataEquals = function(other) {
 }
 // ********** Code for HDivide **************
 function HDivide(inputs) {
-  HArithmetic.call(this, const$235/*const SourceString('/')*/, inputs);
+  HArithmetic.call(this, const$234/*const SourceString('/')*/, inputs);
   // Initializers done
 }
 $inherits(HDivide, HArithmetic);
@@ -7745,7 +7859,7 @@ HDivide.prototype.dataEquals = function(other) {
 }
 // ********** Code for HMultiply **************
 function HMultiply(inputs) {
-  HArithmetic.call(this, const$234/*const SourceString('*')*/, inputs);
+  HArithmetic.call(this, const$233/*const SourceString('*')*/, inputs);
   // Initializers done
 }
 $inherits(HMultiply, HArithmetic);
@@ -7763,7 +7877,7 @@ HMultiply.prototype.dataEquals = function(other) {
 }
 // ********** Code for HSubtract **************
 function HSubtract(inputs) {
-  HArithmetic.call(this, const$233/*const SourceString('-')*/, inputs);
+  HArithmetic.call(this, const$232/*const SourceString('-')*/, inputs);
   // Initializers done
 }
 $inherits(HSubtract, HArithmetic);
@@ -7781,7 +7895,7 @@ HSubtract.prototype.dataEquals = function(other) {
 }
 // ********** Code for HTruncatingDivide **************
 function HTruncatingDivide(inputs) {
-  HArithmetic.call(this, const$236/*const SourceString('~/')*/, inputs);
+  HArithmetic.call(this, const$235/*const SourceString('~/')*/, inputs);
   // Initializers done
 }
 $inherits(HTruncatingDivide, HArithmetic);
@@ -8514,7 +8628,7 @@ ResolverVisitor.prototype.visitSend = function(node) {
   var target = null;
   this.visit(node.receiver);
   var name = node.selector.get$source();
-  if ($notnull_bool($eq(name, const$231/*const SourceString('print')*/) || $eq(name, const$232/*const SourceString('+')*/) || $eq(name, const$233/*const SourceString('-')*/) || $eq(name, const$234/*const SourceString('*')*/) || $eq(name, const$235/*const SourceString('/')*/) || $eq(name, const$236/*const SourceString('~/')*/))) {
+  if ($notnull_bool($eq(name, const$230/*const SourceString('print')*/) || $eq(name, const$231/*const SourceString('+')*/) || $eq(name, const$232/*const SourceString('-')*/) || $eq(name, const$233/*const SourceString('*')*/) || $eq(name, const$234/*const SourceString('/')*/) || $eq(name, const$235/*const SourceString('~/')*/))) {
   }
   else {
     this.visit(node.selector);
@@ -8576,7 +8690,7 @@ VariableDefinitionsVisitor.prototype.visitSend = function(node) {
   $assert(node.get$arguments().get$tail().isEmpty(), "node.arguments.tail.isEmpty()", "resolver.dart", 158, 12);
   var selector = node.selector;
   var name = selector.get$source();
-  $assert($eq(name, const$237/*const SourceString('=')*/), "name == const SourceString('=')", "resolver.dart", 161, 12);
+  $assert($eq(name, const$236/*const SourceString('=')*/), "name == const SourceString('=')", "resolver.dart", 161, 12);
   this.resolver.visit((($0 = node.get$arguments().get$head()) && $0.is$Node()));
   this.visit(node.receiver);
 }
@@ -8604,7 +8718,7 @@ function Scope(parent) {
 }
 Scope.top$ctor = function() {
   this.parent = null;
-  this.elements = const$230/*const {}*/;
+  this.elements = const$229/*const {}*/;
   this.enclosingElement = null;
   // Initializers done
 }
@@ -8663,7 +8777,7 @@ ScannerTask.prototype.scan = function(script) {
 }
 ScannerTask.prototype.scanElements = function(text) {
   var tokens = new StringScanner(text).tokenize();
-  var listener = new Listener(this.compiler);
+  var listener = new ElementListener(this.compiler);
   var parser = new Parser(listener);
   parser.parseUnit(tokens);
   return listener.topLevelElements;
@@ -8758,10 +8872,10 @@ FunctionType.prototype.toString = function() {
 }
 // ********** Code for Types **************
 function Types() {
-  this.voidType = new SimpleType.named$ctor(const$238);
-  this.intType = new SimpleType.named$ctor(const$239);
-  this.dynamicType = new SimpleType.named$ctor(const$240);
-  this.stringType = new SimpleType.named$ctor(const$241);
+  this.voidType = new SimpleType.named$ctor(const$237);
+  this.intType = new SimpleType.named$ctor(const$238);
+  this.dynamicType = new SimpleType.named$ctor(const$239);
+  this.stringType = new SimpleType.named$ctor(const$240);
   // Initializers done
 }
 Types.prototype.lookup = function(s) {
@@ -8862,7 +8976,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
   else {
     var selector = node.selector;
     var name = selector.get$source();
-    if ($notnull_bool($eq(name, const$231/*const SourceString('print')*/) || $eq(name, const$232/*const SourceString('+')*/) || $eq(name, const$237/*const SourceString('=')*/))) {
+    if ($notnull_bool($eq(name, const$230/*const SourceString('print')*/) || $eq(name, const$231/*const SourceString('+')*/) || $eq(name, const$236/*const SourceString('=')*/))) {
       return this.types.dynamicType;
     }
     this.compiler.cancel(('unresolved send ' + name + '.'));
@@ -8951,7 +9065,7 @@ Universe.prototype.addGeneratedCode = function(element, code) {
 }
 // ********** Code for top level **************
 function unreachable() {
-  $throw(const$256/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
+  $throw(const$255/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
 }
 function compile(world) {
   var file = world.readFile(options.dartScript);
@@ -10142,7 +10256,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
   var $0;
-  var types = const$384/*const [
+  var types = const$383/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   var target = new Value(null, 'this', false, true, false);
@@ -19152,34 +19266,33 @@ var const$221 = new IllegalAccessException()/*const IllegalAccessException()*/;
 var const$224 = new StringWrapper('EOF')/*const SourceString('EOF')*/;
 var const$227 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
 var const$228 = new LinkTail()/*const EmptyLink<DeclarationBuilder>()*/;
-var const$229 = new StringWrapper("<")/*const SourceString("<")*/;
-var const$230 = new ImmutableMap([])/*const {}*/;
-var const$231 = new StringWrapper('print')/*const SourceString('print')*/;
-var const$232 = new StringWrapper('+')/*const SourceString('+')*/;
-var const$233 = new StringWrapper('-')/*const SourceString('-')*/;
-var const$234 = new StringWrapper('*')/*const SourceString('*')*/;
-var const$235 = new StringWrapper('/')/*const SourceString('/')*/;
-var const$236 = new StringWrapper('~/')/*const SourceString('~/')*/;
-var const$237 = new StringWrapper('=')/*const SourceString('=')*/;
-var const$238 = new StringWrapper('void')/*const SourceString('void')*/;
-var const$239 = new StringWrapper('int')/*const SourceString('int')*/;
-var const$240 = new StringWrapper('Dynamic')/*const SourceString('Dynamic')*/;
-var const$241 = new StringWrapper('String')/*const SourceString('String')*/;
-var const$247 = new StringWrapper("+")/*const SourceString("+")*/;
-var const$248 = new StringWrapper("-")/*const SourceString("-")*/;
-var const$249 = new StringWrapper("*")/*const SourceString("*")*/;
-var const$250 = new StringWrapper("/")/*const SourceString("/")*/;
-var const$251 = new StringWrapper("~/")/*const SourceString("~/")*/;
-var const$252 = new StringWrapper("=")/*const SourceString("=")*/;
-var const$255 = new StringWrapper('\$add')/*const SourceString('\$add')*/;
-var const$256 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
-var const$257 = new StringWrapper('\$div')/*const SourceString('\$div')*/;
-var const$258 = new StringWrapper("print")/*const SourceString("print")*/;
-var const$259 = new StringWrapper('\$mul')/*const SourceString('\$mul')*/;
-var const$260 = new StringWrapper('\$sub')/*const SourceString('\$sub')*/;
-var const$261 = new StringWrapper('\$tdiv')/*const SourceString('\$tdiv')*/;
+var const$229 = new ImmutableMap([])/*const {}*/;
+var const$230 = new StringWrapper('print')/*const SourceString('print')*/;
+var const$231 = new StringWrapper('+')/*const SourceString('+')*/;
+var const$232 = new StringWrapper('-')/*const SourceString('-')*/;
+var const$233 = new StringWrapper('*')/*const SourceString('*')*/;
+var const$234 = new StringWrapper('/')/*const SourceString('/')*/;
+var const$235 = new StringWrapper('~/')/*const SourceString('~/')*/;
+var const$236 = new StringWrapper('=')/*const SourceString('=')*/;
+var const$237 = new StringWrapper('void')/*const SourceString('void')*/;
+var const$238 = new StringWrapper('int')/*const SourceString('int')*/;
+var const$239 = new StringWrapper('Dynamic')/*const SourceString('Dynamic')*/;
+var const$240 = new StringWrapper('String')/*const SourceString('String')*/;
+var const$246 = new StringWrapper("+")/*const SourceString("+")*/;
+var const$247 = new StringWrapper("-")/*const SourceString("-")*/;
+var const$248 = new StringWrapper("*")/*const SourceString("*")*/;
+var const$249 = new StringWrapper("/")/*const SourceString("/")*/;
+var const$250 = new StringWrapper("~/")/*const SourceString("~/")*/;
+var const$251 = new StringWrapper("=")/*const SourceString("=")*/;
+var const$254 = new StringWrapper('\$add')/*const SourceString('\$add')*/;
+var const$255 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+var const$256 = new StringWrapper('\$div')/*const SourceString('\$div')*/;
+var const$257 = new StringWrapper("print")/*const SourceString("print")*/;
+var const$258 = new StringWrapper('\$mul')/*const SourceString('\$mul')*/;
+var const$259 = new StringWrapper('\$sub')/*const SourceString('\$sub')*/;
+var const$260 = new StringWrapper('\$tdiv')/*const SourceString('\$tdiv')*/;
 var const$3 = new StringWrapper('main')/*const SourceString('main')*/;
-var const$384 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$383 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
 var const$5 = new EmptyQueueException()/*const EmptyQueueException()*/;

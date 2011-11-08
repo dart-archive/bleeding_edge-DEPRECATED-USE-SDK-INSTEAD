@@ -2,32 +2,226 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class Listener {
+  void beginArguments(Token token) {
+  }
+
+  void endArguments(int count, Token beginToken, Token endToken) {
+  }
+
+  void beginBlock(Token token) {
+  }
+
+  void endBlock(int count, Token beginToken, Token endToken) {
+  }
+
+  void beginClass(Token token) {
+  }
+
+  void endClass(Token token) {
+  }
+
+  void beginExpressionStatement(Token token) {
+  }
+
+  void endExpressionStatement(Token token) {
+  }
+
+  void beginFormalParameters(Token token) {
+  }
+
+  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  }
+
+  void beginFunction(Token token) {
+  }
+
+  void beginFunctionBody(Token token) {
+  }
+
+  void endFunctionBody(int count, Token beginToken, Token endToken) {
+  }
+
+  void beginFunctionName(Token token) {
+  }
+
+  void endFunctionName(Token token) {
+  }
+
+  void beginFunctionTypeAlias(Token token) {
+  }
+
+  void endFunctionTypeAlias(Token token) {
+  }
+
+  void beginIfStatement(Token token) {
+  }
+
+  void endIfStatement(Token ifToken, Token elseToken) {
+  }
+
+  void beginInitializedIdentifier(Token token) {
+  }
+
+  void endInitializedIdentifier() {
+  }
+
+  void beginInitializer(Token token) {
+  }
+
+  void endInitializer(Token assignmentOperator) {
+  }
+
+  void beginInterface(Token token) {
+  }
+
+  void endInterface(Token token) {
+  }
+
+  void beginLibraryTag(Token token) {
+  }
+
+  void endLibraryTag(Token token) {
+  }
+
+  void beginReturnStatement(Token token) {
+  }
+
+  void endReturnStatement(bool hasExpression,
+                          Token beginToken, Token endToken) {
+  }
+
+  void beginSend(Token token) {
+  }
+
+  void endSend(Token token) {
+  }
+
+  void beginTopLevelMember(Token token) {
+  }
+
+  void endTopLevelMember(Token token) {
+  }
+
+  void beginTypeArguments(Token token) {
+  }
+
+  void endTypeArguments(Token token) {
+  }
+
+  void beginTypeVariable(Token token) {
+  }
+
+  void endTypeVariable(Token token) {
+  }
+
+  void beginTypeVariables(Token token) {
+  }
+
+  void endTypeVariables(Token token) {
+  }
+
+  void beginVariablesDeclaration(Token token) {
+  }
+
+  void endVariablesDeclaration(int count, Token endToken) {
+  }
+
+  void handleAssignmentExpression(Token token) {
+  }
+
+  void handleBinaryExpression(Token token) {
+  }
+
+  void handleConditionalExpression(Token question, Token colon) {
+  }
+
+  void handleLiteralBool(Token token) {
+  }
+
+  void handleLiteralDouble(Token token) {
+  }
+
+  void handleLiteralInt(Token token) {
+  }
+
+  void handleLiteralString(Token token) {
+  }
+
+  void handleNoArguments(Token token) {
+  }
+
+  void handleNoTypeVariables(Token token) {
+  }
+
+  void handleVarKeyword(Token token) {
+  }
+
+  void identifier(Token token) { // TODO(ahe): Rename this method.
+  }
+
+  void topLevelField(Token token) { // TODO(ahe): Rename this method.
+  }
+
+  void topLevelMethod(Token token) { // TODO(ahe): Rename this method.
+  }
+
+  void voidType(Token token) { // TODO(ahe): Rename this method.
+  }
+
+  Token expected(SourceString string, Token token) {
+    throw new ParserError("Expected '$string', but got '$token' @ " +
+                          "${token.charOffset}");
+  }
+
+  void unexpectedEof() {
+    throw new ParserError("Unexpected end of file");
+  }
+
+  void notIdentifier(Token token) {
+    throw new ParserError("Expected identifier, but got '$token' @ " +
+                          "${token.charOffset}");
+  }
+
+  Token expectedType(Token token) {
+    throw new ParserError("Expected a type, but got '$token' @ " +
+                          "${token.charOffset}");
+  }
+
+  Token expectedBlock(Token token) {
+    throw new ParserError("Expected a block, but got '$token' @ " +
+                          "${token.charOffset}");
+  }
+
+  Token unexpected(Token token) {
+    throw new ParserError("Unexpected token '$token' @ ${token.charOffset}");
+  }
+}
+
+class ParserError {
+  final String reason;
+  ParserError(this.reason);
+}
+
 /**
  * A listener for parser events.
  */
-class Listener {
-  int classCount = 0;
-  int aliasCount = 0;
-  int interfaceCount = 0;
-  int libraryTagCount = 0;
-  int topLevelMemberCount = 0;
+class ElementListener extends Listener {
   Identifier previousIdentifier = null;
   final Canceler canceler;
 
   Link<DeclarationBuilder> builders; // TODO(ahe): Use a stack of nodes instead.
   Link<Element> topLevelElements;
 
-  Listener(Canceler this.canceler)
+  ElementListener(Canceler this.canceler)
     : builders = const EmptyLink<DeclarationBuilder>(),
       topLevelElements = const EmptyLink<Element>();
 
   void beginLibraryTag(Token token) {
     canceler.cancel("Cannot handle library tags");
-    libraryTagCount++;
   }
 
   void beginClass(Token token) {
-    classCount++;
     push(token, buildClassElement);
   }
 
@@ -40,7 +234,6 @@ class Listener {
   }
 
   void beginInterface(Token token) {
-    interfaceCount++;
     push(token, buildInterfaceElement);
   }
 
@@ -53,7 +246,6 @@ class Listener {
   }
 
   void beginFunctionTypeAlias(Token token) {
-    aliasCount++;
     push(token, buildFunctionTypeAliasElement);
   }
 
@@ -63,10 +255,6 @@ class Listener {
 
   void endFunctionTypeAlias(Token token) {
     handleDeclaration(pop(), token);
-  }
-
-  void beginTopLevelMember(Token token) {
-    topLevelMemberCount++;
   }
 
   void topLevelMethod(Token token) {
@@ -93,26 +281,8 @@ class Listener {
     handleDeclaration(pop(), token);
   }
 
-  void beginTypeVariable(Token token) {
-  }
-
-  void endTypeVariable(Token token) {
-  }
-
-  void beginTypeVariables(Token token) {
-  }
-
-  void endTypeVariables(Token token) {
-  }
-
-  void handleNoTypeVariables(Token token) {
-  }
-
   void identifier(Token token) {
     previousIdentifier = new Identifier(token);
-  }
-
-  void beginTypeArguments(Token token) {
   }
 
   Token expected(SourceString string, Token token) {
@@ -164,6 +334,10 @@ class Listener {
   void voidType(Token token) {
     // Ignored.
   }
+
+  void handleVarKeyword(Token token) {
+    // Ignored.
+  }
 }
 
 typedef Element ElementBuilder(DeclarationBuilder declaration);
@@ -186,7 +360,7 @@ class DeclarationBuilder {
   Element build() => (builderFunction)(this);
 }
 
-class BodyListener extends Listener {
+class BodyListener extends ElementListener {
   final Logger logger;
   Link<Node> nodes = const EmptyLink(); /* <Node> Frog bug #322 + #323 */
   Function onError;
@@ -195,14 +369,8 @@ class BodyListener extends Listener {
     onError = handleOnError; // Cuts parser time in half or more.
   }
 
-  void beginFormalParameters(Token token) {
-  }
-
   void endFormalParameters(int count, Token beginToken, Token endToken) {
     pushNode(makeNodeList(count, beginToken, endToken, ","));
-  }
-
-  void beginArguments(Token token) {
   }
 
   void endArguments(int count, Token beginToken, Token endToken) {
@@ -213,16 +381,10 @@ class BodyListener extends Listener {
     pushNode(null);
   }
 
-  void beginReturnStatement(Token token) {
-  }
-
   void endReturnStatement(bool hasExpression,
                           Token beginToken, Token endToken) {
     Expression expression = hasExpression ? popNode() : null;
     pushNode(new Return(beginToken, endToken, expression));
-  }
-
-  void beginExpressionStatement(Token token) {
   }
 
   void endExpressionStatement(Token token) {
@@ -274,9 +436,6 @@ class BodyListener extends Listener {
     canceler.cancel('conditional expression not implemented yet');
   }
 
-  void beginSend(Token token) {
-  }
-
   void endSend(Token token) {
     NodeList arguments = popNode();
     Node selector = popNode();
@@ -292,18 +451,6 @@ class BodyListener extends Listener {
     pushNode(new Identifier(token));
   }
 
-  void beginFunction(Token token) {
-  }
-
-  void beginFunctionName(Token token) {
-  }
-
-  void endFunctionName(Token token) {
-  }
-
-  void beginFunctionBody(Token token) {
-  }
-
   void endFunctionBody(int count, Token beginToken, Token endToken) {
     Block block = new Block(makeNodeList(count, beginToken, endToken, null));
     Node formals = popNode();
@@ -313,23 +460,11 @@ class BodyListener extends Listener {
     pushNode(new FunctionExpression(name, formals, block, type));
   }
 
-  void beginVariablesDeclaration(Token token) {
-  }
-
   void endVariablesDeclaration(int count, Token endToken) {
     // TODO(ahe): Pick one name for this concept, either
     // VariablesDeclaration or VariableDefinitions.
     NodeList variables = makeNodeList(count, null, null, ",");
     pushNode(new VariableDefinitions(null, null, variables, endToken));
-  }
-
-  void beginInitializedIdentifier(Token token) {
-  }
-
-  void endInitializedIdentifier() {
-  }
-
-  void beginInitializer(Token token) {
   }
 
   void endInitializer(Token assignmentOperator) {
@@ -340,20 +475,11 @@ class BodyListener extends Listener {
     pushNode(new Send(name, operator, arguments));
   }
 
-  void handleVarKeyword(Token token) {
-  }
-
-  void beginIfStatement(Token token) {
-  }
-
   void endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = (elseToken === null) ? null : popNode();
     Statement thenPart = popNode();
     NodeList condition = popNode();
     pushNode(new If(condition, thenPart, elsePart, ifToken, elseToken));
-  }
-
-  void beginBlock(Token token) {
   }
 
   void endBlock(int count, Token beginToken, Token endToken) {

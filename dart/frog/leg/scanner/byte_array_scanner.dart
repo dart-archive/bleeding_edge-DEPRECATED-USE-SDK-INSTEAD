@@ -11,9 +11,11 @@ class ByteArrayScanner extends ArrayBasedScanner<ByteString> {
 
   ByteArrayScanner(List<int> this.bytes) : super();
 
-  int nextByte() => bytes[++byteOffset];
+  int nextByte() => byteAt(++byteOffset);
 
-  int peek() => bytes[byteOffset + 1];
+  int peek() => byteAt(byteOffset + 1);
+
+  int byteAt(index) => (bytes.length > index) ? bytes[index] : -1;
 
   AsciiString asciiString(int start) {
     return AsciiString.of(bytes, start, byteOffset - start);

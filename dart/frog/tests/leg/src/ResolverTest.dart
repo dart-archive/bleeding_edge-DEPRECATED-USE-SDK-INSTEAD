@@ -6,7 +6,7 @@
 #import("../../../leg/scanner.dart");
 #import("../../../leg/elements/elements.dart");
 #import("../../../leg/tree.dart");
-#import("../../../leg/util.dart");
+#import("../../../leg/util/util.dart");
 
 class LoggerCanceler implements Logger, Canceler {
   void cancel([String reason]) {

@@ -6,9 +6,9 @@
 #import('../scanner.dart');
 #import('../scanner_implementation.dart');
 #import('../elements/elements.dart');
-#import('vm_scanner_bench.dart', prefix: 'vm');
+#import('node_scanner_bench.dart', prefix: 'node');
 #import('scanner_bench.dart');
 #source('parser_bench.dart');
 
-class BaseParserBench extends vm.VmScannerBench {
+class BaseParserBench extends node.NodeScannerBench {
 }

@@ -199,7 +199,7 @@ class Parser<L extends Listener> {
   }
 
   Token parseTypeVariables(Token token) {
-    expect(const SourceString("<"), token);
+    expect('<', token);
     listener.beginTypeVariables(token);
     do {
       token = parseTypeVariable(next(token));
@@ -239,6 +239,9 @@ class Parser<L extends Listener> {
         // TODO(ahe): Validate that there are at most two identifiers.
         token = parseIdentifier(next(token));
       }
+    } else if (optional('var', token)) {
+      listener.handleVarKeyword(token);
+      return next(token);
     } else {
       token = listener.expectedType(token);
     }

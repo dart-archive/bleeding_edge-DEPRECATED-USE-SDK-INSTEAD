@@ -21,10 +21,10 @@ class ScannerBench {
   }
 
   void tokenizeAll(void log(String s), int iterations, List<String> arguments) {
+    ProgressBar bar = new ProgressBar(iterations);
+    bar.begin();
     for (int i = 0; i < iterations; i++) {
-      if (i != 0 && i % 100 == 0) {
-        print(i);
-      }
+      bar.tick();
       StopWatch timer = new StopWatch();
       timer.start();
       int charCount = 0;
@@ -35,6 +35,7 @@ class ScannerBench {
       log("Tokenized ${arguments.length} files (total size = ${charCount}) " +
           "in ${timer.elapsedInMs()}ms (bytes)");
     }
+    bar.end();
   }
 
   int tokenizeOne(String filename) {
@@ -62,4 +63,41 @@ class ScannerBench {
   abstract int getBytes(String filename, void callback(bytes));
   abstract Scanner makeScanner(bytes);
   abstract void checkExistence(String filename);
+}
+
+class ProgressBar {
+  static final String hashes = "##############################################";
+  static final String spaces = "                                              ";
+
+  final String esc;
+  final String up;
+  final String clear;
+  final int total;
+  int ticks = 0;
+
+  ProgressBar(int total) : this.escape(total, new String.fromCharCodes([27]));
+
+  ProgressBar.escape(this.total, int esc)
+    : esc = esc, up = "$esc[1A", clear = "$esc[K";
+
+  void begin() {
+    if (total > 10) {
+      print("[$spaces] 0%");
+      print("$up[${hashes.substring(0, ticks * spaces.length ~/ total)}");
+    }
+  }
+
+  void tick() {
+    if (total > 10 && ticks % 5 == 0) {
+      print("$up$clear[$spaces] ${ticks * 100 ~/ total}%");
+      print("$up[${hashes.substring(0, ticks * spaces.length ~/ total)}");
+    }
+    ++ticks;
+  }
+
+  void end() {
+    if (total > 10) {
+      print("$up$clear[$hashes] 100%");
+    }
+  }
 }

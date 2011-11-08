@@ -5,7 +5,7 @@
 /**
  * A benchmark for the Dart parser.
  */
-class ParserBench extends vm.VmScannerBench {
+class ParserBench extends BaseParserBench {
   Token scanFileNamed(String filename) {
     Token token;
     getBytes(filename, (bytes) {
@@ -33,7 +33,7 @@ class ParserBench extends vm.VmScannerBench {
   }
 
   Listener parseAll(List<String> arguments) {
-    Listener listener = new Listener(new BenchCanceler());
+    Listener listener = new BenchListener();
     for (String argument in arguments) {
       parseFileNamed(argument, listener);
     }
@@ -55,12 +55,14 @@ class ParserBench extends vm.VmScannerBench {
     for (int i = 0; i < 10; i++) {
       timedParseAll(arguments);
     }
-    for (int i = 0; i < 500; i++) {
-      if (i != 0 && i % 100 == 0) {
-        print(i);
-      }
+    final int iterations = 500;
+    ProgressBar bar = new ProgressBar(iterations);
+    bar.begin();
+    for (int i = 0; i < iterations; i++) {
+      bar.tick();
       parseAll(arguments);
     }
+    bar.end();
     for (int i = 0; i < 10; i++) {
       timedParseAll(arguments);
     }
@@ -71,8 +73,30 @@ main() {
   new ParserBench().main(argv);
 }
 
-class BenchCanceler implements Canceler {
-  void cancel([String reason]) {
-    throw reason;
+class BenchListener extends Listener {
+  int aliasCount = 0;
+  int classCount = 0;
+  int interfaceCount = 0;
+  int libraryTagCount = 0;
+  int topLevelMemberCount = 0;
+
+  void beginTopLevelMember(Token token) {
+    topLevelMemberCount++;
+  }
+
+  void beginLibraryTag(Token token) {
+    libraryTagCount++;
+  }
+
+  void beginInterface(Token token) {
+    interfaceCount++;
+  }
+
+  void beginClass(Token token) {
+    classCount++;
+  }
+
+  void beginFunctionTypeAlias(Token token) {
+    aliasCount++;
   }
 }

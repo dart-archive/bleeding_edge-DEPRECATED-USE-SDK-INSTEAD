@@ -16,8 +16,11 @@ class ByteString {
   abstract String get charset();
 
   String toString() {
-    var sublist = new List<int>.fromList(bytes, offset, offset + length);
-    return new String.fromCharCodes(sublist);
+    // var sublist = new List<int>.fromList(bytes, offset, offset + length);
+    // return new String.fromCharCodes(bytes.getRange(offset, length));
+    // TODO(ahe): Figure out how to update the above code to the new
+    // situation (tricky part: use API that works across VM and Frog).
+    return 'error';
   }
 
   bool equals(Object other) {
