@@ -78,6 +78,24 @@ def TestFrog(arch, mode):
           'isolate']
   if flags:
     cmd.append('--flag=' + flags)
+
+  status = subprocess.call(cmd)
+  if status != 0:
+    return status
+
+  print ('@@@BUILD_STEP leg only tests@@@')
+  cmd  = [sys.executable,
+          '../tools/test.py',
+          '--mode=' + testpy_mode,
+          '--component=leg',
+          '--time',
+          '--report',
+          '--progress=buildbot',
+          '-v',
+          'leg_only']
+  if flags:
+    cmd.append('--flag=' + flags)
+
   return subprocess.call(cmd)
 
 def main():
