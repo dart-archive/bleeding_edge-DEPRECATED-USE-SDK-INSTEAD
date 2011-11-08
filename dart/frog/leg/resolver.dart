@@ -64,10 +64,10 @@ class ResolverVisitor implements Visitor<Element> {
   visitFunctionExpression(FunctionExpression node) {
     // TODO(ngeoffray): FunctionExpression is currently a top-level
     // method definition.
-    // TODO(ngeoffray): Handle parameters.
-    if (!node.parameters.nodes.isEmpty()) fail(node);
     Element enclosingElement = visit(node.name);
-    visitIn(node.body, new Scope.enclosing(context, enclosingElement));
+    Scope newScope = new Scope.enclosing(context, enclosingElement);
+    visitIn(node.parameters, newScope);
+    visitIn(node.body, newScope);
     return enclosingElement;
   }
 
@@ -166,13 +166,13 @@ class ResolverVisitor implements Visitor<Element> {
   }
 }
 
-class VariableDefinitionsVisitor implements Visitor<Element> {
+class VariableDefinitionsVisitor implements Visitor<SourceString> {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
 
   VariableDefinitionsVisitor(this.definitions, this.resolver);
 
-  visitSendSet(SendSet node) {
+  SourceString visitSendSet(SendSet node) {
     assert(node.arguments.tail.isEmpty()); // Sanity check
     if (node.receiver !== null) {
       resolver.compiler.unimplemented("receiver on a variable definition");
@@ -180,19 +180,18 @@ class VariableDefinitionsVisitor implements Visitor<Element> {
     Identifier selector = node.selector;
     resolver.visit(node.arguments.head);
 
-    // Visit the selector after visiting the initializer, to not put
-    // the selector in the scope.
-    Element target = visit(node.selector);
-    return target;
+    return visit(node.selector);
   }
 
-  visitIdentifier(Identifier node) {
-    return new Element(node.source, resolver.context.enclosingElement);
+  SourceString visitIdentifier(Identifier node) {
+    return node.source;
   }
 
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
-      Element element = visit(link.head);
+      SourceString name = visit(link.head);
+      Element element = new VariableElement(
+          link.head, definitions.type, name, resolver.context.enclosingElement);
       Element existing = resolver.defineElement(link.head, element);
       if (existing != element) {
         resolver.fail(node, ErrorMessages.duplicateDefinition(link.head));

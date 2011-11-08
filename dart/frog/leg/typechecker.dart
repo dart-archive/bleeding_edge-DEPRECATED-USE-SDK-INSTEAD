@@ -28,7 +28,7 @@ class SimpleType implements Type {
 
   const SimpleType(SourceString this.name,  this.element);
   const SimpleType.named(SourceString name)
-    : this.name = name, this.element = new Element(name);
+    : this.name = name, this.element = new Element(name, null, null);
 
   String toString() => name.toString();
 }

@@ -19,16 +19,43 @@ interface Logger {
   void log(message);
 }
 
+class ElementKind {
+  final String id;
+  const ElementKind(String this.id);
+  static final ElementKind VARIABLE = const ElementKind("variable");
+  static final ElementKind FUNCTION = const ElementKind("function");
+}
+
 class Element implements Hashable {
   final Element enclosingElement;
   final SourceString name;
+  final ElementKind kind;
+
 
   abstract Node parseNode(Canceler canceler, Logger logger);
   abstract Type computeType(Compiler compiler, Types types);
 
-  Element(this.name, [this.enclosingElement]);
+  Element(this.name, this.kind, this.enclosingElement);
 
   int hashCode() => name.hashCode();
+}
+
+class VariableElement extends Element {
+  final Node node;
+  final TypeAnnotation typeAnnotation;
+  Type type;
+
+  VariableElement(Node this.node, TypeAnnotation this.typeAnnotation,
+                  SourceString name, Element enclosingElement)
+    : super(name, ElementKind.VARIABLE, enclosingElement);
+
+  Node parseNode(Canceler canceler, Logger logger) {
+    return node;
+  }
+
+  Type computeType(Compiler compiler, Types types) {
+    return getType(typeAnnotation, types);
+  }
 }
 
 /**
@@ -48,7 +75,8 @@ Type getType(TypeAnnotation annotation, types) {
 class FunctionElement extends Element {
   Type type;
 
-  FunctionElement(SourceString name) : super(name);
+  // TODO(nogeoffray): set the enclosingElement.
+  FunctionElement(SourceString name) : super(name, ElementKind.FUNCTION, null);
 
   FunctionType computeType(Compiler compiler, types) {
     if (type != null) return type;

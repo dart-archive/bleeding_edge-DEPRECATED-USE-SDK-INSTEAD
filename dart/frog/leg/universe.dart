@@ -9,7 +9,8 @@ class Universe {
   Map<Element, String> generatedCode;
 
   Universe() : elements = {}, generatedCode = {},
-               scope = new Element(const SourceString('global scope'));
+               scope = new Element(const SourceString('global scope'),
+                                   null, null);
 
   Element find(SourceString name) {
     return elements[name];

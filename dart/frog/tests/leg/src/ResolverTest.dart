@@ -18,23 +18,38 @@ class LoggerCanceler implements Logger, Canceler {
   }
 }
 
-Node parse(String text) {
+Token scan(String text) => new StringScanner(text).tokenize();
+
+Node parseBodyCode(String text, Function parseFunction) {
   Token tokens = scan(text);
   LoggerCanceler lc = new LoggerCanceler();
   BodyListener listener = new BodyListener(lc, lc);
   BodyParser parser = new BodyParser(listener);
-  Token endToken = parser.parseOptionallyInitializedIdentifier(tokens);
+  Token endToken = parseFunction(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
   return listener.popNode();
 }
 
-Token scan(String text) => new StringScanner(text).tokenize();
+Node parseStatement(String text) =>
+  parseBodyCode(text, (parser, tokens) => parser.parseStatement(tokens));
 
-buildIdentifier(String name) {
-  return new Identifier(scan(name));
+Node parseFunction(String text, Compiler compiler) {
+  Token tokens = scan(text);
+  Listener listener = new ElementListener(compiler);
+  Parser parser = new Parser(listener);
+  parser.parseUnit(tokens);
+  Element element = listener.topLevelElements.head;
+  Expect.equals(ElementKind.FUNCTION, element.kind);
+  compiler.universe.define(element);
+  return element.parseNode(compiler, compiler);
 }
 
-buildInitialization(String name) => parse('$name = 1');
+Node buildIdentifier(String name) => new Identifier(scan(name));
+
+Node buildInitialization(String name) =>
+  parseBodyCode('$name = 1',
+      (parser, tokens) => parser.parseOptionallyInitializedIdentifier(tokens));
+
 
 createLocals(List variables) {
   var locals = [];
@@ -67,23 +82,13 @@ testLocals(List variables) {
   }
 }
 
-
-createStatement(String text) {
-  Token tokens = scan(text);
-  LoggerCanceler lc = new LoggerCanceler();
-  BodyListener listener = new BodyListener(lc, lc);
-  BodyParser parser = new BodyParser(listener);
-  Token endToken = parser.parseStatement(tokens);
-  assert(endToken.kind == EOF_TOKEN);
-  return listener.popNode();
-}
-
 main() {
   testLocalsOne();
   testLocalsTwo();
   testLocalsThree();
   testLocalsFour();
   testLocalsFive();
+  testParametersOne();
 }
 
 testLocalsOne() {
@@ -111,7 +116,7 @@ testLocalsOne() {
 
 testLocalsTwo() {
   ResolverVisitor visitor = new ResolverVisitor(new Compiler(null));
-  Node tree = createStatement("if (true) { var a = 1; var b = 2; }");
+  Node tree = parseStatement("if (true) { var a = 1; var b = 2; }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
   Expect.equals(0, visitor.context.elements.length);
@@ -123,7 +128,7 @@ testLocalsTwo() {
 
 testLocalsThree() {
   ResolverVisitor visitor = new ResolverVisitor(new Compiler(null));
-  Node tree = createStatement("{ var a = 1; if (true) { a; } }");
+  Node tree = parseStatement("{ var a = 1; if (true) { a; } }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
   Expect.equals(0, visitor.context.elements.length);
@@ -134,7 +139,7 @@ testLocalsThree() {
 
 testLocalsFour() {
   ResolverVisitor visitor = new ResolverVisitor(new Compiler(null));
-  Node tree = createStatement("{ var a = 1; if (true) { var a = 1; } }");
+  Node tree = parseStatement("{ var a = 1; if (true) { var a = 1; } }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
   Expect.equals(0, visitor.context.elements.length);
@@ -146,7 +151,7 @@ testLocalsFour() {
 testLocalsFive() {
   ResolverVisitor visitor = new ResolverVisitor(new Compiler(null));
   Node tree =
-      createStatement("if (true) { var a = 1; a; } else { var a = 2; a;}");
+      parseStatement("if (true) { var a = 1; a; } else { var a = 2; a;}");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
   Expect.equals(0, visitor.context.elements.length);
@@ -164,4 +169,22 @@ testLocalsFive() {
 
   Expect.notEquals(visitor.mapping[def1], visitor.mapping[def2]);
   Expect.notEquals(visitor.mapping[id1], visitor.mapping[id2]);
+}
+
+testParametersOne() {
+  Compiler compiler = new Compiler(null);
+  ResolverVisitor visitor = new ResolverVisitor(compiler);
+  Node tree = parseFunction("void foo(int a) { return a; }", compiler);
+  Element element = visitor.visit(tree);
+  Expect.equals(ElementKind.FUNCTION, element.kind);
+
+  // Check that an element has been created for the parameter.
+  Node param = tree.parameters.nodes.head.definitions.nodes.head;
+  Expect.equals(ElementKind.VARIABLE, visitor.mapping[param].kind);
+
+  // Check that 'a' in 'return a' is resolved to the parameter.
+  Return ret = tree.body.statements.nodes.head;
+  Identifier use = ret.expression;
+  Expect.equals(ElementKind.VARIABLE, visitor.mapping[use].kind);
+  Expect.equals(visitor.mapping[param], visitor.mapping[use]);
 }
