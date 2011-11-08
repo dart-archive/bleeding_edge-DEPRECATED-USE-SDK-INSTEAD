@@ -2,6 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('util_implementation');
-#import('util.dart');
-#source('util/link_implementation.dart');
+#library('util');
+#import('util_implementation.dart');
+#source('link.dart');

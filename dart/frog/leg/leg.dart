@@ -11,7 +11,7 @@
 #import('scanner_implementation.dart');
 #import('ssa/ssa.dart');
 #import('tree.dart');
-#import('util.dart');
+#import('util/util.dart');
 
 #source('compiler.dart');
 #source('resolver.dart');

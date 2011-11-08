@@ -5,6 +5,6 @@
 #library('tree');
 // TODO(ahe): Move Token to scanner.dart.
 #import('scanner.dart');
-#import('util.dart');
+#import('util/util.dart');
 #source('tree/nodes.dart');
 #source('tree/unparser.dart');

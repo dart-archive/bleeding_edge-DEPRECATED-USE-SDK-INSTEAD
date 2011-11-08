@@ -8,7 +8,7 @@
 #import('../leg.dart');
 #import('../scanner.dart');
 #import('../tree.dart');
-#import('../util.dart');
+#import('../util/util.dart');
 
 #source('builder.dart');
 #source('codegen.dart');

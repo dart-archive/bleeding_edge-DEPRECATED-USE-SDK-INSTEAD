@@ -7,7 +7,7 @@
 #import('../tree.dart');
 #import('../scanner.dart');
 #import('../leg.dart');  // TODO(karlklose): we only need type.
-#import('../util.dart');
+#import('../util/util.dart');
 
 // TODO(ahe): Better name, better abstraction...
 interface Canceler {
