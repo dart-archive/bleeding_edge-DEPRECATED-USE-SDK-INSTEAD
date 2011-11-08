@@ -5,7 +5,7 @@
 #library('scanner');
 #import('scanner_implementation.dart');
 #import('util/util.dart');
-#import('tree.dart');
+#import('tree/tree.dart');
 #import('elements/elements.dart');
 #source('scanner/scanner.dart');
 #source('scanner/parser.dart');

@@ -7,7 +7,7 @@
 #import('../elements/elements.dart');
 #import('../leg.dart');
 #import('../scanner.dart');
-#import('../tree.dart');
+#import('../tree/tree.dart');
 #import('../util/util.dart');
 
 #source('builder.dart');

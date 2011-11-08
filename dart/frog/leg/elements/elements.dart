@@ -4,7 +4,7 @@
 
 #library('elements');
 
-#import('../tree.dart');
+#import('../tree/tree.dart');
 #import('../scanner.dart');
 #import('../leg.dart');  // TODO(karlklose): we only need type.
 #import('../util/util.dart');

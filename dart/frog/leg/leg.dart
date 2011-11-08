@@ -10,7 +10,7 @@
 #import('scanner.dart');
 #import('scanner_implementation.dart');
 #import('ssa/ssa.dart');
-#import('tree.dart');
+#import('tree/tree.dart');
 #import('util/util.dart');
 
 #source('compiler.dart');
