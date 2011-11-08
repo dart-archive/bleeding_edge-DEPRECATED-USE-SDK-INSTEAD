@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 #import('../lang.dart');
+#import('../file_system_node.dart');
 
 /** Path to starting library or application. */
 final libPath = '../client/samples/swarm/swarm.dart';
@@ -33,9 +34,10 @@ Map<String, Map<int, String>> _comments;
  */
 void main() {
   // TODO(rnystrom): Get options and homedir like frog.dart does.
-  parseOptions('.', []);
+  final files = new NodeFileSystem();
+  parseOptions('.', [] /* args */, files);
 
-  initializeWorld(new FileSystem(corePath));
+  initializeWorld(files);
 
   world.withTiming('parsed', () {
     world.processScript(libPath);
@@ -92,9 +94,13 @@ docLibrary(Library library) {
   startFile();
   writeln('<html><head><title>${library.name}</title></head>');
   writeln('<body>');
-  writeln('<h1>${library.name}</h1>');
+  writeln('<h1>Library ${library.name}</h1>');
 
   for (var type in library.types.getValues()) {
+    // TODO(rnystrom): The unnamed type is the container of top-level
+    // definitions. Should eventually include those in generated docs.
+    if (type.name == null) continue;
+
     docType(type);
   }
 
@@ -106,30 +112,72 @@ docLibrary(Library library) {
 }
 
 docType(Type type) {
-  write('<h2><code>${type.isClass ? "class" : "interface"} ${type.name}');
-  if (type.parent != null) {
-    writeln(' extends ${typeToHtml(type.parent)}');
-  }
-  writeln('</code></h2>');
+  write('<h2 id="${type.name}">${type.isClass ? "Class" : "Interface"} ');
+  write('${type.name}</h2>');
 
   writeComment(type.span);
+
+  // Show the superclass and superinterface(s).
+  if (type.parent != null ||
+      (type.interfaces != null && type.interfaces.length > 0)) {
+    writeln('<h3>Inheritance</h3>');
+    writeln('<p>');
+
+    if (type.parent != null) {
+      write('Extends ${typeRef(type.parent)}. ');
+    }
+
+    if (type.interfaces != null) {
+      var interfaces = [];
+      switch (type.interfaces.length) {
+        case 0:
+          // Do nothing.
+          break;
+
+        case 1:
+          write('Implements ${typeRef(type.interfaces[0])}.');
+          break;
+
+        case 2:
+          write('''Implements ${typeRef(type.interfaces[0])} and
+              ${typeRef(type.interfaces[1])}.''');
+          break;
+
+        default:
+          write('Implements ');
+          for (var i = 0; i < type.interfaces.length; i++) {
+            write('${typeRef(type.interfaces[i])}');
+            if (i < type.interfaces.length - 1) {
+              write(', ');
+            } else {
+              write(' and ');
+            }
+          }
+          write('.');
+          break;
+        }
+      }
+    }
 
   writeln('<h3>Constructors</h3>');
   writeln('<dl>');
   for (var name in type.constructors.getKeys()) {
     var constructor = type.constructors[name];
-    docMethod(constructor, name);
+    docMethod(constructor, namedConstructor: name);
   }
   writeln('</dl>');
 
-  writeln('<h3>Methods</h3>');
+  writeln('<h3>Members</h3>');
   writeln('<dl>');
-  // TODO(jimhug): Sort how?
-  for (var member in type.members.getValues()) {
-    if (!member.isMethod) continue;
-    if (member.definition == null) continue; // Skip synthetics
-    if (member.name.startsWith('_')) continue; // Skip privates
-    docMethod(member, false);
+  for (var member in orderValuesByKeys(type.members)) {
+    if (member.isMethod &&
+        (member.definition != null) &&
+        !member.name.startsWith('_')) {
+      docMethod(member);
+    } else if (member.isProperty) {
+      if (member.canGet) docMethod(member.getter);
+      if (member.canSet) docMethod(member.setter);
+    }
   }
   writeln('</dl>');
 
@@ -143,25 +191,48 @@ docType(Type type) {
   writeln('</dl>');
 }
 
-docMethod(MethodMember method, String constructorName) {
+docMethod(MethodMember method, [String namedConstructor = null]) {
   write('<dt><code>');
-  if (constructorName == null) {
-    write(typeToHtml(method.returnType));
-    write(' ');
+
+  if (method.isStatic) {
+    write('static ');
   }
-  write(method.name);
+
+  if (namedConstructor == null) {
+    write(optionalTypeRef(method.returnType));
+  }
+
+  // Translate specially-named methods: getters, setters, operators.
+  var name = method.name;
+  if (name.startsWith('get\$')) {
+    // Getter.
+    name = 'get ${name.substring(4)}';
+  } else if (name.startsWith('set\$')) {
+    // Setter.
+    name = 'set ${name.substring(4)}';
+  } else {
+    // See if it's an operator.
+    name = TokenKind.rawOperatorFromMethod(name);
+    if (name == null) {
+      name = method.name;
+    } else {
+      name = 'operator $name';
+    }
+  }
+
+  write(name);
 
   // Named constructors.
-  if (constructorName != null && constructorName != '') {
+  if (namedConstructor != null && namedConstructor != '') {
     write('.');
-    write(constructorName);
+    write(namedConstructor);
   }
 
   write('(');
   var paramList = [];
   if (method.parameters == null) print(method.name);
   for (var p in method.parameters) {
-    paramList.add('${typeToHtml(p.type)} ${p.name}');
+    paramList.add('${optionalTypeRef(p.type)}${p.name}');
   }
   write(Strings.join(paramList, ", "));
   write(')');
@@ -173,15 +244,44 @@ docMethod(MethodMember method, String constructorName) {
 
 docField(FieldMember field) {
   write('<dt><code>');
-  write(typeToHtml(field.type));
-  write(' ${field.name}');
+  if (field.isStatic) {
+    write('static ');
+  }
+
+  if (field.isFinal) {
+    write('final ');
+  } else if (field.type.name == 'Dynamic') {
+    write('var ');
+  }
+
+  write(optionalTypeRef(field.type));
+  write('${field.name}');
   write('</code></dt><dd>');
 
   writeComment(field.span);
   writeln('</dd>');
 }
 
-typeToHtml(Type type) => '<span class="type">${type.name}</span>';
+typeRef(Type type) {
+  if (type.library != null) {
+    var library = sanitize(type.library.name);
+    return '<a href="${library}.html#${type.name}">${type.name}</a>';
+  } else {
+    return type.name;
+  }
+}
+
+/**
+ * Creates a linked string for an optional type annotation. Returns an empty
+ * string if the type is Dynamic.
+ */
+optionalTypeRef(Type type) {
+  if (type.name == 'Dynamic') {
+    return '';
+  } else {
+    return typeRef(type) + ' ';
+  }
+}
 
 writeComment(SourceSpan span) {
   var comment = findComment(span);
