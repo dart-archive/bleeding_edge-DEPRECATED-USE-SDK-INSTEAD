@@ -3316,12 +3316,11 @@ ArrayBasedScanner$SourceString.prototype.tokenizeMultiLineString = function(q, s
 function LinkFactory() {}
 LinkFactory.Link$factory = function(head, tail) {
   var $0;
-  return new LinkEntry(head, (($0 = $notnull_bool((tail == null)) ? const$228/*const EmptyLink<DeclarationBuilder>()*/ : tail) && $0.is$Link$T()));
+  return new LinkEntry(head, (($0 = $notnull_bool((tail == null)) ? const$228/*const EmptyLink()*/ : tail) && $0.is$Link$T()));
 }
 // ********** Code for AbstractLink **************
 function AbstractLink() {}
 AbstractLink.prototype.is$Link = function(){return this;};
-AbstractLink.prototype.is$Link$DeclarationBuilder = function(){return this;};
 AbstractLink.prototype.is$Link$Element = function(){return this;};
 AbstractLink.prototype.is$Link$Node = function(){return this;};
 AbstractLink.prototype.is$Link$T = function(){return this;};
@@ -3364,7 +3363,6 @@ AbstractLink.prototype.printOn$1 = function($0) {
 function AbstractLink$T() {}
 $inherits(AbstractLink$T, AbstractLink);
 AbstractLink$T.prototype.is$Link = function(){return this;};
-AbstractLink$T.prototype.is$Link$DeclarationBuilder = function(){return this;};
 AbstractLink$T.prototype.is$Link$Element = function(){return this;};
 AbstractLink$T.prototype.is$Link$Node = function(){return this;};
 AbstractLink$T.prototype.is$Link$T = function(){return this;};
@@ -3379,7 +3377,6 @@ function LinkTail() {
 }
 $inherits(LinkTail, AbstractLink$T);
 LinkTail.prototype.is$Link = function(){return this;};
-LinkTail.prototype.is$Link$DeclarationBuilder = function(){return this;};
 LinkTail.prototype.is$Link$Element = function(){return this;};
 LinkTail.prototype.is$Link$Node = function(){return this;};
 LinkTail.prototype.is$Link$T = function(){return this;};
@@ -3397,37 +3394,12 @@ LinkTail.prototype.toList = function() {
 LinkTail.prototype.isEmpty = function() {
   return true;
 }
-// ********** Code for LinkTail$DeclarationBuilder **************
-function LinkTail$DeclarationBuilder() {
-  // Initializers done
-}
-$inherits(LinkTail$DeclarationBuilder, LinkTail);
-LinkTail$DeclarationBuilder.prototype.is$Link = function(){return this;};
-LinkTail$DeclarationBuilder.prototype.is$Link$DeclarationBuilder = function(){return this;};
-LinkTail$DeclarationBuilder.prototype.is$Link$Element = function(){return this;};
-LinkTail$DeclarationBuilder.prototype.is$Link$Node = function(){return this;};
-LinkTail$DeclarationBuilder.prototype.is$Link$T = function(){return this;};
-LinkTail$DeclarationBuilder.prototype.is$Link$Type = function(){return this;};
-LinkTail$DeclarationBuilder.prototype.is$Iterable = function(){return this;};
-// ********** Code for LinkTail$Element **************
-function LinkTail$Element() {
-  // Initializers done
-}
-$inherits(LinkTail$Element, LinkTail);
-LinkTail$Element.prototype.is$Link = function(){return this;};
-LinkTail$Element.prototype.is$Link$DeclarationBuilder = function(){return this;};
-LinkTail$Element.prototype.is$Link$Element = function(){return this;};
-LinkTail$Element.prototype.is$Link$Node = function(){return this;};
-LinkTail$Element.prototype.is$Link$T = function(){return this;};
-LinkTail$Element.prototype.is$Link$Type = function(){return this;};
-LinkTail$Element.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$Node **************
 function LinkTail$Node() {
   // Initializers done
 }
 $inherits(LinkTail$Node, LinkTail);
 LinkTail$Node.prototype.is$Link = function(){return this;};
-LinkTail$Node.prototype.is$Link$DeclarationBuilder = function(){return this;};
 LinkTail$Node.prototype.is$Link$Element = function(){return this;};
 LinkTail$Node.prototype.is$Link$Node = function(){return this;};
 LinkTail$Node.prototype.is$Link$T = function(){return this;};
@@ -3472,8 +3444,8 @@ function LinkBuilderImplementation() {
 LinkBuilderImplementation.prototype.get$head = function() { return this.head; };
 LinkBuilderImplementation.prototype.set$head = function(value) { return this.head = value; };
 LinkBuilderImplementation.prototype.toLink = function() {
-  if ($notnull_bool(this.head == null)) return const$228/*const EmptyLink<DeclarationBuilder>()*/;
-  this.lastLink.realTail = const$228/*const EmptyLink<DeclarationBuilder>()*/;
+  if ($notnull_bool(this.head == null)) return const$228/*const EmptyLink()*/;
+  this.lastLink.realTail = const$228/*const EmptyLink()*/;
   var link = this.head;
   this.lastLink = null;
   this.head = null;
@@ -5208,7 +5180,7 @@ Parser.prototype.parseNamedFunctionAlias = function(token) {
 }
 Parser.prototype.parseReturnTypeOpt = function(token) {
   if ($notnull_bool(token.get$stringValue() === 'void')) {
-    this.listener.voidType(token);
+    this.listener.handleVoidKeyword(token);
     return this.next(token);
   }
   else {
@@ -5336,10 +5308,10 @@ Parser.prototype.parseString = function(token) {
 }
 Parser.prototype.parseIdentifier = function(token) {
   if ($notnull_bool(this.isIdentifier(token))) {
-    this.listener.identifier(token);
+    this.listener.handleIdentifier(token);
   }
   else {
-    this.listener.notIdentifier(token);
+    this.listener.expectedIdentifier(token);
   }
   return this.next(token);
 }
@@ -5450,11 +5422,12 @@ Parser.prototype.parseTopLevelMember = function(token) {
     }
   }
   token = this.parseIdentifier(previous);
+  var isField;
   if ($notnull_bool(this.optional('(', token))) {
-    this.listener.topLevelMethod(start);
+    isField = false;
   }
   else if ($notnull_bool(this.optional('=', token) || this.optional(';', token))) {
-    this.listener.topLevelField(start);
+    isField = true;
   }
   else {
     token = this.listener.unexpected(token);
@@ -5465,7 +5438,12 @@ Parser.prototype.parseTopLevelMember = function(token) {
   if ($notnull_bool(!$notnull_bool(this.optional(';', token)))) {
     token = this.skipBlock(token);
   }
-  this.listener.endTopLevelMember(token);
+  if ($notnull_bool(isField)) {
+    this.listener.endTopLevelField(start, token);
+  }
+  else {
+    this.listener.endTopLevelMethod(start, token);
+  }
   return token.next;
 }
 Parser.prototype.parseLibraryTags = function(token) {
@@ -5553,13 +5531,13 @@ BodyParser.prototype.expectSemicolon = function(token) {
 BodyParser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement(begin);
-  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 403, 12);
+  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 408, 12);
   token = this.parseExpression(this.next(token));
   this.listener.endReturnStatement(true, begin, token);
   return this.expectSemicolon(token);
 }
 BodyParser.prototype.parseExpressionStatementOrDeclaration = function(token) {
-  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 410, 12);
+  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 415, 12);
   var peek1 = this.next(token);
   if ($notnull_bool(peek1.kind === 97/*null.IDENTIFIER_TOKEN*/)) {
     return this.parseLocalDeclaration(token, peek1);
@@ -5608,7 +5586,7 @@ BodyParser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 BodyParser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 463, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 468, 12);
   token = this.parsePrimary(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = tokenLevel;
@@ -5873,7 +5851,7 @@ BodyParser.prototype.parseArgumentsOpt = function(token) {
 BodyParser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 596, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 601, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments(argumentCount, begin, token.next);
@@ -6111,7 +6089,10 @@ Listener.prototype.endRethrowStatement = function(throwToken, endToken) {
 Listener.prototype.beginTopLevelMember = function(token) {
 
 }
-Listener.prototype.endTopLevelMember = function(token) {
+Listener.prototype.endTopLevelField = function(beginToken, endToken) {
+
+}
+Listener.prototype.endTopLevelMethod = function(beginToken, endToken) {
 
 }
 Listener.prototype.endType = function(token) {
@@ -6147,6 +6128,9 @@ Listener.prototype.handleBinaryExpression = function(token) {
 Listener.prototype.handleConditionalExpression = function(question, colon) {
 
 }
+Listener.prototype.handleIdentifier = function(token) {
+
+}
 Listener.prototype.handleLiteralBool = function(token) {
 
 }
@@ -6171,16 +6155,7 @@ Listener.prototype.handleNoTypeVariables = function(token) {
 Listener.prototype.handleVarKeyword = function(token) {
 
 }
-Listener.prototype.identifier = function(token) {
-
-}
-Listener.prototype.topLevelField = function(token) {
-
-}
-Listener.prototype.topLevelMethod = function(token) {
-
-}
-Listener.prototype.voidType = function(token) {
+Listener.prototype.handleVoidKeyword = function(token) {
 
 }
 Listener.prototype.expected = function(string, token) {
@@ -6189,7 +6164,7 @@ Listener.prototype.expected = function(string, token) {
 Listener.prototype.unexpectedEof = function() {
   $throw(new ParserError("Unexpected end of file"));
 }
-Listener.prototype.notIdentifier = function(token) {
+Listener.prototype.expectedIdentifier = function(token) {
   $throw(new ParserError(("Expected identifier, but got '" + token + "' @ ") + ("" + token.charOffset + "")));
 }
 Listener.prototype.expectedType = function(token) {
@@ -6209,76 +6184,33 @@ function ParserError(reason) {
 // ********** Code for ElementListener **************
 function ElementListener(canceler) {
   this.previousIdentifier = null
+  this.nodes = const$228/*const EmptyLink()*/
+  this.topLevelElements = const$228/*const EmptyLink()*/
   this.canceler = canceler;
-  this.builders = const$228/*const EmptyLink<DeclarationBuilder>()*/;
-  this.topLevelElements = const$228/*const EmptyLink<DeclarationBuilder>()*/;
   // Initializers done
 }
 $inherits(ElementListener, Listener);
 ElementListener.prototype.beginLibraryTag = function(token) {
   this.canceler.cancel("Cannot handle library tags");
 }
-ElementListener.prototype.beginClass = function(token) {
-  this.push(token, this.get$buildClassElement());
-}
-ElementListener.prototype.buildClassElement = function(declaration) {
+ElementListener.prototype.endClass = function(token) {
   this.canceler.cancel("Cannot handle classes");
 }
-ElementListener.prototype.get$buildClassElement = function() {
-  return ElementListener.prototype.buildClassElement.bind(this);
-}
-ElementListener.prototype.endClass = function(token) {
-  this.handleDeclaration(this.pop(), token);
-}
-ElementListener.prototype.beginInterface = function(token) {
-  this.push(token, this.get$buildInterfaceElement());
-}
-ElementListener.prototype.buildInterfaceElement = function(declaration) {
+ElementListener.prototype.endInterface = function(token) {
   this.canceler.cancel("Cannot handle interfaces");
 }
-ElementListener.prototype.get$buildInterfaceElement = function() {
-  return ElementListener.prototype.buildInterfaceElement.bind(this);
-}
-ElementListener.prototype.endInterface = function(token) {
-  this.handleDeclaration(this.pop(), token);
-}
-ElementListener.prototype.beginFunctionTypeAlias = function(token) {
-  this.push(token, this.get$buildFunctionTypeAliasElement());
-}
-ElementListener.prototype.buildFunctionTypeAliasElement = function(declaration) {
+ElementListener.prototype.endFunctionTypeAlias = function(token) {
   this.canceler.cancel("Cannot handle typedefs");
 }
-ElementListener.prototype.get$buildFunctionTypeAliasElement = function() {
-  return ElementListener.prototype.buildFunctionTypeAliasElement.bind(this);
+ElementListener.prototype.endTopLevelMethod = function(beginToken, endToken) {
+  var name = this.popNode();
+  this.pushElement(new PartialFunctionElement(name.get$source(), beginToken, endToken));
 }
-ElementListener.prototype.endFunctionTypeAlias = function(token) {
-  this.handleDeclaration(this.pop(), token);
-}
-ElementListener.prototype.topLevelMethod = function(token) {
-  this.push(token, this.get$buildMethod());
-  this.builders.get$head().name = this.previousIdentifier.get$source();
-}
-ElementListener.prototype.buildMethod = function(declaration) {
-  return new PartialFunctionElement(declaration.name, declaration.beginToken, declaration.endToken);
-}
-ElementListener.prototype.get$buildMethod = function() {
-  return ElementListener.prototype.buildMethod.bind(this);
-}
-ElementListener.prototype.topLevelField = function(token) {
-  this.push(token, this.get$buildField());
-  this.builders.get$head().name = this.previousIdentifier.get$source();
-}
-ElementListener.prototype.buildField = function(declaration) {
+ElementListener.prototype.endTopLevelField = function(beginToken, endToken) {
   this.canceler.cancel("Cannot handle fields");
 }
-ElementListener.prototype.get$buildField = function() {
-  return ElementListener.prototype.buildField.bind(this);
-}
-ElementListener.prototype.endTopLevelMember = function(token) {
-  this.handleDeclaration(this.pop(), token);
-}
-ElementListener.prototype.identifier = function(token) {
-  this.previousIdentifier = new Identifier(token);
+ElementListener.prototype.handleIdentifier = function(token) {
+  this.pushNode(new Identifier(token));
 }
 ElementListener.prototype.expected = function(string, token) {
   this.canceler.cancel(("Expected '" + string + "', but got '" + token + "' ") + ("@ " + token.charOffset + ""));
@@ -6286,7 +6218,7 @@ ElementListener.prototype.expected = function(string, token) {
 ElementListener.prototype.unexpectedEof = function() {
   this.canceler.cancel("Unexpected end of file");
 }
-ElementListener.prototype.notIdentifier = function(token) {
+ElementListener.prototype.expectedIdentifier = function(token) {
   this.canceler.cancel(("Expected identifier, but got '" + token + "' ") + ("@ " + token.charOffset + ""));
 }
 ElementListener.prototype.expectedType = function(token) {
@@ -6298,45 +6230,28 @@ ElementListener.prototype.expectedBlock = function(token) {
 ElementListener.prototype.unexpected = function(token) {
   this.canceler.cancel(("Unexpected token '" + token + "' @ " + token.charOffset + ""));
 }
-ElementListener.prototype.push = function(token, builder) {
-  var $0;
-  this.builders = (($0 = this.builders.prepend(new DeclarationBuilder(token, builder))) && $0.is$Link$DeclarationBuilder());
-}
-ElementListener.prototype.addElement = function(element) {
+ElementListener.prototype.pushElement = function(element) {
   var $0;
   this.topLevelElements = (($0 = this.topLevelElements.prepend(element)) && $0.is$Link$Element());
 }
-ElementListener.prototype.pop = function() {
+ElementListener.prototype.pushNode = function(node) {
   var $0;
-  var declaration = this.builders.get$head();
-  this.builders = (($0 = this.builders.get$tail()) && $0.is$Link$DeclarationBuilder());
-  return declaration;
+  this.nodes = (($0 = this.nodes.prepend(node)) && $0.is$Link$Node());
+  this.log(("push " + this.nodes + ""));
 }
-ElementListener.prototype.handleDeclaration = function(declaration, token) {
-  declaration.endToken = token;
-  declaration.endToken = token;
-  this.addElement(declaration.build());
+ElementListener.prototype.popNode = function() {
+  var $0;
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 312, 12);
+  var node = this.nodes.get$head();
+  this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link$Node());
+  this.log(("pop " + this.nodes + ""));
+  return node;
 }
-ElementListener.prototype.voidType = function(token) {
+ElementListener.prototype.log = function(message) {
 
-}
-ElementListener.prototype.handleVarKeyword = function(token) {
-
-}
-// ********** Code for DeclarationBuilder **************
-function DeclarationBuilder(beginToken, builderFunction) {
-  this.beginToken = beginToken;
-  this.builderFunction = builderFunction;
-  // Initializers done
-}
-DeclarationBuilder.prototype.get$name = function() { return this.name; };
-DeclarationBuilder.prototype.set$name = function(value) { return this.name = value; };
-DeclarationBuilder.prototype.build = function() {
-  return (this.builderFunction)(this);
 }
 // ********** Code for BodyListener **************
 function BodyListener(canceler, logger) {
-  this.nodes = const$228/*const EmptyLink<DeclarationBuilder>()*/
   this.logger = logger;
   ElementListener.call(this, canceler);
   // Initializers done
@@ -6406,10 +6321,7 @@ BodyListener.prototype.endSend = function(token) {
   var selector = this.popNode();
   this.pushNode(new Send(null, selector, arguments));
 }
-BodyListener.prototype.identifier = function(token) {
-  this.pushNode(new Identifier(token));
-}
-BodyListener.prototype.voidType = function(token) {
+BodyListener.prototype.handleVoidKeyword = function(token) {
   this.pushNode(new TypeAnnotation(new Identifier(token)));
 }
 BodyListener.prototype.endFunctionBody = function(count, beginToken, endToken) {
@@ -6463,27 +6375,17 @@ BodyListener.prototype.endThrowStatement = function(throwToken, endToken) {
 BodyListener.prototype.endRethrowStatement = function(throwToken, endToken) {
   this.pushNode(new Throw(null, throwToken, endToken));
 }
-BodyListener.prototype.pushNode = function(node) {
-  var $0;
-  this.nodes = (($0 = this.nodes.prepend(node)) && $0.is$Link$Node());
-  this.logger.log(("push " + this.nodes + ""));
-}
-BodyListener.prototype.popNode = function() {
-  var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 557, 12);
-  var node = this.nodes.get$head();
-  this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link$Node());
-  this.logger.log(("pop " + this.nodes + ""));
-  return node;
-}
 BodyListener.prototype.makeNodeList = function(count, beginToken, endToken, delimiter) {
   var $0;
-  var nodes = const$228/*const EmptyLink<DeclarationBuilder>()*/;
+  var nodes = const$228/*const EmptyLink()*/;
   for (; $notnull_bool(count > 0); --count) {
     nodes = (($0 = nodes.prepend(this.popNode())) && $0.is$Link$Node());
   }
   var sourceDelimiter = $notnull_bool((delimiter == null)) ? null : new StringWrapper(delimiter);
   return new NodeList(beginToken, nodes, endToken, sourceDelimiter);
+}
+BodyListener.prototype.log = function(message) {
+  this.logger.log(message);
 }
 // ********** Code for PartialFunctionElement **************
 function PartialFunctionElement(name, beginToken, endToken) {
@@ -19523,7 +19425,7 @@ var const$219 = new Keyword("typedef", true)/*const Keyword("typedef", true)*/;
 var const$221 = new IllegalAccessException()/*const IllegalAccessException()*/;
 var const$224 = new StringWrapper('EOF')/*const SourceString('EOF')*/;
 var const$227 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
-var const$228 = new LinkTail()/*const EmptyLink<DeclarationBuilder>()*/;
+var const$228 = new LinkTail()/*const EmptyLink()*/;
 var const$229 = new ElementKind("function")/*const ElementKind("function")*/;
 var const$231 = new ImmutableMap([])/*const {}*/;
 var const$232 = new StringWrapper('print')/*const SourceString('print')*/;

@@ -4,8 +4,8 @@
 
 #library('node_scanner_bench');
 #import('../../lib/node/node.dart');
-#import('../scanner.dart');
-#import('../scanner_implementation.dart');
+#import('scannerlib.dart');
+#import('scanner_implementation.dart');
 #import('scanner_bench.dart');
 #source('byte_strings.dart');
 #source('byte_array_scanner.dart');

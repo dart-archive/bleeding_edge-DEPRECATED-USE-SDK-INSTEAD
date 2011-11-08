@@ -72,7 +72,7 @@ class Parser<L extends Listener> {
 
   Token parseReturnTypeOpt(Token token) {
     if (token.stringValue === 'void') {
-      listener.voidType(token);
+      listener.handleVoidKeyword(token);
       return next(token);
     } else {
       return parseTypeOpt(token);
@@ -191,9 +191,9 @@ class Parser<L extends Listener> {
 
   Token parseIdentifier(Token token) {
     if (isIdentifier(token)) {
-      listener.identifier(token);
+      listener.handleIdentifier(token);
     } else {
-      listener.notIdentifier(token);
+      listener.expectedIdentifier(token);
     }
     return next(token);
   }
@@ -305,10 +305,11 @@ class Parser<L extends Listener> {
       }
     }
     token = parseIdentifier(previous);
+    bool isField;
     if (optional('(', token)) {
-      listener.topLevelMethod(start);
+      isField = false;
     } else if (optional('=', token) || optional(';', token)) {
-      listener.topLevelField(start);
+      isField = true;
     } else {
       token = listener.unexpected(token);
     }
@@ -320,7 +321,11 @@ class Parser<L extends Listener> {
     if (!optional(';', token)) {
       token = skipBlock(token);
     }
-    listener.endTopLevelMember(token);
+    if (isField) {
+      listener.endTopLevelField(start, token);
+    } else {
+      listener.endTopLevelMethod(start, token);
+    }
     return token.next;
   }
 

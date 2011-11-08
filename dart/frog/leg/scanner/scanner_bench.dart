@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('scanner_bench');
-#import('../scanner.dart');
-#import('../scanner_implementation.dart');
+#import('scannerlib.dart');
+#import('scanner_implementation.dart');
 #source('source_list.dart');
 
 /**

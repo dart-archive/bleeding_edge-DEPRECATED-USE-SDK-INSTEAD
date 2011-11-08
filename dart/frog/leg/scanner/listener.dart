@@ -121,7 +121,10 @@ class Listener {
   void beginTopLevelMember(Token token) {
   }
 
-  void endTopLevelMember(Token token) {
+  void endTopLevelField(Token beginToken, Token endToken) {
+  }
+
+  void endTopLevelMethod(Token beginToken, Token endToken) {
   }
 
   void endType(Token token) {
@@ -160,6 +163,9 @@ class Listener {
   void handleConditionalExpression(Token question, Token colon) {
   }
 
+  void handleIdentifier(Token token) {
+  }
+
   void handleLiteralBool(Token token) {
   }
 
@@ -184,16 +190,7 @@ class Listener {
   void handleVarKeyword(Token token) {
   }
 
-  void identifier(Token token) { // TODO(ahe): Rename this method.
-  }
-
-  void topLevelField(Token token) { // TODO(ahe): Rename this method.
-  }
-
-  void topLevelMethod(Token token) { // TODO(ahe): Rename this method.
-  }
-
-  void voidType(Token token) { // TODO(ahe): Rename this method.
+  void handleVoidKeyword(Token token) {
   }
 
   Token expected(String string, Token token) {
@@ -205,7 +202,7 @@ class Listener {
     throw new ParserError("Unexpected end of file");
   }
 
-  void notIdentifier(Token token) {
+  void expectedIdentifier(Token token) {
     throw new ParserError("Expected identifier, but got '$token' @ " +
                           "${token.charOffset}");
   }
@@ -237,79 +234,43 @@ class ElementListener extends Listener {
   Identifier previousIdentifier = null;
   final Canceler canceler;
 
-  Link<DeclarationBuilder> builders; // TODO(ahe): Use a stack of nodes instead.
-  Link<Element> topLevelElements;
+  Link<Node> nodes = const EmptyLink(); // <Node> Frog bug #322 + #323.
+  Link<Element> topLevelElements = const EmptyLink(); // Ditto.
 
-  ElementListener(Canceler this.canceler)
-    : builders = const EmptyLink<DeclarationBuilder>(),
-      topLevelElements = const EmptyLink<Element>();
+  ElementListener(Canceler this.canceler);
 
   void beginLibraryTag(Token token) {
+    // TODO(ahe): Implement this.
     canceler.cancel("Cannot handle library tags");
   }
 
-  void beginClass(Token token) {
-    push(token, buildClassElement);
-  }
-
-  Element buildClassElement(DeclarationBuilder declaration) {
+  void endClass(Token token) {
+    // TODO(ahe): Implement this.
     canceler.cancel("Cannot handle classes");
   }
 
-  void endClass(Token token) {
-    handleDeclaration(pop(), token);
-  }
-
-  void beginInterface(Token token) {
-    push(token, buildInterfaceElement);
-  }
-
-  Element buildInterfaceElement(DeclarationBuilder declaration) {
+  void endInterface(Token token) {
+    // TODO(ahe): Implement this.
     canceler.cancel("Cannot handle interfaces");
   }
 
-  void endInterface(Token token) {
-    handleDeclaration(pop(), token);
-  }
-
-  void beginFunctionTypeAlias(Token token) {
-    push(token, buildFunctionTypeAliasElement);
-  }
-
-  Element buildFunctionTypeAliasElement(DeclarationBuilder declaration) {
+  void endFunctionTypeAlias(Token token) {
+    // TODO(ahe): Implement this.
     canceler.cancel("Cannot handle typedefs");
   }
 
-  void endFunctionTypeAlias(Token token) {
-    handleDeclaration(pop(), token);
+  void endTopLevelMethod(Token beginToken, Token endToken) {
+    Identifier name = popNode();
+    pushElement(new PartialFunctionElement(name.source, beginToken, endToken));
   }
 
-  void topLevelMethod(Token token) {
-    push(token, buildMethod);
-    builders.head.name = previousIdentifier.source;
-  }
-
-  Element buildMethod(DeclarationBuilder declaration) {
-    return new PartialFunctionElement(declaration.name,
-                                      declaration.beginToken,
-                                      declaration.endToken);
-  }
-
-  void topLevelField(Token token) {
-    push(token, buildField);
-    builders.head.name = previousIdentifier.source;
-  }
-
-  Element buildField(DeclarationBuilder declaration) {
+  void endTopLevelField(Token beginToken, Token endToken) {
+    // TODO(ahe): Implement this.
     canceler.cancel("Cannot handle fields");
   }
 
-  void endTopLevelMember(Token token) {
-    handleDeclaration(pop(), token);
-  }
-
-  void identifier(Token token) {
-    previousIdentifier = new Identifier(token);
+  void handleIdentifier(Token token) {
+    pushNode(new Identifier(token));
   }
 
   Token expected(String string, Token token) {
@@ -321,7 +282,7 @@ class ElementListener extends Listener {
     canceler.cancel("Unexpected end of file");
   }
 
-  void notIdentifier(Token token) {
+  void expectedIdentifier(Token token) {
     canceler.cancel("Expected identifier, but got '$token' " +
                     "@ ${token.charOffset}");
   }
@@ -338,58 +299,29 @@ class ElementListener extends Listener {
     canceler.cancel("Unexpected token '$token' @ ${token.charOffset}");
   }
 
-  void push(Token token, ElementBuilder builder) {
-    builders = builders.prepend(new DeclarationBuilder(token, builder));
-  }
-
-  void addElement(Element element) {
+  void pushElement(Element element) {
     topLevelElements = topLevelElements.prepend(element);
   }
 
-  DeclarationBuilder pop() {
-    DeclarationBuilder declaration = builders.head;
-    builders = builders.tail;
-    return declaration;
+  void pushNode(Node node) {
+    nodes = nodes.prepend(node);
+    log("push $nodes");
   }
 
-  void handleDeclaration(DeclarationBuilder declaration, Token token) {
-    declaration.endToken = token;
-    declaration.endToken = token;
-    addElement(declaration.build());
+  Node popNode() {
+    assert(!nodes.isEmpty());
+    Node node = nodes.head;
+    nodes = nodes.tail;
+    log("pop $nodes");
+    return node;
   }
 
-  void voidType(Token token) {
-    // Ignored.
+  void log(message) {
   }
-
-  void handleVarKeyword(Token token) {
-    // Ignored.
-  }
-}
-
-typedef Element ElementBuilder(DeclarationBuilder declaration);
-
-/**
- * Builder of elements.
- *
- * Instance of this class are not supposed to outlive the parser phase
- * and are used to collect data during parsing.
- */
-class DeclarationBuilder {
-  Token beginToken;
-  Token endToken;
-  SourceString name;
-  ElementBuilder builderFunction;
-
-  DeclarationBuilder(Token this.beginToken,
-                     ElementBuilder this.builderFunction);
-
-  Element build() => (builderFunction)(this);
 }
 
 class BodyListener extends ElementListener {
   final Logger logger;
-  Link<Node> nodes = const EmptyLink(); /* <Node> Frog bug #322 + #323 */
   Function onError;
 
   BodyListener(Canceler canceler, Logger this.logger) : super(canceler) {
@@ -476,11 +408,7 @@ class BodyListener extends ElementListener {
     pushNode(new Send(null, selector, arguments));
   }
 
-  void identifier(Token token) {
-    pushNode(new Identifier(token));
-  }
-
-  void voidType(Token token) {
+  void handleVoidKeyword(Token token) {
     pushNode(new TypeAnnotation(new Identifier(token)));
   }
 
@@ -548,19 +476,6 @@ class BodyListener extends ElementListener {
     pushNode(new Throw(null, throwToken, endToken));
   }
 
-  void pushNode(Node node) {
-    nodes = nodes.prepend(node);
-    logger.log("push $nodes");
-  }
-
-  Node popNode() {
-    assert(!nodes.isEmpty());
-    Node node = nodes.head;
-    nodes = nodes.tail;
-    logger.log("pop $nodes");
-    return node;
-  }
-
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
                         String delimiter) {
     Link<Node> nodes = const EmptyLink<Node>();
@@ -572,6 +487,10 @@ class BodyListener extends ElementListener {
     SourceString sourceDelimiter =
         (delimiter == null) ? null : new SourceString(delimiter);
     return new NodeList(beginToken, nodes, endToken, sourceDelimiter);
+  }
+
+  void log(message) {
+    logger.log(message);
   }
 }
 

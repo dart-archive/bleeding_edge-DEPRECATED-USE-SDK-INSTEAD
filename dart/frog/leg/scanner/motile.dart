@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('motile'); // aka parser'
-#import('../scanner.dart');
-#import('../scanner_implementation.dart');
+#import('scannerlib.dart');
+#import('scanner_implementation.dart');
 #import('../elements/elements.dart');
 #import('vm_scanner_bench.dart', prefix: 'vm');
 #import('scanner_bench.dart');
