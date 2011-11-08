@@ -1046,7 +1046,7 @@ class MethodGenerator implements TreeVisitor {
         writer.write(', ');
       }
       final name = node.names[i].name;
-      final value = visitValue(node.values[i]);
+      var value = visitValue(node.values[i]);
       if (isFinal) {
         if (value == null) {
           world.error('no value specified for final variable', node.span);
@@ -1061,6 +1061,7 @@ class MethodGenerator implements TreeVisitor {
       if (value == null) {
         writer.write('${val.code}');
       } else {
+        value = value.convertTo(this, type, node.values[i]);
         writer.write('${val.code} = ${value.code}');
       }
     }

@@ -225,11 +225,6 @@ class Value {
       }
     }
 
-    // Don't add runtime asserts unless we have type checks turned on.
-    if (!options.enableTypeChecks) {
-      return this;
-    }
-
     // If we're assigning from a var, pretend it's Object for the purpose of
     // runtime checks.
 
@@ -255,8 +250,12 @@ class Value {
       convertWarning(toType, node);
     }
 
-    // Generate a runtime check
-    return _typeAssert(context, toType, node);
+    // Generate a runtime checks if they're turned on, otherwise skip it.
+    if (options.enableTypeChecks) {
+      return _typeAssert(context, toType, node);
+    } else {
+      return this;
+    }
   }
 
   // TODO(jmesserly): this generates an unnecessary check for the 90%
