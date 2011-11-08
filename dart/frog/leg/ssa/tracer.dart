@@ -81,7 +81,9 @@ class HTracer extends HGraphVisitor {
       addSuccessors(block);
       printEmptyProperty("xhandlers");
       printEmptyProperty("flags");
-      // TODO(floitsch): printProperty("dominator", "B${block.dominator.id}");
+      if (block.dominator !== null) {
+        printProperty("dominator", "B${block.dominator.id}");
+      }
       tag("states", () {
         tag("locals", () {
           printProperty("size", 0);
@@ -157,7 +159,14 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitGoto(HGoto node) {
     HBasicBlock target = currentBlock.successors[0];
-    return "Goto (B${target.id})";
+    return "Goto: (B${target.id})";
+  }
+
+  String visitIf(HIf node) {
+    HBasicBlock thenBlock = currentBlock.successors[0];
+    HBasicBlock elseBlock = currentBlock.successors[1];
+    String conditionId = temporaryId(node.inputs[0]);
+    return "If ($conditionId): (B${thenBlock.id}) else (B${elseBlock.id})";
   }
 
   String visitInvoke(HInvoke invoke) {

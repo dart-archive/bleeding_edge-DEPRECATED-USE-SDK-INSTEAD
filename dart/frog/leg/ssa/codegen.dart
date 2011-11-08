@@ -30,25 +30,24 @@ class SsaCodeGeneratorTask extends CompilerTask {
 class SsaCodeGenerator implements HVisitor {
   final Compiler compiler;
   final StringBuffer buffer;
+
+  int indent = 0;
+  HGraph currentGraph;
+  HBasicBlock currentBlock;
+
   SsaCodeGenerator(this.compiler, this.buffer);
 
   visitGraph(HGraph graph) {
-    void visitBasicBlockAndSuccessors(HBasicBlock block) {
-      visit(block);
-      if (!block.successors.isEmpty()) {
-        assert(block.successors.length == 1);
-        visitBasicBlockAndSuccessors(block.successors[0]);
-      }
-    }
-
-   visitBasicBlockAndSuccessors(graph.entry);
+    currentGraph = graph;
+    indent++;  // We are already inside a function.
+    visitBasicBlock(graph.entry);
   }
 
   String temporary(HInstruction instruction)
       => 't${instruction.id}';
 
   void invoke(SourceString selector, List<HInstruction> arguments) {
-    buffer.add("$selector(");
+    buffer.add('$selector(');
     for (int i = 0; i < arguments.length; i++) {
       if (i != 0) buffer.add(', ');
       use(arguments[i]);
@@ -78,10 +77,11 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitBasicBlock(HBasicBlock node) {
+    currentBlock = node;
     HInstruction instruction = node.first;
     while (instruction != null) {
-      if (!instruction.canBeSkipped()) {
-        buffer.add('  ');
+      if (!instruction.generateAtUseSite()) {
+        addIndentation();
         if (!instruction.usedBy.isEmpty()) {
           define(instruction);
         } else {
@@ -102,13 +102,60 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitGoto(HGoto node) {
-    unreachable();
+    assert(currentBlock.successors.length == 1);
+    List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
+    // With the exception of the entry-node which is dominates its successor
+    // and the exit node, no Block finishing with a 'goto' can have more than
+    // one dominated block (since it has only one successor).
+    // If the successor is dominated by another block, then the other block
+    // is responsible for visiting the successor.
+    if (dominated.isEmpty()) return;
+    if (dominated.length > 2) unreachable();
+    if (dominated.length == 2 && currentBlock !== currentGraph.entry) {
+      unreachable();
+    }
+    assert(dominated[0] == currentBlock.successors[0]);
+    visitBasicBlock(dominated[0]);
+  }
+
+  visitIf(HIf node) {
+    // The currentBlock will be changed when we visit the successors. So keep
+    // a local copy around.
+    HBasicBlock ifBlock = currentBlock;
+    buffer.add('if (');
+    use(node.inputs[0]);
+    buffer.add(') {\n');
+    indent++;
+    List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
+    assert(dominated[0] === ifBlock.successors[0]);
+    visitBasicBlock(ifBlock.successors[0]);
+    indent--;
+    addIndentation();
+    int nextDominatedIndex;
+    if (node.hasElse) {
+      assert(dominated[1] === ifBlock.successors[1]);
+      buffer.add('} else {\n');
+      indent++;
+      visitBasicBlock(ifBlock.successors[1]);
+      indent--;
+      nextDominatedIndex = 2;
+      addIndentation();
+      buffer.add("}\n");
+    } else {
+      buffer.add("}\n");
+      nextDominatedIndex = 1;
+    }
+    assert(dominated.length <= nextDominatedIndex + 1);
+    // The HIf doesn't dominate the join, if both branches return or throw.
+    if (dominated.length == nextDominatedIndex + 1) {
+      visitBasicBlock(dominated[nextDominatedIndex]);
+    }
   }
 
   visitInvoke(HInvoke node) {
     // TODO(floitsch): Pass the element to the worklist and not just the
     // source.
-    if (node.selector != const SourceString("print")) {
+    if (node.selector != const SourceString('print')) {
       compiler.worklist.add(node.selector);      
     }
     invoke(node.selector, node.inputs);
@@ -133,5 +180,11 @@ class SsaCodeGenerator implements HVisitor {
 
   visitTruncatingDivide(HTruncatingDivide node) {
     invoke(const SourceString('\$tdiv'), node.inputs);
+  }
+
+  void addIndentation() {
+    for (int i = 0; i < indent; i++) {
+      buffer.add('  ');
+    }
   }
 }

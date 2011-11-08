@@ -30,29 +30,42 @@ class SsaBuilderTask extends CompilerTask {
 class SsaBuilder implements Visitor {
   final Compiler compiler;
   final Map<Node, Element> elements;
-  
-  HBasicBlock block;
+
+  int nextFreeBlockId = 0;
   HGraph graph;
+
+  // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
+
   Map<Element, HInstruction> definitions;
+  // The current block to add instructions to. Might be null, if we are
+  // visiting dead code.
+  HBasicBlock block;
+  // The successor of the current block. Needs to be set by any instruction
+  // that closes the current block.
+  HBasicBlock successor;
 
   SsaBuilder(this.compiler, this.elements);
 
   HGraph build(Node body) {
     graph = new HGraph();
-    block = new HBasicBlock();
+    graph.entry.id = nextFreeBlockId++;
     stack = new List<HInstruction>();
     definitions = new Map<Element, HInstruction>();
-    body.accept(this);
-    // TODO(floitsch): add implicit return. For now just make it a Goto.
-    if (block.last === null || block.last is !HReturn) {
-      block.add(new HGoto());
-      graph.setSuccessors(block, <HBasicBlock>[graph.exit]);
-    }
 
+    block = new HBasicBlock.withId(nextFreeBlockId++);
     // Add the method body as successor of the graph's entry block.
     graph.entry.add(new HGoto());
     graph.setSuccessors(graph.entry, <HBasicBlock>[block]);
+    graph.entry.addDominatedBlock(block);
+
+    successor = graph.exit;
+    body.accept(this);
+
+    graph.exit.id = nextFreeBlockId++;
+    // TODO(floitsch): we add exit as dominated by entry. Does this make sense?
+    graph.entry.addDominatedBlock(graph.exit);
+
     return graph;
   }
 
@@ -74,7 +87,21 @@ class SsaBuilder implements Visitor {
   }
 
   visitBlock(Block node) {
-    visit(node.statements);
+    for (Link<Node> link = node.statements.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      visit(link.head);
+      if (block == null) {
+        // The block has been aborted by a return or a throw.
+        if (!stack.isEmpty()) compiler.cancel('non-empty instruction stack');
+        return;
+      }
+    }
+    assert(block.last is !HGoto && block.last is !HReturn);
+    // TODO(floitsch): add implicit return iff the successor is the exit block.
+    // For now just make it always a Goto.
+    block.add(new HGoto());
+    graph.setSuccessors(block, <HBasicBlock>[successor]);
     if (!stack.isEmpty()) compiler.cancel('non-empty instruction stack');
   }
 
@@ -96,12 +123,83 @@ class SsaBuilder implements Visitor {
     stack.add(def);
   }
 
+  Map<Element, HInstruction> joinDefinitions(
+      HBasicBlock joinBlock,
+      Map<Element, HInstruction> incoming1,
+      Map<Element, HInstruction> incoming2) {
+    if (incoming1.length != incoming2.length) compiler.cancel("No Phis yet.");
+    incoming1.forEach((element, instruction) {
+      if (incoming2[element] !== instruction) compiler.cancel("No Phis yet.");
+    });
+    return incoming1;
+  }
+
   visitIf(If node) {
-    compiler.unimplemented('SsaBuilder.visitIf');
-    // TODO(floitsch): Implement this.
-    // visit(node.condition);
-    // visit(node.thenPart);
-    // if (node.elsePart !== null) visit(node.elsePart);
+    bool hasElse = (node.elsePart !== null);
+
+    // The condition is added to the current block.
+    visit(node.condition);
+    HInstruction condition = pop();
+    HBasicBlock conditionBlock = block;
+
+    Map afterConditionDefinitions =
+        new Map<Element, HInstruction>.from(definitions);
+    HBasicBlock oldSuccessor = successor;
+
+    // We have to wait to assign an id to the joinBlock until we visited the
+    // then and else block.
+    HBasicBlock joinBlock = new HBasicBlock();
+
+    // The then part.
+    HBasicBlock thenBlock = new HBasicBlock.withId(nextFreeBlockId++);
+    block = thenBlock;
+    successor = joinBlock;
+    visit(node.thenPart);
+    bool thenBlockJoined = (block !== null);
+    HBasicBlock thenExitBlock = block;
+    Map thenDefinitions = definitions;
+
+    // Now the else part.
+    bool elseBlockJoined;
+    HBasicBlock elseBlock;
+    // Reset the definitions to the state after the condition.
+    definitions = afterConditionDefinitions;
+    if (!hasElse) {
+      elseBlockJoined = true;
+      elseBlock = joinBlock;
+    } else {
+      elseBlock = new HBasicBlock.withId(nextFreeBlockId++);
+      block = elseBlock;
+      successor = joinBlock;
+      visit(node.elsePart);
+      elseBlockJoined = (block !== null);
+    }
+    Map elseDefinitions = definitions;
+    HBasicBlock elseExitBlock = block;
+
+    conditionBlock.add(new HIf(condition, hasElse));
+    graph.setSuccessors(conditionBlock, <HBasicBlock>[thenBlock, elseBlock]);
+    conditionBlock.addDominatedBlock(thenBlock);
+    if (hasElse) conditionBlock.addDominatedBlock(elseBlock);
+
+    if (!thenBlockJoined && !elseBlockJoined) {
+      block = null;
+    } else {
+      // Now, that we have visited the then and else block we can assign an id
+      // to the join block.
+      joinBlock.id = nextFreeBlockId++;
+      block = joinBlock;
+      if (thenBlockJoined && elseBlockJoined) {
+        conditionBlock.addDominatedBlock(joinBlock);
+        definitions =
+            joinDefinitions(joinBlock, thenDefinitions, elseDefinitions);
+      } else if (thenBlockJoined) {
+        thenExitBlock.addDominatedBlock(joinBlock);
+      } else if (elseBlockJoined) {
+        elseExitBlock.addDominatedBlock(joinBlock);
+      }
+    }
+    successor = oldSuccessor;
   }
 
   visitSend(Send node) {
@@ -179,6 +277,8 @@ class SsaBuilder implements Visitor {
     var value = pop();
     add(new HReturn(value));
     graph.setSuccessors(block, <HBasicBlock>[graph.exit]);
+    // A return aborts the building of the current block.
+    block = null;
   }
 
   visitTypeAnnotation(TypeAnnotation node) {

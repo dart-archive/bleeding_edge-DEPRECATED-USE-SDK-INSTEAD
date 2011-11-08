@@ -19,11 +19,13 @@ class HValidator extends HInstructionVisitor {
     // Test that the last instruction is a branching instruction and that the
     // basic block contains the branch-target.
     if (block.first === null || block.last === null) isValid = false;
-    if (block.last is !HGoto &&
+    if (block.last is !HIf &&
+        block.last is !HGoto &&
         block.last is !HReturn &&
         block.last is !HExit) {
       isValid = false;
     }
+    if (block.last is HIf && block.successors.length != 2) isValid = false;
     if (block.last is HGoto && block.successors.length != 1) isValid = false;
     if (block.last is HReturn &&
         (block.successors.length != 1 || !block.successors[0].isExitBlock())) {
@@ -34,6 +36,23 @@ class HValidator extends HInstructionVisitor {
     if (block.successors.isEmpty() &&
         (block.first !== block.last || block.last is !HExit)) {
       isValid = false;
+    }
+
+    // Make sure that successors ids are always higher than the current one.
+    // TODO(floitsch): this is, of course, not true for back-branches.
+    if (block.id === null) isValid = false;
+    for (HBasicBlock successor in block.successors) {
+      if (!isValid) break;
+      if (successor.id === null || successor.id <= block.id) isValid = false;
+    }
+
+    // Make sure that the entries in the dominated-list are sorted.
+    int lastId = 0;
+    for (HBasicBlock dominated in block.dominatedBlocks) {
+      if (!isValid) break;
+      if (dominated.dominator != block) isValid = false;
+      if (dominated.id === null || dominated.id <= lastId) isValid = false;
+      lastId = dominated.id;
     }
 
     if (!isValid) return;

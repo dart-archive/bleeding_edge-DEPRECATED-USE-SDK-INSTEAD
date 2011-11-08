@@ -10,7 +10,7 @@ class SsaOptimizerTask extends CompilerTask {
     measure(() {
       new SsaConstantFolder().visitGraph(graph);
       new SsaDeadCodeEliminator().visitGraph(graph);
-      new SsaGlobalValueNumberer(compiler).visitGraph(graph);
+      // new SsaGlobalValueNumberer(compiler).visitGraph(graph);
       new SsaInstructionMerger().visitGraph(graph);
     });
   }

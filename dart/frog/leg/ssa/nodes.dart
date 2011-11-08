@@ -8,6 +8,7 @@ interface HVisitor<R> {
   R visitDivide(HDivide node);
   R visitExit(HExit node);
   R visitGoto(HGoto node);
+  R visitIf(HIf node);
   R visitInvoke(HInvoke node);
   R visitLiteral(HLiteral node);
   R visitSubtract(HSubtract node);
@@ -19,10 +20,10 @@ interface HVisitor<R> {
 class HGraphVisitor {
   visitDominatorTree(HGraph graph) {
     void visitBasicBlockAndSuccessors(HBasicBlock block) {
-      // TODO(floitsch): visit graph in dominator-tree order.
       visitBasicBlock(block);
-      for (int i = 0; i < block.successors.length; i++) {
-        visitBasicBlockAndSuccessors(block.successors[i]);
+      List dominated = block.dominatedBlocks;
+      for (int i = 0; i < dominated.length; i++) {
+        visitBasicBlockAndSuccessors(dominated[i]);
       }
     }
 
@@ -31,9 +32,9 @@ class HGraphVisitor {
 
   visitPostDominatorTree(HGraph graph) {
     void visitBasicBlockAndSuccessors(HBasicBlock block) {
-      // TODO(floitsch): visit graph in inverse dominator-tree order.
-      for (int i = 0; i < block.successors.length; i++) {
-        visitBasicBlockAndSuccessors(block.successors[i]);
+      List dominated = block.dominatedBlocks;
+      for (int i = dominated.length - 1; i >= 0; i--) {
+        visitBasicBlockAndSuccessors(dominated[i]);
       }
       visitBasicBlock(block);
     }
@@ -67,9 +68,8 @@ class HGraph {
   }
 
   void number() {
-    int basicBlockId = 0;
     int numberBasicBlockAndSuccessors(HBasicBlock block, int id) {
-      id = block.number(basicBlockId++, id);
+      id = block.number(id);
       for (int i = 0; i < block.successors.length; i++) {
         id = numberBasicBlockAndSuccessors(block.successors[i], id);
       }
@@ -80,8 +80,9 @@ class HGraph {
   }
 
   void setSuccessors(HBasicBlock source, List<HBasicBlock> targets) {
-    assert((source.last is HGoto || source.last is HReturn) &&
-           targets.length == 1);
+    assert(((source.last is HGoto || source.last is HReturn) &&
+            targets.length == 1) ||
+           (source.last is HIf && targets.length == 2));
     assert(source.successors.isEmpty());
     source.successors = targets;
     for (int i = 0; i < targets.length; i++) {
@@ -116,6 +117,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitDivide(HDivide node) => visitArithmetic(node);
   visitExit(HExit node) => visitInstruction(node);
   visitGoto(HGoto node) => visitInstruction(node);
+  visitIf(HIf node) => visitInstruction(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
   visitSubtract(HSubtract node) => visitArithmetic(node);
@@ -125,14 +127,21 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
 }
 
 class HBasicBlock {
+  // [id] must be such that any successor's id is greater than this [id]. The
+  // exception are back-edges.
   int id;
   HInstruction first = null;
   HInstruction last = null;
   final List<HBasicBlock> predecessors;
   List<HBasicBlock> successors;
+  final List<HBasicBlock> dominatedBlocks;
+  HBasicBlock dominator = null;
 
-  HBasicBlock()
-      : predecessors = <HBasicBlock>[], successors = const <HBasicBlock>[];
+  HBasicBlock() : this.withId(null);
+  HBasicBlock.withId(this.id)
+      : predecessors = <HBasicBlock>[],
+        successors = const <HBasicBlock>[],
+        dominatedBlocks = <HBasicBlock>[];
 
   // TODO(kasperl): I really don't want to pass the compiler into this
   // method. Maybe we need a better logging framework.
@@ -147,8 +156,7 @@ class HBasicBlock {
 
   // TODO(kasperl): Temporary helper method to number the instructions
   // in this basic block for printing and debugging purposes.
-  int number(int basicBlockId, int id) {
-    this.id = basicBlockId;
+  int number(int id) {
     HInstruction instruction = first;
     while (instruction != null) {
       instruction.id = id++;
@@ -221,6 +229,24 @@ class HBasicBlock {
     return first === last && first is HExit;
   }
 
+  void addDominatedBlock(HBasicBlock block) {
+    assert(dominatedBlocks.every((storedBlock) => storedBlock != block));
+    assert(id !== null && block.id !== null);
+    block.dominator = this;
+    // Keep the list of dominated blocks sorted such that if there are two
+    // succeeding blocks in the list, the predecessor is before the successor.
+    // Assume that we add the dominated blocks in the right order.
+    int index = dominatedBlocks.length;
+    while (index > 0 && dominatedBlocks[index - 1].id > block.id) {
+      index--;
+    }
+    if (index == dominatedBlocks.length) {
+      dominatedBlocks.add(block);
+    } else {
+      dominatedBlocks.insertRange(index, 1, block);
+    }
+  }
+
   bool isValid() {
     HValidator validator = new HValidator();
     validator.visitBasicBlock(this);
@@ -270,8 +296,6 @@ class HInstruction {
 
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
-
-  bool canBeSkipped() => generateAtUseSite();
 
   List<HInstruction> get usedBy() {
     if (_usedBy == null) return const <HInstruction>[];
@@ -428,16 +452,21 @@ class HTruncatingDivide extends HArithmetic {
 
 class HExit extends HInstruction {
   HExit() : super(const <HInstruction>[]);
-  canBeSkipped() => true;
   toString() => 'exit';
   accept(HVisitor visitor) => visitor.visitExit(this);
 }
 
 class HGoto extends HInstruction {
   HGoto() : super(const <HInstruction>[]);
-  canBeSkipped() => true;
   toString() => 'goto';
   accept(HVisitor visitor) => visitor.visitGoto(this);
+}
+
+class HIf extends HInstruction {
+  bool hasElse;
+  HIf(HInstruction condition, this.hasElse) : super(<HInstruction>[condition]);
+  toString() => 'if';
+  accept(HVisitor visitor) => visitor.visitIf(this);
 }
 
 class HLiteral extends HInstruction {
