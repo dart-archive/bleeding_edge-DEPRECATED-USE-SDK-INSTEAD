@@ -8,6 +8,7 @@ class Parameter {
 
   String name;
   Type type;
+  bool isInitializer = false;
 
   Value value;
 
@@ -15,6 +16,11 @@ class Parameter {
 
   resolve(Member method, Type inType) {
     name = definition.name.name;
+    if (name.startsWith('this.')) {
+      name = name.substring(5);
+      isInitializer = true;
+    }
+
     type = inType.resolveType(definition.type, false);
 
     if (method.isStatic && type.hasTypeParams) {
@@ -38,6 +44,9 @@ class Parameter {
         world.error('default value not allowed on function type',
           definition.span);
       }
+    } else if (isInitializer && !method.isConstructor) {
+      world.error('initializer parameters only allowed on constructors',
+          definition.span);
     }
   }
 
@@ -55,6 +64,7 @@ class Parameter {
     var ret = new Parameter(definition);
     ret.type = newType;
     ret.name = name;
+    ret.isInitializer = isInitializer;
     return ret;
   }
 
@@ -962,19 +972,18 @@ class MethodMember extends Member {
 
     // First deduce the value for fields initialized with the 'this.x' syntax.
     for (int i = 0; i < parameters.length; i++) {
-      var param = parameters[i].name;
-      if (param.startsWith('this.')) {
-        final fname = param.substring(5);
+      var param = parameters[i];
+      if (param.isInitializer) {
         var value = null;
         if (i < args.length) {
           value = args.values[i];
         } else { // named arguments
-          value = args.getValue(parameters[i].name);
+          value = args.getValue(param.name);
           if (value == null) {
-            value = parameters[i].value;
+            value = param.value;
           }
         }
-        fields[fname] = value;
+        fields[param.name] = value;
       }
     }
 

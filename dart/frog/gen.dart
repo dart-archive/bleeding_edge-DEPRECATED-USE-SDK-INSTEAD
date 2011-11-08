@@ -753,22 +753,21 @@ class MethodGenerator implements TreeVisitor {
     // Collects parameters for writing signature in the future.
     _paramCode = [];
     for (var p in method.parameters) {
-      if (initializers != null && p.name.startsWith('this.')) {
-        var name = p.name.substring(5);
-        var field = method.declaringType.getMember(name);
+      if (initializers != null && p.isInitializer) {
+        var field = method.declaringType.getMember(p.name);
         if (field == null) {
           world.error('bad this parameter - no matching field',
             p.definition.span);
         }
         if (!field.isField) {
-          world.error('"${p.name}" does not refer to a field',
+          world.error('"this.${p.name}" does not refer to a field',
             p.definition.span);
         }
-        var paramValue = new Value(field.returnType, name, false, false);
+        var paramValue = new Value(field.returnType, p.name, false, false);
         _paramCode.add(paramValue.code);
 
         initializers.add('this.${field.jsname} = ${paramValue.code};');
-        initializedFields.add(name);
+        initializedFields.add(p.name);
       } else {
         var paramValue = _scope.declareParameter(p);
         _paramCode.add(paramValue.code);
@@ -823,7 +822,7 @@ class MethodGenerator implements TreeVisitor {
             // no other initialization is allowed
             if (initializers.length > 0) {
               for (var p in method.parameters) {
-                if (p.name.startsWith('this.')) {
+                if (p.isInitializer) {
                   world.error(
                       'no initialization allowed on redirecting constructors',
                       p.definition.span);

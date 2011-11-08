@@ -9691,19 +9691,18 @@ MethodGenerator.prototype.writeBody = function() {
   var $list = this.method.get$parameters();
   for (var $i = 0;$i < $list.length; $i++) {
     var p = $list.$index($i);
-    if ($notnull_bool($ne(initializers, null) && p.get$name().startsWith('this.'))) {
-      var name = p.get$name().substring(5);
-      var field = this.method.declaringType.getMember(name);
+    if ($notnull_bool($ne(initializers, null) && p.isInitializer)) {
+      var field = this.method.declaringType.getMember(p.get$name());
       if ($notnull_bool(field == null)) {
         world.error('bad this parameter - no matching field', p.get$definition().get$span());
       }
       if ($notnull_bool(!$notnull_bool(field.get$isField()))) {
-        world.error(('"' + p.get$name() + '" does not refer to a field'), p.get$definition().get$span());
+        world.error(('"this.' + p.get$name() + '" does not refer to a field'), p.get$definition().get$span());
       }
-      var paramValue = new Value(field.get$returnType(), name, false, false, false);
+      var paramValue = new Value(field.get$returnType(), p.get$name(), false, false, false);
       this._paramCode.add(paramValue.code);
       initializers.add(('this.' + field.get$jsname() + ' = ' + paramValue.code + ';'));
-      initializedFields.add(name);
+      initializedFields.add(p.get$name());
     }
     else {
       var paramValue = this._scope.declareParameter((p && p.is$lang_Parameter()));
@@ -9751,7 +9750,7 @@ MethodGenerator.prototype.writeBody = function() {
             var $list = this.method.get$parameters();
             for (var $i = 0;$i < $list.length; $i++) {
               var p = $list.$index($i);
-              if ($notnull_bool(p.get$name().startsWith('this.'))) {
+              if ($notnull_bool(p.isInitializer)) {
                 world.error('no initialization allowed on redirecting constructors', p.get$definition().get$span());
                 break;
               }
@@ -10731,7 +10730,7 @@ MethodGenerator.prototype.visitNullExpression = function(node) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2025, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2024, 12);
   if ($notnull_bool(!!(($0 = node.value) && $0.is$List))) {
     var items = [];
     var $list = node.value;
@@ -11275,6 +11274,7 @@ _LibraryVisitor.prototype.visitFunctionTypeDefinition = function(node) {
 }
 // ********** Code for lang_Parameter **************
 function lang_Parameter(definition) {
+  this.isInitializer = false
   this.definition = definition;
   // Initializers done
 }
@@ -11287,6 +11287,10 @@ lang_Parameter.prototype.get$value = function() { return this.value; };
 lang_Parameter.prototype.set$value = function(value) { return this.value = value; };
 lang_Parameter.prototype.resolve = function(method, inType) {
   this.name = this.definition.name.name;
+  if ($notnull_bool(this.name.startsWith('this.'))) {
+    this.name = this.name.substring(5);
+    this.isInitializer = true;
+  }
   this.type = inType.resolveType(this.definition.type, false);
   if ($notnull_bool(method.get$isStatic() && this.type.get$hasTypeParams())) {
     world.error('using type parameter in static context', this.definition.span);
@@ -11302,6 +11306,9 @@ lang_Parameter.prototype.resolve = function(method, inType) {
       world.error('default value not allowed on function type', this.definition.span);
     }
   }
+  else if ($notnull_bool(this.isInitializer && !$notnull_bool(method.get$isConstructor()))) {
+    world.error('initializer parameters only allowed on constructors', this.definition.span);
+  }
 }
 lang_Parameter.prototype.genValue = function(method, context) {
   var $0;
@@ -11316,6 +11323,7 @@ lang_Parameter.prototype.copyWithNewType = function(newType) {
   var ret = new lang_Parameter(this.definition);
   ret.type = newType;
   ret.name = this.name;
+  ret.isInitializer = this.isInitializer;
   return ret;
 }
 lang_Parameter.prototype.get$isOptional = function() {
@@ -11401,7 +11409,7 @@ Member.prototype.override = function(other) {
   return true;
 }
 Member.prototype.get$generatedFactoryName = function() {
-  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 154, 12);
+  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 164, 12);
   var prefix = ('' + this.declaringType.get$jsname() + '.' + this.get$constructorName() + '\$');
   if ($notnull_bool(this.name == '')) {
     return ('' + prefix + 'factory');
@@ -11451,7 +11459,7 @@ TypeMember.prototype.resolve = function(inType) {
 
 }
 TypeMember.prototype.get_ = function(context, node, target, isDynamic) {
-  $assert(target == null || target.type.get$isTop(), "target == null || target.type.isTop", "member.dart", 192, 12);
+  $assert(target == null || target.type.get$isTop(), "target == null || target.type.isTop", "member.dart", 202, 12);
   return new Value(this.type, this.type.get$jsname(), false, false, true);
 }
 TypeMember.prototype.set_ = function(context, node, target, value, isDynamic) {
@@ -12169,20 +12177,19 @@ MethodMember.prototype._invokeConstConstructor = function(node, code, target, ar
   var fields = new HashMapImplementation$String$EvaluatedValue();
   for (var i = 0;
    $notnull_bool(i < this.parameters.length); i++) {
-    var param = this.parameters.$index(i).get$name();
-    if ($notnull_bool(param.startsWith('this.'))) {
-      var fname = param.substring(5);
+    var param = this.parameters.$index(i);
+    if ($notnull_bool(param.isInitializer)) {
       var value = null;
       if ($notnull_bool(i < args.get$length())) {
         value = args.values.$index(i);
       }
       else {
-        value = args.getValue($assert_String(this.parameters.$index(i).get$name()));
+        value = args.getValue($assert_String(param.get$name()));
         if ($notnull_bool(value == null)) {
-          value = this.parameters.$index(i).get$value();
+          value = param.get$value();
         }
       }
-      fields.$setindex(fname, value);
+      fields.$setindex(param.get$name(), value);
     }
   }
   if ($notnull_bool(this.definition.initializers != null)) {
