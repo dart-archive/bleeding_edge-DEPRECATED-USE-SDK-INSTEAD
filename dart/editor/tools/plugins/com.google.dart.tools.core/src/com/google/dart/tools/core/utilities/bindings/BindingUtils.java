@@ -262,6 +262,11 @@ public class BindingUtils {
               if (globalVariable.getElementName().equals(fieldName)) {
                 return globalVariable;
               }
+            } else if (child instanceof com.google.dart.tools.core.model.DartFunction) {
+              com.google.dart.tools.core.model.DartFunction function = (com.google.dart.tools.core.model.DartFunction) child;
+              if (function.getElementName().equals(fieldName)) {
+                return function;
+              }
             }
           }
         }
