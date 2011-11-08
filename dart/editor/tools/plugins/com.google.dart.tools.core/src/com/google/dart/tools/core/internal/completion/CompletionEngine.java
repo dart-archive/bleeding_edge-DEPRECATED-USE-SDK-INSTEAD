@@ -391,6 +391,11 @@ public class CompletionEngine {
               // class X<K extends Ha!shable> {}
               proposeTypesForPrefix(identifier);
               break;
+            case TypeExpression:
+              // { if (x is !)}
+              proposeGenericTypeCompletions(typeCompleter);
+              proposeTypesForPrefix(identifier);
+              break;
             case ClassBody:
               // class x extends A! (A may be empty string)
               // class x implements I! (I may be empty string)
@@ -545,7 +550,7 @@ public class CompletionEngine {
       } else {
         // for top-level elements, try type names
         proposeTypesForNewParam();
-        createProposalsForLiterals(node, "void");
+        createProposalsForLiterals(node, C_VOID);
       }
       return null;
     }
@@ -608,7 +613,7 @@ public class CompletionEngine {
               }
             } else {
               proposeTypesForNewParam();
-              createProposalsForLiterals(node, "void");
+              createProposalsForLiterals(node, C_VOID);
             }
           } else {
             param = params.get(params.size() - 1);
