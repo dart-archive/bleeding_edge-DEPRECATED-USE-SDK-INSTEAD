@@ -66,7 +66,9 @@ class VarFunctionStub extends VarMember {
   final Arguments args;
 
   VarFunctionStub(String name, Arguments callArgs)
-    : super(name), args = callArgs.toCallStubArgs();
+    : super(name), args = callArgs.toCallStubArgs() {
+    world.gen.corejs.useGenStub = true;
+  }
 
   void generate(CodeWriter code) {
     if (args.hasNames) {
@@ -90,8 +92,8 @@ class VarFunctionStub extends VarMember {
     w.writeln('return this.to\$$name()($argsCode);');
     w.exitBlock('};');
 
-    // TODO(jmesserly): HACK, we can't allocate temps from Value, so we need
-    // one more stub to check for null.
+    // TODO(jmesserly): HACK, we couldn't allocate temps from Value, so we
+    // needed this stub to check for null.
     w.writeln('function to\$$name(f) { return f && f.to\$$name(); }');
   }
 
@@ -216,6 +218,7 @@ class VarMethodSet extends VarMember {
       _addVarStub(world.objectType, stub);
     } else {
       _fallbackStubs.add(stub);
+      world.gen.corejs.useVarMethod = true;
     }
   }
 

@@ -18,8 +18,10 @@ class WorldGenerator {
   MethodMember main;
   CodeWriter writer;
   Map<String, GlobalValue> globals;
+  CoreJs corejs;
+  bool _inheritsGenerated = false;
 
-  WorldGenerator(this.main, this.writer): globals = {};
+  WorldGenerator(this.main, this.writer): globals = {}, corejs = new CoreJs();
 
   run() {
     var metaGen = new MethodGenerator(main, null);
@@ -28,26 +30,17 @@ class WorldGenerator {
 
     // TODO(jimhug): Better way to capture hidden control flow.
     world.corelib.types['BadNumberFormatException'].markUsed();
-    world.coreimpl.types['MatchImplementation'].markUsed();
     world.coreimpl.types['NumImplementation'].markUsed();
     world.coreimpl.types['StringImplementation'].markUsed();
+    world.coreimpl.types['MatchImplementation'].markUsed();
+    genMethod(world.coreimpl.types['MatchImplementation'].getConstructor(''));
 
     writeTypes(world.coreimpl);
     writeTypes(world.corelib);
 
-    // TODO(jimhug): Does this even work?
-    var matchConstructor = world.coreimpl.types['MatchImplementation']
-        .getConstructor('');
-    genMethod(matchConstructor);
-    matchConstructor.generator.writeDefinition(writer, null);
-
     // Write the main library. This will cause all libraries to be written in
     // the topographic sort order.
     writeTypes(main.declaringType.library);
-
-    // Write Function call stubs. Since Function is an interface we need to do
-    // this explicitly.
-    _writeDynamicStubs(world.functionType);
 
     _writeGlobals();
     writer.writeln('RunEntry(function () {${mainCall.code};}, []);');
@@ -90,6 +83,11 @@ class WorldGenerator {
     }
 
     writer.comment('//  ********** Library ${lib.name} **************');
+    if (lib.isCore) {
+      // Generates the JS natives for dart:core.
+      writer.comment('//  ********** Natives dart:core **************');
+      corejs.generate(writer);
+    }
     for (var file in lib.natives) {
       var filename = basename(file.filename);
       writer.comment('//  ********** Natives $filename **************');
@@ -106,6 +104,11 @@ class WorldGenerator {
             writeType(ct);
           }
         }
+      }
+      if (type.isFunction && type.varStubs != null) {
+        // Emit stubs on "Function" if needed
+        writer.comment('// ********** Code for ${type.jsname} **************');
+        _writeDynamicStubs(type);
       }
       // Type check functions for builtin JS types
       if (type.typeCheckCode != null) {
@@ -179,10 +182,12 @@ class WorldGenerator {
 
     if (!type.isTop) {
       if (type is ConcreteType) {
+        _ensureInheritsHelper();
         writer.writeln(
             '\$inherits(${type.jsname}, ${type.genericType.jsname});');
       } else if (!type.isNativeType) {
         if (type.parent != null && !type.parent.isObject) {
+          _ensureInheritsHelper();
           writer.writeln('\$inherits(${type.jsname}, ${type.parent.jsname});');
         }
       }
@@ -238,6 +243,29 @@ class WorldGenerator {
     }
 
     _writeDynamicStubs(type);
+  }
+
+  /**
+   * Generates the $inherits function when it's first used. Unlike some of the
+   * other helpers in [CoreJS], we don't notice that we need this one until
+   * we're generating types.
+   */
+  _ensureInheritsHelper() {
+    if (_inheritsGenerated) return;
+
+    _inheritsGenerated = true;
+    writer.writeln(@"""
+/** Implements extends for Dart classes on JavaScript prototypes. */
+function $inherits(child, parent) {
+  if (child.prototype.__proto__) {
+    child.prototype.__proto__ = parent.prototype;
+  } else {
+    function tmp() {};
+    tmp.prototype = parent.prototype;
+    child.prototype = new tmp();
+    child.prototype.constructor = child;
+  }
+}""");
   }
 
   _writeDynamicStubs(Type type) {
@@ -314,6 +342,9 @@ class WorldGenerator {
   }
 
   _writeGlobals() {
+    if (globals.length > 0) {
+      writer.comment('//  ********** Globals **************');
+    }
     var list = globals.getValues();
     list.sort((a, b) => a.compareTo(b));
     for (var global in list) {
@@ -349,6 +380,7 @@ class WorldGenerator {
 
   /** Marks that a map literal is used, e.g. a call to $map. */
   Type useMapFactory() {
+    corejs.useMap = true;
     var factType = world.coreimpl.types['HashMapImplementation'];
     var m = factType.resolveMember('\$setindex');
     genMethod(m.members[0]); // TODO(jimhug): Clean up initializing.
@@ -1071,6 +1103,7 @@ class MethodGenerator implements TreeVisitor {
       // Ensure that we generate a toString() method for things that we throw
       value.invoke(this, 'toString', node, Arguments.EMPTY);
       writer.writeln('\$throw(${value.code});');
+      world.gen.corejs.useThrow = true;
     } else {
       var rethrow = _scope.getRethrow();
       if (rethrow == null) {
@@ -1098,6 +1131,7 @@ class MethodGenerator implements TreeVisitor {
       var column = span.file.getColumn(line, span.start);
       writer.writeln('\$assert(${test.code}, "${_escapeString(span.text)}",' +
         ' "${basename(span.file.filename)}", ${line + 1}, ${column + 1});');
+      world.gen.corejs.useAssert = true;
     }
     return false;
   }
@@ -1238,6 +1272,7 @@ class MethodGenerator implements TreeVisitor {
           this, node, target, Arguments.EMPTY);
     }
     writer.writeln('$ex = \$toDartException($ex);');
+    world.gen.corejs.useToDartException = true;
   }
 
   bool visitTryStatement(TryStatement node) {
@@ -1257,6 +1292,7 @@ class MethodGenerator implements TreeVisitor {
       if (catch_.trace != null) {
         var trace = _scope.declare(catch_.trace);
         writer.writeln('var ${trace.code} = \$stackTraceOf(${ex.code});');
+        world.gen.corejs.useStackTraceOf = true;
       }
       _genToDartException(ex.code, node);
 
@@ -1277,6 +1313,7 @@ class MethodGenerator implements TreeVisitor {
       if (node.catches.some((c) => c.trace != null)) {
         trace = _scope.create('\$trace', world.varType, null);
         writer.writeln('var ${trace.code} = \$stackTraceOf(${ex.code});');
+        world.gen.corejs.useStackTraceOf = true;
       }
       _genToDartException(ex.code, node);
 
@@ -1377,6 +1414,7 @@ class MethodGenerator implements TreeVisitor {
       if (case_ != node.cases[node.cases.length - 1] && !caseExits) {
         var span = case_.statements[case_.statements.length - 1].span;
         writer.writeln('\$throw(new FallThroughError());');
+        world.gen.corejs.useThrow = true;
       }
       writer.exitBlock('');
       _popBlock();

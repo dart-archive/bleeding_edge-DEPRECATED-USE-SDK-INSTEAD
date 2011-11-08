@@ -25,8 +25,6 @@
 #source("collections.dart");
 #source("date_implementation.dart");
 
-// TODO(jmesserly): we need the native JS side of these. Right now I'm just
-// trying to get things compiling again.
 #native("isolate.js");
 #source("isolate.dart");
 #source("isolate_serialization.dart");

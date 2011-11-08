@@ -5,8 +5,6 @@
 #library("dart:core");
 #import("dart:coreimpl");
 
-#native("core.js");
-
 // TODO(jimhug): Better way to map in standard corelib
 #source("../../corelib/src/bool.dart");
 #source("../../corelib/src/collection.dart");

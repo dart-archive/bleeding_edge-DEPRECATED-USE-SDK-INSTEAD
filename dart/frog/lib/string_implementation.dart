@@ -45,12 +45,11 @@ class StringImplementation implements String native "String" {
   String replaceFirst(Pattern from, String to) native
     "return this.replace(from, to);";
 
-  String replaceAll(Pattern from, String to) native
-  '''if (typeof(from) == 'string' || from instanceof String) {
-    return this.replace(\$regexpAllFromString(from), to);
-  } else {
-    return this.replace(from, to);
-  }''';
+  String replaceAll(Pattern from, String to) native @"""
+if (typeof(from) == 'string' || from instanceof String) {
+  from = new RegExp(from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'g');
+}
+return this.replace(from, to);""";
 
   List<String> split(Pattern pattern) native;
 

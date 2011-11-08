@@ -923,6 +923,11 @@ class MethodMember extends Member {
       }
     }
 
+    // TODO(jmesserly): factor this better
+    if (name == 'get\$typeName' && declaringType.library == world.dom) {
+      world.gen.corejs.useTypeNameOf = true;
+    }
+
     return new Value(returnType, code);
   }
 
@@ -1063,9 +1068,8 @@ class MethodMember extends Member {
           code = '-${target.code}';
         } else if (name == '\$bit_not') {
           code = '~${target.code}';
-        } else if (name == '\$truncdiv') {
-          code = '$name(${target.code}, ${argsCode[0]})';
-        } else if (name == '\$mod') {
+        } else if (name == '\$truncdiv' || name == '\$mod') {
+          world.gen.corejs.useOperator(name);
           code = '$name(${target.code}, ${argsCode[0]})';
         } else {
           var op = TokenKind.rawOperatorFromMethod(name);
@@ -1134,6 +1138,7 @@ class MethodMember extends Member {
       if (name == '\$index') {
         // Note: this could technically propagate constness, but that's not
         // specified explicitly and the VM doesn't do that.
+        // TODO(jmesserly): why are we using a return type of "var"?
         return new Value(null, '${target.code}[${argsCode[0]}]');
       } else if (name == '\$setindex') {
         return new Value(null,
@@ -1158,6 +1163,7 @@ class MethodMember extends Member {
         // TODO(jimhug): Maybe check rhs.
         return new Value(returnType, '${target.code} $op ${argsCode[0]}');
       }
+      world.gen.corejs.useOperator(name);
       return new Value(returnType, '$name(${target.code}, ${argsCode[0]})');
     }
 
@@ -1165,6 +1171,12 @@ class MethodMember extends Member {
       declaringType.markUsed();
       return new Value(returnType,
         '${target.code}(${Strings.join(argsCode, ", ")})');
+    }
+
+    if (name == '\$index') {
+      world.gen.corejs.useIndex = true;
+    } else if (name == '\$setindex') {
+      world.gen.corejs.useSetIndex = true;
     }
 
     // Fall back to normal method invocation.

@@ -9,6 +9,7 @@
 #import('file_system.dart');
 
 #source('code_writer.dart');
+#source('corejs.dart');
 #source('gen.dart');
 #source('library.dart');
 #source('member.dart');

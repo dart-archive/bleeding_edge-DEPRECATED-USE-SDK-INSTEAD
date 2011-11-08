@@ -66,6 +66,7 @@ class Value {
       if (args.values.length != 1) {
         world.warning('wrong number of arguments for !=', node.span);
       }
+      world.gen.corejs.useOperator('\$ne');
       return new Value(null, '\$ne($code, ${args.values[0].code})');
     }
 
@@ -273,6 +274,7 @@ class Value {
       if (code.startsWith('\$notnull_bool')) {
         return this;
       } else {
+        world.gen.corejs.useNotNullBool = true;
         return new Value(world.boolType, '\$notnull_bool($code)');
       }
     }
@@ -442,6 +444,7 @@ function \$assert_${toType.name}(x) {
       return new Value(returnType, '$code.$name($argsString)');
     } else {
       if (argsString.length > 0) argsString = ', $argsString';
+      world.gen.corejs.useOperator(name);
       return new Value(returnType, '$name($code$argsString)');
     }
   }
