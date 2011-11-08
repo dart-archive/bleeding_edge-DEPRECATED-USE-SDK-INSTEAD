@@ -19,6 +19,8 @@ import com.google.dart.tools.core.model.SourceRange;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
+import java.net.URI;
+
 public abstract class DartElementLocationImpl implements DartElementLocation {
   /**
    * The kind of reference represented by this location, or <code>null</code> if this location
@@ -41,15 +43,28 @@ public abstract class DartElementLocationImpl implements DartElementLocation {
   }
 
   @Override
+  @Deprecated
   public IFile getContainingFile() {
-    IResource resource = null;
     try {
-      resource = getDartElement().getUnderlyingResource();
+      IResource resource = getDartElement().getUnderlyingResource();
+      if (resource != null && resource.getType() == IResource.FILE) {
+        return (IFile) resource;
+      }
     } catch (DartModelException exception) {
       // Could not get the underlying resource for some reason
     }
-    if (resource != null && resource.getType() == IResource.FILE) {
-      return (IFile) resource;
+    return null;
+  }
+
+  @Override
+  public URI getContainingUri() {
+    try {
+      IResource resource = getDartElement().getUnderlyingResource();
+      if (resource != null && resource.getType() == IResource.FILE) {
+        return resource.getLocationURI();
+      }
+    } catch (DartModelException exception) {
+      // Could not get the underlying resource for some reason
     }
     return null;
   }

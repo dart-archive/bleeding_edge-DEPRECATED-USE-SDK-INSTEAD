@@ -18,6 +18,7 @@ import com.google.dart.indexer.locations.LocationType;
 
 import org.eclipse.core.resources.IFile;
 
+import java.net.URI;
 import java.util.HashMap;
 
 public class SyntheticLocation implements Location {
@@ -69,7 +70,13 @@ public class SyntheticLocation implements Location {
   }
 
   @Override
+  @Deprecated
   public IFile getContainingFile() {
+    return null;
+  }
+
+  @Override
+  public URI getContainingUri() {
     return null;
   }
 

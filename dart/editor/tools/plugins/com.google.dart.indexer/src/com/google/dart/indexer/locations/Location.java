@@ -15,6 +15,8 @@ package com.google.dart.indexer.locations;
 
 import org.eclipse.core.resources.IFile;
 
+import java.net.URI;
+
 /**
  * The interface <code>Location</code> defines the behavior of objects that represent the location
  * in which a reference to a program element occurs.
@@ -23,17 +25,26 @@ public interface Location {
   public static final Location[] EMPTY_ARRAY = new Location[0];
 
   @Override
-  boolean equals(Object obj);
+  public boolean equals(Object obj);
 
-  IFile getContainingFile();
+  @Deprecated
+  public IFile getContainingFile();
 
-  LocationType getLocationType();
+  /**
+   * Return the URI of the file that contains this location, or <code>null</code> if this location
+   * is not contained in a file.
+   * 
+   * @return the URI of the file that contains this location
+   */
+  public URI getContainingUri();
 
-  String getSemiUniqueIdentifier();
+  public LocationType getLocationType();
+
+  public String getSemiUniqueIdentifier();
 
   @Override
-  int hashCode();
+  public int hashCode();
 
   @Override
-  String toString();
+  public String toString();
 }
