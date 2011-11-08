@@ -14,8 +14,11 @@ class ValueSet {
   }
 
   HInstruction lookup(HInstruction instruction) {
-    int index = instructions.indexOf(instruction);
-    return (index >= 0) ? instructions[index] : null;
+    for (int i = 0, length = instructions.length; i < length; i++) {
+      HInstruction cached = instructions[i];
+      if (cached.equals(instruction)) return cached;
+    }
+    return null;
   }
 
   void kill(int flags) {

@@ -7621,6 +7621,25 @@ HInstruction.prototype.get$usedBy = function() {
 HInstruction.prototype.isInBasicBlock = function() {
   return this._usedBy != null;
 }
+HInstruction.prototype.equals = function(other) {
+  $assert(this.useGvn() && other.useGvn(), "useGvn() && other.useGvn()", "nodes.dart", 301, 12);
+  if ($notnull_bool(!$notnull_bool(this.typeEquals(other)))) return false;
+  if ($notnull_bool(this.flags != other.flags)) return false;
+  var inputsLength = this.inputs.length;
+  var otherInputs = other.inputs;
+  if ($notnull_bool(inputsLength != otherInputs.length)) return false;
+  for (var i = 0;
+   $notnull_bool(i < inputsLength); i++) {
+    if ($notnull_bool(this.inputs.$index(i) !== otherInputs.$index(i))) return false;
+  }
+  return this.dataEquals(other);
+}
+HInstruction.prototype.typeEquals = function(other) {
+  return false;
+}
+HInstruction.prototype.dataEquals = function(other) {
+  return false;
+}
 HInstruction.prototype.notifyAddedToBlock = function() {
   $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 324, 12);
   this._usedBy = [];
@@ -7700,6 +7719,12 @@ HAdd.prototype.accept = function(visitor) {
 HAdd.prototype.evaluate = function(a, b) {
   return a + b;
 }
+HAdd.prototype.typeEquals = function(other) {
+  return (other instanceof HAdd);
+}
+HAdd.prototype.dataEquals = function(other) {
+  return true;
+}
 // ********** Code for HDivide **************
 function HDivide(inputs) {
   HArithmetic.call(this, const$235/*const SourceString('/')*/, inputs);
@@ -7711,6 +7736,12 @@ HDivide.prototype.accept = function(visitor) {
 }
 HDivide.prototype.evaluate = function(a, b) {
   return a / b;
+}
+HDivide.prototype.typeEquals = function(other) {
+  return (other instanceof HDivide);
+}
+HDivide.prototype.dataEquals = function(other) {
+  return true;
 }
 // ********** Code for HMultiply **************
 function HMultiply(inputs) {
@@ -7724,6 +7755,12 @@ HMultiply.prototype.accept = function(visitor) {
 HMultiply.prototype.evaluate = function(a, b) {
   return a * b;
 }
+HMultiply.prototype.typeEquals = function(other) {
+  return (other instanceof HMultiply);
+}
+HMultiply.prototype.dataEquals = function(other) {
+  return true;
+}
 // ********** Code for HSubtract **************
 function HSubtract(inputs) {
   HArithmetic.call(this, const$233/*const SourceString('-')*/, inputs);
@@ -7736,6 +7773,12 @@ HSubtract.prototype.accept = function(visitor) {
 HSubtract.prototype.evaluate = function(a, b) {
   return a - b;
 }
+HSubtract.prototype.typeEquals = function(other) {
+  return (other instanceof HSubtract);
+}
+HSubtract.prototype.dataEquals = function(other) {
+  return true;
+}
 // ********** Code for HTruncatingDivide **************
 function HTruncatingDivide(inputs) {
   HArithmetic.call(this, const$236/*const SourceString('~/')*/, inputs);
@@ -7747,6 +7790,12 @@ HTruncatingDivide.prototype.accept = function(visitor) {
 }
 HTruncatingDivide.prototype.evaluate = function(a, b) {
   return $truncdiv(a, b);
+}
+HTruncatingDivide.prototype.typeEquals = function(other) {
+  return (other instanceof HTruncatingDivide);
+}
+HTruncatingDivide.prototype.dataEquals = function(other) {
+  return true;
 }
 // ********** Code for HExit **************
 function HExit() {
@@ -7801,6 +7850,12 @@ HLiteral.prototype.isLiteralNumber = function() {
 }
 HLiteral.prototype.isLiteralString = function() {
   return (typeof(this.value) == 'string');
+}
+HLiteral.prototype.typeEquals = function(other) {
+  return (other instanceof HLiteral);
+}
+HLiteral.prototype.dataEquals = function(other) {
+  return $eq(this.value, other.get$value());
 }
 // ********** Code for HReturn **************
 function HReturn(value) {
@@ -7923,7 +7978,7 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block) {
     else if ($notnull_bool(instruction.useGvn())) {
       var other = this.values.lookup(instruction);
       if ($notnull_bool(other != null)) {
-        $assert($eq(other, instruction) && $eq(instruction, other), "other == instruction && instruction == other", "optimize.dart", 119, 18);
+        $assert(other.equals(instruction) && instruction.equals(other), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 118, 18);
         block.rewrite(instruction, other);
         block.remove(instruction);
       }
@@ -8229,8 +8284,12 @@ ValueSet.prototype.add = function(instruction) {
   this.instructions.add(instruction);
 }
 ValueSet.prototype.lookup = function(instruction) {
-  var index = this.instructions.indexOf(instruction);
-  return $notnull_bool((index >= 0)) ? this.instructions.$index(index) : null;
+  for (var i = 0, length = this.instructions.length;
+   $notnull_bool(i < length); i++) {
+    var cached = this.instructions.$index(i);
+    if ($notnull_bool(cached.equals(instruction))) return cached;
+  }
+  return null;
 }
 ValueSet.prototype.kill = function(flags) {
   var $0;

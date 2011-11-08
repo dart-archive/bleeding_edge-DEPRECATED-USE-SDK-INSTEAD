@@ -115,8 +115,7 @@ class SsaGlobalValueNumberer extends HGraphVisitor {
       } else if (instruction.useGvn()) {
         HInstruction other = values.lookup(instruction);
         if (other !== null) {
-          // TODO(kasperl): Stop relying on == on instructions.
-          assert(other == instruction && instruction == other);
+          assert(other.equals(instruction) && instruction.equals(other));
           block.rewrite(instruction, other);
           block.remove(instruction);
         } else {
