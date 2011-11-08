@@ -103,6 +103,9 @@ class Listener {
   void endTopLevelMember(Token token) {
   }
 
+  void endType(Token token) {
+  }
+
   void beginTypeArguments(Token token) {
   }
 

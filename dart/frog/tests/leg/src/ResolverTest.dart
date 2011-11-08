@@ -5,7 +5,7 @@
 #import("../../../leg/leg.dart");
 #import("../../../leg/scanner/scannerlib.dart");
 #import("../../../leg/elements/elements.dart");
-#import("../../../leg/tree.dart");
+#import("../../../leg/tree/tree.dart");
 #import("../../../leg/util/util.dart");
 
 class LoggerCanceler implements Logger, Canceler {

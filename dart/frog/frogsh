@@ -5099,6 +5099,34 @@ AbstractScanner$S.prototype.tokenizeMultiLineString = function(q, start, raw) {
 function MalformedInputException(ignored) {
   // Initializers done
 }
+// ********** Code for ScannerTask **************
+function ScannerTask(compiler) {
+  CompilerTask.call(this, compiler);
+  // Initializers done
+}
+$inherits(ScannerTask, CompilerTask);
+ScannerTask.prototype.get$name = function() {
+  return 'Scanner';
+}
+ScannerTask.prototype.scan = function(script) {
+  var $this = this; // closure support
+  this.measure((function () {
+    var $0;
+    var elements = $this.scanElements(script.get$text());
+    for (var link = elements;
+     $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link$Element())) {
+      $this.compiler.universe.define((($0 = link.get$head()) && $0.is$Element()));
+    }
+  })
+  );
+}
+ScannerTask.prototype.scanElements = function(text) {
+  var tokens = new StringScanner(text).tokenize();
+  var listener = new ElementListener(this.compiler);
+  var parser = new Parser(listener);
+  parser.parseUnit(tokens);
+  return listener.topLevelElements;
+}
 // ********** Code for Parser **************
 function Parser(listener) {
   this.listener = listener;
@@ -5915,6 +5943,22 @@ BodyParser.prototype.parseBlock = function(token) {
   this.listener.endBlock(statementCount, begin, token);
   return this.expect('}', token);
 }
+// ********** Code for ParserTask **************
+function ParserTask(compiler) {
+  CompilerTask.call(this, compiler);
+  // Initializers done
+}
+$inherits(ParserTask, CompilerTask);
+ParserTask.prototype.get$name = function() {
+  return 'Parser';
+}
+ParserTask.prototype.parse = function(element) {
+  var $this = this; // closure support
+  return this.measure((function () {
+    return element.parseNode($this.compiler, $this.compiler);
+  })
+  );
+}
 // ********** Code for Listener **************
 function Listener() {}
 Listener.prototype.beginArguments = function(token) {
@@ -6011,6 +6055,9 @@ Listener.prototype.beginTopLevelMember = function(token) {
 
 }
 Listener.prototype.endTopLevelMember = function(token) {
+
+}
+Listener.prototype.endType = function(token) {
 
 }
 Listener.prototype.beginTypeArguments = function(token) {
@@ -6345,7 +6392,7 @@ BodyListener.prototype.pushNode = function(node) {
 }
 BodyListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 508, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 511, 12);
   var node = this.nodes.get$head();
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link$Node());
   this.logger.log(("pop " + this.nodes + ""));
@@ -8795,50 +8842,6 @@ TopScope.prototype.lookup = function(name) {
 }
 TopScope.prototype.add = function(element) {
   $throw("Cannot add an element in the top scope");
-}
-// ********** Code for ScannerTask **************
-function ScannerTask(compiler) {
-  CompilerTask.call(this, compiler);
-  // Initializers done
-}
-$inherits(ScannerTask, CompilerTask);
-ScannerTask.prototype.get$name = function() {
-  return 'Scanner';
-}
-ScannerTask.prototype.scan = function(script) {
-  var $this = this; // closure support
-  this.measure((function () {
-    var $0;
-    var elements = $this.scanElements(script.get$text());
-    for (var link = elements;
-     $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link$Element())) {
-      $this.compiler.universe.define((($0 = link.get$head()) && $0.is$Element()));
-    }
-  })
-  );
-}
-ScannerTask.prototype.scanElements = function(text) {
-  var tokens = new StringScanner(text).tokenize();
-  var listener = new ElementListener(this.compiler);
-  var parser = new Parser(listener);
-  parser.parseUnit(tokens);
-  return listener.topLevelElements;
-}
-// ********** Code for ParserTask **************
-function ParserTask(compiler) {
-  CompilerTask.call(this, compiler);
-  // Initializers done
-}
-$inherits(ParserTask, CompilerTask);
-ParserTask.prototype.get$name = function() {
-  return 'Parser';
-}
-ParserTask.prototype.parse = function(element) {
-  var $this = this; // closure support
-  return this.measure((function () {
-    return element.parseNode($this.compiler, $this.compiler);
-  })
-  );
 }
 // ********** Code for leg_Script **************
 function leg_Script(file) {
