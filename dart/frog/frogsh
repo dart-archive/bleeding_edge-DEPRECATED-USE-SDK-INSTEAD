@@ -873,7 +873,6 @@ ListFactory = Array;
 ListFactory.prototype.is$List = function(){return this;};
 ListFactory.prototype.is$List$ArgumentNode = function(){return this;};
 ListFactory.prototype.is$List$EvaluatedValue = function(){return this;};
-ListFactory.prototype.is$List$HInstruction = function(){return this;};
 ListFactory.prototype.is$List$String = function(){return this;};
 ListFactory.prototype.is$List$T = function(){return this;};
 ListFactory.prototype.is$List$Value = function(){return this;};
@@ -932,6 +931,7 @@ ListFactory$String = ListFactory;
 ListFactory$T = ListFactory;
 ListFactory$Type = ListFactory;
 ListFactory$V = ListFactory;
+ListFactory$ValueSetNode = ListFactory;
 // ********** Code for ListIterator **************
 function ListIterator(array) {
   this._array = array;
@@ -8479,29 +8479,57 @@ HValidator.prototype.visitInstruction = function(instruction) {
 }
 // ********** Code for ValueSet **************
 function ValueSet() {
-  this.instructions = new ListFactory$HInstruction();
+  this.table = new ListFactory$ValueSetNode(1);
   // Initializers done
 }
 ValueSet.prototype.add = function(instruction) {
   $assert(this.lookup(instruction) == null, "lookup(instruction) === null", "value_set.dart", 12, 12);
-  this.instructions.add(instruction);
+  var index = this.tableIndexForInstruction(instruction);
+  this.table.$setindex(index, new ValueSetNode(instruction, this.table.$index(index)));
 }
 ValueSet.prototype.lookup = function(instruction) {
-  for (var i = 0, length = this.instructions.length;
-   $notnull_bool(i < length); i++) {
-    var cached = this.instructions.$index(i);
+  var index = this.tableIndexForInstruction(instruction);
+  for (var node = this.table.$index(index);
+   $notnull_bool(node != null); node = node.next) {
+    var cached = node.value;
     if ($notnull_bool(cached.equals(instruction))) return cached;
   }
   return null;
 }
 ValueSet.prototype.kill = function(flags) {
-  var $0;
   var depends = HInstruction.computeDependsOnFlags(flags);
-  this.instructions = (($0 = this.instructions.filter((function (e) {
-    return (e.flags & depends) == 0;
-  })
-  )) && $0.is$List$HInstruction());
+  for (var i = 0, length = this.table.length;
+   $notnull_bool(i < length); i++) {
+    var previous = null;
+    var current = this.table.$index(i);
+    while ($notnull_bool(current != null)) {
+      var next = current.next;
+      var cached = current.value;
+      if ($notnull_bool((cached.flags & depends) != 0)) {
+        if ($notnull_bool(previous == null)) {
+          this.table.$setindex(i, next);
+        }
+        else {
+          previous.next = next;
+        }
+      }
+      else {
+        previous = current;
+      }
+      current = next;
+    }
+  }
 }
+ValueSet.prototype.tableIndexForInstruction = function(instruction) {
+  return 0;
+}
+// ********** Code for ValueSetNode **************
+function ValueSetNode(value, next) {
+  this.value = value;
+  this.next = next;
+  // Initializers done
+}
+ValueSetNode.prototype.get$value = function() { return this.value; };
 // ********** Code for top level **************
 //  ********** Library leg **************
 // ********** Code for WorldCompiler **************
