@@ -3,7 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void main() {
-  // String s = 3;
-  // int i = 'hestfisk';
-  // void v;
+  print(3);
+  print(4);
+  if (true) {
+    print('hest');
+  }
+  if (false) {
+    print('hest');
+  } else {
+    print('fisk');
+  }
+  int foo() {}
+  int i = 0;
 }

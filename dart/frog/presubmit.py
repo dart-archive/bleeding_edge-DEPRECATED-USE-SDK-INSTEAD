@@ -83,29 +83,9 @@ def main(args):
   if args[1:]:
     test_cmd.extend(args[1:])
   else:
-    test_cmd.extend(['language', 'corelib', 'leg', 'isolate', 'peg'])
+    test_cmd.extend(['language', 'corelib', 'leg',
+                     'isolate', 'peg', 'leg_only'])
   RunCommand(*test_cmd, verbose=True)
-
-  leg_test_dir = os.path.join('leg', 'tests')
-  for current_dir, directories, filenames in os.walk(leg_test_dir):
-    for filename in filenames:
-      if filename.endswith('.dart'):
-        pattern = 'info: [leg] compilation succeeded'
-        node_exit_code = 0
-        vm_exit_code = 0
-        if filename == 'empty.dart':
-          pattern = 'info: [leg] compiler cancelled: Could not find main'
-          node_exit_code = 1
-          vm_exit_code = 255 # Sigh.
-        filename = os.path.join(current_dir, filename)
-        frog_bin = os.path.join('.', 'frogsh')
-        RunCommand(frog_bin, '--enable_leg', '--verbose', '--throw_on_errors',
-                   filename, pattern=pattern, exit_code=node_exit_code)
-        frog_bin = os.path.join('.', 'frog.py')
-        RunCommand(frog_bin,
-                   '--vm_flags=--enable_type_checks --enable_asserts',
-                   '--', '--enable_leg', '--verbose', '--throw_on_errors',
-                   filename, pattern=pattern, exit_code=vm_exit_code)
 
 if __name__ == '__main__':
   try:

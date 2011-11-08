@@ -3,18 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void main() {
-  print(3);
-  print(4);
-  /*
-  if (true) {
-    print('hest');
-  }
-  if (false) {
-    print('hest');
-  } else {
-    print('fisk');
-  }
-  int foo() {}
-  int i = 0;
-  */
+  var hello = 'Hello';
+  var world = 'world';
+  var s = 0;
+  s = world;
+  print(hello + ", " + world + "!");
 }
