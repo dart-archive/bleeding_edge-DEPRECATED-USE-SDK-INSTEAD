@@ -15,4 +15,8 @@ void main() {
   }
   int foo() {}
   int i = 0;
+
+  for (int j = 0; j < 10; j += 1) {
+    print('kat');
+  }
 }

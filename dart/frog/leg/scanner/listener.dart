@@ -39,6 +39,12 @@ class Listener {
   void endFormalParameters(int count, Token beginToken, Token endToken) {
   }
 
+  void beginForStatement(Token token) {
+  }
+
+  void endForStatement(Token beginToken, Token endToken) {
+  }
+
   void beginFunction(Token token) {
   }
 
@@ -506,6 +512,14 @@ class BodyListener extends ElementListener {
     Statement thenPart = popNode();
     NodeList condition = popNode();
     pushNode(new If(condition, thenPart, elsePart, ifToken, elseToken));
+  }
+
+  void endForStatement(Token beginToken, Token endToken) {
+    Statement body = popNode();
+    Expression update = popNode();
+    ExpressionStatement condition = popNode();
+    VariableDefinitions initializer = popNode();
+    pushNode(new For(initializer, condition, update, body, beginToken));
   }
 
   void endBlock(int count, Token beginToken, Token endToken) {

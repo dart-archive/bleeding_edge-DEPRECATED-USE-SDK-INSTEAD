@@ -57,6 +57,10 @@ class ResolverVisitor implements Visitor<Element> {
     visit(node.expression);
   }
 
+  visitFor(For node) {
+    compiler.unimplemented('Resolver::visitFor');
+  }
+
   visitFunctionExpression(FunctionExpression node) {
     // TODO(ngeoffray): FunctionExpression is currently a top-level
     // method definition.

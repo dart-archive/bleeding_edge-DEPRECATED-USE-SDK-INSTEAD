@@ -383,6 +383,8 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
         return parseVariablesDeclaration(token);
       case value === 'if':
         return parseIfStatement(token);
+      case value === 'for':
+        return parseForStatement(token);
       // TODO(ahe): Handle other statements.
       default:
         return parseExpressionStatement(token);
@@ -653,6 +655,21 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
       token = parseStatement(token.next);
     }
     listener.endIfStatement(ifToken, elseToken);
+    return token;
+  }
+
+  Token parseForStatement(Token token) {
+    // TODO(ahe): Support for-in.
+    Token forToken = token;
+    listener.beginForStatement(forToken);
+    token = expect('for', token);
+    token = expect('(', token);
+    token = parseVariablesDeclaration(token); // TODO(ahe): Support other forms.
+    token = parseExpressionStatement(token);
+    token = parseExpression(token); // TODO(ahe): Support expression list here.
+    token = expect(')', token);
+    token = parseStatement(token);
+    listener.endForStatement(forToken, token);
     return token;
   }
 

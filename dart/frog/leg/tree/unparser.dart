@@ -29,6 +29,16 @@ class DebugUnparser implements Visitor {
     sb.add(';');
   }
 
+  visitFor(For node) {
+    node.forToken.value.printOn(sb);
+    sb.add('(');
+    visit(node.initializer);
+    visit(node.condition);
+    visit(node.update);
+    sb.add(')');
+    visit(node.body);
+  }
+
   visitFunctionExpression(FunctionExpression node) {
     if (node.returnType !== null) {
       visit(node.returnType);

@@ -5,6 +5,7 @@
 interface Visitor<R> {
   R visitBlock(Block node);
   R visitExpressionStatement(ExpressionStatement node);
+  R visitFor(For node);
   R visitFunctionExpression(FunctionExpression node);
   R visitIdentifier(Identifier node);
   R visitIf(If node);
@@ -202,6 +203,25 @@ class If extends Statement {
   Token getEndToken() {
     if (elsePart === null) return thenPart.getEndToken();
     return elsePart.getEndToken();
+  }
+}
+
+class For extends Statement {
+  final Node initializer;
+  final ExpressionStatement condition;
+  final Node update;
+  final Statement body;
+
+  final Token forToken;
+
+  For(this.initializer, this.condition, this.update, this.body, this.forToken);
+
+  accept(Visitor visitor) => visitor.visitFor(this);
+
+  Token getBeginToken() => forToken;
+
+  Token getEndToken() {
+    return body.getEndToken();
   }
 }
 
