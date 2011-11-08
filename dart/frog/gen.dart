@@ -50,7 +50,7 @@ class WorldGenerator {
     _writeDynamicStubs(world.functionType);
 
     _writeGlobals();
-    writer.writeln('${mainCall.code};');
+    writer.writeln('RunEntry(function () {${mainCall.code};}, []);');
   }
 
   GlobalValue globalForStaticField(FieldMember field, Value fieldValue,

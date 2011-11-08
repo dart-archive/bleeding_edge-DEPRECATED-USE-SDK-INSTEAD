@@ -83,7 +83,7 @@ def main(args):
   if args[1:]:
     test_cmd.extend(args[1:])
   else:
-    test_cmd.extend(['language', 'corelib', 'leg', 'peg'])
+    test_cmd.extend(['language', 'corelib', 'leg', 'isolate', 'peg'])
   RunCommand(*test_cmd, verbose=True)
 
   leg_test_dir = os.path.join('leg', 'tests')

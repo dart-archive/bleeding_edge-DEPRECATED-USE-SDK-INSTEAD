@@ -7,11 +7,23 @@ class SendPortImpl implements SendPort {
   const SendPortImpl(this._workerId, this._isolateId, this._receivePortId);
 
   void send(var message, [SendPort replyTo = null]) {
-    // TODO(kasperl): get rid of _sendNow.
-    this._sendNow(message, replyTo);
+    if (replyTo !== null && !(replyTo is SendPortImpl)) {
+      throw "SendPort::send: Illegal replyTo type.";
+    }
+    IsolateNatives.sendMessage(_workerId, _isolateId, _receivePortId,
+        _serializeMessage(message), _serializeMessage(replyTo));
   }
 
-  void _sendNow(var message, SendPort replyTo) native;
+  // TODO(sigmund): get rid of _sendNow
+  void _sendNow(var message, replyTo) { send(message, replyTo); }
+
+  _serializeMessage(message) {
+    if (IsolateNatives.shouldSerialize) {
+      return _IsolateJsUtil._serializeObject(message);
+    } else {
+      return _IsolateJsUtil._copyObject(message);
+    }
+  }
 
   ReceivePortSingleShotImpl call(var message) {
     final result = new ReceivePortSingleShotImpl();
@@ -21,7 +33,7 @@ class SendPortImpl implements SendPort {
 
   ReceivePortSingleShotImpl _callNow(var message) {
     final result = new ReceivePortSingleShotImpl();
-    this._sendNow(message, result.toSendPort());
+    send(message, result.toSendPort());
     return result;
   }
 
@@ -71,7 +83,7 @@ class ReceivePortFactory {
 class ReceivePortImpl implements ReceivePort {
   ReceivePortImpl()
       : _id = _nextFreeId++ {
-    _register(_id);
+    IsolateNatives.registerPort(_id, this);
   }
 
   void receive(void onMessage(var message, SendPort replyTo)) {
@@ -80,7 +92,7 @@ class ReceivePortImpl implements ReceivePort {
 
   void close() {
     _callback = null;
-    _unregister(_id);
+    IsolateNatives.unregisterPort(_id);
   }
 
   SendPort toSendPort() {
@@ -92,27 +104,20 @@ class ReceivePortImpl implements ReceivePort {
    * existing ports.
    */
   SendPort _toNewSendPort() {
-    return new SendPortImpl(_currentWorkerId(), _currentIsolateId(), _id);
+    return new SendPortImpl(
+        IsolateNatives._currentWorkerId(),
+        IsolateNatives._currentIsolateId(), _id);
   }
 
   int _id;
-  Function _callback = null;
+  Function _callback;
 
   static int _nextFreeId = 1;
-
-  void _register(int id) native;
-  void _unregister(int id) native;
-
-  static int _currentWorkerId() native;
-  static int _currentIsolateId() native;
-
-  static void _invokeCallback(ReceivePortImpl port, message, replyTo) native {
-    if (port._callback !== null) (port._callback)(message, replyTo);
-  }
 
   static int _getId(ReceivePortImpl port) native {
     return port._id;
   }
+
   static Function _getCallback(ReceivePortImpl port) native {
     return port._callback;
   }
@@ -152,7 +157,7 @@ class ReceivePortSingleShotImpl implements ReceivePort {
 
 final String _SPAWNED_SIGNAL = "spawned";
 
-class IsolateNatives {
+class IsolateNatives native "IsolateNatives" {
   static Future<SendPort> spawn(Isolate isolate, bool isLight) {
     Completer<SendPort> completer = new Completer<SendPort>();
     ReceivePort port = new ReceivePort.singleShot();
@@ -161,23 +166,40 @@ class IsolateNatives {
       completer.complete(replyPort);
     });
     _spawn(isolate, isLight, port.toSendPort());
+    if (false) {
+      // TODO(sigmund): delete this code. This is temporarily added because we
+      // are tree-shaking methods that are only reachable from js
+      _IsolateJsUtil._startIsolate(null, null);
+      _IsolateJsUtil._deserializeMessage(null);
+      _IsolateJsUtil._print(null);
+    }
     return completer.future;
   }
 
   static SendPort _spawn(Isolate isolate, bool light, SendPort port) native;
-  static Function bind(Function f) native;
+
+  static bool get shouldSerialize() native;
+
+  static void sendMessage(int workerId, int isolateId, int receivePortId,
+      message, replyTo) native;
+
+  /** Registers an active receive port. */
+  static void registerPort(int id, ReceivePort port) native;
+
+  /** Unregister an inactive receive port. */
+  static void unregisterPort(int id) native;
+
+  static int _currentWorkerId() native;
+
+  static int _currentIsolateId() native;
 }
 
 
-class _IsolateJsUtil {
+class _IsolateJsUtil native "_IsolateJsUtil" {
   static void _startIsolate(Isolate isolate, SendPort replyTo) native {
     ReceivePort port = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
     isolate._run(port);
-  }
-
-  static SendPort _toSendPort(port) native {
-    return port.toSendPort();
   }
 
   static void _print(String msg) native {

@@ -2,17 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(jmesserly): this whole file won't work in Frog yet.
-
 var isolate$current = null;
 var isolate$rootIsolate = null;  // Will only be set in the main worker.
 var isolate$inits = [];
 var isolate$globalThis = this;
-
-// These declarations are needed to avoid errors from the Closure Compiler
-// optimizer. They are defined in client/dom/generated/dart_dom_wrapping.js.
-var __dom_wrap;
-var __dom_unwrap;
 
 var isolate$inWorker =
     (typeof isolate$globalThis['importScripts']) != "undefined";
@@ -37,56 +30,14 @@ var isolate$useWorkerSerializationProtocol = false;
 
 
 // ------- SendPort -------
-function isolate$sendMessage(workerId, isolateId, receivePortId,
-                             message, replyTo) {
-  // Both, the message and the replyTo are already serialized.
-  if (workerId == isolate$thisWorkerId) {
-    var isolate = isolate$isolateRegistry.get(isolateId);
-    if (!isolate) return;  // Isolate has been closed.
-    var receivePort = isolate.getReceivePortForId(receivePortId);
-    if (!receivePort) return;  // ReceivePort has been closed.
-    isolate$receiveMessage(receivePort, isolate, message, replyTo);
-  } else {
-    var worker;
-    if (isolate$inWorker) {
-      worker = isolate$mainWorker;
-    } else {
-      worker = isolate$workerRegistry.get(workerId);
-    }
-    worker.postMessage({ command: 'message',
-                         workerId: workerId,
-                         isolateId: isolateId,
-                         portId: receivePortId,
-                         msg: message,
-                         replyTo: replyTo });
-  }
-}
 
 function isolate$receiveMessage(port, isolate,
                                 serializedMessage, serializedReplyTo) {
   isolate$IsolateEvent.enqueue(isolate, function() {
     var message = isolate$deserializeMessage(serializedMessage);
     var replyTo = isolate$deserializeMessage(serializedReplyTo);
-    native_ReceivePortImpl__invokeCallback(port, message, replyTo);
+    port._callback(message, replyTo);
   });
-}
-
-// ------- ReceivePort -------
-
-function native_ReceivePortImpl__register(id) {
-  isolate$current.registerReceivePort(id, this);
-}
-
-function native_ReceivePortImpl__unregister(id) {
-  isolate$current.unregisterReceivePort(id);
-}
-
-function native_ReceivePortImpl__currentWorkerId() {
-  return isolate$thisWorkerId;
-}
-
-function native_ReceivePortImpl__currentIsolateId() {
-  return isolate$current.id;
 }
 
 // -------- Registry ---------
@@ -161,11 +112,11 @@ function isolate$processWorkerMessage(sender, e) {
     case 'start':
       isolate$log("starting worker: " + msg.id + " " + msg.factoryName);
       isolate$initializeWorker(msg.id);
-      var runnerObject = (isolate$globalThis[msg.factoryName])();
+      var runnerObject = new (isolate$globalThis[msg.factoryName])();
       var serializedReplyTo = msg.replyTo;
       isolate$IsolateEvent.enqueue(new isolate$Isolate(), function() {
         var replyTo = isolate$deserializeMessage(serializedReplyTo);
-        native__IsolateJsUtil__startIsolate(runnerObject, replyTo);
+        _IsolateJsUtil._startIsolate(runnerObject, replyTo);
       });
       isolate$runEventLoop();
       break;
@@ -173,8 +124,8 @@ function isolate$processWorkerMessage(sender, e) {
       isolate$spawnWorker(msg.factoryName, msg.replyPort);
       break;
     case 'message':
-      isolate$sendMessage(msg.workerId, msg.isolateId, msg.portId,
-                          msg.msg, msg.replyTo);
+      IsolateNatives.sendMessage(
+          msg.workerId, msg.isolateId, msg.portId, msg.msg, msg.replyTo);
       isolate$runEventLoop();
       break;
     case 'close':
@@ -187,13 +138,14 @@ function isolate$processWorkerMessage(sender, e) {
       isolate$log(msg.msg);
       break;
     case 'print':
-      native__IsolateJsUtil__print(msg.msg);
+      _IsolateJsUtil._print(msg.msg);
       break;
     case 'error':
       throw msg.msg;
       break;
   }
 }
+
 
 if (isolate$supportsWorkers) {
   isolate$globalThis.onmessage = function(e) {
@@ -286,14 +238,72 @@ isolate$IsolateEvent.enqueue = function(isolate, fn) {
   isolate$events.push(new isolate$IsolateEvent(isolate, fn));
 };
 
+
 isolate$IsolateEvent.dequeue = function() {
-  if (isolate$events.length == 0) return $Dart$Null;
+  if (isolate$events.length == 0) return null;
   var result = isolate$events[0];
   isolate$events.splice(0, 1);
   return result;
 };
 
-function native_IsolateNatives__spawn(runnable, light, replyPort) {
+function IsolateNatives() {}
+
+IsolateNatives.sendMessage = function (workerId, isolateId, receivePortId,
+                             message, replyTo) {
+  // Both, the message and the replyTo are already serialized.
+  if (workerId == isolate$thisWorkerId) {
+    var isolate = isolate$isolateRegistry.get(isolateId);
+    if (!isolate) return;  // Isolate has been closed.
+    var receivePort = isolate.getReceivePortForId(receivePortId);
+    if (!receivePort) return;  // ReceivePort has been closed.
+    isolate$receiveMessage(receivePort, isolate, message, replyTo);
+  } else {
+    var worker;
+    if (isolate$inWorker) {
+      worker = isolate$mainWorker;
+    } else {
+      worker = isolate$workerRegistry.get(workerId);
+    }
+    worker.postMessage({ command: 'message',
+                         workerId: workerId,
+                         isolateId: isolateId,
+                         portId: receivePortId,
+                         msg: message,
+                         replyTo: replyTo });
+  }
+}
+
+// Wrap a 0-arg dom-callback to bind it with the current isolate: 
+function $wrap_call$0(fn) { return fn && fn.wrap$call$0(); }
+Function.prototype.wrap$call$0 = function() {
+  var isolate = isolate$current;
+  var self = this;
+  this.wrap$0 = function() {
+    isolate.run(function() {
+      self();
+    });
+    isolate$runEventLoop();
+  };
+  this.wrap$call$0 = function() { return this.wrap$0; };
+  return this.wrap$0;
+}
+
+// Wrap a 1-arg dom-callback to bind it with the current isolate: 
+function $wrap_call$1(fn) { return fn && fn.wrap$call$1(); }
+Function.prototype.wrap$call$1 = function() {
+  var isolate = isolate$current;
+  var self = this;
+  this.wrap$1 = function(arg) {
+    isolate.run(function() {
+      self(arg);
+    });
+    isolate$runEventLoop();
+  };
+  this.wrap$call$1 = function() { return this.wrap$1; };
+  return this.wrap$1;
+}
+
+IsolateNatives._spawn = function(runnable, light, replyPort) {
   // TODO(floitsch): throw exception if runnable's class doesn't have a
   // default constructor.
   if (isolate$useWorkers && !light) {
@@ -303,16 +313,24 @@ function native_IsolateNatives__spawn(runnable, light, replyPort) {
   }
 }
 
-function native_IsolateNatives_bind(fn) {
-  var isolate = isolate$current;
-  return function() {
-    var self = this;
-    var args = arguments;
-    isolate.run(function() {
-      fn.apply(self, args);
-    });
-    isolate$runEventLoop();
-  };
+IsolateNatives.get$shouldSerialize = function() {
+  return isolate$useWorkers || isolate$useWorkerSerializationProtocol;
+}
+
+IsolateNatives.registerPort = function(id, port) {
+  isolate$current.registerReceivePort(id, port);
+}
+
+IsolateNatives.unregisterPort = function(id) {
+  isolate$current.unregisterReceivePort(id);
+}
+
+IsolateNatives._currentWorkerId = function() {
+  return isolate$thisWorkerId;
+}
+
+IsolateNatives._currentIsolateId = function() {
+ return isolate$current.id;
 }
 
 function isolate$startNonWorker(runnable, replyTo) {
@@ -323,9 +341,9 @@ function isolate$startNonWorker(runnable, replyTo) {
   // new cloned instance of it with a fresh state in the spawned
   // isolate. This way, we do not get cross-isolate references
   // through the runnable.
-  var factory = runnable.getIsolateFactory();
+  var ctor = runnable.constructor;
   isolate$IsolateEvent.enqueue(spawned, function() {
-    native__IsolateJsUtil__startIsolate(factory(), replyTo);
+    _IsolateJsUtil._startIsolate(new ctor(), replyTo);
   });
 }
 
@@ -351,8 +369,8 @@ var isolate$thisScript = function() {
 }();
 
 function isolate$startWorker(runnable, replyPort) {
-  var factory = runnable.getIsolateFactory();
-  var factoryName = factory.name;
+  // TODO(sigmund): make this browser independent
+  var factoryName = runnable.constructor.name;
   var serializedReplyPort = isolate$serializeMessage(replyPort);
   if (isolate$inWorker) {
     isolate$mainWorker.postMessage({ command: 'spawn-worker',
@@ -376,18 +394,6 @@ function isolate$spawnWorker(factoryName, serializedReplyPort) {
                        id: workerId,
                        replyTo: serializedReplyPort,
                        factoryName: factoryName });
-}
-
-function native_SendPortImpl__sendNow(message, replyTo) {
-  if (replyTo !== $Dart$Null && !(replyTo instanceof SendPortImpl$Dart)) {
-    throw "SendPort::send: Illegal replyTo type.";
-  }
-  message = isolate$serializeMessage(message);
-  replyTo = isolate$serializeMessage(replyTo);
-  var workerId = native_SendPortImpl__getWorkerId(this);
-  var isolateId = native_SendPortImpl__getIsolateId(this);
-  var receivePortId = native_SendPortImpl__getReceivePortId(this);
-  isolate$sendMessage(workerId, isolateId, receivePortId, message, replyTo);
 }
 
 function isolate$closeWorkerIfNecessary() {
@@ -466,65 +472,21 @@ function RunEntry(entry, args) {
 
 // ------- Message Serializing and Deserializing -------
 
-function native_MessageTraverser__clearAttachedInfo(o) {
-  o['__MessageTraverser__attached_info__'] = (void 0);
-}
-
-function native_MessageTraverser__setAttachedInfo(o, info) {
-  o['__MessageTraverser__attached_info__'] = info;
-}
-
-function native_MessageTraverser__getAttachedInfo(o) {
-  return o['__MessageTraverser__attached_info__'];
-}
-
-function native_Serializer__newJsArray(len) {
-  return new Array(len);
-}
-
-function native_Serializer__jsArrayIndexSet(jsArray, index, val) {
-  jsArray[index] = val;
-}
-
-function native_Serializer__dartListToJsArrayNoCopy(list) {
-  if (list instanceof Array) {
-    RTT.removeTypeInfo(list);
-    return list;
-  } else {
-    var len = native__ListJsUtil__listLength(list);
-    var array = new Array(len);
-    for (var i = 0; i < len; i++) {
-      array[i] = INDEX$operator(list, i);
-    }
-    return array;
-  }
-}
-
-function native_Deserializer__isJsArray(x) {
-  return x instanceof Array;
-}
-
-function native_Deserializer__jsArrayIndex(x, index) {
-  return x[index];
-}
-
-function native_Deserializer__jsArrayLength(x) {
-  return x.length;
-}
-
 function isolate$serializeMessage(message) {
   if (isolate$useWorkers || isolate$useWorkerSerializationProtocol) {
-    return native__IsolateJsUtil__serializeObject(message);
+    return _IsolateJsUtil._serializeObject(message);
   } else {
-    return native__IsolateJsUtil__copyObject(message);
+    return _IsolateJsUtil._copyObject(message);
   }
 }
 
-function isolate$deserializeMessage(message) {
+function isolate$deserializeMessage(message_) {
   if (isolate$useWorkers || isolate$useWorkerSerializationProtocol) {
-    return native__IsolateJsUtil__deserializeMessage(message);
+    return _IsolateJsUtil._deserializeMessage(message_);
   } else {
     // Nothing more to do.
-    return message;
+    return message_;
   }
 }
+
+function _IsolateJsUtil() {}

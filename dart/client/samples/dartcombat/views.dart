@@ -282,7 +282,7 @@ class ViewUtil {
     gridNode.rect.then((ElementRect rect) {
       int x = (e.pageX - rect.offset.left) ~/ 50;
       int y = (e.pageY - rect.offset.top) ~/ 50;
-      completer.complete(const [x, y]);
+      completer.complete([x, y]);
     });
     return completer.future;
   }

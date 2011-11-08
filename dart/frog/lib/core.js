@@ -329,8 +329,12 @@ function $varMethod(name, methods) {
 }
 
 Object.prototype.get$typeName = function() {
-  // TODO(vsm): how can we make this go down the fast path for Chrome?
-  //(for Chrome: return this.constructor.name;)
+  // TODO(sigmund): find a way to make this work on all browsers, including
+  // checking the typeName on prototype objects (so we can fix dynamic
+  // dispatching on $varMethod).
+  if (window.constructor.name == 'DOMWindow') { // fast-path for Chrome
+    return this.constructor.name;
+  }
   var str = Object.prototype.toString.call(this);
   return str.substring(8, str.length - 1);
 }
@@ -344,5 +348,5 @@ function $patchMethod(obj, name, methods) {
   while (obj && !(method = methods[obj.get$typeName()])) {
     obj = Object.getPrototypeOf(obj);
   }
-  Object.defineProperty(proto, name, {value: method || methods['Object']});
+  obj[name] = method || methods['Object'];
 }

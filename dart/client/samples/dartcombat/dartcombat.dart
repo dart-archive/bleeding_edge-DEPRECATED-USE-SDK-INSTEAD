@@ -4,7 +4,7 @@
 
 #library('dartcombat');
 
-#import('../../html/html.dart');
+#import('dart:html');
 #import('dartcombatlib.dart');
 
 void main() {

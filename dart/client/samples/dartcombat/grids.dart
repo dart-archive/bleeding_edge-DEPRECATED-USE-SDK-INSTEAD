@@ -49,7 +49,7 @@ class BoatGrid {
     } else {
       state.hit(x, y);
       b.hitCount++;
-      return b.sunk ? const [Constants.SUNK, b.length] : const [Constants.HIT];
+      return b.sunk ? [Constants.SUNK, b.length] : const [Constants.HIT];
     }
   }
 }

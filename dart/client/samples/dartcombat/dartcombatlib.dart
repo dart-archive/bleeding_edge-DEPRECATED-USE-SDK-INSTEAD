@@ -4,7 +4,7 @@
 
 #library('dartcombatlib');
 
-#import('../../html/html.dart');
+#import('dart:html');
 
 #source('setup.dart');
 #source('grids.dart');

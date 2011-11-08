@@ -195,8 +195,9 @@ class Value {
 
   /**
    * Assign or convert this value to another type.
-   * This is used for converting between function types, and inserting type
-   * checks when --enable_type_checks is enabled.
+   * This is used for converting between function types, inserting type
+   * checks when --enable_type_checks is enabled, and wrapping callback
+   * functions passed to the dom so we can restore their isolate context.
    */
   // WARNING: this needs to be kept in sync with needsConversion above.
   Value convertTo(MethodGenerator context, Type toType, Node node,
@@ -215,7 +216,11 @@ class Value {
       var myCall = type.getCallMethod();
       if (myCall == null || myCall.parameters.length != arity) {
         final stub = world.functionType.getCallStub(new Arguments.bare(arity));
-        return new Value(toType, 'to\$${stub.name}($code)');
+        var val = new Value(toType, 'to\$${stub.name}($code)');
+        return _isDomCallback(toType) && !_isDomCallback(type) ?
+            val._wrapDomCallback(toType, arity) : val;
+      } else if (_isDomCallback(toType) && !_isDomCallback(type)) {
+        return _wrapDomCallback(toType, arity);
       }
     }
 
@@ -271,6 +276,15 @@ class Value {
         return new Value(world.boolType, '\$notnull_bool($code)');
       }
     }
+  }
+
+  bool _isDomCallback(toType) {
+    return (toType.definition is FunctionTypeDefinition
+        && toType.library == world.dom);
+  }
+
+  Value _wrapDomCallback(Type toType, int arity) {
+    return new Value(toType, '\$wrap_call\$$arity($code)');
   }
 
   /**
