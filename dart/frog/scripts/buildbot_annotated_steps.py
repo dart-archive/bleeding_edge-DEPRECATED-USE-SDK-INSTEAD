@@ -78,7 +78,7 @@ def TestFrog(arch, mode):
           'isolate',
           'frog']
   if flags:
-    cmd.append('--flag=' + flags)
+    cmd.extend(['--flag=' + f for f in flags.split(' ')])
 
   status = subprocess.call(cmd)
   if status != 0:
