@@ -9,7 +9,8 @@ class SsaBuilderTask extends CompilerTask {
   HGraph build(Node tree, Map<Node, Element> elements) {
     return measure(() {
       FunctionExpression function = tree;
-      HGraph graph = compileMethod(function.body, elements);
+      HGraph graph =
+          compileMethod(function.parameters, function.body, elements);
       assert(graph.isValid());
       if (GENERATE_SSA_TRACE) {
         Identifier name = function.name;
@@ -20,9 +21,11 @@ class SsaBuilderTask extends CompilerTask {
     });
   }
 
-  HGraph compileMethod(Node body, Map<Node, Element> elements) {
+  HGraph compileMethod(NodeList parameters, 
+                       Node body, Map<Node,
+                       Element> elements) {
     SsaBuilder builder = new SsaBuilder(compiler, elements);
-    HGraph graph = builder.build(body);
+    HGraph graph = builder.build(parameters, body);
     return graph;
   }
 }
@@ -47,7 +50,7 @@ class SsaBuilder implements Visitor {
 
   SsaBuilder(this.compiler, this.elements);
 
-  HGraph build(Node body) {
+  HGraph build(NodeList parameters, Node body) {
     graph = new HGraph();
     graph.entry.id = nextFreeBlockId++;
     stack = new List<HInstruction>();
@@ -60,6 +63,7 @@ class SsaBuilder implements Visitor {
     graph.entry.addDominatedBlock(block);
 
     successor = graph.exit;
+    visitParameters(parameters);
     body.accept(this);
 
     graph.exit.id = nextFreeBlockId++;
@@ -86,6 +90,26 @@ class SsaBuilder implements Visitor {
     if (node !== null) node.accept(this);
   }
 
+  visitParameters(NodeList parameters) {
+    int parameterIndex = 0;
+    for (Link<Node> link = parameters.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      VariableDefinitions container = link.head;
+      Link<Node> identifierLink = container.definitions.nodes;
+      // nodeList must contain exactly one argument.
+      assert(!identifierLink.isEmpty() && identifierLink.tail.isEmpty());
+      if (identifierLink.head is !Identifier) {
+        compiler.unimplemented("SsaBuilder.visitParameters non-identifier");
+      }
+      Identifier parameterId = identifierLink.head;
+      Element element = elements[parameterId];
+      HParameter parameterInstruction = new HParameter(parameterIndex++);
+      definitions[element] = parameterInstruction;
+      add(parameterInstruction);
+    }
+  }
+    
   visitBlock(Block node) {
     for (Link<Node> link = node.statements.nodes;
          !link.isEmpty();

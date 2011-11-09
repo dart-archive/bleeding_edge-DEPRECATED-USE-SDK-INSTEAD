@@ -11,6 +11,7 @@ interface HVisitor<R> {
   R visitIf(HIf node);
   R visitInvoke(HInvoke node);
   R visitLiteral(HLiteral node);
+  R visitParameter(HParameter node);
   R visitSubtract(HSubtract node);
   R visitMultiply(HMultiply node);
   R visitReturn(HReturn node);
@@ -120,9 +121,10 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIf(HIf node) => visitInstruction(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
-  visitSubtract(HSubtract node) => visitArithmetic(node);
   visitMultiply(HMultiply node) => visitArithmetic(node);
+  visitParameter(HParameter node) => visitInstruction(node);
   visitReturn(HReturn node) => visitInstruction(node);
+  visitSubtract(HSubtract node) => visitArithmetic(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitArithmetic(node);
 }
 
@@ -482,6 +484,16 @@ class HLiteral extends HInstruction {
   bool isLiteralString() => value is String;
   bool typeEquals(other) => other is HLiteral;
   bool dataEquals(other) => value == other.value;
+}
+
+class HParameter extends HInstruction {
+  final int parameterIndex;
+  HParameter(this.parameterIndex) : super([]);
+  void prepareGvn() {
+    clearAllSideEffects();
+  }
+  toString() => 'parameter $parameterIndex';
+  accept(HVisitor visitor) => visitor.visitParameter(this);
 }
 
 class HReturn extends HInstruction {

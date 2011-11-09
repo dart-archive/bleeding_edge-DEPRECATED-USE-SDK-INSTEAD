@@ -13,17 +13,37 @@ class SsaCodeGeneratorTask extends CompilerTask {
       if (GENERATE_SSA_TRACE) {
         new HTracer.singleton().traceGraph("codegen", graph);
       }
-      String code = generateMethod(name.source, graph);
+      String code = generateMethod(name.source,
+                                   countParameters(function),
+                                   graph);
       return code;
     });
   }
 
-  String generateMethod(SourceString methodName, HGraph graph) {
+  String generateMethod(SourceString methodName,
+                        int parameterCount,
+                        HGraph graph) {
     StringBuffer buffer = new StringBuffer();
     SsaCodeGenerator codegen = new SsaCodeGenerator(compiler, buffer);
     graph.number();
     codegen.visitGraph(graph);
-    return 'function $methodName() {\n$buffer}\n';
+    StringBuffer parameters = new StringBuffer();
+    for (int i = 0; i < parameterCount; i++) {
+      if (i != 0) parameters.add(', ');
+      parameters.add(SsaCodeGenerator.parameter(i));
+    }
+    return 'function $methodName($parameters) {\n$buffer}\n';
+  }
+
+  // TODO(floitsch): remove this method when NodeList has a 'length' field.
+  static int countParameters(FunctionExpression function) {
+    int result = 0;
+    for (Link<Node> link = function.parameters.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      result++;
+    }
+    return result;
   }
 }
 
@@ -43,8 +63,8 @@ class SsaCodeGenerator implements HVisitor {
     visitBasicBlock(graph.entry);
   }
 
-  String temporary(HInstruction instruction)
-      => 't${instruction.id}';
+  static String temporary(HInstruction instruction) => 't${instruction.id}';
+  static String parameter(int index) => 'p$index';
 
   void invoke(SourceString selector, List<HInstruction> arguments) {
     buffer.add('$selector(');
@@ -167,6 +187,10 @@ class SsaCodeGenerator implements HVisitor {
 
   visitMultiply(HMultiply node) {
     invoke(const SourceString('\$mul'), node.inputs);
+  }
+
+  visitParameter(HParameter node) {
+    buffer.add(parameter(node.parameterIndex));
   }
 
   visitReturn(HReturn node) {
