@@ -43,7 +43,7 @@ def ConvertConfiguration(arch, mode):
   testpy_mode = 'release'
   flags = None
   if mode == 'debug':
-    flags = '--enable_asserts --enable_type_checks'
+    flags = '--checked'
   return (testpy_mode, flags)
 
 def TestFrog(arch, mode):
@@ -78,7 +78,7 @@ def TestFrog(arch, mode):
           'isolate',
           'frog']
   if flags:
-    cmd.extend(['--flag=' + f for f in flags.split(' ')])
+    cmd.append(flags)
 
   status = subprocess.call(cmd)
   if status != 0:
