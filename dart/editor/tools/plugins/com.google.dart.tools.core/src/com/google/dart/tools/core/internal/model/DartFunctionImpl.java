@@ -18,8 +18,8 @@ import com.google.dart.tools.core.internal.model.info.DartFunctionInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
@@ -36,6 +36,14 @@ public class DartFunctionImpl extends SourceReferenceImpl implements DartFunctio
   protected DartFunctionImpl(DartElementImpl parent, String name) {
     super(parent);
     this.name = name;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof DartFunctionImpl)) {
+      return false;
+    }
+    return super.equals(o);
   }
 
   @Override
