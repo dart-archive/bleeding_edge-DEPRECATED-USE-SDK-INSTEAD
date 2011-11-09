@@ -931,6 +931,8 @@ ListFactory$String = ListFactory;
 ListFactory$T = ListFactory;
 ListFactory$Type = ListFactory;
 ListFactory$V = ListFactory;
+ListFactory$ValueSetNode = ListFactory;
+ListFactory$int = ListFactory;
 // ********** Code for ListIterator **************
 function ListIterator(array) {
   this._array = array;
@@ -1217,6 +1219,16 @@ HashMapImplementation.prototype._grow = function(newCapacity) {
   }
   this._numberOfDeleted = 0;
 }
+HashMapImplementation.prototype.clear = function() {
+  this._numberOfEntries = 0;
+  this._numberOfDeleted = 0;
+  var length = this._keys.length;
+  for (var i = 0;
+   $notnull_bool(i < length); i++) {
+    this._keys.$setindex(i);
+    this._values.$setindex(i);
+  }
+}
 HashMapImplementation.prototype.$setindex = function(key, value) {
   this._ensureCapacity();
   var index = this._probeForAdding(key);
@@ -1373,6 +1385,16 @@ HashMapImplementation$E$E.prototype._grow = function(newCapacity) {
     this._values.$setindex(newIndex, value);
   }
   this._numberOfDeleted = 0;
+}
+HashMapImplementation$E$E.prototype.clear = function() {
+  this._numberOfEntries = 0;
+  this._numberOfDeleted = 0;
+  var length = this._keys.length;
+  for (var i = 0;
+   $notnull_bool(i < length); i++) {
+    this._keys.$setindex(i);
+    this._values.$setindex(i);
+  }
 }
 HashMapImplementation$E$E.prototype.$setindex = function(key, value) {
   this._ensureCapacity();
@@ -1546,6 +1568,23 @@ HashMapImplementation$Type$Type.prototype.is$Map = function(){return this;};
 HashMapImplementation$Type$Type._computeLoadLimit = function(capacity) {
   return $truncdiv((capacity * 3), 4);
 }
+// ********** Code for HashMapImplementation$int$int **************
+function HashMapImplementation$int$int() {
+  // Initializers done
+  if ($notnull_bool(HashMapImplementation._deletedKey == null)) {
+    HashMapImplementation._deletedKey = new Object();
+  }
+  this._numberOfEntries = 0;
+  this._numberOfDeleted = 0;
+  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._values = new ListFactory$int(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+}
+$inherits(HashMapImplementation$int$int, HashMapImplementation);
+HashMapImplementation$int$int.prototype.is$Map = function(){return this;};
+HashMapImplementation$int$int._computeLoadLimit = function(capacity) {
+  return $truncdiv((capacity * 3), 4);
+}
 // ********** Code for HashSetImplementation **************
 function HashSetImplementation() {
   // Initializers done
@@ -1560,6 +1599,9 @@ HashSetImplementation.HashSetImplementation$from$factory = function(other) {
     set.add(e);
   }
   return set;
+}
+HashSetImplementation.prototype.clear = function() {
+  this._backingMap.clear();
 }
 HashSetImplementation.prototype.add = function(value) {
   this._backingMap.$setindex(value, value);
@@ -1631,6 +1673,13 @@ function HashSetImplementation$Type() {
 }
 $inherits(HashSetImplementation$Type, HashSetImplementation);
 HashSetImplementation$Type.prototype.is$Iterable = function(){return this;};
+// ********** Code for HashSetImplementation$int **************
+function HashSetImplementation$int() {
+  // Initializers done
+  this._backingMap = new HashMapImplementation$int$int();
+}
+$inherits(HashSetImplementation$int, HashSetImplementation);
+HashSetImplementation$int.prototype.is$Iterable = function(){return this;};
 // ********** Code for HashSetIterator **************
 function HashSetIterator(set_) {
   this._nextValidIndex = -1;
@@ -7999,6 +8048,9 @@ HInstruction.prototype.getFlag = function(position) {
 HInstruction.prototype.setFlag = function(position) {
   this.flags |= (1 << position);
 }
+HInstruction.computeDependsOnFlags = function(flags) {
+  return flags << 1/*HInstruction.FLAG_CHANGES_COUNT*/;
+}
 HInstruction.prototype.getChangesFlags = function() {
   return this.flags & (1)/*((1 << FLAG_CHANGES_COUNT) - 1)*/;
 }
@@ -8020,6 +8072,9 @@ HInstruction.prototype.generateAtUseSite = function() {
 HInstruction.prototype.setGenerateAtUseSite = function() {
   this.setFlag(2/*HInstruction.FLAG_GENERATE_AT_USE_SITE*/);
 }
+HInstruction.prototype.useGvn = function() {
+  return this.getFlag(3/*HInstruction.FLAG_USE_GVN*/);
+}
 HInstruction.prototype.setUseGvn = function() {
   this.setFlag(3/*HInstruction.FLAG_USE_GVN*/);
 }
@@ -8029,6 +8084,25 @@ HInstruction.prototype.get$usedBy = function() {
 }
 HInstruction.prototype.isInBasicBlock = function() {
   return this._usedBy != null;
+}
+HInstruction.prototype.equals = function(other) {
+  $assert(this.useGvn() && other.useGvn(), "useGvn() && other.useGvn()", "nodes.dart", 325, 12);
+  if ($notnull_bool(!$notnull_bool(this.typeEquals(other)))) return false;
+  if ($notnull_bool(this.flags != other.flags)) return false;
+  var inputsLength = this.inputs.length;
+  var otherInputs = other.inputs;
+  if ($notnull_bool(inputsLength != otherInputs.length)) return false;
+  for (var i = 0;
+   $notnull_bool(i < inputsLength); i++) {
+    if ($notnull_bool(this.inputs.$index(i) !== otherInputs.$index(i))) return false;
+  }
+  return this.dataEquals(other);
+}
+HInstruction.prototype.typeEquals = function(other) {
+  return false;
+}
+HInstruction.prototype.dataEquals = function(other) {
+  return false;
 }
 HInstruction.prototype.notifyAddedToBlock = function() {
   $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 348, 12);
@@ -8109,6 +8183,12 @@ HAdd.prototype.accept = function(visitor) {
 HAdd.prototype.evaluate = function(a, b) {
   return a + b;
 }
+HAdd.prototype.typeEquals = function(other) {
+  return (other instanceof HAdd);
+}
+HAdd.prototype.dataEquals = function(other) {
+  return true;
+}
 // ********** Code for HDivide **************
 function HDivide(inputs) {
   HArithmetic.call(this, const$236/*const SourceString('/')*/, inputs);
@@ -8120,6 +8200,12 @@ HDivide.prototype.accept = function(visitor) {
 }
 HDivide.prototype.evaluate = function(a, b) {
   return a / b;
+}
+HDivide.prototype.typeEquals = function(other) {
+  return (other instanceof HDivide);
+}
+HDivide.prototype.dataEquals = function(other) {
+  return true;
 }
 // ********** Code for HMultiply **************
 function HMultiply(inputs) {
@@ -8133,6 +8219,12 @@ HMultiply.prototype.accept = function(visitor) {
 HMultiply.prototype.evaluate = function(a, b) {
   return a * b;
 }
+HMultiply.prototype.typeEquals = function(other) {
+  return (other instanceof HMultiply);
+}
+HMultiply.prototype.dataEquals = function(other) {
+  return true;
+}
 // ********** Code for HSubtract **************
 function HSubtract(inputs) {
   HArithmetic.call(this, const$234/*const SourceString('-')*/, inputs);
@@ -8145,6 +8237,12 @@ HSubtract.prototype.accept = function(visitor) {
 HSubtract.prototype.evaluate = function(a, b) {
   return a - b;
 }
+HSubtract.prototype.typeEquals = function(other) {
+  return (other instanceof HSubtract);
+}
+HSubtract.prototype.dataEquals = function(other) {
+  return true;
+}
 // ********** Code for HTruncatingDivide **************
 function HTruncatingDivide(inputs) {
   HArithmetic.call(this, const$237/*const SourceString('~/')*/, inputs);
@@ -8156,6 +8254,12 @@ HTruncatingDivide.prototype.accept = function(visitor) {
 }
 HTruncatingDivide.prototype.evaluate = function(a, b) {
   return $truncdiv(a, b);
+}
+HTruncatingDivide.prototype.typeEquals = function(other) {
+  return (other instanceof HTruncatingDivide);
+}
+HTruncatingDivide.prototype.dataEquals = function(other) {
+  return true;
 }
 // ********** Code for HExit **************
 function HExit() {
@@ -8219,6 +8323,12 @@ HLiteral.prototype.isLiteralNumber = function() {
 HLiteral.prototype.isLiteralString = function() {
   return (typeof(this.value) == 'string');
 }
+HLiteral.prototype.typeEquals = function(other) {
+  return (other instanceof HLiteral);
+}
+HLiteral.prototype.dataEquals = function(other) {
+  return $eq(this.value, other.get$value());
+}
 // ********** Code for HReturn **************
 function HReturn(value) {
   HInstruction.call(this, [value]);
@@ -8241,9 +8351,11 @@ SsaOptimizerTask.prototype.get$name = function() {
   return 'SSA optimizer';
 }
 SsaOptimizerTask.prototype.optimize = function(graph) {
+  var $this = this; // closure support
   this.measure((function () {
     new SsaConstantFolder().visitGraph(graph);
     new SsaDeadCodeEliminator().visitGraph(graph);
+    new SsaGlobalValueNumberer($this.compiler).visitGraph(graph);
     new SsaInstructionMerger().visitGraph(graph);
   })
   );
@@ -8318,6 +8430,80 @@ SsaDeadCodeEliminator.prototype.visitBasicBlock = function(block) {
     if ($notnull_bool(SsaDeadCodeEliminator.isDeadCode(instruction))) block.remove(instruction);
     instruction = (previous && previous.is$HInstruction());
   }
+}
+// ********** Code for SsaGlobalValueNumberer **************
+function SsaGlobalValueNumberer(compiler) {
+  this.compiler = compiler;
+  this.visited = new HashSetImplementation$int();
+  // Initializers done
+}
+SsaGlobalValueNumberer.prototype.visitGraph = function(graph) {
+  this.blockChangesFlags = new ListFactory$int(graph.exit.id + 1);
+  this.visitBasicBlock(graph.entry, new ValueSet());
+}
+SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
+  var $0;
+  var instruction = block.first;
+  while ($notnull_bool(instruction != null)) {
+    var flags = instruction.getChangesFlags();
+    if ($notnull_bool(flags != 0)) {
+      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 115, 16);
+      values.kill(flags);
+    }
+    else if ($notnull_bool(instruction.useGvn())) {
+      var other = values.lookup(instruction);
+      if ($notnull_bool(other != null)) {
+        $assert(other.equals(instruction) && instruction.equals(other), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 120, 18);
+        block.rewrite(instruction, other);
+        block.remove(instruction);
+      }
+      else {
+        values.add(instruction);
+      }
+    }
+    instruction = instruction.next;
+  }
+  var dominatedBlocks = block.dominatedBlocks;
+  for (var i = 0, length = dominatedBlocks.length;
+   $notnull_bool(i < length); i++) {
+    var dominated = (($0 = dominatedBlocks.$index(i)) && $0.is$HBasicBlock());
+    var successorValues = $notnull_bool((i == length - 1)) ? values : values.copy();
+    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 140, 14);
+    if ($notnull_bool(!$notnull_bool(successorValues.isEmpty()) && block.id + 1 < dominated.id)) {
+      this.visited.clear();
+      var changesFlags = this.getChangesFlagsForDominatedBlock(block, dominated);
+      successorValues.kill(changesFlags);
+    }
+    this.visitBasicBlock(dominated, successorValues);
+  }
+}
+SsaGlobalValueNumberer.prototype.getChangesFlagsForBlock = function(block) {
+  var id = block.id;
+  var cached = $assert_num(this.blockChangesFlags.$index(id));
+  if ($notnull_bool(cached != null)) return cached;
+  var changesFlags = 0;
+  var instruction = block.first;
+  while ($notnull_bool(instruction != null)) {
+    changesFlags |= instruction.getChangesFlags();
+    instruction = instruction.next;
+  }
+  return this.blockChangesFlags.$setindex(id, changesFlags);
+}
+SsaGlobalValueNumberer.prototype.getChangesFlagsForDominatedBlock = function(dominator, dominated) {
+  var $0;
+  var changesFlags = 0;
+  var predecessors = dominated.predecessors;
+  for (var i = 0, length = predecessors.length;
+   $notnull_bool(i < length); i++) {
+    var block = (($0 = predecessors.$index(i)) && $0.is$HBasicBlock());
+    var id = block.id;
+    if ($notnull_bool(dominator.id < id && id < dominated.id && !$notnull_bool(this.visited.contains(id)))) {
+      this.visited.add(id);
+      changesFlags |= this.getChangesFlagsForBlock(block);
+      changesFlags |= this.getChangesFlagsForDominatedBlock(dominator, block);
+    }
+  }
+  return changesFlags;
 }
 // ********** Code for SsaInstructionMerger **************
 function SsaInstructionMerger() {
@@ -8632,6 +8818,81 @@ HValidator.prototype.visitInstruction = function(instruction) {
   }
   this.isValid = $assert_bool(this.isValid && hasCorrectInputs(instruction) && hasCorrectUses(instruction));
 }
+// ********** Code for ValueSet **************
+function ValueSet() {
+  this.size = 0
+  this.table = new ListFactory$ValueSetNode(1);
+  // Initializers done
+}
+ValueSet.prototype.isEmpty = function() {
+  return this.size == 0;
+}
+ValueSet.prototype.add = function(instruction) {
+  $assert(this.lookup(instruction) == null, "lookup(instruction) === null", "value_set.dart", 15, 12);
+  var index = this.tableIndexForInstruction(instruction);
+  this.table.$setindex(index, new ValueSetNode(instruction, this.table.$index(index)));
+  this.size++;
+}
+ValueSet.prototype.lookup = function(instruction) {
+  var $0;
+  var index = this.tableIndexForInstruction(instruction);
+  for (var node = (($0 = this.table.$index(index)) && $0.is$ValueSetNode());
+   $notnull_bool(node != null); node = node.next) {
+    var cached = node.value;
+    if ($notnull_bool(cached.equals(instruction))) return cached;
+  }
+  return null;
+}
+ValueSet.prototype.kill = function(flags) {
+  var $0;
+  var depends = HInstruction.computeDependsOnFlags(flags);
+  for (var i = 0, length = this.table.length;
+   $notnull_bool(i < length); i++) {
+    var previous = null;
+    var current = (($0 = this.table.$index(i)) && $0.is$ValueSetNode());
+    while ($notnull_bool(current != null)) {
+      var next = current.next;
+      var cached = current.value;
+      if ($notnull_bool((cached.flags & depends) != 0)) {
+        if ($notnull_bool(previous == null)) {
+          this.table.$setindex(i, next);
+        }
+        else {
+          previous.next = next;
+        }
+        this.size--;
+      }
+      else {
+        previous = current;
+      }
+      current = next;
+    }
+  }
+}
+ValueSet.prototype.copy = function() {
+  var $0;
+  var result = new ValueSet();
+  for (var i = 0, length = this.table.length;
+   $notnull_bool(i < length); i++) {
+    var current = (($0 = this.table.$index(i)) && $0.is$ValueSetNode());
+    while ($notnull_bool(current != null)) {
+      result.add(current.value);
+      current = current.next;
+    }
+  }
+  return result;
+}
+ValueSet.prototype.tableIndexForInstruction = function(instruction) {
+  return 0;
+}
+// ********** Code for ValueSetNode **************
+function ValueSetNode(value, next) {
+  this.value = value;
+  this.next = next;
+  // Initializers done
+}
+ValueSetNode.prototype.is$ValueSetNode = function(){return this;};
+ValueSetNode.prototype.get$value = function() { return this.value; };
 // ********** Code for top level **************
 //  ********** Library leg **************
 // ********** Code for WorldCompiler **************

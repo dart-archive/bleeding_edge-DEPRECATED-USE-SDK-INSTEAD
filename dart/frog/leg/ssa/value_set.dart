@@ -5,13 +5,17 @@
 // TODO(kasperl): This is a very naive non-hashed implementation of a
 // value set for global value numbering. Should be optimized.
 class ValueSet {
+  int size = 0;
   List<ValueSetNode> table;
   ValueSet() : table = new List<ValueSetNode>(1);
+
+  bool isEmpty() => size == 0;
 
   void add(HInstruction instruction) {
     assert(lookup(instruction) === null);
     int index = tableIndexForInstruction(instruction);
     table[index] = new ValueSetNode(instruction, table[index]);
+    size++;
   }
 
   HInstruction lookup(HInstruction instruction) {
@@ -37,12 +41,25 @@ class ValueSet {
           } else {
             previous.next = next;
           }
+          size--;
         } else {
           previous = current;
         }
         current = next;
       }
     }
+  }
+
+  ValueSet copy() {
+    ValueSet result = new ValueSet();
+    for (int i = 0, length = table.length; i < length; i++) {
+      ValueSetNode current = table[i];
+      while (current !== null) {
+        result.add(current.value);
+        current = current.next;
+      }
+    }
+    return result;
   }
 
   // TODO(kasperl): Replace this with a proper hash based version.

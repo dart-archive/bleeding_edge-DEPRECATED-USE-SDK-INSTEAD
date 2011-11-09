@@ -10,7 +10,7 @@ class SsaOptimizerTask extends CompilerTask {
     measure(() {
       new SsaConstantFolder().visitGraph(graph);
       new SsaDeadCodeEliminator().visitGraph(graph);
-      // new SsaGlobalValueNumberer(compiler).visitGraph(graph);
+      new SsaGlobalValueNumberer(compiler).visitGraph(graph);
       new SsaInstructionMerger().visitGraph(graph);
     });
   }
@@ -95,17 +95,19 @@ class SsaDeadCodeEliminator extends HGraphVisitor {
   }
 }
 
-class SsaGlobalValueNumberer extends HGraphVisitor {
+class SsaGlobalValueNumberer {
   final Compiler compiler;
-  final ValueSet values;
-  SsaGlobalValueNumberer(this.compiler)
-    : values = new ValueSet();
+  final Set<int> visited;
+  List<int> blockChangesFlags;
+
+  SsaGlobalValueNumberer(this.compiler) : visited = new Set<int>();
 
   void visitGraph(HGraph graph) {
-    visitPostDominatorTree(graph);
+    blockChangesFlags = new List<int>(graph.exit.id + 1);
+    visitBasicBlock(graph.entry, new ValueSet());
   }
 
-  void visitBasicBlock(HBasicBlock block) {
+  void visitBasicBlock(HBasicBlock block, ValueSet values) {
     HInstruction instruction = block.first;
     while (instruction !== null) {
       int flags = instruction.getChangesFlags();
@@ -124,8 +126,57 @@ class SsaGlobalValueNumberer extends HGraphVisitor {
       }
       instruction = instruction.next;
     }
-    // TODO(kasperl): Make sure we kill every value killed on any path
-    // between this block and the dominated blocks.
+
+    List<HBasicBlock> dominatedBlocks = block.dominatedBlocks;
+    for (int i = 0, length = dominatedBlocks.length; i < length; i++) {
+      HBasicBlock dominated = dominatedBlocks[i];
+      // No need to copy the value set for the last child.
+      ValueSet successorValues = (i == length - 1) ? values : values.copy();
+      // If we have no values in our set, we do not have to kill
+      // anything. Also, if the range of block ids from the current
+      // block to the dominated block is empty, there is no blocks on
+      // any path from the current block to the dominated block so we
+      // don't have to do anything either.
+      assert(block.id < dominated.id);
+      if (!successorValues.isEmpty() && block.id + 1 < dominated.id) {
+        visited.clear();
+        int changesFlags = getChangesFlagsForDominatedBlock(block, dominated);
+        successorValues.kill(changesFlags);
+      }
+      visitBasicBlock(dominated, successorValues);
+    }
+  }
+
+  int getChangesFlagsForBlock(HBasicBlock block) {
+    final int id = block.id;
+    final int cached = blockChangesFlags[id];
+    if (cached !== null) return cached;
+    int changesFlags = 0;
+    HInstruction instruction = block.first;
+    while (instruction !== null) {
+      changesFlags |= instruction.getChangesFlags();
+      instruction = instruction.next;
+    }
+    return blockChangesFlags[id] = changesFlags;
+  }
+
+  int getChangesFlagsForDominatedBlock(HBasicBlock dominator,
+                                       HBasicBlock dominated) {
+    int changesFlags = 0;
+    List<HBasicBlock> predecessors = dominated.predecessors;
+    for (int i = 0, length = predecessors.length; i < length; i++) {
+      HBasicBlock block = predecessors[i];
+      int id = block.id;
+      // If the current predecessor block is on the path from the
+      // dominator to the dominated, it must have an id that is in the
+      // range from the dominator to the dominated.
+      if (dominator.id < id && id < dominated.id && !visited.contains(id)) {
+        visited.add(id);
+        changesFlags |= getChangesFlagsForBlock(block);
+        changesFlags |= getChangesFlagsForDominatedBlock(dominator, block);
+      }
+    }
+    return changesFlags;
   }
 }
 
