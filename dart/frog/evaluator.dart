@@ -102,9 +102,10 @@ class Evaluator {
         var member = _lib.topType.getMember(name);
         if (member is! FieldMember && member is! PropertyMember) {
           if (member != null) _removeMember(name);
-          var def = new VariableDefinition([], world.varType, [body.x.name],
-              [null], parsed.span);
+          var def = new VariableDefinition([], null, [body.x.name], [null],
+              parsed.span);
           _lib.topType.addField(def);
+          _lib.topType.getMember(name).resolve(_lib.topType);
         }
       }
       code = body.visit(methGen).code;
@@ -112,6 +113,8 @@ class Evaluator {
       var emptyDef = new VariableDefinition(parsed.modifiers, parsed.type,
           parsed.names, new List(parsed.names.length), parsed.span);
       _lib.topType.addField(emptyDef);
+      parsed.names.forEach((n) =>
+          _lib.topType.getMember(n.name).resolve(_lib.topType));
       parsed.visit(methGen);
       code = methGen.writer.text;
     } else if (parsed is FunctionDefinition) {
