@@ -18,6 +18,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -40,7 +41,6 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
@@ -307,23 +307,23 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     }
   }
 
-  private class OutlineSorter extends ViewerComparator /* AbstractHierarchyViewerSorter */{
+  private class OutlineSorter extends DartElementComparator /* AbstractHierarchyViewerSorter */{
 
     /*
      * @see org.eclipse.wst.jsdt.internal.ui.typehierarchy.AbstractHierarchyViewerSorter
      * #isSortAlphabetically()
      */
-    public boolean isSortAlphabetically() {
-      return fLexicalSortingAction.isChecked();
-    }
+//    public boolean isSortAlphabetically() {
+//      return fLexicalSortingAction.isChecked();
+//    }
 
     /*
      * @see org.eclipse.wst.jsdt.internal.ui.typehierarchy.AbstractHierarchyViewerSorter
      * #isSortByDefiningType()
      */
-    public boolean isSortByDefiningType() {
-      return fSortByDefiningTypeAction.isChecked();
-    }
+//    public boolean isSortByDefiningType() {
+//      return fSortByDefiningTypeAction.isChecked();
+//    }
 
     /*
      * @see org.eclipse.wst.jsdt.internal.ui.typehierarchy.AbstractHierarchyViewerSorter

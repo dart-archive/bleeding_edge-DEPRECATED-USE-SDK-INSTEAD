@@ -116,7 +116,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
     /**
      * Constructs a new action.
-     *
+     * 
      * @param outlinePage the Java outline page
      */
     public ToggleLinkingAction(DartOutlinePage outlinePage) {
@@ -141,7 +141,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   /**
    * The tree viewer used for displaying the outline.
-   *
+   * 
    * @see TreeViewer
    */
   protected class DartOutlineViewer extends TreeViewer {
@@ -175,7 +175,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     /**
      * Investigates the given element change event and if affected incrementally updates the Java
      * outline.
-     *
+     * 
      * @param delta the Java element delta used to reconcile the Java outline
      */
     public void reconcile(DartElementDelta delta) {
@@ -866,6 +866,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     ColoredViewersManager.install(fOutlineViewer);
     initDragAndDrop();
     fOutlineViewer.setContentProvider(new LibraryExplorerContentProvider(true));
+    fOutlineViewer.setComparator(new DartElementComparator());
     fOutlineViewer.setLabelProvider(new DartElementLabelProvider());
 
     Object[] listeners = fSelectionChangedListeners.getListeners();
@@ -1140,7 +1141,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
   /**
    * Convenience method to add the action installed under the given actionID to the specified group
    * of the menu.
-   *
+   * 
    * @param menu the menu manager
    * @param group the group to which to add the action
    * @param actionID the ID of the new action
@@ -1175,7 +1176,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   /**
    * Returns the <code>JavaOutlineViewer</code> of this view.
-   *
+   * 
    * @return the {@link DartOutlineViewer}
    */
   protected final DartOutlineViewer getOutlineViewer() {
@@ -1184,7 +1185,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   /**
    * Returns the <code>IShowInSource</code> for this view.
-   *
+   * 
    * @return the {@link IShowInSource}
    */
   protected IShowInSource getShowInSource() {
@@ -1198,7 +1199,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   /**
    * Returns the <code>IShowInTarget</code> for this view.
-   *
+   * 
    * @return the {@link IShowInTarget}
    */
   protected IShowInTarget getShowInTarget() {
@@ -1225,7 +1226,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   /**
    * Returns whether only the contents of the top level type is to be shown.
-   *
+   * 
    * @return <code>true</code> if only the contents of the top level type is to be shown.
    */
   protected final boolean isTopLevelTypeOnly() {
@@ -1261,7 +1262,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   /**
    * Checks whether a given Java element is an inner type.
-   *
+   * 
    * @param element the java element
    * @return <code>true</code> iff the given element is an inner type
    */

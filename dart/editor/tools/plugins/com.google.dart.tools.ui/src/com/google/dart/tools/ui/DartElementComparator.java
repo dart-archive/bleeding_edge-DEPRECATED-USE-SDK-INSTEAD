@@ -33,6 +33,8 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 
+import java.util.Comparator;
+
 /**
  * Viewer comparator for Dart elements.
  * <p>
@@ -69,13 +71,33 @@ public class DartElementComparator extends ViewerComparator {
   private static final int DARTELEMENTS = 50;
   private static final int OTHERS = 51;
 
+  private static Comparator<String> DART_NAME_COMPARATOR = new Comparator<String>() {
+
+    @Override
+    public int compare(String arg0, String arg1) {
+      if (arg0.length() > 0 && arg1.length() > 0) {
+        boolean u0 = arg0.charAt(0) == '_';
+        boolean u1 = arg1.charAt(0) == '_';
+        if (u0 != u1) {
+          if (u1) {
+            return -1;
+          } else {
+            return 1;
+          }
+        }
+      }
+      return String.CASE_INSENSITIVE_ORDER.compare(arg0, arg1);
+    }
+
+  };
+
   private MembersOrderPreferenceCache fMemberOrderCache;
 
   /**
    * Constructor.
    */
   public DartElementComparator() {
-    super(String.CASE_INSENSITIVE_ORDER);
+    super(DART_NAME_COMPARATOR); // Using String.CASE_INSENSITIVE_ORDER directly sorts _ to top
     DartX.todo("functions, factories");
     fMemberOrderCache = DartToolsPlugin.getDefault().getMemberOrderPreferenceCache();
   }
@@ -211,9 +233,9 @@ public class DartElementComparator extends ViewerComparator {
 
       // Remove the private identifier from elements for comparison purposes. Otherwise all the 
       // private classes sort before all the public ones.
-      if (name.startsWith("_")) {
-        return name.substring(1);
-      }
+//      if (name.startsWith("_")) {
+//        return name.substring(1);
+//      }
 
       return name;
 //    } else if (element instanceof PackageFragmentRootContainer) {
