@@ -43,11 +43,7 @@ class FunctionType implements Type {
     StringBuffer sb = new StringBuffer();
     bool first = true;
     sb.add('(');
-    for (Link<Type> link = parameterTypes; !link.isEmpty(); link = link.tail) {
-      if (!first) sb.add(', ');
-      first = false;
-      sb.add(link.head);
-    }
+    parameterTypes.printOn(sb, ', ');
     sb.add(') -> ${returnType}');
     return sb.toString();
   }
@@ -104,6 +100,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     if (type == types.voidType) {
       compiler.reportWarning(node, CompilerError.voidExpression());
     }
+    return type;
   }
 
   Type typeWithDefault(Node node, Type defaultValue) {
@@ -149,33 +146,40 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitSend(Send node) {
-    Element target = elements[node];
+    final target = elements[node];
     if (target !== null) {
-      // TODO(karlklose): Move that to a function that also
-      // calculates FunctionTypes for other target types.
-      FunctionType funType = target.computeType(compiler, types);
-      Link<Type> formals = funType.parameterTypes;
-      Link<Node> arguments = node.arguments;
-      while ((!formals.isEmpty()) && (!arguments.isEmpty())) {
-        compiler.cancel('parameters not supported.');
-        var argumentType = type(arguments.head);
-        if (!types.isAssignable(formals.head, argumentType)) {
-          var warning = CompilerError.notAssignable(argumentType,
-                                                     formals.head);
-          compiler.reportWarning(node, warning);
+      final targetType = target.computeType(compiler, types);
+      if (node.isPropertyAccess) {
+        return targetType;
+      } else if (node.isFunctionObjectInvocation) {
+        // TODO(karlklose): Function object invocations are not
+        // yet implemented.
+        fail(node);
+      } else {
+        if (targetType is !FunctionType) {
+          // TODO(karlklose): this is probably not needed here.
+          compiler.cancel('can only handle function types. ($node)');
         }
-        formals = formals.tail;
-        arguments = arguments.tail;
-      }
+        FunctionType funType = targetType;
+        Link<Type> formals = funType.parameterTypes;
+        Link<Node> arguments = node.arguments;
+        while ((!formals.isEmpty()) && (!arguments.isEmpty())) {
+          final Node argument = arguments.head;
+          final Type argumentType = type(argument);
+          checkAssignable(argument, argumentType, formals.head);
+          formals = formals.tail;
+          arguments = arguments.tail;
+        }
 
-      if (!formals.isEmpty()) {
-        compiler.reportWarning(node, 'missing argument');
-      }
-      if (!arguments.isEmpty()) {
-        compiler.reportWarning(node, 'additional arguments');
-      }
+        if (!formals.isEmpty()) {
+          compiler.reportWarning(node, 'missing argument');
+        }
+        if (!arguments.isEmpty()) {
+          compiler.reportWarning(arguments.head, 'additional arguments');
+        }
 
-      return funType.returnType;
+        return funType.returnType;
+      }
     } else {
       Identifier selector = node.selector;
       SourceString name = selector.source;
@@ -184,13 +188,18 @@ class TypeCheckerVisitor implements Visitor<Type> {
           || name == const SourceString('=')) {
         return types.dynamicType;
       }
+      // TODO(karlklose): Implement method lookup for unresolved targets.
       compiler.cancel('unresolved send $name.');
     }
   }
 
   visitSendSet(SendSet node) {
-    // TODO(karlklose): Implement this correctly.
-    return types.dynamicType;
+    if (node.arguments === null || node.arguments.isEmpty()) {
+      compiler.cancel('internal error: argument expected.');
+    }
+    Type targetType = elements[node].computeType(compiler, types);
+    Node value = node.arguments.head;
+    checkAssignable(value, type(value), targetType);
   }
 
   Type visitLiteralInt(LiteralInt node) {
@@ -227,8 +236,9 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitReturn(Return node) {
-    Type expressionType = type(node.expression);
-    checkAssignable(node, expectedReturnType, expressionType);
+    final expression = node.expression;
+    final expressionType = type(expression);
+    checkAssignable(expression, expressionType, expectedReturnType);
     return types.voidType;
   }
 
@@ -255,7 +265,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
          link = link.tail) {
       Node initialization = link.head;
       if (initialization is Send) {
-        checkAssignable(node, type, nonVoidType(link.head));
+        Type initializer = nonVoidType(link.head);
+        checkAssignable(node, type, initializer);
       } else if (initialization is !Identifier) {
         compiler.cancel('unexpected node type for variable initialization');
       }

@@ -87,7 +87,6 @@ class FunctionElement extends Element {
     if (returnType === null) compiler.cancel('unknown type $returnType');
     LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
     for (var link = node.parameters.nodes; !link.isEmpty(); link = link.tail) {
-      compiler.cancel('parameters not supported.');
       VariableDefinitions parameter = link.head;
       parameterTypes.addLast(getType(parameter.type, types));
     }

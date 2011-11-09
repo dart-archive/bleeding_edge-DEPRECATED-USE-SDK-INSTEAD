@@ -273,6 +273,10 @@ class Literal<T> extends Expression {
   Literal(Token this.token, DecodeErrorHandler this.handler);
 
   abstract T get value();
+
+  Token getBeginToken() => token;
+
+  Token getEndToken() => token;
 }
 
 class LiteralInt extends Literal<int> {
@@ -287,10 +291,6 @@ class LiteralInt extends Literal<int> {
   }
 
   accept(Visitor visitor) => visitor.visitLiteralInt(this);
-
-  Token getBeginToken() => null;
-
-  Token getEndToken() => null;
 }
 
 class LiteralDouble extends Literal<double> {

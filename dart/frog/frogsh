@@ -6856,6 +6856,9 @@ Send.prototype.accept = function(visitor) {
 Send.prototype.get$isPropertyAccess = function() {
   return this.argumentsNode == null;
 }
+Send.prototype.get$isFunctionObjectInvocation = function() {
+  return this.selector == null;
+}
 Send.prototype.getBeginToken = function() {
   return firstBeginToken(this.receiver, this.selector);
 }
@@ -7009,6 +7012,12 @@ function Literal(token, handler) {
   // Initializers done
 }
 $inherits(Literal, Expression);
+Literal.prototype.getBeginToken = function() {
+  return this.token;
+}
+Literal.prototype.getEndToken = function() {
+  return this.token;
+}
 // ********** Code for Literal$SourceString **************
 function Literal$SourceString(token, handler) {
   this.token = token;
@@ -7066,12 +7075,6 @@ LiteralInt.prototype.get$value = function() {
 }
 LiteralInt.prototype.accept = function(visitor) {
   return visitor.visitLiteralInt(this);
-}
-LiteralInt.prototype.getBeginToken = function() {
-  return null;
-}
-LiteralInt.prototype.getEndToken = function() {
-  return null;
 }
 // ********** Code for LiteralDouble **************
 function LiteralDouble(token, handler) {
@@ -7442,7 +7445,6 @@ FunctionElement.prototype.computeType = function(compiler, types) {
   var parameterTypes = new LinkBuilderImplementation$Type();
   for (var link = node.parameters.nodes;
    $notnull_bool(!$notnull_bool(link.isEmpty())); link = link.get$tail()) {
-    compiler.cancel('parameters not supported.');
     var parameter = (($0 = link.get$head()) && $0.is$VariableDefinitions());
     parameterTypes.addLast(getType(parameter.type, types));
   }
@@ -9573,16 +9575,10 @@ FunctionType.prototype.is$FunctionType = function(){return this;};
 FunctionType.prototype.is$Type = function(){return this;};
 FunctionType.prototype.get$returnType = function() { return this.returnType; };
 FunctionType.prototype.toString = function() {
-  var $0;
   var sb = new StringBufferImpl("");
   var first = true;
   sb.add('(');
-  for (var link = this.parameterTypes;
-   $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link$Type())) {
-    if ($notnull_bool(!$notnull_bool(first))) sb.add(', ');
-    first = false;
-    sb.add(link.get$head());
-  }
+  this.parameterTypes.printOn(sb, ', ');
   sb.add((') -> ' + this.returnType + ''));
   return sb.toString();
 }
@@ -9630,6 +9626,7 @@ TypeCheckerVisitor.prototype.nonVoidType = function(node) {
   if ($notnull_bool($eq(type, this.types.voidType))) {
     this.compiler.reportWarning(node, CompilerError.voidExpression());
   }
+  return type;
 }
 TypeCheckerVisitor.prototype.typeWithDefault = function(node, defaultValue) {
   return $notnull_bool(node != null) ? this.type(node) : defaultValue;
@@ -9668,28 +9665,37 @@ TypeCheckerVisitor.prototype.visitIf = function(node) {
 }
 TypeCheckerVisitor.prototype.visitSend = function(node) {
   var $0;
-  var target = (($0 = this.elements.$index(node)) && $0.is$Element());
+  var target = this.elements.$index(node);
   if ($notnull_bool(target != null)) {
-    var funType = (($0 = target.computeType(this.compiler, this.types)) && $0.is$FunctionType());
-    var formals = funType.parameterTypes;
-    var arguments = node.get$arguments();
-    while ($notnull_bool((!$notnull_bool(formals.isEmpty())) && (!$notnull_bool(arguments.isEmpty())))) {
-      this.compiler.cancel('parameters not supported.');
-      var argumentType = this.type((($0 = arguments.get$head()) && $0.is$Node()));
-      if ($notnull_bool(!$notnull_bool(this.types.isAssignable((($0 = formals.get$head()) && $0.is$Type()), (argumentType && argumentType.is$Type()))))) {
-        var warning = CompilerError.notAssignable((argumentType && argumentType.is$Type()), (($0 = formals.get$head()) && $0.is$Type()));
-        this.compiler.reportWarning(node, warning);
+    var targetType = target.computeType(this.compiler, this.types);
+    if ($notnull_bool(node.get$isPropertyAccess())) {
+      return targetType;
+    }
+    else if ($notnull_bool(node.get$isFunctionObjectInvocation())) {
+      this.fail(node);
+    }
+    else {
+      if ($notnull_bool(!(targetType instanceof FunctionType))) {
+        this.compiler.cancel(('can only handle function types. (' + node + ')'));
       }
-      formals = (($0 = formals.get$tail()) && $0.is$Link$Type());
-      arguments = (($0 = arguments.get$tail()) && $0.is$Link$Node());
+      var funType = (targetType && targetType.is$FunctionType());
+      var formals = funType.parameterTypes;
+      var arguments = node.get$arguments();
+      while ($notnull_bool((!$notnull_bool(formals.isEmpty())) && (!$notnull_bool(arguments.isEmpty())))) {
+        var argument = (($0 = arguments.get$head()) && $0.is$Node());
+        var argumentType = this.type(argument);
+        this.checkAssignable(argument, argumentType, (($0 = formals.get$head()) && $0.is$Type()));
+        formals = (($0 = formals.get$tail()) && $0.is$Link$Type());
+        arguments = (($0 = arguments.get$tail()) && $0.is$Link$Node());
+      }
+      if ($notnull_bool(!$notnull_bool(formals.isEmpty()))) {
+        this.compiler.reportWarning(node, 'missing argument');
+      }
+      if ($notnull_bool(!$notnull_bool(arguments.isEmpty()))) {
+        this.compiler.reportWarning(arguments.get$head(), 'additional arguments');
+      }
+      return funType.returnType;
     }
-    if ($notnull_bool(!$notnull_bool(formals.isEmpty()))) {
-      this.compiler.reportWarning(node, 'missing argument');
-    }
-    if ($notnull_bool(!$notnull_bool(arguments.isEmpty()))) {
-      this.compiler.reportWarning(node, 'additional arguments');
-    }
-    return funType.returnType;
   }
   else {
     var selector = (($0 = node.selector) && $0.is$Identifier());
@@ -9701,7 +9707,13 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
   }
 }
 TypeCheckerVisitor.prototype.visitSendSet = function(node) {
-  return this.types.dynamicType;
+  var $0;
+  if ($notnull_bool(node.get$arguments() == null || node.get$arguments().isEmpty())) {
+    this.compiler.cancel('internal error: argument expected.');
+  }
+  var targetType = (($0 = this.elements.$index(node).computeType(this.compiler, this.types)) && $0.is$Type());
+  var value = (($0 = node.get$arguments().get$head()) && $0.is$Node());
+  this.checkAssignable(value, this.type(value), targetType);
 }
 TypeCheckerVisitor.prototype.visitLiteralInt = function(node) {
   return this.types.intType;
@@ -9732,8 +9744,9 @@ TypeCheckerVisitor.prototype.checkAssignable = function(node, s, t) {
   }
 }
 TypeCheckerVisitor.prototype.visitReturn = function(node) {
-  var expressionType = this.type(node.expression);
-  this.checkAssignable(node, this.expectedReturnType, expressionType);
+  var expression = node.expression;
+  var expressionType = this.type(expression);
+  this.checkAssignable(expression, expressionType, this.expectedReturnType);
   return this.types.voidType;
 }
 TypeCheckerVisitor.prototype.visitThrow = function(node) {
@@ -9758,7 +9771,8 @@ TypeCheckerVisitor.prototype.visitVariableDefinitions = function(node) {
    $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link$Node())) {
     var initialization = (($0 = link.get$head()) && $0.is$Node());
     if ($notnull_bool((initialization instanceof Send))) {
-      this.checkAssignable(node, type, this.nonVoidType((($0 = link.get$head()) && $0.is$Node())));
+      var initializer = this.nonVoidType((($0 = link.get$head()) && $0.is$Node()));
+      this.checkAssignable(node, type, initializer);
     }
     else if ($notnull_bool(!(initialization instanceof Identifier))) {
       this.compiler.cancel('unexpected node type for variable initialization');
