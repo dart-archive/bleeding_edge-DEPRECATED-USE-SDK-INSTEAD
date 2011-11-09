@@ -670,14 +670,15 @@ public class CompletionEngine {
 
     @Override
     public Void visitNewExpression(DartNewExpression node) {
-      if (source.charAt(actualCompletionPosition) == 'w') {
-        // no space after 'new' { new! }
+      char lastCh = source.charAt(actualCompletionPosition);
+      if (lastCh == 'w' || lastCh == 't') {
+        // no space after 'new' { new! } { const! }
         if (resolvedMember != null) {
           // TODO generalize and reuse single definition of this block
           boolean isStatic = resolvedMember.getModifiers().isStatic();
           createCompletionsForLocalVariables(node, null, resolvedMember);
           Element parentElement = resolvedMember.getSymbol().getEnclosingElement();
-          if (parentElement instanceof ClassElement) {
+          if (parentElement.getKind() == ElementKind.CLASS) {
             Type type = ((ClassElement) parentElement).getType();
             createCompletionsForPropertyAccess(null, type, false, isStatic);
             createCompletionsForMethodInvocation(null, type, false, isStatic);
