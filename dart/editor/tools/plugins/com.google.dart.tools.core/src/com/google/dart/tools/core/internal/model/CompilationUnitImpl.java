@@ -150,51 +150,30 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         if (member instanceof DartFieldDefinition) {
           DartFieldDefinition fieldListNode = (DartFieldDefinition) member;
           for (DartField fieldNode : fieldListNode.getFields()) {
-            DartFieldImpl fieldImpl = new DartFieldImpl(typeImpl, fieldNode.getName().toString());
-            DartFieldInfo fieldInfo = new DartFieldInfo();
-            fieldInfo.setSourceRangeStart(fieldNode.getSourceStart());
-            fieldInfo.setSourceRangeEnd(fieldNode.getSourceStart() + fieldNode.getSourceLength());
-            fieldInfo.setNameRange(new SourceRangeImpl(fieldNode.getName()));
-            fieldInfo.setTypeName(extractTypeName(fieldListNode.getType(), false));
-            fieldInfo.setModifiers(fieldNode.getModifiers());
-            children.add(fieldImpl);
-            newElements.put(fieldImpl, fieldInfo);
+            if (fieldNode.getModifiers().isGetter() || fieldNode.getModifiers().isSetter()) {
+              processMethodDefinition(fieldNode.getAccessor(), typeImpl, className, children);
+            } else {
+              DartFieldImpl fieldImpl = new DartFieldImpl(typeImpl, fieldNode.getName().toString());
+              DartFieldInfo fieldInfo = new DartFieldInfo();
+              fieldInfo.setSourceRangeStart(fieldNode.getSourceStart());
+              fieldInfo.setSourceRangeEnd(fieldNode.getSourceStart() + fieldNode.getSourceLength());
+              fieldInfo.setNameRange(new SourceRangeImpl(fieldNode.getName()));
+              fieldInfo.setTypeName(extractTypeName(fieldListNode.getType(), false));
+              fieldInfo.setModifiers(fieldNode.getModifiers());
+              children.add(fieldImpl);
+              newElements.put(fieldImpl, fieldInfo);
 
-            FunctionGatherer functionGatherer = new FunctionGatherer(fieldNode, fieldImpl,
-                newElements);
-            fieldNode.accept(functionGatherer);
-            List<DartFunctionImpl> functions = functionGatherer.getFunctions();
-            fieldInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
+              FunctionGatherer functionGatherer = new FunctionGatherer(fieldNode, fieldImpl,
+                  newElements);
+              fieldNode.accept(functionGatherer);
+              List<DartFunctionImpl> functions = functionGatherer.getFunctions();
+              fieldInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
+            }
           }
         } else if (member instanceof DartMethodDefinition) {
-          DartMethodDefinition methodNode = (DartMethodDefinition) member;
-          DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, methodNode.getName().toString());
-          DartMethodInfo methodInfo = new DartMethodInfo();
-          methodInfo.setSourceRangeStart(methodNode.getSourceStart());
-          methodInfo.setSourceRangeEnd(methodNode.getSourceStart() + methodNode.getSourceLength());
-          methodInfo.setNameRange(new SourceRangeImpl(methodNode.getName()));
-          methodInfo.setModifiers(methodNode.getModifiers());
-          boolean isConstructor = isConstructor(className, methodNode);
-          methodInfo.setConstructor(isConstructor);
+          boolean isConstructor = processMethodDefinition((DartMethodDefinition) member, typeImpl,
+              className, children);
           constructorFound = constructorFound || isConstructor;
-          methodInfo.setReturnTypeName(extractTypeName(
-              methodNode.getFunction().getReturnTypeNode(), false));
-          children.add(methodImpl);
-          newElements.put(methodImpl, methodInfo);
-
-          List<DartElementImpl> methodChildren = getParameters(methodImpl, methodNode.getFunction());
-
-          FunctionGatherer functionGatherer = new FunctionGatherer(methodNode, methodImpl,
-              newElements);
-          methodNode.accept(functionGatherer);
-          methodChildren.addAll(functionGatherer.getFunctions());
-
-          LocalVariableGatherer variableGatherer = new LocalVariableGatherer(methodNode,
-              methodImpl, newElements);
-          methodNode.accept(variableGatherer);
-          methodChildren.addAll(variableGatherer.getLocalVariables());
-
-          methodInfo.setChildren(methodChildren.toArray(new DartElementImpl[methodChildren.size()]));
         } else {
           // This should never happen, but if it does we need to know about it.
           DartCore.logError("Unexpected type of node found as member of type: "
@@ -369,6 +348,48 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         }
       }
       return false;
+    }
+
+    /**
+     * Create a model element for a method definition found within a type (class or interface) and
+     * add it to the given list of children.
+     * 
+     * @param methodNode the AST node representing the method
+     * @param typeImpl the model element representing the type
+     * @param className the name of the type in which the method is defined
+     * @param children a list containing the children of the type to which the method element will
+     *          be added
+     * @return <code>true</code> if the method defines a constructor
+     */
+    private boolean processMethodDefinition(DartMethodDefinition methodNode, DartTypeImpl typeImpl,
+        String className, ArrayList<DartElementImpl> children) {
+      DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, methodNode.getName().toString());
+      DartMethodInfo methodInfo = new DartMethodInfo();
+      methodInfo.setSourceRangeStart(methodNode.getSourceStart());
+      methodInfo.setSourceRangeEnd(methodNode.getSourceStart() + methodNode.getSourceLength());
+      methodInfo.setNameRange(new SourceRangeImpl(methodNode.getName()));
+      methodInfo.setModifiers(methodNode.getModifiers());
+      boolean isConstructor = isConstructor(className, methodNode);
+      methodInfo.setConstructor(isConstructor);
+      methodInfo.setReturnTypeName(extractTypeName(methodNode.getFunction().getReturnTypeNode(),
+          false));
+      children.add(methodImpl);
+      newElements.put(methodImpl, methodInfo);
+
+      List<DartElementImpl> methodChildren = getParameters(methodImpl, methodNode.getFunction());
+
+      FunctionGatherer functionGatherer = new FunctionGatherer(methodNode, methodImpl, newElements);
+      methodNode.accept(functionGatherer);
+      methodChildren.addAll(functionGatherer.getFunctions());
+
+      LocalVariableGatherer variableGatherer = new LocalVariableGatherer(methodNode, methodImpl,
+          newElements);
+      methodNode.accept(variableGatherer);
+      methodChildren.addAll(variableGatherer.getLocalVariables());
+
+      methodInfo.setChildren(methodChildren.toArray(new DartElementImpl[methodChildren.size()]));
+
+      return isConstructor;
     }
   }
 

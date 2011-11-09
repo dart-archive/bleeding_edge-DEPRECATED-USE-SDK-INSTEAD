@@ -1,13 +1,10 @@
 #library("Sample Code");
 
-typedef int FunctionType(int a, int b, int c);
+typedef int FunctionTypeAlias(int a, int b, int c);
 
 class PublicClass {
   int publicField;
-  FunctionType _privateField;
-
-//  const int publicConstField;
-//  const int _privateConstField;
+  FunctionTypeAlias _privateField;
 
   final int publicFinalField;
   final int _privateFinalField;
@@ -18,18 +15,17 @@ class PublicClass {
   static final double publicStaticFinalField = 0.0;
   static final double _privateStaticFinalField = 1.0;
 
-//  static const double publicStaticConstField = 0.0;
-//  static const double _privateStaticConstField = -1.0;
-
   PublicClass() {}
 
-  PublicClass.factoryMethod() {}
+  PublicClass.factoryMethod(int value) {
+    publicField = value;
+  }
 
-  int publicMethod() {
+  int publicMethod(int a, int b, PublicInterface ignored) {
     f(int x) {
-      return x;
+      return _privateField(x - 1, x, x + 1);
     };
-    return f(0);
+    return f(a) + f(b);
   }
 
   void _privateMethod(int parameter) {
@@ -40,11 +36,11 @@ class PublicClass {
 
   abstract double _privateAbstractMethod();
 
-  FunctionType get getMethod() {
+  FunctionTypeAlias get getter() {
     return _privateField;
   }
 
-  void set setMethod(FunctionType method) {
+  void set setter(FunctionTypeAlias method) {
     _privateField = method;
   }
 }
