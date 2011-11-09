@@ -226,9 +226,13 @@ class If extends Statement {
 }
 
 class For extends Statement {
-  final Node initializer;
+  /** Either a variable declaration or an ExpressionStatement. */
+  final Statement initializer;
+
   final ExpressionStatement condition;
-  final Node update;
+
+  final Node update; // TODO(ahe): Should be an expression list.
+
   final Statement body;
 
   final Token forToken;
