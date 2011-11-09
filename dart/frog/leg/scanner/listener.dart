@@ -18,7 +18,7 @@ class Listener {
   void beginClass(Token token) {
   }
 
-  void endClass(Token token) {
+  void endClass(Token beginToken, Token endToken) {
   }
 
   void beginExpressionStatement(Token token) {
@@ -244,9 +244,13 @@ class ElementListener extends Listener {
     canceler.cancel("Cannot handle library tags");
   }
 
-  void endClass(Token token) {
-    // TODO(ahe): Implement this.
-    canceler.cancel("Cannot handle classes");
+  void endClass(Token beginToken, Token endToken) {
+    Identifier name;
+    while (!nodes.isEmpty()) {
+      // TODO(ahe): Temporary code to discard supertypes.
+      name = popNode();
+    }
+    pushElement(new PartialClassElement(name.source, beginToken, endToken));
   }
 
   void endInterface(Token token) {
@@ -500,17 +504,37 @@ class PartialFunctionElement extends FunctionElement {
   FunctionExpression node;
 
   PartialFunctionElement(SourceString name,
-                         Token this.beginToken,
-                         Token this.endToken)
+                         Token this.beginToken, Token this.endToken)
     : super(name);
 
   FunctionExpression parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
-
-    BodyListener listener = new BodyListener(canceler, logger);
-    new BodyParser(listener).parseFunction(beginToken);
-    node = listener.popNode();
-    logger.log("parsed function: $node");
+    node = parse(canceler, logger, (p) => p.parseFunction(beginToken));
     return node;
   }
+}
+
+class PartialClassElement extends ClassElement {
+  final Token beginToken;
+  final Token endToken;
+  ClassNode node;
+
+  PartialClassElement(SourceString name,
+                      Token this.beginToken, Token this.endToken)
+    : super(name);
+
+  ClassNode parseNode(Canceler canceler, Logger logger) {
+    if (node != null) return node;
+    // node = parseAnyNode(canceler, logger, (p) => p.parseClass(beginToken));
+    node = new ClassNode(name, beginToken, endToken);
+    return node;
+  }
+}
+
+Node parse(Canceler canceler, Logger logger, doParse(Parser parser)) {
+  BodyListener listener = new BodyListener(canceler, logger);
+  doParse(new BodyParser(listener));
+  Node node = listener.popNode();
+  logger.log("parsed: $node");
+  return node;
 }

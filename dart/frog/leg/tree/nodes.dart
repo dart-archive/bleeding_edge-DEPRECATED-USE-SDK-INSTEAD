@@ -4,6 +4,7 @@
 
 interface Visitor<R> {
   R visitBlock(Block node);
+  R visitClassNode(ClassNode node);
   R visitExpressionStatement(ExpressionStatement node);
   R visitFor(For node);
   R visitFunctionExpression(FunctionExpression node);
@@ -62,6 +63,21 @@ class Node implements Hashable {
   abstract Token getBeginToken();
 
   abstract Token getEndToken();
+}
+
+class ClassNode extends Node {
+  final Identifier name;
+
+  final Token beginToken;
+  final Token endToken;
+
+  const ClassNode(this.name, this.beginToken, this.endToken);
+
+  accept(Visitor visitor) => visitor.visitClassNode(this);
+
+  Token getBeginToken() => beginToken;
+
+  Token getEndToken() => endToken;
 }
 
 class Expression extends Node {

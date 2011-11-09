@@ -165,13 +165,16 @@ class Parser<L extends Listener> {
   }
 
   Token parseClass(Token token) {
+    Token begin = token;
     listener.beginClass(token);
     token = parseIdentifier(next(token));
     token = parseTypeVariablesOpt(token);
     token = parseSuperclassClauseOpt(token);
     token = parseImplementsOpt(token);
     token = parseNativeClassClauseOpt(token);
-    return parseClassBody(token);
+    token = parseClassBody(token);
+    listener.endClass(begin, token);
+    return token.next;
   }
 
   Token parseNativeClassClauseOpt(Token token) {
@@ -280,11 +283,7 @@ class Parser<L extends Listener> {
     return token;
   }
 
-  Token parseClassBody(Token token) {
-    token = skipBlock(token);
-    listener.endClass(token);
-    return token.next;
-  }
+  Token parseClassBody(Token token) => skipBlock(token);
 
   Token parseTopLevelMember(Token token) {
     Token start = token;

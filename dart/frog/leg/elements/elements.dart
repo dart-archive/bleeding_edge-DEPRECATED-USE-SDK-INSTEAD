@@ -22,8 +22,9 @@ interface Logger {
 class ElementKind {
   final String id;
   const ElementKind(String this.id);
-  static final ElementKind VARIABLE = const ElementKind("variable");
-  static final ElementKind FUNCTION = const ElementKind("function");
+  static final ElementKind VARIABLE = const ElementKind('variable');
+  static final ElementKind FUNCTION = const ElementKind('function');
+  static final ElementKind CLASS = const ElementKind('class');
 }
 
 class Element implements Hashable {
@@ -92,5 +93,13 @@ class FunctionElement extends Element {
     }
     type = new FunctionType(returnType, parameterTypes.toLink());
     return type;
+  }
+}
+
+class ClassElement extends Element {
+  ClassElement(SourceString name) : super(name, ElementKind.CLASS, null);
+
+  Type computeType(compiler, types) {
+    compiler.unimplemented('ClassElement.computeType');
   }
 }
