@@ -305,12 +305,18 @@ class Parser<L extends Listener> {
     }
     token = parseIdentifier(previous);
     bool isField;
-    if (optional('(', token)) {
-      isField = false;
-    } else if (optional('=', token) || optional(';', token)) {
-      isField = true;
-    } else {
-      token = listener.unexpected(token);
+    while (true) {
+      // Loop to allow the listener to rewrite the token stream to
+      // make the parser happy.
+      if (optional('(', token)) {
+        isField = false;
+        break;
+      } else if (optional('=', token) || optional(';', token)) {
+        isField = true;
+        break;
+      } else {
+        token = listener.unexpected(token);
+      }
     }
     while (token !== null &&
            token.kind !== LBRACE_TOKEN &&

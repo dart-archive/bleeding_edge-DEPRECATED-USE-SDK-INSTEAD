@@ -12,7 +12,8 @@
 
 class NodeScannerBench extends ScannerBench {
   int getBytes(String filename, void callback(bytes)) {
-    List s = fs.readFileSync(filename, null);
+    // This actually returns a buffer, not a String.
+    var s = fs.readFileSync(filename, null);
     callback(s);
     return s.length;
   }

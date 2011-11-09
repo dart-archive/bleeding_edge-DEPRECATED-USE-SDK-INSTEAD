@@ -77,7 +77,7 @@ class ProgressBar {
 
   ProgressBar(int total) : this.escape(total, new String.fromCharCodes([27]));
 
-  ProgressBar.escape(this.total, int esc)
+  ProgressBar.escape(this.total, String esc)
     : esc = esc, up = "$esc[1A", clear = "$esc[K";
 
   void begin() {

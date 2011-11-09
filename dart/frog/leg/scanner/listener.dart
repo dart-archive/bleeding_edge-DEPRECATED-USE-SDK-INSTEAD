@@ -480,6 +480,10 @@ class BodyListener extends ElementListener {
     pushNode(new Throw(null, throwToken, endToken));
   }
 
+  void handleNoType(Token token) {
+    pushNode(null);
+  }
+
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
                         String delimiter) {
     Link<Node> nodes = const EmptyLink<Node>();

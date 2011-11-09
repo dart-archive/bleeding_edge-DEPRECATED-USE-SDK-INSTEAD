@@ -5513,14 +5513,18 @@ Parser.prototype.parseTopLevelMember = function(token) {
   }
   token = this.parseIdentifier(previous);
   var isField;
-  if ($notnull_bool(this.optional('(', token))) {
-    isField = false;
-  }
-  else if ($notnull_bool(this.optional('=', token) || this.optional(';', token))) {
-    isField = true;
-  }
-  else {
-    token = this.listener.unexpected(token);
+  while ($notnull_bool(true)) {
+    if ($notnull_bool(this.optional('(', token))) {
+      isField = false;
+      break;
+    }
+    else if ($notnull_bool(this.optional('=', token) || this.optional(';', token))) {
+      isField = true;
+      break;
+    }
+    else {
+      token = this.listener.unexpected(token);
+    }
   }
   while ($notnull_bool(token != null && token.kind !== 123/*null.LBRACE_TOKEN*/ && token.kind !== 59/*null.SEMICOLON_TOKEN*/)) {
     token = this.next(token);
@@ -5621,13 +5625,13 @@ BodyParser.prototype.expectSemicolon = function(token) {
 BodyParser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement(begin);
-  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 407, 12);
+  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 413, 12);
   token = this.parseExpression(this.next(token));
   this.listener.endReturnStatement(true, begin, token);
   return this.expectSemicolon(token);
 }
 BodyParser.prototype.parseExpressionStatementOrDeclaration = function(token) {
-  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 414, 12);
+  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 420, 12);
   var peek1 = this.next(token);
   if ($notnull_bool(peek1.kind === 97/*null.IDENTIFIER_TOKEN*/)) {
     return this.parseLocalDeclaration(token, peek1);
@@ -5676,7 +5680,7 @@ BodyParser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 BodyParser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 467, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 473, 12);
   token = this.parsePrimary(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = $assert_num(tokenLevel);
@@ -5941,7 +5945,7 @@ BodyParser.prototype.parseArgumentsOpt = function(token) {
 BodyParser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 600, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 606, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments(argumentCount, begin, token.next);
@@ -6479,6 +6483,9 @@ BodyListener.prototype.endThrowStatement = function(throwToken, endToken) {
 }
 BodyListener.prototype.endRethrowStatement = function(throwToken, endToken) {
   this.pushNode(new Throw(null, throwToken, endToken));
+}
+BodyListener.prototype.handleNoType = function(token) {
+  this.pushNode(null);
 }
 BodyListener.prototype.makeNodeList = function(count, beginToken, endToken, delimiter) {
   var $0;
