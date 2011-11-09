@@ -33,8 +33,6 @@ class SsaBuilderTask extends CompilerTask {
 class SsaBuilder implements Visitor {
   final Compiler compiler;
   final Map<Node, Element> elements;
-
-  int nextFreeBlockId = 0;
   HGraph graph;
 
   // We build the Ssa graph by simulating a stack machine.
@@ -49,29 +47,18 @@ class SsaBuilder implements Visitor {
 
   HGraph build(NodeList parameters, Node body) {
     graph = new HGraph();
-    graph.entry.id = nextFreeBlockId++;
     stack = new List<HInstruction>();
     definitions = new Map<Element, HInstruction>();
 
-    block = createBlock();
+    block = graph.addNewBlock();
     graph.entry.addGoto(graph, block);
-    graph.entry.addDominatedBlock(block);
-
     visitParameters(parameters);
     body.accept(this);
 
     // TODO(kasperl): Make this goto an implicit return.
     if (!isAborted()) block.addGoto(graph, graph.exit);
-
-    graph.exit.id = nextFreeBlockId++;
-    // TODO(floitsch): we add exit as dominated by entry. Does this make sense?
-    graph.entry.addDominatedBlock(graph.exit);
-
+    graph.finalize();
     return graph;
-  }
-
-  HBasicBlock createBlock() {
-    return new HBasicBlock.withId(nextFreeBlockId++);
   }
 
   bool isAborted() {
@@ -194,7 +181,7 @@ class SsaBuilder implements Visitor {
         new Map<Element, HInstruction>.from(definitions);
 
     // The then part.
-    HBasicBlock thenBlock = createBlock();
+    HBasicBlock thenBlock = graph.addNewBlock();
     block = thenBlock;
     visit(node.thenPart);
     bool thenBlockJoined = !isAborted();
@@ -209,21 +196,19 @@ class SsaBuilder implements Visitor {
     definitions = afterConditionDefinitions;
     if (!hasElse) {
       elseBlockJoined = true;
-      elseBlock = joinBlock = createBlock();
+      elseBlock = joinBlock = graph.addNewBlock();
     } else {
-      elseBlock = createBlock();
+      elseBlock = graph.addNewBlock();
       block = elseBlock;
       visit(node.elsePart);
       elseBlockJoined = !isAborted();
-      joinBlock = createBlock();
+      joinBlock = graph.addNewBlock();
     }
     Map elseDefinitions = definitions;
     HBasicBlock elseExitBlock = block;
 
     conditionBlock.add(new HIf(condition, hasElse));
     graph.setSuccessors(conditionBlock, <HBasicBlock>[thenBlock, elseBlock]);
-    conditionBlock.addDominatedBlock(thenBlock);
-    if (hasElse) conditionBlock.addDominatedBlock(elseBlock);
 
     if (!thenBlockJoined && !elseBlockJoined) {
       block = null;
@@ -231,16 +216,13 @@ class SsaBuilder implements Visitor {
       block = joinBlock;
       if (thenBlockJoined && elseBlockJoined) {
         thenExitBlock.addGoto(graph, joinBlock);
-        elseExitBlock.addGoto(graph, joinBlock);
-        conditionBlock.addDominatedBlock(joinBlock);
+        if (hasElse) elseExitBlock.addGoto(graph, joinBlock);
         definitions =
             joinDefinitions(joinBlock, thenDefinitions, elseDefinitions);
       } else if (thenBlockJoined) {
         thenExitBlock.addGoto(graph, joinBlock);
-        thenExitBlock.addDominatedBlock(joinBlock);
       } else if (elseBlockJoined) {
         elseExitBlock.addGoto(graph, joinBlock);
-        elseExitBlock.addDominatedBlock(joinBlock);
       }
     }
   }

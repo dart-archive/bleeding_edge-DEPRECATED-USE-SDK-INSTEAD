@@ -25,7 +25,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
                         HGraph graph) {
     StringBuffer buffer = new StringBuffer();
     SsaCodeGenerator codegen = new SsaCodeGenerator(compiler, buffer);
-    graph.number();
+    graph.assignInstructionIds();
     codegen.visitGraph(graph);
     StringBuffer parameters = new StringBuffer();
     for (int i = 0; i < parameterCount; i++) {
@@ -138,7 +138,7 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitExit(HExit node) {
-    unreachable();
+    // Don't do anything.
   }
 
   visitGoto(HGoto node) {

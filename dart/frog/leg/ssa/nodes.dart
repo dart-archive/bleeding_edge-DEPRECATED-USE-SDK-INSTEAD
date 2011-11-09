@@ -65,20 +65,60 @@ class HInstructionVisitor extends HGraphVisitor {
 class HGraph {
   HBasicBlock entry;
   HBasicBlock exit;
-  HGraph() : entry = new HBasicBlock(), exit = new HBasicBlock() {
+  final List<HBasicBlock> blocks;
+
+  HGraph() : blocks = new List<HBasicBlock>() {
+    entry = addNewBlock();
+    // The exit block will be added later, so it has an id that is
+    // after all others in the system.
+    exit = new HBasicBlock();
     exit.add(new HExit());
   }
 
-  void number() {
-    int numberBasicBlockAndSuccessors(HBasicBlock block, int id) {
-      id = block.number(id);
-      for (int i = 0; i < block.successors.length; i++) {
-        id = numberBasicBlockAndSuccessors(block.successors[i], id);
+  void addBlock(HBasicBlock block) {
+    int id = blocks.length;
+    block.id = id;
+    blocks.add(block);
+    assert(blocks[id] === block);
+  }
+
+  HBasicBlock addNewBlock() {
+    HBasicBlock result = new HBasicBlock();
+    addBlock(result);
+    return result;
+  }
+
+  void finalize() {
+    addBlock(exit);
+    assignDominators();
+  }
+
+  void assignDominators() {
+    // Run through the blocks in order of increasing ids so we are
+    // guaranteed that we have computed dominators for all blocks
+    // higher up in the dominator tree.
+    for (int i = 0, length = blocks.length; i < length; i++) {
+      HBasicBlock block = blocks[i];
+      // TODO(floitsh): Only deal with the first predecessor of a loop
+      // header block here. The other predecessors are back edges so
+      // they cannot dominate the loop header.
+      List<HBasicBlock> predecessors = block.predecessors;
+      for (int j = predecessors.length - 1; j >= 0; j--) {
+        block.assignCommonDominator(predecessors[j]);
+      }
+    }
+  }
+
+  void assignInstructionIds() {
+    int handleDominatorTree(HBasicBlock root, int id) {
+      id = root.assignInstructionIds(id);
+      List<HBasicBlock> dominatedBlocks = root.dominatedBlocks;
+      for (int i = 0, length = dominatedBlocks.length; i < length; i++) {
+        id = handleDominatorTree(dominatedBlocks[i], id);
       }
       return id;
     }
-
-    numberBasicBlockAndSuccessors(entry, 0);
+    handleDominatorTree(entry, 0);
   }
 
   void setSuccessors(HBasicBlock source, List<HBasicBlock> targets) {
@@ -138,8 +178,9 @@ class HBasicBlock {
   HInstruction last = null;
   final List<HBasicBlock> predecessors;
   List<HBasicBlock> successors;
-  final List<HBasicBlock> dominatedBlocks;
+
   HBasicBlock dominator = null;
+  final List<HBasicBlock> dominatedBlocks;
 
   HBasicBlock() : this.withId(null);
   HBasicBlock.withId(this.id)
@@ -158,9 +199,7 @@ class HBasicBlock {
     }
   }
 
-  // TODO(kasperl): Temporary helper method to number the instructions
-  // in this basic block for printing and debugging purposes.
-  int number(int id) {
+  int assignInstructionIds(int id) {
     HInstruction instruction = first;
     while (instruction != null) {
       instruction.id = id++;
@@ -240,9 +279,8 @@ class HBasicBlock {
   }
 
   void addDominatedBlock(HBasicBlock block) {
-    assert(dominatedBlocks.every((storedBlock) => storedBlock != block));
     assert(id !== null && block.id !== null);
-    block.dominator = this;
+    assert(dominatedBlocks.indexOf(block) < 0);
     // Keep the list of dominated blocks sorted such that if there are two
     // succeeding blocks in the list, the predecessor is before the successor.
     // Assume that we add the dominated blocks in the right order.
@@ -254,6 +292,47 @@ class HBasicBlock {
       dominatedBlocks.add(block);
     } else {
       dominatedBlocks.insertRange(index, 1, block);
+    }
+    assert(block.dominator === null);
+    block.dominator = this;
+  }
+
+  void removeDominatedBlock(HBasicBlock block) {
+    assert(id !== null && block.id !== null);
+    int index = dominatedBlocks.indexOf(block);
+    assert(index >= 0);
+    if (index == dominatedBlocks.length - 1) {
+      dominatedBlocks.removeLast();
+    } else {
+      dominatedBlocks.removeRange(index, 1);
+    }
+    assert(block.dominator === this);
+    block.dominator = null;
+  }
+
+  void assignCommonDominator(HBasicBlock predecessor) {
+    if (dominator === null) {
+      // If this basic block doesn't have a dominator yet we use the
+      // given predecessor as the dominator.
+      predecessor.addDominatedBlock(this);
+    } else if (predecessor.dominator !== null) {
+      // If the predecessor has a dominator and this basic block has a
+      // dominator, we find a common parent in the dominator tree and
+      // use that as the dominator.
+      HBasicBlock first = dominator;
+      HBasicBlock second = predecessor;
+      while (first !== second) {
+        if (first.id > second.id) {
+          first = first.dominator;
+        } else {
+          second = second.dominator;
+        }
+        assert(first !== null && second !== null);
+      }
+      if (dominator !== first) {
+        dominator.removeDominatedBlock(this);
+        first.addDominatedBlock(this);
+      }
     }
   }
 
