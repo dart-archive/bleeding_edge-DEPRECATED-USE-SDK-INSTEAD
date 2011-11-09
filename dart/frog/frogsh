@@ -6765,13 +6765,16 @@ Node.prototype.hashCode = function() {
 Node.prototype.toString = function() {
   return this.unparse();
 }
+Node.prototype.getObjectDescription = function() {
+  return Object.prototype.toString.call(this);
+}
 Node.prototype.unparse = function() {
-  var unparser = new DebugUnparser();
+  var unparser = new Unparser(false);
   try {
     return unparser.unparse(this);
   } catch (e) {
     e = $toDartException(e);
-    return ('<<unparse error: ' + Object.prototype.toString.call(this) + ': ' + unparser.sb + '>>');
+    return ('<<unparse error: ' + this.getObjectDescription() + ': ' + unparser.sb + '>>');
   }
 }
 // ********** Code for ClassNode **************
@@ -7153,6 +7156,9 @@ ExpressionStatement.prototype.accept = function(visitor) {
 ExpressionStatement.prototype.getBeginToken = function() {
   return this.expression.getBeginToken();
 }
+ExpressionStatement.prototype.getEndToken = function() {
+  return this.endToken;
+}
 // ********** Code for Throw **************
 function Throw(expression, throwToken, endToken) {
   this.expression = expression;
@@ -7206,30 +7212,38 @@ VariableDefinitions.prototype.getBeginToken = function() {
 VariableDefinitions.prototype.getEndToken = function() {
   return this.endToken;
 }
-// ********** Code for DebugUnparser **************
-function DebugUnparser() {
+// ********** Code for Unparser **************
+function Unparser(printDebugInfo) {
+  this.printDebugInfo = printDebugInfo;
   // Initializers done
 }
-DebugUnparser.prototype.unparse = function(node) {
-  this.separator = '';
+Unparser.prototype.unparse = function(node) {
   this.sb = new StringBufferImpl("");
   this.visit(node);
   return this.sb.toString();
 }
-DebugUnparser.prototype.visit = function(node, withSeparator) {
-  var previous = this.separator;
-  this.separator = $assert_String($notnull_bool((withSeparator != null)) ? withSeparator : this.separator);
-  if ($notnull_bool(node != null)) node.accept(this);
-  this.separator = previous;
+Unparser.prototype.add = function(string) {
+  string.printOn(this.sb);
 }
-DebugUnparser.prototype.visitBlock = function(node) {
+Unparser.prototype.visit = function(node) {
+  if ($notnull_bool(node != null)) {
+    if ($notnull_bool(this.printDebugInfo)) this.sb.add(('[' + node.getObjectDescription() + ': '));
+    node.accept(this);
+    if ($notnull_bool(this.printDebugInfo)) this.sb.add(']');
+  }
+  else if ($notnull_bool(this.printDebugInfo)) {
+    this.sb.add('[null]');
+  }
+}
+Unparser.prototype.visitBlock = function(node) {
   this.visit(node.statements);
 }
-DebugUnparser.prototype.visitExpressionStatement = function(node) {
+Unparser.prototype.visitExpressionStatement = function(node) {
+  var $0;
   this.visit(node.expression);
-  this.sb.add(';');
+  this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
 }
-DebugUnparser.prototype.visitFor = function(node) {
+Unparser.prototype.visitFor = function(node) {
   node.forToken.get$value().printOn$1(this.sb);
   this.sb.add('(');
   this.visit(node.initializer);
@@ -7238,101 +7252,109 @@ DebugUnparser.prototype.visitFor = function(node) {
   this.sb.add(')');
   this.visit(node.body);
 }
-DebugUnparser.prototype.visitFunctionExpression = function(node) {
+Unparser.prototype.visitFunctionExpression = function(node) {
   if ($notnull_bool(node.returnType != null)) {
     this.visit(node.returnType);
     this.sb.add(' ');
   }
   this.visit(node.name);
-  this.visit(node.parameters, ', ');
+  this.visit(node.parameters);
   this.visit(node.body);
 }
-DebugUnparser.prototype.visitIdentifier = function(node) {
-  node.get$source().printOn(this.sb);
+Unparser.prototype.visitIdentifier = function(node) {
+  var $0;
+  this.add((($0 = node.token.get$value()) && $0.is$SourceString()));
 }
-DebugUnparser.prototype.visitIf = function(node) {
-  node.ifToken.get$value().printOn$1(this.sb);
+Unparser.prototype.visitIf = function(node) {
+  var $0;
+  this.add((($0 = node.ifToken.get$value()) && $0.is$SourceString()));
   this.visit(node.condition);
   this.visit(node.thenPart);
   if ($notnull_bool(node.get$hasElsePart())) {
-    node.elseToken.get$value().printOn$1(this.sb);
+    this.add((($0 = node.elseToken.get$value()) && $0.is$SourceString()));
     this.visit(node.elsePart);
   }
 }
-DebugUnparser.prototype.visitLiteralBool = function(node) {
-  node.token.get$value().printOn$1(this.sb);
-}
-DebugUnparser.prototype.visitLiteralDouble = function(node) {
-  node.token.get$value().printOn$1(this.sb);
-}
-DebugUnparser.prototype.visitLiteralInt = function(node) {
-  node.token.get$value().printOn$1(this.sb);
-}
-DebugUnparser.prototype.visitLiteralString = function(node) {
-  node.token.get$value().printOn$1(this.sb);
-}
-DebugUnparser.prototype.visitNodeList = function(node) {
+Unparser.prototype.visitLiteralBool = function(node) {
   var $0;
-  var first = true;
-  if ($notnull_bool(node.beginToken != null)) this.sb.add(node.beginToken);
+  this.add((($0 = node.token.get$value()) && $0.is$SourceString()));
+}
+Unparser.prototype.visitLiteralDouble = function(node) {
+  var $0;
+  this.add((($0 = node.token.get$value()) && $0.is$SourceString()));
+}
+Unparser.prototype.visitLiteralInt = function(node) {
+  var $0;
+  this.add((($0 = node.token.get$value()) && $0.is$SourceString()));
+}
+Unparser.prototype.visitLiteralString = function(node) {
+  var $0;
+  this.add((($0 = node.token.get$value()) && $0.is$SourceString()));
+}
+Unparser.prototype.visitNodeList = function(node) {
+  var $0;
+  if ($notnull_bool(node.beginToken != null)) this.add((($0 = node.beginToken.get$value()) && $0.is$SourceString()));
   if ($notnull_bool(node.nodes != null)) {
-    var delimiter = node.delimiter;
-    if ($notnull_bool(delimiter == null)) delimiter = new StringWrapper(this.separator);
-    var $list = node.nodes;
-    for (var $i = node.nodes.iterator(); $i.hasNext(); ) {
-      var element = $i.next();
-      if ($notnull_bool(!$notnull_bool(first))) delimiter.printOn(this.sb);
-      first = false;
-      this.visit(element);
+    if ($notnull_bool(node.delimiter != null)) {
+      node.nodes.printOn(this.sb, node.delimiter);
+    }
+    else {
+      node.nodes.printOn$1(this.sb);
     }
   }
-  if ($notnull_bool(node.endToken != null)) this.sb.add(node.endToken);
+  if ($notnull_bool(node.endToken != null)) this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
 }
-DebugUnparser.prototype.visitOperator = function(node) {
+Unparser.prototype.visitOperator = function(node) {
   this.visitIdentifier(node);
 }
-DebugUnparser.prototype.visitReturn = function(node) {
-  node.beginToken.get$value().printOn$1(this.sb);
+Unparser.prototype.visitReturn = function(node) {
+  var $0;
+  this.add((($0 = node.beginToken.get$value()) && $0.is$SourceString()));
   if ($notnull_bool(node.get$hasExpression())) {
     this.sb.add(' ');
     this.visit(node.expression);
   }
-  node.endToken.get$value().printOn$1(this.sb);
+  this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
 }
-DebugUnparser.prototype.visitSend = function(node) {
+Unparser.prototype.visitSend = function(node) {
   if ($notnull_bool(node.receiver != null)) {
     this.visit(node.receiver);
     if ($notnull_bool(!(node.selector instanceof Operator))) this.sb.add('.');
   }
   this.visit(node.selector);
-  this.visit(node.argumentsNode, ', ');
+  this.visit(node.argumentsNode);
 }
-DebugUnparser.prototype.visitSendSet = function(node) {
+Unparser.prototype.visitSendSet = function(node) {
+  var $0;
   if ($notnull_bool(node.receiver != null)) {
     this.visit(node.receiver);
     this.sb.add('.');
   }
   this.visit(node.selector);
-  node.assignmentOperator.get$value().printOn$1(this.sb);
-  this.visit(node.argumentsNode, ', ');
+  this.add((($0 = node.assignmentOperator.get$value()) && $0.is$SourceString()));
+  this.visit(node.argumentsNode);
 }
-DebugUnparser.prototype.visitThrow = function(node) {
+Unparser.prototype.visitThrow = function(node) {
   node.throwToken.get$value().printOn$1(this.sb);
   if ($notnull_bool(node.expression != null)) {
     this.visit(node.expression);
   }
   node.endToken.get$value().printOn$1(this.sb);
 }
-DebugUnparser.prototype.visitTypeAnnotation = function(node) {
+Unparser.prototype.visitTypeAnnotation = function(node) {
   this.visit(node.typeName);
 }
-DebugUnparser.prototype.visitVariableDefinitions = function(node) {
+Unparser.prototype.visitVariableDefinitions = function(node) {
+  var $0;
   if ($notnull_bool(node.type != null)) {
     this.visit(node.type);
-    this.sb.add(' ');
   }
-  this.visit(node.definitions, ', ');
-  this.sb.add('; ');
+  else {
+    this.sb.add('var');
+  }
+  this.sb.add(' ');
+  this.visit(node.definitions);
+  this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
 }
 // ********** Code for top level **************
 function firstBeginToken(first, second) {

@@ -51,12 +51,14 @@ class Node implements Hashable {
 
   toString() => unparse();
 
+  String getObjectDescription() => super.toString();
+
   String unparse() {
-    DebugUnparser unparser = new DebugUnparser();
+    Unparser unparser = new Unparser();
     try {
       return unparser.unparse(this);
     } catch (var e) {
-      return '<<unparse error: ${super.toString()}: ${unparser.sb}>>';
+      return '<<unparse error: ${getObjectDescription()}: ${unparser.sb}>>';
     }
   }
 
@@ -374,6 +376,8 @@ class ExpressionStatement extends Statement {
   accept(Visitor visitor) => visitor.visitExpressionStatement(this);
 
   Token getBeginToken() => expression.getBeginToken();
+
+  Token getEndToken() => endToken;
 }
 
 class Throw extends Statement {

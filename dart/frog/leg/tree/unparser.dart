@@ -2,22 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class DebugUnparser implements Visitor {
-  String separator;
+class Unparser implements Visitor {
   StringBuffer sb;
+  final bool printDebugInfo;
+
+  Unparser([this.printDebugInfo = false]);
 
   String unparse(Node node) {
-    separator = '';
     sb = new StringBuffer();
     visit(node);
     return sb.toString();
   }
 
-  visit(Node node, [withSeparator]) {
-    final previous = separator;
-    separator = (withSeparator !== null) ? withSeparator : separator;
-    if (node !== null) node.accept(this);
-    separator = previous;
+  void add(SourceString string) {
+    string.printOn(sb);
+  }
+
+  visit(Node node) {
+    if (node !== null) {
+      if (printDebugInfo) sb.add('[${node.getObjectDescription()}: ');
+      node.accept(this);
+      if (printDebugInfo) sb.add(']');
+    } else if (printDebugInfo) {
+      sb.add('[null]');
+    }
   }
 
   visitBlock(Block node) {
@@ -26,7 +34,7 @@ class DebugUnparser implements Visitor {
 
   visitExpressionStatement(ExpressionStatement node) {
     visit(node.expression);
-    sb.add(';');
+    add(node.endToken.value);
   }
 
   visitFor(For node) {
@@ -45,54 +53,50 @@ class DebugUnparser implements Visitor {
       sb.add(' ');
     }
     visit(node.name);
-    visit(node.parameters, ', ');
+    visit(node.parameters);
     visit(node.body);
   }
 
   visitIdentifier(Identifier node) {
-    node.source.printOn(sb);
+    add(node.token.value);
   }
 
   visitIf(If node) {
-    node.ifToken.value.printOn(sb);
+    add(node.ifToken.value);
     visit(node.condition);
     visit(node.thenPart);
     if (node.hasElsePart) {
-      node.elseToken.value.printOn(sb);
+      add(node.elseToken.value);
       visit(node.elsePart);
     }
   }
 
   visitLiteralBool(LiteralBool node) {
-    node.token.value.printOn(sb);
+    add(node.token.value);
   }
 
   visitLiteralDouble(LiteralDouble node) {
-    node.token.value.printOn(sb);
+    add(node.token.value);
   }
 
   visitLiteralInt(LiteralInt node) {
-    node.token.value.printOn(sb);
+    add(node.token.value);
   }
 
   visitLiteralString(LiteralString node) {
-    node.token.value.printOn(sb);
+    add(node.token.value);
   }
 
   visitNodeList(NodeList node) {
-    bool first = true;
-    if (node.beginToken !== null) sb.add(node.beginToken);
+    if (node.beginToken !== null) add(node.beginToken.value);
     if (node.nodes !== null) {
-      // TODO(karlklose): remove delimiter from NodeList and use separator?
-      SourceString delimiter = node.delimiter;
-      if (delimiter == null) delimiter = new SourceString(separator);
-      for (Node element in node.nodes) {
-        if (!first) delimiter.printOn(sb);
-        first = false;
-        visit(element);
+      if (node.delimiter !== null) {
+        node.nodes.printOn(sb, node.delimiter);
+      } else {
+        node.nodes.printOn(sb);
       }
     }
-    if (node.endToken !== null) sb.add(node.endToken);
+    if (node.endToken !== null) add(node.endToken.value);
   }
 
   visitOperator(Operator node) {
@@ -100,12 +104,12 @@ class DebugUnparser implements Visitor {
   }
 
   visitReturn(Return node) {
-    node.beginToken.value.printOn(sb);
+    add(node.beginToken.value);
     if (node.hasExpression) {
       sb.add(' ');
       visit(node.expression);
     }
-    node.endToken.value.printOn(sb);
+    add(node.endToken.value);
   }
 
   visitSend(Send node) {
@@ -114,7 +118,7 @@ class DebugUnparser implements Visitor {
       if (node.selector is !Operator) sb.add('.');
     }
     visit(node.selector);
-    visit(node.argumentsNode, ', ');
+    visit(node.argumentsNode);
   }
 
   visitSendSet(SendSet node) {
@@ -123,8 +127,8 @@ class DebugUnparser implements Visitor {
       sb.add('.');
     }
     visit(node.selector);
-    node.assignmentOperator.value.printOn(sb);
-    visit(node.argumentsNode, ', ');
+    add(node.assignmentOperator.value);
+    visit(node.argumentsNode);
   }
 
   visitThrow(Throw node) {
@@ -142,10 +146,12 @@ class DebugUnparser implements Visitor {
   visitVariableDefinitions(VariableDefinitions node) {
     if (node.type !== null) {
       visit(node.type);
-      sb.add(' ');
+    } else {
+      sb.add('var');
     }
+    sb.add(' ');
     // TODO(karlklose): print modifiers.
-    visit(node.definitions, ', ');
-    sb.add('; ');
+    visit(node.definitions);
+    add(node.endToken.value);
   }
 }
