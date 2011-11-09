@@ -63,7 +63,7 @@ class ForeignElement extends Element {
   ForeignElement(SourceString name) : super(name, ElementKind.FOREIGN, null);
 
   Type computeType(Compiler compiler, Types types) {
-    return types.dynamic;
+    return types.dynamicType;
   }
 }
 
@@ -76,7 +76,7 @@ class ForeignElement extends Element {
  */
 Type getType(TypeAnnotation annotation, types) {
   if (annotation == null || annotation.typeName == null) {
-    return types.dynamic;
+    return types.dynamicType;
   }
   return types.lookup(annotation.typeName.source);
 }

@@ -156,7 +156,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
         // yet implemented.
         fail(node);
       } else {
-        if (targetType is !FunctionType) return types.dynamic;
+        if (targetType is !FunctionType) return types.dynamicType;
 
         FunctionType funType = targetType;
         Link<Type> formals = funType.parameterTypes;
