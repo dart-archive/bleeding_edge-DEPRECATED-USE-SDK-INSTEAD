@@ -9435,7 +9435,7 @@ CoreJs.prototype.generate = function(w) {
     w.writeln("function $toString(o) {\n  if (o == null) return 'null';\n  var t = typeof(o);\n  if (t == 'object') { return o.toString(); }\n  else if (t == 'string') { return o; }\n  else if (t == 'bool') { return ''+o; }\n  else if (t == 'number') { return ''+o; }\n  else return o.toString();\n}");
   }
   if ($notnull_bool(this.useTypeNameOf)) {
-    w.writeln("function $typeNameOf() {\n  if (window.constructor.name == 'DOMWindow') { // fast-path for Chrome\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  return str.substring(8, str.length - 1);\n}");
+    w.writeln("Object.prototype.$typeNameOf = function() {\n  if (window.constructor.name == 'DOMWindow') { // fast-path for Chrome\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  return str.substring(8, str.length - 1);\n}");
   }
   if ($notnull_bool(this.useIndex)) {
     w.writeln("Object.prototype.$index = function(i) { return this[i]; }\nArray.prototype.$index = function(i) { return this[i]; }\nString.prototype.$index = function(i) { return this[i]; }");

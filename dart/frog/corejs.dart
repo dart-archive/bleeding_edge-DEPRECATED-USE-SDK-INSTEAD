@@ -349,7 +349,7 @@ function $toString(o) {
       // checking the typeName on prototype objects (so we can fix dynamic
       // dispatching on $varMethod).
       w.writeln(@"""
-function $typeNameOf() {
+Object.prototype.$typeNameOf = function() {
   if (window.constructor.name == 'DOMWindow') { // fast-path for Chrome
     return this.constructor.name;
   }
