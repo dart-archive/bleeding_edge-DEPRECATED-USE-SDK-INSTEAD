@@ -18,7 +18,8 @@ Http get http() native;
 Readline get readline() native;
 
 var createSandbox() native
-  "return {'require': require, 'process': process, 'console': console};";
+  """return {'require': require, 'process': process, 'console': console,
+      'setTimeout': setTimeout, 'clearTimeout': clearTimeout};""";
 
 typedef void RequestListener(ServerRequest request, ServerResponse response);
 
@@ -109,3 +110,8 @@ interface ReadlineInterface {
   void prompt();
   void on(String event, Function callback);
 }
+
+interface TimeoutId {}
+
+TimeoutId setTimeout(Function callback, num delay, [arg]) native;
+clearTimeout(TimeoutId id) native;

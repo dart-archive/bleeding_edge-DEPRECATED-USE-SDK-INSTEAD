@@ -5,16 +5,9 @@
 
 #import('../lib/node/node.dart');
 #import('../file_system_node.dart');
+#import('../js_evaluator_node.dart');
 #import('../lang.dart');
 #import('../evaluator.dart');
-
-class NodeJsEvaluator implements Evaluator {
-  var _sandbox;
-
-  NodeJsEvaluator(): this._sandbox = createSandbox();
-
-  var eval(String js) => vm.runInNewContext(js, _sandbox);
-}
 
 String _getPrompt(Token incompleteToken) {
   if (incompleteToken == null) return ">>> ";

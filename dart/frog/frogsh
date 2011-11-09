@@ -2442,7 +2442,8 @@ function get$readline() {
 // ********** Code for process **************
 // ********** Code for top level **************
 function createSandbox() {
-  return {'require': require, 'process': process, 'console': console};
+  return {'require': require, 'process': process, 'console': console,
+        'setTimeout': setTimeout, 'clearTimeout': clearTimeout};
 }
 //  ********** Library file_system **************
 // ********** Code for top level **************
@@ -7457,7 +7458,7 @@ function ForeignElement(name) {
 }
 $inherits(ForeignElement, Element);
 ForeignElement.prototype.computeType = function(compiler, types) {
-  return types.get$dynamic();
+  return types.dynamicType;
 }
 // ********** Code for FunctionElement **************
 function FunctionElement(name) {
@@ -7492,7 +7493,7 @@ ClassElement.prototype.computeType = function(compiler, types) {
 // ********** Code for top level **************
 function getType(annotation, types) {
   if ($notnull_bool(annotation == null || annotation.typeName == null)) {
-    return types.get$dynamic();
+    return types.dynamicType;
   }
   return types.lookup(annotation.typeName.get$source());
 }
@@ -9800,7 +9801,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
       this.fail(node);
     }
     else {
-      if ($notnull_bool(!(targetType instanceof FunctionType))) return this.types.get$dynamic();
+      if ($notnull_bool(!(targetType instanceof FunctionType))) return this.types.dynamicType;
       var funType = (targetType && targetType.is$FunctionType());
       var formals = funType.parameterTypes;
       var arguments = node.get$arguments();

@@ -75,7 +75,8 @@ def TestFrog(arch, mode):
           '-v',
           'language',
           'corelib',
-          'isolate']
+          'isolate',
+          'frog']
   if flags:
     cmd.append('--flag=' + flags)
 

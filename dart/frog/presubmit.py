@@ -92,8 +92,8 @@ def main(args):
   if args[1:]:
     test_cmd.extend(args[1:])
   else:
-    test_cmd.extend(['language', 'corelib', 'leg',
-                     'isolate', 'peg', 'leg_only'])
+    test_cmd.extend(['language', 'corelib', 'leg', 'isolate',
+                     'peg', 'leg_only', 'frog'])
   RunCommand(*test_cmd, verbose=True)
 
 if __name__ == '__main__':
