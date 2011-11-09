@@ -156,11 +156,30 @@ class SsaBuilder implements Visitor {
       HBasicBlock joinBlock,
       Map<Element, HInstruction> incoming1,
       Map<Element, HInstruction> incoming2) {
-    if (incoming1.length != incoming2.length) compiler.cancel("No Phis yet.");
+    // If an element is in one map but not the other we can safely ignore it. It
+    // means that a variable was declared in the block. Since variable
+    // declarations are scoped the declared variable cannot be alive outside
+    // the block.
+    // Note: this is only true for nodes where we do joins.
+    if (incoming1.length > incoming2.length) {
+      // Inverse the two maps.
+      return joinDefinitions(joinBlock, incoming2, incoming1);
+    }
+    Map<Element, HInstruction> joinedDefinitions =
+        new Map<Element, HInstruction>();
+    assert(incoming1.length <= incoming2.length);
     incoming1.forEach((element, instruction) {
-      if (incoming2[element] !== instruction) compiler.cancel("No Phis yet.");
+      HInstruction other = incoming2[element];
+      if (other === null) return;
+      if (instruction === other) {
+        joinedDefinitions[element] = instruction;
+      } else {
+        HInstruction phi = new HPhi(instruction, other);
+        joinBlock.add(phi);
+        joinedDefinitions[element] = phi;
+      }
     });
-    return incoming1;
+    return joinedDefinitions;
   }
 
   visitIf(If node) {

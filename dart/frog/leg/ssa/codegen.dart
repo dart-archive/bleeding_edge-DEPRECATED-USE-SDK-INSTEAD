@@ -76,8 +76,28 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void define(HInstruction instruction) {
-    buffer.add('var ${temporary(instruction)} = ');
-    visit(instruction);
+    // Assigns the instruction's value to its temporary.
+    // If the instruction is furthermore used in phis, the temporary is also
+    // assigned to the phi's temporary, thus updating the phi's value.
+    // If the only use is a phi we can avoid the instruction's temporary
+    // and assign only to the phi's temporary.
+    List usedBy = instruction.usedBy;
+    if (usedBy.length == 1 && usedBy[0] is HPhi) {
+      buffer.add('var ${temporary(usedBy[0])} = ');
+      visit(instruction);
+    } else {
+      String instructionId = temporary(instruction);
+      buffer.add('var $instructionId = ');
+      visit(instruction);
+      // Assign the value to any phi.
+      for (int i = 0; i < usedBy.length; i++) {
+        if (usedBy[i] is HPhi) {
+          buffer.add(';\n');
+          addIndentation();
+          buffer.add('var ${temporary(usedBy[i])} = $instructionId');
+        }
+      }
+    }
   }
 
   void use(HInstruction argument) {
@@ -102,10 +122,10 @@ class SsaCodeGenerator implements HVisitor {
     while (instruction != null) {
       if (!instruction.generateAtUseSite()) {
         addIndentation();
-        if (!instruction.usedBy.isEmpty()) {
-          define(instruction);
-        } else {
+        if (instruction.usedBy.isEmpty() || instruction is HPhi) {
           visit(instruction);
+        } else {
+          define(instruction);
         }
         buffer.add(';\n');
       }
@@ -191,6 +211,25 @@ class SsaCodeGenerator implements HVisitor {
 
   visitParameter(HParameter node) {
     buffer.add(parameter(node.parameterIndex));
+  }
+
+  visitPhi(HPhi node) {
+    // Phi nodes have their values set at their inputs. Every instruction that
+    // is used by a phi updates the phi's temporary. Therefore, in most cases,
+    // phi's don't need to do anything. The exception is, when a phi is again
+    // used in another phi. Then we have to update the other phi's temporary.
+    List usedBy = node.usedBy;
+    bool firstPhi = true;
+    for (int i = 0; i < usedBy.length; i++) {
+      if (usedBy[i] is HPhi) {
+        if (!firstPhi) {
+          buffer.add(";\n");
+          addIndentation();
+        }
+        buffer.add("var ${temporary(usedBy[i])} = ${temporary(node)}");
+        firstPhi = false;
+      }
+    }
   }
 
   visitReturn(HReturn node) {

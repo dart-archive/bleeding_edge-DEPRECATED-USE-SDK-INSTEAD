@@ -184,6 +184,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitParameter(HParameter node) => "p${node.parameterIndex}";
 
+  String visitPhi(HPhi phi) {
+    return "Phi(${temporaryId(phi.inputs[0])}, ${temporaryId(phi.inputs[1])})";
+  }
+
   String visitReturn(HReturn node) => "Return ${temporaryId(node.inputs[0])}";
 
   String visitSubtract(HSubtract node) => visitInvoke(node);

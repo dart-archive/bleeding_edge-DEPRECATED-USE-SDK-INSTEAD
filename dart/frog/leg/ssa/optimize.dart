@@ -204,6 +204,10 @@ class SsaInstructionMerger extends HInstructionVisitor {
     // look at the next-previous instruction and the next argument.
     for (int i = inputs.length - 1; i >= 0; i--) {
       if (previousUnused === null) return;
+      // HPhis cannot be generated at use site.
+      // Also they are at the beginning of a block. So if we reach them, we
+      // can abort the loop.
+      if (previousUnused is HPhi) return;
       if (inputs[i].usedBy.length != 1) return;
       if (inputs[i] !== previousUnused) return;
       // Our arguments are in the correct location to be inlined.
