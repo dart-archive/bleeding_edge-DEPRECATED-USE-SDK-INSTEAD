@@ -20,12 +20,12 @@ class LoggerCanceler implements Logger, Canceler {
 
 Token scan(String text) => new StringScanner(text).tokenize();
 
-Node parseBodyCode(String text, Function parseFunction) {
+Node parseBodyCode(String text, Function parseMethod) {
   Token tokens = scan(text);
   LoggerCanceler lc = new LoggerCanceler();
   BodyListener listener = new BodyListener(lc, lc);
   BodyParser parser = new BodyParser(listener);
-  Token endToken = parseFunction(parser, tokens);
+  Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
   return listener.popNode();
 }
@@ -89,6 +89,7 @@ main() {
   testLocalsFour();
   testLocalsFive();
   testParametersOne();
+  testFor();
 }
 
 testLocalsOne() {
@@ -187,4 +188,36 @@ testParametersOne() {
   Identifier use = ret.expression;
   Expect.equals(ElementKind.VARIABLE, visitor.mapping[use].kind);
   Expect.equals(visitor.mapping[param], visitor.mapping[use]);
+}
+
+testFor() {
+  Compiler compiler = new Compiler(null);
+  ResolverVisitor visitor = new ResolverVisitor(compiler);
+  Node tree = parseStatement("for (int i = 0; i < 10; i = i + 1) { i = 5; }");
+  visitor.visit(tree);
+
+  Expect.equals(0, visitor.context.elements.length);
+  Expect.equals(5, visitor.mapping.length);
+
+  Node iNode = tree.initializer.definitions.nodes.head;
+  Element iElement = visitor.mapping[iNode];
+  // Check that all 'i' have been resolved to the same element.
+  visitor.mapping.forEach((node, element) => Expect.equals(iElement, element));
+
+  // Check that we have the expected nodes. This test relies on the mapping
+  // field to be a linked hash map (preserving insertion order).
+  Expect.isTrue(visitor.mapping is LinkedHashMap);
+  List<Node> nodes = visitor.mapping.getKeys();
+
+  Expect.isTrue(nodes[0] is SendSet);  // i = 0
+
+  Expect.isTrue(nodes[1] is Send);     // i (in i < 10)
+  Expect.isTrue(nodes[1] is !SendSet);
+
+  Expect.isTrue(nodes[2] is Send);     // i (in i + 1)
+  Expect.isTrue(nodes[2] is !SendSet);
+
+  Expect.isTrue(nodes[3] is SendSet);  // i = i + 1
+
+  Expect.isTrue(nodes[4] is SendSet);  // i = 5
 }

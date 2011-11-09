@@ -31,6 +31,10 @@ class Compiler implements Canceler, Logger {
     tasks = [scanner, parser, resolver, checker, builder, optimizer, generator];
   }
 
+  void assertTrue(bool val) {
+    if (!val) cancel('failed assertion in leg');
+  }
+
   void unimplemented(String methodName) {
     cancel("$methodName not implemented");
   }

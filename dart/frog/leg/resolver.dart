@@ -30,7 +30,7 @@ class ResolverVisitor implements Visitor<Element> {
 
   ResolverVisitor(Compiler compiler)
     : this.compiler = compiler,
-      mapping = new Map<Node, Element>(),
+      mapping = new LinkedHashMap<Node, Element>(),
       context = new Scope(new TopScope(compiler.universe));
 
   fail(Node node, [String message = "Unimplemented in the resolver"]) {
@@ -58,7 +58,11 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   visitFor(For node) {
-    compiler.unimplemented('Resolver::visitFor');
+    Scope scope = new Scope(context);
+    visitIn(node.initializer, scope);
+    visitIn(node.condition, scope);
+    visitIn(node.update, scope);
+    visitIn(node.body, scope);
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -93,12 +97,13 @@ class ResolverVisitor implements Visitor<Element> {
         name == const SourceString('-') ||
         name == const SourceString('*') ||
         name == const SourceString('/') ||
+        name == const SourceString('<') ||
         name == const SourceString('~/')) {
       // Do nothing.
     } else {
       // TODO(ngeoffray): Use the receiver to do the lookup.
       target = context.lookup(node.selector.source);
-      if (target == null) fail(node, ErrorMessages.cannotResolve(node));
+      if (target == null) fail(node, ErrorMessages.cannotResolve(node.name));
     }
     visit(node.argumentsNode);
     return useElement(node, target);
@@ -157,11 +162,13 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   Element defineElement(Node node, Element element) {
+    compiler.assertTrue(element !== null);
     mapping[node] = element;
     return context.add(element);
   }
 
   Element useElement(Node node, Element element) {
+    if (element === null) return null;
     return mapping[node] = element;
   }
 }
