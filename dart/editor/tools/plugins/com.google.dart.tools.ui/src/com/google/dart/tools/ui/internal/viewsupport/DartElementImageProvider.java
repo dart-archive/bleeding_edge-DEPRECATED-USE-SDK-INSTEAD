@@ -365,6 +365,14 @@ public class DartElementImageProvider {
           flags |= DartElementImageDescriptor.CONSTRUCTOR;
         }
 
+        if (element.getElementType() == DartElement.METHOD && ((Method) element).isGetter()) {
+          flags |= DartElementImageDescriptor.GETTER;
+        }
+
+        if (element.getElementType() == DartElement.METHOD && ((Method) element).isSetter()) {
+          flags |= DartElementImageDescriptor.SETTER;
+        }
+
         if (element.getElementType() == DartElement.METHOD && ((Method) member).isAbstract()
             && confirmAbstract(member)) {
           flags |= DartElementImageDescriptor.ABSTRACT;

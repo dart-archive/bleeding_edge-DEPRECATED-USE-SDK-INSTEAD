@@ -80,6 +80,16 @@ public class DartElementImageDescriptor extends CompositeImageDescriptor {
    */
   public final static int CONST = 0x2000;
 
+  /**
+   * Flag to render the 'setter' adornment
+   */
+  public final static int SETTER = 0x4000;
+
+  /**
+   * Flag to render the 'getter' adornment
+   */
+  public final static int GETTER = 0x10000;
+
   private ImageDescriptor fBaseImage;
   private int fFlags;
   private Point fSize;
@@ -138,7 +148,8 @@ public class DartElementImageDescriptor extends CompositeImageDescriptor {
    * Sets the descriptors adornments. Valid values are: {@link #ABSTRACT}, {@link #FINAL},
    * {@link #SYNCHRONIZED}, {@link #STATIC}, {@link #RUNNABLE}, {@link #WARNING}, {@link #ERROR},
    * {@link #OVERRIDES}, {@link #IMPLEMENTS}, {@link #CONSTRUCTOR}, {@link #VOLATILE},
-   * {@link #TRANSIENT}, {@link #CONST} or any combination of those.
+   * {@link #TRANSIENT}, {@link #CONST}, {@link #GETTER}, {@link #SETTER} or any combination of
+   * those.
    * 
    * @param adornments the image descriptors adornments
    */
@@ -245,8 +256,15 @@ public class DartElementImageDescriptor extends CompositeImageDescriptor {
     if ((flags & RUNNABLE) != 0) {
       addBottomRightImage(DartPluginImages.DESC_OVR_RUN, pos);
     }
-    if ((flags & TRANSIENT) != 0) {
-      addBottomRightImage(DartPluginImages.DESC_OVR_TRANSIENT, pos);
+//    if ((flags & TRANSIENT) != 0) {
+//      addBottomRightImage(DartPluginImages.DESC_OVR_TRANSIENT, pos);
+//    }
+
+    if ((flags & GETTER) != 0) {
+      addBottomRightImage(DartPluginImages.DESC_OVR_GETTER, pos);
+    }
+    if ((flags & SETTER) != 0) {
+      addBottomRightImage(DartPluginImages.DESC_OVR_SETTER, pos);
     }
   }
 

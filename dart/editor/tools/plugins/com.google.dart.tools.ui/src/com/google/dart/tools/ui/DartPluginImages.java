@@ -532,6 +532,10 @@ public class DartPluginImages {
   public static final ImageDescriptor DESC_OVR_VOLATILE = createUnManagedCached(T_OVR,
       "volatile_co.gif"); //$NON-NLS-1$
 
+  public static final ImageDescriptor DESC_OVR_GETTER = createUnManagedCached(T_OVR, "exit_ovr.gif"); //$NON-NLS-1$
+  public static final ImageDescriptor DESC_OVR_SETTER = createUnManagedCached(T_OVR,
+      "entry_ovr.gif"); //$NON-NLS-1$
+
   public static final ImageDescriptor DESC_OVR_TRANSIENT = createUnManagedCached(T_OVR,
       "transient_co.gif"); //$NON-NLS-1$
   public static final ImageDescriptor DESC_OVR_RUN = createUnManagedCached(T_OVR, "run_co.gif"); //$NON-NLS-1$
