@@ -32,7 +32,6 @@ class Balls {
     // incrementally move each ball, removing balls that are offscreen
     balls = balls.filter((ball) => ball.tick(delta));
     collideBalls(delta);
-    PNGS.sort((x,y)=>y.compareTo(x));
   }
 
   void collideBalls(double delta) {
