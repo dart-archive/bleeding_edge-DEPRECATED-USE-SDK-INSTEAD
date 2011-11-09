@@ -173,6 +173,12 @@ class HBasicBlock {
     addAfter(last, instruction);
   }
 
+  // TODO(kasperl): This probably shouldn't involve the graph.
+  void addGoto(HGraph graph, HBasicBlock block) {
+    add(new HGoto());
+    graph.setSuccessors(this, <HBasicBlock>[block]);
+  }
+
   void addAfter(HInstruction cursor, HInstruction instruction) {
     if (cursor === null) {
       first = last = instruction;
