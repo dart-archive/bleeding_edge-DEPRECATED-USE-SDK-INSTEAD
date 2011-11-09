@@ -21,7 +21,7 @@ class SsaBuilderTask extends CompilerTask {
     });
   }
 
-  HGraph compileMethod(NodeList parameters, 
+  HGraph compileMethod(NodeList parameters,
                        Node body, Map<Node,
                        Element> elements) {
     SsaBuilder builder = new SsaBuilder(compiler, elements);
@@ -101,7 +101,7 @@ class SsaBuilder implements Visitor {
       add(parameterInstruction);
     }
   }
-    
+
   visitBlock(Block node) {
     for (Link<Node> link = node.statements.nodes;
          !link.isEmpty();
@@ -132,8 +132,7 @@ class SsaBuilder implements Visitor {
 
   visitIdentifier(Identifier node) {
     Element element = elements[node];
-    // TODO(floitsch): bail out if we don't know the element type.
-    assert(element !== null);
+    compiler.ensure(element !== null);
     HInstruction def = definitions[element];
     assert(def !== null);
     stack.add(def);
@@ -170,7 +169,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitIf(If node) {
-    bool hasElse = (node.elsePart !== null);
+    bool hasElse = node.hasElsePart;
 
     // The condition is added to the current block.
     visit(node.condition);
@@ -227,6 +226,15 @@ class SsaBuilder implements Visitor {
     }
   }
 
+  SourceString unquote(LiteralString literal) {
+    String str = '${literal.value}';
+    compiler.ensure(str[0] == '@');
+    int quotes = 1;
+    String quote = str[1];
+    while (str[quotes + 1] === quote) quotes++;
+    return new SourceString(str.substring(quotes + 1, str.length - quotes));
+  }
+
   visitSend(Send node) {
     // TODO(kasperl): This only works for very special cases. Make
     // this way more general soon.
@@ -255,15 +263,25 @@ class SsaBuilder implements Visitor {
       Element element = elements[node];
       stack.add(definitions[element]);
     } else {
-      visit(node.argumentsNode);
+      Link<Node> link = node.arguments;
+      if (elements[node].kind === ElementKind.FOREIGN) {
+        // If the invoke is on foreign code, don't visit the first
+        // argument, which is the foreign code.
+        link = link.tail;
+      }
       var arguments = [];
-      for (Link<Node> link = node.arguments;
-           !link.isEmpty();
-           link = link.tail) {
+      for (; !link.isEmpty(); link = link.tail) {
+        visit(link.head);
         arguments.add(pop());
       }
-      Identifier selector = node.selector;
-      push(new HInvoke(selector.source, arguments));
+
+      if (elements[node].kind === ElementKind.FOREIGN) {
+        LiteralString literal = node.arguments.head;
+        compiler.ensure(literal is LiteralString);
+        push(new HInvokeForeign(unquote(literal), arguments));
+      } else {
+        push(new HInvoke(node.selector.source, arguments));
+      }
     }
   }
 

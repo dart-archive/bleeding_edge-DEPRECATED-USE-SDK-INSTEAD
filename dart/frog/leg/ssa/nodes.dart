@@ -10,6 +10,7 @@ interface HVisitor<R> {
   R visitGoto(HGoto node);
   R visitIf(HIf node);
   R visitInvoke(HInvoke node);
+  R visitInvokeForeign(HInvokeForeign node);
   R visitLiteral(HLiteral node);
   R visitParameter(HParameter node);
   R visitPhi(HPhi node);
@@ -161,6 +162,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitGoto(HGoto node) => visitInstruction(node);
   visitIf(HIf node) => visitInstruction(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
+  visitInvokeForeign(HInvokeForeign node) => visitInvoke(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
   visitPhi(HPhi node) => visitInstruction(node);
   visitMultiply(HMultiply node) => visitArithmetic(node);
@@ -479,6 +481,11 @@ class HInvoke extends HInstruction {
   accept(HVisitor visitor) => visitor.visitInvoke(this);
 }
 
+class HInvokeForeign extends HInvoke {
+  HInvokeForeign(code, inputs) : super(code, inputs);
+  accept(HVisitor visitor) => visitor.visitInvokeForeign(this);
+}
+
 class HArithmetic extends HInvoke {
   HArithmetic(selector, inputs) : super(selector, inputs);
   void prepareGvn() {
@@ -568,7 +575,7 @@ class HLiteral extends HInstruction {
   toString() => 'literal: $value';
   accept(HVisitor visitor) => visitor.visitLiteral(this);
   bool isLiteralNumber() => value is num;
-  bool isLiteralString() => value is String;
+  bool isLiteralString() => value is SourceString;
   bool typeEquals(other) => other is HLiteral;
   bool dataEquals(other) => value == other.value;
 }

@@ -156,10 +156,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
         // yet implemented.
         fail(node);
       } else {
-        if (targetType is !FunctionType) {
-          // TODO(karlklose): this is probably not needed here.
-          compiler.cancel('can only handle function types. ($node)');
-        }
+        if (targetType is !FunctionType) return types.dynamic;
+
         FunctionType funType = targetType;
         Link<Type> formals = funType.parameterTypes;
         Link<Node> arguments = node.arguments;
@@ -185,7 +183,12 @@ class TypeCheckerVisitor implements Visitor<Type> {
       SourceString name = selector.source;
       if (name == const SourceString('print')
           || name == const SourceString('+')
-          || name == const SourceString('=')) {
+          || name == const SourceString('=')
+          || name == const SourceString('-')
+          || name == const SourceString('*')
+          || name == const SourceString('/')
+          || name == const SourceString('<')
+          || name == const SourceString('~/')) {
         return types.dynamicType;
       }
       // TODO(karlklose): Implement method lookup for unresolved targets.

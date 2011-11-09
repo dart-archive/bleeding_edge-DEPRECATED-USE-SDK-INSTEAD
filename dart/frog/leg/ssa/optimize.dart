@@ -67,10 +67,10 @@ class SsaConstantFolder extends HBaseVisitor {
     // TODO(floitsch): is String + literal a compile-time expression? If not
     // we must pay attention not to canonicalize the concatenated string with
     // an already existing string.
-    if (node.inputs[0].isLiteralString() && node.inputs[1] is HLiteral) {
+    if (node.inputs[0].isLiteralString()) {
       HLiteral op1 = node.inputs[0];
       HLiteral op2 = node.inputs[1];
-      return new HLiteral(op1.value + op2.value);
+      return new HLiteral(new SourceString("${op1.value} + ${op2.value}"));
     }
     return visitArithmetic(node);
   }

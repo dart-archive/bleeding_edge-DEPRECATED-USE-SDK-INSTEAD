@@ -31,8 +31,8 @@ class Compiler implements Canceler, Logger {
     tasks = [scanner, parser, resolver, checker, builder, optimizer, generator];
   }
 
-  void assertTrue(bool val) {
-    if (!val) cancel('failed assertion in leg');
+  void ensure(bool condition) {
+    if (!condition) cancel('failed assertion in leg');
   }
 
   void unimplemented(String methodName) {
@@ -66,7 +66,18 @@ class Compiler implements Canceler, Logger {
     return true;
   }
 
+  void scanCoreLibrary() {
+    String fileName = io.join([frog.options.libDir, '..',
+                               'leg', 'lib', 'core.dart']);
+    frog.SourceFile file = io.readSync(fileName);
+    scanner.scan(new Script(file));
+    // Make our special function a foreign kind.
+    Element element = new ForeignElement(const SourceString('JS'));
+    universe.define(element);
+  }
+
   void runCompiler() {
+    scanCoreLibrary();
     scanner.scan(script);
     while (!worklist.isEmpty()) {
       SourceString name = worklist.removeLast();
@@ -84,7 +95,6 @@ class Compiler implements Canceler, Logger {
 
   String getGeneratedCode() {
     StringBuffer buffer = new StringBuffer();
-    buffer.add(PRINT_SUPPORT);
     buffer.add(ADD_SUPPORT);
     buffer.add(DIV_SUPPORT);
     buffer.add(SUB_SUPPORT);
@@ -129,13 +139,6 @@ class CompilerCancelledException {
   }
 }
 
-// TODO(kasperl): These need to be read from a file. Soon.
-final String PRINT_SUPPORT = """
-var print = (typeof console == 'object')
-    ? function(obj) { console.log(obj); }
-    : function(obj) { write(obj); write('\\n'); };
-""";
-
 final String ADD_SUPPORT = """
 function \$add(a, b) {
   return a + b;
@@ -146,7 +149,7 @@ final String DIV_SUPPORT = """
 function \$div(a, b) {
   return a / b;
 }
-"""; 
+""";
 
 final String SUB_SUPPORT = """
 function \$sub(a, b) {

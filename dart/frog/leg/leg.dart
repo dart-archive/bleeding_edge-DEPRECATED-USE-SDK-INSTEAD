@@ -5,6 +5,7 @@
 #library('leg');
 
 #import('../lang.dart', prefix: 'frog');
+#import('io/io.dart', prefix: 'io');
 
 #import('elements/elements.dart');
 #import('scanner/scannerlib.dart');

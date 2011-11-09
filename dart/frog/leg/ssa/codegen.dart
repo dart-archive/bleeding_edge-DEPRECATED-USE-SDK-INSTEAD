@@ -195,10 +195,20 @@ class SsaCodeGenerator implements HVisitor {
   visitInvoke(HInvoke node) {
     // TODO(floitsch): Pass the element to the worklist and not just the
     // source.
-    if (node.selector != const SourceString('print')) {
-      compiler.worklist.add(node.selector);      
-    }
+    compiler.worklist.add(node.selector);
     invoke(node.selector, node.inputs);
+  }
+
+  visitInvokeForeign(HInvokeForeign node) {
+    // TODO(ngeoffray): generate the instruction define here in case
+    // we have parameters.
+    for (int i = 0; i < node.inputs.length; i++) {
+      buffer.add('var \$${i} = ');
+      use(node.inputs[i]);
+      buffer.add(';\n');
+    }
+    addIndentation();
+    buffer.add(node.selector);
   }
 
   visitLiteral(HLiteral node) {

@@ -25,13 +25,13 @@ class ElementKind {
   static final ElementKind VARIABLE = const ElementKind('variable');
   static final ElementKind FUNCTION = const ElementKind('function');
   static final ElementKind CLASS = const ElementKind('class');
+  static final ElementKind FOREIGN = const ElementKind('foreign');
 }
 
 class Element implements Hashable {
-  final Element enclosingElement;
   final SourceString name;
   final ElementKind kind;
-
+  final Element enclosingElement;
 
   abstract Node parseNode(Canceler canceler, Logger logger);
   abstract Type computeType(Compiler compiler, Types types);
@@ -56,6 +56,14 @@ class VariableElement extends Element {
 
   Type computeType(Compiler compiler, Types types) {
     return getType(typeAnnotation, types);
+  }
+}
+
+class ForeignElement extends Element {
+  ForeignElement(SourceString name) : super(name, ElementKind.FOREIGN, null);
+
+  Type computeType(Compiler compiler, Types types) {
+    return types.dynamic;
   }
 }
 

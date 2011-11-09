@@ -92,8 +92,7 @@ class ResolverVisitor implements Visitor<Element> {
     Element target = null;
     visit(node.receiver);
     SourceString name = node.selector.source;
-    if (name == const SourceString('print') ||
-        name == const SourceString('+') ||
+    if (name == const SourceString('+') ||
         name == const SourceString('-') ||
         name == const SourceString('*') ||
         name == const SourceString('/') ||
@@ -162,7 +161,7 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   Element defineElement(Node node, Element element) {
-    compiler.assertTrue(element !== null);
+    compiler.ensure(element !== null);
     mapping[node] = element;
     return context.add(element);
   }
