@@ -75,7 +75,6 @@ class HGraph {
     // The exit block will be added later, so it has an id that is
     // after all others in the system.
     exit = new HBasicBlock();
-    exit.add(new HExit());
   }
 
   void addBlock(HBasicBlock block) {
@@ -93,6 +92,8 @@ class HGraph {
 
   void finalize() {
     addBlock(exit);
+    exit.open();
+    exit.close(new HExit());
     assignDominators();
   }
 
@@ -167,9 +168,15 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
 }
 
 class HBasicBlock {
-  // [id] must be such that any successor's id is greater than this [id]. The
-  // exception are back-edges.
+  // The [id] must be such that any successor's id is greater than
+  // this [id]. The exception are back-edges.
   int id;
+
+  static final int STATUS_NEW = 0;
+  static final int STATUS_OPEN = 1;
+  static final int STATUS_CLOSED = 2;
+  int status = STATUS_NEW;
+
   HInstruction first = null;
   HInstruction last = null;
   final List<HBasicBlock> predecessors;
@@ -183,6 +190,21 @@ class HBasicBlock {
       : predecessors = <HBasicBlock>[],
         successors = const <HBasicBlock>[],
         dominatedBlocks = <HBasicBlock>[];
+
+  bool isNew() => status == STATUS_NEW;
+  bool isOpen() => status == STATUS_OPEN;
+  bool isClosed() => status == STATUS_CLOSED;
+
+  void open() {
+    assert(isNew());
+    status = STATUS_OPEN;
+  }
+
+  void close(HControlFlow end) {
+    assert(isOpen());
+    addAfter(last, end);
+    status = STATUS_CLOSED;
+  }
 
   // TODO(kasperl): I really don't want to pass the compiler into this
   // method. Maybe we need a better logging framework.
@@ -207,15 +229,12 @@ class HBasicBlock {
   accept(HVisitor visitor) => visitor.visitBasicBlock(this);
 
   void add(HInstruction instruction) {
+    assert(instruction is !HControlFlow);
     addAfter(last, instruction);
   }
 
-  void addGoto(HBasicBlock block) {
-    add(new HGoto());
-    addSuccessor(block);
-  }
-
   void addSuccessor(HBasicBlock block) {
+    assert(isClosed() && block.isNew());
     if (successors.isEmpty()) {
       successors = [block];
     } else {
@@ -225,6 +244,7 @@ class HBasicBlock {
   }
 
   void addAfter(HInstruction cursor, HInstruction instruction) {
+    assert(isOpen() || isClosed());
     if (cursor === null) {
       first = last = instruction;
     } else if (cursor === last) {
@@ -241,6 +261,7 @@ class HBasicBlock {
   }
 
   void remove(HInstruction instruction) {
+    assert(isOpen() || isClosed());
     assert(instruction.isInBasicBlock());
     assert(instruction.usedBy.isEmpty());
     if (instruction.previous === null) {
@@ -283,6 +304,7 @@ class HBasicBlock {
   }
 
   void addDominatedBlock(HBasicBlock block) {
+    assert(isClosed());
     assert(id !== null && block.id !== null);
     assert(dominatedBlocks.indexOf(block) < 0);
     // Keep the list of dominated blocks sorted such that if there are two
@@ -302,6 +324,7 @@ class HBasicBlock {
   }
 
   void removeDominatedBlock(HBasicBlock block) {
+    assert(isClosed());
     assert(id !== null && block.id !== null);
     int index = dominatedBlocks.indexOf(block);
     assert(index >= 0);
@@ -315,6 +338,7 @@ class HBasicBlock {
   }
 
   void assignCommonDominator(HBasicBlock predecessor) {
+    assert(isClosed());
     if (dominator === null) {
       // If this basic block doesn't have a dominator yet we use the
       // given predecessor as the dominator.
@@ -341,6 +365,7 @@ class HBasicBlock {
   }
 
   bool isValid() {
+    assert(isClosed());
     HValidator validator = new HValidator();
     validator.visitBasicBlock(this);
     return validator.isValid;

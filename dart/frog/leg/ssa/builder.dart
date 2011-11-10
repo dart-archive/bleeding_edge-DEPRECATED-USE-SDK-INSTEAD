@@ -39,34 +39,56 @@ class SsaBuilder implements Visitor {
   List<HInstruction> stack;
 
   Map<Element, HInstruction> definitions;
+
   // The current block to add instructions to. Might be null, if we are
   // visiting dead code.
-  HBasicBlock block;
+  HBasicBlock current;
 
   SsaBuilder(this.compiler, this.elements);
 
   HGraph build(NodeList parameters, Node body) {
-    graph = new HGraph();
     stack = new List<HInstruction>();
     definitions = new Map<Element, HInstruction>();
 
-    block = graph.addNewBlock();
-    graph.entry.addGoto(block);
+    graph = new HGraph();
+    HBasicBlock block = graph.addNewBlock();
+
+    open(graph.entry);
     visitParameters(parameters);
+    close(new HGoto()).addSuccessor(block);
+
+    open(block);
     body.accept(this);
 
     // TODO(kasperl): Make this goto an implicit return.
-    if (!isAborted()) block.addGoto(graph.exit);
+    if (!isAborted()) close(new HGoto()).addSuccessor(graph.exit);
     graph.finalize();
     return graph;
   }
 
+  void open(HBasicBlock block) {
+    block.open();
+    current = block;
+  }
+
+  HBasicBlock close(HControlFlow end) {
+    HBasicBlock result = current;
+    current.close(end);
+    current = null;
+    return result;
+  }
+
+  void goto(HBasicBlock from, HBasicBlock to) {
+    from.close(new HGoto());
+    from.addSuccessor(to);
+  }
+
   bool isAborted() {
-    return block === null;
+    return current === null;
   }
 
   void add(HInstruction instruction) {
-    block.add(instruction);
+    current.add(instruction);
   }
 
   void push(HInstruction instruction) {
@@ -113,7 +135,7 @@ class SsaBuilder implements Visitor {
         return;
       }
     }
-    assert(block.last is !HGoto && block.last is !HReturn);
+    assert(current.last is !HGoto && current.last is !HReturn);
     if (!stack.isEmpty()) compiler.cancel('non-empty instruction stack');
   }
 
@@ -172,8 +194,7 @@ class SsaBuilder implements Visitor {
     // Add the condition to the current block.
     bool hasElse = node.hasElsePart;
     visit(node.condition);
-    add(new HIf(pop(), hasElse));
-    HBasicBlock conditionBlock = block;
+    HBasicBlock conditionBlock = close(new HIf(pop(), hasElse));
 
     Map conditionDefinitions =
         new Map<Element, HInstruction>.from(definitions);
@@ -181,9 +202,9 @@ class SsaBuilder implements Visitor {
     // The then part.
     HBasicBlock thenBlock = graph.addNewBlock();
     conditionBlock.addSuccessor(thenBlock);
-    block = thenBlock;
+    open(thenBlock);
     visit(node.thenPart);
-    thenBlock = block;
+    thenBlock = current;
     Map thenDefinitions = definitions;
 
     // Reset the definitions to the state after the condition.
@@ -194,29 +215,29 @@ class SsaBuilder implements Visitor {
     if (hasElse) {
       elseBlock = graph.addNewBlock();
       conditionBlock.addSuccessor(elseBlock);
-      block = elseBlock;
+      open(elseBlock);
       visit(node.elsePart);
-      elseBlock = block;
+      elseBlock = current;
     }
 
     if (thenBlock === null && elseBlock === null && hasElse) {
-      block = null;
+      current = null;
     } else {
       HBasicBlock joinBlock = graph.addNewBlock();
-      if (thenBlock !== null) thenBlock.addGoto(joinBlock);
-      if (elseBlock !== null) elseBlock.addGoto(joinBlock);
+      if (thenBlock !== null) goto(thenBlock, joinBlock);
+      if (elseBlock !== null) goto(elseBlock, joinBlock);
       else if (!hasElse) conditionBlock.addSuccessor(joinBlock);
       // If the join block has two predecessors we have to merge the
       // definition maps. The current definitions is what either the
       // condition or the else block left us with, so we merge that
       // with the set of definitions we got after visiting the then
       // part of the if.
+      open(joinBlock);
       if (joinBlock.predecessors.length == 2) {
         definitions = joinDefinitions(joinBlock,
                                       definitions,
                                       thenDefinitions);
       }
-      block = joinBlock;
     }
   }
 
@@ -318,10 +339,7 @@ class SsaBuilder implements Visitor {
     }
     visit(node.expression);
     var value = pop();
-    add(new HReturn(value));
-    block.addSuccessor(graph.exit);
-    // A return aborts the building of the current block.
-    block = null;
+    close(new HReturn(value)).addSuccessor(graph.exit);
   }
 
   visitThrow(Throw node) {
@@ -329,9 +347,7 @@ class SsaBuilder implements Visitor {
       compiler.unimplemented("SsaBuilder: throw without expression");
     }
     visit(node.expression);
-    add(new HThrow(pop()));
-    // A throw aborts the building of the current block.
-    block = null;
+    close(new HThrow(pop()));
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
