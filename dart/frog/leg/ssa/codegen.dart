@@ -251,6 +251,11 @@ class SsaCodeGenerator implements HVisitor {
     invoke(const SourceString('\$sub'), node.inputs);
   }
 
+  visitThrow(HThrow node) {
+    buffer.add('throw ');
+    use(node.inputs[0]);
+  }
+
   visitTruncatingDivide(HTruncatingDivide node) {
     invoke(const SourceString('\$tdiv'), node.inputs);
   }

@@ -323,7 +323,13 @@ class SsaBuilder implements Visitor {
   }
 
   visitThrow(Throw node) {
-    compiler.unimplemented("SsaBuilder.visitThrow");
+    if (node.expression === null) {
+      compiler.unimplemented("SsaBuilder: throw without expression");
+    }
+    visit(node.expression);
+    add(new HThrow(pop()));
+    // A throw aborts the building of the current block.
+    block = null;
   }
 
   visitTypeAnnotation(TypeAnnotation node) {

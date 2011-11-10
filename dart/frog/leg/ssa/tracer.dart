@@ -192,5 +192,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitSubtract(HSubtract node) => visitInvoke(node);
 
+  String visitThrow(HThrow node) => "Throw ${temporaryId(node.inputs[0])}";
+
   String visitTruncatingDivide(HTruncatingDivide node) => visitInvoke(node);
 }

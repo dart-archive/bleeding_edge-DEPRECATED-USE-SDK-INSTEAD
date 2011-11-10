@@ -17,6 +17,7 @@ interface HVisitor<R> {
   R visitSubtract(HSubtract node);
   R visitMultiply(HMultiply node);
   R visitReturn(HReturn node);
+  R visitThrow(HThrow node);
   R visitTruncatingDivide(HTruncatingDivide node);
 }
 
@@ -144,20 +145,22 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInstruction(HInstruction) {}
 
   visitArithmetic(HArithmetic node) => visitInvoke(node);
+  visitControlFlow(HControlFlow node) => visitInstruction(node);
 
   visitAdd(HAdd node) => visitArithmetic(node);
   visitDivide(HDivide node) => visitArithmetic(node);
-  visitExit(HExit node) => visitInstruction(node);
-  visitGoto(HGoto node) => visitInstruction(node);
-  visitIf(HIf node) => visitInstruction(node);
+  visitExit(HExit node) => visitControlFlow(node);
+  visitGoto(HGoto node) => visitControlFlow(node);
+  visitIf(HIf node) => visitControlFlow(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
   visitInvokeForeign(HInvokeForeign node) => visitInvoke(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
   visitPhi(HPhi node) => visitInstruction(node);
   visitMultiply(HMultiply node) => visitArithmetic(node);
   visitParameter(HParameter node) => visitInstruction(node);
-  visitReturn(HReturn node) => visitInstruction(node);
+  visitReturn(HReturn node) => visitControlFlow(node);
   visitSubtract(HSubtract node) => visitArithmetic(node);
+  visitThrow(HThrow node) => visitControlFlow(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitArithmetic(node);
 }
 
@@ -471,6 +474,11 @@ class HInstruction {
   }
 }
 
+class HControlFlow extends HInstruction {
+  HControlFlow(inputs) : super(inputs);
+  abstract toString();
+}
+
 class HInvoke extends HInstruction {
   final SourceString selector;
   HInvoke(this.selector, inputs) : super(inputs);
@@ -543,19 +551,19 @@ class HTruncatingDivide extends HArithmetic {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HExit extends HInstruction {
+class HExit extends HControlFlow {
   HExit() : super(const <HInstruction>[]);
   toString() => 'exit';
   accept(HVisitor visitor) => visitor.visitExit(this);
 }
 
-class HGoto extends HInstruction {
+class HGoto extends HControlFlow {
   HGoto() : super(const <HInstruction>[]);
   toString() => 'goto';
   accept(HVisitor visitor) => visitor.visitGoto(this);
 }
 
-class HIf extends HInstruction {
+class HIf extends HControlFlow {
   bool hasElse;
   HIf(HInstruction condition, this.hasElse) : super(<HInstruction>[condition]);
   toString() => 'if';
@@ -594,8 +602,14 @@ class HPhi extends HInstruction {
   accept(HVisitor visitor) => visitor.visitPhi(this);
 }
 
-class HReturn extends HInstruction {
+class HReturn extends HControlFlow {
   HReturn(value) : super([value]);
   toString() => 'return';
   accept(HVisitor visitor) => visitor.visitReturn(this);
+}
+
+class HThrow extends HControlFlow {
+  HThrow(value) : super([value]);
+  toString() => 'throw';
+  accept(HVisitor visitor) => visitor.visitThrow(this);
 }

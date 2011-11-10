@@ -26,10 +26,7 @@ class HValidator extends HInstructionVisitor {
     if (block.first === null || block.last === null) {
       markInvalid("empty block");
     }
-    if (block.last is !HIf &&
-        block.last is !HGoto &&
-        block.last is !HReturn &&
-        block.last is !HExit) {
+    if (block.last is !HControlFlow) {
       markInvalid("block ends with non-tail node.");
     }
     if (block.last is HIf && block.successors.length != 2) {
@@ -45,9 +42,14 @@ class HValidator extends HInstructionVisitor {
     if (block.last is HExit && !block.successors.isEmpty()) {
       markInvalid("Exit block with successor");
     }
+    if (block.last is HThrow && !block.successors.isEmpty()) {
+      markInvalid("Throw block with successor");
+    }
 
-    if (block.successors.isEmpty() && !block.isExitBlock()) {
-      markInvalid("Non-exit block without successor");
+    if (block.successors.isEmpty() &&
+        block.last is !HThrow &&
+        !block.isExitBlock()) {
+      markInvalid("Non-exit or throw block without successor");
     }
 
     // Make sure that successors ids are always higher than the current one.
