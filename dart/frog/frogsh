@@ -215,10 +215,6 @@ Object.prototype.invoke$4 = function($0, $1, $2, $3) {
   return this.noSuchMethod("invoke", [$0, $1, $2, $3]);
 }
 ;
-Object.prototype.printOn$1 = function($0) {
-  return this.noSuchMethod("printOn", [$0]);
-}
-;
 Object.prototype.set_$4 = function($0, $1, $2, $3) {
   return this.noSuchMethod("set_", [$0, $1, $2, $3]);
 }
@@ -2164,7 +2160,6 @@ function StringBufferImpl(content) {
   this.clear();
   this.add(content);
 }
-StringBufferImpl.prototype.is$StringBuffer = function(){return this;};
 StringBufferImpl.prototype.get$length = function() {
   return this._length;
 }
@@ -3421,10 +3416,11 @@ AbstractLink.prototype.printOn = function(buffer, separatedBy) {
   var $0;
   if ($notnull_bool(this.isEmpty())) return;
   buffer.add($notnull_bool(this.get$head() == null) ? 'null' : this.get$head());
+  if ($notnull_bool(separatedBy == null)) separatedBy = '';
   for (var link = (($0 = this.get$tail()) && $0.is$Link());
    $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link())) {
     buffer.add(separatedBy);
-    buffer.add(link.get$head());
+    buffer.add($notnull_bool(link.get$head() == null) ? 'null' : link.get$head());
   }
 }
 AbstractLink.prototype.toString = function() {
@@ -3434,10 +3430,6 @@ AbstractLink.prototype.toString = function() {
   buffer.add(' ]');
   return buffer.toString();
 }
-AbstractLink.prototype.printOn$1 = function($0) {
-  return this.printOn(($0 && $0.is$StringBuffer()), '');
-}
-;
 // ********** Code for AbstractLink$T **************
 function AbstractLink$T() {}
 $inherits(AbstractLink$T, AbstractLink);
@@ -6575,10 +6567,6 @@ SubstringWrapper.prototype.toString = function() {
 SubstringWrapper.prototype.get$stringValue = function() {
   return null;
 }
-SubstringWrapper.prototype.printOn$1 = function($0) {
-  return this.printOn(($0 && $0.is$StringBuffer()));
-}
-;
 // ********** Code for Token **************
 function Token(kind, charOffset) {
   this.kind = kind;
@@ -6649,10 +6637,6 @@ StringWrapper.prototype.toString = function() {
 StringWrapper.prototype.get$stringValue = function() {
   return this.internalString;
 }
-StringWrapper.prototype.printOn$1 = function($0) {
-  return this.printOn(($0 && $0.is$StringBuffer()));
-}
-;
 // ********** Code for Keyword **************
 function Keyword(syntax, isPseudo) {
   this.syntax = syntax;
@@ -6691,10 +6675,6 @@ Keyword.prototype.toString = function() {
 Keyword.prototype.get$stringValue = function() {
   return this.syntax;
 }
-Keyword.prototype.printOn$1 = function($0) {
-  return this.printOn(($0 && $0.is$StringBuffer()));
-}
-;
 // ********** Code for KeywordState **************
 function KeywordState() {}
 KeywordState.get$KEYWORD_STATE = function() {
@@ -7275,7 +7255,7 @@ Unparser.prototype.visitExpressionStatement = function(node) {
   this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
 }
 Unparser.prototype.visitFor = function(node) {
-  node.forToken.get$value().printOn$1(this.sb);
+  node.forToken.get$value().printOn(this.sb);
   this.sb.add('(');
   this.visit(node.initializer);
   this.visit(node.condition);
@@ -7326,12 +7306,7 @@ Unparser.prototype.visitNodeList = function(node) {
   var $0;
   if ($notnull_bool(node.beginToken != null)) this.add((($0 = node.beginToken.get$value()) && $0.is$SourceString()));
   if ($notnull_bool(node.nodes != null)) {
-    if ($notnull_bool(node.delimiter != null)) {
-      node.nodes.printOn(this.sb, node.delimiter);
-    }
-    else {
-      node.nodes.printOn$1(this.sb);
-    }
+    node.nodes.printOn(this.sb, node.delimiter);
   }
   if ($notnull_bool(node.endToken != null)) this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
 }
@@ -7366,11 +7341,11 @@ Unparser.prototype.visitSendSet = function(node) {
   this.visit(node.argumentsNode);
 }
 Unparser.prototype.visitThrow = function(node) {
-  node.throwToken.get$value().printOn$1(this.sb);
+  node.throwToken.get$value().printOn(this.sb);
   if ($notnull_bool(node.expression != null)) {
     this.visit(node.expression);
   }
-  node.endToken.get$value().printOn$1(this.sb);
+  node.endToken.get$value().printOn(this.sb);
 }
 Unparser.prototype.visitTypeAnnotation = function(node) {
   this.visit(node.typeName);
@@ -7385,7 +7360,7 @@ Unparser.prototype.visitVariableDefinitions = function(node) {
   }
   this.sb.add(' ');
   this.visit(node.definitions);
-  this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
+  if ($notnull_bool(node.endToken != null)) this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
 }
 // ********** Code for top level **************
 function firstBeginToken(first, second) {
@@ -7709,7 +7684,8 @@ SsaBuilder.prototype.visitSend = function(node) {
       this.push(new HInvokeForeign(this.unquote(literal), arguments));
     }
     else {
-      this.push(new HInvoke(node.selector.get$source(), arguments));
+      var selector = (($0 = node.selector) && $0.is$Identifier());
+      this.push(new HInvoke(selector.get$source(), arguments));
     }
   }
 }
@@ -7760,7 +7736,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 343, 12);
+  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 344, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   return this.definitions.$setindex(this.elements.$index(node), value);
@@ -7774,7 +7750,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions without initial value");
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 358, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 359, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }
@@ -9478,12 +9454,13 @@ ResolverVisitor.prototype.visitSend = function(node) {
   var $0;
   var target = null;
   this.visit(node.receiver);
-  var name = (($0 = node.selector.get$source()) && $0.is$SourceString());
+  var selector = (($0 = node.selector) && $0.is$Identifier());
+  var name = selector.get$source();
   if ($notnull_bool($eq(name, const$245/*const SourceString('+')*/) || $eq(name, const$246/*const SourceString('-')*/) || $eq(name, const$247/*const SourceString('*')*/) || $eq(name, const$248/*const SourceString('/')*/) || $eq(name, const$249/*const SourceString('<')*/) || $eq(name, const$250/*const SourceString('~/')*/))) {
   }
   else {
-    target = this.context.lookup(node.selector.get$source());
-    if ($notnull_bool(target == null)) this.fail(node, ErrorMessages.cannotResolve(node.get$name()));
+    target = this.context.lookup(name);
+    if ($notnull_bool(target == null)) this.fail(node, ErrorMessages.cannotResolve(name));
   }
   this.visit(node.argumentsNode);
   return this.useElement(node, target);
@@ -9491,10 +9468,11 @@ ResolverVisitor.prototype.visitSend = function(node) {
 ResolverVisitor.prototype.visitSendSet = function(node) {
   var $0;
   var receiver = (($0 = this.visit(node.receiver)) && $0.is$Element());
+  var selector = (($0 = node.selector) && $0.is$Identifier());
   if ($notnull_bool(receiver != null)) {
     this.compiler.unimplemented('Resolver: property access');
   }
-  var target = this.context.lookup(node.selector.get$source());
+  var target = this.context.lookup(selector.get$source());
   if ($notnull_bool(target == null)) this.fail(node, ErrorMessages.cannotResolve(node));
   this.visit(node.argumentsNode);
   return this.useElement(node, target);
@@ -9552,7 +9530,7 @@ function VariableDefinitionsVisitor(definitions, resolver) {
 }
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty(), "node.arguments.tail.isEmpty()", "resolver.dart", 182, 12);
+  $assert(node.get$arguments().get$tail().isEmpty(), "node.arguments.tail.isEmpty()", "resolver.dart", 184, 12);
   if ($notnull_bool(node.receiver != null)) {
     this.resolver.compiler.unimplemented("receiver on a variable definition");
   }
@@ -13889,7 +13867,6 @@ function lang_Token(kind, source, start, end) {
   this.end = end;
   // Initializers done
 }
-lang_Token.prototype.get$source = function() { return this.source; };
 lang_Token.prototype.get$text = function() {
   return this.source.get$text().substring(this.start, this.end);
 }
@@ -15705,7 +15682,6 @@ function lang_Parser(source, diet, throwOnIncomplete, optionalSemicolons, startO
   this._previousToken = null;
   this._inInitializers = false;
 }
-lang_Parser.prototype.get$source = function() { return this.source; };
 lang_Parser.prototype.isPrematureEndOfFile = function() {
   if ($notnull_bool(this.throwOnIncomplete && this._maybeEat(1/*TokenKind.END_OF_FILE*/) || this._maybeEat(68/*TokenKind.INCOMPLETE_MULTILINE_STRING_DQ*/) || this._maybeEat(69/*TokenKind.INCOMPLETE_MULTILINE_STRING_SQ*/))) {
     $throw(new IncompleteSourceException(this._previousToken));

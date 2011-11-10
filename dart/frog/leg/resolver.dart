@@ -91,7 +91,8 @@ class ResolverVisitor implements Visitor<Element> {
   visitSend(Send node) {
     Element target = null;
     visit(node.receiver);
-    SourceString name = node.selector.source;
+    final Identifier selector = node.selector;
+    final SourceString name = selector.source;
     if (name == const SourceString('+') ||
         name == const SourceString('-') ||
         name == const SourceString('*') ||
@@ -101,8 +102,8 @@ class ResolverVisitor implements Visitor<Element> {
       // Do nothing.
     } else {
       // TODO(ngeoffray): Use the receiver to do the lookup.
-      target = context.lookup(node.selector.source);
-      if (target == null) fail(node, ErrorMessages.cannotResolve(node.name));
+      target = context.lookup(name);
+      if (target == null) fail(node, ErrorMessages.cannotResolve(name));
     }
     visit(node.argumentsNode);
     return useElement(node, target);
@@ -110,11 +111,12 @@ class ResolverVisitor implements Visitor<Element> {
 
   visitSendSet(SendSet node) {
     Element receiver = visit(node.receiver);
+    final Identifier selector = node.selector;
     if (receiver != null) {
       compiler.unimplemented('Resolver: property access');
     }
     // TODO(ngeoffray): Use the receiver to do the lookup.
-    Element target = context.lookup(node.selector.source);
+    Element target = context.lookup(selector.source);
     if (target == null) fail(node, ErrorMessages.cannotResolve(node));
     visit(node.argumentsNode);
     return useElement(node, target);

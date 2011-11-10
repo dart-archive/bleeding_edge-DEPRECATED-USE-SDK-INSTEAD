@@ -280,7 +280,8 @@ class SsaBuilder implements Visitor {
         compiler.ensure(literal is LiteralString);
         push(new HInvokeForeign(unquote(literal), arguments));
       } else {
-        push(new HInvoke(node.selector.source, arguments));
+        final Identifier selector = node.selector;
+        push(new HInvoke(selector.source, arguments));
       }
     }
   }

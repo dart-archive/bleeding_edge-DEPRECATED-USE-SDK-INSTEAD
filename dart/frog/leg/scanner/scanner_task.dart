@@ -17,7 +17,7 @@ class ScannerTask extends CompilerTask {
 
   Link<Element> scanElements(String text) {
     Token tokens = new StringScanner(text).tokenize();
-    Listener listener = new ElementListener(compiler);
+    ElementListener listener = new ElementListener(compiler);
     Parser parser = new Parser(listener);
     parser.parseUnit(tokens);
     return listener.topLevelElements;

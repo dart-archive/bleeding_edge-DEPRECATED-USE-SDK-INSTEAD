@@ -14,7 +14,7 @@ interface Link<T> extends Iterable<T> factory LinkFactory {
   bool isEmpty();
   Link<T> reverse();
 
-  void printOn(StringBuffer buffer, [String separatedBy]);
+  void printOn(StringBuffer buffer, [separatedBy]);
 }
 
 interface EmptyLink<T> extends Link<T> factory LinkTail {

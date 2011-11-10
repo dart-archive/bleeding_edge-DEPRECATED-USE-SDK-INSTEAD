@@ -40,13 +40,14 @@ class AbstractLink<T> implements Link<T> {
 
   Iterator<T> iterator() => toList().iterator();
 
-  void printOn(StringBuffer buffer, [String separatedBy = '']) {
+  void printOn(StringBuffer buffer, [separatedBy]) {
     if (isEmpty()) return;
     // TODO(ngeofray): Work around Frog bug
     buffer.add(head === null ? 'null' : head);
+    if (separatedBy === null) separatedBy = '';
     for (Link link = tail; !link.isEmpty(); link = link.tail) {
       buffer.add(separatedBy);
-      buffer.add(link.head);
+      buffer.add(link.head === null ? 'null' : link.head);
     }
   }
 

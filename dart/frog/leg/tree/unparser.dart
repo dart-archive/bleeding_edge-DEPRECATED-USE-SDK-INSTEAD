@@ -90,11 +90,7 @@ class Unparser implements Visitor {
   visitNodeList(NodeList node) {
     if (node.beginToken !== null) add(node.beginToken.value);
     if (node.nodes !== null) {
-      if (node.delimiter !== null) {
-        node.nodes.printOn(sb, node.delimiter);
-      } else {
-        node.nodes.printOn(sb);
-      }
+      node.nodes.printOn(sb, node.delimiter);
     }
     if (node.endToken !== null) add(node.endToken.value);
   }
@@ -152,6 +148,6 @@ class Unparser implements Visitor {
     sb.add(' ');
     // TODO(karlklose): print modifiers.
     visit(node.definitions);
-    add(node.endToken.value);
+    if (node.endToken !== null) add(node.endToken.value);
   }
 }
