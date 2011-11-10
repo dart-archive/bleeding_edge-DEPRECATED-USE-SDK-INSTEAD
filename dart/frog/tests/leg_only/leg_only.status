@@ -7,4 +7,3 @@ prefix leg_only
 [ $component == leg || $component == frog || $component == frogsh ]
 StatementsTest: Fail
 TypedLocalsTest: Fail
-FunctionParametersTest: Fail

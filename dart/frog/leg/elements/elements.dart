@@ -21,7 +21,9 @@ interface Logger {
 
 class ElementKind {
   final String id;
+
   const ElementKind(String this.id);
+
   static final ElementKind VARIABLE = const ElementKind('variable');
   static final ElementKind FUNCTION = const ElementKind('function');
   static final ElementKind CLASS = const ElementKind('class');
@@ -32,11 +34,10 @@ class Element implements Hashable {
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
-
   abstract Node parseNode(Canceler canceler, Logger logger);
   abstract Type computeType(Compiler compiler, Types types);
 
-  Element(this.name, this.kind, this.enclosingElement);
+  const Element(this.name, this.kind, this.enclosingElement);
 
   int hashCode() => name.hashCode();
 }

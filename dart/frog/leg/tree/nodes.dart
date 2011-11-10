@@ -116,7 +116,8 @@ class Send extends Expression {
   }
 
   Token getEndToken() {
-    Token token = argumentsNode.getEndToken();
+    Token token;
+    if (argumentsNode !== null) token = argumentsNode.getEndToken();
     if (token !== null) return token;
     if (selector !== null) {
       return selector.getEndToken();
