@@ -7486,10 +7486,10 @@ SsaBuilder.prototype.build = function(parameters, body) {
   this.stack = new ListFactory$HInstruction();
   this.definitions = new HashMapImplementation$Element$HInstruction();
   this.block = this.graph.addNewBlock();
-  this.graph.entry.addGoto(this.graph, this.block);
+  this.graph.entry.addGoto(this.block);
   this.visitParameters(parameters);
   body.accept(this);
-  if ($notnull_bool(!$notnull_bool(this.isAborted()))) this.block.addGoto(this.graph, this.graph.exit);
+  if ($notnull_bool(!$notnull_bool(this.isAborted()))) this.block.addGoto(this.graph.exit);
   this.graph.finalize();
   return this.graph;
 }
@@ -7583,50 +7583,36 @@ SsaBuilder.prototype.joinDefinitions = function(joinBlock, incoming1, incoming2)
 SsaBuilder.prototype.visitIf = function(node) {
   var hasElse = node.get$hasElsePart();
   this.visit(node.condition);
-  var condition = this.pop();
+  this.add(new HIf(this.pop(), hasElse));
   var conditionBlock = this.block;
-  var afterConditionDefinitions = HashMapImplementation.HashMapImplementation$from$factory(this.definitions);
+  var conditionDefinitions = HashMapImplementation.HashMapImplementation$from$factory(this.definitions);
   var thenBlock = this.graph.addNewBlock();
+  conditionBlock.addSuccessor(thenBlock);
   this.block = thenBlock;
   this.visit(node.thenPart);
-  var thenBlockJoined = !$notnull_bool(this.isAborted());
-  var thenExitBlock = this.block;
+  thenBlock = this.block;
   var thenDefinitions = this.definitions;
-  var elseBlockJoined;
-  var elseBlock;
-  var joinBlock;
-  this.definitions = afterConditionDefinitions;
-  if ($notnull_bool(!$notnull_bool(hasElse))) {
-    elseBlockJoined = true;
-    elseBlock = joinBlock = this.graph.addNewBlock();
-  }
-  else {
+  this.definitions = conditionDefinitions;
+  var elseBlock = null;
+  if ($notnull_bool(hasElse)) {
     elseBlock = this.graph.addNewBlock();
+    conditionBlock.addSuccessor(elseBlock);
     this.block = elseBlock;
     this.visit(node.elsePart);
-    elseBlockJoined = !$notnull_bool(this.isAborted());
-    joinBlock = this.graph.addNewBlock();
+    elseBlock = this.block;
   }
-  var elseDefinitions = this.definitions;
-  var elseExitBlock = this.block;
-  conditionBlock.add(new HIf(condition, hasElse));
-  this.graph.setSuccessors(conditionBlock, [thenBlock, elseBlock]);
-  if ($notnull_bool(!$notnull_bool(thenBlockJoined) && !$notnull_bool(elseBlockJoined))) {
+  if ($notnull_bool(thenBlock == null && elseBlock == null)) {
     this.block = null;
   }
   else {
+    var joinBlock = this.graph.addNewBlock();
+    if ($notnull_bool(thenBlock != null)) thenBlock.addGoto(joinBlock);
+    if ($notnull_bool(elseBlock != null)) elseBlock.addGoto(joinBlock);
+    else if ($notnull_bool(!$notnull_bool(hasElse))) conditionBlock.addSuccessor(joinBlock);
+    if ($notnull_bool(joinBlock.predecessors.length == 2)) {
+      this.definitions = this.joinDefinitions(joinBlock, this.definitions, thenDefinitions);
+    }
     this.block = joinBlock;
-    if ($notnull_bool(thenBlockJoined && elseBlockJoined)) {
-      thenExitBlock.addGoto(this.graph, joinBlock);
-      if ($notnull_bool(hasElse)) elseExitBlock.addGoto(this.graph, joinBlock);
-      this.definitions = this.joinDefinitions(joinBlock, thenDefinitions, elseDefinitions);
-    }
-    else if ($notnull_bool(thenBlockJoined)) {
-      thenExitBlock.addGoto(this.graph, joinBlock);
-    }
-    else if ($notnull_bool(elseBlockJoined)) {
-      elseExitBlock.addGoto(this.graph, joinBlock);
-    }
   }
 }
 SsaBuilder.prototype.unquote = function(literal) {
@@ -7721,7 +7707,7 @@ SsaBuilder.prototype.visitReturn = function(node) {
   this.visit(node.expression);
   var value = this.pop();
   this.add(new HReturn(value));
-  this.graph.setSuccessors(this.block, [this.graph.exit]);
+  this.block.addSuccessor(this.graph.exit);
   this.block = null;
 }
 SsaBuilder.prototype.visitThrow = function(node) {
@@ -7736,7 +7722,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 344, 12);
+  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 338, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   return this.definitions.$setindex(this.elements.$index(node), value);
@@ -7750,7 +7736,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions without initial value");
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 359, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 353, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }
@@ -8079,15 +8065,6 @@ HGraph.prototype.assignInstructionIds = function() {
   }
   handleDominatorTree(this.entry, 0);
 }
-HGraph.prototype.setSuccessors = function(source, targets) {
-  $assert((((source.last instanceof HGoto) || (source.last instanceof HReturn)) && targets.length == 1) || ((source.last instanceof HIf) && targets.length == 2), "((source.last is HGoto || source.last is HReturn) &&\n            targets.length == 1) ||\n           (source.last is HIf && targets.length == 2)", "nodes.dart", 126, 12);
-  $assert(source.successors.isEmpty(), "source.successors.isEmpty()", "nodes.dart", 129, 12);
-  source.successors = targets;
-  for (var i = 0;
-   $notnull_bool(i < targets.length); i++) {
-    targets.$index(i).predecessors.add(source);
-  }
-}
 HGraph.prototype.isValid = function() {
   var validator = new HValidator();
   validator.visitGraph(this);
@@ -8189,9 +8166,18 @@ HBasicBlock.prototype.accept = function(visitor) {
 HBasicBlock.prototype.add = function(instruction) {
   this.addAfter(this.last, instruction);
 }
-HBasicBlock.prototype.addGoto = function(graph, block) {
+HBasicBlock.prototype.addGoto = function(block) {
   this.add(new HGoto());
-  graph.setSuccessors(this, [block]);
+  this.addSuccessor(block);
+}
+HBasicBlock.prototype.addSuccessor = function(block) {
+  if ($notnull_bool(this.successors.isEmpty())) {
+    this.successors = [block];
+  }
+  else {
+    this.successors.add(block);
+  }
+  block.predecessors.add(this);
 }
 HBasicBlock.prototype.addAfter = function(cursor, instruction) {
   if ($notnull_bool(cursor == null)) {
@@ -8211,8 +8197,8 @@ HBasicBlock.prototype.addAfter = function(cursor, instruction) {
   instruction.notifyAddedToBlock();
 }
 HBasicBlock.prototype.remove = function(instruction) {
-  $assert(instruction.isInBasicBlock(), "instruction.isInBasicBlock()", "nodes.dart", 242, 12);
-  $assert(instruction.get$usedBy().isEmpty(), "instruction.usedBy.isEmpty()", "nodes.dart", 243, 12);
+  $assert(instruction.isInBasicBlock(), "instruction.isInBasicBlock()", "nodes.dart", 239, 12);
+  $assert(instruction.get$usedBy().isEmpty(), "instruction.usedBy.isEmpty()", "nodes.dart", 240, 12);
   if ($notnull_bool(instruction.previous == null)) {
     this.first = instruction.next;
   }
@@ -8235,7 +8221,7 @@ HBasicBlock.prototype.rewrite = function(from, to) {
   }
   to.get$usedBy().addAll(from.get$usedBy());
   from._usedBy = [];
-  $assert(this.isValid(), "isValid()", "nodes.dart", 267, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 264, 12);
 }
 HBasicBlock.rewriteInput = function(instruction, from, to) {
   var inputs = instruction.inputs;
@@ -8248,8 +8234,8 @@ HBasicBlock.prototype.isExitBlock = function() {
   return this.first === this.last && (this.first instanceof HExit);
 }
 HBasicBlock.prototype.addDominatedBlock = function(block) {
-  $assert(this.id != null && block.id != null, "id !== null && block.id !== null", "nodes.dart", 284, 12);
-  $assert(this.dominatedBlocks.indexOf(block) < 0, "dominatedBlocks.indexOf(block) < 0", "nodes.dart", 285, 12);
+  $assert(this.id != null && block.id != null, "id !== null && block.id !== null", "nodes.dart", 281, 12);
+  $assert(this.dominatedBlocks.indexOf(block) < 0, "dominatedBlocks.indexOf(block) < 0", "nodes.dart", 282, 12);
   var index = this.dominatedBlocks.length;
   while ($notnull_bool(index > 0 && this.dominatedBlocks.$index(index - 1).id > block.id)) {
     index--;
@@ -8260,20 +8246,20 @@ HBasicBlock.prototype.addDominatedBlock = function(block) {
   else {
     this.dominatedBlocks.insertRange(index, 1, block);
   }
-  $assert(block.dominator == null, "block.dominator === null", "nodes.dart", 298, 12);
+  $assert(block.dominator == null, "block.dominator === null", "nodes.dart", 295, 12);
   block.dominator = this;
 }
 HBasicBlock.prototype.removeDominatedBlock = function(block) {
-  $assert(this.id != null && block.id != null, "id !== null && block.id !== null", "nodes.dart", 303, 12);
+  $assert(this.id != null && block.id != null, "id !== null && block.id !== null", "nodes.dart", 300, 12);
   var index = this.dominatedBlocks.indexOf(block);
-  $assert(index >= 0, "index >= 0", "nodes.dart", 305, 12);
+  $assert(index >= 0, "index >= 0", "nodes.dart", 302, 12);
   if ($notnull_bool(index == this.dominatedBlocks.length - 1)) {
     this.dominatedBlocks.removeLast();
   }
   else {
     this.dominatedBlocks.removeRange(index, 1);
   }
-  $assert(block.dominator === this, "block.dominator === this", "nodes.dart", 311, 12);
+  $assert(block.dominator === this, "block.dominator === this", "nodes.dart", 308, 12);
   block.dominator = null;
 }
 HBasicBlock.prototype.assignCommonDominator = function(predecessor) {
@@ -8290,7 +8276,7 @@ HBasicBlock.prototype.assignCommonDominator = function(predecessor) {
       else {
         second = second.dominator;
       }
-      $assert(first != null && second != null, "first !== null && second !== null", "nodes.dart", 332, 16);
+      $assert(first != null && second != null, "first !== null && second !== null", "nodes.dart", 329, 16);
     }
     if ($notnull_bool(this.dominator !== first)) {
       this.dominator.removeDominatedBlock(this);
@@ -8358,7 +8344,7 @@ HInstruction.prototype.isInBasicBlock = function() {
   return this._usedBy != null;
 }
 HInstruction.prototype.equals = function(other) {
-  $assert(this.useGvn() && other.useGvn(), "useGvn() && other.useGvn()", "nodes.dart", 416, 12);
+  $assert(this.useGvn() && other.useGvn(), "useGvn() && other.useGvn()", "nodes.dart", 413, 12);
   if ($notnull_bool(!$notnull_bool(this.typeEquals(other)))) return false;
   if ($notnull_bool(this.flags != other.flags)) return false;
   var inputsLength = this.inputs.length;
@@ -8377,17 +8363,17 @@ HInstruction.prototype.dataEquals = function(other) {
   return false;
 }
 HInstruction.prototype.notifyAddedToBlock = function() {
-  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 439, 12);
+  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 436, 12);
   this._usedBy = [];
   for (var i = 0;
    $notnull_bool(i < this.inputs.length); i++) {
     this.inputs.$index(i).get$usedBy().add(this);
   }
-  $assert(this.isValid(), "isValid()", "nodes.dart", 445, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 442, 12);
 }
 HInstruction.prototype.notifyRemovedFromBlock = function() {
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 449, 12);
-  $assert(this.get$usedBy().isEmpty(), "usedBy.isEmpty()", "nodes.dart", 450, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 446, 12);
+  $assert(this.get$usedBy().isEmpty(), "usedBy.isEmpty()", "nodes.dart", 447, 12);
   for (var i = 0;
    $notnull_bool(i < this.inputs.length); i++) {
     var inputUsedBy = this.inputs.$index(i).get$usedBy();
@@ -8401,7 +8387,7 @@ HInstruction.prototype.notifyRemovedFromBlock = function() {
     }
   }
   this._usedBy = null;
-  $assert(this.isValid(), "isValid()", "nodes.dart", 464, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 461, 12);
 }
 HInstruction.prototype.isLiteralNumber = function() {
   return false;

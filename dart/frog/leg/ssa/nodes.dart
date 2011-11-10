@@ -122,17 +122,6 @@ class HGraph {
     handleDominatorTree(entry, 0);
   }
 
-  void setSuccessors(HBasicBlock source, List<HBasicBlock> targets) {
-    assert(((source.last is HGoto || source.last is HReturn) &&
-            targets.length == 1) ||
-           (source.last is HIf && targets.length == 2));
-    assert(source.successors.isEmpty());
-    source.successors = targets;
-    for (int i = 0; i < targets.length; i++) {
-      targets[i].predecessors.add(source);
-    }
-  }
-
   bool isValid() {
     HValidator validator = new HValidator();
     validator.visitGraph(this);
@@ -216,10 +205,18 @@ class HBasicBlock {
     addAfter(last, instruction);
   }
 
-  // TODO(kasperl): This probably shouldn't involve the graph.
-  void addGoto(HGraph graph, HBasicBlock block) {
+  void addGoto(HBasicBlock block) {
     add(new HGoto());
-    graph.setSuccessors(this, <HBasicBlock>[block]);
+    addSuccessor(block);
+  }
+
+  void addSuccessor(HBasicBlock block) {
+    if (successors.isEmpty()) {
+      successors = [block];
+    } else {
+      successors.add(block);
+    }
+    block.predecessors.add(this);
   }
 
   void addAfter(HInstruction cursor, HInstruction instruction) {

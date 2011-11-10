@@ -51,12 +51,12 @@ class SsaBuilder implements Visitor {
     definitions = new Map<Element, HInstruction>();
 
     block = graph.addNewBlock();
-    graph.entry.addGoto(graph, block);
+    graph.entry.addGoto(block);
     visitParameters(parameters);
     body.accept(this);
 
     // TODO(kasperl): Make this goto an implicit return.
-    if (!isAborted()) block.addGoto(graph, graph.exit);
+    if (!isAborted()) block.addGoto(graph.exit);
     graph.finalize();
     return graph;
   }
@@ -169,60 +169,54 @@ class SsaBuilder implements Visitor {
   }
 
   visitIf(If node) {
+    // Add the condition to the current block.
     bool hasElse = node.hasElsePart;
-
-    // The condition is added to the current block.
     visit(node.condition);
-    HInstruction condition = pop();
+    add(new HIf(pop(), hasElse));
     HBasicBlock conditionBlock = block;
 
-    Map afterConditionDefinitions =
+    Map conditionDefinitions =
         new Map<Element, HInstruction>.from(definitions);
 
     // The then part.
     HBasicBlock thenBlock = graph.addNewBlock();
+    conditionBlock.addSuccessor(thenBlock);
     block = thenBlock;
     visit(node.thenPart);
-    bool thenBlockJoined = !isAborted();
-    HBasicBlock thenExitBlock = block;
+    thenBlock = block;
     Map thenDefinitions = definitions;
 
-    // Now the else part.
-    bool elseBlockJoined;
-    HBasicBlock elseBlock;
-    HBasicBlock joinBlock;
     // Reset the definitions to the state after the condition.
-    definitions = afterConditionDefinitions;
-    if (!hasElse) {
-      elseBlockJoined = true;
-      elseBlock = joinBlock = graph.addNewBlock();
-    } else {
+    definitions = conditionDefinitions;
+
+    // Now the else part.
+    HBasicBlock elseBlock = null;
+    if (hasElse) {
       elseBlock = graph.addNewBlock();
+      conditionBlock.addSuccessor(elseBlock);
       block = elseBlock;
       visit(node.elsePart);
-      elseBlockJoined = !isAborted();
-      joinBlock = graph.addNewBlock();
+      elseBlock = block;
     }
-    Map elseDefinitions = definitions;
-    HBasicBlock elseExitBlock = block;
 
-    conditionBlock.add(new HIf(condition, hasElse));
-    graph.setSuccessors(conditionBlock, <HBasicBlock>[thenBlock, elseBlock]);
-
-    if (!thenBlockJoined && !elseBlockJoined) {
+    if (thenBlock === null && elseBlock === null) {
       block = null;
     } else {
-      block = joinBlock;
-      if (thenBlockJoined && elseBlockJoined) {
-        thenExitBlock.addGoto(graph, joinBlock);
-        if (hasElse) elseExitBlock.addGoto(graph, joinBlock);
-        definitions =
-            joinDefinitions(joinBlock, thenDefinitions, elseDefinitions);
-      } else if (thenBlockJoined) {
-        thenExitBlock.addGoto(graph, joinBlock);
-      } else if (elseBlockJoined) {
-        elseExitBlock.addGoto(graph, joinBlock);
+      HBasicBlock joinBlock = graph.addNewBlock();
+      if (thenBlock !== null) thenBlock.addGoto(joinBlock);
+      if (elseBlock !== null) elseBlock.addGoto(joinBlock);
+      else if (!hasElse) conditionBlock.addSuccessor(joinBlock);
+      // If the join block has two predecessors we have to merge the
+      // definition maps. The current definitions is what either the
+      // condition or the else block left us with, so we merge that
+      // with the set of definitions we got after visiting the then
+      // part of the if.
+      if (joinBlock.predecessors.length == 2) {
+        definitions = joinDefinitions(joinBlock,
+                                      definitions,
+                                      thenDefinitions);
       }
+      block = joinBlock;
     }
   }
 
@@ -323,7 +317,7 @@ class SsaBuilder implements Visitor {
     visit(node.expression);
     var value = pop();
     add(new HReturn(value));
-    graph.setSuccessors(block, <HBasicBlock>[graph.exit]);
+    block.addSuccessor(graph.exit);
     // A return aborts the building of the current block.
     block = null;
   }
