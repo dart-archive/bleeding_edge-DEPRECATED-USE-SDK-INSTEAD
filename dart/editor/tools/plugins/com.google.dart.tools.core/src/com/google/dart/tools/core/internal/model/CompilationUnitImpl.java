@@ -142,7 +142,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       DartTypeImpl typeImpl = new DartTypeImpl(compilationUnit, className);
       DartTypeInfo typeInfo = new DartTypeInfo();
       ArrayList<DartElementImpl> children = new ArrayList<DartElementImpl>();
-      newElements.put(typeImpl, typeInfo);
+      addNewElement(typeImpl, typeInfo);
 
       boolean constructorFound = false;
       List<DartNode> members = node.getMembers();
@@ -161,7 +161,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
               fieldInfo.setTypeName(extractTypeName(fieldListNode.getType(), false));
               fieldInfo.setModifiers(fieldNode.getModifiers());
               children.add(fieldImpl);
-              newElements.put(fieldImpl, fieldInfo);
+              addNewElement(fieldImpl, fieldInfo);
 
               FunctionGatherer functionGatherer = new FunctionGatherer(fieldNode, fieldImpl,
                   newElements);
@@ -194,7 +194,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
           methodInfo.setImplicit(true);
           methodInfo.setReturnTypeName(typeName.getTargetName().toCharArray());
           children.add(methodImpl);
-          newElements.put(methodImpl, methodInfo);
+          addNewElement(methodImpl, methodInfo);
         }
       }
 
@@ -236,7 +236,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
           List<DartFunctionImpl> functions = functionGatherer.getFunctions();
           variableInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
 
-          newElements.put(variableImpl, variableInfo);
+          addNewElement(variableImpl, variableInfo);
           topLevelElements.add(variableImpl);
         }
       }
@@ -259,7 +259,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       aliasInfo.setReturnTypeName(extractTypeName(node.getReturnTypeNode(), false));
       List<DartElementImpl> parameters = getParameters(aliasImpl, node.getParameters());
       aliasInfo.setChildren(parameters.toArray(new DartElementImpl[parameters.size()]));
-      newElements.put(aliasImpl, aliasInfo);
+      addNewElement(aliasImpl, aliasInfo);
       topLevelElements.add(aliasImpl);
       return null;
     }
@@ -307,7 +307,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
       functionInfo.setChildren(functionChildren.toArray(new DartElementImpl[functionChildren.size()]));
 
-      newElements.put(functionImpl, functionInfo);
+      addNewElement(functionImpl, functionInfo);
       topLevelElements.add(functionImpl);
       return null;
     }
@@ -374,7 +374,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       methodInfo.setReturnTypeName(extractTypeName(methodNode.getFunction().getReturnTypeNode(),
           false));
       children.add(methodImpl);
-      newElements.put(methodImpl, methodInfo);
+      addNewElement(methodImpl, methodInfo);
 
       List<DartElementImpl> methodChildren = getParameters(methodImpl, methodNode.getFunction());
 
@@ -461,7 +461,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
       functionInfo.setChildren(functionChildren.toArray(new DartElementImpl[functionChildren.size()]));
 
-      newElements.put(functionImpl, functionInfo);
+      addNewElement(functionImpl, functionInfo);
       functions.add(functionImpl);
       return null;
     }
@@ -528,7 +528,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         List<DartFunctionImpl> functions = functionGatherer.getFunctions();
         variableInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
 
-        newElements.put(variableImpl, variableInfo);
+        addNewElement(variableImpl, variableInfo);
         variables.add(variableImpl);
       }
       super.visitVariableStatement(node);
@@ -553,6 +553,14 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      */
     public StructureBuilder(Map<DartElement, DartElementInfo> newElements) {
       this.newElements = newElements;
+    }
+
+    protected void addNewElement(SourceReferenceImpl element, DartElementInfo info) {
+      int count = 1;
+      while (newElements.containsKey(element)) {
+        element.setOccurrenceCount(++count);
+      }
+      newElements.put(element, info);
     }
 
     /**
@@ -601,7 +609,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         List<DartFunctionImpl> functions = functionGatherer.getFunctions();
         variableInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
 
-        newElements.put(variableImpl, variableInfo);
+        addNewElement(variableImpl, variableInfo);
         parameters.add(variableImpl);
       }
       return parameters;

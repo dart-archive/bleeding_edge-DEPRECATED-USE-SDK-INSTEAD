@@ -152,8 +152,11 @@ public abstract class SourceReferenceImpl extends DartElementImpl implements Sou
   // return getHandleFromMemento(token, memento, owner);
   // }
 
-  /*
-   * @see IMember#getOccurrenceCount()
+  /**
+   * Return the occurrence count of this element. The occurrence count is used to distinguish two
+   * elements that would otherwise be indistinguishable, such as two fields with the same name.
+   * 
+   * @return the occurrence count of this element
    */
   public int getOccurrenceCount() {
     return occurrenceCount;
@@ -273,6 +276,17 @@ public abstract class SourceReferenceImpl extends DartElementImpl implements Sou
   @Override
   public IResource resource() {
     return ((DartElementImpl) getParent()).resource();
+  }
+
+  /**
+   * Set the occurrence count of this element to the given value. The occurrence count is used to
+   * distinguish two elements that would otherwise be indistinguishable, such as two fields with the
+   * same name.
+   * 
+   * @param count the new occurrence count of this element
+   */
+  public void setOccurrenceCount(int count) {
+    occurrenceCount = count;
   }
 
   @Override
