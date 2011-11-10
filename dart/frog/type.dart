@@ -41,7 +41,9 @@ class Type implements Named, Hashable {
   Member getMember(String name) => null;
   abstract MethodMember getConstructor(String name);
   abstract MethodMember getFactory(Type type, String name);
-
+  abstract Type getOrMakeConcreteType(List<Type> typeArgs);
+  abstract Map<String, MethodMember> get constructors();
+  abstract addDirectSubtype(Type type);
   abstract bool get isClass();
   abstract Library get library();
 
@@ -83,10 +85,14 @@ class Type implements Named, Hashable {
 
   set jsname(String name) => _jsname = name;
 
+  Map<String, Member> get members() => null;
+  Definition get definition() => null;
+  FactoryMap get factories() => null;
+
   // TODO(jmesserly): should try using a const list instead of null to represent
   // the absence of type parameters.
   Collection<Type> get typeArgsInOrder() => null;
-  Type get genericType() => this;
+  DefinedType get genericType() => this;
 
   // TODO(jmesserly): what should these do for ParameterType?
   List<Type> get interfaces() => null;
@@ -304,6 +310,9 @@ class ParameterType extends Type {
 
   ParameterType(String name, this.typeParameter): super(name);
 
+  Map<String, MethodMember> get constructors() =>
+      world.internalError('no constructors on type parameters yet');
+
   MethodMember getCallMethod() => extendsType.getCallMethod();
 
   void genMethod(Member method) {
@@ -322,8 +331,16 @@ class ParameterType extends Type {
     world.internalError('no constructors on type parameters yet');
   }
 
+  Type getOrMakeConcreteType(List<Type> typeArgs) {
+    world.internalError('no concrete types of type parameters yet', span);
+  }
+
   Type resolveTypeParams(ConcreteType inType) {
     return inType.typeArguments[name];
+  }
+
+  addDirectSubtype(Type type) {
+    world.internalError('no subtypes of type parameters yet', span);
   }
 
   resolve(Type inType) {
@@ -338,7 +355,7 @@ class ParameterType extends Type {
 
 /** A concrete version of a generic type. */
 class ConcreteType extends Type {
-  final Type genericType;
+  final DefinedType genericType;
   Map<String, Type> typeArguments;
   List<Type> _interfaces;
   List<Type> typeArgsInOrder;
@@ -724,13 +741,14 @@ class DefinedType extends Type {
 
   resolve() {
     if (definition is TypeDefinition) {
+      TypeDefinition typeDef = definition;
       if (isClass) {
-        if (definition.extendsTypes != null && definition.extendsTypes.length > 0) {
-          if (definition.extendsTypes.length > 1) {
+        if (typeDef.extendsTypes != null && typeDef.extendsTypes.length > 0) {
+          if (typeDef.extendsTypes.length > 1) {
             world.error('more than one base class',
-              definition.extendsTypes[1].span);
+              typeDef.extendsTypes[1].span);
           }
-          var extendsTypeRef = definition.extendsTypes[0];
+          var extendsTypeRef = typeDef.extendsTypes[0];
           if (extendsTypeRef is GenericTypeReference) {
             // If we are extending a generic type first resolve against the
             // base type, then the full generic type. This makes circular
@@ -741,7 +759,7 @@ class DefinedType extends Type {
           parent = resolveType(extendsTypeRef, true);
           if (!parent.isClass) {
             world.error('class may not extend an interface - use implements',
-              definition.extendsTypes[0].span);
+              typeDef.extendsTypes[0].span);
           }
           parent.addDirectSubtype(this);
           if (_cycleInClassExtends()) {
@@ -754,31 +772,29 @@ class DefinedType extends Type {
             parent = world.objectType;
           }
         }
-        this.interfaces = _resolveInterfaces(definition.implementsTypes);
-        if (definition.factoryType != null) {
+        this.interfaces = _resolveInterfaces(typeDef.implementsTypes);
+        if (typeDef.factoryType != null) {
           world.error('factory not allowed on classes',
-            definition.factoryType.span);
+            typeDef.factoryType.span);
         }
       } else {
-        if (definition.implementsTypes != null &&
-              definition.implementsTypes.length > 0) {
+        if (typeDef.implementsTypes != null &&
+              typeDef.implementsTypes.length > 0) {
           world.error('implements not allowed on interfaces (use extends)',
-            definition.implementsTypes[0].span);
+            typeDef.implementsTypes[0].span);
         }
-        this.interfaces = _resolveInterfaces(definition.extendsTypes);
+        this.interfaces = _resolveInterfaces(typeDef.extendsTypes);
         final res = _cycleInInterfaceExtends();
         if (res >= 0) {
           world.error('interface "$name" has a cycle in its inheritance chain',
-              definition.extendsTypes[res].span);
+              typeDef.extendsTypes[res].span);
         }
 
-        if (definition.factoryType != null) {
-          factory_ = resolveType(definition.factoryType, true);
+        if (typeDef.factoryType != null) {
+          factory_ = resolveType(typeDef.factoryType, true);
           if (factory_ == null) {
             // TODO(jimhug): Appropriate warning levels;
-            world.info(
-              'unresolved factory: ${definition.factoryType.name.name}',
-              definition.factoryType.name.span);
+            world.warning('unresolved factory', typeDef.factoryType.span);
           }
         }
       }
@@ -935,7 +951,9 @@ class DefinedType extends Type {
         inits = [new CallExpression(new SuperExpression(span), [], span)];
       }
 
-      var c = new FunctionDefinition(null, null, definition.name, [],
+
+      TypeDefinition typeDef = definition;
+      var c = new FunctionDefinition(null, null, typeDef.name, [],
         inits, body, span);
       addMethod(null, c);
       constructors[''].resolve(this);
@@ -1070,59 +1088,62 @@ class DefinedType extends Type {
     // same message twice.
 
     if (node is NameTypeReference) {
+      NameTypeReference typeRef = node;
       String name;
-      if (node.names != null) {
-        name = node.names.last().name;
+      if (typeRef.names != null) {
+        name = typeRef.names.last().name;
       } else {
-        name = node.name.name;
+        name = typeRef.name.name;
       }
       if (typeParameters != null) {
         for (var tp in typeParameters) {
           if (tp.name == name) {
-            node.type = tp;
+            typeRef.type = tp;
           }
         }
       }
-      if (node.type == null) {
-        node.type = library.findType(node);
+      if (typeRef.type == null) {
+        typeRef.type = library.findType(typeRef);
       }
-      if (node.type == null) {
-        var message = 'can not find type ${_getDottedName(node)}';
+      if (typeRef.type == null) {
+        var message = 'can not find type ${_getDottedName(typeRef)}';
         if (typeErrors) {
-          world.error(message, node.span);
-          node.type = world.objectType;
+          world.error(message, typeRef.span);
+          typeRef.type = world.objectType;
         } else {
-          world.warning(message, node.span);
-          node.type = world.varType;
+          world.warning(message, typeRef.span);
+          typeRef.type = world.varType;
         }
       }
     } else if (node is GenericTypeReference) {
+      GenericTypeReference typeRef = node;
       // TODO(jimhug): Expand the handling of typeErrors to generics and funcs
-      var baseType = resolveType(node.baseType, typeErrors);
+      var baseType = resolveType(typeRef.baseType, typeErrors);
       if (!baseType.isGeneric) {
-        world.error('${baseType.name} is not generic', node.span);
+        world.error('${baseType.name} is not generic', typeRef.span);
         return null;
       }
-      if (node.typeArguments.length != baseType.typeParameters.length) {
-        world.error('wrong number of type arguments', node.span);
+      if (typeRef.typeArguments.length != baseType.typeParameters.length) {
+        world.error('wrong number of type arguments', typeRef.span);
         return null;
       }
       var typeArgs = [];
-      for (int i=0; i < node.typeArguments.length; i++) {
+      for (int i=0; i < typeRef.typeArguments.length; i++) {
         var extendsType = baseType.typeParameters[i].extendsType;
-        var typeArg = resolveType(node.typeArguments[i], typeErrors);
+        var typeArg = resolveType(typeRef.typeArguments[i], typeErrors);
         typeArgs.add(typeArg);
 
         if (extendsType != null && typeArg is! ParameterType) {
           typeArg.ensureSubtypeOf(extendsType,
-              node.typeArguments[i].span, typeErrors);
+              typeRef.typeArguments[i].span, typeErrors);
         }
       }
-      node.type = baseType.getOrMakeConcreteType(typeArgs);
+      typeRef.type = baseType.getOrMakeConcreteType(typeArgs);
     } else if (node is FunctionTypeReference) {
+      FunctionTypeReference typeRef = node;
       var name = '';
-      if (node.func.name != null) name = node.func.name.name;
-      node.type = library.getOrAddFunctionType(name, node.func, this);
+      if (typeRef.func.name != null) name = typeRef.func.name.name;
+      typeRef.type = library.getOrAddFunctionType(name, typeRef.func, this);
     } else {
       world.internalError('unknown type reference', node.span);
     }

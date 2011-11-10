@@ -52,7 +52,7 @@ List zip(Iterable left, Iterable right, mapper(left, right)) {
 /** Sorts the map by the key. */
 List orderValuesByKeys(Map map) {
   // TODO(jmesserly): it'd be nice to have SortedMap in corelib.
-  final keys = map.getKeys();
+  List keys = map.getKeys();
   keys.sort((x, y) => x.compareTo(y));
   final values = [];
   for (var k in keys) {
