@@ -117,7 +117,7 @@ class Object native "Object" {
   get dynamic() => this;
 
   // TODO(jmesserly): add named args. For now stay compatible with the VM.
-  void noSuchMethod(String name, List args) {
+  noSuchMethod(String name, List args) {
     throw new NoSuchMethodException(this, name, args);
   }
 }

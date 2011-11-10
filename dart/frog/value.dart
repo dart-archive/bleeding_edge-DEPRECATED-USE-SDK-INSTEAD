@@ -28,7 +28,7 @@ class Value {
   }
 
   /** Is this value a constant expression? */
-  bool get isConst () => false;
+  bool get isConst() => false;
 
   // TODO(jimhug): These three methods are still a little too similar for me.
   get_(MethodGenerator context, String name, Node node) {
@@ -46,7 +46,7 @@ class Value {
 
   set_(MethodGenerator context, String name, Node node, Value value,
       [bool isDynamic=false]) {
-    var member = _resolveMember(context, name, node);
+    var member = _resolveMember(context, name, node, isDynamic);
     if (member != null) {
       member = member.set_(context, node, this, value, isDynamic);
     }
@@ -88,7 +88,7 @@ class Value {
       }
     }
 
-    var member = _resolveMember(context, name, node);
+    var member = _resolveMember(context, name, node, isDynamic);
     if (member == null) {
       return invokeNoSuchMethod(context, name, node, args);
     } else {
@@ -106,55 +106,66 @@ class Value {
       return true;
     }
 
-    var member = _tryResolveMember(context, name);
+    var member = _resolveMember(context, name, null, isDynamic:true);
     return member != null && member.canInvoke(context, args);
   }
 
+  /**
+   * True if this class (or some related class that is not Object) overrides
+   * noSuchMethod. If it does we suppress warnings about unknown members.
+   */
+  // TODO(jmesserly): should we be doing this?
+  bool _hasOverriddenNoSuchMethod() {
+    if (isSuper) {
+      var m = type.getMember('noSuchMethod');
+      return m != null && !m.declaringType.isObject;
+    } else {
+      return type.resolveMember('noSuchMethod').members.length > 1;
+    }
+  }
+
   // TODO(jimhug): Better type here - currently is union(Member, MemberSet)
-  _tryResolveMember(MethodGenerator context, String name) {
-    var member = null;
-    if (!type.isVar) {
+  _resolveMember(MethodGenerator context, String name, Node node,
+        [bool isDynamic=false]) {
+
+    // TODO(jmesserly): until reified generic lists are fixed, treat
+    // ParameterType as "var".
+    var member;
+    if (!type.isVar && type is! ParameterType) {
       if (isSuper) {
-        return type.getMember(name);
+        member = type.getMember(name);
       } else {
         member = type.resolveMember(name);
       }
-    }
 
-    if (member == null) {
-      // TODO(jmesserly): shouldn't look in world except for "var"
-      member = context.findMembers(name);
-    }
-    return member;
-  }
-
-  _resolveMember(MethodGenerator context, String name, Node node) {
-    var member = _tryResolveMember(context, name);
-    if (member != null) {
-      if (isType && !member.isStatic) {
-        world.error('can not refer to instance member as static', node.span);
-      }
-      return member;
-    } else {
-      // TODO(jmesserly): we suppress warnings if someone has overridden
-      // noSuchMethod, and we know it will call their version. Is that right?
-      if (_tryResolveMember(context, 'noSuchMethod').members.length > 1) {
+      if (member != null && isType && !member.isStatic) {
+        if (!isDynamic) {
+          world.error('can not refer to instance member as static', node.span);
+        }
         return null;
       }
 
-      var typeName = type.name == null ? type.library.name : type.name;
-      var message = 'can not resolve "$name" on "${typeName}"';
-      if (isType) {
-        world.error(message, node.span);
-      } else {
-        world.warning(message, node.span);
+      if (member == null && !isDynamic && !_hasOverriddenNoSuchMethod()) {
+        var typeName = type.name == null ? type.library.name : type.name;
+        var message = 'can not resolve "$name" on "${typeName}"';
+        if (isType) {
+          world.error(message, node.span);
+        } else {
+          world.warning(message, node.span);
+        }
       }
-      // TODO(jmesserly): isn't this condition always true if we got here?
-      if (context.findMembers(name) == null) {
-        world.warning('$name is not defined anywhere in the world.', node.span);
-      }
-      return null;
     }
+
+    // Fall back to a dynamic operation for instance members
+    if (member == null && !isSuper && !isType) {
+      member = context.findMembers(name);
+      if (member == null && !isDynamic) {
+        world.warning('$name is not defined anywhere in the world.',
+           node.span);
+      }
+    }
+
+    return member;
   }
 
   checkFirstClass(SourceSpan span) {
@@ -424,7 +435,7 @@ function \$assert_${toType.name}(x) {
     }*/
 
     // Finally, invoke noSuchMethod
-    return _tryResolveMember(context, 'noSuchMethod').invoke(
+    return _resolveMember(context, 'noSuchMethod', node).invoke(
         context, node, this, new Arguments(null, noSuchArgs));
   }
 
@@ -448,6 +459,9 @@ function \$assert_${toType.name}(x) {
     }
   }
 }
+
+// TODO(jmesserly): the subtypes of Value require a lot of type checks and
+// downcasts to use; can we make that cleaner? (search for ".dynamic")
 
 /** A value that can has been evaluated statically. */
 class EvaluatedValue extends Value {
