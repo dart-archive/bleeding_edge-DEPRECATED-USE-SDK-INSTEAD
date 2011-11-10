@@ -18,7 +18,8 @@ class Listener {
   void beginClass(Token token) {
   }
 
-  void endClass(Token beginToken, Token endToken) {
+  void endClass(int interfacesCount, Token beginToken, Token extendsKeyword,
+                Token implementsKeyword, Token endToken) {
   }
 
   void beginExpressionStatement(Token token) {
@@ -133,7 +134,10 @@ class Listener {
   void beginTypeArguments(Token token) {
   }
 
-  void endTypeArguments(Token token) {
+  void endTypeArguments(int count, Token beginToken, Token endToken) {
+  }
+
+  void handleNoTypeArguments(Token token) {
   }
 
   void beginTypeVariable(Token token) {
@@ -145,7 +149,7 @@ class Listener {
   void beginTypeVariables(Token token) {
   }
 
-  void endTypeVariables(Token token) {
+  void endTypeVariables(int count, Token beginToken, Token endToken) {
   }
 
   void beginVariablesDeclaration(Token token) {
@@ -244,12 +248,13 @@ class ElementListener extends Listener {
     canceler.cancel("Cannot handle library tags");
   }
 
-  void endClass(Token beginToken, Token endToken) {
-    Identifier name;
-    while (!nodes.isEmpty()) {
-      // TODO(ahe): Temporary code to discard supertypes.
-      name = popNode();
+  void endClass(int interfacesCount, Token beginToken, Token extendsKeyword,
+                Token implementsKeyword, Token endToken) {
+    for (; interfacesCount > 0; --interfacesCount) {
+      popNode();
     }
+    TypeAnnotation supertype = popNode();
+    Identifier name = popNode();
     pushElement(new PartialClassElement(name.source, beginToken, endToken));
   }
 
@@ -275,6 +280,15 @@ class ElementListener extends Listener {
 
   void handleIdentifier(Token token) {
     pushNode(new Identifier(token));
+  }
+
+  void handleNoType(Token token) {
+    pushNode(null);
+  }
+
+  void endTypeVariable(Token token) {
+    TypeAnnotation bound = popNode();
+    Identifier name = popNode();
   }
 
   Token expected(String string, Token token) {
@@ -324,12 +338,23 @@ class ElementListener extends Listener {
   }
 }
 
-class BodyListener extends ElementListener {
+class NodeListener extends ElementListener {
   final Logger logger;
   Function onError;
 
-  BodyListener(Canceler canceler, Logger this.logger) : super(canceler) {
+  NodeListener(Canceler canceler, Logger this.logger) : super(canceler) {
     onError = handleOnError; // Cuts parser time in half or more.
+  }
+
+  void endClass(int interfacesCount, Token beginToken, Token extendsKeyword,
+                Token implementsKeyword, Token endToken) {
+    NodeList interfaces =
+        makeNodeList(interfacesCount, implementsKeyword, null, ",");
+    TypeAnnotation supertype = popNode();
+    // TODO(ahe): Type variables.
+    Identifier name = popNode();
+    pushNode(new ClassNode(name, supertype, interfaces, beginToken,
+                           extendsKeyword, endToken));
   }
 
   void endFormalParameter(Token token) {
@@ -480,10 +505,6 @@ class BodyListener extends ElementListener {
     pushNode(new Throw(null, throwToken, endToken));
   }
 
-  void handleNoType(Token token) {
-    pushNode(null);
-  }
-
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
                         String delimiter) {
     Link<Node> nodes = const EmptyLink<Node>();
@@ -529,15 +550,14 @@ class PartialClassElement extends ClassElement {
 
   ClassNode parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
-    // node = parseAnyNode(canceler, logger, (p) => p.parseClass(beginToken));
-    node = new ClassNode(name, beginToken, endToken);
+    node = parse(canceler, logger, (p) => p.parseClass(beginToken));
     return node;
   }
 }
 
 Node parse(Canceler canceler, Logger logger, doParse(Parser parser)) {
-  BodyListener listener = new BodyListener(canceler, logger);
-  doParse(new BodyParser(listener));
+  NodeListener listener = new NodeListener(canceler, logger);
+  doParse(new Parser(listener));
   Node node = listener.popNode();
   logger.log("parsed: $node");
   return node;

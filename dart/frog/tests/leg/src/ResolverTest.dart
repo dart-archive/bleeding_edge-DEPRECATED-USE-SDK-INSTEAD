@@ -23,8 +23,8 @@ Token scan(String text) => new StringScanner(text).tokenize();
 Node parseBodyCode(String text, Function parseMethod) {
   Token tokens = scan(text);
   LoggerCanceler lc = new LoggerCanceler();
-  BodyListener listener = new BodyListener(lc, lc);
-  BodyParser parser = new BodyParser(listener);
+  NodeListener listener = new NodeListener(lc, lc);
+  Parser parser = new Parser(listener);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
   return listener.popNode();

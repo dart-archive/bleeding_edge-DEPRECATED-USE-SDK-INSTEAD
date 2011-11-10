@@ -69,13 +69,21 @@ class Node implements Hashable {
 
 class ClassNode extends Node {
   final Identifier name;
+  final TypeAnnotation superclass;
+  final NodeList interfaces;
 
   final Token beginToken;
+  final Token extendsKeyword;
   final Token endToken;
 
-  const ClassNode(this.name, this.beginToken, this.endToken);
+  const ClassNode(this.name, this.superclass, this.interfaces,
+                  this.beginToken, this.extendsKeyword, this.endToken);
 
   accept(Visitor visitor) => visitor.visitClassNode(this);
+
+  bool get isInterface() => beginToken.stringValue === 'interface';
+
+  bool get isClass() => !isInterface;
 
   Token getBeginToken() => beginToken;
 

@@ -6,10 +6,43 @@
  * An event generating parser of Dart programs. This parser expects
  * all tokens in a linked list.
  */
-class Parser<L extends Listener> {
+class PartialParser<L extends Listener> {
   final L listener;
 
-  Parser(L this.listener);
+  // TODO(ahe): Clean up the following fields.
+  Function beginTypeArguments;
+  Function parseTypeFunction;
+  Function endTypeArguments;
+  Function handleNoTypeArguments;
+
+  // TODO(ahe): Clean up the following fields.
+  Function beginTypeVariables;
+  Function parseTypeVariableFunction;
+  Function endTypeVariables;
+  Function handleNoTypeVariables;
+
+  PartialParser(L this.listener) {
+    beginTypeArguments = listener.beginTypeArguments;
+    parseTypeFunction = parseType;
+    endTypeArguments = listener.endTypeArguments;
+    handleNoTypeArguments = listener.handleNoTypeArguments;
+
+    beginTypeVariables = listener.beginTypeVariables;
+    parseTypeVariableFunction = parseTypeVariable;
+    endTypeVariables = listener.endTypeVariables;
+    handleNoTypeVariables = listener.handleNoTypeVariables;
+
+    if (parseTypeFunction === null) {
+      // TODO(ahe): Work around bug in Frog optimizer.
+      listener.beginTypeArguments(null);
+      listener.endTypeArguments(0, null, null);
+      listener.handleNoTypeArguments(null);
+      listener.beginTypeVariables(null);
+      parseTypeVariable(null);
+      listener.endTypeVariables(0, null, null);
+      listener.handleNoTypeVariables(null);
+    }
+  }
 
   // TODO(ahe): Rename this method. It is too subtle compared to token.next.
   Token next(Token token) => checkEof(token.next);
@@ -169,11 +202,26 @@ class Parser<L extends Listener> {
     listener.beginClass(token);
     token = parseIdentifier(next(token));
     token = parseTypeVariablesOpt(token);
-    token = parseSuperclassClauseOpt(token);
-    token = parseImplementsOpt(token);
+    Token extendsKeyword;
+    if (optional('extends', token)) {
+      extendsKeyword = token;
+      token = parseType(next(token));
+    } else {
+      extendsKeyword = null;
+      listener.handleNoType(token);
+    }
+    Token implementsKeyword;
+    int interfacesCount = 0;
+    if (optional('implements', token)) {
+      do {
+        token = parseType(next(token));
+        ++interfacesCount;
+      } while (optional(',', token));
+    }
     token = parseNativeClassClauseOpt(token);
     token = parseClassBody(token);
-    listener.endClass(begin, token);
+    listener.endClass(interfacesCount, begin, extendsKeyword, implementsKeyword,
+                      token);
     return token.next;
   }
 
@@ -201,24 +249,6 @@ class Parser<L extends Listener> {
     return next(token);
   }
 
-  Token parseTypeVariablesOpt(Token token) {
-    if (!optional('<', token)) {
-      listener.handleNoTypeVariables(token);
-      return token;
-    }
-    return parseTypeVariables(token);
-  }
-
-  Token parseTypeVariables(Token token) {
-    expect('<', token);
-    listener.beginTypeVariables(token);
-    do {
-      token = parseTypeVariable(next(token));
-    } while (optional(',', token));
-    listener.endTypeVariables(token);
-    return expect('>', token);
-  }
-
   Token expect(String string, Token token) {
     if (string !== token.stringValue) {
       return listener.expected(string, token);
@@ -229,19 +259,16 @@ class Parser<L extends Listener> {
   Token parseTypeVariable(Token token) {
     listener.beginTypeVariable(token);
     token = parseIdentifier(token);
-    token = parseSuperclassClauseOpt(token);
+    if (optional('extends', token)) {
+      token = parseType(next(token));
+    } else {
+      listener.handleNoType(token);
+    }
     listener.endTypeVariable(token);
     return token;
   }
 
   bool optional(String value, Token token) => value === token.stringValue;
-
-  Token parseSuperclassClauseOpt(Token token) {
-    if (optional('extends', token)) {
-      return parseType(next(token));
-    }
-    return token;
-  }
 
   Token parseType(Token token) {
     // TODO(ahe): Rename this method to parseTypeOrVar?
@@ -264,22 +291,30 @@ class Parser<L extends Listener> {
   }
 
   Token parseTypeArgumentsOpt(Token token) {
-    if (optional('<', token)) {
-      listener.beginTypeArguments(next(token));
-      do {
-        token = parseType(next(token));
-      } while (optional(',', token));
-      return expect('>', token);
-    }
-    return token;
+    return parseStuff(token, beginTypeArguments, parseTypeFunction,
+                      endTypeArguments, handleNoTypeArguments);
   }
 
-  Token parseImplementsOpt(Token token) {
-    if (optional('implements', token)) {
+  Token parseTypeVariablesOpt(Token token) {
+    return parseStuff(token, beginTypeVariables, parseTypeVariableFunction,
+                      endTypeVariables, handleNoTypeVariables);
+  }
+
+  // TODO(ahe): Clean this up.
+  Token parseStuff(Token token, Function beginStuff, Function stuffParser,
+                   Function endStuff, Function handleNoStuff) {
+    if (optional('<', token)) {
+      Token begin = token;
+      beginStuff(begin);
+      int count = 0;
       do {
-        token = parseType(next(token));
+        token = stuffParser(next(token));
+        ++count;
       } while (optional(',', token));
+      endStuff(count, begin, token);
+      return expect('>', token);
     }
+    handleNoStuff(token);
     return token;
   }
 
@@ -348,8 +383,8 @@ class Parser<L extends Listener> {
   }
 }
 
-class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
-  BodyParser(BodyListener listener) : super(listener);
+class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
+  Parser(NodeListener listener) : super(listener);
 
   Token parseFunction(Token token) {
     listener.beginFunction(token);

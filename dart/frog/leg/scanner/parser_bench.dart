@@ -43,7 +43,7 @@ class ParserBench extends BaseParserBench {
   void parseFileNamed(String argument, Listener listener) {
     bool failed = true;
     try {
-      Parser parser = new Parser(listener);
+      PartialParser parser = new PartialParser(listener);
       parser.parseUnit(scanFileNamed(argument));
       failed = false;
     } finally {

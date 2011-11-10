@@ -262,11 +262,13 @@ class World {
     return !hasErrors;
   }
 
+  /** Returns true if Leg handled the compilation job. */
   bool runLeg() {
     if (!options.enableLeg) return false;
     bool res = withTiming('try leg compile', () => leg.compile(this));
     if (!res && options.legOnly) {
       fatal("Leg could not compile ${options.dartScript}");
+      return true; // In --leg_only, always "handle" the compilation.
     }
     return res;
   }
