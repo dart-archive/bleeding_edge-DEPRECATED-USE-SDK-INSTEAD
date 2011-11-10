@@ -115,11 +115,6 @@ class Member implements Named {
   bool get isProperty() => false;
   bool get isAbstract() => false;
 
-  // TODO(jmesserly): these only makes sense on methods, but because of
-  // ConcreteMember we need to support them on Member.
-  bool get isConst() => false;
-  bool get isFactory() => false;
-
   bool get prefersPropertySyntax() => true;
   bool get requiresFieldSyntax() => false;
 
@@ -129,12 +124,7 @@ class Member implements Named {
 
   void provideFieldSyntax() => world.internalError('can not be field', span);
   void providePropertySyntax() =>
-      world.internalError('can not be property', span);
-
-  Definition get initDelegate() =>
-      world.internalError('cannot have initializers', span);
-  Definition set initDelegate(ctor) =>
-      world.internalError('cannot have initializers', span);
+    world.internalError('can not be property', span);
 
   Definition get definition() => null;
 
@@ -179,16 +169,6 @@ class Member implements Named {
       return '${prefix}$name\$factory';
     }
   }
-
-  Type resolveType(TypeReference node, bool isRequired) {
-    var type = declaringType.resolveType(node, isRequired);
-    if (isStatic && type.hasTypeParams) {
-      // TODO(jimhug): Is this really so hard?
-      world.error('using type parameter in static context',
-        node.span);
-    }
-    return type;
-  }
 }
 
 
@@ -209,7 +189,7 @@ class TypeMember extends Member {
   bool get isStatic() => true;
 
   // If this really becomes first class, this should return typeof(Type)
-  Type get returnType() => world.varType;
+  Type get returnType() => world.isVar;
 
   bool canInvoke(MethodGenerator context, Arguments args) => false;
   bool get canGet() => true;
@@ -386,7 +366,7 @@ class FieldMember extends Member {
       }
     } else if (target.isConst && isFinal) {
       // take advantage of consts and retrieve the value directly if possible
-      var constTarget = target is GlobalValue ? target.dynamic.exp : target;
+      var constTarget = target is GlobalValue ? target.exp : target;
       if (constTarget is ConstObjectValue) {
         return constTarget.fields[name];
       } else if (constTarget.type == world.stringType && name == 'length') {
@@ -478,16 +458,12 @@ class PropertyMember extends Member {
 
   addFromParent(Member parentMember) {
     // TODO(jimhug): Egregious Hack!
-    PropertyMember parent;
     if (parentMember is ConcreteMember) {
-      ConcreteMember c = parentMember;
-      parent = c.baseMember;
-    } else {
-      parent = parentMember;
+      parentMember = parentMember.baseMember;
     }
 
-    if (getter == null) getter = parent.getter;
-    if (setter == null) setter = parent.setter;
+    if (getter == null) getter = parentMember.getter;
+    if (setter == null) setter = parentMember.setter;
   }
 
   resolve(Type inType) {
@@ -524,12 +500,12 @@ class ConcreteMember extends Member {
   bool get isStatic() => baseMember.isStatic;
   bool get isAbstract() => baseMember.isAbstract;
   bool get isConst() => baseMember.isConst;
-  bool get isFactory() => baseMember.isFactory;
 
   String get jsname() => baseMember.jsname;
   set jsname(String name) =>
     world.internalError('bad set of jsname on ConcreteMember');
 
+  bool get isFactory() => baseMember.isFactory;
 
   bool get canGet() => baseMember.canGet;
   bool get canSet() => baseMember.canSet;
@@ -640,14 +616,13 @@ class MethodMember extends Member {
   SourceSpan get span() => definition == null ? null : definition.span;
 
   String get constructorName() {
-    NameTypeReference returnType = definition.returnType;
-    if (returnType == null) return '';
+    if (definition.returnType == null) return '';
 
     // TODO(jmesserly): make this easier?
-    if (returnType.names != null) {
-      return returnType.names[0].name;
-    } else if (returnType.name != null) {
-      return returnType.name.name;
+    if (definition.returnType.names != null) {
+      return definition.returnType.names[0].name;
+    } else if (definition.returnType.name != null) {
+      return definition.returnType.name.name;
     }
     world.internalError('no valid constructor name', definition.span);
   }
@@ -709,6 +684,16 @@ class MethodMember extends Member {
       }
     }
     return -1;
+  }
+
+  Type resolveType(TypeReference node, bool isRequired) {
+    var type = declaringType.resolveType(node, isRequired);
+    if (isStatic && type.hasTypeParams) {
+      // TODO(jimhug): Is this really so hard?
+      world.error('using type parameter in static context',
+        node.span);
+    }
+    return type;
   }
 
   bool get prefersPropertySyntax() => true;
@@ -925,15 +910,15 @@ class MethodMember extends Member {
     // optimize expressions which we know statically their value.
     if (target.isConst) {
       if (target is GlobalValue) {
-        target = target.dynamic.exp; // TODO: an inline "cast" would be nice.
+        target = target.exp;
       }
       if (name == 'get\$length') {
         if (target is ConstListValue || target is ConstMapValue) {
-          code = '${target.dynamic.values.length}';
+          code = '${target.values.length}';
         }
       } else if (name == 'isEmpty') {
         if (target is ConstListValue || target is ConstMapValue) {
-          code = '${target.dynamic.values.isEmpty()}';
+          code = '${target.values.isEmpty()}';
         }
       }
     }
@@ -946,8 +931,8 @@ class MethodMember extends Member {
     return new Value(returnType, code);
   }
 
-  Value _invokeConstructor(MethodGenerator context, Node node,
-      Value target, Arguments args, argsString) {
+  Value _invokeConstructor(MethodGenerator context, Node node, Value target,
+      Arguments args, argsString) {
     declaringType.markUsed();
 
     if (target != null) {
@@ -960,8 +945,7 @@ class MethodMember extends Member {
       var code = (constructorName != '')
           ? 'new ${declaringType.jsname}.${constructorName}\$ctor($argsString)'
           : 'new ${declaringType.jsname}($argsString)';
-      // TODO(jmesserly): using the "node" here feels really hacky
-      if (isConst && node is NewExpression && node.dynamic.isConst) {
+      if (isConst && node.isConst) {
         return _invokeConstConstructor(node, code, target, args);
       } else {
         return new Value(declaringType, code);
@@ -1048,10 +1032,8 @@ class MethodMember extends Member {
           }
         } else {
           // Normal field initializer assignment.
-          BinaryExpression assign = init;
-          VarExpression x = assign.x;
-          var fname = x.name.name;
-          var val = generator.visitValue(assign.y);
+          var fname = init.x.name.name;
+          var val = generator.visitValue(init.y);
           fields[fname] = val;
         }
       }

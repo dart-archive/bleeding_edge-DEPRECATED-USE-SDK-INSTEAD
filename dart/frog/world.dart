@@ -84,21 +84,21 @@ class World {
   bool seenFatal = false;
 
   // Special types to Dart.
-  DefinedType varType;
+  Type varType;
   // TODO(jimhug): Is this ever not === varType?
-  DefinedType dynamicType;
+  Type dynamicType;
 
-  DefinedType voidType;
+  Type voidType;
 
-  DefinedType objectType;
-  DefinedType numType;
-  DefinedType intType;
-  DefinedType doubleType;
-  DefinedType boolType;
-  DefinedType stringType;
-  DefinedType listType;
-  DefinedType mapType;
-  DefinedType functionType;
+  Type objectType;
+  Type numType;
+  Type intType;
+  Type doubleType;
+  Type boolType;
+  Type stringType;
+  Type listType;
+  Type mapType;
+  Type functionType;
 
   World(this.files)
     : libraries = {}, _todo = [], _members = {}, _topNames = {},

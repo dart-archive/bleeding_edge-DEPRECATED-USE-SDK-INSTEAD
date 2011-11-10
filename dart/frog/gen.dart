@@ -360,7 +360,7 @@ function $inherits(child, parent) {
   List _orderValues(Map map) {
     // TODO(jmesserly): should we copy the list?
     // Right now, the Maps are returning a copy already.
-    List values = map.getValues();
+    final values = map.getValues();
     values.sort(_compareMembers);
     return values;
   }
@@ -572,8 +572,7 @@ class MethodGenerator implements TreeVisitor {
     // For named lambdas, add the name to this scope so we can call it
     // recursively.
     if (enclosingMethod != null && method.name != '') {
-      MethodMember m = method; // lambdas must be MethodMembers
-      _scope.create(m.name, m.functionType, m.definition);
+       _scope.create(method.name, method.functionType, method.definition);
     }
     _usedTemps = new Set();
     _freeTemps = [];
@@ -716,19 +715,16 @@ class MethodGenerator implements TreeVisitor {
 
     _provideOptionalParamInfo(defWriter);
 
-    if (method is MethodMember) {
-      MethodMember m = method;
-      if (m._providePropertySyntax) {
-        defWriter.enterBlock('${m.declaringType.jsname}.prototype'
-            + '.get\$${m.jsname} = function() {');
-        // TODO(jimhug): Bind not available in older Safari, need fallback?
-        defWriter.writeln('return ${m.declaringType.jsname}.prototype.'
-            + '${m.jsname}.bind(this);');
-        defWriter.exitBlock('}');
+    if (method is MethodMember && method._providePropertySyntax) {
+      defWriter.enterBlock(
+        '${method.declaringType.jsname}.prototype.get\$${method.jsname} = function() {');
+      // TODO(jimhug): Bind not availabe in Safari, need fallback.
+      defWriter.writeln(
+        'return ${method.declaringType.jsname}.prototype.${method.jsname}.bind(this);');
+      defWriter.exitBlock('}');
 
-        if (m._provideFieldSyntax) {
-          world.internalError('bound m accessed with field syntax');
-        }
+      if (method._provideFieldSyntax) {
+        world.internalError('bound method accessed with field syntax');
       }
     }
   }
@@ -739,35 +735,32 @@ class MethodGenerator implements TreeVisitor {
    * generated to support run time stub creation.
    */
   _provideOptionalParamInfo(CodeWriter defWriter) {
-    if (method is MethodMember) {
-      MethodMember meth = method;
-      if (meth._provideOptionalParamInfo) {
-        var optNames = [];
-        var optValues = [];
-        meth.genParameterValues();
-        for (var param in meth.parameters) {
-          if (param.isOptional) {
-            optNames.add(param.name);
-            optValues.add(_escapeString(param.value.code));
-          }
+    if (method is MethodMember && method._provideOptionalParamInfo) {
+      var optNames = [];
+      var optValues = [];
+      method.genParameterValues();
+      for (var param in method.parameters) {
+        if (param.isOptional) {
+          optNames.add(param.name);
+          optValues.add(_escapeString(param.value.code));
         }
-        if (optNames.length > 0) {
-          // TODO(jmesserly): the logic for how to refer to
-          // static/instance/top-level members is duplicated all over the place.
-          // Badly needs cleanup.
-          var start = '';
-          if (meth.isStatic) {
-            if (!meth.declaringType.isTop) {
-              start = meth.declaringType.jsname + '.';
-            }
-          } else {
-            start = meth.declaringType.jsname + '.prototype.';
+      }
+      if (optNames.length > 0) {
+        // TODO(jmesserly): the logic for how to refer to
+        // static/instance/top-level members is duplicated all over the place.
+        // Badly needs cleanup.
+        var start = '';
+        if (method.isStatic) {
+          if (!method.declaringType.isTop) {
+            start = method.declaringType.jsname + '.';
           }
+        } else {
+          start = method.declaringType.jsname + '.prototype.';
+        }
 
-          optNames.addAll(optValues);
-          var optional = "['" + Strings.join(optNames, "', '") + "']";
-          defWriter.writeln('${start}${meth.jsname}.\$optional = $optional');
-        }
+        optNames.addAll(optValues);
+        var optional = "['" + Strings.join(optNames, "', '") + "']";
+        defWriter.writeln('${start}${method.jsname}.\$optional = $optional');
       }
     }
   }
@@ -974,8 +967,7 @@ class MethodGenerator implements TreeVisitor {
   /** Visits [body] without creating a new block for a [BlockStatement]. */
   bool visitStatementsInBlock(Statement body) {
     if (body is BlockStatement) {
-      BlockStatement block = body;
-      for (var stmt in block.body) {
+      for (var stmt in body.body) {
         stmt.visit(this);
       }
     } else {
@@ -1542,27 +1534,26 @@ class MethodGenerator implements TreeVisitor {
     var position = node.target;
     var name = '\$call';
     if (node.target is DotExpression) {
-      DotExpression dot = node.target;
-      target = dot.self.visit(this);
-      name = dot.name.name;
-      position = dot.name;
+      target = node.target.self.visit(this);
+      name = node.target.name.name;
+      position = node.target.name;
     } else if (node.target is VarExpression) {
-      VarExpression varExpr = node.target;
-      name = varExpr.name.name;
+      name = node.target.name.name;
       var meth = method.declaringType.resolveMember(name);
       if (meth != null) {
         target = _makeThisOrType();
-        return meth.invoke(this, varExpr, target,
+        return meth.invoke(this, node.target, target,
             _makeArgs(node.arguments));
       }
       // Look for members of the top-level type (or imported libs).
-      meth = method.declaringType.library.lookup(name, varExpr.span);
+      meth = method.declaringType.library.lookup(name, node.target.span);
       if (meth != null) {
-        return meth.invoke(this, varExpr, null, _makeArgs(node.arguments));
+        return meth.invoke(this, node.target, null,
+            _makeArgs(node.arguments));
       }
 
       name = '\$call';
-      target = varExpr.visit(this);
+      target = node.target.visit(this);
     } else {
       target = node.target.visit(this);
     }

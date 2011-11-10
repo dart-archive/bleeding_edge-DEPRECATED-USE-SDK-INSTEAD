@@ -11,7 +11,7 @@ class LibraryImport {
 /** Represents a Dart library. */
 class Library {
   final SourceFile baseSource;
-  Map<String, DefinedType> types;
+  Map<String, Type> types;
   List<LibraryImport> imports;
   String sourceDir;
   String name;
@@ -121,7 +121,7 @@ class Library {
   }
 
   /** Adds a type to the library. */
-  DefinedType addType(String name, Node definition, bool isClass) {
+  Type addType(String name, Node definition, bool isClass) {
     if (types.containsKey(name)) {
       var existingType = types[name];
       if (isCore && existingType.definition == null) {
@@ -251,7 +251,7 @@ class Library {
 
 class _LibraryVisitor implements TreeVisitor {
   final Library library;
-  DefinedType currentType;
+  Type currentType;
   List<SourceFile> sources;
 
   bool seenImport = false;

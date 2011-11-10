@@ -27,7 +27,6 @@ class Definition extends Statement {
   Definition(SourceSpan span): super(span) {}
 
   List<TypeParameter> get typeParameters() => null;
-  String get nativeType() => null;
 }
 
 /** The base type for statements. */
