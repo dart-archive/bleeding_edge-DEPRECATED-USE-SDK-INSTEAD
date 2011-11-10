@@ -1,17 +1,34 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// TODO(rnystrom): This is moving from a sample to being a real project. Right
+// now, to try this out:
+// 1. Compile interact.dart to JS:
+//    $ ./frogsh --out=docs/interact.js --compile-only docs/interact.dart
+// 2. Run the doc generator:
+//    $ ./frogsh samples/doc.dart
+// 3. Look at the results in frog/docs/
+
+/** An awesome documentation generator. */
+#library('doc');
+
 #import('../lang.dart');
 #import('../file_system_node.dart');
+#import('classify.dart');
 
 /** Path to starting library or application. */
-final libPath = '../client/samples/swarm/swarm.dart';
+// TODO(rnystrom): Make this a command-line arg.
+final libPath = 'samples/doc.dart';
 
 /** Path to corePath library. */
 final corePath = 'lib';
 
 /** Path to generate html files into. */
 final outdir = './docs';
+
+/** Special comment position used to store the library-level doc comment. */
+final _libraryDoc = -1;
 
 /** The file currently being written to. */
 StringBuffer _file;
@@ -81,46 +98,138 @@ sanitize(String name) => name.replaceAll(':', '_').replaceAll('/', '_');
 
 docIndex(List<Library> libraries) {
   startFile();
-  writeln('<html><head><title>Index</title></head>');
-  writeln('<body>');
-  for (var library in libraries) {
-    writeln('<a href="${sanitize(library.name)}.html">${library.name}</a>');
+  // TODO(rnystrom): Need to figure out what this should look like.
+  writeln(
+      '''
+      <html><head>
+      <title>Index</title>
+      <link rel="stylesheet" type="text/css" href="styles.css" />
+      </head>
+      <body>
+      <div class="content">
+      <ul>
+      ''');
+
+  var sorted = new List<Library>.from(libraries);
+  sorted.sort((a, b) => a.name.compareTo(b.name));
+
+  for (var library in sorted) {
+    writeln(
+        '''
+        <li><a href="${sanitize(library.name)}.html">
+            Library ${library.name}</a>
+        </li>
+        ''');
   }
-  writeln('</body></html>');
+
+  writeln(
+      '''
+      </ul>
+      </div>
+      </body></html>
+      ''');
+
   endFile('$outdir/index.html');
 }
 
 docLibrary(Library library) {
   startFile();
-  writeln('<html><head><title>${library.name}</title></head>');
-  writeln('<body>');
-  writeln('<h1>Library ${library.name}</h1>');
+  writeln(
+      '''
+      <html>
+      <head>
+      <title>${library.name}</title>
+      <link rel="stylesheet" type="text/css" href="styles.css" />
+      <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+      <script src="interact.js"></script>
+      </head>
+      <body>
+      <div class="content">
+      <h1>Library <strong>${library.name}</strong></h1>
+      ''');
 
-  for (var type in library.types.getValues()) {
-    // TODO(rnystrom): The unnamed type is the container of top-level
-    // definitions. Should eventually include those in generated docs.
-    if (type.name == null) continue;
+  bool needsSeparator = false;
 
-    docType(type);
+  // Look for a comment for the entire library.
+  final comment = findCommentInFile(library.baseSource, _libraryDoc);
+  if (comment != null) {
+    writeln('<div class="doc"><p>$comment</p></div>');
+    needsSeparator = true;
   }
 
-  // TODO(rnystrom): Need to figure out where the doc comment for an entire
-  // library goes. Before the #library()?
+  for (var type in library.types.getValues()) {
+    if (needsSeparator) writeln('<hr/>');
+    if (docType(type)) needsSeparator = false;
+  }
 
-  writeln('</body></html>');
+  writeln(
+      '''
+      </div>
+      </body></html>
+      ''');
+
   endFile('$outdir/${sanitize(library.name)}.html');
 }
 
-docType(Type type) {
-  write('<h2 id="${type.name}">${type.isClass ? "Class" : "Interface"} ');
-  write('${type.name}</h2>');
+/**
+ * Documents [Type]. Handles top-level members if given an unnamed Type.
+ * Returns [:true:] if it wrote anything.
+ */
+bool docType(Type type) {
+  bool wroteSomething = false;
 
-  writeComment(type.span);
+  if (type.name != null) {
+    write(
+        '''
+        <h2 id="${type.name}">
+          ${type.isClass ? "Class" : "Interface"} <strong>${type.name}</strong>
+          <a class="anchor-link" href="#${type.name}"
+              title="Permalink to ${type.name}">#</a>
+        </h2>
+        ''');
 
+    docInheritance(type);
+    docCode(type.span);
+    docConstructors(type);
+
+    wroteSomething = true;
+  }
+
+  // Collect the different kinds of members.
+  var methods = [];
+  var fields = [];
+
+  for (var member in orderValuesByKeys(type.members)) {
+    if (member.isMethod &&
+        (member.definition != null) &&
+        !member.name.startsWith('_')) {
+      methods.add(member);
+    } else if (member.isProperty) {
+      if (member.canGet) methods.add(member.getter);
+      if (member.canSet) methods.add(member.setter);
+    } else if (member.isField && !member.name.startsWith('_')) {
+      fields.add(member);
+    }
+  }
+
+  if (methods.length > 0) {
+    writeln('<h3>Methods</h3>');
+    for (var method in methods) docMethod(type.name, method);
+  }
+
+  if (fields.length > 0) {
+    writeln('<h3>Fields</h3>');
+    for (var field in fields) docField(type.name, field);
+  }
+
+  return wroteSomething || methods.length > 0 || fields.length > 0;
+}
+
+/** Document the superclass and superinterfaces of [Type]. */
+docInheritance(Type type) {
   // Show the superclass and superinterface(s).
-  if (type.parent != null ||
+  if ((type.parent != null) && (type.parent.isObject) ||
       (type.interfaces != null && type.interfaces.length > 0)) {
-    writeln('<h3>Inheritance</h3>');
     writeln('<p>');
 
     if (type.parent != null) {
@@ -155,47 +264,42 @@ docType(Type type) {
           }
           write('.');
           break;
-        }
       }
     }
-
-  writeln('<h3>Constructors</h3>');
-  writeln('<dl>');
-  for (var name in type.constructors.getKeys()) {
-    var constructor = type.constructors[name];
-    docMethod(constructor, namedConstructor: name);
   }
-  writeln('</dl>');
-
-  writeln('<h3>Members</h3>');
-  writeln('<dl>');
-  for (var member in orderValuesByKeys(type.members)) {
-    if (member.isMethod &&
-        (member.definition != null) &&
-        !member.name.startsWith('_')) {
-      docMethod(member);
-    } else if (member.isProperty) {
-      if (member.canGet) docMethod(member.getter);
-      if (member.canSet) docMethod(member.setter);
-    }
-  }
-  writeln('</dl>');
-
-  writeln('<h3>Fields</h3>');
-  writeln('<dl>');
-  for (var member in type.members.getValues()) {
-    if (!member.isField) continue;
-    if (member.name.startsWith('_')) continue; // Skip privates
-    docField(member);
-  }
-  writeln('</dl>');
 }
 
-docMethod(MethodMember method, [String namedConstructor = null]) {
-  write('<dt><code>');
+/** Document the constructors for [Type], if any. */
+docConstructors(Type type) {
+  if (type.constructors.length > 0) {
+    writeln('<h3>Constructors</h3>');
+    for (var name in type.constructors.getKeys()) {
+      var constructor = type.constructors[name];
+      docMethod(type.name, constructor, namedConstructor: name);
+    }
+  }
+}
 
-  if (method.isStatic) {
+/**
+ * Documents the [method] in a type named [typeName]. Handles all kinds of
+ * methods including getters, setters, and constructors.
+ */
+docMethod(String typeName, MethodMember method,
+    [String namedConstructor = null]) {
+  writeln(
+      '''
+      <div class="method"><h4 id="$typeName.${method.name}">
+        <span class="show-code">Code</span>
+      ''');
+
+  // A null typeName means it's a top-level definition which is implicitly
+  // static so doesn't need to annotate it.
+  if (method.isStatic && (typeName != null)) {
     write('static ');
+  }
+
+  if (method.isConstructor) {
+    write(method.isConst ? 'const ' : 'new ');
   }
 
   if (namedConstructor == null) {
@@ -220,7 +324,7 @@ docMethod(MethodMember method, [String namedConstructor = null]) {
     }
   }
 
-  write(name);
+  write('<strong>$name</strong>');
 
   // Named constructors.
   if (namedConstructor != null && namedConstructor != '') {
@@ -236,15 +340,27 @@ docMethod(MethodMember method, [String namedConstructor = null]) {
   }
   write(Strings.join(paramList, ", "));
   write(')');
-  write('</code></dt><dd>');
 
-  writeComment(method.span);
-  writeln('</dd>');
+  write(''' <a class="anchor-link" href="#$typeName.${method.name}"
+            title="Permalink to $typeName.$name">#</a>''');
+  writeln('</h4>');
+
+  docCode(method.span, showCode: true);
+
+  writeln('</div>');
 }
 
-docField(FieldMember field) {
-  write('<dt><code>');
-  if (field.isStatic) {
+/** Documents the field [field] in a type named [typeName]. */
+docField(String typeName, FieldMember field) {
+  writeln(
+      '''
+      <div class="field"><h4 id="$typeName.${field.name}">
+        <span class="show-code">Code</span>
+      ''');
+
+  // A null typeName means it's a top-level definition which is implicitly
+  // static so doesn't need to annotate it.
+  if (field.isStatic && (typeName != null)) {
     write('static ');
   }
 
@@ -255,13 +371,22 @@ docField(FieldMember field) {
   }
 
   write(optionalTypeRef(field.type));
-  write('${field.name}');
-  write('</code></dt><dd>');
+  write(
+      '''
+      <strong>${field.name}</strong> <a class="anchor-link"
+          href="#$typeName.${field.name}"
+          title="Permalink to $typeName.${field.name}">#</a>
+      </h4>
+      ''');
 
-  writeComment(field.span);
-  writeln('</dd>');
+  docCode(field.span, showCode: true);
+  writeln('</div>');
 }
 
+/**
+ * Writes a type annotation for [type]. Will hyperlink it to that type's
+ * documentation if possible.
+ */
 typeRef(Type type) {
   if (type.library != null) {
     var library = sanitize(type.library.name);
@@ -283,22 +408,39 @@ optionalTypeRef(Type type) {
   }
 }
 
-writeComment(SourceSpan span) {
+/**
+ * Documents the code contained within [span]. Will include the previous
+ * Dartdoc associated with that span if found, and will include the syntax
+ * highlighted code itself if desired.
+ */
+docCode(SourceSpan span, [bool showCode = false]) {
+  if (span == null) return;
+
+  writeln('<div class="doc">');
   var comment = findComment(span);
   if (comment != null) {
     writeln('<p>$comment</p>');
   }
+
+  if (showCode) {
+    writeln('<pre class="source">');
+    write(formatCode(span));
+    writeln('</pre>');
+  }
+
+  writeln('</div>');
 }
 
 /** Finds the doc comment preceding the given source span, if there is one. */
-findComment(SourceSpan span) {
-  if (span == null) return null;
+findComment(SourceSpan span) => findCommentInFile(span.file, span.start);
 
+/** Finds the doc comment preceding the given source span, if there is one. */
+findCommentInFile(SourceFile file, int position) {
   // Get the doc comments for this file.
-  var fileComments = _comments.putIfAbsent(span.file.filename,
-    () => parseDocComments(span.file));
+  var fileComments = _comments.putIfAbsent(file.filename,
+    () => parseDocComments(file));
 
-  return fileComments[span.start];
+  return fileComments[position];
 }
 
 parseDocComments(SourceFile file) {
@@ -306,6 +448,7 @@ parseDocComments(SourceFile file) {
 
   var tokenizer = new Tokenizer(file, false);
   var lastComment = null;
+
   while (true) {
     var token = tokenizer.next();
     if (token.kind == TokenKind.END_OF_FILE) break;
@@ -315,6 +458,15 @@ parseDocComments(SourceFile file) {
       if (text.startsWith('/**')) {
         // Remember that we've encountered a doc comment.
         lastComment = stripComment(token.text);
+      }
+    } else if (token.kind == TokenKind.WHITESPACE) {
+      // Ignore whitespace tokens.
+    } else if (token.kind == TokenKind.HASH) {
+      // Look for #library() to find the library comment.
+      var next = tokenizer.next();
+      if ((lastComment != null) && (next.kind == TokenKind.LIBRARY)) {
+        comments[_libraryDoc] = lastComment;
+        lastComment = null;
       }
     } else {
       if (lastComment != null) {
@@ -327,6 +479,41 @@ parseDocComments(SourceFile file) {
   }
 
   return comments;
+}
+
+/**
+ * Takes a string of Dart code and turns it into sanitized HTML.
+ */
+formatCode(SourceSpan span) {
+  // Remove leading indentation to line up with first line.
+  var column = getSpanColumn(span);
+  var lines = span.text.split('\n');
+  // TODO(rnystrom): Dirty hack.
+  for (int i = 1; i < lines.length; i++) {
+    lines[i] = unindent(lines[i], column);
+  }
+
+  var code = Strings.join(lines, '\n');
+
+  // Syntax highlight.
+  return classifySource(new SourceFile('', code));
+}
+
+// TODO(rnystrom): Move into SourceSpan?
+int getSpanColumn(SourceSpan span) {
+  var line = span.file.getLine(span.start);
+  return span.file.getColumn(line, span.start);
+}
+
+/** Removes up to [indentation] leading whitespace characters from [text]. */
+unindent(String text, int indentation) {
+  var start;
+  for (start = 0; start < Math.min(indentation, text.length); start++) {
+    // Stop if we hit a non-whitespace character.
+    if (text[start] != ' ') break;
+  }
+
+  return text.substring(start);
 }
 
 /**

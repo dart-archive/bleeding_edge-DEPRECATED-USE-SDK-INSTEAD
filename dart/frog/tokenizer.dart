@@ -110,7 +110,11 @@ class TokenizerBase extends TokenizerHelpers {
     while (_index < _text.length) {
       if (!isWhitespace(_text.charCodeAt(_index++))) {
         _index--;
-        return next();
+        if (_skipWhitespace) {
+          return next();
+        } else {
+          return _finishToken(TokenKind.WHITESPACE);
+        }
       }
     }
     return _finishToken(TokenKind.END_OF_FILE);
