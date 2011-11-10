@@ -9170,7 +9170,7 @@ HInstructionStringifier.prototype.visitIf = function(node) {
   var conditionId = this.temporaryId((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   return ("If (" + conditionId + "): (B" + thenBlock.id + ") else (B" + elseBlock.id + ")");
 }
-HInstructionStringifier.prototype.visitInvoke = function(invoke) {
+HInstructionStringifier.prototype.visitGenericInvoke = function(invokeType, invoke) {
   var $0;
   var arguments = new StringBufferImpl("");
   for (var i = 0;
@@ -9178,7 +9178,13 @@ HInstructionStringifier.prototype.visitInvoke = function(invoke) {
     if ($notnull_bool(i != 0)) arguments.add(", ");
     arguments.add(this.temporaryId((($0 = invoke.inputs.$index(i)) && $0.is$HInstruction())));
   }
-  return ("Invoke: " + invoke.selector + "(" + arguments + ")");
+  return ("" + invokeType + ": " + invoke.selector + "(" + arguments + ")");
+}
+HInstructionStringifier.prototype.visitInvoke = function(invoke) {
+  return this.visitGenericInvoke("Invoke", invoke);
+}
+HInstructionStringifier.prototype.visitInvokeForeign = function(invoke) {
+  return this.visitGenericInvoke("InvokeForeign", invoke);
 }
 HInstructionStringifier.prototype.visitLiteral = function(literal) {
   return ("Literal " + literal.value + "");

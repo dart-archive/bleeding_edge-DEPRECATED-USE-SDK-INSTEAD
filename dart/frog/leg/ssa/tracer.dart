@@ -169,13 +169,21 @@ class HInstructionStringifier implements HVisitor<String> {
     return "If ($conditionId): (B${thenBlock.id}) else (B${elseBlock.id})";
   }
 
-  String visitInvoke(HInvoke invoke) {
+  String visitGenericInvoke(String invokeType, HInvoke invoke) {
     StringBuffer arguments = new StringBuffer();
     for (int i = 0; i < invoke.inputs.length; i++) {
       if (i != 0) arguments.add(", ");
       arguments.add(temporaryId(invoke.inputs[i]));
     }
-    return "Invoke: ${invoke.selector}($arguments)";
+    return "$invokeType: ${invoke.selector}($arguments)";    
+  }
+
+  String visitInvoke(HInvoke invoke) {
+    return visitGenericInvoke("Invoke", invoke);
+  }
+
+  String visitInvokeForeign(HInvokeForeign invoke) {
+    return visitGenericInvoke("InvokeForeign", invoke);
   }
 
   String visitLiteral(HLiteral literal) => "Literal ${literal.value}";
