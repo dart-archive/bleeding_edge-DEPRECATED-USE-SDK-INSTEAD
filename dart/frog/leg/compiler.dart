@@ -80,17 +80,21 @@ class Compiler implements Canceler, Logger {
     scanCoreLibrary();
     scanner.scan(script);
     while (!worklist.isEmpty()) {
-      SourceString name = worklist.removeLast();
-      Element element = universe.find(name);
-      if (element === null) cancel('Could not find $name');
-      Node tree = parser.parse(element);
-      Map<Node, Element> elements = resolver.resolve(tree);
-      checker.check(tree, elements);
-      HGraph graph = builder.build(tree, elements);
-      optimizer.optimize(graph);
-      String code = generator.generate(tree, graph);
-      universe.addGeneratedCode(element, code);
+      compileMethod(worklist.removeLast());
     }
+  }
+
+  String compileMethod(SourceString name) {
+    Element element = universe.find(name);
+    if (element === null) cancel('Could not find $name');
+    Node tree = parser.parse(element);
+    Map<Node, Element> elements = resolver.resolve(tree);
+    checker.check(tree, elements);
+    HGraph graph = builder.build(tree, elements);
+    optimizer.optimize(graph);
+    String code = generator.generate(tree, graph);
+    universe.addGeneratedCode(element, code);
+    return code;
   }
 
   String getGeneratedCode() {
@@ -108,7 +112,7 @@ class Compiler implements Canceler, Logger {
     return buffer.toString();
   }
 
-  abstract reportWarning(Node node, String message);
+  reportWarning(Node node, String message) {}
 }
 
 class CompilerTask {

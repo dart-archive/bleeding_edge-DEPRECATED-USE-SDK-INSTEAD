@@ -9334,17 +9334,20 @@ Compiler.prototype.runCompiler = function() {
   this.scanCoreLibrary();
   this.scanner.scan(this.script);
   while ($notnull_bool(!$notnull_bool(this.worklist.isEmpty()))) {
-    var name = (($0 = this.worklist.removeLast()) && $0.is$SourceString());
-    var element = this.universe.find(name);
-    if ($notnull_bool(element == null)) this.cancel(('Could not find ' + name + ''));
-    var tree = this.parser.parse(element);
-    var elements = this.resolver.resolve(tree);
-    this.checker.check(tree, elements);
-    var graph = this.builder.build(tree, elements);
-    this.optimizer.optimize(graph);
-    var code = this.generator.generate(tree, graph);
-    this.universe.addGeneratedCode(element, code);
+    this.compileMethod((($0 = this.worklist.removeLast()) && $0.is$SourceString()));
   }
+}
+Compiler.prototype.compileMethod = function(name) {
+  var element = this.universe.find(name);
+  if ($notnull_bool(element == null)) this.cancel(('Could not find ' + name + ''));
+  var tree = this.parser.parse(element);
+  var elements = this.resolver.resolve(tree);
+  this.checker.check(tree, elements);
+  var graph = this.builder.build(tree, elements);
+  this.optimizer.optimize(graph);
+  var code = this.generator.generate(tree, graph);
+  this.universe.addGeneratedCode(element, code);
+  return code;
 }
 Compiler.prototype.getGeneratedCode = function() {
   var $0;
@@ -9361,6 +9364,9 @@ Compiler.prototype.getGeneratedCode = function() {
   }
   buffer.add('main();\n');
   return buffer.toString();
+}
+Compiler.prototype.reportWarning = function(node, message) {
+
 }
 // ********** Code for CompilerTask **************
 function CompilerTask(compiler) {
