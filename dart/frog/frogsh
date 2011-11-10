@@ -18501,7 +18501,7 @@ ConcreteType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return this.genericType.getOrMakeConcreteType(typeArgs);
 }
 ConcreteType.prototype.get$parent = function() {
-  return this.genericType.parent;
+  return this.genericType.get$parent();
 }
 ConcreteType.prototype.get$interfaces = function() {
   if ($notnull_bool(this._interfaces == null && this.genericType.interfaces != null)) {
@@ -18612,8 +18612,12 @@ DefinedType.prototype.get$definition = function() { return this.definition; };
 DefinedType.prototype.set$definition = function(value) { return this.definition = value; };
 DefinedType.prototype.get$library = function() { return this.library; };
 DefinedType.prototype.get$isClass = function() { return this.isClass; };
-DefinedType.prototype.get$parent = function() { return this.parent; };
-DefinedType.prototype.set$parent = function(value) { return this.parent = value; };
+DefinedType.prototype.get$parent = function() {
+  return this._parent;
+}
+DefinedType.prototype.set$parent = function(p) {
+  return this._parent = p;
+}
 DefinedType.prototype.get$interfaces = function() { return this.interfaces; };
 DefinedType.prototype.set$interfaces = function(value) { return this.interfaces = value; };
 DefinedType.prototype.get$typeParameters = function() { return this.typeParameters; };
@@ -18629,7 +18633,7 @@ DefinedType.prototype.set$isUsed = function(value) { return this.isUsed = value;
 DefinedType.prototype.get$isNativeType = function() { return this.isNativeType; };
 DefinedType.prototype.set$isNativeType = function(value) { return this.isNativeType = value; };
 DefinedType.prototype.setDefinition = function(def) {
-  $assert(this.definition == null, "definition == null", "type.dart", 558, 12);
+  $assert(this.definition == null, "definition == null", "type.dart", 563, 12);
   this.definition = def;
   if ($notnull_bool((this.definition instanceof TypeDefinition) && this.definition.get$nativeType() != null)) {
     this.isNativeType = true;
@@ -18710,7 +18714,7 @@ DefinedType.prototype.markUsed = function() {
     }
     this._lazyGenMethods = null;
   }
-  if ($notnull_bool(this.parent != null)) this.parent.markUsed();
+  if ($notnull_bool(this.get$parent() != null)) this.get$parent().markUsed();
 }
 DefinedType.prototype.genMethod = function(method) {
   if ($notnull_bool(this.isUsed)) {
@@ -18736,7 +18740,7 @@ DefinedType.prototype._resolveInterfaces = function(types) {
   return interfaces;
 }
 DefinedType.prototype.addDirectSubtype = function(type) {
-  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 674, 12);
+  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 679, 12);
   this.directSubtypes.add(type);
 }
 DefinedType.prototype.get$subtypes = function() {
@@ -18755,7 +18759,7 @@ DefinedType.prototype.get$subtypes = function() {
 DefinedType.prototype._cycleInClassExtends = function() {
   var seen = new HashSetImplementation();
   seen.add(this);
-  var ancestor = this.parent;
+  var ancestor = this.get$parent();
   while ($notnull_bool($ne(ancestor, null))) {
     if ($notnull_bool(ancestor === this)) {
       return true;
@@ -18808,20 +18812,20 @@ DefinedType.prototype.resolve = function() {
         var extendsTypeRef = typeDef.extendsTypes.$index(0);
         if ($notnull_bool((extendsTypeRef instanceof GenericTypeReference))) {
           var g = (extendsTypeRef && extendsTypeRef.is$GenericTypeReference());
-          this.parent = this.resolveType(g.baseType, true);
+          this.set$parent(this.resolveType(g.baseType, true));
         }
-        this.parent = this.resolveType((extendsTypeRef && extendsTypeRef.is$TypeReference()), true);
-        if ($notnull_bool(!$notnull_bool(this.parent.get$isClass()))) {
+        this.set$parent(this.resolveType((extendsTypeRef && extendsTypeRef.is$TypeReference()), true));
+        if ($notnull_bool(!$notnull_bool(this.get$parent().get$isClass()))) {
           world.error('class may not extend an interface - use implements', typeDef.extendsTypes.$index(0).get$span());
         }
-        this.parent.addDirectSubtype(this);
+        this.get$parent().addDirectSubtype(this);
         if ($notnull_bool(this._cycleInClassExtends())) {
           world.error(('class "' + this.name + '" has a cycle in its inheritance chain'), extendsTypeRef.get$span());
         }
       }
       else {
         if ($notnull_bool(!$notnull_bool(this.get$isObject()))) {
-          this.parent = world.objectType;
+          this.set$parent(world.objectType);
         }
       }
       this.interfaces = this._resolveInterfaces(typeDef.implementsTypes);
@@ -19005,8 +19009,8 @@ DefinedType.prototype.getMember = function(memberName) {
 }
 DefinedType.prototype.getMemberInParents = function(memberName) {
   if ($notnull_bool(this.isClass)) {
-    if ($notnull_bool(this.parent != null)) {
-      return this.parent.getMember(memberName);
+    if ($notnull_bool(this.get$parent() != null)) {
+      return this.get$parent().getMember(memberName);
     }
     else if ($notnull_bool(this.get$isObject())) {
       if ($notnull_bool(memberName == '\$ne')) {
@@ -19164,7 +19168,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
   return this;
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
-  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1156, 12);
+  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1161, 12);
   var names = [this.name];
   var typeMap = $map([]);
   for (var i = 0;
@@ -19182,7 +19186,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return ret;
 }
 DefinedType.prototype.getCallStub = function(args) {
-  $assert(this.get$isFunction(), "isFunction", "type.dart", 1176, 12);
+  $assert(this.get$isFunction(), "isFunction", "type.dart", 1181, 12);
   var name = _getCallStubName('call', args);
   if ($notnull_bool(this.varStubs == null)) this.varStubs = $map([]);
   var stub = this.varStubs.$index(name);
@@ -20082,6 +20086,11 @@ function FrogOptions(homedir, args, files) {
       case '--verbose':
 
         this.showInfo = true;
+        continue loop;
+
+      case '--suppress_warnings':
+
+        this.showWarnings = false;
         continue loop;
 
       case '--throw_on_errors':

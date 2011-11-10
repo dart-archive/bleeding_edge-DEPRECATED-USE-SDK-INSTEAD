@@ -66,8 +66,13 @@ class Evaluator {
 
   _removeMember(String name) {
     _lib.topType._resolvedMembers.remove(name);
-    Member removed = _lib.topType.members.remove(name);
-    if (removed != null) world._topNames.remove(removed.jsname);
+    _lib.topType.members.remove(name);
+    // Don't rely on the existing member's jsname, because the existing member
+    // may be null but the jsname may still be defined. This can happen if
+    // multiple Evaluators are instantiated against the same world.
+    var jsname = '${_lib.jsname}_$name';
+    world._topNames.remove(name);
+    world._topNames.remove(jsname);
   }
 
   Evaluator(JsEvaluator this._jsEvaluator) {
@@ -79,6 +84,16 @@ class Evaluator {
     _lib = new Library(new SourceFile("_ifrog_", ""));
     _lib.imports.add(new LibraryImport(world.corelib));
     _lib.resolve();
+  }
+
+  void _ensureVariableDefined(Identifier name, [List<Token> modifiers = [],
+      TypeReference type = null]) {
+    var member = _lib.topType.getMember(name.name);
+    if (member is FieldMember || member is PropertyMember) return;
+    _removeMember(name.name);
+    _lib.topType.addField(
+        new VariableDefinition(modifiers, type, [name], [null], name.span));
+    _lib.topType.getMember(name.name).resolve(_lib.topType);
   }
 
   var eval(String dart) {
@@ -98,25 +113,21 @@ class Evaluator {
       // write "a = 1" rather than "var a = 1"
       if (body is BinaryExpression && body.op.kind == TokenKind.ASSIGN &&
           body.x is VarExpression) {
-        var name = body.x.name.name;
-        var member = _lib.topType.getMember(name);
-        if (member is! FieldMember && member is! PropertyMember) {
-          if (member != null) _removeMember(name);
-          var def = new VariableDefinition([], null, [body.x.name], [null],
-              parsed.span);
-          _lib.topType.addField(def);
-          _lib.topType.getMember(name).resolve(_lib.topType);
-        }
+        _ensureVariableDefined(body.x.dynamic.name);
       }
       code = body.visit(methGen).code;
+
     } else if (parsed is VariableDefinition) {
-      var emptyDef = new VariableDefinition(parsed.modifiers, parsed.type,
-          parsed.names, new List(parsed.names.length), parsed.span);
-      _lib.topType.addField(emptyDef);
-      parsed.names.forEach((n) =>
-          _lib.topType.getMember(n.name).resolve(_lib.topType));
-      parsed.visit(methGen);
+      var assignments = <Statement>[];
+      zip(parsed.names, parsed.values, (name, value) {
+        _ensureVariableDefined(name, parsed.modifiers, parsed.type);
+        var expr = new BinaryExpression(
+            new Token.fake(TokenKind.ASSIGN, parsed.span),
+            new VarExpression(name, name.span), value, parsed.span);
+        new ExpressionStatement(expr, parsed.span).visit(methGen);
+      });
       code = methGen.writer.text;
+
     } else if (parsed is FunctionDefinition) {
       var methodName = parsed.name.name;
       _removeMember(methodName);

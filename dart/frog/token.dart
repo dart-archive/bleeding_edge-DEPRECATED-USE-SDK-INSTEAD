@@ -17,6 +17,9 @@ class Token {
 
   Token(this.kind, this.source, this.start, this.end) {}
 
+  Token.fake(this.kind, span)
+    : this.source = span.file, this.start = span.start, this.end = span.end;
+
   /** Returns the source text corresponding to this [Token]. */
   String get text() {
     return source.text.substring(start, end);

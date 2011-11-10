@@ -41,7 +41,7 @@ List zip(Iterable left, Iterable right, mapper(left, right)) {
   var x = left.iterator();
   var y = right.iterator();
   while (x.hasNext() && y.hasNext()) {
-    result.add(mapper(x, y));
+    result.add(mapper(x.next(), y.next()));
   }
   if (x.hasNext() || y.hasNext()) {
     throw new IllegalArgumentException();

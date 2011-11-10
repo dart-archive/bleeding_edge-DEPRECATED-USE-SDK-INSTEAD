@@ -96,14 +96,13 @@ main() {
       Expect.equals(2, eval('1 + 1'));
     });
 
-    // TODO(nweiz): make this work
-    // test('allow "var" or not', () {
-    //   var ev = evaluator();
-    //   ev.eval('var a = 1');
-    //   Expect.equals(1, ev.eval('a'));
-    //   ev.eval('b = 2');
-    //   Expect.equals(2, ev.eval('b'));
-    // });
+    test('allow "var" or not', () {
+      var ev = evaluator();
+      ev.eval('var a = 1');
+      Expect.equals(1, ev.eval('a'));
+      ev.eval('b = 2');
+      Expect.equals(2, ev.eval('b'));
+    });
 
     // TODO(nweiz): make this work
     // test('parse maps with or without parentheses', () {
