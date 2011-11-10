@@ -12,6 +12,9 @@ class Value {
   /** The code to generate this value. */
   String code;
 
+  /** The source location that created this value for error messages. */
+  SourceSpan span;
+
   /** Is this a reference to super? */
   bool isSuper;
 
@@ -21,7 +24,7 @@ class Value {
   /** If we reference this value multiple times, do we need a temp? */
   bool needsTemp;
 
-  Value(this.type, this.code,
+  Value(this.type, this.code, this.span,
         // TODO(sigmund): reorder, so that needsTemp comes first.
         [this.isSuper = false, this.needsTemp = true, this.isType = false]) {
     if (type == null) type = world.varType;
@@ -30,36 +33,32 @@ class Value {
   /** Is this value a constant expression? */
   bool get isConst() => false;
 
-  // TODO(jimhug): These three methods are still a little too similar for me.
-  get_(MethodGenerator context, String name, Node node) {
-    var member = _resolveMember(context, name, node);
+  // TODO(jimhug): Fix these names once get/set are truly pseudo-keywords.
+  //   See issue #379.
+  Value get_(MethodGenerator context, String name, Node node) {
+    final member = _resolveMember(context, name, node);
     if (member != null) {
-      member = member.get_(context, node, this);
-    }
-    // member.get_ returns null if no signatures match the given node.
-    if (member != null) {
-      return member;
+      return member._get(context, node, this);
     } else {
       return invokeNoSuchMethod(context, 'get:$name', node);
     }
   }
 
-  set_(MethodGenerator context, String name, Node node, Value value,
+  Value set_(MethodGenerator context, String name, Node node, Value value,
       [bool isDynamic=false]) {
-    var member = _resolveMember(context, name, node, isDynamic);
+
+    final member = _resolveMember(context, name, node, isDynamic);
     if (member != null) {
-      member = member.set_(context, node, this, value, isDynamic);
-    }
-    // member.set_ returns null if no signatures match the given node.
-    if (member != null) {
-      return member;
+      return member._set(context, node, this, value, isDynamic);
     } else {
       return invokeNoSuchMethod(context, 'set:$name', node,
           new Arguments(null, [value]));
     }
   }
 
-  invoke(MethodGenerator context, String name, Node node, Arguments args,
+
+
+  Value invoke(MethodGenerator context, String name, Node node, Arguments args,
       [bool isDynamic=false]) {
     // TODO(jimhug): The != method is weird - understand it better.
     if (type.isVar && name == '\$ne') {
@@ -67,7 +66,7 @@ class Value {
         world.warning('wrong number of arguments for !=', node.span);
       }
       world.gen.corejs.useOperator('\$ne');
-      return new Value(null, '\$ne($code, ${args.values[0].code})');
+      return new Value(null, '\$ne($code, ${args.values[0].code})', node.span);
     }
 
     // TODO(jmesserly): it'd be nice to remove these special cases
@@ -124,6 +123,14 @@ class Value {
     }
   }
 
+  _tryResolveMember(MethodGenerator context, String name) {
+    if (isSuper) {
+      return type.getMember(name);
+    } else {
+      return type.resolveMember(name);
+    }
+  }
+
   // TODO(jimhug): Better type here - currently is union(Member, MemberSet)
   _resolveMember(MethodGenerator context, String name, Node node,
         [bool isDynamic=false]) {
@@ -132,11 +139,7 @@ class Value {
     // ParameterType as "var".
     var member;
     if (!type.isVar && type is! ParameterType) {
-      if (isSuper) {
-        member = type.getMember(name);
-      } else {
-        member = type.resolveMember(name);
-      }
+      member = _tryResolveMember(context, name);
 
       if (member != null && isType && !member.isStatic) {
         if (!isDynamic) {
@@ -180,7 +183,7 @@ class Value {
     // which normally happen on the caller side, or in the generated stub for
     // dynamic method calls. What should we do?
     var stub = world.functionType.getCallStub(args);
-    return new Value(null, '$code.${stub.name}(${args.getCode()})');
+    return new Value(null, '$code.${stub.name}(${args.getCode()})', span);
   }
 
   /** True if convertTo would generate a conversion. */
@@ -228,7 +231,7 @@ class Value {
       var myCall = type.getCallMethod();
       if (myCall == null || myCall.parameters.length != arity) {
         final stub = world.functionType.getCallStub(new Arguments.bare(arity));
-        var val = new Value(toType, 'to\$${stub.name}($code)');
+        var val = new Value(toType, 'to\$${stub.name}($code)', node.span);
         return _isDomCallback(toType) && !_isDomCallback(type) ?
             val._wrapDomCallback(toType, arity) : val;
       } else if (_isDomCallback(toType) && !_isDomCallback(type)) {
@@ -285,7 +288,7 @@ class Value {
         return this;
       } else {
         world.gen.corejs.useNotNullBool = true;
-        return new Value(world.boolType, '\$notnull_bool($code)');
+        return new Value(world.boolType, '\$notnull_bool($code)', span);
       }
     }
   }
@@ -296,7 +299,7 @@ class Value {
   }
 
   Value _wrapDomCallback(Type toType, int arity) {
-    return new Value(toType, '\$wrap_call\$$arity($code)');
+    return new Value(toType, '\$wrap_call\$$arity($code)', span);
   }
 
   /**
@@ -344,7 +347,7 @@ function \$assert_${toType.name}(x) {
       if (this != temp) context.freeTemp(temp);
     }
 
-    return new Value(toType, check);
+    return new Value(toType, check, span);
   }
 
   /**
@@ -401,7 +404,7 @@ function \$assert_${toType.name}(x) {
       }
       if (this != temp) context.freeTemp(temp);
     }
-    return new Value(world.boolType, testCode);
+    return new Value(world.boolType, testCode, span);
   }
 
   void convertWarning(Type toType, Node node) {
@@ -421,8 +424,8 @@ function \$assert_${toType.name}(x) {
       pos = Strings.join(argsCode, ", "); // don't remove trailing nulls
     }
     final noSuchArgs = [
-        new Value(world.stringType, '"$name"'),
-        new Value(world.listType, '[$pos]')];
+        new Value(world.stringType, '"$name"', node.span),
+        new Value(world.listType, '[$pos]', node.span)];
 
     // TODO(jmesserly): should be passing names but that breaks tests. Oh well.
     /*if (args != null && args.hasNames) {
@@ -451,11 +454,11 @@ function \$assert_${toType.name}(x) {
     // Most operator calls need to be emitted as function calls, so we don't
     // box numbers accidentally. Indexing is the exception.
     if (name == '\$index' || name == '\$setindex') {
-      return new Value(returnType, '$code.$name($argsString)');
+      return new Value(returnType, '$code.$name($argsString)', span);
     } else {
       if (argsString.length > 0) argsString = ', $argsString';
       world.gen.corejs.useOperator(name);
-      return new Value(returnType, '$name($code$argsString)');
+      return new Value(returnType, '$name($code$argsString)', span);
     }
   }
 }
@@ -476,21 +479,19 @@ class EvaluatedValue extends Value {
    */
   String canonicalCode;
 
-  /** Original span where this evaluated expression came from. */
-  SourceSpan original;
-
-  factory EvaluatedValue(type, actualValue, canonicalCode, original) {
+  factory EvaluatedValue(Type type, actualValue, String canonicalCode,
+      SourceSpan span) {
     return new EvaluatedValue._internal(type, actualValue,
-        canonicalCode, original, codeWithComments(canonicalCode, original));
+        canonicalCode, span, codeWithComments(canonicalCode, span));
   }
 
-  EvaluatedValue._internal(
-      type, this.actualValue, this.canonicalCode, this.original, code)
-      : super(type, code, false, false, false);
+  EvaluatedValue._internal(Type type, this.actualValue, this.canonicalCode,
+      SourceSpan span, String code)
+    : super(type, code, span, false, false, false);
 
-  static String codeWithComments(String canonicalCode, SourceSpan original) {
-    return (original != null && original.text != canonicalCode)
-        ? '$canonicalCode/*${original.text}*/' : canonicalCode;
+  static String codeWithComments(String canonicalCode, SourceSpan span) {
+    return (span != null && span.text != canonicalCode)
+        ? '$canonicalCode/*${span.text}*/' : canonicalCode;
   }
 }
 
@@ -499,14 +500,14 @@ class ConstListValue extends EvaluatedValue {
   List<EvaluatedValue> values;
 
   factory ConstListValue(Type type, List<EvaluatedValue> values,
-      String actualValue, String canonicalCode, SourceSpan original) {
+      String actualValue, String canonicalCode, SourceSpan span) {
     return new ConstListValue._internal(type, values, actualValue,
-        canonicalCode, original, codeWithComments(canonicalCode, original));
+        canonicalCode, span, codeWithComments(canonicalCode, span));
   }
 
   ConstListValue._internal(type, this.values,
-      actualValue, canonicalCode, original, code) :
-    super._internal(type, actualValue, canonicalCode, original, code);
+      actualValue, canonicalCode, span, code) :
+    super._internal(type, actualValue, canonicalCode, span, code);
 }
 
 /** An evaluated constant map expression. */
@@ -514,18 +515,18 @@ class ConstMapValue extends EvaluatedValue {
   Map<String, EvaluatedValue> values;
 
   factory ConstMapValue(Type type, List<EvaluatedValue> keyValuePairs,
-      String actualValue, String canonicalCode, SourceSpan original) {
+      String actualValue, String canonicalCode, SourceSpan span) {
     final values = new Map<String, EvaluatedValue>();
     for (int i = 0; i < keyValuePairs.length; i += 2) {
       values[keyValuePairs[i].actualValue] = keyValuePairs[i + 1];
     }
     return new ConstMapValue._internal(type, values, actualValue,
-        canonicalCode, original, codeWithComments(canonicalCode, original));
+        canonicalCode, span, codeWithComments(canonicalCode, span));
   }
 
   ConstMapValue._internal(type, this.values,
-      actualValue, canonicalCode, original, code) :
-    super._internal(type, actualValue, canonicalCode, original, code);
+      actualValue, canonicalCode, span, code) :
+    super._internal(type, actualValue, canonicalCode, span, code);
 }
 
 /** An evaluated constant object expression. */
@@ -534,7 +535,7 @@ class ConstObjectValue extends EvaluatedValue {
 
   factory ConstObjectValue(
       Type type, Map<String, EvaluatedValue> fields,
-      String canonicalCode, SourceSpan original) {
+      String canonicalCode, SourceSpan span) {
     // compute a unique-string form used to index this value in the global const
     // map. This is used to ensure that multiple const object values are
     // equivalent if they have the same type name and values on each field.
@@ -546,12 +547,12 @@ class ConstObjectValue extends EvaluatedValue {
     final actualValue = 'const ${type.jsname} ['
         + Strings.join(fieldValues, ',') + ']';
     return new ConstObjectValue._internal(type, fields, actualValue,
-        canonicalCode, original, codeWithComments(canonicalCode, original));
+        canonicalCode, span, codeWithComments(canonicalCode, span));
   }
 
   ConstObjectValue._internal(type, this.fields,
-      actualValue, canonicalCode, original, code) :
-    super._internal(type, actualValue, canonicalCode, original, code);
+      actualValue, canonicalCode, span, code) :
+    super._internal(type, actualValue, canonicalCode, span, code);
 
 }
 
@@ -578,9 +579,6 @@ class GlobalValue extends Value implements Comparable {
    */
   String canonicalCode;
 
-  /** Original span where this value came from. */
-  SourceSpan original;
-
   /** True for either cont expressions or a final static field. */
   bool get isConst() => exp.isConst && (field == null || field.isFinal);
 
@@ -590,27 +588,27 @@ class GlobalValue extends Value implements Comparable {
   /** Other globals that should be defined before this global. */
   List<GlobalValue> dependencies;
 
-  factory GlobalValue.fromStatic(field, exp, dependencies) {
+  factory GlobalValue.fromStatic(field, Value exp, dependencies) {
     var code = (exp.isConst ? exp.canonicalCode : exp.code);
     var codeWithComment = '$code/*${field.declaringType.name}.${field.name}*/';
     return new GlobalValue(
         exp.type, codeWithComment, field.isFinal, field, null, exp,
-        code, null, dependencies.filter((d) => d is GlobalValue));
+        code, exp.span, dependencies.filter((d) => d is GlobalValue));
   }
 
-  factory GlobalValue.fromConst(uniqueId, exp, dependencies) {
+  factory GlobalValue.fromConst(uniqueId, Value exp, dependencies) {
     var name = "const\$$uniqueId";
-    var codeWithComment = "$name/*${exp.original.text}*/";
+    var codeWithComment = "$name/*${exp.span.text}*/";
     return new GlobalValue(
         exp.type, codeWithComment, true, null, name, exp, name,
-        exp.original,
+        exp.span,
         dependencies.filter((d) => d is GlobalValue));
   }
 
-  GlobalValue(type, code, isConst,
+  GlobalValue(Type type, String code, bool isConst,
       this.field, this.name, this.exp, this.canonicalCode,
-      this.original, this.dependencies)
-      : super(type, code, false, !isConst, false);
+      SourceSpan span, this.dependencies)
+      : super(type, code, span, false, !isConst, false);
 
   int compareTo(GlobalValue other) {
     // order by dependencies, o.w. by name
@@ -633,5 +631,43 @@ class GlobalValue extends Value implements Comparable {
     } else {
       return field.name.compareTo(other.field.name);
     }
+  }
+}
+
+/**
+ * Represents the hidden or implicit value in a bare reference like 'a'.
+ * This could be this, the current type, or the current library for purposes
+ * of resolving members.
+ */
+class BareValue extends Value {
+  MethodGenerator home;
+
+  BareValue(this.home, MethodGenerator outermost, SourceSpan span):
+    super(outermost.method.declaringType, null, span, false, false,
+      outermost.isStatic);
+
+  _tryResolveMember(MethodGenerator context, String name) {
+    assert(context == home);
+
+    // First look for members directly defined on my type.
+    var member = type.resolveMember(name);
+    if (member != null) {
+      assert(code == null);
+      // TODO(jimhug): Lazy initialization here is weird!
+      if (isType) {
+        code = type.jsname;
+      } else {
+        code = home._makeThisCode();
+      }
+      return member;
+    }
+
+    // Then look for members in my library.
+    member = home.library.lookup(name, span);
+    if (member != null) {
+      return member;
+    }
+
+    return null;
   }
 }

@@ -14,7 +14,7 @@ class VarMember {
 
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args) {
     return new Value(returnType,
-      '${target.code}.$name(${args.getCode()})');
+      '${target.code}.$name(${args.getCode()})', node.span);
   }
 }
 
@@ -196,7 +196,7 @@ class VarMethodSet extends VarMember {
     for (var member in members) {
       // Invoke the member with the stub args (this gives us the method body),
       // then create the stub method.
-      final target = new Value(member.declaringType, 'this');
+      final target = new Value(member.declaringType, 'this', node.span);
       var result = member.invoke(context, node, target, args);
       var stub = new VarMethodStub(name, member, args, result);
 
@@ -211,7 +211,7 @@ class VarMethodSet extends VarMember {
     }
 
     // Finally, invoke noSuchMethod
-    final target = new Value(world.objectType, 'this');
+    final target = new Value(world.objectType, 'this', node.span);
     var result = target.invokeNoSuchMethod(context, baseName, node, args);
     var stub = new VarMethodStub(name, null, args, result);
     if (_fallbackStubs.length == 0) {

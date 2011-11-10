@@ -140,21 +140,22 @@ class Member implements Named {
 
   List<Parameter> get parameters() => [];
 
-  // TODO(jimhug): Fix these names once get/set are truly pseudo-keywords.
   // TODO(jmesserly): isDynamic isn't a great name for this, something better?
-  abstract Value get_(MethodGenerator context, Node node, Value target,
+  abstract Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic]);
 
-  abstract Value set_(MethodGenerator context, Node node, Value target,
+  abstract Value _set(MethodGenerator context, Node node, Value target,
       Value value, [bool isDynamic]);
 
   bool canInvoke(MethodGenerator context, Arguments args) {
-    return canGet && new Value(returnType, null).canInvoke(context, '\$call', args);
+    // TODO(jimhug): Needs better source location?
+    return canGet &&
+      new Value(returnType, null, null).canInvoke(context, '\$call', args);
   }
 
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
       [bool isDynamic=false]) {
-    var newTarget = get_(context, node, target, isDynamic);
+    var newTarget = _get(context, node, target, isDynamic);
     return newTarget.invoke(context, '\$call', node, args, isDynamic);
   }
 
@@ -217,14 +218,13 @@ class TypeMember extends Member {
 
   void resolve(Type inType) {}
 
-  Value get_(MethodGenerator context, Node node, Value target,
+  Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
-    assert(target == null || target.type.isTop);
     // TODO(jmesserly): named args
-    return new Value(type, type.jsname, false, false, true);
+    return new Value(type, type.jsname, node.span, false, false, true);
   }
 
-  Value set_(MethodGenerator context, Node node, Value target, Value value,
+  Value _set(MethodGenerator context, Node node, Value target, Value value,
       [bool isDynamic=false]) {
     world.error('can not set type', type.definition.span);
   }
@@ -367,7 +367,7 @@ class FieldMember extends Member {
     return _computedValue;
   }
 
-  Value get_(MethodGenerator context, Node node, Value target,
+  Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
     if (!isDynamic) {
       declaringType.markUsed();
@@ -380,9 +380,9 @@ class FieldMember extends Member {
         return cv;
       }
       if (declaringType.isTop) {
-        return new Value(type, '$jsname');
+        return new Value(type, '$jsname', node.span);
       } else {
-        return new Value(type, '${declaringType.jsname}.$jsname');
+        return new Value(type, '${declaringType.jsname}.$jsname', node.span);
       }
     } else if (target.isConst && isFinal) {
       // take advantage of consts and retrieve the value directly if possible
@@ -390,17 +390,17 @@ class FieldMember extends Member {
       if (constTarget is ConstObjectValue) {
         return constTarget.fields[name];
       } else if (constTarget.type == world.stringType && name == 'length') {
-        return new Value(type, '${constTarget.actualValue.length}');
+        return new Value(type, '${constTarget.actualValue.length}', node.span);
       }
     }
-    return new Value(type, '${target.code}.$jsname');
+    return new Value(type, '${target.code}.$jsname', node.span);
   }
 
-  Value set_(MethodGenerator context, Node node, Value target, Value value,
+  Value _set(MethodGenerator context, Node node, Value target, Value value,
       [bool isDynamic=false]) {
-    var lhs = get_(context, node, target, isDynamic);
+    var lhs = _get(context, node, target, isDynamic);
     value = value.convertTo(context, type, node, isDynamic);
-    return new Value(type, '${lhs.code} = ${value.code}');
+    return new Value(type, '${lhs.code} = ${value.code}', node.span);
   }
 }
 
@@ -452,22 +452,22 @@ class PropertyMember extends Member {
     }
   }
 
-  Value get_(MethodGenerator context, Node node, Value target,
+  Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
     if (getter == null) {
       if (_overriddenField != null) {
-        return _overriddenField.get_(context, node, target, isDynamic);
+        return _overriddenField._get(context, node, target, isDynamic);
       }
       return target.invokeNoSuchMethod(context, 'get:$name', node);
     }
     return getter.invoke(context, node, target, Arguments.EMPTY);
   }
 
-  Value set_(MethodGenerator context, Node node, Value target, Value value,
+  Value _set(MethodGenerator context, Node node, Value target, Value value,
       [bool isDynamic=false]) {
     if (setter == null) {
       if (_overriddenField != null) {
-        return _overriddenField.set_(context, node, target, value, isDynamic);
+        return _overriddenField._set(context, node, target, value, isDynamic);
       }
       return target.invokeNoSuchMethod(context, 'set:$name', node,
         new Arguments(null, [value]));
@@ -564,17 +564,17 @@ class ConcreteMember extends Member {
   // TODO(jimhug): Add support for type params.
   bool override(Member other) => baseMember.override(other);
 
-  Value get_(MethodGenerator context, Node node, Value target,
+  Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
-    Value ret = baseMember.get_(context, node, target, isDynamic);
-    return new Value(returnType, ret.code);
+    Value ret = baseMember._get(context, node, target, isDynamic);
+    return new Value(returnType, ret.code, node.span);
   }
 
-  Value set_(MethodGenerator context, Node node, Value target, Value value,
+  Value _set(MethodGenerator context, Node node, Value target, Value value,
       [bool isDynamic=false]) {
     // TODO(jimhug): Check arg types in context of concrete type.
-    Value ret = baseMember.set_(context, node, target, value, isDynamic);
-    return new Value(returnType, ret.code);
+    Value ret = baseMember._set(context, node, target, value, isDynamic);
+    return new Value(returnType, ret.code, node.span);
   }
 
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
@@ -588,7 +588,7 @@ class ConcreteMember extends Member {
           declaringType.genericType.jsname, declaringType.jsname);
     }
     declaringType.genMethod(this);
-    return new Value(returnType, code);
+    return new Value(returnType, code, node.span);
   }
 }
 
@@ -717,22 +717,22 @@ class MethodMember extends Member {
   void provideFieldSyntax() => _provideFieldSyntax = true;
   void providePropertySyntax() => _providePropertySyntax = true;
 
-  Value set_(MethodGenerator context, Node, Value target, Value value,
+  Value _set(MethodGenerator context, Node, Value target, Value value,
       [bool isDynamic=false]) {
     world.error('can not set method', definition.span);
   }
 
-  Value get_(MethodGenerator context, Node node, Value target,
+  Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
     // TODO(jimhug): Would prefer to invoke!
     declaringType.genMethod(this);
     _provideOptionalParamInfo = true;
     if (isStatic) {
       var type = declaringType.isTop ? '' : '${declaringType.jsname}.';
-      return new Value(functionType, '$type$jsname');
+      return new Value(functionType, '$type$jsname', node.span);
     }
     _providePropertySyntax = true;
-    return new Value(functionType, '${target.code}.get\$$jsname()');
+    return new Value(functionType, '${target.code}.get\$$jsname()', node.span);
   }
 
   bool namesInOrder(Arguments args) {
@@ -901,7 +901,8 @@ class MethodMember extends Member {
     // TODO(jimhug): target really shouldn't ever be null...
     if (target != null && target.isSuper) {
       return new Value(returnType,
-          '${declaringType.jsname}.prototype.$jsname.call($argsString)');
+          '${declaringType.jsname}.prototype.$jsname.call($argsString)',
+          node.span);
     }
 
     if (name.startsWith('\$')) {
@@ -909,16 +910,17 @@ class MethodMember extends Member {
     }
 
     if (isFactory) {
-      return new Value(returnType, '$generatedFactoryName($argsString)');
+      return new Value(returnType, '$generatedFactoryName($argsString)',
+        node.span);
     }
 
     if (isStatic) {
       if (declaringType.isTop) {
         // TODO(jimhug): Explore moving libraries into their own namespaces
-        return new Value(returnType, '$jsname($argsString)');
+        return new Value(returnType, '$jsname($argsString)', node != null ? node.span : node);
       }
       return new Value(returnType,
-        '${declaringType.jsname}.$jsname($argsString)');
+        '${declaringType.jsname}.$jsname($argsString)', node.span);
     }
 
     var code = '${target.code}.$jsname($argsString)';
@@ -943,7 +945,7 @@ class MethodMember extends Member {
       world.gen.corejs.useTypeNameOf = true;
     }
 
-    return new Value(returnType, code);
+    return new Value(returnType, code, node.span);
   }
 
   Value _invokeConstructor(MethodGenerator context, Node node,
@@ -955,7 +957,7 @@ class MethodMember extends Member {
       var code = (constructorName != '')
           ? '${declaringType.jsname}.${constructorName}\$ctor.call($argsString)'
           : '${declaringType.jsname}.call($argsString)';
-      return new Value(declaringType, code);
+      return new Value(declaringType, code, node.span);
     } else {
       var code = (constructorName != '')
           ? 'new ${declaringType.jsname}.${constructorName}\$ctor($argsString)'
@@ -964,7 +966,7 @@ class MethodMember extends Member {
       if (isConst && node is NewExpression && node.dynamic.isConst) {
         return _invokeConstConstructor(node, code, target, args);
       } else {
-        return new Value(declaringType, code);
+        return new Value(declaringType, code, node.span);
       }
     }
   }
@@ -1094,7 +1096,7 @@ class MethodMember extends Member {
           code = '${target.code} $op ${argsCode[0]}';
         }
 
-        return new Value(returnType, code);
+        return new Value(returnType, code, node.span);
       } else {
         var value;
         num val0, val1, ival0, ival1;
@@ -1134,7 +1136,8 @@ class MethodMember extends Member {
       if (name == '\$index') {
         // Note: this could technically propagate constness, but that's not
         // specified explicitly and the VM doesn't do that.
-        return new Value(declaringType, '${target.code}[${argsCode[0]}]');
+        return new Value(declaringType, '${target.code}[${argsCode[0]}]',
+          node.span);
       } else if (name == '\$add') {
         if (allConst) {
           var val0 = target.dynamic.actualValue;
@@ -1150,17 +1153,18 @@ class MethodMember extends Member {
 
         // Ensure we generate toString on the right side
         args.values[0].invoke(context, 'toString', node, Arguments.EMPTY);
-        return new Value(declaringType, '${target.code} + ${argsCode[0]}');
+        return new Value(declaringType, '${target.code} + ${argsCode[0]}',
+          node.span);
       }
     } else if (declaringType.isNativeType) {
       if (name == '\$index') {
         // Note: this could technically propagate constness, but that's not
         // specified explicitly and the VM doesn't do that.
         // TODO(jmesserly): why are we using a return type of "var"?
-        return new Value(null, '${target.code}[${argsCode[0]}]');
+        return new Value(null, '${target.code}[${argsCode[0]}]', node.span);
       } else if (name == '\$setindex') {
         return new Value(null,
-          '${target.code}[${argsCode[0]}] = ${argsCode[1]}');
+          '${target.code}[${argsCode[0]}] = ${argsCode[1]}', node.span);
       }
     }
 
@@ -1176,19 +1180,21 @@ class MethodMember extends Member {
       }
       // Optimize test when null is on the rhs.
       if (argsCode[0] == 'null') {
-        return new Value(returnType, '${target.code} $op null');
+        return new Value(returnType, '${target.code} $op null', node.span);
       } else if (target.type.isNum || target.type.isString) {
         // TODO(jimhug): Maybe check rhs.
-        return new Value(returnType, '${target.code} $op ${argsCode[0]}');
+        return new Value(returnType, '${target.code} $op ${argsCode[0]}',
+          node.span);
       }
       world.gen.corejs.useOperator(name);
-      return new Value(returnType, '$name(${target.code}, ${argsCode[0]})');
+      return new Value(returnType, '$name(${target.code}, ${argsCode[0]})',
+        node.span);
     }
 
     if (name == '\$call') {
       declaringType.markUsed();
       return new Value(returnType,
-        '${target.code}(${Strings.join(argsCode, ", ")})');
+        '${target.code}(${Strings.join(argsCode, ", ")})', node.span);
     }
 
     if (name == '\$index') {
@@ -1199,7 +1205,8 @@ class MethodMember extends Member {
 
     // Fall back to normal method invocation.
     var argsString = Strings.join(argsCode, ', ');
-    return new Value(returnType, '${target.code}.$jsname($argsString)');
+    return new Value(returnType, '${target.code}.$jsname($argsString)',
+      node.span);
   }
 
 
@@ -1320,7 +1327,8 @@ class MemberSet {
     if (!target.type.isVar) {
       world.warning('could not find applicable $action for "$name"', node.span);
     }
-    return new Value(null, '${target.code}.$jsname() /*no applicable $action*/');
+    return new Value(null, '${target.code}.$jsname() /*no applicable $action*/',
+      node.span);
   }
 
   bool _treatAsField;
@@ -1347,19 +1355,19 @@ class MemberSet {
     return _treatAsField;
   }
 
-  Value get_(MethodGenerator context, Node node, Value target,
+  Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
     if (members.length == 1) {
-      return members[0].get_(context, node, target, isDynamic);
+      return members[0]._get(context, node, target, isDynamic);
     }
     final targets = members.filter((m) => m.canGet);
     if (targets.length == 1) {
-      return targets[0].get_(context, node, target, isDynamic);
+      return targets[0]._get(context, node, target, isDynamic);
     }
 
     Value returnValue = null;
     for (var member in targets) {
-      final value = member.get_(context, node, target, isDynamic:true);
+      final value = member._get(context, node, target, isDynamic:true);
       returnValue = _tryUnion(returnValue, value, node);
     }
     if (returnValue == null) {
@@ -1367,27 +1375,29 @@ class MemberSet {
     }
     if (returnValue.code == null) {
       if (treatAsField) {
-        return new Value(returnValue.type, '${target.code}.$jsname');
+        return new Value(returnValue.type, '${target.code}.$jsname',
+          node.span);
       } else {
-        return new Value(returnValue.type, '${target.code}.get\$$jsname()');
+        return new Value(returnValue.type, '${target.code}.get\$$jsname()',
+          node.span);
       }
     }
     return returnValue;
   }
 
-  Value set_(MethodGenerator context, Node node, Value target, Value value,
+  Value _set(MethodGenerator context, Node node, Value target, Value value,
       [bool isDynamic=false]) {
     if (members.length == 1) {
-      return members[0].set_(context, node, target, value, isDynamic);
+      return members[0]._set(context, node, target, value, isDynamic);
     }
     final targets = members.filter((m) => m.canSet);
     if (targets.length == 1) {
-      return targets[0].set_(context, node, target, value, isDynamic);
+      return targets[0]._set(context, node, target, value, isDynamic);
     }
 
     Value returnValue = null;
     for (var member in targets) {
-      final res = member.set_(context, node, target, value, isDynamic:true);
+      final res = member._set(context, node, target, value, isDynamic:true);
       returnValue = _tryUnion(returnValue, res, node);
     }
     if (returnValue == null) {
@@ -1396,10 +1406,10 @@ class MemberSet {
     if (returnValue.code == null) {
       if (treatAsField) {
         return new Value(returnValue.type,
-          '${target.code}.$jsname = ${value.code}');
+          '${target.code}.$jsname = ${value.code}', node.span);
       } else {
         return new Value(returnValue.type,
-          '${target.code}.set\$$jsname(${value.code})');
+          '${target.code}.set\$$jsname(${value.code})', node.span);
       }
     }
     return returnValue;
@@ -1460,13 +1470,13 @@ class MemberSet {
       } else if (x.isConst || y.isConst) {
         world.internalError("unexpected: union of const values ");
       } else {
-        return new Value(type, x.code,
+        return new Value(type, x.code, node.span,
             x.isSuper && y.isSuper,
             x.needsTemp || y.needsTemp,
             x.isType && y.isType);
       }
     } else {
-      return new Value(type, null);
+      return new Value(type, null, node.span);
     }
   }
 
