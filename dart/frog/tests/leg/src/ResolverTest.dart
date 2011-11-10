@@ -18,6 +18,25 @@ class LoggerCanceler implements Logger, Canceler {
   }
 }
 
+class WarningMessage {
+  Node node;
+  String message;
+  WarningMessage(this.node, this.message);
+}
+
+class MockCompiler extends Compiler {
+  List warnings;
+  MockCompiler() : super(null), warnings = [];
+
+  void reportWarning(Node node, String message) {
+    warnings.add(new WarningMessage(node, message));
+  }
+
+  void clearWarnings() {
+    warnings = [];
+  }
+}
+
 Token scan(String text) => new StringScanner(text).tokenize();
 
 Node parseBodyCode(String text, Function parseMethod) {
@@ -33,15 +52,29 @@ Node parseBodyCode(String text, Function parseMethod) {
 Node parseStatement(String text) =>
   parseBodyCode(text, (parser, tokens) => parser.parseStatement(tokens));
 
-Node parseFunction(String text, Compiler compiler) {
+Listener parseUnit(String text, Compiler compiler) {
   Token tokens = scan(text);
   Listener listener = new ElementListener(compiler);
   Parser parser = new Parser(listener);
   parser.parseUnit(tokens);
+  return listener;
+}
+
+Node parseFunction(String text, Compiler compiler) {
+  Listener listener = parseUnit(text, compiler);
   Element element = listener.topLevelElements.head;
   Expect.equals(ElementKind.FUNCTION, element.kind);
   compiler.universe.define(element);
   return element.parseNode(compiler, compiler);
+}
+
+void parseScript(String text, Compiler compiler) {
+  Listener listener = parseUnit(text, compiler);
+  for (Link link = listener.topLevelElements;
+       !link.isEmpty();
+       link = link.tail) {
+    compiler.universe.define(link.head);
+  }
 }
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
@@ -90,6 +123,7 @@ main() {
   testLocalsFive();
   testParametersOne();
   testFor();
+  testTypeAnnotation();
 }
 
 testLocalsOne() {
@@ -220,4 +254,39 @@ testFor() {
   Expect.isTrue(nodes[3] is SendSet);  // i = i + 1
 
   Expect.isTrue(nodes[4] is SendSet);  // i = 5
+}
+
+testTypeAnnotation() {
+  MockCompiler compiler = new MockCompiler();
+  ResolverVisitor visitor = new ResolverVisitor(compiler);
+  String statement = "Foo bar;";
+
+  // Test that we get a warning when Foo is not defined.
+  Node tree = parseStatement(statement);
+  visitor.visit(tree);
+
+  Expect.equals(1, visitor.mapping.length); // bar has an element.
+  Expect.equals(1, compiler.warnings.length);
+
+  Node warningNode = compiler.warnings[0].node;
+  String warningMessage = compiler.warnings[0].message;
+
+  Expect.equals(warningMessage, ErrorMessages.cannotResolveType("Foo"));
+  Expect.equals(warningNode, tree.type);
+  compiler.clearWarnings();
+
+  // Test that there is no warning after defining Foo.
+  parseScript("class Foo {}", compiler);
+  tree = parseStatement(statement);
+  visitor = new ResolverVisitor(compiler);
+  visitor.visit(tree);
+  Expect.equals(2, visitor.mapping.length);
+  Expect.equals(0, compiler.warnings.length);
+
+  // Test that 'var' does not create a warning.
+  tree = parseStatement("var foo;");
+  visitor = new ResolverVisitor(compiler);
+  visitor.visit(tree);
+  Expect.equals(1, visitor.mapping.length);
+  Expect.equals(0, compiler.warnings.length);
 }

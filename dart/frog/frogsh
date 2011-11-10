@@ -7529,7 +7529,7 @@ Element.prototype.hashCode = function() {
 function VariableElement(node, typeAnnotation, name, enclosingElement) {
   this.node = node;
   this.typeAnnotation = typeAnnotation;
-  Element.call(this, name, const$252, enclosingElement);
+  Element.call(this, name, const$253, enclosingElement);
   // Initializers done
 }
 $inherits(VariableElement, Element);
@@ -7629,26 +7629,21 @@ SsaBuilder.prototype.build = function(parameters, body) {
   var block = this.graph.addNewBlock();
   this.open(this.graph.entry);
   this.visitParameters(parameters);
-  this.closeGoto(block);
+  this.close(new HGoto()).addSuccessor(block);
   this.open(block);
   body.accept(this);
-  if ($notnull_bool(!$notnull_bool(this.isAborted()))) this.closeGoto(this.graph.exit);
+  if ($notnull_bool(!$notnull_bool(this.isAborted()))) this.close(new HGoto()).addSuccessor(this.graph.exit);
   this.graph.finalize();
   return this.graph;
 }
 SsaBuilder.prototype.open = function(block) {
   block.open();
-  this.block = block;
+  this.current = block;
 }
 SsaBuilder.prototype.close = function(end) {
-  var result = this.block;
-  this.block.close(end);
-  this.block = null;
-  return result;
-}
-SsaBuilder.prototype.closeGoto = function(block) {
-  var result = this.close(new HGoto());
-  result.addSuccessor(block);
+  var result = this.current;
+  this.current.close(end);
+  this.current = null;
   return result;
 }
 SsaBuilder.prototype.goto = function(from, to) {
@@ -7656,10 +7651,10 @@ SsaBuilder.prototype.goto = function(from, to) {
   from.addSuccessor(to);
 }
 SsaBuilder.prototype.isAborted = function() {
-  return this.block == null;
+  return this.current == null;
 }
 SsaBuilder.prototype.add = function(instruction) {
-  this.block.add(instruction);
+  this.current.add(instruction);
 }
 SsaBuilder.prototype.push = function(instruction) {
   this.add(instruction);
@@ -7678,7 +7673,7 @@ SsaBuilder.prototype.visitParameters = function(parameters) {
    $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link$Node())) {
     var container = (($0 = link.get$head()) && $0.is$VariableDefinitions());
     var identifierLink = container.definitions.nodes;
-    $assert(!$notnull_bool(identifierLink.isEmpty()) && identifierLink.get$tail().isEmpty(), "!identifierLink.isEmpty() && identifierLink.tail.isEmpty()", "builder.dart", 120, 14);
+    $assert(!$notnull_bool(identifierLink.isEmpty()) && identifierLink.get$tail().isEmpty(), "!identifierLink.isEmpty() && identifierLink.tail.isEmpty()", "builder.dart", 115, 14);
     if ($notnull_bool(!(identifierLink.get$head() instanceof Identifier))) {
       this.compiler.unimplemented("SsaBuilder.visitParameters non-identifier");
     }
@@ -7699,7 +7694,7 @@ SsaBuilder.prototype.visitBlock = function(node) {
       return;
     }
   }
-  $assert(!(this.block.last instanceof HGoto) && !(this.block.last instanceof HReturn), "block.last is !HGoto && block.last is !HReturn", "builder.dart", 143, 12);
+  $assert(!(this.current.last instanceof HGoto) && !(this.current.last instanceof HReturn), "current.last is !HGoto && current.last is !HReturn", "builder.dart", 138, 12);
   if ($notnull_bool(!$notnull_bool(this.stack.isEmpty()))) this.compiler.cancel('non-empty instruction stack');
 }
 SsaBuilder.prototype.visitExpressionStatement = function(node) {
@@ -7717,7 +7712,7 @@ SsaBuilder.prototype.visitIdentifier = function(node) {
   var element = (($0 = this.elements.$index(node)) && $0.is$Element());
   this.compiler.ensure($assert_bool(element != null));
   var def = (($0 = this.definitions.$index(element)) && $0.is$HInstruction());
-  $assert(def != null, "def !== null", "builder.dart", 164, 12);
+  $assert(def != null, "def !== null", "builder.dart", 159, 12);
   this.stack.add(def);
 }
 SsaBuilder.prototype.joinDefinitions = function(joinBlock, incoming1, incoming2) {
@@ -7725,7 +7720,7 @@ SsaBuilder.prototype.joinDefinitions = function(joinBlock, incoming1, incoming2)
     return this.joinDefinitions(joinBlock, incoming2, incoming1);
   }
   var joinedDefinitions = new HashMapImplementation$Element$HInstruction();
-  $assert(incoming1.get$length() <= incoming2.get$length(), "incoming1.length <= incoming2.length", "builder.dart", 183, 12);
+  $assert(incoming1.get$length() <= incoming2.get$length(), "incoming1.length <= incoming2.length", "builder.dart", 178, 12);
   incoming1.forEach((function (element, instruction) {
     var $0;
     var other = (($0 = incoming2.$index(element)) && $0.is$HInstruction());
@@ -7751,7 +7746,7 @@ SsaBuilder.prototype.visitIf = function(node) {
   conditionBlock.addSuccessor(thenBlock);
   this.open(thenBlock);
   this.visit(node.thenPart);
-  thenBlock = this.block;
+  thenBlock = this.current;
   var thenDefinitions = this.definitions;
   this.definitions = conditionDefinitions;
   var elseBlock = null;
@@ -7760,10 +7755,10 @@ SsaBuilder.prototype.visitIf = function(node) {
     conditionBlock.addSuccessor(elseBlock);
     this.open(elseBlock);
     this.visit(node.elsePart);
-    elseBlock = this.block;
+    elseBlock = this.current;
   }
   if ($notnull_bool(thenBlock == null && elseBlock == null && hasElse)) {
-    this.block = null;
+    this.current = null;
   }
   else {
     var joinBlock = this.graph.addNewBlock();
@@ -7792,22 +7787,22 @@ SsaBuilder.prototype.visitSend = function(node) {
     var right = this.pop();
     var left = this.pop();
     var op = (($0 = node.selector) && $0.is$Operator());
-    if ($notnull_bool($eq(const$263/*const SourceString("+")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$264/*const SourceString("+")*/, op.get$source()))) {
       this.push(new HAdd([left, right]));
     }
-    else if ($notnull_bool($eq(const$264/*const SourceString("-")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$265/*const SourceString("-")*/, op.get$source()))) {
       this.push(new HSubtract([left, right]));
     }
-    else if ($notnull_bool($eq(const$265/*const SourceString("*")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$266/*const SourceString("*")*/, op.get$source()))) {
       this.push(new HMultiply([left, right]));
     }
-    else if ($notnull_bool($eq(const$266/*const SourceString("/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$267/*const SourceString("/")*/, op.get$source()))) {
       this.push(new HDivide([left, right]));
     }
-    else if ($notnull_bool($eq(const$267/*const SourceString("~/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$268/*const SourceString("~/")*/, op.get$source()))) {
       this.push(new HTruncatingDivide([left, right]));
     }
-    else if ($notnull_bool($eq(const$268/*const SourceString("==")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$269/*const SourceString("==")*/, op.get$source()))) {
       this.push(new HEquals([left, right]));
     }
   }
@@ -7888,7 +7883,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 367, 12);
+  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 362, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   return this.definitions.$setindex(this.elements.$index(node), value);
@@ -7902,7 +7897,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions without initial value");
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 382, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 377, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }
@@ -8013,7 +8008,7 @@ SsaCodeGenerator.prototype.visit = function(node) {
   return node.accept(this);
 }
 SsaCodeGenerator.prototype.visitAdd = function(node) {
-  this.invoke(const$271/*const SourceString('\$add')*/, node.inputs);
+  this.invoke(const$272/*const SourceString('\$add')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitBasicBlock = function(node) {
   this.currentBlock = node;
@@ -8033,10 +8028,10 @@ SsaCodeGenerator.prototype.visitBasicBlock = function(node) {
   }
 }
 SsaCodeGenerator.prototype.visitDivide = function(node) {
-  this.invoke(const$273/*const SourceString('\$div')*/, node.inputs);
+  this.invoke(const$274/*const SourceString('\$div')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitEquals = function(node) {
-  this.invoke(const$274/*const SourceString('\$eq')*/, node.inputs);
+  this.invoke(const$275/*const SourceString('\$eq')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitExit = function(node) {
 
@@ -8104,7 +8099,7 @@ SsaCodeGenerator.prototype.visitLiteral = function(node) {
   this.buffer.add(node.value);
 }
 SsaCodeGenerator.prototype.visitMultiply = function(node) {
-  this.invoke(const$275/*const SourceString('\$mul')*/, node.inputs);
+  this.invoke(const$276/*const SourceString('\$mul')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitParameter = function(node) {
   this.buffer.add(SsaCodeGenerator.parameter(node.parameterIndex));
@@ -8131,7 +8126,7 @@ SsaCodeGenerator.prototype.visitReturn = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
 }
 SsaCodeGenerator.prototype.visitSubtract = function(node) {
-  this.invoke(const$276/*const SourceString('\$sub')*/, node.inputs);
+  this.invoke(const$277/*const SourceString('\$sub')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.visitThrow = function(node) {
   var $0;
@@ -8139,7 +8134,7 @@ SsaCodeGenerator.prototype.visitThrow = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
 }
 SsaCodeGenerator.prototype.visitTruncatingDivide = function(node) {
-  this.invoke(const$277/*const SourceString('\$tdiv')*/, node.inputs);
+  this.invoke(const$278/*const SourceString('\$tdiv')*/, node.inputs);
 }
 SsaCodeGenerator.prototype.addIndentation = function() {
   for (var i = 0;
@@ -9672,6 +9667,9 @@ function ErrorMessages() {}
 ErrorMessages.cannotResolve = function(id) {
   return ("cannot resolve " + id + "");
 }
+ErrorMessages.cannotResolveType = function(id) {
+  return ("cannot resolve type " + id + "");
+}
 ErrorMessages.duplicateDefinition = function(id) {
   return ("duplicate definition of " + id + "");
 }
@@ -9684,6 +9682,9 @@ function ResolverVisitor(compiler) {
 }
 ResolverVisitor.prototype.fail = function(node, message) {
   this.compiler.cancel(message);
+}
+ResolverVisitor.prototype.warning = function(node, message) {
+  this.compiler.reportWarning(node, message);
 }
 ResolverVisitor.prototype.visit = function(node) {
   if ($notnull_bool(node == null)) return null;
@@ -9720,8 +9721,7 @@ ResolverVisitor.prototype.visitFunctionExpression = function(node) {
 ResolverVisitor.prototype.visitIdentifier = function(node) {
   var element = this.context.lookup(node.get$source());
   if ($notnull_bool(element == null)) this.fail(node, ErrorMessages.cannotResolve(node));
-  this.useElement(node, element);
-  return element;
+  return this.useElement(node, element);
 }
 ResolverVisitor.prototype.visitIf = function(node) {
   this.visit(node.condition);
@@ -9779,15 +9779,21 @@ ResolverVisitor.prototype.visitOperator = function(node) {
 }
 ResolverVisitor.prototype.visitReturn = function(node) {
   this.visit(node.expression);
-  return null;
 }
 ResolverVisitor.prototype.visitThrow = function(node) {
   this.visit(node.expression);
 }
 ResolverVisitor.prototype.visitTypeAnnotation = function(node) {
-
+  var name = node.typeName;
+  if ($notnull_bool($eq(name.get$source(), const$252/*const SourceString('var')*/))) return null;
+  var element = this.context.lookup(name.get$source());
+  if ($notnull_bool(element == null)) {
+    this.warning(node, ErrorMessages.cannotResolveType(name));
+  }
+  return this.useElement(node, element);
 }
 ResolverVisitor.prototype.visitVariableDefinitions = function(node) {
+  this.visit(node.type);
   var visitor = new VariableDefinitionsVisitor(node, this);
   visitor.visit(node.definitions);
 }
@@ -9798,7 +9804,8 @@ ResolverVisitor.prototype.defineElement = function(node, element) {
 }
 ResolverVisitor.prototype.useElement = function(node, element) {
   if ($notnull_bool(element == null)) return null;
-  return this.mapping.$setindex(node, element);
+  this.mapping.$setindex(node, element);
+  return element;
 }
 // ********** Code for VariableDefinitionsVisitor **************
 function VariableDefinitionsVisitor(definitions, resolver) {
@@ -9808,7 +9815,7 @@ function VariableDefinitionsVisitor(definitions, resolver) {
 }
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty(), "node.arguments.tail.isEmpty()", "resolver.dart", 185, 12);
+  $assert(node.get$arguments().get$tail().isEmpty(), "node.arguments.tail.isEmpty()", "resolver.dart", 200, 12);
   if ($notnull_bool(node.receiver != null)) {
     this.resolver.compiler.unimplemented("receiver on a variable definition");
   }
@@ -10101,7 +10108,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
   else {
     var selector = (($0 = node.selector) && $0.is$Identifier());
     var name = selector.get$source();
-    if ($notnull_bool($eq(name, const$245/*const SourceString('+')*/) || $eq(name, const$254/*const SourceString('=')*/) || $eq(name, const$246/*const SourceString('-')*/) || $eq(name, const$247/*const SourceString('*')*/) || $eq(name, const$248/*const SourceString('/')*/) || $eq(name, const$249/*const SourceString('<')*/) || $eq(name, const$250/*const SourceString('~/')*/))) {
+    if ($notnull_bool($eq(name, const$245/*const SourceString('+')*/) || $eq(name, const$255/*const SourceString('=')*/) || $eq(name, const$246/*const SourceString('-')*/) || $eq(name, const$247/*const SourceString('*')*/) || $eq(name, const$248/*const SourceString('/')*/) || $eq(name, const$249/*const SourceString('<')*/) || $eq(name, const$250/*const SourceString('~/')*/))) {
       return this.types.dynamicType;
     }
     this.fail(node, ('unresolved send ' + name + ''));
@@ -10109,9 +10116,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
 }
 TypeCheckerVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  if ($notnull_bool(node.get$arguments() == null || node.get$arguments().isEmpty())) {
-    this.compiler.cancel('internal error: argument expected.');
-  }
+  this.compiler.ensure($assert_bool(node.get$arguments() != null && !$notnull_bool(node.get$arguments().isEmpty())));
   var targetType = (($0 = this.elements.$index(node).computeType(this.compiler, this.types)) && $0.is$Type());
   var value = (($0 = node.get$arguments().get$head()) && $0.is$Node());
   this.checkAssignable(value, this.type(value), targetType);
@@ -10166,7 +10171,7 @@ TypeCheckerVisitor.prototype.visitTypeAnnotation = function(node) {
   if ($notnull_bool(node.typeName == null)) return this.types.dynamicType;
   var name = node.typeName.get$source();
   var type = this.types.lookup(name);
-  if ($notnull_bool(type == null)) this.compiler.cancel(('unsupported type ' + name + ''));
+  if ($notnull_bool(type == null)) this.fail(node, ('unsupported type ' + name + ''));
   return type;
 }
 TypeCheckerVisitor.prototype.visitVariableDefinitions = function(node) {
@@ -10179,12 +10184,10 @@ TypeCheckerVisitor.prototype.visitVariableDefinitions = function(node) {
   for (var link = node.definitions.nodes;
    $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link$Node())) {
     var initialization = (($0 = link.get$head()) && $0.is$Node());
+    this.compiler.ensure($assert_bool((initialization instanceof Identifier) || (initialization instanceof Send)));
     if ($notnull_bool((initialization instanceof Send))) {
       var initializer = this.nonVoidType((($0 = link.get$head()) && $0.is$Node()));
       this.checkAssignable(node, type, initializer);
-    }
-    else if ($notnull_bool(!(initialization instanceof Identifier))) {
-      this.compiler.cancel('unexpected node type for variable initialization');
     }
   }
   return null;
@@ -10208,7 +10211,7 @@ Universe.prototype.addGeneratedCode = function(element, code) {
 }
 // ********** Code for top level **************
 function unreachable() {
-  $throw(const$272/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
+  $throw(const$273/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
 }
 function compile(world) {
   var file = world.readFile(options.dartScript);
@@ -11205,9 +11208,8 @@ MethodGenerator.prototype.visitVoid = function(node) {
   return this.visitValue(node);
 }
 MethodGenerator.prototype.visitDietStatement = function(node) {
-  var $0;
   var parser = new lang_Parser(node.span.file, false, false, false, node.span.start);
-  this.visitStatementsInBlock((($0 = parser.block()) && $0.is$lang_Statement()));
+  this.visitStatementsInBlock(parser.block());
   return false;
 }
 MethodGenerator.prototype.visitVariableDefinition = function(node) {
@@ -11410,7 +11412,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
   var $0;
-  var types = const$400/*const [
+  var types = const$401/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   var target = new Value(null, 'this', false, true, false);
@@ -20518,23 +20520,24 @@ var const$248 = new StringWrapper('/')/*const SourceString('/')*/;
 var const$249 = new StringWrapper('<')/*const SourceString('<')*/;
 var const$250 = new StringWrapper('~/')/*const SourceString('~/')*/;
 var const$251 = new StringWrapper('==')/*const SourceString('==')*/;
-var const$252 = new ElementKind('variable')/*const ElementKind('variable')*/;
-var const$254 = new StringWrapper('=')/*const SourceString('=')*/;
-var const$263 = new StringWrapper("+")/*const SourceString("+")*/;
-var const$264 = new StringWrapper("-")/*const SourceString("-")*/;
-var const$265 = new StringWrapper("*")/*const SourceString("*")*/;
-var const$266 = new StringWrapper("/")/*const SourceString("/")*/;
-var const$267 = new StringWrapper("~/")/*const SourceString("~/")*/;
-var const$268 = new StringWrapper("==")/*const SourceString("==")*/;
-var const$271 = new StringWrapper('\$add')/*const SourceString('\$add')*/;
-var const$272 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
-var const$273 = new StringWrapper('\$div')/*const SourceString('\$div')*/;
-var const$274 = new StringWrapper('\$eq')/*const SourceString('\$eq')*/;
-var const$275 = new StringWrapper('\$mul')/*const SourceString('\$mul')*/;
-var const$276 = new StringWrapper('\$sub')/*const SourceString('\$sub')*/;
-var const$277 = new StringWrapper('\$tdiv')/*const SourceString('\$tdiv')*/;
+var const$252 = new StringWrapper('var')/*const SourceString('var')*/;
+var const$253 = new ElementKind('variable')/*const ElementKind('variable')*/;
+var const$255 = new StringWrapper('=')/*const SourceString('=')*/;
+var const$264 = new StringWrapper("+")/*const SourceString("+")*/;
+var const$265 = new StringWrapper("-")/*const SourceString("-")*/;
+var const$266 = new StringWrapper("*")/*const SourceString("*")*/;
+var const$267 = new StringWrapper("/")/*const SourceString("/")*/;
+var const$268 = new StringWrapper("~/")/*const SourceString("~/")*/;
+var const$269 = new StringWrapper("==")/*const SourceString("==")*/;
+var const$272 = new StringWrapper('\$add')/*const SourceString('\$add')*/;
+var const$273 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+var const$274 = new StringWrapper('\$div')/*const SourceString('\$div')*/;
+var const$275 = new StringWrapper('\$eq')/*const SourceString('\$eq')*/;
+var const$276 = new StringWrapper('\$mul')/*const SourceString('\$mul')*/;
+var const$277 = new StringWrapper('\$sub')/*const SourceString('\$sub')*/;
+var const$278 = new StringWrapper('\$tdiv')/*const SourceString('\$tdiv')*/;
 var const$3 = new StringWrapper('main')/*const SourceString('main')*/;
-var const$400 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$401 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
 var const$5 = new EmptyQueueException()/*const EmptyQueueException()*/;

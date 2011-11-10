@@ -13,7 +13,7 @@ class TypeCheckerTask extends CompilerTask {
           new TypeCheckerVisitor(compiler, elements, types);
       try {
         tree.accept(visitor);
-      } catch(CancelTypeCheckException e) {
+      } catch (CancelTypeCheckException e) {
         compiler.reportWarning(e.node, e.reason);
       }
     });
@@ -241,9 +241,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitSendSet(SendSet node) {
-    if (node.arguments === null || node.arguments.isEmpty()) {
-      compiler.cancel('internal error: argument expected.');
-    }
+    compiler.ensure(node.arguments !== null && !node.arguments.isEmpty());
     Type targetType = elements[node].computeType(compiler, types);
     Node value = node.arguments.head;
     checkAssignable(value, type(value), targetType);
@@ -315,7 +313,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     if (node.typeName === null) return types.dynamicType;
     final name = node.typeName.source;
     final type = types.lookup(name);
-    if (type === null) compiler.cancel('unsupported type ${name}');
+    if (type === null) fail(node, 'unsupported type ${name}');
     return type;
   }
 
@@ -328,11 +326,11 @@ class TypeCheckerVisitor implements Visitor<Type> {
     for (Link<Node> link = node.definitions.nodes; !link.isEmpty();
          link = link.tail) {
       Node initialization = link.head;
+      compiler.ensure(initialization is Identifier
+          || initialization is Send);
       if (initialization is Send) {
         Type initializer = nonVoidType(link.head);
         checkAssignable(node, type, initializer);
-      } else if (initialization is !Identifier) {
-        compiler.cancel('unexpected node type for variable initialization');
       }
     }
     return null;

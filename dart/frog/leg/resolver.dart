@@ -19,6 +19,9 @@ class ErrorMessages {
   static String cannotResolve(id)
       => "cannot resolve $id";
 
+  static String cannotResolveType(id)
+      => "cannot resolve type $id";
+
   static String duplicateDefinition(id)
       => "duplicate definition of $id";
 }
@@ -35,6 +38,10 @@ class ResolverVisitor implements Visitor<Element> {
 
   fail(Node node, [String message = "Unimplemented in the resolver"]) {
     compiler.cancel(message);
+  }
+
+  warning(Node node, String message) {
+    compiler.reportWarning(node, message);
   }
 
   visit(Node node) {
@@ -78,8 +85,7 @@ class ResolverVisitor implements Visitor<Element> {
   visitIdentifier(Identifier node) {
     Element element = context.lookup(node.source);
     if (element == null) fail(node, ErrorMessages.cannotResolve(node));
-    useElement(node, element);
-    return element;
+    return useElement(node, element);
   }
 
   visitIf(If node) {
@@ -147,7 +153,6 @@ class ResolverVisitor implements Visitor<Element> {
 
   visitReturn(Return node) {
     visit(node.expression);
-    return null;
   }
 
   visitThrow(Throw node) {
@@ -155,9 +160,17 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
+    Identifier name = node.typeName;
+    if (name.source == const SourceString('var')) return null;
+    Element element = context.lookup(name.source);
+    if (element === null) {
+      warning(node, ErrorMessages.cannotResolveType(name));
+    }
+    return useElement(node, element);
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
+    visit(node.type);
     VariableDefinitionsVisitor visitor =
         new VariableDefinitionsVisitor(node, this);
     visitor.visit(node.definitions);
@@ -171,7 +184,9 @@ class ResolverVisitor implements Visitor<Element> {
 
   Element useElement(Node node, Element element) {
     if (element === null) return null;
-    return mapping[node] = element;
+    mapping[node] = element;
+    // TODO(ngeoffray): frog does not like a return on an assignment.
+    return element;
   }
 }
 
