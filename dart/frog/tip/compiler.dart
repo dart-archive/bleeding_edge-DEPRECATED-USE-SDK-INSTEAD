@@ -68,7 +68,8 @@ void inject(String code, [dom.Window window = null,
 void frogify(String systemPath, String userPath, [dom.Window window = null]) {
   if (window == null) window = dom.window;
 
-  initialize(systemPath, userPath);
+  // Suppress warnings to avoid diff-based tests from failing on them.
+  initialize(systemPath, userPath, ['--suppress_warnings']);
   final document = window.document;
   int n = document.scripts.length;
   // TODO(vsm): Implement foreach iteration on native DOM types.  This
@@ -120,9 +121,12 @@ void runTip() {
   inject(generated, iframe.contentWindow);
 }
 
-void initialize(String systemPath, [String userPath = null]) {
+void initialize(String systemPath, [String userPath = null, List<String> flags = []]) {
   DomFileSystem fs = new DomFileSystem(userPath);
-  parseOptions(systemPath, [null, null, DART_FILENAME], fs);
+  final options = [null, null];
+  options.addAll(flags);
+  options.add(DART_FILENAME);
+  parseOptions(systemPath, options, fs);
   initializeWorld(fs);
 }
 

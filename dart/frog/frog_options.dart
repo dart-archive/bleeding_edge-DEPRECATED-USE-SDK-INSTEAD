@@ -97,6 +97,10 @@ class FrogOptions {
           showInfo = true;
           continue loop;
 
+        case '--suppress_warnings':
+          showWarnings = false;
+          continue loop;
+
         case '--throw_on_errors':
           throwOnErrors = true;
           continue loop;

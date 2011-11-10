@@ -160,8 +160,8 @@ class Type implements Named, Hashable {
 
   /**
    * An interface I is a direct supertype of an interface J iff:
-   * If I is Object, and J has no extends clause
-   * if I is listed in the extends clause of J.
+   * If I is Object, and J has no extends clause
+   * if I is listed in the extends clause of J.
    */
   bool _isDirectSupertypeOf(Type other) {
     if (other.isClass) {
@@ -524,7 +524,12 @@ class DefinedType extends Type {
   final Library library;
   final bool isClass;
 
-  Type parent;
+  // TODO(vsm): Restore the field once Issue 280 is fixed.
+  // Type parent;
+  Type _parent;
+  Type get parent() => _parent;
+  void set parent(Type p) => _parent = p;
+
   List<Type> interfaces;
   Type factory_;
 

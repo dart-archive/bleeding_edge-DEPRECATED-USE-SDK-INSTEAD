@@ -35,7 +35,14 @@ class DomFileSystem implements FileSystem {
       // TODO(jimhug): Fix API so we can get multiple files at once.
       // Use a sychronous XHR to match the current API.
       xhr.open('GET', filename, false);
-      xhr.send(null);
+      try {
+        xhr.send(null);
+      } catch(e) {
+        // TODO(vsm): This XHR appears to fail if the URL is a
+        // directory.  Return something to make fileExists work.
+        // Handle this better.
+        return "_directory($filename)_";
+      }
 
       if (xhr.status == 0 || xhr.status == 200) {
         result = xhr.responseText;
