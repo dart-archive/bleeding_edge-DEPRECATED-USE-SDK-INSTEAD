@@ -9039,35 +9039,54 @@ HValidator.prototype.visitGraph = function(graph) {
   this.graph = graph;
   this.visitDominatorTree(graph);
 }
+HValidator.prototype.markInvalid = function(reason) {
+  print(reason);
+  this.isValid = false;
+}
 HValidator.prototype.visitBasicBlock = function(block) {
   if ($notnull_bool(!$notnull_bool(this.isValid))) return;
-  if ($notnull_bool(block.first == null || block.last == null)) this.isValid = false;
+  if ($notnull_bool(block.first == null || block.last == null)) {
+    this.markInvalid("empty block");
+  }
   if ($notnull_bool(!(block.last instanceof HIf) && !(block.last instanceof HGoto) && !(block.last instanceof HReturn) && !(block.last instanceof HExit))) {
-    this.isValid = false;
+    this.markInvalid("block ends with non-tail node.");
   }
-  if ($notnull_bool((block.last instanceof HIf) && block.successors.length != 2)) this.isValid = false;
-  if ($notnull_bool((block.last instanceof HGoto) && block.successors.length != 1)) this.isValid = false;
+  if ($notnull_bool((block.last instanceof HIf) && block.successors.length != 2)) {
+    this.markInvalid("If node without two successors");
+  }
+  if ($notnull_bool((block.last instanceof HGoto) && block.successors.length != 1)) {
+    this.markInvalid("Goto node without one successor");
+  }
   if ($notnull_bool((block.last instanceof HReturn) && (block.successors.length != 1 || !$notnull_bool(block.successors.$index(0).isExitBlock())))) {
-    this.isValid = false;
+    this.markInvalid("Return node with > 1 succesor or not going to exit-block");
   }
-  if ($notnull_bool((block.last instanceof HExit) && !$notnull_bool(block.successors.isEmpty()))) this.isValid = false;
-  if ($notnull_bool(block.successors.isEmpty() && (block.first !== block.last || !(block.last instanceof HExit)))) {
-    this.isValid = false;
+  if ($notnull_bool((block.last instanceof HExit) && !$notnull_bool(block.successors.isEmpty()))) {
+    this.markInvalid("Exit block with successor");
   }
-  if ($notnull_bool(block.id == null)) this.isValid = false;
+  if ($notnull_bool(block.successors.isEmpty() && !$notnull_bool(block.isExitBlock()))) {
+    this.markInvalid("Non-exit block without successor");
+  }
+  if ($notnull_bool(block.id == null)) this.markInvalid("block without id");
   var $list = block.successors;
   for (var $i = 0;$i < $list.length; $i++) {
     var successor = $list.$index($i);
     if ($notnull_bool(!$notnull_bool(this.isValid))) break;
-    if ($notnull_bool(successor.id == null || successor.id <= block.id)) this.isValid = false;
+    if ($notnull_bool(successor.id == null)) this.markInvalid("successor without id");
+    if ($notnull_bool(successor.id <= block.id)) {
+      this.markInvalid("successor with lower id");
+    }
   }
   var lastId = 0;
   var $list = block.dominatedBlocks;
   for (var $i = 0;$i < $list.length; $i++) {
     var dominated = $list.$index($i);
     if ($notnull_bool(!$notnull_bool(this.isValid))) break;
-    if ($notnull_bool($ne(dominated.dominator, block))) this.isValid = false;
-    if ($notnull_bool(dominated.id == null || dominated.id <= lastId)) this.isValid = false;
+    if ($notnull_bool(dominated.dominator !== block)) {
+      this.markInvalid("dominated block not pointing back");
+    }
+    if ($notnull_bool(dominated.id == null || dominated.id <= lastId)) {
+      this.markInvalid("dominated.id === null or dominated has <= id");
+    }
     lastId = dominated.id;
   }
   if ($notnull_bool(!$notnull_bool(this.isValid))) return;

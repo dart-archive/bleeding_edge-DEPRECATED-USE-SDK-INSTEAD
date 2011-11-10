@@ -11,6 +11,11 @@ class HValidator extends HInstructionVisitor {
     visitDominatorTree(graph);
   }
 
+  void markInvalid(String reason) {
+    print(reason);
+    isValid = false;
+  }
+
   // Note that during construction of the Ssa graph the basic blocks are
   // not required to be valid yet.
   void visitBasicBlock(HBasicBlock block) {
@@ -18,40 +23,54 @@ class HValidator extends HInstructionVisitor {
 
     // Test that the last instruction is a branching instruction and that the
     // basic block contains the branch-target.
-    if (block.first === null || block.last === null) isValid = false;
+    if (block.first === null || block.last === null) {
+      markInvalid("empty block");
+    }
     if (block.last is !HIf &&
         block.last is !HGoto &&
         block.last is !HReturn &&
         block.last is !HExit) {
-      isValid = false;
+      markInvalid("block ends with non-tail node.");
     }
-    if (block.last is HIf && block.successors.length != 2) isValid = false;
-    if (block.last is HGoto && block.successors.length != 1) isValid = false;
+    if (block.last is HIf && block.successors.length != 2) {
+      markInvalid("If node without two successors");
+    }
+    if (block.last is HGoto && block.successors.length != 1) {
+      markInvalid("Goto node without one successor");
+    }
     if (block.last is HReturn &&
         (block.successors.length != 1 || !block.successors[0].isExitBlock())) {
-      isValid = false;
+      markInvalid("Return node with > 1 succesor or not going to exit-block");
     }
-    if (block.last is HExit && !block.successors.isEmpty()) isValid = false;
+    if (block.last is HExit && !block.successors.isEmpty()) {
+      markInvalid("Exit block with successor");
+    }
 
-    if (block.successors.isEmpty() &&
-        (block.first !== block.last || block.last is !HExit)) {
-      isValid = false;
+    if (block.successors.isEmpty() && !block.isExitBlock()) {
+      markInvalid("Non-exit block without successor");
     }
 
     // Make sure that successors ids are always higher than the current one.
     // TODO(floitsch): this is, of course, not true for back-branches.
-    if (block.id === null) isValid = false;
+    if (block.id === null) markInvalid("block without id");
     for (HBasicBlock successor in block.successors) {
       if (!isValid) break;
-      if (successor.id === null || successor.id <= block.id) isValid = false;
+      if (successor.id === null) markInvalid("successor without id");
+      if (successor.id <= block.id) {
+        markInvalid("successor with lower id");
+      }
     }
 
     // Make sure that the entries in the dominated-list are sorted.
     int lastId = 0;
     for (HBasicBlock dominated in block.dominatedBlocks) {
       if (!isValid) break;
-      if (dominated.dominator != block) isValid = false;
-      if (dominated.id === null || dominated.id <= lastId) isValid = false;
+      if (dominated.dominator !== block) {
+        markInvalid("dominated block not pointing back");
+      }
+      if (dominated.id === null || dominated.id <= lastId) {
+        markInvalid("dominated.id === null or dominated has <= id");
+      }
       lastId = dominated.id;
     }
 
