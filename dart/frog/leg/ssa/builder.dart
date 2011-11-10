@@ -316,6 +316,9 @@ class SsaBuilder implements Visitor {
   }
 
   visitReturn(Return node) {
+    if (node.expression === null) {
+      compiler.unimplemented("SsaBuilder: return without expression");
+    }
     visit(node.expression);
     var value = pop();
     add(new HReturn(value));

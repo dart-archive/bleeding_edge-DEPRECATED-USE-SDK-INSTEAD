@@ -5616,12 +5616,18 @@ BodyParser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement(begin);
   $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 413, 12);
-  token = this.parseExpression(this.next(token));
-  this.listener.endReturnStatement(true, begin, token);
+  token = this.next(token);
+  if ($notnull_bool(this.optional(';', token))) {
+    this.listener.endReturnStatement(false, begin, token);
+  }
+  else {
+    token = this.parseExpression(token);
+    this.listener.endReturnStatement(true, begin, token);
+  }
   return this.expectSemicolon(token);
 }
 BodyParser.prototype.parseExpressionStatementOrDeclaration = function(token) {
-  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 420, 12);
+  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 425, 12);
   var peek1 = this.next(token);
   if ($notnull_bool(peek1.kind === 97/*null.IDENTIFIER_TOKEN*/)) {
     return this.parseLocalDeclaration(token, peek1);
@@ -5670,7 +5676,7 @@ BodyParser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 BodyParser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 473, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 478, 12);
   token = this.parsePrimary(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = $assert_num(tokenLevel);
@@ -5935,7 +5941,7 @@ BodyParser.prototype.parseArgumentsOpt = function(token) {
 BodyParser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 606, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 611, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments(argumentCount, begin, token.next);
@@ -7733,6 +7739,9 @@ SsaBuilder.prototype.visitOperator = function(node) {
   this.compiler.unimplemented("SsaBuilder.visitOperator");
 }
 SsaBuilder.prototype.visitReturn = function(node) {
+  if ($notnull_bool(node.expression == null)) {
+    this.compiler.unimplemented("SsaBuilder: return without expression");
+  }
   this.visit(node.expression);
   var value = this.pop();
   this.add(new HReturn(value));
@@ -7751,7 +7760,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 340, 12);
+  $assert(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty(), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 343, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   return this.definitions.$setindex(this.elements.$index(node), value);
@@ -7765,7 +7774,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions without initial value");
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 355, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 358, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }
@@ -8876,7 +8885,7 @@ HTracer.prototype.traceCompilation = function(methodName) {
 }
 HTracer.prototype.traceGraph = function(name, graph) {
   var $this = this; // closure support
-  graph.noSuchMethod("number", []);
+  graph.assignInstructionIds();
   this.tag("cfg", (function () {
     $this.printProperty("name", name);
     $this.visitDominatorTree(graph);

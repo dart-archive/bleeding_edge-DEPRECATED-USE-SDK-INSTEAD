@@ -411,8 +411,13 @@ class BodyParser extends Parser/* <BodyListener> Frog bug #320 */ {
     Token begin = token;
     listener.beginReturnStatement(begin);
     assert('return' === token.stringValue);
-    token = parseExpression(next(token));
-    listener.endReturnStatement(true, begin, token);
+    token = next(token);
+    if (optional(';', token)) {
+      listener.endReturnStatement(false, begin, token);
+    } else {
+      token = parseExpression(token);
+      listener.endReturnStatement(true, begin, token);
+    }
     return expectSemicolon(token);
   }
 
