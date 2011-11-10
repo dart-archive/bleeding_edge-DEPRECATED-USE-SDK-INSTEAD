@@ -88,7 +88,7 @@ def main(args):
   RunCommand('../tools/build.py', '--mode=release')
   test_cmd = ['../tools/test.py', '--component=frog,frogsh,leg',
               '--report', '--timeout=5', '--progress=color',
-              '--mode=release']
+              '--mode=release', '--checked']
   if args[1:]:
     test_cmd.extend(args[1:])
   else:

@@ -4,5 +4,8 @@
 
 prefix leg
 
+[ $checked ]
+ResolverTest: Fail
+
 [ $component == dartc ]
 *: Fail # Too many type errors in frog.
