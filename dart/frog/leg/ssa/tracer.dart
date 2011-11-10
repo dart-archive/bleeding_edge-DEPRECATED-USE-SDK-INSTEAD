@@ -155,6 +155,8 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitDivide(HDivide node) => visitInvoke(node);
 
+  String visitEquals(HEquals node) => visitInvoke(node);
+
   String visitExit(HExit node) => "exit";
 
   String visitGoto(HGoto node) {

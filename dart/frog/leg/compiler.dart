@@ -101,6 +101,7 @@ class Compiler implements Canceler, Logger {
     StringBuffer buffer = new StringBuffer();
     buffer.add(ADD_SUPPORT);
     buffer.add(DIV_SUPPORT);
+    buffer.add(EQ_SUPPORT);
     buffer.add(SUB_SUPPORT);
     buffer.add(MUL_SUPPORT);
     buffer.add(TDIV_SUPPORT);
@@ -152,6 +153,12 @@ function \$add(a, b) {
 final String DIV_SUPPORT = """
 function \$div(a, b) {
   return a / b;
+}
+""";
+
+final String EQ_SUPPORT = """
+function \$eq(a, b) {
+  return a === b;
 }
 """;
 

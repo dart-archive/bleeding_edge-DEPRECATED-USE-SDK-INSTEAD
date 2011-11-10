@@ -42,6 +42,16 @@ class SsaConstantFolder extends HBaseVisitor {
     return node;
   }
 
+  HInstruction visitEquals(HEquals node) {
+    List<HInstruction> inputs = node.inputs;
+    if (inputs[0] is HLiteral && inputs[1] is HLiteral) {
+      HLiteral op1 = inputs[0];
+      HLiteral op2 = inputs[1];
+      return new HLiteral(op1.value == op2.value);
+    }
+    return node;
+  }
+
   HInstruction visitArithmetic(HArithmetic node) {
     List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 2);

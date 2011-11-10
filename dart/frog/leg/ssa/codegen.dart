@@ -137,6 +137,10 @@ class SsaCodeGenerator implements HVisitor {
     invoke(const SourceString('\$div'), node.inputs);
   }
 
+  visitEquals(HEquals node) {
+    invoke(const SourceString('\$eq'), node.inputs);
+  }
+
   visitExit(HExit node) {
     // Don't do anything.
   }

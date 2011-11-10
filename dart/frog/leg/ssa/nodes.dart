@@ -6,6 +6,7 @@ interface HVisitor<R> {
   R visitAdd(HAdd node);
   R visitBasicBlock(HBasicBlock node);
   R visitDivide(HDivide node);
+  R visitEquals(HEquals node);
   R visitExit(HExit node);
   R visitGoto(HGoto node);
   R visitIf(HIf node);
@@ -149,6 +150,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
 
   visitAdd(HAdd node) => visitArithmetic(node);
   visitDivide(HDivide node) => visitArithmetic(node);
+  visitEquals(HEquals node) => visitInvoke(node);
   visitExit(HExit node) => visitControlFlow(node);
   visitGoto(HGoto node) => visitControlFlow(node);
   visitIf(HIf node) => visitControlFlow(node);
@@ -548,6 +550,20 @@ class HTruncatingDivide extends HArithmetic {
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
   num evaluate(num a, num b) => a ~/ b;
   bool typeEquals(other) => other is HTruncatingDivide;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HEquals extends HInvoke {
+  HEquals(inputs) : super(const SourceString('=='), inputs);
+  void prepareGvn() {
+    // Only if the left-hand side is a (any) literal are we
+    // sure the operation will not have any side-effects.
+    if (inputs[0] is !HLiteral) return;
+    clearAllSideEffects();
+    setUseGvn();
+  }
+  accept(HVisitor visitor) => visitor.visitEquals(this);
+  bool typeEquals(other) => other is HEquals;
   bool dataEquals(HInstruction other) => true;
 }
 

@@ -98,7 +98,8 @@ class ResolverVisitor implements Visitor<Element> {
         name == const SourceString('*') ||
         name == const SourceString('/') ||
         name == const SourceString('<') ||
-        name == const SourceString('~/')) {
+        name == const SourceString('~/') ||
+        name == const SourceString('==')) {
       // Do nothing.
     } else {
       // TODO(ngeoffray): Use the receiver to do the lookup.
