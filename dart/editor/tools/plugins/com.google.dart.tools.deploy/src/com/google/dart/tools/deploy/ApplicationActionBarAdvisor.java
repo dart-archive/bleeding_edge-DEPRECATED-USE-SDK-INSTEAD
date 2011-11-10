@@ -16,6 +16,7 @@ package com.google.dart.tools.deploy;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
+import com.google.dart.tools.ui.actions.DeployOptimizedAction;
 import com.google.dart.tools.ui.actions.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.actions.RunInBrowserAction;
@@ -159,6 +160,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 //  private IAction newWizardAction;
 
   private RunInBrowserAction runInBrowserAction;
+
+  private IWorkbenchAction deployOptimizedAction;
 
   private IWorkbenchAction importResourcesAction;
 
@@ -411,6 +414,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       // Add the group for applications to contribute
       helpToolBar.add(new GroupMarker(IWorkbenchActionConstants.GROUP_APP));
       helpToolBar.add(runInBrowserAction);
+
       // Add to the cool bar manager
       coolBar.add(actionBarConfigurer.createToolBarContributionItem(helpToolBar,
           IWorkbenchActionConstants.TOOLBAR_HELP));
@@ -427,7 +431,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menuBar.add(createNavigateMenu());
     //menuBar.add(createBuildMenu());
     menuBar.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
-    menuBar.add(createWindowMenu());
+    menuBar.add(createToolsMenu());
     menuBar.add(createHelpMenu());
   }
 
@@ -448,7 +452,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     statusLineItem = new StatusLineContributionItem("ModeContributionItem"); //$NON-NLS-1$
 
     runInBrowserAction = new RunInBrowserAction(window);
-    //register(runInBrowserAction);
+
+    deployOptimizedAction = new DeployOptimizedAction(window);
 
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
     register(newApplicationWizardAction);
@@ -914,7 +919,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   /**
    * Creates and returns the Window menu.
    */
-  private MenuManager createWindowMenu() {
+  private MenuManager createToolsMenu() {
     MenuManager menu = new MenuManager(WorkbenchMessages.tools_menu,
         IWorkbenchActionConstants.M_WINDOW);
 
@@ -923,7 +928,14 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     //menu.add(new Separator());
     addViewActions(menu);
+
+    // TODO(devoncarew): uncomment
+//    menu.add(new Separator());
+//    menu.add(deployOptimizedAction);
+    // TODO(devoncarew): uncomment
+
     menu.add(new Separator());
+
     //addKeyboardShortcuts(menu);
 
     menu.add(cleanAllAction);

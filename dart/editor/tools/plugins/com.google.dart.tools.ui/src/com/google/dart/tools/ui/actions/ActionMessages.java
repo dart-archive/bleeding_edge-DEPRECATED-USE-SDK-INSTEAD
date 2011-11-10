@@ -257,6 +257,14 @@ public final class ActionMessages extends NLS {
 
   public static String OpenInBrowserAction_toolTip;
 
+  public static String DeployOptimizedAction_title;
+  public static String DeployOptimizedAction_description;
+  public static String DeployOptimizedAction_tooltip;
+  public static String DeployOptimizedAction_jobTitle;
+  public static String DeployOptimizedAction_noneSelected;
+  public static String DeployOptimizedAction_unableToLaunch;
+  public static String DeployOptimizedAction_errorLaunching;
+
   public static String OpenInBrowserAction_noFileTitle;
   public static String OpenInBrowserAction_noFileMessage;
 
