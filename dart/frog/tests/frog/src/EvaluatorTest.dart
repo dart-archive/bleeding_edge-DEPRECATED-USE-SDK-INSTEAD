@@ -25,11 +25,10 @@ main() {
       Expect.equals('foobar', eval('"foo" + "bar"'));
     });
 
-    // TODO(nweiz): make this work
-    // test('built-in methods', () {
-    //   Expect.equals(2, eval('(2.3).round()'));
-    //   Expect.isTrue(eval('"foobar".contains("oba")'));
-    // });
+    test('built-in methods', () {
+      Expect.equals(2, eval('(2.3).round()'));
+      Expect.isTrue(eval('"foobar".contains("oba")'));
+    });
 
     test('user-defined top-level functions', () {
       var ev = evaluator();

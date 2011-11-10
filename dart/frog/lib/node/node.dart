@@ -77,7 +77,11 @@ class VM native "VM" {
   void runInThisContext(String code, [String filename]) native;
   void runInNewContext(String code, [var sandbox, String filename]) native;
   Script createScript(String code, [String filename]) native;
+  Context createContext([sandbox]) native;
+  runInContext(String code, Context context, [String filename]) native;
 }
+
+interface Context {}
 
 class Script native "Script" {
   void runInThisContext() native;

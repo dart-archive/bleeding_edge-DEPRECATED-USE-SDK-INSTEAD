@@ -7,10 +7,11 @@
 #import('lib/node/node.dart');
 #import('evaluator.dart');
 
+
 class NodeJsEvaluator implements JsEvaluator {
-  var _sandbox;
+  Context _context;
 
-  NodeJsEvaluator(): this._sandbox = createSandbox();
+  NodeJsEvaluator() : this._context = vm.createContext(createSandbox());
 
-  var eval(String js) => vm.runInNewContext(js, _sandbox);
+  eval(String js) => vm.runInContext(js, this._context);
 }
