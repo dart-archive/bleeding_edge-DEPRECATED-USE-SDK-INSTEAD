@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.actions;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -218,7 +217,7 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
 
   void openInBrowser(IWorkbenchPage page) {
     try {
-      List<IFile> files = getFileResources();
+      List<IFile> files = getFileResourcesForSelection();
 
       IFile file = null;
 
@@ -273,19 +272,13 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
     return (IFile) result[0];
   }
 
-  private List<IFile> getAllAvailableHtmlFiles() throws DartModelException {
-    Set<IFile> files = new HashSet<IFile>();
-
-    for (DartLibrary library : DartModelManager.getInstance().getDartModel().getDartLibraries()) {
-      files.addAll(getHtmlFilesFor(library));
-    }
-
-    return new ArrayList<IFile>(files);
-  }
-
-  private List<IFile> getFileResources() throws DartModelException {
+  private List<IFile> getFileResourcesForSelection() throws DartModelException {
     IResource resource = null;
     DartElement element = null;
+
+    if (selectedObject == null) {
+      return Collections.emptyList();
+    }
 
     if (selectedObject instanceof IResource) {
       resource = (IResource) selectedObject;
@@ -317,7 +310,7 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
     }
 
     if (element == null) {
-      return getAllAvailableHtmlFiles();
+      return Collections.emptyList();
     } else {
       // DartElement in a library
       DartLibrary library = element.getAncestor(DartLibrary.class);
@@ -330,7 +323,7 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
         }
       }
 
-      return getAllAvailableHtmlFiles();
+      return Collections.emptyList();
     }
   }
 
@@ -355,11 +348,13 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
   private void handleSelectionChanged(IStructuredSelection selection) {
     if (selection != null && !selection.isEmpty()) {
       selectedObject = selection.getFirstElement();
-
-      setEnabled(true);
     } else {
       selectedObject = null;
+    }
 
+    try {
+      setEnabled(getFileResourcesForSelection().size() > 0);
+    } catch (DartModelException e) {
       setEnabled(false);
     }
   }
