@@ -7742,7 +7742,7 @@ SsaBuilder.prototype.visitIf = function(node) {
     this.visit(node.elsePart);
     elseBlock = this.block;
   }
-  if ($notnull_bool(thenBlock == null && elseBlock == null)) {
+  if ($notnull_bool(thenBlock == null && elseBlock == null && hasElse)) {
     this.block = null;
   }
   else {

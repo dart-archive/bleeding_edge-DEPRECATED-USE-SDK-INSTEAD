@@ -199,7 +199,7 @@ class SsaBuilder implements Visitor {
       elseBlock = block;
     }
 
-    if (thenBlock === null && elseBlock === null) {
+    if (thenBlock === null && elseBlock === null && hasElse) {
       block = null;
     } else {
       HBasicBlock joinBlock = graph.addNewBlock();
