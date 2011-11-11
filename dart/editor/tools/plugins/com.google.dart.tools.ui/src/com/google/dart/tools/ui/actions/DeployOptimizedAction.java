@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.compiler.backend.js.AbstractJsBackend;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.builder.CompileOptimized;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -26,7 +27,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -75,9 +75,7 @@ public class DeployOptimizedAction extends Action implements IWorkbenchAction, I
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-      deployOptimizedLibrary(monitor, page, file, library);
-
-      return Status.OK_STATUS;
+      return deployOptimizedLibrary(monitor, page, file, library);
     }
   }
 
@@ -153,7 +151,7 @@ public class DeployOptimizedAction extends Action implements IWorkbenchAction, I
       }
     }
 
-    DartLibrary library = getCurrentLibrary();
+    final DartLibrary library = getCurrentLibrary();
 
     if (library == null) {
       MessageDialog.openError(window.getShell(),
@@ -171,7 +169,6 @@ public class DeployOptimizedAction extends Action implements IWorkbenchAction, I
 
         if (fileName != null) {
           DeployOptimizedJob job = new DeployOptimizedJob(page, new File(fileName), library);
-
           job.schedule(isSaveNeeded ? 100 : 0);
         }
       } catch (DartModelException exception) {
@@ -184,18 +181,12 @@ public class DeployOptimizedAction extends Action implements IWorkbenchAction, I
     }
   }
 
-  private void deployOptimizedLibrary(IProgressMonitor monitor, IWorkbenchPage page,
+  private IStatus deployOptimizedLibrary(IProgressMonitor monitor, IWorkbenchPage page,
       File outputFile, DartLibrary library) {
-    // TODO(devoncarew): hook in the optimized (jscompiler based) builder
 
-    System.out.println("perform work here... [" + library.getDisplayName() + " library]");
+    CompileOptimized dartCompile = new CompileOptimized(library, outputFile);
+    return dartCompile.compileToJs(monitor);
 
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
   }
 
   private DartLibrary getCurrentLibrary() {

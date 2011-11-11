@@ -23,6 +23,10 @@ public class DartBuilderMessages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.core.internal.builder.DartBuilderMessages"; //$NON-NLS-1$
   public static String DartBuilder_console_js_file_description;
   public static String DartBuilder_console_html_file_description;
+
+  public static String CompileOptmized_title;
+  public static String CompileOtimized_errorMessage;
+
   static {
     // initialize resource bundle
     NLS.initializeMessages(BUNDLE_NAME, DartBuilderMessages.class);

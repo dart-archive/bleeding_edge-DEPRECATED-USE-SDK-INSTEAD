@@ -929,12 +929,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     //menu.add(new Separator());
     addViewActions(menu);
 
-    // TODO(devoncarew): uncomment
-//    menu.add(new Separator());
-//    menu.add(deployOptimizedAction);
-    // TODO(devoncarew): uncomment
-
     menu.add(new Separator());
+    //TODO: remove comment when dartc --optimize works for all samples
+    //menu.add(deployOptimizedAction);
+
+//    menu.add(new Separator());
 
     //addKeyboardShortcuts(menu);
 
