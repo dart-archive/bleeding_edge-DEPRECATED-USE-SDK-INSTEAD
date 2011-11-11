@@ -56,25 +56,11 @@ def main(args):
   start = time.time()
   RunCommand('./frog.py',
              '--vm_flags=--compile_all --enable_type_checks --enable_asserts',
-             '--', '--enable_type_checks', '--out=frogsh', 'frog.dart')
+             '--', '--compile_all', '--enable_type_checks', '--out=frogsh',
+             'frog.dart')
   elapsed = time.time() - start
   mode = 'in checked mode + compile all'
   print 'Compiling on Dart VM took %s seconds %s' % (b(elapsed), b(mode))
-
-  # VM Checked, produces checked
-  start = time.time()
-  RunCommand('./frog.py',
-             '--vm_flags=--enable_type_checks --enable_asserts',
-             '--', '--enable_type_checks', '--out=frogsh', 'frog.dart')
-  elapsed = time.time() - start
-  mode = 'in checked mode'
-  print 'Compiling on Dart VM took %s seconds %s' % (b(elapsed), b(mode))
-
-  # VM Normal, produces checked
-  start = time.time()
-  RunCommand('./frog.py', '--out=frogsh', '--enable_type_checks', 'frog.dart')
-  elapsed = time.time() - start
-  print 'Compiling on Dart VM took %s seconds' % b(elapsed)
 
   # Selfhost Checked
   start = time.time()
@@ -86,15 +72,23 @@ def main(args):
   print 'Generated %s frogsh is %s kB' % (b('checked'), b(size))
 
   RunCommand('../tools/build.py', '--mode=release')
-  test_cmd = ['../tools/test.py', '--component=frog,frogsh,leg',
-              '--report', '--timeout=5', '--progress=color',
-              '--mode=release', '--checked']
+  test_cmd = ['../tools/test.py', '--report', '--timeout=10',
+              '--progress=color', '--mode=release', '--checked']
   if args[1:]:
+    test_cmd.append('--component=frogsh,leg')
     test_cmd.extend(args[1:])
+    RunCommand(*test_cmd, verbose=True)
   else:
-    test_cmd.extend(['language', 'corelib', 'leg', 'isolate',
-                     'peg', 'leg_only', 'frog'])
-  RunCommand(*test_cmd, verbose=True)
+    # Run frog.py on the corelib tests, so we get some frog.py coverage.
+    cmd = test_cmd + ['--component=frog', 'corelib']
+    RunCommand(*cmd, verbose=True)
+    # Run leg and frogsh on most of the tests. TODO: add co19 here
+    cmd = test_cmd + ['--component=frogsh,leg', 'language', 'corelib', 'leg',
+                      'isolate', 'peg', 'leg_only', 'frog']
+    RunCommand(*cmd, verbose=True)
+    # TODO: leg doesn't work with co19 yet, so run it separately
+    cmd = test_cmd + ['--component=frogsh', 'co19']
+    RunCommand(*cmd, verbose=True)
 
 if __name__ == '__main__':
   try:
