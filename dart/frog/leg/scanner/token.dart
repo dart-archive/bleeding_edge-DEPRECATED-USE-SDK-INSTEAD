@@ -109,3 +109,9 @@ class StringWrapper implements SourceString {
 
   String get stringValue() => internalString;
 }
+
+class BeginGroupToken extends StringToken {
+  Token endGroup;
+  BeginGroupToken(int kind, String value, int charOffset)
+    : super(kind, value, charOffset);
+}

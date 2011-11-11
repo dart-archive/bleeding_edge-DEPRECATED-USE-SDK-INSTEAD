@@ -16,11 +16,13 @@ class ByteString {
   abstract String get charset();
 
   String toString() {
-    // var sublist = new List<int>.fromList(bytes, offset, offset + length);
-    // return new String.fromCharCodes(bytes.getRange(offset, length));
-    // TODO(ahe): Figure out how to update the above code to the new
-    // situation (tricky part: use API that works across VM and Frog).
-    return 'error';
+    try {
+      return new String.fromCharCodes(bytes.getRange(offset, length));
+    } catch (var ignored) {
+      // An exception may occur when running this on node. This is
+      // because [bytes] really is a buffer (or typed array).
+      return bytes.toString().substring(offset, offset + length);
+    }
   }
 
   bool equals(Object other) {

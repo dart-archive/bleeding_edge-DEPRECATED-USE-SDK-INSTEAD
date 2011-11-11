@@ -1002,7 +1002,7 @@ ImmutableList.prototype.get$length = function() {
   return this._length;
 }
 ImmutableList.prototype.set$length = function(length) {
-  $throw(const$229/*const IllegalAccessException()*/);
+  $throw(const$14/*const IllegalAccessException()*/);
 }
 Object.defineProperty(ImmutableList.prototype, "length", {
   get: ImmutableList.prototype.get$length,
@@ -1012,31 +1012,31 @@ ImmutableList.prototype._setindex = function(index, value) {
   return this[index] = value;
 }
 ImmutableList.prototype.$setindex = function(index, value) {
-  $throw(const$229/*const IllegalAccessException()*/);
+  $throw(const$14/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.removeRange = function(start, length) {
-  $throw(const$229/*const IllegalAccessException()*/);
+  $throw(const$14/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.insertRange = function(start, length, initialValue) {
-  $throw(const$229/*const IllegalAccessException()*/);
+  $throw(const$14/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.sort = function(compare) {
-  $throw(const$229/*const IllegalAccessException()*/);
+  $throw(const$14/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.add = function(element) {
-  $throw(const$229/*const IllegalAccessException()*/);
+  $throw(const$14/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.addLast = function(element) {
-  $throw(const$229/*const IllegalAccessException()*/);
+  $throw(const$14/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.addAll = function(elements) {
-  $throw(const$229/*const IllegalAccessException()*/);
+  $throw(const$14/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.clear = function() {
-  $throw(const$229/*const IllegalAccessException()*/);
+  $throw(const$14/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.removeLast = function() {
-  $throw(const$229/*const IllegalAccessException()*/);
+  $throw(const$14/*const IllegalAccessException()*/);
 }
 // ********** Code for ImmutableMap **************
 function ImmutableMap(keyValuePairs) {
@@ -1074,7 +1074,7 @@ ImmutableMap.prototype.containsKey = function(key) {
   return this._internal.containsKey(key);
 }
 ImmutableMap.prototype.$setindex = function(key, value) {
-  $throw(const$229/*const IllegalAccessException()*/);
+  $throw(const$14/*const IllegalAccessException()*/);
 }
 // ********** Code for MatchImplementation **************
 function MatchImplementation(pattern, str, _start, _end, _groups) {
@@ -2496,10 +2496,174 @@ function join(strings) {
 function readSync(fileName) {
   return new SourceFile(fileName, world.files.readAll(fileName));
 }
+//  ********** Library util_implementation **************
+// ********** Code for LinkFactory **************
+function LinkFactory() {}
+LinkFactory.Link$factory = function(head, tail) {
+  var $0;
+  return new LinkEntry(head, (($0 = $notnull_bool((tail == null)) ? const$16/*const EmptyLink()*/ : tail) && $0.is$Link$T()));
+}
+// ********** Code for AbstractLink **************
+function AbstractLink() {}
+AbstractLink.prototype.is$Link = function(){return this;};
+AbstractLink.prototype.is$Link$Element = function(){return this;};
+AbstractLink.prototype.is$Link$Node = function(){return this;};
+AbstractLink.prototype.is$Link$T = function(){return this;};
+AbstractLink.prototype.is$Link$Token = function(){return this;};
+AbstractLink.prototype.is$Link$Type = function(){return this;};
+AbstractLink.prototype.is$Iterable = function(){return this;};
+AbstractLink.prototype.get$head = function() {
+  $throw("bug");
+}
+AbstractLink.prototype.get$tail = function() {
+  $throw("bug");
+}
+AbstractLink.prototype.prepend = function(element) {
+  return LinkFactory.Link$factory(element, this);
+}
+AbstractLink.prototype.iterator = function() {
+  var $0;
+  return (($0 = this.toList().iterator()) && $0.is$Iterator$T());
+}
+AbstractLink.prototype.printOn = function(buffer, separatedBy) {
+  var $0;
+  if ($notnull_bool(this.isEmpty())) return;
+  buffer.add($notnull_bool(this.get$head() == null) ? 'null' : this.get$head());
+  if ($notnull_bool(separatedBy == null)) separatedBy = '';
+  for (var link = (($0 = this.get$tail()) && $0.is$Link());
+   $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link())) {
+    buffer.add(separatedBy);
+    buffer.add($notnull_bool(link.get$head() == null) ? 'null' : link.get$head());
+  }
+}
+AbstractLink.prototype.toString = function() {
+  var buffer = new StringBufferImpl("");
+  buffer.add('[ ');
+  this.printOn(buffer, ', ');
+  buffer.add(' ]');
+  return buffer.toString();
+}
+// ********** Code for AbstractLink$T **************
+function AbstractLink$T() {}
+$inherits(AbstractLink$T, AbstractLink);
+AbstractLink$T.prototype.is$Link = function(){return this;};
+AbstractLink$T.prototype.is$Link$Element = function(){return this;};
+AbstractLink$T.prototype.is$Link$Node = function(){return this;};
+AbstractLink$T.prototype.is$Link$T = function(){return this;};
+AbstractLink$T.prototype.is$Link$Token = function(){return this;};
+AbstractLink$T.prototype.is$Link$Type = function(){return this;};
+AbstractLink$T.prototype.is$Iterable = function(){return this;};
+AbstractLink$T.prototype.iterator = function() {
+  var $0;
+  return (($0 = this.toList().iterator()) && $0.is$Iterator$T());
+}
+// ********** Code for LinkTail **************
+function LinkTail() {
+  // Initializers done
+}
+$inherits(LinkTail, AbstractLink$T);
+LinkTail.prototype.is$Link = function(){return this;};
+LinkTail.prototype.is$Link$Element = function(){return this;};
+LinkTail.prototype.is$Link$Node = function(){return this;};
+LinkTail.prototype.is$Link$T = function(){return this;};
+LinkTail.prototype.is$Link$Token = function(){return this;};
+LinkTail.prototype.is$Link$Type = function(){return this;};
+LinkTail.prototype.is$Iterable = function(){return this;};
+LinkTail.prototype.get$head = function() {
+  return null;
+}
+LinkTail.prototype.get$tail = function() {
+  return null;
+}
+LinkTail.prototype.toList = function() {
+  return const$15/*const []*/;
+}
+LinkTail.prototype.isEmpty = function() {
+  return true;
+}
+// ********** Code for LinkTail$Node **************
+function LinkTail$Node() {
+  // Initializers done
+}
+$inherits(LinkTail$Node, LinkTail);
+LinkTail$Node.prototype.is$Link = function(){return this;};
+LinkTail$Node.prototype.is$Link$Element = function(){return this;};
+LinkTail$Node.prototype.is$Link$Node = function(){return this;};
+LinkTail$Node.prototype.is$Link$T = function(){return this;};
+LinkTail$Node.prototype.is$Link$Token = function(){return this;};
+LinkTail$Node.prototype.is$Link$Type = function(){return this;};
+LinkTail$Node.prototype.is$Iterable = function(){return this;};
+// ********** Code for LinkEntry **************
+function LinkEntry(head, realTail) {
+  this.head = head;
+  this.realTail = realTail;
+  // Initializers done
+}
+$inherits(LinkEntry, AbstractLink$T);
+LinkEntry.prototype.get$head = function() { return this.head; };
+LinkEntry.prototype.get$tail = function() {
+  return this.realTail;
+}
+LinkEntry.prototype.isEmpty = function() {
+  return false;
+}
+LinkEntry.prototype.toList = function() {
+  var $0;
+  var list = new ListFactory$T();
+  for (var link = this;
+   $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link$T())) {
+    list.addLast(link.get$head());
+  }
+  return list;
+}
+// ********** Code for LinkEntry$T **************
+function LinkEntry$T(head, realTail) {
+  this.head = head;
+  this.realTail = realTail;
+  // Initializers done
+}
+$inherits(LinkEntry$T, LinkEntry);
+// ********** Code for LinkBuilderImplementation **************
+function LinkBuilderImplementation() {
+  this.head = null
+  this.lastLink = null
+  // Initializers done
+}
+LinkBuilderImplementation.prototype.get$head = function() { return this.head; };
+LinkBuilderImplementation.prototype.set$head = function(value) { return this.head = value; };
+LinkBuilderImplementation.prototype.toLink = function() {
+  if ($notnull_bool(this.head == null)) return const$16/*const EmptyLink()*/;
+  this.lastLink.realTail = const$16/*const EmptyLink()*/;
+  var link = this.head;
+  this.lastLink = null;
+  this.head = null;
+  return link;
+}
+LinkBuilderImplementation.prototype.addLast = function(t) {
+  var entry = new LinkEntry$T(t, null);
+  if ($notnull_bool(this.head == null)) {
+    this.head = entry;
+  }
+  else {
+    this.lastLink.realTail = entry;
+  }
+  this.lastLink = entry;
+}
+// ********** Code for LinkBuilderImplementation$Type **************
+function LinkBuilderImplementation$Type() {
+  this.head = null
+  this.lastLink = null
+  // Initializers done
+}
+$inherits(LinkBuilderImplementation$Type, LinkBuilderImplementation);
+// ********** Code for top level **************
+//  ********** Library util **************
+// ********** Code for top level **************
 //  ********** Library scanner_implementation **************
 // ********** Code for ArrayBasedScanner **************
 function ArrayBasedScanner() {
-  this.charOffset = -1;
+  this.groupingStack = const$16/*const EmptyLink()*/
+  this.extraCharOffset = 0;
   this.tokenStart = -1;
   this.byteOffset = -1;
   this.tokens = new Token(0/*null.EOF_TOKEN*/, -1);
@@ -2507,20 +2671,20 @@ function ArrayBasedScanner() {
   this.tail = this.tokens;
 }
 $inherits(ArrayBasedScanner, AbstractScanner$S);
-ArrayBasedScanner.prototype.get$charOffset = function() { return this.charOffset; };
-ArrayBasedScanner.prototype.set$charOffset = function(value) { return this.charOffset = value; };
+ArrayBasedScanner.prototype.get$charOffset = function() {
+  return this.byteOffset + this.extraCharOffset;
+}
 ArrayBasedScanner.prototype.get$tail = function() { return this.tail; };
 ArrayBasedScanner.prototype.set$tail = function(value) { return this.tail = value; };
 ArrayBasedScanner.prototype.get$byteOffset = function() { return this.byteOffset; };
 ArrayBasedScanner.prototype.set$byteOffset = function(value) { return this.byteOffset = value; };
 ArrayBasedScanner.prototype.advance = function() {
   var next = this.nextByte();
-  this.charOffset++;
   return next;
 }
 ArrayBasedScanner.prototype.select = function(choice, yes, no) {
   var next = this.advance();
-  if ($notnull_bool(next == choice)) {
+  if ($notnull_bool(next === choice)) {
     this.appendStringToken(1024/*null.UNKNOWN_TOKEN*/, yes);
     return this.advance();
   }
@@ -2538,24 +2702,85 @@ ArrayBasedScanner.prototype.appendKeywordToken = function(keyword) {
   this.tail = this.tail.next;
 }
 ArrayBasedScanner.prototype.appendEofToken = function() {
-  this.tail.next = new Token(0/*null.EOF_TOKEN*/, this.charOffset);
+  this.tail.next = new Token(0/*null.EOF_TOKEN*/, this.get$charOffset());
   this.tail = this.tail.next;
 }
 ArrayBasedScanner.prototype.beginToken = function() {
-  this.tokenStart = this.charOffset;
+  this.tokenStart = this.get$charOffset();
 }
 ArrayBasedScanner.prototype.firstToken = function() {
   return this.tokens.next;
 }
 ArrayBasedScanner.prototype.addToCharOffset = function(offset) {
-  this.charOffset += offset;
+  this.extraCharOffset += offset;
 }
 ArrayBasedScanner.prototype.appendWhiteSpace = function(next) {
 
 }
+ArrayBasedScanner.prototype.appendBeginGroup = function(kind, value) {
+  var $0;
+  var token = new BeginGroupToken(kind, value, this.tokenStart);
+  this.tail.next = token;
+  this.tail = this.tail.next;
+  while ($notnull_bool(kind !== 60/*null.LT_TOKEN*/ && !$notnull_bool(this.groupingStack.isEmpty()) && this.groupingStack.get$head().kind === 60/*null.LT_TOKEN*/)) {
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+  this.groupingStack = (($0 = this.groupingStack.prepend(token)) && $0.is$Link$Token());
+}
+ArrayBasedScanner.prototype.appendEndGroup = function(kind, value, openKind) {
+  var $0;
+  var oldTail = this.tail;
+  this.appendStringToken(kind, value);
+  if ($notnull_bool(this.groupingStack.isEmpty())) {
+    if ($notnull_bool(openKind === 60/*null.LT_TOKEN*/)) return;
+    $throw(new MalformedInputException(('Unmatched ' + value + '')));
+  }
+  while ($notnull_bool(openKind !== 60/*null.LT_TOKEN*/ && !$notnull_bool(this.groupingStack.isEmpty()) && this.groupingStack.get$head().kind === 60/*null.LT_TOKEN*/)) {
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+  if ($notnull_bool(this.groupingStack.get$head().kind !== openKind)) {
+    if ($notnull_bool(openKind === 60/*null.LT_TOKEN*/)) return;
+    $throw(new MalformedInputException(('Unmatched ' + value + '')));
+  }
+  this.groupingStack.get$head().endGroup = oldTail.next;
+  this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+}
+ArrayBasedScanner.prototype.appendGtGt = function(kind, value) {
+  var $0;
+  var oldTail = this.tail;
+  this.appendStringToken(kind, value);
+  if ($notnull_bool(this.groupingStack.isEmpty())) return;
+  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+  if ($notnull_bool(this.groupingStack.isEmpty())) return;
+  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+    this.groupingStack.get$head().endGroup = oldTail.next;
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+}
+ArrayBasedScanner.prototype.appendGtGtGt = function(kind, value) {
+  var $0;
+  var oldTail = this.tail;
+  this.appendStringToken(kind, value);
+  if ($notnull_bool(this.groupingStack.isEmpty())) return;
+  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+  if ($notnull_bool(this.groupingStack.isEmpty())) return;
+  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+  if ($notnull_bool(this.groupingStack.isEmpty())) return;
+  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+    this.groupingStack.get$head().endGroup = oldTail.next;
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+}
 // ********** Code for ArrayBasedScanner$SourceString **************
 function ArrayBasedScanner$SourceString() {
-  this.charOffset = -1;
+  this.groupingStack = const$16/*const EmptyLink()*/
+  this.extraCharOffset = 0;
   this.tokenStart = -1;
   this.byteOffset = -1;
   this.tokens = new Token(0/*null.EOF_TOKEN*/, -1);
@@ -2565,12 +2790,11 @@ function ArrayBasedScanner$SourceString() {
 $inherits(ArrayBasedScanner$SourceString, ArrayBasedScanner);
 ArrayBasedScanner$SourceString.prototype.advance = function() {
   var next = this.nextByte();
-  this.charOffset++;
   return next;
 }
 ArrayBasedScanner$SourceString.prototype.select = function(choice, yes, no) {
   var next = this.advance();
-  if ($notnull_bool(next == choice)) {
+  if ($notnull_bool(next === choice)) {
     this.appendStringToken(1024/*null.UNKNOWN_TOKEN*/, yes);
     return this.advance();
   }
@@ -2588,20 +2812,80 @@ ArrayBasedScanner$SourceString.prototype.appendKeywordToken = function(keyword) 
   this.tail = this.tail.next;
 }
 ArrayBasedScanner$SourceString.prototype.appendEofToken = function() {
-  this.tail.next = new Token(0/*null.EOF_TOKEN*/, this.charOffset);
+  this.tail.next = new Token(0/*null.EOF_TOKEN*/, this.get$charOffset());
   this.tail = this.tail.next;
 }
 ArrayBasedScanner$SourceString.prototype.beginToken = function() {
-  this.tokenStart = this.charOffset;
+  this.tokenStart = this.get$charOffset();
 }
 ArrayBasedScanner$SourceString.prototype.firstToken = function() {
   return this.tokens.next;
 }
 ArrayBasedScanner$SourceString.prototype.addToCharOffset = function(offset) {
-  this.charOffset += offset;
+  this.extraCharOffset += offset;
 }
 ArrayBasedScanner$SourceString.prototype.appendWhiteSpace = function(next) {
 
+}
+ArrayBasedScanner$SourceString.prototype.appendBeginGroup = function(kind, value) {
+  var $0;
+  var token = new BeginGroupToken(kind, value, this.tokenStart);
+  this.tail.next = token;
+  this.tail = this.tail.next;
+  while ($notnull_bool(kind !== 60/*null.LT_TOKEN*/ && !$notnull_bool(this.groupingStack.isEmpty()) && this.groupingStack.get$head().kind === 60/*null.LT_TOKEN*/)) {
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+  this.groupingStack = (($0 = this.groupingStack.prepend(token)) && $0.is$Link$Token());
+}
+ArrayBasedScanner$SourceString.prototype.appendEndGroup = function(kind, value, openKind) {
+  var $0;
+  var oldTail = this.tail;
+  this.appendStringToken(kind, value);
+  if ($notnull_bool(this.groupingStack.isEmpty())) {
+    if ($notnull_bool(openKind === 60/*null.LT_TOKEN*/)) return;
+    $throw(new MalformedInputException(('Unmatched ' + value + '')));
+  }
+  while ($notnull_bool(openKind !== 60/*null.LT_TOKEN*/ && !$notnull_bool(this.groupingStack.isEmpty()) && this.groupingStack.get$head().kind === 60/*null.LT_TOKEN*/)) {
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+  if ($notnull_bool(this.groupingStack.get$head().kind !== openKind)) {
+    if ($notnull_bool(openKind === 60/*null.LT_TOKEN*/)) return;
+    $throw(new MalformedInputException(('Unmatched ' + value + '')));
+  }
+  this.groupingStack.get$head().endGroup = oldTail.next;
+  this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+}
+ArrayBasedScanner$SourceString.prototype.appendGtGt = function(kind, value) {
+  var $0;
+  var oldTail = this.tail;
+  this.appendStringToken(kind, value);
+  if ($notnull_bool(this.groupingStack.isEmpty())) return;
+  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+  if ($notnull_bool(this.groupingStack.isEmpty())) return;
+  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+    this.groupingStack.get$head().endGroup = oldTail.next;
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+}
+ArrayBasedScanner$SourceString.prototype.appendGtGtGt = function(kind, value) {
+  var $0;
+  var oldTail = this.tail;
+  this.appendStringToken(kind, value);
+  if ($notnull_bool(this.groupingStack.isEmpty())) return;
+  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+  if ($notnull_bool(this.groupingStack.isEmpty())) return;
+  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
+  if ($notnull_bool(this.groupingStack.isEmpty())) return;
+  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+    this.groupingStack.get$head().endGroup = oldTail.next;
+    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
+  }
 }
 ArrayBasedScanner$SourceString.prototype.tokenize = function() {
   var next = this.advance();
@@ -2685,12 +2969,12 @@ ArrayBasedScanner$SourceString.prototype.bigSwitch = function(next) {
 
     case 40/*null.$LPAREN*/:
 
-      this.appendStringToken(40/*null.LPAREN_TOKEN*/, "(");
+      this.appendBeginGroup(40/*null.LPAREN_TOKEN*/, "(");
       return this.advance();
 
     case 41/*null.$RPAREN*/:
 
-      this.appendStringToken(41/*null.RPAREN_TOKEN*/, ")");
+      this.appendEndGroup(41/*null.RPAREN_TOKEN*/, ")", 40/*null.LPAREN_TOKEN*/);
       return this.advance();
 
     case 44/*null.$COMMA*/:
@@ -2715,7 +2999,7 @@ ArrayBasedScanner$SourceString.prototype.bigSwitch = function(next) {
 
     case 93/*null.$RBRACKET*/:
 
-      this.appendStringToken(93/*null.RBRACKET_TOKEN*/, "]");
+      this.appendEndGroup(93/*null.RBRACKET_TOKEN*/, "]", 93/*null.RBRACKET_TOKEN*/);
       return this.advance();
 
     case 96/*null.$BACKPING*/:
@@ -2725,12 +3009,12 @@ ArrayBasedScanner$SourceString.prototype.bigSwitch = function(next) {
 
     case 123/*null.$LBRACE*/:
 
-      this.appendStringToken(123/*null.LBRACE_TOKEN*/, "{");
+      this.appendBeginGroup(123/*null.LBRACE_TOKEN*/, "{");
       return this.advance();
 
     case 125/*null.$RBRACE*/:
 
-      this.appendStringToken(125/*null.RBRACE_TOKEN*/, "}");
+      this.appendEndGroup(125/*null.RBRACE_TOKEN*/, "}", 123/*null.LBRACE_TOKEN*/);
       return this.advance();
 
     case 47/*null.$SLASH*/:
@@ -2829,7 +3113,7 @@ ArrayBasedScanner$SourceString.prototype.bigSwitch = function(next) {
         return -1;
       }
       if ($notnull_bool(next < 0x1f)) {
-        $throw(new MalformedInputException(this.charOffset));
+        $throw(new MalformedInputException(this.get$charOffset()));
       }
       return this.tokenizeIdentifier(next);
 
@@ -2864,7 +3148,7 @@ ArrayBasedScanner$SourceString.prototype.tokenizeOpenBracket = function(next) {
     return this.select(61/*null.$EQ*/, "[]=", "[]");
   }
   else {
-    this.appendStringToken(93/*null.RBRACKET_TOKEN*/, "[");
+    this.appendBeginGroup(93/*null.RBRACKET_TOKEN*/, "[");
     return next;
   }
 }
@@ -2992,11 +3276,21 @@ ArrayBasedScanner$SourceString.prototype.tokenizeGreaterThan = function(next) {
 
         case 62/*null.$GT*/:
 
-          return this.select(61/*null.$EQ*/, ">>>=", ">>>");
+          {
+            next = this.advance();
+            if ($notnull_bool(next === 61/*null.$EQ*/)) {
+              this.appendStringToken(62/*null.GT_TOKEN*/, ">>>=");
+              return this.advance();
+            }
+            else {
+              this.appendGtGtGt(62/*null.GT_TOKEN*/, ">>>");
+              return next;
+            }
+          }
 
         default:
 
-          this.appendStringToken(62/*null.GT_TOKEN*/, ">>");
+          this.appendGtGt(62/*null.GT_TOKEN*/, ">>");
           return next;
 
       }
@@ -3004,7 +3298,7 @@ ArrayBasedScanner$SourceString.prototype.tokenizeGreaterThan = function(next) {
 
     default:
 
-      this.appendStringToken(62/*null.GT_TOKEN*/, ">");
+      this.appendEndGroup(62/*null.GT_TOKEN*/, ">", 60/*null.LT_TOKEN*/);
       return next;
 
   }
@@ -3023,7 +3317,7 @@ ArrayBasedScanner$SourceString.prototype.tokenizeLessThan = function(next) {
 
     default:
 
-      this.appendStringToken(60/*null.LT_TOKEN*/, "<");
+      this.appendBeginGroup(60/*null.LT_TOKEN*/, "<");
       return next;
 
   }
@@ -3108,7 +3402,7 @@ ArrayBasedScanner$SourceString.prototype.tokenizeHex = function(next) {
       default:
 
         if ($notnull_bool(!$notnull_bool(hasDigits))) {
-          $throw(new MalformedInputException(this.charOffset));
+          $throw(new MalformedInputException(this.get$charOffset()));
         }
         this.appendByteStringToken(120/*null.HEXADECIMAL_TOKEN*/, this.asciiString(start));
         return next;
@@ -3209,7 +3503,7 @@ ArrayBasedScanner$SourceString.prototype.tokenizeExponent = function(next) {
       default:
 
         if ($notnull_bool(!$notnull_bool(hasDigits))) {
-          $throw(new MalformedInputException(this.charOffset));
+          $throw(new MalformedInputException(this.get$charOffset()));
         }
         return next;
 
@@ -3330,7 +3624,7 @@ ArrayBasedScanner$SourceString.prototype.tokenizeRawString = function(next) {
     return this.tokenizeString(next, start, true);
   }
   else {
-    $throw(new MalformedInputException(this.charOffset));
+    $throw(new MalformedInputException(this.get$charOffset()));
   }
 }
 ArrayBasedScanner$SourceString.prototype.tokenizeString = function(next, start, raw) {
@@ -3362,15 +3656,15 @@ ArrayBasedScanner$SourceString.prototype.tokenizeSingleLineString = function(nex
     else if ($notnull_bool(next == 92/*null.$BACKSLASH*/)) {
       next = this.advance();
       if ($notnull_bool(next == -1)) {
-        $throw(new MalformedInputException(this.charOffset));
+        $throw(new MalformedInputException(this.get$charOffset()));
       }
     }
     else if ($notnull_bool(next == 10/*null.$LF*/ || next == 13/*null.$CR*/)) {
-      $throw(new MalformedInputException(this.charOffset));
+      $throw(new MalformedInputException(this.get$charOffset()));
     }
     next = this.advance();
   }
-  $throw(new MalformedInputException(this.charOffset));
+  $throw(new MalformedInputException(this.get$charOffset()));
 }
 ArrayBasedScanner$SourceString.prototype.tokenizeSingleLineRawString = function(next, q1, start) {
   next = this.advance();
@@ -3380,11 +3674,11 @@ ArrayBasedScanner$SourceString.prototype.tokenizeSingleLineRawString = function(
       return this.advance();
     }
     else if ($notnull_bool(next == 10/*null.$LF*/ || next == 13/*null.$CR*/)) {
-      $throw(new MalformedInputException(this.charOffset));
+      $throw(new MalformedInputException(this.get$charOffset()));
     }
     next = this.advance();
   }
-  $throw(new MalformedInputException(this.charOffset));
+  $throw(new MalformedInputException(this.get$charOffset()));
 }
 ArrayBasedScanner$SourceString.prototype.tokenizeMultiLineString = function(q, start, raw) {
   var next = this.advance();
@@ -3403,165 +3697,6 @@ ArrayBasedScanner$SourceString.prototype.tokenizeMultiLineString = function(q, s
   }
   return next;
 }
-// ********** Code for top level **************
-//  ********** Library util_implementation **************
-// ********** Code for LinkFactory **************
-function LinkFactory() {}
-LinkFactory.Link$factory = function(head, tail) {
-  var $0;
-  return new LinkEntry(head, (($0 = $notnull_bool((tail == null)) ? const$236/*const EmptyLink()*/ : tail) && $0.is$Link$T()));
-}
-// ********** Code for AbstractLink **************
-function AbstractLink() {}
-AbstractLink.prototype.is$Link = function(){return this;};
-AbstractLink.prototype.is$Link$Element = function(){return this;};
-AbstractLink.prototype.is$Link$Node = function(){return this;};
-AbstractLink.prototype.is$Link$T = function(){return this;};
-AbstractLink.prototype.is$Link$Type = function(){return this;};
-AbstractLink.prototype.is$Iterable = function(){return this;};
-AbstractLink.prototype.get$head = function() {
-  $throw("bug");
-}
-AbstractLink.prototype.get$tail = function() {
-  $throw("bug");
-}
-AbstractLink.prototype.prepend = function(element) {
-  return LinkFactory.Link$factory(element, this);
-}
-AbstractLink.prototype.iterator = function() {
-  var $0;
-  return (($0 = this.toList().iterator()) && $0.is$Iterator$T());
-}
-AbstractLink.prototype.printOn = function(buffer, separatedBy) {
-  var $0;
-  if ($notnull_bool(this.isEmpty())) return;
-  buffer.add($notnull_bool(this.get$head() == null) ? 'null' : this.get$head());
-  if ($notnull_bool(separatedBy == null)) separatedBy = '';
-  for (var link = (($0 = this.get$tail()) && $0.is$Link());
-   $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link())) {
-    buffer.add(separatedBy);
-    buffer.add($notnull_bool(link.get$head() == null) ? 'null' : link.get$head());
-  }
-}
-AbstractLink.prototype.toString = function() {
-  var buffer = new StringBufferImpl("");
-  buffer.add('[ ');
-  this.printOn(buffer, ', ');
-  buffer.add(' ]');
-  return buffer.toString();
-}
-// ********** Code for AbstractLink$T **************
-function AbstractLink$T() {}
-$inherits(AbstractLink$T, AbstractLink);
-AbstractLink$T.prototype.is$Link = function(){return this;};
-AbstractLink$T.prototype.is$Link$Element = function(){return this;};
-AbstractLink$T.prototype.is$Link$Node = function(){return this;};
-AbstractLink$T.prototype.is$Link$T = function(){return this;};
-AbstractLink$T.prototype.is$Link$Type = function(){return this;};
-AbstractLink$T.prototype.is$Iterable = function(){return this;};
-AbstractLink$T.prototype.iterator = function() {
-  var $0;
-  return (($0 = this.toList().iterator()) && $0.is$Iterator$T());
-}
-// ********** Code for LinkTail **************
-function LinkTail() {
-  // Initializers done
-}
-$inherits(LinkTail, AbstractLink$T);
-LinkTail.prototype.is$Link = function(){return this;};
-LinkTail.prototype.is$Link$Element = function(){return this;};
-LinkTail.prototype.is$Link$Node = function(){return this;};
-LinkTail.prototype.is$Link$T = function(){return this;};
-LinkTail.prototype.is$Link$Type = function(){return this;};
-LinkTail.prototype.is$Iterable = function(){return this;};
-LinkTail.prototype.get$head = function() {
-  return null;
-}
-LinkTail.prototype.get$tail = function() {
-  return null;
-}
-LinkTail.prototype.toList = function() {
-  return const$235/*const []*/;
-}
-LinkTail.prototype.isEmpty = function() {
-  return true;
-}
-// ********** Code for LinkTail$Node **************
-function LinkTail$Node() {
-  // Initializers done
-}
-$inherits(LinkTail$Node, LinkTail);
-LinkTail$Node.prototype.is$Link = function(){return this;};
-LinkTail$Node.prototype.is$Link$Element = function(){return this;};
-LinkTail$Node.prototype.is$Link$Node = function(){return this;};
-LinkTail$Node.prototype.is$Link$T = function(){return this;};
-LinkTail$Node.prototype.is$Link$Type = function(){return this;};
-LinkTail$Node.prototype.is$Iterable = function(){return this;};
-// ********** Code for LinkEntry **************
-function LinkEntry(head, realTail) {
-  this.head = head;
-  this.realTail = realTail;
-  // Initializers done
-}
-$inherits(LinkEntry, AbstractLink$T);
-LinkEntry.prototype.get$head = function() { return this.head; };
-LinkEntry.prototype.get$tail = function() {
-  return this.realTail;
-}
-LinkEntry.prototype.isEmpty = function() {
-  return false;
-}
-LinkEntry.prototype.toList = function() {
-  var $0;
-  var list = new ListFactory$T();
-  for (var link = this;
-   $notnull_bool(!$notnull_bool(link.isEmpty())); link = (($0 = link.get$tail()) && $0.is$Link$T())) {
-    list.addLast(link.get$head());
-  }
-  return list;
-}
-// ********** Code for LinkEntry$T **************
-function LinkEntry$T(head, realTail) {
-  this.head = head;
-  this.realTail = realTail;
-  // Initializers done
-}
-$inherits(LinkEntry$T, LinkEntry);
-// ********** Code for LinkBuilderImplementation **************
-function LinkBuilderImplementation() {
-  this.head = null
-  this.lastLink = null
-  // Initializers done
-}
-LinkBuilderImplementation.prototype.get$head = function() { return this.head; };
-LinkBuilderImplementation.prototype.set$head = function(value) { return this.head = value; };
-LinkBuilderImplementation.prototype.toLink = function() {
-  if ($notnull_bool(this.head == null)) return const$236/*const EmptyLink()*/;
-  this.lastLink.realTail = const$236/*const EmptyLink()*/;
-  var link = this.head;
-  this.lastLink = null;
-  this.head = null;
-  return link;
-}
-LinkBuilderImplementation.prototype.addLast = function(t) {
-  var entry = new LinkEntry$T(t, null);
-  if ($notnull_bool(this.head == null)) {
-    this.head = entry;
-  }
-  else {
-    this.lastLink.realTail = entry;
-  }
-  this.lastLink = entry;
-}
-// ********** Code for LinkBuilderImplementation$Type **************
-function LinkBuilderImplementation$Type() {
-  this.head = null
-  this.lastLink = null
-  // Initializers done
-}
-$inherits(LinkBuilderImplementation$Type, LinkBuilderImplementation);
-// ********** Code for top level **************
-//  ********** Library util **************
 // ********** Code for top level **************
 //  ********** Library scanner **************
 // ********** Code for AbstractScanner **************
@@ -3648,12 +3783,12 @@ AbstractScanner.prototype.bigSwitch = function(next) {
 
     case 40/*null.$LPAREN*/:
 
-      this.appendStringToken(40/*null.LPAREN_TOKEN*/, "(");
+      this.appendBeginGroup(40/*null.LPAREN_TOKEN*/, "(");
       return this.advance();
 
     case 41/*null.$RPAREN*/:
 
-      this.appendStringToken(41/*null.RPAREN_TOKEN*/, ")");
+      this.appendEndGroup(41/*null.RPAREN_TOKEN*/, ")", 40/*null.LPAREN_TOKEN*/);
       return this.advance();
 
     case 44/*null.$COMMA*/:
@@ -3678,7 +3813,7 @@ AbstractScanner.prototype.bigSwitch = function(next) {
 
     case 93/*null.$RBRACKET*/:
 
-      this.appendStringToken(93/*null.RBRACKET_TOKEN*/, "]");
+      this.appendEndGroup(93/*null.RBRACKET_TOKEN*/, "]", 93/*null.RBRACKET_TOKEN*/);
       return this.advance();
 
     case 96/*null.$BACKPING*/:
@@ -3688,12 +3823,12 @@ AbstractScanner.prototype.bigSwitch = function(next) {
 
     case 123/*null.$LBRACE*/:
 
-      this.appendStringToken(123/*null.LBRACE_TOKEN*/, "{");
+      this.appendBeginGroup(123/*null.LBRACE_TOKEN*/, "{");
       return this.advance();
 
     case 125/*null.$RBRACE*/:
 
-      this.appendStringToken(125/*null.RBRACE_TOKEN*/, "}");
+      this.appendEndGroup(125/*null.RBRACE_TOKEN*/, "}", 123/*null.LBRACE_TOKEN*/);
       return this.advance();
 
     case 47/*null.$SLASH*/:
@@ -3827,7 +3962,7 @@ AbstractScanner.prototype.tokenizeOpenBracket = function(next) {
     return this.select(61/*null.$EQ*/, "[]=", "[]");
   }
   else {
-    this.appendStringToken(93/*null.RBRACKET_TOKEN*/, "[");
+    this.appendBeginGroup(93/*null.RBRACKET_TOKEN*/, "[");
     return next;
   }
 }
@@ -3955,11 +4090,21 @@ AbstractScanner.prototype.tokenizeGreaterThan = function(next) {
 
         case 62/*null.$GT*/:
 
-          return this.select(61/*null.$EQ*/, ">>>=", ">>>");
+          {
+            next = this.advance();
+            if ($notnull_bool(next === 61/*null.$EQ*/)) {
+              this.appendStringToken(62/*null.GT_TOKEN*/, ">>>=");
+              return this.advance();
+            }
+            else {
+              this.appendGtGtGt(62/*null.GT_TOKEN*/, ">>>");
+              return next;
+            }
+          }
 
         default:
 
-          this.appendStringToken(62/*null.GT_TOKEN*/, ">>");
+          this.appendGtGt(62/*null.GT_TOKEN*/, ">>");
           return next;
 
       }
@@ -3967,7 +4112,7 @@ AbstractScanner.prototype.tokenizeGreaterThan = function(next) {
 
     default:
 
-      this.appendStringToken(62/*null.GT_TOKEN*/, ">");
+      this.appendEndGroup(62/*null.GT_TOKEN*/, ">", 60/*null.LT_TOKEN*/);
       return next;
 
   }
@@ -3986,7 +4131,7 @@ AbstractScanner.prototype.tokenizeLessThan = function(next) {
 
     default:
 
-      this.appendStringToken(60/*null.LT_TOKEN*/, "<");
+      this.appendBeginGroup(60/*null.LT_TOKEN*/, "<");
       return next;
 
   }
@@ -4451,12 +4596,12 @@ AbstractScanner$S.prototype.bigSwitch = function(next) {
 
     case 40/*null.$LPAREN*/:
 
-      this.appendStringToken(40/*null.LPAREN_TOKEN*/, "(");
+      this.appendBeginGroup(40/*null.LPAREN_TOKEN*/, "(");
       return this.advance();
 
     case 41/*null.$RPAREN*/:
 
-      this.appendStringToken(41/*null.RPAREN_TOKEN*/, ")");
+      this.appendEndGroup(41/*null.RPAREN_TOKEN*/, ")", 40/*null.LPAREN_TOKEN*/);
       return this.advance();
 
     case 44/*null.$COMMA*/:
@@ -4481,7 +4626,7 @@ AbstractScanner$S.prototype.bigSwitch = function(next) {
 
     case 93/*null.$RBRACKET*/:
 
-      this.appendStringToken(93/*null.RBRACKET_TOKEN*/, "]");
+      this.appendEndGroup(93/*null.RBRACKET_TOKEN*/, "]", 93/*null.RBRACKET_TOKEN*/);
       return this.advance();
 
     case 96/*null.$BACKPING*/:
@@ -4491,12 +4636,12 @@ AbstractScanner$S.prototype.bigSwitch = function(next) {
 
     case 123/*null.$LBRACE*/:
 
-      this.appendStringToken(123/*null.LBRACE_TOKEN*/, "{");
+      this.appendBeginGroup(123/*null.LBRACE_TOKEN*/, "{");
       return this.advance();
 
     case 125/*null.$RBRACE*/:
 
-      this.appendStringToken(125/*null.RBRACE_TOKEN*/, "}");
+      this.appendEndGroup(125/*null.RBRACE_TOKEN*/, "}", 123/*null.LBRACE_TOKEN*/);
       return this.advance();
 
     case 47/*null.$SLASH*/:
@@ -4630,7 +4775,7 @@ AbstractScanner$S.prototype.tokenizeOpenBracket = function(next) {
     return this.select(61/*null.$EQ*/, "[]=", "[]");
   }
   else {
-    this.appendStringToken(93/*null.RBRACKET_TOKEN*/, "[");
+    this.appendBeginGroup(93/*null.RBRACKET_TOKEN*/, "[");
     return next;
   }
 }
@@ -4758,11 +4903,21 @@ AbstractScanner$S.prototype.tokenizeGreaterThan = function(next) {
 
         case 62/*null.$GT*/:
 
-          return this.select(61/*null.$EQ*/, ">>>=", ">>>");
+          {
+            next = this.advance();
+            if ($notnull_bool(next === 61/*null.$EQ*/)) {
+              this.appendStringToken(62/*null.GT_TOKEN*/, ">>>=");
+              return this.advance();
+            }
+            else {
+              this.appendGtGtGt(62/*null.GT_TOKEN*/, ">>>");
+              return next;
+            }
+          }
 
         default:
 
-          this.appendStringToken(62/*null.GT_TOKEN*/, ">>");
+          this.appendGtGt(62/*null.GT_TOKEN*/, ">>");
           return next;
 
       }
@@ -4770,7 +4925,7 @@ AbstractScanner$S.prototype.tokenizeGreaterThan = function(next) {
 
     default:
 
-      this.appendStringToken(62/*null.GT_TOKEN*/, ">");
+      this.appendEndGroup(62/*null.GT_TOKEN*/, ">", 60/*null.LT_TOKEN*/);
       return next;
 
   }
@@ -4789,7 +4944,7 @@ AbstractScanner$S.prototype.tokenizeLessThan = function(next) {
 
     default:
 
-      this.appendStringToken(60/*null.LT_TOKEN*/, "<");
+      this.appendBeginGroup(60/*null.LT_TOKEN*/, "<");
       return next;
 
   }
@@ -5170,8 +5325,12 @@ AbstractScanner$S.prototype.tokenizeMultiLineString = function(q, start, raw) {
   return next;
 }
 // ********** Code for MalformedInputException **************
-function MalformedInputException(ignored) {
+function MalformedInputException(message) {
+  this.message = message;
   // Initializers done
+}
+MalformedInputException.prototype.toString = function() {
+  return this.message.toString();
 }
 // ********** Code for ScannerTask **************
 function ScannerTask(compiler) {
@@ -5368,29 +5527,12 @@ PartialParser.prototype.skipBlock = function(token) {
   if ($notnull_bool(!$notnull_bool(this.optional('{', token)))) {
     return this.listener.expectedBlock(token);
   }
-  token = this.next(token);
-  var nesting = 1;
-  do {
-    var kind = token.kind;
-    switch (true) {
-      case kind === 123/*null.LBRACE_TOKEN*/:
-
-        nesting++;
-        break;
-
-      case kind === 125/*null.RBRACE_TOKEN*/:
-
-        nesting--;
-        if ($notnull_bool(nesting === 0)) {
-          return token;
-        }
-        break;
-
-    }
-    token = this.next(token);
-  }
-  while ($notnull_bool(token != null))
-  $throw('Internal error: unreachable code');
+  var beginGroupToken = (token && token.is$BeginGroupToken());
+  $assert(beginGroupToken.endGroup == null || beginGroupToken.endGroup.kind === 125/*null.$RBRACE*/, "beginGroupToken.endGroup === null ||\n           beginGroupToken.endGroup.kind === $RBRACE", "parser.dart", 181, 12);
+  return beginGroupToken.endGroup;
+}
+PartialParser.prototype.skipArguments = function(token) {
+  return token.endGroup;
 }
 PartialParser.prototype.parseClass = function(token) {
   var begin = token;
@@ -5493,7 +5635,12 @@ PartialParser.prototype.parseTypeArgumentsOpt = function(token) {
   return this.parseStuff(token, this.beginTypeArguments, this.parseTypeFunction, this.endTypeArguments, this.handleNoTypeArguments);
 }
 PartialParser.prototype.parseTypeVariablesOpt = function(token) {
-  return this.parseStuff(token, this.beginTypeVariables, this.parseTypeVariableFunction, this.endTypeVariables, this.handleNoTypeVariables);
+  if ($notnull_bool(this.optional('<', token))) {
+    var beginGroupToken = (token && token.is$BeginGroupToken());
+    token = this.next(beginGroupToken.endGroup);
+  }
+  this.listener.handleNoTypeVariables$1(token);
+  return token;
 }
 PartialParser.prototype.parseStuff = function(token, beginStuff, stuffParser, endStuff, handleNoStuff) {
   var $0;
@@ -5552,6 +5699,9 @@ PartialParser.prototype.parseTopLevelMember = function(token) {
     else {
       token = this.listener.unexpected(token);
     }
+  }
+  if ($notnull_bool(!$notnull_bool(isField))) {
+    token = this.next(this.skipArguments((token && token.is$BeginGroupToken())));
   }
   while ($notnull_bool(token != null && token.kind !== 123/*null.LBRACE_TOKEN*/ && token.kind !== 59/*null.SEMICOLON_TOKEN*/)) {
     token = this.next(token);
@@ -5676,7 +5826,7 @@ Parser.prototype.expectSemicolon = function(token) {
 Parser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement(begin);
-  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 448, 12);
+  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 450, 12);
   token = this.next(token);
   if ($notnull_bool(this.optional(';', token))) {
     this.listener.endReturnStatement(false, begin, token);
@@ -5688,14 +5838,33 @@ Parser.prototype.parseReturnStatement = function(token) {
   return this.expectSemicolon(token);
 }
 Parser.prototype.parseExpressionStatementOrDeclaration = function(token) {
-  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 460, 12);
+  var $0;
+  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 462, 12);
   var peek1 = this.next(token);
   if ($notnull_bool(peek1.kind === 97/*null.IDENTIFIER_TOKEN*/)) {
     return this.parseLocalDeclaration(token, peek1);
   }
-  else {
-    return this.parseExpressionStatement(token);
+  else if ($notnull_bool(peek1.kind === 60/*null.LT_TOKEN*/)) {
+    var beginGroupToken = (peek1 && peek1.is$BeginGroupToken());
+    var gtToken = beginGroupToken.endGroup;
+    if ($notnull_bool(gtToken != null && gtToken.next.kind === 97/*null.IDENTIFIER_TOKEN*/)) {
+      var identifier = gtToken.next;
+      var afterId = identifier.next;
+      var afterIdKind = afterId.kind;
+      if ($notnull_bool(afterIdKind === 61/*null.EQ_TOKEN*/ || afterIdKind === 59/*null.SEMICOLON_TOKEN*/)) {
+        return this.parseLocalDeclaration(token, identifier);
+      }
+      else if ($notnull_bool(afterIdKind === 41/*null.RPAREN_TOKEN*/)) {
+        var beginParen = (($0 = this.noSuchMethod("get:afterIdentifier", [])) && $0.is$BeginGroupToken());
+        var endParen = beginParen.endGroup;
+        var afterParens = endParen.next;
+        if ($notnull_bool(this.optional('{', afterParens) || this.optional('=>', afterParens))) {
+          return this.parseLocalDeclaration(token, identifier);
+        }
+      }
+    }
   }
+  return this.parseExpressionStatement(token);
 }
 Parser.prototype.parseLocalDeclaration = function(token, peek1) {
   var peek2 = this.next(peek1);
@@ -5737,7 +5906,7 @@ Parser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 Parser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 513, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 542, 12);
   token = this.parsePrimary(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = $assert_num(tokenLevel);
@@ -6002,7 +6171,7 @@ Parser.prototype.parseArgumentsOpt = function(token) {
 Parser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 646, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 675, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments(argumentCount, begin, token.next);
@@ -6363,11 +6532,14 @@ function ParserError(reason) {
   this.reason = reason;
   // Initializers done
 }
+ParserError.prototype.toString = function() {
+  return this.reason;
+}
 // ********** Code for ElementListener **************
 function ElementListener(canceler) {
   this.previousIdentifier = null
-  this.nodes = const$236/*const EmptyLink()*/
-  this.topLevelElements = const$236/*const EmptyLink()*/
+  this.nodes = const$16/*const EmptyLink()*/
+  this.topLevelElements = const$16/*const EmptyLink()*/
   this.canceler = canceler;
   // Initializers done
 }
@@ -6438,7 +6610,7 @@ ElementListener.prototype.pushNode = function(node) {
 }
 ElementListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 330, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 331, 12);
   var node = (($0 = this.nodes.get$head()) && $0.is$Node());
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link$Node());
   this.log(("pop " + this.nodes + ""));
@@ -6590,7 +6762,7 @@ NodeListener.prototype.endRethrowStatement = function(throwToken, endToken) {
 }
 NodeListener.prototype.makeNodeList = function(count, beginToken, endToken, delimiter) {
   var $0;
-  var nodes = const$236/*const EmptyLink()*/;
+  var nodes = const$16/*const EmptyLink()*/;
   for (; $notnull_bool(count > 0); --count) {
     nodes = (($0 = nodes.prepend(this.popNode())) && $0.is$Link$Node());
   }
@@ -6694,7 +6866,7 @@ function Token(kind, charOffset) {
 Token.prototype.is$Token = function(){return this;};
 Token.prototype.get$charOffset = function() { return this.charOffset; };
 Token.prototype.get$value = function() {
-  return const$232/*const SourceString('EOF')*/;
+  return const$234/*const SourceString('EOF')*/;
 }
 Token.prototype.get$stringValue = function() {
   return 'EOF';
@@ -6756,6 +6928,13 @@ StringWrapper.prototype.toString = function() {
 StringWrapper.prototype.get$stringValue = function() {
   return this.internalString;
 }
+// ********** Code for BeginGroupToken **************
+function BeginGroupToken(kind, value, charOffset) {
+  StringToken.call(this, kind, value, charOffset);
+  // Initializers done
+}
+$inherits(BeginGroupToken, StringToken);
+BeginGroupToken.prototype.is$BeginGroupToken = function(){return this;};
 // ********** Code for Keyword **************
 function Keyword(syntax, isPseudo) {
   this.syntax = syntax;
@@ -6773,7 +6952,7 @@ Keyword.get$keywords = function() {
 Keyword.computeKeywordMap = function() {
   var $0;
   var result = new LinkedHashMapImplementation$String$Keyword();
-  for (var $i0 = const$230/*Keyword.values*/.iterator(); $i0.hasNext(); ) {
+  for (var $i0 = const$232/*Keyword.values*/.iterator(); $i0.hasNext(); ) {
     var keyword = $i0.next();
     result.$setindex(keyword.syntax, keyword);
   }
@@ -6799,10 +6978,10 @@ function KeywordState() {}
 KeywordState.prototype.is$KeywordState = function(){return this;};
 KeywordState.get$KEYWORD_STATE = function() {
   if ($notnull_bool(KeywordState._KEYWORD_STATE == null)) {
-    var strings = new ListFactory$String(const$230/*Keyword.values*/.get$length());
+    var strings = new ListFactory$String(const$232/*Keyword.values*/.get$length());
     for (var i = 0;
-     $notnull_bool(i < const$230/*Keyword.values*/.get$length()); i++) {
-      strings.$setindex(i, const$230/*Keyword.values*/[i].syntax);
+     $notnull_bool(i < const$232/*Keyword.values*/.get$length()); i++) {
+      strings.$setindex(i, const$232/*Keyword.values*/[i].syntax);
     }
     strings.sort((function (a, b) {
       return a.compareTo(b);
@@ -7207,11 +7386,11 @@ function LiteralBool(token, handler) {
 $inherits(LiteralBool, Literal$bool);
 LiteralBool.prototype.get$value = function() {
   switch (this.token.get$value()) {
-    case const$185/*Keyword.TRUE*/:
+    case const$188/*Keyword.TRUE*/:
 
       return true;
 
-    case const$157/*Keyword.FALSE*/:
+    case const$160/*Keyword.FALSE*/:
 
       return false;
 
@@ -8438,7 +8617,7 @@ HBasicBlock.withId$ctor = function(id) {
   this.dominator = null
   this.id = id;
   this.predecessors = [];
-  this.successors = const$235/*const []*/;
+  this.successors = const$15/*const []*/;
   this.dominatedBlocks = [];
   // Initializers done
 }
@@ -8638,7 +8817,7 @@ HInstruction.prototype.setUseGvn = function() {
   this.setFlag(3/*HInstruction.FLAG_USE_GVN*/);
 }
 HInstruction.prototype.get$usedBy = function() {
-  if ($notnull_bool(this._usedBy == null)) return const$235/*const []*/;
+  if ($notnull_bool(this._usedBy == null)) return const$15/*const []*/;
   return this._usedBy;
 }
 HInstruction.prototype.isInBasicBlock = function() {
@@ -8809,7 +8988,7 @@ HEquals.prototype.accept = function(visitor) {
 }
 // ********** Code for HExit **************
 function HExit() {
-  HControlFlow.call(this, const$235/*const []*/);
+  HControlFlow.call(this, const$15/*const []*/);
   // Initializers done
 }
 $inherits(HExit, HControlFlow);
@@ -8821,7 +9000,7 @@ HExit.prototype.accept = function(visitor) {
 }
 // ********** Code for HGoto **************
 function HGoto() {
-  HControlFlow.call(this, const$235/*const []*/);
+  HControlFlow.call(this, const$15/*const []*/);
   // Initializers done
 }
 $inherits(HGoto, HControlFlow);
@@ -20465,55 +20644,55 @@ function main() {
 var const$0 = new NoMoreElementsException()/*const NoMoreElementsException()*/;
 var const$10 = new StringWrapper('Dynamic')/*const SourceString('Dynamic')*/;
 var const$12 = new StringWrapper('String')/*const SourceString('String')*/;
-var const$141 = new Keyword("break", false)/*const Keyword("break")*/;
-var const$143 = new Keyword("case", false)/*const Keyword("case")*/;
-var const$145 = new Keyword("catch", false)/*const Keyword("catch")*/;
-var const$147 = new Keyword("const", false)/*const Keyword("const")*/;
-var const$149 = new Keyword("continue", false)/*const Keyword("continue")*/;
-var const$151 = new Keyword("default", false)/*const Keyword("default")*/;
-var const$153 = new Keyword("do", false)/*const Keyword("do")*/;
-var const$155 = new Keyword("else", false)/*const Keyword("else")*/;
-var const$157 = new Keyword("false", false)/*const Keyword("false")*/;
-var const$159 = new Keyword("final", false)/*const Keyword("final")*/;
-var const$161 = new Keyword("finally", false)/*const Keyword("finally")*/;
-var const$163 = new Keyword("for", false)/*const Keyword("for")*/;
-var const$165 = new Keyword("if", false)/*const Keyword("if")*/;
-var const$167 = new Keyword("in", false)/*const Keyword("in")*/;
-var const$169 = new Keyword("is", false)/*const Keyword("is")*/;
-var const$171 = new Keyword("new", false)/*const Keyword("new")*/;
-var const$173 = new Keyword("null", false)/*const Keyword("null")*/;
-var const$175 = new Keyword("return", false)/*const Keyword("return")*/;
-var const$177 = new Keyword("super", false)/*const Keyword("super")*/;
-var const$179 = new Keyword("switch", false)/*const Keyword("switch")*/;
-var const$181 = new Keyword("this", false)/*const Keyword("this")*/;
-var const$183 = new Keyword("throw", false)/*const Keyword("throw")*/;
-var const$185 = new Keyword("true", false)/*const Keyword("true")*/;
-var const$187 = new Keyword("try", false)/*const Keyword("try")*/;
-var const$189 = new Keyword("var", false)/*const Keyword("var")*/;
-var const$191 = new Keyword("void", false)/*const Keyword("void")*/;
-var const$193 = new Keyword("while", false)/*const Keyword("while")*/;
-var const$195 = new Keyword("abstract", true)/*const Keyword("abstract", true)*/;
-var const$197 = new Keyword("assert", true)/*const Keyword("assert", true)*/;
-var const$199 = new Keyword("class", true)/*const Keyword("class", true)*/;
+var const$14 = new IllegalAccessException()/*const IllegalAccessException()*/;
+var const$144 = new Keyword("break", false)/*const Keyword("break")*/;
+var const$146 = new Keyword("case", false)/*const Keyword("case")*/;
+var const$148 = new Keyword("catch", false)/*const Keyword("catch")*/;
+var const$15 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
+var const$150 = new Keyword("const", false)/*const Keyword("const")*/;
+var const$152 = new Keyword("continue", false)/*const Keyword("continue")*/;
+var const$154 = new Keyword("default", false)/*const Keyword("default")*/;
+var const$156 = new Keyword("do", false)/*const Keyword("do")*/;
+var const$158 = new Keyword("else", false)/*const Keyword("else")*/;
+var const$16 = new LinkTail()/*const EmptyLink()*/;
+var const$160 = new Keyword("false", false)/*const Keyword("false")*/;
+var const$162 = new Keyword("final", false)/*const Keyword("final")*/;
+var const$164 = new Keyword("finally", false)/*const Keyword("finally")*/;
+var const$166 = new Keyword("for", false)/*const Keyword("for")*/;
+var const$168 = new Keyword("if", false)/*const Keyword("if")*/;
+var const$170 = new Keyword("in", false)/*const Keyword("in")*/;
+var const$172 = new Keyword("is", false)/*const Keyword("is")*/;
+var const$174 = new Keyword("new", false)/*const Keyword("new")*/;
+var const$176 = new Keyword("null", false)/*const Keyword("null")*/;
+var const$178 = new Keyword("return", false)/*const Keyword("return")*/;
+var const$180 = new Keyword("super", false)/*const Keyword("super")*/;
+var const$182 = new Keyword("switch", false)/*const Keyword("switch")*/;
+var const$184 = new Keyword("this", false)/*const Keyword("this")*/;
+var const$186 = new Keyword("throw", false)/*const Keyword("throw")*/;
+var const$188 = new Keyword("true", false)/*const Keyword("true")*/;
+var const$190 = new Keyword("try", false)/*const Keyword("try")*/;
+var const$192 = new Keyword("var", false)/*const Keyword("var")*/;
+var const$194 = new Keyword("void", false)/*const Keyword("void")*/;
+var const$196 = new Keyword("while", false)/*const Keyword("while")*/;
+var const$198 = new Keyword("abstract", true)/*const Keyword("abstract", true)*/;
 var const$2 = new StringWrapper('global scope')/*const SourceString('global scope')*/;
-var const$201 = new Keyword("extends", true)/*const Keyword("extends", true)*/;
-var const$203 = new Keyword("factory", true)/*const Keyword("factory", true)*/;
-var const$205 = new Keyword("get", true)/*const Keyword("get", true)*/;
-var const$207 = new Keyword("implements", true)/*const Keyword("implements", true)*/;
-var const$209 = new Keyword("import", true)/*const Keyword("import", true)*/;
-var const$211 = new Keyword("interface", true)/*const Keyword("interface", true)*/;
-var const$213 = new Keyword("library", true)/*const Keyword("library", true)*/;
-var const$215 = new Keyword("native", true)/*const Keyword("native", true)*/;
-var const$217 = new Keyword("negate", true)/*const Keyword("negate", true)*/;
-var const$219 = new Keyword("operator", true)/*const Keyword("operator", true)*/;
-var const$221 = new Keyword("set", true)/*const Keyword("set", true)*/;
-var const$223 = new Keyword("source", true)/*const Keyword("source", true)*/;
-var const$225 = new Keyword("static", true)/*const Keyword("static", true)*/;
-var const$227 = new Keyword("typedef", true)/*const Keyword("typedef", true)*/;
-var const$229 = new IllegalAccessException()/*const IllegalAccessException()*/;
-var const$232 = new StringWrapper('EOF')/*const SourceString('EOF')*/;
-var const$235 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
-var const$236 = new LinkTail()/*const EmptyLink()*/;
+var const$200 = new Keyword("assert", true)/*const Keyword("assert", true)*/;
+var const$202 = new Keyword("class", true)/*const Keyword("class", true)*/;
+var const$204 = new Keyword("extends", true)/*const Keyword("extends", true)*/;
+var const$206 = new Keyword("factory", true)/*const Keyword("factory", true)*/;
+var const$208 = new Keyword("get", true)/*const Keyword("get", true)*/;
+var const$210 = new Keyword("implements", true)/*const Keyword("implements", true)*/;
+var const$212 = new Keyword("import", true)/*const Keyword("import", true)*/;
+var const$214 = new Keyword("interface", true)/*const Keyword("interface", true)*/;
+var const$216 = new Keyword("library", true)/*const Keyword("library", true)*/;
+var const$218 = new Keyword("native", true)/*const Keyword("native", true)*/;
+var const$220 = new Keyword("negate", true)/*const Keyword("negate", true)*/;
+var const$222 = new Keyword("operator", true)/*const Keyword("operator", true)*/;
+var const$224 = new Keyword("set", true)/*const Keyword("set", true)*/;
+var const$226 = new Keyword("source", true)/*const Keyword("source", true)*/;
+var const$228 = new Keyword("static", true)/*const Keyword("static", true)*/;
+var const$230 = new Keyword("typedef", true)/*const Keyword("typedef", true)*/;
+var const$234 = new StringWrapper('EOF')/*const SourceString('EOF')*/;
 var const$237 = new ElementKind('class')/*const ElementKind('class')*/;
 var const$239 = new ElementKind('function')/*const ElementKind('function')*/;
 var const$241 = new StringWrapper('JS')/*const SourceString('JS')*/;
@@ -20550,7 +20729,7 @@ var const$5 = new EmptyQueueException()/*const EmptyQueueException()*/;
 var const$6 = new StringWrapper('void')/*const SourceString('void')*/;
 var const$8 = new StringWrapper('int')/*const SourceString('int')*/;
 HTracer._singleton = null;
-var const$230 = ImmutableList.ImmutableList$from$factory([const$141, const$143, const$145, const$147, const$149, const$151, const$153, const$155, const$157, const$159, const$161, const$163, const$165, const$167, const$169, const$171, const$173, const$175, const$177, const$179, const$181, const$183, const$185, const$187, const$189, const$191, const$193, const$195, const$197, const$199, const$201, const$203, const$205, const$207, const$209, const$211, const$213, const$215, const$217, const$219, const$221, const$223, const$225, const$227])/*const <Keyword> [
+var const$232 = ImmutableList.ImmutableList$from$factory([const$144, const$146, const$148, const$150, const$152, const$154, const$156, const$158, const$160, const$162, const$164, const$166, const$168, const$170, const$172, const$174, const$176, const$178, const$180, const$182, const$184, const$186, const$188, const$190, const$192, const$194, const$196, const$198, const$200, const$202, const$204, const$206, const$208, const$210, const$212, const$214, const$216, const$218, const$220, const$222, const$224, const$226, const$228, const$230])/*const <Keyword> [
       BREAK,
       CASE,
       CATCH,

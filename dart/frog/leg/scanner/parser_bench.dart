@@ -22,7 +22,7 @@ class ParserBench extends BaseParserBench {
   void timedParseAll(List<String> arguments) {
     StopWatch timer = new StopWatch();
     timer.start();
-    Listener listener = parseAll(arguments);
+    BenchListener listener = parseAll(arguments);
     timer.stop();
     print("Parsing (${listener.libraryTagCount} tags, "
           + "${listener.classCount} classes, "
@@ -32,8 +32,8 @@ class ParserBench extends BaseParserBench {
           + "took ${timer.elapsedInMs()}ms");
   }
 
-  Listener parseAll(List<String> arguments) {
-    Listener listener = new BenchListener();
+  BenchListener parseAll(List<String> arguments) {
+    BenchListener listener = new BenchListener();
     for (String argument in arguments) {
       parseFileNamed(argument, listener);
     }

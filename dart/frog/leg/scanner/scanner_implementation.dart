@@ -4,6 +4,7 @@
 
 #library('scanner_implementation');
 #import('scannerlib.dart');
+#import('../util/util.dart');
 #source('array_based_scanner.dart');
 
 final int $TAB = 9;

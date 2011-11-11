@@ -2,30 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Scanner<T> {
-  int advance();
-  int nextByte();
-  int peek();
-  int select(int choice, String yes, String no);
-  void appendStringToken(int kind, String value);
-  void appendByteStringToken(int kind, T value);
-  void appendKeywordToken(Keyword keyword);
-  void appendWhiteSpace(int next);
-  void appendEofToken();
-  T asciiString(int start);
-  T utf8String(int start, int offset);
-  Token firstToken();
-  void beginToken();
-  void addToCharOffset(int offset);
-  final int charOffset;
-  final int byteOffset;
+interface Scanner {
   Token tokenize();
 }
 
 /**
  * Common base class for a Dart scanner.
  */
-class AbstractScanner<T> implements Scanner<T> {
+class AbstractScanner<T> implements Scanner {
   // TODO(ahe): following makes frog happy.
   abstract int advance();
   abstract int nextByte();
@@ -43,6 +27,10 @@ class AbstractScanner<T> implements Scanner<T> {
   abstract void addToCharOffset(int offset);
   abstract int get charOffset();
   abstract int get byteOffset();
+  abstract void appendBeginGroup(int kind, String value);
+  abstract void appendEndGroup(int kind, String value, int openKind);
+  abstract void appendGtGt(int kind, String value);
+  abstract void appendGtGtGt(int kind, String value);
 
   // TODO(ahe): Move this class to implementation.
 
@@ -112,11 +100,11 @@ class AbstractScanner<T> implements Scanner<T> {
         return tokenizeTag(next);
 
       case $LPAREN:
-        appendStringToken(LPAREN_TOKEN, "(");
+        appendBeginGroup(LPAREN_TOKEN, "(");
         return advance();
 
       case $RPAREN:
-        appendStringToken(RPAREN_TOKEN, ")");
+        appendEndGroup(RPAREN_TOKEN, ")", LPAREN_TOKEN);
         return advance();
 
       case $COMMA:
@@ -136,7 +124,7 @@ class AbstractScanner<T> implements Scanner<T> {
         return advance();
 
       case $RBRACKET:
-        appendStringToken(RBRACKET_TOKEN, "]");
+        appendEndGroup(RBRACKET_TOKEN, "]", RBRACKET_TOKEN);
         return advance();
 
       case $BACKPING:
@@ -144,11 +132,11 @@ class AbstractScanner<T> implements Scanner<T> {
         return advance();
 
       case $LBRACE:
-        appendStringToken(LBRACE_TOKEN, "{");
+        appendBeginGroup(LBRACE_TOKEN, "{");
         return advance();
 
       case $RBRACE:
-        appendStringToken(RBRACE_TOKEN, "}");
+        appendEndGroup(RBRACE_TOKEN, "}", LBRACE_TOKEN);
         return advance();
 
       case $SLASH:
@@ -276,7 +264,7 @@ class AbstractScanner<T> implements Scanner<T> {
     if (next == $RBRACKET) {
       return select($EQ, "[]=", "[]");
     } else {
-      appendStringToken(RBRACKET_TOKEN, "[");
+      appendBeginGroup(RBRACKET_TOKEN, "[");
       return next;
     }
   }
@@ -393,14 +381,22 @@ class AbstractScanner<T> implements Scanner<T> {
           case $EQ:
             appendStringToken(GT_TOKEN, ">>=");
             return advance();
-          case $GT:
-            return select($EQ, ">>>=", ">>>");
+          case $GT: {
+            next = advance();
+            if (next === $EQ) {
+              appendStringToken(GT_TOKEN, ">>>=");
+              return advance();
+            } else {
+              appendGtGtGt(GT_TOKEN, ">>>");
+              return next;
+            }
+          }
           default:
-            appendStringToken(GT_TOKEN, ">>");
+            appendGtGt(GT_TOKEN, ">>");
             return next;
         }
       default:
-        appendStringToken(GT_TOKEN, ">");
+        appendEndGroup(GT_TOKEN, ">", LT_TOKEN);
         return next;
     }
   }
@@ -415,7 +411,7 @@ class AbstractScanner<T> implements Scanner<T> {
       case $LT:
         return select($EQ, "<<=", "<<");
       default:
-        appendStringToken(LT_TOKEN, "<");
+        appendBeginGroup(LT_TOKEN, "<");
         return next;
     }
   }
@@ -771,5 +767,7 @@ class AbstractScanner<T> implements Scanner<T> {
 }
 
 class MalformedInputException {
-  MalformedInputException(ignored);
+  final message;
+  MalformedInputException(this.message);
+  toString() => message.toString();
 }

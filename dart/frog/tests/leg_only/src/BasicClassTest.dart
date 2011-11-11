@@ -24,4 +24,5 @@ void main() {
   b = a; /// 03: static type error
   b = subA; /// 04: static type error
   b = b;
+  List<int> ints;
 }

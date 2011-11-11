@@ -177,24 +177,14 @@ class PartialParser<L extends Listener> {
     if (!optional('{', token)) {
       return listener.expectedBlock(token);
     }
-    token = next(token);
-    int nesting = 1;
-    do {
-      final kind = token.kind;
-      switch (true) {
-        case kind === LBRACE_TOKEN:
-          nesting++;
-          break;
-        case kind === RBRACE_TOKEN:
-          nesting--;
-          if (nesting === 0) {
-            return token;
-          }
-          break;
-      }
-      token = next(token);
-    } while (token !== null);
-    throw 'Internal error: unreachable code';
+    BeginGroupToken beginGroupToken = token;
+    assert(beginGroupToken.endGroup === null ||
+           beginGroupToken.endGroup.kind === $RBRACE);
+    return beginGroupToken.endGroup;
+  }
+
+  Token skipArguments(BeginGroupToken token) {
+    return token.endGroup;
   }
 
   Token parseClass(Token token) {
@@ -296,6 +286,15 @@ class PartialParser<L extends Listener> {
   }
 
   Token parseTypeVariablesOpt(Token token) {
+    if (optional('<', token)) {
+      BeginGroupToken beginGroupToken = token;
+      token = next(beginGroupToken.endGroup);
+    }
+    listener.handleNoTypeVariables(token);
+    return token;
+  }
+
+  Token parseTypeVariablesOptX(Token token) {
     return parseStuff(token, beginTypeVariables, parseTypeVariableFunction,
                       endTypeVariables, handleNoTypeVariables);
   }
@@ -352,6 +351,9 @@ class PartialParser<L extends Listener> {
       } else {
         token = listener.unexpected(token);
       }
+    }
+    if (!isField) {
+      token = next(skipArguments(token));
     }
     while (token !== null &&
            token.kind !== LBRACE_TOKEN &&
@@ -461,9 +463,36 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     Token peek1 = next(token);
     if (peek1.kind === IDENTIFIER_TOKEN) {
       return parseLocalDeclaration(token, peek1);
-    } else {
-      return parseExpressionStatement(token);
+    } else if (peek1.kind === LT_TOKEN) {
+      // Possibly generic type.
+      // We are looking at "identifier '<'".
+      BeginGroupToken beginGroupToken = peek1;
+      Token gtToken = beginGroupToken.endGroup;
+      if (gtToken !== null && gtToken.next.kind === IDENTIFIER_TOKEN) {
+        // We are looking at "identifier '<' ... '>' identifier".
+        Token identifier = gtToken.next;
+        Token afterId = identifier.next;
+        int afterIdKind = afterId.kind;
+        if (afterIdKind === EQ_TOKEN || afterIdKind === SEMICOLON_TOKEN) {
+          // We are looking at "identifier '<' ... '>' identifier = ...".
+          // or "identifier '<' ... '>' identifier;".
+          return parseLocalDeclaration(token, identifier);
+        } else if (afterIdKind === RPAREN_TOKEN) {
+          // We are looking at "identifier '<' ... '>' identifier '('".
+          BeginGroupToken beginParen = afterIdentifier;
+          Token endParen = beginParen.endGroup;
+          Token afterParens = endParen.next;
+          if (optional('{', afterParens) || optional('=>', afterParens)) {
+            // We are looking at
+            // "identifier '<' ... '>' identifier '(' ... ')' =>" or
+            // "identifier '<' ... '>' identifier '(' ... ')' {" or
+            return parseLocalDeclaration(token, identifier);
+          }
+        }
+        // Fall-through to expression statement.
+      }
     }
+    return parseExpressionStatement(token);
   }
 
   Token parseLocalDeclaration(Token token, Token peek1) {

@@ -229,6 +229,7 @@ class Listener {
 class ParserError {
   final String reason;
   ParserError(this.reason);
+  toString() => reason;
 }
 
 /**
