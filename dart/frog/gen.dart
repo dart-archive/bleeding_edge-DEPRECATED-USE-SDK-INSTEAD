@@ -1008,7 +1008,7 @@ class MethodGenerator implements TreeVisitor {
     // TODO(jmesserly): why do we have this rule? It seems inconsistent with
     // the rest of the type system, and just causes bogus asserts unless all
     // bools are initialized to false.
-    return visitValue(node).convertToNonNullBool(this, node);
+    return visitValue(node).convertTo(this, world.nonNullBool, node);
   }
 
   visitValue(Expression node) {
@@ -1597,7 +1597,7 @@ class MethodGenerator implements TreeVisitor {
         return new EvaluatedValue(x.type, value, '$value', node.span);
       }
       var ret = new Value(Type.union(x.type, y.type), code, node.span);
-      return ret.convertToNonNullBool(this, node);
+      return ret.convertTo(this, world.nonNullBool, node);
     } else if (kind == TokenKind.EQ_STRICT || kind == TokenKind.NE_STRICT) {
       var x = visitValue(node.x);
       var y = visitValue(node.y);
@@ -1608,15 +1608,17 @@ class MethodGenerator implements TreeVisitor {
             // We need it for the compile-time evaluator because
             // (9).toDouble() === 9.0 is false in dartvm.
             ? x.actualValue == y.actualValue : x.actualValue != y.actualValue;
-        return new EvaluatedValue(world.boolType, value, "$value", node.span);
+        return new EvaluatedValue(world.nonNullBool, value, "$value",
+            node.span);
       }
       if (x.code == 'null' || y.code == 'null') {
         // Switching to == ensures that null and undefined are interchangable.
         final op = node.op.toString().substring(0,2);
-        return new Value(world.boolType, '${x.code} $op ${y.code}', node.span);
+        return new Value(world.nonNullBool, '${x.code} $op ${y.code}',
+            node.span);
       } else {
         // TODO(jimhug): Resolve issue with undefined and null here.
-        return new Value(world.boolType, '${x.code} ${node.op} ${y.code}',
+        return new Value(world.nonNullBool, '${x.code} ${node.op} ${y.code}',
           node.span);
       }
     }
@@ -1808,8 +1810,8 @@ class MethodGenerator implements TreeVisitor {
           var newVal = !value.actualValue;
           return new EvaluatedValue(value.type, newVal, '${newVal}', node.span);
         } else {
-          var newVal = value.convertToNonNullBool(this, node);
-          return new Value(world.boolType, '!${newVal.code}', node.span);
+          var newVal = value.convertTo(this, world.nonNullBool, node);
+          return new Value(newVal.type, '!${newVal.code}', node.span);
         }
 
       case TokenKind.ADD:

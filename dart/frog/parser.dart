@@ -848,7 +848,9 @@ class Parser {
         var y = infixExpression(prec == 2 ? prec: prec+1);
         if (op.kind == TokenKind.CONDITIONAL) {
           _eat(TokenKind.COLON);
-          var z = infixExpression(prec+1);
+          // Using prec for so "a ? b : c ? d : e" groups correctly as
+          // "a ? b : (c ? d : e)"
+          var z = infixExpression(prec);
           x = new ConditionalExpression(x, y, z, _makeSpan(x.span.start));
         } else {
           x = new BinaryExpression(op, x, y, _makeSpan(x.span.start));
@@ -961,7 +963,7 @@ class Parser {
   }
 
   _boolTypeRef(SourceSpan span) {
-    return new TypeReference(span, world.boolType);
+    return new TypeReference(span, world.nonNullBool);
   }
 
   _intTypeRef(SourceSpan span) {

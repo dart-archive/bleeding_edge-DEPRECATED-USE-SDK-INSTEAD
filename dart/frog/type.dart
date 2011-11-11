@@ -61,6 +61,10 @@ class Type implements Named, Hashable {
   bool get isDouble() => false;
   bool get isVoid() => false;
 
+  // True for all types in the Dart type system. We track non-nullabiltity
+  // as an optimization for booleans to generate better code in checked mode.
+  bool get isNullable() => true;
+
   // Strangely Dart treats calls on Function much like calls on var.
   bool get isVarOrFunction() => isVar || isFunction;
 
@@ -321,8 +325,8 @@ class ParameterType extends Type {
   }
 
   // TODO(jmesserly): should be like this:
-  //bool isSubtypeOf(Type child) => extendsType.isSubtypeOf(child);
-  bool isSubtypeOf(Type child) => true;
+  //bool isSubtypeOf(Type other) => extendsType.isSubtypeOf(other);
+  bool isSubtypeOf(Type other) => true;
 
   MemberSet resolveMember(String memberName) {
     return extendsType.resolveMember(memberName);
@@ -353,6 +357,66 @@ class ParameterType extends Type {
   }
 }
 
+/**
+ * Non-nullable type. Currently used for bools, so we can generate better
+ * asserts in checked mode. Forwards almost all operations to its real type.
+ */
+// NOTE: there's more work to do before this would work for types other than
+// bool.
+class NonNullableType extends Type {
+
+  /** The corresponding nullable [Type]. */
+  final Type type;
+
+  NonNullableType(Type type): super(type.name), type = type;
+
+  bool get isNullable() => false;
+
+  // TODO(jmesserly): this would need to change if we support other types.
+  bool get isBool() => type.isBool;
+
+  // Treat it as unused so it doesn't get JS generated
+  bool get isUsed() => false;
+
+  // Augment our subtype rules with: non-nullable types are subtypes of
+  // themselves, their corresponding nullable types, or anything that type is a
+  // subtype of.
+  bool isSubtypeOf(Type other) =>
+      this == other || type == other || type.isSubtypeOf(other);
+
+  // Forward everything. This is overkill for now; might be useful later.
+  Type resolveType(TypeReference node, bool isRequired) =>
+      type.resolveType(node, isRequired);
+  Type resolveTypeParams(ConcreteType inType) => type.resolveTypeParams(inType);
+  void addDirectSubtype(Type subtype) { type.addDirectSubtype(subtype); }
+  void markUsed() { type.markUsed(); }
+  void genMethod(Member method) { type.genMethod(method); }
+  SourceSpan get span() => type.span;
+  MemberSet resolveMember(String name) => type.resolveMember(name);
+  Member getMember(String name) => type.getMember(name);
+  MethodMember getConstructor(String name) => type.getConstructor(name);
+  MethodMember getFactory(Type t, String name) => type.getFactory(t, name);
+  Type getOrMakeConcreteType(List<Type> typeArgs) =>
+      type.getOrMakeConcreteType(typeArgs);
+  Map<String, MethodMember> get constructors() => type.constructors;
+  bool get isClass() => type.isClass;
+  Library get library() => type.library;
+  MethodMember getCallMethod() => type.getCallMethod();
+  bool get isGeneric() => type.isGeneric;
+  bool get hasTypeParams() => type.hasTypeParams;
+  String get typeofName() => type.typeofName;
+  String get jsname() => type.jsname;
+  set jsname(String name) => type.jsname = name;
+  Map<String, Member> get members() => type.members;
+  Definition get definition() => type.definition;
+  FactoryMap get factories() => type.factories;
+  Collection<Type> get typeArgsInOrder() => type.typeArgsInOrder;
+  DefinedType get genericType() => type.genericType;
+  List<Type> get interfaces() => type.interfaces;
+  Type get parent() => type.parent;
+  Map<String, Member> getAllMembers() => type.getAllMembers();
+  bool get isNativeType() => type.isNativeType;
+}
 
 /** A concrete version of a generic type. */
 class ConcreteType extends Type {

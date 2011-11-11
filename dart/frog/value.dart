@@ -67,14 +67,18 @@ class Value {
 
   Value invoke(MethodGenerator context, String name, Node node, Arguments args,
       [bool isDynamic=false]) {
-    // TODO(jimhug): The != method is weird - understand it better.
+    // TODO(jmesserly): try to get rid of this code path. We're generating a
+    // synthetic != on Object (see DefinedType._createNotEqualMember) already.
+    // So it should be pretty easy to make this go away.
     if (_typeIsVarOrParameterType && name == '\$ne') {
       if (args.values.length != 1) {
         world.warning('wrong number of arguments for !=', node.span);
       }
+      // Ensure the == operator is generated, and get its type
+      var eq = invoke(context, '\$eq', node, args, isDynamic);
       world.gen.corejs.useOperator('\$ne');
-      return new Value(world.varType, '\$ne($code, ${args.values[0].code})',
-        node.span);
+      return new Value(eq.type, '\$ne($code, ${args.values[0].code})',
+          node.span);
     }
 
     // TODO(jmesserly): it'd be nice to remove these special cases
@@ -266,7 +270,7 @@ class Value {
       return this;
     }
 
-    if (!toType.isSubtypeOf(type)) {
+    if (checked && !toType.isSubtypeOf(type)) {
       // According to the static types, this conversion can't work.
       convertWarning(toType, node);
     }
@@ -276,30 +280,6 @@ class Value {
       return _typeAssert(context, toType, node);
     } else {
       return this;
-    }
-  }
-
-  // TODO(jmesserly): this generates an unnecessary check for the 90%
-  // case where the thing passed in was a non-overloaded == or != expression
-  // We'll want to eliminate these, probably by tracking non-null bools in the
-  // type system.
-  // This matches the interesting Boolean Conversion section of the spec.
-  Value convertToNonNullBool(MethodGenerator context, Node node) {
-    if (!type.isAssignable(world.boolType)) {
-      convertWarning(world.boolType, node);
-    }
-    if (!options.enableTypeChecks) {
-      // TODO(jimhug): If type != world.boolType, this should return
-      //  this.code === true according to the spec.
-      return this;
-    } else {
-      // TODO(jmesserly): this is hacky.
-      if (code.startsWith('\$notnull_bool')) {
-        return this;
-      } else {
-        world.gen.corejs.useNotNullBool = true;
-        return new Value(world.boolType, '\$notnull_bool($code)', span);
-      }
     }
   }
 
@@ -345,6 +325,11 @@ function \$assert_void(x) {
   return x == null ? x : x.is\$void(); // throws TypeError
 }''';
       }
+    } else if (toType == world.nonNullBool) {
+      // This could be made less of a special case
+      world.gen.corejs.useNotNullBool = true;
+      check = '\$notnull_bool($code)';
+
     } else if (toType.library.isCore && toType.typeofName != null) {
       check = '\$assert_${toType.name}($code)';
 
@@ -382,11 +367,11 @@ function \$assert_${toType.name}(x) {
     //    forceCheck is true.
     if (toType.isVar) {
       world.error('can not resolve type', span);
-      return new EvaluatedValue(world.boolType, true, 'true', null);
+      return new EvaluatedValue(world.nonNullBool, true, 'true', null);
     }
 
     if (toType is ParameterType) {
-      return new EvaluatedValue(world.boolType, true, 'true', null);
+      return new EvaluatedValue(world.nonNullBool, true, 'true', null);
     }
 
     String testCode = null;
@@ -422,7 +407,7 @@ function \$assert_${toType.name}(x) {
       }
       if (this != temp) context.freeTemp(temp);
     }
-    return new Value(world.boolType, testCode, span);
+    return new Value(world.nonNullBool, testCode, span);
   }
 
   void convertWarning(Type toType, Node node) {

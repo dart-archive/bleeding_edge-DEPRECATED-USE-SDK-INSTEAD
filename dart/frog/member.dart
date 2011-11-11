@@ -139,6 +139,20 @@ class Member implements Named {
     world.internalError('cannot have initializers', span);
   }
 
+  /**
+   * The inferred returnType. Right now this is just used to track
+   * non-nullable bools.
+   */
+  Type get inferredResult() {
+    var t = returnType;
+    if (t.isBool && (library.isCore || library.isCoreImpl)) {
+      // We trust our core libraries not to return null from bools.
+      // I hope this trust is well placed!
+      return world.nonNullBool;
+    }
+    return t;
+  }
+
   Definition get definition() => null;
 
   List<Parameter> get parameters() => [];
@@ -573,7 +587,7 @@ class ConcreteMember extends Member {
   Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
     Value ret = baseMember._get(context, node, target, isDynamic);
-    return new Value(returnType, ret.code, node.span);
+    return new Value(inferredResult, ret.code, node.span);
   }
 
   Value _set(MethodGenerator context, Node node, Value target, Value value,
@@ -594,7 +608,7 @@ class ConcreteMember extends Member {
           declaringType.genericType.jsname, declaringType.jsname);
     }
     declaringType.genMethod(this);
-    return new Value(returnType, code, node.span);
+    return new Value(inferredResult, code, node.span);
   }
 }
 
@@ -906,26 +920,26 @@ class MethodMember extends Member {
 
     // TODO(jimhug): target really shouldn't ever be null...
     if (target != null && target.isSuper) {
-      return new Value(returnType,
+      return new Value(inferredResult,
           '${declaringType.jsname}.prototype.$jsname.call($argsString)',
           node.span);
     }
 
     if (name.startsWith('\$')) {
-      return _invokeBuiltin(context, node, target, args, argsCode);
+      return _invokeBuiltin(context, node, target, args, argsCode, isDynamic);
     }
 
     if (isFactory) {
-      return new Value(returnType, '$generatedFactoryName($argsString)',
+      return new Value(inferredResult, '$generatedFactoryName($argsString)',
         node.span);
     }
 
     if (isStatic) {
       if (declaringType.isTop) {
         // TODO(jimhug): Explore moving libraries into their own namespaces
-        return new Value(returnType, '$jsname($argsString)', node != null ? node.span : node);
+        return new Value(inferredResult, '$jsname($argsString)', node != null ? node.span : node);
       }
-      return new Value(returnType,
+      return new Value(inferredResult,
         '${declaringType.jsname}.$jsname($argsString)', node.span);
     }
 
@@ -951,7 +965,7 @@ class MethodMember extends Member {
       world.gen.corejs.useTypeNameOf = true;
     }
 
-    return new Value(returnType, code, node.span);
+    return new Value(inferredResult, code, node.span);
   }
 
   Value _invokeConstructor(MethodGenerator context, Node node,
@@ -1082,8 +1096,9 @@ class MethodMember extends Member {
 
 
   Value _invokeBuiltin(MethodGenerator context, Node node, Value target,
-      Arguments args, argsCode) {
+      Arguments args, argsCode, bool isDynamic) {
     var allConst = target.isConst && args.values.every((arg) => arg.isConst);
+
     // Handle some fast paths for Number, String, List and DOM.
     if (declaringType.isNum) {
       // TODO(jimhug): This fails in bad ways when argsCode[1] is not num.
@@ -1102,7 +1117,7 @@ class MethodMember extends Member {
           code = '${target.code} $op ${argsCode[0]}';
         }
 
-        return new Value(returnType, code, node.span);
+        return new Value(inferredResult, code, node.span);
       } else {
         var value;
         num val0, val1, ival0, ival1;
@@ -1136,7 +1151,7 @@ class MethodMember extends Member {
           case '\$sar': value = (ival0 >> ival1).toDouble(); break;
           case '\$shr': value = (ival0 >>> ival1).toDouble(); break;
         }
-        return new EvaluatedValue(returnType, value, "$value", node.span);
+        return new EvaluatedValue(inferredResult, value, "$value", node.span);
       }
     } else if (declaringType.isString) {
       if (name == '\$index') {
@@ -1176,29 +1191,35 @@ class MethodMember extends Member {
     // TODO(jimhug): Optimize null on lhs as well.
     if (name == '\$eq' || name == '\$ne') {
       final op = name == '\$eq' ? '==' : '!=';
+
+      if (name == '\$ne') {
+        // Ensure == is generated.
+        target.invoke(context, '\$eq', node, args, isDynamic);
+      }
+
       if (allConst) {
         var val0 = target.dynamic.actualValue;
         var val1 = args.values[0].dynamic.actualValue;
         var newVal = name == '\$eq' ? val0 == val1 : val0 != val1;
-        return new EvaluatedValue(world.boolType,
+        return new EvaluatedValue(world.nonNullBool,
             newVal, "$newVal", node.span);
       }
       // Optimize test when null is on the rhs.
       if (argsCode[0] == 'null') {
-        return new Value(returnType, '${target.code} $op null', node.span);
+        return new Value(inferredResult, '${target.code} $op null', node.span);
       } else if (target.type.isNum || target.type.isString) {
         // TODO(jimhug): Maybe check rhs.
-        return new Value(returnType, '${target.code} $op ${argsCode[0]}',
+        return new Value(inferredResult, '${target.code} $op ${argsCode[0]}',
           node.span);
       }
       world.gen.corejs.useOperator(name);
-      return new Value(returnType, '$name(${target.code}, ${argsCode[0]})',
+      return new Value(inferredResult, '$name(${target.code}, ${argsCode[0]})',
         node.span);
     }
 
     if (name == '\$call') {
       declaringType.markUsed();
-      return new Value(returnType,
+      return new Value(inferredResult,
         '${target.code}(${Strings.join(argsCode, ", ")})', node.span);
     }
 
@@ -1210,7 +1231,7 @@ class MethodMember extends Member {
 
     // Fall back to normal method invocation.
     var argsString = Strings.join(argsCode, ', ');
-    return new Value(returnType, '${target.code}.$jsname($argsString)',
+    return new Value(inferredResult, '${target.code}.$jsname($argsString)',
       node.span);
   }
 

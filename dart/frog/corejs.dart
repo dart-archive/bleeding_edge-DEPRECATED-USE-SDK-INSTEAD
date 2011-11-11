@@ -287,10 +287,11 @@ function $toDartException(e) {
 
     if (useNotNullBool) {
       useThrow = true;
-      // Some testing showed that this patterned fared well across browsers.
+      // This pattern chosen because IE9 does really badly with typeof, and
+      // it's still decent on other browsers.
       w.writeln(@"""
 function $notnull_bool(test) {
-  return typeof(test) == 'boolean' ? test : test.is$bool();
+  return (test === true || test === false) ? test : test.is$bool();
 }""");
     }
 

@@ -100,6 +100,8 @@ class World {
   DefinedType mapType;
   DefinedType functionType;
 
+  NonNullableType nonNullBool;
+
   World(this.files)
     : libraries = {}, _todo = [], _members = {}, _topNames = {},
       // TODO(jmesserly): these two types don't actually back our Date and
@@ -134,6 +136,8 @@ class World {
     listType = _addToCoreLib('List', false);
     mapType = _addToCoreLib('Map', false);
     functionType = _addToCoreLib('Function', false);
+
+    nonNullBool = new NonNullableType(boolType);
   }
 
   _addMember(Member member) {
