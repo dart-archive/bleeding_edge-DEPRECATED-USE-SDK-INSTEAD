@@ -247,10 +247,11 @@ class VarMethodSet extends VarMember {
     if (_fallbackStubs.length == 0) return;
 
     code.enterBlock('\$varMethod("$name", {');
+    var lastOne = _fallbackStubs[_fallbackStubs.length - 1];
     for (var stub in _fallbackStubs) {
       code.write('"${stub.typeName}": ');
       stub.generateBody(code);
-      code.writeln(',');
+      code.writeln(stub == lastOne ? '' : ',');
     }
     code.exitBlock('});');
   }

@@ -1059,7 +1059,7 @@ ImmutableMap.prototype.get$length = function() {
   return this._internal.get$length();
 }
 Object.defineProperty(ImmutableMap.prototype, "length", {
-  get: ImmutableMap.prototype.get$length,
+  get: ImmutableMap.prototype.get$length
 });
 ImmutableMap.prototype.forEach = function(f) {
   this._internal.forEach(f);
@@ -1288,7 +1288,7 @@ HashMapImplementation.prototype.get$length = function() {
   return this._numberOfEntries;
 }
 Object.defineProperty(HashMapImplementation.prototype, "length", {
-  get: HashMapImplementation.prototype.get$length,
+  get: HashMapImplementation.prototype.get$length
 });
 HashMapImplementation.prototype.forEach = function(f) {
   var length = this._keys.length;
@@ -1662,7 +1662,7 @@ HashSetImplementation.prototype.get$length = function() {
   return this._backingMap.get$length();
 }
 Object.defineProperty(HashSetImplementation.prototype, "length", {
-  get: HashSetImplementation.prototype.get$length,
+  get: HashSetImplementation.prototype.get$length
 });
 HashSetImplementation.prototype.iterator = function() {
   return new HashSetIterator$E(this);
@@ -1820,7 +1820,7 @@ LinkedHashMapImplementation.prototype.get$length = function() {
   return this._map.get$length();
 }
 Object.defineProperty(LinkedHashMapImplementation.prototype, "length", {
-  get: LinkedHashMapImplementation.prototype.get$length,
+  get: LinkedHashMapImplementation.prototype.get$length
 });
 LinkedHashMapImplementation.prototype.isEmpty = function() {
   return this.get$length() == 0;
@@ -2043,7 +2043,7 @@ DoubleLinkedQueue.prototype.get$length = function() {
   return counter;
 }
 Object.defineProperty(DoubleLinkedQueue.prototype, "length", {
-  get: DoubleLinkedQueue.prototype.get$length,
+  get: DoubleLinkedQueue.prototype.get$length
 });
 DoubleLinkedQueue.prototype.isEmpty = function() {
   return (this._sentinel._next === this._sentinel);
@@ -2197,7 +2197,7 @@ StringBufferImpl.prototype.get$length = function() {
   return this._length;
 }
 Object.defineProperty(StringBufferImpl.prototype, "length", {
-  get: StringBufferImpl.prototype.get$length,
+  get: StringBufferImpl.prototype.get$length
 });
 StringBufferImpl.prototype.isEmpty = function() {
   return this._length == 0;
@@ -10640,7 +10640,8 @@ WorldGenerator.prototype._writeProperty = function(property) {
   if ($notnull_bool(property._provideFieldSyntax)) {
     this.writer.enterBlock('Object.defineProperty(' + ('' + property.declaringType.get$jsname() + '.prototype, "' + property.get$jsname() + '", {'));
     if ($notnull_bool(property.getter != null)) {
-      this.writer.writeln(('get: ' + property.declaringType.get$jsname() + '.prototype.' + property.getter.get$jsname() + ','));
+      this.writer.write(('get: ' + property.declaringType.get$jsname() + '.prototype.' + property.getter.get$jsname() + ''));
+      this.writer.writeln($notnull_bool(property.setter == null) ? '' : ',');
     }
     if ($notnull_bool(property.setter != null)) {
       this.writer.writeln(('set: ' + property.declaringType.get$jsname() + '.prototype.' + property.setter.get$jsname() + ''));
@@ -10930,7 +10931,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if ($notnull_bool(this._usedTemps.get$length() > 0 || this._freeTemps.length > 0)) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 698, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 701, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo(y);
@@ -12074,7 +12075,7 @@ MethodGenerator.prototype.visitNullExpression = function(node) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2072, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2075, 12);
   if ($notnull_bool(!!(($0 = node.value) && $0.is$List))) {
     var items = [];
     var $list = node.value;
@@ -12144,7 +12145,7 @@ Arguments.prototype.get$length = function() {
   return this.values.length;
 }
 Object.defineProperty(Arguments.prototype, "length", {
-  get: Arguments.prototype.get$length,
+  get: Arguments.prototype.get$length
 });
 Arguments.prototype.getName = function(i) {
   return this.nodes.$index(i).label.name;
@@ -14333,7 +14334,12 @@ TokenizerBase.prototype.finishWhitespace = function() {
   while ($notnull_bool(this._lang_index < this._text.length)) {
     if ($notnull_bool(!$notnull_bool(TokenizerHelpers.isWhitespace(this._text.charCodeAt(this._lang_index++))))) {
       this._lang_index--;
-      return this.next();
+      if ($notnull_bool(this._skipWhitespace)) {
+        return this.next();
+      }
+      else {
+        return this._finishToken(63/*TokenKind.WHITESPACE*/);
+      }
     }
   }
   return this._finishToken(1/*TokenKind.END_OF_FILE*/);
@@ -14468,7 +14474,7 @@ TokenizerBase.prototype._finishOpenBrace = function() {
       this._interpStack.depth = 1;
     }
     else {
-      $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 257, 16);
+      $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 261, 16);
       ($0 = this._interpStack).depth = $0.depth + 1;
     }
   }
@@ -14478,7 +14484,7 @@ TokenizerBase.prototype._finishCloseBrace = function() {
   var $0;
   if ($notnull_bool(this._interpStack != null)) {
     ($0 = this._interpStack).depth = $0.depth - 1;
-    $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 267, 14);
+    $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 271, 14);
   }
   return this._finishToken(7/*TokenKind.RBRACE*/);
 }
@@ -20337,12 +20343,13 @@ VarMethodSet._addVarStub = function(type, stub) {
 VarMethodSet.prototype.generate = function(code) {
   if ($notnull_bool(this._fallbackStubs.length == 0)) return;
   code.enterBlock(('\$varMethod("' + this.name + '", {'));
+  var lastOne = this._fallbackStubs.$index(this._fallbackStubs.length - 1);
   var $list = this._fallbackStubs;
   for (var $i = 0;$i < $list.length; $i++) {
     var stub = $list.$index($i);
     code.write(('"' + stub.get$typeName() + '": '));
     stub.generateBody(code);
-    code.writeln(',');
+    code.writeln($notnull_bool($eq(stub, lastOne)) ? '' : ',');
   }
   code.exitBlock('});');
 }

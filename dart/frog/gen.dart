@@ -324,8 +324,11 @@ function $inherits(child, parent) {
       writer.enterBlock('Object.defineProperty(' +
         '${property.declaringType.jsname}.prototype, "${property.jsname}", {');
       if (property.getter != null) {
-        writer.writeln(
-          'get: ${property.declaringType.jsname}.prototype.${property.getter.jsname},');
+        writer.write(
+          'get: ${property.declaringType.jsname}.prototype.${property.getter.jsname}');
+        // The shenanigan below is to make IE happy -- IE 9 doesn't like a
+        // trailing comma on the last element in a list.
+        writer.writeln(property.setter == null ? '' : ',');
       }
       if (property.setter != null) {
         writer.writeln(
