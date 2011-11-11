@@ -24,3 +24,10 @@ prefix samples
 
 [ $component == frogium ]
 *: Skip
+
+[ $component == frog ]
+*: Skip
+
+[ $component == leg ]
+*: Skip
+
