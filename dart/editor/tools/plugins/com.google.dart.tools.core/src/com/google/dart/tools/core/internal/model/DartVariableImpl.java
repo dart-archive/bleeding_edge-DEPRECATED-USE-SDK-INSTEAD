@@ -17,9 +17,9 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DartVariableInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
@@ -42,6 +42,14 @@ public class DartVariableImpl extends SourceReferenceImpl implements DartVariabl
   public DartVariableImpl(DartElementImpl parent, String name) {
     super(parent);
     this.name = name;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof DartVariableImpl)) {
+      return false;
+    }
+    return super.equals(o);
   }
 
   @Override
@@ -79,13 +87,12 @@ public class DartVariableImpl extends SourceReferenceImpl implements DartVariabl
 
   @Override
   public boolean isParameter() {
-    DartVariableInfo info;
     try {
-      info = (DartVariableInfo) getElementInfo();
+      DartVariableInfo info = (DartVariableInfo) getElementInfo();
+      return info.isParameter();
     } catch (DartModelException exception) {
       return false;
     }
-    return info.isParameter();
   }
 
   @Override
@@ -108,5 +115,4 @@ public class DartVariableImpl extends SourceReferenceImpl implements DartVariabl
   protected char getHandleMementoDelimiter() {
     return DartElementImpl.MEMENTO_DELIMITER_VARIABLE;
   }
-
 }
