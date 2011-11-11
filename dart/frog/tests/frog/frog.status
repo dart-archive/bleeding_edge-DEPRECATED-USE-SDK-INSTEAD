@@ -4,5 +4,8 @@
 
 prefix frog
 
+[ $component == frogsh ]
+EvaluatorTest: Pass, Crash # flaky, no data yet available to track it down.
+
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium ]
 EvaluatorTest: Skip
