@@ -95,11 +95,29 @@ def TestFrog(arch, mode):
           '-v',
           'leg_only']
   if flags:
-    cmd.append('--flag=' + flags)
+    cmd.append(flags)
 
   status = subprocess.call(cmd)
   if status != 0:
     return status
+
+  if arch == 'frogsh':
+    print ('@@@BUILD_STEP client browser tests@@@')
+    cmd  = ['xvfb-run', sys.executable,
+            '../tools/test.py',
+            '--mode=' + testpy_mode,
+            '--component=frogium',
+            '--time',
+            '--report',
+            '--progress=buildbot',
+            '-v',
+            'client']
+    if flags:
+      cmd.append(flags)
+
+    status = subprocess.call(cmd)
+    if status != 0:
+      return status
 
   print ('@@@BUILD_STEP frog co19 tests: %s@@@' %arch)
   cmd  = [sys.executable,
@@ -112,7 +130,7 @@ def TestFrog(arch, mode):
           '-v',
           'co19']
   if flags:
-    cmd.append('--flag=' + flags)
+    cmd.append(flags)
 
   return subprocess.call(cmd)
 
