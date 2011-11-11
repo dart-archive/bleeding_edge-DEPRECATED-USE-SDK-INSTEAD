@@ -34,8 +34,8 @@ class AbstractLink<T> implements Link<T> {
 
   const AbstractLink();
 
-  Link<T> prepend(T element) {
-    return new Link<T>(element, this);
+  Link prepend(T element) {
+    return new Link(element, this);
   }
 
   Iterator<T> iterator() => toList().iterator();
