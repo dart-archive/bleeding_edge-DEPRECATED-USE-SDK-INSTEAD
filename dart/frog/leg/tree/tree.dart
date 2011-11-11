@@ -7,5 +7,8 @@
 #import('../scanner/scannerlib.dart');
 #import('../util/util.dart');
 
+// TODO(srdjan): Remove once LinkFactory is a Dart factory again.
+#import('../util/util_implementation.dart');
+
 #source('nodes.dart');
 #source('unparser.dart');

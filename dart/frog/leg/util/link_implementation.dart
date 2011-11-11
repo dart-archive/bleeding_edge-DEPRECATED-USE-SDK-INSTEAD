@@ -2,23 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class LinkFactory {
-  factory Link(head, [Link tail]) {
+class LinkFactory  {
+  static Link createLink(head, [Link tail]) {
     return new LinkEntry(head, (tail === null) ? const LinkTail() : tail);
   }
 
-  factory Link.fromList(List list) {
+  static Link createFromList(List list) {
     switch (list.length) {
       case 0:
         return const LinkTail();
       case 1:
-        return new Link(list[0]);
+        return createLink(list[0]);
       case 2:
-        return new Link(list[0], new Link(list[1]));
+        return createLink(list[0], createLink(list[1]));
       case 3:
-        return new Link(list[0], new Link(list[1], new Link(list[2])));
+        return createLink(list[0], createLink(list[1], createLink(list[2])));
     }
-    Link link = new Link(list.last());
+    Link link = createLink(list.last());
     for (int i = list.length - 1; i > 0; i--) {
       link = link.prepend(list[i - 1]);
     }
@@ -35,7 +35,7 @@ class AbstractLink<T> implements Link<T> {
   const AbstractLink();
 
   Link<T> prepend(T element) {
-    return new Link<T>(element, this);
+    return LinkFactory.createLink(element, this);
   }
 
   Iterator<T> iterator() => toList().iterator();
