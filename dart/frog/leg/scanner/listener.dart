@@ -292,6 +292,12 @@ class ElementListener extends Listener {
     Identifier name = popNode();
   }
 
+  void endTypeArguments(int count, Token beginToken, Token endToken) {
+    for (; count > 0; --count) {
+      popNode();
+    }
+  }
+
   Token expected(String string, Token token) {
     canceler.cancel("Expected '$string', but got '$token' " +
                     "@ ${token.charOffset}");

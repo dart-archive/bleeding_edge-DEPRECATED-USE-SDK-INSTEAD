@@ -22,26 +22,16 @@ class PartialParser<L extends Listener> {
   Function handleNoTypeVariables;
 
   PartialParser(L this.listener) {
-    beginTypeArguments = listener.beginTypeArguments;
-    parseTypeFunction = parseType;
-    endTypeArguments = listener.endTypeArguments;
-    handleNoTypeArguments = listener.handleNoTypeArguments;
+    // TODO(ahe): Workaround this not being bound correctly in Frog:
+    beginTypeArguments = (t) => listener.beginTypeArguments(t);
+    parseTypeFunction = (t) => parseType(t);
+    endTypeArguments = (c, bt, et) => listener.endTypeArguments(c, bt, et);
+    handleNoTypeArguments = (t) => listener.handleNoTypeArguments(t);
 
-    beginTypeVariables = listener.beginTypeVariables;
-    parseTypeVariableFunction = parseTypeVariable;
-    endTypeVariables = listener.endTypeVariables;
-    handleNoTypeVariables = listener.handleNoTypeVariables;
-
-    if (parseTypeFunction === null) {
-      // TODO(ahe): Work around bug in Frog optimizer.
-      listener.beginTypeArguments(null);
-      listener.endTypeArguments(0, null, null);
-      listener.handleNoTypeArguments(null);
-      listener.beginTypeVariables(null);
-      parseTypeVariable(null);
-      listener.endTypeVariables(0, null, null);
-      listener.handleNoTypeVariables(null);
-    }
+    beginTypeVariables = (t) => listener.beginTypeVariables(t);
+    parseTypeVariableFunction = (t) => parseTypeVariable(t);
+    endTypeVariables = (c, bt, et) => listener.endTypeVariables(c, bt, et);
+    handleNoTypeVariables = (t) => listener.handleNoTypeVariables(t);
   }
 
   // TODO(ahe): Rename this method. It is too subtle compared to token.next.
@@ -241,6 +231,18 @@ class PartialParser<L extends Listener> {
 
   Token expect(String string, Token token) {
     if (string !== token.stringValue) {
+      if (string === '>') {
+        if (token.stringValue === '>>') {
+          Token gt = new StringToken(GT_TOKEN, '>', token.charOffset + 1);
+          gt.next = token.next;
+          return gt;
+        } else if (token.stringValue === '>>>') {
+          Token gtgt = new StringToken(UNKNOWN_TOKEN, '>>',
+                                       token.charOffset + 1);
+          gtgt.next = token.next;
+          return gtgt;
+        }
+      }
       return listener.expected(string, token);
     }
     return token.next;
@@ -479,7 +481,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
           return parseLocalDeclaration(token, identifier);
         } else if (afterIdKind === RPAREN_TOKEN) {
           // We are looking at "identifier '<' ... '>' identifier '('".
-          BeginGroupToken beginParen = afterIdentifier;
+          BeginGroupToken beginParen = afterId;
           Token endParen = beginParen.endGroup;
           Token afterParens = endParen.next;
           if (optional('{', afterParens) || optional('=>', afterParens)) {

@@ -22,7 +22,11 @@ final int EQ_TOKEN = $EQ;
 final int GT_TOKEN = $GT;
 final int HASH_TOKEN = $HASH;
 final int LBRACE_TOKEN = $LBRACE;
+final int LBRACKET_TOKEN = $LBRACKET;
 final int LPAREN_TOKEN = $LPAREN;
+// TODO(ahe): Clean this up. Adding 128 is safe because all the $FOO
+// variables are below 127 (7bit ASCII).
+final int LT_EQ_TOKEN = $LT + 128;
 final int LT_TOKEN = $LT;
 final int MINUS_TOKEN = $MINUS;
 final int PERIOD_TOKEN = $PERIOD;

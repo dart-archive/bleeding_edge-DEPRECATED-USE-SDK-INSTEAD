@@ -124,7 +124,7 @@ class AbstractScanner<T> implements Scanner {
         return advance();
 
       case $RBRACKET:
-        appendEndGroup(RBRACKET_TOKEN, "]", RBRACKET_TOKEN);
+        appendEndGroup(RBRACKET_TOKEN, "]", LBRACKET_TOKEN);
         return advance();
 
       case $BACKPING:
@@ -264,7 +264,7 @@ class AbstractScanner<T> implements Scanner {
     if (next == $RBRACKET) {
       return select($EQ, "[]=", "[]");
     } else {
-      appendBeginGroup(RBRACKET_TOKEN, "[");
+      appendBeginGroup(LBRACKET_TOKEN, "[");
       return next;
     }
   }
@@ -406,7 +406,7 @@ class AbstractScanner<T> implements Scanner {
     next = advance();
     switch (next) {
       case $EQ:
-        appendStringToken(LT_TOKEN, "<=");
+        appendStringToken(LT_EQ_TOKEN, "<=");
         return advance();
       case $LT:
         return select($EQ, "<<=", "<<");

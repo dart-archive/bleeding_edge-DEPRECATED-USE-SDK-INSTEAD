@@ -3,20 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("../../../leg/leg.dart");
-#import("../../../leg/scanner/scannerlib.dart");
 #import("../../../leg/elements/elements.dart");
 #import("../../../leg/tree/tree.dart");
 #import("../../../leg/util/util.dart");
-
-class LoggerCanceler implements Logger, Canceler {
-  void cancel([String reason]) {
-    throw new CompilerCancelledException(reason);
-  }
-
-  void log(message) {
-    // print(message);
-  }
-}
+#import("parser_helper");
 
 class WarningMessage {
   Node node;
@@ -36,21 +26,6 @@ class MockCompiler extends Compiler {
     warnings = [];
   }
 }
-
-Token scan(String text) => new StringScanner(text).tokenize();
-
-Node parseBodyCode(String text, Function parseMethod) {
-  Token tokens = scan(text);
-  LoggerCanceler lc = new LoggerCanceler();
-  NodeListener listener = new NodeListener(lc, lc);
-  Parser parser = new Parser(listener);
-  Token endToken = parseMethod(parser, tokens);
-  assert(endToken.kind == EOF_TOKEN);
-  return listener.popNode();
-}
-
-Node parseStatement(String text) =>
-  parseBodyCode(text, (parser, tokens) => parser.parseStatement(tokens));
 
 Listener parseUnit(String text, Compiler compiler) {
   Token tokens = scan(text);
