@@ -9,17 +9,17 @@ class Value {
   /** The [Type] of the [Value]. */
   Type type;
 
-  /** The code to generate this value. */
+  /** The javascript code to generate this value. */
   String code;
 
   /** The source location that created this value for error messages. */
   SourceSpan span;
 
   /** Is this a reference to super? */
-  bool isSuper;
+  bool isSuper = false;
 
   /** Is this a pretend first-class type? */
-  bool isType;
+  bool isType = false;
 
   /** If we reference this value multiple times, do we need a temp? */
   bool needsTemp;
@@ -28,10 +28,8 @@ class Value {
   // "var".
   bool get _typeIsVarOrParameterType() => type.isVar || type is ParameterType;
 
-  Value(this.type, this.code, this.span,
-        // TODO(sigmund): reorder, so that needsTemp comes first.
-        [this.isSuper = false, this.needsTemp = true, this.isType = false]) {
-    if (type == null) type = world.varType;
+  Value(this.type, this.code, this.span, [this.needsTemp = true]) {
+    if (type == null) world.internalError('type passed as null', span);
   }
 
   /** Is this value a constant expression? */
@@ -75,7 +73,8 @@ class Value {
         world.warning('wrong number of arguments for !=', node.span);
       }
       world.gen.corejs.useOperator('\$ne');
-      return new Value(null, '\$ne($code, ${args.values[0].code})', node.span);
+      return new Value(world.varType, '\$ne($code, ${args.values[0].code})',
+        node.span);
     }
 
     // TODO(jmesserly): it'd be nice to remove these special cases
@@ -190,7 +189,8 @@ class Value {
     // which normally happen on the caller side, or in the generated stub for
     // dynamic method calls. What should we do?
     var stub = world.functionType.getCallStub(args);
-    return new Value(null, '$code.${stub.name}(${args.getCode()})', span);
+    return new Value(world.varType, '$code.${stub.name}(${args.getCode()})',
+      span);
   }
 
   /** True if convertTo would generate a conversion. */
@@ -283,11 +283,14 @@ class Value {
   // case where the thing passed in was a non-overloaded == or != expression
   // We'll want to eliminate these, probably by tracking non-null bools in the
   // type system.
+  // This matches the interesting Boolean Conversion section of the spec.
   Value convertToNonNullBool(MethodGenerator context, Node node) {
     if (!type.isAssignable(world.boolType)) {
       convertWarning(world.boolType, node);
     }
     if (!options.enableTypeChecks) {
+      // TODO(jimhug): If type != world.boolType, this should return
+      //  this.code === true according to the spec.
       return this;
     } else {
       // TODO(jmesserly): this is hacky.
@@ -502,7 +505,7 @@ class EvaluatedValue extends Value {
 
   EvaluatedValue._internal(Type type, this.actualValue, this.canonicalCode,
       SourceSpan span, String code)
-    : super(type, code, span, false, false, false);
+    : super(type, code, span, false);
 
   static String codeWithComments(String canonicalCode, SourceSpan span) {
     return (span != null && span.text != canonicalCode)
@@ -623,7 +626,7 @@ class GlobalValue extends Value implements Comparable {
   GlobalValue(Type type, String code, bool isConst,
       this.field, this.name, this.exp, this.canonicalCode,
       SourceSpan span, this.dependencies)
-      : super(type, code, span, false, !isConst, false);
+      : super(type, code, span, !isConst);
 
   int compareTo(GlobalValue other) {
     // order by dependencies, o.w. by name
@@ -657,9 +660,10 @@ class GlobalValue extends Value implements Comparable {
 class BareValue extends Value {
   MethodGenerator home;
 
-  BareValue(this.home, MethodGenerator outermost, SourceSpan span):
-    super(outermost.method.declaringType, null, span, false, false,
-      outermost.isStatic);
+  BareValue(this.home, MethodGenerator outermost, SourceSpan span)
+      : super(outermost.method.declaringType, null, span, false) {
+    isType = outermost.isStatic;
+  }
 
   _tryResolveMember(MethodGenerator context, String name) {
     assert(context == home);

@@ -151,7 +151,7 @@ class Member implements Named {
       Value value, [bool isDynamic]);
 
   bool canInvoke(MethodGenerator context, Arguments args) {
-    // TODO(jimhug): Needs better source location?
+    // No source location needed because canInvoke may not produce errors.
     return canGet &&
       new Value(returnType, null, null).canInvoke(context, '\$call', args);
   }
@@ -224,7 +224,10 @@ class TypeMember extends Member {
   Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
     // TODO(jmesserly): named args
-    return new Value(type, type.jsname, node.span, false, false, true);
+    var ret = new Value(type, type.jsname, node.span, false);
+    // TODO(jimhug): Replace with TypeValue.
+    ret.isType = true;
+    return ret;
   }
 
   Value _set(MethodGenerator context, Node node, Value target, Value value,
@@ -1163,10 +1166,9 @@ class MethodMember extends Member {
       if (name == '\$index') {
         // Note: this could technically propagate constness, but that's not
         // specified explicitly and the VM doesn't do that.
-        // TODO(jmesserly): why are we using a return type of "var"?
-        return new Value(null, '${target.code}[${argsCode[0]}]', node.span);
+        return new Value(returnType, '${target.code}[${argsCode[0]}]', node.span);
       } else if (name == '\$setindex') {
-        return new Value(null,
+        return new Value(returnType,
           '${target.code}[${argsCode[0]}] = ${argsCode[1]}', node.span);
       }
     }
@@ -1330,8 +1332,8 @@ class MemberSet {
     if (!target.type.isVar) {
       world.warning('could not find applicable $action for "$name"', node.span);
     }
-    return new Value(null, '${target.code}.$jsname() /*no applicable $action*/',
-      node.span);
+    return new Value(world.varType,
+      '${target.code}.$jsname() /*no applicable $action*/', node.span);
   }
 
   bool _treatAsField;
@@ -1473,10 +1475,12 @@ class MemberSet {
       } else if (x.isConst || y.isConst) {
         world.internalError("unexpected: union of const values ");
       } else {
-        return new Value(type, x.code, node.span,
-            x.isSuper && y.isSuper,
-            x.needsTemp || y.needsTemp,
-            x.isType && y.isType);
+        // TODO(jimhug): This is icky - but this whole class needs cleanup.
+        var ret = new Value(type, x.code, node.span);
+        ret.isSuper = x.isSuper && y.isSuper;
+        ret.needsTemp = x.needsTemp || y.needsTemp;
+        ret.isType = x.isType && y.isType;
+        return ret;
       }
     } else {
       return new Value(type, null, node.span);

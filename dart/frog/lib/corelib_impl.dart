@@ -254,7 +254,7 @@ class JSSyntaxRegExp implements RegExp {
 
   String stringMatch(String str) {
     var match = firstMatch(str);
-    return match && match.group(0);
+    return match === null ? null : match.group(0);
   }
 
   Iterable<Match> allMatches(String str) => new _AllMatchesIterable(this, str);

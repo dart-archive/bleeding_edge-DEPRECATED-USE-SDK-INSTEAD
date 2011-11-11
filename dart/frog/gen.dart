@@ -490,16 +490,12 @@ class BlockScope {
   }
 
 
-  Value create(String name, Type type, Node location,
+  Value create(String name, Type type, SourceSpan span,
       [bool isParameter = false]) {
 
     var jsName = world.toJsIdentifier(name);
     if (_vars.containsKey(name)) {
-      if (location != null) {
-        world.error('duplicate name "$name"', location.span);
-      } else {
-        world.internalError('conflict with temporary name "$name"');
-      }
+      world.error('duplicate name "$name"', span);
     }
 
     // Make sure variables don't shadow any names we might need to access.
@@ -510,20 +506,19 @@ class BlockScope {
       }
     }
 
-    var ret = new Value(type, jsName, location != null ? location.span : null,
-      false, false);
+    var ret = new Value(type, jsName, span, false);
     _vars[name] = ret;
     return ret;
   }
 
   Value declareParameter(Parameter p) {
-    return create(p.name, p.type, p.definition, isParameter:true);
+    return create(p.name, p.type, p.definition.span, isParameter:true);
   }
 
   /** Declares a variable in the current scope for this identifier. */
   Value declare(DeclaredIdentifier id) {
     var type = enclosingMethod.method.resolveType(id.type, false);
-    return create(id.name.name, type, id);
+    return create(id.name.name, type, id.span);
   }
 
   /**
@@ -577,7 +572,7 @@ class MethodGenerator implements TreeVisitor {
     // recursively.
     if (enclosingMethod != null && method.name != '') {
       MethodMember m = method; // lambdas must be MethodMembers
-      _scope.create(m.name, m.functionType, m.definition);
+      _scope.create(m.name, m.functionType, m.definition.span);
     }
     _usedTemps = new Set();
     _freeTemps = [];
@@ -606,8 +601,7 @@ class MethodGenerator implements TreeVisitor {
       name = '\$' + _usedTemps.length;
     }
     _usedTemps.add(name);
-    return new Value(value.type, name, value.span,
-      /*isSuper:*/false, /*needsTemp:*/false);
+    return new Value(value.type, name, value.span, /*needsTemp:*/false);
   }
 
   Value assignTemp(Value tmp, Value v) {
@@ -810,7 +804,7 @@ class MethodGenerator implements TreeVisitor {
             p.definition.span);
         }
         var paramValue = new Value(field.returnType, p.name,
-          p.definition.span, false, false);
+          p.definition.span, false);
         _paramCode.add(paramValue.code);
 
         initializers.add('this.${field.jsname} = ${paramValue.code};');
@@ -1072,7 +1066,7 @@ class MethodGenerator implements TreeVisitor {
         }
       }
 
-      var val = _scope.create(name, thisType, node.names[i]);
+      var val = _scope.create(name, thisType, node.names[i].span);
 
       if (value == null) {
         writer.write('${val.code}');
@@ -1092,7 +1086,8 @@ class MethodGenerator implements TreeVisitor {
     var meth = _makeLambdaMethod(name, node);
 
     // TODO(jimhug): Pass js name into writeDefinition?
-    var funcValue = _scope.create(name, meth.functionType, method.definition);
+    var funcValue =
+      _scope.create(name, meth.functionType, method.definition.span);
     meth.generator.writeDefinition(writer, null);
     return false;
   }
@@ -1241,7 +1236,7 @@ class MethodGenerator implements TreeVisitor {
     var list = node.list.visit(this);
     _pushBlock(/*reentrant:*/true);
     // TODO(jimhug): Check that itemType matches list members...
-    var item = _scope.create(itemName, itemType, node.item.name);
+    var item = _scope.create(itemName, itemType, node.item.name.span);
     Value listVar = list;
     if (list.needsTemp) {
       listVar = _scope.create('\$list', list.type, null);
@@ -1258,13 +1253,7 @@ class MethodGenerator implements TreeVisitor {
       writer.writeln('var ${item.code} = ${value.code};');
     } else {
       _pushBlock();
-      // Needed to tell the runtime that we're doing this behind its back.
-      var c = world.coreimpl.types['ListIterator'].getConstructor('');
-      c.invoke(this, node, null,
-        new Arguments(null, [new Value(null, 'l', node.list.span)]));
-
-      var iterator = list.invoke(this, 'iterator', node.list,
-        Arguments.EMPTY);
+      var iterator = list.invoke(this, 'iterator', node.list, Arguments.EMPTY);
       var tmpi = _scope.create('\$i', iterator.type, null);
 
       var hasNext = tmpi.invoke(this, 'hasNext', node.list, Arguments.EMPTY);
@@ -1285,7 +1274,8 @@ class MethodGenerator implements TreeVisitor {
     var types = const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException'];
-    var target = new Value(null, 'this', node.span);
+    // TODO(jimhug): This is an egregious hack to get some toStrings called.
+    var target = new Value(world.varType, 'this', node.span);
     for (var name in types) {
       world.corelib.types[name].markUsed();
       world.corelib.types[name].members['toString'].invoke(
@@ -1503,8 +1493,10 @@ class MethodGenerator implements TreeVisitor {
     if (parentType == null) {
       world.error('no super class', node.span);
     }
-    return new Value(parentType, 'this', node.span,
-      /*isSuper:*/true, /*needsTemp:*/false);
+    // TODO(jimhug): Replace with SuperValue.
+    var ret = new Value(parentType, 'this', node.span, false);
+    ret.isSuper = true;
+    return ret;
   }
 
   _getOutermostMethod() {
@@ -1536,11 +1528,11 @@ class MethodGenerator implements TreeVisitor {
       outermostMethod._checkNonStatic(node);
       outermostMethod.needsThis = true;
       return new Value(outermostMethod.method.declaringType, '\$this',
-        node != null ? node.span : null, /*isSuper:*/false, /*needsTemp:*/false);
+        node != null ? node.span : null, /*needsTemp:*/false);
     } else {
       _checkNonStatic(node);
       return new Value(method.declaringType, 'this', node != null ? node.span : null,
-        /*isSuper:*/false, /*needsTemp:*/false);
+        /*needsTemp:*/false);
     }
   }
 
@@ -1604,7 +1596,8 @@ class MethodGenerator implements TreeVisitor {
             ? x.actualValue && y.actualValue : x.actualValue || y.actualValue;
         return new EvaluatedValue(x.type, value, '$value', node.span);
       }
-      return new Value(null, code, node.span);
+      var ret = new Value(Type.union(x.type, y.type), code, node.span);
+      return ret.convertToNonNullBool(this, node);
     } else if (kind == TokenKind.EQ_STRICT || kind == TokenKind.NE_STRICT) {
       var x = visitValue(node.x);
       var y = visitValue(node.y);
@@ -1620,10 +1613,11 @@ class MethodGenerator implements TreeVisitor {
       if (x.code == 'null' || y.code == 'null') {
         // Switching to == ensures that null and undefined are interchangable.
         final op = node.op.toString().substring(0,2);
-        return new Value(null, '${x.code} $op ${y.code}', node.span);
+        return new Value(world.boolType, '${x.code} $op ${y.code}', node.span);
       } else {
         // TODO(jimhug): Resolve issue with undefined and null here.
-        return new Value(null, '${x.code} ${node.op} ${y.code}', node.span);
+        return new Value(world.boolType, '${x.code} ${node.op} ${y.code}',
+          node.span);
       }
     }
 
@@ -1689,7 +1683,6 @@ class MethodGenerator implements TreeVisitor {
           return x.set_(this, name, position, y);
         } else if (!members.treatAsField || members.containsMethods) {
           var right = x.get_(this, name, position);
-          //var right = members._get(this, position, x);
           right = captureOriginal(right);
           y = right.invoke(this, TokenKind.binaryMethodName(kind),
               position, new Arguments(null, [y]));
@@ -2052,8 +2045,8 @@ class MethodGenerator implements TreeVisitor {
   }
 
   _makeMissingValue(String name) {
-    // TODO(jimhug): Probably goes away to be fully replaced by doesNotUnder
-    return new Value(null, '$name()/*NotFound*/', null);
+    // TODO(jimhug): Probably goes away to be fully replaced by noSuchMethod
+    return new Value(world.varType, '$name()/*NotFound*/', null);
   }
 
   _makeThisOrType(SourceSpan span) {
@@ -2069,7 +2062,9 @@ class MethodGenerator implements TreeVisitor {
   }
 
   visitNullExpression(NullExpression node) {
-    return new EvaluatedValue(null, null, 'null', null);
+    // TODO(jimhug): should be passing node.span
+    // TODO(jimhug): Can we do better than var for the type?
+    return new EvaluatedValue(world.varType, null, 'null', null);
   }
 
   visitLiteralExpression(LiteralExpression node) {
@@ -2139,8 +2134,8 @@ class Arguments {
   factory Arguments.bare(int arity) {
     var values = [];
     for (int i = 0; i < arity; i++) {
-      // TODO(jimhug): Need source locations.
-      values.add(new Value(world.varType, '\$$i', null, false, /*needsTemp:*/false));
+      // TODO(jimhug): Need a firm rule about null SourceSpans are allowed.
+      values.add(new Value(world.varType, '\$$i', null, /*needsTemp:*/false));
     }
     return new Arguments(null, values);
   }
@@ -2228,14 +2223,12 @@ class Arguments {
   Arguments toCallStubArgs() {
     var result = [];
     for (int i = 0; i < bareCount; i++) {
-      // TODO(jimhug): Need source locations.
-      result.add(new Value(world.varType, '\$$i', null, false, /*needsTemp:*/false));
+      result.add(new Value(world.varType, '\$$i', null, /*needsTemp:*/false));
     }
     for (int i = bareCount; i < length; i++) {
       var name = getName(i);
       if (name == null) name = '\$$i';
-      // TODO(jimhug): Need source locations.
-      result.add(new Value(world.varType, name, null, false, /*needsTemp:*/false));
+      result.add(new Value(world.varType, name, null, /*needsTemp:*/false));
     }
     return new Arguments(nodes, result);
   }
