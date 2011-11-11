@@ -2,30 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(rnystrom): This is moving from a sample to being a real project. Right
-// now, to try this out:
-// 1. Compile interact.dart to JS:
-//    $ ./frogsh --out=docs/interact.js --compile-only docs/interact.dart
-// 2. Run the doc generator:
-//    $ ./frogsh samples/doc.dart
-// 3. Look at the results in frog/docs/
-
 /** An awesome documentation generator. */
-#library('doc');
+#library('dartdoc');
 
-#import('../lang.dart');
-#import('../file_system_node.dart');
-#import('classify.dart');
+#import('../../frog/lang.dart');
+#import('../../frog/file_system_node.dart');
 
-/** Path to starting library or application. */
-// TODO(rnystrom): Make this a command-line arg.
-final libPath = 'samples/doc.dart';
+#source('classify.dart');
 
 /** Path to corePath library. */
 final corePath = 'lib';
 
 /** Path to generate html files into. */
-final outdir = './docs';
+final outdir = 'docs';
 
 /** Special comment position used to store the library-level doc comment. */
 final _libraryDoc = -1;
@@ -42,7 +31,9 @@ StringBuffer _file;
  */
 Map<String, Map<int, String>> _comments;
 
-// TODO(jimhug): This generates really ugly output with lots of holes.
+int _totalLibraries = 0;
+int _totalTypes = 0;
+int _totalMembers = 0;
 
 /**
  * Run this from the frog/samples directory.  Before running, you need
@@ -50,21 +41,19 @@ Map<String, Map<int, String>> _comments;
  * support creating new directories.
  */
 void main() {
+  // The entrypoint of the library to generate docs for.
+  final libPath = process.argv[2];
+
   // TODO(rnystrom): Get options and homedir like frog.dart does.
   final files = new NodeFileSystem();
-  parseOptions('.', [] /* args */, files);
+  parseOptions('../../frog', [] /* args */, files);
 
-  initializeWorld(files);
+  final elapsed = time(() {
+    initializeWorld(files);
 
-  world.withTiming('parsed', () {
     world.processScript(libPath);
-  });
-
-  world.withTiming('resolved', () {
     world.resolveAll();
-  });
 
-  world.withTiming('generated docs', () {
     _comments = <String, Map<int, String>>{};
 
     for (var library in world.libraries.getValues()) {
@@ -73,6 +62,18 @@ void main() {
 
     docIndex(world.libraries.getValues());
   });
+
+  print('Documented $_totalLibraries libraries, $_totalTypes types, and ' +
+        '$_totalMembers members in ${elapsed}msec.');
+}
+
+num time(callback()) {
+  // Unlike world.withTiming, returns the elapsed time.
+  final watch = new StopWatch();
+  watch.start();
+  callback();
+  watch.stop();
+  return watch.elapsedInMs();
 }
 
 startFile() {
@@ -133,6 +134,8 @@ docIndex(List<Library> libraries) {
 }
 
 docLibrary(Library library) {
+  _totalLibraries++;
+
   startFile();
   writeln(
       '''
@@ -159,7 +162,7 @@ docLibrary(Library library) {
 
   for (var type in library.types.getValues()) {
     if (needsSeparator) writeln('<hr/>');
-    if (docType(type)) needsSeparator = false;
+    if (docType(type)) needsSeparator = true;
   }
 
   writeln(
@@ -176,6 +179,8 @@ docLibrary(Library library) {
  * Returns [:true:] if it wrote anything.
  */
 bool docType(Type type) {
+  _totalTypes++;
+
   bool wroteSomething = false;
 
   if (type.name != null) {
@@ -286,6 +291,8 @@ docConstructors(Type type) {
  */
 docMethod(String typeName, MethodMember method,
     [String namedConstructor = null]) {
+  _totalMembers++;
+
   writeln(
       '''
       <div class="method"><h4 id="$typeName.${method.name}">
@@ -352,6 +359,8 @@ docMethod(String typeName, MethodMember method,
 
 /** Documents the field [field] in a type named [typeName]. */
 docField(String typeName, FieldMember field) {
+  _totalMembers++;
+
   writeln(
       '''
       <div class="field"><h4 id="$typeName.${field.name}">
