@@ -348,7 +348,8 @@ function $toString(o) {
       // dispatching on $varMethod).
       w.writeln(@"""
 Object.prototype.$typeNameOf = function() {
-  if (window.constructor.name == 'DOMWindow') { // fast-path for Chrome
+  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
+      || typeof(process) != 'undefined') { // fast-path for Chrome and Node
     return this.constructor.name;
   }
   var str = Object.prototype.toString.call(this);
