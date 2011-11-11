@@ -46,6 +46,27 @@ def ConvertConfiguration(arch, mode):
     flags = '--checked'
   return (testpy_mode, flags)
 
+def TestStep(name, mode, component, targets, flags):
+  print '@@@BUILD_STEP %s tests: %s@@@' % (name, component)
+  if component == 'frogium':
+    cmd = ['xvfb-run']
+  else:
+    cmd = []
+
+  cmd = (cmd
+      + [sys.executable,
+          '../tools/test.py',
+          '--mode=' + mode,
+          '--component=' + component,
+          '--time',
+          '--report',
+          '--progress=buildbot',
+          '-v']
+      + targets)
+  if flags:
+    cmd.append(flags)
+  return subprocess.call(cmd)
+
 def TestFrog(arch, mode):
   """ build and test frog.
    Args:
@@ -55,84 +76,28 @@ def TestFrog(arch, mode):
 
   # Make sure we are in the frog directory
   os.chdir(FROG_PATH)
-
   testpy_mode, flags = ConvertConfiguration(arch, mode)
 
   print '@@@BUILD_STEP build frog@@@'
-  status = subprocess.call(
-      [sys.executable, '../tools/build.py', '--mode=' + testpy_mode])
-  if status != 0:
-    return status;
+  if subprocess.call(
+      [sys.executable, '../tools/build.py', '--mode=' + testpy_mode]) != 0:
+    return 1
 
-  print ('@@@BUILD_STEP frog tests: %s@@@' % arch)
-  cmd  = [sys.executable,
-          '../tools/test.py',
-          '--mode=' + testpy_mode,
-          '--component=' + arch,
-          '--time',
-          '--report',
-          '--progress=buildbot',
-          '-v',
-          'language',
-          'corelib',
-          'isolate',
-          'frog']
-  if flags:
-    cmd.append(flags)
+  if TestStep("frog", testpy_mode, arch,
+      ['language', 'corelib', 'isolate', 'frog'], flags) != 0:
+    return 1
 
-  status = subprocess.call(cmd)
-  if status != 0:
-    return status
+  if TestStep("leg only", testpy_mode, 'leg', ['leg_only'], flags) != 0:
+    return 1
 
-  print ('@@@BUILD_STEP leg only tests@@@')
-  cmd  = [sys.executable,
-          '../tools/test.py',
-          '--mode=' + testpy_mode,
-          '--component=leg',
-          '--time',
-          '--report',
-          '--progress=buildbot',
-          '-v',
-          'leg_only']
-  if flags:
-    cmd.append(flags)
+  if (arch == 'frogsh' and
+      TestStep("client", testpy_mode, 'frogium', ['client'], flags) != 0):
+    return 1
 
-  status = subprocess.call(cmd)
-  if status != 0:
-    return status
+  if TestStep("frog co19", testpy_mode, arch, ['co19'], flags) != 0:
+    return 1
 
-  if arch == 'frogsh':
-    print ('@@@BUILD_STEP client browser tests@@@')
-    cmd  = ['xvfb-run', sys.executable,
-            '../tools/test.py',
-            '--mode=' + testpy_mode,
-            '--component=frogium',
-            '--time',
-            '--report',
-            '--progress=buildbot',
-            '-v',
-            'client']
-    if flags:
-      cmd.append(flags)
-
-    status = subprocess.call(cmd)
-    if status != 0:
-      return status
-
-  print ('@@@BUILD_STEP frog co19 tests: %s@@@' %arch)
-  cmd  = [sys.executable,
-          '../tools/test.py',
-          '--mode=' + testpy_mode,
-          '--component=' + arch,
-          '--time',
-          '--report',
-          '--progress=buildbot',
-          '-v',
-          'co19']
-  if flags:
-    cmd.append(flags)
-
-  return subprocess.call(cmd)
+  return 0
 
 def main():
   print 'main'
