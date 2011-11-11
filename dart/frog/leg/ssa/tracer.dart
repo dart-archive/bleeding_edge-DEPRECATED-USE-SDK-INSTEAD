@@ -190,6 +190,13 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitLiteral(HLiteral literal) => "Literal ${literal.value}";
 
+  String visitLoopBranch(HLoopBranch branch) {
+    HBasicBlock bodyBlock = currentBlock.successors[0];
+    HBasicBlock exitBlock = currentBlock.successors[1];
+    String conditionId = temporaryId(branch.inputs[0]);
+    return "While ($conditionId): (B${bodyBlock.id}) then (B${exitBlock.id})";
+  }
+
   String visitMultiply(HMultiply node) => visitInvoke(node);
 
   String visitParameter(HParameter node) => "p${node.parameterIndex}";

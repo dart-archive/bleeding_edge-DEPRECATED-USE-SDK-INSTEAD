@@ -117,6 +117,12 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitBasicBlock(HBasicBlock node) {
+    // While loop will be closed by the conditional loop-branch.
+    // TODO(floitsch): HACK HACK HACK.
+    if (node.isLoopHeader) {
+      buffer.add('while(true) {\n');
+      indent++;
+    }
     currentBlock = node;
     HInstruction instruction = node.first;
     while (instruction != null) {
@@ -217,6 +223,22 @@ class SsaCodeGenerator implements HVisitor {
 
   visitLiteral(HLiteral node) {
     buffer.add(node.value);
+  }
+
+  visitLoopBranch(HLoopBranch node) {
+    HBasicBlock branchBlock = currentBlock;
+    buffer.add('if (!(');
+    use(node.inputs[0]);
+    buffer.add(')) break;\n');
+    List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
+    assert(dominated.length == 2);
+    assert(dominated[0] === branchBlock.successors[0]);
+    visit(dominated[0]);
+    indent--;
+    addIndentation();
+    buffer.add('}\n');  // Close 'while' loop.
+    assert(dominated[1] === branchBlock.successors[1]);
+    visit(dominated[1]);
   }
 
   visitMultiply(HMultiply node) {

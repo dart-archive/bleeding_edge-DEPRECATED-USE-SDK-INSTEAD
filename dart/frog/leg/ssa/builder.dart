@@ -139,13 +139,107 @@ class SsaBuilder implements Visitor {
     if (!stack.isEmpty()) compiler.cancel('non-empty instruction stack');
   }
 
+  visitClassNode(ClassNode node) {
+    compiler.unimplemented("SsaBuilder.visitClassNode");
+  }
+
   visitExpressionStatement(ExpressionStatement node) {
     visit(node.expression);
     pop();
   }
 
   visitFor(For node) {
-    compiler.unimplemented("SsaBuilder.visitFor");
+    assert(node.initializer !== null && node.condition !== null &&
+           node.update !== null && node.body !== null);
+    // The initializer.
+    visit(node.initializer);
+    assert(!isAborted());
+    HBasicBlock initializerBlock = close(new HGoto());
+
+    Map initializerDefinitions =
+        new Map<Element, HInstruction>.from(definitions);
+
+    // The condition.
+    HBasicBlock conditionBlock = graph.addNewBlock();
+    conditionBlock.isLoopHeader = true;
+    initializerBlock.addSuccessor(conditionBlock);
+    open(conditionBlock);
+    
+    // Create phis for all elements in the definitions environment.
+    initializerDefinitions.forEach((Element element, HInstruction instruction) {
+      HPhi phi = new HPhi(instruction, instruction);
+      conditionBlock.add(phi);
+      definitions[element] = phi;
+    });
+
+    visit(node.condition.expression);
+    HBasicBlock conditionExitBlock = close(new HLoopBranch(pop()));
+
+    Map conditionDefinitions = new Map<Element, HInstruction>.from(definitions);
+
+    // The body.
+    HBasicBlock bodyBlock = graph.addNewBlock();
+    conditionExitBlock.addSuccessor(bodyBlock);
+    open(bodyBlock);
+    visit(node.body);
+    if (isAborted()) {
+      compiler.unimplemented("SsaBuilder for loop with aborting body");
+    }
+    bodyBlock = close(new HGoto());
+
+    // Update.
+    HBasicBlock updateBlock = graph.addNewBlock();
+    bodyBlock.addSuccessor(updateBlock);
+    open(updateBlock);
+    visit(node.update);
+    assert(!isAborted());
+    // The update instruction can just be popped. It is not used.
+    HInstruction updateInstruction = pop();
+    updateBlock = close(new HGoto());
+    // The back-edge completing the cycle.
+    updateBlock.addSuccessor(conditionBlock);
+
+    // Update the phis if necessary, or delete them otherwise.
+    // We haven't modified the initializerDefinitions environment and are
+    // therefore visiting the phis in the same order.
+    HInstruction currentInstruction = conditionBlock.first;
+    initializerDefinitions.forEach((element, instruction) {
+      HPhi currentPhi = currentInstruction;
+      assert(currentPhi.inputs[0] === currentPhi.inputs[1]);
+      assert(currentPhi.inputs[0] === instruction);
+      HInstruction afterBodyInstruction = definitions[element];
+      if (afterBodyInstruction !== currentPhi) {
+        // The variable has been used. Update the phi.
+        HInstruction oldInput = currentPhi.inputs[0];
+        for (int i = 0; i < oldInput.usedBy.length; i++) {
+          if (oldInput.usedBy[i] === currentPhi) {
+            oldInput.usedBy[i] = oldInput.usedBy[oldInput.usedBy.length - 1];
+            oldInput.usedBy.length = oldInput.usedBy.length - 1;
+            break;
+          }
+        }
+        currentPhi.inputs[1] = afterBodyInstruction;
+        afterBodyInstruction.usedBy.add(currentPhi);
+      } else {
+        // The variable survived without modifications. Remove the phi.
+        conditionBlock.rewrite(currentPhi, currentPhi.inputs[0]);
+        conditionBlock.remove(currentPhi);
+        if (definitions[element] === currentPhi) {
+          definitions[element] = currentPhi.inputs[0];
+        }
+        if (conditionDefinitions[element] === currentPhi) {
+          conditionDefinitions[element] = currentPhi.inputs[0];
+        }
+      }
+      currentInstruction = currentInstruction.next;
+    });
+
+    // Join.
+    HBasicBlock joinBlock = graph.addNewBlock();
+    conditionExitBlock.addSuccessor(joinBlock);
+    
+    open(joinBlock);
+    definitions = joinDefinitions(joinBlock, conditionDefinitions, definitions);
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -362,7 +456,8 @@ class SsaBuilder implements Visitor {
     assert(!link.isEmpty() && link.tail.isEmpty());
     visit(link.head);
     HInstruction value = pop();
-    return definitions[elements[node]] = value;
+    definitions[elements[node]] = value;
+    return value;
   }
 
   visitVariableDefinitions(VariableDefinitions node) {

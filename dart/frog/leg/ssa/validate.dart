@@ -32,6 +32,9 @@ class HValidator extends HInstructionVisitor {
     if (block.last is HIf && block.successors.length != 2) {
       markInvalid("If node without two successors");
     }
+    if (block.last is HConditionalBranch && block.successors.length != 2) {
+      markInvalid("Conditional node without two successors");
+    }
     if (block.last is HGoto && block.successors.length != 1) {
       markInvalid("Goto node without one successor");
     }
@@ -58,8 +61,8 @@ class HValidator extends HInstructionVisitor {
     for (HBasicBlock successor in block.successors) {
       if (!isValid) break;
       if (successor.id === null) markInvalid("successor without id");
-      if (successor.id <= block.id) {
-        markInvalid("successor with lower id");
+      if (successor.id <= block.id && !successor.isLoopHeader) {
+        markInvalid("successor with lower id, but not a loop-header");
       }
     }
 

@@ -10,6 +10,7 @@ interface HVisitor<R> {
   R visitExit(HExit node);
   R visitGoto(HGoto node);
   R visitIf(HIf node);
+  R visitLoopBranch(HLoopBranch node);
   R visitInvoke(HInvoke node);
   R visitInvokeForeign(HInvokeForeign node);
   R visitLiteral(HLiteral node);
@@ -103,12 +104,14 @@ class HGraph {
     // higher up in the dominator tree.
     for (int i = 0, length = blocks.length; i < length; i++) {
       HBasicBlock block = blocks[i];
-      // TODO(floitsh): Only deal with the first predecessor of a loop
-      // header block here. The other predecessors are back edges so
-      // they cannot dominate the loop header.
       List<HBasicBlock> predecessors = block.predecessors;
-      for (int j = predecessors.length - 1; j >= 0; j--) {
-        block.assignCommonDominator(predecessors[j]);
+      if (block.isLoopHeader) {
+        assert(predecessors.length >= 2);
+        block.assignCommonDominator(predecessors[0]);
+      } else {
+        for (int j = predecessors.length - 1; j >= 0; j--) {
+          block.assignCommonDominator(predecessors[j]);
+        }
       }
     }
   }
@@ -147,6 +150,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInstruction(HInstruction) {}
 
   visitArithmetic(HArithmetic node) => visitInvoke(node);
+  visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
   visitControlFlow(HControlFlow node) => visitInstruction(node);
 
   visitAdd(HAdd node) => visitArithmetic(node);
@@ -154,10 +158,11 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitEquals(HEquals node) => visitInvoke(node);
   visitExit(HExit node) => visitControlFlow(node);
   visitGoto(HGoto node) => visitControlFlow(node);
-  visitIf(HIf node) => visitControlFlow(node);
+  visitIf(HIf node) => visitConditionalBranch(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
   visitInvokeForeign(HInvokeForeign node) => visitInvoke(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
+  visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node); 
   visitPhi(HPhi node) => visitInstruction(node);
   visitMultiply(HMultiply node) => visitArithmetic(node);
   visitParameter(HParameter node) => visitInstruction(node);
@@ -177,6 +182,7 @@ class HBasicBlock {
   static final int STATUS_CLOSED = 2;
   int status = STATUS_NEW;
 
+  bool isLoopHeader = false;
   HInstruction first = null;
   HInstruction last = null;
   final List<HBasicBlock> predecessors;
@@ -208,7 +214,7 @@ class HBasicBlock {
 
   // TODO(kasperl): I really don't want to pass the compiler into this
   // method. Maybe we need a better logging framework.
-  void print(Compiler compiler) {
+  void printToCompiler(Compiler compiler) {
     HInstruction instruction = first;
     while (instruction != null) {
       var id = instruction.id;
@@ -234,7 +240,8 @@ class HBasicBlock {
   }
 
   void addSuccessor(HBasicBlock block) {
-    assert(isClosed() && block.isNew());
+    // Forward branches are only allowed to new blocks.
+    assert(isClosed() && (block.isNew() || block.id < id));
     if (successors.isEmpty()) {
       successors = [block];
     } else {
@@ -287,7 +294,6 @@ class HBasicBlock {
     }
     to.usedBy.addAll(from.usedBy);
     from._usedBy = [];
-    assert(isValid());
   }
 
   static void rewriteInput(HInstruction instruction,
@@ -467,6 +473,7 @@ class HInstruction {
     _usedBy = <HInstruction>[];
     // Add [this] to the inputs' uses.
     for (int i = 0; i < inputs.length; i++) {
+      assert(inputs[i].isInBasicBlock());
       inputs[i].usedBy.add(this);
     }
     assert(isValid());
@@ -499,6 +506,11 @@ class HInstruction {
     validator.visitInstruction(this);
     return validator.isValid;
   }
+}
+
+class HConditionalBranch extends HControlFlow {
+  HConditionalBranch(inputs) : super(inputs);
+  abstract toString();
 }
 
 class HControlFlow extends HInstruction {
@@ -604,11 +616,17 @@ class HGoto extends HControlFlow {
   accept(HVisitor visitor) => visitor.visitGoto(this);
 }
 
-class HIf extends HControlFlow {
+class HIf extends HConditionalBranch {
   bool hasElse;
   HIf(HInstruction condition, this.hasElse) : super(<HInstruction>[condition]);
   toString() => 'if';
   accept(HVisitor visitor) => visitor.visitIf(this);
+}
+
+class HLoopBranch extends HConditionalBranch {
+  HLoopBranch(HInstruction condition) : super(<HInstruction>[condition]);
+  toString() => 'loop-branch';
+  accept(HVisitor visitor) => visitor.visitLoopBranch(this);
 }
 
 class HLiteral extends HInstruction {
