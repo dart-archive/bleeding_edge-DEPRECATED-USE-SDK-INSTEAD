@@ -19278,6 +19278,9 @@ function Value(type, code, span, isSuper, needsTemp, isType) {
 Value.prototype.is$Value = function(){return this;};
 Value.prototype.get$span = function() { return this.span; };
 Value.prototype.set$span = function(value) { return this.span = value; };
+Value.prototype.get$_typeIsVarOrParameterType = function() {
+  return this.type.get$isVar() || (this.type instanceof ParameterType);
+}
 Value.prototype.get$isConst = function() {
   return false;
 }
@@ -19300,7 +19303,7 @@ Value.prototype.set_ = function(context, name, node, value, isDynamic) {
   }
 }
 Value.prototype.invoke = function(context, name, node, args, isDynamic) {
-  if ($notnull_bool(this.type.get$isVar() && name == '\$ne')) {
+  if ($notnull_bool(this.get$_typeIsVarOrParameterType() && name == '\$ne')) {
     if ($notnull_bool(args.values.length != 1)) {
       world.warning('wrong number of arguments for !=', node.span);
     }
@@ -19324,7 +19327,7 @@ Value.prototype.invoke = function(context, name, node, args, isDynamic) {
   }
 }
 Value.prototype.canInvoke = function(context, name, args) {
-  if ($notnull_bool(this.type.get$isVar() && name == '\$ne')) {
+  if ($notnull_bool(this.get$_typeIsVarOrParameterType() && name == '\$ne')) {
     return true;
   }
   if ($notnull_bool(this.type.get$isVarOrFunction() && name == '\$call')) {
@@ -19352,7 +19355,7 @@ Value.prototype._tryResolveMember = function(context, name) {
 }
 Value.prototype._resolveMember = function(context, name, node, isDynamic) {
   var member;
-  if ($notnull_bool(!$notnull_bool(this.type.get$isVar()) && !(this.type instanceof ParameterType))) {
+  if ($notnull_bool(!$notnull_bool(this.get$_typeIsVarOrParameterType()))) {
     member = this._tryResolveMember(context, name);
     if ($notnull_bool($ne(member, null) && this.isType && !$notnull_bool(member.get$isStatic()))) {
       if ($notnull_bool(!$notnull_bool(isDynamic))) {
@@ -19545,8 +19548,8 @@ Value.prototype.invokeNoSuchMethod = function(context, name, node, args) {
   return this._resolveMember(context, 'noSuchMethod', node, false).invoke$4(context, node, this, new Arguments(null, noSuchArgs));
 }
 Value.prototype.invokeSpecial = function(name, args, returnType) {
-  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 446, 12);
-  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 447, 12);
+  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 447, 12);
+  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 448, 12);
   var argsString = args.getCode();
   if ($notnull_bool(name == '\$index' || name == '\$setindex')) {
     return new Value(returnType, ('' + this.code + '.' + name + '(' + argsString + ')'), this.span, false, true, false);
@@ -19707,10 +19710,10 @@ function BareValue(home, outermost, span) {
 }
 $inherits(BareValue, Value);
 BareValue.prototype._tryResolveMember = function(context, name) {
-  $assert($eq(context, this.home), "context == home", "value.dart", 650, 12);
+  $assert($eq(context, this.home), "context == home", "value.dart", 651, 12);
   var member = this.type.resolveMember(name);
   if ($notnull_bool($ne(member, null))) {
-    $assert(this.code == null, "code == null", "value.dart", 655, 14);
+    $assert(this.code == null, "code == null", "value.dart", 656, 14);
     if ($notnull_bool(this.isType)) {
       this.code = this.type.get$jsname();
     }

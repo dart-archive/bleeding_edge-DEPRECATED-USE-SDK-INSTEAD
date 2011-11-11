@@ -198,7 +198,7 @@ def compileAndRun(options, args, dart):
   compiler_cmd = [dart]
   if options.vm_flags:
     compiler_cmd.extend(options.vm_flags.split(' '))
-  compiler_cmd.append('frogc.dart');
+  compiler_cmd.append(join(HOME, 'frogc.dart'))
   compiler_cmd.extend(args)
   exit_code = execute(compiler_cmd)
   if exit_code:

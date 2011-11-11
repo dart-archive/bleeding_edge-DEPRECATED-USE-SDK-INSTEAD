@@ -24,6 +24,10 @@ class Value {
   /** If we reference this value multiple times, do we need a temp? */
   bool needsTemp;
 
+  // TODO(jmesserly): until reified generics are fixed, treat ParameterType as
+  // "var".
+  bool get _typeIsVarOrParameterType() => type.isVar || type is ParameterType;
+
   Value(this.type, this.code, this.span,
         // TODO(sigmund): reorder, so that needsTemp comes first.
         [this.isSuper = false, this.needsTemp = true, this.isType = false]) {
@@ -57,11 +61,10 @@ class Value {
   }
 
 
-
   Value invoke(MethodGenerator context, String name, Node node, Arguments args,
       [bool isDynamic=false]) {
     // TODO(jimhug): The != method is weird - understand it better.
-    if (type.isVar && name == '\$ne') {
+    if (_typeIsVarOrParameterType && name == '\$ne') {
       if (args.values.length != 1) {
         world.warning('wrong number of arguments for !=', node.span);
       }
@@ -97,7 +100,7 @@ class Value {
 
   bool canInvoke(MethodGenerator context, String name, Arguments args) {
     // TODO(jimhug): The != method is weird - understand it better.
-    if (type.isVar && name == '\$ne') {
+    if (_typeIsVarOrParameterType && name == '\$ne') {
       return true;
     }
 
@@ -135,10 +138,8 @@ class Value {
   _resolveMember(MethodGenerator context, String name, Node node,
         [bool isDynamic=false]) {
 
-    // TODO(jmesserly): until reified generic lists are fixed, treat
-    // ParameterType as "var".
     var member;
-    if (!type.isVar && type is! ParameterType) {
+    if (!_typeIsVarOrParameterType) {
       member = _tryResolveMember(context, name);
 
       if (member != null && isType && !member.isStatic) {

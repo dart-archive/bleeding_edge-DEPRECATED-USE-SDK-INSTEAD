@@ -21,3 +21,6 @@ prefix samples
 
 [ $component == dartium ]
 *: Skip
+
+[ $component == frogium ]
+*: Skip

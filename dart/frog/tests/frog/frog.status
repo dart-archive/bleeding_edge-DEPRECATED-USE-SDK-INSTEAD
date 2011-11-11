@@ -4,5 +4,5 @@
 
 prefix frog
 
-[ $component == vm || $component == dartc || $component == chromium || $component == dartium ]
+[ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium ]
 EvaluatorTest: Skip
