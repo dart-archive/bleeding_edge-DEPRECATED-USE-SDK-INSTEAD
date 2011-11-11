@@ -235,9 +235,9 @@ class JSSyntaxRegExp implements RegExp {
   final bool multiLine;
   final bool ignoreCase;
 
-  const JSSyntaxRegExp(String pattern,
-      [bool multiLine = false, bool ignoreCase = false]):
-    this._create(pattern, (multiLine ? 'm' : '') + (ignoreCase ? 'i' : ''));
+  const JSSyntaxRegExp(String pattern, [bool multiLine, bool ignoreCase]):
+    this._create(pattern,
+        (multiLine == true ? 'm' : '') + (ignoreCase == true ? 'i' : ''));
 
   const JSSyntaxRegExp._create(String pattern, String flags) native
     '''this.re = new RegExp(pattern, flags);

@@ -310,8 +310,9 @@ class ParameterType extends Type {
 
   ParameterType(String name, this.typeParameter): super(name);
 
-  Map<String, MethodMember> get constructors() =>
-      world.internalError('no constructors on type parameters yet');
+  Map<String, MethodMember> get constructors() {
+    world.internalError('no constructors on type parameters yet');
+  }
 
   MethodMember getCallMethod() => extendsType.getCallMethod();
 
@@ -528,7 +529,7 @@ class DefinedType extends Type {
   // Type parent;
   Type _parent;
   Type get parent() => _parent;
-  void set parent(Type p) => _parent = p;
+  void set parent(Type p) { _parent = p; }
 
   List<Type> interfaces;
   Type factory_;

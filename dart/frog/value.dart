@@ -37,6 +37,12 @@ class Value {
   /** Is this value a constant expression? */
   bool get isConst() => false;
 
+  /**
+   * A canonicalized form of the code. Two const expressions that result in the
+   * same instance should have the same [canonicalCode].
+   */
+  String get canonicalCode() => null;
+
   // TODO(jimhug): Fix these names once get/set are truly pseudo-keywords.
   //   See issue #379.
   Value get_(MethodGenerator context, String name, Node node) {
@@ -328,7 +334,15 @@ class Value {
     // We rely on the fact that calling an undefined method produces a JS
     // TypeError. Alternatively we could define fallbacks on Object that throw.
     String check;
-    if (toType.library.isCore && toType.typeofName != null) {
+    if (toType.isVoid) {
+      check = '\$assert_void($code)';
+      if (toType.typeCheckCode == null) {
+        toType.typeCheckCode = '''
+function \$assert_void(x) {
+  return x == null ? x : x.is\$void(); // throws TypeError
+}''';
+      }
+    } else if (toType.library.isCore && toType.typeofName != null) {
       check = '\$assert_${toType.name}($code)';
 
       if (toType.typeCheckCode == null) {

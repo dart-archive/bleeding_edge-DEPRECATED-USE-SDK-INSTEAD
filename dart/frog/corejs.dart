@@ -287,12 +287,10 @@ function $toDartException(e) {
 
     if (useNotNullBool) {
       useThrow = true;
+      // Some testing showed that this patterned fared well across browsers.
       w.writeln(@"""
 function $notnull_bool(test) {
-  if (test == null || typeof(test) != 'boolean') {
-    $throw(new TypeError('must be "true" or "false"'));
-  }
-  return test === true;
+  return typeof(test) == 'boolean' ? test : test.is$bool();
 }""");
     }
 

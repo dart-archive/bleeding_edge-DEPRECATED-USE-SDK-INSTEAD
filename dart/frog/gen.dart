@@ -1103,12 +1103,15 @@ class MethodGenerator implements TreeVisitor {
    */
   bool visitReturnStatement(ReturnStatement node) {
     if (node.value == null) {
+      // This is essentially "return null".
+      // It can't issue a warning because every type is nullable.
       writer.writeln('return;');
     } else {
       if (method.isConstructor) {
         world.error('return of value not allowed from constructor', node.span);
       }
-      writer.writeln('return ${visitValue(node.value).code};');
+      var value = visitTypedValue(node.value, method.returnType);
+      writer.writeln('return ${value.code};');
     }
     return true;
   }

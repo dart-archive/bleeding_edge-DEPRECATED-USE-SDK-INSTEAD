@@ -124,17 +124,20 @@ class Member implements Named {
   bool get requiresFieldSyntax() => false;
 
   bool get isNative() => false;
-  String get constructorName() =>
-      world.internalError('can not be a constructor', span);
+  String get constructorName() {
+    world.internalError('can not be a constructor', span);
+  }
 
   void provideFieldSyntax() => world.internalError('can not be field', span);
   void providePropertySyntax() =>
       world.internalError('can not be property', span);
 
-  Definition get initDelegate() =>
-      world.internalError('cannot have initializers', span);
-  Definition set initDelegate(ctor) =>
-      world.internalError('cannot have initializers', span);
+  Definition get initDelegate() {
+    world.internalError('cannot have initializers', span);
+  }
+  Definition set initDelegate(ctor) {
+    world.internalError('cannot have initializers', span);
+  }
 
   Definition get definition() => null;
 
@@ -282,7 +285,7 @@ class FieldMember extends Member {
   bool get requiresFieldSyntax() => isNative;
 
   void provideFieldSyntax() {} // Nothing to do.
-  void providePropertySyntax() => _providePropertySyntax = true;
+  void providePropertySyntax() { _providePropertySyntax = true; }
 
   FieldMember(String name, Type declaringType, this.definition, this.value)
       : super(name, declaringType), isNative = false;
@@ -421,7 +424,7 @@ class PropertyMember extends Member {
   bool get prefersPropertySyntax() => true;
   bool get requiresFieldSyntax() => false;
 
-  void provideFieldSyntax() => _provideFieldSyntax = true;
+  void provideFieldSyntax() { _provideFieldSyntax = true; }
   void providePropertySyntax() {}// Nothing to do.
 
   // TODO(jimhug): Union of getter and setters sucks!
@@ -714,8 +717,8 @@ class MethodMember extends Member {
   bool get prefersPropertySyntax() => true;
   bool get requiresFieldSyntax() => false;
 
-  void provideFieldSyntax() => _provideFieldSyntax = true;
-  void providePropertySyntax() => _providePropertySyntax = true;
+  void provideFieldSyntax() { _provideFieldSyntax = true; }
+  void providePropertySyntax() { _providePropertySyntax = true; }
 
   Value _set(MethodGenerator context, Node, Value target, Value value,
       [bool isDynamic=false]) {
