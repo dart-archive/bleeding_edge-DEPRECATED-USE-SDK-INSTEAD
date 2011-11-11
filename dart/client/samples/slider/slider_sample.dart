@@ -4,8 +4,8 @@
 
 #library('slider_sample');
 
+#import('dart:html');
 #import('../../base/base.dart');
-#import('../../html/html.dart');
 #import('../../view/view.dart');
 
 #source('SliderSample.dart');

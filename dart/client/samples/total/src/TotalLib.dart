@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("TotalLib");
-#import("../../../html/html.dart");
+#import("dart:html");
 
 #source("Cell.dart");
 #source("CellContents.dart");

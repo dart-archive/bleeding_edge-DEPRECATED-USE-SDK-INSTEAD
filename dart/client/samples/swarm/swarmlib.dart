@@ -6,12 +6,12 @@
 
 #import('dart:coreimpl');
 #import('dart:json');
+#import('dart:html');
 #import('../../base/base.dart');
 #import('../../view/view.dart');
 #import('../../observable/observable.dart');
 #import('../../touch/touch.dart');
 #import('../../util/utilslib.dart');
-#import('../../html/html.dart');
 
 #source('App.dart');
 #source('BiIterator.dart');
