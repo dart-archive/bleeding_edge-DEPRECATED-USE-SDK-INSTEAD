@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(regis): Move type parameter <T> from the class declaration to the
-// factory declarations after the new factory syntax is implemented.
-// See issues 226, 5257789, 5408808.
-class LinkFactory<T> {
+class LinkFactory {
   factory Link(head, [Link tail]) {
     return new LinkEntry(head, (tail === null) ? const LinkTail() : tail);
   }
