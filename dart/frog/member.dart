@@ -120,6 +120,9 @@ class Member implements Named {
   bool get isConst() => false;
   bool get isFactory() => false;
 
+  bool get isOperator() => name.startsWith('\$');
+  bool get isCallMethod() => name == '\$call';
+
   bool get prefersPropertySyntax() => true;
   bool get requiresFieldSyntax() => false;
 
@@ -927,7 +930,7 @@ class MethodMember extends Member {
           node.span);
     }
 
-    if (name.startsWith('\$')) {
+    if (isOperator) {
       return _invokeBuiltin(context, node, target, args, argsCode, isDynamic);
     }
 
@@ -1219,7 +1222,7 @@ class MethodMember extends Member {
         node.span);
     }
 
-    if (name == '\$call') {
+    if (isCallMethod) {
       declaringType.markUsed();
       return new Value(inferredResult,
         '${target.code}(${Strings.join(argsCode, ", ")})', node.span);
@@ -1282,7 +1285,7 @@ class MethodMember extends Member {
     }
 
     // TODO(jimhug): need a better annotation for being an operator method
-    if (name.startsWith('\$') && !name.startsWith('\$call') && isStatic) {
+    if (isOperator && isStatic && !isCallMethod) {
       world.error('operator method may not be static "${name}"', span);
     }
 
@@ -1333,9 +1336,11 @@ class MemberSet {
   final String name;
   final List<Member> members;
   final String jsname;
+  final bool isVar;
 
-  MemberSet(Member member):
-    name = member.name, members = [member], jsname = member.jsname;
+  MemberSet(Member member, [bool isVar=false]):
+    name = member.name, members = [member], jsname = member.jsname,
+    isVar = isVar;
 
   toString() => '$name:${members.length}';
 
@@ -1343,10 +1348,12 @@ class MemberSet {
   bool get containsProperties() => members.some((m) => m is PropertyMember);
   bool get containsMethods() => members.some((m) => m is MethodMember);
 
+
   void add(Member member) => members.add(member);
 
   // TODO(jimhug): Always false, or is this needed?
   bool get isStatic() => members.length == 1 && members[0].isStatic;
+  bool get isOperator() => members[0].isOperator;
 
   bool canInvoke(MethodGenerator context, Arguments args) =>
     members.some((m) => m.canInvoke(context, args));
@@ -1445,6 +1452,12 @@ class MemberSet {
 
   Value invoke(MethodGenerator context, Node node, Value target,
       Arguments args, [bool isDynamic=false]) {
+    // If this is the global MemberSet from world, always bind dynamically.
+    // Note: we need this for proper noSuchMethod and REPL behavior.
+    if (isVar && !isOperator) {
+      return invokeOnVar(context, node, target, args);
+    }
+
     if (members.length == 1) {
       return members[0].invoke(context, node, target, args, isDynamic);
     }
@@ -1463,9 +1476,9 @@ class MemberSet {
       return _makeError(node, target, 'method');
     }
 
-    // If we fail to unify the resulting code, implement as a var call.
     if (returnValue.code == null) {
-      if (name.startsWith('\$')) {
+      // TODO(jmesserly): make operators less special.
+      if (isOperator) {
         return target.invokeSpecial(name, args, returnValue.type);
       } else {
         return invokeOnVar(context, node, target, args);
@@ -1477,7 +1490,8 @@ class MemberSet {
 
   Value invokeOnVar(MethodGenerator context, Node node, Value target,
       Arguments args) {
-    return getVarMember(context, node, args).invoke(context, node, target, args);
+    var member = getVarMember(context, node, args);
+    return member.invoke(context, node, target, args);
   }
 
   Value _union(Value x, Value y, Node node) {

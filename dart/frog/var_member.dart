@@ -124,17 +124,16 @@ class VarMethodStub extends VarMember {
 
   void generate(CodeWriter code) {
     code.write('$typeName.prototype.$name = ');
-    generateBody(code);
-    code.writeln(';');
+    generateBody(code, ';');
   }
 
-  void generateBody(CodeWriter code) {
+  void generateBody(CodeWriter code, String end) {
     if (_useDirectCall(member, args)) {
-      code.write('$typeName.prototype.${member.jsname}');
+      code.writeln('$typeName.prototype.${member.jsname}$end');
     } else {
       code.enterBlock('function(${args.getCode()}) {');
       code.writeln('return ${body.code};');
-      code.exitBlock('}');
+      code.exitBlock('}$end');
     }
   }
 
@@ -192,6 +191,7 @@ class VarMethodSet extends VarMember {
   _invokeMembers(MethodGenerator context, Node node) {
     if (_fallbackStubs != null) return;
 
+    var objectStub = null;
     _fallbackStubs = [];
     for (var member in members) {
       // Invoke the member with the stub args (this gives us the method body),
@@ -203,21 +203,26 @@ class VarMethodSet extends VarMember {
       // Put the stub on the type directly if possible. Otherwise
       // put the stub on Object.prototype.
       var type = member.declaringType;
-      if (type.library != world.dom && !type.isObject) {
+      if (type.isObject) {
+        objectStub = stub;
+      } else if (type.library != world.dom) {
         _addVarStub(type, stub);
       } else {
         _fallbackStubs.add(stub);
       }
     }
 
-    // Finally, invoke noSuchMethod
-    final target = new Value(world.objectType, 'this', node.span);
-    var result = target.invokeNoSuchMethod(context, baseName, node, args);
-    var stub = new VarMethodStub(name, null, args, result);
+    // Create a noSuchMethod fallback on Object if needed.
+    // Some methods, like toString and == already have a fallback on Object.
+    if (objectStub == null) {
+      final target = new Value(world.objectType, 'this', node.span);
+      var result = target.invokeNoSuchMethod(context, baseName, node, args);
+      objectStub = new VarMethodStub(name, null, args, result);
+    }
     if (_fallbackStubs.length == 0) {
-      _addVarStub(world.objectType, stub);
+      _addVarStub(world.objectType, objectStub);
     } else {
-      _fallbackStubs.add(stub);
+      _fallbackStubs.add(objectStub);
       world.gen.corejs.useVarMethod = true;
     }
   }
@@ -247,11 +252,10 @@ class VarMethodSet extends VarMember {
     if (_fallbackStubs.length == 0) return;
 
     code.enterBlock('\$varMethod("$name", {');
-    var lastOne = _fallbackStubs[_fallbackStubs.length - 1];
+    var lastOne = _fallbackStubs.last();
     for (var stub in _fallbackStubs) {
       code.write('"${stub.typeName}": ');
-      stub.generateBody(code);
-      code.writeln(stub == lastOne ? '' : ',');
+      stub.generateBody(code, stub == lastOne ? '' : ',');
     }
     code.exitBlock('});');
   }

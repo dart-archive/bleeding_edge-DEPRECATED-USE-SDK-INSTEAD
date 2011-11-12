@@ -152,7 +152,7 @@ class World {
 
     var mset = _members[member.name];
     if (mset == null) {
-      mset = new MemberSet(member);
+      mset = new MemberSet(member, isVar:true);
       _members[mset.name] = mset;
     } else {
       mset.members.add(member);

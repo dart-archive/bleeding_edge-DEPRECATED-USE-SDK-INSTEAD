@@ -840,6 +840,7 @@ class DefinedType extends Type {
           if (!isObject) {
             // Object is the default parent for everthing except Object.
             parent = world.objectType;
+            parent.addDirectSubtype(this);
           }
         }
         this.interfaces = _resolveInterfaces(typeDef.implementsTypes);
