@@ -9,13 +9,6 @@
  * Dart libraries on top of this will experiment with different APIs.
  */
 #library('node');
-#native('io_node.js');
-
-VM get vm() native;
-FS get fs() native;
-Path get path() native;
-Http get http() native;
-Readline get readline() native;
 
 var createSandbox() native
   """return {'require': require, 'process': process, 'console': console,
@@ -23,15 +16,17 @@ var createSandbox() native
 
 typedef void RequestListener(ServerRequest request, ServerResponse response);
 
-class Http native "Http" {
-  Server createServer(RequestListener listener) native;
+// TODO(nweiz): properly title-case these class names
+
+class http native "require('http')" {
+  static Server createServer(RequestListener listener) native;
 }
 
-class Server native "Server" {
+class Server native "http.Server" {
   void listen(int port, [String hostname, Function callback]) native;
 }
 
-class ServerRequest native "ServerRequest" {
+class ServerRequest native "http.IncomingMessage" {
   final String method;
   final String url;
   final Map<String, String> headers;
@@ -40,7 +35,7 @@ class ServerRequest native "ServerRequest" {
   void setEncoding([String encoding]) {}
 }
 
-class ServerResponse native "ServerResponse" {
+class ServerResponse native "http.ServerResponse" {
   int statusCode;
 
   void setHeader(String name, String value) native;
@@ -62,7 +57,6 @@ class console native "console" {
   static void error(String text) native;
 }
 
-// TODO(nweiz): change this class name to "Process"
 class process native "process" {
   static List<String> argv;
   // TODO(nweiz): add Stream type information
@@ -73,46 +67,48 @@ class process native "process" {
   static String cwd() native;
 }
 
-class VM native "VM" {
-  void runInThisContext(String code, [String filename]) native;
-  void runInNewContext(String code, [var sandbox, String filename]) native;
-  Script createScript(String code, [String filename]) native;
-  Context createContext([sandbox]) native;
-  runInContext(String code, Context context, [String filename]) native;
+class vm native "require('vm')" {
+  static void runInThisContext(String code, [String filename]) native;
+  static void runInNewContext(String code, [var sandbox, String filename])
+    native;
+  static Script createScript(String code, [String filename]) native;
+  static Context createContext([sandbox]) native;
+  static runInContext(String code, Context context, [String filename]) native;
 }
 
 interface Context {}
 
-class Script native "Script" {
+class Script native "vm.Script" {
   void runInThisContext() native;
   void runInNewContext([Map sandbox]) native;
 }
 
-class FS native "FS" {
-  void writeFileSync(String outfile, String text) native;
+class fs native "require('fs')" {
+  static void writeFileSync(String outfile, String text) native;
 
-  String readFileSync(String filename, [String encoding = 'utf8']) native;
+  static String readFileSync(String filename, [String encoding = 'utf8'])
+    native;
 
-  String realpathSync(String path) native;
+  static String realpathSync(String path) native;
 }
 
-class Path native "Path" {
-  bool existsSync(String filename) native;
-  String dirname(String path) native;
-  String basename(String path) native;
-  String extname(String path) native;
-  String normalize(String path) native;
+class path native "require('path')" {
+  static bool existsSync(String filename) native;
+  static String dirname(String path) native;
+  static String basename(String path) native;
+  static String extname(String path) native;
+  static String normalize(String path) native;
   // TODO(jimhug): Get the right signatures for normalizeArray and join
 }
 
-class Readline native "Readline" {
-  ReadlineInterface createInterface(input, output) native;
+class Readline native "require('readline')" {
+  static ReadlineInterface createInterface(input, output) native;
 }
 
-interface ReadlineInterface {
-  void setPrompt(String prompt, [int length]);
-  void prompt();
-  void on(String event, Function callback);
+class ReadlineInterface native "readline.Interface" {
+  void setPrompt(String prompt, [int length]) native;
+  void prompt() native;
+  void on(String event, Function callback) native;
 }
 
 interface TimeoutId {}

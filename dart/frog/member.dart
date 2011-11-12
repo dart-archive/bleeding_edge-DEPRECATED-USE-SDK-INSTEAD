@@ -836,6 +836,8 @@ class MethodMember extends Member {
       declaringType.markUsed();
     }
 
+    if (isNative && returnType != null) returnType.markUsed();
+
     if (!namesInOrder(args)) {
       // Names aren't in order. For now, use a var call because it's an
       // easy way to get the right eval order for out of order arguments.

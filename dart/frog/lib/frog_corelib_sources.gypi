@@ -16,7 +16,6 @@
     'num.dart',
     'string_base.dart',
     'string_buffer.dart',
-    'node/io_node.js',
     'node/node.dart',
   ],
 }

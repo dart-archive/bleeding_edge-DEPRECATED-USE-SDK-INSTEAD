@@ -2406,31 +2406,13 @@ TimeZoneImplementation.prototype.toString = function() {
 }
 // ********** Code for top level **************
 //  ********** Library node **************
-//  ********** Natives io_node.js **************
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-function get$fs() {
-  return require('fs');
-}
-
-function get$path() {
-  return require('path');
-}
-
-function get$vm() {
-  return require('vm');
-}
-
-function get$http() {
-  return require('http');
-}
-
-function get$readline() {
-  return require('readline');
-}
 // ********** Code for process **************
+// ********** Code for vm **************
+vm = require('vm');
+// ********** Code for fs **************
+fs = require('fs');
+// ********** Code for path **************
+path = require('path');
 // ********** Code for top level **************
 function createSandbox() {
   return {'require': require, 'process': process, 'console': console,
@@ -2479,13 +2461,13 @@ function NodeFileSystem() {
   // Initializers done
 }
 NodeFileSystem.prototype.writeString = function(outfile, text) {
-  get$fs().writeFileSync(outfile, text);
+  fs.writeFileSync(outfile, text);
 }
 NodeFileSystem.prototype.readAll = function(filename) {
-  return get$fs().readFileSync(filename, 'utf8');
+  return fs.readFileSync(filename, 'utf8');
 }
 NodeFileSystem.prototype.fileExists = function(filename) {
-  return get$path().existsSync(filename);
+  return path.existsSync(filename);
 }
 // ********** Code for top level **************
 //  ********** Library io **************
@@ -13566,6 +13548,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
   if ($notnull_bool(this.isStatic || this.isFactory)) {
     this.declaringType.markUsed();
   }
+  if ($notnull_bool(this.get$isNative() && this.returnType != null)) this.returnType.markUsed();
   if (!$notnull_bool(this.namesInOrder(args))) {
     return context.findMembers(this.name).invokeOnVar(context, node, target, args);
   }
@@ -20759,14 +20742,14 @@ function _getCallStubName(name, args) {
 //  ********** Library frog **************
 // ********** Code for top level **************
 function main() {
-  var homedir = get$path().dirname(get$fs().realpathSync($assert_String(process.argv.$index(1))));
+  var homedir = path.dirname(fs.realpathSync($assert_String(process.argv.$index(1))));
   var argv = ListFactory.ListFactory$from$factory(process.argv);
   if ($notnull_bool(lang_compile($assert_String(homedir), (argv && argv.is$List$String()), new NodeFileSystem()))) {
     var code = world.getGeneratedCode();
     if (!$notnull_bool(options.compileOnly)) {
       process.argv = [argv.$index(0), argv.$index(1)];
       process.argv.addAll(options.childArgs);
-      get$vm().runInNewContext($assert_String(code), createSandbox());
+      vm.runInNewContext($assert_String(code), createSandbox());
     }
   }
   else {
