@@ -36,7 +36,7 @@ function isolate$receiveMessage(port, isolate,
   isolate$IsolateEvent.enqueue(isolate, function() {
     var message = isolate$deserializeMessage(serializedMessage);
     var replyTo = isolate$deserializeMessage(serializedReplyTo);
-    port._callback(message, replyTo);
+    if (port._callback) port._callback(message, replyTo);
   });
 }
 
