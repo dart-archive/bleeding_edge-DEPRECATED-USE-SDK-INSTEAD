@@ -18398,6 +18398,9 @@ lang_Type.prototype.get$isNum = function() {
 lang_Type.prototype.get$isVoid = function() {
   return false;
 }
+lang_Type.prototype.get$isNullable = function() {
+  return true;
+}
 lang_Type.prototype.get$isVarOrFunction = function() {
   return $notnull_bool(this.get$isVar() || this.get$isFunction());
 }
@@ -18616,6 +18619,9 @@ function NonNullableType(type) {
   // Initializers done
 }
 $inherits(NonNullableType, lang_Type);
+NonNullableType.prototype.get$isNullable = function() {
+  return false;
+}
 NonNullableType.prototype.get$isBool = function() {
   return this.type.get$isBool();
 }
@@ -19692,7 +19698,7 @@ Value.prototype.convertTo = function(context, toType, node, isDynamic) {
     }
   }
   var fromType = this.type;
-  if ($notnull_bool(this.type.get$isVar() && this.code != 'null')) {
+  if ($notnull_bool(this.type.get$isVar() && (this.code != 'null' || !$notnull_bool(toType.get$isNullable())))) {
     fromType = world.objectType;
   }
   var bothNum = $notnull_bool(this.type.get$isNum() && toType.get$isNum());

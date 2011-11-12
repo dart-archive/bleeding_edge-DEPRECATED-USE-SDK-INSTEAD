@@ -258,7 +258,7 @@ class Value {
     // and then only allowed Dynamic to be bottom for generic type args, I think
     // we'd get the right behavior from isSubtypeOf.
     Type fromType = type;
-    if (type.isVar && code != 'null') {
+    if (type.isVar && (code != 'null' || !toType.isNullable)) {
       fromType = world.objectType;
     }
 
