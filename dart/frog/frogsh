@@ -436,7 +436,7 @@ function isolate$receiveMessage(port, isolate,
   isolate$IsolateEvent.enqueue(isolate, function() {
     var message = isolate$deserializeMessage(serializedMessage);
     var replyTo = isolate$deserializeMessage(serializedReplyTo);
-    port._callback(message, replyTo);
+    if (port._callback) port._callback(message, replyTo);
   });
 }
 
@@ -6971,7 +6971,6 @@ function Keyword(syntax, isPseudo) {
   this.isPseudo = isPseudo;
   // Initializers done
 }
-Keyword.prototype.is$Keyword = function(){return this;};
 Keyword.prototype.is$SourceString = function(){return this;};
 Keyword.get$keywords = function() {
   if (Keyword._keywords == null) {
@@ -7078,8 +7077,7 @@ ArrayKeywordState.prototype.toString = function() {
 }
 // ********** Code for LeafKeywordState **************
 function LeafKeywordState(syntax) {
-  var $0;
-  this.keyword = (($0 = Keyword.get$keywords().$index(syntax)) && $0.is$Keyword());
+  this.keyword = Keyword.get$keywords().$index(syntax);
   // Initializers done
 }
 $inherits(LeafKeywordState, KeywordState);
@@ -11124,7 +11122,6 @@ MethodGenerator.prototype._provideOptionalParamInfo = function(defWriter) {
   }
 }
 MethodGenerator.prototype.writeBody = function() {
-  var $0;
   var initializers = null;
   var initializedFields = null;
   if ($notnull_bool(this.method.get$isConstructor())) {
@@ -11190,9 +11187,17 @@ MethodGenerator.prototype.writeBody = function() {
             world.error('invalid left side of initializer', left.get$span());
             continue;
           }
-          initializedFields.add(left.get$name().get$name());
-          var assign = this._makeThisValue(null).set_(this, $assert_String(left.get$name().get$name()), (($0 = left.get$name()) && $0.is$lang_Node()), (($0 = this.visitValue(init.y)) && $0.is$Value()), false);
-          this.writer.writeln(('' + assign.code + ';'));
+          var f = this.method.declaringType.getMember(left.get$name().get$name());
+          if ($notnull_bool(f == null)) {
+            world.error('bad initializer - no matching field', left.get$span());
+            continue;
+          }
+          else if (!$notnull_bool(f.get$isField())) {
+            world.error(('"' + left.get$name().get$name() + '" does not refer to a field'), left.get$span());
+            continue;
+          }
+          initializedFields.add(f.get$name());
+          this.writer.writeln(('this.' + f.get$jsname() + ' = ' + this.visitValue(init.y).code + ';'));
         }
         else {
           world.error('invalid initializer', init.get$span());
@@ -12201,7 +12206,7 @@ MethodGenerator.prototype.visitNullExpression = function(node) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2075, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2083, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;

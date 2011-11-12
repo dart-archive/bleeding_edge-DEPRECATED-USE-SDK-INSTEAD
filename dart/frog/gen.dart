@@ -847,10 +847,18 @@ class MethodGenerator implements TreeVisitor {
               continue;
             }
 
-            initializedFields.add(left.name.name);
-            var assign = _makeThisValue(null).set_(
-                this, left.name.name, left.name, visitValue(init.y));
-            writer.writeln('${assign.code};');
+            var f = method.declaringType.getMember(left.name.name);
+            if (f == null) {
+              world.error('bad initializer - no matching field', left.span);
+              continue;
+            } else if (!f.isField) {
+              world.error('"${left.name.name}" does not refer to a field',
+                  left.span);
+              continue;
+            }
+
+            initializedFields.add(f.name);
+            writer.writeln('this.${f.jsname} = ${visitValue(init.y).code};');
           } else {
             world.error('invalid initializer', init.span);
           }
