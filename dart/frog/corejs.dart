@@ -144,7 +144,7 @@ function ${name}(x, y) {
 function $varMethod(name, methods) {
   Object.prototype[name] = function() {
     $patchMethod(this, name, methods);
-    this[name].apply(this, Array.prototype.slice.call(arguments));
+    return this[name].apply(this, Array.prototype.slice.call(arguments));
   };
 }
 function $patchMethod(obj, name, methods) {

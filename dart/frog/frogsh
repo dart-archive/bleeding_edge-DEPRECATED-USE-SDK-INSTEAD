@@ -11835,7 +11835,7 @@ CoreJs.prototype.useOperator = function(name) {
 CoreJs.prototype.generate = function(w) {
   if ($notnull_bool(this.useVarMethod)) {
     this.useTypeNameOf = true;
-    w.writeln("function $varMethod(name, methods) {\n  Object.prototype[name] = function() {\n    $patchMethod(this, name, methods);\n    this[name].apply(this, Array.prototype.slice.call(arguments));\n  };\n}\nfunction $patchMethod(obj, name, methods) {\n  // Get the prototype to patch.\n  // Don't overwrite an existing stub, like the one on Object.prototype\n  var proto = Object.getPrototypeOf(obj);\n  if (!proto || proto.hasOwnProperty(name)) proto = obj;\n  var method;\n  while (obj && !(method = methods[obj.$typeNameOf()])) {\n    obj = Object.getPrototypeOf(obj);\n  }\n  obj[name] = method || methods['Object'];\n}");
+    w.writeln("function $varMethod(name, methods) {\n  Object.prototype[name] = function() {\n    $patchMethod(this, name, methods);\n    return this[name].apply(this, Array.prototype.slice.call(arguments));\n  };\n}\nfunction $patchMethod(obj, name, methods) {\n  // Get the prototype to patch.\n  // Don't overwrite an existing stub, like the one on Object.prototype\n  var proto = Object.getPrototypeOf(obj);\n  if (!proto || proto.hasOwnProperty(name)) proto = obj;\n  var method;\n  while (obj && !(method = methods[obj.$typeNameOf()])) {\n    obj = Object.getPrototypeOf(obj);\n  }\n  obj[name] = method || methods['Object'];\n}");
   }
   if ($notnull_bool(this.useGenStub)) {
     this.useThrow = true;
