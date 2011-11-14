@@ -172,7 +172,60 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTruncatingDivide(HTruncatingDivide node) => visitArithmetic(node);
 }
 
-class HBasicBlock {
+class HInstructionList {
+  HInstruction first = null;
+  HInstruction last = null;
+
+  bool isEmpty() {
+    return first === null;
+  }
+
+  void addAfter(HInstruction cursor, HInstruction instruction) {
+    if (cursor === null) {
+      assert(isEmpty());
+      first = last = instruction;
+    } else if (cursor === last) {
+      last.next = instruction;
+      instruction.previous = last;
+      last = instruction;
+    } else {
+      instruction.previous = cursor;
+      instruction.next = cursor.next;
+      cursor.next.previous = instruction;
+      cursor.next = instruction;
+    }
+    instruction.notifyAddedToBlock();
+  }
+
+  void remove(HInstruction instruction) {
+    assert(contains(instruction));
+    assert(instruction.isInBasicBlock());
+    assert(instruction.usedBy.isEmpty());
+    if (instruction.previous === null) {
+      first = instruction.next;
+    } else {
+      instruction.previous.next = instruction.next;
+    }
+    if (instruction.next === null) {
+      last = instruction.previous;
+    } else {
+      instruction.next.previous = instruction.previous;
+    }    
+    instruction.notifyRemovedFromBlock();
+  }
+
+  /** Linear search for [instruction]. */
+  bool contains(HInstruction instruction) {
+    HInstruction cursor = first;
+    while (cursor != null) {
+      if (cursor === instruction) return true;
+      cursor = cursor.next;
+    }
+    return false;
+  }
+}
+
+class HBasicBlock extends HInstructionList {
   // The [id] must be such that any successor's id is greater than
   // this [id]. The exception are back-edges.
   int id;
@@ -183,8 +236,6 @@ class HBasicBlock {
   int status = STATUS_NEW;
 
   bool isLoopHeader = false;
-  HInstruction first = null;
-  HInstruction last = null;
   final List<HBasicBlock> predecessors;
   List<HBasicBlock> successors;
 
@@ -236,7 +287,7 @@ class HBasicBlock {
 
   void add(HInstruction instruction) {
     assert(instruction is !HControlFlow);
-    addAfter(last, instruction);
+    super.addAfter(last, instruction);
   }
 
   void addSuccessor(HBasicBlock block) {
@@ -252,36 +303,12 @@ class HBasicBlock {
 
   void addAfter(HInstruction cursor, HInstruction instruction) {
     assert(isOpen() || isClosed());
-    if (cursor === null) {
-      first = last = instruction;
-    } else if (cursor === last) {
-      last.next = instruction;
-      instruction.previous = last;
-      last = instruction;
-    } else {
-      instruction.previous = cursor;
-      instruction.next = cursor.next;
-      cursor.next.previous = instruction;
-      cursor.next = instruction;
-    }
-    instruction.notifyAddedToBlock();
+    super.addAfter(cursor, instruction);
   }
 
   void remove(HInstruction instruction) {
     assert(isOpen() || isClosed());
-    assert(instruction.isInBasicBlock());
-    assert(instruction.usedBy.isEmpty());
-    if (instruction.previous === null) {
-      first = instruction.next;
-    } else {
-      instruction.previous.next = instruction.next;
-    }
-    if (instruction.next === null) {
-      last = instruction.previous;
-    } else {
-      instruction.next.previous = instruction.previous;
-    }
-    instruction.notifyRemovedFromBlock();
+    super.remove(instruction);
   }
 
   /**

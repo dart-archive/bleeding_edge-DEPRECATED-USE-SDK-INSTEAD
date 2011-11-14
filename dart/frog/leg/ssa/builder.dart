@@ -135,7 +135,7 @@ class SsaBuilder implements Visitor {
         return;
       }
     }
-    assert(current.last is !HGoto && current.last is !HReturn);
+    assert(!current.isClosed());
     if (!stack.isEmpty()) compiler.cancel('non-empty instruction stack');
   }
 
