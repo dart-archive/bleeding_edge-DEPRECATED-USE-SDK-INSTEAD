@@ -9095,7 +9095,7 @@ SsaBuilder.prototype.visitFor = function(node) {
   initializerBlock.addSuccessor(conditionBlock);
   this.open(conditionBlock);
   initializerDefinitions.forEach((function (element, instruction) {
-    var phi = new HPhi(instruction, instruction);
+    var phi = new HPhi.singleInput$ctor(element, instruction);
     conditionBlock.add(phi);
     $this.definitions.$setindex(element, phi);
   })
@@ -9119,43 +9119,28 @@ SsaBuilder.prototype.visitFor = function(node) {
   var updateInstruction = this.pop();
   updateBlock = this.close(new HGoto());
   updateBlock.addSuccessor(conditionBlock);
-  var currentInstruction = conditionBlock.first;
-  initializerDefinitions.forEach((function (element, instruction) {
+  conditionBlock.forEachPhi((function (phi) {
     var $0;
-    var currentPhi = (currentInstruction && currentInstruction.is$HPhi());
-    $assert(currentPhi.inputs.$index(0) === currentPhi.inputs.$index(1), "currentPhi.inputs[0] === currentPhi.inputs[1]", "builder.dart", 208, 14);
-    $assert(currentPhi.inputs.$index(0) === instruction, "currentPhi.inputs[0] === instruction", "builder.dart", 209, 14);
-    var afterBodyInstruction = (($0 = $this.definitions.$index(element)) && $0.is$HInstruction());
-    if (afterBodyInstruction !== currentPhi) {
-      var oldInput = (($0 = currentPhi.inputs.$index(0)) && $0.is$HInstruction());
-      for (var i = 0;
-       i < oldInput.get$usedBy().length; i++) {
-        if (oldInput.get$usedBy().$index(i) === currentPhi) {
-          oldInput.get$usedBy().$setindex(i, oldInput.get$usedBy().$index(oldInput.get$usedBy().length - 1));
-          oldInput.get$usedBy().length = oldInput.get$usedBy().length - 1;
-          break;
-        }
-      }
-      currentPhi.inputs.$setindex(1, afterBodyInstruction);
-      afterBodyInstruction.get$usedBy().add(currentPhi);
+    var element = phi.element;
+    var postBodyDefinition = (($0 = $this.definitions.$index(element)) && $0.is$HInstruction());
+    if (postBodyDefinition !== phi) {
+      phi.addInput(postBodyDefinition);
     }
     else {
-      conditionBlock.rewrite(currentPhi, (($0 = currentPhi.inputs.$index(0)) && $0.is$HInstruction()));
-      conditionBlock.remove(currentPhi);
-      if ($this.definitions.$index(element) === currentPhi) {
-        $this.definitions.$setindex(element, currentPhi.inputs.$index(0));
-      }
-      if (conditionDefinitions.$index(element) === currentPhi) {
-        conditionDefinitions.$setindex(element, currentPhi.inputs.$index(0));
+      $assert(phi.inputs.length == 1, "phi.inputs.length == 1", "builder.dart", 212, 16);
+      var input = (($0 = phi.inputs.$index(0)) && $0.is$HInstruction());
+      conditionBlock.rewrite(phi, input);
+      conditionBlock.remove(phi);
+      if (conditionDefinitions.$index(element) === phi) {
+        conditionDefinitions.$setindex(element, input);
       }
     }
-    currentInstruction = currentInstruction.next;
   })
   );
-  var joinBlock = this.graph.addNewBlock();
-  conditionExitBlock.addSuccessor(joinBlock);
-  this.open(joinBlock);
-  this.definitions = this.joinDefinitions(joinBlock, conditionDefinitions, this.definitions);
+  var loopExitBlock = this.graph.addNewBlock();
+  conditionExitBlock.addSuccessor(loopExitBlock);
+  this.open(loopExitBlock);
+  this.definitions = conditionDefinitions;
 }
 SsaBuilder.prototype.visitFunctionExpression = function(node) {
   this.compiler.unimplemented('SsaBuilder.visitFunctionExpression');
@@ -9165,7 +9150,7 @@ SsaBuilder.prototype.visitIdentifier = function(node) {
   var element = (($0 = this.elements.$index(node)) && $0.is$Element());
   this.compiler.ensure(element != null);
   var def = (($0 = this.definitions.$index(element)) && $0.is$HInstruction());
-  $assert(def != null, "def !== null", "builder.dart", 253, 12);
+  $assert(def != null, "def !== null", "builder.dart", 240, 12);
   this.stack.add(def);
 }
 SsaBuilder.prototype.joinDefinitions = function(joinBlock, incoming1, incoming2) {
@@ -9173,7 +9158,7 @@ SsaBuilder.prototype.joinDefinitions = function(joinBlock, incoming1, incoming2)
     return this.joinDefinitions(joinBlock, incoming2, incoming1);
   }
   var joinedDefinitions = new HashMapImplementation$Element$HInstruction();
-  $assert(incoming1.get$length() <= incoming2.get$length(), "incoming1.length <= incoming2.length", "builder.dart", 272, 12);
+  $assert(incoming1.get$length() <= incoming2.get$length(), "incoming1.length <= incoming2.length", "builder.dart", 259, 12);
   incoming1.forEach((function (element, instruction) {
     var $0;
     var other = (($0 = incoming2.$index(element)) && $0.is$HInstruction());
@@ -9182,7 +9167,7 @@ SsaBuilder.prototype.joinDefinitions = function(joinBlock, incoming1, incoming2)
       joinedDefinitions.$setindex(element, instruction);
     }
     else {
-      var phi = new HPhi((instruction && instruction.is$HInstruction()), other);
+      var phi = new HPhi.manyInputs$ctor(element, [instruction, other]);
       joinBlock.add(phi);
       joinedDefinitions.$setindex(element, phi);
     }
@@ -9336,7 +9321,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert($notnull_bool(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 456, 12);
+  $assert($notnull_bool(!$notnull_bool(link.isEmpty()) && link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 443, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   this.definitions.$setindex(this.elements.$index(node), value);
@@ -9351,7 +9336,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions without initial value");
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 472, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 459, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }
@@ -9983,6 +9968,13 @@ HBasicBlock.prototype.assignCommonDominator = function(predecessor) {
     }
   }
 }
+HBasicBlock.prototype.forEachPhi = function(f) {
+  var current = this.first;
+  while (current != null && (current instanceof HPhi)) {
+    f((current && current.is$HPhi()));
+    current = current.next;
+  }
+}
 HBasicBlock.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
@@ -10044,18 +10036,18 @@ HInstruction.prototype.isInBasicBlock = function() {
   return this._usedBy != null;
 }
 HInstruction.prototype.notifyAddedToBlock = function() {
-  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 472, 12);
+  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 480, 12);
   this._usedBy = [];
   for (var i = 0;
    i < this.inputs.length; i++) {
-    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 476, 14);
+    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 484, 14);
     this.inputs.$index(i).get$usedBy().add(this);
   }
-  $assert(this.isValid(), "isValid()", "nodes.dart", 479, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 487, 12);
 }
 HInstruction.prototype.notifyRemovedFromBlock = function() {
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 483, 12);
-  $assert(this.get$usedBy().isEmpty(), "usedBy.isEmpty()", "nodes.dart", 484, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 491, 12);
+  $assert(this.get$usedBy().isEmpty(), "usedBy.isEmpty()", "nodes.dart", 492, 12);
   for (var i = 0;
    i < this.inputs.length; i++) {
     var inputUsedBy = this.inputs.$index(i).get$usedBy();
@@ -10069,7 +10061,7 @@ HInstruction.prototype.notifyRemovedFromBlock = function() {
     }
   }
   this._usedBy = null;
-  $assert(this.isValid(), "isValid()", "nodes.dart", 498, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 506, 12);
 }
 HInstruction.prototype.isLiteralNumber = function() {
   return false;
@@ -10391,12 +10383,27 @@ HParameter.prototype.toString$0 = function() {
   return this.toString();
 };
 // ********** Code for HPhi **************
-function HPhi(input1, input2) {
-  HInstruction.call(this, [input1, input2]);
+function HPhi() {}
+HPhi.singleInput$ctor = function(element, input) {
+  this.element = element;
+  HInstruction.call(this, [input]);
   // Initializers done
 }
+HPhi.singleInput$ctor.prototype = HPhi.prototype;
+HPhi.manyInputs$ctor = function(element, inputs) {
+  this.element = element;
+  HInstruction.call(this, inputs);
+  // Initializers done
+}
+HPhi.manyInputs$ctor.prototype = HPhi.prototype;
 $inherits(HPhi, HInstruction);
 HPhi.prototype.is$HPhi = function(){return this;};
+HPhi.prototype.get$element = function() { return this.element; };
+HPhi.prototype.addInput = function(input) {
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 673, 12);
+  this.inputs.add(input);
+  input.get$usedBy().add(this);
+}
 HPhi.prototype.toString = function() {
   return 'phi';
 }

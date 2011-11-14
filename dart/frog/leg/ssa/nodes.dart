@@ -370,6 +370,14 @@ class HBasicBlock {
     }
   }
 
+  void forEachPhi(void f(HPhi phi)) {
+    HInstruction current = first;
+    while (current !== null && current is HPhi) {
+      f(current);
+      current = current.next;
+    }
+  }
+
   bool isValid() {
     assert(isClosed());
     HValidator validator = new HValidator();
@@ -655,8 +663,18 @@ class HParameter extends HInstruction {
 }
 
 class HPhi extends HInstruction {
-  HPhi(HInstruction input1, HInstruction input2)
-      : super(<HInstruction>[input1, input2]);
+  final Element element;
+  HPhi.singleInput(this.element, HInstruction input)
+      : super(<HInstruction>[input]);
+  HPhi.manyInputs(this.element, List<HInstruction> inputs)
+      : super(inputs);
+
+  void addInput(HInstruction input) {
+    assert(isInBasicBlock());
+    inputs.add(input);
+    input.usedBy.add(this);
+  }
+
   toString() => 'phi';
   accept(HVisitor visitor) => visitor.visitPhi(this);
 }

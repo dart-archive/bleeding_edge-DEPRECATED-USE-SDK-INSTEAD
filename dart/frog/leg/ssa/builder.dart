@@ -167,7 +167,7 @@ class SsaBuilder implements Visitor {
     
     // Create phis for all elements in the definitions environment.
     initializerDefinitions.forEach((Element element, HInstruction instruction) {
-      HPhi phi = new HPhi(instruction, instruction);
+      HPhi phi = new HPhi.singleInput(element, instruction);
       conditionBlock.add(phi);
       definitions[element] = phi;
     });
@@ -200,46 +200,33 @@ class SsaBuilder implements Visitor {
     updateBlock.addSuccessor(conditionBlock);
 
     // Update the phis if necessary, or delete them otherwise.
-    // We haven't modified the initializerDefinitions environment and are
-    // therefore visiting the phis in the same order.
-    HInstruction currentInstruction = conditionBlock.first;
-    initializerDefinitions.forEach((element, instruction) {
-      HPhi currentPhi = currentInstruction;
-      assert(currentPhi.inputs[0] === currentPhi.inputs[1]);
-      assert(currentPhi.inputs[0] === instruction);
-      HInstruction afterBodyInstruction = definitions[element];
-      if (afterBodyInstruction !== currentPhi) {
-        // The variable has been used. Update the phi.
-        HInstruction oldInput = currentPhi.inputs[0];
-        for (int i = 0; i < oldInput.usedBy.length; i++) {
-          if (oldInput.usedBy[i] === currentPhi) {
-            oldInput.usedBy[i] = oldInput.usedBy[oldInput.usedBy.length - 1];
-            oldInput.usedBy.length = oldInput.usedBy.length - 1;
-            break;
-          }
-        }
-        currentPhi.inputs[1] = afterBodyInstruction;
-        afterBodyInstruction.usedBy.add(currentPhi);
+    conditionBlock.forEachPhi((HPhi phi) {
+      Element element = phi.element;
+      HInstruction postBodyDefinition = definitions[element];
+      if (postBodyDefinition !== phi) {
+        // Add the post body definition as input to the phi.
+        phi.addInput(postBodyDefinition);
       } else {
-        // The variable survived without modifications. Remove the phi.
-        conditionBlock.rewrite(currentPhi, currentPhi.inputs[0]);
-        conditionBlock.remove(currentPhi);
-        if (definitions[element] === currentPhi) {
-          definitions[element] = currentPhi.inputs[0];
-        }
-        if (conditionDefinitions[element] === currentPhi) {
-          conditionDefinitions[element] = currentPhi.inputs[0];
+        // The variable survived without modifications. Replace the
+        // phi with its only input.
+        assert(phi.inputs.length == 1);
+        HInstruction input = phi.inputs[0];
+        conditionBlock.rewrite(phi, input);  // Covers all basic blocks.
+        conditionBlock.remove(phi);
+        // Unless the condition introduces a different definition for
+        // the element (later restored by the loop body), we have to
+        // update the definitions map for the loop exit block to use
+        // the definition we've rewritten to.
+        if (conditionDefinitions[element] === phi) {
+          conditionDefinitions[element] = input;
         }
       }
-      currentInstruction = currentInstruction.next;
     });
 
-    // Join.
-    HBasicBlock joinBlock = graph.addNewBlock();
-    conditionExitBlock.addSuccessor(joinBlock);
-    
-    open(joinBlock);
-    definitions = joinDefinitions(joinBlock, conditionDefinitions, definitions);
+    HBasicBlock loopExitBlock = graph.addNewBlock();
+    conditionExitBlock.addSuccessor(loopExitBlock);
+    open(loopExitBlock);
+    definitions = conditionDefinitions;
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -258,11 +245,11 @@ class SsaBuilder implements Visitor {
       HBasicBlock joinBlock,
       Map<Element, HInstruction> incoming1,
       Map<Element, HInstruction> incoming2) {
-    // If an element is in one map but not the other we can safely ignore it. It
-    // means that a variable was declared in the block. Since variable
-    // declarations are scoped the declared variable cannot be alive outside
-    // the block.
-    // Note: this is only true for nodes where we do joins.
+    // If an element is in one map but not the other we can safely
+    // ignore it. It means that a variable was declared in the
+    // block. Since variable declarations are scoped the declared
+    // variable cannot be alive outside the block. Note: this is only
+    // true for nodes where we do joins.
     if (incoming1.length > incoming2.length) {
       // Inverse the two maps.
       return joinDefinitions(joinBlock, incoming2, incoming1);
@@ -276,7 +263,7 @@ class SsaBuilder implements Visitor {
       if (instruction === other) {
         joinedDefinitions[element] = instruction;
       } else {
-        HInstruction phi = new HPhi(instruction, other);
+        HInstruction phi = new HPhi.manyInputs(element, [instruction, other]);
         joinBlock.add(phi);
         joinedDefinitions[element] = phi;
       }
