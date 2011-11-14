@@ -3,14 +3,28 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class ResolverTask extends CompilerTask {
-  ResolverTask(Compiler compiler) : super(compiler);
+  Queue<ClassElement> toResolve;
+  ResolverTask(Compiler compiler)
+    : super(compiler), toResolve = new Queue<ClassElement>();
+
   String get name() => 'Resolver';
 
   Map<Node, Element> resolve(Node tree) {
     return measure(() {
       ResolverVisitor visitor = new ResolverVisitor(compiler);
       visitor.visit(tree);
+      // Resolve the type annotations encountered in the method.
+      while (!toResolve.isEmpty()) {
+        toResolve.removeFirst().resolve(compiler);
+      }
       return visitor.mapping;
+    });
+  }
+
+  void resolveType(Node tree) {
+    measure(() {
+      ClassResolverVisitor visitor = new ClassResolverVisitor(compiler);
+      visitor.visit(tree);
     });
   }
 }
@@ -24,6 +38,9 @@ class ErrorMessages {
 
   static String duplicateDefinition(id)
       => "duplicate definition of $id";
+
+  static String notAType(id)
+      => "$id is not a type";
 }
 
 class ResolverVisitor implements Visitor<Element> {
@@ -75,6 +92,7 @@ class ResolverVisitor implements Visitor<Element> {
   visitFunctionExpression(FunctionExpression node) {
     // TODO(ngeoffray): FunctionExpression is currently a top-level
     // method definition.
+    visit(node.returnType);
     Element enclosingElement = visit(node.name);
     Scope newScope = new Scope.enclosing(context, enclosingElement);
     visitIn(node.parameters, newScope);
@@ -165,6 +183,11 @@ class ResolverVisitor implements Visitor<Element> {
     Element element = context.lookup(name.source);
     if (element === null) {
       warning(node, ErrorMessages.cannotResolveType(name));
+    } else if (element.kind !== ElementKind.CLASS) {
+      warning(node, ErrorMessages.notAType(name));
+    } else {
+      ClassElement cls = element;
+      compiler.resolver.toResolve.add(element);
     }
     return useElement(node, element);
   }
@@ -190,6 +213,49 @@ class ResolverVisitor implements Visitor<Element> {
   }
 }
 
+class ClassResolverVisitor implements Visitor<Type> {
+  Compiler compiler;
+  Scope context;
+
+  ClassResolverVisitor(Compiler compiler)
+    : this.compiler = compiler, context = new TopScope(compiler.universe);
+
+  Type visitClassNode(ClassNode node) {
+    ClassElement element = context.lookup(node.name.source);
+    compiler.ensure(element !== null);
+    compiler.ensure(!element.isResolved);
+    element.supertype = visit(node.superclass);
+    for (Link<Node> link = node.interfaces.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      element.interfaces = element.interfaces.prepend(visit(link.head));
+    }
+    return element.computeType(compiler, null);
+  }
+
+  Type visitTypeAnnotation(TypeAnnotation node) {
+    Identifier name = node.typeName;
+    Element element = context.lookup(name.source);
+    if (element === null) {
+      // TODO(ngeoffray): Should be a reportError.
+      compiler.cancel(ErrorMessages.cannotResolveType(name));
+    } else if (element.kind !== ElementKind.CLASS) {
+      // TODO(ngeoffray): Should be a reportError.
+      compiler.cancel(ErrorMessages.notAType(name));
+    } else {
+      compiler.resolver.toResolve.add(element);
+      // TODO(ngeoffray): Use type variables.
+      return element.computeType(compiler, null);
+    }
+    return null;
+  }
+
+  Type visit(Node node) {
+    if (node === null) return null;
+    return node.accept(this);
+  }
+}
+
 class VariableDefinitionsVisitor implements Visitor<SourceString> {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
@@ -207,9 +273,7 @@ class VariableDefinitionsVisitor implements Visitor<SourceString> {
     return visit(node.selector);
   }
 
-  SourceString visitIdentifier(Identifier node) {
-    return node.source;
-  }
+  SourceString visitIdentifier(Identifier node) => node.source;
 
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {

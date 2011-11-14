@@ -97,6 +97,10 @@ class Compiler implements Canceler, Logger {
     return code;
   }
 
+  Element resolveType(ClassElement element) {
+    resolver.resolveType(parser.parse(element));
+  }
+
   String getGeneratedCode() {
     StringBuffer buffer = new StringBuffer();
     buffer.add(ADD_SUPPORT);

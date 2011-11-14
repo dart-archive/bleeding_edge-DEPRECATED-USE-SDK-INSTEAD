@@ -8,6 +8,7 @@
 #import("../../../leg/tree/tree.dart");
 #import('../../../leg/scanner/scannerlib.dart');
 #import("../../../leg/leg.dart");
+#import("../../../leg/util/util.dart");
 
 class LoggerCanceler implements Logger, Canceler {
   void cancel([String reason]) {
@@ -36,3 +37,25 @@ Node parseBodyCode(String text, Function parseMethod) {
 
 Node parseStatement(String text) =>
   parseBodyCode(text, (parser, tokens) => parser.parseStatement(tokens));
+
+Node parseFunction(String text, Compiler compiler) {
+  Element element = parseUnit(text, compiler).head;
+  Expect.equals(ElementKind.FUNCTION, element.kind);
+  compiler.universe.define(element);
+  return element.parseNode(compiler, compiler);
+}
+
+Link<Element> parseUnit(String text, Compiler compiler) {
+  Token tokens = scan(text);
+  Listener listener = new ElementListener(compiler);
+  Parser parser = new Parser(listener);
+  parser.parseUnit(tokens);
+  return listener.topLevelElements;
+}
+
+// TODO(ahe): We define this method to avoid having to import
+// the scanner in the tests. We should move SourceString to another
+// location instead.
+SourceString buildSourceString(String name) {
+  return new SourceString(name);
+}

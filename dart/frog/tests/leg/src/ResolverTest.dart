@@ -6,7 +6,7 @@
 #import("../../../leg/elements/elements.dart");
 #import("../../../leg/tree/tree.dart");
 #import("../../../leg/util/util.dart");
-#import("parser_helper");
+#import("parser_helper.dart");
 
 class WarningMessage {
   Node node;
@@ -16,6 +16,8 @@ class WarningMessage {
 
 class MockCompiler extends Compiler {
   List warnings;
+  Node parsedTree;
+
   MockCompiler() : super(null), warnings = [];
 
   void reportWarning(Node node, String message) {
@@ -25,30 +27,22 @@ class MockCompiler extends Compiler {
   void clearWarnings() {
     warnings = [];
   }
-}
 
-Listener parseUnit(String text, Compiler compiler) {
-  Token tokens = scan(text);
-  Listener listener = new ElementListener(compiler);
-  Parser parser = new Parser(listener);
-  parser.parseUnit(tokens);
-  return listener;
-}
+  resolveStatement(String text) {
+    parsedTree = parseStatement(text);
+    return resolver.resolve(parsedTree);
+  }
 
-Node parseFunction(String text, Compiler compiler) {
-  Listener listener = parseUnit(text, compiler);
-  Element element = listener.topLevelElements.head;
-  Expect.equals(ElementKind.FUNCTION, element.kind);
-  compiler.universe.define(element);
-  return element.parseNode(compiler, compiler);
-}
+  parseScript(String text) {
+    for (Link<Element> link = parseUnit(text, this);
+         !link.isEmpty();
+         link = link.tail) {
+      universe.define(link.head);
+    }
+  }
 
-void parseScript(String text, Compiler compiler) {
-  Listener listener = parseUnit(text, compiler);
-  for (Link link = listener.topLevelElements;
-       !link.isEmpty();
-       link = link.tail) {
-    compiler.universe.define(link.head);
+  resolve(ClassElement element) {
+    return resolver.resolveType(element.parseNode(this, this));
   }
 }
 
@@ -86,7 +80,7 @@ testLocals(List variables) {
     final name = variable[0];
     Identifier id = buildIdentifier(name);
     final element = visitor.visit(id);
-    Expect.equals(element, visitor.context.elements[new SourceString(name)]);
+    Expect.equals(element, visitor.context.elements[buildSourceString(name)]);
   }
 }
 
@@ -99,6 +93,10 @@ main() {
   testParametersOne();
   testFor();
   testTypeAnnotation();
+  testSuperclass();
+  // testVarSuperclass(); // The parser crashes with 'class Foo extends var'.
+  // testOneInterface(); // The parser does not handle interfaces.
+  // testTwoInterfaces(); // The parser does not handle interfaces.
 }
 
 testLocalsOne() {
@@ -233,35 +231,110 @@ testFor() {
 
 testTypeAnnotation() {
   MockCompiler compiler = new MockCompiler();
-  ResolverVisitor visitor = new ResolverVisitor(compiler);
   String statement = "Foo bar;";
 
   // Test that we get a warning when Foo is not defined.
-  Node tree = parseStatement(statement);
-  visitor.visit(tree);
+  Map mapping = compiler.resolveStatement(statement);
 
-  Expect.equals(1, visitor.mapping.length); // bar has an element.
+  Expect.equals(1, mapping.length); // bar has an element.
   Expect.equals(1, compiler.warnings.length);
 
   Node warningNode = compiler.warnings[0].node;
   String warningMessage = compiler.warnings[0].message;
 
   Expect.equals(warningMessage, ErrorMessages.cannotResolveType("Foo"));
-  Expect.equals(warningNode, tree.type);
+  Expect.equals(warningNode, compiler.parsedTree.type);
   compiler.clearWarnings();
 
   // Test that there is no warning after defining Foo.
-  parseScript("class Foo {}", compiler);
-  tree = parseStatement(statement);
-  visitor = new ResolverVisitor(compiler);
-  visitor.visit(tree);
-  Expect.equals(2, visitor.mapping.length);
+  compiler.parseScript("class Foo {}");
+  mapping = compiler.resolveStatement(statement);
+  Expect.equals(2, mapping.length);
   Expect.equals(0, compiler.warnings.length);
 
   // Test that 'var' does not create a warning.
-  tree = parseStatement("var foo;");
-  visitor = new ResolverVisitor(compiler);
-  visitor.visit(tree);
-  Expect.equals(1, visitor.mapping.length);
+  mapping = compiler.resolveStatement("var foo;");
+  Expect.equals(1, mapping.length);
   Expect.equals(0, compiler.warnings.length);
+}
+
+testSuperclass() {
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript("class Foo extends Bar {}");
+  String msg = '';
+  try {
+    compiler.resolveStatement("Foo bar;");
+  } catch (CompilerCancelledException ex) {
+    // TODO(ngeoffray): Once it's there, use error reporting framework.
+    msg = ex.reason;
+  }
+  Expect.equals(msg, ErrorMessages.cannotResolveType("Bar"));
+
+  compiler.parseScript("class Bar {}");
+  Map mapping = compiler.resolveStatement("Foo bar;");
+  Expect.equals(2, mapping.length);
+
+  Element fooElement = compiler.universe.find(buildSourceString('Foo'));
+  Element barElement = compiler.universe.find(buildSourceString('Bar'));
+  Expect.equals(barElement.computeType(compiler, null),
+                fooElement.supertype);
+  Expect.isTrue(fooElement.interfaces.isEmpty());
+  Expect.isTrue(barElement.interfaces.isEmpty());
+}
+
+testVarSuperclass() {
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript("class Foo extends var {}");
+  String msg = '';
+  try {
+    compiler.resolveStatement("Foo bar;");
+  } catch (CompilerCancelledException ex) {
+    // TODO(ngeoffray): Once it's there, use error reporting framework.
+    msg = ex.reason;
+  }
+  Expect.equals(msg, ErrorMessages.cannotResolveType("var"));
+}
+
+testOneInterface() {
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript("class Foo implements Bar {}");
+  String msg = '';
+  try {
+    compiler.resolveStatement("Foo bar;");
+  } catch (CompilerCancelledException ex) {
+    // TODO(ngeoffray): Once it's there, use error reporting framework.
+    msg = ex.reason;
+  }
+  Expect.equals(msg, ErrorMessages.cannotResolveType("Bar"));
+
+  // Add the interface to the world and make sure everything is setup correctly.
+  compiler.parseScript("interface Bar {}");
+
+  visitor = new ResolverVisitor(compiler);
+  compiler.resolverStatement("Foo bar;");
+
+  Element fooElement = compiler.universe.find(buildSourceString('Foo'));
+  Element barElement = compiler.universe.find(buildSourceString('Bar'));
+
+  Expect.equals(null, barElement.supertype);
+  Expect.isTrue(barElement.interfaces.isEmpty());
+
+  Expect.equals(barElement.computeType(compiler, null),
+                fooElement.interfaces[0]);
+  Expect.equals(1, fooElement.interfaces.length);
+}
+
+testTwoInterfaces() {
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript(
+      "interface I1 {} interface I2 {} class C implements I1, I2 {}");
+  compiler.resolveStatement("Foo bar;");
+
+  Element c = compiler.universe.find(buildSourceString('C'));
+  Element i1 = compiler.universe.find(buildSourceString('I1'));
+  Element i2 = compiler.universe.find(buildSourceString('I2'));
+
+  Expect.equals(2, c.interfaces.length);
+  Expect.equals(i1.computeType(compiler, null), c.interfaces[0]);
+  Expect.equals(i2.computeType(compiler, null), c.interfaces[1]);
 }

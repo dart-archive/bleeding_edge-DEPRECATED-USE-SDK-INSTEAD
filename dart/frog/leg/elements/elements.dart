@@ -105,9 +105,23 @@ class FunctionElement extends Element {
 }
 
 class ClassElement extends Element {
+  Type type;
+  Type supertype;
+  Link<Type> interfaces = const EmptyLink<Type>();
+  bool isResolved = false;
+
   ClassElement(SourceString name) : super(name, ElementKind.CLASS, null);
 
   Type computeType(compiler, types) {
-    compiler.unimplemented('ClassElement.computeType');
+    if (type === null) {
+      type = new SimpleType(name, this);
+    }
+    return type;
+  }
+
+  void resolve(Compiler compiler) {
+    if (isResolved) return;
+    compiler.resolveType(this);
+    isResolved = true;
   }
 }
