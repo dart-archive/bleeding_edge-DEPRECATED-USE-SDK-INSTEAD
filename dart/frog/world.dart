@@ -437,7 +437,7 @@ class World {
   }
 
   withTiming(String name, f()) {
-    final sw = new StopWatch();
+    final sw = new Stopwatch();
     sw.start();
     var result = f();
     sw.stop();

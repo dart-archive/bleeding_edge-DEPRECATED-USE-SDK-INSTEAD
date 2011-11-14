@@ -118,9 +118,9 @@ class Compiler implements Canceler, Logger {
 
 class CompilerTask {
   final Compiler compiler;
-  final StopWatch watch;
+  final Stopwatch watch;
 
-  CompilerTask(this.compiler) : watch = new StopWatch();
+  CompilerTask(this.compiler) : watch = new Stopwatch();
 
   String get name() => 'Unknown task';
   int get timing() => watch.elapsedInMs();

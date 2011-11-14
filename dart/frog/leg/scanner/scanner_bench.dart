@@ -25,7 +25,7 @@ class ScannerBench {
     bar.begin();
     for (int i = 0; i < iterations; i++) {
       bar.tick();
-      StopWatch timer = new StopWatch();
+      Stopwatch timer = new Stopwatch();
       timer.start();
       int charCount = 0;
       for (final String argument in arguments) {

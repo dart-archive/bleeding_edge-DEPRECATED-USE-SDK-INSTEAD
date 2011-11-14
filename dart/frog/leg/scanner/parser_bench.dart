@@ -20,7 +20,7 @@ class ParserBench extends BaseParserBench {
   }
 
   void timedParseAll(List<String> arguments) {
-    StopWatch timer = new StopWatch();
+    Stopwatch timer = new Stopwatch();
     timer.start();
     BenchListener listener = parseAll(arguments);
     timer.stop();
