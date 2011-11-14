@@ -54,7 +54,7 @@ class Evaluator {
 
       type.markUsed();
       for (var member in type.members.getValues()) {
-        if (member is FieldMember) {
+        if (member is PropertyMember) {
           _markMethodUsed(member.getter);
           _markMethodUsed(member.setter);
         }
