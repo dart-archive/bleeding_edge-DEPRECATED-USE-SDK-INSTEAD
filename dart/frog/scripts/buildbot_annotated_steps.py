@@ -84,7 +84,7 @@ def TestFrog(arch, mode):
     return 1
 
   if TestStep("frog", testpy_mode, arch,
-      ['language', 'corelib', 'isolate', 'frog'], flags) != 0:
+      ['language', 'corelib', 'isolate', 'frog', 'leg', 'peg'], flags) != 0:
     return 1
 
   if TestStep("leg only", testpy_mode, 'leg', ['leg_only'], flags) != 0:
