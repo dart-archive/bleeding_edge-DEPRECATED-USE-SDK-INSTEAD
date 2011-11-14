@@ -181,6 +181,7 @@ class ResolverVisitor implements Visitor<Element> {
   visitTypeAnnotation(TypeAnnotation node) {
     Identifier name = node.typeName;
     if (name.source == const SourceString('var')) return null;
+    if (name.source == const SourceString('void')) return null;
     Element element = context.lookup(name.source);
     if (element === null) {
       warning(node, ErrorMessages.cannotResolveType(name));
