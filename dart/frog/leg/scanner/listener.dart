@@ -128,7 +128,7 @@ class Listener {
   void endTopLevelMethod(Token beginToken, Token endToken) {
   }
 
-  void endType(Token token) {
+  void endType(int count, Token beginToken, Token endToken) {
   }
 
   void beginTypeArguments(Token token) {
@@ -499,8 +499,13 @@ class NodeListener extends ElementListener {
     pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
   }
 
-  void endType(Token token) {
-    pushNode(new TypeAnnotation(popNode()));
+  void endType(int count, Token beginToken, Token endToken) {
+    TypeAnnotation type = new TypeAnnotation(popNode());
+    for (; count > 1; --count) {
+      // TODO(ahe): Don't discard library prefixes.
+      popNode(); // Discard library prefixes.
+    }
+    pushNode(type);
   }
 
   void endThrowStatement(Token throwToken, Token endToken) {

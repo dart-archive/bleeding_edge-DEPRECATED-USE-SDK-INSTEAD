@@ -28,7 +28,10 @@ Node parseBodyCode(String text, Function parseMethod) {
   Parser parser = new Parser(listener);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
-  return listener.popNode();
+  Node node = listener.popNode();
+  Expect.isNotNull(node);
+  Expect.isTrue(listener.nodes.isEmpty(), 'Not empty: ${listener.nodes}');
+  return node;
 }
 
 Node parseStatement(String text) =>

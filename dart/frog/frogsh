@@ -396,8 +396,8 @@ Object.prototype.endTopLevelField$2 = function($0, $1) {
 Object.prototype.endTopLevelMethod$2 = function($0, $1) {
   return this.noSuchMethod("endTopLevelMethod", [$0, $1]);
 };
-Object.prototype.endType$1 = function($0) {
-  return this.noSuchMethod("endType", [$0]);
+Object.prototype.endType$3 = function($0, $1, $2) {
+  return this.noSuchMethod("endType", [$0, $1, $2]);
 };
 Object.prototype.endTypeArguments$3 = function($0, $1, $2) {
   return this.noSuchMethod("endTypeArguments", [$0, $1, $2]);
@@ -2504,13 +2504,13 @@ function _DoubleLinkedQueueIterator$E(_sentinel) {
 }
 $inherits(_DoubleLinkedQueueIterator$E, _DoubleLinkedQueueIterator);
 _DoubleLinkedQueueIterator$E.prototype.is$Iterator$T = function(){return this;};
-// ********** Code for StopWatchImplementation **************
-function StopWatchImplementation() {
+// ********** Code for StopwatchImplementation **************
+function StopwatchImplementation() {
   this._start = null;
   this._stop = null;
   // Initializers done
 }
-StopWatchImplementation.prototype.start = function() {
+StopwatchImplementation.prototype.start = function() {
   if (this._start == null) {
     this._start = Clock.now();
   }
@@ -2521,22 +2521,22 @@ StopWatchImplementation.prototype.start = function() {
     this._start = Clock.now() - (this._stop - this._start);
   }
 }
-StopWatchImplementation.prototype.stop = function() {
+StopwatchImplementation.prototype.stop = function() {
   if (this._start == null) {
     return;
   }
   this._stop = Clock.now();
 }
-StopWatchImplementation.prototype.elapsed = function() {
+StopwatchImplementation.prototype.elapsed = function() {
   if (this._start == null) {
     return 0;
   }
   return (this._stop == null) ? (Clock.now() - this._start) : (this._stop - this._start);
 }
-StopWatchImplementation.prototype.elapsedInMs = function() {
+StopwatchImplementation.prototype.elapsedInMs = function() {
   return $truncdiv((this.elapsed() * 1000), this.frequency());
 }
-StopWatchImplementation.prototype.frequency = function() {
+StopwatchImplementation.prototype.frequency = function() {
   return Clock.frequency();
 }
 // ********** Code for StringBufferImpl **************
@@ -6061,22 +6061,25 @@ PartialParser.prototype.optional = function(value, token) {
   return value === token.get$stringValue();
 }
 PartialParser.prototype.parseType = function(token) {
+  var begin = token;
+  var identifierCount = 1;
   if ($notnull_bool(this.isIdentifier(token))) {
     token = this.parseIdentifier(token);
     while ($notnull_bool(this.optional('.', token))) {
       token = this.parseIdentifier(this.next(token));
+      ++identifierCount;
     }
   }
   else if ($notnull_bool(this.optional('var', token))) {
     this.listener.handleVarKeyword$1(token);
-    this.listener.endType$1(token);
+    this.listener.endType$3(identifierCount, begin, token);
     return this.next(token);
   }
   else {
     token = this.listener.expectedType$1(token);
   }
   token = this.parseTypeArgumentsOpt(token);
-  this.listener.endType$1(token);
+  this.listener.endType$3(identifierCount, begin, token);
   return token;
 }
 PartialParser.prototype.parseTypeArgumentsOpt = function(token) {
@@ -6271,7 +6274,7 @@ Parser.prototype.expectSemicolon = function(token) {
 Parser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement$1(begin);
-  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 452, 12);
+  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 455, 12);
   token = this.next(token);
   if ($notnull_bool(this.optional(';', token))) {
     this.listener.endReturnStatement$3(false, begin, token);
@@ -6283,13 +6286,18 @@ Parser.prototype.parseReturnStatement = function(token) {
   return this.expectSemicolon(token);
 }
 Parser.prototype.parseExpressionStatementOrDeclaration = function(token) {
-  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 464, 12);
-  var peek1 = this.next(token);
-  if (peek1.kind === 97/*null.IDENTIFIER_TOKEN*/) {
-    return this.parseLocalDeclaration(token, peek1);
+  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 467, 12);
+  var peek = token.next;
+  if (peek.kind === 46/*null.PERIOD_TOKEN*/) {
+    if (peek.next.kind === 97/*null.IDENTIFIER_TOKEN*/) {
+      peek = peek.next.next;
+    }
   }
-  else if (peek1.kind === 60/*null.LT_TOKEN*/) {
-    var beginGroupToken = (peek1 && peek1.is$BeginGroupToken());
+  if (peek.kind === 97/*null.IDENTIFIER_TOKEN*/) {
+    return this.parseLocalDeclaration(token, peek);
+  }
+  else if (peek.kind === 60/*null.LT_TOKEN*/) {
+    var beginGroupToken = (peek && peek.is$BeginGroupToken());
     var gtToken = beginGroupToken.endGroup;
     if (gtToken != null && gtToken.next.kind === 97/*null.IDENTIFIER_TOKEN*/) {
       var identifier = gtToken.next;
@@ -6350,7 +6358,7 @@ Parser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 Parser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 544, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 553, 12);
   token = this.parsePrimary(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = $assert_num(tokenLevel);
@@ -6615,7 +6623,7 @@ Parser.prototype.parseArgumentsOpt = function(token) {
 Parser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments$1(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 677, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 686, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments$3(argumentCount, begin, token.next);
@@ -6863,7 +6871,7 @@ Listener.prototype.endTopLevelField = function(beginToken, endToken) {
 Listener.prototype.endTopLevelMethod = function(beginToken, endToken) {
 
 }
-Listener.prototype.endType = function(token) {
+Listener.prototype.endType = function(count, beginToken, endToken) {
 
 }
 Listener.prototype.beginTypeArguments = function(token) {
@@ -7082,8 +7090,8 @@ Listener.prototype.endTopLevelField$2 = function($0, $1) {
 Listener.prototype.endTopLevelMethod$2 = function($0, $1) {
   return this.endTopLevelMethod(($0 && $0.is$Token()), ($1 && $1.is$Token()));
 };
-Listener.prototype.endType$1 = function($0) {
-  return this.endType(($0 && $0.is$Token()));
+Listener.prototype.endType$3 = function($0, $1, $2) {
+  return this.endType($assert_num($0), ($1 && $1.is$Token()), ($2 && $2.is$Token()));
 };
 Listener.prototype.endTypeArguments$3 = function($0, $1, $2) {
   return this.endTypeArguments($assert_num($0), ($1 && $1.is$Token()), ($2 && $2.is$Token()));
@@ -7434,9 +7442,13 @@ NodeListener.prototype.endForStatement = function(beginToken, endToken) {
 NodeListener.prototype.endBlock = function(count, beginToken, endToken) {
   this.pushNode(new Block(this.makeNodeList(count, beginToken, endToken, null)));
 }
-NodeListener.prototype.endType = function(token) {
+NodeListener.prototype.endType = function(count, beginToken, endToken) {
   var $0;
-  this.pushNode(new TypeAnnotation((($0 = this.popNode()) && $0.is$Identifier())));
+  var type = new TypeAnnotation((($0 = this.popNode()) && $0.is$Identifier()));
+  for (; count > 1; --count) {
+    this.popNode();
+  }
+  this.pushNode(type);
 }
 NodeListener.prototype.endThrowStatement = function(throwToken, endToken) {
   var $0;
@@ -7500,8 +7512,8 @@ NodeListener.prototype.endSend$1 = function($0) {
 NodeListener.prototype.endThrowStatement$2 = function($0, $1) {
   return this.endThrowStatement(($0 && $0.is$Token()), ($1 && $1.is$Token()));
 };
-NodeListener.prototype.endType$1 = function($0) {
-  return this.endType(($0 && $0.is$Token()));
+NodeListener.prototype.endType$3 = function($0, $1, $2) {
+  return this.endType($assert_num($0), ($1 && $1.is$Token()), ($2 && $2.is$Token()));
 };
 NodeListener.prototype.endVariablesDeclaration$2 = function($0, $1) {
   return this.endVariablesDeclaration($assert_num($0), ($1 && $1.is$Token()));
@@ -10864,7 +10876,7 @@ Compiler.prototype.unimplemented$1 = function($0) {
 // ********** Code for CompilerTask **************
 function CompilerTask(compiler) {
   this.compiler = compiler;
-  this.watch = new StopWatchImplementation();
+  this.watch = new StopwatchImplementation();
   // Initializers done
 }
 CompilerTask.prototype.get$name = function() {
@@ -21989,7 +22001,7 @@ World.prototype.printStatus = function() {
   }
 }
 World.prototype.withTiming = function(name, f) {
-  var sw = new StopWatchImplementation();
+  var sw = new StopwatchImplementation();
   sw.start();
   var result = f();
   sw.stop();

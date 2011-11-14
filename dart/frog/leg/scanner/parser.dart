@@ -264,21 +264,24 @@ class PartialParser<L extends Listener> {
 
   Token parseType(Token token) {
     // TODO(ahe): Rename this method to parseTypeOrVar?
+    Token begin = token;
+    int identifierCount = 1;
     if (isIdentifier(token)) {
       token = parseIdentifier(token);
       while (optional('.', token)) {
         // TODO(ahe): Validate that there are at most two identifiers.
         token = parseIdentifier(next(token));
+        ++identifierCount;
       }
     } else if (optional('var', token)) {
       listener.handleVarKeyword(token);
-      listener.endType(token);
+      listener.endType(identifierCount, begin, token);
       return next(token);
     } else {
       token = listener.expectedType(token);
     }
     token = parseTypeArgumentsOpt(token);
-    listener.endType(token);
+    listener.endType(identifierCount, begin, token);
     return token;
   }
 
@@ -462,13 +465,19 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
 
   Token parseExpressionStatementOrDeclaration(Token token) {
     assert(token.kind === IDENTIFIER_TOKEN);
-    Token peek1 = next(token);
-    if (peek1.kind === IDENTIFIER_TOKEN) {
-      return parseLocalDeclaration(token, peek1);
-    } else if (peek1.kind === LT_TOKEN) {
+    Token peek = token.next;
+    if (peek.kind === PERIOD_TOKEN) {
+      if (peek.next.kind === IDENTIFIER_TOKEN) {
+        // Look past a library prefix.
+        peek = peek.next.next;
+      }
+    }
+    if (peek.kind === IDENTIFIER_TOKEN) {
+      return parseLocalDeclaration(token, peek);
+    } else if (peek.kind === LT_TOKEN) {
       // Possibly generic type.
       // We are looking at "identifier '<'".
-      BeginGroupToken beginGroupToken = peek1;
+      BeginGroupToken beginGroupToken = peek;
       Token gtToken = beginGroupToken.endGroup;
       if (gtToken !== null && gtToken.next.kind === IDENTIFIER_TOKEN) {
         // We are looking at "identifier '<' ... '>' identifier".

@@ -4,30 +4,61 @@
 
 #import('parser_helper.dart');
 
+void testStatement(String statement) {
+  var node = parseStatement(statement);
+  print("$statement: $node");
+}
+
 void main() {
-  parseStatement('List<T> t;');
-  parseStatement('List<List<T>> t;');
-  parseStatement('List<List<List<T>>> t;');
-  parseStatement('List<List<List<List<T>>>> t;');
-  parseStatement('List<List<List<List<List<T>>>>> t;');
+  testStatement('List<T> t;');
+  testStatement('List<List<T>> t;');
+  testStatement('List<List<List<T>>> t;');
+  testStatement('List<List<List<List<T>>>> t;');
+  testStatement('List<List<List<List<List<T>>>>> t;');
 
-  parseStatement('List<List<T> > t;');
-  parseStatement('List<List<List<T> >> t;');
-  parseStatement('List<List<List<List<T> >>> t;');
-  parseStatement('List<List<List<List<List<T> >>>> t;');
+  testStatement('List<List<T> > t;');
+  testStatement('List<List<List<T> >> t;');
+  testStatement('List<List<List<List<T> >>> t;');
+  testStatement('List<List<List<List<List<T> >>>> t;');
 
-  parseStatement('List<List<List<T> > > t;');
-  parseStatement('List<List<List<List<T> > >> t;');
-  parseStatement('List<List<List<List<List<T> > >>> t;');
+  testStatement('List<List<List<T> > > t;');
+  testStatement('List<List<List<List<T> > >> t;');
+  testStatement('List<List<List<List<List<T> > >>> t;');
 
-  parseStatement('List<List<List<List<T> > > > t;');
-  parseStatement('List<List<List<List<List<T> > > >> t;');
+  testStatement('List<List<List<List<T> > > > t;');
+  testStatement('List<List<List<List<List<T> > > >> t;');
 
-  parseStatement('List<List<List<List<List<T> > > > > t;');
+  testStatement('List<List<List<List<List<T> > > > > t;');
 
-  parseStatement('List<List<List<List<List<T> >> >> t;');
+  testStatement('List<List<List<List<List<T> >> >> t;');
 
-  parseStatement('List<List<List<List<List<T> >>> > t;');
+  testStatement('List<List<List<List<List<T> >>> > t;');
 
-  parseStatement('List<List<List<List<List<T >>> >> t;');
+  testStatement('List<List<List<List<List<T >>> >> t;');
+
+  testStatement('List<T> t;');
+  testStatement('List<List<T>> t;');
+  testStatement('List<List<List<T>>> t;');
+  testStatement('List<List<List<List<T>>>> t;');
+  testStatement('List<List<List<List<List<T>>>>> t;');
+
+  testStatement('lib.List<List<T> > t;');
+  testStatement('lib.List<List<List<T> >> t;');
+  testStatement('lib.List<List<List<List<T> >>> t;');
+  testStatement('lib.List<List<List<List<List<T> >>>> t;');
+
+  testStatement('lib.List<List<List<T> > > t;');
+  testStatement('lib.List<List<List<List<T> > >> t;');
+  testStatement('lib.List<List<List<List<List<T> > >>> t;');
+
+  testStatement('lib.List<List<List<List<T> > > > t;');
+  testStatement('lib.List<List<List<List<List<T> > > >> t;');
+
+  testStatement('lib.List<List<List<List<List<T> > > > > t;');
+
+  testStatement('lib.List<List<List<List<List<T> >> >> t;');
+
+  testStatement('lib.List<List<List<List<List<T> >>> > t;');
+
+  testStatement('lib.List<List<List<List<List<T >>> >> t;');
 }
