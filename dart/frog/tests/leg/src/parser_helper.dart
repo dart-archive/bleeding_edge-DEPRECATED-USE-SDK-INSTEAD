@@ -47,7 +47,7 @@ Node parseFunction(String text, Compiler compiler) {
 
 Link<Element> parseUnit(String text, Compiler compiler) {
   Token tokens = scan(text);
-  Listener listener = new ElementListener(compiler);
+  ElementListener listener = new ElementListener(compiler);
   Parser parser = new Parser(listener);
   parser.parseUnit(tokens);
   return listener.topLevelElements;
