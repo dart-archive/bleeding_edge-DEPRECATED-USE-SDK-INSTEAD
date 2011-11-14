@@ -177,7 +177,7 @@ class HInstructionStringifier implements HVisitor<String> {
       if (i != 0) arguments.add(", ");
       arguments.add(temporaryId(invoke.inputs[i]));
     }
-    return "$invokeType: ${invoke.selector}($arguments)";    
+    return "$invokeType: ${invoke.element.name}($arguments)";
   }
 
   String visitInvoke(HInvoke invoke) {

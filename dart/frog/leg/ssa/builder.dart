@@ -164,7 +164,7 @@ class SsaBuilder implements Visitor {
     conditionBlock.isLoopHeader = true;
     initializerBlock.addSuccessor(conditionBlock);
     open(conditionBlock);
-    
+
     // Create phis for all elements in the definitions environment.
     initializerDefinitions.forEach((Element element, HInstruction instruction) {
       HPhi phi = new HPhi.singleInput(element, instruction);
@@ -334,6 +334,7 @@ class SsaBuilder implements Visitor {
   visitSend(Send node) {
     // TODO(kasperl): This only works for very special cases. Make
     // this way more general soon.
+    Element element = elements[node];
     if (node.selector is Operator) {
       visit(node.receiver);
       visit(node.argumentsNode);
@@ -342,27 +343,26 @@ class SsaBuilder implements Visitor {
       Operator op = node.selector;
       // TODO(floitsch): switch to switch (bug 314).
       if (const SourceString("+") == op.source) {
-        push(new HAdd([left, right]));
+        push(new HAdd(element, [left, right]));
       } else if (const SourceString("-") == op.source) {
-        push(new HSubtract([left, right]));
+        push(new HSubtract(element, [left, right]));
       } else if (const SourceString("*") == op.source) {
-        push(new HMultiply([left, right]));
+        push(new HMultiply(element, [left, right]));
       } else if (const SourceString("/") == op.source) {
-        push(new HDivide([left, right]));
+        push(new HDivide(element, [left, right]));
       } else if (const SourceString("~/") == op.source) {
-        push(new HTruncatingDivide([left, right]));
+        push(new HTruncatingDivide(element, [left, right]));
       } else if (const SourceString("==") == op.source) {
-        push(new HEquals([left, right]));
+        push(new HEquals(element, [left, right]));
       }
     } else if (node.isPropertyAccess) {
       if (node.receiver !== null) {
         compiler.unimplemented("SsaBuilder.visitSend with receiver");
       }
-      Element element = elements[node];
       stack.add(definitions[element]);
     } else {
       Link<Node> link = node.arguments;
-      if (elements[node].kind === ElementKind.FOREIGN) {
+      if (element.kind === ElementKind.FOREIGN) {
         // If the invoke is on foreign code, don't visit the first
         // argument, which is the foreign code.
         link = link.tail;
@@ -373,13 +373,13 @@ class SsaBuilder implements Visitor {
         arguments.add(pop());
       }
 
-      if (elements[node].kind === ElementKind.FOREIGN) {
+      if (element.kind === ElementKind.FOREIGN) {
         LiteralString literal = node.arguments.head;
         compiler.ensure(literal is LiteralString);
-        push(new HInvokeForeign(unquote(literal), arguments));
+        push(new HInvokeForeign(element, arguments, unquote(literal)));
       } else {
         final Identifier selector = node.selector;
-        push(new HInvoke(selector.source, arguments));
+        push(new HInvoke(element, arguments));
       }
     }
   }

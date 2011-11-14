@@ -186,7 +186,18 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type visitSend(Send node) {
     final target = elements[node];
+    Identifier selector = node.selector;
     if (target !== null) {
+      SourceString name = selector.source;
+      if (name == const SourceString('+')
+          || name == const SourceString('=')
+          || name == const SourceString('-')
+          || name == const SourceString('*')
+          || name == const SourceString('/')
+          || name == const SourceString('<')
+          || name == const SourceString('~/')) {
+        return types.dynamicType;
+      }
       final targetType = target.computeType(compiler, types);
       if (node.isPropertyAccess) {
         return targetType;
@@ -224,19 +235,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
         return funType.returnType;
       }
     } else {
-      Identifier selector = node.selector;
-      SourceString name = selector.source;
-      if (name == const SourceString('+')
-          || name == const SourceString('=')
-          || name == const SourceString('-')
-          || name == const SourceString('*')
-          || name == const SourceString('/')
-          || name == const SourceString('<')
-          || name == const SourceString('~/')) {
-        return types.dynamicType;
-      }
       // TODO(karlklose): Implement method lookup for unresolved targets.
-      fail(node, 'unresolved send $name');
+      fail(node, 'unresolved send ${selector.source}');
     }
   }
 

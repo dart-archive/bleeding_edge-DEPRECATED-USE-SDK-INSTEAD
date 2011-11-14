@@ -12,6 +12,7 @@ class StringScript extends Script {
 }
 
 final String STRING_FOLDING = """
+void add(var a, var b) {}
 void print(var obj) {}
 
 void main() {
@@ -22,6 +23,7 @@ void main() {
 """;
 
 final String NUMBER_FOLDING = """
+void add(var a, var b) {}
 void print(var obj) {}
 
 void main() {
@@ -35,7 +37,8 @@ void main() {
 void compileAndTest(String code, RegExp regexp) {
   Compiler compiler = new Compiler(new StringScript(code));
   compiler.scanner.scan(compiler.script);
-  String generated = compiler.compileMethod(Compiler.MAIN);
+  String generated = compiler.compileMethod(
+      compiler.universe.find(Compiler.MAIN));
   Expect.isTrue(regexp.hasMatch(generated));
 }
 

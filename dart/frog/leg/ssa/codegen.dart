@@ -66,8 +66,8 @@ class SsaCodeGenerator implements HVisitor {
   static String temporary(HInstruction instruction) => 't${instruction.id}';
   static String parameter(int index) => 'p$index';
 
-  void invoke(SourceString selector, List<HInstruction> arguments) {
-    buffer.add('$selector(');
+  void invoke(Element element, List<HInstruction> arguments) {
+    buffer.add('${element.name}(');
     for (int i = 0; i < arguments.length; i++) {
       if (i != 0) buffer.add(', ');
       use(arguments[i]);
@@ -112,10 +112,6 @@ class SsaCodeGenerator implements HVisitor {
     return node.accept(this);
   }
 
-  visitAdd(HAdd node) {
-    invoke(const SourceString('\$add'), node.inputs);
-  }
-
   visitBasicBlock(HBasicBlock node) {
     // While loop will be closed by the conditional loop-branch.
     // TODO(floitsch): HACK HACK HACK.
@@ -139,13 +135,12 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
-  visitDivide(HDivide node) {
-    invoke(const SourceString('\$div'), node.inputs);
-  }
-
-  visitEquals(HEquals node) {
-    invoke(const SourceString('\$eq'), node.inputs);
-  }
+  visitAdd(HAdd node)                           => visitInvoke(node);
+  visitDivide(HDivide node)                     => visitInvoke(node);
+  visitEquals(HEquals node)                     => visitInvoke(node);
+  visitMultiply(HMultiply node)                 => visitInvoke(node);
+  visitSubtract(HSubtract node)                 => visitInvoke(node);
+  visitTruncatingDivide(HTruncatingDivide node) => visitInvoke(node);
 
   visitExit(HExit node) {
     // Don't do anything.
@@ -203,22 +198,31 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitInvoke(HInvoke node) {
-    // TODO(floitsch): Pass the element to the worklist and not just the
-    // source.
-    compiler.worklist.add(node.selector);
-    invoke(node.selector, node.inputs);
+    compiler.worklist.add(node.element);
+    invoke(node.element, node.inputs);
   }
 
   visitInvokeForeign(HInvokeForeign node) {
     // TODO(ngeoffray): generate the instruction define here in case
     // we have parameters.
-    for (int i = 0; i < node.inputs.length; i++) {
-      buffer.add('var \$${i} = ');
-      use(node.inputs[i]);
-      buffer.add(';\n');
+    if (!node.inputs.isEmpty()) {
+      buffer.add("(function foreign(\$0");
+      for (int i = 1; i < node.inputs.length; i++) {
+        buffer.add(', \$$i');
+      }
+      buffer.add(') { return ');
     }
-    addIndentation();
-    buffer.add(node.selector);
+    buffer.add(node.code);
+
+    if (!node.inputs.isEmpty()) {
+      buffer.add('; }) (');
+      use(node.inputs[0]);
+      for (int i = 1; i < node.inputs.length; i++) {
+        buffer.add(', ');
+        use(node.inputs[1]);
+      }
+      buffer.add(')');
+    }
   }
 
   visitLiteral(HLiteral node) {
@@ -239,10 +243,6 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add('}\n');  // Close 'while' loop.
     assert(dominated[1] === branchBlock.successors[1]);
     visit(dominated[1]);
-  }
-
-  visitMultiply(HMultiply node) {
-    invoke(const SourceString('\$mul'), node.inputs);
   }
 
   visitParameter(HParameter node) {
@@ -273,17 +273,9 @@ class SsaCodeGenerator implements HVisitor {
     use(node.inputs[0]);
   }
 
-  visitSubtract(HSubtract node) {
-    invoke(const SourceString('\$sub'), node.inputs);
-  }
-
   visitThrow(HThrow node) {
     buffer.add('throw ');
     use(node.inputs[0]);
-  }
-
-  visitTruncatingDivide(HTruncatingDivide node) {
-    invoke(const SourceString('\$tdiv'), node.inputs);
   }
 
   void addIndentation() {

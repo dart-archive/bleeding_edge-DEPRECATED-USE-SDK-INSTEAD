@@ -527,19 +527,20 @@ class HControlFlow extends HInstruction {
 }
 
 class HInvoke extends HInstruction {
-  final SourceString selector;
-  HInvoke(this.selector, inputs) : super(inputs);
-  toString() => 'invoke: $selector';
+  final Element element;
+  HInvoke(this.element, inputs) : super(inputs);
+  toString() => 'invoke: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvoke(this);
 }
 
 class HInvokeForeign extends HInvoke {
-  HInvokeForeign(code, inputs) : super(code, inputs);
+  final SourceString code;
+  HInvokeForeign(element, inputs, this.code) : super(element, inputs);
   accept(HVisitor visitor) => visitor.visitInvokeForeign(this);
 }
 
 class HArithmetic extends HInvoke {
-  HArithmetic(selector, inputs) : super(selector, inputs);
+  HArithmetic(element, inputs) : super(element, inputs);
   void prepareGvn() {
     // Arithmetic expressions can take part in global value numbering
     // and do not have any side-effects if the left-hand side is a
@@ -552,7 +553,7 @@ class HArithmetic extends HInvoke {
 }
 
 class HAdd extends HArithmetic {
-  HAdd(inputs) : super(const SourceString('+'), inputs);
+  HAdd(element, inputs) : super(element, inputs);
   void prepareGvn() {
     // Only if the left-hand side is a literal number are we
     // sure the operation will not have any side-effects.
@@ -567,7 +568,7 @@ class HAdd extends HArithmetic {
 }
 
 class HDivide extends HArithmetic {
-  HDivide(inputs) : super(const SourceString('/'), inputs);
+  HDivide(element, inputs) : super(element, inputs);
   accept(HVisitor visitor) => visitor.visitDivide(this);
   num evaluate(num a, num b) => a / b;
   bool typeEquals(other) => other is HDivide;
@@ -575,7 +576,7 @@ class HDivide extends HArithmetic {
 }
 
 class HMultiply extends HArithmetic {
-  HMultiply(inputs) : super(const SourceString('*'), inputs);
+  HMultiply(element, inputs) : super(element, inputs);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
   num evaluate(num a, num b) => a * b;
   bool typeEquals(other) => other is HMultiply;
@@ -583,7 +584,7 @@ class HMultiply extends HArithmetic {
 }
 
 class HSubtract extends HArithmetic {
-  HSubtract(inputs) : super(const SourceString('-'), inputs);
+  HSubtract(element, inputs) : super(element, inputs);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
   num evaluate(num a, num b) => a - b;
   bool typeEquals(other) => other is HSubtract;
@@ -591,7 +592,7 @@ class HSubtract extends HArithmetic {
 }
 
 class HTruncatingDivide extends HArithmetic {
-  HTruncatingDivide(inputs) : super(const SourceString('~/'), inputs);
+  HTruncatingDivide(element, inputs) : super(element, inputs);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
   num evaluate(num a, num b) => a ~/ b;
   bool typeEquals(other) => other is HTruncatingDivide;
@@ -599,7 +600,7 @@ class HTruncatingDivide extends HArithmetic {
 }
 
 class HEquals extends HInvoke {
-  HEquals(inputs) : super(const SourceString('=='), inputs);
+  HEquals(element, inputs) : super(element, inputs);
   void prepareGvn() {
     // Only if the left-hand side is a (any) literal are we
     // sure the operation will not have any side-effects.

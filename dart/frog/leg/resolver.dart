@@ -112,24 +112,25 @@ class ResolverVisitor implements Visitor<Element> {
     visit(node.elsePart);
   }
 
+  SourceString potentiallyMapOperatorToMethodName(final SourceString name) {
+    // TODO(ngeoffray): Use a map once frog can handle it.
+    if (name == const SourceString('+')) return const SourceString('add');
+    if (name == const SourceString('-')) return const SourceString('sub');
+    if (name == const SourceString('*')) return const SourceString('mul');
+    if (name == const SourceString('/')) return const SourceString('div');
+    if (name == const SourceString('~/')) return const SourceString('tdiv');
+    if (name == const SourceString('==')) return const SourceString('eq');
+    return name;
+  }
+
   visitSend(Send node) {
-    Element target = null;
     visit(node.receiver);
-    final Identifier selector = node.selector;
-    final SourceString name = selector.source;
-    if (name == const SourceString('+') ||
-        name == const SourceString('-') ||
-        name == const SourceString('*') ||
-        name == const SourceString('/') ||
-        name == const SourceString('<') ||
-        name == const SourceString('~/') ||
-        name == const SourceString('==')) {
-      // Do nothing.
-    } else {
-      // TODO(ngeoffray): Use the receiver to do the lookup.
-      target = context.lookup(name);
-      if (target == null) fail(node, ErrorMessages.cannotResolve(name));
-    }
+    final Identifier identifier = node.selector;
+    final SourceString name =
+        potentiallyMapOperatorToMethodName(identifier.source);
+    // TODO(ngeoffray): Use the receiver to do the lookup.
+    Element target = context.lookup(name);
+    if (target == null) fail(node, ErrorMessages.cannotResolve(name));
     visit(node.argumentsNode);
     return useElement(node, target);
   }

@@ -13,3 +13,34 @@ void print(var obj) {
     JS(@"write('\n')");
   }
 }
+
+add(var a, var b) {
+  return JS(@"$0 + $1", a, b);
+}
+
+div(var a, var b) {
+  return JS(@"$0 / $1", a, b);
+}
+
+mul(var a, var b) {
+  return JS(@"$0 * $1", a, b);
+}
+
+sub(var a, var b) {
+  return JS(@"$0 - $1", a, b);
+}
+
+eq(var a, var b) {
+  return JS(@"$0 == $1", a, b);
+}
+
+tdiv(var a, var b) {
+  var tmp = a / b;
+  // TODO(ngeoffray): Use tmp.floor and tmp.ceil when
+  // we can handle them.
+  if (tmp < 0) {
+    return JS(@"Math.ceil($0)", tmp);
+  } else {
+    return JS(@"Math.floor($0)", tmp);
+  }
+}

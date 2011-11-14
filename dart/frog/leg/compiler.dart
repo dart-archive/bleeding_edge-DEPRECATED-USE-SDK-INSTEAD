@@ -4,7 +4,7 @@
 
 class Compiler implements Canceler, Logger {
   final Script script;
-  Queue<SourceString> worklist;
+  Queue<Element> worklist;
   Universe universe;
 
   List<CompilerTask> tasks;
@@ -20,7 +20,7 @@ class Compiler implements Canceler, Logger {
 
   Compiler(this.script) {
     universe = new Universe();
-    worklist = new Queue<SourceString>.from([MAIN]);
+    worklist = new Queue<SourceString>();
     scanner = new ScannerTask(this);
     parser = new ParserTask(this);
     resolver = new ResolverTask(this);
@@ -79,14 +79,15 @@ class Compiler implements Canceler, Logger {
   void runCompiler() {
     scanCoreLibrary();
     scanner.scan(script);
+    Element element = universe.find(MAIN);
+    if (element === null) cancel('Could not find $MAIN');
+    compileMethod(element);
     while (!worklist.isEmpty()) {
       compileMethod(worklist.removeLast());
     }
   }
 
-  String compileMethod(SourceString name) {
-    Element element = universe.find(name);
-    if (element === null) cancel('Could not find $name');
+  String compileMethod(Element element) {
     Node tree = parser.parse(element);
     Map<Node, Element> elements = resolver.resolve(tree);
     checker.check(tree, elements);
@@ -103,12 +104,6 @@ class Compiler implements Canceler, Logger {
 
   String getGeneratedCode() {
     StringBuffer buffer = new StringBuffer();
-    buffer.add(ADD_SUPPORT);
-    buffer.add(DIV_SUPPORT);
-    buffer.add(EQ_SUPPORT);
-    buffer.add(SUB_SUPPORT);
-    buffer.add(MUL_SUPPORT);
-    buffer.add(TDIV_SUPPORT);
     List<String> codeBlocks = universe.generatedCode.getValues();
     for (int i = codeBlocks.length - 1; i >= 0; i--) {
       buffer.add(codeBlocks[i]);
@@ -147,44 +142,3 @@ class CompilerCancelledException {
     return (reason !== null) ? '$banner: $reason' : '$banner';
   }
 }
-
-final String ADD_SUPPORT = """
-function \$add(a, b) {
-  return a + b;
-}
-""";
-
-final String DIV_SUPPORT = """
-function \$div(a, b) {
-  return a / b;
-}
-""";
-
-final String EQ_SUPPORT = """
-function \$eq(a, b) {
-  return a === b;
-}
-""";
-
-final String SUB_SUPPORT = """
-function \$sub(a, b) {
-  return a - b;
-}
-""";
-
-final String MUL_SUPPORT = """
-function \$mul(a, b) {
-  return a * b;
-}
-""";
-
-final String TDIV_SUPPORT = """
-function \$tdiv(a, b) {
-  var tmp = this / other;
-  if (tmp < 0) {
-    return Math.ceil(tmp);
-  } else {
-    return Math.floor(tmp);
-  }
-}
-""";
