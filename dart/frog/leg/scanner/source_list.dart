@@ -1548,7 +1548,6 @@ final List<String> argv = const <String>[
 './member.dart',
 './parser.dart',
 './reader.dart',
-'./samples/doc.dart',
 './server/toss.dart',
 './source.dart',
 './tests/ParserTest.dart',

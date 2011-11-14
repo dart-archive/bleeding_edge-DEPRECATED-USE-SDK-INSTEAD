@@ -414,7 +414,7 @@ class NodeListener extends ElementListener {
   }
 
   void handleBinaryExpression(Token token) {
-    NodeList arguments = new NodeList(null, LinkFactory.createLink(popNode()),
+    NodeList arguments = new NodeList(null, new Link<Node>(popNode()),
                                       null, null);
     pushNode(new Send(popNode(), new Operator(token), arguments));
   }

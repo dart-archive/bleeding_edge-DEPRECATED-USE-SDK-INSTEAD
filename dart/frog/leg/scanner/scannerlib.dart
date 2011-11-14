@@ -10,9 +10,6 @@
 #import('../tree/tree.dart');
 #import('../elements/elements.dart');
 
-// TODO(srdjan): Remove once LinkFactiry is a Dart factory again.
-#import('../util/util_implementation.dart');
-
 #source('scanner.dart');
 #source('scanner_task.dart');
 #source('parser.dart');

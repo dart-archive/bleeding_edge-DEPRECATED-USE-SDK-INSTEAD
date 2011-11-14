@@ -164,7 +164,7 @@ class NodeList extends Node {
 
   const NodeList([this.beginToken, this.nodes, this.endToken, this.delimiter]);
 
-  NodeList.singleton(Node node) : this(null, LinkFactory.createLink(node));
+  NodeList.singleton(Node node) : this(null, new Link<Node>(node));
 
   accept(Visitor visitor) => visitor.visitNodeList(this);
 

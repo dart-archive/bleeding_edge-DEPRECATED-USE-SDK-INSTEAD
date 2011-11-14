@@ -450,6 +450,9 @@ Object.prototype.getConstructor$1 = function($0) {
 Object.prototype.getEndToken$0 = function() {
   return this.noSuchMethod("getEndToken", []);
 };
+Object.prototype.getFactory$2 = function($0, $1) {
+  return this.noSuchMethod("getFactory", [$0, $1]);
+};
 Object.prototype.getKeys$0 = function() {
   return this.noSuchMethod("getKeys", []);
 };
@@ -1406,18 +1409,13 @@ ListFactory.prototype.removeLast$0 = function() {
 };
 ListFactory.prototype.some$1 = ListFactory.prototype.some;
 ListFactory.prototype.sort$1 = ListFactory.prototype.sort;
-ListFactory$DoubleLinkedQueueEntry$KeyValuePair$K$V = ListFactory;
-ListFactory$DoubleLinkedQueueEntry$KeyValuePair$Node$Element = ListFactory;
-ListFactory$DoubleLinkedQueueEntry$KeyValuePair$String$Keyword = ListFactory;
 ListFactory$E = ListFactory;
-ListFactory$EvaluatedValue = ListFactory;
 ListFactory$HBasicBlock = ListFactory;
 ListFactory$HInstruction = ListFactory;
 ListFactory$K = ListFactory;
 ListFactory$KeywordState = ListFactory;
 ListFactory$String = ListFactory;
 ListFactory$T = ListFactory;
-ListFactory$Type = ListFactory;
 ListFactory$V = ListFactory;
 // ********** Code for ListIterator **************
 function ListIterator(array) {
@@ -1652,7 +1650,7 @@ function HashMapImplementation() {
   this._numberOfDeleted = 0;
   this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
   this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory$V(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._values = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
 }
 HashMapImplementation.prototype.is$HashMapImplementation = function(){return this;};
 HashMapImplementation.prototype.is$Map$Node$Element = function(){return this;};
@@ -1728,7 +1726,7 @@ HashMapImplementation.prototype._grow = function(newCapacity) {
   var oldKeys = this._keys;
   var oldValues = this._values;
   this._keys = new ListFactory(newCapacity);
-  this._values = new ListFactory$V(newCapacity);
+  this._values = new ListFactory(newCapacity);
   for (var i = 0;
    i < capacity; i++) {
     var key = oldKeys.$index(i);
@@ -1787,7 +1785,7 @@ HashMapImplementation.prototype.forEach = function(f) {
   }
 }
 HashMapImplementation.prototype.getKeys = function() {
-  var list = new ListFactory$K(this.get$length());
+  var list = new ListFactory(this.get$length());
   var i = 0;
   this.forEach(function _(key, value) {
     list.$setindex(i++, key);
@@ -1796,7 +1794,7 @@ HashMapImplementation.prototype.getKeys = function() {
   return list;
 }
 HashMapImplementation.prototype.getValues = function() {
-  var list = new ListFactory$V(this.get$length());
+  var list = new ListFactory(this.get$length());
   var i = 0;
   this.forEach(function _(key, value) {
     list.$setindex(i++, value);
@@ -1823,7 +1821,7 @@ function HashMapImplementation$E$E() {
   this._numberOfDeleted = 0;
   this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
   this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory$E(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._values = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
 }
 $inherits(HashMapImplementation$E$E, HashMapImplementation);
 HashMapImplementation$E$E.prototype.is$Map$Node$Element = function(){return this;};
@@ -1891,7 +1889,7 @@ HashMapImplementation$E$E.prototype._grow = function(newCapacity) {
   var oldKeys = this._keys;
   var oldValues = this._values;
   this._keys = new ListFactory(newCapacity);
-  this._values = new ListFactory$E(newCapacity);
+  this._values = new ListFactory(newCapacity);
   for (var i = 0;
    i < capacity; i++) {
     var key = oldKeys.$index(i);
@@ -1939,7 +1937,7 @@ HashMapImplementation$E$E.prototype.forEach = function(f) {
   }
 }
 HashMapImplementation$E$E.prototype.getKeys = function() {
-  var list = new ListFactory$E(this.get$length());
+  var list = new ListFactory(this.get$length());
   var i = 0;
   this.forEach(function _(key, value) {
     list.$setindex(i++, key);
@@ -1951,139 +1949,20 @@ HashMapImplementation$E$E.prototype.containsKey = function(key) {
   return (this._probeForLookup(key) != -1);
 }
 // ********** Code for HashMapImplementation$Element$HInstruction **************
-function HashMapImplementation$Element$HInstruction() {
-  // Initializers done
-  if (HashMapImplementation._deletedKey == null) {
-    HashMapImplementation._deletedKey = new Object();
-  }
-  this._numberOfEntries = 0;
-  this._numberOfDeleted = 0;
-  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory$HInstruction(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-}
+function HashMapImplementation$Element$HInstruction() {}
 $inherits(HashMapImplementation$Element$HInstruction, HashMapImplementation);
 HashMapImplementation$Element$HInstruction.prototype.is$Map$Node$Element = false;
 HashMapImplementation$Element$HInstruction.prototype.is$Map$String$Member = false;
-HashMapImplementation$Element$HInstruction.HashMapImplementation$from$factory = function(other) {
-  var result = new HashMapImplementation();
-  other.forEach((function (key, value) {
-    result.$setindex(key, value);
-  })
-  );
-  return (result && result.is$HashMapImplementation());
-}
-HashMapImplementation$Element$HInstruction._computeLoadLimit = function(capacity) {
-  return $truncdiv((capacity * 3), 4);
-}
 // ********** Code for HashMapImplementation$K$DoubleLinkedQueueEntry$KeyValuePair$K$V **************
-function HashMapImplementation$K$DoubleLinkedQueueEntry$KeyValuePair$K$V() {
-  // Initializers done
-  if (HashMapImplementation._deletedKey == null) {
-    HashMapImplementation._deletedKey = new Object();
-  }
-  this._numberOfEntries = 0;
-  this._numberOfDeleted = 0;
-  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory$DoubleLinkedQueueEntry$KeyValuePair$K$V(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-}
+function HashMapImplementation$K$DoubleLinkedQueueEntry$KeyValuePair$K$V() {}
 $inherits(HashMapImplementation$K$DoubleLinkedQueueEntry$KeyValuePair$K$V, HashMapImplementation);
 HashMapImplementation$K$DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype.is$Map$Node$Element = false;
 HashMapImplementation$K$DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype.is$Map$String$Member = false;
-HashMapImplementation$K$DoubleLinkedQueueEntry$KeyValuePair$K$V._computeLoadLimit = function(capacity) {
-  return $truncdiv((capacity * 3), 4);
-}
-// ********** Code for HashMapImplementation$Node$DoubleLinkedQueueEntry$KeyValuePair$Node$Element **************
-function HashMapImplementation$Node$DoubleLinkedQueueEntry$KeyValuePair$Node$Element() {
-  // Initializers done
-  if (HashMapImplementation._deletedKey == null) {
-    HashMapImplementation._deletedKey = new Object();
-  }
-  this._numberOfEntries = 0;
-  this._numberOfDeleted = 0;
-  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory$DoubleLinkedQueueEntry$KeyValuePair$Node$Element(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-}
-$inherits(HashMapImplementation$Node$DoubleLinkedQueueEntry$KeyValuePair$Node$Element, HashMapImplementation);
-HashMapImplementation$Node$DoubleLinkedQueueEntry$KeyValuePair$Node$Element.prototype.is$Map$Node$Element = false;
-HashMapImplementation$Node$DoubleLinkedQueueEntry$KeyValuePair$Node$Element.prototype.is$Map$String$Member = false;
-HashMapImplementation$Node$DoubleLinkedQueueEntry$KeyValuePair$Node$Element._computeLoadLimit = function(capacity) {
-  return $truncdiv((capacity * 3), 4);
-}
-// ********** Code for HashMapImplementation$String$DoubleLinkedQueueEntry$KeyValuePair$String$Keyword **************
-function HashMapImplementation$String$DoubleLinkedQueueEntry$KeyValuePair$String$Keyword() {
-  // Initializers done
-  if (HashMapImplementation._deletedKey == null) {
-    HashMapImplementation._deletedKey = new Object();
-  }
-  this._numberOfEntries = 0;
-  this._numberOfDeleted = 0;
-  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory$DoubleLinkedQueueEntry$KeyValuePair$String$Keyword(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-}
-$inherits(HashMapImplementation$String$DoubleLinkedQueueEntry$KeyValuePair$String$Keyword, HashMapImplementation);
-HashMapImplementation$String$DoubleLinkedQueueEntry$KeyValuePair$String$Keyword.prototype.is$Map$Node$Element = false;
-HashMapImplementation$String$DoubleLinkedQueueEntry$KeyValuePair$String$Keyword.prototype.is$Map$String$Member = false;
-HashMapImplementation$String$DoubleLinkedQueueEntry$KeyValuePair$String$Keyword._computeLoadLimit = function(capacity) {
-  return $truncdiv((capacity * 3), 4);
-}
 // ********** Code for HashMapImplementation$String$EvaluatedValue **************
-function HashMapImplementation$String$EvaluatedValue() {
-  // Initializers done
-  if (HashMapImplementation._deletedKey == null) {
-    HashMapImplementation._deletedKey = new Object();
-  }
-  this._numberOfEntries = 0;
-  this._numberOfDeleted = 0;
-  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory$EvaluatedValue(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-}
+function HashMapImplementation$String$EvaluatedValue() {}
 $inherits(HashMapImplementation$String$EvaluatedValue, HashMapImplementation);
 HashMapImplementation$String$EvaluatedValue.prototype.is$Map$Node$Element = false;
 HashMapImplementation$String$EvaluatedValue.prototype.is$Map$String$Member = false;
-HashMapImplementation$String$EvaluatedValue._computeLoadLimit = function(capacity) {
-  return $truncdiv((capacity * 3), 4);
-}
-// ********** Code for HashMapImplementation$String$String **************
-function HashMapImplementation$String$String() {
-  // Initializers done
-  if (HashMapImplementation._deletedKey == null) {
-    HashMapImplementation._deletedKey = new Object();
-  }
-  this._numberOfEntries = 0;
-  this._numberOfDeleted = 0;
-  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory$String(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-}
-$inherits(HashMapImplementation$String$String, HashMapImplementation);
-HashMapImplementation$String$String.prototype.is$Map$Node$Element = false;
-HashMapImplementation$String$String.prototype.is$Map$String$Member = false;
-HashMapImplementation$String$String._computeLoadLimit = function(capacity) {
-  return $truncdiv((capacity * 3), 4);
-}
-// ********** Code for HashMapImplementation$Type$Type **************
-function HashMapImplementation$Type$Type() {
-  // Initializers done
-  if (HashMapImplementation._deletedKey == null) {
-    HashMapImplementation._deletedKey = new Object();
-  }
-  this._numberOfEntries = 0;
-  this._numberOfDeleted = 0;
-  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory$Type(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-}
-$inherits(HashMapImplementation$Type$Type, HashMapImplementation);
-HashMapImplementation$Type$Type.prototype.is$Map$Node$Element = false;
-HashMapImplementation$Type$Type.prototype.is$Map$String$Member = false;
-HashMapImplementation$Type$Type._computeLoadLimit = function(capacity) {
-  return $truncdiv((capacity * 3), 4);
-}
 // ********** Code for HashSetImplementation **************
 function HashSetImplementation() {
   // Initializers done
@@ -2127,7 +2006,7 @@ HashSetImplementation.prototype.forEach = function(f) {
   );
 }
 HashSetImplementation.prototype.filter = function(f) {
-  var result = new HashSetImplementation$E();
+  var result = new HashSetImplementation();
   this._backingMap.forEach(function _(key, value) {
     if (f(key)) result.add(key);
   }
@@ -2164,30 +2043,21 @@ HashSetImplementation.prototype.iterator$0 = function() {
 };
 HashSetImplementation.prototype.some$1 = HashSetImplementation.prototype.some;
 // ********** Code for HashSetImplementation$E **************
-function HashSetImplementation$E() {
-  // Initializers done
-  this._backingMap = new HashMapImplementation$E$E();
-}
+function HashSetImplementation$E() {}
 $inherits(HashSetImplementation$E, HashSetImplementation);
 HashSetImplementation$E.prototype.is$Collection$E = function(){return this;};
 HashSetImplementation$E.prototype.is$Collection$Object = function(){return this;};
 HashSetImplementation$E.prototype.is$Collection$Type = function(){return this;};
 HashSetImplementation$E.prototype.is$Iterable = function(){return this;};
 // ********** Code for HashSetImplementation$String **************
-function HashSetImplementation$String() {
-  // Initializers done
-  this._backingMap = new HashMapImplementation$String$String();
-}
+function HashSetImplementation$String() {}
 $inherits(HashSetImplementation$String, HashSetImplementation);
 HashSetImplementation$String.prototype.is$Collection$E = function(){return this;};
 HashSetImplementation$String.prototype.is$Collection$Object = function(){return this;};
 HashSetImplementation$String.prototype.is$Collection$Type = false;
 HashSetImplementation$String.prototype.is$Iterable = function(){return this;};
 // ********** Code for HashSetImplementation$Type **************
-function HashSetImplementation$Type() {
-  // Initializers done
-  this._backingMap = new HashMapImplementation$Type$Type();
-}
+function HashSetImplementation$Type() {}
 $inherits(HashSetImplementation$Type, HashSetImplementation);
 HashSetImplementation$Type.prototype.is$Collection$E = function(){return this;};
 HashSetImplementation$Type.prototype.is$Collection$Object = function(){return this;};
@@ -2266,16 +2136,10 @@ function KeyValuePair$K$V(key, value) {
   // Initializers done
 }
 $inherits(KeyValuePair$K$V, KeyValuePair);
-// ********** Code for KeyValuePair$Node$Element **************
-function KeyValuePair$Node$Element() {}
-$inherits(KeyValuePair$Node$Element, KeyValuePair);
-// ********** Code for KeyValuePair$String$Keyword **************
-function KeyValuePair$String$Keyword() {}
-$inherits(KeyValuePair$String$Keyword, KeyValuePair);
 // ********** Code for LinkedHashMapImplementation **************
 function LinkedHashMapImplementation() {
   // Initializers done
-  this._map = new HashMapImplementation$K$DoubleLinkedQueueEntry$KeyValuePair$K$V();
+  this._map = new HashMapImplementation();
   this._list = new DoubleLinkedQueue$KeyValuePair$K$V();
 }
 LinkedHashMapImplementation.prototype.is$Map$Node$Element = function(){return this;};
@@ -2296,7 +2160,7 @@ LinkedHashMapImplementation.prototype.$index = function(key) {
   return entry.get$element().get$value();
 }
 LinkedHashMapImplementation.prototype.getKeys = function() {
-  var list = new ListFactory$K(this.get$length());
+  var list = new ListFactory(this.get$length());
   var index = 0;
   this._list.forEach(function _(entry) {
     list.$setindex(index++, entry.key);
@@ -2306,7 +2170,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
-  var list = new ListFactory$V(this.get$length());
+  var list = new ListFactory(this.get$length());
   var index = 0;
   this._list.forEach(function _(entry) {
     list.$setindex(index++, entry.value);
@@ -2340,20 +2204,12 @@ LinkedHashMapImplementation.prototype.isEmpty$0 = function() {
   return this.isEmpty();
 };
 // ********** Code for LinkedHashMapImplementation$Node$Element **************
-function LinkedHashMapImplementation$Node$Element() {
-  // Initializers done
-  this._map = new HashMapImplementation$Node$DoubleLinkedQueueEntry$KeyValuePair$Node$Element();
-  this._list = new DoubleLinkedQueue$KeyValuePair$Node$Element();
-}
+function LinkedHashMapImplementation$Node$Element() {}
 $inherits(LinkedHashMapImplementation$Node$Element, LinkedHashMapImplementation);
 LinkedHashMapImplementation$Node$Element.prototype.is$Map$Node$Element = function(){return this;};
 LinkedHashMapImplementation$Node$Element.prototype.is$Map$String$Member = false;
 // ********** Code for LinkedHashMapImplementation$String$Keyword **************
-function LinkedHashMapImplementation$String$Keyword() {
-  // Initializers done
-  this._map = new HashMapImplementation$String$DoubleLinkedQueueEntry$KeyValuePair$String$Keyword();
-  this._list = new DoubleLinkedQueue$KeyValuePair$String$Keyword();
-}
+function LinkedHashMapImplementation$String$Keyword() {}
 $inherits(LinkedHashMapImplementation$String$Keyword, LinkedHashMapImplementation);
 LinkedHashMapImplementation$String$Keyword.prototype.is$Map$Node$Element = false;
 LinkedHashMapImplementation$String$Keyword.prototype.is$Map$String$Member = false;
@@ -2427,14 +2283,6 @@ DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype.is$DoubleLinkedQueueEntry$KeyV
 DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype._asNonSentinelEntry = function() {
   return this;
 }
-// ********** Code for DoubleLinkedQueueEntry$KeyValuePair$Node$Element **************
-function DoubleLinkedQueueEntry$KeyValuePair$Node$Element() {}
-$inherits(DoubleLinkedQueueEntry$KeyValuePair$Node$Element, DoubleLinkedQueueEntry);
-DoubleLinkedQueueEntry$KeyValuePair$Node$Element.prototype.is$DoubleLinkedQueueEntry$KeyValuePair$K$V = function(){return this;};
-// ********** Code for DoubleLinkedQueueEntry$KeyValuePair$String$Keyword **************
-function DoubleLinkedQueueEntry$KeyValuePair$String$Keyword() {}
-$inherits(DoubleLinkedQueueEntry$KeyValuePair$String$Keyword, DoubleLinkedQueueEntry);
-DoubleLinkedQueueEntry$KeyValuePair$String$Keyword.prototype.is$DoubleLinkedQueueEntry$KeyValuePair$K$V = function(){return this;};
 // ********** Code for _DoubleLinkedQueueEntrySentinel **************
 function _DoubleLinkedQueueEntrySentinel() {
   DoubleLinkedQueueEntry$E.call(this, null);
@@ -2489,32 +2337,6 @@ _DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V.prototype.prepend = function(e)
 _DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V.prototype.previousEntry = function() {
   var $0;
   return (($0 = this._previous._asNonSentinelEntry()) && $0.is$DoubleLinkedQueueEntry$KeyValuePair$K$V());
-}
-// ********** Code for _DoubleLinkedQueueEntrySentinel$KeyValuePair$Node$Element **************
-function _DoubleLinkedQueueEntrySentinel$KeyValuePair$Node$Element() {
-  DoubleLinkedQueueEntry$E.call(this, null);
-  // Initializers done
-  this._link(this, this);
-}
-$inherits(_DoubleLinkedQueueEntrySentinel$KeyValuePair$Node$Element, _DoubleLinkedQueueEntrySentinel);
-_DoubleLinkedQueueEntrySentinel$KeyValuePair$Node$Element.prototype._link = function(p, n) {
-  this._next = n;
-  this._previous = p;
-  p._next = this;
-  n._previous = this;
-}
-// ********** Code for _DoubleLinkedQueueEntrySentinel$KeyValuePair$String$Keyword **************
-function _DoubleLinkedQueueEntrySentinel$KeyValuePair$String$Keyword() {
-  DoubleLinkedQueueEntry$E.call(this, null);
-  // Initializers done
-  this._link(this, this);
-}
-$inherits(_DoubleLinkedQueueEntrySentinel$KeyValuePair$String$Keyword, _DoubleLinkedQueueEntrySentinel);
-_DoubleLinkedQueueEntrySentinel$KeyValuePair$String$Keyword.prototype._link = function(p, n) {
-  this._next = n;
-  this._previous = p;
-  p._next = this;
-  n._previous = this;
 }
 // ********** Code for DoubleLinkedQueue **************
 function DoubleLinkedQueue() {
@@ -2585,7 +2407,7 @@ DoubleLinkedQueue.prototype.some = function(f) {
   return false;
 }
 DoubleLinkedQueue.prototype.filter = function(f) {
-  var other = new DoubleLinkedQueue$E();
+  var other = new DoubleLinkedQueue();
   var entry = this._sentinel._next;
   while (entry !== this._sentinel) {
     if (f(entry._element)) other.addLast(entry._element);
@@ -2615,10 +2437,7 @@ DoubleLinkedQueue.prototype.removeLast$0 = function() {
 };
 DoubleLinkedQueue.prototype.some$1 = DoubleLinkedQueue.prototype.some;
 // ********** Code for DoubleLinkedQueue$E **************
-function DoubleLinkedQueue$E() {
-  // Initializers done
-  this._sentinel = new _DoubleLinkedQueueEntrySentinel$E();
-}
+function DoubleLinkedQueue$E() {}
 $inherits(DoubleLinkedQueue$E, DoubleLinkedQueue);
 DoubleLinkedQueue$E.prototype.is$Collection$E = function(){return this;};
 DoubleLinkedQueue$E.prototype.is$Collection$Object = function(){return this;};
@@ -2647,26 +2466,6 @@ DoubleLinkedQueue$KeyValuePair$K$V.prototype.forEach = function(f) {
     entry = entry._next;
   }
 }
-// ********** Code for DoubleLinkedQueue$KeyValuePair$Node$Element **************
-function DoubleLinkedQueue$KeyValuePair$Node$Element() {
-  // Initializers done
-  this._sentinel = new _DoubleLinkedQueueEntrySentinel$KeyValuePair$Node$Element();
-}
-$inherits(DoubleLinkedQueue$KeyValuePair$Node$Element, DoubleLinkedQueue);
-DoubleLinkedQueue$KeyValuePair$Node$Element.prototype.is$Collection$E = function(){return this;};
-DoubleLinkedQueue$KeyValuePair$Node$Element.prototype.is$Collection$Object = function(){return this;};
-DoubleLinkedQueue$KeyValuePair$Node$Element.prototype.is$Collection$Type = false;
-DoubleLinkedQueue$KeyValuePair$Node$Element.prototype.is$Iterable = function(){return this;};
-// ********** Code for DoubleLinkedQueue$KeyValuePair$String$Keyword **************
-function DoubleLinkedQueue$KeyValuePair$String$Keyword() {
-  // Initializers done
-  this._sentinel = new _DoubleLinkedQueueEntrySentinel$KeyValuePair$String$Keyword();
-}
-$inherits(DoubleLinkedQueue$KeyValuePair$String$Keyword, DoubleLinkedQueue);
-DoubleLinkedQueue$KeyValuePair$String$Keyword.prototype.is$Collection$E = function(){return this;};
-DoubleLinkedQueue$KeyValuePair$String$Keyword.prototype.is$Collection$Object = function(){return this;};
-DoubleLinkedQueue$KeyValuePair$String$Keyword.prototype.is$Collection$Type = false;
-DoubleLinkedQueue$KeyValuePair$String$Keyword.prototype.is$Iterable = function(){return this;};
 // ********** Code for DoubleLinkedQueue$SourceString **************
 function DoubleLinkedQueue$SourceString() {}
 $inherits(DoubleLinkedQueue$SourceString, DoubleLinkedQueue);
@@ -2674,14 +2473,6 @@ DoubleLinkedQueue$SourceString.prototype.is$Collection$E = function(){return thi
 DoubleLinkedQueue$SourceString.prototype.is$Collection$Object = function(){return this;};
 DoubleLinkedQueue$SourceString.prototype.is$Collection$Type = false;
 DoubleLinkedQueue$SourceString.prototype.is$Iterable = function(){return this;};
-DoubleLinkedQueue$SourceString.DoubleLinkedQueue$from$factory = function(other) {
-  var list = new DoubleLinkedQueue();
-  for (var $i = other.iterator(); $i.hasNext$0(); ) {
-    var e = $i.next$0();
-    list.addLast(e);
-  }
-  return (list && list.is$DoubleLinkedQueue());
-}
 // ********** Code for _DoubleLinkedQueueIterator **************
 function _DoubleLinkedQueueIterator(_sentinel) {
   this._sentinel = _sentinel;
@@ -2779,7 +2570,7 @@ StringBufferImpl.prototype.addAll = function(objects) {
   return this;
 }
 StringBufferImpl.prototype.clear = function() {
-  this._buffer = new ListFactory$String();
+  this._buffer = new ListFactory();
   this._length = 0;
   return this;
 }
@@ -3112,10 +2903,16 @@ function readSync(fileName) {
 //  ********** Library util_implementation **************
 // ********** Code for LinkFactory **************
 function LinkFactory() {}
-LinkFactory.createLink = function(head, tail) {
+LinkFactory.Link$factory = function(head, tail) {
   var $0;
   return new LinkEntry(head, (($0 = (tail == null) ? const$18/*const EmptyLink()*/ : tail) && $0.is$Link$T()));
 }
+// ********** Code for LinkFactory$Node **************
+function LinkFactory$Node() {}
+$inherits(LinkFactory$Node, LinkFactory);
+// ********** Code for LinkFactory$T **************
+function LinkFactory$T() {}
+$inherits(LinkFactory$T, LinkFactory);
 // ********** Code for AbstractLink **************
 function AbstractLink() {}
 AbstractLink.prototype.is$Link = function(){return this;};
@@ -3132,7 +2929,7 @@ AbstractLink.prototype.get$tail = function() {
   $throw("bug");
 }
 AbstractLink.prototype.prepend = function(element) {
-  return LinkFactory.createLink(element, this);
+  return LinkFactory.Link$factory(element, this);
 }
 AbstractLink.prototype.iterator = function() {
   var $0;
@@ -3210,9 +3007,7 @@ LinkTail.prototype.isEmpty$0 = function() {
   return this.isEmpty();
 };
 // ********** Code for LinkTail$Node **************
-function LinkTail$Node() {
-  // Initializers done
-}
+function LinkTail$Node() {}
 $inherits(LinkTail$Node, LinkTail);
 LinkTail$Node.prototype.is$Link = function(){return this;};
 LinkTail$Node.prototype.is$Link$Element = function(){return this;};
@@ -3237,7 +3032,7 @@ LinkEntry.prototype.isEmpty = function() {
 }
 LinkEntry.prototype.toList = function() {
   var $0;
-  var list = new ListFactory$T();
+  var list = new ListFactory();
   for (var link = this;
    !$notnull_bool(link.isEmpty()); link = (($0 = link.get$tail()) && $0.is$Link$T())) {
     list.addLast(link.get$head());
@@ -3281,11 +3076,7 @@ LinkBuilderImplementation.prototype.addLast = function(t) {
   this.lastLink = entry;
 }
 // ********** Code for LinkBuilderImplementation$Type **************
-function LinkBuilderImplementation$Type() {
-  this.head = null
-  this.lastLink = null
-  // Initializers done
-}
+function LinkBuilderImplementation$Type() {}
 $inherits(LinkBuilderImplementation$Type, LinkBuilderImplementation);
 // ********** Code for top level **************
 //  ********** Library util **************
@@ -7571,7 +7362,7 @@ NodeListener.prototype.handleLiteralString = function(token) {
   this.pushNode(new LiteralString(token));
 }
 NodeListener.prototype.handleBinaryExpression = function(token) {
-  var arguments = new NodeList(null, LinkFactory.createLink(this.popNode()), null, null);
+  var arguments = new NodeList(null, LinkFactory.Link$factory(this.popNode()), null, null);
   this.pushNode(new Send(this.popNode(), new Operator(token), arguments));
 }
 NodeListener.prototype.handleAssignmentExpression = function(token) {
@@ -7955,7 +7746,7 @@ Keyword.get$keywords = function() {
   return Keyword._keywords;
 }
 Keyword.computeKeywordMap = function() {
-  var result = new LinkedHashMapImplementation$String$Keyword();
+  var result = new LinkedHashMapImplementation();
   for (var $i0 = const$236/*Keyword.values*/.iterator(); $i0.hasNext(); ) {
     var keyword = $i0.next();
     result.$setindex(keyword.syntax, keyword);
@@ -7991,7 +7782,7 @@ function KeywordState() {}
 KeywordState.prototype.is$KeywordState = function(){return this;};
 KeywordState.get$KEYWORD_STATE = function() {
   if (KeywordState._KEYWORD_STATE == null) {
-    var strings = new ListFactory$String(const$236/*Keyword.values*/.get$length());
+    var strings = new ListFactory(const$236/*Keyword.values*/.get$length());
     for (var i = 0;
      i < const$236/*Keyword.values*/.get$length(); i++) {
       strings.$setindex(i, const$236/*Keyword.values*/[i].syntax);
@@ -8005,7 +7796,7 @@ KeywordState.get$KEYWORD_STATE = function() {
   return KeywordState._KEYWORD_STATE;
 }
 KeywordState.computeKeywordStateTable = function(start, strings, offset, length) {
-  var result = new ListFactory$KeywordState(26);
+  var result = new ListFactory(26);
   $assert(length != 0, "length != 0", "keyword.dart", 161, 12);
   var chunk = 0;
   var chunkStart = -1;
@@ -8243,7 +8034,7 @@ function NodeList(beginToken, nodes, endToken, delimiter) {
   // Initializers done
 }
 NodeList.singleton$ctor = function(node) {
-  NodeList.call(this, null, LinkFactory.createLink(node));
+  NodeList.call(this, null, LinkFactory.Link$factory(node));
   // Initializers done
 }
 NodeList.singleton$ctor.prototype = NodeList.prototype;
@@ -8933,7 +8724,7 @@ FunctionElement.prototype.computeType = function(compiler, types) {
   var node = (($0 = this.parseNode(compiler, compiler)) && $0.is$FunctionExpression());
   var returnType = getType(node.returnType, types);
   if (returnType == null) compiler.cancel(('unknown type ' + returnType + ''));
-  var parameterTypes = new LinkBuilderImplementation$Type();
+  var parameterTypes = new LinkBuilderImplementation();
   for (var link = node.parameters.nodes;
    !$notnull_bool(link.isEmpty$0()); link = link.get$tail()) {
     var parameter = (($0 = link.get$head()) && $0.is$VariableDefinitions());
@@ -9001,8 +8792,8 @@ function SsaBuilder(compiler, elements) {
 }
 SsaBuilder.prototype.is$Visitor = function(){return this;};
 SsaBuilder.prototype.build = function(parameters, body) {
-  this.stack = new ListFactory$HInstruction();
-  this.definitions = new HashMapImplementation$Element$HInstruction();
+  this.stack = new ListFactory();
+  this.definitions = new HashMapImplementation();
   this.graph = new HGraph();
   var block = this.graph.addNewBlock();
   this.open(this.graph.entry);
@@ -9157,7 +8948,7 @@ SsaBuilder.prototype.joinDefinitions = function(joinBlock, incoming1, incoming2)
   if (incoming1.get$length() > incoming2.get$length()) {
     return this.joinDefinitions(joinBlock, incoming2, incoming1);
   }
-  var joinedDefinitions = new HashMapImplementation$Element$HInstruction();
+  var joinedDefinitions = new HashMapImplementation();
   $assert(incoming1.get$length() <= incoming2.get$length(), "incoming1.length <= incoming2.length", "builder.dart", 259, 12);
   incoming1.forEach((function (element, instruction) {
     var $0;
@@ -9655,7 +9446,7 @@ HInstructionVisitor.prototype.visitBasicBlock = function(node) {
 }
 // ********** Code for HGraph **************
 function HGraph() {
-  this.blocks = new ListFactory$HBasicBlock();
+  this.blocks = new ListFactory();
   // Initializers done
   this.entry = this.addNewBlock();
   this.exit = new HBasicBlock();
@@ -11136,7 +10927,7 @@ ErrorMessages.duplicateDefinition = function(id) {
 // ********** Code for ResolverVisitor **************
 function ResolverVisitor(compiler) {
   this.compiler = compiler;
-  this.mapping = new LinkedHashMapImplementation$Node$Element();
+  this.mapping = new LinkedHashMapImplementation();
   this.context = new Scope(new TopScope(compiler.universe));
   // Initializers done
 }
@@ -12211,7 +12002,7 @@ function BlockScope(enclosingMethod, parent, reentrant) {
   this._vars = $map([]);
   // Initializers done
   if ($notnull_bool(this.get$isMethodScope())) {
-    this._closedOver = new HashSetImplementation$String();
+    this._closedOver = new HashSetImplementation();
   }
   else {
     this.reentrant = $notnull_bool(this.reentrant || this.parent.reentrant);
@@ -15068,7 +14859,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
       }
     }
     if (namedArgsUsed < args.get$nameCount()) {
-      var seen = new HashSetImplementation$String();
+      var seen = new HashSetImplementation();
       for (var i = bareCount;
        i < args.get$length(); i++) {
         var name = args.getName(i);
@@ -15146,7 +14937,7 @@ MethodMember.prototype._invokeConstructor = function(context, node, target, args
 }
 MethodMember.prototype._invokeConstConstructor = function(node, code, target, args) {
   var $0;
-  var fields = new HashMapImplementation$String$EvaluatedValue();
+  var fields = new HashMapImplementation();
   for (var i = 0;
    i < this.parameters.length; i++) {
     var param = this.parameters.$index(i);
@@ -15796,6 +15587,9 @@ FactoryMap.prototype.forEach = function(f) {
   })
   );
 }
+FactoryMap.prototype.getFactory$2 = function($0, $1) {
+  return this.getFactory($assert_String($0), $assert_String($1));
+};
 // ********** Code for lang_Token **************
 function lang_Token(kind, source, start, end) {
   this.kind = kind;
@@ -20255,6 +20049,9 @@ lang_Type.prototype.ensureSubtypeOf$3 = function($0, $1, $2) {
 lang_Type.prototype.getConstructor$1 = function($0) {
   return this.getConstructor($assert_String($0));
 };
+lang_Type.prototype.getFactory$2 = function($0, $1) {
+  return this.getFactory(($0 && $0.is$lang_Type()), $assert_String($1));
+};
 lang_Type.prototype.getMember$1 = function($0) {
   return this.getMember($assert_String($0));
 };
@@ -20468,6 +20265,9 @@ NonNullableType.prototype.addDirectSubtype$1 = function($0) {
 NonNullableType.prototype.getConstructor$1 = function($0) {
   return this.getConstructor($assert_String($0));
 };
+NonNullableType.prototype.getFactory$2 = function($0, $1) {
+  return this.getFactory(($0 && $0.is$lang_Type()), $assert_String($1));
+};
 NonNullableType.prototype.getMember$1 = function($0) {
   return this.getMember($assert_String($0));
 };
@@ -20590,6 +20390,8 @@ ConcreteType.prototype.getConstructor = function(constructorName) {
   if ($ne(genericMember.declaringType, this.genericType)) {
     if (!$notnull_bool(genericMember.declaringType.get$isGeneric())) return genericMember;
     var newDeclaringType = genericMember.declaringType.getOrMakeConcreteType(this.typeArgsInOrder);
+    var factory = newDeclaringType.getFactory$2(this.genericType, constructorName);
+    if (factory != null) return factory;
     return newDeclaringType.getConstructor$1(constructorName);
   }
   if ($notnull_bool(genericMember.get$isFactory())) {
@@ -20637,6 +20439,9 @@ ConcreteType.prototype.addDirectSubtype$1 = function($0) {
 ConcreteType.prototype.getConstructor$1 = function($0) {
   return this.getConstructor($assert_String($0));
 };
+ConcreteType.prototype.getFactory$2 = function($0, $1) {
+  return this.getFactory(($0 && $0.is$lang_Type()), $assert_String($1));
+};
 ConcreteType.prototype.getMember$1 = function($0) {
   return this.getMember($assert_String($0));
 };
@@ -20658,7 +20463,7 @@ function DefinedType(name, library, definition, isClass) {
   this.isNativeType = false
   this.library = library;
   this.isClass = isClass;
-  this.directSubtypes = new HashSetImplementation$Type();
+  this.directSubtypes = new HashSetImplementation();
   this.constructors = $map([]);
   this.members = $map([]);
   this.factories = new FactoryMap();
@@ -20694,7 +20499,7 @@ DefinedType.prototype.set$isUsed = function(value) { return this.isUsed = value;
 DefinedType.prototype.get$isNativeType = function() { return this.isNativeType; };
 DefinedType.prototype.set$isNativeType = function(value) { return this.isNativeType = value; };
 DefinedType.prototype.setDefinition = function(def) {
-  $assert(this.definition == null, "definition == null", "type.dart", 628, 12);
+  $assert(this.definition == null, "definition == null", "type.dart", 630, 12);
   this.definition = def;
   if ((this.definition instanceof TypeDefinition) && this.definition.get$nativeType() != null) {
     this.isNativeType = true;
@@ -20803,12 +20608,12 @@ DefinedType.prototype._resolveInterfaces = function(types) {
   return (interfaces && interfaces.is$List$Type());
 }
 DefinedType.prototype.addDirectSubtype = function(type) {
-  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 744, 12);
+  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 746, 12);
   this.directSubtypes.add(type);
 }
 DefinedType.prototype.get$subtypes = function() {
   if (this._subtypes == null) {
-    this._subtypes = new HashSetImplementation$Type();
+    this._subtypes = new HashSetImplementation();
     var $list = this.directSubtypes;
     for (var $i = this.directSubtypes.iterator(); $i.hasNext$0(); ) {
       var st = $i.next$0();
@@ -21230,7 +21035,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
   return this;
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
-  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1227, 12);
+  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1229, 12);
   var names = [this.name];
   var typeMap = $map([]);
   for (var i = 0;
@@ -21248,7 +21053,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return (ret && ret.is$lang_Type());
 }
 DefinedType.prototype.getCallStub = function(args) {
-  $assert(this.get$isFunction(), "isFunction", "type.dart", 1247, 12);
+  $assert(this.get$isFunction(), "isFunction", "type.dart", 1249, 12);
   var name = _getCallStubName('call', args);
   if (this.varStubs == null) this.varStubs = $map([]);
   var stub = this.varStubs.$index(name);
@@ -21266,6 +21071,9 @@ DefinedType.prototype.addMethod$2 = function($0, $1) {
 };
 DefinedType.prototype.getConstructor$1 = function($0) {
   return this.getConstructor($assert_String($0));
+};
+DefinedType.prototype.getFactory$2 = function($0, $1) {
+  return this.getFactory(($0 && $0.is$lang_Type()), $assert_String($1));
 };
 DefinedType.prototype.getMember$1 = function($0) {
   return this.getMember($assert_String($0));
@@ -21306,7 +21114,7 @@ FixedCollection.prototype.forEach = function(f) {
   Collections.forEach(this, f);
 }
 FixedCollection.prototype.filter = function(f) {
-  return Collections.filter(this, new ListFactory$E(), f);
+  return Collections.filter(this, new ListFactory(), f);
 }
 FixedCollection.prototype.some = function(f) {
   return Collections.some(this, f);
@@ -21736,7 +21544,7 @@ ConstMapValue._internal$ctor = function(type, values, actualValue, canonicalCode
 ConstMapValue._internal$ctor.prototype = ConstMapValue.prototype;
 $inherits(ConstMapValue, EvaluatedValue);
 ConstMapValue.ConstMapValue$factory = function(type, keyValuePairs, actualValue, canonicalCode, span) {
-  var values = new HashMapImplementation$String$EvaluatedValue();
+  var values = new HashMapImplementation();
   for (var i = 0;
    i < keyValuePairs.length; i += 2) {
     values.$setindex(keyValuePairs.$index(i).get$actualValue(), keyValuePairs.$index(i + 1));
