@@ -1,4 +1,4 @@
-#import('dart:dom');
+#import('dart:html');
 
 class %className%%extends%%implements% {
 
@@ -10,11 +10,8 @@ class %className%%extends%%implements% {
   }
 
   void write(String message) {
-    // the DOM library defines a global "window" variable
-    HTMLDocument doc = window.document;
-    HTMLParagraphElement p = doc.createElement('p');
-    p.textContent = message;
-    doc.body.appendChild(p);
+    // the HTML library defines a global "document" variable
+    document.query('#status').innerHTML = message;
   }
 }
 
