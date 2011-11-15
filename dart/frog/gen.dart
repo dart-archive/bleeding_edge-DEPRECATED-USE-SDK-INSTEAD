@@ -43,7 +43,7 @@ class WorldGenerator {
     writeTypes(main.declaringType.library);
 
     _writeGlobals();
-    writer.writeln('RunEntry(function () {${mainCall.code};}, []);');
+    writer.writeln('RunEntry(function() {${mainCall.code};}, []);');
   }
 
   GlobalValue globalForStaticField(FieldMember field, Value fieldValue,
@@ -1596,16 +1596,16 @@ class MethodGenerator implements TreeVisitor {
     final kind = node.op.kind;
     // TODO(jimhug): Ensure these have same semantics as JS!
     if (kind == TokenKind.AND || kind == TokenKind.OR) {
-      var x = visitValue(node.x);
-      var y = visitValue(node.y);
+      var x = visitTypedValue(node.x, world.nonNullBool);
+      var y = visitTypedValue(node.y, world.nonNullBool);
       final code = '${x.code} ${node.op} ${y.code}';
       if (x.isConst && y.isConst) {
         var value = (kind == TokenKind.AND)
             ? x.actualValue && y.actualValue : x.actualValue || y.actualValue;
-        return new EvaluatedValue(x.type, value, '$value', node.span);
+        return new EvaluatedValue(world.nonNullBool, value, '$value',
+            node.span);
       }
-      var ret = new Value(Type.union(x.type, y.type), code, node.span);
-      return ret.convertTo(this, world.nonNullBool, node);
+      return new Value(world.nonNullBool, code, node.span);
     } else if (kind == TokenKind.EQ_STRICT || kind == TokenKind.NE_STRICT) {
       var x = visitValue(node.x);
       var y = visitValue(node.y);
