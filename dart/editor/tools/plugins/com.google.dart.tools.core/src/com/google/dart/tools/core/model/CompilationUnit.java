@@ -166,4 +166,13 @@ public interface CompilationUnit extends CodeAssistElement, SourceFileElement<Co
    * @throws DartModelException if the types defined in this compilation unit cannot be determined
    */
   public Type[] getTypes() throws DartModelException;
+
+  /**
+   * Return true if this compilation unit contains a top level function main().
+   * 
+   * @return if this compilation unit contains a top level function main()
+   * @throws DartModelException
+   */
+  public boolean hasMain() throws DartModelException;
+
 }

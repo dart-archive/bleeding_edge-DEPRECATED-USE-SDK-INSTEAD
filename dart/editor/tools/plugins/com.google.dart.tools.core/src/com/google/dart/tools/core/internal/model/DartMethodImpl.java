@@ -128,6 +128,11 @@ public class DartMethodImpl extends NamedTypeMemberImpl implements Method {
   }
 
   @Override
+  public boolean isMain() {
+    return false;
+  }
+
+  @Override
   public boolean isSetter() {
     return getModifiers().isSetter();
   }
@@ -158,4 +163,5 @@ public class DartMethodImpl extends NamedTypeMemberImpl implements Method {
   protected char getHandleMementoDelimiter() {
     return MEMENTO_DELIMITER_METHOD;
   }
+
 }

@@ -59,4 +59,12 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
    * @throws DartModelException if the return type of this function cannot be accessed
    */
   public String getReturnTypeName() throws DartModelException;
+
+  /**
+   * Returns whether this function is an entry point.
+   * 
+   * @return whether this function is an entry point
+   */
+  public boolean isMain();
+
 }

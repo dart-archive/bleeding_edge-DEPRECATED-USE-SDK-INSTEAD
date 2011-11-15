@@ -65,6 +65,9 @@ public class DartElementImageProvider {
 
   private static ImageDescriptor DESC_READ_ONLY;
 
+  private static ImageDescriptor DESC_LAUNCHABLE;
+  private static ImageDescriptor DESC_MAIN_TYPE;
+
   public static Image getDecoratedImage(ImageDescriptor baseImage, int adornments, Point size) {
     return DartToolsPlugin.getImageDescriptorRegistry().get(
         new DartElementImageDescriptor(baseImage, adornments, size));
@@ -112,6 +115,11 @@ public class DartElementImageProvider {
     return true;
   }
 
+  private static ImageDescriptor decorate(ImageDescriptor main, ImageDescriptor badge) {
+    return new DecorationOverlayIcon(DartToolsPlugin.getImageDescriptorRegistry().get(main), badge,
+        IDecoration.BOTTOM_RIGHT);
+  }
+
   private static ImageDescriptor getClassImageDescriptor(boolean isPrivate) {
     if (isPrivate) {
       return DartPluginImages.DESC_DART_CLASS_PRIVATE;
@@ -149,6 +157,8 @@ public class DartElementImageProvider {
     DESC_OBJ_PROJECT_CLOSED = images.getImageDescriptor(IDE.SharedImages.IMG_OBJ_PROJECT_CLOSED);
     DESC_OBJ_PROJECT = images.getImageDescriptor(IDE.SharedImages.IMG_OBJ_PROJECT);
     DESC_READ_ONLY = DartToolsPlugin.getImageDescriptor("icons/full/ovr16/lock_ovr.png");
+    DESC_LAUNCHABLE = DartToolsPlugin.getImageDescriptor("icons/full/ovr16/run_co.gif");
+    DESC_MAIN_TYPE = DartToolsPlugin.getImageDescriptor("icons/full/ovr16/owned_ovr.gif");
   }
 
   private ImageDescriptorRegistry fRegistry;
@@ -180,7 +190,7 @@ public class DartElementImageProvider {
         return getFieldImageDescriptor(false, member.isPrivate());
       }
       case DartElement.HTML_FILE: {
-        return DartPluginImages.DESC_DART_HTML_FILE;
+        return decorate(DartPluginImages.DESC_DART_HTML_FILE, DESC_LAUNCHABLE);
       }
 //        case DartElement.LOCAL_VARIABLE:
 //          return JavaPluginImages.DESC_OBJS_LOCAL_VARIABLE;
@@ -201,7 +211,7 @@ public class DartElementImageProvider {
       }
 
       case DartElement.COMPILATION_UNIT:
-        return DartPluginImages.DESC_DART_COMP_UNIT;
+        return getCompilationUnitDescriptor((CompilationUnit) element);
 
       case DartElement.LIBRARY:
         return getLibraryImageDescriptor(renderFlags);
@@ -393,8 +403,23 @@ public class DartElementImageProvider {
   }
 
   private ImageDescriptor decorateReadOnly(ImageDescriptor imageDescriptor) {
-    return new DecorationOverlayIcon(DartToolsPlugin.getImageDescriptorRegistry().get(
-        imageDescriptor), DESC_READ_ONLY, IDecoration.BOTTOM_RIGHT);
+    return decorate(imageDescriptor, DESC_READ_ONLY);
+  }
+
+  private ImageDescriptor getCompilationUnitDescriptor(CompilationUnit element) {
+    boolean hasMain;
+
+    try {
+      hasMain = element.hasMain();
+    } catch (DartModelException e) {
+      hasMain = false;
+    }
+
+    if (hasMain) {
+      return decorate(DartPluginImages.DESC_DART_COMP_UNIT, DESC_MAIN_TYPE);
+    } else {
+      return DartPluginImages.DESC_DART_COMP_UNIT;
+    }
   }
 
   private Image getImageLabel(ImageDescriptor descriptor) {

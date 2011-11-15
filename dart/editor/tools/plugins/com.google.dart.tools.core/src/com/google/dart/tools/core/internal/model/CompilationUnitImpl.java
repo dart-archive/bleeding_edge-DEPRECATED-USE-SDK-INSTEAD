@@ -1279,6 +1279,19 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
   }
 
   @Override
+  public boolean hasMain() throws DartModelException {
+    List<com.google.dart.tools.core.model.DartFunction> functions = getChildrenOfType(com.google.dart.tools.core.model.DartFunction.class);
+
+    for (com.google.dart.tools.core.model.DartFunction function : functions) {
+      if (function.isMain()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  @Override
   public boolean hasResourceChanged() {
     if (!isWorkingCopy()) {
       return false;
