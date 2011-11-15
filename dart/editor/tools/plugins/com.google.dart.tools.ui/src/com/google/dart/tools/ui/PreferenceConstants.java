@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui;
@@ -1292,7 +1290,7 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
   public final static String EDITOR_STRING_COLOR = IDartColorConstants.JAVA_STRING;
-  
+
   /**
    * A named preference that holds the color used to render multi-line string constants.
    */
@@ -3244,7 +3242,7 @@ public class PreferenceConstants {
    */
   @SuppressWarnings("deprecation")
   public static void initializeDefaultValues(IPreferenceStore store) {
-    ColorRegistry registry = PlatformUI.getWorkbench().getThemeManager().getCurrentTheme().getColorRegistry();
+    ColorRegistry registry = getColorRegistry();
     store.setDefault(PreferenceConstants.EDITOR_SHOW_SEGMENTS, false);
 
     // JavaBasePreferencePage
@@ -3625,11 +3623,28 @@ public class PreferenceConstants {
    * @return RGB the RGB
    */
   private static RGB findRGB(ColorRegistry registry, String key, RGB defaultRGB) {
+    if (registry == null) {
+      return defaultRGB;
+    }
     RGB rgb = registry.getRGB(key);
     if (rgb != null) {
       return rgb;
     }
     return defaultRGB;
+  }
+
+  /**
+   * Return the system color registry, or <code>null</code> if the registry cannot be accessed for
+   * some reason (such as the workbench not existing when running headless tests).
+   * 
+   * @return the system color registry
+   */
+  private static ColorRegistry getColorRegistry() {
+    try {
+      return PlatformUI.getWorkbench().getThemeManager().getCurrentTheme().getColorRegistry();
+    } catch (Exception exception) {
+      return null;
+    }
   }
 
   /**
