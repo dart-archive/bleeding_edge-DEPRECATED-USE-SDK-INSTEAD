@@ -25,10 +25,12 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.test.util.FileOperation;
+import com.google.dart.tools.core.test.util.MoneyProjectUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -40,6 +42,22 @@ import java.lang.reflect.Method;
 import java.util.Set;
 
 public class DartModelManagerTest extends TestCase {
+  public void test_DartModelManager_create_file_exist() throws Exception {
+    DartProject moneyProject = MoneyProjectUtilities.getMoneyProject();
+    IFile file = moneyProject.getProject().getFile("money.dart");
+    DartElementImpl element = DartModelManager.getInstance().create(file);
+    assertNotNull(element);
+    assertTrue(element instanceof CompilationUnitImpl);
+    assertTrue(element.exists());
+  }
+
+  public void test_DartModelManager_create_file_nonExist() throws Exception {
+    DartProject moneyProject = MoneyProjectUtilities.getMoneyProject();
+    IFile file = moneyProject.getProject().getFile("doesNotExist.dart");
+    DartElementImpl element = DartModelManager.getInstance().create(file);
+    assertNull(element);
+  }
+
   public void test_DartModelManager_getBaseLibraryName_directive() throws Exception {
     String libraryName = "library";
     DartUnit unit = new DartUnit(new TestDartSource("test.dart", "#library('" + libraryName + "')"));
