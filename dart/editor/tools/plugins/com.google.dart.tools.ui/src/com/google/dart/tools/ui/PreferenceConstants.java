@@ -3643,7 +3643,7 @@ public class PreferenceConstants {
     try {
       return PlatformUI.getWorkbench().getThemeManager().getCurrentTheme().getColorRegistry();
     } catch (Exception exception) {
-      DartToolsPlugin.log("Could not access the workbench", exception);
+      DartToolsPlugin.log("INFO: Could not access the workbench", exception);
       return null;
     }
   }
@@ -3660,10 +3660,10 @@ public class PreferenceConstants {
     if (store.isDefault(key)) {
       try {
         oldValue = PreferenceConverter.getDefaultColor(store, key);
-      } catch (Exception exception) {
+      } catch (Throwable exception) {
         // Leave oldValue == null to avoid firing a property change event.
-        DartToolsPlugin.log(
-            "Could not get the default value for the color preference named " + key, exception);
+        DartToolsPlugin.log("INFO: Could not get the default value for the color preference named "
+            + key, exception);
       }
     }
 
