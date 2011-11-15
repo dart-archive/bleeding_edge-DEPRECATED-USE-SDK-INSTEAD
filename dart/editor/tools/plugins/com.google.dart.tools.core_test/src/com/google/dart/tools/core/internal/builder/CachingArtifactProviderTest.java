@@ -27,6 +27,42 @@ import java.io.Writer;
 
 public class CachingArtifactProviderTest extends TestCase {
 
+  public void test_CachingArtifactProvider_clearCachedArtifacts() throws IOException {
+    CachingArtifactProvider provider = newProvider();
+    assertEquals(0, provider.getCacheSize());
+
+    writeArtifact1(provider);
+    assertEquals(1, provider.getCacheSize());
+    readArtifact1(provider);
+
+    provider.clearCachedArtifacts();
+    assertEquals(0, provider.getCacheSize());
+    assertNull(provider.getArtifactReader(getSource1(), "", "js"));
+  }
+
+  public void test_CachingArtifactProvider_remove1() throws Exception {
+    CachingArtifactProvider provider = newProvider();
+    writeArtifact1(provider);
+    writeArtifact1a(provider);
+    writeArtifact2(provider);
+
+    provider.removeArtifactsFor(getSource1());
+    assertEquals(1, provider.getCacheSize());
+    readArtifact2(provider);
+  }
+
+  public void test_CachingArtifactProvider_remove2() throws Exception {
+    CachingArtifactProvider provider = newProvider();
+    writeArtifact1(provider);
+    writeArtifact1a(provider);
+    writeArtifact2(provider);
+
+    provider.removeArtifactsFor(getSource2());
+    assertEquals(2, provider.getCacheSize());
+    readArtifact1(provider);
+    readArtifact1a(provider);
+  }
+
   public void test_CachingArtifactProvider_saveAndLoad() throws Exception {
     TestUtilities.runWithTempDirectory(new FileOperation() {
 
@@ -39,33 +75,56 @@ public class CachingArtifactProviderTest extends TestCase {
 
   public void test_CachingArtifactProvider_saveAndLoad(File tempDir) throws IOException {
     File cacheFile = new File(tempDir, "artifacts.zip");
-    long now = System.currentTimeMillis();
+    long startTime = System.currentTimeMillis();
 
     // Populate and save artifacts
-    CachingArtifactProvider provider = new CachingArtifactProvider() {
-    };
-    writeArtifact(provider, getSource1(), "", "js", getArtifact1());
-    writeArtifact(provider, getSource2(), "boo", "js", getArtifact2());
-    assertEquals(2, provider.getCacheSize());
+    CachingArtifactProvider provider = newProvider();
+    writeArtifact1(provider);
+    writeArtifact1a(provider);
+    writeArtifact2(provider);
+
+    final int expectedArtifactCount = 3;
+    assertEquals(expectedArtifactCount, provider.getCacheSize());
     int saveCount = provider.saveCachedArtifacts(cacheFile);
-    assertEquals(2, saveCount);
+    assertEquals(expectedArtifactCount, saveCount);
     long lastModified1 = provider.getArtifactLastModified(getSource1(), getSource1(), "js");
-    assertTrue(lastModified1 >= now);
+    assertTrue(lastModified1 >= startTime);
     assertTrue(lastModified1 <= System.currentTimeMillis());
 
     // Load and validate artifacts
-    provider = new CachingArtifactProvider() {
-    };
+    provider = newProvider();
     int loadCount = provider.loadCachedArtifacts(cacheFile);
-    assertEquals(saveCount, loadCount);
-    assertEquals(saveCount, provider.getCacheSize());
-    readArtifact(provider, getSource1(), "", "js", getArtifact1());
-    readArtifact(provider, getSource2(), "boo", "js", getArtifact2());
+    assertEquals(expectedArtifactCount, loadCount);
+    assertEquals(expectedArtifactCount, provider.getCacheSize());
+    readArtifact1(provider);
+    readArtifact1a(provider);
+    readArtifact2(provider);
     assertEquals(lastModified1, provider.getArtifactLastModified(getSource1(), getSource1(), "js"));
+  }
+
+  public void test_CachingArtifactProvider_writeAndRead() throws Exception {
+    CachingArtifactProvider provider = newProvider();
+
+    writeArtifact1(provider);
+    readArtifact1(provider);
+
+    writeArtifact1a(provider);
+    assertEquals(2, provider.getCacheSize());
+    readArtifact1(provider);
+    readArtifact1a(provider);
+
+    writeArtifact2(provider);
+    readArtifact1(provider);
+    readArtifact1a(provider);
+    readArtifact2(provider);
   }
 
   private String getArtifact1() {
     return "a;klsdjf this is artifact 1 a;sdkljf";
+  }
+
+  private String getArtifact1a() {
+    return "a;wewerdsf this is artifact 1a a;vwevzezs";
   }
 
   private String getArtifact2() {
@@ -80,6 +139,11 @@ public class CachingArtifactProviderTest extends TestCase {
     return new DartSourceString("bar", "class bar { }");
   }
 
+  private CachingArtifactProvider newProvider() {
+    return new CachingArtifactProvider() {
+    };
+  }
+
   private void readArtifact(CachingArtifactProvider provider, DartSourceString source, String part,
       String extension, String artifact) throws IOException {
     Reader reader = provider.getArtifactReader(source, part, extension);
@@ -91,10 +155,34 @@ public class CachingArtifactProviderTest extends TestCase {
     assertEquals(artifact, actual);
   }
 
+  private void readArtifact1(CachingArtifactProvider provider) throws IOException {
+    readArtifact(provider, getSource1(), "", "js", getArtifact1());
+  }
+
+  private void readArtifact1a(CachingArtifactProvider provider) throws IOException {
+    readArtifact(provider, getSource1(), "a", "js", getArtifact1a());
+  }
+
+  private void readArtifact2(CachingArtifactProvider provider) throws IOException {
+    readArtifact(provider, getSource2(), "boo", "js", getArtifact2());
+  }
+
   private void writeArtifact(CachingArtifactProvider provider, DartSourceString source,
       String part, String extension, String artifact) throws IOException {
     Writer writer = provider.getArtifactWriter(source, part, extension);
     writer.append(artifact);
     writer.close();
+  }
+
+  private void writeArtifact1(CachingArtifactProvider provider) throws IOException {
+    writeArtifact(provider, getSource1(), "", "js", getArtifact1());
+  }
+
+  private void writeArtifact1a(CachingArtifactProvider provider) throws IOException {
+    writeArtifact(provider, getSource1(), "a", "js", getArtifact1a());
+  }
+
+  private void writeArtifact2(CachingArtifactProvider provider) throws IOException {
+    writeArtifact(provider, getSource2(), "boo", "js", getArtifact2());
   }
 }

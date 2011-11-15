@@ -13,51 +13,175 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.compiler.DartArtifactProvider;
+import com.google.common.io.Closeables;
 import com.google.dart.compiler.DartSource;
+import com.google.dart.compiler.LibrarySource;
+import com.google.dart.compiler.UrlDartSource;
+import com.google.dart.tools.core.generator.ApplicationGenerator;
+import com.google.dart.tools.core.generator.FileGenerator;
+import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.model.DartLibrary;
-
-import static com.google.dart.tools.core.test.util.MoneyProjectUtilities.getMoneyLibrary;
+import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.test.util.FileUtilities;
+import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
+
+import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.util.Random;
 
 public class RootArtifactProviderTest extends TestCase {
+  private static final String RANDOM_EXT1 = "jsx" + new Random().nextInt();
+  private static final String RANDOM_EXT2 = "jsx" + new Random().nextInt();
+  private static final String RANDOM_CONTENT1 = "some-random-text-" + new Random().nextFloat();
+  private static final String RANDOM_CONTENT2 = "some-random-text-" + new Random().nextFloat();
+  private static int appCount = 0;
 
-  private static final String RANDOM_EXT = "jsx" + new Random().nextInt();
-  private static final String RANDOM_CONTENT = "some-random-text-" + new Random().nextFloat();
+  private File tempDir;
+  private RootArtifactProvider provider;
+  private DartLibraryImpl app;
+  private CompilationUnitImpl unit1;
+  private DartSource source1;
+  private CompilationUnitImpl unit2;
+  private DartSource source2;
 
-  private static DartSource getSource() throws Exception {
-    DartLibrary lib = getMoneyLibrary();
-    return ((DartLibraryImpl) lib).getLibrarySourceFile().getSourceFor("currency.dart");
+  public void test_RootArtifactProvider_closeProject() throws Exception {
+    writeArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+    writeArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
+    assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+    assertArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
+    IProject project = unit1.getLibrary().getDartProject().getProject();
+    project.close(new NullProgressMonitor());
+    assertArtifact(source1, "", RANDOM_EXT1, null);
+    assertArtifact(source2, "", RANDOM_EXT2, null);
+    project.open(new NullProgressMonitor());
+    project.delete(true, true, new NullProgressMonitor());
+  }
+
+  public void test_RootArtifactProvider_deleteClass() throws Exception {
+    writeArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+    writeArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
+    assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+    assertArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
+    unit2.getResource().delete(false, new NullProgressMonitor());
+    assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+    assertArtifact(source2, "", RANDOM_EXT2, null);
+  }
+
+  public void test_RootArtifactProvider_deleteDefiningCompUnit() throws Exception {
+    writeArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+    writeArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
+    assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+    assertArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
+    unit1.getResource().delete(false, new NullProgressMonitor());
+    assertArtifact(source1, "", RANDOM_EXT1, null);
+    assertArtifact(source2, "", RANDOM_EXT2, null);
+  }
+
+  public void test_RootArtifactProvider_deleteProject() throws Exception {
+    writeArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+    writeArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
+    assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+    assertArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
+    unit1.getLibrary().getDartProject().getProject().delete(true, true, new NullProgressMonitor());
+    assertArtifact(source1, "", RANDOM_EXT1, null);
+    assertArtifact(source2, "", RANDOM_EXT2, null);
   }
 
   public void test_RootArtifactProvider_getArtifactUri() throws Exception {
-    DartArtifactProvider provider = RootArtifactProvider.newInstanceForTesting();
-    URI uri = provider.getArtifactUri(getSource(), "", RANDOM_EXT);
-    assertEquals(RANDOM_EXT, uri.getPath().substring(uri.getPath().lastIndexOf(".") + 1));
+    URI uri = provider.getArtifactUri(source1, "", RANDOM_EXT1);
+    assertEquals(RANDOM_EXT1, uri.getPath().substring(uri.getPath().lastIndexOf(".") + 1));
   }
 
   public void test_RootArtifactProvider_readNonExistant() throws Exception {
-    DartArtifactProvider provider = RootArtifactProvider.newInstanceForTesting();
-    Reader reader = provider.getArtifactReader(getSource(), "", "doesnotexist");
-    assertNull(reader);
+    assertArtifact(source1, "", "doesnotexist", null);
   }
 
   public void test_RootArtifactProvider_writeThenRead() throws Exception {
-    DartArtifactProvider provider = RootArtifactProvider.newInstanceForTesting();
-    Writer writer = provider.getArtifactWriter(getSource(), "", RANDOM_EXT);
-    writer.append(RANDOM_CONTENT);
-    writer.close();
+    writeArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+    assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+  }
 
-    Reader reader = provider.getArtifactReader(getSource(), "", RANDOM_EXT);
-    char[] cbuf = new char[1000];
-    int len = reader.read(cbuf);
-    assertEquals(RANDOM_CONTENT, new String(cbuf, 0, len));
+  @Override
+  protected void setUp() throws Exception {
+    tempDir = TestUtilities.createTempDirectory();
+    provider = RootArtifactProvider.newInstanceForTesting();
+    generateApp();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    provider.dispose();
+    FileUtilities.delete(tempDir);
+  }
+
+  private void assertArtifact(DartSource source, String part, String extension, String expected)
+      throws IOException {
+    Reader reader = provider.getArtifactReader(source, part, extension);
+    if (reader != null) {
+      boolean failed = true;
+      try {
+        char[] cbuf = new char[1000];
+        int len = reader.read(cbuf);
+        assertEquals(expected, new String(cbuf, 0, len));
+        failed = false;
+      } finally {
+        Closeables.close(reader, failed);
+      }
+    } else {
+      assertEquals(expected, null);
+    }
+  }
+
+  private void generateApp() throws CoreException, DartModelException {
+    appCount++;
+
+    ApplicationGenerator appGen = new ApplicationGenerator();
+    appGen.setApplicationLocation(tempDir.getAbsolutePath());
+    appGen.setApplicationName(getClass().getSimpleName() + appCount);
+    appGen.execute(new NullProgressMonitor());
+    CompilationUnitImpl unit = (CompilationUnitImpl) DartModelManager.getInstance().create(
+        appGen.getFile());
+    app = (DartLibraryImpl) unit.getLibrary();
+    unit1 = (CompilationUnitImpl) app.getDefiningCompilationUnit();
+    source1 = getSourceForUnit(unit1);
+
+    String fileName = "MyClass" + appCount + ".dart";
+    FileGenerator fileGen = new FileGenerator();
+    fileGen.setLibrary(app);
+    fileGen.setFileLocation(unit1.getResource().getLocation().removeLastSegments(1).toString());
+    fileGen.setFileName(fileName);
+    fileGen.execute(new NullProgressMonitor());
+    unit2 = (CompilationUnitImpl) DartModelManager.getInstance().create(fileGen.getFile());
+    source2 = getSourceForUnit(unit2);
+
+    assertEquals(unit1.getLibrary(), unit2.getLibrary());
+  }
+
+  private DartSource getSourceForUnit(CompilationUnitImpl unit) {
+    File srcFile = unit.getResource().getLocation().toFile();
+    LibrarySource libSrc = ((DartLibraryImpl) unit.getLibrary()).getLibrarySourceFile();
+    return new UrlDartSource(srcFile, libSrc);
+  }
+
+  private void writeArtifact(DartSource source, String part, String extension, String content)
+      throws IOException {
+    Writer writer = provider.getArtifactWriter(source, part, extension);
+    boolean failed = true;
+    try {
+      writer.append(content);
+      failed = false;
+    } finally {
+      Closeables.close(writer, failed);
+    }
   }
 }

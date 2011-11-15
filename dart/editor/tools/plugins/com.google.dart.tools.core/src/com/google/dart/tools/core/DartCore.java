@@ -14,6 +14,7 @@
 package com.google.dart.tools.core;
 
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
+import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.operation.BatchOperation;
@@ -664,6 +665,7 @@ public class DartCore extends Plugin {
   public void stop(BundleContext context) throws Exception {
     try {
       DartModelManager.shutdown();
+      RootArtifactProvider.shutdown();
 
       StringWriter writer = new StringWriter();
       PerformanceManager.getInstance().printMetrics(new PrintWriter(writer));

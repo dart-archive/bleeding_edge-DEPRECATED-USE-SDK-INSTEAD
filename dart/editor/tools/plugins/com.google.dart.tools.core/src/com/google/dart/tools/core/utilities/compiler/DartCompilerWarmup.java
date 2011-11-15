@@ -34,18 +34,12 @@ import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.compiler.LoggingDartCompilerListener;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.osgi.service.datalocation.Location;
-
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
-import java.net.URL;
 
 /**
  * Utility class for "warming up" the compiler by loading artifacts and performing some simple
@@ -197,14 +191,7 @@ public class DartCompilerWarmup {
   public static void warmUpCompiler() {
     RootArtifactProvider rootProvider = RootArtifactProvider.getInstance();
     LoggingDartCompilerListener listener = LoggingDartCompilerListener.INSTANCE;
-    File cacheFile = getArtifactCacheFile();
-    if (cacheFile != null) {
-      loadCachedArtifacts(rootProvider, cacheFile);
-    }
     warmUpCompiler(rootProvider, listener);
-    if (cacheFile != null && !cacheFile.exists()) {
-      saveCachedArtifacts(rootProvider, cacheFile);
-    }
   }
 
   /**
@@ -245,94 +232,6 @@ public class DartCompilerWarmup {
       ps.println(rootProvider.getCacheSize() + " artifacts cached after warmup");
       metrics.write(ps);
       DartCore.logInformation(out.toString());
-    }
-  }
-
-  /**
-   * Answer the artifact.cache file
-   * 
-   * @return the file (may not exist) or <code>null</code> if it could not be determined
-   */
-  private static File getArtifactCacheFile() {
-    Location workspaceLoc = Platform.getInstanceLocation();
-    if (workspaceLoc == null) {
-      DartCore.logInformation("Load precompiled artifacts failed: workspace location null");
-      return null;
-    }
-    URL workspaceUrl = null;
-    try {
-      workspaceUrl = FileLocator.toFileURL(workspaceLoc.getURL());
-    } catch (IOException e) {
-      DartCore.logError("Load precompiled artifacts failed", e);
-      return null;
-    }
-    if (workspaceUrl == null) {
-      DartCore.logInformation("Load precompiled artifacts failed: workspace URL null");
-      return null;
-    }
-    File workspaceDir = new File(workspaceUrl.getFile());
-    if (!workspaceDir.exists()) {
-      DartCore.logInformation("Load precompiled artifacts failed: workspace dir does not exist: "
-          + workspaceDir);
-      return null;
-    }
-    File cacheFile = new File(workspaceDir, "artifact.cache");
-    return cacheFile;
-  }
-
-  /**
-   * Load artifacts from disk if they were cached from the prior session's warmup
-   * 
-   * @param provider the artifact provider to be populated (not <code>null</code>)
-   * @param cacheFile the file from which artifacts should be loaded (not <code>null</code>)
-   */
-  private static void loadCachedArtifacts(CachingArtifactProvider provider, File cacheFile) {
-    if (!cacheFile.exists()) {
-      if (DartCoreDebug.WARMUP) {
-        DartCore.logInformation("No cached artifacts file " + cacheFile);
-      }
-      return;
-    }
-    int artifactCount;
-    long delta;
-    try {
-      long start = System.currentTimeMillis();
-      artifactCount = provider.loadCachedArtifacts(cacheFile);
-      delta = System.currentTimeMillis() - start;
-      // If failed to read artifacts, then delete file so that it will be recreated
-      if (artifactCount == 0) {
-        cacheFile.delete();
-      }
-    } catch (IOException e) {
-      DartCore.logError("Load precompiled artifacts failed", e);
-      return;
-    }
-    if (DartCoreDebug.WARMUP) {
-      DartCore.logInformation("Loaded " + artifactCount + " cached artifacts in " + delta
-          + " ms from " + cacheFile);
-    }
-  }
-
-  /**
-   * Save artifacts to disk to be loaded during the next session's warmup
-   * 
-   * @param provider the artifact provider to be populated (not <code>null</code>)
-   * @param cacheFile the file to which artifacts should be saved (not <code>null</code>)
-   */
-  private static void saveCachedArtifacts(RootArtifactProvider provider, File cacheFile) {
-    int artifactCount;
-    long delta;
-    try {
-      long start = System.currentTimeMillis();
-      artifactCount = provider.saveCachedArtifacts(cacheFile);
-      delta = System.currentTimeMillis() - start;
-    } catch (IOException e) {
-      DartCore.logError("Failed to save artifacts: " + cacheFile, e);
-      return;
-    }
-    if (DartCoreDebug.WARMUP) {
-      DartCore.logInformation("Saved " + artifactCount + " artifacts in " + delta + " ms to "
-          + cacheFile);
     }
   }
 }

@@ -94,7 +94,7 @@ public class DartUIStartup implements IStartup {
   }
 
   private static StartupJob startupJob;
-  private static Object startupSync = new Object();
+  private static final Object startupSync = new Object();
 
   public static void cancelStartup() {
     synchronized (startupSync) {

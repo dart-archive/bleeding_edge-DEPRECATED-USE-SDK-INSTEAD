@@ -13,27 +13,313 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
+import com.google.dart.compiler.UrlDartSource;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
+import com.google.dart.tools.core.internal.model.DartElementImpl;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartModelException;
+
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * A singleton which caches artifacts for the session
  */
 public class RootArtifactProvider extends CachingArtifactProvider {
-  private static final RootArtifactProvider INSTANCE = new RootArtifactProvider();
+
+  /**
+   * Internal class for pruning the cached artifacts based upon workspace lifecycle events. This is
+   * necessary because the resource path is incorrect for linked resources that have been removed
+   * thus we must use a workspace {@link LifecycleListener} to detect linked resources just prior to
+   * removal.
+   */
+  @SuppressWarnings("restriction")
+  private static class LifecycleListener extends SourceChangeListener implements
+      org.eclipse.core.internal.events.ILifecycleListener {
+
+    static void hookListener() {
+      org.eclipse.core.internal.resources.Workspace workspace;
+      workspace = (org.eclipse.core.internal.resources.Workspace) ResourcesPlugin.getWorkspace();
+      workspace.addLifecycleListener(new LifecycleListener());
+    }
+
+    @Override
+    public void handleEvent(org.eclipse.core.internal.events.LifecycleEvent event)
+        throws CoreException {
+      if ((event.kind & org.eclipse.core.internal.events.LifecycleEvent.PRE_LINK_DELETE) > 0
+          || (event.kind & org.eclipse.core.internal.events.LifecycleEvent.PRE_PROJECT_DELETE) > 0) {
+        IResource res = event.resource;
+        if (res != null) {
+          remove(res);
+        }
+      }
+    }
+  }
+
+  /**
+   * Internal class for pruning the cached artifacts based upon resource changes
+   */
+  private static class ResourceChangeListener extends SourceChangeListener implements
+      IResourceChangeListener, IResourceDeltaVisitor {
+
+    static void hookListener() {
+      IWorkspace workspace = ResourcesPlugin.getWorkspace();
+      workspace.addResourceChangeListener(new ResourceChangeListener(),
+          IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.POST_CHANGE);
+    }
+
+    @Override
+    public void resourceChanged(IResourceChangeEvent event) {
+      if (event.getType() == IResourceChangeEvent.PRE_CLOSE) {
+        try {
+          remove(event.getResource());
+        } catch (CoreException e) {
+          DartCore.logError(e);
+        }
+      } else {
+        IResourceDelta delta = event.getDelta();
+        try {
+          if (delta != null) {
+            delta.accept(this);
+          }
+        } catch (CoreException e) {
+          DartCore.logError(e);
+        }
+      }
+    }
+
+    @Override
+    public boolean visit(IResourceDelta delta) throws CoreException {
+      switch (delta.getKind()) {
+        case IResourceDelta.CHANGED:
+          return true;
+
+        case IResourceDelta.REMOVED:
+          // This works for resources in the workspace
+          // but the resource path is incorrect for linked resources that have been removed
+          // so we must use a workspace LifecycleListener as well
+          remove(delta.getResource());
+          return false;
+        default:
+          return false;
+      }
+    }
+  }
+
+  /**
+   * Abstract superclass for sharing listener behavior
+   */
+  private static class SourceChangeListener {
+
+    protected void remove(IResource res) throws CoreException {
+      RootArtifactProvider provider = INSTANCE;
+      while (provider != null) {
+        provider.removeResource(res);
+        provider = provider.nextProvider;
+      }
+    }
+
+  }
+
+  private static final Object lock = new Object();
+  private static RootArtifactProvider INSTANCE;
 
   /**
    * Answer the root artifact provider shared by all throughout the session.
    */
   public static RootArtifactProvider getInstance() {
+    synchronized (lock) {
+      if (INSTANCE == null) {
+        INSTANCE = new RootArtifactProvider();
+        loadArtifacts();
+        LifecycleListener.hookListener();
+        ResourceChangeListener.hookListener();
+      }
+    }
     return INSTANCE;
   }
 
   /**
-   * Answer a new instance for testing purposes only
+   * Answer a new instance for testing purposes only. Tests must call {@link #dispose()} when the
+   * test is complete.
    */
   public static RootArtifactProvider newInstanceForTesting() {
-    return new RootArtifactProvider();
+    RootArtifactProvider newProvider = new RootArtifactProvider();
+    RootArtifactProvider root = getInstance();
+    synchronized (lock) {
+      newProvider.nextProvider = root.nextProvider;
+      root.nextProvider = newProvider;
+    }
+    return newProvider;
   }
 
+  /**
+   * Save the artifacts cached by the root artifact provider
+   */
+  public static void shutdown() {
+    synchronized (lock) {
+      if (INSTANCE != null) {
+        saveArtifacts();
+      }
+    }
+  }
+
+  /**
+   * Answer the artifact.cache file
+   * 
+   * @return the file (may not exist) or <code>null</code> if it could not be determined
+   */
+  private static File getArtifactCacheFile() {
+    return DartCore.getPlugin().getStateLocation().append("artifact.cache").toFile();
+  }
+
+  /**
+   * Load artifacts from disk if they were cached from the prior session
+   */
+  private static void loadArtifacts() {
+    File cacheFile = getArtifactCacheFile();
+    if (cacheFile == null) {
+      return;
+    }
+    if (!cacheFile.exists()) {
+      if (DartCoreDebug.WARMUP) {
+        DartCore.logInformation("No cached artifacts file " + cacheFile);
+      }
+      return;
+    }
+    int artifactCount;
+    long delta;
+    try {
+      long start = System.currentTimeMillis();
+      artifactCount = INSTANCE.loadCachedArtifacts(cacheFile);
+      delta = System.currentTimeMillis() - start;
+    } catch (IOException e) {
+      DartCore.logError("Load cached artifacts failed", e);
+      return;
+    }
+    if (DartCoreDebug.WARMUP) {
+      DartCore.logInformation("Loaded " + artifactCount + " cached artifacts in " + delta
+          + " ms from " + cacheFile);
+    }
+  }
+
+  /**
+   * Save artifacts to disk to be loaded during the next session's warmup
+   */
+  private static void saveArtifacts() {
+    File cacheFile = getArtifactCacheFile();
+    if (cacheFile == null) {
+      return;
+    }
+    int artifactCount;
+    long delta;
+    try {
+      long start = System.currentTimeMillis();
+      artifactCount = INSTANCE.saveCachedArtifacts(cacheFile);
+      delta = System.currentTimeMillis() - start;
+    } catch (IOException e) {
+      DartCore.logError("Save artifacts failed: " + cacheFile, e);
+      return;
+    }
+    if (DartCoreDebug.WARMUP) {
+      DartCore.logInformation("Saved " + artifactCount + " artifacts in " + delta + " ms to "
+          + cacheFile);
+    }
+  }
+
+  /**
+   * A linked list of providers starting with {@link #INSTANCE} or <code>null</code> if this is the
+   * last in the list.
+   * 
+   * @see #hookChangeListener()
+   * @see #dispose()
+   */
+  private RootArtifactProvider nextProvider;
+
   private RootArtifactProvider() {
+  }
+
+  /**
+   * Remove the receiver from the listener's list so that it can be garbage collected. This should
+   * not be called on the instance returned by {@link #getInstance()} because it exists for the
+   * entire session and should not be disposed.
+   * 
+   * @see #newInstanceForTesting()
+   */
+  public void dispose() {
+    synchronized (lock) {
+      RootArtifactProvider provider = INSTANCE;
+      while (provider != null) {
+        if (provider.nextProvider == this) {
+          provider.nextProvider = nextProvider;
+          break;
+        }
+        provider = provider.nextProvider;
+      }
+    }
+  }
+
+  private void removeContainer(IContainer container) throws CoreException {
+    IResource[] members = container.members();
+    if (members != null) {
+      for (IResource res : members) {
+        removeResource(res);
+      }
+    }
+  }
+
+  private void removeFile(IFile file) throws DartModelException {
+    if (!file.exists()) {
+      return;
+    }
+    DartElementImpl elem = DartModelManager.getInstance().create(file);
+    if (elem instanceof CompilationUnitImpl) {
+      CompilationUnitImpl unit = (CompilationUnitImpl) elem;
+      DartLibraryImpl lib = (DartLibraryImpl) unit.getLibrary();
+      if (unit.equals(lib.getDefiningCompilationUnit())) {
+        CompilationUnit[] children = lib.getCompilationUnits();
+        for (CompilationUnit child : children) {
+          removeUnit((CompilationUnitImpl) child);
+        }
+      } else {
+        removeUnit(unit);
+      }
+    }
+  }
+
+  private void removeResource(IResource res) throws CoreException {
+    switch (res.getType()) {
+      case IResource.PROJECT:
+      case IResource.FOLDER:
+        removeContainer((IContainer) res);
+        break;
+      case IResource.FILE:
+        removeFile((IFile) res);
+        break;
+      default:
+        break;
+    }
+  }
+
+  private void removeUnit(CompilationUnitImpl unit) {
+    File srcFile = unit.getResource().getLocation().toFile();
+    DartLibraryImpl lib = (DartLibraryImpl) unit.getLibrary();
+    UrlDartSource dartSrc = new UrlDartSource(srcFile, lib.getLibrarySourceFile());
+    removeArtifactsFor(dartSrc);
   }
 }
