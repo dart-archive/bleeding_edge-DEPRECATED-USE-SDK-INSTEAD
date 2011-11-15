@@ -9093,22 +9093,22 @@ SsaBuilder.prototype.visitSend = function(node) {
     var right = this.pop();
     var left = this.pop();
     var op = (($0 = node.selector) && $0.is$Operator());
-    if ($notnull_bool($eq(const$276/*const SourceString("+")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$286/*const SourceString("+")*/, op.get$source()))) {
       this.push(new HAdd(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$277/*const SourceString("-")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$287/*const SourceString("-")*/, op.get$source()))) {
       this.push(new HSubtract(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$278/*const SourceString("*")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$288/*const SourceString("*")*/, op.get$source()))) {
       this.push(new HMultiply(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$279/*const SourceString("/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$289/*const SourceString("/")*/, op.get$source()))) {
       this.push(new HDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$280/*const SourceString("~/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$290/*const SourceString("~/")*/, op.get$source()))) {
       this.push(new HTruncatingDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$281/*const SourceString("==")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$291/*const SourceString("==")*/, op.get$source()))) {
       this.push(new HEquals(element, [left, right]));
     }
   }
@@ -11363,22 +11363,29 @@ TypeCheckerTask.prototype.check = function(tree, elements) {
   })
   );
 }
-// ********** Code for CompilerError **************
-function CompilerError() {}
-CompilerError.notAssignable = function(t, s) {
-  return ('' + t + ' is not assignable to ' + s + '');
+// ********** Code for WarningKind **************
+function WarningKind(template) {
+  this.template = template;
+  // Initializers done
 }
-CompilerError.voidExpression = function() {
-  return 'expression does not yield a value';
+// ********** Code for TypeWarning **************
+function TypeWarning(kind, arguments) {
+  this.kind = kind;
+  this.arguments = arguments;
+  // Initializers done
 }
-CompilerError.voidVariable = function() {
-  return 'variable cannot be declared void';
-}
-CompilerError.returnValueInVoid = function() {
-  return 'cannot return value from void function';
-}
-CompilerError.returnNothing = function(t) {
-  return ('value of type ' + t + ' expected');
+TypeWarning.prototype.get$arguments = function() { return this.arguments; };
+TypeWarning.prototype.getMessage = function() {
+  if (this.message == null) {
+    this.message = this.kind.template;
+    var position = 1;
+    var $list = this.arguments;
+    for (var $i0 = 0;$i0 < $list.length; $i0++) {
+      var argument = $list.$index($i0);
+      this.message = this.message.replaceAll(('#{' + position++ + '}'), argument.toString$0());
+    }
+  }
+  return this.message;
 }
 // ********** Code for SimpleType **************
 function SimpleType(name, element) {
@@ -11475,10 +11482,13 @@ TypeCheckerVisitor.prototype.fail = function(node, reason) {
   }
   $throw(new CancelTypeCheckException(node, message));
 }
+TypeCheckerVisitor.prototype.reportTypeWarning = function(node, kind, arguments) {
+  this.compiler.reportWarning(node, new TypeWarning(kind, arguments).getMessage());
+}
 TypeCheckerVisitor.prototype.nonVoidType = function(node) {
   var type = this.type(node);
   if ($eq(type, this.types.voidType)) {
-    this.compiler.reportWarning(node, CompilerError.voidExpression());
+    this.reportTypeWarning(node, const$276/*WarningKind.VOID_EXPRESSION*/, const$13/*const []*/);
   }
   return type;
 }
@@ -11496,8 +11506,7 @@ TypeCheckerVisitor.prototype.get$type = function() {
 }
 TypeCheckerVisitor.prototype.checkAssignable = function(node, s, t) {
   if (!$notnull_bool(this.types.isAssignable(s, t))) {
-    var error = CompilerError.notAssignable(s, t);
-    this.compiler.reportWarning(node, $assert_String(error));
+    this.reportTypeWarning(node, const$268/*WarningKind.NOT_ASSIGNABLE*/, [s, t]);
   }
 }
 TypeCheckerVisitor.prototype.visitBlock = function(node) {
@@ -11538,7 +11547,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
   var selector = (($0 = node.selector) && $0.is$Identifier());
   if (target != null) {
     var name = selector.get$source();
-    if ($notnull_bool($eq(name, const$247/*const SourceString('+')*/)) || $notnull_bool($eq(name, const$266/*const SourceString('=')*/)) || $notnull_bool($eq(name, const$249/*const SourceString('-')*/)) || $notnull_bool($eq(name, const$251/*const SourceString('*')*/)) || $notnull_bool($eq(name, const$253/*const SourceString('/')*/)) || $notnull_bool($eq(name, const$267/*const SourceString('<')*/)) || $notnull_bool($eq(name, const$255/*const SourceString('~/')*/))) {
+    if ($notnull_bool($eq(name, const$247/*const SourceString('+')*/)) || $notnull_bool($eq(name, const$272/*const SourceString('=')*/)) || $notnull_bool($eq(name, const$249/*const SourceString('-')*/)) || $notnull_bool($eq(name, const$251/*const SourceString('*')*/)) || $notnull_bool($eq(name, const$253/*const SourceString('/')*/)) || $notnull_bool($eq(name, const$273/*const SourceString('<')*/)) || $notnull_bool($eq(name, const$255/*const SourceString('~/')*/))) {
       return this.types.dynamicType;
     }
     var targetType = target.computeType$2(this.compiler, this.types);
@@ -11615,15 +11624,14 @@ TypeCheckerVisitor.prototype.visitReturn = function(node) {
   if (expression != null) {
     var expressionType = this.type(expression);
     if (isVoidFunction && !$notnull_bool(this.types.isAssignable(expressionType, this.types.voidType))) {
-      this.compiler.reportWarning(expression, CompilerError.returnValueInVoid());
+      this.reportTypeWarning(expression, const$266/*WarningKind.RETURN_VALUE_IN_VOID*/, const$13/*const []*/);
     }
     else {
       this.checkAssignable(expression, expressionType, this.expectedReturnType);
     }
   }
   else if (!$notnull_bool(this.types.isAssignable(this.expectedReturnType, this.types.voidType))) {
-    var error = CompilerError.returnNothing(this.expectedReturnType);
-    this.compiler.reportWarning(node, error);
+    this.reportTypeWarning(node, const$270/*WarningKind.RETURN_NOTHING*/, [this.expectedReturnType]);
   }
   return null;
 }
@@ -11642,7 +11650,7 @@ TypeCheckerVisitor.prototype.visitVariableDefinitions = function(node) {
   var $0;
   var type = this.typeWithDefault(node.type, this.types.dynamicType);
   if ($eq(type, this.types.voidType)) {
-    this.compiler.reportWarning(node.type, CompilerError.voidVariable());
+    this.reportTypeWarning(node.type, const$274/*WarningKind.VOID_VARIABLE*/, const$13/*const []*/);
     type = this.types.dynamicType;
   }
   for (var link = node.definitions.nodes;
@@ -11676,7 +11684,7 @@ Universe.prototype.addGeneratedCode = function(element, code) {
 }
 // ********** Code for top level **************
 function unreachable() {
-  $throw(const$284/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
+  $throw(const$294/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
 }
 function compile(world) {
   var file = world.readFile(options.dartScript);
@@ -12890,7 +12898,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   return false;
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
-  var types = const$397/*const [
+  var types = const$407/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   var target = new Value(world.varType, 'this', node.span, true);
@@ -22753,20 +22761,30 @@ var const$257 = new StringWrapper('==')/*const SourceString('==')*/;
 var const$258 = new StringWrapper('eq')/*const SourceString('eq')*/;
 var const$259 = new StringWrapper('var')/*const SourceString('var')*/;
 var const$260 = new ElementKind('variable')/*const ElementKind('variable')*/;
-var const$266 = new StringWrapper('=')/*const SourceString('=')*/;
-var const$267 = new StringWrapper('<')/*const SourceString('<')*/;
-var const$276 = new StringWrapper("+")/*const SourceString("+")*/;
-var const$277 = new StringWrapper("-")/*const SourceString("-")*/;
-var const$278 = new StringWrapper("*")/*const SourceString("*")*/;
-var const$279 = new StringWrapper("/")/*const SourceString("/")*/;
-var const$280 = new StringWrapper("~/")/*const SourceString("~/")*/;
-var const$281 = new StringWrapper("==")/*const SourceString("==")*/;
-var const$284 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+var const$266 = new WarningKind('cannot return value from void function')/*const WarningKind(
+      'cannot return value from void function')*/;
+var const$268 = new WarningKind('#{1} is not assignable to #{2}')/*const WarningKind(
+      '#{1} is not assignable to #{2}')*/;
+var const$270 = new WarningKind('value of type #{1} expected')/*const WarningKind(
+      'value of type #{1} expected')*/;
+var const$272 = new StringWrapper('=')/*const SourceString('=')*/;
+var const$273 = new StringWrapper('<')/*const SourceString('<')*/;
+var const$274 = new WarningKind('variable cannot be of type void')/*const WarningKind(
+      'variable cannot be of type void')*/;
+var const$276 = new WarningKind('expression does not yield a value')/*const WarningKind(
+      'expression does not yield a value')*/;
+var const$286 = new StringWrapper("+")/*const SourceString("+")*/;
+var const$287 = new StringWrapper("-")/*const SourceString("-")*/;
+var const$288 = new StringWrapper("*")/*const SourceString("*")*/;
+var const$289 = new StringWrapper("/")/*const SourceString("/")*/;
+var const$290 = new StringWrapper("~/")/*const SourceString("~/")*/;
+var const$291 = new StringWrapper("==")/*const SourceString("==")*/;
+var const$294 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
 var const$3 = new EmptyQueueException()/*const EmptyQueueException()*/;
-var const$397 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$4 = new StringWrapper('void')/*const SourceString('void')*/;
+var const$407 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
-var const$4 = new StringWrapper('void')/*const SourceString('void')*/;
 var const$6 = new StringWrapper('int')/*const SourceString('int')*/;
 var const$8 = new StringWrapper('Dynamic')/*const SourceString('Dynamic')*/;
 HTracer._singleton = null;

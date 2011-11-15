@@ -20,12 +20,41 @@ class TypeCheckerTask extends CompilerTask {
   }
 }
 
-class CompilerError {
-  static String notAssignable(Type t, Type s) => '$t is not assignable to $s';
-  static String voidExpression() => 'expression does not yield a value';
-  static String voidVariable() => 'variable cannot be declared void';
-  static String returnValueInVoid() => 'cannot return value from void function';
-  static String returnNothing(Type t) => 'value of type $t expected';
+class WarningKind {
+  final String template;
+
+  const WarningKind(this.template);
+
+  static final NOT_ASSIGNABLE = const WarningKind(
+      '#{1} is not assignable to #{2}');
+  static final VOID_EXPRESSION = const WarningKind(
+      'expression does not yield a value');
+  static final VOID_VARIABLE = const WarningKind(
+      'variable cannot be of type void');
+  static final RETURN_VALUE_IN_VOID = const WarningKind(
+      'cannot return value from void function');
+  static final RETURN_NOTHING = const WarningKind(
+      'value of type #{1} expected');
+}
+
+class TypeWarning {
+  final kind;
+  final List<Type> arguments;
+  String message;
+
+  TypeWarning(this.kind, this.arguments);
+
+  String getMessage() {
+    if (message === null) {
+      message = kind.template;
+      int position = 1;
+      for (var argument in arguments) {
+        message = message.replaceAll('#{${position++}}',
+                                     argument.toString());
+      }
+    }
+    return message;
+  }
 }
 
 interface Type {}
@@ -119,10 +148,14 @@ class TypeCheckerVisitor implements Visitor<Type> {
     throw new CancelTypeCheckException(node, message);
   }
 
+  reportTypeWarning(Node node, WarningKind kind, [List arguments = const []]) {
+    compiler.reportWarning(node, new TypeWarning(kind, arguments).getMessage());
+  }
+
   Type nonVoidType(Node node) {
     Type type = type(node);
     if (type == types.voidType) {
-      compiler.reportWarning(node, CompilerError.voidExpression());
+      reportTypeWarning(node, WarningKind.VOID_EXPRESSION);
     }
     return type;
   }
@@ -140,8 +173,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   checkAssignable(Node node, Type s, Type t) {
     if (!types.isAssignable(s, t)) {
-      var error = CompilerError.notAssignable(s, t);
-      compiler.reportWarning(node, error);
+      reportTypeWarning(node, WarningKind.NOT_ASSIGNABLE, [s, t]);
     }
   }
 
@@ -287,7 +319,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
       final expressionType = type(expression);
       if (isVoidFunction
           && !types.isAssignable(expressionType, types.voidType)) {
-        compiler.reportWarning(expression, CompilerError.returnValueInVoid());
+        reportTypeWarning(expression, WarningKind.RETURN_VALUE_IN_VOID);
       } else {
         checkAssignable(expression, expressionType, expectedReturnType);
       }
@@ -298,8 +330,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     // - f is not a generative constructor.
     // - The return type of f may not be assigned to void.
     } else if (!types.isAssignable(expectedReturnType, types.voidType)) {
-      final error = CompilerError.returnNothing(expectedReturnType);
-      compiler.reportWarning(node, error);
+      reportTypeWarning(node, WarningKind.RETURN_NOTHING, [expectedReturnType]);
     }
     return null;
   }
@@ -320,7 +351,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type visitVariableDefinitions(VariableDefinitions node) {
     Type type = typeWithDefault(node.type, types.dynamicType);
     if (type == types.voidType) {
-      compiler.reportWarning(node.type, CompilerError.voidVariable());
+      reportTypeWarning(node.type, WarningKind.VOID_VARIABLE);
       type = types.dynamicType;
     }
     for (Link<Node> link = node.definitions.nodes; !link.isEmpty();
