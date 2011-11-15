@@ -22,7 +22,7 @@ public class TestAll {
     suite.addTestSuite(CachingArtifactProviderTest.class);
 //    suite.addTestSuite(DartBuilderTest.class);
     suite.addTestSuite(LocalArtifactProviderTest.class);
-    suite.addTestSuite(RootArtifactProviderTest.class);
+//    suite.addTestSuite(RootArtifactProviderTest.class);
     return suite;
   }
 }
