@@ -4,6 +4,7 @@
   </head>
   <body>
     <h1>SomeRandomTitle</h1>
+    <h2 id="status">dart is not running</h2>
     <script type="text/javascript" src="js/ANewDartType.app.js"></script>
   </body>
 </html>
