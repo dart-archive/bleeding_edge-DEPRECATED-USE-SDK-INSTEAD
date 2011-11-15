@@ -3643,6 +3643,7 @@ public class PreferenceConstants {
     try {
       return PlatformUI.getWorkbench().getThemeManager().getCurrentTheme().getColorRegistry();
     } catch (Exception exception) {
+      DartToolsPlugin.log("Could not access the workbench", exception);
       return null;
     }
   }
@@ -3657,7 +3658,13 @@ public class PreferenceConstants {
   private static void setDefaultAndFireEvent(IPreferenceStore store, String key, RGB newValue) {
     RGB oldValue = null;
     if (store.isDefault(key)) {
-      oldValue = PreferenceConverter.getDefaultColor(store, key);
+      try {
+        oldValue = PreferenceConverter.getDefaultColor(store, key);
+      } catch (Exception exception) {
+        // Leave oldValue == null to avoid firing a property change event.
+        DartToolsPlugin.log(
+            "Could not get the default value for the color preference named " + key, exception);
+      }
     }
 
     PreferenceConverter.setDefault(store, key, newValue);
