@@ -82,10 +82,17 @@ def main(args):
     # Run frog.py on the corelib tests, so we get some frog.py coverage.
     cmd = test_cmd + ['--component=frog', 'corelib']
     RunCommand(*cmd, verbose=True)
+
+    # Run frogium client tests. This is a pretty quick test but tends to uncover
+    # different issues due to the size/complexity of the DOM APIs.
+    cmd = test_cmd + ['--component=frogium', 'client']
+    RunCommand(*cmd, verbose=True)
+
     # Run leg and frogsh on most of the tests. TODO: add co19 here
     cmd = test_cmd + ['--component=frogsh,leg', 'language', 'corelib', 'leg',
                       'isolate', 'peg', 'leg_only', 'frog']
     RunCommand(*cmd, verbose=True)
+
     # TODO: leg doesn't work with co19 yet, so run it separately
     cmd = test_cmd + ['--component=frogsh', 'co19']
     RunCommand(*cmd, verbose=True)
