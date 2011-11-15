@@ -15663,7 +15663,10 @@ MemberSet.prototype.invoke = function(context, node, target, args, isDynamic) {
     return this._makeError(node, target, 'method');
   }
   if (returnValue.code == null) {
-    if ($notnull_bool(this.get$isOperator())) {
+    if (this.name == '\$call') {
+      return target._varCall(context, args);
+    }
+    else if ($notnull_bool(this.get$isOperator())) {
       return target.invokeSpecial(this.name, args, returnValue.type);
     }
     else {

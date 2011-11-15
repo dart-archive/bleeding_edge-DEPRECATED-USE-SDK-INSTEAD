@@ -1481,8 +1481,11 @@ class MemberSet {
     }
 
     if (returnValue.code == null) {
-      // TODO(jmesserly): make operators less special.
-      if (isOperator) {
+      if (name == '\$call') {
+        // TODO(jmesserly): reconcile this with similar code in Value
+        return target._varCall(context, args);
+      } else if (isOperator) {
+        // TODO(jmesserly): make operators less special.
         return target.invokeSpecial(name, args, returnValue.type);
       } else {
         return invokeOnVar(context, node, target, args);
