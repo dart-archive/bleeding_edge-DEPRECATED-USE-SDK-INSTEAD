@@ -2452,6 +2452,13 @@ DoubleLinkedQueue$E.prototype.is$Collection$E = function(){return this;};
 DoubleLinkedQueue$E.prototype.is$Collection$Object = function(){return this;};
 DoubleLinkedQueue$E.prototype.is$Collection$Type = function(){return this;};
 DoubleLinkedQueue$E.prototype.is$Iterable = function(){return this;};
+// ********** Code for DoubleLinkedQueue$Element **************
+function DoubleLinkedQueue$Element() {}
+$inherits(DoubleLinkedQueue$Element, DoubleLinkedQueue);
+DoubleLinkedQueue$Element.prototype.is$Collection$E = function(){return this;};
+DoubleLinkedQueue$Element.prototype.is$Collection$Object = function(){return this;};
+DoubleLinkedQueue$Element.prototype.is$Collection$Type = false;
+DoubleLinkedQueue$Element.prototype.is$Iterable = function(){return this;};
 // ********** Code for DoubleLinkedQueue$KeyValuePair$K$V **************
 function DoubleLinkedQueue$KeyValuePair$K$V() {
   // Initializers done
@@ -2476,13 +2483,6 @@ DoubleLinkedQueue$KeyValuePair$K$V.prototype.forEach = function(f) {
     entry = nextEntry;
   }
 }
-// ********** Code for DoubleLinkedQueue$SourceString **************
-function DoubleLinkedQueue$SourceString() {}
-$inherits(DoubleLinkedQueue$SourceString, DoubleLinkedQueue);
-DoubleLinkedQueue$SourceString.prototype.is$Collection$E = function(){return this;};
-DoubleLinkedQueue$SourceString.prototype.is$Collection$Object = function(){return this;};
-DoubleLinkedQueue$SourceString.prototype.is$Collection$Type = false;
-DoubleLinkedQueue$SourceString.prototype.is$Iterable = function(){return this;};
 // ********** Code for _DoubleLinkedQueueIterator **************
 function _DoubleLinkedQueueIterator(_sentinel) {
   this._sentinel = _sentinel;
@@ -7231,7 +7231,7 @@ ElementListener.prototype.endClass = function(interfacesCount, beginToken, exten
   for (; interfacesCount > 0; --interfacesCount) {
     this.popNode();
   }
-  var supertype = (($0 = this.popNode()) && $0.is$TypeAnnotation());
+  var supertype = (($0 = this.popNode()) && $0.is$Identifier());
   var name = (($0 = this.popNode()) && $0.is$Identifier());
   this.pushElement(new PartialClassElement(name.get$source(), beginToken, endToken));
 }
@@ -8741,7 +8741,7 @@ Element.prototype.hashCode$0 = function() {
 function VariableElement(node, typeAnnotation, name, enclosingElement) {
   this.node = node;
   this.typeAnnotation = typeAnnotation;
-  Element.call(this, name, const$260, enclosingElement);
+  Element.call(this, name, const$262, enclosingElement);
   // Initializers done
 }
 $inherits(VariableElement, Element);
@@ -9093,22 +9093,22 @@ SsaBuilder.prototype.visitSend = function(node) {
     var right = this.pop();
     var left = this.pop();
     var op = (($0 = node.selector) && $0.is$Operator());
-    if ($notnull_bool($eq(const$286/*const SourceString("+")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$287/*const SourceString("+")*/, op.get$source()))) {
       this.push(new HAdd(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$287/*const SourceString("-")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$288/*const SourceString("-")*/, op.get$source()))) {
       this.push(new HSubtract(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$288/*const SourceString("*")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$289/*const SourceString("*")*/, op.get$source()))) {
       this.push(new HMultiply(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$289/*const SourceString("/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$290/*const SourceString("/")*/, op.get$source()))) {
       this.push(new HDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$290/*const SourceString("~/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$291/*const SourceString("~/")*/, op.get$source()))) {
       this.push(new HTruncatingDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$291/*const SourceString("==")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$292/*const SourceString("==")*/, op.get$source()))) {
       this.push(new HEquals(element, [left, right]));
     }
   }
@@ -11105,6 +11105,7 @@ ResolverVisitor.prototype.potentiallyMapOperatorToMethodName = function(name) {
   if ($notnull_bool($eq(name, const$253/*const SourceString('/')*/))) return const$254/*const SourceString('div')*/;
   if ($notnull_bool($eq(name, const$255/*const SourceString('~/')*/))) return const$256/*const SourceString('tdiv')*/;
   if ($notnull_bool($eq(name, const$257/*const SourceString('==')*/))) return const$258/*const SourceString('eq')*/;
+  if ($notnull_bool($eq(name, const$259/*const SourceString('<')*/))) return const$260/*const SourceString('lt')*/;
   return name;
 }
 ResolverVisitor.prototype.visitSend = function(node) {
@@ -11159,7 +11160,7 @@ ResolverVisitor.prototype.visitThrow = function(node) {
 }
 ResolverVisitor.prototype.visitTypeAnnotation = function(node) {
   var name = node.typeName;
-  if ($notnull_bool($eq(name.get$source(), const$259/*const SourceString('var')*/))) return null;
+  if ($notnull_bool($eq(name.get$source(), const$261/*const SourceString('var')*/))) return null;
   if ($notnull_bool($eq(name.get$source(), const$4/*const SourceString('void')*/))) return null;
   var element = this.context.lookup(name.get$source());
   if (element == null) {
@@ -11245,7 +11246,7 @@ function VariableDefinitionsVisitor(definitions, resolver) {
 VariableDefinitionsVisitor.prototype.is$Visitor = function(){return this;};
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 268, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 269, 12);
   if (node.receiver != null) {
     this.resolver.compiler.unimplemented("receiver on a variable definition");
   }
@@ -11488,7 +11489,7 @@ TypeCheckerVisitor.prototype.reportTypeWarning = function(node, kind, arguments)
 TypeCheckerVisitor.prototype.nonVoidType = function(node) {
   var type = this.type(node);
   if ($eq(type, this.types.voidType)) {
-    this.reportTypeWarning(node, const$276/*WarningKind.VOID_EXPRESSION*/, const$13/*const []*/);
+    this.reportTypeWarning(node, const$277/*WarningKind.VOID_EXPRESSION*/, const$13/*const []*/);
   }
   return type;
 }
@@ -11506,7 +11507,7 @@ TypeCheckerVisitor.prototype.get$type = function() {
 }
 TypeCheckerVisitor.prototype.checkAssignable = function(node, s, t) {
   if (!$notnull_bool(this.types.isAssignable(s, t))) {
-    this.reportTypeWarning(node, const$268/*WarningKind.NOT_ASSIGNABLE*/, [s, t]);
+    this.reportTypeWarning(node, const$270/*WarningKind.NOT_ASSIGNABLE*/, [s, t]);
   }
 }
 TypeCheckerVisitor.prototype.visitBlock = function(node) {
@@ -11547,7 +11548,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
   var selector = (($0 = node.selector) && $0.is$Identifier());
   if (target != null) {
     var name = selector.get$source();
-    if ($notnull_bool($eq(name, const$247/*const SourceString('+')*/)) || $notnull_bool($eq(name, const$272/*const SourceString('=')*/)) || $notnull_bool($eq(name, const$249/*const SourceString('-')*/)) || $notnull_bool($eq(name, const$251/*const SourceString('*')*/)) || $notnull_bool($eq(name, const$253/*const SourceString('/')*/)) || $notnull_bool($eq(name, const$273/*const SourceString('<')*/)) || $notnull_bool($eq(name, const$255/*const SourceString('~/')*/))) {
+    if ($notnull_bool($eq(name, const$247/*const SourceString('+')*/)) || $notnull_bool($eq(name, const$274/*const SourceString('=')*/)) || $notnull_bool($eq(name, const$249/*const SourceString('-')*/)) || $notnull_bool($eq(name, const$251/*const SourceString('*')*/)) || $notnull_bool($eq(name, const$253/*const SourceString('/')*/)) || $notnull_bool($eq(name, const$259/*const SourceString('<')*/)) || $notnull_bool($eq(name, const$255/*const SourceString('~/')*/))) {
       return this.types.dynamicType;
     }
     var targetType = target.computeType$2(this.compiler, this.types);
@@ -11624,14 +11625,14 @@ TypeCheckerVisitor.prototype.visitReturn = function(node) {
   if (expression != null) {
     var expressionType = this.type(expression);
     if (isVoidFunction && !$notnull_bool(this.types.isAssignable(expressionType, this.types.voidType))) {
-      this.reportTypeWarning(expression, const$266/*WarningKind.RETURN_VALUE_IN_VOID*/, const$13/*const []*/);
+      this.reportTypeWarning(expression, const$268/*WarningKind.RETURN_VALUE_IN_VOID*/, const$13/*const []*/);
     }
     else {
       this.checkAssignable(expression, expressionType, this.expectedReturnType);
     }
   }
   else if (!$notnull_bool(this.types.isAssignable(this.expectedReturnType, this.types.voidType))) {
-    this.reportTypeWarning(node, const$270/*WarningKind.RETURN_NOTHING*/, [this.expectedReturnType]);
+    this.reportTypeWarning(node, const$272/*WarningKind.RETURN_NOTHING*/, [this.expectedReturnType]);
   }
   return null;
 }
@@ -11650,7 +11651,7 @@ TypeCheckerVisitor.prototype.visitVariableDefinitions = function(node) {
   var $0;
   var type = this.typeWithDefault(node.type, this.types.dynamicType);
   if ($eq(type, this.types.voidType)) {
-    this.reportTypeWarning(node.type, const$274/*WarningKind.VOID_VARIABLE*/, const$13/*const []*/);
+    this.reportTypeWarning(node.type, const$275/*WarningKind.VOID_VARIABLE*/, const$13/*const []*/);
     type = this.types.dynamicType;
   }
   for (var link = node.definitions.nodes;
@@ -11684,7 +11685,7 @@ Universe.prototype.addGeneratedCode = function(element, code) {
 }
 // ********** Code for top level **************
 function unreachable() {
-  $throw(const$294/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
+  $throw(const$295/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
 }
 function compile(world) {
   var file = world.readFile(options.dartScript);
@@ -12898,7 +12899,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   return false;
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
-  var types = const$407/*const [
+  var types = const$408/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   var target = new Value(world.varType, 'this', node.span, true);
@@ -22759,30 +22760,31 @@ var const$255 = new StringWrapper('~/')/*const SourceString('~/')*/;
 var const$256 = new StringWrapper('tdiv')/*const SourceString('tdiv')*/;
 var const$257 = new StringWrapper('==')/*const SourceString('==')*/;
 var const$258 = new StringWrapper('eq')/*const SourceString('eq')*/;
-var const$259 = new StringWrapper('var')/*const SourceString('var')*/;
-var const$260 = new ElementKind('variable')/*const ElementKind('variable')*/;
-var const$266 = new WarningKind('cannot return value from void function')/*const WarningKind(
+var const$259 = new StringWrapper('<')/*const SourceString('<')*/;
+var const$260 = new StringWrapper('lt')/*const SourceString('lt')*/;
+var const$261 = new StringWrapper('var')/*const SourceString('var')*/;
+var const$262 = new ElementKind('variable')/*const ElementKind('variable')*/;
+var const$268 = new WarningKind('cannot return value from void function')/*const WarningKind(
       'cannot return value from void function')*/;
-var const$268 = new WarningKind('#{1} is not assignable to #{2}')/*const WarningKind(
+var const$270 = new WarningKind('#{1} is not assignable to #{2}')/*const WarningKind(
       '#{1} is not assignable to #{2}')*/;
-var const$270 = new WarningKind('value of type #{1} expected')/*const WarningKind(
+var const$272 = new WarningKind('value of type #{1} expected')/*const WarningKind(
       'value of type #{1} expected')*/;
-var const$272 = new StringWrapper('=')/*const SourceString('=')*/;
-var const$273 = new StringWrapper('<')/*const SourceString('<')*/;
-var const$274 = new WarningKind('variable cannot be of type void')/*const WarningKind(
+var const$274 = new StringWrapper('=')/*const SourceString('=')*/;
+var const$275 = new WarningKind('variable cannot be of type void')/*const WarningKind(
       'variable cannot be of type void')*/;
-var const$276 = new WarningKind('expression does not yield a value')/*const WarningKind(
+var const$277 = new WarningKind('expression does not yield a value')/*const WarningKind(
       'expression does not yield a value')*/;
-var const$286 = new StringWrapper("+")/*const SourceString("+")*/;
-var const$287 = new StringWrapper("-")/*const SourceString("-")*/;
-var const$288 = new StringWrapper("*")/*const SourceString("*")*/;
-var const$289 = new StringWrapper("/")/*const SourceString("/")*/;
-var const$290 = new StringWrapper("~/")/*const SourceString("~/")*/;
-var const$291 = new StringWrapper("==")/*const SourceString("==")*/;
-var const$294 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+var const$287 = new StringWrapper("+")/*const SourceString("+")*/;
+var const$288 = new StringWrapper("-")/*const SourceString("-")*/;
+var const$289 = new StringWrapper("*")/*const SourceString("*")*/;
+var const$290 = new StringWrapper("/")/*const SourceString("/")*/;
+var const$291 = new StringWrapper("~/")/*const SourceString("~/")*/;
+var const$292 = new StringWrapper("==")/*const SourceString("==")*/;
+var const$295 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
 var const$3 = new EmptyQueueException()/*const EmptyQueueException()*/;
 var const$4 = new StringWrapper('void')/*const SourceString('void')*/;
-var const$407 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$408 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
 var const$6 = new StringWrapper('int')/*const SourceString('int')*/;

@@ -34,6 +34,10 @@ eq(var a, var b) {
   return JS(@"$0 == $1", a, b);
 }
 
+lt(var a, var b) {
+  return JS(@"$0 < $1", a, b);
+}
+
 tdiv(var a, var b) {
   var tmp = a / b;
   // TODO(ngeoffray): Use tmp.floor and tmp.ceil when

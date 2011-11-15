@@ -120,6 +120,7 @@ class ResolverVisitor implements Visitor<Element> {
     if (name == const SourceString('/')) return const SourceString('div');
     if (name == const SourceString('~/')) return const SourceString('tdiv');
     if (name == const SourceString('==')) return const SourceString('eq');
+    if (name == const SourceString('<')) return const SourceString('lt');
     return name;
   }
 

@@ -18,7 +18,9 @@ class MockCompiler extends Compiler {
   List warnings;
   Node parsedTree;
 
-  MockCompiler() : super(null), warnings = [];
+  MockCompiler() : super(null), warnings = [] {
+    parseScript('lt() {} add() {}');
+  }
 
   void reportWarning(Node node, String message) {
     warnings.add(new WarningMessage(node, message));
@@ -91,7 +93,7 @@ main() {
   testLocalsFour();
   testLocalsFive();
   testParametersOne();
-  // testFor();  // TODO(ngeoffray): not working because < cannot be resolved.
+  testFor();
   testTypeAnnotation();
   testSuperclass();
   // testVarSuperclass(); // The parser crashes with 'class Foo extends var'.
@@ -195,42 +197,52 @@ testParametersOne() {
   // Check that 'a' in 'return a' is resolved to the parameter.
   Block body = tree.body;
   Return ret = body.statements.nodes.head;
-  Identifier use = ret.expression;
+  Send use = ret.expression;
   Expect.equals(ElementKind.VARIABLE, visitor.mapping[use].kind);
   Expect.equals(visitor.mapping[param], visitor.mapping[use]);
 }
 
 testFor() {
-  Compiler compiler = new Compiler(null);
+  MockCompiler compiler = new MockCompiler();
   ResolverVisitor visitor = new ResolverVisitor(compiler);
   For tree = parseStatement("for (int i = 0; i < 10; i = i + 1) { i = 5; }");
   visitor.visit(tree);
 
   Expect.equals(0, visitor.context.elements.length);
-  Expect.equals(5, visitor.mapping.length);
+  Expect.equals(7, visitor.mapping.length);
 
   VariableDefinitions initializer = tree.initializer;
   Node iNode = initializer.definitions.nodes.head;
   Element iElement = visitor.mapping[iNode];
-  // Check that all 'i' have been resolved to the same element.
-  visitor.mapping.forEach((node, element) => Expect.equals(iElement, element));
 
   // Check that we have the expected nodes. This test relies on the mapping
   // field to be a linked hash map (preserving insertion order).
   Expect.isTrue(visitor.mapping is LinkedHashMap);
   List<Node> nodes = visitor.mapping.getKeys();
+  List<Element> elements = visitor.mapping.getValues();
 
   Expect.isTrue(nodes[0] is SendSet);  // i = 0
+  Expect.equals(elements[0], iElement);
 
   Expect.isTrue(nodes[1] is Send);     // i (in i < 10)
   Expect.isTrue(nodes[1] is !SendSet);
+  Expect.equals(elements[1], iElement);
 
-  Expect.isTrue(nodes[2] is Send);     // i (in i + 1)
+  Expect.isTrue(nodes[2] is Send);     // < call
   Expect.isTrue(nodes[2] is !SendSet);
 
-  Expect.isTrue(nodes[3] is SendSet);  // i = i + 1
+  Expect.isTrue(nodes[3] is Send);     // i (in i + 1)
+  Expect.isTrue(nodes[3] is !SendSet);
+  Expect.equals(elements[3], iElement);
 
-  Expect.isTrue(nodes[4] is SendSet);  // i = 5
+  Expect.isTrue(nodes[4] is Send);     // + call
+  Expect.isTrue(nodes[4] is !SendSet);
+
+  Expect.isTrue(nodes[5] is SendSet);  // i = i + 1
+  Expect.equals(elements[5], iElement);
+
+  Expect.isTrue(nodes[6] is SendSet);  // i = 5
+  Expect.equals(elements[6], iElement);
 }
 
 testTypeAnnotation() {
@@ -247,7 +259,7 @@ testTypeAnnotation() {
   String warningMessage = compiler.warnings[0].message;
 
   Expect.equals(warningMessage, ErrorMessages.cannotResolveType("Foo"));
-  VariableDefinitions definition = compiler.parsedTree; 
+  VariableDefinitions definition = compiler.parsedTree;
   Expect.equals(warningNode, definition.type);
   compiler.clearWarnings();
 

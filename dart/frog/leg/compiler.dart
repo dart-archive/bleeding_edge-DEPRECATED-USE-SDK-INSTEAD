@@ -20,7 +20,7 @@ class Compiler implements Canceler, Logger {
 
   Compiler(this.script) {
     universe = new Universe();
-    worklist = new Queue<SourceString>();
+    worklist = new Queue<Element>();
     scanner = new ScannerTask(this);
     parser = new ParserTask(this);
     resolver = new ResolverTask(this);

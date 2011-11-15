@@ -254,7 +254,7 @@ class ElementListener extends Listener {
     for (; interfacesCount > 0; --interfacesCount) {
       popNode();
     }
-    TypeAnnotation supertype = popNode();
+    Identifier supertype = popNode();
     Identifier name = popNode();
     pushElement(new PartialClassElement(name.source, beginToken, endToken));
   }
