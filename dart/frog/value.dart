@@ -210,7 +210,7 @@ class Value {
     }
     if (options.enableTypeChecks) {
       Type fromType = type;
-      if (type.isVar && code != 'null') {
+      if (type.isVar && (code != 'null' || !toType.isNullable)) {
         fromType = world.objectType;
       }
       bool bothNum = type.isNum && toType.isNum;
@@ -265,7 +265,7 @@ class Value {
     // TODO(jmesserly): remove the special case for "num" when our num handling
     // is better.
     bool bothNum = type.isNum && toType.isNum;
-    if (!checked || fromType.isSubtypeOf(toType) || bothNum) {
+    if (fromType.isSubtypeOf(toType) || bothNum) {
       // No checks needed for a widening conversion.
       return this;
     }
@@ -301,6 +301,12 @@ class Value {
     if (toType is ParameterType) {
       ParameterType p = toType;
       toType = p.extendsType;
+    }
+
+    // TODO(jmesserly): fix checking of function types.
+    // For now, don't generate a broken check.
+    if (toType.getCallMethod() != null) {
+      return this;
     }
 
     if (toType.isObject || toType.isVar) {

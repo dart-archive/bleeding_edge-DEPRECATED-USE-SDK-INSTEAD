@@ -1469,6 +1469,10 @@ class MemberSet {
     Value returnValue = null;
     for (var member in targets) {
       final res = member.invoke(context, node, target, args, isDynamic:true);
+      // TODO(jmesserly): If the code has different type checks, it will fail to
+      // unify and go through a dynamic stub. Good so far. However, we'll end
+      // up with a bogus unused temp generated (usually "var $0"). We need a way
+      // to throw away temps when we throw away the code.
       returnValue = _tryUnion(returnValue, res, node);
     }
 

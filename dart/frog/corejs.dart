@@ -291,7 +291,7 @@ function $toDartException(e) {
       // it's still decent on other browsers.
       w.writeln(@"""
 function $notnull_bool(test) {
-  return (test === true || test === false) ? test : test.is$bool();
+  return (test === true || test === false) ? test : test.is$bool(); // TypeError
 }""");
     }
 

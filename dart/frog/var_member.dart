@@ -197,7 +197,7 @@ class VarMethodSet extends VarMember {
       // Invoke the member with the stub args (this gives us the method body),
       // then create the stub method.
       final target = new Value(member.declaringType, 'this', node.span);
-      var result = member.invoke(context, node, target, args);
+      var result = member.invoke(context, node, target, args, isDynamic:true);
       var stub = new VarMethodStub(name, member, args, result);
 
       // Put the stub on the type directly if possible. Otherwise
