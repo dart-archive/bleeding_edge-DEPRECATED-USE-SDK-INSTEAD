@@ -49,7 +49,7 @@ class Balls {
           // This keeps balls that end up intersecting from getting stuck
           // without all the complexity of keeping them strictly separated.
           if (newDistanceSquared(delta, b0, b1) > d2) {
-            continue;
+            return;
           }
 
           // They've collided. Normalize the collision vector.

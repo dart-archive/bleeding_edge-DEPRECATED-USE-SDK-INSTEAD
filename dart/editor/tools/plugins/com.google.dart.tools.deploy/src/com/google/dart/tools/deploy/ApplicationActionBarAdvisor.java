@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.deploy;
 
+import com.google.dart.tools.debug.ui.launch.RunServerAction;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
@@ -160,6 +161,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 //  private IAction newWizardAction;
 
   private RunInBrowserAction runInBrowserAction;
+
+  private RunServerAction runServerAction;
 
   private IWorkbenchAction deployOptimizedAction;
 
@@ -414,6 +417,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       // Add the group for applications to contribute
       helpToolBar.add(new GroupMarker(IWorkbenchActionConstants.GROUP_APP));
       helpToolBar.add(runInBrowserAction);
+      //helpToolBar.add(runServerAction);
 
       // Add to the cool bar manager
       coolBar.add(actionBarConfigurer.createToolBarContributionItem(helpToolBar,
@@ -452,6 +456,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     statusLineItem = new StatusLineContributionItem("ModeContributionItem"); //$NON-NLS-1$
 
     runInBrowserAction = new RunInBrowserAction(window);
+
+    runServerAction = new RunServerAction(window);
 
     deployOptimizedAction = new DeployOptimizedAction(window);
 
@@ -789,7 +795,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
 
     menu.add(new Separator());
+
     menu.add(runInBrowserAction);
+    //menu.add(runServerAction);
 
     menu.add(new Separator());
 
@@ -930,10 +938,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     addViewActions(menu);
 
     menu.add(new Separator());
-    //TODO: remove comment when dartc --optimize works for all samples
-    //menu.add(deployOptimizedAction);
 
-//    menu.add(new Separator());
+    menu.add(deployOptimizedAction);
+
+    menu.add(new Separator());
 
     //addKeyboardShortcuts(menu);
 

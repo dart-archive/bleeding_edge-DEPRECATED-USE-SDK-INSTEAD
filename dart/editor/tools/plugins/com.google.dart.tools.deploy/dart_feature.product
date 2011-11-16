@@ -17,7 +17,7 @@
       <programArgsLin>-consoleLog -data workspace</programArgsLin>
       <programArgsMac>-consoleLog -data ../../../workspace</programArgsMac>
       <programArgsWin>-data workspace</programArgsWin>
-      <vmArgs>-Dosgi.requiredJavaVersion=1.6 -XX:MaxPermSize=256m -Xms40m -Xmx384m</vmArgs>
+      <vmArgs>-Dosgi.requiredJavaVersion=1.6 -XX:MaxPermSize=256m -Xms40m -Xmx512m</vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts -Declipse.vm=/System/Library/Frameworks/JavaVM.framework -Xdock:icon=../Resources/Eclipse.icns</vmArgsMac>
    </launcherArgs>
 
