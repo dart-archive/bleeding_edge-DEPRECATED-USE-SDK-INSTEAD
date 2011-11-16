@@ -52,5 +52,5 @@ class SubstringWrapper implements SourceString {
 
   String toString() => internalString.substring(begin, end);
 
-  String get stringValue() => null;
+  String get stringValue() => toString();
 }

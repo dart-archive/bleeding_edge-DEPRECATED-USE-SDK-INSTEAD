@@ -111,7 +111,7 @@ class SsaBuilder implements Visitor {
          link = link.tail) {
       VariableDefinitions container = link.head;
       Link<Node> identifierLink = container.definitions.nodes;
-      // nodeList must contain exactly one argument.
+      // The identifier link must contain exactly one argument.
       assert(!identifierLink.isEmpty() && identifierLink.tail.isEmpty());
       if (identifierLink.head is !Identifier) {
         compiler.unimplemented("SsaBuilder.visitParameters non-identifier");

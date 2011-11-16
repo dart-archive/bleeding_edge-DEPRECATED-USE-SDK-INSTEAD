@@ -1974,6 +1974,16 @@ function HashMapImplementation$String$EvaluatedValue() {}
 $inherits(HashMapImplementation$String$EvaluatedValue, HashMapImplementation);
 HashMapImplementation$String$EvaluatedValue.prototype.is$Map$Node$Element = false;
 HashMapImplementation$String$EvaluatedValue.prototype.is$Map$String$Member = false;
+// ********** Code for HashMapImplementation$String$int **************
+function HashMapImplementation$String$int() {}
+$inherits(HashMapImplementation$String$int, HashMapImplementation);
+HashMapImplementation$String$int.prototype.is$Map$Node$Element = false;
+HashMapImplementation$String$int.prototype.is$Map$String$Member = false;
+// ********** Code for HashMapImplementation$int$String **************
+function HashMapImplementation$int$String() {}
+$inherits(HashMapImplementation$int$String, HashMapImplementation);
+HashMapImplementation$int$String.prototype.is$Map$Node$Element = false;
+HashMapImplementation$int$String.prototype.is$Map$String$Member = false;
 // ********** Code for HashSetImplementation **************
 function HashSetImplementation() {
   // Initializers done
@@ -7736,7 +7746,7 @@ SubstringWrapper.prototype.toString = function() {
   return this.internalString.substring(this.begin, this.end);
 }
 SubstringWrapper.prototype.get$stringValue = function() {
-  return null;
+  return this.toString();
 }
 SubstringWrapper.prototype.hashCode$0 = function() {
   return this.hashCode();
@@ -9361,6 +9371,8 @@ function SsaCodeGenerator(compiler, buffer, parameterNames) {
   this.compiler = compiler;
   this.buffer = buffer;
   this.parameterNames = parameterNames;
+  this.names = new HashMapImplementation();
+  this.prefixes = new HashMapImplementation();
   // Initializers done
 }
 SsaCodeGenerator.prototype.is$HVisitor = function(){return this;};
@@ -9369,11 +9381,33 @@ SsaCodeGenerator.prototype.visitGraph = function(graph) {
   this.indent++;
   this.visitBasicBlock(graph.entry);
 }
-SsaCodeGenerator.temporary = function(instruction) {
-  return ('\$' + instruction.id + '');
-}
 SsaCodeGenerator.prototype.parameter = function(index) {
   return $assert_String(this.parameterNames.$index(index));
+}
+SsaCodeGenerator.prototype.temporary = function(instruction) {
+  var $0, $1;
+  var id = instruction.id;
+  var name = $assert_String(this.names.$index(id));
+  if (name != null) return name;
+  if ((instruction instanceof HPhi)) {
+    var phi = (instruction && instruction.is$HPhi());
+    var prefix = phi.element.name.get$stringValue();
+    if (!this.prefixes.containsKey(prefix)) {
+      this.prefixes.$setindex(prefix, 0);
+      return this.newTemporary(id, prefix);
+    }
+    else {
+      return this.newTemporary(id, ('' + prefix + '_' + (($0 = this.prefixes).$setindex(prefix, ($1 = $0.$index(prefix)) + 1), $1) + ''));
+    }
+  }
+  var prefix = 't';
+  if (!this.prefixes.containsKey(prefix)) this.prefixes.$setindex(prefix, 0);
+  return this.newTemporary(id, ('' + prefix + '' + (($1 = this.prefixes).$setindex(prefix, ($0 = $1.$index(prefix)) + 1), $0) + ''));
+}
+SsaCodeGenerator.prototype.newTemporary = function(id, name) {
+  var result = JsNames.getValid(name);
+  this.names.$setindex(id, result);
+  return result;
 }
 SsaCodeGenerator.prototype.invoke = function(element, arguments) {
   var $0;
@@ -9389,11 +9423,11 @@ SsaCodeGenerator.prototype.define = function(instruction) {
   var $0;
   var usedBy = instruction.get$usedBy();
   if (usedBy.length == 1 && (usedBy.$index(0) instanceof HPhi)) {
-    this.buffer.add(('var ' + SsaCodeGenerator.temporary((($0 = usedBy.$index(0)) && $0.is$HInstruction())) + ' = '));
+    this.buffer.add(('var ' + this.temporary((($0 = usedBy.$index(0)) && $0.is$HInstruction())) + ' = '));
     this.visit(instruction);
   }
   else {
-    var instructionId = SsaCodeGenerator.temporary(instruction);
+    var instructionId = this.temporary(instruction);
     this.buffer.add(('var ' + instructionId + ' = '));
     this.visit(instruction);
     for (var i = 0;
@@ -9401,7 +9435,7 @@ SsaCodeGenerator.prototype.define = function(instruction) {
       if ((usedBy.$index(i) instanceof HPhi)) {
         this.buffer.add(';\n');
         this.addIndentation();
-        this.buffer.add(('var ' + SsaCodeGenerator.temporary((($0 = usedBy.$index(i)) && $0.is$HInstruction())) + ' = ' + instructionId + ''));
+        this.buffer.add(('var ' + this.temporary((($0 = usedBy.$index(i)) && $0.is$HInstruction())) + ' = ' + instructionId + ''));
       }
     }
   }
@@ -9411,7 +9445,7 @@ SsaCodeGenerator.prototype.use = function(argument) {
     this.visit(argument);
   }
   else {
-    this.buffer.add(SsaCodeGenerator.temporary(argument));
+    this.buffer.add(this.temporary(argument));
   }
 }
 SsaCodeGenerator.prototype.visit = function(node) {
@@ -9419,7 +9453,8 @@ SsaCodeGenerator.prototype.visit = function(node) {
 }
 SsaCodeGenerator.prototype.visitBasicBlock = function(node) {
   if ($notnull_bool(node.isLoopHeader)) {
-    this.buffer.add('while(true) {\n');
+    this.addIndentation();
+    this.buffer.add('while (true) {\n');
     this.indent++;
   }
   this.currentBlock = node;
@@ -9464,14 +9499,14 @@ SsaCodeGenerator.prototype.visitExit = function(node) {
 }
 SsaCodeGenerator.prototype.visitGoto = function(node) {
   var $0;
-  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 152, 12);
+  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 184, 12);
   var dominated = this.currentBlock.dominatedBlocks;
   if (dominated.isEmpty()) return;
   if (dominated.length > 2) unreachable();
   if (dominated.length == 2 && this.currentBlock !== this.currentGraph.entry) {
     unreachable();
   }
-  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 164, 12);
+  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 196, 12);
   this.visitBasicBlock((($0 = dominated.$index(0)) && $0.is$HBasicBlock()));
 }
 SsaCodeGenerator.prototype.visitIf = function(node) {
@@ -9482,13 +9517,13 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
   this.buffer.add(') {\n');
   this.indent++;
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 177, 12);
+  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 209, 12);
   this.visitBasicBlock((($0 = ifBlock.successors.$index(0)) && $0.is$HBasicBlock()));
   this.indent--;
   this.addIndentation();
   var nextDominatedIndex;
   if ($notnull_bool(node.hasElse)) {
-    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 183, 14);
+    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 215, 14);
     this.buffer.add('} else {\n');
     this.indent++;
     this.visitBasicBlock((($0 = ifBlock.successors.$index(1)) && $0.is$HBasicBlock()));
@@ -9501,7 +9536,7 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
     this.buffer.add("}\n");
     nextDominatedIndex = 1;
   }
-  $assert(dominated.length <= nextDominatedIndex + 1, "dominated.length <= nextDominatedIndex + 1", "codegen.dart", 195, 12);
+  $assert(dominated.length <= nextDominatedIndex + 1, "dominated.length <= nextDominatedIndex + 1", "codegen.dart", 227, 12);
   if (dominated.length == nextDominatedIndex + 1) {
     this.visitBasicBlock((($0 = dominated.$index(nextDominatedIndex)) && $0.is$HBasicBlock()));
   }
@@ -9542,13 +9577,13 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')) break;\n');
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 240, 12);
-  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 241, 12);
+  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 272, 12);
+  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 273, 12);
   this.visit(dominated.$index(0));
   this.indent--;
   this.addIndentation();
   this.buffer.add('}\n');
-  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 246, 12);
+  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 278, 12);
   this.visit(dominated.$index(1));
 }
 SsaCodeGenerator.prototype.visitParameter = function(node) {
@@ -9565,7 +9600,7 @@ SsaCodeGenerator.prototype.visitPhi = function(node) {
         this.buffer.add(";\n");
         this.addIndentation();
       }
-      this.buffer.add(("var " + SsaCodeGenerator.temporary((($0 = usedBy.$index(i)) && $0.is$HInstruction())) + " = " + SsaCodeGenerator.temporary(node) + ""));
+      this.buffer.add(("var " + this.temporary((($0 = usedBy.$index(i)) && $0.is$HInstruction())) + " = " + this.temporary(node) + ""));
       firstPhi = false;
     }
   }
@@ -13522,8 +13557,8 @@ MethodGenerator.prototype.visitNewExpression = function(node) {
   if (node.name != null) {
     constructorName = node.name.name;
   }
-  if ($notnull_bool($eq(constructorName, '')) && !(typeRef instanceof GenericTypeReference) && typeRef.names != null) {
-    var names = ListFactory.ListFactory$from$factory(typeRef.names);
+  if ($notnull_bool($eq(constructorName, '')) && !(typeRef instanceof GenericTypeReference) && $notnull_bool($ne(typeRef.names, null))) {
+    var names = ListFactory.ListFactory$from$factory((($0 = typeRef.names) && $0.is$Iterable()));
     constructorName = names.removeLast$0().get$name();
     if (names.length == 0) names = null;
     typeRef = new NameTypeReference(typeRef.isFinal, typeRef.get$name(), names, typeRef.get$span());
@@ -18412,7 +18447,7 @@ lang_Parser.prototype._makeType = function(expr) {
       type.names = [expr.get$name()];
     }
     else {
-      type.names.add(expr.get$name());
+      type.names.add$1(expr.get$name());
     }
     type.span = expr.get$span();
     return type;
@@ -18871,7 +18906,7 @@ lang_Parser.prototype.declaredIdentifier = function(includeOperators) {
       if ($notnull_bool(this._peekIdentifier())) {
         name = this.identifier();
       }
-      else if ((myType instanceof NameTypeReference) && myType.names == null) {
+      else if ((myType instanceof NameTypeReference) && $notnull_bool(myType.names == null)) {
         name = this._typeAsIdentifier(myType);
         myType = null;
       }

@@ -48,13 +48,18 @@ class SsaCodeGeneratorTask extends CompilerTask {
 class SsaCodeGenerator implements HVisitor {
   final Compiler compiler;
   final StringBuffer buffer;
+  
   final List<String> parameterNames;
-
+  final Map<int, String> names;
+  final Map<String, int> prefixes;
+  
   int indent = 0;
   HGraph currentGraph;
   HBasicBlock currentBlock;
 
-  SsaCodeGenerator(this.compiler, this.buffer, this.parameterNames);
+  SsaCodeGenerator(this.compiler, this.buffer, this.parameterNames)
+    : names = new Map<int, String>(),
+      prefixes = new Map<String, int>();
 
   visitGraph(HGraph graph) {
     currentGraph = graph;
@@ -62,8 +67,34 @@ class SsaCodeGenerator implements HVisitor {
     visitBasicBlock(graph.entry);
   }
 
-  static String temporary(HInstruction instruction) => '\$${instruction.id}';
   String parameter(int index) => parameterNames[index];
+
+  String temporary(HInstruction instruction) {
+    int id = instruction.id;
+    String name = names[id];
+    if (name !== null) return name;
+
+    if (instruction is HPhi) {
+      HPhi phi = instruction;
+      String prefix = phi.element.name.stringValue;
+      if (!prefixes.containsKey(prefix)) {
+        prefixes[prefix] = 0;
+        return newTemporary(id, prefix);
+      } else {
+        return newTemporary(id, '${prefix}_${prefixes[prefix]++}');
+      }
+    }
+
+    String prefix = 't';
+    if (!prefixes.containsKey(prefix)) prefixes[prefix] = 0;
+    return newTemporary(id, '${prefix}${prefixes[prefix]++}');
+  }
+
+  String newTemporary(int id, String name) {
+    String result = JsNames.getValid(name);
+    names[id] = result;
+    return result;
+  }
 
   void invoke(Element element, List<HInstruction> arguments) {
     buffer.add('${element.name}(');
@@ -115,7 +146,8 @@ class SsaCodeGenerator implements HVisitor {
     // While loop will be closed by the conditional loop-branch.
     // TODO(floitsch): HACK HACK HACK.
     if (node.isLoopHeader) {
-      buffer.add('while(true) {\n');
+      addIndentation();
+      buffer.add('while (true) {\n');
       indent++;
     }
     currentBlock = node;
