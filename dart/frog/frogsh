@@ -9131,11 +9131,7 @@ SsaBuilder.prototype.visitIdentifier = function(node) {
   this.stack.add(def);
 }
 SsaBuilder.prototype.joinDefinitions = function(joinBlock, incoming1, incoming2) {
-  if (incoming1.get$length() > incoming2.get$length()) {
-    return this.joinDefinitions(joinBlock, incoming2, incoming1);
-  }
   var joinedDefinitions = new HashMapImplementation();
-  $assert(incoming1.get$length() <= incoming2.get$length(), "incoming1.length <= incoming2.length", "builder.dart", 259, 12);
   incoming1.forEach((function (element, instruction) {
     var $0;
     var other = (($0 = incoming2.$index(element)) && $0.is$HInstruction());
@@ -9182,7 +9178,7 @@ SsaBuilder.prototype.visitIf = function(node) {
     else if (!$notnull_bool(hasElse)) conditionBlock.addSuccessor(joinBlock);
     this.open(joinBlock);
     if (joinBlock.predecessors.length == 2) {
-      this.definitions = this.joinDefinitions(joinBlock, this.definitions, thenDefinitions);
+      this.definitions = this.joinDefinitions(joinBlock, thenDefinitions, this.definitions);
     }
   }
 }
@@ -9298,7 +9294,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 443, 12);
+  $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 438, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   this.definitions.$setindex(this.elements.$index(node), value);
@@ -9313,7 +9309,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions without initial value");
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 459, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 454, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }
@@ -10465,7 +10461,7 @@ $inherits(HPhi, HInstruction);
 HPhi.prototype.is$HPhi = function(){return this;};
 HPhi.prototype.get$element = function() { return this.element; };
 HPhi.prototype.addInput = function(input) {
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 701, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 704, 12);
   this.inputs.add(input);
   input.get$usedBy().add(this);
 }
@@ -12571,7 +12567,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 696, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 697, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -13720,7 +13716,7 @@ MethodGenerator.prototype.visitNullExpression = function(node) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2084, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2085, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;

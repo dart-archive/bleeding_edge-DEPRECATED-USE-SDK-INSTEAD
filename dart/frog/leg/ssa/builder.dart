@@ -250,13 +250,8 @@ class SsaBuilder implements Visitor {
     // block. Since variable declarations are scoped the declared
     // variable cannot be alive outside the block. Note: this is only
     // true for nodes where we do joins.
-    if (incoming1.length > incoming2.length) {
-      // Inverse the two maps.
-      return joinDefinitions(joinBlock, incoming2, incoming1);
-    }
     Map<Element, HInstruction> joinedDefinitions =
         new Map<Element, HInstruction>();
-    assert(incoming1.length <= incoming2.length);
     incoming1.forEach((element, instruction) {
       HInstruction other = incoming2[element];
       if (other === null) return;
@@ -316,8 +311,8 @@ class SsaBuilder implements Visitor {
       open(joinBlock);
       if (joinBlock.predecessors.length == 2) {
         definitions = joinDefinitions(joinBlock,
-                                      definitions,
-                                      thenDefinitions);
+                                      thenDefinitions,
+                                      definitions);
       }
     }
   }

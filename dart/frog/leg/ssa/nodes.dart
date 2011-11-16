@@ -692,6 +692,9 @@ class HParameter extends HInstruction {
 
 class HPhi extends HInstruction {
   final Element element;
+  // The order of the [inputs] must correspond to the order of the
+  // predecessor-edges. That is if an input comes from the first predecessor
+  // of the surrounding block, then the input must be the first in the [HPhi]. 
   HPhi.singleInput(this.element, HInstruction input)
       : super(<HInstruction>[input]);
   HPhi.manyInputs(this.element, List<HInstruction> inputs)
