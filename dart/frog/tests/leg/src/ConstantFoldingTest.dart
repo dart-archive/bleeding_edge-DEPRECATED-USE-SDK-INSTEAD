@@ -3,13 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test constant folding.
 
-#import("../../../leg/leg.dart");
-
-class StringScript extends Script {
-  final String code;
-  StringScript(this.code) : super(null);
-  String get text() => code;
-}
+#import("compiler_helper.dart");
 
 final String STRING_FOLDING = """
 void add(var a, var b) {}
@@ -34,17 +28,14 @@ void main() {
 """;
 
 
-void compileAndTest(String code, RegExp regexp) {
-  Compiler compiler = new Compiler(new StringScript(code));
-  compiler.scanner.scan(compiler.script);
-  String generated = compiler.compileMethod(
-      compiler.universe.find(Compiler.MAIN));
+void compileAndTest(String code, String entry, RegExp regexp) {
+  String generated = compile(code, entry);
   Expect.isTrue(regexp.hasMatch(generated));
 }
 
 main() {
   compileAndTest(
-      STRING_FOLDING, const RegExp("print\\('hello' \\+ 'world'\\)"));
+      STRING_FOLDING, 'main', const RegExp("print\\('hello' \\+ 'world'\\)"));
   compileAndTest(
-      NUMBER_FOLDING, const RegExp("print\\(7\\)"));
+      NUMBER_FOLDING, 'main', const RegExp("print\\(7\\)"));
 }

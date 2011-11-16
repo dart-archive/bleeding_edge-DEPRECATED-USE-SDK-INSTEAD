@@ -153,6 +153,8 @@ class Unparser implements Visitor {
     sb.add(' ');
     // TODO(karlklose): print modifiers.
     visit(node.definitions);
-    if (node.endToken !== null) add(node.endToken.value);
+    if (node.endToken.value == const SourceString(';')) {
+      add(node.endToken.value);
+    }
   }
 }

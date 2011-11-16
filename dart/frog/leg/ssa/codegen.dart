@@ -9,53 +9,52 @@ class SsaCodeGeneratorTask extends CompilerTask {
   String generate(Node tree, HGraph graph) {
     return measure(() {
       FunctionExpression function = tree;
+      NodeList parameters = function.parameters;
+      List<String> parameterNames = [];
+      for (var link = parameters.nodes; !link.isEmpty(); link = link.tail) {
+        VariableDefinitions parameter = link.head;
+        SourceString name = parameter.definitions.nodes.head.source;
+        parameterNames.add(JsNames.getValid('$name'));
+      }
+
       Identifier name = function.name;
       if (GENERATE_SSA_TRACE) {
         new HTracer.singleton().traceGraph("codegen", graph);
       }
       String code = generateMethod(name.source,
-                                   countParameters(function),
+                                   parameterNames,
                                    graph);
       return code;
     });
   }
 
   String generateMethod(SourceString methodName,
-                        int parameterCount,
+                        List<String> parameterNames,
                         HGraph graph) {
     StringBuffer buffer = new StringBuffer();
-    SsaCodeGenerator codegen = new SsaCodeGenerator(compiler, buffer);
+    SsaCodeGenerator codegen =
+        new SsaCodeGenerator(compiler, buffer, parameterNames);
     graph.assignInstructionIds();
     codegen.visitGraph(graph);
     StringBuffer parameters = new StringBuffer();
-    for (int i = 0; i < parameterCount; i++) {
+    for (int i = 0; i < parameterNames.length; i++) {
       if (i != 0) parameters.add(', ');
-      parameters.add(SsaCodeGenerator.parameter(i));
+      parameters.add(parameterNames[i]);
     }
     return 'function $methodName($parameters) {\n$buffer}\n';
-  }
-
-  // TODO(floitsch): remove this method when NodeList has a 'length' field.
-  static int countParameters(FunctionExpression function) {
-    int result = 0;
-    for (Link<Node> link = function.parameters.nodes;
-         !link.isEmpty();
-         link = link.tail) {
-      result++;
-    }
-    return result;
   }
 }
 
 class SsaCodeGenerator implements HVisitor {
   final Compiler compiler;
   final StringBuffer buffer;
+  final List<String> parameterNames;
 
   int indent = 0;
   HGraph currentGraph;
   HBasicBlock currentBlock;
 
-  SsaCodeGenerator(this.compiler, this.buffer);
+  SsaCodeGenerator(this.compiler, this.buffer, this.parameterNames);
 
   visitGraph(HGraph graph) {
     currentGraph = graph;
@@ -63,8 +62,8 @@ class SsaCodeGenerator implements HVisitor {
     visitBasicBlock(graph.entry);
   }
 
-  static String temporary(HInstruction instruction) => 't${instruction.id}';
-  static String parameter(int index) => 'p$index';
+  static String temporary(HInstruction instruction) => '\$${instruction.id}';
+  String parameter(int index) => parameterNames[index];
 
   void invoke(Element element, List<HInstruction> arguments) {
     buffer.add('${element.name}(');

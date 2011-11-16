@@ -12,6 +12,7 @@
 
 #source('builder.dart');
 #source('codegen.dart');
+#source('js_names.dart');
 #source('nodes.dart');
 #source('optimize.dart');
 #source('tracer.dart');

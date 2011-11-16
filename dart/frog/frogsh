@@ -8089,14 +8089,14 @@ function Send(receiver, selector, argumentsNode) {
 Send.postfix$ctor = function(receiver, selector) {
   this.receiver = receiver;
   this.selector = selector;
-  this.argumentsNode = const$248/*const Postfix()*/;
+  this.argumentsNode = const$249/*const Postfix()*/;
   // Initializers done
 }
 Send.postfix$ctor.prototype = Send.prototype;
 Send.prefix$ctor = function(receiver, selector) {
   this.receiver = receiver;
   this.selector = selector;
-  this.argumentsNode = const$247/*const Prefix()*/;
+  this.argumentsNode = const$248/*const Prefix()*/;
   // Initializers done
 }
 Send.prefix$ctor.prototype = Send.prototype;
@@ -8795,7 +8795,9 @@ Unparser.prototype.visitVariableDefinitions = function(node) {
   }
   this.sb.add(' ');
   this.visit(node.definitions);
-  if (node.endToken != null) this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
+  if ($notnull_bool($eq(node.endToken.get$value(), const$246/*const SourceString(';')*/))) {
+    this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
+  }
 }
 Unparser.prototype.add$1 = function($0) {
   return this.add(($0 && $0.is$SourceString()));
@@ -8836,7 +8838,7 @@ Element.prototype.hashCode$0 = function() {
 function VariableElement(node, typeAnnotation, name, enclosingElement) {
   this.node = node;
   this.typeAnnotation = typeAnnotation;
-  Element.call(this, name, const$265, enclosingElement);
+  Element.call(this, name, const$266, enclosingElement);
   // Initializers done
 }
 $inherits(VariableElement, Element);
@@ -9188,22 +9190,22 @@ SsaBuilder.prototype.visitSend = function(node) {
     var right = this.pop();
     var left = this.pop();
     var op = (($0 = node.selector) && $0.is$Operator());
-    if ($notnull_bool($eq(const$290/*const SourceString("+")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$291/*const SourceString("+")*/, op.get$source()))) {
       this.push(new HAdd(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$291/*const SourceString("-")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$292/*const SourceString("-")*/, op.get$source()))) {
       this.push(new HSubtract(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$292/*const SourceString("*")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$293/*const SourceString("*")*/, op.get$source()))) {
       this.push(new HMultiply(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$293/*const SourceString("/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$294/*const SourceString("/")*/, op.get$source()))) {
       this.push(new HDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$294/*const SourceString("~/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$295/*const SourceString("~/")*/, op.get$source()))) {
       this.push(new HTruncatingDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$295/*const SourceString("==")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$296/*const SourceString("==")*/, op.get$source()))) {
       this.push(new HEquals(element, [left, right]));
     }
   }
@@ -9323,42 +9325,42 @@ SsaCodeGeneratorTask.prototype.generate = function(tree, graph) {
   return $assert_String(this.measure((function () {
     var $0;
     var function_ = (tree && tree.is$FunctionExpression());
+    var parameters = function_.parameters;
+    var parameterNames = [];
+    for (var link = parameters.nodes;
+     !$notnull_bool(link.isEmpty$0()); link = link.get$tail()) {
+      var parameter = (($0 = link.get$head()) && $0.is$VariableDefinitions());
+      var name = (($0 = parameter.definitions.nodes.get$head().get$source()) && $0.is$SourceString());
+      parameterNames.add(JsNames.getValid(('' + name + '')));
+    }
     var name = (($0 = function_.name) && $0.is$Identifier());
     if (false/*null.GENERATE_SSA_TRACE*/) {
       HTracer.HTracer$singleton$factory().traceGraph("codegen", graph);
     }
-    var code = $this.generateMethod(name.get$source(), SsaCodeGeneratorTask.countParameters(function_), graph);
+    var code = $this.generateMethod(name.get$source(), parameterNames, graph);
     return code;
   })
   ));
 }
-SsaCodeGeneratorTask.prototype.generateMethod = function(methodName, parameterCount, graph) {
+SsaCodeGeneratorTask.prototype.generateMethod = function(methodName, parameterNames, graph) {
   var buffer = new StringBufferImpl("");
-  var codegen = new SsaCodeGenerator(this.compiler, buffer);
+  var codegen = new SsaCodeGenerator(this.compiler, buffer, parameterNames);
   graph.assignInstructionIds();
   codegen.visitGraph(graph);
   var parameters = new StringBufferImpl("");
   for (var i = 0;
-   i < parameterCount; i++) {
+   i < parameterNames.length; i++) {
     if (i != 0) parameters.add(', ');
-    parameters.add(SsaCodeGenerator.parameter(i));
+    parameters.add(parameterNames.$index(i));
   }
   return ('function ' + methodName + '(' + parameters + ') {\n' + buffer + '}\n');
 }
-SsaCodeGeneratorTask.countParameters = function(function_) {
-  var $0;
-  var result = 0;
-  for (var link = function_.parameters.nodes;
-   !$notnull_bool(link.isEmpty()); link = (($0 = link.get$tail()) && $0.is$Link$Node())) {
-    result++;
-  }
-  return result;
-}
 // ********** Code for SsaCodeGenerator **************
-function SsaCodeGenerator(compiler, buffer) {
+function SsaCodeGenerator(compiler, buffer, parameterNames) {
   this.indent = 0
   this.compiler = compiler;
   this.buffer = buffer;
+  this.parameterNames = parameterNames;
   // Initializers done
 }
 SsaCodeGenerator.prototype.is$HVisitor = function(){return this;};
@@ -9368,10 +9370,10 @@ SsaCodeGenerator.prototype.visitGraph = function(graph) {
   this.visitBasicBlock(graph.entry);
 }
 SsaCodeGenerator.temporary = function(instruction) {
-  return ('t' + instruction.id + '');
+  return ('\$' + instruction.id + '');
 }
-SsaCodeGenerator.parameter = function(index) {
-  return ('p' + index + '');
+SsaCodeGenerator.prototype.parameter = function(index) {
+  return $assert_String(this.parameterNames.$index(index));
 }
 SsaCodeGenerator.prototype.invoke = function(element, arguments) {
   var $0;
@@ -9462,14 +9464,14 @@ SsaCodeGenerator.prototype.visitExit = function(node) {
 }
 SsaCodeGenerator.prototype.visitGoto = function(node) {
   var $0;
-  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 153, 12);
+  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 152, 12);
   var dominated = this.currentBlock.dominatedBlocks;
   if (dominated.isEmpty()) return;
   if (dominated.length > 2) unreachable();
   if (dominated.length == 2 && this.currentBlock !== this.currentGraph.entry) {
     unreachable();
   }
-  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 165, 12);
+  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 164, 12);
   this.visitBasicBlock((($0 = dominated.$index(0)) && $0.is$HBasicBlock()));
 }
 SsaCodeGenerator.prototype.visitIf = function(node) {
@@ -9480,13 +9482,13 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
   this.buffer.add(') {\n');
   this.indent++;
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 178, 12);
+  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 177, 12);
   this.visitBasicBlock((($0 = ifBlock.successors.$index(0)) && $0.is$HBasicBlock()));
   this.indent--;
   this.addIndentation();
   var nextDominatedIndex;
   if ($notnull_bool(node.hasElse)) {
-    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 184, 14);
+    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 183, 14);
     this.buffer.add('} else {\n');
     this.indent++;
     this.visitBasicBlock((($0 = ifBlock.successors.$index(1)) && $0.is$HBasicBlock()));
@@ -9499,7 +9501,7 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
     this.buffer.add("}\n");
     nextDominatedIndex = 1;
   }
-  $assert(dominated.length <= nextDominatedIndex + 1, "dominated.length <= nextDominatedIndex + 1", "codegen.dart", 196, 12);
+  $assert(dominated.length <= nextDominatedIndex + 1, "dominated.length <= nextDominatedIndex + 1", "codegen.dart", 195, 12);
   if (dominated.length == nextDominatedIndex + 1) {
     this.visitBasicBlock((($0 = dominated.$index(nextDominatedIndex)) && $0.is$HBasicBlock()));
   }
@@ -9540,17 +9542,17 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')) break;\n');
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 241, 12);
-  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 242, 12);
+  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 240, 12);
+  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 241, 12);
   this.visit(dominated.$index(0));
   this.indent--;
   this.addIndentation();
   this.buffer.add('}\n');
-  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 247, 12);
+  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 246, 12);
   this.visit(dominated.$index(1));
 }
 SsaCodeGenerator.prototype.visitParameter = function(node) {
-  this.buffer.add(SsaCodeGenerator.parameter(node.parameterIndex));
+  this.buffer.add(this.parameter(node.parameterIndex));
 }
 SsaCodeGenerator.prototype.visitPhi = function(node) {
   var $0;
@@ -9587,6 +9589,24 @@ SsaCodeGenerator.prototype.addIndentation = function() {
   }
 }
 SsaCodeGenerator.prototype.visit$1 = SsaCodeGenerator.prototype.visit;
+// ********** Code for JsNames **************
+function JsNames() {}
+JsNames.get$reserved = function() {
+  if (JsNames._reserved == null) {
+    JsNames._reserved = new HashSetImplementation();
+    JsNames._reserved.addAll(const$299/*JsNames.reservedPropertySymbols*/);
+    JsNames._reserved.addAll(const$301/*JsNames.reservedGlobalSymbols*/);
+    JsNames._reserved.addAll(const$303/*JsNames.javaScriptKeywords*/);
+  }
+  return JsNames._reserved;
+}
+JsNames.getValid = function(name) {
+  if (JsNames.get$reserved().contains(name)) {
+    name = ('_' + name + '');
+    $assert(!JsNames.get$reserved().contains(name), "!reserved.contains(name)", "js_names.dart", 171, 14);
+  }
+  return name;
+}
 // ********** Code for HGraphVisitor **************
 function HGraphVisitor() {
   // Initializers done
@@ -11199,13 +11219,13 @@ ResolverVisitor.prototype.visitIf = function(node) {
   this.visit(node.elsePart);
 }
 ResolverVisitor.prototype.potentiallyMapOperatorToMethodName = function(name) {
-  if ($notnull_bool($eq(name, const$250/*const SourceString('+')*/))) return const$251/*const SourceString('add')*/;
-  if ($notnull_bool($eq(name, const$252/*const SourceString('-')*/))) return const$253/*const SourceString('sub')*/;
-  if ($notnull_bool($eq(name, const$254/*const SourceString('*')*/))) return const$255/*const SourceString('mul')*/;
-  if ($notnull_bool($eq(name, const$256/*const SourceString('/')*/))) return const$257/*const SourceString('div')*/;
-  if ($notnull_bool($eq(name, const$258/*const SourceString('~/')*/))) return const$259/*const SourceString('tdiv')*/;
-  if ($notnull_bool($eq(name, const$260/*const SourceString('==')*/))) return const$261/*const SourceString('eq')*/;
-  if ($notnull_bool($eq(name, const$262/*const SourceString('<')*/))) return const$263/*const SourceString('lt')*/;
+  if ($notnull_bool($eq(name, const$251/*const SourceString('+')*/))) return const$252/*const SourceString('add')*/;
+  if ($notnull_bool($eq(name, const$253/*const SourceString('-')*/))) return const$254/*const SourceString('sub')*/;
+  if ($notnull_bool($eq(name, const$255/*const SourceString('*')*/))) return const$256/*const SourceString('mul')*/;
+  if ($notnull_bool($eq(name, const$257/*const SourceString('/')*/))) return const$258/*const SourceString('div')*/;
+  if ($notnull_bool($eq(name, const$259/*const SourceString('~/')*/))) return const$260/*const SourceString('tdiv')*/;
+  if ($notnull_bool($eq(name, const$261/*const SourceString('==')*/))) return const$262/*const SourceString('eq')*/;
+  if ($notnull_bool($eq(name, const$263/*const SourceString('<')*/))) return const$264/*const SourceString('lt')*/;
   return name;
 }
 ResolverVisitor.prototype.visitSend = function(node) {
@@ -11260,7 +11280,7 @@ ResolverVisitor.prototype.visitThrow = function(node) {
 }
 ResolverVisitor.prototype.visitTypeAnnotation = function(node) {
   var name = node.typeName;
-  if ($notnull_bool($eq(name.get$source(), const$264/*const SourceString('var')*/))) return null;
+  if ($notnull_bool($eq(name.get$source(), const$265/*const SourceString('var')*/))) return null;
   if ($notnull_bool($eq(name.get$source(), const$4/*const SourceString('void')*/))) return null;
   var element = this.context.lookup(name.get$source());
   if (element == null) {
@@ -11382,7 +11402,7 @@ function Scope(parent) {
 }
 Scope.top$ctor = function() {
   this.parent = null;
-  this.elements = const$249/*const {}*/;
+  this.elements = const$250/*const {}*/;
   this.enclosingElement = null;
   // Initializers done
 }
@@ -11589,7 +11609,7 @@ TypeCheckerVisitor.prototype.reportTypeWarning = function(node, kind, arguments)
 TypeCheckerVisitor.prototype.nonVoidType = function(node) {
   var type = this.type(node);
   if ($eq(type, this.types.voidType)) {
-    this.reportTypeWarning(node, const$280/*WarningKind.VOID_EXPRESSION*/, const$13/*const []*/);
+    this.reportTypeWarning(node, const$281/*WarningKind.VOID_EXPRESSION*/, const$13/*const []*/);
   }
   return type;
 }
@@ -11607,7 +11627,7 @@ TypeCheckerVisitor.prototype.get$type = function() {
 }
 TypeCheckerVisitor.prototype.checkAssignable = function(node, s, t) {
   if (!$notnull_bool(this.types.isAssignable(s, t))) {
-    this.reportTypeWarning(node, const$273/*WarningKind.NOT_ASSIGNABLE*/, [s, t]);
+    this.reportTypeWarning(node, const$274/*WarningKind.NOT_ASSIGNABLE*/, [s, t]);
   }
 }
 TypeCheckerVisitor.prototype.visitBlock = function(node) {
@@ -11648,7 +11668,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
   var selector = (($0 = node.selector) && $0.is$Identifier());
   if (target != null) {
     var name = selector.get$source();
-    if ($notnull_bool($eq(name, const$250/*const SourceString('+')*/)) || $notnull_bool($eq(name, const$277/*const SourceString('=')*/)) || $notnull_bool($eq(name, const$252/*const SourceString('-')*/)) || $notnull_bool($eq(name, const$254/*const SourceString('*')*/)) || $notnull_bool($eq(name, const$256/*const SourceString('/')*/)) || $notnull_bool($eq(name, const$262/*const SourceString('<')*/)) || $notnull_bool($eq(name, const$258/*const SourceString('~/')*/))) {
+    if ($notnull_bool($eq(name, const$251/*const SourceString('+')*/)) || $notnull_bool($eq(name, const$278/*const SourceString('=')*/)) || $notnull_bool($eq(name, const$253/*const SourceString('-')*/)) || $notnull_bool($eq(name, const$255/*const SourceString('*')*/)) || $notnull_bool($eq(name, const$257/*const SourceString('/')*/)) || $notnull_bool($eq(name, const$263/*const SourceString('<')*/)) || $notnull_bool($eq(name, const$259/*const SourceString('~/')*/))) {
       return this.types.dynamicType;
     }
     var targetType = target.computeType$2(this.compiler, this.types);
@@ -11725,14 +11745,14 @@ TypeCheckerVisitor.prototype.visitReturn = function(node) {
   if (expression != null) {
     var expressionType = this.type(expression);
     if (isVoidFunction && !$notnull_bool(this.types.isAssignable(expressionType, this.types.voidType))) {
-      this.reportTypeWarning(expression, const$271/*WarningKind.RETURN_VALUE_IN_VOID*/, const$13/*const []*/);
+      this.reportTypeWarning(expression, const$272/*WarningKind.RETURN_VALUE_IN_VOID*/, const$13/*const []*/);
     }
     else {
       this.checkAssignable(expression, expressionType, this.expectedReturnType);
     }
   }
   else if (!$notnull_bool(this.types.isAssignable(this.expectedReturnType, this.types.voidType))) {
-    this.reportTypeWarning(node, const$275/*WarningKind.RETURN_NOTHING*/, [this.expectedReturnType]);
+    this.reportTypeWarning(node, const$276/*WarningKind.RETURN_NOTHING*/, [this.expectedReturnType]);
   }
   return null;
 }
@@ -11751,7 +11771,7 @@ TypeCheckerVisitor.prototype.visitVariableDefinitions = function(node) {
   var $0;
   var type = this.typeWithDefault(node.type, this.types.dynamicType);
   if ($eq(type, this.types.voidType)) {
-    this.reportTypeWarning(node.type, const$278/*WarningKind.VOID_VARIABLE*/, const$13/*const []*/);
+    this.reportTypeWarning(node.type, const$279/*WarningKind.VOID_VARIABLE*/, const$13/*const []*/);
     type = this.types.dynamicType;
   }
   for (var link = node.definitions.nodes;
@@ -11785,7 +11805,7 @@ Universe.prototype.addGeneratedCode = function(element, code) {
 }
 // ********** Code for top level **************
 function unreachable() {
-  $throw(const$298/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
+  $throw(const$305/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
 }
 function compile(world) {
   var file = world.readFile(options.dartScript);
@@ -12999,7 +13019,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   return false;
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
-  var types = const$411/*const [
+  var types = const$418/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   var target = new Value(world.varType, 'this', node.span, true);
@@ -15895,6 +15915,7 @@ function lang_Token(kind, source, start, end) {
   this.end = end;
   // Initializers done
 }
+lang_Token.prototype.get$source = function() { return this.source; };
 lang_Token.prototype.get$text = function() {
   return this.source.get$text().substring(this.start, this.end);
 }
@@ -17736,6 +17757,7 @@ function lang_Parser(source, diet, throwOnIncomplete, optionalSemicolons, startO
   this._previousToken = null;
   this._inInitializers = false;
 }
+lang_Parser.prototype.get$source = function() { return this.source; };
 lang_Parser.prototype.isPrematureEndOfFile = function() {
   if ($notnull_bool(this.throwOnIncomplete) && $notnull_bool(this._maybeEat(1/*TokenKind.END_OF_FILE*/)) || $notnull_bool(this._maybeEat(68/*TokenKind.INCOMPLETE_MULTILINE_STRING_DQ*/)) || $notnull_bool(this._maybeEat(69/*TokenKind.INCOMPLETE_MULTILINE_STRING_SQ*/))) {
     $throw(new IncompleteSourceException(this._previousToken));
@@ -22847,47 +22869,194 @@ var const$239 = new ElementKind('function')/*const ElementKind('function')*/;
 var const$241 = new StringWrapper('JS')/*const SourceString('JS')*/;
 var const$242 = new ElementKind('foreign')/*const ElementKind('foreign')*/;
 var const$244 = new StringWrapper('main')/*const SourceString('main')*/;
-var const$246 = new NodeList()/*const Prefix()*/;
-var const$247 = new Prefix()/*const Prefix()*/;
-var const$248 = new Postfix()/*const Postfix()*/;
-var const$249 = new ImmutableMap([])/*const {}*/;
-var const$250 = new StringWrapper('+')/*const SourceString('+')*/;
-var const$251 = new StringWrapper('add')/*const SourceString('add')*/;
-var const$252 = new StringWrapper('-')/*const SourceString('-')*/;
-var const$253 = new StringWrapper('sub')/*const SourceString('sub')*/;
-var const$254 = new StringWrapper('*')/*const SourceString('*')*/;
-var const$255 = new StringWrapper('mul')/*const SourceString('mul')*/;
-var const$256 = new StringWrapper('/')/*const SourceString('/')*/;
-var const$257 = new StringWrapper('div')/*const SourceString('div')*/;
-var const$258 = new StringWrapper('~/')/*const SourceString('~/')*/;
-var const$259 = new StringWrapper('tdiv')/*const SourceString('tdiv')*/;
-var const$260 = new StringWrapper('==')/*const SourceString('==')*/;
-var const$261 = new StringWrapper('eq')/*const SourceString('eq')*/;
-var const$262 = new StringWrapper('<')/*const SourceString('<')*/;
-var const$263 = new StringWrapper('lt')/*const SourceString('lt')*/;
-var const$264 = new StringWrapper('var')/*const SourceString('var')*/;
-var const$265 = new ElementKind('variable')/*const ElementKind('variable')*/;
-var const$271 = new WarningKind('cannot return value from void function')/*const WarningKind(
+var const$246 = new StringWrapper(';')/*const SourceString(';')*/;
+var const$247 = new NodeList()/*const Prefix()*/;
+var const$248 = new Prefix()/*const Prefix()*/;
+var const$249 = new Postfix()/*const Postfix()*/;
+var const$250 = new ImmutableMap([])/*const {}*/;
+var const$251 = new StringWrapper('+')/*const SourceString('+')*/;
+var const$252 = new StringWrapper('add')/*const SourceString('add')*/;
+var const$253 = new StringWrapper('-')/*const SourceString('-')*/;
+var const$254 = new StringWrapper('sub')/*const SourceString('sub')*/;
+var const$255 = new StringWrapper('*')/*const SourceString('*')*/;
+var const$256 = new StringWrapper('mul')/*const SourceString('mul')*/;
+var const$257 = new StringWrapper('/')/*const SourceString('/')*/;
+var const$258 = new StringWrapper('div')/*const SourceString('div')*/;
+var const$259 = new StringWrapper('~/')/*const SourceString('~/')*/;
+var const$260 = new StringWrapper('tdiv')/*const SourceString('tdiv')*/;
+var const$261 = new StringWrapper('==')/*const SourceString('==')*/;
+var const$262 = new StringWrapper('eq')/*const SourceString('eq')*/;
+var const$263 = new StringWrapper('<')/*const SourceString('<')*/;
+var const$264 = new StringWrapper('lt')/*const SourceString('lt')*/;
+var const$265 = new StringWrapper('var')/*const SourceString('var')*/;
+var const$266 = new ElementKind('variable')/*const ElementKind('variable')*/;
+var const$272 = new WarningKind('cannot return value from void function')/*const WarningKind(
       'cannot return value from void function')*/;
-var const$273 = new WarningKind('#{1} is not assignable to #{2}')/*const WarningKind(
+var const$274 = new WarningKind('#{1} is not assignable to #{2}')/*const WarningKind(
       '#{1} is not assignable to #{2}')*/;
-var const$275 = new WarningKind('value of type #{1} expected')/*const WarningKind(
+var const$276 = new WarningKind('value of type #{1} expected')/*const WarningKind(
       'value of type #{1} expected')*/;
-var const$277 = new StringWrapper('=')/*const SourceString('=')*/;
-var const$278 = new WarningKind('variable cannot be of type void')/*const WarningKind(
+var const$278 = new StringWrapper('=')/*const SourceString('=')*/;
+var const$279 = new WarningKind('variable cannot be of type void')/*const WarningKind(
       'variable cannot be of type void')*/;
-var const$280 = new WarningKind('expression does not yield a value')/*const WarningKind(
+var const$281 = new WarningKind('expression does not yield a value')/*const WarningKind(
       'expression does not yield a value')*/;
-var const$290 = new StringWrapper("+")/*const SourceString("+")*/;
-var const$291 = new StringWrapper("-")/*const SourceString("-")*/;
-var const$292 = new StringWrapper("*")/*const SourceString("*")*/;
-var const$293 = new StringWrapper("/")/*const SourceString("/")*/;
-var const$294 = new StringWrapper("~/")/*const SourceString("~/")*/;
-var const$295 = new StringWrapper("==")/*const SourceString("==")*/;
-var const$298 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+var const$291 = new StringWrapper("+")/*const SourceString("+")*/;
+var const$292 = new StringWrapper("-")/*const SourceString("-")*/;
+var const$293 = new StringWrapper("*")/*const SourceString("*")*/;
+var const$294 = new StringWrapper("/")/*const SourceString("/")*/;
+var const$295 = new StringWrapper("~/")/*const SourceString("~/")*/;
+var const$296 = new StringWrapper("==")/*const SourceString("==")*/;
+var const$299 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
 var const$3 = new EmptyQueueException()/*const EmptyQueueException()*/;
+var const$301 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
+    // Section references are from Ecma-262
+    // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
+
+    // 15.1.1 Value Properties of the Global Object
+    "NaN", "Infinity", "undefined",
+
+    // 15.1.2 Function Properties of the Global Object
+    "eval", "parseInt", "parseFloat", "isNan", "isFinite",
+
+    // 15.1.3 URI Handling Function Properties
+    "decodeURI", "decodeURIComponent",
+    "encodeURI",
+    "encodeURIComponent",
+
+    // 15.1.4 Constructor Properties of the Global Object
+    "Object", "Function", "Array", "String", "Boolean", "Number", "Date",
+    "RegExp", "Error", "EvalError", "RangeError", "ReferenceError",
+    "SyntaxError", "TypeError", "URIError",
+
+    // 15.1.5 Other Properties of the Global Object
+    "Math",
+
+    // 10.1.6 Activation Object
+    "arguments",
+
+    // B.2 Additional Properties (non-normative)
+    "escape", "unescape",
+
+    // Window props (https://developer.mozilla.org/en/DOM/window)
+    "applicationCache", "closed", "Components", "content", "controllers",
+    "crypto", "defaultStatus", "dialogArguments", "directories",
+    "document", "frameElement", "frames", "fullScreen", "globalStorage",
+    "history", "innerHeight", "innerWidth", "length",
+    "location", "locationbar", "localStorage", "menubar",
+    "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel",
+    "name", "navigator", "opener", "outerHeight", "outerWidth",
+    "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11",
+    "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY",
+    "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar",
+    "top", "window",
+
+    // Window methods (https://developer.mozilla.org/en/DOM/window)
+    "alert", "addEventListener", "atob", "back", "blur", "btoa",
+    "captureEvents", "clearInterval", "clearTimeout", "close", "confirm",
+    "disableExternalCapture", "dispatchEvent", "dump",
+    "enableExternalCapture", "escape", "find", "focus", "forward",
+    "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount",
+    "getComputedStyle", "getSelection", "home", "maximize", "minimize",
+    "moveBy", "moveTo", "open", "openDialog", "postMessage", "print",
+    "prompt", "QueryInterface", "releaseEvents", "removeEventListener",
+    "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy",
+    "scrollByLines", "scrollByPages", "scrollTo", "setInterval",
+    "setResizeable", "setTimeout", "showModalDialog", "sizeToContent",
+    "stop", "uuescape", "updateCommands", "XPCNativeWrapper",
+    "XPCSafeJSOjbectWrapper",
+
+    // Mozilla Window event handlers, same cite
+    "onabort", "onbeforeunload", "onchange", "onclick", "onclose",
+    "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange",
+    "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown",
+    "onmousemove", "onmouseout", "onmouseover", "onmouseup",
+    "onmozorientation", "onpaint", "onreset", "onresize", "onscroll",
+    "onselect", "onsubmit", "onunload",
+
+    // Safari Web Content Guide
+    // http://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariWebContent/SafariWebContent.pdf
+    // WebKit Window member data, from WebKit DOM Reference
+    // (http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/WebKitDOMRef/DOMWindow_idl/Classes/DOMWindow/index.html)
+    "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart",
+    "ongesturestart", "ongesturechange", "ongestureend",
+
+    // extra window methods
+    "uneval",
+
+    // keywords https://developer.mozilla.org/en/New_in_JavaScript_1.7,
+    // https://developer.mozilla.org/en/New_in_JavaScript_1.8.1
+    "getPrototypeOf", "let", "yield",
+
+    // "future reserved words"
+    "abstract", "int", "short", "boolean", "interface", "static", "byte",
+    "long", "char", "final", "native", "synchronized", "float", "package",
+    "throws", "goto", "private", "transient", "implements", "protected",
+    "volatile", "double", "public",
+
+    // IE methods
+    // (http://msdn.microsoft.com/en-us/library/ms535873(VS.85).aspx#)
+    "attachEvent", "clientInformation", "clipboardData", "createPopup",
+    "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth",
+    "onafterprint", "onbeforedeactivate", "onbeforeprint",
+    "oncontrolselect", "ondeactivate", "onhelp", "onresizeend",
+
+    // Common browser-defined identifiers not defined in ECMAScript
+    "event", "external", "Debug", "Enumerator", "Global", "Image",
+    "ActiveXObject", "VBArray", "Components",
+
+    // Functions commonly defined on Object
+    "toString", "getClass", "constructor", "prototype", "valueOf",
+
+    // Client-side JavaScript identifiers, which are needed for linkers
+    // that don't ensure GWT's window != $wnd, document != $doc, etc.
+    // Taken from the Rhino book, pg 715
+    "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient",
+    "CanvasPattern", "CanvasRenderingContext2D", "CDATASection",
+    "CharacterData", "Comment", "CSS2Properties", "CSSRule",
+    "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType",
+    "DOMException", "DOMImplementation", "DOMParser", "Element", "Event",
+    "ExternalInterface", "FlashPlayer", "Form", "Frame", "History",
+    "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image",
+    "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType",
+    "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin",
+    "ProcessingInstruction", "Range", "RangeException", "Screen", "Select",
+    "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea",
+    "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer",
+    "XPathException", "XPathResult", "XSLTProcessor",
+
+    // These keywords trigger the loading of the java-plugin. For the
+    // next-generation plugin, this results in starting a new Java process.
+    "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass",
+    "JavaArray", "JavaMember",
+
+    // GWT-defined identifiers
+    "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase",
+    "\$gwt_version", "\$sessionId",
+
+    // Identifiers used by JsStackEmulator; later set to obfuscatable
+    "\$stack", "\$stackDepth", "\$location",
+
+    // TODO: prove why this is necessary or remove it
+    "call"
+  ]*/;
+var const$303 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
+    // These are current keywords
+    "break", "delete", "function", "return", "typeof", "case", "do", "if",
+    "switch", "var", "catch", "else", "in", "this", "void", "continue",
+    "false", "instanceof", "throw", "while", "debugger", "finally", "new",
+    "true", "with", "default", "for", "null", "try",
+
+    // These are future keywords
+    "abstract", "double", "goto", "native", "static", "boolean", "enum",
+    "implements", "package", "super", "byte", "export", "import", "private",
+    "synchronized", "char", "extends", "int", "protected", "throws",
+    "class", "final", "interface", "public", "transient", "const", "float",
+    "long", "short", "volatile"
+  ]*/;
+var const$305 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
 var const$4 = new StringWrapper('void')/*const SourceString('void')*/;
-var const$411 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$418 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
 var const$6 = new StringWrapper('int')/*const SourceString('int')*/;
