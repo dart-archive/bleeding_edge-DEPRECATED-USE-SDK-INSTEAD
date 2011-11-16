@@ -109,11 +109,16 @@ class Unparser implements Visitor {
   }
 
   visitSend(Send node) {
+    if (node.isPrefix) {
+      visit(node.selector);
+    }
     if (node.receiver !== null) {
       visit(node.receiver);
       if (node.selector is !Operator) sb.add('.');
     }
-    visit(node.selector);
+    if (!node.isPrefix) {
+      visit(node.selector);
+    }
     visit(node.argumentsNode);
   }
 

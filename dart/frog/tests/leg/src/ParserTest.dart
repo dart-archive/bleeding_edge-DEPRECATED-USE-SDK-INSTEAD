@@ -61,4 +61,11 @@ void main() {
   testStatement('lib.List<List<List<List<List<T> >>> > t;');
 
   testStatement('lib.List<List<List<List<List<T >>> >> t;');
+
+  testStatement('x++;');
+  testStatement('++x++;');
+  testStatement('++x;');
+  testStatement('print(x++);');
+  testStatement('print(++x++);'); // Accepted by parser, rejected later.
+  testStatement('print(++x);');
 }

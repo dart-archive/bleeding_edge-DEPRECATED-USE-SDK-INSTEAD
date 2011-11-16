@@ -112,12 +112,18 @@ class Send extends Expression {
   Link<Node> get arguments() => argumentsNode.nodes;
 
   const Send([this.receiver, this.selector, this.argumentsNode]);
+  const Send.postfix(this.receiver, this.selector)
+    : argumentsNode = const Postfix();
+  const Send.prefix(this.receiver, this.selector)
+    : argumentsNode = const Prefix();
 
   accept(Visitor visitor) => visitor.visitSend(this);
 
   bool get isOperator() => selector is Operator;
   bool get isPropertyAccess() => argumentsNode === null;
   bool get isFunctionObjectInvocation() => selector === null;
+  bool get isPrefix() => argumentsNode is Prefix;
+  bool get isPostfix() => argumentsNode is Postfix;
 
   Token getBeginToken() {
     return firstBeginToken(receiver, selector);
@@ -132,6 +138,14 @@ class Send extends Expression {
     }
     return receiver.getBeginToken();
   }
+}
+
+class Postfix extends NodeList {
+  const Postfix() : super();
+}
+
+class Prefix extends NodeList {
+  const Prefix() : super();
 }
 
 class SendSet extends Send {

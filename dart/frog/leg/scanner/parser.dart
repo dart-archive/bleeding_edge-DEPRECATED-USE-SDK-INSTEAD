@@ -551,7 +551,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
 
   Token parseBinaryExpression(Token token, int precedence) {
     assert(precedence >= 4);
-    token = parsePrimary(token);
+    token = parseUnaryExpression(token);
     var tokenLevel = getPrecedence(token);
     for (int level = tokenLevel; level >= precedence; --level) {
       while (tokenLevel === level) {
@@ -612,6 +612,38 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
       case value === '~/': return 13;
       default: return 0;
     }
+  }
+
+  Token parseUnaryExpression(Token token) {
+    String value = token.stringValue;
+    switch (true) {
+      // Prefix:
+      case value === '!':
+      case value === '+': // TODO(ahe): Being removed from specification.
+      case value === '-':
+      case value === '++': // TODO(ahe): Validate this is used correctly.
+      case value === '--': // TODO(ahe): Validate this is used correctly.
+      case value === '~': {
+        Token operator = token;
+        token = next(token);
+        token = parseUnaryExpression(token);
+        listener.handleUnaryPrefixExpression(operator);
+        break;
+      }
+      default:
+        token = parsePrimary(token);
+        value = token.stringValue;
+        switch (true) {
+          // Postfix:
+          case value === '++': // TODO(ahe): Validate this is used correctly.
+          case value === '--': // TODO(ahe): Validate this is used correctly.
+            listener.handleUnaryPostfixExpression(token);
+            token = next(token);
+            break;
+        }
+        break;
+    }
+    return token;
   }
 
   Token parsePrimary(Token token) {

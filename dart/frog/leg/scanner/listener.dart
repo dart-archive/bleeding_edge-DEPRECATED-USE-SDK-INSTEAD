@@ -191,6 +191,12 @@ class Listener {
   void handleNoTypeVariables(Token token) {
   }
 
+  void handleUnaryPostfixExpression(Token token) {
+  }
+
+  void handleUnaryPrefixExpression(Token token) {
+  }
+
   void handleVarKeyword(Token token) {
   }
 
@@ -515,6 +521,14 @@ class NodeListener extends ElementListener {
 
   void endRethrowStatement(Token throwToken, Token endToken) {
     pushNode(new Throw(null, throwToken, endToken));
+  }
+
+  void handleUnaryPostfixExpression(Token token) {
+    pushNode(new Send.postfix(popNode(), new Operator(token)));
+  }
+
+  void handleUnaryPrefixExpression(Token token) {
+    pushNode(new Send.prefix(popNode(), new Operator(token)));
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
