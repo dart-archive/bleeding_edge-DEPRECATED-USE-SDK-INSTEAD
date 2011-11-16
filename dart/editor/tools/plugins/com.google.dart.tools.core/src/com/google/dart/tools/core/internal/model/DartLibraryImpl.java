@@ -860,7 +860,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
             null);
       }
     } catch (Exception exception) {
-      DartCore.logError("Could not read and parse the file " + fileName, exception);
+      DartCore.logInformation("Could not read and parse the file " + fileName, exception);
       // Fall through to return null.
     }
     return null;
