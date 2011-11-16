@@ -555,7 +555,8 @@ class IsolateNatives {
   /** Log a message, forwarding to the main worker if appropriate. */
   static _log(msg) {
     if (_globalState.inWorker) {
-      _globalState.mainWorker.postMessage({'command': 'log', 'msg': msg });
+      _globalState.mainWorker.postMessage(
+          _serializeMessage({'command': 'log', 'msg': msg }));
     } else {
       try {
         _consoleLog(msg);
