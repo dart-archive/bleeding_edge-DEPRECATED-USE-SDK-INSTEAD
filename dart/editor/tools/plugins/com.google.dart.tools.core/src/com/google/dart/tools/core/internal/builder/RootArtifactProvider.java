@@ -26,13 +26,9 @@ import com.google.dart.tools.core.model.DartModelException;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +45,7 @@ public class RootArtifactProvider extends CachingArtifactProvider {
    * removal.
    */
   @SuppressWarnings("restriction")
-  private static class LifecycleListener extends SourceChangeListener implements
+  private static class LifecycleListener implements
       org.eclipse.core.internal.events.ILifecycleListener {
 
     static void hookListener() {
@@ -69,62 +65,6 @@ public class RootArtifactProvider extends CachingArtifactProvider {
         }
       }
     }
-  }
-
-  /**
-   * Internal class for pruning the cached artifacts based upon resource changes
-   */
-  private static class ResourceChangeListener extends SourceChangeListener implements
-      IResourceChangeListener, IResourceDeltaVisitor {
-
-    static void hookListener() {
-      IWorkspace workspace = ResourcesPlugin.getWorkspace();
-      workspace.addResourceChangeListener(new ResourceChangeListener(),
-          IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.POST_CHANGE);
-    }
-
-    @Override
-    public void resourceChanged(IResourceChangeEvent event) {
-      if (event.getType() == IResourceChangeEvent.PRE_CLOSE) {
-        try {
-          remove(event.getResource());
-        } catch (CoreException e) {
-          DartCore.logError(e);
-        }
-      } else {
-        IResourceDelta delta = event.getDelta();
-        try {
-          if (delta != null) {
-            delta.accept(this);
-          }
-        } catch (CoreException e) {
-          DartCore.logError(e);
-        }
-      }
-    }
-
-    @Override
-    public boolean visit(IResourceDelta delta) throws CoreException {
-      switch (delta.getKind()) {
-        case IResourceDelta.CHANGED:
-          return true;
-
-        case IResourceDelta.REMOVED:
-          // This works for resources in the workspace
-          // but the resource path is incorrect for linked resources that have been removed
-          // so we must use a workspace LifecycleListener as well
-          remove(delta.getResource());
-          return false;
-        default:
-          return false;
-      }
-    }
-  }
-
-  /**
-   * Abstract superclass for sharing listener behavior
-   */
-  private static class SourceChangeListener {
 
     protected void remove(IResource res) throws CoreException {
       RootArtifactProvider provider = INSTANCE;
@@ -148,7 +88,6 @@ public class RootArtifactProvider extends CachingArtifactProvider {
         INSTANCE = new RootArtifactProvider();
         loadArtifacts();
         LifecycleListener.hookListener();
-        ResourceChangeListener.hookListener();
       }
     }
     return INSTANCE;
@@ -275,6 +214,9 @@ public class RootArtifactProvider extends CachingArtifactProvider {
   }
 
   private void removeContainer(IContainer container) throws CoreException {
+    if (!container.exists()) {
+      return;
+    }
     IResource[] members = container.members();
     if (members != null) {
       for (IResource res : members) {
@@ -317,7 +259,15 @@ public class RootArtifactProvider extends CachingArtifactProvider {
   }
 
   private void removeUnit(CompilationUnitImpl unit) {
-    File srcFile = unit.getResource().getLocation().toFile();
+    IResource resource = unit.getResource();
+    if (resource == null) {
+      return;
+    }
+    IPath location = resource.getLocation();
+    if (location == null) {
+      return;
+    }
+    File srcFile = location.toFile();
     DartLibraryImpl lib = (DartLibraryImpl) unit.getLibrary();
     UrlDartSource dartSrc = new UrlDartSource(srcFile, lib.getLibrarySourceFile());
     removeArtifactsFor(dartSrc);

@@ -17,19 +17,18 @@ import com.google.common.io.Closeables;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.UrlDartSource;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.ApplicationGenerator;
 import com.google.dart.tools.core.generator.FileGenerator;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import java.io.File;
@@ -54,20 +53,8 @@ public class RootArtifactProviderTest extends TestCase {
   private CompilationUnitImpl unit2;
   private DartSource source2;
 
-  public void test_RootArtifactProvider_closeProject() throws Exception {
-    writeArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
-    writeArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
-    assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
-    assertArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
-    IProject project = unit1.getLibrary().getDartProject().getProject();
-    project.close(new NullProgressMonitor());
-    assertArtifact(source1, "", RANDOM_EXT1, null);
-    assertArtifact(source2, "", RANDOM_EXT2, null);
-    project.open(new NullProgressMonitor());
-    project.delete(true, true, new NullProgressMonitor());
-  }
-
   public void test_RootArtifactProvider_deleteClass() throws Exception {
+    createProviderAndApp();
     writeArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
     writeArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
     assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
@@ -78,6 +65,7 @@ public class RootArtifactProviderTest extends TestCase {
   }
 
   public void test_RootArtifactProvider_deleteDefiningCompUnit() throws Exception {
+    createProviderAndApp();
     writeArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
     writeArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
     assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
@@ -88,6 +76,7 @@ public class RootArtifactProviderTest extends TestCase {
   }
 
   public void test_RootArtifactProvider_deleteProject() throws Exception {
+    createProviderAndApp();
     writeArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
     writeArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
     assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
@@ -98,51 +87,25 @@ public class RootArtifactProviderTest extends TestCase {
   }
 
   public void test_RootArtifactProvider_getArtifactUri() throws Exception {
+    createProviderAndApp();
     URI uri = provider.getArtifactUri(source1, "", RANDOM_EXT1);
     assertEquals(RANDOM_EXT1, uri.getPath().substring(uri.getPath().lastIndexOf(".") + 1));
   }
 
   public void test_RootArtifactProvider_readNonExistant() throws Exception {
+    createProviderAndApp();
     assertArtifact(source1, "", "doesnotexist", null);
   }
 
   public void test_RootArtifactProvider_writeThenRead() throws Exception {
+    createProviderAndApp();
     writeArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
     assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
   }
 
-  @Override
-  protected void setUp() throws Exception {
-    tempDir = TestUtilities.createTempDirectory();
+  protected void createProviderAndApp() throws Exception {
     provider = RootArtifactProvider.newInstanceForTesting();
-    generateApp();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    provider.dispose();
-    FileUtilities.delete(tempDir);
-  }
-
-  private void assertArtifact(DartSource source, String part, String extension, String expected)
-      throws IOException {
-    Reader reader = provider.getArtifactReader(source, part, extension);
-    if (reader != null) {
-      boolean failed = true;
-      try {
-        char[] cbuf = new char[1000];
-        int len = reader.read(cbuf);
-        assertEquals(expected, new String(cbuf, 0, len));
-        failed = false;
-      } finally {
-        Closeables.close(reader, failed);
-      }
-    } else {
-      assertEquals(expected, null);
-    }
-  }
-
-  private void generateApp() throws CoreException, DartModelException {
+    tempDir = TestUtilities.createTempDirectory();
     appCount++;
 
     ApplicationGenerator appGen = new ApplicationGenerator();
@@ -165,6 +128,49 @@ public class RootArtifactProviderTest extends TestCase {
     source2 = getSourceForUnit(unit2);
 
     assertEquals(unit1.getLibrary(), unit2.getLibrary());
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    if (provider != null) {
+      provider.dispose();
+    }
+    if (app != null) {
+      IProject project = app.getDartProject().getProject();
+      if (project.exists()) {
+        try {
+          project.open(new NullProgressMonitor());
+        } catch (Exception e) {
+          DartCore.logInformation("Failed to reopen " + app.getDisplayName(), e);
+        }
+        try {
+          project.delete(true, new NullProgressMonitor());
+        } catch (Exception e) {
+          DartCore.logInformation("Failed to delete " + app.getDisplayName(), e);
+        }
+      }
+    }
+    if (tempDir != null) {
+      FileUtilities.delete(tempDir);
+    }
+  }
+
+  private void assertArtifact(DartSource source, String part, String extension, String expected)
+      throws IOException {
+    Reader reader = provider.getArtifactReader(source, part, extension);
+    if (reader != null) {
+      boolean failed = true;
+      try {
+        char[] cbuf = new char[1000];
+        int len = reader.read(cbuf);
+        assertEquals(expected, new String(cbuf, 0, len));
+        failed = false;
+      } finally {
+        Closeables.close(reader, failed);
+      }
+    } else {
+      assertEquals(expected, null);
+    }
   }
 
   private DartSource getSourceForUnit(CompilationUnitImpl unit) {

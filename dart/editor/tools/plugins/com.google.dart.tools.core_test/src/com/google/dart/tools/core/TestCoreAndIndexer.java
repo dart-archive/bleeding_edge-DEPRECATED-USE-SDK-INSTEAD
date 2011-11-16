@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright 2011 Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,18 +11,16 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.internal.builder;
+package com.google.dart.tools.core;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-public class TestAll {
+public class TestCoreAndIndexer {
   public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(CachingArtifactProviderTest.class);
-//    suite.addTestSuite(DartBuilderTest.class);
-    suite.addTestSuite(LocalArtifactProviderTest.class);
-    suite.addTestSuite(RootArtifactProviderTest.class);
+    TestSuite suite = new TestSuite("Core and Indexer tests");
+    suite.addTest(com.google.dart.tools.core.TestAll.suite());
+    suite.addTest(com.google.dart.indexer.TestAll.suite());
     return suite;
   }
 }

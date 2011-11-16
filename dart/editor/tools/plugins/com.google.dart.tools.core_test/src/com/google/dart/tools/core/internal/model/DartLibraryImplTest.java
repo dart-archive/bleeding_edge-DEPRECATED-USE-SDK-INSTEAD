@@ -20,6 +20,7 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -28,6 +29,7 @@ import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -727,6 +729,16 @@ public class DartLibraryImplTest extends TestCase {
   private DartLibraryImpl getOrCreateDartLib(String libName, DartLibrary[] importLibs,
       String className, boolean createClass) throws Exception {
     File libFile = getOrCreateLibFile(libName, importLibs, className, createClass);
+    IFile libRes = ResourceUtil.getResource(libFile);
+    if (libRes != null) {
+      DartElement elem = DartCore.create(libRes);
+      if (elem instanceof CompilationUnitImpl) {
+        elem = ((CompilationUnitImpl) elem).getLibrary();
+      }
+      if (elem instanceof DartLibraryImpl) {
+        return (DartLibraryImpl) elem;
+      }
+    }
     return (DartLibraryImpl) DartCore.openLibrary(libFile, new NullProgressMonitor());
   }
 
