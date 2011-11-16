@@ -2658,6 +2658,9 @@ StringImplementation.prototype.startsWith = function(other) {
 StringImplementation.prototype.isEmpty = function() {
   return this.length == 0;
 }
+StringImplementation.prototype.contains = function(pattern, startIndex) {
+  return this.indexOf(pattern, startIndex) >= 0;
+}
 StringImplementation.prototype.replaceFirst = function(from, to) {
   return this.replace(from, to);
 }
@@ -9637,8 +9640,11 @@ JsNames.get$reserved = function() {
 }
 JsNames.getValid = function(name) {
   if (JsNames.get$reserved().contains(name)) {
-    name = ('_' + name + '');
+    name = ('\$' + name + '');
     $assert(!JsNames.get$reserved().contains(name), "!reserved.contains(name)", "js_names.dart", 171, 14);
+  }
+  else if (name.contains("$")) {
+    name = name.replaceAll("$", "_$");
   }
   return name;
 }
@@ -12043,6 +12049,7 @@ WorldGenerator.prototype.run = function() {
   world.get$coreimpl().types.$index('StringImplementation').markUsed$0();
   world.get$coreimpl().types.$index('MatchImplementation').markUsed$0();
   this.genMethod((($0 = world.get$coreimpl().types.$index('MatchImplementation').getConstructor$1('')) && $0.is$Member()));
+  this.genMethod((($0 = world.get$coreimpl().types.$index('StringImplementation').getMember$1('contains')) && $0.is$Member()));
   this.writeTypes(world.get$coreimpl());
   this.writeTypes(world.corelib);
   this.writeTypes(this.main.declaringType.get$library());
@@ -12564,7 +12571,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 695, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 696, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -13713,7 +13720,7 @@ MethodGenerator.prototype.visitNullExpression = function(node) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2083, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2084, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;

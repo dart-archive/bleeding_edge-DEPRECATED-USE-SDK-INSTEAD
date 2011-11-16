@@ -167,8 +167,11 @@ class JsNames {
 
   static String getValid(String name) {
     if (reserved.contains(name)) {
-      name = '_$name';
+      name = '\$$name';
       assert(!reserved.contains(name));
+    } else if (name.contains(@'$')) {
+      // TODO(ngeoffray): replace with '$$' when frog supports it.
+      name = name.replaceAll(@'$', @'_$');
     }
     return name;
   }

@@ -5,14 +5,14 @@
 
 #import("compiler_helper.dart");
 
-final String FOO = """
+final String FOO = @"""
 void foo(var a, var b) {
 }
 """;
 
 
-final String BAR = """
-void bar(var eval) {
+final String BAR = @"""
+void bar(var eval, var $eval) {
 }
 """;
 
@@ -23,6 +23,6 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(BAR, 'bar');
-  regexp = const RegExp("function bar\\(_eval\\) {");
+  regexp = const RegExp("function bar\\(\\\$eval, _\\\$eval\\) {");
   Expect.isTrue(regexp.hasMatch(generated));
 }

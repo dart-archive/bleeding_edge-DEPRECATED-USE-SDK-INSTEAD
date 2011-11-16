@@ -34,6 +34,8 @@ class WorldGenerator {
     world.coreimpl.types['StringImplementation'].markUsed();
     world.coreimpl.types['MatchImplementation'].markUsed();
     genMethod(world.coreimpl.types['MatchImplementation'].getConstructor(''));
+    genMethod(
+        world.coreimpl.types['StringImplementation'].getMember('contains'));
 
     writeTypes(world.coreimpl);
     writeTypes(world.corelib);
