@@ -198,6 +198,7 @@ def compileAndRun(options, args, dart):
   compiler_cmd = [dart]
   if options.vm_flags:
     compiler_cmd.extend(options.vm_flags.split(' '))
+  compiler_cmd.append('--new_gen_heap_size=64');
   compiler_cmd.append(join(HOME, 'frogc.dart'))
   compiler_cmd.extend(args)
   exit_code = execute(compiler_cmd)
