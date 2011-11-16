@@ -32,8 +32,6 @@ class WorldGenerator {
     world.corelib.types['BadNumberFormatException'].markUsed();
     world.coreimpl.types['NumImplementation'].markUsed();
     world.coreimpl.types['StringImplementation'].markUsed();
-    world.coreimpl.types['MatchImplementation'].markUsed();
-    genMethod(world.coreimpl.types['MatchImplementation'].getConstructor(''));
     genMethod(
         world.coreimpl.types['StringImplementation'].getMember('contains'));
 

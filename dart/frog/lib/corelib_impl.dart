@@ -244,10 +244,15 @@ class JSSyntaxRegExp implements RegExp {
     this.multiLine = this.re.multiline;
     this.ignoreCase = this.re.ignoreCase;''';
 
-  Match firstMatch(String str) native
-  '''var m = this.re.exec(str);
-  return m && new MatchImplementation(
-      this.pattern, str, m.index, this.re.lastIndex, m);''';
+  Match firstMatch(String str) {
+    List<String> m = _exec(str);
+    return m == null ? null
+        : new MatchImplementation(pattern, str, _matchStart(m), _lastIndex, m);
+  }
+
+  List<String> _exec(String str) native "return this.re.exec(str);";
+  int _matchStart(m) native "return m.index;";
+  int get _lastIndex() native "return this.re.lastIndex;";
 
   bool hasMatch(String str) native "return this.re.test(str);";
 

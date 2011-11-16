@@ -1075,18 +1075,6 @@ ImmutableMap.prototype.getKeys$0 = function() {
 ImmutableMap.prototype.isEmpty$0 = function() {
   return this.isEmpty();
 };
-// ********** Code for MatchImplementation **************
-function MatchImplementation(pattern, str, _start, _end, _groups) {
-  this.pattern = pattern;
-  this.str = str;
-  this._start = _start;
-  this._end = _end;
-  this._groups = _groups;
-  // Initializers done
-}
-MatchImplementation.prototype.$index = function(group) {
-  return $assert_String(this._groups.$index(group));
-}
 // ********** Code for NumImplementation **************
 NumImplementation = Number;
 NumImplementation.prototype.is$NumImplementation = function(){return this;};
@@ -11570,8 +11558,6 @@ WorldGenerator.prototype.run = function() {
   world.corelib.types.$index('BadNumberFormatException').markUsed$0();
   world.get$coreimpl().types.$index('NumImplementation').markUsed$0();
   world.get$coreimpl().types.$index('StringImplementation').markUsed$0();
-  world.get$coreimpl().types.$index('MatchImplementation').markUsed$0();
-  this.genMethod((($0 = world.get$coreimpl().types.$index('MatchImplementation').getConstructor$1('')) && $0.is$Member()));
   this.genMethod((($0 = world.get$coreimpl().types.$index('StringImplementation').getMember$1('contains')) && $0.is$Member()));
   if ($notnull_bool(world.corelib.types.$index('Isolate').get$isUsed()) || $notnull_bool(world.get$coreimpl().types.$index('ReceivePortImpl').get$isUsed())) {
     this.corejs.useIsolates = true;
@@ -12099,7 +12085,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 707, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 705, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -13248,7 +13234,7 @@ MethodGenerator.prototype.visitNullExpression = function(node) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2095, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2093, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;
