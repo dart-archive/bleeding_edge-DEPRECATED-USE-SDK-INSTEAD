@@ -2921,9 +2921,6 @@ LinkFactory.Link$factory = function(head, tail) {
 // ********** Code for LinkFactory$Node **************
 function LinkFactory$Node() {}
 $inherits(LinkFactory$Node, LinkFactory);
-// ********** Code for LinkFactory$T **************
-function LinkFactory$T() {}
-$inherits(LinkFactory$T, LinkFactory);
 // ********** Code for AbstractLink **************
 function AbstractLink() {}
 AbstractLink.prototype.is$Link = function(){return this;};

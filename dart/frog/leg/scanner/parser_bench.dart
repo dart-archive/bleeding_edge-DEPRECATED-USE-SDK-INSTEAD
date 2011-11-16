@@ -6,12 +6,16 @@
  * A benchmark for the Dart parser.
  */
 class ParserBench extends BaseParserBench {
+  int charCount = 0;
+  int score = 0;
+
   Token scanFileNamed(String filename) {
     Token token;
     getBytes(filename, (bytes) {
       Scanner scanner = makeScanner(bytes);
       try {
         token = scanner.tokenize();
+        charCount += scanner.charOffset;
       } catch (MalformedInputException e) {
         print("${filename}: ${e}");
       }
@@ -20,6 +24,7 @@ class ParserBench extends BaseParserBench {
   }
 
   void timedParseAll(List<String> arguments) {
+    charCount = 0;
     Stopwatch timer = new Stopwatch();
     timer.start();
     BenchListener listener = parseAll(arguments);
@@ -33,10 +38,15 @@ class ParserBench extends BaseParserBench {
   }
 
   BenchListener parseAll(List<String> arguments) {
+    charCount = 0;
+    Stopwatch timer = new Stopwatch();
+    timer.start();
     BenchListener listener = new BenchListener();
     for (String argument in arguments) {
       parseFileNamed(argument, listener);
     }
+    timer.stop();
+    score = charCount / timer.elapsedInMs();
     return listener;
   }
 
@@ -61,6 +71,7 @@ class ParserBench extends BaseParserBench {
     for (int i = 0; i < iterations; i++) {
       bar.tick();
       parseAll(arguments);
+      bar.recordScore(score);
     }
     bar.end();
     for (int i = 0; i < 10; i++) {

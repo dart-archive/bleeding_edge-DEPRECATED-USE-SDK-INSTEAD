@@ -11,8 +11,7 @@ main() {
   test(new Link<Comparable>(3).prepend('two').prepend(1), [1, 'two', 3]);
   test(new Link<String>('single'), ['single']);
   test(new LinkTail(), []);
-  // TODO(ahe): Fails in checked mode.
-  // testFromList([]);
+  testFromList([]);
   testFromList([0]);
   testFromList([0, 1]);
   testFromList([0, 1, 2]);

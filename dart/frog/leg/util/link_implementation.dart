@@ -5,6 +5,7 @@
 // TODO(ahe): This class should not be generic.
 class LinkFactory<T> {
   factory Link(head, [Link tail]) {
+    // TODO(ahe): Sb new LinkEntry<T> but this causes a memory leak in the VM.
     return new LinkEntry(head, (tail === null) ? const LinkTail() : tail);
   }
 
@@ -36,7 +37,8 @@ class AbstractLink<T> implements Link<T> {
   const AbstractLink();
 
   Link<T> prepend(T element) {
-    return new Link<T>(element, this);
+    // TODO(ahe): Should be new Link<T> but this causes a memory leak in the VM.
+    return new Link(element, this);
   }
 
   Iterator<T> iterator() => toList().iterator();

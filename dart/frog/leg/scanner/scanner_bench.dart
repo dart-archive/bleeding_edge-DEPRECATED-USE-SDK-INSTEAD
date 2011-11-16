@@ -32,6 +32,7 @@ class ScannerBench {
         charCount += tokenizeOne(argument);
       }
       timer.stop();
+      bar.recordScore(charCount / timer.elapsedInMs());
       log("Tokenized ${arguments.length} files (total size = ${charCount}) " +
           "in ${timer.elapsedInMs()}ms (bytes)");
     }
@@ -68,17 +69,19 @@ class ScannerBench {
 class ProgressBar {
   static final String hashes = "##############################################";
   static final String spaces = "                                              ";
+  static final int GEOMEAN_COUNT = 50;
 
   final String esc;
   final String up;
   final String clear;
   final int total;
+  final List<num> scores;
   int ticks = 0;
 
   ProgressBar(int total) : this.escape(total, new String.fromCharCodes([27]));
 
   ProgressBar.escape(this.total, String esc)
-    : esc = esc, up = "$esc[1A", clear = "$esc[K";
+    : esc = esc, up = "$esc[1A", clear = "$esc[K", scores = new List<num>();
 
   void begin() {
     if (total > 10) {
@@ -89,7 +92,7 @@ class ProgressBar {
 
   void tick() {
     if (total > 10 && ticks % 5 == 0) {
-      print("$up$clear[$spaces] ${ticks * 100 ~/ total}%");
+      print("$up$clear[$spaces] ${ticks * 100 ~/ total}% ${score()}");
       print("$up[${hashes.substring(0, ticks * spaces.length ~/ total)}");
     }
     ++ticks;
@@ -97,7 +100,21 @@ class ProgressBar {
 
   void end() {
     if (total > 10) {
-      print("$up$clear[$hashes] 100%");
+      print("$up$clear[$hashes] 100% ${score()}");
     }
+  }
+
+  void recordScore(num score) {
+    scores.addLast(score);
+  }
+
+  int score() {
+    num geoMean = 1;
+    int count = Math.min(scores.length, GEOMEAN_COUNT);
+    for (int i = scores.length - count; i < scores.length; i++) {
+      geoMean *= scores[i];
+    }
+    geoMean = Math.pow(geoMean, 1/Math.max(count, 1));
+    return geoMean.round().toInt();
   }
 }
