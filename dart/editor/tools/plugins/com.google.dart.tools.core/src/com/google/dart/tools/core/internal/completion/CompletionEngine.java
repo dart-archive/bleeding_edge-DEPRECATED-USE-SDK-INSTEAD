@@ -582,12 +582,14 @@ public class CompletionEngine {
         DartMethodDefinition parent = (DartMethodDefinition) parentNode;
         if (parent.getSymbol().isConstructor()) {
           List<DartTypeParameter> typeParameters = parent.getTypeParameters();
-          for (DartTypeParameter type : typeParameters) {
-            int start = type.getSourceStart();
-            int len = type.getSourceLength();
-            if (start <= actualCompletionPosition && actualCompletionPosition <= start + len) {
-              type.accept(this);
-              return null;
+          if (typeParameters != null) {
+            for (DartTypeParameter type : typeParameters) {
+              int start = type.getSourceStart();
+              int len = type.getSourceLength();
+              if (start <= actualCompletionPosition && actualCompletionPosition <= start + len) {
+                type.accept(this);
+                return null;
+              }
             }
           }
         }
