@@ -6326,7 +6326,7 @@ Parser.prototype.parseReturnStatement = function(token) {
   }
   return this.expectSemicolon(token);
 }
-Parser.prototype.parseExpressionStatementOrDeclaration = function(token) {
+Parser.prototype.peekIdentifierAfterType = function(token) {
   $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 467, 12);
   var peek = token.next;
   if (peek.kind === 46/*null.PERIOD_TOKEN*/) {
@@ -6335,38 +6335,36 @@ Parser.prototype.parseExpressionStatementOrDeclaration = function(token) {
     }
   }
   if (peek.kind === 97/*null.IDENTIFIER_TOKEN*/) {
-    return this.parseLocalDeclaration(token, peek);
+    return peek;
   }
   else if (peek.kind === 60/*null.LT_TOKEN*/) {
     var beginGroupToken = (peek && peek.is$BeginGroupToken());
     var gtToken = beginGroupToken.endGroup;
     if (gtToken != null && gtToken.next.kind === 97/*null.IDENTIFIER_TOKEN*/) {
-      var identifier = gtToken.next;
-      var afterId = identifier.next;
-      var afterIdKind = afterId.kind;
-      if (afterIdKind === 61/*null.EQ_TOKEN*/ || afterIdKind === 59/*null.SEMICOLON_TOKEN*/) {
-        return this.parseLocalDeclaration(token, identifier);
-      }
-      else if (afterIdKind === 41/*null.RPAREN_TOKEN*/) {
-        var beginParen = (afterId && afterId.is$BeginGroupToken());
-        var endParen = beginParen.endGroup;
-        var afterParens = endParen.next;
-        if ($notnull_bool(this.optional('{', afterParens)) || $notnull_bool(this.optional('=>', afterParens))) {
-          return this.parseLocalDeclaration(token, identifier);
-        }
+      return gtToken.next;
+    }
+  }
+  return null;
+}
+Parser.prototype.parseExpressionStatementOrDeclaration = function(token) {
+  var identifier = this.peekIdentifierAfterType(token);
+  if (identifier != null) {
+    $assert(identifier.kind === 97/*null.IDENTIFIER_TOKEN*/, "identifier.kind === IDENTIFIER_TOKEN", "parser.dart", 495, 16);
+    var afterId = identifier.next;
+    var afterIdKind = afterId.kind;
+    if (afterIdKind === 61/*null.EQ_TOKEN*/ || afterIdKind === 59/*null.SEMICOLON_TOKEN*/) {
+      return this.parseVariablesDeclaration(token);
+    }
+    else if (afterIdKind === 41/*null.RPAREN_TOKEN*/) {
+      var beginParen = (afterId && afterId.is$BeginGroupToken());
+      var endParen = beginParen.endGroup;
+      var afterParens = endParen.next;
+      if ($notnull_bool(this.optional('{', afterParens)) || $notnull_bool(this.optional('=>', afterParens))) {
+        return this.parseFunction(token);
       }
     }
   }
   return this.parseExpressionStatement(token);
-}
-Parser.prototype.parseLocalDeclaration = function(token, peek1) {
-  var peek2 = this.next(peek1);
-  if (peek2.get$stringValue() === '(') {
-    return this.parseFunction(token);
-  }
-  else {
-    return this.parseVariablesDeclaration(token);
-  }
 }
 Parser.prototype.parseExpressionStatement = function(token) {
   this.listener.beginExpressionStatement$1(token);
@@ -6399,7 +6397,7 @@ Parser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 Parser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 553, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 552, 12);
   token = this.parseUnaryExpression(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = $assert_num(tokenLevel);
@@ -6700,7 +6698,7 @@ Parser.prototype.parseArgumentsOpt = function(token) {
 Parser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments$1(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 718, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 717, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments$3(argumentCount, begin, token.next);

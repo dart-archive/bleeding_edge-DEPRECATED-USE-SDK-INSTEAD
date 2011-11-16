@@ -463,8 +463,9 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     return expectSemicolon(token);
   }
 
-  Token parseExpressionStatementOrDeclaration(Token token) {
+  Token peekIdentifierAfterType(Token token) {
     assert(token.kind === IDENTIFIER_TOKEN);
+    // We are looking at "identifier ...".
     Token peek = token.next;
     if (peek.kind === PERIOD_TOKEN) {
       if (peek.next.kind === IDENTIFIER_TOKEN) {
@@ -473,46 +474,44 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
       }
     }
     if (peek.kind === IDENTIFIER_TOKEN) {
-      return parseLocalDeclaration(token, peek);
+      // We are looking at "qualified identifier".
+      return peek;
     } else if (peek.kind === LT_TOKEN) {
       // Possibly generic type.
-      // We are looking at "identifier '<'".
+      // We are looking at "qualified '<'".
       BeginGroupToken beginGroupToken = peek;
       Token gtToken = beginGroupToken.endGroup;
       if (gtToken !== null && gtToken.next.kind === IDENTIFIER_TOKEN) {
-        // We are looking at "identifier '<' ... '>' identifier".
-        Token identifier = gtToken.next;
+        // We are looking at "qualified '<' ... '>' identifier".
+        return gtToken.next;
+      }
+    }
+    return null;
+  }
+
+  Token parseExpressionStatementOrDeclaration(Token token) {
+    Token identifier = peekIdentifierAfterType(token);
+    if (identifier !== null) {
+        assert(identifier.kind === IDENTIFIER_TOKEN);
         Token afterId = identifier.next;
         int afterIdKind = afterId.kind;
         if (afterIdKind === EQ_TOKEN || afterIdKind === SEMICOLON_TOKEN) {
-          // We are looking at "identifier '<' ... '>' identifier = ...".
-          // or "identifier '<' ... '>' identifier;".
-          return parseLocalDeclaration(token, identifier);
+          // We are looking at "type identifier = ..." or "type identifier;".
+          return parseVariablesDeclaration(token);
         } else if (afterIdKind === RPAREN_TOKEN) {
-          // We are looking at "identifier '<' ... '>' identifier '('".
+          // We are looking at "type identifier '('".
           BeginGroupToken beginParen = afterId;
           Token endParen = beginParen.endGroup;
           Token afterParens = endParen.next;
           if (optional('{', afterParens) || optional('=>', afterParens)) {
-            // We are looking at
-            // "identifier '<' ... '>' identifier '(' ... ')' =>" or
-            // "identifier '<' ... '>' identifier '(' ... ')' {" or
-            return parseLocalDeclaration(token, identifier);
+            // We are looking at "type identifier '(' ... ')' =>" or
+            // "type identifier '(' ... ')' {".
+            return parseFunction(token);
           }
         }
         // Fall-through to expression statement.
-      }
     }
     return parseExpressionStatement(token);
-  }
-
-  Token parseLocalDeclaration(Token token, Token peek1) {
-    Token peek2 = next(peek1);
-    if (peek2.stringValue === '(') {
-      return parseFunction(token);
-    } else {
-      return parseVariablesDeclaration(token);
-    }
   }
 
   Token parseExpressionStatement(Token token) {
