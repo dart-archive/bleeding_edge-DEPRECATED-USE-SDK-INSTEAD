@@ -25,7 +25,6 @@
 #source("collections.dart");
 #source("date_implementation.dart");
 
-#native("isolate.js");
 #source("isolate.dart");
 #source("isolate_serialization.dart");
 

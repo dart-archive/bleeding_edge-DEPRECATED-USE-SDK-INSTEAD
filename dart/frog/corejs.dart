@@ -24,6 +24,10 @@ class CoreJs {
   bool useIndex = false;
   bool useSetIndex = false;
 
+  bool useWrap0 = false;
+  bool useWrap1 = false;
+  bool useIsolates = false;
+
   /** An experimental toString implementation. Currently unused. */
   bool useToString = false;
 
@@ -383,6 +387,49 @@ String.prototype.$index = function(i) { return this[i]; }""");
       w.writeln(@"""
 Object.prototype.$setindex = function(i, value) { return this[i] = value; }
 Array.prototype.$setindex = function(i, value) { return this[i] = value; }""");
+    }
+
+    if (useIsolates) {
+      if (useWrap0) {
+        w.writeln(@"""
+// Wrap a 0-arg dom-callback to bind it with the current isolate:
+function $wrap_call$0(fn) { return fn && fn.wrap$call$0(); }
+Function.prototype.wrap$call$0 = function() {
+  var isolate = $globalState.currentIsolate;
+  var self = this;
+  this.wrap$0 = function() {
+    isolate.eval(self);
+    $globalState.topEventLoop.run();
+  };
+  this.wrap$call$0 = function() { return this.wrap$0; };
+  return this.wrap$0;
+}""");
+      }
+      if (useWrap1) {
+        w.writeln(@"""
+// Wrap a 1-arg dom-callback to bind it with the current isolate:
+function $wrap_call$1(fn) { return fn && fn.wrap$call$1(); }
+Function.prototype.wrap$call$1 = function() {
+  var isolate = $globalState.currentIsolate;
+  var self = this;
+  this.wrap$1 = function(arg) {
+    isolate.eval(function() { self(arg); });
+    $globalState.topEventLoop.run();
+  };
+  this.wrap$call$1 = function() { return this.wrap$1; };
+  return this.wrap$1;
+}""");
+      }
+      w.writeln(@"""
+var $globalThis = this;
+var $globalState = null;""");
+    } else {
+      if (useWrap0) {
+        w.writeln(@"function $wrap_call$0(fn) { return fn; }");
+      }
+      if (useWrap1) {
+        w.writeln(@"function $wrap_call$1(fn) { return fn; }");
+      }
     }
 
     // Write operator helpers

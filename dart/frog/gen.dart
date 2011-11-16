@@ -37,6 +37,16 @@ class WorldGenerator {
     genMethod(
         world.coreimpl.types['StringImplementation'].getMember('contains'));
 
+    // Only include isolate-specific code if isolates are used.
+    if (world.corelib.types['Isolate'].isUsed
+        || world.coreimpl.types['ReceivePortImpl'].isUsed) {
+      corejs.useIsolates = true;
+      MethodMember isolateMain =
+          world.coreimpl.topType.resolveMember('startAsIsolate').members[0];
+      mainCall = isolateMain.invoke(metaGen, null, null,
+          new Arguments(null, [main._get(metaGen, main.definition, null)]));
+    }
+
     writeTypes(world.coreimpl);
     writeTypes(world.corelib);
 
@@ -45,7 +55,7 @@ class WorldGenerator {
     writeTypes(main.declaringType.library);
 
     _writeGlobals();
-    writer.writeln('RunEntry(function() {${mainCall.code};}, []);');
+    writer.writeln('${mainCall.code};');
   }
 
   GlobalValue globalForStaticField(FieldMember field, Value fieldValue,

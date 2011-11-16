@@ -117,11 +117,11 @@ class Copier extends MessageTraverser {
   }
 
   SendPort visitReceivePort(ReceivePortImpl port) {
-    return port._toNewSendPort();
+    return port.toSendPort();
   }
 
   SendPort visitReceivePortSingleShot(ReceivePortSingleShotImpl port) {
-    return port._toNewSendPort();
+    return port.toSendPort();
   }
 }
 

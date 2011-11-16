@@ -243,9 +243,11 @@ class Value {
       if (myCall == null || myCall.parameters.length != arity) {
         final stub = world.functionType.getCallStub(new Arguments.bare(arity));
         var val = new Value(toType, 'to\$${stub.name}($code)', node.span);
+        // TODO(sigmund): try to remove, see below
         return _isDomCallback(toType) && !_isDomCallback(type) ?
             val._wrapDomCallback(toType, arity) : val;
       } else if (_isDomCallback(toType) && !_isDomCallback(type)) {
+        // TODO(sigmund): try to remove, see below
         return _wrapDomCallback(toType, arity);
       }
     }
@@ -283,12 +285,30 @@ class Value {
     }
   }
 
+  /**
+   * Checks whether [toType] is a callback function, and it is defined in the
+   * dom library.
+   */
   bool _isDomCallback(toType) {
     return (toType.definition is FunctionTypeDefinition
         && toType.library == world.dom);
   }
 
+  /**
+   * Wraps a callback attached to the dom (e.g. event listeners, setTimeout) so
+   * we can restore it's isolate context information. This is needed so that
+   * callbacks are executed within the context of the isolate that created them
+   * in the first place.
+   */
+  // TODO(sigmund): try to remove this specialized logic about isolates
+  // and the dom from the compiler, move into the actual dom library if
+  // possible.
   Value _wrapDomCallback(Type toType, int arity) {
+    if (arity == 0) {
+      world.gen.corejs.useWrap0 = true;
+    } else {
+      world.gen.corejs.useWrap1 = true;
+    }
     return new Value(toType, '\$wrap_call\$$arity($code)', span);
   }
 
