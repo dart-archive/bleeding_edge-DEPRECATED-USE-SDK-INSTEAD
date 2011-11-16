@@ -122,14 +122,17 @@ class SsaCodeGenerator implements HVisitor {
     currentBlock = node;
     HInstruction instruction = node.first;
     while (instruction != null) {
-      if (!instruction.generateAtUseSite()) {
+      if (instruction is HGoto || instruction is HExit) {
+        visit(instruction);
+      } else if (!instruction.generateAtUseSite()) {
         addIndentation();
         if (instruction.usedBy.isEmpty() || instruction is HPhi) {
           visit(instruction);
         } else {
           define(instruction);
         }
-        buffer.add(';\n');
+        // Control flow instructions know how to handle ';'.
+        if (instruction is !HControlFlow) buffer.add(';\n');
       }
       instruction = instruction.next;
     }
@@ -271,11 +274,13 @@ class SsaCodeGenerator implements HVisitor {
   visitReturn(HReturn node) {
     buffer.add('return ');
     use(node.inputs[0]);
+    buffer.add(';\n');
   }
 
   visitThrow(HThrow node) {
     buffer.add('throw ');
     use(node.inputs[0]);
+    buffer.add(';\n');
   }
 
   void addIndentation() {
