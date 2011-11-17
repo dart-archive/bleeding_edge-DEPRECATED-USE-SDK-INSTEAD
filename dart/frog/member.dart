@@ -1371,7 +1371,9 @@ class MemberSet {
   bool _treatAsField;
   bool get treatAsField() {
     if (_treatAsField == null) {
-      _treatAsField = true;
+      // If this is the global MemberSet from world, always bind dynamically.
+      // Note: we need this for proper noSuchMethod and REPL behavior.
+      _treatAsField = !isVar;
       for (var member in members) {
         if (member.requiresFieldSyntax) {
           _treatAsField = true;
@@ -1394,22 +1396,29 @@ class MemberSet {
 
   Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
-    if (members.length == 1) {
-      return members[0]._get(context, node, target, isDynamic);
-    }
+    // If this is the global MemberSet from world, always bind dynamically.
+    // Note: we need this for proper noSuchMethod and REPL behavior.
+    Value returnValue;
     final targets = members.filter((m) => m.canGet);
-    if (targets.length == 1) {
-      return targets[0]._get(context, node, target, isDynamic);
+    if (isVar) {
+      targets.forEach((m) => m._get(context, node, target, isDynamic: true));
+      returnValue = new Value(_foldTypes(targets), null, node.span);
+    } else {
+      if (members.length == 1) {
+        return members[0]._get(context, node, target, isDynamic);
+      } else if (targets.length == 1) {
+        return targets[0]._get(context, node, target, isDynamic);
+      }
+
+      for (var member in targets) {
+        final value = member._get(context, node, target, isDynamic:true);
+        returnValue = _tryUnion(returnValue, value, node);
+      }
+      if (returnValue == null) {
+        return _makeError(node, target, 'getter');
+      }
     }
 
-    Value returnValue = null;
-    for (var member in targets) {
-      final value = member._get(context, node, target, isDynamic:true);
-      returnValue = _tryUnion(returnValue, value, node);
-    }
-    if (returnValue == null) {
-      return _makeError(node, target, 'getter');
-    }
     if (returnValue.code == null) {
       if (treatAsField) {
         return new Value(returnValue.type, '${target.code}.$jsname',
@@ -1424,22 +1433,30 @@ class MemberSet {
 
   Value _set(MethodGenerator context, Node node, Value target, Value value,
       [bool isDynamic=false]) {
-    if (members.length == 1) {
-      return members[0]._set(context, node, target, value, isDynamic);
-    }
+    // If this is the global MemberSet from world, always bind dynamically.
+    // Note: we need this for proper noSuchMethod and REPL behavior.
+    Value returnValue;
     final targets = members.filter((m) => m.canSet);
-    if (targets.length == 1) {
-      return targets[0]._set(context, node, target, value, isDynamic);
+    if (isVar) {
+      targets.forEach((m) =>
+          m._set(context, node, target, value, isDynamic: true));
+      returnValue = new Value(_foldTypes(targets), null, node.span);
+    } else {
+      if (members.length == 1) {
+        return members[0]._set(context, node, target, value, isDynamic);
+      } else if (targets.length == 1) {
+        return targets[0]._set(context, node, target, value, isDynamic);
+      }
+
+      for (var member in targets) {
+        final res = member._set(context, node, target, value, isDynamic:true);
+        returnValue = _tryUnion(returnValue, res, node);
+      }
+      if (returnValue == null) {
+        return _makeError(node, target, 'setter');
+      }
     }
 
-    Value returnValue = null;
-    for (var member in targets) {
-      final res = member._set(context, node, target, value, isDynamic:true);
-      returnValue = _tryUnion(returnValue, res, node);
-    }
-    if (returnValue == null) {
-      return _makeError(node, target, 'setter');
-    }
     if (returnValue.code == null) {
       if (treatAsField) {
         return new Value(returnValue.type,
@@ -1558,12 +1575,14 @@ class MemberSet {
       final mset = context.findMembers(name).members;
 
       final targets = mset.filter((m) => m.canInvoke(context, args));
-      final returnType = reduce(map(targets, (t) => t.returnType), Type.union);
-      stub = new VarMethodSet(stubName, targets, args, returnType);
+      stub = new VarMethodSet(stubName, targets, args, _foldTypes(targets));
       world.objectType.varStubs[stubName] = stub;
     }
     return stub;
   }
+
+  Type _foldTypes(List<Member> targets) =>
+    reduce(map(targets, (t) => t.returnType), Type.union, world.varType);
 }
 
 /**
