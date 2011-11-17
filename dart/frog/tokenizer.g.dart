@@ -54,7 +54,7 @@ class Tokenizer extends TokenizerBase {
         } else if (_maybeEatChar(39/*'*/)) {
           return finishString(39/*'*/);
         } else {
-          return finishIdentifier();
+          return finishIdentifier(36/*$*/);
         }
       case 37/*%*/:
         if (_maybeEatChar(61/*=*/)) {
@@ -226,7 +226,7 @@ class Tokenizer extends TokenizerBase {
         }
       default:
         if (isIdentifierStart(ch)) {
-          return this.finishIdentifier();
+          return this.finishIdentifier(ch);
         } else if (isDigit(ch)) {
           return this.finishNumber();
         } else {
@@ -390,6 +390,10 @@ class TokenizerHelpers {
   }
 
   static bool isIdentifierPart(int c) {
+    return (isIdentifierStart(c) || isDigit(c) || c == 36/*$*/);
+  }
+
+  static bool isInterpIdentifierPart(int c) {
     return (isIdentifierStart(c) || isDigit(c));
   }
 

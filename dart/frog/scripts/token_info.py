@@ -150,7 +150,7 @@ tokens = [
   Token(None, '/*', 0, 'finishMultiLineComment()'),
   Token(None, '$"', 0, 'finishString(34/*"*/)'),
   Token(None, '$\'', 0, 'finishString(39/*\'*/)'),
-  Token(None, '$', 0, 'finishIdentifier()'),
+  Token(None, '$', 0, 'finishIdentifier(36/*$*/)'),
   Token(None, '@"', 0, 'finishRawString(34/*"*/)'),
   Token(None, '@\'', 0, 'finishRawString(39/*\'*/)'),
   Token(None, '"', 0, 'finishString(34/*"*/)'),

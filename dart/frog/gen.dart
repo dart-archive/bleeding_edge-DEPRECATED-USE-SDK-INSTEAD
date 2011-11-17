@@ -2113,6 +2113,15 @@ class MethodGenerator implements TreeVisitor {
     return new EvaluatedValue(world.varType, null, 'null', null);
   }
 
+  _isUnaryIncrement(Expression item) {
+    if (item is UnaryExpression) {
+      UnaryExpression u = item;
+      return u.op.kind == TokenKind.INCR || u.op.kind == TokenKind.DECR;
+    } else {
+      return false;
+    }
+  }
+
   visitLiteralExpression(LiteralExpression node) {
     // All Literal types are filled in at parse time, so no need to resolve.
     var type = node.type.type;
@@ -2125,8 +2134,11 @@ class MethodGenerator implements TreeVisitor {
         val.invoke(this, 'toString', item, Arguments.EMPTY);
 
         // TODO(jimhug): Ensure this solves all precedence problems.
+        // TODO(jmesserly): We could be smarter about prefix/postfix, but we'd
+        // need to know if it will compile to a ++ or to some sort of += form.
         var code = val.code;
-        if (item is BinaryExpression || item is ConditionalExpression) {
+        if (item is BinaryExpression || item is ConditionalExpression
+            || item is PostfixExpression || _isUnaryIncrement(item)) {
           code = '(${code})';
         }
         items.add(code);

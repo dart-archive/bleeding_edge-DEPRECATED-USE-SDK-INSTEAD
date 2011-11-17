@@ -70,7 +70,7 @@ class Case:
       if self.includeWhitespace:
         cw.enterBlock('default:')
         cw.enterBlock('if (isIdentifierStart(ch)) {')
-        cw.writeln('return this.finishIdentifier();')
+        cw.writeln('return this.finishIdentifier(ch);')
         cw.exitBlock('} else if (isDigit(ch)) {')
         cw.enterBlock()
         cw.writeln('return this.finishNumber();')
@@ -244,7 +244,13 @@ def writeHelperMethods(cw):
   writeClass(cw, 'Whitespace', OrTest(
     CharTest(' '), CharTest('\t'), CharTest('\n'), CharTest('\r')))
   writeClass(cw, 'IdentifierPart', OrTest(
-    ExplicitTest('isIdentifierStart(c)'), ExplicitTest('isDigit(c)')))
+    ExplicitTest('isIdentifierStart(c)'),
+    ExplicitTest('isDigit(c)'),
+    CharTest('$')))
+  # This is like IdentifierPart, but without $
+  writeClass(cw, 'InterpIdentifierPart', OrTest(
+    ExplicitTest('isIdentifierStart(c)'),
+    ExplicitTest('isDigit(c)')))
 
 def writeExtraMethods(cw):
   lengths = {}

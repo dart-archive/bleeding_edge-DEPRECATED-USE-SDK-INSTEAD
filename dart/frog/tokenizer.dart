@@ -379,17 +379,28 @@ class TokenizerBase extends TokenizerHelpers {
     }
   }
 
-  Token finishIdentifier() {
-    while (_index < _text.length) {
-      if (!isIdentifierPart(_text.charCodeAt(_index++))) {
-        _index--;
-        break;
+  Token finishIdentifier(int ch) {
+    if (_interpStack != null && _interpStack.depth == -1) {
+      _interpStack.depth = 0;
+      if (ch == 36/*$*/) {
+        // illegal character after $ in string interpolation
+        return _errorToken();
+      }
+      while (_index < _text.length) {
+        if (!isInterpIdentifierPart(_text.charCodeAt(_index++))) {
+          _index--;
+          break;
+        }
+      }
+    } else {
+      while (_index < _text.length) {
+        if (!isIdentifierPart(_text.charCodeAt(_index++))) {
+          _index--;
+          break;
+        }
       }
     }
     int kind = getIdentifierKind();
-    if (_interpStack != null && _interpStack.depth == -1) {
-      _interpStack.depth = 0;
-    }
     if (kind == TokenKind.IDENTIFIER) {
       return _finishToken(TokenKind.IDENTIFIER);
     } else {

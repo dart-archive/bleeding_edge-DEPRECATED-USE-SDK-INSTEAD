@@ -134,7 +134,8 @@ class Value {
       var m = type.getMember('noSuchMethod');
       return m != null && !m.declaringType.isObject;
     } else {
-      return type.resolveMember('noSuchMethod').members.length > 1;
+      var m = type.resolveMember('noSuchMethod');
+      return m != null && m.members.length > 1;
     }
   }
 
@@ -684,19 +685,23 @@ class BareValue extends Value {
     isType = outermost.isStatic;
   }
 
+  // TODO(jimhug): Lazy initialization here is weird!
+  _ensureCode() {
+    if (code != null) return;
+    if (isType) {
+      code = type.jsname;
+    } else {
+      code = home._makeThisCode();
+    }
+  }
+
   _tryResolveMember(MethodGenerator context, String name) {
     assert(context == home);
 
     // First look for members directly defined on my type.
     var member = type.resolveMember(name);
     if (member != null) {
-      assert(code == null);
-      // TODO(jimhug): Lazy initialization here is weird!
-      if (isType) {
-        code = type.jsname;
-      } else {
-        code = home._makeThisCode();
-      }
+      _ensureCode();
       return member;
     }
 
@@ -706,6 +711,7 @@ class BareValue extends Value {
       return member;
     }
 
+    _ensureCode();
     return null;
   }
 }
