@@ -10,6 +10,8 @@ interface HVisitor<R> {
   R visitExit(HExit node);
   R visitGoto(HGoto node);
   R visitIf(HIf node);
+  R visitLoad(HLoad node);
+  R visitLocal(HLocal node);
   R visitLoopBranch(HLoopBranch node);
   R visitInvoke(HInvoke node);
   R visitInvokeForeign(HInvokeForeign node);
@@ -19,6 +21,7 @@ interface HVisitor<R> {
   R visitSubtract(HSubtract node);
   R visitMultiply(HMultiply node);
   R visitReturn(HReturn node);
+  R visitStore(HStore node);
   R visitThrow(HThrow node);
   R visitTruncatingDivide(HTruncatingDivide node);
 }
@@ -161,13 +164,16 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIf(HIf node) => visitConditionalBranch(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
   visitInvokeForeign(HInvokeForeign node) => visitInvoke(node);
+  visitLoad(HLoad node) => visitInstruction(node);
+  visitLocal(HLocal node) => visitInstruction(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
-  visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node); 
+  visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitPhi(HPhi node) => visitInstruction(node);
   visitMultiply(HMultiply node) => visitArithmetic(node);
   visitParameter(HParameter node) => visitInstruction(node);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitSubtract(HSubtract node) => visitArithmetic(node);
+  visitStore(HStore node) => visitInstruction(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitArithmetic(node);
 }
@@ -197,6 +203,23 @@ class HInstructionList {
     instruction.notifyAddedToBlock();
   }
 
+  void addBefore(HInstruction cursor, HInstruction instruction) {
+    if (cursor === null) {
+      assert(isEmpty());
+      first = last = instruction;
+    } else if (cursor === first) {
+      first.previous = instruction;
+      instruction.next = first;
+      first = instruction;
+    } else {
+      instruction.next = cursor;
+      instruction.previous = cursor.previous;
+      cursor.previous.next = instruction;
+      cursor.previous = instruction;
+    }
+    instruction.notifyAddedToBlock();
+  }
+
   void remove(HInstruction instruction) {
     assert(contains(instruction));
     assert(instruction.isInBasicBlock());
@@ -210,7 +233,7 @@ class HInstructionList {
       last = instruction.previous;
     } else {
       instruction.next.previous = instruction.previous;
-    }    
+    }
     instruction.notifyRemovedFromBlock();
   }
 
@@ -284,6 +307,17 @@ class HBasicBlock extends HInstructionList {
   }
 
   accept(HVisitor visitor) => visitor.visitBasicBlock(this);
+
+  void addAtEntry(HInstruction instruction) {
+    assert(isClosed());
+    super.addBefore(first, instruction);
+  }
+
+  void addAtExit(HInstruction instruction) {
+    assert(isClosed());
+    assert(last is HControlFlow);
+    super.addBefore(last, instruction);
+  }
 
   void add(HInstruction instruction) {
     assert(instruction is !HControlFlow);
@@ -694,7 +728,7 @@ class HPhi extends HInstruction {
   final Element element;
   // The order of the [inputs] must correspond to the order of the
   // predecessor-edges. That is if an input comes from the first predecessor
-  // of the surrounding block, then the input must be the first in the [HPhi]. 
+  // of the surrounding block, then the input must be the first in the [HPhi].
   HPhi.singleInput(this.element, HInstruction input)
       : super(<HInstruction>[input]);
   HPhi.manyInputs(this.element, List<HInstruction> inputs)
@@ -720,4 +754,30 @@ class HThrow extends HControlFlow {
   HThrow(value) : super([value]);
   toString() => 'throw';
   accept(HVisitor visitor) => visitor.visitThrow(this);
+}
+
+class HNonSsaInstruction extends HInstruction {
+  HNonSsaInstruction(inputs) : super(inputs);
+  void prepareGvn() {}
+  bool useGvn() { unreachable(); }
+  void setUseGvn() { unreachable(); }
+}
+
+class HLoad extends HNonSsaInstruction {
+  HLoad(HLocal local) : super([local]);
+  toString() => 'load';
+  accept(HVisitor visitor) => visitor.visitLoad(this);
+}
+
+class HStore extends HNonSsaInstruction {
+  HStore(HLocal local, HInstruction value) : super([local, value]);
+  toString() => 'store';
+  accept(HVisitor visitor) => visitor.visitStore(this);
+}
+
+class HLocal extends HNonSsaInstruction {
+  Element element;
+  HLocal(Element this.element) : super([]);
+  toString() => 'local';
+  accept(HVisitor visitor) => visitor.visitLocal(this);
 }

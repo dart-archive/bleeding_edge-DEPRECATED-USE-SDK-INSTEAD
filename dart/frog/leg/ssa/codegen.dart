@@ -31,6 +31,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   String generateMethod(SourceString methodName,
                         List<String> parameterNames,
                         HGraph graph) {
+    new SsaPhiEliminator().visitGraph(graph);
     StringBuffer buffer = new StringBuffer();
     SsaCodeGenerator codegen =
         new SsaCodeGenerator(compiler, buffer, parameterNames);
@@ -48,11 +49,11 @@ class SsaCodeGeneratorTask extends CompilerTask {
 class SsaCodeGenerator implements HVisitor {
   final Compiler compiler;
   final StringBuffer buffer;
-  
+
   final List<String> parameterNames;
   final Map<int, String> names;
   final Map<String, int> prefixes;
-  
+
   int indent = 0;
   HGraph currentGraph;
   HBasicBlock currentBlock;
@@ -74,23 +75,26 @@ class SsaCodeGenerator implements HVisitor {
     String name = names[id];
     if (name !== null) return name;
 
-    if (instruction is HPhi) {
-      HPhi phi = instruction;
-      String prefix = phi.element.name.stringValue;
-      if (!prefixes.containsKey(prefix)) {
-        prefixes[prefix] = 0;
-        return newTemporary(id, prefix);
-      } else {
-        return newTemporary(id, '${prefix}_${prefixes[prefix]++}');
-      }
-    }
-
     String prefix = 't';
     if (!prefixes.containsKey(prefix)) prefixes[prefix] = 0;
-    return newTemporary(id, '${prefix}${prefixes[prefix]++}');
+    return newName(id, '${prefix}${prefixes[prefix]++}');
   }
 
-  String newTemporary(int id, String name) {
+  String local(HLocal local) {
+    int id = local.id;
+    String name = names[id];
+    if (name !== null) return name;
+
+    String prefix = local.element.name.stringValue;
+    if (!prefixes.containsKey(prefix)) {
+      prefixes[prefix] = 0;
+      return newName(id, prefix);
+    } else {
+      return newName(id, '${prefix}_${prefixes[prefix]++}');
+    }
+  }
+
+  String newName(int id, String name) {
     String result = JsNames.getValid(name);
     names[id] = result;
     return result;
@@ -106,28 +110,8 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void define(HInstruction instruction) {
-    // Assigns the instruction's value to its temporary.
-    // If the instruction is furthermore used in phis, the temporary is also
-    // assigned to the phi's temporary, thus updating the phi's value.
-    // If the only use is a phi we can avoid the instruction's temporary
-    // and assign only to the phi's temporary.
-    List usedBy = instruction.usedBy;
-    if (usedBy.length == 1 && usedBy[0] is HPhi) {
-      buffer.add('var ${temporary(usedBy[0])} = ');
-      visit(instruction);
-    } else {
-      String instructionId = temporary(instruction);
-      buffer.add('var $instructionId = ');
-      visit(instruction);
-      // Assign the value to any phi.
-      for (int i = 0; i < usedBy.length; i++) {
-        if (usedBy[i] is HPhi) {
-          buffer.add(';\n');
-          addIndentation();
-          buffer.add('var ${temporary(usedBy[i])} = $instructionId');
-        }
-      }
-    }
+    buffer.add('var ${temporary(instruction)} = ');
+    visit(instruction);
   }
 
   void use(HInstruction argument) {
@@ -157,7 +141,7 @@ class SsaCodeGenerator implements HVisitor {
         visit(instruction);
       } else if (!instruction.generateAtUseSite()) {
         addIndentation();
-        if (instruction.usedBy.isEmpty() || instruction is HPhi) {
+        if (instruction.usedBy.isEmpty() || instruction is HLocal) {
           visit(instruction);
         } else {
           define(instruction);
@@ -284,22 +268,8 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitPhi(HPhi node) {
-    // Phi nodes have their values set at their inputs. Every instruction that
-    // is used by a phi updates the phi's temporary. Therefore, in most cases,
-    // phi's don't need to do anything. The exception is, when a phi is again
-    // used in another phi. Then we have to update the other phi's temporary.
-    List usedBy = node.usedBy;
-    bool firstPhi = true;
-    for (int i = 0; i < usedBy.length; i++) {
-      if (usedBy[i] is HPhi) {
-        if (!firstPhi) {
-          buffer.add(";\n");
-          addIndentation();
-        }
-        buffer.add("var ${temporary(usedBy[i])} = ${temporary(node)}");
-        firstPhi = false;
-      }
-    }
+    // The SsaPhiEliminator made sure phis are gone in the function.
+    unreachable();
   }
 
   visitReturn(HReturn node) {
@@ -318,5 +288,18 @@ class SsaCodeGenerator implements HVisitor {
     for (int i = 0; i < indent; i++) {
       buffer.add('  ');
     }
+  }
+
+  void visitStore(HStore node) {
+    buffer.add('${local(node.inputs[0])} = ');
+    use(node.inputs[1]);
+  }
+
+  void visitLoad(HLoad node) {
+    buffer.add('${local(node.inputs[0])}');
+  }
+
+  void visitLocal(HLocal node) {
+    buffer.add('var ${local(node)}');
   }
 }

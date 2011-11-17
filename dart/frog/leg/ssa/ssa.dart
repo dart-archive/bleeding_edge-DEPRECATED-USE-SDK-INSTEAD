@@ -15,6 +15,7 @@
 #source('js_names.dart');
 #source('nodes.dart');
 #source('optimize.dart');
+#source('phi_eliminator.dart');
 #source('tracer.dart');
 #source('validate.dart');
 #source('value_set.dart');
