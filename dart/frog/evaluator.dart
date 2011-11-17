@@ -13,6 +13,7 @@ interface JsEvaluator {
 class Evaluator {
   JsEvaluator _jsEvaluator;
   static Set<String> _marked;
+  static String _prelude;
   Library _lib;
 
   static void initWorld(String homedir, List<String> args, FileSystem files) {
@@ -27,6 +28,7 @@ class Evaluator {
     _markAllUsed(world.corelib);
     world.gen.writeTypes(world.coreimpl);
     world.gen.writeTypes(world.corelib);
+    _prelude = world.gen.writer.text;
 
     // Set these here so that we can compile the corelib without its errors
     // killing us
@@ -80,7 +82,7 @@ class Evaluator {
       throw new UnsupportedOperationException(
           "Must call Evaluator.initWorld before creating a Evaluator.");
     }
-    this._jsEvaluator.eval(world.gen.writer.text);
+    this._jsEvaluator.eval(_prelude);
     _lib = new Library(new SourceFile("_ifrog_", ""));
     _lib.imports.add(new LibraryImport(world.corelib));
     _lib.resolve();
@@ -98,8 +100,7 @@ class Evaluator {
 
   var eval(String dart) {
     var source = new SourceFile("_ifrog_", dart);
-    // TODO(jimhug): This is usually frowned on - one gen per world...
-    var gen = new WorldGenerator(null, new CodeWriter());
+    world.gen.writer = new CodeWriter();
 
     var code;
     var parsed = new Parser(source, throwOnIncomplete: true,
@@ -136,14 +137,14 @@ class Evaluator {
       definedMethod.resolve(_lib.topType);
       var definedMethGen = new MethodGenerator(definedMethod, null);
       definedMethGen.run();
-      definedMethGen.writeDefinition(gen.writer, null);
-      code = gen.writer.text;
+      definedMethGen.writeDefinition(world.gen.writer, null);
+      code = world.gen.writer.text;
     } else if (parsed is TypeDefinition) {
       _removeMember(parsed.name.name);
       var type = _lib.addType(parsed.name.name, parsed, parsed.isClass);
       type.resolve();
-      gen.writeType(type);
-      code = gen.writer.text;
+      world.gen.writeType(type);
+      code = world.gen.writer.text;
     } else {
       parsed.visit(methGen);
       code = methGen.writer.text;
