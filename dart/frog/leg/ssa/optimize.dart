@@ -102,6 +102,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor {
       if (isDeadCode(instruction)) block.remove(instruction);
       instruction = previous;
     }
+
+    // TODO(floitsch): phi-elimination should be done in another phase.
+    HPhi phi = block.phis.last;
+    while (phi !== null) {
+      var previous = phi.previous;
+      if (isDeadCode(phi)) block.removePhi(phi);
+      phi = previous;
+    }
   }
 }
 
@@ -220,7 +228,6 @@ class SsaInstructionMerger extends HInstructionVisitor {
       // HPhis cannot be generated at use site.
       // Also they are at the beginning of a block. So if we reach them, we
       // can abort the loop.
-      if (previousUnused is HPhi) return;
       if (inputs[i].usedBy.length != 1) return;
       if (inputs[i] !== previousUnused) return;
       // Our arguments are in the correct location to be inlined.

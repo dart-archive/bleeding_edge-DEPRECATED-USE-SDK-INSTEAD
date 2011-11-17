@@ -168,7 +168,7 @@ class SsaBuilder implements Visitor {
     // Create phis for all elements in the definitions environment.
     initializerDefinitions.forEach((Element element, HInstruction instruction) {
       HPhi phi = new HPhi.singleInput(element, instruction);
-      conditionBlock.add(phi);
+      conditionBlock.addPhi(phi);
       definitions[element] = phi;
     });
 
@@ -212,7 +212,7 @@ class SsaBuilder implements Visitor {
         assert(phi.inputs.length == 1);
         HInstruction input = phi.inputs[0];
         conditionBlock.rewrite(phi, input);  // Covers all basic blocks.
-        conditionBlock.remove(phi);
+        conditionBlock.removePhi(phi);
         // Unless the condition introduces a different definition for
         // the element (later restored by the loop body), we have to
         // update the definitions map for the loop exit block to use
@@ -259,7 +259,7 @@ class SsaBuilder implements Visitor {
         joinedDefinitions[element] = instruction;
       } else {
         HInstruction phi = new HPhi.manyInputs(element, [instruction, other]);
-        joinBlock.add(phi);
+        joinBlock.addPhi(phi);
         joinedDefinitions[element] = phi;
       }
     });

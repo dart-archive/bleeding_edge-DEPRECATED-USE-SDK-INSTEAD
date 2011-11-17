@@ -139,6 +139,7 @@ class SsaCodeGenerator implements HVisitor {
       indent++;
     }
     currentBlock = node;
+
     HInstruction instruction = node.first;
     while (instruction != null) {
       if (instruction is HGoto || instruction is HExit) {

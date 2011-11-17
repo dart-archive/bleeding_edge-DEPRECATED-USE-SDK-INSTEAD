@@ -60,12 +60,16 @@ class HInstructionVisitor extends HGraphVisitor {
   abstract visitInstruction(HInstruction node);
 
   visitBasicBlock(HBasicBlock node) {
-    currentBlock = node;
-    HInstruction instruction = node.first;
-    while (instruction !== null) {
-      visitInstruction(instruction);
-      instruction = instruction.next;
+    void visitInstructionList(HInstructionList list) {
+      HInstruction instruction = list.first;
+      while (instruction !== null) {
+        visitInstruction(instruction);
+        instruction = instruction.next;
+      }      
     }
+
+    currentBlock = node;
+    visitInstructionList(node);
   }
 }
 
@@ -143,6 +147,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
 
   visitBasicBlock(HBasicBlock node) {
     currentBlock = node;
+
     HInstruction instruction = node.first;
     while (instruction !== null) {
       instruction.accept(this);
@@ -258,6 +263,8 @@ class HBasicBlock extends HInstructionList {
   static final int STATUS_CLOSED = 2;
   int status = STATUS_NEW;
 
+  HInstructionList phis;
+
   bool isLoopHeader = false;
   final List<HBasicBlock> predecessors;
   List<HBasicBlock> successors;
@@ -267,7 +274,8 @@ class HBasicBlock extends HInstructionList {
 
   HBasicBlock() : this.withId(null);
   HBasicBlock.withId(this.id)
-      : predecessors = <HBasicBlock>[],
+      : phis = new HInstructionList(),
+        predecessors = <HBasicBlock>[],
         successors = const <HBasicBlock>[],
         dominatedBlocks = <HBasicBlock>[];
 
@@ -298,12 +306,17 @@ class HBasicBlock extends HInstructionList {
   }
 
   int assignInstructionIds(int id) {
-    HInstruction instruction = first;
-    while (instruction != null) {
-      instruction.id = id++;
-      instruction = instruction.next;
+    int assignIdsInInstructionList(HInstructionList list, int id) {
+      HInstruction instruction = list.first;
+      while (instruction != null) {
+        instruction.id = id++;
+        instruction = instruction.next;
+      }
+      return id;
     }
-    return id;
+
+    id = assignIdsInInstructionList(phis, id);
+    return assignIdsInInstructionList(this, id);
   }
 
   accept(HVisitor visitor) => visitor.visitBasicBlock(this);
@@ -322,6 +335,14 @@ class HBasicBlock extends HInstructionList {
   void add(HInstruction instruction) {
     assert(instruction is !HControlFlow);
     super.addAfter(last, instruction);
+  }
+
+  void addPhi(HPhi phi) {
+    phis.addAfter(phis.last, phi);
+  }
+
+  void removePhi(HPhi phi) {
+    phis.remove(phi);
   }
 
   void addSuccessor(HBasicBlock block) {
@@ -432,8 +453,8 @@ class HBasicBlock extends HInstructionList {
   }
 
   void forEachPhi(void f(HPhi phi)) {
-    HInstruction current = first;
-    while (current !== null && current is HPhi) {
+    HPhi current = phis.first;
+    while (current !== null) {
       f(current);
       current = current.next;
     }

@@ -2,17 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class SsaPhiEliminator extends HBaseVisitor {
+class SsaPhiEliminator extends HGraphVisitor {
   HBasicBlock entry;
+  HBasicBlock currentBlock;
 
   visitGraph(HGraph graph) {
     entry = graph.entry;
     visitDominatorTree(graph);
-    // TODO(ngeoffray): Visit just phis once phis are in their own
-    // instruction list.
+  }
+
+  visitBasicBlock(HBasicBlock block) {
+    currentBlock = block;
+    block.forEachPhi((phi) => visitPhi(phi));
   }
 
   visitPhi(HPhi phi) {
+    assert(phi !== null);
     HLocal local = new HLocal(phi.element);
     entry.addAtEntry(local);
 
@@ -22,13 +27,13 @@ class SsaPhiEliminator extends HBaseVisitor {
     }
 
     HLoad load = new HLoad(local);
-    currentBlock.addAfter(phi, load);
+    currentBlock.addAtEntry(load);
     currentBlock.rewrite(phi, load);
 
     // Let the codegen know that this instruction does not need to be
     // generated.
     load.setGenerateAtUseSite();
 
-    currentBlock.remove(phi);
+    currentBlock.removePhi(phi);
   }
 }

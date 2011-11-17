@@ -57,9 +57,9 @@ class HTracer extends HGraphVisitor {
     }
   }
 
-  void addInstructions(HBasicBlock block) {
-    HInstructionStringifier stringifier = new HInstructionStringifier(block);
-    for (HInstruction instruction = block.first;
+  void addInstructions(HInstructionStringifier stringifier,
+                       HInstructionList list) {
+    for (HInstruction instruction = list.first;
          instruction !== null;
          instruction = instruction.next) {
       int bci = 0;
@@ -72,6 +72,7 @@ class HTracer extends HGraphVisitor {
   }
 
   void visitBasicBlock(HBasicBlock block) {
+    HInstructionStringifier stringifier = new HInstructionStringifier(block);
     assert(block.id !== null);
     tag("block", () {
       printProperty("name", "B${block.id}");
@@ -88,11 +89,17 @@ class HTracer extends HGraphVisitor {
         tag("locals", () {
           printProperty("size", 0);
           printProperty("method", "None");
-          // TODO(floitsch): print phis.
+          block.forEachPhi((phi) {
+            String phiId = stringifier.temporaryId(phi);
+            String inputId1 = stringifier.temporaryId(phi.inputs[0]);
+            String inputId2 = stringifier.temporaryId(phi.inputs[1]);
+            print("${phi.id} $phiId [ $inputId1 $inputId2 ]");
+          });
         });
       });
       tag("HIR", () {
-        addInstructions(block);
+        addInstructions(stringifier, block.phis);
+        addInstructions(stringifier, block);
       });
     });
   }

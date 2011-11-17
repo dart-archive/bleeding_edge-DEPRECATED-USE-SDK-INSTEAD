@@ -80,6 +80,7 @@ class HValidator extends HInstructionVisitor {
     }
 
     if (!isValid) return;
+    block.forEachPhi(visitInstruction);
     super.visitBasicBlock(block);
   }
 
