@@ -606,11 +606,13 @@ class ConcreteMember extends Member {
     Value ret = baseMember.invoke(context, node, target, args, isDynamic);
     var code = ret.code;
     if (isConstructor) {
-      // TODO(jimhug): Egregious hack - won't live through the weekend.
+      // TODO(jimhug): Egregious hack - won't live through the year.
       code = code.replaceFirst(
           declaringType.genericType.jsname, declaringType.jsname);
     }
-    declaringType.genMethod(this);
+    if (baseMember is MethodMember) {
+      declaringType.genMethod(this);
+    }
     return new Value(inferredResult, code, node.span);
   }
 }

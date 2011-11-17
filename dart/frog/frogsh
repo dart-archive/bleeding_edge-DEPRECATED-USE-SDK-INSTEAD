@@ -14458,7 +14458,9 @@ ConcreteMember.prototype.invoke = function(context, node, target, args, isDynami
   if ($notnull_bool(this.get$isConstructor())) {
     code = code.replaceFirst$2(this.declaringType.get$genericType().get$jsname(), this.declaringType.get$jsname());
   }
-  this.declaringType.genMethod(this);
+  if ((this.baseMember instanceof MethodMember)) {
+    this.declaringType.genMethod(this);
+  }
   return new Value(this.get$inferredResult(), code, node.span, true);
 }
 ConcreteMember.prototype._get$3 = function($0, $1, $2) {
