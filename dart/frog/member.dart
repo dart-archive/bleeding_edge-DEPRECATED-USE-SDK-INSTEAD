@@ -131,9 +131,9 @@ class Member implements Named {
     world.internalError('can not be a constructor', span);
   }
 
-  void provideFieldSyntax() => world.internalError('can not be field', span);
-  void providePropertySyntax() =>
-      world.internalError('can not be property', span);
+  // Don't display an error here; we'll get a better error later.
+  void provideFieldSyntax() {}
+  void providePropertySyntax() {}
 
   Definition get initDelegate() {
     world.internalError('cannot have initializers', span);
@@ -249,12 +249,12 @@ class TypeMember extends Member {
 
   Value _set(MethodGenerator context, Node node, Value target, Value value,
       [bool isDynamic=false]) {
-    world.error('can not set type', type.definition.span);
+    world.error('can not set type', node.span);
   }
 
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
       [bool isDynamic=false]) {
-    world.error('can not invoke type', type.definition.span);
+    world.error('can not invoke type', node.span);
   }
 }
 

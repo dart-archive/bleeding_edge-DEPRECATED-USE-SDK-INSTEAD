@@ -12987,10 +12987,10 @@ Member.prototype.get$constructorName = function() {
   world.internalError('can not be a constructor', this.get$span());
 }
 Member.prototype.provideFieldSyntax = function() {
-  return world.internalError('can not be field', this.get$span());
+
 }
 Member.prototype.providePropertySyntax = function() {
-  return world.internalError('can not be property', this.get$span());
+
 }
 Member.prototype.get$initDelegate = function() {
   world.internalError('cannot have initializers', this.get$span());
@@ -13110,10 +13110,10 @@ TypeMember.prototype._get = function(context, node, target, isDynamic) {
   return (ret && ret.is$Value());
 }
 TypeMember.prototype._set = function(context, node, target, value, isDynamic) {
-  world.error('can not set type', this.type.definition.span);
+  world.error('can not set type', node.span);
 }
 TypeMember.prototype.invoke = function(context, node, target, args, isDynamic) {
-  world.error('can not invoke type', this.type.definition.span);
+  world.error('can not invoke type', node.span);
 }
 TypeMember.prototype._get$3 = function($0, $1, $2) {
   return this._get(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), false);
