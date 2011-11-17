@@ -243,7 +243,7 @@ Function.prototype.$genStub = function(argsLength, names) {
 function $stackTraceOf(e) {
   // TODO(jmesserly): we shouldn't be relying on the e.stack property.
   // Need to mangle it.
-  return e.stack ? e.stack : null;
+  return  (e && e.stack) ? e.stack : null;
 }""");
     }
 
@@ -281,10 +281,12 @@ function $toDartException(e) {
       res = new StackOverflowException();
     }
   }
-  // TODO(jmesserly): setting the stack property is not a long term solution.
-  // Also it causes the exception to print as if it were a TypeError or
-  // RangeError, instead of using the proper toString.
-  res.stack = e.stack;
+  if (res) {
+    // TODO(jmesserly): setting the stack property is not a long term solution.
+    // Also it causes the exception to print as if it were a JS TypeError or
+    // RangeError, instead of using the proper toString.
+    res.stack = e.stack;
+  }
   return res;
 }""");
     }
