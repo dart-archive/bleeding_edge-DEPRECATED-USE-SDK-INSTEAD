@@ -45,198 +45,170 @@ class AbstractScanner<T> implements Scanner {
 
   int bigSwitch(int next) {
     beginToken();
-    switch (next) {
-      case $TAB:
-      case $LF:
-      case $CR:
-      case $SPACE:
-        appendWhiteSpace(next);
-        return advance();
-
-      case $LT:
-        return tokenizeLessThan(next);
-
-      case $GT:
-        return tokenizeGreaterThan(next);
-
-      case $EQ:
-        return tokenizeEquals(next);
-
-      case $BANG:
-        return tokenizeExclamation(next);
-
-      case $PLUS:
-        return tokenizePlus(next);
-
-      case $MINUS:
-        return tokenizeMinus(next);
-
-      case $STAR:
-        return tokenizeMultiply(next);
-
-      case $PERCENT:
-        return tokenizePercent(next);
-
-      case $AMPERSAND:
-        return tokenizeAmpersand(next);
-
-      case $BAR:
-        return tokenizeBar(next);
-
-      case $CARET:
-        return tokenizeCaret(next);
-
-      case $LBRACKET:
-        return tokenizeOpenBracket(next);
-
-      case $TILDE:
-        return tokenizeTilde(next);
-
-      case $BACKSLASH:
-        appendStringToken(BACKSLASH_TOKEN, "\\");
-        return advance();
-
-      case $HASH:
-        return tokenizeTag(next);
-
-      case $LPAREN:
-        appendBeginGroup(LPAREN_TOKEN, "(");
-        return advance();
-
-      case $RPAREN:
-        appendEndGroup(RPAREN_TOKEN, ")", LPAREN_TOKEN);
-        return advance();
-
-      case $COMMA:
-        appendStringToken(COMMA_TOKEN, ",");
-        return advance();
-
-      case $COLON:
-        appendStringToken(COLON_TOKEN, ":");
-        return advance();
-
-      case $SEMICOLON:
-        appendStringToken(SEMICOLON_TOKEN, ";");
-        return advance();
-
-      case $QUESTION:
-        appendStringToken(QUESTION_TOKEN, "?");
-        return advance();
-
-      case $RBRACKET:
-        appendEndGroup(RBRACKET_TOKEN, "]", LBRACKET_TOKEN);
-        return advance();
-
-      case $BACKPING:
-        appendStringToken(BACKPING_TOKEN, "`");
-        return advance();
-
-      case $LBRACE:
-        appendBeginGroup(LBRACE_TOKEN, "{");
-        return advance();
-
-      case $RBRACE:
-        appendEndGroup(RBRACE_TOKEN, "}", LBRACE_TOKEN);
-        return advance();
-
-      case $SLASH:
-        return tokenizeSlashOrComment(next);
-
-      case $AT:
-        return tokenizeRawString(next);
-
-      case $DQ:
-      case $SQ:
-        return tokenizeString(next, byteOffset, false);
-
-      case $PERIOD:
-        return tokenizeDotOrNumber(next);
-
-      case $0:
-        return tokenizeHexOrNumber(next);
-
-      case $1:
-      case $2:
-      case $3:
-      case $4:
-      case $5:
-      case $6:
-      case $7:
-      case $8:
-      case $9:
-        return tokenizeNumber(next);
-
-      case $DOLLAR:
-      case $A:
-      case $B:
-      case $C:
-      case $D:
-      case $E:
-      case $F:
-      case $G:
-      case $H:
-      case $I:
-      case $J:
-      case $K:
-      case $L:
-      case $M:
-      case $N:
-      case $O:
-      case $P:
-      case $Q:
-      case $R:
-      case $S:
-      case $T:
-      case $U:
-      case $V:
-      case $W:
-      case $X:
-      case $Y:
-      case $Z:
-      case $_:
-      case $a:
-      case $b:
-      case $c:
-      case $d:
-      case $e:
-      case $f:
-      case $g:
-      case $h:
-      case $i:
-      case $j:
-      case $k:
-      case $l:
-      case $m:
-      case $n:
-      case $o:
-      case $p:
-      case $q:
-      case $r:
-      case $s:
-      case $t:
-      case $u:
-      case $v:
-      case $w:
-      case $x:
-      case $y:
-      case $z:
-        return tokenizeIdentifier(next);
-
-      default:
-        if (next == -1) {
-          return -1;
-        }
-        if (next < 0x1f) {
-          throw new MalformedInputException(charOffset);
-        }
-        return tokenizeIdentifier(next);
+    if (next === $TAB || next === $LF || next === $CR || next === $SPACE) {
+      appendWhiteSpace(next);
+      return advance();
     }
+
+    if ($a <= next && next <= $z) {
+      return tokenizeKeywordOrIdentifier(next);
+    }
+
+    if (($A <= next && next <= $Z) || next === $_ || next === $DOLLAR) {
+      return tokenizeIdentifier(next, byteOffset);
+    }
+
+    if (next === $LT) {
+      return tokenizeLessThan(next);
+    }
+
+    if (next === $GT) {
+      return tokenizeGreaterThan(next);
+    }
+
+    if (next === $EQ) {
+      return tokenizeEquals(next);
+    }
+
+    if (next === $BANG) {
+      return tokenizeExclamation(next);
+    }
+
+    if (next === $PLUS) {
+      return tokenizePlus(next);
+    }
+
+    if (next === $MINUS) {
+      return tokenizeMinus(next);
+    }
+
+    if (next === $STAR) {
+      return tokenizeMultiply(next);
+    }
+
+    if (next === $PERCENT) {
+      return tokenizePercent(next);
+    }
+
+    if (next === $AMPERSAND) {
+      return tokenizeAmpersand(next);
+    }
+
+    if (next === $BAR) {
+      return tokenizeBar(next);
+    }
+
+    if (next === $CARET) {
+      return tokenizeCaret(next);
+    }
+
+    if (next === $LBRACKET) {
+      return tokenizeOpenBracket(next);
+    }
+
+    if (next === $TILDE) {
+      return tokenizeTilde(next);
+    }
+
+    if (next === $BACKSLASH) {
+      appendStringToken(BACKSLASH_TOKEN, "\\");
+      return advance();
+    }
+
+    if (next === $HASH) {
+      return tokenizeTag(next);
+    }
+
+    if (next === $LPAREN) {
+      appendBeginGroup(LPAREN_TOKEN, "(");
+      return advance();
+    }
+
+    if (next === $RPAREN) {
+      appendEndGroup(RPAREN_TOKEN, ")", LPAREN_TOKEN);
+      return advance();
+    }
+
+    if (next === $COMMA) {
+      appendStringToken(COMMA_TOKEN, ",");
+      return advance();
+    }
+
+    if (next === $COLON) {
+      appendStringToken(COLON_TOKEN, ":");
+      return advance();
+    }
+
+    if (next === $SEMICOLON) {
+      appendStringToken(SEMICOLON_TOKEN, ";");
+      return advance();
+    }
+
+    if (next === $QUESTION) {
+      appendStringToken(QUESTION_TOKEN, "?");
+      return advance();
+    }
+
+    if (next === $RBRACKET) {
+      appendEndGroup(RBRACKET_TOKEN, "]", LBRACKET_TOKEN);
+      return advance();
+    }
+
+    if (next === $BACKPING) {
+      appendStringToken(BACKPING_TOKEN, "`");
+      return advance();
+    }
+
+    if (next === $LBRACE) {
+      appendBeginGroup(LBRACE_TOKEN, "{");
+      return advance();
+    }
+
+    if (next === $RBRACE) {
+      appendEndGroup(RBRACE_TOKEN, "}", LBRACE_TOKEN);
+      return advance();
+    }
+
+    if (next === $SLASH) {
+      return tokenizeSlashOrComment(next);
+    }
+
+    if (next === $AT) {
+      return tokenizeRawString(next);
+    }
+
+    if (next === $DQ || next === $SQ) {
+      return tokenizeString(next, byteOffset, false);
+    }
+
+    if (next === $PERIOD) {
+      return tokenizeDotOrNumber(next);
+    }
+
+    if (next === $0) {
+      return tokenizeHexOrNumber(next);
+    }
+
+    // TODO(ahe): Would a range check be faster?
+    if (next === $1 || next === $2 || next === $3 || next === $4 ||  next === $5
+        || next === $6 || next === $7 || next === $8 || next === $9) {
+      return tokenizeNumber(next);
+    }
+
+    if (next === -1) {
+      return -1;
+    }
+    if (next < 0x1f) {
+      throw new MalformedInputException(charOffset);
+    }
+    // Non-ascii identifier.
+    return tokenizeIdentifier(next, byteOffset);
   }
 
   int tokenizeTag(int next) {
     // # or #!.*[\n\r]
-    if (byteOffset == 0) {
-      if (peek() == $BANG) {
+    if (byteOffset === 0) {
+      if (peek() === $BANG) {
         do {
           next = advance();
         } while (next != $LF && next != $CR);
@@ -250,7 +222,7 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeTilde(int next) {
     // ~ ~/ ~/=
     next = advance();
-    if (next == $SLASH) {
+    if (next === $SLASH) {
       return select($EQ, "~/=", "~/");
     } else {
       appendStringToken(TILDE_TOKEN, "~");
@@ -261,7 +233,7 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeOpenBracket(int next) {
     // [ [] []=
     next = advance();
-    if (next == $RBRACKET) {
+    if (next === $RBRACKET) {
       return select($EQ, "[]=", "[]");
     } else {
       appendBeginGroup(LBRACKET_TOKEN, "[");
@@ -277,32 +249,30 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeBar(int next) {
     // | || |=
     next = advance();
-    switch (next) {
-      case $BAR:
-        appendStringToken(BAR_TOKEN, "||");
-        return advance();
-      case $EQ:
-        appendStringToken(BAR_TOKEN, "|=");
-        return advance();
-      default:
-        appendStringToken(BAR_TOKEN, "|");
-        return next;
+    if (next === $BAR) {
+      appendStringToken(BAR_TOKEN, "||");
+      return advance();
+    } else if (next === $EQ) {
+      appendStringToken(BAR_TOKEN, "|=");
+      return advance();
+    } else {
+      appendStringToken(BAR_TOKEN, "|");
+      return next;
     }
   }
 
   int tokenizeAmpersand(int next) {
     // && &= &
     next = advance();
-    switch (next) {
-      case $AMPERSAND:
-        appendStringToken(AMPERSAND_TOKEN, "&&");
-        return advance();
-      case $EQ:
-        appendStringToken(AMPERSAND_TOKEN, "&=");
-        return advance();
-      default:
-        appendStringToken(AMPERSAND_TOKEN, "&");
-        return next;
+    if (next === $AMPERSAND) {
+      appendStringToken(AMPERSAND_TOKEN, "&&");
+      return advance();
+    } else if (next === $EQ) {
+      appendStringToken(AMPERSAND_TOKEN, "&=");
+      return advance();
+    } else {
+      appendStringToken(AMPERSAND_TOKEN, "&");
+      return next;
     }
   }
 
@@ -319,39 +289,38 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeMinus(int next) {
     // - -- -=
     next = advance();
-    switch (next) {
-      case $MINUS:
-        appendStringToken(MINUS_TOKEN, "--");
-        return advance();
-      case $EQ:
-        appendStringToken(MINUS_TOKEN, "-=");
-        return advance();
-      default:
-        appendStringToken(MINUS_TOKEN, "-");
-        return next;
+    if (next === $MINUS) {
+      appendStringToken(MINUS_TOKEN, "--");
+      return advance();
+    } else if (next === $EQ) {
+      appendStringToken(MINUS_TOKEN, "-=");
+      return advance();
+    } else {
+      appendStringToken(MINUS_TOKEN, "-");
+      return next;
     }
   }
+
 
   int tokenizePlus(int next) {
     // + ++ +=
     next = advance();
-    switch (next) {
-      case $PLUS:
-        appendStringToken(PLUS_TOKEN, "++");
-        return advance();
-      case $EQ:
-        appendStringToken(PLUS_TOKEN, "+=");
-        return advance();
-      default:
-        appendStringToken(PLUS_TOKEN, "+");
-        return next;
+    if ($PLUS === next) {
+      appendStringToken(PLUS_TOKEN, "++");
+      return advance();
+    } else if ($EQ === next) {
+      appendStringToken(PLUS_TOKEN, "+=");
+      return advance();
+    } else {
+      appendStringToken(PLUS_TOKEN, "+");
+      return next;
     }
   }
 
   int tokenizeExclamation(int next) {
     // ! != !==
     next = advance();
-    if (next == $EQ) {
+    if (next === $EQ) {
       return select($EQ, "!==", "!=");
     }
     appendStringToken(BANG_TOKEN, "!");
@@ -361,7 +330,7 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeEquals(int next) {
     // = == ===
     next = advance();
-    if (next == $EQ) {
+    if (next === $EQ) {
       return select($EQ, "===", "==");
     }
     appendStringToken(EQ_TOKEN, "=");
@@ -371,48 +340,44 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeGreaterThan(int next) {
     // > >= >> >>= >>> >>>=
     next = advance();
-    switch (next) {
-      case $EQ:
-        appendStringToken(GT_TOKEN, ">=");
+    if ($EQ === next) {
+      appendStringToken(GT_TOKEN, ">=");
+      return advance();
+    } else if ($GT === next) {
+      next = advance();
+      if ($EQ === next) {
+        appendStringToken(GT_TOKEN, ">>=");
         return advance();
-      case $GT:
+      } else if ($GT === next) {
         next = advance();
-        switch (next) {
-          case $EQ:
-            appendStringToken(GT_TOKEN, ">>=");
-            return advance();
-          case $GT: {
-            next = advance();
-            if (next === $EQ) {
-              appendStringToken(GT_TOKEN, ">>>=");
-              return advance();
-            } else {
-              appendGtGtGt(GT_TOKEN, ">>>");
-              return next;
-            }
-          }
-          default:
-            appendGtGt(GT_TOKEN, ">>");
-            return next;
+        if (next === $EQ) {
+          appendStringToken(GT_TOKEN, ">>>=");
+          return advance();
+        } else {
+          appendGtGtGt(GT_TOKEN, ">>>");
+          return next;
         }
-      default:
-        appendEndGroup(GT_TOKEN, ">", LT_TOKEN);
+      } else {
+        appendGtGt(GT_TOKEN, ">>");
         return next;
+      }
+    } else {
+      appendEndGroup(GT_TOKEN, ">", LT_TOKEN);
+      return next;
     }
   }
 
   int tokenizeLessThan(int next) {
     // < <= << <<=
     next = advance();
-    switch (next) {
-      case $EQ:
-        appendStringToken(LT_EQ_TOKEN, "<=");
-        return advance();
-      case $LT:
-        return select($EQ, "<<=", "<<");
-      default:
-        appendBeginGroup(LT_TOKEN, "<");
-        return next;
+    if ($EQ === next) {
+      appendStringToken(LT_EQ_TOKEN, "<=");
+      return advance();
+    } else if ($LT === next) {
+      return select($EQ, "<<=", "<<");
+    } else {
+      appendBeginGroup(LT_TOKEN, "<");
+      return next;
     }
   }
 
@@ -420,38 +385,22 @@ class AbstractScanner<T> implements Scanner {
     int start = byteOffset;
     while (true) {
       next = advance();
-      switch (next) {
-        case $0:
-        case $1:
-        case $2:
-        case $3:
-        case $4:
-        case $5:
-        case $6:
-        case $7:
-        case $8:
-        case $9:
-          break;
-
-        case $PERIOD:
-          return tokenizeFractionPart(advance(), start);
-
-        case $e:
-        case $E:
-        case $d:
-        case $D:
-          return tokenizeFractionPart(next, start);
-
-        default:
-          appendByteStringToken(INT_TOKEN, asciiString(start));
-          return next;
+      if ($0 <= next && next <= $9) {
+        continue;
+      } else if (next === $PERIOD) {
+        return tokenizeFractionPart(advance(), start);
+      } else if (next === $e || next === $E || next === $d || next === $D) {
+        return tokenizeFractionPart(next, start);
+      } else {
+        appendByteStringToken(INT_TOKEN, asciiString(start));
+        return next;
       }
     }
   }
 
   int tokenizeHexOrNumber(int next) {
     int x = peek();
-    if (x == $x || x == $X) {
+    if (x === $x || x === $X) {
       advance();
       return tokenizeHex(x);
     }
@@ -463,38 +412,16 @@ class AbstractScanner<T> implements Scanner {
     bool hasDigits = false;
     while (true) {
       next = advance();
-      switch (next) {
-        case $0:
-        case $1:
-        case $2:
-        case $3:
-        case $4:
-        case $5:
-        case $6:
-        case $7:
-        case $8:
-        case $9:
-        case $A:
-        case $B:
-        case $C:
-        case $D:
-        case $E:
-        case $F:
-        case $a:
-        case $b:
-        case $c:
-        case $d:
-        case $e:
-        case $f:
-          hasDigits = true;
-          break;
-
-        default:
-          if (!hasDigits) {
-            throw new MalformedInputException(charOffset);
-          }
-          appendByteStringToken(HEXADECIMAL_TOKEN, asciiString(start));
-          return next;
+      if (($0 <= next && next <= $9)
+          || ($A <= next && next <= $F)
+          || ($a <= next && next <= $f)) {
+        hasDigits = true;
+      } else {
+        if (!hasDigits) {
+          throw new MalformedInputException(charOffset);
+        }
+        appendByteStringToken(HEXADECIMAL_TOKEN, asciiString(start));
+        return next;
       }
     }
   }
@@ -502,58 +429,31 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeDotOrNumber(int next) {
     int start = byteOffset;
     next = advance();
-    switch (next) {
-      case $0:
-      case $1:
-      case $2:
-      case $3:
-      case $4:
-      case $5:
-      case $6:
-      case $7:
-      case $8:
-      case $9: {
-        return tokenizeFractionPart(next, start);
-      }
-
-      case $PERIOD:
-        return select($PERIOD, "...", "..");
-
-      default:
-        appendStringToken(PERIOD_TOKEN, ".");
-        return next;
+    if (($0 <= next && next <= $9)) {
+      return tokenizeFractionPart(next, start);
+    } else if ($PERIOD === next) {
+      return select($PERIOD, "...", "..");
+    } else {
+      appendStringToken(PERIOD_TOKEN, ".");
+      return next;
     }
   }
 
   int tokenizeFractionPart(int next, int start) {
     bool done = false;
     LOOP: while (!done) {
-      switch (next) {
-        case $0:
-        case $1:
-        case $2:
-        case $3:
-        case $4:
-        case $5:
-        case $6:
-        case $7:
-        case $8:
-        case $9:
-          break;
-
-        case $e:
-        case $E:
-          next = tokenizeExponent(advance());
-          done = true;
-          continue LOOP;
-
-        default:
-          done = true;
-          continue LOOP;
+      if ($0 <= next && next <= $9) {
+      } else if ($e === next || $E === next) {
+        next = tokenizeExponent(advance());
+        done = true;
+        continue LOOP;
+      } else {
+        done = true;
+        continue LOOP;
       }
       next = advance();
     }
-    if (next == $d || next == $D) {
+    if (next === $d || next === $D) {
       next = advance();
     }
     appendByteStringToken(DOUBLE_TOKEN, asciiString(start));
@@ -561,30 +461,18 @@ class AbstractScanner<T> implements Scanner {
   }
 
   int tokenizeExponent(int next) {
-    if (next == $PLUS || next == $MINUS) {
+    if (next === $PLUS || next === $MINUS) {
       next = advance();
     }
     bool hasDigits = false;
     while (true) {
-      switch (next) {
-        case $0:
-        case $1:
-        case $2:
-        case $3:
-        case $4:
-        case $5:
-        case $6:
-        case $7:
-        case $8:
-        case $9:
-          hasDigits = true;
-          break;
-
-        default:
-          if (!hasDigits) {
-            throw new MalformedInputException(charOffset);
-          }
-          return next;
+      if ($0 <= next && next <= $9) {
+        hasDigits = true;
+      } else {
+        if (!hasDigits) {
+          throw new MalformedInputException(charOffset);
+        }
+        return next;
       }
       next = advance();
     }
@@ -592,31 +480,24 @@ class AbstractScanner<T> implements Scanner {
 
   int tokenizeSlashOrComment(int next) {
     next = advance();
-    switch (next) {
-      case $STAR:
-        return tokenizeMultiLineComment(next);
-
-      case $SLASH:
-        return tokenizeSingleLineComment(next);
-
-      case $EQ:
-        appendStringToken(SLASH_TOKEN, "/=");
-        return advance();
-
-      default:
-        appendStringToken(SLASH_TOKEN, "/");
-        return next;
+    if ($STAR === next) {
+      return tokenizeMultiLineComment(next);
+    } else if ($SLASH === next) {
+      return tokenizeSingleLineComment(next);
+    } else if ($EQ === next) {
+      appendStringToken(SLASH_TOKEN, "/=");
+      return advance();
+    } else {
+      appendStringToken(SLASH_TOKEN, "/");
+      return next;
     }
   }
 
   int tokenizeSingleLineComment(int next) {
     while (true) {
       next = advance();
-      switch (next) {
-        case -1:
-        case $LF:
-        case $CR:
-          return next;
+      if ($LF === next || $CR === next || -1 === next) {
+        return next;
       }
     }
   }
@@ -624,46 +505,56 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeMultiLineComment(int next) {
     next = advance();
     while (true) {
-      switch (next) {
-        case -1:
+      if (-1 === next) {
+        return next;
+      } else if ($STAR === next) {
+        next = advance();
+        if (next === $SLASH) {
+          return advance();
+        } else if (next === -1) {
           return next;
-        case $STAR:
-          next = advance();
-          if (next == $SLASH) {
-            return advance();
-          } else if (next == -1) {
-            return next;
-          }
-          break;
-        default:
-          next = advance();
-          break;
+        }
+      } else {
+        next = advance();
       }
     }
   }
 
-  int tokenizeIdentifier(int next) {
+
+  int tokenizeKeywordOrIdentifier(int next) {
+    KeywordState state = KeywordState.KEYWORD_STATE;
     int start = byteOffset;
-    KeywordState state = null;
-    if ($a <= next && next <= $z) {
-      state = KeywordState.KEYWORD_STATE.next(next);
+    while (state !== null && $a <= next && next <= $z) {
+      state = state.next(next);
       next = advance();
     }
+    if (state === null || !state.isLeaf()) {
+      return tokenizeIdentifier(next, start);
+    }
+    if (($A <= next && next <= $Z) ||
+        ($0 <= next && next <= $9) ||
+        next === $_ ||
+        next === $DOLLAR) {
+      return tokenizeIdentifier(next, start);
+    } else if (next < 128) {
+      appendKeywordToken(state.keyword);
+      return next;
+    } else {
+      return tokenizeIdentifier(next, start);
+    }
+  }
 
+  int tokenizeIdentifier(int next, int start) {
     bool isAscii = true;
     while (true) {
-      if ($a <= next && next <= $z) {
-        if (state != null) {
-          state = state.next(next);
-        }
-      } else if (($0 <= next && next <= $9) || ($A <= next && next <= $Z)
-                 || next == $_
-                 || next == $DOLLAR) {
-        state = null;
+      if (($a <= next && next <= $z) ||
+          ($A <= next && next <= $Z) ||
+          ($0 <= next && next <= $9) ||
+          next === $_ ||
+          next === $DOLLAR) {
+        // Nothing.
       } else if (next < 128) {
-        if (state != null && state.isLeaf()) {
-          appendKeywordToken(state.keyword);
-        } else if (isAscii) {
+        if (isAscii) {
           appendByteStringToken(IDENTIFIER_TOKEN, asciiString(start));
         } else {
           appendByteStringToken(IDENTIFIER_TOKEN, utf8String(start, -1));
@@ -677,7 +568,6 @@ class AbstractScanner<T> implements Scanner {
         String string = utf8String(nonAsciiStart, -1).toString();
         isAscii = false;
         addToCharOffset(string.length);
-        return next;
       }
       next = advance();
     }
@@ -686,7 +576,7 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeRawString(int next) {
     int start = byteOffset;
     next = advance();
-    if (next == $DQ || next == $SQ) {
+    if (next === $DQ || next === $SQ) {
       return tokenizeString(next, start, true);
     } else {
       throw new MalformedInputException(charOffset);
@@ -696,9 +586,9 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeString(int next, int start, bool raw) {
     int q = next;
     next = advance();
-    if (q == next) {
+    if (q === next) {
       next = advance();
-      if (q == next) {
+      if (q === next) {
         // Multiline string.
         return tokenizeMultiLineString(q, start, raw);
       } else {
@@ -716,15 +606,15 @@ class AbstractScanner<T> implements Scanner {
 
   int tokenizeSingleLineString(int next, int q1, int start) {
     while (next != -1) {
-      if (next == q1) {
+      if (next === q1) {
         appendByteStringToken(STRING_TOKEN, utf8String(start, 0));
         return advance();
-      } else if (next == $BACKSLASH) {
+      } else if (next === $BACKSLASH) {
         next = advance();
-        if (next == -1) {
+        if (next === -1) {
           throw new MalformedInputException(charOffset);
         }
-      } else if (next == $LF || next == $CR) {
+      } else if (next === $LF || next === $CR) {
         throw new MalformedInputException(charOffset);
       }
       next = advance();
@@ -735,10 +625,10 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeSingleLineRawString(int next, int q1, int start) {
     next = advance();
     while (next != -1) {
-      if (next == q1) {
+      if (next === q1) {
         appendByteStringToken(STRING_TOKEN, utf8String(start, 0));
         return advance();
-      } else if (next == $LF || next == $CR) {
+      } else if (next === $LF || next === $CR) {
         throw new MalformedInputException(charOffset);
       }
       next = advance();
@@ -750,11 +640,11 @@ class AbstractScanner<T> implements Scanner {
     // TODO(ahe): Handle escapes.
     int next = advance();
     while (next != -1) {
-      if (next == q) {
+      if (next === q) {
         next = advance();
-        if (next == q) {
+        if (next === q) {
           next = advance();
-          if (next == q) {
+          if (next === q) {
             appendByteStringToken(STRING_TOKEN, utf8String(start, 0));
             return advance();
           }

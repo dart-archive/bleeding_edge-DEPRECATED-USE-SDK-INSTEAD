@@ -15,6 +15,7 @@ class ParserBench extends BaseParserBench {
       Scanner scanner = makeScanner(bytes);
       try {
         token = scanner.tokenize();
+        printTokens(token);
         charCount += scanner.charOffset;
       } catch (MalformedInputException e) {
         print("${filename}: ${e}");

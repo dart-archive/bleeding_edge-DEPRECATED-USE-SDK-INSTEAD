@@ -105,11 +105,11 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     Token oldTail = tail;
     appendStringToken(kind, value);
     if (groupingStack.isEmpty()) return;
-    if (groupingStack.head.kind == LT_TOKEN) {
+    if (groupingStack.head.kind === LT_TOKEN) {
       groupingStack = groupingStack.tail;
     }
     if (groupingStack.isEmpty()) return;
-    if (groupingStack.head.kind == LT_TOKEN) {
+    if (groupingStack.head.kind === LT_TOKEN) {
       groupingStack.head.endGroup = oldTail.next;
       groupingStack = groupingStack.tail;
     }
@@ -119,15 +119,15 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     Token oldTail = tail;
     appendStringToken(kind, value);
     if (groupingStack.isEmpty()) return;
-    if (groupingStack.head.kind == LT_TOKEN) {
+    if (groupingStack.head.kind === LT_TOKEN) {
       groupingStack = groupingStack.tail;
     }
     if (groupingStack.isEmpty()) return;
-    if (groupingStack.head.kind == LT_TOKEN) {
+    if (groupingStack.head.kind === LT_TOKEN) {
       groupingStack = groupingStack.tail;
     }
     if (groupingStack.isEmpty()) return;
-    if (groupingStack.head.kind == LT_TOKEN) {
+    if (groupingStack.head.kind === LT_TOKEN) {
       groupingStack.head.endGroup = oldTail.next;
       groupingStack = groupingStack.tail;
     }

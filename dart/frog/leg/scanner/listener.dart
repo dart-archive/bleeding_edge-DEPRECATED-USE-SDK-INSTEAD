@@ -540,7 +540,7 @@ class NodeListener extends ElementListener {
       nodes = nodes.prepend(popNode());
     }
     SourceString sourceDelimiter =
-        (delimiter == null) ? null : new SourceString(delimiter);
+        (delimiter === null) ? null : new SourceString(delimiter);
     return new NodeList(beginToken, nodes, endToken, sourceDelimiter);
   }
 

@@ -55,6 +55,12 @@ class ScannerBench {
     return;
     StringBuffer sb = new StringBuffer();
     for (; token != null; token = token.next) {
+      if (token.kind < 127) {
+        sb.add(new String.fromCharCodes([token.kind]));
+      } else {
+        sb.add(token.kind);
+      }
+      sb.add(":");
       sb.add(token);
       sb.add(" ");
     }
@@ -91,7 +97,7 @@ class ProgressBar {
   }
 
   void tick() {
-    if (total > 10 && ticks % 5 == 0) {
+    if (total > 10 && ticks % 5 === 0) {
       print("$up$clear[$spaces] ${ticks * 100 ~/ total}% ${score()}");
       print("$up[${hashes.substring(0, ticks * spaces.length ~/ total)}");
     }

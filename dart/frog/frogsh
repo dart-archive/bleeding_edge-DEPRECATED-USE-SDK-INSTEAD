@@ -2726,11 +2726,11 @@ ArrayBasedScanner.prototype.appendGtGt = function(kind, value) {
   var oldTail = this.tail;
   this.appendStringToken(kind, value);
   if ($notnull_bool(this.groupingStack.isEmpty())) return;
-  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+  if (this.groupingStack.get$head().kind === 60/*null.LT_TOKEN*/) {
     this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
   }
   if ($notnull_bool(this.groupingStack.isEmpty())) return;
-  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+  if (this.groupingStack.get$head().kind === 60/*null.LT_TOKEN*/) {
     this.groupingStack.get$head().endGroup = oldTail.next;
     this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
   }
@@ -2740,15 +2740,15 @@ ArrayBasedScanner.prototype.appendGtGtGt = function(kind, value) {
   var oldTail = this.tail;
   this.appendStringToken(kind, value);
   if ($notnull_bool(this.groupingStack.isEmpty())) return;
-  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+  if (this.groupingStack.get$head().kind === 60/*null.LT_TOKEN*/) {
     this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
   }
   if ($notnull_bool(this.groupingStack.isEmpty())) return;
-  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+  if (this.groupingStack.get$head().kind === 60/*null.LT_TOKEN*/) {
     this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
   }
   if ($notnull_bool(this.groupingStack.isEmpty())) return;
-  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
+  if (this.groupingStack.get$head().kind === 60/*null.LT_TOKEN*/) {
     this.groupingStack.get$head().endGroup = oldTail.next;
     this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
   }
@@ -2781,231 +2781,131 @@ AbstractScanner.prototype.tokenize = function() {
 }
 AbstractScanner.prototype.bigSwitch = function(next) {
   this.beginToken();
-  switch (next) {
-    case 9/*null.$TAB*/:
-    case 10/*null.$LF*/:
-    case 13/*null.$CR*/:
-    case 32/*null.$SPACE*/:
-
-      this.appendWhiteSpace(next);
-      return this.advance();
-
-    case 60/*null.$LT*/:
-
-      return this.tokenizeLessThan(next);
-
-    case 62/*null.$GT*/:
-
-      return this.tokenizeGreaterThan(next);
-
-    case 61/*null.$EQ*/:
-
-      return this.tokenizeEquals(next);
-
-    case 33/*null.$BANG*/:
-
-      return this.tokenizeExclamation(next);
-
-    case 43/*null.$PLUS*/:
-
-      return this.tokenizePlus(next);
-
-    case 45/*null.$MINUS*/:
-
-      return this.tokenizeMinus(next);
-
-    case 42/*null.$STAR*/:
-
-      return this.tokenizeMultiply(next);
-
-    case 37/*null.$PERCENT*/:
-
-      return this.tokenizePercent(next);
-
-    case 38/*null.$AMPERSAND*/:
-
-      return this.tokenizeAmpersand(next);
-
-    case 124/*null.$BAR*/:
-
-      return this.tokenizeBar(next);
-
-    case 94/*null.$CARET*/:
-
-      return this.tokenizeCaret(next);
-
-    case 91/*null.$LBRACKET*/:
-
-      return this.tokenizeOpenBracket(next);
-
-    case 126/*null.$TILDE*/:
-
-      return this.tokenizeTilde(next);
-
-    case 92/*null.$BACKSLASH*/:
-
-      this.appendStringToken(92/*null.BACKSLASH_TOKEN*/, "\\");
-      return this.advance();
-
-    case 35/*null.$HASH*/:
-
-      return this.tokenizeTag(next);
-
-    case 40/*null.$LPAREN*/:
-
-      this.appendBeginGroup(40/*null.LPAREN_TOKEN*/, "(");
-      return this.advance();
-
-    case 41/*null.$RPAREN*/:
-
-      this.appendEndGroup(41/*null.RPAREN_TOKEN*/, ")", 40/*null.LPAREN_TOKEN*/);
-      return this.advance();
-
-    case 44/*null.$COMMA*/:
-
-      this.appendStringToken(44/*null.COMMA_TOKEN*/, ",");
-      return this.advance();
-
-    case 58/*null.$COLON*/:
-
-      this.appendStringToken(58/*null.COLON_TOKEN*/, ":");
-      return this.advance();
-
-    case 59/*null.$SEMICOLON*/:
-
-      this.appendStringToken(59/*null.SEMICOLON_TOKEN*/, ";");
-      return this.advance();
-
-    case 63/*null.$QUESTION*/:
-
-      this.appendStringToken(63/*null.QUESTION_TOKEN*/, "?");
-      return this.advance();
-
-    case 93/*null.$RBRACKET*/:
-
-      this.appendEndGroup(93/*null.RBRACKET_TOKEN*/, "]", 91/*null.LBRACKET_TOKEN*/);
-      return this.advance();
-
-    case 96/*null.$BACKPING*/:
-
-      this.appendStringToken(96/*null.BACKPING_TOKEN*/, "`");
-      return this.advance();
-
-    case 123/*null.$LBRACE*/:
-
-      this.appendBeginGroup(123/*null.LBRACE_TOKEN*/, "{");
-      return this.advance();
-
-    case 125/*null.$RBRACE*/:
-
-      this.appendEndGroup(125/*null.RBRACE_TOKEN*/, "}", 123/*null.LBRACE_TOKEN*/);
-      return this.advance();
-
-    case 47/*null.$SLASH*/:
-
-      return this.tokenizeSlashOrComment(next);
-
-    case 64/*null.$AT*/:
-
-      return this.tokenizeRawString(next);
-
-    case 34/*null.$DQ*/:
-    case 39/*null.$SQ*/:
-
-      return this.tokenizeString(next, this.get$byteOffset(), false);
-
-    case 46/*null.$PERIOD*/:
-
-      return this.tokenizeDotOrNumber(next);
-
-    case 48/*null.$0*/:
-
-      return this.tokenizeHexOrNumber(next);
-
-    case 49/*null.$1*/:
-    case 50/*null.$2*/:
-    case 51/*null.$3*/:
-    case 52/*null.$4*/:
-    case 53/*null.$5*/:
-    case 54/*null.$6*/:
-    case 55/*null.$7*/:
-    case 56/*null.$8*/:
-    case 57/*null.$9*/:
-
-      return this.tokenizeNumber(next);
-
-    case 36/*null.$DOLLAR*/:
-    case 65/*null.$A*/:
-    case 66/*null.$B*/:
-    case 67/*null.$C*/:
-    case 68/*null.$D*/:
-    case 69/*null.$E*/:
-    case 70/*null.$F*/:
-    case 71/*null.$G*/:
-    case 72/*null.$H*/:
-    case 73/*null.$I*/:
-    case 74/*null.$J*/:
-    case 75/*null.$K*/:
-    case 76/*null.$L*/:
-    case 77/*null.$M*/:
-    case 78/*null.$N*/:
-    case 79/*null.$O*/:
-    case 80/*null.$P*/:
-    case 81/*null.$Q*/:
-    case 82/*null.$R*/:
-    case 83/*null.$S*/:
-    case 84/*null.$T*/:
-    case 85/*null.$U*/:
-    case 86/*null.$V*/:
-    case 87/*null.$W*/:
-    case 88/*null.$X*/:
-    case 89/*null.$Y*/:
-    case 90/*null.$Z*/:
-    case 95/*null.$_*/:
-    case 97/*null.$a*/:
-    case 98/*null.$b*/:
-    case 99/*null.$c*/:
-    case 100/*null.$d*/:
-    case 101/*null.$e*/:
-    case 102/*null.$f*/:
-    case 103/*null.$g*/:
-    case 104/*null.$h*/:
-    case 105/*null.$i*/:
-    case 106/*null.$j*/:
-    case 107/*null.$k*/:
-    case 108/*null.$l*/:
-    case 109/*null.$m*/:
-    case 110/*null.$n*/:
-    case 111/*null.$o*/:
-    case 112/*null.$p*/:
-    case 113/*null.$q*/:
-    case 114/*null.$r*/:
-    case 115/*null.$s*/:
-    case 116/*null.$t*/:
-    case 117/*null.$u*/:
-    case 118/*null.$v*/:
-    case 119/*null.$w*/:
-    case 120/*null.$x*/:
-    case 121/*null.$y*/:
-    case 122/*null.$z*/:
-
-      return this.tokenizeIdentifier(next);
-
-    default:
-
-      if (next == -1) {
-        return -1;
-      }
-      if (next < 0x1f) {
-        $throw(new MalformedInputException(this.get$charOffset()));
-      }
-      return this.tokenizeIdentifier(next);
-
+  if (next === 9/*null.$TAB*/ || next === 10/*null.$LF*/ || next === 13/*null.$CR*/ || next === 32/*null.$SPACE*/) {
+    this.appendWhiteSpace(next);
+    return this.advance();
   }
+  if (97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
+    return this.tokenizeKeywordOrIdentifier(next);
+  }
+  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+    return this.tokenizeIdentifier(next, this.get$byteOffset());
+  }
+  if (next === 60/*null.$LT*/) {
+    return this.tokenizeLessThan(next);
+  }
+  if (next === 62/*null.$GT*/) {
+    return this.tokenizeGreaterThan(next);
+  }
+  if (next === 61/*null.$EQ*/) {
+    return this.tokenizeEquals(next);
+  }
+  if (next === 33/*null.$BANG*/) {
+    return this.tokenizeExclamation(next);
+  }
+  if (next === 43/*null.$PLUS*/) {
+    return this.tokenizePlus(next);
+  }
+  if (next === 45/*null.$MINUS*/) {
+    return this.tokenizeMinus(next);
+  }
+  if (next === 42/*null.$STAR*/) {
+    return this.tokenizeMultiply(next);
+  }
+  if (next === 37/*null.$PERCENT*/) {
+    return this.tokenizePercent(next);
+  }
+  if (next === 38/*null.$AMPERSAND*/) {
+    return this.tokenizeAmpersand(next);
+  }
+  if (next === 124/*null.$BAR*/) {
+    return this.tokenizeBar(next);
+  }
+  if (next === 94/*null.$CARET*/) {
+    return this.tokenizeCaret(next);
+  }
+  if (next === 91/*null.$LBRACKET*/) {
+    return this.tokenizeOpenBracket(next);
+  }
+  if (next === 126/*null.$TILDE*/) {
+    return this.tokenizeTilde(next);
+  }
+  if (next === 92/*null.$BACKSLASH*/) {
+    this.appendStringToken(92/*null.BACKSLASH_TOKEN*/, "\\");
+    return this.advance();
+  }
+  if (next === 35/*null.$HASH*/) {
+    return this.tokenizeTag(next);
+  }
+  if (next === 40/*null.$LPAREN*/) {
+    this.appendBeginGroup(40/*null.LPAREN_TOKEN*/, "(");
+    return this.advance();
+  }
+  if (next === 41/*null.$RPAREN*/) {
+    this.appendEndGroup(41/*null.RPAREN_TOKEN*/, ")", 40/*null.LPAREN_TOKEN*/);
+    return this.advance();
+  }
+  if (next === 44/*null.$COMMA*/) {
+    this.appendStringToken(44/*null.COMMA_TOKEN*/, ",");
+    return this.advance();
+  }
+  if (next === 58/*null.$COLON*/) {
+    this.appendStringToken(58/*null.COLON_TOKEN*/, ":");
+    return this.advance();
+  }
+  if (next === 59/*null.$SEMICOLON*/) {
+    this.appendStringToken(59/*null.SEMICOLON_TOKEN*/, ";");
+    return this.advance();
+  }
+  if (next === 63/*null.$QUESTION*/) {
+    this.appendStringToken(63/*null.QUESTION_TOKEN*/, "?");
+    return this.advance();
+  }
+  if (next === 93/*null.$RBRACKET*/) {
+    this.appendEndGroup(93/*null.RBRACKET_TOKEN*/, "]", 91/*null.LBRACKET_TOKEN*/);
+    return this.advance();
+  }
+  if (next === 96/*null.$BACKPING*/) {
+    this.appendStringToken(96/*null.BACKPING_TOKEN*/, "`");
+    return this.advance();
+  }
+  if (next === 123/*null.$LBRACE*/) {
+    this.appendBeginGroup(123/*null.LBRACE_TOKEN*/, "{");
+    return this.advance();
+  }
+  if (next === 125/*null.$RBRACE*/) {
+    this.appendEndGroup(125/*null.RBRACE_TOKEN*/, "}", 123/*null.LBRACE_TOKEN*/);
+    return this.advance();
+  }
+  if (next === 47/*null.$SLASH*/) {
+    return this.tokenizeSlashOrComment(next);
+  }
+  if (next === 64/*null.$AT*/) {
+    return this.tokenizeRawString(next);
+  }
+  if (next === 34/*null.$DQ*/ || next === 39/*null.$SQ*/) {
+    return this.tokenizeString(next, this.get$byteOffset(), false);
+  }
+  if (next === 46/*null.$PERIOD*/) {
+    return this.tokenizeDotOrNumber(next);
+  }
+  if (next === 48/*null.$0*/) {
+    return this.tokenizeHexOrNumber(next);
+  }
+  if (next === 49/*null.$1*/ || next === 50/*null.$2*/ || next === 51/*null.$3*/ || next === 52/*null.$4*/ || next === 53/*null.$5*/ || next === 54/*null.$6*/ || next === 55/*null.$7*/ || next === 56/*null.$8*/ || next === 57/*null.$9*/) {
+    return this.tokenizeNumber(next);
+  }
+  if (next === -1) {
+    return -1;
+  }
+  if (next < 0x1f) {
+    $throw(new MalformedInputException(this.get$charOffset()));
+  }
+  return this.tokenizeIdentifier(next, this.get$byteOffset());
 }
 AbstractScanner.prototype.tokenizeTag = function(next) {
-  if (this.get$byteOffset() == 0) {
-    if (this.peek() == 33/*null.$BANG*/) {
+  if (this.get$byteOffset() === 0) {
+    if (this.peek() === 33/*null.$BANG*/) {
       do {
         next = this.advance();
       }
@@ -3018,7 +2918,7 @@ AbstractScanner.prototype.tokenizeTag = function(next) {
 }
 AbstractScanner.prototype.tokenizeTilde = function(next) {
   next = this.advance();
-  if (next == 47/*null.$SLASH*/) {
+  if (next === 47/*null.$SLASH*/) {
     return this.select(61/*null.$EQ*/, "~/=", "~/");
   }
   else {
@@ -3028,7 +2928,7 @@ AbstractScanner.prototype.tokenizeTilde = function(next) {
 }
 AbstractScanner.prototype.tokenizeOpenBracket = function(next) {
   next = this.advance();
-  if (next == 93/*null.$RBRACKET*/) {
+  if (next === 93/*null.$RBRACKET*/) {
     return this.select(61/*null.$EQ*/, "[]=", "[]");
   }
   else {
@@ -3041,42 +2941,32 @@ AbstractScanner.prototype.tokenizeCaret = function(next) {
 }
 AbstractScanner.prototype.tokenizeBar = function(next) {
   next = this.advance();
-  switch (next) {
-    case 124/*null.$BAR*/:
-
-      this.appendStringToken(124/*null.BAR_TOKEN*/, "||");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(124/*null.BAR_TOKEN*/, "|=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(124/*null.BAR_TOKEN*/, "|");
-      return next;
-
+  if (next === 124/*null.$BAR*/) {
+    this.appendStringToken(124/*null.BAR_TOKEN*/, "||");
+    return this.advance();
+  }
+  else if (next === 61/*null.$EQ*/) {
+    this.appendStringToken(124/*null.BAR_TOKEN*/, "|=");
+    return this.advance();
+  }
+  else {
+    this.appendStringToken(124/*null.BAR_TOKEN*/, "|");
+    return next;
   }
 }
 AbstractScanner.prototype.tokenizeAmpersand = function(next) {
   next = this.advance();
-  switch (next) {
-    case 38/*null.$AMPERSAND*/:
-
-      this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&&");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&");
-      return next;
-
+  if (next === 38/*null.$AMPERSAND*/) {
+    this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&&");
+    return this.advance();
+  }
+  else if (next === 61/*null.$EQ*/) {
+    this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&=");
+    return this.advance();
+  }
+  else {
+    this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&");
+    return next;
   }
 }
 AbstractScanner.prototype.tokenizePercent = function(next) {
@@ -3087,47 +2977,37 @@ AbstractScanner.prototype.tokenizeMultiply = function(next) {
 }
 AbstractScanner.prototype.tokenizeMinus = function(next) {
   next = this.advance();
-  switch (next) {
-    case 45/*null.$MINUS*/:
-
-      this.appendStringToken(45/*null.MINUS_TOKEN*/, "--");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(45/*null.MINUS_TOKEN*/, "-=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(45/*null.MINUS_TOKEN*/, "-");
-      return next;
-
+  if (next === 45/*null.$MINUS*/) {
+    this.appendStringToken(45/*null.MINUS_TOKEN*/, "--");
+    return this.advance();
+  }
+  else if (next === 61/*null.$EQ*/) {
+    this.appendStringToken(45/*null.MINUS_TOKEN*/, "-=");
+    return this.advance();
+  }
+  else {
+    this.appendStringToken(45/*null.MINUS_TOKEN*/, "-");
+    return next;
   }
 }
 AbstractScanner.prototype.tokenizePlus = function(next) {
   next = this.advance();
-  switch (next) {
-    case 43/*null.$PLUS*/:
-
-      this.appendStringToken(43/*null.PLUS_TOKEN*/, "++");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(43/*null.PLUS_TOKEN*/, "+=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(43/*null.PLUS_TOKEN*/, "+");
-      return next;
-
+  if (43/*null.$PLUS*/ === next) {
+    this.appendStringToken(43/*null.PLUS_TOKEN*/, "++");
+    return this.advance();
+  }
+  else if (61/*null.$EQ*/ === next) {
+    this.appendStringToken(43/*null.PLUS_TOKEN*/, "+=");
+    return this.advance();
+  }
+  else {
+    this.appendStringToken(43/*null.PLUS_TOKEN*/, "+");
+    return next;
   }
 }
 AbstractScanner.prototype.tokenizeExclamation = function(next) {
   next = this.advance();
-  if (next == 61/*null.$EQ*/) {
+  if (next === 61/*null.$EQ*/) {
     return this.select(61/*null.$EQ*/, "!==", "!=");
   }
   this.appendStringToken(33/*null.BANG_TOKEN*/, "!");
@@ -3135,7 +3015,7 @@ AbstractScanner.prototype.tokenizeExclamation = function(next) {
 }
 AbstractScanner.prototype.tokenizeEquals = function(next) {
   next = this.advance();
-  if (next == 61/*null.$EQ*/) {
+  if (next === 61/*null.$EQ*/) {
     return this.select(61/*null.$EQ*/, "===", "==");
   }
   this.appendStringToken(61/*null.EQ_TOKEN*/, "=");
@@ -3143,67 +3023,49 @@ AbstractScanner.prototype.tokenizeEquals = function(next) {
 }
 AbstractScanner.prototype.tokenizeGreaterThan = function(next) {
   next = this.advance();
-  switch (next) {
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(62/*null.GT_TOKEN*/, ">=");
+  if (61/*null.$EQ*/ === next) {
+    this.appendStringToken(62/*null.GT_TOKEN*/, ">=");
+    return this.advance();
+  }
+  else if (62/*null.$GT*/ === next) {
+    next = this.advance();
+    if (61/*null.$EQ*/ === next) {
+      this.appendStringToken(62/*null.GT_TOKEN*/, ">>=");
       return this.advance();
-
-    case 62/*null.$GT*/:
-
+    }
+    else if (62/*null.$GT*/ === next) {
       next = this.advance();
-      switch (next) {
-        case 61/*null.$EQ*/:
-
-          this.appendStringToken(62/*null.GT_TOKEN*/, ">>=");
-          return this.advance();
-
-        case 62/*null.$GT*/:
-
-          {
-            next = this.advance();
-            if (next === 61/*null.$EQ*/) {
-              this.appendStringToken(62/*null.GT_TOKEN*/, ">>>=");
-              return this.advance();
-            }
-            else {
-              this.appendGtGtGt(62/*null.GT_TOKEN*/, ">>>");
-              return next;
-            }
-          }
-
-        default:
-
-          this.appendGtGt(62/*null.GT_TOKEN*/, ">>");
-          return next;
-
+      if (next === 61/*null.$EQ*/) {
+        this.appendStringToken(62/*null.GT_TOKEN*/, ">>>=");
+        return this.advance();
       }
-      $throw(new FallThroughError());
-
-    default:
-
-      this.appendEndGroup(62/*null.GT_TOKEN*/, ">", 60/*null.LT_TOKEN*/);
+      else {
+        this.appendGtGtGt(62/*null.GT_TOKEN*/, ">>>");
+        return next;
+      }
+    }
+    else {
+      this.appendGtGt(62/*null.GT_TOKEN*/, ">>");
       return next;
-
+    }
+  }
+  else {
+    this.appendEndGroup(62/*null.GT_TOKEN*/, ">", 60/*null.LT_TOKEN*/);
+    return next;
   }
 }
 AbstractScanner.prototype.tokenizeLessThan = function(next) {
   next = this.advance();
-  switch (next) {
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(188/*null.LT_EQ_TOKEN*/, "<=");
-      return this.advance();
-
-    case 60/*null.$LT*/:
-
-      return this.select(61/*null.$EQ*/, "<<=", "<<");
-
-    default:
-
-      this.appendBeginGroup(60/*null.LT_TOKEN*/, "<");
-      return next;
-
+  if (61/*null.$EQ*/ === next) {
+    this.appendStringToken(188/*null.LT_EQ_TOKEN*/, "<=");
+    return this.advance();
+  }
+  else if (60/*null.$LT*/ === next) {
+    return this.select(61/*null.$EQ*/, "<<=", "<<");
+  }
+  else {
+    this.appendBeginGroup(60/*null.LT_TOKEN*/, "<");
+    return next;
   }
 }
 AbstractScanner.prototype.tokenizeNumber = function(next) {
@@ -3211,42 +3073,24 @@ AbstractScanner.prototype.tokenizeNumber = function(next) {
   var start = this.get$byteOffset();
   while (true) {
     next = this.advance();
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-
-        break;
-
-      case 46/*null.$PERIOD*/:
-
-        return this.tokenizeFractionPart(this.advance(), start);
-
-      case 101/*null.$e*/:
-      case 69/*null.$E*/:
-      case 100/*null.$d*/:
-      case 68/*null.$D*/:
-
-        return this.tokenizeFractionPart(next, start);
-
-      default:
-
-        this.appendByteStringToken$2(105/*null.INT_TOKEN*/, this.asciiString(start));
-        return next;
-
+    if (48/*null.$0*/ <= next && next <= 57/*null.$9*/) {
+      continue;
+    }
+    else if (next === 46/*null.$PERIOD*/) {
+      return this.tokenizeFractionPart(this.advance(), start);
+    }
+    else if (next === 101/*null.$e*/ || next === 69/*null.$E*/ || next === 100/*null.$d*/ || next === 68/*null.$D*/) {
+      return this.tokenizeFractionPart(next, start);
+    }
+    else {
+      this.appendByteStringToken$2(105/*null.INT_TOKEN*/, this.asciiString(start));
+      return next;
     }
   }
 }
 AbstractScanner.prototype.tokenizeHexOrNumber = function(next) {
   var x = this.peek();
-  if (x == 120/*null.$x*/ || x == 88/*null.$X*/) {
+  if (x === 120/*null.$x*/ || x === 88/*null.$X*/) {
     this.advance();
     return this.tokenizeHex(x);
   }
@@ -3258,72 +3102,30 @@ AbstractScanner.prototype.tokenizeHex = function(next) {
   var hasDigits = false;
   while (true) {
     next = this.advance();
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-      case 65/*null.$A*/:
-      case 66/*null.$B*/:
-      case 67/*null.$C*/:
-      case 68/*null.$D*/:
-      case 69/*null.$E*/:
-      case 70/*null.$F*/:
-      case 97/*null.$a*/:
-      case 98/*null.$b*/:
-      case 99/*null.$c*/:
-      case 100/*null.$d*/:
-      case 101/*null.$e*/:
-      case 102/*null.$f*/:
-
-        hasDigits = true;
-        break;
-
-      default:
-
-        if (!$notnull_bool(hasDigits)) {
-          $throw(new MalformedInputException(this.get$charOffset()));
-        }
-        this.appendByteStringToken$2(120/*null.HEXADECIMAL_TOKEN*/, this.asciiString(start));
-        return next;
-
+    if ((48/*null.$0*/ <= next && next <= 57/*null.$9*/) || (65/*null.$A*/ <= next && next <= 70/*null.$F*/) || (97/*null.$a*/ <= next && next <= 102/*null.$f*/)) {
+      hasDigits = true;
+    }
+    else {
+      if (!$notnull_bool(hasDigits)) {
+        $throw(new MalformedInputException(this.get$charOffset()));
+      }
+      this.appendByteStringToken$2(120/*null.HEXADECIMAL_TOKEN*/, this.asciiString(start));
+      return next;
     }
   }
 }
 AbstractScanner.prototype.tokenizeDotOrNumber = function(next) {
   var start = this.get$byteOffset();
   next = this.advance();
-  switch (next) {
-    case 48/*null.$0*/:
-    case 49/*null.$1*/:
-    case 50/*null.$2*/:
-    case 51/*null.$3*/:
-    case 52/*null.$4*/:
-    case 53/*null.$5*/:
-    case 54/*null.$6*/:
-    case 55/*null.$7*/:
-    case 56/*null.$8*/:
-    case 57/*null.$9*/:
-
-      {
-        return this.tokenizeFractionPart(next, start);
-      }
-
-    case 46/*null.$PERIOD*/:
-
-      return this.select(46/*null.$PERIOD*/, "...", "..");
-
-    default:
-
-      this.appendStringToken(46/*null.PERIOD_TOKEN*/, ".");
-      return next;
-
+  if ((48/*null.$0*/ <= next && next <= 57/*null.$9*/)) {
+    return this.tokenizeFractionPart(next, start);
+  }
+  else if (46/*null.$PERIOD*/ === next) {
+    return this.select(46/*null.$PERIOD*/, "...", "..");
+  }
+  else {
+    this.appendStringToken(46/*null.PERIOD_TOKEN*/, ".");
+    return next;
   }
 }
 AbstractScanner.prototype.tokenizeFractionPart = function(next, start) {
@@ -3331,159 +3133,117 @@ AbstractScanner.prototype.tokenizeFractionPart = function(next, start) {
   var done = false;
   LOOP:
   while (!$notnull_bool(done)) {
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-
-        break;
-
-      case 101/*null.$e*/:
-      case 69/*null.$E*/:
-
-        next = this.tokenizeExponent(this.advance());
-        done = true;
-        continue LOOP;
-
-      default:
-
-        done = true;
-        continue LOOP;
-
+    if (48/*null.$0*/ <= next && next <= 57/*null.$9*/) {
+    }
+    else if (101/*null.$e*/ === next || 69/*null.$E*/ === next) {
+      next = this.tokenizeExponent(this.advance());
+      done = true;
+      continue LOOP;
+    }
+    else {
+      done = true;
+      continue LOOP;
     }
     next = this.advance();
   }
-  if (next == 100/*null.$d*/ || next == 68/*null.$D*/) {
+  if (next === 100/*null.$d*/ || next === 68/*null.$D*/) {
     next = this.advance();
   }
   this.appendByteStringToken$2(100/*null.DOUBLE_TOKEN*/, this.asciiString(start));
   return next;
 }
 AbstractScanner.prototype.tokenizeExponent = function(next) {
-  if (next == 43/*null.$PLUS*/ || next == 45/*null.$MINUS*/) {
+  if (next === 43/*null.$PLUS*/ || next === 45/*null.$MINUS*/) {
     next = this.advance();
   }
   var hasDigits = false;
   while (true) {
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-
-        hasDigits = true;
-        break;
-
-      default:
-
-        if (!$notnull_bool(hasDigits)) {
-          $throw(new MalformedInputException(this.get$charOffset()));
-        }
-        return next;
-
+    if (48/*null.$0*/ <= next && next <= 57/*null.$9*/) {
+      hasDigits = true;
+    }
+    else {
+      if (!$notnull_bool(hasDigits)) {
+        $throw(new MalformedInputException(this.get$charOffset()));
+      }
+      return next;
     }
     next = this.advance();
   }
 }
 AbstractScanner.prototype.tokenizeSlashOrComment = function(next) {
   next = this.advance();
-  switch (next) {
-    case 42/*null.$STAR*/:
-
-      return this.tokenizeMultiLineComment(next);
-
-    case 47/*null.$SLASH*/:
-
-      return this.tokenizeSingleLineComment(next);
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(47/*null.SLASH_TOKEN*/, "/=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(47/*null.SLASH_TOKEN*/, "/");
-      return next;
-
+  if (42/*null.$STAR*/ === next) {
+    return this.tokenizeMultiLineComment(next);
+  }
+  else if (47/*null.$SLASH*/ === next) {
+    return this.tokenizeSingleLineComment(next);
+  }
+  else if (61/*null.$EQ*/ === next) {
+    this.appendStringToken(47/*null.SLASH_TOKEN*/, "/=");
+    return this.advance();
+  }
+  else {
+    this.appendStringToken(47/*null.SLASH_TOKEN*/, "/");
+    return next;
   }
 }
 AbstractScanner.prototype.tokenizeSingleLineComment = function(next) {
   while (true) {
     next = this.advance();
-    switch (next) {
-      case -1:
-      case 10/*null.$LF*/:
-      case 13/*null.$CR*/:
-
-        return next;
-
+    if (10/*null.$LF*/ === next || 13/*null.$CR*/ === next || -1 === next) {
+      return next;
     }
   }
 }
 AbstractScanner.prototype.tokenizeMultiLineComment = function(next) {
   next = this.advance();
   while (true) {
-    switch (next) {
-      case -1:
-
+    if (-1 === next) {
+      return next;
+    }
+    else if (42/*null.$STAR*/ === next) {
+      next = this.advance();
+      if (next === 47/*null.$SLASH*/) {
+        return this.advance();
+      }
+      else if (next === -1) {
         return next;
-
-      case 42/*null.$STAR*/:
-
-        next = this.advance();
-        if (next == 47/*null.$SLASH*/) {
-          return this.advance();
-        }
-        else if (next == -1) {
-          return next;
-        }
-        break;
-
-      default:
-
-        next = this.advance();
-        break;
-
+      }
+    }
+    else {
+      next = this.advance();
     }
   }
 }
-AbstractScanner.prototype.tokenizeIdentifier = function(next) {
-  var $0;
+AbstractScanner.prototype.tokenizeKeywordOrIdentifier = function(next) {
+  var state = KeywordState.get$KEYWORD_STATE();
   var start = this.get$byteOffset();
-  var state = null;
-  if (97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
-    state = KeywordState.get$KEYWORD_STATE().next(next);
+  while (state != null && 97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
+    state = state.next(next);
     next = this.advance();
   }
+  if (state == null || !$notnull_bool(state.isLeaf())) {
+    return this.tokenizeIdentifier(next, start);
+  }
+  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+    return this.tokenizeIdentifier(next, start);
+  }
+  else if (next < 128) {
+    this.appendKeywordToken(state.get$keyword());
+    return next;
+  }
+  else {
+    return this.tokenizeIdentifier(next, start);
+  }
+}
+AbstractScanner.prototype.tokenizeIdentifier = function(next, start) {
+  var $0;
   var isAscii = true;
   while (true) {
-    if (97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
-      if (state != null) {
-        state = state.next(next);
-      }
-    }
-    else if ((48/*null.$0*/ <= next && next <= 57/*null.$9*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || next == 95/*null.$_*/ || next == 36/*null.$DOLLAR*/) {
-      state = null;
+    if ((97/*null.$a*/ <= next && next <= 122/*null.$z*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
     }
     else if (next < 128) {
-      if (state != null && $notnull_bool(state.isLeaf())) {
-        this.appendKeywordToken(state.get$keyword());
-      }
-      else if ($notnull_bool(isAscii)) {
+      if ($notnull_bool(isAscii)) {
         this.appendByteStringToken$2(97/*null.IDENTIFIER_TOKEN*/, this.asciiString(start));
       }
       else {
@@ -3500,7 +3260,6 @@ AbstractScanner.prototype.tokenizeIdentifier = function(next) {
       var string = this.utf8String(nonAsciiStart, -1).toString$0();
       isAscii = false;
       this.addToCharOffset(string.length);
-      return next;
     }
     next = this.advance();
   }
@@ -3508,7 +3267,7 @@ AbstractScanner.prototype.tokenizeIdentifier = function(next) {
 AbstractScanner.prototype.tokenizeRawString = function(next) {
   var start = this.get$byteOffset();
   next = this.advance();
-  if (next == 34/*null.$DQ*/ || next == 39/*null.$SQ*/) {
+  if (next === 34/*null.$DQ*/ || next === 39/*null.$SQ*/) {
     return this.tokenizeString(next, start, true);
   }
   else {
@@ -3519,9 +3278,9 @@ AbstractScanner.prototype.tokenizeString = function(next, start, raw) {
   var $0;
   var q = next;
   next = this.advance();
-  if (q == next) {
+  if (q === next) {
     next = this.advance();
-    if (q == next) {
+    if (q === next) {
       return this.tokenizeMultiLineString(q, start, raw);
     }
     else {
@@ -3539,17 +3298,17 @@ AbstractScanner.prototype.tokenizeString = function(next, start, raw) {
 AbstractScanner.prototype.tokenizeSingleLineString = function(next, q1, start) {
   var $0;
   while (next != -1) {
-    if (next == q1) {
+    if (next === q1) {
       this.appendByteStringToken$2(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
       return this.advance();
     }
-    else if (next == 92/*null.$BACKSLASH*/) {
+    else if (next === 92/*null.$BACKSLASH*/) {
       next = this.advance();
-      if (next == -1) {
+      if (next === -1) {
         $throw(new MalformedInputException(this.get$charOffset()));
       }
     }
-    else if (next == 10/*null.$LF*/ || next == 13/*null.$CR*/) {
+    else if (next === 10/*null.$LF*/ || next === 13/*null.$CR*/) {
       $throw(new MalformedInputException(this.get$charOffset()));
     }
     next = this.advance();
@@ -3560,11 +3319,11 @@ AbstractScanner.prototype.tokenizeSingleLineRawString = function(next, q1, start
   var $0;
   next = this.advance();
   while (next != -1) {
-    if (next == q1) {
+    if (next === q1) {
       this.appendByteStringToken$2(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
       return this.advance();
     }
-    else if (next == 10/*null.$LF*/ || next == 13/*null.$CR*/) {
+    else if (next === 10/*null.$LF*/ || next === 13/*null.$CR*/) {
       $throw(new MalformedInputException(this.get$charOffset()));
     }
     next = this.advance();
@@ -3575,11 +3334,11 @@ AbstractScanner.prototype.tokenizeMultiLineString = function(q, start, raw) {
   var $0;
   var next = this.advance();
   while (next != -1) {
-    if (next == q) {
+    if (next === q) {
       next = this.advance();
-      if (next == q) {
+      if (next === q) {
         next = this.advance();
-        if (next == q) {
+        if (next === q) {
           this.appendByteStringToken$2(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
           return this.advance();
         }
@@ -3605,231 +3364,131 @@ AbstractScanner$S.prototype.tokenize = function() {
 }
 AbstractScanner$S.prototype.bigSwitch = function(next) {
   this.beginToken();
-  switch (next) {
-    case 9/*null.$TAB*/:
-    case 10/*null.$LF*/:
-    case 13/*null.$CR*/:
-    case 32/*null.$SPACE*/:
-
-      this.appendWhiteSpace(next);
-      return this.advance();
-
-    case 60/*null.$LT*/:
-
-      return this.tokenizeLessThan(next);
-
-    case 62/*null.$GT*/:
-
-      return this.tokenizeGreaterThan(next);
-
-    case 61/*null.$EQ*/:
-
-      return this.tokenizeEquals(next);
-
-    case 33/*null.$BANG*/:
-
-      return this.tokenizeExclamation(next);
-
-    case 43/*null.$PLUS*/:
-
-      return this.tokenizePlus(next);
-
-    case 45/*null.$MINUS*/:
-
-      return this.tokenizeMinus(next);
-
-    case 42/*null.$STAR*/:
-
-      return this.tokenizeMultiply(next);
-
-    case 37/*null.$PERCENT*/:
-
-      return this.tokenizePercent(next);
-
-    case 38/*null.$AMPERSAND*/:
-
-      return this.tokenizeAmpersand(next);
-
-    case 124/*null.$BAR*/:
-
-      return this.tokenizeBar(next);
-
-    case 94/*null.$CARET*/:
-
-      return this.tokenizeCaret(next);
-
-    case 91/*null.$LBRACKET*/:
-
-      return this.tokenizeOpenBracket(next);
-
-    case 126/*null.$TILDE*/:
-
-      return this.tokenizeTilde(next);
-
-    case 92/*null.$BACKSLASH*/:
-
-      this.appendStringToken(92/*null.BACKSLASH_TOKEN*/, "\\");
-      return this.advance();
-
-    case 35/*null.$HASH*/:
-
-      return this.tokenizeTag(next);
-
-    case 40/*null.$LPAREN*/:
-
-      this.appendBeginGroup(40/*null.LPAREN_TOKEN*/, "(");
-      return this.advance();
-
-    case 41/*null.$RPAREN*/:
-
-      this.appendEndGroup(41/*null.RPAREN_TOKEN*/, ")", 40/*null.LPAREN_TOKEN*/);
-      return this.advance();
-
-    case 44/*null.$COMMA*/:
-
-      this.appendStringToken(44/*null.COMMA_TOKEN*/, ",");
-      return this.advance();
-
-    case 58/*null.$COLON*/:
-
-      this.appendStringToken(58/*null.COLON_TOKEN*/, ":");
-      return this.advance();
-
-    case 59/*null.$SEMICOLON*/:
-
-      this.appendStringToken(59/*null.SEMICOLON_TOKEN*/, ";");
-      return this.advance();
-
-    case 63/*null.$QUESTION*/:
-
-      this.appendStringToken(63/*null.QUESTION_TOKEN*/, "?");
-      return this.advance();
-
-    case 93/*null.$RBRACKET*/:
-
-      this.appendEndGroup(93/*null.RBRACKET_TOKEN*/, "]", 91/*null.LBRACKET_TOKEN*/);
-      return this.advance();
-
-    case 96/*null.$BACKPING*/:
-
-      this.appendStringToken(96/*null.BACKPING_TOKEN*/, "`");
-      return this.advance();
-
-    case 123/*null.$LBRACE*/:
-
-      this.appendBeginGroup(123/*null.LBRACE_TOKEN*/, "{");
-      return this.advance();
-
-    case 125/*null.$RBRACE*/:
-
-      this.appendEndGroup(125/*null.RBRACE_TOKEN*/, "}", 123/*null.LBRACE_TOKEN*/);
-      return this.advance();
-
-    case 47/*null.$SLASH*/:
-
-      return this.tokenizeSlashOrComment(next);
-
-    case 64/*null.$AT*/:
-
-      return this.tokenizeRawString(next);
-
-    case 34/*null.$DQ*/:
-    case 39/*null.$SQ*/:
-
-      return this.tokenizeString(next, this.get$byteOffset(), false);
-
-    case 46/*null.$PERIOD*/:
-
-      return this.tokenizeDotOrNumber(next);
-
-    case 48/*null.$0*/:
-
-      return this.tokenizeHexOrNumber(next);
-
-    case 49/*null.$1*/:
-    case 50/*null.$2*/:
-    case 51/*null.$3*/:
-    case 52/*null.$4*/:
-    case 53/*null.$5*/:
-    case 54/*null.$6*/:
-    case 55/*null.$7*/:
-    case 56/*null.$8*/:
-    case 57/*null.$9*/:
-
-      return this.tokenizeNumber(next);
-
-    case 36/*null.$DOLLAR*/:
-    case 65/*null.$A*/:
-    case 66/*null.$B*/:
-    case 67/*null.$C*/:
-    case 68/*null.$D*/:
-    case 69/*null.$E*/:
-    case 70/*null.$F*/:
-    case 71/*null.$G*/:
-    case 72/*null.$H*/:
-    case 73/*null.$I*/:
-    case 74/*null.$J*/:
-    case 75/*null.$K*/:
-    case 76/*null.$L*/:
-    case 77/*null.$M*/:
-    case 78/*null.$N*/:
-    case 79/*null.$O*/:
-    case 80/*null.$P*/:
-    case 81/*null.$Q*/:
-    case 82/*null.$R*/:
-    case 83/*null.$S*/:
-    case 84/*null.$T*/:
-    case 85/*null.$U*/:
-    case 86/*null.$V*/:
-    case 87/*null.$W*/:
-    case 88/*null.$X*/:
-    case 89/*null.$Y*/:
-    case 90/*null.$Z*/:
-    case 95/*null.$_*/:
-    case 97/*null.$a*/:
-    case 98/*null.$b*/:
-    case 99/*null.$c*/:
-    case 100/*null.$d*/:
-    case 101/*null.$e*/:
-    case 102/*null.$f*/:
-    case 103/*null.$g*/:
-    case 104/*null.$h*/:
-    case 105/*null.$i*/:
-    case 106/*null.$j*/:
-    case 107/*null.$k*/:
-    case 108/*null.$l*/:
-    case 109/*null.$m*/:
-    case 110/*null.$n*/:
-    case 111/*null.$o*/:
-    case 112/*null.$p*/:
-    case 113/*null.$q*/:
-    case 114/*null.$r*/:
-    case 115/*null.$s*/:
-    case 116/*null.$t*/:
-    case 117/*null.$u*/:
-    case 118/*null.$v*/:
-    case 119/*null.$w*/:
-    case 120/*null.$x*/:
-    case 121/*null.$y*/:
-    case 122/*null.$z*/:
-
-      return this.tokenizeIdentifier(next);
-
-    default:
-
-      if (next == -1) {
-        return -1;
-      }
-      if (next < 0x1f) {
-        $throw(new MalformedInputException(this.get$charOffset()));
-      }
-      return this.tokenizeIdentifier(next);
-
+  if (next === 9/*null.$TAB*/ || next === 10/*null.$LF*/ || next === 13/*null.$CR*/ || next === 32/*null.$SPACE*/) {
+    this.appendWhiteSpace(next);
+    return this.advance();
   }
+  if (97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
+    return this.tokenizeKeywordOrIdentifier(next);
+  }
+  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+    return this.tokenizeIdentifier(next, this.get$byteOffset());
+  }
+  if (next === 60/*null.$LT*/) {
+    return this.tokenizeLessThan(next);
+  }
+  if (next === 62/*null.$GT*/) {
+    return this.tokenizeGreaterThan(next);
+  }
+  if (next === 61/*null.$EQ*/) {
+    return this.tokenizeEquals(next);
+  }
+  if (next === 33/*null.$BANG*/) {
+    return this.tokenizeExclamation(next);
+  }
+  if (next === 43/*null.$PLUS*/) {
+    return this.tokenizePlus(next);
+  }
+  if (next === 45/*null.$MINUS*/) {
+    return this.tokenizeMinus(next);
+  }
+  if (next === 42/*null.$STAR*/) {
+    return this.tokenizeMultiply(next);
+  }
+  if (next === 37/*null.$PERCENT*/) {
+    return this.tokenizePercent(next);
+  }
+  if (next === 38/*null.$AMPERSAND*/) {
+    return this.tokenizeAmpersand(next);
+  }
+  if (next === 124/*null.$BAR*/) {
+    return this.tokenizeBar(next);
+  }
+  if (next === 94/*null.$CARET*/) {
+    return this.tokenizeCaret(next);
+  }
+  if (next === 91/*null.$LBRACKET*/) {
+    return this.tokenizeOpenBracket(next);
+  }
+  if (next === 126/*null.$TILDE*/) {
+    return this.tokenizeTilde(next);
+  }
+  if (next === 92/*null.$BACKSLASH*/) {
+    this.appendStringToken(92/*null.BACKSLASH_TOKEN*/, "\\");
+    return this.advance();
+  }
+  if (next === 35/*null.$HASH*/) {
+    return this.tokenizeTag(next);
+  }
+  if (next === 40/*null.$LPAREN*/) {
+    this.appendBeginGroup(40/*null.LPAREN_TOKEN*/, "(");
+    return this.advance();
+  }
+  if (next === 41/*null.$RPAREN*/) {
+    this.appendEndGroup(41/*null.RPAREN_TOKEN*/, ")", 40/*null.LPAREN_TOKEN*/);
+    return this.advance();
+  }
+  if (next === 44/*null.$COMMA*/) {
+    this.appendStringToken(44/*null.COMMA_TOKEN*/, ",");
+    return this.advance();
+  }
+  if (next === 58/*null.$COLON*/) {
+    this.appendStringToken(58/*null.COLON_TOKEN*/, ":");
+    return this.advance();
+  }
+  if (next === 59/*null.$SEMICOLON*/) {
+    this.appendStringToken(59/*null.SEMICOLON_TOKEN*/, ";");
+    return this.advance();
+  }
+  if (next === 63/*null.$QUESTION*/) {
+    this.appendStringToken(63/*null.QUESTION_TOKEN*/, "?");
+    return this.advance();
+  }
+  if (next === 93/*null.$RBRACKET*/) {
+    this.appendEndGroup(93/*null.RBRACKET_TOKEN*/, "]", 91/*null.LBRACKET_TOKEN*/);
+    return this.advance();
+  }
+  if (next === 96/*null.$BACKPING*/) {
+    this.appendStringToken(96/*null.BACKPING_TOKEN*/, "`");
+    return this.advance();
+  }
+  if (next === 123/*null.$LBRACE*/) {
+    this.appendBeginGroup(123/*null.LBRACE_TOKEN*/, "{");
+    return this.advance();
+  }
+  if (next === 125/*null.$RBRACE*/) {
+    this.appendEndGroup(125/*null.RBRACE_TOKEN*/, "}", 123/*null.LBRACE_TOKEN*/);
+    return this.advance();
+  }
+  if (next === 47/*null.$SLASH*/) {
+    return this.tokenizeSlashOrComment(next);
+  }
+  if (next === 64/*null.$AT*/) {
+    return this.tokenizeRawString(next);
+  }
+  if (next === 34/*null.$DQ*/ || next === 39/*null.$SQ*/) {
+    return this.tokenizeString(next, this.get$byteOffset(), false);
+  }
+  if (next === 46/*null.$PERIOD*/) {
+    return this.tokenizeDotOrNumber(next);
+  }
+  if (next === 48/*null.$0*/) {
+    return this.tokenizeHexOrNumber(next);
+  }
+  if (next === 49/*null.$1*/ || next === 50/*null.$2*/ || next === 51/*null.$3*/ || next === 52/*null.$4*/ || next === 53/*null.$5*/ || next === 54/*null.$6*/ || next === 55/*null.$7*/ || next === 56/*null.$8*/ || next === 57/*null.$9*/) {
+    return this.tokenizeNumber(next);
+  }
+  if (next === -1) {
+    return -1;
+  }
+  if (next < 0x1f) {
+    $throw(new MalformedInputException(this.get$charOffset()));
+  }
+  return this.tokenizeIdentifier(next, this.get$byteOffset());
 }
 AbstractScanner$S.prototype.tokenizeTag = function(next) {
-  if (this.get$byteOffset() == 0) {
-    if (this.peek() == 33/*null.$BANG*/) {
+  if (this.get$byteOffset() === 0) {
+    if (this.peek() === 33/*null.$BANG*/) {
       do {
         next = this.advance();
       }
@@ -3842,7 +3501,7 @@ AbstractScanner$S.prototype.tokenizeTag = function(next) {
 }
 AbstractScanner$S.prototype.tokenizeTilde = function(next) {
   next = this.advance();
-  if (next == 47/*null.$SLASH*/) {
+  if (next === 47/*null.$SLASH*/) {
     return this.select(61/*null.$EQ*/, "~/=", "~/");
   }
   else {
@@ -3852,7 +3511,7 @@ AbstractScanner$S.prototype.tokenizeTilde = function(next) {
 }
 AbstractScanner$S.prototype.tokenizeOpenBracket = function(next) {
   next = this.advance();
-  if (next == 93/*null.$RBRACKET*/) {
+  if (next === 93/*null.$RBRACKET*/) {
     return this.select(61/*null.$EQ*/, "[]=", "[]");
   }
   else {
@@ -3865,42 +3524,32 @@ AbstractScanner$S.prototype.tokenizeCaret = function(next) {
 }
 AbstractScanner$S.prototype.tokenizeBar = function(next) {
   next = this.advance();
-  switch (next) {
-    case 124/*null.$BAR*/:
-
-      this.appendStringToken(124/*null.BAR_TOKEN*/, "||");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(124/*null.BAR_TOKEN*/, "|=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(124/*null.BAR_TOKEN*/, "|");
-      return next;
-
+  if (next === 124/*null.$BAR*/) {
+    this.appendStringToken(124/*null.BAR_TOKEN*/, "||");
+    return this.advance();
+  }
+  else if (next === 61/*null.$EQ*/) {
+    this.appendStringToken(124/*null.BAR_TOKEN*/, "|=");
+    return this.advance();
+  }
+  else {
+    this.appendStringToken(124/*null.BAR_TOKEN*/, "|");
+    return next;
   }
 }
 AbstractScanner$S.prototype.tokenizeAmpersand = function(next) {
   next = this.advance();
-  switch (next) {
-    case 38/*null.$AMPERSAND*/:
-
-      this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&&");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&");
-      return next;
-
+  if (next === 38/*null.$AMPERSAND*/) {
+    this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&&");
+    return this.advance();
+  }
+  else if (next === 61/*null.$EQ*/) {
+    this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&=");
+    return this.advance();
+  }
+  else {
+    this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&");
+    return next;
   }
 }
 AbstractScanner$S.prototype.tokenizePercent = function(next) {
@@ -3911,47 +3560,37 @@ AbstractScanner$S.prototype.tokenizeMultiply = function(next) {
 }
 AbstractScanner$S.prototype.tokenizeMinus = function(next) {
   next = this.advance();
-  switch (next) {
-    case 45/*null.$MINUS*/:
-
-      this.appendStringToken(45/*null.MINUS_TOKEN*/, "--");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(45/*null.MINUS_TOKEN*/, "-=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(45/*null.MINUS_TOKEN*/, "-");
-      return next;
-
+  if (next === 45/*null.$MINUS*/) {
+    this.appendStringToken(45/*null.MINUS_TOKEN*/, "--");
+    return this.advance();
+  }
+  else if (next === 61/*null.$EQ*/) {
+    this.appendStringToken(45/*null.MINUS_TOKEN*/, "-=");
+    return this.advance();
+  }
+  else {
+    this.appendStringToken(45/*null.MINUS_TOKEN*/, "-");
+    return next;
   }
 }
 AbstractScanner$S.prototype.tokenizePlus = function(next) {
   next = this.advance();
-  switch (next) {
-    case 43/*null.$PLUS*/:
-
-      this.appendStringToken(43/*null.PLUS_TOKEN*/, "++");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(43/*null.PLUS_TOKEN*/, "+=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(43/*null.PLUS_TOKEN*/, "+");
-      return next;
-
+  if (43/*null.$PLUS*/ === next) {
+    this.appendStringToken(43/*null.PLUS_TOKEN*/, "++");
+    return this.advance();
+  }
+  else if (61/*null.$EQ*/ === next) {
+    this.appendStringToken(43/*null.PLUS_TOKEN*/, "+=");
+    return this.advance();
+  }
+  else {
+    this.appendStringToken(43/*null.PLUS_TOKEN*/, "+");
+    return next;
   }
 }
 AbstractScanner$S.prototype.tokenizeExclamation = function(next) {
   next = this.advance();
-  if (next == 61/*null.$EQ*/) {
+  if (next === 61/*null.$EQ*/) {
     return this.select(61/*null.$EQ*/, "!==", "!=");
   }
   this.appendStringToken(33/*null.BANG_TOKEN*/, "!");
@@ -3959,7 +3598,7 @@ AbstractScanner$S.prototype.tokenizeExclamation = function(next) {
 }
 AbstractScanner$S.prototype.tokenizeEquals = function(next) {
   next = this.advance();
-  if (next == 61/*null.$EQ*/) {
+  if (next === 61/*null.$EQ*/) {
     return this.select(61/*null.$EQ*/, "===", "==");
   }
   this.appendStringToken(61/*null.EQ_TOKEN*/, "=");
@@ -3967,67 +3606,49 @@ AbstractScanner$S.prototype.tokenizeEquals = function(next) {
 }
 AbstractScanner$S.prototype.tokenizeGreaterThan = function(next) {
   next = this.advance();
-  switch (next) {
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(62/*null.GT_TOKEN*/, ">=");
+  if (61/*null.$EQ*/ === next) {
+    this.appendStringToken(62/*null.GT_TOKEN*/, ">=");
+    return this.advance();
+  }
+  else if (62/*null.$GT*/ === next) {
+    next = this.advance();
+    if (61/*null.$EQ*/ === next) {
+      this.appendStringToken(62/*null.GT_TOKEN*/, ">>=");
       return this.advance();
-
-    case 62/*null.$GT*/:
-
+    }
+    else if (62/*null.$GT*/ === next) {
       next = this.advance();
-      switch (next) {
-        case 61/*null.$EQ*/:
-
-          this.appendStringToken(62/*null.GT_TOKEN*/, ">>=");
-          return this.advance();
-
-        case 62/*null.$GT*/:
-
-          {
-            next = this.advance();
-            if (next === 61/*null.$EQ*/) {
-              this.appendStringToken(62/*null.GT_TOKEN*/, ">>>=");
-              return this.advance();
-            }
-            else {
-              this.appendGtGtGt(62/*null.GT_TOKEN*/, ">>>");
-              return next;
-            }
-          }
-
-        default:
-
-          this.appendGtGt(62/*null.GT_TOKEN*/, ">>");
-          return next;
-
+      if (next === 61/*null.$EQ*/) {
+        this.appendStringToken(62/*null.GT_TOKEN*/, ">>>=");
+        return this.advance();
       }
-      $throw(new FallThroughError());
-
-    default:
-
-      this.appendEndGroup(62/*null.GT_TOKEN*/, ">", 60/*null.LT_TOKEN*/);
+      else {
+        this.appendGtGtGt(62/*null.GT_TOKEN*/, ">>>");
+        return next;
+      }
+    }
+    else {
+      this.appendGtGt(62/*null.GT_TOKEN*/, ">>");
       return next;
-
+    }
+  }
+  else {
+    this.appendEndGroup(62/*null.GT_TOKEN*/, ">", 60/*null.LT_TOKEN*/);
+    return next;
   }
 }
 AbstractScanner$S.prototype.tokenizeLessThan = function(next) {
   next = this.advance();
-  switch (next) {
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(188/*null.LT_EQ_TOKEN*/, "<=");
-      return this.advance();
-
-    case 60/*null.$LT*/:
-
-      return this.select(61/*null.$EQ*/, "<<=", "<<");
-
-    default:
-
-      this.appendBeginGroup(60/*null.LT_TOKEN*/, "<");
-      return next;
-
+  if (61/*null.$EQ*/ === next) {
+    this.appendStringToken(188/*null.LT_EQ_TOKEN*/, "<=");
+    return this.advance();
+  }
+  else if (60/*null.$LT*/ === next) {
+    return this.select(61/*null.$EQ*/, "<<=", "<<");
+  }
+  else {
+    this.appendBeginGroup(60/*null.LT_TOKEN*/, "<");
+    return next;
   }
 }
 AbstractScanner$S.prototype.tokenizeNumber = function(next) {
@@ -4035,42 +3656,24 @@ AbstractScanner$S.prototype.tokenizeNumber = function(next) {
   var start = this.get$byteOffset();
   while (true) {
     next = this.advance();
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-
-        break;
-
-      case 46/*null.$PERIOD*/:
-
-        return this.tokenizeFractionPart(this.advance(), start);
-
-      case 101/*null.$e*/:
-      case 69/*null.$E*/:
-      case 100/*null.$d*/:
-      case 68/*null.$D*/:
-
-        return this.tokenizeFractionPart(next, start);
-
-      default:
-
-        this.appendByteStringToken$2(105/*null.INT_TOKEN*/, this.asciiString(start));
-        return next;
-
+    if (48/*null.$0*/ <= next && next <= 57/*null.$9*/) {
+      continue;
+    }
+    else if (next === 46/*null.$PERIOD*/) {
+      return this.tokenizeFractionPart(this.advance(), start);
+    }
+    else if (next === 101/*null.$e*/ || next === 69/*null.$E*/ || next === 100/*null.$d*/ || next === 68/*null.$D*/) {
+      return this.tokenizeFractionPart(next, start);
+    }
+    else {
+      this.appendByteStringToken$2(105/*null.INT_TOKEN*/, this.asciiString(start));
+      return next;
     }
   }
 }
 AbstractScanner$S.prototype.tokenizeHexOrNumber = function(next) {
   var x = this.peek();
-  if (x == 120/*null.$x*/ || x == 88/*null.$X*/) {
+  if (x === 120/*null.$x*/ || x === 88/*null.$X*/) {
     this.advance();
     return this.tokenizeHex(x);
   }
@@ -4082,72 +3685,30 @@ AbstractScanner$S.prototype.tokenizeHex = function(next) {
   var hasDigits = false;
   while (true) {
     next = this.advance();
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-      case 65/*null.$A*/:
-      case 66/*null.$B*/:
-      case 67/*null.$C*/:
-      case 68/*null.$D*/:
-      case 69/*null.$E*/:
-      case 70/*null.$F*/:
-      case 97/*null.$a*/:
-      case 98/*null.$b*/:
-      case 99/*null.$c*/:
-      case 100/*null.$d*/:
-      case 101/*null.$e*/:
-      case 102/*null.$f*/:
-
-        hasDigits = true;
-        break;
-
-      default:
-
-        if (!$notnull_bool(hasDigits)) {
-          $throw(new MalformedInputException(this.get$charOffset()));
-        }
-        this.appendByteStringToken$2(120/*null.HEXADECIMAL_TOKEN*/, this.asciiString(start));
-        return next;
-
+    if ((48/*null.$0*/ <= next && next <= 57/*null.$9*/) || (65/*null.$A*/ <= next && next <= 70/*null.$F*/) || (97/*null.$a*/ <= next && next <= 102/*null.$f*/)) {
+      hasDigits = true;
+    }
+    else {
+      if (!$notnull_bool(hasDigits)) {
+        $throw(new MalformedInputException(this.get$charOffset()));
+      }
+      this.appendByteStringToken$2(120/*null.HEXADECIMAL_TOKEN*/, this.asciiString(start));
+      return next;
     }
   }
 }
 AbstractScanner$S.prototype.tokenizeDotOrNumber = function(next) {
   var start = this.get$byteOffset();
   next = this.advance();
-  switch (next) {
-    case 48/*null.$0*/:
-    case 49/*null.$1*/:
-    case 50/*null.$2*/:
-    case 51/*null.$3*/:
-    case 52/*null.$4*/:
-    case 53/*null.$5*/:
-    case 54/*null.$6*/:
-    case 55/*null.$7*/:
-    case 56/*null.$8*/:
-    case 57/*null.$9*/:
-
-      {
-        return this.tokenizeFractionPart(next, start);
-      }
-
-    case 46/*null.$PERIOD*/:
-
-      return this.select(46/*null.$PERIOD*/, "...", "..");
-
-    default:
-
-      this.appendStringToken(46/*null.PERIOD_TOKEN*/, ".");
-      return next;
-
+  if ((48/*null.$0*/ <= next && next <= 57/*null.$9*/)) {
+    return this.tokenizeFractionPart(next, start);
+  }
+  else if (46/*null.$PERIOD*/ === next) {
+    return this.select(46/*null.$PERIOD*/, "...", "..");
+  }
+  else {
+    this.appendStringToken(46/*null.PERIOD_TOKEN*/, ".");
+    return next;
   }
 }
 AbstractScanner$S.prototype.tokenizeFractionPart = function(next, start) {
@@ -4155,159 +3716,117 @@ AbstractScanner$S.prototype.tokenizeFractionPart = function(next, start) {
   var done = false;
   LOOP:
   while (!$notnull_bool(done)) {
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-
-        break;
-
-      case 101/*null.$e*/:
-      case 69/*null.$E*/:
-
-        next = this.tokenizeExponent(this.advance());
-        done = true;
-        continue LOOP;
-
-      default:
-
-        done = true;
-        continue LOOP;
-
+    if (48/*null.$0*/ <= next && next <= 57/*null.$9*/) {
+    }
+    else if (101/*null.$e*/ === next || 69/*null.$E*/ === next) {
+      next = this.tokenizeExponent(this.advance());
+      done = true;
+      continue LOOP;
+    }
+    else {
+      done = true;
+      continue LOOP;
     }
     next = this.advance();
   }
-  if (next == 100/*null.$d*/ || next == 68/*null.$D*/) {
+  if (next === 100/*null.$d*/ || next === 68/*null.$D*/) {
     next = this.advance();
   }
   this.appendByteStringToken$2(100/*null.DOUBLE_TOKEN*/, this.asciiString(start));
   return next;
 }
 AbstractScanner$S.prototype.tokenizeExponent = function(next) {
-  if (next == 43/*null.$PLUS*/ || next == 45/*null.$MINUS*/) {
+  if (next === 43/*null.$PLUS*/ || next === 45/*null.$MINUS*/) {
     next = this.advance();
   }
   var hasDigits = false;
   while (true) {
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-
-        hasDigits = true;
-        break;
-
-      default:
-
-        if (!$notnull_bool(hasDigits)) {
-          $throw(new MalformedInputException(this.get$charOffset()));
-        }
-        return next;
-
+    if (48/*null.$0*/ <= next && next <= 57/*null.$9*/) {
+      hasDigits = true;
+    }
+    else {
+      if (!$notnull_bool(hasDigits)) {
+        $throw(new MalformedInputException(this.get$charOffset()));
+      }
+      return next;
     }
     next = this.advance();
   }
 }
 AbstractScanner$S.prototype.tokenizeSlashOrComment = function(next) {
   next = this.advance();
-  switch (next) {
-    case 42/*null.$STAR*/:
-
-      return this.tokenizeMultiLineComment(next);
-
-    case 47/*null.$SLASH*/:
-
-      return this.tokenizeSingleLineComment(next);
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(47/*null.SLASH_TOKEN*/, "/=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(47/*null.SLASH_TOKEN*/, "/");
-      return next;
-
+  if (42/*null.$STAR*/ === next) {
+    return this.tokenizeMultiLineComment(next);
+  }
+  else if (47/*null.$SLASH*/ === next) {
+    return this.tokenizeSingleLineComment(next);
+  }
+  else if (61/*null.$EQ*/ === next) {
+    this.appendStringToken(47/*null.SLASH_TOKEN*/, "/=");
+    return this.advance();
+  }
+  else {
+    this.appendStringToken(47/*null.SLASH_TOKEN*/, "/");
+    return next;
   }
 }
 AbstractScanner$S.prototype.tokenizeSingleLineComment = function(next) {
   while (true) {
     next = this.advance();
-    switch (next) {
-      case -1:
-      case 10/*null.$LF*/:
-      case 13/*null.$CR*/:
-
-        return next;
-
+    if (10/*null.$LF*/ === next || 13/*null.$CR*/ === next || -1 === next) {
+      return next;
     }
   }
 }
 AbstractScanner$S.prototype.tokenizeMultiLineComment = function(next) {
   next = this.advance();
   while (true) {
-    switch (next) {
-      case -1:
-
+    if (-1 === next) {
+      return next;
+    }
+    else if (42/*null.$STAR*/ === next) {
+      next = this.advance();
+      if (next === 47/*null.$SLASH*/) {
+        return this.advance();
+      }
+      else if (next === -1) {
         return next;
-
-      case 42/*null.$STAR*/:
-
-        next = this.advance();
-        if (next == 47/*null.$SLASH*/) {
-          return this.advance();
-        }
-        else if (next == -1) {
-          return next;
-        }
-        break;
-
-      default:
-
-        next = this.advance();
-        break;
-
+      }
+    }
+    else {
+      next = this.advance();
     }
   }
 }
-AbstractScanner$S.prototype.tokenizeIdentifier = function(next) {
-  var $0;
+AbstractScanner$S.prototype.tokenizeKeywordOrIdentifier = function(next) {
+  var state = KeywordState.get$KEYWORD_STATE();
   var start = this.get$byteOffset();
-  var state = null;
-  if (97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
-    state = KeywordState.get$KEYWORD_STATE().next(next);
+  while (state != null && 97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
+    state = state.next(next);
     next = this.advance();
   }
+  if (state == null || !$notnull_bool(state.isLeaf())) {
+    return this.tokenizeIdentifier(next, start);
+  }
+  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+    return this.tokenizeIdentifier(next, start);
+  }
+  else if (next < 128) {
+    this.appendKeywordToken(state.get$keyword());
+    return next;
+  }
+  else {
+    return this.tokenizeIdentifier(next, start);
+  }
+}
+AbstractScanner$S.prototype.tokenizeIdentifier = function(next, start) {
+  var $0;
   var isAscii = true;
   while (true) {
-    if (97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
-      if (state != null) {
-        state = state.next(next);
-      }
-    }
-    else if ((48/*null.$0*/ <= next && next <= 57/*null.$9*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || next == 95/*null.$_*/ || next == 36/*null.$DOLLAR*/) {
-      state = null;
+    if ((97/*null.$a*/ <= next && next <= 122/*null.$z*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
     }
     else if (next < 128) {
-      if (state != null && $notnull_bool(state.isLeaf())) {
-        this.appendKeywordToken(state.get$keyword());
-      }
-      else if ($notnull_bool(isAscii)) {
+      if ($notnull_bool(isAscii)) {
         this.appendByteStringToken$2(97/*null.IDENTIFIER_TOKEN*/, this.asciiString(start));
       }
       else {
@@ -4324,7 +3843,6 @@ AbstractScanner$S.prototype.tokenizeIdentifier = function(next) {
       var string = this.utf8String(nonAsciiStart, -1).toString$0();
       isAscii = false;
       this.addToCharOffset(string.length);
-      return next;
     }
     next = this.advance();
   }
@@ -4332,7 +3850,7 @@ AbstractScanner$S.prototype.tokenizeIdentifier = function(next) {
 AbstractScanner$S.prototype.tokenizeRawString = function(next) {
   var start = this.get$byteOffset();
   next = this.advance();
-  if (next == 34/*null.$DQ*/ || next == 39/*null.$SQ*/) {
+  if (next === 34/*null.$DQ*/ || next === 39/*null.$SQ*/) {
     return this.tokenizeString(next, start, true);
   }
   else {
@@ -4343,9 +3861,9 @@ AbstractScanner$S.prototype.tokenizeString = function(next, start, raw) {
   var $0;
   var q = next;
   next = this.advance();
-  if (q == next) {
+  if (q === next) {
     next = this.advance();
-    if (q == next) {
+    if (q === next) {
       return this.tokenizeMultiLineString(q, start, raw);
     }
     else {
@@ -4363,17 +3881,17 @@ AbstractScanner$S.prototype.tokenizeString = function(next, start, raw) {
 AbstractScanner$S.prototype.tokenizeSingleLineString = function(next, q1, start) {
   var $0;
   while (next != -1) {
-    if (next == q1) {
+    if (next === q1) {
       this.appendByteStringToken$2(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
       return this.advance();
     }
-    else if (next == 92/*null.$BACKSLASH*/) {
+    else if (next === 92/*null.$BACKSLASH*/) {
       next = this.advance();
-      if (next == -1) {
+      if (next === -1) {
         $throw(new MalformedInputException(this.get$charOffset()));
       }
     }
-    else if (next == 10/*null.$LF*/ || next == 13/*null.$CR*/) {
+    else if (next === 10/*null.$LF*/ || next === 13/*null.$CR*/) {
       $throw(new MalformedInputException(this.get$charOffset()));
     }
     next = this.advance();
@@ -4384,11 +3902,11 @@ AbstractScanner$S.prototype.tokenizeSingleLineRawString = function(next, q1, sta
   var $0;
   next = this.advance();
   while (next != -1) {
-    if (next == q1) {
+    if (next === q1) {
       this.appendByteStringToken$2(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
       return this.advance();
     }
-    else if (next == 10/*null.$LF*/ || next == 13/*null.$CR*/) {
+    else if (next === 10/*null.$LF*/ || next === 13/*null.$CR*/) {
       $throw(new MalformedInputException(this.get$charOffset()));
     }
     next = this.advance();
@@ -4399,11 +3917,11 @@ AbstractScanner$S.prototype.tokenizeMultiLineString = function(q, start, raw) {
   var $0;
   var next = this.advance();
   while (next != -1) {
-    if (next == q) {
+    if (next === q) {
       next = this.advance();
-      if (next == q) {
+      if (next === q) {
         next = this.advance();
-        if (next == q) {
+        if (next === q) {
           this.appendByteStringToken$2(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
           return this.advance();
         }
@@ -6391,7 +5909,7 @@ function Token(kind, charOffset) {
 Token.prototype.is$Token = function(){return this;};
 Token.prototype.get$charOffset = function() { return this.charOffset; };
 Token.prototype.get$value = function() {
-  return const$234/*const SourceString('EOF')*/;
+  return const$112/*const SourceString('EOF')*/;
 }
 Token.prototype.get$stringValue = function() {
   return 'EOF';
@@ -6496,7 +6014,7 @@ Keyword.get$keywords = function() {
 }
 Keyword.computeKeywordMap = function() {
   var result = new LinkedHashMapImplementation();
-  for (var $i0 = const$232/*Keyword.values*/.iterator(); $i0.hasNext(); ) {
+  for (var $i0 = const$110/*Keyword.values*/.iterator(); $i0.hasNext(); ) {
     var keyword = $i0.next();
     result.$setindex(keyword.syntax, keyword);
   }
@@ -6533,10 +6051,10 @@ function KeywordState() {
 KeywordState.prototype.is$KeywordState = function(){return this;};
 KeywordState.get$KEYWORD_STATE = function() {
   if (KeywordState._KEYWORD_STATE == null) {
-    var strings = new ListFactory(const$232/*Keyword.values*/.get$length());
+    var strings = new ListFactory(const$110/*Keyword.values*/.get$length());
     for (var i = 0;
-     i < const$232/*Keyword.values*/.get$length(); i++) {
-      strings.$setindex(i, const$232/*Keyword.values*/[i].syntax);
+     i < const$110/*Keyword.values*/.get$length(); i++) {
+      strings.$setindex(i, const$110/*Keyword.values*/[i].syntax);
     }
     strings.sort((function (a, b) {
       return a.compareTo$1(b);
@@ -6739,7 +6257,7 @@ function Send(receiver, selector, argumentsNode) {
 Send.postfix$ctor = function(receiver, selector) {
   this.receiver = receiver;
   this.selector = selector;
-  this.argumentsNode = const$249/*const Postfix()*/;
+  this.argumentsNode = const$211/*const Postfix()*/;
   // Initializers done
   Expression.call(this);
 }
@@ -6747,7 +6265,7 @@ Send.postfix$ctor.prototype = Send.prototype;
 Send.prefix$ctor = function(receiver, selector) {
   this.receiver = receiver;
   this.selector = selector;
-  this.argumentsNode = const$248/*const Prefix()*/;
+  this.argumentsNode = const$210/*const Prefix()*/;
   // Initializers done
   Expression.call(this);
 }
@@ -7096,11 +6614,11 @@ function LiteralBool(token, handler) {
 $inherits(LiteralBool, Literal$bool);
 LiteralBool.prototype.get$value = function() {
   switch (this.token.get$value()) {
-    case const$188/*Keyword.TRUE*/:
+    case const$66/*Keyword.TRUE*/:
 
       return true;
 
-    case const$160/*Keyword.FALSE*/:
+    case const$38/*Keyword.FALSE*/:
 
       return false;
 
@@ -7463,7 +6981,7 @@ Unparser.prototype.visitVariableDefinitions = function(node) {
   }
   this.sb.add(' ');
   this.visit(node.definitions);
-  if ($notnull_bool($eq(node.endToken.get$value(), const$246/*const SourceString(';')*/))) {
+  if ($notnull_bool($eq(node.endToken.get$value(), const$208/*const SourceString(';')*/))) {
     this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
   }
 }
@@ -7507,7 +7025,7 @@ function VariableElement(node, typeAnnotation, name, enclosingElement) {
   this.node = node;
   this.typeAnnotation = typeAnnotation;
   // Initializers done
-  Element.call(this, name, const$266, enclosingElement);
+  Element.call(this, name, const$228, enclosingElement);
 }
 $inherits(VariableElement, Element);
 VariableElement.prototype.get$type = function() { return this.type; };
@@ -7524,7 +7042,7 @@ VariableElement.prototype.computeType$2 = function($0, $1) {
 // ********** Code for ForeignElement **************
 function ForeignElement(name) {
   // Initializers done
-  Element.call(this, name, const$242, null);
+  Element.call(this, name, const$204, null);
 }
 $inherits(ForeignElement, Element);
 ForeignElement.prototype.computeType = function(compiler, types) {
@@ -7536,7 +7054,7 @@ ForeignElement.prototype.computeType$2 = function($0, $1) {
 // ********** Code for FunctionElement **************
 function FunctionElement(name) {
   // Initializers done
-  Element.call(this, name, const$239, null);
+  Element.call(this, name, const$201, null);
 }
 $inherits(FunctionElement, Element);
 FunctionElement.prototype.get$type = function() { return this.type; };
@@ -7562,7 +7080,7 @@ function ClassElement(name) {
   this.interfaces = const$14/*const EmptyLink()*/
   this.isResolved = false
   // Initializers done
-  Element.call(this, name, const$237, null);
+  Element.call(this, name, const$199, null);
 }
 $inherits(ClassElement, Element);
 ClassElement.prototype.is$ClassElement = function(){return this;};
@@ -7854,22 +7372,22 @@ SsaBuilder.prototype.visitSend = function(node) {
     var right = this.pop();
     var left = this.pop();
     var op = (($0 = node.selector) && $0.is$Operator());
-    if ($notnull_bool($eq(const$291/*const SourceString("+")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$253/*const SourceString("+")*/, op.get$source()))) {
       this.push(new HAdd(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$292/*const SourceString("-")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$254/*const SourceString("-")*/, op.get$source()))) {
       this.push(new HSubtract(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$293/*const SourceString("*")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$255/*const SourceString("*")*/, op.get$source()))) {
       this.push(new HMultiply(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$294/*const SourceString("/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$256/*const SourceString("/")*/, op.get$source()))) {
       this.push(new HDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$295/*const SourceString("~/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$257/*const SourceString("~/")*/, op.get$source()))) {
       this.push(new HTruncatingDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$296/*const SourceString("==")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$258/*const SourceString("==")*/, op.get$source()))) {
       this.push(new HEquals(element, [left, right]));
     }
   }
@@ -7881,7 +7399,7 @@ SsaBuilder.prototype.visitSend = function(node) {
   }
   else {
     var link = node.get$arguments();
-    if (element.kind === const$242/*ElementKind.FOREIGN*/) {
+    if (element.kind === const$204/*ElementKind.FOREIGN*/) {
       link = (($0 = link.get$tail()) && $0.is$Link$Node());
     }
     var arguments = [];
@@ -7889,7 +7407,7 @@ SsaBuilder.prototype.visitSend = function(node) {
       this.visit((($0 = link.get$head()) && $0.is$Node()));
       arguments.add$1(this.pop());
     }
-    if (element.kind === const$242/*ElementKind.FOREIGN*/) {
+    if (element.kind === const$204/*ElementKind.FOREIGN*/) {
       var literal = (($0 = node.get$arguments().get$head()) && $0.is$LiteralString());
       this.compiler.ensure((literal instanceof LiteralString));
       this.push(new HInvokeForeign(element, arguments, this.unquote(literal)));
@@ -8259,9 +7777,9 @@ function JsNames() {}
 JsNames.get$reserved = function() {
   if (JsNames._reserved == null) {
     JsNames._reserved = new HashSetImplementation();
-    JsNames._reserved.addAll(const$299/*JsNames.reservedPropertySymbols*/);
-    JsNames._reserved.addAll(const$301/*JsNames.reservedGlobalSymbols*/);
-    JsNames._reserved.addAll(const$303/*JsNames.javaScriptKeywords*/);
+    JsNames._reserved.addAll(const$261/*JsNames.reservedPropertySymbols*/);
+    JsNames._reserved.addAll(const$263/*JsNames.reservedGlobalSymbols*/);
+    JsNames._reserved.addAll(const$265/*JsNames.javaScriptKeywords*/);
   }
   return JsNames._reserved;
 }
@@ -10081,15 +9599,15 @@ Compiler.prototype.scanCoreLibrary = function() {
   var fileName = join([options.libDir, '..', 'leg', 'lib', 'core.dart']);
   var file = readSync(fileName);
   this.scanner.scan(new leg_Script(file));
-  var element = new ForeignElement(const$241/*const SourceString('JS')*/);
+  var element = new ForeignElement(const$203/*const SourceString('JS')*/);
   this.universe.define(element);
 }
 Compiler.prototype.runCompiler = function() {
   var $0;
   this.scanCoreLibrary();
   this.scanner.scan(this.script);
-  var element = this.universe.find(const$244/*Compiler.MAIN*/);
-  if (element == null) this.cancel(('Could not find ' + const$244/*Compiler.MAIN*/ + ''));
+  var element = this.universe.find(const$206/*Compiler.MAIN*/);
+  if (element == null) this.cancel(('Could not find ' + const$206/*Compiler.MAIN*/ + ''));
   this.compileMethod(element);
   while (!this.worklist.isEmpty()) {
     this.compileMethod((($0 = this.worklist.removeLast()) && $0.is$Element()));
@@ -10258,13 +9776,13 @@ ResolverVisitor.prototype.visitIf = function(node) {
   this.visit(node.elsePart);
 }
 ResolverVisitor.prototype.potentiallyMapOperatorToMethodName = function(name) {
-  if ($notnull_bool($eq(name, const$251/*const SourceString('+')*/))) return const$252/*const SourceString('add')*/;
-  if ($notnull_bool($eq(name, const$253/*const SourceString('-')*/))) return const$254/*const SourceString('sub')*/;
-  if ($notnull_bool($eq(name, const$255/*const SourceString('*')*/))) return const$256/*const SourceString('mul')*/;
-  if ($notnull_bool($eq(name, const$257/*const SourceString('/')*/))) return const$258/*const SourceString('div')*/;
-  if ($notnull_bool($eq(name, const$259/*const SourceString('~/')*/))) return const$260/*const SourceString('tdiv')*/;
-  if ($notnull_bool($eq(name, const$261/*const SourceString('==')*/))) return const$262/*const SourceString('eq')*/;
-  if ($notnull_bool($eq(name, const$263/*const SourceString('<')*/))) return const$264/*const SourceString('lt')*/;
+  if ($notnull_bool($eq(name, const$213/*const SourceString('+')*/))) return const$214/*const SourceString('add')*/;
+  if ($notnull_bool($eq(name, const$215/*const SourceString('-')*/))) return const$216/*const SourceString('sub')*/;
+  if ($notnull_bool($eq(name, const$217/*const SourceString('*')*/))) return const$218/*const SourceString('mul')*/;
+  if ($notnull_bool($eq(name, const$219/*const SourceString('/')*/))) return const$220/*const SourceString('div')*/;
+  if ($notnull_bool($eq(name, const$221/*const SourceString('~/')*/))) return const$222/*const SourceString('tdiv')*/;
+  if ($notnull_bool($eq(name, const$223/*const SourceString('==')*/))) return const$224/*const SourceString('eq')*/;
+  if ($notnull_bool($eq(name, const$225/*const SourceString('<')*/))) return const$226/*const SourceString('lt')*/;
   return name;
 }
 ResolverVisitor.prototype.visitSend = function(node) {
@@ -10319,13 +9837,13 @@ ResolverVisitor.prototype.visitThrow = function(node) {
 }
 ResolverVisitor.prototype.visitTypeAnnotation = function(node) {
   var name = node.typeName;
-  if ($notnull_bool($eq(name.get$source(), const$265/*const SourceString('var')*/))) return null;
+  if ($notnull_bool($eq(name.get$source(), const$227/*const SourceString('var')*/))) return null;
   if ($notnull_bool($eq(name.get$source(), const$4/*const SourceString('void')*/))) return null;
   var element = this.context.lookup(name.get$source());
   if (element == null) {
     this.warning(node, ErrorMessages.cannotResolveType(name));
   }
-  else if (element.kind !== const$237/*ElementKind.CLASS*/) {
+  else if (element.kind !== const$199/*ElementKind.CLASS*/) {
     this.warning(node, ErrorMessages.notAType(name));
   }
   else {
@@ -10379,7 +9897,7 @@ ClassResolverVisitor.prototype.visitTypeAnnotation = function(node) {
   if (element == null) {
     this.compiler.cancel(ErrorMessages.cannotResolveType(name));
   }
-  else if (element.kind !== const$237/*ElementKind.CLASS*/) {
+  else if (element.kind !== const$199/*ElementKind.CLASS*/) {
     this.compiler.cancel(ErrorMessages.notAType(name));
   }
   else {
@@ -10441,7 +9959,7 @@ function Scope(parent) {
 }
 Scope.top$ctor = function() {
   this.parent = null;
-  this.elements = const$250/*const {}*/;
+  this.elements = const$212/*const {}*/;
   this.enclosingElement = null;
   // Initializers done
 }
@@ -10648,7 +10166,7 @@ TypeCheckerVisitor.prototype.reportTypeWarning = function(node, kind, arguments)
 TypeCheckerVisitor.prototype.nonVoidType = function(node) {
   var type = this.type(node);
   if ($eq(type, this.types.voidType)) {
-    this.reportTypeWarning(node, const$281/*WarningKind.VOID_EXPRESSION*/, const$13/*const []*/);
+    this.reportTypeWarning(node, const$243/*WarningKind.VOID_EXPRESSION*/, const$13/*const []*/);
   }
   return type;
 }
@@ -10666,7 +10184,7 @@ TypeCheckerVisitor.prototype.get$type = function() {
 }
 TypeCheckerVisitor.prototype.checkAssignable = function(node, s, t) {
   if (!$notnull_bool(this.types.isAssignable(s, t))) {
-    this.reportTypeWarning(node, const$274/*WarningKind.NOT_ASSIGNABLE*/, [s, t]);
+    this.reportTypeWarning(node, const$236/*WarningKind.NOT_ASSIGNABLE*/, [s, t]);
   }
 }
 TypeCheckerVisitor.prototype.visitBlock = function(node) {
@@ -10707,7 +10225,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
   var selector = (($0 = node.selector) && $0.is$Identifier());
   if (target != null) {
     var name = selector.get$source();
-    if ($notnull_bool($eq(name, const$251/*const SourceString('+')*/)) || $notnull_bool($eq(name, const$278/*const SourceString('=')*/)) || $notnull_bool($eq(name, const$253/*const SourceString('-')*/)) || $notnull_bool($eq(name, const$255/*const SourceString('*')*/)) || $notnull_bool($eq(name, const$257/*const SourceString('/')*/)) || $notnull_bool($eq(name, const$263/*const SourceString('<')*/)) || $notnull_bool($eq(name, const$259/*const SourceString('~/')*/))) {
+    if ($notnull_bool($eq(name, const$213/*const SourceString('+')*/)) || $notnull_bool($eq(name, const$240/*const SourceString('=')*/)) || $notnull_bool($eq(name, const$215/*const SourceString('-')*/)) || $notnull_bool($eq(name, const$217/*const SourceString('*')*/)) || $notnull_bool($eq(name, const$219/*const SourceString('/')*/)) || $notnull_bool($eq(name, const$225/*const SourceString('<')*/)) || $notnull_bool($eq(name, const$221/*const SourceString('~/')*/))) {
       return this.types.dynamicType;
     }
     var targetType = target.computeType$2(this.compiler, this.types);
@@ -10784,14 +10302,14 @@ TypeCheckerVisitor.prototype.visitReturn = function(node) {
   if (expression != null) {
     var expressionType = this.type(expression);
     if (isVoidFunction && !$notnull_bool(this.types.isAssignable(expressionType, this.types.voidType))) {
-      this.reportTypeWarning(expression, const$272/*WarningKind.RETURN_VALUE_IN_VOID*/, const$13/*const []*/);
+      this.reportTypeWarning(expression, const$234/*WarningKind.RETURN_VALUE_IN_VOID*/, const$13/*const []*/);
     }
     else {
       this.checkAssignable(expression, expressionType, this.expectedReturnType);
     }
   }
   else if (!$notnull_bool(this.types.isAssignable(this.expectedReturnType, this.types.voidType))) {
-    this.reportTypeWarning(node, const$276/*WarningKind.RETURN_NOTHING*/, [this.expectedReturnType]);
+    this.reportTypeWarning(node, const$238/*WarningKind.RETURN_NOTHING*/, [this.expectedReturnType]);
   }
   return null;
 }
@@ -10810,7 +10328,7 @@ TypeCheckerVisitor.prototype.visitVariableDefinitions = function(node) {
   var $0;
   var type = this.typeWithDefault(node.type, this.types.dynamicType);
   if ($eq(type, this.types.voidType)) {
-    this.reportTypeWarning(node.type, const$279/*WarningKind.VOID_VARIABLE*/, const$13/*const []*/);
+    this.reportTypeWarning(node.type, const$241/*WarningKind.VOID_VARIABLE*/, const$13/*const []*/);
     type = this.types.dynamicType;
   }
   for (var link = node.definitions.nodes;
@@ -10844,7 +10362,7 @@ Universe.prototype.addGeneratedCode = function(element, code) {
 }
 // ********** Code for top level **************
 function unreachable() {
-  $throw(const$305/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
+  $throw(const$267/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
 }
 function compile(world) {
   var file = world.readFile(options.dartScript);
@@ -12099,7 +11617,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   return false;
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
-  var types = const$418/*const [
+  var types = const$380/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   var target = new Value(world.varType, 'this', node.span, true);
@@ -21930,101 +21448,64 @@ function main() {
 //  ********** Globals **************
 var const$0 = new NoMoreElementsException()/*const NoMoreElementsException()*/;
 var const$10 = new StringWrapper('String')/*const SourceString('String')*/;
+var const$100 = new Keyword("operator", true)/*const Keyword("operator", true)*/;
+var const$102 = new Keyword("set", true)/*const Keyword("set", true)*/;
+var const$104 = new Keyword("source", true)/*const Keyword("source", true)*/;
+var const$106 = new Keyword("static", true)/*const Keyword("static", true)*/;
+var const$108 = new Keyword("typedef", true)/*const Keyword("typedef", true)*/;
+var const$112 = new StringWrapper('EOF')/*const SourceString('EOF')*/;
 var const$12 = new IllegalAccessException()/*const IllegalAccessException()*/;
 var const$13 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
 var const$14 = new LinkTail()/*const EmptyLink()*/;
-var const$144 = new Keyword("break", false)/*const Keyword("break")*/;
-var const$146 = new Keyword("case", false)/*const Keyword("case")*/;
-var const$148 = new Keyword("catch", false)/*const Keyword("catch")*/;
-var const$150 = new Keyword("const", false)/*const Keyword("const")*/;
-var const$152 = new Keyword("continue", false)/*const Keyword("continue")*/;
-var const$154 = new Keyword("default", false)/*const Keyword("default")*/;
-var const$156 = new Keyword("do", false)/*const Keyword("do")*/;
-var const$158 = new Keyword("else", false)/*const Keyword("else")*/;
-var const$160 = new Keyword("false", false)/*const Keyword("false")*/;
-var const$162 = new Keyword("final", false)/*const Keyword("final")*/;
-var const$164 = new Keyword("finally", false)/*const Keyword("finally")*/;
-var const$166 = new Keyword("for", false)/*const Keyword("for")*/;
-var const$168 = new Keyword("if", false)/*const Keyword("if")*/;
-var const$170 = new Keyword("in", false)/*const Keyword("in")*/;
-var const$172 = new Keyword("is", false)/*const Keyword("is")*/;
-var const$174 = new Keyword("new", false)/*const Keyword("new")*/;
-var const$176 = new Keyword("null", false)/*const Keyword("null")*/;
-var const$178 = new Keyword("return", false)/*const Keyword("return")*/;
-var const$180 = new Keyword("super", false)/*const Keyword("super")*/;
-var const$182 = new Keyword("switch", false)/*const Keyword("switch")*/;
-var const$184 = new Keyword("this", false)/*const Keyword("this")*/;
-var const$186 = new Keyword("throw", false)/*const Keyword("throw")*/;
-var const$188 = new Keyword("true", false)/*const Keyword("true")*/;
-var const$190 = new Keyword("try", false)/*const Keyword("try")*/;
-var const$192 = new Keyword("var", false)/*const Keyword("var")*/;
-var const$194 = new Keyword("void", false)/*const Keyword("void")*/;
-var const$196 = new Keyword("while", false)/*const Keyword("while")*/;
-var const$198 = new Keyword("abstract", true)/*const Keyword("abstract", true)*/;
+var const$199 = new ElementKind('class')/*const ElementKind('class')*/;
 var const$2 = new StringWrapper('global scope')/*const SourceString('global scope')*/;
-var const$200 = new Keyword("assert", true)/*const Keyword("assert", true)*/;
-var const$202 = new Keyword("class", true)/*const Keyword("class", true)*/;
-var const$204 = new Keyword("extends", true)/*const Keyword("extends", true)*/;
-var const$206 = new Keyword("factory", true)/*const Keyword("factory", true)*/;
-var const$208 = new Keyword("get", true)/*const Keyword("get", true)*/;
-var const$210 = new Keyword("implements", true)/*const Keyword("implements", true)*/;
-var const$212 = new Keyword("import", true)/*const Keyword("import", true)*/;
-var const$214 = new Keyword("interface", true)/*const Keyword("interface", true)*/;
-var const$216 = new Keyword("library", true)/*const Keyword("library", true)*/;
-var const$218 = new Keyword("native", true)/*const Keyword("native", true)*/;
-var const$220 = new Keyword("negate", true)/*const Keyword("negate", true)*/;
-var const$222 = new Keyword("operator", true)/*const Keyword("operator", true)*/;
-var const$224 = new Keyword("set", true)/*const Keyword("set", true)*/;
-var const$226 = new Keyword("source", true)/*const Keyword("source", true)*/;
-var const$228 = new Keyword("static", true)/*const Keyword("static", true)*/;
-var const$230 = new Keyword("typedef", true)/*const Keyword("typedef", true)*/;
-var const$234 = new StringWrapper('EOF')/*const SourceString('EOF')*/;
-var const$237 = new ElementKind('class')/*const ElementKind('class')*/;
-var const$239 = new ElementKind('function')/*const ElementKind('function')*/;
-var const$241 = new StringWrapper('JS')/*const SourceString('JS')*/;
-var const$242 = new ElementKind('foreign')/*const ElementKind('foreign')*/;
-var const$244 = new StringWrapper('main')/*const SourceString('main')*/;
-var const$246 = new StringWrapper(';')/*const SourceString(';')*/;
-var const$247 = new NodeList()/*const Prefix()*/;
-var const$248 = new Prefix()/*const Prefix()*/;
-var const$249 = new Postfix()/*const Postfix()*/;
-var const$250 = new ImmutableMap([])/*const {}*/;
-var const$251 = new StringWrapper('+')/*const SourceString('+')*/;
-var const$252 = new StringWrapper('add')/*const SourceString('add')*/;
-var const$253 = new StringWrapper('-')/*const SourceString('-')*/;
-var const$254 = new StringWrapper('sub')/*const SourceString('sub')*/;
-var const$255 = new StringWrapper('*')/*const SourceString('*')*/;
-var const$256 = new StringWrapper('mul')/*const SourceString('mul')*/;
-var const$257 = new StringWrapper('/')/*const SourceString('/')*/;
-var const$258 = new StringWrapper('div')/*const SourceString('div')*/;
-var const$259 = new StringWrapper('~/')/*const SourceString('~/')*/;
-var const$260 = new StringWrapper('tdiv')/*const SourceString('tdiv')*/;
-var const$261 = new StringWrapper('==')/*const SourceString('==')*/;
-var const$262 = new StringWrapper('eq')/*const SourceString('eq')*/;
-var const$263 = new StringWrapper('<')/*const SourceString('<')*/;
-var const$264 = new StringWrapper('lt')/*const SourceString('lt')*/;
-var const$265 = new StringWrapper('var')/*const SourceString('var')*/;
-var const$266 = new ElementKind('variable')/*const ElementKind('variable')*/;
-var const$272 = new WarningKind('cannot return value from void function')/*const WarningKind(
+var const$201 = new ElementKind('function')/*const ElementKind('function')*/;
+var const$203 = new StringWrapper('JS')/*const SourceString('JS')*/;
+var const$204 = new ElementKind('foreign')/*const ElementKind('foreign')*/;
+var const$206 = new StringWrapper('main')/*const SourceString('main')*/;
+var const$208 = new StringWrapper(';')/*const SourceString(';')*/;
+var const$209 = new NodeList()/*const Prefix()*/;
+var const$210 = new Prefix()/*const Prefix()*/;
+var const$211 = new Postfix()/*const Postfix()*/;
+var const$212 = new ImmutableMap([])/*const {}*/;
+var const$213 = new StringWrapper('+')/*const SourceString('+')*/;
+var const$214 = new StringWrapper('add')/*const SourceString('add')*/;
+var const$215 = new StringWrapper('-')/*const SourceString('-')*/;
+var const$216 = new StringWrapper('sub')/*const SourceString('sub')*/;
+var const$217 = new StringWrapper('*')/*const SourceString('*')*/;
+var const$218 = new StringWrapper('mul')/*const SourceString('mul')*/;
+var const$219 = new StringWrapper('/')/*const SourceString('/')*/;
+var const$22 = new Keyword("break", false)/*const Keyword("break")*/;
+var const$220 = new StringWrapper('div')/*const SourceString('div')*/;
+var const$221 = new StringWrapper('~/')/*const SourceString('~/')*/;
+var const$222 = new StringWrapper('tdiv')/*const SourceString('tdiv')*/;
+var const$223 = new StringWrapper('==')/*const SourceString('==')*/;
+var const$224 = new StringWrapper('eq')/*const SourceString('eq')*/;
+var const$225 = new StringWrapper('<')/*const SourceString('<')*/;
+var const$226 = new StringWrapper('lt')/*const SourceString('lt')*/;
+var const$227 = new StringWrapper('var')/*const SourceString('var')*/;
+var const$228 = new ElementKind('variable')/*const ElementKind('variable')*/;
+var const$234 = new WarningKind('cannot return value from void function')/*const WarningKind(
       'cannot return value from void function')*/;
-var const$274 = new WarningKind('#{1} is not assignable to #{2}')/*const WarningKind(
+var const$236 = new WarningKind('#{1} is not assignable to #{2}')/*const WarningKind(
       '#{1} is not assignable to #{2}')*/;
-var const$276 = new WarningKind('value of type #{1} expected')/*const WarningKind(
+var const$238 = new WarningKind('value of type #{1} expected')/*const WarningKind(
       'value of type #{1} expected')*/;
-var const$278 = new StringWrapper('=')/*const SourceString('=')*/;
-var const$279 = new WarningKind('variable cannot be of type void')/*const WarningKind(
+var const$24 = new Keyword("case", false)/*const Keyword("case")*/;
+var const$240 = new StringWrapper('=')/*const SourceString('=')*/;
+var const$241 = new WarningKind('variable cannot be of type void')/*const WarningKind(
       'variable cannot be of type void')*/;
-var const$281 = new WarningKind('expression does not yield a value')/*const WarningKind(
+var const$243 = new WarningKind('expression does not yield a value')/*const WarningKind(
       'expression does not yield a value')*/;
-var const$291 = new StringWrapper("+")/*const SourceString("+")*/;
-var const$292 = new StringWrapper("-")/*const SourceString("-")*/;
-var const$293 = new StringWrapper("*")/*const SourceString("*")*/;
-var const$294 = new StringWrapper("/")/*const SourceString("/")*/;
-var const$295 = new StringWrapper("~/")/*const SourceString("~/")*/;
-var const$296 = new StringWrapper("==")/*const SourceString("==")*/;
-var const$299 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
-var const$3 = new EmptyQueueException()/*const EmptyQueueException()*/;
-var const$301 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
+var const$253 = new StringWrapper("+")/*const SourceString("+")*/;
+var const$254 = new StringWrapper("-")/*const SourceString("-")*/;
+var const$255 = new StringWrapper("*")/*const SourceString("*")*/;
+var const$256 = new StringWrapper("/")/*const SourceString("/")*/;
+var const$257 = new StringWrapper("~/")/*const SourceString("~/")*/;
+var const$258 = new StringWrapper("==")/*const SourceString("==")*/;
+var const$26 = new Keyword("catch", false)/*const Keyword("catch")*/;
+var const$261 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
+var const$263 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
     // Section references are from Ecma-262
     // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
@@ -22155,7 +21636,7 @@ var const$301 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "un
     // TODO: prove why this is necessary or remove it
     "call"
   ]*/;
-var const$303 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
+var const$265 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
     // These are current keywords
     "break", "delete", "function", "return", "typeof", "case", "do", "if",
     "switch", "var", "catch", "else", "in", "this", "void", "continue",
@@ -22169,15 +21650,52 @@ var const$303 = ImmutableList.ImmutableList$from$factory(["break", "delete", "fu
     "class", "final", "interface", "public", "transient", "const", "float",
     "long", "short", "volatile"
   ]*/;
-var const$305 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
-var const$4 = new StringWrapper('void')/*const SourceString('void')*/;
-var const$418 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$267 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+var const$28 = new Keyword("const", false)/*const Keyword("const")*/;
+var const$3 = new EmptyQueueException()/*const EmptyQueueException()*/;
+var const$30 = new Keyword("continue", false)/*const Keyword("continue")*/;
+var const$32 = new Keyword("default", false)/*const Keyword("default")*/;
+var const$34 = new Keyword("do", false)/*const Keyword("do")*/;
+var const$36 = new Keyword("else", false)/*const Keyword("else")*/;
+var const$38 = new Keyword("false", false)/*const Keyword("false")*/;
+var const$380 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
+var const$4 = new StringWrapper('void')/*const SourceString('void')*/;
+var const$40 = new Keyword("final", false)/*const Keyword("final")*/;
+var const$42 = new Keyword("finally", false)/*const Keyword("finally")*/;
+var const$44 = new Keyword("for", false)/*const Keyword("for")*/;
+var const$46 = new Keyword("if", false)/*const Keyword("if")*/;
+var const$48 = new Keyword("in", false)/*const Keyword("in")*/;
+var const$50 = new Keyword("is", false)/*const Keyword("is")*/;
+var const$52 = new Keyword("new", false)/*const Keyword("new")*/;
+var const$54 = new Keyword("null", false)/*const Keyword("null")*/;
+var const$56 = new Keyword("return", false)/*const Keyword("return")*/;
+var const$58 = new Keyword("super", false)/*const Keyword("super")*/;
 var const$6 = new StringWrapper('int')/*const SourceString('int')*/;
+var const$60 = new Keyword("switch", false)/*const Keyword("switch")*/;
+var const$62 = new Keyword("this", false)/*const Keyword("this")*/;
+var const$64 = new Keyword("throw", false)/*const Keyword("throw")*/;
+var const$66 = new Keyword("true", false)/*const Keyword("true")*/;
+var const$68 = new Keyword("try", false)/*const Keyword("try")*/;
+var const$70 = new Keyword("var", false)/*const Keyword("var")*/;
+var const$72 = new Keyword("void", false)/*const Keyword("void")*/;
+var const$74 = new Keyword("while", false)/*const Keyword("while")*/;
+var const$76 = new Keyword("abstract", true)/*const Keyword("abstract", true)*/;
+var const$78 = new Keyword("assert", true)/*const Keyword("assert", true)*/;
 var const$8 = new StringWrapper('Dynamic')/*const SourceString('Dynamic')*/;
+var const$80 = new Keyword("class", true)/*const Keyword("class", true)*/;
+var const$82 = new Keyword("extends", true)/*const Keyword("extends", true)*/;
+var const$84 = new Keyword("factory", true)/*const Keyword("factory", true)*/;
+var const$86 = new Keyword("get", true)/*const Keyword("get", true)*/;
+var const$88 = new Keyword("implements", true)/*const Keyword("implements", true)*/;
+var const$90 = new Keyword("import", true)/*const Keyword("import", true)*/;
+var const$92 = new Keyword("interface", true)/*const Keyword("interface", true)*/;
+var const$94 = new Keyword("library", true)/*const Keyword("library", true)*/;
+var const$96 = new Keyword("native", true)/*const Keyword("native", true)*/;
+var const$98 = new Keyword("negate", true)/*const Keyword("negate", true)*/;
 HTracer._singleton = null;
-var const$232 = ImmutableList.ImmutableList$from$factory([const$144, const$146, const$148, const$150, const$152, const$154, const$156, const$158, const$160, const$162, const$164, const$166, const$168, const$170, const$172, const$174, const$176, const$178, const$180, const$182, const$184, const$186, const$188, const$190, const$192, const$194, const$196, const$198, const$200, const$202, const$204, const$206, const$208, const$210, const$212, const$214, const$216, const$218, const$220, const$222, const$224, const$226, const$228, const$230])/*const <Keyword> [
+var const$110 = ImmutableList.ImmutableList$from$factory([const$22, const$24, const$26, const$28, const$30, const$32, const$34, const$36, const$38, const$40, const$42, const$44, const$46, const$48, const$50, const$52, const$54, const$56, const$58, const$60, const$62, const$64, const$66, const$68, const$70, const$72, const$74, const$76, const$78, const$80, const$82, const$84, const$86, const$88, const$90, const$92, const$94, const$96, const$98, const$100, const$102, const$104, const$106, const$108])/*const <Keyword> [
       BREAK,
       CASE,
       CATCH,
