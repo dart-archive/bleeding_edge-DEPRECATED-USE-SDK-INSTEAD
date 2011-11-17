@@ -463,7 +463,8 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     return expectSemicolon(token);
   }
 
-  Token peekIdentifierAfterType(Token token) {
+  Token peekAfterType(Token token) {
+    // TODO(ahe): Also handle void and var?
     assert(token.kind === IDENTIFIER_TOKEN);
     // We are looking at "identifier ...".
     Token peek = token.next;
@@ -473,43 +474,51 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
         peek = peek.next.next;
       }
     }
-    if (peek.kind === IDENTIFIER_TOKEN) {
-      // We are looking at "qualified identifier".
-      return peek;
-    } else if (peek.kind === LT_TOKEN) {
+    // We are looking at "qualified ...".
+    if (peek.kind === LT_TOKEN) {
       // Possibly generic type.
       // We are looking at "qualified '<'".
       BeginGroupToken beginGroupToken = peek;
       Token gtToken = beginGroupToken.endGroup;
-      if (gtToken !== null && gtToken.next.kind === IDENTIFIER_TOKEN) {
-        // We are looking at "qualified '<' ... '>' identifier".
+      if (gtToken !== null) {
+        // We are looking at "qualified '<' ... '>' ...".
         return gtToken.next;
       }
     }
-    return null;
+    return peek;
+  }
+
+  Token peekIdentifierAfterType(Token token) {
+    Token peek = peekAfterType(token);
+    if (peek !== null && peek.kind === IDENTIFIER_TOKEN) {
+      // We are looking at "type identifier".
+      return peek;
+    } else {
+      return null;
+    }
   }
 
   Token parseExpressionStatementOrDeclaration(Token token) {
     Token identifier = peekIdentifierAfterType(token);
     if (identifier !== null) {
-        assert(identifier.kind === IDENTIFIER_TOKEN);
-        Token afterId = identifier.next;
-        int afterIdKind = afterId.kind;
-        if (afterIdKind === EQ_TOKEN || afterIdKind === SEMICOLON_TOKEN) {
-          // We are looking at "type identifier = ..." or "type identifier;".
-          return parseVariablesDeclaration(token);
-        } else if (afterIdKind === RPAREN_TOKEN) {
-          // We are looking at "type identifier '('".
-          BeginGroupToken beginParen = afterId;
-          Token endParen = beginParen.endGroup;
-          Token afterParens = endParen.next;
-          if (optional('{', afterParens) || optional('=>', afterParens)) {
-            // We are looking at "type identifier '(' ... ')' =>" or
-            // "type identifier '(' ... ')' {".
-            return parseFunction(token);
-          }
+      assert(identifier.kind === IDENTIFIER_TOKEN);
+      Token afterId = identifier.next;
+      int afterIdKind = afterId.kind;
+      if (afterIdKind === EQ_TOKEN || afterIdKind === SEMICOLON_TOKEN) {
+        // We are looking at "type identifier = ..." or "type identifier;".
+        return parseVariablesDeclaration(token);
+      } else if (afterIdKind === RPAREN_TOKEN) {
+        // We are looking at "type identifier '('".
+        BeginGroupToken beginParen = afterId;
+        Token endParen = beginParen.endGroup;
+        Token afterParens = endParen.next;
+        if (optional('{', afterParens) || optional('=>', afterParens)) {
+          // We are looking at "type identifier '(' ... ')' =>" or
+          // "type identifier '(' ... ')' {".
+          return parseFunction(token);
         }
-        // Fall-through to expression statement.
+      }
+      // Fall-through to expression statement.
     }
     return parseExpressionStatement(token);
   }

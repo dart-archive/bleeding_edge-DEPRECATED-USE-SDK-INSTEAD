@@ -4952,30 +4952,36 @@ Parser.prototype.parseReturnStatement = function(token) {
   }
   return this.expectSemicolon(token);
 }
-Parser.prototype.peekIdentifierAfterType = function(token) {
-  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 467, 12);
+Parser.prototype.peekAfterType = function(token) {
+  $assert(token.kind === 97/*null.IDENTIFIER_TOKEN*/, "token.kind === IDENTIFIER_TOKEN", "parser.dart", 468, 12);
   var peek = token.next;
   if (peek.kind === 46/*null.PERIOD_TOKEN*/) {
     if (peek.next.kind === 97/*null.IDENTIFIER_TOKEN*/) {
       peek = peek.next.next;
     }
   }
-  if (peek.kind === 97/*null.IDENTIFIER_TOKEN*/) {
-    return peek;
-  }
-  else if (peek.kind === 60/*null.LT_TOKEN*/) {
+  if (peek.kind === 60/*null.LT_TOKEN*/) {
     var beginGroupToken = (peek && peek.is$BeginGroupToken());
     var gtToken = beginGroupToken.endGroup;
-    if (gtToken != null && gtToken.next.kind === 97/*null.IDENTIFIER_TOKEN*/) {
+    if (gtToken != null) {
       return gtToken.next;
     }
   }
-  return null;
+  return peek;
+}
+Parser.prototype.peekIdentifierAfterType = function(token) {
+  var peek = this.peekAfterType(token);
+  if (peek != null && peek.kind === 97/*null.IDENTIFIER_TOKEN*/) {
+    return peek;
+  }
+  else {
+    return null;
+  }
 }
 Parser.prototype.parseExpressionStatementOrDeclaration = function(token) {
   var identifier = this.peekIdentifierAfterType(token);
   if (identifier != null) {
-    $assert(identifier.kind === 97/*null.IDENTIFIER_TOKEN*/, "identifier.kind === IDENTIFIER_TOKEN", "parser.dart", 495, 16);
+    $assert(identifier.kind === 97/*null.IDENTIFIER_TOKEN*/, "identifier.kind === IDENTIFIER_TOKEN", "parser.dart", 504, 14);
     var afterId = identifier.next;
     var afterIdKind = afterId.kind;
     if (afterIdKind === 61/*null.EQ_TOKEN*/ || afterIdKind === 59/*null.SEMICOLON_TOKEN*/) {
@@ -5023,7 +5029,7 @@ Parser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 Parser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 552, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 561, 12);
   token = this.parseUnaryExpression(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = $assert_num(tokenLevel);
@@ -5324,7 +5330,7 @@ Parser.prototype.parseArgumentsOpt = function(token) {
 Parser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments$1(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 717, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 726, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments$3(argumentCount, begin, token.next);
