@@ -60,7 +60,11 @@ class SsaCodeGenerator implements HVisitor {
 
   SsaCodeGenerator(this.compiler, this.buffer, this.parameterNames)
     : names = new Map<int, String>(),
-      prefixes = new Map<String, int>();
+      prefixes = new Map<String, int>() {
+    for (final name in parameterNames) {
+      prefixes[name] = 0;
+    }
+  }
 
   visitGraph(HGraph graph) {
     currentGraph = graph;
