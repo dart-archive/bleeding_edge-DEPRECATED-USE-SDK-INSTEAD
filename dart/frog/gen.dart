@@ -1087,7 +1087,13 @@ class MethodGenerator implements TreeVisitor {
       var val = _scope.create(name, thisType, node.names[i].span);
 
       if (value == null) {
-        writer.write('${val.code}');
+        if (_scope.reentrant) {
+          // To preserve block scoping, we need to ensure the variable is
+          // reinitialized each time the block is entered.
+          writer.write('${val.code} = null');
+        } else {
+          writer.write('${val.code}');
+        }
       } else {
         value = value.convertTo(this, type, node.values[i]);
         writer.write('${val.code} = ${value.code}');

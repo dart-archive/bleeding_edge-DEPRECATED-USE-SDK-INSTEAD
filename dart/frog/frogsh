@@ -11463,7 +11463,12 @@ MethodGenerator.prototype.visitVariableDefinition = function(node) {
     }
     var val = this._scope.create($assert_String(name), (thisType && thisType.is$lang_Type()), node.names.$index(i).get$span(), false);
     if ($notnull_bool(value == null)) {
-      this.writer.write(('' + val.code + ''));
+      if ($notnull_bool(this._scope.reentrant)) {
+        this.writer.write(('' + val.code + ' = null'));
+      }
+      else {
+        this.writer.write(('' + val.code + ''));
+      }
     }
     else {
       value = value.convertTo$3(this, type, node.values.$index(i));
@@ -12294,7 +12299,7 @@ MethodGenerator.prototype.visitNullExpression = function(node) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2093, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2099, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;
@@ -19889,7 +19894,7 @@ DefinedType.prototype.resolveMember = function(memberName) {
     var $list = this.get$subtypes();
     for (var $i = this.get$subtypes().iterator(); $i.hasNext$0(); ) {
       var t = $i.next$0();
-      var m;
+      var m = null;
       if (!$notnull_bool(this.isClass) && $notnull_bool(t.get$isClass())) {
         m = t.getMember$1(memberName);
       }
