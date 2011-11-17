@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,11 +47,21 @@ public class IndexingQueue {
       return result;
     }
 
+    /**
+     * Add the given target to this group's queue. If a matching target was already on the queue,
+     * replace the queued target with the give target (the new target is assumed to be more
+     * up-to-date).
+     * 
+     * @param target the target to be added to the queue
+     */
     public void enqueue(IndexingTarget target) {
       URI targetUri = target.getUri();
-      for (IndexingTarget queuedTarget : queue) {
+      ListIterator<IndexingTarget> iterator = queue.listIterator();
+      while (iterator.hasNext()) {
+        IndexingTarget queuedTarget = iterator.next();
         URI queuedUri = queuedTarget.getUri();
         if (queuedUri != null && queuedUri.equals(targetUri)) {
+          iterator.set(target);
           return;
         }
       }
