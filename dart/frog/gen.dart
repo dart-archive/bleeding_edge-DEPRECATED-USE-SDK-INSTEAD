@@ -501,7 +501,7 @@ class BlockScope {
 
 
   Value create(String name, Type type, SourceSpan span,
-      [bool isParameter = false]) {
+      [bool isFinal = false, bool isParameter = false]) {
 
     var jsName = world.toJsIdentifier(name);
     if (_vars.containsKey(name)) {
@@ -517,6 +517,7 @@ class BlockScope {
     }
 
     var ret = new Value(type, jsName, span, false);
+    ret.isFinal = isFinal;
     _vars[name] = ret;
     return ret;
   }
@@ -582,7 +583,7 @@ class MethodGenerator implements TreeVisitor {
     // recursively.
     if (enclosingMethod != null && method.name != '') {
       MethodMember m = method; // lambdas must be MethodMembers
-      _scope.create(m.name, m.functionType, m.definition.span);
+      _scope.create(m.name, m.functionType, m.definition.span, isFinal:true);
     }
     _usedTemps = new Set();
     _freeTemps = [];
@@ -1091,7 +1092,7 @@ class MethodGenerator implements TreeVisitor {
         }
       }
 
-      var val = _scope.create(name, thisType, node.names[i].span);
+      var val = _scope.create(name, thisType, node.names[i].span, isFinal);
 
       if (value == null) {
         if (_scope.reentrant) {
@@ -1117,8 +1118,8 @@ class MethodGenerator implements TreeVisitor {
     var meth = _makeLambdaMethod(name, node);
 
     // TODO(jimhug): Pass js name into writeDefinition?
-    var funcValue =
-      _scope.create(name, meth.functionType, method.definition.span);
+    var funcValue = _scope.create(name, meth.functionType,
+        method.definition.span, isFinal:true);
     meth.generator.writeDefinition(writer, null);
     return false;
   }
@@ -1260,6 +1261,13 @@ class MethodGenerator implements TreeVisitor {
     return false;
   }
 
+  bool _isFinal(typeRef) {
+    if (typeRef is GenericTypeReference) {
+      typeRef = typeRef.baseType;
+    }
+    return typeRef != null && typeRef.isFinal;
+  }
+
   bool visitForInStatement(ForInStatement node) {
     // TODO(jimhug): visitValue and other cleanups here.
     var itemType = method.resolveType(node.item.type, false);
@@ -1267,7 +1275,8 @@ class MethodGenerator implements TreeVisitor {
     var list = node.list.visit(this);
     _pushBlock(/*reentrant:*/true);
     // TODO(jimhug): Check that itemType matches list members...
-    var item = _scope.create(itemName, itemType, node.item.name.span);
+    bool isFinal = _isFinal(node.item.type);
+    var item = _scope.create(itemName, itemType, node.item.name.span, isFinal);
     Value listVar = list;
     if (list.needsTemp) {
       listVar = _scope.create('\$list', list.type, null);
@@ -1750,7 +1759,11 @@ class MethodGenerator implements TreeVisitor {
       // This makes for nicer code in the $op= case
     }
 
-    // TODO(jimhug): Needs checks for final and other rules to enforce.
+    if (x.isFinal) {
+      world.error('final variable "${x.code}" is not assignable',
+          position.span);
+    }
+
     y = y.convertTo(this, x.type, yn);
 
     if (kind == 0) {

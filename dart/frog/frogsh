@@ -11027,7 +11027,7 @@ BlockScope.prototype._isDefinedInParent = function(name) {
   if (type.get$library().lookup(name, null) != null) return true;
   return false;
 }
-BlockScope.prototype.create = function(name, type, span, isParameter) {
+BlockScope.prototype.create = function(name, type, span, isFinal, isParameter) {
   var jsName = world.toJsIdentifier(name);
   if (this._vars.containsKey(name)) {
     world.error(('duplicate name "' + name + '"'), span);
@@ -11039,15 +11039,16 @@ BlockScope.prototype.create = function(name, type, span, isParameter) {
     }
   }
   var ret = new Value(type, jsName, span, false);
+  ret.isFinal = isFinal;
   this._vars.$setindex(name, ret);
   return (ret && ret.is$Value());
 }
 BlockScope.prototype.declareParameter = function(p) {
-  return this.create(p.name, p.type, p.definition.span, true);
+  return this.create(p.name, p.type, p.definition.span, false, true);
 }
 BlockScope.prototype.declare = function(id) {
   var type = this.enclosingMethod.method.resolveType(id.type, false);
-  return this.create(id.name.name, (type && type.is$lang_Type()), id.span, false);
+  return this.create(id.name.name, (type && type.is$lang_Type()), id.span, false, false);
 }
 BlockScope.prototype.getRethrow = function() {
   var scope = this;
@@ -11076,7 +11077,7 @@ function MethodGenerator(method, enclosingMethod) {
   }
   if (this.enclosingMethod != null && this.method.name != '') {
     var m = (($0 = this.method) && $0.is$MethodMember());
-    this._scope.create(m.name, m.get$functionType(), m.definition.span, false);
+    this._scope.create(m.name, m.get$functionType(), m.definition.span, true, false);
   }
   this._usedTemps = new HashSetImplementation();
   this._freeTemps = [];
@@ -11200,7 +11201,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 705, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 706, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -11383,7 +11384,7 @@ MethodGenerator.prototype.writeBody = function() {
     for (var $i = this.method.declaringType.get$members().getKeys().iterator$0(); $i.hasNext$0(); ) {
       var name = $i.next$0();
       var member = this.method.declaringType.get$members().$index(name);
-      if ((member instanceof FieldMember) && $notnull_bool(member.isFinal) && !$notnull_bool(member.get$isStatic()) && !$notnull_bool(initializedFields.contains$1(name))) {
+      if ((member instanceof FieldMember) && $notnull_bool(member.get$isFinal()) && !$notnull_bool(member.get$isStatic()) && !$notnull_bool(initializedFields.contains$1(name))) {
         world.error(('Field "' + name + '" is final and was not initialized'), this.method.get$definition().get$span());
       }
     }
@@ -11520,7 +11521,7 @@ MethodGenerator.prototype.visitVariableDefinition = function(node) {
         if ($notnull_bool(thisType.get$isVar())) thisType = value.type;
       }
     }
-    var val = this._scope.create($assert_String(name), (thisType && thisType.is$lang_Type()), node.names.$index(i).get$span(), false);
+    var val = this._scope.create($assert_String(name), (thisType && thisType.is$lang_Type()), node.names.$index(i).get$span(), $assert_bool(isFinal), false);
     if ($notnull_bool(value == null)) {
       if ($notnull_bool(this._scope.reentrant)) {
         this.writer.write(('' + val.code + ' = null'));
@@ -11541,7 +11542,7 @@ MethodGenerator.prototype.visitFunctionDefinition = function(node) {
   var $0;
   var name = world.toJsIdentifier(node.name.name);
   var meth = this._makeLambdaMethod($assert_String(name), node);
-  var funcValue = this._scope.create($assert_String(name), (($0 = meth.get$functionType()) && $0.is$lang_Type()), this.method.get$definition().get$span(), false);
+  var funcValue = this._scope.create($assert_String(name), (($0 = meth.get$functionType()) && $0.is$lang_Type()), this.method.get$definition().get$span(), true, false);
   meth.generator.writeDefinition$2(this.writer);
   return false;
 }
@@ -11666,20 +11667,27 @@ MethodGenerator.prototype.visitForStatement = function(node) {
   this._popBlock();
   return false;
 }
+MethodGenerator.prototype._isFinal = function(typeRef) {
+  if ((typeRef instanceof GenericTypeReference)) {
+    typeRef = typeRef.baseType;
+  }
+  return $notnull_bool($ne(typeRef, null)) && $notnull_bool(typeRef.get$isFinal());
+}
 MethodGenerator.prototype.visitForInStatement = function(node) {
   var $0;
   var itemType = this.method.resolveType(node.item.type, false);
   var itemName = node.item.name.name;
   var list = node.list.visit(this);
   this._pushBlock(true);
-  var item = this._scope.create($assert_String(itemName), (itemType && itemType.is$lang_Type()), node.item.name.span, false);
+  var isFinal = this._isFinal(node.item.type);
+  var item = this._scope.create($assert_String(itemName), (itemType && itemType.is$lang_Type()), node.item.name.span, isFinal, false);
   var listVar = (list && list.is$Value());
   if ($notnull_bool(list.needsTemp)) {
-    listVar = this._scope.create('\$list', (($0 = list.type) && $0.is$lang_Type()), null, false);
+    listVar = this._scope.create('\$list', (($0 = list.type) && $0.is$lang_Type()), null, false, false);
     this.writer.writeln(('var ' + listVar.code + ' = ' + list.code + ';'));
   }
   if ($notnull_bool(list.type.get$isList())) {
-    var tmpi = this._scope.create('\$i', world.numType, null, false);
+    var tmpi = this._scope.create('\$i', world.numType, null, false, false);
     this.writer.enterBlock(('for (var ' + tmpi.code + ' = 0;') + ('' + tmpi.code + ' < ' + listVar.code + '.length; ' + tmpi.code + '++) {'));
     var value = listVar.invoke(this, '\$index', node.list, new Arguments(null, [tmpi]), false);
     this.writer.writeln(('var ' + item.code + ' = ' + value.code + ';'));
@@ -11687,7 +11695,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   else {
     this._pushBlock(false);
     var iterator = list.invoke$4(this, 'iterator', node.list, Arguments.get$EMPTY());
-    var tmpi = this._scope.create('\$i', (($0 = iterator.type) && $0.is$lang_Type()), null, false);
+    var tmpi = this._scope.create('\$i', (($0 = iterator.type) && $0.is$lang_Type()), null, false, false);
     var hasNext = tmpi.invoke$4(this, 'hasNext', node.list, Arguments.get$EMPTY());
     var next = tmpi.invoke$4(this, 'next', node.list, Arguments.get$EMPTY());
     this.writer.enterBlock(('for (var ' + tmpi.code + ' = ' + iterator.code + '; ' + hasNext.code + '; ) {'));
@@ -11738,7 +11746,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
   }
   else if (node.catches.length > 0) {
     this._pushBlock(false);
-    var ex = this._scope.create('\$ex', world.varType, null, false);
+    var ex = this._scope.create('\$ex', world.varType, null, false, false);
     this._scope.rethrow = (ex && ex.is$Value());
     this.writer.nextBlock(('} catch (' + ex.code + ') {'));
     var trace = null;
@@ -11746,7 +11754,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
       return c.trace != null;
     })
     )) {
-      trace = this._scope.create('\$trace', world.varType, null, false);
+      trace = this._scope.create('\$trace', world.varType, null, false, false);
       this.writer.writeln(('var ' + trace.code + ' = \$stackTraceOf(' + ex.code + ');'));
       world.gen.corejs.useStackTraceOf = true;
     }
@@ -12066,6 +12074,9 @@ MethodGenerator.prototype._visitVarAssign = function(kind, xn, yn, position, cap
       }
     }
   }
+  if ($notnull_bool(x.get$isFinal())) {
+    world.error(('final variable "' + x.code + '" is not assignable'), position.span);
+  }
   y = y.convertTo$3(this, x.type, yn);
   if (kind == 0) {
     x = captureOriginal((x && x.is$Value()));
@@ -12206,7 +12217,7 @@ MethodGenerator.prototype.visitNewExpression = function(node) {
     var names = ListFactory.ListFactory$from$factory((($0 = typeRef.names) && $0.is$Iterable()));
     constructorName = names.removeLast$0().get$name();
     if (names.length == 0) names = null;
-    typeRef = new NameTypeReference(typeRef.isFinal, typeRef.get$name(), names, typeRef.get$span());
+    typeRef = new NameTypeReference(typeRef.get$isFinal(), typeRef.get$name(), names, typeRef.get$span());
   }
   var type = this.method.resolveType((typeRef && typeRef.is$TypeReference()), true);
   if ($notnull_bool(type.get$isTop())) {
@@ -12358,7 +12369,7 @@ MethodGenerator.prototype.visitNullExpression = function(node) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2106, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2119, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;
@@ -13213,6 +13224,8 @@ FieldMember.prototype.get$type = function() { return this.type; };
 FieldMember.prototype.set$type = function(value) { return this.type = value; };
 FieldMember.prototype.get$isStatic = function() { return this.isStatic; };
 FieldMember.prototype.set$isStatic = function(value) { return this.isStatic = value; };
+FieldMember.prototype.get$isFinal = function() { return this.isFinal; };
+FieldMember.prototype.set$isFinal = function(value) { return this.isFinal = value; };
 FieldMember.prototype.get$isNative = function() { return this.isNative; };
 FieldMember.prototype.set$isNative = function(value) { return this.isNative = value; };
 FieldMember.prototype.override = function(other) {
@@ -18041,6 +18054,9 @@ TypeReference.prototype.set$type = function(value) { return this.type = value; }
 TypeReference.prototype.visit = function(visitor) {
   return visitor.visitTypeReference(this);
 }
+TypeReference.prototype.get$isFinal = function() {
+  return false;
+}
 TypeReference.prototype.visit$1 = function($0) {
   return this.visit(($0 && $0.is$TreeVisitor()));
 };
@@ -18698,6 +18714,8 @@ function NameTypeReference(isFinal, name, names, span) {
 }
 $inherits(NameTypeReference, TypeReference);
 NameTypeReference.prototype.is$NameTypeReference = function(){return this;};
+NameTypeReference.prototype.get$isFinal = function() { return this.isFinal; };
+NameTypeReference.prototype.set$isFinal = function(value) { return this.isFinal = value; };
 NameTypeReference.prototype.get$name = function() { return this.name; };
 NameTypeReference.prototype.set$name = function(value) { return this.name = value; };
 NameTypeReference.prototype.visit = function(visitor) {
@@ -18731,6 +18749,8 @@ function FunctionTypeReference(isFinal, func, span) {
 }
 $inherits(FunctionTypeReference, TypeReference);
 FunctionTypeReference.prototype.is$FunctionTypeReference = function(){return this;};
+FunctionTypeReference.prototype.get$isFinal = function() { return this.isFinal; };
+FunctionTypeReference.prototype.set$isFinal = function(value) { return this.isFinal = value; };
 FunctionTypeReference.prototype.visit = function(visitor) {
   return visitor.visitFunctionTypeReference(this);
 }
@@ -20209,6 +20229,7 @@ FixedIterator$E.prototype.is$Iterator$T = function(){return this;};
 function Value(type, code, span, needsTemp) {
   this.isSuper = false
   this.isType = false
+  this.isFinal = false
   this.type = type;
   this.code = code;
   this.span = span;
@@ -20221,6 +20242,8 @@ Value.prototype.get$type = function() { return this.type; };
 Value.prototype.set$type = function(value) { return this.type = value; };
 Value.prototype.get$span = function() { return this.span; };
 Value.prototype.set$span = function(value) { return this.span = value; };
+Value.prototype.get$isFinal = function() { return this.isFinal; };
+Value.prototype.set$isFinal = function(value) { return this.isFinal = value; };
 Value.prototype.get$_typeIsVarOrParameterType = function() {
   return $notnull_bool(this.type.get$isVar()) || (this.type instanceof ParameterType);
 }
@@ -20502,8 +20525,8 @@ Value.prototype.invokeNoSuchMethod = function(context, name, node, args) {
   return this._resolveMember(context, 'noSuchMethod', node, false).invoke$4(context, node, this, new Arguments(null, noSuchArgs));
 }
 Value.prototype.invokeSpecial = function(name, args, returnType) {
-  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 480, 12);
-  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 481, 12);
+  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 483, 12);
+  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 484, 12);
   var argsString = args.getCode();
   if (name == '\$index' || name == '\$setindex') {
     return new Value(returnType, ('' + this.code + '.' + name + '(' + argsString + ')'), this.span, true);
@@ -20638,7 +20661,7 @@ GlobalValue.prototype.is$Comparable = function(){return this;};
 GlobalValue.GlobalValue$fromStatic$factory = function(field, exp, dependencies) {
   var code = ($notnull_bool(exp.get$isConst()) ? exp.get$canonicalCode() : exp.code);
   var codeWithComment = ('' + code + '/*' + field.declaringType.name + '.' + field.get$name() + '*/');
-  return new GlobalValue(exp.type, $assert_String(codeWithComment), field.isFinal, field, null, exp, code, exp.span, dependencies.filter$1((function (d) {
+  return new GlobalValue(exp.type, $assert_String(codeWithComment), field.get$isFinal(), field, null, exp, code, exp.span, dependencies.filter$1((function (d) {
     return (d instanceof GlobalValue);
   })
   ));
@@ -20702,10 +20725,10 @@ function BareValue(home, outermost, span) {
 }
 $inherits(BareValue, Value);
 BareValue.prototype._tryResolveMember = function(context, name) {
-  $assert($eq(context, this.home), "context == home", "value.dart", 685, 12);
+  $assert($eq(context, this.home), "context == home", "value.dart", 688, 12);
   var member = this.type.resolveMember(name);
   if ($notnull_bool($ne(member, null))) {
-    $assert(this.code == null, "code == null", "value.dart", 690, 14);
+    $assert(this.code == null, "code == null", "value.dart", 693, 14);
     if ($notnull_bool(this.isType)) {
       this.code = this.type.get$jsname();
     }

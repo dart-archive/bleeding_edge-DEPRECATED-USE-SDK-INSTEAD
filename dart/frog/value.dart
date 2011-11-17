@@ -21,6 +21,9 @@ class Value {
   /** Is this a pretend first-class type? */
   bool isType = false;
 
+  /** Is this a final variable? */
+  bool isFinal = false;
+
   /** If we reference this value multiple times, do we need a temp? */
   bool needsTemp;
 

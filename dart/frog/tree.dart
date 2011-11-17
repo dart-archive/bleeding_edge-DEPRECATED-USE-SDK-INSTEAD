@@ -45,6 +45,8 @@ class TypeReference extends Node {
   TypeReference(SourceSpan span, [this.type=null]): super(span) {}
 
   visit(TreeVisitor visitor) => visitor.visitTypeReference(this);
+
+  bool get isFinal() => false;
 }
 
 // TODO(jimhug): Clean-up and factor out of core.
