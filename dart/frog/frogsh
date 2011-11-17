@@ -2436,9 +2436,6 @@ LinkFactory.Link$factory = function(head, tail) {
   var $0;
   return new LinkEntry(head, (($0 = (tail == null) ? const$14/*const EmptyLink()*/ : tail) && $0.is$Link$T()));
 }
-// ********** Code for LinkFactory$Node **************
-function LinkFactory$Node() {}
-$inherits(LinkFactory$Node, LinkFactory);
 // ********** Code for AbstractLink **************
 function AbstractLink() {
   // Initializers done
@@ -2547,6 +2544,16 @@ LinkTail$Node.prototype.is$Link$T = function(){return this;};
 LinkTail$Node.prototype.is$Link$Token = function(){return this;};
 LinkTail$Node.prototype.is$Link$Type = function(){return this;};
 LinkTail$Node.prototype.is$Iterable = function(){return this;};
+// ********** Code for LinkTail$T **************
+function LinkTail$T() {}
+$inherits(LinkTail$T, LinkTail);
+LinkTail$T.prototype.is$Link = function(){return this;};
+LinkTail$T.prototype.is$Link$Element = function(){return this;};
+LinkTail$T.prototype.is$Link$Node = function(){return this;};
+LinkTail$T.prototype.is$Link$T = function(){return this;};
+LinkTail$T.prototype.is$Link$Token = function(){return this;};
+LinkTail$T.prototype.is$Link$Type = function(){return this;};
+LinkTail$T.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$Type **************
 function LinkTail$Type() {}
 $inherits(LinkTail$Type, LinkTail);
@@ -2618,6 +2625,9 @@ LinkBuilderImplementation.prototype.addLast = function(t) {
   }
   this.lastLink = entry;
 }
+// ********** Code for LinkBuilderImplementation$T **************
+function LinkBuilderImplementation$T() {}
+$inherits(LinkBuilderImplementation$T, LinkBuilderImplementation);
 // ********** Code for LinkBuilderImplementation$Type **************
 function LinkBuilderImplementation$Type() {}
 $inherits(LinkBuilderImplementation$Type, LinkBuilderImplementation);

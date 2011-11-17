@@ -25,7 +25,7 @@ class VmScannerBench extends ScannerBench {
   void checkExistence(String filename) {
     File file = new File(filename);
     if (!file.existsSync()) {
-      throw "no such file: ${filename}";
+      print("no such file: ${filename}");
     }
   }
 

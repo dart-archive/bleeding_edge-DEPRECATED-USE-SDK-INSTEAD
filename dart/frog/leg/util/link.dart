@@ -17,11 +17,11 @@ interface Link<T> extends Iterable<T> factory LinkFactory {
   void printOn(StringBuffer buffer, [separatedBy]);
 }
 
-interface EmptyLink<T> extends Link<T> factory LinkTail {
+interface EmptyLink<T> extends Link<T> factory LinkTail<T> {
   const EmptyLink();
 }
 
-interface LinkBuilder<T> factory LinkBuilderImplementation {
+interface LinkBuilder<T> factory LinkBuilderImplementation<T> {
   LinkBuilder();
 
   Link<T> toLink();
