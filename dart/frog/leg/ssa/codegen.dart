@@ -221,26 +221,14 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitInvokeForeign(HInvokeForeign node) {
-    // TODO(ngeoffray): generate the instruction define here in case
-    // we have parameters.
-    if (!node.inputs.isEmpty()) {
-      buffer.add("(function foreign(\$0");
-      for (int i = 1; i < node.inputs.length; i++) {
-        buffer.add(', \$$i');
-      }
-      buffer.add(') { return ');
+    String code = '${node.code}';
+    List<HInstruction> inputs = node.inputs; 
+    for (int i = 0; i < inputs.length; i++) {
+      HInstruction input = inputs[i];
+      assert(!input.generateAtUseSite());
+      code = code.replaceAll('\$$i', temporary(input));
     }
-    buffer.add(node.code);
-
-    if (!node.inputs.isEmpty()) {
-      buffer.add('; }) (');
-      use(node.inputs[0]);
-      for (int i = 1; i < node.inputs.length; i++) {
-        buffer.add(', ');
-        use(node.inputs[1]);
-      }
-      buffer.add(')');
-    }
+    buffer.add('($code)');
   }
 
   visitLiteral(HLiteral node) {

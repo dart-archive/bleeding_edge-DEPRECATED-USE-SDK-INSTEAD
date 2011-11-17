@@ -8172,25 +8172,15 @@ SsaCodeGenerator.prototype.visitInvoke = function(node) {
 }
 SsaCodeGenerator.prototype.visitInvokeForeign = function(node) {
   var $0;
-  if (!node.inputs.isEmpty()) {
-    this.buffer.add("(function foreign(\$0");
-    for (var i = 1;
-     i < node.inputs.length; i++) {
-      this.buffer.add((', \$' + i + ''));
-    }
-    this.buffer.add(') { return ');
+  var code = ('' + node.code + '');
+  var inputs = node.inputs;
+  for (var i = 0;
+   i < inputs.length; i++) {
+    var input = (($0 = inputs.$index(i)) && $0.is$HInstruction());
+    $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 228, 14);
+    code = code.replaceAll(('\$' + i + ''), this.temporary(input));
   }
-  this.buffer.add(node.code);
-  if (!node.inputs.isEmpty()) {
-    this.buffer.add('; }) (');
-    this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
-    for (var i = 1;
-     i < node.inputs.length; i++) {
-      this.buffer.add(', ');
-      this.use((($0 = node.inputs.$index(1)) && $0.is$HInstruction()));
-    }
-    this.buffer.add(')');
-  }
+  this.buffer.add(('(' + code + ')'));
 }
 SsaCodeGenerator.prototype.visitLiteral = function(node) {
   this.buffer.add(node.value);
@@ -8202,13 +8192,13 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')) break;\n');
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 256, 12);
-  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 257, 12);
+  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 244, 12);
+  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 245, 12);
   this.visit(dominated.$index(0));
   this.indent--;
   this.addIndentation();
   this.buffer.add('}\n');
-  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 262, 12);
+  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 250, 12);
   this.visit(dominated.$index(1));
 }
 SsaCodeGenerator.prototype.visitParameter = function(node) {
@@ -9503,6 +9493,7 @@ SsaInstructionMerger.prototype.visitGraph = function(graph) {
   this.visitDominatorTree(graph);
 }
 SsaInstructionMerger.prototype.visitInstruction = function(node) {
+  if ((node instanceof HInvokeForeign)) return;
   var inputs = node.inputs;
   var previousUnused = node.previous;
   for (var i = inputs.length - 1;
