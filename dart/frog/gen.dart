@@ -832,13 +832,13 @@ class MethodGenerator implements TreeVisitor {
         method.definition.span);
     }
 
+    var initializerCall = null;
+    final declaredInitializers = method.definition.initializers;
     if (initializers != null) {
       for (var i in initializers) {
         writer.writeln(i);
       }
-      final declaredInitializers = method.definition.initializers;
       if (declaredInitializers != null) {
-        var initializerCall = null;
         for (var init in declaredInitializers) {
           // TODO(jimhug): Lot's of correctness to verify here.
           if (init is CallExpression) {
@@ -873,37 +873,44 @@ class MethodGenerator implements TreeVisitor {
             world.error('invalid initializer', init.span);
           }
         }
-
-        if (initializerCall != null) {
-          var target = _writeInitializerCall(initializerCall);
-          if (!target.isSuper) {
-            // when calling another constructor on the same class
-            // no other initialization is allowed
-            if (initializers.length > 0) {
-              for (var p in method.parameters) {
-                if (p.isInitializer) {
-                  world.error(
-                      'no initialization allowed on redirecting constructors',
-                      p.definition.span);
-                  break;
-                }
-              }
-            }
-            if (declaredInitializers.length > 1) {
-              var init = declaredInitializers[0] == initializerCall
-                  ? declaredInitializers[1] : declaredInitializers[0];
-              world.error(
-                  'no initialization allowed on redirecting constructors',
-                  init.span);
-            }
-            initializedFields = null;
-          }
-          // TODO(sigmund): check for initialization cycles
-        } else {
-          // TODO(jimhug): Is it an error not to have an initializerCall?
-        }
       }
       writer.comment('// Initializers done');
+    }
+
+    if (method.isConstructor && initializerCall == null) {
+      var parentType = method.declaringType.parent;
+      if (parentType != null && !parentType.isObject) {
+        // TODO(jmesserly): we could omit this if all supertypes are using
+        // default constructors.
+        initializerCall = new CallExpression(
+            new SuperExpression(method.span), [], method.span);
+      }
+    }
+
+    if (initializerCall != null) {
+      var target = _writeInitializerCall(initializerCall);
+      if (!target.isSuper) {
+        // when calling another constructor on the same class
+        // no other initialization is allowed
+        if (initializers.length > 0) {
+          for (var p in method.parameters) {
+            if (p.isInitializer) {
+              world.error(
+                  'no initialization allowed on redirecting constructors',
+                  p.definition.span);
+              break;
+            }
+          }
+        }
+        if (declaredInitializers != null && declaredInitializers.length > 1) {
+          var init = declaredInitializers[0] == initializerCall
+              ? declaredInitializers[1] : declaredInitializers[0];
+          world.error(
+              'no initialization allowed on redirecting constructors',
+              init.span);
+        }
+        initializedFields = null;
+      }
     }
 
     // check that initialization was correct

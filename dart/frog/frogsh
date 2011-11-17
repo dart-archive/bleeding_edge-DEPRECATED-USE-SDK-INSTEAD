@@ -960,8 +960,8 @@ ListIterator.prototype.next$0 = function() {
 // ********** Code for ImmutableList **************
 function ImmutableList(length) {
   this._length = length;
-  ListFactory$E.call(this, length);
   // Initializers done
+  ListFactory$E.call(this, length);
 }
 /** Implements extends for Dart classes on JavaScript prototypes. */
 function $inherits(child, parent) {
@@ -1795,8 +1795,8 @@ $inherits(DoubleLinkedQueueEntry$KeyValuePair$K$V, DoubleLinkedQueueEntry);
 DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype.is$DoubleLinkedQueueEntry$KeyValuePair$K$V = function(){return this;};
 // ********** Code for _DoubleLinkedQueueEntrySentinel **************
 function _DoubleLinkedQueueEntrySentinel() {
-  DoubleLinkedQueueEntry$E.call(this, null);
   // Initializers done
+  DoubleLinkedQueueEntry$E.call(this, null);
   this._link(this, this);
 }
 $inherits(_DoubleLinkedQueueEntrySentinel, DoubleLinkedQueueEntry$E);
@@ -1811,15 +1811,15 @@ _DoubleLinkedQueueEntrySentinel.prototype.get$element = function() {
 }
 // ********** Code for _DoubleLinkedQueueEntrySentinel$E **************
 function _DoubleLinkedQueueEntrySentinel$E() {
-  DoubleLinkedQueueEntry$E.call(this, null);
   // Initializers done
+  DoubleLinkedQueueEntry$E.call(this, null);
   this._link(this, this);
 }
 $inherits(_DoubleLinkedQueueEntrySentinel$E, _DoubleLinkedQueueEntrySentinel);
 // ********** Code for _DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V **************
 function _DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V() {
-  DoubleLinkedQueueEntry$E.call(this, null);
   // Initializers done
+  DoubleLinkedQueueEntry$E.call(this, null);
   this._link(this, this);
 }
 $inherits(_DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V, _DoubleLinkedQueueEntrySentinel);
@@ -2405,7 +2405,9 @@ LinkFactory.Link$factory = function(head, tail) {
 function LinkFactory$Node() {}
 $inherits(LinkFactory$Node, LinkFactory);
 // ********** Code for AbstractLink **************
-function AbstractLink() {}
+function AbstractLink() {
+  // Initializers done
+}
 AbstractLink.prototype.is$Link = function(){return this;};
 AbstractLink.prototype.is$Link$Element = function(){return this;};
 AbstractLink.prototype.is$Link$Node = function(){return this;};
@@ -2457,7 +2459,9 @@ AbstractLink.prototype.toString$0 = function() {
   return this.toString();
 };
 // ********** Code for AbstractLink$T **************
-function AbstractLink$T() {}
+function AbstractLink$T() {
+  // Initializers done
+}
 $inherits(AbstractLink$T, AbstractLink);
 AbstractLink$T.prototype.is$Link = function(){return this;};
 AbstractLink$T.prototype.is$Link$Element = function(){return this;};
@@ -2473,6 +2477,7 @@ AbstractLink$T.prototype.iterator = function() {
 // ********** Code for LinkTail **************
 function LinkTail() {
   // Initializers done
+  AbstractLink$T.call(this);
 }
 $inherits(LinkTail, AbstractLink$T);
 LinkTail.prototype.is$Link = function(){return this;};
@@ -2522,6 +2527,7 @@ function LinkEntry(head, realTail) {
   this.head = head;
   this.realTail = realTail;
   // Initializers done
+  AbstractLink$T.call(this);
 }
 $inherits(LinkEntry, AbstractLink$T);
 LinkEntry.prototype.get$head = function() { return this.head; };
@@ -2548,6 +2554,7 @@ function LinkEntry$T(head, realTail) {
   this.head = head;
   this.realTail = realTail;
   // Initializers done
+  AbstractLink$T.call(this);
 }
 $inherits(LinkEntry$T, LinkEntry);
 // ********** Code for LinkBuilderImplementation **************
@@ -2591,6 +2598,7 @@ function ArrayBasedScanner() {
   this.byteOffset = -1;
   this.tokens = new Token(0/*null.EOF_TOKEN*/, -1);
   // Initializers done
+  AbstractScanner$S.call(this);
   this.tail = this.tokens;
 }
 $inherits(ArrayBasedScanner, AbstractScanner$S);
@@ -2708,13 +2716,16 @@ function ArrayBasedScanner$SourceString() {
   this.byteOffset = -1;
   this.tokens = new Token(0/*null.EOF_TOKEN*/, -1);
   // Initializers done
+  AbstractScanner$S.call(this);
   this.tail = this.tokens;
 }
 $inherits(ArrayBasedScanner$SourceString, ArrayBasedScanner);
 // ********** Code for top level **************
 //  ********** Library scanner **************
 // ********** Code for AbstractScanner **************
-function AbstractScanner() {}
+function AbstractScanner() {
+  // Initializers done
+}
 AbstractScanner.prototype.tokenize = function() {
   var next = this.advance();
   while (next != -1) {
@@ -3535,7 +3546,9 @@ AbstractScanner.prototype.tokenizeMultiLineString = function(q, start, raw) {
 }
 AbstractScanner.prototype.appendByteStringToken$2 = AbstractScanner.prototype.appendByteStringToken;
 // ********** Code for AbstractScanner$S **************
-function AbstractScanner$S() {}
+function AbstractScanner$S() {
+  // Initializers done
+}
 $inherits(AbstractScanner$S, AbstractScanner);
 AbstractScanner$S.prototype.tokenize = function() {
   var next = this.advance();
@@ -4368,8 +4381,8 @@ MalformedInputException.prototype.toString$0 = function() {
 };
 // ********** Code for ScannerTask **************
 function ScannerTask(compiler) {
-  CompilerTask.call(this, compiler);
   // Initializers done
+  CompilerTask.call(this, compiler);
 }
 $inherits(ScannerTask, CompilerTask);
 ScannerTask.prototype.get$name = function() {
@@ -4810,8 +4823,8 @@ PartialParser.prototype.parseClass$1 = function($0) {
 };
 // ********** Code for Parser **************
 function Parser(listener) {
-  PartialParser.call(this, listener);
   // Initializers done
+  PartialParser.call(this, listener);
 }
 $inherits(Parser, PartialParser);
 Parser.prototype.parseFunction = function(token) {
@@ -5377,8 +5390,8 @@ Parser.prototype.parseFunction$1 = function($0) {
 };
 // ********** Code for ParserTask **************
 function ParserTask(compiler) {
-  CompilerTask.call(this, compiler);
   // Initializers done
+  CompilerTask.call(this, compiler);
 }
 $inherits(ParserTask, CompilerTask);
 ParserTask.prototype.get$name = function() {
@@ -5393,7 +5406,9 @@ ParserTask.prototype.parse = function(element) {
   )) && $0.is$Node());
 }
 // ********** Code for Listener **************
-function Listener() {}
+function Listener() {
+  // Initializers done
+}
 Listener.prototype.beginArguments = function(token) {
 
 }
@@ -5838,6 +5853,7 @@ function ElementListener(canceler) {
   this.topLevelElements = const$14/*const EmptyLink()*/
   this.canceler = canceler;
   // Initializers done
+  Listener.call(this);
 }
 $inherits(ElementListener, Listener);
 ElementListener.prototype.beginLibraryTag = function(token) {
@@ -5971,8 +5987,8 @@ ElementListener.prototype.unexpectedEof$0 = function() {
 // ********** Code for NodeListener **************
 function NodeListener(canceler, logger) {
   this.logger = logger;
-  ElementListener.call(this, canceler);
   // Initializers done
+  ElementListener.call(this, canceler);
   this.onError = this.get$handleOnError();
 }
 $inherits(NodeListener, ElementListener);
@@ -6222,8 +6238,8 @@ NodeListener.prototype.handleVoidKeyword$1 = function($0) {
 function PartialFunctionElement(name, beginToken, endToken) {
   this.beginToken = beginToken;
   this.endToken = endToken;
-  FunctionElement.call(this, name);
   // Initializers done
+  FunctionElement.call(this, name);
 }
 $inherits(PartialFunctionElement, FunctionElement);
 PartialFunctionElement.prototype.parseNode = function(canceler, logger) {
@@ -6240,8 +6256,8 @@ PartialFunctionElement.prototype.parseNode = function(canceler, logger) {
 function PartialClassElement(name, beginToken, endToken) {
   this.beginToken = beginToken;
   this.endToken = endToken;
-  ClassElement.call(this, name);
   // Initializers done
+  ClassElement.call(this, name);
 }
 $inherits(PartialClassElement, ClassElement);
 PartialClassElement.prototype.parseNode = function(canceler, logger) {
@@ -6257,8 +6273,8 @@ PartialClassElement.prototype.parseNode = function(canceler, logger) {
 // ********** Code for StringScanner **************
 function StringScanner(string) {
   this.string = string;
-  ArrayBasedScanner$SourceString.call(this);
   // Initializers done
+  ArrayBasedScanner$SourceString.call(this);
 }
 $inherits(StringScanner, ArrayBasedScanner$SourceString);
 StringScanner.prototype.nextByte = function() {
@@ -6341,8 +6357,8 @@ Token.prototype.toString$0 = function() {
 // ********** Code for KeywordToken **************
 function KeywordToken(value, charOffset) {
   this.value = value;
-  Token.call(this, 107/*null.KEYWORD_TOKEN*/, charOffset);
   // Initializers done
+  Token.call(this, 107/*null.KEYWORD_TOKEN*/, charOffset);
 }
 $inherits(KeywordToken, Token);
 KeywordToken.prototype.get$value = function() { return this.value; };
@@ -6357,13 +6373,13 @@ KeywordToken.prototype.toString$0 = function() {
 };
 // ********** Code for StringToken **************
 function StringToken(kind, value, charOffset) {
-  StringToken.fromSource$ctor.call(this, kind, new StringWrapper(value), charOffset);
   // Initializers done
+  StringToken.fromSource$ctor.call(this, kind, new StringWrapper(value), charOffset);
 }
 StringToken.fromSource$ctor = function(kind, value, charOffset) {
   this.value = value;
-  Token.call(this, kind, charOffset);
   // Initializers done
+  Token.call(this, kind, charOffset);
 }
 StringToken.fromSource$ctor.prototype = StringToken.prototype;
 $inherits(StringToken, Token);
@@ -6409,8 +6425,8 @@ StringWrapper.prototype.toString$0 = function() {
 };
 // ********** Code for BeginGroupToken **************
 function BeginGroupToken(kind, value, charOffset) {
-  StringToken.call(this, kind, value, charOffset);
   // Initializers done
+  StringToken.call(this, kind, value, charOffset);
 }
 $inherits(BeginGroupToken, StringToken);
 BeginGroupToken.prototype.is$BeginGroupToken = function(){return this;};
@@ -6460,7 +6476,9 @@ Keyword.prototype.toString$0 = function() {
   return this.toString();
 };
 // ********** Code for KeywordState **************
-function KeywordState() {}
+function KeywordState() {
+  // Initializers done
+}
 KeywordState.prototype.is$KeywordState = function(){return this;};
 KeywordState.get$KEYWORD_STATE = function() {
   if (KeywordState._KEYWORD_STATE == null) {
@@ -6508,6 +6526,7 @@ KeywordState.computeKeywordStateTable = function(start, strings, offset, length)
 function ArrayKeywordState(table) {
   this.table = table;
   // Initializers done
+  KeywordState.call(this);
 }
 $inherits(ArrayKeywordState, KeywordState);
 ArrayKeywordState.prototype.isLeaf = function() {
@@ -6540,6 +6559,7 @@ ArrayKeywordState.prototype.toString$0 = function() {
 function LeafKeywordState(syntax) {
   this.keyword = Keyword.get$keywords().$index(syntax);
   // Initializers done
+  KeywordState.call(this);
 }
 $inherits(LeafKeywordState, KeywordState);
 LeafKeywordState.prototype.get$keyword = function() { return this.keyword; };
@@ -6566,7 +6586,10 @@ function parse(canceler, logger, doParse) {
 }
 //  ********** Library tree **************
 // ********** Code for Node **************
-function Node() {}
+function Node() {
+  this._hashCode = (Math.random() * 0xFFFFFFFF).toInt();
+  // Initializers done
+}
 Node.prototype.is$Node = function(){return this;};
 Node.prototype.hashCode = function() {
   return this._hashCode;
@@ -6610,6 +6633,7 @@ function ClassNode(name, superclass, interfaces, beginToken, extendsKeyword, end
   this.extendsKeyword = extendsKeyword;
   this.endToken = endToken;
   // Initializers done
+  Node.call(this);
 }
 $inherits(ClassNode, Node);
 ClassNode.prototype.is$ClassNode = function(){return this;};
@@ -6640,11 +6664,17 @@ ClassNode.prototype.getEndToken$0 = function() {
   return this.getEndToken();
 };
 // ********** Code for Expression **************
-function Expression() {}
+function Expression() {
+  // Initializers done
+  Node.call(this);
+}
 $inherits(Expression, Node);
 Expression.prototype.is$Expression = function(){return this;};
 // ********** Code for Statement **************
-function Statement() {}
+function Statement() {
+  // Initializers done
+  Node.call(this);
+}
 $inherits(Statement, Node);
 Statement.prototype.is$Statement = function(){return this;};
 // ********** Code for Send **************
@@ -6653,12 +6683,14 @@ function Send(receiver, selector, argumentsNode) {
   this.selector = selector;
   this.argumentsNode = argumentsNode;
   // Initializers done
+  Expression.call(this);
 }
 Send.postfix$ctor = function(receiver, selector) {
   this.receiver = receiver;
   this.selector = selector;
   this.argumentsNode = const$249/*const Postfix()*/;
   // Initializers done
+  Expression.call(this);
 }
 Send.postfix$ctor.prototype = Send.prototype;
 Send.prefix$ctor = function(receiver, selector) {
@@ -6666,6 +6698,7 @@ Send.prefix$ctor = function(receiver, selector) {
   this.selector = selector;
   this.argumentsNode = const$248/*const Prefix()*/;
   // Initializers done
+  Expression.call(this);
 }
 Send.prefix$ctor.prototype = Send.prototype;
 $inherits(Send, Expression);
@@ -6712,21 +6745,21 @@ Send.prototype.getEndToken$0 = function() {
 };
 // ********** Code for Postfix **************
 function Postfix() {
-  NodeList.call(this);
   // Initializers done
+  NodeList.call(this);
 }
 $inherits(Postfix, NodeList);
 // ********** Code for Prefix **************
 function Prefix() {
-  NodeList.call(this);
   // Initializers done
+  NodeList.call(this);
 }
 $inherits(Prefix, NodeList);
 // ********** Code for SendSet **************
 function SendSet(receiver, selector, assignmentOperator, argumentsNode) {
   this.assignmentOperator = assignmentOperator;
-  Send.call(this, receiver, selector, argumentsNode);
   // Initializers done
+  Send.call(this, receiver, selector, argumentsNode);
 }
 $inherits(SendSet, Send);
 SendSet.prototype.is$SendSet = function(){return this;};
@@ -6743,10 +6776,11 @@ function NodeList(beginToken, nodes, endToken, delimiter) {
   this.endToken = endToken;
   this.delimiter = delimiter;
   // Initializers done
+  Node.call(this);
 }
 NodeList.singleton$ctor = function(node) {
-  NodeList.call(this, null, LinkFactory.Link$factory(node));
   // Initializers done
+  NodeList.call(this, null, LinkFactory.Link$factory(node));
 }
 NodeList.singleton$ctor.prototype = NodeList.prototype;
 $inherits(NodeList, Node);
@@ -6794,6 +6828,7 @@ NodeList.prototype.getEndToken$0 = function() {
 function Block(statements) {
   this.statements = statements;
   // Initializers done
+  Statement.call(this);
 }
 $inherits(Block, Statement);
 Block.prototype.accept = function(visitor) {
@@ -6822,6 +6857,7 @@ function If(condition, thenPart, elsePart, ifToken, elseToken) {
   this.ifToken = ifToken;
   this.elseToken = elseToken;
   // Initializers done
+  Statement.call(this);
 }
 $inherits(If, Statement);
 If.prototype.get$hasElsePart = function() {
@@ -6854,6 +6890,7 @@ function For(initializer, condition, update, body, forToken) {
   this.body = body;
   this.forToken = forToken;
   // Initializers done
+  Statement.call(this);
 }
 $inherits(For, Statement);
 For.prototype.accept = function(visitor) {
@@ -6881,6 +6918,7 @@ function FunctionExpression(name, parameters, body, returnType) {
   this.body = body;
   this.returnType = returnType;
   // Initializers done
+  Expression.call(this);
 }
 $inherits(FunctionExpression, Expression);
 FunctionExpression.prototype.is$FunctionExpression = function(){return this;};
@@ -6910,6 +6948,7 @@ function Literal(token, handler) {
   this.token = token;
   this.handler = handler;
   // Initializers done
+  Expression.call(this);
 }
 $inherits(Literal, Expression);
 Literal.prototype.getBeginToken = function() {
@@ -6929,6 +6968,7 @@ function Literal$SourceString(token, handler) {
   this.token = token;
   this.handler = handler;
   // Initializers done
+  Expression.call(this);
 }
 $inherits(Literal$SourceString, Literal);
 // ********** Code for Literal$bool **************
@@ -6936,6 +6976,7 @@ function Literal$bool(token, handler) {
   this.token = token;
   this.handler = handler;
   // Initializers done
+  Expression.call(this);
 }
 $inherits(Literal$bool, Literal);
 // ********** Code for Literal$double **************
@@ -6943,6 +6984,7 @@ function Literal$double(token, handler) {
   this.token = token;
   this.handler = handler;
   // Initializers done
+  Expression.call(this);
 }
 $inherits(Literal$double, Literal);
 // ********** Code for Literal$int **************
@@ -6950,12 +6992,13 @@ function Literal$int(token, handler) {
   this.token = token;
   this.handler = handler;
   // Initializers done
+  Expression.call(this);
 }
 $inherits(Literal$int, Literal);
 // ********** Code for LiteralInt **************
 function LiteralInt(token, handler) {
-  Literal$int.call(this, token, handler);
   // Initializers done
+  Literal$int.call(this, token, handler);
 }
 $inherits(LiteralInt, Literal$int);
 LiteralInt.prototype.get$value = function() {
@@ -6975,8 +7018,8 @@ LiteralInt.prototype.accept$1 = function($0) {
 };
 // ********** Code for LiteralDouble **************
 function LiteralDouble(token, handler) {
-  Literal$double.call(this, token, handler);
   // Initializers done
+  Literal$double.call(this, token, handler);
 }
 $inherits(LiteralDouble, Literal$double);
 LiteralDouble.prototype.get$value = function() {
@@ -6996,8 +7039,8 @@ LiteralDouble.prototype.accept$1 = function($0) {
 };
 // ********** Code for LiteralBool **************
 function LiteralBool(token, handler) {
-  Literal$bool.call(this, token, handler);
   // Initializers done
+  Literal$bool.call(this, token, handler);
 }
 $inherits(LiteralBool, Literal$bool);
 LiteralBool.prototype.get$value = function() {
@@ -7024,8 +7067,8 @@ LiteralBool.prototype.accept$1 = function($0) {
 };
 // ********** Code for LiteralString **************
 function LiteralString(token) {
-  Literal$SourceString.call(this, token, to$call$2(null));
   // Initializers done
+  Literal$SourceString.call(this, token, to$call$2(null));
 }
 $inherits(LiteralString, Literal$SourceString);
 LiteralString.prototype.is$LiteralString = function(){return this;};
@@ -7043,6 +7086,7 @@ LiteralString.prototype.accept$1 = function($0) {
 function Identifier(token) {
   this.token = token;
   // Initializers done
+  Expression.call(this);
 }
 $inherits(Identifier, Expression);
 Identifier.prototype.is$Identifier = function(){return this;};
@@ -7070,8 +7114,8 @@ Identifier.prototype.getEndToken$0 = function() {
 };
 // ********** Code for Operator **************
 function Operator(token) {
-  Identifier.call(this, token);
   // Initializers done
+  Identifier.call(this, token);
 }
 $inherits(Operator, Identifier);
 Operator.prototype.is$Operator = function(){return this;};
@@ -7087,6 +7131,7 @@ function Return(beginToken, endToken, expression) {
   this.endToken = endToken;
   this.expression = expression;
   // Initializers done
+  Statement.call(this);
 }
 $inherits(Return, Statement);
 Return.prototype.get$hasExpression = function() {
@@ -7115,6 +7160,7 @@ function ExpressionStatement(expression, endToken) {
   this.expression = expression;
   this.endToken = endToken;
   // Initializers done
+  Statement.call(this);
 }
 $inherits(ExpressionStatement, Statement);
 ExpressionStatement.prototype.is$ExpressionStatement = function(){return this;};
@@ -7143,6 +7189,7 @@ function Throw(expression, throwToken, endToken) {
   this.throwToken = throwToken;
   this.endToken = endToken;
   // Initializers done
+  Statement.call(this);
 }
 $inherits(Throw, Statement);
 Throw.prototype.accept = function(visitor) {
@@ -7167,6 +7214,7 @@ Throw.prototype.getEndToken$0 = function() {
 function TypeAnnotation(typeName) {
   this.typeName = typeName;
   // Initializers done
+  Node.call(this);
 }
 $inherits(TypeAnnotation, Node);
 TypeAnnotation.prototype.is$TypeAnnotation = function(){return this;};
@@ -7198,6 +7246,7 @@ function VariableDefinitions(type, modifiers, definitions, endToken) {
   this.definitions = definitions;
   this.endToken = endToken;
   // Initializers done
+  Statement.call(this);
 }
 $inherits(VariableDefinitions, Statement);
 VariableDefinitions.prototype.is$VariableDefinitions = function(){return this;};
@@ -7406,8 +7455,8 @@ Element.prototype.hashCode$0 = function() {
 function VariableElement(node, typeAnnotation, name, enclosingElement) {
   this.node = node;
   this.typeAnnotation = typeAnnotation;
-  Element.call(this, name, const$266, enclosingElement);
   // Initializers done
+  Element.call(this, name, const$266, enclosingElement);
 }
 $inherits(VariableElement, Element);
 VariableElement.prototype.get$type = function() { return this.type; };
@@ -7423,8 +7472,8 @@ VariableElement.prototype.computeType$2 = function($0, $1) {
 };
 // ********** Code for ForeignElement **************
 function ForeignElement(name) {
-  Element.call(this, name, const$242, null);
   // Initializers done
+  Element.call(this, name, const$242, null);
 }
 $inherits(ForeignElement, Element);
 ForeignElement.prototype.computeType = function(compiler, types) {
@@ -7435,8 +7484,8 @@ ForeignElement.prototype.computeType$2 = function($0, $1) {
 };
 // ********** Code for FunctionElement **************
 function FunctionElement(name) {
-  Element.call(this, name, const$239, null);
   // Initializers done
+  Element.call(this, name, const$239, null);
 }
 $inherits(FunctionElement, Element);
 FunctionElement.prototype.get$type = function() { return this.type; };
@@ -7461,8 +7510,8 @@ FunctionElement.prototype.computeType$2 = FunctionElement.prototype.computeType;
 function ClassElement(name) {
   this.interfaces = const$14/*const EmptyLink()*/
   this.isResolved = false
-  Element.call(this, name, const$237, null);
   // Initializers done
+  Element.call(this, name, const$237, null);
 }
 $inherits(ClassElement, Element);
 ClassElement.prototype.is$ClassElement = function(){return this;};
@@ -7496,8 +7545,8 @@ function getType(annotation, types) {
 //  ********** Library ssa **************
 // ********** Code for SsaBuilderTask **************
 function SsaBuilderTask(compiler) {
-  CompilerTask.call(this, compiler);
   // Initializers done
+  CompilerTask.call(this, compiler);
 }
 $inherits(SsaBuilderTask, CompilerTask);
 SsaBuilderTask.prototype.get$name = function() {
@@ -7877,8 +7926,8 @@ SsaBuilder.prototype.visit$1 = function($0) {
 };
 // ********** Code for SsaCodeGeneratorTask **************
 function SsaCodeGeneratorTask(compiler) {
-  CompilerTask.call(this, compiler);
   // Initializers done
+  CompilerTask.call(this, compiler);
 }
 $inherits(SsaCodeGeneratorTask, CompilerTask);
 SsaCodeGeneratorTask.prototype.get$name = function() {
@@ -8231,8 +8280,8 @@ HGraphVisitor.prototype.visitPostDominatorTree = function(graph) {
 }
 // ********** Code for HInstructionVisitor **************
 function HInstructionVisitor() {
-  HGraphVisitor.call(this);
   // Initializers done
+  HGraphVisitor.call(this);
 }
 $inherits(HInstructionVisitor, HGraphVisitor);
 HInstructionVisitor.prototype.visitBasicBlock = function(node) {
@@ -8306,8 +8355,8 @@ HGraph.prototype.isValid = function() {
 }
 // ********** Code for HBaseVisitor **************
 function HBaseVisitor() {
-  HGraphVisitor.call(this);
   // Initializers done
+  HGraphVisitor.call(this);
 }
 $inherits(HBaseVisitor, HGraphVisitor);
 HBaseVisitor.prototype.is$HVisitor = function(){return this;};
@@ -8383,7 +8432,11 @@ HBaseVisitor.prototype.visitTruncatingDivide = function(node) {
   return this.visitArithmetic(node);
 }
 // ********** Code for HInstructionList **************
-function HInstructionList() {}
+function HInstructionList() {
+  this.first = null
+  this.last = null
+  // Initializers done
+}
 HInstructionList.prototype.isEmpty = function() {
   return this.first == null;
 }
@@ -8445,8 +8498,8 @@ function HBasicBlock() {
   this.status = 0/*HBasicBlock.STATUS_NEW*/
   this.isLoopHeader = false
   this.dominator = null
-  HBasicBlock.withId$ctor.call(this, null);
   // Initializers done
+  HBasicBlock.withId$ctor.call(this, null);
 }
 HBasicBlock.withId$ctor = function(id) {
   this.status = 0/*HBasicBlock.STATUS_NEW*/
@@ -8457,6 +8510,7 @@ HBasicBlock.withId$ctor = function(id) {
   this.successors = const$13/*const []*/;
   this.dominatedBlocks = [];
   // Initializers done
+  HInstructionList.call(this);
 }
 HBasicBlock.withId$ctor.prototype = HBasicBlock.prototype;
 $inherits(HBasicBlock, HInstructionList);
@@ -8708,8 +8762,8 @@ HInstruction.prototype.setGenerateAtUseSite$0 = function() {
 };
 // ********** Code for HConditionalBranch **************
 function HConditionalBranch(inputs) {
-  HControlFlow.call(this, inputs);
   // Initializers done
+  HControlFlow.call(this, inputs);
 }
 $inherits(HConditionalBranch, HControlFlow);
 HConditionalBranch.prototype.toString$0 = function() {
@@ -8717,8 +8771,8 @@ HConditionalBranch.prototype.toString$0 = function() {
 };
 // ********** Code for HControlFlow **************
 function HControlFlow(inputs) {
-  HInstruction.call(this, inputs);
   // Initializers done
+  HInstruction.call(this, inputs);
 }
 $inherits(HControlFlow, HInstruction);
 HControlFlow.prototype.toString$0 = function() {
@@ -8727,8 +8781,8 @@ HControlFlow.prototype.toString$0 = function() {
 // ********** Code for HInvoke **************
 function HInvoke(element, inputs) {
   this.element = element;
-  HInstruction.call(this, inputs);
   // Initializers done
+  HInstruction.call(this, inputs);
 }
 $inherits(HInvoke, HInstruction);
 HInvoke.prototype.get$element = function() { return this.element; };
@@ -8747,8 +8801,8 @@ HInvoke.prototype.toString$0 = function() {
 // ********** Code for HInvokeForeign **************
 function HInvokeForeign(element, inputs, code) {
   this.code = code;
-  HInvoke.call(this, element, inputs);
   // Initializers done
+  HInvoke.call(this, element, inputs);
 }
 $inherits(HInvokeForeign, HInvoke);
 HInvokeForeign.prototype.accept = function(visitor) {
@@ -8759,8 +8813,8 @@ HInvokeForeign.prototype.accept$1 = function($0) {
 };
 // ********** Code for HArithmetic **************
 function HArithmetic(element, inputs) {
-  HInvoke.call(this, element, inputs);
   // Initializers done
+  HInvoke.call(this, element, inputs);
 }
 $inherits(HArithmetic, HInvoke);
 HArithmetic.prototype.prepareGvn = function() {
@@ -8770,8 +8824,8 @@ HArithmetic.prototype.prepareGvn = function() {
 }
 // ********** Code for HAdd **************
 function HAdd(element, inputs) {
-  HArithmetic.call(this, element, inputs);
   // Initializers done
+  HArithmetic.call(this, element, inputs);
 }
 $inherits(HAdd, HArithmetic);
 HAdd.prototype.prepareGvn = function() {
@@ -8790,8 +8844,8 @@ HAdd.prototype.accept$1 = function($0) {
 };
 // ********** Code for HDivide **************
 function HDivide(element, inputs) {
-  HArithmetic.call(this, element, inputs);
   // Initializers done
+  HArithmetic.call(this, element, inputs);
 }
 $inherits(HDivide, HArithmetic);
 HDivide.prototype.accept = function(visitor) {
@@ -8805,8 +8859,8 @@ HDivide.prototype.accept$1 = function($0) {
 };
 // ********** Code for HMultiply **************
 function HMultiply(element, inputs) {
-  HArithmetic.call(this, element, inputs);
   // Initializers done
+  HArithmetic.call(this, element, inputs);
 }
 $inherits(HMultiply, HArithmetic);
 HMultiply.prototype.accept = function(visitor) {
@@ -8820,8 +8874,8 @@ HMultiply.prototype.accept$1 = function($0) {
 };
 // ********** Code for HSubtract **************
 function HSubtract(element, inputs) {
-  HArithmetic.call(this, element, inputs);
   // Initializers done
+  HArithmetic.call(this, element, inputs);
 }
 $inherits(HSubtract, HArithmetic);
 HSubtract.prototype.accept = function(visitor) {
@@ -8835,8 +8889,8 @@ HSubtract.prototype.accept$1 = function($0) {
 };
 // ********** Code for HTruncatingDivide **************
 function HTruncatingDivide(element, inputs) {
-  HArithmetic.call(this, element, inputs);
   // Initializers done
+  HArithmetic.call(this, element, inputs);
 }
 $inherits(HTruncatingDivide, HArithmetic);
 HTruncatingDivide.prototype.accept = function(visitor) {
@@ -8850,8 +8904,8 @@ HTruncatingDivide.prototype.accept$1 = function($0) {
 };
 // ********** Code for HEquals **************
 function HEquals(element, inputs) {
-  HInvoke.call(this, element, inputs);
   // Initializers done
+  HInvoke.call(this, element, inputs);
 }
 $inherits(HEquals, HInvoke);
 HEquals.prototype.prepareGvn = function() {
@@ -8867,8 +8921,8 @@ HEquals.prototype.accept$1 = function($0) {
 };
 // ********** Code for HExit **************
 function HExit() {
-  HControlFlow.call(this, const$13/*const []*/);
   // Initializers done
+  HControlFlow.call(this, const$13/*const []*/);
 }
 $inherits(HExit, HControlFlow);
 HExit.prototype.toString = function() {
@@ -8885,8 +8939,8 @@ HExit.prototype.toString$0 = function() {
 };
 // ********** Code for HGoto **************
 function HGoto() {
-  HControlFlow.call(this, const$13/*const []*/);
   // Initializers done
+  HControlFlow.call(this, const$13/*const []*/);
 }
 $inherits(HGoto, HControlFlow);
 HGoto.prototype.toString = function() {
@@ -8904,8 +8958,8 @@ HGoto.prototype.toString$0 = function() {
 // ********** Code for HIf **************
 function HIf(condition, hasElse) {
   this.hasElse = hasElse;
-  HConditionalBranch.call(this, [condition]);
   // Initializers done
+  HConditionalBranch.call(this, [condition]);
 }
 $inherits(HIf, HConditionalBranch);
 HIf.prototype.toString = function() {
@@ -8922,8 +8976,8 @@ HIf.prototype.toString$0 = function() {
 };
 // ********** Code for HLoopBranch **************
 function HLoopBranch(condition) {
-  HConditionalBranch.call(this, [condition]);
   // Initializers done
+  HConditionalBranch.call(this, [condition]);
 }
 $inherits(HLoopBranch, HConditionalBranch);
 HLoopBranch.prototype.toString = function() {
@@ -8941,8 +8995,8 @@ HLoopBranch.prototype.toString$0 = function() {
 // ********** Code for HLiteral **************
 function HLiteral(value) {
   this.value = value;
-  HInstruction.call(this, []);
   // Initializers done
+  HInstruction.call(this, []);
 }
 $inherits(HLiteral, HInstruction);
 HLiteral.prototype.is$HLiteral = function(){return this;};
@@ -8979,8 +9033,8 @@ HLiteral.prototype.toString$0 = function() {
 // ********** Code for HParameter **************
 function HParameter(parameterIndex) {
   this.parameterIndex = parameterIndex;
-  HInstruction.call(this, []);
   // Initializers done
+  HInstruction.call(this, []);
 }
 $inherits(HParameter, HInstruction);
 HParameter.prototype.prepareGvn = function() {
@@ -9002,14 +9056,14 @@ HParameter.prototype.toString$0 = function() {
 function HPhi() {}
 HPhi.singleInput$ctor = function(element, input) {
   this.element = element;
-  HInstruction.call(this, [input]);
   // Initializers done
+  HInstruction.call(this, [input]);
 }
 HPhi.singleInput$ctor.prototype = HPhi.prototype;
 HPhi.manyInputs$ctor = function(element, inputs) {
   this.element = element;
-  HInstruction.call(this, inputs);
   // Initializers done
+  HInstruction.call(this, inputs);
 }
 HPhi.manyInputs$ctor.prototype = HPhi.prototype;
 $inherits(HPhi, HInstruction);
@@ -9034,8 +9088,8 @@ HPhi.prototype.toString$0 = function() {
 };
 // ********** Code for HReturn **************
 function HReturn(value) {
-  HControlFlow.call(this, [value]);
   // Initializers done
+  HControlFlow.call(this, [value]);
 }
 $inherits(HReturn, HControlFlow);
 HReturn.prototype.toString = function() {
@@ -9052,8 +9106,8 @@ HReturn.prototype.toString$0 = function() {
 };
 // ********** Code for HThrow **************
 function HThrow(value) {
-  HControlFlow.call(this, [value]);
   // Initializers done
+  HControlFlow.call(this, [value]);
 }
 $inherits(HThrow, HControlFlow);
 HThrow.prototype.toString = function() {
@@ -9070,8 +9124,8 @@ HThrow.prototype.toString$0 = function() {
 };
 // ********** Code for SsaOptimizerTask **************
 function SsaOptimizerTask(compiler) {
-  CompilerTask.call(this, compiler);
   // Initializers done
+  CompilerTask.call(this, compiler);
 }
 $inherits(SsaOptimizerTask, CompilerTask);
 SsaOptimizerTask.prototype.get$name = function() {
@@ -9087,8 +9141,8 @@ SsaOptimizerTask.prototype.optimize = function(graph) {
 }
 // ********** Code for SsaConstantFolder **************
 function SsaConstantFolder() {
-  HBaseVisitor.call(this);
   // Initializers done
+  HBaseVisitor.call(this);
 }
 $inherits(SsaConstantFolder, HBaseVisitor);
 SsaConstantFolder.prototype.visitGraph = function(graph) {
@@ -9148,8 +9202,8 @@ SsaConstantFolder.prototype.visitAdd = function(node) {
 }
 // ********** Code for SsaDeadCodeEliminator **************
 function SsaDeadCodeEliminator() {
-  HGraphVisitor.call(this);
   // Initializers done
+  HGraphVisitor.call(this);
 }
 $inherits(SsaDeadCodeEliminator, HGraphVisitor);
 SsaDeadCodeEliminator.isDeadCode = function(instruction) {
@@ -9168,8 +9222,8 @@ SsaDeadCodeEliminator.prototype.visitBasicBlock = function(block) {
 }
 // ********** Code for SsaInstructionMerger **************
 function SsaInstructionMerger() {
-  HInstructionVisitor.call(this);
   // Initializers done
+  HInstructionVisitor.call(this);
 }
 $inherits(SsaInstructionMerger, HInstructionVisitor);
 SsaInstructionMerger.prototype.visitGraph = function(graph) {
@@ -9194,6 +9248,7 @@ HTracer._internal$ctor = function() {
   this.indent = 0
   this.output = new StringBufferImpl("");
   // Initializers done
+  HGraphVisitor.call(this);
 }
 HTracer._internal$ctor.prototype = HTracer.prototype;
 $inherits(HTracer, HGraphVisitor);
@@ -9426,8 +9481,8 @@ HInstructionStringifier.prototype.visit$1 = function($0) {
 // ********** Code for HValidator **************
 function HValidator() {
   this.isValid = true
-  HInstructionVisitor.call(this);
   // Initializers done
+  HInstructionVisitor.call(this);
 }
 $inherits(HValidator, HInstructionVisitor);
 HValidator.prototype.visitGraph = function(graph) {
@@ -9547,8 +9602,8 @@ HValidator.prototype.visitInstruction = function(instruction) {
 // ********** Code for WorldCompiler **************
 function WorldCompiler(world, script) {
   this.world = world;
-  Compiler.call(this, script);
   // Initializers done
+  Compiler.call(this, script);
 }
 $inherits(WorldCompiler, Compiler);
 WorldCompiler.prototype.log = function(message) {
@@ -9708,8 +9763,8 @@ CompilerCancelledException.prototype.toString$0 = function() {
 // ********** Code for ResolverTask **************
 function ResolverTask(compiler) {
   this.toResolve = new DoubleLinkedQueue();
-  CompilerTask.call(this, compiler);
   // Initializers done
+  CompilerTask.call(this, compiler);
 }
 $inherits(ResolverTask, CompilerTask);
 ResolverTask.prototype.get$name = function() {
@@ -9989,8 +10044,8 @@ VariableDefinitionsVisitor.prototype.visit$1 = function($0) {
 };
 // ********** Code for Scope **************
 function Scope(parent) {
-  Scope.enclosing$ctor.call(this, parent, parent.enclosingElement);
   // Initializers done
+  Scope.enclosing$ctor.call(this, parent, parent.enclosingElement);
 }
 Scope.top$ctor = function() {
   this.parent = null;
@@ -10028,8 +10083,8 @@ Scope.prototype.lookup$1 = function($0) {
 // ********** Code for TopScope **************
 function TopScope(universe) {
   this.universe = universe;
-  Scope.top$ctor.call(this);
   // Initializers done
+  Scope.top$ctor.call(this);
 }
 $inherits(TopScope, Scope);
 TopScope.prototype.lookup = function(name) {
@@ -10055,8 +10110,8 @@ leg_Script.prototype.get$text = function() {
 // ********** Code for TypeCheckerTask **************
 function TypeCheckerTask(compiler) {
   this.types = new Types();
-  CompilerTask.call(this, compiler);
   // Initializers done
+  CompilerTask.call(this, compiler);
 }
 $inherits(TypeCheckerTask, CompilerTask);
 TypeCheckerTask.prototype.get$name = function() {
@@ -11256,14 +11311,14 @@ MethodGenerator.prototype.writeBody = function() {
   if ($notnull_bool(body == null) && !$notnull_bool(this.method.get$isConstructor())) {
     world.error(('unexpected empty body for ' + this.method.name + ''), this.method.get$definition().get$span());
   }
+  var initializerCall = null;
+  var declaredInitializers = this.method.get$definition().initializers;
   if ($notnull_bool($ne(initializers, null))) {
     for (var $i = initializers.iterator$0(); $i.hasNext$0(); ) {
       var i = $i.next$0();
       this.writer.writeln($assert_String(i));
     }
-    var declaredInitializers = this.method.get$definition().initializers;
     if (declaredInitializers != null) {
-      var initializerCall = null;
       for (var $i = 0;$i < declaredInitializers.length; $i++) {
         var init = declaredInitializers.$index($i);
         if ((init instanceof CallExpression)) {
@@ -11294,30 +11349,34 @@ MethodGenerator.prototype.writeBody = function() {
           world.error('invalid initializer', init.get$span());
         }
       }
-      if ($notnull_bool($ne(initializerCall, null))) {
-        var target = this._writeInitializerCall((initializerCall && initializerCall.is$CallExpression()));
-        if (!$notnull_bool(target.isSuper)) {
-          if (initializers.length > 0) {
-            var $list = this.method.get$parameters();
-            for (var $i = 0;$i < $list.length; $i++) {
-              var p = $list.$index($i);
-              if ($notnull_bool(p.isInitializer)) {
-                world.error('no initialization allowed on redirecting constructors', p.get$definition().get$span());
-                break;
-              }
-            }
-          }
-          if (declaredInitializers.length > 1) {
-            var init = $notnull_bool($eq(declaredInitializers.$index(0), initializerCall)) ? declaredInitializers.$index(1) : declaredInitializers.$index(0);
-            world.error('no initialization allowed on redirecting constructors', init.get$span());
-          }
-          initializedFields = null;
-        }
-      }
-      else {
-      }
     }
     this.writer.comment('// Initializers done');
+  }
+  if ($notnull_bool(this.method.get$isConstructor()) && $notnull_bool(initializerCall == null)) {
+    var parentType = this.method.declaringType.get$parent();
+    if ($notnull_bool($ne(parentType, null)) && !$notnull_bool(parentType.get$isObject())) {
+      initializerCall = new CallExpression(new SuperExpression(this.method.get$span()), [], this.method.get$span());
+    }
+  }
+  if ($notnull_bool($ne(initializerCall, null))) {
+    var target = this._writeInitializerCall((initializerCall && initializerCall.is$CallExpression()));
+    if (!$notnull_bool(target.isSuper)) {
+      if (initializers.length > 0) {
+        var $list = this.method.get$parameters();
+        for (var $i = 0;$i < $list.length; $i++) {
+          var p = $list.$index($i);
+          if ($notnull_bool(p.isInitializer)) {
+            world.error('no initialization allowed on redirecting constructors', p.get$definition().get$span());
+            break;
+          }
+        }
+      }
+      if (declaredInitializers != null && declaredInitializers.length > 1) {
+        var init = $notnull_bool($eq(declaredInitializers.$index(0), initializerCall)) ? declaredInitializers.$index(1) : declaredInitializers.$index(0);
+        world.error('no initialization allowed on redirecting constructors', init.get$span());
+      }
+      initializedFields = null;
+    }
   }
   if ($notnull_bool($ne(initializedFields, null))) {
     var $list = this.method.declaringType.get$members().getKeys();
@@ -12299,7 +12358,7 @@ MethodGenerator.prototype.visitNullExpression = function(node) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2099, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2106, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;
@@ -13077,8 +13136,8 @@ Member.prototype.resolve$1 = function($0) {
 // ********** Code for TypeMember **************
 function TypeMember(type) {
   this.type = type;
-  Member.call(this, type.name, type.library.topType);
   // Initializers done
+  Member.call(this, type.name, type.library.topType);
 }
 $inherits(TypeMember, Member);
 TypeMember.prototype.is$TypeMember = function(){return this;};
@@ -13143,8 +13202,8 @@ function FieldMember(name, declaringType, definition, value) {
   this.definition = definition;
   this.value = value;
   this.isNative = false;
-  Member.call(this, name, declaringType);
   // Initializers done
+  Member.call(this, name, declaringType);
 }
 $inherits(FieldMember, Member);
 FieldMember.prototype.is$FieldMember = function(){return this;};
@@ -13309,8 +13368,8 @@ FieldMember.prototype.resolve$1 = function($0) {
 // ********** Code for PropertyMember **************
 function PropertyMember(name, declaringType) {
   this._provideFieldSyntax = false
-  Member.call(this, name, declaringType);
   // Initializers done
+  Member.call(this, name, declaringType);
 }
 $inherits(PropertyMember, Member);
 PropertyMember.prototype.is$PropertyMember = function(){return this;};
@@ -13411,8 +13470,8 @@ PropertyMember.prototype.resolve$1 = function($0) {
 // ********** Code for ConcreteMember **************
 function ConcreteMember(name, declaringType, baseMember) {
   this.baseMember = baseMember;
-  Member.call(this, name, declaringType);
   // Initializers done
+  Member.call(this, name, declaringType);
   this.parameters = [];
   this.returnType = this.baseMember.get$returnType().resolveTypeParams(declaringType);
   var $list = this.baseMember.get$parameters();
@@ -13495,8 +13554,7 @@ ConcreteMember.prototype.get$definition = function() {
   return (($0 = this.baseMember.get$definition()) && $0.is$Definition());
 }
 ConcreteMember.prototype.get$initDelegate = function() {
-  var $0;
-  return (($0 = this.baseMember.get$initDelegate()) && $0.is$Definition());
+  return this.baseMember.get$initDelegate();
 }
 ConcreteMember.prototype.set$initDelegate = function(ctor) {
   this.baseMember.set$initDelegate(ctor);
@@ -13563,8 +13621,8 @@ function MethodMember(name, declaringType, definition) {
   this._provideFieldSyntax = false
   this._provideOptionalParamInfo = false
   this.definition = definition;
-  Member.call(this, name, declaringType);
   // Initializers done
+  Member.call(this, name, declaringType);
 }
 $inherits(MethodMember, Member);
 MethodMember.prototype.is$MethodMember = function(){return this;};
@@ -14689,6 +14747,7 @@ function TokenizerBase(_source, _skipWhitespace, _index) {
   this._skipWhitespace = _skipWhitespace;
   this._lang_index = _index;
   // Initializers done
+  TokenizerHelpers.call(this);
   this._text = this._source.get$text();
 }
 $inherits(TokenizerBase, TokenizerHelpers);
@@ -15019,8 +15078,8 @@ TokenizerBase.prototype.next$0 = function() {
 };
 // ********** Code for Tokenizer **************
 function Tokenizer(source, skipWhitespace, index) {
-  TokenizerBase.call(this, source, skipWhitespace, index);
   // Initializers done
+  TokenizerBase.call(this, source, skipWhitespace, index);
 }
 $inherits(Tokenizer, TokenizerBase);
 Tokenizer.prototype.next = function() {
@@ -15548,7 +15607,9 @@ Tokenizer.prototype.next$0 = function() {
   return this.next();
 };
 // ********** Code for TokenizerHelpers **************
-function TokenizerHelpers() {}
+function TokenizerHelpers() {
+  // Initializers done
+}
 TokenizerHelpers.isIdentifierStart = function(c) {
   return ((c >= 97 && c <= 122) || (c >= 65 && c <= 90) || c == 95);
 }
@@ -17942,8 +18003,8 @@ lang_Node.prototype.visit$1 = function($0) {
 };
 // ********** Code for Definition **************
 function Definition(span) {
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(Definition, lang_Statement);
 Definition.prototype.is$Definition = function(){return this;};
@@ -17955,23 +18016,23 @@ Definition.prototype.get$nativeType = function() {
 }
 // ********** Code for lang_Statement **************
 function lang_Statement(span) {
-  lang_Node.call(this, span);
   // Initializers done
+  lang_Node.call(this, span);
 }
 $inherits(lang_Statement, lang_Node);
 lang_Statement.prototype.is$lang_Statement = function(){return this;};
 // ********** Code for lang_Expression **************
 function lang_Expression(span) {
-  lang_Node.call(this, span);
   // Initializers done
+  lang_Node.call(this, span);
 }
 $inherits(lang_Expression, lang_Node);
 lang_Expression.prototype.is$lang_Expression = function(){return this;};
 // ********** Code for TypeReference **************
 function TypeReference(span, type) {
   this.type = type;
-  lang_Node.call(this, span);
   // Initializers done
+  lang_Node.call(this, span);
 }
 $inherits(TypeReference, lang_Node);
 TypeReference.prototype.is$TypeReference = function(){return this;};
@@ -17987,8 +18048,8 @@ TypeReference.prototype.visit$1 = function($0) {
 function DirectiveDefinition(name, arguments, span) {
   this.name = name;
   this.arguments = arguments;
-  Definition.call(this, span);
   // Initializers done
+  Definition.call(this, span);
 }
 $inherits(DirectiveDefinition, Definition);
 DirectiveDefinition.prototype.get$name = function() { return this.name; };
@@ -18011,8 +18072,8 @@ function TypeDefinition(isClass, name, typeParameters, extendsTypes, implementsT
   this.nativeType = nativeType;
   this.factoryType = factoryType;
   this.body = body;
-  Definition.call(this, span);
   // Initializers done
+  Definition.call(this, span);
 }
 $inherits(TypeDefinition, Definition);
 TypeDefinition.prototype.is$TypeDefinition = function(){return this;};
@@ -18034,8 +18095,8 @@ TypeDefinition.prototype.visit$1 = function($0) {
 function FunctionTypeDefinition(func, typeParameters, span) {
   this.func = func;
   this.typeParameters = typeParameters;
-  Definition.call(this, span);
   // Initializers done
+  Definition.call(this, span);
 }
 $inherits(FunctionTypeDefinition, Definition);
 FunctionTypeDefinition.prototype.get$typeParameters = function() { return this.typeParameters; };
@@ -18052,8 +18113,8 @@ function VariableDefinition(modifiers, type, names, values, span) {
   this.type = type;
   this.names = names;
   this.values = values;
-  Definition.call(this, span);
   // Initializers done
+  Definition.call(this, span);
 }
 $inherits(VariableDefinition, Definition);
 VariableDefinition.prototype.get$type = function() { return this.type; };
@@ -18072,8 +18133,8 @@ function FunctionDefinition(modifiers, returnType, name, formals, initializers, 
   this.formals = formals;
   this.initializers = initializers;
   this.body = body;
-  Definition.call(this, span);
   // Initializers done
+  Definition.call(this, span);
 }
 $inherits(FunctionDefinition, Definition);
 FunctionDefinition.prototype.is$FunctionDefinition = function(){return this;};
@@ -18090,8 +18151,8 @@ FunctionDefinition.prototype.visit$1 = function($0) {
 // ********** Code for ReturnStatement **************
 function ReturnStatement(value, span) {
   this.value = value;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(ReturnStatement, lang_Statement);
 ReturnStatement.prototype.get$value = function() { return this.value; };
@@ -18105,8 +18166,8 @@ ReturnStatement.prototype.visit$1 = function($0) {
 // ********** Code for ThrowStatement **************
 function ThrowStatement(value, span) {
   this.value = value;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(ThrowStatement, lang_Statement);
 ThrowStatement.prototype.get$value = function() { return this.value; };
@@ -18120,8 +18181,8 @@ ThrowStatement.prototype.visit$1 = function($0) {
 // ********** Code for AssertStatement **************
 function AssertStatement(test, span) {
   this.test = test;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(AssertStatement, lang_Statement);
 AssertStatement.prototype.visit = function(visitor) {
@@ -18133,8 +18194,8 @@ AssertStatement.prototype.visit$1 = function($0) {
 // ********** Code for BreakStatement **************
 function BreakStatement(label, span) {
   this.label = label;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(BreakStatement, lang_Statement);
 BreakStatement.prototype.visit = function(visitor) {
@@ -18146,8 +18207,8 @@ BreakStatement.prototype.visit$1 = function($0) {
 // ********** Code for ContinueStatement **************
 function ContinueStatement(label, span) {
   this.label = label;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(ContinueStatement, lang_Statement);
 ContinueStatement.prototype.visit = function(visitor) {
@@ -18161,8 +18222,8 @@ function IfStatement(test, trueBranch, falseBranch, span) {
   this.test = test;
   this.trueBranch = trueBranch;
   this.falseBranch = falseBranch;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(IfStatement, lang_Statement);
 IfStatement.prototype.visit = function(visitor) {
@@ -18175,8 +18236,8 @@ IfStatement.prototype.visit$1 = function($0) {
 function WhileStatement(test, body, span) {
   this.test = test;
   this.body = body;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(WhileStatement, lang_Statement);
 WhileStatement.prototype.visit = function(visitor) {
@@ -18189,8 +18250,8 @@ WhileStatement.prototype.visit$1 = function($0) {
 function DoStatement(body, test, span) {
   this.body = body;
   this.test = test;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(DoStatement, lang_Statement);
 DoStatement.prototype.visit = function(visitor) {
@@ -18205,8 +18266,8 @@ function ForStatement(init, test, step, body, span) {
   this.test = test;
   this.step = step;
   this.body = body;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(ForStatement, lang_Statement);
 ForStatement.prototype.visit = function(visitor) {
@@ -18220,8 +18281,8 @@ function ForInStatement(item, list, body, span) {
   this.item = item;
   this.list = list;
   this.body = body;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(ForInStatement, lang_Statement);
 ForInStatement.prototype.visit = function(visitor) {
@@ -18235,8 +18296,8 @@ function TryStatement(body, catches, finallyBlock, span) {
   this.body = body;
   this.catches = catches;
   this.finallyBlock = finallyBlock;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(TryStatement, lang_Statement);
 TryStatement.prototype.visit = function(visitor) {
@@ -18249,8 +18310,8 @@ TryStatement.prototype.visit$1 = function($0) {
 function SwitchStatement(test, cases, span) {
   this.test = test;
   this.cases = cases;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(SwitchStatement, lang_Statement);
 SwitchStatement.prototype.visit = function(visitor) {
@@ -18262,8 +18323,8 @@ SwitchStatement.prototype.visit$1 = function($0) {
 // ********** Code for BlockStatement **************
 function BlockStatement(body, span) {
   this.body = body;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(BlockStatement, lang_Statement);
 BlockStatement.prototype.is$BlockStatement = function(){return this;};
@@ -18277,8 +18338,8 @@ BlockStatement.prototype.visit$1 = function($0) {
 function LabeledStatement(name, body, span) {
   this.name = name;
   this.body = body;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(LabeledStatement, lang_Statement);
 LabeledStatement.prototype.get$name = function() { return this.name; };
@@ -18292,8 +18353,8 @@ LabeledStatement.prototype.visit$1 = function($0) {
 // ********** Code for lang_ExpressionStatement **************
 function lang_ExpressionStatement(body, span) {
   this.body = body;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(lang_ExpressionStatement, lang_Statement);
 lang_ExpressionStatement.prototype.visit = function(visitor) {
@@ -18304,8 +18365,8 @@ lang_ExpressionStatement.prototype.visit$1 = function($0) {
 };
 // ********** Code for EmptyStatement **************
 function EmptyStatement(span) {
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(EmptyStatement, lang_Statement);
 EmptyStatement.prototype.visit = function(visitor) {
@@ -18316,8 +18377,8 @@ EmptyStatement.prototype.visit$1 = function($0) {
 };
 // ********** Code for DietStatement **************
 function DietStatement(span) {
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(DietStatement, lang_Statement);
 DietStatement.prototype.visit = function(visitor) {
@@ -18329,8 +18390,8 @@ DietStatement.prototype.visit$1 = function($0) {
 // ********** Code for NativeStatement **************
 function NativeStatement(body, span) {
   this.body = body;
-  lang_Statement.call(this, span);
   // Initializers done
+  lang_Statement.call(this, span);
 }
 $inherits(NativeStatement, lang_Statement);
 NativeStatement.prototype.visit = function(visitor) {
@@ -18342,8 +18403,8 @@ NativeStatement.prototype.visit$1 = function($0) {
 // ********** Code for LambdaExpression **************
 function LambdaExpression(func, span) {
   this.func = func;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(LambdaExpression, lang_Expression);
 LambdaExpression.prototype.is$LambdaExpression = function(){return this;};
@@ -18357,8 +18418,8 @@ LambdaExpression.prototype.visit$1 = function($0) {
 function CallExpression(target, arguments, span) {
   this.target = target;
   this.arguments = arguments;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(CallExpression, lang_Expression);
 CallExpression.prototype.is$CallExpression = function(){return this;};
@@ -18374,8 +18435,8 @@ CallExpression.prototype.visit$1 = function($0) {
 function IndexExpression(target, index, span) {
   this.target = target;
   this.index = index;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(IndexExpression, lang_Expression);
 IndexExpression.prototype.is$IndexExpression = function(){return this;};
@@ -18390,8 +18451,8 @@ function BinaryExpression(op, x, y, span) {
   this.op = op;
   this.x = x;
   this.y = y;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(BinaryExpression, lang_Expression);
 BinaryExpression.prototype.is$BinaryExpression = function(){return this;};
@@ -18405,8 +18466,8 @@ BinaryExpression.prototype.visit$1 = function($0) {
 function UnaryExpression(op, self, span) {
   this.op = op;
   this.self = self;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(UnaryExpression, lang_Expression);
 UnaryExpression.prototype.visit = function(visitor) {
@@ -18419,8 +18480,8 @@ UnaryExpression.prototype.visit$1 = function($0) {
 function PostfixExpression(body, op, span) {
   this.body = body;
   this.op = op;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(PostfixExpression, lang_Expression);
 PostfixExpression.prototype.is$PostfixExpression = function(){return this;};
@@ -18436,8 +18497,8 @@ function lang_NewExpression(isConst, type, name, arguments, span) {
   this.type = type;
   this.name = name;
   this.arguments = arguments;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(lang_NewExpression, lang_Expression);
 lang_NewExpression.prototype.get$isConst = function() { return this.isConst; };
@@ -18459,8 +18520,8 @@ function ListExpression(isConst, type, values, span) {
   this.isConst = isConst;
   this.type = type;
   this.values = values;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(ListExpression, lang_Expression);
 ListExpression.prototype.get$isConst = function() { return this.isConst; };
@@ -18478,8 +18539,8 @@ function MapExpression(isConst, type, items, span) {
   this.isConst = isConst;
   this.type = type;
   this.items = items;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(MapExpression, lang_Expression);
 MapExpression.prototype.get$isConst = function() { return this.isConst; };
@@ -18497,8 +18558,8 @@ function ConditionalExpression(test, trueBranch, falseBranch, span) {
   this.test = test;
   this.trueBranch = trueBranch;
   this.falseBranch = falseBranch;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(ConditionalExpression, lang_Expression);
 ConditionalExpression.prototype.visit = function(visitor) {
@@ -18512,8 +18573,8 @@ function IsExpression(isTrue, x, type, span) {
   this.isTrue = isTrue;
   this.x = x;
   this.type = type;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(IsExpression, lang_Expression);
 IsExpression.prototype.get$type = function() { return this.type; };
@@ -18527,8 +18588,8 @@ IsExpression.prototype.visit$1 = function($0) {
 // ********** Code for ParenExpression **************
 function ParenExpression(body, span) {
   this.body = body;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(ParenExpression, lang_Expression);
 ParenExpression.prototype.visit = function(visitor) {
@@ -18541,8 +18602,8 @@ ParenExpression.prototype.visit$1 = function($0) {
 function DotExpression(self, name, span) {
   this.self = self;
   this.name = name;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(DotExpression, lang_Expression);
 DotExpression.prototype.is$DotExpression = function(){return this;};
@@ -18557,8 +18618,8 @@ DotExpression.prototype.visit$1 = function($0) {
 // ********** Code for VarExpression **************
 function VarExpression(name, span) {
   this.name = name;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(VarExpression, lang_Expression);
 VarExpression.prototype.is$VarExpression = function(){return this;};
@@ -18572,8 +18633,8 @@ VarExpression.prototype.visit$1 = function($0) {
 };
 // ********** Code for ThisExpression **************
 function ThisExpression(span) {
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(ThisExpression, lang_Expression);
 ThisExpression.prototype.visit = function(visitor) {
@@ -18584,8 +18645,8 @@ ThisExpression.prototype.visit$1 = function($0) {
 };
 // ********** Code for SuperExpression **************
 function SuperExpression(span) {
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(SuperExpression, lang_Expression);
 SuperExpression.prototype.visit = function(visitor) {
@@ -18596,8 +18657,8 @@ SuperExpression.prototype.visit$1 = function($0) {
 };
 // ********** Code for NullExpression **************
 function NullExpression(span) {
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(NullExpression, lang_Expression);
 NullExpression.prototype.visit = function(visitor) {
@@ -18611,8 +18672,8 @@ function LiteralExpression(value, type, text, span) {
   this.value = value;
   this.type = type;
   this.text = text;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(LiteralExpression, lang_Expression);
 LiteralExpression.prototype.get$value = function() { return this.value; };
@@ -18632,8 +18693,8 @@ function NameTypeReference(isFinal, name, names, span) {
   this.isFinal = isFinal;
   this.name = name;
   this.names = names;
-  TypeReference.call(this, span);
   // Initializers done
+  TypeReference.call(this, span);
 }
 $inherits(NameTypeReference, TypeReference);
 NameTypeReference.prototype.is$NameTypeReference = function(){return this;};
@@ -18650,8 +18711,8 @@ function GenericTypeReference(baseType, typeArguments, depth, span) {
   this.baseType = baseType;
   this.typeArguments = typeArguments;
   this.depth = depth;
-  TypeReference.call(this, span);
   // Initializers done
+  TypeReference.call(this, span);
 }
 $inherits(GenericTypeReference, TypeReference);
 GenericTypeReference.prototype.is$GenericTypeReference = function(){return this;};
@@ -18665,8 +18726,8 @@ GenericTypeReference.prototype.visit$1 = function($0) {
 function FunctionTypeReference(isFinal, func, span) {
   this.isFinal = isFinal;
   this.func = func;
-  TypeReference.call(this, span);
   // Initializers done
+  TypeReference.call(this, span);
 }
 $inherits(FunctionTypeReference, TypeReference);
 FunctionTypeReference.prototype.is$FunctionTypeReference = function(){return this;};
@@ -18680,8 +18741,8 @@ FunctionTypeReference.prototype.visit$1 = function($0) {
 function ArgumentNode(label, value, span) {
   this.label = label;
   this.value = value;
-  lang_Node.call(this, span);
   // Initializers done
+  lang_Node.call(this, span);
 }
 $inherits(ArgumentNode, lang_Node);
 ArgumentNode.prototype.is$ArgumentNode = function(){return this;};
@@ -18700,8 +18761,8 @@ function FormalNode(isThis, isRest, type, name, value, span) {
   this.type = type;
   this.name = name;
   this.value = value;
-  lang_Node.call(this, span);
   // Initializers done
+  lang_Node.call(this, span);
 }
 $inherits(FormalNode, lang_Node);
 FormalNode.prototype.get$type = function() { return this.type; };
@@ -18721,8 +18782,8 @@ function CatchNode(exception, trace, body, span) {
   this.exception = exception;
   this.trace = trace;
   this.body = body;
-  lang_Node.call(this, span);
   // Initializers done
+  lang_Node.call(this, span);
 }
 $inherits(CatchNode, lang_Node);
 CatchNode.prototype.get$exception = function() { return this.exception; };
@@ -18738,8 +18799,8 @@ function CaseNode(label, cases, statements, span) {
   this.label = label;
   this.cases = cases;
   this.statements = statements;
-  lang_Node.call(this, span);
   // Initializers done
+  lang_Node.call(this, span);
 }
 $inherits(CaseNode, lang_Node);
 CaseNode.prototype.visit = function(visitor) {
@@ -18752,8 +18813,8 @@ CaseNode.prototype.visit$1 = function($0) {
 function TypeParameter(name, extendsType, span) {
   this.name = name;
   this.extendsType = extendsType;
-  lang_Node.call(this, span);
   // Initializers done
+  lang_Node.call(this, span);
 }
 $inherits(TypeParameter, lang_Node);
 TypeParameter.prototype.get$name = function() { return this.name; };
@@ -18767,8 +18828,8 @@ TypeParameter.prototype.visit$1 = function($0) {
 // ********** Code for lang_Identifier **************
 function lang_Identifier(name, span) {
   this.name = name;
-  lang_Node.call(this, span);
   // Initializers done
+  lang_Node.call(this, span);
 }
 $inherits(lang_Identifier, lang_Node);
 lang_Identifier.prototype.is$lang_Identifier = function(){return this;};
@@ -18784,8 +18845,8 @@ lang_Identifier.prototype.visit$1 = function($0) {
 function DeclaredIdentifier(type, name, span) {
   this.type = type;
   this.name = name;
-  lang_Expression.call(this, span);
   // Initializers done
+  lang_Expression.call(this, span);
 }
 $inherits(DeclaredIdentifier, lang_Expression);
 DeclaredIdentifier.prototype.is$DeclaredIdentifier = function(){return this;};
@@ -19050,8 +19111,8 @@ lang_Type.prototype.resolveTypeParams$1 = function($0) {
 // ********** Code for ParameterType **************
 function ParameterType(name, typeParameter) {
   this.typeParameter = typeParameter;
-  lang_Type.call(this, name);
   // Initializers done
+  lang_Type.call(this, name);
 }
 $inherits(ParameterType, lang_Type);
 ParameterType.prototype.is$ParameterType = function(){return this;};
@@ -19124,8 +19185,8 @@ ParameterType.prototype.resolveTypeParams$1 = function($0) {
 // ********** Code for NonNullableType **************
 function NonNullableType(type) {
   this.type = type;
-  lang_Type.call(this, type.name);
   // Initializers done
+  lang_Type.call(this, type.name);
 }
 $inherits(NonNullableType, lang_Type);
 NonNullableType.prototype.get$type = function() { return this.type; };
@@ -19266,8 +19327,8 @@ function ConcreteType(name, genericType, typeArguments, typeArgsInOrder) {
   this.constructors = $map([]);
   this.members = $map([]);
   this.factories = new FactoryMap();
-  lang_Type.call(this, name);
   // Initializers done
+  lang_Type.call(this, name);
 }
 $inherits(ConcreteType, lang_Type);
 ConcreteType.prototype.is$ConcreteType = function(){return this;};
@@ -19440,8 +19501,8 @@ function DefinedType(name, library, definition, isClass) {
   this.members = $map([]);
   this.factories = new FactoryMap();
   this._resolvedMembers = $map([]);
-  lang_Type.call(this, name);
   // Initializers done
+  lang_Type.call(this, name);
   this.setDefinition(definition);
 }
 $inherits(DefinedType, lang_Type);
@@ -20491,8 +20552,8 @@ function EvaluatedValue() {}
 EvaluatedValue._internal$ctor = function(type, actualValue, canonicalCode, span, code) {
   this.actualValue = actualValue;
   this.canonicalCode = canonicalCode;
-  Value.call(this, type, code, span, false);
   // Initializers done
+  Value.call(this, type, code, span, false);
 }
 EvaluatedValue._internal$ctor.prototype = EvaluatedValue.prototype;
 $inherits(EvaluatedValue, Value);
@@ -20513,8 +20574,8 @@ EvaluatedValue.codeWithComments = function(canonicalCode, span) {
 function ConstListValue() {}
 ConstListValue._internal$ctor = function(type, values, actualValue, canonicalCode, span, code) {
   this.values = values;
-  EvaluatedValue._internal$ctor.call(this, (type && type.is$lang_Type()), actualValue, canonicalCode, (span && span.is$SourceSpan()), $assert_String(code));
   // Initializers done
+  EvaluatedValue._internal$ctor.call(this, (type && type.is$lang_Type()), actualValue, canonicalCode, (span && span.is$SourceSpan()), $assert_String(code));
 }
 ConstListValue._internal$ctor.prototype = ConstListValue.prototype;
 $inherits(ConstListValue, EvaluatedValue);
@@ -20525,8 +20586,8 @@ ConstListValue.ConstListValue$factory = function(type, values, actualValue, cano
 function ConstMapValue() {}
 ConstMapValue._internal$ctor = function(type, values, actualValue, canonicalCode, span, code) {
   this.values = values;
-  EvaluatedValue._internal$ctor.call(this, (type && type.is$lang_Type()), actualValue, canonicalCode, (span && span.is$SourceSpan()), $assert_String(code));
   // Initializers done
+  EvaluatedValue._internal$ctor.call(this, (type && type.is$lang_Type()), actualValue, canonicalCode, (span && span.is$SourceSpan()), $assert_String(code));
 }
 ConstMapValue._internal$ctor.prototype = ConstMapValue.prototype;
 $inherits(ConstMapValue, EvaluatedValue);
@@ -20542,8 +20603,8 @@ ConstMapValue.ConstMapValue$factory = function(type, keyValuePairs, actualValue,
 function ConstObjectValue() {}
 ConstObjectValue._internal$ctor = function(type, fields, actualValue, canonicalCode, span, code) {
   this.fields = fields;
-  EvaluatedValue._internal$ctor.call(this, (type && type.is$lang_Type()), actualValue, canonicalCode, (span && span.is$SourceSpan()), $assert_String(code));
   // Initializers done
+  EvaluatedValue._internal$ctor.call(this, (type && type.is$lang_Type()), actualValue, canonicalCode, (span && span.is$SourceSpan()), $assert_String(code));
 }
 ConstObjectValue._internal$ctor.prototype = ConstObjectValue.prototype;
 $inherits(ConstObjectValue, EvaluatedValue);
@@ -20568,8 +20629,8 @@ function GlobalValue(type, code, isConst, field, name, exp, canonicalCode, span,
   this.exp = exp;
   this.canonicalCode = canonicalCode;
   this.dependencies = dependencies;
-  Value.call(this, type, code, span, !$notnull_bool(isConst));
   // Initializers done
+  Value.call(this, type, code, span, !$notnull_bool(isConst));
 }
 $inherits(GlobalValue, Value);
 GlobalValue.prototype.is$GlobalValue = function(){return this;};
@@ -20635,8 +20696,8 @@ GlobalValue.prototype.compareTo$1 = function($0) {
 // ********** Code for BareValue **************
 function BareValue(home, outermost, span) {
   this.home = home;
-  Value.call(this, outermost.method.declaringType, null, span, false);
   // Initializers done
+  Value.call(this, outermost.method.declaringType, null, span, false);
   this.isType = outermost.get$isStatic();
 }
 $inherits(BareValue, Value);
@@ -21148,8 +21209,8 @@ VarMember.prototype.invoke$4 = function($0, $1, $2, $3) {
 // ********** Code for VarFunctionStub **************
 function VarFunctionStub(name, callArgs) {
   this.args = callArgs.toCallStubArgs();
-  VarMember.call(this, name);
   // Initializers done
+  VarMember.call(this, name);
   world.gen.corejs.useGenStub = true;
 }
 $inherits(VarFunctionStub, VarMember);
@@ -21191,8 +21252,8 @@ function VarMethodStub(name, member, args, body) {
   this.member = member;
   this.args = args;
   this.body = body;
-  VarMember.call(this, name);
   // Initializers done
+  VarMember.call(this, name);
 }
 $inherits(VarMethodStub, VarMember);
 VarMethodStub.prototype.get$returnType = function() {
@@ -21245,8 +21306,8 @@ function VarMethodSet(name, members, callArgs, returnType) {
   this.members = members;
   this.returnType = returnType;
   this.args = callArgs.toCallStubArgs();
-  VarMember.call(this, name);
   // Initializers done
+  VarMember.call(this, name);
 }
 $inherits(VarMethodSet, VarMember);
 VarMethodSet.prototype.get$members = function() { return this.members; };

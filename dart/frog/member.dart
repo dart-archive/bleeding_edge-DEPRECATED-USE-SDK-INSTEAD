@@ -135,10 +135,10 @@ class Member implements Named {
   void provideFieldSyntax() {}
   void providePropertySyntax() {}
 
-  Definition get initDelegate() {
+  Member get initDelegate() {
     world.internalError('cannot have initializers', span);
   }
-  Definition set initDelegate(ctor) {
+  Member set initDelegate(ctor) {
     world.internalError('cannot have initializers', span);
   }
 
@@ -576,8 +576,8 @@ class ConcreteMember extends Member {
   Definition get definition() => baseMember.definition;
 
   // TODO(sigmund): this is EGREGIOUS
-  Definition get initDelegate() => baseMember.initDelegate;
-  Definition set initDelegate(ctor) { baseMember.initDelegate = ctor; }
+  Member get initDelegate() => baseMember.initDelegate;
+  Member set initDelegate(ctor) { baseMember.initDelegate = ctor; }
 
   Type resolveType(TypeReference node, bool isRequired) {
     var type = baseMember.resolveType(node, isRequired);
