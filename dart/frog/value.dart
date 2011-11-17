@@ -391,16 +391,21 @@ function \$assert_${toType.name}(x) {
       [bool isTrue=true, bool forceCheck=false]) {
     // TODO(jimhug): Optimize away tests that will always pass unless
     //    forceCheck is true.
+
     if (toType.isVar) {
       world.error('can not resolve type', span);
-      return new EvaluatedValue(world.nonNullBool, true, 'true', null);
-    }
-
-    if (toType is ParameterType) {
-      return new EvaluatedValue(world.nonNullBool, true, 'true', null);
     }
 
     String testCode = null;
+    if (toType.isVar || toType.isObject || toType is ParameterType) {
+      // Note: everything is an Object, including null.
+      if (needsTemp) {
+        return new Value(world.nonNullBool, '($code, true)', span);
+      } else {
+        return new EvaluatedValue(world.nonNullBool, true, 'true', null);
+      }
+    }
+
     if (toType.library.isCore) {
       var typeofName = toType.typeofName;
       if (typeofName != null) {

@@ -68,6 +68,8 @@ class Type implements Named, Hashable {
   // Strangely Dart treats calls on Function much like calls on var.
   bool get isVarOrFunction() => isVar || isFunction;
 
+  bool get isVarOrObject() => isVar || isObject;
+
   /** Gets the $call method for a function type. */
   MethodMember getCallMethod() => null;
 

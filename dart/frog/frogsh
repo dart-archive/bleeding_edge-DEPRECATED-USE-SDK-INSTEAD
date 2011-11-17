@@ -1790,15 +1790,9 @@ DoubleLinkedQueueEntry$E.prototype.previousEntry = function() {
   return this._previous._asNonSentinelEntry();
 }
 // ********** Code for DoubleLinkedQueueEntry$KeyValuePair$K$V **************
-function DoubleLinkedQueueEntry$KeyValuePair$K$V(e) {
-  // Initializers done
-  this._element = e;
-}
+function DoubleLinkedQueueEntry$KeyValuePair$K$V() {}
 $inherits(DoubleLinkedQueueEntry$KeyValuePair$K$V, DoubleLinkedQueueEntry);
 DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype.is$DoubleLinkedQueueEntry$KeyValuePair$K$V = function(){return this;};
-DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype._asNonSentinelEntry = function() {
-  return this;
-}
 // ********** Code for _DoubleLinkedQueueEntrySentinel **************
 function _DoubleLinkedQueueEntrySentinel() {
   DoubleLinkedQueueEntry$E.call(this, null);
@@ -1822,18 +1816,6 @@ function _DoubleLinkedQueueEntrySentinel$E() {
   this._link(this, this);
 }
 $inherits(_DoubleLinkedQueueEntrySentinel$E, _DoubleLinkedQueueEntrySentinel);
-_DoubleLinkedQueueEntrySentinel$E.prototype._link = function(p, n) {
-  this._next = n;
-  this._previous = p;
-  p._next = this;
-  n._previous = this;
-}
-_DoubleLinkedQueueEntrySentinel$E.prototype.prepend = function(e) {
-  new DoubleLinkedQueueEntry$E(e)._link(this._previous, this);
-}
-_DoubleLinkedQueueEntrySentinel$E.prototype.previousEntry = function() {
-  return this._previous._asNonSentinelEntry();
-}
 // ********** Code for _DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V **************
 function _DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V() {
   DoubleLinkedQueueEntry$E.call(this, null);
@@ -1841,19 +1823,6 @@ function _DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V() {
   this._link(this, this);
 }
 $inherits(_DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V, _DoubleLinkedQueueEntrySentinel);
-_DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V.prototype._link = function(p, n) {
-  this._next = n;
-  this._previous = p;
-  p._next = this;
-  n._previous = this;
-}
-_DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V.prototype.prepend = function(e) {
-  new DoubleLinkedQueueEntry$KeyValuePair$K$V(e)._link(this._previous, this);
-}
-_DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V.prototype.previousEntry = function() {
-  var $0;
-  return (($0 = this._previous._asNonSentinelEntry()) && $0.is$DoubleLinkedQueueEntry$KeyValuePair$K$V());
-}
 // ********** Code for DoubleLinkedQueue **************
 function DoubleLinkedQueue() {
   // Initializers done
@@ -2742,915 +2711,6 @@ function ArrayBasedScanner$SourceString() {
   this.tail = this.tokens;
 }
 $inherits(ArrayBasedScanner$SourceString, ArrayBasedScanner);
-ArrayBasedScanner$SourceString.prototype.advance = function() {
-  var next = this.nextByte();
-  return next;
-}
-ArrayBasedScanner$SourceString.prototype.select = function(choice, yes, no) {
-  var next = this.advance();
-  if (next === choice) {
-    this.appendStringToken(1024/*null.UNKNOWN_TOKEN*/, yes);
-    return this.advance();
-  }
-  else {
-    this.appendStringToken(1024/*null.UNKNOWN_TOKEN*/, no);
-    return next;
-  }
-}
-ArrayBasedScanner$SourceString.prototype.appendStringToken = function(kind, value) {
-  this.tail.next = new StringToken(kind, value, this.tokenStart);
-  this.tail = this.tail.next;
-}
-ArrayBasedScanner$SourceString.prototype.appendKeywordToken = function(keyword) {
-  this.tail.next = new KeywordToken(keyword, this.tokenStart);
-  this.tail = this.tail.next;
-}
-ArrayBasedScanner$SourceString.prototype.appendEofToken = function() {
-  this.tail.next = new Token(0/*null.EOF_TOKEN*/, this.get$charOffset());
-  this.tail = this.tail.next;
-}
-ArrayBasedScanner$SourceString.prototype.beginToken = function() {
-  this.tokenStart = this.get$charOffset();
-}
-ArrayBasedScanner$SourceString.prototype.firstToken = function() {
-  return this.tokens.next;
-}
-ArrayBasedScanner$SourceString.prototype.addToCharOffset = function(offset) {
-  this.extraCharOffset += offset;
-}
-ArrayBasedScanner$SourceString.prototype.appendWhiteSpace = function(next) {
-
-}
-ArrayBasedScanner$SourceString.prototype.appendBeginGroup = function(kind, value) {
-  var $0;
-  var token = new BeginGroupToken(kind, value, this.tokenStart);
-  this.tail.next = token;
-  this.tail = this.tail.next;
-  while (kind !== 60/*null.LT_TOKEN*/ && !$notnull_bool(this.groupingStack.isEmpty()) && this.groupingStack.get$head().kind === 60/*null.LT_TOKEN*/) {
-    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
-  }
-  this.groupingStack = (($0 = this.groupingStack.prepend(token)) && $0.is$Link$Token());
-}
-ArrayBasedScanner$SourceString.prototype.appendEndGroup = function(kind, value, openKind) {
-  var $0;
-  var oldTail = this.tail;
-  this.appendStringToken(kind, value);
-  if ($notnull_bool(this.groupingStack.isEmpty())) {
-    if (openKind === 60/*null.LT_TOKEN*/) return;
-    $throw(new MalformedInputException(('Unmatched ' + value + '')));
-  }
-  while (openKind !== 60/*null.LT_TOKEN*/ && !$notnull_bool(this.groupingStack.isEmpty()) && this.groupingStack.get$head().kind === 60/*null.LT_TOKEN*/) {
-    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
-  }
-  if (this.groupingStack.get$head().kind !== openKind) {
-    if (openKind === 60/*null.LT_TOKEN*/) return;
-    $throw(new MalformedInputException(('Unmatched ' + value + '')));
-  }
-  this.groupingStack.get$head().endGroup = oldTail.next;
-  this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
-}
-ArrayBasedScanner$SourceString.prototype.appendGtGt = function(kind, value) {
-  var $0;
-  var oldTail = this.tail;
-  this.appendStringToken(kind, value);
-  if ($notnull_bool(this.groupingStack.isEmpty())) return;
-  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
-    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
-  }
-  if ($notnull_bool(this.groupingStack.isEmpty())) return;
-  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
-    this.groupingStack.get$head().endGroup = oldTail.next;
-    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
-  }
-}
-ArrayBasedScanner$SourceString.prototype.appendGtGtGt = function(kind, value) {
-  var $0;
-  var oldTail = this.tail;
-  this.appendStringToken(kind, value);
-  if ($notnull_bool(this.groupingStack.isEmpty())) return;
-  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
-    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
-  }
-  if ($notnull_bool(this.groupingStack.isEmpty())) return;
-  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
-    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
-  }
-  if ($notnull_bool(this.groupingStack.isEmpty())) return;
-  if ($notnull_bool($eq(this.groupingStack.get$head().kind, 60/*null.LT_TOKEN*/))) {
-    this.groupingStack.get$head().endGroup = oldTail.next;
-    this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenize = function() {
-  var next = this.advance();
-  while (next != -1) {
-    next = this.bigSwitch(next);
-  }
-  this.appendEofToken();
-  return this.firstToken();
-}
-ArrayBasedScanner$SourceString.prototype.bigSwitch = function(next) {
-  this.beginToken();
-  switch (next) {
-    case 9/*null.$TAB*/:
-    case 10/*null.$LF*/:
-    case 13/*null.$CR*/:
-    case 32/*null.$SPACE*/:
-
-      this.appendWhiteSpace(next);
-      return this.advance();
-
-    case 60/*null.$LT*/:
-
-      return this.tokenizeLessThan(next);
-
-    case 62/*null.$GT*/:
-
-      return this.tokenizeGreaterThan(next);
-
-    case 61/*null.$EQ*/:
-
-      return this.tokenizeEquals(next);
-
-    case 33/*null.$BANG*/:
-
-      return this.tokenizeExclamation(next);
-
-    case 43/*null.$PLUS*/:
-
-      return this.tokenizePlus(next);
-
-    case 45/*null.$MINUS*/:
-
-      return this.tokenizeMinus(next);
-
-    case 42/*null.$STAR*/:
-
-      return this.tokenizeMultiply(next);
-
-    case 37/*null.$PERCENT*/:
-
-      return this.tokenizePercent(next);
-
-    case 38/*null.$AMPERSAND*/:
-
-      return this.tokenizeAmpersand(next);
-
-    case 124/*null.$BAR*/:
-
-      return this.tokenizeBar(next);
-
-    case 94/*null.$CARET*/:
-
-      return this.tokenizeCaret(next);
-
-    case 91/*null.$LBRACKET*/:
-
-      return this.tokenizeOpenBracket(next);
-
-    case 126/*null.$TILDE*/:
-
-      return this.tokenizeTilde(next);
-
-    case 92/*null.$BACKSLASH*/:
-
-      this.appendStringToken(92/*null.BACKSLASH_TOKEN*/, "\\");
-      return this.advance();
-
-    case 35/*null.$HASH*/:
-
-      return this.tokenizeTag(next);
-
-    case 40/*null.$LPAREN*/:
-
-      this.appendBeginGroup(40/*null.LPAREN_TOKEN*/, "(");
-      return this.advance();
-
-    case 41/*null.$RPAREN*/:
-
-      this.appendEndGroup(41/*null.RPAREN_TOKEN*/, ")", 40/*null.LPAREN_TOKEN*/);
-      return this.advance();
-
-    case 44/*null.$COMMA*/:
-
-      this.appendStringToken(44/*null.COMMA_TOKEN*/, ",");
-      return this.advance();
-
-    case 58/*null.$COLON*/:
-
-      this.appendStringToken(58/*null.COLON_TOKEN*/, ":");
-      return this.advance();
-
-    case 59/*null.$SEMICOLON*/:
-
-      this.appendStringToken(59/*null.SEMICOLON_TOKEN*/, ";");
-      return this.advance();
-
-    case 63/*null.$QUESTION*/:
-
-      this.appendStringToken(63/*null.QUESTION_TOKEN*/, "?");
-      return this.advance();
-
-    case 93/*null.$RBRACKET*/:
-
-      this.appendEndGroup(93/*null.RBRACKET_TOKEN*/, "]", 91/*null.LBRACKET_TOKEN*/);
-      return this.advance();
-
-    case 96/*null.$BACKPING*/:
-
-      this.appendStringToken(96/*null.BACKPING_TOKEN*/, "`");
-      return this.advance();
-
-    case 123/*null.$LBRACE*/:
-
-      this.appendBeginGroup(123/*null.LBRACE_TOKEN*/, "{");
-      return this.advance();
-
-    case 125/*null.$RBRACE*/:
-
-      this.appendEndGroup(125/*null.RBRACE_TOKEN*/, "}", 123/*null.LBRACE_TOKEN*/);
-      return this.advance();
-
-    case 47/*null.$SLASH*/:
-
-      return this.tokenizeSlashOrComment(next);
-
-    case 64/*null.$AT*/:
-
-      return this.tokenizeRawString(next);
-
-    case 34/*null.$DQ*/:
-    case 39/*null.$SQ*/:
-
-      return this.tokenizeString(next, this.byteOffset, false);
-
-    case 46/*null.$PERIOD*/:
-
-      return this.tokenizeDotOrNumber(next);
-
-    case 48/*null.$0*/:
-
-      return this.tokenizeHexOrNumber(next);
-
-    case 49/*null.$1*/:
-    case 50/*null.$2*/:
-    case 51/*null.$3*/:
-    case 52/*null.$4*/:
-    case 53/*null.$5*/:
-    case 54/*null.$6*/:
-    case 55/*null.$7*/:
-    case 56/*null.$8*/:
-    case 57/*null.$9*/:
-
-      return this.tokenizeNumber(next);
-
-    case 36/*null.$DOLLAR*/:
-    case 65/*null.$A*/:
-    case 66/*null.$B*/:
-    case 67/*null.$C*/:
-    case 68/*null.$D*/:
-    case 69/*null.$E*/:
-    case 70/*null.$F*/:
-    case 71/*null.$G*/:
-    case 72/*null.$H*/:
-    case 73/*null.$I*/:
-    case 74/*null.$J*/:
-    case 75/*null.$K*/:
-    case 76/*null.$L*/:
-    case 77/*null.$M*/:
-    case 78/*null.$N*/:
-    case 79/*null.$O*/:
-    case 80/*null.$P*/:
-    case 81/*null.$Q*/:
-    case 82/*null.$R*/:
-    case 83/*null.$S*/:
-    case 84/*null.$T*/:
-    case 85/*null.$U*/:
-    case 86/*null.$V*/:
-    case 87/*null.$W*/:
-    case 88/*null.$X*/:
-    case 89/*null.$Y*/:
-    case 90/*null.$Z*/:
-    case 95/*null.$_*/:
-    case 97/*null.$a*/:
-    case 98/*null.$b*/:
-    case 99/*null.$c*/:
-    case 100/*null.$d*/:
-    case 101/*null.$e*/:
-    case 102/*null.$f*/:
-    case 103/*null.$g*/:
-    case 104/*null.$h*/:
-    case 105/*null.$i*/:
-    case 106/*null.$j*/:
-    case 107/*null.$k*/:
-    case 108/*null.$l*/:
-    case 109/*null.$m*/:
-    case 110/*null.$n*/:
-    case 111/*null.$o*/:
-    case 112/*null.$p*/:
-    case 113/*null.$q*/:
-    case 114/*null.$r*/:
-    case 115/*null.$s*/:
-    case 116/*null.$t*/:
-    case 117/*null.$u*/:
-    case 118/*null.$v*/:
-    case 119/*null.$w*/:
-    case 120/*null.$x*/:
-    case 121/*null.$y*/:
-    case 122/*null.$z*/:
-
-      return this.tokenizeIdentifier(next);
-
-    default:
-
-      if (next == -1) {
-        return -1;
-      }
-      if (next < 0x1f) {
-        $throw(new MalformedInputException(this.get$charOffset()));
-      }
-      return this.tokenizeIdentifier(next);
-
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeTag = function(next) {
-  if (this.byteOffset == 0) {
-    if (this.peek() == 33/*null.$BANG*/) {
-      do {
-        next = this.advance();
-      }
-      while (next != 10/*null.$LF*/ && next != 13/*null.$CR*/)
-      return next;
-    }
-  }
-  this.appendStringToken(35/*null.HASH_TOKEN*/, "#");
-  return this.advance();
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeTilde = function(next) {
-  next = this.advance();
-  if (next == 47/*null.$SLASH*/) {
-    return this.select(61/*null.$EQ*/, "~/=", "~/");
-  }
-  else {
-    this.appendStringToken(126/*null.TILDE_TOKEN*/, "~");
-    return next;
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeOpenBracket = function(next) {
-  next = this.advance();
-  if (next == 93/*null.$RBRACKET*/) {
-    return this.select(61/*null.$EQ*/, "[]=", "[]");
-  }
-  else {
-    this.appendBeginGroup(91/*null.LBRACKET_TOKEN*/, "[");
-    return next;
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeCaret = function(next) {
-  return this.select(61/*null.$EQ*/, "^=", "^");
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeBar = function(next) {
-  next = this.advance();
-  switch (next) {
-    case 124/*null.$BAR*/:
-
-      this.appendStringToken(124/*null.BAR_TOKEN*/, "||");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(124/*null.BAR_TOKEN*/, "|=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(124/*null.BAR_TOKEN*/, "|");
-      return next;
-
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeAmpersand = function(next) {
-  next = this.advance();
-  switch (next) {
-    case 38/*null.$AMPERSAND*/:
-
-      this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&&");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&");
-      return next;
-
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizePercent = function(next) {
-  return this.select(61/*null.$EQ*/, "%=", "%");
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeMultiply = function(next) {
-  return this.select(61/*null.$EQ*/, "*=", "*");
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeMinus = function(next) {
-  next = this.advance();
-  switch (next) {
-    case 45/*null.$MINUS*/:
-
-      this.appendStringToken(45/*null.MINUS_TOKEN*/, "--");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(45/*null.MINUS_TOKEN*/, "-=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(45/*null.MINUS_TOKEN*/, "-");
-      return next;
-
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizePlus = function(next) {
-  next = this.advance();
-  switch (next) {
-    case 43/*null.$PLUS*/:
-
-      this.appendStringToken(43/*null.PLUS_TOKEN*/, "++");
-      return this.advance();
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(43/*null.PLUS_TOKEN*/, "+=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(43/*null.PLUS_TOKEN*/, "+");
-      return next;
-
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeExclamation = function(next) {
-  next = this.advance();
-  if (next == 61/*null.$EQ*/) {
-    return this.select(61/*null.$EQ*/, "!==", "!=");
-  }
-  this.appendStringToken(33/*null.BANG_TOKEN*/, "!");
-  return next;
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeEquals = function(next) {
-  next = this.advance();
-  if (next == 61/*null.$EQ*/) {
-    return this.select(61/*null.$EQ*/, "===", "==");
-  }
-  this.appendStringToken(61/*null.EQ_TOKEN*/, "=");
-  return next;
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeGreaterThan = function(next) {
-  next = this.advance();
-  switch (next) {
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(62/*null.GT_TOKEN*/, ">=");
-      return this.advance();
-
-    case 62/*null.$GT*/:
-
-      next = this.advance();
-      switch (next) {
-        case 61/*null.$EQ*/:
-
-          this.appendStringToken(62/*null.GT_TOKEN*/, ">>=");
-          return this.advance();
-
-        case 62/*null.$GT*/:
-
-          {
-            next = this.advance();
-            if (next === 61/*null.$EQ*/) {
-              this.appendStringToken(62/*null.GT_TOKEN*/, ">>>=");
-              return this.advance();
-            }
-            else {
-              this.appendGtGtGt(62/*null.GT_TOKEN*/, ">>>");
-              return next;
-            }
-          }
-
-        default:
-
-          this.appendGtGt(62/*null.GT_TOKEN*/, ">>");
-          return next;
-
-      }
-      $throw(new FallThroughError());
-
-    default:
-
-      this.appendEndGroup(62/*null.GT_TOKEN*/, ">", 60/*null.LT_TOKEN*/);
-      return next;
-
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeLessThan = function(next) {
-  next = this.advance();
-  switch (next) {
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(188/*null.LT_EQ_TOKEN*/, "<=");
-      return this.advance();
-
-    case 60/*null.$LT*/:
-
-      return this.select(61/*null.$EQ*/, "<<=", "<<");
-
-    default:
-
-      this.appendBeginGroup(60/*null.LT_TOKEN*/, "<");
-      return next;
-
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeNumber = function(next) {
-  var start = this.byteOffset;
-  while (true) {
-    next = this.advance();
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-
-        break;
-
-      case 46/*null.$PERIOD*/:
-
-        return this.tokenizeFractionPart(this.advance(), start);
-
-      case 101/*null.$e*/:
-      case 69/*null.$E*/:
-      case 100/*null.$d*/:
-      case 68/*null.$D*/:
-
-        return this.tokenizeFractionPart(next, start);
-
-      default:
-
-        this.appendByteStringToken(105/*null.INT_TOKEN*/, this.asciiString(start));
-        return next;
-
-    }
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeHexOrNumber = function(next) {
-  var x = this.peek();
-  if (x == 120/*null.$x*/ || x == 88/*null.$X*/) {
-    this.advance();
-    return this.tokenizeHex(x);
-  }
-  return this.tokenizeNumber(next);
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeHex = function(next) {
-  var start = this.byteOffset;
-  var hasDigits = false;
-  while (true) {
-    next = this.advance();
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-      case 65/*null.$A*/:
-      case 66/*null.$B*/:
-      case 67/*null.$C*/:
-      case 68/*null.$D*/:
-      case 69/*null.$E*/:
-      case 70/*null.$F*/:
-      case 97/*null.$a*/:
-      case 98/*null.$b*/:
-      case 99/*null.$c*/:
-      case 100/*null.$d*/:
-      case 101/*null.$e*/:
-      case 102/*null.$f*/:
-
-        hasDigits = true;
-        break;
-
-      default:
-
-        if (!$notnull_bool(hasDigits)) {
-          $throw(new MalformedInputException(this.get$charOffset()));
-        }
-        this.appendByteStringToken(120/*null.HEXADECIMAL_TOKEN*/, this.asciiString(start));
-        return next;
-
-    }
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeDotOrNumber = function(next) {
-  var start = this.byteOffset;
-  next = this.advance();
-  switch (next) {
-    case 48/*null.$0*/:
-    case 49/*null.$1*/:
-    case 50/*null.$2*/:
-    case 51/*null.$3*/:
-    case 52/*null.$4*/:
-    case 53/*null.$5*/:
-    case 54/*null.$6*/:
-    case 55/*null.$7*/:
-    case 56/*null.$8*/:
-    case 57/*null.$9*/:
-
-      {
-        return this.tokenizeFractionPart(next, start);
-      }
-
-    case 46/*null.$PERIOD*/:
-
-      return this.select(46/*null.$PERIOD*/, "...", "..");
-
-    default:
-
-      this.appendStringToken(46/*null.PERIOD_TOKEN*/, ".");
-      return next;
-
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeFractionPart = function(next, start) {
-  var done = false;
-  LOOP:
-  while (!$notnull_bool(done)) {
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-
-        break;
-
-      case 101/*null.$e*/:
-      case 69/*null.$E*/:
-
-        next = this.tokenizeExponent(this.advance());
-        done = true;
-        continue LOOP;
-
-      default:
-
-        done = true;
-        continue LOOP;
-
-    }
-    next = this.advance();
-  }
-  if (next == 100/*null.$d*/ || next == 68/*null.$D*/) {
-    next = this.advance();
-  }
-  this.appendByteStringToken(100/*null.DOUBLE_TOKEN*/, this.asciiString(start));
-  return next;
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeExponent = function(next) {
-  if (next == 43/*null.$PLUS*/ || next == 45/*null.$MINUS*/) {
-    next = this.advance();
-  }
-  var hasDigits = false;
-  while (true) {
-    switch (next) {
-      case 48/*null.$0*/:
-      case 49/*null.$1*/:
-      case 50/*null.$2*/:
-      case 51/*null.$3*/:
-      case 52/*null.$4*/:
-      case 53/*null.$5*/:
-      case 54/*null.$6*/:
-      case 55/*null.$7*/:
-      case 56/*null.$8*/:
-      case 57/*null.$9*/:
-
-        hasDigits = true;
-        break;
-
-      default:
-
-        if (!$notnull_bool(hasDigits)) {
-          $throw(new MalformedInputException(this.get$charOffset()));
-        }
-        return next;
-
-    }
-    next = this.advance();
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeSlashOrComment = function(next) {
-  next = this.advance();
-  switch (next) {
-    case 42/*null.$STAR*/:
-
-      return this.tokenizeMultiLineComment(next);
-
-    case 47/*null.$SLASH*/:
-
-      return this.tokenizeSingleLineComment(next);
-
-    case 61/*null.$EQ*/:
-
-      this.appendStringToken(47/*null.SLASH_TOKEN*/, "/=");
-      return this.advance();
-
-    default:
-
-      this.appendStringToken(47/*null.SLASH_TOKEN*/, "/");
-      return next;
-
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeSingleLineComment = function(next) {
-  while (true) {
-    next = this.advance();
-    switch (next) {
-      case -1:
-      case 10/*null.$LF*/:
-      case 13/*null.$CR*/:
-
-        return next;
-
-    }
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeMultiLineComment = function(next) {
-  next = this.advance();
-  while (true) {
-    switch (next) {
-      case -1:
-
-        return next;
-
-      case 42/*null.$STAR*/:
-
-        next = this.advance();
-        if (next == 47/*null.$SLASH*/) {
-          return this.advance();
-        }
-        else if (next == -1) {
-          return next;
-        }
-        break;
-
-      default:
-
-        next = this.advance();
-        break;
-
-    }
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeIdentifier = function(next) {
-  var start = this.byteOffset;
-  var state = null;
-  if (97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
-    state = KeywordState.get$KEYWORD_STATE().next(next);
-    next = this.advance();
-  }
-  var isAscii = true;
-  while (true) {
-    if (97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
-      if (state != null) {
-        state = state.next(next);
-      }
-    }
-    else if ((48/*null.$0*/ <= next && next <= 57/*null.$9*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || next == 95/*null.$_*/ || next == 36/*null.$DOLLAR*/) {
-      state = null;
-    }
-    else if (next < 128) {
-      if (state != null && $notnull_bool(state.isLeaf())) {
-        this.appendKeywordToken(state.get$keyword());
-      }
-      else if ($notnull_bool(isAscii)) {
-        this.appendByteStringToken(97/*null.IDENTIFIER_TOKEN*/, this.asciiString(start));
-      }
-      else {
-        this.appendByteStringToken(97/*null.IDENTIFIER_TOKEN*/, this.utf8String(start, -1));
-      }
-      return next;
-    }
-    else {
-      var nonAsciiStart = this.byteOffset;
-      do {
-        next = this.nextByte();
-      }
-      while (next > 127)
-      var string = this.utf8String(nonAsciiStart, -1).toString();
-      isAscii = false;
-      this.addToCharOffset(string.length);
-      return next;
-    }
-    next = this.advance();
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeRawString = function(next) {
-  var start = this.byteOffset;
-  next = this.advance();
-  if (next == 34/*null.$DQ*/ || next == 39/*null.$SQ*/) {
-    return this.tokenizeString(next, start, true);
-  }
-  else {
-    $throw(new MalformedInputException(this.get$charOffset()));
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeString = function(next, start, raw) {
-  var q = next;
-  next = this.advance();
-  if (q == next) {
-    next = this.advance();
-    if (q == next) {
-      return this.tokenizeMultiLineString(q, start, raw);
-    }
-    else {
-      this.appendByteStringToken(39/*null.STRING_TOKEN*/, this.utf8String(start, -1));
-      return next;
-    }
-  }
-  if ($notnull_bool(raw)) {
-    return this.tokenizeSingleLineRawString(next, q, start);
-  }
-  else {
-    return this.tokenizeSingleLineString(next, q, start);
-  }
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeSingleLineString = function(next, q1, start) {
-  while (next != -1) {
-    if (next == q1) {
-      this.appendByteStringToken(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
-      return this.advance();
-    }
-    else if (next == 92/*null.$BACKSLASH*/) {
-      next = this.advance();
-      if (next == -1) {
-        $throw(new MalformedInputException(this.get$charOffset()));
-      }
-    }
-    else if (next == 10/*null.$LF*/ || next == 13/*null.$CR*/) {
-      $throw(new MalformedInputException(this.get$charOffset()));
-    }
-    next = this.advance();
-  }
-  $throw(new MalformedInputException(this.get$charOffset()));
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeSingleLineRawString = function(next, q1, start) {
-  next = this.advance();
-  while (next != -1) {
-    if (next == q1) {
-      this.appendByteStringToken(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
-      return this.advance();
-    }
-    else if (next == 10/*null.$LF*/ || next == 13/*null.$CR*/) {
-      $throw(new MalformedInputException(this.get$charOffset()));
-    }
-    next = this.advance();
-  }
-  $throw(new MalformedInputException(this.get$charOffset()));
-}
-ArrayBasedScanner$SourceString.prototype.tokenizeMultiLineString = function(q, start, raw) {
-  var next = this.advance();
-  while (next != -1) {
-    if (next == q) {
-      next = this.advance();
-      if (next == q) {
-        next = this.advance();
-        if (next == q) {
-          this.appendByteStringToken(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
-          return this.advance();
-        }
-      }
-    }
-    next = this.advance();
-  }
-  return next;
-}
 // ********** Code for top level **************
 //  ********** Library scanner **************
 // ********** Code for AbstractScanner **************
@@ -12605,7 +11665,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
       world.gen.corejs.useStackTraceOf = true;
     }
     this._genToDartException($assert_String(ex.code), node);
-    if (!$notnull_bool(ex.type.get$isVar())) {
+    if (!$notnull_bool(ex.type.get$isVarOrObject())) {
       var test = ex.instanceOf$3$isTrue$forceCheck(this, ex.type, catch_.get$exception().get$span(), false, true);
       this.writer.writeln(('if (' + test.code + ') throw ' + ex.code + ';'));
     }
@@ -12633,7 +11693,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
       var catch_ = node.catches.$index(i);
       this._pushBlock(false);
       var tmp = this._scope.declare((($0 = catch_.get$exception()) && $0.is$DeclaredIdentifier()));
-      if (!$notnull_bool(tmp.type.get$isVar())) {
+      if (!$notnull_bool(tmp.type.get$isVarOrObject())) {
         var test = ex.instanceOf$3$isTrue$forceCheck(this, tmp.type, catch_.get$exception().get$span(), true, true);
         if (i == 0) {
           this.writer.enterBlock(('if (' + test.code + ') {'));
@@ -12652,7 +11712,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
       }
       this.visitStatementsInBlock((($0 = catch_.body) && $0.is$lang_Statement()));
       this._popBlock();
-      if ($notnull_bool(tmp.type.get$isVar())) {
+      if ($notnull_bool(tmp.type.get$isVarOrObject())) {
         if (i + 1 < node.catches.length) {
           world.warning('Unreachable catch clause', (($0 = node.catches.$index(i + 1)) && $0.is$SourceSpan()));
         }
@@ -19786,6 +18846,9 @@ lang_Type.prototype.get$isNullable = function() {
 lang_Type.prototype.get$isVarOrFunction = function() {
   return $notnull_bool(this.get$isVar()) || $notnull_bool(this.get$isFunction());
 }
+lang_Type.prototype.get$isVarOrObject = function() {
+  return $notnull_bool(this.get$isVar()) || $notnull_bool(this.get$isObject());
+}
 lang_Type.prototype.getCallMethod = function() {
   return null;
 }
@@ -20400,7 +19463,7 @@ DefinedType.prototype.set$isUsed = function(value) { return this.isUsed = value;
 DefinedType.prototype.get$isNativeType = function() { return this.isNativeType; };
 DefinedType.prototype.set$isNativeType = function(value) { return this.isNativeType = value; };
 DefinedType.prototype.setDefinition = function(def) {
-  $assert(this.definition == null, "definition == null", "type.dart", 630, 12);
+  $assert(this.definition == null, "definition == null", "type.dart", 632, 12);
   this.definition = def;
   if ((this.definition instanceof TypeDefinition) && this.definition.get$nativeType() != null) {
     this.isNativeType = true;
@@ -20509,7 +19572,7 @@ DefinedType.prototype._resolveInterfaces = function(types) {
   return (interfaces && interfaces.is$List$Type());
 }
 DefinedType.prototype.addDirectSubtype = function(type) {
-  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 746, 12);
+  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 748, 12);
   this.directSubtypes.add(type);
 }
 DefinedType.prototype.get$subtypes = function() {
@@ -20936,7 +19999,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
   return this;
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
-  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1229, 12);
+  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1231, 12);
   var names = [this.name];
   var typeMap = $map([]);
   for (var i = 0;
@@ -20954,7 +20017,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return (ret && ret.is$lang_Type());
 }
 DefinedType.prototype.getCallStub = function(args) {
-  $assert(this.get$isFunction(), "isFunction", "type.dart", 1249, 12);
+  $assert(this.get$isFunction(), "isFunction", "type.dart", 1251, 12);
   var name = _getCallStubName('call', args);
   if (this.varStubs == null) this.varStubs = $map([]);
   var stub = this.varStubs.$index(name);
@@ -21315,12 +20378,16 @@ Value.prototype._typeAssert = function(context, toType, node) {
 Value.prototype.instanceOf = function(context, toType, span, isTrue, forceCheck) {
   if ($notnull_bool(toType.get$isVar())) {
     world.error('can not resolve type', span);
-    return EvaluatedValue.EvaluatedValue$factory(world.nonNullBool, true, 'true', null);
-  }
-  if ((toType instanceof ParameterType)) {
-    return EvaluatedValue.EvaluatedValue$factory(world.nonNullBool, true, 'true', null);
   }
   var testCode = null;
+  if ($notnull_bool(toType.get$isVar()) || $notnull_bool(toType.get$isObject()) || (toType instanceof ParameterType)) {
+    if ($notnull_bool(this.needsTemp)) {
+      return new Value(world.nonNullBool, ('(' + this.code + ', true)'), span, true);
+    }
+    else {
+      return EvaluatedValue.EvaluatedValue$factory(world.nonNullBool, true, 'true', null);
+    }
+  }
   if ($notnull_bool(toType.get$library().get$isCore())) {
     var typeofName = toType.get$typeofName();
     if ($notnull_bool($ne(typeofName, null))) {
@@ -21366,8 +20433,8 @@ Value.prototype.invokeNoSuchMethod = function(context, name, node, args) {
   return this._resolveMember(context, 'noSuchMethod', node, false).invoke$4(context, node, this, new Arguments(null, noSuchArgs));
 }
 Value.prototype.invokeSpecial = function(name, args, returnType) {
-  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 475, 12);
-  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 476, 12);
+  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 480, 12);
+  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 481, 12);
   var argsString = args.getCode();
   if (name == '\$index' || name == '\$setindex') {
     return new Value(returnType, ('' + this.code + '.' + name + '(' + argsString + ')'), this.span, true);
@@ -21566,10 +20633,10 @@ function BareValue(home, outermost, span) {
 }
 $inherits(BareValue, Value);
 BareValue.prototype._tryResolveMember = function(context, name) {
-  $assert($eq(context, this.home), "context == home", "value.dart", 680, 12);
+  $assert($eq(context, this.home), "context == home", "value.dart", 685, 12);
   var member = this.type.resolveMember(name);
   if ($notnull_bool($ne(member, null))) {
-    $assert(this.code == null, "code == null", "value.dart", 685, 14);
+    $assert(this.code == null, "code == null", "value.dart", 690, 14);
     if ($notnull_bool(this.isType)) {
       this.code = this.type.get$jsname();
     }

@@ -1324,7 +1324,7 @@ class MethodGenerator implements TreeVisitor {
       }
       _genToDartException(ex.code, node);
 
-      if (!ex.type.isVar) {
+      if (!ex.type.isVarOrObject) {
         var test = ex.instanceOf(this, ex.type, catch_.exception.span,
             isTrue:false, forceCheck:true);
         writer.writeln('if (${test.code}) throw ${ex.code};');
@@ -1345,7 +1345,7 @@ class MethodGenerator implements TreeVisitor {
       }
       _genToDartException(ex.code, node);
 
-      // We need a rethrow unless we encounter a "var" catch
+      // We need a rethrow unless we encounter a "var" or "Object" catch
       bool needsRethrow = true;
 
       for (int i = 0; i < node.catches.length; i++) {
@@ -1353,7 +1353,7 @@ class MethodGenerator implements TreeVisitor {
 
         _pushBlock();
         var tmp = _scope.declare(catch_.exception);
-        if (!tmp.type.isVar) {
+        if (!tmp.type.isVarOrObject) {
           var test = ex.instanceOf(this, tmp.type, catch_.exception.span,
               isTrue:true, forceCheck:true);
           if (i == 0) {
@@ -1375,7 +1375,7 @@ class MethodGenerator implements TreeVisitor {
         visitStatementsInBlock(catch_.body);
         _popBlock();
 
-        if (tmp.type.isVar) {
+        if (tmp.type.isVarOrObject) {
           // We matched this for sure; no need to keep going
           if (i + 1 < node.catches.length) {
             world.warning('Unreachable catch clause', node.catches[i + 1]);
