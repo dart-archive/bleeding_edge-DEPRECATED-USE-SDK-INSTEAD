@@ -17351,6 +17351,9 @@ lang_Parser.prototype.stringInterpolation = function() {
       lits.add$1(this.expression());
       this._eat(7/*TokenKind.RBRACE*/);
     }
+    else if ($notnull_bool(this._maybeEat(108/*TokenKind.THIS*/))) {
+      lits.add$1(new ThisExpression(this._previousToken.get$span()));
+    }
     else {
       var id = this.identifier();
       lits.add$1(new VarExpression(id, id.get$span()));
@@ -17518,7 +17521,7 @@ lang_Parser.parseHex = function(hex) {
   for (var i = 0;
    i < hex.length; i++) {
     var digit = lang_Parser._hexDigit(hex.charCodeAt(i));
-    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1259, 14);
+    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1261, 14);
     result = (result << 4) + $assert_num(digit);
   }
   return $assert_num(result);

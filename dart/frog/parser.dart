@@ -1094,6 +1094,8 @@ class Parser {
       if (_maybeEat(TokenKind.LBRACE)) {
         lits.add(expression());
         _eat(TokenKind.RBRACE);
+      } else if (_maybeEat(TokenKind.THIS)) {
+        lits.add(new ThisExpression(_previousToken.span));
       } else {
         var id = identifier();
         lits.add(new VarExpression(id, id.span));
