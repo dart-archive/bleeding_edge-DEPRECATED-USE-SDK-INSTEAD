@@ -3656,21 +3656,20 @@ public class PreferenceConstants {
    * @param newValue the new value
    */
   private static void setDefaultAndFireEvent(IPreferenceStore store, String key, RGB newValue) {
-    RGB oldValue = null;
-    if (store.isDefault(key)) {
-      try {
+    try {
+      RGB oldValue = null;
+      if (store.isDefault(key)) {
         oldValue = PreferenceConverter.getDefaultColor(store, key);
-      } catch (Throwable exception) {
-        // Leave oldValue == null to avoid firing a property change event.
-        DartToolsPlugin.log("INFO: Could not get the default value for the color preference named "
-            + key, exception);
       }
-    }
 
-    PreferenceConverter.setDefault(store, key, newValue);
+      PreferenceConverter.setDefault(store, key, newValue);
 
-    if (oldValue != null && !oldValue.equals(newValue)) {
-      store.firePropertyChangeEvent(key, oldValue, newValue);
+      if (oldValue != null && !oldValue.equals(newValue)) {
+        store.firePropertyChangeEvent(key, oldValue, newValue);
+      }
+    } catch (Throwable exception) {
+      DartToolsPlugin.log("INFO: Could not get the default value for the color preference named "
+          + key, exception);
     }
   }
 
