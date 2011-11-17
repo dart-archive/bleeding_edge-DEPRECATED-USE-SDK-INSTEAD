@@ -68,4 +68,14 @@ class DomFileSystem implements FileSystem {
 
   // Note: this is not a perf nightmare only because of caching.
   bool fileExists(String filename) => readAll(filename) != null;
+
+  void createDirectory(String path, [bool recursive = false]) {
+    // TODO(rnystrom): Implement.
+    throw 'createDirectory() is not implemented by DomFileSystem yet.';
+  }
+
+  void removeDirectory(String path, [bool recursive = false]) {
+    // TODO(rnystrom): Implement.
+    throw 'removeDirectory() is not implemented by DomFileSystem yet.';
+  }
 }

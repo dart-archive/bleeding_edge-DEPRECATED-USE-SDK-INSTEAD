@@ -27,4 +27,14 @@ class VMFileSystem implements FileSystem {
   bool fileExists(String filename) {
     return new File(filename).existsSync();
   }
+
+  void createDirectory(String path, [bool recursive = false]) {
+    // TODO(rnystrom): Implement.
+    throw 'createDirectory() is not implemented by VMFileSystem yet.';
+  }
+
+  void removeDirectory(String path, [bool recursive = false]) {
+    // TODO(rnystrom): Implement.
+    throw 'removeDirectory() is not implemented by VMFileSystem yet.';
+  }
 }

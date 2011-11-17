@@ -90,6 +90,25 @@ class fs native "require('fs')" {
     native;
 
   static String realpathSync(String path) native;
+
+  static void mkdirSync(String path, [num mode = 511 /* 077 octal */]) native;
+  static List<String> readdirSync(String path) native;
+  static void rmdirSync(String path) native;
+  static Stats statSync(String path) native;
+  static void unlinkSync(String path) native;
+}
+
+class Stats native "fs.Stats" {
+  bool isFile() native;
+  bool isDirectory() native;
+  bool isBlockDevice() native;
+  bool isCharacterDevice() native;
+  bool isSymbolicLink() native;
+  bool isFIFO() native;
+  bool isSocket() native;
+
+  // TODO(rnystrom): There are also the other fields we can add here if needed.
+  // See: http://nodejs.org/docs/v0.6.1/api/fs.html#fs.Stats.
 }
 
 class path native "require('path')" {

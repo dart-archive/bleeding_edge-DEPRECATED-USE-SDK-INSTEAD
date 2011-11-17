@@ -59,7 +59,7 @@ component is from running selfhosted on node.js.
 
 To build the self-hosted compiler called frogsh (for frog self-hosted), run:
 
-  $ ./frog.py --out=frogsh frog.dart
+  $ ./frog.py --out=frogsh --compile-only --enable_type_checks frog.dart
 
 You can also build and check the self-hosted compiler from itself by running:
   $ ./frogsh --out=frogsh frog.dart tests/hello.dart

@@ -15,6 +15,9 @@ interface FileSystem {
   void writeString(String outfile, String text);
 
   bool fileExists(String filename);
+
+  void createDirectory(String path, [bool recursive]);
+  void removeDirectory(String path, [bool recursive]);
 }
 
 /** Join [path1] to [path2]. */
