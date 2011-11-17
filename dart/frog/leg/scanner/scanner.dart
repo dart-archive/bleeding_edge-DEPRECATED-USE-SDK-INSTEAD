@@ -552,7 +552,7 @@ class AbstractScanner<T> implements Scanner {
           ($0 <= next && next <= $9) ||
           next === $_ ||
           next === $DOLLAR) {
-        // Nothing.
+        next = advance();
       } else if (next < 128) {
         if (isAscii) {
           appendByteStringToken(IDENTIFIER_TOKEN, asciiString(start));
@@ -567,9 +567,9 @@ class AbstractScanner<T> implements Scanner {
         } while (next > 127);
         String string = utf8String(nonAsciiStart, -1).toString();
         isAscii = false;
-        addToCharOffset(string.length);
+        int byteLength = nonAsciiStart - byteOffset;
+        addToCharOffset(string.length - byteLength);
       }
-      next = advance();
     }
   }
 

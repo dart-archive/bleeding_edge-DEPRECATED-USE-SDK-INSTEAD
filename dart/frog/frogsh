@@ -3241,6 +3241,7 @@ AbstractScanner.prototype.tokenizeIdentifier = function(next, start) {
   var isAscii = true;
   while (true) {
     if ((97/*null.$a*/ <= next && next <= 122/*null.$z*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+      next = this.advance();
     }
     else if (next < 128) {
       if ($notnull_bool(isAscii)) {
@@ -3259,9 +3260,9 @@ AbstractScanner.prototype.tokenizeIdentifier = function(next, start) {
       while (next > 127)
       var string = this.utf8String(nonAsciiStart, -1).toString$0();
       isAscii = false;
-      this.addToCharOffset(string.length);
+      var byteLength = nonAsciiStart - this.get$byteOffset();
+      this.addToCharOffset(string.length - byteLength);
     }
-    next = this.advance();
   }
 }
 AbstractScanner.prototype.tokenizeRawString = function(next) {
@@ -3824,6 +3825,7 @@ AbstractScanner$S.prototype.tokenizeIdentifier = function(next, start) {
   var isAscii = true;
   while (true) {
     if ((97/*null.$a*/ <= next && next <= 122/*null.$z*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+      next = this.advance();
     }
     else if (next < 128) {
       if ($notnull_bool(isAscii)) {
@@ -3842,9 +3844,9 @@ AbstractScanner$S.prototype.tokenizeIdentifier = function(next, start) {
       while (next > 127)
       var string = this.utf8String(nonAsciiStart, -1).toString$0();
       isAscii = false;
-      this.addToCharOffset(string.length);
+      var byteLength = nonAsciiStart - this.get$byteOffset();
+      this.addToCharOffset(string.length - byteLength);
     }
-    next = this.advance();
   }
 }
 AbstractScanner$S.prototype.tokenizeRawString = function(next) {

@@ -16,13 +16,70 @@ class ByteString {
   abstract String get charset();
 
   String toString() {
+    var list;
     try {
-      return new String.fromCharCodes(bytes.getRange(offset, length));
+      list = bytes.getRange(offset, length);
     } catch (var ignored) {
       // An exception may occur when running this on node. This is
       // because [bytes] really is a buffer (or typed array).
-      return bytes.toString().substring(offset, offset + length);
+      list = new List<int>(length);
+      for (int i = 0; i < length; i++) {
+        list[i] = bytes[i + offset];
+      }
     }
+    return new String.fromCharCodes(decodeUtf8(list));
+  }
+
+  static int decodeTrailing(int byte) {
+    if (byte < 0x80 || 0xBF < byte) {
+      return -0xFFFFFFF; // Force bad char.
+    } else {
+      return byte & 0x3F;
+    }
+  }
+
+  static List<int> decodeUtf8(List<int> bytes) {
+    List<int> result = new List<int>();
+    for (int i = 0; i < bytes.length; i++) {
+      if (bytes[i] < 0x80) {
+        result.add(bytes[i]);
+      } else if (bytes[i] < 0xC2) {
+        result.add($QUESTION);
+      } else if (bytes[i] < 0xE0) {
+        int char = (bytes[i++] & 0x1F) << 6;
+        char += decodeTrailing(bytes[i]);
+        if (char < 0x80) {
+          result.add($QUESTION);
+        } else {
+          result.add(char);
+        }
+      } else if (bytes[i] < 0xF0) {
+        int char = (bytes[i++] & 0x0F) << 6;
+        char += decodeTrailing(bytes[i++]);
+        char <<= 6;
+        char += decodeTrailing(bytes[i]);
+        if (char < 0x800 || (0xD800 <= char && char <= 0xDFFF)) {
+          result.add($QUESTION);
+        } else {
+          result.add(char);
+        }
+      } else if (bytes[i] < 0xF8) {
+        int char = (bytes[i++] & 0x07) << 6;
+        char += decodeTrailing(bytes[i++]);
+        char <<= 6;
+        char += decodeTrailing(bytes[i++]);
+        char <<= 6;
+        char += decodeTrailing(bytes[i]);
+        if (char < 0x10000) {
+          result.add($QUESTION);
+        } else {
+          result.add(char);
+        }
+      } else {
+        throw new MalformedInputException('Cannot decode UTF-8 ${bytes[i]}');
+      }
+    }
+    return result;
   }
 
   bool equals(Object other) {

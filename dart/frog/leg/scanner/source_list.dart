@@ -1556,4 +1556,5 @@ final List<String> argv = const <String>[
 './utils.dart',
 './value.dart',
 './var_member.dart',
-'./world.dart' ];
+'./world.dart',
+'leg/scanner/file_with_non_ascii.dart' ];
