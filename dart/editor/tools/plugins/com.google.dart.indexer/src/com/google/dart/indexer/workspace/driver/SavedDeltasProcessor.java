@@ -14,7 +14,6 @@
 package com.google.dart.indexer.workspace.driver;
 
 import com.google.dart.indexer.IndexerPlugin;
-import com.google.dart.indexer.index.configuration.IndexConfigurationInstance;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -28,20 +27,16 @@ final class SavedDeltasProcessor implements IResourceChangeListener {
 
   private final DeltaProcessor deltaProcessor;
 
-  public SavedDeltasProcessor(IndexConfigurationInstance configuration) {
-    deltaProcessor = new DeltaProcessor(configuration);
+  public SavedDeltasProcessor() {
+    deltaProcessor = new DeltaProcessor();
   }
 
-  public IFile[] getModifiedFiles() {
-    return deltaProcessor.getModifiedFiles();
+  public IFile[] getRemovedFiles() {
+    return deltaProcessor.getRemovedFiles();
   }
 
   public boolean hasBeenCalled() {
     return called;
-  }
-
-  public boolean isResyncRequired() {
-    return deltaProcessor.isResyncRequired();
   }
 
   @Override
@@ -50,10 +45,9 @@ final class SavedDeltasProcessor implements IResourceChangeListener {
     IResourceDelta delta = event.getDelta();
     try {
       delta.accept(deltaProcessor);
-    } catch (CoreException e) {
+    } catch (CoreException exception) {
       // cannot happen (only propagates from the visitor)
-      IndexerPlugin.getLogger().logError(e);
+      IndexerPlugin.getLogger().logError(exception);
     }
   }
-
 }

@@ -108,6 +108,7 @@ public class WorkspaceIndexer {
     index = null;
   }
 
+  @Deprecated
   public void enqueueChangedFiles(IFile[] changedFiles) {
     queue.enqueue(changedFiles);
   }
@@ -502,9 +503,6 @@ public class WorkspaceIndexer {
         queue.deletedFile(file);
       } else {
         unprocessedExistingFiles.remove(file);
-        if (file.getModificationStamp() != info.getModificationStamp()) {
-          queue.changedFile(file);
-        }
       }
     }
     for (Iterator<IFile> iterator = unprocessedExistingFiles.iterator(); iterator.hasNext();) {

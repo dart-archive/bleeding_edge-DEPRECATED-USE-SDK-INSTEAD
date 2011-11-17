@@ -16,19 +16,29 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ErrorSeverity;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SubSystem;
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.indexer.standard.StandardDriver;
+import com.google.dart.indexer.workspace.index.IndexingTarget;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.indexer.task.CompilationUnitIndexingTarget;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 
 import static com.google.dart.tools.core.internal.builder.BuilderUtil.createErrorMarker;
 import static com.google.dart.tools.core.internal.builder.BuilderUtil.createWarningMarker;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+
+import java.net.URI;
 
 /**
  * An Eclipse specific implementation of {@link DartCompilerContext} for intercepting compilation
@@ -52,6 +62,8 @@ class CompilerListener extends DartCompilerListener {
    */
   private final IProject project;
 
+  private static final int MISSING_SOURCE_REPORT_LIMIT = 5;
+
   CompilerListener(DartLibrary library, IProject project) {
     this.project = project;
     this.library = library;
@@ -61,33 +73,70 @@ class CompilerListener extends DartCompilerListener {
   public void onError(DartCompilationError event) {
     if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
       processWarning(event);
-    }  else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
       processError(event);
     } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
       processWarning(event);
     }
   }
 
+  @Override
+  public void unitCompiled(DartUnit unit) {
+    if (unit.isDiet()) {
+      return;
+    }
+    DartSource source = unit.getSource();
+    if (source != null) {
+      IFile[] resources = ResourceUtil.getResources(source);
+      if (resources == null || resources.length != 1) {
+        URI sourceUri = source.getUri();
+        if (!SystemLibraryManager.isDartUri(sourceUri)) {
+          DartCore.logError("Could not find compilation unit corresponding to " + sourceUri + " ("
+              + (resources == null ? "no" : resources.length) + " files found)");
+        }
+        return;
+      }
+      CompilationUnit compilationUnit = (CompilationUnit) DartCore.create(resources[0]);
+      if (compilationUnit == null) {
+        DartCore.logError("Could not find compilation unit corresponding to " + source.getUri()
+            + " (resource did not map)");
+        return;
+      }
+      StandardDriver.getInstance().enqueueTargets(
+          new IndexingTarget[] {new CompilationUnitIndexingTarget(compilationUnit, unit)});
+    }
+  }
+
   /**
-   * Create a marker for the given compilation error.
+   * Return the Eclipse resource associated with the given error's source, or the resource
+   * associated with the library's defining compilation unit if the real resource cannot be found.
    * 
-   * @param error the compilation error for which a marker is to be created
+   * @param error the compilation error defining the source
+   * @return the resource associated with the error's source
    */
   private IResource getResource(DartCompilationError error) {
-    // Find the Eclipse resource associated with the source
-    IResource res = ResourceUtil.getResource(error.getSource());
+    Source source = error.getSource();
+    IResource res = ResourceUtil.getResource(source);
     if (res == null) {
-      // Don't flood the log
-      missingSourceCount++;
-      if (missingSourceCount == 5) {
-        RuntimeException exception = new RuntimeException(
-            "No source associated with compilation error (" + missingSourceCount
-                + ", final warning): " + error.getMessage());
-        DartCore.logInformation(exception.getMessage(), exception);
-      } else if (missingSourceCount < 5) {
-        RuntimeException exception = new RuntimeException(
-            "No source associated with compilation error (" + missingSourceCount + "): "
-                + error.getMessage());
+      if (missingSourceCount <= MISSING_SOURCE_REPORT_LIMIT) {
+        // Don't flood the log
+        missingSourceCount++;
+        StringBuilder builder = new StringBuilder();
+        if (source == null) {
+          builder.append("No source associated with compilation error (");
+        } else {
+          builder.append("Could not find file for source \"");
+          builder.append(source.getUri().toString());
+          builder.append("\" (");
+        }
+        builder.append(missingSourceCount);
+        if (missingSourceCount == MISSING_SOURCE_REPORT_LIMIT) {
+          builder.append(", final warning): ");
+        } else {
+          builder.append("): ");
+        }
+        builder.append(error.getMessage());
+        RuntimeException exception = new RuntimeException(builder.toString());
         DartCore.logInformation(exception.getMessage(), exception);
         // TODO (danrubel): generalize the logging mechanism for all plugins
       }
@@ -127,9 +176,5 @@ class CompilerListener extends DartCompilerListener {
       createWarningMarker(res, error.getStartPosition(), error.getLength(), error.getLineNumber(),
           error.getMessage());
     }
-  }
-
-  @Override
-  public void unitCompiled(DartUnit unit) {
   }
 }

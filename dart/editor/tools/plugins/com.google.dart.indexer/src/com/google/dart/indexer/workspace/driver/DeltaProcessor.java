@@ -13,73 +13,46 @@
  */
 package com.google.dart.indexer.workspace.driver;
 
-import com.google.dart.indexer.IndexerPlugin;
-import com.google.dart.indexer.index.configuration.IndexConfigurationInstance;
 import com.google.dart.indexer.utils.ResourceDeltaSwitch;
-import com.google.dart.indexer.workspace.index.WorkspaceFilesCollector;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.runtime.CoreException;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 final class DeltaProcessor extends ResourceDeltaSwitch {
+  private final Collection<IFile> removedFiles = new ArrayList<IFile>();
 
-  private boolean resyncRequired = false;
-
-  private final Collection<IFile> modifiedFiles = new ArrayList<IFile>();
-
-  private final IndexConfigurationInstance configuration;
-
-  public DeltaProcessor(IndexConfigurationInstance configuration) {
-    this.configuration = configuration;
+  public DeltaProcessor() {
+    super();
   }
 
-  public IFile[] getModifiedFiles() {
-    return modifiedFiles.toArray(new IFile[modifiedFiles.size()]);
-  }
-
-  public boolean isResyncRequired() {
-    return resyncRequired;
+  public IFile[] getRemovedFiles() {
+    return removedFiles.toArray(new IFile[removedFiles.size()]);
   }
 
   @Override
   protected boolean visitAddedContainer(IContainer container) {
-    try {
-      // closed projects cannot be visited
-      if (!container.isAccessible()) {
-        return false;
-      }
-      container.accept(new WorkspaceFilesCollector(configuration, modifiedFiles));
-    } catch (CoreException e) {
-      IndexerPlugin.getLogger().logError(e);
-    }
     return true;
   }
 
   @Override
   protected void visitAddedFile(IFile file) {
-    modifiedFiles.add(file);
   }
 
   @Override
   protected void visitChangedFile(IFile file, IResourceDelta delta) {
-    if ((delta.getFlags() & (IResourceDelta.CONTENT | IResourceDelta.ENCODING)) != 0) {
-      modifiedFiles.add(file);
-    }
   }
 
   @Override
   protected boolean visitRemovedContainer(IContainer container) {
-    resyncRequired = true;
     return false;
   }
 
   @Override
   protected void visitRemovedFile(IFile file) {
-    modifiedFiles.add(file);
+    removedFiles.add(file);
   }
 }

@@ -93,13 +93,9 @@ public class WorkspaceIndexingDriver {
       IResourceDelta delta = event.getDelta();
       try {
         if (delta != null) {
-          DeltaProcessor deltaProcessor = new DeltaProcessor(configuration);
+          DeltaProcessor deltaProcessor = new DeltaProcessor();
           delta.accept(deltaProcessor);
-          if (deltaProcessor.isResyncRequired()) {
-            indexer.tryResync();
-          } else {
-            indexer.enqueueChangedFiles(deltaProcessor.getModifiedFiles());
-          }
+          indexer.enqueueChangedFiles(deltaProcessor.getRemovedFiles());
           workAdded();
         }
       } catch (CoreException e) {
@@ -129,7 +125,7 @@ public class WorkspaceIndexingDriver {
   public WorkspaceIndexingDriver(IndexConfigurationInstance configuration) {
     this.configuration = configuration;
     IWorkspace workspace = ResourcesPlugin.getWorkspace();
-    SavedDeltasProcessor processor = new SavedDeltasProcessor(configuration);
+    SavedDeltasProcessor processor = new SavedDeltasProcessor();
     try {
       ISavedState state = workspace.addSaveParticipant(IndexerPlugin.PLUGIN_ID,
           new SaveParticipantAskingForDelta());
@@ -138,10 +134,10 @@ public class WorkspaceIndexingDriver {
       }
     } catch (CoreException e) {
     }
-    if (!processor.hasBeenCalled() || processor.isResyncRequired()) {
+    if (!processor.hasBeenCalled()) {
       indexer = new WorkspaceIndexer(configuration);
     } else {
-      indexer = new WorkspaceIndexer(configuration, processor.getModifiedFiles());
+      indexer = new WorkspaceIndexer(configuration, processor.getRemovedFiles());
     }
     workAdded();
     workspace.addResourceChangeListener(resourceChangeListener, IResourceChangeEvent.POST_CHANGE);
@@ -256,13 +252,6 @@ public class WorkspaceIndexingDriver {
       IndexerPlugin.getLogger().logError("Might not have joined indexing job during shutdown",
           exception);
     }
-
-//    try {
-//      Thread.sleep(500);
-//    } catch (InterruptedException exception) {
-//      IndexerPlugin.getLogger().logError("Sleep interrupted during shutdown", exception);
-//    }
-
     indexer.dispose();
   }
 
