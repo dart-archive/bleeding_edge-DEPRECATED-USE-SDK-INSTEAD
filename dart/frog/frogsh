@@ -9803,8 +9803,9 @@ Compiler.prototype.run = function() {
   return true;
 }
 Compiler.prototype.scanCoreLibrary = function() {
+  var $0;
   var fileName = join([options.libDir, '..', 'leg', 'lib', 'core.dart']);
-  var file = readSync(fileName);
+  var file = (($0 = readSync(fileName)) && $0.is$SourceFile());
   this.scanner.scan(new leg_Script(file));
   var element = new ForeignElement(const$203/*const SourceString('JS')*/);
   this.universe.define(element);

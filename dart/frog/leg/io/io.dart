@@ -8,6 +8,6 @@
 
 String join(List<String> strings) => Strings.join(strings, '/');
 
-frog.SourceFile readSync(String fileName) {
+readSync(String fileName) {
   return new frog.SourceFile(fileName, frog.world.files.readAll(fileName));
 }
