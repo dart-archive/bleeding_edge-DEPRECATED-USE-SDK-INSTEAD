@@ -402,10 +402,18 @@ class FieldMember extends Member {
       if (isFinal) {
         return cv;
       }
+      world.gen.hasStatics = true;
       if (declaringType.isTop) {
-        return new Value(type, '$jsname', node.span);
-      } else {
+        if (declaringType.library == world.dom) {
+          return new Value(type, '$jsname', node.span);
+        } else {
+          return new Value(type, '\$globals.$jsname', node.span);
+        }
+      } else if (declaringType.isNative) {
         return new Value(type, '${declaringType.jsname}.$jsname', node.span);
+      } else {
+        return new Value(type,
+            '\$globals.${declaringType.jsname}_$jsname', node.span);
       }
     } else if (target.isConst && isFinal) {
       // take advantage of consts and retrieve the value directly if possible
@@ -753,6 +761,10 @@ class MethodMember extends Member {
     declaringType.genMethod(this);
     _provideOptionalParamInfo = true;
     if (isStatic) {
+      // ensure the type is generated.
+      // TODO(sigmund): can we avoid generating the entire type, but only what
+      // we need?
+      declaringType.markUsed();
       var type = declaringType.isTop ? '' : '${declaringType.jsname}.';
       return new Value(functionType, '$type$jsname', node.span);
     }
@@ -838,6 +850,8 @@ class MethodMember extends Member {
     declaringType.genMethod(this);
 
     if (isStatic || isFactory) {
+      // TODO(sigmund): can we avoid generating the entire type, but only what
+      // we need?
       declaringType.markUsed();
     }
 

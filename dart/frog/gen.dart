@@ -17,6 +17,14 @@
 class WorldGenerator {
   MethodMember main;
   CodeWriter writer;
+
+  /** 
+   * Whether the app has any static fields used. Note this could still be true
+   * and [globals] be empty if no static field has a default initialization.
+   */
+  bool hasStatics = false;
+
+  /** Global const and static field initializations. */
   Map<String, GlobalValue> globals;
   CoreJs corejs;
   bool _inheritsGenerated = false;
@@ -40,7 +48,7 @@ class WorldGenerator {
         || world.coreimpl.types['ReceivePortImpl'].isUsed) {
       corejs.useIsolates = true;
       MethodMember isolateMain =
-          world.coreimpl.topType.resolveMember('startAsIsolate').members[0];
+          world.coreimpl.topType.resolveMember('startRootIsolate').members[0];
       mainCall = isolateMain.invoke(metaGen, null, null,
           new Arguments(null, [main._get(metaGen, main.definition, null)]));
     }
@@ -52,12 +60,13 @@ class WorldGenerator {
     // the topographic sort order.
     writeTypes(main.declaringType.library);
 
-    _writeGlobals();
+    writeGlobals();
     writer.writeln('${mainCall.code};');
   }
 
   GlobalValue globalForStaticField(FieldMember field, Value fieldValue,
       List<Value> dependencies) {
+    hasStatics = true;
     var fullname = "${field.declaringType.jsname}.${field.jsname}";
     if (!globals.containsKey(fullname)) {
       globals[fullname] = new GlobalValue.fromStatic(
@@ -294,10 +303,10 @@ function $inherits(child, parent) {
     if (globals.containsKey(fullname)) {
       var value = globals[fullname];
       if (field.declaringType.isTop && !field.isNative) {
-        writer.writeln('var ${field.jsname} = ${value.exp.code};');
+        writer.writeln('\$globals.${field.jsname} = ${value.exp.code};');
       } else {
-        writer.writeln(
-          '${field.declaringType.jsname}.${field.jsname} = ${value.exp.code};');
+        writer.writeln('\$globals.${field.declaringType.jsname}_${field.jsname}'
+            + ' = ${value.exp.code};');
       }
     }
     // No need to write code for a static class field with no initial value.
@@ -354,17 +363,38 @@ function $inherits(child, parent) {
     }
   }
 
-  _writeGlobals() {
+  writeGlobals() {
     if (globals.length > 0) {
       writer.comment('//  ********** Globals **************');
+      var list = globals.getValues();
+      list.sort((a, b) => a.compareTo(b));
+
+      // put all static field initializations in a method
+      writer.enterBlock('function \$static_init(){');
+      for (var global in list) {
+        if (global.field != null) {
+          _writeStaticField(global.field);
+        }
+      }
+      writer.exitBlock('}');
+
+      // Keep const expressions shared across isolates. Note that the frog
+      // isolate library needs this because we wrote it's bootstrap and
+      // book-keeping directly in Dart. Specifically, that code uses
+      // [HashMapImplementation] which internally uses a constant expression.
+      for (var global in list) {
+        if (global.field == null) {
+          writer.writeln('${global.name} = ${global.exp.code};');
+        }
+      }
     }
-    var list = globals.getValues();
-    list.sort((a, b) => a.compareTo(b));
-    for (var global in list) {
-      if (global.field != null) {
-        _writeStaticField(global.field);
-      } else {
-        writer.writeln('var ${global.name} = ${global.exp.code};');
+
+    if (!corejs.useIsolates) {
+      if (hasStatics) {
+        writer.writeln('var \$globals = {};');
+      }
+      if (globals.length > 0) {
+        writer.writeln('\$static_init();');
       }
     }
   }

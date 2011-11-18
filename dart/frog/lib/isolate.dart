@@ -16,29 +16,36 @@ set _globalState(GlobalState val) native "\$globalState = val;";
 
 /**
  * Wrapper that takes the dart entry point and runs it within an isolate. The
- * frog compiler will inject a call of the form [: startAsIsolate(main); :] when
- * it determines that this wrapping is needed. For single-isolate applications
- * (e.g. hello world), this call is not emited.
+ * frog compiler will inject a call of the form [: startRootIsolate(main); :]
+ * when it determines that this wrapping is needed. For single-isolate
+ * applications (e.g. hello world), this call is not emitted.
  */
-void startAsIsolate(entry) {
+void startRootIsolate(entry) {
   _globalState = new GlobalState();
 
   // Don't start the main loop again, if we are in a worker.
-  if (_globalState.inWorker) return;
-  final entryIsolate = new IsolateContext();
-  _globalState.rootIsolate = entryIsolate;
+  if (_globalState.isWorker) return;
+  final rootContext = new IsolateContext();
+  _globalState.rootContext = rootContext;
+  _fillStatics(rootContext);
 
-  // BUG(5151491): Setting _thisISolate should not be necessary, but because
-  // closures passed to the DOM as event handlers do not bind their isolate
-  // automatically we try to give them a reasonable context to live in by having
-  // a "default" isolate (the first one created).
-  _globalState.currentIsolate = entryIsolate;
+  // BUG(5151491): Setting currentContext should not be necessary, but
+  // because closures passed to the DOM as event handlers do not bind their
+  // isolate automatically we try to give them a reasonable context to live in
+  // by having a "default" isolate (the first one created).
+  _globalState.currentContext = rootContext;
 
-  entryIsolate.eval(entry);
+  rootContext.eval(entry);
   _globalState.topEventLoop.run();
 }
 
+void _fillStatics(context) native @"""
+  $globals = context.isolateStatics;
+  $static_init();
+""";
+
 /** Global state associated with the current worker. See [_globalState]. */
+// TODO(sigmund): split in multiple classes: global, thread, main-worker states?
 class GlobalState {
 
   /** Next available isolate id. */
@@ -54,16 +61,16 @@ class GlobalState {
   int nextWorkerId = 1;
 
   /** Context for the currently running [Isolate]. */
-  IsolateContext currentIsolate = null;
+  IsolateContext currentContext = null;
 
   /** Context for the root [Isolate] that first run in this worker. */
-  IsolateContext rootIsolate = null;
+  IsolateContext rootContext = null;
 
   /** The top-level event loop. */
   EventLoop topEventLoop;
 
   /** Whether this program is running in a background worker. */
-  bool inWorker;
+  bool isWorker;
 
   /** Whether this program is running in a UI worker. */
   bool inWindow;
@@ -78,11 +85,11 @@ class GlobalState {
   bool get useWorkers() => supportsWorkers;
 
   /**
-   * Whether to use the web-worker JSON-based message serialization protocol,
-   * even if not using web workers. Set to true to always use the web-worker
-   * JSON-based message serialization protocol, e.g. for testing purposes.
+   * Whether to use the web-worker JSON-based message serialization protocol. By
+   * default this is only used with web workers. For debugging, you can force
+   * using this protocol by changing this field value to [true].
    */
-  bool get useWorkerSerializationProtocol() => useWorkers;
+  bool get needSerialization() => useWorkers;
 
   /**
    * Registry of isolates. Isolates must be registered if, and only if, receive
@@ -106,9 +113,9 @@ class GlobalState {
   }
 
   void _nativeInit() native @"""
-    this.inWorker = typeof ($globalThis['importScripts']) != 'undefined';
+    this.isWorker = typeof ($globalThis['importScripts']) != 'undefined';
     this.inWindow = typeof(window) !== 'undefined';
-    this.supportsWorkers = this.inWorker ||
+    this.supportsWorkers = this.isWorker ||
         ((typeof $globalThis['Worker']) != 'undefined');
 
     // if workers are supported, treat this as a main worker:
@@ -124,11 +131,11 @@ class GlobalState {
    * run.
    */
   void closeWorker() {
-    if (inWorker) {
+    if (isWorker) {
       if (!isolates.isEmpty()) return;
       mainWorker.postMessage(
           _serializeMessage({'command': 'close'}));
-    } else if (isolates.containsKey(rootIsolate.id) && workers.isEmpty() &&
+    } else if (isolates.containsKey(rootContext.id) && workers.isEmpty() &&
                !supportsWorkers && !inWindow) {
       // This should only trigger when running on the command-line.
       // We don't want this check to execute in the browser where the isolate
@@ -139,7 +146,7 @@ class GlobalState {
 }
 
 _serializeMessage(message) {
-  if (_globalState.useWorkerSerializationProtocol) {
+  if (_globalState.needSerialization) {
     return new Serializer().traverse(message);
   } else {
     return new Copier().traverse(message);
@@ -147,7 +154,7 @@ _serializeMessage(message) {
 }
 
 _deserializeMessage(message) {
-  if (_globalState.useWorkerSerializationProtocol) {
+  if (_globalState.needSerialization) {
     return new Deserializer().deserialize(message);
   } else {
     // Nothing more to do.
@@ -178,8 +185,8 @@ class IsolateContext {
     initGlobals();
   }
 
-  // TODO(sigmund): actually do the initialization too.
-  void initGlobals() native "this.isolateStatics = {};";
+  // these are filled lazily the first time the isolate starts running.
+  void initGlobals() native 'this.isolateStatics = {};';
 
   /**
    * Run [code] in the context of the isolate represented by [this]. Note this
@@ -187,16 +194,20 @@ class IsolateContext {
    * corejs.dart).
    */
   void eval(Function code) native {
-    var old = _globalState.currentIsolate;
-    _globalState.currentIsolate = this;
+    var old = _globalState.currentContext;
+    _globalState.currentContext = this;
+    this._setGlobals();
     var result = null;
     try {
       result = code();
     } finally {
-      _globalState.currentIsolate = old;
+      _globalState.currentContext = old;
+      old._setGlobals();
     }
     return result;
   }
+
+  void _setGlobals() native @'$globals = this.isolateStatics;';
 
   /** Lookup a port registered for this isolate. */
   ReceivePort lookup(int id) => ports[id];
@@ -246,7 +257,7 @@ class EventLoop {
   }
 
   /** Function equivalent to [:window.setTimeout:] when available, or null. */
-  static Function _platformDefer() native """
+  static Function _wrapSetTimeout() native """
       return typeof window != 'undefined' ?
           function(a, b) { window.setTimeout(a, b); } : undefined;
   """;
@@ -256,7 +267,7 @@ class EventLoop {
    * run asynchronously.
    */
   void _runHelper() {
-    final setTimeout = _platformDefer();
+    final setTimeout = _wrapSetTimeout();
     if (setTimeout != null) {
       // Run each iteration from the browser's top event loop.
       void next() {
@@ -276,7 +287,7 @@ class EventLoop {
    * $wrap_call in corejs.dart).
    */
   void run() native {
-    if (!_globalState.inWorker) {
+    if (!_globalState.isWorker) {
       _runHelper();
     } else {
       try {
@@ -363,7 +374,7 @@ class ReceivePortFactory {
 class ReceivePortImpl implements ReceivePort {
   ReceivePortImpl()
       : _id = _nextFreeId++ {
-    _globalState.currentIsolate.register(_id, this);
+    _globalState.currentContext.register(_id, this);
   }
 
   void receive(void onMessage(var message, SendPort replyTo)) {
@@ -372,7 +383,7 @@ class ReceivePortImpl implements ReceivePort {
 
   void close() {
     _callback = null;
-    _globalState.currentIsolate.unregister(_id);
+    _globalState.currentContext.unregister(_id);
   }
 
   /**
@@ -381,7 +392,7 @@ class ReceivePortImpl implements ReceivePort {
    */
   SendPort toSendPort() {
     return new SendPortImpl(
-        _globalState.currentWorkerId, _globalState.currentIsolate.id, _id);
+        _globalState.currentWorkerId, _globalState.currentContext.id, _id);
   }
 
   int _id;
@@ -437,7 +448,7 @@ class IsolateNatives {
 
   static SendPort _startWorker(Isolate runnable, SendPort replyPort) {
     var factoryName = _getJSConstructorName(runnable);
-    if (_globalState.inWorker) {
+    if (_globalState.isWorker) {
       _globalState.mainWorker.postMessage(_serializeMessage({
           'command': 'spawn-worker',
           'factoryName': factoryName,
@@ -460,7 +471,7 @@ class IsolateNatives {
   // TODO(sigmund): fix - this code should be run synchronously when loading the
   // script. Running lazily on DOMContentLoaded will yield incorrect results.
   static String _computeThisScript() native @"""
-    if (!$globalState.supportsWorkers || $globalState.inWorker) return null;
+    if (!$globalState.supportsWorkers || $globalState.isWorker) return null;
 
     // TODO(5334778): Find a cross-platform non-brittle way of getting the
     // currently running script.
@@ -468,11 +479,11 @@ class IsolateNatives {
     // The scripts variable only contains the scripts that have already been
     // executed. The last one is the currently running script.
     var script = scripts[scripts.length - 1];
-    var src = script.src;
+    var src = script && script.src;
     if (!src) {
       // TODO()
       src = "FIXME:5407062" + "_" + Math.random().toString();
-      script.src = src;
+      if (script) script.src = src;
     }
     IsolateNatives._thisScriptCache = src;
     return src;
@@ -539,7 +550,7 @@ class IsolateNatives {
         _log(msg['msg']);
         break;
       case 'print':
-        if (_globalState.inWorker) {
+        if (_globalState.isWorker) {
           _globalState.mainWorker.postMessage(
               _serializeMessage({'command': 'print', 'msg': msg}));
         } else {
@@ -554,7 +565,7 @@ class IsolateNatives {
 
   /** Log a message, forwarding to the main worker if appropriate. */
   static _log(msg) {
-    if (_globalState.inWorker) {
+    if (_globalState.isWorker) {
       _globalState.mainWorker.postMessage(
           _serializeMessage({'command': 'log', 'msg': msg }));
     } else {
@@ -608,6 +619,7 @@ class IsolateNatives {
 
   /** Given a ready-to-start runnable, start running it. */
   static void _startIsolate(Isolate isolate, SendPort replyTo) {
+    _fillStatics(_globalState.currentContext);
     ReceivePort port = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
     isolate._run(port);
@@ -630,7 +642,7 @@ class IsolateNatives {
     } else {
       var worker;
       // communication between workers go through the main worker
-      if (_globalState.inWorker) {
+      if (_globalState.isWorker) {
         worker = _globalState.mainWorker;
       } else {
         // TODO(sigmund): make sure this works

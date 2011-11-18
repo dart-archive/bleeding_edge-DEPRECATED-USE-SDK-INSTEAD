@@ -28,6 +28,7 @@ class Evaluator {
     _markAllUsed(world.corelib);
     world.gen.writeTypes(world.coreimpl);
     world.gen.writeTypes(world.corelib);
+    world.gen.writeGlobals();
     _prelude = world.gen.writer.text;
 
     // Set these here so that we can compile the corelib without its errors

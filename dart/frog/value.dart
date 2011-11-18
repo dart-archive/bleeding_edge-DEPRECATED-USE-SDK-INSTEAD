@@ -645,8 +645,14 @@ class GlobalValue extends Value implements Comparable {
 
   GlobalValue(Type type, String code, bool isConst,
       this.field, this.name, this.exp, this.canonicalCode,
-      SourceSpan span, this.dependencies)
-      : super(type, code, span, !isConst);
+      SourceSpan span, List<GlobalValue> _dependencies)
+      : super(type, code, span, !isConst), dependencies = [] {
+    // store transitive-dependencies so sorting algorithm works correctly.
+    for (final dep in _dependencies) {
+      dependencies.add(dep);
+      dependencies.addAll(dep.dependencies);
+    }
+  }
 
   int compareTo(GlobalValue other) {
     // order by dependencies, o.w. by name
