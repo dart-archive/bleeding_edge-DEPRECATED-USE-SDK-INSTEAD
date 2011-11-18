@@ -131,7 +131,15 @@ class ResolverVisitor implements Visitor<Element> {
         potentiallyMapOperatorToMethodName(identifier.source);
     // TODO(ngeoffray): Use the receiver to do the lookup.
     Element target = context.lookup(name);
-    if (target == null) fail(node, ErrorMessages.cannotResolve(name));
+    if (target == null) {
+      // TODO(ngeoffray): implement resolution for logical operators.
+      if (name == const SourceString('&&') ||
+          name == const SourceString('||')) {
+        visit(node.argumentsNode);
+        return null;
+      }
+      fail(node, ErrorMessages.cannotResolve(name));
+    }
     visit(node.argumentsNode);
     return useElement(node, target);
   }

@@ -88,7 +88,12 @@ class SsaCodeGenerator implements HVisitor {
     String name = names[id];
     if (name !== null) return name;
 
-    String prefix = local.element.name.stringValue;
+    String prefix;
+    if (local.element !== null) {
+      prefix = local.element.name.stringValue;
+    } else {
+      prefix = 'v';
+    }
     if (!prefixes.containsKey(prefix)) {
       prefixes[prefix] = 0;
       return newName(id, prefix);

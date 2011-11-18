@@ -333,16 +333,51 @@ class SsaBuilder implements Visitor {
     return new SourceString(str.substring(quotes + 1, str.length - quotes));
   }
 
+  visitLogicalAnd(Send node) {
+    visit(node.receiver);
+    HInstruction boolifiedLeft = popBoolified();
+    HBasicBlock leftBlock = close(new HIf(boolifiedLeft, false));
+    Map leftDefinitions = new Map<Element, HInstruction>.from(definitions);
+    
+    HBasicBlock rightBlock = graph.addNewBlock();
+    leftBlock.addSuccessor(rightBlock);
+    open(rightBlock);
+    visit(node.argumentsNode);
+    HInstruction boolifiedRight = popBoolified();
+    rightBlock = close(new HGoto());
+
+    HBasicBlock joinBlock = graph.addNewBlock();
+    leftBlock.addSuccessor(joinBlock);
+    rightBlock.addSuccessor(joinBlock);
+    open(joinBlock);
+
+    definitions = joinDefinitions(joinBlock, leftDefinitions, definitions);
+    HPhi result = new HPhi.manyInputs(null, [boolifiedLeft, boolifiedRight]);
+    joinBlock.addPhi(result);
+    stack.add(result);
+  }
+
+  visitLogicalOr(Send node) {
+    compiler.unimplemented("SsaBuilder.visitLogicalOr");
+  }
+
   visitSend(Send node) {
     // TODO(kasperl): This only works for very special cases. Make
     // this way more general soon.
     Element element = elements[node];
     if (node.selector is Operator) {
+      Operator op = node.selector;
+      if (const SourceString("&&") == op.source) {
+        visitLogicalAnd(node);
+        return;
+      } else if (const SourceString("||") == op.source) {
+        visitLogicalOr(node);
+        return;
+      }
       visit(node.receiver);
       visit(node.argumentsNode);
       var right = pop();
       var left = pop();
-      Operator op = node.selector;
       // TODO(floitsch): switch to switch (bug 314).
       if (const SourceString("+") == op.source) {
         push(new HAdd(element, [left, right]));
