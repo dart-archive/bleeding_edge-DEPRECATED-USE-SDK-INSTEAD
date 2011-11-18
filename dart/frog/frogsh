@@ -1164,7 +1164,7 @@ function ExceptionImplementation(_msg) {
   // Initializers done
 }
 ExceptionImplementation.prototype.toString = function() {
-  return (this._msg == null) ? "Exception" : ("Exception: " + this._msg + "");
+  return (this._msg == null) ? "Exception" : ("Exception: " + this._msg);
 }
 ExceptionImplementation.prototype.toString$0 = function() {
   return this.toString();
@@ -2321,13 +2321,13 @@ DateImplementation.prototype.get$milliseconds = function() {
 }
 DateImplementation.prototype.toString = function() {
   function threeDigits(n) {
-    if (n >= 100) return ("" + n + "");
-    if (n > 10) return ("0" + n + "");
-    return ("00" + n + "");
+    if (n >= 100) return ("" + n);
+    if (n > 10) return ("0" + n);
+    return ("00" + n);
   }
   function twoDigits(n) {
-    if (n >= 10) return ("" + n + "");
-    return ("0" + n + "");
+    if (n >= 10) return ("" + n);
+    return ("0" + n);
   }
   var m = twoDigits(this.get$month());
   var d = twoDigits(this.get$day());
@@ -2339,7 +2339,7 @@ DateImplementation.prototype.toString = function() {
     return ("" + this.get$year() + "-" + m + "-" + d + " " + h + ":" + min + ":" + sec + "." + ms + "Z");
   }
   else {
-    return ("" + this.get$year() + "-" + m + "-" + d + " " + h + ":" + min + ":" + sec + "." + ms + "");
+    return ("" + this.get$year() + "-" + m + "-" + d + " " + h + ":" + min + ":" + sec + "." + ms);
   }
 }
 DateImplementation.prototype.add = function(duration) {
@@ -5207,22 +5207,22 @@ Listener.prototype.handleVoidKeyword = function(token) {
 
 }
 Listener.prototype.expected = function(string, token) {
-  $throw(new ParserError(("Expected '" + string + "', but got '" + token + "' @ ") + ("" + token.charOffset + "")));
+  $throw(new ParserError(("Expected '" + string + "', but got '" + token + "' @ ") + ("" + token.charOffset)));
 }
 Listener.prototype.unexpectedEof = function() {
   $throw(new ParserError("Unexpected end of file"));
 }
 Listener.prototype.expectedIdentifier = function(token) {
-  $throw(new ParserError(("Expected identifier, but got '" + token + "' @ ") + ("" + token.charOffset + "")));
+  $throw(new ParserError(("Expected identifier, but got '" + token + "' @ ") + ("" + token.charOffset)));
 }
 Listener.prototype.expectedType = function(token) {
-  $throw(new ParserError(("Expected a type, but got '" + token + "' @ ") + ("" + token.charOffset + "")));
+  $throw(new ParserError(("Expected a type, but got '" + token + "' @ ") + ("" + token.charOffset)));
 }
 Listener.prototype.expectedBlock = function(token) {
-  $throw(new ParserError(("Expected a block, but got '" + token + "' @ ") + ("" + token.charOffset + "")));
+  $throw(new ParserError(("Expected a block, but got '" + token + "' @ ") + ("" + token.charOffset)));
 }
 Listener.prototype.unexpected = function(token) {
-  $throw(new ParserError(("Unexpected token '" + token + "' @ " + token.charOffset + "")));
+  $throw(new ParserError(("Unexpected token '" + token + "' @ " + token.charOffset)));
 }
 Listener.prototype.beginArguments$1 = function($0) {
   return this.beginArguments(($0 && $0.is$Token()));
@@ -5501,22 +5501,22 @@ ElementListener.prototype.endTypeArguments = function(count, beginToken, endToke
   }
 }
 ElementListener.prototype.expected = function(string, token) {
-  this.canceler.cancel(("Expected '" + string + "', but got '" + token + "' ") + ("@ " + token.charOffset + ""));
+  this.canceler.cancel(("Expected '" + string + "', but got '" + token + "' ") + ("@ " + token.charOffset));
 }
 ElementListener.prototype.unexpectedEof = function() {
   this.canceler.cancel("Unexpected end of file");
 }
 ElementListener.prototype.expectedIdentifier = function(token) {
-  this.canceler.cancel(("Expected identifier, but got '" + token + "' ") + ("@ " + token.charOffset + ""));
+  this.canceler.cancel(("Expected identifier, but got '" + token + "' ") + ("@ " + token.charOffset));
 }
 ElementListener.prototype.expectedType = function(token) {
-  this.canceler.cancel(("Expected a type, but got '" + token + "' @ " + token.charOffset + ""));
+  this.canceler.cancel(("Expected a type, but got '" + token + "' @ " + token.charOffset));
 }
 ElementListener.prototype.expectedBlock = function(token) {
-  this.canceler.cancel(("Expected a block, but got '" + token + "' @ " + token.charOffset + ""));
+  this.canceler.cancel(("Expected a block, but got '" + token + "' @ " + token.charOffset));
 }
 ElementListener.prototype.unexpected = function(token) {
-  this.canceler.cancel(("Unexpected token '" + token + "' @ " + token.charOffset + ""));
+  this.canceler.cancel(("Unexpected token '" + token + "' @ " + token.charOffset));
 }
 ElementListener.prototype.pushElement = function(element) {
   var $0;
@@ -5525,14 +5525,14 @@ ElementListener.prototype.pushElement = function(element) {
 ElementListener.prototype.pushNode = function(node) {
   var $0;
   this.nodes = (($0 = this.nodes.prepend(node)) && $0.is$Link$Node());
-  this.log(("push " + this.nodes + ""));
+  this.log(("push " + this.nodes));
 }
 ElementListener.prototype.popNode = function() {
   var $0;
   $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 343, 12);
   var node = (($0 = this.nodes.get$head()) && $0.is$Node());
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link$Node());
-  this.log(("pop " + this.nodes + ""));
+  this.log(("pop " + this.nodes));
   return node;
 }
 ElementListener.prototype.log = function(message) {
@@ -5625,7 +5625,7 @@ NodeListener.prototype.endExpressionStatement = function(token) {
   this.pushNode(new ExpressionStatement(this.popNode(), token));
 }
 NodeListener.prototype.handleOnError = function(token, error) {
-  this.canceler.cancel(("internal error @ " + token.charOffset + ": '" + token.get$value() + "'") + (": " + error + ""));
+  this.canceler.cancel(("internal error @ " + token.charOffset + ": '" + token.get$value() + "'") + (": " + error));
 }
 NodeListener.prototype.get$handleOnError = function() {
   return NodeListener.prototype.handleOnError.bind(this);
@@ -6189,7 +6189,7 @@ function parse(canceler, logger, doParse) {
   var listener = new NodeListener(canceler, logger);
   doParse(new Parser(listener));
   var node = listener.popNode();
-  logger.log(("parsed: " + node + ""));
+  logger.log(("parsed: " + node));
   return node;
 }
 //  ********** Library tree **************
@@ -6666,7 +6666,7 @@ LiteralBool.prototype.get$value = function() {
 
     default:
 
-      (this.handler)(this.token, ("not a bool " + this.token.get$value() + ""));
+      (this.handler)(this.token, ("not a bool " + this.token.get$value()));
 
   }
 }
@@ -8997,7 +8997,7 @@ SsaConstantFolder.prototype.visitAdd = function(node) {
   if ($notnull_bool(node.inputs.$index(0).isLiteralString$0())) {
     var op1 = (($0 = node.inputs.$index(0)) && $0.is$HLiteral());
     var op2 = (($0 = node.inputs.$index(1)) && $0.is$HLiteral());
-    return new HLiteral(new StringWrapper(("" + op1.value + " + " + op2.value + "")));
+    return new HLiteral(new StringWrapper(("" + op1.value + " + " + op2.value)));
   }
   return this.visitArithmetic(node);
 }
@@ -9236,7 +9236,7 @@ HTracer.prototype.visitBasicBlock = function(block) {
   var stringifier = new HInstructionStringifier(block);
   $assert(block.id != null, "block.id !== null", "tracer.dart", 76, 12);
   this.tag("block", (function () {
-    $this.printProperty("name", ("B" + block.id + ""));
+    $this.printProperty("name", ("B" + block.id));
     $this.printProperty("from_bci", -1);
     $this.printProperty("to_bci", -1);
     $this.addPredecessors(block);
@@ -9244,7 +9244,7 @@ HTracer.prototype.visitBasicBlock = function(block) {
     $this.printEmptyProperty("xhandlers");
     $this.printEmptyProperty("flags");
     if (block.dominator != null) {
-      $this.printProperty("dominator", ("B" + block.dominator.id + ""));
+      $this.printProperty("dominator", ("B" + block.dominator.id));
     }
     $this.tag("states", (function () {
       $this.tag("locals", (function () {
@@ -9271,11 +9271,11 @@ HTracer.prototype.visitBasicBlock = function(block) {
   );
 }
 HTracer.prototype.tag = function(tagName, f) {
-  this.print(("begin_" + tagName + ""));
+  this.print(("begin_" + tagName));
   this.indent++;
   f.call$0();
   this.indent--;
-  this.print(("end_" + tagName + ""));
+  this.print(("end_" + tagName));
 }
 HTracer.prototype.print = function(string) {
   this.addIndent();
@@ -9287,7 +9287,7 @@ HTracer.prototype.printEmptyProperty = function(propertyName) {
 }
 HTracer.prototype.printProperty = function(propertyName, value) {
   if ((typeof(value) == 'number')) {
-    this.print(("" + propertyName + " " + value + ""));
+    this.print(("" + propertyName + " " + value));
   }
   else {
     this.print(('' + propertyName + ' "' + value + '"'));
@@ -9324,7 +9324,7 @@ HInstructionStringifier.prototype.visitBasicBlock = function(node) {
   unreachable();
 }
 HInstructionStringifier.prototype.temporaryId = function(instruction) {
-  return ("v" + instruction.id + "");
+  return ("v" + instruction.id);
 }
 HInstructionStringifier.prototype.visitAdd = function(node) {
   return this.visitInvoke(node);
@@ -9367,7 +9367,7 @@ HInstructionStringifier.prototype.visitInvokeForeign = function(invoke) {
   return this.visitGenericInvoke("InvokeForeign", invoke);
 }
 HInstructionStringifier.prototype.visitLiteral = function(literal) {
-  return ("Literal " + literal.value + "");
+  return ("Literal " + literal.value);
 }
 HInstructionStringifier.prototype.visitLoopBranch = function(branch) {
   var $0;
@@ -9380,7 +9380,7 @@ HInstructionStringifier.prototype.visitMultiply = function(node) {
   return this.visitInvoke(node);
 }
 HInstructionStringifier.prototype.visitParameter = function(node) {
-  return ("p" + node.parameterIndex + "");
+  return ("p" + node.parameterIndex);
 }
 HInstructionStringifier.prototype.visitPhi = function(phi) {
   var $0;
@@ -9388,14 +9388,14 @@ HInstructionStringifier.prototype.visitPhi = function(phi) {
 }
 HInstructionStringifier.prototype.visitReturn = function(node) {
   var $0;
-  return ("Return " + this.temporaryId((($0 = node.inputs.$index(0)) && $0.is$HInstruction())) + "");
+  return ("Return " + this.temporaryId((($0 = node.inputs.$index(0)) && $0.is$HInstruction())));
 }
 HInstructionStringifier.prototype.visitSubtract = function(node) {
   return this.visitInvoke(node);
 }
 HInstructionStringifier.prototype.visitThrow = function(node) {
   var $0;
-  return ("Throw " + this.temporaryId((($0 = node.inputs.$index(0)) && $0.is$HInstruction())) + "");
+  return ("Throw " + this.temporaryId((($0 = node.inputs.$index(0)) && $0.is$HInstruction())));
 }
 HInstructionStringifier.prototype.visitTruncatingDivide = function(node) {
   return this.visitInvoke(node);
@@ -9819,13 +9819,13 @@ ResolverTask.prototype.resolve$1 = function($0) {
 // ********** Code for ErrorMessages **************
 function ErrorMessages() {}
 ErrorMessages.cannotResolve = function(id) {
-  return ("cannot resolve " + id + "");
+  return ("cannot resolve " + id);
 }
 ErrorMessages.cannotResolveType = function(id) {
-  return ("cannot resolve type " + id + "");
+  return ("cannot resolve type " + id);
 }
 ErrorMessages.duplicateDefinition = function(id) {
-  return ("duplicate definition of " + id + "");
+  return ("duplicate definition of " + id);
 }
 ErrorMessages.notAType = function(id) {
   return ("" + id + " is not a type");
@@ -10717,7 +10717,7 @@ WorldGenerator.prototype.run = function() {
 }
 WorldGenerator.prototype.globalForStaticField = function(field, fieldValue, dependencies) {
   var $0;
-  var fullname = ("" + field.declaringType.get$jsname() + "." + field.get$jsname() + "");
+  var fullname = ("" + field.declaringType.get$jsname() + "." + field.get$jsname());
   if (!this.globals.containsKey(fullname)) {
     this.globals.$setindex(fullname, GlobalValue.GlobalValue$fromStatic$factory(field, fieldValue, dependencies));
   }
@@ -10913,7 +10913,7 @@ WorldGenerator.prototype._writeDynamicStubs = function(type) {
 }
 WorldGenerator.prototype._writeStaticField = function(field) {
   if ($notnull_bool(field.isFinal)) return;
-  var fullname = ("" + field.declaringType.get$jsname() + "." + field.get$jsname() + "");
+  var fullname = ("" + field.declaringType.get$jsname() + "." + field.get$jsname());
   if (this.globals.containsKey(fullname)) {
     var value = this.globals.$index(fullname);
     if ($notnull_bool(field.declaringType.get$isTop()) && !$notnull_bool(field.isNative)) {
@@ -12032,7 +12032,7 @@ MethodGenerator.prototype.visitBinaryExpression = function(node) {
     var y = this.visitValue(node.y);
     if ($notnull_bool(x.get$isConst()) && $notnull_bool(y.get$isConst())) {
       var value = kind == 50/*TokenKind.EQ_STRICT*/ ? $eq(x.get$actualValue(), y.get$actualValue()) : $ne(x.get$actualValue(), y.get$actualValue());
-      return EvaluatedValue.EvaluatedValue$factory(world.nonNullBool, value, ("" + value + ""), node.span);
+      return EvaluatedValue.EvaluatedValue$factory(world.nonNullBool, value, ("" + value), node.span);
     }
     if ($notnull_bool($eq(x.get$code(), 'null')) || $notnull_bool($eq(y.get$code(), 'null'))) {
       var op = node.op.toString().substring(0, 2);
@@ -12438,7 +12438,7 @@ MethodGenerator.prototype.visitLiteralExpression = function(node) {
       if ((item instanceof BinaryExpression) || (item instanceof ConditionalExpression) || (item instanceof PostfixExpression) || $notnull_bool(this._isUnaryIncrement((item && item.is$lang_Expression())))) {
         code = ('(' + code + ')');
       }
-      if ($notnull_bool($eq(items.length, 0)) || $notnull_bool($ne(code, "''"))) {
+      if ($notnull_bool($eq(items.length, 0)) || ($notnull_bool($ne(code, "''")) && $notnull_bool($ne(code, '""')))) {
         items.add$1(code);
       }
     }
@@ -14241,7 +14241,7 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
           break;
 
       }
-      return EvaluatedValue.EvaluatedValue$factory(this.get$inferredResult(), value, ("" + value + ""), node.span);
+      return EvaluatedValue.EvaluatedValue$factory(this.get$inferredResult(), value, ("" + value), node.span);
     }
   }
   else if ($notnull_bool(this.declaringType.get$isString())) {
@@ -14281,7 +14281,7 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
       var val0 = target.get$dynamic().get$actualValue();
       var val1 = args.values.$index(0).get$dynamic().get$actualValue();
       var newVal = this.name == '\$eq' ? $eq(val0, val1) : $ne(val0, val1);
-      return EvaluatedValue.EvaluatedValue$factory(world.nonNullBool, newVal, ("" + newVal + ""), node.span);
+      return EvaluatedValue.EvaluatedValue$factory(world.nonNullBool, newVal, ("" + newVal), node.span);
     }
     if ($notnull_bool($eq(argsCode.$index(0), 'null'))) {
       return new Value(this.get$inferredResult(), ('' + target.code + ' ' + op + ' null'), node.span, true);
@@ -20942,7 +20942,7 @@ GlobalValue.GlobalValue$fromStatic$factory = function(field, exp, dependencies) 
   ));
 }
 GlobalValue.GlobalValue$fromConst$factory = function(uniqueId, exp, dependencies) {
-  var name = ("const\$" + uniqueId + "");
+  var name = ("const\$" + uniqueId);
   var codeWithComment = ("" + name + "/*" + exp.span.get$text() + "*/");
   return new GlobalValue(exp.type, $assert_String(codeWithComment), true, null, name, exp, name, exp.span, dependencies.filter$1((function (d) {
     return (d instanceof GlobalValue);
@@ -21192,7 +21192,7 @@ World.prototype.runLeg = function() {
   })
   ));
   if (!$notnull_bool(res) && $notnull_bool(options.legOnly)) {
-    this.fatal(("Leg could not compile " + options.dartScript + ""));
+    this.fatal(("Leg could not compile " + options.dartScript));
     return true;
   }
   return res;

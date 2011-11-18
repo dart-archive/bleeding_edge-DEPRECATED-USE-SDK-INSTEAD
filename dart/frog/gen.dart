@@ -2142,7 +2142,7 @@ class MethodGenerator implements TreeVisitor {
           code = '(${code})';
         }
         // No need to concat empty strings except the first.
-        if (items.length == 0 || code != "''") {
+        if (items.length == 0 || (code != "''" && code != '""')) {
           items.add(code);
         }
       }
