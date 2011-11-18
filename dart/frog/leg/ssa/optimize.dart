@@ -175,7 +175,8 @@ class SsaGlobalValueNumberer {
       changesFlags |= instruction.getChangesFlags();
       instruction = instruction.next;
     }
-    return blockChangesFlags[id] = changesFlags;
+    blockChangesFlags[id] = changesFlags; // Update the cache.
+    return changesFlags;
   }
 
   int getChangesFlagsForDominatedBlock(HBasicBlock dominator,

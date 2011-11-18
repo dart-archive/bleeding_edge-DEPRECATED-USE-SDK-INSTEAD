@@ -9121,7 +9121,8 @@ SsaGlobalValueNumberer.prototype.getChangesFlagsForBlock = function(block) {
     changesFlags |= instruction.getChangesFlags();
     instruction = instruction.next;
   }
-  return $assert_num(this.blockChangesFlags.$setindex(id, changesFlags));
+  this.blockChangesFlags.$setindex(id, changesFlags);
+  return changesFlags;
 }
 SsaGlobalValueNumberer.prototype.getChangesFlagsForDominatedBlock = function(dominator, dominated) {
   var $0;
