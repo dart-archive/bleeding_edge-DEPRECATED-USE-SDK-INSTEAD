@@ -5,6 +5,7 @@
 interface HVisitor<R> {
   R visitAdd(HAdd node);
   R visitBasicBlock(HBasicBlock node);
+  R visitBoolify(HBoolify node);
   R visitDivide(HDivide node);
   R visitEquals(HEquals node);
   R visitExit(HExit node);
@@ -162,6 +163,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitControlFlow(HControlFlow node) => visitInstruction(node);
 
   visitAdd(HAdd node) => visitArithmetic(node);
+  visitBoolify(HBoolify node) => visitInstruction(node);
   visitDivide(HDivide node) => visitArithmetic(node);
   visitEquals(HEquals node) => visitInvoke(node);
   visitExit(HExit node) => visitControlFlow(node);
@@ -596,6 +598,17 @@ class HInstruction {
     validator.visitInstruction(this);
     return validator.isValid;
   }
+}
+
+class HBoolify extends HInstruction {
+  HBoolify(HInstruction value) : super(<HInstruction>[value]);
+  void prepareGvn() {
+    clearAllSideEffects();
+    setUseGvn();
+  }
+  accept(HVisitor visitor) => visitor.visitBoolify(this);
+  bool typeEquals(other) => other is HBoolify;
+  bool dataEquals(HInstruction other) => true;
 }
 
 class HConditionalBranch extends HControlFlow {

@@ -158,6 +158,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String temporaryId(HInstruction instruction) => "v${instruction.id}";
 
+  String visitBoolify(HBoolify node) {
+    return "Boolify: ${temporaryId(node.inputs[0])}";
+  }
+
   String visitAdd(HAdd node) => visitInvoke(node);
 
   String visitDivide(HDivide node) => visitInvoke(node);

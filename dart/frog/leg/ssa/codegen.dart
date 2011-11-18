@@ -165,6 +165,13 @@ class SsaCodeGenerator implements HVisitor {
   visitSubtract(HSubtract node)                 => visitInvoke(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitInvoke(node);
 
+  visitBoolify(HBoolify node) {
+    assert(node.inputs.length == 1);
+    buffer.add('(');
+    use(node.inputs[0]);
+    buffer.add(' === true)');
+  }
+
   visitExit(HExit node) {
     // Don't do anything.
   }

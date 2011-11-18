@@ -100,6 +100,12 @@ class SsaBuilder implements Visitor {
     return stack.removeLast();
   }
 
+  HBoolify popBoolified() {
+    HBoolify boolified = new HBoolify(pop());
+    add(boolified);
+    return boolified;
+  }
+
   void visit(Node node) {
     if (node !== null) node.accept(this);
   }
@@ -173,7 +179,7 @@ class SsaBuilder implements Visitor {
     });
 
     visit(node.condition.expression);
-    HBasicBlock conditionExitBlock = close(new HLoopBranch(pop()));
+    HBasicBlock conditionExitBlock = close(new HLoopBranch(popBoolified()));
 
     Map conditionDefinitions = new Map<Element, HInstruction>.from(definitions);
 
@@ -270,7 +276,7 @@ class SsaBuilder implements Visitor {
     // Add the condition to the current block.
     bool hasElse = node.hasElsePart;
     visit(node.condition);
-    HBasicBlock conditionBlock = close(new HIf(pop(), hasElse));
+    HBasicBlock conditionBlock = close(new HIf(popBoolified(), hasElse));
 
     Map conditionDefinitions =
         new Map<Element, HInstruction>.from(definitions);
