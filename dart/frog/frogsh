@@ -2736,14 +2736,14 @@ ArrayBasedScanner.prototype.appendEndGroup = function(kind, value, openKind) {
   this.appendStringToken(kind, value);
   if ($notnull_bool(this.groupingStack.isEmpty())) {
     if (openKind === 60/*null.LT_TOKEN*/) return;
-    $throw(new MalformedInputException(('Unmatched ' + value + '')));
+    $throw(new MalformedInputException(('Unmatched ' + value)));
   }
   while (openKind !== 60/*null.LT_TOKEN*/ && !$notnull_bool(this.groupingStack.isEmpty()) && this.groupingStack.get$head().get$kind() === 60/*null.LT_TOKEN*/) {
     this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
   }
   if (this.groupingStack.get$head().get$kind() !== openKind) {
     if (openKind === 60/*null.LT_TOKEN*/) return;
-    $throw(new MalformedInputException(('Unmatched ' + value + '')));
+    $throw(new MalformedInputException(('Unmatched ' + value)));
   }
   this.groupingStack.get$head().set$endGroup(oldTail.next);
   this.groupingStack = (($0 = this.groupingStack.get$tail()) && $0.is$Link$Token());
@@ -5649,9 +5649,9 @@ NodeListener.prototype.handleBinaryExpression = function(token) {
 NodeListener.prototype.handleAssignmentExpression = function(token) {
   var arguments = new NodeList.singleton$ctor(this.popNode());
   var node = this.popNode();
-  if (!(node instanceof Send)) this.canceler.cancel(('not assignable: ' + node + ''));
+  if (!(node instanceof Send)) this.canceler.cancel(('not assignable: ' + node));
   var send = (node && node.is$Send());
-  if (!$notnull_bool(send.get$isPropertyAccess())) this.canceler.cancel(('not assignable: ' + node + ''));
+  if (!$notnull_bool(send.get$isPropertyAccess())) this.canceler.cancel(('not assignable: ' + node));
   if ((send instanceof SendSet)) this.canceler.cancel('chained assignment');
   this.pushNode(new SendSet(send.receiver, send.selector, token, arguments));
 }
@@ -7108,7 +7108,7 @@ FunctionElement.prototype.computeType = function(compiler, types) {
   if (this.type != null) return (($0 = this.type) && $0.is$FunctionType());
   var node = (($0 = this.parseNode(compiler, compiler)) && $0.is$FunctionExpression());
   var returnType = getType(node.returnType, types);
-  if (returnType == null) compiler.cancel(('unknown type ' + returnType + ''));
+  if (returnType == null) compiler.cancel(('unknown type ' + returnType));
   var parameterTypes = new LinkBuilderImplementation();
   for (var link = node.parameters.nodes;
    !$notnull_bool(link.isEmpty$0()); link = link.get$tail()) {
@@ -7400,7 +7400,7 @@ SsaBuilder.prototype.visitIf = function(node) {
   }
 }
 SsaBuilder.prototype.unquote = function(literal) {
-  var str = ('' + literal.get$value() + '');
+  var str = ('' + literal.get$value());
   this.compiler.ensure(str[0] == '@');
   var quotes = 1;
   var quote = str[1];
@@ -7557,7 +7557,7 @@ SsaCodeGeneratorTask.prototype.generate = function(tree, graph) {
      !$notnull_bool(link.isEmpty$0()); link = link.get$tail()) {
       var parameter = (($0 = link.get$head()) && $0.is$VariableDefinitions());
       var name = (($0 = parameter.definitions.nodes.get$head().get$source()) && $0.is$SourceString());
-      parameterNames.add(JsNames.getValid(('' + name + '')));
+      parameterNames.add(JsNames.getValid(('' + name)));
     }
     var name = (($0 = function_.name) && $0.is$Identifier());
     if (false/*null.GENERATE_SSA_TRACE*/) {
@@ -7614,7 +7614,7 @@ SsaCodeGenerator.prototype.temporary = function(instruction) {
   if (name != null) return name;
   var prefix = 't';
   if (!this.prefixes.containsKey(prefix)) this.prefixes.$setindex(prefix, 0);
-  return this.newName(id, ('' + prefix + '' + ((($0 = this.prefixes).$setindex(prefix, ($1 = $0.$index(prefix)) + 1), $1)) + ''));
+  return this.newName(id, ('' + prefix + ((($0 = this.prefixes).$setindex(prefix, ($1 = $0.$index(prefix)) + 1), $1))));
 }
 SsaCodeGenerator.prototype.local = function(local) {
   var $0, $1;
@@ -7627,7 +7627,7 @@ SsaCodeGenerator.prototype.local = function(local) {
     return this.newName(id, prefix);
   }
   else {
-    return this.newName(id, ('' + prefix + '_' + ((($0 = this.prefixes).$setindex(prefix, ($1 = $0.$index(prefix)) + 1), $1)) + ''));
+    return this.newName(id, ('' + prefix + '_' + ((($0 = this.prefixes).$setindex(prefix, ($1 = $0.$index(prefix)) + 1), $1))));
   }
 }
 SsaCodeGenerator.prototype.newName = function(id, name) {
@@ -7756,13 +7756,13 @@ SsaCodeGenerator.prototype.visitInvoke = function(node) {
 }
 SsaCodeGenerator.prototype.visitInvokeForeign = function(node) {
   var $0;
-  var code = ('' + node.code + '');
+  var code = ('' + node.code);
   var inputs = node.inputs;
   for (var i = 0;
    i < inputs.length; i++) {
     var input = (($0 = inputs.$index(i)) && $0.is$HInstruction());
     $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 233, 14);
-    code = code.replaceAll(('\$' + i + ''), this.temporary(input));
+    code = code.replaceAll(('\$' + i), this.temporary(input));
   }
   this.buffer.add(('(' + code + ')'));
 }
@@ -7816,10 +7816,10 @@ SsaCodeGenerator.prototype.visitStore = function(node) {
 }
 SsaCodeGenerator.prototype.visitLoad = function(node) {
   var $0;
-  this.buffer.add(('' + this.local((($0 = node.inputs.$index(0)) && $0.is$HLocal())) + ''));
+  this.buffer.add(('' + this.local((($0 = node.inputs.$index(0)) && $0.is$HLocal()))));
 }
 SsaCodeGenerator.prototype.visitLocal = function(node) {
-  this.buffer.add(('var ' + this.local(node) + ''));
+  this.buffer.add(('var ' + this.local(node)));
 }
 SsaCodeGenerator.prototype.visit$1 = SsaCodeGenerator.prototype.visit;
 // ********** Code for JsNames **************
@@ -7835,7 +7835,7 @@ JsNames.get$reserved = function() {
 }
 JsNames.getValid = function(name) {
   if (JsNames.get$reserved().contains(name)) {
-    name = ('\$' + name + '');
+    name = ('\$' + name);
     $assert(!JsNames.get$reserved().contains(name), "!reserved.contains(name)", "js_names.dart", 171, 14);
   }
   else if (name.contains("$")) {
@@ -8473,7 +8473,7 @@ function HInvoke(element, inputs) {
 $inherits(HInvoke, HInstruction);
 HInvoke.prototype.get$element = function() { return this.element; };
 HInvoke.prototype.toString = function() {
-  return ('invoke: ' + this.element.name + '');
+  return ('invoke: ' + this.element.name);
 }
 HInvoke.prototype.accept = function(visitor) {
   return visitor.visitInvoke(this);
@@ -8729,7 +8729,7 @@ HLiteral.prototype.prepareGvn = function() {
   this.setUseGvn();
 }
 HLiteral.prototype.toString = function() {
-  return ('literal: ' + this.value + '');
+  return ('literal: ' + this.value);
 }
 HLiteral.prototype.accept = function(visitor) {
   return visitor.visitLiteral(this);
@@ -8770,7 +8770,7 @@ HParameter.prototype.prepareGvn = function() {
   this.clearAllSideEffects();
 }
 HParameter.prototype.toString = function() {
-  return ('parameter ' + this.parameterIndex + '');
+  return ('parameter ' + this.parameterIndex);
 }
 HParameter.prototype.accept = function(visitor) {
   return visitor.visitParameter(this);
@@ -9628,7 +9628,7 @@ function WorldCompiler(world, script) {
 $inherits(WorldCompiler, Compiler);
 WorldCompiler.prototype.log = function(message) {
   if ($notnull_bool(options.showInfo)) {
-    this.world.info(('[leg] ' + message + ''));
+    this.world.info(('[leg] ' + message));
   }
 }
 WorldCompiler.prototype.run = function() {
@@ -9719,7 +9719,7 @@ Compiler.prototype.runCompiler = function() {
   this.scanCoreLibrary();
   this.scanner.scan(this.script);
   var element = this.universe.find(const$206/*Compiler.MAIN*/);
-  if (element == null) this.cancel(('Could not find ' + const$206/*Compiler.MAIN*/ + ''));
+  if (element == null) this.cancel(('Could not find ' + const$206/*Compiler.MAIN*/));
   this.compileMethod(element);
   while (!this.worklist.isEmpty()) {
     this.compileMethod((($0 = this.worklist.removeLast()) && $0.is$Element()));
@@ -9777,7 +9777,7 @@ function CompilerCancelledException(reason) {
 }
 CompilerCancelledException.prototype.toString = function() {
   var banner = 'compiler cancelled';
-  return (this.reason != null) ? ('' + banner + ': ' + this.reason + '') : ('' + banner + '');
+  return (this.reason != null) ? ('' + banner + ': ' + this.reason) : ('' + banner);
 }
 CompilerCancelledException.prototype.toString$0 = function() {
   return this.toString();
@@ -10217,7 +10217,7 @@ FunctionType.prototype.toString = function() {
   var first = true;
   sb.add('(');
   this.parameterTypes.printOn(sb, ', ');
-  sb.add((') -> ' + this.returnType + ''));
+  sb.add((') -> ' + this.returnType));
   return sb.toString();
 }
 FunctionType.prototype.toString$0 = function() {
@@ -10276,7 +10276,7 @@ TypeCheckerVisitor.prototype.set$types = function(value) { return this.types = v
 TypeCheckerVisitor.prototype.fail = function(node, reason) {
   var message = 'cannot type-check';
   if (reason != null) {
-    message = ('' + message + ': ' + reason + '');
+    message = ('' + message + ': ' + reason);
   }
   $throw(new CancelTypeCheckException(node, message));
 }
@@ -10382,7 +10382,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
     }
   }
   else {
-    this.fail(node, ('unresolved send ' + selector.get$source() + ''));
+    this.fail(node, ('unresolved send ' + selector.get$source()));
   }
 }
 TypeCheckerVisitor.prototype.visitSendSet = function(node) {
@@ -10441,7 +10441,7 @@ TypeCheckerVisitor.prototype.visitTypeAnnotation = function(node) {
   if (node.typeName == null) return this.types.dynamicType;
   var name = node.typeName.get$source();
   var type = this.types.lookup(name);
-  if (type == null) this.fail(node, ('unsupported type ' + name + ''));
+  if (type == null) this.fail(node, ('unsupported type ' + name));
   return type;
 }
 TypeCheckerVisitor.prototype.visitVariableDefinitions = function(node) {
@@ -10941,11 +10941,11 @@ WorldGenerator.prototype._writeProperty = function(property) {
   if ($notnull_bool(property._provideFieldSyntax)) {
     this.writer.enterBlock('Object.defineProperty(' + ('' + property.declaringType.get$jsname() + '.prototype, "' + property.get$jsname() + '", {'));
     if (property.getter != null) {
-      this.writer.write(('get: ' + property.declaringType.get$jsname() + '.prototype.' + property.getter.get$jsname() + ''));
+      this.writer.write(('get: ' + property.declaringType.get$jsname() + '.prototype.' + property.getter.get$jsname()));
       this.writer.writeln(property.setter == null ? '' : ',');
     }
     if (property.setter != null) {
-      this.writer.writeln(('set: ' + property.declaringType.get$jsname() + '.prototype.' + property.setter.get$jsname() + ''));
+      this.writer.writeln(('set: ' + property.declaringType.get$jsname() + '.prototype.' + property.setter.get$jsname()));
     }
     this.writer.exitBlock('});');
   }
@@ -11073,7 +11073,7 @@ BlockScope.prototype.create = function(name, type, span, isFinal, isParameter) {
   if (!$notnull_bool(isParameter)) {
     var index = 0;
     while ($notnull_bool(this._isDefinedInParent($assert_String(jsName)))) {
-      jsName = ('' + name + '' + (index++) + '');
+      jsName = ('' + name + (index++));
     }
   }
   var ret = new Value(type, jsName, span, false);
@@ -11205,7 +11205,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
   var _params = ('(' + Strings.join(this._paramCode, ", ") + ')');
   var params = ('(' + Strings.join((paramCode && paramCode.is$List$String()), ", ") + ')');
   if ($notnull_bool(this.method.declaringType.get$isTop()) && !$notnull_bool(this.get$isClosure())) {
-    defWriter.enterBlock(('function ' + this.method.get$jsname() + '' + params + ' {'));
+    defWriter.enterBlock(('function ' + this.method.get$jsname() + params + ' {'));
   }
   else if ($notnull_bool(this.get$isClosure())) {
     if (this.method.name == '') {
@@ -11216,16 +11216,16 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
         defWriter.enterBlock(('var ' + this.method.get$jsname() + ' = (function' + params + ' {'));
       }
       else {
-        defWriter.enterBlock(('(function ' + this.method.get$jsname() + '' + params + ' {'));
+        defWriter.enterBlock(('(function ' + this.method.get$jsname() + params + ' {'));
       }
     }
     else {
-      defWriter.enterBlock(('function ' + this.method.get$jsname() + '' + params + ' {'));
+      defWriter.enterBlock(('function ' + this.method.get$jsname() + params + ' {'));
     }
   }
   else if ($notnull_bool(this.method.get$isConstructor())) {
     if (this.method.get$constructorName() == '') {
-      defWriter.enterBlock(('function ' + this.method.declaringType.get$jsname() + '' + params + ' {'));
+      defWriter.enterBlock(('function ' + this.method.declaringType.get$jsname() + params + ' {'));
     }
     else {
       defWriter.enterBlock(('' + this.method.declaringType.get$jsname() + '.' + this.method.get$constructorName() + '\$ctor = function' + params + ' {'));
@@ -11306,7 +11306,7 @@ MethodGenerator.prototype._provideOptionalParamInfo = function(defWriter) {
         }
         optNames.addAll$1(optValues);
         var optional = "['" + Strings.join((optNames && optNames.is$List$String()), "', '") + "']";
-        defWriter.writeln(('' + start + '' + meth.get$jsname() + '.\$optional = ' + optional + ''));
+        defWriter.writeln(('' + start + meth.get$jsname() + '.\$optional = ' + optional));
       }
     }
   }
@@ -11324,7 +11324,7 @@ MethodGenerator.prototype.writeBody = function() {
       if ((f instanceof FieldMember) && !$notnull_bool(f.get$isStatic())) {
         var cv = f.computeValue$0();
         if ($notnull_bool($ne(cv, null))) {
-          initializers.add$1(('this.' + f.get$jsname() + ' = ' + cv.get$code() + ''));
+          initializers.add$1(('this.' + f.get$jsname() + ' = ' + cv.get$code()));
           initializedFields.add$1(f.get$name());
         }
       }
@@ -11354,7 +11354,7 @@ MethodGenerator.prototype.writeBody = function() {
   }
   var body = this.method.get$definition().get$body();
   if ($notnull_bool(body == null) && !$notnull_bool(this.method.get$isConstructor())) {
-    world.error(('unexpected empty body for ' + this.method.name + ''), (($0 = this.method.get$definition().get$span()) && $0.is$SourceSpan()));
+    world.error(('unexpected empty body for ' + this.method.name), (($0 = this.method.get$definition().get$span()) && $0.is$SourceSpan()));
   }
   var initializerCall = null;
   var declaredInitializers = this.method.get$definition().get$initializers();
@@ -11572,12 +11572,12 @@ MethodGenerator.prototype.visitVariableDefinition = function(node) {
         this.writer.write(('' + val.get$code() + ' = null'));
       }
       else {
-        this.writer.write(('' + val.get$code() + ''));
+        this.writer.write(('' + val.get$code()));
       }
     }
     else {
       value = value.convertTo$3(this, type, node.values.$index(i));
-      this.writer.write(('' + val.get$code() + ' = ' + value.get$code() + ''));
+      this.writer.write(('' + val.get$code() + ' = ' + value.get$code()));
     }
   }
   this.writer.writeln(';');
@@ -12020,10 +12020,10 @@ MethodGenerator.prototype.visitBinaryExpression = function(node) {
   if (kind == 35/*TokenKind.AND*/ || kind == 34/*TokenKind.OR*/) {
     var x = this.visitTypedValue(node.x, world.nonNullBool);
     var y = this.visitTypedValue(node.y, world.nonNullBool);
-    var code = ('' + x.get$code() + ' ' + node.op + ' ' + y.get$code() + '');
+    var code = ('' + x.get$code() + ' ' + node.op + ' ' + y.get$code());
     if ($notnull_bool(x.get$isConst()) && $notnull_bool(y.get$isConst())) {
       var value = (kind == 35/*TokenKind.AND*/) ? $notnull_bool(x.get$actualValue()) && $notnull_bool(y.get$actualValue()) : $notnull_bool(x.get$actualValue()) || $notnull_bool(y.get$actualValue());
-      return EvaluatedValue.EvaluatedValue$factory(world.nonNullBool, value, ('' + value + ''), node.span);
+      return EvaluatedValue.EvaluatedValue$factory(world.nonNullBool, value, ('' + value), node.span);
     }
     return new Value(world.nonNullBool, code, node.span, true);
   }
@@ -12036,10 +12036,10 @@ MethodGenerator.prototype.visitBinaryExpression = function(node) {
     }
     if ($notnull_bool($eq(x.get$code(), 'null')) || $notnull_bool($eq(y.get$code(), 'null'))) {
       var op = node.op.toString().substring(0, 2);
-      return new Value(world.nonNullBool, ('' + x.get$code() + ' ' + op + ' ' + y.get$code() + ''), node.span, true);
+      return new Value(world.nonNullBool, ('' + x.get$code() + ' ' + op + ' ' + y.get$code()), node.span, true);
     }
     else {
-      return new Value(world.nonNullBool, ('' + x.get$code() + ' ' + node.op + ' ' + y.get$code() + ''), node.span, true);
+      return new Value(world.nonNullBool, ('' + x.get$code() + ' ' + node.op + ' ' + y.get$code()), node.span, true);
     }
   }
   var assignKind = TokenKind.kindFromAssign(node.op.kind);
@@ -12051,7 +12051,7 @@ MethodGenerator.prototype.visitBinaryExpression = function(node) {
       name = '\$ne';
     }
     if ($notnull_bool(name == null)) {
-      world.internalError(('unimplemented binary op ' + node.op + ''), node.span);
+      world.internalError(('unimplemented binary op ' + node.op), node.span);
       return;
     }
     return x.invoke$4(this, name, node, new Arguments(null, [y]));
@@ -12104,7 +12104,7 @@ MethodGenerator.prototype._visitVarAssign = function(kind, xn, yn, position, cap
     else {
       var member = this.get$library().lookup(name, xn.name.span);
       if (member == null) {
-        world.warning(('can not resolve ' + name + ''), xn.span);
+        world.warning(('can not resolve ' + name), xn.span);
         return this._makeMissingValue(name);
       }
       members = new MemberSet(member, false);
@@ -12127,18 +12127,18 @@ MethodGenerator.prototype._visitVarAssign = function(kind, xn, yn, position, cap
   y = y.convertTo$3(this, x.get$type(), yn);
   if (kind == 0) {
     x = captureOriginal((x && x.is$Value()));
-    return new Value(y.get$type(), ('' + x.get$code() + ' = ' + y.get$code() + ''), position.span, true);
+    return new Value(y.get$type(), ('' + x.get$code() + ' = ' + y.get$code()), position.span, true);
   }
   else if ($notnull_bool(x.get$type().get$isNum()) && $notnull_bool(y.get$type().get$isNum()) && (kind != 46/*TokenKind.TRUNCDIV*/)) {
     x = captureOriginal((x && x.is$Value()));
     var op = TokenKind.kindToString(kind);
-    return new Value(y.get$type(), ('' + x.get$code() + ' ' + op + '= ' + y.get$code() + ''), position.span, true);
+    return new Value(y.get$type(), ('' + x.get$code() + ' ' + op + '= ' + y.get$code()), position.span, true);
   }
   else {
     var right = x;
     right = captureOriginal((right && right.is$Value()));
     y = right.invoke$4(this, TokenKind.binaryMethodName(kind), position, new Arguments(null, [y]));
-    return new Value(y.get$type(), ('' + x.get$code() + ' = ' + y.get$code() + ''), position.span, true);
+    return new Value(y.get$type(), ('' + x.get$code() + ' = ' + y.get$code()), position.span, true);
   }
 }
 MethodGenerator.prototype._visitIndexAssign = function(kind, xn, yn, position, captureOriginal) {
@@ -12182,7 +12182,7 @@ MethodGenerator.prototype.visitUnaryExpression = function(node) {
     case 17/*TokenKind.DECR*/:
 
       if ($notnull_bool(value.get$type().get$isNum())) {
-        return new Value(value.get$type(), ('' + node.op + '' + value.get$code() + ''), node.span, true);
+        return new Value(value.get$type(), ('' + node.op + value.get$code()), node.span, true);
       }
       else {
         var kind = (16/*TokenKind.INCR*/ == node.op.kind ? 42/*TokenKind.ADD*/ : 43/*TokenKind.SUB*/);
@@ -12194,11 +12194,11 @@ MethodGenerator.prototype.visitUnaryExpression = function(node) {
 
       if ($notnull_bool(value.get$type().get$isBool()) && $notnull_bool(value.get$isConst())) {
         var newVal = !$notnull_bool(value.get$actualValue());
-        return EvaluatedValue.EvaluatedValue$factory((($0 = value.get$type()) && $0.is$lang_Type()), newVal, ('' + newVal + ''), node.span);
+        return EvaluatedValue.EvaluatedValue$factory((($0 = value.get$type()) && $0.is$lang_Type()), newVal, ('' + newVal), node.span);
       }
       else {
         var newVal = value.convertTo$3(this, world.nonNullBool, node);
-        return new Value(newVal.get$type(), ('!' + newVal.get$code() + ''), node.span, true);
+        return new Value(newVal.get$type(), ('!' + newVal.get$code()), node.span, true);
       }
 
     case 42/*TokenKind.ADD*/:
@@ -12215,13 +12215,13 @@ MethodGenerator.prototype.visitUnaryExpression = function(node) {
         return value.invoke$4(this, '\$negate', node, Arguments.get$EMPTY());
       }
       else {
-        world.internalError(('unimplemented: unary ' + node.op + ''), node.span);
+        world.internalError(('unimplemented: unary ' + node.op), node.span);
       }
       $throw(new FallThroughError());
 
     default:
 
-      world.internalError(('unimplemented: ' + node.op + ''), node.span);
+      world.internalError(('unimplemented: ' + node.op), node.span);
 
   }
 }
@@ -12229,7 +12229,7 @@ MethodGenerator.prototype.visitPostfixExpression = function(node, isVoid) {
   var $this = this; // closure support
   var value = this.visitValue(node.body);
   if ($notnull_bool(value.get$type().get$isNum())) {
-    return new Value(value.get$type(), ('' + value.get$code() + '' + node.op + ''), node.span, true);
+    return new Value(value.get$type(), ('' + value.get$code() + node.op), node.span, true);
   }
   var kind = (16/*TokenKind.INCR*/ == node.op.kind) ? 42/*TokenKind.ADD*/ : 43/*TokenKind.SUB*/;
   var operand = new LiteralExpression(1, new TypeReference(node.span, world.numType), '1', node.span);
@@ -12277,7 +12277,7 @@ MethodGenerator.prototype.visitNewExpression = function(node) {
     if ($notnull_bool(type.get$isVar())) {
       name = typeRef.get$name().get$name();
     }
-    world.error(('no matching constructor for ' + name + ''), node.span);
+    world.error(('no matching constructor for ' + name), node.span);
     return this._makeMissingValue($assert_String(name));
   }
   if ($notnull_bool(node.isConst)) {
@@ -12323,7 +12323,7 @@ MethodGenerator.prototype.visitListExpression = function(node) {
     var immutableList = world.get$coreimpl().types.$index('ImmutableList');
     var immutableListCtor = immutableList.getConstructor$1('from');
     var result = immutableListCtor.invoke$4(this, node, null, new Arguments(null, [value]));
-    value = world.gen.globalForConst(ConstListValue.ConstListValue$factory((immutableList && immutableList.is$lang_Type()), (argValues && argValues.is$List$EvaluatedValue()), ('const ' + code + ''), $assert_String(result.get$code()), node.span), (argValues && argValues.is$List$Value()));
+    value = world.gen.globalForConst(ConstListValue.ConstListValue$factory((immutableList && immutableList.is$lang_Type()), (argValues && argValues.is$List$EvaluatedValue()), ('const ' + code), $assert_String(result.get$code()), node.span), (argValues && argValues.is$List$Value()));
   }
   return value;
 }
@@ -12372,7 +12372,7 @@ MethodGenerator.prototype.visitConditionalExpression = function(node) {
   var test = this.visitBool(node.test);
   var trueBranch = this.visitValue(node.trueBranch);
   var falseBranch = this.visitValue(node.falseBranch);
-  var code = ('' + test.get$code() + ' ? ' + trueBranch.get$code() + ' : ' + falseBranch.get$code() + '');
+  var code = ('' + test.get$code() + ' ? ' + trueBranch.get$code() + ' : ' + falseBranch.get$code());
   return new Value(lang_Type.union((($0 = trueBranch.get$type()) && $0.is$lang_Type()), (($0 = falseBranch.get$type()) && $0.is$lang_Type())), code, node.span, true);
 }
 MethodGenerator.prototype.visitIsExpression = function(node) {
@@ -12438,7 +12438,9 @@ MethodGenerator.prototype.visitLiteralExpression = function(node) {
       if ((item instanceof BinaryExpression) || (item instanceof ConditionalExpression) || (item instanceof PostfixExpression) || $notnull_bool(this._isUnaryIncrement((item && item.is$lang_Expression())))) {
         code = ('(' + code + ')');
       }
-      items.add$1(code);
+      if ($notnull_bool($eq(items.length, 0)) || $notnull_bool($ne(code, "''"))) {
+        items.add$1(code);
+      }
     }
     return new Value(type, ('(' + Strings.join((items && items.is$List$String()), " + ") + ')'), node.span, true);
   }
@@ -12478,7 +12480,7 @@ Arguments.Arguments$bare$factory = function(arity) {
   var values = [];
   for (var i = 0;
    i < arity; i++) {
-    values.add$1(new Value(world.varType, ('\$' + i + ''), null, false));
+    values.add$1(new Value(world.varType, ('\$' + i), null, false));
   }
   return new Arguments(null, values);
 }
@@ -12560,12 +12562,12 @@ Arguments.prototype.toCallStubArgs = function() {
   var result = [];
   for (var i = 0;
    i < this.get$bareCount(); i++) {
-    result.add$1(new Value(world.varType, ('\$' + i + ''), null, false));
+    result.add$1(new Value(world.varType, ('\$' + i), null, false));
   }
   for (var i = this.get$bareCount();
    i < this.get$length(); i++) {
     var name = this.getName(i);
-    if ($notnull_bool(name == null)) name = ('\$' + i + '');
+    if ($notnull_bool(name == null)) name = ('\$' + i);
     result.add$1(new Value(world.varType, name, null, false));
   }
   return new Arguments(this.nodes, result);
@@ -12654,7 +12656,7 @@ Library.prototype._addMember = function(member) {
       for (var $i = world.libraries.getValues().iterator$0(); $i.hasNext$0(); ) {
         var lib = $i.next$0();
         if (lib._privateMembers.containsKey(member.name)) {
-          member.set$jsname(('_' + this.get$jsname() + '' + member.name + ''));
+          member.set$jsname(('_' + this.get$jsname() + member.name));
           break;
         }
       }
@@ -12685,7 +12687,7 @@ Library.prototype.addType = function(name, definition, isClass) {
       existingType.setDefinition$1(definition);
     }
     else {
-      world.warning(('duplicate definition of ' + name + ''), definition.span);
+      world.warning(('duplicate definition of ' + name), definition.span);
     }
   }
   else {
@@ -12887,7 +12889,7 @@ _LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
       name = this.getFirstStringArg(node);
       var prefix = this.tryGetNamedStringArg(node, 'prefix');
       if (node.arguments.length > 2 || node.arguments.length == 2 && $notnull_bool(prefix == null)) {
-        world.error('expected at most one "name" argument and one optional "prefix"' + (' but found ' + node.arguments.length + ''), node.span);
+        world.error('expected at most one "name" argument and one optional "prefix"' + (' but found ' + node.arguments.length), node.span);
       }
       else if ($notnull_bool($ne(prefix, null)) && prefix.indexOf$2('.', 0) >= 0) {
         world.error('library prefix canot contain "."', node.span);
@@ -12931,19 +12933,19 @@ _LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
 
     default:
 
-      world.error(('unknown directive: ' + node.name.name + ''), node.span);
+      world.error(('unknown directive: ' + node.name.name), node.span);
 
   }
 }
 _LibraryVisitor.prototype.getSingleStringArg = function(node) {
   if (node.arguments.length != 1) {
-    world.error(('expected exactly one argument but found ' + node.arguments.length + ''), node.span);
+    world.error(('expected exactly one argument but found ' + node.arguments.length), node.span);
   }
   return this.getFirstStringArg(node);
 }
 _LibraryVisitor.prototype.getFirstStringArg = function(node) {
   if (node.arguments.length < 1) {
-    world.error(('expected at least one argument but found ' + node.arguments.length + ''), node.span);
+    world.error(('expected at least one argument but found ' + node.arguments.length), node.span);
   }
   var arg = node.arguments.$index(0);
   if ($notnull_bool($ne(arg.get$label(), null))) {
@@ -13184,7 +13186,7 @@ Member.prototype.get$generatedFactoryName = function() {
     return ('' + prefix + 'factory');
   }
   else {
-    return ('' + prefix + '' + this.name + '\$factory');
+    return ('' + prefix + this.name + '\$factory');
   }
 }
 Member.prototype.resolveType = function(node, isRequired) {
@@ -13416,10 +13418,10 @@ FieldMember.prototype._get = function(context, node, target, isDynamic) {
       return (cv && cv.is$Value());
     }
     if ($notnull_bool(this.declaringType.get$isTop())) {
-      return new Value(this.type, ('' + this.get$jsname() + ''), node.span, true);
+      return new Value(this.type, ('' + this.get$jsname()), node.span, true);
     }
     else {
-      return new Value(this.type, ('' + this.declaringType.get$jsname() + '.' + this.get$jsname() + ''), node.span, true);
+      return new Value(this.type, ('' + this.declaringType.get$jsname() + '.' + this.get$jsname()), node.span, true);
     }
   }
   else if ($notnull_bool(target.get$isConst()) && $notnull_bool(this.isFinal)) {
@@ -13428,15 +13430,15 @@ FieldMember.prototype._get = function(context, node, target, isDynamic) {
       return (($0 = constTarget.get$fields().$index(this.name)) && $0.is$Value());
     }
     else if ($notnull_bool($eq(constTarget.get$type(), world.stringType)) && this.name == 'length') {
-      return new Value(this.type, ('' + constTarget.get$actualValue().length + ''), node.span, true);
+      return new Value(this.type, ('' + constTarget.get$actualValue().length), node.span, true);
     }
   }
-  return new Value(this.type, ('' + target.code + '.' + this.get$jsname() + ''), node.span, true);
+  return new Value(this.type, ('' + target.code + '.' + this.get$jsname()), node.span, true);
 }
 FieldMember.prototype._set = function(context, node, target, value, isDynamic) {
   var lhs = this._get(context, node, target, isDynamic);
   value = value.convertTo(context, this.type, node, isDynamic);
-  return new Value(this.type, ('' + lhs.get$code() + ' = ' + value.code + ''), node.span, true);
+  return new Value(this.type, ('' + lhs.get$code() + ' = ' + value.code), node.span, true);
 }
 FieldMember.prototype._get$3 = function($0, $1, $2) {
   return this._get(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), false);
@@ -13516,7 +13518,7 @@ PropertyMember.prototype._get = function(context, node, target, isDynamic) {
     if (this._overriddenField != null) {
       return this._overriddenField._get(context, node, target, isDynamic);
     }
-    return target.invokeNoSuchMethod(context, ('get:' + this.name + ''), node);
+    return target.invokeNoSuchMethod(context, ('get:' + this.name), node);
   }
   return this.getter.invoke(context, node, target, Arguments.get$EMPTY(), false);
 }
@@ -13525,7 +13527,7 @@ PropertyMember.prototype._set = function(context, node, target, value, isDynamic
     if (this._overriddenField != null) {
       return this._overriddenField._set(context, node, target, value, isDynamic);
     }
-    return target.invokeNoSuchMethod(context, ('set:' + this.name + ''), node, new Arguments(null, [value]));
+    return target.invokeNoSuchMethod(context, ('set:' + this.name), node, new Arguments(null, [value]));
   }
   return this.setter.invoke(context, node, target, new Arguments(null, [value]), isDynamic);
 }
@@ -13836,7 +13838,7 @@ MethodMember.prototype._get = function(context, node, target, isDynamic) {
   this._provideOptionalParamInfo = true;
   if ($notnull_bool(this.isStatic)) {
     var type = $notnull_bool(this.declaringType.get$isTop()) ? '' : ('' + this.declaringType.get$jsname() + '.');
-    return new Value(this.get$functionType(), ('' + type + '' + this.get$jsname() + ''), node.span, true);
+    return new Value(this.get$functionType(), ('' + type + this.get$jsname()), node.span, true);
   }
   this._providePropertySyntax = true;
   return new Value(this.get$functionType(), ('' + target.code + '.get\$' + this.get$jsname() + '()'), node.span, true);
@@ -13878,7 +13880,7 @@ MethodMember.prototype.needsArgumentConversion = function(args) {
   return true;
 }
 MethodMember._argCountMsg = function(actual, expected, atLeast) {
-  return 'wrong number of arguments, expected ' + ('' + ($notnull_bool(atLeast) ? "at least " : "") + '' + expected + ' but found ' + actual + '');
+  return 'wrong number of arguments, expected ' + ('' + ($notnull_bool(atLeast) ? "at least " : "") + expected + ' but found ' + actual);
 }
 MethodMember.prototype._argError = function(context, node, target, args, msg) {
   if ($notnull_bool(this.isStatic) || $notnull_bool(this.get$isConstructor())) {
@@ -13899,7 +13901,7 @@ MethodMember.prototype.genParameterValues = function() {
 MethodMember.prototype.invoke = function(context, node, target, args, isDynamic) {
   var $0;
   if (this.parameters == null) {
-    world.info(('surprised to need to resolve: ' + this.declaringType.name + '.' + this.name + ''));
+    world.info(('surprised to need to resolve: ' + this.declaringType.name + '.' + this.name));
     this.resolve(this.declaringType);
   }
   this.declaringType.genMethod(this);
@@ -13968,7 +13970,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
           return this._argError(context, node, target, args, ('argument "' + name + '" passed as positional and named'));
         }
       }
-      world.internalError(('wrong named arguments calling ' + this.name + ''), node.span);
+      world.internalError(('wrong named arguments calling ' + this.name), node.span);
     }
     Arguments.removeTrailingNulls((argsCode && argsCode.is$List$Value()));
   }
@@ -13998,12 +14000,12 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
     }
     if (this.name == 'get\$length') {
       if ((target instanceof ConstListValue) || (target instanceof ConstMapValue)) {
-        code = ('' + target.get$dynamic().get$values().length + '');
+        code = ('' + target.get$dynamic().get$values().length);
       }
     }
     else if (this.name == 'isEmpty') {
       if ((target instanceof ConstListValue) || (target instanceof ConstMapValue)) {
-        code = ('' + target.get$dynamic().get$values().isEmpty$0() + '');
+        code = ('' + target.get$dynamic().get$values().isEmpty$0());
       }
     }
   }
@@ -14113,10 +14115,10 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
     if (!$notnull_bool(allConst)) {
       var code;
       if (this.name == '\$negate') {
-        code = ('-' + target.code + '');
+        code = ('-' + target.code);
       }
       else if (this.name == '\$bit_not') {
-        code = ('~' + target.code + '');
+        code = ('~' + target.code);
       }
       else if (this.name == '\$truncdiv' || this.name == '\$mod') {
         world.gen.corejs.useOperator(this.name);
@@ -14124,7 +14126,7 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
       }
       else {
         var op = TokenKind.rawOperatorFromMethod(this.name);
-        code = ('' + target.code + ' ' + op + ' ' + argsCode.$index(0) + '');
+        code = ('' + target.code + ' ' + op + ' ' + argsCode.$index(0));
       }
       return new Value(this.get$inferredResult(), code, node.span, true);
     }
@@ -14254,12 +14256,12 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
         if ($notnull_bool(args.values.$index(0).get$type().get$isString())) {
           val1 = val1.substring$2(1, val1.length - 1);
         }
-        var value = ('' + val0 + '' + val1 + '');
+        var value = ('' + val0 + val1);
         value = '"' + value.replaceAll$2('"', '\\"') + '"';
         return EvaluatedValue.EvaluatedValue$factory(world.stringType, value, $assert_String(value), node.span);
       }
       args.values.$index(0).invoke$4(context, 'toString', node, Arguments.get$EMPTY());
-      return new Value(this.declaringType, ('' + target.code + ' + ' + argsCode.$index(0) + ''), node.span, true);
+      return new Value(this.declaringType, ('' + target.code + ' + ' + argsCode.$index(0)), node.span, true);
     }
   }
   else if ($notnull_bool(this.declaringType.get$isNativeType())) {
@@ -14267,7 +14269,7 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
       return new Value(this.returnType, ('' + target.code + '[' + argsCode.$index(0) + ']'), node.span, true);
     }
     else if (this.name == '\$setindex') {
-      return new Value(this.returnType, ('' + target.code + '[' + argsCode.$index(0) + '] = ' + argsCode.$index(1) + ''), node.span, true);
+      return new Value(this.returnType, ('' + target.code + '[' + argsCode.$index(0) + '] = ' + argsCode.$index(1)), node.span, true);
     }
   }
   if (this.name == '\$eq' || this.name == '\$ne') {
@@ -14285,7 +14287,7 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
       return new Value(this.get$inferredResult(), ('' + target.code + ' ' + op + ' null'), node.span, true);
     }
     else if ($notnull_bool(target.type.get$isNum()) || $notnull_bool(target.type.get$isString())) {
-      return new Value(this.get$inferredResult(), ('' + target.code + ' ' + op + ' ' + argsCode.$index(0) + ''), node.span, true);
+      return new Value(this.get$inferredResult(), ('' + target.code + ' ' + op + ' ' + argsCode.$index(0)), node.span, true);
     }
     world.gen.corejs.useOperator(this.name);
     return new Value(this.get$inferredResult(), ('' + this.name + '(' + target.code + ', ' + argsCode.$index(0) + ')'), node.span, true);
@@ -14431,7 +14433,7 @@ MemberSet.prototype.get$members = function() { return this.members; };
 MemberSet.prototype.get$jsname = function() { return this.jsname; };
 MemberSet.prototype.get$isVar = function() { return this.isVar; };
 MemberSet.prototype.toString = function() {
-  return ('' + this.name + ':' + this.members.length + '');
+  return ('' + this.name + ':' + this.members.length);
 }
 MemberSet.prototype.get$containsMethods = function() {
   return this.members.some((function (m) {
@@ -14518,7 +14520,7 @@ MemberSet.prototype._get = function(context, node, target, isDynamic) {
   }
   if (returnValue.code == null) {
     if ($notnull_bool(this.get$treatAsField())) {
-      return new Value(returnValue.type, ('' + target.code + '.' + this.jsname + ''), node.span, true);
+      return new Value(returnValue.type, ('' + target.code + '.' + this.jsname), node.span, true);
     }
     else {
       return new Value(returnValue.type, ('' + target.code + '.get\$' + this.jsname + '()'), node.span, true);
@@ -14557,7 +14559,7 @@ MemberSet.prototype._set = function(context, node, target, value, isDynamic) {
   }
   if (returnValue.code == null) {
     if ($notnull_bool(this.get$treatAsField())) {
-      return new Value(returnValue.type, ('' + target.code + '.' + this.jsname + ' = ' + value.code + ''), node.span, true);
+      return new Value(returnValue.type, ('' + target.code + '.' + this.jsname + ' = ' + value.code), node.span, true);
     }
     else {
       return new Value(returnValue.type, ('' + target.code + '.set\$' + this.jsname + '(' + value.code + ')'), node.span, true);
@@ -14786,7 +14788,7 @@ SourceFile.prototype.getColumn = function(line, position) {
 SourceFile.prototype.getLocationMessage = function(message, start, end, includeText) {
   var line = this.getLine(start);
   var column = this.getColumn($assert_num(line), start);
-  var buf = new StringBufferImpl(('' + this.filename + ':' + (line + 1) + ':' + (column + 1) + ': ' + message + ''));
+  var buf = new StringBufferImpl(('' + this.filename + ':' + (line + 1) + ':' + (column + 1) + ': ' + message));
   if ($notnull_bool(includeText)) {
     buf.add$1('\n');
     var textLine;
@@ -14846,7 +14848,7 @@ SourceSpan.prototype.toMessageString = function(message) {
 SourceSpan.prototype.get$locationText = function() {
   var line = this.file.getLine(this.start);
   var column = this.file.getColumn($assert_num(line), this.start);
-  return ('' + this.file.filename + ':' + (line + 1) + ':' + (column + 1) + '');
+  return ('' + this.file.filename + ':' + (line + 1) + ':' + (column + 1));
 }
 SourceSpan.prototype.compareTo = function(other) {
   if ($eq(this.file, other.file)) {
@@ -16648,7 +16650,7 @@ lang_Parser.prototype._errorExpected = function(expected) {
   var $0;
   if ($notnull_bool(this.throwOnIncomplete)) this.isPrematureEndOfFile();
   var tok = this._lang_next();
-  var message = ('expected ' + expected + ', but found ' + tok + '');
+  var message = ('expected ' + expected + ', but found ' + tok);
   this._lang_error($assert_String(message), (($0 = tok.get$span()) && $0.is$SourceSpan()));
 }
 lang_Parser.prototype._lang_error = function(message, location) {
@@ -17660,7 +17662,7 @@ lang_Parser.prototype._specialIdentifier = function(includeOperators) {
 
       this._eat(108/*TokenKind.THIS*/);
       this._eat(14/*TokenKind.DOT*/);
-      name = ('this.' + this.identifier().get$name() + '');
+      name = ('this.' + this.identifier().get$name());
       break;
 
     case 76/*TokenKind.GET*/:
@@ -17668,7 +17670,7 @@ lang_Parser.prototype._specialIdentifier = function(includeOperators) {
       if (!$notnull_bool(includeOperators)) return null;
       this._eat(76/*TokenKind.GET*/);
       if ($notnull_bool(this._peekIdentifier())) {
-        name = ('get\$' + this.identifier().get$name() + '');
+        name = ('get\$' + this.identifier().get$name());
       }
       else {
         name = 'get';
@@ -17680,7 +17682,7 @@ lang_Parser.prototype._specialIdentifier = function(includeOperators) {
       if (!$notnull_bool(includeOperators)) return null;
       this._eat(84/*TokenKind.SET*/);
       if ($notnull_bool(this._peekIdentifier())) {
-        name = ('set\$' + this.identifier().get$name() + '');
+        name = ('set\$' + this.identifier().get$name());
       }
       else {
         name = 'set';
@@ -18009,7 +18011,7 @@ lang_Parser.prototype.identifier = function() {
   var $0;
   var tok = this._lang_next();
   if (!$notnull_bool(TokenKind.isIdentifier($assert_num(tok.get$kind())))) {
-    this._lang_error(('expected identifier, but found ' + tok + ''), (($0 = tok.get$span()) && $0.is$SourceSpan()));
+    this._lang_error(('expected identifier, but found ' + tok), (($0 = tok.get$span()) && $0.is$SourceSpan()));
   }
   return new lang_Identifier(tok.get$text(), this._makeSpan($assert_num(tok.get$start())));
 }
@@ -18156,8 +18158,8 @@ function IncompleteSourceException(token) {
   // Initializers done
 }
 IncompleteSourceException.prototype.toString = function() {
-  if (this.token.get$span() == null) return ('Unexpected ' + this.token + '');
-  return $assert_String(this.token.get$span().toMessageString(('Unexpected ' + this.token + '')));
+  if (this.token.get$span() == null) return ('Unexpected ' + this.token);
+  return $assert_String(this.token.get$span().toMessageString(('Unexpected ' + this.token)));
 }
 IncompleteSourceException.prototype.toString$0 = function() {
   return this.toString();
@@ -19247,7 +19249,7 @@ lang_Type.prototype.hashCode = function() {
 }
 lang_Type.prototype.ensureSubtypeOf = function(other, span, typeErrors) {
   if (!$notnull_bool(this.isSubtypeOf(other))) {
-    var msg = ('type ' + this.name + ' is not a subtype of ' + other.name + '');
+    var msg = ('type ' + this.name + ' is not a subtype of ' + other.name);
     if ($notnull_bool(typeErrors)) {
       world.error($assert_String(msg), span);
     }
@@ -20055,7 +20057,7 @@ DefinedType.prototype.addMethod = function(methodName, definition) {
   var method = new MethodMember(methodName, this, definition);
   if ($notnull_bool(method.get$isConstructor())) {
     if (this.constructors.containsKey(method.get$constructorName())) {
-      world.error(('duplicate constructor definition of ' + method.get$name() + ''), definition.span);
+      world.error(('duplicate constructor definition of ' + method.get$name()), definition.span);
       return;
     }
     this.constructors.$setindex(method.get$constructorName(), method);
@@ -20293,7 +20295,7 @@ DefinedType.prototype.resolveType = function(node, typeErrors) {
       typeRef.type = this.library.findType(typeRef);
     }
     if (typeRef.type == null) {
-      var message = ('can not find type ' + DefinedType._getDottedName(typeRef) + '');
+      var message = ('can not find type ' + DefinedType._getDottedName(typeRef));
       if ($notnull_bool(typeErrors)) {
         world.error($assert_String(message), typeRef.span);
         typeRef.type = world.objectType;
@@ -20523,7 +20525,7 @@ Value.prototype.get_ = function(context, name, node) {
     return (($0 = member._get$3(context, node, this)) && $0.is$Value());
   }
   else {
-    return this.invokeNoSuchMethod(context, ('get:' + name + ''), node);
+    return this.invokeNoSuchMethod(context, ('get:' + name), node);
   }
 }
 Value.prototype.set_ = function(context, name, node, value, isDynamic) {
@@ -20532,7 +20534,7 @@ Value.prototype.set_ = function(context, name, node, value, isDynamic) {
     return member._set(context, node, this, value, isDynamic);
   }
   else {
-    return this.invokeNoSuchMethod(context, ('set:' + name + ''), node, new Arguments(null, [value]));
+    return this.invokeNoSuchMethod(context, ('set:' + name), node, new Arguments(null, [value]));
   }
 }
 Value.prototype.invoke = function(context, name, node, args, isDynamic) {
@@ -20799,9 +20801,9 @@ Value.prototype.invokeSpecial = function(name, args, returnType) {
     return new Value(returnType, ('' + this.code + '.' + name + '(' + argsString + ')'), this.span, true);
   }
   else {
-    if (argsString.length > 0) argsString = (', ' + argsString + '');
+    if (argsString.length > 0) argsString = (', ' + argsString);
     world.gen.corejs.useOperator(name);
-    return new Value(returnType, ('' + name + '(' + this.code + '' + argsString + ')'), this.span, true);
+    return new Value(returnType, ('' + name + '(' + this.code + argsString + ')'), this.span, true);
   }
 }
 Value.prototype.checkFirstClass$1 = function($0) {
@@ -20907,7 +20909,7 @@ ConstObjectValue.ConstObjectValue$factory = function(type, fields, canonicalCode
   var $list = fields.getKeys();
   for (var $i = fields.getKeys().iterator$0(); $i.hasNext$0(); ) {
     var f = $i.next$0();
-    fieldValues.add(('' + f + ' = ' + fields.$index(f).get$actualValue() + ''));
+    fieldValues.add(('' + f + ' = ' + fields.$index(f).get$actualValue()));
   }
   fieldValues.sort((function (a, b) {
     return a.compareTo$1(b);
@@ -21032,10 +21034,10 @@ function CompilerException(_message, _location) {
 }
 CompilerException.prototype.toString = function() {
   if (this._location != null) {
-    return ('CompilerException: ' + this._location.toMessageString(this._lang_message) + '');
+    return ('CompilerException: ' + this._location.toMessageString(this._lang_message));
   }
   else {
-    return ('CompilerException: ' + this._lang_message + '');
+    return ('CompilerException: ' + this._lang_message);
   }
 }
 CompilerException.prototype.toString$0 = function() {
@@ -21137,7 +21139,7 @@ World.prototype._addTopName = function(named) {
 }
 World.prototype._addJavascriptTopName = function(named) {
   var $0;
-  named.set$jsname(('' + named.get$library().get$jsname() + '_' + named.get$name() + ''));
+  named.set$jsname(('' + named.get$library().get$jsname() + '_' + named.get$name()));
   var existing = this._topNames.$index(named.get$jsname());
   if ($notnull_bool($ne(existing, null)) && $notnull_bool($ne(existing, named))) {
     world.internalError(('name mangling failed for "' + named.get$jsname() + '" ') + ('("' + named.get$jsname() + '" defined also in ' + existing.get$span().get$locationText() + ')'), (($0 = named.get$span()) && $0.is$SourceSpan()));
@@ -21169,7 +21171,7 @@ World.prototype.compile = function() {
     return false;
   }
   try {
-    this.info(('compiling ' + options.dartScript + ' with corelib ' + this.corelib + ''));
+    this.info(('compiling ' + options.dartScript + ' with corelib ' + this.corelib));
     if (!$notnull_bool(this.runLeg())) this.runCompilationPhases();
   } catch (exc) {
     exc = $toDartException(exc);
@@ -21246,7 +21248,7 @@ World.prototype.readFile = function(filename) {
     return sourceFile;
   } catch (e) {
     e = $toDartException(e);
-    this.warning(('Error reading file: ' + filename + ''));
+    this.warning(('Error reading file: ' + filename));
     return new SourceFile(filename, '');
   }
 }
@@ -21255,7 +21257,7 @@ World.prototype.getOrAddLibrary = function(filename) {
   var library = (($0 = this.libraries.$index(filename)) && $0.is$Library());
   if (library == null) {
     library = new Library(this.readFile(filename));
-    this.info(('read library ' + filename + ''));
+    this.info(('read library ' + filename));
     if (!$notnull_bool(library.get$isCore()) && !library.imports.some((function (li) {
       return li.get$library().get$isCore();
     })
@@ -21307,25 +21309,25 @@ World.prototype._message = function(message, span, span1, span2, throwing) {
 }
 World.prototype.error = function(message, span, span1, span2) {
   this.errors++;
-  this._message(('error: ' + message + ''), span, span1, span2, options.throwOnErrors);
+  this._message(('error: ' + message), span, span1, span2, options.throwOnErrors);
 }
 World.prototype.warning = function(message, span, span1, span2) {
   this.warnings++;
   if ($notnull_bool(options.showWarnings)) {
-    this._message(('warning: ' + message + ''), span, span1, span2, options.throwOnWarnings);
+    this._message(('warning: ' + message), span, span1, span2, options.throwOnWarnings);
   }
 }
 World.prototype.fatal = function(message, span, span1, span2) {
   this.errors++;
   this.seenFatal = true;
-  this._message(('fatal: ' + message + ''), span, span1, span2, $notnull_bool(options.throwOnFatal) || $notnull_bool(options.throwOnErrors));
+  this._message(('fatal: ' + message), span, span1, span2, $notnull_bool(options.throwOnFatal) || $notnull_bool(options.throwOnErrors));
 }
 World.prototype.internalError = function(message, span, span1, span2) {
-  this._message(('We are sorry, but... ' + message + ''), span, span1, span2, true);
+  this._message(('We are sorry, but... ' + message), span, span1, span2, true);
 }
 World.prototype.info = function(message, span, span1, span2) {
   if ($notnull_bool(options.showInfo)) {
-    this._message(('info: ' + message + ''), span, span1, span2, false);
+    this._message(('info: ' + message), span, span1, span2, false);
   }
 }
 World.prototype.get$hasErrors = function() {
@@ -21492,7 +21494,7 @@ LibraryReader.prototype.readFile = function(fullname) {
     return new SourceFile(filename, world.files.readAll($assert_String(filename)));
   }
   else {
-    world.error(('File not found: ' + filename + ''));
+    world.error(('File not found: ' + filename));
     return new SourceFile(filename, '');
   }
 }
@@ -21579,12 +21581,12 @@ VarMethodStub.prototype.generate = function(code) {
 }
 VarMethodStub.prototype.generateBody = function(code, end) {
   if ($notnull_bool(this._useDirectCall(this.member, this.args))) {
-    code.writeln(('' + this.get$typeName() + '.prototype.' + this.member.get$jsname() + '' + end + ''));
+    code.writeln(('' + this.get$typeName() + '.prototype.' + this.member.get$jsname() + end));
   }
   else {
     code.enterBlock(('function(' + this.args.getCode() + ') {'));
     code.writeln(('return ' + this.body.code + ';'));
-    code.exitBlock(('}' + end + ''));
+    code.exitBlock(('}' + end));
   }
 }
 VarMethodStub.prototype._useDirectCall = function(member, args) {
@@ -21798,7 +21800,7 @@ function parseOptions(homedir, args, files) {
   options = new FrogOptions(homedir, args, files);
 }
 function _getCallStubName(name, args) {
-  var nameBuilder = new StringBufferImpl(('' + name + '\$' + args.get$bareCount() + ''));
+  var nameBuilder = new StringBufferImpl(('' + name + '\$' + args.get$bareCount()));
   for (var i = args.get$bareCount();
    i < args.get$length(); i++) {
     nameBuilder.add('\$').add(args.getName(i));

@@ -2141,7 +2141,10 @@ class MethodGenerator implements TreeVisitor {
             || item is PostfixExpression || _isUnaryIncrement(item)) {
           code = '(${code})';
         }
-        items.add(code);
+        // No need to concat empty strings except the first.
+        if (items.length == 0 || code != "''") {
+          items.add(code);
+        }
       }
       return new Value(type, '(${Strings.join(items, " + ")})', node.span);
     }
