@@ -35,7 +35,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
     StringBuffer buffer = new StringBuffer();
     SsaCodeGenerator codegen =
         new SsaCodeGenerator(compiler, buffer, parameterNames);
-    graph.assignInstructionIds();
     codegen.visitGraph(graph);
     StringBuffer parameters = new StringBuffer();
     for (int i = 0; i < parameterNames.length; i++) {

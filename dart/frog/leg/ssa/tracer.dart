@@ -22,9 +22,6 @@ class HTracer extends HGraphVisitor {
   }
 
   void traceGraph(String name, HGraph graph) {
-    // TODO(floitsch): is it ok to just call graph.assignInstructionIds
-    // wherever we need the ids?
-    graph.assignInstructionIds();
     tag("cfg", () {
       printProperty("name", name);
       visitDominatorTree(graph);

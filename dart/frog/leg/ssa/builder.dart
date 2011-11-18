@@ -9,6 +9,7 @@ class SsaBuilderTask extends CompilerTask {
   HGraph build(Node tree, Map<Node, Element> elements) {
     return measure(() {
       FunctionExpression function = tree;
+      HInstruction.idCounter = 0;
       HGraph graph =
           compileMethod(function.parameters, function.body, elements);
       assert(graph.isValid());

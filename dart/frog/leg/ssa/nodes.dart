@@ -66,7 +66,7 @@ class HInstructionVisitor extends HGraphVisitor {
       while (instruction !== null) {
         visitInstruction(instruction);
         instruction = instruction.next;
-      }      
+      }
     }
 
     currentBlock = node;
@@ -122,18 +122,6 @@ class HGraph {
         }
       }
     }
-  }
-
-  void assignInstructionIds() {
-    int handleDominatorTree(HBasicBlock root, int id) {
-      id = root.assignInstructionIds(id);
-      List<HBasicBlock> dominatedBlocks = root.dominatedBlocks;
-      for (int i = 0, length = dominatedBlocks.length; i < length; i++) {
-        id = handleDominatorTree(dominatedBlocks[i], id);
-      }
-      return id;
-    }
-    handleDominatorTree(entry, 0);
   }
 
   bool isValid() {
@@ -307,20 +295,6 @@ class HBasicBlock extends HInstructionList {
     }
   }
 
-  int assignInstructionIds(int id) {
-    int assignIdsInInstructionList(HInstructionList list, int id) {
-      HInstruction instruction = list.first;
-      while (instruction != null) {
-        instruction.id = id++;
-        instruction = instruction.next;
-      }
-      return id;
-    }
-
-    id = assignIdsInInstructionList(phis, id);
-    return assignIdsInInstructionList(this, id);
-  }
-
   accept(HVisitor visitor) => visitor.visitBasicBlock(this);
 
   void addAtEntry(HInstruction instruction) {
@@ -490,8 +464,11 @@ class HInstruction {
   static final int FLAG_GENERATE_AT_USE_SITE = FLAG_DEPENDS_ON_SOMETHING + 1;
   static final int FLAG_USE_GVN              = FLAG_GENERATE_AT_USE_SITE + 1;
 
+  static int idCounter;
+
   HInstruction(this.inputs) {
     prepareGvn();
+    id = idCounter++;
   }
 
   bool getFlag(int position) => (flags & (1 << position)) != 0;
