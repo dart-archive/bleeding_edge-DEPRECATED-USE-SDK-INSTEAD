@@ -521,7 +521,6 @@ class IsolateNatives {
     var msg = _deserializeMessage(e.data);
     switch (msg['command']) {
       case 'start':
-        _log("starting worker: " + msg['id'] + " " + msg['factoryName']);
         _globalState.currentWorkerId = msg['id'];
         var runnerObject =
             _allocate(_getJSConstructorFromName(msg['factoryName']));
