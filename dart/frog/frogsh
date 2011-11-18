@@ -9999,11 +9999,7 @@ ResolverVisitor.prototype.visitSend = function(node) {
   var identifier = (($0 = node.selector) && $0.is$Identifier());
   var name = this.potentiallyMapOperatorToMethodName(identifier.get$source());
   var target = this.context.lookup(name);
-  if (target == null) {
-    if ($notnull_bool($eq(name, const$227/*const SourceString('&&')*/)) || $notnull_bool($eq(name, const$228/*const SourceString('||')*/))) {
-      this.visit(node.argumentsNode);
-      return null;
-    }
+  if (target == null && !(($notnull_bool($eq(name, const$227/*const SourceString('&&')*/)) || $notnull_bool(($eq(name, const$228/*const SourceString('||')*/)))))) {
     this.fail(node, ErrorMessages.cannotResolve(name));
   }
   this.visit(node.argumentsNode);
@@ -10137,7 +10133,7 @@ function VariableDefinitionsVisitor(definitions, resolver) {
 VariableDefinitionsVisitor.prototype.is$Visitor = function(){return this;};
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 277, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 273, 12);
   if (node.receiver != null) {
     this.resolver.compiler.unimplemented("receiver on a variable definition");
   }
