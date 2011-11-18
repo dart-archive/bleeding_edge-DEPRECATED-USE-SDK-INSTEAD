@@ -218,7 +218,7 @@ class Spirodraw {
     if (animationEnabled) {
       front.beginPath();
       front.setLineWidth(2);
-      front.setStrokeStyle("gray");
+      front.strokeStyle = "gray";
       front.arc(xc, yc, R, 0, PI2, true);
       front.closePath();
       front.stroke();
@@ -245,7 +245,7 @@ class Spirodraw {
         front.setLineWidth(1);
         front.beginPath();
         front.arc(wx, wy, 3, 0, PI2, true);
-        front.setFillStyle("black");
+        front.fillStyle = "black";
         front.fill();
         front.closePath();
         front.stroke();
@@ -270,11 +270,11 @@ class Spirodraw {
     double ty = wy - d * Math.sin(rot);
     if (animationEnabled) {
       front.beginPath();
-      front.setFillStyle(penColor);
+      front.fillStyle = penColor;
       front.arc(tx, ty, penWidth/2+2, 0, PI2, true);
       front.fill();
       front.moveTo(wx, wy);
-      front.setStrokeStyle("black");
+      front.strokeStyle = "black";
       front.lineTo(tx, ty);
       front.closePath();
       front.stroke();
@@ -285,7 +285,7 @@ class Spirodraw {
   void drawSegmentTo(double tx, double ty) {
     if (lastX > 0) {
       back.beginPath();
-      back.setStrokeStyle(penColor);
+      back.strokeStyle = penColor;
       back.setLineWidth(penWidth);
       back.moveTo(lastX, lastY);
       back.lineTo(tx, ty);

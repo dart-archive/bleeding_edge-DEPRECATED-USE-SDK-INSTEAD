@@ -42,7 +42,7 @@ class ColorPicker {
     if (( y < 0) || (x >= width)) {
       return;
     }
-    ctx.setFillStyle(getHexString(getColorIndex(x, y)));
+    ctx.fillStyle = getHexString(getColorIndex(x, y));
     ctx.fillRect(0, 0, width/2, 30);
   }
 
@@ -74,7 +74,7 @@ class ColorPicker {
       for (int g=0; g < 256; g+=51) {
         for (int b=0; b < 256; b+=51) {
           String color = getHexString(i);
-          ctx.setFillStyle(color);
+          ctx.fillStyle = color;
           int x = BW * (i % COLS);
           int y = BH * (i ~/ COLS) + 40;
           ctx.fillRect(x + BP, y + BP, BW - 2 * BP, BH - 2 * BP);
@@ -97,9 +97,9 @@ class ColorPicker {
   }
 
   void showSelected() {
-    ctx.setFillStyle(_selectedColor);
+    ctx.fillStyle = _selectedColor;
     ctx.fillRect(width / 2, 0, width / 2, 30);
-    ctx.setFillStyle("white");
+    ctx.fillStyle = "white";
     ctx.fillRect(0, 0, width / 2, 30);
   }
   
