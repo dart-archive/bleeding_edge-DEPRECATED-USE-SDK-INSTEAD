@@ -246,11 +246,7 @@ class TypeMember extends Member {
 
   Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
-    // TODO(jmesserly): named args
-    var ret = new Value(type, type.jsname, node.span, false);
-    // TODO(jimhug): Replace with TypeValue.
-    ret.isType = true;
-    return ret;
+    return new Value.type(type, node.span);
   }
 
   Value _set(MethodGenerator context, Node node, Value target, Value value,
@@ -873,7 +869,7 @@ class MethodMember extends Member {
     }
 
     var argsCode = [];
-    if (target != null && (isConstructor || target.isSuper)) {
+    if (!target.isType && (isConstructor || target.isSuper)) {
       argsCode.add('this');
     }
 
@@ -948,8 +944,7 @@ class MethodMember extends Member {
       return _invokeConstructor(context, node, target, args, argsString);
     }
 
-    // TODO(jimhug): target really shouldn't ever be null...
-    if (target != null && target.isSuper) {
+    if (target.isSuper) {
       return new Value(inferredResult,
           '${declaringType.jsname}.prototype.$jsname.call($argsString)',
           node.span);
@@ -960,7 +955,8 @@ class MethodMember extends Member {
     }
 
     if (isFactory) {
-      return new Value(inferredResult, '$generatedFactoryName($argsString)',
+      assert(target.isType);
+      return new Value(target.type, '$generatedFactoryName($argsString)',
         node.span);
     }
 
@@ -1002,12 +998,12 @@ class MethodMember extends Member {
       Value target, Arguments args, argsString) {
     declaringType.markUsed();
 
-    if (target != null) {
+    if (!target.isType) {
       // initializer call to another constructor
       var code = (constructorName != '')
           ? '${declaringType.jsname}.${constructorName}\$ctor.call($argsString)'
           : '${declaringType.jsname}.call($argsString)';
-      return new Value(declaringType, code, node.span);
+      return new Value(target.type, code, node.span);
     } else {
       var code = (constructorName != '')
           ? 'new ${declaringType.jsname}.${constructorName}\$ctor($argsString)'
@@ -1016,7 +1012,7 @@ class MethodMember extends Member {
       if (isConst && node is NewExpression && node.dynamic.isConst) {
         return _invokeConstConstructor(node, code, target, args);
       } else {
-        return new Value(declaringType, code, node.span);
+        return new Value(target.type, code, node.span);
       }
     }
   }
@@ -1120,7 +1116,7 @@ class MethodMember extends Member {
     }
 
     return world.gen.globalForConst(
-        new ConstObjectValue(declaringType, fields, code, node.span),
+        new ConstObjectValue(target.type, fields, code, node.span),
         args.values);
   }
 

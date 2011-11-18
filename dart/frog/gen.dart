@@ -34,7 +34,8 @@ class WorldGenerator {
 
   run() {
     var metaGen = new MethodGenerator(main, null);
-    var mainCall = main.invoke(metaGen, null, null, Arguments.EMPTY);
+    var mainTarget = new Value.type(main.declaringType, main.span);
+    var mainCall = main.invoke(metaGen, null, mainTarget, Arguments.EMPTY);
     main.declaringType.markUsed();
 
     // TODO(jimhug): Better way to capture hidden control flow.
@@ -50,7 +51,8 @@ class WorldGenerator {
       corejs.useIsolates = true;
       MethodMember isolateMain =
           world.coreimpl.topType.resolveMember('startRootIsolate').members[0];
-      mainCall = isolateMain.invoke(metaGen, null, null,
+      var isolateMainTarget = new Value.type(world.coreimpl.topType, main.span);
+      mainCall = isolateMain.invoke(metaGen, null, isolateMainTarget,
           new Arguments(null, [main._get(metaGen, main.definition, null)]));
     }
 
@@ -1781,10 +1783,11 @@ class MethodGenerator implements TreeVisitor {
     var y = visitValue(yn);
 
     if (x == null) {
+      // TODO(jmesserly): this needs serious cleanup...
       // Look for a setter in the class
       var members = method.declaringType.resolveMember(name);
+      x = _makeThisOrType(position.span);
       if (members != null) {
-        x = _makeThisOrType(position.span);
         if (kind == 0) {
           return x.set_(this, name, position, y);
         } else if (!members.treatAsField || members.containsMethods) {
@@ -2028,7 +2031,13 @@ class MethodGenerator implements TreeVisitor {
         }
       }
     }
-    return m.invoke(this, node, null, _makeArgs(node.arguments));
+
+    // Call the constructor on the type we want to construct.
+    // NOTE: this is important for correct checking of factories.
+    // If the user calls "new Interface()" we want the result type to be the
+    // interface, not the class.
+    var target = new Value.type(type, typeRef.span);
+    return m.invoke(this, node, target, _makeArgs(node.arguments));
   }
 
   visitListExpression(ListExpression node) {
@@ -2057,8 +2066,8 @@ class MethodGenerator implements TreeVisitor {
     if (node.isConst) {
       final immutableList = world.coreimpl.types['ImmutableList'];
       final immutableListCtor = immutableList.getConstructor('from');
-      final result = immutableListCtor.invoke(
-          this, node, null, new Arguments(null, [value]));
+      final result = immutableListCtor.invoke(this, node,
+          new Value.type(value.type, node.span), new Arguments(null, [value]));
       value = world.gen.globalForConst(
           new ConstListValue(immutableList, argValues, 'const $code',
               result.code, node.span),
@@ -2104,8 +2113,9 @@ class MethodGenerator implements TreeVisitor {
       final immutableMap = world.coreimpl.types['ImmutableMap'];
       final immutableMapCtor = immutableMap.getConstructor('');
       final argsValue = new Value(world.listType, argList, node.span);
-      final result = immutableMapCtor.invoke(
-          this, node, null, new Arguments(null, [argsValue]));
+      final result = immutableMapCtor.invoke(this, node,
+          new Value.type(immutableMap, node.span),
+          new Arguments(null, [argsValue]));
       final value = new ConstMapValue(
           immutableMap, argValues, code, result.code, node.span);
       return world.gen.globalForConst(value, argValues);

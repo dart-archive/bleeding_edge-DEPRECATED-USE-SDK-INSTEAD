@@ -35,6 +35,12 @@ class Value {
     if (type == null) world.internalError('type passed as null', span);
   }
 
+  // TODO(jimhug): Replace with TypeValue.
+  Value.type(this.type, this.span)
+    : code = null, needsTemp = false, isType = true {
+    if (type == null) world.internalError('type passed as null', span);
+  }
+
   /** Is this value a constant expression? */
   bool get isConst() => false;
 
