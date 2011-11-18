@@ -19,7 +19,6 @@ class GsUtil(object):
 
   _gsutil = None
   _dryrun = False
-  _group_ids = {}
 
   def __init__(self, dryrun=False, gsutil_loc=None):
     """Initialize the class by finding the gsutil programs location.
@@ -32,11 +31,6 @@ class GsUtil(object):
     """
     self._gsutil = self._FindGsUtil(gsutil_loc)
     self._dryrun = dryrun
-    for line in open('groupIds.txt', 'r'):
-      (first, _, rest) = line.strip().partition(',')
-      self._group_ids[first] = rest
-    for key in self._group_ids.iterkeys():
-      print '{0} = |{1}|'.format(key, self._group_ids[key])
 
   def _FindGsUtil(self, gsutil_loc):
     """Find the location of the gsutil program.
@@ -129,7 +123,7 @@ class GsUtil(object):
           line = ''
     return items
 
-  def Copy(self, from_uri, to_uri, public_flag=True):
+  def Copy(self, from_uri, to_uri, public_flag=True, recursive_flag=False):
     """Use GsUtil to copy data.
 
     Args:
@@ -137,11 +131,18 @@ class GsUtil(object):
       to_uri: the location to copy to
       public_flag: flag indicating that the file should be readable from
                     the internet
+      recursive_flag: copy files recursively to Google Storage
+
+    Returns:
+      returns the exit code of gsutil copy
     """
     cmd = [self._gsutil, 'cp']
+    if recursive_flag:
+      cmd.append('-r')
     if public_flag:
       cmd.append('-a')
       cmd.append('public-read')
+
     cmd.append(from_uri)
     cmd.append(to_uri)
 
@@ -155,6 +156,8 @@ class GsUtil(object):
         self._LogStream(err, failure_message, True)
       else:
         self._LogStream(out, '')
+      return p.returncode
+    return 0
 
   def Remove(self, item_uri):
     """remove an item form GoogleStorage.
@@ -185,7 +188,7 @@ class GsUtil(object):
       item_uri: the uri of the item to get the acl for
 
     Returns:
-      the ACL for the object or None if it could nto be found
+      the ACL for the object or None if it could not be found
     """
     args = []
     args.append(self._gsutil)
@@ -206,12 +209,11 @@ class GsUtil(object):
         message += ch
     return message
 
-  def CreateAcl(self, acl, who='editors'):
+  def AddPublicAcl(self, acl):
     """Create the new ACL for the Object.
 
     Args:
       acl: the xml document representing the ACL
-      who: who should be added onto the team list
 
     Returns:
       xml document with updated ACL
@@ -226,13 +228,6 @@ class GsUtil(object):
       scopetype = scope.get('type')
       if scopetype is not None and scopetype == 'AllUsers':
         foundallusers = True
-
-    teamentry = ET.SubElement(entries, 'Entry')
-    teamscope = ET.SubElement(teamentry, 'Scope', type='GroupById')
-    teamid = ET.SubElement(teamscope, 'ID')
-    teamid.text = self._group_ids[who]
-    teampremission = ET.SubElement(teamentry, 'Permission')
-    teampremission.text = 'FULL_CONTROL'
 
     if not foundallusers:
       allentry = ET.SubElement(entries, 'Entry')

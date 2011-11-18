@@ -56,7 +56,6 @@ def _BuildOptions():
   result.set_default('continuous', False)
   result.set_default('integration', False)
   result.set_default('testing', False)
-  result.set_default('fullcontrolgroup', 'editors')
   group = optparse.OptionGroup(result, 'Cleanup',
                                'options used to cleanup Google Storage')
   group.add_option('--keepcount',
@@ -76,11 +75,6 @@ def _BuildOptions():
   group.add_option('--integration',
                    help='Promote from integration',
                    action='store_true')
-  group.add_option('--fullcontrolgroup',
-                   help='The Google Storage group to get full_control'
-                   ' of the new objects.  Valid values owners|editors|team.'
-                   ' The default is editors',
-                   action='store')
   result.add_option_group(group)
 
   result.add_option('--gsbucketuri',
@@ -130,15 +124,6 @@ def main():
       print """Warning --continuous or --integration  and --testing are
        specified.  The --testing flag will take precedence and all data will
        go to the testing bucket {0}""".format(TESTING)
-    full_control_group = options.fullcontrolgroup
-    if (full_control_group != 'editors' and
-        full_control_group != 'owners'
-        and full_control_group != 'team'):
-      print ('--fullcontrolgroup is specified as {0} this value is not valid.'
-             ' Valid values are editors|owners|team.'.
-             format(options.fullcontrolgroup))
-      parser.print_help()
-      sys.exit(6)
   elif args[0] == 'cleanup':
     command = 'cleanup'
     if options.keepcount is None:
@@ -175,8 +160,7 @@ def main():
     version_dirs = _ReadBucket(gsu, bucket)
     _RemoveElements(gsu, version_dirs, options.keepcount)
   elif command == 'promote':
-    _PromoteBuild(gsu, options.revision, bucket_from, bucket_to,
-                  full_control_group)
+    _PromoteBuild(gsu, options.revision, bucket_from, bucket_to)
 
 
 def _ReadBucket(gsu, bucket):
@@ -233,8 +217,7 @@ def _RemoveElements(gsu, version_dirs, keepcount):
                                                        keepcount)
 
 
-def _PromoteBuild(gsu, revision, from_bucket, to_bucket,
-                  group_with_full_control):
+def _PromoteBuild(gsu, revision, from_bucket, to_bucket):
   """Promote a build to another environment.
 
     because Google Storage does not support symbolic links two copies need
@@ -244,7 +227,6 @@ def _PromoteBuild(gsu, revision, from_bucket, to_bucket,
     revision: the revision to promote
     from_bucket: the bucket to promote from
     to_bucket: the bucket to promote from
-    group_with_full_control: the group that gets full control of the objects
   """
   print '_PromoteBuild({0} , {1}, {2})'.format(gsu, from_bucket, to_bucket)
 
@@ -255,22 +237,24 @@ def _PromoteBuild(gsu, revision, from_bucket, to_bucket,
       from_element = element
       to_element = element.replace(from_bucket, to_bucket)
       print 'promoting {0} to {1}'.format(from_element, to_element)
-      gsu.Copy(from_element, to_element)
+      gsu.Copy(from_element, to_element, False)
+      gsu.SetCannedAcl(to_element, 'project-private')
       acl = gsu.GetAcl(to_element)
       if acl is None:
         _PrintFailure('non-fatal failure, could not get'
                       ' ACL for {0}'.format(to_element))
       else:
-        newacl = gsu.CreateAcl(acl, group_with_full_control)
+        newacl = gsu.AddPublicAcl(acl)
         gsu.SetAcl(to_element, newacl)
       to_element = to_element.replace(revision, 'latest')
       gsu.Copy(from_element, to_element)
+      gsu.SetCannedAcl(to_element, 'project-private')
       acl = gsu.GetAcl(to_element)
       if acl is None:
         _PrintFailure('non-fatal failure, could not get'
                       ' ACL for {0}'.format(to_element))
       else:
-        newacl = gsu.CreateAcl(acl, group_with_full_control)
+        newacl = gsu.AddPublicAcl(acl)
         gsu.SetAcl(to_element, newacl)
   else:
     print 'could not find element with {0} as it\'s revision'.format(revision)

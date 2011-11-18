@@ -12,6 +12,7 @@ import os
 import shutil
 import subprocess
 import sys
+import gsutil
 import postprocess
 
 
@@ -59,6 +60,9 @@ def main():
   buildroot = os.path.join(editorpath, 'build_root')
   os.chdir(buildpath)
 
+  homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
+  gsu = gsutil.GsUtil(False, homegsutil)
+
   parser = _BuildOptions()
   (options, args) = parser.parse_args()
   # Determine which targets to build. By default we build the "all" target.
@@ -78,11 +82,19 @@ def main():
     return 2
 
   if str(options.out) == 'None':
-    print 'missing putput directory'
+    print 'missing output directory'
     parser.print_help()
     return 2
 
   buildout = os.path.join(buildroot, options.out)
+
+  #get user name if it does not start with chrome then deploy 
+  # to the test bucket otherwise deploy to the continuous bucket
+  username = os.environ.get('USER')
+  if username.startswith('chrome'):
+    to_bucket = 'gs://dart-editor-archive-continuous'
+  else:
+    to_bucket = 'gs://dart-editor-archive-testing'
 
   print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
   _PrintSeparator("running the build to produce the Zipped RCP's")
@@ -102,23 +114,33 @@ def main():
     # If the preprocessor needs to be run in the 
     #  if not status and properties['build.tmp']:
     #    postProcessZips(properties['build.tmp'], buildout)
+  sys.stdout.flush()
+  if status:
+    return status
 
-  if not status:
-    #if the build passed run the deploy artifacts
-    _PrintSeparator("Deploying the built RCP's to Google Storage")
-    status = _DeployArtifacts(buildout, options.dest,
-                              properties['build.tmp'], options.revision)
-    if not status:
-      _PrintSeparator('Running the tests')
-      status = _RunAnt('../com.google.dart.tools.tests.feature_releng',
-                       'buildTests.xml',
-                       options.revision, options.name, buildroot, buildout,
-                       editorpath)
-      properties = _ReadPropertyFile(property_file)
-      if status and properties['build.runtime']:
-        #if there is a build.runtime and the status is not 
-        #zero see if there are any *.log entries 
-        _PrintErrorLog(properties['build.runtime'])
+  #if the build passed run the deploy artifacts
+  _PrintSeparator("Deploying the built RCP's to Google Storage")
+  status = _DeployArtifacts(buildout, to_bucket,
+                            properties['build.tmp'], options.revision,
+                            gsu)
+  if status:
+    return status
+
+  _PrintSeparator("Setting the ACL'sfor the RCP's in Google Storage")
+  _SetAclOnArtifacts(to_bucket, [options.revision, 'latest'], gsu)
+
+  sys.stdout.flush()
+
+  _PrintSeparator('Running the tests')
+  status = _RunAnt('../com.google.dart.tools.tests.feature_releng',
+                   'buildTests.xml',
+                   options.revision, options.name, buildroot, buildout,
+                   editorpath)
+  properties = _ReadPropertyFile(property_file)
+  if status and properties['build.runtime']:
+    #if there is a build.runtime and the status is not 
+    #zero see if there are any *.log entries 
+    _PrintErrorLog(properties['build.runtime'])
   return status
 
 
@@ -240,7 +262,7 @@ def _PrintErrorLog(rootdir):
     print 'no log file was found in ' + configdir
 
 
-def _DeployArtifacts(fromd, to, tmp, svnid):
+def _DeployArtifacts(fromd, to, tmp, svnid, gsu):
   """Deploy the artifacts (zipped RCP applications) to Google Storage.
 
   This function copies the artifacts to two places
@@ -255,6 +277,7 @@ def _DeployArtifacts(fromd, to, tmp, svnid):
     to: the base location in Google Storage
     tmp: the temporary working directory
     svnid: the svn revision number for this build
+    gsu: the gsutil wrapper object
 
   Returns:
     the status of the gsutil copy to Google Storage
@@ -265,73 +288,36 @@ def _DeployArtifacts(fromd, to, tmp, svnid):
   cwd = os.getcwd()
   deploydir = None
   status = None
-  username = os.environ.get('USER')
-  forcedeploy = os.environ.get('DART_FORCE_DEPLOY')
-  if not(username.startswith('chrome') or forcedeploy is not None):
-    return 0
-
+  print 'deploying to {0}'.format(to)
   try:
     os.chdir(tmp)
-    args = []
-    botgsutil = '/b/build/scripts/slave/gsutil'
-    homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
-    gsutil = None
-    if os.path.exists(botgsutil):
-      gsutil = botgsutil
-    elif os.path.exists(homegsutil):
-      gsutil = homegsutil
-    if gsutil:
-      deploydir = os.path.join(tmp, str(svnid))
-      print 'creating directory ' + deploydir
-      os.makedirs(deploydir)
-      artifacts = []
-      for zipfile in glob.glob(os.path.join(fromd, '*.zip')):
-        artifacts.append(zipfile)
-        shutil.copy2(zipfile, deploydir)
+    deploydir = os.path.join(tmp, str(svnid))
+    print 'creating directory ' + deploydir
+    os.makedirs(deploydir)
+    artifacts = []
+    for zipfile in glob.glob(os.path.join(fromd, '*.zip')):
+      artifacts.append(zipfile)
+      shutil.copy2(zipfile, deploydir)
 
-      args.append(gsutil)
-      args.append('cp')
-      args.append('-r')
-      args.append('-a')
-      args.append('public-read')
-      args.append(svnid)
-      args.append(to)
-
-      print ' '.join(args)
-
-      status = subprocess.call(args)
-      if status:
-        _PrintError('the push to Google Storage of {0} failed'.format(svnid))
-      else:
-        deploydir = os.path.join(tmp, 'latest')
-        shutil.move(svnid, 'latest')
-        args = []
-        args.append(gsutil)
-        args.append('cp')
-        args.append('-r')
-        args.append('-a')
-        args.append('public-read')
-        args.append('latest')
-        args.append(to)
-
-        print ' '.join(args)
-
-        status = subprocess.call(args)
-        if status:
-          _PrintError('the push to Google Storage of latest failed')
+    status = gsu.Copy(svnid, to, False, True)
+    if status:
+      _PrintError('the push to Google Storage of {0} failed'.format(svnid))
     else:
-      _PrintError('could not find gsutil.  tried {0} and {1}'.
-                  format(botgsutil, homegsutil))
-
-    print ('code Successfully deployed to:'
-           '{2}\t{0}/{1}{2}\t{0}/latest').format(to, svnid, os.linesep)
-    print 'The URL\'s for the artifacts:'
-    for artifact in artifacts:
-      print '  {1} -> {0}/latest/{1}'.format(to, os.path.basename(artifact))
-    print
-    print 'the console for Google storage for this project can be found at'
-    print ('https://sandbox.google.com/storage/?project=375406243259'
-           '&pli=1#dart-editor-archive-continuous')
+      deploydir = os.path.join(tmp, 'latest')
+      shutil.move(svnid, 'latest')
+      status = gsu.Copy('latest', to, True, True)
+      if status:
+        _PrintError('the push to Google Storage of latest failed')
+      else:
+        print ('code Successfully deployed to:'
+               '{2}\t{0}/{1}{2}\t{0}/latest').format(to, svnid, os.linesep)
+        print 'The URL\'s for the artifacts:'
+        for artifact in artifacts:
+          print '  {1} -> {0}/latest/{1}'.format(to, os.path.basename(artifact))
+        print
+        print 'the console for Google storage for this project can be found at'
+        print ('https://sandbox.google.com/storage/?project=375406243259'
+               '&pli=1#dart-editor-archive-continuous')
     sys.stdout.flush()
 
   finally:
@@ -340,6 +326,28 @@ def _DeployArtifacts(fromd, to, tmp, svnid):
       shutil.rmtree(deploydir)
 
   return status
+
+
+def _SetAclOnArtifacts(to, bucket_tags, gsu):
+  """Set the ACL's on the GoogleStorage Objects.
+
+  Args:
+    to: the bucket that holds the objects
+    bucket_tags: list of directory(s) on google storage to change the ACL's on
+    gsu: the gsutil wrapper object
+  """
+  print ('setting ACL''s on objects in'
+         ' bucket {0} matching {1}').format(to, bucket_tags)
+
+  contents = gsu.ReadBucket(to)
+  for element in contents:
+    for tag in bucket_tags:
+      if tag in element:
+        print 'setting ACL on {0}'.format(element)
+        gsu.SetCannedAcl(element, 'project-private')
+        acl = gsu.GetAcl(element)
+        acl = gsu.AddPublicAcl(acl)
+        gsu.SetAcl(element, acl)
 
 
 def _PrintSeparator(text):
