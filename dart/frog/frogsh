@@ -21481,7 +21481,7 @@ function FrogOptions(homedir, args, files) {
 // ********** Code for LibraryReader **************
 function LibraryReader() {
   // Initializers done
-  this._specialLibs = $map(['dart:core', joinPaths(options.libDir, 'corelib.dart'), 'dart:coreimpl', joinPaths(options.libDir, 'corelib_impl.dart'), 'dart:html', joinPaths(options.libDir, '../../client/html/release/html.dart'), 'dart:dom', joinPaths(options.libDir, 'dom/dom.dart'), 'dart:json', joinPaths(options.libDir, 'json.dart')]);
+  this._specialLibs = $map(['dart:core', joinPaths(options.libDir, 'corelib.dart'), 'dart:coreimpl', joinPaths(options.libDir, 'corelib_impl.dart'), 'dart:html', joinPaths(options.libDir, '../../client/html/release/html.dart'), 'dart:dom', joinPaths(options.libDir, '../../client/dom/frog/frog_dom.dart'), 'dart:json', joinPaths(options.libDir, 'json.dart')]);
 }
 LibraryReader.prototype.readFile = function(fullname) {
   var filename = this._specialLibs.$index(fullname);

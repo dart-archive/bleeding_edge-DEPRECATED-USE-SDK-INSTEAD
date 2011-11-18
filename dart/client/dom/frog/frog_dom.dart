@@ -1,5 +1,6 @@
 #library('dom');
 
+#native('frog_dom.js');
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -7,12 +8,13 @@
 // DO NOT EDIT
 // Auto-generated Dart DOM library.
 
-#native("frog_dom.js");
+
 
 
 class Window extends DOMWindow {}
-Window window;
-Document document;
+DOMWindow get window() native "return window;";
+// TODO(vsm): Revert to Dart method when 508 is fixed.
+HTMLDocument get document() native "return window.document;";
 
 class AbstractWorker native "AbstractWorker" {
 
@@ -32,6 +34,8 @@ class AbstractWorker native "AbstractWorker" {
 class ArrayBuffer native "ArrayBuffer" {
 
   int byteLength;
+
+  ArrayBuffer slice(int begin, [int end = null]) native;
 
   var dartObjectLocalStorage;
 
@@ -272,8 +276,6 @@ class CanvasPixelArray native "CanvasPixelArray" {
 
   int operator[](int index) native;
 
-  void operator[]=(int index, int value) native;
-
   int item(int index) native;
 
   var dartObjectLocalStorage;
@@ -292,9 +294,7 @@ class CanvasRenderingContext native "CanvasRenderingContext" {
 
 class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRenderingContext2D" {
 
-  // TODO(vsm): Auto-generate these two fields.
-  var fillStyle;
-  var strokeStyle;
+  Dynamic fillStyle;
 
   String font;
 
@@ -318,9 +318,15 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
 
   num shadowOffsetY;
 
+  Dynamic strokeStyle;
+
   String textAlign;
 
   String textBaseline;
+
+  List webkitLineDash;
+
+  num webkitLineDashOffset;
 
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 
@@ -386,11 +392,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
 
   void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
 
-  // TODO(vsm): Auto-generate this method.
-  void setFillStyle(var color_OR_gradient_OR_pattern) {
-    this.fillStyle = color_OR_gradient_OR_pattern;
-  }
-
   void setLineCap(String cap) native;
 
   void setLineJoin(String join) native;
@@ -402,11 +403,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
 
   void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
-
-  // TODO(vsm): Auto-generate this method.
-  void setStrokeStyle(var color_OR_gradient_OR_pattern) {
-    this.strokeStyle = color_OR_gradient_OR_pattern;
-  }
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
@@ -476,7 +472,9 @@ class Clipboard native "Clipboard" {
 
   FileList files;
 
-  DataTransferItems items;
+  DataTransferItemList items;
+
+  List types;
 
   void clearData([String type = null]) native;
 
@@ -605,8 +603,7 @@ class CustomEvent extends Event native "CustomEvent" {
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
 }
 
-// This type name can't be refered to, so we signal that with an empty string.
-class DOMApplicationCache native "" {
+class DOMApplicationCache native "DOMApplicationCache" {
 
   EventListener oncached;
 
@@ -649,6 +646,8 @@ class DOMException native "DOMException" {
 
   String name;
 
+  String toString() native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;
@@ -678,7 +677,7 @@ class DOMFileSystemSync native "DOMFileSystemSync" {
 
 class DOMFormData native "DOMFormData" {
 
-  void append(String name, String value) native;
+  void append(String name, String value, String filename) native;
 
   var dartObjectLocalStorage;
 
@@ -825,6 +824,8 @@ class DOMSelection native "DOMSelection" {
 
   void setPosition(Node node, int offset) native;
 
+  String toString() native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;
@@ -846,6 +847,8 @@ class DOMTokenList native "DOMTokenList" {
   String item(int index) native;
 
   void remove(String token) native;
+
+  String toString() native;
 
   bool toggle(String token) native;
 
@@ -878,6 +881,8 @@ class DOMWindow native "DOMWindow" {
   Crypto crypto;
 
   String defaultStatus;
+
+  String defaultstatus;
 
   num devicePixelRatio;
 
@@ -1105,6 +1110,8 @@ class DOMWindow native "DOMWindow" {
 
   NotificationCenter webkitNotifications;
 
+  DOMURL webkitURL;
+
   DOMWindow window;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
@@ -1127,14 +1134,6 @@ class DOMWindow native "DOMWindow" {
 
   bool confirm(String message) native;
 
-  FileReader createFileReader() native;
-
-  WebKitCSSMatrix createWebKitCSSMatrix([String cssValue = null]) native;
-
-  WebKitPoint createWebKitPoint(num x, num y) native;
-
-  XMLHttpRequest createXMLHttpRequest() native;
-
   bool dispatchEvent(Event evt) native;
 
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
@@ -1142,6 +1141,8 @@ class DOMWindow native "DOMWindow" {
   void focus() native;
 
   CSSStyleDeclaration getComputedStyle(Element element, String pseudoElement) native;
+
+  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement) native;
 
   DOMSelection getSelection() native;
 
@@ -1153,7 +1154,7 @@ class DOMWindow native "DOMWindow" {
 
   DOMWindow open(String url, String name, [String options = null]) native;
 
-  void postMessage(String message, var messagePort_OR_targetOrigin, [String targetOrigin = null]) native;
+  void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin = null]) native;
 
   void print() native;
 
@@ -1187,6 +1188,8 @@ class DOMWindow native "DOMWindow" {
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p) native;
 
+  void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin = null]) native;
+
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) native;
 
   var dartObjectLocalStorage;
@@ -1209,7 +1212,7 @@ class DataTransferItem native "DataTransferItem" {
   String get typeName() native;
 }
 
-class DataTransferItems native "DataTransferItems" {
+class DataTransferItemList native "DataTransferItemList" {
 
   int length;
 
@@ -1302,9 +1305,9 @@ class DedicatedWorkerContext extends WorkerContext native "DedicatedWorkerContex
 
   EventListener onmessage;
 
-  void postMessage(Object message) native;
+  void postMessage(Object message, [List messagePorts = null]) native;
 
-  void webkitPostMessage(Object message) native;
+  void webkitPostMessage(Object message, [List transferList = null]) native;
 }
 
 class DeviceMotionEvent extends Event native "DeviceMotionEvent" {
@@ -1406,6 +1409,8 @@ class Document extends Node native "Document" {
   String lastModified;
 
   HTMLCollection links;
+
+  Location location;
 
   EventListener onabort;
 
@@ -1531,8 +1536,6 @@ class Document extends Node native "Document" {
 
   CDATASection createCDATASection(String data) native;
 
-  CSSStyleDeclaration createCSSStyleDeclaration() native;
-
   Comment createComment(String data) native;
 
   DocumentFragment createDocumentFragment() native;
@@ -1545,6 +1548,10 @@ class Document extends Node native "Document" {
 
   Event createEvent(String eventType) native;
 
+  XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
+
+  XPathNSResolver createNSResolver(Node nodeResolver) native;
+
   NodeIterator createNodeIterator(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
 
   ProcessingInstruction createProcessingInstruction(String target, String data) native;
@@ -1556,6 +1563,8 @@ class Document extends Node native "Document" {
   TreeWalker createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
 
   Element elementFromPoint(int x, int y) native;
+
+  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native;
 
   bool execCommand(String command, bool userInterface, String value) native;
 
@@ -1572,6 +1581,8 @@ class Document extends Node native "Document" {
   NodeList getElementsByTagNameNS(String namespaceURI, String localName) native;
 
   CSSStyleDeclaration getOverrideStyle(Element element, String pseudoElement) native;
+
+  DOMSelection getSelection() native;
 
   Node importNode(Node importedNode, bool deep) native;
 
@@ -1952,6 +1963,8 @@ class Event native "Event" {
 
   bool cancelable;
 
+  Clipboard clipboardData;
+
   EventTarget currentTarget;
 
   bool defaultPrevented;
@@ -1988,6 +2001,8 @@ class EventException native "EventException" {
   String message;
 
   String name;
+
+  String toString() native;
 
   var dartObjectLocalStorage;
 
@@ -2082,6 +2097,8 @@ class FileException native "FileException" {
   String message;
 
   String name;
+
+  String toString() native;
 
   var dartObjectLocalStorage;
 
@@ -2319,6 +2336,8 @@ class HTMLAnchorElement extends HTMLElement native "HTMLAnchorElement" {
   String type;
 
   String getParameter(String name) native;
+
+  String toString() native;
 }
 
 class HTMLAppletElement extends HTMLElement native "HTMLAppletElement" {
@@ -2335,13 +2354,13 @@ class HTMLAppletElement extends HTMLElement native "HTMLAppletElement" {
 
   String height;
 
-  int hspace;
+  String hspace;
 
   String name;
 
   String object;
 
-  int vspace;
+  String vspace;
 
   String width;
 }
@@ -2544,6 +2563,8 @@ class HTMLDocument extends Document native "HTMLDocument" {
 
   String alinkColor;
 
+  HTMLAllCollection all;
+
   String bgColor;
 
   String compatMode;
@@ -2609,6 +2630,18 @@ class HTMLElement extends Element native "HTMLElement" {
 
   bool isContentEditable;
 
+  String itemId;
+
+  DOMSettableTokenList itemProp;
+
+  DOMSettableTokenList itemRef;
+
+  bool itemScope;
+
+  DOMSettableTokenList itemType;
+
+  Object itemValue;
+
   String lang;
 
   String outerHTML;
@@ -2634,7 +2667,7 @@ class HTMLEmbedElement extends HTMLElement native "HTMLEmbedElement" {
 
   String align;
 
-  int height;
+  String height;
 
   String name;
 
@@ -2642,7 +2675,7 @@ class HTMLEmbedElement extends HTMLElement native "HTMLEmbedElement" {
 
   String type;
 
-  int width;
+  String width;
 }
 
 class HTMLFieldSetElement extends HTMLElement native "HTMLFieldSetElement" {
@@ -2972,8 +3005,6 @@ class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
 
   void setSelectionRange(int start, int end, [String direction = null]) native;
 
-  void setValueForUser(String value) native;
-
   void stepDown([int n = null]) native;
 
   void stepUp([int n = null]) native;
@@ -3059,6 +3090,8 @@ class HTMLLinkElement extends HTMLElement native "HTMLLinkElement" {
   String rev;
 
   StyleSheet sheet;
+
+  DOMSettableTokenList sizes;
 
   String target;
 
@@ -3434,7 +3467,7 @@ class HTMLSelectElement extends HTMLElement native "HTMLSelectElement" {
 
   Node namedItem(String name) native;
 
-  void remove(int index) native;
+  void remove(var index_OR_option) native;
 
   void setCustomValidity(String error) native;
 }
@@ -3675,6 +3708,8 @@ class HTMLTrackElement extends HTMLElement native "HTMLTrackElement" {
   String src;
 
   String srclang;
+
+  TextTrack track;
 }
 
 class HTMLUListElement extends HTMLElement native "HTMLUListElement" {
@@ -3774,7 +3809,7 @@ class IDBCursor native "IDBCursor" {
 
 class IDBCursorWithValue extends IDBCursor native "IDBCursorWithValue" {
 
-  String value;
+  IDBAny value;
 }
 
 class IDBDatabase native "IDBDatabase" {
@@ -3803,6 +3838,8 @@ class IDBDatabase native "IDBDatabase" {
 
   IDBVersionChangeRequest setVersion(String version) native;
 
+  IDBTransaction transaction(String storeName, int mode) native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;
@@ -3827,12 +3864,18 @@ class IDBDatabaseException native "IDBDatabaseException" {
 
   String name;
 
+  String toString() native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
 class IDBFactory native "IDBFactory" {
+
+  int cmp(IDBKey first, IDBKey second) native;
+
+  IDBVersionChangeRequest deleteDatabase(String name) native;
 
   IDBRequest getDatabaseNames() native;
 
@@ -3902,12 +3945,9 @@ class IDBObjectStore native "IDBObjectStore" {
 
   String name;
 
-  // TODO(vsm): Disabling this by hand.  For the playground app, the
-  // generated code is trying to modify the prototype of this type
-  // even though it is not available.  This needs to be handled by
-  // some combination of lazy patching, Object/base type patching,
-  // and/or caller side dispatch
-  // IDBRequest add(String value, [IDBKey key = null]) native;
+  IDBTransaction transaction;
+
+  IDBRequest add(String value, [IDBKey key = null]) native;
 
   IDBRequest clear() native;
 
@@ -4116,6 +4156,8 @@ class JavaScriptCallFrame native "JavaScriptCallFrame" {
 
   int line;
 
+  List scopeChain;
+
   int sourceID;
 
   String type;
@@ -4145,14 +4187,7 @@ class KeyboardEvent extends UIEvent native "KeyboardEvent" {
 
   bool shiftKey;
 
-  bool getModifierState(String keyIdentifierArg) native;
-
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
-}
-
-class LocalMediaStream extends MediaStream native "LocalMediaStream" {
-
-  void stop() native;
 }
 
 class Location native "Location" {
@@ -4182,6 +4217,8 @@ class Location native "Location" {
   void reload() native;
 
   void replace(String url) native;
+
+  String toString() native;
 
   var dartObjectLocalStorage;
 
@@ -4240,62 +4277,6 @@ class MediaQueryListListener native "MediaQueryListListener" {
   String get typeName() native;
 }
 
-class MediaStream native "MediaStream" {
-
-  String label;
-
-  EventListener onended;
-
-  int readyState;
-
-  MediaStreamTrackList tracks;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  bool dispatchEvent(Event event) native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class MediaStreamList native "MediaStreamList" {
-
-  int length;
-
-  MediaStream item(int index) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class MediaStreamTrack native "MediaStreamTrack" {
-
-  bool enabled;
-
-  String kind;
-
-  String label;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class MediaStreamTrackList native "MediaStreamTrackList" {
-
-  int length;
-
-  MediaStreamTrack item(int index) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class MemoryInfo native "MemoryInfo" {
 
   int jsHeapSizeLimit;
@@ -4322,17 +4303,19 @@ class MessageChannel native "MessageChannel" {
 
 class MessageEvent extends Event native "MessageEvent" {
 
-  String data;
+  Object data;
 
   String lastEventId;
 
-  MessagePort messagePort;
-
   String origin;
+
+  List ports;
 
   DOMWindow source;
 
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, MessagePort messagePort) native;
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, List messagePorts) native;
+
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, List transferables) native;
 }
 
 class MessagePort native "MessagePort" {
@@ -4345,13 +4328,13 @@ class MessagePort native "MessagePort" {
 
   bool dispatchEvent(Event evt) native;
 
-  void postMessage(String message) native;
+  void postMessage(String message, [List messagePorts = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void start() native;
 
-  void webkitPostMessage(String message) native;
+  void webkitPostMessage(String message, [List transfer = null]) native;
 
   var dartObjectLocalStorage;
 
@@ -4388,6 +4371,8 @@ class MouseEvent extends UIEvent native "MouseEvent" {
 
   bool ctrlKey;
 
+  Clipboard dataTransfer;
+
   Node fromElement;
 
   bool metaKey;
@@ -4411,6 +4396,13 @@ class MouseEvent extends UIEvent native "MouseEvent" {
   int y;
 
   void initMouseEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native;
+}
+
+class MutationCallback native "MutationCallback" {
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
 }
 
 class MutationEvent extends Event native "MutationEvent" {
@@ -4536,8 +4528,6 @@ class NavigatorUserMediaErrorCallback native "NavigatorUserMediaErrorCallback" {
 }
 
 class NavigatorUserMediaSuccessCallback native "NavigatorUserMediaSuccessCallback" {
-
-  bool handleEvent(LocalMediaStream stream) native;
 
   var dartObjectLocalStorage;
 
@@ -4769,6 +4759,8 @@ class OperationNotAllowedException native "OperationNotAllowedException" {
 
   String name;
 
+  String toString() native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;
@@ -4923,8 +4915,6 @@ class ProgressEvent extends Event native "ProgressEvent" {
 
 class RGBColor native "RGBColor" {
 
-  CSSPrimitiveValue alpha;
-
   CSSPrimitiveValue blue;
 
   CSSPrimitiveValue green;
@@ -4950,8 +4940,6 @@ class Range native "Range" {
 
   int startOffset;
 
-  String text;
-
   DocumentFragment cloneContents() native;
 
   Range cloneRange() native;
@@ -4971,6 +4959,10 @@ class Range native "Range" {
   void expand(String unit) native;
 
   DocumentFragment extractContents() native;
+
+  ClientRect getBoundingClientRect() native;
+
+  ClientRectList getClientRects() native;
 
   void insertNode(Node newNode) native;
 
@@ -5010,6 +5002,8 @@ class RangeException native "RangeException" {
   String message;
 
   String name;
+
+  String toString() native;
 
   var dartObjectLocalStorage;
 
@@ -5175,6 +5169,8 @@ class ScriptProfile native "ScriptProfile" {
 class ScriptProfileNode native "ScriptProfileNode" {
 
   int callUID;
+
+  List children;
 
   String functionName;
 
@@ -5379,6 +5375,77 @@ class TextEvent extends UIEvent native "TextEvent" {
 class TextMetrics native "TextMetrics" {
 
   num width;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class TextTrack native "TextTrack" {
+
+  TextTrackCueList activeCues;
+
+  TextTrackCueList cues;
+
+  String kind;
+
+  String label;
+
+  String language;
+
+  int mode;
+
+  int readyState;
+
+  void addCue(TextTrackCue cue) native;
+
+  void removeCue(TextTrackCue cue) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class TextTrackCue native "TextTrackCue" {
+
+  String alignment;
+
+  String direction;
+
+  num endTime;
+
+  String id;
+
+  int linePosition;
+
+  bool pauseOnExit;
+
+  int size;
+
+  bool snapToLines;
+
+  num startTime;
+
+  int textPosition;
+
+  TextTrack track;
+
+  DocumentFragment getCueAsHTML() native;
+
+  String getCueAsSource() native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class TextTrackCueList native "TextTrackCueList" {
+
+  int length;
+
+  TextTrackCue getCueById(String id) native;
+
+  TextTrackCue item(int index) native;
 
   var dartObjectLocalStorage;
 
@@ -5612,6 +5679,22 @@ class WebGLContextAttributes native "WebGLContextAttributes" {
 class WebGLContextEvent extends Event native "WebGLContextEvent" {
 
   String statusMessage;
+}
+
+class WebGLDebugRendererInfo native "WebGLDebugRendererInfo" {
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class WebGLDebugShaders native "WebGLDebugShaders" {
+
+  String getTranslatedShaderSource(WebGLShader shader) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
 }
 
 class WebGLFramebuffer native "WebGLFramebuffer" {
@@ -5998,6 +6081,11 @@ class WebKitBlobBuilder native "WebKitBlobBuilder" {
   String get typeName() native;
 }
 
+class WebKitCSSFilterValue extends CSSValueList native "WebKitCSSFilterValue" {
+
+  int operationType;
+}
+
 class WebKitCSSKeyframeRule extends CSSRule native "WebKitCSSKeyframeRule" {
 
   String keyText;
@@ -6019,8 +6107,6 @@ class WebKitCSSKeyframesRule extends CSSRule native "WebKitCSSKeyframesRule" {
 }
 
 class WebKitCSSMatrix native "WebKitCSSMatrix" {
-
-  WebKitCSSMatrix([String spec]);
 
   num a;
 
@@ -6118,8 +6204,16 @@ class WebKitLoseContext native "WebKitLoseContext" {
   String get typeName() native;
 }
 
+class WebKitMutationObserver native "WebKitMutationObserver" {
+
+  void disconnect() native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
 class WebKitPoint native "WebKitPoint" {
-  WebKitPoint(num x, num y) native;
 
   num x;
 
@@ -6146,6 +6240,8 @@ class WebSocket native "WebSocket" {
   String binaryType;
 
   int bufferedAmount;
+
+  String extensions;
 
   EventListener onclose;
 
@@ -6196,6 +6292,8 @@ class WheelEvent extends UIEvent native "WheelEvent" {
 
   bool shiftKey;
 
+  bool webkitDirectionInvertedFromDevice;
+
   int wheelDelta;
 
   int wheelDeltaX;
@@ -6206,16 +6304,18 @@ class WheelEvent extends UIEvent native "WheelEvent" {
 
   int y;
 
-  void initWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 
 class Worker extends AbstractWorker native "Worker" {
 
   EventListener onmessage;
 
-  void postMessage(String message, [MessagePort messagePort = null]) native;
+  void postMessage(String message, [List messagePorts = null]) native;
 
   void terminate() native;
+
+  void webkitPostMessage(String message, [List messagePorts = null]) native;
 }
 
 class WorkerContext native "WorkerContext" {
@@ -6225,6 +6325,8 @@ class WorkerContext native "WorkerContext" {
   WorkerNavigator navigator;
 
   EventListener onerror;
+
+  WorkerContext self;
 
   NotificationCenter webkitNotifications;
 
@@ -6339,7 +6441,7 @@ class XMLHttpRequest native "XMLHttpRequest" {
 
   String getResponseHeader(String header) native;
 
-  void open(String method, String url, bool async, [String user = null, String password = null]) native;
+  void open(String method, String url, [bool async = null, String user = null, String password = null]) native;
 
   void overrideMimeType(String override) native;
 
@@ -6361,6 +6463,8 @@ class XMLHttpRequestException native "XMLHttpRequestException" {
   String message;
 
   String name;
+
+  String toString() native;
 
   var dartObjectLocalStorage;
 
@@ -6426,6 +6530,8 @@ class XPathException native "XPathException" {
   String message;
 
   String name;
+
+  String toString() native;
 
   var dartObjectLocalStorage;
 

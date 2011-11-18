@@ -14,7 +14,8 @@ class LibraryReader {
       'dart:coreimpl': joinPaths(options.libDir, 'corelib_impl.dart'),
       'dart:html': joinPaths(options.libDir,
           '../../client/html/release/html.dart'),
-      'dart:dom': joinPaths(options.libDir, 'dom/dom.dart'),
+      'dart:dom': joinPaths(options.libDir,
+          '../../client/dom/frog/frog_dom.dart'),
       'dart:json': joinPaths(options.libDir, 'json.dart'),
     };
   }
