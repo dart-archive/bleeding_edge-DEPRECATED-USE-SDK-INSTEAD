@@ -108,6 +108,65 @@ class Type implements Named, Hashable {
 
   int hashCode() => name.hashCode();
 
+  void _checkOverride(Member member) {
+    // always look in parents to check that any overloads are legal
+    var parentMember = _getMemberInParents(member.name);
+    if (parentMember != null) {
+      // TODO(jimhug): Ensure that this is only done once.
+      if (!member.isPrivate || member.library == parentMember.library) {
+        member.override(parentMember);
+      }
+    }
+  }
+
+  Member _createNotEqualMember() {
+    // Add a != method just like the == one.
+    MethodMember eq = members['\$eq'];
+    if (eq == null) {
+      world.internalError('INTERNAL: object does not define ==',
+        definition.span);
+    }
+    final ne = new MethodMember('\$ne', this, eq.definition);
+    ne.isGenerated = true;
+    ne.returnType = eq.returnType;
+    ne.parameters = eq.parameters;
+    ne.isStatic = eq.isStatic;
+    ne.isAbstract = eq.isAbstract;
+    // TODO - What else to fill in?
+    return ne;
+  }
+
+  Member _getMemberInParents(String memberName) {
+    // print('getting $memberName in parents of $name, $isClass');
+    // Now look in my parents.
+    if (isClass) {
+      if (parent != null) {
+        return parent.getMember(memberName);
+      } else if (isObject) {  // Could also be a top type so need check.
+        // Create synthetic != method if needed.
+        if (memberName == '\$ne') {
+          var ret = _createNotEqualMember();
+          members[memberName] = ret;
+          return ret;
+        }
+        return null;
+      }
+    } else {
+      // TODO(jimhug): Will probably check types more than once - errors?
+      if (interfaces != null && interfaces.length > 0) {
+        for (var i in interfaces) {
+          var ret = i.getMember(memberName);
+          if (ret != null) {
+            return ret;
+          }
+        }
+        return null;
+      } else {
+        return world.objectType.getMember(memberName);
+      }
+    }
+  }
+
   void ensureSubtypeOf(Type other, SourceSpan span, [bool typeErrors=false]) {
     if (!isSubtypeOf(other)) {
       var msg = 'type $name is not a subtype of ${other.name}';
@@ -425,6 +484,7 @@ class ConcreteType extends Type {
   final DefinedType genericType;
   Map<String, Type> typeArguments;
   List<Type> _interfaces;
+  Type _parent;
   List<Type> typeArgsInOrder;
 
   bool get isList() => genericType.isList;
@@ -469,8 +529,12 @@ class ConcreteType extends Type {
     return genericType.getOrMakeConcreteType(typeArgs);
   }
 
-  // TODO(jimhug): Fill in type arguments...
-  Type get parent() => genericType.parent;
+  Type get parent() {
+    if (_parent == null && genericType.parent != null) {
+      _parent = genericType.parent.resolveTypeParams(this);
+    }
+    return _parent;
+  }
 
   List<Type> get interfaces() {
     if (_interfaces == null && genericType.interfaces != null) {
@@ -545,15 +609,22 @@ class ConcreteType extends Type {
   }
 
   Member getMember(String memberName) {
-    var ret = members[memberName];
-    if (ret != null) return ret;
+    Member member = members[memberName];
+    if (member != null) {
+      _checkOverride(member);
+      return member;
+    }
 
-    var genericMember = genericType.getMember(memberName);
-    if (genericMember == null) return null;
+    // Note: only look directly in the generic type. The transitive search
+    // through superclass/interfaces is handled below.
+    var genericMember = genericType.members[memberName];
+    if (genericMember != null) {
+      member = new ConcreteMember(genericMember.name, this, genericMember);
+      members[memberName] = member;
+      return member;
+    }
 
-    ret = new ConcreteMember(genericMember.name, this, genericMember);
-    members[memberName] = ret;
-    return ret;
+    return _getMemberInParents(memberName);
   }
 
   MemberSet resolveMember(String memberName) {
@@ -1041,58 +1112,21 @@ class DefinedType extends Type {
     Member member = members[memberName];
 
     if (member != null) {
-      // always look in parents to check that any overloads are legal
-      var parentMember = getMemberInParents(memberName);
-      if (parentMember != null) {
-        // TODO(jimhug): Ensure that this is only done once.
-        if (!member.isPrivate || member.library == parentMember.library) {
-          member.override(parentMember);
-        }
-      }
-
+      _checkOverride(member);
       return member;
     }
 
     if (isTop) {
       // Let's pretend classes are members of the top-level library type
-      var libType = library.findTypeByName(memberName);
+      // TODO(jmesserly): using "this." to workaround a VM bug with abstract
+      // getters.
+      var libType = this.library.findTypeByName(memberName);
       if (libType != null) {
         return libType.typeMember;
       }
     }
 
-    return getMemberInParents(memberName);
-  }
-
-  Member getMemberInParents(String memberName) {
-    // print('getting $memberName in parents of $name, $isClass');
-    // Now look in my parents.
-    if (isClass) {
-      if (parent != null) {
-        return parent.getMember(memberName);
-      } else if (isObject) {  // Could also be a top type so need check.
-        // Create synthetic != method if needed.
-        if (memberName == '\$ne') {
-          var ret = _createNotEqualMember();
-          members[memberName] = ret;
-          return ret;
-        }
-        return null;
-      }
-    } else {
-      // TODO(jimhug): Will probably check types more than once - errors?
-      if (interfaces != null && interfaces.length > 0) {
-        for (var i in interfaces) {
-          var ret = i.getMember(memberName);
-          if (ret != null) {
-            return ret;
-          }
-        }
-        return null;
-      } else {
-        return world.objectType.getMember(memberName);
-      }
-    }
+    return _getMemberInParents(memberName);
   }
 
   MemberSet resolveMember(String memberName) {
@@ -1125,23 +1159,6 @@ class DefinedType extends Type {
       }
       return ret;
     }
-  }
-
-  Member _createNotEqualMember() {
-    // Add a != method just like the == one.
-    MethodMember eq = members['\$eq'];
-    if (eq == null) {
-      world.internalError('INTERNAL: object does not define ==',
-        definition.span);
-    }
-    final ne = new MethodMember('\$ne', this, eq.definition);
-    ne.isGenerated = true;
-    ne.returnType = eq.returnType;
-    ne.parameters = eq.parameters;
-    ne.isStatic = eq.isStatic;
-    ne.isAbstract = eq.isAbstract;
-    // TODO - What else to fill in?
-    return ne;
   }
 
   static String _getDottedName(NameTypeReference type) {

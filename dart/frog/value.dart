@@ -177,7 +177,11 @@ class Value {
     if (member == null && !isSuper && !isType) {
       member = context.findMembers(name);
       if (member == null && !isDynamic) {
-        world.warning('$name is not defined anywhere in the world.',
+        var where = 'the world';
+        if (name.startsWith('_')) {
+          where = 'library "${context.library.name}"';
+        }
+        world.warning('$name is not defined anywhere in $where.',
            node.span);
       }
     }

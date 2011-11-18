@@ -1845,9 +1845,28 @@ DoubleLinkedQueueEntry$E.prototype.previousEntry = function() {
   return this._previous._asNonSentinelEntry();
 }
 // ********** Code for DoubleLinkedQueueEntry$KeyValuePair$K$V **************
-function DoubleLinkedQueueEntry$KeyValuePair$K$V() {}
+function DoubleLinkedQueueEntry$KeyValuePair$K$V(e) {
+  // Initializers done
+  this._element = e;
+}
 $inherits(DoubleLinkedQueueEntry$KeyValuePair$K$V, DoubleLinkedQueueEntry);
 DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype.is$DoubleLinkedQueueEntry$KeyValuePair$K$V = function(){return this;};
+DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype._link = function(p, n) {
+  this._next = n;
+  this._previous = p;
+  p._next = this;
+  n._previous = this;
+}
+DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype.prepend = function(e) {
+  new DoubleLinkedQueueEntry$KeyValuePair$K$V(e)._link(this._previous, this);
+}
+DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype._asNonSentinelEntry = function() {
+  return this;
+}
+DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype.previousEntry = function() {
+  var $0;
+  return (($0 = this._previous._asNonSentinelEntry()) && $0.is$DoubleLinkedQueueEntry$KeyValuePair$K$V());
+}
 // ********** Code for _DoubleLinkedQueueEntrySentinel **************
 function _DoubleLinkedQueueEntrySentinel() {
   // Initializers done
@@ -1874,7 +1893,7 @@ $inherits(_DoubleLinkedQueueEntrySentinel$E, _DoubleLinkedQueueEntrySentinel);
 // ********** Code for _DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V **************
 function _DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V() {
   // Initializers done
-  DoubleLinkedQueueEntry$E.call(this, null);
+  DoubleLinkedQueueEntry$KeyValuePair$K$V.call(this, null);
   this._link(this, this);
 }
 $inherits(_DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V, _DoubleLinkedQueueEntrySentinel);
@@ -2125,7 +2144,7 @@ StringBufferImpl.prototype.clear = function() {
 }
 StringBufferImpl.prototype.toString = function() {
   if (this._buffer.length == 0) return "";
-  if (this._buffer.length == 1) return $assert_String(this._buffer.$index(0));
+  if ($notnull_bool($eq(this._buffer.length, 1))) return $assert_String(this._buffer.$index(0));
   var result = StringBase.concatAll(this._buffer);
   this._buffer.clear();
   this._buffer.add(result);
@@ -2155,10 +2174,10 @@ StringBase.createFromCharCodes = function(charCodes) {
   return String.fromCharCode.apply(null, charCodes);
 }
 StringBase.join = function(strings, separator) {
-  if (strings.length == 0) return '';
+  if ($notnull_bool($eq(strings.length, 0))) return '';
   var s = $assert_String(strings.$index(0));
   for (var i = 1;
-   i < strings.length; i++) {
+   i < $assert_num(strings.length); i++) {
     s = s + separator + strings.$index(i);
   }
   return s;
@@ -2516,6 +2535,18 @@ AbstractLink.prototype.printOn$1 = function($0) {
 AbstractLink.prototype.toString$0 = function() {
   return this.toString();
 };
+// ********** Code for AbstractLink$Dynamic **************
+function AbstractLink$Dynamic() {
+  // Initializers done
+}
+$inherits(AbstractLink$Dynamic, AbstractLink);
+AbstractLink$Dynamic.prototype.is$Link = function(){return this;};
+AbstractLink$Dynamic.prototype.is$Link$Element = function(){return this;};
+AbstractLink$Dynamic.prototype.is$Link$Node = function(){return this;};
+AbstractLink$Dynamic.prototype.is$Link$T = function(){return this;};
+AbstractLink$Dynamic.prototype.is$Link$Token = function(){return this;};
+AbstractLink$Dynamic.prototype.is$Link$Type = function(){return this;};
+AbstractLink$Dynamic.prototype.is$Iterable = function(){return this;};
 // ********** Code for AbstractLink$T **************
 function AbstractLink$T() {
   // Initializers done
@@ -2563,7 +2594,7 @@ LinkTail.prototype.isEmpty$0 = function() {
 // ********** Code for LinkTail$Dynamic **************
 function LinkTail$Dynamic() {
   // Initializers done
-  AbstractLink$T.call(this);
+  AbstractLink$Dynamic.call(this);
 }
 $inherits(LinkTail$Dynamic, LinkTail);
 LinkTail$Dynamic.prototype.is$Link = function(){return this;};
@@ -2578,20 +2609,20 @@ function LinkTail$Element() {}
 $inherits(LinkTail$Element, LinkTail);
 LinkTail$Element.prototype.is$Link = function(){return this;};
 LinkTail$Element.prototype.is$Link$Element = function(){return this;};
-LinkTail$Element.prototype.is$Link$Node = function(){return this;};
+LinkTail$Element.prototype.is$Link$Node = false;
 LinkTail$Element.prototype.is$Link$T = function(){return this;};
-LinkTail$Element.prototype.is$Link$Token = function(){return this;};
-LinkTail$Element.prototype.is$Link$Type = function(){return this;};
+LinkTail$Element.prototype.is$Link$Token = false;
+LinkTail$Element.prototype.is$Link$Type = false;
 LinkTail$Element.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$Node **************
 function LinkTail$Node() {}
 $inherits(LinkTail$Node, LinkTail);
 LinkTail$Node.prototype.is$Link = function(){return this;};
-LinkTail$Node.prototype.is$Link$Element = function(){return this;};
+LinkTail$Node.prototype.is$Link$Element = false;
 LinkTail$Node.prototype.is$Link$Node = function(){return this;};
 LinkTail$Node.prototype.is$Link$T = function(){return this;};
-LinkTail$Node.prototype.is$Link$Token = function(){return this;};
-LinkTail$Node.prototype.is$Link$Type = function(){return this;};
+LinkTail$Node.prototype.is$Link$Token = false;
+LinkTail$Node.prototype.is$Link$Type = false;
 LinkTail$Node.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$T **************
 function LinkTail$T() {}
@@ -2607,20 +2638,20 @@ LinkTail$T.prototype.is$Iterable = function(){return this;};
 function LinkTail$Token() {}
 $inherits(LinkTail$Token, LinkTail);
 LinkTail$Token.prototype.is$Link = function(){return this;};
-LinkTail$Token.prototype.is$Link$Element = function(){return this;};
-LinkTail$Token.prototype.is$Link$Node = function(){return this;};
+LinkTail$Token.prototype.is$Link$Element = false;
+LinkTail$Token.prototype.is$Link$Node = false;
 LinkTail$Token.prototype.is$Link$T = function(){return this;};
 LinkTail$Token.prototype.is$Link$Token = function(){return this;};
-LinkTail$Token.prototype.is$Link$Type = function(){return this;};
+LinkTail$Token.prototype.is$Link$Type = false;
 LinkTail$Token.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$Type **************
 function LinkTail$Type() {}
 $inherits(LinkTail$Type, LinkTail);
 LinkTail$Type.prototype.is$Link = function(){return this;};
-LinkTail$Type.prototype.is$Link$Element = function(){return this;};
-LinkTail$Type.prototype.is$Link$Node = function(){return this;};
+LinkTail$Type.prototype.is$Link$Element = false;
+LinkTail$Type.prototype.is$Link$Node = false;
 LinkTail$Type.prototype.is$Link$T = function(){return this;};
-LinkTail$Type.prototype.is$Link$Token = function(){return this;};
+LinkTail$Type.prototype.is$Link$Token = false;
 LinkTail$Type.prototype.is$Link$Type = function(){return this;};
 LinkTail$Type.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkEntry **************
@@ -2655,7 +2686,7 @@ function LinkEntry$Dynamic(head, realTail) {
   this.head = head;
   this.realTail = realTail;
   // Initializers done
-  AbstractLink$T.call(this);
+  AbstractLink$Dynamic.call(this);
 }
 $inherits(LinkEntry$Dynamic, LinkEntry);
 // ********** Code for LinkEntry$T **************
@@ -2828,7 +2859,7 @@ function ArrayBasedScanner$SourceString() {
   this.byteOffset = -1;
   this.tokens = new Token(0/*null.EOF_TOKEN*/, -1);
   // Initializers done
-  AbstractScanner$S.call(this);
+  AbstractScanner$SourceString.call(this);
   this.tail = this.tokens;
 }
 $inherits(ArrayBasedScanner$SourceString, ArrayBasedScanner);
@@ -3422,7 +3453,12 @@ function AbstractScanner$S() {
   // Initializers done
 }
 $inherits(AbstractScanner$S, AbstractScanner);
-AbstractScanner$S.prototype.tokenize = function() {
+// ********** Code for AbstractScanner$SourceString **************
+function AbstractScanner$SourceString() {
+  // Initializers done
+}
+$inherits(AbstractScanner$SourceString, AbstractScanner);
+AbstractScanner$SourceString.prototype.tokenize = function() {
   var next = this.advance();
   while (next != -1) {
     next = this.bigSwitch(next);
@@ -3430,7 +3466,7 @@ AbstractScanner$S.prototype.tokenize = function() {
   this.appendEofToken();
   return this.firstToken();
 }
-AbstractScanner$S.prototype.bigSwitch = function(next) {
+AbstractScanner$SourceString.prototype.bigSwitch = function(next) {
   this.beginToken();
   if (next === 9/*null.$TAB*/ || next === 10/*null.$LF*/ || next === 13/*null.$CR*/ || next === 32/*null.$SPACE*/) {
     this.appendWhiteSpace(next);
@@ -3554,7 +3590,7 @@ AbstractScanner$S.prototype.bigSwitch = function(next) {
   }
   return this.tokenizeIdentifier(next, this.get$byteOffset());
 }
-AbstractScanner$S.prototype.tokenizeTag = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeTag = function(next) {
   if (this.get$byteOffset() === 0) {
     if (this.peek() === 33/*null.$BANG*/) {
       do {
@@ -3567,7 +3603,7 @@ AbstractScanner$S.prototype.tokenizeTag = function(next) {
   this.appendStringToken(35/*null.HASH_TOKEN*/, "#");
   return this.advance();
 }
-AbstractScanner$S.prototype.tokenizeTilde = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeTilde = function(next) {
   next = this.advance();
   if (next === 47/*null.$SLASH*/) {
     return this.select(61/*null.$EQ*/, "~/=", "~/");
@@ -3577,7 +3613,7 @@ AbstractScanner$S.prototype.tokenizeTilde = function(next) {
     return next;
   }
 }
-AbstractScanner$S.prototype.tokenizeOpenBracket = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeOpenBracket = function(next) {
   next = this.advance();
   if (next === 93/*null.$RBRACKET*/) {
     return this.select(61/*null.$EQ*/, "[]=", "[]");
@@ -3587,10 +3623,10 @@ AbstractScanner$S.prototype.tokenizeOpenBracket = function(next) {
     return next;
   }
 }
-AbstractScanner$S.prototype.tokenizeCaret = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeCaret = function(next) {
   return this.select(61/*null.$EQ*/, "^=", "^");
 }
-AbstractScanner$S.prototype.tokenizeBar = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeBar = function(next) {
   next = this.advance();
   if (next === 124/*null.$BAR*/) {
     this.appendStringToken(124/*null.BAR_TOKEN*/, "||");
@@ -3605,7 +3641,7 @@ AbstractScanner$S.prototype.tokenizeBar = function(next) {
     return next;
   }
 }
-AbstractScanner$S.prototype.tokenizeAmpersand = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeAmpersand = function(next) {
   next = this.advance();
   if (next === 38/*null.$AMPERSAND*/) {
     this.appendStringToken(38/*null.AMPERSAND_TOKEN*/, "&&");
@@ -3620,13 +3656,13 @@ AbstractScanner$S.prototype.tokenizeAmpersand = function(next) {
     return next;
   }
 }
-AbstractScanner$S.prototype.tokenizePercent = function(next) {
+AbstractScanner$SourceString.prototype.tokenizePercent = function(next) {
   return this.select(61/*null.$EQ*/, "%=", "%");
 }
-AbstractScanner$S.prototype.tokenizeMultiply = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeMultiply = function(next) {
   return this.select(61/*null.$EQ*/, "*=", "*");
 }
-AbstractScanner$S.prototype.tokenizeMinus = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeMinus = function(next) {
   next = this.advance();
   if (next === 45/*null.$MINUS*/) {
     this.appendStringToken(45/*null.MINUS_TOKEN*/, "--");
@@ -3641,7 +3677,7 @@ AbstractScanner$S.prototype.tokenizeMinus = function(next) {
     return next;
   }
 }
-AbstractScanner$S.prototype.tokenizePlus = function(next) {
+AbstractScanner$SourceString.prototype.tokenizePlus = function(next) {
   next = this.advance();
   if (43/*null.$PLUS*/ === next) {
     this.appendStringToken(43/*null.PLUS_TOKEN*/, "++");
@@ -3656,7 +3692,7 @@ AbstractScanner$S.prototype.tokenizePlus = function(next) {
     return next;
   }
 }
-AbstractScanner$S.prototype.tokenizeExclamation = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeExclamation = function(next) {
   next = this.advance();
   if (next === 61/*null.$EQ*/) {
     return this.select(61/*null.$EQ*/, "!==", "!=");
@@ -3664,7 +3700,7 @@ AbstractScanner$S.prototype.tokenizeExclamation = function(next) {
   this.appendStringToken(33/*null.BANG_TOKEN*/, "!");
   return next;
 }
-AbstractScanner$S.prototype.tokenizeEquals = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeEquals = function(next) {
   next = this.advance();
   if (next === 61/*null.$EQ*/) {
     return this.select(61/*null.$EQ*/, "===", "==");
@@ -3672,7 +3708,7 @@ AbstractScanner$S.prototype.tokenizeEquals = function(next) {
   this.appendStringToken(61/*null.EQ_TOKEN*/, "=");
   return next;
 }
-AbstractScanner$S.prototype.tokenizeGreaterThan = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeGreaterThan = function(next) {
   next = this.advance();
   if (61/*null.$EQ*/ === next) {
     this.appendStringToken(62/*null.GT_TOKEN*/, ">=");
@@ -3705,7 +3741,7 @@ AbstractScanner$S.prototype.tokenizeGreaterThan = function(next) {
     return next;
   }
 }
-AbstractScanner$S.prototype.tokenizeLessThan = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeLessThan = function(next) {
   next = this.advance();
   if (61/*null.$EQ*/ === next) {
     this.appendStringToken(188/*null.LT_EQ_TOKEN*/, "<=");
@@ -3719,8 +3755,7 @@ AbstractScanner$S.prototype.tokenizeLessThan = function(next) {
     return next;
   }
 }
-AbstractScanner$S.prototype.tokenizeNumber = function(next) {
-  var $0;
+AbstractScanner$SourceString.prototype.tokenizeNumber = function(next) {
   var start = this.get$byteOffset();
   while (true) {
     next = this.advance();
@@ -3734,12 +3769,12 @@ AbstractScanner$S.prototype.tokenizeNumber = function(next) {
       return this.tokenizeFractionPart(next, start);
     }
     else {
-      this.appendByteStringToken$2(105/*null.INT_TOKEN*/, this.asciiString(start));
+      this.appendByteStringToken(105/*null.INT_TOKEN*/, this.asciiString(start));
       return next;
     }
   }
 }
-AbstractScanner$S.prototype.tokenizeHexOrNumber = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeHexOrNumber = function(next) {
   var x = this.peek();
   if (x === 120/*null.$x*/ || x === 88/*null.$X*/) {
     this.advance();
@@ -3747,8 +3782,7 @@ AbstractScanner$S.prototype.tokenizeHexOrNumber = function(next) {
   }
   return this.tokenizeNumber(next);
 }
-AbstractScanner$S.prototype.tokenizeHex = function(next) {
-  var $0;
+AbstractScanner$SourceString.prototype.tokenizeHex = function(next) {
   var start = this.get$byteOffset();
   var hasDigits = false;
   while (true) {
@@ -3760,12 +3794,12 @@ AbstractScanner$S.prototype.tokenizeHex = function(next) {
       if (!$notnull_bool(hasDigits)) {
         $throw(new MalformedInputException(this.get$charOffset()));
       }
-      this.appendByteStringToken$2(120/*null.HEXADECIMAL_TOKEN*/, this.asciiString(start));
+      this.appendByteStringToken(120/*null.HEXADECIMAL_TOKEN*/, this.asciiString(start));
       return next;
     }
   }
 }
-AbstractScanner$S.prototype.tokenizeDotOrNumber = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeDotOrNumber = function(next) {
   var start = this.get$byteOffset();
   next = this.advance();
   if ((48/*null.$0*/ <= next && next <= 57/*null.$9*/)) {
@@ -3779,8 +3813,7 @@ AbstractScanner$S.prototype.tokenizeDotOrNumber = function(next) {
     return next;
   }
 }
-AbstractScanner$S.prototype.tokenizeFractionPart = function(next, start) {
-  var $0;
+AbstractScanner$SourceString.prototype.tokenizeFractionPart = function(next, start) {
   var done = false;
   LOOP:
   while (!$notnull_bool(done)) {
@@ -3800,10 +3833,10 @@ AbstractScanner$S.prototype.tokenizeFractionPart = function(next, start) {
   if (next === 100/*null.$d*/ || next === 68/*null.$D*/) {
     next = this.advance();
   }
-  this.appendByteStringToken$2(100/*null.DOUBLE_TOKEN*/, this.asciiString(start));
+  this.appendByteStringToken(100/*null.DOUBLE_TOKEN*/, this.asciiString(start));
   return next;
 }
-AbstractScanner$S.prototype.tokenizeExponent = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeExponent = function(next) {
   if (next === 43/*null.$PLUS*/ || next === 45/*null.$MINUS*/) {
     next = this.advance();
   }
@@ -3821,7 +3854,7 @@ AbstractScanner$S.prototype.tokenizeExponent = function(next) {
     next = this.advance();
   }
 }
-AbstractScanner$S.prototype.tokenizeSlashOrComment = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeSlashOrComment = function(next) {
   next = this.advance();
   if (42/*null.$STAR*/ === next) {
     return this.tokenizeMultiLineComment(next);
@@ -3838,7 +3871,7 @@ AbstractScanner$S.prototype.tokenizeSlashOrComment = function(next) {
     return next;
   }
 }
-AbstractScanner$S.prototype.tokenizeSingleLineComment = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeSingleLineComment = function(next) {
   while (true) {
     next = this.advance();
     if (10/*null.$LF*/ === next || 13/*null.$CR*/ === next || -1 === next) {
@@ -3846,7 +3879,7 @@ AbstractScanner$S.prototype.tokenizeSingleLineComment = function(next) {
     }
   }
 }
-AbstractScanner$S.prototype.tokenizeMultiLineComment = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeMultiLineComment = function(next) {
   next = this.advance();
   while (true) {
     if (-1 === next) {
@@ -3866,7 +3899,7 @@ AbstractScanner$S.prototype.tokenizeMultiLineComment = function(next) {
     }
   }
 }
-AbstractScanner$S.prototype.tokenizeKeywordOrIdentifier = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeKeywordOrIdentifier = function(next) {
   var state = KeywordState.get$KEYWORD_STATE();
   var start = this.get$byteOffset();
   while (state != null && 97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
@@ -3887,8 +3920,7 @@ AbstractScanner$S.prototype.tokenizeKeywordOrIdentifier = function(next) {
     return this.tokenizeIdentifier(next, start);
   }
 }
-AbstractScanner$S.prototype.tokenizeIdentifier = function(next, start) {
-  var $0;
+AbstractScanner$SourceString.prototype.tokenizeIdentifier = function(next, start) {
   var isAscii = true;
   while (true) {
     if ((97/*null.$a*/ <= next && next <= 122/*null.$z*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
@@ -3896,10 +3928,10 @@ AbstractScanner$S.prototype.tokenizeIdentifier = function(next, start) {
     }
     else if (next < 128) {
       if ($notnull_bool(isAscii)) {
-        this.appendByteStringToken$2(97/*null.IDENTIFIER_TOKEN*/, this.asciiString(start));
+        this.appendByteStringToken(97/*null.IDENTIFIER_TOKEN*/, this.asciiString(start));
       }
       else {
-        this.appendByteStringToken$2(97/*null.IDENTIFIER_TOKEN*/, this.utf8String(start, -1));
+        this.appendByteStringToken(97/*null.IDENTIFIER_TOKEN*/, this.utf8String(start, -1));
       }
       return next;
     }
@@ -3909,14 +3941,14 @@ AbstractScanner$S.prototype.tokenizeIdentifier = function(next, start) {
         next = this.nextByte();
       }
       while (next > 127)
-      var string = this.utf8String(nonAsciiStart, -1).toString$0();
+      var string = this.utf8String(nonAsciiStart, -1).toString();
       isAscii = false;
       var byteLength = nonAsciiStart - this.get$byteOffset();
       this.addToCharOffset(string.length - byteLength);
     }
   }
 }
-AbstractScanner$S.prototype.tokenizeRawString = function(next) {
+AbstractScanner$SourceString.prototype.tokenizeRawString = function(next) {
   var start = this.get$byteOffset();
   next = this.advance();
   if (next === 34/*null.$DQ*/ || next === 39/*null.$SQ*/) {
@@ -3926,8 +3958,7 @@ AbstractScanner$S.prototype.tokenizeRawString = function(next) {
     $throw(new MalformedInputException(this.get$charOffset()));
   }
 }
-AbstractScanner$S.prototype.tokenizeString = function(next, start, raw) {
-  var $0;
+AbstractScanner$SourceString.prototype.tokenizeString = function(next, start, raw) {
   var q = next;
   next = this.advance();
   if (q === next) {
@@ -3936,7 +3967,7 @@ AbstractScanner$S.prototype.tokenizeString = function(next, start, raw) {
       return this.tokenizeMultiLineString(q, start, raw);
     }
     else {
-      this.appendByteStringToken$2(39/*null.STRING_TOKEN*/, this.utf8String(start, -1));
+      this.appendByteStringToken(39/*null.STRING_TOKEN*/, this.utf8String(start, -1));
       return next;
     }
   }
@@ -3947,11 +3978,10 @@ AbstractScanner$S.prototype.tokenizeString = function(next, start, raw) {
     return this.tokenizeSingleLineString(next, q, start);
   }
 }
-AbstractScanner$S.prototype.tokenizeSingleLineString = function(next, q1, start) {
-  var $0;
+AbstractScanner$SourceString.prototype.tokenizeSingleLineString = function(next, q1, start) {
   while (next != -1) {
     if (next === q1) {
-      this.appendByteStringToken$2(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
+      this.appendByteStringToken(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
       return this.advance();
     }
     else if (next === 92/*null.$BACKSLASH*/) {
@@ -3967,12 +3997,11 @@ AbstractScanner$S.prototype.tokenizeSingleLineString = function(next, q1, start)
   }
   $throw(new MalformedInputException(this.get$charOffset()));
 }
-AbstractScanner$S.prototype.tokenizeSingleLineRawString = function(next, q1, start) {
-  var $0;
+AbstractScanner$SourceString.prototype.tokenizeSingleLineRawString = function(next, q1, start) {
   next = this.advance();
   while (next != -1) {
     if (next === q1) {
-      this.appendByteStringToken$2(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
+      this.appendByteStringToken(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
       return this.advance();
     }
     else if (next === 10/*null.$LF*/ || next === 13/*null.$CR*/) {
@@ -3982,8 +4011,7 @@ AbstractScanner$S.prototype.tokenizeSingleLineRawString = function(next, q1, sta
   }
   $throw(new MalformedInputException(this.get$charOffset()));
 }
-AbstractScanner$S.prototype.tokenizeMultiLineString = function(q, start, raw) {
-  var $0;
+AbstractScanner$SourceString.prototype.tokenizeMultiLineString = function(q, start, raw) {
   var next = this.advance();
   while (next != -1) {
     if (next === q) {
@@ -3991,7 +4019,7 @@ AbstractScanner$S.prototype.tokenizeMultiLineString = function(q, start, raw) {
       if (next === q) {
         next = this.advance();
         if (next === q) {
-          this.appendByteStringToken$2(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
+          this.appendByteStringToken(39/*null.STRING_TOKEN*/, this.utf8String(start, 0));
           return this.advance();
         }
       }
@@ -6139,7 +6167,7 @@ KeywordState.get$KEYWORD_STATE = function() {
       return a.compareTo$1(b);
     })
     );
-    $globals.KeywordState__KEYWORD_STATE = KeywordState.computeKeywordStateTable(0, strings, 0, strings.length);
+    $globals.KeywordState__KEYWORD_STATE = KeywordState.computeKeywordStateTable(0, strings, 0, $assert_num(strings.length));
   }
   return $globals.KeywordState__KEYWORD_STATE;
 }
@@ -7652,7 +7680,7 @@ SsaCodeGeneratorTask.prototype.generateMethod = function(methodName, parameterNa
   codegen.visitGraph(graph);
   var parameters = new StringBufferImpl("");
   for (var i = 0;
-   i < parameterNames.length; i++) {
+   i < $assert_num(parameterNames.length); i++) {
     if (i != 0) parameters.add(', ');
     parameters.add(parameterNames.$index(i));
   }
@@ -10810,6 +10838,7 @@ WorldGenerator.prototype.run = function() {
   this.writeTypes($globals.world.get$coreimpl());
   this.writeTypes($globals.world.corelib);
   this.writeTypes(this.main.declaringType.get$library());
+  if (this._mixins != null) this.writer.write(this._mixins.get$text());
   this.writeGlobals();
   this.writer.writeln(('' + mainCall.get$code() + ';'));
 }
@@ -10935,8 +10964,14 @@ WorldGenerator.prototype.writeType = function(type) {
   }
   if (!$notnull_bool(type.get$isTop())) {
     if ((type instanceof ConcreteType)) {
+      var c = (type && type.is$ConcreteType());
       this._ensureInheritsHelper();
-      this.writer.writeln(('\$inherits(' + type.get$jsname() + ', ' + type.get$genericType().get$jsname() + ');'));
+      this.writer.writeln(('\$inherits(' + c.get$jsname() + ', ' + c.genericType.get$jsname() + ');'));
+      for (var p = c._parent;
+       (p instanceof ConcreteType); p = p._parent) {
+        this._ensureInheritMembersHelper();
+        this._mixins.writeln(('\$inheritsMembers(' + c.get$jsname() + ', ' + p.get$jsname() + ');'));
+      }
     }
     else if (!$notnull_bool(type.get$isNativeType())) {
       if (type.get$parent() != null && !$notnull_bool(type.get$parent().get$isObject())) {
@@ -11000,6 +11035,12 @@ WorldGenerator.prototype._ensureInheritsHelper = function() {
   if ($notnull_bool(this._inheritsGenerated)) return;
   this._inheritsGenerated = true;
   this.writer.writeln("/** Implements extends for Dart classes on JavaScript prototypes. */\nfunction $inherits(child, parent) {\n  if (child.prototype.__proto__) {\n    child.prototype.__proto__ = parent.prototype;\n  } else {\n    function tmp() {};\n    tmp.prototype = parent.prototype;\n    child.prototype = new tmp();\n    child.prototype.constructor = child;\n  }\n}");
+}
+WorldGenerator.prototype._ensureInheritMembersHelper = function() {
+  if (this._mixins != null) return;
+  this._mixins = new CodeWriter();
+  this._mixins.comment('// ********** Generic Type Inheritance **************');
+  this._mixins.writeln("/** Implements extends for generic types. */\nfunction $inheritsMembers(child, parent) {\n  child = child.prototype;\n  parent = parent.prototype;\n  Object.getOwnPropertyNames(parent).forEach(function(name) {\n    if (typeof(child[name]) == 'undefined') child[name] = parent[name];\n  });\n}");
 }
 WorldGenerator.prototype._writeDynamicStubs = function(type) {
   if (type.varStubs != null) {
@@ -11356,7 +11397,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 736, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 769, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -11427,13 +11468,14 @@ MethodGenerator.prototype.writeBody = function() {
   var $0;
   var initializers = null;
   var initializedFields = null;
+  var allMembers = null;
   if ($notnull_bool(this.method.get$isConstructor())) {
     initializers = [];
     initializedFields = new HashSetImplementation();
-    var $list = $globals.world.gen._orderValues(this.method.declaringType.getAllMembers());
-    for (var $i = 0;$i < $list.length; $i++) {
-      var f = $list.$index($i);
-      if ((f instanceof FieldMember) && !$notnull_bool(f.get$isStatic())) {
+    allMembers = $globals.world.gen._orderValues(this.method.declaringType.getAllMembers());
+    for (var $i = allMembers.iterator$0(); $i.hasNext$0(); ) {
+      var f = $i.next$0();
+      if ($notnull_bool(f.get$isField()) && !$notnull_bool(f.get$isStatic())) {
         var cv = f.computeValue$0();
         if ($notnull_bool($ne(cv, null))) {
           initializers.add$1(('this.' + f.get$jsname() + ' = ' + cv.get$code()));
@@ -11536,12 +11578,10 @@ MethodGenerator.prototype.writeBody = function() {
     }
   }
   if ($notnull_bool($ne(initializedFields, null))) {
-    var $list = this.method.declaringType.get$members().getKeys();
-    for (var $i = this.method.declaringType.get$members().getKeys().iterator$0(); $i.hasNext$0(); ) {
-      var name = $i.next$0();
-      var member = this.method.declaringType.get$members().$index(name);
-      if ((member instanceof FieldMember) && $notnull_bool(member.get$isFinal()) && !$notnull_bool(member.get$isStatic()) && !$notnull_bool(initializedFields.contains$1(name))) {
-        $globals.world.error(('Field "' + name + '" is final and was not initialized'), (($0 = this.method.get$definition().get$span()) && $0.is$SourceSpan()));
+    for (var $i = allMembers.iterator$0(); $i.hasNext$0(); ) {
+      var member = $i.next$0();
+      if ($notnull_bool(member.get$isField()) && $notnull_bool(member.get$isFinal()) && !$notnull_bool(member.get$isStatic()) && !$notnull_bool(initializedFields.contains$1(member.get$name()))) {
+        $globals.world.error(('Field "' + member.get$name() + '" is final and was not initialized'), (($0 = this.method.get$definition().get$span()) && $0.is$SourceSpan()));
       }
     }
   }
@@ -12538,7 +12578,7 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2158, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2192, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;
@@ -13223,6 +13263,9 @@ Member.prototype.get$isProperty = function() {
 Member.prototype.get$isAbstract = function() {
   return false;
 }
+Member.prototype.get$isFinal = function() {
+  return false;
+}
 Member.prototype.get$isConst = function() {
   return false;
 }
@@ -13259,6 +13302,9 @@ Member.prototype.get$initDelegate = function() {
 Member.prototype.set$initDelegate = function(ctor) {
   $globals.world.internalError('cannot have initializers', this.get$span());
 }
+Member.prototype.computeValue = function() {
+  $globals.world.internalError('cannot have value', this.get$span());
+}
 Member.prototype.get$inferredResult = function() {
   var t = this.get$returnType();
   if ($notnull_bool(t.get$isBool()) && ($notnull_bool(this.get$library().get$isCore()) || $notnull_bool(this.get$library().get$isCoreImpl()))) {
@@ -13292,7 +13338,7 @@ Member.prototype.override = function(other) {
   return true;
 }
 Member.prototype.get$generatedFactoryName = function() {
-  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 195, 12);
+  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 201, 12);
   var prefix = ('' + this.declaringType.get$jsname() + '.' + this.get$constructorName() + '\$');
   if (this.name == '') {
     return ('' + prefix + 'factory');
@@ -13316,6 +13362,9 @@ Member.prototype._set$4 = function($0, $1, $2, $3) {
 };
 Member.prototype.canInvoke$2 = function($0, $1) {
   return this.canInvoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$Arguments()));
+};
+Member.prototype.computeValue$0 = function() {
+  return this.computeValue();
 };
 Member.prototype.invoke$4 = function($0, $1, $2, $3) {
   return this.invoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), ($3 && $3.is$Arguments()), false);
@@ -13725,6 +13774,9 @@ ConcreteMember.prototype.get$isConst = function() {
 ConcreteMember.prototype.get$isFactory = function() {
   return this.baseMember.get$isFactory();
 }
+ConcreteMember.prototype.get$isFinal = function() {
+  return this.baseMember.get$isFinal();
+}
 ConcreteMember.prototype.get$jsname = function() {
   return this.baseMember.get$jsname();
 }
@@ -13782,6 +13834,9 @@ ConcreteMember.prototype.resolveType = function(node, isRequired) {
   var type = this.baseMember.resolveType(node, isRequired);
   return (($0 = type.resolveTypeParams$1(this.declaringType)) && $0.is$lang_Type());
 }
+ConcreteMember.prototype.computeValue = function() {
+  return this.baseMember.computeValue();
+}
 ConcreteMember.prototype.override = function(other) {
   return this.baseMember.override(other);
 }
@@ -13812,6 +13867,9 @@ ConcreteMember.prototype._set$4 = function($0, $1, $2, $3) {
 };
 ConcreteMember.prototype.canInvoke$2 = function($0, $1) {
   return this.canInvoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$Arguments()));
+};
+ConcreteMember.prototype.computeValue$0 = function() {
+  return this.computeValue();
 };
 ConcreteMember.prototype.invoke$4 = function($0, $1, $2, $3) {
   return this.invoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), ($3 && $3.is$Arguments()), false);
@@ -19395,6 +19453,59 @@ lang_Type.prototype.getAllMembers = function() {
 lang_Type.prototype.hashCode = function() {
   return this.name.hashCode();
 }
+lang_Type.prototype._checkOverride = function(member) {
+  var parentMember = this._getMemberInParents(member.name);
+  if ($notnull_bool($ne(parentMember, null))) {
+    if (!$notnull_bool(member.get$isPrivate()) || $eq(member.get$library(), parentMember.get$library())) {
+      member.override((parentMember && parentMember.is$Member()));
+    }
+  }
+}
+lang_Type.prototype._createNotEqualMember = function() {
+  var $0;
+  var eq = (($0 = this.get$members().$index('\$eq')) && $0.is$MethodMember());
+  if (eq == null) {
+    $globals.world.internalError('INTERNAL: object does not define ==', this.get$definition().span);
+  }
+  var ne = new MethodMember('\$ne', this, eq.definition);
+  ne.isGenerated = true;
+  ne.returnType = eq.returnType;
+  ne.parameters = eq.parameters;
+  ne.isStatic = eq.isStatic;
+  ne.isAbstract = eq.isAbstract;
+  return ne;
+}
+lang_Type.prototype._getMemberInParents = function(memberName) {
+  if ($notnull_bool(this.get$isClass())) {
+    if (this.get$parent() != null) {
+      return this.get$parent().getMember(memberName);
+    }
+    else if ($notnull_bool(this.get$isObject())) {
+      if (memberName == '\$ne') {
+        var ret = this._createNotEqualMember();
+        this.get$members().$setindex(memberName, ret);
+        return (ret && ret.is$Member());
+      }
+      return null;
+    }
+  }
+  else {
+    if (this.get$interfaces() != null && this.get$interfaces().length > 0) {
+      var $list = this.get$interfaces();
+      for (var $i = 0;$i < $list.length; $i++) {
+        var i = $list.$index($i);
+        var ret = i.getMember$1(memberName);
+        if ($notnull_bool($ne(ret, null))) {
+          return (ret && ret.is$Member());
+        }
+      }
+      return null;
+    }
+    else {
+      return $globals.world.objectType.getMember(memberName);
+    }
+  }
+}
 lang_Type.prototype.ensureSubtypeOf = function(other, span, typeErrors) {
   if (!$notnull_bool(this.isSubtypeOf(other))) {
     var msg = ('type ' + this.name + ' is not a subtype of ' + other.name);
@@ -19798,7 +19909,10 @@ ConcreteType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return this.genericType.getOrMakeConcreteType(typeArgs);
 }
 ConcreteType.prototype.get$parent = function() {
-  return this.genericType.get$parent();
+  if (this._parent == null && this.genericType.get$parent() != null) {
+    this._parent = this.genericType.get$parent().resolveTypeParams(this);
+  }
+  return this._parent;
 }
 ConcreteType.prototype.get$interfaces = function() {
   if (this._interfaces == null && this.genericType.interfaces != null) {
@@ -19860,13 +19974,19 @@ ConcreteType.prototype.getConstructor = function(constructorName) {
   return ret;
 }
 ConcreteType.prototype.getMember = function(memberName) {
-  var ret = this.members.$index(memberName);
-  if ($notnull_bool($ne(ret, null))) return (ret && ret.is$Member());
-  var genericMember = this.genericType.getMember(memberName);
-  if ($notnull_bool(genericMember == null)) return null;
-  ret = new ConcreteMember($assert_String(genericMember.get$name()), this, genericMember);
-  this.members.$setindex(memberName, ret);
-  return (ret && ret.is$Member());
+  var $0;
+  var member = (($0 = this.members.$index(memberName)) && $0.is$Member());
+  if (member != null) {
+    this._checkOverride(member);
+    return member;
+  }
+  var genericMember = this.genericType.members.$index(memberName);
+  if ($notnull_bool($ne(genericMember, null))) {
+    member = new ConcreteMember($assert_String(genericMember.get$name()), this, genericMember);
+    this.members.$setindex(memberName, member);
+    return member;
+  }
+  return this._getMemberInParents(memberName);
 }
 ConcreteType.prototype.resolveMember = function(memberName) {
   var mem = this.getMember(memberName);
@@ -19954,7 +20074,7 @@ DefinedType.prototype.set$isUsed = function(value) { return this.isUsed = value;
 DefinedType.prototype.get$isNativeType = function() { return this.isNativeType; };
 DefinedType.prototype.set$isNativeType = function(value) { return this.isNativeType = value; };
 DefinedType.prototype.setDefinition = function(def) {
-  $assert(this.definition == null, "definition == null", "type.dart", 632, 12);
+  $assert(this.definition == null, "definition == null", "type.dart", 703, 12);
   this.definition = def;
   if ((this.definition instanceof TypeDefinition) && this.definition.get$nativeType() != null) {
     this.isNativeType = true;
@@ -20064,7 +20184,7 @@ DefinedType.prototype._resolveInterfaces = function(types) {
   return (interfaces && interfaces.is$List$Type());
 }
 DefinedType.prototype.addDirectSubtype = function(type) {
-  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 748, 12);
+  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 819, 12);
   this.directSubtypes.add(type);
 }
 DefinedType.prototype.get$subtypes = function() {
@@ -20315,12 +20435,7 @@ DefinedType.prototype.getMember = function(memberName) {
   var $0;
   var member = (($0 = this.members.$index(memberName)) && $0.is$Member());
   if (member != null) {
-    var parentMember = this.getMemberInParents(memberName);
-    if ($notnull_bool($ne(parentMember, null))) {
-      if (!$notnull_bool(member.get$isPrivate()) || $eq(member.get$library(), parentMember.get$library())) {
-        member.override((parentMember && parentMember.is$Member()));
-      }
-    }
+    this._checkOverride(member);
     return member;
   }
   if ($notnull_bool(this.get$isTop())) {
@@ -20329,38 +20444,7 @@ DefinedType.prototype.getMember = function(memberName) {
       return (($0 = libType.get$typeMember()) && $0.is$Member());
     }
   }
-  return this.getMemberInParents(memberName);
-}
-DefinedType.prototype.getMemberInParents = function(memberName) {
-  if ($notnull_bool(this.isClass)) {
-    if (this.get$parent() != null) {
-      return this.get$parent().getMember(memberName);
-    }
-    else if ($notnull_bool(this.get$isObject())) {
-      if (memberName == '\$ne') {
-        var ret = this._createNotEqualMember();
-        this.members.$setindex(memberName, ret);
-        return (ret && ret.is$Member());
-      }
-      return null;
-    }
-  }
-  else {
-    if (this.interfaces != null && this.interfaces.length > 0) {
-      var $list = this.interfaces;
-      for (var $i = 0;$i < $list.length; $i++) {
-        var i = $list.$index($i);
-        var ret = i.getMember$1(memberName);
-        if ($notnull_bool($ne(ret, null))) {
-          return (ret && ret.is$Member());
-        }
-      }
-      return null;
-    }
-    else {
-      return $globals.world.objectType.getMember(memberName);
-    }
-  }
+  return this._getMemberInParents(memberName);
 }
 DefinedType.prototype.resolveMember = function(memberName) {
   var $0;
@@ -20390,20 +20474,6 @@ DefinedType.prototype.resolveMember = function(memberName) {
     }
     return ret;
   }
-}
-DefinedType.prototype._createNotEqualMember = function() {
-  var $0;
-  var eq = (($0 = this.members.$index('\$eq')) && $0.is$MethodMember());
-  if (eq == null) {
-    $globals.world.internalError('INTERNAL: object does not define ==', this.definition.span);
-  }
-  var ne = new MethodMember('\$ne', this, eq.definition);
-  ne.isGenerated = true;
-  ne.returnType = eq.returnType;
-  ne.parameters = eq.parameters;
-  ne.isStatic = eq.isStatic;
-  ne.isAbstract = eq.isAbstract;
-  return ne;
 }
 DefinedType._getDottedName = function(type) {
   if (type.names != null) {
@@ -20492,7 +20562,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
   return this;
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
-  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1231, 12);
+  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1248, 12);
   var names = [this.name];
   var typeMap = $map([]);
   for (var i = 0;
@@ -20510,7 +20580,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return (ret && ret.is$lang_Type());
 }
 DefinedType.prototype.getCallStub = function(args) {
-  $assert(this.get$isFunction(), "isFunction", "type.dart", 1251, 12);
+  $assert(this.get$isFunction(), "isFunction", "type.dart", 1268, 12);
   var name = _getCallStubName('call', args);
   if (this.varStubs == null) this.varStubs = $map([]);
   var stub = this.varStubs.$index(name);
@@ -20763,7 +20833,11 @@ Value.prototype._resolveMember = function(context, name, node, isDynamic) {
   if ($notnull_bool(member == null) && !$notnull_bool(this.isSuper) && !$notnull_bool(this.isType)) {
     member = context.findMembers(name);
     if ($notnull_bool(member == null) && !$notnull_bool(isDynamic)) {
-      $globals.world.warning(('' + name + ' is not defined anywhere in the world.'), node.span);
+      var where = 'the world';
+      if (name.startsWith('_')) {
+        where = ('library "' + context.get$library().name + '"');
+      }
+      $globals.world.warning(('' + name + ' is not defined anywhere in ' + where + '.'), node.span);
     }
   }
   return member;
@@ -20942,8 +21016,8 @@ Value.prototype.invokeNoSuchMethod = function(context, name, node, args) {
   return (($0 = this._resolveMember(context, 'noSuchMethod', node, false).invoke$4(context, node, this, new Arguments(null, noSuchArgs))) && $0.is$Value());
 }
 Value.prototype.invokeSpecial = function(name, args, returnType) {
-  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 484, 12);
-  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 485, 12);
+  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 488, 12);
+  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 489, 12);
   var argsString = args.getCode();
   if (name == '\$index' || name == '\$setindex') {
     return new Value(returnType, ('' + this.code + '.' + name + '(' + argsString + ')'), this.span, true);
@@ -21171,7 +21245,7 @@ BareValue.prototype._ensureCode = function() {
   }
 }
 BareValue.prototype._tryResolveMember = function(context, name) {
-  $assert($eq(context, this.home), "context == home", "value.dart", 705, 12);
+  $assert($eq(context, this.home), "context == home", "value.dart", 709, 12);
   var member = this.type.resolveMember(name);
   if ($notnull_bool($ne(member, null))) {
     this._ensureCode();
@@ -21536,7 +21610,7 @@ function FrogOptions(homedir, args, files) {
   this.childArgs = [];
   loop:
   for (var i = 2;
-   i < args.length; i++) {
+   i < $assert_num(args.length); i++) {
     var arg = args.$index(i);
     switch (arg) {
       case '--enable_leg':
@@ -21982,6 +22056,21 @@ function main() {
     process.exit(1);
   }
 }
+// ********** Generic Type Inheritance **************
+/** Implements extends for generic types. */
+function $inheritsMembers(child, parent) {
+  child = child.prototype;
+  parent = parent.prototype;
+  Object.getOwnPropertyNames(parent).forEach(function(name) {
+    if (typeof(child[name]) == 'undefined') child[name] = parent[name];
+  });
+}
+$inheritsMembers(_DoubleLinkedQueueEntrySentinel$E, DoubleLinkedQueueEntry$E);
+$inheritsMembers(_DoubleLinkedQueueEntrySentinel$KeyValuePair$K$V, DoubleLinkedQueueEntry$KeyValuePair$K$V);
+$inheritsMembers(LinkTail$Dynamic, AbstractLink$Dynamic);
+$inheritsMembers(LinkEntry$Dynamic, AbstractLink$Dynamic);
+$inheritsMembers(LinkEntry$T, AbstractLink$T);
+$inheritsMembers(ArrayBasedScanner$SourceString, AbstractScanner$SourceString);
 //  ********** Globals **************
 function $static_init(){
   $globals.HTracer__singleton = null;

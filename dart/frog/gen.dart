@@ -17,8 +17,9 @@
 class WorldGenerator {
   MethodMember main;
   CodeWriter writer;
+  CodeWriter _mixins;
 
-  /** 
+  /**
    * Whether the app has any static fields used. Note this could still be true
    * and [globals] be empty if no static field has a default initialization.
    */
@@ -59,6 +60,9 @@ class WorldGenerator {
     // Write the main library. This will cause all libraries to be written in
     // the topographic sort order.
     writeTypes(main.declaringType.library);
+
+    // Write out any inherited concrete members.
+    if (_mixins != null) writer.write(_mixins.text);
 
     writeGlobals();
     writer.writeln('${mainCall.code};');
@@ -201,9 +205,19 @@ class WorldGenerator {
 
     if (!type.isTop) {
       if (type is ConcreteType) {
+        ConcreteType c = type;
         _ensureInheritsHelper();
-        writer.writeln(
-            '\$inherits(${type.jsname}, ${type.genericType.jsname});');
+        writer.writeln('\$inherits(${c.jsname}, ${c.genericType.jsname});');
+
+        // Mixin members from concrete specializations of base types too.
+        // TODO(jmesserly): emit this sooner instead of at the end.
+        // But it needs to come after we've emitted both types.
+        // TODO(jmesserly): HACK: using _parent instead of parent so we don't
+        // try to inherit things that we didn't actually use.
+        for (var p = c._parent; p is ConcreteType; p = p._parent) {
+          _ensureInheritMembersHelper();
+          _mixins.writeln('\$inheritsMembers(${c.jsname}, ${p.jsname});');
+        }
       } else if (!type.isNativeType) {
         if (type.parent != null && !type.parent.isObject) {
           _ensureInheritsHelper();
@@ -284,6 +298,25 @@ function $inherits(child, parent) {
     child.prototype = new tmp();
     child.prototype.constructor = child;
   }
+}""");
+  }
+
+  /**
+   * Generates the $inheritsMembers function when it's first used.
+   * This is used to mix in specialized generic members from the base class.
+   */
+  _ensureInheritMembersHelper() {
+    if (_mixins != null) return;
+    _mixins = new CodeWriter();
+    _mixins.comment('// ********** Generic Type Inheritance **************');
+    _mixins.writeln(@"""
+/** Implements extends for generic types. */
+function $inheritsMembers(child, parent) {
+  child = child.prototype;
+  parent = parent.prototype;
+  Object.getOwnPropertyNames(parent).forEach(function(name) {
+    if (typeof(child[name]) == 'undefined') child[name] = parent[name];
+  });
 }""");
   }
 
@@ -817,11 +850,13 @@ class MethodGenerator implements TreeVisitor {
   writeBody() {
     var initializers = null;
     var initializedFields = null; // to check that final fields are initialized
+    var allMembers = null;
     if (method.isConstructor) {
       initializers = [];
       initializedFields = new Set();
-      for (var f in world.gen._orderValues(method.declaringType.getAllMembers())) {
-        if (f is FieldMember && !f.isStatic) {
+      allMembers = world.gen._orderValues(method.declaringType.getAllMembers());
+      for (var f in allMembers) {
+        if (f.isField && !f.isStatic) {
           var cv = f.computeValue();
           if (cv != null) {
             initializers.add('this.${f.jsname} = ${cv.code}');
@@ -946,11 +981,10 @@ class MethodGenerator implements TreeVisitor {
 
     // check that initialization was correct
     if (initializedFields != null) {
-      for (var name in method.declaringType.members.getKeys()) {
-        var member = method.declaringType.members[name];
-        if (member is FieldMember && member.isFinal && !member.isStatic
-            && !initializedFields.contains(name)) {
-          world.error('Field "${name}" is final and was not initialized',
+      for (var member in allMembers) {
+        if (member.isField && member.isFinal && !member.isStatic
+            && !initializedFields.contains(member.name)) {
+          world.error('Field "${member.name}" is final and was not initialized',
               method.definition.span);
         }
       }

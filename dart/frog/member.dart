@@ -115,6 +115,8 @@ class Member implements Named {
   bool get isProperty() => false;
   bool get isAbstract() => false;
 
+  bool get isFinal() => false;
+
   // TODO(jmesserly): these only makes sense on methods, but because of
   // ConcreteMember we need to support them on Member.
   bool get isConst() => false;
@@ -140,6 +142,10 @@ class Member implements Named {
   }
   Member set initDelegate(ctor) {
     world.internalError('cannot have initializers', span);
+  }
+
+  Value computeValue() {
+    world.internalError('cannot have value', span);
   }
 
   /**
@@ -556,6 +562,7 @@ class ConcreteMember extends Member {
   bool get isAbstract() => baseMember.isAbstract;
   bool get isConst() => baseMember.isConst;
   bool get isFactory() => baseMember.isFactory;
+  bool get isFinal() => baseMember.isFinal;
 
   String get jsname() => baseMember.jsname;
   set jsname(String name) =>
@@ -591,6 +598,8 @@ class ConcreteMember extends Member {
     var type = baseMember.resolveType(node, isRequired);
     return type.resolveTypeParams(declaringType);
   }
+
+  Value computeValue() => baseMember.computeValue();
 
   // TODO(jimhug): Add support for type params.
   bool override(Member other) => baseMember.override(other);
