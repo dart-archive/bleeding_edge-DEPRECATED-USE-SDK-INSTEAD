@@ -12,7 +12,7 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
   /** Since the input is UTF8, some characters are represented by more
    * than one byte. [extraCharOffset] tracks the difference. */
   int extraCharOffset;
-  Link<Token> groupingStack = const EmptyLink(); // <Node> Frog bug #322 + #323.
+  Link<Token> groupingStack = const EmptyLink<Token>();
 
   ArrayBasedScanner()
     : this.extraCharOffset = 0,

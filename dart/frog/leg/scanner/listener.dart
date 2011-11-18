@@ -245,8 +245,8 @@ class ElementListener extends Listener {
   Identifier previousIdentifier = null;
   final Canceler canceler;
 
-  Link<Node> nodes = const EmptyLink(); // <Node> Frog bug #322 + #323.
-  Link<Element> topLevelElements = const EmptyLink(); // Ditto.
+  Link<Node> nodes = const EmptyLink<Node>();
+  Link<Element> topLevelElements = const EmptyLink<Element>();
 
   ElementListener(Canceler this.canceler);
 

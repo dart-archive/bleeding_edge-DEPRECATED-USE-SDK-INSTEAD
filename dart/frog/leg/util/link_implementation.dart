@@ -5,23 +5,21 @@
 // TODO(ahe): This class should not be generic.
 class LinkFactory {
   factory Link<T>(head, [Link tail]) {
-    // TODO(ahe): Should be new LinkEntry<T> but frog can't handle it.
-    return new LinkEntry(head, (tail === null) ? const LinkTail() : tail);
+    return new LinkEntry<T>(head, (tail === null) ? new LinkTail<T>() : tail);
   }
 
   factory Link<T>.fromList(List list) {
     switch (list.length) {
       case 0:
-        return const LinkTail();
+        return new LinkTail<T>();
       case 1:
-        return new Link(list[0]); // TODO(ahe): Link<T>.
+        return new Link<T>(list[0]);
       case 2:
-        return new Link(list[0], new Link(list[1])); // TODO(ahe): Link<T>.
+        return new Link<T>(list[0], new Link<T>(list[1]));
       case 3:
-        // TODO(ahe): Link<T>.
-        return new Link(list[0], new Link(list[1], new Link(list[2])));
+        return new Link<T>(list[0], new Link<T>(list[1], new Link<T>(list[2])));
     }
-    Link link = new Link(list.last()); // TODO(ahe): Link<T>.
+    Link link = new Link<T>(list.last());
     for (int i = list.length - 1; i > 0; i--) {
       link = link.prepend(list[i - 1]);
     }

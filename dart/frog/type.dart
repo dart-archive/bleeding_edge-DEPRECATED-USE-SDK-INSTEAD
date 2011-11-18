@@ -1181,7 +1181,7 @@ class DefinedType extends Type {
         typeRef.type = library.findType(typeRef);
       }
       if (typeRef.type == null) {
-        var message = 'can not find type ${_getDottedName(typeRef)}';
+        var message = 'cannot find type ${_getDottedName(typeRef)}';
         if (typeErrors) {
           world.error(message, typeRef.span);
           typeRef.type = world.objectType;

@@ -1331,6 +1331,38 @@ class MethodMember extends Member {
       library._addMember(this);
     }
   }
+
+  Type findTypeVariable(TypeReference node, bool isRequired) {
+    if (!this.isFactory || node is! NameTypeReference) {
+      return super.resolveType(node, isRequired);
+    } else {
+      // TODO(ahe): We cannot find any type variables as they aren't
+      // recorded. So we turn this in to a warning instead.
+      return super.resolveType(node, false);
+    }
+  }
+
+  Type resolveType(TypeReference node, bool isRequired) {
+    if (node !== null && this.isFactory && isRequired) {
+      if (node is GenericTypeReference) {
+        // TODO(ahe): This is bascially a copy of code in
+        // DefinedType.resolveType. More checks should be performed,
+        // such as bounds check, but the code is structured in a way
+        // that makes this hard.
+        GenericTypeReference genericReference = node;
+        var baseType = super.resolveType(genericReference.baseType, isRequired);
+        var typeArguments = [];
+        for (TypeReference ref in genericReference.typeArguments) {
+          // TODO(ahe): This let us ignore T in new Foo<T>, but not in
+          // new Foo<Foo<T>>.
+          typeArguments.add(findTypeVariable(ref, isRequired));
+        }
+        node.type = baseType.getOrMakeConcreteType(typeArguments);
+        return node.type;
+      }
+    }
+    return super.resolveType(node, isRequired);
+  }
 }
 
 

@@ -2461,7 +2461,7 @@ function readSync(fileName) {
 function LinkFactory() {}
 LinkFactory.Link$factory = function(head, tail) {
   var $0;
-  return new LinkEntry(head, (($0 = (tail == null) ? const$14/*const EmptyLink()*/ : tail) && $0.is$Link$T()));
+  return new LinkEntry$Dynamic(head, (($0 = (tail == null) ? new LinkTail$Dynamic() : tail) && $0.is$Link$T()));
 }
 // ********** Code for AbstractLink **************
 function AbstractLink() {
@@ -2561,6 +2561,29 @@ LinkTail.prototype.isEmpty = function() {
 LinkTail.prototype.isEmpty$0 = function() {
   return this.isEmpty();
 };
+// ********** Code for LinkTail$Dynamic **************
+function LinkTail$Dynamic() {
+  // Initializers done
+  AbstractLink$T.call(this);
+}
+$inherits(LinkTail$Dynamic, LinkTail);
+LinkTail$Dynamic.prototype.is$Link = function(){return this;};
+LinkTail$Dynamic.prototype.is$Link$Element = function(){return this;};
+LinkTail$Dynamic.prototype.is$Link$Node = function(){return this;};
+LinkTail$Dynamic.prototype.is$Link$T = function(){return this;};
+LinkTail$Dynamic.prototype.is$Link$Token = function(){return this;};
+LinkTail$Dynamic.prototype.is$Link$Type = function(){return this;};
+LinkTail$Dynamic.prototype.is$Iterable = function(){return this;};
+// ********** Code for LinkTail$Element **************
+function LinkTail$Element() {}
+$inherits(LinkTail$Element, LinkTail);
+LinkTail$Element.prototype.is$Link = function(){return this;};
+LinkTail$Element.prototype.is$Link$Element = function(){return this;};
+LinkTail$Element.prototype.is$Link$Node = function(){return this;};
+LinkTail$Element.prototype.is$Link$T = function(){return this;};
+LinkTail$Element.prototype.is$Link$Token = function(){return this;};
+LinkTail$Element.prototype.is$Link$Type = function(){return this;};
+LinkTail$Element.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$Node **************
 function LinkTail$Node() {}
 $inherits(LinkTail$Node, LinkTail);
@@ -2581,6 +2604,16 @@ LinkTail$T.prototype.is$Link$T = function(){return this;};
 LinkTail$T.prototype.is$Link$Token = function(){return this;};
 LinkTail$T.prototype.is$Link$Type = function(){return this;};
 LinkTail$T.prototype.is$Iterable = function(){return this;};
+// ********** Code for LinkTail$Token **************
+function LinkTail$Token() {}
+$inherits(LinkTail$Token, LinkTail);
+LinkTail$Token.prototype.is$Link = function(){return this;};
+LinkTail$Token.prototype.is$Link$Element = function(){return this;};
+LinkTail$Token.prototype.is$Link$Node = function(){return this;};
+LinkTail$Token.prototype.is$Link$T = function(){return this;};
+LinkTail$Token.prototype.is$Link$Token = function(){return this;};
+LinkTail$Token.prototype.is$Link$Type = function(){return this;};
+LinkTail$Token.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$Type **************
 function LinkTail$Type() {}
 $inherits(LinkTail$Type, LinkTail);
@@ -2618,6 +2651,14 @@ LinkEntry.prototype.toList = function() {
 LinkEntry.prototype.isEmpty$0 = function() {
   return this.isEmpty();
 };
+// ********** Code for LinkEntry$Dynamic **************
+function LinkEntry$Dynamic(head, realTail) {
+  this.head = head;
+  this.realTail = realTail;
+  // Initializers done
+  AbstractLink$T.call(this);
+}
+$inherits(LinkEntry$Dynamic, LinkEntry);
 // ********** Code for LinkEntry$T **************
 function LinkEntry$T(head, realTail) {
   this.head = head;
@@ -2635,8 +2676,8 @@ function LinkBuilderImplementation() {
 LinkBuilderImplementation.prototype.get$head = function() { return this.head; };
 LinkBuilderImplementation.prototype.set$head = function(value) { return this.head = value; };
 LinkBuilderImplementation.prototype.toLink = function() {
-  if (this.head == null) return const$14/*const EmptyLink()*/;
-  this.lastLink.realTail = const$14/*const EmptyLink()*/;
+  if (this.head == null) return const$14/*const EmptyLink<Token>()*/;
+  this.lastLink.realTail = const$14/*const EmptyLink<Token>()*/;
   var link = this.head;
   this.lastLink = null;
   this.head = null;
@@ -2664,7 +2705,7 @@ $inherits(LinkBuilderImplementation$Type, LinkBuilderImplementation);
 //  ********** Library scanner_implementation **************
 // ********** Code for ArrayBasedScanner **************
 function ArrayBasedScanner() {
-  this.groupingStack = const$14/*const EmptyLink()*/
+  this.groupingStack = const$14/*const EmptyLink<Token>()*/
   this.extraCharOffset = 0;
   this.tokenStart = -1;
   this.byteOffset = -1;
@@ -2782,7 +2823,7 @@ ArrayBasedScanner.prototype.appendGtGtGt = function(kind, value) {
 }
 // ********** Code for ArrayBasedScanner$SourceString **************
 function ArrayBasedScanner$SourceString() {
-  this.groupingStack = const$14/*const EmptyLink()*/
+  this.groupingStack = const$14/*const EmptyLink<Token>()*/
   this.extraCharOffset = 0;
   this.tokenStart = -1;
   this.byteOffset = -1;
@@ -5451,8 +5492,8 @@ ParserError.prototype.toString$0 = function() {
 // ********** Code for ElementListener **************
 function ElementListener(canceler) {
   this.previousIdentifier = null
-  this.nodes = const$14/*const EmptyLink()*/
-  this.topLevelElements = const$14/*const EmptyLink()*/
+  this.nodes = const$14/*const EmptyLink<Token>()*/
+  this.topLevelElements = const$14/*const EmptyLink<Token>()*/
   this.canceler = canceler;
   // Initializers done
   Listener.call(this);
@@ -5739,7 +5780,7 @@ NodeListener.prototype.handleUnaryPrefixExpression = function(token) {
 }
 NodeListener.prototype.makeNodeList = function(count, beginToken, endToken, delimiter) {
   var $0;
-  var nodes = const$14/*const EmptyLink()*/;
+  var nodes = const$14/*const EmptyLink<Token>()*/;
   for (; count > 0; --count) {
     nodes = (($0 = nodes.prepend(this.popNode())) && $0.is$Link$Node());
   }
@@ -7121,7 +7162,7 @@ FunctionElement.prototype.computeType = function(compiler, types) {
 FunctionElement.prototype.computeType$2 = FunctionElement.prototype.computeType;
 // ********** Code for ClassElement **************
 function ClassElement(name) {
-  this.interfaces = const$14/*const EmptyLink()*/
+  this.interfaces = const$14/*const EmptyLink<Token>()*/
   this.isResolved = false
   // Initializers done
   Element.call(this, name, const$199, null);
@@ -14406,6 +14447,32 @@ MethodMember.prototype.resolve = function(inType) {
     this.get$library()._addMember(this);
   }
 }
+MethodMember.prototype.findTypeVariable = function(node, isRequired) {
+  if (!$notnull_bool(this.isFactory) || !(node instanceof NameTypeReference)) {
+    return Member.prototype.resolveType.call(this, node, isRequired);
+  }
+  else {
+    return Member.prototype.resolveType.call(this, node, false);
+  }
+}
+MethodMember.prototype.resolveType = function(node, isRequired) {
+  var $0;
+  if (node != null && $notnull_bool(this.isFactory) && $notnull_bool(isRequired)) {
+    if ((node instanceof GenericTypeReference)) {
+      var genericReference = (node && node.is$GenericTypeReference());
+      var baseType = Member.prototype.resolveType.call(this, genericReference.baseType, isRequired);
+      var typeArguments = [];
+      var $list = genericReference.typeArguments;
+      for (var $i = 0;$i < $list.length; $i++) {
+        var ref = $list.$index($i);
+        typeArguments.add$1(this.findTypeVariable(ref, isRequired));
+      }
+      node.type = (($0 = baseType.getOrMakeConcreteType$1(typeArguments)) && $0.is$lang_Type());
+      return node.type;
+    }
+  }
+  return Member.prototype.resolveType.call(this, node, isRequired);
+}
 MethodMember.prototype._get$3 = function($0, $1, $2) {
   return this._get(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), false);
 };
@@ -20312,7 +20379,7 @@ DefinedType.prototype.resolveType = function(node, typeErrors) {
       typeRef.type = this.library.findType(typeRef);
     }
     if (typeRef.type == null) {
-      var message = ('can not find type ' + DefinedType._getDottedName(typeRef));
+      var message = ('cannot find type ' + DefinedType._getDottedName(typeRef));
       if ($notnull_bool(typeErrors)) {
         world.error($assert_String(message), typeRef.span);
         typeRef.type = world.objectType;
@@ -21852,7 +21919,7 @@ var const$108 = new Keyword("typedef", true)/*const Keyword("typedef", true)*/;
 var const$112 = new StringWrapper('EOF')/*const SourceString('EOF')*/;
 var const$12 = new IllegalAccessException()/*const IllegalAccessException()*/;
 var const$13 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
-var const$14 = new LinkTail()/*const EmptyLink()*/;
+var const$14 = new LinkTail()/*const EmptyLink<Token>()*/;
 var const$199 = new ElementKind('class')/*const ElementKind('class')*/;
 var const$2 = new StringWrapper('global scope')/*const SourceString('global scope')*/;
 var const$201 = new ElementKind('function')/*const ElementKind('function')*/;
