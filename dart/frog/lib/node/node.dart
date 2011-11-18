@@ -124,7 +124,7 @@ class Readline native "require('readline')" {
   static ReadlineInterface createInterface(input, output) native;
 }
 
-class ReadlineInterface native "readline.Interface" {
+class ReadlineInterface native "Readline.Interface" {
   void setPrompt(String prompt, [int length]) native;
   void prompt() native;
   void on(String event, Function callback) native;
