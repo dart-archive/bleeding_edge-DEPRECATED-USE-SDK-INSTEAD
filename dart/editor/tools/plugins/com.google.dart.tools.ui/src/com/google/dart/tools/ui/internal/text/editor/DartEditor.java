@@ -140,6 +140,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IPartService;
@@ -2038,6 +2039,19 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   @Override
   public int getOrientation() {
     return SWT.LEFT_TO_RIGHT; // Dart editors are always left to right by default
+  }
+
+  @Override
+  public String getTitleToolTip() {
+    if (getEditorInput() instanceof IFileEditorInput) {
+      IFileEditorInput input = (IFileEditorInput) getEditorInput();
+
+      if (input.getFile().getLocation() != null) {
+        return input.getFile().getLocation().toFile().toString();
+      }
+    }
+
+    return super.getTitleToolTip();
   }
 
   public final ISourceViewer getViewer() {
