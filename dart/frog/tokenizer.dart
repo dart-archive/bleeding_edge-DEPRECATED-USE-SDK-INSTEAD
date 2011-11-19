@@ -107,8 +107,16 @@ class TokenizerBase extends TokenizerHelpers {
   }
 
   Token finishWhitespace() {
+    _index--;
     while (_index < _text.length) {
-      if (!isWhitespace(_text.charCodeAt(_index++))) {
+      final ch = _text.charCodeAt(_index++);
+      if (ch == 32/*' '*/ || ch == 9/*'\t'*/ || ch == 13/*'\r'*/) {
+        // do nothing
+      } else if (ch == 10/*'\n'*/) {
+        if (!_skipWhitespace) {
+          return _finishToken(TokenKind.WHITESPACE); // note the newline?
+        }
+      } else {
         _index--;
         if (_skipWhitespace) {
           return next();
@@ -116,6 +124,7 @@ class TokenizerBase extends TokenizerHelpers {
           return _finishToken(TokenKind.WHITESPACE);
         }
       }
+
     }
     return _finishToken(TokenKind.END_OF_FILE);
   }

@@ -132,6 +132,7 @@ class FrogOptions {
       }
     }
 
+    // TODO(jimhug): Remove this hack.
     if (!passedLibDir && !files.fileExists(libDir)) {
       // Try locally
       var temp = 'frog/lib';

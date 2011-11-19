@@ -4,25 +4,21 @@
 
 {
   "name": "Dart Tip",
-  "version": "0.1",
+  "version": "0.2",
   "description": "The sharp pointy bit of a dart.",
 
   // TODO(jimhug): Get quality png versions of these icons.
   "icons": { "16" : "dart_16_16.gif",
              "48" : "dart_48_48.gif",
              "128": "dart_128_128.gif" },
-   "background_page" : "background.html",
-   "app": {
-     "launch": {
-       "local_path": "tip.html"
-     }
-   },
-   "content_scripts" : [
-     {
-       "matches" : ["file:///*/*"],
-       "js" : ["autodart.js"],
-       "run_at" : "document_idle",
-       "all_frames" : true
-     }
-   ]
+  // TODO(jimhug): Use background page effectively...
+  "background_page" : "background.html",
+  "app": {
+    "launch": { "local_path": "tip.html" }
+  },
+  "permissions": [
+       "unlimitedStorage",
+       "http://*/*",
+       "file:///*"
+  ]
 }

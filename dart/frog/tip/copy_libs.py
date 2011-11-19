@@ -3,6 +3,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# TODO(jimhug): THIS IS CURRENTLY BROKEN - NEEDS FIX BEFORE EXTENSIONS WORK!
+
 # A script that copies dart/frog/lib under dart/frog/tip/lib/. This script
 # internally uses copy_dart to resolve relative paths used in the libraries and
 # merge source files together.
@@ -41,7 +43,7 @@ def find_libraries(path):
 def main():
   os.chdir(LIB_PATH)
   libs = find_libraries(LIB_PATH)
-  return subprocess.call([sys.executable,  
+  return subprocess.call([sys.executable,
       '../../client/tools/copy_dart.py', os.path.join(TIP_PATH, 'lib')] + libs)
 
 if __name__ == '__main__':

@@ -6,17 +6,6 @@
 
 <html>
   <head>
-    <script type="application/javascript" src="compiler.js"></script>
-    <script>
-      // TODO(jimhug): Awful hack to use JS for chrome extension APIs
-      //   and then call into dart.  Add chrome extension APIs and remove
-      //   this ugly and brittle hack.
-      function onRequest(request, sender, sendResponse) {
-        // TODO(jimhug): Would like to show dart icon - but how?
-        //chrome.pageAction.show(sender.tab.id);
-        sendResponse({js:dartCompile(request.code)});
-      };
-      chrome.extension.onRequest.addListener(onRequest);
-    </script>
+    <!-- TODO(jimhug): Do something here, after extensions issue fixed. -->
   </head>
 </html>

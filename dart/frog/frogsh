@@ -15141,8 +15141,17 @@ TokenizerBase.prototype._errorToken = function() {
   return this._finishToken(65/*TokenKind.ERROR*/);
 }
 TokenizerBase.prototype.finishWhitespace = function() {
+  this._lang_index--;
   while (this._lang_index < this._text.length) {
-    if (!$notnull_bool(TokenizerHelpers.isWhitespace(this._text.charCodeAt(this._lang_index++)))) {
+    var ch = this._text.charCodeAt(this._lang_index++);
+    if (ch == 32 || ch == 9 || ch == 13) {
+    }
+    else if (ch == 10) {
+      if (!$notnull_bool(this._skipWhitespace)) {
+        return this._finishToken(63/*TokenKind.WHITESPACE*/);
+      }
+    }
+    else {
       this._lang_index--;
       if ($notnull_bool(this._skipWhitespace)) {
         return this.next();
@@ -15284,7 +15293,7 @@ TokenizerBase.prototype._finishOpenBrace = function() {
       this._interpStack.depth = 1;
     }
     else {
-      $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 261, 16);
+      $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 270, 16);
       ($0 = this._interpStack).depth = $0.depth + 1;
     }
   }
@@ -15294,7 +15303,7 @@ TokenizerBase.prototype._finishCloseBrace = function() {
   var $0;
   if (this._interpStack != null) {
     ($0 = this._interpStack).depth = $0.depth - 1;
-    $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 271, 14);
+    $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 280, 14);
   }
   return this._finishToken(7/*TokenKind.RBRACE*/);
 }
@@ -15982,9 +15991,6 @@ TokenizerHelpers.isDigit = function(c) {
 }
 TokenizerHelpers.isHexDigit = function(c) {
   return ($notnull_bool(TokenizerHelpers.isDigit(c)) || (c >= 97 && c <= 102) || (c >= 65 && c <= 70));
-}
-TokenizerHelpers.isWhitespace = function(c) {
-  return (c == 32 || c == 9 || c == 10 || c == 13);
 }
 TokenizerHelpers.isIdentifierPart = function(c) {
   return ($notnull_bool(TokenizerHelpers.isIdentifierStart(c)) || $notnull_bool(TokenizerHelpers.isDigit(c)) || c == 36);
