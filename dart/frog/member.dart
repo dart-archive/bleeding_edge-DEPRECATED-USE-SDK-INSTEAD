@@ -80,6 +80,8 @@ interface Named {
   bool get isNative();
   String get jsname();
   set jsname(String name);
+
+  SourceSpan get span();
 }
 
 class Member implements Named {
@@ -253,12 +255,12 @@ class TypeMember extends Member {
 
   Value _set(MethodGenerator context, Node node, Value target, Value value,
       [bool isDynamic=false]) {
-    world.error('can not set type', node.span);
+    world.error('cannot set type', node.span);
   }
 
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
       [bool isDynamic=false]) {
-    world.error('can not invoke type', node.span);
+    world.error('cannot invoke type', node.span);
   }
 }
 
@@ -757,9 +759,9 @@ class MethodMember extends Member {
   void provideFieldSyntax() { _provideFieldSyntax = true; }
   void providePropertySyntax() { _providePropertySyntax = true; }
 
-  Value _set(MethodGenerator context, Node, Value target, Value value,
+  Value _set(MethodGenerator context, Node node, Value target, Value value,
       [bool isDynamic=false]) {
-    world.error('can not set method', definition.span);
+    world.error('cannot set method', node.span);
   }
 
   Value _get(MethodGenerator context, Node node, Value target,

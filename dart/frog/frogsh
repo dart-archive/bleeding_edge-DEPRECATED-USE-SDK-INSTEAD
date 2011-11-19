@@ -13419,7 +13419,7 @@ Member.prototype.override = function(other) {
   return true;
 }
 Member.prototype.get$generatedFactoryName = function() {
-  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 203, 12);
+  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 205, 12);
   var prefix = ('' + this.declaringType.get$jsname() + '.' + this.get$constructorName() + '\$');
   if (this.name == '') {
     return ('' + prefix + 'factory');
@@ -13499,10 +13499,10 @@ TypeMember.prototype._get = function(context, node, target, isDynamic) {
   return new Value.type$ctor(this.type, node.span);
 }
 TypeMember.prototype._set = function(context, node, target, value, isDynamic) {
-  $globals.world.error('can not set type', node.span);
+  $globals.world.error('cannot set type', node.span);
 }
 TypeMember.prototype.invoke = function(context, node, target, args, isDynamic) {
-  $globals.world.error('can not invoke type', node.span);
+  $globals.world.error('cannot invoke type', node.span);
 }
 TypeMember.prototype._get$3 = function($0, $1, $2) {
   return this._get(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), false);
@@ -14088,8 +14088,8 @@ MethodMember.prototype.provideFieldSyntax = function() {
 MethodMember.prototype.providePropertySyntax = function() {
   this._providePropertySyntax = true;
 }
-MethodMember.prototype._set = function(context, Node, target, value, isDynamic) {
-  $globals.world.error('can not set method', this.definition.span);
+MethodMember.prototype._set = function(context, node, target, value, isDynamic) {
+  $globals.world.error('cannot set method', node.span);
 }
 MethodMember.prototype._get = function(context, node, target, isDynamic) {
   this.declaringType.genMethod(this);
@@ -14244,7 +14244,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
     return this._invokeBuiltin(context, node, target, args, argsCode, isDynamic);
   }
   if ($notnull_bool(this.isFactory)) {
-    $assert(target.isType, "target.isType", "member.dart", 960, 14);
+    $assert(target.isType, "target.isType", "member.dart", 962, 14);
     return new Value(target.type, ('' + this.get$generatedFactoryName() + '(' + argsString + ')'), node.span, true);
   }
   if ($notnull_bool(this.isStatic)) {
@@ -14679,7 +14679,7 @@ MethodMember.prototype._get$3 = function($0, $1, $2) {
   return this._get(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), false);
 };
 MethodMember.prototype._set$4 = function($0, $1, $2, $3) {
-  return this._set(($0 && $0.is$MethodGenerator()), $1, ($2 && $2.is$Value()), ($3 && $3.is$Value()), false);
+  return this._set(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), ($3 && $3.is$Value()), false);
 };
 MethodMember.prototype.canInvoke$2 = function($0, $1) {
   return this.canInvoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$Arguments()));
@@ -20534,14 +20534,16 @@ DefinedType.prototype.resolveMember = function(memberName) {
     var $list = this.get$subtypes();
     for (var $i = this.get$subtypes().iterator(); $i.hasNext$0(); ) {
       var t = $i.next$0();
-      var m = null;
       if (!$notnull_bool(this.isClass) && $notnull_bool(t.get$isClass())) {
-        m = t.getMember$1(memberName);
+        var m = t.getMember$1(memberName);
+        if ($notnull_bool($ne(m, null)) && ret.members.indexOf(m) == -1) {
+          ret.add((m && m.is$Member()));
+        }
       }
       else {
-        m = t.get$members().$index(memberName);
+        var m = t.get$members().$index(memberName);
+        if ($notnull_bool($ne(m, null))) ret.add((m && m.is$Member()));
       }
-      if ($notnull_bool($ne(m, null))) ret.add((m && m.is$Member()));
     }
     return ret;
   }
@@ -20633,7 +20635,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
   return this;
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
-  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1248, 12);
+  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1251, 12);
   var names = [this.name];
   var typeMap = $map([]);
   for (var i = 0;
@@ -20651,7 +20653,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return (ret && ret.is$lang_Type());
 }
 DefinedType.prototype.getCallStub = function(args) {
-  $assert(this.get$isFunction(), "isFunction", "type.dart", 1268, 12);
+  $assert(this.get$isFunction(), "isFunction", "type.dart", 1271, 12);
   var name = _getCallStubName('call', args);
   if (this.varStubs == null) this.varStubs = $map([]);
   var stub = this.varStubs.$index(name);
@@ -21427,13 +21429,12 @@ World.prototype._addMember = function(member) {
   }
 }
 World.prototype._addTopName = function(named) {
-  var $0;
   var existing = this._topNames.$index(named.get$name());
   if ($notnull_bool($ne(existing, null))) {
     this.info(('mangling matching top level name "' + named.get$name() + '" in ') + ('both "' + named.get$library().name + '" and "' + existing.get$library().get$name() + '"'));
     if ($notnull_bool(named.get$isNative())) {
       if ($notnull_bool(existing.get$isNative())) {
-        $globals.world.internalError(('conflicting native names "' + named.get$name() + '" ') + ('(already defined in ' + existing.get$span().get$locationText() + ')'), (($0 = named.get$span()) && $0.is$SourceSpan()));
+        $globals.world.internalError(('conflicting native names "' + named.get$name() + '" ') + ('(already defined in ' + existing.get$span().get$locationText() + ')'), named.get$span());
       }
       else {
         this._topNames.$setindex(named.get$name(), named);
@@ -21442,7 +21443,7 @@ World.prototype._addTopName = function(named) {
     }
     else if ($notnull_bool(named.get$library().get$isCore())) {
       if ($notnull_bool(existing.get$library().get$isCore())) {
-        $globals.world.internalError(('conflicting top-level names in core "' + named.get$name() + '" ') + ('(previously defined in ' + existing.get$span().get$locationText() + ')'), (($0 = named.get$span()) && $0.is$SourceSpan()));
+        $globals.world.internalError(('conflicting top-level names in core "' + named.get$name() + '" ') + ('(previously defined in ' + existing.get$span().get$locationText() + ')'), named.get$span());
       }
       else {
         this._topNames.$setindex(named.get$name(), named);
@@ -21458,11 +21459,10 @@ World.prototype._addTopName = function(named) {
   }
 }
 World.prototype._addJavascriptTopName = function(named) {
-  var $0;
   named.set$jsname(('' + named.get$library().get$jsname() + '_' + named.get$name()));
   var existing = this._topNames.$index(named.get$jsname());
   if ($notnull_bool($ne(existing, null)) && $notnull_bool($ne(existing, named))) {
-    $globals.world.internalError(('name mangling failed for "' + named.get$jsname() + '" ') + ('("' + named.get$jsname() + '" defined also in ' + existing.get$span().get$locationText() + ')'), (($0 = named.get$span()) && $0.is$SourceSpan()));
+    $globals.world.internalError(('name mangling failed for "' + named.get$jsname() + '" ') + ('("' + named.get$jsname() + '" defined also in ' + existing.get$span().get$locationText() + ')'), named.get$span());
   }
   this._topNames.$setindex(named.get$jsname(), named);
 }

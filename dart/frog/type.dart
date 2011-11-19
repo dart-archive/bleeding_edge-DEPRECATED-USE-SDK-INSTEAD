@@ -1146,16 +1146,19 @@ class DefinedType extends Type {
       return ret;
     } else {
       for (var t in subtypes) {
-        var m;
         if (!isClass && t.isClass) {
           // If this is an interface, the actual implementation may
           // come from a class that does not implement this interface.
           // TODO(vsm): Use a more efficient lookup strategy.
-          m = t.getMember(memberName);
+          // TODO(jimhug): This is made uglier by need to avoid dups.
+          final m = t.getMember(memberName);
+          if (m != null && ret.members.indexOf(m) == -1) {
+            ret.add(m);
+          }
         } else {
-          m = t.members[memberName];
+          final m = t.members[memberName];
+          if (m != null) ret.add(m);
         }
-        if (m != null) ret.add(m);
       }
       return ret;
     }
