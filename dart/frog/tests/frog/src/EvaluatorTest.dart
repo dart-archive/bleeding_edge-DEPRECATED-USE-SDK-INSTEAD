@@ -80,14 +80,13 @@ main() {
       Expect.equals('1,2,3', ev.eval('[1, 2, 3].toString()'));
     });
 
-    // TODO(nweiz): make this work
-    // test('map literals', () {
-    //   var ev = evaluator();
-    //   // Coerce to a string because the evaluation context can define methods
-    //   // differently than the primary context.
-    //   Expect.equals('a,b', ev.eval("({'a': 1, 'b': 2}).getKeys().toString()"));
-    //   Expect.equals('1,2', ev.eval("({'a': 1, 'b': 2}).getValues().toString()"));
-    // });
+    test('map literals', () {
+      var ev = evaluator();
+      // Coerce to a string because the evaluation context can define methods
+      // differently than the primary context.
+      Expect.equals('a,b', ev.eval("({'a': 1, 'b': 2}).getKeys().toString()"));
+      Expect.equals('1,2', ev.eval("({'a': 1, 'b': 2}).getValues().toString()"));
+    });
   });
 
   group('The parser is flexible enough to', () {

@@ -12,7 +12,6 @@ interface JsEvaluator {
 
 class Evaluator {
   JsEvaluator _jsEvaluator;
-  static Set<String> _marked;
   static String _prelude;
   Library _lib;
 
@@ -22,10 +21,9 @@ class Evaluator {
     world.process();
     world.resolveAll();
 
-    _marked = new Set();
-
     world.gen = new WorldGenerator(null, new CodeWriter());
-    _markAllUsed(world.corelib);
+    world.gen.markLibraryUsed(world.corelib);
+
     world.gen.writeTypes(world.coreimpl);
     world.gen.writeTypes(world.corelib);
     world.gen.writeGlobals();
@@ -35,36 +33,6 @@ class Evaluator {
     // killing us
     options.throwOnErrors = true;
     options.throwOnFatal = true;
-  }
-
-  // TODO(jimhug): Should be calling world.genMethod - but I'm scared to
-  //   make the change myself because we don't have any test coverage here.
-  static void _markMethodUsed(Member m) {
-    if (m == null || m.isGenerated || m.definition == null || m.isAbstract) {
-      return;
-    }
-    new MethodGenerator(m, null).run();
-  }
-
-  // TODO(nweiz): use this logic for the --compile_all flag
-  static void _markAllUsed(Library l) {
-    if (_marked.contains(l.name)) return;
-    _marked.add(l.name);
-
-    l.imports.forEach((i) => _markAllUsed(i.library));
-    for (var type in l.types.getValues()) {
-      if (!type.isClass) return;
-
-      type.markUsed();
-      for (var member in type.members.getValues()) {
-        if (member is PropertyMember) {
-          _markMethodUsed(member.getter);
-          _markMethodUsed(member.setter);
-        }
-
-        if (member.isMethod) _markMethodUsed(member);
-      }
-    }
   }
 
   _removeMember(String name) {
@@ -79,7 +47,7 @@ class Evaluator {
   }
 
   Evaluator(JsEvaluator this._jsEvaluator) {
-    if (_marked == null) {
+    if (_prelude == null) {
       throw new UnsupportedOperationException(
           "Must call Evaluator.initWorld before creating a Evaluator.");
     }

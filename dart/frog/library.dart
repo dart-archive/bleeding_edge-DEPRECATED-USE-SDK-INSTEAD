@@ -26,6 +26,11 @@ class Library {
   /** Set to true by [WorldGenerator] once this type has been written. */
   bool isWritten = false;
 
+  /**
+   * Set to true by [WorldGenerator] once this library has been marked as used.
+   * Only used with the compileAll flag. */
+  bool isMarked = false;
+
   String _jsname;
 
   Library(this.baseSource) {

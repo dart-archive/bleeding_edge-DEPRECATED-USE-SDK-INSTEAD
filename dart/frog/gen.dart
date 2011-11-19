@@ -38,12 +38,17 @@ class WorldGenerator {
     var mainCall = main.invoke(metaGen, null, mainTarget, Arguments.EMPTY);
     main.declaringType.markUsed();
 
-    // TODO(jimhug): Better way to capture hidden control flow.
-    world.corelib.types['BadNumberFormatException'].markUsed();
-    world.coreimpl.types['NumImplementation'].markUsed();
-    world.coreimpl.types['StringImplementation'].markUsed();
-    genMethod(
-        world.coreimpl.types['StringImplementation'].getMember('contains'));
+    if (options.compileAll) {
+      markLibraryUsed(world.corelib);
+      markLibraryUsed(main.declaringType.library);
+    } else {
+      // TODO(jimhug): Better way to capture hidden control flow.
+      world.corelib.types['BadNumberFormatException'].markUsed();
+      world.coreimpl.types['NumImplementation'].markUsed();
+      world.coreimpl.types['StringImplementation'].markUsed();
+      genMethod(
+          world.coreimpl.types['StringImplementation'].getMember('contains'));
+    }
 
     // Only include isolate-specific code if isolates are used.
     if (world.corelib.types['Isolate'].isUsed
@@ -68,6 +73,30 @@ class WorldGenerator {
 
     writeGlobals();
     writer.writeln('${mainCall.code};');
+  }
+
+  void markLibraryUsed(Library l) {
+    if (l.isMarked) return;
+    l.isMarked = true;
+
+    l.imports.forEach((i) => markLibraryUsed(i.library));
+    for (var type in l.types.getValues()) {
+      if (!type.isClass) continue;
+
+      type.markUsed();
+      // Don't generate is for top types or native types without prototypes
+      // (e.g. Math, console, process)
+      type.isTested = !type.isTop && !(type.isNative &&
+          type.members.getValues().every((m) => m.isStatic && !m.isFactory));
+      for (var member in type.members.getValues()) {
+        if (member is PropertyMember) {
+          if (member.getter != null) genMethod(member.getter);
+          if (member.setter != null) genMethod(member.setter);
+        }
+
+        if (member.isMethod) genMethod(member);
+      }
+    }
   }
 
   GlobalValue globalForStaticField(FieldMember field, Value fieldValue,

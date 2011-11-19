@@ -430,6 +430,9 @@ Object.prototype.endsWith$1 = function($0) {
 Object.prototype.ensureSubtypeOf$3 = function($0, $1, $2) {
   return this.noSuchMethod("ensureSubtypeOf", [$0, $1, $2]);
 };
+Object.prototype.every$1 = function($0) {
+  return this.noSuchMethod("every", [$0]);
+};
 Object.prototype.expected$2 = function($0, $1) {
   return this.noSuchMethod("expected", [$0, $1]);
 };
@@ -486,6 +489,9 @@ Object.prototype.getMember$1 = function($0) {
 };
 Object.prototype.getOrMakeConcreteType$1 = function($0) {
   return this.noSuchMethod("getOrMakeConcreteType", [$0]);
+};
+Object.prototype.getValues$0 = function() {
+  return this.noSuchMethod("getValues", []);
 };
 Object.prototype.get_$3 = function($0, $1, $2) {
   return this.noSuchMethod("get_", [$0, $1, $2]);
@@ -931,6 +937,7 @@ ListFactory.prototype.add$1 = ListFactory.prototype.add;
 ListFactory.prototype.addAll$1 = function($0) {
   return this.addAll(($0 && $0.is$Collection$E()));
 };
+ListFactory.prototype.every$1 = ListFactory.prototype.every;
 ListFactory.prototype.filter$1 = ListFactory.prototype.filter;
 ListFactory.prototype.forEach$1 = ListFactory.prototype.forEach;
 ListFactory.prototype.indexOf$2 = ListFactory.prototype.indexOf;
@@ -1095,6 +1102,9 @@ ImmutableMap.prototype.$setindex = function(key, value) {
 ImmutableMap.prototype.forEach$1 = ImmutableMap.prototype.forEach;
 ImmutableMap.prototype.getKeys$0 = function() {
   return this.getKeys();
+};
+ImmutableMap.prototype.getValues$0 = function() {
+  return this.getValues();
 };
 ImmutableMap.prototype.isEmpty$0 = function() {
   return this.isEmpty();
@@ -1346,6 +1356,9 @@ HashMapImplementation.prototype.forEach$1 = HashMapImplementation.prototype.forE
 HashMapImplementation.prototype.getKeys$0 = function() {
   return this.getKeys();
 };
+HashMapImplementation.prototype.getValues$0 = function() {
+  return this.getValues();
+};
 HashMapImplementation.prototype.isEmpty$0 = function() {
   return this.isEmpty();
 };
@@ -1571,6 +1584,10 @@ HashSetImplementation.prototype.filter = function(f) {
   );
   return result;
 }
+HashSetImplementation.prototype.every = function(f) {
+  var keys = this._backingMap.getKeys();
+  return $assert_bool(keys.every(f));
+}
 HashSetImplementation.prototype.some = function(f) {
   var keys = this._backingMap.getKeys();
   return $assert_bool(keys.some(f));
@@ -1592,6 +1609,7 @@ HashSetImplementation.prototype.addAll$1 = function($0) {
   return this.addAll(($0 && $0.is$Collection$E()));
 };
 HashSetImplementation.prototype.contains$1 = HashSetImplementation.prototype.contains;
+HashSetImplementation.prototype.every$1 = HashSetImplementation.prototype.every;
 HashSetImplementation.prototype.filter$1 = HashSetImplementation.prototype.filter;
 HashSetImplementation.prototype.forEach$1 = HashSetImplementation.prototype.forEach;
 HashSetImplementation.prototype.isEmpty$0 = function() {
@@ -1770,6 +1788,9 @@ LinkedHashMapImplementation.prototype.isEmpty = function() {
 LinkedHashMapImplementation.prototype.forEach$1 = LinkedHashMapImplementation.prototype.forEach;
 LinkedHashMapImplementation.prototype.getKeys$0 = function() {
   return this.getKeys();
+};
+LinkedHashMapImplementation.prototype.getValues$0 = function() {
+  return this.getValues();
 };
 LinkedHashMapImplementation.prototype.isEmpty$0 = function() {
   return this.isEmpty();
@@ -1952,6 +1973,15 @@ DoubleLinkedQueue.prototype.forEach = function(f) {
     entry = nextEntry;
   }
 }
+DoubleLinkedQueue.prototype.every = function(f) {
+  var entry = this._sentinel._next;
+  while (entry !== this._sentinel) {
+    var nextEntry = entry._next;
+    if (!f(entry._element)) return false;
+    entry = nextEntry;
+  }
+  return true;
+}
 DoubleLinkedQueue.prototype.some = function(f) {
   var entry = this._sentinel._next;
   while (entry !== this._sentinel) {
@@ -1978,6 +2008,7 @@ DoubleLinkedQueue.prototype.add$1 = DoubleLinkedQueue.prototype.add;
 DoubleLinkedQueue.prototype.addAll$1 = function($0) {
   return this.addAll(($0 && $0.is$Collection$E()));
 };
+DoubleLinkedQueue.prototype.every$1 = DoubleLinkedQueue.prototype.every;
 DoubleLinkedQueue.prototype.filter$1 = DoubleLinkedQueue.prototype.filter;
 DoubleLinkedQueue.prototype.forEach$1 = DoubleLinkedQueue.prototype.forEach;
 DoubleLinkedQueue.prototype.isEmpty$0 = function() {
@@ -2278,6 +2309,13 @@ Collections.some = function(iterable, f) {
     if (f(e)) return true;
   }
   return false;
+}
+Collections.every = function(iterable, f) {
+  for (var $i = iterable.iterator(); $i.hasNext$0(); ) {
+    var e = $i.next$0();
+    if (!f(e)) return false;
+  }
+  return true;
 }
 Collections.filter = function(source, destination, f) {
   for (var $i = source.iterator(); $i.hasNext$0(); ) {
@@ -10827,10 +10865,16 @@ WorldGenerator.prototype.run = function() {
   var mainTarget = new Value.type$ctor(this.main.declaringType, this.main.get$span());
   var mainCall = this.main.invoke((metaGen && metaGen.is$MethodGenerator()), null, (mainTarget && mainTarget.is$Value()), Arguments.get$EMPTY(), false);
   this.main.declaringType.markUsed();
-  $globals.world.corelib.types.$index('BadNumberFormatException').markUsed$0();
-  $globals.world.get$coreimpl().types.$index('NumImplementation').markUsed$0();
-  $globals.world.get$coreimpl().types.$index('StringImplementation').markUsed$0();
-  this.genMethod((($0 = $globals.world.get$coreimpl().types.$index('StringImplementation').getMember$1('contains')) && $0.is$Member()));
+  if ($notnull_bool($globals.options.compileAll)) {
+    this.markLibraryUsed($globals.world.corelib);
+    this.markLibraryUsed(this.main.declaringType.get$library());
+  }
+  else {
+    $globals.world.corelib.types.$index('BadNumberFormatException').markUsed$0();
+    $globals.world.get$coreimpl().types.$index('NumImplementation').markUsed$0();
+    $globals.world.get$coreimpl().types.$index('StringImplementation').markUsed$0();
+    this.genMethod((($0 = $globals.world.get$coreimpl().types.$index('StringImplementation').getMember$1('contains')) && $0.is$Member()));
+  }
   if ($notnull_bool($globals.world.corelib.types.$index('Isolate').get$isUsed()) || $notnull_bool($globals.world.get$coreimpl().types.$index('ReceivePortImpl').get$isUsed())) {
     this.corejs.useIsolates = true;
     var isolateMain = (($0 = $globals.world.get$coreimpl().topType.resolveMember('startRootIsolate').members.$index(0)) && $0.is$MethodMember());
@@ -10843,6 +10887,36 @@ WorldGenerator.prototype.run = function() {
   if (this._mixins != null) this.writer.write(this._mixins.get$text());
   this.writeGlobals();
   this.writer.writeln(('' + mainCall.get$code() + ';'));
+}
+WorldGenerator.prototype.markLibraryUsed = function(l) {
+  var $this = this; // closure support
+  var $0;
+  if ($notnull_bool(l.isMarked)) return;
+  l.isMarked = true;
+  l.imports.forEach((function (i) {
+    var $0;
+    return $this.markLibraryUsed((($0 = i.get$library()) && $0.is$Library()));
+  })
+  );
+  var $list = l.types.getValues();
+  for (var $i = l.types.getValues().iterator$0(); $i.hasNext$0(); ) {
+    var type = $i.next$0();
+    if (!$notnull_bool(type.get$isClass())) continue;
+    type.markUsed$0();
+    type.set$isTested(!$notnull_bool(type.get$isTop()) && !($notnull_bool(type.get$isNative()) && $notnull_bool(type.get$members().getValues$0().every$1((function (m) {
+      return $notnull_bool(m.get$isStatic()) && !$notnull_bool(m.get$isFactory());
+    })
+    ))));
+    var $list0 = type.get$members().getValues$0();
+    for (var $i0 = type.get$members().getValues$0().iterator$0(); $i0.hasNext$0(); ) {
+      var member = $i0.next$0();
+      if ((member instanceof PropertyMember)) {
+        if ($notnull_bool($ne(member.get$getter(), null))) this.genMethod((($0 = member.get$getter()) && $0.is$Member()));
+        if ($notnull_bool($ne(member.get$setter(), null))) this.genMethod((($0 = member.get$setter()) && $0.is$Member()));
+      }
+      if ($notnull_bool(member.get$isMethod())) this.genMethod((member && member.is$Member()));
+    }
+  }
 }
 WorldGenerator.prototype.globalForStaticField = function(field, fieldValue, dependencies) {
   var $0;
@@ -11399,7 +11473,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 771, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 800, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -12581,7 +12655,7 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2202, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2231, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;
@@ -12740,6 +12814,7 @@ LibraryImport.prototype.set$library = function(value) { return this.library = va
 // ********** Code for Library **************
 function Library(baseSource) {
   this.isWritten = false
+  this.isMarked = false
   this.baseSource = baseSource;
   // Initializers done
   this.sourceDir = dirname(this.baseSource.filename);
@@ -13005,7 +13080,7 @@ _LibraryVisitor.prototype.addSource = function(source) {
     return def.visit$1($this);
   })
   );
-  $assert(this.sources.length == 0 || $notnull_bool(this.isTop), "sources.length == 0 || isTop", "library.dart", 293, 12);
+  $assert(this.sources.length == 0 || $notnull_bool(this.isTop), "sources.length == 0 || isTop", "library.dart", 298, 12);
   this.isTop = false;
   var newSources = this.sources;
   this.sources = [];
@@ -19351,6 +19426,8 @@ function lang_Type(name) {
 lang_Type.prototype.is$lang_Type = function(){return this;};
 lang_Type.prototype.is$Named = function(){return this;};
 lang_Type.prototype.get$name = function() { return this.name; };
+lang_Type.prototype.get$isTested = function() { return this.isTested; };
+lang_Type.prototype.set$isTested = function(value) { return this.isTested = value; };
 lang_Type.prototype.get$typeCheckCode = function() { return this.typeCheckCode; };
 lang_Type.prototype.set$typeCheckCode = function(value) { return this.typeCheckCode = value; };
 lang_Type.prototype.get$varStubs = function() { return this.varStubs; };
@@ -20651,12 +20728,16 @@ FixedCollection.prototype.forEach = function(f) {
 FixedCollection.prototype.filter = function(f) {
   return Collections.filter(this, new ListFactory(), f);
 }
+FixedCollection.prototype.every = function(f) {
+  return Collections.every(this, f);
+}
 FixedCollection.prototype.some = function(f) {
   return Collections.some(this, f);
 }
 FixedCollection.prototype.isEmpty = function() {
   return this.length == 0;
 }
+FixedCollection.prototype.every$1 = FixedCollection.prototype.every;
 FixedCollection.prototype.filter$1 = FixedCollection.prototype.filter;
 FixedCollection.prototype.forEach$1 = FixedCollection.prototype.forEach;
 FixedCollection.prototype.isEmpty$0 = function() {

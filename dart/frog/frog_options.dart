@@ -28,7 +28,7 @@ class FrogOptions {
   bool enableAsserts = false;
   bool enableTypeChecks = false;
   bool verifyImplements = false; // TODO(jimhug): Implement
-  bool compileAll = false; // TODO(jimhug): Implement
+  bool compileAll = false;
   bool dietParse = false;
   bool compileOnly = false;
 
