@@ -23,6 +23,7 @@ function $convertJsToDart(obj) {
   if (obj != null && typeof obj == 'object' && !(obj instanceof Array)) {
     return $fixupJsObjectToDartMap(obj);
   }
+  return obj;
 }
 
 // Converts the parsed JavaScript Object into a Dart Map.
