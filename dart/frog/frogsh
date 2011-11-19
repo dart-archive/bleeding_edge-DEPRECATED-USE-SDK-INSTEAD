@@ -888,6 +888,7 @@ ListFactory.prototype.is$List$GlobalValue = function(){return this;};
 ListFactory.prototype.is$List$HInstruction = function(){return this;};
 ListFactory.prototype.is$List$Member = function(){return this;};
 ListFactory.prototype.is$List$String = function(){return this;};
+ListFactory.prototype.is$List$Token = function(){return this;};
 ListFactory.prototype.is$List$Type = function(){return this;};
 ListFactory.prototype.is$List$Value = function(){return this;};
 ListFactory.prototype.is$List$int = function(){return this;};
@@ -13261,11 +13262,13 @@ Parameter.prototype.resolve = function(method, inType) {
     if ((this.definition.value instanceof NullExpression) && this.definition.value.span.start == this.definition.span.start) {
       return;
     }
-    if ($notnull_bool(method.get$isAbstract())) {
-      $globals.world.error('default value not allowed on abstract methods', this.definition.span);
+    if (method.name == '\$call') {
+      if ($notnull_bool(method.get$definition().get$body() == null)) {
+        $globals.world.error('default value not allowed on function type', this.definition.span);
+      }
     }
-    else if (method.name == '\$call' && $notnull_bool(method.get$definition().get$body() == null)) {
-      $globals.world.error('default value not allowed on function type', this.definition.span);
+    else if ($notnull_bool(method.get$isAbstract())) {
+      $globals.world.error('default value not allowed on abstract methods', this.definition.span);
     }
   }
   else if ($notnull_bool(this.isInitializer) && !$notnull_bool(method.get$isConstructor())) {
@@ -13416,7 +13419,7 @@ Member.prototype.override = function(other) {
   return true;
 }
 Member.prototype.get$generatedFactoryName = function() {
-  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 201, 12);
+  $assert(this.get$isFactory(), "this.isFactory", "member.dart", 203, 12);
   var prefix = ('' + this.declaringType.get$jsname() + '.' + this.get$constructorName() + '\$');
   if (this.name == '') {
     return ('' + prefix + 'factory');
@@ -14241,7 +14244,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
     return this._invokeBuiltin(context, node, target, args, argsCode, isDynamic);
   }
   if ($notnull_bool(this.isFactory)) {
-    $assert(target.isType, "target.isType", "member.dart", 958, 14);
+    $assert(target.isType, "target.isType", "member.dart", 960, 14);
     return new Value(target.type, ('' + this.get$generatedFactoryName() + '(' + argsString + ')'), node.span, true);
   }
   if ($notnull_bool(this.isStatic)) {
@@ -15003,6 +15006,7 @@ function lang_Token(kind, source, start, end) {
   this.end = end;
   // Initializers done
 }
+lang_Token.prototype.is$lang_Token = function(){return this;};
 lang_Token.prototype.get$kind = function() { return this.kind; };
 lang_Token.prototype.get$source = function() { return this.source; };
 lang_Token.prototype.get$end = function() { return this.end; };
@@ -15368,7 +15372,7 @@ TokenizerBase.prototype._finishOpenBrace = function() {
       this._interpStack.depth = 1;
     }
     else {
-      $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 270, 16);
+      $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 277, 16);
       ($0 = this._interpStack).depth = $0.depth + 1;
     }
   }
@@ -15378,7 +15382,7 @@ TokenizerBase.prototype._finishCloseBrace = function() {
   var $0;
   if (this._interpStack != null) {
     ($0 = this._interpStack).depth = $0.depth - 1;
-    $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 280, 14);
+    $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 287, 14);
   }
   return this._finishToken(7/*TokenKind.RBRACE*/);
 }
@@ -16879,15 +16883,18 @@ TokenKind.kindFromAssign = function(kind) {
 }
 // ********** Code for lang_Parser **************
 function lang_Parser(source, diet, throwOnIncomplete, optionalSemicolons, startOffset) {
+  var $0;
+  this._afterParensIndex = 0
   this.source = source;
   this.diet = diet;
   this.throwOnIncomplete = throwOnIncomplete;
   this.optionalSemicolons = optionalSemicolons;
   // Initializers done
   this.tokenizer = new Tokenizer(this.source, true, startOffset);
-  this._peekToken = this.tokenizer.next();
+  this._peekToken = (($0 = this.tokenizer.next()) && $0.is$lang_Token());
   this._previousToken = null;
   this._inInitializers = false;
+  this._afterParens = [];
 }
 lang_Parser.prototype.get$source = function() { return this.source; };
 lang_Parser.prototype.isPrematureEndOfFile = function() {
@@ -16906,8 +16913,9 @@ lang_Parser.prototype._peek = function() {
   return this._peekToken.kind;
 }
 lang_Parser.prototype._lang_next = function() {
+  var $0;
   this._previousToken = this._peekToken;
-  this._peekToken = this.tokenizer.next();
+  this._peekToken = (($0 = this.tokenizer.next()) && $0.is$lang_Token());
   return this._previousToken;
 }
 lang_Parser.prototype._peekKind = function(kind) {
@@ -16917,9 +16925,10 @@ lang_Parser.prototype._peekIdentifier = function() {
   return TokenKind.isIdentifier(this._peekToken.kind);
 }
 lang_Parser.prototype._maybeEat = function(kind) {
+  var $0;
   if (this._peekToken.kind == kind) {
     this._previousToken = this._peekToken;
-    this._peekToken = this.tokenizer.next();
+    this._peekToken = (($0 = this.tokenizer.next()) && $0.is$lang_Token());
     return true;
   }
   else {
@@ -17309,7 +17318,7 @@ lang_Parser.prototype.finishExpressionAsStatement = function(expr) {
   }
 }
 lang_Parser.prototype.testCondition = function() {
-  this._eat(2/*TokenKind.LPAREN*/);
+  this._eatLeftParen();
   var ret = this.expression();
   this._eat(3/*TokenKind.RPAREN*/);
   return (ret && ret.is$lang_Expression());
@@ -17359,7 +17368,7 @@ lang_Parser.prototype.doStatement = function() {
 lang_Parser.prototype.forStatement = function() {
   var start = this._peekToken.start;
   this._eat(99/*TokenKind.FOR*/);
-  this._eat(2/*TokenKind.LPAREN*/);
+  this._eatLeftParen();
   var init = this.forInitializerStatement(start);
   if ((init instanceof ForInStatement)) {
     return init;
@@ -17426,7 +17435,7 @@ lang_Parser.prototype.tryStatement = function() {
 lang_Parser.prototype.catchNode = function() {
   var start = this._peekToken.start;
   this._eat(90/*TokenKind.CATCH*/);
-  this._eat(2/*TokenKind.LPAREN*/);
+  this._eatLeftParen();
   var exc = this.declaredIdentifier(false);
   var trace = null;
   if ($notnull_bool(this._maybeEat(11/*TokenKind.COMMA*/))) {
@@ -17511,7 +17520,7 @@ lang_Parser.prototype.throwStatement = function() {
 lang_Parser.prototype.assertStatement = function() {
   var start = this._peekToken.start;
   this._eat(72/*TokenKind.ASSERT*/);
-  this._eat(2/*TokenKind.LPAREN*/);
+  this._eatLeftParen();
   var expr = this.expression();
   this._eat(3/*TokenKind.RPAREN*/);
   this._eatSemicolon();
@@ -17570,7 +17579,7 @@ lang_Parser.prototype._finishDeclaredId = function(type) {
   return this.finishPostfixExpression(new DeclaredIdentifier(type, name, this._makeSpan($assert_num(type.get$span().get$start()))));
 }
 lang_Parser.prototype._fixAsType = function(x) {
-  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 790, 12);
+  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 799, 12);
   if ($notnull_bool(this._maybeEat(53/*TokenKind.GT*/))) {
     var base = this._makeType(x.x);
     var typeParam = this._makeType(x.y);
@@ -17578,7 +17587,7 @@ lang_Parser.prototype._fixAsType = function(x) {
     return this._finishDeclaredId(type);
   }
   else {
-    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 801, 14);
+    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 810, 14);
     var base = this._makeType(x.x);
     var paramBase = this._makeType(x.y);
     var firstParam = this.addTypeArguments((paramBase && paramBase.is$TypeReference()), 1);
@@ -17671,7 +17680,7 @@ lang_Parser.prototype.argument = function() {
 }
 lang_Parser.prototype.arguments = function() {
   var args = [];
-  this._eat(2/*TokenKind.LPAREN*/);
+  this._eatLeftParen();
   if (!$notnull_bool(this._maybeEat(3/*TokenKind.RPAREN*/))) {
     do {
       args.add$1(this.argument());
@@ -17688,7 +17697,7 @@ lang_Parser.prototype.finishPostfixExpression = function(expr) {
   switch (this._peek()) {
     case 2/*TokenKind.LPAREN*/:
 
-      return this.finishPostfixExpression(new CallExpression(expr, this.arguments(), this._makeSpan($assert_num(expr.get$span().get$start()))));
+      return this.finishCallOrLambdaExpression(expr);
 
     case 4/*TokenKind.LBRACK*/:
 
@@ -17713,9 +17722,7 @@ lang_Parser.prototype.finishPostfixExpression = function(expr) {
     case 9/*TokenKind.ARROW*/:
     case 6/*TokenKind.LBRACE*/:
 
-      if ($notnull_bool(this._inInitializers)) return expr;
-      var body = this.functionBody(true);
-      return this._makeFunction(expr, body);
+      return expr;
 
     default:
 
@@ -17726,6 +17733,17 @@ lang_Parser.prototype.finishPostfixExpression = function(expr) {
         return expr;
       }
 
+  }
+}
+lang_Parser.prototype.finishCallOrLambdaExpression = function(expr) {
+  if ($notnull_bool(this._atClosureParameters())) {
+    var formals = this.formalParameterList();
+    var body = this.functionBody(true);
+    return this._makeFunction(expr, formals, body);
+  }
+  else {
+    var args = this.arguments();
+    return this.finishPostfixExpression(new CallExpression(expr, args, this._makeSpan($assert_num(expr.get$span().get$start()))));
   }
 }
 lang_Parser.prototype._isBin = function(expr, kind) {
@@ -17916,20 +17934,63 @@ lang_Parser.prototype.maybeStringLiteral = function() {
 lang_Parser.prototype._parenOrLambda = function() {
   var $0;
   var start = this._peekToken.start;
-  var args = this.arguments();
-  if (!$notnull_bool(this._inInitializers) && ($notnull_bool(this._peekKind(9/*TokenKind.ARROW*/)) || $notnull_bool(this._peekKind(6/*TokenKind.LBRACE*/)))) {
+  if ($notnull_bool(this._atClosureParameters())) {
+    var formals = this.formalParameterList();
     var body = this.functionBody(true);
-    var formals = this._makeFormals(args);
     var func = new FunctionDefinition(null, null, null, formals, null, body, this._makeSpan(start));
     return new LambdaExpression(func, (($0 = func.get$span()) && $0.is$SourceSpan()));
   }
   else {
+    var saved = this._inInitializers;
+    this._inInitializers = false;
+    var args = this.arguments();
+    this._inInitializers = $assert_bool(saved);
     if ($notnull_bool($eq(args.length, 1))) {
       return new ParenExpression(args.$index(0).get$value(), this._makeSpan(start));
     }
     else {
       this._lang_error('unexpected comma expression');
       return args.$index(0).get$value();
+    }
+  }
+}
+lang_Parser.prototype._atClosureParameters = function() {
+  if ($notnull_bool(this._inInitializers)) return false;
+  var after = this._peekAfterCloseParen();
+  return after.kind == 9/*TokenKind.ARROW*/ || after.kind == 6/*TokenKind.LBRACE*/;
+}
+lang_Parser.prototype._eatLeftParen = function() {
+  this._eat(2/*TokenKind.LPAREN*/);
+  this._afterParensIndex++;
+}
+lang_Parser.prototype._peekAfterCloseParen = function() {
+  var $0;
+  if (this._afterParensIndex < this._afterParens.length) {
+    return (($0 = this._afterParens.$index(this._afterParensIndex)) && $0.is$lang_Token());
+  }
+  this._afterParensIndex = 0;
+  this._afterParens.clear();
+  var tokens = [this._lang_next()];
+  this._lookaheadAfterParens((tokens && tokens.is$List$Token()));
+  var after = this._peekToken;
+  tokens.add$1(after);
+  this.tokenizer = new DivertedTokenSource(tokens, this, this.tokenizer);
+  this._lang_next();
+  return (after && after.is$lang_Token());
+}
+lang_Parser.prototype._lookaheadAfterParens = function(tokens) {
+  var saved = this._afterParens.length;
+  this._afterParens.add(null);
+  while (true) {
+    var token = this._lang_next();
+    tokens.add(token);
+    var kind = token.kind;
+    if (kind == 3/*TokenKind.RPAREN*/ || kind == 1/*TokenKind.END_OF_FILE*/) {
+      this._afterParens.$setindex(saved, this._peekToken);
+      return;
+    }
+    else if (kind == 2/*TokenKind.LPAREN*/) {
+      this._lookaheadAfterParens(tokens);
     }
   }
 }
@@ -18045,7 +18106,7 @@ lang_Parser.parseHex = function(hex) {
   for (var i = 0;
    i < hex.length; i++) {
     var digit = lang_Parser._hexDigit(hex.charCodeAt(i));
-    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1261, 14);
+    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1335, 14);
     result = (result << 4) + $assert_num(digit);
   }
   return $assert_num(result);
@@ -18272,7 +18333,7 @@ lang_Parser.prototype.formalParameter = function(inOptionalBlock) {
   return new FormalNode(isThis, isRest, type, name, value, this._makeSpan(start));
 }
 lang_Parser.prototype.formalParameterList = function() {
-  this._eat(2/*TokenKind.LPAREN*/);
+  this._eatLeftParen();
   var formals = [];
   var inOptionalBlock = false;
   if (!$notnull_bool(this._maybeEat(3/*TokenKind.RPAREN*/))) {
@@ -18304,117 +18365,23 @@ lang_Parser.prototype.identifier = function() {
   }
   return new lang_Identifier(tok.get$text(), this._makeSpan($assert_num(tok.get$start())));
 }
-lang_Parser.prototype._makeFunction = function(expr, body) {
+lang_Parser.prototype._makeFunction = function(expr, formals, body) {
   var $0;
   var name, type;
-  if ((expr instanceof CallExpression)) {
-    if ((expr.get$target() instanceof VarExpression)) {
-      name = expr.get$target().get$name();
-      type = null;
-    }
-    else if ((expr.get$target() instanceof DeclaredIdentifier)) {
-      name = expr.get$target().get$name();
-      type = expr.get$target().get$type();
-    }
-    else {
-      this._lang_error('bad function');
-    }
-    var formals = this._makeFormals(expr.get$arguments());
-    var span = new SourceSpan(expr.get$span().get$file(), expr.get$span().get$start(), body.get$span().get$end());
-    var func = new FunctionDefinition(null, type, name, formals, null, body, (span && span.is$SourceSpan()));
-    return new LambdaExpression(func, (($0 = func.get$span()) && $0.is$SourceSpan()));
-  }
-  else {
-    this._lang_error('expected function');
-  }
-}
-lang_Parser.prototype._makeFormal = function(expr) {
-  var $0;
   if ((expr instanceof VarExpression)) {
-    return new FormalNode(false, false, null, expr.get$name(), null, (($0 = expr.get$span()) && $0.is$SourceSpan()));
+    name = expr.get$name();
+    type = null;
   }
   else if ((expr instanceof DeclaredIdentifier)) {
-    return new FormalNode(false, false, expr.get$type(), expr.get$name(), null, (($0 = expr.get$span()) && $0.is$SourceSpan()));
-  }
-  else if ($notnull_bool(this._isBin(expr, 20/*TokenKind.ASSIGN*/)) && ((expr.get$x() instanceof DeclaredIdentifier))) {
-    var di = (($0 = expr.get$x()) && $0.is$DeclaredIdentifier());
-    return new FormalNode(false, false, di.type, di.name, expr.get$y(), (($0 = expr.get$span()) && $0.is$SourceSpan()));
-  }
-  else if ($notnull_bool(this._isBin(expr, 52/*TokenKind.LT*/))) {
-    return null;
-  }
-  else if ((expr instanceof ListExpression)) {
-    return this._makeFormalsFromList(expr);
+    name = expr.get$name();
+    type = expr.get$type();
   }
   else {
-    this._lang_error('expected formal', (($0 = expr.get$span()) && $0.is$SourceSpan()));
+    this._lang_error('bad function body', (($0 = expr.get$span()) && $0.is$SourceSpan()));
   }
-}
-lang_Parser.prototype._makeFormalsFromList = function(expr) {
-  var $0;
-  if ($notnull_bool(expr.get$isConst())) {
-    this._lang_error('expected formal, but found "const"', (($0 = expr.get$span()) && $0.is$SourceSpan()));
-  }
-  else if ($notnull_bool($ne(expr.get$type(), null))) {
-    this._lang_error('expected formal, but found generic type arguments', (($0 = expr.get$type().get$span()) && $0.is$SourceSpan()));
-  }
-  return this._makeFormalsFromExpressions(expr.get$values(), false);
-}
-lang_Parser.prototype._makeFormals = function(arguments) {
-  var expressions = [];
-  for (var i = 0;
-   i < $assert_num(arguments.length); i++) {
-    var arg = arguments.$index(i);
-    if ($notnull_bool($ne(arg.get$label(), null))) {
-      this._lang_error('expected formal, but found ":"');
-    }
-    expressions.add$1(arg.get$value());
-  }
-  return this._makeFormalsFromExpressions(expressions, true);
-}
-lang_Parser.prototype._makeFormalsFromExpressions = function(expressions, allowOptional) {
-  var $0;
-  var formals = [];
-  for (var i = 0;
-   i < $assert_num(expressions.length); i++) {
-    var formal = this._makeFormal(expressions.$index(i));
-    if ($notnull_bool(formal == null)) {
-      var baseType = this._makeType(expressions.$index(i).get$x());
-      var typeParams = [this._makeType(expressions.$index(i).get$y())];
-      i++;
-      while (i < $assert_num(expressions.length)) {
-        var expr = expressions.$index(i++);
-        if ($notnull_bool(this._isBin(expr, 53/*TokenKind.GT*/))) {
-          typeParams.add$1(this._makeType(expr.get$x()));
-          var type = new GenericTypeReference(baseType, typeParams, 0, this._makeSpan($assert_num(baseType.get$span().get$start())));
-          var name = null;
-          if ((expr.get$y() instanceof VarExpression)) {
-            var ve = (($0 = expr.get$y()) && $0.is$VarExpression());
-            name = ve.name;
-          }
-          else {
-            this._lang_error('expected formal', (($0 = expr.get$span()) && $0.is$SourceSpan()));
-          }
-          formal = new FormalNode(false, false, type, name, null, this._makeSpan($assert_num(expressions.$index(0).get$span().get$start())));
-          break;
-        }
-        else {
-          typeParams.add$1(this._makeType(expr));
-        }
-      }
-      formals.add$1(formal);
-    }
-    else if (!!(formal && formal.is$List)) {
-      formals.addAll$1(formal);
-      if (!$notnull_bool(allowOptional)) {
-        this._lang_error('unexpected nested optional formal', (($0 = expressions.$index(i).get$span()) && $0.is$SourceSpan()));
-      }
-    }
-    else {
-      formals.add$1(formal);
-    }
-  }
-  return formals;
+  var span = new SourceSpan(expr.get$span().get$file(), expr.get$span().get$start(), body.get$span().get$end());
+  var func = new FunctionDefinition(null, type, name, formals, null, body, (span && span.is$SourceSpan()));
+  return new LambdaExpression(func, (($0 = func.get$span()) && $0.is$SourceSpan()));
 }
 lang_Parser.prototype._makeDeclaredIdentifier = function(e) {
   var $0;
@@ -18452,6 +18419,25 @@ IncompleteSourceException.prototype.toString = function() {
 }
 IncompleteSourceException.prototype.toString$0 = function() {
   return this.toString();
+};
+// ********** Code for DivertedTokenSource **************
+function DivertedTokenSource(tokens, parser, previousTokenizer) {
+  this._lang_pos = 0
+  this.tokens = tokens;
+  this.parser = parser;
+  this.previousTokenizer = previousTokenizer;
+  // Initializers done
+}
+DivertedTokenSource.prototype.next = function() {
+  var token = this.tokens.$index(this._lang_pos);
+  ++this._lang_pos;
+  if (this._lang_pos == this.tokens.length) {
+    this.parser.tokenizer = this.previousTokenizer;
+  }
+  return token;
+}
+DivertedTokenSource.prototype.next$0 = function() {
+  return this.next();
 };
 // ********** Code for lang_Node **************
 function lang_Node(span) {

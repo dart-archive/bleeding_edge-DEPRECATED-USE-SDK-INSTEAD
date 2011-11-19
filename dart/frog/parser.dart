@@ -13,7 +13,7 @@
  * very clearly detected and is reported in a later compiler phase.
  */
 class Parser {
-  Tokenizer tokenizer;
+  TokenSource tokenizer;
 
   final SourceFile source;
   /** Enables diet parse, which skips function bodies. */
@@ -23,17 +23,25 @@ class Parser {
    * of file or an incomplete multiline string.
    */
   final bool throwOnIncomplete;
-  /**
-   * Allow semicolons to be omitted at the end of lines.
-   * // TODO(nweiz): make this work for more than just end-of-file
-   */
+
+  /** Allow semicolons to be omitted at the end of lines. */
+  // TODO(nweiz): make this work for more than just end-of-file
   final bool optionalSemicolons;
 
-  // TODO(jimhug): Is it possible to handle initializers cleanly?
+  /** To prevent conflicts in initializers */
   bool _inInitializers;
 
   Token _previousToken;
   Token _peekToken;
+
+  // When we encounter '(' in a method body we need to find the ')' to know it
+  // we're parsing a lambda, paren-expr, or argument list. Closure formals are
+  // followed by '=>' or '{'. This list is used to cache the tokens after any
+  // nested parenthesis we find while peeking.
+  // TODO(jmesserly): it's simpler and faster to cache this on the Token itself,
+  // but that might add too much complexity for tools that need to invalidate.
+  List<Token> _afterParens;
+  int _afterParensIndex = 0;
 
   Parser(this.source, [this.diet = false, this.throwOnIncomplete = false,
       this.optionalSemicolons = false, int startOffset = 0]) {
@@ -41,6 +49,7 @@ class Parser {
     _peekToken = tokenizer.next();
     _previousToken = null;
     _inInitializers = false;
+    _afterParens = <Token>[];
   }
 
   /** Generate an error if [source] has not been completely consumed. */
@@ -493,7 +502,7 @@ class Parser {
   }
 
   Expression testCondition() {
-    _eat(TokenKind.LPAREN);
+    _eatLeftParen();
     var ret = expression();
     _eat(TokenKind.RPAREN);
     return ret;
@@ -550,7 +559,7 @@ class Parser {
   forStatement() {
     int start = _peekToken.start;
     _eat(TokenKind.FOR);
-    _eat(TokenKind.LPAREN);
+    _eatLeftParen();
 
     var init = forInitializerStatement(start);
     if (init is ForInStatement) {
@@ -627,7 +636,7 @@ class Parser {
   catchNode() {
     int start = _peekToken.start;
     _eat(TokenKind.CATCH);
-    _eat(TokenKind.LPAREN);
+    _eatLeftParen();
     var exc = declaredIdentifier();
     var trace = null;
     if (_maybeEat(TokenKind.COMMA)) {
@@ -717,7 +726,7 @@ class Parser {
   assertStatement() {
     int start = _peekToken.start;
     _eat(TokenKind.ASSERT);
-    _eat(TokenKind.LPAREN);
+    _eatLeftParen();
     var expr = expression();
     _eat(TokenKind.RPAREN);
     _eatSemicolon();
@@ -905,8 +914,7 @@ class Parser {
 
   arguments() {
     var args = [];
-    // TODO(jimhug): switch to forced formals when get a DeclaredId
-    _eat(TokenKind.LPAREN);
+    _eatLeftParen();
     if (!_maybeEat(TokenKind.RPAREN)) {
       do {
         args.add(argument());
@@ -919,8 +927,7 @@ class Parser {
   finishPostfixExpression(expr) {
     switch(_peek()) {
       case TokenKind.LPAREN:
-        return finishPostfixExpression(new CallExpression(expr, arguments(),
-          _makeSpan(expr.span.start)));
+        return finishCallOrLambdaExpression(expr);
       case TokenKind.LBRACK:
         _eat(TokenKind.LBRACK);
         var index = expression();
@@ -940,11 +947,10 @@ class Parser {
 
       // These are pseudo-expressions supported for cover grammar
       // must be forbidden when parsing initializers.
+      // TODO(jmesserly): is this still needed?
       case TokenKind.ARROW:
       case TokenKind.LBRACE:
-        if (_inInitializers) return expr;
-        var body = functionBody(true);
-        return _makeFunction(expr, body);
+         return expr;
 
       default:
         if (_peekIdentifier()) {
@@ -954,6 +960,18 @@ class Parser {
         } else {
           return expr;
         }
+    }
+  }
+
+  finishCallOrLambdaExpression(expr) {
+    if (_atClosureParameters()) {
+      var formals = formalParameterList();
+      var body = functionBody(true);
+      return _makeFunction(expr, formals, body);
+    } else {
+      var args = arguments();
+      return finishPostfixExpression(
+          new CallExpression(expr, args, _makeSpan(expr.span.start)));
     }
   }
 
@@ -1136,15 +1154,17 @@ class Parser {
 
   _parenOrLambda() {
     int start = _peekToken.start;
-    var args = arguments();
-    if (!_inInitializers &&
-        (_peekKind(TokenKind.ARROW) || _peekKind(TokenKind.LBRACE))) {
+    if (_atClosureParameters()) {
+      var formals = formalParameterList();
       var body = functionBody(true);
-      var formals = _makeFormals(args);
       var func = new FunctionDefinition(null, null, null, formals, null,
         body, _makeSpan(start));
       return new LambdaExpression(func, func.span);
     } else {
+      var saved = _inInitializers;
+      _inInitializers = false;
+      var args = arguments();
+      _inInitializers = saved;
       if (args.length == 1) {
         return new ParenExpression(args[0].value, _makeSpan(start));
       } else {
@@ -1154,6 +1174,60 @@ class Parser {
     }
   }
 
+  bool _atClosureParameters() {
+    if (_inInitializers) return false;
+    Token after = _peekAfterCloseParen();
+    return after.kind == TokenKind.ARROW || after.kind == TokenKind.LBRACE;
+  }
+
+  /** Eats an LPAREN, and advances our after-RPAREN lookahead. */
+  _eatLeftParen() {
+    _eat(TokenKind.LPAREN);
+    _afterParensIndex++;
+  }
+
+  Token _peekAfterCloseParen() {
+    if (_afterParensIndex < _afterParens.length) {
+      return _afterParens[_afterParensIndex];
+    }
+
+    // Reset the queue
+    _afterParensIndex = 0;
+    _afterParens.clear();
+
+    // Start copying tokens as we lookahead
+    var tokens = <Token>[_next()]; // LPAREN
+    _lookaheadAfterParens(tokens);
+
+    // Put all the lookahead tokens back into the parser's token stream.
+    var after = _peekToken;
+    tokens.add(after);
+    tokenizer = new DivertedTokenSource(tokens, this, tokenizer);
+    _next();  // Re-synchronize parser lookahead state.
+    return after;
+  }
+
+  /**
+   * This scan for the matching RPAREN to the current LPAREN and saves this
+   * result for all nested parentheses so we don't need to look-head again.
+   */
+  _lookaheadAfterParens(List<Token> tokens) {
+    // Save a slot in the array. This will hold the token after the parens.
+    int saved = _afterParens.length;
+    _afterParens.add(null); // save a slot
+    while (true) {
+      Token token = _next();
+      tokens.add(token);
+      int kind = token.kind;
+      if (kind == TokenKind.RPAREN || kind == TokenKind.END_OF_FILE) {
+        _afterParens[saved] = _peekToken;
+        return;
+      } else if (kind == TokenKind.LPAREN) {
+        // Scan anything inside these nested parenthesis
+        _lookaheadAfterParens(tokens);
+      }
+    }
+  }
 
   _typeAsIdentifier(type) {
     // TODO(jimhug): lots of errors to check for
@@ -1494,7 +1568,7 @@ class Parser {
   }
 
   formalParameterList() {
-    _eat(TokenKind.LPAREN);
+    _eatLeftParen();
     var formals = [];
     var inOptionalBlock = false;
     if (!_maybeEat(TokenKind.RPAREN)) {
@@ -1534,123 +1608,24 @@ class Parser {
   ///////////////////////////////////////////////////////////////////
 
   /**
-   * Converts an [Expression] and a [Statment] body into a
+   * Converts an [Expression], [Formals] and a [Statment] body into a
    * [FunctionDefinition].
    */
-  _makeFunction(expr, body) {
+  _makeFunction(expr, formals, body) {
     var name, type;
-    if (expr is CallExpression) {
-      if (expr.target is VarExpression) {
-        name = expr.target.name;
-        type = null;
-      } else if (expr.target is DeclaredIdentifier) {
-        name = expr.target.name;
-        type = expr.target.type;
-      } else {
-        _error('bad function');
-      }
-      var formals = _makeFormals(expr.arguments);
-      var span =
-        new SourceSpan(expr.span.file, expr.span.start, body.span.end);
-      var func =
-        new FunctionDefinition(null, type, name, formals, null, body, span);
-      return new LambdaExpression(func, func.span);
-    } else {
-      _error('expected function');
-    }
-  }
-
-  /** Converts a single expression into a formal or list of formals. */
-  _makeFormal(expr) {
     if (expr is VarExpression) {
-      return new FormalNode(false, false, null, expr.name, null, expr.span);
+      name = expr.name;
+      type = null;
     } else if (expr is DeclaredIdentifier) {
-      return new FormalNode(false, false, expr.type, expr.name, null,
-        expr.span);
-    } else if (_isBin(expr, TokenKind.ASSIGN) &&
-               (expr.x is DeclaredIdentifier)) {
-      DeclaredIdentifier di = expr.x; // TODO(jimhug): inference should handle!
-      return new FormalNode(false, false, di.type, di.name, expr.y,
-        expr.span);
-    } else if (_isBin(expr, TokenKind.LT)) {
-      // special signaling value to merge with next arg.
-      return null;
-    } else if (expr is ListExpression) {
-      return _makeFormalsFromList(expr);
+      name = expr.name;
+      type = expr.type;
     } else {
-      _error('expected formal', expr.span);
+      _error('bad function body', expr.span);
     }
-  }
-
-  _makeFormalsFromList(expr) {
-    if (expr.isConst) {
-      _error('expected formal, but found "const"', expr.span);
-    } else if (expr.type != null) {
-      _error('expected formal, but found generic type arguments',
-         expr.type.span);
-    }
-
-    return _makeFormalsFromExpressions(expr.values, allowOptional:false);
-  }
-
-  /** Converts a list of arguments into a list of formals. */
-  _makeFormals(arguments) {
-    var expressions = [];
-    for (int i = 0; i < arguments.length; i++) {
-      final arg = arguments[i];
-      if (arg.label != null) {
-        _error('expected formal, but found ":"');
-      }
-      expressions.add(arg.value);
-    }
-    return _makeFormalsFromExpressions(expressions, allowOptional:true);
-  }
-
-  /** Converts a list of expressions into a list of formals. */
-  _makeFormalsFromExpressions(expressions, [bool allowOptional]) {
-    var formals = [];
-    for (int i = 0; i < expressions.length; i++) {
-      var formal = _makeFormal(expressions[i]);
-      if (formal == null) {
-        // special signal that we have the A<C case
-        var baseType = _makeType(expressions[i].x);
-        var typeParams = [_makeType(expressions[i].y)];
-        i++;
-        while (i < expressions.length) {
-          var expr = expressions[i++];
-          // Looking for D > m closer
-          if (_isBin(expr, TokenKind.GT)) {
-            typeParams.add(_makeType(expr.x));
-            var type = new GenericTypeReference(baseType, typeParams, 0,
-              _makeSpan(baseType.span.start));
-            var name = null;
-            if (expr.y is VarExpression) {
-              // TODO(jimhug): Should be handled by inference!
-              VarExpression ve = expr.y;
-              name = ve.name;
-            } else {
-              _error('expected formal', expr.span);
-            }
-            formal = new FormalNode(false, false, type, name, null,
-              _makeSpan(expressions[0].span.start));
-            break;
-          } else {
-            typeParams.add(_makeType(expr));
-          }
-        }
-        formals.add(formal);
-
-      } else if (formal is List) {
-        formals.addAll(formal);
-        if (!allowOptional) {
-          _error('unexpected nested optional formal', expressions[i].span);
-        }
-
-      } else {
-        formals.add(formal);
-      }
-    }
-    return formals;
+    var span = new SourceSpan(expr.span.file, expr.span.start, body.span.end);
+    var func =
+        new FunctionDefinition(null, type, name, formals, null, body, span);
+    return new LambdaExpression(func, func.span);
   }
 
   /** Converts an expression to a [DeclaredIdentifier]. */
@@ -1684,5 +1659,27 @@ class IncompleteSourceException implements Exception {
   String toString() {
     if (token.span == null) return 'Unexpected $token';
     return token.span.toMessageString('Unexpected $token');
+  }
+}
+
+/**
+ * Stores a token stream that will be used by the parser. Once the parser has
+ * reached the end of this [TokenSource], it switches back to the
+ * [previousTokenizer]
+ */
+class DivertedTokenSource implements TokenSource {
+  final List<Token> tokens;
+  final Parser parser;
+  final TokenSource previousTokenizer;
+  DivertedTokenSource(this.tokens, this.parser, this.previousTokenizer);
+
+  int _pos = 0;
+  next() {
+    var token = tokens[_pos];
+    ++_pos;
+    if (_pos == tokens.length) {
+      parser.tokenizer = previousTokenizer;
+    }
+    return token;
   }
 }

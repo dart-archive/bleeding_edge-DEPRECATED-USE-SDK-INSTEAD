@@ -94,6 +94,8 @@ class ListIterator<T> implements Iterator<T> {
   }
 
   T next() {
+    // TODO(jmesserly): this check is redundant in a for-in loop
+    // Must we do it?
     if (!hasNext()) {
       throw const NoMoreElementsException();
     }

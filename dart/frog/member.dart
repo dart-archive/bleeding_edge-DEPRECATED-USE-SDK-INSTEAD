@@ -35,13 +35,15 @@ class Parameter {
           definition.value.span.start == definition.span.start) {
         return;
       }
-      if (method.isAbstract) {
-        world.error('default value not allowed on abstract methods',
-          definition.span);
-      } else if (method.name == '\$call' && method.definition.body == null) {
+      if (method.name == '\$call') {
         // TODO(jimhug): Need simpler way to detect "true" function types vs.
         //   regular methods being used as function types for closures.
-        world.error('default value not allowed on function type',
+        if (method.definition.body == null) {
+          world.error('default value not allowed on function type',
+            definition.span);
+        }
+      } else if (method.isAbstract) {
+        world.error('default value not allowed on abstract methods',
           definition.span);
       }
     } else if (isInitializer && !method.isConstructor) {
