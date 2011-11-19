@@ -88,14 +88,13 @@ def main(args):
     cmd = test_cmd + ['--component=frogium', 'client']
     RunCommand(*cmd, verbose=True)
 
-    # Run leg and frogsh on most of the tests. TODO: add co19 here
+    # TODO(jimhug): Consider adding co19 back when it delivers more value
+    #   than pain.
+    # Run leg and frogsh on most of the tests.
     cmd = test_cmd + ['--component=frogsh,leg', 'language', 'corelib', 'leg',
                       'isolate', 'peg', 'leg_only', 'frog']
     RunCommand(*cmd, verbose=True)
 
-    # TODO: leg doesn't work with co19 yet, so run it separately
-    cmd = test_cmd + ['--component=frogsh', 'co19']
-    RunCommand(*cmd, verbose=True)
 
 if __name__ == '__main__':
   try:

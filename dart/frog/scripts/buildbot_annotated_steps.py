@@ -94,9 +94,6 @@ def TestFrog(arch, mode):
       TestStep("client", testpy_mode, 'frogium', ['client'], flags) != 0):
     return 1
 
-  if TestStep("frog co19", testpy_mode, arch, ['co19'], flags) != 0:
-    return 1
-
   return 0
 
 def main():
