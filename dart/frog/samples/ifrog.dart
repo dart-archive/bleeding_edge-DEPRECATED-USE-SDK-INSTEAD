@@ -23,7 +23,7 @@ void main() {
   Evaluator.initWorld(homedir, [], new NodeFileSystem());
 
   var eval = new Evaluator(new NodeJsEvaluator());
-  var rl = readline.createInterface(process.stdin, process.stdout);
+  var rl = Readline.createInterface(process.stdin, process.stdout);
   var incompleteToken = null;
   var priorCommand = null;
 
