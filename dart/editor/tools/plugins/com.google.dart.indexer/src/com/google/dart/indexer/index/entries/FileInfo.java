@@ -16,6 +16,7 @@ package com.google.dart.indexer.index.entries;
 import com.google.dart.indexer.index.configuration.IndexConfigurationInstance;
 import com.google.dart.indexer.locations.Location;
 import com.google.dart.indexer.locations.LocationPersitence;
+import com.google.dart.indexer.source.IndexableSource;
 import com.google.dart.indexer.utils.Debugging;
 import com.google.dart.indexer.utils.PathUtils;
 
@@ -38,9 +39,8 @@ import java.util.Set;
 public class FileInfo {
   private static final String BASE_SIGNATURE = "FileInfo1";
 
-  // different representations of pathes are used on different versions of
-  // Eclipse,
-  // so the signatures must be different too
+  // Different representations of paths are used on different versions of Eclipse, so the signatures
+  // must be different too.
 
   private static final String SIGNATURE = BASE_SIGNATURE;
 
@@ -79,10 +79,20 @@ public class FileInfo {
     return path;
   }
 
+  /**
+   * @deprecated use {@link #writeHeader(RandomAccessFile, IndexableSource)}
+   */
+  @Deprecated
   public static void writeHeader(RandomAccessFile ra, IFile file) throws IOException {
     ra.writeUTF(SIGNATURE);
     ra.writeUTF(PathUtils.toPortableString(file.getFullPath()));
     ra.writeLong(file.getModificationStamp());
+  }
+
+  public static void writeHeader(RandomAccessFile ra, IndexableSource source) throws IOException {
+    ra.writeUTF(SIGNATURE);
+    ra.writeUTF(source.getUri().toString());
+    ra.writeLong(source.getModificationStamp());
   }
 
   private final Collection<DependentEntity> internalDependencies = new ArrayList<DependentEntity>();

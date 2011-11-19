@@ -18,11 +18,19 @@ import com.google.dart.indexer.index.entries.DependentLocation;
 import com.google.dart.indexer.index.entries.FileInfo;
 import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 
 public abstract class FileTransaction {
+  /**
+   * @deprecated use {@link #addDependency(IndexableSource, DependentLocation)}
+   */
+  @Deprecated
   public abstract void addDependency(IFile masterFile, DependentLocation depency)
+      throws IndexRequestFailed;
+
+  public abstract void addDependency(IndexableSource masterFile, DependentLocation depency)
       throws IndexRequestFailed;
 
   public abstract void addReference(Layer layer, Location sourceLocation,

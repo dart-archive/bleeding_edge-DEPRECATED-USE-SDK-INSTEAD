@@ -19,6 +19,7 @@ import com.google.dart.indexer.index.entries.LocationInfo;
 import com.google.dart.indexer.index.entries.PathAndModStamp;
 import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -47,7 +48,13 @@ public abstract class AbstractIntegratedStorage {
     return new GenericStorageTransaction(this);
   }
 
+  /**
+   * @deprecated use {@link #deleteFileInfo(IndexableSource)}
+   */
+  @Deprecated
   public abstract void deleteFileInfo(IFile file);
+
+  public abstract void deleteFileInfo(IndexableSource source);
 
   public abstract void deleteLocationInfo(Location location);
 
@@ -65,6 +72,13 @@ public abstract class AbstractIntegratedStorage {
     return configuration;
   }
 
+  public abstract Map<IndexableSource, FileInfo> newReadAllFileInfos(
+      IndexConfigurationInstance configuration);
+
+  /**
+   * @deprecated use {@link #newReadAllFileInfos(IndexConfigurationInstance)}
+   */
+  @Deprecated
   public abstract Map<IFile, FileInfo> readAllFileInfos(IndexConfigurationInstance configuration);
 
   public final Map<Location, LocationInfo> readAllLayerLocations(Layer layer) {
@@ -73,16 +87,34 @@ public abstract class AbstractIntegratedStorage {
     return result;
   }
 
+  /**
+   * @deprecated use {@link #readFileInfo(IndexableSource)}
+   */
+  @Deprecated
   public abstract FileInfo readFileInfo(IFile file);
 
+  public abstract FileInfo readFileInfo(IndexableSource source);
+
+  /**
+   * @deprecated use {@link #readPathAndModStamps()}
+   */
+  @Deprecated
   public abstract PathAndModStamp[] readFileNamesAndStamps(HashSet<IFile> unprocessedExistingFiles);
 
   public abstract LocationInfo readLocationInfo(Location location, Layer layer);
 
+  public abstract PathAndModStamp[] readPathAndModStamps();
+
   public void runConsistencyCheck(IProgressMonitor monitor) {
   }
 
+  /**
+   * @deprecated use {@link #writeFileInfo(IndexableSource, FileInfo)}
+   */
+  @Deprecated
   public abstract void writeFileInfo(IFile file, FileInfo info);
+
+  public abstract void writeFileInfo(IndexableSource source, FileInfo info);
 
   public abstract void writeLocationInfo(Location location, LocationInfo info, Layer layer);
 

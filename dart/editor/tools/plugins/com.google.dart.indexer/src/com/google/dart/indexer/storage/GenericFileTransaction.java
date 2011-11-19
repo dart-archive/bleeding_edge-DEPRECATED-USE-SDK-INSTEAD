@@ -21,6 +21,7 @@ import com.google.dart.indexer.index.entries.DependentLocation;
 import com.google.dart.indexer.index.entries.FileInfo;
 import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 
@@ -33,12 +34,27 @@ import java.util.Set;
 
 public class GenericFileTransaction extends FileTransaction {
   private final AbstractIntegratedStorage storage;
+  /**
+   * @deprecated use {@link #currentSource}
+   */
+  @Deprecated
   private final IFile currentFile;
+  private final IndexableSource currentSource;
   private FileInfo originalFileInfo;
   private final Set<Location> sourceLocations = new LinkedHashSet<Location>();
+  /**
+   * @deprecated use {@link #sourcesToDependencySets}
+   */
+  @Deprecated
   private final Map<IFile, Set<DependentEntity>> filesToDependencySets = new HashMap<IFile, Set<DependentEntity>>();
+  private final Map<IndexableSource, Set<DependentEntity>> sourcesToDependencySets = new HashMap<IndexableSource, Set<DependentEntity>>();
   private final GenericStorageTransaction storageTransaction;
 
+  /**
+   * @deprecated use
+   *             {@link #GenericFileTransaction(GenericStorageTransaction, AbstractIntegratedStorage, IndexableSource)}
+   */
+  @Deprecated
   public GenericFileTransaction(GenericStorageTransaction storageTransaction,
       AbstractIntegratedStorage storage, IFile file) {
     if (storageTransaction == null) {
@@ -53,14 +69,47 @@ public class GenericFileTransaction extends FileTransaction {
     this.storageTransaction = storageTransaction;
     this.storage = storage;
     this.currentFile = file;
+    this.currentSource = null;
     this.originalFileInfo = storage.readFileInfo(file);
     if (this.originalFileInfo == null) {
       this.originalFileInfo = new FileInfo();
     }
   }
 
+  public GenericFileTransaction(GenericStorageTransaction storageTransaction,
+      AbstractIntegratedStorage storage, IndexableSource source) {
+    if (storageTransaction == null) {
+      throw new NullPointerException("storageTransaction is null");
+    }
+    if (storage == null) {
+      throw new NullPointerException("storage is null");
+    }
+    if (source == null) {
+      throw new NullPointerException("file is null");
+    }
+    this.storageTransaction = storageTransaction;
+    this.storage = storage;
+    this.currentFile = null;
+    this.currentSource = source;
+    this.originalFileInfo = storage.readFileInfo(source);
+    if (this.originalFileInfo == null) {
+      this.originalFileInfo = new FileInfo();
+    }
+  }
+
   @Override
+  @Deprecated
   public void addDependency(IFile masterFile, DependentLocation dependency)
+      throws IndexRequestFailed {
+    try {
+      dependencySetFor(masterFile).add(dependency);
+    } catch (Throwable e) {
+      throw new IndexRequiresFullRebuild(e);
+    }
+  }
+
+  @Override
+  public void addDependency(IndexableSource masterFile, DependentLocation dependency)
       throws IndexRequestFailed {
     try {
       dependencySetFor(masterFile).add(dependency);
@@ -114,6 +163,9 @@ public class GenericFileTransaction extends FileTransaction {
       currentFileDependencies.add(new DependentFileInfo(file));
     }
 
+//    for (Iterator<Map.Entry<IndexableSource, Set<DependentEntity>>> iterator = sourcesToDependencySets.entrySet().iterator(); iterator.hasNext();) {
+//      Map.Entry<IndexableSource, Set<DependentEntity>> entry = iterator.next();
+//      IndexableSource file = entry.getKey();
     for (Iterator<Map.Entry<IFile, Set<DependentEntity>>> iterator = filesToDependencySets.entrySet().iterator(); iterator.hasNext();) {
       Map.Entry<IFile, Set<DependentEntity>> entry = iterator.next();
       IFile file = entry.getKey();
@@ -127,12 +179,29 @@ public class GenericFileTransaction extends FileTransaction {
     return originalFileInfo;
   }
 
+  /**
+   * @deprecated use {@link #dependencySetFor(IndexableSource)}
+   */
+  @Deprecated
   private Set<DependentEntity> dependencySetFor(IFile file) throws IndexRequestFailed {
     try {
       Set<DependentEntity> result = filesToDependencySets.get(file);
       if (result == null) {
         result = new HashSet<DependentEntity>();
         filesToDependencySets.put(file, result);
+      }
+      return result;
+    } catch (Throwable e) {
+      throw new IndexRequiresFullRebuild(e);
+    }
+  }
+
+  private Set<DependentEntity> dependencySetFor(IndexableSource file) throws IndexRequestFailed {
+    try {
+      Set<DependentEntity> result = sourcesToDependencySets.get(file);
+      if (result == null) {
+        result = new HashSet<DependentEntity>();
+        sourcesToDependencySets.put(file, result);
       }
       return result;
     } catch (Throwable e) {

@@ -29,12 +29,15 @@ import com.google.dart.indexer.index.layers.reverse_edges.ReverseEdgesLayer;
 import com.google.dart.indexer.index.layers.reverse_edges.ReverseEdgesLocationInfo;
 import com.google.dart.indexer.locations.Location;
 import com.google.dart.indexer.locations.LocationPersitence;
+import com.google.dart.indexer.source.IndexableSource;
 import com.google.dart.indexer.storage.AbstractIntegratedStorage;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -60,12 +63,35 @@ public class DbStorage extends AbstractIntegratedStorage {
     }
   }
 
+  /**
+   * @deprecated use {@link #sourceFromPortableString(String)}
+   */
+  @Deprecated
   private static IFile fromPortableString(String string) {
     return ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(string));
   }
 
+  /**
+   * @deprecated use {@link #getPortableString(IndexableSource)}
+   */
+  @Deprecated
   private static String getPortableString(IFile file) {
     return file.getFullPath().toString();
+  }
+
+  private static String getPortableString(IndexableSource source) {
+    return source.getUri().toString();
+  }
+
+  private static IndexableSource sourceFromPortableString(String string) {
+    try {
+      return IndexableSource.from(new URI(string));
+    } catch (URISyntaxException exception) {
+      // This should never happen.
+      IndexerPlugin.getLogger().logError(exception,
+          "Could not create IndexableSource from \"" + string + "\"");
+      return null;
+    }
   }
 
   private Connection connection;
@@ -162,8 +188,34 @@ public class DbStorage extends AbstractIntegratedStorage {
   }
 
   @Override
+  @Deprecated
   public void deleteFileInfo(IFile file) {
     String name = getPortableString(file);
+    try {
+      int fileId = findFile(name);
+      if (fileId == -1) {
+        return;
+      }
+
+      deleteFileSourceLocationsStatement.setInt(1, fileId);
+      deleteFileSourceLocationsStatement.executeUpdate();
+
+      deleteFileDependentLocationsStatement.setInt(1, fileId);
+      deleteFileDependentLocationsStatement.executeUpdate();
+
+      deleteFileDependentFilesStatement.setInt(1, fileId);
+      deleteFileDependentFilesStatement.executeUpdate();
+
+      deleteFileByIdStatement.setInt(1, fileId);
+      deleteFileByIdStatement.executeUpdate();
+    } catch (SQLException exception) {
+      IndexerPlugin.getLogger().logError(exception);
+    }
+  }
+
+  @Override
+  public void deleteFileInfo(IndexableSource source) {
+    String name = getPortableString(source);
     try {
       int fileId = findFile(name);
       if (fileId == -1) {
@@ -208,6 +260,28 @@ public class DbStorage extends AbstractIntegratedStorage {
   }
 
   @Override
+  public Map<IndexableSource, FileInfo> newReadAllFileInfos(IndexConfigurationInstance configuration) {
+    HashMap<IndexableSource, FileInfo> result = new HashMap<IndexableSource, FileInfo>();
+    try {
+      ResultSet resultSet = selectAllFilesStatement.executeQuery();
+      while (resultSet.next()) {
+        int id = resultSet.getInt(1);
+        String name = resultSet.getString(2);
+        IndexableSource source = sourceFromPortableString(name);
+        FileInfo info = doReadFileInfo(configuration, id);
+        if (source != null && info != null) {
+          result.put(source, info);
+        }
+      }
+      return result;
+    } catch (SQLException exception) {
+      IndexerPlugin.getLogger().logError(exception);
+      return result;
+    }
+  }
+
+  @Override
+  @Deprecated
   public Map<IFile, FileInfo> readAllFileInfos(IndexConfigurationInstance instance) {
     HashMap<IFile, FileInfo> result = new HashMap<IFile, FileInfo>();
     try {
@@ -254,6 +328,7 @@ public class DbStorage extends AbstractIntegratedStorage {
   }
 
   @Override
+  @Deprecated
   public FileInfo readFileInfo(IFile file) {
     String name = getPortableString(file);
     try {
@@ -269,6 +344,22 @@ public class DbStorage extends AbstractIntegratedStorage {
   }
 
   @Override
+  public FileInfo readFileInfo(IndexableSource source) {
+    String name = getPortableString(source);
+    try {
+      int fileId = findFile(name);
+      if (fileId == -1) {
+        return null;
+      }
+      return doReadFileInfo(configuration, fileId);
+    } catch (SQLException exception) {
+      IndexerPlugin.getLogger().logError(exception);
+      return null;
+    }
+  }
+
+  @Override
+  @Deprecated
   public PathAndModStamp[] readFileNamesAndStamps(HashSet<IFile> unprocessedExistingFiles) {
     Collection<PathAndModStamp> result = new ArrayList<PathAndModStamp>();
     try {
@@ -308,10 +399,60 @@ public class DbStorage extends AbstractIntegratedStorage {
   }
 
   @Override
+  public PathAndModStamp[] readPathAndModStamps() {
+    Collection<PathAndModStamp> result = new ArrayList<PathAndModStamp>();
+    try {
+      ResultSet resultSet = selectAllFilesStatement.executeQuery();
+      while (resultSet.next()) {
+        String name = resultSet.getString(2);
+        long modStamp = resultSet.getLong(3);
+        result.add(new PathAndModStamp(name, modStamp));
+      }
+      return result.toArray(new PathAndModStamp[result.size()]);
+    } catch (SQLException exception) {
+      IndexerPlugin.getLogger().logError(exception);
+      return new PathAndModStamp[0];
+    }
+  }
+
+  @Override
+  @Deprecated
   public void writeFileInfo(IFile file, FileInfo info) {
     String name = getPortableString(file);
     try {
       int fileId = lookupFile(name, file.getModificationStamp());
+
+      deleteFileSourceLocationsStatement.setInt(1, fileId);
+      deleteFileSourceLocationsStatement.executeUpdate();
+
+      deleteFileDependentLocationsStatement.setInt(1, fileId);
+      deleteFileDependentLocationsStatement.executeUpdate();
+
+      deleteFileDependentFilesStatement.setInt(1, fileId);
+      deleteFileDependentFilesStatement.executeUpdate();
+
+      Collection<Location> sourceLocations = info.getSourceLocations();
+      for (Iterator<Location> iterator = sourceLocations.iterator(); iterator.hasNext();) {
+        Location location = iterator.next();
+        int locationId = lookupLocation(LocationPersitence.getInstance().getUniqueIdentifier(
+            location));
+        insertFileSourceLocationStatement.setInt(1, fileId);
+        insertFileSourceLocationStatement.setInt(2, locationId);
+        insertFileSourceLocationStatement.executeUpdate();
+      }
+
+      insertDependencies(fileId, info.getInternalDependencies(), true);
+      insertDependencies(fileId, info.getExternalDependencies(), false);
+    } catch (SQLException exception) {
+      IndexerPlugin.getLogger().logError(exception);
+    }
+  }
+
+  @Override
+  public void writeFileInfo(IndexableSource source, FileInfo info) {
+    String name = getPortableString(source);
+    try {
+      int fileId = lookupFile(name, source.getModificationStamp());
 
       deleteFileSourceLocationsStatement.setInt(1, fileId);
       deleteFileSourceLocationsStatement.executeUpdate();

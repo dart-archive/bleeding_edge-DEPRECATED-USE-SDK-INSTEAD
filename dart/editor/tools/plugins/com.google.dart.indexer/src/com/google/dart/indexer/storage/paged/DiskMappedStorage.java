@@ -26,6 +26,7 @@ import com.google.dart.indexer.locations.Location;
 import com.google.dart.indexer.pagedstorage.PagedStorage;
 import com.google.dart.indexer.pagedstorage.exceptions.PagedStorageException;
 import com.google.dart.indexer.pagedstorage.filesystem.AccessMode;
+import com.google.dart.indexer.source.IndexableSource;
 import com.google.dart.indexer.storage.AbstractIntegratedStorage;
 import com.google.dart.indexer.storage.StorageTransaction;
 
@@ -52,10 +53,13 @@ public class DiskMappedStorage extends AbstractIntegratedStorage {
     super(configuration);
     this.configuration = configuration;
     file = new File(rootFolder, "indexerdb");
-    // file = new File("/tmp/indexerdb");
     createPageStore();
   }
 
+  /**
+   * @deprecated use {@link #addDependenciesToFileInfo(IndexableSource, Set, boolean)}
+   */
+  @Deprecated
   public void addDependenciesToFileInfo(IFile file, Set<DependentEntity> dependencies,
       boolean internal) {
     IndexerPlugin.getLogger().trace(IndexerDebugOptions.STORAGE_CALLS,
@@ -68,7 +72,20 @@ public class DiskMappedStorage extends AbstractIntegratedStorage {
     } catch (PagedStorageException exception) {
       IndexerPlugin.getLogger().logError(exception);
     }
+  }
 
+  public void addDependenciesToFileInfo(IndexableSource source, Set<DependentEntity> dependencies,
+      boolean internal) {
+    IndexerPlugin.getLogger().trace(IndexerDebugOptions.STORAGE_CALLS,
+        "DiskMappedStorage.addDependenciesToFileInfo(" + source + ", " + internal + ")");
+    if (dependencies.isEmpty()) {
+      return;
+    }
+    try {
+      fileTreeStore.addDependenciesToFileInfo(source, dependencies, internal);
+    } catch (PagedStorageException exception) {
+      IndexerPlugin.getLogger().logError(exception);
+    }
   }
 
   public void addReference(Layer layer, Location sourceLocation, Location destinationLocation) {
@@ -111,11 +128,23 @@ public class DiskMappedStorage extends AbstractIntegratedStorage {
   }
 
   @Override
+  @Deprecated
   public void deleteFileInfo(IFile file) {
     IndexerPlugin.getLogger().trace(IndexerDebugOptions.STORAGE_CALLS,
         "DiskMappedStorage.deleteFileInfo(" + file + ")");
     try {
       fileTreeStore.delete(file);
+    } catch (PagedStorageException exception) {
+      IndexerPlugin.getLogger().logError(exception);
+    }
+  }
+
+  @Override
+  public void deleteFileInfo(IndexableSource source) {
+    IndexerPlugin.getLogger().trace(IndexerDebugOptions.STORAGE_CALLS,
+        "DiskMappedStorage.deleteFileInfo(" + file + ")");
+    try {
+      fileTreeStore.delete(source);
     } catch (PagedStorageException exception) {
       IndexerPlugin.getLogger().logError(exception);
     }
@@ -164,6 +193,17 @@ public class DiskMappedStorage extends AbstractIntegratedStorage {
   }
 
   @Override
+  public Map<IndexableSource, FileInfo> newReadAllFileInfos(IndexConfigurationInstance configuration) {
+    try {
+      return fileTreeStore.readAllSources();
+    } catch (PagedStorageException exception) {
+      IndexerPlugin.getLogger().logError(exception);
+      return new HashMap<IndexableSource, FileInfo>();
+    }
+  }
+
+  @Override
+  @Deprecated
   public Map<IFile, FileInfo> readAllFileInfos(IndexConfigurationInstance configuration) {
     try {
       return fileTreeStore.readAll();
@@ -184,6 +224,7 @@ public class DiskMappedStorage extends AbstractIntegratedStorage {
   }
 
   @Override
+  @Deprecated
   public FileInfo readFileInfo(IFile file) {
     try {
       return fileTreeStore.read(file);
@@ -194,6 +235,17 @@ public class DiskMappedStorage extends AbstractIntegratedStorage {
   }
 
   @Override
+  public FileInfo readFileInfo(IndexableSource source) {
+    try {
+      return fileTreeStore.read(source);
+    } catch (PagedStorageException exception) {
+      IndexerPlugin.getLogger().logError(exception);
+      return new FileInfo();
+    }
+  }
+
+  @Override
+  @Deprecated
   public PathAndModStamp[] readFileNamesAndStamps(HashSet<IFile> unprocessedExistingFiles) {
     return fileTreeStore.readFileNamesAndStamps();
   }
@@ -206,6 +258,11 @@ public class DiskMappedStorage extends AbstractIntegratedStorage {
       IndexerPlugin.getLogger().logError(exception);
       return new BidirectionalEdgesLocationInfo();
     }
+  }
+
+  @Override
+  public PathAndModStamp[] readPathAndModStamps() {
+    return fileTreeStore.readFileNamesAndStamps();
   }
 
   @Override
@@ -224,11 +281,23 @@ public class DiskMappedStorage extends AbstractIntegratedStorage {
   }
 
   @Override
+  @Deprecated
   public void writeFileInfo(IFile file, FileInfo info) {
     IndexerPlugin.getLogger().trace(IndexerDebugOptions.STORAGE_CALLS,
         "DiskMappedStorage.writeFileInfo(" + file + ")");
     try {
       fileTreeStore.write(file, info);
+    } catch (PagedStorageException exception) {
+      IndexerPlugin.getLogger().logError(exception);
+    }
+  }
+
+  @Override
+  public void writeFileInfo(IndexableSource source, FileInfo info) {
+    IndexerPlugin.getLogger().trace(IndexerDebugOptions.STORAGE_CALLS,
+        "DiskMappedStorage.writeFileInfo(" + file + ")");
+    try {
+      fileTreeStore.write(source, info);
     } catch (PagedStorageException exception) {
       IndexerPlugin.getLogger().logError(exception);
     }

@@ -13,6 +13,8 @@
  */
 package com.google.dart.indexer.source;
 
+import org.eclipse.core.resources.IFile;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,6 +38,18 @@ public abstract class IndexableSource {
    * The separator used between the URI of the JAR file and the path to the entry in a jar: URI.
    */
   protected static final String JAR_SUFFIX = "!/"; //$NON-NLS-1$
+
+  /**
+   * Return a representation of the data source represented by the given file. The file must be a
+   * local file that produces either a file: or jar: URI.
+   * 
+   * @param file the file to be represented
+   * @return a representation of the data source represented by the given file
+   */
+  @Deprecated
+  public static IndexableSource from(IFile file) {
+    return from(file.getLocationURI());
+  }
 
   /**
    * Return a representation of the data source represented by the given URI. The URI must have one

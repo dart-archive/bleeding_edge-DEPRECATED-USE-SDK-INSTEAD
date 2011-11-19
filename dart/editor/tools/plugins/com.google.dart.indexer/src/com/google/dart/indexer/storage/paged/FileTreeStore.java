@@ -31,12 +31,15 @@ import com.google.dart.indexer.pagedstorage.treestore.PageRecPos;
 import com.google.dart.indexer.pagedstorage.treestore.TreeLeaf;
 import com.google.dart.indexer.pagedstorage.treestore.TreeStore;
 import com.google.dart.indexer.pagedstorage.util.StringUtils;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -82,8 +85,8 @@ public class FileTreeStore {
 
       @Override
       protected void fillTreeDataForNewItem(String[] path, PageRecPos pos) {
-        IFile file = fromPath(path);
-        long stamp = file.getModificationStamp();
+        IFile source = fromPath(path);
+        long stamp = source.getModificationStamp();
         pos.setTimestamp(stamp);
       }
 
@@ -92,6 +95,10 @@ public class FileTreeStore {
     layers = configuration.getLayers();
   }
 
+  /**
+   * @deprecated use {@link #addDependenciesToFileInfo(IndexableSource, Set, boolean)}
+   */
+  @Deprecated
   public void addDependenciesToFileInfo(IFile file, Set<DependentEntity> dependencies,
       boolean internal) throws PagedStorageException {
     int id = fileToId(file);
@@ -103,6 +110,21 @@ public class FileTreeStore {
     mapping.addToInfo(id, 0, actual);
   }
 
+  public void addDependenciesToFileInfo(IndexableSource source, Set<DependentEntity> dependencies,
+      boolean internal) throws PagedStorageException {
+    int id = fileToId(source);
+    if (id == Mapping.ID_NONE) {
+      return; // failed to create
+    }
+
+    int[] actual = encodeAdditionalPayload(dependencies, internal);
+    mapping.addToInfo(id, 0, actual);
+  }
+
+  /**
+   * @deprecated use {@link #delete(IndexableSource)}
+   */
+  @Deprecated
   public void delete(IFile file) throws PagedStorageException {
     int id = mapping.find(pathFor(file));
     if (id != Mapping.ID_NONE) {
@@ -110,6 +132,17 @@ public class FileTreeStore {
     }
   }
 
+  public void delete(IndexableSource source) throws PagedStorageException {
+    int id = mapping.find(pathFor(source));
+    if (id != Mapping.ID_NONE) {
+      mapping.delete(id);
+    }
+  }
+
+  /**
+   * @deprecated use {@link #sourceFromId(int)}
+   */
+  @Deprecated
   public IFile fileFromId(int id) throws PagedStorageException {
     String[] path = mapping.resolve(id);
     if (path == null) {
@@ -118,10 +151,22 @@ public class FileTreeStore {
     return fromPath(path);
   }
 
+  /**
+   * @deprecated use {@link #fileToId(IndexableSource)}
+   */
+  @Deprecated
   public int fileToId(IFile file) throws PagedStorageException {
     return mapping.findOrCreate(pathFor(file));
   }
 
+  public int fileToId(IndexableSource source) throws PagedStorageException {
+    return mapping.findOrCreate(pathFor(source));
+  }
+
+  /**
+   * @deprecated use {@link #read(IndexableSource)}
+   */
+  @Deprecated
   public FileInfo read(IFile file) throws PagedStorageException {
     int id = mapping.find(pathFor(file));
     if (id == Mapping.ID_NONE) {
@@ -136,11 +181,42 @@ public class FileTreeStore {
     return decode(payload);
   }
 
-  public Map<IFile, FileInfo> /* <IFile,Integer> */readAll() throws PagedStorageException {
+  public FileInfo read(IndexableSource source) throws PagedStorageException {
+    int id = mapping.find(pathFor(source));
+    if (id == Mapping.ID_NONE) {
+      return null;
+    }
+    InfoPos infoPos = mapping.locateInfo(id, LAYER_0);
+    if (infoPos == null) {
+      return null; // data is corrupted, but we can degrade gracefully
+    }
+    // here
+    int[] payload = infoPos.readEntireData(id);
+    return decode(payload);
+  }
+
+  /**
+   * @deprecated use {@link #readAllSources()}
+   */
+  @Deprecated
+  public Map<IFile, FileInfo> readAll() throws PagedStorageException {
     Map<IFile, FileInfo> result = new HashMap<IFile, FileInfo>();
     for (Iterator<TreeLeaf> iterator = treeStore.pathIterator(); iterator.hasNext();) {
       TreeLeaf leaf = iterator.next();
       IFile key = fromPath(leaf.getPath());
+      FileInfo info = read(key);
+      if (info != null) {
+        result.put(key, info);
+      }
+    }
+    return result;
+  }
+
+  public Map<IndexableSource, FileInfo> readAllSources() throws PagedStorageException {
+    Map<IndexableSource, FileInfo> result = new HashMap<IndexableSource, FileInfo>();
+    for (Iterator<TreeLeaf> iterator = treeStore.pathIterator(); iterator.hasNext();) {
+      TreeLeaf leaf = iterator.next();
+      IndexableSource key = sourceFromPath(leaf.getPath());
       FileInfo info = read(key);
       if (info != null) {
         result.put(key, info);
@@ -159,6 +235,14 @@ public class FileTreeStore {
     return result.toArray(new PathAndModStamp[result.size()]);
   }
 
+  public IndexableSource sourceFromId(int id) throws PagedStorageException {
+    String[] path = mapping.resolve(id);
+    if (path == null) {
+      return null; // can only happen for already deleted IDs
+    }
+    return sourceFromPath(path);
+  }
+
   public void stats(MappingStats stats) {
     try {
       mapping.stats(stats);
@@ -172,8 +256,21 @@ public class FileTreeStore {
     return treeStore.toString() + mapping.toString();
   }
 
+  /**
+   * @deprecated use {@link #write(IndexableSource, FileInfo)}
+   */
+  @Deprecated
   public void write(IFile file, FileInfo info) throws PagedStorageException {
     int id = fileToId(file);
+    if (id == Mapping.ID_NONE) {
+      return; // failed to store the name of the file, so cannot write info
+    }
+    int[] payload = encode(info);
+    mapping.writeInfo(id, LAYER_0, payload);
+  }
+
+  public void write(IndexableSource source, FileInfo info) throws PagedStorageException {
+    int id = fileToId(source);
     if (id == Mapping.ID_NONE) {
       return; // failed to store the name of the file, so cannot write info
     }
@@ -298,12 +395,50 @@ public class FileTreeStore {
         KIND_INTERNAL_DEP_FILE);
   }
 
+  /**
+   * @deprecated use {@link #sourceFromPath(String[])}
+   */
+  @Deprecated
   private IFile fromPath(String[] path) {
     IPath p = new Path(StringUtils.join(path, "/"));
     return ResourcesPlugin.getWorkspace().getRoot().getFile(p);
   }
 
+  /**
+   * @deprecated use {@link #pathFor(IndexableSource)}
+   */
+  @Deprecated
   private String[] pathFor(IFile file) {
     return file.getFullPath().segments();
+  }
+
+  private String[] pathFor(IndexableSource source) {
+    URI uri = source.getUri();
+    ArrayList<String> segments = new ArrayList<String>();
+    segments.add(uri.getScheme());
+    for (String segment : uri.getSchemeSpecificPart().split("/")) {
+      segments.add(segment);
+    }
+    return segments.toArray(new String[segments.size()]);
+  }
+
+  private IndexableSource sourceFromPath(String[] path) {
+    try {
+      return IndexableSource.from(new URI(path[0], StringUtils.join(path, 1, path.length, "/"),
+          null));
+    } catch (URISyntaxException exception) {
+      // This should never happen because the path was always constructed from a valid URI.
+      StringBuilder builder = new StringBuilder();
+      String separator = "Could not create URI from segments: ";
+      for (String segment : path) {
+        builder.append(separator);
+        separator = ", ";
+        builder.append('"');
+        builder.append(segment);
+        builder.append('"');
+      }
+      IndexerPlugin.getLogger().logError(exception, builder.toString());
+      return null;
+    }
   }
 }

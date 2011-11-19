@@ -25,6 +25,7 @@ import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.index.layers.LayerId;
 import com.google.dart.indexer.locations.Location;
 import com.google.dart.indexer.locations.LocationPersitence;
+import com.google.dart.indexer.source.IndexableSource;
 import com.google.dart.indexer.storage.AbstractIntegratedStorage;
 import com.google.dart.indexer.storage.inmemory.api.ILocationEncoder;
 import com.google.dart.indexer.storage.inmemory.api.SimpleLocationInfoEncoder;
@@ -34,6 +35,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -49,8 +52,16 @@ import java.util.Map;
 public class OptimizedIndexStorage extends AbstractIntegratedStorage implements ILocationEncoder {
   private static final boolean DEBUG = true;
 
+  /**
+   * @deprecated use {@link #getPortableString(IndexableSource)}
+   */
+  @Deprecated
   private static String getPortableString(IFile file) {
     return file.getFullPath().toString();
+  }
+
+  private static String getPortableString(IndexableSource file) {
+    return file.getUri().toString();
   }
 
   private SimpleLocationInfoEncoder locationInfoEncoder = new SimpleLocationInfoEncoder();
@@ -96,8 +107,21 @@ public class OptimizedIndexStorage extends AbstractIntegratedStorage implements 
   }
 
   @Override
+  @Deprecated
   public synchronized void deleteFileInfo(IFile file) {
     String portableString = getPortableString(file);
+    int add = fileInfoPool.add(portableString);
+    deletedFiles.set(add);
+    int fileInfo = fileInfoPool.getFileInfo(add);
+    if (fileInfo != 0) {
+      fileInfos.data[fileInfo - 1] = null;
+    }
+    fireChanged();
+  }
+
+  @Override
+  public synchronized void deleteFileInfo(IndexableSource source) {
+    String portableString = getPortableString(source);
     int add = fileInfoPool.add(portableString);
     deletedFiles.set(add);
     int fileInfo = fileInfoPool.getFileInfo(add);
@@ -185,6 +209,29 @@ public class OptimizedIndexStorage extends AbstractIntegratedStorage implements 
   }
 
   @Override
+  public Map<IndexableSource, FileInfo> newReadAllFileInfos(IndexConfigurationInstance configuration) {
+    HashMap<IndexableSource, FileInfo> result = new HashMap<IndexableSource, FileInfo>();
+    for (int a = 0; a < fileInfoPool.ids.length; a++) {
+      int id = fileInfoPool.ids[a];
+      if (id != 0) {
+        String str = fileInfoPool.getString(id);
+        IndexableSource dependentFile;
+        try {
+          dependentFile = IndexableSource.from(new URI(str));
+          FileInfo fileInfo = readFileInfo(dependentFile);
+          if (fileInfo != null) {
+            result.put(dependentFile, fileInfo);
+          }
+        } catch (URISyntaxException exception) {
+          // This should never happen
+        }
+      }
+    }
+    return result;
+  }
+
+  @Override
+  @Deprecated
   public synchronized Map<IFile, FileInfo> readAllFileInfos(IndexConfigurationInstance configuration) {
     HashMap<IFile, FileInfo> result = new HashMap<IFile, FileInfo>();
     for (int a = 0; a < fileInfoPool.ids.length; a++) {
@@ -231,6 +278,7 @@ public class OptimizedIndexStorage extends AbstractIntegratedStorage implements 
   }
 
   @Override
+  @Deprecated
   public synchronized FileInfo readFileInfo(IFile file) {
     String portableString = getPortableString(file);
     int add = fileInfoPool.add(portableString);
@@ -245,10 +293,27 @@ public class OptimizedIndexStorage extends AbstractIntegratedStorage implements 
       }
     }
     return null;
-
   }
 
   @Override
+  public FileInfo readFileInfo(IndexableSource source) {
+    String portableString = getPortableString(source);
+    int add = fileInfoPool.add(portableString);
+    if (deletedFiles.get(add)) {
+      return null;
+    }
+    int fileInfo = fileInfoPool.getFileInfo(add);
+    if (fileInfo != 0) {
+      byte[] bytes = fileInfos.data[fileInfo - 1];
+      if (bytes != null) {
+        return decodeInfo(bytes, configuration);
+      }
+    }
+    return null;
+  }
+
+  @Override
+  @Deprecated
   public synchronized PathAndModStamp[] readFileNamesAndStamps(
       HashSet<IFile> unprocessedExistingFiles) {
     ArrayList<PathAndModStamp> ls = new ArrayList<PathAndModStamp>();
@@ -279,6 +344,26 @@ public class OptimizedIndexStorage extends AbstractIntegratedStorage implements 
     return readLocationInfo(locationInfo, layer.getId().stringValue());
   }
 
+  @Override
+  public PathAndModStamp[] readPathAndModStamps() {
+    ArrayList<PathAndModStamp> ls = new ArrayList<PathAndModStamp>();
+    for (int a = 0; a < fileInfoPool.ids.length; a++) {
+      int id = fileInfoPool.ids[a];
+      if (id != 0) {
+        String str = fileInfoPool.getString(id);
+        int fileInfo = fileInfoPool.getFileInfo(str);
+        if (fileInfo != 0) {
+          byte[] bs = fileInfos.data[fileInfo - 1];
+          if (bs != null) {
+            long long1 = ByteBuffer.wrap(bs).getLong();
+            ls.add(new PathAndModStamp(str, long1));
+          }
+        }
+      }
+    }
+    return ls.toArray(new PathAndModStamp[ls.size()]);
+  }
+
   public void removeStorageChangeListener(IStorageChangeListener listener) {
     synchronized (listeners) {
       listeners.remove(listener);
@@ -286,8 +371,14 @@ public class OptimizedIndexStorage extends AbstractIntegratedStorage implements 
   }
 
   @Override
+  @Deprecated
   public synchronized void writeFileInfo(IFile file, FileInfo info) {
     doWriteFile(file, info, configuration);
+  }
+
+  @Override
+  public void writeFileInfo(IndexableSource source, FileInfo info) {
+    doWriteFile(source, info, configuration);
   }
 
   @Override
@@ -320,6 +411,10 @@ public class OptimizedIndexStorage extends AbstractIntegratedStorage implements 
     return fileInfo;
   }
 
+  /**
+   * @deprecated use {@link #doWriteFile(IndexableSource, FileInfo, IndexConfigurationInstance)}
+   */
+  @Deprecated
   private synchronized int doWriteFile(IFile file, FileInfo info, IndexConfigurationInstance config) {
     String portableString = getPortableString(file);
     int add = fileInfoPool.add(portableString);
@@ -334,6 +429,30 @@ public class OptimizedIndexStorage extends AbstractIntegratedStorage implements 
       fileInfos.add(null);
     }
     long modificationStamp = file.getModificationStamp();
+    byte[] encode = encodeInfo(modificationStamp, info);
+    intBuf.data[fileInfo - 1] = encode;
+    fileInfoPool.setFileInfo(add, fileInfo);
+
+    fireChanged();
+
+    return add;
+  }
+
+  private synchronized int doWriteFile(IndexableSource source, FileInfo info,
+      IndexConfigurationInstance config) {
+    String portableString = getPortableString(source);
+    int add = fileInfoPool.add(portableString);
+    deletedFiles.clear(add);
+    if (info == null) {
+      info = new FileInfo();
+    }
+    ByteByteArray intBuf = fileInfos;
+    int fileInfo = fileInfoPool.getFileInfo(add);
+    if (fileInfo == 0) {
+      fileInfo = fileInfos.elementsCount + 1;
+      fileInfos.add(null);
+    }
+    long modificationStamp = source.getModificationStamp();
     byte[] encode = encodeInfo(modificationStamp, info);
     intBuf.data[fileInfo - 1] = encode;
     fileInfoPool.setFileInfo(add, fileInfo);
