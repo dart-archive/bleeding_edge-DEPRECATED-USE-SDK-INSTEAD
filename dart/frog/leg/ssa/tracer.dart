@@ -198,6 +198,16 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitLiteral(HLiteral literal) => "Literal ${literal.value}";
 
+  String visitLoad(HLoad node) => "Load: ${temporaryId(node.inputs[0])}";
+
+  String visitLocal(HLocal node) {
+    if (node.element !== null) {
+      return "Local: ${node.element.name.stringValue}";
+    } else {
+      return "Local";
+    }
+  }
+
   String visitLoopBranch(HLoopBranch branch) {
     HBasicBlock bodyBlock = currentBlock.successors[0];
     HBasicBlock exitBlock = currentBlock.successors[1];
@@ -214,6 +224,12 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitReturn(HReturn node) => "Return ${temporaryId(node.inputs[0])}";
+
+  String visitStore(HStore node) {
+    String localId = temporaryId(node.inputs[0]);
+    String valueId = temporaryId(node.inputs[1]);
+    return "Store: $localId := $valueId";
+  }
 
   String visitSubtract(HSubtract node) => visitInvoke(node);
 

@@ -32,6 +32,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
                         List<String> parameterNames,
                         HGraph graph) {
     new SsaPhiEliminator().visitGraph(graph);
+    if (GENERATE_SSA_TRACE) {
+      new HTracer.singleton().traceGraph("no-phi", graph);
+    }
     StringBuffer buffer = new StringBuffer();
     SsaCodeGenerator codegen =
         new SsaCodeGenerator(compiler, buffer, parameterNames);
