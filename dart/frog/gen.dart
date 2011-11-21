@@ -448,7 +448,7 @@ function $inheritsMembers(child, parent) {
       // [HashMapImplementation] which internally uses a constant expression.
       for (var global in list) {
         if (global.field == null) {
-          writer.writeln('${global.name} = ${global.exp.code};');
+          writer.writeln('var ${global.name} = ${global.exp.code};');
         }
       }
     }

@@ -337,9 +337,11 @@ class Value {
       toType = p.extendsType;
     }
 
-    // TODO(jmesserly): fix checking of function types.
+    // TODO(jmesserly): fix checking of function types, and DOM objects
     // For now, don't generate a broken check.
-    if (toType.getCallMethod() != null) {
+    // (For DOM types to work right, we need to lazily patch the "is$DOMWindow"
+    // check methods, by catching it on Object.prototype like VarMember does)
+    if (toType.getCallMethod() != null || toType.library == world.dom) {
       return this;
     }
 

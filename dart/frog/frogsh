@@ -1773,7 +1773,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  $assert(index == this.get$length(), "index == length", "linked_hash_map.dart", 75, 12);
+  $assert(index == this.get$length(), "index == length", "linked_hash_map.dart", 76, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -1783,7 +1783,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  $assert(index == this.get$length(), "index == length", "linked_hash_map.dart", 86, 12);
+  $assert(index == this.get$length(), "index == length", "linked_hash_map.dart", 87, 12);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -11742,7 +11742,7 @@ WorldGenerator.prototype.writeGlobals = function() {
     for (var $i = list.iterator$0(); $i.hasNext$0(); ) {
       var global0 = $i.next$0();
       if ($notnull_bool(global0.get$field() == null)) {
-        this.writer.writeln(('' + global0.get$name() + ' = ' + global0.get$exp().get$code() + ';'));
+        this.writer.writeln(('var ' + global0.get$name() + ' = ' + global0.get$exp().get$code() + ';'));
       }
     }
   }
@@ -21561,7 +21561,7 @@ Value.prototype._typeAssert = function(context, toType, node) {
     var p = (toType && toType.is$ParameterType());
     toType = p.extendsType;
   }
-  if (toType.getCallMethod() != null) {
+  if (toType.getCallMethod() != null || $eq(toType.get$library(), $globals.world.get$dom())) {
     return this;
   }
   if ($notnull_bool(toType.get$isObject()) || $notnull_bool(toType.get$isVar())) {
@@ -21653,8 +21653,8 @@ Value.prototype.invokeNoSuchMethod = function(context, name, node, args) {
   return (($0 = this._resolveMember(context, 'noSuchMethod', node, false).invoke$4(context, node, this, new Arguments(null, noSuchArgs))) && $0.is$Value());
 }
 Value.prototype.invokeSpecial = function(name, args, returnType) {
-  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 494, 12);
-  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 495, 12);
+  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 496, 12);
+  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 497, 12);
   var argsString = args.getCode();
   if (name == '\$index' || name == '\$setindex') {
     return new Value(returnType, ('' + this.code + '.' + name + '(' + argsString + ')'), this.span, true);
@@ -21882,7 +21882,7 @@ BareValue.prototype._ensureCode = function() {
   }
 }
 BareValue.prototype._tryResolveMember = function(context, name) {
-  $assert($eq(context, this.home), "context == home", "value.dart", 715, 12);
+  $assert($eq(context, this.home), "context == home", "value.dart", 717, 12);
   var member = this.type.resolveMember(name);
   if ($notnull_bool($ne(member, null))) {
     this._ensureCode();
@@ -22710,73 +22710,73 @@ $inheritsMembers(ArrayBasedScanner$SourceString, AbstractScanner$SourceString);
 function $static_init(){
   $globals.HTracer__singleton = null;
 }
-const$0 = new NoMoreElementsException()/*const NoMoreElementsException()*/;
-const$1 = new _DeletedKeySentinel()/*const _DeletedKeySentinel()*/;
-const$10 = new StringWrapper('Dynamic')/*const SourceString('Dynamic')*/;
-const$101 = new Keyword("negate", true)/*const Keyword("negate", true)*/;
-const$103 = new Keyword("operator", true)/*const Keyword("operator", true)*/;
-const$105 = new Keyword("set", true)/*const Keyword("set", true)*/;
-const$107 = new Keyword("source", true)/*const Keyword("source", true)*/;
-const$109 = new Keyword("static", true)/*const Keyword("static", true)*/;
-const$111 = new Keyword("typedef", true)/*const Keyword("typedef", true)*/;
-const$115 = new StringWrapper('EOF')/*const SourceString('EOF')*/;
-const$12 = new StringWrapper('String')/*const SourceString('String')*/;
-const$14 = new IllegalAccessException()/*const IllegalAccessException()*/;
-const$15 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
-const$16 = new LinkTail()/*const EmptyLink<Token>()*/;
-const$202 = new ElementKind('class')/*const ElementKind('class')*/;
-const$204 = new ElementKind('function')/*const ElementKind('function')*/;
-const$206 = new StringWrapper('JS')/*const SourceString('JS')*/;
-const$207 = new ElementKind('foreign')/*const ElementKind('foreign')*/;
-const$209 = new StringWrapper('main')/*const SourceString('main')*/;
-const$211 = new StringWrapper(';')/*const SourceString(';')*/;
-const$212 = new NodeList()/*const Prefix()*/;
-const$213 = new Prefix()/*const Prefix()*/;
-const$214 = new Postfix()/*const Postfix()*/;
-const$215 = new ImmutableMap([])/*const {}*/;
-const$216 = new StringWrapper('+')/*const SourceString('+')*/;
-const$217 = new StringWrapper('add')/*const SourceString('add')*/;
-const$218 = new StringWrapper('-')/*const SourceString('-')*/;
-const$219 = new StringWrapper('sub')/*const SourceString('sub')*/;
-const$220 = new StringWrapper('*')/*const SourceString('*')*/;
-const$221 = new StringWrapper('mul')/*const SourceString('mul')*/;
-const$222 = new StringWrapper('/')/*const SourceString('/')*/;
-const$223 = new StringWrapper('div')/*const SourceString('div')*/;
-const$224 = new StringWrapper('~/')/*const SourceString('~/')*/;
-const$225 = new StringWrapper('tdiv')/*const SourceString('tdiv')*/;
-const$226 = new StringWrapper('==')/*const SourceString('==')*/;
-const$227 = new StringWrapper('eq')/*const SourceString('eq')*/;
-const$228 = new StringWrapper('<')/*const SourceString('<')*/;
-const$229 = new StringWrapper('lt')/*const SourceString('lt')*/;
-const$230 = new StringWrapper('&&')/*const SourceString('&&')*/;
-const$231 = new StringWrapper('||')/*const SourceString('||')*/;
-const$232 = new StringWrapper('!')/*const SourceString('!')*/;
-const$233 = new StringWrapper('var')/*const SourceString('var')*/;
-const$234 = new ElementKind('variable')/*const ElementKind('variable')*/;
-const$240 = new WarningKind('cannot return value from void function')/*const WarningKind(
+var const$0 = new NoMoreElementsException()/*const NoMoreElementsException()*/;
+var const$1 = new _DeletedKeySentinel()/*const _DeletedKeySentinel()*/;
+var const$10 = new StringWrapper('Dynamic')/*const SourceString('Dynamic')*/;
+var const$101 = new Keyword("negate", true)/*const Keyword("negate", true)*/;
+var const$103 = new Keyword("operator", true)/*const Keyword("operator", true)*/;
+var const$105 = new Keyword("set", true)/*const Keyword("set", true)*/;
+var const$107 = new Keyword("source", true)/*const Keyword("source", true)*/;
+var const$109 = new Keyword("static", true)/*const Keyword("static", true)*/;
+var const$111 = new Keyword("typedef", true)/*const Keyword("typedef", true)*/;
+var const$115 = new StringWrapper('EOF')/*const SourceString('EOF')*/;
+var const$12 = new StringWrapper('String')/*const SourceString('String')*/;
+var const$14 = new IllegalAccessException()/*const IllegalAccessException()*/;
+var const$15 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
+var const$16 = new LinkTail()/*const EmptyLink<Token>()*/;
+var const$202 = new ElementKind('class')/*const ElementKind('class')*/;
+var const$204 = new ElementKind('function')/*const ElementKind('function')*/;
+var const$206 = new StringWrapper('JS')/*const SourceString('JS')*/;
+var const$207 = new ElementKind('foreign')/*const ElementKind('foreign')*/;
+var const$209 = new StringWrapper('main')/*const SourceString('main')*/;
+var const$211 = new StringWrapper(';')/*const SourceString(';')*/;
+var const$212 = new NodeList()/*const Prefix()*/;
+var const$213 = new Prefix()/*const Prefix()*/;
+var const$214 = new Postfix()/*const Postfix()*/;
+var const$215 = new ImmutableMap([])/*const {}*/;
+var const$216 = new StringWrapper('+')/*const SourceString('+')*/;
+var const$217 = new StringWrapper('add')/*const SourceString('add')*/;
+var const$218 = new StringWrapper('-')/*const SourceString('-')*/;
+var const$219 = new StringWrapper('sub')/*const SourceString('sub')*/;
+var const$220 = new StringWrapper('*')/*const SourceString('*')*/;
+var const$221 = new StringWrapper('mul')/*const SourceString('mul')*/;
+var const$222 = new StringWrapper('/')/*const SourceString('/')*/;
+var const$223 = new StringWrapper('div')/*const SourceString('div')*/;
+var const$224 = new StringWrapper('~/')/*const SourceString('~/')*/;
+var const$225 = new StringWrapper('tdiv')/*const SourceString('tdiv')*/;
+var const$226 = new StringWrapper('==')/*const SourceString('==')*/;
+var const$227 = new StringWrapper('eq')/*const SourceString('eq')*/;
+var const$228 = new StringWrapper('<')/*const SourceString('<')*/;
+var const$229 = new StringWrapper('lt')/*const SourceString('lt')*/;
+var const$230 = new StringWrapper('&&')/*const SourceString('&&')*/;
+var const$231 = new StringWrapper('||')/*const SourceString('||')*/;
+var const$232 = new StringWrapper('!')/*const SourceString('!')*/;
+var const$233 = new StringWrapper('var')/*const SourceString('var')*/;
+var const$234 = new ElementKind('variable')/*const ElementKind('variable')*/;
+var const$240 = new WarningKind('cannot return value from void function')/*const WarningKind(
       'cannot return value from void function')*/;
-const$242 = new WarningKind('#{1} is not assignable to #{2}')/*const WarningKind(
+var const$242 = new WarningKind('#{1} is not assignable to #{2}')/*const WarningKind(
       '#{1} is not assignable to #{2}')*/;
-const$244 = new WarningKind('value of type #{1} expected')/*const WarningKind(
+var const$244 = new WarningKind('value of type #{1} expected')/*const WarningKind(
       'value of type #{1} expected')*/;
-const$246 = new StringWrapper('=')/*const SourceString('=')*/;
-const$247 = new WarningKind('variable cannot be of type void')/*const WarningKind(
+var const$246 = new StringWrapper('=')/*const SourceString('=')*/;
+var const$247 = new WarningKind('variable cannot be of type void')/*const WarningKind(
       'variable cannot be of type void')*/;
-const$249 = new WarningKind('expression does not yield a value')/*const WarningKind(
+var const$249 = new WarningKind('expression does not yield a value')/*const WarningKind(
       'expression does not yield a value')*/;
-const$25 = new Keyword("break", false)/*const Keyword("break")*/;
-const$260 = new StringWrapper("&&")/*const SourceString("&&")*/;
-const$261 = new StringWrapper("||")/*const SourceString("||")*/;
-const$262 = new StringWrapper("!")/*const SourceString("!")*/;
-const$263 = new StringWrapper("+")/*const SourceString("+")*/;
-const$264 = new StringWrapper("-")/*const SourceString("-")*/;
-const$265 = new StringWrapper("*")/*const SourceString("*")*/;
-const$266 = new StringWrapper("/")/*const SourceString("/")*/;
-const$267 = new StringWrapper("~/")/*const SourceString("~/")*/;
-const$268 = new StringWrapper("==")/*const SourceString("==")*/;
-const$27 = new Keyword("case", false)/*const Keyword("case")*/;
-const$274 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
-const$276 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
+var const$25 = new Keyword("break", false)/*const Keyword("break")*/;
+var const$260 = new StringWrapper("&&")/*const SourceString("&&")*/;
+var const$261 = new StringWrapper("||")/*const SourceString("||")*/;
+var const$262 = new StringWrapper("!")/*const SourceString("!")*/;
+var const$263 = new StringWrapper("+")/*const SourceString("+")*/;
+var const$264 = new StringWrapper("-")/*const SourceString("-")*/;
+var const$265 = new StringWrapper("*")/*const SourceString("*")*/;
+var const$266 = new StringWrapper("/")/*const SourceString("/")*/;
+var const$267 = new StringWrapper("~/")/*const SourceString("~/")*/;
+var const$268 = new StringWrapper("==")/*const SourceString("==")*/;
+var const$27 = new Keyword("case", false)/*const Keyword("case")*/;
+var const$274 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
+var const$276 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
     // Section references are from Ecma-262
     // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
@@ -22907,7 +22907,7 @@ const$276 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefi
     // TODO: prove why this is necessary or remove it
     "call"
   ]*/;
-const$278 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
+var const$278 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
     // These are current keywords
     "break", "delete", "function", "return", "typeof", "case", "do", "if",
     "switch", "var", "catch", "else", "in", "this", "void", "continue",
@@ -22921,51 +22921,51 @@ const$278 = ImmutableList.ImmutableList$from$factory(["break", "delete", "functi
     "class", "final", "interface", "public", "transient", "const", "float",
     "long", "short", "volatile"
   ]*/;
-const$280 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
-const$29 = new Keyword("catch", false)/*const Keyword("catch")*/;
-const$31 = new Keyword("const", false)/*const Keyword("const")*/;
-const$33 = new Keyword("continue", false)/*const Keyword("continue")*/;
-const$35 = new Keyword("default", false)/*const Keyword("default")*/;
-const$37 = new Keyword("do", false)/*const Keyword("do")*/;
-const$39 = new Keyword("else", false)/*const Keyword("else")*/;
-const$393 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$280 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+var const$29 = new Keyword("catch", false)/*const Keyword("catch")*/;
+var const$31 = new Keyword("const", false)/*const Keyword("const")*/;
+var const$33 = new Keyword("continue", false)/*const Keyword("continue")*/;
+var const$35 = new Keyword("default", false)/*const Keyword("default")*/;
+var const$37 = new Keyword("do", false)/*const Keyword("do")*/;
+var const$39 = new Keyword("else", false)/*const Keyword("else")*/;
+var const$393 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
-const$4 = new StringWrapper('global scope')/*const SourceString('global scope')*/;
-const$41 = new Keyword("false", false)/*const Keyword("false")*/;
-const$43 = new Keyword("final", false)/*const Keyword("final")*/;
-const$45 = new Keyword("finally", false)/*const Keyword("finally")*/;
-const$47 = new Keyword("for", false)/*const Keyword("for")*/;
-const$49 = new Keyword("if", false)/*const Keyword("if")*/;
-const$5 = new EmptyQueueException()/*const EmptyQueueException()*/;
-const$51 = new Keyword("in", false)/*const Keyword("in")*/;
-const$53 = new Keyword("is", false)/*const Keyword("is")*/;
-const$55 = new Keyword("new", false)/*const Keyword("new")*/;
-const$57 = new Keyword("null", false)/*const Keyword("null")*/;
-const$59 = new Keyword("return", false)/*const Keyword("return")*/;
-const$6 = new StringWrapper('void')/*const SourceString('void')*/;
-const$61 = new Keyword("super", false)/*const Keyword("super")*/;
-const$63 = new Keyword("switch", false)/*const Keyword("switch")*/;
-const$65 = new Keyword("this", false)/*const Keyword("this")*/;
-const$67 = new Keyword("throw", false)/*const Keyword("throw")*/;
-const$69 = new Keyword("true", false)/*const Keyword("true")*/;
-const$71 = new Keyword("try", false)/*const Keyword("try")*/;
-const$73 = new Keyword("var", false)/*const Keyword("var")*/;
-const$75 = new Keyword("void", false)/*const Keyword("void")*/;
-const$77 = new Keyword("while", false)/*const Keyword("while")*/;
-const$79 = new Keyword("abstract", true)/*const Keyword("abstract", true)*/;
-const$8 = new StringWrapper('int')/*const SourceString('int')*/;
-const$81 = new Keyword("assert", true)/*const Keyword("assert", true)*/;
-const$83 = new Keyword("class", true)/*const Keyword("class", true)*/;
-const$85 = new Keyword("extends", true)/*const Keyword("extends", true)*/;
-const$87 = new Keyword("factory", true)/*const Keyword("factory", true)*/;
-const$89 = new Keyword("get", true)/*const Keyword("get", true)*/;
-const$91 = new Keyword("implements", true)/*const Keyword("implements", true)*/;
-const$93 = new Keyword("import", true)/*const Keyword("import", true)*/;
-const$95 = new Keyword("interface", true)/*const Keyword("interface", true)*/;
-const$97 = new Keyword("library", true)/*const Keyword("library", true)*/;
-const$99 = new Keyword("native", true)/*const Keyword("native", true)*/;
-const$113 = ImmutableList.ImmutableList$from$factory([const$25, const$27, const$29, const$31, const$33, const$35, const$37, const$39, const$41, const$43, const$45, const$47, const$49, const$51, const$53, const$55, const$57, const$59, const$61, const$63, const$65, const$67, const$69, const$71, const$73, const$75, const$77, const$79, const$81, const$83, const$85, const$87, const$89, const$91, const$93, const$95, const$97, const$99, const$101, const$103, const$105, const$107, const$109, const$111])/*const <Keyword> [
+var const$4 = new StringWrapper('global scope')/*const SourceString('global scope')*/;
+var const$41 = new Keyword("false", false)/*const Keyword("false")*/;
+var const$43 = new Keyword("final", false)/*const Keyword("final")*/;
+var const$45 = new Keyword("finally", false)/*const Keyword("finally")*/;
+var const$47 = new Keyword("for", false)/*const Keyword("for")*/;
+var const$49 = new Keyword("if", false)/*const Keyword("if")*/;
+var const$5 = new EmptyQueueException()/*const EmptyQueueException()*/;
+var const$51 = new Keyword("in", false)/*const Keyword("in")*/;
+var const$53 = new Keyword("is", false)/*const Keyword("is")*/;
+var const$55 = new Keyword("new", false)/*const Keyword("new")*/;
+var const$57 = new Keyword("null", false)/*const Keyword("null")*/;
+var const$59 = new Keyword("return", false)/*const Keyword("return")*/;
+var const$6 = new StringWrapper('void')/*const SourceString('void')*/;
+var const$61 = new Keyword("super", false)/*const Keyword("super")*/;
+var const$63 = new Keyword("switch", false)/*const Keyword("switch")*/;
+var const$65 = new Keyword("this", false)/*const Keyword("this")*/;
+var const$67 = new Keyword("throw", false)/*const Keyword("throw")*/;
+var const$69 = new Keyword("true", false)/*const Keyword("true")*/;
+var const$71 = new Keyword("try", false)/*const Keyword("try")*/;
+var const$73 = new Keyword("var", false)/*const Keyword("var")*/;
+var const$75 = new Keyword("void", false)/*const Keyword("void")*/;
+var const$77 = new Keyword("while", false)/*const Keyword("while")*/;
+var const$79 = new Keyword("abstract", true)/*const Keyword("abstract", true)*/;
+var const$8 = new StringWrapper('int')/*const SourceString('int')*/;
+var const$81 = new Keyword("assert", true)/*const Keyword("assert", true)*/;
+var const$83 = new Keyword("class", true)/*const Keyword("class", true)*/;
+var const$85 = new Keyword("extends", true)/*const Keyword("extends", true)*/;
+var const$87 = new Keyword("factory", true)/*const Keyword("factory", true)*/;
+var const$89 = new Keyword("get", true)/*const Keyword("get", true)*/;
+var const$91 = new Keyword("implements", true)/*const Keyword("implements", true)*/;
+var const$93 = new Keyword("import", true)/*const Keyword("import", true)*/;
+var const$95 = new Keyword("interface", true)/*const Keyword("interface", true)*/;
+var const$97 = new Keyword("library", true)/*const Keyword("library", true)*/;
+var const$99 = new Keyword("native", true)/*const Keyword("native", true)*/;
+var const$113 = ImmutableList.ImmutableList$from$factory([const$25, const$27, const$29, const$31, const$33, const$35, const$37, const$39, const$41, const$43, const$45, const$47, const$49, const$51, const$53, const$55, const$57, const$59, const$61, const$63, const$65, const$67, const$69, const$71, const$73, const$75, const$77, const$79, const$81, const$83, const$85, const$87, const$89, const$91, const$93, const$95, const$97, const$99, const$101, const$103, const$105, const$107, const$109, const$111])/*const <Keyword> [
       BREAK,
       CASE,
       CATCH,
