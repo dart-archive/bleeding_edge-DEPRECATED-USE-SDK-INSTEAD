@@ -11,16 +11,12 @@ class SsaPhiEliminator extends HGraphVisitor {
     visitDominatorTree(graph);
   }
 
-  void addStore(HBasicBlock predecessor,
-                HBasicBlock dominator,
-                HLocal local,
-                HInstruction value) {
+  HStore addStore(HBasicBlock predecessor,
+                  HBasicBlock dominator,
+                  HLocal local,
+                  HInstruction value) {
     HStore store = new HStore(local, value);
-    if (currentBlock.isLoopHeader()) {
-      // The phi is a loop phi, just add the store at the end of the
-      // predecessor.
-      predecessor.addAtExit(store);
-    } else if (value.generateAtUseSite()) {
+    if (value.generateAtUseSite()) {
       // The temporary will not be introduced, so no need to push the
       // assignment to the definition.
       predecessor.addAtExit(store);
@@ -28,11 +24,15 @@ class SsaPhiEliminator extends HGraphVisitor {
       HBasicBlock current = predecessor;
       do {
         if (value.block === current) {
-          current.addAfter(value, store);
-          if (value.usedBy.length == 2) { // the store and the phi.
-            value.setGenerateAtUseSite();;
+          if (value is HPhi) {
+            current.addAtEntry(store);
+          } else {
+            current.addAfter(value, store);
           }
-          return;
+          if (value.usedBy.length == 2) { // The store and the phi.
+            value.setGenerateAtUseSite();
+          }
+          return store;
         }
         current = current.dominator;
       } while (current != dominator && !current.isLoopHeader());
@@ -41,28 +41,54 @@ class SsaPhiEliminator extends HGraphVisitor {
       // predecessor.
       predecessor.addAtExit(store);
     }
+    return store;
   }
 
   visitBasicBlock(HBasicBlock block) {
     currentBlock = block;
-    block.forEachPhi((phi) { visitPhi(phi); });
+    List<HLoad> loads = <HLoad>[];
+    block.forEachPhi((phi) { visitPhi(phi, loads); });
   }
 
-  visitPhi(HPhi phi) {
+  visitPhi(HPhi phi, List<HLoad> loads) {
     assert(phi !== null);
     HLocal local = new HLocal(phi.element);
     entry.addAtEntry(local);
 
     List<HBasicBlock> predecessors = currentBlock.predecessors;
+    List<HStore> stores = <HStore>[];
+
     for (int i = 0, len = predecessors.length; i < len; i++) {
-      addStore(predecessors[i], currentBlock.dominator, local, phi.inputs[i]);
+      stores.add(addStore(predecessors[i],
+                          currentBlock.dominator,
+                          local,
+                          phi.inputs[i]));
     }
 
     HLoad load = new HLoad(local);
+    loads.add(load);
+
     currentBlock.addAtEntry(load);
     currentBlock.rewrite(phi, load);
     currentBlock.removePhi(phi);
-    // TODO(ngeoffray): handle loops.
-    if (!currentBlock.isLoopHeader()) load.setGenerateAtUseSite();
+
+    if (!currentBlock.isLoopHeader() || !hasLoopPhiAsInput(stores, loads)) {
+      load.setGenerateAtUseSite();
+    }
+  }
+
+  bool hasLoopPhiAsInput(List<HStore> stores, List<HLoad> loads) {
+    // [stores] contains the stores of a specific phi.
+    // [loads] contains the phis that were converted to loads.
+    assert(currentBlock.isLoopHeader());
+    for (HStore store in stores) {
+      HInstruction value = store.value;
+      if (value is HPhi && value.block == currentBlock) {
+        return true;
+      } else if (value is HLoad && loads.indexOf(value) != -1) {
+        return true;
+      }
+    }
+    return false;
   }
 }

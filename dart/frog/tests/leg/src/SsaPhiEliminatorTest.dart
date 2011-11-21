@@ -18,6 +18,20 @@ void foo(bar) {
 }
 """;
 
+final String TEST_TWO = @"""
+void print() {}
+void eq() {}
+void add() {}
+
+void main() {
+  var t = 0;
+  for (var i = 0; i == 0; i = i + 1) {
+    t = t + 10;
+  }
+  print(t);
+}
+""";
+
 main() {
   String generated = compile(TEST_ONE, 'foo');
   RegExp regexp = const RegExp("a = 2");
@@ -27,5 +41,15 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp("print\\(a\\)");
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  generated = compile(TEST_TWO, 'main');
+  regexp = const RegExp("t = t +");
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  regexp = const RegExp("i = i +");
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  regexp = const RegExp("print\\(t\\)");
   Expect.isTrue(regexp.hasMatch(generated));
 }

@@ -9375,6 +9375,10 @@ function HStore(local, value) {
   HNonSsaInstruction.call(this, [local, value]);
 }
 $inherits(HStore, HNonSsaInstruction);
+HStore.prototype.get$value = function() {
+  var $0;
+  return (($0 = this.inputs.$index(1)) && $0.is$HInstruction());
+}
 HStore.prototype.toString = function() {
   return 'store';
 }
@@ -9739,52 +9743,73 @@ SsaPhiEliminator.prototype.visitGraph = function(graph) {
 }
 SsaPhiEliminator.prototype.addStore = function(predecessor, dominator, local, value) {
   var store = new HStore(local, value);
-  if ($notnull_bool(this.currentBlock.isLoopHeader())) {
-    predecessor.addAtExit(store);
-  }
-  else if ($notnull_bool(value.generateAtUseSite())) {
+  if ($notnull_bool(value.generateAtUseSite())) {
     predecessor.addAtExit(store);
   }
   else {
     var current = predecessor;
     do {
       if (value.block === current) {
-        current.addAfter(value, store);
+        if ((value instanceof HPhi)) {
+          current.addAtEntry(store);
+        }
+        else {
+          current.addAfter(value, store);
+        }
         if (value.usedBy.length == 2) {
           value.setGenerateAtUseSite();
-          ;
         }
-        return;
+        return store;
       }
       current = current.dominator;
     }
     while ($ne(current, dominator) && !$notnull_bool(current.isLoopHeader()))
     predecessor.addAtExit(store);
   }
+  return store;
 }
 SsaPhiEliminator.prototype.visitBasicBlock = function(block) {
   var $this = this; // closure support
   this.currentBlock = block;
+  var loads = [];
   block.forEachPhi((function (phi) {
-    $this.visitPhi((phi && phi.is$HPhi()));
+    $this.visitPhi((phi && phi.is$HPhi()), loads);
   })
   );
 }
-SsaPhiEliminator.prototype.visitPhi = function(phi) {
+SsaPhiEliminator.prototype.visitPhi = function(phi, loads) {
   var $0;
-  $assert(phi != null, "phi !== null", "phi_eliminator.dart", 52, 12);
+  $assert(phi != null, "phi !== null", "phi_eliminator.dart", 54, 12);
   var local = new HLocal(phi.element);
   this.entry.addAtEntry(local);
   var predecessors = this.currentBlock.predecessors;
+  var stores = [];
   for (var i = 0, len = predecessors.length;
    i < len; i++) {
-    this.addStore((($0 = predecessors.$index(i)) && $0.is$HBasicBlock()), this.currentBlock.dominator, local, (($0 = phi.inputs.$index(i)) && $0.is$HInstruction()));
+    stores.add(this.addStore((($0 = predecessors.$index(i)) && $0.is$HBasicBlock()), this.currentBlock.dominator, local, (($0 = phi.inputs.$index(i)) && $0.is$HInstruction())));
   }
   var load = new HLoad(local);
+  loads.add(load);
   this.currentBlock.addAtEntry(load);
   this.currentBlock.rewrite(phi, load);
   this.currentBlock.removePhi(phi);
-  if (!$notnull_bool(this.currentBlock.isLoopHeader())) load.setGenerateAtUseSite();
+  if (!$notnull_bool(this.currentBlock.isLoopHeader()) || !$notnull_bool(this.hasLoopPhiAsInput(stores, loads))) {
+    load.setGenerateAtUseSite();
+  }
+}
+SsaPhiEliminator.prototype.hasLoopPhiAsInput = function(stores, loads) {
+  $assert(this.currentBlock.isLoopHeader(), "currentBlock.isLoopHeader()", "phi_eliminator.dart", 83, 12);
+  for (var $i = 0;$i < stores.length; $i++) {
+    var store = stores.$index($i);
+    var value = store.get$value();
+    if ((value instanceof HPhi) && $eq(value.block, this.currentBlock)) {
+      return true;
+    }
+    else if ((value instanceof HLoad) && loads.indexOf(value) != -1) {
+      return true;
+    }
+  }
+  return false;
 }
 // ********** Code for HTracer **************
 function HTracer() {}

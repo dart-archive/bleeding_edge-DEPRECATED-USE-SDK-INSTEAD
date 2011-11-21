@@ -935,12 +935,15 @@ class HNonSsaInstruction extends HInstruction {
 
 class HLoad extends HNonSsaInstruction {
   HLoad(HLocal local) : super([local]);
+  HLocal get local() => inputs[0];
   toString() => 'load';
   accept(HVisitor visitor) => visitor.visitLoad(this);
 }
 
 class HStore extends HNonSsaInstruction {
   HStore(HLocal local, HInstruction value) : super([local, value]);
+  HLocal get local() => inputs[0];
+  HInstruction get value() => inputs[1];
   toString() => 'store';
   accept(HVisitor visitor) => visitor.visitStore(this);
 }
