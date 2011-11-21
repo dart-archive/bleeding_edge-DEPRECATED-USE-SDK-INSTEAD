@@ -15,7 +15,7 @@ class ByteArrayScanner extends ArrayBasedScanner<ByteString> {
 
   int peek() => byteAt(byteOffset + 1);
 
-  int byteAt(int index) => (bytes.length > index) ? bytes[index] : -1;
+  int byteAt(int index) => bytes[index];
 
   AsciiString asciiString(int start) {
     return AsciiString.of(bytes, start, byteOffset - start);
@@ -31,12 +31,8 @@ class ByteArrayScanner extends ArrayBasedScanner<ByteString> {
     tail = tail.next;
   }
 
-  int advance() {
-    // This method should be equivalent to the one in super. However,
-    // this is a *HOT* method and V8 performs better if it is easy to
-    // inline.
-    int index = ++byteOffset;
-    int next = (bytes.length > index) ? bytes[index] : -1;
-    return next;
-  }
+  // This method should be equivalent to the one in super. However,
+  // this is a *HOT* method and Dart VM performs better if it is easy
+  // to inline.
+  int advance() => bytes[++byteOffset];
 }

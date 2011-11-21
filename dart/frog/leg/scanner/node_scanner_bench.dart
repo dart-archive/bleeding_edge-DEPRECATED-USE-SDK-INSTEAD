@@ -18,12 +18,27 @@ class NodeScannerBench extends ScannerBench {
     return s.length;
   }
 
-  Scanner makeScanner(bytes) => new ByteArrayScanner(bytes);
+  Scanner makeScanner(bytes) => new InflexibleByteArrayScanner(bytes);
 
   void checkExistence(String filename) {
     if (!path.existsSync(filename)) {
       throw "no such file: ${filename}";
     }
+  }
+}
+
+class InflexibleByteArrayScanner extends ByteArrayScanner {
+  InflexibleByteArrayScanner(List<int> bytes) : super(bytes);
+
+  int byteAt(int index) => (bytes.length > index) ? bytes[index] : $EOF;
+
+  int advance() {
+    // This method should be equivalent to the one in super. However,
+    // this is a *HOT* method and V8 performs better if it is easy to
+    // inline.
+    int index = ++byteOffset;
+    int next = (bytes.length > index) ? bytes[index] : $EOF;
+    return next;
   }
 }
 

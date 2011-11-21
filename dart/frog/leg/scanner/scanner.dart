@@ -36,7 +36,7 @@ class AbstractScanner<T> implements Scanner {
 
   Token tokenize() {
     int next = advance();
-    while (next != -1) {
+    while (next != $EOF) {
       next = bigSwitch(next);
     }
     appendEofToken();
@@ -195,8 +195,8 @@ class AbstractScanner<T> implements Scanner {
       return tokenizeNumber(next);
     }
 
-    if (next === -1) {
-      return -1;
+    if (next === $EOF) {
+      return $EOF;
     }
     if (next < 0x1f) {
       throw new MalformedInputException(charOffset);
@@ -496,7 +496,7 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeSingleLineComment(int next) {
     while (true) {
       next = advance();
-      if ($LF === next || $CR === next || -1 === next) {
+      if ($LF === next || $CR === next || $EOF === next) {
         return next;
       }
     }
@@ -505,13 +505,13 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeMultiLineComment(int next) {
     next = advance();
     while (true) {
-      if (-1 === next) {
+      if ($EOF === next) {
         return next;
       } else if ($STAR === next) {
         next = advance();
         if (next === $SLASH) {
           return advance();
-        } else if (next === -1) {
+        } else if (next === $EOF) {
           return next;
         }
       } else {
@@ -605,13 +605,13 @@ class AbstractScanner<T> implements Scanner {
   }
 
   int tokenizeSingleLineString(int next, int q1, int start) {
-    while (next != -1) {
+    while (next != $EOF) {
       if (next === q1) {
         appendByteStringToken(STRING_TOKEN, utf8String(start, 0));
         return advance();
       } else if (next === $BACKSLASH) {
         next = advance();
-        if (next === -1) {
+        if (next === $EOF) {
           throw new MalformedInputException(charOffset);
         }
       } else if (next === $LF || next === $CR) {
@@ -624,7 +624,7 @@ class AbstractScanner<T> implements Scanner {
 
   int tokenizeSingleLineRawString(int next, int q1, int start) {
     next = advance();
-    while (next != -1) {
+    while (next != $EOF) {
       if (next === q1) {
         appendByteStringToken(STRING_TOKEN, utf8String(start, 0));
         return advance();
@@ -639,7 +639,7 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeMultiLineString(int q, int start, bool raw) {
     // TODO(ahe): Handle escapes.
     int next = advance();
-    while (next != -1) {
+    while (next != $EOF) {
       if (next === q) {
         next = advance();
         if (next === q) {

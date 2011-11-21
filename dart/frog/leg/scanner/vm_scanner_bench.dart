@@ -16,10 +16,10 @@ class VmScannerBench extends ScannerBench {
     int size = file.lengthSync();
     List<int> bytes = new List<int>(size + 1);
     file.readListSync(bytes, 0, size);
-    bytes[size] = -1;
+    bytes[size] = $EOF;
     file.closeSync();
     callback(bytes);
-    return size;
+    return bytes.length - 1;
   }
 
   void checkExistence(String filename) {

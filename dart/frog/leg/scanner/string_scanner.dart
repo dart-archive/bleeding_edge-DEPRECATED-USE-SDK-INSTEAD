@@ -15,7 +15,8 @@ class StringScanner extends ArrayBasedScanner<SourceString> {
 
   int peek() => charAt(byteOffset + 1);
 
-  int charAt(index) => (string.length > index) ? string.charCodeAt(index) : -1;
+  int charAt(index)
+      => (string.length > index) ? string.charCodeAt(index) : $EOF;
 
   SourceString asciiString(int start) {
     return new SubstringWrapper(string, start, byteOffset);

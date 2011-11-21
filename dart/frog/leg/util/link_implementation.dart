@@ -5,7 +5,12 @@
 // TODO(ahe): This class should not be generic.
 class LinkFactory {
   factory Link<T>(head, [Link tail]) {
-    return new LinkEntry<T>(head, (tail === null) ? new LinkTail<T>() : tail);
+    if (tail === null) {
+      // TODO(ahe): Remove below comment about Frog bug when it is fixed.
+      tail = new LinkTail<T>(); // Frog bug: T is in scope.
+    }
+    // TODO(ahe): Remove below comment about Frog bug when it is fixed.
+    return new LinkEntry<T>(head, tail); // Frog bug: T is in scope.
   }
 
   factory Link<T>.fromList(List list) {
@@ -36,7 +41,8 @@ class AbstractLink<T> implements Link<T> {
   const AbstractLink();
 
   Link<T> prepend(T element) {
-    return new Link<T>(element, this);
+    // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
+    return new LinkEntry<T>(element, this);
   }
 
   Iterator<T> iterator() => toList().iterator();

@@ -7,6 +7,7 @@
 #import('../util/util.dart');
 #source('array_based_scanner.dart');
 
+final int $EOF = 0;
 final int $TAB = 9;
 final int $LF = 10;
 final int $CR = 13;
