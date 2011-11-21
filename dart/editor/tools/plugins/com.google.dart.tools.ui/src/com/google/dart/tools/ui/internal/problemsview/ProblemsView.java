@@ -537,27 +537,27 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
           return val;
         }
 
+        val = compareProblemDescription(marker1, marker2);
+
+        if (val != 0) {
+          return val;
+        }
+
         val = compareResourceName(marker1, marker2);
 
         if (val != 0) {
           return val;
         }
 
-        val = compareLineNumber(marker1, marker2);
-
-        if (val != 0) {
-          return val;
-        }
-
-        return compareProblemDescription(marker1, marker2);
+        return compareLineNumber(marker1, marker2);
       } else if (sortColumn == 1) {
-        val = compareResourceName(marker1, marker2);
+        val = compareSeverity(marker1, marker2);
 
         if (val != 0) {
           return val;
         }
 
-        val = compareSeverity(marker1, marker2);
+        val = compareResourceName(marker1, marker2);
 
         if (val != 0) {
           return val;
@@ -736,6 +736,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     tableViewer.addSelectionChangedListener(goToMarkerAction);
 
     tableSorter = new TableSorter();
+    tableSorter.setColumn(1);
     tableViewer.setComparator(tableSorter);
     tableViewer.getTable().setSortDirection(SWT.UP);
 
@@ -748,14 +749,14 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     descriptionColumn.getColumn().setResizable(true);
     enableSorting(descriptionColumn.getColumn(), 0);
 
-    tableViewer.getTable().setSortColumn(descriptionColumn.getColumn());
-
     TableViewerColumn fileNameColumn = new TableViewerColumn(tableViewer, SWT.LEFT);
     fileNameColumn.setLabelProvider(new FileNameLabelProvider());
     fileNameColumn.getColumn().setText("Location");
     fileNameColumn.getColumn().setWidth(220);
     fileNameColumn.getColumn().setResizable(true);
     enableSorting(fileNameColumn.getColumn(), 1);
+
+    tableViewer.getTable().setSortColumn(fileNameColumn.getColumn());
 
 //    TableViewerColumn typeColumn = new TableViewerColumn(tableViewer, SWT.LEFT);
 //    typeColumn.setLabelProvider(new TypeLabelProvider());
