@@ -7923,7 +7923,7 @@ SsaCodeGenerator.prototype.visitBasicBlock = function(node) {
     }
     else if (!$notnull_bool(instruction.generateAtUseSite())) {
       this.addIndentation();
-      if (instruction.get$usedBy().isEmpty() || (instruction instanceof HLocal)) {
+      if (instruction.usedBy.isEmpty() || (instruction instanceof HLocal)) {
         this.visit(instruction);
       }
       else {
@@ -8315,11 +8315,10 @@ HInstructionList.prototype.addAfter = function(cursor, instruction) {
     cursor.next.previous = instruction;
     cursor.next = instruction;
   }
-  instruction.notifyAddedToBlock();
 }
 HInstructionList.prototype.addBefore = function(cursor, instruction) {
   if (cursor == null) {
-    $assert(this.isEmpty(), "isEmpty()", "nodes.dart", 209, 14);
+    $assert(this.isEmpty(), "isEmpty()", "nodes.dart", 208, 14);
     this.first = this.last = instruction;
   }
   else if (cursor === this.first) {
@@ -8333,11 +8332,10 @@ HInstructionList.prototype.addBefore = function(cursor, instruction) {
     cursor.previous.next = instruction;
     cursor.previous = instruction;
   }
-  instruction.notifyAddedToBlock();
 }
 HInstructionList.prototype.detach = function(instruction) {
-  $assert(this.contains(instruction), "contains(instruction)", "nodes.dart", 225, 12);
-  $assert(instruction.isInBasicBlock(), "instruction.isInBasicBlock()", "nodes.dart", 226, 12);
+  $assert(this.contains(instruction), "contains(instruction)", "nodes.dart", 223, 12);
+  $assert(instruction.isInBasicBlock(), "instruction.isInBasicBlock()", "nodes.dart", 224, 12);
   if (instruction.previous == null) {
     this.first = instruction.next;
   }
@@ -8352,9 +8350,8 @@ HInstructionList.prototype.detach = function(instruction) {
   }
 }
 HInstructionList.prototype.remove = function(instruction) {
-  $assert(instruction.get$usedBy().isEmpty(), "instruction.usedBy.isEmpty()", "nodes.dart", 240, 12);
+  $assert(instruction.usedBy.isEmpty(), "instruction.usedBy.isEmpty()", "nodes.dart", 238, 12);
   this.detach(instruction);
-  instruction.notifyRemovedFromBlock();
 }
 HInstructionList.prototype.contains = function(instruction) {
   var cursor = this.first;
@@ -8416,11 +8413,11 @@ HBasicBlock.prototype.isLoopHeader = function() {
   return this.loopInformation != null;
 }
 HBasicBlock.prototype.open = function() {
-  $assert(this.isNew(), "isNew()", "nodes.dart", 291, 12);
+  $assert(this.isNew(), "isNew()", "nodes.dart", 288, 12);
   this.status = 1/*HBasicBlock.STATUS_OPEN*/;
 }
 HBasicBlock.prototype.close = function(end) {
-  $assert(this.isOpen(), "isOpen()", "nodes.dart", 296, 12);
+  $assert(this.isOpen(), "isOpen()", "nodes.dart", 293, 12);
   this.addAfter(this.last, end);
   this.status = 2/*HBasicBlock.STATUS_CLOSED*/;
 }
@@ -8428,35 +8425,52 @@ HBasicBlock.prototype.accept = function(visitor) {
   return visitor.visitBasicBlock(this);
 }
 HBasicBlock.prototype.addAtEntry = function(instruction) {
-  $assert(this.isClosed(), "isClosed()", "nodes.dart", 315, 12);
+  $assert(this.isClosed(), "isClosed()", "nodes.dart", 312, 12);
   HInstructionList.prototype.addBefore.call(this, this.first, instruction);
+  instruction.notifyAddedToBlock(this);
 }
 HBasicBlock.prototype.addAtExit = function(instruction) {
-  $assert(this.isClosed(), "isClosed()", "nodes.dart", 320, 12);
-  $assert((this.last instanceof HControlFlow), "last is HControlFlow", "nodes.dart", 321, 12);
+  $assert(this.isClosed(), "isClosed()", "nodes.dart", 318, 12);
+  $assert((this.last instanceof HControlFlow), "last is HControlFlow", "nodes.dart", 319, 12);
   HInstructionList.prototype.addBefore.call(this, this.last, instruction);
+  instruction.notifyAddedToBlock(this);
 }
 HBasicBlock.prototype.moveAtExit = function(instruction) {
-  $assert(instruction.isInBasicBlock(), "instruction.isInBasicBlock()", "nodes.dart", 326, 12);
-  $assert(this.isClosed(), "isClosed()", "nodes.dart", 327, 12);
-  $assert((this.last instanceof HControlFlow), "last is HControlFlow", "nodes.dart", 328, 12);
+  $assert(instruction.isInBasicBlock(), "instruction.isInBasicBlock()", "nodes.dart", 325, 12);
+  $assert(this.isClosed(), "isClosed()", "nodes.dart", 326, 12);
+  $assert((this.last instanceof HControlFlow), "last is HControlFlow", "nodes.dart", 327, 12);
   instruction.next = this.last;
   instruction.previous = this.last.previous;
   this.last.previous.next = instruction;
   this.last.previous = instruction;
+  instruction.block = this;
+  $assert(this.isValid(), "isValid()", "nodes.dart", 333, 12);
 }
 HBasicBlock.prototype.add = function(instruction) {
-  $assert(!(instruction instanceof HControlFlow), "instruction is !HControlFlow", "nodes.dart", 336, 12);
+  $assert(!(instruction instanceof HControlFlow), "instruction is !HControlFlow", "nodes.dart", 337, 12);
   HInstructionList.prototype.addAfter.call(this, this.last, instruction);
+  instruction.notifyAddedToBlock(this);
 }
 HBasicBlock.prototype.addPhi = function(phi) {
   this.phis.addAfter(this.phis.last, phi);
+  phi.notifyAddedToBlock(this);
 }
 HBasicBlock.prototype.removePhi = function(phi) {
   this.phis.remove(phi);
+  phi.notifyRemovedFromBlock(this);
+}
+HBasicBlock.prototype.addAfter = function(cursor, instruction) {
+  $assert($notnull_bool(this.isOpen()) || $notnull_bool(this.isClosed()), "isOpen() || isClosed()", "nodes.dart", 353, 12);
+  HInstructionList.prototype.addAfter.call(this, cursor, instruction);
+  instruction.notifyAddedToBlock(this);
+}
+HBasicBlock.prototype.remove = function(instruction) {
+  $assert($notnull_bool(this.isOpen()) || $notnull_bool(this.isClosed()), "isOpen() || isClosed()", "nodes.dart", 359, 12);
+  HInstructionList.prototype.remove.call(this, instruction);
+  instruction.notifyRemovedFromBlock(this);
 }
 HBasicBlock.prototype.addSuccessor = function(block) {
-  $assert($notnull_bool(this.isClosed()) && ($notnull_bool(block.isNew()) || block.id < this.id), "isClosed() && (block.isNew() || block.id < id)", "nodes.dart", 350, 12);
+  $assert($notnull_bool(this.isClosed()) && ($notnull_bool(block.isNew()) || block.id < this.id), "isClosed() && (block.isNew() || block.id < id)", "nodes.dart", 366, 12);
   if (this.successors.isEmpty()) {
     this.successors = [block];
   }
@@ -8465,30 +8479,22 @@ HBasicBlock.prototype.addSuccessor = function(block) {
   }
   block.predecessors.add(this);
 }
-HBasicBlock.prototype.addAfter = function(cursor, instruction) {
-  $assert($notnull_bool(this.isOpen()) || $notnull_bool(this.isClosed()), "isOpen() || isClosed()", "nodes.dart", 360, 12);
-  HInstructionList.prototype.addAfter.call(this, cursor, instruction);
-}
 HBasicBlock.prototype.postProcessLoopHeader = function() {
   var $0;
-  $assert(this.isLoopHeader(), "isLoopHeader()", "nodes.dart", 365, 12);
+  $assert(this.isLoopHeader(), "isLoopHeader()", "nodes.dart", 376, 12);
   for (var i = 1, length = this.predecessors.length;
    i < length; i++) {
     this.loopInformation.addBackEdge((($0 = this.predecessors.$index(i)) && $0.is$HBasicBlock()));
   }
 }
-HBasicBlock.prototype.remove = function(instruction) {
-  $assert($notnull_bool(this.isOpen()) || $notnull_bool(this.isClosed()), "isOpen() || isClosed()", "nodes.dart", 374, 12);
-  HInstructionList.prototype.remove.call(this, instruction);
-}
 HBasicBlock.prototype.rewrite = function(from, to) {
-  var $list = from.get$usedBy();
+  var $list = from.usedBy;
   for (var $i = 0;$i < $list.length; $i++) {
     var use = $list.$index($i);
     HBasicBlock.rewriteInput(use, from, to);
   }
-  to.get$usedBy().addAll(from.get$usedBy());
-  from._usedBy = [];
+  to.usedBy.addAll(from.usedBy);
+  from.usedBy.clear();
 }
 HBasicBlock.rewriteInput = function(instruction, from, to) {
   var inputs = instruction.inputs;
@@ -8501,9 +8507,9 @@ HBasicBlock.prototype.isExitBlock = function() {
   return this.first === this.last && (this.first instanceof HExit);
 }
 HBasicBlock.prototype.addDominatedBlock = function(block) {
-  $assert(this.isClosed(), "isClosed()", "nodes.dart", 404, 12);
-  $assert(this.id != null && block.id != null, "id !== null && block.id !== null", "nodes.dart", 405, 12);
-  $assert(this.dominatedBlocks.indexOf(block) < 0, "dominatedBlocks.indexOf(block) < 0", "nodes.dart", 406, 12);
+  $assert(this.isClosed(), "isClosed()", "nodes.dart", 410, 12);
+  $assert(this.id != null && block.id != null, "id !== null && block.id !== null", "nodes.dart", 411, 12);
+  $assert(this.dominatedBlocks.indexOf(block) < 0, "dominatedBlocks.indexOf(block) < 0", "nodes.dart", 412, 12);
   var index = this.dominatedBlocks.length;
   while (index > 0 && this.dominatedBlocks.$index(index - 1).get$id() > block.id) {
     index--;
@@ -8514,25 +8520,25 @@ HBasicBlock.prototype.addDominatedBlock = function(block) {
   else {
     this.dominatedBlocks.insertRange(index, 1, block);
   }
-  $assert(block.dominator == null, "block.dominator === null", "nodes.dart", 419, 12);
+  $assert(block.dominator == null, "block.dominator === null", "nodes.dart", 425, 12);
   block.dominator = this;
 }
 HBasicBlock.prototype.removeDominatedBlock = function(block) {
-  $assert(this.isClosed(), "isClosed()", "nodes.dart", 424, 12);
-  $assert(this.id != null && block.id != null, "id !== null && block.id !== null", "nodes.dart", 425, 12);
+  $assert(this.isClosed(), "isClosed()", "nodes.dart", 430, 12);
+  $assert(this.id != null && block.id != null, "id !== null && block.id !== null", "nodes.dart", 431, 12);
   var index = this.dominatedBlocks.indexOf(block);
-  $assert(index >= 0, "index >= 0", "nodes.dart", 427, 12);
+  $assert(index >= 0, "index >= 0", "nodes.dart", 433, 12);
   if (index == this.dominatedBlocks.length - 1) {
     this.dominatedBlocks.removeLast();
   }
   else {
     this.dominatedBlocks.removeRange(index, 1);
   }
-  $assert(block.dominator === this, "block.dominator === this", "nodes.dart", 433, 12);
+  $assert(block.dominator === this, "block.dominator === this", "nodes.dart", 439, 12);
   block.dominator = null;
 }
 HBasicBlock.prototype.assignCommonDominator = function(predecessor) {
-  $assert(this.isClosed(), "isClosed()", "nodes.dart", 438, 12);
+  $assert(this.isClosed(), "isClosed()", "nodes.dart", 444, 12);
   if (this.dominator == null) {
     predecessor.addDominatedBlock(this);
   }
@@ -8546,7 +8552,7 @@ HBasicBlock.prototype.assignCommonDominator = function(predecessor) {
       else {
         second = second.dominator;
       }
-      $assert(first != null && second != null, "first !== null && second !== null", "nodes.dart", 455, 16);
+      $assert(first != null && second != null, "first !== null && second !== null", "nodes.dart", 461, 16);
     }
     if (this.dominator !== first) {
       this.dominator.removeDominatedBlock(this);
@@ -8561,6 +8567,12 @@ HBasicBlock.prototype.forEachPhi = function(f) {
     f(current);
     current = (($0 = current.next) && $0.is$HPhi());
   }
+}
+HBasicBlock.prototype.isValid = function() {
+  $assert(this.isClosed(), "isClosed()", "nodes.dart", 479, 12);
+  var validator = new HValidator();
+  validator.visitBasicBlock(this);
+  return validator.isValid;
 }
 HBasicBlock.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
@@ -8616,19 +8628,19 @@ HLoopInformation.prototype.getLastBackEdge = function() {
 }
 // ********** Code for HInstruction **************
 function HInstruction(inputs) {
-  this._usedBy = null
   this.previous = null
   this.next = null
   this.flags = 0
   this.inputs = inputs;
+  this.id = $globals.HInstruction_idCounter++;
+  this.usedBy = [];
   // Initializers done
   this.prepareGvn();
-  this.id = $globals.HInstruction_idCounter++;
 }
 HInstruction.prototype.is$HInstruction = function(){return this;};
 HInstruction.prototype.get$id = function() { return this.id; };
-HInstruction.prototype.set$id = function(value) { return this.id = value; };
 HInstruction.prototype.get$inputs = function() { return this.inputs; };
+HInstruction.prototype.get$usedBy = function() { return this.usedBy; };
 HInstruction.prototype.get$previous = function() { return this.previous; };
 HInstruction.prototype.set$previous = function(value) { return this.previous = value; };
 HInstruction.prototype.getFlag = function(position) {
@@ -8667,15 +8679,11 @@ HInstruction.prototype.useGvn = function() {
 HInstruction.prototype.setUseGvn = function() {
   this.setFlag(3/*HInstruction.FLAG_USE_GVN*/);
 }
-HInstruction.prototype.get$usedBy = function() {
-  if (this._usedBy == null) return const$15/*const []*/;
-  return this._usedBy;
-}
 HInstruction.prototype.isInBasicBlock = function() {
-  return this._usedBy != null;
+  return this.block != null;
 }
 HInstruction.prototype.equals = function(other) {
-  $assert($notnull_bool(this.useGvn()) && $notnull_bool(other.useGvn()), "useGvn() && other.useGvn()", "nodes.dart", 597, 12);
+  $assert($notnull_bool(this.useGvn()) && $notnull_bool(other.useGvn()), "useGvn() && other.useGvn()", "nodes.dart", 598, 12);
   if (!$notnull_bool(this.typeEquals(other))) return false;
   if (this.flags != other.flags) return false;
   var inputsLength = this.inputs.length;
@@ -8693,20 +8701,22 @@ HInstruction.prototype.typeEquals = function(other) {
 HInstruction.prototype.dataEquals = function(other) {
   return false;
 }
-HInstruction.prototype.notifyAddedToBlock = function() {
-  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 620, 12);
-  this._usedBy = [];
+HInstruction.prototype.notifyAddedToBlock = function(block) {
+  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 621, 12);
+  $assert(this.block == null, "this.block === null", "nodes.dart", 622, 12);
   for (var i = 0;
    i < this.inputs.length; i++) {
-    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 624, 14);
+    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 625, 14);
     this.inputs.$index(i).get$usedBy().add$1(this);
   }
-  $assert(this.isValid(), "isValid()", "nodes.dart", 627, 12);
+  this.block = block;
+  $assert(this.isValid(), "isValid()", "nodes.dart", 629, 12);
 }
-HInstruction.prototype.notifyRemovedFromBlock = function() {
+HInstruction.prototype.notifyRemovedFromBlock = function(block) {
   var $0;
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 631, 12);
-  $assert(this.get$usedBy().isEmpty(), "usedBy.isEmpty()", "nodes.dart", 632, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 633, 12);
+  $assert(this.usedBy.isEmpty(), "usedBy.isEmpty()", "nodes.dart", 634, 12);
+  $assert(this.block === block, "this.block === block", "nodes.dart", 635, 12);
   for (var i = 0;
    i < this.inputs.length; i++) {
     var inputUsedBy = (($0 = this.inputs.$index(i).get$usedBy()) && $0.is$List());
@@ -8719,8 +8729,8 @@ HInstruction.prototype.notifyRemovedFromBlock = function() {
       }
     }
   }
-  this._usedBy = null;
-  $assert(this.isValid(), "isValid()", "nodes.dart", 646, 12);
+  this.block = null;
+  $assert(this.isValid(), "isValid()", "nodes.dart", 649, 12);
 }
 HInstruction.prototype.isLiteralNumber = function() {
   return false;
@@ -8730,11 +8740,15 @@ HInstruction.prototype.isLiteralString = function() {
 }
 HInstruction.prototype.isValid = function() {
   var validator = new HValidator();
+  validator.currentBlock = this.block;
   validator.visitInstruction(this);
   return validator.isValid;
 }
 HInstruction.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
+};
+HInstruction.prototype.block$0 = function() {
+  return this.block();
 };
 HInstruction.prototype.isInBasicBlock$0 = function() {
   return this.isInBasicBlock();
@@ -9126,9 +9140,9 @@ $inherits(HPhi, HInstruction);
 HPhi.prototype.is$HPhi = function(){return this;};
 HPhi.prototype.get$element = function() { return this.element; };
 HPhi.prototype.addInput = function(input) {
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 828, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 832, 12);
   this.inputs.add(input);
-  input.get$usedBy().add(this);
+  input.usedBy.add(this);
 }
 HPhi.prototype.toString = function() {
   return 'phi';
@@ -9335,7 +9349,7 @@ function SsaDeadCodeEliminator() {
 }
 $inherits(SsaDeadCodeEliminator, HGraphVisitor);
 SsaDeadCodeEliminator.isDeadCode = function(instruction) {
-  return !$notnull_bool(instruction.hasSideEffects()) && instruction.get$usedBy().isEmpty();
+  return !$notnull_bool(instruction.hasSideEffects()) && instruction.usedBy.isEmpty();
 }
 SsaDeadCodeEliminator.prototype.visitGraph = function(graph) {
   this.visitPostDominatorTree(graph);
@@ -9393,7 +9407,7 @@ SsaGlobalValueNumberer.prototype.moveLoopInvariantCodeFromBlock = function(block
       var inputs = instruction.inputs;
       for (var i = 0, length = inputs.length;
        i < length; i++) {
-        if ($notnull_bool(this.isInputDefinedAfterDominator((($0 = inputs.$index(i)) && $0.is$HInstruction()), block, preheader))) {
+        if ($notnull_bool(this.isInputDefinedAfterDominator((($0 = inputs.$index(i)) && $0.is$HInstruction()), preheader))) {
           loopInvariantInputs = false;
           break;
         }
@@ -9406,18 +9420,8 @@ SsaGlobalValueNumberer.prototype.moveLoopInvariantCodeFromBlock = function(block
     instruction = next;
   }
 }
-SsaGlobalValueNumberer.prototype.isInputDefinedAfterDominator = function(input, block, dominator) {
-  var current = block;
-  while (current !== dominator) {
-    if ((input instanceof HPhi)) {
-      if ($notnull_bool(current.phis.contains(input))) return true;
-    }
-    else {
-      if ($notnull_bool(current.contains(input))) return true;
-    }
-    current = current.dominator;
-  }
-  return false;
+SsaGlobalValueNumberer.prototype.isInputDefinedAfterDominator = function(input, dominator) {
+  return input.block.id > dominator.id;
 }
 SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
   var $0;
@@ -9425,13 +9429,13 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
   while (instruction != null) {
     var flags = instruction.getChangesFlags();
     if (flags != 0) {
-      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 195, 16);
+      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 183, 16);
       values.kill(flags);
     }
     else if ($notnull_bool(instruction.useGvn())) {
       var other = values.lookup(instruction);
       if (other != null) {
-        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 200, 18);
+        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 188, 18);
         block.rewrite(instruction, other);
         block.remove(instruction);
       }
@@ -9446,7 +9450,7 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
    i < length; i++) {
     var dominated = (($0 = dominatedBlocks.$index(i)) && $0.is$HBasicBlock());
     var successorValues = (i == length - 1) ? values : values.copy();
-    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 220, 14);
+    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 208, 14);
     if (!$notnull_bool(successorValues.isEmpty()) && block.id + 1 < dominated.id) {
       this.visited.clear();
       var changesFlags = this.getChangesFlagsForDominatedBlock(block, dominated);
@@ -9472,7 +9476,7 @@ SsaGlobalValueNumberer.prototype.computeChangesFlags = function(graph) {
       changesFlags |= instruction.getChangesFlags();
       instruction = instruction.next;
     }
-    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 252, 14);
+    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 240, 14);
     this.blockChangesFlags.$setindex(id, changesFlags);
     if ($notnull_bool(block.isLoopHeader())) {
       ($0 = this.loopChangesFlags).$setindex(id, $0.$index(id) | changesFlags);
@@ -9542,9 +9546,9 @@ SsaPhiEliminator.prototype.addStore = function(predecessor, dominator, local, va
   else {
     var current = predecessor;
     do {
-      if ($notnull_bool(current.contains(value))) {
+      if (value.block === current) {
         current.addAfter(value, store);
-        if (value.get$usedBy().length == 2) {
+        if (value.usedBy.length == 2) {
           value.setGenerateAtUseSite();
           ;
         }
@@ -9645,7 +9649,7 @@ HTracer.prototype.addInstructions = function(stringifier, list) {
   for (var instruction = list.first;
    instruction != null; instruction = instruction.next) {
     var bci = 0;
-    var uses = instruction.get$usedBy().length;
+    var uses = instruction.usedBy.length;
     this.addIndent();
     var temporaryId = stringifier.temporaryId(instruction);
     var instructionString = $assert_String(stringifier.visit(instruction));
@@ -9862,6 +9866,7 @@ HValidator.prototype.markInvalid = function(reason) {
   this.isValid = false;
 }
 HValidator.prototype.visitBasicBlock = function(block) {
+  this.currentBlock = block;
   if (!$notnull_bool(this.isValid)) return;
   if (block.first == null || block.last == null) {
     this.markInvalid("empty block");
@@ -9968,7 +9973,15 @@ HValidator.prototype.visitInstruction = function(instruction) {
     })
     );
   }
-  this.isValid = $notnull_bool(this.isValid) && $notnull_bool(hasCorrectInputs(instruction)) && $notnull_bool(hasCorrectUses(instruction));
+  if (instruction.block !== this.currentBlock) {
+    this.markInvalid("Instruction in wrong block");
+  }
+  if (!$notnull_bool(hasCorrectInputs(instruction))) {
+    this.markInvalid("Incorrect inputs");
+  }
+  if (!$notnull_bool(hasCorrectUses(instruction))) {
+    this.markInvalid("Incorrect uses");
+  }
 }
 HValidator.prototype.get$visitInstruction = function() {
   return HValidator.prototype.visitInstruction.bind(this);

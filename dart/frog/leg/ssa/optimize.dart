@@ -153,7 +153,7 @@ class SsaGlobalValueNumberer {
         bool loopInvariantInputs = true;
         List<HInstruction> inputs = instruction.inputs;
         for (int i = 0, length = inputs.length; i < length; i++) {
-          if (isInputDefinedAfterDominator(inputs[i], block, preheader)) {
+          if (isInputDefinedAfterDominator(inputs[i], preheader)) {
             loopInvariantInputs = false;
             break;
           }
@@ -170,21 +170,9 @@ class SsaGlobalValueNumberer {
     }
   }
 
-  // TODO(kasperl): Once our instructions know their basic blocks we
-  // can do a simple block id check instead of this.
   bool isInputDefinedAfterDominator(HInstruction input,
-                                    HBasicBlock block,
                                     HBasicBlock dominator) {
-    HBasicBlock current = block;
-    while (current !== dominator) {
-      if (input is HPhi) {
-        if (current.phis.contains(input)) return true;
-      } else {
-        if (current.contains(input)) return true;
-      }
-      current = current.dominator;
-    }
-    return false;
+    return input.block.id > dominator.id;
   }
 
   void visitBasicBlock(HBasicBlock block, ValueSet values) {

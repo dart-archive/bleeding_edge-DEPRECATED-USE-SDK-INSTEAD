@@ -19,6 +19,7 @@ class HValidator extends HInstructionVisitor {
   // Note that during construction of the Ssa graph the basic blocks are
   // not required to be valid yet.
   void visitBasicBlock(HBasicBlock block) {
+    currentBlock = block;
     if (!isValid) return;  // Don't need to continue if we are already invalid.
 
     // Test that the last instruction is a branching instruction and that the
@@ -139,7 +140,14 @@ class HValidator extends HInstructionVisitor {
       });
     }
 
-    isValid = isValid &&
-              hasCorrectInputs(instruction) && hasCorrectUses(instruction);
+    if (instruction.block !== currentBlock) {
+      markInvalid("Instruction in wrong block");
+    }
+    if (!hasCorrectInputs(instruction)) {
+      markInvalid("Incorrect inputs");
+    }
+    if (!hasCorrectUses(instruction)) {
+      markInvalid("Incorrect uses");
+    }
   }
 }

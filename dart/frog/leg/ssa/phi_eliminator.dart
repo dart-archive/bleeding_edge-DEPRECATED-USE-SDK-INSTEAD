@@ -27,7 +27,7 @@ class SsaPhiEliminator extends HGraphVisitor {
     } else {
       HBasicBlock current = predecessor;
       do {
-        if (current.contains(value)) {
+        if (value.block === current) {
           current.addAfter(value, store);
           if (value.usedBy.length == 2) { // the store and the phi.
             value.setGenerateAtUseSite();;

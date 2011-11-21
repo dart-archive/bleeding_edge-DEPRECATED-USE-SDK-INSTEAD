@@ -201,7 +201,6 @@ class HInstructionList {
       cursor.next.previous = instruction;
       cursor.next = instruction;
     }
-    instruction.notifyAddedToBlock();
   }
 
   void addBefore(HInstruction cursor, HInstruction instruction) {
@@ -218,7 +217,6 @@ class HInstructionList {
       cursor.previous.next = instruction;
       cursor.previous = instruction;
     }
-    instruction.notifyAddedToBlock();
   }
 
   void detach(HInstruction instruction) {
@@ -239,7 +237,6 @@ class HInstructionList {
   void remove(HInstruction instruction) {
     assert(instruction.usedBy.isEmpty());
     detach(instruction);
-    instruction.notifyRemovedFromBlock();
   }
 
   /** Linear search for [instruction]. */
@@ -314,12 +311,14 @@ class HBasicBlock extends HInstructionList {
   void addAtEntry(HInstruction instruction) {
     assert(isClosed());
     super.addBefore(first, instruction);
+    instruction.notifyAddedToBlock(this);
   }
 
   void addAtExit(HInstruction instruction) {
     assert(isClosed());
     assert(last is HControlFlow);
     super.addBefore(last, instruction);
+    instruction.notifyAddedToBlock(this);
   }
 
   void moveAtExit(HInstruction instruction) {
@@ -330,19 +329,36 @@ class HBasicBlock extends HInstructionList {
     instruction.previous = last.previous;
     last.previous.next = instruction;
     last.previous = instruction;
+    instruction.block = this;
+    assert(isValid());
   }
 
   void add(HInstruction instruction) {
     assert(instruction is !HControlFlow);
     super.addAfter(last, instruction);
+    instruction.notifyAddedToBlock(this);
   }
 
   void addPhi(HPhi phi) {
     phis.addAfter(phis.last, phi);
+    phi.notifyAddedToBlock(this);
   }
 
   void removePhi(HPhi phi) {
     phis.remove(phi);
+    phi.notifyRemovedFromBlock(this);
+  }
+
+  void addAfter(HInstruction cursor, HInstruction instruction) {
+    assert(isOpen() || isClosed());
+    super.addAfter(cursor, instruction);
+    instruction.notifyAddedToBlock(this);
+  }
+
+  void remove(HInstruction instruction) {
+    assert(isOpen() || isClosed());
+    super.remove(instruction);
+    instruction.notifyRemovedFromBlock(this);
   }
 
   void addSuccessor(HBasicBlock block) {
@@ -356,11 +372,6 @@ class HBasicBlock extends HInstructionList {
     block.predecessors.add(this);
   }
 
-  void addAfter(HInstruction cursor, HInstruction instruction) {
-    assert(isOpen() || isClosed());
-    super.addAfter(cursor, instruction);
-  }
-
   void postProcessLoopHeader() {
     assert(isLoopHeader());
     // Only the first entry into the loop is from outside the
@@ -368,11 +379,6 @@ class HBasicBlock extends HInstructionList {
     for (int i = 1, length = predecessors.length; i < length; i++) {
       loopInformation.addBackEdge(predecessors[i]);
     }
-  }
-
-  void remove(HInstruction instruction) {
-    assert(isOpen() || isClosed());
-    super.remove(instruction);
   }
 
   /**
@@ -384,7 +390,7 @@ class HBasicBlock extends HInstructionList {
       rewriteInput(use, from, to);
     }
     to.usedBy.addAll(from.usedBy);
-    from._usedBy = [];
+    from.usedBy.clear();
   }
 
   static void rewriteInput(HInstruction instruction,
@@ -524,10 +530,11 @@ class HLoopInformation {
 }
 
 class HInstruction {
-  int id;
+  final int id;
   final List<HInstruction> inputs;
-  List<HInstruction> _usedBy = null;  // If [null] then the instruction is not
-                                      // in a basic block.
+  final List<HInstruction> usedBy;
+
+  HBasicBlock block;
   HInstruction previous = null;
   HInstruction next = null;
   int flags = 0;
@@ -545,9 +552,8 @@ class HInstruction {
 
   static int idCounter;
 
-  HInstruction(this.inputs) {
+  HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[] {
     prepareGvn();
-    id = idCounter++;
   }
 
   bool getFlag(int position) => (flags & (1 << position)) != 0;
@@ -569,12 +575,7 @@ class HInstruction {
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
 
-  List<HInstruction> get usedBy() {
-    if (_usedBy == null) return const <HInstruction>[];
-    return _usedBy;
-  }
-
-  bool isInBasicBlock() => _usedBy !== null;
+  bool isInBasicBlock() => block !== null;
 
   String inputsToString() {
     void addAsCommaSeparated(StringBuffer buffer, List<HInstruction> list) {
@@ -616,20 +617,22 @@ class HInstruction {
 
   abstract accept(HVisitor visitor);
 
-  void notifyAddedToBlock() {
+  void notifyAddedToBlock(HBasicBlock block) {
     assert(!isInBasicBlock());
-    _usedBy = <HInstruction>[];
+    assert(this.block === null);
     // Add [this] to the inputs' uses.
     for (int i = 0; i < inputs.length; i++) {
       assert(inputs[i].isInBasicBlock());
       inputs[i].usedBy.add(this);
     }
+    this.block = block;
     assert(isValid());
   }
 
-  void notifyRemovedFromBlock() {
+  void notifyRemovedFromBlock(HBasicBlock block) {
     assert(isInBasicBlock());
     assert(usedBy.isEmpty());
+    assert(this.block === block);
 
     // Remove [this] from the inputs' uses.
     for (int i = 0; i < inputs.length; i++) {
@@ -642,7 +645,7 @@ class HInstruction {
         }
       }
     }
-    _usedBy = null;
+    this.block = null;
     assert(isValid());
   }
 
@@ -651,6 +654,7 @@ class HInstruction {
 
   bool isValid() {
     HValidator validator = new HValidator();
+    validator.currentBlock = block;
     validator.visitInstruction(this);
     return validator.isValid;
   }
