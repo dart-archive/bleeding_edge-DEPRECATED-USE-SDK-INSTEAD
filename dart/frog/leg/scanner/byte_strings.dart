@@ -82,17 +82,8 @@ class ByteString {
     return result;
   }
 
-  bool equals(Object other) {
-    if (other is !ByteString) return false;
-    ByteString o = other;
-    if (charset() != o.charset()) return false;
-    if (length != o.length) return false;
-    for (int i = 0; i < length; i++) {
-      if (bytes[offset + i] != o.bytes[o.offset + i]) {
-        return false;
-      }
-    }
-    return true;
+  bool operator ==(other) {
+    throw "should be overridden in subclass";
   }
 
   int hashCode() {

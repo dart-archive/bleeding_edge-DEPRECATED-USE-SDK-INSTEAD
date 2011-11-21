@@ -66,6 +66,10 @@ class ResolverVisitor implements Visitor<Element> {
     return node.accept(this);
   }
 
+  Element visitClassNode(ClassNode node) {
+    compiler.cancel("shouldn't be called");
+  }
+
   visitIn(Node node, Scope scope) {
     context = scope;
     Element element = visit(node);
@@ -220,7 +224,7 @@ class ResolverVisitor implements Visitor<Element> {
   }
 }
 
-class ClassResolverVisitor implements Visitor<Type> {
+class ClassResolverVisitor extends AbstractVisitor<Type> {
   Compiler compiler;
   Scope context;
 
@@ -261,9 +265,13 @@ class ClassResolverVisitor implements Visitor<Type> {
     if (node === null) return null;
     return node.accept(this);
   }
+
+  visitNode(Node node) {
+    compiler.cancel('internal error');
+  }
 }
 
-class VariableDefinitionsVisitor implements Visitor<SourceString> {
+class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
 
@@ -331,7 +339,7 @@ class TopScope extends Scope {
   TopScope(Universe this.universe) : super.top();
   Element lookup(SourceString name) => universe.find(name);
 
-  void add(Element element) {
+  Element add(Element element) {
     throw "Cannot add an element in the top scope";
   }
 }

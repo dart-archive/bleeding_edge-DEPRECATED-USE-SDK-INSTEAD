@@ -2524,7 +2524,6 @@ LinkFactory.Link$factory = function(head, tail) {
 function AbstractLink() {
   // Initializers done
 }
-AbstractLink.prototype.is$Link = function(){return this;};
 AbstractLink.prototype.is$Link$Element = function(){return this;};
 AbstractLink.prototype.is$Link$Node = function(){return this;};
 AbstractLink.prototype.is$Link$T = function(){return this;};
@@ -2545,12 +2544,11 @@ AbstractLink.prototype.iterator = function() {
   return (($0 = this.toList().iterator$0()) && $0.is$Iterator$T());
 }
 AbstractLink.prototype.printOn = function(buffer, separatedBy) {
-  var $0;
   if ($notnull_bool(this.isEmpty())) return;
   buffer.add(this.get$head() == null ? 'null' : this.get$head());
   if (separatedBy == null) separatedBy = '';
-  for (var link = (($0 = this.get$tail()) && $0.is$Link());
-   !$notnull_bool(link.isEmpty()); link = (($0 = link.get$tail()) && $0.is$Link())) {
+  for (var link = this.get$tail();
+   !$notnull_bool(link.isEmpty()); link = link.get$tail()) {
     buffer.add(separatedBy);
     buffer.add(link.get$head() == null ? 'null' : link.get$head());
   }
@@ -2579,7 +2577,6 @@ function AbstractLink$Dynamic() {
   // Initializers done
 }
 $inherits(AbstractLink$Dynamic, AbstractLink);
-AbstractLink$Dynamic.prototype.is$Link = function(){return this;};
 AbstractLink$Dynamic.prototype.is$Link$Element = function(){return this;};
 AbstractLink$Dynamic.prototype.is$Link$Node = function(){return this;};
 AbstractLink$Dynamic.prototype.is$Link$T = function(){return this;};
@@ -2591,7 +2588,6 @@ function AbstractLink$T() {
   // Initializers done
 }
 $inherits(AbstractLink$T, AbstractLink);
-AbstractLink$T.prototype.is$Link = function(){return this;};
 AbstractLink$T.prototype.is$Link$Element = function(){return this;};
 AbstractLink$T.prototype.is$Link$Node = function(){return this;};
 AbstractLink$T.prototype.is$Link$T = function(){return this;};
@@ -2608,7 +2604,6 @@ function LinkTail() {
   AbstractLink$T.call(this);
 }
 $inherits(LinkTail, AbstractLink$T);
-LinkTail.prototype.is$Link = function(){return this;};
 LinkTail.prototype.is$Link$Element = function(){return this;};
 LinkTail.prototype.is$Link$Node = function(){return this;};
 LinkTail.prototype.is$Link$T = function(){return this;};
@@ -2636,7 +2631,6 @@ function LinkTail$Dynamic() {
   AbstractLink$Dynamic.call(this);
 }
 $inherits(LinkTail$Dynamic, LinkTail);
-LinkTail$Dynamic.prototype.is$Link = function(){return this;};
 LinkTail$Dynamic.prototype.is$Link$Element = function(){return this;};
 LinkTail$Dynamic.prototype.is$Link$Node = function(){return this;};
 LinkTail$Dynamic.prototype.is$Link$T = function(){return this;};
@@ -2646,7 +2640,6 @@ LinkTail$Dynamic.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$Element **************
 function LinkTail$Element() {}
 $inherits(LinkTail$Element, LinkTail);
-LinkTail$Element.prototype.is$Link = function(){return this;};
 LinkTail$Element.prototype.is$Link$Element = function(){return this;};
 LinkTail$Element.prototype.is$Link$Node = false;
 LinkTail$Element.prototype.is$Link$T = function(){return this;};
@@ -2656,7 +2649,6 @@ LinkTail$Element.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$Node **************
 function LinkTail$Node() {}
 $inherits(LinkTail$Node, LinkTail);
-LinkTail$Node.prototype.is$Link = function(){return this;};
 LinkTail$Node.prototype.is$Link$Element = false;
 LinkTail$Node.prototype.is$Link$Node = function(){return this;};
 LinkTail$Node.prototype.is$Link$T = function(){return this;};
@@ -2666,7 +2658,6 @@ LinkTail$Node.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$T **************
 function LinkTail$T() {}
 $inherits(LinkTail$T, LinkTail);
-LinkTail$T.prototype.is$Link = function(){return this;};
 LinkTail$T.prototype.is$Link$Element = function(){return this;};
 LinkTail$T.prototype.is$Link$Node = function(){return this;};
 LinkTail$T.prototype.is$Link$T = function(){return this;};
@@ -2676,7 +2667,6 @@ LinkTail$T.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$Token **************
 function LinkTail$Token() {}
 $inherits(LinkTail$Token, LinkTail);
-LinkTail$Token.prototype.is$Link = function(){return this;};
 LinkTail$Token.prototype.is$Link$Element = false;
 LinkTail$Token.prototype.is$Link$Node = false;
 LinkTail$Token.prototype.is$Link$T = function(){return this;};
@@ -2686,7 +2676,6 @@ LinkTail$Token.prototype.is$Iterable = function(){return this;};
 // ********** Code for LinkTail$Type **************
 function LinkTail$Type() {}
 $inherits(LinkTail$Type, LinkTail);
-LinkTail$Type.prototype.is$Link = function(){return this;};
 LinkTail$Type.prototype.is$Link$Element = false;
 LinkTail$Type.prototype.is$Link$Node = false;
 LinkTail$Type.prototype.is$Link$T = function(){return this;};
@@ -2709,10 +2698,9 @@ LinkEntry.prototype.isEmpty = function() {
   return false;
 }
 LinkEntry.prototype.toList = function() {
-  var $0;
   var list = new ListFactory();
   for (var link = this;
-   !$notnull_bool(link.isEmpty()); link = (($0 = link.get$tail()) && $0.is$Link$T())) {
+   !$notnull_bool(link.isEmpty()); link = link.get$tail()) {
     list.addLast(link.get$head());
   }
   return list;
@@ -7014,6 +7002,19 @@ Unparser.prototype.visit = function(node) {
 Unparser.prototype.visitBlock = function(node) {
   this.visit(node.statements);
 }
+Unparser.prototype.visitClassNode = function(node) {
+  node.beginToken.get$value().printOn$1(this.sb);
+  this.sb.add(' ');
+  this.visit(node.name);
+  this.sb.add(' ');
+  if (node.extendsKeyword != null) {
+    node.extendsKeyword.get$value().printOn$1(this.sb);
+    this.sb.add(' ');
+  }
+  this.visit(node.interfaces);
+  this.sb.add('{\n');
+  this.sb.add('}\n');
+}
 Unparser.prototype.visitExpressionStatement = function(node) {
   var $0;
   this.visit(node.expression);
@@ -7140,6 +7141,108 @@ Unparser.prototype.add$1 = function($0) {
 Unparser.prototype.visit$1 = function($0) {
   return this.visit(($0 && $0.is$Node()));
 };
+// ********** Code for AbstractVisitor **************
+function AbstractVisitor() {
+  // Initializers done
+}
+AbstractVisitor.prototype.is$Visitor = function(){return this;};
+AbstractVisitor.prototype.visitClassNode = function(node) {
+  return this.visitNode(node);
+}
+AbstractVisitor.prototype.visitExpression = function(node) {
+  return this.visitNode(node);
+}
+AbstractVisitor.prototype.visitIdentifier = function(node) {
+  return this.visitExpression(node);
+}
+AbstractVisitor.prototype.visitLiteral = function(node) {
+  return this.visitExpression(node);
+}
+AbstractVisitor.prototype.visitSend = function(node) {
+  return this.visitExpression(node);
+}
+AbstractVisitor.prototype.visitStatement = function(node) {
+  return this.visitNode(node);
+}
+AbstractVisitor.prototype.visitTypeAnnotation = function(node) {
+  return this.visitNode(node);
+}
+// ********** Code for AbstractVisitor$SourceString **************
+function AbstractVisitor$SourceString() {
+  // Initializers done
+}
+$inherits(AbstractVisitor$SourceString, AbstractVisitor);
+AbstractVisitor$SourceString.prototype.is$Visitor = function(){return this;};
+// ********** Code for AbstractVisitor$Type **************
+function AbstractVisitor$Type() {
+  // Initializers done
+}
+$inherits(AbstractVisitor$Type, AbstractVisitor);
+AbstractVisitor$Type.prototype.is$Visitor = function(){return this;};
+AbstractVisitor$Type.prototype.visitBlock = function(node) {
+  return this.visitStatement(node);
+}
+AbstractVisitor$Type.prototype.visitExpression = function(node) {
+  var $0;
+  return (($0 = this.visitNode(node)) && $0.is$Type());
+}
+AbstractVisitor$Type.prototype.visitExpressionStatement = function(node) {
+  return this.visitStatement(node);
+}
+AbstractVisitor$Type.prototype.visitFor = function(node) {
+  return this.visitStatement(node);
+}
+AbstractVisitor$Type.prototype.visitFunctionExpression = function(node) {
+  return this.visitExpression(node);
+}
+AbstractVisitor$Type.prototype.visitIdentifier = function(node) {
+  return this.visitExpression(node);
+}
+AbstractVisitor$Type.prototype.visitIf = function(node) {
+  return this.visitStatement(node);
+}
+AbstractVisitor$Type.prototype.visitLiteral = function(node) {
+  return this.visitExpression(node);
+}
+AbstractVisitor$Type.prototype.visitLiteralBool = function(node) {
+  return this.visitLiteral(node);
+}
+AbstractVisitor$Type.prototype.visitLiteralDouble = function(node) {
+  return this.visitLiteral(node);
+}
+AbstractVisitor$Type.prototype.visitLiteralInt = function(node) {
+  return this.visitLiteral(node);
+}
+AbstractVisitor$Type.prototype.visitLiteralString = function(node) {
+  return this.visitLiteral(node);
+}
+AbstractVisitor$Type.prototype.visitNodeList = function(node) {
+  var $0;
+  return (($0 = this.visitNode(node)) && $0.is$Type());
+}
+AbstractVisitor$Type.prototype.visitOperator = function(node) {
+  var $0;
+  return (($0 = this.visitIdentifier(node)) && $0.is$Type());
+}
+AbstractVisitor$Type.prototype.visitReturn = function(node) {
+  return this.visitStatement(node);
+}
+AbstractVisitor$Type.prototype.visitSend = function(node) {
+  return this.visitExpression(node);
+}
+AbstractVisitor$Type.prototype.visitSendSet = function(node) {
+  return this.visitSend(node);
+}
+AbstractVisitor$Type.prototype.visitStatement = function(node) {
+  var $0;
+  return (($0 = this.visitNode(node)) && $0.is$Type());
+}
+AbstractVisitor$Type.prototype.visitThrow = function(node) {
+  return this.visitStatement(node);
+}
+AbstractVisitor$Type.prototype.visitVariableDefinitions = function(node) {
+  return this.visitStatement(node);
+}
 // ********** Code for top level **************
 function firstBeginToken(first, second) {
   var $0;
@@ -7700,7 +7803,7 @@ SsaCodeGeneratorTask.prototype.generate = function(tree, graph) {
     for (var link = parameters.nodes;
      !$notnull_bool(link.isEmpty$0()); link = link.get$tail()) {
       var parameter = (($0 = link.get$head()) && $0.is$VariableDefinitions());
-      var name = (($0 = parameter.definitions.nodes.get$head().get$source()) && $0.is$SourceString());
+      var name = (($0 = parameter.definitions.nodes.get$head().get$dynamic().get$source()) && $0.is$SourceString());
       parameterNames.add(JsNames.getValid(('' + name)));
     }
     var name = (($0 = function_.name) && $0.is$Identifier());
@@ -10010,6 +10113,9 @@ ResolverVisitor.prototype.visit = function(node) {
   if (node == null) return null;
   return node.accept(this);
 }
+ResolverVisitor.prototype.visitClassNode = function(node) {
+  this.compiler.cancel("shouldn't be called");
+}
 ResolverVisitor.prototype.visitIn = function(node, scope) {
   var $0;
   this.context = scope;
@@ -10134,10 +10240,9 @@ ResolverVisitor.prototype.visitVariableDefinitions = function(node) {
   visitor.visit(node.definitions);
 }
 ResolverVisitor.prototype.defineElement = function(node, element) {
-  var $0;
   this.compiler.ensure(element != null);
   this.mapping.$setindex(node, element);
-  return (($0 = this.context.add(element)) && $0.is$Element());
+  return this.context.add(element);
 }
 ResolverVisitor.prototype.useElement = function(node, element) {
   if (element == null) return null;
@@ -10152,8 +10257,9 @@ function ClassResolverVisitor(compiler) {
   this.compiler = compiler;
   this.context = new TopScope(compiler.universe);
   // Initializers done
+  AbstractVisitor$Type.call(this);
 }
-ClassResolverVisitor.prototype.is$Visitor = function(){return this;};
+$inherits(ClassResolverVisitor, AbstractVisitor$Type);
 ClassResolverVisitor.prototype.visitClassNode = function(node) {
   var $0;
   var element = (($0 = this.context.lookup(node.name.get$source())) && $0.is$ClassElement());
@@ -10187,6 +10293,9 @@ ClassResolverVisitor.prototype.visit = function(node) {
   if (node == null) return null;
   return (($0 = node.accept(this)) && $0.is$Type());
 }
+ClassResolverVisitor.prototype.visitNode = function(node) {
+  this.compiler.cancel('internal error');
+}
 ClassResolverVisitor.prototype.visit$1 = function($0) {
   return this.visit(($0 && $0.is$Node()));
 };
@@ -10195,11 +10304,12 @@ function VariableDefinitionsVisitor(definitions, resolver) {
   this.definitions = definitions;
   this.resolver = resolver;
   // Initializers done
+  AbstractVisitor$SourceString.call(this);
 }
-VariableDefinitionsVisitor.prototype.is$Visitor = function(){return this;};
+$inherits(VariableDefinitionsVisitor, AbstractVisitor$SourceString);
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 273, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 281, 12);
   if (node.receiver != null) {
     this.resolver.compiler.unimplemented("receiver on a variable definition");
   }

@@ -9,3 +9,4 @@
 
 #source('nodes.dart');
 #source('unparser.dart');
+#source('visitors.dart');

@@ -13,7 +13,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       List<String> parameterNames = [];
       for (var link = parameters.nodes; !link.isEmpty(); link = link.tail) {
         VariableDefinitions parameter = link.head;
-        SourceString name = parameter.definitions.nodes.head.source;
+        SourceString name = parameter.definitions.nodes.head.dynamic.source;
         parameterNames.add(JsNames.getValid('$name'));
       }
 

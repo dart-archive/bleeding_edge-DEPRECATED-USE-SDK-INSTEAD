@@ -29,7 +29,7 @@ class LinkFactory {
 
 class AbstractLink<T> implements Link<T> {
   T get head() { throw "bug"; } // TODO(ahe): Work around VM bug.
-  T get tail() { throw "bug"; } // TODO(ahe): Work around VM bug.
+  Link<T> get tail() { throw "bug"; } // TODO(ahe): Work around VM bug.
   abstract List<T> toList(); // TODO(ahe): Work around Frog bug #318.
   abstract bool isEmpty(); // TODO(ahe): Work around Frog bug #318.
 

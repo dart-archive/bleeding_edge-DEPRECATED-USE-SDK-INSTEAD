@@ -32,6 +32,20 @@ class Unparser implements Visitor {
     visit(node.statements);
   }
 
+  visitClassNode(ClassNode node) {
+    node.beginToken.value.printOn(sb);
+    sb.add(' ');
+    visit(node.name);
+    sb.add(' ');
+    if (node.extendsKeyword !== null) {
+      node.extendsKeyword.value.printOn(sb);
+      sb.add(' ');
+    }
+    visit(node.interfaces);
+    sb.add('{\n');
+    sb.add('}\n');
+  }
+
   visitExpressionStatement(ExpressionStatement node) {
     visit(node.expression);
     add(node.endToken.value);
