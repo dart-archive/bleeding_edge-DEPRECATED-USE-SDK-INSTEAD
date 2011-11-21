@@ -21,6 +21,7 @@ import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.index.layers.bidirectional_edges.BidirectionalEdgesLocationInfo;
 import com.google.dart.indexer.index.layers.reverse_edges.ReverseEdgesLocationInfo;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 
@@ -41,6 +42,7 @@ public class GenericStorageTransaction extends StorageTransaction {
   }
 
   @Override
+  @Deprecated
   public void addDependenciesToFileInfo(IFile file, Set<DependentEntity> dependencies,
       boolean internal) {
     FileInfo info = storage.readFileInfo(file);
@@ -51,6 +53,19 @@ public class GenericStorageTransaction extends StorageTransaction {
       info.addDependency(iterator.next(), internal);
     }
     storage.writeFileInfo(file, info);
+  }
+
+  @Override
+  public void addDependenciesToFileInfo(IndexableSource source, Set<DependentEntity> dependencies,
+      boolean internal) {
+    FileInfo info = storage.readFileInfo(source);
+    if (info == null) {
+      info = new FileInfo();
+    }
+    for (Iterator<DependentEntity> iterator = dependencies.iterator(); iterator.hasNext();) {
+      info.addDependency(iterator.next(), internal);
+    }
+    storage.writeFileInfo(source, info);
   }
 
   public void addReference(Layer layer, Location sourceLocation, Location destinationLocation) {
@@ -91,8 +106,14 @@ public class GenericStorageTransaction extends StorageTransaction {
   }
 
   @Override
+  @Deprecated
   public FileTransaction createFileTransaction(IFile file) {
     return new GenericFileTransaction(this, storage, file);
+  }
+
+  @Override
+  public FileTransaction createFileTransaction(IndexableSource source) {
+    return new GenericFileTransaction(this, storage, source);
   }
 
   @Override
@@ -101,9 +122,17 @@ public class GenericStorageTransaction extends StorageTransaction {
   }
 
   @Override
+  @Deprecated
   public FileInfo removeFileInfo(IFile file) {
     FileInfo result = storage.readFileInfo(file);
     storage.deleteFileInfo(file);
+    return result;
+  }
+
+  @Override
+  public FileInfo removeFileInfo(IndexableSource source) {
+    FileInfo result = storage.readFileInfo(source);
+    storage.deleteFileInfo(source);
     return result;
   }
 
@@ -113,6 +142,7 @@ public class GenericStorageTransaction extends StorageTransaction {
   }
 
   @Override
+  @Deprecated
   public void removeStaleDependencies(IFile file, IFile staleFile, Set<Location> staleLocations) {
     FileInfo info = storage.readFileInfo(file);
     if (info == null) {
@@ -121,6 +151,18 @@ public class GenericStorageTransaction extends StorageTransaction {
     info.setExternalDependencies(doRemoveStaleDependencies(staleFile, staleLocations,
         info.getExternalDependencies()));
     storage.writeFileInfo(file, info);
+  }
+
+  @Override
+  public void removeStaleDependencies(IndexableSource source, IndexableSource staleSource,
+      Set<Location> staleLocations) {
+    FileInfo info = storage.readFileInfo(source);
+    if (info == null) {
+      return;
+    }
+    info.setExternalDependencies(doRemoveStaleDependencies(staleSource, staleLocations,
+        info.getExternalDependencies()));
+    storage.writeFileInfo(source, info);
   }
 
   @Override
@@ -134,16 +176,34 @@ public class GenericStorageTransaction extends StorageTransaction {
     storage.writeLocationInfo(destination, destinationInfo, layer);
   }
 
+  @Deprecated
   public void writeFileInfo(IFile file, FileInfo info) {
     storage.writeFileInfo(file, info);
   }
 
+  public void writeFileInfo(IndexableSource source, FileInfo info) {
+    storage.writeFileInfo(source, info);
+  }
+
+  @Deprecated
   private Collection<DependentEntity> doRemoveStaleDependencies(IFile staleFile,
       Set<Location> staleLocations, Collection<DependentEntity> oldDependencies) {
     Collection<DependentEntity> result = new ArrayList<DependentEntity>();
     for (Iterator<DependentEntity> iterator = oldDependencies.iterator(); iterator.hasNext();) {
       DependentEntity dependency = iterator.next();
       if (!dependency.isStale(staleFile, staleLocations)) {
+        result.add(dependency);
+      }
+    }
+    return result;
+  }
+
+  private Collection<DependentEntity> doRemoveStaleDependencies(IndexableSource staleSource,
+      Set<Location> staleLocations, Collection<DependentEntity> oldDependencies) {
+    Collection<DependentEntity> result = new ArrayList<DependentEntity>();
+    for (Iterator<DependentEntity> iterator = oldDependencies.iterator(); iterator.hasNext();) {
+      DependentEntity dependency = iterator.next();
+      if (!dependency.isStale(staleSource, staleLocations)) {
         result.add(dependency);
       }
     }

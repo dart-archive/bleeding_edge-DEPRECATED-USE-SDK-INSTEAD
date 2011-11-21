@@ -14,14 +14,18 @@
 package com.google.dart.indexer.index.entries;
 
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 
 import java.util.Set;
 
 public class DependentFileInfo implements DependentEntity {
-  private final IFile file;
+  @Deprecated
+  private IFile file;
+  private IndexableSource source;
 
+  @Deprecated
   public DependentFileInfo(IFile file) {
     if (file == null) {
       throw new NullPointerException("file is null");
@@ -29,17 +33,38 @@ public class DependentFileInfo implements DependentEntity {
     this.file = file;
   }
 
+  public DependentFileInfo(IndexableSource source) {
+    if (source == null) {
+      throw new NullPointerException("source is null");
+    }
+    this.source = source;
+  }
+
+  @Deprecated
   public IFile getFile() {
     return file;
   }
 
+  public IndexableSource getSource() {
+    return source;
+  }
+
   @Override
+  @Deprecated
   public boolean isStale(IFile staleFile, Set<Location> staleLocations) {
     return file.equals(staleFile);
   }
 
   @Override
+  public boolean isStale(IndexableSource staleSource, Set<Location> staleLocations) {
+    return source.equals(staleSource);
+  }
+
+  @Override
   public String toString(boolean showLayers) {
+    if (source != null) {
+      return "source " + source.getUri();
+    }
     return "file " + file.getFullPath();
   }
 }

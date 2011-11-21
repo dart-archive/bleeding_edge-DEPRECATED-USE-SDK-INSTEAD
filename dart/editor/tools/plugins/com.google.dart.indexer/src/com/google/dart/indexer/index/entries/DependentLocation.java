@@ -15,6 +15,7 @@ package com.google.dart.indexer.index.entries;
 
 import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 
@@ -82,7 +83,13 @@ public class DependentLocation implements DependentEntity {
   }
 
   @Override
+  @Deprecated
   public boolean isStale(IFile staleFile, Set<Location> staleLocations) {
+    return staleLocations.contains(dependentLocation);
+  }
+
+  @Override
+  public boolean isStale(IndexableSource staleSource, Set<Location> staleLocations) {
     return staleLocations.contains(dependentLocation);
   }
 

@@ -19,6 +19,7 @@ import com.google.dart.indexer.index.entries.FileInfo;
 import com.google.dart.indexer.index.entries.LocationInfo;
 import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 
@@ -26,20 +27,34 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class StorageTransaction {
+  @Deprecated
   public abstract void addDependenciesToFileInfo(IFile file, Set<DependentEntity> dependencies,
       boolean internal);
 
+  public abstract void addDependenciesToFileInfo(IndexableSource source,
+      Set<DependentEntity> dependencies, boolean internal);
+
   public abstract void commit() throws IndexRequestFailed;
 
+  @Deprecated
   public abstract FileTransaction createFileTransaction(IFile file);
+
+  public abstract FileTransaction createFileTransaction(IndexableSource source);
 
   public abstract LocationInfo readLocationInfo(Layer layer, Location location);
 
+  @Deprecated
   public abstract FileInfo removeFileInfo(IFile file);
+
+  public abstract FileInfo removeFileInfo(IndexableSource source);
 
   public abstract void removeLocationInfo(Location location);
 
+  @Deprecated
   public abstract void removeStaleDependencies(IFile file, IFile staleFile,
+      Set<Location> staleLocations);
+
+  public abstract void removeStaleDependencies(IndexableSource source, IndexableSource staleSource,
       Set<Location> staleLocations);
 
   public abstract void removeStaleLocationsFromDestination(Layer layer, Location destination,

@@ -14,13 +14,17 @@
 package com.google.dart.indexer.index.entries;
 
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 
 import java.util.Set;
 
 public interface DependentEntity {
-  boolean isStale(IFile staleFile, Set<Location> staleLocations);
+  @Deprecated
+  public boolean isStale(IFile staleFile, Set<Location> staleLocations);
 
-  String toString(boolean showLayers);
+  public boolean isStale(IndexableSource staleSource, Set<Location> staleLocations);
+
+  public String toString(boolean showLayers);
 }

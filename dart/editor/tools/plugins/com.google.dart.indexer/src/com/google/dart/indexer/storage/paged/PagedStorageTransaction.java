@@ -16,6 +16,7 @@ package com.google.dart.indexer.storage.paged;
 import com.google.dart.indexer.index.entries.DependentEntity;
 import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 import com.google.dart.indexer.storage.GenericStorageTransaction;
 
 import org.eclipse.core.resources.IFile;
@@ -31,9 +32,16 @@ public class PagedStorageTransaction extends GenericStorageTransaction {
   }
 
   @Override
+  @Deprecated
   public void addDependenciesToFileInfo(IFile file, Set<DependentEntity> dependencies,
       boolean internal) {
     storage.addDependenciesToFileInfo(file, dependencies, internal);
+  }
+
+  @Override
+  public void addDependenciesToFileInfo(IndexableSource source, Set<DependentEntity> dependencies,
+      boolean internal) {
+    storage.addDependenciesToFileInfo(source, dependencies, internal);
   }
 
   @Override

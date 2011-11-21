@@ -28,6 +28,7 @@ import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.index.updating.FileInfoUpdater;
 import com.google.dart.indexer.index.updating.FileInfoUpdaterImpl;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 import com.google.dart.indexer.storage.FileTransaction;
 import com.google.dart.indexer.storage.StorageTransaction;
 import com.google.dart.indexer.workspace.index.IndexingTarget;
@@ -116,6 +117,7 @@ public class IndexTransaction {
     }
   }
 
+  @Deprecated
   public IFile[] removeTarget(IndexingTarget target) {
     IFile file = target.getFile();
     FileInfo info = storageTransaction.removeFileInfo(file);
@@ -131,6 +133,22 @@ public class IndexTransaction {
     return affectedFiles.toArray(new IFile[affectedFiles.size()]);
   }
 
+  public IndexableSource[] removeTarget_new(IndexingTarget target) {
+    IndexableSource source = IndexableSource.from(target.getUri());
+    FileInfo info = storageTransaction.removeFileInfo(source);
+    if (info == null) {
+      return new IndexableSource[0];
+    }
+    removeInformationThatWillBeReconstructed(source, info);
+    Collection<Location> sourceLocations = info.getSourceLocations();
+    Set<IndexableSource> affectedFiles = calculateSourcesAffectedByRemovalOf(sourceLocations);
+    for (Iterator<Location> iterator = sourceLocations.iterator(); iterator.hasNext();) {
+      storageTransaction.removeLocationInfo(iterator.next());
+    }
+    return affectedFiles.toArray(new IndexableSource[affectedFiles.size()]);
+  }
+
+  @Deprecated
   private Set<IFile> calculateFilesAffectedByRemovalOf(Collection<Location> sourceLocations) {
     Set<IFile> affectedFiles = new HashSet<IFile>();
     for (Iterator<Location> iterator = sourceLocations.iterator(); iterator.hasNext();) {
@@ -139,6 +157,7 @@ public class IndexTransaction {
     return affectedFiles;
   }
 
+  @Deprecated
   private void calculateFilesAffectedByRemovalOf(Layer layer, Location location, Set<IFile> result) {
     LocationInfo info = storageTransaction.readLocationInfo(layer, location);
     if (info == null) {
@@ -154,6 +173,7 @@ public class IndexTransaction {
     }
   }
 
+  @Deprecated
   private void calculateFilesAffectedByRemovalOf(Location location, Set<IFile> result) {
     Layer[] layers = configuration.getLayers();
     for (int i = 0; i < layers.length; i++) {
@@ -161,6 +181,39 @@ public class IndexTransaction {
     }
   }
 
+  private Set<IndexableSource> calculateSourcesAffectedByRemovalOf(
+      Collection<Location> sourceLocations) {
+    Set<IndexableSource> affectedFiles = new HashSet<IndexableSource>();
+    for (Iterator<Location> iterator = sourceLocations.iterator(); iterator.hasNext();) {
+      calculateSourcesAffectedByRemovalOf(iterator.next(), affectedFiles);
+    }
+    return affectedFiles;
+  }
+
+  private void calculateSourcesAffectedByRemovalOf(Layer layer, Location location,
+      Set<IndexableSource> result) {
+    LocationInfo info = storageTransaction.readLocationInfo(layer, location);
+    if (info == null) {
+      return;
+    }
+    Location[] affectedLocations = info.getLocationsAffectedByRemovalOfSelf();
+    for (int i = 0; i < affectedLocations.length; i++) {
+      Location affectedLocation = affectedLocations[i];
+      IndexableSource containingSource = IndexableSource.from(affectedLocation.getContainingUri());
+      if (containingSource != null) {
+        result.add(containingSource);
+      }
+    }
+  }
+
+  private void calculateSourcesAffectedByRemovalOf(Location location, Set<IndexableSource> result) {
+    Layer[] layers = configuration.getLayers();
+    for (int i = 0; i < layers.length; i++) {
+      calculateSourcesAffectedByRemovalOf(layers[i], location, result);
+    }
+  }
+
+  @Deprecated
   private void removeInformationThatWillBeReconstructed(IFile staleFile, FileInfo fileInfo) {
     if (fileInfo == null) {
       return;
@@ -175,11 +228,39 @@ public class IndexTransaction {
     fileInfo.clearInternalDependencies();
   }
 
+  @Deprecated
   private void removeInformationThatWillBeReconstructed(IFile staleFile,
       HashSet<Location> staleLocations, DependentEntity dependency) {
     if (dependency instanceof DependentFileInfo) {
       DependentFileInfo dfi = (DependentFileInfo) dependency;
       storageTransaction.removeStaleDependencies(dfi.getFile(), staleFile, staleLocations);
+    } else if (dependency instanceof DependentLocation) {
+      DependentLocation dl = (DependentLocation) dependency;
+      removeStaleInformationAboutLocations(dl.getDependentLayer(), staleLocations,
+          dl.getDependentLocation());
+    }
+  }
+
+  private void removeInformationThatWillBeReconstructed(IndexableSource staleSource,
+      FileInfo fileInfo) {
+    if (fileInfo == null) {
+      return;
+    }
+    HashSet<Location> staleLocations = new HashSet<Location>(fileInfo.getSourceLocations());
+    for (Iterator<DependentEntity> iterator = fileInfo.getInternalDependencies().iterator(); iterator.hasNext();) {
+      removeInformationThatWillBeReconstructed(staleSource, staleLocations, iterator.next());
+    }
+    for (Iterator<DependentEntity> iterator = fileInfo.getExternalDependencies().iterator(); iterator.hasNext();) {
+      removeInformationThatWillBeReconstructed(staleSource, staleLocations, iterator.next());
+    }
+    fileInfo.clearInternalDependencies();
+  }
+
+  private void removeInformationThatWillBeReconstructed(IndexableSource staleSource,
+      HashSet<Location> staleLocations, DependentEntity dependency) {
+    if (dependency instanceof DependentFileInfo) {
+      DependentFileInfo dfi = (DependentFileInfo) dependency;
+      storageTransaction.removeStaleDependencies(dfi.getSource(), staleSource, staleLocations);
     } else if (dependency instanceof DependentLocation) {
       DependentLocation dl = (DependentLocation) dependency;
       removeStaleInformationAboutLocations(dl.getDependentLayer(), staleLocations,

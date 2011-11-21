@@ -13,11 +13,15 @@
  */
 package com.google.dart.indexer.exceptions;
 
+import com.google.dart.indexer.source.IndexableSource;
+
 import org.eclipse.core.resources.IFile;
 
 public class IndexRequiresFullRebuild extends IndexRequestFailed {
   private static final long serialVersionUID = 1L;
+  @Deprecated
   private IFile[] filesToIndex;
+  private IndexableSource[] sourcesToIndex;
   private boolean reportAsError = true;
 
   public IndexRequiresFullRebuild() {
@@ -41,13 +45,24 @@ public class IndexRequiresFullRebuild extends IndexRequestFailed {
     super(cause);
   }
 
+  @Deprecated
   public IndexRequiresFullRebuild(Throwable cause, IFile[] filesToIndex) {
     super(cause);
     this.filesToIndex = filesToIndex;
   }
 
+  public IndexRequiresFullRebuild(Throwable cause, IndexableSource[] sourcesToIndex) {
+    super(cause);
+    this.sourcesToIndex = sourcesToIndex;
+  }
+
+  @Deprecated
   public IFile[] getFilesToIndex() {
     return filesToIndex;
+  }
+
+  public IndexableSource[] getSourcesToIndex() {
+    return sourcesToIndex;
   }
 
   public boolean shouldReportAsError() {
