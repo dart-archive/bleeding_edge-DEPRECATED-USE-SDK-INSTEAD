@@ -13,6 +13,7 @@
  */
 package com.google.dart.indexer.index.readonly;
 
+import com.google.dart.indexer.IndexerPlugin;
 import com.google.dart.indexer.exceptions.IndexRequiresFullRebuild;
 import com.google.dart.indexer.index.configuration.IndexConfigurationInstance;
 import com.google.dart.indexer.index.entries.FileInfo;
@@ -96,11 +97,11 @@ public class DiskBackedIndexImpl implements Index {
   public String toString() {
     try {
       return diskIndexAsString();
-    } catch (IOException e) {
-      e.printStackTrace(System.err);
+    } catch (IOException exception) {
+      IndexerPlugin.getLogger().logError(exception);
 
       StringWriter writer = new StringWriter();
-      e.printStackTrace(new PrintWriter(writer));
+      exception.printStackTrace(new PrintWriter(writer));
       return writer.toString();
     }
   }

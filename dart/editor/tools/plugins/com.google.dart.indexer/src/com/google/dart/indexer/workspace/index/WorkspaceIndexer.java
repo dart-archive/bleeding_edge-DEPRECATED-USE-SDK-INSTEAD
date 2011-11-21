@@ -242,13 +242,13 @@ public class WorkspaceIndexer {
         this.notifyAll();
       }
       return didSomething;
-    } catch (IndexRequiresFullRebuild e) {
+    } catch (IndexRequiresFullRebuild exception) {
       synchronized (this) {
         index = session.createEmptyRegularIndex();
-        enqueueFullRebuildDueTo(e);
+        enqueueFullRebuildDueTo(exception);
       }
       return true;
-    } catch (IndexTemporarilyNonOperational e) {
+    } catch (IndexTemporarilyNonOperational exception) {
       synchronized (this) {
         index = session.createEmptyRegularIndex();
         // no changes have been committed, so re-enqueue all dequeued files
@@ -256,26 +256,26 @@ public class WorkspaceIndexer {
           queue.reenqueue(dequeued.removeLast());
         }
       }
-      throw e;
-    } catch (IndexRequestFailed e) {
-      throw new AssertionError("Unreachable catch: " + e);
-    } catch (RuntimeException e) {
+      throw exception;
+    } catch (IndexRequestFailed exception) {
+      throw new AssertionError("Unreachable catch: " + exception);
+    } catch (RuntimeException exception) {
       // Oops! Something is seriously wrong here.
-      e.printStackTrace(System.err);
+      IndexerPlugin.getLogger().logError(exception);
       synchronized (this) {
         index = session.createEmptyRegularIndex();
       }
-      throw new IndexTemporarilyNonOperational(e);
-    } catch (Error e) {
-      if (e instanceof ThreadDeath) {
-        throw e;
+      throw new IndexTemporarilyNonOperational(exception);
+    } catch (Error exception) {
+      if (exception instanceof ThreadDeath) {
+        throw exception;
       }
       // Oops! Something is seriously wrong here.
-      e.printStackTrace(System.err);
+      IndexerPlugin.getLogger().logError(exception);
       synchronized (this) {
         index = session.createEmptyRegularIndex();
       }
-      throw new IndexTemporarilyNonOperational(e);
+      throw new IndexTemporarilyNonOperational(exception);
     }
 
   }

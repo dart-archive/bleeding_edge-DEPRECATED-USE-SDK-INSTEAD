@@ -73,15 +73,11 @@ public class WorkspaceIndexingDriver {
           // 1000.0 + 0.5) + " seconds");
         }
         retryTimer.successfulAttemp();
-      } catch (IndexTemporarilyNonOperational e) {
-        if (TRACE_INDEXING_TIME) {
-          IndexerPlugin.getLogger().logError(e, "IndexTemporarilyNonOperational");
-        }
+      } catch (IndexTemporarilyNonOperational exception) {
         retryTimer.failedAttemp();
         schedule(retryTimer.delayUntilNextAttemp());
         indexingDuration = 0;
-        System.err.println("Index temporarily non-operational");
-        e.printStackTrace(System.err);
+        IndexerPlugin.getLogger().logError(exception, "Index temporarily non-operational");
       }
       return Status.OK_STATUS;
     }

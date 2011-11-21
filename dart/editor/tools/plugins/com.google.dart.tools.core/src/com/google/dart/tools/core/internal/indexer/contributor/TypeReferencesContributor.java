@@ -64,7 +64,8 @@ public class TypeReferencesContributor extends ScopedDartContributor {
         // but have the wrong source range. It should be "new SourceRangeImpl(node)".
         recordRelationship(peekTarget(), new TypeLocation(type, type.getNameRange()));
       } catch (DartModelException exception) {
-        DartCore.logError("Could not get range for type " + type.getElementName(), exception);
+        DartCore.logInformation("Could not get range for type " + type.getElementName()
+            + " referenced from type " + peekTarget().getDartElement().getElementName(), exception);
       }
     }
   }

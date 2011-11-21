@@ -56,14 +56,19 @@ public class DartProcessor implements Processor {
 
   public void process(CompilationUnit compilationUnit, DartUnit ast, FileInfoUpdater updater)
       throws IndexRequestFailed {
-    try {
-      for (ContributorWrapper wrapper : contributors) {
-        DartContributor contributor = (DartContributor) wrapper.getContributor();
+    for (ContributorWrapper wrapper : contributors) {
+      DartContributor contributor = (DartContributor) wrapper.getContributor();
+      try {
         contributor.initialize(compilationUnit, updater.getLayerUpdater(wrapper.getLayer()));
         ast.accept(contributor);
+      } catch (ThreadDeath exception) {
+        throw exception;
+      } catch (IndexRequestFailedUnchecked exception) {
+        throw exception.unwrap();
+      } catch (Throwable exception) {
+        DartCore.logError("Could not use " + contributor.getClass() + " to process "
+            + compilationUnit.getElementName(), exception);
       }
-    } catch (IndexRequestFailedUnchecked exception) {
-      throw exception.unwrap();
     }
   }
 

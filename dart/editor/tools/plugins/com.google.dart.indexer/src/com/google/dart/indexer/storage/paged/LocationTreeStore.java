@@ -272,9 +272,8 @@ public class LocationTreeStore implements LocationIdEncoder {
       try {
         /* path = */mapping.resolve(id);
         progress.worked(1);
-      } catch (PagedStorageException e) {
-        System.err.println("Resolving failed for ID " + id);
-        e.printStackTrace(System.err);
+      } catch (PagedStorageException exception) {
+        IndexerPlugin.getLogger().logError(exception, "Resolving failed for ID " + id);
         progress.worked(infoStores.length);
         ++errors;
         continue;
@@ -285,9 +284,9 @@ public class LocationTreeStore implements LocationIdEncoder {
           if (pos != null) {
             pos.readEntireData(id);
           }
-        } catch (PagedStorageException e) {
-          System.err.println("Reading info failed for ID " + id + ", layer " + layerId);
-          e.printStackTrace(System.err);
+        } catch (PagedStorageException exception) {
+          IndexerPlugin.getLogger().logError(exception,
+              "Reading info failed for ID " + id + ", layer " + layerId);
           ++errors;
         }
         progress.worked(1);
@@ -308,9 +307,9 @@ public class LocationTreeStore implements LocationIdEncoder {
         if (id == Mapping.ID_NONE) {
           continue;
         }
-      } catch (PagedStorageException e) {
-        System.err.println("Resolving failed for path " + StringUtils.join(path));
-        e.printStackTrace(System.err);
+      } catch (PagedStorageException exception) {
+        IndexerPlugin.getLogger().logError(exception,
+            "Resolving failed for path " + StringUtils.join(path));
         ++errors;
         continue;
       }
@@ -320,10 +319,11 @@ public class LocationTreeStore implements LocationIdEncoder {
           if (pos != null) {
             /* int[] data = */pos.readEntireData(id);
           }
-        } catch (PagedStorageException e) {
-          System.err.println("Reading info failed for ID " + id + ", layer " + layerId + ", path "
-              + StringUtils.join(path));
-          e.printStackTrace(System.err);
+        } catch (PagedStorageException exception) {
+          IndexerPlugin.getLogger().logError(
+              exception,
+              "Reading info failed for ID " + id + ", layer " + layerId + ", path "
+                  + StringUtils.join(path));
           ++errors;
         }
         // progress.worked(1);
