@@ -99,6 +99,12 @@ class HGraph {
     return result;
   }
 
+  HBasicBlock addNewLoopHeaderBlock() {
+    HBasicBlock result = addNewBlock();
+    result.loopInformation = new HLoopInformation(result);
+    return result;
+  }
+
   void finalize() {
     addBlock(exit);
     exit.open();
@@ -113,7 +119,7 @@ class HGraph {
     for (int i = 0, length = blocks.length; i < length; i++) {
       HBasicBlock block = blocks[i];
       List<HBasicBlock> predecessors = block.predecessors;
-      if (block.isLoopHeader) {
+      if (block.isLoopHeader()) {
         assert(predecessors.length >= 2);
         block.assignCommonDominator(predecessors[0]);
       } else {
@@ -231,8 +237,8 @@ class HInstructionList {
   }
 
   void remove(HInstruction instruction) {
-    detach(instruction);
     assert(instruction.usedBy.isEmpty());
+    detach(instruction);
     instruction.notifyRemovedFromBlock();
   }
 
@@ -259,7 +265,9 @@ class HBasicBlock extends HInstructionList {
 
   HInstructionList phis;
 
-  bool isLoopHeader = false;
+  HLoopInformation loopInformation = null;
+  HBasicBlock parentLoopHeader = null;
+
   final List<HBasicBlock> predecessors;
   List<HBasicBlock> successors;
 
@@ -276,6 +284,8 @@ class HBasicBlock extends HInstructionList {
   bool isNew() => status == STATUS_NEW;
   bool isOpen() => status == STATUS_OPEN;
   bool isClosed() => status == STATUS_CLOSED;
+
+  bool isLoopHeader() => loopInformation !== null;
 
   void open() {
     assert(isNew());
@@ -312,6 +322,16 @@ class HBasicBlock extends HInstructionList {
     super.addBefore(last, instruction);
   }
 
+  void moveAtExit(HInstruction instruction) {
+    assert(instruction.isInBasicBlock());
+    assert(isClosed());
+    assert(last is HControlFlow);
+    instruction.next = last;
+    instruction.previous = last.previous;
+    last.previous.next = instruction;
+    last.previous = instruction;
+  }
+
   void add(HInstruction instruction) {
     assert(instruction is !HControlFlow);
     super.addAfter(last, instruction);
@@ -339,6 +359,15 @@ class HBasicBlock extends HInstructionList {
   void addAfter(HInstruction cursor, HInstruction instruction) {
     assert(isOpen() || isClosed());
     super.addAfter(cursor, instruction);
+  }
+
+  void postProcessLoopHeader() {
+    assert(isLoopHeader());
+    // Only the first entry into the loop is from outside the
+    // loop. All other entries must be back edges.
+    for (int i = 1, length = predecessors.length; i < length; i++) {
+      loopInformation.addBackEdge(predecessors[i]);
+    }
   }
 
   void remove(HInstruction instruction) {
@@ -445,6 +474,52 @@ class HBasicBlock extends HInstructionList {
     HValidator validator = new HValidator();
     validator.visitBasicBlock(this);
     return validator.isValid;
+  }
+}
+
+class HLoopInformation {
+  final HBasicBlock header;
+  final List<HBasicBlock> blocks;
+  final List<HBasicBlock> backEdges;
+
+  HLoopInformation(this.header)
+      : blocks = new List<HBasicBlock>(),
+        backEdges = new List<HBasicBlock>();
+
+  void addBackEdge(HBasicBlock predecessor) {
+    backEdges.add(predecessor);
+    addBlock(predecessor);
+  }
+
+  // Adds a block and transitively all its predecessors in the loop as
+  // loop blocks.
+  void addBlock(HBasicBlock block) {
+    if (block === header) return;
+    HBasicBlock parentHeader = block.parentLoopHeader;
+    if (parentHeader === header) {
+      // Nothing to do in this case.
+    } else if (parentHeader !== null) {
+      addBlock(parentHeader);
+    } else {
+      block.parentLoopHeader = header;
+      blocks.add(block);
+      for (int i = 0, length = block.predecessors.length; i < length; i++) {
+        addBlock(block.predecessors[i]);
+      }
+    }
+  }
+
+  HBasicBlock getLastBackEdge() {
+    int maxId = -1;
+    HBasicBlock result = null;
+    for (int i = 0, length = backEdges.length; i < length; i++) {
+      HBasicBlock current = backEdges[i];
+      if (current.id > maxId) {
+        maxId = current.id;
+        result = current;
+      }
+    }
+    return result;
   }
 }
 

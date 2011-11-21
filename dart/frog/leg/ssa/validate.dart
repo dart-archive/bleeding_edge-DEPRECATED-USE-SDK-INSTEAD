@@ -61,7 +61,7 @@ class HValidator extends HInstructionVisitor {
     for (HBasicBlock successor in block.successors) {
       if (!isValid) break;
       if (successor.id === null) markInvalid("successor without id");
-      if (successor.id <= block.id && !successor.isLoopHeader) {
+      if (successor.id <= block.id && !successor.isLoopHeader()) {
         markInvalid("successor with lower id, but not a loop-header");
       }
     }

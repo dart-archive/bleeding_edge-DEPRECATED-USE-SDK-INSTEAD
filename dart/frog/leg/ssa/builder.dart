@@ -167,8 +167,7 @@ class SsaBuilder implements Visitor {
         new Map<Element, HInstruction>.from(definitions);
 
     // The condition.
-    HBasicBlock conditionBlock = graph.addNewBlock();
-    conditionBlock.isLoopHeader = true;
+    HBasicBlock conditionBlock = graph.addNewLoopHeaderBlock();
     initializerBlock.addSuccessor(conditionBlock);
     open(conditionBlock);
 
@@ -234,6 +233,7 @@ class SsaBuilder implements Visitor {
     conditionExitBlock.addSuccessor(loopExitBlock);
     open(loopExitBlock);
     definitions = conditionDefinitions;
+    conditionBlock.postProcessLoopHeader();
   }
 
   visitFunctionExpression(FunctionExpression node) {

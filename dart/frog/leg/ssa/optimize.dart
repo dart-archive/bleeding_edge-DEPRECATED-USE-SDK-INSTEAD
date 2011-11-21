@@ -116,13 +116,75 @@ class SsaDeadCodeEliminator extends HGraphVisitor {
 class SsaGlobalValueNumberer {
   final Compiler compiler;
   final Set<int> visited;
-  List<int> blockChangesFlags;
 
+  List<int> blockChangesFlags;
+  List<int> loopChangesFlags;
+  
   SsaGlobalValueNumberer(this.compiler) : visited = new Set<int>();
 
   void visitGraph(HGraph graph) {
-    blockChangesFlags = new List<int>(graph.exit.id + 1);
+    computeChangesFlags(graph);
+    moveLoopInvariantCode(graph);
     visitBasicBlock(graph.entry, new ValueSet());
+  }
+
+  void moveLoopInvariantCode(HGraph graph) {
+    for (int i = graph.blocks.length - 1; i >= 0; i--) {
+      HBasicBlock block = graph.blocks[i];
+      if (block.isLoopHeader()) {
+        int changesFlags = loopChangesFlags[block.id];
+        HBasicBlock last = block.loopInformation.getLastBackEdge();
+        for (int j = block.id; j <= last.id; j++) {
+          moveLoopInvariantCodeFromBlock(graph.blocks[j], block, changesFlags);
+        }
+      }
+    }
+  }
+
+  void moveLoopInvariantCodeFromBlock(HBasicBlock block,
+                                      HBasicBlock loopHeader,
+                                      int changesFlags) {
+    HBasicBlock preheader = loopHeader.predecessors[0];
+    int dependsFlags = HInstruction.computeDependsOnFlags(changesFlags);
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      HInstruction next = instruction.next;
+      if (instruction.useGvn() && (instruction.flags & dependsFlags) == 0) {
+        bool loopInvariantInputs = true;
+        List<HInstruction> inputs = instruction.inputs;
+        for (int i = 0, length = inputs.length; i < length; i++) {
+          if (isInputDefinedAfterDominator(inputs[i], block, preheader)) {
+            loopInvariantInputs = false;
+            break;
+          }
+        }
+
+        // If the inputs are loop invariant, we can move the
+        // instruction from the current block to the pre-header block.
+        if (loopInvariantInputs) {
+          block.detach(instruction);
+          preheader.moveAtExit(instruction);
+        }
+      }
+      instruction = next;
+    }
+  }
+
+  // TODO(kasperl): Once our instructions know their basic blocks we
+  // can do a simple block id check instead of this.
+  bool isInputDefinedAfterDominator(HInstruction input,
+                                    HBasicBlock block,
+                                    HBasicBlock dominator) {
+    HBasicBlock current = block;
+    while (current !== dominator) {
+      if (input is HPhi) {
+        if (current.phis.contains(input)) return true;
+      } else {
+        if (current.contains(input)) return true;
+      }
+      current = current.dominator;
+    }
+    return false;
   }
 
   void visitBasicBlock(HBasicBlock block, ValueSet values) {
@@ -165,18 +227,45 @@ class SsaGlobalValueNumberer {
     }
   }
 
-  int getChangesFlagsForBlock(HBasicBlock block) {
-    final int id = block.id;
-    final int cached = blockChangesFlags[id];
-    if (cached !== null) return cached;
-    int changesFlags = 0;
-    HInstruction instruction = block.first;
-    while (instruction !== null) {
-      changesFlags |= instruction.getChangesFlags();
-      instruction = instruction.next;
+  void computeChangesFlags(HGraph graph) {
+    // Create the changes flags lists. Make sure to initialize the
+    // loop changes flags list to zero so we can use bitwise or when
+    // propagating loop changes upwards.
+    final int length = graph.blocks.length;
+    blockChangesFlags = new List<int>(length);
+    loopChangesFlags = new List<int>(length);
+    for (int i = 0; i < length; i++) loopChangesFlags[i] = 0;
+
+    // Run through all the basic blocks in the graph and fill in the
+    // changes flags lists.
+    for (int i = length - 1; i >= 0; i--) {
+      final HBasicBlock block = graph.blocks[i];
+      final int id = block.id;
+
+      // Compute block changes flags for the block.
+      int changesFlags = 0;
+      HInstruction instruction = block.first;
+      while (instruction !== null) {
+        changesFlags |= instruction.getChangesFlags();
+        instruction = instruction.next;
+      }
+      assert(blockChangesFlags[id] === null);
+      blockChangesFlags[id] = changesFlags;
+
+      // Loop headers are part of their loop, so update the loop
+      // changes flags accordingly.
+      if (block.isLoopHeader()) {
+        loopChangesFlags[id] |= changesFlags;
+      }
+
+      // Propagate loop changes flags upwards.
+      HBasicBlock parentLoopHeader = block.parentLoopHeader;
+      if (parentLoopHeader !== null) {
+        loopChangesFlags[parentLoopHeader.id] |= (block.isLoopHeader())
+            ? loopChangesFlags[id]
+            : changesFlags;
+      }
     }
-    blockChangesFlags[id] = changesFlags; // Update the cache.
-    return changesFlags;
   }
 
   int getChangesFlagsForDominatedBlock(HBasicBlock dominator,
@@ -191,7 +280,7 @@ class SsaGlobalValueNumberer {
       // range from the dominator to the dominated.
       if (dominator.id < id && id < dominated.id && !visited.contains(id)) {
         visited.add(id);
-        changesFlags |= getChangesFlagsForBlock(block);
+        changesFlags |= blockChangesFlags[id];
         changesFlags |= getChangesFlagsForDominatedBlock(dominator, block);
       }
     }

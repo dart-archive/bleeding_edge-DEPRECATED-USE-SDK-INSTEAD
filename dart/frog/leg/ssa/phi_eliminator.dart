@@ -16,7 +16,7 @@ class SsaPhiEliminator extends HGraphVisitor {
                 HLocal local,
                 HInstruction value) {
     HStore store = new HStore(local, value);
-    if (currentBlock.isLoopHeader) {
+    if (currentBlock.isLoopHeader()) {
       // The phi is a loop phi, just add the store at the end of the
       // predecessor.
       predecessor.addAtExit(store);
@@ -35,7 +35,7 @@ class SsaPhiEliminator extends HGraphVisitor {
           return;
         }
         current = current.dominator;
-      } while (current != dominator && !current.isLoopHeader);
+      } while (current != dominator && !current.isLoopHeader());
 
       // We could not get to the definition, just put the store in the
       // predecessor.
@@ -63,6 +63,6 @@ class SsaPhiEliminator extends HGraphVisitor {
     currentBlock.rewrite(phi, load);
     currentBlock.removePhi(phi);
     // TODO(ngeoffray): handle loops.
-    if (!currentBlock.isLoopHeader) load.setGenerateAtUseSite();
+    if (!currentBlock.isLoopHeader()) load.setGenerateAtUseSite();
   }
 }

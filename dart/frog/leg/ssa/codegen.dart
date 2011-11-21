@@ -140,7 +140,7 @@ class SsaCodeGenerator implements HVisitor {
   visitBasicBlock(HBasicBlock node) {
     // While loop will be closed by the conditional loop-branch.
     // TODO(floitsch): HACK HACK HACK.
-    if (node.isLoopHeader) {
+    if (node.isLoopHeader()) {
       addIndentation();
       buffer.add('while (true) {\n');
       indent++;
