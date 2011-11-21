@@ -215,10 +215,9 @@ class HInstructionList {
     instruction.notifyAddedToBlock();
   }
 
-  void remove(HInstruction instruction) {
+  void detach(HInstruction instruction) {
     assert(contains(instruction));
     assert(instruction.isInBasicBlock());
-    assert(instruction.usedBy.isEmpty());
     if (instruction.previous === null) {
       first = instruction.next;
     } else {
@@ -229,6 +228,11 @@ class HInstructionList {
     } else {
       instruction.next.previous = instruction.previous;
     }
+  }
+
+  void remove(HInstruction instruction) {
+    detach(instruction);
+    assert(instruction.usedBy.isEmpty());
     instruction.notifyRemovedFromBlock();
   }
 

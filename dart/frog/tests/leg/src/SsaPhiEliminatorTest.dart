@@ -5,7 +5,7 @@
 
 #import("compiler_helper.dart");
 
-final String FOO = @"""
+final String TEST_ONE = @"""
 void print() {}
 void foo(bar) {
   var a = 1;
@@ -18,15 +18,13 @@ void foo(bar) {
 }
 """;
 
-
 main() {
-  String generated = compile(FOO, 'foo');
-  RegExp regexp = const RegExp("a =");
+  String generated = compile(TEST_ONE, 'foo');
+  RegExp regexp = const RegExp("a = 2");
+  Expect.isTrue(regexp.hasMatch(generated));
 
-  Iterable<Match> matches = regexp.allMatches(generated);
-  int count = 0;
-  for (final m in matches) count++;
-  Expect.equals(2, count);
+  regexp = const RegExp("a = 3");
+  Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp("print\\(a\\)");
   Expect.isTrue(regexp.hasMatch(generated));
