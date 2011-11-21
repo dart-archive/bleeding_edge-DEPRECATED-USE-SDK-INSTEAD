@@ -50,7 +50,7 @@ directory.
 
 Next step is to start the server
 
-$ ../../out/Release_ia32/dart_bin chat_server.dart
+$ ../../out/Release_ia32/dart chat_server.dart
 
 Now navigate you Chrome browser to http://localhost:8123 and start
 chatting.

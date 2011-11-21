@@ -135,7 +135,7 @@ def main(args):
   if not exists(dart):
     print("Dart VM not configured in %s," % dart),
     print "run the following command from the dart directory"
-    print " tools/build.py -m release dart_bin"
+    print " tools/build.py -m release"
     return 1
 
   if subprocess.call("node --help >/dev/null 2>&1", shell=True):
