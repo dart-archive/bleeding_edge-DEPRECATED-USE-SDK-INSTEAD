@@ -17,6 +17,7 @@ interface HVisitor<R> {
   R visitInvoke(HInvoke node);
   R visitInvokeForeign(HInvokeForeign node);
   R visitLiteral(HLiteral node);
+  R visitNot(HNot node);
   R visitParameter(HParameter node);
   R visitPhi(HPhi node);
   R visitSubtract(HSubtract node);
@@ -169,6 +170,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLocal(HLocal node) => visitInstruction(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
+  visitNot(HNot node) => visitInstruction(node);
   visitPhi(HPhi node) => visitInstruction(node);
   visitMultiply(HMultiply node) => visitArithmetic(node);
   visitParameter(HParameter node) => visitInstruction(node);
@@ -806,6 +808,17 @@ class HLiteral extends HInstruction {
   bool isLiteralString() => value is SourceString;
   bool typeEquals(other) => other is HLiteral;
   bool dataEquals(other) => value == other.value;
+}
+
+class HNot extends HInstruction {
+  HNot(HInstruction value) : super(<HInstruction>[value]);
+  void prepareGvn() {
+    clearAllSideEffects();
+    setUseGvn();
+  }
+  accept(HVisitor visitor) => visitor.visitNot(this);
+  bool typeEquals(other) => other is HNot;
+  bool dataEquals(HInstruction other) => true;  
 }
 
 class HParameter extends HInstruction {

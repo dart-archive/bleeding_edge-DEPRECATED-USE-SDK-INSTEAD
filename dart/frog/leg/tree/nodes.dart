@@ -141,11 +141,15 @@ class Send extends Expression {
 }
 
 class Postfix extends NodeList {
-  const Postfix() : super();
+  // TODO(floitsch): pass const EmptyLink<Node>() to super.
+  // This currently doesn't work because of a bug of Frog.
+  const Postfix() : super(null);
 }
 
 class Prefix extends NodeList {
-  const Prefix() : super();
+  // TODO(floitsch): pass const EmptyLink<Node>() to super.
+  // This currently doesn't work because of a bug of Frog.
+  const Prefix() : super(null);
 }
 
 class SendSet extends Send {
@@ -171,12 +175,18 @@ class NewExpression extends Expression {
 }
 
 class NodeList extends Node {
-  final Link<Node> nodes;
+  // TODO(floitsch): don't make nodes private. This is needed, because we
+  // work around a bug in Frog that doesn't allow to initialize the field
+  // with a const object.
+  final Link<Node> _nodes;
+  Link<Node> get nodes() => _nodes !== null ? _nodes : const EmptyLink<Node>();
   final Token beginToken;
   final Token endToken;
   final SourceString delimiter;
 
-  const NodeList([this.beginToken, this.nodes, this.endToken, this.delimiter]);
+  // TODO(floitsch): second argument should be this.nodes.
+  const NodeList([this.beginToken, nodes, this.endToken, this.delimiter])
+      : _nodes = nodes;
 
   NodeList.singleton(Node node) : this(null, new Link<Node>(node));
 
@@ -201,6 +211,7 @@ class NodeList extends Node {
     if (endToken !== null) return endToken;
     if (nodes !== null) {
       Link<Node> link = nodes;
+      if (link.isEmpty()) return beginToken;
       while (!link.tail.isEmpty()) link = link.tail;
       if (link.head.getEndToken() !== null) return link.head.getEndToken();
       if (link.head.getBeginToken() !== null) return link.head.getBeginToken();

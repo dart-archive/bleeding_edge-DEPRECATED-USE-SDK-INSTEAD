@@ -270,6 +270,13 @@ class SsaCodeGenerator implements HVisitor {
     visit(dominated[1]);
   }
 
+  visitNot(HNot node) {
+    assert(node.inputs.length == 1);
+    buffer.add('(!');
+    use(node.inputs[0]);
+    buffer.add(')');
+  }
+
   visitParameter(HParameter node) {
     buffer.add(parameter(node.parameterIndex));
   }

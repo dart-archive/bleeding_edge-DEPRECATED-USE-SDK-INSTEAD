@@ -361,6 +361,13 @@ class SsaBuilder implements Visitor {
     compiler.unimplemented("SsaBuilder.visitLogicalOr");
   }
 
+  visitLogicalNot(Send node) {
+    assert(node.argumentsNode is Prefix);
+    visit(node.receiver);
+    HNot not = new HNot(popBoolified());
+    push(not);
+  }
+
   visitSend(Send node) {
     // TODO(kasperl): This only works for very special cases. Make
     // this way more general soon.
@@ -372,6 +379,9 @@ class SsaBuilder implements Visitor {
         return;
       } else if (const SourceString("||") == op.source) {
         visitLogicalOr(node);
+        return;
+      } else if (const SourceString("!") == op.source) {
+        visitLogicalNot(node);
         return;
       }
       visit(node.receiver);

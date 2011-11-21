@@ -137,7 +137,8 @@ class ResolverVisitor implements Visitor<Element> {
     Element target = context.lookup(name);
     // TODO(ngeoffray): implement resolution for logical operators.
     if (target == null && !((name == const SourceString('&&') ||
-                            (name == const SourceString('||'))))) {
+                             name == const SourceString('||') ||
+                             name == const SourceString('!')))) {
       fail(node, ErrorMessages.cannotResolve(name));
     }
     visit(node.argumentsNode);
