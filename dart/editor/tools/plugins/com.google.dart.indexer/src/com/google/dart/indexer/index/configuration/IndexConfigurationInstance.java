@@ -15,6 +15,7 @@ package com.google.dart.indexer.index.configuration;
 
 import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.index.layers.LayerId;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 
@@ -33,7 +34,16 @@ public interface IndexConfigurationInstance {
    * 
    * @return the processors that should be given an opportunity to process the given file
    */
+  @Deprecated
   public Processor[] findProcessors(IFile file);
+
+  /**
+   * Return an array containing all of the processors that should be given an opportunity to process
+   * the given source.
+   * 
+   * @return the processors that should be given an opportunity to process the given source
+   */
+  public Processor[] findProcessors(IndexableSource source);
 
   public long gatherTimeSpentParsing();
 
@@ -50,5 +60,8 @@ public interface IndexConfigurationInstance {
 
   public Layer[] getLayers();
 
+  @Deprecated
   public boolean isIndexedFile(IFile file);
+
+  public boolean isIndexedFile(IndexableSource source);
 }

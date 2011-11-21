@@ -18,6 +18,7 @@ import com.google.dart.indexer.index.configuration.IndexConfigurationInstance;
 import com.google.dart.indexer.index.configuration.Processor;
 import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.index.layers.LayerId;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 
@@ -72,8 +73,20 @@ public class IndexConfigurationInstanceImpl implements IndexConfigurationInstanc
   }
 
   @Override
+  @Deprecated
   public Processor[] findProcessors(IFile file) {
     String extension = file.getFileExtension();
+    Processor[] processors = extensionsToRegistrations.get(extension);
+    if (processors == null) {
+      processors = calculateProcessors(extension);
+      extensionsToRegistrations.put(extension, processors);
+    }
+    return processors;
+  }
+
+  @Override
+  public Processor[] findProcessors(IndexableSource source) {
+    String extension = source.getFileExtension();
     Processor[] processors = extensionsToRegistrations.get(extension);
     if (processors == null) {
       processors = calculateProcessors(extension);
@@ -124,8 +137,14 @@ public class IndexConfigurationInstanceImpl implements IndexConfigurationInstanc
   }
 
   @Override
+  @Deprecated
   public boolean isIndexedFile(IFile file) {
     return findProcessors(file).length > 0;
+  }
+
+  @Override
+  public boolean isIndexedFile(IndexableSource source) {
+    return findProcessors(source).length > 0;
   }
 
   private Processor[] calculateProcessors(String extension) {

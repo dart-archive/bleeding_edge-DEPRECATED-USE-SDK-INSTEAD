@@ -35,24 +35,26 @@ public class FileSource extends IndexableSource {
     this.file = file;
   }
 
-  /**
-   * Return an indication of when the target was last modified. The stamp can be any monotonically
-   * increasing value, such as a modification time for a file or a simple counter.
-   * 
-   * @return the modification stamp associated with the target
-   */
+  @Override
+  public String getFileExtension() {
+    return getFileExtension(file.getName());
+  }
+
   @Override
   public long getModificationStamp() {
     return file.lastModified();
   }
 
-  /**
-   * Return the URI uniquely identifying this target.
-   * 
-   * @return the URI uniquely identifying this target
-   */
   @Override
   public URI getUri() {
     return file.toURI();
+  }
+
+  protected String getFileExtension(String fileName) {
+    int index = fileName.lastIndexOf('.');
+    if (index < 0) {
+      return "";
+    }
+    return fileName.substring(index + 1);
   }
 }

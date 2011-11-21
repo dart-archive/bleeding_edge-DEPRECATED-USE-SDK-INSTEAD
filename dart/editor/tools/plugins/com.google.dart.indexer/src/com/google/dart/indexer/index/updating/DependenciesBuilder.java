@@ -17,13 +17,18 @@ import com.google.dart.indexer.exceptions.IndexRequestFailed;
 import com.google.dart.indexer.exceptions.IndexRequiresFullRebuild;
 import com.google.dart.indexer.exceptions.IndexTemporarilyNonOperational;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 
 import org.eclipse.core.resources.IFile;
 
 public interface DependenciesBuilder {
-  void currentFileAffectsLocationOfCurrentLayer(Location location) throws IndexRequiresFullRebuild,
+  public void currentFileAffectsLocationOfCurrentLayer(Location location)
+      throws IndexRequiresFullRebuild, IndexTemporarilyNonOperational, IndexRequestFailed;
+
+  @Deprecated
+  public void currentLocationDependsOnFile(IFile file) throws IndexRequiresFullRebuild,
       IndexTemporarilyNonOperational, IndexRequestFailed;
 
-  void currentLocationDependsOnFile(IFile file) throws IndexRequiresFullRebuild,
+  public void currentLocationDependsOnFile(IndexableSource source) throws IndexRequiresFullRebuild,
       IndexTemporarilyNonOperational, IndexRequestFailed;
 }

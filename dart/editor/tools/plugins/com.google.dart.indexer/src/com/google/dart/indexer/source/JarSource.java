@@ -41,11 +41,15 @@ public class JarSource extends FileSource {
     this.entryPath = entryPath;
   }
 
-  /**
-   * Return the URI uniquely identifying this target.
-   * 
-   * @return the URI uniquely identifying this target
-   */
+  @Override
+  public String getFileExtension() {
+    int index = entryPath.lastIndexOf('/');
+    if (index < 0) {
+      return getFileExtension(entryPath);
+    }
+    return getFileExtension(entryPath.substring(index + 1));
+  }
+
   @Override
   public URI getUri() {
     try {

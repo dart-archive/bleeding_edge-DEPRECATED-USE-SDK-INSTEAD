@@ -17,6 +17,7 @@ import com.google.dart.indexer.exceptions.IndexRequestFailed;
 import com.google.dart.indexer.index.entries.DependentLocation;
 import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 import com.google.dart.indexer.storage.FileTransaction;
 
 import org.eclipse.core.resources.IFile;
@@ -51,7 +52,13 @@ public final class PerLocationDependenciesBuilder implements DependenciesBuilder
   }
 
   @Override
+  @Deprecated
   public void currentLocationDependsOnFile(IFile file) throws IndexRequestFailed {
     fileTransaction.addDependency(file, new DependentLocation(currentLocation, currentLayer));
+  }
+
+  @Override
+  public void currentLocationDependsOnFile(IndexableSource source) throws IndexRequestFailed {
+    fileTransaction.addDependency(source, new DependentLocation(currentLocation, currentLayer));
   }
 }

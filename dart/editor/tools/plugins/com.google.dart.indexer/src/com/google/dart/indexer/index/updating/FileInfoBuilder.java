@@ -16,6 +16,7 @@ package com.google.dart.indexer.index.updating;
 import com.google.dart.indexer.index.entries.DependentLocation;
 import com.google.dart.indexer.index.entries.FileInfo;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 import com.google.dart.indexer.storage.StorageTransaction;
 
 import org.eclipse.core.resources.IFile;
@@ -28,18 +29,25 @@ import java.util.Set;
 
 public class FileInfoBuilder {
   private final Set<Location> sourceLocations = new LinkedHashSet<Location>();
-  // private final IFile currentFile;
   private final Map<IFile, Set<DependentLocation>> filesToDependencySets = new HashMap<IFile, Set<DependentLocation>>();
+  private final Map<IndexableSource, Set<DependentLocation>> sourcesToDependencySets = new HashMap<IndexableSource, Set<DependentLocation>>();
 
-  public FileInfoBuilder(IFile currentFile) {
-    if (currentFile == null) {
-      throw new NullPointerException("currentFile is null");
-      // this.currentFile = currentFile;
-    }
+  public FileInfoBuilder() {
+    super();
   }
 
+  @Deprecated
+  public FileInfoBuilder(IFile currentFile) {
+    super();
+  }
+
+  @Deprecated
   public void addDependency(IFile masterFile, DependentLocation dependency) {
     dependencySetFor(masterFile).add(dependency);
+  }
+
+  public void addDependency(IndexableSource masterSource, DependentLocation dependency) {
+    dependencySetFor(masterSource).add(dependency);
   }
 
   public void addSourceLocation(Location location) {
@@ -56,11 +64,21 @@ public class FileInfoBuilder {
     fileInfo.setSourceLocations(sourceLocations);
   }
 
+  @Deprecated
   private Set<DependentLocation> dependencySetFor(IFile file) {
     Set<DependentLocation> result = filesToDependencySets.get(file);
     if (result == null) {
       result = new HashSet<DependentLocation>();
       filesToDependencySets.put(file, result);
+    }
+    return result;
+  }
+
+  private Set<DependentLocation> dependencySetFor(IndexableSource source) {
+    Set<DependentLocation> result = sourcesToDependencySets.get(source);
+    if (result == null) {
+      result = new HashSet<DependentLocation>();
+      sourcesToDependencySets.put(source, result);
     }
     return result;
   }

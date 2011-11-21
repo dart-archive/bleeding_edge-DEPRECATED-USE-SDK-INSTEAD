@@ -102,17 +102,24 @@ public abstract class IndexableSource {
   }
 
   /**
-   * Return an indication of when the target was last modified. The stamp can be any monotonically
+   * Return the file extension for this source.
+   * 
+   * @return the file extension for this source
+   */
+  public abstract String getFileExtension();
+
+  /**
+   * Return an indication of when the source was last modified. The stamp can be any monotonically
    * increasing value, such as a modification time for a file or a simple counter.
    * 
-   * @return the modification stamp associated with the target
+   * @return the modification stamp associated with the source
    */
   public abstract long getModificationStamp();
 
   /**
-   * Return the URI uniquely identifying this target.
+   * Return the URI uniquely identifying this source.
    * 
-   * @return the URI uniquely identifying this target
+   * @return the URI uniquely identifying this source
    */
   public abstract URI getUri();
 }

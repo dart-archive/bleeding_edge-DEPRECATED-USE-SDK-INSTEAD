@@ -26,6 +26,14 @@ public class FileInfoUpdaterImpl implements FileInfoUpdater {
   private Map<LayerId, LayerUpdater> layerIdsToUpdaters = new HashMap<LayerId, LayerUpdater>();
   private FileTransaction fileTransaction;
 
+  public FileInfoUpdaterImpl(FileTransaction fileTransaction) {
+    if (fileTransaction == null) {
+      throw new NullPointerException("fileTransaction is null");
+    }
+    this.fileTransaction = fileTransaction;
+  }
+
+  @Deprecated
   public FileInfoUpdaterImpl(FileTransaction fileTransaction, IFile file) {
     if (fileTransaction == null) {
       throw new NullPointerException("fileTransaction is null");

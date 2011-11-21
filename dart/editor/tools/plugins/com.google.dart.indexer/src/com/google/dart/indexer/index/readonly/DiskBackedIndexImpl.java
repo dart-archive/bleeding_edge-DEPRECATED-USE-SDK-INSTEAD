@@ -20,6 +20,7 @@ import com.google.dart.indexer.index.entries.LocationInfo;
 import com.google.dart.indexer.index.entries.PathAndModStamp;
 import com.google.dart.indexer.index.layers.Layer;
 import com.google.dart.indexer.locations.Location;
+import com.google.dart.indexer.source.IndexableSource;
 import com.google.dart.indexer.storage.AbstractIntegratedStorage;
 import com.google.dart.indexer.utils.Debugging;
 
@@ -104,6 +105,7 @@ public class DiskBackedIndexImpl implements Index {
     }
   }
 
+  @Deprecated
   private void toStringFiles(Map<IFile, FileInfo> map, StringBuilder out, boolean showLayers) {
     out.append("Files:\n");
     for (Iterator<IFile> iterator = Debugging.sortByStrings(map.keySet()).iterator(); iterator.hasNext();) {
@@ -121,6 +123,17 @@ public class DiskBackedIndexImpl implements Index {
       LocationInfo info = map.get(location);
       out.append(Debugging.INDENT).append(location).append("\n");
       info.toString(out, Debugging.INDENT + Debugging.INDENT);
+    }
+  }
+
+  private void toStringSources(Map<IndexableSource, FileInfo> map, StringBuilder out,
+      boolean showLayers) {
+    out.append("Sources:\n");
+    for (Iterator<IndexableSource> iterator = Debugging.sortByStrings(map.keySet()).iterator(); iterator.hasNext();) {
+      IndexableSource source = iterator.next();
+      FileInfo info = map.get(source);
+      out.append(Debugging.INDENT).append(source).append("\n");
+      info.toString(out, Debugging.INDENT + Debugging.INDENT, showLayers);
     }
   }
 }
