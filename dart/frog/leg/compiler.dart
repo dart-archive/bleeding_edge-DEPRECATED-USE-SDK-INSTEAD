@@ -67,10 +67,8 @@ class Compiler implements Canceler, Logger {
   }
 
   void scanCoreLibrary() {
-    String fileName = io.join([frog.options.libDir, '..',
-                               'leg', 'lib', 'core.dart']);
-    frog.SourceFile file = io.readSync(fileName);
-    scanner.scan(new Script(file));
+    String fileName = io.join([legDirectory, 'lib', 'core.dart']);
+    scanner.scan(readScript(fileName));
     // Make our special function a foreign kind.
     Element element = new ForeignElement(const SourceString('JS'));
     universe.define(element);
@@ -113,6 +111,14 @@ class Compiler implements Canceler, Logger {
   }
 
   reportWarning(Node node, String message) {}
+
+  Script readScript(String filename) {
+    unimplemented('Compiler.readScript');
+  }
+
+  String get legDirectory() {
+    unimplemented('Compiler.legDirectory');
+  }
 }
 
 class CompilerTask {

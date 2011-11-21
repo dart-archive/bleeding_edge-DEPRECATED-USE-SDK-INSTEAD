@@ -4,10 +4,4 @@
 
 #library("io");
 
-#import('../../lang.dart', prefix: 'frog');
-
 String join(List<String> strings) => Strings.join(strings, '/');
-
-readSync(String fileName) {
-  return new frog.SourceFile(fileName, frog.world.files.readAll(fileName));
-}

@@ -2507,9 +2507,6 @@ NodeFileSystem.prototype.fileExists = function(filename) {
 function join(strings) {
   return Strings.join(strings, '/');
 }
-function readSync(fileName) {
-  return new SourceFile(fileName, $globals.world.files.readAll(fileName));
-}
 //  ********** Library util_implementation **************
 // ********** Code for LinkFactory **************
 function LinkFactory() {}
@@ -9926,46 +9923,6 @@ ValueSetNode.prototype.next$0 = function() {
 };
 // ********** Code for top level **************
 //  ********** Library leg **************
-// ********** Code for WorldCompiler **************
-function WorldCompiler(world, script) {
-  this.world = world;
-  // Initializers done
-  Compiler.call(this, script);
-}
-$inherits(WorldCompiler, Compiler);
-WorldCompiler.prototype.log = function(message) {
-  if ($notnull_bool($globals.options.showInfo)) {
-    this.world.info(('[leg] ' + message));
-  }
-}
-WorldCompiler.prototype.run = function() {
-  var success = Compiler.prototype.run.call(this);
-  if ($notnull_bool(success)) {
-    var code = this.getGeneratedCode();
-    this.world.legCode = $assert_String(code);
-    this.world.jsBytesWritten = $assert_num(code.length);
-    var $list = this.tasks;
-    for (var $i0 = 0;$i0 < $list.length; $i0++) {
-      var task = $list.$index($i0);
-      this.log(('' + task.get$name() + ' took ' + task.get$timing() + 'msec'));
-    }
-  }
-  return success;
-}
-WorldCompiler.prototype.spanFromNode = function(node) {
-  var begin = node.getBeginToken();
-  var end = node.getEndToken();
-  if (begin == null || end == null) {
-    this.cancel(('cannot find tokens to produce error message for ' + node + '.'));
-  }
-  var startOffset = begin.get$charOffset();
-  var endOffset = end.get$charOffset() + end.toString$0().length;
-  return new SourceSpan(this.script.file, startOffset, endOffset);
-}
-WorldCompiler.prototype.reportWarning = function(node, message) {
-  var $0;
-  this.world.warning(('' + message + '.'), (($0 = this.spanFromNode(node)) && $0.is$SourceSpan()));
-}
 // ********** Code for Compiler **************
 function Compiler(script) {
   this.script = script;
@@ -10015,10 +9972,8 @@ Compiler.prototype.run = function() {
   return true;
 }
 Compiler.prototype.scanCoreLibrary = function() {
-  var $0;
-  var fileName = join([$globals.options.libDir, '..', 'leg', 'lib', 'core.dart']);
-  var file = (($0 = readSync(fileName)) && $0.is$SourceFile());
-  this.scanner.scan(new leg_Script(file));
+  var fileName = join([this.get$legDirectory(), 'lib', 'core.dart']);
+  this.scanner.scan(this.readScript(fileName));
   var element = new ForeignElement(const$205/*const SourceString('JS')*/);
   this.universe.define(element);
 }
@@ -10059,6 +10014,12 @@ Compiler.prototype.getGeneratedCode = function() {
 }
 Compiler.prototype.reportWarning = function(node, message) {
 
+}
+Compiler.prototype.readScript = function(filename) {
+  this.unimplemented('Compiler.readScript');
+}
+Compiler.prototype.get$legDirectory = function() {
+  this.unimplemented('Compiler.legDirectory');
 }
 // ********** Code for CompilerTask **************
 function CompilerTask(compiler) {
@@ -10445,7 +10406,7 @@ function leg_Script(file) {
 }
 leg_Script.prototype.get$file = function() { return this.file; };
 leg_Script.prototype.get$text = function() {
-  return this.file.get$text();
+  return $assert_String(this.file.get$text());
 }
 // ********** Code for TypeCheckerTask **************
 function TypeCheckerTask(compiler) {
@@ -10801,6 +10762,56 @@ Universe.prototype.addGeneratedCode = function(element, code) {
 function unreachable() {
   $throw(const$273/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
 }
+//  ********** Library frog_leg **************
+// ********** Code for WorldCompiler **************
+function WorldCompiler(world, script) {
+  this.world = world;
+  // Initializers done
+  Compiler.call(this, script);
+}
+$inherits(WorldCompiler, Compiler);
+WorldCompiler.prototype.log = function(message) {
+  if ($notnull_bool($globals.options.showInfo)) {
+    this.world.info(('[leg] ' + message));
+  }
+}
+WorldCompiler.prototype.run = function() {
+  var success = Compiler.prototype.run.call(this);
+  if ($notnull_bool(success)) {
+    var code = this.getGeneratedCode();
+    this.world.legCode = $assert_String(code);
+    this.world.jsBytesWritten = $assert_num(code.length);
+    var $list = this.tasks;
+    for (var $i = 0;$i < $list.length; $i++) {
+      var task = $list.$index($i);
+      this.log(('' + task.get$name() + ' took ' + task.get$timing() + 'msec'));
+    }
+  }
+  return success;
+}
+WorldCompiler.prototype.spanFromNode = function(node) {
+  var begin = node.getBeginToken();
+  var end = node.getEndToken();
+  if (begin == null || end == null) {
+    this.cancel(('cannot find tokens to produce error message for ' + node + '.'));
+  }
+  var startOffset = begin.get$charOffset();
+  var endOffset = end.get$charOffset() + end.toString$0().length;
+  return new SourceSpan(this.script.file, startOffset, endOffset);
+}
+WorldCompiler.prototype.reportWarning = function(node, message) {
+  var $0;
+  this.world.warning(('' + message + '.'), (($0 = this.spanFromNode(node)) && $0.is$SourceSpan()));
+}
+WorldCompiler.prototype.readScript = function(filename) {
+  var text = $globals.world.files.readAll(filename);
+  var sourceFile = new SourceFile(filename, text);
+  return new leg_Script(sourceFile);
+}
+WorldCompiler.prototype.get$legDirectory = function() {
+  return join([$globals.options.libDir, '..', 'leg']);
+}
+// ********** Code for top level **************
 function compile(world) {
   var file = world.readFile($globals.options.dartScript);
   var script = new leg_Script(file);

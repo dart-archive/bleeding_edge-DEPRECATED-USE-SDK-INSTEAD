@@ -5,7 +5,7 @@
 #library('lang');
 
 #import('dart:coreimpl');
-#import('leg/leg.dart', prefix:'leg');
+#import('leg/frog_leg.dart', prefix:'leg');
 #import('file_system.dart');
 
 #source('code_writer.dart');

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Script {
-  final frog.SourceFile file;
+  final /* frog.SourceFile */ file;
   Script(this.file);
 
   String get text() => file.text;
