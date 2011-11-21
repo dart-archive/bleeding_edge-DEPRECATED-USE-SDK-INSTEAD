@@ -571,6 +571,9 @@ Object.prototype.invoke$5 = function($0, $1, $2, $3, $4) {
 Object.prototype.isAssignable$1 = function($0) {
   return this.noSuchMethod("isAssignable", [$0]);
 };
+Object.prototype.isBoolean$0 = function() {
+  return this.noSuchMethod("isBoolean", []);
+};
 Object.prototype.isEmpty$0 = function() {
   return this.noSuchMethod("isEmpty", []);
 };
@@ -588,6 +591,9 @@ Object.prototype.isLiteralString$0 = function() {
 };
 Object.prototype.isSubtypeOf$1 = function($0) {
   return this.noSuchMethod("isSubtypeOf", [$0]);
+};
+Object.prototype.isUnknown$0 = function() {
+  return this.noSuchMethod("isUnknown", []);
 };
 Object.prototype.iterator$0 = function() {
   return this.noSuchMethod("iterator", []);
@@ -1097,6 +1103,9 @@ ImmutableMap.prototype.containsKey = function(key) {
 ImmutableMap.prototype.$setindex = function(key, value) {
   $throw(const$14/*const IllegalAccessException()*/);
 }
+ImmutableMap.prototype.remove = function(key) {
+  $throw(const$14/*const IllegalAccessException()*/);
+}
 ImmutableMap.prototype.forEach$1 = ImmutableMap.prototype.forEach;
 ImmutableMap.prototype.getKeys$0 = function() {
   return this.getKeys();
@@ -1524,6 +1533,11 @@ function HashMapImplementation$String$int() {}
 $inherits(HashMapImplementation$String$int, HashMapImplementation);
 HashMapImplementation$String$int.prototype.is$Map$Node$Element = false;
 HashMapImplementation$String$int.prototype.is$Map$String$Member = false;
+// ********** Code for HashMapImplementation$int$HInstruction **************
+function HashMapImplementation$int$HInstruction() {}
+$inherits(HashMapImplementation$int$HInstruction, HashMapImplementation);
+HashMapImplementation$int$HInstruction.prototype.is$Map$Node$Element = false;
+HashMapImplementation$int$HInstruction.prototype.is$Map$String$Member = false;
 // ********** Code for HashMapImplementation$int$String **************
 function HashMapImplementation$int$String() {}
 $inherits(HashMapImplementation$int$String, HashMapImplementation);
@@ -1745,6 +1759,13 @@ LinkedHashMapImplementation.prototype.$index = function(key) {
   if (entry == null) return null;
   return entry.get$element().get$value();
 }
+LinkedHashMapImplementation.prototype.remove = function(key) {
+  var $0;
+  var entry = (($0 = this._map.remove(key)) && $0.is$DoubleLinkedQueueEntry$KeyValuePair$K$V());
+  if (entry == null) return null;
+  entry.remove();
+  return entry.get$element().get$value();
+}
 LinkedHashMapImplementation.prototype.getKeys = function() {
   var list = new ListFactory(this.get$length());
   var index = 0;
@@ -1878,6 +1899,13 @@ DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype._link = function(p, n) {
 }
 DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype.prepend = function(e) {
   new DoubleLinkedQueueEntry$KeyValuePair$K$V(e)._link(this._previous, this);
+}
+DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype.remove = function() {
+  this._previous._next = this._next;
+  this._next._previous = this._previous;
+  this._next = null;
+  this._previous = null;
+  return this._element;
 }
 DoubleLinkedQueueEntry$KeyValuePair$K$V.prototype._asNonSentinelEntry = function() {
   return this;
@@ -7648,15 +7676,15 @@ SsaBuilder.prototype.visitSend = function(node) {
   var element = (($0 = this.elements.$index(node)) && $0.is$Element());
   if ((node.selector instanceof Operator)) {
     var op = (($0 = node.selector) && $0.is$Operator());
-    if ($notnull_bool($eq(const$259/*const SourceString("&&")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$260/*const SourceString("&&")*/, op.get$source()))) {
       this.visitLogicalAnd(node);
       return;
     }
-    else if ($notnull_bool($eq(const$260/*const SourceString("||")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$261/*const SourceString("||")*/, op.get$source()))) {
       this.visitLogicalOr(node);
       return;
     }
-    else if ($notnull_bool($eq(const$261/*const SourceString("!")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$262/*const SourceString("!")*/, op.get$source()))) {
       this.visitLogicalNot(node);
       return;
     }
@@ -7664,22 +7692,22 @@ SsaBuilder.prototype.visitSend = function(node) {
     this.visit(node.argumentsNode);
     var right = this.pop();
     var left = this.pop();
-    if ($notnull_bool($eq(const$262/*const SourceString("+")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$263/*const SourceString("+")*/, op.get$source()))) {
       this.push(new HAdd(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$263/*const SourceString("-")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$264/*const SourceString("-")*/, op.get$source()))) {
       this.push(new HSubtract(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$264/*const SourceString("*")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$265/*const SourceString("*")*/, op.get$source()))) {
       this.push(new HMultiply(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$265/*const SourceString("/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$266/*const SourceString("/")*/, op.get$source()))) {
       this.push(new HDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$266/*const SourceString("~/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$267/*const SourceString("~/")*/, op.get$source()))) {
       this.push(new HTruncatingDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$267/*const SourceString("==")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$268/*const SourceString("==")*/, op.get$source()))) {
       this.push(new HEquals(element, [left, right]));
     }
   }
@@ -7942,7 +7970,15 @@ SsaCodeGenerator.prototype.visitBasicBlock = function(node) {
   }
 }
 SsaCodeGenerator.prototype.visitAdd = function(node) {
-  return this.visitInvoke(node);
+  var $0;
+  if ($notnull_bool(node.isNumber())) {
+    this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
+    this.buffer.add(' + ');
+    this.use((($0 = node.inputs.$index(1)) && $0.is$HInstruction()));
+  }
+  else {
+    this.visitInvoke(node);
+  }
 }
 SsaCodeGenerator.prototype.visitDivide = function(node) {
   return this.visitInvoke(node);
@@ -7961,24 +7997,29 @@ SsaCodeGenerator.prototype.visitTruncatingDivide = function(node) {
 }
 SsaCodeGenerator.prototype.visitBoolify = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 176, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 185, 12);
   this.buffer.add('(');
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
-  this.buffer.add(' === true)');
+  if (!$notnull_bool(node.inputs.$index(0).isBoolean$0())) {
+    this.buffer.add(' === true)');
+  }
+  else {
+    this.buffer.add(')');
+  }
 }
 SsaCodeGenerator.prototype.visitExit = function(node) {
 
 }
 SsaCodeGenerator.prototype.visitGoto = function(node) {
   var $0;
-  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 187, 12);
+  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 200, 12);
   var dominated = this.currentBlock.dominatedBlocks;
   if (dominated.isEmpty()) return;
   if (dominated.length > 2) unreachable();
   if (dominated.length == 2 && this.currentBlock !== this.currentGraph.entry) {
     unreachable();
   }
-  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 199, 12);
+  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 212, 12);
   this.visitBasicBlock((($0 = dominated.$index(0)) && $0.is$HBasicBlock()));
 }
 SsaCodeGenerator.prototype.visitIf = function(node) {
@@ -7989,13 +8030,13 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
   this.buffer.add(') {\n');
   this.indent++;
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 212, 12);
+  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 225, 12);
   this.visitBasicBlock((($0 = ifBlock.successors.$index(0)) && $0.is$HBasicBlock()));
   this.indent--;
   this.addIndentation();
   var nextDominatedIndex;
   if ($notnull_bool(node.hasElse)) {
-    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 218, 14);
+    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 231, 14);
     this.buffer.add('} else {\n');
     this.indent++;
     this.visitBasicBlock((($0 = ifBlock.successors.$index(1)) && $0.is$HBasicBlock()));
@@ -8008,7 +8049,7 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
     this.buffer.add("}\n");
     nextDominatedIndex = 1;
   }
-  $assert(dominated.length <= nextDominatedIndex + 1, "dominated.length <= nextDominatedIndex + 1", "codegen.dart", 230, 12);
+  $assert(dominated.length <= nextDominatedIndex + 1, "dominated.length <= nextDominatedIndex + 1", "codegen.dart", 243, 12);
   if (dominated.length == nextDominatedIndex + 1) {
     this.visitBasicBlock((($0 = dominated.$index(nextDominatedIndex)) && $0.is$HBasicBlock()));
   }
@@ -8024,7 +8065,7 @@ SsaCodeGenerator.prototype.visitInvokeForeign = function(node) {
   for (var i = 0;
    i < inputs.length; i++) {
     var input = (($0 = inputs.$index(i)) && $0.is$HInstruction());
-    $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 247, 14);
+    $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 260, 14);
     code = code.replaceAll(('\$' + i), this.temporary(input));
   }
   this.buffer.add(('(' + code + ')'));
@@ -8039,18 +8080,18 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')) break;\n');
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 263, 12);
-  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 264, 12);
+  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 276, 12);
+  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 277, 12);
   this.visit(dominated.$index(0));
   this.indent--;
   this.addIndentation();
   this.buffer.add('}\n');
-  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 269, 12);
+  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 282, 12);
   this.visit(dominated.$index(1));
 }
 SsaCodeGenerator.prototype.visitNot = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 274, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 287, 12);
   this.buffer.add('(!');
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')');
@@ -8097,9 +8138,9 @@ function JsNames() {}
 JsNames.get$reserved = function() {
   if ($globals.JsNames__reserved == null) {
     $globals.JsNames__reserved = new HashSetImplementation();
-    $globals.JsNames__reserved.addAll(const$270/*JsNames.reservedPropertySymbols*/);
-    $globals.JsNames__reserved.addAll(const$272/*JsNames.reservedGlobalSymbols*/);
-    $globals.JsNames__reserved.addAll(const$274/*JsNames.javaScriptKeywords*/);
+    $globals.JsNames__reserved.addAll(const$274/*JsNames.reservedPropertySymbols*/);
+    $globals.JsNames__reserved.addAll(const$276/*JsNames.reservedGlobalSymbols*/);
+    $globals.JsNames__reserved.addAll(const$278/*JsNames.javaScriptKeywords*/);
   }
   return $globals.JsNames__reserved;
 }
@@ -8648,6 +8689,7 @@ function HInstruction(inputs) {
   this.previous = null
   this.next = null
   this.flags = 0
+  this.type = 0/*HInstruction.TYPE_UNKNOWN*/
   this.inputs = inputs;
   this.id = $globals.HInstruction_idCounter++;
   this.usedBy = [];
@@ -8660,6 +8702,8 @@ HInstruction.prototype.get$inputs = function() { return this.inputs; };
 HInstruction.prototype.get$usedBy = function() { return this.usedBy; };
 HInstruction.prototype.get$previous = function() { return this.previous; };
 HInstruction.prototype.set$previous = function(value) { return this.previous = value; };
+HInstruction.prototype.get$type = function() { return this.type; };
+HInstruction.prototype.set$type = function(value) { return this.type = value; };
 HInstruction.prototype.getFlag = function(position) {
   return (this.flags & (1 << position)) != 0;
 }
@@ -8696,11 +8740,23 @@ HInstruction.prototype.useGvn = function() {
 HInstruction.prototype.setUseGvn = function() {
   this.setFlag(3/*HInstruction.FLAG_USE_GVN*/);
 }
+HInstruction.prototype.isUnknown = function() {
+  return this.type == 0/*HInstruction.TYPE_UNKNOWN*/ || this.type == 3/*HInstruction.TYPE_CONFLICT*/;
+}
+HInstruction.prototype.isBoolean = function() {
+  return this.type == 1/*HInstruction.TYPE_BOOLEAN*/;
+}
+HInstruction.prototype.isNumber = function() {
+  return this.type == 2/*HInstruction.TYPE_NUMBER*/;
+}
+HInstruction.prototype.updateType = function() {
+  return false;
+}
 HInstruction.prototype.isInBasicBlock = function() {
   return this.block != null;
 }
 HInstruction.prototype.equals = function(other) {
-  $assert($notnull_bool(this.useGvn()) && $notnull_bool(other.useGvn()), "useGvn() && other.useGvn()", "nodes.dart", 600, 12);
+  $assert($notnull_bool(this.useGvn()) && $notnull_bool(other.useGvn()), "useGvn() && other.useGvn()", "nodes.dart", 613, 12);
   if (!$notnull_bool(this.typeEquals(other))) return false;
   if (this.flags != other.flags) return false;
   var inputsLength = this.inputs.length;
@@ -8719,21 +8775,21 @@ HInstruction.prototype.dataEquals = function(other) {
   return false;
 }
 HInstruction.prototype.notifyAddedToBlock = function(block) {
-  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 623, 12);
-  $assert(this.block == null, "this.block === null", "nodes.dart", 624, 12);
+  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 636, 12);
+  $assert(this.block == null, "this.block === null", "nodes.dart", 637, 12);
   for (var i = 0;
    i < this.inputs.length; i++) {
-    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 627, 14);
+    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 640, 14);
     this.inputs.$index(i).get$usedBy().add$1(this);
   }
   this.block = block;
-  $assert(this.isValid(), "isValid()", "nodes.dart", 631, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 644, 12);
 }
 HInstruction.prototype.notifyRemovedFromBlock = function(block) {
   var $0;
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 635, 12);
-  $assert(this.usedBy.isEmpty(), "usedBy.isEmpty()", "nodes.dart", 636, 12);
-  $assert(this.block === block, "this.block === block", "nodes.dart", 637, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 648, 12);
+  $assert(this.usedBy.isEmpty(), "usedBy.isEmpty()", "nodes.dart", 649, 12);
+  $assert(this.block === block, "this.block === block", "nodes.dart", 650, 12);
   for (var i = 0;
    i < this.inputs.length; i++) {
     var inputUsedBy = (($0 = this.inputs.$index(i).get$usedBy()) && $0.is$List());
@@ -8747,7 +8803,7 @@ HInstruction.prototype.notifyRemovedFromBlock = function(block) {
     }
   }
   this.block = null;
-  $assert(this.isValid(), "isValid()", "nodes.dart", 651, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 664, 12);
 }
 HInstruction.prototype.isLiteralNumber = function() {
   return false;
@@ -8767,6 +8823,9 @@ HInstruction.prototype.accept$1 = function($0) {
 HInstruction.prototype.block$0 = function() {
   return this.block();
 };
+HInstruction.prototype.isBoolean$0 = function() {
+  return this.isBoolean();
+};
 HInstruction.prototype.isInBasicBlock$0 = function() {
   return this.isInBasicBlock();
 };
@@ -8775,6 +8834,9 @@ HInstruction.prototype.isLiteralNumber$0 = function() {
 };
 HInstruction.prototype.isLiteralString$0 = function() {
   return this.isLiteralString();
+};
+HInstruction.prototype.isUnknown$0 = function() {
+  return this.isUnknown();
 };
 HInstruction.prototype.next$0 = function() {
   return this.next();
@@ -8791,6 +8853,10 @@ $inherits(HBoolify, HInstruction);
 HBoolify.prototype.prepareGvn = function() {
   this.clearAllSideEffects();
   this.setUseGvn();
+}
+HBoolify.prototype.updateType = function() {
+  this.type = 1/*HInstruction.TYPE_BOOLEAN*/;
+  return false;
 }
 HBoolify.prototype.accept = function(visitor) {
   return visitor.visitBoolify(this);
@@ -8866,6 +8932,17 @@ HArithmetic.prototype.prepareGvn = function() {
   if (!(this.inputs.$index(0) instanceof HLiteral)) return;
   this.clearAllSideEffects();
   this.setUseGvn();
+}
+HArithmetic.prototype.updateType = function() {
+  if (this.type == 3/*HInstruction.TYPE_CONFLICT*/) return false;
+  var newType = 2/*HInstruction.TYPE_NUMBER*/;
+  for (var i = 0;
+   i < this.inputs.length; i++) {
+    if ($notnull_bool($ne(this.inputs.$index(i).get$type(), 2/*HInstruction.TYPE_NUMBER*/))) newType = 0/*HInstruction.TYPE_UNKNOWN*/;
+  }
+  var changed = (this.type != newType);
+  this.type = newType;
+  return changed;
 }
 // ********** Code for HAdd **************
 function HAdd(element, inputs) {
@@ -9092,6 +9169,18 @@ HLiteral.prototype.toString = function() {
 HLiteral.prototype.accept = function(visitor) {
   return visitor.visitLiteral(this);
 }
+HLiteral.prototype.updateType = function() {
+  if ($notnull_bool(this.isLiteralNumber())) {
+    this.type = 2/*HInstruction.TYPE_NUMBER*/;
+  }
+  else if ((typeof(this.value) == 'boolean')) {
+    this.type = 1/*HInstruction.TYPE_BOOLEAN*/;
+  }
+  else {
+    this.type = 0/*HInstruction.TYPE_UNKNOWN*/;
+  }
+  return false;
+}
 HLiteral.prototype.isLiteralNumber = function() {
   return (typeof(this.value) == 'number');
 }
@@ -9179,9 +9268,28 @@ $inherits(HPhi, HInstruction);
 HPhi.prototype.is$HPhi = function(){return this;};
 HPhi.prototype.get$element = function() { return this.element; };
 HPhi.prototype.addInput = function(input) {
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 845, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 888, 12);
   this.inputs.add(input);
   input.usedBy.add(this);
+}
+HPhi.prototype.updateType = function() {
+  if (this.type == 3/*HInstruction.TYPE_CONFLICT*/) return false;
+  var newType = $assert_num(this.inputs.$index(0).get$type());
+  for (var i = 1;
+   i < this.inputs.length; i++) {
+    if (newType != this.inputs.$index(i).get$type()) {
+      this.type = 3/*HInstruction.TYPE_CONFLICT*/;
+      return true;
+    }
+  }
+  var changed = (this.type != newType);
+  this.type = newType;
+  return changed;
+}
+HPhi.prototype.updateTypeForLoopPhi = function() {
+  if ($notnull_bool(this.inputs.$index(0).isUnknown$0())) return false;
+  this.type = $assert_num(this.inputs.$index(0).get$type());
+  return true;
 }
 HPhi.prototype.toString = function() {
   return 'phi';
@@ -9314,8 +9422,9 @@ SsaOptimizerTask.prototype.optimize = function(graph) {
   var $this = this; // closure support
   this.measure((function () {
     new SsaConstantFolder().visitGraph(graph);
-    new SsaDeadCodeEliminator().visitGraph(graph);
+    new SsaTypePropagator().visitGraph(graph);
     new SsaGlobalValueNumberer($this.compiler).visitGraph(graph);
+    new SsaDeadCodeEliminator().visitGraph(graph);
     new SsaInstructionMerger().visitGraph(graph);
   })
   );
@@ -9357,7 +9466,7 @@ SsaConstantFolder.prototype.visitEquals = function(node) {
 SsaConstantFolder.prototype.visitArithmetic = function(node) {
   var $0;
   var inputs = node.inputs;
-  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 57, 12);
+  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 58, 12);
   if ($notnull_bool(inputs.$index(0).isLiteralNumber$0()) && $notnull_bool(inputs.$index(1).isLiteralNumber$0())) {
     var op1 = (($0 = inputs.$index(0)) && $0.is$HLiteral());
     var op2 = (($0 = inputs.$index(1)) && $0.is$HLiteral());
@@ -9380,6 +9489,60 @@ SsaConstantFolder.prototype.visitAdd = function(node) {
     return new HLiteral(new StringWrapper(("" + op1.value + " + " + op2.value)));
   }
   return this.visitArithmetic(node);
+}
+// ********** Code for SsaTypePropagator **************
+function SsaTypePropagator() {
+  this.workmap = new HashMapImplementation();
+  this.worklist = new ListFactory();
+  // Initializers done
+  HGraphVisitor.call(this);
+}
+$inherits(SsaTypePropagator, HGraphVisitor);
+SsaTypePropagator.prototype.visitGraph = function(graph) {
+  this.visitDominatorTree(graph);
+  this.processWorklist();
+}
+SsaTypePropagator.prototype.visitBasicBlock = function(block) {
+  var $this = this; // closure support
+  if ($notnull_bool(block.isLoopHeader())) {
+    block.forEachPhi((function (phi) {
+      if ($notnull_bool(phi.updateTypeForLoopPhi())) $this.addToWorklist(phi);
+    })
+    );
+  }
+  else {
+    block.forEachPhi((function (phi) {
+      phi.updateType();
+    })
+    );
+  }
+  var instruction = block.first;
+  while (instruction != null) {
+    instruction.updateType();
+    instruction = instruction.next;
+  }
+}
+SsaTypePropagator.prototype.processWorklist = function() {
+  var $0;
+  while (!this.worklist.isEmpty()) {
+    var id = $assert_num(this.worklist.removeLast());
+    var instruction = (($0 = this.workmap.$index(id)) && $0.is$HInstruction());
+    $assert(instruction != null, "instruction !== null", "optimize.dart", 126, 14);
+    this.workmap.remove(id);
+    if ($notnull_bool(instruction.updateType())) {
+      for (var i = 0, length = instruction.usedBy.length;
+       i < length; i++) {
+        this.addToWorklist((($0 = instruction.usedBy.$index(i)) && $0.is$HInstruction()));
+      }
+    }
+  }
+}
+SsaTypePropagator.prototype.addToWorklist = function(instruction) {
+  var id = instruction.id;
+  if (!this.workmap.containsKey(id)) {
+    this.worklist.add(id);
+    this.workmap.$setindex(id, instruction);
+  }
 }
 // ********** Code for SsaDeadCodeEliminator **************
 function SsaDeadCodeEliminator() {
@@ -9468,13 +9631,13 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
   while (instruction != null) {
     var flags = instruction.getChangesFlags();
     if (flags != 0) {
-      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 183, 16);
+      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 239, 16);
       values.kill(flags);
     }
     else if ($notnull_bool(instruction.useGvn())) {
       var other = values.lookup(instruction);
       if (other != null) {
-        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 188, 18);
+        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 244, 18);
         block.rewrite(instruction, other);
         block.remove(instruction);
       }
@@ -9489,7 +9652,7 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
    i < length; i++) {
     var dominated = (($0 = dominatedBlocks.$index(i)) && $0.is$HBasicBlock());
     var successorValues = (i == length - 1) ? values : values.copy();
-    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 208, 14);
+    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 264, 14);
     if (!$notnull_bool(successorValues.isEmpty()) && block.id + 1 < dominated.id) {
       this.visited.clear();
       var changesFlags = this.getChangesFlagsForDominatedBlock(block, dominated);
@@ -9515,7 +9678,7 @@ SsaGlobalValueNumberer.prototype.computeChangesFlags = function(graph) {
       changesFlags |= instruction.getChangesFlags();
       instruction = instruction.next;
     }
-    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 240, 14);
+    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 296, 14);
     this.blockChangesFlags.$setindex(id, changesFlags);
     if ($notnull_bool(block.isLoopHeader())) {
       ($0 = this.loopChangesFlags).$setindex(id, $0.$index(id) | changesFlags);
@@ -10955,7 +11118,7 @@ Universe.prototype.addGeneratedCode = function(element, code) {
 }
 // ********** Code for top level **************
 function unreachable() {
-  $throw(const$276/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
+  $throw(const$280/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
 }
 //  ********** Library frog_leg **************
 // ********** Code for WorldCompiler **************
@@ -12340,7 +12503,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   return false;
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
-  var types = const$389/*const [
+  var types = const$393/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   var target = new Value($globals.world.varType, 'this', node.span, true);
@@ -22577,18 +22740,18 @@ const$247 = new WarningKind('variable cannot be of type void')/*const WarningKin
 const$249 = new WarningKind('expression does not yield a value')/*const WarningKind(
       'expression does not yield a value')*/;
 const$25 = new Keyword("break", false)/*const Keyword("break")*/;
-const$259 = new StringWrapper("&&")/*const SourceString("&&")*/;
-const$260 = new StringWrapper("||")/*const SourceString("||")*/;
-const$261 = new StringWrapper("!")/*const SourceString("!")*/;
-const$262 = new StringWrapper("+")/*const SourceString("+")*/;
-const$263 = new StringWrapper("-")/*const SourceString("-")*/;
-const$264 = new StringWrapper("*")/*const SourceString("*")*/;
-const$265 = new StringWrapper("/")/*const SourceString("/")*/;
-const$266 = new StringWrapper("~/")/*const SourceString("~/")*/;
-const$267 = new StringWrapper("==")/*const SourceString("==")*/;
+const$260 = new StringWrapper("&&")/*const SourceString("&&")*/;
+const$261 = new StringWrapper("||")/*const SourceString("||")*/;
+const$262 = new StringWrapper("!")/*const SourceString("!")*/;
+const$263 = new StringWrapper("+")/*const SourceString("+")*/;
+const$264 = new StringWrapper("-")/*const SourceString("-")*/;
+const$265 = new StringWrapper("*")/*const SourceString("*")*/;
+const$266 = new StringWrapper("/")/*const SourceString("/")*/;
+const$267 = new StringWrapper("~/")/*const SourceString("~/")*/;
+const$268 = new StringWrapper("==")/*const SourceString("==")*/;
 const$27 = new Keyword("case", false)/*const Keyword("case")*/;
-const$270 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
-const$272 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
+const$274 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
+const$276 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
     // Section references are from Ecma-262
     // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
@@ -22719,7 +22882,7 @@ const$272 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefi
     // TODO: prove why this is necessary or remove it
     "call"
   ]*/;
-const$274 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
+const$278 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
     // These are current keywords
     "break", "delete", "function", "return", "typeof", "case", "do", "if",
     "switch", "var", "catch", "else", "in", "this", "void", "continue",
@@ -22733,16 +22896,16 @@ const$274 = ImmutableList.ImmutableList$from$factory(["break", "delete", "functi
     "class", "final", "interface", "public", "transient", "const", "float",
     "long", "short", "volatile"
   ]*/;
-const$276 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+const$280 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
 const$29 = new Keyword("catch", false)/*const Keyword("catch")*/;
 const$31 = new Keyword("const", false)/*const Keyword("const")*/;
 const$33 = new Keyword("continue", false)/*const Keyword("continue")*/;
 const$35 = new Keyword("default", false)/*const Keyword("default")*/;
 const$37 = new Keyword("do", false)/*const Keyword("do")*/;
-const$389 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+const$39 = new Keyword("else", false)/*const Keyword("else")*/;
+const$393 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
-const$39 = new Keyword("else", false)/*const Keyword("else")*/;
 const$4 = new StringWrapper('global scope')/*const SourceString('global scope')*/;
 const$41 = new Keyword("false", false)/*const Keyword("false")*/;
 const$43 = new Keyword("final", false)/*const Keyword("final")*/;

@@ -165,7 +165,16 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
-  visitAdd(HAdd node)                           => visitInvoke(node);
+  visitAdd(HAdd node) {
+    if (node.isNumber()) {
+      use(node.inputs[0]);
+      buffer.add(' + ');
+      use(node.inputs[1]);
+    } else {
+      visitInvoke(node);
+    }
+  }
+
   visitDivide(HDivide node)                     => visitInvoke(node);
   visitEquals(HEquals node)                     => visitInvoke(node);
   visitMultiply(HMultiply node)                 => visitInvoke(node);
@@ -176,7 +185,11 @@ class SsaCodeGenerator implements HVisitor {
     assert(node.inputs.length == 1);
     buffer.add('(');
     use(node.inputs[0]);
-    buffer.add(' === true)');
+    if (!node.inputs[0].isBoolean()) {
+      buffer.add(' === true)');
+    } else {
+      buffer.add(')');
+    }
   }
 
   visitExit(HExit node) {

@@ -9,8 +9,9 @@ class SsaOptimizerTask extends CompilerTask {
   void optimize(HGraph graph) {
     measure(() {
       new SsaConstantFolder().visitGraph(graph);
-      new SsaDeadCodeEliminator().visitGraph(graph);
+      new SsaTypePropagator().visitGraph(graph);
       new SsaGlobalValueNumberer(compiler).visitGraph(graph);
+      new SsaDeadCodeEliminator().visitGraph(graph);
       new SsaInstructionMerger().visitGraph(graph);
     });
   }
@@ -83,6 +84,61 @@ class SsaConstantFolder extends HBaseVisitor {
       return new HLiteral(new SourceString("${op1.value} + ${op2.value}"));
     }
     return visitArithmetic(node);
+  }
+}
+
+class SsaTypePropagator extends HGraphVisitor {
+
+  final Map<int, HInstruction> workmap;
+  final List<int> worklist;
+
+  SsaTypePropagator()
+      : workmap = new Map<int, HInstruction>(),
+        worklist = new List<int>();
+
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+    processWorklist();
+  }
+
+  visitBasicBlock(HBasicBlock block) {
+    if (block.isLoopHeader()) {
+      block.forEachPhi((HPhi phi) {
+        if (phi.updateTypeForLoopPhi()) addToWorklist(phi);
+      });
+    } else {
+      block.forEachPhi((HPhi phi) {
+        phi.updateType();
+      });
+    }
+
+    HInstruction instruction = block.first;
+    while (instruction !== null) {
+      instruction.updateType();
+      instruction = instruction.next;
+    }
+  }
+
+  void processWorklist() {
+    while (!worklist.isEmpty()) {
+      int id = worklist.removeLast();
+      HInstruction instruction = workmap[id];
+      assert(instruction !== null);
+      workmap.remove(id);
+      if (instruction.updateType()) {
+        for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
+          addToWorklist(instruction.usedBy[i]);
+        }
+      }
+    }
+  }
+
+  void addToWorklist(HInstruction instruction) {
+    final int id = instruction.id;
+    if (!workmap.containsKey(id)) {
+      worklist.add(id);
+      workmap[id] = instruction;
+    }
   }
 }
 
