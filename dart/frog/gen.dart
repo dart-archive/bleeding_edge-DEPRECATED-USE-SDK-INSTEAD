@@ -525,7 +525,7 @@ class BlockScope {
       _closedOver = new Set<String>();
     } else {
       // Blocks within a reentrant block are also reentrant.
-      reentrant = reentrant || parent.reentrant;
+      this.reentrant = reentrant || parent.reentrant;
     }
   }
 
