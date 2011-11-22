@@ -12,6 +12,7 @@ class SsaOptimizerTask extends CompilerTask {
       new SsaTypePropagator().visitGraph(graph);
       new SsaGlobalValueNumberer(compiler).visitGraph(graph);
       new SsaDeadCodeEliminator().visitGraph(graph);
+      new SsaDeadPhiEliminator().visitGraph(graph);
       new SsaInstructionMerger().visitGraph(graph);
     });
   }
@@ -158,13 +159,49 @@ class SsaDeadCodeEliminator extends HGraphVisitor {
       if (isDeadCode(instruction)) block.remove(instruction);
       instruction = previous;
     }
+  }
+}
 
-    // TODO(floitsch): phi-elimination should be done in another phase.
-    HPhi phi = block.phis.last;
-    while (phi !== null) {
-      var previous = phi.previous;
-      if (isDeadCode(phi)) block.removePhi(phi);
-      phi = previous;
+class SsaDeadPhiEliminator {
+  void visitGraph(HGraph graph) {
+    final List<HPhi> worklist = <HPhi>[];
+    // A set to keep track of the live phis that we found.
+    final Set<HPhi> livePhis = new Set<HPhi>();
+
+    // Add to the worklist all live phis: phis referenced by non-phi
+    // instructions.
+    for (final block in graph.blocks) {
+      block.forEachPhi((HPhi phi) {
+        for (final user in phi.usedBy) {
+          if (user is !HPhi) {
+            worklist.add(phi);
+            livePhis.add(phi);
+            break;
+          }
+        }
+      });
+    }
+
+    // Process the worklist by propagating liveness to phi inputs.
+    while (!worklist.isEmpty()) {
+      HPhi phi = worklist.removeLast();
+      for (final input in phi.inputs) {
+        if (input is HPhi && !livePhis.contains(input)) {
+          worklist.add(input);
+          livePhis.add(input);
+        }
+      }
+    }
+
+    // Remove phis that are not live.
+    for (final block in graph.blocks) {
+      HPhi current = block.phis.first;
+      HPhi next = null;
+      while (current != null) {
+        next = current.next;
+        if (!livePhis.contains(current)) block.removePhi(current);
+        current = next;
+      }
     }
   }
 }
@@ -175,7 +212,7 @@ class SsaGlobalValueNumberer {
 
   List<int> blockChangesFlags;
   List<int> loopChangesFlags;
-  
+
   SsaGlobalValueNumberer(this.compiler) : visited = new Set<int>();
 
   void visitGraph(HGraph graph) {

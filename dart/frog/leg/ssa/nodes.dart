@@ -312,6 +312,7 @@ class HBasicBlock extends HInstructionList {
 
   void addAtEntry(HInstruction instruction) {
     assert(isClosed());
+    assert(instruction is !HPhi);
     super.addBefore(first, instruction);
     instruction.notifyAddedToBlock(this);
   }
@@ -319,11 +320,13 @@ class HBasicBlock extends HInstructionList {
   void addAtExit(HInstruction instruction) {
     assert(isClosed());
     assert(last is HControlFlow);
+    assert(instruction is !HPhi);
     super.addBefore(last, instruction);
     instruction.notifyAddedToBlock(this);
   }
 
   void moveAtExit(HInstruction instruction) {
+    assert(instruction is !HPhi);
     assert(instruction.isInBasicBlock());
     assert(isClosed());
     assert(last is HControlFlow);
@@ -337,6 +340,7 @@ class HBasicBlock extends HInstructionList {
 
   void add(HInstruction instruction) {
     assert(instruction is !HControlFlow);
+    assert(instruction is !HPhi);
     super.addAfter(last, instruction);
     instruction.notifyAddedToBlock(this);
   }
@@ -352,13 +356,24 @@ class HBasicBlock extends HInstructionList {
   }
 
   void addAfter(HInstruction cursor, HInstruction instruction) {
+    assert(cursor is !HPhi);
+    assert(instruction is !HPhi);
     assert(isOpen() || isClosed());
     super.addAfter(cursor, instruction);
     instruction.notifyAddedToBlock(this);
   }
 
+  void addBefore(HInstruction cursor, HInstruction instruction) {
+    assert(cursor is !HPhi);
+    assert(instruction is !HPhi);
+    assert(isOpen() || isClosed());
+    super.addBefore(cursor, instruction);
+    instruction.notifyAddedToBlock(this);
+  }
+
   void remove(HInstruction instruction) {
     assert(isOpen() || isClosed());
+    assert(instruction is !HPhi);
     super.remove(instruction);
     instruction.notifyRemovedFromBlock(this);
   }
@@ -531,7 +546,7 @@ class HLoopInformation {
   }
 }
 
-class HInstruction {
+class HInstruction implements Hashable {
   final int id;
   static int idCounter;
 
@@ -562,6 +577,8 @@ class HInstruction {
   static final int TYPE_CONFLICT = 3;
 
   HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[];
+
+  int hashCode() => id;
 
   bool getFlag(int position) => (flags & (1 << position)) != 0;
   void setFlag(int position) { flags |= (1 << position); }
