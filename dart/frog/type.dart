@@ -83,8 +83,6 @@ class Type implements Named, Hashable {
 
   bool get isNative() => isNativeType; // TODO(jimhug): remove isNativeType.
 
-  bool get isHiddenNativeType() => false;
-
   bool get hasTypeParams() => false;
 
   String get typeofName() => null;
@@ -718,11 +716,6 @@ class DefinedType extends Type {
     }
   }
 
-  bool get isHiddenNativeType() =>
-      library == world.dom ||  // Legacy, remove after DOM is updated.
-      (definition.nativeType != null &&
-       definition.nativeType.isConstructorHidden);
-
   // TODO(jmesserly): this is a workaround for generic types not filling in
   // "Dynamic" as their type arguments.
   Collection<Type> get typeArgsInOrder() {
@@ -1285,28 +1278,5 @@ class DefinedType extends Type {
       varStubs[name] = stub;
     }
     return stub;
-  }
-}
-
-/**
- * Information about a native type from the native string.
- *
- *  "Foo"  - constructor function is called 'Foo'.
- *  "*Foo" - name is 'Foo', constructor function and prototype are not available
- *      in global scope during initialization.  This is characteristic of many
- *      DOM types like CanvasPixelArray.
- */
-class NativeType {
-  String name;
-  bool isConstructorHidden;
-
-  NativeType(String spec) {
-    if (spec.startsWith('*')) {
-      name = spec.substring(1);
-      isConstructorHidden = true;
-    } else {
-      name = spec;
-      isConstructorHidden = false;
-    }
   }
 }

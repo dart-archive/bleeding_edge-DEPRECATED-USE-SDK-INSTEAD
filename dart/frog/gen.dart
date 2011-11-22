@@ -201,7 +201,7 @@ class WorldGenerator {
     var typeName = type.jsname != null ? type.jsname : 'top level';
     writer.comment('// ********** Code for ${typeName} **************');
     if (type.isNativeType && !type.isTop) {
-      var nativeName = type.definition.nativeType.name;
+      var nativeName = type.definition.nativeType;
       if (nativeName == '') {
         writer.writeln('function ${type.jsname}() {}');
       } else if (type.jsname != nativeName) {
