@@ -18,6 +18,7 @@
 #source('script.dart');
 #source('typechecker.dart');
 #source('universe.dart');
+#source('warnings.dart');
 
 final bool GENERATE_SSA_TRACE = false;
 

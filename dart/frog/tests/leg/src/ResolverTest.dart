@@ -120,7 +120,8 @@ testLocalsOne() {
   } catch (CompilerCancelledException ex) {
     msg = ex.reason;
   }
-  Expect.equals(msg, ErrorMessages.duplicateDefinition("foo"));
+  Expect.equals(msg,
+      new Message(MessageKind.DUPLICATE_DEFINITION, ['foo']).toString());
 }
 
 
@@ -258,7 +259,8 @@ testTypeAnnotation() {
   Node warningNode = compiler.warnings[0].node;
   String warningMessage = compiler.warnings[0].message;
 
-  Expect.equals(warningMessage, ErrorMessages.cannotResolveType("Foo"));
+  Expect.equals(warningMessage,
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['Foo']).toString());
   VariableDefinitions definition = compiler.parsedTree;
   Expect.equals(warningNode, definition.type);
   compiler.clearWarnings();
@@ -285,7 +287,8 @@ testSuperclass() {
     // TODO(ngeoffray): Once it's there, use error reporting framework.
     msg = ex.reason;
   }
-  Expect.equals(msg, ErrorMessages.cannotResolveType("Bar"));
+  Expect.equals(msg,
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['Bar']).toString());
 
   compiler.parseScript("class Bar {}");
   Map mapping = compiler.resolveStatement("Foo bar;");
@@ -309,7 +312,8 @@ testVarSuperclass() {
     // TODO(ngeoffray): Once it's there, use error reporting framework.
     msg = ex.reason;
   }
-  Expect.equals(msg, ErrorMessages.cannotResolveType("var"));
+  Expect.equals(msg,
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['var']).toString());
 }
 
 testOneInterface() {
@@ -322,7 +326,8 @@ testOneInterface() {
     // TODO(ngeoffray): Once it's there, use error reporting framework.
     msg = ex.reason;
   }
-  Expect.equals(msg, ErrorMessages.cannotResolveType("Bar"));
+  Expect.equals(msg,
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['bar']).toString());
 
   // Add the interface to the world and make sure everything is setup correctly.
   compiler.parseScript("interface Bar {}");

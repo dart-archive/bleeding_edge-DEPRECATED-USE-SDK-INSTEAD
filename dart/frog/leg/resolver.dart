@@ -29,20 +29,6 @@ class ResolverTask extends CompilerTask {
   }
 }
 
-class ErrorMessages {
-  static String cannotResolve(id)
-      => "cannot resolve $id";
-
-  static String cannotResolveType(id)
-      => "cannot resolve type $id";
-
-  static String duplicateDefinition(id)
-      => "duplicate definition of $id";
-
-  static String notAType(id)
-      => "$id is not a type";
-}
-
 class ResolverVisitor implements Visitor<Element> {
   final Compiler compiler;
   final Map<Node, Element> mapping;
@@ -53,12 +39,18 @@ class ResolverVisitor implements Visitor<Element> {
       mapping = new LinkedHashMap<Node, Element>(),
       context = new Scope(new TopScope(compiler.universe));
 
-  fail(Node node, [String message = "Unimplemented in the resolver"]) {
-    compiler.cancel(message);
+  error(Node node, MessageKind kind, [arguments = const []]) {
+    ResolutionError error  = new ResolutionError(kind, arguments);
+    compiler.cancel(error.toString());
   }
 
-  warning(Node node, String message) {
-    compiler.reportWarning(node, message);
+  warning(Node node, MessageKind kind, [arguments = const []]) {
+    ResolutionWarning warning  = new ResolutionWarning(kind, arguments);
+    compiler.reportWarning(node, warning.toString());
+  }
+
+  cancel(Node node, String message) {
+    compiler.cancel(message);
   }
 
   visit(Node node) {
@@ -67,7 +59,7 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   Element visitClassNode(ClassNode node) {
-    compiler.cancel("shouldn't be called");
+    cancel(node, "shouldn't be called");
   }
 
   visitIn(Node node, Scope scope) {
@@ -106,7 +98,9 @@ class ResolverVisitor implements Visitor<Element> {
 
   visitIdentifier(Identifier node) {
     Element element = context.lookup(node.source);
-    if (element == null) fail(node, ErrorMessages.cannotResolve(node));
+    if (element == null) {
+      error(node, MessageKind.CANNOT_RESOLVE, [node]);
+    }
     return useElement(node, element);
   }
 
@@ -132,7 +126,7 @@ class ResolverVisitor implements Visitor<Element> {
     visit(node.receiver);
     final Identifier identifier = node.selector;
     if (node.receiver !== null && identifier is !Operator) {
-      compiler.cancel('Cannot handle qualified method calls');
+      cancel(node, 'Cannot handle qualified method calls');
     }
     final SourceString name =
         potentiallyMapOperatorToMethodName(identifier.source);
@@ -142,7 +136,7 @@ class ResolverVisitor implements Visitor<Element> {
     if (target == null && !((name == const SourceString('&&') ||
                              name == const SourceString('||') ||
                              name == const SourceString('!')))) {
-      fail(node, ErrorMessages.cannotResolve(name));
+      error(node, MessageKind.CANNOT_RESOLVE, [name]);
     }
     visit(node.argumentsNode);
     return useElement(node, target);
@@ -156,7 +150,9 @@ class ResolverVisitor implements Visitor<Element> {
     }
     // TODO(ngeoffray): Use the receiver to do the lookup.
     Element target = context.lookup(selector.source);
-    if (target == null) fail(node, ErrorMessages.cannotResolve(node));
+    if (target == null) {
+      error(node, MessageKind.CANNOT_RESOLVE, [node]);
+    }
     visit(node.argumentsNode);
     return useElement(node, target);
   }
@@ -180,7 +176,7 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   visitOperator(Operator node) {
-    fail(node);
+    cancel(node, "Unimplemented");
   }
 
   visitReturn(Return node) {
@@ -197,9 +193,9 @@ class ResolverVisitor implements Visitor<Element> {
     if (name.source == const SourceString('void')) return null;
     Element element = context.lookup(name.source);
     if (element === null) {
-      warning(node, ErrorMessages.cannotResolveType(name));
+      warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [name]);
     } else if (element.kind !== ElementKind.CLASS) {
-      warning(node, ErrorMessages.notAType(name));
+      warning(node, MessageKind.NOT_A_TYPE, [name]);
     } else {
       ClassElement cls = element;
       compiler.resolver.toResolve.add(element);
@@ -253,10 +249,12 @@ class ClassResolverVisitor extends AbstractVisitor<Type> {
     Element element = context.lookup(name.source);
     if (element === null) {
       // TODO(ngeoffray): Should be a reportError.
-      compiler.cancel(ErrorMessages.cannotResolveType(name));
+      compiler.cancel(
+          new ResolutionError(MessageKind.CANNOT_RESOLVE_TYPE, [name]).toString());
     } else if (element.kind !== ElementKind.CLASS) {
       // TODO(ngeoffray): Should be a reportError.
-      compiler.cancel(ErrorMessages.notAType(name));
+      compiler.cancel(
+          new ResolutionError(MessageKind.NOT_A_TYPE, [name]).toString());
     } else {
       compiler.resolver.toResolve.add(element);
       // TODO(ngeoffray): Use type variables.
@@ -284,7 +282,8 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   SourceString visitSendSet(SendSet node) {
     assert(node.arguments.tail.isEmpty()); // Sanity check
     if (node.receiver !== null) {
-      resolver.compiler.unimplemented("receiver on a variable definition");
+      resolver.cancel(node,
+          "receiver on a variable definition not implemented");
     }
     Identifier selector = node.selector;
     resolver.visit(node.arguments.head);
@@ -301,7 +300,7 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
           link.head, definitions.type, name, resolver.context.enclosingElement);
       Element existing = resolver.defineElement(link.head, element);
       if (existing != element) {
-        resolver.fail(node, ErrorMessages.duplicateDefinition(link.head));
+        resolver.error(node, MessageKind.DUPLICATE_DEFINITION, [link.head]);
       }
     }
   }
