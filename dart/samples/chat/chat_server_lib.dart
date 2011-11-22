@@ -11,7 +11,7 @@ typedef void RequestHandler(HTTPRequest request, HTTPResponse response);
 class ChatServer extends IsolatedServer {
   ChatServer() : super() {
     addHandler("/",
-               (HTTPRequest request, HTTPResponse response) 
+               (HTTPRequest request, HTTPResponse response)
                => redirectPageHandler(request, response, "dart_client/index.html"));
     addHandler("/js_client/index.html",
                (HTTPRequest request, HTTPResponse response) => fileHandler(request, response));
@@ -656,8 +656,9 @@ class IsolatedServer extends Isolate {
 // recorded. A current sum of the content of all buckets except the
 // one pointed a by _currentBucket is kept in _sum.
 class Rate {
-  Rate([int this._timeRange = 1000, int buckets = 10])
-      : _buckets = new List(buckets + 1),  // Current bucket is not in the sum.
+  Rate([int timeRange = 1000, int buckets = 10])
+      : _timeRange = timeRange,
+        _buckets = new List(buckets + 1),  // Current bucket is not in the sum.
         _currentBucket = 0,
         _currentBucketTime = new Date.now().value,
         _sum = 0 {
