@@ -167,12 +167,18 @@ public class WorkspaceIndexingDriver {
       synchronized (indexer) {
         indexer.prioritizeQuery(query);
         try {
+          long start = System.currentTimeMillis();
           while (!isShutdown) {
             try {
               indexer.execute(query);
               break;
             } catch (IndexRequiresFullRebuild e) {
             } catch (IndexIsStillBuilding e) {
+            }
+            long delta = System.currentTimeMillis() - start;
+            if (delta > 5000) {
+              throw new IndexTemporarilyNonOperational("Gave up waiting for indexer after " + delta
+                  + " ms");
             }
             // TODO(devoncarew): why 1000ms here?
             indexer.wait(1000);
