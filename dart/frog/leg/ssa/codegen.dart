@@ -167,9 +167,11 @@ class SsaCodeGenerator implements HVisitor {
 
   visitAdd(HAdd node) {
     if (node.isNumber()) {
+      buffer.add('(');
       use(node.inputs[0]);
       buffer.add(' + ');
       use(node.inputs[1]);
+      buffer.add(')');
     } else {
       visitInvoke(node);
     }

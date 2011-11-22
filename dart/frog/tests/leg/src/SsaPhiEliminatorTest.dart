@@ -44,10 +44,10 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, 'main');
-  regexp = const RegExp("t = t +");
+  regexp = const RegExp("t = \\(t +");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp("i = i +");
+  regexp = const RegExp("i = \\(i +");
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp("print\\(t\\)");

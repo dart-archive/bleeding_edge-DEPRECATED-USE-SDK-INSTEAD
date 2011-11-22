@@ -65,7 +65,10 @@ class SsaPhiEliminator extends HGraphVisitor {
                           phi.inputs[i]));
     }
 
-    HLoad load = new HLoad(local);
+    // We propagate the type of the phi to the load instruction rather
+    // than the local because we may end up sharing a single local
+    // between different phis of different types.
+    HLoad load = new HLoad(local, phi.type);
     loads.add(load);
 
     currentBlock.addAtEntry(load);

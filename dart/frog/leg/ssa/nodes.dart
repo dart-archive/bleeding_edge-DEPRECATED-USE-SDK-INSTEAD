@@ -588,7 +588,18 @@ class HInstruction {
   bool isBoolean() => type == TYPE_BOOLEAN;
   bool isNumber() => type == TYPE_NUMBER;
 
-  bool updateType() => false;
+  // Compute the type of the instruction.
+  int computeType() => TYPE_UNKNOWN;
+
+  // Re-compute and update the type of the instruction. Returns
+  // whether or not the type was changed.
+  bool updateType() {
+    if (type == TYPE_CONFLICT) return false;
+    int newType = computeType();
+    bool changed = (type != newType);
+    type = newType;
+    return changed;
+  }
 
   bool isInBasicBlock() => block !== null;
 
@@ -682,10 +693,7 @@ class HBoolify extends HInstruction {
     setUseGvn();
   }
 
-  bool updateType() {
-    type = TYPE_BOOLEAN;
-    return false;
-  }
+  int computeType() => TYPE_BOOLEAN;
 
   accept(HVisitor visitor) => visitor.visitBoolify(this);
   bool typeEquals(other) => other is HBoolify;
@@ -726,15 +734,11 @@ class HArithmetic extends HInvoke {
     setUseGvn();
   }
 
-  bool updateType() {
-    if (type == TYPE_CONFLICT) return false;
-    int newType = TYPE_NUMBER;
-    for (int i = 0; i < inputs.length; i++) {
-      if (inputs[i].type != TYPE_NUMBER) newType = TYPE_UNKNOWN;
+  int computeType() {
+    for (int i = 0, length = inputs.length; i < length; i++) {
+      if (inputs[i].type != TYPE_NUMBER) return TYPE_UNKNOWN;
     }
-    bool changed = (type != newType);
-    type = newType;
-    return changed;
+    return TYPE_NUMBER;
   }
 
   abstract num evaluate(num a, num b);
@@ -836,15 +840,14 @@ class HLiteral extends HInstruction {
   toString() => 'literal: $value';
   accept(HVisitor visitor) => visitor.visitLiteral(this);
 
-  bool updateType() {
+  int computeType() {
     if (isLiteralNumber()) {
-      type = TYPE_NUMBER;
+      return TYPE_NUMBER;
     } else if (value is bool) {
-      type = TYPE_BOOLEAN;
+      return TYPE_BOOLEAN;
     } else {
-      type = TYPE_UNKNOWN;
+      return TYPE_UNKNOWN;
     }
-    return false;
   }
 
   bool isLiteralNumber() => value is num;
@@ -859,6 +862,9 @@ class HNot extends HInstruction {
     clearAllSideEffects();
     setUseGvn();
   }
+
+  int computeType() => TYPE_BOOLEAN;
+
   accept(HVisitor visitor) => visitor.visitNot(this);
   bool typeEquals(other) => other is HNot;
   bool dataEquals(HInstruction other) => true;  
@@ -890,21 +896,20 @@ class HPhi extends HInstruction {
     input.usedBy.add(this);
   }
 
-  bool updateType() {
-    if (type == TYPE_CONFLICT) return false;
+  int computeType() {
     int newType = inputs[0].type;
-    for (int i = 1; i < inputs.length; i++) {
+    for (int i = 1, length = inputs.length; i < length; i++) {
       if (newType != inputs[i].type) {
-        type = TYPE_CONFLICT;
-        return true;
+        return (newType != TYPE_UNKNOWN)
+            ? TYPE_CONFLICT
+            : TYPE_UNKNOWN;
       }
     }
-    bool changed = (type != newType);
-    type = newType;
-    return changed;
+    return newType;
   }
 
   bool updateTypeForLoopPhi() {
+    assert(block.isLoopHeader());
     if (inputs[0].isUnknown()) return false;
     type = inputs[0].type;
     return true;
@@ -934,7 +939,7 @@ class HNonSsaInstruction extends HInstruction {
 }
 
 class HLoad extends HNonSsaInstruction {
-  HLoad(HLocal local) : super([local]);
+  HLoad(HLocal local, type) : super([local]) { this.type = type; }
   HLocal get local() => inputs[0];
   toString() => 'load';
   accept(HVisitor visitor) => visitor.visitLoad(this);
