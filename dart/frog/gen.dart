@@ -518,8 +518,8 @@ class BlockScope {
    */
   bool reentrant;
 
-  BlockScope(this.enclosingMethod, this.parent, [this.reentrant = false])
-    : _vars = {} {
+  BlockScope(this.enclosingMethod, this.parent, [reentrant = false])
+    : this.reentrant = reentrant, _vars = {} {
 
     if (isMethodScope) {
       _closedOver = new Set<String>();

@@ -43,8 +43,11 @@ class Parser {
   List<Token> _afterParens;
   int _afterParensIndex = 0;
 
-  Parser(this.source, [this.diet = false, this.throwOnIncomplete = false,
-      this.optionalSemicolons = false, int startOffset = 0]) {
+  Parser(this.source, [diet = false, throwOnIncomplete = false,
+      optionalSemicolons = false, int startOffset = 0])
+      : this.diet = diet,
+        this.throwOnIncomplete = throwOnIncomplete,
+        this.optionalSemicolons = optionalSemicolons {
     tokenizer = new Tokenizer(source, true, startOffset);
     _peekToken = tokenizer.next();
     _previousToken = null;

@@ -42,7 +42,9 @@ class Expression extends Node {
 
 class TypeReference extends Node {
   Type type;
-  TypeReference(SourceSpan span, [this.type=null]): super(span) {}
+  TypeReference(SourceSpan span, [type])
+      : super(span), this.type = type {
+  }
 
   visit(TreeVisitor visitor) => visitor.visitTypeReference(this);
 

@@ -44,7 +44,8 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
   /** Keeps track of string interpolation state. */
   InterpStack _interpStack;
 
-  TokenizerBase(this._source, this._skipWhitespace, [this._index = 0]) {
+  TokenizerBase(this._source, this._skipWhitespace, [index = 0])
+      : this._index = index {
     _text = _source.text;
   }
 
