@@ -11,7 +11,7 @@
 
 // TODO(ahe): Better name, better abstraction...
 interface Canceler {
-  void cancel([String reason]);
+  void cancel([String reason, node, token, instruction]);
 }
 
 // TODO(ahe): Better name, better abstraction...

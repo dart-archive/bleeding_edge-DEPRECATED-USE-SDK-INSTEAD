@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+final bool VERBOSE = false;
+
 class Listener {
   void beginArguments(Token token) {
   }
@@ -252,7 +254,7 @@ class ElementListener extends Listener {
 
   void beginLibraryTag(Token token) {
     // TODO(ahe): Implement this.
-    canceler.cancel("Cannot handle library tags");
+    canceler.cancel("Cannot handle library tags", token: token);
   }
 
   void endClass(int interfacesCount, Token beginToken, Token extendsKeyword,
@@ -267,12 +269,12 @@ class ElementListener extends Listener {
 
   void endInterface(Token token) {
     // TODO(ahe): Implement this.
-    canceler.cancel("Cannot handle interfaces");
+    canceler.cancel("Cannot handle interfaces", token: token);
   }
 
   void endFunctionTypeAlias(Token token) {
     // TODO(ahe): Implement this.
-    canceler.cancel("Cannot handle typedefs");
+    canceler.cancel("Cannot handle typedefs", token: token);
   }
 
   void endTopLevelMethod(Token beginToken, Token endToken) {
@@ -305,8 +307,7 @@ class ElementListener extends Listener {
   }
 
   Token expected(String string, Token token) {
-    canceler.cancel("Expected '$string', but got '$token' " +
-                    "@ ${token.charOffset}");
+    canceler.cancel("Expected '$string', but got '$token'", token: token);
   }
 
   void unexpectedEof() {
@@ -314,20 +315,19 @@ class ElementListener extends Listener {
   }
 
   void expectedIdentifier(Token token) {
-    canceler.cancel("Expected identifier, but got '$token' " +
-                    "@ ${token.charOffset}");
+    canceler.cancel("Expected identifier, but got '$token'", token: token);
   }
 
   Token expectedType(Token token) {
-    canceler.cancel("Expected a type, but got '$token' @ ${token.charOffset}");
+    canceler.cancel("Expected a type, but got '$token'", token: token);
   }
 
   Token expectedBlock(Token token) {
-    canceler.cancel("Expected a block, but got '$token' @ ${token.charOffset}");
+    canceler.cancel("Expected a block, but got '$token'", token: token);
   }
 
   Token unexpected(Token token) {
-    canceler.cancel("Unexpected token '$token' @ ${token.charOffset}");
+    canceler.cancel("Unexpected token '$token'", token: token);
   }
 
   void pushElement(Element element) {
@@ -336,14 +336,14 @@ class ElementListener extends Listener {
 
   void pushNode(Node node) {
     nodes = nodes.prepend(node);
-    log("push $nodes");
+    if (VERBOSE) log("push $nodes");
   }
 
   Node popNode() {
     assert(!nodes.isEmpty());
     Node node = nodes.head;
     nodes = nodes.tail;
-    log("pop $nodes");
+    if (VERBOSE) log("pop $nodes");
     return node;
   }
 
@@ -399,8 +399,7 @@ class NodeListener extends ElementListener {
   }
 
   void handleOnError(Token token, var error) {
-    canceler.cancel("internal error @ ${token.charOffset}: '${token.value}'" +
-                    ": ${error}");
+    canceler.cancel("internal error: '${token.value}': ${error}", token: token);
   }
 
   void handleLiteralInt(Token token) {
@@ -436,10 +435,12 @@ class NodeListener extends ElementListener {
   void handleAssignmentExpression(Token token) {
     NodeList arguments = new NodeList.singleton(popNode());
     Node node = popNode();
-    if (node is !Send) canceler.cancel('not assignable: $node');
+    if (node is !Send) canceler.cancel('not assignable: $node', node: node);
     Send send = node;
-    if (!send.isPropertyAccess) canceler.cancel('not assignable: $node');
-    if (send is SendSet) canceler.cancel('chained assignment');
+    if (!send.isPropertyAccess) {
+      canceler.cancel('not assignable: $send', node: send);
+    }
+    if (send is SendSet) canceler.cancel('chained assignment', node: send);
     pushNode(new SendSet(send.receiver, send.selector, token, arguments));
   }
 
@@ -448,7 +449,8 @@ class NodeListener extends ElementListener {
     Node thenExpression = popNode();
     Node condition = popNode();
     // TODO(ahe): Create an AST node.
-    canceler.cancel('conditional expression not implemented yet');
+    canceler.cancel('conditional expression not implemented yet',
+                    token: question);
   }
 
   void endSend(Token token) {
@@ -594,6 +596,5 @@ Node parse(Canceler canceler, Logger logger, doParse(Parser parser)) {
   NodeListener listener = new NodeListener(canceler, logger);
   doParse(new Parser(listener));
   Node node = listener.popNode();
-  logger.log("parsed: $node");
   return node;
 }

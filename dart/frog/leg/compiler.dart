@@ -39,7 +39,8 @@ class Compiler implements Canceler, Logger {
     cancel("$methodName not implemented");
   }
 
-  void cancel([String reason]) {
+  void cancel([String reason, Node node, Token token,
+               HInstruction instruction]) {
     throw new CompilerCancelledException(reason);
   }
 

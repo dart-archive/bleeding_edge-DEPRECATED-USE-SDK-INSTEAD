@@ -64,4 +64,17 @@ class WorldCompiler extends Compiler {
   }
 
   String get legDirectory() => io.join([frog.options.libDir, '..', 'leg']);
+
+  void cancel([String reason, Node node, token, instruction]) {
+    if (node !== null) {
+      print(spanFromNode(node).toMessageString("cancel leg: $reason"));
+    } else if (token !== null) {
+      String tokenString = token.toString();
+      int begin = token.charOffset;
+      int end = begin + tokenString.length;
+      print(script.file.getLocationMessage("cancel leg: $reason",
+                                           begin, end, true));
+    }
+    super.cancel(reason, node, token, instruction);
+  }
 }
