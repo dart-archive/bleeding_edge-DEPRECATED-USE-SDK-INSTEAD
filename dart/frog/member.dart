@@ -1079,6 +1079,7 @@ class MethodMember extends Member {
         generator._scope._vars[name] = value;
       }
 
+      // TODO(jmesserly): unify with initializer code in gen.dart
       for (var init in definition.initializers) {
         if (init is CallExpression) {
           // Construct arguments to delegate and invoke it.
@@ -1101,7 +1102,7 @@ class MethodMember extends Member {
         } else {
           // Normal field initializer assignment.
           BinaryExpression assign = init;
-          VarExpression x = assign.x;
+          var x = assign.x; // DotExpression or VarExpression
           var fname = x.name.name;
           var val = generator.visitValue(assign.y);
           fields[fname] = val;

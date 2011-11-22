@@ -6269,7 +6269,7 @@ KeywordState.get$KEYWORD_STATE = function() {
 }
 KeywordState.computeKeywordStateTable = function(start, strings, offset, length) {
   var result = new ListFactory(26);
-  $assert(length != 0, "length != 0", "keyword.dart", 161, 12);
+  $assert(length != 0, "length != 0", "keyword.dart", 162, 12);
   var chunk = 0;
   var chunkStart = -1;
   for (var i = offset;
@@ -6289,7 +6289,7 @@ KeywordState.computeKeywordStateTable = function(start, strings, offset, length)
     result.$setindex(chunk - 97/*null.$a*/, KeywordState.computeKeywordStateTable(start + 1, strings, chunkStart, offset + length - chunkStart));
   }
   else {
-    $assert(length == 1, "length == 1", "keyword.dart", 183, 14);
+    $assert(length == 1, "length == 1", "keyword.dart", 184, 14);
     return new LeafKeywordState($assert_String(strings.$index(offset)));
   }
   return new ArrayKeywordState(result);
@@ -6552,9 +6552,9 @@ SendSet.prototype.accept$1 = function($0) {
 // ********** Code for NodeList **************
 function NodeList(beginToken, nodes, endToken, delimiter) {
   this.beginToken = beginToken;
+  this._nodes = nodes;
   this.endToken = endToken;
   this.delimiter = delimiter;
-  this._nodes = nodes;
   // Initializers done
   Node.call(this);
 }
@@ -12060,7 +12060,7 @@ function BlockScope(enclosingMethod, parent, reentrant) {
     this._closedOver = new HashSetImplementation();
   }
   else {
-    this.reentrant = $notnull_bool(this.reentrant) || $notnull_bool(this.parent.reentrant);
+    this.reentrant = $notnull_bool(reentrant) || $notnull_bool(this.parent.reentrant);
   }
 }
 BlockScope.prototype.is$BlockScope = function(){return this;};
@@ -13469,7 +13469,7 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2231, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2235, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;
@@ -15162,8 +15162,8 @@ MethodMember.prototype._invokeConstConstructor = function(node, code, target, ar
       }
       else {
         var assign = (init && init.is$BinaryExpression());
-        var x = (($0 = assign.x) && $0.is$VarExpression());
-        var fname = x.name.name;
+        var x = assign.x;
+        var fname = x.get$name().get$name();
         var val = this.generator.visitValue(assign.y);
         fields.$setindex(fname, val);
       }
@@ -15993,10 +15993,10 @@ InterpStack.prototype.next$0 = function() {
   return this.next();
 };
 // ********** Code for TokenizerBase **************
-function TokenizerBase(_source, _skipWhitespace, _index) {
+function TokenizerBase(_source, _skipWhitespace, index) {
   this._source = _source;
   this._skipWhitespace = _skipWhitespace;
-  this._lang_index = _index;
+  this._lang_index = index;
   // Initializers done
   TokenizerHelpers.call(this);
   this._text = this._source.get$text();
@@ -16191,7 +16191,7 @@ TokenizerBase.prototype._finishOpenBrace = function() {
       this._interpStack.depth = 1;
     }
     else {
-      $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 277, 16);
+      $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 278, 16);
       ($0 = this._interpStack).depth = $0.depth + 1;
     }
   }
@@ -16201,7 +16201,7 @@ TokenizerBase.prototype._finishCloseBrace = function() {
   var $0;
   if (this._interpStack != null) {
     ($0 = this._interpStack).depth = $0.depth - 1;
-    $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 287, 14);
+    $assert(this._interpStack.depth >= 0, "_interpStack.depth >= 0", "tokenizer.dart", 288, 14);
   }
   return this._finishToken(7/*TokenKind.RBRACE*/);
 }
@@ -18398,7 +18398,7 @@ lang_Parser.prototype._finishDeclaredId = function(type) {
   return this.finishPostfixExpression(new DeclaredIdentifier(type, name, this._makeSpan($assert_num(type.get$span().get$start()))));
 }
 lang_Parser.prototype._fixAsType = function(x) {
-  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 799, 12);
+  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 802, 12);
   if ($notnull_bool(this._maybeEat(53/*TokenKind.GT*/))) {
     var base = this._makeType(x.x);
     var typeParam = this._makeType(x.y);
@@ -18406,7 +18406,7 @@ lang_Parser.prototype._fixAsType = function(x) {
     return this._finishDeclaredId(type);
   }
   else {
-    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 810, 14);
+    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 813, 14);
     var base = this._makeType(x.x);
     var paramBase = this._makeType(x.y);
     var firstParam = this.addTypeArguments((paramBase && paramBase.is$TypeReference()), 1);
@@ -18925,7 +18925,7 @@ lang_Parser.parseHex = function(hex) {
   for (var i = 0;
    i < hex.length; i++) {
     var digit = lang_Parser._hexDigit(hex.charCodeAt(i));
-    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1335, 14);
+    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1338, 14);
     result = (result << 4) + $assert_num(digit);
   }
   return $assert_num(result);
@@ -21925,8 +21925,8 @@ Value.prototype.invokeNoSuchMethod = function(context, name, node, args) {
   return (($0 = this._resolveMember(context, 'noSuchMethod', node, false).invoke$4(context, node, this, new Arguments(null, noSuchArgs))) && $0.is$Value());
 }
 Value.prototype.invokeSpecial = function(name, args, returnType) {
-  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 496, 12);
-  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 497, 12);
+  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 497, 12);
+  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 498, 12);
   var argsString = args.getCode();
   if (name == '\$index' || name == '\$setindex') {
     return new Value(returnType, ('' + this.code + '.' + name + '(' + argsString + ')'), this.span, true);
@@ -22154,7 +22154,7 @@ BareValue.prototype._ensureCode = function() {
   }
 }
 BareValue.prototype._tryResolveMember = function(context, name) {
-  $assert($eq(context, this.home), "context == home", "value.dart", 717, 12);
+  $assert($eq(context, this.home), "context == home", "value.dart", 718, 12);
   var member = this.type.resolveMember(name);
   if ($notnull_bool($ne(member, null))) {
     this._ensureCode();

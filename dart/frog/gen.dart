@@ -937,6 +937,10 @@ class MethodGenerator implements TreeVisitor {
       }
       if (declaredInitializers != null) {
         for (var init in declaredInitializers) {
+          // TODO(jmesserly): eval right side of initializers in static context,
+          // so "this." is not in scope
+          // TODO(jmesserly): this has diverged from code in member.dart,
+          // _invokeConstConstructor. Need to unify these paths.
           // TODO(jimhug): Lot's of correctness to verify here.
           if (init is CallExpression) {
             if (initializerCall != null) {
