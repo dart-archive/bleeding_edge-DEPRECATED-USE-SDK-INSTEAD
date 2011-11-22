@@ -561,9 +561,7 @@ class HInstruction {
   static final int TYPE_NUMBER = 2;
   static final int TYPE_CONFLICT = 3;
 
-  HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[] {
-    prepareGvn();
-  }
+  HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[];
 
   bool getFlag(int position) => (flags & (1 << position)) != 0;
   void setFlag(int position) { flags |= (1 << position); }
@@ -573,7 +571,7 @@ class HInstruction {
 
   int getChangesFlags() => flags & ((1 << FLAG_CHANGES_COUNT) - 1);
   bool hasSideEffects() => getChangesFlags() != 0;
-  void prepareGvn() { setAllSideEffects();  }
+  void prepareGvn() { setAllSideEffects(); }
 
   void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
   void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
@@ -689,7 +687,7 @@ class HInstruction {
 class HBoolify extends HInstruction {
   HBoolify(HInstruction value) : super(<HInstruction>[value]);
   void prepareGvn() {
-    clearAllSideEffects();
+    assert(!hasSideEffects());
     setUseGvn();
   }
 
@@ -726,12 +724,15 @@ class HInvokeForeign extends HInvoke {
 class HArithmetic extends HInvoke {
   HArithmetic(element, inputs) : super(element, inputs);
   void prepareGvn() {
-    // Arithmetic expressions can take part in global value numbering
-    // and do not have any side-effects if the left-hand side is a
-    // literal.
-    if (inputs[0] is !HLiteral) return;
-    clearAllSideEffects();
-    setUseGvn();
+    // An arithmetic expression can take part in global value
+    // numbering and do not have any side-effects if we know the
+    // result of it is a number.
+    if (isNumber()) {
+      assert(!hasSideEffects());
+      setUseGvn();
+    } else {
+      setAllSideEffects();
+    }
   }
 
   int computeType() {
@@ -746,13 +747,6 @@ class HArithmetic extends HInvoke {
 
 class HAdd extends HArithmetic {
   HAdd(element, inputs) : super(element, inputs);
-  void prepareGvn() {
-    // Only if the left-hand side is a literal number are we
-    // sure the operation will not have any side-effects.
-    if (!inputs[0].isLiteralNumber()) return;
-    clearAllSideEffects();
-    setUseGvn();
-  }
   accept(HVisitor visitor) => visitor.visitAdd(this);
   num evaluate(num a, num b) => a + b;
   bool typeEquals(other) => other is HAdd;
@@ -794,11 +788,15 @@ class HTruncatingDivide extends HArithmetic {
 class HEquals extends HInvoke {
   HEquals(element, inputs) : super(element, inputs);
   void prepareGvn() {
-    // Only if the left-hand side is a (any) literal are we
-    // sure the operation will not have any side-effects.
-    if (inputs[0] is !HLiteral) return;
-    clearAllSideEffects();
-    setUseGvn();
+    // An equality check expression can take part in global value
+    // numbering and do not have any side-effects if we know the
+    // result of it is a boolean.
+    if (isBoolean()) {
+      assert(!hasSideEffects());
+      setUseGvn();
+    } else {
+      setAllSideEffects();
+    }
   }
   accept(HVisitor visitor) => visitor.visitEquals(this);
   bool typeEquals(other) => other is HEquals;
@@ -834,8 +832,12 @@ class HLiteral extends HInstruction {
   final value;
   HLiteral(this.value) : super([]);
   void prepareGvn() {
-    clearAllSideEffects();
+    // We allow global value numbering of literals, but we still
+    // prefer generating them at use sites. This allows us to do
+    // better GVN'ing of instructions that use literals as input.
+    assert(!hasSideEffects());
     setUseGvn();
+    setGenerateAtUseSite();  // Maybe avoid this if the literal is big?
   }
   toString() => 'literal: $value';
   accept(HVisitor visitor) => visitor.visitLiteral(this);
@@ -859,7 +861,7 @@ class HLiteral extends HInstruction {
 class HNot extends HInstruction {
   HNot(HInstruction value) : super(<HInstruction>[value]);
   void prepareGvn() {
-    clearAllSideEffects();
+    assert(!hasSideEffects());
     setUseGvn();
   }
 
@@ -874,7 +876,7 @@ class HParameter extends HInstruction {
   final int parameterIndex;
   HParameter(this.parameterIndex) : super([]);
   void prepareGvn() {
-    clearAllSideEffects();
+    assert(!hasSideEffects());
   }
   toString() => 'parameter $parameterIndex';
   accept(HVisitor visitor) => visitor.visitParameter(this);
@@ -933,7 +935,8 @@ class HThrow extends HControlFlow {
 
 class HNonSsaInstruction extends HInstruction {
   HNonSsaInstruction(inputs) : super(inputs);
-  void prepareGvn() {}
+  // Non-SSA instructions cannot take part in GVN.
+  void prepareGvn() { unreachable(); }
   bool useGvn() { unreachable(); }
   void setUseGvn() { unreachable(); }
 }

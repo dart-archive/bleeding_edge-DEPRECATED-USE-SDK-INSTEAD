@@ -290,6 +290,7 @@ class SsaGlobalValueNumberer {
       int changesFlags = 0;
       HInstruction instruction = block.first;
       while (instruction !== null) {
+        instruction.prepareGvn();
         changesFlags |= instruction.getChangesFlags();
         instruction = instruction.next;
       }

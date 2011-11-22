@@ -7676,15 +7676,15 @@ SsaBuilder.prototype.visitSend = function(node) {
   var element = (($0 = this.elements.$index(node)) && $0.is$Element());
   if ((node.selector instanceof Operator)) {
     var op = (($0 = node.selector) && $0.is$Operator());
-    if ($notnull_bool($eq(const$260/*const SourceString("&&")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$255/*const SourceString("&&")*/, op.get$source()))) {
       this.visitLogicalAnd(node);
       return;
     }
-    else if ($notnull_bool($eq(const$261/*const SourceString("||")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$256/*const SourceString("||")*/, op.get$source()))) {
       this.visitLogicalOr(node);
       return;
     }
-    else if ($notnull_bool($eq(const$262/*const SourceString("!")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$257/*const SourceString("!")*/, op.get$source()))) {
       this.visitLogicalNot(node);
       return;
     }
@@ -7692,22 +7692,22 @@ SsaBuilder.prototype.visitSend = function(node) {
     this.visit(node.argumentsNode);
     var right = this.pop();
     var left = this.pop();
-    if ($notnull_bool($eq(const$263/*const SourceString("+")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$258/*const SourceString("+")*/, op.get$source()))) {
       this.push(new HAdd(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$264/*const SourceString("-")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$259/*const SourceString("-")*/, op.get$source()))) {
       this.push(new HSubtract(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$265/*const SourceString("*")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$260/*const SourceString("*")*/, op.get$source()))) {
       this.push(new HMultiply(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$266/*const SourceString("/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$261/*const SourceString("/")*/, op.get$source()))) {
       this.push(new HDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$267/*const SourceString("~/")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$262/*const SourceString("~/")*/, op.get$source()))) {
       this.push(new HTruncatingDivide(element, [left, right]));
     }
-    else if ($notnull_bool($eq(const$268/*const SourceString("==")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$263/*const SourceString("==")*/, op.get$source()))) {
       this.push(new HEquals(element, [left, right]));
     }
   }
@@ -8696,7 +8696,6 @@ function HInstruction(inputs) {
   this.id = $globals.HInstruction_idCounter++;
   this.usedBy = [];
   // Initializers done
-  this.prepareGvn();
 }
 HInstruction.prototype.is$HInstruction = function(){return this;};
 HInstruction.prototype.get$id = function() { return this.id; };
@@ -8726,9 +8725,6 @@ HInstruction.prototype.prepareGvn = function() {
 }
 HInstruction.prototype.setAllSideEffects = function() {
   this.flags |= (1)/*((1 << FLAG_CHANGES_COUNT) - 1)*/;
-}
-HInstruction.prototype.clearAllSideEffects = function() {
-  this.flags &= -2/*~((1 << FLAG_CHANGES_COUNT) - 1)*/;
 }
 HInstruction.prototype.generateAtUseSite = function() {
   return this.getFlag(2/*HInstruction.FLAG_GENERATE_AT_USE_SITE*/);
@@ -8765,7 +8761,7 @@ HInstruction.prototype.isInBasicBlock = function() {
   return this.block != null;
 }
 HInstruction.prototype.equals = function(other) {
-  $assert($notnull_bool(this.useGvn()) && $notnull_bool(other.useGvn()), "useGvn() && other.useGvn()", "nodes.dart", 624, 12);
+  $assert($notnull_bool(this.useGvn()) && $notnull_bool(other.useGvn()), "useGvn() && other.useGvn()", "nodes.dart", 622, 12);
   if (!$notnull_bool(this.typeEquals(other))) return false;
   if (this.flags != other.flags) return false;
   var inputsLength = this.inputs.length;
@@ -8784,21 +8780,21 @@ HInstruction.prototype.dataEquals = function(other) {
   return false;
 }
 HInstruction.prototype.notifyAddedToBlock = function(block) {
-  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 647, 12);
-  $assert(this.block == null, "this.block === null", "nodes.dart", 648, 12);
+  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 645, 12);
+  $assert(this.block == null, "this.block === null", "nodes.dart", 646, 12);
   for (var i = 0;
    i < this.inputs.length; i++) {
-    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 651, 14);
+    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 649, 14);
     this.inputs.$index(i).get$usedBy().add$1(this);
   }
   this.block = block;
-  $assert(this.isValid(), "isValid()", "nodes.dart", 655, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 653, 12);
 }
 HInstruction.prototype.notifyRemovedFromBlock = function(block) {
   var $0;
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 659, 12);
-  $assert(this.usedBy.isEmpty(), "usedBy.isEmpty()", "nodes.dart", 660, 12);
-  $assert(this.block === block, "this.block === block", "nodes.dart", 661, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 657, 12);
+  $assert(this.usedBy.isEmpty(), "usedBy.isEmpty()", "nodes.dart", 658, 12);
+  $assert(this.block === block, "this.block === block", "nodes.dart", 659, 12);
   for (var i = 0;
    i < this.inputs.length; i++) {
     var inputUsedBy = (($0 = this.inputs.$index(i).get$usedBy()) && $0.is$List());
@@ -8812,7 +8808,7 @@ HInstruction.prototype.notifyRemovedFromBlock = function(block) {
     }
   }
   this.block = null;
-  $assert(this.isValid(), "isValid()", "nodes.dart", 675, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 673, 12);
 }
 HInstruction.prototype.isLiteralNumber = function() {
   return false;
@@ -8860,7 +8856,7 @@ function HBoolify(value) {
 }
 $inherits(HBoolify, HInstruction);
 HBoolify.prototype.prepareGvn = function() {
-  this.clearAllSideEffects();
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 690, 12);
   this.setUseGvn();
 }
 HBoolify.prototype.computeType = function() {
@@ -8937,9 +8933,13 @@ function HArithmetic(element, inputs) {
 }
 $inherits(HArithmetic, HInvoke);
 HArithmetic.prototype.prepareGvn = function() {
-  if (!(this.inputs.$index(0) instanceof HLiteral)) return;
-  this.clearAllSideEffects();
-  this.setUseGvn();
+  if ($notnull_bool(this.isNumber())) {
+    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 731, 14);
+    this.setUseGvn();
+  }
+  else {
+    this.setAllSideEffects();
+  }
 }
 HArithmetic.prototype.computeType = function() {
   for (var i = 0, length = this.inputs.length;
@@ -8954,11 +8954,6 @@ function HAdd(element, inputs) {
   HArithmetic.call(this, element, inputs);
 }
 $inherits(HAdd, HArithmetic);
-HAdd.prototype.prepareGvn = function() {
-  if (!$notnull_bool(this.inputs.$index(0).isLiteralNumber$0())) return;
-  this.clearAllSideEffects();
-  this.setUseGvn();
-}
 HAdd.prototype.accept = function(visitor) {
   return visitor.visitAdd(this);
 }
@@ -9065,9 +9060,13 @@ function HEquals(element, inputs) {
 }
 $inherits(HEquals, HInvoke);
 HEquals.prototype.prepareGvn = function() {
-  if (!(this.inputs.$index(0) instanceof HLiteral)) return;
-  this.clearAllSideEffects();
-  this.setUseGvn();
+  if ($notnull_bool(this.isBoolean())) {
+    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 795, 14);
+    this.setUseGvn();
+  }
+  else {
+    this.setAllSideEffects();
+  }
 }
 HEquals.prototype.accept = function(visitor) {
   return visitor.visitEquals(this);
@@ -9164,8 +9163,9 @@ $inherits(HLiteral, HInstruction);
 HLiteral.prototype.is$HLiteral = function(){return this;};
 HLiteral.prototype.get$value = function() { return this.value; };
 HLiteral.prototype.prepareGvn = function() {
-  this.clearAllSideEffects();
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 838, 12);
   this.setUseGvn();
+  this.setGenerateAtUseSite();
 }
 HLiteral.prototype.toString = function() {
   return ('literal: ' + this.value);
@@ -9216,7 +9216,7 @@ function HNot(value) {
 }
 $inherits(HNot, HInstruction);
 HNot.prototype.prepareGvn = function() {
-  this.clearAllSideEffects();
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 864, 12);
   this.setUseGvn();
 }
 HNot.prototype.computeType = function() {
@@ -9242,7 +9242,7 @@ function HParameter(parameterIndex) {
 }
 $inherits(HParameter, HInstruction);
 HParameter.prototype.prepareGvn = function() {
-  this.clearAllSideEffects();
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 879, 12);
 }
 HParameter.prototype.toString = function() {
   return ('parameter ' + this.parameterIndex);
@@ -9274,7 +9274,7 @@ $inherits(HPhi, HInstruction);
 HPhi.prototype.is$HPhi = function(){return this;};
 HPhi.prototype.get$element = function() { return this.element; };
 HPhi.prototype.addInput = function(input) {
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 894, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 896, 12);
   this.inputs.add(input);
   input.usedBy.add(this);
 }
@@ -9289,7 +9289,7 @@ HPhi.prototype.computeType = function() {
   return newType;
 }
 HPhi.prototype.updateTypeForLoopPhi = function() {
-  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 912, 12);
+  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 914, 12);
   if ($notnull_bool(this.inputs.$index(0).isUnknown$0())) return false;
   this.type = $assert_num(this.inputs.$index(0).get$type());
   return true;
@@ -9349,7 +9349,7 @@ function HNonSsaInstruction(inputs) {
 }
 $inherits(HNonSsaInstruction, HInstruction);
 HNonSsaInstruction.prototype.prepareGvn = function() {
-
+  unreachable();
 }
 HNonSsaInstruction.prototype.useGvn = function() {
   unreachable();
@@ -9683,10 +9683,11 @@ SsaGlobalValueNumberer.prototype.computeChangesFlags = function(graph) {
     var changesFlags = 0;
     var instruction = block.first;
     while (instruction != null) {
+      instruction.prepareGvn();
       changesFlags |= instruction.getChangesFlags();
       instruction = instruction.next;
     }
-    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 296, 14);
+    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 297, 14);
     this.blockChangesFlags.$setindex(id, changesFlags);
     if ($notnull_bool(block.isLoopHeader())) {
       ($0 = this.loopChangesFlags).$setindex(id, $0.$index(id) | changesFlags);
@@ -22769,15 +22770,15 @@ var const$247 = new WarningKind('variable cannot be of type void')/*const Warnin
 var const$249 = new WarningKind('expression does not yield a value')/*const WarningKind(
       'expression does not yield a value')*/;
 var const$25 = new Keyword("break", false)/*const Keyword("break")*/;
-var const$260 = new StringWrapper("&&")/*const SourceString("&&")*/;
-var const$261 = new StringWrapper("||")/*const SourceString("||")*/;
-var const$262 = new StringWrapper("!")/*const SourceString("!")*/;
-var const$263 = new StringWrapper("+")/*const SourceString("+")*/;
-var const$264 = new StringWrapper("-")/*const SourceString("-")*/;
-var const$265 = new StringWrapper("*")/*const SourceString("*")*/;
-var const$266 = new StringWrapper("/")/*const SourceString("/")*/;
-var const$267 = new StringWrapper("~/")/*const SourceString("~/")*/;
-var const$268 = new StringWrapper("==")/*const SourceString("==")*/;
+var const$255 = new StringWrapper("&&")/*const SourceString("&&")*/;
+var const$256 = new StringWrapper("||")/*const SourceString("||")*/;
+var const$257 = new StringWrapper("!")/*const SourceString("!")*/;
+var const$258 = new StringWrapper("+")/*const SourceString("+")*/;
+var const$259 = new StringWrapper("-")/*const SourceString("-")*/;
+var const$260 = new StringWrapper("*")/*const SourceString("*")*/;
+var const$261 = new StringWrapper("/")/*const SourceString("/")*/;
+var const$262 = new StringWrapper("~/")/*const SourceString("~/")*/;
+var const$263 = new StringWrapper("==")/*const SourceString("==")*/;
 var const$27 = new Keyword("case", false)/*const Keyword("case")*/;
 var const$274 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
 var const$276 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
