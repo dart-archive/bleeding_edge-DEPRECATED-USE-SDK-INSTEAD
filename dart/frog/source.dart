@@ -7,6 +7,10 @@
  * Represents a file of source code.
  */
 class SourceFile implements Comparable {
+  // TODO(terry): This filename for in memory buffer.  May need to rework if
+  //              filename is used for more than informational.
+  static String IN_MEMORY_FILE = '<buffer>';
+
   /** The name of the file. */
   final String filename;
 

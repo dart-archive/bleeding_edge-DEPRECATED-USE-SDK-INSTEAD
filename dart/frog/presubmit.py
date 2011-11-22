@@ -92,9 +92,8 @@ def main(args):
     #   than pain.
     # Run leg and frogsh on most of the tests.
     cmd = test_cmd + ['--component=frogsh,leg', 'language', 'corelib', 'leg',
-                      'isolate', 'peg', 'leg_only', 'frog']
+                      'isolate', 'peg', 'leg_only', 'frog', 'css']
     RunCommand(*cmd, verbose=True)
-
 
 if __name__ == '__main__':
   try:
