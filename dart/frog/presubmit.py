@@ -65,7 +65,7 @@ def main(args):
   # Selfhost Checked
   start = time.time()
   RunCommand('./frogsh', '--out=frogsh', '--enable_type_checks', 'frog.dart',
-             '--enable_type_checks', 'tests/hello.dart')
+             '--enable_type_checks', 'tests/hello.dart', verbose=True)
   elapsed = time.time() - start
   size = os.path.getsize('./frogsh') / 1024
   print 'Bootstrapping took %s seconds %s' % (b(elapsed), b('in checked mode'))
