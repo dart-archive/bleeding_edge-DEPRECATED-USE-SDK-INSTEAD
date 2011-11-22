@@ -118,6 +118,13 @@ public class WorkspaceIndexingDriver {
 
   private final IndexingJob indexingJob = new IndexingJob();
 
+  /**
+   * The number of milliseconds we should wait for the indexer to finish before trying again to
+   * execute a query.
+   */
+  // TODO(devoncarew): why 1000ms here?
+  private static final int WAIT_INTERVAL = 1000;
+
   public WorkspaceIndexingDriver(IndexConfigurationInstance configuration) {
     this.configuration = configuration;
     IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -151,6 +158,7 @@ public class WorkspaceIndexingDriver {
    */
   public void enqueueChangedFiles(IFile[] changedFiles) {
     indexer.enqueueChangedFiles(changedFiles);
+    workAdded();
   }
 
   /**
@@ -160,6 +168,7 @@ public class WorkspaceIndexingDriver {
    */
   public void enqueueTargets(IndexingTarget[] targets) {
     indexer.enqueueTargets(targets);
+    workAdded();
   }
 
   public void execute(Query query) throws IndexTemporarilyNonOperational {
@@ -167,21 +176,21 @@ public class WorkspaceIndexingDriver {
       synchronized (indexer) {
         indexer.prioritizeQuery(query);
         try {
-          long start = System.currentTimeMillis();
+          boolean hasBeenScheduled = false;
           while (!isShutdown) {
             try {
               indexer.execute(query);
               break;
             } catch (IndexRequiresFullRebuild e) {
             } catch (IndexIsStillBuilding e) {
+              // If we're waiting for the index to be built, then make sure that the indexer job has
+              // been scheduled so that we don't wait forever.
+              if (!hasBeenScheduled) {
+                indexingJob.schedule();
+                hasBeenScheduled = true;
+              }
             }
-            long delta = System.currentTimeMillis() - start;
-            if (delta > 5000) {
-              throw new IndexTemporarilyNonOperational("Gave up waiting for indexer after " + delta
-                  + " ms");
-            }
-            // TODO(devoncarew): why 1000ms here?
-            indexer.wait(1000);
+            indexer.wait(WAIT_INTERVAL);
           }
         } finally {
           indexer.unprioritizeQuery(query);
