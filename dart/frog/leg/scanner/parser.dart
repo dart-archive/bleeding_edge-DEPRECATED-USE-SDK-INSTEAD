@@ -439,6 +439,8 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
         return parseForStatement(token);
       case value === 'throw':
         return parseThrowStatement(token);
+      case value === 'void':
+        return parseExpressionStatementOrDeclaration(token);
       // TODO(ahe): Handle other statements.
       default:
         return parseExpressionStatement(token);
@@ -464,8 +466,8 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
   }
 
   Token peekAfterType(Token token) {
-    // TODO(ahe): Also handle void and var?
-    assert(token.kind === IDENTIFIER_TOKEN);
+    // TODO(ahe): Also handle var?
+    assert('void' === token.stringValue || token.kind === IDENTIFIER_TOKEN);
     // We are looking at "identifier ...".
     Token peek = token.next;
     if (peek.kind === PERIOD_TOKEN) {
@@ -507,7 +509,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
       if (afterIdKind === EQ_TOKEN || afterIdKind === SEMICOLON_TOKEN) {
         // We are looking at "type identifier = ..." or "type identifier;".
         return parseVariablesDeclaration(token);
-      } else if (afterIdKind === RPAREN_TOKEN) {
+      } else if (afterIdKind === LPAREN_TOKEN) {
         // We are looking at "type identifier '('".
         BeginGroupToken beginParen = afterId;
         Token endParen = beginParen.endGroup;

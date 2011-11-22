@@ -72,4 +72,7 @@ void main() {
   testStatement('MyClass.foo().bar().baz();');
   testStatement('MyClass.foo().-x;'); // Accepted by parser, rejected later.
   testStatement('a.b.c.d();');
+
+  parseStatement('int f() {}');
+  parseStatement('void f() {}');
 }
