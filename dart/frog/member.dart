@@ -220,6 +220,8 @@ class Member implements Named {
     }
     return type;
   }
+
+  int hashCode() => (declaringType.hashCode() << 4) ^ name.hashCode();
 }
 
 
