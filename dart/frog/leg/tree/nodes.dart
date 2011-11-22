@@ -138,6 +138,10 @@ class Send extends Expression {
     }
     return receiver.getBeginToken();
   }
+
+  Send copyWithReceiver(Node receiver) {
+    return new Send(receiver, selector, argumentsNode);
+  }
 }
 
 class Postfix extends NodeList {
@@ -158,6 +162,10 @@ class SendSet extends Send {
     : super(receiver, selector, argumentsNode);
 
   accept(Visitor visitor) => visitor.visitSendSet(this);
+
+  Send copyWithReceiver(Node receiver) {
+    throw 'not implemented';
+  }
 }
 
 class NewExpression extends Expression {

@@ -346,6 +346,9 @@ Object.prototype.convertTo$4 = function($0, $1, $2, $3) {
 Object.prototype.copyWithNewType$1 = function($0) {
   return this.noSuchMethod("copyWithNewType", [$0]);
 };
+Object.prototype.copyWithReceiver$1 = function($0) {
+  return this.noSuchMethod("copyWithReceiver", [$0]);
+};
 Object.prototype.endArguments$3 = function($0, $1, $2) {
   return this.noSuchMethod("endArguments", [$0, $1, $2]);
 };
@@ -4712,10 +4715,6 @@ Parser.prototype.getPrecedence = function(token) {
 
       return 0;
 
-    case value === '+':
-
-      return 12;
-
     case value === ')':
 
       return 0;
@@ -4867,6 +4866,10 @@ Parser.prototype.getPrecedence = function(token) {
     case value === '~/':
 
       return 13;
+
+    case value === '.':
+
+      return 14;
 
     default:
 
@@ -5752,8 +5755,16 @@ NodeListener.prototype.handleLiteralString = function(token) {
   this.pushNode(new LiteralString(token));
 }
 NodeListener.prototype.handleBinaryExpression = function(token) {
-  var arguments = new NodeList(null, LinkFactory.Link$factory(this.popNode()), null, null);
-  this.pushNode(new Send(this.popNode(), new Operator(token), arguments));
+  var $0;
+  var argument = this.popNode();
+  var receiver = this.popNode();
+  if ((token.get$stringValue() === '.') && ((argument instanceof Send)) && (argument.get$receiver() == null)) {
+    this.pushNode((($0 = argument.copyWithReceiver$1(receiver)) && $0.is$Node()));
+  }
+  else {
+    var arguments = new NodeList.singleton$ctor(argument);
+    this.pushNode(new Send(receiver, new Operator(token), arguments));
+  }
 }
 NodeListener.prototype.handleAssignmentExpression = function(token) {
   var arguments = new NodeList.singleton$ctor(this.popNode());
@@ -6420,6 +6431,7 @@ Send.prefix$ctor = function(receiver, selector) {
 Send.prefix$ctor.prototype = Send.prototype;
 $inherits(Send, Expression);
 Send.prototype.is$Send = function(){return this;};
+Send.prototype.get$receiver = function() { return this.receiver; };
 Send.prototype.get$arguments = function() {
   return this.argumentsNode.get$nodes();
 }
@@ -6451,8 +6463,14 @@ Send.prototype.getEndToken = function() {
   }
   return (($0 = this.receiver.getBeginToken()) && $0.is$Token());
 }
+Send.prototype.copyWithReceiver = function(receiver) {
+  return new Send(receiver, this.selector, this.argumentsNode);
+}
 Send.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
+};
+Send.prototype.copyWithReceiver$1 = function($0) {
+  return this.copyWithReceiver(($0 && $0.is$Node()));
 };
 Send.prototype.getBeginToken$0 = function() {
   return this.getBeginToken();
@@ -6483,8 +6501,14 @@ SendSet.prototype.is$SendSet = function(){return this;};
 SendSet.prototype.accept = function(visitor) {
   return visitor.visitSendSet(this);
 }
+SendSet.prototype.copyWithReceiver = function(receiver) {
+  $throw('not implemented');
+}
 SendSet.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
+};
+SendSet.prototype.copyWithReceiver$1 = function($0) {
+  return this.copyWithReceiver(($0 && $0.is$Node()));
 };
 // ********** Code for NodeList **************
 function NodeList(beginToken, nodes, endToken, delimiter) {
@@ -7028,6 +7052,8 @@ Unparser.prototype.visitClassNode = function(node) {
   this.sb.add(' ');
   if (node.extendsKeyword != null) {
     node.extendsKeyword.get$value().printOn$1(this.sb);
+    this.sb.add(' ');
+    this.visit(node.superclass);
     this.sb.add(' ');
   }
   this.visit(node.interfaces);
@@ -10561,6 +10587,9 @@ ResolverVisitor.prototype.visitSend = function(node) {
   var $0;
   this.visit(node.receiver);
   var identifier = (($0 = node.selector) && $0.is$Identifier());
+  if (node.receiver != null && !(identifier instanceof Operator)) {
+    this.compiler.cancel('Cannot handle qualified method calls');
+  }
   var name = this.potentiallyMapOperatorToMethodName(identifier.get$source());
   var target = this.context.lookup(name);
   if (target == null && !(($notnull_bool($eq(name, const$230/*const SourceString('&&')*/)) || $notnull_bool($eq(name, const$231/*const SourceString('||')*/)) || $notnull_bool($eq(name, const$232/*const SourceString('!')*/))))) {
@@ -10701,7 +10730,7 @@ function VariableDefinitionsVisitor(definitions, resolver) {
 $inherits(VariableDefinitionsVisitor, AbstractVisitor$SourceString);
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 282, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 285, 12);
   if (node.receiver != null) {
     this.resolver.compiler.unimplemented("receiver on a variable definition");
   }

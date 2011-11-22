@@ -40,6 +40,8 @@ class Unparser implements Visitor {
     if (node.extendsKeyword !== null) {
       node.extendsKeyword.value.printOn(sb);
       sb.add(' ');
+      visit(node.superclass);
+      sb.add(' ');
     }
     visit(node.interfaces);
     sb.add('{\n');

@@ -5,7 +5,7 @@
 /**
  * An abstract string representation.
  */
-class ByteString {
+class ByteString implements SourceString {
   final List<int> bytes;
   final int offset;
   final int length;
@@ -100,6 +100,10 @@ class ByteString {
       code += 19 * code + bytes[i];
     }
     return code;
+  }
+
+  printOn(StringBuffer sb) {
+    sb.add(toString());
   }
 }
 

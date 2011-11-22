@@ -131,6 +131,9 @@ class ResolverVisitor implements Visitor<Element> {
   visitSend(Send node) {
     visit(node.receiver);
     final Identifier identifier = node.selector;
+    if (node.receiver !== null && identifier is !Operator) {
+      compiler.cancel('Cannot handle qualified method calls');
+    }
     final SourceString name =
         potentiallyMapOperatorToMethodName(identifier.source);
     // TODO(ngeoffray): Use the receiver to do the lookup.

@@ -68,4 +68,8 @@ void main() {
   testStatement('print(x++);');
   testStatement('print(++x++);'); // Accepted by parser, rejected later.
   testStatement('print(++x);');
+
+  testStatement('MyClass.foo().bar().baz();');
+  testStatement('MyClass.foo().-x;'); // Accepted by parser, rejected later.
+  testStatement('a.b.c.d();');
 }

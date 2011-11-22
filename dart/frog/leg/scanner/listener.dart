@@ -420,9 +420,17 @@ class NodeListener extends ElementListener {
   }
 
   void handleBinaryExpression(Token token) {
-    NodeList arguments = new NodeList(null, new Link<Node>(popNode()),
-                                      null, null);
-    pushNode(new Send(popNode(), new Operator(token), arguments));
+    Node argument = popNode();
+    Node receiver = popNode();
+    if ((token.stringValue === '.') &&
+        (argument is Send) && (argument.receiver === null)) {
+      pushNode(argument.copyWithReceiver(receiver));
+    } else {
+      // TODO(ahe): If token.stringValue === '.', the resolver should
+      // reject this.
+      NodeList arguments = new NodeList.singleton(argument);
+      pushNode(new Send(receiver, new Operator(token), arguments));
+    }
   }
 
   void handleAssignmentExpression(Token token) {

@@ -579,7 +579,6 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     if (value === null) return 0;
     switch (true) {
       case value === '(': return 0;
-      case value === '+': return 12;
       case value === ')': return 0;
       case value === '%=': return 2;
       case value === '&=': return 2;
@@ -618,6 +617,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
       case value === '*': return 13;
       case value === '/': return 13;
       case value === '~/': return 13;
+      case value === '.': return 14; // TODO(ahe): Remove this line.
       default: return 0;
     }
   }
