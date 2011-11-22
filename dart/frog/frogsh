@@ -1192,8 +1192,8 @@ NumImplementation.prototype.hashCode$0 = function() {
   return this.hashCode();
 };
 // ********** Code for ExceptionImplementation **************
-function ExceptionImplementation(_msg) {
-  this._msg = _msg;
+function ExceptionImplementation(msg) {
+  this._msg = msg;
   // Initializers done
 }
 ExceptionImplementation.prototype.toString = function() {
@@ -13731,7 +13731,7 @@ Library.prototype.addType = function(name, definition, isClass) {
       existingType.setDefinition$1(definition);
     }
     else {
-      $globals.world.warning(('duplicate definition of ' + name), definition.span);
+      $globals.world.warning(('duplicate definition of ' + name), definition.span, (($0 = existingType.get$span()) && $0.is$SourceSpan()));
     }
   }
   else {
@@ -13894,7 +13894,7 @@ _LibraryVisitor.prototype.addSource = function(source) {
     return def.visit$1($this);
   })
   );
-  $assert(this.sources.length == 0 || $notnull_bool(this.isTop), "sources.length == 0 || isTop", "library.dart", 298, 12);
+  $assert(this.sources.length == 0 || $notnull_bool(this.isTop), "sources.length == 0 || isTop", "library.dart", 299, 12);
   this.isTop = false;
   var newSources = this.sources;
   this.sources = [];

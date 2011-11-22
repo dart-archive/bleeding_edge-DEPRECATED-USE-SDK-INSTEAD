@@ -133,7 +133,8 @@ class Library {
         // TODO(jimhug): Validate compatibility with natives.
         existingType.setDefinition(definition);
       } else {
-        world.warning('duplicate definition of $name', definition.span);
+        world.warning('duplicate definition of $name', definition.span,
+            existingType.span);
       }
     } else {
       types[name] = new DefinedType(name, this, definition, isClass);
