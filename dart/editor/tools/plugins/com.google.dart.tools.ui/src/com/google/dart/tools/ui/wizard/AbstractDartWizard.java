@@ -30,7 +30,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWizard;
 import org.eclipse.ui.WorkbenchException;
-import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.ide.IDE;
 
 /**
  * Abstract wizard for sharing behavior
@@ -55,7 +55,6 @@ public abstract class AbstractDartWizard extends Wizard implements IWorkbenchWiz
    * Prompt the user to open the Dart perspective, if not already open
    */
   protected void openDartPerspective() {
-
     // Check to see if the Dart perspective is already open
     IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
     IPerspectiveDescriptor perspective = window.getActivePage().getPerspective();
@@ -90,6 +89,27 @@ public abstract class AbstractDartWizard extends Wizard implements IWorkbenchWiz
   }
 
   /**
+   * Open an editor on the specified file.
+   * 
+   * @param file the file to be edited
+   * @return <code>true</code> if the editor was successfully opened
+   */
+  protected boolean openEditor(IFile file) {
+    try {
+      IWorkbenchPage activePage = workbench.getActiveWorkbenchWindow().getActivePage();
+
+      IDE.openEditor(activePage, file);
+
+      return true;
+    } catch (Throwable e) {
+      String message = "Failed to open editor on " + file;
+      DartToolsPlugin.log(message, e);
+      MessageDialog.openError(getShell(), "Open Editor Exception", message);
+      return false;
+    }
+  }
+
+  /**
    * Open the editor on the specified input.
    * 
    * @param editorId the identifier for the editor to be opened
@@ -109,23 +129,4 @@ public abstract class AbstractDartWizard extends Wizard implements IWorkbenchWiz
     }
   }
 
-  /**
-   * Open the editor on the specified file
-   * 
-   * @param editorId the identifier for the editor to be opened
-   * @param file the file to be edited
-   * @return <code>true</code> if the editor was successfully opened
-   */
-  protected boolean openEditor(String editorId, IFile file) {
-    try {
-      IWorkbenchPage activePage = workbench.getActiveWorkbenchWindow().getActivePage();
-      activePage.openEditor(new FileEditorInput(file), editorId);
-      return true;
-    } catch (Throwable e) {
-      String message = "Failed to open editor " + editorId + " on " + file;
-      DartToolsPlugin.log(message, e);
-      MessageDialog.openError(getShell(), "Open Editor Exception", message);
-      return false;
-    }
-  }
 }

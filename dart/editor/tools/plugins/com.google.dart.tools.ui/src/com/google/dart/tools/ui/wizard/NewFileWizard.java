@@ -132,11 +132,9 @@ public class NewFileWizard extends AbstractDartWizard implements INewWizard {
             cu.getLibrary().setTopLevel(true);
           }
         }
-        if (!openEditor(DartUI.ID_CU_EDITOR, file)) {
-          openEditor(DartUI.ID_DEFAULT_TEXT_EDITOR, file);
-        }
+        openEditor(file);
       } else {
-        openEditor(DartUI.ID_DEFAULT_TEXT_EDITOR, file);
+        openEditor(file);
       }
     }
   }
