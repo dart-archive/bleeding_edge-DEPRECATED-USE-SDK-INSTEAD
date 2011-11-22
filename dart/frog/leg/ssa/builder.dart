@@ -333,10 +333,29 @@ class SsaBuilder implements Visitor {
     return new SourceString(str.substring(quotes + 1, str.length - quotes));
   }
 
-  visitLogicalAnd(Send node) {
+  visitLogicalAndOr(Send node) {
+    // x && y is transformed into:
+    //   t0 = boolify(x);
+    //   if (t0) t1 = boolify(y);
+    //   result = phi(t0, t1);
+    //
+    // x || y is transformed into:
+    //   t0 = boolify(x);
+    //   if (not(t0)) t1 = boolify(y);
+    //   result = phi(t0, t1);
+    Operator op = node.selector;
+    bool isAnd = (const SourceString("&&") == op.source);
+
     visit(node.receiver);
     HInstruction boolifiedLeft = popBoolified();
-    HBasicBlock leftBlock = close(new HIf(boolifiedLeft, false));
+    HInstruction condition;
+    if (isAnd) {
+      condition = boolifiedLeft;
+    } else {
+      condition = new HNot(boolifiedLeft);
+      add(condition);
+    }
+    HBasicBlock leftBlock = close(new HIf(condition, false));
     Map leftDefinitions = new Map<Element, HInstruction>.from(definitions);
     
     HBasicBlock rightBlock = graph.addNewBlock();
@@ -357,10 +376,6 @@ class SsaBuilder implements Visitor {
     stack.add(result);
   }
 
-  visitLogicalOr(Send node) {
-    compiler.unimplemented("SsaBuilder.visitLogicalOr");
-  }
-
   visitLogicalNot(Send node) {
     assert(node.argumentsNode is Prefix);
     visit(node.receiver);
@@ -374,11 +389,9 @@ class SsaBuilder implements Visitor {
     Element element = elements[node];
     if (node.selector is Operator) {
       Operator op = node.selector;
-      if (const SourceString("&&") == op.source) {
-        visitLogicalAnd(node);
-        return;
-      } else if (const SourceString("||") == op.source) {
-        visitLogicalOr(node);
+      if (const SourceString("&&") == op.source ||
+          const SourceString("||") == op.source) {
+        visitLogicalAndOr(node);
         return;
       } else if (const SourceString("!") == op.source) {
         visitLogicalNot(node);
