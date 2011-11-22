@@ -205,28 +205,10 @@ class SsaBuilder implements Visitor {
     // The back-edge completing the cycle.
     updateBlock.addSuccessor(conditionBlock);
 
-    // Update the phis if necessary, or delete them otherwise.
     conditionBlock.forEachPhi((HPhi phi) {
       Element element = phi.element;
       HInstruction postBodyDefinition = definitions[element];
-      if (postBodyDefinition !== phi) {
-        // Add the post body definition as input to the phi.
-        phi.addInput(postBodyDefinition);
-      } else {
-        // The variable survived without modifications. Replace the
-        // phi with its only input.
-        assert(phi.inputs.length == 1);
-        HInstruction input = phi.inputs[0];
-        conditionBlock.rewrite(phi, input);  // Covers all basic blocks.
-        conditionBlock.removePhi(phi);
-        // Unless the condition introduces a different definition for
-        // the element (later restored by the loop body), we have to
-        // update the definitions map for the loop exit block to use
-        // the definition we've rewritten to.
-        if (conditionDefinitions[element] === phi) {
-          conditionDefinitions[element] = input;
-        }
-      }
+      phi.addInput(postBodyDefinition);
     });
 
     HBasicBlock loopExitBlock = graph.addNewBlock();
@@ -357,7 +339,7 @@ class SsaBuilder implements Visitor {
     }
     HBasicBlock leftBlock = close(new HIf(condition, false));
     Map leftDefinitions = new Map<Element, HInstruction>.from(definitions);
-    
+
     HBasicBlock rightBlock = graph.addNewBlock();
     leftBlock.addSuccessor(rightBlock);
     open(rightBlock);

@@ -7624,18 +7624,7 @@ SsaBuilder.prototype.visitFor = function(node) {
     var $0;
     var element = phi.element;
     var postBodyDefinition = (($0 = $this.definitions.$index(element)) && $0.is$HInstruction());
-    if (postBodyDefinition !== phi) {
-      phi.addInput(postBodyDefinition);
-    }
-    else {
-      $assert(phi.inputs.length == 1, "phi.inputs.length == 1", "builder.dart", 218, 16);
-      var input = (($0 = phi.inputs.$index(0)) && $0.is$HInstruction());
-      conditionBlock.rewrite(phi, input);
-      conditionBlock.removePhi(phi);
-      if (conditionDefinitions.$index(element) === phi) {
-        conditionDefinitions.$setindex(element, input);
-      }
-    }
+    phi.addInput(postBodyDefinition);
   })
   );
   var loopExitBlock = this.graph.addNewBlock();
@@ -7652,7 +7641,7 @@ SsaBuilder.prototype.visitIdentifier = function(node) {
   var element = (($0 = this.elements.$index(node)) && $0.is$Element());
   this.compiler.ensure(element != null);
   var def = (($0 = this.definitions.$index(element)) && $0.is$HInstruction());
-  $assert(def != null, "def !== null", "builder.dart", 247, 12);
+  $assert(def != null, "def !== null", "builder.dart", 229, 12);
   this.stack.add(def);
 }
 SsaBuilder.prototype.joinDefinitions = function(joinBlock, incoming1, incoming2) {
@@ -7747,7 +7736,7 @@ SsaBuilder.prototype.visitLogicalAndOr = function(node) {
   this.stack.add(result);
 }
 SsaBuilder.prototype.visitLogicalNot = function(node) {
-  $assert((node.argumentsNode instanceof Prefix), "node.argumentsNode is Prefix", "builder.dart", 380, 12);
+  $assert((node.argumentsNode instanceof Prefix), "node.argumentsNode is Prefix", "builder.dart", 362, 12);
   this.visit(node.receiver);
   var not = new HNot(this.popBoolified());
   this.push(not);
@@ -7864,7 +7853,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 503, 12);
+  $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 485, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   this.definitions.$setindex(this.elements.$index(node), value);
@@ -7879,7 +7868,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions without initial value");
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 519, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 501, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }
@@ -9568,9 +9557,10 @@ SsaOptimizerTask.prototype.optimize = function(graph) {
   this.measure((function () {
     new SsaConstantFolder().visitGraph(graph);
     new SsaTypePropagator().visitGraph(graph);
+    new SsaRedundantPhiEliminator().visitGraph(graph);
+    new SsaDeadPhiEliminator().visitGraph(graph);
     new SsaGlobalValueNumberer($this.compiler).visitGraph(graph);
     new SsaDeadCodeEliminator().visitGraph(graph);
-    new SsaDeadPhiEliminator().visitGraph(graph);
     new SsaInstructionMerger().visitGraph(graph);
   })
   );
@@ -9612,7 +9602,7 @@ SsaConstantFolder.prototype.visitEquals = function(node) {
 SsaConstantFolder.prototype.visitArithmetic = function(node) {
   var $0;
   var inputs = node.inputs;
-  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 59, 12);
+  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 60, 12);
   if ($notnull_bool(inputs.$index(0).isLiteralNumber$0()) && $notnull_bool(inputs.$index(1).isLiteralNumber$0())) {
     var op1 = (($0 = inputs.$index(0)) && $0.is$HLiteral());
     var op2 = (($0 = inputs.$index(1)) && $0.is$HLiteral());
@@ -9673,7 +9663,7 @@ SsaTypePropagator.prototype.processWorklist = function() {
   while (!this.worklist.isEmpty()) {
     var id = $assert_num(this.worklist.removeLast());
     var instruction = (($0 = this.workmap.$index(id)) && $0.is$HInstruction());
-    $assert(instruction != null, "instruction !== null", "optimize.dart", 127, 14);
+    $assert(instruction != null, "instruction !== null", "optimize.dart", 128, 14);
     this.workmap.remove(id);
     if ($notnull_bool(instruction.updateType())) {
       for (var i = 0, length = instruction.usedBy.length;
@@ -9757,6 +9747,44 @@ SsaDeadPhiEliminator.prototype.visitGraph = function(graph) {
     }
   }
 }
+// ********** Code for SsaRedundantPhiEliminator **************
+function SsaRedundantPhiEliminator() {
+  // Initializers done
+}
+SsaRedundantPhiEliminator.prototype.visitGraph = function(graph) {
+  var $0;
+  var worklist = [];
+  var $list = graph.blocks;
+  for (var $i = 0;$i < $list.length; $i++) {
+    var block = $list.$index($i);
+    block.forEachPhi$1((function (phi) {
+      return worklist.add(phi);
+    })
+    );
+  }
+  while (!worklist.isEmpty()) {
+    var phi = (($0 = worklist.removeLast()) && $0.is$HPhi());
+    if (!$notnull_bool(phi.isInBasicBlock())) continue;
+    $assert(phi.inputs.$index(0) !== phi, "phi.inputs[0] !== phi", "optimize.dart", 228, 14);
+    var candidate = (($0 = phi.inputs.$index(0)) && $0.is$HInstruction());
+    for (var i = 1;
+     i < phi.inputs.length; i++) {
+      var input = (($0 = phi.inputs.$index(i)) && $0.is$HInstruction());
+      if (input !== candidate && input !== phi) {
+        candidate = null;
+        break;
+      }
+    }
+    if (candidate == null) continue;
+    var $list = phi.usedBy;
+    for (var $i = 0;$i < $list.length; $i++) {
+      var user = $list.$index($i);
+      if ((user instanceof HPhi)) worklist.add(user);
+    }
+    phi.block.rewrite(phi, candidate);
+    phi.block.removePhi(phi);
+  }
+}
 // ********** Code for SsaGlobalValueNumberer **************
 function SsaGlobalValueNumberer(compiler) {
   this.compiler = compiler;
@@ -9817,13 +9845,13 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
   while (instruction != null) {
     var flags = instruction.getChangesFlags();
     if (flags != 0) {
-      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 276, 16);
+      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 322, 16);
       values.kill(flags);
     }
     else if ($notnull_bool(instruction.useGvn())) {
       var other = values.lookup(instruction);
       if (other != null) {
-        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 281, 18);
+        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 327, 18);
         block.rewrite(instruction, other);
         block.remove(instruction);
       }
@@ -9838,7 +9866,7 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
    i < length; i++) {
     var dominated = (($0 = dominatedBlocks.$index(i)) && $0.is$HBasicBlock());
     var successorValues = (i == length - 1) ? values : values.copy();
-    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 301, 14);
+    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 347, 14);
     if (!$notnull_bool(successorValues.isEmpty()) && block.id + 1 < dominated.id) {
       this.visited.clear();
       var changesFlags = this.getChangesFlagsForDominatedBlock(block, dominated);
@@ -9865,7 +9893,7 @@ SsaGlobalValueNumberer.prototype.computeChangesFlags = function(graph) {
       changesFlags |= instruction.getChangesFlags();
       instruction = instruction.next;
     }
-    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 334, 14);
+    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 380, 14);
     this.blockChangesFlags.$setindex(id, changesFlags);
     if ($notnull_bool(block.isLoopHeader())) {
       ($0 = this.loopChangesFlags).$setindex(id, $0.$index(id) | changesFlags);

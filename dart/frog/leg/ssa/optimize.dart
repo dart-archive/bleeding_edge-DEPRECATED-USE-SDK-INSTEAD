@@ -10,9 +10,10 @@ class SsaOptimizerTask extends CompilerTask {
     measure(() {
       new SsaConstantFolder().visitGraph(graph);
       new SsaTypePropagator().visitGraph(graph);
+      new SsaRedundantPhiEliminator().visitGraph(graph);
+      new SsaDeadPhiEliminator().visitGraph(graph);
       new SsaGlobalValueNumberer(compiler).visitGraph(graph);
       new SsaDeadCodeEliminator().visitGraph(graph);
-      new SsaDeadPhiEliminator().visitGraph(graph);
       new SsaInstructionMerger().visitGraph(graph);
     });
   }
@@ -202,6 +203,51 @@ class SsaDeadPhiEliminator {
         if (!livePhis.contains(current)) block.removePhi(current);
         current = next;
       }
+    }
+  }
+}
+
+class SsaRedundantPhiEliminator {
+  void visitGraph(HGraph graph) {
+    final List<HPhi> worklist = <HPhi>[];
+
+    // Add all phis in the worklist.
+    for (final block in graph.blocks) {
+      block.forEachPhi((HPhi phi) => worklist.add(phi));
+    }
+
+    while (!worklist.isEmpty()) {
+      HPhi phi = worklist.removeLast();
+
+      // If the phi has already been processed, continue.
+      if (!phi.isInBasicBlock()) continue;
+
+      // Find if the inputs of the phi are the same instruction.
+      // The builder ensures that phi.inputs[0] cannot be the phi
+      // itself.
+      assert(phi.inputs[0] !== phi);
+      HInstruction candidate = phi.inputs[0];
+      for (int i = 1; i < phi.inputs.length; i++) {
+        HInstruction input = phi.inputs[i];
+        // If the input is the phi, the phi is still candidate for
+        // elimination.
+        if (input !== candidate && input !== phi) {
+          candidate = null;
+          break;
+        }
+      }
+
+      // If the inputs are not the same, continue.
+      if (candidate == null) continue;
+
+      // Because we're updating the users of this phi, we may have new
+      // phis candidate for elimination. Add phis that used this phi
+      // to the worklist.
+      for (final user in phi.usedBy) {
+        if (user is HPhi) worklist.add(user);
+      }
+      phi.block.rewrite(phi, candidate);
+      phi.block.removePhi(phi);
     }
   }
 }
