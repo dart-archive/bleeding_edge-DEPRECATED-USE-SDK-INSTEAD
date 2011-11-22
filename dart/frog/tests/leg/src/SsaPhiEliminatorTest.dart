@@ -45,6 +45,25 @@ foo(b, c) {
 }
 """;
 
+final String TEST_FOUR = @"""
+void print() {}
+bool lt() {}
+void eq() {}
+void add() {}
+foo() {
+  var cond1 = true;
+  var cond2 = false;
+  for (var i = 0; cond1; i = i + 1) {
+    if (i == 9) cond1 = false;
+    for (var j = 0; cond2; j = j + 1) {
+      if (j == 9) cond2 = false;
+    }
+  }
+  print(cond1);
+  print(cond2);
+}
+""";
+
 main() {
   String generated = compile(TEST_ONE, 'foo');
   RegExp regexp = const RegExp("a = 2");
@@ -79,4 +98,12 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
   regexp = const RegExp("return val");
   Expect.isTrue(regexp.hasMatch(generated));
+
+  generated = compile(TEST_FOUR, 'foo');
+
+  regexp = const RegExp("cond1 = cond1");
+  Expect.isTrue(!regexp.hasMatch(generated));
+
+  regexp = const RegExp("cond2 = cond2");
+  Expect.isTrue(!regexp.hasMatch(generated));
 }

@@ -81,11 +81,16 @@ class SsaPhiEliminator extends HGraphVisitor {
       // Storing a load of itself to a local can be safely eliminated.
       if (value is HLoad && value.dynamic.local === local) continue;
 
-        HStore store = addStore(predecessors[i],
-                                currentBlock.dominator,
-                                local,
-                                value);
-        stores.add(store);
+      // Storing a phi referencing the same element can be safely eliminated.
+      if ((value is HPhi)
+          && (local.element !== null)
+          && (value.dynamic.element === local.element)) continue;
+
+      HStore store = addStore(predecessors[i],
+                              currentBlock.dominator,
+                              local,
+                              value);
+      stores.add(store);
     }
 
     // We propagate the type of the phi to the load instruction rather
