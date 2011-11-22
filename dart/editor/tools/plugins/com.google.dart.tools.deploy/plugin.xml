@@ -180,6 +180,12 @@
             activityId="com.google.dart.development"
             pattern="org\.eclipse\.ui\.navigate\.previous">
       </activityPatternBinding>
+
+      <!-- internal web browser contributions -->
+      <activityPatternBinding
+            activityId="com.google.dart.development.launch"
+            pattern="org.eclipse.ui.browser/org.eclipse.ui.browser.edito.*">
+      </activityPatternBinding>
    </extension>
    
    <!-- Launch and Debug contributions -->
@@ -192,26 +198,11 @@
             name="Dart Launch Activities">
       </activity>
 
-      <!-- remove org.eclipse.debug.internal.ui.actions.RunDropDownAction
-           and org.eclipse.debug.internal.ui.actions.DebugDropDownAction -->
-       <activityPatternBinding
-            activityId="com.google.dart.development.launch"
-            pattern="org.eclipse.debug.ui/org.eclipse.debug.internal.ui.actions.*DropDownAction">
-      </activityPatternBinding>
-
-      <!-- remove org.eclipse.debug.ui.contextualLaunch.debug.submenu, org.eclipse.debug.ui.contextualLaunch.run.submenu
-           and org.eclipse.debug.ui.contextualLaunch.profile.submenu -->
       <activityPatternBinding
             activityId="com.google.dart.development.launch"
-            pattern="org.eclipse.debug.ui/org.eclipse.debug.ui.contextualLaunch.*">
+            pattern="org.eclipse.debug.ui/.*">
       </activityPatternBinding>
-
-      <!-- internal web browser contributions -->
-      <activityPatternBinding
-            activityId="com.google.dart.development.launch"
-            pattern="org.eclipse.ui.browser/org.eclipse.ui.browser.edito.*">
-      </activityPatternBinding>
-     </extension>
+    </extension>
   
     <extension
          point="org.eclipse.core.contenttype.contentTypes">
@@ -220,7 +211,5 @@
             file-extensions="css">
       </file-association>
    </extension>
-   
-
 
 </plugin>

@@ -25,11 +25,4 @@
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>rhino</name>
-			<type>2</type>
-			<locationURI>DART_TRUNK/third_party/rhino/1_7R3</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>

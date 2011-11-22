@@ -25,6 +25,8 @@ public class DartCoreDebug {
   public static final boolean BUILD = isOptionTrue("debug/build");
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
 
+  public static final boolean BLEEDING_EDGE = isOptionTrue("bleedingEdge");
+
   private static boolean isOptionTrue(String optionSuffix) {
     return "true".equalsIgnoreCase(Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix));
   }

@@ -232,7 +232,6 @@
       <page
          class="com.google.dart.tools.debug.ui.internal.preferences.DebugPreferencePage"
          id="com.google.dart.tools.debug.debugPreferencePage"
-         category="com.google.dart.tools.ui.preferences.DartBasePreferencePage"
          name="%debugPreferencePageName">
       </page>
    </extension>

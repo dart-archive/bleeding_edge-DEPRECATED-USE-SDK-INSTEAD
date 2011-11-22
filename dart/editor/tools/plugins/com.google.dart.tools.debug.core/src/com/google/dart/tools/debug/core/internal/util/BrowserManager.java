@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.debug.core.internal.util;
@@ -18,18 +16,8 @@ package com.google.dart.tools.debug.core.internal.util;
 import com.google.dart.tools.debug.core.ChromeBrowserConfig;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.core.DebugUIHelper;
-import com.google.dart.tools.debug.core.DebugUIHelperFactory;
 import com.google.dart.tools.debug.core.configs.DartChromeLaunchConfigurationDelegate;
-import com.google.dart.tools.debug.core.internal.ChromeDebugTarget;
-import com.google.dart.tools.debug.core.internal.ConsoleConnectionLogger;
 
-import org.chromium.sdk.Browser;
-import org.chromium.sdk.Browser.TabConnector;
-import org.chromium.sdk.Browser.TabFetcher;
-import org.chromium.sdk.BrowserFactory;
-import org.chromium.sdk.BrowserTab;
-import org.chromium.sdk.ConnectionLogger;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -44,8 +32,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -131,13 +117,13 @@ public class BrowserManager {
           "Could not launch browser"));
     }
 
-    if (debug) {
-      connectToChromiumDebug(browserName, launch, launchConfig, monitor);
-    } else {
-      // If we don't do this, the launch configurations will keep accumulating in the UI. This was
-      // not a problem when we wrapped the runtime process with an IProcess.
-      DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
-    }
+//    if (debug) {
+//      connectToChromiumDebug(browserName, launch, launchConfig, monitor);
+//    } else {
+    // If we don't do this, the launch configurations will keep accumulating in the UI. This was
+    // not a problem when we wrapped the runtime process with an IProcess.
+    DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
+//    }
 
     monitor.done();
   }
@@ -174,103 +160,100 @@ public class BrowserManager {
     return arguments;
   }
 
-  private void connectToChromiumDebug(String browserName, ILaunch launch,
-      DartLaunchConfigWrapper launchConfig, IProgressMonitor monitor) throws CoreException {
-    LogTimer timer = new LogTimer("debug connection");
-
-    SocketAddress address = new InetSocketAddress(launchConfig.getConnectionHost(), PORT_NUMBER);
-
-    //ConsolePseudoProcess.Retransmitter consoleRetransmitter = new ConsolePseudoProcess.Retransmitter();
-
-    final ConnectionLogger connectionLogger = DartDebugCorePlugin.CONNECTION_LOGGING
-        ? new ConsoleConnectionLogger() : null;
-
-    final Browser browser = BrowserFactory.getInstance().create(address,
-        new ConnectionLogger.Factory() {
-          @Override
-          public ConnectionLogger newConnectionLogger() {
-            return connectionLogger;
-          }
-        });
-
-    monitor.worked(1);
-
-    // wait to see if browser is up
-    TabFetcher tabFetcher = null;
-    try {
-      int retry = 40;
-
-      while (retry > 0) {
-        try {
-          sleep(100);
-          tabFetcher = browser.createTabFetcher();
-          break;
-        } catch (Exception e) {
-          retry--;
-        }
-      }
-
-      if (tabFetcher == null) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-            "Could not connect to Browser"));
-      }
-
-      timer.endTimer();
-
-      monitor.worked(1);
-
-      // TODO(devoncarew): we need to determine how to make this go away 
-      sleep(3000);
-
-      monitor.worked(1);
-
-      List<? extends TabConnector> tabs = tabFetcher.getTabs();
-
-      Browser.TabConnector tabConnector;
-
-      if (tabs.size() == 0) {
-        tabConnector = null;
-      } else if (tabs.size() == 1) {
-        tabConnector = tabs.get(0);
-      } else {
-        tabConnector = selectTab(tabs);
-      }
-
-      monitor.worked(1);
-
-      if (tabConnector != null) {
-        timer = new LogTimer("tab attach");
-
-        ChromeDebugTarget debugTarget = new ChromeDebugTarget(browserName, launch);
-
-        BrowserTab browserTab = tabConnector.attach(debugTarget);
-
-        monitor.worked(1);
-
-        debugTarget.setBrowserTab(browserTab);
-
-        launch.addDebugTarget(debugTarget);
-        debugTarget.connected();
-
-//        ConsolePseudoProcess consolePseudoProcess = new ConsolePseudoProcess(launch, title,
-//            consoleRetransmitter, debugTarget);
+//  private void connectToChromiumDebug(String browserName, ILaunch launch,
+//      DartLaunchConfigWrapper launchConfig, IProgressMonitor monitor) throws CoreException {
+//    LogTimer timer = new LogTimer("debug connection");
 //
-//        debugTarget.setProcess(consolePseudoProcess);
+//    SocketAddress address = new InetSocketAddress(launchConfig.getConnectionHost(), PORT_NUMBER);
 //
-//        consoleRetransmitter.startFlushing();
-
-        timer.endTimer();
-
-        monitor.worked(1);
-      }
-    } catch (IOException e) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          e.getMessage(), e));
-    } catch (IllegalStateException e) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          e.getMessage(), e));
-    }
-  }
+//    //ConsolePseudoProcess.Retransmitter consoleRetransmitter = new ConsolePseudoProcess.Retransmitter();
+//
+//    final Browser browser = BrowserFactory.getInstance().create(address,
+//        new ConnectionLogger.Factory() {
+//          @Override
+//          public ConnectionLogger newConnectionLogger() {
+//            return null;
+//          }
+//        });
+//
+//    monitor.worked(1);
+//
+//    // wait to see if browser is up
+//    TabFetcher tabFetcher = null;
+//    try {
+//      int retry = 40;
+//
+//      while (retry > 0) {
+//        try {
+//          sleep(100);
+//          tabFetcher = browser.createTabFetcher();
+//          break;
+//        } catch (Exception e) {
+//          retry--;
+//        }
+//      }
+//
+//      if (tabFetcher == null) {
+//        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+//            "Could not connect to Browser"));
+//      }
+//
+//      timer.endTimer();
+//
+//      monitor.worked(1);
+//
+//      // TODO(devoncarew): we need to determine how to make this go away 
+//      sleep(3000);
+//
+//      monitor.worked(1);
+//
+//      List<? extends TabConnector> tabs = tabFetcher.getTabs();
+//
+//      Browser.TabConnector tabConnector;
+//
+//      if (tabs.size() == 0) {
+//        tabConnector = null;
+//      } else if (tabs.size() == 1) {
+//        tabConnector = tabs.get(0);
+//      } else {
+//        tabConnector = selectTab(tabs);
+//      }
+//
+//      monitor.worked(1);
+//
+//      if (tabConnector != null) {
+//        timer = new LogTimer("tab attach");
+//
+//        ChromeDebugTarget debugTarget = new ChromeDebugTarget(browserName, launch);
+//
+//        BrowserTab browserTab = tabConnector.attach(debugTarget);
+//
+//        monitor.worked(1);
+//
+//        debugTarget.setBrowserTab(browserTab);
+//
+//        launch.addDebugTarget(debugTarget);
+//        debugTarget.connected();
+//
+////        ConsolePseudoProcess consolePseudoProcess = new ConsolePseudoProcess(launch, title,
+////            consoleRetransmitter, debugTarget);
+////
+////        debugTarget.setProcess(consolePseudoProcess);
+////
+////        consoleRetransmitter.startFlushing();
+//
+//        timer.endTimer();
+//
+//        monitor.worked(1);
+//      }
+//    } catch (IOException e) {
+//      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+//          e.getMessage(), e));
+//    } catch (IllegalStateException e) {
+//      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+//          e.getMessage(), e));
+//    }
+//  }
 
   /**
    * This method creates a Chrome settings directory. Specifically, it creates a 'First Run' file
@@ -370,23 +353,23 @@ public class BrowserManager {
     thread.start();
   }
 
-  private TabConnector selectTab(List<? extends TabConnector> tabs) throws IOException {
-    List<String> tabUrls = new ArrayList<String>();
-
-    for (TabConnector tab : tabs) {
-      tabUrls.add(tab.getUrl());
-    }
-
-    DebugUIHelper tabChooser = DebugUIHelperFactory.getDebugUIHelper();
-
-    int index = tabChooser.select(tabUrls);
-
-    if (index == -1) {
-      return null;
-    } else {
-      return tabs.get(index);
-    }
-  }
+//  private TabConnector selectTab(List<? extends TabConnector> tabs) throws IOException {
+//    List<String> tabUrls = new ArrayList<String>();
+//
+//    for (TabConnector tab : tabs) {
+//      tabUrls.add(tab.getUrl());
+//    }
+//
+//    DebugUIHelper tabChooser = DebugUIHelperFactory.getDebugUIHelper();
+//
+//    int index = tabChooser.select(tabUrls);
+//
+//    if (index == -1) {
+//      return null;
+//    } else {
+//      return tabs.get(index);
+//    }
+//  }
 
   private void sleep(int millis) {
     try {
