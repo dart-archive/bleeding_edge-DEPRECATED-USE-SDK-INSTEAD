@@ -165,11 +165,11 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
-  visitAdd(HAdd node) {
-    if (node.isNumber()) {
+  visitInvokeBinary(HInvoke node, bool useOperator, String op) {
+    if (useOperator) {
       buffer.add('(');
       use(node.inputs[0]);
-      buffer.add(' + ');
+      buffer.add(' $op ');
       use(node.inputs[1]);
       buffer.add(')');
     } else {
@@ -177,11 +177,18 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
-  visitDivide(HDivide node)                     => visitInvoke(node);
-  visitEquals(HEquals node)                     => visitInvoke(node);
-  visitMultiply(HMultiply node)                 => visitInvoke(node);
-  visitSubtract(HSubtract node)                 => visitInvoke(node);
-  visitTruncatingDivide(HTruncatingDivide node) => visitInvoke(node);
+  visitAdd(HAdd node)
+      => visitInvokeBinary(node, node.isNumber(), '+');
+  visitDivide(HDivide node)
+      => visitInvokeBinary(node, node.isNumber(), '/');
+  visitEquals(HEquals node)
+      => visitInvokeBinary(node, node.isBoolean(), '==');
+  visitMultiply(HMultiply node)
+      => visitInvokeBinary(node, node.isNumber(), '*');
+  visitSubtract(HSubtract node)
+      => visitInvokeBinary(node, node.isNumber(), '-');
+  visitTruncatingDivide(HTruncatingDivide node)
+      => visitInvoke(node);
 
   visitBoolify(HBoolify node) {
     assert(node.inputs.length == 1);
@@ -202,7 +209,7 @@ class SsaCodeGenerator implements HVisitor {
     assert(currentBlock.successors.length == 1);
     List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
     // With the exception of the entry-node which is dominates its successor
-    // and the exit node, no Block finishing with a 'goto' can have more than
+    // and the exit node, no block finishing with a 'goto' can have more than
     // one dominated block (since it has only one successor).
     // If the successor is dominated by another block, then the other block
     // is responsible for visiting the successor.

@@ -589,6 +589,27 @@ class HInstruction {
   // Compute the type of the instruction.
   int computeType() => TYPE_UNKNOWN;
 
+  // Compute the (shared) type of the inputs if any. If all inputs
+  // have the same known type return it. If any two inputs have
+  // different known types, we'll return a conflict -- otherwise we'll
+  // simply return an unknown type.
+  int computeInputsType() {
+    bool seenUnknown = false;
+    int candidateType = -1;
+    for (int i = 0, length = inputs.length; i < length; i++) {
+      int inputType = inputs[i].type;
+      if (inputType == TYPE_UNKNOWN) {
+        seenUnknown = true;
+      } else if (candidateType == -1) {
+        candidateType = inputType;
+      } else if (candidateType != inputType) {
+        return TYPE_CONFLICT;
+      }
+    }
+    if (seenUnknown) return TYPE_UNKNOWN;
+    return candidateType;
+  }
+
   // Re-compute and update the type of the instruction. Returns
   // whether or not the type was changed.
   bool updateType() {
@@ -723,6 +744,7 @@ class HInvokeForeign extends HInvoke {
 
 class HArithmetic extends HInvoke {
   HArithmetic(element, inputs) : super(element, inputs);
+
   void prepareGvn() {
     // An arithmetic expression can take part in global value
     // numbering and do not have any side-effects if we know the
@@ -736,10 +758,12 @@ class HArithmetic extends HInvoke {
   }
 
   int computeType() {
-    for (int i = 0, length = inputs.length; i < length; i++) {
-      if (inputs[i].type != TYPE_NUMBER) return TYPE_UNKNOWN;
-    }
-    return TYPE_NUMBER;
+    // TODO(kasperl): We should be able to deal with more types
+    // here. For now, we only care about numbers.
+    int inputsType = computeInputsType();
+    return (inputsType == TYPE_NUMBER)
+        ? TYPE_NUMBER
+        : TYPE_UNKNOWN;
   }
 
   abstract num evaluate(num a, num b);
@@ -787,6 +811,7 @@ class HTruncatingDivide extends HArithmetic {
 
 class HEquals extends HInvoke {
   HEquals(element, inputs) : super(element, inputs);
+
   void prepareGvn() {
     // An equality check expression can take part in global value
     // numbering and do not have any side-effects if we know the
@@ -798,6 +823,16 @@ class HEquals extends HInvoke {
       setAllSideEffects();
     }
   }
+
+  int computeType() {
+    // TODO(kasperl): We should be able to deal with more types
+    // here. For now, we only care about numbers.
+    int inputsType = computeInputsType();
+    return (inputsType == TYPE_NUMBER)
+        ? TYPE_BOOLEAN
+        : TYPE_UNKNOWN;
+  }
+
   accept(HVisitor visitor) => visitor.visitEquals(this);
   bool typeEquals(other) => other is HEquals;
   bool dataEquals(HInstruction other) => true;
@@ -898,17 +933,7 @@ class HPhi extends HInstruction {
     input.usedBy.add(this);
   }
 
-  int computeType() {
-    int newType = inputs[0].type;
-    for (int i = 1, length = inputs.length; i < length; i++) {
-      if (newType != inputs[i].type) {
-        return (newType != TYPE_UNKNOWN)
-            ? TYPE_CONFLICT
-            : TYPE_UNKNOWN;
-      }
-    }
-    return newType;
-  }
+  int computeType() => computeInputsType();
 
   bool updateTypeForLoopPhi() {
     assert(block.isLoopHeader());
