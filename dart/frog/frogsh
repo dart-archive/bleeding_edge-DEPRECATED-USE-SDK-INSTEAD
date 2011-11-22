@@ -8069,17 +8069,29 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
     this.indent++;
     this.visitBasicBlock((($0 = ifBlock.successors.$index(1)) && $0.is$HBasicBlock()));
     this.indent--;
-    nextDominatedIndex = 2;
     this.addIndentation();
     this.buffer.add("}\n");
   }
   else {
     this.buffer.add("}\n");
-    nextDominatedIndex = 1;
   }
-  $assert(dominated.length <= nextDominatedIndex + 1, "dominated.length <= nextDominatedIndex + 1", "codegen.dart", 245, 12);
-  if (dominated.length == nextDominatedIndex + 1) {
-    this.visitBasicBlock((($0 = dominated.$index(nextDominatedIndex)) && $0.is$HBasicBlock()));
+  if ($notnull_bool(node.hasElse) && dominated.length == 3) {
+    this.visitBasicBlock((($0 = dominated.$index(2)) && $0.is$HBasicBlock()));
+  }
+  else if ($notnull_bool(node.hasElse)) {
+    $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 261, 14);
+    return;
+  }
+  else if (!$notnull_bool(node.hasElse) && dominated.length == 2) {
+    $assert(!$notnull_bool(dominated.$index(1).isExitBlock$0()), "!dominated[1].isExitBlock()", "codegen.dart", 266, 14);
+    this.visitBasicBlock((($0 = dominated.$index(1)) && $0.is$HBasicBlock()));
+  }
+  else {
+    $assert(!$notnull_bool(node.hasElse), "!node.hasElse", "codegen.dart", 271, 14);
+    $assert(dominated.length == 3, "dominated.length == 3", "codegen.dart", 272, 14);
+    $assert(dominated.$index(2).isExitBlock$0(), "dominated[2].isExitBlock()", "codegen.dart", 273, 14);
+    this.visitBasicBlock((($0 = dominated.$index(1)) && $0.is$HBasicBlock()));
+    this.visitBasicBlock((($0 = dominated.$index(2)) && $0.is$HBasicBlock()));
   }
 }
 SsaCodeGenerator.prototype.visitInvoke = function(node) {
@@ -8093,7 +8105,7 @@ SsaCodeGenerator.prototype.visitInvokeForeign = function(node) {
   for (var i = 0;
    i < inputs.length; i++) {
     var input = (($0 = inputs.$index(i)) && $0.is$HInstruction());
-    $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 262, 14);
+    $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 289, 14);
     code = code.replaceAll(('\$' + i), this.temporary(input));
   }
   this.buffer.add(('(' + code + ')'));
@@ -8108,18 +8120,18 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')) break;\n');
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 278, 12);
-  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 279, 12);
+  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 305, 12);
+  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 306, 12);
   this.visit(dominated.$index(0));
   this.indent--;
   this.addIndentation();
   this.buffer.add('}\n');
-  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 284, 12);
+  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 311, 12);
   this.visit(dominated.$index(1));
 }
 SsaCodeGenerator.prototype.visitNot = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 289, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 316, 12);
   this.buffer.add('(!');
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')');

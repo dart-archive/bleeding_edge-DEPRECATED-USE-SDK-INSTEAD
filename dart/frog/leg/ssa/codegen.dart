@@ -235,17 +235,44 @@ class SsaCodeGenerator implements HVisitor {
       indent++;
       visitBasicBlock(ifBlock.successors[1]);
       indent--;
-      nextDominatedIndex = 2;
       addIndentation();
       buffer.add("}\n");
     } else {
       buffer.add("}\n");
-      nextDominatedIndex = 1;
     }
-    assert(dominated.length <= nextDominatedIndex + 1);
-    // The HIf doesn't dominate the join, if both branches return or throw.
-    if (dominated.length == nextDominatedIndex + 1) {
-      visitBasicBlock(dominated[nextDominatedIndex]);
+
+    // Normally the HIf dominates the join-block. In this case there is one
+    // dominated block that we need to visit:
+    // If both the then and else blocks return/throw, then the join-block is
+    // either the exit-block, or there is none.
+    // We can also have the case where the HIf has no else, but the then-branch
+    // terminates. If the code after the 'if' terminates, then the
+    // if could become the dominator of the exit-block, thus having
+    // three dominated blocks: the then, the code after the if, and the exit
+    // block.
+
+    if (node.hasElse && dominated.length == 3) {
+      // Normal case. If both branches terminate then the third dominated
+      // block is the exit-block.
+      visitBasicBlock(dominated[2]);
+    } else if (node.hasElse) {
+      // Both branches terminate, but this HIf is not the dominator of the exit
+      // block.
+      assert(dominated.length == 2);
+      return;
+    } else if (!node.hasElse && dominated.length == 2) {
+      // Normal case. Even if the then-branch terminated there is still
+      // a join-block.
+      assert(!dominated[1].isExitBlock());
+      visitBasicBlock(dominated[1]);
+    } else {
+      // The then-branch terminates, and the code following the if terminates
+      // too. The if happens to dominate the exit-block.
+      assert(!node.hasElse);
+      assert(dominated.length == 3);
+      assert(dominated[2].isExitBlock());
+      visitBasicBlock(dominated[1]);
+      visitBasicBlock(dominated[2]);
     }
   }
 
