@@ -416,6 +416,11 @@ class FieldMember extends Member {
           return new Value(type, '\$globals.$jsname', node.span);
         }
       } else if (declaringType.isNative) {
+        if (declaringType.isHiddenNativeType) {
+          // TODO: Could warn at parse time.
+          world.error('static field of hidden native type is inaccessible',
+                      node.span);
+        }
         return new Value(type, '${declaringType.jsname}.$jsname', node.span);
       } else {
         return new Value(type,

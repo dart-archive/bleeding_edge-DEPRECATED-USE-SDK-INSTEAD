@@ -141,7 +141,7 @@ class VarMethodStub extends VarMember {
     // TODO(jmesserly): for now disallow direct references to DOM types until we
     // figure out which types can be patched reliably.
     // I don't think our other native libs have this issue.
-    if (member is MethodMember && member.declaringType.library != world.dom) {
+    if (member is MethodMember && !member.declaringType.isHiddenNativeType) {
       MethodMember method = member;
       if (method.needsArgumentConversion(args)) {
         return false;
@@ -205,7 +205,7 @@ class VarMethodSet extends VarMember {
       var type = member.declaringType;
       if (type.isObject) {
         objectStub = stub;
-      } else if (type.library != world.dom) {
+      } else if (!type.isHiddenNativeType) {
         _addVarStub(type, stub);
       } else {
         _fallbackStubs.add(stub);

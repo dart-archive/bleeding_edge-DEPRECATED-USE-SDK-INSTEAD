@@ -99,7 +99,7 @@ nodes = [
   Definition('Type',
     'bool isClass, Identifier name, List<TypeParameter> typeParameters, '+
     'List<TypeReference> extendsTypes, List<TypeReference> implementsTypes,'+
-    'String nativeType, TypeReference factoryType, List<Statement> body'),
+    'NativeType nativeType, TypeReference factoryType, List<Statement> body'),
 
   Definition('FunctionType',
     'FunctionDefinition func, List<TypeParameter> typeParameters'),

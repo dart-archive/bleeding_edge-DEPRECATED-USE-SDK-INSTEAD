@@ -11819,7 +11819,7 @@ WorldGenerator.prototype.writeType = function(type) {
   var typeName = type.get$jsname() != null ? type.get$jsname() : 'top level';
   this.writer.comment(('// ********** Code for ' + typeName + ' **************'));
   if ($notnull_bool(type.get$isNativeType()) && !$notnull_bool(type.get$isTop())) {
-    var nativeName = type.get$definition().get$nativeType();
+    var nativeName = type.get$definition().get$nativeType().get$name();
     if ($notnull_bool($eq(nativeName, ''))) {
       this.writer.writeln(('function ' + type.get$jsname() + '() {}'));
     }
@@ -14480,6 +14480,9 @@ FieldMember.prototype._get = function(context, node, target, isDynamic) {
       }
     }
     else if ($notnull_bool(this.declaringType.get$isNative())) {
+      if ($notnull_bool(this.declaringType.get$isHiddenNativeType())) {
+        $globals.world.error('static field of hidden native type is inaccessible', node.span);
+      }
       return new Value(this.type, ('' + this.declaringType.get$jsname() + '.' + this.get$jsname()), node.span, true);
     }
     else {
@@ -15057,7 +15060,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
     return this._invokeBuiltin(context, node, target, args, argsCode, isDynamic);
   }
   if ($notnull_bool(this.isFactory)) {
-    $assert(target.isType, "target.isType", "member.dart", 962, 14);
+    $assert(target.isType, "target.isType", "member.dart", 967, 14);
     return new Value(target.type, ('' + this.get$generatedFactoryName() + '(' + argsString + ')'), node.span, true);
   }
   if ($notnull_bool(this.isStatic)) {
@@ -17856,6 +17859,7 @@ lang_Parser.prototype.classDefinition = function(kind) {
   var _native = null;
   if ($notnull_bool(this._maybeEat(81/*TokenKind.NATIVE*/))) {
     _native = this.maybeStringLiteral();
+    if (_native != null) _native = new NativeType($assert_String(_native));
   }
   var _factory = null;
   if ($notnull_bool(this._maybeEat(75/*TokenKind.FACTORY*/))) {
@@ -18398,7 +18402,7 @@ lang_Parser.prototype._finishDeclaredId = function(type) {
   return this.finishPostfixExpression(new DeclaredIdentifier(type, name, this._makeSpan($assert_num(type.get$span().get$start()))));
 }
 lang_Parser.prototype._fixAsType = function(x) {
-  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 799, 12);
+  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 800, 12);
   if ($notnull_bool(this._maybeEat(53/*TokenKind.GT*/))) {
     var base = this._makeType(x.x);
     var typeParam = this._makeType(x.y);
@@ -18406,7 +18410,7 @@ lang_Parser.prototype._fixAsType = function(x) {
     return this._finishDeclaredId(type);
   }
   else {
-    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 810, 14);
+    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 811, 14);
     var base = this._makeType(x.x);
     var paramBase = this._makeType(x.y);
     var firstParam = this.addTypeArguments((paramBase && paramBase.is$TypeReference()), 1);
@@ -18925,7 +18929,7 @@ lang_Parser.parseHex = function(hex) {
   for (var i = 0;
    i < hex.length; i++) {
     var digit = lang_Parser._hexDigit(hex.charCodeAt(i));
-    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1335, 14);
+    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1336, 14);
     result = (result << 4) + $assert_num(digit);
   }
   return $assert_num(result);
@@ -20304,6 +20308,9 @@ lang_Type.prototype.get$isNativeType = function() {
 lang_Type.prototype.get$isNative = function() {
   return this.get$isNativeType();
 }
+lang_Type.prototype.get$isHiddenNativeType = function() {
+  return false;
+}
 lang_Type.prototype.get$hasTypeParams = function() {
   return false;
 }
@@ -20964,9 +20971,9 @@ DefinedType.prototype.set$isUsed = function(value) { return this.isUsed = value;
 DefinedType.prototype.get$isNativeType = function() { return this.isNativeType; };
 DefinedType.prototype.set$isNativeType = function(value) { return this.isNativeType = value; };
 DefinedType.prototype.setDefinition = function(def) {
-  $assert(this.definition == null, "definition == null", "type.dart", 703, 12);
+  $assert(this.definition == null, "definition == null", "type.dart", 705, 12);
   this.definition = def;
-  if ((this.definition instanceof TypeDefinition) && this.definition.get$nativeType() != null) {
+  if ((this.definition instanceof TypeDefinition) && $notnull_bool($ne(this.definition.get$nativeType(), null))) {
     this.isNativeType = true;
   }
   if (this.definition != null && this.definition.get$typeParameters() != null) {
@@ -20979,6 +20986,9 @@ DefinedType.prototype.setDefinition = function(def) {
       this.typeParameters.add(new ParameterType($assert_String(paramName), tp));
     }
   }
+}
+DefinedType.prototype.get$isHiddenNativeType = function() {
+  return $eq(this.library, $globals.world.get$dom()) || ($notnull_bool($ne(this.definition.get$nativeType(), null)) && $notnull_bool(this.definition.get$nativeType().get$isConstructorHidden()));
 }
 DefinedType.prototype.get$typeArgsInOrder = function() {
   if (this.typeParameters == null) return null;
@@ -21074,7 +21084,7 @@ DefinedType.prototype._resolveInterfaces = function(types) {
   return (interfaces && interfaces.is$List$Type());
 }
 DefinedType.prototype.addDirectSubtype = function(type) {
-  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 819, 12);
+  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 826, 12);
   this.directSubtypes.add(type);
 }
 DefinedType.prototype.get$subtypes = function() {
@@ -21454,7 +21464,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
   return this;
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
-  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1251, 12);
+  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1258, 12);
   var names = [this.name];
   var typeMap = $map([]);
   for (var i = 0;
@@ -21472,7 +21482,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return (ret && ret.is$lang_Type());
 }
 DefinedType.prototype.getCallStub = function(args) {
-  $assert(this.get$isFunction(), "isFunction", "type.dart", 1271, 12);
+  $assert(this.get$isFunction(), "isFunction", "type.dart", 1278, 12);
   var name = _getCallStubName('call', args);
   if (this.varStubs == null) this.varStubs = $map([]);
   var stub = this.varStubs.$index(name);
@@ -21515,6 +21525,22 @@ DefinedType.prototype.resolveTypeParams$1 = function($0) {
 DefinedType.prototype.setDefinition$1 = function($0) {
   return this.setDefinition(($0 && $0.is$Definition()));
 };
+// ********** Code for NativeType **************
+function NativeType(spec) {
+  // Initializers done
+  if (spec.startsWith('*')) {
+    this.name = spec.substring(1);
+    this.isConstructorHidden = true;
+  }
+  else {
+    this.name = spec;
+    this.isConstructorHidden = false;
+  }
+}
+NativeType.prototype.get$name = function() { return this.name; };
+NativeType.prototype.set$name = function(value) { return this.name = value; };
+NativeType.prototype.get$isConstructorHidden = function() { return this.isConstructorHidden; };
+NativeType.prototype.set$isConstructorHidden = function(value) { return this.isConstructorHidden = value; };
 // ********** Code for FixedCollection **************
 function FixedCollection(value, length) {
   this.value = value;
@@ -22729,7 +22755,7 @@ VarMethodStub.prototype.generateBody = function(code, end) {
   }
 }
 VarMethodStub.prototype._useDirectCall = function(member, args) {
-  if ((member instanceof MethodMember) && $ne(member.declaringType.get$library(), $globals.world.get$dom())) {
+  if ((member instanceof MethodMember) && !$notnull_bool(member.declaringType.get$isHiddenNativeType())) {
     var method = (member && member.is$MethodMember());
     if ($notnull_bool(method.needsArgumentConversion(args))) {
       return false;
@@ -22784,7 +22810,7 @@ VarMethodSet.prototype._invokeMembers = function(context, node) {
     if ($notnull_bool(type.get$isObject())) {
       objectStub = stub;
     }
-    else if ($notnull_bool($ne(type.get$library(), $globals.world.get$dom()))) {
+    else if (!$notnull_bool(type.get$isHiddenNativeType())) {
       VarMethodSet._addVarStub((type && type.is$lang_Type()), (stub && stub.is$VarMember()));
     }
     else {

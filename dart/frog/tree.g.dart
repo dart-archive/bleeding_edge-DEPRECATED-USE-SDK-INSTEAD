@@ -18,7 +18,7 @@ class TypeDefinition extends Definition {
   List<TypeParameter> typeParameters;
   List<TypeReference> extendsTypes;
   List<TypeReference> implementsTypes;
-  String nativeType;
+  NativeType nativeType;
   TypeReference factoryType;
   List<Statement> body;
 
