@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.wizard;
 
 import com.google.dart.tools.core.generator.ApplicationGenerator;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.handlers.NewFileCommandState;
 
 import org.eclipse.core.resources.IFile;
@@ -106,7 +105,7 @@ public class NewApplicationWizard extends AbstractDartWizard implements INewWiza
     if (appGenerator.getLibraryFileName().length() > 0) {
       IFile file = appGenerator.getFile();
       if (file.exists()) {
-        openEditor(DartUI.ID_CU_EDITOR, file);
+        openEditor(file);
       }
 
       ISourceProviderService service = (ISourceProviderService) workbench.getActiveWorkbenchWindow().getService(
