@@ -65,6 +65,26 @@ class Node implements Hashable {
   abstract Token getBeginToken();
 
   abstract Token getEndToken();
+
+  Block asBlock() => this;
+  ClassNode asClassNode() => this;
+  ExpressionStatement asExpressionStatement() => this;
+  For asFor() => this;
+  FunctionExpression asFunctionExpression() => this;
+  Identifier asIdentifier() => this;
+  If asIf() => this;
+  LiteralBool asLiteralBool() => this;
+  LiteralDouble asLiteralDouble() => this;
+  LiteralInt asLiteralInt() => this;
+  LiteralString asLiteralString() => this;
+  NodeList asNodeList() => this;
+  Operator asOperator() => this;
+  Return asReturn() => this;
+  Send asSend() => this;
+  SendSet asSendSet() => this;
+  Throw asThrow() => this;
+  TypeAnnotation asTypeAnnotation() => this;
+  VariableDefinitions asVariableDefinitions() => this;
 }
 
 class ClassNode extends Node {

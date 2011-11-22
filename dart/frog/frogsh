@@ -346,9 +346,6 @@ Object.prototype.convertTo$4 = function($0, $1, $2, $3) {
 Object.prototype.copyWithNewType$1 = function($0) {
   return this.noSuchMethod("copyWithNewType", [$0]);
 };
-Object.prototype.copyWithReceiver$1 = function($0) {
-  return this.noSuchMethod("copyWithReceiver", [$0]);
-};
 Object.prototype.endArguments$3 = function($0, $1, $2) {
   return this.noSuchMethod("endArguments", [$0, $1, $2]);
 };
@@ -5801,11 +5798,10 @@ NodeListener.prototype.handleLiteralString = function(token) {
   this.pushNode(new LiteralString(token));
 }
 NodeListener.prototype.handleBinaryExpression = function(token) {
-  var $0;
   var argument = this.popNode();
   var receiver = this.popNode();
-  if ((token.get$stringValue() === '.') && ((argument instanceof Send)) && (argument.get$receiver() == null)) {
-    this.pushNode((($0 = argument.copyWithReceiver$1(receiver)) && $0.is$Node()));
+  if ((token.get$stringValue() === '.') && ((argument instanceof Send)) && (argument.asSend().receiver == null)) {
+    this.pushNode(argument.asSend().copyWithReceiver(receiver));
   }
   else {
     var arguments = new NodeList.singleton$ctor(argument);
@@ -6384,6 +6380,9 @@ Node.prototype.unparse = function() {
     return ('<<unparse error: ' + this.getObjectDescription() + ': ' + unparser.sb + '>>');
   }
 }
+Node.prototype.asSend = function() {
+  return (this && this.is$Send());
+}
 Node.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
@@ -6478,7 +6477,6 @@ Send.prefix$ctor = function(receiver, selector) {
 Send.prefix$ctor.prototype = Send.prototype;
 $inherits(Send, Expression);
 Send.prototype.is$Send = function(){return this;};
-Send.prototype.get$receiver = function() { return this.receiver; };
 Send.prototype.get$arguments = function() {
   return this.argumentsNode.get$nodes();
 }
@@ -6516,9 +6514,6 @@ Send.prototype.copyWithReceiver = function(receiver) {
 Send.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-Send.prototype.copyWithReceiver$1 = function($0) {
-  return this.copyWithReceiver(($0 && $0.is$Node()));
-};
 Send.prototype.getBeginToken$0 = function() {
   return this.getBeginToken();
 };
@@ -6553,9 +6548,6 @@ SendSet.prototype.copyWithReceiver = function(receiver) {
 }
 SendSet.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
-};
-SendSet.prototype.copyWithReceiver$1 = function($0) {
-  return this.copyWithReceiver(($0 && $0.is$Node()));
 };
 // ********** Code for NodeList **************
 function NodeList(beginToken, nodes, endToken, delimiter) {

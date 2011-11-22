@@ -422,8 +422,8 @@ class NodeListener extends ElementListener {
     Node argument = popNode();
     Node receiver = popNode();
     if ((token.stringValue === '.') &&
-        (argument is Send) && (argument.receiver === null)) {
-      pushNode(argument.copyWithReceiver(receiver));
+        (argument is Send) && (argument.asSend().receiver === null)) {
+      pushNode(argument.asSend().copyWithReceiver(receiver));
     } else {
       // TODO(ahe): If token.stringValue === '.', the resolver should
       // reject this.
