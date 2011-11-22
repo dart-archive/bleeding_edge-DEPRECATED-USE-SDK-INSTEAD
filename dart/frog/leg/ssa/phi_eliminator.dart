@@ -6,8 +6,13 @@ class SsaPhiEliminator extends HGraphVisitor {
   HBasicBlock entry;
   HBasicBlock currentBlock;
 
+  // A map from element to local, to avoid creating multiple locals
+  // for one variable declaration in Dart source.
+  Map<Element, HLocal> namedLocals;
+
   visitGraph(HGraph graph) {
     entry = graph.entry;
+    namedLocals = new Map<Element, HLocal>();
     visitDominatorTree(graph);
   }
 
@@ -52,17 +57,35 @@ class SsaPhiEliminator extends HGraphVisitor {
 
   visitPhi(HPhi phi, List<HLoad> loads) {
     assert(phi !== null);
-    HLocal local = new HLocal(phi.element);
-    entry.addAtEntry(local);
+    HLocal local;
+    if (phi.element != null) {
+      // If the phi represents a variable in Dart source, check if we
+      // already introduced a local for it.
+      local = namedLocals.putIfAbsent(phi.element, () {
+        HLocal local = new HLocal(phi.element);
+        entry.addAtEntry(local);
+        return local;
+      });
+    } else {
+      local = new HLocal(null);
+      entry.addAtEntry(local);
+    }
+
 
     List<HBasicBlock> predecessors = currentBlock.predecessors;
     List<HStore> stores = <HStore>[];
 
     for (int i = 0, len = predecessors.length; i < len; i++) {
-      stores.add(addStore(predecessors[i],
-                          currentBlock.dominator,
-                          local,
-                          phi.inputs[i]));
+      HInstruction value = phi.inputs[i];
+
+      // Storing a load of itself to a local can be safely eliminated.
+      if (value is HLoad && value.dynamic.local === local) continue;
+
+        HStore store = addStore(predecessors[i],
+                                currentBlock.dominator,
+                                local,
+                                value);
+        stores.add(store);
     }
 
     // We propagate the type of the phi to the load instruction rather

@@ -32,6 +32,19 @@ void main() {
 }
 """;
 
+final String TEST_THREE = @"""
+bool lt() {}
+foo(b, c) {
+  var val = 42;
+  if (b) {
+    if (c) {
+      val = 43;
+    }
+  }
+  return val;
+}
+""";
+
 main() {
   String generated = compile(TEST_ONE, 'foo');
   RegExp regexp = const RegExp("a = 2");
@@ -51,5 +64,19 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp("print\\(t\\)");
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  generated = compile(TEST_THREE, 'foo');
+  // Check that we don't have additional 'val'.
+  regexp = const RegExp("val_");
+  Expect.isTrue(!regexp.hasMatch(generated));
+
+  // Check that we don't have 'val = val'.
+  regexp = const RegExp("val = val");
+  Expect.isTrue(!regexp.hasMatch(generated));
+
+  regexp = const RegExp("val = 43");
+  Expect.isTrue(regexp.hasMatch(generated));
+  regexp = const RegExp("return val");
   Expect.isTrue(regexp.hasMatch(generated));
 }

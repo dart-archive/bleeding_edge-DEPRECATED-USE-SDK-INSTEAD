@@ -1106,6 +1106,9 @@ ImmutableMap.prototype.containsKey = function(key) {
 ImmutableMap.prototype.$setindex = function(key, value) {
   $throw(const$14/*const IllegalAccessException()*/);
 }
+ImmutableMap.prototype.putIfAbsent = function(key, ifAbsent) {
+  $throw(const$14/*const IllegalAccessException()*/);
+}
 ImmutableMap.prototype.remove = function(key) {
   $throw(const$14/*const IllegalAccessException()*/);
 }
@@ -1310,6 +1313,13 @@ HashMapImplementation.prototype.$index = function(key) {
   var index = this._probeForLookup(key);
   if (index < 0) return null;
   return this._values.$index(index);
+}
+HashMapImplementation.prototype.putIfAbsent = function(key, ifAbsent) {
+  var index = this._probeForLookup(key);
+  if (index >= 0) return this._values.$index(index);
+  var value = ifAbsent();
+  this.$setindex(key, value);
+  return value;
 }
 HashMapImplementation.prototype.remove = function(key) {
   var index = this._probeForLookup(key);
@@ -1521,6 +1531,11 @@ function HashMapImplementation$Element$HInstruction() {}
 $inherits(HashMapImplementation$Element$HInstruction, HashMapImplementation);
 HashMapImplementation$Element$HInstruction.prototype.is$Map$Node$Element = false;
 HashMapImplementation$Element$HInstruction.prototype.is$Map$String$Member = false;
+// ********** Code for HashMapImplementation$Element$HLocal **************
+function HashMapImplementation$Element$HLocal() {}
+$inherits(HashMapImplementation$Element$HLocal, HashMapImplementation);
+HashMapImplementation$Element$HLocal.prototype.is$Map$Node$Element = false;
+HashMapImplementation$Element$HLocal.prototype.is$Map$String$Member = false;
 // ********** Code for HashMapImplementation$K$DoubleLinkedQueueEntry$KeyValuePair$K$V **************
 function HashMapImplementation$K$DoubleLinkedQueueEntry$KeyValuePair$K$V() {}
 $inherits(HashMapImplementation$K$DoubleLinkedQueueEntry$KeyValuePair$K$V, HashMapImplementation);
@@ -1768,6 +1783,14 @@ LinkedHashMapImplementation.prototype.remove = function(key) {
   if (entry == null) return null;
   entry.remove();
   return entry.get$element().get$value();
+}
+LinkedHashMapImplementation.prototype.putIfAbsent = function(key, ifAbsent) {
+  var value = this.$index(key);
+  if ((this.$index(key) == null) && !(this.containsKey(key))) {
+    value = ifAbsent();
+    this.$setindex(key, value);
+  }
+  return value;
 }
 LinkedHashMapImplementation.prototype.getKeys = function() {
   var list = new ListFactory(this.get$length());
@@ -7940,6 +7963,9 @@ SsaCodeGenerator.prototype.local = function(local) {
     return this.newName(id, ('' + prefix + '_' + ((($0 = this.prefixes).$setindex(prefix, ($1 = $0.$index(prefix)) + 1), $1))));
   }
 }
+SsaCodeGenerator.prototype.get$local = function() {
+  return SsaCodeGenerator.prototype.local.bind(this);
+}
 SsaCodeGenerator.prototype.newName = function(id, name) {
   var result = JsNames.getValid(name);
   this.names.$setindex(id, result);
@@ -9415,6 +9441,10 @@ function HLoad(local, type) {
   this.type = $assert_num(type);
 }
 $inherits(HLoad, HNonSsaInstruction);
+HLoad.prototype.get$local = function() {
+  var $0;
+  return (($0 = this.inputs.$index(0)) && $0.is$HLocal());
+}
 HLoad.prototype.toString = function() {
   return 'load';
 }
@@ -9433,6 +9463,10 @@ function HStore(local, value) {
   HNonSsaInstruction.call(this, [local, value]);
 }
 $inherits(HStore, HNonSsaInstruction);
+HStore.prototype.get$local = function() {
+  var $0;
+  return (($0 = this.inputs.$index(0)) && $0.is$HLocal());
+}
 HStore.prototype.get$value = function() {
   var $0;
   return (($0 = this.inputs.$index(1)) && $0.is$HInstruction());
@@ -9798,6 +9832,7 @@ function SsaPhiEliminator() {
 $inherits(SsaPhiEliminator, HGraphVisitor);
 SsaPhiEliminator.prototype.visitGraph = function(graph) {
   this.entry = graph.entry;
+  this.namedLocals = new HashMapImplementation();
   this.visitDominatorTree(graph);
 }
 SsaPhiEliminator.prototype.addStore = function(predecessor, dominator, local, value) {
@@ -9837,15 +9872,30 @@ SsaPhiEliminator.prototype.visitBasicBlock = function(block) {
   );
 }
 SsaPhiEliminator.prototype.visitPhi = function(phi, loads) {
+  var $this = this; // closure support
   var $0;
-  $assert(phi != null, "phi !== null", "phi_eliminator.dart", 54, 12);
-  var local = new HLocal(phi.element);
-  this.entry.addAtEntry(local);
+  $assert(phi != null, "phi !== null", "phi_eliminator.dart", 59, 12);
+  var local;
+  if (phi.element != null) {
+    local = (($0 = this.namedLocals.putIfAbsent(phi.element, (function () {
+      var local0 = new HLocal(phi.element);
+      $this.entry.addAtEntry(local0);
+      return local0;
+    })
+    )) && $0.is$HLocal());
+  }
+  else {
+    local = new HLocal(null);
+    this.entry.addAtEntry(local);
+  }
   var predecessors = this.currentBlock.predecessors;
   var stores = [];
   for (var i = 0, len = predecessors.length;
    i < len; i++) {
-    stores.add(this.addStore((($0 = predecessors.$index(i)) && $0.is$HBasicBlock()), this.currentBlock.dominator, local, (($0 = phi.inputs.$index(i)) && $0.is$HInstruction())));
+    var value = (($0 = phi.inputs.$index(i)) && $0.is$HInstruction());
+    if ((value instanceof HLoad) && value.get$dynamic().get$local() === local) continue;
+    var store = this.addStore((($0 = predecessors.$index(i)) && $0.is$HBasicBlock()), this.currentBlock.dominator, local, value);
+    stores.add(store);
   }
   var load = new HLoad(local, phi.type);
   loads.add(load);
@@ -9857,7 +9907,7 @@ SsaPhiEliminator.prototype.visitPhi = function(phi, loads) {
   }
 }
 SsaPhiEliminator.prototype.hasLoopPhiAsInput = function(stores, loads) {
-  $assert(this.currentBlock.isLoopHeader(), "currentBlock.isLoopHeader()", "phi_eliminator.dart", 86, 12);
+  $assert(this.currentBlock.isLoopHeader(), "currentBlock.isLoopHeader()", "phi_eliminator.dart", 109, 12);
   for (var $i = 0;$i < stores.length; $i++) {
     var store = stores.$index($i);
     var value = store.get$value();
