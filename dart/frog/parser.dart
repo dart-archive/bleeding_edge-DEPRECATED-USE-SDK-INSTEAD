@@ -236,6 +236,7 @@ class Parser {
     var _native = null;
     if (_maybeEat(TokenKind.NATIVE)) {
       _native = maybeStringLiteral();
+      if (_native !== null) _native = new NativeType(_native);
     }
 
     var _factory = null;
