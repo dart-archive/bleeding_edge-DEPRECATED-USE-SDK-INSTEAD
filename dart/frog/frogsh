@@ -20877,6 +20877,7 @@ DeclaredIdentifier.prototype.visit$1 = function($0) {
 function lang_Type(name) {
   this.name = name;
   this.isTested = false;
+  this._resolvedMembers = $map([]);
   // Initializers done
 }
 lang_Type.prototype.is$lang_Type = function(){return this;};
@@ -20899,6 +20900,9 @@ lang_Type.prototype.get$typeMember = function() {
   return (($0 = this._typeMember) && $0.is$TypeMember());
 }
 lang_Type.prototype.getMember = function(name) {
+  return null;
+}
+lang_Type.prototype.get$subtypes = function() {
   return null;
 }
 lang_Type.prototype.get$isVar = function() {
@@ -21048,6 +21052,37 @@ lang_Type.prototype._getMemberInParents = function(memberName) {
     else {
       return $globals.world.objectType.getMember(memberName);
     }
+  }
+}
+lang_Type.prototype.resolveMember = function(memberName) {
+  var $0;
+  var ret = (($0 = this._resolvedMembers.$index(memberName)) && $0.is$MemberSet());
+  if (ret != null) return ret;
+  var member = this.getMember(memberName);
+  if (member == null) {
+    return null;
+  }
+  ret = new MemberSet(member, false);
+  this._resolvedMembers.$setindex(memberName, ret);
+  if ($notnull_bool(member.get$isStatic())) {
+    return ret;
+  }
+  else {
+    var $list = this.get$subtypes();
+    for (var $i = this.get$subtypes().iterator(); $i.hasNext$0(); ) {
+      var t = $i.next$0();
+      if (!$notnull_bool(this.get$isClass()) && $notnull_bool(t.get$isClass())) {
+        var m = t.getMember$1(memberName);
+        if ($notnull_bool($ne(m, null)) && ret.members.indexOf(m) == -1) {
+          ret.add((m && m.is$Member()));
+        }
+      }
+      else {
+        var m = t.get$members().$index(memberName);
+        if ($notnull_bool($ne(m, null))) ret.add((m && m.is$Member()));
+      }
+    }
+    return ret;
   }
 }
 lang_Type.prototype.ensureSubtypeOf = function(other, span, typeErrors) {
@@ -21403,7 +21438,6 @@ function ConcreteType(name, genericType, typeArguments, typeArgsInOrder) {
   this.typeArgsInOrder = typeArgsInOrder;
   this.constructors = $map([]);
   this.members = $map([]);
-  this._resolvedMembers = $map([]);
   this.factories = new FactoryMap();
   // Initializers done
   lang_Type.call(this, name);
@@ -21470,6 +21504,17 @@ ConcreteType.prototype.get$interfaces = function() {
   }
   return this._interfaces;
 }
+ConcreteType.prototype.get$subtypes = function() {
+  if (this._subtypes == null) {
+    this._subtypes = new HashSetImplementation();
+    var $list = this.genericType.get$subtypes();
+    for (var $i = this.genericType.get$subtypes().iterator(); $i.hasNext$0(); ) {
+      var s = $i.next$0();
+      this._subtypes.add(s.resolveTypeParams$1(this));
+    }
+  }
+  return this._subtypes;
+}
 ConcreteType.prototype.getCallMethod = function() {
   return this.genericType.getCallMethod();
 }
@@ -21533,37 +21578,6 @@ ConcreteType.prototype.getMember = function(memberName) {
   }
   return this._getMemberInParents(memberName);
 }
-ConcreteType.prototype.resolveMember = function(memberName) {
-  var $0;
-  var ret = (($0 = this._resolvedMembers.$index(memberName)) && $0.is$MemberSet());
-  if (ret != null) return ret;
-  var member = this.getMember(memberName);
-  if (member == null) {
-    return null;
-  }
-  ret = new MemberSet(member, false);
-  this._resolvedMembers.$setindex(memberName, ret);
-  if ($notnull_bool(member.get$isStatic())) {
-    return ret;
-  }
-  else {
-    var $list = this.genericType.get$subtypes();
-    for (var $i = this.genericType.get$subtypes().iterator(); $i.hasNext$0(); ) {
-      var t = $i.next$0();
-      if (!$notnull_bool(this.get$isClass()) && $notnull_bool(t.get$isClass())) {
-        var m = t.getMember$1(memberName);
-        if ($notnull_bool($ne(m, null)) && ret.members.indexOf(m) == -1) {
-          ret.add((m && m.is$Member()));
-        }
-      }
-      else {
-        var m = t.get$members().$index(memberName);
-        if ($notnull_bool($ne(m, null))) ret.add((m && m.is$Member()));
-      }
-    }
-    return ret;
-  }
-}
 ConcreteType.prototype.resolveType = function(node, isRequired) {
   var ret = this.genericType.resolveType(node, isRequired);
   return (ret && ret.is$lang_Type());
@@ -21589,9 +21603,6 @@ ConcreteType.prototype.getOrMakeConcreteType$1 = function($0) {
 ConcreteType.prototype.markUsed$0 = function() {
   return this.markUsed();
 };
-ConcreteType.prototype.resolveMember$1 = function($0) {
-  return this.resolveMember($assert_String($0));
-};
 ConcreteType.prototype.resolveTypeParams$1 = function($0) {
   return this.resolveTypeParams(($0 && $0.is$ConcreteType()));
 };
@@ -21605,7 +21616,6 @@ function DefinedType(name, library, definition, isClass) {
   this.constructors = $map([]);
   this.members = $map([]);
   this.factories = new FactoryMap();
-  this._resolvedMembers = $map([]);
   // Initializers done
   lang_Type.call(this, name);
   this.setDefinition(definition);
@@ -21637,7 +21647,7 @@ DefinedType.prototype.set$isUsed = function(value) { return this.isUsed = value;
 DefinedType.prototype.get$isNativeType = function() { return this.isNativeType; };
 DefinedType.prototype.set$isNativeType = function(value) { return this.isNativeType = value; };
 DefinedType.prototype.setDefinition = function(def) {
-  $assert(this.definition == null, "definition == null", "type.dart", 728, 12);
+  $assert(this.definition == null, "definition == null", "type.dart", 735, 12);
   this.definition = def;
   if ((this.definition instanceof TypeDefinition) && $notnull_bool($ne(this.definition.get$nativeType(), null))) {
     this.isNativeType = true;
@@ -21750,7 +21760,7 @@ DefinedType.prototype._resolveInterfaces = function(types) {
   return (interfaces && interfaces.is$List$Type());
 }
 DefinedType.prototype.addDirectSubtype = function(type) {
-  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 849, 12);
+  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 856, 12);
   this.directSubtypes.add(type);
 }
 DefinedType.prototype.get$subtypes = function() {
@@ -22012,37 +22022,6 @@ DefinedType.prototype.getMember = function(memberName) {
   }
   return this._getMemberInParents(memberName);
 }
-DefinedType.prototype.resolveMember = function(memberName) {
-  var $0;
-  var ret = (($0 = this._resolvedMembers.$index(memberName)) && $0.is$MemberSet());
-  if (ret != null) return ret;
-  var member = this.getMember(memberName);
-  if (member == null) {
-    return null;
-  }
-  ret = new MemberSet(member, false);
-  this._resolvedMembers.$setindex(memberName, ret);
-  if ($notnull_bool(member.get$isStatic())) {
-    return ret;
-  }
-  else {
-    var $list = this.get$subtypes();
-    for (var $i = this.get$subtypes().iterator(); $i.hasNext$0(); ) {
-      var t = $i.next$0();
-      if (!$notnull_bool(this.isClass) && $notnull_bool(t.get$isClass())) {
-        var m = t.getMember$1(memberName);
-        if ($notnull_bool($ne(m, null)) && ret.members.indexOf(m) == -1) {
-          ret.add((m && m.is$Member()));
-        }
-      }
-      else {
-        var m = t.get$members().$index(memberName);
-        if ($notnull_bool($ne(m, null))) ret.add((m && m.is$Member()));
-      }
-    }
-    return ret;
-  }
-}
 DefinedType._getDottedName = function(type) {
   if (type.names != null) {
     var names = map(type.names, (function (n) {
@@ -22130,7 +22109,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
   return this;
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
-  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1281, 12);
+  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1253, 12);
   var names = [this.name];
   var typeMap = $map([]);
   for (var i = 0;
@@ -22148,7 +22127,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return (ret && ret.is$lang_Type());
 }
 DefinedType.prototype.getCallStub = function(args) {
-  $assert(this.get$isFunction(), "isFunction", "type.dart", 1301, 12);
+  $assert(this.get$isFunction(), "isFunction", "type.dart", 1273, 12);
   var name = _getCallStubName('call', args);
   if (this.varStubs == null) this.varStubs = $map([]);
   var stub = this.varStubs.$index(name);
@@ -22181,9 +22160,6 @@ DefinedType.prototype.markUsed$0 = function() {
 };
 DefinedType.prototype.resolve$0 = function() {
   return this.resolve();
-};
-DefinedType.prototype.resolveMember$1 = function($0) {
-  return this.resolveMember($assert_String($0));
 };
 DefinedType.prototype.resolveTypeParams$1 = function($0) {
   return this.resolveTypeParams(($0 && $0.is$ConcreteType()));

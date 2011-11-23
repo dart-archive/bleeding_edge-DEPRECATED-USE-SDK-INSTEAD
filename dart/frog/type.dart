@@ -19,7 +19,10 @@ class Type implements Named, Hashable {
   /** Stubs used to call into this method dynamically. Lazy initialized. */
   Map<String, VarMember> varStubs;
 
-  Type(this.name): isTested = false;
+  /** Cache of [MemberSet]s that have been resolved. */
+  Map<String, MemberSet> _resolvedMembers;
+
+  Type(this.name): isTested = false, _resolvedMembers = {};
 
   void markUsed() {}
   abstract void genMethod(Member method);
@@ -37,7 +40,6 @@ class Type implements Named, Hashable {
 
   abstract Type resolveTypeParams(ConcreteType inType);
 
-  abstract MemberSet resolveMember(String name);
   Member getMember(String name) => null;
   abstract MethodMember getConstructor(String name);
   abstract MethodMember getFactory(Type type, String name);
@@ -46,6 +48,7 @@ class Type implements Named, Hashable {
   abstract addDirectSubtype(Type type);
   abstract bool get isClass();
   abstract Library get library();
+  Set<Type> get subtypes() => null;
 
   // TODO(jmesserly): rename to isDynamic?
   bool get isVar() => false;
@@ -166,6 +169,41 @@ class Type implements Named, Hashable {
       } else {
         return world.objectType.getMember(memberName);
       }
+    }
+  }
+
+  MemberSet resolveMember(String memberName) {
+    MemberSet ret = _resolvedMembers[memberName];
+    if (ret != null) return ret;
+
+    Member member = getMember(memberName);
+    if (member == null) {
+      // TODO(jimhug): Check for members on subtypes given dart's dynamism.
+      return null;
+    }
+
+    // TODO(jimhug): Move this adding subtypes logic to MemberSet?
+    ret = new MemberSet(member);
+    _resolvedMembers[memberName] = ret;
+    if (member.isStatic) {
+      return ret;
+    } else {
+      for (var t in subtypes) {
+        if (!isClass && t.isClass) {
+          // If this is an interface, the actual implementation may
+          // come from a class that does not implement this interface.
+          // TODO(vsm): Use a more efficient lookup strategy.
+          // TODO(jimhug): This is made uglier by need to avoid dups.
+          final m = t.getMember(memberName);
+          if (m != null && ret.members.indexOf(m) == -1) {
+            ret.add(m);
+          }
+        } else {
+          final m = t.members[memberName];
+          if (m != null) ret.add(m);
+        }
+      }
+      return ret;
     }
   }
 
@@ -487,6 +525,7 @@ class ConcreteType extends Type {
   Map<String, Type> typeArguments;
   List<Type> _interfaces;
   Type _parent;
+  Set<Type> _subtypes;
   List<Type> typeArgsInOrder;
 
   bool get isList() => genericType.isList;
@@ -506,7 +545,6 @@ class ConcreteType extends Type {
    * generate appropriate concrete checks on.
    */
   Map<String, Member> members;
-  Map<String, MemberSet> _resolvedMembers;
   Map<String, MethodMember> constructors;
   FactoryMap factories;
 
@@ -514,8 +552,7 @@ class ConcreteType extends Type {
                this.genericType,
                this.typeArguments,
                this.typeArgsInOrder):
-    super(name), constructors = {}, members = {}, _resolvedMembers = {},
-      factories = new FactoryMap();
+    super(name), constructors = {}, members = {}, factories = new FactoryMap();
 
   Type resolveTypeParams(ConcreteType inType) {
     var newTypeArgs = [];
@@ -548,6 +585,16 @@ class ConcreteType extends Type {
       }
     }
     return _interfaces;
+  }
+
+  Set<Type> get subtypes() {
+    if (_subtypes == null) {
+      _subtypes = new Set<Type>();
+      for (var s in genericType.subtypes) {
+        _subtypes.add(s.resolveTypeParams(this));
+      }
+    }
+    return _subtypes;
   }
 
   // TODO(jmesserly): fill in type args?
@@ -631,49 +678,11 @@ class ConcreteType extends Type {
     return _getMemberInParents(memberName);
   }
 
-  MemberSet resolveMember(String memberName) {
-    // TODO(jimhug): Cut-and-paste and tweak from Type <frown>.
-    MemberSet ret = _resolvedMembers[memberName];
-    if (ret != null) return ret;
-
-    Member member = getMember(memberName);
-    if (member == null) {
-      // TODO(jimhug): Check for members on subtypes given dart's dynamism.
-      return null;
-    }
-
-    // TODO(jimhug): Move this adding subtypes logic to MemberSet?
-    ret = new MemberSet(member);
-    _resolvedMembers[memberName] = ret;
-    if (member.isStatic) {
-      return ret;
-    } else {
-      for (var t in genericType.subtypes) {
-        // TODO(jimhug): Make these non-generic!
-        if (!isClass && t.isClass) {
-          // If this is an interface, the actual implementation may
-          // come from a class that does not implement this interface.
-          // TODO(vsm): Use a more efficient lookup strategy.
-          // TODO(jimhug): This is made uglier by need to avoid dups.
-          final m = t.getMember(memberName);
-          if (m != null && ret.members.indexOf(m) == -1) {
-            ret.add(m);
-          }
-        } else {
-          final m = t.members[memberName];
-          if (m != null) ret.add(m);
-        }
-      }
-      return ret;
-    }
-  }
-
   Type resolveType(TypeReference node, bool isRequired) {
     var ret = genericType.resolveType(node, isRequired);
     // add type info
     return ret;
   }
-
 
   addDirectSubtype(Type type) {
     // TODO(jimhug): Does this go on the generic type or the concrete one?
@@ -708,8 +717,6 @@ class DefinedType extends Type {
   Map<String, Member> members;
   FactoryMap factories;
 
-  Map<String, MemberSet> _resolvedMembers;
-
   Map<String, ConcreteType> _concreteTypes;
 
   /** Methods to be generated once we know for sure that the type is used. */
@@ -720,7 +727,7 @@ class DefinedType extends Type {
 
   DefinedType(String name, this.library, Definition definition, this.isClass)
       : super(name), directSubtypes = new Set<Type>(), constructors = {},
-        members = {}, factories = new FactoryMap(), _resolvedMembers = {} {
+        members = {}, factories = new FactoryMap() {
     setDefinition(definition);
   }
 
@@ -1157,41 +1164,6 @@ class DefinedType extends Type {
     }
 
     return _getMemberInParents(memberName);
-  }
-
-  MemberSet resolveMember(String memberName) {
-    MemberSet ret = _resolvedMembers[memberName];
-    if (ret != null) return ret;
-
-    Member member = getMember(memberName);
-    if (member == null) {
-      // TODO(jimhug): Check for members on subtypes given dart's dynamism.
-      return null;
-    }
-
-    // TODO(jimhug): Move this adding subtypes logic to MemberSet?
-    ret = new MemberSet(member);
-    _resolvedMembers[memberName] = ret;
-    if (member.isStatic) {
-      return ret;
-    } else {
-      for (var t in subtypes) {
-        if (!isClass && t.isClass) {
-          // If this is an interface, the actual implementation may
-          // come from a class that does not implement this interface.
-          // TODO(vsm): Use a more efficient lookup strategy.
-          // TODO(jimhug): This is made uglier by need to avoid dups.
-          final m = t.getMember(memberName);
-          if (m != null && ret.members.indexOf(m) == -1) {
-            ret.add(m);
-          }
-        } else {
-          final m = t.members[memberName];
-          if (m != null) ret.add(m);
-        }
-      }
-      return ret;
-    }
   }
 
   static String _getDottedName(NameTypeReference type) {
