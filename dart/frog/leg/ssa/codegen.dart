@@ -307,8 +307,15 @@ class SsaCodeGenerator implements HVisitor {
     List<HInstruction> inputs = node.inputs;
     for (int i = 0; i < inputs.length; i++) {
       HInstruction input = inputs[i];
+      String name;
+      if (input is HParameterValue) {
+        name = parameter(input);
+      } else {
+        assert(!input.generateAtUseSite());
+        name = temporary(input);
+      }
       assert(!input.generateAtUseSite());
-      code = code.replaceAll('\$$i', temporary(input));
+      code = code.replaceAll('\$$i', name);
     }
     buffer.add('($code)');
   }

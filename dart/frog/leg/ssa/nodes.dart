@@ -936,7 +936,11 @@ class HNot extends HInstruction {
 
 class HParameterValue extends HInstruction {
   final Element element;
-  HParameterValue(this.element) : super([]);
+
+  HParameterValue(this.element) : super([]) {
+    setGenerateAtUseSite();
+  }
+
   void prepareGvn() {
     assert(!hasSideEffects());
   }

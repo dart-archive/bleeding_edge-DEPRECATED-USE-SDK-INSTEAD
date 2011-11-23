@@ -68,4 +68,6 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
   regexp = const RegExp("baz = 3");
   Expect.isTrue(regexp.hasMatch(generated));
+  regexp = const RegExp("bar === true");
+  Expect.isTrue(regexp.hasMatch(generated));
 }

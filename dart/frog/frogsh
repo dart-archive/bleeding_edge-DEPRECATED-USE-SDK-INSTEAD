@@ -8206,8 +8206,16 @@ SsaCodeGenerator.prototype.visitInvokeForeign = function(node) {
   for (var i = 0;
    i < inputs.length; i++) {
     var input = (($0 = inputs.$index(i)) && $0.is$HInstruction());
-    $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 310, 14);
-    code = code.replaceAll(('\$' + i), this.temporary(input));
+    var name = null;
+    if ((input instanceof HParameterValue)) {
+      name = this.parameter((input && input.is$HParameterValue()));
+    }
+    else {
+      $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 314, 16);
+      name = this.temporary(input);
+    }
+    $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 317, 14);
+    code = code.replaceAll(('\$' + i), name);
   }
   this.buffer.add(('(' + code + ')'));
 }
@@ -8221,18 +8229,18 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')) break;\n');
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 326, 12);
-  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 327, 12);
+  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 333, 12);
+  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 334, 12);
   this.visit(dominated.$index(0));
   this.indent--;
   this.addIndentation();
   this.buffer.add('}\n');
-  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 332, 12);
+  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 339, 12);
   this.visit(dominated.$index(1));
 }
 SsaCodeGenerator.prototype.visitNot = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 337, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 344, 12);
   this.buffer.add('(!');
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')');
@@ -9493,11 +9501,13 @@ function HParameterValue(element) {
   this.element = element;
   // Initializers done
   HInstruction.call(this, []);
+  this.setGenerateAtUseSite();
 }
 $inherits(HParameterValue, HInstruction);
+HParameterValue.prototype.is$HParameterValue = function(){return this;};
 HParameterValue.prototype.get$element = function() { return this.element; };
 HParameterValue.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 941, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 945, 12);
 }
 HParameterValue.prototype.toString = function() {
   return ('parameter ' + this.element.name);
@@ -9529,7 +9539,7 @@ $inherits(HPhi, HInstruction);
 HPhi.prototype.is$HPhi = function(){return this;};
 HPhi.prototype.get$element = function() { return this.element; };
 HPhi.prototype.addInput = function(input) {
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 958, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 962, 12);
   this.inputs.add(input);
   input.usedBy.add(this);
 }
@@ -9537,7 +9547,7 @@ HPhi.prototype.computeType = function() {
   return this.computeInputsType();
 }
 HPhi.prototype.updateTypeForLoopPhi = function() {
-  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 966, 12);
+  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 970, 12);
   if ($notnull_bool(this.inputs.$index(0).isUnknown$0())) return false;
   this.type = $assert_num(this.inputs.$index(0).get$type());
   return true;
@@ -9562,7 +9572,7 @@ function HRelational(element, inputs) {
 $inherits(HRelational, HInvoke);
 HRelational.prototype.prepareGvn = function() {
   if ($notnull_bool(this.isBoolean())) {
-    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 985, 14);
+    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 989, 14);
     this.setUseGvn();
   }
   else {
