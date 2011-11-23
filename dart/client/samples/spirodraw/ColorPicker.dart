@@ -64,8 +64,8 @@ class ColorPicker {
   }
 
   void addHandlers() {
-    canvasElement.onmousemove = (e) { onMouseMove(e); };
-    canvasElement.onmousedown = (e) { onMouseDown(e); };
+    canvasElement.addEventListener('mousemove', (e) => onMouseMove(e), true);
+    canvasElement.addEventListener('mousedown', (e) => onMouseDown(e), true);
   }
 
    void drawPalette() {

@@ -56,7 +56,7 @@ class Spirodraw {
     backCanvas = doc.createElement("canvas");
     back = backCanvas.getContext("2d");
     paletteElement = doc.getElementById("palette");
-    window.onresize = (EventListener) { onResize(); };
+    window.addEventListener('resize', (Event) => onResize(), true);
     initControlPanel();
   }
 
@@ -77,18 +77,18 @@ class Spirodraw {
   }
   
   void initControlPanel() {
-    inOrOut.onchange = (EventListener) { refresh(); };
-    fixedRadiusSlider.onchange = (EventListener) { refresh(); };
-    wheelRadiusSlider.onchange = (EventListener) { refresh(); };
-    speedSlider.onchange = (EventListener) { onSpeedChange(); };
-    penRadiusSlider.onchange = (EventListener) { refresh(); };
-    penWidthSlider.onchange = (EventListener) { onPenWidthChange(); };
+    inOrOut.addEventListener('change', (Event) => refresh(), true);
+    fixedRadiusSlider.addEventListener('change', (Event) => refresh(), true);
+    wheelRadiusSlider.addEventListener('change', (Event) => refresh(), true);
+    speedSlider.addEventListener('change', (Event) => onSpeedChange(), true);
+    penRadiusSlider.addEventListener('change', (Event) => refresh(), true);
+    penWidthSlider.addEventListener('change', (Event) => onPenWidthChange(), true);
     colorPicker = new ColorPicker(paletteElement);
-    colorPicker.addListener((String color) { onColorChange(color); });
-    doc.getElementById("start").onclick = (EventListener) { start(); };
-    doc.getElementById("stop").onclick = (EventListener) { stop(); };
-    doc.getElementById("clear").onclick = (EventListener) { clear(); };
-    doc.getElementById("lucky").onclick = (EventListener) { lucky(); };
+    colorPicker.addListener((String color) => onColorChange(color));
+    doc.getElementById("start").addEventListener('click', (EventListener) => start(), true);
+    doc.getElementById("stop").addEventListener('click', (EventListener) => stop(), true);
+    doc.getElementById("clear").addEventListener('click', (EventListener) => clear(), true);
+    doc.getElementById("lucky").addEventListener('click', (EventListener) => lucky(), true);
   }
   
   void onColorChange(String color) {

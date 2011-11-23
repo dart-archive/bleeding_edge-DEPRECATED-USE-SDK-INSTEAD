@@ -23,10 +23,10 @@ class Sunflower {
     ctx = canvas.getContext("2d");
     
     HTMLInputElement slider = doc.getElementById("slider");
-    slider.onchange = (Event e) {
+    slider.addEventListener('change', (Event e) {
       seeds = Math.parseInt(slider.value);
       drawFrame();
-    };
+    }, true);
     
     drawFrame();
   }
