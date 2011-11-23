@@ -103,6 +103,10 @@ class Compiler implements Canceler, Logger {
     resolver.resolveType(parser.parse(element));
   }
 
+  Element resolveSignature(FunctionElement element) {
+    resolver.resolveSignature(parser.parse(element));
+  }
+
   String getGeneratedCode() {
     StringBuffer buffer = new StringBuffer();
     List<String> codeBlocks = universe.generatedCode.getValues();

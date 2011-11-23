@@ -9,10 +9,14 @@ class ResolverTask extends CompilerTask {
 
   String get name() => 'Resolver';
 
-  Map<Node, Element> resolve(Node tree) {
+  Map<Node, Element> resolve(FunctionExpression tree) {
     return measure(() {
-      ResolverVisitor visitor = new ResolverVisitor(compiler);
+      ResolverVisitor visitor = new SignatureResolverVisitor(compiler);
       visitor.visit(tree);
+
+      visitor = new FullResolverVisitor.from(visitor);
+      visitor.visit(tree.body);
+
       // Resolve the type annotations encountered in the method.
       while (!toResolve.isEmpty()) {
         toResolve.removeFirst().resolve(compiler);
@@ -21,10 +25,29 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  void resolveType(Node tree) {
+  // Used for testing.
+  Map<Node, Element> resolveStatement(Node node) {
+    ResolverVisitor visitor = new FullResolverVisitor(compiler);
+    visitor.visit(node);
+
+    // Resolve the type annotations encountered in the code.
+    while (!toResolve.isEmpty()) {
+      toResolve.removeFirst().resolve(compiler);
+    }
+    return visitor.mapping;
+  }
+
+  void resolveType(ClassNode tree) {
     measure(() {
       ClassResolverVisitor visitor = new ClassResolverVisitor(compiler);
       visitor.visit(tree);
+    });
+  }
+
+  void resolveSignature(FunctionExpression node) {
+    measure(() {
+      SignatureResolverVisitor visitor = new SignatureResolverVisitor(compiler);
+      visitor.visitFunctionExpression(node);
     });
   }
 }
@@ -38,6 +61,11 @@ class ResolverVisitor implements Visitor<Element> {
     : this.compiler = compiler,
       mapping = new LinkedHashMap<Node, Element>(),
       context = new Scope(new TopScope(compiler.universe));
+
+  ResolverVisitor.from(ResolverVisitor other)
+    : compiler = other.compiler,
+      mapping = other.mapping,
+      context = other.context;
 
   error(Node node, MessageKind kind, [arguments = const []]) {
     ResolutionError error  = new ResolutionError(kind, arguments);
@@ -57,6 +85,74 @@ class ResolverVisitor implements Visitor<Element> {
     if (node == null) return null;
     return node.accept(this);
   }
+
+  visitIdentifier(Identifier node) {
+    Element element = context.lookup(node.source);
+    if (element == null) {
+      error(node, MessageKind.CANNOT_RESOLVE, [node]);
+    }
+    return useElement(node, element);
+  }
+
+  visitTypeAnnotation(TypeAnnotation node) {
+    Identifier name = node.typeName;
+    if (name.source == const SourceString('var')) return null;
+    if (name.source == const SourceString('void')) return null;
+    Element element = context.lookup(name.source);
+    if (element === null) {
+      warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [name]);
+    } else if (element.kind !== ElementKind.CLASS) {
+      warning(node, MessageKind.NOT_A_TYPE, [name]);
+    } else {
+      ClassElement cls = element;
+      compiler.resolver.toResolve.add(element);
+    }
+    return useElement(node, element);
+  }
+
+  Element defineElement(Node node, Element element) {
+    compiler.ensure(element !== null);
+    mapping[node] = element;
+    return context.add(element);
+  }
+
+  Element useElement(Node node, Element element) {
+    if (element === null) return null;
+    mapping[node] = element;
+    // TODO(ngeoffray): frog does not like a return on an assignment.
+    return element;
+  }
+}
+
+class SignatureResolverVisitor extends ResolverVisitor {
+
+  SignatureResolverVisitor(Compiler compiler) : super(compiler);
+
+  visitFunctionExpression(FunctionExpression node) {
+    FunctionElement enclosingElement = visit(node.name);
+    context = new Scope.enclosing(context, enclosingElement);
+
+    if (enclosingElement.parameters == null) {
+      ParametersVisitor visitor = new ParametersVisitor(this);
+      visitor.visit(node.parameters);
+      enclosingElement.parameters = visitor.elements.toLink();
+    } else {
+      Link<Node> parameterNodes = node.parameters.nodes;
+      for (Link<Element> link = enclosingElement.parameters;
+           !link.isEmpty() && !parameterNodes.isEmpty();
+           link = link.tail, parameterNodes = parameterNodes.tail) {
+        defineElement(parameterNodes.head.definitions.nodes.head, link.head);
+      }
+    }
+
+    return enclosingElement;
+  }
+}
+
+class FullResolverVisitor extends ResolverVisitor {
+
+  FullResolverVisitor(Compiler compiler) : super(compiler);
+  FullResolverVisitor.from(ResolverVisitor other) : super.from(other);
 
   Element visitClassNode(ClassNode node) {
     cancel(node, "shouldn't be called");
@@ -99,14 +195,6 @@ class ResolverVisitor implements Visitor<Element> {
     visit(node.body);
     context = context.parent;
     return enclosingElement;
-  }
-
-  visitIdentifier(Identifier node) {
-    Element element = context.lookup(node.source);
-    if (element == null) {
-      error(node, MessageKind.CANNOT_RESOLVE, [node]);
-    }
-    return useElement(node, element);
   }
 
   visitIf(If node) {
@@ -199,40 +287,11 @@ class ResolverVisitor implements Visitor<Element> {
     visit(node.expression);
   }
 
-  visitTypeAnnotation(TypeAnnotation node) {
-    Identifier name = node.typeName;
-    if (name.source == const SourceString('var')) return null;
-    if (name.source == const SourceString('void')) return null;
-    Element element = context.lookup(name.source);
-    if (element === null) {
-      warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [name]);
-    } else if (element.kind !== ElementKind.CLASS) {
-      warning(node, MessageKind.NOT_A_TYPE, [name]);
-    } else {
-      ClassElement cls = element;
-      compiler.resolver.toResolve.add(element);
-    }
-    return useElement(node, element);
-  }
-
   visitVariableDefinitions(VariableDefinitions node) {
     visit(node.type);
     VariableDefinitionsVisitor visitor =
         new VariableDefinitionsVisitor(node, this, ElementKind.VARIABLE);
     visitor.visit(node.definitions);
-  }
-
-  Element defineElement(Node node, Element element) {
-    compiler.ensure(element !== null);
-    mapping[node] = element;
-    return context.add(element);
-  }
-
-  Element useElement(Node node, Element element) {
-    if (element === null) return null;
-    mapping[node] = element;
-    // TODO(ngeoffray): frog does not like a return on an assignment.
-    return element;
   }
 }
 

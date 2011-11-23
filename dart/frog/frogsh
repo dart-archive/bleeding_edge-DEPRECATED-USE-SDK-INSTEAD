@@ -2845,8 +2845,6 @@ $inherits(ArrayBasedScanner, AbstractScanner$S);
 ArrayBasedScanner.prototype.get$charOffset = function() {
   return this.byteOffset + this.extraCharOffset;
 }
-ArrayBasedScanner.prototype.get$tail = function() { return this.tail; };
-ArrayBasedScanner.prototype.set$tail = function(value) { return this.tail = value; };
 ArrayBasedScanner.prototype.get$byteOffset = function() { return this.byteOffset; };
 ArrayBasedScanner.prototype.set$byteOffset = function(value) { return this.byteOffset = value; };
 ArrayBasedScanner.prototype.advance = function() {
@@ -5641,6 +5639,8 @@ function ElementListener(canceler) {
   Listener.call(this);
 }
 $inherits(ElementListener, Listener);
+ElementListener.prototype.get$nodes = function() { return this.nodes; };
+ElementListener.prototype.set$nodes = function(value) { return this.nodes = value; };
 ElementListener.prototype.beginLibraryTag = function(token) {
   this.canceler.cancel("Cannot handle library tags", null, token);
 }
@@ -7088,6 +7088,7 @@ function VariableDefinitions(type, modifiers, definitions, endToken) {
 $inherits(VariableDefinitions, Statement);
 VariableDefinitions.prototype.is$VariableDefinitions = function(){return this;};
 VariableDefinitions.prototype.get$type = function() { return this.type; };
+VariableDefinitions.prototype.get$definitions = function() { return this.definitions; };
 VariableDefinitions.prototype.accept = function(visitor) {
   return visitor.visitVariableDefinitions(this);
 }
@@ -7476,14 +7477,14 @@ FunctionElement.prototype.set$type = function(value) { return this.type = value;
 FunctionElement.prototype.computeType = function(compiler, types) {
   var $0;
   if (this.type != null) return (($0 = this.type) && $0.is$FunctionType());
+  if (this.parameters == null) compiler.resolveSignature(this);
   var node = (($0 = this.parseNode(compiler, compiler)) && $0.is$FunctionExpression());
   var returnType = getType(node.returnType, types);
   if (returnType == null) compiler.cancel(('unknown type ' + returnType));
   var parameterTypes = new LinkBuilderImplementation();
-  for (var link = node.parameters.get$nodes();
-   !$notnull_bool(link.isEmpty$0()); link = link.get$tail()) {
-    var parameter = (($0 = link.get$head()) && $0.is$VariableDefinitions());
-    parameterTypes.addLast(getType(parameter.type, types));
+  for (var link = this.parameters;
+   !$notnull_bool(link.isEmpty()); link = (($0 = link.get$tail()) && $0.is$Link$Element())) {
+    parameterTypes.addLast(link.get$head().computeType$2(compiler, types));
   }
   this.type = new FunctionType(returnType, (($0 = parameterTypes.toLink()) && $0.is$Link$Type()));
   return (($0 = this.type) && $0.is$FunctionType());
@@ -7565,6 +7566,8 @@ function SsaBuilder(compiler, elements) {
   // Initializers done
 }
 SsaBuilder.prototype.is$Visitor = function(){return this;};
+SsaBuilder.prototype.get$definitions = function() { return this.definitions; };
+SsaBuilder.prototype.set$definitions = function(value) { return this.definitions = value; };
 SsaBuilder.prototype.build = function(parameters, body) {
   this.stack = new ListFactory();
   this.definitions = new HashMapImplementation();
@@ -8061,7 +8064,7 @@ SsaCodeGenerator.prototype.temporary = function(instruction) {
 SsaCodeGenerator.prototype.local = function(local) {
   var $0, $1;
   var element = local.element;
-  if (element != null && $eq(element.kind, const$217/*ElementKind.PARAMETER*/)) {
+  if (element != null && $eq(element.kind, const$224/*ElementKind.PARAMETER*/)) {
     return $assert_String(this.parameterNames.$index(element));
   }
   var id = local.id;
@@ -10412,7 +10415,7 @@ SsaPhiEliminator.prototype.visitPhi = function(phi, loads) {
     local = (($0 = this.namedLocals.putIfAbsent(phi.element, (function () {
       var local0 = new HLocal(phi.element);
       $this.entry.addAtEntry(local0);
-      if (phi.element.kind === const$217/*ElementKind.PARAMETER*/) {
+      if (phi.element.kind === const$224/*ElementKind.PARAMETER*/) {
         $this.entry.detach(local0);
       }
       return local0;
@@ -11087,7 +11090,7 @@ Compiler.prototype.compileMethod = function(element) {
   var code = $assert_String(this.universe.generatedCode.$index(element));
   if (code != null) return code;
   var tree = this.parser.parse(element);
-  var elements = this.resolver.resolve(tree);
+  var elements = this.resolver.resolve((tree && tree.is$FunctionExpression()));
   this.checker.check(tree, elements);
   var graph = this.builder.build(tree, elements);
   this.optimizer.optimize(graph);
@@ -11096,7 +11099,12 @@ Compiler.prototype.compileMethod = function(element) {
   return code;
 }
 Compiler.prototype.resolveType = function(element) {
-  this.resolver.resolveType(this.parser.parse(element));
+  var $0;
+  this.resolver.resolveType((($0 = this.parser.parse(element)) && $0.is$ClassNode()));
+}
+Compiler.prototype.resolveSignature = function(element) {
+  var $0;
+  this.resolver.resolveSignature((($0 = this.parser.parse(element)) && $0.is$FunctionExpression()));
 }
 Compiler.prototype.getGeneratedCode = function() {
   var $0;
@@ -11162,8 +11170,10 @@ ResolverTask.prototype.resolve = function(tree) {
   var $this = this; // closure support
   var $0;
   return (($0 = this.measure((function () {
-    var visitor = new ResolverVisitor($this.compiler);
+    var visitor = new SignatureResolverVisitor($this.compiler);
     visitor.visit(tree);
+    visitor = new FullResolverVisitor.from$ctor(visitor);
+    visitor.visit(tree.body);
     while (!$this.toResolve.isEmpty()) {
       $this.toResolve.removeFirst().resolve$1($this.compiler);
     }
@@ -11179,8 +11189,16 @@ ResolverTask.prototype.resolveType = function(tree) {
   })
   );
 }
+ResolverTask.prototype.resolveSignature = function(node) {
+  var $this = this; // closure support
+  this.measure((function () {
+    var visitor = new SignatureResolverVisitor($this.compiler);
+    visitor.visitFunctionExpression(node);
+  })
+  );
+}
 ResolverTask.prototype.resolve$1 = function($0) {
-  return this.resolve(($0 && $0.is$Node()));
+  return this.resolve(($0 && $0.is$FunctionExpression()));
 };
 // ********** Code for ResolverVisitor **************
 function ResolverVisitor(compiler) {
@@ -11189,6 +11207,13 @@ function ResolverVisitor(compiler) {
   this.context = new Scope(new TopScope(compiler.universe));
   // Initializers done
 }
+ResolverVisitor.from$ctor = function(other) {
+  this.compiler = other.compiler;
+  this.mapping = other.mapping;
+  this.context = other.context;
+  // Initializers done
+}
+ResolverVisitor.from$ctor.prototype = ResolverVisitor.prototype;
 ResolverVisitor.prototype.is$Visitor = function(){return this;};
 ResolverVisitor.prototype.error = function(node, kind, arguments) {
   var error = new ResolutionError(kind, (arguments && arguments.is$List$Type()));
@@ -11205,148 +11230,29 @@ ResolverVisitor.prototype.visit = function(node) {
   if (node == null) return null;
   return node.accept(this);
 }
-ResolverVisitor.prototype.visitClassNode = function(node) {
-  this.cancel(node, "shouldn't be called");
-}
-ResolverVisitor.prototype.visitIn = function(node, scope) {
-  var $0;
-  this.context = scope;
-  var element = (($0 = this.visit(node)) && $0.is$Element());
-  this.context = this.context.parent;
-  return element;
-}
-ResolverVisitor.prototype.visitBlock = function(node) {
-  this.visitIn(node.statements, new Scope(this.context));
-}
-ResolverVisitor.prototype.visitExpressionStatement = function(node) {
-  this.visit(node.expression);
-}
-ResolverVisitor.prototype.visitFor = function(node) {
-  var scope = new Scope(this.context);
-  this.visitIn(node.initializer, scope);
-  this.visitIn(node.condition, scope);
-  this.visitIn(node.update, scope);
-  this.visitIn(node.body, scope);
-}
-ResolverVisitor.prototype.visitFunctionExpression = function(node) {
-  var $0;
-  this.visit(node.returnType);
-  var enclosingElement = (($0 = this.visit(node.name)) && $0.is$FunctionElement());
-  this.context = new Scope.enclosing$ctor(this.context, enclosingElement);
-  var visitor = new ParametersVisitor(this);
-  visitor.visit(node.parameters);
-  enclosingElement.parameters = (($0 = visitor.elements.toLink()) && $0.is$Link$Element());
-  this.visit(node.body);
-  this.context = this.context.parent;
-  return enclosingElement;
-}
 ResolverVisitor.prototype.visitIdentifier = function(node) {
   var element = this.context.lookup(node.get$source());
   if (element == null) {
-    this.error(node, const$221/*MessageKind.CANNOT_RESOLVE*/, [node]);
+    this.error(node, const$217/*MessageKind.CANNOT_RESOLVE*/, [node]);
   }
   return this.useElement(node, element);
 }
-ResolverVisitor.prototype.visitIf = function(node) {
-  this.visit(node.condition);
-  this.visit(node.thenPart);
-  this.visit(node.elsePart);
-}
-ResolverVisitor.prototype.potentiallyMapOperatorToMethodName = function(name) {
-  if ($notnull_bool($eq(name, const$223/*const SourceString('+')*/))) return const$224/*const SourceString('add')*/;
-  if ($notnull_bool($eq(name, const$225/*const SourceString('-')*/))) return const$226/*const SourceString('sub')*/;
-  if ($notnull_bool($eq(name, const$227/*const SourceString('*')*/))) return const$228/*const SourceString('mul')*/;
-  if ($notnull_bool($eq(name, const$229/*const SourceString('/')*/))) return const$230/*const SourceString('div')*/;
-  if ($notnull_bool($eq(name, const$231/*const SourceString('~/')*/))) return const$232/*const SourceString('tdiv')*/;
-  if ($notnull_bool($eq(name, const$233/*const SourceString('%')*/))) return const$234/*const SourceString('mod')*/;
-  if ($notnull_bool($eq(name, const$235/*const SourceString('==')*/))) return const$236/*const SourceString('eq')*/;
-  if ($notnull_bool($eq(name, const$237/*const SourceString('<')*/))) return const$238/*const SourceString('lt')*/;
-  if ($notnull_bool($eq(name, const$239/*const SourceString('<=')*/))) return const$240/*const SourceString('le')*/;
-  if ($notnull_bool($eq(name, const$241/*const SourceString('>')*/))) return const$242/*const SourceString('gt')*/;
-  if ($notnull_bool($eq(name, const$243/*const SourceString('>=')*/))) return const$244/*const SourceString('ge')*/;
-  return name;
-}
-ResolverVisitor.prototype.visitSend = function(node) {
-  var $0;
-  this.visit(node.receiver);
-  var identifier = (($0 = node.selector) && $0.is$Identifier());
-  if (node.receiver != null && !(identifier instanceof Operator)) {
-    this.cancel(node, 'Cannot handle qualified method calls');
-  }
-  var name = this.potentiallyMapOperatorToMethodName(identifier.get$source());
-  var target = this.context.lookup(name);
-  if (target == null && !(($notnull_bool($eq(name, const$245/*const SourceString('&&')*/)) || $notnull_bool($eq(name, const$246/*const SourceString('||')*/)) || $notnull_bool($eq(name, const$247/*const SourceString('!')*/))))) {
-    this.error(node, const$221/*MessageKind.CANNOT_RESOLVE*/, [name]);
-  }
-  this.visit(node.argumentsNode);
-  return this.useElement(node, target);
-}
-ResolverVisitor.prototype.visitSendSet = function(node) {
-  var $0;
-  var receiver = (($0 = this.visit(node.receiver)) && $0.is$Element());
-  var selector = (($0 = node.selector) && $0.is$Identifier());
-  if (receiver != null) {
-    this.compiler.unimplemented('Resolver: property access');
-  }
-  var target = this.context.lookup(selector.get$source());
-  if (target == null) {
-    this.error(node, const$221/*MessageKind.CANNOT_RESOLVE*/, [node]);
-  }
-  this.visit(node.argumentsNode);
-  return this.useElement(node, target);
-}
-ResolverVisitor.prototype.visitLiteralInt = function(node) {
-
-}
-ResolverVisitor.prototype.visitLiteralDouble = function(node) {
-
-}
-ResolverVisitor.prototype.visitLiteralBool = function(node) {
-
-}
-ResolverVisitor.prototype.visitLiteralString = function(node) {
-
-}
-ResolverVisitor.prototype.visitLiteralNull = function(node) {
-
-}
-ResolverVisitor.prototype.visitNodeList = function(node) {
-  var $0;
-  for (var link = node.get$nodes();
-   !$notnull_bool(link.isEmpty()); link = (($0 = link.get$tail()) && $0.is$Link$Node())) {
-    this.visit((($0 = link.get$head()) && $0.is$Node()));
-  }
-}
-ResolverVisitor.prototype.visitOperator = function(node) {
-  this.cancel(node, "Unimplemented");
-}
-ResolverVisitor.prototype.visitReturn = function(node) {
-  this.visit(node.expression);
-}
-ResolverVisitor.prototype.visitThrow = function(node) {
-  this.visit(node.expression);
-}
 ResolverVisitor.prototype.visitTypeAnnotation = function(node) {
   var name = node.typeName;
-  if ($notnull_bool($eq(name.get$source(), const$248/*const SourceString('var')*/))) return null;
+  if ($notnull_bool($eq(name.get$source(), const$219/*const SourceString('var')*/))) return null;
   if ($notnull_bool($eq(name.get$source(), const$6/*const SourceString('void')*/))) return null;
   var element = this.context.lookup(name.get$source());
   if (element == null) {
-    this.warning(node, const$249/*MessageKind.CANNOT_RESOLVE_TYPE*/, [name]);
+    this.warning(node, const$220/*MessageKind.CANNOT_RESOLVE_TYPE*/, [name]);
   }
   else if (element.kind !== const$203/*ElementKind.CLASS*/) {
-    this.warning(node, const$251/*MessageKind.NOT_A_TYPE*/, [name]);
+    this.warning(node, const$222/*MessageKind.NOT_A_TYPE*/, [name]);
   }
   else {
     var cls = (element && element.is$ClassElement());
     this.compiler.resolver.toResolve.add(element);
   }
   return this.useElement(node, element);
-}
-ResolverVisitor.prototype.visitVariableDefinitions = function(node) {
-  this.visit(node.type);
-  var visitor = new VariableDefinitionsVisitor(node, this, const$253/*ElementKind.VARIABLE*/);
-  visitor.visit(node.definitions);
 }
 ResolverVisitor.prototype.defineElement = function(node, element) {
   this.compiler.ensure(element != null);
@@ -11361,6 +11267,157 @@ ResolverVisitor.prototype.useElement = function(node, element) {
 ResolverVisitor.prototype.visit$1 = function($0) {
   return this.visit(($0 && $0.is$Node()));
 };
+// ********** Code for SignatureResolverVisitor **************
+function SignatureResolverVisitor(compiler) {
+  // Initializers done
+  ResolverVisitor.call(this, compiler);
+}
+$inherits(SignatureResolverVisitor, ResolverVisitor);
+SignatureResolverVisitor.prototype.visitFunctionExpression = function(node) {
+  var $0;
+  var enclosingElement = (($0 = this.visit(node.name)) && $0.is$FunctionElement());
+  this.context = new Scope.enclosing$ctor(this.context, enclosingElement);
+  if (enclosingElement.parameters == null) {
+    var visitor = new ParametersVisitor(this);
+    visitor.visit(node.parameters);
+    enclosingElement.parameters = (($0 = visitor.elements.toLink()) && $0.is$Link$Element());
+  }
+  else {
+    var parameterNodes = node.parameters.get$nodes();
+    for (var link = enclosingElement.parameters;
+     !$notnull_bool(link.isEmpty()) && !$notnull_bool(parameterNodes.isEmpty()); link = (($0 = link.get$tail()) && $0.is$Link$Element()), parameterNodes = (($0 = parameterNodes.get$tail()) && $0.is$Link$Node())) {
+      this.defineElement((($0 = parameterNodes.get$head().get$definitions().get$nodes().get$head()) && $0.is$Node()), (($0 = link.get$head()) && $0.is$Element()));
+    }
+  }
+  return enclosingElement;
+}
+// ********** Code for FullResolverVisitor **************
+function FullResolverVisitor() {}
+FullResolverVisitor.from$ctor = function(other) {
+  // Initializers done
+  ResolverVisitor.from$ctor.call(this, other);
+}
+FullResolverVisitor.from$ctor.prototype = FullResolverVisitor.prototype;
+$inherits(FullResolverVisitor, ResolverVisitor);
+FullResolverVisitor.prototype.visitClassNode = function(node) {
+  this.cancel(node, "shouldn't be called");
+}
+FullResolverVisitor.prototype.visitIn = function(node, scope) {
+  var $0;
+  this.context = scope;
+  var element = (($0 = this.visit(node)) && $0.is$Element());
+  this.context = this.context.parent;
+  return element;
+}
+FullResolverVisitor.prototype.visitBlock = function(node) {
+  this.visitIn(node.statements, new Scope(this.context));
+}
+FullResolverVisitor.prototype.visitExpressionStatement = function(node) {
+  this.visit(node.expression);
+}
+FullResolverVisitor.prototype.visitFor = function(node) {
+  var scope = new Scope(this.context);
+  this.visitIn(node.initializer, scope);
+  this.visitIn(node.condition, scope);
+  this.visitIn(node.update, scope);
+  this.visitIn(node.body, scope);
+}
+FullResolverVisitor.prototype.visitFunctionExpression = function(node) {
+  var $0;
+  this.visit(node.returnType);
+  var enclosingElement = (($0 = this.visit(node.name)) && $0.is$FunctionElement());
+  this.context = new Scope.enclosing$ctor(this.context, enclosingElement);
+  var visitor = new ParametersVisitor(this);
+  visitor.visit(node.parameters);
+  enclosingElement.parameters = (($0 = visitor.elements.toLink()) && $0.is$Link$Element());
+  this.visit(node.body);
+  this.context = this.context.parent;
+  return enclosingElement;
+}
+FullResolverVisitor.prototype.visitIf = function(node) {
+  this.visit(node.condition);
+  this.visit(node.thenPart);
+  this.visit(node.elsePart);
+}
+FullResolverVisitor.prototype.potentiallyMapOperatorToMethodName = function(name) {
+  if ($notnull_bool($eq(name, const$228/*const SourceString('+')*/))) return const$229/*const SourceString('add')*/;
+  if ($notnull_bool($eq(name, const$230/*const SourceString('-')*/))) return const$231/*const SourceString('sub')*/;
+  if ($notnull_bool($eq(name, const$232/*const SourceString('*')*/))) return const$233/*const SourceString('mul')*/;
+  if ($notnull_bool($eq(name, const$234/*const SourceString('/')*/))) return const$235/*const SourceString('div')*/;
+  if ($notnull_bool($eq(name, const$236/*const SourceString('~/')*/))) return const$237/*const SourceString('tdiv')*/;
+  if ($notnull_bool($eq(name, const$238/*const SourceString('%')*/))) return const$239/*const SourceString('mod')*/;
+  if ($notnull_bool($eq(name, const$240/*const SourceString('==')*/))) return const$241/*const SourceString('eq')*/;
+  if ($notnull_bool($eq(name, const$242/*const SourceString('<')*/))) return const$243/*const SourceString('lt')*/;
+  if ($notnull_bool($eq(name, const$244/*const SourceString('<=')*/))) return const$245/*const SourceString('le')*/;
+  if ($notnull_bool($eq(name, const$246/*const SourceString('>')*/))) return const$247/*const SourceString('gt')*/;
+  if ($notnull_bool($eq(name, const$248/*const SourceString('>=')*/))) return const$249/*const SourceString('ge')*/;
+  return name;
+}
+FullResolverVisitor.prototype.visitSend = function(node) {
+  var $0;
+  this.visit(node.receiver);
+  var identifier = (($0 = node.selector) && $0.is$Identifier());
+  if (node.receiver != null && !(identifier instanceof Operator)) {
+    this.cancel(node, 'Cannot handle qualified method calls');
+  }
+  var name = this.potentiallyMapOperatorToMethodName(identifier.get$source());
+  var target = this.context.lookup(name);
+  if (target == null && !(($notnull_bool($eq(name, const$250/*const SourceString('&&')*/)) || $notnull_bool($eq(name, const$251/*const SourceString('||')*/)) || $notnull_bool($eq(name, const$252/*const SourceString('!')*/))))) {
+    this.error(node, const$217/*MessageKind.CANNOT_RESOLVE*/, [name]);
+  }
+  this.visit(node.argumentsNode);
+  return this.useElement(node, target);
+}
+FullResolverVisitor.prototype.visitSendSet = function(node) {
+  var $0;
+  var receiver = (($0 = this.visit(node.receiver)) && $0.is$Element());
+  var selector = (($0 = node.selector) && $0.is$Identifier());
+  if (receiver != null) {
+    this.compiler.unimplemented('Resolver: property access');
+  }
+  var target = this.context.lookup(selector.get$source());
+  if (target == null) {
+    this.error(node, const$217/*MessageKind.CANNOT_RESOLVE*/, [node]);
+  }
+  this.visit(node.argumentsNode);
+  return this.useElement(node, target);
+}
+FullResolverVisitor.prototype.visitLiteralInt = function(node) {
+
+}
+FullResolverVisitor.prototype.visitLiteralDouble = function(node) {
+
+}
+FullResolverVisitor.prototype.visitLiteralBool = function(node) {
+
+}
+FullResolverVisitor.prototype.visitLiteralString = function(node) {
+
+}
+FullResolverVisitor.prototype.visitLiteralNull = function(node) {
+
+}
+FullResolverVisitor.prototype.visitNodeList = function(node) {
+  var $0;
+  for (var link = node.get$nodes();
+   !$notnull_bool(link.isEmpty()); link = (($0 = link.get$tail()) && $0.is$Link$Node())) {
+    this.visit((($0 = link.get$head()) && $0.is$Node()));
+  }
+}
+FullResolverVisitor.prototype.visitOperator = function(node) {
+  this.cancel(node, "Unimplemented");
+}
+FullResolverVisitor.prototype.visitReturn = function(node) {
+  this.visit(node.expression);
+}
+FullResolverVisitor.prototype.visitThrow = function(node) {
+  this.visit(node.expression);
+}
+FullResolverVisitor.prototype.visitVariableDefinitions = function(node) {
+  this.visit(node.type);
+  var visitor = new VariableDefinitionsVisitor(node, this, const$253/*ElementKind.VARIABLE*/);
+  visitor.visit(node.definitions);
+}
 // ********** Code for ClassResolverVisitor **************
 function ClassResolverVisitor(compiler) {
   this.compiler = compiler;
@@ -11386,10 +11443,10 @@ ClassResolverVisitor.prototype.visitTypeAnnotation = function(node) {
   var name = node.typeName;
   var element = this.context.lookup(name.get$source());
   if (element == null) {
-    this.compiler.cancel(new ResolutionError(const$249/*MessageKind.CANNOT_RESOLVE_TYPE*/, [name]).toString());
+    this.compiler.cancel(new ResolutionError(const$220/*MessageKind.CANNOT_RESOLVE_TYPE*/, [name]).toString());
   }
   else if (element.kind !== const$203/*ElementKind.CLASS*/) {
-    this.compiler.cancel(new ResolutionError(const$251/*MessageKind.NOT_A_TYPE*/, [name]).toString());
+    this.compiler.cancel(new ResolutionError(const$222/*MessageKind.NOT_A_TYPE*/, [name]).toString());
   }
   else {
     this.compiler.resolver.toResolve.add(element);
@@ -11417,11 +11474,13 @@ function VariableDefinitionsVisitor(definitions, resolver, kind) {
   AbstractVisitor$SourceString.call(this);
 }
 $inherits(VariableDefinitionsVisitor, AbstractVisitor$SourceString);
+VariableDefinitionsVisitor.prototype.get$definitions = function() { return this.definitions; };
+VariableDefinitionsVisitor.prototype.set$definitions = function(value) { return this.definitions = value; };
 VariableDefinitionsVisitor.prototype.get$kind = function() { return this.kind; };
 VariableDefinitionsVisitor.prototype.set$kind = function(value) { return this.kind = value; };
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 296, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 355, 12);
   if (node.receiver != null) {
     this.resolver.cancel(node, "receiver on a variable definition not implemented");
   }
@@ -11440,7 +11499,7 @@ VariableDefinitionsVisitor.prototype.visitNodeList = function(node) {
     var element = new VariableElement((($0 = link.get$head()) && $0.is$Node()), this.definitions.type, this.kind, name, this.resolver.context.enclosingElement);
     var existing = this.resolver.defineElement((($0 = link.get$head()) && $0.is$Node()), element);
     if ($ne(existing, element)) {
-      this.resolver.error(node, const$219/*MessageKind.DUPLICATE_DEFINITION*/, [link.get$head()]);
+      this.resolver.error(node, const$226/*MessageKind.DUPLICATE_DEFINITION*/, [link.get$head()]);
     }
   }
 }
@@ -11467,7 +11526,7 @@ ParametersVisitor.prototype.visitNodeList = function(node) {
 }
 ParametersVisitor.prototype.visitVariableDefinitions = function(node) {
   this.resolver.visit(node.type);
-  var visitor = new VariableDefinitionsVisitor(node, this.resolver, const$217/*ElementKind.PARAMETER*/);
+  var visitor = new VariableDefinitionsVisitor(node, this.resolver, const$224/*ElementKind.PARAMETER*/);
   visitor.visit(node.definitions);
   return this.resolver.mapping.$index(node.definitions.get$nodes().get$head());
 }
@@ -11732,7 +11791,7 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
   var selector = (($0 = node.selector) && $0.is$Identifier());
   if (target != null) {
     var name = selector.get$source();
-    if ($notnull_bool($eq(name, const$223/*const SourceString('+')*/)) || $notnull_bool($eq(name, const$265/*const SourceString('=')*/)) || $notnull_bool($eq(name, const$225/*const SourceString('-')*/)) || $notnull_bool($eq(name, const$227/*const SourceString('*')*/)) || $notnull_bool($eq(name, const$229/*const SourceString('/')*/)) || $notnull_bool($eq(name, const$237/*const SourceString('<')*/)) || $notnull_bool($eq(name, const$231/*const SourceString('~/')*/))) {
+    if ($notnull_bool($eq(name, const$228/*const SourceString('+')*/)) || $notnull_bool($eq(name, const$265/*const SourceString('=')*/)) || $notnull_bool($eq(name, const$230/*const SourceString('-')*/)) || $notnull_bool($eq(name, const$232/*const SourceString('*')*/)) || $notnull_bool($eq(name, const$234/*const SourceString('/')*/)) || $notnull_bool($eq(name, const$242/*const SourceString('<')*/)) || $notnull_bool($eq(name, const$236/*const SourceString('~/')*/))) {
       return this.types.dynamicType;
     }
     var targetType = target.computeType$2(this.compiler, this.types);
@@ -14072,6 +14131,8 @@ Arguments.get$EMPTY = function() {
 }
 Arguments.prototype.get$values = function() { return this.values; };
 Arguments.prototype.set$values = function(value) { return this.values = value; };
+Arguments.prototype.get$nodes = function() { return this.nodes; };
+Arguments.prototype.set$nodes = function(value) { return this.nodes = value; };
 Arguments.prototype.get$nameCount = function() {
   return this.get$length() - this.get$bareCount();
 }
@@ -23573,42 +23634,42 @@ var const$213 = new NodeList()/*const Prefix()*/;
 var const$214 = new Prefix()/*const Prefix()*/;
 var const$215 = new Postfix()/*const Postfix()*/;
 var const$216 = new ImmutableMap([])/*const {}*/;
-var const$217 = new ElementKind('parameter')/*const ElementKind('parameter')*/;
-var const$219 = new MessageKind('duplicate definition of #{1}')/*const MessageKind(
-      'duplicate definition of #{1}')*/;
-var const$221 = new MessageKind('cannot resolve #{1}')/*const MessageKind(
+var const$217 = new MessageKind('cannot resolve #{1}')/*const MessageKind(
       'cannot resolve #{1}')*/;
-var const$223 = new StringWrapper('+')/*const SourceString('+')*/;
-var const$224 = new StringWrapper('add')/*const SourceString('add')*/;
-var const$225 = new StringWrapper('-')/*const SourceString('-')*/;
-var const$226 = new StringWrapper('sub')/*const SourceString('sub')*/;
-var const$227 = new StringWrapper('*')/*const SourceString('*')*/;
-var const$228 = new StringWrapper('mul')/*const SourceString('mul')*/;
-var const$229 = new StringWrapper('/')/*const SourceString('/')*/;
-var const$230 = new StringWrapper('div')/*const SourceString('div')*/;
-var const$231 = new StringWrapper('~/')/*const SourceString('~/')*/;
-var const$232 = new StringWrapper('tdiv')/*const SourceString('tdiv')*/;
-var const$233 = new StringWrapper('%')/*const SourceString('%')*/;
-var const$234 = new StringWrapper('mod')/*const SourceString('mod')*/;
-var const$235 = new StringWrapper('==')/*const SourceString('==')*/;
-var const$236 = new StringWrapper('eq')/*const SourceString('eq')*/;
-var const$237 = new StringWrapper('<')/*const SourceString('<')*/;
-var const$238 = new StringWrapper('lt')/*const SourceString('lt')*/;
-var const$239 = new StringWrapper('<=')/*const SourceString('<=')*/;
-var const$240 = new StringWrapper('le')/*const SourceString('le')*/;
-var const$241 = new StringWrapper('>')/*const SourceString('>')*/;
-var const$242 = new StringWrapper('gt')/*const SourceString('gt')*/;
-var const$243 = new StringWrapper('>=')/*const SourceString('>=')*/;
-var const$244 = new StringWrapper('ge')/*const SourceString('ge')*/;
-var const$245 = new StringWrapper('&&')/*const SourceString('&&')*/;
-var const$246 = new StringWrapper('||')/*const SourceString('||')*/;
-var const$247 = new StringWrapper('!')/*const SourceString('!')*/;
-var const$248 = new StringWrapper('var')/*const SourceString('var')*/;
-var const$249 = new MessageKind('cannot resolve type #{1}')/*const MessageKind(
+var const$219 = new StringWrapper('var')/*const SourceString('var')*/;
+var const$220 = new MessageKind('cannot resolve type #{1}')/*const MessageKind(
       'cannot resolve type #{1}')*/;
-var const$25 = new Keyword("break", false)/*const Keyword("break")*/;
-var const$251 = new MessageKind('#{1} is not a type')/*const MessageKind(
+var const$222 = new MessageKind('#{1} is not a type')/*const MessageKind(
       '#{1} is not a type')*/;
+var const$224 = new ElementKind('parameter')/*const ElementKind('parameter')*/;
+var const$226 = new MessageKind('duplicate definition of #{1}')/*const MessageKind(
+      'duplicate definition of #{1}')*/;
+var const$228 = new StringWrapper('+')/*const SourceString('+')*/;
+var const$229 = new StringWrapper('add')/*const SourceString('add')*/;
+var const$230 = new StringWrapper('-')/*const SourceString('-')*/;
+var const$231 = new StringWrapper('sub')/*const SourceString('sub')*/;
+var const$232 = new StringWrapper('*')/*const SourceString('*')*/;
+var const$233 = new StringWrapper('mul')/*const SourceString('mul')*/;
+var const$234 = new StringWrapper('/')/*const SourceString('/')*/;
+var const$235 = new StringWrapper('div')/*const SourceString('div')*/;
+var const$236 = new StringWrapper('~/')/*const SourceString('~/')*/;
+var const$237 = new StringWrapper('tdiv')/*const SourceString('tdiv')*/;
+var const$238 = new StringWrapper('%')/*const SourceString('%')*/;
+var const$239 = new StringWrapper('mod')/*const SourceString('mod')*/;
+var const$240 = new StringWrapper('==')/*const SourceString('==')*/;
+var const$241 = new StringWrapper('eq')/*const SourceString('eq')*/;
+var const$242 = new StringWrapper('<')/*const SourceString('<')*/;
+var const$243 = new StringWrapper('lt')/*const SourceString('lt')*/;
+var const$244 = new StringWrapper('<=')/*const SourceString('<=')*/;
+var const$245 = new StringWrapper('le')/*const SourceString('le')*/;
+var const$246 = new StringWrapper('>')/*const SourceString('>')*/;
+var const$247 = new StringWrapper('gt')/*const SourceString('gt')*/;
+var const$248 = new StringWrapper('>=')/*const SourceString('>=')*/;
+var const$249 = new StringWrapper('ge')/*const SourceString('ge')*/;
+var const$25 = new Keyword("break", false)/*const Keyword("break")*/;
+var const$250 = new StringWrapper('&&')/*const SourceString('&&')*/;
+var const$251 = new StringWrapper('||')/*const SourceString('||')*/;
+var const$252 = new StringWrapper('!')/*const SourceString('!')*/;
 var const$253 = new ElementKind('variable')/*const ElementKind('variable')*/;
 var const$259 = new MessageKind('cannot return value from void function')/*const MessageKind(
       'cannot return value from void function')*/;

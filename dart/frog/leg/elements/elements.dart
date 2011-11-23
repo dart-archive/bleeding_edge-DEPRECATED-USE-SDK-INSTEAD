@@ -99,14 +99,15 @@ class FunctionElement extends Element {
 
   FunctionType computeType(Compiler compiler, types) {
     if (type != null) return type;
+    if (parameters == null) compiler.resolveSignature(this);
 
     FunctionExpression node = parseNode(compiler, compiler);
     Type returnType = getType(node.returnType, types);
     if (returnType === null) compiler.cancel('unknown type $returnType');
+
     LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
-    for (var link = node.parameters.nodes; !link.isEmpty(); link = link.tail) {
-      VariableDefinitions parameter = link.head;
-      parameterTypes.addLast(getType(parameter.type, types));
+    for (Link<Element> link = parameters; !link.isEmpty(); link = link.tail) {
+      parameterTypes.addLast(link.head.computeType(compiler, types));
     }
     type = new FunctionType(returnType, parameterTypes.toLink());
     return type;
