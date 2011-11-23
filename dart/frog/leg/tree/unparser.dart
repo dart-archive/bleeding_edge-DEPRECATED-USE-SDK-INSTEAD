@@ -103,6 +103,10 @@ class Unparser implements Visitor {
     add(node.token.value);
   }
 
+  visitLiteralNull(LiteralNull node) {
+    add(node.token.value);
+  }
+
   visitNodeList(NodeList node) {
     if (node.beginToken !== null) add(node.beginToken.value);
     if (node.nodes !== null) {

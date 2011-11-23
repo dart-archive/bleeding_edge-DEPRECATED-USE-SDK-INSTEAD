@@ -17,6 +17,7 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitLiteralBool(LiteralBool node) => visitLiteral(node);
   R visitLiteralDouble(LiteralDouble node) => visitLiteral(node);
   R visitLiteralInt(LiteralInt node) => visitLiteral(node);
+  R visitLiteralNull(LiteralNull node) => visitLiteral(node);
   R visitLiteralString(LiteralString node) => visitLiteral(node);
   R visitNewExpression(NewExpression node) => visitExpression(node);
   R visitNodeList(NodeList node) => visitNode(node);

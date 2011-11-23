@@ -178,6 +178,9 @@ class ResolverVisitor implements Visitor<Element> {
   visitLiteralString(LiteralString node) {
   }
 
+  visitLiteralNull(LiteralNull node) {
+  }
+
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       visit(link.head);

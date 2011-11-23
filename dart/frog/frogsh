@@ -526,6 +526,9 @@ Object.prototype.handleLiteralDouble$1 = function($0) {
 Object.prototype.handleLiteralInt$1 = function($0) {
   return this.noSuchMethod("handleLiteralInt", [$0]);
 };
+Object.prototype.handleLiteralNull$1 = function($0) {
+  return this.noSuchMethod("handleLiteralNull", [$0]);
+};
 Object.prototype.handleLiteralString$1 = function($0) {
   return this.noSuchMethod("handleLiteralString", [$0]);
 };
@@ -4993,6 +4996,10 @@ Parser.prototype.parsePrimary = function(token) {
 
             return this.parseLiteralBool(token);
 
+          case value === 'null':
+
+            return this.parseLiteralNull(token);
+
           default:
 
             this.listener.unexpected$1(token);
@@ -5025,6 +5032,10 @@ Parser.prototype.parseLiteralBool = function(token) {
   this.listener.handleLiteralBool$1(token);
   return token.next;
 }
+Parser.prototype.parseLiteralNull = function(token) {
+  this.listener.handleLiteralNull$1(token);
+  return token.next;
+}
 Parser.prototype.parseSend = function(token) {
   this.listener.beginSend$1(token);
   token = this.parseIdentifier(token);
@@ -5044,7 +5055,7 @@ Parser.prototype.parseArgumentsOpt = function(token) {
 Parser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments$1(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 728, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 735, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments$3(argumentCount, begin, token.next);
@@ -5345,6 +5356,9 @@ Listener.prototype.handleLiteralDouble = function(token) {
 Listener.prototype.handleLiteralInt = function(token) {
 
 }
+Listener.prototype.handleLiteralNull = function(token) {
+
+}
 Listener.prototype.handleLiteralString = function(token) {
 
 }
@@ -5567,6 +5581,9 @@ Listener.prototype.handleLiteralDouble$1 = function($0) {
 Listener.prototype.handleLiteralInt$1 = function($0) {
   return this.handleLiteralInt(($0 && $0.is$Token()));
 };
+Listener.prototype.handleLiteralNull$1 = function($0) {
+  return this.handleLiteralNull(($0 && $0.is$Token()));
+};
 Listener.prototype.handleLiteralString$1 = function($0) {
   return this.handleLiteralString(($0 && $0.is$Token()));
 };
@@ -5692,7 +5709,7 @@ ElementListener.prototype.pushNode = function(node) {
 }
 ElementListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 343, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 346, 12);
   var node = (($0 = this.nodes.get$head()) && $0.is$Node());
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link$Node());
   if (false/*null.VERBOSE*/) this.log(("pop " + this.nodes));
@@ -5804,6 +5821,9 @@ NodeListener.prototype.handleLiteralBool = function(token) {
 }
 NodeListener.prototype.handleLiteralString = function(token) {
   this.pushNode(new LiteralString(token));
+}
+NodeListener.prototype.handleLiteralNull = function(token) {
+  this.pushNode(new LiteralNull(token));
 }
 NodeListener.prototype.handleBinaryExpression = function(token) {
   var argument = this.popNode();
@@ -5989,6 +6009,9 @@ NodeListener.prototype.handleLiteralDouble$1 = function($0) {
 };
 NodeListener.prototype.handleLiteralInt$1 = function($0) {
   return this.handleLiteralInt(($0 && $0.is$Token()));
+};
+NodeListener.prototype.handleLiteralNull$1 = function($0) {
+  return this.handleLiteralNull(($0 && $0.is$Token()));
 };
 NodeListener.prototype.handleLiteralString$1 = function($0) {
   return this.handleLiteralString(($0 && $0.is$Token()));
@@ -6878,6 +6901,21 @@ LiteralString.prototype.accept = function(visitor) {
 LiteralString.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
+// ********** Code for LiteralNull **************
+function LiteralNull(token) {
+  // Initializers done
+  Literal$SourceString.call(this, token, to$call$2(null));
+}
+$inherits(LiteralNull, Literal$SourceString);
+LiteralNull.prototype.get$value = function() {
+  return null;
+}
+LiteralNull.prototype.accept = function(visitor) {
+  return visitor.visitLiteralNull(this);
+}
+LiteralNull.prototype.accept$1 = function($0) {
+  return this.accept(($0 && $0.is$Visitor()));
+};
 // ********** Code for Identifier **************
 function Identifier(token) {
   this.token = token;
@@ -7160,6 +7198,10 @@ Unparser.prototype.visitLiteralString = function(node) {
   var $0;
   this.add((($0 = node.token.get$value()) && $0.is$SourceString()));
 }
+Unparser.prototype.visitLiteralNull = function(node) {
+  var $0;
+  this.add((($0 = node.token.get$value()) && $0.is$SourceString()));
+}
 Unparser.prototype.visitNodeList = function(node) {
   var $0;
   if (node.beginToken != null) this.add((($0 = node.beginToken.get$value()) && $0.is$SourceString()));
@@ -7311,6 +7353,9 @@ AbstractVisitor$Type.prototype.visitLiteralDouble = function(node) {
   return this.visitLiteral(node);
 }
 AbstractVisitor$Type.prototype.visitLiteralInt = function(node) {
+  return this.visitLiteral(node);
+}
+AbstractVisitor$Type.prototype.visitLiteralNull = function(node) {
   return this.visitLiteral(node);
 }
 AbstractVisitor$Type.prototype.visitLiteralString = function(node) {
@@ -7854,6 +7899,9 @@ SsaBuilder.prototype.visitLiteralBool = function(node) {
 SsaBuilder.prototype.visitLiteralString = function(node) {
   this.push(new HLiteral(node.get$value()));
 }
+SsaBuilder.prototype.visitLiteralNull = function(node) {
+  this.push(new HLiteral(null));
+}
 SsaBuilder.prototype.visitNodeList = function(node) {
   var $0;
   for (var link = node.get$nodes();
@@ -7865,11 +7913,15 @@ SsaBuilder.prototype.visitOperator = function(node) {
   unreachable();
 }
 SsaBuilder.prototype.visitReturn = function(node) {
+  var value;
   if (node.expression == null) {
-    this.compiler.unimplemented("SsaBuilder: return without expression");
+    value = new HLiteral(null);
+    this.add(value);
   }
-  this.visit(node.expression);
-  var value = this.pop();
+  else {
+    this.visit(node.expression);
+    value = this.pop();
+  }
   this.close(new HReturn(value)).addSuccessor(this.graph.exit);
 }
 SsaBuilder.prototype.visitThrow = function(node) {
@@ -7888,7 +7940,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 496, 12);
+  $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 503, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   var element = (($0 = this.elements.$index(node)) && $0.is$VariableElement());
@@ -7906,10 +7958,12 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
    !$notnull_bool(link.isEmpty()); link = (($0 = link.get$tail()) && $0.is$Link$Node())) {
     var definition = (($0 = link.get$head()) && $0.is$Node());
     if ((definition instanceof Identifier)) {
-      this.compiler.unimplemented("SsaBuilder.visitVariableDefinitions without initial value");
+      var initialValue = new HLiteral(null);
+      this.add(initialValue);
+      this.definitions.$setindex(this.elements.$index(definition), initialValue);
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 518, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 526, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }
@@ -8220,7 +8274,12 @@ SsaCodeGenerator.prototype.visitInvokeForeign = function(node) {
   this.buffer.add(('(' + code + ')'));
 }
 SsaCodeGenerator.prototype.visitLiteral = function(node) {
-  this.buffer.add(node.value);
+  if (node.value == null) {
+    this.buffer.add("(void 0)");
+  }
+  else {
+    this.buffer.add(node.value);
+  }
 }
 SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   var $0;
@@ -8229,18 +8288,18 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')) break;\n');
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 333, 12);
-  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 334, 12);
+  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 337, 12);
+  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 338, 12);
   this.visit(dominated.$index(0));
   this.indent--;
   this.addIndentation();
   this.buffer.add('}\n');
-  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 339, 12);
+  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 343, 12);
   this.visit(dominated.$index(1));
 }
 SsaCodeGenerator.prototype.visitNot = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 344, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 348, 12);
   this.buffer.add('(!');
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')');
@@ -8253,9 +8312,16 @@ SsaCodeGenerator.prototype.visitPhi = function(node) {
 }
 SsaCodeGenerator.prototype.visitReturn = function(node) {
   var $0;
-  this.buffer.add('return ');
-  this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
-  this.buffer.add(';\n');
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 364, 12);
+  var input = (($0 = node.inputs.$index(0)) && $0.is$HInstruction());
+  if ($notnull_bool(input.isLiteralNull())) {
+    this.buffer.add('return;\n');
+  }
+  else {
+    this.buffer.add('return ');
+    this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
+    this.buffer.add(';\n');
+  }
 }
 SsaCodeGenerator.prototype.visitThrow = function(node) {
   var $0;
@@ -9032,6 +9098,9 @@ HInstruction.prototype.notifyRemovedFromBlock = function(block) {
   this.block = null;
   $assert(this.isValid(), "isValid()", "nodes.dart", 725, 12);
 }
+HInstruction.prototype.isLiteralNull = function() {
+  return false;
+}
 HInstruction.prototype.isLiteralNumber = function() {
   return false;
 }
@@ -9081,7 +9150,7 @@ function HBoolify(value) {
 }
 $inherits(HBoolify, HInstruction);
 HBoolify.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 742, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 743, 12);
   this.setUseGvn();
 }
 HBoolify.prototype.computeType = function() {
@@ -9111,7 +9180,7 @@ function HTypeGuard(type, value) {
 $inherits(HTypeGuard, HInstruction);
 HTypeGuard.prototype.is$HTypeGuard = function(){return this;};
 HTypeGuard.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 759, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 760, 12);
   this.setUseGvn();
 }
 HTypeGuard.prototype.computeType = function() {
@@ -9192,7 +9261,7 @@ function HArithmetic(element, inputs) {
 $inherits(HArithmetic, HInvoke);
 HArithmetic.prototype.prepareGvn = function() {
   if ($notnull_bool(this.isNumber())) {
-    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 801, 14);
+    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 802, 14);
     this.setUseGvn();
   }
   else {
@@ -9430,7 +9499,7 @@ $inherits(HLiteral, HInstruction);
 HLiteral.prototype.is$HLiteral = function(){return this;};
 HLiteral.prototype.get$value = function() { return this.value; };
 HLiteral.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 900, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 901, 12);
   this.setUseGvn();
   this.setGenerateAtUseSite();
 }
@@ -9450,6 +9519,9 @@ HLiteral.prototype.computeType = function() {
   else {
     return 0/*HInstruction.TYPE_UNKNOWN*/;
   }
+}
+HLiteral.prototype.isLiteralNull = function() {
+  return this.value == null;
 }
 HLiteral.prototype.isLiteralNumber = function() {
   return (typeof(this.value) == 'number');
@@ -9486,7 +9558,7 @@ function HNot(value) {
 }
 $inherits(HNot, HInstruction);
 HNot.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 926, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 928, 12);
   this.setUseGvn();
 }
 HNot.prototype.computeType = function() {
@@ -9518,7 +9590,7 @@ $inherits(HParameterValue, HInstruction);
 HParameterValue.prototype.is$HParameterValue = function(){return this;};
 HParameterValue.prototype.get$element = function() { return this.element; };
 HParameterValue.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 945, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 947, 12);
 }
 HParameterValue.prototype.toString = function() {
   return ('parameter ' + this.element.name);
@@ -9550,7 +9622,7 @@ $inherits(HPhi, HInstruction);
 HPhi.prototype.is$HPhi = function(){return this;};
 HPhi.prototype.get$element = function() { return this.element; };
 HPhi.prototype.addInput = function(input) {
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 962, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 964, 12);
   this.inputs.add(input);
   input.usedBy.add(this);
 }
@@ -9558,7 +9630,7 @@ HPhi.prototype.computeType = function() {
   return this.computeInputsType();
 }
 HPhi.prototype.updateTypeForLoopPhi = function() {
-  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 970, 12);
+  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 972, 12);
   if ($notnull_bool(this.inputs.$index(0).isUnknown$0())) return false;
   this.type = $assert_num(this.inputs.$index(0).get$type());
   return true;
@@ -9583,7 +9655,7 @@ function HRelational(element, inputs) {
 $inherits(HRelational, HInvoke);
 HRelational.prototype.prepareGvn = function() {
   if ($notnull_bool(this.isBoolean())) {
-    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 989, 14);
+    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 991, 14);
     this.setUseGvn();
   }
   else {
@@ -11174,6 +11246,9 @@ ResolverVisitor.prototype.visitLiteralBool = function(node) {
 ResolverVisitor.prototype.visitLiteralString = function(node) {
 
 }
+ResolverVisitor.prototype.visitLiteralNull = function(node) {
+
+}
 ResolverVisitor.prototype.visitNodeList = function(node) {
   var $0;
   for (var link = node.get$nodes();
@@ -11285,7 +11360,7 @@ VariableDefinitionsVisitor.prototype.get$kind = function() { return this.kind; }
 VariableDefinitionsVisitor.prototype.set$kind = function(value) { return this.kind = value; };
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 293, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 296, 12);
   if (node.receiver != null) {
     this.resolver.cancel(node, "receiver on a variable definition not implemented");
   }
@@ -11655,6 +11730,9 @@ TypeCheckerVisitor.prototype.visitLiteralBool = function(node) {
 }
 TypeCheckerVisitor.prototype.visitLiteralString = function(node) {
   return this.types.stringType;
+}
+TypeCheckerVisitor.prototype.visitLiteralNull = function(node) {
+  return this.types.dynamicType;
 }
 TypeCheckerVisitor.prototype.visitNodeList = function(node) {
   var $0;

@@ -456,6 +456,10 @@ class SsaBuilder implements Visitor {
     push(new HLiteral(node.value));
   }
 
+  void visitLiteralNull(LiteralNull node) {
+    push(new HLiteral(null));
+  }
+
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       visit(link.head);
@@ -468,11 +472,14 @@ class SsaBuilder implements Visitor {
   }
 
   visitReturn(Return node) {
+    HInstruction value;
     if (node.expression === null) {
-      compiler.unimplemented("SsaBuilder: return without expression");
+      value = new HLiteral(null);
+      add(value);
+    } else {
+      visit(node.expression);
+      value = pop();
     }
-    visit(node.expression);
-    var value = pop();
     close(new HReturn(value)).addSuccessor(graph.exit);
   }
 
@@ -512,8 +519,9 @@ class SsaBuilder implements Visitor {
          link = link.tail) {
       Node definition = link.head;
       if (definition is Identifier) {
-        compiler.unimplemented(
-            "SsaBuilder.visitVariableDefinitions without initial value");
+        HInstruction initialValue = new HLiteral(null);
+        add(initialValue);
+        definitions[elements[definition]] = initialValue;
       } else {
         assert(definition is SendSet);
         updateDefinition(definition);

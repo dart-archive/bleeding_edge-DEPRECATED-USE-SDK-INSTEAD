@@ -321,7 +321,11 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitLiteral(HLiteral node) {
-    buffer.add(node.value);
+    if (node.value === null) {
+      buffer.add("(void 0)");
+    } else {
+      buffer.add(node.value);
+    }
   }
 
   visitLoopBranch(HLoopBranch node) {
@@ -357,9 +361,15 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitReturn(HReturn node) {
-    buffer.add('return ');
-    use(node.inputs[0]);
-    buffer.add(';\n');
+    assert(node.inputs.length == 1);
+    HInstruction input = node.inputs[0];
+    if (input.isLiteralNull()) {
+      buffer.add('return;\n');
+    } else {
+      buffer.add('return ');
+      use(node.inputs[0]);
+      buffer.add(';\n');
+    }
   }
 
   visitThrow(HThrow node) {

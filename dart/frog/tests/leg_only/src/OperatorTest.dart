@@ -115,30 +115,45 @@ void modTest() {
 
 void equalsTest() {
   // Equality of normal numbers is already well tested with "expectEquals".
+  expectEquals(true, true == true);
+  expectEquals(true, false == false);
+  expectEquals(true, 0 == 0);
+  expectEquals(true, null == null);
+
   expectEquals(false, 1 == 2);
   expectEquals(false, 1 == "foo");
   expectEquals(false, 1 == true);
   expectEquals(false, 1 == false);
   expectEquals(false, false == "");
   expectEquals(false, false == 0);
-  // expectEquals(false, falseValue == null);
+  expectEquals(false, false == null);
   expectEquals(false, "" == false);
   expectEquals(false, 0 == false);
-  // expectEquals(false, null == falseValue);
+  expectEquals(false, null == false);
 
   var falseValue = false;
-  if (one() == 2) falseValue = true;
+  var trueValue = true;
+  var nullValue = null;
+  if (one() == 2) {
+    falseValue = true;
+    trueValue = false;
+    nullValue = 5;
+  }
 
+  expectEquals(true, true == trueValue);
+  expectEquals(true, false == falseValue);
+  expectEquals(true, 1 == one());
+  expectEquals(true, null == nullValue);
   expectEquals(false, one() == 2);
   expectEquals(false, one() == "foo");
   expectEquals(false, one() == true);
   expectEquals(false, one() == false);
   expectEquals(false, falseValue == "");
   expectEquals(false, falseValue == 0);
-  // expectEquals(false, falseValue == null);
+  expectEquals(false, falseValue == null);
   expectEquals(false, "" == falseValue);
   expectEquals(false, 0 == falseValue);
-  // expectEquals(false, null == falseValue);
+  expectEquals(false, null == falseValue);
 }
 
 void lessTest() {

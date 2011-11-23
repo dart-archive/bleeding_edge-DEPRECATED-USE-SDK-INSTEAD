@@ -13,6 +13,7 @@ interface Visitor<R> {
   R visitLiteralBool(LiteralBool node);
   R visitLiteralDouble(LiteralDouble node);
   R visitLiteralInt(LiteralInt node);
+  R visitLiteralNull(LiteralNull node);
   R visitLiteralString(LiteralString node);
   R visitNodeList(NodeList node);
   R visitOperator(Operator node);
@@ -402,6 +403,14 @@ class LiteralString extends Literal<SourceString> {
   SourceString get value() => token.value;
 
   accept(Visitor visitor) => visitor.visitLiteralString(this);
+}
+
+class LiteralNull extends Literal<SourceString> {
+  LiteralNull(Token token) : super(token, null);
+
+  SourceString get value() => null;
+
+  accept(Visitor visitor) => visitor.visitLiteralNull(this);
 }
 
 class Identifier extends Expression {

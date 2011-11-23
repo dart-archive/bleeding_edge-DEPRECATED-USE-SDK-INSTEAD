@@ -725,6 +725,7 @@ class HInstruction implements Hashable {
     assert(isValid());
   }
 
+  bool isLiteralNull() => false;
   bool isLiteralNumber() => false;
   bool isLiteralString() => false;
 
@@ -914,6 +915,7 @@ class HLiteral extends HInstruction {
     }
   }
 
+  bool isLiteralNull() => value === null;
   bool isLiteralNumber() => value is num;
   bool isLiteralString() => value is SourceString;
   bool typeEquals(other) => other is HLiteral;

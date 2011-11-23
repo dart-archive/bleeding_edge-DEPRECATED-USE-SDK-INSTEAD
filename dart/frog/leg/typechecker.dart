@@ -259,6 +259,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return types.stringType;
   }
 
+  Type visitLiteralNull(LiteralNull node) {
+    return types.dynamicType;
+  }
+
   Type visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       type(link.head);

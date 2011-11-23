@@ -181,6 +181,9 @@ class Listener {
   void handleLiteralInt(Token token) {
   }
 
+  void handleLiteralNull(Token token) {
+  }
+
   void handleLiteralString(Token token) {
   }
 
@@ -416,6 +419,10 @@ class NodeListener extends ElementListener {
 
   void handleLiteralString(Token token) {
     pushNode(new LiteralString(token));
+  }
+
+  void handleLiteralNull(Token token) {
+    pushNode(new LiteralNull(token));
   }
 
   void handleBinaryExpression(Token token) {

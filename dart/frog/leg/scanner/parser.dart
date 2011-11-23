@@ -674,6 +674,8 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
           case value === 'true':
           case value === 'false':
             return parseLiteralBool(token);
+          case value === 'null':
+            return parseLiteralNull(token);
           default:
             listener.unexpected(token);
             throw 'not yet implemented';
@@ -702,6 +704,11 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
 
   Token parseLiteralBool(Token token) {
     listener.handleLiteralBool(token);
+    return token.next;
+  }
+
+  Token parseLiteralNull(Token token) {
+    listener.handleLiteralNull(token);
     return token.next;
   }
 
