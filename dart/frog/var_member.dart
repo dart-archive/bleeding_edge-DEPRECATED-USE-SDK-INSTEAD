@@ -138,14 +138,13 @@ class VarMethodStub extends VarMember {
   }
 
   bool _useDirectCall(Member member, Arguments args) {
-    // TODO(jmesserly): we could use "isHiddenNativeType" here. But it's
-    // tricky--you can easily end up generating this line:
-    //   Object.prototype.toString$0 = Object.prototype.toString;
-    // That will do the wrong thing, unless all derived native types of Object
-    // with a different "toString" declare their own like this:
-    //   String toString() native;
-    // I think the right tradeoff for now is don't optimize the stubs.
-    if (member is MethodMember && !member.declaringType.isNativeType) {
+    // Create direct stubs when we can. We don't do this if the type is hidden,
+    // i.e. we can't use "TypeName.prototype" to initialize. We also don't do it
+    // for types like Object, that have native subtypes, otherwise things like
+    // Object.prototype.toString$0 end up calling the toString on Object instead
+    // of on the derived type.
+    if (member is MethodMember && !member.declaringType.isHiddenNativeType
+        && !member.declaringType.hasNativeSubtypes) {
       MethodMember method = member;
       if (method.needsArgumentConversion(args)) {
         return false;

@@ -113,6 +113,14 @@ class Type implements Named, Hashable {
 
   int hashCode() => name.hashCode();
 
+  bool _hasNativeSubtypes;
+  bool get hasNativeSubtypes() {
+    if (_hasNativeSubtypes == null) {
+      _hasNativeSubtypes = subtypes.some((t) => t.isNativeType);
+    }
+    return _hasNativeSubtypes;
+  }
+
   void _checkOverride(Member member) {
     // always look in parents to check that any overloads are legal
     var parentMember = _getMemberInParents(member.name);

@@ -935,9 +935,7 @@ ListFactory.prototype.isEmpty = function() {
 ListFactory.prototype.iterator = function() {
   return new ListIterator(this);
 }
-ListFactory.prototype.add$1 = function($0) {
-  return this.add($0);
-};
+ListFactory.prototype.add$1 = ListFactory.prototype.add;
 ListFactory.prototype.addAll$1 = function($0) {
   return this.addAll(($0 && $0.is$Collection$E()));
 };
@@ -953,18 +951,10 @@ ListFactory.prototype.forEach$1 = function($0) {
 ListFactory.prototype.indexOf$2 = function($0, $1) {
   return this.indexOf($0, $assert_num($1));
 };
-ListFactory.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
-};
-ListFactory.prototype.iterator$0 = function() {
-  return this.iterator();
-};
-ListFactory.prototype.last$0 = function() {
-  return this.last();
-};
-ListFactory.prototype.removeLast$0 = function() {
-  return this.removeLast();
-};
+ListFactory.prototype.isEmpty$0 = ListFactory.prototype.isEmpty;
+ListFactory.prototype.iterator$0 = ListFactory.prototype.iterator;
+ListFactory.prototype.last$0 = ListFactory.prototype.last;
+ListFactory.prototype.removeLast$0 = ListFactory.prototype.removeLast;
 ListFactory.prototype.some$1 = function($0) {
   return this.some(to$call$1($0));
 };
@@ -1180,9 +1170,7 @@ NumImplementation.prototype.compareTo = function(other) {
 NumImplementation.prototype.compareTo$1 = function($0) {
   return this.compareTo(($0 && $0.is$NumImplementation()));
 };
-NumImplementation.prototype.hashCode$0 = function() {
-  return this.hashCode();
-};
+NumImplementation.prototype.hashCode$0 = NumImplementation.prototype.hashCode;
 // ********** Code for ExceptionImplementation **************
 function ExceptionImplementation(msg) {
   this._msg = msg;
@@ -2318,15 +2306,11 @@ StringImplementation.prototype.compareTo$1 = function($0) {
 StringImplementation.prototype.endsWith$1 = function($0) {
   return this.endsWith($assert_String($0));
 };
-StringImplementation.prototype.hashCode$0 = function() {
-  return this.hashCode();
-};
+StringImplementation.prototype.hashCode$0 = StringImplementation.prototype.hashCode;
 StringImplementation.prototype.indexOf$2 = function($0, $1) {
   return this.indexOf($assert_String($0), $assert_num($1));
 };
-StringImplementation.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
-};
+StringImplementation.prototype.isEmpty$0 = StringImplementation.prototype.isEmpty;
 StringImplementation.prototype.replaceAll$2 = function($0, $1) {
   return this.replaceAll(($0 && $0.is$Pattern()), $assert_String($1));
 };
@@ -20745,6 +20729,15 @@ lang_Type.prototype.getAllMembers = function() {
 lang_Type.prototype.hashCode = function() {
   return this.name.hashCode();
 }
+lang_Type.prototype.get$hasNativeSubtypes = function() {
+  if (this._hasNativeSubtypes == null) {
+    this._hasNativeSubtypes = this.get$subtypes().some((function (t) {
+      return t.get$isNativeType();
+    })
+    );
+  }
+  return this._hasNativeSubtypes;
+}
 lang_Type.prototype._checkOverride = function(member) {
   var parentMember = this._getMemberInParents(member.name);
   if ($notnull_bool($ne(parentMember, null))) {
@@ -21383,7 +21376,7 @@ DefinedType.prototype.set$isUsed = function(value) { return this.isUsed = value;
 DefinedType.prototype.get$isNativeType = function() { return this.isNativeType; };
 DefinedType.prototype.set$isNativeType = function(value) { return this.isNativeType = value; };
 DefinedType.prototype.setDefinition = function(def) {
-  $assert(this.definition == null, "definition == null", "type.dart", 735, 12);
+  $assert(this.definition == null, "definition == null", "type.dart", 743, 12);
   this.definition = def;
   if ((this.definition instanceof TypeDefinition) && $notnull_bool($ne(this.definition.get$nativeType(), null))) {
     this.isNativeType = true;
@@ -21496,7 +21489,7 @@ DefinedType.prototype._resolveInterfaces = function(types) {
   return (interfaces && interfaces.is$List$Type());
 }
 DefinedType.prototype.addDirectSubtype = function(type) {
-  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 856, 12);
+  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 864, 12);
   this.directSubtypes.add(type);
 }
 DefinedType.prototype.get$subtypes = function() {
@@ -21845,7 +21838,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
   return this;
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
-  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1253, 12);
+  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1261, 12);
   var names = [this.name];
   var typeMap = $map([]);
   for (var i = 0;
@@ -21863,7 +21856,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return (ret && ret.is$lang_Type());
 }
 DefinedType.prototype.getCallStub = function(args) {
-  $assert(this.get$isFunction(), "isFunction", "type.dart", 1273, 12);
+  $assert(this.get$isFunction(), "isFunction", "type.dart", 1281, 12);
   var name = _getCallStubName('call', args);
   if (this.varStubs == null) this.varStubs = $map([]);
   var stub = this.varStubs.$index(name);
@@ -23137,7 +23130,7 @@ VarMethodStub.prototype.generateBody = function(code, end) {
   }
 }
 VarMethodStub.prototype._useDirectCall = function(member, args) {
-  if ((member instanceof MethodMember) && !$notnull_bool(member.declaringType.get$isNativeType())) {
+  if ((member instanceof MethodMember) && !$notnull_bool(member.declaringType.get$isHiddenNativeType()) && !$notnull_bool(member.declaringType.get$hasNativeSubtypes())) {
     var method = (member && member.is$MethodMember());
     if ($notnull_bool(method.needsArgumentConversion(args))) {
       return false;
