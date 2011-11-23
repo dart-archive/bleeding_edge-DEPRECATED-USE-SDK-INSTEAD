@@ -550,8 +550,7 @@ class NodeListener extends ElementListener {
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
                         String delimiter) {
-    // TODO(ahe): Remove below comment about Frog bug when it is fixed.
-    Link<Node> nodes = const EmptyLink<Node>(); // Type warning is Frog bug.
+    Link<Node> nodes = const EmptyLink<Node>();
     for (; count > 0; --count) {
       // This effectively reverses the order of nodes so they end up
       // in correct (source) order.

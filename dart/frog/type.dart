@@ -506,6 +506,7 @@ class ConcreteType extends Type {
    * generate appropriate concrete checks on.
    */
   Map<String, Member> members;
+  Map<String, MemberSet> _resolvedMembers;
   Map<String, MethodMember> constructors;
   FactoryMap factories;
 
@@ -513,7 +514,8 @@ class ConcreteType extends Type {
                this.genericType,
                this.typeArguments,
                this.typeArgsInOrder):
-    super(name), constructors = {}, members = {}, factories = new FactoryMap();
+    super(name), constructors = {}, members = {}, _resolvedMembers = {},
+      factories = new FactoryMap();
 
   Type resolveTypeParams(ConcreteType inType) {
     var newTypeArgs = [];
@@ -630,19 +632,40 @@ class ConcreteType extends Type {
   }
 
   MemberSet resolveMember(String memberName) {
-    var mem = getMember(memberName);
-    if (mem == null) return null;
+    // TODO(jimhug): Cut-and-paste and tweak from Type <frown>.
+    MemberSet ret = _resolvedMembers[memberName];
+    if (ret != null) return ret;
 
-    var ret = new MemberSet(mem);
-    if (mem.isStatic) return ret;
-
-    for (var t in genericType.subtypes) {
-      // TODO(jimhug): Do I resolve any type params here?
-      var m = t.members[memberName];
-      if (m != null) ret.add(m);
+    Member member = getMember(memberName);
+    if (member == null) {
+      // TODO(jimhug): Check for members on subtypes given dart's dynamism.
+      return null;
     }
 
-    return ret;
+    // TODO(jimhug): Move this adding subtypes logic to MemberSet?
+    ret = new MemberSet(member);
+    _resolvedMembers[memberName] = ret;
+    if (member.isStatic) {
+      return ret;
+    } else {
+      for (var t in genericType.subtypes) {
+        // TODO(jimhug): Make these non-generic!
+        if (!isClass && t.isClass) {
+          // If this is an interface, the actual implementation may
+          // come from a class that does not implement this interface.
+          // TODO(vsm): Use a more efficient lookup strategy.
+          // TODO(jimhug): This is made uglier by need to avoid dups.
+          final m = t.getMember(memberName);
+          if (m != null && ret.members.indexOf(m) == -1) {
+            ret.add(m);
+          }
+        } else {
+          final m = t.members[memberName];
+          if (m != null) ret.add(m);
+        }
+      }
+      return ret;
+    }
   }
 
   Type resolveType(TypeReference node, bool isRequired) {

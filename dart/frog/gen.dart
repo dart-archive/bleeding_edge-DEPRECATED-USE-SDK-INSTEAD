@@ -111,12 +111,15 @@ class WorldGenerator {
   }
 
   GlobalValue globalForConst(EvaluatedValue exp, List<Value> dependencies) {
-    var code = exp.canonicalCode;
-    if (!globals.containsKey(code)) {
-      globals[code] =
+    // Include type name to ensure unique constants - this matches
+    // the code above that includes the type name for static fields.
+    var key = exp.type.jsname + ':' + exp.canonicalCode;
+    if (!globals.containsKey(key)) {
+      globals[key] =
         new GlobalValue.fromConst(globals.length, exp, dependencies);
     }
-    return globals[code];
+    assert(globals[key].type == exp.type);
+    return globals[key];
   }
 
   writeTypes(Library lib) {
