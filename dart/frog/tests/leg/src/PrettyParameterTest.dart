@@ -44,6 +44,20 @@ foo(bar, baz) {
 }
 """;
 
+final String MULTIPLE_PHIS_ONE_LOCAL = @"""
+foo(param1, param2, param3) {
+  var a = 2;
+  if (param1) {
+    if (param2) {
+      if (param3) {
+        a = 42;
+      }
+    }
+  }
+  return a;
+}
+""";
+
 main() {
   String generated = compile(FOO, 'foo');
   // TODO(ngeoffray): Use 'contains' when frog supports it.
@@ -70,4 +84,14 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
   regexp = const RegExp("bar === true");
   Expect.isTrue(regexp.hasMatch(generated));
+
+  generated = compile(MULTIPLE_PHIS_ONE_LOCAL, 'foo');
+  regexp = const RegExp("var a = 2;");
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  regexp = const RegExp("a = 2;");
+  Iterator matches = regexp.allMatches(generated).iterator();
+  Expect.isTrue(matches.hasNext());
+  matches.next();
+  Expect.isFalse(matches.hasNext());
 }

@@ -21,31 +21,42 @@ class SsaPhiEliminator extends HGraphVisitor {
                   HLocal local,
                   HInstruction value) {
     HStore store = new HStore(local, value);
-    if (value.generateAtUseSite()) {
-      // The temporary will not be introduced, so no need to push the
-      // assignment to the definition.
-      predecessor.addAtExit(store);
-    } else {
-      HBasicBlock current = predecessor;
-      do {
-        if (value.block === current) {
-          if (value is HPhi) {
-            current.addAtEntry(store);
-          } else {
-            current.addAfter(value, store);
-          }
-          if (value.usedBy.length == 2) { // The store and the phi.
-            value.setGenerateAtUseSite();
-          }
-          return store;
+    HBasicBlock current = predecessor;
+    do {
+      if (value.block === current) {
+        HInstruction insertBefore;
+        if (value is HPhi) {
+          insertBefore = current.first;
+        } else {
+          insertBefore = value.next;
         }
-        current = current.dominator;
-      } while (current != dominator && !current.isLoopHeader());
 
-      // We could not get to the definition, just put the store in the
-      // predecessor.
-      predecessor.addAtExit(store);
-    }
+        // Check if this store is redundant.
+        // If there is a store already on that local, it must be the next
+        // instruction, because we insert stores right next to
+        // their definition.
+        if (insertBefore is HStore && insertBefore.dynamic.local === local) {
+          assert(store.value === value);
+          store = null;
+        } else {
+          current.addBefore(insertBefore, store);
+        }
+
+        // Check if it's only the store and the phi that uses value.
+        // This is also valid if the store is null: it checks whether
+        // the existing store and the current phi are the only users.
+        if (value.usedBy.length == 2) {
+          value.setGenerateAtUseSite();
+        }
+        return store;
+      }
+      current = current.dominator;
+    } while (current != dominator && !current.isLoopHeader());
+
+    // We could not get to the definition, just put the store in the
+    // predecessor.
+    assert(store !== null);
+    predecessor.addAtExit(store);
     return store;
   }
 
@@ -95,12 +106,15 @@ class SsaPhiEliminator extends HGraphVisitor {
                               currentBlock.dominator,
                               local,
                               value);
-      // Check if the store occurs just after the entry block.
-      if (entry.successors[0] === store.block && local.declaredBy === local) {
-        entry.detach(local);
-        local.declaredBy = store;
+
+      if (store != null) {
+        // Check if the store occurs just after the entry block.
+        if (entry.successors[0] === store.block && local.declaredBy === local) {
+          entry.detach(local);
+          local.declaredBy = store;
+        }
+        stores.add(store);
       }
-      stores.add(store);
     }
 
     // We propagate the type of the phi to the load instruction rather
