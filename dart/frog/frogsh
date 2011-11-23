@@ -8094,13 +8094,13 @@ SsaCodeGenerator.prototype.visitGreaterEqual = function(node) {
 SsaCodeGenerator.prototype.visitBoolify = function(node) {
   var $0;
   $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 206, 12);
-  this.buffer.add('(');
-  this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
-  if (!$notnull_bool(node.inputs.$index(0).isBoolean$0())) {
-    this.buffer.add(' === true)');
+  if ($notnull_bool(node.inputs.$index(0).isBoolean$0())) {
+    this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   }
   else {
-    this.buffer.add(')');
+    this.buffer.add('(');
+    this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
+    this.buffer.add(' === true)');
   }
 }
 SsaCodeGenerator.prototype.visitExit = function(node) {
