@@ -369,9 +369,17 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitTypeGuard(HTypeGuard node) {
-    // TODO(kasperl): Verify the guarded type unless it is already
-    // guarded somehow.
+    SourceString name;
+    if (node.isNumber()) {
+      name = const SourceString('guard\$num');
+    } else {
+      unreachable();
+    }
+    Element element = compiler.universe.find(name);
+    compiler.worklist.add(element);
+    buffer.add('$name(');
     use(node.inputs[0]);
+    buffer.add(')');
   }
 
   void addIndentation() {

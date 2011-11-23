@@ -125,6 +125,11 @@ class SsaConstantFolder extends HBaseVisitor {
     }
     return node;
   }
+
+  HInstruction visitTypeGuard(HTypeGuard node) {
+    HInstruction value = node.inputs[0];
+    return (value.type == node.type) ? value : node;
+  }
 }
 
 class SsaTypePropagator extends HGraphVisitor {

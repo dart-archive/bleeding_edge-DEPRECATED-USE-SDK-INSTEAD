@@ -8265,7 +8265,18 @@ SsaCodeGenerator.prototype.visitThrow = function(node) {
 }
 SsaCodeGenerator.prototype.visitTypeGuard = function(node) {
   var $0;
+  var name;
+  if ($notnull_bool(node.isNumber())) {
+    name = const$305/*const SourceString('guard\$num')*/;
+  }
+  else {
+    unreachable();
+  }
+  var element = this.compiler.universe.find(name);
+  this.compiler.worklist.add(element);
+  this.buffer.add(('' + name + '('));
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
+  this.buffer.add(')');
 }
 SsaCodeGenerator.prototype.addIndentation = function() {
   for (var i = 0;
@@ -9941,6 +9952,11 @@ SsaConstantFolder.prototype.visitEquals = function(node) {
   }
   return node;
 }
+SsaConstantFolder.prototype.visitTypeGuard = function(node) {
+  var $0;
+  var value = (($0 = node.inputs.$index(0)) && $0.is$HInstruction());
+  return (($0 = (value.type == node.type) ? value : node) && $0.is$HInstruction());
+}
 // ********** Code for SsaTypePropagator **************
 function SsaTypePropagator() {
   this.workmap = new HashMapImplementation();
@@ -9978,7 +9994,7 @@ SsaTypePropagator.prototype.processWorklist = function() {
   while (!this.worklist.isEmpty()) {
     var id = $assert_num(this.worklist.removeLast());
     var instruction = (($0 = this.workmap.$index(id)) && $0.is$HInstruction());
-    $assert(instruction != null, "instruction !== null", "optimize.dart", 166, 14);
+    $assert(instruction != null, "instruction !== null", "optimize.dart", 171, 14);
     this.workmap.remove(id);
     if ($notnull_bool(instruction.updateType())) {
       for (var i = 0, length = instruction.usedBy.length;
@@ -10080,7 +10096,7 @@ SsaRedundantPhiEliminator.prototype.visitGraph = function(graph) {
   while (!worklist.isEmpty()) {
     var phi = (($0 = worklist.removeLast()) && $0.is$HPhi());
     if (!$notnull_bool(phi.isInBasicBlock())) continue;
-    $assert(phi.inputs.$index(0) !== phi, "phi.inputs[0] !== phi", "optimize.dart", 266, 14);
+    $assert(phi.inputs.$index(0) !== phi, "phi.inputs[0] !== phi", "optimize.dart", 271, 14);
     var candidate = (($0 = phi.inputs.$index(0)) && $0.is$HInstruction());
     for (var i = 1;
      i < phi.inputs.length; i++) {
@@ -10160,13 +10176,13 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
   while (instruction != null) {
     var flags = instruction.getChangesFlags();
     if (flags != 0) {
-      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 360, 16);
+      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 365, 16);
       values.kill(flags);
     }
     else if ($notnull_bool(instruction.useGvn())) {
       var other = values.lookup(instruction);
       if (other != null) {
-        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 365, 18);
+        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 370, 18);
         block.rewrite(instruction, other);
         block.remove(instruction);
       }
@@ -10181,7 +10197,7 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
    i < length; i++) {
     var dominated = (($0 = dominatedBlocks.$index(i)) && $0.is$HBasicBlock());
     var successorValues = (i == length - 1) ? values : values.copy();
-    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 385, 14);
+    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 390, 14);
     if (!$notnull_bool(successorValues.isEmpty()) && block.id + 1 < dominated.id) {
       this.visited.clear();
       var changesFlags = this.getChangesFlagsForDominatedBlock(block, dominated);
@@ -10208,7 +10224,7 @@ SsaGlobalValueNumberer.prototype.computeChangesFlags = function(graph) {
       changesFlags |= instruction.getChangesFlags();
       instruction = instruction.next;
     }
-    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 418, 14);
+    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 423, 14);
     this.blockChangesFlags.$setindex(id, changesFlags);
     if ($notnull_bool(block.isLoopHeader())) {
       ($0 = this.loopChangesFlags).$setindex(id, $0.$index(id) | changesFlags);
@@ -13176,7 +13192,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   return false;
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
-  var types = const$417/*const [
+  var types = const$418/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   var target = new Value($globals.world.varType, 'this', node.span, true);
@@ -23629,6 +23645,7 @@ var const$303 = ImmutableList.ImmutableList$from$factory(["break", "delete", "fu
     "class", "final", "interface", "public", "transient", "const", "float",
     "long", "short", "volatile"
   ]*/;
+var const$305 = new StringWrapper('guard\$num')/*const SourceString('guard\$num')*/;
 var const$31 = new Keyword("const", false)/*const Keyword("const")*/;
 var const$33 = new Keyword("continue", false)/*const Keyword("continue")*/;
 var const$35 = new Keyword("default", false)/*const Keyword("default")*/;
@@ -23636,7 +23653,7 @@ var const$37 = new Keyword("do", false)/*const Keyword("do")*/;
 var const$39 = new Keyword("else", false)/*const Keyword("else")*/;
 var const$4 = new StringWrapper('global scope')/*const SourceString('global scope')*/;
 var const$41 = new Keyword("false", false)/*const Keyword("false")*/;
-var const$417 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$418 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
 var const$43 = new Keyword("final", false)/*const Keyword("final")*/;

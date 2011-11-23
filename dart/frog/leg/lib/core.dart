@@ -14,6 +14,11 @@ void print(var obj) {
   }
 }
 
+guard$num(x) {
+  if (JS(@"typeof $0 == 'number'", x)) return x;
+  throw "Type guard failed.";
+}
+
 add(var a, var b) {
   return JS(@"$0 + $1", a, b);
 }
