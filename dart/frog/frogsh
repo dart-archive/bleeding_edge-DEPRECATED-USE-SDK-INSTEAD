@@ -140,7 +140,7 @@ Object.prototype.$setindex = function(i, value) { return this[i] = value; }
 Array.prototype.$setindex = function(i, value) { return this[i] = value; }
 function $add(x, y) {
   return ((typeof(x) == 'number' && typeof(y) == 'number') ||
-          (typeof(x) == 'string' && typeof(y) == 'string'))
+          (typeof(x) == 'string'))
     ? x + y : x.$add(y);
 }
 function $eq(x, y) {
@@ -12209,7 +12209,7 @@ CoreJs.prototype.useOperator = function(name) {
 
     case '\$add':
 
-      code = "function $add(x, y) {\n  return ((typeof(x) == 'number' && typeof(y) == 'number') ||\n          (typeof(x) == 'string' && typeof(y) == 'string'))\n    ? x + y : x.$add(y);\n}";
+      code = "function $add(x, y) {\n  return ((typeof(x) == 'number' && typeof(y) == 'number') ||\n          (typeof(x) == 'string'))\n    ? x + y : x.$add(y);\n}";
       break;
 
     case '\$truncdiv':

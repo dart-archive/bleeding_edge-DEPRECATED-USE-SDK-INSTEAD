@@ -83,11 +83,12 @@ function $negate(x) {
 }""";
         break;
 
+      // This relies on JS's string "+" to match Dart's.
       case '\$add':
         code = @"""
 function $add(x, y) {
   return ((typeof(x) == 'number' && typeof(y) == 'number') ||
-          (typeof(x) == 'string' && typeof(y) == 'string'))
+          (typeof(x) == 'string'))
     ? x + y : x.$add(y);
 }""";
         break;
