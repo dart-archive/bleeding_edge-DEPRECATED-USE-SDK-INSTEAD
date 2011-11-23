@@ -184,13 +184,13 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitAdd(HAdd node)
-      => visitInvokeBinary(node, node.isNumber(), '+');
+      => visitInvokeBinary(node, node.hasOnlyNumberInputs(), '+');
   visitDivide(HDivide node)
-      => visitInvokeBinary(node, node.isNumber(), '/');
+      => visitInvokeBinary(node, node.hasOnlyNumberInputs(), '/');
   visitMultiply(HMultiply node)
-      => visitInvokeBinary(node, node.isNumber(), '*');
+      => visitInvokeBinary(node, node.hasOnlyNumberInputs(), '*');
   visitSubtract(HSubtract node)
-      => visitInvokeBinary(node, node.isNumber(), '-');
+      => visitInvokeBinary(node, node.hasOnlyNumberInputs(), '-');
   visitTruncatingDivide(HTruncatingDivide node)
       => visitInvoke(node);
   // Modulo cannot be mapped to the native operator (different semantics).
@@ -198,15 +198,15 @@ class SsaCodeGenerator implements HVisitor {
       => visitInvoke(node);
 
   visitEquals(HEquals node)
-      => visitInvokeBinary(node, node.isBoolean(), '===');
+      => visitInvokeBinary(node, node.hasOnlyNumberInputs(), '===');
   visitLess(HLess node)
-      => visitInvokeBinary(node, node.isBoolean(), '<');
+      => visitInvokeBinary(node, node.hasOnlyNumberInputs(), '<');
   visitLessEqual(HLessEqual node)
-      => visitInvokeBinary(node, node.isBoolean(), '<=');
+      => visitInvokeBinary(node, node.hasOnlyNumberInputs(), '<=');
   visitGreater(HGreater node)
-      => visitInvokeBinary(node, node.isBoolean(), '>');
+      => visitInvokeBinary(node, node.hasOnlyNumberInputs(), '>');
   visitGreaterEqual(HGreaterEqual node)
-      => visitInvokeBinary(node, node.isBoolean(), '>=');
+      => visitInvokeBinary(node, node.hasOnlyNumberInputs(), '>=');
 
   visitBoolify(HBoolify node) {
     assert(node.inputs.length == 1);
@@ -410,6 +410,6 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitLocal(HLocal node) {
-    buffer.add('var ${local(node)};');
+    buffer.add('var ${local(node)}');
   }
 }

@@ -796,9 +796,9 @@ class HArithmetic extends HInvoke {
 
   void prepareGvn() {
     // An arithmetic expression can take part in global value
-    // numbering and do not have any side-effects if we know the
-    // result of it is a number.
-    if (isNumber()) {
+    // numbering and do not have any side-effects if we that all
+    // inputs are numbers.
+    if (hasOnlyNumberInputs()) {
       assert(!hasSideEffects());
       setUseGvn();
     } else {
@@ -806,14 +806,8 @@ class HArithmetic extends HInvoke {
     }
   }
 
-  int computeType() {
-    // TODO(kasperl): We should be able to deal with more types
-    // here. For now, we only care about numbers.
-    int inputsType = computeInputsType();
-    return (inputsType == TYPE_NUMBER)
-        ? TYPE_NUMBER
-        : TYPE_UNKNOWN;
-  }
+  int computeType() => inputs[0].isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
+  bool hasOnlyNumberInputs() => computeInputsType() == TYPE_NUMBER;
 
   abstract num evaluate(num a, num b);
 }
@@ -984,10 +978,10 @@ class HRelational extends HInvoke {
       : super(element, inputs);
 
   void prepareGvn() {
-    // Relational expressions can take part in global value
-    // numbering and do not have any side-effects if we know the
-    // result of it is a boolean.
-    if (isBoolean()) {
+    // Relational expressions can take part in global value numbering
+    // and do not have any side-effects if we know all the inputs are
+    // numbers. This can be improved for at least equality.
+    if (hasOnlyNumberInputs()) {
       assert(!hasSideEffects());
       setUseGvn();
     } else {
@@ -995,14 +989,9 @@ class HRelational extends HInvoke {
     }
   }
 
-  int computeType() {
-    // TODO(kasperl): We should be able to deal with more types
-    // in the HEquals case. For now, we only care about numbers.
-    int inputsType = computeInputsType();
-    return (inputsType == TYPE_NUMBER)
-        ? TYPE_BOOLEAN
-        : TYPE_UNKNOWN;
-  }
+  // TODO(kasperl): This can be improved for at least for equality.
+  int computeType() => inputs[0].isNumber() ? TYPE_BOOLEAN : TYPE_UNKNOWN;
+  bool hasOnlyNumberInputs() => computeInputsType() == TYPE_NUMBER;
 
   abstract bool evaluate(num a, num b);
 }

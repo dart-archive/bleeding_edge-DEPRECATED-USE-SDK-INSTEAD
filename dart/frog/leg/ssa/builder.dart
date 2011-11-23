@@ -107,6 +107,14 @@ class SsaBuilder implements Visitor {
     return boolified;
   }
 
+  HInstruction guard(Type type, HInstruction value) {
+    if (type !== null && type.toString() == 'int') {
+      value = new HTypeGuard(HInstruction.TYPE_NUMBER, value);
+      add(value);
+    }
+    return value;
+  }
+
   void visit(Node node) {
     if (node !== null) node.accept(this);
   }
@@ -124,10 +132,10 @@ class SsaBuilder implements Visitor {
         compiler.unimplemented("SsaBuilder.visitParameterValues non-identifier");
       }
       Identifier parameterId = identifierLink.head;
-      Element element = elements[parameterId];
+      VariableElement element = elements[parameterId];
       HParameterValue parameter = new HParameterValue(element);
-      definitions[element] = parameter;
       add(parameter);
+      definitions[element] = guard(element.type, parameter);
     }
   }
 
@@ -504,12 +512,7 @@ class SsaBuilder implements Visitor {
     visit(link.head);
     HInstruction value = pop();
     VariableElement element = elements[node];
-    Type type = element.type;
-    if (type !== null && type.toString() == 'int') {
-      value = new HTypeGuard(HInstruction.TYPE_NUMBER, value);
-      add(value);
-    }
-    definitions[element] = value;
+    definitions[element] = guard(element.type, value);
     return value;
   }
 
