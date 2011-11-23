@@ -8,8 +8,8 @@ class SsaOptimizerTask extends CompilerTask {
 
   void optimize(HGraph graph) {
     measure(() {
-      new SsaConstantFolder().visitGraph(graph);
       new SsaTypePropagator().visitGraph(graph);
+      new SsaConstantFolder().visitGraph(graph);
       new SsaRedundantPhiEliminator().visitGraph(graph);
       new SsaDeadPhiEliminator().visitGraph(graph);
       new SsaGlobalValueNumberer(compiler).visitGraph(graph);
@@ -31,9 +31,14 @@ class SsaConstantFolder extends HBaseVisitor {
   visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
     while (instruction !== null) {
-      var replacement = instruction.accept(this);
+      HInstruction replacement = instruction.accept(this);
       if (replacement !== instruction) {
-        block.addAfter(instruction, replacement);
+        if (!replacement.isInBasicBlock()) {
+          // The constant folding can return an instruction that is already
+          // part of the graph (like an input), so we only add the replacement
+          // if necessary.
+          block.addAfter(instruction, replacement);
+        }
         block.rewrite(instruction, replacement);
         block.remove(instruction);
       }
@@ -42,6 +47,27 @@ class SsaConstantFolder extends HBaseVisitor {
   }
 
   HInstruction visitInstruction(HInstruction node) {
+    return node;
+  }
+
+  HInstruction visitBoolify(HBoolify node) {
+    List<HInstruction> inputs = node.inputs;
+    assert(inputs.length == 1);
+    HInstruction input = inputs[0];
+    if (input.isBoolean()) return input;
+    // All values !== true are boolified to false.
+    if (!input.isUnknown()) return new HLiteral(false);
+    return node;    
+  }
+
+  HInstruction visitNot(HNot node) {
+    List<HInstruction> inputs = node.inputs;
+    assert(inputs.length == 1);
+    HInstruction input = inputs[0];
+    if (input is HLiteral) {
+      HLiteral literal = input;
+      return new HLiteral(literal.value !== true);
+    }
     return node;
   }
 

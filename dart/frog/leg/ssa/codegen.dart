@@ -210,13 +210,9 @@ class SsaCodeGenerator implements HVisitor {
 
   visitBoolify(HBoolify node) {
     assert(node.inputs.length == 1);
-    if (node.inputs[0].isBoolean()) {
-      use(node.inputs[0]);
-    } else {
-      buffer.add('(');
-      use(node.inputs[0]);
-      buffer.add(' === true)');
-    }
+    buffer.add('(');
+    use(node.inputs[0]);
+    buffer.add(' === true)');
   }
 
   visitExit(HExit node) {
