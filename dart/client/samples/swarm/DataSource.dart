@@ -140,8 +140,9 @@ class Feed {
   ObservableList<Article> articles;
   ObservableValue<bool> error; // TODO(jimhug): Check if dead code.
 
-  Feed(this.id, this.title, this.iconUrl, [this.description = ''])
-    : articles = new ObservableList<Article>(),
+  Feed(this.id, this.title, this.iconUrl, [description = ''])
+    : this.description = description,
+      articles = new ObservableList<Article>(),
       error = new ObservableValue<bool>(false);
 
   static Feed decode(Decoder decoder) {
@@ -182,8 +183,10 @@ class Article {
 
   Article(this.dataSource, this.id, this.date, this.title, this.author,
       this.srcUrl, this.hasThumbnail, this.textBody,
-      [this._htmlBody = null, bool unread = true, this.error = false])
-    : unread = new ObservableValue<bool>(unread);
+      [htmlBody = null, bool unread = true, error = false])
+    : unread = new ObservableValue<bool>(unread),
+      this._htmlBody = htmlBody,
+      this.error = error;
 
   String get htmlBody() {
     _ensureLoaded();
