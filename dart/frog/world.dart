@@ -392,6 +392,10 @@ class World {
 
   /** [message] is considered a type warning by the Dart lang. */
   void warning(String message, [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
+    if (options.warningsAsErrors) {
+      error(message, span, span1, span2);
+      return;
+    }
     warnings++;
     if (options.showWarnings) {
       _message('warning: $message', span, span1, span2, options.throwOnWarnings);

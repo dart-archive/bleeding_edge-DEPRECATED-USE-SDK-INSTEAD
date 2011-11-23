@@ -27,6 +27,7 @@ class FrogOptions {
   bool legOnly = false;
   bool enableAsserts = false;
   bool enableTypeChecks = false;
+  bool warningsAsErrors = false;
   bool verifyImplements = false; // TODO(jimhug): Implement
   bool compileAll = false;
   bool dietParse = false;
@@ -99,6 +100,10 @@ class FrogOptions {
 
         case '--suppress_warnings':
           showWarnings = false;
+          continue loop;
+
+        case '--warnings_as_errors':
+          warningsAsErrors = true;
           continue loop;
 
         case '--throw_on_errors':

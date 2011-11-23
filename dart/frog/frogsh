@@ -23090,6 +23090,10 @@ World.prototype.error = function(message, span, span1, span2) {
   this._message(('error: ' + message), span, span1, span2, $globals.options.throwOnErrors);
 }
 World.prototype.warning = function(message, span, span1, span2) {
+  if ($notnull_bool($globals.options.warningsAsErrors)) {
+    this.error(message, span, span1, span2);
+    return;
+  }
   this.warnings++;
   if ($notnull_bool($globals.options.showWarnings)) {
     this._message(('warning: ' + message), span, span1, span2, $globals.options.throwOnWarnings);
@@ -23140,6 +23144,7 @@ function FrogOptions(homedir, args, files) {
   this.legOnly = false
   this.enableAsserts = false
   this.enableTypeChecks = false
+  this.warningsAsErrors = false
   this.verifyImplements = false
   this.compileAll = false
   this.dietParse = false
@@ -23209,6 +23214,11 @@ function FrogOptions(homedir, args, files) {
       case '--suppress_warnings':
 
         this.showWarnings = false;
+        continue loop;
+
+      case '--warnings_as_errors':
+
+        this.warningsAsErrors = true;
         continue loop;
 
       case '--throw_on_errors':
