@@ -64,6 +64,11 @@ class SsaPhiEliminator extends HGraphVisitor {
       local = namedLocals.putIfAbsent(phi.element, () {
         HLocal local = new HLocal(phi.element);
         entry.addAtEntry(local);
+        if (phi.element.kind === ElementKind.PARAMETER) {
+          // No need to generate the local, so move it out of the
+          // graph.
+          entry.detach(local);
+        }
         return local;
       });
     } else {
@@ -90,6 +95,11 @@ class SsaPhiEliminator extends HGraphVisitor {
                               currentBlock.dominator,
                               local,
                               value);
+      // Check if the store occurs just after the entry block.
+      if (entry.successors[0] === store.block && local.declaredBy === local) {
+        entry.detach(local);
+        local.declaredBy = store;
+      }
       stores.add(store);
     }
 

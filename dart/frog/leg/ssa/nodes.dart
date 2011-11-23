@@ -1078,7 +1078,10 @@ class HStore extends HNonSsaInstruction {
 
 class HLocal extends HNonSsaInstruction {
   Element element;
-  HLocal(Element this.element) : super([]);
+  HInstruction declaredBy;
+  HLocal(Element this.element) : super([]) {
+    declaredBy = this;
+  }
   toString() => 'local';
   accept(HVisitor visitor) => visitor.visitLocal(this);
 }

@@ -8076,7 +8076,7 @@ SsaCodeGenerator.prototype.visitBasicBlock = function(node) {
       else {
         this.define(instruction);
       }
-      if (!(instruction instanceof HControlFlow) && !(instruction instanceof HLocal)) {
+      if (!(instruction instanceof HControlFlow)) {
         this.buffer.add(';\n');
       }
     }
@@ -8266,18 +8266,17 @@ SsaCodeGenerator.prototype.addIndentation = function() {
   }
 }
 SsaCodeGenerator.prototype.visitStore = function(node) {
-  var $0;
-  this.buffer.add(('' + this.local((($0 = node.inputs.$index(0)) && $0.is$HLocal())) + ' = '));
-  this.use((($0 = node.inputs.$index(1)) && $0.is$HInstruction()));
+  if (node.get$local().declaredBy === node) {
+    this.buffer.add('var ');
+  }
+  this.buffer.add(('' + this.local(node.get$local()) + ' = '));
+  this.use(node.get$value());
 }
 SsaCodeGenerator.prototype.visitLoad = function(node) {
-  var $0;
-  this.buffer.add(('' + this.local((($0 = node.inputs.$index(0)) && $0.is$HLocal()))));
+  this.buffer.add(('' + this.local(node.get$local())));
 }
 SsaCodeGenerator.prototype.visitLocal = function(node) {
-  if (node.element != null && node.element.kind !== const$217/*ElementKind.PARAMETER*/) {
-    this.buffer.add(('var ' + this.local(node) + ';\n'));
-  }
+  this.buffer.add(('var ' + this.local(node) + ';'));
 }
 SsaCodeGenerator.prototype.visit$1 = SsaCodeGenerator.prototype.visit;
 // ********** Code for JsNames **************
@@ -9796,6 +9795,7 @@ function HLocal(element) {
   this.element = element;
   // Initializers done
   HNonSsaInstruction.call(this, []);
+  this.declaredBy = this;
 }
 $inherits(HLocal, HNonSsaInstruction);
 HLocal.prototype.is$HLocal = function(){return this;};
@@ -10303,6 +10303,9 @@ SsaPhiEliminator.prototype.visitPhi = function(phi, loads) {
     local = (($0 = this.namedLocals.putIfAbsent(phi.element, (function () {
       var local0 = new HLocal(phi.element);
       $this.entry.addAtEntry(local0);
+      if (phi.element.kind === const$217/*ElementKind.PARAMETER*/) {
+        $this.entry.detach(local0);
+      }
       return local0;
     })
     )) && $0.is$HLocal());
@@ -10319,6 +10322,10 @@ SsaPhiEliminator.prototype.visitPhi = function(phi, loads) {
     if ((value instanceof HLoad) && value.get$dynamic().get$local() === local) continue;
     if (((value instanceof HPhi)) && (local.element != null) && (value.get$dynamic().get$element() === local.element)) continue;
     var store = this.addStore((($0 = predecessors.$index(i)) && $0.is$HBasicBlock()), this.currentBlock.dominator, local, value);
+    if (this.entry.successors.$index(0) === store.block && local.declaredBy === local) {
+      this.entry.detach(local);
+      local.declaredBy = store;
+    }
     stores.add(store);
   }
   var load = new HLoad(local, phi.type);
@@ -10331,7 +10338,7 @@ SsaPhiEliminator.prototype.visitPhi = function(phi, loads) {
   }
 }
 SsaPhiEliminator.prototype.hasLoopPhiAsInput = function(stores, loads) {
-  $assert(this.currentBlock.isLoopHeader(), "currentBlock.isLoopHeader()", "phi_eliminator.dart", 114, 12);
+  $assert(this.currentBlock.isLoopHeader(), "currentBlock.isLoopHeader()", "phi_eliminator.dart", 124, 12);
   for (var $i = 0;$i < stores.length; $i++) {
     var store = stores.$index($i);
     var value = store.get$value();

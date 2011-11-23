@@ -162,8 +162,8 @@ class SsaCodeGenerator implements HVisitor {
         } else {
           define(instruction);
         }
-        // Control flow instructions and locals know how to handle ';'.
-        if (instruction is !HControlFlow && instruction is !HLocal) {
+        // Control flow instructions know how to handle ';'.
+        if (instruction is !HControlFlow) {
           buffer.add(';\n');
         }
       }
@@ -374,17 +374,18 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitStore(HStore node) {
-    buffer.add('${local(node.inputs[0])} = ');
-    use(node.inputs[1]);
+    if (node.local.declaredBy === node) {
+      buffer.add('var ');
+    }
+    buffer.add('${local(node.local)} = ');
+    use(node.value);
   }
 
   void visitLoad(HLoad node) {
-    buffer.add('${local(node.inputs[0])}');
+    buffer.add('${local(node.local)}');
   }
 
   void visitLocal(HLocal node) {
-    if (node.element !== null && node.element.kind !== ElementKind.PARAMETER) {
-      buffer.add('var ${local(node)};\n');
-    }
+    buffer.add('var ${local(node)};');
   }
 }
