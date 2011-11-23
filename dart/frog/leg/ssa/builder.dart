@@ -147,7 +147,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitClassNode(ClassNode node) {
-    compiler.unimplemented("SsaBuilder.visitClassNode");
+    unreachable();
   }
 
   visitExpressionStatement(ExpressionStatement node) {
@@ -463,7 +463,8 @@ class SsaBuilder implements Visitor {
   }
 
   visitOperator(Operator node) {
-    compiler.unimplemented("SsaBuilder.visitOperator");
+    // Operators are intercepted in their surrounding Send nodes.
+    unreachable();
   }
 
   visitReturn(Return node) {
