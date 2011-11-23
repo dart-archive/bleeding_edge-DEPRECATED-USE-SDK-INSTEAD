@@ -220,7 +220,6 @@ build system.  The PDE build system has to run under Eclipse.
 
         <copy todir="${build.stage.plugins}">
             <fileset dir="${build.source}/tools/plugins">
-                <exclude name="*.debug.ui*/**" />
                 <exclude name="*_test/**" />
             </fileset>
         </copy>

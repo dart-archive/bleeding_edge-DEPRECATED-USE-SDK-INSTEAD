@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.debug.ui.internal.preferences;
@@ -27,29 +25,22 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.util.Util;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -62,8 +53,8 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
   private List<ChromeBrowserConfig> browsers;
   private TableViewer browserViewer;
-  private Text jreField;
-  private Text nodeField;
+
+  private Text vmField;
 
   private Button removeBrowserButton;
   private Button renameBrowserButton;
@@ -82,10 +73,9 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
   @Override
   public boolean performOk() {
-    DartDebugCorePlugin.getPlugin().setConfiguredBrowsers(browsers);
+//    DartDebugCorePlugin.getPlugin().setConfiguredBrowsers(browsers);
 
-    DartDebugCorePlugin.getPlugin().setJreExecutablePath(jreField.getText());
-    DartDebugCorePlugin.getPlugin().setNodeExecutablePath(nodeField.getText());
+    DartDebugCorePlugin.getPlugin().setDartVmExecutablePath(vmField.getText());
 
     return true;
   }
@@ -95,157 +85,116 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     Composite composite = new Composite(parent, SWT.NONE);
     GridLayoutFactory.fillDefaults().spacing(5, 8).applyTo(composite);
 
-    // Chrome browser
-    Group browersGroup = new Group(composite, SWT.NONE);
-    browersGroup.setText("Chrome browsers");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(browersGroup);
-    GridLayoutFactory.swtDefaults().numColumns(2).spacing(5, 2).applyTo(browersGroup);
-
-    browserViewer = new TableViewer(browersGroup, SWT.SINGLE | SWT.V_SCROLL | SWT.H_SCROLL
-        | SWT.BORDER);
-    browserViewer.setContentProvider(new ArrayContentProvider());
-    browserViewer.setLabelProvider(new BrowsersLabelProvider());
-    browserViewer.setComparator(new ViewerComparator());
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.TOP).grab(true, false).hint(100, 75).applyTo(
-        browserViewer.getControl());
-    browserViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-      @Override
-      public void selectionChanged(SelectionChangedEvent event) {
-        updateButtons();
-      }
-    });
-
-    Composite buttonComposite = new Composite(browersGroup, SWT.NONE);
-    GridDataFactory.fillDefaults().applyTo(buttonComposite);
-    GridLayout buttonLayout = new GridLayout();
-    buttonLayout.horizontalSpacing = 0;
-    buttonLayout.verticalSpacing = convertVerticalDLUsToPixels(3);
-    buttonLayout.marginWidth = 0;
-    buttonLayout.marginHeight = 0;
-    buttonLayout.numColumns = 1;
-    buttonComposite.setLayout(buttonLayout);
-
-    addBrowserButton = new Button(buttonComposite, SWT.PUSH);
-    addBrowserButton.setText("Add...");
-    PixelConverter converter = new PixelConverter(addBrowserButton);
-    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(addBrowserButton);
-    addBrowserButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        handleAddButton();
-      }
-    });
-
-    renameBrowserButton = new Button(buttonComposite, SWT.PUSH);
-    renameBrowserButton.setText("Rename...");
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(renameBrowserButton);
-    renameBrowserButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        handleRenameButton();
-      }
-    });
-
-    removeBrowserButton = new Button(buttonComposite, SWT.PUSH);
-    removeBrowserButton.setText("Remove");
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(removeBrowserButton);
-    removeBrowserButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        handleRemoveButton();
-      }
-    });
+//    // Chrome browser
+//    Group browersGroup = new Group(composite, SWT.NONE);
+//    browersGroup.setText("Chrome browsers");
+//    GridDataFactory.fillDefaults().grab(true, false).applyTo(browersGroup);
+//    GridLayoutFactory.swtDefaults().numColumns(2).spacing(5, 2).applyTo(browersGroup);
+//
+//    browserViewer = new TableViewer(browersGroup, SWT.SINGLE | SWT.V_SCROLL | SWT.H_SCROLL
+//        | SWT.BORDER);
+//    browserViewer.setContentProvider(new ArrayContentProvider());
+//    browserViewer.setLabelProvider(new BrowsersLabelProvider());
+//    browserViewer.setComparator(new ViewerComparator());
+//    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.TOP).grab(true, false).hint(100, 75).applyTo(
+//        browserViewer.getControl());
+//    browserViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+//      @Override
+//      public void selectionChanged(SelectionChangedEvent event) {
+//        updateButtons();
+//      }
+//    });
+//
+//    Composite buttonComposite = new Composite(browersGroup, SWT.NONE);
+//    GridDataFactory.fillDefaults().applyTo(buttonComposite);
+//    GridLayout buttonLayout = new GridLayout();
+//    buttonLayout.horizontalSpacing = 0;
+//    buttonLayout.verticalSpacing = convertVerticalDLUsToPixels(3);
+//    buttonLayout.marginWidth = 0;
+//    buttonLayout.marginHeight = 0;
+//    buttonLayout.numColumns = 1;
+//    buttonComposite.setLayout(buttonLayout);
+//
+//    addBrowserButton = new Button(buttonComposite, SWT.PUSH);
+//    addBrowserButton.setText("Add...");
+//    PixelConverter converter = new PixelConverter(addBrowserButton);
+//    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
+//    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(addBrowserButton);
+//    addBrowserButton.addSelectionListener(new SelectionAdapter() {
+//      @Override
+//      public void widgetSelected(SelectionEvent e) {
+//        handleAddButton();
+//      }
+//    });
+//
+//    renameBrowserButton = new Button(buttonComposite, SWT.PUSH);
+//    renameBrowserButton.setText("Rename...");
+//    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(renameBrowserButton);
+//    renameBrowserButton.addSelectionListener(new SelectionAdapter() {
+//      @Override
+//      public void widgetSelected(SelectionEvent e) {
+//        handleRenameButton();
+//      }
+//    });
+//
+//    removeBrowserButton = new Button(buttonComposite, SWT.PUSH);
+//    removeBrowserButton.setText("Remove");
+//    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(removeBrowserButton);
+//    removeBrowserButton.addSelectionListener(new SelectionAdapter() {
+//      @Override
+//      public void widgetSelected(SelectionEvent e) {
+//        handleRemoveButton();
+//      }
+//    });
 
 //    Label label = new Label(browersGroup, SWT.NONE);
 //    label.setText("Enter one or more Chrome / Chromium based browsers");
 //    GridDataFactory.swtDefaults().span(2, 1).applyTo(label);
 
-    // Java runtime
-    Group javaGroup = new Group(composite, SWT.NONE);
-    javaGroup.setText("Java executable location");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(javaGroup);
-    GridLayoutFactory.swtDefaults().numColumns(2).spacing(5, 2).applyTo(javaGroup);
+    // Dart VM
+    Group vmGroup = new Group(composite, SWT.NONE);
+    vmGroup.setText("Dart VM executable location");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(vmGroup);
+    GridLayoutFactory.swtDefaults().numColumns(2).spacing(5, 2).applyTo(vmGroup);
 
-    jreField = new Text(javaGroup, SWT.SINGLE | SWT.BORDER);
+    vmField = new Text(vmGroup, SWT.SINGLE | SWT.BORDER);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, SWT.DEFAULT).grab(true,
-        false).applyTo(jreField);
+        false).applyTo(vmField);
 
-    Button browseButton = new Button(javaGroup, SWT.PUSH);
+    Button browseButton = new Button(vmGroup, SWT.PUSH);
     browseButton.setText("Browse...");
+    PixelConverter converter = new PixelConverter(browseButton);
+    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
     GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(browseButton);
     browseButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
-        handleJavaBrowseButton();
+        handleVmBrowseButton();
       }
     });
-
-    Label label = new Label(javaGroup, SWT.NONE);
-    label.setText("The Java executable location is needed to launch Rhino");
-    GridDataFactory.swtDefaults().span(2, 1).applyTo(label);
-
-    // Node.js
-    Group nodeGroup = new Group(composite, SWT.NONE);
-    nodeGroup.setText("Node executable location");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(nodeGroup);
-    GridLayoutFactory.swtDefaults().numColumns(2).spacing(5, 2).applyTo(nodeGroup);
-
-    nodeField = new Text(nodeGroup, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, SWT.DEFAULT).grab(true,
-        false).applyTo(nodeField);
-
-    browseButton = new Button(nodeGroup, SWT.PUSH);
-    browseButton.setText("Browse...");
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(browseButton);
-    browseButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        handleNodeBrowseButton();
-      }
-    });
-
-    label = new Label(nodeGroup, SWT.NONE);
-    label.setText("Node can be downloaded from http://nodejs.org/");
-    GridDataFactory.swtDefaults().span(2, 1).applyTo(label);
 
     // browsers
-    browsers = new ArrayList<ChromeBrowserConfig>(
-        DartDebugCorePlugin.getPlugin().getConfiguredBrowsers());
-    browserViewer.setInput(browsers);
+//    browsers = new ArrayList<ChromeBrowserConfig>(
+//        DartDebugCorePlugin.getPlugin().getConfiguredBrowsers());
+//    browserViewer.setInput(browsers);
 
-    updateButtons();
+//    updateButtons();
 
-    // jreField
-    if (DartDebugCorePlugin.getPlugin().getJreExecutablePath() != null) {
-      jreField.setText(DartDebugCorePlugin.getPlugin().getJreExecutablePath());
-    }
-
-    // nodeField
-    if (DartDebugCorePlugin.getPlugin().getNodeExecutablePath() != null) {
-      nodeField.setText(DartDebugCorePlugin.getPlugin().getNodeExecutablePath());
+    // vmField
+    if (DartDebugCorePlugin.getPlugin().getDartVmExecutablePath() != null) {
+      vmField.setText(DartDebugCorePlugin.getPlugin().getDartVmExecutablePath());
     }
 
     return composite;
   }
 
-  protected void handleJavaBrowseButton() {
+  protected void handleVmBrowseButton() {
     FileDialog fd = new FileDialog(getShell(), SWT.OPEN);
 
     String filePath = fd.open();
 
     if (filePath != null) {
-      jreField.setText(filePath);
-    }
-  }
-
-  protected void handleNodeBrowseButton() {
-    FileDialog fd = new FileDialog(getShell(), SWT.OPEN);
-
-    String filePath = fd.open();
-
-    if (filePath != null) {
-      nodeField.setText(filePath);
+      vmField.setText(filePath);
     }
   }
 

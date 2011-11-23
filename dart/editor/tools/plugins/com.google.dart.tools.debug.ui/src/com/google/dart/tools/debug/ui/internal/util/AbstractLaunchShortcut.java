@@ -17,7 +17,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.client.DartJsApplicationLaunchShortcut;
@@ -89,14 +88,17 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
 
     Object elem = ((IStructuredSelection) selection).getFirstElement();
 
-    IResource res = null;
+    Object res = null;
     if (elem instanceof IResource) {
-      res = (IResource) elem;
+      res = elem;
+    } else if (elem instanceof DartElement) {
+      res = elem;
     } else if (elem instanceof IAdaptable) {
-      res = (IResource) ((IAdaptable) elem).getAdapter(IResource.class);
+      res = ((IAdaptable) elem).getAdapter(IResource.class);
     }
     try {
       return getLaunchableResource(res);
+
     } catch (DartModelException e) {
       DebugErrorHandler.errorDialog(null, "Error Launching " + launchTypeLabel,
           "Unable to locate launchable resource.", e);
@@ -219,28 +221,31 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    * @param originalResource the original resource or <code>null</code>
    * @return the Dart resource to be launched or <code>null</code>
    */
-  protected final IResource getLaunchableResource(IResource originalResource)
-      throws DartModelException {
-    if (originalResource == null || !originalResource.isAccessible()) {
+  protected IResource getLaunchableResource(Object originalResource) throws DartModelException {
+    
+    if (originalResource == null){
       return null;
     }
-
-    if (DartUtil.isWebPage(originalResource)) {
-      return originalResource;
-    }
-
-    // DartLibrary
-    DartElement elem = DartCore.create(originalResource);
-
-    if (elem == null) {
-      return null;
-    }
-
-    if (elem.getElementType() == DartElement.DART_PROJECT) {
-      for (DartLibrary library : ((DartProject) elem).getDartLibraries()) {
-        return getHtmlFileFor(library);
+    DartElement elem = null;
+    if (originalResource instanceof IResource) {
+      IResource resource = (IResource) originalResource;
+      if (!resource.isAccessible()) {
+        return null;
       }
 
+      if (DartUtil.isWebPage(resource)) {
+        return resource;
+      }
+
+      // DartLibrary
+      elem = DartCore.create(resource);
+    }
+
+    if (originalResource instanceof DartElement) {
+      elem = (DartElement) originalResource;
+    }
+
+    if (elem == null) {
       return null;
     }
 

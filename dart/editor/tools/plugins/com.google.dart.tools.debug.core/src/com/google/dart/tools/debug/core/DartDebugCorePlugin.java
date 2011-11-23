@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.debug.core;
@@ -75,7 +73,7 @@ public class DartDebugCorePlugin extends Plugin {
 
   private static final String PREFS_JRE_PATH = "jrePath";
 
-  private static final String PREFS_NODE_PATH = "nodePath";
+  private static final String PREFS_DART_VM_PATH = "vmPath";
 
   /**
    * Create a Status object with the given message and this plugin's ID.
@@ -183,22 +181,22 @@ public class DartDebugCorePlugin extends Plugin {
     return getPrefs().get(PREFS_JRE_PATH, "");
   }
 
-  /**
-   * Returns the path to the Node executable, if it has been set. Otherwise, this method returns the
-   * empty string.
-   * 
-   * @return the path to the Node executable
-   */
-  public String getNodeExecutablePath() {
-    return getPrefs().get(PREFS_NODE_PATH, "");
-  }
-
   public IEclipsePreferences getPrefs() {
     if (prefs == null) {
       prefs = new InstanceScope().getNode(PLUGIN_ID);
     }
 
     return prefs;
+  }
+
+  /**
+   * Returns the path to the Dart VM executable, if it has been set. Otherwise, this method returns
+   * the empty string.
+   * 
+   * @return the path to the Dart VM executable
+   */
+  public String getDartVmExecutablePath() {
+    return getPrefs().get(PREFS_DART_VM_PATH, "");
   }
 
   /**
@@ -232,8 +230,8 @@ public class DartDebugCorePlugin extends Plugin {
    * 
    * @param value the path to the Node executable.
    */
-  public void setNodeExecutablePath(String value) {
-    getPrefs().put(PREFS_NODE_PATH, value);
+  public void setDartVmExecutablePath(String value) {
+    getPrefs().put(PREFS_DART_VM_PATH, value);
 
     try {
       getPrefs().flush();

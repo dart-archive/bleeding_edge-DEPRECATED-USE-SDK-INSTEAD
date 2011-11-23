@@ -36,11 +36,7 @@ public class DartLaunchConfigWrapper {
   public static final int DEFAULT_CHROME_PORT = 9222;
   public static final String DEFAULT_HOST = "localhost";
 
-  public static final String SERVER_RUNNER_NODEJS = "Node.js";
-  public static final String SERVER_RUNNER_RHINO = "Rhino";
-
-  public static final String[] SERVER_RUNNERS = new String[] {"Rhino", "Node.js"};
-
+  private static final String VM_ARGUMENTS = "vmArguments";
   private static final String APPLICATION_ARGUMENTS = "applicationArguments";
   private static final String APPLICATION_NAME = "applicationName";
 
@@ -52,7 +48,7 @@ public class DartLaunchConfigWrapper {
 
   private static final String PROJECT_NAME = "projectName";
 
-  private static final String SERVER_RUNNER = "serverRunner";
+  private static final String LIBRARY_LOCATION = "libraryLocation";
 
   private ILaunchConfiguration launchConfig;
 
@@ -65,7 +61,7 @@ public class DartLaunchConfigWrapper {
   }
 
   /**
-   * @return the Dart application file name (e.g. src/HelloWorld.app)
+   * @return the Dart application file name (e.g. src/HelloWorld.dart)
    */
   public String getApplicationName() {
     try {
@@ -162,6 +158,17 @@ public class DartLaunchConfigWrapper {
     }
   }
 
+  public String getLibraryLocation() {
+
+    try {
+      return launchConfig.getAttribute(LIBRARY_LOCATION, "");
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+      return "";
+    }
+
+  }
+
   /**
    * @return the DartProject that contains the application to run
    */
@@ -184,16 +191,30 @@ public class DartLaunchConfigWrapper {
   }
 
   /**
-   * @return the type of server runtime to launch the Dart application with (e.g. Rhino, Node)
+   * @return the arguments string for the Dart VM
    */
-  public String getServerRunner() {
+  public String getVmArguments() {
     try {
-      return launchConfig.getAttribute(SERVER_RUNNER, SERVER_RUNNERS[0]);
+      return launchConfig.getAttribute(VM_ARGUMENTS, "");
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);
 
-      return SERVER_RUNNERS[0];
+      return "";
     }
+  }
+
+  /**
+   * @return the arguments for the Dart VM
+   */
+  public String[] getVmArgumentsAsArray() {
+    // TODO(keertip): add --new_gen_heap_size=64 to list of vm args
+    String command = getVmArguments();
+
+    if (command == null || command.length() == 0) {
+      return new String[0];
+    }
+
+    return command.split(" ");
   }
 
   /**
@@ -238,6 +259,10 @@ public class DartLaunchConfigWrapper {
     getWorkingCopy().setAttribute(CONNECTION_TYPE, value);
   }
 
+  public void setLibraryLocation(String location) {
+    getWorkingCopy().setAttribute(LIBRARY_LOCATION, location);
+  }
+
   /**
    * @see #getProjectName()
    */
@@ -246,10 +271,10 @@ public class DartLaunchConfigWrapper {
   }
 
   /**
-   * @see #getServerRunner()
+   * @see #getVmArguments()
    */
-  public void setServerRunner(String value) {
-    getWorkingCopy().setAttribute(SERVER_RUNNER, value);
+  public void setVmArguments(String value) {
+    getWorkingCopy().setAttribute(VM_ARGUMENTS, value);
   }
 
   protected ILaunchConfigurationWorkingCopy getWorkingCopy() {

@@ -99,56 +99,7 @@
       </shortcut>
    </extension -->
 
-   <!-- Server launch configuration -->
-
-   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
-      <launchConfigurationTypeImage
-            configTypeID="com.google.dart.tools.debug.core.serverLaunchConfig"
-            icon="icons/chromium_16_server.png"
-            id="com.google.dart.tools.debug.core.serverLaunchConfigImage">
-      </launchConfigurationTypeImage>
-   </extension>
-
-   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
-      <launchConfigurationTabGroup
-            class="com.google.dart.tools.debug.ui.internal.server.DartServerTabGroup"
-            id="com.google.dart.tools.debug.core.serverLaunchConfigTabGroup"
-            type="com.google.dart.tools.debug.core.serverLaunchConfig">
-      </launchConfigurationTabGroup>
-   </extension>
-
-   <extension
-         point="org.eclipse.debug.ui.launchShortcuts">
-      <shortcut
-            class="com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut"
-            icon="icons/chromium_16_server.png"
-            id="com.google.dart.tools.debug.ui.dartServerShortcut"
-            label="%dart.serverlaunch.shortcut.label"
-            modes="run,debug">
-         <configurationType
-               id="com.google.dart.tools.debug.core.serverLaunchConfig">
-         </configurationType>
-         <contextualLaunch>
-            <enablement>
-               <with variable="selection">
-                  <count value="1">
-                  </count>
-                  <iterate>
-                     <adapt type="org.eclipse.core.resources.IResource">
-                        <and>
-                           <test property="com.google.dart.tools.debug.isDartProject"/>
-                           <test property="org.eclipse.core.resources.extension" value="app"/>
-                        </and>
-                     </adapt>
-                  </iterate>
-               </with>
-            </enablement>
-         </contextualLaunch>
-      </shortcut>
-   </extension>
-
+  
    <!-- Chrome launch configuration -->
 
    <extension

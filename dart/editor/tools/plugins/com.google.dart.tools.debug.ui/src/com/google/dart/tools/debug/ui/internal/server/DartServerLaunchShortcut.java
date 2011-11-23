@@ -15,6 +15,9 @@
  */
 package com.google.dart.tools.debug.ui.internal.server;
 
+import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -47,6 +50,18 @@ public class DartServerLaunchShortcut extends AbstractLaunchShortcut {
     ILaunchConfigurationType type = manager.getLaunchConfigurationType(DartDebugCorePlugin.SERVER_LAUNCH_CONFIG_ID);
 
     return type;
+  }
+
+  @Override
+  protected IResource getLaunchableResource(Object originalResource) throws DartModelException {
+    if (originalResource instanceof DartElement) {
+      DartLibrary parentLibrary = ((DartElement) originalResource).getAncestor(DartLibrary.class);
+      return parentLibrary.getCorrespondingResource();
+    }
+    if (originalResource instanceof IResource) {
+      return (IResource) originalResource;
+    }
+    return null;
   }
 
   /**
@@ -82,8 +97,8 @@ public class DartServerLaunchShortcut extends AbstractLaunchShortcut {
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(launchConfig);
 
     launchWrapper.setProjectName(resource.getProject().getName());
-    launchWrapper.setApplicationName(resource.getFullPath().toString());
-    launchWrapper.setServerRunner(DartLaunchConfigWrapper.SERVER_RUNNER_RHINO);
+    launchWrapper.setApplicationName(resource.getLocation().toOSString());
+    launchWrapper.setLibraryLocation(resource.getLocation().removeLastSegments(1).toOSString());
 
     launchConfig.setMappedResources(new IResource[] {resource});
 
@@ -105,14 +120,8 @@ public class DartServerLaunchShortcut extends AbstractLaunchShortcut {
       return false;
     }
 
-    String resourcePath = resource.getFullPath().toString();
+    String resourcePath = resource.getLocation().toOSString();
     String applicationPath = launchWrapper.getApplicationName();
-
-    if (resourcePath.equals(applicationPath)) {
-      return true;
-    }
-
-    resourcePath = resource.getProjectRelativePath().toString();
 
     return resourcePath.equals(applicationPath);
   }
