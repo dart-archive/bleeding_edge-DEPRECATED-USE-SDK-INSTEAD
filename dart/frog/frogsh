@@ -7782,9 +7782,7 @@ SsaBuilder.prototype.unquote = function(literal) {
   while (str[quotes + 1] === quote) quotes++;
   return new StringWrapper(str.substring(quotes + 1, str.length - quotes));
 }
-SsaBuilder.prototype.visitLogicalAndOr = function(node) {
-  var $0;
-  var op = (($0 = node.selector) && $0.is$Operator());
+SsaBuilder.prototype.visitLogicalAndOr = function(node, op) {
   var isAnd = $assert_bool(($eq(const$275/*const SourceString("&&")*/, op.get$source())));
   this.visit(node.receiver);
   var boolifiedLeft = this.popBoolified();
@@ -7814,10 +7812,52 @@ SsaBuilder.prototype.visitLogicalAndOr = function(node) {
   this.stack.add(result);
 }
 SsaBuilder.prototype.visitLogicalNot = function(node) {
-  $assert((node.argumentsNode instanceof Prefix), "node.argumentsNode is Prefix", "builder.dart", 370, 12);
+  $assert(node.argumentsNode === const$214/*const Prefix()*/, "node.argumentsNode === const Prefix()", "builder.dart", 369, 12);
   this.visit(node.receiver);
   var not = new HNot(this.popBoolified());
   this.push(not);
+}
+SsaBuilder.prototype.visitUnary = function(node, op, element) {
+  this.compiler.unimplemented("visitUnary");
+}
+SsaBuilder.prototype.visitBinary = function(node, op, element) {
+  this.visit(node.receiver);
+  this.visit(node.argumentsNode);
+  var right = this.pop();
+  var left = this.pop();
+  if ($notnull_bool($eq(const$278/*const SourceString("+")*/, op.get$source()))) {
+    this.push(new HAdd(element, [left, right]));
+  }
+  else if ($notnull_bool($eq(const$279/*const SourceString("-")*/, op.get$source()))) {
+    this.push(new HSubtract(element, [left, right]));
+  }
+  else if ($notnull_bool($eq(const$280/*const SourceString("*")*/, op.get$source()))) {
+    this.push(new HMultiply(element, [left, right]));
+  }
+  else if ($notnull_bool($eq(const$281/*const SourceString("/")*/, op.get$source()))) {
+    this.push(new HDivide(element, [left, right]));
+  }
+  else if ($notnull_bool($eq(const$282/*const SourceString("~/")*/, op.get$source()))) {
+    this.push(new HTruncatingDivide(element, [left, right]));
+  }
+  else if ($notnull_bool($eq(const$283/*const SourceString("%")*/, op.get$source()))) {
+    this.push(new HModulo(element, [left, right]));
+  }
+  else if ($notnull_bool($eq(const$284/*const SourceString("==")*/, op.get$source()))) {
+    this.push(new HEquals(element, [left, right]));
+  }
+  else if ($notnull_bool($eq(const$285/*const SourceString("<")*/, op.get$source()))) {
+    this.push(new HLess(element, [left, right]));
+  }
+  else if ($notnull_bool($eq(const$286/*const SourceString("<=")*/, op.get$source()))) {
+    this.push(new HLessEqual(element, [left, right]));
+  }
+  else if ($notnull_bool($eq(const$287/*const SourceString(">")*/, op.get$source()))) {
+    this.push(new HGreater(element, [left, right]));
+  }
+  else if ($notnull_bool($eq(const$288/*const SourceString(">=")*/, op.get$source()))) {
+    this.push(new HGreaterEqual(element, [left, right]));
+  }
 }
 SsaBuilder.prototype.visitSend = function(node) {
   var $0;
@@ -7825,49 +7865,16 @@ SsaBuilder.prototype.visitSend = function(node) {
   if ((node.selector instanceof Operator)) {
     var op = (($0 = node.selector) && $0.is$Operator());
     if ($notnull_bool($eq(const$275/*const SourceString("&&")*/, op.get$source())) || $notnull_bool($eq(const$276/*const SourceString("||")*/, op.get$source()))) {
-      this.visitLogicalAndOr(node);
-      return;
+      this.visitLogicalAndOr(node, op);
     }
     else if ($notnull_bool($eq(const$277/*const SourceString("!")*/, op.get$source()))) {
       this.visitLogicalNot(node);
-      return;
     }
-    this.visit(node.receiver);
-    this.visit(node.argumentsNode);
-    var right = this.pop();
-    var left = this.pop();
-    if ($notnull_bool($eq(const$278/*const SourceString("+")*/, op.get$source()))) {
-      this.push(new HAdd(element, [left, right]));
+    else if (node.argumentsNode === const$214/*const Prefix()*/ || node.argumentsNode === const$215/*const Postfix()*/) {
+      this.visitUnary(node, op, element);
     }
-    else if ($notnull_bool($eq(const$279/*const SourceString("-")*/, op.get$source()))) {
-      this.push(new HSubtract(element, [left, right]));
-    }
-    else if ($notnull_bool($eq(const$280/*const SourceString("*")*/, op.get$source()))) {
-      this.push(new HMultiply(element, [left, right]));
-    }
-    else if ($notnull_bool($eq(const$281/*const SourceString("/")*/, op.get$source()))) {
-      this.push(new HDivide(element, [left, right]));
-    }
-    else if ($notnull_bool($eq(const$282/*const SourceString("~/")*/, op.get$source()))) {
-      this.push(new HTruncatingDivide(element, [left, right]));
-    }
-    else if ($notnull_bool($eq(const$283/*const SourceString("%")*/, op.get$source()))) {
-      this.push(new HModulo(element, [left, right]));
-    }
-    else if ($notnull_bool($eq(const$284/*const SourceString("==")*/, op.get$source()))) {
-      this.push(new HEquals(element, [left, right]));
-    }
-    else if ($notnull_bool($eq(const$285/*const SourceString("<")*/, op.get$source()))) {
-      this.push(new HLess(element, [left, right]));
-    }
-    else if ($notnull_bool($eq(const$286/*const SourceString("<=")*/, op.get$source()))) {
-      this.push(new HLessEqual(element, [left, right]));
-    }
-    else if ($notnull_bool($eq(const$287/*const SourceString(">")*/, op.get$source()))) {
-      this.push(new HGreater(element, [left, right]));
-    }
-    else if ($notnull_bool($eq(const$288/*const SourceString(">=")*/, op.get$source()))) {
-      this.push(new HGreaterEqual(element, [left, right]));
+    else {
+      this.visitBinary(node, op, element);
     }
   }
   else if ($notnull_bool(node.get$isPropertyAccess())) {
@@ -7953,7 +7960,7 @@ SsaBuilder.prototype.updateDefinition = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 511, 12);
+  $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 520, 12);
   this.visit((($0 = link.get$head()) && $0.is$Node()));
   var value = this.pop();
   var element = (($0 = this.elements.$index(node)) && $0.is$VariableElement());
@@ -7971,7 +7978,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.definitions.$setindex(this.elements.$index(definition), initialValue);
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 529, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 538, 16);
       this.updateDefinition((definition && definition.is$SendSet()));
     }
   }

@@ -323,7 +323,7 @@ class SsaBuilder implements Visitor {
     return new SourceString(str.substring(quotes + 1, str.length - quotes));
   }
 
-  visitLogicalAndOr(Send node) {
+  visitLogicalAndOr(Send node, Operator op) {
     // x && y is transformed into:
     //   t0 = boolify(x);
     //   if (t0) t1 = boolify(y);
@@ -333,7 +333,6 @@ class SsaBuilder implements Visitor {
     //   t0 = boolify(x);
     //   if (not(t0)) t1 = boolify(y);
     //   result = phi(t0, t1);
-    Operator op = node.selector;
     bool isAnd = (const SourceString("&&") == op.source);
 
     visit(node.receiver);
@@ -367,53 +366,63 @@ class SsaBuilder implements Visitor {
   }
 
   visitLogicalNot(Send node) {
-    assert(node.argumentsNode is Prefix);
+    assert(node.argumentsNode === const Prefix());
     visit(node.receiver);
     HNot not = new HNot(popBoolified());
     push(not);
   }
 
+  visitUnary(Send node, Operator op, Element element) {
+    compiler.unimplemented("visitUnary");
+  }
+
+  visitBinary(Send node, Operator op, Element element) {
+    visit(node.receiver);
+    visit(node.argumentsNode);
+    var right = pop();
+    var left = pop();
+    // TODO(floitsch): switch to switch (bug 314).
+    if (const SourceString("+") == op.source) {
+      push(new HAdd(element, [left, right]));
+    } else if (const SourceString("-") == op.source) {
+      push(new HSubtract(element, [left, right]));
+    } else if (const SourceString("*") == op.source) {
+      push(new HMultiply(element, [left, right]));
+    } else if (const SourceString("/") == op.source) {
+      push(new HDivide(element, [left, right]));
+    } else if (const SourceString("~/") == op.source) {
+      push(new HTruncatingDivide(element, [left, right]));
+    } else if (const SourceString("%") == op.source) {
+      push(new HModulo(element, [left, right]));
+    } else if (const SourceString("==") == op.source) {
+      push(new HEquals(element, [left, right]));
+    } else if (const SourceString("<") == op.source) {
+      push(new HLess(element, [left, right]));
+    } else if (const SourceString("<=") == op.source) {
+      push(new HLessEqual(element, [left, right]));
+    } else if (const SourceString(">") == op.source) {
+      push(new HGreater(element, [left, right]));
+    } else if (const SourceString(">=") == op.source) {
+      push(new HGreaterEqual(element, [left, right]));
+    }    
+  }
+
   visitSend(Send node) {
+    Element element = elements[node];
     // TODO(kasperl): This only works for very special cases. Make
     // this way more general soon.
-    Element element = elements[node];
     if (node.selector is Operator) {
       Operator op = node.selector;
       if (const SourceString("&&") == op.source ||
           const SourceString("||") == op.source) {
-        visitLogicalAndOr(node);
-        return;
+        visitLogicalAndOr(node, op);
       } else if (const SourceString("!") == op.source) {
         visitLogicalNot(node);
-        return;
-      }
-      visit(node.receiver);
-      visit(node.argumentsNode);
-      var right = pop();
-      var left = pop();
-      // TODO(floitsch): switch to switch (bug 314).
-      if (const SourceString("+") == op.source) {
-        push(new HAdd(element, [left, right]));
-      } else if (const SourceString("-") == op.source) {
-        push(new HSubtract(element, [left, right]));
-      } else if (const SourceString("*") == op.source) {
-        push(new HMultiply(element, [left, right]));
-      } else if (const SourceString("/") == op.source) {
-        push(new HDivide(element, [left, right]));
-      } else if (const SourceString("~/") == op.source) {
-        push(new HTruncatingDivide(element, [left, right]));
-      } else if (const SourceString("%") == op.source) {
-        push(new HModulo(element, [left, right]));
-      } else if (const SourceString("==") == op.source) {
-        push(new HEquals(element, [left, right]));
-      } else if (const SourceString("<") == op.source) {
-        push(new HLess(element, [left, right]));
-      } else if (const SourceString("<=") == op.source) {
-        push(new HLessEqual(element, [left, right]));
-      } else if (const SourceString(">") == op.source) {
-        push(new HGreater(element, [left, right]));
-      } else if (const SourceString(">=") == op.source) {
-        push(new HGreaterEqual(element, [left, right]));
+      } else if (node.argumentsNode === const Prefix() ||
+                 node.argumentsNode === const Postfix()) {
+        visitUnary(node, op, element);
+      } else {
+        visitBinary(node, op, element);
       }
     } else if (node.isPropertyAccess) {
       if (node.receiver !== null) {
