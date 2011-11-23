@@ -31,6 +31,7 @@ interface HVisitor<R> {
   R visitStore(HStore node);
   R visitThrow(HThrow node);
   R visitTruncatingDivide(HTruncatingDivide node);
+  R visitTypeGuard(HTypeGuard node);
 }
 
 class HGraphVisitor {
@@ -191,6 +192,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitStore(HStore node) => visitInstruction(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitArithmetic(node);
+  visitTypeGuard(HTypeGuard node) => visitInstruction(node);
 }
 
 class HInstructionList {
@@ -748,6 +750,23 @@ class HBoolify extends HInstruction {
   bool dataEquals(HInstruction other) => true;
 }
 
+class HTypeGuard extends HInstruction {
+  HTypeGuard(type, value) : super([value]) {
+    this.type = type;
+  }
+
+  void prepareGvn() {
+    assert(!hasSideEffects());
+    setUseGvn();
+  }
+
+  int computeType() => type;
+
+  accept(HVisitor visitor) => visitor.visitTypeGuard(this);
+  bool typeEquals(other) => other is HTypeGuard;
+  bool dataEquals(HTypeGuard other) => type == other.type;
+}
+
 class HConditionalBranch extends HControlFlow {
   HConditionalBranch(inputs) : super(inputs);
   abstract toString();
@@ -898,7 +917,7 @@ class HLiteral extends HInstruction {
   bool isLiteralNumber() => value is num;
   bool isLiteralString() => value is SourceString;
   bool typeEquals(other) => other is HLiteral;
-  bool dataEquals(other) => value == other.value;
+  bool dataEquals(HLiteral other) => value == other.value;
 }
 
 class HNot extends HInstruction {

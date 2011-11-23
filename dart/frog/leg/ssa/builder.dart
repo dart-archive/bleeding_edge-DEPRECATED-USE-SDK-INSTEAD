@@ -495,7 +495,13 @@ class SsaBuilder implements Visitor {
     assert(!link.isEmpty() && link.tail.isEmpty());
     visit(link.head);
     HInstruction value = pop();
-    definitions[elements[node]] = value;
+    VariableElement element = elements[node];
+    Type type = element.type;
+    if (type !== null && type.toString() == 'int') {
+      value = new HTypeGuard(HInstruction.TYPE_NUMBER, value);
+      add(value);
+    }
+    definitions[element] = value;
     return value;
   }
 

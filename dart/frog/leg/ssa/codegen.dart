@@ -365,6 +365,12 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(';\n');
   }
 
+  visitTypeGuard(HTypeGuard node) {
+    // TODO(kasperl): Verify the guarded type unless it is already
+    // guarded somehow.
+    use(node.inputs[0]);
+  }
+
   void addIndentation() {
     for (int i = 0; i < indent; i++) {
       buffer.add('  ');
