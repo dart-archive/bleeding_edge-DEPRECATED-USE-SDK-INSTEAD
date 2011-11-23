@@ -153,7 +153,17 @@ class HInstructionStringifier implements HVisitor<String> {
     unreachable();
   }
 
-  String temporaryId(HInstruction instruction) => "v${instruction.id}";
+  String temporaryId(HInstruction instruction) {
+    String prefix;
+    switch (instruction.type) {
+      case HInstruction.TYPE_BOOLEAN: prefix = 'b'; break;
+      case HInstruction.TYPE_NUMBER: prefix = 'n'; break;
+      case HInstruction.TYPE_UNKNOWN: prefix = 'v'; break;
+      case HInstruction.TYPE_CONFLICT: prefix = 'c'; break;
+      default: unreachable();
+    }
+    return "$prefix${instruction.id}";
+  }
 
   String visitBoolify(HBoolify node) {
     return "Boolify: ${temporaryId(node.inputs[0])}";
@@ -246,4 +256,14 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitThrow(HThrow node) => "Throw ${temporaryId(node.inputs[0])}";
 
   String visitTruncatingDivide(HTruncatingDivide node) => visitInvoke(node);
+
+  String visitTypeGuard(HTypeGuard node) {
+    String type;
+    switch (node.type) {
+      case HInstruction.TYPE_BOOLEAN: type = "bool"; break;
+      case HInstruction.TYPE_NUMBER: type = "number"; break;
+      default: unreachable();
+    }
+    return "TypeGuard: ${temporaryId(node.inputs[0])} is $type";
+  }
 }

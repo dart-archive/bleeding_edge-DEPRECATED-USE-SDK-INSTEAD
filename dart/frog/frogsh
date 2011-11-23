@@ -10625,7 +10625,34 @@ HInstructionStringifier.prototype.visitBasicBlock = function(node) {
   unreachable();
 }
 HInstructionStringifier.prototype.temporaryId = function(instruction) {
-  return ("v" + instruction.id);
+  var prefix;
+  switch (instruction.type) {
+    case 1/*HInstruction.TYPE_BOOLEAN*/:
+
+      prefix = 'b';
+      break;
+
+    case 2/*HInstruction.TYPE_NUMBER*/:
+
+      prefix = 'n';
+      break;
+
+    case 0/*HInstruction.TYPE_UNKNOWN*/:
+
+      prefix = 'v';
+      break;
+
+    case 3/*HInstruction.TYPE_CONFLICT*/:
+
+      prefix = 'c';
+      break;
+
+    default:
+
+      unreachable();
+
+  }
+  return ("" + prefix + instruction.id);
 }
 HInstructionStringifier.prototype.visitBoolify = function(node) {
   var $0;
@@ -10741,6 +10768,27 @@ HInstructionStringifier.prototype.visitThrow = function(node) {
 }
 HInstructionStringifier.prototype.visitTruncatingDivide = function(node) {
   return this.visitInvoke(node);
+}
+HInstructionStringifier.prototype.visitTypeGuard = function(node) {
+  var $0;
+  var type;
+  switch (node.type) {
+    case 1/*HInstruction.TYPE_BOOLEAN*/:
+
+      type = "bool";
+      break;
+
+    case 2/*HInstruction.TYPE_NUMBER*/:
+
+      type = "number";
+      break;
+
+    default:
+
+      unreachable();
+
+  }
+  return ("TypeGuard: " + this.temporaryId((($0 = node.inputs.$index(0)) && $0.is$HInstruction())) + " is " + type);
 }
 HInstructionStringifier.prototype.visit$1 = function($0) {
   return this.visit(($0 && $0.is$HInstruction()));
