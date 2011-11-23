@@ -138,10 +138,14 @@ class VarMethodStub extends VarMember {
   }
 
   bool _useDirectCall(Member member, Arguments args) {
-    // TODO(jmesserly): for now disallow direct references to DOM types until we
-    // figure out which types can be patched reliably.
-    // I don't think our other native libs have this issue.
-    if (member is MethodMember && !member.declaringType.isHiddenNativeType) {
+    // TODO(jmesserly): we could use "isHiddenNativeType" here. But it's
+    // tricky--you can easily end up generating this line:
+    //   Object.prototype.toString$0 = Object.prototype.toString;
+    // That will do the wrong thing, unless all derived native types of Object
+    // with a different "toString" declare their own like this:
+    //   String toString() native;
+    // I think the right tradeoff for now is don't optimize the stubs.
+    if (member is MethodMember && !member.declaringType.isNativeType) {
       MethodMember method = member;
       if (method.needsArgumentConversion(args)) {
         return false;

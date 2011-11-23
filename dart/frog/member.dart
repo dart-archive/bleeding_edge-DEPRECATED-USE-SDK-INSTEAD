@@ -813,7 +813,7 @@ class MethodMember extends Member {
     for (int i = 0; i < bareCount; i++) {
       var arg = args.values[i];
       if (arg.needsConversion(parameters[i].type)) {
-        return false;
+        return true;
       }
     }
 
@@ -822,12 +822,12 @@ class MethodMember extends Member {
       for (int i = bareCount; i < parameters.length; i++) {
         var arg = args.getValue(parameters[i].name);
         if (arg != null && arg.needsConversion(parameters[i].type)) {
-          return false;
+          return true;
         }
       }
     }
 
-    return true;
+    return false;
   }
 
   static String _argCountMsg(int actual, int expected, [bool atLeast=false]) {

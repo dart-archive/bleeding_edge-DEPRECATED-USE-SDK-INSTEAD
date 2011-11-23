@@ -204,9 +204,7 @@ function AssertError(failedAssertion, url, line, column) {
 AssertError.prototype.toString = function() {
   return ("Failed assertion: '" + this.failedAssertion + "' is not true ") + ("in " + this.url + " at line " + this.line + ", column " + this.column + ".");
 }
-AssertError.prototype.toString$0 = function() {
-  return this.toString();
-};
+AssertError.prototype.toString$0 = AssertError.prototype.toString;
 // ********** Code for Object **************
 Object.prototype.get$dynamic = function() {
   return this;
@@ -729,9 +727,7 @@ function IllegalAccessException() {
 IllegalAccessException.prototype.toString = function() {
   return "Attempt to modify an immutable object";
 }
-IllegalAccessException.prototype.toString$0 = function() {
-  return this.toString();
-};
+IllegalAccessException.prototype.toString$0 = IllegalAccessException.prototype.toString;
 // ********** Code for NoSuchMethodException **************
 function NoSuchMethodException(_receiver, _functionName, _arguments) {
   this._receiver = _receiver;
@@ -751,41 +747,31 @@ NoSuchMethodException.prototype.toString = function() {
   sb.add("]");
   return ("NoSuchMethodException - receiver: '" + this._receiver + "' ") + ("function name: '" + this._functionName + "' arguments: [" + sb + "]");
 }
-NoSuchMethodException.prototype.toString$0 = function() {
-  return this.toString();
-};
+NoSuchMethodException.prototype.toString$0 = NoSuchMethodException.prototype.toString;
 // ********** Code for ObjectNotClosureException **************
 function ObjectNotClosureException() {}
 ObjectNotClosureException.prototype.toString = function() {
   return "Object is not closure";
 }
-ObjectNotClosureException.prototype.toString$0 = function() {
-  return this.toString();
-};
+ObjectNotClosureException.prototype.toString$0 = ObjectNotClosureException.prototype.toString;
 // ********** Code for StackOverflowException **************
 function StackOverflowException() {}
 StackOverflowException.prototype.toString = function() {
   return "Stack Overflow";
 }
-StackOverflowException.prototype.toString$0 = function() {
-  return this.toString();
-};
+StackOverflowException.prototype.toString$0 = StackOverflowException.prototype.toString;
 // ********** Code for BadNumberFormatException **************
 function BadNumberFormatException() {}
 BadNumberFormatException.prototype.toString = function() {
   return ("BadNumberFormatException: '" + this._s + "'");
 }
-BadNumberFormatException.prototype.toString$0 = function() {
-  return this.toString();
-};
+BadNumberFormatException.prototype.toString$0 = BadNumberFormatException.prototype.toString;
 // ********** Code for NullPointerException **************
 function NullPointerException() {}
 NullPointerException.prototype.toString = function() {
   return "NullPointerException";
 }
-NullPointerException.prototype.toString$0 = function() {
-  return this.toString();
-};
+NullPointerException.prototype.toString$0 = NullPointerException.prototype.toString;
 // ********** Code for NoMoreElementsException **************
 function NoMoreElementsException() {
   // Initializers done
@@ -793,9 +779,7 @@ function NoMoreElementsException() {
 NoMoreElementsException.prototype.toString = function() {
   return "NoMoreElementsException";
 }
-NoMoreElementsException.prototype.toString$0 = function() {
-  return this.toString();
-};
+NoMoreElementsException.prototype.toString$0 = NoMoreElementsException.prototype.toString;
 // ********** Code for EmptyQueueException **************
 function EmptyQueueException() {
   // Initializers done
@@ -803,17 +787,13 @@ function EmptyQueueException() {
 EmptyQueueException.prototype.toString = function() {
   return "EmptyQueueException";
 }
-EmptyQueueException.prototype.toString$0 = function() {
-  return this.toString();
-};
+EmptyQueueException.prototype.toString$0 = EmptyQueueException.prototype.toString;
 // ********** Code for IntegerDivisionByZeroException **************
 function IntegerDivisionByZeroException() {}
 IntegerDivisionByZeroException.prototype.toString = function() {
   return "IntegerDivisionByZeroException";
 }
-IntegerDivisionByZeroException.prototype.toString$0 = function() {
-  return this.toString();
-};
+IntegerDivisionByZeroException.prototype.toString$0 = IntegerDivisionByZeroException.prototype.toString;
 // ********** Code for Function **************
 Function.prototype.to$call$0 = function() {
   this.call$0 = this.$genStub(0);
@@ -955,14 +935,24 @@ ListFactory.prototype.isEmpty = function() {
 ListFactory.prototype.iterator = function() {
   return new ListIterator(this);
 }
-ListFactory.prototype.add$1 = ListFactory.prototype.add;
+ListFactory.prototype.add$1 = function($0) {
+  return this.add($0);
+};
 ListFactory.prototype.addAll$1 = function($0) {
   return this.addAll(($0 && $0.is$Collection$E()));
 };
-ListFactory.prototype.every$1 = ListFactory.prototype.every;
-ListFactory.prototype.filter$1 = ListFactory.prototype.filter;
-ListFactory.prototype.forEach$1 = ListFactory.prototype.forEach;
-ListFactory.prototype.indexOf$2 = ListFactory.prototype.indexOf;
+ListFactory.prototype.every$1 = function($0) {
+  return this.every(to$call$1($0));
+};
+ListFactory.prototype.filter$1 = function($0) {
+  return this.filter(to$call$1($0));
+};
+ListFactory.prototype.forEach$1 = function($0) {
+  return this.forEach(to$call$1($0));
+};
+ListFactory.prototype.indexOf$2 = function($0, $1) {
+  return this.indexOf($0, $assert_num($1));
+};
 ListFactory.prototype.isEmpty$0 = function() {
   return this.isEmpty();
 };
@@ -975,8 +965,12 @@ ListFactory.prototype.last$0 = function() {
 ListFactory.prototype.removeLast$0 = function() {
   return this.removeLast();
 };
-ListFactory.prototype.some$1 = ListFactory.prototype.some;
-ListFactory.prototype.sort$1 = ListFactory.prototype.sort;
+ListFactory.prototype.some$1 = function($0) {
+  return this.some(to$call$1($0));
+};
+ListFactory.prototype.sort$1 = function($0) {
+  return this.sort(to$call$2($0));
+};
 ListFactory$E = ListFactory;
 ListFactory$HBasicBlock = ListFactory;
 ListFactory$HInstruction = ListFactory;
@@ -1003,12 +997,8 @@ ListIterator.prototype.next = function() {
   }
   return this._array.$index(this._pos++);
 }
-ListIterator.prototype.hasNext$0 = function() {
-  return this.hasNext();
-};
-ListIterator.prototype.next$0 = function() {
-  return this.next();
-};
+ListIterator.prototype.hasNext$0 = ListIterator.prototype.hasNext;
+ListIterator.prototype.next$0 = ListIterator.prototype.next;
 // ********** Code for ImmutableList **************
 function ImmutableList(length) {
   this._length = length;
@@ -1079,10 +1069,10 @@ ImmutableList.prototype.add$1 = ImmutableList.prototype.add;
 ImmutableList.prototype.addAll$1 = function($0) {
   return this.addAll(($0 && $0.is$Collection$E()));
 };
-ImmutableList.prototype.removeLast$0 = function() {
-  return this.removeLast();
+ImmutableList.prototype.removeLast$0 = ImmutableList.prototype.removeLast;
+ImmutableList.prototype.sort$1 = function($0) {
+  return this.sort(to$call$2($0));
 };
-ImmutableList.prototype.sort$1 = ImmutableList.prototype.sort;
 // ********** Code for ImmutableMap **************
 function ImmutableMap(keyValuePairs) {
   this._internal = $map([]);
@@ -1127,16 +1117,12 @@ ImmutableMap.prototype.putIfAbsent = function(key, ifAbsent) {
 ImmutableMap.prototype.remove = function(key) {
   $throw(const$14/*const IllegalAccessException()*/);
 }
-ImmutableMap.prototype.forEach$1 = ImmutableMap.prototype.forEach;
-ImmutableMap.prototype.getKeys$0 = function() {
-  return this.getKeys();
+ImmutableMap.prototype.forEach$1 = function($0) {
+  return this.forEach(to$call$2($0));
 };
-ImmutableMap.prototype.getValues$0 = function() {
-  return this.getValues();
-};
-ImmutableMap.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
-};
+ImmutableMap.prototype.getKeys$0 = ImmutableMap.prototype.getKeys;
+ImmutableMap.prototype.getValues$0 = ImmutableMap.prototype.getValues;
+ImmutableMap.prototype.isEmpty$0 = ImmutableMap.prototype.isEmpty;
 // ********** Code for NumImplementation **************
 NumImplementation = Number;
 NumImplementation.prototype.is$NumImplementation = function(){return this;};
@@ -1205,9 +1191,7 @@ function ExceptionImplementation(msg) {
 ExceptionImplementation.prototype.toString = function() {
   return (this._msg == null) ? "Exception" : ("Exception: " + this._msg);
 }
-ExceptionImplementation.prototype.toString$0 = function() {
-  return this.toString();
-};
+ExceptionImplementation.prototype.toString$0 = ExceptionImplementation.prototype.toString;
 // ********** Code for HashMapImplementation **************
 function HashMapImplementation() {
   // Initializers done
@@ -1387,16 +1371,12 @@ HashMapImplementation.prototype.getValues = function() {
 HashMapImplementation.prototype.containsKey = function(key) {
   return (this._probeForLookup(key) != -1);
 }
-HashMapImplementation.prototype.forEach$1 = HashMapImplementation.prototype.forEach;
-HashMapImplementation.prototype.getKeys$0 = function() {
-  return this.getKeys();
+HashMapImplementation.prototype.forEach$1 = function($0) {
+  return this.forEach(to$call$2($0));
 };
-HashMapImplementation.prototype.getValues$0 = function() {
-  return this.getValues();
-};
-HashMapImplementation.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
-};
+HashMapImplementation.prototype.getKeys$0 = HashMapImplementation.prototype.getKeys;
+HashMapImplementation.prototype.getValues$0 = HashMapImplementation.prototype.getValues;
+HashMapImplementation.prototype.isEmpty$0 = HashMapImplementation.prototype.isEmpty;
 // ********** Code for HashMapImplementation$E$E **************
 function HashMapImplementation$E$E() {
   // Initializers done
@@ -1654,16 +1634,20 @@ HashSetImplementation.prototype.addAll$1 = function($0) {
   return this.addAll(($0 && $0.is$Collection$E()));
 };
 HashSetImplementation.prototype.contains$1 = HashSetImplementation.prototype.contains;
-HashSetImplementation.prototype.every$1 = HashSetImplementation.prototype.every;
-HashSetImplementation.prototype.filter$1 = HashSetImplementation.prototype.filter;
-HashSetImplementation.prototype.forEach$1 = HashSetImplementation.prototype.forEach;
-HashSetImplementation.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
+HashSetImplementation.prototype.every$1 = function($0) {
+  return this.every(to$call$1($0));
 };
-HashSetImplementation.prototype.iterator$0 = function() {
-  return this.iterator();
+HashSetImplementation.prototype.filter$1 = function($0) {
+  return this.filter(to$call$1($0));
 };
-HashSetImplementation.prototype.some$1 = HashSetImplementation.prototype.some;
+HashSetImplementation.prototype.forEach$1 = function($0) {
+  return this.forEach(to$call$1($0));
+};
+HashSetImplementation.prototype.isEmpty$0 = HashSetImplementation.prototype.isEmpty;
+HashSetImplementation.prototype.iterator$0 = HashSetImplementation.prototype.iterator;
+HashSetImplementation.prototype.some$1 = function($0) {
+  return this.some(to$call$1($0));
+};
 // ********** Code for HashSetImplementation$E **************
 function HashSetImplementation$E() {}
 $inherits(HashSetImplementation$E, HashSetImplementation);
@@ -1732,12 +1716,8 @@ HashSetIterator.prototype._advance = function() {
   }
   while ((entry == null) || (entry === deletedKey))
 }
-HashSetIterator.prototype.hasNext$0 = function() {
-  return this.hasNext();
-};
-HashSetIterator.prototype.next$0 = function() {
-  return this.next();
-};
+HashSetIterator.prototype.hasNext$0 = HashSetIterator.prototype.hasNext;
+HashSetIterator.prototype.next$0 = HashSetIterator.prototype.next;
 // ********** Code for HashSetIterator$E **************
 function HashSetIterator$E(set_) {
   this._nextValidIndex = -1;
@@ -1852,16 +1832,12 @@ Object.defineProperty(LinkedHashMapImplementation.prototype, "length", {
 LinkedHashMapImplementation.prototype.isEmpty = function() {
   return this.get$length() == 0;
 }
-LinkedHashMapImplementation.prototype.forEach$1 = LinkedHashMapImplementation.prototype.forEach;
-LinkedHashMapImplementation.prototype.getKeys$0 = function() {
-  return this.getKeys();
+LinkedHashMapImplementation.prototype.forEach$1 = function($0) {
+  return this.forEach(to$call$2($0));
 };
-LinkedHashMapImplementation.prototype.getValues$0 = function() {
-  return this.getValues();
-};
-LinkedHashMapImplementation.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
-};
+LinkedHashMapImplementation.prototype.getKeys$0 = LinkedHashMapImplementation.prototype.getKeys;
+LinkedHashMapImplementation.prototype.getValues$0 = LinkedHashMapImplementation.prototype.getValues;
+LinkedHashMapImplementation.prototype.isEmpty$0 = LinkedHashMapImplementation.prototype.isEmpty;
 // ********** Code for LinkedHashMapImplementation$Element$String **************
 function LinkedHashMapImplementation$Element$String() {}
 $inherits(LinkedHashMapImplementation$Element$String, LinkedHashMapImplementation);
@@ -2087,22 +2063,22 @@ DoubleLinkedQueue.prototype.add$1 = DoubleLinkedQueue.prototype.add;
 DoubleLinkedQueue.prototype.addAll$1 = function($0) {
   return this.addAll(($0 && $0.is$Collection$E()));
 };
-DoubleLinkedQueue.prototype.every$1 = DoubleLinkedQueue.prototype.every;
-DoubleLinkedQueue.prototype.filter$1 = DoubleLinkedQueue.prototype.filter;
-DoubleLinkedQueue.prototype.forEach$1 = DoubleLinkedQueue.prototype.forEach;
-DoubleLinkedQueue.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
+DoubleLinkedQueue.prototype.every$1 = function($0) {
+  return this.every(to$call$1($0));
 };
-DoubleLinkedQueue.prototype.iterator$0 = function() {
-  return this.iterator();
+DoubleLinkedQueue.prototype.filter$1 = function($0) {
+  return this.filter(to$call$1($0));
 };
-DoubleLinkedQueue.prototype.last$0 = function() {
-  return this.last();
+DoubleLinkedQueue.prototype.forEach$1 = function($0) {
+  return this.forEach(to$call$1($0));
 };
-DoubleLinkedQueue.prototype.removeLast$0 = function() {
-  return this.removeLast();
+DoubleLinkedQueue.prototype.isEmpty$0 = DoubleLinkedQueue.prototype.isEmpty;
+DoubleLinkedQueue.prototype.iterator$0 = DoubleLinkedQueue.prototype.iterator;
+DoubleLinkedQueue.prototype.last$0 = DoubleLinkedQueue.prototype.last;
+DoubleLinkedQueue.prototype.removeLast$0 = DoubleLinkedQueue.prototype.removeLast;
+DoubleLinkedQueue.prototype.some$1 = function($0) {
+  return this.some(to$call$1($0));
 };
-DoubleLinkedQueue.prototype.some$1 = DoubleLinkedQueue.prototype.some;
 // ********** Code for DoubleLinkedQueue$ClassElement **************
 function DoubleLinkedQueue$ClassElement() {}
 $inherits(DoubleLinkedQueue$ClassElement, DoubleLinkedQueue);
@@ -2165,12 +2141,8 @@ _DoubleLinkedQueueIterator.prototype.next = function() {
   this._currentEntry = this._currentEntry._next;
   return this._currentEntry.get$element();
 }
-_DoubleLinkedQueueIterator.prototype.hasNext$0 = function() {
-  return this.hasNext();
-};
-_DoubleLinkedQueueIterator.prototype.next$0 = function() {
-  return this.next();
-};
+_DoubleLinkedQueueIterator.prototype.hasNext$0 = _DoubleLinkedQueueIterator.prototype.hasNext;
+_DoubleLinkedQueueIterator.prototype.next$0 = _DoubleLinkedQueueIterator.prototype.next;
 // ********** Code for _DoubleLinkedQueueIterator$E **************
 function _DoubleLinkedQueueIterator$E(_sentinel) {
   this._sentinel = _sentinel;
@@ -2264,12 +2236,8 @@ StringBufferImpl.prototype.add$1 = StringBufferImpl.prototype.add;
 StringBufferImpl.prototype.addAll$1 = function($0) {
   return this.addAll(($0 && $0.is$Collection$Object()));
 };
-StringBufferImpl.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
-};
-StringBufferImpl.prototype.toString$0 = function() {
-  return this.toString();
-};
+StringBufferImpl.prototype.isEmpty$0 = StringBufferImpl.prototype.isEmpty;
+StringBufferImpl.prototype.toString$0 = StringBufferImpl.prototype.toString;
 // ********** Code for StringBase **************
 function StringBase() {}
 StringBase.createFromCharCodes = function(charCodes) {
@@ -2495,9 +2463,7 @@ DateImplementation.prototype.add$1 = function($0) {
 DateImplementation.prototype.compareTo$1 = function($0) {
   return this.compareTo(($0 && $0.is$Date()));
 };
-DateImplementation.prototype.toString$0 = function() {
-  return this.toString();
-};
+DateImplementation.prototype.toString$0 = DateImplementation.prototype.toString;
 // ********** Code for TimeZoneImplementation **************
 function TimeZoneImplementation() {}
 TimeZoneImplementation.local$ctor = function() {
@@ -2514,9 +2480,7 @@ TimeZoneImplementation.prototype.toString = function() {
   return "TimeZone (Local)";
 }
 TimeZoneImplementation.prototype.get$isUtc = function() { return this.isUtc; };
-TimeZoneImplementation.prototype.toString$0 = function() {
-  return this.toString();
-};
+TimeZoneImplementation.prototype.toString$0 = TimeZoneImplementation.prototype.toString;
 // ********** Code for top level **************
 //  ********** Library node **************
 // ********** Code for process **************
@@ -2636,18 +2600,12 @@ AbstractLink.prototype.toString = function() {
   buffer.add(' ]');
   return buffer.toString();
 }
-AbstractLink.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
-};
-AbstractLink.prototype.iterator$0 = function() {
-  return this.iterator();
-};
+AbstractLink.prototype.isEmpty$0 = AbstractLink.prototype.isEmpty;
+AbstractLink.prototype.iterator$0 = AbstractLink.prototype.iterator;
 AbstractLink.prototype.printOn$1 = function($0) {
   return this.printOn(($0 && $0.is$StringBuffer()));
 };
-AbstractLink.prototype.toString$0 = function() {
-  return this.toString();
-};
+AbstractLink.prototype.toString$0 = AbstractLink.prototype.toString;
 // ********** Code for AbstractLink$Dynamic **************
 function AbstractLink$Dynamic() {
   // Initializers done
@@ -2715,9 +2673,7 @@ LinkTail.prototype.toList = function() {
 LinkTail.prototype.isEmpty = function() {
   return true;
 }
-LinkTail.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
-};
+LinkTail.prototype.isEmpty$0 = LinkTail.prototype.isEmpty;
 // ********** Code for LinkTail$Dynamic **************
 function LinkTail$Dynamic() {
   // Initializers done
@@ -2792,9 +2748,7 @@ LinkEntry.prototype.toList = function() {
   }
   return list;
 }
-LinkEntry.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
-};
+LinkEntry.prototype.isEmpty$0 = LinkEntry.prototype.isEmpty;
 // ********** Code for LinkEntry$Dynamic **************
 function LinkEntry$Dynamic(head, realTail) {
   this.head = head;
@@ -3562,7 +3516,9 @@ AbstractScanner.prototype.tokenizeMultiLineString = function(q, start, raw) {
   }
   return next;
 }
-AbstractScanner.prototype.appendByteStringToken$2 = AbstractScanner.prototype.appendByteStringToken;
+AbstractScanner.prototype.appendByteStringToken$2 = function($0, $1) {
+  return this.appendByteStringToken($assert_num($0), $1);
+};
 // ********** Code for AbstractScanner$S **************
 function AbstractScanner$S() {
   // Initializers done
@@ -4151,9 +4107,7 @@ function MalformedInputException(message) {
 MalformedInputException.prototype.toString = function() {
   return this.message.toString$0();
 }
-MalformedInputException.prototype.toString$0 = function() {
-  return this.toString();
-};
+MalformedInputException.prototype.toString$0 = MalformedInputException.prototype.toString;
 // ********** Code for ScannerTask **************
 function ScannerTask(compiler) {
   // Initializers done
@@ -5527,9 +5481,7 @@ Listener.prototype.endFunctionTypeAlias$1 = function($0) {
 Listener.prototype.endIfStatement$2 = function($0, $1) {
   return this.endIfStatement(($0 && $0.is$Token()), ($1 && $1.is$Token()));
 };
-Listener.prototype.endInitializedIdentifier$0 = function() {
-  return this.endInitializedIdentifier();
-};
+Listener.prototype.endInitializedIdentifier$0 = Listener.prototype.endInitializedIdentifier;
 Listener.prototype.endInitializer$1 = function($0) {
   return this.endInitializer(($0 && $0.is$Token()));
 };
@@ -5635,9 +5587,7 @@ Listener.prototype.handleVoidKeyword$1 = function($0) {
 Listener.prototype.unexpected$1 = function($0) {
   return this.unexpected(($0 && $0.is$Token()));
 };
-Listener.prototype.unexpectedEof$0 = function() {
-  return this.unexpectedEof();
-};
+Listener.prototype.unexpectedEof$0 = Listener.prototype.unexpectedEof;
 // ********** Code for ParserError **************
 function ParserError(reason) {
   this.reason = reason;
@@ -5646,9 +5596,7 @@ function ParserError(reason) {
 ParserError.prototype.toString = function() {
   return this.reason;
 }
-ParserError.prototype.toString$0 = function() {
-  return this.toString();
-};
+ParserError.prototype.toString$0 = ParserError.prototype.toString;
 // ********** Code for ElementListener **************
 function ElementListener(canceler) {
   this.previousIdentifier = null
@@ -5786,9 +5734,7 @@ ElementListener.prototype.handleNoType$1 = function($0) {
 ElementListener.prototype.unexpected$1 = function($0) {
   return this.unexpected(($0 && $0.is$Token()));
 };
-ElementListener.prototype.unexpectedEof$0 = function() {
-  return this.unexpectedEof();
-};
+ElementListener.prototype.unexpectedEof$0 = ElementListener.prototype.unexpectedEof;
 // ********** Code for NodeListener **************
 function NodeListener(canceler, logger) {
   this.logger = logger;
@@ -6143,15 +6089,11 @@ SubstringWrapper.prototype.toString = function() {
 SubstringWrapper.prototype.get$stringValue = function() {
   return this.toString();
 }
-SubstringWrapper.prototype.hashCode$0 = function() {
-  return this.hashCode();
-};
+SubstringWrapper.prototype.hashCode$0 = SubstringWrapper.prototype.hashCode;
 SubstringWrapper.prototype.printOn$1 = function($0) {
   return this.printOn(($0 && $0.is$StringBuffer()));
 };
-SubstringWrapper.prototype.toString$0 = function() {
-  return this.toString();
-};
+SubstringWrapper.prototype.toString$0 = SubstringWrapper.prototype.toString;
 // ********** Code for Token **************
 function Token(kind, charOffset) {
   this.kind = kind;
@@ -6173,9 +6115,7 @@ Token.prototype.toString = function() {
 Token.prototype.next$0 = function() {
   return this.next();
 };
-Token.prototype.toString$0 = function() {
-  return this.toString();
-};
+Token.prototype.toString$0 = Token.prototype.toString;
 // ********** Code for KeywordToken **************
 function KeywordToken(value, charOffset) {
   this.value = value;
@@ -6190,9 +6130,7 @@ KeywordToken.prototype.get$stringValue = function() {
 KeywordToken.prototype.toString = function() {
   return this.value.syntax;
 }
-KeywordToken.prototype.toString$0 = function() {
-  return this.toString();
-};
+KeywordToken.prototype.toString$0 = KeywordToken.prototype.toString;
 // ********** Code for StringToken **************
 function StringToken(kind, value, charOffset) {
   // Initializers done
@@ -6212,9 +6150,7 @@ StringToken.prototype.get$stringValue = function() {
 StringToken.prototype.toString = function() {
   return this.value.toString();
 }
-StringToken.prototype.toString$0 = function() {
-  return this.toString();
-};
+StringToken.prototype.toString$0 = StringToken.prototype.toString;
 // ********** Code for StringWrapper **************
 function StringWrapper(internalString) {
   this.internalString = internalString;
@@ -6236,15 +6172,11 @@ StringWrapper.prototype.toString = function() {
 StringWrapper.prototype.get$stringValue = function() {
   return this.internalString;
 }
-StringWrapper.prototype.hashCode$0 = function() {
-  return this.hashCode();
-};
+StringWrapper.prototype.hashCode$0 = StringWrapper.prototype.hashCode;
 StringWrapper.prototype.printOn$1 = function($0) {
   return this.printOn(($0 && $0.is$StringBuffer()));
 };
-StringWrapper.prototype.toString$0 = function() {
-  return this.toString();
-};
+StringWrapper.prototype.toString$0 = StringWrapper.prototype.toString;
 // ********** Code for BeginGroupToken **************
 function BeginGroupToken(kind, value, charOffset) {
   // Initializers done
@@ -6292,15 +6224,11 @@ Keyword.prototype.toString = function() {
 Keyword.prototype.get$stringValue = function() {
   return this.syntax;
 }
-Keyword.prototype.hashCode$0 = function() {
-  return this.hashCode();
-};
+Keyword.prototype.hashCode$0 = Keyword.prototype.hashCode;
 Keyword.prototype.printOn$1 = function($0) {
   return this.printOn(($0 && $0.is$StringBuffer()));
 };
-Keyword.prototype.toString$0 = function() {
-  return this.toString();
-};
+Keyword.prototype.toString$0 = Keyword.prototype.toString;
 // ********** Code for KeywordState **************
 function KeywordState() {
   // Initializers done
@@ -6378,9 +6306,7 @@ ArrayKeywordState.prototype.toString = function() {
   sb.add("]");
   return sb.toString();
 }
-ArrayKeywordState.prototype.toString$0 = function() {
-  return this.toString();
-};
+ArrayKeywordState.prototype.toString$0 = ArrayKeywordState.prototype.toString;
 // ********** Code for LeafKeywordState **************
 function LeafKeywordState(syntax) {
   this.keyword = Keyword.get$keywords().$index(syntax);
@@ -6399,9 +6325,7 @@ LeafKeywordState.prototype.next = function(c) {
 LeafKeywordState.prototype.toString = function() {
   return this.keyword.syntax;
 }
-LeafKeywordState.prototype.toString$0 = function() {
-  return this.toString();
-};
+LeafKeywordState.prototype.toString$0 = LeafKeywordState.prototype.toString;
 // ********** Code for top level **************
 function parse(canceler, logger, doParse) {
   var listener = new NodeListener(canceler, logger);
@@ -6440,18 +6364,10 @@ Node.prototype.asSend = function() {
 Node.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-Node.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-Node.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
-Node.prototype.hashCode$0 = function() {
-  return this.hashCode();
-};
-Node.prototype.toString$0 = function() {
-  return this.toString();
-};
+Node.prototype.getBeginToken$0 = Node.prototype.getBeginToken;
+Node.prototype.getEndToken$0 = Node.prototype.getEndToken;
+Node.prototype.hashCode$0 = Node.prototype.hashCode;
+Node.prototype.toString$0 = Node.prototype.toString;
 // ********** Code for ClassNode **************
 function ClassNode(name, superclass, interfaces, beginToken, extendsKeyword, endToken) {
   this.name = name;
@@ -6485,12 +6401,8 @@ ClassNode.prototype.getEndToken = function() {
 ClassNode.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-ClassNode.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-ClassNode.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+ClassNode.prototype.getBeginToken$0 = ClassNode.prototype.getBeginToken;
+ClassNode.prototype.getEndToken$0 = ClassNode.prototype.getEndToken;
 // ********** Code for Expression **************
 function Expression() {
   // Initializers done
@@ -6568,12 +6480,8 @@ Send.prototype.copyWithReceiver = function(receiver) {
 Send.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-Send.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-Send.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+Send.prototype.getBeginToken$0 = Send.prototype.getBeginToken;
+Send.prototype.getEndToken$0 = Send.prototype.getEndToken;
 // ********** Code for Postfix **************
 function Postfix() {
   // Initializers done
@@ -6657,12 +6565,8 @@ NodeList.prototype.getEndToken = function() {
 NodeList.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-NodeList.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-NodeList.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+NodeList.prototype.getBeginToken$0 = NodeList.prototype.getBeginToken;
+NodeList.prototype.getEndToken$0 = NodeList.prototype.getEndToken;
 // ********** Code for Block **************
 function Block(statements) {
   this.statements = statements;
@@ -6683,12 +6587,8 @@ Block.prototype.getEndToken = function() {
 Block.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-Block.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-Block.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+Block.prototype.getBeginToken$0 = Block.prototype.getBeginToken;
+Block.prototype.getEndToken$0 = Block.prototype.getEndToken;
 // ********** Code for If **************
 function If(condition, thenPart, elsePart, ifToken, elseToken) {
   this.condition = condition;
@@ -6716,12 +6616,8 @@ If.prototype.getEndToken = function() {
 If.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-If.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-If.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+If.prototype.getBeginToken$0 = If.prototype.getBeginToken;
+If.prototype.getEndToken$0 = If.prototype.getEndToken;
 // ********** Code for For **************
 function For(initializer, condition, update, body, forToken) {
   this.initializer = initializer;
@@ -6746,12 +6642,8 @@ For.prototype.getEndToken = function() {
 For.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-For.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-For.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+For.prototype.getBeginToken$0 = For.prototype.getBeginToken;
+For.prototype.getEndToken$0 = For.prototype.getEndToken;
 // ********** Code for FunctionExpression **************
 function FunctionExpression(name, parameters, body, returnType) {
   this.name = name;
@@ -6779,12 +6671,8 @@ FunctionExpression.prototype.getEndToken = function() {
 FunctionExpression.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-FunctionExpression.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-FunctionExpression.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+FunctionExpression.prototype.getBeginToken$0 = FunctionExpression.prototype.getBeginToken;
+FunctionExpression.prototype.getEndToken$0 = FunctionExpression.prototype.getEndToken;
 // ********** Code for Literal **************
 function Literal(token, handler) {
   this.token = token;
@@ -6799,12 +6687,8 @@ Literal.prototype.getBeginToken = function() {
 Literal.prototype.getEndToken = function() {
   return this.token;
 }
-Literal.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-Literal.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+Literal.prototype.getBeginToken$0 = Literal.prototype.getBeginToken;
+Literal.prototype.getEndToken$0 = Literal.prototype.getEndToken;
 // ********** Code for Literal$SourceString **************
 function Literal$SourceString(token, handler) {
   this.token = token;
@@ -6963,12 +6847,8 @@ Identifier.prototype.getEndToken = function() {
 Identifier.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-Identifier.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-Identifier.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+Identifier.prototype.getBeginToken$0 = Identifier.prototype.getBeginToken;
+Identifier.prototype.getEndToken$0 = Identifier.prototype.getEndToken;
 // ********** Code for Operator **************
 function Operator(token) {
   // Initializers done
@@ -7006,12 +6886,8 @@ Return.prototype.getEndToken = function() {
 Return.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-Return.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-Return.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+Return.prototype.getBeginToken$0 = Return.prototype.getBeginToken;
+Return.prototype.getEndToken$0 = Return.prototype.getEndToken;
 // ********** Code for ExpressionStatement **************
 function ExpressionStatement(expression, endToken) {
   this.expression = expression;
@@ -7034,12 +6910,8 @@ ExpressionStatement.prototype.getEndToken = function() {
 ExpressionStatement.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-ExpressionStatement.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-ExpressionStatement.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+ExpressionStatement.prototype.getBeginToken$0 = ExpressionStatement.prototype.getBeginToken;
+ExpressionStatement.prototype.getEndToken$0 = ExpressionStatement.prototype.getEndToken;
 // ********** Code for Throw **************
 function Throw(expression, throwToken, endToken) {
   this.expression = expression;
@@ -7061,12 +6933,8 @@ Throw.prototype.getEndToken = function() {
 Throw.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-Throw.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-Throw.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+Throw.prototype.getBeginToken$0 = Throw.prototype.getBeginToken;
+Throw.prototype.getEndToken$0 = Throw.prototype.getEndToken;
 // ********** Code for TypeAnnotation **************
 function TypeAnnotation(typeName) {
   this.typeName = typeName;
@@ -7090,12 +6958,8 @@ TypeAnnotation.prototype.getEndToken = function() {
 TypeAnnotation.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-TypeAnnotation.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-TypeAnnotation.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+TypeAnnotation.prototype.getBeginToken$0 = TypeAnnotation.prototype.getBeginToken;
+TypeAnnotation.prototype.getEndToken$0 = TypeAnnotation.prototype.getEndToken;
 // ********** Code for VariableDefinitions **************
 function VariableDefinitions(type, modifiers, definitions, endToken) {
   this.type = type;
@@ -7121,12 +6985,8 @@ VariableDefinitions.prototype.getEndToken = function() {
 VariableDefinitions.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$Visitor()));
 };
-VariableDefinitions.prototype.getBeginToken$0 = function() {
-  return this.getBeginToken();
-};
-VariableDefinitions.prototype.getEndToken$0 = function() {
-  return this.getEndToken();
-};
+VariableDefinitions.prototype.getBeginToken$0 = VariableDefinitions.prototype.getBeginToken;
+VariableDefinitions.prototype.getEndToken$0 = VariableDefinitions.prototype.getEndToken;
 // ********** Code for Unparser **************
 function Unparser(printDebugInfo) {
   this.printDebugInfo = printDebugInfo;
@@ -7427,9 +7287,7 @@ ElementKind.prototype.get$id = function() { return this.id; };
 ElementKind.prototype.toString = function() {
   return this.id;
 }
-ElementKind.prototype.toString$0 = function() {
-  return this.toString();
-};
+ElementKind.prototype.toString$0 = ElementKind.prototype.toString;
 // ********** Code for Element **************
 function Element(name, kind, enclosingElement) {
   this.name = name;
@@ -7446,9 +7304,7 @@ Element.prototype.hashCode = function() {
 Element.prototype.computeType$2 = function($0, $1) {
   return this.computeType(($0 && $0.is$Compiler()), ($1 && $1.is$Types()));
 };
-Element.prototype.hashCode$0 = function() {
-  return this.hashCode();
-};
+Element.prototype.hashCode$0 = Element.prototype.hashCode;
 // ********** Code for VariableElement **************
 function VariableElement(node, typeAnnotation, kind, name, enclosingElement) {
   this.node = node;
@@ -7509,7 +7365,9 @@ FunctionElement.prototype.computeType = function(compiler, types) {
   this.type = new FunctionType(returnType, (($0 = parameterTypes.toLink()) && $0.is$Link$Type()));
   return (($0 = this.type) && $0.is$FunctionType());
 }
-FunctionElement.prototype.computeType$2 = FunctionElement.prototype.computeType;
+FunctionElement.prototype.computeType$2 = function($0, $1) {
+  return this.computeType(($0 && $0.is$Compiler()), $1);
+};
 // ********** Code for ClassElement **************
 function ClassElement(name) {
   this.interfaces = const$205/*const EmptyLink<Type>()*/
@@ -8711,9 +8569,7 @@ HInstructionList.prototype.contains = function(instruction) {
 HInstructionList.prototype.contains$1 = function($0) {
   return this.contains(($0 && $0.is$HInstruction()));
 };
-HInstructionList.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
-};
+HInstructionList.prototype.isEmpty$0 = HInstructionList.prototype.isEmpty;
 HInstructionList.prototype.last$0 = function() {
   return this.last();
 };
@@ -8943,10 +8799,10 @@ HBasicBlock.prototype.accept$1 = function($0) {
 HBasicBlock.prototype.add$1 = function($0) {
   return this.add(($0 && $0.is$HInstruction()));
 };
-HBasicBlock.prototype.forEachPhi$1 = HBasicBlock.prototype.forEachPhi;
-HBasicBlock.prototype.isExitBlock$0 = function() {
-  return this.isExitBlock();
+HBasicBlock.prototype.forEachPhi$1 = function($0) {
+  return this.forEachPhi(to$call$1($0));
 };
+HBasicBlock.prototype.isExitBlock$0 = HBasicBlock.prototype.isExitBlock;
 HBasicBlock.prototype.removePhi$1 = function($0) {
   return this.removePhi(($0 && $0.is$HPhi()));
 };
@@ -9163,30 +9019,16 @@ HInstruction.prototype.block$0 = function() {
 HInstruction.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 && $0.is$HInstruction()));
 };
-HInstruction.prototype.hashCode$0 = function() {
-  return this.hashCode();
-};
-HInstruction.prototype.isInBasicBlock$0 = function() {
-  return this.isInBasicBlock();
-};
-HInstruction.prototype.isLiteralNumber$0 = function() {
-  return this.isLiteralNumber();
-};
-HInstruction.prototype.isLiteralString$0 = function() {
-  return this.isLiteralString();
-};
-HInstruction.prototype.isNumber$0 = function() {
-  return this.isNumber();
-};
-HInstruction.prototype.isUnknown$0 = function() {
-  return this.isUnknown();
-};
+HInstruction.prototype.hashCode$0 = HInstruction.prototype.hashCode;
+HInstruction.prototype.isInBasicBlock$0 = HInstruction.prototype.isInBasicBlock;
+HInstruction.prototype.isLiteralNumber$0 = HInstruction.prototype.isLiteralNumber;
+HInstruction.prototype.isLiteralString$0 = HInstruction.prototype.isLiteralString;
+HInstruction.prototype.isNumber$0 = HInstruction.prototype.isNumber;
+HInstruction.prototype.isUnknown$0 = HInstruction.prototype.isUnknown;
 HInstruction.prototype.next$0 = function() {
   return this.next();
 };
-HInstruction.prototype.setGenerateAtUseSite$0 = function() {
-  return this.setGenerateAtUseSite();
-};
+HInstruction.prototype.setGenerateAtUseSite$0 = HInstruction.prototype.setGenerateAtUseSite;
 // ********** Code for HBoolify **************
 function HBoolify(value) {
   // Initializers done
@@ -9251,18 +9093,14 @@ function HConditionalBranch(inputs) {
   HControlFlow.call(this, inputs);
 }
 $inherits(HConditionalBranch, HControlFlow);
-HConditionalBranch.prototype.toString$0 = function() {
-  return this.toString();
-};
+HConditionalBranch.prototype.toString$0 = HConditionalBranch.prototype.toString;
 // ********** Code for HControlFlow **************
 function HControlFlow(inputs) {
   // Initializers done
   HInstruction.call(this, inputs);
 }
 $inherits(HControlFlow, HInstruction);
-HControlFlow.prototype.toString$0 = function() {
-  return this.toString();
-};
+HControlFlow.prototype.toString$0 = HControlFlow.prototype.toString;
 // ********** Code for HInvoke **************
 function HInvoke(element, inputs) {
   this.element = element;
@@ -9280,9 +9118,7 @@ HInvoke.prototype.accept = function(visitor) {
 HInvoke.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HInvoke.prototype.toString$0 = function() {
-  return this.toString();
-};
+HInvoke.prototype.toString$0 = HInvoke.prototype.toString;
 // ********** Code for HInvokeForeign **************
 function HInvokeForeign(element, inputs, code) {
   this.code = code;
@@ -9477,9 +9313,7 @@ HExit.prototype.accept = function(visitor) {
 HExit.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HExit.prototype.toString$0 = function() {
-  return this.toString();
-};
+HExit.prototype.toString$0 = HExit.prototype.toString;
 // ********** Code for HGoto **************
 function HGoto() {
   // Initializers done
@@ -9495,9 +9329,7 @@ HGoto.prototype.accept = function(visitor) {
 HGoto.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HGoto.prototype.toString$0 = function() {
-  return this.toString();
-};
+HGoto.prototype.toString$0 = HGoto.prototype.toString;
 // ********** Code for HIf **************
 function HIf(condition, hasElse) {
   this.hasElse = hasElse;
@@ -9514,9 +9346,7 @@ HIf.prototype.accept = function(visitor) {
 HIf.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HIf.prototype.toString$0 = function() {
-  return this.toString();
-};
+HIf.prototype.toString$0 = HIf.prototype.toString;
 // ********** Code for HLoopBranch **************
 function HLoopBranch(condition) {
   // Initializers done
@@ -9532,9 +9362,7 @@ HLoopBranch.prototype.accept = function(visitor) {
 HLoopBranch.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HLoopBranch.prototype.toString$0 = function() {
-  return this.toString();
-};
+HLoopBranch.prototype.toString$0 = HLoopBranch.prototype.toString;
 // ********** Code for HLiteral **************
 function HLiteral(value) {
   this.value = value;
@@ -9588,15 +9416,9 @@ HLiteral.prototype.accept$1 = function($0) {
 HLiteral.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 && $0.is$HLiteral()));
 };
-HLiteral.prototype.isLiteralNumber$0 = function() {
-  return this.isLiteralNumber();
-};
-HLiteral.prototype.isLiteralString$0 = function() {
-  return this.isLiteralString();
-};
-HLiteral.prototype.toString$0 = function() {
-  return this.toString();
-};
+HLiteral.prototype.isLiteralNumber$0 = HLiteral.prototype.isLiteralNumber;
+HLiteral.prototype.isLiteralString$0 = HLiteral.prototype.isLiteralString;
+HLiteral.prototype.toString$0 = HLiteral.prototype.toString;
 // ********** Code for HNot **************
 function HNot(value) {
   // Initializers done
@@ -9647,9 +9469,7 @@ HParameterValue.prototype.accept = function(visitor) {
 HParameterValue.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HParameterValue.prototype.toString$0 = function() {
-  return this.toString();
-};
+HParameterValue.prototype.toString$0 = HParameterValue.prototype.toString;
 // ********** Code for HPhi **************
 function HPhi() {}
 HPhi.singleInput$ctor = function(element, input) {
@@ -9690,9 +9510,7 @@ HPhi.prototype.accept = function(visitor) {
 HPhi.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HPhi.prototype.toString$0 = function() {
-  return this.toString();
-};
+HPhi.prototype.toString$0 = HPhi.prototype.toString;
 // ********** Code for HRelational **************
 function HRelational(element, inputs) {
   // Initializers done
@@ -9849,9 +9667,7 @@ HReturn.prototype.accept = function(visitor) {
 HReturn.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HReturn.prototype.toString$0 = function() {
-  return this.toString();
-};
+HReturn.prototype.toString$0 = HReturn.prototype.toString;
 // ********** Code for HThrow **************
 function HThrow(value) {
   // Initializers done
@@ -9867,9 +9683,7 @@ HThrow.prototype.accept = function(visitor) {
 HThrow.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HThrow.prototype.toString$0 = function() {
-  return this.toString();
-};
+HThrow.prototype.toString$0 = HThrow.prototype.toString;
 // ********** Code for HNonSsaInstruction **************
 function HNonSsaInstruction(inputs) {
   // Initializers done
@@ -9902,9 +9716,7 @@ HLoad.prototype.accept = function(visitor) {
 HLoad.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HLoad.prototype.toString$0 = function() {
-  return this.toString();
-};
+HLoad.prototype.toString$0 = HLoad.prototype.toString;
 // ********** Code for HStore **************
 function HStore(local, value) {
   // Initializers done
@@ -9928,9 +9740,7 @@ HStore.prototype.accept = function(visitor) {
 HStore.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HStore.prototype.toString$0 = function() {
-  return this.toString();
-};
+HStore.prototype.toString$0 = HStore.prototype.toString;
 // ********** Code for HLocal **************
 function HLocal(element) {
   this.element = element;
@@ -9951,9 +9761,7 @@ HLocal.prototype.accept = function(visitor) {
 HLocal.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
-HLocal.prototype.toString$0 = function() {
-  return this.toString();
-};
+HLocal.prototype.toString$0 = HLocal.prototype.toString;
 // ********** Code for SsaOptimizerTask **************
 function SsaOptimizerTask(compiler) {
   // Initializers done
@@ -10652,9 +10460,7 @@ HTracer.prototype.toString = function() {
 HTracer.prototype.add$1 = function($0) {
   return this.add($assert_String($0));
 };
-HTracer.prototype.toString$0 = function() {
-  return this.toString();
-};
+HTracer.prototype.toString$0 = HTracer.prototype.toString;
 // ********** Code for HInstructionStringifier **************
 function HInstructionStringifier(currentBlock) {
   this.currentBlock = currentBlock;
@@ -11042,9 +10848,7 @@ ValueSet.prototype.tableIndexForInstruction = function(instruction) {
 ValueSet.prototype.add$1 = function($0) {
   return this.add(($0 && $0.is$HInstruction()));
 };
-ValueSet.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
-};
+ValueSet.prototype.isEmpty$0 = ValueSet.prototype.isEmpty;
 ValueSet.prototype.lookup$1 = function($0) {
   return this.lookup(($0 && $0.is$HInstruction()));
 };
@@ -11193,9 +10997,7 @@ CompilerCancelledException.prototype.toString = function() {
   var banner = 'compiler cancelled';
   return (this.reason != null) ? ('' + banner + ': ' + this.reason) : ('' + banner);
 }
-CompilerCancelledException.prototype.toString$0 = function() {
-  return this.toString();
-};
+CompilerCancelledException.prototype.toString$0 = CompilerCancelledException.prototype.toString;
 // ********** Code for ResolverTask **************
 function ResolverTask(compiler) {
   this.toResolve = new DoubleLinkedQueue();
@@ -11686,9 +11488,7 @@ SimpleType.prototype.get$element = function() { return this.element; };
 SimpleType.prototype.toString = function() {
   return this.name.toString();
 }
-SimpleType.prototype.toString$0 = function() {
-  return this.toString();
-};
+SimpleType.prototype.toString$0 = SimpleType.prototype.toString;
 // ********** Code for FunctionType **************
 function FunctionType(returnType, parameterTypes) {
   this.returnType = returnType;
@@ -11706,9 +11506,7 @@ FunctionType.prototype.toString = function() {
   sb.add((') -> ' + this.returnType));
   return sb.toString();
 }
-FunctionType.prototype.toString$0 = function() {
-  return this.toString();
-};
+FunctionType.prototype.toString$0 = FunctionType.prototype.toString;
 // ********** Code for Types **************
 function Types() {
   this.voidType = new SimpleType.named$ctor(const$6/*Types.VOID*/);
@@ -11995,9 +11793,7 @@ Message.prototype.toString = function() {
   }
   return this.message;
 }
-Message.prototype.toString$0 = function() {
-  return this.toString();
-};
+Message.prototype.toString$0 = Message.prototype.toString;
 // ********** Code for TypeWarning **************
 function TypeWarning(kind, arguments) {
   this.message = new Message(kind, arguments);
@@ -12006,9 +11802,7 @@ function TypeWarning(kind, arguments) {
 TypeWarning.prototype.toString = function() {
   return this.message.toString();
 }
-TypeWarning.prototype.toString$0 = function() {
-  return this.toString();
-};
+TypeWarning.prototype.toString$0 = TypeWarning.prototype.toString;
 // ********** Code for ResolutionError **************
 function ResolutionError(kind, arguments) {
   this.message = new Message(kind, arguments);
@@ -12017,9 +11811,7 @@ function ResolutionError(kind, arguments) {
 ResolutionError.prototype.toString = function() {
   return this.message.toString();
 }
-ResolutionError.prototype.toString$0 = function() {
-  return this.toString();
-};
+ResolutionError.prototype.toString$0 = ResolutionError.prototype.toString;
 // ********** Code for ResolutionWarning **************
 function ResolutionWarning(kind, arguments) {
   this.message = new Message(kind, arguments);
@@ -12028,9 +11820,7 @@ function ResolutionWarning(kind, arguments) {
 ResolutionWarning.prototype.toString = function() {
   return this.message.toString();
 }
-ResolutionWarning.prototype.toString$0 = function() {
-  return this.toString();
-};
+ResolutionWarning.prototype.toString$0 = ResolutionWarning.prototype.toString;
 // ********** Code for top level **************
 function unreachable() {
   $throw(const$275/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
@@ -14477,15 +14267,9 @@ Library.prototype.toString = function() {
 Library.prototype.findTypeByName$1 = function($0) {
   return this.findTypeByName($assert_String($0));
 };
-Library.prototype.resolve$0 = function() {
-  return this.resolve();
-};
-Library.prototype.toString$0 = function() {
-  return this.toString();
-};
-Library.prototype.visitSources$0 = function() {
-  return this.visitSources();
-};
+Library.prototype.resolve$0 = Library.prototype.resolve;
+Library.prototype.toString$0 = Library.prototype.toString;
+Library.prototype.visitSources$0 = Library.prototype.visitSources;
 // ********** Code for _LibraryVisitor **************
 function _LibraryVisitor(library) {
   this.seenImport = false
@@ -14899,12 +14683,8 @@ Member.prototype._set$4 = function($0, $1, $2, $3) {
 Member.prototype.canInvoke$2 = function($0, $1) {
   return this.canInvoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$Arguments()));
 };
-Member.prototype.computeValue$0 = function() {
-  return this.computeValue();
-};
-Member.prototype.hashCode$0 = function() {
-  return this.hashCode();
-};
+Member.prototype.computeValue$0 = Member.prototype.computeValue;
+Member.prototype.hashCode$0 = Member.prototype.hashCode;
 Member.prototype.invoke$4 = function($0, $1, $2, $3) {
   return this.invoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), ($3 && $3.is$Arguments()), false);
 };
@@ -14914,12 +14694,8 @@ Member.prototype.invoke$4$isDynamic = function($0, $1, $2, $3, isDynamic) {
 Member.prototype.invoke$5 = function($0, $1, $2, $3, $4) {
   return this.invoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), ($3 && $3.is$Arguments()), $assert_bool($4));
 };
-Member.prototype.provideFieldSyntax$0 = function() {
-  return this.provideFieldSyntax();
-};
-Member.prototype.providePropertySyntax$0 = function() {
-  return this.providePropertySyntax();
-};
+Member.prototype.provideFieldSyntax$0 = Member.prototype.provideFieldSyntax;
+Member.prototype.providePropertySyntax$0 = Member.prototype.providePropertySyntax;
 Member.prototype.resolve$1 = function($0) {
   return this.resolve(($0 && $0.is$lang_Type()));
 };
@@ -15156,15 +14932,9 @@ FieldMember.prototype._get$3 = function($0, $1, $2) {
 FieldMember.prototype._set$4 = function($0, $1, $2, $3) {
   return this._set(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), ($3 && $3.is$Value()), false);
 };
-FieldMember.prototype.computeValue$0 = function() {
-  return this.computeValue();
-};
-FieldMember.prototype.provideFieldSyntax$0 = function() {
-  return this.provideFieldSyntax();
-};
-FieldMember.prototype.providePropertySyntax$0 = function() {
-  return this.providePropertySyntax();
-};
+FieldMember.prototype.computeValue$0 = FieldMember.prototype.computeValue;
+FieldMember.prototype.provideFieldSyntax$0 = FieldMember.prototype.provideFieldSyntax;
+FieldMember.prototype.providePropertySyntax$0 = FieldMember.prototype.providePropertySyntax;
 FieldMember.prototype.resolve$1 = function($0) {
   return this.resolve(($0 && $0.is$lang_Type()));
 };
@@ -15265,12 +15035,8 @@ PropertyMember.prototype._get$3 = function($0, $1, $2) {
 PropertyMember.prototype._set$4 = function($0, $1, $2, $3) {
   return this._set(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), ($3 && $3.is$Value()), false);
 };
-PropertyMember.prototype.provideFieldSyntax$0 = function() {
-  return this.provideFieldSyntax();
-};
-PropertyMember.prototype.providePropertySyntax$0 = function() {
-  return this.providePropertySyntax();
-};
+PropertyMember.prototype.provideFieldSyntax$0 = PropertyMember.prototype.provideFieldSyntax;
+PropertyMember.prototype.providePropertySyntax$0 = PropertyMember.prototype.providePropertySyntax;
 PropertyMember.prototype.resolve$1 = function($0) {
   return this.resolve(($0 && $0.is$lang_Type()));
 };
@@ -15408,9 +15174,7 @@ ConcreteMember.prototype._set$4 = function($0, $1, $2, $3) {
 ConcreteMember.prototype.canInvoke$2 = function($0, $1) {
   return this.canInvoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$Arguments()));
 };
-ConcreteMember.prototype.computeValue$0 = function() {
-  return this.computeValue();
-};
+ConcreteMember.prototype.computeValue$0 = ConcreteMember.prototype.computeValue;
 ConcreteMember.prototype.invoke$4 = function($0, $1, $2, $3) {
   return this.invoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), ($3 && $3.is$Arguments()), false);
 };
@@ -15420,12 +15184,8 @@ ConcreteMember.prototype.invoke$4$isDynamic = function($0, $1, $2, $3, isDynamic
 ConcreteMember.prototype.invoke$5 = function($0, $1, $2, $3, $4) {
   return this.invoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), ($3 && $3.is$Arguments()), $assert_bool($4));
 };
-ConcreteMember.prototype.provideFieldSyntax$0 = function() {
-  return this.provideFieldSyntax();
-};
-ConcreteMember.prototype.providePropertySyntax$0 = function() {
-  return this.providePropertySyntax();
-};
+ConcreteMember.prototype.provideFieldSyntax$0 = ConcreteMember.prototype.provideFieldSyntax;
+ConcreteMember.prototype.providePropertySyntax$0 = ConcreteMember.prototype.providePropertySyntax;
 // ********** Code for MethodMember **************
 function MethodMember(name, declaringType, definition) {
   this.isStatic = false
@@ -15584,7 +15344,7 @@ MethodMember.prototype.needsArgumentConversion = function(args) {
    i < bareCount; i++) {
     var arg = args.values.$index(i);
     if ($notnull_bool(arg.needsConversion$1(this.parameters.$index(i).get$type()))) {
-      return false;
+      return true;
     }
   }
   if (bareCount < this.parameters.length) {
@@ -15593,11 +15353,11 @@ MethodMember.prototype.needsArgumentConversion = function(args) {
      i < this.parameters.length; i++) {
       var arg = args.getValue($assert_String(this.parameters.$index(i).get$name()));
       if ($notnull_bool($ne(arg, null)) && $notnull_bool(arg.needsConversion$1(this.parameters.$index(i).get$type()))) {
-        return false;
+        return true;
       }
     }
   }
-  return true;
+  return false;
 }
 MethodMember._argCountMsg = function(actual, expected, atLeast) {
   return 'wrong number of arguments, expected ' + ('' + ($notnull_bool(atLeast) ? "at least " : "") + expected + ' but found ' + actual);
@@ -16157,12 +15917,8 @@ MethodMember.prototype.invoke$5 = function($0, $1, $2, $3, $4) {
 MethodMember.prototype.namesInOrder$1 = function($0) {
   return this.namesInOrder(($0 && $0.is$Arguments()));
 };
-MethodMember.prototype.provideFieldSyntax$0 = function() {
-  return this.provideFieldSyntax();
-};
-MethodMember.prototype.providePropertySyntax$0 = function() {
-  return this.providePropertySyntax();
-};
+MethodMember.prototype.provideFieldSyntax$0 = MethodMember.prototype.provideFieldSyntax;
+MethodMember.prototype.providePropertySyntax$0 = MethodMember.prototype.providePropertySyntax;
 MethodMember.prototype.resolve$1 = function($0) {
   return this.resolve(($0 && $0.is$lang_Type()));
 };
@@ -16423,9 +16179,7 @@ MemberSet.prototype.invoke$4$isDynamic = function($0, $1, $2, $3, isDynamic) {
 MemberSet.prototype.invoke$5 = function($0, $1, $2, $3, $4) {
   return this.invoke(($0 && $0.is$MethodGenerator()), ($1 && $1.is$lang_Node()), ($2 && $2.is$Value()), ($3 && $3.is$Arguments()), $assert_bool($4));
 };
-MemberSet.prototype.toString$0 = function() {
-  return this.toString();
-};
+MemberSet.prototype.toString$0 = MemberSet.prototype.toString;
 // ********** Code for FactoryMap **************
 function FactoryMap() {
   this.factories = $map([]);
@@ -16455,7 +16209,9 @@ FactoryMap.prototype.forEach = function(f) {
   })
   );
 }
-FactoryMap.prototype.forEach$1 = FactoryMap.prototype.forEach;
+FactoryMap.prototype.forEach$1 = function($0) {
+  return this.forEach(to$call$1($0));
+};
 FactoryMap.prototype.getFactory$2 = function($0, $1) {
   return this.getFactory($assert_String($0), $assert_String($1));
 };
@@ -16490,9 +16246,7 @@ lang_Token.prototype.toString = function() {
 lang_Token.prototype.get$span = function() {
   return new SourceSpan(this.source, this.start, this.end);
 }
-lang_Token.prototype.toString$0 = function() {
-  return this.toString();
-};
+lang_Token.prototype.toString$0 = lang_Token.prototype.toString;
 // ********** Code for SourceFile **************
 function SourceFile(filename, _text) {
   this.filename = filename;
@@ -16991,9 +16745,7 @@ TokenizerBase.prototype.finishIdentifier = function(ch) {
     return this._finishToken(kind);
   }
 }
-TokenizerBase.prototype.next$0 = function() {
-  return this.next();
-};
+TokenizerBase.prototype.next$0 = TokenizerBase.prototype.next;
 // ********** Code for Tokenizer **************
 function Tokenizer(source, skipWhitespace, index) {
   // Initializers done
@@ -17521,9 +17273,7 @@ Tokenizer.prototype.getIdentifierKind = function() {
 
   }
 }
-Tokenizer.prototype.next$0 = function() {
-  return this.next();
-};
+Tokenizer.prototype.next$0 = Tokenizer.prototype.next;
 // ********** Code for TokenizerHelpers **************
 function TokenizerHelpers() {
   // Initializers done
@@ -19875,9 +19625,7 @@ lang_Parser.prototype._makeLabel = function(expr) {
     return null;
   }
 }
-lang_Parser.prototype.block$0 = function() {
-  return this.block();
-};
+lang_Parser.prototype.block$0 = lang_Parser.prototype.block;
 // ********** Code for IncompleteSourceException **************
 function IncompleteSourceException(token) {
   this.token = token;
@@ -19887,9 +19635,7 @@ IncompleteSourceException.prototype.toString = function() {
   if (this.token.get$span() == null) return ('Unexpected ' + this.token);
   return $assert_String(this.token.get$span().toMessageString(('Unexpected ' + this.token)));
 }
-IncompleteSourceException.prototype.toString$0 = function() {
-  return this.toString();
-};
+IncompleteSourceException.prototype.toString$0 = IncompleteSourceException.prototype.toString;
 // ********** Code for DivertedTokenSource **************
 function DivertedTokenSource(tokens, parser, previousTokenizer) {
   this._lang_pos = 0
@@ -19906,9 +19652,7 @@ DivertedTokenSource.prototype.next = function() {
   }
   return token;
 }
-DivertedTokenSource.prototype.next$0 = function() {
-  return this.next();
-};
+DivertedTokenSource.prototype.next$0 = DivertedTokenSource.prototype.next;
 // ********** Code for lang_Node **************
 function lang_Node(span) {
   this.span = span;
@@ -21200,18 +20944,14 @@ lang_Type.prototype.getMember$1 = function($0) {
 lang_Type.prototype.getOrMakeConcreteType$1 = function($0) {
   return this.getOrMakeConcreteType(($0 && $0.is$List$Type()));
 };
-lang_Type.prototype.hashCode$0 = function() {
-  return this.hashCode();
-};
+lang_Type.prototype.hashCode$0 = lang_Type.prototype.hashCode;
 lang_Type.prototype.isAssignable$1 = function($0) {
   return this.isAssignable(($0 && $0.is$lang_Type()));
 };
 lang_Type.prototype.isSubtypeOf$1 = function($0) {
   return this.isSubtypeOf(($0 && $0.is$lang_Type()));
 };
-lang_Type.prototype.markUsed$0 = function() {
-  return this.markUsed();
-};
+lang_Type.prototype.markUsed$0 = lang_Type.prototype.markUsed;
 lang_Type.prototype.resolveMember$1 = function($0) {
   return this.resolveMember($assert_String($0));
 };
@@ -21422,9 +21162,7 @@ NonNullableType.prototype.getOrMakeConcreteType$1 = function($0) {
 NonNullableType.prototype.isSubtypeOf$1 = function($0) {
   return this.isSubtypeOf(($0 && $0.is$lang_Type()));
 };
-NonNullableType.prototype.markUsed$0 = function() {
-  return this.markUsed();
-};
+NonNullableType.prototype.markUsed$0 = NonNullableType.prototype.markUsed;
 NonNullableType.prototype.resolveMember$1 = function($0) {
   return this.resolveMember($assert_String($0));
 };
@@ -21600,9 +21338,7 @@ ConcreteType.prototype.getMember$1 = function($0) {
 ConcreteType.prototype.getOrMakeConcreteType$1 = function($0) {
   return this.getOrMakeConcreteType(($0 && $0.is$List$Type()));
 };
-ConcreteType.prototype.markUsed$0 = function() {
-  return this.markUsed();
-};
+ConcreteType.prototype.markUsed$0 = ConcreteType.prototype.markUsed;
 ConcreteType.prototype.resolveTypeParams$1 = function($0) {
   return this.resolveTypeParams(($0 && $0.is$ConcreteType()));
 };
@@ -22155,12 +21891,8 @@ DefinedType.prototype.getMember$1 = function($0) {
 DefinedType.prototype.getOrMakeConcreteType$1 = function($0) {
   return this.getOrMakeConcreteType(($0 && $0.is$List$Type()));
 };
-DefinedType.prototype.markUsed$0 = function() {
-  return this.markUsed();
-};
-DefinedType.prototype.resolve$0 = function() {
-  return this.resolve();
-};
+DefinedType.prototype.markUsed$0 = DefinedType.prototype.markUsed;
+DefinedType.prototype.resolve$0 = DefinedType.prototype.resolve;
 DefinedType.prototype.resolveTypeParams$1 = function($0) {
   return this.resolveTypeParams(($0 && $0.is$ConcreteType()));
 };
@@ -22212,16 +21944,20 @@ FixedCollection.prototype.some = function(f) {
 FixedCollection.prototype.isEmpty = function() {
   return this.length == 0;
 }
-FixedCollection.prototype.every$1 = FixedCollection.prototype.every;
-FixedCollection.prototype.filter$1 = FixedCollection.prototype.filter;
-FixedCollection.prototype.forEach$1 = FixedCollection.prototype.forEach;
-FixedCollection.prototype.isEmpty$0 = function() {
-  return this.isEmpty();
+FixedCollection.prototype.every$1 = function($0) {
+  return this.every(to$call$1($0));
 };
-FixedCollection.prototype.iterator$0 = function() {
-  return this.iterator();
+FixedCollection.prototype.filter$1 = function($0) {
+  return this.filter(to$call$1($0));
 };
-FixedCollection.prototype.some$1 = FixedCollection.prototype.some;
+FixedCollection.prototype.forEach$1 = function($0) {
+  return this.forEach(to$call$1($0));
+};
+FixedCollection.prototype.isEmpty$0 = FixedCollection.prototype.isEmpty;
+FixedCollection.prototype.iterator$0 = FixedCollection.prototype.iterator;
+FixedCollection.prototype.some$1 = function($0) {
+  return this.some(to$call$1($0));
+};
 // ********** Code for FixedCollection$Type **************
 function FixedCollection$Type(value, length) {
   this.value = value;
@@ -22249,12 +21985,8 @@ FixedIterator.prototype.next = function() {
   this._index++;
   return this.value;
 }
-FixedIterator.prototype.hasNext$0 = function() {
-  return this.hasNext();
-};
-FixedIterator.prototype.next$0 = function() {
-  return this.next();
-};
+FixedIterator.prototype.hasNext$0 = FixedIterator.prototype.hasNext;
+FixedIterator.prototype.next$0 = FixedIterator.prototype.next;
 // ********** Code for FixedIterator$E **************
 function FixedIterator$E(value, length) {
   this._index = 0
@@ -22443,7 +22175,7 @@ Value.prototype.needsConversion = function(toType) {
       fromType = $globals.world.objectType;
     }
     var bothNum = $notnull_bool(this.type.get$isNum()) && $notnull_bool(toType.get$isNum());
-    return $notnull_bool(fromType.isSubtypeOf(toType)) || $notnull_bool(bothNum);
+    return !($notnull_bool(fromType.isSubtypeOf(toType)) || $notnull_bool(bothNum));
   }
   return false;
 }
@@ -22849,9 +22581,7 @@ CompilerException.prototype.toString = function() {
     return ('CompilerException: ' + this._lang_message);
   }
 }
-CompilerException.prototype.toString$0 = function() {
-  return this.toString();
-};
+CompilerException.prototype.toString$0 = CompilerException.prototype.toString;
 // ********** Code for World **************
 function World(files) {
   this.errors = 0
@@ -23407,7 +23137,7 @@ VarMethodStub.prototype.generateBody = function(code, end) {
   }
 }
 VarMethodStub.prototype._useDirectCall = function(member, args) {
-  if ((member instanceof MethodMember) && !$notnull_bool(member.declaringType.get$isHiddenNativeType())) {
+  if ((member instanceof MethodMember) && !$notnull_bool(member.declaringType.get$isNativeType())) {
     var method = (member && member.is$MethodMember());
     if ($notnull_bool(method.needsArgumentConversion(args))) {
       return false;

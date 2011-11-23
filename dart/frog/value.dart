@@ -229,7 +229,7 @@ class Value {
         fromType = world.objectType;
       }
       bool bothNum = type.isNum && toType.isNum;
-      return fromType.isSubtypeOf(toType) || bothNum;
+      return !(fromType.isSubtypeOf(toType) || bothNum);
     }
     return false;
   }
