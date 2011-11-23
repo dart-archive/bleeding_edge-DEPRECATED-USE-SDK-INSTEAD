@@ -19168,12 +19168,16 @@ lang_Parser.prototype.finishPostfixExpression = function(expr) {
   }
 }
 lang_Parser.prototype.finishCallOrLambdaExpression = function(expr) {
+  var $0;
   if ($notnull_bool(this._atClosureParameters())) {
     var formals = this.formalParameterList();
     var body = this.functionBody(true);
     return this._makeFunction(expr, formals, body);
   }
   else {
+    if ((expr instanceof DeclaredIdentifier)) {
+      this._lang_error('illegal target for call, did you mean to declare a function?', (($0 = expr.get$span()) && $0.is$SourceSpan()));
+    }
     var args = this.arguments();
     return this.finishPostfixExpression(new CallExpression(expr, args, this._makeSpan($assert_num(expr.get$span().get$start()))));
   }
@@ -19538,7 +19542,7 @@ lang_Parser.parseHex = function(hex) {
   for (var i = 0;
    i < hex.length; i++) {
     var digit = lang_Parser._hexDigit(hex.charCodeAt(i));
-    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1339, 14);
+    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1343, 14);
     result = (result << 4) + $assert_num(digit);
   }
   return $assert_num(result);

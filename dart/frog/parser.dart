@@ -973,6 +973,10 @@ class Parser {
       var body = functionBody(true);
       return _makeFunction(expr, formals, body);
     } else {
+      if (expr is DeclaredIdentifier) {
+        _error('illegal target for call, did you mean to declare a function?',
+          expr.span);
+      }
       var args = arguments();
       return finishPostfixExpression(
           new CallExpression(expr, args, _makeSpan(expr.span.start)));
