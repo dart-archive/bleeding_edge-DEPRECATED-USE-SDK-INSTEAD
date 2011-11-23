@@ -87,6 +87,9 @@ class Compiler implements Canceler, Logger {
   }
 
   String compileMethod(Element element) {
+    if (universe.generatedCode.containsKey(element)) {
+      return universe.generatedCode[element];
+    }
     Node tree = parser.parse(element);
     Map<Node, Element> elements = resolver.resolve(tree);
     checker.check(tree, elements);
