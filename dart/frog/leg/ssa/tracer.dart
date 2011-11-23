@@ -172,6 +172,9 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Goto: (B${target.id})";
   }
 
+  String visitGreater(HGreater node) => visitInvoke(node);
+  String visitGreaterEqual(HGreaterEqual node) => visitInvoke(node);
+
   String visitIf(HIf node) {
     HBasicBlock thenBlock = currentBlock.successors[0];
     HBasicBlock elseBlock = currentBlock.successors[1];
@@ -196,6 +199,9 @@ class HInstructionStringifier implements HVisitor<String> {
     return visitGenericInvoke("InvokeForeign", invoke);
   }
 
+  String visitLess(HLess node) => visitInvoke(node);
+  String visitLessEqual(HLessEqual node) => visitInvoke(node);
+
   String visitLiteral(HLiteral literal) => "Literal ${literal.value}";
 
   String visitLoad(HLoad node) => "Load: ${temporaryId(node.inputs[0])}";
@@ -214,6 +220,8 @@ class HInstructionStringifier implements HVisitor<String> {
     String conditionId = temporaryId(branch.inputs[0]);
     return "While ($conditionId): (B${bodyBlock.id}) then (B${exitBlock.id})";
   }
+
+  String visitModulo(HModulo node) => visitInvoke(node);
 
   String visitMultiply(HMultiply node) => visitInvoke(node);
 

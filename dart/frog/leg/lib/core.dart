@@ -30,12 +30,16 @@ sub(var a, var b) {
   return JS(@"$0 - $1", a, b);
 }
 
-eq(var a, var b) {
-  return JS(@"$0 == $1", a, b);
-}
-
-lt(var a, var b) {
-  return JS(@"$0 < $1", a, b);
+mod(var a, var b) {
+  // Euclidean Modulo.
+  int result = JS(@"$0 % $1", a, b);
+  if (result == 0) return 0;  // Make sure we don't return -0.0.
+  if (result > 0) return result;
+  if (b < 0) {
+    return result - b;
+  } else {
+    return result + b;
+  }
 }
 
 tdiv(var a, var b) {
@@ -47,4 +51,24 @@ tdiv(var a, var b) {
   } else {
     return JS(@"Math.floor($0)", tmp);
   }
+}
+
+eq(var a, var b) {
+  return JS(@"$0 === $1", a, b);
+}
+
+gt(var a, var b) {
+  return JS(@"$0 > $1", a, b);
+}
+
+ge(var a, var b) {
+  return JS(@"$0 >= $1", a, b);
+}
+
+lt(var a, var b) {
+  return JS(@"$0 < $1", a, b);
+}
+
+le(var a, var b) {
+  return JS(@"$0 <= $1", a, b);
 }

@@ -10,13 +10,18 @@ interface HVisitor<R> {
   R visitEquals(HEquals node);
   R visitExit(HExit node);
   R visitGoto(HGoto node);
+  R visitGreater(HGreater node);
+  R visitGreaterEqual(HGreaterEqual node);
   R visitIf(HIf node);
+  R visitLess(HLess node);
+  R visitLessEqual(HLessEqual node);
   R visitLoad(HLoad node);
   R visitLocal(HLocal node);
   R visitLoopBranch(HLoopBranch node);
   R visitInvoke(HInvoke node);
   R visitInvokeForeign(HInvokeForeign node);
   R visitLiteral(HLiteral node);
+  R visitModulo(HModulo node);
   R visitNot(HNot node);
   R visitParameter(HParameter node);
   R visitPhi(HPhi node);
@@ -67,6 +72,7 @@ class HInstructionVisitor extends HGraphVisitor {
       while (instruction !== null) {
         visitInstruction(instruction);
         instruction = instruction.next;
+        assert(instruction != list.first);
       }
     }
 
@@ -156,19 +162,25 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitArithmetic(HArithmetic node) => visitInvoke(node);
   visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
   visitControlFlow(HControlFlow node) => visitInstruction(node);
+  visitRelational(HRelational node) => visitInstruction(node);
 
   visitAdd(HAdd node) => visitArithmetic(node);
   visitBoolify(HBoolify node) => visitInstruction(node);
   visitDivide(HDivide node) => visitArithmetic(node);
-  visitEquals(HEquals node) => visitInvoke(node);
+  visitEquals(HEquals node) => visitRelational(node);
   visitExit(HExit node) => visitControlFlow(node);
   visitGoto(HGoto node) => visitControlFlow(node);
+  visitGreater(HGreater node) => visitRelational(node);
+  visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
   visitIf(HIf node) => visitConditionalBranch(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
   visitInvokeForeign(HInvokeForeign node) => visitInvoke(node);
+  visitLess(HLess node) => visitRelational(node);
+  visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLoad(HLoad node) => visitInstruction(node);
   visitLocal(HLocal node) => visitInstruction(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
+  visitModulo(HModulo node) => visitArithmetic(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitNot(HNot node) => visitInstruction(node);
   visitPhi(HPhi node) => visitInstruction(node);
@@ -802,6 +814,14 @@ class HDivide extends HArithmetic {
   bool dataEquals(HInstruction other) => true;
 }
 
+class HModulo extends HArithmetic {
+  HModulo(element, inputs) : super(element, inputs);
+  accept(HVisitor visitor) => visitor.visitModulo(this);
+  num evaluate(num a, num b) => a % b;
+  bool typeEquals(other) => other is HModulo;
+  bool dataEquals(HInstruction other) => true;
+}
+
 class HMultiply extends HArithmetic {
   HMultiply(element, inputs) : super(element, inputs);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
@@ -823,35 +843,6 @@ class HTruncatingDivide extends HArithmetic {
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
   num evaluate(num a, num b) => a ~/ b;
   bool typeEquals(other) => other is HTruncatingDivide;
-  bool dataEquals(HInstruction other) => true;
-}
-
-class HEquals extends HInvoke {
-  HEquals(element, inputs) : super(element, inputs);
-
-  void prepareGvn() {
-    // An equality check expression can take part in global value
-    // numbering and do not have any side-effects if we know the
-    // result of it is a boolean.
-    if (isBoolean()) {
-      assert(!hasSideEffects());
-      setUseGvn();
-    } else {
-      setAllSideEffects();
-    }
-  }
-
-  int computeType() {
-    // TODO(kasperl): We should be able to deal with more types
-    // here. For now, we only care about numbers.
-    int inputsType = computeInputsType();
-    return (inputsType == TYPE_NUMBER)
-        ? TYPE_BOOLEAN
-        : TYPE_UNKNOWN;
-  }
-
-  accept(HVisitor visitor) => visitor.visitEquals(this);
-  bool typeEquals(other) => other is HEquals;
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -961,6 +952,74 @@ class HPhi extends HInstruction {
 
   toString() => 'phi';
   accept(HVisitor visitor) => visitor.visitPhi(this);
+}
+
+class HRelational extends HInvoke {
+  HRelational(Element element, List<HInstruction> inputs)
+      : super(element, inputs);
+
+  void prepareGvn() {
+    // Relational expressions can take part in global value
+    // numbering and do not have any side-effects if we know the
+    // result of it is a boolean.
+    if (isBoolean()) {
+      assert(!hasSideEffects());
+      setUseGvn();
+    } else {
+      setAllSideEffects();
+    }
+  }
+
+  int computeType() {
+    // TODO(kasperl): We should be able to deal with more types
+    // in the HEquals case. For now, we only care about numbers.
+    int inputsType = computeInputsType();
+    return (inputsType == TYPE_NUMBER)
+        ? TYPE_BOOLEAN
+        : TYPE_UNKNOWN;
+  }
+
+  abstract bool evaluate(num a, num b);
+}
+
+class HEquals extends HRelational {
+  HEquals(element, inputs) : super(element, inputs);
+  bool evaluate(num a, num b) => a == b;
+  accept(HVisitor visitor) => visitor.visitEquals(this);
+  bool typeEquals(other) => other is HEquals;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HGreater extends HRelational {
+  HGreater(element, inputs) : super(element, inputs);
+  bool evaluate(num a, num b) => a > b;
+  accept(HVisitor visitor) => visitor.visitGreater(this);
+  bool typeEquals(other) => other is HGreater;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HGreaterEqual extends HRelational {
+  HGreaterEqual(element, inputs) : super(element, inputs);
+  bool evaluate(num a, num b) => a >= b;
+  accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
+  bool typeEquals(other) => other is HGreaterEqual;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HLess extends HRelational {
+  HLess(element, inputs) : super(element, inputs);
+  bool evaluate(num a, num b) => a < b;
+  accept(HVisitor visitor) => visitor.visitLess(this);
+  bool typeEquals(other) => other is HLess;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HLessEqual extends HRelational {
+  HLessEqual(element, inputs) : super(element, inputs);
+  bool evaluate(num a, num b) => a <= b;
+  accept(HVisitor visitor) => visitor.visitLessEqual(this);
+  bool typeEquals(other) => other is HLessEqual;
+  bool dataEquals(HInstruction other) => true;
 }
 
 class HReturn extends HControlFlow {

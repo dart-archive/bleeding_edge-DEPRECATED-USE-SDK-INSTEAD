@@ -45,16 +45,6 @@ class SsaConstantFolder extends HBaseVisitor {
     return node;
   }
 
-  HInstruction visitEquals(HEquals node) {
-    List<HInstruction> inputs = node.inputs;
-    if (inputs[0] is HLiteral && inputs[1] is HLiteral) {
-      HLiteral op1 = inputs[0];
-      HLiteral op2 = inputs[1];
-      return new HLiteral(op1.value == op2.value);
-    }
-    return node;
-  }
-
   HInstruction visitArithmetic(HArithmetic node) {
     List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 2);
@@ -86,6 +76,28 @@ class SsaConstantFolder extends HBaseVisitor {
       return new HLiteral(new SourceString("${op1.value} + ${op2.value}"));
     }
     return visitArithmetic(node);
+  }
+
+  HInstruction visitRelational(HRelational node) {
+    List<HInstruction> inputs = node.inputs;
+    assert(inputs.length == 2);
+    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
+      HLiteral op1 = inputs[0];
+      HLiteral op2 = inputs[1];
+      bool folded = node.evaluate(op1.value, op2.value);
+      return new HLiteral(folded);
+    }
+    return node;    
+  }
+
+  HInstruction visitEquals(HEquals node) {
+    List<HInstruction> inputs = node.inputs;
+    if (inputs[0] is HLiteral && inputs[1] is HLiteral) {
+      HLiteral op1 = inputs[0];
+      HLiteral op2 = inputs[1];
+      return new HLiteral(op1.value == op2.value);
+    }
+    return node;
   }
 }
 

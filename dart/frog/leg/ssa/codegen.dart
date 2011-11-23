@@ -181,14 +181,26 @@ class SsaCodeGenerator implements HVisitor {
       => visitInvokeBinary(node, node.isNumber(), '+');
   visitDivide(HDivide node)
       => visitInvokeBinary(node, node.isNumber(), '/');
-  visitEquals(HEquals node)
-      => visitInvokeBinary(node, node.isBoolean(), '==');
   visitMultiply(HMultiply node)
       => visitInvokeBinary(node, node.isNumber(), '*');
   visitSubtract(HSubtract node)
       => visitInvokeBinary(node, node.isNumber(), '-');
   visitTruncatingDivide(HTruncatingDivide node)
       => visitInvoke(node);
+  // Modulo cannot be mapped to the native operator (different semantics).
+  visitModulo(HModulo node)
+      => visitInvoke(node);
+
+  visitEquals(HEquals node)
+      => visitInvokeBinary(node, node.isBoolean(), '===');
+  visitLess(HLess node)
+      => visitInvokeBinary(node, node.isBoolean(), '<');
+  visitLessEqual(HLessEqual node)
+      => visitInvokeBinary(node, node.isBoolean(), '<=');
+  visitGreater(HGreater node)
+      => visitInvokeBinary(node, node.isBoolean(), '>');
+  visitGreaterEqual(HGreaterEqual node)
+      => visitInvokeBinary(node, node.isBoolean(), '>=');
 
   visitBoolify(HBoolify node) {
     assert(node.inputs.length == 1);
