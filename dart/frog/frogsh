@@ -11084,15 +11084,14 @@ Compiler.prototype.runCompiler = function() {
   }
 }
 Compiler.prototype.compileMethod = function(element) {
-  if (this.universe.generatedCode.containsKey(element)) {
-    return $assert_String(this.universe.generatedCode.$index(element));
-  }
+  var code = $assert_String(this.universe.generatedCode.$index(element));
+  if (code != null) return code;
   var tree = this.parser.parse(element);
   var elements = this.resolver.resolve(tree);
   this.checker.check(tree, elements);
   var graph = this.builder.build(tree, elements);
   this.optimizer.optimize(graph);
-  var code = this.generator.generate((element && element.is$FunctionElement()), graph);
+  code = this.generator.generate((element && element.is$FunctionElement()), graph);
   this.universe.addGeneratedCode(element, code);
   return code;
 }

@@ -87,15 +87,14 @@ class Compiler implements Canceler, Logger {
   }
 
   String compileMethod(Element element) {
-    if (universe.generatedCode.containsKey(element)) {
-      return universe.generatedCode[element];
-    }
+    String code = universe.generatedCode[element];
+    if (code !== null) return code;
     Node tree = parser.parse(element);
     Map<Node, Element> elements = resolver.resolve(tree);
     checker.check(tree, elements);
     HGraph graph = builder.build(tree, elements);
     optimizer.optimize(graph);
-    String code = generator.generate(element, graph);
+    code = generator.generate(element, graph);
     universe.addGeneratedCode(element, code);
     return code;
   }
