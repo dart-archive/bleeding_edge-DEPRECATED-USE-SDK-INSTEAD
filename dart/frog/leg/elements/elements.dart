@@ -59,7 +59,9 @@ class VariableElement extends Element {
   }
 
   Type computeType(Compiler compiler, Types types) {
-    return getType(typeAnnotation, types);
+    if (type !== null) return type;
+    type = getType(typeAnnotation, types);
+    return type;
   }
 }
 
