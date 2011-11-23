@@ -33,6 +33,17 @@ void bar(var t0, var b) {
 }
 """;
 
+final String NO_LOCAL = @"""
+foo(bar, baz) {
+  if (bar) {
+    baz = 2;
+  } else {
+    baz = 3;
+  }
+  return baz;
+}
+""";
+
 main() {
   String generated = compile(FOO, 'foo');
   // TODO(ngeoffray): Use 'contains' when frog supports it.
@@ -48,5 +59,13 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
   // Check that the second 't0' got another name.
   regexp = const RegExp("print\\(t0_0\\)");
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  generated = compile(NO_LOCAL, 'foo');
+  regexp = const RegExp("return baz");
+  Expect.isTrue(regexp.hasMatch(generated));
+  regexp = const RegExp("baz = 2");
+  Expect.isTrue(regexp.hasMatch(generated));
+  regexp = const RegExp("baz = 3");
   Expect.isTrue(regexp.hasMatch(generated));
 }

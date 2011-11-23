@@ -23,7 +23,7 @@ interface HVisitor<R> {
   R visitLiteral(HLiteral node);
   R visitModulo(HModulo node);
   R visitNot(HNot node);
-  R visitParameter(HParameter node);
+  R visitParameterValue(HParameterValue node);
   R visitPhi(HPhi node);
   R visitSubtract(HSubtract node);
   R visitMultiply(HMultiply node);
@@ -185,7 +185,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitNot(HNot node) => visitInstruction(node);
   visitPhi(HPhi node) => visitInstruction(node);
   visitMultiply(HMultiply node) => visitArithmetic(node);
-  visitParameter(HParameter node) => visitInstruction(node);
+  visitParameterValue(HParameterValue node) => visitInstruction(node);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitSubtract(HSubtract node) => visitArithmetic(node);
   visitStore(HStore node) => visitInstruction(node);
@@ -912,17 +912,17 @@ class HNot extends HInstruction {
 
   accept(HVisitor visitor) => visitor.visitNot(this);
   bool typeEquals(other) => other is HNot;
-  bool dataEquals(HInstruction other) => true;  
+  bool dataEquals(HInstruction other) => true;
 }
 
-class HParameter extends HInstruction {
-  final int parameterIndex;
-  HParameter(this.parameterIndex) : super([]);
+class HParameterValue extends HInstruction {
+  final Element element;
+  HParameterValue(this.element) : super([]);
   void prepareGvn() {
     assert(!hasSideEffects());
   }
-  toString() => 'parameter $parameterIndex';
-  accept(HVisitor visitor) => visitor.visitParameter(this);
+  toString() => 'parameter ${element.name}';
+  accept(HVisitor visitor) => visitor.visitParameterValue(this);
 }
 
 class HPhi extends HInstruction {

@@ -55,7 +55,7 @@ class SsaBuilder implements Visitor {
     HBasicBlock block = graph.addNewBlock();
 
     open(graph.entry);
-    visitParameters(parameters);
+    visitParameterValues(parameters);
     close(new HGoto()).addSuccessor(block);
 
     open(block);
@@ -111,7 +111,7 @@ class SsaBuilder implements Visitor {
     if (node !== null) node.accept(this);
   }
 
-  visitParameters(NodeList parameters) {
+  visitParameterValues(NodeList parameters) {
     int parameterIndex = 0;
     for (Link<Node> link = parameters.nodes;
          !link.isEmpty();
@@ -121,13 +121,13 @@ class SsaBuilder implements Visitor {
       // The identifier link must contain exactly one argument.
       assert(!identifierLink.isEmpty() && identifierLink.tail.isEmpty());
       if (identifierLink.head is !Identifier) {
-        compiler.unimplemented("SsaBuilder.visitParameters non-identifier");
+        compiler.unimplemented("SsaBuilder.visitParameterValues non-identifier");
       }
       Identifier parameterId = identifierLink.head;
       Element element = elements[parameterId];
-      HParameter parameterInstruction = new HParameter(parameterIndex++);
-      definitions[element] = parameterInstruction;
-      add(parameterInstruction);
+      HParameterValue parameter = new HParameterValue(element);
+      definitions[element] = parameter;
+      add(parameter);
     }
   }
 

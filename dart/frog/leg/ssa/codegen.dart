@@ -6,22 +6,21 @@ class SsaCodeGeneratorTask extends CompilerTask {
   SsaCodeGeneratorTask(Compiler compiler) : super(compiler);
   String get name() => 'SSA code generator';
 
-  String generate(Node tree, HGraph graph) {
+  String generate(FunctionElement function, HGraph graph) {
     return measure(() {
-      FunctionExpression function = tree;
-      NodeList parameters = function.parameters;
-      List<String> parameterNames = [];
-      for (var link = parameters.nodes; !link.isEmpty(); link = link.tail) {
-        VariableDefinitions parameter = link.head;
-        SourceString name = parameter.definitions.nodes.head.dynamic.source;
-        parameterNames.add(JsNames.getValid('$name'));
+      Map<Element, String> parameterNames =
+          new LinkedHashMap<Element, String>();
+      for (Link<Element> link = function.parameters;
+           !link.isEmpty();
+           link = link.tail) {
+        Element element = link.head;
+        parameterNames[element] = JsNames.getValid('${element.name}');
       }
 
-      Identifier name = function.name;
       if (GENERATE_SSA_TRACE) {
         new HTracer.singleton().traceGraph("codegen", graph);
       }
-      String code = generateMethod(name.source,
+      String code = generateMethod(function.name,
                                    parameterNames,
                                    graph);
       return code;
@@ -29,7 +28,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   String generateMethod(SourceString methodName,
-                        List<String> parameterNames,
+                        Map<Element, String> parameterNames,
                         HGraph graph) {
     new SsaPhiEliminator().visitGraph(graph);
     if (GENERATE_SSA_TRACE) {
@@ -40,9 +39,10 @@ class SsaCodeGeneratorTask extends CompilerTask {
         new SsaCodeGenerator(compiler, buffer, parameterNames);
     codegen.visitGraph(graph);
     StringBuffer parameters = new StringBuffer();
-    for (int i = 0; i < parameterNames.length; i++) {
+    List<String> names = parameterNames.getValues();
+    for (int i = 0; i < names.length; i++) {
       if (i != 0) parameters.add(', ');
-      parameters.add(parameterNames[i]);
+      parameters.add(names[i]);
     }
     return 'function $methodName($parameters) {\n$buffer}\n';
   }
@@ -52,7 +52,7 @@ class SsaCodeGenerator implements HVisitor {
   final Compiler compiler;
   final StringBuffer buffer;
 
-  final List<String> parameterNames;
+  final Map<Element, String> parameterNames;
   final Map<int, String> names;
   final Map<String, int> prefixes;
 
@@ -63,7 +63,7 @@ class SsaCodeGenerator implements HVisitor {
   SsaCodeGenerator(this.compiler, this.buffer, this.parameterNames)
     : names = new Map<int, String>(),
       prefixes = new Map<String, int>() {
-    for (final name in parameterNames) {
+    for (final name in parameterNames.getValues()) {
       prefixes[name] = 0;
     }
   }
@@ -74,7 +74,7 @@ class SsaCodeGenerator implements HVisitor {
     visitBasicBlock(graph.entry);
   }
 
-  String parameter(int index) => parameterNames[index];
+  String parameter(HParameterValue parameter) => parameterNames[parameter.element];
 
   String temporary(HInstruction instruction) {
     int id = instruction.id;
@@ -87,13 +87,17 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   String local(HLocal local) {
+    Element element = local.element;
+    if (element != null && element.kind == ElementKind.PARAMETER) {
+      return parameterNames[element];
+    }
     int id = local.id;
     String name = names[id];
     if (name !== null) return name;
 
     String prefix;
-    if (local.element !== null) {
-      prefix = local.element.name.stringValue;
+    if (element !== null) {
+      prefix = element.name.stringValue;
     } else {
       prefix = 'v';
     }
@@ -158,8 +162,10 @@ class SsaCodeGenerator implements HVisitor {
         } else {
           define(instruction);
         }
-        // Control flow instructions know how to handle ';'.
-        if (instruction is !HControlFlow) buffer.add(';\n');
+        // Control flow instructions and locals know how to handle ';'.
+        if (instruction is !HControlFlow && instruction is !HLocal) {
+          buffer.add(';\n');
+        }
       }
       instruction = instruction.next;
     }
@@ -338,8 +344,8 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(')');
   }
 
-  visitParameter(HParameter node) {
-    buffer.add(parameter(node.parameterIndex));
+  visitParameterValue(HParameterValue node) {
+    buffer.add(parameter(node));
   }
 
   visitPhi(HPhi node) {
@@ -375,6 +381,8 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitLocal(HLocal node) {
-    buffer.add('var ${local(node)}');
+    if (node.element !== null && node.element.kind !== ElementKind.PARAMETER) {
+      buffer.add('var ${local(node)};\n');
+    }
   }
 }

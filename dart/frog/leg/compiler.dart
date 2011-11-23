@@ -92,7 +92,7 @@ class Compiler implements Canceler, Logger {
     checker.check(tree, elements);
     HGraph graph = builder.build(tree, elements);
     optimizer.optimize(graph);
-    String code = generator.generate(tree, graph);
+    String code = generator.generate(element, graph);
     universe.addGeneratedCode(element, code);
     return code;
   }

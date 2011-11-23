@@ -193,13 +193,13 @@ testParametersOne() {
 
   // Check that an element has been created for the parameter.
   Node param = tree.parameters.nodes.head.definitions.nodes.head;
-  Expect.equals(ElementKind.VARIABLE, visitor.mapping[param].kind);
+  Expect.equals(ElementKind.PARAMETER, visitor.mapping[param].kind);
 
   // Check that 'a' in 'return a' is resolved to the parameter.
   Block body = tree.body;
   Return ret = body.statements.nodes.head;
   Send use = ret.expression;
-  Expect.equals(ElementKind.VARIABLE, visitor.mapping[use].kind);
+  Expect.equals(ElementKind.PARAMETER, visitor.mapping[use].kind);
   Expect.equals(visitor.mapping[param], visitor.mapping[use]);
 }
 

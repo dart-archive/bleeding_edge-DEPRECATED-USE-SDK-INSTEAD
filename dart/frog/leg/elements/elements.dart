@@ -25,9 +25,12 @@ class ElementKind {
   const ElementKind(String this.id);
 
   static final ElementKind VARIABLE = const ElementKind('variable');
+  static final ElementKind PARAMETER = const ElementKind('parameter');
   static final ElementKind FUNCTION = const ElementKind('function');
   static final ElementKind CLASS = const ElementKind('class');
   static final ElementKind FOREIGN = const ElementKind('foreign');
+
+  toString() => id;
 }
 
 class Element implements Hashable {
@@ -48,8 +51,8 @@ class VariableElement extends Element {
   Type type;
 
   VariableElement(Node this.node, TypeAnnotation this.typeAnnotation,
-                  SourceString name, Element enclosingElement)
-    : super(name, ElementKind.VARIABLE, enclosingElement);
+                  ElementKind kind, SourceString name, Element enclosingElement)
+    : super(name, kind, enclosingElement);
 
   Node parseNode(Canceler canceler, Logger logger) {
     return node;
@@ -83,6 +86,7 @@ Type getType(TypeAnnotation annotation, types) {
 }
 
 class FunctionElement extends Element {
+  Link<Element> parameters;
   Type type;
 
   // TODO(nogeoffray): set the enclosingElement.

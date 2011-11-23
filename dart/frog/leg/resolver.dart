@@ -89,10 +89,15 @@ class ResolverVisitor implements Visitor<Element> {
     // TODO(ngeoffray): FunctionExpression is currently a top-level
     // method definition.
     visit(node.returnType);
-    Element enclosingElement = visit(node.name);
-    Scope newScope = new Scope.enclosing(context, enclosingElement);
-    visitIn(node.parameters, newScope);
-    visitIn(node.body, newScope);
+    FunctionElement enclosingElement = visit(node.name);
+    context = new Scope.enclosing(context, enclosingElement);
+
+    ParametersVisitor visitor = new ParametersVisitor(this);
+    visitor.visit(node.parameters);
+    enclosingElement.parameters = visitor.elements.toLink();
+
+    visit(node.body);
+    context = context.parent;
     return enclosingElement;
   }
 
@@ -210,7 +215,7 @@ class ResolverVisitor implements Visitor<Element> {
   visitVariableDefinitions(VariableDefinitions node) {
     visit(node.type);
     VariableDefinitionsVisitor visitor =
-        new VariableDefinitionsVisitor(node, this);
+        new VariableDefinitionsVisitor(node, this, ElementKind.VARIABLE);
     visitor.visit(node.definitions);
   }
 
@@ -280,8 +285,9 @@ class ClassResolverVisitor extends AbstractVisitor<Type> {
 class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
+  ElementKind kind;
 
-  VariableDefinitionsVisitor(this.definitions, this.resolver);
+  VariableDefinitionsVisitor(this.definitions, this.resolver, this.kind);
 
   SourceString visitSendSet(SendSet node) {
     assert(node.arguments.tail.isEmpty()); // Sanity check
@@ -300,13 +306,35 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
-      Element element = new VariableElement(
-          link.head, definitions.type, name, resolver.context.enclosingElement);
+      Element element = new VariableElement(link.head, definitions.type,
+          kind, name, resolver.context.enclosingElement);
       Element existing = resolver.defineElement(link.head, element);
       if (existing != element) {
         resolver.error(node, MessageKind.DUPLICATE_DEFINITION, [link.head]);
       }
     }
+  }
+
+  visit(Node node) => node.accept(this);
+}
+
+class ParametersVisitor extends AbstractVisitor<Element> {
+  ResolverVisitor resolver;
+  LinkBuilder<Element> elements;
+  ParametersVisitor(this.resolver) : elements = new LinkBuilder<Element>();
+
+  visitNodeList(NodeList node) {
+    for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
+      elements.addLast(visit(link.head));
+    }
+  }
+
+  visitVariableDefinitions(VariableDefinitions node) {
+    resolver.visit(node.type);
+    VariableDefinitionsVisitor visitor =
+        new VariableDefinitionsVisitor(node, resolver, ElementKind.PARAMETER);
+    visitor.visit(node.definitions);
+    return resolver.mapping[node.definitions.nodes.head];
   }
 
   visit(Node node) => node.accept(this);
