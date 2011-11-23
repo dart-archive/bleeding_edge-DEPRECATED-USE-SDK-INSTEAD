@@ -314,7 +314,6 @@ class SsaCodeGenerator implements HVisitor {
         assert(!input.generateAtUseSite());
         name = temporary(input);
       }
-      assert(!input.generateAtUseSite());
       code = code.replaceAll('\$$i', name);
     }
     buffer.add('($code)');

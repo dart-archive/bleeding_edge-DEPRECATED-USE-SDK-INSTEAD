@@ -8268,7 +8268,6 @@ SsaCodeGenerator.prototype.visitInvokeForeign = function(node) {
       $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 314, 16);
       name = this.temporary(input);
     }
-    $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 317, 14);
     code = code.replaceAll(('\$' + i), name);
   }
   this.buffer.add(('(' + code + ')'));
@@ -8288,18 +8287,18 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')) break;\n');
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 337, 12);
-  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 338, 12);
+  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 336, 12);
+  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 337, 12);
   this.visit(dominated.$index(0));
   this.indent--;
   this.addIndentation();
   this.buffer.add('}\n');
-  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 343, 12);
+  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 342, 12);
   this.visit(dominated.$index(1));
 }
 SsaCodeGenerator.prototype.visitNot = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 348, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 347, 12);
   this.buffer.add('(!');
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')');
@@ -8312,7 +8311,7 @@ SsaCodeGenerator.prototype.visitPhi = function(node) {
 }
 SsaCodeGenerator.prototype.visitReturn = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 364, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 363, 12);
   var input = (($0 = node.inputs.$index(0)) && $0.is$HInstruction());
   if ($notnull_bool(input.isLiteralNull())) {
     this.buffer.add('return;\n');
