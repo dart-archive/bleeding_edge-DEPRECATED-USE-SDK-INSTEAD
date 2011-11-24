@@ -7279,7 +7279,7 @@ SsaBuilder.prototype.unquote = function(literal) {
   return new StringWrapper(str.substring(quotes + 1, str.length - quotes));
 }
 SsaBuilder.prototype.visitLogicalAndOr = function(node, op) {
-  var isAnd = $assert_bool(($eq(const$293/*const SourceString("&&")*/, op.get$source())));
+  var isAnd = $assert_bool(($eq(const$295/*const SourceString("&&")*/, op.get$source())));
   this.visit(node.receiver);
   var boolifiedLeft = this.popBoolified();
   var condition;
@@ -7317,43 +7317,43 @@ SsaBuilder.prototype.visitUnary = function(node, op, element) {
   this.compiler.unimplemented("visitUnary");
 }
 SsaBuilder.prototype.visitBinary = function(left, op, right, element) {
-  if ($notnull_bool($eq(const$296/*const SourceString("+")*/, op.get$source())) || $notnull_bool($eq(const$297/*const SourceString("+=")*/, op.get$source()))) {
+  if ($notnull_bool($eq(const$298/*const SourceString("+")*/, op.get$source())) || $notnull_bool($eq(const$299/*const SourceString("+=")*/, op.get$source()))) {
     this.push(new HAdd(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$298/*const SourceString("-")*/, op.get$source())) || $notnull_bool($eq(const$299/*const SourceString("-=")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$300/*const SourceString("-")*/, op.get$source())) || $notnull_bool($eq(const$301/*const SourceString("-=")*/, op.get$source()))) {
     this.push(new HSubtract(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$300/*const SourceString("*")*/, op.get$source())) || $notnull_bool($eq(const$301/*const SourceString("*=")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$302/*const SourceString("*")*/, op.get$source())) || $notnull_bool($eq(const$303/*const SourceString("*=")*/, op.get$source()))) {
     this.push(new HMultiply(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$302/*const SourceString("/")*/, op.get$source())) || $notnull_bool($eq(const$303/*const SourceString("/=")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$304/*const SourceString("/")*/, op.get$source())) || $notnull_bool($eq(const$305/*const SourceString("/=")*/, op.get$source()))) {
     this.push(new HDivide(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$304/*const SourceString("~/")*/, op.get$source())) || $notnull_bool($eq(const$305/*const SourceString("~/=")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$306/*const SourceString("~/")*/, op.get$source())) || $notnull_bool($eq(const$307/*const SourceString("~/=")*/, op.get$source()))) {
     this.push(new HTruncatingDivide(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$306/*const SourceString("%")*/, op.get$source())) || $notnull_bool($eq(const$307/*const SourceString("%=")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$308/*const SourceString("%")*/, op.get$source())) || $notnull_bool($eq(const$309/*const SourceString("%=")*/, op.get$source()))) {
     this.push(new HModulo(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$308/*const SourceString("<<")*/, op.get$source())) || $notnull_bool($eq(const$309/*const SourceString("<<=")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$310/*const SourceString("<<")*/, op.get$source())) || $notnull_bool($eq(const$311/*const SourceString("<<=")*/, op.get$source()))) {
     this.push(new HShiftLeft(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$310/*const SourceString(">>")*/, op.get$source())) || $notnull_bool($eq(const$311/*const SourceString(">>=")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$312/*const SourceString(">>")*/, op.get$source())) || $notnull_bool($eq(const$313/*const SourceString(">>=")*/, op.get$source()))) {
     this.push(new HShiftRight(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$312/*const SourceString("==")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$314/*const SourceString("==")*/, op.get$source()))) {
     this.push(new HEquals(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$313/*const SourceString("<")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$315/*const SourceString("<")*/, op.get$source()))) {
     this.push(new HLess(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$314/*const SourceString("<=")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$316/*const SourceString("<=")*/, op.get$source()))) {
     this.push(new HLessEqual(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$315/*const SourceString(">")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$317/*const SourceString(">")*/, op.get$source()))) {
     this.push(new HGreater(element, [left, right]));
   }
-  else if ($notnull_bool($eq(const$316/*const SourceString(">=")*/, op.get$source()))) {
+  else if ($notnull_bool($eq(const$318/*const SourceString(">=")*/, op.get$source()))) {
     this.push(new HGreaterEqual(element, [left, right]));
   }
   else {
@@ -7365,10 +7365,10 @@ SsaBuilder.prototype.visitSend = function(node) {
   var element = (($0 = this.elements.$index(node)) && $0.is$Element());
   if ((node.selector instanceof Operator)) {
     var op = (($0 = node.selector) && $0.is$Operator());
-    if ($notnull_bool($eq(const$293/*const SourceString("&&")*/, op.get$source())) || $notnull_bool($eq(const$294/*const SourceString("||")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$295/*const SourceString("&&")*/, op.get$source())) || $notnull_bool($eq(const$296/*const SourceString("||")*/, op.get$source()))) {
       this.visitLogicalAndOr(node, op);
     }
-    else if ($notnull_bool($eq(const$295/*const SourceString("!")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$297/*const SourceString("!")*/, op.get$source()))) {
       this.visitLogicalNot(node);
     }
     else if ((node.argumentsNode instanceof Prefix) || (node.argumentsNode instanceof Postfix)) {
@@ -7880,7 +7880,7 @@ SsaCodeGenerator.prototype.visitTypeGuard = function(node) {
   var $0;
   var name;
   if ($notnull_bool(node.isNumber())) {
-    name = const$333/*const SourceString('guard\$num')*/;
+    name = const$335/*const SourceString('guard\$num')*/;
   }
   else {
     unreachable();
@@ -7916,9 +7916,9 @@ function JsNames() {}
 JsNames.get$reserved = function() {
   if ($globals.JsNames__reserved == null) {
     $globals.JsNames__reserved = new HashSetImplementation();
-    $globals.JsNames__reserved.addAll(const$327/*JsNames.reservedPropertySymbols*/);
-    $globals.JsNames__reserved.addAll(const$329/*JsNames.reservedGlobalSymbols*/);
-    $globals.JsNames__reserved.addAll(const$331/*JsNames.javaScriptKeywords*/);
+    $globals.JsNames__reserved.addAll(const$329/*JsNames.reservedPropertySymbols*/);
+    $globals.JsNames__reserved.addAll(const$331/*JsNames.reservedGlobalSymbols*/);
+    $globals.JsNames__reserved.addAll(const$333/*JsNames.javaScriptKeywords*/);
   }
   return $globals.JsNames__reserved;
 }
@@ -10974,6 +10974,8 @@ FullResolverVisitor.prototype.mapAssignmentOperatorToMethodName = function(name)
   if ($notnull_bool($eq(name, const$267/*const SourceString('/=')*/))) return const$241/*const SourceString('div')*/;
   if ($notnull_bool($eq(name, const$268/*const SourceString('~/=')*/))) return const$243/*const SourceString('tdiv')*/;
   if ($notnull_bool($eq(name, const$269/*const SourceString('%=')*/))) return const$245/*const SourceString('mod')*/;
+  if ($notnull_bool($eq(name, const$270/*const SourceString('<<=')*/))) return const$247/*const SourceString('shl')*/;
+  if ($notnull_bool($eq(name, const$271/*const SourceString('>>=')*/))) return const$249/*const SourceString('shr')*/;
   this.compiler.unimplemented(("mapAssignmentOperatorToMethodName: " + name));
 }
 FullResolverVisitor.prototype.visitSend = function(node) {
@@ -11046,7 +11048,7 @@ FullResolverVisitor.prototype.visitThrow = function(node) {
 }
 FullResolverVisitor.prototype.visitVariableDefinitions = function(node) {
   this.visit(node.type);
-  var visitor = new VariableDefinitionsVisitor(node, this, const$270/*ElementKind.VARIABLE*/);
+  var visitor = new VariableDefinitionsVisitor(node, this, const$272/*ElementKind.VARIABLE*/);
   visitor.visit(node.definitions);
 }
 // ********** Code for ClassResolverVisitor **************
@@ -11111,7 +11113,7 @@ VariableDefinitionsVisitor.prototype.get$kind = function() { return this.kind; }
 VariableDefinitionsVisitor.prototype.set$kind = function(value) { return this.kind = value; };
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 382, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 384, 12);
   if (node.receiver != null) {
     this.resolver.cancel(node, "receiver on a variable definition not implemented");
   }
@@ -11255,7 +11257,7 @@ TypeCheckerTask.prototype.check = function(tree, elements) {
     } catch (e) {
       e = $toDartException(e);
       if (!(e instanceof CancelTypeCheckException)) throw e;
-      $this.compiler.reportWarning(e.node, new TypeWarning(const$286/*MessageKind.GENERIC*/, [e.reason]));
+      $this.compiler.reportWarning(e.node, new TypeWarning(const$288/*MessageKind.GENERIC*/, [e.reason]));
     }
   })
   );
@@ -11368,7 +11370,7 @@ TypeCheckerVisitor.prototype.reportTypeWarning = function(node, kind, arguments)
 TypeCheckerVisitor.prototype.nonVoidType = function(node) {
   var type = this.type(node);
   if ($eq(type, this.types.voidType)) {
-    this.reportTypeWarning(node, const$272/*MessageKind.VOID_EXPRESSION*/, const$19/*const []*/);
+    this.reportTypeWarning(node, const$274/*MessageKind.VOID_EXPRESSION*/, const$19/*const []*/);
   }
   return type;
 }
@@ -11386,7 +11388,7 @@ TypeCheckerVisitor.prototype.get$type = function() {
 }
 TypeCheckerVisitor.prototype.checkAssignable = function(node, s, t) {
   if (!$notnull_bool(this.types.isAssignable(s, t))) {
-    this.reportTypeWarning(node, const$274/*MessageKind.NOT_ASSIGNABLE*/, [s, t]);
+    this.reportTypeWarning(node, const$276/*MessageKind.NOT_ASSIGNABLE*/, [s, t]);
   }
 }
 TypeCheckerVisitor.prototype.visitBlock = function(node) {
@@ -11463,10 +11465,10 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
         arguments = (($0 = arguments.get$tail()) && $0.is$Link_Node());
       }
       if (!$notnull_bool(formals.isEmpty())) {
-        this.reportTypeWarning(node, const$280/*MessageKind.MISSING_ARGUMENT*/, const$19/*const []*/);
+        this.reportTypeWarning(node, const$282/*MessageKind.MISSING_ARGUMENT*/, const$19/*const []*/);
       }
       if (!$notnull_bool(arguments.isEmpty())) {
-        this.reportTypeWarning(node, const$282/*MessageKind.ADDITIONAL_ARGUMENT*/, const$19/*const []*/);
+        this.reportTypeWarning(node, const$284/*MessageKind.ADDITIONAL_ARGUMENT*/, const$19/*const []*/);
       }
       return funType.returnType;
     }
@@ -11515,14 +11517,14 @@ TypeCheckerVisitor.prototype.visitReturn = function(node) {
   if (expression != null) {
     var expressionType = this.type(expression);
     if (isVoidFunction && !$notnull_bool(this.types.isAssignable(expressionType, this.types.voidType))) {
-      this.reportTypeWarning(expression, const$276/*MessageKind.RETURN_VALUE_IN_VOID*/, [expressionType]);
+      this.reportTypeWarning(expression, const$278/*MessageKind.RETURN_VALUE_IN_VOID*/, [expressionType]);
     }
     else {
       this.checkAssignable(expression, this.expectedReturnType, expressionType);
     }
   }
   else if (!$notnull_bool(this.types.isAssignable(this.expectedReturnType, this.types.voidType))) {
-    this.reportTypeWarning(node, const$278/*MessageKind.RETURN_NOTHING*/, [this.expectedReturnType]);
+    this.reportTypeWarning(node, const$280/*MessageKind.RETURN_NOTHING*/, [this.expectedReturnType]);
   }
   return null;
 }
@@ -11545,7 +11547,7 @@ TypeCheckerVisitor.prototype.visitVariableDefinitions = function(node) {
   var $0;
   var type = this.typeWithDefault(node.type, this.types.dynamicType);
   if ($eq(type, this.types.voidType)) {
-    this.reportTypeWarning(node.type, const$284/*MessageKind.VOID_VARIABLE*/, const$19/*const []*/);
+    this.reportTypeWarning(node.type, const$286/*MessageKind.VOID_VARIABLE*/, const$19/*const []*/);
     type = this.types.dynamicType;
   }
   for (var link = node.definitions.get$nodes();
@@ -11633,7 +11635,7 @@ ResolutionWarning.prototype.toString = function() {
 ResolutionWarning.prototype.toString$0 = ResolutionWarning.prototype.toString;
 // ********** Code for top level **************
 function unreachable() {
-  $throw(const$288/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
+  $throw(const$290/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
 }
 //  ********** Library frog_leg **************
 // ********** Code for WorldCompiler **************
@@ -13135,7 +13137,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   return false;
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
-  var types = const$450/*const [
+  var types = const$452/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   var target = new Value($globals.world.varType, 'this', node.span, true);
@@ -23284,51 +23286,54 @@ var const$266 = new StringWrapper('*=')/*const SourceString('*=')*/;
 var const$267 = new StringWrapper('/=')/*const SourceString('/=')*/;
 var const$268 = new StringWrapper('~/=')/*const SourceString('~/=')*/;
 var const$269 = new StringWrapper('%=')/*const SourceString('%=')*/;
-var const$270 = new ElementKind('variable')/*const ElementKind('variable')*/;
-var const$272 = new MessageKind('expression does not yield a value')/*const MessageKind(
+var const$270 = new StringWrapper('<<=')/*const SourceString('<<=')*/;
+var const$271 = new StringWrapper('>>=')/*const SourceString('>>=')*/;
+var const$272 = new ElementKind('variable')/*const ElementKind('variable')*/;
+var const$274 = new MessageKind('expression does not yield a value')/*const MessageKind(
       'expression does not yield a value')*/;
-var const$274 = new MessageKind('#{2} is not assignable to #{1}')/*const MessageKind(
+var const$276 = new MessageKind('#{2} is not assignable to #{1}')/*const MessageKind(
       '#{2} is not assignable to #{1}')*/;
-var const$276 = new MessageKind('cannot return value from void function')/*const MessageKind(
+var const$278 = new MessageKind('cannot return value from void function')/*const MessageKind(
       'cannot return value from void function')*/;
-var const$278 = new MessageKind('value of type #{1} expected')/*const MessageKind(
+var const$280 = new MessageKind('value of type #{1} expected')/*const MessageKind(
       'value of type #{1} expected')*/;
-var const$280 = new MessageKind('missing argument')/*const MessageKind(
+var const$282 = new MessageKind('missing argument')/*const MessageKind(
       'missing argument')*/;
-var const$282 = new MessageKind('additional argument')/*const MessageKind(
+var const$284 = new MessageKind('additional argument')/*const MessageKind(
       'additional argument')*/;
-var const$284 = new MessageKind('variable cannot be of type void')/*const MessageKind(
+var const$286 = new MessageKind('variable cannot be of type void')/*const MessageKind(
       'variable cannot be of type void')*/;
-var const$286 = new MessageKind('#{1}')/*const MessageKind('#{1}')*/;
-var const$288 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+var const$288 = new MessageKind('#{1}')/*const MessageKind('#{1}')*/;
 var const$29 = new Keyword("break", false)/*const Keyword("break")*/;
-var const$293 = new StringWrapper("&&")/*const SourceString("&&")*/;
-var const$294 = new StringWrapper("||")/*const SourceString("||")*/;
-var const$295 = new StringWrapper("!")/*const SourceString("!")*/;
-var const$296 = new StringWrapper("+")/*const SourceString("+")*/;
-var const$297 = new StringWrapper("+=")/*const SourceString("+=")*/;
-var const$298 = new StringWrapper("-")/*const SourceString("-")*/;
-var const$299 = new StringWrapper("-=")/*const SourceString("-=")*/;
-var const$300 = new StringWrapper("*")/*const SourceString("*")*/;
-var const$301 = new StringWrapper("*=")/*const SourceString("*=")*/;
-var const$302 = new StringWrapper("/")/*const SourceString("/")*/;
-var const$303 = new StringWrapper("/=")/*const SourceString("/=")*/;
-var const$304 = new StringWrapper("~/")/*const SourceString("~/")*/;
-var const$305 = new StringWrapper("~/=")/*const SourceString("~/=")*/;
-var const$306 = new StringWrapper("%")/*const SourceString("%")*/;
-var const$307 = new StringWrapper("%=")/*const SourceString("%=")*/;
-var const$308 = new StringWrapper("<<")/*const SourceString("<<")*/;
-var const$309 = new StringWrapper("<<=")/*const SourceString("<<=")*/;
+var const$290 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+var const$295 = new StringWrapper("&&")/*const SourceString("&&")*/;
+var const$296 = new StringWrapper("||")/*const SourceString("||")*/;
+var const$297 = new StringWrapper("!")/*const SourceString("!")*/;
+var const$298 = new StringWrapper("+")/*const SourceString("+")*/;
+var const$299 = new StringWrapper("+=")/*const SourceString("+=")*/;
+var const$300 = new StringWrapper("-")/*const SourceString("-")*/;
+var const$301 = new StringWrapper("-=")/*const SourceString("-=")*/;
+var const$302 = new StringWrapper("*")/*const SourceString("*")*/;
+var const$303 = new StringWrapper("*=")/*const SourceString("*=")*/;
+var const$304 = new StringWrapper("/")/*const SourceString("/")*/;
+var const$305 = new StringWrapper("/=")/*const SourceString("/=")*/;
+var const$306 = new StringWrapper("~/")/*const SourceString("~/")*/;
+var const$307 = new StringWrapper("~/=")/*const SourceString("~/=")*/;
+var const$308 = new StringWrapper("%")/*const SourceString("%")*/;
+var const$309 = new StringWrapper("%=")/*const SourceString("%=")*/;
 var const$31 = new Keyword("case", false)/*const Keyword("case")*/;
-var const$310 = new StringWrapper(">>")/*const SourceString(">>")*/;
-var const$311 = new StringWrapper(">>=")/*const SourceString(">>=")*/;
-var const$312 = new StringWrapper("==")/*const SourceString("==")*/;
-var const$313 = new StringWrapper("<")/*const SourceString("<")*/;
-var const$314 = new StringWrapper("<=")/*const SourceString("<=")*/;
-var const$315 = new StringWrapper(">")/*const SourceString(">")*/;
-var const$316 = new StringWrapper(">=")/*const SourceString(">=")*/;
-var const$327 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
-var const$329 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
+var const$310 = new StringWrapper("<<")/*const SourceString("<<")*/;
+var const$311 = new StringWrapper("<<=")/*const SourceString("<<=")*/;
+var const$312 = new StringWrapper(">>")/*const SourceString(">>")*/;
+var const$313 = new StringWrapper(">>=")/*const SourceString(">>=")*/;
+var const$314 = new StringWrapper("==")/*const SourceString("==")*/;
+var const$315 = new StringWrapper("<")/*const SourceString("<")*/;
+var const$316 = new StringWrapper("<=")/*const SourceString("<=")*/;
+var const$317 = new StringWrapper(">")/*const SourceString(">")*/;
+var const$318 = new StringWrapper(">=")/*const SourceString(">=")*/;
+var const$329 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
+var const$33 = new Keyword("catch", false)/*const Keyword("catch")*/;
+var const$331 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
     // Section references are from Ecma-262
     // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
@@ -23459,8 +23464,7 @@ var const$329 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "un
     // TODO: prove why this is necessary or remove it
     "call"
   ]*/;
-var const$33 = new Keyword("catch", false)/*const Keyword("catch")*/;
-var const$331 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
+var const$333 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
     // These are current keywords
     "break", "delete", "function", "return", "typeof", "case", "do", "if",
     "switch", "var", "catch", "else", "in", "this", "void", "continue",
@@ -23474,7 +23478,7 @@ var const$331 = ImmutableList.ImmutableList$from$factory(["break", "delete", "fu
     "class", "final", "interface", "public", "transient", "const", "float",
     "long", "short", "volatile"
   ]*/;
-var const$333 = new StringWrapper('guard\$num')/*const SourceString('guard\$num')*/;
+var const$335 = new StringWrapper('guard\$num')/*const SourceString('guard\$num')*/;
 var const$35 = new Keyword("const", false)/*const Keyword("const")*/;
 var const$37 = new Keyword("continue", false)/*const Keyword("continue")*/;
 var const$39 = new Keyword("default", false)/*const Keyword("default")*/;
@@ -23482,7 +23486,7 @@ var const$4 = new StringWrapper('global scope')/*const SourceString('global scop
 var const$41 = new Keyword("do", false)/*const Keyword("do")*/;
 var const$43 = new Keyword("else", false)/*const Keyword("else")*/;
 var const$45 = new Keyword("false", false)/*const Keyword("false")*/;
-var const$450 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$452 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
 var const$47 = new Keyword("final", false)/*const Keyword("final")*/;

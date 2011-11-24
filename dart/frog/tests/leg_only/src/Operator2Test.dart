@@ -95,6 +95,22 @@ void modTest() {
   expectEquals(1, x);
 }
 
+void shlTest() {
+  var x = five();
+  x <<= 2;
+  expectEquals(20, x);
+  x <<= 1;
+  expectEquals(40, x);
+}
+
+void shrTest() {
+  var x = four99();
+  x >>= 1;
+  expectEquals(249, x);
+  x >>= 2;
+  expectEquals(62, x);
+}
+
 void main() {
   addTest();
   subTest();
@@ -102,4 +118,6 @@ void main() {
   divTest();
   tdivTest();
   modTest();
+  shlTest();
+  shrTest();
 }
