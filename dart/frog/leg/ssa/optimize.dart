@@ -15,6 +15,10 @@ class SsaOptimizerTask extends CompilerTask {
       new SsaGlobalValueNumberer(compiler).visitGraph(graph);
       new SsaDeadCodeEliminator().visitGraph(graph);
       new SsaInstructionMerger().visitGraph(graph);
+      // Replace the results of type guard instructions with the
+      // original value, if the result is used. This is safe now,
+      // since we don't do code motion after this point.
+      new SsaTypeGuardUnuser().visitGraph(graph);
     });
   }
 }
@@ -470,6 +474,9 @@ class SsaGlobalValueNumberer {
  *   t2 = add(4, 3);
  */
 class SsaInstructionMerger extends HInstructionVisitor {
+  Set<HInstruction> markedByMerger;
+  SsaInstructionMerger() : markedByMerger = new Set<HInstruction>();
+
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
@@ -486,14 +493,40 @@ class SsaInstructionMerger extends HInstructionVisitor {
     // look at the next-previous instruction and the next argument.
     for (int i = inputs.length - 1; i >= 0; i--) {
       if (previousUnused === null) return;
-      // HPhis cannot be generated at use site.
-      // Also they are at the beginning of a block. So if we reach them, we
-      // can abort the loop.
-      if (inputs[i].usedBy.length != 1) return;
-      if (inputs[i] !== previousUnused) return;
+      HInstruction input = inputs[i];
+      // Because of the way the type guard unuser works, we cannot
+      // allow type guard inputs to be marked as generate at use site
+      // by the merger unless the type guard itself ends up being
+      // marked as generate at use site.
+      bool remarkTypeGuardInput = false;
+      if (input is HTypeGuard) {
+        remarkTypeGuardInput = markedByMerger.contains(input.inputs[0]);
+        if (remarkTypeGuardInput) input.inputs[0].clearGenerateAtUseSite();
+      }
+      // If the input does not have too many uses and is in the right
+      // position, we can mark it as generate at use site.
+      if (input.usedBy.length != 1) return;
+      if (input !== previousUnused) return;
       // Our arguments are in the correct location to be inlined.
-      inputs[i].setGenerateAtUseSite();
+      markedByMerger.add(input);
+      input.setGenerateAtUseSite();
+      // If we ended up marking a type guard used as input as generate
+      // at use site, we can safely re-mark the type guard input.
+      if (remarkTypeGuardInput) input.inputs[0].setGenerateAtUseSite();
       previousUnused = previousUnused.previous;
     }
+  }
+}
+
+class SsaTypeGuardUnuser extends HBaseVisitor {
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  void visitTypeGuard(HTypeGuard node) {
+    // If the type guard itself is generated at the use site, it will
+    // introduce an extra temporary if we rewrite uses of it.
+    if (node.generateAtUseSite()) return;
+    currentBlock.rewrite(node, node.inputs[0]);
   }
 }

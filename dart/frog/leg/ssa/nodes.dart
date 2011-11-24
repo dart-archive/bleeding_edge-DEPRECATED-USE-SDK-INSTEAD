@@ -609,6 +609,7 @@ class HInstruction implements Hashable {
 
   bool generateAtUseSite() => getFlag(FLAG_GENERATE_AT_USE_SITE);
   void setGenerateAtUseSite() { setFlag(FLAG_GENERATE_AT_USE_SITE); }
+  void clearGenerateAtUseSite()  { clearFlag(FLAG_GENERATE_AT_USE_SITE); }
 
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
@@ -792,13 +793,14 @@ class HInvokeForeign extends HInvoke {
 }
 
 class HArithmetic extends HInvoke {
+  bool builtin = false;
   HArithmetic(element, inputs) : super(element, inputs);
 
   void prepareGvn() {
     // An arithmetic expression can take part in global value
     // numbering and do not have any side-effects if we that all
     // inputs are numbers.
-    if (hasOnlyNumberInputs()) {
+    if (builtin) {
       assert(!hasSideEffects());
       setUseGvn();
     } else {
@@ -806,8 +808,10 @@ class HArithmetic extends HInvoke {
     }
   }
 
-  int computeType() => inputs[0].isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
-  bool hasOnlyNumberInputs() => computeInputsType() == TYPE_NUMBER;
+  int computeType() {
+    builtin = computeInputsType() == TYPE_NUMBER;
+    return inputs[0].isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
+  }
 
   abstract num evaluate(num a, num b);
 }
@@ -974,6 +978,7 @@ class HPhi extends HInstruction {
 }
 
 class HRelational extends HInvoke {
+  bool builtin = false;
   HRelational(Element element, List<HInstruction> inputs)
       : super(element, inputs);
 
@@ -981,7 +986,7 @@ class HRelational extends HInvoke {
     // Relational expressions can take part in global value numbering
     // and do not have any side-effects if we know all the inputs are
     // numbers. This can be improved for at least equality.
-    if (hasOnlyNumberInputs()) {
+    if (builtin) {
       assert(!hasSideEffects());
       setUseGvn();
     } else {
@@ -990,8 +995,10 @@ class HRelational extends HInvoke {
   }
 
   // TODO(kasperl): This can be improved for at least for equality.
-  int computeType() => inputs[0].isNumber() ? TYPE_BOOLEAN : TYPE_UNKNOWN;
-  bool hasOnlyNumberInputs() => computeInputsType() == TYPE_NUMBER;
+  int computeType() {
+    builtin = computeInputsType() == TYPE_NUMBER;
+    return inputs[0].isNumber() ? TYPE_BOOLEAN : TYPE_UNKNOWN;
+  }
 
   abstract bool evaluate(num a, num b);
 }
