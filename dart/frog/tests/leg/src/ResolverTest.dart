@@ -22,8 +22,8 @@ class MockCompiler extends Compiler {
     parseScript('lt() {} add() {}');
   }
 
-  void reportWarning(Node node, String message) {
-    warnings.add(new WarningMessage(node, message));
+  void reportWarning(Node node, var message) {
+    warnings.add(new WarningMessage(node, message.toString()));
   }
 
   void clearWarnings() {

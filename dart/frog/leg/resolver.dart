@@ -74,7 +74,7 @@ class ResolverVisitor implements Visitor<Element> {
 
   warning(Node node, MessageKind kind, [arguments = const []]) {
     ResolutionWarning warning  = new ResolutionWarning(kind, arguments);
-    compiler.reportWarning(node, warning.toString());
+    compiler.reportWarning(node, warning);
   }
 
   cancel(Node node, String message) {

@@ -302,6 +302,8 @@ class For extends Statement {
 
   For(this.initializer, this.condition, this.update, this.body, this.forToken);
 
+  Expression getConditionExpression() => condition.expression;
+
   accept(Visitor visitor) => visitor.visitFor(this);
 
   Token getBeginToken() => forToken;

@@ -6,8 +6,10 @@ class MessageKind {
   final String template;
   const MessageKind(this.template);
 
+  static final GENERIC = const MessageKind('#{1}');
+
   static final NOT_ASSIGNABLE = const MessageKind(
-      '#{1} is not assignable to #{2}');
+      '#{2} is not assignable to #{1}');
   static final VOID_EXPRESSION = const MessageKind(
       'expression does not yield a value');
   static final VOID_VARIABLE = const MessageKind(
@@ -16,6 +18,10 @@ class MessageKind {
       'cannot return value from void function');
   static final RETURN_NOTHING = const MessageKind(
       'value of type #{1} expected');
+  static final MISSING_ARGUMENT = const MessageKind(
+      'missing argument');
+  static final ADDITIONAL_ARGUMENT = const MessageKind(
+      'additional argument');
 
   static final CANNOT_RESOLVE = const MessageKind(
       'cannot resolve #{1}');

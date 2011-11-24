@@ -53,7 +53,7 @@ class WorldCompiler extends Compiler {
     return new frog.SourceSpan(script.file, startOffset, endOffset);
   }
 
-  reportWarning(Node node, String message) {
+  reportWarning(Node node, var message) {
     world.warning('$message.', spanFromNode(node));
   }
 

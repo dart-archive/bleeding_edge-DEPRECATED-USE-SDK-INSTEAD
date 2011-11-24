@@ -14,7 +14,8 @@ class TypeCheckerTask extends CompilerTask {
       try {
         tree.accept(visitor);
       } catch (CancelTypeCheckException e) {
-        compiler.reportWarning(e.node, e.reason);
+        compiler.reportWarning(e.node, new TypeWarning(MessageKind.GENERIC,
+                                                       [e.reason]));
       }
     });
   }
@@ -54,16 +55,22 @@ class Types {
   static final INT = const SourceString('int');
   static final DYNAMIC = const SourceString('Dynamic');
   static final STRING = const SourceString('String');
+  static final BOOL = const SourceString('bool');
+  static final OBJECT = const SourceString('Object');
 
   final SimpleType voidType;
   final SimpleType intType;
   final SimpleType dynamicType;
   final SimpleType stringType;
+  final SimpleType boolType;
+  final SimpleType objectType;
 
   Types() : voidType = new SimpleType.named(VOID),
             intType = new SimpleType.named(INT),
             dynamicType = new SimpleType.named(DYNAMIC),
-            stringType = new SimpleType.named(STRING);
+            stringType = new SimpleType.named(STRING),
+            boolType = new SimpleType.named(BOOL),
+            objectType = new SimpleType.named(OBJECT);
 
   Type lookup(SourceString s) {
     if (VOID == s) {
@@ -74,12 +81,17 @@ class Types {
       return dynamicType;
     } else if (STRING == s) {
       return stringType;
+    } else if (BOOL == s) {
+      return boolType;
+    } else if (OBJECT == s) {
+      return objectType;
     }
     return null;
   }
 
   bool isSubtype(Type r, Type s) {
-    return r === s || r === dynamicType || s === dynamicType;
+    return r === s || r === dynamicType || s === dynamicType ||
+           s === objectType;
   }
 
   bool isAssignable(Type r, Type s) {
@@ -112,7 +124,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   reportTypeWarning(Node node, MessageKind kind, [List arguments = const []]) {
-    compiler.reportWarning(node, new TypeWarning(kind, arguments).toString());
+    compiler.reportWarning(node, new TypeWarning(kind, arguments));
   }
 
   Type nonVoidType(Node node) {
@@ -134,6 +146,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return result;
   }
 
+  /**
+   * Check if a value of type t can be assigned to a variable,
+   * parameter or return value of type s.
+   */
   checkAssignable(Node node, Type s, Type t) {
     if (!types.isAssignable(s, t)) {
       reportTypeWarning(node, MessageKind.NOT_ASSIGNABLE, [s, t]);
@@ -150,16 +166,24 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitExpressionStatement(ExpressionStatement node) {
-    return type(node.expression);
+    type(node.expression);
+    return types.voidType;
   }
 
+  /** Dart Programming Language Specification: 11.5.1 For Loop */
   Type visitFor(For node) {
-    fail(node);
+    type(node.initializer);
+    final expressionNode = node.getConditionExpression();
+    Type conditionType = nonVoidType(expressionNode);
+    checkAssignable(expressionNode, types.boolType, conditionType);
+    type(node.update);
+    type(node.body);
+    return types.voidType;
   }
 
   Type visitFunctionExpression(FunctionExpression node) {
-    FunctionType functionType =
-        elements[node.name].computeType(compiler, types);
+    final element = elements[node.name];
+    FunctionType functionType = element.computeType(compiler, types);
     Type returnType = functionType.returnType;
     Type previous = expectedReturnType;
     expectedReturnType = returnType;
@@ -183,14 +207,12 @@ class TypeCheckerVisitor implements Visitor<Type> {
     final target = elements[node];
     Identifier selector = node.selector;
     if (target !== null) {
-      SourceString name = selector.source;
-      if (name == const SourceString('+')
-          || name == const SourceString('=')
-          || name == const SourceString('-')
-          || name == const SourceString('*')
-          || name == const SourceString('/')
-          || name == const SourceString('<')
-          || name == const SourceString('~/')) {
+      String name = selector.source.stringValue;
+      if (name === '+' || name === '=' || name === '-'
+          || name === '*' || name === '/' || name === '%'
+          || name === '~/' || name === '<' || name === '>'
+          || name === '<=' || name === '>=' || name === '!'
+          || name === '==' || name === '||' || name === '&&') {
         return types.dynamicType;
       }
       final targetType = target.computeType(compiler, types);
@@ -215,16 +237,16 @@ class TypeCheckerVisitor implements Visitor<Type> {
         while ((!formals.isEmpty()) && (!arguments.isEmpty())) {
           final Node argument = arguments.head;
           final Type argumentType = type(argument);
-          checkAssignable(argument, argumentType, formals.head);
+          checkAssignable(argument, formals.head, argumentType);
           formals = formals.tail;
           arguments = arguments.tail;
         }
 
         if (!formals.isEmpty()) {
-          compiler.reportWarning(node, 'missing argument');
+          reportTypeWarning(node, MessageKind.MISSING_ARGUMENT);
         }
         if (!arguments.isEmpty()) {
-          compiler.reportWarning(arguments.head, 'additional arguments');
+          reportTypeWarning(node, MessageKind.ADDITIONAL_ARGUMENT);
         }
 
         return funType.returnType;
@@ -239,7 +261,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     compiler.ensure(node.arguments !== null && !node.arguments.isEmpty());
     Type targetType = elements[node].computeType(compiler, types);
     Node value = node.arguments.head;
-    checkAssignable(value, type(value), targetType);
+    checkAssignable(value, targetType, type(value));
     return targetType;
   }
 
@@ -252,7 +274,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitLiteralBool(LiteralBool node) {
-    return types.dynamicType;
+    return types.boolType;
   }
 
   Type visitLiteralString(LiteralString node) {
@@ -286,9 +308,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
       final expressionType = type(expression);
       if (isVoidFunction
           && !types.isAssignable(expressionType, types.voidType)) {
-        reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID);
+        reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID,
+                          [expressionType]);
       } else {
-        checkAssignable(expression, expressionType, expectedReturnType);
+        checkAssignable(expression, expectedReturnType, expressionType);
       }
 
     // Let f be the function immediately enclosing a return statement of the
@@ -310,8 +333,11 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type visitTypeAnnotation(TypeAnnotation node) {
     if (node.typeName === null) return types.dynamicType;
     final name = node.typeName.source;
-    final type = types.lookup(name);
-    if (type === null) fail(node, 'unsupported type ${name}');
+    Type type = elements[node];
+    if (type === null) type = types.lookup(name);
+    if (type === null) {
+      fail(node, 'unsupported type ${node.typeName.source}');
+    }
     return type;
   }
 
@@ -325,7 +351,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
          link = link.tail) {
       Node initialization = link.head;
       compiler.ensure(initialization is Identifier
-          || initialization is Send);
+                      || initialization is Send);
       if (initialization is Send) {
         Type initializer = nonVoidType(link.head);
         checkAssignable(node, type, initializer);

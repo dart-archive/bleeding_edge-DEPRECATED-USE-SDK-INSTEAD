@@ -103,7 +103,7 @@ class FunctionElement extends Element {
 
     FunctionExpression node = parseNode(compiler, compiler);
     Type returnType = getType(node.returnType, types);
-    if (returnType === null) compiler.cancel('unknown type $returnType');
+    if (returnType === null) compiler.cancel('unknown type ${node.returnType}');
 
     LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
     for (Link<Element> link = parameters; !link.isEmpty(); link = link.tail) {
