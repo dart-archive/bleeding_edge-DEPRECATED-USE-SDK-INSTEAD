@@ -457,8 +457,21 @@ class SsaBuilder implements Visitor {
     }
   }
 
+  HInstruction updateDefinition(Node node, HInstruction value) {
+    VariableElement element = elements[node];
+    value = guard(element.type, value);
+    definitions[element] = value;
+    return value;
+  }
+
   visitSendSet(SendSet node) {
-    stack.add(updateDefinition(node));
+    if (node.receiver != null) {
+      compiler.unimplemented("SsaBuilder: property access");
+    }
+    Link<Node> link = node.arguments;
+    assert(!link.isEmpty() && link.tail.isEmpty());
+    visit(link.head);
+    stack.add(updateDefinition(node, pop()));
   }
 
   void visitLiteralInt(LiteralInt node) {
@@ -516,19 +529,6 @@ class SsaBuilder implements Visitor {
     // We currently ignore type annotations for generating code.
   }
 
-  HInstruction updateDefinition(SendSet node) {
-    if (node.receiver != null) {
-      compiler.unimplemented("SsaBuilder: property access");
-    }
-    Link<Node> link = node.arguments;
-    assert(!link.isEmpty() && link.tail.isEmpty());
-    visit(link.head);
-    HInstruction value = pop();
-    VariableElement element = elements[node];
-    definitions[element] = guard(element.type, value);
-    return value;
-  }
-
   visitVariableDefinitions(VariableDefinitions node) {
     for (Link<Node> link = node.definitions.nodes;
          !link.isEmpty();
@@ -537,10 +537,11 @@ class SsaBuilder implements Visitor {
       if (definition is Identifier) {
         HInstruction initialValue = new HLiteral(null);
         add(initialValue);
-        definitions[elements[definition]] = initialValue;
+        updateDefinition(definition, initialValue);
       } else {
         assert(definition is SendSet);
-        updateDefinition(definition);
+        visitSendSet(definition);
+        pop();  // Discard value.
       }
     }
   }

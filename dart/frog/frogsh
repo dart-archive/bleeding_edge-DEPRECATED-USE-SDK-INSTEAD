@@ -7749,8 +7749,22 @@ SsaBuilder.prototype.visitSend = function(node) {
     }
   }
 }
+SsaBuilder.prototype.updateDefinition = function(node, value) {
+  var $0;
+  var element = (($0 = this.elements.$index(node)) && $0.is$VariableElement());
+  value = this.guard(element.type, value);
+  this.definitions.$setindex(element, value);
+  return value;
+}
 SsaBuilder.prototype.visitSendSet = function(node) {
-  this.stack.add(this.updateDefinition(node));
+  var $0;
+  if (node.receiver != null) {
+    this.compiler.unimplemented("SsaBuilder: property access");
+  }
+  var link = node.get$arguments();
+  $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 472, 12);
+  this.visit((($0 = link.get$head()) && $0.is$Node()));
+  this.stack.add(this.updateDefinition(node, this.pop()));
 }
 SsaBuilder.prototype.visitLiteralInt = function(node) {
   this.push(new HLiteral(node.get$value()));
@@ -7799,19 +7813,6 @@ SsaBuilder.prototype.visitThrow = function(node) {
 SsaBuilder.prototype.visitTypeAnnotation = function(node) {
 
 }
-SsaBuilder.prototype.updateDefinition = function(node) {
-  var $0;
-  if (node.receiver != null) {
-    this.compiler.unimplemented("SsaBuilder: property access");
-  }
-  var link = node.get$arguments();
-  $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 524, 12);
-  this.visit((($0 = link.get$head()) && $0.is$Node()));
-  var value = this.pop();
-  var element = (($0 = this.elements.$index(node)) && $0.is$VariableElement());
-  this.definitions.$setindex(element, this.guard(element.type, value));
-  return value;
-}
 SsaBuilder.prototype.visitVariableDefinitions = function(node) {
   var $0;
   for (var link = node.definitions.get$nodes();
@@ -7820,11 +7821,12 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
     if ((definition instanceof Identifier)) {
       var initialValue = new HLiteral(null);
       this.add(initialValue);
-      this.definitions.$setindex(this.elements.$index(definition), initialValue);
+      this.updateDefinition(definition, initialValue);
     }
     else {
       $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 542, 16);
-      this.updateDefinition((definition && definition.is$SendSet()));
+      this.visitSendSet((definition && definition.is$SendSet()));
+      this.pop();
     }
   }
 }
