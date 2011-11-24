@@ -394,6 +394,10 @@ class SsaBuilder implements Visitor {
       push(new HTruncatingDivide(element, [left, right]));
     } else if (const SourceString("%") == op.source) {
       push(new HModulo(element, [left, right]));
+    } else if (const SourceString("<<") == op.source) {
+      push(new HShiftLeft(element, [left, right]));
+    } else if (const SourceString(">>") == op.source) {
+      push(new HShiftRight(element, [left, right]));
     } else if (const SourceString("==") == op.source) {
       push(new HEquals(element, [left, right]));
     } else if (const SourceString("<") == op.source) {

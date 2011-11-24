@@ -77,3 +77,11 @@ lt(var a, var b) {
 le(var a, var b) {
   return JS(@"$0 <= $1", a, b);
 }
+
+shl(var a, var b) {
+  return JS(@"$0 << $1", a, b);
+}
+
+shr(var a, var b) {
+  return JS(@"$0 >> $1", a, b);
+}

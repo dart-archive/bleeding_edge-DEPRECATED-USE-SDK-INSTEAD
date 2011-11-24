@@ -245,6 +245,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitReturn(HReturn node) => "Return ${temporaryId(node.inputs[0])}";
 
+  String visitShiftLeft(HShiftLeft node) => visitInvoke(node);
+
+  String visitShiftRight(HShiftRight node) => visitInvoke(node);
+
   String visitStore(HStore node) {
     String localId = temporaryId(node.inputs[0]);
     String valueId = temporaryId(node.inputs[1]);

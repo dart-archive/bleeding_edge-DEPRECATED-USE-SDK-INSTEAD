@@ -216,6 +216,8 @@ class FullResolverVisitor extends ResolverVisitor {
     if (name == const SourceString('<=')) return const SourceString('le');
     if (name == const SourceString('>')) return const SourceString('gt');
     if (name == const SourceString('>=')) return const SourceString('ge');
+    if (name == const SourceString('<<')) return const SourceString('shl');
+    if (name == const SourceString('>>')) return const SourceString('shr');
     return name;
   }
 

@@ -113,6 +113,26 @@ void modTest() {
   expectEquals(2, five() % m3);
 }
 
+void shlTest() {
+  expectEquals(2, 1 << 1);
+  expectEquals(8, 1 << 3);
+  expectEquals(6, 3 << 1);
+
+  expectEquals(10, five() << 1);
+  expectEquals(24, 3 << three());
+  expectEquals(0 - 10, minus5() << 1);
+}
+
+void shrTest() {
+  expectEquals(1, 2 >> 1);
+  expectEquals(1, 8 >> 3);
+  expectEquals(3, 6 >> 1);
+
+  var x = 0 - ninetyNine();
+  expectEquals(6, ninetyNine() >> 4);
+  expectEquals(0 - 7, x >> 4);
+}
+
 void equalsTest() {
   // Equality of normal numbers is already well tested with "expectEquals".
   expectEquals(true, true == true);
@@ -255,6 +275,8 @@ void main() {
   divTest();
   tdivTest();
   modTest();
+  shlTest();
+  shrTest();
   equalsTest();
   lessTest();
   lessEqualTest();

@@ -22,13 +22,15 @@ interface HVisitor<R> {
   R visitInvokeForeign(HInvokeForeign node);
   R visitLiteral(HLiteral node);
   R visitModulo(HModulo node);
+  R visitMultiply(HMultiply node);
   R visitNot(HNot node);
   R visitParameterValue(HParameterValue node);
   R visitPhi(HPhi node);
-  R visitSubtract(HSubtract node);
-  R visitMultiply(HMultiply node);
   R visitReturn(HReturn node);
+  R visitShiftLeft(HShiftLeft node);
+  R visitShiftRight(HShiftRight node);
   R visitStore(HStore node);
+  R visitSubtract(HSubtract node);
   R visitThrow(HThrow node);
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTypeGuard(HTypeGuard node);
@@ -188,6 +190,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitMultiply(HMultiply node) => visitArithmetic(node);
   visitParameterValue(HParameterValue node) => visitInstruction(node);
   visitReturn(HReturn node) => visitControlFlow(node);
+  visitShiftRight(HShiftRight node) => visitArithmetic(node);
+  visitShiftLeft(HShiftLeft node) => visitArithmetic(node);
   visitSubtract(HSubtract node) => visitArithmetic(node);
   visitStore(HStore node) => visitInstruction(node);
   visitThrow(HThrow node) => visitControlFlow(node);
@@ -879,6 +883,51 @@ class HTruncatingDivide extends HArithmetic {
 
   num evaluate(num a, num b) => a ~/ b;
   bool typeEquals(other) => other is HTruncatingDivide;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HShiftLeft extends HArithmetic {
+  HShiftLeft(element, inputs) : super(element, inputs);
+  accept(HVisitor visitor) => visitor.visitShiftLeft(this);
+
+  HInstruction fold() {
+    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
+      // TODO(floitsch): find good max left-shift amount.
+      final int MAX_SHIFT_LEFT_AMOUNT = 50;
+      HLiteral op1 = inputs[0];
+      HLiteral op2 = inputs[1];
+      // Avoid exceptions.
+      if (op1.value is int && op2.value is int &&
+          op2.value >= 0 && op2.value < MAX_SHIFT_LEFT_AMOUNT) {
+        return new HLiteral(evaluate(op1.value, op2.value));
+      }
+    }
+    return this;
+  }
+
+  num evaluate(num a, num b) => a << b;
+  bool typeEquals(other) => other is HShiftLeft;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HShiftRight extends HArithmetic {
+  HShiftRight(element, inputs) : super(element, inputs);
+  accept(HVisitor visitor) => visitor.visitShiftRight(this);
+
+  HInstruction fold() {
+    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
+      HLiteral op1 = inputs[0];
+      HLiteral op2 = inputs[1];
+      // Avoid exceptions.
+      if (op1.value is int && op2.value is int && op2.value >= 0) {
+        return new HLiteral(evaluate(op1.value, op2.value));
+      }
+    }
+    return this;
+  }
+
+  num evaluate(num a, num b) => a >> b;
+  bool typeEquals(other) => other is HShiftRight;
   bool dataEquals(HInstruction other) => true;
 }
 
