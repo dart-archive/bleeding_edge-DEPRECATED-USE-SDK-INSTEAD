@@ -5,6 +5,7 @@
 /** A formal parameter to a [Method]. */
 class Parameter {
   FormalNode definition;
+  Member method;
 
   String name;
   Type type;
@@ -12,18 +13,18 @@ class Parameter {
 
   Value value;
 
-  Parameter(this.definition);
+  Parameter(this.definition, this.method);
 
-  resolve(Member method, Type inType) {
+  resolve() {
     name = definition.name.name;
     if (name.startsWith('this.')) {
       name = name.substring(5);
       isInitializer = true;
     }
 
-    type = inType.resolveType(definition.type, false);
+    type = method.resolveType(definition.type, false);
 
-    if (method.isStatic && type.hasTypeParams) {
+    if (method.isStatic && method.typeParameters === null && type.hasTypeParams) {
       world.error('using type parameter in static context', definition.span);
     }
 
@@ -62,8 +63,8 @@ class Parameter {
     value = value.convertTo(context, type, definition.value);
   }
 
-  Parameter copyWithNewType(Type newType) {
-    var ret = new Parameter(definition);
+  Parameter copyWithNewType(Member newMethod, Type newType) {
+    var ret = new Parameter(definition, newMethod);
     ret.type = newType;
     ret.name = name;
     ret.isInitializer = isInitializer;
@@ -74,40 +75,21 @@ class Parameter {
 }
 
 
-interface Named {
-  String get name();
-  Library get library();
-  bool get isNative();
-  String get jsname();
-  set jsname(String name);
-
-  SourceSpan get span();
-}
-
-class Member implements Named {
-  final String name;
+class Member extends Element {
   final Type declaringType;
-
-  String _jsname;
 
   bool isGenerated;
   MethodGenerator generator;
 
-  Member(this.name, this.declaringType): isGenerated = false;
-
-  abstract SourceSpan get span();
+  Member(String name, Type declaringType)
+    : isGenerated = false, this.declaringType = declaringType,
+      super(name, declaringType);
 
   abstract bool get isStatic();
   abstract Type get returnType();
 
   abstract bool get canGet();
   abstract bool get canSet();
-
-  abstract void resolve(Type inType);
-
-  String get jsname() => _jsname == null ? name : _jsname;
-
-  set jsname(String name) => _jsname = name;
 
   Library get library() => declaringType.library;
 
@@ -211,16 +193,6 @@ class Member implements Named {
     }
   }
 
-  Type resolveType(TypeReference node, bool isRequired) {
-    var type = declaringType.resolveType(node, isRequired);
-    if (isStatic && type.hasTypeParams) {
-      // TODO(jimhug): Is this really so hard?
-      world.error('using type parameter in static context',
-        node.span);
-    }
-    return type;
-  }
-
   int hashCode() => (declaringType.hashCode() << 4) ^ name.hashCode();
 }
 
@@ -247,8 +219,6 @@ class TypeMember extends Member {
   bool canInvoke(MethodGenerator context, Arguments args) => false;
   bool get canGet() => true;
   bool get canSet() => false;
-
-  void resolve(Type inType) {}
 
   Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
@@ -327,7 +297,7 @@ class FieldMember extends Member {
 
   bool get isField() => true;
 
-  resolve(Type inType) {
+  resolve() {
     isStatic = declaringType.isTop;
     isFinal = false;
     if (definition.modifiers != null) {
@@ -347,7 +317,7 @@ class FieldMember extends Member {
         }
       }
     }
-    type = inType.resolveType(definition.type, false);
+    type = resolveType(definition.type, false);
     if (isStatic && type.hasTypeParams) {
       world.error('using type parameter in static context',
         definition.type.span);
@@ -534,9 +504,9 @@ class PropertyMember extends Member {
     if (setter == null) setter = parent.setter;
   }
 
-  resolve(Type inType) {
-    if (getter != null) getter.resolve(inType);
-    if (setter != null) setter.resolve(inType);
+  resolve() {
+    if (getter != null) getter.resolve();
+    if (setter != null) setter.resolve();
 
     library._addMember(this);
   }
@@ -552,11 +522,11 @@ class ConcreteMember extends Member {
       : super(name, declaringType) {
     parameters = [];
     returnType = baseMember.returnType.resolveTypeParams(declaringType);
-    // TODO(jimhug): Optimize not creating new array if new param types.
+    // TODO(jimhug): Optimize not creating new array if no new param types.
     for (var p in baseMember.parameters) {
       var newType = p.type.resolveTypeParams(declaringType);
       if (newType != p.type) {
-        parameters.add(p.copyWithNewType(newType));
+        parameters.add(p.copyWithNewType(this, newType));
       } else {
         parameters.add(p);
       }
@@ -648,6 +618,10 @@ class MethodMember extends Member {
   Type returnType;
   List<Parameter> parameters;
 
+  // Could support generic methods in general.  Right now only used for
+  // strange corner case of factory methods for generic types.
+  List<ParameterType> typeParameters;
+
 
   Type _functionType;
   bool isStatic = false;
@@ -689,8 +663,11 @@ class MethodMember extends Member {
   SourceSpan get span() => definition == null ? null : definition.span;
 
   String get constructorName() {
-    NameTypeReference returnType = definition.returnType;
+    var returnType = definition.returnType;
     if (returnType == null) return '';
+    if (returnType is GenericTypeReference) {
+      return '';
+    }
 
     // TODO(jmesserly): make this easier?
     if (returnType.names != null) {
@@ -703,11 +680,10 @@ class MethodMember extends Member {
 
   Type get functionType() {
     if (_functionType == null) {
-      _functionType = library.getOrAddFunctionType(name,
-        definition, declaringType);
+      _functionType = library.getOrAddFunctionType(declaringType, name, definition);
       // TODO(jimhug): Better resolution checks.
       if (parameters == null) {
-        resolve(declaringType);
+        resolve();
       }
     }
     return _functionType;
@@ -860,7 +836,7 @@ class MethodMember extends Member {
     // TODO(jimhug): Fix this hack for ensuring a method is resolved.
     if (parameters == null) {
       world.info('surprised to need to resolve: ${declaringType.name}.$name');
-      this.resolve(declaringType);
+      resolve();
     }
 
     declaringType.genMethod(this);
@@ -1215,7 +1191,7 @@ class MethodMember extends Member {
         return new Value(declaringType, '${target.code} + ${argsCode[0]}',
           node.span);
       }
-    } else if (declaringType.isNativeType) {
+    } else if (declaringType.isNative) {
       if (name == '\$index') {
         // Note: this could technically propagate constness, but that's not
         // specified explicitly and the VM doesn't do that.
@@ -1274,9 +1250,9 @@ class MethodMember extends Member {
   }
 
 
-  resolve(Type inType) {
+  resolve() {
     // TODO(jimhug): cut-and-paste-and-edit from Field.resolve
-    isStatic = inType.isTop;
+    isStatic = declaringType.isTop;
     isConst = false;
     isFactory = false;
     isAbstract = !declaringType.isClass;
@@ -1317,6 +1293,20 @@ class MethodMember extends Member {
       isStatic = true;
     }
 
+    if (definition.typeParameters != null) {
+      if (!isFactory) {
+        world.error(
+          'Only factories are allowed to have explicit type parameters',
+          definition.typeParameters[0].span);
+      } else {
+        typeParameters = definition.typeParameters;
+        for (var tp in definition.typeParameters) {
+          tp.enclosingElement = this;
+          tp.resolve();
+        }
+      }
+    }
+
     // TODO(jimhug): need a better annotation for being an operator method
     if (isOperator && isStatic && !isCallMethod) {
       world.error('operator method may not be static "${name}"', span);
@@ -1339,60 +1329,22 @@ class MethodMember extends Member {
       }
     }
 
-    if (isConstructor) {
+    if (isConstructor && !isFactory) {
       returnType = declaringType;
     } else {
-      // TODO(jimhug): Unify this check and the below with method's
-      //   resolveType method - requires cleaning up inType stuff.
-      returnType = inType.resolveType(definition.returnType, false);
-
-      if (isStatic && returnType.hasTypeParams) {
-        world.error('using type parameter in static context',
-          definition.returnType.span);
-      }
+      returnType = resolveType(definition.returnType, false);
     }
     parameters = [];
     for (var formal in definition.formals) {
-      var param = new Parameter(formal);
-      param.resolve(this, inType);
+      // TODO(jimhug): Clean up construction of Parameters.
+      var param = new Parameter(formal, this);
+      param.resolve();
       parameters.add(param);
     }
 
     if (!isLambda) {
       library._addMember(this);
     }
-  }
-
-  Type findTypeVariable(TypeReference node, bool isRequired) {
-    if (!this.isFactory || node is! NameTypeReference) {
-      return super.resolveType(node, isRequired);
-    } else {
-      // TODO(ahe): We cannot find any type variables as they aren't
-      // recorded. So we turn this in to a warning instead.
-      return super.resolveType(node, false);
-    }
-  }
-
-  Type resolveType(TypeReference node, bool isRequired) {
-    if (node !== null && this.isFactory && isRequired) {
-      if (node is GenericTypeReference) {
-        // TODO(ahe): This is bascially a copy of code in
-        // DefinedType.resolveType. More checks should be performed,
-        // such as bounds check, but the code is structured in a way
-        // that makes this hard.
-        GenericTypeReference genericReference = node;
-        var baseType = super.resolveType(genericReference.baseType, isRequired);
-        var typeArguments = [];
-        for (TypeReference ref in genericReference.typeArguments) {
-          // TODO(ahe): This let us ignore T in new Foo<T>, but not in
-          // new Foo<Foo<T>>.
-          typeArguments.add(findTypeVariable(ref, isRequired));
-        }
-        node.type = baseType.getOrMakeConcreteType(typeArguments);
-        return node.type;
-      }
-    }
-    return super.resolveType(node, isRequired);
   }
 }
 

@@ -267,7 +267,7 @@ class Parser {
     _eatSemicolon();
 
     var func = new FunctionDefinition(null, di.type, di.name, formals,
-                                       null, null, _makeSpan(start));
+                                       null, null, null, _makeSpan(start));
 
     return new FunctionTypeDefinition(func, typeParams, _makeSpan(start));
   }
@@ -316,7 +316,11 @@ class Parser {
     _error('Expected function body (neither { nor => found)');
   }
 
-  finishField(start, modifiers, type, name, value) {
+  finishField(start, modifiers, typeParams, type, name, value) {
+    if (typeParams !== null) {
+      world.internalError('trying to create a generic field',
+        _makeSpan(start));
+    }
     var names = [name];
     var values = [value];
 
@@ -334,7 +338,8 @@ class Parser {
                                    _makeSpan(start));
   }
 
-  finishDefinition(start, modifiers, di) {
+  finishDefinition(int start, List<Token> modifiers, di,
+      List<ParameterType> typeParams) {
     switch(_peek()) {
       case TokenKind.LPAREN:
         var formals = formalParameterList();
@@ -348,16 +353,16 @@ class Parser {
           di.name = di.type.name;
         }
         return new FunctionDefinition(modifiers, di.type, di.name, formals,
-                                       inits, body, _makeSpan(start));
+          typeParams, inits, body, _makeSpan(start));
 
       case TokenKind.ASSIGN:
         _eat(TokenKind.ASSIGN);
         var value = expression();
-        return finishField(start, modifiers, di.type, di.name, value);
+        return finishField(start, modifiers, typeParams, di.type, di.name, value);
 
       case TokenKind.COMMA:
       case TokenKind.SEMICOLON:
-        return finishField(start, modifiers, di.type, di.name, null);
+        return finishField(start, modifiers, typeParams, di.type, di.name, null);
 
       default:
         // TODO(jimhug): This error message sucks.
@@ -375,7 +380,7 @@ class Parser {
 
     var modifiers = _readModifiers();
     return finishDefinition(start, modifiers,
-        declaredIdentifier(includeOperators));
+        declaredIdentifier(includeOperators), null);
   }
 
   factoryConstructorDeclaration() {
@@ -411,7 +416,7 @@ class Parser {
     }
     type = new NameTypeReference(false, names[0], null, names[0].span);
     var di = new DeclaredIdentifier(type, name, _makeSpan(start));
-    return finishDefinition(start, [factoryToken], di);
+    return finishDefinition(start, [factoryToken], di, typeParams);
   }
 
   ///////////////////////////////////////////////////////////////////
@@ -481,11 +486,11 @@ class Parser {
       if (_maybeEat(TokenKind.ASSIGN)) {
         value = expression();
       }
-      return finishField(start, null, expr.type, expr.name, value);
+      return finishField(start, null, null, expr.type, expr.name, value);
     } else if (_isBin(expr, TokenKind.ASSIGN) &&
                (expr.x is DeclaredIdentifier)) {
       DeclaredIdentifier di = expr.x; // TODO(jimhug): inference should handle!
-      return finishField(start, null, di.type, di.name, expr.y);
+      return finishField(start, null, null, di.type, di.name, expr.y);
     } else if (_isBin(expr, TokenKind.LT) && _maybeEat(TokenKind.COMMA)) {
       var baseType = _makeType(expr.x);
       var typeArgs = [_makeType(expr.y)];
@@ -495,7 +500,7 @@ class Parser {
       if (_maybeEat(TokenKind.ASSIGN)) {
         value = expression();
       }
-      return finishField(expr.span.start, null, gt, name, value);
+      return finishField(expr.span.start, null, null, gt, name, value);
     } else {
       _eatSemicolon();
       return new ExpressionStatement(expr, _makeSpan(expr.span.start));
@@ -1162,7 +1167,7 @@ class Parser {
     if (_atClosureParameters()) {
       var formals = formalParameterList();
       var body = functionBody(true);
-      var func = new FunctionDefinition(null, null, null, formals, null,
+      var func = new FunctionDefinition(null, null, null, formals, null, null,
         body, _makeSpan(start));
       return new LambdaExpression(func, func.span);
     } else {
@@ -1428,7 +1433,7 @@ class Parser {
     return null;
   }
 
-  typeParameter() {
+  ParameterType typeParameter() {
     // non-recursive - so always starts from zero depth
     int start = _peekToken.start;
     var name = identifier();
@@ -1436,20 +1441,22 @@ class Parser {
     if (_maybeEat(TokenKind.EXTENDS)) {
       myType = type(1);
     }
-    return new TypeParameter(name, myType, _makeSpan(start));
+
+    var tp = new TypeParameter(name, myType, _makeSpan(start));
+    return new ParameterType(name.name, tp);
   }
 
-  typeParameters() {
+  List<ParameterType> typeParameters() {
     // always starts from zero depth
     _eat(TokenKind.LT);
 
     bool closed = false;
     var ret = [];
     do {
-      // inlining typeParameter to handle scope issues?
       var tp = typeParameter();
       ret.add(tp);
-      if (tp.extendsType is GenericTypeReference && tp.extendsType.depth == 0) {
+      if (tp.typeParameter.extendsType is GenericTypeReference &&
+          tp.typeParameter.extendsType.depth == 0) {
         closed = true;
         break;
       }
@@ -1562,7 +1569,7 @@ class Parser {
     } else if (_peekKind(TokenKind.LPAREN)) {
       var formals = formalParameterList();
       var func = new FunctionDefinition(null, type, name, formals,
-                                         null, null, _makeSpan(start));
+                                         null, null, null, _makeSpan(start));
       type = new FunctionTypeReference(false, func, func.span);
     }
     if (inOptionalBlock && value == null) {
@@ -1629,7 +1636,7 @@ class Parser {
     }
     var span = new SourceSpan(expr.span.file, expr.span.start, body.span.end);
     var func =
-        new FunctionDefinition(null, type, name, formals, null, body, span);
+        new FunctionDefinition(null, type, name, formals, null, null, body, span);
     return new LambdaExpression(func, func.span);
   }
 

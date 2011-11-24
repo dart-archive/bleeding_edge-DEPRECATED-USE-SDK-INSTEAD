@@ -203,7 +203,7 @@ class WorldGenerator {
 
     var typeName = type.jsname != null ? type.jsname : 'top level';
     writer.comment('// ********** Code for ${typeName} **************');
-    if (type.isNativeType && !type.isTop) {
+    if (type.isNative && !type.isTop) {
       var nativeName = type.definition.nativeType.name;
       if (nativeName == '') {
         writer.writeln('function ${type.jsname}() {}');
@@ -215,7 +215,7 @@ class WorldGenerator {
     if (type.isTop) {
       // no preludes for top type
     } else if (type.constructors.length == 0) {
-      if (!type.isNativeType) {
+      if (!type.isNative) {
         // TODO(jimhug): More guards to guarantee staticness
         writer.writeln('function ${type.jsname}() {}');
       }
@@ -223,7 +223,7 @@ class WorldGenerator {
       Member standardConstructor = type.constructors[''];
       if (standardConstructor == null ||
           standardConstructor.generator == null) {
-        if (!type.isNativeType) {
+        if (!type.isNative) {
           writer.writeln('function ${type.jsname}() {}');
         }
       } else {
@@ -252,7 +252,7 @@ class WorldGenerator {
           _ensureInheritMembersHelper();
           _mixins.writeln('\$inheritsMembers(${c.jsname}, ${p.jsname});');
         }
-      } else if (!type.isNativeType) {
+      } else if (!type.isNative) {
         if (type.parent != null && !type.parent.isObject) {
           _ensureInheritsHelper();
           writer.writeln('\$inherits(${type.jsname}, ${type.parent.jsname});');
@@ -1125,7 +1125,8 @@ class MethodGenerator implements TreeVisitor {
   MethodMember _makeLambdaMethod(String name, FunctionDefinition func) {
     var meth = new MethodMember(name, method.declaringType, func);
     meth.isLambda = true;
-    meth.resolve(method.declaringType);
+    meth.enclosingElement = method;
+    meth.resolve();
     world.gen.genMethod(meth, this);
     return meth;
   }

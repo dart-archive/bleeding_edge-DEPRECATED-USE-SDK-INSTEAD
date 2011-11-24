@@ -4,16 +4,14 @@
 
 // TODO(ahe): This class should not be generic.
 class LinkFactory {
-  factory Link<T>(head, [Link tail]) {
+  factory Link<T>(T head, [Link<T> tail]) {
     if (tail === null) {
-      // TODO(ahe): Remove below comment about Frog bug when it is fixed.
-      tail = new LinkTail<T>(); // Frog bug: T is in scope.
+      tail = new LinkTail<T>();
     }
-    // TODO(ahe): Remove below comment about Frog bug when it is fixed.
-    return new LinkEntry<T>(head, tail); // Frog bug: T is in scope.
+    return new LinkEntry<T>(head, tail);
   }
 
-  factory Link<T>.fromList(List list) {
+  factory Link<T>.fromList(List<T> list) {
     switch (list.length) {
       case 0:
         return new LinkTail<T>();

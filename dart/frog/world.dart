@@ -75,7 +75,7 @@ class World {
   List<Library> _todo;
 
   /** Internal map to track name conflicts in the generated javascript. */
-  Map<String, Named> _topNames;
+  Map<String, Element> _topNames;
 
   Map<String, MemberSet> _members;
 
@@ -159,31 +159,31 @@ class World {
     }
   }
 
-  _addTopName(Named named) {
-    var existing = _topNames[named.name];
+  _addTopName(Element named) {
+    var existing = _topNames[named.jsname];
     if (existing != null) {
-      info('mangling matching top level name "${named.name}" in '
-          + 'both "${named.library.name}" and "${existing.library.name}"');
+      info('mangling matching top level name "${named.jsname}" in '
+          + 'both "${named.library.jsname}" and "${existing.library.jsname}"');
 
       if (named.isNative) {
         // resolve conflicts in favor first of natives
         if (existing.isNative) {
-          world.internalError('conflicting native names "${named.name}" '
+          world.internalError('conflicting native names "${named.jsname}" '
               + '(already defined in ${existing.span.locationText})',
               named.span);
         } else {
-          _topNames[named.name] = named;
+          _topNames[named.jsname] = named;
           _addJavascriptTopName(existing);
         }
       } else if (named.library.isCore) {
         // then in favor of corelib
         if (existing.library.isCore) {
           world.internalError(
-              'conflicting top-level names in core "${named.name}" '
+              'conflicting top-level names in core "${named.jsname}" '
               + '(previously defined in ${existing.span.locationText})',
               named.span);
         } else {
-          _topNames[named.name] = named;
+          _topNames[named.jsname] = named;
           _addJavascriptTopName(existing);
         }
       } else {
@@ -191,12 +191,12 @@ class World {
         _addJavascriptTopName(named);
       }
     } else {
-      _topNames[named.name] = named;
+      _topNames[named.jsname] = named;
     }
   }
 
-  _addJavascriptTopName(Named named) {
-    named.jsname = '${named.library.jsname}_${named.name}';
+  _addJavascriptTopName(Element named) {
+    named._jsname = '${named.library.jsname}_${named.jsname}';
     final existing = _topNames[named.jsname];
     if (existing != null && existing != named) {
       world.internalError('name mangling failed for "${named.jsname}" '

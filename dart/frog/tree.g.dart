@@ -15,7 +15,7 @@ class DirectiveDefinition extends Definition {
 class TypeDefinition extends Definition {
   bool isClass;
   Identifier name;
-  List<TypeParameter> typeParameters;
+  List<ParameterType> typeParameters;
   List<TypeReference> extendsTypes;
   List<TypeReference> implementsTypes;
   NativeType nativeType;
@@ -29,7 +29,7 @@ class TypeDefinition extends Definition {
 
 class FunctionTypeDefinition extends Definition {
   FunctionDefinition func;
-  List<TypeParameter> typeParameters;
+  List<ParameterType> typeParameters;
 
   FunctionTypeDefinition(this.func, this.typeParameters, SourceSpan span): super(span) {}
 
@@ -52,10 +52,11 @@ class FunctionDefinition extends Definition {
   TypeReference returnType;
   Identifier name;
   List<FormalNode> formals;
+  List<ParameterType> typeParameters;
   List<Expression> initializers;
   Statement body;
 
-  FunctionDefinition(this.modifiers, this.returnType, this.name, this.formals, this.initializers, this.body, SourceSpan span): super(span) {}
+  FunctionDefinition(this.modifiers, this.returnType, this.name, this.formals, this.typeParameters, this.initializers, this.body, SourceSpan span): super(span) {}
 
   visit(TreeVisitor visitor) => visitor.visitFunctionDefinition(this);
 }
@@ -621,6 +622,7 @@ class TreePrinter implements TreeVisitor {
     output.writeNode('returnType', node.returnType);
     output.writeNode('name', node.name);
     output.writeNodeList('formals', node.formals);
+    output.writeList('typeParameters', node.typeParameters);
     output.writeNodeList('initializers', node.initializers);
     output.writeNode('body', node.body);
   }

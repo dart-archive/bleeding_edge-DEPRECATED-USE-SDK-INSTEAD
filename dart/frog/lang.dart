@@ -10,6 +10,7 @@
 
 #source('code_writer.dart');
 #source('corejs.dart');
+#source('element.dart');
 #source('gen.dart');
 #source('library.dart');
 #source('member.dart');

@@ -8,13 +8,13 @@ class LibraryImport {
   LibraryImport(this.library, [this.prefix = null]);
 }
 
+
 /** Represents a Dart library. */
-class Library {
+class Library extends Element {
   final SourceFile baseSource;
   Map<String, DefinedType> types;
   List<LibraryImport> imports;
   String sourceDir;
-  String name;
   List<SourceFile> natives;
   List<SourceFile> sources;
 
@@ -31,9 +31,7 @@ class Library {
    * Only used with the compileAll flag. */
   bool isMarked = false;
 
-  String _jsname;
-
-  Library(this.baseSource) {
+  Library(this.baseSource) : super(null, null) {
     sourceDir = dirname(baseSource.filename);
     topType = new DefinedType(null, this, null, true);
     types = { '': topType };
@@ -43,17 +41,13 @@ class Library {
     _privateMembers = {};
   }
 
+  Element get enclosingElement() => null;
+  Library get library() => this;
+
+  bool get isNative() => topType.isNative;
+
   bool get isCore() => this == world.corelib;
   bool get isCoreImpl() => this == world.coreimpl;
-
-  String get jsname() {
-    if (_jsname == null) {
-      // TODO(jimhug): Expand to handle all illegal id characters
-      _jsname = name.replaceAll('.', '_').replaceAll(':', '_').replaceAll(
-          ' ', '_');
-    }
-    return _jsname;
-  }
 
   SourceSpan get span() => new SourceSpan(baseSource, 0, 0);
 
@@ -98,8 +92,8 @@ class Library {
       if (mset == null) {
         // TODO(jimhug): Make this lazier!
         for (var lib in world.libraries.getValues()) {
-          if (lib._privateMembers.containsKey(member.name)) {
-            member.jsname = '_$jsname${member.name}';
+          if (lib._privateMembers.containsKey(member.jsname)) {
+            member._jsname = '_$jsname${member.jsname}';
             break;
           }
         }
@@ -114,12 +108,16 @@ class Library {
     }
   }
 
-  // TODO(jimhug): Cache and share the types as interfaces?
-  Type getOrAddFunctionType(String name, FunctionDefinition func, Type inType) {
+  // TODO(jimhug): Cache and share the types as interfaces!
+  Type getOrAddFunctionType(Element enclosingElement, String name,
+      FunctionDefinition func) {
+    // TODO(jimhug): This is redundant now that FunctionDef has type params.
     final def = new FunctionTypeDefinition(func, null, func.span);
     final type = new DefinedType(name, this, def, false);
     type.addMethod('\$call', func);
-    type.members['\$call'].resolve(inType);
+    var m = type.members['\$call'];
+    m.enclosingElement = enclosingElement;
+    m.resolve();
     // Function types implement the Function interface.
     type.interfaces = [world.functionType];
     return type;
@@ -191,6 +189,35 @@ class Library {
     return ret;
   }
 
+  Type resolveType(TypeReference node, bool typeErrors) {
+    if (node == null) return world.varType;
+
+    if (node.type != null) return node.type;
+
+    node.type = findType(node);
+
+    if (node.type == null) {
+      var message = 'cannot find type ${_getDottedName(node)}';
+      if (typeErrors) {
+        world.error(message, node.span);
+        node.type = world.objectType;
+      } else {
+        world.warning(message, node.span);
+        node.type = world.varType;
+      }
+    }
+    return node.type;
+  }
+
+  static String _getDottedName(NameTypeReference type) {
+    if (type.names != null) {
+      var names = map(type.names, (n) => n.name);
+      return type.name.name + '.' + Strings.join(names, '.');
+    } else {
+      return type.name.name;
+    }
+  }
+
   Member lookup(String name, SourceSpan span) {
     var retType = findTypeByName(name);
     var ret = null;
@@ -241,6 +268,10 @@ class Library {
         name = name.substring(0, index);
       }
     }
+    // TODO(jimhug): Expand to handle all illegal id characters
+    _jsname =
+      name.replaceAll('.', '_').replaceAll(':', '_').replaceAll(' ', '_');
+
     for (var type in types.getValues()) {
       type.resolve();
     }
@@ -319,7 +350,7 @@ class _LibraryVisitor implements TreeVisitor {
           library.name = name;
           // TODO(jimhug): Hack to get native fields for io and dom - generalize.
           if (name == 'node' || name == 'dom') {
-            library.topType.isNativeType = true;
+            library.topType.isNative = true;
           }
           if (seenImport || seenSource || seenResource) {
             world.error('#library must be first directive in file', node.span);

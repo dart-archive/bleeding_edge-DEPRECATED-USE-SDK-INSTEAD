@@ -64,7 +64,7 @@ class Evaluator {
     _removeMember(name.name);
     _lib.topType.addField(
         new VariableDefinition(modifiers, type, [name], [null], name.span));
-    _lib.topType.getMember(name.name).resolve(_lib.topType);
+    _lib.topType.getMember(name.name).resolve();
   }
 
   var eval(String dart) {
@@ -103,7 +103,7 @@ class Evaluator {
       _removeMember(methodName);
       _lib.topType.addMethod(methodName, parsed);
       MethodMember definedMethod = _lib.topType.getMember(methodName);
-      definedMethod.resolve(_lib.topType);
+      definedMethod.resolve();
       var definedMethGen = new MethodGenerator(definedMethod, null);
       definedMethGen.run();
       definedMethGen.writeDefinition(world.gen.writer, null);

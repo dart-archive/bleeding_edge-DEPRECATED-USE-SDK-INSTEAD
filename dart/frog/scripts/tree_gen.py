@@ -97,12 +97,12 @@ nodes = [
   Definition('Directive', 'Identifier name, List<ArgumentNode> arguments'),
 
   Definition('Type',
-    'bool isClass, Identifier name, List<TypeParameter> typeParameters, '+
+    'bool isClass, Identifier name, List<ParameterType> typeParameters, '+
     'List<TypeReference> extendsTypes, List<TypeReference> implementsTypes,'+
     'NativeType nativeType, TypeReference factoryType, List<Statement> body'),
 
   Definition('FunctionType',
-    'FunctionDefinition func, List<TypeParameter> typeParameters'),
+    'FunctionDefinition func, List<ParameterType> typeParameters'),
 
   Definition('Variable',
     'List<Token> modifiers, TypeReference type, List<Identifier> names,' +
@@ -110,8 +110,8 @@ nodes = [
 
   Definition('Function',
     'List<Token> modifiers, TypeReference returnType, Identifier name,' +
-    'List<FormalNode> formals, List<Expression> initializers,' +
-    'Statement body'),
+    'List<FormalNode> formals, List<ParameterType> typeParameters,' +
+    'List<Expression> initializers, Statement body'),
 
   Statement('Return', 'Expression value'),
   Statement('Throw', 'Expression value'),

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Type implements Named, Hashable {
-  final String name;
+class Type extends Element {
   bool isTested;
 
   /**
@@ -11,8 +10,6 @@ class Type implements Named, Hashable {
    * function (uses JS "typeof"). This field is null for all other types.
    */
   String typeCheckCode;
-
-  String _jsname;
 
   Member _typeMember;
 
@@ -22,7 +19,7 @@ class Type implements Named, Hashable {
   /** Cache of [MemberSet]s that have been resolved. */
   Map<String, MemberSet> _resolvedMembers;
 
-  Type(this.name): isTested = false, _resolvedMembers = {};
+  Type(String name): isTested = false, _resolvedMembers = {}, super(name, null);
 
   void markUsed() {}
   abstract void genMethod(Member method);
@@ -34,10 +31,6 @@ class Type implements Named, Hashable {
     return _typeMember;
   }
 
-  abstract SourceSpan get span();
-
-  abstract Type resolveType(TypeReference node, bool isRequired);
-
   abstract Type resolveTypeParams(ConcreteType inType);
 
   Member getMember(String name) => null;
@@ -47,7 +40,6 @@ class Type implements Named, Hashable {
   abstract Map<String, MethodMember> get constructors();
   abstract addDirectSubtype(Type type);
   abstract bool get isClass();
-  abstract Library get library();
   Set<Type> get subtypes() => null;
 
   // TODO(jmesserly): rename to isDynamic?
@@ -82,19 +74,12 @@ class Type implements Named, Hashable {
   bool get isUsed() => false;
 
   bool get isGeneric() => false;
-  bool get isNativeType() => false;
-
-  bool get isNative() => isNativeType; // TODO(jimhug): remove isNativeType.
 
   bool get isHiddenNativeType() => false;
 
   bool get hasTypeParams() => false;
 
   String get typeofName() => null;
-
-  String get jsname() => _jsname == null ? name : _jsname;
-
-  set jsname(String name) => _jsname = name;
 
   Map<String, Member> get members() => null;
   Definition get definition() => null;
@@ -111,12 +96,10 @@ class Type implements Named, Hashable {
 
   Map<String, Member> getAllMembers() => {};
 
-  int hashCode() => name.hashCode();
-
   bool _hasNativeSubtypes;
   bool get hasNativeSubtypes() {
     if (_hasNativeSubtypes == null) {
-      _hasNativeSubtypes = subtypes.some((t) => t.isNativeType);
+      _hasNativeSubtypes = subtypes.some((t) => t.isNative);
     }
     return _hasNativeSubtypes;
   }
@@ -457,9 +440,9 @@ class ParameterType extends Type {
     world.internalError('no subtypes of type parameters yet', span);
   }
 
-  resolve(Type inType) {
+  resolve() {
     if (typeParameter.extendsType != null) {
-      extendsType = inType.resolveType(typeParameter.extendsType, true);
+      extendsType = enclosingElement.resolveType(typeParameter.extendsType, true);
     } else {
       extendsType = world.objectType;
     }
@@ -515,7 +498,6 @@ class NonNullableType extends Type {
   bool get hasTypeParams() => type.hasTypeParams;
   String get typeofName() => type.typeofName;
   String get jsname() => type.jsname;
-  set jsname(String name) => type.jsname = name;
   Map<String, Member> get members() => type.members;
   Definition get definition() => type.definition;
   FactoryMap get factories() => type.factories;
@@ -524,7 +506,7 @@ class NonNullableType extends Type {
   List<Type> get interfaces() => type.interfaces;
   Type get parent() => type.parent;
   Map<String, Member> getAllMembers() => type.getAllMembers();
-  bool get isNativeType() => type.isNativeType;
+  bool get isNative() => type.isNative;
 }
 
 /** A concrete version of a generic type. */
@@ -731,7 +713,7 @@ class DefinedType extends Type {
   Map<String, Member> _lazyGenMethods;
 
   bool isUsed = false;
-  bool isNativeType = false;
+  bool isNative = false;
 
   DefinedType(String name, this.library, Definition definition, this.isClass)
       : super(name), directSubtypes = new Set<Type>(), constructors = {},
@@ -743,16 +725,11 @@ class DefinedType extends Type {
     assert(definition == null);
     definition = def;
     if (definition is TypeDefinition && definition.nativeType != null) {
-      isNativeType = true;
+      isNative = true;
     }
     if (definition != null && definition.typeParameters != null) {
       _concreteTypes = {};
-      typeParameters = [];
-      // TODO(jimhug): Check for duplicate names.
-      for (var tp in definition.typeParameters) {
-        var paramName = tp.name.name;
-        typeParameters.add(new ParameterType(paramName, tp));
-      }
+      typeParameters = definition.typeParameters;
     }
   }
 
@@ -996,15 +973,16 @@ class DefinedType extends Type {
 
     if (typeParameters != null) {
       for (var tp in typeParameters) {
-        tp.resolve(this);
+        tp.enclosingElement = this;
+        tp.resolve();
       }
     }
 
     world._addType(this);
 
-    for (var c in constructors.getValues()) c.resolve(this);
-    for (var m in members.getValues()) m.resolve(this);
-    factories.forEach((f) => f.resolve(this));
+    for (var c in constructors.getValues()) c.resolve();
+    for (var m in members.getValues()) m.resolve();
+    factories.forEach((f) => f.resolve());
   }
 
   addMethod(String methodName, FunctionDefinition definition) {
@@ -1087,7 +1065,7 @@ class DefinedType extends Type {
       }
       var field = new FieldMember(name, this, definition, value);
       members[name] = field;
-      if (isNativeType) {
+      if (isNative) {
         field.isNative = true;
       }
     }
@@ -1134,7 +1112,7 @@ class DefinedType extends Type {
       var span = definition.span;
 
       var inits = null, body = null;
-      if (isNativeType) {
+      if (isNative) {
         body = new NativeStatement(null, span);
         inits = null;
       } else {
@@ -1145,9 +1123,9 @@ class DefinedType extends Type {
 
       TypeDefinition typeDef = definition;
       var c = new FunctionDefinition(null, null, typeDef.name, [],
-        inits, body, span);
+        null, inits, body, span);
       addMethod(null, c);
-      constructors[''].resolve(this);
+      constructors[''].resolve();
       return constructors[''];
     }
     return null;
@@ -1174,105 +1152,31 @@ class DefinedType extends Type {
     return _getMemberInParents(memberName);
   }
 
-  static String _getDottedName(NameTypeReference type) {
-    if (type.names != null) {
-      var names = map(type.names, (n) => n.name);
-      return type.name.name + '.' + Strings.join(names, '.');
-    } else {
-      return type.name.name;
-    }
-  }
-
-  Type resolveType(TypeReference node, bool typeErrors) {
-    if (node == null) return world.varType;
-
-    if (node.type != null) return node.type;
-
-    // TODO(jmesserly): if we failed to resolve a type, we need a way to save
-    // that it was an error, so we don't try to resolve it again and show the
-    // same message twice.
-
-    if (node is NameTypeReference) {
-      NameTypeReference typeRef = node;
-      String name;
-      if (typeRef.names != null) {
-        name = typeRef.names.last().name;
-      } else {
-        name = typeRef.name.name;
-      }
-      if (typeParameters != null) {
-        for (var tp in typeParameters) {
-          if (tp.name == name) {
-            typeRef.type = tp;
-          }
-        }
-      }
-      if (typeRef.type == null) {
-        typeRef.type = library.findType(typeRef);
-      }
-      if (typeRef.type == null) {
-        var message = 'cannot find type ${_getDottedName(typeRef)}';
-        if (typeErrors) {
-          world.error(message, typeRef.span);
-          typeRef.type = world.objectType;
-        } else {
-          world.warning(message, typeRef.span);
-          typeRef.type = world.varType;
-        }
-      }
-    } else if (node is GenericTypeReference) {
-      GenericTypeReference typeRef = node;
-      // TODO(jimhug): Expand the handling of typeErrors to generics and funcs
-      var baseType = resolveType(typeRef.baseType, typeErrors);
-      if (!baseType.isGeneric) {
-        world.error('${baseType.name} is not generic', typeRef.span);
-        return null;
-      }
-      if (typeRef.typeArguments.length != baseType.typeParameters.length) {
-        world.error('wrong number of type arguments', typeRef.span);
-        return null;
-      }
-      var typeArgs = [];
-      for (int i=0; i < typeRef.typeArguments.length; i++) {
-        var extendsType = baseType.typeParameters[i].extendsType;
-        var typeArg = resolveType(typeRef.typeArguments[i], typeErrors);
-        typeArgs.add(typeArg);
-
-        if (extendsType != null && typeArg is! ParameterType) {
-          typeArg.ensureSubtypeOf(extendsType,
-              typeRef.typeArguments[i].span, typeErrors);
-        }
-      }
-      typeRef.type = baseType.getOrMakeConcreteType(typeArgs);
-    } else if (node is FunctionTypeReference) {
-      FunctionTypeReference typeRef = node;
-      var name = '';
-      if (typeRef.func.name != null) name = typeRef.func.name.name;
-      typeRef.type = library.getOrAddFunctionType(name, typeRef.func, this);
-    } else {
-      world.internalError('unknown type reference', node.span);
-    }
-    return node.type;
-  }
-
   Type resolveTypeParams(ConcreteType inType) => this;
 
   Type getOrMakeConcreteType(List<Type> typeArgs) {
     assert(isGeneric);
-    var names = [name];
+    var jsnames = [];
+    var names = [];
     var typeMap = {};
     for (int i=0; i < typeArgs.length; i++) {
       var paramName = typeParameters[i].name;
       typeMap[paramName] = typeArgs[i];
       names.add(typeArgs[i].name);
+      jsnames.add(typeArgs[i].jsname);
     }
 
-    var concreteName = Strings.join(names, '\$');
+    var jsname = '${jsname}_${Strings.join(jsnames, '\$')}';
+    var simpleName = '${name}<${Strings.join(names, ', ')}>';
 
-    var ret = _concreteTypes[concreteName];
+    // TODO(jimhug): Should use jsnames or better type keys.
+    var key = Strings.join(names, '\$');
+    var ret = _concreteTypes[key];
     if (ret == null) {
-      ret = new ConcreteType(concreteName, this, typeMap, typeArgs);
-      _concreteTypes[concreteName] = ret;
+      ret = new ConcreteType(simpleName, this, typeMap, typeArgs);
+      ret._jsname = jsname;
+
+      _concreteTypes[key] = ret;
     }
     return ret;
   }
