@@ -813,6 +813,15 @@ class HArithmetic extends HInvoke {
     return inputs[0].isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
   }
 
+  HInstruction fold() {
+    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
+      HLiteral op1 = inputs[0];
+      HLiteral op2 = inputs[1];
+      return new HLiteral(evaluate(op1.value, op2.value));
+    }
+    return this;
+  }
+
   abstract num evaluate(num a, num b);
 }
 
@@ -859,6 +868,15 @@ class HSubtract extends HArithmetic {
 class HTruncatingDivide extends HArithmetic {
   HTruncatingDivide(element, inputs) : super(element, inputs);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
+
+  HInstruction fold() {
+    // Avoid a DivisionByZeroException.
+    if (inputs[1].isLiteralNumber() && inputs[1].dynamic.value == 0) {
+      return this;
+    }
+    return super.fold();
+  }
+
   num evaluate(num a, num b) => a ~/ b;
   bool typeEquals(other) => other is HTruncatingDivide;
   bool dataEquals(HInstruction other) => true;

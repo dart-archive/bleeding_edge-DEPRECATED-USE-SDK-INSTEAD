@@ -788,12 +788,6 @@ EmptyQueueException.prototype.toString = function() {
   return "EmptyQueueException";
 }
 EmptyQueueException.prototype.toString$0 = EmptyQueueException.prototype.toString;
-// ********** Code for IntegerDivisionByZeroException **************
-function IntegerDivisionByZeroException() {}
-IntegerDivisionByZeroException.prototype.toString = function() {
-  return "IntegerDivisionByZeroException";
-}
-IntegerDivisionByZeroException.prototype.toString$0 = IntegerDivisionByZeroException.prototype.toString;
 // ********** Code for Function **************
 Function.prototype.to$call$0 = function() {
   this.call$0 = this.$genStub(0);
@@ -9127,6 +9121,15 @@ HArithmetic.prototype.computeType = function() {
   this.builtin = this.computeInputsType() == 2/*HInstruction.TYPE_NUMBER*/;
   return $notnull_bool(this.inputs.$index(0).isNumber$0()) ? 2/*HInstruction.TYPE_NUMBER*/ : 0/*HInstruction.TYPE_UNKNOWN*/;
 }
+HArithmetic.prototype.fold = function() {
+  var $0;
+  if ($notnull_bool(this.inputs.$index(0).isLiteralNumber$0()) && $notnull_bool(this.inputs.$index(1).isLiteralNumber$0())) {
+    var op1 = (($0 = this.inputs.$index(0)) && $0.is$HLiteral());
+    var op2 = (($0 = this.inputs.$index(1)) && $0.is$HLiteral());
+    return new HLiteral(this.evaluate($assert_num(op1.value), $assert_num(op2.value)));
+  }
+  return this;
+}
 // ********** Code for HAdd **************
 function HAdd(element, inputs) {
   // Initializers done
@@ -9256,6 +9259,12 @@ $inherits(HTruncatingDivide, HArithmetic);
 HTruncatingDivide.prototype.accept = function(visitor) {
   return visitor.visitTruncatingDivide(this);
 }
+HTruncatingDivide.prototype.fold = function() {
+  if ($notnull_bool(this.inputs.$index(1).isLiteralNumber$0()) && $notnull_bool($eq(this.inputs.$index(1).get$dynamic().get$value(), 0))) {
+    return this;
+  }
+  return HArithmetic.prototype.fold.call(this);
+}
 HTruncatingDivide.prototype.evaluate = function(a, b) {
   return $truncdiv(a, b);
 }
@@ -9346,7 +9355,7 @@ $inherits(HLiteral, HInstruction);
 HLiteral.prototype.is$HLiteral = function(){return this;};
 HLiteral.prototype.get$value = function() { return this.value; };
 HLiteral.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 899, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 917, 12);
   this.setUseGvn();
   this.setGenerateAtUseSite();
 }
@@ -9399,7 +9408,7 @@ function HNot(value) {
 }
 $inherits(HNot, HInstruction);
 HNot.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 926, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 944, 12);
   this.setUseGvn();
 }
 HNot.prototype.computeType = function() {
@@ -9431,7 +9440,7 @@ $inherits(HParameterValue, HInstruction);
 HParameterValue.prototype.is$HParameterValue = function(){return this;};
 HParameterValue.prototype.get$element = function() { return this.element; };
 HParameterValue.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 945, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 963, 12);
 }
 HParameterValue.prototype.toString = function() {
   return ('parameter ' + this.element.name);
@@ -9461,7 +9470,7 @@ $inherits(HPhi, HInstruction);
 HPhi.prototype.is$HPhi = function(){return this;};
 HPhi.prototype.get$element = function() { return this.element; };
 HPhi.prototype.addInput = function(input) {
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 962, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 980, 12);
   this.inputs.add(input);
   input.usedBy.add(this);
 }
@@ -9469,7 +9478,7 @@ HPhi.prototype.computeType = function() {
   return this.computeInputsType();
 }
 HPhi.prototype.updateTypeForLoopPhi = function() {
-  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 970, 12);
+  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 988, 12);
   if ($notnull_bool(this.inputs.$index(0).isUnknown$0())) return false;
   this.type = $assert_num(this.inputs.$index(0).get$type());
   return true;
@@ -9493,7 +9502,7 @@ function HRelational(element, inputs) {
 $inherits(HRelational, HInvoke);
 HRelational.prototype.prepareGvn = function() {
   if ($notnull_bool(this.builtin)) {
-    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 990, 14);
+    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1008, 14);
     this.setUseGvn();
   }
   else {
@@ -9805,22 +9814,7 @@ SsaConstantFolder.prototype.visitNot = function(node) {
   return node;
 }
 SsaConstantFolder.prototype.visitArithmetic = function(node) {
-  var $0;
-  var inputs = node.inputs;
-  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 80, 12);
-  if ($notnull_bool(inputs.$index(0).isLiteralNumber$0()) && $notnull_bool(inputs.$index(1).isLiteralNumber$0())) {
-    var op1 = (($0 = inputs.$index(0)) && $0.is$HLiteral());
-    var op2 = (($0 = inputs.$index(1)) && $0.is$HLiteral());
-    try {
-      var folded = node.evaluate($assert_num(op1.value), $assert_num(op2.value));
-      return new HLiteral(folded);
-    } catch (e) {
-      e = $toDartException(e);
-      if (!(e instanceof IntegerDivisionByZeroException)) throw e;
-      return node;
-    }
-  }
-  return node;
+  return node.fold();
 }
 SsaConstantFolder.prototype.visitAdd = function(node) {
   var $0;
@@ -9834,7 +9828,7 @@ SsaConstantFolder.prototype.visitAdd = function(node) {
 SsaConstantFolder.prototype.visitRelational = function(node) {
   var $0;
   var inputs = node.inputs;
-  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 113, 12);
+  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 96, 12);
   if ($notnull_bool(inputs.$index(0).isLiteralNumber$0()) && $notnull_bool(inputs.$index(1).isLiteralNumber$0())) {
     var op1 = (($0 = inputs.$index(0)) && $0.is$HLiteral());
     var op2 = (($0 = inputs.$index(1)) && $0.is$HLiteral());
@@ -9895,7 +9889,7 @@ SsaTypePropagator.prototype.processWorklist = function() {
   while (!this.worklist.isEmpty()) {
     var id = $assert_num(this.worklist.removeLast());
     var instruction = (($0 = this.workmap.$index(id)) && $0.is$HInstruction());
-    $assert(instruction != null, "instruction !== null", "optimize.dart", 175, 14);
+    $assert(instruction != null, "instruction !== null", "optimize.dart", 158, 14);
     this.workmap.remove(id);
     if ($notnull_bool(instruction.updateType())) {
       for (var i = 0, length = instruction.usedBy.length;
@@ -9997,7 +9991,7 @@ SsaRedundantPhiEliminator.prototype.visitGraph = function(graph) {
   while (!worklist.isEmpty()) {
     var phi = (($0 = worklist.removeLast()) && $0.is$HPhi());
     if (!$notnull_bool(phi.isInBasicBlock())) continue;
-    $assert(phi.inputs.$index(0) !== phi, "phi.inputs[0] !== phi", "optimize.dart", 275, 14);
+    $assert(phi.inputs.$index(0) !== phi, "phi.inputs[0] !== phi", "optimize.dart", 258, 14);
     var candidate = (($0 = phi.inputs.$index(0)) && $0.is$HInstruction());
     for (var i = 1;
      i < phi.inputs.length; i++) {
@@ -10077,13 +10071,13 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
   while (instruction != null) {
     var flags = instruction.getChangesFlags();
     if (flags != 0) {
-      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 369, 16);
+      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 352, 16);
       values.kill(flags);
     }
     else if ($notnull_bool(instruction.useGvn())) {
       var other = values.lookup(instruction);
       if (other != null) {
-        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 374, 18);
+        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 357, 18);
         block.rewrite(instruction, other);
         block.remove(instruction);
       }
@@ -10098,7 +10092,7 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
    i < length; i++) {
     var dominated = (($0 = dominatedBlocks.$index(i)) && $0.is$HBasicBlock());
     var successorValues = (i == length - 1) ? values : values.copy();
-    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 394, 14);
+    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 377, 14);
     if (!$notnull_bool(successorValues.isEmpty()) && block.id + 1 < dominated.id) {
       this.visited.clear();
       var changesFlags = this.getChangesFlagsForDominatedBlock(block, dominated);
@@ -10125,7 +10119,7 @@ SsaGlobalValueNumberer.prototype.computeChangesFlags = function(graph) {
       changesFlags |= instruction.getChangesFlags();
       instruction = instruction.next;
     }
-    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 427, 14);
+    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 410, 14);
     this.blockChangesFlags.$setindex(id, changesFlags);
     if ($notnull_bool(block.isLoopHeader())) {
       ($0 = this.loopChangesFlags).$setindex(id, $0.$index(id) | changesFlags);

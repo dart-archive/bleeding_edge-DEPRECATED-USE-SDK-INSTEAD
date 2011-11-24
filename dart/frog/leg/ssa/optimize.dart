@@ -75,24 +75,7 @@ class SsaConstantFolder extends HBaseVisitor {
     return node;
   }
 
-  HInstruction visitArithmetic(HArithmetic node) {
-    List<HInstruction> inputs = node.inputs;
-    assert(inputs.length == 2);
-    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
-      HLiteral op1 = inputs[0];
-      HLiteral op2 = inputs[1];
-      // TODO(floitsch): don't use try/catch but use a closure instead and
-      // let the ~/ check that the right-hand-side is not 0.
-      try {
-        num folded = node.evaluate(op1.value, op2.value);
-        return new HLiteral(folded);
-      } catch(IntegerDivisionByZeroException e) {
-        // TODO(floitsch): return an exception throwing node.
-        return node;
-      }
-    }
-    return node;
-  }
+  HInstruction visitArithmetic(HArithmetic node) => node.fold();
 
   HInstruction visitAdd(HAdd node) {
     // String + is defined for all literals. We don't need to know which
