@@ -366,7 +366,7 @@ class SsaBuilder implements Visitor {
   }
 
   void visitLogicalNot(Send node) {
-    assert(node.argumentsNode === const Prefix());
+    assert(node.argumentsNode is Prefix);
     visit(node.receiver);
     HNot not = new HNot(popBoolified());
     push(not);
@@ -415,7 +415,7 @@ class SsaBuilder implements Visitor {
       push(new HGreaterEqual(element, [left, right]));
     } else {
       compiler.unimplemented("SsaBuilder.visitBinary");
-    }
+    }    
   }
 
   visitSend(Send node) {
@@ -429,8 +429,8 @@ class SsaBuilder implements Visitor {
         visitLogicalAndOr(node, op);
       } else if (const SourceString("!") == op.source) {
         visitLogicalNot(node);
-      } else if (node.argumentsNode === const Prefix() ||
-                 node.argumentsNode === const Postfix()) {
+      } else if (node.argumentsNode is Prefix ||
+                 node.argumentsNode is Postfix) {
         visitUnary(node, op, element);
       } else {
         visit(node.receiver);
@@ -482,10 +482,10 @@ class SsaBuilder implements Visitor {
     }
     Operator op = node.assignmentOperator;
     if (const SourceString("=") == op.source) {
-      Link<Node> link = node.arguments;
-      assert(!link.isEmpty() && link.tail.isEmpty());
-      visit(link.head);
-      stack.add(updateDefinition(node, pop()));      
+    Link<Node> link = node.arguments;
+    assert(!link.isEmpty() && link.tail.isEmpty());
+    visit(link.head);
+    stack.add(updateDefinition(node, pop()));
     } else {
       assert(node.assignmentOperator.source.stringValue.endsWith("="));
       Element getter = elements[node.selector];
@@ -497,7 +497,7 @@ class SsaBuilder implements Visitor {
       HInstruction operation = pop();
       assert(operation !== null);
       stack.add(updateDefinition(node, operation));
-    }
+  }
   }
 
   void visitLiteralInt(LiteralInt node) {

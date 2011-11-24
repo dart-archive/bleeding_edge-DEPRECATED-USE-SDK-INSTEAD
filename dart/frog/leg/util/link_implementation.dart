@@ -30,13 +30,11 @@ class LinkFactory {
   }
 }
 
-class AbstractLink<T> implements Link<T> {
-  T get head() { throw "bug"; } // TODO(ahe): Work around VM bug.
-  Link<T> get tail() { throw "bug"; } // TODO(ahe): Work around VM bug.
-  abstract List<T> toList(); // TODO(ahe): Work around Frog bug #318.
-  abstract bool isEmpty(); // TODO(ahe): Work around Frog bug #318.
+class LinkTail<T> implements EmptyLink<T> {
+  T get head() => null;
+  Link<T> get tail() => null;
 
-  const AbstractLink();
+  const LinkTail();
 
   Link<T> prepend(T element) {
     // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
@@ -46,7 +44,31 @@ class AbstractLink<T> implements Link<T> {
   Iterator<T> iterator() => toList().iterator();
 
   void printOn(StringBuffer buffer, [separatedBy]) {
-    if (isEmpty()) return;
+  }
+
+  String toString() => "[]";
+
+  Link<T> reverse() => this;
+
+  List toList() => const [];
+
+  bool isEmpty() => true;
+}
+
+class LinkEntry<T> implements Link<T> {
+  final T head;
+  Link<T> tail;
+
+  LinkEntry(T this.head, Link<T> this.tail);
+
+  Link<T> prepend(T element) {
+    // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
+    return new LinkEntry<T>(element, this);
+  }
+
+  Iterator<T> iterator() => toList().iterator();
+
+  void printOn(StringBuffer buffer, [separatedBy]) {
     // TODO(ngeofray): Work around Frog bug
     buffer.add(head === null ? 'null' : head);
     if (separatedBy === null) separatedBy = '';
@@ -71,25 +93,6 @@ class AbstractLink<T> implements Link<T> {
     }
     return result;
   }
-}
-
-class LinkTail<T> extends AbstractLink<T> implements EmptyLink<T> {
-  T get head() => null;
-  Link<T> get tail() => null;
-
-  const LinkTail();
-
-  List toList() => const [];
-
-  bool isEmpty() => true;
-}
-
-class LinkEntry<T> extends AbstractLink<T> {
-  final T head;
-  Link<T> realTail;
-  Link<T> get tail() => realTail;
-
-  LinkEntry(T this.head, Link<T> this.realTail);
 
   bool isEmpty() => false;
 
@@ -110,7 +113,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
 
   Link<T> toLink() {
     if (head === null) return const LinkTail();
-    lastLink.realTail = const LinkTail();
+    lastLink.tail = const LinkTail();
     Link<T> link = head;
     lastLink = null;
     head = null;
@@ -122,7 +125,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     if (head === null) {
       head = entry;
     } else {
-      lastLink.realTail = entry;
+      lastLink.tail = entry;
     }
     lastLink = entry;
   }

@@ -356,11 +356,8 @@ class ElementListener extends Listener {
 
 class NodeListener extends ElementListener {
   final Logger logger;
-  Function onError;
 
-  NodeListener(Canceler canceler, Logger this.logger) : super(canceler) {
-    onError = handleOnError; // Cuts parser time in half or more.
-  }
+  NodeListener(Canceler canceler, Logger this.logger) : super(canceler);
 
   void endClass(int interfacesCount, Token beginToken, Token extendsKeyword,
                 Token implementsKeyword, Token endToken) {
@@ -406,15 +403,15 @@ class NodeListener extends ElementListener {
   }
 
   void handleLiteralInt(Token token) {
-    pushNode(new LiteralInt(token, onError));
+    pushNode(new LiteralInt(token, (t, e) => handleOnError(t, e)));
   }
 
   void handleLiteralDouble(Token token) {
-    pushNode(new LiteralDouble(token, onError));
+    pushNode(new LiteralDouble(token, (t, e) => handleOnError(t, e)));
   }
 
   void handleLiteralBool(Token token) {
-    pushNode(new LiteralBool(token, onError));
+    pushNode(new LiteralBool(token, (t, e) => handleOnError(t, e)));
   }
 
   void handleLiteralString(Token token) {

@@ -43,8 +43,9 @@ Token firstBeginToken(Node first, Node second) {
  */
 class Node implements Hashable {
   final int _hashCode;
+  static int _HASH_COUNTER = 0;
 
-  const Node() : _hashCode = (Math.random() * 0xFFFFFFFF).toInt();
+  Node() : _hashCode = ++_HASH_COUNTER;
 
   hashCode() => _hashCode;
 
@@ -97,8 +98,8 @@ class ClassNode extends Node {
   final Token extendsKeyword;
   final Token endToken;
 
-  const ClassNode(this.name, this.superclass, this.interfaces,
-                  this.beginToken, this.extendsKeyword, this.endToken);
+  ClassNode(this.name, this.superclass, this.interfaces,
+            this.beginToken, this.extendsKeyword, this.endToken);
 
   accept(Visitor visitor) => visitor.visitClassNode(this);
 
@@ -112,11 +113,11 @@ class ClassNode extends Node {
 }
 
 class Expression extends Node {
-  const Expression();
+  Expression();
 }
 
 class Statement extends Node {
-  const Statement();
+  Statement();
 }
 
 /**
@@ -132,11 +133,9 @@ class Send extends Expression {
   final NodeList argumentsNode;
   Link<Node> get arguments() => argumentsNode.nodes;
 
-  const Send([this.receiver, this.selector, this.argumentsNode]);
-  const Send.postfix(this.receiver, this.selector)
-    : argumentsNode = const Postfix();
-  const Send.prefix(this.receiver, this.selector)
-    : argumentsNode = const Prefix();
+  Send([this.receiver, this.selector, this.argumentsNode]);
+  Send.postfix(this.receiver, this.selector) : argumentsNode = new Postfix();
+  Send.prefix(this.receiver, this.selector) : argumentsNode = new Prefix();
 
   accept(Visitor visitor) => visitor.visitSend(this);
 
@@ -168,18 +167,18 @@ class Send extends Expression {
 class Postfix extends NodeList {
   // TODO(floitsch): pass const EmptyLink<Node>() to super.
   // This currently doesn't work because of a bug of Frog.
-  const Postfix() : super(null);
+  Postfix() : super(null);
 }
 
 class Prefix extends NodeList {
   // TODO(floitsch): pass const EmptyLink<Node>() to super.
   // This currently doesn't work because of a bug of Frog.
-  const Prefix() : super(null);
+  Prefix() : super(null);
 }
 
 class SendSet extends Send {
   final Operator assignmentOperator;
-  const SendSet(receiver, selector, this.assignmentOperator, argumentsNode)
+  SendSet(receiver, selector, this.assignmentOperator, argumentsNode)
     : super(receiver, selector, argumentsNode);
 
   accept(Visitor visitor) => visitor.visitSendSet(this);
@@ -196,7 +195,7 @@ class NewExpression extends Expression {
   // Note: we expect that send.receiver is null.
   final Send send;
 
-  const NewExpression([this.newToken, this.send]);
+  NewExpression([this.newToken, this.send]);
 
   Token getBeginToken() => newToken;
 
@@ -214,7 +213,7 @@ class NodeList extends Node {
   final SourceString delimiter;
 
   // TODO(floitsch): second argument should be this.nodes.
-  const NodeList([this.beginToken, nodes, this.endToken, this.delimiter])
+  NodeList([this.beginToken, nodes, this.endToken, this.delimiter])
       : _nodes = nodes;
 
   NodeList.singleton(Node node) : this(null, new Link<Node>(node));
@@ -252,7 +251,7 @@ class NodeList extends Node {
 class Block extends Statement {
   final NodeList statements;
 
-  const Block(this.statements);
+  Block(this.statements);
 
   accept(Visitor visitor) => visitor.visitBlock(this);
 
@@ -319,10 +318,7 @@ class FunctionExpression extends Expression {
   final Block body;
   final TypeAnnotation returnType;
 
-  const FunctionExpression([this.name,
-                            this.parameters,
-                            this.body,
-                            this.returnType]);
+  FunctionExpression([this.name, this.parameters, this.body, this.returnType]);
 
   accept(Visitor visitor) => visitor.visitFunctionExpression(this);
 
@@ -413,7 +409,7 @@ class Identifier extends Expression {
 
   SourceString get source() => token.value;
 
-  const Identifier(Token this.token);
+  Identifier(Token this.token);
 
   accept(Visitor visitor) => visitor.visitIdentifier(this);
 
@@ -423,7 +419,7 @@ class Identifier extends Expression {
 }
 
 class Operator extends Identifier {
-  const Operator(Token token) : super(token);
+  Operator(Token token) : super(token);
 
   accept(Visitor visitor) => visitor.visitOperator(this);
 }
@@ -433,7 +429,7 @@ class Return extends Statement {
   final Token beginToken;
   final Token endToken;
 
-  const Return(this.beginToken, this.endToken, this.expression);
+  Return(this.beginToken, this.endToken, this.expression);
 
   bool get hasExpression() => expression !== null;
 
@@ -448,7 +444,7 @@ class ExpressionStatement extends Statement {
   final Expression expression;
   final Token endToken;
 
-  const ExpressionStatement(this.expression, this.endToken);
+  ExpressionStatement(this.expression, this.endToken);
 
   accept(Visitor visitor) => visitor.visitExpressionStatement(this);
 
@@ -463,7 +459,7 @@ class Throw extends Statement {
   final Token throwToken;
   final Token endToken;
 
-  const Throw(this.expression, this.throwToken, this.endToken);
+  Throw(this.expression, this.throwToken, this.endToken);
 
   accept(Visitor visitor) => visitor.visitThrow(this);
 

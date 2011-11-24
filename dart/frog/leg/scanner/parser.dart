@@ -9,68 +9,28 @@
 class PartialParser<L extends Listener> {
   final L listener;
 
-  // TODO(ahe): Clean up the following fields.
-  Function beginTypeArguments;
-  Function parseTypeFunction;
-  Function endTypeArguments;
-  Function handleNoTypeArguments;
-
-  // TODO(ahe): Clean up the following fields.
-  Function beginTypeVariables;
-  Function parseTypeVariableFunction;
-  Function endTypeVariables;
-  Function handleNoTypeVariables;
-
-  PartialParser(L this.listener) {
-    // TODO(ahe): Workaround this not being bound correctly in Frog:
-    beginTypeArguments = (t) => listener.beginTypeArguments(t);
-    parseTypeFunction = (t) => parseType(t);
-    endTypeArguments = (c, bt, et) => listener.endTypeArguments(c, bt, et);
-    handleNoTypeArguments = (t) => listener.handleNoTypeArguments(t);
-
-    beginTypeVariables = (t) => listener.beginTypeVariables(t);
-    parseTypeVariableFunction = (t) => parseTypeVariable(t);
-    endTypeVariables = (c, bt, et) => listener.endTypeVariables(c, bt, et);
-    handleNoTypeVariables = (t) => listener.handleNoTypeVariables(t);
-  }
-
-  // TODO(ahe): Rename this method. It is too subtle compared to token.next.
-  Token next(Token token) => checkEof(token.next);
-
-  Token checkEof(Token token) {
-    if (token.kind === EOF_TOKEN) {
-      listener.unexpectedEof();
-      throw 'Unexpected EOF';
-    }
-    return token;
-  }
+  PartialParser(L this.listener);
 
   void parseUnit(Token token) {
     while (token.kind !== EOF_TOKEN) {
       final value = token.stringValue;
-      switch (true) {
-        case value === 'interface':
-          token = parseInterface(token);
-          break;
-        case value === 'class':
-          token = parseClass(token);
-          break;
-        case value === 'typedef':
-          token = parseNamedFunctionAlias(token);
-          break;
-        case value === '#':
-          token = parseLibraryTags(token);
-          break;
-        default:
-          token = parseTopLevelMember(token);
-          break;
+      if (value === 'interface') {
+        token = parseInterface(token);
+      } else if (value === 'class') {
+        token = parseClass(token);
+      } else if (value === 'typedef') {
+        token = parseNamedFunctionAlias(token);
+      } else if (value === '#') {
+        token = parseLibraryTags(token);
+      } else {
+        token = parseTopLevelMember(token);
       }
     }
   }
 
   Token parseInterface(Token token) {
     listener.beginInterface(token);
-    token = parseIdentifier(next(token));
+    token = parseIdentifier(token.next);
     token = parseTypeVariablesOpt(token);
     token = parseSupertypesClauseOpt(token);
     token = parseFactoryClauseOpt(token);
@@ -85,7 +45,7 @@ class PartialParser<L extends Listener> {
 
   Token parseNamedFunctionAlias(Token token) {
     listener.beginFunctionTypeAlias(token);
-    token = parseReturnTypeOpt(next(token));
+    token = parseReturnTypeOpt(token.next);
     token = parseIdentifier(token);
     token = parseTypeVariablesOpt(token);
     token = parseFormalParameters(token);
@@ -96,7 +56,7 @@ class PartialParser<L extends Listener> {
   Token parseReturnTypeOpt(Token token) {
     if (token.stringValue === 'void') {
       listener.handleVoidKeyword(token);
-      return next(token);
+      return token.next;
     } else {
       return parseTypeOpt(token);
     }
@@ -113,7 +73,7 @@ class PartialParser<L extends Listener> {
     }
     do {
       listener.beginFormalParameter(token);
-      token = parseTypeOpt(next(token));
+      token = parseTypeOpt(token.next);
       token = parseIdentifier(token);
       listener.endFormalParameter(token);
       ++parameterCount;
@@ -123,34 +83,30 @@ class PartialParser<L extends Listener> {
   }
 
   Token parseTypeOpt(Token token) {
-    final nextValue = token.next.stringValue;
-    switch (true) {
-      case nextValue === '<':
-      case nextValue === '.':
-      case isIdentifier(token.next):
-        return parseType(token);
-      default:
-        listener.handleNoType(token);
-        return token;
+    final int kind = token.next.kind;
+    if ((kind === LT_TOKEN) ||
+        (kind === PERIOD_TOKEN) ||
+        kind === IDENTIFIER_TOKEN) {
+      return parseType(token);
+    } else if (kind === KEYWORD_TOKEN && token.next.value.isPseudo) {
+      return parseType(token);
+    } else {
+      listener.handleNoType(token);
+      return token;
     }
   }
 
   bool isIdentifier(Token token) {
     final kind = token.kind;
-    switch (true) {
-      case kind === IDENTIFIER_TOKEN:
-        return true;
-      case kind === KEYWORD_TOKEN:
-        return token.value.isPseudo;
-      default:
-        return false;
-    }
+    if (kind === IDENTIFIER_TOKEN) return true;
+    if (kind === KEYWORD_TOKEN) return token.value.isPseudo;
+    return false;
   }
 
   Token parseSupertypesClauseOpt(Token token) {
     if (optional('extends', token)) {
       do {
-        token = parseType(next(token));
+        token = parseType(token.next);
       } while (optional(',', token));
     }
     return token;
@@ -158,7 +114,7 @@ class PartialParser<L extends Listener> {
 
   Token parseFactoryClauseOpt(Token token) {
     if (optional('factory', token)) {
-      return parseType(next(token));
+      return parseType(token.next);
     }
     return token;
   }
@@ -180,12 +136,12 @@ class PartialParser<L extends Listener> {
   Token parseClass(Token token) {
     Token begin = token;
     listener.beginClass(token);
-    token = parseIdentifier(next(token));
+    token = parseIdentifier(token.next);
     token = parseTypeVariablesOpt(token);
     Token extendsKeyword;
     if (optional('extends', token)) {
       extendsKeyword = token;
-      token = parseType(next(token));
+      token = parseType(token.next);
     } else {
       extendsKeyword = null;
       listener.handleNoType(token);
@@ -194,7 +150,7 @@ class PartialParser<L extends Listener> {
     int interfacesCount = 0;
     if (optional('implements', token)) {
       do {
-        token = parseType(next(token));
+        token = parseType(token.next);
         ++interfacesCount;
       } while (optional(',', token));
     }
@@ -207,14 +163,14 @@ class PartialParser<L extends Listener> {
 
   Token parseNativeClassClauseOpt(Token token) {
     if (optional('native', token)) {
-      return parseString(next(token));
+      return parseString(token.next);
     }
     return token;
   }
 
   Token parseString(Token token) {
     if (token.kind === STRING_TOKEN) {
-      return next(token);
+      return token.next;
     } else {
       return listener.expected('string', token);
     }
@@ -226,7 +182,7 @@ class PartialParser<L extends Listener> {
     } else {
       listener.expectedIdentifier(token);
     }
-    return next(token);
+    return token.next;
   }
 
   Token expect(String string, Token token) {
@@ -252,7 +208,7 @@ class PartialParser<L extends Listener> {
     listener.beginTypeVariable(token);
     token = parseIdentifier(token);
     if (optional('extends', token)) {
-      token = parseType(next(token));
+      token = parseType(token.next);
     } else {
       listener.handleNoType(token);
     }
@@ -270,13 +226,13 @@ class PartialParser<L extends Listener> {
       token = parseIdentifier(token);
       while (optional('.', token)) {
         // TODO(ahe): Validate that there are at most two identifiers.
-        token = parseIdentifier(next(token));
+        token = parseIdentifier(token.next);
         ++identifierCount;
       }
     } else if (optional('var', token)) {
       listener.handleVarKeyword(token);
       listener.endType(identifierCount, begin, token);
-      return next(token);
+      return token.next;
     } else {
       token = listener.expectedType(token);
     }
@@ -286,22 +242,28 @@ class PartialParser<L extends Listener> {
   }
 
   Token parseTypeArgumentsOpt(Token token) {
-    return parseStuff(token, beginTypeArguments, parseTypeFunction,
-                      endTypeArguments, handleNoTypeArguments);
+    return parseStuff(token,
+                      (t) => listener.beginTypeArguments(t),
+                      (t) => parseType(t),
+                      (c, bt, et) => listener.endTypeArguments(c, bt, et),
+                      (t) => listener.handleNoTypeArguments(t));
   }
 
   Token parseTypeVariablesOpt(Token token) {
     if (optional('<', token)) {
       BeginGroupToken beginGroupToken = token;
-      token = next(beginGroupToken.endGroup);
+      token = beginGroupToken.endGroup.next;
     }
     listener.handleNoTypeVariables(token);
     return token;
   }
 
   Token parseTypeVariablesOptX(Token token) {
-    return parseStuff(token, beginTypeVariables, parseTypeVariableFunction,
-                      endTypeVariables, handleNoTypeVariables);
+    return parseStuff(token,
+                      (t) => listener.beginTypeVariables(t),
+                      (t) => parseTypeVariable(t),
+                      (c, bt, et) => listener.endTypeVariables(c, bt, et),
+                      (t) => listener.handleNoTypeVariables(t));
   }
 
   // TODO(ahe): Clean this up.
@@ -312,7 +274,7 @@ class PartialParser<L extends Listener> {
       beginStuff(begin);
       int count = 0;
       do {
-        token = stuffParser(next(token));
+        token = stuffParser(token.next);
         ++count;
       } while (optional(',', token));
       endStuff(count, begin, token);
@@ -328,18 +290,16 @@ class PartialParser<L extends Listener> {
     Token start = token;
     listener.beginTopLevelMember(token);
     Token previous = token;
-    LOOP: while (token !== null) {
+    while (token !== null) {
       final kind = token.kind;
-      switch (true) {
-        case kind === LBRACE_TOKEN:
-        case kind === SEMICOLON_TOKEN:
-        case kind === LPAREN_TOKEN:
-        case kind === EQ_TOKEN:
-          break LOOP;
-        default:
-          previous = token;
-          token = next(token);
-          break;
+      if ((kind === LBRACE_TOKEN) ||
+          (kind === SEMICOLON_TOKEN) ||
+          (kind === LPAREN_TOKEN) ||
+          (kind === EQ_TOKEN)) {
+        break;
+      } else {
+        previous = token;
+        token = token.next;
       }
     }
     token = parseIdentifier(previous);
@@ -358,12 +318,12 @@ class PartialParser<L extends Listener> {
       }
     }
     if (!isField) {
-      token = next(skipArguments(token));
+      token = skipArguments(token).next;
     }
     while (token !== null &&
            token.kind !== LBRACE_TOKEN &&
            token.kind !== SEMICOLON_TOKEN) {
-      token = next(token);
+      token = token.next;
     }
     if (!optional(';', token)) {
       token = skipBlock(token);
@@ -378,12 +338,12 @@ class PartialParser<L extends Listener> {
 
   Token parseLibraryTags(Token token) {
     listener.beginLibraryTag(token);
-    token = parseIdentifier(next(token));
+    token = parseIdentifier(token.next);
     token = expect('(', token);
     while (token !== null &&
            token.kind !== LPAREN_TOKEN &&
            token.kind !== RPAREN_TOKEN) {
-      token = next(token);
+      token = token.next;
     }
     token = expect(')', token);
     return expect(';', token);
@@ -412,7 +372,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     Token begin = token;
     int statementCount = 0;
     listener.beginFunctionBody(begin);
-    token = checkEof(expect('{', token));
+    token = expect('{', token);
     while (!optional('}', token)) {
       token = parseStatement(token);
       ++statementCount;
@@ -422,28 +382,26 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
   }
 
   Token parseStatement(Token token) {
-    checkEof(token);
     final value = token.stringValue;
-    switch (true) {
-      case token.kind === IDENTIFIER_TOKEN:
-        return parseExpressionStatementOrDeclaration(token);
-      case value === '{':
-        return parseBlock(token);
-      case value === 'return':
-        return parseReturnStatement(token);
-      case value === 'var':
-        return parseVariablesDeclaration(token);
-      case value === 'if':
-        return parseIfStatement(token);
-      case value === 'for':
-        return parseForStatement(token);
-      case value === 'throw':
-        return parseThrowStatement(token);
-      case value === 'void':
-        return parseExpressionStatementOrDeclaration(token);
+    if (token.kind === IDENTIFIER_TOKEN) {
+      return parseExpressionStatementOrDeclaration(token);
+    } else if (value === '{') {
+      return parseBlock(token);
+    } else if (value === 'return') {
+      return parseReturnStatement(token);
+    } else if (value === 'var') {
+      return parseVariablesDeclaration(token);
+    } else if (value === 'if') {
+      return parseIfStatement(token);
+    } else if (value === 'for') {
+      return parseForStatement(token);
+    } else if (value === 'throw') {
+      return parseThrowStatement(token);
+    } else if (value === 'void') {
+      return parseExpressionStatementOrDeclaration(token);
+    } else {
       // TODO(ahe): Handle other statements.
-      default:
-        return parseExpressionStatement(token);
+      return parseExpressionStatement(token);
     }
   }
 
@@ -455,7 +413,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     Token begin = token;
     listener.beginReturnStatement(begin);
     assert('return' === token.stringValue);
-    token = next(token);
+    token = token.next;
     if (optional(';', token)) {
       listener.endReturnStatement(false, begin, token);
     } else {
@@ -467,7 +425,9 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
 
   Token peekAfterType(Token token) {
     // TODO(ahe): Also handle var?
-    assert('void' === token.stringValue || token.kind === IDENTIFIER_TOKEN);
+    if ('void' !== token.stringValue && !isIdentifier(token)) {
+      listener.expectedIdentifier(token);
+    }
     // We are looking at "identifier ...".
     Token peek = token.next;
     if (peek.kind === PERIOD_TOKEN) {
@@ -536,7 +496,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     token = parseConditionalExpression(token);
     if (isAssignmentOperator(token)) {
       Token operator = token;
-      token = parseExpression(next(token));
+      token = parseExpression(token.next);
       listener.handleAssignmentExpression(operator);
     }
     return token;
@@ -550,7 +510,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     token = parseBinaryExpression(token, 4);
     if (optional('?', token)) {
       Token question = token;
-      token = parseExpression(next(token));
+      token = parseExpression(token.next);
       Token colon = token;
       token = expect(':', token);
       token = parseExpression(token);
@@ -566,7 +526,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     for (int level = tokenLevel; level >= precedence; --level) {
       while (tokenLevel === level) {
         Token operator = token;
-        token = parseBinaryExpression(next(token), level + 1);
+        token = parseBinaryExpression(token.next, level + 1);
         listener.handleBinaryExpression(operator);
         tokenLevel = getPrecedence(token);
       }
@@ -579,79 +539,71 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     // TODO(ahe): Find a better way to represent this.
     var value = token.stringValue;
     if (value === null) return 0;
-    switch (true) {
-      case value === '(': return 0;
-      case value === ')': return 0;
-      case value === '%=': return 2;
-      case value === '&=': return 2;
-      case value === '*=': return 2;
-      case value === '+=': return 2;
-      case value === '-=': return 2;
-      case value === '/=': return 2;
-      case value === '<<=': return 2;
-      case value === '=': return 2;
-      case value === '>>=': return 2;
-      case value === '>>>=': return 2;
-      case value === '^=': return 2;
-      case value === '|=': return 2;
-      case value === '~/=': return 2;
-      case value === '?': return 3;
-      case value === '||': return 4;
-      case value === '&&': return 5;
-      case value === '|': return 6;
-      case value === '^': return 7;
-      case value === '&': return 8;
-      case value === '!=': return 9;
-      case value === '!==': return 9;
-      case value === '==': return 9;
-      case value === '===': return 9;
-      case value === '<': return 10;
-      case value === '<=': return 10;
-      case value === '>': return 10;
-      case value === '>=': return 10;
-      case value === 'is': return 10;
-      case value === '<<': return 11;
-      case value === '>>': return 11;
-      case value === '>>>': return 11;
-      case value === '+': return 12;
-      case value === '-': return 12;
-      case value === '%': return 13;
-      case value === '*': return 13;
-      case value === '/': return 13;
-      case value === '~/': return 13;
-      case value === '.': return 14; // TODO(ahe): Remove this line.
-      default: return 0;
-    }
+    if (value === '(') return 0;
+    if (value === ')') return 0;
+    if (value === '%=') return 2;
+    if (value === '&=') return 2;
+    if (value === '*=') return 2;
+    if (value === '+=') return 2;
+    if (value === '-=') return 2;
+    if (value === '/=') return 2;
+    if (value === '<<=') return 2;
+    if (value === '=') return 2;
+    if (value === '>>=') return 2;
+    if (value === '>>>=') return 2;
+    if (value === '^=') return 2;
+    if (value === '|=') return 2;
+    if (value === '~/=') return 2;
+    if (value === '?') return 3;
+    if (value === '||') return 4;
+    if (value === '&&') return 5;
+    if (value === '|') return 6;
+    if (value === '^') return 7;
+    if (value === '&') return 8;
+    if (value === '!=') return 9;
+    if (value === '!==') return 9;
+    if (value === '==') return 9;
+    if (value === '===') return 9;
+    if (value === '<') return 10;
+    if (value === '<=') return 10;
+    if (value === '>') return 10;
+    if (value === '>=') return 10;
+    if (value === 'is') return 10;
+    if (value === '<<') return 11;
+    if (value === '>>') return 11;
+    if (value === '>>>') return 11;
+    if (value === '+') return 12;
+    if (value === '-') return 12;
+    if (value === '%') return 13;
+    if (value === '*') return 13;
+    if (value === '/') return 13;
+    if (value === '~/') return 13;
+    if (value === '.') return 14; // TODO(ahe): Remove this line.
+    return 0;
   }
 
   Token parseUnaryExpression(Token token) {
     String value = token.stringValue;
-    switch (true) {
-      // Prefix:
-      case value === '!':
-      case value === '+': // TODO(ahe): Being removed from specification.
-      case value === '-':
-      case value === '++': // TODO(ahe): Validate this is used correctly.
-      case value === '--': // TODO(ahe): Validate this is used correctly.
-      case value === '~': {
-        Token operator = token;
-        token = next(token);
-        token = parseUnaryExpression(token);
-        listener.handleUnaryPrefixExpression(operator);
-        break;
+    // Prefix:
+    if ((value === '!') ||
+        (value === '+') || // TODO(ahe): Being removed from specification.
+        (value === '-') ||
+        (value === '++') || // TODO(ahe): Validate this is used correctly.
+        (value === '--') || // TODO(ahe): Validate this is used correctly.
+        (value === '~')) {
+      Token operator = token;
+      token = token.next;
+      token = parseUnaryExpression(token);
+      listener.handleUnaryPrefixExpression(operator);
+    } else {
+      token = parsePrimary(token);
+      value = token.stringValue;
+      // Postfix:
+      if ((value === '++') || (value === '--')) {
+        // TODO(ahe): Validate this is used correctly.
+        listener.handleUnaryPostfixExpression(token);
+        token = token.next;
       }
-      default:
-        token = parsePrimary(token);
-        value = token.stringValue;
-        switch (true) {
-          // Postfix:
-          case value === '++': // TODO(ahe): Validate this is used correctly.
-          case value === '--': // TODO(ahe): Validate this is used correctly.
-            listener.handleUnaryPostfixExpression(token);
-            token = next(token);
-            break;
-        }
-        break;
     }
     return token;
   }
@@ -659,31 +611,28 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
   Token parsePrimary(Token token) {
     // TODO(ahe): Handle other expressions.
     final kind = token.kind;
-    switch (true) {
-      case kind === IDENTIFIER_TOKEN:
-        return parseSend(token);
-      case kind === INT_TOKEN:
-        return parseLiteralInt(token);
-      case kind === DOUBLE_TOKEN:
-        return parseLiteralDouble(token);
-      case kind === STRING_TOKEN:
-        return parseLiteralString(token);
-      case kind === KEYWORD_TOKEN: {
+    if (kind === IDENTIFIER_TOKEN) {
+      return parseSend(token);
+    } else if (kind === INT_TOKEN) {
+      return parseLiteralInt(token);
+    } else if (kind === DOUBLE_TOKEN) {
+      return parseLiteralDouble(token);
+    } else if (kind === STRING_TOKEN) {
+      return parseLiteralString(token);
+    } else if (kind === KEYWORD_TOKEN) { {
         final value = token.stringValue;
-        switch (true) {
-          case value === 'true':
-          case value === 'false':
-            return parseLiteralBool(token);
-          case value === 'null':
-            return parseLiteralNull(token);
-          default:
-            listener.unexpected(token);
-            throw 'not yet implemented';
+        if ((value === 'true') || (value === 'false')) {
+          return parseLiteralBool(token);
+        } else if (value === 'null') {
+          return parseLiteralNull(token);
+        } else {
+          listener.unexpected(token);
+          throw 'not yet implemented';
         }
       }
-      default:
-        listener.unexpected(token);
-        throw 'not yet implemented';
+    } else {
+      listener.unexpected(token);
+      throw 'not yet implemented';
     }
   }
 
@@ -739,7 +688,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
       return token.next.next;
     }
     do {
-      token = parseExpression(next(token));
+      token = parseExpression(token.next);
       ++argumentCount;
     } while (optional(',', token));
     listener.endArguments(argumentCount, begin, token);
@@ -752,7 +701,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     token = parseFinalVarOrType(token);
     token = parseOptionallyInitializedIdentifier(token);
     while (optional(',', token)) {
-      token = parseOptionallyInitializedIdentifier(next(token));
+      token = parseOptionallyInitializedIdentifier(token.next);
       ++count;
     }
     listener.endVariablesDeclaration(count, token);
@@ -765,7 +714,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     if (optional('=', token)) {
       Token assignment = token;
       listener.beginInitializer(token);
-      token = parseExpression(next(token));
+      token = parseExpression(token.next);
       listener.endInitializer(assignment);
     }
     listener.endInitializedIdentifier();
@@ -773,13 +722,11 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
   }
 
   Token parseFinalVarOrType(Token token) {
-    String value = token.stringValue;
-    switch (true) {
-      case 'final' === value:
-        listener.handleFinalKeyword(token);
-        return next(token);
-      default:
-        return parseType(token);
+    if ('final' === token.stringValue) {
+      listener.handleFinalKeyword(token);
+      return token.next;
+    } else {
+      return parseType(token);
     }
   }
 

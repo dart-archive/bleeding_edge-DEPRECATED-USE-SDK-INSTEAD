@@ -95,23 +95,21 @@ interface SourceString extends Hashable factory StringWrapper {
 }
 
 class StringWrapper implements SourceString {
-  final String internalString;
+  final String stringValue;
 
-  const StringWrapper(String this.internalString);
+  const StringWrapper(String this.stringValue);
 
-  int hashCode() => toString().hashCode();
+  int hashCode() => stringValue.hashCode();
 
   bool operator ==(other) {
     return other is SourceString && toString() == other.toString();
   }
 
   void printOn(StringBuffer sb) {
-    sb.add(internalString);
+    sb.add(stringValue);
   }
 
-  String toString() => internalString;
-
-  String get stringValue() => internalString;
+  String toString() => stringValue;
 }
 
 class BeginGroupToken extends StringToken {
