@@ -501,7 +501,8 @@ class NodeListener extends ElementListener {
     Expression initializer = popNode();
     NodeList arguments = new NodeList.singleton(initializer);
     Expression name = popNode();
-    pushNode(new SendSet(null, name, assignmentOperator, arguments));
+    Operator op = new Operator(assignmentOperator);
+    pushNode(new SendSet(null, name, op, arguments));
   }
 
   void endIfStatement(Token ifToken, Token elseToken) {

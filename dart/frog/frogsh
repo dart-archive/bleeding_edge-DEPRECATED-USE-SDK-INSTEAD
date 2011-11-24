@@ -5817,7 +5817,8 @@ NodeListener.prototype.endInitializer = function(assignmentOperator) {
   var initializer = (($0 = this.popNode()) && $0.is$Expression());
   var arguments = new NodeList.singleton$ctor(initializer);
   var name = (($0 = this.popNode()) && $0.is$Expression());
-  this.pushNode(new SendSet(null, name, assignmentOperator, arguments));
+  var op = new Operator(assignmentOperator);
+  this.pushNode(new SendSet(null, name, op, arguments));
 }
 NodeListener.prototype.endIfStatement = function(ifToken, elseToken) {
   var $0;
