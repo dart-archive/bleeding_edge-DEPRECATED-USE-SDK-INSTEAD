@@ -59,7 +59,7 @@ foo(param1, param2, param3) {
 """;
 
 final String PARAMETER_INIT = @"""
-int foo(int start, bool test) {
+int foo(var start, bool test) {
   var result = start;
   if (test) {
     result = 42;

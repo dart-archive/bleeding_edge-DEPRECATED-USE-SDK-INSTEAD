@@ -17,9 +17,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
         parameterNames[element] = JsNames.getValid('${element.name}');
       }
 
-      if (GENERATE_SSA_TRACE) {
-        new HTracer.singleton().traceGraph("codegen", graph);
-      }
       String code = generateMethod(function.name,
                                    parameterNames,
                                    graph);
@@ -27,13 +24,24 @@ class SsaCodeGeneratorTask extends CompilerTask {
     });
   }
 
-  String generateMethod(SourceString methodName,
-                        Map<Element, String> parameterNames,
-                        HGraph graph) {
+  void preGenerateMethod(HGraph graph) {
+    if (GENERATE_SSA_TRACE) {
+      new HTracer.singleton().traceGraph("codegen", graph);
+    }
     new SsaPhiEliminator().visitGraph(graph);
     if (GENERATE_SSA_TRACE) {
       new HTracer.singleton().traceGraph("no-phi", graph);
     }
+    // Replace the results of type guard instructions with the
+    // original value, if the result is used. This is safe now,
+    // since we don't do code motion after this point.
+    new SsaTypeGuardUnuser().visitGraph(graph);
+  }
+
+  String generateMethod(SourceString methodName,
+                        Map<Element, String> parameterNames,
+                        HGraph graph) {
+    preGenerateMethod(graph);
     StringBuffer buffer = new StringBuffer();
     SsaCodeGenerator codegen =
         new SsaCodeGenerator(compiler, buffer, parameterNames);

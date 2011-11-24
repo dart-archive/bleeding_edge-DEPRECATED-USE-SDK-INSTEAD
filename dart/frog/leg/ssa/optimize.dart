@@ -15,10 +15,6 @@ class SsaOptimizerTask extends CompilerTask {
       new SsaGlobalValueNumberer(compiler).visitGraph(graph);
       new SsaDeadCodeEliminator().visitGraph(graph);
       new SsaInstructionMerger().visitGraph(graph);
-      // Replace the results of type guard instructions with the
-      // original value, if the result is used. This is safe now,
-      // since we don't do code motion after this point.
-      new SsaTypeGuardUnuser().visitGraph(graph);
     });
   }
 }
@@ -61,7 +57,7 @@ class SsaConstantFolder extends HBaseVisitor {
     if (input.isBoolean()) return input;
     // All values !== true are boolified to false.
     if (!input.isUnknown()) return new HLiteral(false);
-    return node;    
+    return node;
   }
 
   HInstruction visitNot(HNot node) {
@@ -100,7 +96,7 @@ class SsaConstantFolder extends HBaseVisitor {
       bool folded = node.evaluate(op1.value, op2.value);
       return new HLiteral(folded);
     }
-    return node;    
+    return node;
   }
 
   HInstruction visitEquals(HEquals node) {

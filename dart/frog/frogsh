@@ -7879,20 +7879,24 @@ SsaCodeGeneratorTask.prototype.generate = function(function_, graph) {
       var element = (($0 = link.get$head()) && $0.is$Element());
       parameterNames.$setindex(element, JsNames.getValid(('' + element.name)));
     }
-    if (false/*null.GENERATE_SSA_TRACE*/) {
-      HTracer.HTracer$singleton$factory().traceGraph("codegen", graph);
-    }
     var code = $this.generateMethod(function_.name, parameterNames, graph);
     return code;
   })
   ));
 }
-SsaCodeGeneratorTask.prototype.generateMethod = function(methodName, parameterNames, graph) {
-  var $0;
+SsaCodeGeneratorTask.prototype.preGenerateMethod = function(graph) {
+  if (false/*null.GENERATE_SSA_TRACE*/) {
+    HTracer.HTracer$singleton$factory().traceGraph("codegen", graph);
+  }
   new SsaPhiEliminator().visitGraph(graph);
   if (false/*null.GENERATE_SSA_TRACE*/) {
     HTracer.HTracer$singleton$factory().traceGraph("no-phi", graph);
   }
+  new SsaTypeGuardUnuser().visitGraph(graph);
+}
+SsaCodeGeneratorTask.prototype.generateMethod = function(methodName, parameterNames, graph) {
+  var $0;
+  this.preGenerateMethod(graph);
   var buffer = new StringBufferImpl("");
   var codegen = new SsaCodeGenerator(this.compiler, buffer, parameterNames);
   codegen.visitGraph(graph);
@@ -8077,7 +8081,7 @@ SsaCodeGenerator.prototype.visitGreaterEqual = function(node) {
 }
 SsaCodeGenerator.prototype.visitBoolify = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 219, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 227, 12);
   this.buffer.add('(');
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(' === true)');
@@ -8087,14 +8091,14 @@ SsaCodeGenerator.prototype.visitExit = function(node) {
 }
 SsaCodeGenerator.prototype.visitGoto = function(node) {
   var $0;
-  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 230, 12);
+  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 238, 12);
   var dominated = this.currentBlock.dominatedBlocks;
   if (dominated.isEmpty()) return;
   if (dominated.length > 2) unreachable();
   if (dominated.length == 2 && this.currentBlock !== this.currentGraph.entry) {
     unreachable();
   }
-  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 242, 12);
+  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 250, 12);
   this.visitBasicBlock((($0 = dominated.$index(0)) && $0.is$HBasicBlock()));
 }
 SsaCodeGenerator.prototype.visitIf = function(node) {
@@ -8105,13 +8109,13 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
   this.buffer.add(') {\n');
   this.indent++;
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 255, 12);
+  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 263, 12);
   this.visitBasicBlock((($0 = ifBlock.successors.$index(0)) && $0.is$HBasicBlock()));
   this.indent--;
   this.addIndentation();
   var nextDominatedIndex;
   if ($notnull_bool(node.hasElse)) {
-    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 261, 14);
+    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 269, 14);
     this.buffer.add('} else {\n');
     this.indent++;
     this.visitBasicBlock((($0 = ifBlock.successors.$index(1)) && $0.is$HBasicBlock()));
@@ -8126,17 +8130,17 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
     this.visitBasicBlock((($0 = dominated.$index(2)) && $0.is$HBasicBlock()));
   }
   else if ($notnull_bool(node.hasElse)) {
-    $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 289, 14);
+    $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 297, 14);
     return;
   }
   else if (!$notnull_bool(node.hasElse) && dominated.length == 2) {
-    $assert(!$notnull_bool(dominated.$index(1).isExitBlock$0()), "!dominated[1].isExitBlock()", "codegen.dart", 294, 14);
+    $assert(!$notnull_bool(dominated.$index(1).isExitBlock$0()), "!dominated[1].isExitBlock()", "codegen.dart", 302, 14);
     this.visitBasicBlock((($0 = dominated.$index(1)) && $0.is$HBasicBlock()));
   }
   else {
-    $assert(!$notnull_bool(node.hasElse), "!node.hasElse", "codegen.dart", 299, 14);
-    $assert(dominated.length == 3, "dominated.length == 3", "codegen.dart", 300, 14);
-    $assert(dominated.$index(2).isExitBlock$0(), "dominated[2].isExitBlock()", "codegen.dart", 301, 14);
+    $assert(!$notnull_bool(node.hasElse), "!node.hasElse", "codegen.dart", 307, 14);
+    $assert(dominated.length == 3, "dominated.length == 3", "codegen.dart", 308, 14);
+    $assert(dominated.$index(2).isExitBlock$0(), "dominated[2].isExitBlock()", "codegen.dart", 309, 14);
     this.visitBasicBlock((($0 = dominated.$index(1)) && $0.is$HBasicBlock()));
     this.visitBasicBlock((($0 = dominated.$index(2)) && $0.is$HBasicBlock()));
   }
@@ -8157,7 +8161,7 @@ SsaCodeGenerator.prototype.visitInvokeForeign = function(node) {
       name = this.parameter((input && input.is$HParameterValue()));
     }
     else {
-      $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 321, 16);
+      $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 329, 16);
       name = this.temporary(input);
     }
     code = code.replaceAll(('\$' + i), name);
@@ -8179,18 +8183,18 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')) break;\n');
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 343, 12);
-  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 344, 12);
+  $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 351, 12);
+  $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 352, 12);
   this.visit(dominated.$index(0));
   this.indent--;
   this.addIndentation();
   this.buffer.add('}\n');
-  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 349, 12);
+  $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 357, 12);
   this.visit(dominated.$index(1));
 }
 SsaCodeGenerator.prototype.visitNot = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 354, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 362, 12);
   this.buffer.add('(!');
   this.use((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   this.buffer.add(')');
@@ -8203,7 +8207,7 @@ SsaCodeGenerator.prototype.visitPhi = function(node) {
 }
 SsaCodeGenerator.prototype.visitReturn = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 370, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 378, 12);
   var input = (($0 = node.inputs.$index(0)) && $0.is$HInstruction());
   if ($notnull_bool(input.isLiteralNull())) {
     this.buffer.add('return;\n');
@@ -9877,7 +9881,6 @@ SsaOptimizerTask.prototype.optimize = function(graph) {
     new SsaGlobalValueNumberer($this.compiler).visitGraph(graph);
     new SsaDeadCodeEliminator().visitGraph(graph);
     new SsaInstructionMerger().visitGraph(graph);
-    new SsaTypeGuardUnuser().visitGraph(graph);
   })
   );
 }
@@ -9911,7 +9914,7 @@ SsaConstantFolder.prototype.visitInstruction = function(node) {
 SsaConstantFolder.prototype.visitBoolify = function(node) {
   var $0;
   var inputs = node.inputs;
-  $assert(inputs.length == 1, "inputs.length == 1", "optimize.dart", 59, 12);
+  $assert(inputs.length == 1, "inputs.length == 1", "optimize.dart", 55, 12);
   var input = (($0 = inputs.$index(0)) && $0.is$HInstruction());
   if ($notnull_bool(input.isBoolean())) return input;
   if (!$notnull_bool(input.isUnknown())) return new HLiteral(false);
@@ -9920,7 +9923,7 @@ SsaConstantFolder.prototype.visitBoolify = function(node) {
 SsaConstantFolder.prototype.visitNot = function(node) {
   var $0;
   var inputs = node.inputs;
-  $assert(inputs.length == 1, "inputs.length == 1", "optimize.dart", 69, 12);
+  $assert(inputs.length == 1, "inputs.length == 1", "optimize.dart", 65, 12);
   var input = (($0 = inputs.$index(0)) && $0.is$HInstruction());
   if ((input instanceof HLiteral)) {
     var literal = (input && input.is$HLiteral());
@@ -9943,7 +9946,7 @@ SsaConstantFolder.prototype.visitAdd = function(node) {
 SsaConstantFolder.prototype.visitRelational = function(node) {
   var $0;
   var inputs = node.inputs;
-  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 96, 12);
+  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 92, 12);
   if ($notnull_bool(inputs.$index(0).isLiteralNumber$0()) && $notnull_bool(inputs.$index(1).isLiteralNumber$0())) {
     var op1 = (($0 = inputs.$index(0)) && $0.is$HLiteral());
     var op2 = (($0 = inputs.$index(1)) && $0.is$HLiteral());
@@ -10004,7 +10007,7 @@ SsaTypePropagator.prototype.processWorklist = function() {
   while (!this.worklist.isEmpty()) {
     var id = $assert_num(this.worklist.removeLast());
     var instruction = (($0 = this.workmap.$index(id)) && $0.is$HInstruction());
-    $assert(instruction != null, "instruction !== null", "optimize.dart", 158, 14);
+    $assert(instruction != null, "instruction !== null", "optimize.dart", 154, 14);
     this.workmap.remove(id);
     if ($notnull_bool(instruction.updateType())) {
       for (var i = 0, length = instruction.usedBy.length;
@@ -10106,7 +10109,7 @@ SsaRedundantPhiEliminator.prototype.visitGraph = function(graph) {
   while (!worklist.isEmpty()) {
     var phi = (($0 = worklist.removeLast()) && $0.is$HPhi());
     if (!$notnull_bool(phi.isInBasicBlock())) continue;
-    $assert(phi.inputs.$index(0) !== phi, "phi.inputs[0] !== phi", "optimize.dart", 258, 14);
+    $assert(phi.inputs.$index(0) !== phi, "phi.inputs[0] !== phi", "optimize.dart", 254, 14);
     var candidate = (($0 = phi.inputs.$index(0)) && $0.is$HInstruction());
     for (var i = 1;
      i < phi.inputs.length; i++) {
@@ -10186,13 +10189,13 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
   while (instruction != null) {
     var flags = instruction.getChangesFlags();
     if (flags != 0) {
-      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 352, 16);
+      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 348, 16);
       values.kill(flags);
     }
     else if ($notnull_bool(instruction.useGvn())) {
       var other = values.lookup(instruction);
       if (other != null) {
-        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 357, 18);
+        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 353, 18);
         block.rewrite(instruction, other);
         block.remove(instruction);
       }
@@ -10207,7 +10210,7 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
    i < length; i++) {
     var dominated = (($0 = dominatedBlocks.$index(i)) && $0.is$HBasicBlock());
     var successorValues = (i == length - 1) ? values : values.copy();
-    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 377, 14);
+    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 373, 14);
     if (!$notnull_bool(successorValues.isEmpty()) && block.id + 1 < dominated.id) {
       this.visited.clear();
       var changesFlags = this.getChangesFlagsForDominatedBlock(block, dominated);
@@ -10234,7 +10237,7 @@ SsaGlobalValueNumberer.prototype.computeChangesFlags = function(graph) {
       changesFlags |= instruction.getChangesFlags();
       instruction = instruction.next;
     }
-    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 410, 14);
+    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 406, 14);
     this.blockChangesFlags.$setindex(id, changesFlags);
     if ($notnull_bool(block.isLoopHeader())) {
       ($0 = this.loopChangesFlags).$setindex(id, $0.$index(id) | changesFlags);
