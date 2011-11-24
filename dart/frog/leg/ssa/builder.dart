@@ -323,7 +323,7 @@ class SsaBuilder implements Visitor {
     return new SourceString(str.substring(quotes + 1, str.length - quotes));
   }
 
-  visitLogicalAndOr(Send node, Operator op) {
+  void visitLogicalAndOr(Send node, Operator op) {
     // x && y is transformed into:
     //   t0 = boolify(x);
     //   if (t0) t1 = boolify(y);
@@ -365,38 +365,43 @@ class SsaBuilder implements Visitor {
     stack.add(result);
   }
 
-  visitLogicalNot(Send node) {
+  void visitLogicalNot(Send node) {
     assert(node.argumentsNode === const Prefix());
     visit(node.receiver);
     HNot not = new HNot(popBoolified());
     push(not);
   }
 
-  visitUnary(Send node, Operator op, Element element) {
+  void visitUnary(Send node, Operator op, Element element) {
     compiler.unimplemented("visitUnary");
   }
 
-  visitBinary(Send node, Operator op, Element element) {
-    visit(node.receiver);
-    visit(node.argumentsNode);
-    var right = pop();
-    var left = pop();
+  void visitBinary(HInstruction left, Operator op, HInstruction right,
+                   Element element) {
     // TODO(floitsch): switch to switch (bug 314).
-    if (const SourceString("+") == op.source) {
+    if (const SourceString("+") == op.source ||
+        const SourceString("+=") == op.source) {
       push(new HAdd(element, [left, right]));
-    } else if (const SourceString("-") == op.source) {
+    } else if (const SourceString("-") == op.source ||
+               const SourceString("-=") == op.source) {
       push(new HSubtract(element, [left, right]));
-    } else if (const SourceString("*") == op.source) {
+    } else if (const SourceString("*") == op.source ||
+               const SourceString("*=") == op.source) {
       push(new HMultiply(element, [left, right]));
-    } else if (const SourceString("/") == op.source) {
+    } else if (const SourceString("/") == op.source ||
+               const SourceString("/=") == op.source) {
       push(new HDivide(element, [left, right]));
-    } else if (const SourceString("~/") == op.source) {
+    } else if (const SourceString("~/") == op.source ||
+               const SourceString("~/=") == op.source) {
       push(new HTruncatingDivide(element, [left, right]));
-    } else if (const SourceString("%") == op.source) {
+    } else if (const SourceString("%") == op.source ||
+               const SourceString("%=") == op.source) {
       push(new HModulo(element, [left, right]));
-    } else if (const SourceString("<<") == op.source) {
+    } else if (const SourceString("<<") == op.source ||
+               const SourceString("<<=") == op.source) {
       push(new HShiftLeft(element, [left, right]));
-    } else if (const SourceString(">>") == op.source) {
+    } else if (const SourceString(">>") == op.source ||
+               const SourceString(">>=") == op.source) {
       push(new HShiftRight(element, [left, right]));
     } else if (const SourceString("==") == op.source) {
       push(new HEquals(element, [left, right]));
@@ -408,7 +413,9 @@ class SsaBuilder implements Visitor {
       push(new HGreater(element, [left, right]));
     } else if (const SourceString(">=") == op.source) {
       push(new HGreaterEqual(element, [left, right]));
-    }    
+    } else {
+      compiler.unimplemented("SsaBuilder.visitBinary");
+    }
   }
 
   visitSend(Send node) {
@@ -426,13 +433,19 @@ class SsaBuilder implements Visitor {
                  node.argumentsNode === const Postfix()) {
         visitUnary(node, op, element);
       } else {
-        visitBinary(node, op, element);
+        visit(node.receiver);
+        visit(node.argumentsNode);
+        var right = pop();
+        var left = pop();        
+        visitBinary(left, op, right, element);
       }
     } else if (node.isPropertyAccess) {
       if (node.receiver !== null) {
         compiler.unimplemented("SsaBuilder.visitSend with receiver");
       }
-      stack.add(definitions[element]);
+      HInstruction instruction = definitions[element];
+      assert(instruction !== null);
+      stack.add(instruction);
     } else {
       Link<Node> link = node.arguments;
       if (element.kind === ElementKind.FOREIGN) {
@@ -451,7 +464,6 @@ class SsaBuilder implements Visitor {
         compiler.ensure(literal is LiteralString);
         push(new HInvokeForeign(element, arguments, unquote(literal)));
       } else {
-        final Identifier selector = node.selector;
         push(new HInvoke(element, arguments));
       }
     }
@@ -468,10 +480,24 @@ class SsaBuilder implements Visitor {
     if (node.receiver != null) {
       compiler.unimplemented("SsaBuilder: property access");
     }
-    Link<Node> link = node.arguments;
-    assert(!link.isEmpty() && link.tail.isEmpty());
-    visit(link.head);
-    stack.add(updateDefinition(node, pop()));
+    Operator op = node.assignmentOperator;
+    if (const SourceString("=") == op.source) {
+      Link<Node> link = node.arguments;
+      assert(!link.isEmpty() && link.tail.isEmpty());
+      visit(link.head);
+      stack.add(updateDefinition(node, pop()));      
+    } else {
+      assert(node.assignmentOperator.source.stringValue.endsWith("="));
+      Element getter = elements[node.selector];
+      HInstruction left = definitions[getter];
+      visit(node.argumentsNode);
+      var right = pop();
+      Element opElement = elements[op];
+      visitBinary(left, op, right, opElement);
+      HInstruction operation = pop();
+      assert(operation !== null);
+      stack.add(updateDefinition(node, operation));
+    }
   }
 
   void visitLiteralInt(LiteralInt node) {

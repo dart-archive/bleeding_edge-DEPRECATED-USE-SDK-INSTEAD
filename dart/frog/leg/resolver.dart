@@ -211,14 +211,25 @@ class FullResolverVisitor extends ResolverVisitor {
     if (name == const SourceString('/')) return const SourceString('div');
     if (name == const SourceString('~/')) return const SourceString('tdiv');
     if (name == const SourceString('%')) return const SourceString('mod');
+    if (name == const SourceString('<<')) return const SourceString('shl');
+    if (name == const SourceString('>>')) return const SourceString('shr');
     if (name == const SourceString('==')) return const SourceString('eq');
     if (name == const SourceString('<')) return const SourceString('lt');
     if (name == const SourceString('<=')) return const SourceString('le');
     if (name == const SourceString('>')) return const SourceString('gt');
     if (name == const SourceString('>=')) return const SourceString('ge');
-    if (name == const SourceString('<<')) return const SourceString('shl');
-    if (name == const SourceString('>>')) return const SourceString('shr');
     return name;
+  }
+
+  SourceString mapAssignmentOperatorToMethodName(SourceString name) {
+    // TODO(ngeoffray): Use a map once frog can handle it.
+    if (name == const SourceString('+=')) return const SourceString('add');
+    if (name == const SourceString('-=')) return const SourceString('sub');
+    if (name == const SourceString('*=')) return const SourceString('mul');
+    if (name == const SourceString('/=')) return const SourceString('div');
+    if (name == const SourceString('~/=')) return const SourceString('tdiv');
+    if (name == const SourceString('%=')) return const SourceString('mod');
+    compiler.unimplemented("mapAssignmentOperatorToMethodName: $name");
   }
 
   visitSend(Send node) {
@@ -251,6 +262,20 @@ class FullResolverVisitor extends ResolverVisitor {
     Element target = context.lookup(selector.source);
     if (target == null) {
       error(node, MessageKind.CANNOT_RESOLVE, [node]);
+    }
+    final Identifier op = node.assignmentOperator;
+    if (op.source != const SourceString("=")) {
+      // Operation-assignment. For example +=.
+      // We need to resolve the '+' and also the getter for the left-hand-side.
+      final SourceString name = mapAssignmentOperatorToMethodName(op.source);
+      // TODO(ngeoffray): Use the receiver to do the lookup.
+      Element operatorElement = context.lookup(name);
+      useElement(op, operatorElement);
+      // Resolve the getter for the lhs (receiver+selector).
+      // Currently this is the same as the setter.
+      // TODO(ngeoffray): Adapt for fields.
+      Element getter = context.lookup(selector.source);
+      useElement(selector, getter);
     }
     visit(node.argumentsNode);
     return useElement(node, target);
