@@ -7,6 +7,7 @@ class AbstractVisitor<R> implements Visitor<R> {
 
   R visitBlock(Block node) => visitStatement(node);
   R visitClassNode(ClassNode node) => visitNode(node);
+  R visitDoWhile(DoWhile node) => visitLoop(node);
   R visitExpression(Expression node) => visitNode(node);
   R visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
   R visitFor(For node) => visitStatement(node);
@@ -19,6 +20,7 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitLiteralInt(LiteralInt node) => visitLiteral(node);
   R visitLiteralNull(LiteralNull node) => visitLiteral(node);
   R visitLiteralString(LiteralString node) => visitLiteral(node);
+  R visitLoop(Loop node) => visitStatement(node);
   R visitNewExpression(NewExpression node) => visitExpression(node);
   R visitNodeList(NodeList node) => visitNode(node);
   R visitOperator(Operator node) => visitIdentifier(node);
@@ -31,4 +33,5 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitThrow(Throw node) => visitStatement(node);
   R visitTypeAnnotation(TypeAnnotation node) => visitNode(node);
   R visitVariableDefinitions(VariableDefinitions node) => visitStatement(node);
+  R visitWhile(While node) => visitLoop(node);
 }

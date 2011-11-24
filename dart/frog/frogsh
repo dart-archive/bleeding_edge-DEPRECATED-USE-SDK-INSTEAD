@@ -248,6 +248,9 @@ Object.prototype.beginBlock$1 = function($0) {
 Object.prototype.beginClass$1 = function($0) {
   return this.noSuchMethod("beginClass", [$0]);
 };
+Object.prototype.beginDoWhileStatement$1 = function($0) {
+  return this.noSuchMethod("beginDoWhileStatement", [$0]);
+};
 Object.prototype.beginExpressionStatement$1 = function($0) {
   return this.noSuchMethod("beginExpressionStatement", [$0]);
 };
@@ -305,6 +308,9 @@ Object.prototype.beginTypeArguments$1 = function($0) {
 Object.prototype.beginVariablesDeclaration$1 = function($0) {
   return this.noSuchMethod("beginVariablesDeclaration", [$0]);
 };
+Object.prototype.beginWhileStatement$1 = function($0) {
+  return this.noSuchMethod("beginWhileStatement", [$0]);
+};
 Object.prototype.block$0 = function() {
   return this.noSuchMethod("block", []);
 };
@@ -352,6 +358,9 @@ Object.prototype.endBlock$3 = function($0, $1, $2) {
 };
 Object.prototype.endClass$5 = function($0, $1, $2, $3, $4) {
   return this.noSuchMethod("endClass", [$0, $1, $2, $3, $4]);
+};
+Object.prototype.endDoWhileStatement$3 = function($0, $1, $2) {
+  return this.noSuchMethod("endDoWhileStatement", [$0, $1, $2]);
 };
 Object.prototype.endExpressionStatement$1 = function($0) {
   return this.noSuchMethod("endExpressionStatement", [$0]);
@@ -412,6 +421,9 @@ Object.prototype.endTypeArguments$3 = function($0, $1, $2) {
 };
 Object.prototype.endVariablesDeclaration$2 = function($0, $1) {
   return this.noSuchMethod("endVariablesDeclaration", [$0, $1]);
+};
+Object.prototype.endWhileStatement$2 = function($0, $1) {
+  return this.noSuchMethod("endWhileStatement", [$0, $1]);
 };
 Object.prototype.endsWith$1 = function($0) {
   return this.noSuchMethod("endsWith", [$0]);
@@ -4430,6 +4442,12 @@ Parser.prototype.parseStatement = function(token) {
   else if (value === 'void') {
     return this.parseExpressionStatementOrDeclaration(token);
   }
+  else if (value === 'while') {
+    return this.parseWhileStatement(token);
+  }
+  else if (value === 'do') {
+    return this.parseDoWhileStatement(token);
+  }
   else {
     return this.parseExpressionStatement(token);
   }
@@ -4440,7 +4458,7 @@ Parser.prototype.expectSemicolon = function(token) {
 Parser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement$1(begin);
-  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 415, 12);
+  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 419, 12);
   token = token.next;
   if ($notnull_bool(this.optional(';', token))) {
     this.listener.endReturnStatement$3(false, begin, token);
@@ -4482,7 +4500,7 @@ Parser.prototype.peekIdentifierAfterType = function(token) {
 Parser.prototype.parseExpressionStatementOrDeclaration = function(token) {
   var identifier = this.peekIdentifierAfterType(token);
   if (identifier != null) {
-    $assert(identifier.kind === 97/*null.IDENTIFIER_TOKEN*/, "identifier.kind === IDENTIFIER_TOKEN", "parser.dart", 466, 14);
+    $assert(identifier.kind === 97/*null.IDENTIFIER_TOKEN*/, "identifier.kind === IDENTIFIER_TOKEN", "parser.dart", 470, 14);
     var afterId = identifier.next;
     var afterIdKind = afterId.kind;
     if (afterIdKind === 61/*null.EQ_TOKEN*/ || afterIdKind === 59/*null.SEMICOLON_TOKEN*/) {
@@ -4530,7 +4548,7 @@ Parser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 Parser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 523, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 527, 12);
   token = this.parseUnaryExpression(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = $assert_num(tokenLevel);
@@ -4681,7 +4699,7 @@ Parser.prototype.parseArgumentsOpt = function(token) {
 Parser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments$1(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 684, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 688, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments$3(argumentCount, begin, token.next);
@@ -4756,6 +4774,30 @@ Parser.prototype.parseForStatement = function(token) {
   this.listener.endForStatement$2(forToken, token);
   return token;
 }
+Parser.prototype.parseWhileStatement = function(token) {
+  var whileToken = token;
+  this.listener.beginWhileStatement$1(whileToken);
+  token = this.expect('while', token);
+  token = this.expect('(', token);
+  token = this.parseExpression(token);
+  token = this.expect(')', token);
+  token = this.parseStatement(token);
+  this.listener.endWhileStatement$2(whileToken, token);
+  return token;
+}
+Parser.prototype.parseDoWhileStatement = function(token) {
+  var doToken = token;
+  this.listener.beginDoWhileStatement$1(doToken);
+  token = this.expect('do', token);
+  token = this.parseStatement(token);
+  var whileToken = token;
+  token = this.expect('while', token);
+  token = this.expect('(', token);
+  token = this.parseExpression(token);
+  token = this.expect(')', token);
+  this.listener.endDoWhileStatement$3(doToken, whileToken, token);
+  return this.expectSemicolon(token);
+}
 Parser.prototype.parseBlock = function(token) {
   var begin = token;
   this.listener.beginBlock$1(begin);
@@ -4822,6 +4864,12 @@ Listener.prototype.beginClass = function(token) {
 
 }
 Listener.prototype.endClass = function(interfacesCount, beginToken, extendsKeyword, implementsKeyword, endToken) {
+
+}
+Listener.prototype.beginDoWhileStatement = function(token) {
+
+}
+Listener.prototype.endDoWhileStatement = function(doKeyword, whileKeyword, endToken) {
 
 }
 Listener.prototype.beginExpressionStatement = function(token) {
@@ -4944,6 +4992,12 @@ Listener.prototype.beginVariablesDeclaration = function(token) {
 Listener.prototype.endVariablesDeclaration = function(count, endToken) {
 
 }
+Listener.prototype.beginWhileStatement = function(token) {
+
+}
+Listener.prototype.endWhileStatement = function(whileKeyword, endToken) {
+
+}
 Listener.prototype.handleAssignmentExpression = function(token) {
 
 }
@@ -5016,6 +5070,9 @@ Listener.prototype.beginBlock$1 = function($0) {
 Listener.prototype.beginClass$1 = function($0) {
   return this.beginClass(($0 && $0.is$Token()));
 };
+Listener.prototype.beginDoWhileStatement$1 = function($0) {
+  return this.beginDoWhileStatement(($0 && $0.is$Token()));
+};
 Listener.prototype.beginExpressionStatement$1 = function($0) {
   return this.beginExpressionStatement(($0 && $0.is$Token()));
 };
@@ -5073,6 +5130,9 @@ Listener.prototype.beginTypeArguments$1 = function($0) {
 Listener.prototype.beginVariablesDeclaration$1 = function($0) {
   return this.beginVariablesDeclaration(($0 && $0.is$Token()));
 };
+Listener.prototype.beginWhileStatement$1 = function($0) {
+  return this.beginWhileStatement(($0 && $0.is$Token()));
+};
 Listener.prototype.endArguments$3 = function($0, $1, $2) {
   return this.endArguments($assert_num($0), ($1 && $1.is$Token()), ($2 && $2.is$Token()));
 };
@@ -5081,6 +5141,9 @@ Listener.prototype.endBlock$3 = function($0, $1, $2) {
 };
 Listener.prototype.endClass$5 = function($0, $1, $2, $3, $4) {
   return this.endClass($assert_num($0), ($1 && $1.is$Token()), ($2 && $2.is$Token()), ($3 && $3.is$Token()), ($4 && $4.is$Token()));
+};
+Listener.prototype.endDoWhileStatement$3 = function($0, $1, $2) {
+  return this.endDoWhileStatement(($0 && $0.is$Token()), ($1 && $1.is$Token()), ($2 && $2.is$Token()));
 };
 Listener.prototype.endExpressionStatement$1 = function($0) {
   return this.endExpressionStatement(($0 && $0.is$Token()));
@@ -5139,6 +5202,9 @@ Listener.prototype.endTypeArguments$3 = function($0, $1, $2) {
 };
 Listener.prototype.endVariablesDeclaration$2 = function($0, $1) {
   return this.endVariablesDeclaration($assert_num($0), ($1 && $1.is$Token()));
+};
+Listener.prototype.endWhileStatement$2 = function($0, $1) {
+  return this.endWhileStatement(($0 && $0.is$Token()), ($1 && $1.is$Token()));
 };
 Listener.prototype.expected$2 = function($0, $1) {
   return this.expected($assert_String($0), ($1 && $1.is$Token()));
@@ -5290,7 +5356,7 @@ ElementListener.prototype.pushNode = function(node) {
 }
 ElementListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 346, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 359, 12);
   var node = (($0 = this.nodes.get$head()) && $0.is$Node());
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link_Node());
   if (false/*null.VERBOSE*/) this.log(("pop " + this.nodes));
@@ -5489,6 +5555,18 @@ NodeListener.prototype.endForStatement = function(beginToken, endToken) {
   var initializer = (($0 = this.popNode()) && $0.is$VariableDefinitions());
   this.pushNode(new For(initializer, condition, update, body, beginToken));
 }
+NodeListener.prototype.endDoWhileStatement = function(doKeyword, whileKeyword, endToken) {
+  var $0;
+  var condition = (($0 = this.popNode()) && $0.is$Expression());
+  var body = (($0 = this.popNode()) && $0.is$Statement());
+  this.pushNode(new DoWhile(body, condition, doKeyword, whileKeyword, endToken));
+}
+NodeListener.prototype.endWhileStatement = function(whileKeyword, endToken) {
+  var $0;
+  var body = (($0 = this.popNode()) && $0.is$Statement());
+  var condition = (($0 = this.popNode()) && $0.is$Expression());
+  this.pushNode(new While(condition, body, whileKeyword));
+}
 NodeListener.prototype.endBlock = function(count, beginToken, endToken) {
   this.pushNode(new Block(this.makeNodeList(count, beginToken, endToken, null)));
 }
@@ -5535,6 +5613,9 @@ NodeListener.prototype.endBlock$3 = function($0, $1, $2) {
 NodeListener.prototype.endClass$5 = function($0, $1, $2, $3, $4) {
   return this.endClass($assert_num($0), ($1 && $1.is$Token()), ($2 && $2.is$Token()), ($3 && $3.is$Token()), ($4 && $4.is$Token()));
 };
+NodeListener.prototype.endDoWhileStatement$3 = function($0, $1, $2) {
+  return this.endDoWhileStatement(($0 && $0.is$Token()), ($1 && $1.is$Token()), ($2 && $2.is$Token()));
+};
 NodeListener.prototype.endExpressionStatement$1 = function($0) {
   return this.endExpressionStatement(($0 && $0.is$Token()));
 };
@@ -5573,6 +5654,9 @@ NodeListener.prototype.endType$3 = function($0, $1, $2) {
 };
 NodeListener.prototype.endVariablesDeclaration$2 = function($0, $1) {
   return this.endVariablesDeclaration($assert_num($0), ($1 && $1.is$Token()));
+};
+NodeListener.prototype.endWhileStatement$2 = function($0, $1) {
+  return this.endWhileStatement(($0 && $0.is$Token()), ($1 && $1.is$Token()));
 };
 NodeListener.prototype.handleAssignmentExpression$1 = function($0) {
   return this.handleAssignmentExpression(($0 && $0.is$Token()));
@@ -6604,6 +6688,59 @@ VariableDefinitions.prototype.accept$1 = function($0) {
 };
 VariableDefinitions.prototype.getBeginToken$0 = VariableDefinitions.prototype.getBeginToken;
 VariableDefinitions.prototype.getEndToken$0 = VariableDefinitions.prototype.getEndToken;
+// ********** Code for Loop **************
+function Loop(condition, body) {
+  this.condition = condition;
+  this.body = body;
+  // Initializers done
+  Statement.call(this);
+}
+$inherits(Loop, Statement);
+Loop.prototype.get$body = function() { return this.body; };
+// ********** Code for DoWhile **************
+function DoWhile(body, condition, doKeyword, whileKeyword, endToken) {
+  this.doKeyword = doKeyword;
+  this.whileKeyword = whileKeyword;
+  this.endToken = endToken;
+  // Initializers done
+  Loop.call(this, condition, body);
+}
+$inherits(DoWhile, Loop);
+DoWhile.prototype.accept = function(visitor) {
+  return visitor.visitDoWhile(this);
+}
+DoWhile.prototype.getBeginToken = function() {
+  return this.doKeyword;
+}
+DoWhile.prototype.getEndToken = function() {
+  return this.endToken;
+}
+DoWhile.prototype.accept$1 = function($0) {
+  return this.accept(($0 && $0.is$Visitor()));
+};
+DoWhile.prototype.getBeginToken$0 = DoWhile.prototype.getBeginToken;
+DoWhile.prototype.getEndToken$0 = DoWhile.prototype.getEndToken;
+// ********** Code for While **************
+function While(condition, body, whileKeyword) {
+  this.whileKeyword = whileKeyword;
+  // Initializers done
+  Loop.call(this, condition, body);
+}
+$inherits(While, Loop);
+While.prototype.accept = function(visitor) {
+  return visitor.visitWhile(this);
+}
+While.prototype.getBeginToken = function() {
+  return this.whileKeyword;
+}
+While.prototype.getEndToken = function() {
+  return this.body.getEndToken();
+}
+While.prototype.accept$1 = function($0) {
+  return this.accept(($0 && $0.is$Visitor()));
+};
+While.prototype.getBeginToken$0 = While.prototype.getBeginToken;
+While.prototype.getEndToken$0 = While.prototype.getEndToken;
 // ********** Code for Unparser **************
 function Unparser(printDebugInfo) {
   this.printDebugInfo = printDebugInfo;
@@ -6770,6 +6907,27 @@ Unparser.prototype.visitVariableDefinitions = function(node) {
     this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
   }
 }
+Unparser.prototype.visitDoWhile = function(node) {
+  var $0;
+  this.add((($0 = node.doKeyword.get$value()) && $0.is$SourceString()));
+  this.sb.add(' ');
+  this.visit(node.body);
+  this.sb.add(' ');
+  this.add((($0 = node.whileKeyword.get$value()) && $0.is$SourceString()));
+  this.sb.add(' (');
+  this.visit(node.condition);
+  this.sb.add(')');
+  this.sb.add(node.endToken.get$value());
+}
+Unparser.prototype.visitWhile = function(node) {
+  var $0;
+  this.add((($0 = node.whileKeyword.get$value()) && $0.is$SourceString()));
+  this.sb.add(' (');
+  this.visit(node.condition);
+  this.sb.add(')');
+  this.sb.add(' ');
+  this.visit(node.body);
+}
 Unparser.prototype.add$1 = function($0) {
   return this.add(($0 && $0.is$SourceString()));
 };
@@ -6789,6 +6947,9 @@ AbstractVisitor.prototype.visitIdentifier = function(node) {
 }
 AbstractVisitor.prototype.visitLiteral = function(node) {
   return this.visitExpression(node);
+}
+AbstractVisitor.prototype.visitLoop = function(node) {
+  return this.visitStatement(node);
 }
 AbstractVisitor.prototype.visitSend = function(node) {
   return this.visitExpression(node);
@@ -6824,6 +6985,9 @@ $inherits(AbstractVisitor_Type, AbstractVisitor);
 AbstractVisitor_Type.prototype.is$Visitor = function(){return this;};
 AbstractVisitor_Type.prototype.visitBlock = function(node) {
   return this.visitStatement(node);
+}
+AbstractVisitor_Type.prototype.visitDoWhile = function(node) {
+  return this.visitLoop(node);
 }
 AbstractVisitor_Type.prototype.visitExpression = function(node) {
   var $0;
@@ -6862,6 +7026,9 @@ AbstractVisitor_Type.prototype.visitLiteralNull = function(node) {
 AbstractVisitor_Type.prototype.visitLiteralString = function(node) {
   return this.visitLiteral(node);
 }
+AbstractVisitor_Type.prototype.visitLoop = function(node) {
+  return this.visitStatement(node);
+}
 AbstractVisitor_Type.prototype.visitNodeList = function(node) {
   var $0;
   return (($0 = this.visitNode(node)) && $0.is$Type());
@@ -6888,6 +7055,9 @@ AbstractVisitor_Type.prototype.visitThrow = function(node) {
 }
 AbstractVisitor_Type.prototype.visitVariableDefinitions = function(node) {
   return this.visitStatement(node);
+}
+AbstractVisitor_Type.prototype.visitWhile = function(node) {
+  return this.visitLoop(node);
 }
 // ********** Code for top level **************
 function firstBeginToken(first, second) {

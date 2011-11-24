@@ -399,6 +399,10 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
       return parseThrowStatement(token);
     } else if (value === 'void') {
       return parseExpressionStatementOrDeclaration(token);
+    } else if (value === 'while') {
+      return parseWhileStatement(token);
+    } else if (value === 'do') {
+      return parseDoWhileStatement(token);
     } else {
       // TODO(ahe): Handle other statements.
       return parseExpressionStatement(token);
@@ -759,6 +763,32 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     token = parseStatement(token);
     listener.endForStatement(forToken, token);
     return token;
+  }
+
+  Token parseWhileStatement(Token token) {
+    Token whileToken = token;
+    listener.beginWhileStatement(whileToken);
+    token = expect('while', token);
+    token = expect('(', token);
+    token = parseExpression(token);
+    token = expect(')', token);
+    token = parseStatement(token);
+    listener.endWhileStatement(whileToken, token);
+    return token;
+  }
+
+  Token parseDoWhileStatement(Token token) {
+    Token doToken = token;
+    listener.beginDoWhileStatement(doToken);
+    token = expect('do', token);
+    token = parseStatement(token);
+    Token whileToken = token;
+    token = expect('while', token);
+    token = expect('(', token);
+    token = parseExpression(token);
+    token = expect(')', token);
+    listener.endDoWhileStatement(doToken, whileToken, token);
+    return expectSemicolon(token);
   }
 
   Token parseBlock(Token token) {

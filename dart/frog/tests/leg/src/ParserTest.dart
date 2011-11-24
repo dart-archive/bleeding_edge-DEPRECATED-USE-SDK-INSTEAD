@@ -73,6 +73,12 @@ void main() {
   testStatement('MyClass.foo().-x;'); // Accepted by parser, rejected later.
   testStatement('a.b.c.d();');
 
-  parseStatement('int f() {}');
-  parseStatement('void f() {}');
+  testStatement('int f() {}');
+  testStatement('void f() {}');
+
+  testStatement('do fisk(); while (hest());');
+  testStatement('do { fisk(); } while (hest());');
+
+  testStatement('while (fisk()) hest();');
+  testStatement('while (fisk()) { hest(); }');
 }

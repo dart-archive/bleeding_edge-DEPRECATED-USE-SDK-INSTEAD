@@ -5,6 +5,7 @@
 interface Visitor<R> {
   R visitBlock(Block node);
   R visitClassNode(ClassNode node);
+  R visitDoWhile(DoWhile node);
   R visitExpressionStatement(ExpressionStatement node);
   R visitFor(For node);
   R visitFunctionExpression(FunctionExpression node);
@@ -23,6 +24,7 @@ interface Visitor<R> {
   R visitThrow(Throw node);
   R visitTypeAnnotation(TypeAnnotation node);
   R visitVariableDefinitions(VariableDefinitions node);
+  R visitWhile(While node);
 }
 
 Token firstBeginToken(Node first, Node second) {
@@ -70,6 +72,7 @@ class Node implements Hashable {
 
   Block asBlock() => this;
   ClassNode asClassNode() => this;
+  DoWhile asDoWhile() => this;
   ExpressionStatement asExpressionStatement() => this;
   For asFor() => this;
   FunctionExpression asFunctionExpression() => this;
@@ -78,6 +81,7 @@ class Node implements Hashable {
   LiteralBool asLiteralBool() => this;
   LiteralDouble asLiteralDouble() => this;
   LiteralInt asLiteralInt() => this;
+  LiteralNull asLiteralNull() => this;
   LiteralString asLiteralString() => this;
   NodeList asNodeList() => this;
   Operator asOperator() => this;
@@ -87,6 +91,7 @@ class Node implements Hashable {
   Throw asThrow() => this;
   TypeAnnotation asTypeAnnotation() => this;
   VariableDefinitions asVariableDefinitions() => this;
+  While asWhile() => this;
 }
 
 class ClassNode extends Node {
@@ -494,6 +499,41 @@ class VariableDefinitions extends Statement {
   }
 
   Token getEndToken() => endToken;
+}
+
+class Loop extends Statement {
+  final Expression condition;
+  final Statement body;
+  Loop(this.condition, this.body);
+}
+
+class DoWhile extends Loop {
+  final Token doKeyword;
+  final Token whileKeyword;
+  final Token endToken;
+
+  DoWhile(Statement body, Expression condition,
+          Token this.doKeyword, Token this.whileKeyword, Token this.endToken)
+    : super(condition, body);
+
+  accept(Visitor visitor) => visitor.visitDoWhile(this);
+
+  Token getBeginToken() => doKeyword;
+
+  Token getEndToken() => endToken;
+}
+
+class While extends Loop {
+  final Token whileKeyword;
+
+  While(Expression condition, Statement body, Token this.whileKeyword)
+    : super(condition, body);
+
+  accept(Visitor visitor) => visitor.visitWhile(this);
+
+  Token getBeginToken() => whileKeyword;
+
+  Token getEndToken() => body.getEndToken();
 }
 
 /** Representation of modifiers such as static, abstract, final, etc. */

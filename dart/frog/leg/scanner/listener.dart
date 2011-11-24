@@ -24,6 +24,13 @@ class Listener {
                 Token implementsKeyword, Token endToken) {
   }
 
+  void beginDoWhileStatement(Token token) {
+  }
+
+  void endDoWhileStatement(Token doKeyword, Token whileKeyword,
+                           Token endToken) {
+  }
+
   void beginExpressionStatement(Token token) {
   }
 
@@ -158,6 +165,12 @@ class Listener {
   }
 
   void endVariablesDeclaration(int count, Token endToken) {
+  }
+
+  void beginWhileStatement(Token token) {
+  }
+
+  void endWhileStatement(Token whileKeyword, Token endToken) {
   }
 
   void handleAssignmentExpression(Token token) {
@@ -515,6 +528,19 @@ class NodeListener extends ElementListener {
     ExpressionStatement condition = popNode();
     VariableDefinitions initializer = popNode();
     pushNode(new For(initializer, condition, update, body, beginToken));
+  }
+
+  void endDoWhileStatement(Token doKeyword, Token whileKeyword,
+                           Token endToken) {
+    Expression condition = popNode();
+    Statement body = popNode();
+    pushNode(new DoWhile(body, condition, doKeyword, whileKeyword, endToken));
+  }
+
+  void endWhileStatement(Token whileKeyword, Token endToken) {
+    Statement body = popNode();
+    Expression condition = popNode();
+    pushNode(new While(condition, body, whileKeyword));
   }
 
   void endBlock(int count, Token beginToken, Token endToken) {

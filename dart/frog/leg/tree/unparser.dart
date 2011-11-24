@@ -177,4 +177,25 @@ class Unparser implements Visitor {
       add(node.endToken.value);
     }
   }
+
+  visitDoWhile(DoWhile node) {
+    add(node.doKeyword.value);
+    sb.add(' ');
+    visit(node.body);
+    sb.add(' ');
+    add(node.whileKeyword.value);
+    sb.add(' (');
+    visit(node.condition);
+    sb.add(')');
+    sb.add(node.endToken.value);
+  }
+
+  visitWhile(While node) {
+    add(node.whileKeyword.value);
+    sb.add(' (');
+    visit(node.condition);
+    sb.add(')');
+    sb.add(' ');
+    visit(node.body);
+  }
 }
