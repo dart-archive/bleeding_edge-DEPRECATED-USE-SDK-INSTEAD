@@ -58,6 +58,16 @@ foo(param1, param2, param3) {
 }
 """;
 
+final String PARAMETER_INIT = @"""
+int foo(int start, bool test) {
+  var result = start;
+  if (test) {
+    result = 42;
+  }
+  return result;
+}
+""";
+
 main() {
   String generated = compile(FOO, 'foo');
   // TODO(ngeoffray): Use 'contains' when frog supports it.
@@ -94,4 +104,8 @@ main() {
   Expect.isTrue(matches.hasNext());
   matches.next();
   Expect.isFalse(matches.hasNext());
+
+  generated = compile(PARAMETER_INIT, 'foo');
+  regexp = const RegExp("var result = start;");
+  Expect.isTrue(regexp.hasMatch(generated));
 }

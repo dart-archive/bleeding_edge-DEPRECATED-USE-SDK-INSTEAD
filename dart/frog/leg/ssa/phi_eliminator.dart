@@ -108,10 +108,13 @@ class SsaPhiEliminator extends HGraphVisitor {
                               value);
 
       if (store != null) {
-        // Check if the store occurs just after the entry block.
-        if (entry.successors[0] === store.block && local.declaredBy === local) {
-          entry.detach(local);
-          local.declaredBy = store;
+        if (local.declaredBy === local) {
+          HBasicBlock storeBlock = store.block;
+          // Check if the store occurs in or just after the entry block.
+          if (storeBlock === entry || storeBlock === entry.successors[0]) {
+            entry.detach(local);
+            local.declaredBy = store;
+          }
         }
         stores.add(store);
       }
