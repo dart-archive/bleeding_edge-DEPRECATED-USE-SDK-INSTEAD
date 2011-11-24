@@ -378,43 +378,29 @@ class SsaBuilder implements Visitor {
 
   void visitBinary(HInstruction left, Operator op, HInstruction right,
                    Element element) {
-    // TODO(floitsch): switch to switch (bug 314).
-    if (const SourceString("+") == op.source ||
-        const SourceString("+=") == op.source) {
-      push(new HAdd(element, [left, right]));
-    } else if (const SourceString("-") == op.source ||
-               const SourceString("-=") == op.source) {
-      push(new HSubtract(element, [left, right]));
-    } else if (const SourceString("*") == op.source ||
-               const SourceString("*=") == op.source) {
-      push(new HMultiply(element, [left, right]));
-    } else if (const SourceString("/") == op.source ||
-               const SourceString("/=") == op.source) {
-      push(new HDivide(element, [left, right]));
-    } else if (const SourceString("~/") == op.source ||
-               const SourceString("~/=") == op.source) {
-      push(new HTruncatingDivide(element, [left, right]));
-    } else if (const SourceString("%") == op.source ||
-               const SourceString("%=") == op.source) {
-      push(new HModulo(element, [left, right]));
-    } else if (const SourceString("<<") == op.source ||
-               const SourceString("<<=") == op.source) {
-      push(new HShiftLeft(element, [left, right]));
-    } else if (const SourceString(">>") == op.source ||
-               const SourceString(">>=") == op.source) {
-      push(new HShiftRight(element, [left, right]));
-    } else if (const SourceString("==") == op.source) {
-      push(new HEquals(element, [left, right]));
-    } else if (const SourceString("<") == op.source) {
-      push(new HLess(element, [left, right]));
-    } else if (const SourceString("<=") == op.source) {
-      push(new HLessEqual(element, [left, right]));
-    } else if (const SourceString(">") == op.source) {
-      push(new HGreater(element, [left, right]));
-    } else if (const SourceString(">=") == op.source) {
-      push(new HGreaterEqual(element, [left, right]));
-    } else {
-      compiler.unimplemented("SsaBuilder.visitBinary");
+    switch (op.source.stringValue) {
+      case "+":
+      case "+=":  push(new HAdd(element, [left, right])); break;
+      case "-":
+      case "-=":  push(new HSubtract(element, [left, right])); break;
+      case "*":
+      case "*=":  push(new HMultiply(element, [left, right])); break;
+      case "/":
+      case "/=":  push(new HDivide(element, [left, right])); break;
+      case "~/":
+      case "~/=": push(new HTruncatingDivide(element, [left, right])); break;
+      case "%":
+      case "%=":  push(new HModulo(element, [left, right])); break;
+      case "<<":
+      case "<<=": push(new HShiftLeft(element, [left, right])); break;
+      case ">>":
+      case ">>=": push(new HShiftRight(element, [left, right])); break;
+      case "==":  push(new HEquals(element, [left, right])); break;
+      case "<":   push(new HLess(element, [left, right])); break;
+      case "<=":  push(new HLessEqual(element, [left, right])); break;
+      case ">":   push(new HGreater(element, [left, right])); break;
+      case ">=":  push(new HGreaterEqual(element, [left, right])); break;
+      default: compiler.unimplemented("SsaBuilder.visitBinary");
     }    
   }
 
