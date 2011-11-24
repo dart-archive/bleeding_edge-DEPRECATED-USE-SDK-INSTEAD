@@ -178,7 +178,7 @@ class Prefix extends NodeList {
 }
 
 class SendSet extends Send {
-  final Token assignmentOperator;
+  final Operator assignmentOperator;
   const SendSet(receiver, selector, this.assignmentOperator, argumentsNode)
     : super(receiver, selector, argumentsNode);
 

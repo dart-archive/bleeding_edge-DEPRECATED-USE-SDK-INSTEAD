@@ -448,7 +448,8 @@ class NodeListener extends ElementListener {
       canceler.cancel('not assignable: $send', node: send);
     }
     if (send is SendSet) canceler.cancel('chained assignment', node: send);
-    pushNode(new SendSet(send.receiver, send.selector, token, arguments));
+    Operator op = new Operator(token);
+    pushNode(new SendSet(send.receiver, send.selector, op, arguments));
   }
 
   void handleConditionalExpression(Token question, Token colon) {

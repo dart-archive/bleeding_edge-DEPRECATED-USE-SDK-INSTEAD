@@ -148,7 +148,7 @@ class Unparser implements Visitor {
       sb.add('.');
     }
     visit(node.selector);
-    add(node.assignmentOperator.value);
+    add(node.assignmentOperator.token.value);
     visit(node.argumentsNode);
   }
 

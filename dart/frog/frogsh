@@ -5774,7 +5774,8 @@ NodeListener.prototype.handleAssignmentExpression = function(token) {
     this.canceler.cancel(('not assignable: ' + send), send);
   }
   if ((send instanceof SendSet)) this.canceler.cancel('chained assignment', send);
-  this.pushNode(new SendSet(send.receiver, send.selector, token, arguments));
+  var op = new Operator(token);
+  this.pushNode(new SendSet(send.receiver, send.selector, op, arguments));
 }
 NodeListener.prototype.handleConditionalExpression = function(question, colon) {
   var elseExpression = this.popNode();
@@ -7086,7 +7087,7 @@ Unparser.prototype.visitSendSet = function(node) {
     this.sb.add('.');
   }
   this.visit(node.selector);
-  this.add((($0 = node.assignmentOperator.get$value()) && $0.is$SourceString()));
+  this.add((($0 = node.assignmentOperator.token.get$value()) && $0.is$SourceString()));
   this.visit(node.argumentsNode);
 }
 Unparser.prototype.visitThrow = function(node) {
