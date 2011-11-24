@@ -5,7 +5,7 @@
 class LibraryImport {
   String prefix;
   Library library;
-  LibraryImport(this.library, [prefix = null]) : this.prefix = prefix;
+  LibraryImport(this.library, [this.prefix = null]);
 }
 
 /** Represents a Dart library. */

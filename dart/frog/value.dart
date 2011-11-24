@@ -31,8 +31,7 @@ class Value {
   // "var".
   bool get _typeIsVarOrParameterType() => type.isVar || type is ParameterType;
 
-  Value(this.type, this.code, this.span, [needsTemp = true])
-      : this.needsTemp = needsTemp {
+  Value(this.type, this.code, this.span, [this.needsTemp = true]) {
     if (type == null) world.internalError('type passed as null', span);
   }
 

@@ -132,10 +132,7 @@ class Send extends Expression {
   final NodeList argumentsNode;
   Link<Node> get arguments() => argumentsNode.nodes;
 
-  const Send([receiver, selector, argumentsNode])
-     : this.receiver = receiver,
-       this.selector = selector,
-       this.argumentsNode = argumentsNode;
+  const Send([this.receiver, this.selector, this.argumentsNode]);
   const Send.postfix(this.receiver, this.selector)
     : argumentsNode = const Postfix();
   const Send.prefix(this.receiver, this.selector)
@@ -199,8 +196,7 @@ class NewExpression extends Expression {
   // Note: we expect that send.receiver is null.
   final Send send;
 
-  const NewExpression([newToken, send])
-      : this.newToken = newToken, this.send = send;
+  const NewExpression([this.newToken, this.send]);
 
   Token getBeginToken() => newToken;
 
@@ -217,11 +213,9 @@ class NodeList extends Node {
   final Token endToken;
   final SourceString delimiter;
 
-  const NodeList([beginToken, nodes, endToken, delimiter])
-      : this.beginToken = beginToken,
-        this._nodes = nodes,
-        this.endToken = endToken,
-        this.delimiter = delimiter;
+  // TODO(floitsch): second argument should be this.nodes.
+  const NodeList([this.beginToken, nodes, this.endToken, this.delimiter])
+      : _nodes = nodes;
 
   NodeList.singleton(Node node) : this(null, new Link<Node>(node));
 
@@ -323,11 +317,10 @@ class FunctionExpression extends Expression {
   final Block body;
   final TypeAnnotation returnType;
 
-  const FunctionExpression([name, parameters, body, returnType])
-      : this.name = name,
-        this.parameters = parameters,
-        this.body = body,
-        this.returnType = returnType;
+  const FunctionExpression([this.name,
+                            this.parameters,
+                            this.body,
+                            this.returnType]);
 
   accept(Visitor visitor) => visitor.visitFunctionExpression(this);
 
@@ -511,6 +504,5 @@ class Modifiers {
   /** Bit pattern to easy check what modifiers are present. */
   final int flags;
 
-  const Modifiers([modifiers, flags = 0])
-      : this.modifiers = modifiers, this.flags = flags;
+  const Modifiers([this.modifiers, this.flags = 0]);
 }

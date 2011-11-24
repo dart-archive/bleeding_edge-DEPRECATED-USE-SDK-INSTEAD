@@ -110,8 +110,7 @@ class Keyword implements SourceString {
     return _keywords;
   }
 
-  const Keyword(String this.syntax, [bool isPseudo = false])
-      : this.isPseudo = isPseudo;
+  const Keyword(String this.syntax, [bool this.isPseudo = false]);
 
   static Map<String, Keyword> computeKeywordMap() {
     Map<String, Keyword> result = new LinkedHashMap<String, Keyword>();

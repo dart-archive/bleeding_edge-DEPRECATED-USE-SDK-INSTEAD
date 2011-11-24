@@ -6,7 +6,7 @@ class Unparser implements Visitor {
   StringBuffer sb;
   final bool printDebugInfo;
 
-  Unparser([printDebugInfo = false]) : this.printDebugInfo = printDebugInfo;
+  Unparser([this.printDebugInfo = false]);
 
   String unparse(Node node) {
     sb = new StringBuffer();
