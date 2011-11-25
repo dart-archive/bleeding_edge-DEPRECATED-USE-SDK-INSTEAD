@@ -10133,26 +10133,33 @@ $inherits(SsaInstructionMerger, HInstructionVisitor);
 SsaInstructionMerger.prototype.visitGraph = function(graph) {
   this.visitDominatorTree(graph);
 }
+SsaInstructionMerger.prototype.typeGuardCheck = function(input) {
+  var remarkTypeGuardInput = false;
+  remarkTypeGuardInput = this.markedByMerger.contains(input.inputs.$index(0));
+  if ($notnull_bool(remarkTypeGuardInput)) input.inputs.$index(0).clearGenerateAtUseSite$0();
+  return remarkTypeGuardInput;
+}
 SsaInstructionMerger.prototype.visitInstruction = function(node) {
   var $0;
   if ((node instanceof HInvokeForeign)) return;
   var inputs = node.inputs;
   var previousUnused = node.previous;
-  for (var i = inputs.length - 1;
-   i >= 0; i--) {
-    if (previousUnused == null) return;
+  var i = inputs.length - 1;
+  for (; i >= 0; i--) {
+    if (previousUnused == null) break;
     var input = (($0 = inputs.$index(i)) && $0.is$HInstruction());
+    if (input.usedBy.length != 1) break;
+    if (input !== previousUnused) break;
     var remarkTypeGuardInput = false;
-    if ((input instanceof HTypeGuard)) {
-      remarkTypeGuardInput = this.markedByMerger.contains(input.inputs.$index(0));
-      if ($notnull_bool(remarkTypeGuardInput)) input.inputs.$index(0).clearGenerateAtUseSite$0();
-    }
-    if (input.usedBy.length != 1) return;
-    if (input !== previousUnused) return;
+    if ((input instanceof HTypeGuard)) remarkTypeGuardInput = this.typeGuardCheck((input && input.is$HTypeGuard()));
     this.markedByMerger.add(input);
     input.setGenerateAtUseSite();
     if ($notnull_bool(remarkTypeGuardInput)) input.inputs.$index(0).setGenerateAtUseSite$0();
     previousUnused = previousUnused.previous;
+  }
+  for (; i >= 0; i--) {
+    var input = (($0 = inputs.$index(i)) && $0.is$HInstruction());
+    if ((input instanceof HTypeGuard)) this.typeGuardCheck((input && input.is$HTypeGuard()));
   }
 }
 // ********** Code for SsaTypeGuardUnuser **************

@@ -460,6 +460,17 @@ class SsaInstructionMerger extends HInstructionVisitor {
     visitDominatorTree(graph);
   }
 
+  // Because of the way the type guard unuser works, we cannot
+  // allow type guard inputs to be marked as generate at use site
+  // by the merger unless the type guard itself ends up being
+  // marked as generate at use site.
+  bool typeGuardCheck(HTypeGuard input) {
+    bool remarkTypeGuardInput = false;
+    remarkTypeGuardInput = markedByMerger.contains(input.inputs[0]);
+    if (remarkTypeGuardInput) input.inputs[0].clearGenerateAtUseSite();
+    return remarkTypeGuardInput;
+  }
+
   void visitInstruction(HInstruction node) {
     // We don't want to generate instructions at the call-site of JS.
     if (node is HInvokeForeign) return;
@@ -470,22 +481,16 @@ class SsaInstructionMerger extends HInstructionVisitor {
     // right just before this instruction. The last input is then located just
     // before this instruction. If we were able to match the last input we can
     // look at the next-previous instruction and the next argument.
-    for (int i = inputs.length - 1; i >= 0; i--) {
-      if (previousUnused === null) return;
+    int i = inputs.length - 1;
+    for (; i >= 0; i--) {
+      if (previousUnused === null) break;
       HInstruction input = inputs[i];
-      // Because of the way the type guard unuser works, we cannot
-      // allow type guard inputs to be marked as generate at use site
-      // by the merger unless the type guard itself ends up being
-      // marked as generate at use site.
-      bool remarkTypeGuardInput = false;
-      if (input is HTypeGuard) {
-        remarkTypeGuardInput = markedByMerger.contains(input.inputs[0]);
-        if (remarkTypeGuardInput) input.inputs[0].clearGenerateAtUseSite();
-      }
       // If the input does not have too many uses and is in the right
       // position, we can mark it as generate at use site.
-      if (input.usedBy.length != 1) return;
-      if (input !== previousUnused) return;
+      if (input.usedBy.length != 1) break;
+      if (input !== previousUnused) break;
+      bool remarkTypeGuardInput = false;
+      if (input is HTypeGuard) remarkTypeGuardInput = typeGuardCheck(input);
       // Our arguments are in the correct location to be inlined.
       markedByMerger.add(input);
       input.setGenerateAtUseSite();
@@ -493,6 +498,11 @@ class SsaInstructionMerger extends HInstructionVisitor {
       // at use site, we can safely re-mark the type guard input.
       if (remarkTypeGuardInput) input.inputs[0].setGenerateAtUseSite();
       previousUnused = previousUnused.previous;
+    }
+
+    for (; i >=0; i--) {
+      HInstruction input = inputs[i];
+      if (input is HTypeGuard) typeGuardCheck(input);
     }
   }
 }

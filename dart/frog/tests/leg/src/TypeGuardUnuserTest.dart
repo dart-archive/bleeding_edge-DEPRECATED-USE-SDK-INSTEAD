@@ -12,6 +12,18 @@ foo(a) {
 }
 """;
 
+
+final String TEST_TWO = @"""
+add() {}
+bar(a) {}
+foo() {
+  int a = 1;
+  int c = foo(1);
+  if (true) {}
+  return a + c;
+}
+""";
+
 main() {
   String generated = compile(TEST_ONE, 'foo');
   RegExp regexp = const RegExp("var c = guard\\\$num\\(foo\\(1\\)\\);");
@@ -22,4 +34,11 @@ main() {
 
   regexp = const RegExp("return c;");
   Expect.isTrue(regexp.hasMatch(generated));
+
+  generated = compile(TEST_TWO, 'foo');
+  regexp = const RegExp("foo\\(1\\)");
+  Iterator<Match> matches = regexp.allMatches(generated).iterator();
+  Expect.isTrue(matches.hasNext());
+  matches.next();
+  Expect.isFalse(matches.hasNext());
 }
