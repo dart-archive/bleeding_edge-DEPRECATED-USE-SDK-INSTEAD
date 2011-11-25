@@ -185,5 +185,16 @@ void compareWarningKinds(expectedWarnings, foundWarnings) {
   while (expected.hasNext() && found.hasNext()) {
     Expect.equals(expected.next(), found.next());
   }
-  Expect.equals(expected.hasNext(), found.hasNext());
+  if (expected.hasNext()) {
+    do {
+      print('Expected warning "${expected.next()}" did not occur');
+    } while (expected.hasNext());
+    Expect.fail('Too few warnings');
+  }
+  if (found.hasNext()) {
+    do {
+      print('Additional warning "${found.next()}"');
+    } while (found.hasNext());
+    Expect.fail('Too many warnings');
+  }
 }

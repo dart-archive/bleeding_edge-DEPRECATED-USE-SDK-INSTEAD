@@ -103,7 +103,7 @@ class Listener {
   void beginLibraryTag(Token token) {
   }
 
-  void endLibraryTag(Token token) {
+  void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
   }
 
   void beginReturnStatement(Token token) {
@@ -229,10 +229,6 @@ class Listener {
                           "${token.charOffset}");
   }
 
-  void unexpectedEof() {
-    throw new ParserError("Unexpected end of file");
-  }
-
   void expectedIdentifier(Token token) {
     throw new ParserError("Expected identifier, but got '$token' @ " +
                           "${token.charOffset}");
@@ -332,10 +328,6 @@ class ElementListener extends Listener {
 
   Token expected(String string, Token token) {
     canceler.cancel("Expected '$string', but got '$token'", token: token);
-  }
-
-  void unexpectedEof() {
-    canceler.cancel("Unexpected end of file");
   }
 
   void expectedIdentifier(Token token) {

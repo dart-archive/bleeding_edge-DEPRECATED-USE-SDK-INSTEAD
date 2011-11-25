@@ -51,6 +51,8 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
   void appendEofToken() {
     tail.next = new Token(EOF_TOKEN, charOffset);
     tail = tail.next;
+    // EOF points to itself so there's always infinite look-ahead.
+    tail.next = tail;
   }
 
   void beginToken() {

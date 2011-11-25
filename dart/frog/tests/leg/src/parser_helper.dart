@@ -16,7 +16,7 @@ class LoggerCanceler implements Logger, Canceler {
   }
 
   void log(message) {
-    // print(message);
+    print(message);
   }
 }
 

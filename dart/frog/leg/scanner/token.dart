@@ -38,6 +38,7 @@ final int RPAREN_TOKEN = $RPAREN;
 final int SEMICOLON_TOKEN = $SEMICOLON;
 final int SLASH_TOKEN = $SLASH;
 final int TILDE_TOKEN = $TILDE;
+final int FUNCTION_TOKEN = $GT + 128;
 
 final int UNKNOWN_TOKEN = 1024;
 

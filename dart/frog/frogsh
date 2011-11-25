@@ -395,6 +395,9 @@ Object.prototype.endInitializer$1 = function($0) {
 Object.prototype.endInterface$1 = function($0) {
   return this.noSuchMethod("endInterface", [$0]);
 };
+Object.prototype.endLibraryTag$3 = function($0, $1, $2) {
+  return this.noSuchMethod("endLibraryTag", [$0, $1, $2]);
+};
 Object.prototype.endRethrowStatement$2 = function($0, $1) {
   return this.noSuchMethod("endRethrowStatement", [$0, $1]);
 };
@@ -2703,8 +2706,8 @@ function LinkBuilderImplementation() {
 LinkBuilderImplementation.prototype.get$head = function() { return this.head; };
 LinkBuilderImplementation.prototype.set$head = function(value) { return this.head = value; };
 LinkBuilderImplementation.prototype.toLink = function() {
-  if (this.head == null) return const$235/*const LinkTail()*/;
-  this.lastLink.tail = const$235/*const LinkTail()*/;
+  if (this.head == null) return const$236/*const LinkTail()*/;
+  this.lastLink.tail = const$236/*const LinkTail()*/;
   var link = this.head;
   this.lastLink = null;
   this.head = null;
@@ -2776,6 +2779,7 @@ ArrayBasedScanner.prototype.appendKeywordToken = function(keyword) {
 ArrayBasedScanner.prototype.appendEofToken = function() {
   this.tail.next = new Token(0/*null.EOF_TOKEN*/, this.get$charOffset());
   this.tail = this.tail.next;
+  this.tail.next = this.tail;
 }
 ArrayBasedScanner.prototype.beginToken = function() {
   this.tokenStart = this.get$charOffset();
@@ -3113,6 +3117,10 @@ AbstractScanner.prototype.tokenizeEquals = function(next) {
   next = this.advance();
   if (next === 61/*null.$EQ*/) {
     return this.select(61/*null.$EQ*/, "===", "==");
+  }
+  else if (next === 62/*null.$GT*/) {
+    this.appendStringToken(190/*null.FUNCTION_TOKEN*/, "=>");
+    return this.advance();
   }
   this.appendStringToken(61/*null.EQ_TOKEN*/, "=");
   return next;
@@ -3704,6 +3712,10 @@ AbstractScanner_SourceString.prototype.tokenizeEquals = function(next) {
   next = this.advance();
   if (next === 61/*null.$EQ*/) {
     return this.select(61/*null.$EQ*/, "===", "==");
+  }
+  else if (next === 62/*null.$GT*/) {
+    this.appendStringToken(190/*null.FUNCTION_TOKEN*/, "=>");
+    return this.advance();
   }
   this.appendStringToken(61/*null.EQ_TOKEN*/, "=");
   return next;
@@ -4332,18 +4344,13 @@ PartialParser.prototype.parseTopLevelMember = function(token) {
   var $0;
   var start = token;
   this.listener.beginTopLevelMember$1(token);
-  var previous = token;
-  while (token != null) {
-    var kind = token.kind;
-    if ((kind === 123/*null.LBRACE_TOKEN*/) || (kind === 59/*null.SEMICOLON_TOKEN*/) || (kind === 40/*null.LPAREN_TOKEN*/) || (kind === 61/*null.EQ_TOKEN*/)) {
-      break;
-    }
-    else {
-      previous = token;
-      token = token.next;
-    }
+  token = this.skipModifiers(token);
+  var peek = this.peekAfterType(token);
+  while ($notnull_bool(this.isIdentifier(peek))) {
+    token = peek;
+    peek = this.peekAfterType(token);
   }
-  token = this.parseIdentifier(previous);
+  token = this.parseIdentifier(token);
   var isField;
   while (true) {
     if ($notnull_bool(this.optional('(', token))) {
@@ -4358,32 +4365,95 @@ PartialParser.prototype.parseTopLevelMember = function(token) {
       token = (($0 = this.listener.unexpected$1(token)) && $0.is$Token());
     }
   }
-  if (!$notnull_bool(isField)) {
-    token = this.skipArguments((token && token.is$BeginGroupToken())).next;
-  }
-  while (token != null && token.kind !== 123/*null.LBRACE_TOKEN*/ && token.kind !== 59/*null.SEMICOLON_TOKEN*/) {
-    token = token.next;
-  }
-  if (!$notnull_bool(this.optional(';', token))) {
-    token = this.skipBlock(token);
-  }
   if ($notnull_bool(isField)) {
+    if ($notnull_bool(this.optional('=', token))) {
+      token = this.parseExpression(token.next);
+    }
+    this.expectSemicolon(token);
     this.listener.endTopLevelField$2(start, token);
   }
   else {
+    token = this.skipArguments((token && token.is$BeginGroupToken())).next;
+    if ($notnull_bool(this.optional(';', token))) {
+    }
+    else if ($notnull_bool(this.optional('=>', token))) {
+      token = this.parseExpression(token.next);
+      this.expectSemicolon(token);
+    }
+    else if ($notnull_bool(this.optional('native', token))) {
+      token = token.next;
+      if (token.kind === 39/*null.STRING_TOKEN*/) {
+        token = this.parseString(token);
+      }
+      this.expectSemicolon(token);
+    }
+    else {
+      token = this.skipBlock(token);
+    }
     this.listener.endTopLevelMethod$2(start, token);
   }
   return token.next;
 }
+PartialParser.prototype.skipExpression = function(token) {
+  while (true) {
+    var kind = token.kind;
+    if ((token.kind === 0/*null.EOF_TOKEN*/) || (token.kind === 59/*null.SEMICOLON_TOKEN*/)) return token;
+    if ((token instanceof BeginGroupToken)) {
+      var begin = (token && token.is$BeginGroupToken());
+      token = (begin.endGroup != null) ? begin.endGroup : token;
+    }
+    token = token.next;
+  }
+}
+PartialParser.prototype.parseExpression = function(token) {
+  return this.skipExpression(token);
+}
 PartialParser.prototype.parseLibraryTags = function(token) {
+  var begin = token;
   this.listener.beginLibraryTag$1(token);
   token = this.parseIdentifier(token.next);
   token = this.expect('(', token);
-  while (token != null && token.kind !== 40/*null.LPAREN_TOKEN*/ && token.kind !== 41/*null.RPAREN_TOKEN*/) {
-    token = token.next;
+  token = this.parseString(token);
+  var hasPrefix = false;
+  if ($notnull_bool(this.optional(',', token))) {
+    hasPrefix = true;
+    token = this.parseIdentifier(token.next);
+    token = this.expect(':', token);
+    token = this.parseString(token);
   }
   token = this.expect(')', token);
+  this.listener.endLibraryTag$3(hasPrefix, begin, token);
+  return this.expectSemicolon(token);
+}
+PartialParser.prototype.expectSemicolon = function(token) {
   return this.expect(';', token);
+}
+PartialParser.prototype.skipModifiers = function(token) {
+  while (token.kind === 107/*null.KEYWORD_TOKEN*/) {
+    var value = token.get$stringValue();
+    if (value === 'void') break;
+    token = token.next;
+  }
+  return token;
+}
+PartialParser.prototype.peekAfterType = function(token) {
+  if ('void' !== token.get$stringValue() && !$notnull_bool(this.isIdentifier(token))) {
+    this.listener.expectedIdentifier$1(token);
+  }
+  var peek = token.next;
+  if (peek.kind === 46/*null.PERIOD_TOKEN*/) {
+    if (peek.next.kind === 97/*null.IDENTIFIER_TOKEN*/) {
+      peek = peek.next.next;
+    }
+  }
+  if (peek.kind === 60/*null.LT_TOKEN*/) {
+    var beginGroupToken = (peek && peek.is$BeginGroupToken());
+    var gtToken = beginGroupToken.endGroup;
+    if (gtToken != null) {
+      return gtToken.next;
+    }
+  }
+  return peek;
 }
 PartialParser.prototype.parseClass$1 = function($0) {
   return this.parseClass(($0 && $0.is$Token()));
@@ -4396,6 +4466,7 @@ function Parser(listener) {
 $inherits(Parser, PartialParser);
 Parser.prototype.parseFunction = function(token) {
   this.listener.beginFunction$1(token);
+  token = this.skipModifiers(token);
   token = this.parseReturnTypeOpt(token);
   this.listener.beginFunctionName$1(token);
   token = this.parseIdentifier(token);
@@ -4455,13 +4526,10 @@ Parser.prototype.parseStatement = function(token) {
     return this.parseExpressionStatement(token);
   }
 }
-Parser.prototype.expectSemicolon = function(token) {
-  return this.expect(';', token);
-}
 Parser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement$1(begin);
-  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 419, 12);
+  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 477, 12);
   token = token.next;
   if ($notnull_bool(this.optional(';', token))) {
     this.listener.endReturnStatement$3(false, begin, token);
@@ -4471,25 +4539,6 @@ Parser.prototype.parseReturnStatement = function(token) {
     this.listener.endReturnStatement$3(true, begin, token);
   }
   return this.expectSemicolon(token);
-}
-Parser.prototype.peekAfterType = function(token) {
-  if ('void' !== token.get$stringValue() && !$notnull_bool(this.isIdentifier(token))) {
-    this.listener.expectedIdentifier$1(token);
-  }
-  var peek = token.next;
-  if (peek.kind === 46/*null.PERIOD_TOKEN*/) {
-    if (peek.next.kind === 97/*null.IDENTIFIER_TOKEN*/) {
-      peek = peek.next.next;
-    }
-  }
-  if (peek.kind === 60/*null.LT_TOKEN*/) {
-    var beginGroupToken = (peek && peek.is$BeginGroupToken());
-    var gtToken = beginGroupToken.endGroup;
-    if (gtToken != null) {
-      return gtToken.next;
-    }
-  }
-  return peek;
 }
 Parser.prototype.peekIdentifierAfterType = function(token) {
   var peek = this.peekAfterType(token);
@@ -4503,7 +4552,7 @@ Parser.prototype.peekIdentifierAfterType = function(token) {
 Parser.prototype.parseExpressionStatementOrDeclaration = function(token) {
   var identifier = this.peekIdentifierAfterType(token);
   if (identifier != null) {
-    $assert(identifier.kind === 97/*null.IDENTIFIER_TOKEN*/, "identifier.kind === IDENTIFIER_TOKEN", "parser.dart", 470, 14);
+    $assert(identifier.kind === 97/*null.IDENTIFIER_TOKEN*/, "identifier.kind === IDENTIFIER_TOKEN", "parser.dart", 501, 14);
     var afterId = identifier.next;
     var afterIdKind = afterId.kind;
     if (afterIdKind === 61/*null.EQ_TOKEN*/ || afterIdKind === 59/*null.SEMICOLON_TOKEN*/) {
@@ -4551,7 +4600,7 @@ Parser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 Parser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 527, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 558, 12);
   token = this.parseUnaryExpression(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = $assert_num(tokenLevel);
@@ -4670,7 +4719,7 @@ Parser.prototype.parseParenthesizedExpression = function(token) {
   var begin = (token && token.is$BeginGroupToken());
   token = this.expect('(', token);
   token = this.parseExpression(token);
-  $assert(begin.endGroup === token, "begin.endGroup === token", "parser.dart", 649, 12);
+  $assert(begin.endGroup === token, "begin.endGroup === token", "parser.dart", 680, 12);
   this.listener.handleParenthesizedExpression$1(begin);
   return this.expect(')', token);
 }
@@ -4713,7 +4762,7 @@ Parser.prototype.parseArgumentsOpt = function(token) {
 Parser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments$1(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 699, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 730, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments$3(argumentCount, begin, token.next);
@@ -4953,6 +5002,9 @@ Listener.prototype.endInterface = function(token) {
 Listener.prototype.beginLibraryTag = function(token) {
 
 }
+Listener.prototype.endLibraryTag = function(hasPrefix, beginToken, endToken) {
+
+}
 Listener.prototype.beginReturnStatement = function(token) {
 
 }
@@ -5188,6 +5240,9 @@ Listener.prototype.endInitializer$1 = function($0) {
 Listener.prototype.endInterface$1 = function($0) {
   return this.endInterface(($0 && $0.is$Token()));
 };
+Listener.prototype.endLibraryTag$3 = function($0, $1, $2) {
+  return this.endLibraryTag($assert_bool($0), ($1 && $1.is$Token()), ($2 && $2.is$Token()));
+};
 Listener.prototype.endRethrowStatement$2 = function($0, $1) {
   return this.endRethrowStatement(($0 && $0.is$Token()), ($1 && $1.is$Token()));
 };
@@ -5299,8 +5354,8 @@ ParserError.prototype.toString$0 = ParserError.prototype.toString;
 // ********** Code for ElementListener **************
 function ElementListener(canceler) {
   this.previousIdentifier = null
-  this.nodes = const$208/*const EmptyLink<Node>()*/
-  this.topLevelElements = const$209/*const EmptyLink<Element>()*/
+  this.nodes = const$209/*const EmptyLink<Node>()*/
+  this.topLevelElements = const$210/*const EmptyLink<Element>()*/
   this.canceler = canceler;
   // Initializers done
   Listener.call(this);
@@ -5376,7 +5431,7 @@ ElementListener.prototype.pushNode = function(node) {
 }
 ElementListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 367, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 359, 12);
   var node = (($0 = this.nodes.get$head()) && $0.is$Node());
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link_Node());
   if (false/*null.VERBOSE*/) this.log(("pop " + this.nodes));
@@ -5617,7 +5672,7 @@ NodeListener.prototype.handleUnaryPrefixExpression = function(token) {
 }
 NodeListener.prototype.makeNodeList = function(count, beginToken, endToken, delimiter) {
   var $0;
-  var nodes = const$208/*const EmptyLink<Node>()*/;
+  var nodes = const$209/*const EmptyLink<Node>()*/;
   for (; count > 0; --count) {
     nodes = (($0 = nodes.prepend(this.popNode())) && $0.is$Link_Node());
   }
@@ -6250,7 +6305,7 @@ $inherits(NodeList, Node);
 NodeList.prototype.is$NodeList = function(){return this;};
 NodeList.prototype.get$nodes = function() {
   var $0;
-  return (($0 = this._nodes != null ? this._nodes : const$208/*const EmptyLink<Node>()*/) && $0.is$Link_Node());
+  return (($0 = this._nodes != null ? this._nodes : const$209/*const EmptyLink<Node>()*/) && $0.is$Link_Node());
 }
 NodeList.prototype.accept = function(visitor) {
   return visitor.visitNodeList(this);
@@ -6948,7 +7003,7 @@ Unparser.prototype.visitVariableDefinitions = function(node) {
   }
   this.sb.add(' ');
   this.visit(node.definitions);
-  if ($notnull_bool($eq(node.endToken.get$value(), const$222/*const SourceString(';')*/))) {
+  if ($notnull_bool($eq(node.endToken.get$value(), const$223/*const SourceString(';')*/))) {
     this.add((($0 = node.endToken.get$value()) && $0.is$SourceString()));
   }
 }
@@ -7170,7 +7225,7 @@ VariableElement.prototype.computeType$2 = function($0, $1) {
 // ********** Code for ForeignElement **************
 function ForeignElement(name) {
   // Initializers done
-  Element.call(this, name, const$218, null);
+  Element.call(this, name, const$219, null);
 }
 $inherits(ForeignElement, Element);
 ForeignElement.prototype.computeType = function(compiler, types) {
@@ -7182,7 +7237,7 @@ ForeignElement.prototype.computeType$2 = function($0, $1) {
 // ********** Code for FunctionElement **************
 function FunctionElement(name) {
   // Initializers done
-  Element.call(this, name, const$215, null);
+  Element.call(this, name, const$216, null);
 }
 $inherits(FunctionElement, Element);
 FunctionElement.prototype.is$FunctionElement = function(){return this;};
@@ -7210,10 +7265,10 @@ FunctionElement.prototype.computeType$2 = function($0, $1) {
 };
 // ********** Code for ClassElement **************
 function ClassElement(name) {
-  this.interfaces = const$212/*const EmptyLink<Type>()*/
+  this.interfaces = const$213/*const EmptyLink<Type>()*/
   this.isResolved = false
   // Initializers done
-  Element.call(this, name, const$213, null);
+  Element.call(this, name, const$214, null);
 }
 $inherits(ClassElement, Element);
 ClassElement.prototype.is$ClassElement = function(){return this;};
@@ -7501,7 +7556,7 @@ SsaBuilder.prototype.unquote = function(literal) {
   return new StringWrapper(str.substring(quotes + 1, str.length - quotes));
 }
 SsaBuilder.prototype.visitLogicalAndOr = function(node, op) {
-  var isAnd = $assert_bool(($eq(const$297/*const SourceString("&&")*/, op.get$source())));
+  var isAnd = $assert_bool(($eq(const$298/*const SourceString("&&")*/, op.get$source())));
   this.visit(node.receiver);
   var boolifiedLeft = this.popBoolified();
   var condition;
@@ -7624,10 +7679,10 @@ SsaBuilder.prototype.visitSend = function(node) {
   var element = (($0 = this.elements.$index(node)) && $0.is$Element());
   if ((node.selector instanceof Operator)) {
     var op = (($0 = node.selector) && $0.is$Operator());
-    if ($notnull_bool($eq(const$297/*const SourceString("&&")*/, op.get$source())) || $notnull_bool($eq(const$298/*const SourceString("||")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$298/*const SourceString("&&")*/, op.get$source())) || $notnull_bool($eq(const$299/*const SourceString("||")*/, op.get$source()))) {
       this.visitLogicalAndOr(node, op);
     }
-    else if ($notnull_bool($eq(const$299/*const SourceString("!")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$300/*const SourceString("!")*/, op.get$source()))) {
       this.visitLogicalNot(node);
     }
     else if ((node.argumentsNode instanceof Prefix) || (node.argumentsNode instanceof Postfix)) {
@@ -7651,7 +7706,7 @@ SsaBuilder.prototype.visitSend = function(node) {
   }
   else {
     var link = node.get$arguments();
-    if (element.kind === const$218/*ElementKind.FOREIGN*/) {
+    if (element.kind === const$219/*ElementKind.FOREIGN*/) {
       link = (($0 = link.get$tail()) && $0.is$Link_Node());
     }
     var arguments = [];
@@ -7659,7 +7714,7 @@ SsaBuilder.prototype.visitSend = function(node) {
       this.visit((($0 = link.get$head()) && $0.is$Node()));
       arguments.add$1(this.pop());
     }
-    if (element.kind === const$218/*ElementKind.FOREIGN*/) {
+    if (element.kind === const$219/*ElementKind.FOREIGN*/) {
       var literal = (($0 = node.get$arguments().get$head()) && $0.is$LiteralString());
       this.compiler.ensure((literal instanceof LiteralString));
       this.push(new HInvokeForeign(element, arguments, this.unquote(literal)));
@@ -7682,7 +7737,7 @@ SsaBuilder.prototype.visitSendSet = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var op = node.assignmentOperator;
-  if ($notnull_bool($eq(const$265/*const SourceString("=")*/, op.get$source()))) {
+  if ($notnull_bool($eq(const$266/*const SourceString("=")*/, op.get$source()))) {
     var link = node.get$arguments();
     $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 472, 12);
     this.visit((($0 = link.get$head()) && $0.is$Node()));
@@ -7860,7 +7915,7 @@ SsaCodeGenerator.prototype.temporary = function(instruction) {
 SsaCodeGenerator.prototype.local = function(local) {
   var $0, $1;
   var element = local.element;
-  if (element != null && $eq(element.kind, const$231/*ElementKind.PARAMETER*/)) {
+  if (element != null && $eq(element.kind, const$232/*ElementKind.PARAMETER*/)) {
     return $assert_String(this.parameterNames.$index(element));
   }
   var id = local.id;
@@ -8142,7 +8197,7 @@ SsaCodeGenerator.prototype.visitTypeGuard = function(node) {
   var $0;
   var name;
   if ($notnull_bool(node.isNumber())) {
-    name = const$316/*const SourceString('guard\$num')*/;
+    name = const$317/*const SourceString('guard\$num')*/;
   }
   else {
     unreachable();
@@ -8178,9 +8233,9 @@ function JsNames() {}
 JsNames.get$reserved = function() {
   if ($globals.JsNames__reserved == null) {
     $globals.JsNames__reserved = new HashSetImplementation();
-    $globals.JsNames__reserved.addAll(const$310/*JsNames.reservedPropertySymbols*/);
-    $globals.JsNames__reserved.addAll(const$312/*JsNames.reservedGlobalSymbols*/);
-    $globals.JsNames__reserved.addAll(const$314/*JsNames.javaScriptKeywords*/);
+    $globals.JsNames__reserved.addAll(const$311/*JsNames.reservedPropertySymbols*/);
+    $globals.JsNames__reserved.addAll(const$313/*JsNames.reservedGlobalSymbols*/);
+    $globals.JsNames__reserved.addAll(const$315/*JsNames.javaScriptKeywords*/);
   }
   return $globals.JsNames__reserved;
 }
@@ -10293,7 +10348,7 @@ SsaPhiEliminator.prototype.visitPhi = function(phi, loads) {
     local = (($0 = this.namedLocals.putIfAbsent(phi.element, (function () {
       var local0 = new HLocal(phi.element);
       $this.entry.addAtEntry(local0);
-      if (phi.element.kind === const$231/*ElementKind.PARAMETER*/) {
+      if (phi.element.kind === const$232/*ElementKind.PARAMETER*/) {
         $this.entry.detach(local0);
       }
       return local0;
@@ -10957,15 +11012,15 @@ Compiler.prototype.run = function() {
 Compiler.prototype.scanCoreLibrary = function() {
   var fileName = join([this.get$legDirectory(), 'lib', 'core.dart']);
   this.scanner.scan(this.readScript(fileName));
-  var element = new ForeignElement(const$217/*const SourceString('JS')*/);
+  var element = new ForeignElement(const$218/*const SourceString('JS')*/);
   this.universe.define(element);
 }
 Compiler.prototype.runCompiler = function() {
   var $0;
   this.scanCoreLibrary();
   this.scanner.scan(this.script);
-  var element = this.universe.find(const$220/*Compiler.MAIN*/);
-  if (element == null) this.cancel(('Could not find ' + const$220/*Compiler.MAIN*/));
+  var element = this.universe.find(const$221/*Compiler.MAIN*/);
+  if (element == null) this.cancel(('Could not find ' + const$221/*Compiler.MAIN*/));
   this.compileMethod(element);
   while (!this.worklist.isEmpty()) {
     this.compileMethod((($0 = this.worklist.removeLast()) && $0.is$Element()));
@@ -11116,20 +11171,20 @@ ResolverVisitor.prototype.visit = function(node) {
 ResolverVisitor.prototype.visitIdentifier = function(node) {
   var element = this.context.lookup(node.get$source());
   if (element == null) {
-    this.error(node, const$224/*MessageKind.CANNOT_RESOLVE*/, [node]);
+    this.error(node, const$225/*MessageKind.CANNOT_RESOLVE*/, [node]);
   }
   return this.useElement(node, element);
 }
 ResolverVisitor.prototype.visitTypeAnnotation = function(node) {
   var name = node.typeName;
-  if ($notnull_bool($eq(name.get$source(), const$226/*const SourceString('var')*/))) return null;
+  if ($notnull_bool($eq(name.get$source(), const$227/*const SourceString('var')*/))) return null;
   if ($notnull_bool($eq(name.get$source(), const$6/*const SourceString('void')*/))) return null;
   var element = this.context.lookup(name.get$source());
   if (element == null) {
-    this.warning(node, const$227/*MessageKind.CANNOT_RESOLVE_TYPE*/, [name]);
+    this.warning(node, const$228/*MessageKind.CANNOT_RESOLVE_TYPE*/, [name]);
   }
-  else if (element.kind !== const$213/*ElementKind.CLASS*/) {
-    this.warning(node, const$229/*MessageKind.NOT_A_TYPE*/, [name]);
+  else if (element.kind !== const$214/*ElementKind.CLASS*/) {
+    this.warning(node, const$230/*MessageKind.NOT_A_TYPE*/, [name]);
   }
   else {
     var cls = (element && element.is$ClassElement());
@@ -11227,30 +11282,30 @@ FullResolverVisitor.prototype.visitIf = function(node) {
   this.visit(node.elsePart);
 }
 FullResolverVisitor.prototype.potentiallyMapOperatorToMethodName = function(name) {
-  if ($notnull_bool($eq(name, const$236/*const SourceString('+')*/))) return const$237/*const SourceString('add')*/;
-  if ($notnull_bool($eq(name, const$238/*const SourceString('-')*/))) return const$239/*const SourceString('sub')*/;
-  if ($notnull_bool($eq(name, const$240/*const SourceString('*')*/))) return const$241/*const SourceString('mul')*/;
-  if ($notnull_bool($eq(name, const$242/*const SourceString('/')*/))) return const$243/*const SourceString('div')*/;
-  if ($notnull_bool($eq(name, const$244/*const SourceString('~/')*/))) return const$245/*const SourceString('tdiv')*/;
-  if ($notnull_bool($eq(name, const$246/*const SourceString('%')*/))) return const$247/*const SourceString('mod')*/;
-  if ($notnull_bool($eq(name, const$248/*const SourceString('<<')*/))) return const$249/*const SourceString('shl')*/;
-  if ($notnull_bool($eq(name, const$250/*const SourceString('>>')*/))) return const$251/*const SourceString('shr')*/;
-  if ($notnull_bool($eq(name, const$252/*const SourceString('==')*/))) return const$253/*const SourceString('eq')*/;
-  if ($notnull_bool($eq(name, const$254/*const SourceString('<')*/))) return const$255/*const SourceString('lt')*/;
-  if ($notnull_bool($eq(name, const$256/*const SourceString('<=')*/))) return const$257/*const SourceString('le')*/;
-  if ($notnull_bool($eq(name, const$258/*const SourceString('>')*/))) return const$259/*const SourceString('gt')*/;
-  if ($notnull_bool($eq(name, const$260/*const SourceString('>=')*/))) return const$261/*const SourceString('ge')*/;
+  if ($notnull_bool($eq(name, const$237/*const SourceString('+')*/))) return const$238/*const SourceString('add')*/;
+  if ($notnull_bool($eq(name, const$239/*const SourceString('-')*/))) return const$240/*const SourceString('sub')*/;
+  if ($notnull_bool($eq(name, const$241/*const SourceString('*')*/))) return const$242/*const SourceString('mul')*/;
+  if ($notnull_bool($eq(name, const$243/*const SourceString('/')*/))) return const$244/*const SourceString('div')*/;
+  if ($notnull_bool($eq(name, const$245/*const SourceString('~/')*/))) return const$246/*const SourceString('tdiv')*/;
+  if ($notnull_bool($eq(name, const$247/*const SourceString('%')*/))) return const$248/*const SourceString('mod')*/;
+  if ($notnull_bool($eq(name, const$249/*const SourceString('<<')*/))) return const$250/*const SourceString('shl')*/;
+  if ($notnull_bool($eq(name, const$251/*const SourceString('>>')*/))) return const$252/*const SourceString('shr')*/;
+  if ($notnull_bool($eq(name, const$253/*const SourceString('==')*/))) return const$254/*const SourceString('eq')*/;
+  if ($notnull_bool($eq(name, const$255/*const SourceString('<')*/))) return const$256/*const SourceString('lt')*/;
+  if ($notnull_bool($eq(name, const$257/*const SourceString('<=')*/))) return const$258/*const SourceString('le')*/;
+  if ($notnull_bool($eq(name, const$259/*const SourceString('>')*/))) return const$260/*const SourceString('gt')*/;
+  if ($notnull_bool($eq(name, const$261/*const SourceString('>=')*/))) return const$262/*const SourceString('ge')*/;
   return name;
 }
 FullResolverVisitor.prototype.mapAssignmentOperatorToMethodName = function(name) {
-  if ($notnull_bool($eq(name, const$266/*const SourceString('+=')*/))) return const$237/*const SourceString('add')*/;
-  if ($notnull_bool($eq(name, const$267/*const SourceString('-=')*/))) return const$239/*const SourceString('sub')*/;
-  if ($notnull_bool($eq(name, const$268/*const SourceString('*=')*/))) return const$241/*const SourceString('mul')*/;
-  if ($notnull_bool($eq(name, const$269/*const SourceString('/=')*/))) return const$243/*const SourceString('div')*/;
-  if ($notnull_bool($eq(name, const$270/*const SourceString('~/=')*/))) return const$245/*const SourceString('tdiv')*/;
-  if ($notnull_bool($eq(name, const$271/*const SourceString('%=')*/))) return const$247/*const SourceString('mod')*/;
-  if ($notnull_bool($eq(name, const$272/*const SourceString('<<=')*/))) return const$249/*const SourceString('shl')*/;
-  if ($notnull_bool($eq(name, const$273/*const SourceString('>>=')*/))) return const$251/*const SourceString('shr')*/;
+  if ($notnull_bool($eq(name, const$267/*const SourceString('+=')*/))) return const$238/*const SourceString('add')*/;
+  if ($notnull_bool($eq(name, const$268/*const SourceString('-=')*/))) return const$240/*const SourceString('sub')*/;
+  if ($notnull_bool($eq(name, const$269/*const SourceString('*=')*/))) return const$242/*const SourceString('mul')*/;
+  if ($notnull_bool($eq(name, const$270/*const SourceString('/=')*/))) return const$244/*const SourceString('div')*/;
+  if ($notnull_bool($eq(name, const$271/*const SourceString('~/=')*/))) return const$246/*const SourceString('tdiv')*/;
+  if ($notnull_bool($eq(name, const$272/*const SourceString('%=')*/))) return const$248/*const SourceString('mod')*/;
+  if ($notnull_bool($eq(name, const$273/*const SourceString('<<=')*/))) return const$250/*const SourceString('shl')*/;
+  if ($notnull_bool($eq(name, const$274/*const SourceString('>>=')*/))) return const$252/*const SourceString('shr')*/;
   this.compiler.unimplemented(("mapAssignmentOperatorToMethodName: " + name));
 }
 FullResolverVisitor.prototype.visitSend = function(node) {
@@ -11262,8 +11317,8 @@ FullResolverVisitor.prototype.visitSend = function(node) {
   }
   var name = this.potentiallyMapOperatorToMethodName(identifier.get$source());
   var target = this.context.lookup(name);
-  if (target == null && !(($notnull_bool($eq(name, const$262/*const SourceString('&&')*/)) || $notnull_bool($eq(name, const$263/*const SourceString('||')*/)) || $notnull_bool($eq(name, const$264/*const SourceString('!')*/))))) {
-    this.error(node, const$224/*MessageKind.CANNOT_RESOLVE*/, [name]);
+  if (target == null && !(($notnull_bool($eq(name, const$263/*const SourceString('&&')*/)) || $notnull_bool($eq(name, const$264/*const SourceString('||')*/)) || $notnull_bool($eq(name, const$265/*const SourceString('!')*/))))) {
+    this.error(node, const$225/*MessageKind.CANNOT_RESOLVE*/, [name]);
   }
   this.visit(node.argumentsNode);
   return this.useElement(node, target);
@@ -11277,10 +11332,10 @@ FullResolverVisitor.prototype.visitSendSet = function(node) {
   }
   var target = this.context.lookup(selector.get$source());
   if (target == null) {
-    this.error(node, const$224/*MessageKind.CANNOT_RESOLVE*/, [node]);
+    this.error(node, const$225/*MessageKind.CANNOT_RESOLVE*/, [node]);
   }
   var op = node.assignmentOperator;
-  if ($ne(op.get$source(), const$265/*const SourceString("=")*/)) {
+  if ($ne(op.get$source(), const$266/*const SourceString("=")*/)) {
     var name = this.mapAssignmentOperatorToMethodName(op.get$source());
     var operatorElement = this.context.lookup(name);
     this.useElement(op, operatorElement);
@@ -11323,7 +11378,7 @@ FullResolverVisitor.prototype.visitThrow = function(node) {
 }
 FullResolverVisitor.prototype.visitVariableDefinitions = function(node) {
   this.visit(node.type);
-  var visitor = new VariableDefinitionsVisitor(node, this, const$274/*ElementKind.VARIABLE*/);
+  var visitor = new VariableDefinitionsVisitor(node, this, const$275/*ElementKind.VARIABLE*/);
   visitor.visit(node.definitions);
 }
 FullResolverVisitor.prototype.visitWhile = function(node) {
@@ -11358,10 +11413,10 @@ ClassResolverVisitor.prototype.visitTypeAnnotation = function(node) {
   var name = node.typeName;
   var element = this.context.lookup(name.get$source());
   if (element == null) {
-    this.compiler.cancel(new ResolutionError(const$227/*MessageKind.CANNOT_RESOLVE_TYPE*/, [name]).toString());
+    this.compiler.cancel(new ResolutionError(const$228/*MessageKind.CANNOT_RESOLVE_TYPE*/, [name]).toString());
   }
-  else if (element.kind !== const$213/*ElementKind.CLASS*/) {
-    this.compiler.cancel(new ResolutionError(const$229/*MessageKind.NOT_A_TYPE*/, [name]).toString());
+  else if (element.kind !== const$214/*ElementKind.CLASS*/) {
+    this.compiler.cancel(new ResolutionError(const$230/*MessageKind.NOT_A_TYPE*/, [name]).toString());
   }
   else {
     this.compiler.resolver.toResolve.add(element);
@@ -11414,7 +11469,7 @@ VariableDefinitionsVisitor.prototype.visitNodeList = function(node) {
     var element = new VariableElement((($0 = link.get$head()) && $0.is$Node()), this.definitions.type, this.kind, name, this.resolver.context.enclosingElement);
     var existing = this.resolver.defineElement((($0 = link.get$head()) && $0.is$Node()), element);
     if ($ne(existing, element)) {
-      this.resolver.error(node, const$233/*MessageKind.DUPLICATE_DEFINITION*/, [link.get$head()]);
+      this.resolver.error(node, const$234/*MessageKind.DUPLICATE_DEFINITION*/, [link.get$head()]);
     }
   }
 }
@@ -11441,7 +11496,7 @@ ParametersVisitor.prototype.visitNodeList = function(node) {
 }
 ParametersVisitor.prototype.visitVariableDefinitions = function(node) {
   this.resolver.visit(node.type);
-  var visitor = new VariableDefinitionsVisitor(node, this.resolver, const$231/*ElementKind.PARAMETER*/);
+  var visitor = new VariableDefinitionsVisitor(node, this.resolver, const$232/*ElementKind.PARAMETER*/);
   visitor.visit(node.definitions);
   return this.resolver.mapping.$index(node.definitions.get$nodes().get$head());
 }
@@ -11458,7 +11513,7 @@ function Scope(parent) {
 }
 Scope.top$ctor = function() {
   this.parent = null;
-  this.elements = const$223/*const {}*/;
+  this.elements = const$224/*const {}*/;
   this.enclosingElement = null;
   // Initializers done
 }
@@ -11539,7 +11594,7 @@ TypeCheckerTask.prototype.check = function(tree, elements) {
     } catch (e) {
       e = $toDartException(e);
       if (!(e instanceof CancelTypeCheckException)) throw e;
-      $this.compiler.reportWarning(e.node, new TypeWarning(const$290/*MessageKind.GENERIC*/, [e.reason]));
+      $this.compiler.reportWarning(e.node, new TypeWarning(const$291/*MessageKind.GENERIC*/, [e.reason]));
     }
   })
   );
@@ -11656,7 +11711,7 @@ TypeCheckerVisitor.prototype.reportTypeWarning = function(node, kind, arguments)
 TypeCheckerVisitor.prototype.nonVoidType = function(node) {
   var type = this.type(node);
   if ($eq(type, this.types.voidType)) {
-    this.reportTypeWarning(node, const$288/*MessageKind.VOID_EXPRESSION*/, const$21/*const []*/);
+    this.reportTypeWarning(node, const$289/*MessageKind.VOID_EXPRESSION*/, const$21/*const []*/);
   }
   return type;
 }
@@ -11674,7 +11729,7 @@ TypeCheckerVisitor.prototype.get$type = function() {
 }
 TypeCheckerVisitor.prototype.checkAssignable = function(node, s, t) {
   if (!$notnull_bool(this.types.isAssignable(s, t))) {
-    this.reportTypeWarning(node, const$276/*MessageKind.NOT_ASSIGNABLE*/, [s, t]);
+    this.reportTypeWarning(node, const$277/*MessageKind.NOT_ASSIGNABLE*/, [s, t]);
   }
 }
 TypeCheckerVisitor.prototype.checkCondition = function(condition) {
@@ -11757,10 +11812,10 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
         arguments = (($0 = arguments.get$tail()) && $0.is$Link_Node());
       }
       if (!$notnull_bool(formals.isEmpty())) {
-        this.reportTypeWarning(node, const$282/*MessageKind.MISSING_ARGUMENT*/, const$21/*const []*/);
+        this.reportTypeWarning(node, const$283/*MessageKind.MISSING_ARGUMENT*/, const$21/*const []*/);
       }
       if (!$notnull_bool(arguments.isEmpty())) {
-        this.reportTypeWarning(node, const$284/*MessageKind.ADDITIONAL_ARGUMENT*/, const$21/*const []*/);
+        this.reportTypeWarning(node, const$285/*MessageKind.ADDITIONAL_ARGUMENT*/, const$21/*const []*/);
       }
       return funType.returnType;
     }
@@ -11809,14 +11864,14 @@ TypeCheckerVisitor.prototype.visitReturn = function(node) {
   if (expression != null) {
     var expressionType = this.type(expression);
     if (isVoidFunction && !$notnull_bool(this.types.isAssignable(expressionType, this.types.voidType))) {
-      this.reportTypeWarning(expression, const$278/*MessageKind.RETURN_VALUE_IN_VOID*/, [expressionType]);
+      this.reportTypeWarning(expression, const$279/*MessageKind.RETURN_VALUE_IN_VOID*/, [expressionType]);
     }
     else {
       this.checkAssignable(expression, this.expectedReturnType, expressionType);
     }
   }
   else if (!$notnull_bool(this.types.isAssignable(this.expectedReturnType, this.types.voidType))) {
-    this.reportTypeWarning(node, const$280/*MessageKind.RETURN_NOTHING*/, [this.expectedReturnType]);
+    this.reportTypeWarning(node, const$281/*MessageKind.RETURN_NOTHING*/, [this.expectedReturnType]);
   }
   return null;
 }
@@ -11839,7 +11894,7 @@ TypeCheckerVisitor.prototype.visitVariableDefinitions = function(node) {
   var $0;
   var type = this.typeWithDefault(node.type, this.types.dynamicType);
   if ($eq(type, this.types.voidType)) {
-    this.reportTypeWarning(node.type, const$286/*MessageKind.VOID_VARIABLE*/, const$21/*const []*/);
+    this.reportTypeWarning(node.type, const$287/*MessageKind.VOID_VARIABLE*/, const$21/*const []*/);
     type = this.types.dynamicType;
   }
   for (var link = node.definitions.get$nodes();
@@ -11884,6 +11939,10 @@ function MessageKind(template) {
   // Initializers done
 }
 MessageKind.prototype.get$template = function() { return this.template; };
+MessageKind.prototype.toString = function() {
+  return this.template;
+}
+MessageKind.prototype.toString$0 = MessageKind.prototype.toString;
 // ********** Code for Message **************
 function Message(kind, arguments) {
   this.kind = kind;
@@ -11934,7 +11993,7 @@ ResolutionWarning.prototype.toString = function() {
 ResolutionWarning.prototype.toString$0 = ResolutionWarning.prototype.toString;
 // ********** Code for top level **************
 function unreachable() {
-  $throw(const$292/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
+  $throw(const$293/*const Exception("Internal Error (Leg): UNREACHABLE")*/);
 }
 //  ********** Library frog_leg **************
 // ********** Code for WorldCompiler **************
@@ -13436,7 +13495,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   return false;
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
-  var types = const$433/*const [
+  var types = const$434/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   var target = new Value($globals.world.varType, 'this', node.span, true);
@@ -23528,90 +23587,90 @@ var const$14 = new StringWrapper('String')/*const SourceString('String')*/;
 var const$16 = new StringWrapper('bool')/*const SourceString('bool')*/;
 var const$18 = new StringWrapper('Object')/*const SourceString('Object')*/;
 var const$20 = new IllegalAccessException()/*const IllegalAccessException()*/;
-var const$208 = new LinkTail()/*const EmptyLink<Node>()*/;
-var const$209 = new LinkTail()/*const EmptyLink<Element>()*/;
+var const$209 = new LinkTail()/*const EmptyLink<Node>()*/;
 var const$21 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
-var const$212 = new LinkTail()/*const EmptyLink<Type>()*/;
-var const$213 = new ElementKind('class')/*const ElementKind('class')*/;
-var const$215 = new ElementKind('function')/*const ElementKind('function')*/;
-var const$217 = new StringWrapper('JS')/*const SourceString('JS')*/;
-var const$218 = new ElementKind('foreign')/*const ElementKind('foreign')*/;
+var const$210 = new LinkTail()/*const EmptyLink<Element>()*/;
+var const$213 = new LinkTail()/*const EmptyLink<Type>()*/;
+var const$214 = new ElementKind('class')/*const ElementKind('class')*/;
+var const$216 = new ElementKind('function')/*const ElementKind('function')*/;
+var const$218 = new StringWrapper('JS')/*const SourceString('JS')*/;
+var const$219 = new ElementKind('foreign')/*const ElementKind('foreign')*/;
 var const$22 = new LinkTail()/*const EmptyLink<Token>()*/;
-var const$220 = new StringWrapper('main')/*const SourceString('main')*/;
-var const$222 = new StringWrapper(';')/*const SourceString(';')*/;
-var const$223 = new ImmutableMap([])/*const {}*/;
-var const$224 = new MessageKind('cannot resolve #{1}')/*const MessageKind(
+var const$221 = new StringWrapper('main')/*const SourceString('main')*/;
+var const$223 = new StringWrapper(';')/*const SourceString(';')*/;
+var const$224 = new ImmutableMap([])/*const {}*/;
+var const$225 = new MessageKind('cannot resolve #{1}')/*const MessageKind(
       'cannot resolve #{1}')*/;
-var const$226 = new StringWrapper('var')/*const SourceString('var')*/;
-var const$227 = new MessageKind('cannot resolve type #{1}')/*const MessageKind(
+var const$227 = new StringWrapper('var')/*const SourceString('var')*/;
+var const$228 = new MessageKind('cannot resolve type #{1}')/*const MessageKind(
       'cannot resolve type #{1}')*/;
-var const$229 = new MessageKind('#{1} is not a type')/*const MessageKind(
+var const$230 = new MessageKind('#{1} is not a type')/*const MessageKind(
       '#{1} is not a type')*/;
-var const$231 = new ElementKind('parameter')/*const ElementKind('parameter')*/;
-var const$233 = new MessageKind('duplicate definition of #{1}')/*const MessageKind(
+var const$232 = new ElementKind('parameter')/*const ElementKind('parameter')*/;
+var const$234 = new MessageKind('duplicate definition of #{1}')/*const MessageKind(
       'duplicate definition of #{1}')*/;
-var const$235 = new LinkTail()/*const LinkTail()*/;
-var const$236 = new StringWrapper('+')/*const SourceString('+')*/;
-var const$237 = new StringWrapper('add')/*const SourceString('add')*/;
-var const$238 = new StringWrapper('-')/*const SourceString('-')*/;
-var const$239 = new StringWrapper('sub')/*const SourceString('sub')*/;
-var const$240 = new StringWrapper('*')/*const SourceString('*')*/;
-var const$241 = new StringWrapper('mul')/*const SourceString('mul')*/;
-var const$242 = new StringWrapper('/')/*const SourceString('/')*/;
-var const$243 = new StringWrapper('div')/*const SourceString('div')*/;
-var const$244 = new StringWrapper('~/')/*const SourceString('~/')*/;
-var const$245 = new StringWrapper('tdiv')/*const SourceString('tdiv')*/;
-var const$246 = new StringWrapper('%')/*const SourceString('%')*/;
-var const$247 = new StringWrapper('mod')/*const SourceString('mod')*/;
-var const$248 = new StringWrapper('<<')/*const SourceString('<<')*/;
-var const$249 = new StringWrapper('shl')/*const SourceString('shl')*/;
-var const$250 = new StringWrapper('>>')/*const SourceString('>>')*/;
-var const$251 = new StringWrapper('shr')/*const SourceString('shr')*/;
-var const$252 = new StringWrapper('==')/*const SourceString('==')*/;
-var const$253 = new StringWrapper('eq')/*const SourceString('eq')*/;
-var const$254 = new StringWrapper('<')/*const SourceString('<')*/;
-var const$255 = new StringWrapper('lt')/*const SourceString('lt')*/;
-var const$256 = new StringWrapper('<=')/*const SourceString('<=')*/;
-var const$257 = new StringWrapper('le')/*const SourceString('le')*/;
-var const$258 = new StringWrapper('>')/*const SourceString('>')*/;
-var const$259 = new StringWrapper('gt')/*const SourceString('gt')*/;
-var const$260 = new StringWrapper('>=')/*const SourceString('>=')*/;
-var const$261 = new StringWrapper('ge')/*const SourceString('ge')*/;
-var const$262 = new StringWrapper('&&')/*const SourceString('&&')*/;
-var const$263 = new StringWrapper('||')/*const SourceString('||')*/;
-var const$264 = new StringWrapper('!')/*const SourceString('!')*/;
-var const$265 = new StringWrapper("=")/*const SourceString("=")*/;
-var const$266 = new StringWrapper('+=')/*const SourceString('+=')*/;
-var const$267 = new StringWrapper('-=')/*const SourceString('-=')*/;
-var const$268 = new StringWrapper('*=')/*const SourceString('*=')*/;
-var const$269 = new StringWrapper('/=')/*const SourceString('/=')*/;
-var const$270 = new StringWrapper('~/=')/*const SourceString('~/=')*/;
-var const$271 = new StringWrapper('%=')/*const SourceString('%=')*/;
-var const$272 = new StringWrapper('<<=')/*const SourceString('<<=')*/;
-var const$273 = new StringWrapper('>>=')/*const SourceString('>>=')*/;
-var const$274 = new ElementKind('variable')/*const ElementKind('variable')*/;
-var const$276 = new MessageKind('#{2} is not assignable to #{1}')/*const MessageKind(
+var const$236 = new LinkTail()/*const LinkTail()*/;
+var const$237 = new StringWrapper('+')/*const SourceString('+')*/;
+var const$238 = new StringWrapper('add')/*const SourceString('add')*/;
+var const$239 = new StringWrapper('-')/*const SourceString('-')*/;
+var const$240 = new StringWrapper('sub')/*const SourceString('sub')*/;
+var const$241 = new StringWrapper('*')/*const SourceString('*')*/;
+var const$242 = new StringWrapper('mul')/*const SourceString('mul')*/;
+var const$243 = new StringWrapper('/')/*const SourceString('/')*/;
+var const$244 = new StringWrapper('div')/*const SourceString('div')*/;
+var const$245 = new StringWrapper('~/')/*const SourceString('~/')*/;
+var const$246 = new StringWrapper('tdiv')/*const SourceString('tdiv')*/;
+var const$247 = new StringWrapper('%')/*const SourceString('%')*/;
+var const$248 = new StringWrapper('mod')/*const SourceString('mod')*/;
+var const$249 = new StringWrapper('<<')/*const SourceString('<<')*/;
+var const$250 = new StringWrapper('shl')/*const SourceString('shl')*/;
+var const$251 = new StringWrapper('>>')/*const SourceString('>>')*/;
+var const$252 = new StringWrapper('shr')/*const SourceString('shr')*/;
+var const$253 = new StringWrapper('==')/*const SourceString('==')*/;
+var const$254 = new StringWrapper('eq')/*const SourceString('eq')*/;
+var const$255 = new StringWrapper('<')/*const SourceString('<')*/;
+var const$256 = new StringWrapper('lt')/*const SourceString('lt')*/;
+var const$257 = new StringWrapper('<=')/*const SourceString('<=')*/;
+var const$258 = new StringWrapper('le')/*const SourceString('le')*/;
+var const$259 = new StringWrapper('>')/*const SourceString('>')*/;
+var const$260 = new StringWrapper('gt')/*const SourceString('gt')*/;
+var const$261 = new StringWrapper('>=')/*const SourceString('>=')*/;
+var const$262 = new StringWrapper('ge')/*const SourceString('ge')*/;
+var const$263 = new StringWrapper('&&')/*const SourceString('&&')*/;
+var const$264 = new StringWrapper('||')/*const SourceString('||')*/;
+var const$265 = new StringWrapper('!')/*const SourceString('!')*/;
+var const$266 = new StringWrapper("=")/*const SourceString("=")*/;
+var const$267 = new StringWrapper('+=')/*const SourceString('+=')*/;
+var const$268 = new StringWrapper('-=')/*const SourceString('-=')*/;
+var const$269 = new StringWrapper('*=')/*const SourceString('*=')*/;
+var const$270 = new StringWrapper('/=')/*const SourceString('/=')*/;
+var const$271 = new StringWrapper('~/=')/*const SourceString('~/=')*/;
+var const$272 = new StringWrapper('%=')/*const SourceString('%=')*/;
+var const$273 = new StringWrapper('<<=')/*const SourceString('<<=')*/;
+var const$274 = new StringWrapper('>>=')/*const SourceString('>>=')*/;
+var const$275 = new ElementKind('variable')/*const ElementKind('variable')*/;
+var const$277 = new MessageKind('#{2} is not assignable to #{1}')/*const MessageKind(
       '#{2} is not assignable to #{1}')*/;
-var const$278 = new MessageKind('cannot return value from void function')/*const MessageKind(
+var const$279 = new MessageKind('cannot return value from void function')/*const MessageKind(
       'cannot return value from void function')*/;
-var const$280 = new MessageKind('value of type #{1} expected')/*const MessageKind(
+var const$281 = new MessageKind('value of type #{1} expected')/*const MessageKind(
       'value of type #{1} expected')*/;
-var const$282 = new MessageKind('missing argument')/*const MessageKind(
+var const$283 = new MessageKind('missing argument')/*const MessageKind(
       'missing argument')*/;
-var const$284 = new MessageKind('additional argument')/*const MessageKind(
+var const$285 = new MessageKind('additional argument')/*const MessageKind(
       'additional argument')*/;
-var const$286 = new MessageKind('variable cannot be of type void')/*const MessageKind(
+var const$287 = new MessageKind('variable cannot be of type void')/*const MessageKind(
       'variable cannot be of type void')*/;
-var const$288 = new MessageKind('expression does not yield a value')/*const MessageKind(
+var const$289 = new MessageKind('expression does not yield a value')/*const MessageKind(
       'expression does not yield a value')*/;
-var const$290 = new MessageKind('#{1}')/*const MessageKind('#{1}')*/;
-var const$292 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
-var const$297 = new StringWrapper("&&")/*const SourceString("&&")*/;
-var const$298 = new StringWrapper("||")/*const SourceString("||")*/;
-var const$299 = new StringWrapper("!")/*const SourceString("!")*/;
+var const$291 = new MessageKind('#{1}')/*const MessageKind('#{1}')*/;
+var const$293 = new ExceptionImplementation("Internal Error (Leg): UNREACHABLE")/*const Exception("Internal Error (Leg): UNREACHABLE")*/;
+var const$298 = new StringWrapper("&&")/*const SourceString("&&")*/;
+var const$299 = new StringWrapper("||")/*const SourceString("||")*/;
+var const$300 = new StringWrapper("!")/*const SourceString("!")*/;
 var const$31 = new Keyword("break", false)/*const Keyword("break")*/;
-var const$310 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
-var const$312 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
+var const$311 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
+var const$313 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
     // Section references are from Ecma-262
     // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
@@ -23742,7 +23801,7 @@ var const$312 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "un
     // TODO: prove why this is necessary or remove it
     "call"
   ]*/;
-var const$314 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
+var const$315 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
     // These are current keywords
     "break", "delete", "function", "return", "typeof", "case", "do", "if",
     "switch", "var", "catch", "else", "in", "this", "void", "continue",
@@ -23756,7 +23815,7 @@ var const$314 = ImmutableList.ImmutableList$from$factory(["break", "delete", "fu
     "class", "final", "interface", "public", "transient", "const", "float",
     "long", "short", "volatile"
   ]*/;
-var const$316 = new StringWrapper('guard\$num')/*const SourceString('guard\$num')*/;
+var const$317 = new StringWrapper('guard\$num')/*const SourceString('guard\$num')*/;
 var const$33 = new Keyword("case", false)/*const Keyword("case")*/;
 var const$35 = new Keyword("catch", false)/*const Keyword("catch")*/;
 var const$37 = new Keyword("const", false)/*const Keyword("const")*/;
@@ -23764,7 +23823,7 @@ var const$39 = new Keyword("continue", false)/*const Keyword("continue")*/;
 var const$4 = new StringWrapper('global scope')/*const SourceString('global scope')*/;
 var const$41 = new Keyword("default", false)/*const Keyword("default")*/;
 var const$43 = new Keyword("do", false)/*const Keyword("do")*/;
-var const$433 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$434 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
 var const$45 = new Keyword("else", false)/*const Keyword("else")*/;

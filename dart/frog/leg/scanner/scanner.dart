@@ -332,6 +332,9 @@ class AbstractScanner<T> implements Scanner {
     next = advance();
     if (next === $EQ) {
       return select($EQ, "===", "==");
+    } else if (next === $GT) {
+      appendStringToken(FUNCTION_TOKEN, "=>");
+      return advance();
     }
     appendStringToken(EQ_TOKEN, "=");
     return next;

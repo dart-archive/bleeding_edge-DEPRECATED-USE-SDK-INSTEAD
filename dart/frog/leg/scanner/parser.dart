@@ -289,20 +289,13 @@ class PartialParser<L extends Listener> {
   Token parseTopLevelMember(Token token) {
     Token start = token;
     listener.beginTopLevelMember(token);
-    Token previous = token;
-    while (token !== null) {
-      final kind = token.kind;
-      if ((kind === LBRACE_TOKEN) ||
-          (kind === SEMICOLON_TOKEN) ||
-          (kind === LPAREN_TOKEN) ||
-          (kind === EQ_TOKEN)) {
-        break;
-      } else {
-        previous = token;
-        token = token.next;
-      }
+    token = skipModifiers(token);
+    Token peek = peekAfterType(token);
+    while (isIdentifier(peek)) {
+      token = peek;
+      peek = peekAfterType(token);
     }
-    token = parseIdentifier(previous);
+    token = parseIdentifier(token);
     bool isField;
     while (true) {
       // Loop to allow the listener to rewrite the token stream to
@@ -317,36 +310,104 @@ class PartialParser<L extends Listener> {
         token = listener.unexpected(token);
       }
     }
-    if (!isField) {
-      token = skipArguments(token).next;
-    }
-    while (token !== null &&
-           token.kind !== LBRACE_TOKEN &&
-           token.kind !== SEMICOLON_TOKEN) {
-      token = token.next;
-    }
-    if (!optional(';', token)) {
-      token = skipBlock(token);
-    }
     if (isField) {
+      if (optional('=', token)) {
+        token = parseExpression(token.next);
+      }
+      expectSemicolon(token);
       listener.endTopLevelField(start, token);
     } else {
+      token = skipArguments(token).next;
+      if (optional(';', token)) {
+        // Ignored.
+      } else if (optional('=>', token)) {
+        token = parseExpression(token.next);
+        expectSemicolon(token);
+      } else if (optional('native', token)) {
+        token = token.next;
+        if (token.kind === STRING_TOKEN) {
+          token = parseString(token);
+        }
+        expectSemicolon(token);
+      } else {
+        token = skipBlock(token);
+      }
       listener.endTopLevelMethod(start, token);
     }
     return token.next;
   }
 
+  Token skipExpression(Token token) {
+    while (true) {
+      final kind = token.kind;
+      if ((token.kind === EOF_TOKEN) || (token.kind === SEMICOLON_TOKEN))
+        return token;
+      if (token is BeginGroupToken) {
+        BeginGroupToken begin = token;
+        token = (begin.endGroup !== null) ? begin.endGroup : token;
+      }
+      token = token.next;
+    }
+  }
+
+  Token parseExpression(Token token) => skipExpression(token);
+
   Token parseLibraryTags(Token token) {
+    Token begin = token;
     listener.beginLibraryTag(token);
     token = parseIdentifier(token.next);
     token = expect('(', token);
-    while (token !== null &&
-           token.kind !== LPAREN_TOKEN &&
-           token.kind !== RPAREN_TOKEN) {
-      token = token.next;
+    token = parseString(token);
+    bool hasPrefix = false;
+    if (optional(',', token)) {
+      hasPrefix = true;
+      token = parseIdentifier(token.next);
+      token = expect(':', token);
+      token = parseString(token);
     }
     token = expect(')', token);
+    listener.endLibraryTag(hasPrefix, begin, token);
+    return expectSemicolon(token);
+  }
+
+  Token expectSemicolon(Token token) {
     return expect(';', token);
+  }
+
+  Token skipModifiers(Token token) {
+    while (token.kind === KEYWORD_TOKEN) {
+      final String value = token.stringValue;
+      if (value === 'void') break;
+      token = token.next;
+    }
+    return token;
+  }
+
+  Token peekAfterType(Token token) {
+    // TODO(ahe): Also handle var?
+    if ('void' !== token.stringValue && !isIdentifier(token)) {
+      listener.expectedIdentifier(token);
+    }
+    // We are looking at "identifier ...".
+    Token peek = token.next;
+    if (peek.kind === PERIOD_TOKEN) {
+      if (peek.next.kind === IDENTIFIER_TOKEN) {
+        // Look past a library prefix.
+        peek = peek.next.next;
+      }
+    }
+    // We are looking at "qualified ...".
+    if (peek.kind === LT_TOKEN) {
+      // Possibly generic type.
+      // We are looking at "qualified '<'".
+      BeginGroupToken beginGroupToken = peek;
+      Token gtToken = beginGroupToken.endGroup;
+      if (gtToken !== null) {
+        // We are looking at "qualified '<' ... '>' ...".
+        return gtToken.next;
+      }
+    }
+    return peek;
   }
 }
 
@@ -355,6 +416,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
 
   Token parseFunction(Token token) {
     listener.beginFunction(token);
+    token = skipModifiers(token);
     token = parseReturnTypeOpt(token);
     listener.beginFunctionName(token);
     token = parseIdentifier(token);
@@ -409,10 +471,6 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     }
   }
 
-  Token expectSemicolon(Token token) {
-    return expect(';', token);
-  }
-
   Token parseReturnStatement(Token token) {
     Token begin = token;
     listener.beginReturnStatement(begin);
@@ -425,33 +483,6 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
       listener.endReturnStatement(true, begin, token);
     }
     return expectSemicolon(token);
-  }
-
-  Token peekAfterType(Token token) {
-    // TODO(ahe): Also handle var?
-    if ('void' !== token.stringValue && !isIdentifier(token)) {
-      listener.expectedIdentifier(token);
-    }
-    // We are looking at "identifier ...".
-    Token peek = token.next;
-    if (peek.kind === PERIOD_TOKEN) {
-      if (peek.next.kind === IDENTIFIER_TOKEN) {
-        // Look past a library prefix.
-        peek = peek.next.next;
-      }
-    }
-    // We are looking at "qualified ...".
-    if (peek.kind === LT_TOKEN) {
-      // Possibly generic type.
-      // We are looking at "qualified '<'".
-      BeginGroupToken beginGroupToken = peek;
-      Token gtToken = beginGroupToken.endGroup;
-      if (gtToken !== null) {
-        // We are looking at "qualified '<' ... '>' ...".
-        return gtToken.next;
-      }
-    }
-    return peek;
   }
 
   Token peekIdentifierAfterType(Token token) {
