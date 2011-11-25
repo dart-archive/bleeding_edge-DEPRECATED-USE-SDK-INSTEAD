@@ -10207,8 +10207,10 @@ SsaInstructionMerger.prototype.visitInstruction = function(node) {
     if (input !== previousUnused) break;
     var remarkTypeGuardInput = false;
     if ((input instanceof HTypeGuard)) remarkTypeGuardInput = this.typeGuardCheck((input && input.is$HTypeGuard()));
-    this.markedByMerger.add(input);
-    input.setGenerateAtUseSite();
+    if (!$notnull_bool(input.generateAtUseSite())) {
+      this.markedByMerger.add(input);
+      input.setGenerateAtUseSite();
+    }
     if ($notnull_bool(remarkTypeGuardInput)) input.inputs.$index(0).setGenerateAtUseSite$0();
     previousUnused = previousUnused.previous;
   }

@@ -492,8 +492,10 @@ class SsaInstructionMerger extends HInstructionVisitor {
       bool remarkTypeGuardInput = false;
       if (input is HTypeGuard) remarkTypeGuardInput = typeGuardCheck(input);
       // Our arguments are in the correct location to be inlined.
-      markedByMerger.add(input);
-      input.setGenerateAtUseSite();
+      if (!input.generateAtUseSite()) {
+        markedByMerger.add(input);
+        input.setGenerateAtUseSite();
+      }
       // If we ended up marking a type guard used as input as generate
       // at use site, we can safely re-mark the type guard input.
       if (remarkTypeGuardInput) input.inputs[0].setGenerateAtUseSite();
