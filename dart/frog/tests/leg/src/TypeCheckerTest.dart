@@ -13,6 +13,7 @@ main() {
   testSimpleTypes();
   testReturn();
   testFor();
+  testWhile();
 }
 
 testSimpleTypes() {
@@ -49,12 +50,26 @@ testFor() {
   analyze("for (var x;0;x = x + 1) {}", MessageKind.NOT_ASSIGNABLE);
   analyze("for (var x;'';x = x + 1) {}", MessageKind.NOT_ASSIGNABLE);
 
-  // TODO(karlklose) :These tests do not work because they use empty
+  // TODO(karlklose): These tests do not work because they use empty
   // statements, which we cannot parse.
   // analyze("for (;true;) {}");
   // analyze("for (;null;) {}");
   // analyze("for (;0;) {}", MessageKind.NOT_ASSIGNABLE);
   // analyze("for (;'';) {}", MessageKind.NOT_ASSIGNABLE);
+}
+
+testWhile() {
+  analyze("while (true) {}");
+  analyze("while (null) {}");
+  analyze("while (0) {}", MessageKind.NOT_ASSIGNABLE);
+  analyze("while ('') {}", MessageKind.NOT_ASSIGNABLE);
+
+  analyze("do {} while (true);");
+  analyze("do {} while (null);");
+  analyze("do {} while (0);", MessageKind.NOT_ASSIGNABLE);
+  analyze("do {} while ('');", MessageKind.NOT_ASSIGNABLE);
+  analyze("do { int i = 0.5; } while (true);", MessageKind.NOT_ASSIGNABLE);
+  analyze("do { int i = 0.5; } while (null);", MessageKind.NOT_ASSIGNABLE);
 }
 
 String returnWithType(String type, expression)

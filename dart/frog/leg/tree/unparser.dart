@@ -57,7 +57,7 @@ class Unparser implements Visitor {
     node.forToken.value.printOn(sb);
     sb.add('(');
     visit(node.initializer);
-    visit(node.condition);
+    visit(node.conditionStatement);
     visit(node.update);
     sb.add(')');
     visit(node.body);

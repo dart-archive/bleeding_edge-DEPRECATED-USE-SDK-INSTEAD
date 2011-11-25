@@ -169,6 +169,11 @@ class FullResolverVisitor extends ResolverVisitor {
     visitIn(node.statements, new Scope(context));
   }
 
+  visitDoWhile(DoWhile node) {
+    visitIn(node.body, new Scope(context));
+    visit(node.condition);
+  }
+
   visitExpressionStatement(ExpressionStatement node) {
     visit(node.expression);
   }
@@ -321,6 +326,11 @@ class FullResolverVisitor extends ResolverVisitor {
     VariableDefinitionsVisitor visitor =
         new VariableDefinitionsVisitor(node, this, ElementKind.VARIABLE);
     visitor.visit(node.definitions);
+  }
+
+  visitWhile(While node) {
+    visit(node.condition);
+    visitIn(node.body, new Scope(context));
   }
 }
 

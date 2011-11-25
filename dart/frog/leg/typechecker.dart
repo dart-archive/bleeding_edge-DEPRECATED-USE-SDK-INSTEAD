@@ -53,6 +53,7 @@ class FunctionType implements Type {
 class Types {
   static final VOID = const SourceString('void');
   static final INT = const SourceString('int');
+  static final DOUBLE = const SourceString('double');
   static final DYNAMIC = const SourceString('Dynamic');
   static final STRING = const SourceString('String');
   static final BOOL = const SourceString('bool');
@@ -60,6 +61,7 @@ class Types {
 
   final SimpleType voidType;
   final SimpleType intType;
+  final SimpleType doubleType;
   final SimpleType dynamicType;
   final SimpleType stringType;
   final SimpleType boolType;
@@ -67,6 +69,7 @@ class Types {
 
   Types() : voidType = new SimpleType.named(VOID),
             intType = new SimpleType.named(INT),
+            doubleType = new SimpleType.named(DOUBLE),
             dynamicType = new SimpleType.named(DYNAMIC),
             stringType = new SimpleType.named(STRING),
             boolType = new SimpleType.named(BOOL),
@@ -77,6 +80,8 @@ class Types {
       return voidType;
     } else if (INT == s) {
       return intType;
+    } else if (DOUBLE == s) {
+      return doubleType;
     } else if (DYNAMIC == s || s.stringValue === 'var') {
       return dynamicType;
     } else if (STRING == s) {
@@ -156,6 +161,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
     }
   }
 
+  checkCondition(Expression condition) {
+    checkAssignable(condition, types.boolType, type(condition));
+  }
+
   Type visitBlock(Block node) {
     type(node.statements);
     return types.voidType;
@@ -163,6 +172,12 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type visitClassNode(ClassNode node) {
     fail(node);
+  }
+
+  Type visitDoWhile(DoWhile node) {
+    type(node.body);
+    checkCondition(node.condition);
+    return types.voidType;
   }
 
   Type visitExpressionStatement(ExpressionStatement node) {
@@ -173,9 +188,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   /** Dart Programming Language Specification: 11.5.1 For Loop */
   Type visitFor(For node) {
     type(node.initializer);
-    final expressionNode = node.getConditionExpression();
-    Type conditionType = nonVoidType(expressionNode);
-    checkAssignable(expressionNode, types.boolType, conditionType);
+    checkCondition(node.condition);
     type(node.update);
     type(node.body);
     return types.voidType;
@@ -200,6 +213,14 @@ class TypeCheckerVisitor implements Visitor<Type> {
     type(node.condition);
     type(node.thenPart);
     if (node.hasElsePart) type(node.elsePart);
+    return types.voidType;
+  }
+
+  Type visitLoop(Loop node) {
+    final conditionNode = node.condition;
+    Type conditionType = nonVoidType(conditionNode);
+    checkAssignable(conditionNode, types.boolType, conditionType);
+    type(node.body);
     return types.voidType;
   }
 
@@ -270,7 +291,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitLiteralDouble(LiteralDouble node) {
-    return types.dynamicType;
+    return types.doubleType;
   }
 
   Type visitLiteralBool(LiteralBool node) {
@@ -358,5 +379,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
       }
     }
     return null;
+  }
+
+  Type visitWhile(While node) {
+    checkCondition(node.condition);
+    type(node.body);
   }
 }

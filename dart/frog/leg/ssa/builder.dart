@@ -186,7 +186,7 @@ class SsaBuilder implements Visitor {
       definitions[element] = phi;
     });
 
-    visit(node.condition.expression);
+    visit(node.condition);
     HBasicBlock conditionExitBlock = close(new HLoopBranch(popBoolified()));
 
     Map conditionDefinitions = new Map<Element, HInstruction>.from(definitions);

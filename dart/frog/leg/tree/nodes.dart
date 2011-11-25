@@ -292,21 +292,20 @@ class If extends Statement {
   }
 }
 
-class For extends Statement {
+class For extends Loop {
   /** Either a variable declaration or an ExpressionStatement. */
   final Statement initializer;
-
-  final ExpressionStatement condition;
-
+  final ExpressionStatement conditionStatement;
   final Node update; // TODO(ahe): Should be an expression list.
-
-  final Statement body;
 
   final Token forToken;
 
-  For(this.initializer, this.condition, this.update, this.body, this.forToken);
+  For(this.initializer, this.conditionStatement, this.update, body, 
+      this.forToken) : super(body);
 
-  Expression getConditionExpression() => condition.expression;
+  Expression get condition() {
+    return conditionStatement.expression;
+  }
 
   accept(Visitor visitor) => visitor.visitFor(this);
 
@@ -502,9 +501,10 @@ class VariableDefinitions extends Statement {
 }
 
 class Loop extends Statement {
-  final Expression condition;
+  abstract Expression get condition();
   final Statement body;
-  Loop(this.condition, this.body);
+
+  Loop(this.body);
 }
 
 class DoWhile extends Loop {
@@ -512,9 +512,11 @@ class DoWhile extends Loop {
   final Token whileKeyword;
   final Token endToken;
 
-  DoWhile(Statement body, Expression condition,
+  final Expression condition;
+
+  DoWhile(Statement body, Expression this.condition,
           Token this.doKeyword, Token this.whileKeyword, Token this.endToken)
-    : super(condition, body);
+    : super(body);
 
   accept(Visitor visitor) => visitor.visitDoWhile(this);
 
@@ -525,9 +527,10 @@ class DoWhile extends Loop {
 
 class While extends Loop {
   final Token whileKeyword;
+  final Expression condition;
 
-  While(Expression condition, Statement body, Token this.whileKeyword)
-    : super(condition, body);
+  While(Expression this.condition, Statement body,
+        Token this.whileKeyword) : super(body);
 
   accept(Visitor visitor) => visitor.visitWhile(this);
 
