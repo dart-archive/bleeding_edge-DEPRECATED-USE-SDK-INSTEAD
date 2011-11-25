@@ -614,6 +614,9 @@ Object.prototype.isLiteralString$0 = function() {
 Object.prototype.isNumber$0 = function() {
   return this.noSuchMethod("isNumber", []);
 };
+Object.prototype.isString$0 = function() {
+  return this.noSuchMethod("isString", []);
+};
 Object.prototype.isSubtypeOf$1 = function($0) {
   return this.noSuchMethod("isSubtypeOf", [$0]);
 };
@@ -7443,9 +7446,15 @@ SsaBuilder.prototype.popBoolified = function() {
   return boolified;
 }
 SsaBuilder.prototype.guard = function(type, value) {
-  if (type != null && $notnull_bool($eq(type.toString(), 'int'))) {
-    value = new HTypeGuard(2/*HInstruction.TYPE_NUMBER*/, value);
-    this.add(value);
+  if (type != null) {
+    if ($notnull_bool($eq(type.toString(), 'int'))) {
+      value = new HTypeGuard(2/*HInstruction.TYPE_NUMBER*/, value);
+      this.add(value);
+    }
+    else if ($notnull_bool($eq(type.toString(), 'String'))) {
+      value = new HTypeGuard(3/*HInstruction.TYPE_STRING*/, value);
+      this.add(value);
+    }
   }
   return value;
 }
@@ -7459,7 +7468,7 @@ SsaBuilder.prototype.visitParameterValues = function(parameters) {
    !$notnull_bool(link.isEmpty()); link = (($0 = link.get$tail()) && $0.is$Link_Node())) {
     var container = (($0 = link.get$head()) && $0.is$VariableDefinitions());
     var identifierLink = container.definitions.get$nodes();
-    $assert(!$notnull_bool(identifierLink.isEmpty()) && $notnull_bool(identifierLink.get$tail().isEmpty$0()), "!identifierLink.isEmpty() && identifierLink.tail.isEmpty()", "builder.dart", 130, 14);
+    $assert(!$notnull_bool(identifierLink.isEmpty()) && $notnull_bool(identifierLink.get$tail().isEmpty$0()), "!identifierLink.isEmpty() && identifierLink.tail.isEmpty()", "builder.dart", 135, 14);
     if (!(identifierLink.get$head() instanceof Identifier)) {
       this.compiler.unimplemented("SsaBuilder.visitParameterValues non-identifier");
     }
@@ -7480,7 +7489,7 @@ SsaBuilder.prototype.visitBlock = function(node) {
       return;
     }
   }
-  $assert(!$notnull_bool(this.current.isClosed()), "!current.isClosed()", "builder.dart", 153, 12);
+  $assert(!$notnull_bool(this.current.isClosed()), "!current.isClosed()", "builder.dart", 158, 12);
   if (!this.stack.isEmpty()) this.compiler.cancel('non-empty instruction stack');
 }
 SsaBuilder.prototype.visitClassNode = function(node) {
@@ -7492,9 +7501,9 @@ SsaBuilder.prototype.visitExpressionStatement = function(node) {
 }
 SsaBuilder.prototype.visitFor = function(node) {
   var $this = this; // closure support
-  $assert(node.initializer != null && node.get$condition() != null && node.update != null && node.body != null, "node.initializer !== null && node.condition !== null &&\n           node.update !== null && node.body !== null", "builder.dart", 167, 12);
+  $assert(node.initializer != null && node.get$condition() != null && node.update != null && node.body != null, "node.initializer !== null && node.condition !== null &&\n           node.update !== null && node.body !== null", "builder.dart", 172, 12);
   this.visit(node.initializer);
-  $assert(!$notnull_bool(this.isAborted()), "!isAborted()", "builder.dart", 171, 12);
+  $assert(!$notnull_bool(this.isAborted()), "!isAborted()", "builder.dart", 176, 12);
   var initializerBlock = this.close(new HGoto());
   var initializerDefinitions = HashMapImplementation.HashMapImplementation$from$factory(this.definitions);
   var conditionBlock = this.graph.addNewLoopHeaderBlock();
@@ -7521,7 +7530,7 @@ SsaBuilder.prototype.visitFor = function(node) {
   bodyBlock.addSuccessor(updateBlock);
   this.open(updateBlock);
   this.visit(node.update);
-  $assert(!$notnull_bool(this.isAborted()), "!isAborted()", "builder.dart", 209, 12);
+  $assert(!$notnull_bool(this.isAborted()), "!isAborted()", "builder.dart", 214, 12);
   var updateInstruction = this.pop();
   updateBlock = this.close(new HGoto());
   updateBlock.addSuccessor(conditionBlock);
@@ -7546,7 +7555,7 @@ SsaBuilder.prototype.visitIdentifier = function(node) {
   var element = (($0 = this.elements.$index(node)) && $0.is$Element());
   this.compiler.ensure(element != null);
   var def = (($0 = this.definitions.$index(element)) && $0.is$HInstruction());
-  $assert(def != null, "def !== null", "builder.dart", 237, 12);
+  $assert(def != null, "def !== null", "builder.dart", 242, 12);
   this.stack.add(def);
 }
 SsaBuilder.prototype.joinDefinitions = function(joinBlock, incoming1, incoming2) {
@@ -7639,7 +7648,7 @@ SsaBuilder.prototype.visitLogicalAndOr = function(node, op) {
   this.stack.add(result);
 }
 SsaBuilder.prototype.visitLogicalNot = function(node) {
-  $assert((node.argumentsNode instanceof Prefix), "node.argumentsNode is Prefix", "builder.dart", 369, 12);
+  $assert((node.argumentsNode instanceof Prefix), "node.argumentsNode is Prefix", "builder.dart", 374, 12);
   this.visit(node.receiver);
   var not = new HNot(this.popBoolified());
   this.push(not);
@@ -7755,7 +7764,7 @@ SsaBuilder.prototype.visitSend = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitSend with receiver");
     }
     var instruction = (($0 = this.definitions.$index(element)) && $0.is$HInstruction());
-    $assert(instruction != null, "instruction !== null", "builder.dart", 433, 14);
+    $assert(instruction != null, "instruction !== null", "builder.dart", 438, 14);
     this.stack.add(instruction);
   }
   else {
@@ -7793,12 +7802,12 @@ SsaBuilder.prototype.visitSendSet = function(node) {
   var op = node.assignmentOperator;
   if ($notnull_bool($eq(const$266/*const SourceString("=")*/, op.get$source()))) {
     var link = node.get$arguments();
-    $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 472, 12);
+    $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 477, 12);
     this.visit((($0 = link.get$head()) && $0.is$Node()));
     this.stack.add(this.updateDefinition(node, this.pop()));
   }
   else {
-    $assert(node.assignmentOperator.get$source().get$stringValue().endsWith("="), "node.assignmentOperator.source.stringValue.endsWith(\"=\")", "builder.dart", 476, 14);
+    $assert(node.assignmentOperator.get$source().get$stringValue().endsWith("="), "node.assignmentOperator.source.stringValue.endsWith(\"=\")", "builder.dart", 481, 14);
     var getter = (($0 = this.elements.$index(node.selector)) && $0.is$Element());
     var left = (($0 = this.definitions.$index(getter)) && $0.is$HInstruction());
     this.visit(node.argumentsNode);
@@ -7806,7 +7815,7 @@ SsaBuilder.prototype.visitSendSet = function(node) {
     var opElement = (($0 = this.elements.$index(op)) && $0.is$Element());
     this.visitBinary(left, op, (right && right.is$HInstruction()), opElement);
     var operation = this.pop();
-    $assert(operation != null, "operation !== null", "builder.dart", 484, 14);
+    $assert(operation != null, "operation !== null", "builder.dart", 489, 14);
     this.stack.add(this.updateDefinition(node, operation));
   }
 }
@@ -7871,7 +7880,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.updateDefinition(definition, initialValue);
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 558, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 563, 16);
       this.visitSendSet((definition && definition.is$SendSet()));
       this.pop();
     }
@@ -8251,7 +8260,10 @@ SsaCodeGenerator.prototype.visitTypeGuard = function(node) {
   var $0;
   var name;
   if ($notnull_bool(node.isNumber())) {
-    name = const$317/*const SourceString('guard\$num')*/;
+    name = const$318/*const SourceString('guard\$num')*/;
+  }
+  else if ($notnull_bool(node.isString())) {
+    name = const$319/*const SourceString('guard\$string')*/;
   }
   else {
     unreachable();
@@ -8287,9 +8299,9 @@ function JsNames() {}
 JsNames.get$reserved = function() {
   if ($globals.JsNames__reserved == null) {
     $globals.JsNames__reserved = new HashSetImplementation();
-    $globals.JsNames__reserved.addAll(const$311/*JsNames.reservedPropertySymbols*/);
-    $globals.JsNames__reserved.addAll(const$313/*JsNames.reservedGlobalSymbols*/);
-    $globals.JsNames__reserved.addAll(const$315/*JsNames.javaScriptKeywords*/);
+    $globals.JsNames__reserved.addAll(const$312/*JsNames.reservedPropertySymbols*/);
+    $globals.JsNames__reserved.addAll(const$314/*JsNames.reservedGlobalSymbols*/);
+    $globals.JsNames__reserved.addAll(const$316/*JsNames.javaScriptKeywords*/);
   }
   return $globals.JsNames__reserved;
 }
@@ -8943,13 +8955,19 @@ HInstruction.prototype.setUseGvn = function() {
   this.setFlag(3/*HInstruction.FLAG_USE_GVN*/);
 }
 HInstruction.prototype.isUnknown = function() {
-  return this.type == 0/*HInstruction.TYPE_UNKNOWN*/ || this.type == 3/*HInstruction.TYPE_CONFLICT*/;
+  return this.type == 0/*HInstruction.TYPE_UNKNOWN*/ || this.type == 4/*HInstruction.TYPE_CONFLICT*/;
 }
 HInstruction.prototype.isBoolean = function() {
   return this.type == 1/*HInstruction.TYPE_BOOLEAN*/;
 }
 HInstruction.prototype.isNumber = function() {
   return this.type == 2/*HInstruction.TYPE_NUMBER*/;
+}
+HInstruction.prototype.isString = function() {
+  return this.type == 3/*HInstruction.TYPE_STRING*/;
+}
+HInstruction.prototype.get$isString = function() {
+  return HInstruction.prototype.isString.bind(this);
 }
 HInstruction.prototype.computeType = function() {
   return 0/*HInstruction.TYPE_UNKNOWN*/;
@@ -8967,14 +8985,14 @@ HInstruction.prototype.computeInputsType = function() {
       candidateType = inputType;
     }
     else if (candidateType != inputType) {
-      return 3/*HInstruction.TYPE_CONFLICT*/;
+      return 4/*HInstruction.TYPE_CONFLICT*/;
     }
   }
   if ($notnull_bool(seenUnknown)) return 0/*HInstruction.TYPE_UNKNOWN*/;
   return candidateType;
 }
 HInstruction.prototype.updateType = function() {
-  if (this.type == 3/*HInstruction.TYPE_CONFLICT*/) return false;
+  if (this.type == 4/*HInstruction.TYPE_CONFLICT*/) return false;
   var newType = this.computeType();
   var changed = (this.type != newType);
   this.type = newType;
@@ -8984,7 +9002,7 @@ HInstruction.prototype.isInBasicBlock = function() {
   return this.block != null;
 }
 HInstruction.prototype.equals = function(other) {
-  $assert($notnull_bool(this.useGvn()) && $notnull_bool(other.useGvn()), "useGvn() && other.useGvn()", "nodes.dart", 679, 12);
+  $assert($notnull_bool(this.useGvn()) && $notnull_bool(other.useGvn()), "useGvn() && other.useGvn()", "nodes.dart", 681, 12);
   if (!$notnull_bool(this.typeEquals(other))) return false;
   if (this.flags != other.flags) return false;
   var inputsLength = this.inputs.length;
@@ -9003,21 +9021,21 @@ HInstruction.prototype.dataEquals = function(other) {
   return false;
 }
 HInstruction.prototype.notifyAddedToBlock = function(block) {
-  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 702, 12);
-  $assert(this.block == null, "this.block === null", "nodes.dart", 703, 12);
+  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 704, 12);
+  $assert(this.block == null, "this.block === null", "nodes.dart", 705, 12);
   for (var i = 0;
    i < this.inputs.length; i++) {
-    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 706, 14);
+    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 708, 14);
     this.inputs.$index(i).get$usedBy().add$1(this);
   }
   this.block = block;
-  $assert(this.isValid(), "isValid()", "nodes.dart", 710, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 712, 12);
 }
 HInstruction.prototype.notifyRemovedFromBlock = function(block) {
   var $0;
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 714, 12);
-  $assert(this.usedBy.isEmpty(), "usedBy.isEmpty()", "nodes.dart", 715, 12);
-  $assert(this.block === block, "this.block === block", "nodes.dart", 716, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 716, 12);
+  $assert(this.usedBy.isEmpty(), "usedBy.isEmpty()", "nodes.dart", 717, 12);
+  $assert(this.block === block, "this.block === block", "nodes.dart", 718, 12);
   for (var i = 0;
    i < this.inputs.length; i++) {
     var inputUsedBy = (($0 = this.inputs.$index(i).get$usedBy()) && $0.is$List());
@@ -9031,7 +9049,7 @@ HInstruction.prototype.notifyRemovedFromBlock = function(block) {
     }
   }
   this.block = null;
-  $assert(this.isValid(), "isValid()", "nodes.dart", 730, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 732, 12);
 }
 HInstruction.prototype.isLiteralNull = function() {
   return false;
@@ -9063,6 +9081,7 @@ HInstruction.prototype.isInBasicBlock$0 = HInstruction.prototype.isInBasicBlock;
 HInstruction.prototype.isLiteralNumber$0 = HInstruction.prototype.isLiteralNumber;
 HInstruction.prototype.isLiteralString$0 = HInstruction.prototype.isLiteralString;
 HInstruction.prototype.isNumber$0 = HInstruction.prototype.isNumber;
+HInstruction.prototype.isString$0 = HInstruction.prototype.isString;
 HInstruction.prototype.isUnknown$0 = HInstruction.prototype.isUnknown;
 HInstruction.prototype.next$0 = function() {
   return this.next();
@@ -9075,7 +9094,7 @@ function HBoolify(value) {
 }
 $inherits(HBoolify, HInstruction);
 HBoolify.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 748, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 750, 12);
   this.setUseGvn();
 }
 HBoolify.prototype.computeType = function() {
@@ -9105,7 +9124,7 @@ function HTypeGuard(type, value) {
 $inherits(HTypeGuard, HInstruction);
 HTypeGuard.prototype.is$HTypeGuard = function(){return this;};
 HTypeGuard.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 765, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 767, 12);
   this.setUseGvn();
 }
 HTypeGuard.prototype.computeType = function() {
@@ -9181,7 +9200,7 @@ function HArithmetic(element, inputs) {
 $inherits(HArithmetic, HInvoke);
 HArithmetic.prototype.prepareGvn = function() {
   if ($notnull_bool(this.builtin)) {
-    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 808, 14);
+    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 810, 14);
     this.setUseGvn();
   }
   else {
@@ -9218,6 +9237,13 @@ HAdd.prototype.typeEquals = function(other) {
 }
 HAdd.prototype.dataEquals = function(other) {
   return true;
+}
+HAdd.prototype.computeType = function() {
+  var type = this.computeInputsType();
+  this.builtin = (type == 2/*HInstruction.TYPE_NUMBER*/ || type == 3/*HInstruction.TYPE_STRING*/);
+  if ($notnull_bool(this.inputs.$index(0).isNumber$0())) return 2/*HInstruction.TYPE_NUMBER*/;
+  if ($notnull_bool(this.inputs.$index(0).isString$0())) return 3/*HInstruction.TYPE_STRING*/;
+  return 0/*HInstruction.TYPE_UNKNOWN*/;
 }
 HAdd.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
@@ -9497,7 +9523,7 @@ $inherits(HLiteral, HInstruction);
 HLiteral.prototype.is$HLiteral = function(){return this;};
 HLiteral.prototype.get$value = function() { return this.value; };
 HLiteral.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 966, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 976, 12);
   this.setUseGvn();
   this.setGenerateAtUseSite();
 }
@@ -9550,7 +9576,7 @@ function HNot(value) {
 }
 $inherits(HNot, HInstruction);
 HNot.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 993, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1003, 12);
   this.setUseGvn();
 }
 HNot.prototype.computeType = function() {
@@ -9582,7 +9608,7 @@ $inherits(HParameterValue, HInstruction);
 HParameterValue.prototype.is$HParameterValue = function(){return this;};
 HParameterValue.prototype.get$element = function() { return this.element; };
 HParameterValue.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1012, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1022, 12);
 }
 HParameterValue.prototype.toString = function() {
   return ('parameter ' + this.element.name);
@@ -9612,7 +9638,7 @@ $inherits(HPhi, HInstruction);
 HPhi.prototype.is$HPhi = function(){return this;};
 HPhi.prototype.get$element = function() { return this.element; };
 HPhi.prototype.addInput = function(input) {
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 1029, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 1039, 12);
   this.inputs.add(input);
   input.usedBy.add(this);
 }
@@ -9620,7 +9646,7 @@ HPhi.prototype.computeType = function() {
   return this.computeInputsType();
 }
 HPhi.prototype.updateTypeForLoopPhi = function() {
-  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 1037, 12);
+  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 1047, 12);
   if ($notnull_bool(this.inputs.$index(0).isUnknown$0())) return false;
   this.type = $assert_num(this.inputs.$index(0).get$type());
   return true;
@@ -9644,7 +9670,7 @@ function HRelational(element, inputs) {
 $inherits(HRelational, HInvoke);
 HRelational.prototype.prepareGvn = function() {
   if ($notnull_bool(this.builtin)) {
-    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1057, 14);
+    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1067, 14);
     this.setUseGvn();
   }
   else {
@@ -10635,7 +10661,7 @@ HInstructionStringifier.prototype.temporaryId = function(instruction) {
       prefix = 'v';
       break;
 
-    case 3/*HInstruction.TYPE_CONFLICT*/:
+    case 4/*HInstruction.TYPE_CONFLICT*/:
 
       prefix = 'c';
       break;
@@ -13549,7 +13575,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   return false;
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
-  var types = const$434/*const [
+  var types = const$436/*const [
         'NullPointerException', 'ObjectNotClosureException',
         'NoSuchMethodException', 'StackOverflowException']*/;
   var target = new Value($globals.world.varType, 'this', node.span, true);
@@ -21269,6 +21295,9 @@ lang_Type.prototype.getOrMakeConcreteType$1 = function($0) {
 lang_Type.prototype.isAssignable$1 = function($0) {
   return this.isAssignable(($0 && $0.is$lang_Type()));
 };
+lang_Type.prototype.isString$0 = function() {
+  return this.get$isString()();
+};
 lang_Type.prototype.isSubtypeOf$1 = function($0) {
   return this.isSubtypeOf(($0 && $0.is$lang_Type()));
 };
@@ -22125,6 +22154,9 @@ DefinedType.prototype.getMember$1 = function($0) {
 };
 DefinedType.prototype.getOrMakeConcreteType$1 = function($0) {
   return this.getOrMakeConcreteType(($0 && $0.is$List_Type()));
+};
+DefinedType.prototype.isString$0 = function() {
+  return this.get$isString()();
 };
 DefinedType.prototype.markUsed$0 = DefinedType.prototype.markUsed;
 DefinedType.prototype.resolve$0 = DefinedType.prototype.resolve;
@@ -23723,8 +23755,8 @@ var const$298 = new StringWrapper("&&")/*const SourceString("&&")*/;
 var const$299 = new StringWrapper("||")/*const SourceString("||")*/;
 var const$300 = new StringWrapper("!")/*const SourceString("!")*/;
 var const$31 = new Keyword("break", false)/*const Keyword("break")*/;
-var const$311 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
-var const$313 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
+var const$312 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
+var const$314 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
     // Section references are from Ecma-262
     // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
@@ -23855,7 +23887,7 @@ var const$313 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "un
     // TODO: prove why this is necessary or remove it
     "call"
   ]*/;
-var const$315 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
+var const$316 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"])/*const <String>[
     // These are current keywords
     "break", "delete", "function", "return", "typeof", "case", "do", "if",
     "switch", "var", "catch", "else", "in", "this", "void", "continue",
@@ -23869,7 +23901,8 @@ var const$315 = ImmutableList.ImmutableList$from$factory(["break", "delete", "fu
     "class", "final", "interface", "public", "transient", "const", "float",
     "long", "short", "volatile"
   ]*/;
-var const$317 = new StringWrapper('guard\$num')/*const SourceString('guard\$num')*/;
+var const$318 = new StringWrapper('guard\$num')/*const SourceString('guard\$num')*/;
+var const$319 = new StringWrapper('guard\$string')/*const SourceString('guard\$string')*/;
 var const$33 = new Keyword("case", false)/*const Keyword("case")*/;
 var const$35 = new Keyword("catch", false)/*const Keyword("catch")*/;
 var const$37 = new Keyword("const", false)/*const Keyword("const")*/;
@@ -23877,7 +23910,7 @@ var const$39 = new Keyword("continue", false)/*const Keyword("continue")*/;
 var const$4 = new StringWrapper('global scope')/*const SourceString('global scope')*/;
 var const$41 = new Keyword("default", false)/*const Keyword("default")*/;
 var const$43 = new Keyword("do", false)/*const Keyword("do")*/;
-var const$434 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
+var const$436 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
       'NullPointerException', 'ObjectNotClosureException',
       'NoSuchMethodException', 'StackOverflowException']*/;
 var const$45 = new Keyword("else", false)/*const Keyword("else")*/;

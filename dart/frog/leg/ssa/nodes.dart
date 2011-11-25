@@ -592,7 +592,8 @@ class HInstruction implements Hashable {
   static final int TYPE_UNKNOWN = 0;
   static final int TYPE_BOOLEAN = 1;
   static final int TYPE_NUMBER = 2;
-  static final int TYPE_CONFLICT = 3;
+  static final int TYPE_STRING = 3;
+  static final int TYPE_CONFLICT = 4;
 
   HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[];
 
@@ -621,6 +622,7 @@ class HInstruction implements Hashable {
   bool isUnknown() => type == TYPE_UNKNOWN || type == TYPE_CONFLICT;
   bool isBoolean() => type == TYPE_BOOLEAN;
   bool isNumber() => type == TYPE_NUMBER;
+  bool isString() => type == TYPE_STRING;
 
   // Compute the type of the instruction.
   int computeType() => TYPE_UNKNOWN;
@@ -835,6 +837,14 @@ class HAdd extends HArithmetic {
   num evaluate(num a, num b) => a + b;
   bool typeEquals(other) => other is HAdd;
   bool dataEquals(HInstruction other) => true;
+
+  int computeType() {
+    int type = computeInputsType();
+    builtin = (type == TYPE_NUMBER || type == TYPE_STRING);
+    if (inputs[0].isNumber()) return TYPE_NUMBER;
+    if (inputs[0].isString()) return TYPE_STRING;
+    return TYPE_UNKNOWN;
+  }
 }
 
 class HDivide extends HArithmetic {

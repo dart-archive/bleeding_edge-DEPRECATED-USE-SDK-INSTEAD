@@ -19,6 +19,11 @@ guard$num(x) {
   throw "Type guard failed.";
 }
 
+guard$string(x) {
+  if (JS(@"typeof $0 == 'string'", x)) return x;
+  throw "Type guard failed.";
+}
+
 add(var a, var b) {
   return JS(@"$0 + $1", a, b);
 }

@@ -108,9 +108,14 @@ class SsaBuilder implements Visitor {
   }
 
   HInstruction guard(Type type, HInstruction value) {
-    if (type !== null && type.toString() == 'int') {
-      value = new HTypeGuard(HInstruction.TYPE_NUMBER, value);
-      add(value);
+    if (type !== null) {
+      if (type.toString() == 'int') {
+        value = new HTypeGuard(HInstruction.TYPE_NUMBER, value);
+        add(value);
+      } else if (type.toString() == 'String') {
+        value = new HTypeGuard(HInstruction.TYPE_STRING, value);
+        add(value);
+      }
     }
     return value;
   }
