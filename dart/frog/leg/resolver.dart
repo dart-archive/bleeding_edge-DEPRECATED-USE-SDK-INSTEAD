@@ -236,6 +236,8 @@ class FullResolverVisitor extends ResolverVisitor {
     if (name == const SourceString('%=')) return const SourceString('mod');
     if (name == const SourceString('<<=')) return const SourceString('shl');
     if (name == const SourceString('>>=')) return const SourceString('shr');
+    if (name == const SourceString('++')) return const SourceString('add');
+    if (name == const SourceString('--')) return const SourceString('sub');
     compiler.unimplemented("mapAssignmentOperatorToMethodName: $name");
   }
 

@@ -623,20 +623,24 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     if ((value === '!') ||
         (value === '+') || // TODO(ahe): Being removed from specification.
         (value === '-') ||
-        (value === '++') || // TODO(ahe): Validate this is used correctly.
-        (value === '--') || // TODO(ahe): Validate this is used correctly.
         (value === '~')) {
       Token operator = token;
       token = token.next;
       token = parseUnaryExpression(token);
       listener.handleUnaryPrefixExpression(operator);
+    } else if ((value === '++') || value === '--') {
+      // TODO(ahe): Validate this is used correctly.
+      Token operator = token;
+      token = token.next;
+      token = parseUnaryExpression(token);
+      listener.handleUnaryPrefixAssignmentExpression(operator);
     } else {
       token = parsePrimary(token);
       value = token.stringValue;
       // Postfix:
       if ((value === '++') || (value === '--')) {
         // TODO(ahe): Validate this is used correctly.
-        listener.handleUnaryPostfixExpression(token);
+        listener.handleUnaryPostfixAssignmentExpression(token);
         token = token.next;
       }
     }

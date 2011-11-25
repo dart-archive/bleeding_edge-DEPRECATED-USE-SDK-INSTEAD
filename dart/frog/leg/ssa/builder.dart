@@ -378,15 +378,24 @@ class SsaBuilder implements Visitor {
   }
 
   void visitUnary(Send node, Operator op, Element element) {
-    compiler.unimplemented("visitUnary");
+    assert(node.argumentsNode is Prefix);
+    visit(node.receiver);
+    HInstruction operand = pop();
+    switch (op.source.stringValue) {
+      case "-": compiler.unimplemented("SsaBuilder.visitUnary -"); break;
+      case "~": compiler.unimplemented("SsaBuilder.visitUnary ~"); break;
+      default: unreachable();
+    }
   }
 
   void visitBinary(HInstruction left, Operator op, HInstruction right,
                    Element element) {
     switch (op.source.stringValue) {
       case "+":
+      case "++":
       case "+=":  push(new HAdd(element, [left, right])); break;
       case "-":
+      case "--":
       case "-=":  push(new HSubtract(element, [left, right])); break;
       case "*":
       case "*=":  push(new HMultiply(element, [left, right])); break;
@@ -473,22 +482,38 @@ class SsaBuilder implements Visitor {
     }
     Operator op = node.assignmentOperator;
     if (const SourceString("=") == op.source) {
-    Link<Node> link = node.arguments;
-    assert(!link.isEmpty() && link.tail.isEmpty());
-    visit(link.head);
-    stack.add(updateDefinition(node, pop()));
+      Link<Node> link = node.arguments;
+      assert(!link.isEmpty() && link.tail.isEmpty());
+      visit(link.head);
+      stack.add(updateDefinition(node, pop()));
     } else {
-      assert(node.assignmentOperator.source.stringValue.endsWith("="));
+      assert(const SourceString("++") == op.source ||
+             const SourceString("--") == op.source ||
+             node.assignmentOperator.source.stringValue.endsWith("="));
+      bool isCompoundAssignment = !node.arguments.isEmpty();
+      bool isPrefix = !node.isPostfix;  // Compound assignments are prefix.
       Element getter = elements[node.selector];
       HInstruction left = definitions[getter];
-      visit(node.argumentsNode);
-      var right = pop();
+      HInstruction right;
+      if (isCompoundAssignment) {
+        visit(node.argumentsNode);
+        right = pop();
+      } else {
+        right = new HLiteral(1);
+        add(right);
+      }
       Element opElement = elements[op];
       visitBinary(left, op, right, opElement);
       HInstruction operation = pop();
       assert(operation !== null);
-      stack.add(updateDefinition(node, operation));
-  }
+      // updateDefinition might guard the operation thus returning a new node. 
+      operation = updateDefinition(node, operation);
+      if (isPrefix) {
+        stack.add(operation);
+      } else {
+        stack.add(left);
+      }
+    }
   }
 
   void visitLiteralInt(LiteralInt node) {

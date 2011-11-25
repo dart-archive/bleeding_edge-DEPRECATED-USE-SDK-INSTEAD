@@ -279,7 +279,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitSendSet(SendSet node) {
-    compiler.ensure(node.arguments !== null && !node.arguments.isEmpty());
+    compiler.ensure(node.arguments !== null);
+    // TODO(karlklose): Implement ++ and --.
+    if (node.arguments.isEmpty()) fail(node, 'Cannot handle ++ and --');
+    compiler.ensure(!node.arguments.isEmpty());
     Type targetType = elements[node].computeType(compiler, types);
     Node value = node.arguments.head;
     checkAssignable(value, targetType, type(value));

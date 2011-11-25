@@ -218,10 +218,13 @@ class Listener {
   void handleThisExpression(Token token) {
   }
 
-  void handleUnaryPostfixExpression(Token token) {
+  void handleUnaryPostfixAssignmentExpression(Token token) {
   }
 
   void handleUnaryPrefixExpression(Token token) {
+  }
+
+  void handleUnaryPrefixAssignmentExpression(Token token) {
   }
 
   void handleVarKeyword(Token token) {
@@ -571,10 +574,6 @@ class NodeListener extends ElementListener {
     pushNode(new Throw(null, throwToken, endToken));
   }
 
-  void handleUnaryPostfixExpression(Token token) {
-    pushNode(new Send.postfix(popNode(), new Operator(token)));
-  }
-
   void handleUnaryPrefixExpression(Token token) {
     pushNode(new Send.prefix(popNode(), new Operator(token)));
   }
@@ -585,6 +584,29 @@ class NodeListener extends ElementListener {
 
   void handleThisExpression(Token token) {
     pushNode(new Identifier(token));
+  }
+
+  void handleUnaryAssignmentExpression(Token token, bool isPrefix) {
+    Node node = popNode();
+    if (node is !Send) canceler.cancel('not assignable: $node', node: node);
+    Send send = node;
+    if (!send.isPropertyAccess) {
+      canceler.cancel('not assignable: $send', node: send);
+    }
+    if (send is SendSet) canceler.cancel('chained assignment', node: send);
+    Operator op = new Operator(token);
+    if (isPrefix) {
+      pushNode(new SendSet.prefix(send.receiver, send.selector, op));
+    } else {
+      pushNode(new SendSet.postfix(send.receiver, send.selector, op));      
+    }
+  }
+  void handleUnaryPostfixAssignmentExpression(Token token) {
+    handleUnaryAssignmentExpression(token, false);
+  }
+
+  void handleUnaryPrefixAssignmentExpression(Token token) {
+    handleUnaryAssignmentExpression(token, true);
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,

@@ -187,6 +187,10 @@ class SendSet extends Send {
   final Operator assignmentOperator;
   SendSet(receiver, selector, this.assignmentOperator, argumentsNode)
     : super(receiver, selector, argumentsNode);
+  SendSet.postfix(receiver, selector, this.assignmentOperator)
+      : super.postfix(receiver, selector);
+  SendSet.prefix(receiver, selector, this.assignmentOperator)
+      : super.prefix(receiver, selector);
 
   accept(Visitor visitor) => visitor.visitSendSet(this);
 
