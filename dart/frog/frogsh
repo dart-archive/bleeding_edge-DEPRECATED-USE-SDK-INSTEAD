@@ -551,6 +551,12 @@ Object.prototype.handleNoTypeVariables$1 = function($0) {
 Object.prototype.handleParenthesizedExpression$1 = function($0) {
   return this.noSuchMethod("handleParenthesizedExpression", [$0]);
 };
+Object.prototype.handleSuperExpression$1 = function($0) {
+  return this.noSuchMethod("handleSuperExpression", [$0]);
+};
+Object.prototype.handleThisExpression$1 = function($0) {
+  return this.noSuchMethod("handleThisExpression", [$0]);
+};
 Object.prototype.handleUnaryPostfixExpression$1 = function($0) {
   return this.noSuchMethod("handleUnaryPostfixExpression", [$0]);
 };
@@ -4701,6 +4707,12 @@ Parser.prototype.parsePrimary = function(token) {
       else if (value === 'null') {
         return this.parseLiteralNull(token);
       }
+      else if (value === 'this') {
+        return this.parseThisExpression(token);
+      }
+      else if (value === 'super') {
+        return this.parseSuperExpression(token);
+      }
       else {
         this.listener.unexpected$1(token);
         $throw('not yet implemented');
@@ -4719,9 +4731,27 @@ Parser.prototype.parseParenthesizedExpression = function(token) {
   var begin = (token && token.is$BeginGroupToken());
   token = this.expect('(', token);
   token = this.parseExpression(token);
-  $assert(begin.endGroup === token, "begin.endGroup === token", "parser.dart", 680, 12);
+  $assert(begin.endGroup === token, "begin.endGroup === token", "parser.dart", 684, 12);
   this.listener.handleParenthesizedExpression$1(begin);
   return this.expect(')', token);
+}
+Parser.prototype.parseThisExpression = function(token) {
+  this.listener.handleThisExpression$1(token);
+  token = token.next;
+  if ($notnull_bool(this.optional('(', token))) {
+    token = this.parseArgumentsOpt(token);
+    this.listener.endSend$1(token);
+  }
+  return token;
+}
+Parser.prototype.parseSuperExpression = function(token) {
+  this.listener.handleSuperExpression$1(token);
+  token = token.next;
+  if ($notnull_bool(this.optional('(', token))) {
+    token = this.parseArgumentsOpt(token);
+    this.listener.endSend$1(token);
+  }
+  return token;
 }
 Parser.prototype.parseLiteralInt = function(token) {
   this.listener.handleLiteralInt$1(token);
@@ -4762,7 +4792,7 @@ Parser.prototype.parseArgumentsOpt = function(token) {
 Parser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments$1(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 730, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 756, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments$3(argumentCount, begin, token.next);
@@ -5098,6 +5128,12 @@ Listener.prototype.handleNoTypeVariables = function(token) {
 Listener.prototype.handleParenthesizedExpression = function(token) {
 
 }
+Listener.prototype.handleSuperExpression = function(token) {
+
+}
+Listener.prototype.handleThisExpression = function(token) {
+
+}
 Listener.prototype.handleUnaryPostfixExpression = function(token) {
 
 }
@@ -5327,6 +5363,12 @@ Listener.prototype.handleNoTypeVariables$1 = function($0) {
 Listener.prototype.handleParenthesizedExpression$1 = function($0) {
   return this.handleParenthesizedExpression(($0 && $0.is$BeginGroupToken()));
 };
+Listener.prototype.handleSuperExpression$1 = function($0) {
+  return this.handleSuperExpression(($0 && $0.is$Token()));
+};
+Listener.prototype.handleThisExpression$1 = function($0) {
+  return this.handleThisExpression(($0 && $0.is$Token()));
+};
 Listener.prototype.handleUnaryPostfixExpression$1 = function($0) {
   return this.handleUnaryPostfixExpression(($0 && $0.is$Token()));
 };
@@ -5431,7 +5473,7 @@ ElementListener.prototype.pushNode = function(node) {
 }
 ElementListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 359, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 365, 12);
   var node = (($0 = this.nodes.get$head()) && $0.is$Node());
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link_Node());
   if (false/*null.VERBOSE*/) this.log(("pop " + this.nodes));
@@ -5670,6 +5712,12 @@ NodeListener.prototype.handleUnaryPostfixExpression = function(token) {
 NodeListener.prototype.handleUnaryPrefixExpression = function(token) {
   this.pushNode(new Send.prefix$ctor(this.popNode(), new Operator(token)));
 }
+NodeListener.prototype.handleSuperExpression = function(token) {
+  this.pushNode(new Identifier(token));
+}
+NodeListener.prototype.handleThisExpression = function(token) {
+  this.pushNode(new Identifier(token));
+}
 NodeListener.prototype.makeNodeList = function(count, beginToken, endToken, delimiter) {
   var $0;
   var nodes = const$209/*const EmptyLink<Node>()*/;
@@ -5765,6 +5813,12 @@ NodeListener.prototype.handleLiteralString$1 = function($0) {
 };
 NodeListener.prototype.handleNoArguments$1 = function($0) {
   return this.handleNoArguments(($0 && $0.is$Token()));
+};
+NodeListener.prototype.handleSuperExpression$1 = function($0) {
+  return this.handleSuperExpression(($0 && $0.is$Token()));
+};
+NodeListener.prototype.handleThisExpression$1 = function($0) {
+  return this.handleThisExpression(($0 && $0.is$Token()));
 };
 NodeListener.prototype.handleUnaryPostfixExpression$1 = function($0) {
   return this.handleUnaryPostfixExpression(($0 && $0.is$Token()));

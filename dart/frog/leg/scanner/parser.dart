@@ -660,6 +660,10 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
           return parseLiteralBool(token);
         } else if (value === 'null') {
           return parseLiteralNull(token);
+        } else if (value === 'this') {
+          return parseThisExpression(token);
+        } else if (value === 'super') {
+          return parseSuperExpression(token);
         } else {
           listener.unexpected(token);
           throw 'not yet implemented';
@@ -680,6 +684,28 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     assert(begin.endGroup === token);
     listener.handleParenthesizedExpression(begin);
     return expect(')', token);
+  }
+
+  Token parseThisExpression(Token token) {
+    listener.handleThisExpression(token);
+    token = token.next;
+    if (optional('(', token)) {
+      // Constructor forwarding.
+      token = parseArgumentsOpt(token);
+      listener.endSend(token);
+    }
+    return token;
+  }
+
+  Token parseSuperExpression(Token token) {
+    listener.handleSuperExpression(token);
+    token = token.next;
+    if (optional('(', token)) {
+      // Super constructor.
+      token = parseArgumentsOpt(token);
+      listener.endSend(token);
+    }
+    return token;
   }
 
   Token parseLiteralInt(Token token) {

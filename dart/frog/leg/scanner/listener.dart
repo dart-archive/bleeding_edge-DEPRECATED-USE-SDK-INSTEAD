@@ -212,6 +212,12 @@ class Listener {
   void handleParenthesizedExpression(BeginGroupToken token) {
   }
 
+  void handleSuperExpression(Token token) {
+  }
+
+  void handleThisExpression(Token token) {
+  }
+
   void handleUnaryPostfixExpression(Token token) {
   }
 
@@ -571,6 +577,14 @@ class NodeListener extends ElementListener {
 
   void handleUnaryPrefixExpression(Token token) {
     pushNode(new Send.prefix(popNode(), new Operator(token)));
+  }
+
+  void handleSuperExpression(Token token) {
+    pushNode(new Identifier(token));
+  }
+
+  void handleThisExpression(Token token) {
+    pushNode(new Identifier(token));
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
