@@ -18,6 +18,7 @@ interface Visitor<R> {
   R visitLiteralString(LiteralString node);
   R visitNodeList(NodeList node);
   R visitOperator(Operator node);
+  R visitParenthesizedExpression(ParenthesizedExpression node);
   R visitReturn(Return node);
   R visitSend(Send node);
   R visitSendSet(SendSet node);
@@ -85,6 +86,7 @@ class Node implements Hashable {
   LiteralString asLiteralString() => this;
   NodeList asNodeList() => this;
   Operator asOperator() => this;
+  ParenthesizedExpression asParenthesizedExpression() => this;
   Return asReturn() => this;
   Send asSend() => this;
   SendSet asSendSet() => this;
@@ -266,7 +268,7 @@ class Block extends Statement {
 }
 
 class If extends Statement {
-  final NodeList condition;
+  final ParenthesizedExpression condition;
   final Statement thenPart;
   final Statement elsePart;
 
@@ -537,6 +539,20 @@ class While extends Loop {
   Token getBeginToken() => whileKeyword;
 
   Token getEndToken() => body.getEndToken();
+}
+
+class ParenthesizedExpression extends Expression {
+  final Expression expression;
+  final BeginGroupToken beginToken;
+
+  ParenthesizedExpression(Expression this.expression,
+                          BeginGroupToken this.beginToken);
+
+  accept(Visitor visitor) => visitor.visitParenthesizedExpression(this);
+
+  Token getBeginToken() => beginToken;
+
+  Token getEndToken() => beginToken.endGroup;
 }
 
 /** Representation of modifiers such as static, abstract, final, etc. */

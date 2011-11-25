@@ -184,18 +184,22 @@ class Unparser implements Visitor {
     visit(node.body);
     sb.add(' ');
     add(node.whileKeyword.value);
-    sb.add(' (');
+    sb.add(' ');
     visit(node.condition);
-    sb.add(')');
     sb.add(node.endToken.value);
   }
 
   visitWhile(While node) {
     add(node.whileKeyword.value);
-    sb.add(' (');
+    sb.add(' ');
     visit(node.condition);
-    sb.add(')');
     sb.add(' ');
     visit(node.body);
+  }
+
+  visitParenthesizedExpression(ParenthesizedExpression node) {
+    add(node.getBeginToken().value);
+    visit(node.expression);
+    add(node.getEndToken().value);
   }
 }

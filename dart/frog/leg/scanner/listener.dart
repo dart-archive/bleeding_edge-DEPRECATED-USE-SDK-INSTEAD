@@ -209,6 +209,9 @@ class Listener {
   void handleNoTypeVariables(Token token) {
   }
 
+  void handleParenthesizedExpression(BeginGroupToken token) {
+  }
+
   void handleUnaryPostfixExpression(Token token) {
   }
 
@@ -320,6 +323,11 @@ class ElementListener extends Listener {
     for (; count > 0; --count) {
       popNode();
     }
+  }
+
+  void handleParenthesizedExpression(BeginGroupToken token) {
+    Expression expression = popNode();
+    pushNode(new ParenthesizedExpression(expression, token));
   }
 
   Token expected(String string, Token token) {
@@ -518,7 +526,7 @@ class NodeListener extends ElementListener {
   void endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = (elseToken === null) ? null : popNode();
     Statement thenPart = popNode();
-    NodeList condition = popNode();
+    ParenthesizedExpression condition = popNode();
     pushNode(new If(condition, thenPart, elsePart, ifToken, elseToken));
   }
 

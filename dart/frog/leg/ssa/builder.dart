@@ -512,6 +512,10 @@ class SsaBuilder implements Visitor {
     }
   }
 
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
+    visit(node.expression);
+  }
+
   visitOperator(Operator node) {
     // Operators are intercepted in their surrounding Send nodes.
     unreachable();

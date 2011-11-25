@@ -385,4 +385,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
     checkCondition(node.condition);
     type(node.body);
   }
+
+  Type visitParenthesizedExpression(ParenthesizedExpression node) {
+    return type(node.expression);
+  }
 }

@@ -634,10 +634,21 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
           throw 'not yet implemented';
         }
       }
+    } else if (kind === LPAREN_TOKEN) {
+      return parseParenthesizedExpression(token);
     } else {
       listener.unexpected(token);
       throw 'not yet implemented';
     }
+  }
+
+  Token parseParenthesizedExpression(Token token) {
+    BeginGroupToken begin = token;
+    token = expect('(', token);
+    token = parseExpression(token);
+    assert(begin.endGroup === token);
+    listener.handleParenthesizedExpression(begin);
+    return expect(')', token);
   }
 
   Token parseLiteralInt(Token token) {
@@ -738,8 +749,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     Token ifToken = token;
     listener.beginIfStatement(ifToken);
     token = expect('if', token);
-    expect('(', token);
-    token = parseArguments(token);
+    token = parseParenthesizedExpression(token);
     token = parseStatement(token);
     Token elseToken = null;
     if (optional('else', token)) {
@@ -769,9 +779,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     Token whileToken = token;
     listener.beginWhileStatement(whileToken);
     token = expect('while', token);
-    token = expect('(', token);
-    token = parseExpression(token);
-    token = expect(')', token);
+    token = parseParenthesizedExpression(token);
     token = parseStatement(token);
     listener.endWhileStatement(whileToken, token);
     return token;
@@ -784,9 +792,7 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     token = parseStatement(token);
     Token whileToken = token;
     token = expect('while', token);
-    token = expect('(', token);
-    token = parseExpression(token);
-    token = expect(')', token);
+    token = parseParenthesizedExpression(token);
     listener.endDoWhileStatement(doToken, whileToken, token);
     return expectSemicolon(token);
   }

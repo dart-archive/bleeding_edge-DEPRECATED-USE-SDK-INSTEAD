@@ -24,6 +24,9 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitNewExpression(NewExpression node) => visitExpression(node);
   R visitNodeList(NodeList node) => visitNode(node);
   R visitOperator(Operator node) => visitIdentifier(node);
+  R visitParenthesizedExpression(ParenthesizedExpression node) {
+    return visitExpression(node);
+  }
   R visitPostfix(Postfix node) => visitNodeList(node);
   R visitPrefix(Prefix node) => visitNodeList(node);
   R visitReturn(Return node) => visitStatement(node);

@@ -545,6 +545,9 @@ Object.prototype.handleNoTypeArguments$1 = function($0) {
 Object.prototype.handleNoTypeVariables$1 = function($0) {
   return this.noSuchMethod("handleNoTypeVariables", [$0]);
 };
+Object.prototype.handleParenthesizedExpression$1 = function($0) {
+  return this.noSuchMethod("handleParenthesizedExpression", [$0]);
+};
 Object.prototype.handleUnaryPostfixExpression$1 = function($0) {
   return this.noSuchMethod("handleUnaryPostfixExpression", [$0]);
 };
@@ -4655,10 +4658,21 @@ Parser.prototype.parsePrimary = function(token) {
       }
     }
   }
+  else if (kind === 40/*null.LPAREN_TOKEN*/) {
+    return this.parseParenthesizedExpression(token);
+  }
   else {
     this.listener.unexpected$1(token);
     $throw('not yet implemented');
   }
+}
+Parser.prototype.parseParenthesizedExpression = function(token) {
+  var begin = (token && token.is$BeginGroupToken());
+  token = this.expect('(', token);
+  token = this.parseExpression(token);
+  $assert(begin.endGroup === token, "begin.endGroup === token", "parser.dart", 649, 12);
+  this.listener.handleParenthesizedExpression$1(begin);
+  return this.expect(')', token);
 }
 Parser.prototype.parseLiteralInt = function(token) {
   this.listener.handleLiteralInt$1(token);
@@ -4699,7 +4713,7 @@ Parser.prototype.parseArgumentsOpt = function(token) {
 Parser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments$1(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 688, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 699, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments$3(argumentCount, begin, token.next);
@@ -4750,8 +4764,7 @@ Parser.prototype.parseIfStatement = function(token) {
   var ifToken = token;
   this.listener.beginIfStatement$1(ifToken);
   token = this.expect('if', token);
-  this.expect('(', token);
-  token = this.parseArguments(token);
+  token = this.parseParenthesizedExpression(token);
   token = this.parseStatement(token);
   var elseToken = null;
   if ($notnull_bool(this.optional('else', token))) {
@@ -4778,9 +4791,7 @@ Parser.prototype.parseWhileStatement = function(token) {
   var whileToken = token;
   this.listener.beginWhileStatement$1(whileToken);
   token = this.expect('while', token);
-  token = this.expect('(', token);
-  token = this.parseExpression(token);
-  token = this.expect(')', token);
+  token = this.parseParenthesizedExpression(token);
   token = this.parseStatement(token);
   this.listener.endWhileStatement$2(whileToken, token);
   return token;
@@ -4792,9 +4803,7 @@ Parser.prototype.parseDoWhileStatement = function(token) {
   token = this.parseStatement(token);
   var whileToken = token;
   token = this.expect('while', token);
-  token = this.expect('(', token);
-  token = this.parseExpression(token);
-  token = this.expect(')', token);
+  token = this.parseParenthesizedExpression(token);
   this.listener.endDoWhileStatement$3(doToken, whileToken, token);
   return this.expectSemicolon(token);
 }
@@ -5034,6 +5043,9 @@ Listener.prototype.handleNoType = function(token) {
 Listener.prototype.handleNoTypeVariables = function(token) {
 
 }
+Listener.prototype.handleParenthesizedExpression = function(token) {
+
+}
 Listener.prototype.handleUnaryPostfixExpression = function(token) {
 
 }
@@ -5257,6 +5269,9 @@ Listener.prototype.handleNoTypeArguments$1 = function($0) {
 Listener.prototype.handleNoTypeVariables$1 = function($0) {
   return this.handleNoTypeVariables(($0 && $0.is$Token()));
 };
+Listener.prototype.handleParenthesizedExpression$1 = function($0) {
+  return this.handleParenthesizedExpression(($0 && $0.is$BeginGroupToken()));
+};
 Listener.prototype.handleUnaryPostfixExpression$1 = function($0) {
   return this.handleUnaryPostfixExpression(($0 && $0.is$Token()));
 };
@@ -5330,6 +5345,11 @@ ElementListener.prototype.endTypeArguments = function(count, beginToken, endToke
     this.popNode();
   }
 }
+ElementListener.prototype.handleParenthesizedExpression = function(token) {
+  var $0;
+  var expression = (($0 = this.popNode()) && $0.is$Expression());
+  this.pushNode(new ParenthesizedExpression(expression, token));
+}
 ElementListener.prototype.expected = function(string, token) {
   this.canceler.cancel(("Expected '" + string + "', but got '" + token + "'"), null, token);
 }
@@ -5356,7 +5376,7 @@ ElementListener.prototype.pushNode = function(node) {
 }
 ElementListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 359, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 367, 12);
   var node = (($0 = this.nodes.get$head()) && $0.is$Node());
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link_Node());
   if (false/*null.VERBOSE*/) this.log(("pop " + this.nodes));
@@ -5403,6 +5423,9 @@ ElementListener.prototype.handleIdentifier$1 = function($0) {
 };
 ElementListener.prototype.handleNoType$1 = function($0) {
   return this.handleNoType(($0 && $0.is$Token()));
+};
+ElementListener.prototype.handleParenthesizedExpression$1 = function($0) {
+  return this.handleParenthesizedExpression(($0 && $0.is$BeginGroupToken()));
 };
 ElementListener.prototype.unexpected$1 = function($0) {
   return this.unexpected(($0 && $0.is$Token()));
@@ -5544,7 +5567,7 @@ NodeListener.prototype.endIfStatement = function(ifToken, elseToken) {
   var $0;
   var elsePart = (($0 = (elseToken == null) ? null : this.popNode()) && $0.is$Statement());
   var thenPart = (($0 = this.popNode()) && $0.is$Statement());
-  var condition = (($0 = this.popNode()) && $0.is$NodeList());
+  var condition = (($0 = this.popNode()) && $0.is$ParenthesizedExpression());
   this.pushNode(new If(condition, thenPart, elsePart, ifToken, elseToken));
 }
 NodeListener.prototype.endForStatement = function(beginToken, endToken) {
@@ -6740,6 +6763,29 @@ While.prototype.accept$1 = function($0) {
 };
 While.prototype.getBeginToken$0 = While.prototype.getBeginToken;
 While.prototype.getEndToken$0 = While.prototype.getEndToken;
+// ********** Code for ParenthesizedExpression **************
+function ParenthesizedExpression(expression, beginToken) {
+  this.expression = expression;
+  this.beginToken = beginToken;
+  // Initializers done
+  Expression.call(this);
+}
+$inherits(ParenthesizedExpression, Expression);
+ParenthesizedExpression.prototype.is$ParenthesizedExpression = function(){return this;};
+ParenthesizedExpression.prototype.accept = function(visitor) {
+  return visitor.visitParenthesizedExpression(this);
+}
+ParenthesizedExpression.prototype.getBeginToken = function() {
+  return this.beginToken;
+}
+ParenthesizedExpression.prototype.getEndToken = function() {
+  return this.beginToken.endGroup;
+}
+ParenthesizedExpression.prototype.accept$1 = function($0) {
+  return this.accept(($0 && $0.is$Visitor()));
+};
+ParenthesizedExpression.prototype.getBeginToken$0 = ParenthesizedExpression.prototype.getBeginToken;
+ParenthesizedExpression.prototype.getEndToken$0 = ParenthesizedExpression.prototype.getEndToken;
 // ********** Code for Unparser **************
 function Unparser(printDebugInfo) {
   this.printDebugInfo = printDebugInfo;
@@ -6913,19 +6959,23 @@ Unparser.prototype.visitDoWhile = function(node) {
   this.visit(node.body);
   this.sb.add(' ');
   this.add((($0 = node.whileKeyword.get$value()) && $0.is$SourceString()));
-  this.sb.add(' (');
+  this.sb.add(' ');
   this.visit(node.condition);
-  this.sb.add(')');
   this.sb.add(node.endToken.get$value());
 }
 Unparser.prototype.visitWhile = function(node) {
   var $0;
   this.add((($0 = node.whileKeyword.get$value()) && $0.is$SourceString()));
-  this.sb.add(' (');
+  this.sb.add(' ');
   this.visit(node.condition);
-  this.sb.add(')');
   this.sb.add(' ');
   this.visit(node.body);
+}
+Unparser.prototype.visitParenthesizedExpression = function(node) {
+  var $0;
+  this.add((($0 = node.getBeginToken().get$value()) && $0.is$SourceString()));
+  this.visit(node.expression);
+  this.add((($0 = node.getEndToken().get$value()) && $0.is$SourceString()));
 }
 Unparser.prototype.add$1 = function($0) {
   return this.add(($0 && $0.is$SourceString()));
@@ -7035,6 +7085,9 @@ AbstractVisitor_Type.prototype.visitNodeList = function(node) {
 AbstractVisitor_Type.prototype.visitOperator = function(node) {
   var $0;
   return (($0 = this.visitIdentifier(node)) && $0.is$Type());
+}
+AbstractVisitor_Type.prototype.visitParenthesizedExpression = function(node) {
+  return this.visitExpression(node);
 }
 AbstractVisitor_Type.prototype.visitReturn = function(node) {
   return this.visitStatement(node);
@@ -7670,6 +7723,9 @@ SsaBuilder.prototype.visitNodeList = function(node) {
     this.visit((($0 = link.get$head()) && $0.is$Node()));
   }
 }
+SsaBuilder.prototype.visitParenthesizedExpression = function(node) {
+  this.visit(node.expression);
+}
 SsaBuilder.prototype.visitOperator = function(node) {
   unreachable();
 }
@@ -7706,7 +7762,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.updateDefinition(definition, initialValue);
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 554, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 558, 16);
       this.visitSendSet((definition && definition.is$SendSet()));
       this.pop();
     }
@@ -11272,6 +11328,9 @@ FullResolverVisitor.prototype.visitWhile = function(node) {
   this.visit(node.condition);
   this.visitIn(node.body, new Scope(this.context));
 }
+FullResolverVisitor.prototype.visitParenthesizedExpression = function(node) {
+  this.visit(node.expression);
+}
 // ********** Code for ClassResolverVisitor **************
 function ClassResolverVisitor(compiler) {
   this.compiler = compiler;
@@ -11334,7 +11393,7 @@ VariableDefinitionsVisitor.prototype.get$kind = function() { return this.kind; }
 VariableDefinitionsVisitor.prototype.set$kind = function(value) { return this.kind = value; };
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 394, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 398, 12);
   if (node.receiver != null) {
     this.resolver.cancel(node, "receiver on a variable definition not implemented");
   }
@@ -11795,6 +11854,9 @@ TypeCheckerVisitor.prototype.visitVariableDefinitions = function(node) {
 TypeCheckerVisitor.prototype.visitWhile = function(node) {
   this.checkCondition(node.condition);
   this.type(node.body);
+}
+TypeCheckerVisitor.prototype.visitParenthesizedExpression = function(node) {
+  return this.type(node.expression);
 }
 // ********** Code for Universe **************
 function Universe() {
