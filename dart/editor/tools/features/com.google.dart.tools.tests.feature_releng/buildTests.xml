@@ -114,6 +114,18 @@
                 <include name="dart/plugins/com.google.dart.tools.ui*.jar"/>
             </fileset>
         </move>
+
+        <!-- Expand "libraries" directory -->
+        <unzip dest="${build.target}/eclipse" src="${build.out}/DartBuild-linux.gtk.${build.eclipse.arch}.zip">
+            <patternset>
+                <include name="dart/libraries/**" />
+            </patternset>
+        </unzip>
+        <move todir="${build.target}/eclipse">
+            <fileset dir="${build.target}/eclipse/dart">
+                <include name="libraries/**"/>
+            </fileset>
+        </move>
         
         <property name="build.eclipse.test_application"
                   value="org.eclipse.pde.junit.runtime.coretestapplication" />
