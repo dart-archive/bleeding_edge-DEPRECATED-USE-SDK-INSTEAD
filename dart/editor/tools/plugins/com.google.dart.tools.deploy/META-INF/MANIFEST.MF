@@ -14,8 +14,6 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui.console,
  com.google.dart.tools.core,
  com.google.dart.tools.ui,
- com.google.dart.library.core,
- com.google.dart.library.dom,
  com.google.dart.tools.debug.ui
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

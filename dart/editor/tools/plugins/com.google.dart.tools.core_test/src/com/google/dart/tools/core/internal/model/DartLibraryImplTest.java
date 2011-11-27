@@ -275,6 +275,11 @@ public class DartLibraryImplTest extends TestCase {
     assertTrue(children.length > 20);
   }
 
+  public void test_DartLibraryImpl_getChildren_libJson() throws Exception {
+    DartElement[] children = getDartLibJson().getChildren();
+    assertContainsCompUnit(children, "json.dart", false, false);
+  }
+
   public void test_DartLibraryImpl_getCompilationUnits_lib1() throws Exception {
     assertEquals(2, getDartLib1().getCompilationUnits().length);
   }
@@ -324,6 +329,14 @@ public class DartLibraryImplTest extends TestCase {
   public void test_DartLibraryImpl_getElementName_lib3() throws Exception {
     assertEquals("file:" + getTempDir().getAbsolutePath() + "/lib3/lib3.dart",
         getDartLib3().getElementName());
+  }
+
+  public void test_DartLibraryImpl_getElementName_libCore() throws Exception {
+    assertEquals("dart:core", getDartLibCore().getElementName());
+  }
+
+  public void test_DartLibraryImpl_getElementName_libCoreImpl() throws Exception {
+    assertEquals("dart:core_impl", getDartLibCoreImpl().getElementName());
   }
 
   public void test_DartLibraryImpl_getElementName_libDom() throws Exception {
@@ -422,6 +435,17 @@ public class DartLibraryImplTest extends TestCase {
     assertDartLib3ImportedLibraries();
   }
 
+  public void test_DartLibraryImpl_getImportedLibraries_libCore() throws Exception {
+    DartLibrary[] importedLibraries = getDartLibCore().getImportedLibraries();
+    assertEquals(1, importedLibraries.length);
+    assertEquals("dart:core_impl", importedLibraries[0].getElementName());
+  }
+
+  public void test_DartLibraryImpl_getImportedLibraries_libCoreImpl() throws Exception {
+    DartLibrary[] importedLibraries = getDartLibCoreImpl().getImportedLibraries();
+    assertEquals(0, importedLibraries.length);
+  }
+
   public void test_DartLibraryImpl_getImportedLibraries_libDom() throws Exception {
     DartLibrary[] importedLibraries = getDartLibDom().getImportedLibraries();
     assertEquals(0, importedLibraries.length);
@@ -436,6 +460,12 @@ public class DartLibraryImplTest extends TestCase {
     DartLibrary[] importedLibraries = getDartLibExternal().getImportedLibraries();
     assertContainsLibImpl(importedLibraries, "/empty/empty.dart");
     assertEquals(1, importedLibraries.length);
+  }
+
+  public void test_DartLibraryImpl_getImportedLibraries_libHtml() throws Exception {
+    DartLibrary[] importedLibraries = getDartLibHtml().getImportedLibraries();
+    assertEquals(1, importedLibraries.length);
+    assertEquals("dart:dom", importedLibraries[0].getElementName());
   }
 
   public void test_DartLibraryImpl_isTopLevel() throws Exception {
@@ -720,6 +750,10 @@ public class DartLibraryImplTest extends TestCase {
 
   private DartLibraryImpl getDartLibHtml() throws Exception {
     return getBundledLib("dart:html");
+  }
+
+  private DartLibraryImpl getDartLibJson() throws Exception {
+    return getBundledLib("dart:json");
   }
 
   private DartModelImpl getDartModel() {

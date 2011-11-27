@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.internal.model.BundledSystemLibraryManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 
 import org.eclipse.core.filesystem.IFileStore;
@@ -70,18 +69,12 @@ public class ExternalCompilationUnitEditorInput extends FileStoreEditorInput {
    * @return whether this editor input if modifiable
    */
   public boolean isModifiable() {
-    return !isFromBundle();
+    // TODO (danrubel) Investigate implementing or removing this method in future CL
+    return true;
   }
 
   @Override
   public void saveState(IMemento memento) {
     ExternalCompilationUnitEditorInputFactory.saveState(memento, this);
   }
-
-  private boolean isFromBundle() {
-    String path = getURI().getPath();
-
-    return path.indexOf(BundledSystemLibraryManager.BUNDLED_LIBRARY_PREFIX) != -1;
-  }
-
 }

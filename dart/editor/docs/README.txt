@@ -183,6 +183,22 @@ Refresh the closure-compiler and com.google.dart.compiler.js projects for Eclips
 files.
 
 ====================================
+  Building Dart Libraries
+====================================
+
+For development, we require that the Eclipse installation directory have a "libraries" directory
+containing the bundled dart:<name> libraries (e.g. dart:core). To build this directory...
+
+1) Right click on editor/build/build_rcp.xml
+2) Select "Run As > Ant Build..."
+3) Click the "Targets" tab and make sure only the "setupDevWorkspace" target is checked
+4) Click the "JRE" tab and select "Run in the same JRE as the workspace"
+5) Click "Run"
+
+Alternately, you can run the Ant script outside Eclipse
+by defining the "eclipse.home" property to point to your Eclipse installation
+
+====================================
   Launching the Dart Editor
 ====================================
 

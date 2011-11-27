@@ -379,5 +379,59 @@
             <fileset dir="${build.stage}/workspace/.metadata" includes=".log" />
         </concat>
     </target>
+    
+    <!--
+    ********************************************************************************
+      Macro: copyDartLib
+
+        Parse the @{name}.dart library file to determine the referenced #source and #native files
+        then copy that file and the referenced files to a new directory
+
+      required attributes:
+       name         - the short name of the dart library (e.g "dom", "core")
+       dir          - the directory containing the library source
+
+      optional attributes:
+       todir        - the destination directory - defaults to ${libraries.out.dir}/@{name}
+       tmpdir       - temp directory - defaults to ${build.tmp}/lib
+
+      ant properties required
+       build.tmp    - temparary location for build work
+
+      ant properties set
+       dart.@{name}.files  - comma separated list of #source and #native files in the library
+
+    ********************************************************************************
+    -->
+    <macrodef name="copyDartLib">
+        <attribute name="name" />
+        <attribute name="dir" />
+        <attribute name="libfile" default="@{name}.dart"/>
+        <attribute name="todir" default="${libraries.out.dir}/@{name}"/>
+        <attribute name="tmpdir" default="${build.tmp}/lib"/>
+        <sequential>
+            <mkdir dir="@{tmpdir}"/>
+            <copy file="@{dir}/@{libfile}" tofile="@{tmpdir}/@{name}-files.txt"/>
+            <replaceregexp file="@{tmpdir}/@{name}-files.txt" flags="s" match="class\s+\w+\s+\{.*" replace=""/>
+            <replaceregexp file="@{tmpdir}/@{name}-files.txt" flags="s" match="/\*.*\*/" replace=""/>
+            <replaceregexp file="@{tmpdir}/@{name}-files.txt" byline="true" match="#source\(.(.*).\);" replace="\1,"/>
+            <replaceregexp file="@{tmpdir}/@{name}-files.txt" byline="true" match="#native\(.(.*).\);" replace="\1,"/>
+            <loadfile property="dart.@{name}.files" srcfile="@{tmpdir}/@{name}-files.txt">
+                <filterchain>
+                    <striplinecomments>
+                        <comment value="#"/>
+                        <comment value="//"/>
+                    </striplinecomments>
+                    <striplinebreaks/>
+                </filterchain>
+            </loadfile>
+            <echo message="Copying dart:@{name} files @{libfile},${dart.@{name}.files}"/>
+            <echo message="to @{todir}" />
+            <mkdir dir="@{todir}"/>
+            <copy todir="@{todir}">
+                <fileset dir="@{dir}" includes="@{libfile},${dart.@{name}.files}"/>
+            </copy>
+        </sequential>
+    </macrodef>
 
 </project>

@@ -75,9 +75,12 @@ build system.  The PDE build system has to run under Eclipse.
         <!--
           validate that the data location is a directory
         -->
-        <fail>Error: 
+        <fail>*
+            **********************************
+            Error: 
             data.location must be set to a valid directory containing the configuration properties file.
             the current value is ${data.location}.
+            **********************************
             <condition>
                 <not>
                     <available file="${data.location}" type="dir" />
@@ -91,10 +94,16 @@ build system.  The PDE build system has to run under Eclipse.
         <property file="${eclipse.property.file}" />
         
         <!--
-          validate that the default-user.property file exists
+          validate that the ${user.name}.property file exists
         -->
-        <fail>Error: 
+        <fail>*
+            **********************************
+            Error: 
             ${user.property.file} must exist.
+            In the directory ${data.location}
+            copy the "user.properties" file to "${user.name}.properties"
+            and adjust the content for your build situation
+            **********************************
             <condition>
                 <not>
                     <available file="${user.property.file}" type="file" />
@@ -117,25 +126,16 @@ build system.  The PDE build system has to run under Eclipse.
         </fail>
         
         <!-- 
-          validate the the build.source is a directory
+          validate the the build.source is correctly set
+          by verifying that ${build.source}/docs/README.txt exists
         -->
-        <fail>Error: 
-            build.source must be set to the root of the dart Eclipse tree it must be a directory 
-            containing the source for the Dart Eclipse product.  
-            The current value is ${build.source}.
-            <condition>
-                <not>
-                    <available file="${build.source}" type="dir" />
-                </not>
-            </condition>
-        </fail>
-        <!--
-          validate that ${build.source}/docs/README.txt exists
-        -->
-        <fail>Error: 
-            It appears that build.source is not pointing to the "editor" directory in the Dart source tree.
-            The build is trying to verify that file ${build.source}/docs/README.txt is a file. 
-            The current value of "build.source" is ${build.source}.
+        <fail>*
+            **********************************
+            Error: 
+            build.source must point to [svnroot]/dart/editor (root of the Dart Editor source tree) 
+            as obtained from http://code.google.com/p/dart/wiki/GettingTheSource?tm=4
+            Current value: ${build.source}.
+            **********************************
             <condition>
                 <not>
                     <available file="${build.source}/docs/README.txt" type="file" />
@@ -185,6 +185,62 @@ build system.  The PDE build system has to run under Eclipse.
         <mkdir dir="${build.out}" />
 
     </target>
+
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: buildLibraries
+         - - - - - - - - - - - - - - - - - -->
+    <target name="buildLibraries" depends="init">
+        <property name="libraries.out.name" value="libraries"/>
+        <property name="libraries.out.dir" location="${build.stage.include.dir}/${libraries.out.name}" />
+        <delete dir="${libraries.out.dir}"/>
+        
+        <!-- dart:core and dart:core_impl 
+            copy "core" source directorys into a single temp directory before building libraries
+        -->
+        <mkdir dir="${build.tmp}/lib/core-dartc"/>
+        <copy todir="${build.tmp}/lib/core-dartc">
+            <fileset dir="${build.source.root}/corelib"/>
+            <fileset dir="${build.source.root}/compiler/lib"/>
+        </copy>
+        <copyDartLib name="core" dir="${build.tmp}/lib/core-dartc" libfile="corelib.dart"/>
+        <copyDartLib name="core_impl" dir="${build.tmp}/lib/core-dartc" libfile="corelib_impl.dart"
+            todir="${libraries.out.dir}/core"/>
+        
+        <!-- dart:dom -->
+        <copyDartLib name="dom" dir="${build.source.root}/client/dom"/>
+        
+        <!-- dart:html -->
+        <copyDartLib name="html" dir="${build.source.root}/client/html"/>
+        
+        <!-- dart:json -->
+        <copyDartLib name="json" dir="${build.source.root}/client/json"/>
+        
+    </target>
+    
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: setupDevWorkspace                      
+         - - - - - - - - - - - - - - - - - -->
+    <target name="setupDevWorkspace" depends="buildLibraries">
+        <!-- This build script must be executed in Eclipse 
+          so that the ${eclipse.home} Ant property is defined -->
+        <fail unless="eclipse.home">*
+            **********************************
+            Execute this Ant script inside Eclipse
+            and select the 'Run in the same JRE as the workspace' option
+            on the 'JRE' tab of the launch dialog
+            -- OR --
+            Define the "eclipse.home" property to point to your Eclipse installation
+            **********************************
+        </fail>
+        <property name="libraries.dev.dir" location="${eclipse.home}/${libraries.out.name}"/>
+        <echo message="Copying ${libraries.out.dir}"/>
+        <echo message="to ${libraries.dev.dir}"/>
+        <delete dir="${libraries.dev.dir}"/>
+        <mkdir dir="${libraries.dev.dir}"/>
+        <copy todir="${libraries.dev.dir}">
+          <fileset dir="${libraries.out.dir}"/>
+        </copy>
+    </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
           target: setupRuntimeEclipse
@@ -201,7 +257,7 @@ build system.  The PDE build system has to run under Eclipse.
     <!--
     copy the code from the svn structure to the PDE structure and get rid of the linked resources
     -->
-    <target name="setupBuild" depends="init, setupRuntimeEclipse" >
+    <target name="setupBuild" depends="init, buildLibraries, setupRuntimeEclipse" >
         <setupTargetEclipse location="${build.target}" eclipse="${build.target.eclipse.version}"
                             arch="${build.eclipse.arch}" />
         <!-- installDirIntoTargetEclipse updatesite="${build.source.root}/third_party/chromesdk/0.3.0"
@@ -244,7 +300,7 @@ build system.  The PDE build system has to run under Eclipse.
 
         <!-- create the samples directory -->
         <property name="samples.out.dir" 
-                  value="${build.stage.features}/com.google.dart.tools.deploy.feature/include/samples" />
+                  value="${build.stage.include.dir}/samples" />
     
         <!-- Clock -->
         <copy todir="${samples.out.dir}/clock">
@@ -319,82 +375,43 @@ build system.  The PDE build system has to run under Eclipse.
             <fileset dir="${build.source.root}/third_party" />
         </copy>
         
-        <property name="dart.library.core.dir"
-                  value="${build.stage.plugins}/com.google.dart.library.core" />
-
-        <mkdir dir="${dart.library.core.dir}/src-corelib" />
-        <copy todir="${dart.library.core.dir}/src-corelib">
-            <fileset dir="${build.source.root}/corelib" />
-        </copy>
-
-        <mkdir dir="${dart.library.core.dir}/src-corelib-dartc" />
-        <copy todir="${dart.library.core.dir}/src-corelib-dartc">
-            <fileset dir="${build.source.root}/compiler/lib" />
-        </copy>
-
-        <property name="dart.library.dom.dir" 
-                  value="${build.stage.plugins}/com.google.dart.library.dom" />
-            
-        <mkdir dir="${dart.library.dom.dir}/src-dom" />
-        <copy todir="${dart.library.dom.dir}/src-dom">
-             <fileset dir="${build.source.root}/client/dom" />
-        </copy>
-        
-        <property name="dart.library.html.dir" 
-                  value="${build.stage.plugins}/com.google.dart.library.html" />
-
-        <mkdir dir="${dart.library.html.dir}/src-html" />
-        <copy todir="${dart.library.html.dir}/src-html">
-             <fileset dir="${build.source.root}/client/html" />
-        </copy>
-
-        <property name="dart.library.json.dir" 
-                  value="${build.stage.plugins}/com.google.dart.library.json" />
-
-        <mkdir dir="${dart.library.json.dir}/src-json" />
-        <copy todir="${dart.library.json.dir}/src-json">
-             <fileset dir="${build.source.root}/client/json" />
-        </copy>
-
         <!-- copy over the dart libraries used by the samples -->
 
-        <property name="libraries.out.dir" 
-                  value="${build.stage.features}/com.google.dart.tools.deploy.feature/include/samples/libraries" />
+        <property name="samples.libraries.out.dir" 
+                  value="${build.stage.include.dir}/samples/libraries" />
 
-        <copy todir="${libraries.out.dir}/base">
+        <copy todir="${samples.libraries.out.dir}/base">
             <fileset dir="${build.source.root}/client/base"/>
         </copy>
-        <copy todir="${libraries.out.dir}/layout">
+        <copy todir="${samples.libraries.out.dir}/layout">
             <fileset dir="${build.source.root}/client/layout"/>
         </copy>
-        <copy todir="${libraries.out.dir}/observable">
+        <copy todir="${samples.libraries.out.dir}/observable">
             <fileset dir="${build.source.root}/client/observable"/>
         </copy>
-        <copy todir="${libraries.out.dir}/touch">
+        <copy todir="${samples.libraries.out.dir}/touch">
             <fileset dir="${build.source.root}/client/touch"/>
         </copy>
-        <copy todir="${libraries.out.dir}/util">
+        <copy todir="${samples.libraries.out.dir}/util">
             <fileset dir="${build.source.root}/client/util"/>
         </copy>
-        <copy todir="${libraries.out.dir}/view">
+        <copy todir="${samples.libraries.out.dir}/view">
             <fileset dir="${build.source.root}/client/view"/>
         </copy>
         
         <!-- patch up the html library references -->
-        <property name="include.dir" 
-                  value="${build.stage.features}/com.google.dart.tools.deploy.feature/include" />
                   
-        <replace dir="${include.dir}"
+        <replace dir="${build.stage.include.dir}"
           token='../../../html/html.dart'
           value='dart:html'>
             <include name="**/*.dart"/>
         </replace>
-        <replace dir="${include.dir}"
+        <replace dir="${build.stage.include.dir}"
           token='../../html/html.dart'
           value='dart:html'>
             <include name="**/*.dart"/>
         </replace>
-        <replace dir="${include.dir}"
+        <replace dir="${build.stage.include.dir}"
           token='../html/html.dart'
           value='dart:html'>
             <include name="**/*.dart"/>

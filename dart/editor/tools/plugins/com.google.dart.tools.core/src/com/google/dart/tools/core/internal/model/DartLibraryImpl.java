@@ -332,7 +332,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   public String getDisplayName() {
     // If this is a bundled library, then show "dart:<libname>" to the user
     if (sourceFile != null) {
-      URI uri = BundledSystemLibraryManager.getShortUri(sourceFile.getUri());
+      URI uri = SystemLibraryManagerProvider.getShortUri(sourceFile.getUri());
       if (uri != null) {
         return uri.toString();
       }
@@ -360,7 +360,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   @Override
   public String getElementName() {
     if (sourceFile != null) {
-      URI shortUri = BundledSystemLibraryManager.getShortUri(sourceFile.getUri());
+      URI shortUri = SystemLibraryManagerProvider.getShortUri(sourceFile.getUri());
       if (shortUri != null) {
         return shortUri.toString();
       }
@@ -738,7 +738,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   @Override
   protected String getHandleMementoName() {
     URI uri = getUri();
-    URI shortUri = BundledSystemLibraryManager.getShortUri(uri);
+    URI shortUri = SystemLibraryManagerProvider.getShortUri(uri);
     if (shortUri != null) {
       return shortUri.toString();
     }

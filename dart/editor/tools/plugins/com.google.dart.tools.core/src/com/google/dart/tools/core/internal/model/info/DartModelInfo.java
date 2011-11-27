@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.model.info;
 
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
-import com.google.dart.tools.core.internal.model.BundledSystemLibraryManager;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
@@ -96,7 +95,7 @@ public class DartModelInfo extends OpenableElementInfo {
     try {
       SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
       coreLibrary = createBundledLibrary(libraryManager, "dart:core");
-      for (String spec : BundledSystemLibraryManager.getAllLibrarySpecs()) {
+      for (String spec : SystemLibraryManagerProvider.getAllLibrarySpecs()) {
         libraries.add(createBundledLibrary(libraryManager, spec));
       }
     } catch (URISyntaxException exception) {

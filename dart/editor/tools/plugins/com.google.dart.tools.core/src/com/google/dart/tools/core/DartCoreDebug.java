@@ -23,6 +23,7 @@ public class DartCoreDebug {
   // Debugging / Tracing options
 
   public static final boolean BUILD = isOptionTrue("debug/build");
+  public static final boolean DARTLIB = isOptionTrue("debug/dartlib");
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
 
   public static final boolean BLEEDING_EDGE = isOptionTrue("bleedingEdge");
