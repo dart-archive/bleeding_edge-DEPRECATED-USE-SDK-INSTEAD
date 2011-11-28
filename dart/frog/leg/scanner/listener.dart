@@ -24,6 +24,12 @@ class Listener {
                 Token implementsKeyword, Token endToken) {
   }
 
+  void beginClassBody(Token token) {
+  }
+
+  void endClassBody(int memberCount, Token beginToken, Token endToken) {
+  }
+
   void beginDoWhileStatement(Token token) {
   }
 
@@ -47,6 +53,9 @@ class Listener {
   }
 
   void endFormalParameters(int count, Token beginToken, Token endToken) {
+  }
+
+  void endField(Token beginToken, Token endToken) {
   }
 
   void beginForStatement(Token token) {
@@ -94,6 +103,15 @@ class Listener {
   void endInitializer(Token assignmentOperator) {
   }
 
+  void beginInitializers(Token token) {
+  }
+
+  void endInitializers(int count, Token beginToken, Token endToken) {
+  }
+
+  void handleNoInitializers() {
+  }
+
   void beginInterface(Token token) {
   }
 
@@ -104,6 +122,12 @@ class Listener {
   }
 
   void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
+  }
+
+  void beginMember(Token token) {
+  }
+
+  void endMethod(Token beginToken, Token endToken) {
   }
 
   void beginReturnStatement(Token token) {
@@ -182,6 +206,9 @@ class Listener {
   void handleConditionalExpression(Token question, Token colon) {
   }
 
+  void handleFinalKeyword(Token finalKeyword) {
+  }
+
   void handleIdentifier(Token token) {
   }
 
@@ -201,6 +228,9 @@ class Listener {
   }
 
   void handleNoArguments(Token token) {
+  }
+
+  void handleNoFieldInitializer(Token token) {
   }
 
   void handleNoType(Token token) {
@@ -283,9 +313,7 @@ class ElementListener extends Listener {
 
   void endClass(int interfacesCount, Token beginToken, Token extendsKeyword,
                 Token implementsKeyword, Token endToken) {
-    for (; interfacesCount > 0; --interfacesCount) {
-      popNode();
-    }
+    discardNodes(interfacesCount);
     Identifier supertype = popNode();
     Identifier name = popNode();
     pushElement(new PartialClassElement(name.source, beginToken, endToken));
@@ -307,6 +335,7 @@ class ElementListener extends Listener {
   }
 
   void endTopLevelField(Token beginToken, Token endToken) {
+    Identifier name = popNode();
     // TODO(ahe): Implement this.
     canceler.cancel("Cannot handle fields");
   }
@@ -325,14 +354,18 @@ class ElementListener extends Listener {
   }
 
   void endTypeArguments(int count, Token beginToken, Token endToken) {
-    for (; count > 0; --count) {
-      popNode();
-    }
+    discardNodes(count);
   }
 
   void handleParenthesizedExpression(BeginGroupToken token) {
     Expression expression = popNode();
     pushNode(new ParenthesizedExpression(expression, token));
+  }
+
+  void discardNodes(int count) {
+    for (; count > 0; --count) {
+      popNode();
+    }
   }
 
   Token expected(String string, Token token) {
@@ -383,6 +416,7 @@ class NodeListener extends ElementListener {
 
   void endClass(int interfacesCount, Token beginToken, Token extendsKeyword,
                 Token implementsKeyword, Token endToken) {
+    NodeList body = popNode();
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
     TypeAnnotation supertype = popNode();
@@ -390,6 +424,10 @@ class NodeListener extends ElementListener {
     Identifier name = popNode();
     pushNode(new ClassNode(name, supertype, interfaces, beginToken,
                            extendsKeyword, endToken));
+  }
+
+  void endClassBody(int memberCount, Token beginToken, Token endToken) {
+    pushNode(makeNodeList(memberCount, beginToken, endToken, null));
   }
 
   void endFormalParameter(Token token) {
@@ -461,12 +499,16 @@ class NodeListener extends ElementListener {
   void handleAssignmentExpression(Token token) {
     NodeList arguments = new NodeList.singleton(popNode());
     Node node = popNode();
-    if (node is !Send) canceler.cancel('not assignable: $node', node: node);
-    Send send = node;
+    Send send = node.asSend();
+    if (send === null) {
+      canceler.cancel('not assignable: $node', node: node);
+    }
     if (!send.isPropertyAccess) {
       canceler.cancel('not assignable: $send', node: send);
     }
-    if (send is SendSet) canceler.cancel('chained assignment', node: send);
+    if (send.asSendSet() !== null) {
+      canceler.cancel('chained assignment', node: send);
+    }
     Operator op = new Operator(token);
     pushNode(new SendSet(send.receiver, send.selector, op, arguments));
   }
@@ -558,10 +600,8 @@ class NodeListener extends ElementListener {
 
   void endType(int count, Token beginToken, Token endToken) {
     TypeAnnotation type = new TypeAnnotation(popNode());
-    for (; count > 1; --count) {
-      // TODO(ahe): Don't discard library prefixes.
-      popNode(); // Discard library prefixes.
-    }
+    // TODO(ahe): Don't discard library prefixes.
+    discardNodes(count - 1); // Discard library prefixes.
     pushNode(type);
   }
 
@@ -588,17 +628,21 @@ class NodeListener extends ElementListener {
 
   void handleUnaryAssignmentExpression(Token token, bool isPrefix) {
     Node node = popNode();
-    if (node is !Send) canceler.cancel('not assignable: $node', node: node);
-    Send send = node;
+    Send send = node.asSend();
+    if (send === null) {
+      canceler.cancel('not assignable: $node', node: node);
+    }
     if (!send.isPropertyAccess) {
       canceler.cancel('not assignable: $send', node: send);
     }
-    if (send is SendSet) canceler.cancel('chained assignment', node: send);
+    if (send.asSendSet() !== null) {
+      canceler.cancel('chained assignment', node: send);
+    }
     Operator op = new Operator(token);
     if (isPrefix) {
       pushNode(new SendSet.prefix(send.receiver, send.selector, op));
     } else {
-      pushNode(new SendSet.postfix(send.receiver, send.selector, op));      
+      pushNode(new SendSet.postfix(send.receiver, send.selector, op));
     }
   }
   void handleUnaryPostfixAssignmentExpression(Token token) {
@@ -607,6 +651,36 @@ class NodeListener extends ElementListener {
 
   void handleUnaryPrefixAssignmentExpression(Token token) {
     handleUnaryAssignmentExpression(token, true);
+  }
+
+  void endInitializers(int count, Token beginToken, Token endToken) {
+    // TODO(ahe): Preserve initializers.
+    discardNodes(count);
+  }
+
+  void handleNoInitializers() {
+    // TODO(ahe): pushNode(null);
+  }
+
+  void handleNoFieldInitializer(Token token) {
+    pushNode(null);
+  }
+
+  void endField(Token beginToken, Token endToken) {
+    Expression initializer = popNode();
+    Identifier name = popNode();
+    TypeAnnotation type = popNode();
+    // TODO(ahe): implement this.
+    pushNode(null);
+    canceler.cancel("fields are not implemented yet", node: name);
+  }
+
+  void endMethod(Token beginToken, Token endToken) {
+    Node name = popNode();
+    // TODO(ahe): Return types are optional.
+    TypeAnnotation type = popNode();
+    pushNode(new FunctionExpression(name, null, null, type));
+    // TODO(ahe): Save modifiers.
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
@@ -663,5 +737,6 @@ Node parse(Canceler canceler, Logger logger, doParse(Parser parser)) {
   NodeListener listener = new NodeListener(canceler, logger);
   doParse(new Parser(listener));
   Node node = listener.popNode();
+  assert(listener.nodes.isEmpty());
   return node;
 }

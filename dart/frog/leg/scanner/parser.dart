@@ -6,10 +6,10 @@
  * An event generating parser of Dart programs. This parser expects
  * all tokens in a linked list.
  */
-class PartialParser<L extends Listener> {
-  final L listener;
+class PartialParser {
+  final Listener listener;
 
-  PartialParser(L this.listener);
+  PartialParser(Listener this.listener);
 
   void parseUnit(Token token) {
     while (token.kind !== EOF_TOKEN) {
@@ -129,7 +129,7 @@ class PartialParser<L extends Listener> {
     return beginGroupToken.endGroup;
   }
 
-  Token skipArguments(BeginGroupToken token) {
+  Token skipFormals(BeginGroupToken token) {
     return token.endGroup;
   }
 
@@ -295,6 +295,7 @@ class PartialParser<L extends Listener> {
       token = peek;
       peek = peekAfterType(token);
     }
+    listener.handleNoType(token);
     token = parseIdentifier(token);
     bool isField;
     while (true) {
@@ -317,24 +318,30 @@ class PartialParser<L extends Listener> {
       expectSemicolon(token);
       listener.endTopLevelField(start, token);
     } else {
-      token = skipArguments(token).next;
-      if (optional(';', token)) {
-        // Ignored.
-      } else if (optional('=>', token)) {
-        token = parseExpression(token.next);
-        expectSemicolon(token);
-      } else if (optional('native', token)) {
-        token = token.next;
-        if (token.kind === STRING_TOKEN) {
-          token = parseString(token);
-        }
-        expectSemicolon(token);
-      } else {
-        token = skipBlock(token);
-      }
+      token = skipFormals(token).next;
+      token = parseFunctionBody(token);
       listener.endTopLevelMethod(start, token);
     }
     return token.next;
+  }
+
+  Token parseFunctionBody(Token token) {
+    if (optional(';', token)) {
+      return token;
+    } else if (optional('=>', token)) {
+      token = parseExpression(token.next);
+      expectSemicolon(token);
+      return token;
+    } else if (optional('native', token)) {
+      token = token.next;
+      if (token.kind === STRING_TOKEN) {
+        token = parseString(token);
+      }
+      expectSemicolon(token);
+      return token;
+    } else {
+      return skipBlock(token);
+    }
   }
 
   Token skipExpression(Token token) {
@@ -351,6 +358,28 @@ class PartialParser<L extends Listener> {
   }
 
   Token parseExpression(Token token) => skipExpression(token);
+
+  Token parseInitializersOpt(Token token) {
+    if (optional(':', token)) {
+      return parseInitializers(token);
+    } else {
+      listener.handleNoInitializers();
+      return token;
+    }
+  }
+
+  Token parseInitializers(Token token) {
+    Token begin = token;
+    listener.beginInitializers(begin);
+    expect(':', token);
+    int count = 0;
+    do {
+      token = parseExpression(token.next);
+      ++count;
+    } while (optional(',', token));
+    listener.endInitializers(count, begin, token);
+    return token;
+  }
 
   Token parseLibraryTags(Token token) {
     Token begin = token;
@@ -411,8 +440,68 @@ class PartialParser<L extends Listener> {
   }
 }
 
-class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
+class Parser extends PartialParser {
   Parser(NodeListener listener) : super(listener);
+
+  Token parseClassBody(Token token) {
+    Token begin = token;
+    listener.beginClassBody(token);
+    if (!optional('{', token)) {
+      return listener.expectedBlock(token);
+    }
+    token = token.next;
+    int count = 0;
+    while (!optional('}', token)) {
+      token = parseMember(token);
+      ++count;
+    }
+    listener.endClassBody(count, begin, token);
+    return token;
+  }
+
+  Token parseMember(Token token) {
+    Token start = token;
+    listener.beginMember(token);
+    token = skipModifiers(token);
+    Token peek = peekAfterType(token);
+    while (isIdentifier(peek)) {
+      token = peek;
+      peek = peekAfterType(token);
+    }
+    listener.handleNoType(token);
+    token = parseIdentifier(token);
+    bool isField;
+    while (true) {
+      // Loop to allow the listener to rewrite the token stream to
+      // make the parser happy.
+      if (optional('(', token)) {
+        isField = false;
+        break;
+      } else if (optional('=', token) || optional(';', token)) {
+        isField = true;
+        break;
+      } else {
+        token = listener.unexpected(token);
+      }
+    }
+    if (isField) {
+      if (optional('=', token)) {
+        token = parseExpression(token.next);
+      } else {
+        listener.handleNoFieldInitializer(token);
+      }
+      expectSemicolon(token);
+      listener.endField(start, token);
+    } else {
+      token = skipFormals(token).next;
+      token = parseInitializersOpt(token);
+      if (!optional(';', token)) {
+        token = skipBlock(token);
+      }
+      listener.endMethod(start, token);
+    }
+    return token.next;
+  }
 
   Token parseFunction(Token token) {
     listener.beginFunction(token);
@@ -422,7 +511,8 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
     token = parseIdentifier(token);
     listener.endFunctionName(token);
     token = parseFormalParameters(token);
-    return parseFunctionBody(token);
+    token = parseInitializersOpt(token);
+    return parseFunctionBody(token).next;
   }
 
   Token parseFunctionBody(Token token) {
@@ -440,7 +530,8 @@ class Parser extends PartialParser/* <NodeListener> Frog bug #320 */ {
       ++statementCount;
     }
     listener.endFunctionBody(statementCount, begin, token);
-    return expect('}', token);
+    expect('}', token);
+    return token;
   }
 
   Token parseStatement(Token token) {

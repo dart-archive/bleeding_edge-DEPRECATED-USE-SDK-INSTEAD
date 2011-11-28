@@ -71,29 +71,29 @@ class Node implements Hashable {
 
   abstract Token getEndToken();
 
-  Block asBlock() => this;
-  ClassNode asClassNode() => this;
-  DoWhile asDoWhile() => this;
-  ExpressionStatement asExpressionStatement() => this;
-  For asFor() => this;
-  FunctionExpression asFunctionExpression() => this;
-  Identifier asIdentifier() => this;
-  If asIf() => this;
-  LiteralBool asLiteralBool() => this;
-  LiteralDouble asLiteralDouble() => this;
-  LiteralInt asLiteralInt() => this;
-  LiteralNull asLiteralNull() => this;
-  LiteralString asLiteralString() => this;
-  NodeList asNodeList() => this;
-  Operator asOperator() => this;
-  ParenthesizedExpression asParenthesizedExpression() => this;
-  Return asReturn() => this;
-  Send asSend() => this;
-  SendSet asSendSet() => this;
-  Throw asThrow() => this;
-  TypeAnnotation asTypeAnnotation() => this;
-  VariableDefinitions asVariableDefinitions() => this;
-  While asWhile() => this;
+  Block asBlock() => null;
+  ClassNode asClassNode() => null;
+  DoWhile asDoWhile() => null;
+  ExpressionStatement asExpressionStatement() => null;
+  For asFor() => null;
+  FunctionExpression asFunctionExpression() => null;
+  Identifier asIdentifier() => null;
+  If asIf() => null;
+  LiteralBool asLiteralBool() => null;
+  LiteralDouble asLiteralDouble() => null;
+  LiteralInt asLiteralInt() => null;
+  LiteralNull asLiteralNull() => null;
+  LiteralString asLiteralString() => null;
+  NodeList asNodeList() => null;
+  Operator asOperator() => null;
+  ParenthesizedExpression asParenthesizedExpression() => null;
+  Return asReturn() => null;
+  Send asSend() => null;
+  SendSet asSendSet() => null;
+  Throw asThrow() => null;
+  TypeAnnotation asTypeAnnotation() => null;
+  VariableDefinitions asVariableDefinitions() => null;
+  While asWhile() => null;
 }
 
 class ClassNode extends Node {
@@ -107,6 +107,8 @@ class ClassNode extends Node {
 
   ClassNode(this.name, this.superclass, this.interfaces,
             this.beginToken, this.extendsKeyword, this.endToken);
+
+  ClassNode asClassNode() => this;
 
   accept(Visitor visitor) => visitor.visitClassNode(this);
 
@@ -143,6 +145,8 @@ class Send extends Expression {
   Send([this.receiver, this.selector, this.argumentsNode]);
   Send.postfix(this.receiver, this.selector) : argumentsNode = new Postfix();
   Send.prefix(this.receiver, this.selector) : argumentsNode = new Prefix();
+
+  Send asSend() => this;
 
   accept(Visitor visitor) => visitor.visitSend(this);
 
@@ -192,6 +196,8 @@ class SendSet extends Send {
   SendSet.prefix(receiver, selector, this.assignmentOperator)
       : super.prefix(receiver, selector);
 
+  SendSet asSendSet() => this;
+
   accept(Visitor visitor) => visitor.visitSendSet(this);
 
   Send copyWithReceiver(Node receiver) {
@@ -229,6 +235,8 @@ class NodeList extends Node {
 
   NodeList.singleton(Node node) : this(null, new Link<Node>(node));
 
+  NodeList asNodeList() => this;
+
   accept(Visitor visitor) => visitor.visitNodeList(this);
 
   Token getBeginToken() {
@@ -264,6 +272,8 @@ class Block extends Statement {
 
   Block(this.statements);
 
+  Block asBlock() => this;
+
   accept(Visitor visitor) => visitor.visitBlock(this);
 
   Token getBeginToken() => statements.getBeginToken();
@@ -281,6 +291,8 @@ class If extends Statement {
 
   If(this.condition, this.thenPart, this.elsePart,
      this.ifToken, this.elseToken);
+
+  If asIf() => this;
 
   bool get hasElsePart() => elsePart !== null;
 
@@ -309,6 +321,8 @@ class For extends Loop {
   For(this.initializer, this.conditionStatement, this.update, body, 
       this.forToken) : super(body);
 
+  For asFor() => this;
+
   Expression get condition() {
     return conditionStatement.expression;
   }
@@ -329,6 +343,8 @@ class FunctionExpression extends Expression {
   final TypeAnnotation returnType;
 
   FunctionExpression([this.name, this.parameters, this.body, this.returnType]);
+
+  FunctionExpression asFunctionExpression() => this;
 
   accept(Visitor visitor) => visitor.visitFunctionExpression(this);
 
@@ -357,6 +373,8 @@ class Literal<T> extends Expression {
 class LiteralInt extends Literal<int> {
   LiteralInt(Token token, DecodeErrorHandler handler) : super(token, handler);
 
+  LiteralInt asLiteralInt() => this;
+
   int get value() {
     try {
       return Math.parseInt(token.value.toString());
@@ -372,6 +390,8 @@ class LiteralDouble extends Literal<double> {
   LiteralDouble(Token token, DecodeErrorHandler handler)
     : super(token, handler);
 
+  LiteralDouble asLiteralDouble() => this;
+
   double get value() {
     try {
       return Math.parseDouble(token.value.toString());
@@ -385,6 +405,8 @@ class LiteralDouble extends Literal<double> {
 
 class LiteralBool extends Literal<bool> {
   LiteralBool(Token token, DecodeErrorHandler handler) : super(token, handler);
+
+  LiteralBool asLiteralBool() => this;
 
   bool get value() {
     switch (token.value) {
@@ -401,6 +423,8 @@ class LiteralBool extends Literal<bool> {
 class LiteralString extends Literal<SourceString> {
   LiteralString(Token token) : super(token, null);
 
+  LiteralString asLiteralString() => this;
+
   SourceString get value() => token.value;
 
   accept(Visitor visitor) => visitor.visitLiteralString(this);
@@ -408,6 +432,8 @@ class LiteralString extends Literal<SourceString> {
 
 class LiteralNull extends Literal<SourceString> {
   LiteralNull(Token token) : super(token, null);
+
+  LiteralNull asLiteralNull() => this;
 
   SourceString get value() => null;
 
@@ -421,6 +447,8 @@ class Identifier extends Expression {
 
   Identifier(Token this.token);
 
+  Identifier asIdentifier() => this;
+
   accept(Visitor visitor) => visitor.visitIdentifier(this);
 
   getBeginToken() => token;
@@ -431,6 +459,8 @@ class Identifier extends Expression {
 class Operator extends Identifier {
   Operator(Token token) : super(token);
 
+  Operator asOperator() => this;
+
   accept(Visitor visitor) => visitor.visitOperator(this);
 }
 
@@ -440,6 +470,8 @@ class Return extends Statement {
   final Token endToken;
 
   Return(this.beginToken, this.endToken, this.expression);
+
+  Return asReturn() => this;
 
   bool get hasExpression() => expression !== null;
 
@@ -456,6 +488,8 @@ class ExpressionStatement extends Statement {
 
   ExpressionStatement(this.expression, this.endToken);
 
+  ExpressionStatement asExpressionStatement() => this;
+
   accept(Visitor visitor) => visitor.visitExpressionStatement(this);
 
   Token getBeginToken() => expression.getBeginToken();
@@ -471,6 +505,8 @@ class Throw extends Statement {
 
   Throw(this.expression, this.throwToken, this.endToken);
 
+  Throw asThrow() => this;
+
   accept(Visitor visitor) => visitor.visitThrow(this);
 
   Token getBeginToken() => throwToken;
@@ -481,6 +517,8 @@ class TypeAnnotation extends Node {
   final Identifier typeName;
 
   TypeAnnotation(Identifier this.typeName);
+
+  TypeAnnotation asTypeAnnotation() => this;
 
   accept(Visitor visitor) => visitor.visitTypeAnnotation(this);
 
@@ -496,6 +534,8 @@ class VariableDefinitions extends Statement {
   final NodeList definitions;
   VariableDefinitions(this.type, this.modifiers, this.definitions,
                       this.endToken);
+
+  VariableDefinitions asVariableDefinitions() => this;
 
   accept(Visitor visitor) => visitor.visitVariableDefinitions(this);
 
@@ -524,6 +564,8 @@ class DoWhile extends Loop {
           Token this.doKeyword, Token this.whileKeyword, Token this.endToken)
     : super(body);
 
+  DoWhile asDoWhile() => this;
+
   accept(Visitor visitor) => visitor.visitDoWhile(this);
 
   Token getBeginToken() => doKeyword;
@@ -538,6 +580,8 @@ class While extends Loop {
   While(Expression this.condition, Statement body,
         Token this.whileKeyword) : super(body);
 
+  While asWhile() => this;
+
   accept(Visitor visitor) => visitor.visitWhile(this);
 
   Token getBeginToken() => whileKeyword;
@@ -551,6 +595,8 @@ class ParenthesizedExpression extends Expression {
 
   ParenthesizedExpression(Expression this.expression,
                           BeginGroupToken this.beginToken);
+
+  ParenthesizedExpression asParenthesizedExpression() => this;
 
   accept(Visitor visitor) => visitor.visitParenthesizedExpression(this);
 
