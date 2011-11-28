@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.indexer.task;
 
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.indexer.source.IndexableSource;
 import com.google.dart.indexer.workspace.index.IndexingTarget;
 import com.google.dart.indexer.workspace.index.IndexingTargetGroup;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -32,7 +33,7 @@ import java.net.URI;
  * Instances of the class <code>CompilationUnitIndexingTarget</code> implement an indexing target
  * representing a compilation unit.
  */
-public class CompilationUnitIndexingTarget implements IndexingTarget {
+public class CompilationUnitIndexingTarget extends IndexableSource implements IndexingTarget {
   /**
    * The compilation unit to be indexed.
    */
@@ -52,6 +53,11 @@ public class CompilationUnitIndexingTarget implements IndexingTarget {
   public CompilationUnitIndexingTarget(CompilationUnit compilationUnit, DartUnit ast) {
     this.compilationUnit = compilationUnit;
     this.ast = ast;
+  }
+
+  @Override
+  public IndexableSource asSource() {
+    return this;
   }
 
   @Override
@@ -90,12 +96,23 @@ public class CompilationUnitIndexingTarget implements IndexingTarget {
   }
 
   @Override
+  @Deprecated
   public IFile getFile() {
     try {
       return (IFile) compilationUnit.getCorrespondingResource();
     } catch (DartModelException exception) {
       return null;
     }
+  }
+
+  @Override
+  public String getFileExtension() {
+    String fileName = compilationUnit.getElementName();
+    int index = fileName.lastIndexOf('.');
+    if (index < 0) {
+      return "";
+    }
+    return fileName.substring(index + 1);
   }
 
   @Override
@@ -131,6 +148,7 @@ public class CompilationUnitIndexingTarget implements IndexingTarget {
   }
 
   @Override
+  @Deprecated
   public IProject getProject() {
     return compilationUnit.getDartProject().getProject();
   }

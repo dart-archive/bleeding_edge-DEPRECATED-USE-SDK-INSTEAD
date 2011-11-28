@@ -13,6 +13,8 @@
  */
 package com.google.dart.indexer.workspace.index;
 
+import com.google.dart.indexer.source.IndexableSource;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 
@@ -22,7 +24,7 @@ import java.net.URI;
  * Instances of the class <code>ResourceIndexingTarget</code> implement an indexing target
  * representing an {@link IFile}.
  */
-public class ResourceIndexingTarget implements IndexingTarget {
+public class ResourceIndexingTarget extends IndexableSource implements IndexingTarget {
   /**
    * The file to be indexed.
    */
@@ -38,13 +40,29 @@ public class ResourceIndexingTarget implements IndexingTarget {
   }
 
   @Override
+  public IndexableSource asSource() {
+    return this;
+  }
+
+  @Override
   public boolean exists() {
     return file.exists();
   }
 
   @Override
+  @Deprecated
   public IFile getFile() {
     return file;
+  }
+
+  @Override
+  public String getFileExtension() {
+    String fileName = file.getName();
+    int index = fileName.lastIndexOf('.');
+    if (index < 0) {
+      return "";
+    }
+    return fileName.substring(index + 1);
   }
 
   @Override
@@ -58,6 +76,7 @@ public class ResourceIndexingTarget implements IndexingTarget {
   }
 
   @Override
+  @Deprecated
   public IProject getProject() {
     return file.getProject();
   }

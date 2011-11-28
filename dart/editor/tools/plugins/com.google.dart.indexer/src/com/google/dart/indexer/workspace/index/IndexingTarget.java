@@ -13,6 +13,8 @@
  */
 package com.google.dart.indexer.workspace.index;
 
+import com.google.dart.indexer.source.IndexableSource;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 
@@ -24,6 +26,13 @@ import java.net.URI;
  * processed by the {@link WorkspaceIndexer}.
  */
 public interface IndexingTarget {
+  /**
+   * Return an indexable source that represents the same URI as this target.
+   * 
+   * @return an indexable source that represents the same URI as this target
+   */
+  public IndexableSource asSource();
+
   /**
    * Return <code>true</code> if this target exists. A non-existent target is used to signal that
    * the information associated with the target needs to be removed from the index.
