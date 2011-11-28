@@ -31,6 +31,7 @@ class SsaConstantFolder extends HBaseVisitor {
   visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
     while (instruction !== null) {
+      HInstruction next = instruction.next;
       HInstruction replacement = instruction.accept(this);
       if (replacement !== instruction) {
         if (!replacement.isInBasicBlock()) {
@@ -42,7 +43,7 @@ class SsaConstantFolder extends HBaseVisitor {
         block.rewrite(instruction, replacement);
         block.remove(instruction);
       }
-      instruction = instruction.next;
+      instruction = next;
     }
   }
 

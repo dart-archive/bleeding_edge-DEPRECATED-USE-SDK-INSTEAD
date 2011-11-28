@@ -63,7 +63,12 @@ class SsaPhiEliminator extends HGraphVisitor {
   visitBasicBlock(HBasicBlock block) {
     currentBlock = block;
     List<HLoad> loads = <HLoad>[];
-    block.forEachPhi((phi) { visitPhi(phi, loads); });
+    HPhi phi = block.phis.first;
+    while (phi != null) {
+      HPhi next = phi.next;
+      visitPhi(phi, loads);
+      phi = next;
+    }
   }
 
   visitPhi(HPhi phi, List<HLoad> loads) {

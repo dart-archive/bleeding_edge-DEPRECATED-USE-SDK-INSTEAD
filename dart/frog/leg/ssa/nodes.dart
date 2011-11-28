@@ -265,6 +265,8 @@ class HInstructionList {
     } else {
       instruction.next.previous = instruction.previous;
     }
+    instruction.previous = null;
+    instruction.next = null;
   }
 
   void remove(HInstruction instruction) {
@@ -361,10 +363,7 @@ class HBasicBlock extends HInstructionList {
     assert(instruction.isInBasicBlock());
     assert(isClosed());
     assert(last is HControlFlow);
-    instruction.next = last;
-    instruction.previous = last.previous;
-    last.previous.next = instruction;
-    last.previous = instruction;
+    super.addBefore(last, instruction);
     instruction.block = this;
     assert(isValid());
   }
