@@ -117,6 +117,15 @@ public class IndexingQueue {
 
   private QueueState state = QueueState.NORMAL;
 
+  /**
+   * We are temporarily disabling grouping by artificially placing all targets into this single
+   * group. We are doing this because the group information is not currently being stored in the
+   * index, which means that we cannot re-create the group when retrieving information from the
+   * index, which is something
+   */
+  private static final IndexingTargetGroup UNIVERSAL_GROUP = new IndexingTargetGroup() {
+  };
+
   public synchronized void abnormalState(QueueState state) {
     if (!state.isAbnormal()) {
       throw new IllegalArgumentException("Guess what? abnormalState needs an *abnormal* state.");
@@ -278,7 +287,7 @@ public class IndexingQueue {
 
   public synchronized void reenqueue(IndexingTarget target) {
     state = QueueState.NORMAL; // why?..
-    IndexingTargetGroup group = target.getGroup();
+    IndexingTargetGroup group = UNIVERSAL_GROUP; // was target.getGroup();
     GroupState projectState = findOrCreateState(group);
     projectState.reenqueue(target);
   }
@@ -327,7 +336,7 @@ public class IndexingQueue {
   }
 
   private void doEnqueueTarget(IndexingTarget target) {
-    findOrCreateState(target.getGroup()).enqueue(target);
+    findOrCreateState(UNIVERSAL_GROUP).enqueue(target); // was target.getGroup()
   }
 
   private void enqueue(IndexingTarget target) {
