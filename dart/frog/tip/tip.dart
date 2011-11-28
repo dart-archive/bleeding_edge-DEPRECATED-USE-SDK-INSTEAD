@@ -69,7 +69,7 @@ void inject(String code, Window win, [String name = 'generated.js']) {
  * Compile all dart scripts in a window and inject/invoke the corresponding JS.
  */
 void frogify(Window win) {
-  final doc = win.document;
+  var doc = win.document;
   int n = doc.scripts.length;
   // TODO(vsm): Implement foreach iteration on native DOM types.  This
   // should be for (var script in doc.scripts) { ... }.
@@ -142,7 +142,7 @@ num fact(n) {
 }
 
 final x = 22;
- ''';
+''';
 
 final String HCODE = '''#import("dart:html");
 
@@ -421,7 +421,8 @@ class Editor {
     _node = document.createElement('div');
     _node.className = 'editor';
 
-    _code = new CodeBlock(null, CODE, 0, null);
+    _code = new BlockBlock(null, 0);
+    _code.text = CODE;
     _code.top = 0;
     _node.appendChild(_code._node);
 
@@ -547,9 +548,7 @@ class Cursor {
     _node.appendChild(_cursorNode);
 
     if (_toPos == null) return;
-    //_toPos = _pos.moveColumn(-20);
 
-    // First version assumes same line...
     void addDiv(top, left, height, width) {
       var child = document.createElement('div');
       child.className = 'selection';
@@ -610,13 +609,21 @@ class Cursor {
   void deleteSelection() {
     if (_toPos == null) return;
 
-    assert(_toPos.block == _pos.block);
-    if (_toPos.offset < _pos.offset) {
-      _pos.block.delete(_toPos.offset, _pos.offset);
-      _pos = _toPos;
-    } else {
-      _pos.block.delete(_pos.offset, _toPos.offset);
+    var p0 = _pos;
+    var p1 = _toPos;
+
+    if (p0.block != p1.block) {
+      // move up to root and resolve there...
+      p0 = p0.toRoot();
+      p1 = p1.toRoot();
     }
+    assert(p0.block == p1.block);
+
+    if (p1.offset < p0.offset) {
+      var tmp = p0; p0 = p1; p1 = tmp;
+    }
+    p0.block.delete(p0.offset, p1.offset);
+    _pos = p0.toLeaf();
     _toPos = null;
   }
 
@@ -624,8 +631,8 @@ class Cursor {
     // TODO(jimhug): combine insert and delete to optimize
     deleteSelection();
     _pos.block.insertText(_pos.offset, text);
-
-    _pos = new CodePosition(_pos.block, _pos.offset + text.length);
+    _pos.block._redraw(); // TODO(jimhug): Egregious hack.
+    _pos = _pos.moveColumn(text.length);
   }
 }
 
@@ -638,91 +645,515 @@ class CodePosition {
   CodePosition moveLine(int delta) {
     if (delta == 0) return this;
 
-    var lineCol = block.getLineColumn(offset);
+    var lineCol = getLineColumn();
     return block.getPosition(lineCol.line + delta, lineCol.column);
   }
 
   CodePosition moveColumn(int delta) {
-    if (delta == 0) return this;
-
-    var newBlock = block;
-    var newOffset = offset + delta;
-
-    while (newOffset < 0 && block.previous !== null) {
-      newBlock = block.previous;
-      newOffset += newBlock.text.length;
-    }
-    while (newOffset > newBlock.text.length && block.next !== null) {
-      newOffset -= newBlock.text.length;
-      newBlock = block.next;
-    }
-
-    if (newOffset < 0) newOffset = 0;
-    if (newOffset > newBlock.text.length) newOffset = newBlock.text.length;
-
-    return new CodePosition(newBlock, newOffset);
+    return block.moveToOffset(offset + delta);
   }
 
   Point getPoint() {
     return block.offsetToPoint(offset);
   }
+
+  LineColumn getLineColumn() {
+    return block.getLineColumn(offset);
+  }
+
+  CodePosition toRoot() {
+    if (block._parent === null) return this;
+
+    var ret = new CodePosition(block._parent,
+      block._parent.getOffset(block) + offset);
+    return ret.toRoot();
+  }
+
+  CodePosition toLeaf() {
+    return block.moveToOffset(offset);
+  }
 }
+
+
+/**
+ * Every [CodeBlock] must provide the following:
+ * - a node to render it - purely as vertical div
+ * - a height in real pixels and in code lines
+ * - proper interaction with CodePosition
+ * - accurate and working get/set for text property
+ * - appropriate integration into parsing
+ * - support to hold onto annotations of various sorts
+ */
+class BlockChildren implements Iterable<CodeBlock> {
+  BlockBlock _parent;
+  BlockChildren(this._parent);
+
+  Iterator<CodeBlock> iterator() {
+    return new BlockChildrenIterator(_parent._firstChild);
+  }
+}
+
+class BlockChildrenIterator implements Iterator<CodeBlock> {
+  CodeBlock _child;
+  BlockChildrenIterator(this._child);
+
+  // TODO(jimhug): current + moveNext() is much more sane.
+  CodeBlock next() {
+    var ret = _child;
+    _child = _child._nextSibling;
+    return ret;
+  }
+
+  bool hasNext() => _child !== null;
+}
+
+
+/**
+ * Block block...  first and last children are special except for top file.
+ */
+class BlockBlock extends CodeBlock {
+  CodeBlock _firstChild;
+  CodeBlock _lastChild;
+
+  Iterable<CodeBlock> children;
+
+  BlockBlock(CodeBlock parent, int depth): super(parent, depth) {
+    text = '';
+    children = new BlockChildren(this);
+  }
+
+  int get size() {
+    var ret = 0;
+    for (var child in children) ret += child.size;
+    return ret;
+  }
+
+  int get lineCount() {
+    var ret = 0;
+    for (var child in children) ret += child.lineCount;
+    return ret;
+  }
+
+  // TODO(jimhug): This property is expensive here - should it be a prop?
+  String get text() {
+    var ret = new StringBuffer();
+    for (var child in children) ret.add(child.text);
+    return ret.toString();
+  }
+
+  int getOffset(CodeBlock forChild) {
+    var ret = 0;
+    for (var child in children) {
+      if (child == forChild) return ret;
+      ret += child.size;
+    }
+    throw "child missing";
+  }
+
+  int getLine(CodeBlock forChild) {
+    var ret = 0;
+    for (var child in children) {
+      if (child == forChild) return ret;
+      ret += child.lineCount;
+    }
+    throw "child missing";
+  }
+
+  _addChildAfter(CodeBlock addAfterChild, CodeBlock child) {
+    markDirty();
+    child._nextSibling = addAfterChild._nextSibling;
+    child._previousSibling = addAfterChild;
+    addAfterChild._nextSibling = child;
+
+    // Add child's node into our DOM tree.
+    if (child._nextSibling === null) {
+      _node.appendChild(child._node);
+      _lastChild = child;
+    } else {
+      _node.insertBefore(child._node, child._nextSibling._node);
+    }
+  }
+
+  _removeChild(CodeBlock child) {
+    markDirty();
+    if (child._previousSibling !== null) {
+      child._previousSibling._nextSibling = child._nextSibling;
+    } else {
+      _firstChild = child._nextSibling;
+    }
+    if (child._nextSibling !== null) {
+      child._nextSibling._previousSibling = child._previousSibling;
+    } else {
+      _lastChild = child._previousSibling;
+    }
+
+    // Remove child's node from our DOM tree.
+    _node.removeChild(child._node);
+  }
+
+  void set text(String newText) {
+    final sw = new Stopwatch();
+    sw.start();
+
+    _firstChild = _lastChild = null;
+
+    final src = new SourceFile('fake.dart', newText);
+    int start = 0;
+    while (start != -1) {
+      var child = new TextBlock(this, null, _depth + 1);
+      if (_lastChild === null) {
+        _firstChild = _lastChild = child;
+        _node.appendChild(child._node);
+      } else {
+        _addChildAfter(_lastChild, child);
+      }
+      start = child.tokenizeInto(src, start);
+    }
+
+    sw.stop();
+
+    print('create structure in ${sw.elapsedInMs()}msec');
+  }
+
+  void insertText(int offset, String newText) {
+    var index = 0;
+    for (var child in children) {
+      var childSize = child.size;
+      if (offset < childSize) {
+        child.insertText(offset, newText);
+        return;
+      } else if (offset == childSize) {
+        // TODO(jimhug): Nasty merging of text and block structure here.
+        var newChild = new TextBlock(this, newText, _depth + 1);
+        _addChildAfter(child, newChild);
+        return;
+      }
+      offset -= childSize;
+      index++;
+    }
+    // TODO: nesting at this level
+    throw "help";
+  }
+
+  void delete(int from, int to) {
+    assert(from <= to);
+    var keepChild = null;
+    for (var child = _firstChild; child !== null; child = child._nextSibling) {
+      var childSize = child.size;
+      if (keepChild !== null) {
+        _removeChild(child);
+        if (to <= childSize) {
+          // abstraction violation!!!
+          keepChild._text += child._text.substring(to);
+          return;
+        }
+      } else if (from <= childSize) {
+        if (to < childSize) {
+          child.delete(from, to);
+          return;
+        } else {
+          child.delete(from, childSize);
+          keepChild = child;
+        }
+      }
+      from -= childSize;
+      to -= childSize;
+    }
+    // TODO: nesting at this level
+    throw  "help";
+  }
+
+  _redraw() {
+    if (!_dirty) return;
+    _dirty = false;
+
+    var childTop = 0;
+    for (var child = _firstChild; child !== null; child = child._nextSibling) {
+      // Note: Performance here relies on lazy setter in CodeBlock.
+      child.top = childTop;
+      child._redraw();
+      childTop += child.height;
+    }
+  }
+
+  CodePosition moveToOffset(int offset) {
+    for (var child in children) {
+      var childSize = child.size;
+      if (offset < childSize) {
+        return child.moveToOffset(offset);
+      }
+      offset -= childSize;
+    }
+    // TODO: nesting at this level
+    return end;
+  }
+
+  CodePosition positionFromPoint(int x, int y) {
+    if (y < top) return start;
+
+    for (var child in children) {
+      if (child.top <= y && (child.top + child.height) >= y) {
+        return child.positionFromPoint(x, y - child.top);
+      }
+    }
+    // TODO: next level of nesting...
+    return end;
+  }
+
+  CodePosition getPosition(int line, int column) {
+    if (line < 0) return start;
+    for (var child in children) {
+      if (line < child.lineCount) return child.getPosition(line, column);
+
+      line -= child.lineCount;
+    }
+    return end; // TODO
+  }
+
+  // These are local line/column to this block??????
+  LineColumn getLineColumn(int offset) {
+    if (offset < 0) return new LineColumn(0, 0);
+
+    int childLine = 0;
+    for (var child in children) {
+      var childSize = child.size;
+      if (offset < childSize) {
+        // TODO: This needs modification!!!
+        var ret = child.getLineColumn(offset);
+        return new LineColumn(ret.line + childLine, ret.column);
+      }
+      offset -= childSize;
+      childLine += child.lineCount;
+    }
+    // TODO: nesting at this level
+    return new LineColumn(lineCount, 0); // ??? wrong end column
+  }
+
+  Point offsetToPoint(int offset) {
+    if (offset < 0) return new Point(0, 0);
+
+    for (var child in children) {
+      var childSize = child.size;
+      if (offset < childSize) {
+        var ret = child.offsetToPoint(offset);
+        return new Point(ret.x, ret.y + child.top);
+      }
+      offset -= childSize;
+    }
+    // TODO: nesting at this level
+    return new Point(0, top + height);
+  }
+}
+
+/**
+ * Pure text block - terminals.
+ */
+class TextBlock extends CodeBlock {
+  List<int> _lineStarts;
+  String _text;
+
+  TextBlock(CodeBlock parent, this._text, int depth): super(parent, depth) {
+    //window.console.warn('tb: "$_text"');
+  }
+
+  int get size() => _text.length;
+
+  int get lineCount() => _lineStarts.length;
+
+  String get text() => _text;
+
+  void set text(String newText) {
+    _text = newText;
+    markDirty();
+  }
+
+  void insertText(int offset, String newText) {
+    _text = _text.substring(0, offset) + newText + _text.substring(offset);
+    markDirty();
+  }
+
+  void delete(int from, int to) {
+    assert(from <= to);
+    assert(to <= _text.length);
+    markDirty();
+
+    if (to == _text.length) {
+      if (from == 0) {
+        _parent._removeChild(this);
+      } else {
+        _text = _text.substring(0, from);
+      }
+    } else {
+      _text = _text.substring(0, from) + _text.substring(to);
+    }
+  }
+
+  int tokenizeInto(SourceFile src, int start) {
+    _lineStarts = new List<int>();
+    _lineStarts.add(start);
+
+    // classify my text and create siblings and parents as needed
+    var html = new StringBuffer();
+    Tokenizer tokenizer = new Tokenizer(src, /*skipWhitespace:*/false, start);
+
+    int depth = 0;
+
+    // TODO(jimhug): REALLY INEFFICIENT!
+    void addLineStarts(Token token) {
+      // TODO(jimhug): Should we just make the Tokenizer do this directly?
+      final text = src.text;
+      for (int index = token.start; index < token.end; index++) {
+        if (text.charCodeAt(index) == 10/*'\n'*/) {
+          _lineStarts.add(index - start + 1);
+        }
+      }
+    }
+
+    // TODO(jimhug): Add whitespace blocks?
+    while (true) {
+      var token = tokenizer.next();
+
+      if (token.kind == TokenKind.END_OF_FILE) {
+        _node.innerHTML = html.toString();
+        if (start == 0) _text = src.text;
+        else _text = src.text.substring(start);
+        height = lineCount * LINE_HEIGHT;
+        // update parent
+        return -1;
+      } else if (token.kind == TokenKind.WHITESPACE) {
+        // TODO(jimhug): Special handling for pure whitespace divs?
+        if (src.text.charCodeAt(token.end-1) == 10/*'\n'*/) {
+          // Model 1 - create siblings at any "true" line break
+          // -- set my  from source
+          _text = src.text.substring(start, token.end);
+          _node.innerHTML = html.toString();
+          height = lineCount * LINE_HEIGHT;
+          // update parent...
+          return token.end;
+        }
+      } else if (token.kind == TokenKind.COMMENT) {
+        // TODO(jimhug): These may be the most fun blocks to handle...
+        addLineStarts(token);
+      } else if (token.kind == TokenKind.STRING) {
+        addLineStarts(token);
+      } else if (token.kind == TokenKind.STRING_PART) {
+        addLineStarts(token);
+      }
+
+      final kind = classify(token);
+      final stringClass = ''; // TODO!!!
+      final text = htmlEscape(token.text);
+      if (kind != null) {
+        html.add('<span class="$kind $stringClass">$text</span>');
+      } else {
+        html.add('<span>$text</span>');
+      }
+    }
+  }
+
+  _redraw() {
+    if (!_dirty) return;
+    _dirty = false;
+
+    var initialText = _text;
+    var end = tokenizeInto(new SourceFile('fake.dart', _text), 0);
+    if (_text.length < initialText.length) {
+      // ??? How to know we want a new block ???
+      var extraText = initialText.substring(_text.length);
+      _parent.insertText(_parent.getOffset(this) + _text.length, extraText);
+    }
+  }
+
+  CodePosition moveToOffset(int offset) {
+    if (offset < 0 || offset >= _text.length) {
+      return _parent.moveToOffset(_parent.getOffset(this) + offset);
+    }
+    return new CodePosition(this, offset);
+  }
+
+  CodePosition positionFromPoint(int x, int y) {
+    return getPosition((y / LINE_HEIGHT).floor(), (x / CHAR_WIDTH).round());
+  }
+
+  CodePosition getPosition(int line, int column) {
+    if (line < 0 || line >= lineCount) {
+      return _parent.getPosition(_parent.getLine(this) + line, column);
+    }
+
+    int maxOffset;
+    if (line < _lineStarts.length - 1) {
+      maxOffset = _lineStarts[line + 1] - 1;
+    } else {
+      maxOffset = _text.length - 1;
+    }
+
+    final offset = Math.min(_lineStarts[line] + column, maxOffset);
+
+    return new CodePosition(this, offset);
+  }
+
+  // These are local line/column to this block
+  LineColumn getLineColumn(int offset) {
+    // TODO(jimhug): Binary search would be faster but more complicated.
+    int previousStart = 0;
+    int line = 1;
+    for (; line < _lineStarts.length; line++) {
+      int start = _lineStarts[line];
+      if (start > offset) {
+        break;
+      }
+      previousStart = start;
+    }
+    return new LineColumn(line - 1, offset - previousStart);
+  }
+
+  Point offsetToPoint(int offset) {
+    LineColumn lc = getLineColumn(offset);
+    return new Point(lc.column * CHAR_WIDTH, top + (lc.line * LINE_HEIGHT));
+  }
+}
+
 
 class CodeBlock {
   CodeBlock _parent;
 
-  CodeBlock _previous;
-  CodeBlock _next;
+  CodeBlock _previousSibling;
+  CodeBlock _nextSibling;
 
-  // TODO(jimhug): Container vs. text blocks is still fuzzy.
-  CodeBlock _firstChild;
-  String _text;
   int _depth = 0;
-  List<int> _lineStarts;
 
   bool _dirty = true;
   var _node;
   int _top, _height;
 
-  CodeBlock(this._parent, this._text, this._depth, [String htmlText = null]) {
+  CodeBlock(this._parent, this._depth) {
     _node = document.createElement('div');
-    _node.className = 'code';
-    if (htmlText != null) {
-      _node.innerHTML = htmlText;
-      _dirty = false;
-    }
+    _node.className = 'code'; // TODO - different kinds of nodes
   }
 
-  CodeBlock get firstChild() => _firstChild !== null ? _firstChild : this;
+  abstract int size();
+  abstract int get lineCount();
 
-  CodeBlock get lastChild() {
-    var ret = firstChild;
-    if (ret == null) return this;
-    // O(N) in blocks - could cache if this is perf bottleneck.
-    while (ret._next != null) ret = ret._next;
-    return ret.lastChild;
-  }
+  abstract String get text();
 
-  CodeBlock get previous() {
-    if (_previous !== null) return _previous;
-    if (_parent === null || _parent.previous === null) return null;
+  abstract void set text(String newText);
 
-    return _parent.previous.lastChild;
-  }
-
-  CodeBlock get next() {
-    if (_next != null) return _next;
-    if (_parent === null || _parent.next === null) return null;
-
-    return _parent.next.firstChild;
-  }
+  abstract CodePosition moveToOffset(int offset);
 
   CodePosition get start() {
     return new CodePosition(this, 0);
   }
 
   CodePosition get end() {
-    return new CodePosition(this, _text.length);
+    return new CodePosition(this, size);
+  }
+
+  int getOffset(CodeBlock forChild) {
+    throw "child missing";
+  }
+
+  int getLine(CodeBlock forChild) {
+    throw "child missing";
   }
 
   void parse() {
@@ -738,13 +1169,6 @@ class CodeBlock {
         _parent._dirty = true;
       }
     }
-  }
-
-  String get text() => _text;
-
-  void set text(String newText) {
-    _text = newText;
-    markDirty();
   }
 
   int get top() => _top;
@@ -765,162 +1189,9 @@ class CodeBlock {
     }
   }
 
-  void insertText(int offset, String newText) {
-    _text = _text.substring(0, offset) + newText + _text.substring(offset);
-    markDirty();
-  }
+  abstract void insertText(int offset, String newText);
 
-  void delete(int from, int to) {
-    assert(from <= to);
-    _text = _text.substring(0, from) + _text.substring(to);
-    markDirty();
-  }
-
-  // Split redraw and classify???
-  // Multi-threading - background workers????
-
-  // Step #1 split top level into different blocks - and add some sort of
-  // visual indicator to help make this more clear.
-
-  CodeBlock _addNewBlock(CodeBlock lastChild, int start, Token token,
-      List<int> lineStarts, String html) {
-    var blockText = _text.substring(start, token.end);
-    var newBlock = new CodeBlock(this, blockText, 1, html.toString());
-    newBlock._lineStarts = lineStarts.getRange(0, lineStarts.length);
-    newBlock.height = (lineStarts.length + 1) * LINE_HEIGHT;
-    lineStarts.clear();
-
-    if (lastChild == null) {
-      newBlock.top = this.top;
-      _firstChild = newBlock;
-    } else {
-      newBlock.top = lastChild.top + lastChild.height;
-      lastChild._next = newBlock;
-    }
-    _node.appendChild(newBlock._node);
-    return newBlock;
-  }
-
-  _redraw() {
-    if (!_dirty) return;
-
-    _dirty = false;
-
-    if (_text != null && _text.length == 0) {
-      _node.innerHTML = '<span> </span>';
-      height = LINE_HEIGHT;
-      return;
-    }
-
-    // container node
-    if (_text == null) {
-      // recursive on children
-      var child = _firstChild;
-      var childTop = top;
-      _node.innerHTML = '';
-      while (child != null) {
-        child.top = childTop;
-        child._redraw();
-        childTop += child.height;
-        _node.appendChild(child._node);
-        child = child._next;
-      }
-      height = childTop - top;
-      return;
-    }
-
-    // classify my text and create children as needed
-    // TODO(jimhug): Shared tokenizer with proper source locations?
-    final src = new SourceFile('fake.dart', _text);
-    var html = new StringBuffer();
-    var lineStarts = new List<int>();
-    lineStarts.add(0);
-    Tokenizer tokenizer = new Tokenizer(src, /*skipWhitespace:*/false);
-
-    int depth = 0;
-    int start = 0;
-    int indentations = 0; // ???????????
-    CodeBlock lastChild = null;
-
-    void addLineStarts(Token token) {
-      if (token.kind == TokenKind.COMMENT
-          || token.kind == TokenKind.WHITESPACE
-          || token.kind == TokenKind.STRING
-          || token.kind == TokenKind.STRING_PART) {
-        // TODO(jimhug): Should we just make the Tokenizer do this directly?
-        final text = token.source.text;
-        for (int index = token.start; index < token.end; index++) {
-          if (text.charCodeAt(index) == 10/*'\n'*/) {
-            lineStarts.add(index - start + 1);
-          }
-        }
-      }
-    }
-
-    // TODO(jimhug): Add whitespace blocks?
-    while (true) {
-      var token = tokenizer.next();
-      addLineStarts(token);
-
-      if (token.kind == TokenKind.END_OF_FILE) {
-        if (false && _depth == 0) { // TODO(jimhug)
-          lastChild = _addNewBlock(lastChild, start, token, lineStarts, html.toString());
-          // close this last - possibly incomplete block
-          _text = null;
-          height = top - (lastChild.top + lastChild.height);
-        } else {
-          _node.innerHTML = html.toString();
-          _lineStarts = lineStarts;
-          height = _lineStarts.length * LINE_HEIGHT;
-        }
-        return;
-      }
-
-      if (token.kind == TokenKind.COMMENT) {
-        // TODO(jimhug): These may be the most fun blocks to handle...
-        // if (depth == 0) - try to make this into its own block
-        // and then go wild with markdown -> html.
-      }
-
-      final kind = classify(token);
-      final stringClass = ''; // TODO!!!
-      final text = htmlEscape(token.text);
-      if (kind != null) {
-        html.add('<span class="$kind $stringClass">$text</span>');
-      } else {
-        html.add('<span>$text</span>');
-      }
-
-      // initially, only one deep
-      if (_depth == 0) {
-        if (token.kind == TokenKind.CLASS || token.kind == TokenKind.INTERFACE) {
-          // Do nothing special for now
-        } else if (token.kind == TokenKind.LBRACE) {
-          depth += 1;
-        } else if (token.kind == TokenKind.SEMICOLON || token.kind == TokenKind.RBRACE) {
-          if (token.kind == TokenKind.RBRACE) depth -= 1;
-          // TODO(jimhug)
-          if (false && depth == 0) {
-            // This token must be the last one on its line or at end of file
-            token = tokenizer.next();
-            if (token.kind == TokenKind.END_OF_FILE) {
-            } else if (token.kind == TokenKind.WHITESPACE) {
-              // Validate newline!
-              //addLineStarts(token);
-              //html.add('<span>${htmlEscape(token.text)}</span>');
-            } else {
-              // ??? what to do???
-              continue;
-            }
-            lastChild = _addNewBlock(lastChild, start, token, lineStarts, html.toString());
-            start = token.end;
-            lineStarts.clear();
-            html = new StringBuffer(); // clear?
-          }
-        }
-      }
-    }
-  }
+  abstract void delete(int from, int to);
 
   CodePosition positionFromMouse(MouseEvent p) {
     var box = _node.getBoundingClientRect();
@@ -930,89 +1201,16 @@ class CodeBlock {
     return positionFromPoint(x, y);
   }
 
-  CodePosition positionFromPoint(int x, int y) {
-    if (_firstChild != null) {
-      CodeBlock child = _firstChild;
-      while (child != null) {
-        if (y < child.top + child.height) {
-          return child.positionFromPoint(x, y - child.top);
-        }
-      }
-      return child.positionFromPoint(x, y - child.top);
-    }
+  abstract CodePosition positionFromPoint(int x, int y);
 
-    return getPosition((y / LINE_HEIGHT).floor(), (x / CHAR_WIDTH).round());
-  }
-
-  CodePosition getPosition(int line, int column) {
-    if (_firstChild != null) {
-      CodeBlock child = _firstChild;
-      int topLine = 0;
-      while (child != null) {
-        int lines = child._lineStarts.length;
-        if (line < topLine + lines) {
-          return child.getPosition(line - topLine, column);
-        }
-        topLine += lines;
-        child = child._next;
-      }
-      return child.getPosition(line, column);
-    }
-
-    line = Math.min(Math.max(0, line), _lineStarts.length - 1);
-    int maxOffset;
-    if (line < _lineStarts.length - 1) {
-      maxOffset = _lineStarts[line + 1] - 1;
-    } else {
-      maxOffset = _text.length;
-    }
-
-    final offset = Math.min(_lineStarts[line] + column, maxOffset);
-
-    return new CodePosition(this, offset);
-  }
+  abstract CodePosition getPosition(int line, int column);
 
   // These are local line/column to this block
-  LineColumn getLineColumn(int offset) {
-    if (_firstChild != null) {
-      throw "aaaaaaaaaaaa!";
-      // somehow iterate through children in a rational way...
-      //return _firstChild.getLineColumn(offset);
-    }
+  abstract LineColumn getLineColumn(int offset);
 
-    // TODO(jimhug): Binary search would be faster but more complicated.
-    int previousStart = 0;
-    int line = 1;
-    for (; line < _lineStarts.length; line++) {
-      int start = _lineStarts[line];
-      if (start > offset) {
-        break;
-      }
-      previousStart = start;
-    }
-    return new LineColumn(line - 1, offset - previousStart);
-  }
+  abstract Point offsetToPoint(int offset);
 
-  Point offsetToPoint(int offset) {
-    LineColumn lc = null;
-
-    if (_firstChild != null) {
-      // walk through my children to find offset
-      int start = 0;
-      var child = _firstChild;
-      while (child != null) {
-        if (offset < start + child.text.length) {
-          lc = child.getLineColumn(offset - start);
-          break;
-        }
-        start = start + child.text.length;
-        child = child._next;
-      }
-    } else {
-      lc = getLineColumn(offset);
-    }
-    return new Point(lc.column * CHAR_WIDTH, top + (lc.line * LINE_HEIGHT));
-  }
+  abstract void _redraw();
 }
 
 

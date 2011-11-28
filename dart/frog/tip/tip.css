@@ -129,7 +129,8 @@ h3 {
 .code {
   white-space: pre;
   position: absolute;
-  /* TODO(jimhug): Useful for debugging - outline: 1px solid gray; */
+  /* TODO(jimhug): Useful for debugging. */
+  outline: 1px dotted rgba(0, 0, 0, 0.2);
 }
 
 /* Syntax highlighting. */
