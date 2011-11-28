@@ -629,7 +629,28 @@ class HInstruction implements Hashable {
   bool isString() => type == TYPE_STRING;
 
   // Compute the type of the instruction.
-  int computeType() => TYPE_UNKNOWN;
+  int computeType() => computeDesiredType();
+
+  int computeDesiredType() {
+    int candidateType = TYPE_UNKNOWN;
+    for (final user in usedBy) {
+      int type = user.computeDesiredInputType(this);
+      if (candidateType == TYPE_UNKNOWN) {
+        candidateType = type;
+      } else if (type != TYPE_UNKNOWN && candidateType != type) {
+        candidateType = TYPE_UNKNOWN;
+        break;
+      }
+    }
+    return candidateType;
+  }
+
+  int computeDesiredInputType(HInstruction input) => TYPE_UNKNOWN;
+
+  // Returns whether the instruction does produce the type it claims.
+  // For most instructions, this returns false. A type guard will be
+  // inserted to make sure the users get the right type in.
+  bool hasExpectedType() => false;
 
   // Compute the (shared) type of the inputs if any. If all inputs
   // have the same known type return it. If any two inputs have
@@ -658,8 +679,16 @@ class HInstruction implements Hashable {
     if (type == TYPE_CONFLICT) return false;
     int newType = computeType();
     bool changed = (type != newType);
-    type = newType;
-    return changed;
+    if (type == TYPE_UNKNOWN) {
+      type = newType;
+      return changed;
+    } else if (changed) {
+      // We found a different type from what we found before. Be
+      // pessismistic for now and mark it as conflicting.
+      type = TYPE_CONFLICT;
+      return changed;
+    }
+    return false;
   }
 
   bool isInBasicBlock() => block !== null;
@@ -756,6 +785,7 @@ class HBoolify extends HInstruction {
   }
 
   int computeType() => TYPE_BOOLEAN;
+  bool hasExpectedType() => true;
 
   accept(HVisitor visitor) => visitor.visitBoolify(this);
   bool typeEquals(other) => other is HBoolify;
@@ -773,6 +803,7 @@ class HTypeGuard extends HInstruction {
   }
 
   int computeType() => type;
+  bool hasExpectedType() => true;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   bool typeEquals(other) => other is HTypeGuard;
@@ -819,9 +850,16 @@ class HArithmetic extends HInvoke {
   }
 
   int computeType() {
-    builtin = computeInputsType() == TYPE_NUMBER;
-    return inputs[0].isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
+    int type = computeInputsType();
+    builtin = (type == TYPE_NUMBER);
+    if (inputs[0].isNumber()) return TYPE_NUMBER;
+    if (type != TYPE_UNKNOWN) return type;
+    return super.computeType();
   }
+
+  int computeDesiredInputType(HInstruction input) =>
+    inputs[0].isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
+  bool hasExpectedType() => type == TYPE_NUMBER;
 
   abstract HInstruction fold();
 }
@@ -838,7 +876,7 @@ class HBinaryArithmetic extends HArithmetic {
     return this;
   }
 
-  abstract num evaluate(num a, num b);  
+  abstract num evaluate(num a, num b);
 }
 
 class HAdd extends HBinaryArithmetic {
@@ -855,6 +893,18 @@ class HAdd extends HBinaryArithmetic {
     if (inputs[0].isNumber()) return TYPE_NUMBER;
     if (inputs[0].isString()) return TYPE_STRING;
     return TYPE_UNKNOWN;
+  }
+
+  int computeDesiredInputType(HInstruction input) {
+    if (inputs[0].isString()) return TYPE_STRING;
+    if (inputs[0].isNumber()) return TYPE_NUMBER;
+    return TYPE_UNKNOWN;
+  }
+
+  bool hasExpectedType() {
+    if (inputs[0].isNumber()) return type == TYPE_NUMBER;
+    if (inputs[0].isString()) return type == TYPE_STRING;
+    return type == TYPE_UNKNOWN;
   }
 }
 
@@ -1024,13 +1074,18 @@ class HLiteral extends HInstruction {
   int computeType() {
     if (isLiteralNumber()) {
       return TYPE_NUMBER;
-    } else if (value is bool) {
+    } else if (isLiteralBoolean()) {
       return TYPE_BOOLEAN;
+    } else if (isLiteralString()) {
+      return TYPE_STRING;
     } else {
       return TYPE_UNKNOWN;
     }
   }
 
+  bool hasExpectedType() => true;
+
+  bool isLiteralBoolean() => value is bool;
   bool isLiteralNull() => value === null;
   bool isLiteralNumber() => value is num;
   bool isLiteralString() => value is SourceString;
@@ -1046,6 +1101,7 @@ class HNot extends HInstruction {
   }
 
   int computeType() => TYPE_BOOLEAN;
+  bool hasExpectedType() => true;
 
   accept(HVisitor visitor) => visitor.visitNot(this);
   bool typeEquals(other) => other is HNot;
@@ -1082,7 +1138,22 @@ class HPhi extends HInstruction {
     input.usedBy.add(this);
   }
 
-  int computeType() => computeInputsType();
+  int computeType() {
+    int type = computeInputsType();
+    if (type != TYPE_UNKNOWN) return type;
+    return super.computeType();
+  }
+
+  int computeDesiredInputType(HInstruction input) {
+    return type;
+  }
+
+  bool hasExpectedType() {
+    for (int i = 0; i < inputs.length; i++) {
+      if (inputs[i].type !== type) return false;
+    }
+    return true;
+  }
 
   bool updateTypeForLoopPhi() {
     assert(block.isLoopHeader());
@@ -1115,8 +1186,15 @@ class HRelational extends HInvoke {
   // TODO(kasperl): This can be improved for at least for equality.
   int computeType() {
     builtin = computeInputsType() == TYPE_NUMBER;
-    return inputs[0].isNumber() ? TYPE_BOOLEAN : TYPE_UNKNOWN;
+    if (inputs[0].isNumber()) return TYPE_BOOLEAN;
+    if (type != TYPE_UNKNOWN) return type;
+    return super.computeType();
   }
+
+  int computeDesiredInputType(HInstruction input) =>
+    inputs[0].isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
+
+  bool hasExpectedType() => type == TYPE_BOOLEAN;
 
   abstract bool evaluate(num a, num b);
 }

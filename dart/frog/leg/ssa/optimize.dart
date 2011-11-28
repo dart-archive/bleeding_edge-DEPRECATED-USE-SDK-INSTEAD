@@ -79,7 +79,7 @@ class SsaConstantFolder extends HBaseVisitor {
     // TODO(floitsch): is String + literal a compile-time expression? If not
     // we must pay attention not to canonicalize the concatenated string with
     // an already existing string.
-    if (node.inputs[0].isLiteralString()) {
+    if (node.inputs[0].isLiteralString() && node.inputs[1] is HLiteral) {
       HLiteral op1 = node.inputs[0];
       HLiteral op2 = node.inputs[1];
       return new HLiteral(new SourceString("${op1.value} + ${op2.value}"));
@@ -127,6 +127,7 @@ class SsaTypePropagator extends HGraphVisitor {
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
     processWorklist();
+    new TypeGuardInserter().visitGraph(graph);
   }
 
   visitBasicBlock(HBasicBlock block) {
@@ -136,13 +137,13 @@ class SsaTypePropagator extends HGraphVisitor {
       });
     } else {
       block.forEachPhi((HPhi phi) {
-        phi.updateType();
+        if (phi.updateType()) addUsersAndInputsToWorklist(phi);
       });
     }
 
     HInstruction instruction = block.first;
     while (instruction !== null) {
-      instruction.updateType();
+      if (instruction.updateType()) addUsersAndInputsToWorklist(instruction);
       instruction = instruction.next;
     }
   }
@@ -153,11 +154,16 @@ class SsaTypePropagator extends HGraphVisitor {
       HInstruction instruction = workmap[id];
       assert(instruction !== null);
       workmap.remove(id);
-      if (instruction.updateType()) {
-        for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
-          addToWorklist(instruction.usedBy[i]);
-        }
-      }
+      if (instruction.updateType()) addUsersAndInputsToWorklist(instruction);
+    }
+  }
+
+  void addUsersAndInputsToWorklist(HInstruction instruction) {
+    for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
+      addToWorklist(instruction.usedBy[i]);
+    }
+    for (int i = 0, length = instruction.inputs.length; i < length; i++) {
+      addToWorklist(instruction.inputs[i]);
     }
   }
 
@@ -167,6 +173,40 @@ class SsaTypePropagator extends HGraphVisitor {
       worklist.add(id);
       workmap[id] = instruction;
     }
+  }
+}
+
+class TypeGuardInserter extends HGraphVisitor {
+
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  visitBasicBlock(HBasicBlock block) {
+    HInstruction instruction = block.phis.first;
+    while (instruction !== null) {
+      instruction = tryInsertGuard(instruction, block.first);
+    }
+    instruction = block.first;
+    while (instruction !== null) {
+      instruction = tryInsertGuard(instruction, instruction);
+    }
+  }
+
+  HInstruction tryInsertGuard(HInstruction instruction,
+                              HInstruction insertionPoint) {
+    // If we found a type for the instruction, but the instruction
+    // does not know if it produces that type, add a guard.
+    if (!instruction.isUnknown() && !instruction.hasExpectedType()) {
+      HTypeGuard guard = new HTypeGuard(instruction.type, instruction);
+      // Remove the instruction's type, the guard is now holding that
+      // type.
+      instruction.type = HInstruction.TYPE_UNKNOWN;
+      instruction.block.rewrite(instruction, guard);
+      insertionPoint.block.addAfter(insertionPoint, guard);
+      return guard.next;
+    }
+    return instruction.next;
   }
 }
 
