@@ -135,7 +135,7 @@ class PartialParser {
 
   Token parseClass(Token token) {
     Token begin = token;
-    listener.beginClass(token);
+    listener.beginClassDeclaration(token);
     token = parseIdentifier(token.next);
     token = parseTypeVariablesOpt(token);
     Token extendsKeyword;
@@ -154,18 +154,10 @@ class PartialParser {
         ++interfacesCount;
       } while (optional(',', token));
     }
-    token = parseNativeClassClauseOpt(token);
     token = parseClassBody(token);
-    listener.endClass(interfacesCount, begin, extendsKeyword, implementsKeyword,
-                      token);
+    listener.endClassDeclaration(interfacesCount, begin, extendsKeyword,
+                                 implementsKeyword, token);
     return token.next;
-  }
-
-  Token parseNativeClassClauseOpt(Token token) {
-    if (optional('native', token)) {
-      return parseString(token.next);
-    }
-    return token;
   }
 
   Token parseString(Token token) {
@@ -295,12 +287,11 @@ class PartialParser {
       token = peek;
       peek = peekAfterType(token);
     }
-    listener.handleNoType(token);
     token = parseIdentifier(token);
     bool isField;
     while (true) {
-      // Loop to allow the listener to rewrite the token stream to
-      // make the parser happy.
+      // Loop to allow the listener to rewrite the token stream for
+      // error handling.
       if (optional('(', token)) {
         isField = false;
         break;
@@ -330,13 +321,6 @@ class PartialParser {
       return token;
     } else if (optional('=>', token)) {
       token = parseExpression(token.next);
-      expectSemicolon(token);
-      return token;
-    } else if (optional('native', token)) {
-      token = token.next;
-      if (token.kind === STRING_TOKEN) {
-        token = parseString(token);
-      }
       expectSemicolon(token);
       return token;
     } else {
@@ -468,12 +452,11 @@ class Parser extends PartialParser {
       token = peek;
       peek = peekAfterType(token);
     }
-    listener.handleNoType(token);
     token = parseIdentifier(token);
     bool isField;
     while (true) {
-      // Loop to allow the listener to rewrite the token stream to
-      // make the parser happy.
+      // Loop to allow the listener to rewrite the token stream for
+      // error handling.
       if (optional('(', token)) {
         isField = false;
         break;
@@ -496,7 +479,7 @@ class Parser extends PartialParser {
       token = skipFormals(token).next;
       token = parseInitializersOpt(token);
       if (!optional(';', token)) {
-        token = skipBlock(token);
+        token = parseFunctionBody(token);
       }
       listener.endMethod(start, token);
     }
@@ -512,7 +495,9 @@ class Parser extends PartialParser {
     listener.endFunctionName(token);
     token = parseFormalParameters(token);
     token = parseInitializersOpt(token);
-    return parseFunctionBody(token).next;
+    token = parseFunctionBody(token);
+    listener.endFunction(token);
+    return token.next;
   }
 
   Token parseFunctionBody(Token token) {

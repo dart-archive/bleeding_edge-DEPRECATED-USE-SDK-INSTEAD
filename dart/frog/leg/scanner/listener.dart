@@ -17,17 +17,18 @@ class Listener {
   void endBlock(int count, Token beginToken, Token endToken) {
   }
 
-  void beginClass(Token token) {
-  }
-
-  void endClass(int interfacesCount, Token beginToken, Token extendsKeyword,
-                Token implementsKeyword, Token endToken) {
-  }
-
   void beginClassBody(Token token) {
   }
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
+  }
+
+  void beginClassDeclaration(Token token) {
+  }
+
+  void endClassDeclaration(int interfacesCount, Token beginToken,
+                           Token extendsKeyword, Token implementsKeyword,
+                           Token endToken) {
   }
 
   void beginDoWhileStatement(Token token) {
@@ -65,6 +66,9 @@ class Listener {
   }
 
   void beginFunction(Token token) {
+  }
+
+  void endFunction(Token token) {
   }
 
   void beginFunctionBody(Token token) {
@@ -311,8 +315,9 @@ class ElementListener extends Listener {
     canceler.cancel("Cannot handle library tags", token: token);
   }
 
-  void endClass(int interfacesCount, Token beginToken, Token extendsKeyword,
-                Token implementsKeyword, Token endToken) {
+  void endClassDeclaration(int interfacesCount, Token beginToken,
+                           Token extendsKeyword, Token implementsKeyword,
+                           Token endToken) {
     discardNodes(interfacesCount);
     Identifier supertype = popNode();
     Identifier name = popNode();
@@ -337,7 +342,7 @@ class ElementListener extends Listener {
   void endTopLevelField(Token beginToken, Token endToken) {
     Identifier name = popNode();
     // TODO(ahe): Implement this.
-    canceler.cancel("Cannot handle fields");
+    canceler.cancel("Cannot handle fields", token: beginToken);
   }
 
   void handleIdentifier(Token token) {
@@ -414,8 +419,9 @@ class NodeListener extends ElementListener {
 
   NodeListener(Canceler canceler, Logger this.logger) : super(canceler);
 
-  void endClass(int interfacesCount, Token beginToken, Token extendsKeyword,
-                Token implementsKeyword, Token endToken) {
+  void endClassDeclaration(int interfacesCount, Token beginToken,
+                           Token extendsKeyword, Token implementsKeyword,
+                           Token endToken) {
     NodeList body = popNode();
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
@@ -518,6 +524,7 @@ class NodeListener extends ElementListener {
     Node thenExpression = popNode();
     Node condition = popNode();
     // TODO(ahe): Create an AST node.
+    pushNode(null);
     canceler.cancel('conditional expression not implemented yet',
                     token: question);
   }
@@ -534,12 +541,16 @@ class NodeListener extends ElementListener {
   }
 
   void endFunctionBody(int count, Token beginToken, Token endToken) {
-    Block block = new Block(makeNodeList(count, beginToken, endToken, null));
+    pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
+  }
+
+  void endFunction(Token token) {
+    Statement body = popNode();
     Node formals = popNode();
     Node name = popNode();
     // TODO(ahe): Return types are optional.
     TypeAnnotation type = popNode();
-    pushNode(new FunctionExpression(name, formals, block, type));
+    pushNode(new FunctionExpression(name, formals, body, type));
   }
 
   void handleVarKeyword(Token token) {
@@ -669,7 +680,6 @@ class NodeListener extends ElementListener {
   void endField(Token beginToken, Token endToken) {
     Expression initializer = popNode();
     Identifier name = popNode();
-    TypeAnnotation type = popNode();
     // TODO(ahe): implement this.
     pushNode(null);
     canceler.cancel("fields are not implemented yet", node: name);
@@ -677,9 +687,7 @@ class NodeListener extends ElementListener {
 
   void endMethod(Token beginToken, Token endToken) {
     Node name = popNode();
-    // TODO(ahe): Return types are optional.
-    TypeAnnotation type = popNode();
-    pushNode(new FunctionExpression(name, null, null, type));
+    pushNode(new FunctionExpression(name, null, null, null));
     // TODO(ahe): Save modifiers.
   }
 

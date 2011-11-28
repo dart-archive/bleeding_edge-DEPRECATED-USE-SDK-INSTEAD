@@ -3984,7 +3984,7 @@ PartialParser.prototype.skipFormals = function(token) {
 }
 PartialParser.prototype.parseClass = function(token) {
   var begin = token;
-  this.listener.beginClass(token);
+  this.listener.beginClassDeclaration(token);
   token = this.parseIdentifier(token.next);
   token = this.parseTypeVariablesOpt(token);
   var extendsKeyword;
@@ -4005,16 +4005,9 @@ PartialParser.prototype.parseClass = function(token) {
     }
     while ($notnull_bool(this.optional(',', token)))
   }
-  token = this.parseNativeClassClauseOpt(token);
   token = this.parseClassBody(token);
-  this.listener.endClass(interfacesCount, begin, extendsKeyword, implementsKeyword, token);
+  this.listener.endClassDeclaration(interfacesCount, begin, extendsKeyword, implementsKeyword, token);
   return token.next;
-}
-PartialParser.prototype.parseNativeClassClauseOpt = function(token) {
-  if ($notnull_bool(this.optional('native', token))) {
-    return this.parseString(token.next);
-  }
-  return token;
 }
 PartialParser.prototype.parseString = function(token) {
   if (token.kind === 39/*null.STRING_TOKEN*/) {
@@ -4129,7 +4122,6 @@ PartialParser.prototype.parseTopLevelMember = function(token) {
     token = peek;
     peek = this.peekAfterType(token);
   }
-  this.listener.handleNoType(token);
   token = this.parseIdentifier(token);
   var isField;
   while (true) {
@@ -4165,14 +4157,6 @@ PartialParser.prototype.parseFunctionBody = function(token) {
   }
   else if ($notnull_bool(this.optional('=>', token))) {
     token = this.parseExpression(token.next);
-    this.expectSemicolon(token);
-    return token;
-  }
-  else if ($notnull_bool(this.optional('native', token))) {
-    token = token.next;
-    if (token.kind === 39/*null.STRING_TOKEN*/) {
-      token = this.parseString(token);
-    }
     this.expectSemicolon(token);
     return token;
   }
@@ -4296,7 +4280,6 @@ Parser.prototype.parseMember = function(token) {
     token = peek;
     peek = this.peekAfterType(token);
   }
-  this.listener.handleNoType(token);
   token = this.parseIdentifier(token);
   var isField;
   while (true) {
@@ -4326,7 +4309,7 @@ Parser.prototype.parseMember = function(token) {
     token = this.skipFormals((token && token.is$BeginGroupToken())).next;
     token = this.parseInitializersOpt(token);
     if (!$notnull_bool(this.optional(';', token))) {
-      token = this.skipBlock(token);
+      token = this.parseFunctionBody(token);
     }
     this.listener.endMethod(start, token);
   }
@@ -4341,7 +4324,9 @@ Parser.prototype.parseFunction = function(token) {
   this.listener.endFunctionName(token);
   token = this.parseFormalParameters(token);
   token = this.parseInitializersOpt(token);
-  return this.parseFunctionBody(token).next;
+  token = this.parseFunctionBody(token);
+  this.listener.endFunction(token);
+  return token.next;
 }
 Parser.prototype.parseFunctionBody = function(token) {
   if ($notnull_bool(this.optional(';', token))) {
@@ -4399,7 +4384,7 @@ Parser.prototype.parseStatement = function(token) {
 Parser.prototype.parseReturnStatement = function(token) {
   var begin = token;
   this.listener.beginReturnStatement(begin);
-  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 568, 12);
+  $assert('return' === token.get$stringValue(), "'return' === token.stringValue", "parser.dart", 553, 12);
   token = token.next;
   if ($notnull_bool(this.optional(';', token))) {
     this.listener.endReturnStatement(false, begin, token);
@@ -4422,7 +4407,7 @@ Parser.prototype.peekIdentifierAfterType = function(token) {
 Parser.prototype.parseExpressionStatementOrDeclaration = function(token) {
   var identifier = this.peekIdentifierAfterType(token);
   if (identifier != null) {
-    $assert(identifier.kind === 97/*null.IDENTIFIER_TOKEN*/, "identifier.kind === IDENTIFIER_TOKEN", "parser.dart", 592, 14);
+    $assert(identifier.kind === 97/*null.IDENTIFIER_TOKEN*/, "identifier.kind === IDENTIFIER_TOKEN", "parser.dart", 577, 14);
     var afterId = identifier.next;
     var afterIdKind = afterId.kind;
     if (afterIdKind === 61/*null.EQ_TOKEN*/ || afterIdKind === 59/*null.SEMICOLON_TOKEN*/) {
@@ -4470,7 +4455,7 @@ Parser.prototype.parseConditionalExpression = function(token) {
   return token;
 }
 Parser.prototype.parseBinaryExpression = function(token, precedence) {
-  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 649, 12);
+  $assert(precedence >= 4, "precedence >= 4", "parser.dart", 634, 12);
   token = this.parseUnaryExpression(token);
   var tokenLevel = this.getPrecedence(token);
   for (var level = $assert_num(tokenLevel);
@@ -4601,7 +4586,7 @@ Parser.prototype.parseParenthesizedExpression = function(token) {
   var begin = (token && token.is$BeginGroupToken());
   token = this.expect('(', token);
   token = this.parseExpression(token);
-  $assert(begin.endGroup === token, "begin.endGroup === token", "parser.dart", 779, 12);
+  $assert(begin.endGroup === token, "begin.endGroup === token", "parser.dart", 764, 12);
   this.listener.handleParenthesizedExpression(begin);
   return this.expect(')', token);
 }
@@ -4662,7 +4647,7 @@ Parser.prototype.parseArgumentsOpt = function(token) {
 Parser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 851, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 836, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments(argumentCount, begin, token.next);
@@ -4818,16 +4803,16 @@ Listener.prototype.beginBlock = function(token) {
 Listener.prototype.endBlock = function(count, beginToken, endToken) {
 
 }
-Listener.prototype.beginClass = function(token) {
-
-}
-Listener.prototype.endClass = function(interfacesCount, beginToken, extendsKeyword, implementsKeyword, endToken) {
-
-}
 Listener.prototype.beginClassBody = function(token) {
 
 }
 Listener.prototype.endClassBody = function(memberCount, beginToken, endToken) {
+
+}
+Listener.prototype.beginClassDeclaration = function(token) {
+
+}
+Listener.prototype.endClassDeclaration = function(interfacesCount, beginToken, extendsKeyword, implementsKeyword, endToken) {
 
 }
 Listener.prototype.beginDoWhileStatement = function(token) {
@@ -4864,6 +4849,9 @@ Listener.prototype.endForStatement = function(beginToken, endToken) {
 
 }
 Listener.prototype.beginFunction = function(token) {
+
+}
+Listener.prototype.endFunction = function(token) {
 
 }
 Listener.prototype.beginFunctionBody = function(token) {
@@ -5088,7 +5076,7 @@ ElementListener.prototype.set$nodes = function(value) { return this.nodes = valu
 ElementListener.prototype.beginLibraryTag = function(token) {
   this.canceler.cancel("Cannot handle library tags", null, token);
 }
-ElementListener.prototype.endClass = function(interfacesCount, beginToken, extendsKeyword, implementsKeyword, endToken) {
+ElementListener.prototype.endClassDeclaration = function(interfacesCount, beginToken, extendsKeyword, implementsKeyword, endToken) {
   var $0;
   this.discardNodes(interfacesCount);
   var supertype = (($0 = this.popNode()) && $0.is$Identifier());
@@ -5109,7 +5097,7 @@ ElementListener.prototype.endTopLevelMethod = function(beginToken, endToken) {
 ElementListener.prototype.endTopLevelField = function(beginToken, endToken) {
   var $0;
   var name = (($0 = this.popNode()) && $0.is$Identifier());
-  this.canceler.cancel("Cannot handle fields");
+  this.canceler.cancel("Cannot handle fields", null, beginToken);
 }
 ElementListener.prototype.handleIdentifier = function(token) {
   this.pushNode(new Identifier(token));
@@ -5156,7 +5144,7 @@ ElementListener.prototype.pushNode = function(node) {
 }
 ElementListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 401, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 406, 12);
   var node = (($0 = this.nodes.get$head()) && $0.is$Node());
   this.nodes = (($0 = this.nodes.get$tail()) && $0.is$Link_Node());
   if (false/*null.VERBOSE*/) this.log(("pop " + this.nodes));
@@ -5172,7 +5160,7 @@ function NodeListener(canceler, logger) {
   ElementListener.call(this, canceler);
 }
 $inherits(NodeListener, ElementListener);
-NodeListener.prototype.endClass = function(interfacesCount, beginToken, extendsKeyword, implementsKeyword, endToken) {
+NodeListener.prototype.endClassDeclaration = function(interfacesCount, beginToken, extendsKeyword, implementsKeyword, endToken) {
   var $0;
   var body = (($0 = this.popNode()) && $0.is$NodeList());
   var interfaces = this.makeNodeList(interfacesCount, implementsKeyword, null, ",");
@@ -5267,6 +5255,7 @@ NodeListener.prototype.handleConditionalExpression = function(question, colon) {
   var elseExpression = this.popNode();
   var thenExpression = this.popNode();
   var condition = this.popNode();
+  this.pushNode(null);
   this.canceler.cancel('conditional expression not implemented yet', null, question);
 }
 NodeListener.prototype.endSend = function(token) {
@@ -5279,12 +5268,15 @@ NodeListener.prototype.handleVoidKeyword = function(token) {
   this.pushNode(new TypeAnnotation(new Identifier(token)));
 }
 NodeListener.prototype.endFunctionBody = function(count, beginToken, endToken) {
+  this.pushNode(new Block(this.makeNodeList(count, beginToken, endToken, null)));
+}
+NodeListener.prototype.endFunction = function(token) {
   var $0;
-  var block = new Block(this.makeNodeList(count, beginToken, endToken, null));
+  var body = (($0 = this.popNode()) && $0.is$Statement());
   var formals = this.popNode();
   var name = this.popNode();
   var type = (($0 = this.popNode()) && $0.is$TypeAnnotation());
-  this.pushNode(new FunctionExpression(name, formals, block, type));
+  this.pushNode(new FunctionExpression(name, formals, body, type));
 }
 NodeListener.prototype.handleVarKeyword = function(token) {
   this.pushNode(new Identifier(token));
@@ -5398,15 +5390,12 @@ NodeListener.prototype.endField = function(beginToken, endToken) {
   var $0;
   var initializer = (($0 = this.popNode()) && $0.is$Expression());
   var name = (($0 = this.popNode()) && $0.is$Identifier());
-  var type = (($0 = this.popNode()) && $0.is$TypeAnnotation());
   this.pushNode(null);
   this.canceler.cancel("fields are not implemented yet", name);
 }
 NodeListener.prototype.endMethod = function(beginToken, endToken) {
-  var $0;
   var name = this.popNode();
-  var type = (($0 = this.popNode()) && $0.is$TypeAnnotation());
-  this.pushNode(new FunctionExpression(name, null, null, type));
+  this.pushNode(new FunctionExpression(name, null, null, null));
 }
 NodeListener.prototype.makeNodeList = function(count, beginToken, endToken, delimiter) {
   var $0;
@@ -5749,7 +5738,7 @@ function parse(canceler, logger, doParse) {
   var listener = new NodeListener(canceler, logger);
   doParse(new Parser(listener));
   var node = listener.popNode();
-  $assert(listener.nodes.isEmpty(), "listener.nodes.isEmpty()", "listener.dart", 740, 10);
+  $assert(listener.nodes.isEmpty(), "listener.nodes.isEmpty()", "listener.dart", 748, 10);
   return node;
 }
 //  ********** Library tree **************
