@@ -168,11 +168,12 @@ class SsaBuilder implements Visitor {
     pop();
   }
 
-  visitFor(For node) {
-    assert(node.initializer !== null && node.condition !== null &&
-           node.update !== null && node.body !== null);
+  // For while loops, initializer and update are null.
+  visitLoop(Statement initializer, Expression condition, Expression update,
+            Node body) {
+    assert(condition !== null && body !== null);
     // The initializer.
-    visit(node.initializer);
+    if (initializer !== null) visit(initializer);
     assert(!isAborted());
     HBasicBlock initializerBlock = close(new HGoto());
 
@@ -191,7 +192,7 @@ class SsaBuilder implements Visitor {
       definitions[element] = phi;
     });
 
-    visit(node.condition);
+    visit(condition);
     HBasicBlock conditionExitBlock = close(new HLoopBranch(popBoolified()));
 
     Map conditionDefinitions = new Map<Element, HInstruction>.from(definitions);
@@ -200,20 +201,25 @@ class SsaBuilder implements Visitor {
     HBasicBlock bodyBlock = graph.addNewBlock();
     conditionExitBlock.addSuccessor(bodyBlock);
     open(bodyBlock);
-    visit(node.body);
+    visit(body);
     if (isAborted()) {
       compiler.unimplemented("SsaBuilder for loop with aborting body");
     }
     bodyBlock = close(new HGoto());
 
     // Update.
+    // We create an update block, even when we are in a while loop. There the
+    // update block is the jump-target for continue statements. We could avoid
+    // the creation if there is no continue, but for now we always create it.
     HBasicBlock updateBlock = graph.addNewBlock();
     bodyBlock.addSuccessor(updateBlock);
     open(updateBlock);
-    visit(node.update);
-    assert(!isAborted());
-    // The update instruction can just be popped. It is not used.
-    HInstruction updateInstruction = pop();
+    if (update !== null) {
+      visit(update);
+      assert(!isAborted());
+      // The update instruction can just be popped. It is not used.
+      HInstruction updateInstruction = pop();
+    }
     updateBlock = close(new HGoto());
     // The back-edge completing the cycle.
     updateBlock.addSuccessor(conditionBlock);
@@ -229,6 +235,16 @@ class SsaBuilder implements Visitor {
     open(loopExitBlock);
     definitions = conditionDefinitions;
     conditionBlock.postProcessLoopHeader();
+  }
+
+  visitFor(For node) {
+    assert(node.initializer !== null && node.condition !== null &&
+           node.update !== null && node.body !== null);
+    visitLoop(node.initializer, node.condition, node.update, node.body);
+  }
+
+  visitWhile(While node) {
+    visitLoop(null, node.condition, null, node.body);
   }
 
   visitFunctionExpression(FunctionExpression node) {
