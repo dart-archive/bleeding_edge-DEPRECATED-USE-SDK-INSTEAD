@@ -208,8 +208,12 @@ class FullResolverVisitor extends ResolverVisitor {
     visit(node.elsePart);
   }
 
-  SourceString potentiallyMapOperatorToMethodName(final SourceString name) {
-    // TODO(ngeoffray): Use a map once frog can handle it.
+  SourceString potentiallyMapOperatorToMethodName(final SourceString name,
+                                                  final bool isPrefix) {
+    if (name == const SourceString('-') && isPrefix) {
+      return const SourceString('neg');
+    }
+    assert(!isPrefix);
     if (name == const SourceString('+')) return const SourceString('add');
     if (name == const SourceString('-')) return const SourceString('sub');
     if (name == const SourceString('*')) return const SourceString('mul');
@@ -248,7 +252,7 @@ class FullResolverVisitor extends ResolverVisitor {
       cancel(node, 'Cannot handle qualified method calls');
     }
     final SourceString name =
-        potentiallyMapOperatorToMethodName(identifier.source);
+        potentiallyMapOperatorToMethodName(identifier.source, node.isPrefix);
     // TODO(ngeoffray): Use the receiver to do the lookup.
     Element target = context.lookup(name);
     // TODO(ngeoffray): implement resolution for logical operators.

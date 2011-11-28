@@ -23,6 +23,7 @@ interface HVisitor<R> {
   R visitLiteral(HLiteral node);
   R visitModulo(HModulo node);
   R visitMultiply(HMultiply node);
+  R visitNegate(HNegate node);
   R visitNot(HNot node);
   R visitParameterValue(HParameterValue node);
   R visitPhi(HPhi node);
@@ -163,13 +164,15 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInstruction(HInstruction) {}
 
   visitArithmetic(HArithmetic node) => visitInvoke(node);
+  visitBinaryArithmetic(HBinaryArithmetic node) => visitArithmetic(node);
+  visitUnaryArithmetic(HUnaryArithmetic node) => visitArithmetic(node);
   visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
   visitControlFlow(HControlFlow node) => visitInstruction(node);
   visitRelational(HRelational node) => visitInstruction(node);
 
-  visitAdd(HAdd node) => visitArithmetic(node);
+  visitAdd(HAdd node) => visitBinaryArithmetic(node);
   visitBoolify(HBoolify node) => visitInstruction(node);
-  visitDivide(HDivide node) => visitArithmetic(node);
+  visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitEquals(HEquals node) => visitRelational(node);
   visitExit(HExit node) => visitControlFlow(node);
   visitGoto(HGoto node) => visitControlFlow(node);
@@ -183,19 +186,20 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLoad(HLoad node) => visitInstruction(node);
   visitLocal(HLocal node) => visitInstruction(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
-  visitModulo(HModulo node) => visitArithmetic(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
+  visitModulo(HModulo node) => visitBinaryArithmetic(node);
+  visitNegate(HNegate node) => visitUnaryArithmetic(node);
   visitNot(HNot node) => visitInstruction(node);
   visitPhi(HPhi node) => visitInstruction(node);
-  visitMultiply(HMultiply node) => visitArithmetic(node);
+  visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
   visitParameterValue(HParameterValue node) => visitInstruction(node);
   visitReturn(HReturn node) => visitControlFlow(node);
-  visitShiftRight(HShiftRight node) => visitArithmetic(node);
-  visitShiftLeft(HShiftLeft node) => visitArithmetic(node);
-  visitSubtract(HSubtract node) => visitArithmetic(node);
+  visitShiftRight(HShiftRight node) => visitBinaryArithmetic(node);
+  visitShiftLeft(HShiftLeft node) => visitBinaryArithmetic(node);
+  visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
   visitStore(HStore node) => visitInstruction(node);
   visitThrow(HThrow node) => visitControlFlow(node);
-  visitTruncatingDivide(HTruncatingDivide node) => visitArithmetic(node);
+  visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   visitTypeGuard(HTypeGuard node) => visitInstruction(node);
 }
 
@@ -819,6 +823,12 @@ class HArithmetic extends HInvoke {
     return inputs[0].isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
   }
 
+  abstract HInstruction fold();
+}
+
+class HBinaryArithmetic extends HArithmetic {
+  HBinaryArithmetic(element, HInstruction left, HInstruction right)
+      : super(element, <HInstruction>[left, right]);
   HInstruction fold() {
     if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
       HLiteral op1 = inputs[0];
@@ -828,11 +838,12 @@ class HArithmetic extends HInvoke {
     return this;
   }
 
-  abstract num evaluate(num a, num b);
+  abstract num evaluate(num a, num b);  
 }
 
-class HAdd extends HArithmetic {
-  HAdd(element, inputs) : super(element, inputs);
+class HAdd extends HBinaryArithmetic {
+  HAdd(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   accept(HVisitor visitor) => visitor.visitAdd(this);
   num evaluate(num a, num b) => a + b;
   bool typeEquals(other) => other is HAdd;
@@ -847,40 +858,45 @@ class HAdd extends HArithmetic {
   }
 }
 
-class HDivide extends HArithmetic {
-  HDivide(element, inputs) : super(element, inputs);
+class HDivide extends HBinaryArithmetic {
+  HDivide(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   accept(HVisitor visitor) => visitor.visitDivide(this);
   num evaluate(num a, num b) => a / b;
   bool typeEquals(other) => other is HDivide;
   bool dataEquals(HInstruction other) => true;
 }
 
-class HModulo extends HArithmetic {
-  HModulo(element, inputs) : super(element, inputs);
+class HModulo extends HBinaryArithmetic {
+  HModulo(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   accept(HVisitor visitor) => visitor.visitModulo(this);
   num evaluate(num a, num b) => a % b;
   bool typeEquals(other) => other is HModulo;
   bool dataEquals(HInstruction other) => true;
 }
 
-class HMultiply extends HArithmetic {
-  HMultiply(element, inputs) : super(element, inputs);
+class HMultiply extends HBinaryArithmetic {
+  HMultiply(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
   num evaluate(num a, num b) => a * b;
   bool typeEquals(other) => other is HMultiply;
   bool dataEquals(HInstruction other) => true;
 }
 
-class HSubtract extends HArithmetic {
-  HSubtract(element, inputs) : super(element, inputs);
+class HSubtract extends HBinaryArithmetic {
+  HSubtract(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
   num evaluate(num a, num b) => a - b;
   bool typeEquals(other) => other is HSubtract;
   bool dataEquals(HInstruction other) => true;
 }
 
-class HTruncatingDivide extends HArithmetic {
-  HTruncatingDivide(element, inputs) : super(element, inputs);
+class HTruncatingDivide extends HBinaryArithmetic {
+  HTruncatingDivide(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
   HInstruction fold() {
@@ -896,8 +912,9 @@ class HTruncatingDivide extends HArithmetic {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HShiftLeft extends HArithmetic {
-  HShiftLeft(element, inputs) : super(element, inputs);
+class HShiftLeft extends HBinaryArithmetic {
+  HShiftLeft(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
   HInstruction fold() {
@@ -920,8 +937,9 @@ class HShiftLeft extends HArithmetic {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HShiftRight extends HArithmetic {
-  HShiftRight(element, inputs) : super(element, inputs);
+class HShiftRight extends HBinaryArithmetic {
+  HShiftRight(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
   HInstruction fold() {
@@ -938,6 +956,29 @@ class HShiftRight extends HArithmetic {
 
   num evaluate(num a, num b) => a >> b;
   bool typeEquals(other) => other is HShiftRight;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HUnaryArithmetic extends HArithmetic {
+  HUnaryArithmetic(element, input) : super(element, <HInstruction>[input]);
+
+  HInstruction fold() {
+    if (inputs[0].isLiteralNumber()) {
+      HLiteral input = inputs[0];
+      return new HLiteral(evaluate(input.value));
+    }
+    return this;
+  }
+
+  abstract num evaluate(num a);
+}
+
+class HNegate extends HUnaryArithmetic {
+  HNegate(element, input) : super(element, input);
+  accept(HVisitor visitor) => visitor.visitNegate(this);
+
+  num evaluate(num a) => -a;
+  bool typeEquals(other) => other is HNegate;
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -1056,8 +1097,8 @@ class HPhi extends HInstruction {
 
 class HRelational extends HInvoke {
   bool builtin = false;
-  HRelational(Element element, List<HInstruction> inputs)
-      : super(element, inputs);
+  HRelational(Element element, HInstruction left, HInstruction right)
+      : super(element, <HInstruction>[left, right]);
 
   void prepareGvn() {
     // Relational expressions can take part in global value numbering
@@ -1081,7 +1122,8 @@ class HRelational extends HInvoke {
 }
 
 class HEquals extends HRelational {
-  HEquals(element, inputs) : super(element, inputs);
+  HEquals(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   bool evaluate(num a, num b) => a == b;
   accept(HVisitor visitor) => visitor.visitEquals(this);
   bool typeEquals(other) => other is HEquals;
@@ -1089,7 +1131,8 @@ class HEquals extends HRelational {
 }
 
 class HGreater extends HRelational {
-  HGreater(element, inputs) : super(element, inputs);
+  HGreater(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   bool evaluate(num a, num b) => a > b;
   accept(HVisitor visitor) => visitor.visitGreater(this);
   bool typeEquals(other) => other is HGreater;
@@ -1097,7 +1140,8 @@ class HGreater extends HRelational {
 }
 
 class HGreaterEqual extends HRelational {
-  HGreaterEqual(element, inputs) : super(element, inputs);
+  HGreaterEqual(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   bool evaluate(num a, num b) => a >= b;
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
   bool typeEquals(other) => other is HGreaterEqual;
@@ -1105,7 +1149,8 @@ class HGreaterEqual extends HRelational {
 }
 
 class HLess extends HRelational {
-  HLess(element, inputs) : super(element, inputs);
+  HLess(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   bool evaluate(num a, num b) => a < b;
   accept(HVisitor visitor) => visitor.visitLess(this);
   bool typeEquals(other) => other is HLess;
@@ -1113,7 +1158,8 @@ class HLess extends HRelational {
 }
 
 class HLessEqual extends HRelational {
-  HLessEqual(element, inputs) : super(element, inputs);
+  HLessEqual(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
   bool evaluate(num a, num b) => a <= b;
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
   bool typeEquals(other) => other is HLessEqual;

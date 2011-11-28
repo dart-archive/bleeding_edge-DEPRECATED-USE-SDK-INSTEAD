@@ -235,6 +235,8 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitMultiply(HMultiply node) => visitInvoke(node);
 
+  String visitNegate(HNegate node) => visitInvoke(node);
+
   String visitNot(HNot node) => "Not: ${temporaryId(node.inputs[0])}";
 
   String visitParameterValue(HParameterValue node) => "p${node.element.name}";

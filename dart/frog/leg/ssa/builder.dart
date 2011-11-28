@@ -382,7 +382,7 @@ class SsaBuilder implements Visitor {
     visit(node.receiver);
     HInstruction operand = pop();
     switch (op.source.stringValue) {
-      case "-": compiler.unimplemented("SsaBuilder.visitUnary -"); break;
+      case "-": push(new HNegate(element, operand)); break;
       case "~": compiler.unimplemented("SsaBuilder.visitUnary ~"); break;
       default: unreachable();
     }
@@ -393,27 +393,27 @@ class SsaBuilder implements Visitor {
     switch (op.source.stringValue) {
       case "+":
       case "++":
-      case "+=":  push(new HAdd(element, [left, right])); break;
+      case "+=":  push(new HAdd(element, left, right)); break;
       case "-":
       case "--":
-      case "-=":  push(new HSubtract(element, [left, right])); break;
+      case "-=":  push(new HSubtract(element, left, right)); break;
       case "*":
-      case "*=":  push(new HMultiply(element, [left, right])); break;
+      case "*=":  push(new HMultiply(element, left, right)); break;
       case "/":
-      case "/=":  push(new HDivide(element, [left, right])); break;
+      case "/=":  push(new HDivide(element, left, right)); break;
       case "~/":
-      case "~/=": push(new HTruncatingDivide(element, [left, right])); break;
+      case "~/=": push(new HTruncatingDivide(element, left, right)); break;
       case "%":
-      case "%=":  push(new HModulo(element, [left, right])); break;
+      case "%=":  push(new HModulo(element, left, right)); break;
       case "<<":
-      case "<<=": push(new HShiftLeft(element, [left, right])); break;
+      case "<<=": push(new HShiftLeft(element, left, right)); break;
       case ">>":
-      case ">>=": push(new HShiftRight(element, [left, right])); break;
-      case "==":  push(new HEquals(element, [left, right])); break;
-      case "<":   push(new HLess(element, [left, right])); break;
-      case "<=":  push(new HLessEqual(element, [left, right])); break;
-      case ">":   push(new HGreater(element, [left, right])); break;
-      case ">=":  push(new HGreaterEqual(element, [left, right])); break;
+      case ">>=": push(new HShiftRight(element, left, right)); break;
+      case "==":  push(new HEquals(element, left, right)); break;
+      case "<":   push(new HLess(element, left, right)); break;
+      case "<=":  push(new HLessEqual(element, left, right)); break;
+      case ">":   push(new HGreater(element, left, right)); break;
+      case ">=":  push(new HGreaterEqual(element, left, right)); break;
       default: compiler.unimplemented("SsaBuilder.visitBinary");
     }    
   }

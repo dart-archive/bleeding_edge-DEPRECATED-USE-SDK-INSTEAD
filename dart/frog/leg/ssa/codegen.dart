@@ -191,6 +191,16 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
+  visitInvokeUnary(HInvoke node, bool useOperator, String op) {
+    if (useOperator) {
+      buffer.add('($op');
+      use(node.inputs[0]);
+      buffer.add(')');
+    } else {
+      visitInvoke(node);
+    }
+  }
+
   visitAdd(HAdd node)
       => visitInvokeBinary(node, node.builtin, '+');
   visitDivide(HDivide node)
@@ -211,6 +221,9 @@ class SsaCodeGenerator implements HVisitor {
       => visitInvoke(node);
   visitShiftRight(HShiftRight node)
       => visitInvoke(node);
+
+  visitNegate(HNegate node)
+      => visitInvokeUnary(node, node.builtin, '-');
 
   visitEquals(HEquals node)
       => visitInvokeBinary(node, node.builtin, '===');
@@ -337,6 +350,8 @@ class SsaCodeGenerator implements HVisitor {
   visitLiteral(HLiteral node) {
     if (node.value === null) {
       buffer.add("(void 0)");
+    } else if (node.value is num && node.value < 0) {
+      buffer.add('(${node.value})');
     } else {
       buffer.add(node.value);
     }

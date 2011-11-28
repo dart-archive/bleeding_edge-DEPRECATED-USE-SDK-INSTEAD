@@ -133,6 +133,17 @@ void shrTest() {
   expectEquals(0 - 7, x >> 4);
 }
 
+void negateTest() {
+  expectEquals(minus5(), -5);
+  expectEquals(-5, -five());
+  expectEquals(5, -minus5());
+  var x = 3;
+  if (false) x = 5;
+  expectEquals(-3, -x);
+  var y = -5;
+  expectEquals(8, x - y);
+}
+
 void equalsTest() {
   // Equality of normal numbers is already well tested with "expectEquals".
   expectEquals(true, true == true);
@@ -277,6 +288,7 @@ void main() {
   modTest();
   shlTest();
   shrTest();
+  negateTest();
   equalsTest();
   lessTest();
   lessEqualTest();

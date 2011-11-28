@@ -90,3 +90,7 @@ shl(var a, var b) {
 shr(var a, var b) {
   return JS(@"$0 >> $1", a, b);
 }
+
+neg(var a) {
+  return JS(@"-$0", a);
+}
