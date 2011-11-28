@@ -91,6 +91,22 @@ shr(var a, var b) {
   return JS(@"$0 >> $1", a, b);
 }
 
+and(var a, var b) {
+  return JS(@"$0 & $1", a, b);
+}
+
+or(var a, var b) {
+  return JS(@"$0 | $1", a, b);
+}
+
+xor(var a, var b) {
+  return JS(@"$0 ^ $1", a, b);
+}
+
+not(var a) {
+  return JS(@"~$0", a);
+}
+
 neg(var a) {
   return JS(@"-$0", a);
 }

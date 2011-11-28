@@ -5,6 +5,10 @@
 interface HVisitor<R> {
   R visitAdd(HAdd node);
   R visitBasicBlock(HBasicBlock node);
+  R visitBitAnd(HBitAnd node);
+  R visitBitNot(HBitNot node);
+  R visitBitOr(HBitOr node);
+  R visitBitXor(HBitXor node);
   R visitBoolify(HBoolify node);
   R visitDivide(HDivide node);
   R visitEquals(HEquals node);
@@ -165,12 +169,17 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
 
   visitArithmetic(HArithmetic node) => visitInvoke(node);
   visitBinaryArithmetic(HBinaryArithmetic node) => visitArithmetic(node);
+  visitBinaryBitOp(HBinaryBitOp node) => visitBinaryArithmetic(node);
   visitUnaryArithmetic(HUnaryArithmetic node) => visitArithmetic(node);
   visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
   visitControlFlow(HControlFlow node) => visitInstruction(node);
   visitRelational(HRelational node) => visitInstruction(node);
 
   visitAdd(HAdd node) => visitBinaryArithmetic(node);
+  visitBitAnd(HBitAnd node) => visitBinaryBitOp(node);
+  visitBitNot(HBitNot node) => visitUnaryArithmetic(node);
+  visitBitOr(HBitOr node) => visitBinaryBitOp(node);
+  visitBitXor(HBitXor node) => visitBinaryBitOp(node);
   visitBoolify(HBoolify node) => visitInstruction(node);
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitEquals(HEquals node) => visitRelational(node);
@@ -194,8 +203,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
   visitParameterValue(HParameterValue node) => visitInstruction(node);
   visitReturn(HReturn node) => visitControlFlow(node);
-  visitShiftRight(HShiftRight node) => visitBinaryArithmetic(node);
-  visitShiftLeft(HShiftLeft node) => visitBinaryArithmetic(node);
+  visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
+  visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
   visitStore(HStore node) => visitInstruction(node);
   visitThrow(HThrow node) => visitControlFlow(node);
@@ -962,55 +971,106 @@ class HTruncatingDivide extends HBinaryArithmetic {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HShiftLeft extends HBinaryArithmetic {
+// TODO(floitsch): Should HBinaryArithmetic really be the super class of
+// HBinaryBitOp?
+class HBinaryBitOp extends HBinaryArithmetic {
+  HBinaryBitOp(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
+
+  HInstruction fold() {
+    // Bit-operations are only defined on integers.
+    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
+      HLiteral op1 = inputs[0];
+      HLiteral op2 = inputs[1];
+      // Avoid exceptions.
+      if (op1.value is int && op2.value is int) {
+        return new HLiteral(evaluate(op1.value, op2.value));
+      }
+    }
+    return this;
+  }
+}
+
+class HShiftLeft extends HBinaryBitOp {
   HShiftLeft(Element element, HInstruction left, HInstruction right)
       : super(element, left, right);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
   HInstruction fold() {
-    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
+    if (inputs[1].isLiteralNumber()) {
       // TODO(floitsch): find good max left-shift amount.
       final int MAX_SHIFT_LEFT_AMOUNT = 50;
-      HLiteral op1 = inputs[0];
       HLiteral op2 = inputs[1];
-      // Avoid exceptions.
-      if (op1.value is int && op2.value is int &&
-          op2.value >= 0 && op2.value < MAX_SHIFT_LEFT_AMOUNT) {
-        return new HLiteral(evaluate(op1.value, op2.value));
-      }
+      // Only positive shifting is allowed. Also guard against out-of-memory
+      // shifts.
+      if (op2.value < 0 || op2.value > MAX_SHIFT_LEFT_AMOUNT) return this;
     }
-    return this;
+    return super.fold();
   }
 
-  num evaluate(num a, num b) => a << b;
+  int evaluate(int a, int b) => a << b;
   bool typeEquals(other) => other is HShiftLeft;
   bool dataEquals(HInstruction other) => true;
 }
 
-class HShiftRight extends HBinaryArithmetic {
+class HShiftRight extends HBinaryBitOp {
   HShiftRight(Element element, HInstruction left, HInstruction right)
       : super(element, left, right);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
   HInstruction fold() {
-    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
-      HLiteral op1 = inputs[0];
+    if (inputs[1].isLiteralNumber()) {
       HLiteral op2 = inputs[1];
-      // Avoid exceptions.
-      if (op1.value is int && op2.value is int && op2.value >= 0) {
-        return new HLiteral(evaluate(op1.value, op2.value));
-      }
+      // Only positive shifting is allowed.
+      if (op2.value < 0) return this;
     }
-    return this;
+    return super.fold();
   }
 
-  num evaluate(num a, num b) => a >> b;
+  int evaluate(int a, int b) => a >> b;
   bool typeEquals(other) => other is HShiftRight;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HBitOr extends HBinaryBitOp {
+  HBitOr(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
+  accept(HVisitor visitor) => visitor.visitBitOr(this);
+
+  int evaluate(int a, int b) => a | b;
+  bool typeEquals(other) => other is HBitOr;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HBitAnd extends HBinaryBitOp {
+  HBitAnd(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
+  accept(HVisitor visitor) => visitor.visitBitAnd(this);
+
+  int evaluate(int a, int b) => a & b;
+  bool typeEquals(other) => other is HBitAnd;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HBitXor extends HBinaryBitOp {
+  HBitXor(Element element, HInstruction left, HInstruction right)
+      : super(element, left, right);
+  accept(HVisitor visitor) => visitor.visitBitXor(this);
+
+  int evaluate(int a, int b) => a ^ b;
+  bool typeEquals(other) => other is HBitXor;
   bool dataEquals(HInstruction other) => true;
 }
 
 class HUnaryArithmetic extends HArithmetic {
   HUnaryArithmetic(element, input) : super(element, <HInstruction>[input]);
+
+  abstract num evaluate(num a);
+}
+
+class HNegate extends HUnaryArithmetic {
+  HNegate(element, input) : super(element, input);
+  accept(HVisitor visitor) => visitor.visitNegate(this);
 
   HInstruction fold() {
     if (inputs[0].isLiteralNumber()) {
@@ -1020,15 +1080,26 @@ class HUnaryArithmetic extends HArithmetic {
     return this;
   }
 
-  abstract num evaluate(num a);
-}
-
-class HNegate extends HUnaryArithmetic {
-  HNegate(element, input) : super(element, input);
-  accept(HVisitor visitor) => visitor.visitNegate(this);
-
   num evaluate(num a) => -a;
   bool typeEquals(other) => other is HNegate;
+  bool dataEquals(HInstruction other) => true;
+}
+
+// TODO(floitsch): Should we have a special HUnaryBitOp?
+class HBitNot extends HUnaryArithmetic {
+  HBitNot(element, input) : super(element, input);
+  accept(HVisitor visitor) => visitor.visitBitNot(this);
+
+  HInstruction fold() {
+    if (inputs[0].isLiteralNumber()) {
+      HLiteral input = inputs[0];
+      if (input.value is int) return new HLiteral(evaluate(input.value));
+    }
+    return this;
+  }
+
+  int evaluate(int a) => ~a;
+  bool typeEquals(other) => other is HBitNot;
   bool dataEquals(HInstruction other) => true;
 }
 

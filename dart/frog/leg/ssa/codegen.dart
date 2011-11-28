@@ -214,9 +214,17 @@ class SsaCodeGenerator implements HVisitor {
   // Modulo cannot be mapped to the native operator (different semantics).
   visitModulo(HModulo node)
       => visitInvoke(node);
-  // Shifts require its argument to be of type integer.
+  // Bit-operations require its argument to be of type integer.
   // TODO(floitsch): use shift operators when we can detect that the inputs
   // are integers.
+  visitBitAnd(HBitAnd node)
+      => visitInvoke(node);
+  visitBitNot(HBitNot node)
+      => visitInvoke(node);
+  visitBitOr(HBitOr node)
+      => visitInvoke(node);
+  visitBitXor(HBitXor node)
+      => visitInvoke(node);
   visitShiftLeft(HShiftLeft node)
       => visitInvoke(node);
   visitShiftRight(HShiftRight node)

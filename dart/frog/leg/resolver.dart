@@ -210,10 +210,13 @@ class FullResolverVisitor extends ResolverVisitor {
 
   SourceString potentiallyMapOperatorToMethodName(final SourceString name,
                                                   final bool isPrefix) {
-    if (name == const SourceString('-') && isPrefix) {
-      return const SourceString('neg');
+    if (isPrefix) {
+      if (name == const SourceString('-')) return const SourceString('neg');
+      if (name == const SourceString('~')) return const SourceString('not');
+      // Logical operators must be handled specially.
+      if (name == const SourceString('!')) return name;
+      unreachable();
     }
-    assert(!isPrefix);
     if (name == const SourceString('+')) return const SourceString('add');
     if (name == const SourceString('-')) return const SourceString('sub');
     if (name == const SourceString('*')) return const SourceString('mul');
@@ -222,6 +225,9 @@ class FullResolverVisitor extends ResolverVisitor {
     if (name == const SourceString('%')) return const SourceString('mod');
     if (name == const SourceString('<<')) return const SourceString('shl');
     if (name == const SourceString('>>')) return const SourceString('shr');
+    if (name == const SourceString('|')) return const SourceString('or');
+    if (name == const SourceString('&')) return const SourceString('and');
+    if (name == const SourceString('^')) return const SourceString('xor');
     if (name == const SourceString('==')) return const SourceString('eq');
     if (name == const SourceString('<')) return const SourceString('lt');
     if (name == const SourceString('<=')) return const SourceString('le');
@@ -240,6 +246,9 @@ class FullResolverVisitor extends ResolverVisitor {
     if (name == const SourceString('%=')) return const SourceString('mod');
     if (name == const SourceString('<<=')) return const SourceString('shl');
     if (name == const SourceString('>>=')) return const SourceString('shr');
+    if (name == const SourceString('|=')) return const SourceString('or');    
+    if (name == const SourceString('&=')) return const SourceString('and');    
+    if (name == const SourceString('^=')) return const SourceString('xor');    
     if (name == const SourceString('++')) return const SourceString('add');
     if (name == const SourceString('--')) return const SourceString('sub');
     compiler.unimplemented("mapAssignmentOperatorToMethodName: $name");

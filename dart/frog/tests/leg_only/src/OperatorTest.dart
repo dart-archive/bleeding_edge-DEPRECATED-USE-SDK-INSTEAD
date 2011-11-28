@@ -133,6 +133,47 @@ void shrTest() {
   expectEquals(0 - 7, x >> 4);
 }
 
+void andTest() {
+  expectEquals(2, 10 & 3);
+  expectEquals(7, 15 & 7);
+  expectEquals(10, 10 & 10);
+
+  expectEquals(99, ninetyNine() & ninetyNine());
+  expectEquals(34, four99() & 42);
+  expectEquals(3, minus5() & 7);
+}
+
+void orTest() {
+  expectEquals(11, 10 | 3);
+  expectEquals(15, 15 | 7);
+  expectEquals(10, 10 | 10);
+
+  expectEquals(99, ninetyNine() | ninetyNine());
+  expectEquals(507, four99() | 42);
+  expectEquals(-1, minus5() | 7);
+  expectEquals(-5, minus5() | -5);
+}
+
+void xorTest() {
+  expectEquals(9, 10 ^ 3);
+  expectEquals(8, 15 ^ 7);
+  expectEquals(0, 10 ^ 10);
+
+  expectEquals(0, ninetyNine() ^ ninetyNine());
+  expectEquals(473, four99() ^ 42);
+  expectEquals(-4, minus5() ^ 7);
+  expectEquals(0, minus5() ^ -5);
+  expectEquals(6, minus5() ^ -3);
+}
+
+void notTest() {
+  expectEquals(-11, ~10);
+  expectEquals(-1, ~0);
+
+  expectEquals(-500, ~four99());
+  expectEquals(4, ~minus5());
+}
+
 void negateTest() {
   expectEquals(minus5(), -5);
   expectEquals(-5, -five());
@@ -288,6 +329,10 @@ void main() {
   modTest();
   shlTest();
   shrTest();
+  andTest();
+  orTest();
+  xorTest();
+  notTest();
   negateTest();
   equalsTest();
   lessTest();

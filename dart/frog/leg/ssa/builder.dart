@@ -383,7 +383,7 @@ class SsaBuilder implements Visitor {
     HInstruction operand = pop();
     switch (op.source.stringValue) {
       case "-": push(new HNegate(element, operand)); break;
-      case "~": compiler.unimplemented("SsaBuilder.visitUnary ~"); break;
+      case "~": push(new HBitNot(element, operand)); break;
       default: unreachable();
     }
   }
@@ -409,6 +409,12 @@ class SsaBuilder implements Visitor {
       case "<<=": push(new HShiftLeft(element, left, right)); break;
       case ">>":
       case ">>=": push(new HShiftRight(element, left, right)); break;
+      case "|":
+      case "|=":  push(new HBitOr(element, left, right)); break;
+      case "&":
+      case "&=":  push(new HBitAnd(element, left, right)); break;
+      case "^":
+      case "^=":  push(new HBitXor(element, left, right)); break;
       case "==":  push(new HEquals(element, left, right)); break;
       case "<":   push(new HLess(element, left, right)); break;
       case "<=":  push(new HLessEqual(element, left, right)); break;

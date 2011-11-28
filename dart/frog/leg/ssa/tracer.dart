@@ -171,6 +171,14 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitAdd(HAdd node) => visitInvoke(node);
 
+  String visitBitAnd(HBitAnd node) => visitInvoke(node);
+
+  String visitBitNot(HBitNot node) => visitInvoke(node);
+
+  String visitBitOr(HBitOr node) => visitInvoke(node);
+
+  String visitBitXor(HBitXor node) => visitInvoke(node);
+
   String visitDivide(HDivide node) => visitInvoke(node);
 
   String visitEquals(HEquals node) => visitInvoke(node);

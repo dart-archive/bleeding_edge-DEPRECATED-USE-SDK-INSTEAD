@@ -111,6 +111,41 @@ void shrTest() {
   expectEquals(62, x);
 }
 
+void andTest() {
+  var x = five();
+  x &= 3;
+  expectEquals(1, x);
+  x &= 10;
+  expectEquals(0, x);
+  x = four99();
+  x &= 63;
+  expectEquals(51, x);
+}
+
+void orTest() {
+  var x = five();
+  x |= 2;
+  expectEquals(7, x);
+  x |= 7;
+  expectEquals(7, x);
+  x |= 10;
+  expectEquals(15, x);
+  x |= 499;
+  expectEquals(511, x);
+}
+
+void xorTest() {
+  var x = five();
+  x ^= 2;
+  expectEquals(7, x);
+  x ^= 7;
+  expectEquals(0, x);
+  x ^= 10;
+  expectEquals(10, x);
+  x ^= 499;
+  expectEquals(505, x);
+}
+
 void main() {
   addTest();
   subTest();
@@ -120,4 +155,7 @@ void main() {
   modTest();
   shlTest();
   shrTest();
+  andTest();
+  orTest();
+  xorTest();
 }
