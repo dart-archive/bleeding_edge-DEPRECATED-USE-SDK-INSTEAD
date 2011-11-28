@@ -190,10 +190,9 @@ class IsolateContext {
 
   /**
    * Run [code] in the context of the isolate represented by [this]. Note this
-   * is marked as native because it is called from JavaScript (see $wrap_call in
-   * corejs.dart).
+   * is called from JavaScript (see $wrap_call in corejs.dart).
    */
-  void eval(Function code) native {
+  void eval(Function code) {
     var old = _globalState.currentContext;
     _globalState.currentContext = this;
     this._setGlobals();
@@ -262,7 +261,7 @@ class EventLoop {
           function(a, b) { window.setTimeout(a, b); } : undefined;
   """;
 
-  /** 
+  /**
    * Runs multiple iterations of the run-loop. If possible, each iteration is
    * run asynchronously.
    */
@@ -281,12 +280,11 @@ class EventLoop {
     }
   }
 
-  /** 
+  /**
    * Call [_runHelper] but ensure that worker exceptions are propragated. Note
-   * this is marked as native because it is called from JavaScript (see
-   * $wrap_call in corejs.dart).
+   * this is called from JavaScript (see $wrap_call in corejs.dart).
    */
-  void run() native {
+  void run() {
     if (!_globalState.isWorker) {
       _runHelper();
     } else {
@@ -492,7 +490,7 @@ class IsolateNatives {
   /** Starts a new worker with the given URL. */
   static void _newWorker(url) native "return new Worker(url)";
 
-  /** 
+  /**
    * Spawns an isolate in a worker. [factoryName] is the Javascript constructor
    * name for the isolate entry point class.
    */
@@ -513,7 +511,7 @@ class IsolateNatives {
       'factoryName': factoryName }));
   }
 
-  /** 
+  /**
    * Process messages on a worker, either to control the worker instance or to
    * pass messages along to the isolate running in the worker.
    */
@@ -558,7 +556,6 @@ class IsolateNatives {
         break;
       case 'error':
         throw msg['msg'];
-        break;
     }
   }
 
@@ -579,7 +576,7 @@ class IsolateNatives {
   static void _consoleLog(msg) native "\$globalThis.console.log(msg);";
 
 
-  /** 
+  /**
    * Extract the constructor of runnable, so it can be allocated in another
    * isolate.
    */

@@ -14,7 +14,6 @@ class CoreJs {
   // These values track if the helper is actually used. If it is we generate it.
   bool useTypeNameOf = false;
   bool useStackTraceOf = false;
-  bool useToDartException = false;
   bool useThrow = false;
   bool useVarMethod = false;
   bool useGenStub = false;
@@ -245,50 +244,6 @@ function $stackTraceOf(e) {
   // TODO(jmesserly): we shouldn't be relying on the e.stack property.
   // Need to mangle it.
   return  (e && e.stack) ? e.stack : null;
-}""");
-    }
-
-    if (useToDartException) {
-      w.writeln(@"""
-// Translate a JavaScript exception to a Dart exception
-// TODO(jmesserly): cross browser support. This is Chrome specific.
-function $toDartException(e) {
-  var res = e;
-  if (e instanceof TypeError) {
-    switch(e.type) {
-      case 'property_not_function':
-      case 'called_non_callable':
-        if (e.arguments[0] == null) {
-          res = new NullPointerException();
-        } else {
-          res = new ObjectNotClosureException();
-        }
-        break;
-      case 'non_object_property_call':
-      case 'non_object_property_load':
-        res = new NullPointerException();
-        break;
-      case 'undefined_method':
-        if (e.arguments[0] == 'call' || e.arguments[0] == 'apply') {
-          res = new ObjectNotClosureException();
-        } else {
-          // TODO(jmesserly): can this ever happen?
-          res = new NoSuchMethodException('', e.arguments[0], []);
-        }
-        break;
-    }
-  } else if (e instanceof RangeError) {
-    if (e.message.indexOf('call stack') >= 0) {
-      res = new StackOverflowException();
-    }
-  }
-  if (res) {
-    // TODO(jmesserly): setting the stack property is not a long term solution.
-    // Also it causes the exception to print as if it were a JS TypeError or
-    // RangeError, instead of using the proper toString.
-    res.stack = e.stack;
-  }
-  return res;
 }""");
     }
 

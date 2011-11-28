@@ -70,46 +70,6 @@ Function.prototype.$genStub = function(argsLength, names) {
   var f = 'function(' + a.join(',') + '){return $f(' + p.join(',') + ');}';
   return new Function('$f', 'return ' + f + '').call(null, this);
 }
-// Translate a JavaScript exception to a Dart exception
-// TODO(jmesserly): cross browser support. This is Chrome specific.
-function $toDartException(e) {
-  var res = e;
-  if (e instanceof TypeError) {
-    switch(e.type) {
-      case 'property_not_function':
-      case 'called_non_callable':
-        if (e.arguments[0] == null) {
-          res = new NullPointerException();
-        } else {
-          res = new ObjectNotClosureException();
-        }
-        break;
-      case 'non_object_property_call':
-      case 'non_object_property_load':
-        res = new NullPointerException();
-        break;
-      case 'undefined_method':
-        if (e.arguments[0] == 'call' || e.arguments[0] == 'apply') {
-          res = new ObjectNotClosureException();
-        } else {
-          // TODO(jmesserly): can this ever happen?
-          res = new NoSuchMethodException('', e.arguments[0], []);
-        }
-        break;
-    }
-  } else if (e instanceof RangeError) {
-    if (e.message.indexOf('call stack') >= 0) {
-      res = new StackOverflowException();
-    }
-  }
-  if (res) {
-    // TODO(jmesserly): setting the stack property is not a long term solution.
-    // Also it causes the exception to print as if it were a JS TypeError or
-    // RangeError, instead of using the proper toString.
-    res.stack = e.stack;
-  }
-  return res;
-}
 function $notnull_bool(test) {
   return (test === true || test === false) ? test : test.is$bool(); // TypeError
 }
@@ -536,13 +496,17 @@ NoSuchMethodException.prototype.toString = function() {
 }
 NoSuchMethodException.prototype.toString$0 = NoSuchMethodException.prototype.toString;
 // ********** Code for ObjectNotClosureException **************
-function ObjectNotClosureException() {}
+function ObjectNotClosureException() {
+  // Initializers done
+}
 ObjectNotClosureException.prototype.toString = function() {
   return "Object is not closure";
 }
 ObjectNotClosureException.prototype.toString$0 = ObjectNotClosureException.prototype.toString;
 // ********** Code for StackOverflowException **************
-function StackOverflowException() {}
+function StackOverflowException() {
+  // Initializers done
+}
 StackOverflowException.prototype.toString = function() {
   return "Stack Overflow";
 }
@@ -554,7 +518,9 @@ BadNumberFormatException.prototype.toString = function() {
 }
 BadNumberFormatException.prototype.toString$0 = BadNumberFormatException.prototype.toString;
 // ********** Code for NullPointerException **************
-function NullPointerException() {}
+function NullPointerException() {
+  // Initializers done
+}
 NullPointerException.prototype.toString = function() {
   return "NullPointerException";
 }
@@ -656,6 +622,46 @@ function print(obj) {
   } else {
     write(obj);
     write('\n');
+  }
+}
+function _toDartException(e) {
+  {
+    var res = e;
+    if (e instanceof TypeError) {
+      switch(e.type) {
+        case 'property_not_function':
+        case 'called_non_callable':
+          if (e.arguments[0] == null) {
+            res = new NullPointerException();
+          } else {
+            res = new ObjectNotClosureException();
+          }
+          break;
+        case 'non_object_property_call':
+        case 'non_object_property_load':
+          res = new NullPointerException();
+          break;
+        case 'undefined_method':
+          if (e.arguments[0] == 'call' || e.arguments[0] == 'apply') {
+            res = new ObjectNotClosureException();
+          } else {
+            // TODO(jmesserly): can this ever happen?
+            res = new NoSuchMethodException('', e.arguments[0], []);
+          }
+          break;
+      }
+    } else if (e instanceof RangeError) {
+      if (e.message.indexOf('call stack') >= 0) {
+        res = new StackOverflowException();
+      }
+    }
+    if (res) {
+      // TODO(jmesserly): setting the stack property is not a long term solution.
+      // Also it causes the exception to print as if it were a JS TypeError or
+      // RangeError, instead of using the proper toString.
+      res.stack = e.stack;
+    }
+    return res;
   }
 }
 //  ********** Library dart:coreimpl **************
@@ -837,6 +843,9 @@ ImmutableList.prototype.clear = function() {
 ImmutableList.prototype.removeLast = function() {
   $throw(const$20/*const IllegalAccessException()*/);
 }
+ImmutableList.prototype.toString = function() {
+  return ListFactory.ListFactory$from$factory(this).toString();
+}
 ImmutableList.prototype.add$1 = ImmutableList.prototype.add;
 ImmutableList.prototype.addAll$1 = function($0) {
   return this.addAll(($0 && $0.is$Collection_E()));
@@ -845,6 +854,7 @@ ImmutableList.prototype.removeLast$0 = ImmutableList.prototype.removeLast;
 ImmutableList.prototype.sort$1 = function($0) {
   return this.sort(to$call$2($0));
 };
+ImmutableList.prototype.toString$0 = ImmutableList.prototype.toString;
 // ********** Code for ImmutableMap **************
 function ImmutableMap(keyValuePairs) {
   this._internal = $map([]);
@@ -2019,12 +2029,7 @@ StringBufferImpl.prototype.toString$0 = StringBufferImpl.prototype.toString;
 function StringBase() {}
 StringBase.createFromCharCodes = function(charCodes) {
   if (Object.getPrototypeOf(charCodes) !== Array.prototype) {
-    var length = charCodes.length;
-    var tmp = new Array(length);
-    for (var i = 0; i < length; i++) {
-      tmp[i] = charCodes.$index(i);
-    }
-    charCodes = tmp;
+    charCodes = new ListFactory.ListFactory$from$factory(charCodes);
   }
   return String.fromCharCode.apply(null, charCodes);
 }
@@ -5762,7 +5767,7 @@ Node.prototype.unparse = function() {
   try {
     return unparser.unparse(this);
   } catch (e) {
-    e = $toDartException(e);
+    e = _toDartException(e);
     return ('<<unparse error: ' + this.getObjectDescription() + ': ' + unparser.sb + '>>');
   }
 }
@@ -6163,7 +6168,7 @@ LiteralInt.prototype.get$value = function() {
   try {
     return Math.parseInt(this.token.get$value().toString$0());
   } catch (ex) {
-    ex = $toDartException(ex);
+    ex = _toDartException(ex);
     if (!(ex instanceof BadNumberFormatException)) throw ex;
     (this.handler)(this.token, ex);
   }
@@ -6184,7 +6189,7 @@ LiteralDouble.prototype.get$value = function() {
   try {
     return Math.parseDouble(this.token.get$value().toString$0());
   } catch (ex) {
-    ex = $toDartException(ex);
+    ex = _toDartException(ex);
     if (!(ex instanceof BadNumberFormatException)) throw ex;
     (this.handler)(this.token, ex);
   }
@@ -11141,7 +11146,7 @@ Compiler.prototype.run = function() {
   try {
     this.runCompiler();
   } catch (exception) {
-    exception = $toDartException(exception);
+    exception = _toDartException(exception);
     if (!(exception instanceof CompilerCancelledException)) throw exception;
     this.log(exception.toString());
     this.log('compilation failed');
@@ -11752,7 +11757,7 @@ TypeCheckerTask.prototype.check = function(tree, elements) {
     try {
       tree.accept(visitor);
     } catch (e) {
-      e = $toDartException(e);
+      e = _toDartException(e);
       if (!(e instanceof CancelTypeCheckException)) throw e;
       $this.compiler.reportWarning(e.node, new TypeWarning(const$306/*MessageKind.GENERIC*/, [e.reason]));
     }
@@ -12289,7 +12294,6 @@ CodeWriter.prototype.nextBlock = function(text) {
 function CoreJs() {
   this.useTypeNameOf = false
   this.useStackTraceOf = false
-  this.useToDartException = false
   this.useThrow = false
   this.useVarMethod = false
   this.useGenStub = false
@@ -12365,9 +12369,6 @@ CoreJs.prototype.generate = function(w) {
   }
   if ($notnull_bool(this.useStackTraceOf)) {
     w.writeln("function $stackTraceOf(e) {\n  // TODO(jmesserly): we shouldn't be relying on the e.stack property.\n  // Need to mangle it.\n  return  (e && e.stack) ? e.stack : null;\n}");
-  }
-  if ($notnull_bool(this.useToDartException)) {
-    w.writeln("// Translate a JavaScript exception to a Dart exception\n// TODO(jmesserly): cross browser support. This is Chrome specific.\nfunction $toDartException(e) {\n  var res = e;\n  if (e instanceof TypeError) {\n    switch(e.type) {\n      case 'property_not_function':\n      case 'called_non_callable':\n        if (e.arguments[0] == null) {\n          res = new NullPointerException();\n        } else {\n          res = new ObjectNotClosureException();\n        }\n        break;\n      case 'non_object_property_call':\n      case 'non_object_property_load':\n        res = new NullPointerException();\n        break;\n      case 'undefined_method':\n        if (e.arguments[0] == 'call' || e.arguments[0] == 'apply') {\n          res = new ObjectNotClosureException();\n        } else {\n          // TODO(jmesserly): can this ever happen?\n          res = new NoSuchMethodException('', e.arguments[0], []);\n        }\n        break;\n    }\n  } else if (e instanceof RangeError) {\n    if (e.message.indexOf('call stack') >= 0) {\n      res = new StackOverflowException();\n    }\n  }\n  if (res) {\n    // TODO(jmesserly): setting the stack property is not a long term solution.\n    // Also it causes the exception to print as if it were a JS TypeError or\n    // RangeError, instead of using the proper toString.\n    res.stack = e.stack;\n  }\n  return res;\n}");
   }
   if ($notnull_bool(this.useNotNullBool)) {
     this.useThrow = true;
@@ -12551,6 +12552,10 @@ WorldGenerator.prototype.run = function() {
     this.genMethod((($0 = $globals.world.get$coreimpl().types.$index('StringImplementation').getMember$1('contains')) && $0.is$Member()));
   }
   if ($notnull_bool($globals.world.corelib.types.$index('Isolate').get$isUsed()) || $notnull_bool($globals.world.get$coreimpl().types.$index('ReceivePortImpl').get$isUsed())) {
+    if ($notnull_bool(this.corejs.useWrap0) || $notnull_bool(this.corejs.useWrap1)) {
+      this.genMethod((($0 = $globals.world.get$coreimpl().types.$index('IsolateContext').getMember$1('eval')) && $0.is$Member()));
+      this.genMethod((($0 = $globals.world.get$coreimpl().types.$index('EventLoop').getMember$1('run')) && $0.is$Member()));
+    }
     this.corejs.useIsolates = true;
     var isolateMain = (($0 = $globals.world.get$coreimpl().topType.resolveMember('startRootIsolate').members.$index(0)) && $0.is$MethodMember());
     var isolateMainTarget = new Value.type$ctor($globals.world.get$coreimpl().topType, this.main.get$span());
@@ -12608,7 +12613,7 @@ WorldGenerator.prototype.globalForConst = function(exp, dependencies) {
   if (!this.globals.containsKey(key)) {
     this.globals.$setindex(key, GlobalValue.GlobalValue$fromConst$factory(this.globals.get$length(), exp, dependencies));
   }
-  $assert($eq(this.globals.$index(key).get$type(), exp.type), "globals[key].type == exp.type", "gen.dart", 121, 12);
+  $assert($eq(this.globals.$index(key).get$type(), exp.type), "globals[key].type == exp.type", "gen.dart", 128, 12);
   return (($0 = this.globals.$index(key)) && $0.is$GlobalValue());
 }
 WorldGenerator.prototype.writeTypes = function(lib) {
@@ -13078,8 +13083,10 @@ MethodGenerator.prototype.run = function() {
   if ($notnull_bool(this.method.isGenerated)) return;
   this.method.isGenerated = true;
   this.method.generator = this;
-  if ((this.method.get$definition().get$body() instanceof NativeStatement)) {
-    if ($notnull_bool(this.method.get$definition().get$body().get$body() == null)) {
+  this.writeBody();
+  if ($notnull_bool($ne(this.method.get$definition().get$nativeBody(), null))) {
+    this.writer = new CodeWriter();
+    if ($notnull_bool($eq(this.method.get$definition().get$nativeBody(), ''))) {
       this.method.generator = null;
     }
     else {
@@ -13087,11 +13094,8 @@ MethodGenerator.prototype.run = function() {
         return p.get$name();
       })
       );
-      this.writer.write($assert_String(this.method.get$definition().get$body().get$body()));
+      this.writer.write($assert_String(this.method.get$definition().get$nativeBody()));
     }
-  }
-  else {
-    this.writeBody();
   }
 }
 MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
@@ -13149,7 +13153,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 803, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 812, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -13259,7 +13263,7 @@ MethodGenerator.prototype.writeBody = function() {
     }
   }
   var body = this.method.get$definition().get$body();
-  if ($notnull_bool(body == null) && !$notnull_bool(this.method.get$isConstructor())) {
+  if ($notnull_bool(body == null) && !$notnull_bool(this.method.get$isConstructor()) && !$notnull_bool(this.method.get$isNative())) {
     $globals.world.error(('unexpected empty body for ' + this.method.name), (($0 = this.method.get$definition().get$span()) && $0.is$SourceSpan()));
   }
   var initializerCall = null;
@@ -13332,7 +13336,7 @@ MethodGenerator.prototype.writeBody = function() {
   if ($notnull_bool($ne(initializedFields, null))) {
     for (var $i = allMembers.iterator$0(); $i.hasNext$0(); ) {
       var member = $i.next$0();
-      if ($notnull_bool(member.get$isField()) && $notnull_bool(member.get$isFinal()) && !$notnull_bool(member.get$isStatic()) && !$notnull_bool(initializedFields.contains$1(member.get$name()))) {
+      if ($notnull_bool(member.get$isField()) && $notnull_bool(member.get$isFinal()) && !$notnull_bool(member.get$isStatic()) && !$notnull_bool(this.method.get$isNative()) && !$notnull_bool(initializedFields.contains$1(member.get$name()))) {
         $globals.world.error(('Field "' + member.get$name() + '" is final and was not initialized'), (($0 = this.method.get$definition().get$span()) && $0.is$SourceSpan()));
       }
     }
@@ -13389,6 +13393,15 @@ MethodGenerator.prototype._makeArgs = function(arguments) {
     args.add$1(this.visitValue((($0 = arg.get$value()) && $0.is$lang_Expression())));
   }
   return new Arguments(arguments, args);
+}
+MethodGenerator.prototype._invokeNative = function(name, arguments) {
+  var $0;
+  var args = Arguments.get$EMPTY();
+  if (arguments.length > 0) {
+    args = new Arguments(null, arguments);
+  }
+  var method = $globals.world.corelib.topType.members.$index(name);
+  return (($0 = method.invoke$4(this, method.get$definition(), new Value($globals.world.corelib.topType, null, null, true), args)) && $0.is$Value());
 }
 MethodGenerator._escapeString = function(text) {
   return text.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', '\\n').replaceAll('\r', '\\r');
@@ -13657,17 +13670,8 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   return false;
 }
 MethodGenerator.prototype._genToDartException = function(ex, node) {
-  var types = const$452/*const [
-        'NullPointerException', 'ObjectNotClosureException',
-        'NoSuchMethodException', 'StackOverflowException']*/;
-  var target = new Value($globals.world.varType, 'this', node.span, true);
-  for (var $i = types.iterator$0(); $i.hasNext$0(); ) {
-    var name = $i.next$0();
-    $globals.world.corelib.types.$index(name).markUsed$0();
-    $globals.world.corelib.types.$index(name).get$members().$index('toString').invoke$4(this, node, target, Arguments.get$EMPTY());
-  }
-  this.writer.writeln(('' + ex + ' = \$toDartException(' + ex + ');'));
-  $globals.world.gen.corejs.useToDartException = true;
+  var result = this._invokeNative("_toDartException", [ex]);
+  this.writer.writeln(('' + ex.code + ' = ' + result.get$code() + ';'));
 }
 MethodGenerator.prototype.visitTryStatement = function(node) {
   var $0;
@@ -13686,7 +13690,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
       this.writer.writeln(('var ' + trace.get$code() + ' = \$stackTraceOf(' + ex.get$code() + ');'));
       $globals.world.gen.corejs.useStackTraceOf = true;
     }
-    this._genToDartException($assert_String(ex.get$code()), node);
+    this._genToDartException((ex && ex.is$Value()), node);
     if (!$notnull_bool(ex.get$type().get$isVarOrObject())) {
       var test = ex.instanceOf$3$isTrue$forceCheck(this, ex.get$type(), catch_.get$exception().get$span(), false, true);
       this.writer.writeln(('if (' + test.get$code() + ') throw ' + ex.get$code() + ';'));
@@ -13708,7 +13712,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
       this.writer.writeln(('var ' + trace.get$code() + ' = \$stackTraceOf(' + ex.get$code() + ');'));
       $globals.world.gen.corejs.useStackTraceOf = true;
     }
-    this._genToDartException($assert_String(ex.get$code()), node);
+    this._genToDartException((ex && ex.is$Value()), node);
     var needsRethrow = true;
     for (var i = 0;
      i < node.catches.length; i++) {
@@ -14332,7 +14336,7 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2239, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2250, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;
@@ -15526,6 +15530,9 @@ ConcreteMember.prototype.get$isFactory = function() {
 ConcreteMember.prototype.get$isFinal = function() {
   return this.baseMember.get$isFinal();
 }
+ConcreteMember.prototype.get$isNative = function() {
+  return this.baseMember.get$isNative();
+}
 ConcreteMember.prototype.get$jsname = function() {
   return this.baseMember.get$jsname();
 }
@@ -15669,7 +15676,7 @@ MethodMember.prototype.get$isMethod = function() {
   return !$notnull_bool(this.get$isConstructor());
 }
 MethodMember.prototype.get$isNative = function() {
-  return (this.definition.body instanceof NativeStatement);
+  return this.definition.nativeBody != null;
 }
 MethodMember.prototype.get$canGet = function() {
   return false;
@@ -15909,7 +15916,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
     return this._invokeBuiltin(context, node, target, args, argsCode, isDynamic);
   }
   if ($notnull_bool(this.isFactory)) {
-    $assert(target.isType, "target.isType", "member.dart", 945, 14);
+    $assert(target.isType, "target.isType", "member.dart", 946, 14);
     return new Value(target.type, ('' + this.get$generatedFactoryName() + '(' + argsString + ')'), node.span, true);
   }
   if ($notnull_bool(this.isStatic)) {
@@ -16185,7 +16192,6 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
         value = '"' + value.replaceAll$2('"', '\\"') + '"';
         return EvaluatedValue.EvaluatedValue$factory($globals.world.stringType, value, $assert_String(value), node.span);
       }
-      args.values.$index(0).invoke$4(context, 'toString', node, Arguments.get$EMPTY());
       return new Value(this.declaringType, ('' + target.code + ' + ' + argsCode.$index(0)), node.span, true);
     }
   }
@@ -16303,7 +16309,7 @@ MethodMember.prototype.resolve = function() {
     }
   }
   else {
-    if (this.definition.body == null && !$notnull_bool(this.get$isConstructor())) {
+    if (this.definition.body == null && !$notnull_bool(this.get$isConstructor()) && !$notnull_bool(this.get$isNative())) {
       $globals.world.error('method needs a body', this.get$span());
     }
   }
@@ -18707,7 +18713,7 @@ lang_Parser.prototype.functionTypeAlias = function() {
   }
   var formals = this.formalParameterList();
   this._eatSemicolon();
-  var func = new FunctionDefinition(null, di.get$type(), di.get$name(), formals, null, null, null, this._makeSpan(start));
+  var func = new FunctionDefinition(null, di.get$type(), di.get$name(), formals, null, null, null, null, this._makeSpan(start));
   return new FunctionTypeDefinition(func, typeParams, this._makeSpan(start));
 }
 lang_Parser.prototype.initializers = function() {
@@ -18745,16 +18751,6 @@ lang_Parser.prototype.functionBody = function(inExpression) {
     if ($notnull_bool(this._maybeEat(10/*TokenKind.SEMICOLON*/))) {
       return null;
     }
-    else if ($notnull_bool(this._maybeEat(81/*TokenKind.NATIVE*/))) {
-      var nativeBody = this.maybeStringLiteral();
-      if ($notnull_bool(this._peekKind(10/*TokenKind.SEMICOLON*/))) {
-        this._eatSemicolon();
-        return new NativeStatement(nativeBody, this._makeSpan(start));
-      }
-      else {
-        return this.functionBody(inExpression);
-      }
-    }
   }
   this._lang_error('Expected function body (neither { nor => found)');
 }
@@ -18782,15 +18778,19 @@ lang_Parser.prototype.finishDefinition = function(start, modifiers, di, typePara
     case 2/*TokenKind.LPAREN*/:
 
       var formals = this.formalParameterList();
-      var inits = null;
+      var inits = null, native_ = null;
       if ($notnull_bool(this._maybeEat(8/*TokenKind.COLON*/))) {
         inits = this.initializers();
+      }
+      if ($notnull_bool(this._maybeEat(81/*TokenKind.NATIVE*/))) {
+        native_ = this.maybeStringLiteral();
+        if ($notnull_bool(native_ == null)) native_ = '';
       }
       var body = this.functionBody(false);
       if ($notnull_bool(di.get$name() == null)) {
         di.set$name(di.get$type().get$name());
       }
-      return new FunctionDefinition(modifiers, di.get$type(), di.get$name(), formals, typeParams, inits, body, this._makeSpan(start));
+      return new FunctionDefinition(modifiers, di.get$type(), di.get$name(), formals, typeParams, inits, native_, body, this._makeSpan(start));
 
     case 20/*TokenKind.ASSIGN*/:
 
@@ -19225,7 +19225,7 @@ lang_Parser.prototype._finishDeclaredId = function(type) {
   return this.finishPostfixExpression(new DeclaredIdentifier(type, name, this._makeSpan($assert_num(type.get$span().get$start()))));
 }
 lang_Parser.prototype._fixAsType = function(x) {
-  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 805, 12);
+  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 799, 12);
   if ($notnull_bool(this._maybeEat(53/*TokenKind.GT*/))) {
     var base = this._makeType(x.x);
     var typeParam = this._makeType(x.y);
@@ -19233,7 +19233,7 @@ lang_Parser.prototype._fixAsType = function(x) {
     return this._finishDeclaredId(type);
   }
   else {
-    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 816, 14);
+    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 810, 14);
     var base = this._makeType(x.x);
     var paramBase = this._makeType(x.y);
     var firstParam = this.addTypeArguments((paramBase && paramBase.is$TypeReference()), 1);
@@ -19587,7 +19587,7 @@ lang_Parser.prototype._parenOrLambda = function() {
   if ($notnull_bool(this._atClosureParameters())) {
     var formals = this.formalParameterList();
     var body = this.functionBody(true);
-    var func = new FunctionDefinition(null, null, null, formals, null, null, body, this._makeSpan(start));
+    var func = new FunctionDefinition(null, null, null, formals, null, null, null, body, this._makeSpan(start));
     return new LambdaExpression(func, (($0 = func.get$span()) && $0.is$SourceSpan()));
   }
   else {
@@ -19756,7 +19756,7 @@ lang_Parser.parseHex = function(hex) {
   for (var i = 0;
    i < hex.length; i++) {
     var digit = lang_Parser._hexDigit(hex.charCodeAt(i));
-    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1345, 14);
+    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1339, 14);
     result = (result << 4) + $assert_num(digit);
   }
   return $assert_num(result);
@@ -19978,7 +19978,7 @@ lang_Parser.prototype.formalParameter = function(inOptionalBlock) {
   }
   else if ($notnull_bool(this._peekKind(2/*TokenKind.LPAREN*/))) {
     var formals = this.formalParameterList();
-    var func = new FunctionDefinition(null, type, name, formals, null, null, null, this._makeSpan(start));
+    var func = new FunctionDefinition(null, type, name, formals, null, null, null, null, this._makeSpan(start));
     type = new FunctionTypeReference(false, func, (($0 = func.get$span()) && $0.is$SourceSpan()));
   }
   if ($notnull_bool(inOptionalBlock) && $notnull_bool(value == null)) {
@@ -20034,7 +20034,7 @@ lang_Parser.prototype._makeFunction = function(expr, formals, body) {
     this._lang_error('bad function body', (($0 = expr.get$span()) && $0.is$SourceSpan()));
   }
   var span = new SourceSpan(expr.get$span().get$file(), expr.get$span().get$start(), body.get$span().get$end());
-  var func = new FunctionDefinition(null, type, name, formals, null, null, body, (span && span.is$SourceSpan()));
+  var func = new FunctionDefinition(null, type, name, formals, null, null, null, body, (span && span.is$SourceSpan()));
   return new LambdaExpression(func, (($0 = func.get$span()) && $0.is$SourceSpan()));
 }
 lang_Parser.prototype._makeDeclaredIdentifier = function(e) {
@@ -20234,13 +20234,14 @@ VariableDefinition.prototype.visit$1 = function($0) {
   return this.visit(($0 && $0.is$TreeVisitor()));
 };
 // ********** Code for FunctionDefinition **************
-function FunctionDefinition(modifiers, returnType, name, formals, typeParameters, initializers, body, span) {
+function FunctionDefinition(modifiers, returnType, name, formals, typeParameters, initializers, nativeBody, body, span) {
   this.modifiers = modifiers;
   this.returnType = returnType;
   this.name = name;
   this.formals = formals;
   this.typeParameters = typeParameters;
   this.initializers = initializers;
+  this.nativeBody = nativeBody;
   this.body = body;
   // Initializers done
   Definition.call(this, span);
@@ -20255,6 +20256,8 @@ FunctionDefinition.prototype.get$typeParameters = function() { return this.typeP
 FunctionDefinition.prototype.set$typeParameters = function(value) { return this.typeParameters = value; };
 FunctionDefinition.prototype.get$initializers = function() { return this.initializers; };
 FunctionDefinition.prototype.set$initializers = function(value) { return this.initializers = value; };
+FunctionDefinition.prototype.get$nativeBody = function() { return this.nativeBody; };
+FunctionDefinition.prototype.set$nativeBody = function(value) { return this.nativeBody = value; };
 FunctionDefinition.prototype.get$body = function() { return this.body; };
 FunctionDefinition.prototype.set$body = function(value) { return this.body = value; };
 FunctionDefinition.prototype.visit = function(visitor) {
@@ -20522,21 +20525,6 @@ DietStatement.prototype.visit = function(visitor) {
   return visitor.visitDietStatement(this);
 }
 DietStatement.prototype.visit$1 = function($0) {
-  return this.visit(($0 && $0.is$TreeVisitor()));
-};
-// ********** Code for NativeStatement **************
-function NativeStatement(body, span) {
-  this.body = body;
-  // Initializers done
-  lang_Statement.call(this, span);
-}
-$inherits(NativeStatement, lang_Statement);
-NativeStatement.prototype.get$body = function() { return this.body; };
-NativeStatement.prototype.set$body = function(value) { return this.body = value; };
-NativeStatement.prototype.visit = function(visitor) {
-  return visitor.visitNativeStatement(this);
-}
-NativeStatement.prototype.visit$1 = function($0) {
   return this.visit(($0 && $0.is$TreeVisitor()));
 };
 // ********** Code for LambdaExpression **************
@@ -22150,9 +22138,9 @@ DefinedType.prototype._tryCreateDefaultConstructor = function(name) {
   var $0;
   if (name == '' && this.definition != null && $notnull_bool(this.isClass) && this.constructors.get$length() == 0) {
     var span = this.definition.span;
-    var inits = null, body = null;
+    var inits = null, native_ = null, body = null;
     if ($notnull_bool(this.isNative)) {
-      body = new NativeStatement(null, (span && span.is$SourceSpan()));
+      native_ = '';
       inits = null;
     }
     else {
@@ -22160,7 +22148,7 @@ DefinedType.prototype._tryCreateDefaultConstructor = function(name) {
       inits = [new CallExpression(new SuperExpression((span && span.is$SourceSpan())), [], (span && span.is$SourceSpan()))];
     }
     var typeDef = (($0 = this.definition) && $0.is$TypeDefinition());
-    var c = new FunctionDefinition(null, null, typeDef.name, [], null, inits, body, (span && span.is$SourceSpan()));
+    var c = new FunctionDefinition(null, null, typeDef.name, [], null, inits, native_, body, (span && span.is$SourceSpan()));
     this.addMethod(null, (c && c.is$FunctionDefinition()));
     this.constructors.$index('').resolve$0();
     return this.constructors.$index('');
@@ -22186,7 +22174,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
   return this;
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
-  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1158, 12);
+  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1157, 12);
   var jsnames = [];
   var names = [];
   var typeMap = $map([]);
@@ -22209,7 +22197,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return (ret && ret.is$lang_Type());
 }
 DefinedType.prototype.getCallStub = function(args) {
-  $assert(this.get$isFunction(), "isFunction", "type.dart", 1185, 12);
+  $assert(this.get$isFunction(), "isFunction", "type.dart", 1184, 12);
   var name = _getCallStubName('call', args);
   if (this.varStubs == null) this.varStubs = $map([]);
   var stub = this.varStubs.$index(name);
@@ -23060,7 +23048,7 @@ World.prototype.compile = function() {
     this.info(('compiling ' + $globals.options.dartScript + ' with corelib ' + this.corelib));
     if (!$notnull_bool(this.runLeg())) this.runCompilationPhases();
   } catch (exc) {
-    exc = $toDartException(exc);
+    exc = _toDartException(exc);
     if ($notnull_bool(this.get$hasErrors()) && !$notnull_bool($globals.options.throwOnErrors)) {
     }
     else {
@@ -23133,7 +23121,7 @@ World.prototype.readFile = function(filename) {
     this.dartBytesRead += sourceFile.get$text().length;
     return sourceFile;
   } catch (e) {
-    e = $toDartException(e);
+    e = _toDartException(e);
     this.warning(('Error reading file: ' + filename));
     return new SourceFile(filename, '');
   }
@@ -24009,9 +23997,6 @@ var const$4 = new StringWrapper('global scope')/*const SourceString('global scop
 var const$41 = new Keyword("default", false)/*const Keyword("default")*/;
 var const$43 = new Keyword("do", false)/*const Keyword("do")*/;
 var const$45 = new Keyword("else", false)/*const Keyword("else")*/;
-var const$452 = ImmutableList.ImmutableList$from$factory(['NullPointerException', 'ObjectNotClosureException', 'NoSuchMethodException', 'StackOverflowException'])/*const [
-      'NullPointerException', 'ObjectNotClosureException',
-      'NoSuchMethodException', 'StackOverflowException']*/;
 var const$47 = new Keyword("false", false)/*const Keyword("false")*/;
 var const$49 = new Keyword("final", false)/*const Keyword("final")*/;
 var const$5 = new EmptyQueueException()/*const EmptyQueueException()*/;

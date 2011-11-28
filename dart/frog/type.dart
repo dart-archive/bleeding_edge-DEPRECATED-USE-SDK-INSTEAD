@@ -1111,19 +1111,18 @@ class DefinedType extends Type {
         constructors.length == 0) {
       var span = definition.span;
 
-      var inits = null, body = null;
+      var inits = null, native = null, body = null;
       if (isNative) {
-        body = new NativeStatement(null, span);
+        native = '';
         inits = null;
       } else {
         body = null;
         inits = [new CallExpression(new SuperExpression(span), [], span)];
       }
 
-
       TypeDefinition typeDef = definition;
       var c = new FunctionDefinition(null, null, typeDef.name, [],
-        null, inits, body, span);
+        null, inits, native, body, span);
       addMethod(null, c);
       constructors[''].resolve();
       return constructors[''];

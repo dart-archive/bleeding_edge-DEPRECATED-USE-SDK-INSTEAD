@@ -267,7 +267,7 @@ class Parser {
     _eatSemicolon();
 
     var func = new FunctionDefinition(null, di.type, di.name, formals,
-                                       null, null, null, _makeSpan(start));
+        null, null, null, null, _makeSpan(start));
 
     return new FunctionTypeDefinition(func, typeParams, _makeSpan(start));
   }
@@ -300,16 +300,6 @@ class Parser {
     } else if (!inExpression) {
       if (_maybeEat(TokenKind.SEMICOLON)) {
         return null;
-      } else if (_maybeEat(TokenKind.NATIVE)) {
-        var nativeBody = maybeStringLiteral();
-        if (_peekKind(TokenKind.SEMICOLON)) {
-          _eatSemicolon();
-          return new NativeStatement(nativeBody, _makeSpan(start));
-        } else {
-          // TODO(jimhug): This is just to get isolate.dart to parse - while
-          //   we figure out what's really going on in there.
-          return functionBody(inExpression);
-        }
       }
     }
 
@@ -343,9 +333,13 @@ class Parser {
     switch(_peek()) {
       case TokenKind.LPAREN:
         var formals = formalParameterList();
-        var inits = null;
+        var inits = null, native = null;
         if (_maybeEat(TokenKind.COLON)) {
           inits = initializers();
+        }
+        if (_maybeEat(TokenKind.NATIVE)) {
+          native = maybeStringLiteral();
+          if (native == null) native = '';
         }
         var body = functionBody(/*inExpression:*/false);
         if (di.name == null) {
@@ -353,7 +347,7 @@ class Parser {
           di.name = di.type.name;
         }
         return new FunctionDefinition(modifiers, di.type, di.name, formals,
-          typeParams, inits, body, _makeSpan(start));
+          typeParams, inits, native, body, _makeSpan(start));
 
       case TokenKind.ASSIGN:
         _eat(TokenKind.ASSIGN);
@@ -1168,7 +1162,7 @@ class Parser {
       var formals = formalParameterList();
       var body = functionBody(true);
       var func = new FunctionDefinition(null, null, null, formals, null, null,
-        body, _makeSpan(start));
+        null, body, _makeSpan(start));
       return new LambdaExpression(func, func.span);
     } else {
       var saved = _inInitializers;
@@ -1569,7 +1563,7 @@ class Parser {
     } else if (_peekKind(TokenKind.LPAREN)) {
       var formals = formalParameterList();
       var func = new FunctionDefinition(null, type, name, formals,
-                                         null, null, null, _makeSpan(start));
+          null, null, null, null, _makeSpan(start));
       type = new FunctionTypeReference(false, func, func.span);
     }
     if (inOptionalBlock && value == null) {
@@ -1635,8 +1629,8 @@ class Parser {
       _error('bad function body', expr.span);
     }
     var span = new SourceSpan(expr.span.file, expr.span.start, body.span.end);
-    var func =
-        new FunctionDefinition(null, type, name, formals, null, null, body, span);
+    var func = new FunctionDefinition(null, type, name, formals, null, null,
+                                      null, body, span);
     return new LambdaExpression(func, func.span);
   }
 

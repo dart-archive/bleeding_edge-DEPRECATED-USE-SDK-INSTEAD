@@ -175,6 +175,16 @@ class ListIterator<T> implements Iterator<T> {
    E removeLast() {
      throw const IllegalAccessException();
    }
+
+
+   // The base Array.prototype.toString does not like getting derived arrays,
+   // so copy the array if needed.
+   // TODO(jmesserly): this is not the right long term fix because it only works
+   // for ImmutableList, but all derived types of ListFactory have this problem.
+   // We need to implment ListFactory.toString in Dart. However, the
+   // mplmentation needs correct handling of cycles (isolate tests depend on
+   // this), so it's not trivial.
+   String toString() => new List.from(this).toString();
 }
 
 /** An immutable map. */

@@ -540,6 +540,7 @@ class ConcreteMember extends Member {
   bool get isConst() => baseMember.isConst;
   bool get isFactory() => baseMember.isFactory;
   bool get isFinal() => baseMember.isFinal;
+  bool get isNative() => baseMember.isNative;
 
   String get jsname() => baseMember.jsname;
   set jsname(String name) =>
@@ -655,7 +656,7 @@ class MethodMember extends Member {
   bool get isConstructor() => name == declaringType.name;
   bool get isMethod() => !isConstructor;
 
-  bool get isNative() => definition.body is NativeStatement;
+  bool get isNative() => definition.nativeBody != null;
 
   bool get canGet() => false; // TODO(jimhug): get bound method support.
   bool get canSet() => false;
@@ -1187,7 +1188,6 @@ class MethodMember extends Member {
         }
 
         // Ensure we generate toString on the right side
-        args.values[0].invoke(context, 'toString', node, Arguments.EMPTY);
         return new Value(declaringType, '${target.code} + ${argsCode[0]}',
           node.span);
       }
@@ -1324,7 +1324,7 @@ class MethodMember extends Member {
         world.error('static method can not be abstract', span);
       }
     } else {
-      if (definition.body == null && !isConstructor) {
+      if (definition.body == null && !isConstructor && !isNative) {
         world.error('method needs a body', span);
       }
     }

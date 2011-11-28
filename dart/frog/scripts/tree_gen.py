@@ -111,7 +111,7 @@ nodes = [
   Definition('Function',
     'List<Token> modifiers, TypeReference returnType, Identifier name,' +
     'List<FormalNode> formals, List<ParameterType> typeParameters,' +
-    'List<Expression> initializers, Statement body'),
+    'List<Expression> initializers, String nativeBody, Statement body'),
 
   Statement('Return', 'Expression value'),
   Statement('Throw', 'Expression value'),
@@ -139,7 +139,6 @@ nodes = [
   Statement('Expression', 'Expression body'),
   Statement('Empty'),
   Statement('Diet'),
-  Statement('Native', 'String body'),
 
   Expression('Lambda', 'FunctionDefinition func'),
   Expression('Call', 'Expression target, List<ArgumentNode> arguments'),

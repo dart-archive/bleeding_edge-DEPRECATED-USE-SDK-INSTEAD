@@ -32,7 +32,7 @@ class StringImplementation implements String native "String" {
 
   String concat(String other) native;
 
-  String operator +(Object obj) native;
+  String operator +(Object obj) native { obj.toString(); }
 
   String substring(int startIndex, [int endIndex = null]) native;
 

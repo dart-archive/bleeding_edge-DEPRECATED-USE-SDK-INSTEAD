@@ -53,6 +53,13 @@ class WorldGenerator {
     // Only include isolate-specific code if isolates are used.
     if (world.corelib.types['Isolate'].isUsed
         || world.coreimpl.types['ReceivePortImpl'].isUsed) {
+
+      // Generate callbacks from JS to isolate code if needed
+      if (corejs.useWrap0 || corejs.useWrap1) {
+        genMethod(world.coreimpl.types['IsolateContext'].getMember('eval'));
+        genMethod(world.coreimpl.types['EventLoop'].getMember('run'));
+      }
+
       corejs.useIsolates = true;
       MethodMember isolateMain =
           world.coreimpl.topType.resolveMember('startRootIsolate').members[0];
@@ -738,15 +745,17 @@ class MethodGenerator implements TreeVisitor {
     method.isGenerated = true;
     method.generator = this;
 
-    if (method.definition.body is NativeStatement) {
-      if (method.definition.body.body == null) {
+    writeBody();
+
+    if (method.definition.nativeBody != null) {
+      // Throw away the code--it was just used for tree shaking purposes.
+      writer = new CodeWriter();
+      if (method.definition.nativeBody == '') {
         method.generator = null;
       } else {
         _paramCode = map(method.parameters, (p) => p.name);
-        writer.write(method.definition.body.body);
+        writer.write(method.definition.nativeBody);
       }
-    } else {
-      writeBody();
     }
   }
 
@@ -927,7 +936,7 @@ class MethodGenerator implements TreeVisitor {
 
     var body = method.definition.body;
 
-    if (body == null && !method.isConstructor) {
+    if (body == null && !method.isConstructor && !method.isNative) {
       world.error('unexpected empty body for ${method.name}',
         method.definition.span);
     }
@@ -1021,7 +1030,7 @@ class MethodGenerator implements TreeVisitor {
     if (initializedFields != null) {
       for (var member in allMembers) {
         if (member.isField && member.isFinal && !member.isStatic
-            && !initializedFields.contains(member.name)) {
+            && !method.isNative && !initializedFields.contains(member.name)) {
           world.error('Field "${member.name}" is final and was not initialized',
               method.definition.span);
         }
@@ -1089,6 +1098,18 @@ class MethodGenerator implements TreeVisitor {
     }
 
     return new Arguments(arguments, args);
+  }
+
+  /** Invoke a top-level corelib native method. */
+  Value _invokeNative(String name, List<Value> arguments) {
+    var args = Arguments.EMPTY;
+    if (arguments.length > 0) {
+      args = new Arguments(null, arguments);
+    }
+
+    var method = world.corelib.topType.members[name];
+    return method.invoke(this, method.definition,
+        new Value(world.corelib.topType, null, null), args);
   }
 
   /**
@@ -1413,19 +1434,9 @@ class MethodGenerator implements TreeVisitor {
     return false;
   }
 
-  void _genToDartException(String ex, Node node) {
-    var types = const [
-      'NullPointerException', 'ObjectNotClosureException',
-      'NoSuchMethodException', 'StackOverflowException'];
-    // TODO(jimhug): This is an egregious hack to get some toStrings called.
-    var target = new Value(world.varType, 'this', node.span);
-    for (var name in types) {
-      world.corelib.types[name].markUsed();
-      world.corelib.types[name].members['toString'].invoke(
-          this, node, target, Arguments.EMPTY);
-    }
-    writer.writeln('$ex = \$toDartException($ex);');
-    world.gen.corejs.useToDartException = true;
+  void _genToDartException(Value ex, Node node) {
+    var result = _invokeNative("_toDartException", [ex]);
+    writer.writeln('${ex.code} = ${result.code};');
   }
 
   bool visitTryStatement(TryStatement node) {
@@ -1447,7 +1458,7 @@ class MethodGenerator implements TreeVisitor {
         writer.writeln('var ${trace.code} = \$stackTraceOf(${ex.code});');
         world.gen.corejs.useStackTraceOf = true;
       }
-      _genToDartException(ex.code, node);
+      _genToDartException(ex, node);
 
       if (!ex.type.isVarOrObject) {
         var test = ex.instanceOf(this, ex.type, catch_.exception.span,
@@ -1468,7 +1479,7 @@ class MethodGenerator implements TreeVisitor {
         writer.writeln('var ${trace.code} = \$stackTraceOf(${ex.code});');
         world.gen.corejs.useStackTraceOf = true;
       }
-      _genToDartException(ex.code, node);
+      _genToDartException(ex, node);
 
       // We need a rethrow unless we encounter a "var" or "Object" catch
       bool needsRethrow = true;

@@ -54,9 +54,10 @@ class FunctionDefinition extends Definition {
   List<FormalNode> formals;
   List<ParameterType> typeParameters;
   List<Expression> initializers;
+  String nativeBody;
   Statement body;
 
-  FunctionDefinition(this.modifiers, this.returnType, this.name, this.formals, this.typeParameters, this.initializers, this.body, SourceSpan span): super(span) {}
+  FunctionDefinition(this.modifiers, this.returnType, this.name, this.formals, this.typeParameters, this.initializers, this.nativeBody, this.body, SourceSpan span): super(span) {}
 
   visit(TreeVisitor visitor) => visitor.visitFunctionDefinition(this);
 }
@@ -206,14 +207,6 @@ class DietStatement extends Statement {
   DietStatement(SourceSpan span): super(span) {}
 
   visit(TreeVisitor visitor) => visitor.visitDietStatement(this);
-}
-
-class NativeStatement extends Statement {
-  String body;
-
-  NativeStatement(this.body, SourceSpan span): super(span) {}
-
-  visit(TreeVisitor visitor) => visitor.visitNativeStatement(this);
 }
 
 class LambdaExpression extends Expression {
@@ -519,8 +512,6 @@ interface TreeVisitor {
 
   visitDietStatement(DietStatement node);
 
-  visitNativeStatement(NativeStatement node);
-
   visitLambdaExpression(LambdaExpression node);
 
   visitCallExpression(CallExpression node);
@@ -624,6 +615,7 @@ class TreePrinter implements TreeVisitor {
     output.writeNodeList('formals', node.formals);
     output.writeList('typeParameters', node.typeParameters);
     output.writeNodeList('initializers', node.initializers);
+    output.writeValue('nativeBody', node.nativeBody);
     output.writeNode('body', node.body);
   }
 
@@ -719,10 +711,6 @@ class TreePrinter implements TreeVisitor {
 
   void visitDietStatement(DietStatement node) {
     output.heading('DietStatement', node.span);
-  }
-
-  void visitNativeStatement(NativeStatement node) {
-    output.heading('NativeStatement(' + output.toValue(node.body) + ")", node.span);
   }
 
   void visitLambdaExpression(LambdaExpression node) {

@@ -5,17 +5,16 @@
 class StringBase {
   // TODO(jmesserly): this array copy is really unfortunate
   // TODO(jmesserly): check the performance of String.fromCharCode.apply
+  // TODO(jmesserly): fix the generated JS name of factory ctors,
+  // they shouldn't be duplicating the name.
   static String createFromCharCodes(List<int> charCodes) native @'''
 if (Object.getPrototypeOf(charCodes) !== Array.prototype) {
-  var length = charCodes.length;
-  var tmp = new Array(length);
-  for (var i = 0; i < length; i++) {
-    tmp[i] = charCodes.$index(i);
-  }
-  charCodes = tmp;
+  charCodes = new ListFactory.ListFactory$from$factory(charCodes);
 }
 return String.fromCharCode.apply(null, charCodes);
-''';
+''' {
+    new ListFactory.from(charCodes); // ensure List.from is generated
+  }
 
   static String join(List<String> strings, String separator) {
     if (strings.length == 0) return '';
