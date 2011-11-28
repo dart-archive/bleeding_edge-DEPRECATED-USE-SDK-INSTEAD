@@ -168,6 +168,61 @@ class SsaBuilder implements Visitor {
     pop();
   }
 
+  /**
+   * Creates a new loop-header block and fills it with phis of the current
+   * definitions. The previous [current] block is closed with an [HGoto] and
+   * replace with the newly created block.
+   * Returns a copy of the definitions at the moment of entering the loop.
+   */
+  Map<Element, HInstruction> startLoop() {
+    assert(!isAborted());
+    HBasicBlock previousBlock = close(new HGoto());
+
+    Map definitionsCopy = new Map<Element, HInstruction>.from(definitions);
+    HBasicBlock loopBlock = graph.addNewLoopHeaderBlock();
+    previousBlock.addSuccessor(loopBlock);
+    open(loopBlock);
+
+    // Create phis for all elements in the definitions environment.
+    definitionsCopy.forEach((Element element, HInstruction instruction) {
+      HPhi phi = new HPhi.singleInput(element, instruction);
+      loopBlock.addPhi(phi);
+      definitions[element] = phi;
+    });
+
+    return definitionsCopy;
+  }
+
+  /**
+   * Ends the loop:
+   * - Updates the phis in the [loopEntry].
+   * - if [doUpdateDefinitions] is true, fills the [exitDefinitions] with the
+   *   updated values.
+   * - sets [exitDefinitions] as the new [definitions].
+   * - creates a new block and adds it as successor to the [branchBlock].
+   * - opens the new block (setting as [current]). 
+   */
+  void endLoop(HBasicBlock loopEntry, HBasicBlock branchBlock,
+               bool doUpdateDefinitions,
+               Map<Element, HInstruction> exitDefinitions) {
+    loopEntry.forEachPhi((HPhi phi) {
+      Element element = phi.element;
+      HInstruction postLoopDefinition = definitions[element];
+      phi.addInput(postLoopDefinition);
+      if (doUpdateDefinitions &&
+          phi.inputs[0] !== postLoopDefinition &&
+          exitDefinitions.containsKey(element)) {
+        exitDefinitions[element] = postLoopDefinition;
+      }
+    });
+
+    HBasicBlock loopExitBlock = graph.addNewBlock();
+    assert(branchBlock.successors.length == 1);
+    branchBlock.addSuccessor(loopExitBlock);
+    open(loopExitBlock);
+    definitions = exitDefinitions;
+  }
+
   // For while loops, initializer and update are null.
   visitLoop(Statement initializer, Expression condition, Expression update,
             Node body) {
@@ -175,23 +230,11 @@ class SsaBuilder implements Visitor {
     // The initializer.
     if (initializer !== null) visit(initializer);
     assert(!isAborted());
-    HBasicBlock initializerBlock = close(new HGoto());
 
-    Map initializerDefinitions =
-        new Map<Element, HInstruction>.from(definitions);
+    Map initializerDefinitions = startLoop();
+    HBasicBlock conditionBlock = current;
 
     // The condition.
-    HBasicBlock conditionBlock = graph.addNewLoopHeaderBlock();
-    initializerBlock.addSuccessor(conditionBlock);
-    open(conditionBlock);
-
-    // Create phis for all elements in the definitions environment.
-    initializerDefinitions.forEach((Element element, HInstruction instruction) {
-      HPhi phi = new HPhi.singleInput(element, instruction);
-      conditionBlock.addPhi(phi);
-      definitions[element] = phi;
-    });
-
     visit(condition);
     HBasicBlock conditionExitBlock = close(new HLoopBranch(popBoolified()));
 
@@ -223,18 +266,9 @@ class SsaBuilder implements Visitor {
     updateBlock = close(new HGoto());
     // The back-edge completing the cycle.
     updateBlock.addSuccessor(conditionBlock);
+    conditionBlock.postProcessLoopHeader();    
 
-    conditionBlock.forEachPhi((HPhi phi) {
-      Element element = phi.element;
-      HInstruction postBodyDefinition = definitions[element];
-      phi.addInput(postBodyDefinition);
-    });
-
-    HBasicBlock loopExitBlock = graph.addNewBlock();
-    conditionExitBlock.addSuccessor(loopExitBlock);
-    open(loopExitBlock);
-    definitions = conditionDefinitions;
-    conditionBlock.postProcessLoopHeader();
+    endLoop(conditionBlock, conditionExitBlock, false, conditionDefinitions);
   }
 
   visitFor(For node) {
@@ -245,6 +279,31 @@ class SsaBuilder implements Visitor {
 
   visitWhile(While node) {
     visitLoop(null, node.condition, null, node.body);
+  }
+
+  visitDoWhile(DoWhile node) {
+    Map entryDefinitions = startLoop();
+    HBasicBlock loopEntryBlock = current;
+
+    visit(node.body);
+    if (isAborted()) {
+      compiler.unimplemented("SsaBuilder for loop with aborting body");
+    }
+
+    // If there are no continues we could avoid the creation of the condition
+    // block. This could also lead to a block having multiple entries and exits.
+    HBasicBlock bodyExitBlock = close(new HGoto());
+    HBasicBlock conditionBlock = graph.addNewBlock();
+    bodyExitBlock.addSuccessor(conditionBlock);
+    open(conditionBlock);
+    visit(node.condition);
+    assert(!isAborted());
+    conditionBlock = close(new HLoopBranch(popBoolified()));
+
+    conditionBlock.addSuccessor(loopEntryBlock);  // The back-edge.
+    loopEntryBlock.postProcessLoopHeader();
+
+    endLoop(loopEntryBlock, conditionBlock, true, entryDefinitions);
   }
 
   visitFunctionExpression(FunctionExpression node) {

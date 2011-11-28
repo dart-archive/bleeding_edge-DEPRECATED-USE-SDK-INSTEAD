@@ -371,14 +371,24 @@ class SsaCodeGenerator implements HVisitor {
     use(node.inputs[0]);
     buffer.add(')) break;\n');
     List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
-    assert(dominated.length == 2);
-    assert(dominated[0] === branchBlock.successors[0]);
-    visit(dominated[0]);
+    HBasicBlock loopSuccessor;
+    if (dominated.length == 1) {
+      // Do While.
+      // The first successor is the loop-body and thus a back-edge.
+      assert(branchBlock.successors[0].id < branchBlock.id);
+      assert(dominated[0] === branchBlock.successors[1]);
+      // The body has already been visited. Nothing to do in this branch.
+    } else {
+      // A normal while loop. Visit the body.
+      assert(dominated.length == 2);
+      assert(dominated[0] === branchBlock.successors[0]);
+      assert(dominated[1] === branchBlock.successors[1]);
+      visit(dominated[0]);
+    }
     indent--;
     addIndentation();
     buffer.add('}\n');  // Close 'while' loop.
-    assert(dominated[1] === branchBlock.successors[1]);
-    visit(dominated[1]);
+    visit(branchBlock.successors[1]);
   }
 
   visitNot(HNot node) {
