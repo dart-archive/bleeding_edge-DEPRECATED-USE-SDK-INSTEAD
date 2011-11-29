@@ -68,8 +68,19 @@ class ListFactory<E> implements List<E> native "Array" {
     "return this.slice(start, start + length);";
 
   void setRange(int start, int length, List<E> from, [int startFrom]) native;
-  void removeRange(int start, int length) native;
-  void insertRange(int start, int length, [E initialValue]) native;
+  void removeRange(int start, int length) native "this.splice(start, length);";
+
+  void insertRange(int start, int length, [E initialValue]) native
+    """
+    // Splice in the values with a minimum of array allocations.
+    var args = new Array(length + 2);
+    args[0] = start;
+    args[1] = 0;
+    for (var i = 0; i < length; i++) {
+      args[i + 2] = initialValue;
+    }
+    this.splice.apply(this, args);
+    """;
 
   // Collection<E> members:
   void forEach(void f(E element)) native;
