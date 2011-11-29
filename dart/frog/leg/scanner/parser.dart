@@ -6,10 +6,10 @@
  * An event generating parser of Dart programs. This parser expects
  * all tokens in a linked list.
  */
-class PartialParser {
+class Parser {
   final Listener listener;
 
-  PartialParser(Listener this.listener);
+  Parser(Listener this.listener);
 
   void parseUnit(Token token) {
     while (token.kind !== EOF_TOKEN) {
@@ -276,8 +276,6 @@ class PartialParser {
     return token;
   }
 
-  Token parseClassBody(Token token) => skipBlock(token);
-
   Token parseTopLevelMember(Token token) {
     Token start = token;
     listener.beginTopLevelMember(token);
@@ -315,33 +313,6 @@ class PartialParser {
     }
     return token.next;
   }
-
-  Token parseFunctionBody(Token token) {
-    if (optional(';', token)) {
-      return token;
-    } else if (optional('=>', token)) {
-      token = parseExpression(token.next);
-      expectSemicolon(token);
-      return token;
-    } else {
-      return skipBlock(token);
-    }
-  }
-
-  Token skipExpression(Token token) {
-    while (true) {
-      final kind = token.kind;
-      if ((token.kind === EOF_TOKEN) || (token.kind === SEMICOLON_TOKEN))
-        return token;
-      if (token is BeginGroupToken) {
-        BeginGroupToken begin = token;
-        token = (begin.endGroup !== null) ? begin.endGroup : token;
-      }
-      token = token.next;
-    }
-  }
-
-  Token parseExpression(Token token) => skipExpression(token);
 
   Token parseInitializersOpt(Token token) {
     if (optional(':', token)) {
@@ -422,10 +393,6 @@ class PartialParser {
     }
     return peek;
   }
-}
-
-class Parser extends PartialParser {
-  Parser(NodeListener listener) : super(listener);
 
   Token parseClassBody(Token token) {
     Token begin = token;

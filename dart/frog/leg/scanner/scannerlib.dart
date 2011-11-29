@@ -10,11 +10,12 @@
 #import('../tree/tree.dart');
 #import('../elements/elements.dart');
 
-#source('scanner.dart');
-#source('scanner_task.dart');
+#source('keyword.dart');
+#source('listener.dart');
 #source('parser.dart');
 #source('parser_task.dart');
-#source('listener.dart');
+#source('partial_parser.dart');
+#source('scanner.dart');
+#source('scanner_task.dart');
 #source('string_scanner.dart');
 #source('token.dart');
-#source('keyword.dart');
