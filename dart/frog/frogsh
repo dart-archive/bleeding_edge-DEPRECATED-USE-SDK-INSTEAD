@@ -626,42 +626,55 @@ function print(obj) {
 }
 function _toDartException(e) {
   {
-    var res = e;
+    function attachStack(dartEx) {
+      // TODO(jmesserly): setting the stack property is not a long term solution.
+      var stack = e.stack;
+      // The stack contains the error message, and the stack is all that is
+      // printed (the exception's toString() is never called).  Make the Dart
+      // exception's toString() be the dominant message.
+      if (typeof stack == 'string') {
+        var message = dartEx.toString();
+        if (/^(Type|Range)Error:/.test(stack)) {
+          // Indent JS message (it can be helpful) so new message stands out.
+          stack = '    (' + stack.substring(0, stack.indexOf('\n')) + ')\n' +
+                  stack.substring(stack.indexOf('\n') + 1);
+        }
+        stack = message + '\n' + stack;
+      }
+      dartEx.stack = stack;
+      return dartEx;
+    }
+
     if (e instanceof TypeError) {
       switch(e.type) {
         case 'property_not_function':
         case 'called_non_callable':
           if (e.arguments[0] == null) {
-            res = new NullPointerException();
+            return attachStack(new NullPointerException());
           } else {
-            res = new ObjectNotClosureException();
+            return attachStack(new ObjectNotClosureException());
           }
           break;
         case 'non_object_property_call':
         case 'non_object_property_load':
-          res = new NullPointerException();
+          return attachStack(new NullPointerException());
           break;
         case 'undefined_method':
           if (e.arguments[0] == 'call' || e.arguments[0] == 'apply') {
-            res = new ObjectNotClosureException();
+            return attachStack(new ObjectNotClosureException());
           } else {
             // TODO(jmesserly): can this ever happen?
-            res = new NoSuchMethodException('', e.arguments[0], []);
+            // sra: Yes, seen on '$add'.
+            return attachStack(new NoSuchMethodException('', e.arguments[0], []));
           }
           break;
       }
     } else if (e instanceof RangeError) {
       if (e.message.indexOf('call stack') >= 0) {
-        res = new StackOverflowException();
+        return attachStack(new StackOverflowException());
       }
     }
-    if (res) {
-      // TODO(jmesserly): setting the stack property is not a long term solution.
-      // Also it causes the exception to print as if it were a JS TypeError or
-      // RangeError, instead of using the proper toString.
-      res.stack = e.stack;
-    }
-    return res;
+    return e;
   }
 }
 //  ********** Library dart:coreimpl **************
