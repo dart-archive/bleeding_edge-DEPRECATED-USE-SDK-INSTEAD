@@ -10,7 +10,7 @@
  * TODO: prevent ANSI colors from being exposed to the user
  */
 class Dartc {
-  final String DARTC_EXEC_PATH = '../../../compiler/out/Release_ia32/dartc';
+  final String DARTC_EXEC_PATH = '../../../out/Release_ia32/dartc';
 
   String scriptName;
   String work = null;

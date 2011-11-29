@@ -22,20 +22,14 @@ import utils
 
 def GetOutputPath(mode):
   return rootPath(
-    'runtime',
     utils.GetBuildRoot(utils.GuessOS(), mode, utils.GuessArchitecture()),
     'dart_bin')
 
 def BuildDart(mode):
   if subprocess.call([
-      '../tools/build.py',
+      'tools/build.py',
       '--mode=%s' % mode],
-      cwd = rootPath('runtime')) != 0:
-    return False
-  if subprocess.call([
-      '../tools/build.py',
-      '--mode=%s' % mode],
-      cwd = rootPath('compiler')) != 0:
+      cwd = ROOT) != 0:
     return False
   return True
 

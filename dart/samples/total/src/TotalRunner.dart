@@ -32,7 +32,7 @@ class ServerRunner {
   String _serverMain;
 
   // TODO: Release or Debug? We should be able to find automatically
-  static final DART_EXEC_PATH = '../../../runtime/out/Release_ia32/dart_bin';
+  static final DART_EXEC_PATH = '../../../out/Release_ia32/dart';
   static final CR = 0x0d;
   static final LF = 0x0a;
 
