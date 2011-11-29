@@ -158,6 +158,7 @@ class HInstructionStringifier implements HVisitor<String> {
     switch (instruction.type) {
       case HInstruction.TYPE_BOOLEAN: prefix = 'b'; break;
       case HInstruction.TYPE_NUMBER: prefix = 'n'; break;
+      case HInstruction.TYPE_STRING: prefix = 's'; break;
       case HInstruction.TYPE_UNKNOWN: prefix = 'v'; break;
       case HInstruction.TYPE_CONFLICT: prefix = 'c'; break;
       default: unreachable();
@@ -200,21 +201,24 @@ class HInstructionStringifier implements HVisitor<String> {
     return "If ($conditionId): (B${thenBlock.id}) else (B${elseBlock.id})";
   }
 
-  String visitGenericInvoke(String invokeType, HInvoke invoke) {
-    StringBuffer arguments = new StringBuffer();
-    for (int i = 0; i < invoke.inputs.length; i++) {
-      if (i != 0) arguments.add(", ");
-      arguments.add(temporaryId(invoke.inputs[i]));
+  String visitGenericInvoke(String invokeType, String functionName,
+                            List<HInstruction> arguments) {
+    StringBuffer argumentsString = new StringBuffer();
+    for (int i = 0; i < arguments.length; i++) {
+      if (i != 0) argumentsString.add(", ");
+      argumentsString.add(temporaryId(arguments[i]));
     }
-    return "$invokeType: ${invoke.element.name}($arguments)";
+    return "$invokeType: $functionName($argumentsString)";
   }
 
   String visitInvoke(HInvoke invoke) {
-    return visitGenericInvoke("Invoke", invoke);
+    String target = "${invoke.element.name}";
+    List arguments = invoke.inputs;
+    return visitGenericInvoke("Invoke", target, arguments);
   }
 
-  String visitInvokeForeign(HInvokeForeign invoke) {
-    return visitGenericInvoke("InvokeForeign", invoke);
+  String visitForeign(HForeign foreign) {
+    return visitGenericInvoke("Foreign", "${foreign.code}", foreign.inputs);
   }
 
   String visitLess(HLess node) => visitInvoke(node);

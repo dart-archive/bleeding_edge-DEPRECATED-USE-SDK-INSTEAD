@@ -7505,7 +7505,7 @@ SsaBuilder.prototype.visitSend = function(node) {
     if (element.kind === const$219/*ElementKind.FOREIGN*/) {
       var literal = (($0 = node.get$arguments().get$head()) && $0.is$LiteralString());
       this.compiler.ensure((literal instanceof LiteralString));
-      this.push(new HInvokeForeign(element, arguments, this.unquote(literal)));
+      this.push(new HForeign(arguments, this.unquote(literal)));
     }
     else {
       this.push(new HInvoke(element, arguments));
@@ -7947,7 +7947,7 @@ SsaCodeGenerator.prototype.visitInvoke = function(node) {
   this.compiler.worklist.add(node.element);
   this.invoke(node.element, node.inputs);
 }
-SsaCodeGenerator.prototype.visitInvokeForeign = function(node) {
+SsaCodeGenerator.prototype.visitForeign = function(node) {
   var $0;
   var code = ('' + node.code);
   var inputs = node.inputs;
@@ -8259,6 +8259,9 @@ HBaseVisitor.prototype.visitEquals = function(node) {
 HBaseVisitor.prototype.visitExit = function(node) {
   return this.visitControlFlow(node);
 }
+HBaseVisitor.prototype.visitForeign = function(node) {
+  return this.visitInstruction(node);
+}
 HBaseVisitor.prototype.visitGoto = function(node) {
   return this.visitControlFlow(node);
 }
@@ -8273,9 +8276,6 @@ HBaseVisitor.prototype.visitIf = function(node) {
 }
 HBaseVisitor.prototype.visitInvoke = function(node) {
   return this.visitInstruction(node);
-}
-HBaseVisitor.prototype.visitInvokeForeign = function(node) {
-  return this.visitInvoke(node);
 }
 HBaseVisitor.prototype.visitLess = function(node) {
   return this.visitRelational(node);
@@ -9014,18 +9014,18 @@ HInvoke.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
 HInvoke.prototype.toString$0 = HInvoke.prototype.toString;
-// ********** Code for HInvokeForeign **************
-function HInvokeForeign(element, inputs, code) {
+// ********** Code for HForeign **************
+function HForeign(inputs, code) {
   this.code = code;
   // Initializers done
-  HInvoke.call(this, element, inputs);
+  HInstruction.call(this, inputs);
 }
-$inherits(HInvokeForeign, HInvoke);
-HInvokeForeign.prototype.get$code = function() { return this.code; };
-HInvokeForeign.prototype.accept = function(visitor) {
-  return visitor.visitInvokeForeign(this);
+$inherits(HForeign, HInstruction);
+HForeign.prototype.get$code = function() { return this.code; };
+HForeign.prototype.accept = function(visitor) {
+  return visitor.visitForeign(this);
 }
-HInvokeForeign.prototype.accept$1 = function($0) {
+HForeign.prototype.accept$1 = function($0) {
   return this.accept(($0 && $0.is$HVisitor()));
 };
 // ********** Code for HArithmetic **************
@@ -10427,7 +10427,7 @@ SsaInstructionMerger.prototype.typeGuardCheck = function(input) {
 }
 SsaInstructionMerger.prototype.visitInstruction = function(node) {
   var $0;
-  if ((node instanceof HInvokeForeign)) return;
+  if ((node instanceof HForeign)) return;
   var inputs = node.inputs;
   var previousUnused = node.previous;
   var i = inputs.length - 1;
@@ -10754,6 +10754,11 @@ HInstructionStringifier.prototype.temporaryId = function(instruction) {
       prefix = 'n';
       break;
 
+    case 3/*HInstruction.TYPE_STRING*/:
+
+      prefix = 's';
+      break;
+
     case 0/*HInstruction.TYPE_UNKNOWN*/:
 
       prefix = 'v';
@@ -10817,21 +10822,23 @@ HInstructionStringifier.prototype.visitIf = function(node) {
   var conditionId = this.temporaryId((($0 = node.inputs.$index(0)) && $0.is$HInstruction()));
   return ("If (" + conditionId + "): (B" + thenBlock.id + ") else (B" + elseBlock.id + ")");
 }
-HInstructionStringifier.prototype.visitGenericInvoke = function(invokeType, invoke) {
+HInstructionStringifier.prototype.visitGenericInvoke = function(invokeType, functionName, arguments) {
   var $0;
-  var arguments = new StringBufferImpl("");
+  var argumentsString = new StringBufferImpl("");
   for (var i = 0;
-   i < invoke.inputs.length; i++) {
-    if (i != 0) arguments.add(", ");
-    arguments.add(this.temporaryId((($0 = invoke.inputs.$index(i)) && $0.is$HInstruction())));
+   i < arguments.length; i++) {
+    if (i != 0) argumentsString.add(", ");
+    argumentsString.add(this.temporaryId((($0 = arguments.$index(i)) && $0.is$HInstruction())));
   }
-  return ("" + invokeType + ": " + invoke.element.name + "(" + arguments + ")");
+  return ("" + invokeType + ": " + functionName + "(" + argumentsString + ")");
 }
 HInstructionStringifier.prototype.visitInvoke = function(invoke) {
-  return this.visitGenericInvoke("Invoke", invoke);
+  var target = ("" + invoke.element.name);
+  var arguments = invoke.inputs;
+  return this.visitGenericInvoke("Invoke", target, arguments);
 }
-HInstructionStringifier.prototype.visitInvokeForeign = function(invoke) {
-  return this.visitGenericInvoke("InvokeForeign", invoke);
+HInstructionStringifier.prototype.visitForeign = function(foreign) {
+  return this.visitGenericInvoke("Foreign", ("" + foreign.code), foreign.inputs);
 }
 HInstructionStringifier.prototype.visitLess = function(node) {
   return this.visitInvoke(node);

@@ -13,6 +13,7 @@ interface HVisitor<R> {
   R visitDivide(HDivide node);
   R visitEquals(HEquals node);
   R visitExit(HExit node);
+  R visitForeign(HForeign node);
   R visitGoto(HGoto node);
   R visitGreater(HGreater node);
   R visitGreaterEqual(HGreaterEqual node);
@@ -23,7 +24,6 @@ interface HVisitor<R> {
   R visitLocal(HLocal node);
   R visitLoopBranch(HLoopBranch node);
   R visitInvoke(HInvoke node);
-  R visitInvokeForeign(HInvokeForeign node);
   R visitLiteral(HLiteral node);
   R visitModulo(HModulo node);
   R visitMultiply(HMultiply node);
@@ -185,12 +185,12 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitEquals(HEquals node) => visitRelational(node);
   visitExit(HExit node) => visitControlFlow(node);
+  visitForeign(HForeign node) => visitInstruction(node);
   visitGoto(HGoto node) => visitControlFlow(node);
   visitGreater(HGreater node) => visitRelational(node);
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
   visitIf(HIf node) => visitConditionalBranch(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
-  visitInvokeForeign(HInvokeForeign node) => visitInvoke(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLoad(HLoad node) => visitInstruction(node);
@@ -837,10 +837,10 @@ class HInvoke extends HInstruction {
   accept(HVisitor visitor) => visitor.visitInvoke(this);
 }
 
-class HInvokeForeign extends HInvoke {
+class HForeign extends HInstruction {
   final SourceString code;
-  HInvokeForeign(element, inputs, this.code) : super(element, inputs);
-  accept(HVisitor visitor) => visitor.visitInvokeForeign(this);
+  HForeign(inputs, this.code) : super(inputs);
+  accept(HVisitor visitor) => visitor.visitForeign(this);
 }
 
 class HArithmetic extends HInvoke {

@@ -338,7 +338,7 @@ class SsaCodeGenerator implements HVisitor {
     invoke(node.element, node.inputs);
   }
 
-  visitInvokeForeign(HInvokeForeign node) {
+  visitForeign(HForeign node) {
     String code = '${node.code}';
     List<HInstruction> inputs = node.inputs;
     for (int i = 0; i < inputs.length; i++) {

@@ -514,7 +514,7 @@ class SsaInstructionMerger extends HInstructionVisitor {
 
   void visitInstruction(HInstruction node) {
     // We don't want to generate instructions at the call-site of JS.
-    if (node is HInvokeForeign) return;
+    if (node is HForeign) return;
 
     List<HInstruction> inputs = node.inputs;
     HInstruction previousUnused = node.previous;
