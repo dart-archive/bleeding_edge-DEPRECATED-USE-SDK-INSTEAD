@@ -1111,9 +1111,8 @@ class HTTPServerImplementation implements HTTPServer {
 
   void listen(String host, int port, var callback) {
 
-    void connectionHandler() {
+    void connectionHandler(Socket socket) {
       // Accept the client connection.
-      Socket socket = _server.accept();
       HTTPConnection connection = new HTTPConnection(socket);
       connection.requestReceived = callback;
       _connections.addLast(connection);
