@@ -133,7 +133,7 @@ class SignatureResolverVisitor extends ResolverVisitor {
   SignatureResolverVisitor(Compiler compiler) : super(compiler);
 
   visitFunctionExpression(FunctionExpression node) {
-    FunctionElement enclosingElement = context.lookup(node.name.source);
+    FunctionElement enclosingElement = context.lookup(node.name.dynamic.source);
     useElement(node, enclosingElement);
     context = new Scope.enclosing(context, enclosingElement);
 
