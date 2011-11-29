@@ -712,7 +712,6 @@ class NodeListener extends ElementListener {
 class PartialFunctionElement extends FunctionElement {
   final Token beginToken;
   final Token endToken;
-  FunctionExpression node;
 
   PartialFunctionElement(SourceString name,
                          Token this.beginToken, Token this.endToken)

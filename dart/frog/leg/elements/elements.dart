@@ -92,10 +92,14 @@ Type getType(TypeAnnotation annotation, types) {
 
 class FunctionElement extends Element {
   Link<Element> parameters;
+  FunctionExpression node;
   Type type;
 
-  // TODO(nogeoffray): set the enclosingElement.
+  // TODO(ngeoffray): set the enclosingElement.
   FunctionElement(SourceString name) : super(name, ElementKind.FUNCTION, null);
+  FunctionElement.node(FunctionExpression node, Element enclosing)
+    : super(node.name.dynamic.source, ElementKind.FUNCTION, enclosing),
+      this.node = node;
 
   FunctionType computeType(Compiler compiler, types) {
     if (type != null) return type;
@@ -112,6 +116,8 @@ class FunctionElement extends Element {
     type = new FunctionType(returnType, parameterTypes.toLink());
     return type;
   }
+
+  Node parseNode(Canceler canceler, Logger logger) => node;
 }
 
 class ClassElement extends Element {

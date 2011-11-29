@@ -195,7 +195,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitFunctionExpression(FunctionExpression node) {
-    final element = elements[node.name];
+    final element = elements[node];
     FunctionType functionType = element.computeType(compiler, types);
     Type returnType = functionType.returnType;
     Type previous = expectedReturnType;

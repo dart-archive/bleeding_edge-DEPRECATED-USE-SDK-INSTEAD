@@ -99,6 +99,7 @@ main() {
   // testVarSuperclass(); // The parser crashes with 'class Foo extends var'.
   // testOneInterface(); // The parser does not handle interfaces.
   // testTwoInterfaces(); // The parser does not handle interfaces.
+  testFunctionExpression();
 }
 
 testLocalsOne() {
@@ -359,4 +360,20 @@ testTwoInterfaces() {
   Expect.equals(2, c.interfaces.length);
   Expect.equals(i1.computeType(compiler, null), c.interfaces[0]);
   Expect.equals(i2.computeType(compiler, null), c.interfaces[1]);
+}
+
+testFunctionExpression() {
+  MockCompiler compiler = new MockCompiler();
+  ResolverVisitor visitor = new FullResolverVisitor(compiler);
+  Map mapping = compiler.resolveStatement("int f() {}");
+  Expect.equals(1, mapping.length);
+  Element element;
+  Node node;
+  mapping.forEach((Node n, Element e) {
+    element = e;
+    node = n;
+  });
+  Expect.equals(ElementKind.FUNCTION, element.kind);
+  Expect.equals(buildSourceString('f'), element.name);
+  Expect.equals(element.parseNode(compiler, compiler), node);
 }

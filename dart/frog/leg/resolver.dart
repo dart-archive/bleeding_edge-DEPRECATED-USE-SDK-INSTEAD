@@ -113,7 +113,11 @@ class ResolverVisitor implements Visitor<Element> {
   Element defineElement(Node node, Element element) {
     compiler.ensure(element !== null);
     mapping[node] = element;
-    return context.add(element);
+    Element existing = context.add(element);
+    if (existing != element) {
+      error(node, MessageKind.DUPLICATE_DEFINITION, [node]);
+    }
+    return element;
   }
 
   Element useElement(Node node, Element element) {
@@ -129,7 +133,8 @@ class SignatureResolverVisitor extends ResolverVisitor {
   SignatureResolverVisitor(Compiler compiler) : super(compiler);
 
   visitFunctionExpression(FunctionExpression node) {
-    FunctionElement enclosingElement = visit(node.name);
+    FunctionElement enclosingElement = context.lookup(node.name.source);
+    useElement(node, enclosingElement);
     context = new Scope.enclosing(context, enclosingElement);
 
     if (enclosingElement.parameters == null) {
@@ -187,10 +192,10 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    // TODO(ngeoffray): FunctionExpression is currently a top-level
-    // method definition.
     visit(node.returnType);
-    FunctionElement enclosingElement = visit(node.name);
+    FunctionElement enclosingElement =
+        new FunctionElement.node(node, context.enclosingElement);
+    defineElement(node, enclosingElement);
     context = new Scope.enclosing(context, enclosingElement);
 
     ParametersVisitor visitor = new ParametersVisitor(this);
@@ -211,46 +216,45 @@ class FullResolverVisitor extends ResolverVisitor {
   SourceString potentiallyMapOperatorToMethodName(final SourceString name,
                                                   final bool isPrefix) {
     if (isPrefix) {
-      if (name == const SourceString('-')) return const SourceString('neg');
-      if (name == const SourceString('~')) return const SourceString('not');
+      if (name.stringValue === '-') return const SourceString('neg');
+      if (name.stringValue === '~') return const SourceString('not');
       // Logical operators must be handled specially.
-      if (name == const SourceString('!')) return name;
+      if (name.stringValue === '!') return name;
       unreachable();
     }
-    if (name == const SourceString('+')) return const SourceString('add');
-    if (name == const SourceString('-')) return const SourceString('sub');
-    if (name == const SourceString('*')) return const SourceString('mul');
-    if (name == const SourceString('/')) return const SourceString('div');
-    if (name == const SourceString('~/')) return const SourceString('tdiv');
-    if (name == const SourceString('%')) return const SourceString('mod');
-    if (name == const SourceString('<<')) return const SourceString('shl');
-    if (name == const SourceString('>>')) return const SourceString('shr');
-    if (name == const SourceString('|')) return const SourceString('or');
-    if (name == const SourceString('&')) return const SourceString('and');
-    if (name == const SourceString('^')) return const SourceString('xor');
-    if (name == const SourceString('==')) return const SourceString('eq');
-    if (name == const SourceString('<')) return const SourceString('lt');
-    if (name == const SourceString('<=')) return const SourceString('le');
-    if (name == const SourceString('>')) return const SourceString('gt');
-    if (name == const SourceString('>=')) return const SourceString('ge');
+    if (name.stringValue === '+') return const SourceString('add');
+    if (name.stringValue === '-') return const SourceString('sub');
+    if (name.stringValue === '*') return const SourceString('mul');
+    if (name.stringValue === '/') return const SourceString('div');
+    if (name.stringValue === '~/') return const SourceString('tdiv');
+    if (name.stringValue === '%') return const SourceString('mod');
+    if (name.stringValue === '<<') return const SourceString('shl');
+    if (name.stringValue === '>>') return const SourceString('shr');
+    if (name.stringValue === '|') return const SourceString('or');
+    if (name.stringValue === '&') return const SourceString('and');
+    if (name.stringValue === '^') return const SourceString('xor');
+    if (name.stringValue === '==') return const SourceString('eq');
+    if (name.stringValue === '<') return const SourceString('lt');
+    if (name.stringValue === '<=') return const SourceString('le');
+    if (name.stringValue === '>') return const SourceString('gt');
+    if (name.stringValue === '>=') return const SourceString('ge');
     return name;
   }
 
   SourceString mapAssignmentOperatorToMethodName(SourceString name) {
-    // TODO(ngeoffray): Use a map once frog can handle it.
-    if (name == const SourceString('+=')) return const SourceString('add');
-    if (name == const SourceString('-=')) return const SourceString('sub');
-    if (name == const SourceString('*=')) return const SourceString('mul');
-    if (name == const SourceString('/=')) return const SourceString('div');
-    if (name == const SourceString('~/=')) return const SourceString('tdiv');
-    if (name == const SourceString('%=')) return const SourceString('mod');
-    if (name == const SourceString('<<=')) return const SourceString('shl');
-    if (name == const SourceString('>>=')) return const SourceString('shr');
-    if (name == const SourceString('|=')) return const SourceString('or');    
-    if (name == const SourceString('&=')) return const SourceString('and');    
-    if (name == const SourceString('^=')) return const SourceString('xor');    
-    if (name == const SourceString('++')) return const SourceString('add');
-    if (name == const SourceString('--')) return const SourceString('sub');
+    if (name.stringValue === '+=') return const SourceString('add');
+    if (name.stringValue === '-=') return const SourceString('sub');
+    if (name.stringValue === '*=') return const SourceString('mul');
+    if (name.stringValue === '/=') return const SourceString('div');
+    if (name.stringValue === '~/=') return const SourceString('tdiv');
+    if (name.stringValue === '%=') return const SourceString('mod');
+    if (name.stringValue === '<<=') return const SourceString('shl');
+    if (name.stringValue === '>>=') return const SourceString('shr');
+    if (name.stringValue === '|=') return const SourceString('or');
+    if (name.stringValue === '&=') return const SourceString('and');
+    if (name.stringValue === '^=') return const SourceString('xor');
+    if (name.stringValue === '++') return const SourceString('add');
+    if (name.stringValue === '--') return const SourceString('sub');
     compiler.unimplemented("mapAssignmentOperatorToMethodName: $name");
   }
 
@@ -265,9 +269,9 @@ class FullResolverVisitor extends ResolverVisitor {
     // TODO(ngeoffray): Use the receiver to do the lookup.
     Element target = context.lookup(name);
     // TODO(ngeoffray): implement resolution for logical operators.
-    if (target == null && !((name == const SourceString('&&') ||
-                             name == const SourceString('||') ||
-                             name == const SourceString('!')))) {
+    if (target == null && !((name.stringValue === '&&' ||
+                             name.stringValue === '||' ||
+                             name.stringValue === '!'))) {
       error(node, MessageKind.CANNOT_RESOLVE, [name]);
     }
     visit(node.argumentsNode);
@@ -286,7 +290,7 @@ class FullResolverVisitor extends ResolverVisitor {
       error(node, MessageKind.CANNOT_RESOLVE, [node]);
     }
     final Identifier op = node.assignmentOperator;
-    if (op.source != const SourceString("=")) {
+    if (op.source.stringValue !== '=') {
       // Operation-assignment. For example +=.
       // We need to resolve the '+' and also the getter for the left-hand-side.
       final SourceString name = mapAssignmentOperatorToMethodName(op.source);
@@ -428,10 +432,7 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
       SourceString name = visit(link.head);
       Element element = new VariableElement(link.head, definitions.type,
           kind, name, resolver.context.enclosingElement);
-      Element existing = resolver.defineElement(link.head, element);
-      if (existing != element) {
-        resolver.error(node, MessageKind.DUPLICATE_DEFINITION, [link.head]);
-      }
+      resolver.defineElement(link.head, element);
     }
   }
 
