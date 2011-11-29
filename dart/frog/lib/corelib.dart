@@ -84,14 +84,7 @@ class TypeError extends AssertError {
   final String srcType;
   final String dstType;
 
-  TypeError(Object src, String dstType) native @'''
-if (src === null || src === undefined) {
-  this.srcType = 'null';
-} else {
-  this.srcType = src.get$typeName();
-}
-this.dstType = dstType;
-''';
+  TypeError(this.srcType, this.dstType) : super(null, null, null, null);
 
   String toString() {
     return "Failed type check: type $srcType is not assignable to type " +
