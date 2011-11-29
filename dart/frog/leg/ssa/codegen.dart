@@ -447,6 +447,10 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
+  void visitStatic(HStatic node) {
+    buffer.add('${node.element.name}');
+  }
+
   void visitStore(HStore node) {
     if (node.local.declaredBy === node) {
       buffer.add('var ');

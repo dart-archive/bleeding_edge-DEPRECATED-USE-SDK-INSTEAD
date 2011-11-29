@@ -34,6 +34,7 @@ interface HVisitor<R> {
   R visitReturn(HReturn node);
   R visitShiftLeft(HShiftLeft node);
   R visitShiftRight(HShiftRight node);
+  R visitStatic(HStatic node);
   R visitStore(HStore node);
   R visitSubtract(HSubtract node);
   R visitThrow(HThrow node);
@@ -206,6 +207,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
+  visitStatic(HStatic node) => visitInstruction(node);
   visitStore(HStore node) => visitInstruction(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
@@ -1324,6 +1326,21 @@ class HThrow extends HControlFlow {
   HThrow(value) : super([value]);
   toString() => 'throw';
   accept(HVisitor visitor) => visitor.visitThrow(this);
+}
+
+class HStatic extends HInstruction {
+  Element element;
+  HStatic(this.element) : super([]);
+  void prepareGvn() {
+    // TODO(floitsch): accesses to non-final values must be guarded.
+    setUseGvn();
+    clearAllSideEffects();
+  }
+  toString() => 'static ${element.name}';
+  accept(HVisitor visitor) => visitor.visitStatic(this);
+
+  bool typeEquals(other) => other is HStatic;
+  bool dataEquals(HStatic other) => element == other.element;
 }
 
 class HNonSsaInstruction extends HInstruction {

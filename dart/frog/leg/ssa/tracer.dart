@@ -259,6 +259,8 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitShiftRight(HShiftRight node) => visitInvoke(node);
 
+  String visitStatic(HStatic node) => "Static ${node.element.name}";
+
   String visitStore(HStore node) {
     String localId = temporaryId(node.inputs[0]);
     String valueId = temporaryId(node.inputs[1]);
