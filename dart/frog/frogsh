@@ -5798,6 +5798,9 @@ Node.prototype.unparse = function() {
     return ('<<unparse error: ' + this.getObjectDescription() + ': ' + unparser.sb + '>>');
   }
 }
+Node.prototype.asOperator = function() {
+  return null;
+}
 Node.prototype.asSend = function() {
   return null;
 }
@@ -6320,6 +6323,9 @@ function Operator(token) {
 }
 $inherits(Operator, Identifier);
 Operator.prototype.is$Operator = function(){return this;};
+Operator.prototype.asOperator = function() {
+  return this;
+}
 Operator.prototype.accept = function(visitor) {
   return visitor.visitOperator(this);
 }
@@ -11986,10 +11992,20 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
   var $0;
   var target = this.elements.$index(node);
   var selector = (($0 = node.selector) && $0.is$Identifier());
+  var name = selector.get$source().get$stringValue();
   if (target != null) {
-    var name = selector.get$source().get$stringValue();
-    if (name === '+' || name === '=' || name === '-' || name === '*' || name === '/' || name === '%' || name === '~/' || name === '<' || name === '>' || name === '<=' || name === '>=' || name === '!' || name === '==' || name === '||' || name === '&&') {
-      return this.types.dynamicType;
+    if (selector.asOperator() != null) {
+      this.type(node.receiver);
+      if (node.get$arguments().get$head() != null) this.type((($0 = node.get$arguments().get$head()) && $0.is$Node()));
+      if (name === '+' || name === '=' || name === '-' || name === '*' || name === '/' || name === '%' || name === '~/' || name === '|' || name === '&' || name === '^' || name === '~' || name === '<<' || name === '>>') {
+        return this.types.dynamicType;
+      }
+      else if (name === '<' || name === '>' || name === '<=' || name === '>=' || name === '==') {
+        return this.types.boolType;
+      }
+      else {
+        this.fail(selector, ('unexpected operator ' + name));
+      }
     }
     var targetType = target.computeType$2(this.compiler, this.types);
     if ($notnull_bool(node.get$isPropertyAccess())) {
@@ -12025,18 +12041,37 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
     }
   }
   else {
+    if (name === '||' || name === '&&' || name === '!') {
+      var arguments = node.get$arguments();
+      var firstArgument = node.receiver;
+      this.checkAssignable(firstArgument, this.types.boolType, this.type(firstArgument));
+      if (!$notnull_bool(arguments.isEmpty())) {
+        var secondArgument = (($0 = arguments.get$head()) && $0.is$Node());
+        this.checkAssignable(secondArgument, this.types.boolType, this.type(secondArgument));
+      }
+      return this.types.boolType;
+    }
     this.fail(node, ('unresolved send ' + selector.get$source()));
   }
 }
 TypeCheckerVisitor.prototype.visitSendSet = function(node) {
   var $0;
   this.compiler.ensure(node.get$arguments() != null);
-  if ($notnull_bool(node.get$arguments().isEmpty())) this.fail(node, 'Cannot handle ++ and --');
-  this.compiler.ensure(!$notnull_bool(node.get$arguments().isEmpty()));
-  var targetType = (($0 = this.elements.$index(node).computeType$2(this.compiler, this.types)) && $0.is$Type());
-  var value = (($0 = node.get$arguments().get$head()) && $0.is$Node());
-  this.checkAssignable(value, targetType, this.type(value));
-  return targetType;
+  var selector = (($0 = node.selector) && $0.is$Identifier());
+  var name = node.assignmentOperator.get$source().get$stringValue();
+  if (name === '++' || name === '--') {
+    this.compiler.ensure((node.selector instanceof Identifier));
+    var element = (($0 = this.elements.$index(node.selector)) && $0.is$Element());
+    var receiverType = (($0 = element.computeType(this.compiler, this.types)) && $0.is$Type());
+    return $notnull_bool(node.get$isPrefix()) ? this.types.intType : receiverType;
+  }
+  else {
+    this.compiler.ensure(!$notnull_bool(node.get$arguments().isEmpty()));
+    var targetType = (($0 = this.elements.$index(node).computeType$2(this.compiler, this.types)) && $0.is$Type());
+    var value = (($0 = node.get$arguments().get$head()) && $0.is$Node());
+    this.checkAssignable(value, targetType, this.type(value));
+    return targetType;
+  }
 }
 TypeCheckerVisitor.prototype.visitLiteralInt = function(node) {
   return this.types.intType;
@@ -12092,7 +12127,7 @@ TypeCheckerVisitor.prototype.visitTypeAnnotation = function(node) {
   var type = (($0 = this.elements.$index(node)) && $0.is$Type());
   if (type == null) type = this.types.lookup(name);
   if (type == null) {
-    this.fail(node, ('unsupported type ' + node.typeName.get$source()));
+    return this.types.dynamicType;
   }
   return type;
 }

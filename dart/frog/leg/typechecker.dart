@@ -227,14 +227,24 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type visitSend(Send node) {
     final target = elements[node];
     Identifier selector = node.selector;
+    String name = selector.source.stringValue;
     if (target !== null) {
-      String name = selector.source.stringValue;
-      if (name === '+' || name === '=' || name === '-'
-          || name === '*' || name === '/' || name === '%'
-          || name === '~/' || name === '<' || name === '>'
-          || name === '<=' || name === '>=' || name === '!'
-          || name === '==' || name === '||' || name === '&&') {
-        return types.dynamicType;
+      // TODO(karlklose): lookup operators in the receiver.
+      if (selector.asOperator() !== null) {
+        type(node.receiver);
+        if (node.arguments.head !== null) type(node.arguments.head);
+        if (name === '+' || name === '=' || name === '-'
+            || name === '*' || name === '/' || name === '%'
+            || name === '~/' || name === '|' || name ==='&'
+            || name === '^' || name === '~'|| name === '<<'
+            || name === '>>') {
+          return types.dynamicType;
+        } else if (name === '<' || name === '>' || name === '<='
+                   || name === '>=' || name === '==') {
+          return types.boolType;
+        } else {
+          fail(selector, 'unexpected operator ${name}');
+        }
       }
       final targetType = target.computeType(compiler, types);
       if (node.isPropertyAccess) {
@@ -273,6 +283,17 @@ class TypeCheckerVisitor implements Visitor<Type> {
         return funType.returnType;
       }
     } else {
+      if (name === '||' || name === '&&' || name === '!') {
+        final arguments = node.arguments;
+        final Node firstArgument = node.receiver;
+        checkAssignable(firstArgument, types.boolType, type(firstArgument));
+        if (!arguments.isEmpty()) {
+          // TODO(karlklose): check the correct number of arguments in validator.
+          final Node secondArgument = arguments.head;
+          checkAssignable(secondArgument, types.boolType, type(secondArgument));
+        }
+        return types.boolType;
+      }
       // TODO(karlklose): Implement method lookup for unresolved targets.
       fail(node, 'unresolved send ${selector.source}');
     }
@@ -280,13 +301,23 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   visitSendSet(SendSet node) {
     compiler.ensure(node.arguments !== null);
-    // TODO(karlklose): Implement ++ and --.
-    if (node.arguments.isEmpty()) fail(node, 'Cannot handle ++ and --');
-    compiler.ensure(!node.arguments.isEmpty());
-    Type targetType = elements[node].computeType(compiler, types);
-    Node value = node.arguments.head;
-    checkAssignable(value, targetType, type(value));
-    return targetType;
+    Identifier selector = node.selector;
+    final name = node.assignmentOperator.source.stringValue;
+    if (name === '++' || name === '--') {
+      // TODO(karlklose): move to validator.
+      compiler.ensure(node.selector is Identifier);
+      final Element element = elements[node.selector];
+      final Type receiverType = element.computeType(compiler, types);
+      // TODO(karlklose): this should be the return type instead of int.
+      return node.isPrefix ? types.intType : receiverType;
+    } else {
+      // TODO(karlklose): move to validator.
+      compiler.ensure(!node.arguments.isEmpty());
+      Type targetType = elements[node].computeType(compiler, types);
+      Node value = node.arguments.head;
+      checkAssignable(value, targetType, type(value));
+      return targetType;
+    }
   }
 
   Type visitLiteralInt(LiteralInt node) {
@@ -360,7 +391,9 @@ class TypeCheckerVisitor implements Visitor<Type> {
     Type type = elements[node];
     if (type === null) type = types.lookup(name);
     if (type === null) {
-      fail(node, 'unsupported type ${node.typeName.source}');
+      // The type name cannot be resolved, but the resolver
+      // already gave a warning, so we continue checking.
+      return types.dynamicType;
     }
     return type;
   }

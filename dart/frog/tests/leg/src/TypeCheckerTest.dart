@@ -14,6 +14,7 @@ main() {
   testReturn();
   testFor();
   testWhile();
+  testOperators();
 }
 
 testSimpleTypes() {
@@ -72,11 +73,51 @@ testWhile() {
   analyze("do { int i = 0.5; } while (null);", MessageKind.NOT_ASSIGNABLE);
 }
 
+testOperators() {
+  // TODO(karlklose): add the DartC tests for operators when we can parse
+  // classes with operators.
+  for (final op in ['+', '-', '*', '/', '%', '~/', '|', '&']) {
+    analyze("{ var i = 1 ${op} 2; }");
+    analyze("{ var i = 1; i ${op}= 2; }");
+    analyze("{ int i; var j = (i = true) ${op} 2; }",
+            MessageKind.NOT_ASSIGNABLE);
+    analyze("{ int i; var j = 1 ${op} (i = true); }",
+            MessageKind.NOT_ASSIGNABLE);
+  }
+  for (final op in ['-', '~']) {
+    analyze("{ var i = ${op}1; }");
+    analyze("{ int i; var j = ${op}(i = true); }", MessageKind.NOT_ASSIGNABLE);
+  }
+  for (final op in ['++', '--']) {
+    analyze("{ int i = 1; int j = i${op}; }");
+    analyze("{ int i = 1; bool j = i${op}; }", MessageKind.NOT_ASSIGNABLE);
+    analyze("{ bool b = true; bool j = b${op}; }");
+    analyze("{ bool b = true; int j = ${op}b; }");
+  }
+  for (final op in ['||', '&&']) {
+    analyze("{ bool b = (true ${op} false); }");
+    analyze("{ int b = true ${op} false; }", MessageKind.NOT_ASSIGNABLE);
+    analyze("{ bool b = (1 ${op} false); }", MessageKind.NOT_ASSIGNABLE);
+    analyze("{ bool b = (true ${op} 2); }", MessageKind.NOT_ASSIGNABLE);
+  }
+  for (final op in ['>', '<', '<=', '>=', '==']) {
+    analyze("{ bool b = 1 ${op} 2; }");
+    analyze("{ int i = 1 ${op} 2; }", MessageKind.NOT_ASSIGNABLE);
+    analyze("{ int i; bool b = (i = true) ${op} 2; }",
+            MessageKind.NOT_ASSIGNABLE);
+    analyze("{ int i; bool b = 1 ${op} (i = true); }",
+            MessageKind.NOT_ASSIGNABLE);
+  }
+}
+
 String returnWithType(String type, expression)
     => "$type foo() { return $expression; }";
 
 
-final String CORELIB = 'lt() {} add() {}';
+final String CORELIB =
+    'lt() {} add() {} sub() {} mul() {} div() {} tdiv() {} mod() {}' +
+    ' neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}' +
+    ' or() {} and() {} not() {}';
 
 Node parseExpression(String text) =>
   parseBodyCode(text, (parser, token) => parser.parseExpression(token));
@@ -150,7 +191,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
         new TypeCheckerVisitor(compiler, visitor.mapping, types);
     compiler.clearWarnings();
     checker.type(node);
-    compareWarningKinds(expectedWarnings, compiler.warnings);
+    compareWarningKinds(text, expectedWarnings, compiler.warnings);
   }
 }
 
@@ -176,10 +217,11 @@ analyze(String text, [expectedWarnings]) {
                                                                 types);
   compiler.clearWarnings();
   checker.type(node);
-  compareWarningKinds(expectedWarnings, compiler.warnings);
+  compareWarningKinds(text, expectedWarnings, compiler.warnings);
 }
 
-void compareWarningKinds(expectedWarnings, foundWarnings) {
+void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
+  var fail = (message) => Expect.fail('$text: $message');
   Iterator<MessageKind> expected = expectedWarnings.iterator();
   Iterator<MessageKind> found = foundWarnings.iterator();
   while (expected.hasNext() && found.hasNext()) {
@@ -189,12 +231,12 @@ void compareWarningKinds(expectedWarnings, foundWarnings) {
     do {
       print('Expected warning "${expected.next()}" did not occur');
     } while (expected.hasNext());
-    Expect.fail('Too few warnings');
+    fail('Too few warnings');
   }
   if (found.hasNext()) {
     do {
       print('Additional warning "${found.next()}"');
     } while (found.hasNext());
-    Expect.fail('Too many warnings');
+    fail('Too many warnings');
   }
 }
