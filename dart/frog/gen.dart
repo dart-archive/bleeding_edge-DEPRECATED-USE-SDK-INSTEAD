@@ -1756,12 +1756,26 @@ class MethodGenerator implements TreeVisitor {
       var x = visitValue(node.x);
       var y = visitValue(node.y);
       if (x.isConst && y.isConst) {
-        var value = kind == TokenKind.EQ_STRICT
-            // Note: it is ok to use == and not === here since all of these
-            // constant comparisons are applied to doubles, bool, or strings.
-            // We need it for the compile-time evaluator because
-            // (9).toDouble() === 9.0 is false in dartvm.
-            ? x.actualValue == y.actualValue : x.actualValue != y.actualValue;
+        var xVal = x.actualValue;
+        var yVal = y.actualValue;
+
+        // cannonicalize strings if they are using different quote chars:
+        if (x.type.isString && y.type.isString
+            && xVal[0] != yVal[0]) {
+          if (xVal[0] == '"') {
+            xVal = xVal.substring(1, xVal.length - 1);
+            yVal = toDoubleQuote(yVal.substring(1, yVal.length - 1));
+          } else {
+            xVal = toDoubleQuote(xVal.substring(1, xVal.length - 1));
+            yVal = yVal.substring(1, yVal.length - 1);
+          }
+        }
+
+        // Note: it is ok to use == and not === here since all of these
+        // constant comparisons are applied to doubles, bool, or strings.
+        // We need it for the compile-time evaluator because
+        // (9).toDouble() === 9.0 is false in dartvm.
+        var value = kind == TokenKind.EQ_STRICT ? xVal == yVal : xVal != yVal;
         return new EvaluatedValue(world.nonNullBool, value, "$value",
             node.span);
       }
@@ -2282,7 +2296,7 @@ class MethodGenerator implements TreeVisitor {
         text = parseStringLiteral(text);
         // TODO(jimhug): What about \r?
         text = text.replaceAll('\n', '\\n');
-        text = text.replaceAll('"', '\\"');
+        text = toDoubleQuote(text);
         text = '"$text"';
       }
       if (text !== node.text) {

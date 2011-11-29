@@ -1176,14 +1176,7 @@ class MethodMember extends Member {
           node.span);
       } else if (name == '\$add') {
         if (allConst) {
-          var val0 = target.dynamic.actualValue;
-          val0 = val0.substring(1, val0.length - 1);
-          var val1 = args.values[0].dynamic.actualValue;
-          if (args.values[0].type.isString) {
-            val1 = val1.substring(1, val1.length - 1);
-          }
-          var value = '${val0}${val1}';
-          value = '"' + value.replaceAll('"', '\\"') + '"';
+          final value = _normConcat(target, args.values[0]);
           return new EvaluatedValue(world.stringType, value, value, node.span);
         }
 
@@ -1249,6 +1242,37 @@ class MethodMember extends Member {
       node.span);
   }
 
+  /**
+   * Return the string concatenation of two values, which is normalized to use
+   * double-quotes if any of the input strings used double-quotes.
+   */
+  String _normConcat(Value a, Value b) {
+    assert(b.type.isString);
+    var val0 = a.dynamic.actualValue;
+    var quote0 = val0[0];
+    val0 = val0.substring(1, val0.length - 1);
+    var val1 = b.dynamic.actualValue;
+    var quote1 = null;
+    if (b.type.isString) {
+      quote1 = val1[0];
+      val1 = val1.substring(1, val1.length - 1);
+    }
+    var value;
+    if (quote0 == quote1 || quote1 == null) {
+      // If both strings use the same quote, then keep using it.
+      value = '$quote0${val0}${val1}$quote0';
+    } else if (quote0 == '"') {
+      // If they are different, escape the single-quote to be double-quote
+      // the choice of single vs double is arbitrary, but choosing one
+      // ensures that we only do this escaping once on a string portion.
+      assert(quote1 == "'");
+      value = '$quote0${val0}${toDoubleQuote(val1)}$quote0';
+    } else {
+      assert(quote1 == '"');
+      value = '$quote1${toDoubleQuote(val0)}${val1}$quote1';
+    }
+    return value;
+  }
 
   resolve() {
     // TODO(jimhug): cut-and-paste-and-edit from Field.resolve

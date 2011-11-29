@@ -14021,7 +14021,19 @@ MethodGenerator.prototype.visitBinaryExpression = function(node) {
     var x = this.visitValue(node.x);
     var y = this.visitValue(node.y);
     if ($notnull_bool(x.get$isConst()) && $notnull_bool(y.get$isConst())) {
-      var value = kind == 50/*TokenKind.EQ_STRICT*/ ? $eq(x.get$actualValue(), y.get$actualValue()) : $ne(x.get$actualValue(), y.get$actualValue());
+      var xVal = x.get$actualValue();
+      var yVal = y.get$actualValue();
+      if ($notnull_bool(x.get$type().get$isString()) && $notnull_bool(y.get$type().get$isString()) && $notnull_bool($ne(xVal.$index(0), yVal.$index(0)))) {
+        if ($notnull_bool($eq(xVal.$index(0), '"'))) {
+          xVal = xVal.substring$2(1, xVal.length - 1);
+          yVal = toDoubleQuote($assert_String(yVal.substring$2(1, yVal.length - 1)));
+        }
+        else {
+          xVal = toDoubleQuote($assert_String(xVal.substring$2(1, xVal.length - 1)));
+          yVal = yVal.substring$2(1, yVal.length - 1);
+        }
+      }
+      var value = kind == 50/*TokenKind.EQ_STRICT*/ ? $eq(xVal, yVal) : $ne(xVal, yVal);
       return EvaluatedValue.EvaluatedValue$factory($globals.world.nonNullBool, value, ("" + value), node.span);
     }
     if ($notnull_bool($eq(x.get$code(), 'null')) || $notnull_bool($eq(y.get$code(), 'null'))) {
@@ -14417,7 +14429,7 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2250, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2264, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;
@@ -14444,7 +14456,7 @@ MethodGenerator.prototype.visitLiteralExpression = function(node) {
     else if ($notnull_bool(isMultilineString($assert_String(text)))) {
       text = parseStringLiteral($assert_String(text));
       text = text.replaceAll$2('\n', '\\n');
-      text = text.replaceAll$2('"', '\\"');
+      text = toDoubleQuote($assert_String(text));
       text = ('"' + text + '"');
     }
     if (text !== node.text) {
@@ -16120,6 +16132,7 @@ MethodMember.prototype._invokeConstConstructor = function(node, code, target, ar
   return $globals.world.gen.globalForConst(ConstObjectValue.ConstObjectValue$factory(target.type, fields, code, node.span), args.values);
 }
 MethodMember.prototype._invokeBuiltin = function(context, node, target, args, argsCode, isDynamic) {
+  var $0;
   var allConst = $notnull_bool(target.get$isConst()) && args.values.every((function (arg) {
     return arg.get$isConst();
   })
@@ -16263,15 +16276,8 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
     }
     else if (this.name == '\$add') {
       if ($notnull_bool(allConst)) {
-        var val0 = target.get$dynamic().get$actualValue();
-        val0 = val0.substring$2(1, val0.length - 1);
-        var val1 = args.values.$index(0).get$dynamic().get$actualValue();
-        if ($notnull_bool(args.values.$index(0).get$type().get$isString())) {
-          val1 = val1.substring$2(1, val1.length - 1);
-        }
-        var value = ('' + val0 + val1);
-        value = '"' + value.replaceAll$2('"', '\\"') + '"';
-        return EvaluatedValue.EvaluatedValue$factory($globals.world.stringType, value, $assert_String(value), node.span);
+        var value = this._normConcat(target, (($0 = args.values.$index(0)) && $0.is$Value()));
+        return EvaluatedValue.EvaluatedValue$factory($globals.world.stringType, value, value, node.span);
       }
       return new Value(this.declaringType, ('' + target.code + ' + ' + argsCode.$index(0)), node.span, true);
     }
@@ -16316,6 +16322,31 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
   }
   var argsString = Strings.join((argsCode && argsCode.is$List_String()), ', ');
   return new Value(this.get$inferredResult(), ('' + target.code + '.' + this.get$jsname() + '(' + argsString + ')'), node.span, true);
+}
+MethodMember.prototype._normConcat = function(a, b) {
+  $assert(b.type.get$isString(), "b.type.isString", "member.dart", 1250, 12);
+  var val0 = a.get$dynamic().get$actualValue();
+  var quote0 = val0.$index(0);
+  val0 = val0.substring$2(1, val0.length - 1);
+  var val1 = b.get$dynamic().get$actualValue();
+  var quote1 = null;
+  if ($notnull_bool(b.type.get$isString())) {
+    quote1 = val1.$index(0);
+    val1 = val1.substring$2(1, val1.length - 1);
+  }
+  var value;
+  if ($notnull_bool($eq(quote0, quote1)) || $notnull_bool(quote1 == null)) {
+    value = ('' + quote0 + val0 + val1 + quote0);
+  }
+  else if ($notnull_bool($eq(quote0, '"'))) {
+    $assert($eq(quote1, "'"), "quote1 == \"'\"", "member.dart", 1268, 14);
+    value = ('' + quote0 + val0 + toDoubleQuote($assert_String(val1)) + quote0);
+  }
+  else {
+    $assert($eq(quote1, '"'), "quote1 == '\"'", "member.dart", 1271, 14);
+    value = ('' + quote1 + toDoubleQuote($assert_String(val0)) + val1 + quote1);
+  }
+  return $assert_String(value);
 }
 MethodMember.prototype.resolve = function() {
   var $0;
@@ -23703,6 +23734,9 @@ function isMultilineString(text) {
 }
 function isRawMultilineString(text) {
   return text.startsWith('@"""') || text.startsWith("@'''");
+}
+function toDoubleQuote(s) {
+  return s.replaceAll('"', '\\"').replaceAll("\\'", "'");
 }
 function parseStringLiteral(lit) {
   if (lit.startsWith('@')) {

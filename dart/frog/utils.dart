@@ -70,6 +70,15 @@ bool isRawMultilineString(String text) {
   return text.startsWith('@"""') || text.startsWith("@'''");
 }
 
+/**
+ * Convert a single-quote string to be a double-quote string by replacing " with
+ * \" and \' with '.
+ */
+String toDoubleQuote(String s) {
+  return s.replaceAll('"', '\\"').replaceAll("\\'", "'");
+}
+
+
 // TODO(jmesserly): it'd be nice to deal with this in the tokenizer, rather than
 // taking another pass over the string.
 String parseStringLiteral(String lit) {
