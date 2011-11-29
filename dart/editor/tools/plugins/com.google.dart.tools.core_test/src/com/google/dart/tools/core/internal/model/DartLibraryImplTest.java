@@ -464,7 +464,7 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getImportedLibraries_libHtml() throws Exception {
     DartLibrary[] importedLibraries = getDartLibHtml().getImportedLibraries();
-    assertEquals(1, importedLibraries.length);
+    assertEquals(2, importedLibraries.length);
     assertEquals("dart:dom", importedLibraries[0].getElementName());
   }
 
