@@ -91,7 +91,7 @@ class fs native "require('fs')" {
 
   static String realpathSync(String path) native;
 
-  static void mkdirSync(String path, [num mode = 511 /* 077 octal */]) native;
+  static void mkdirSync(String path, [num mode = 511 /* 0777 octal */]) native;
   static List<String> readdirSync(String path) native;
   static void rmdirSync(String path) native;
   static Stats statSync(String path) native;
