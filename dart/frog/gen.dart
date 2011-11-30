@@ -513,6 +513,9 @@ class BlockScope {
   BlockScope parent;
   Map<String, Value> _vars; // TODO(jimhug): Using a list may improve perf.
 
+  /** Used JS names, if different from the Dart name. */
+  Set<String> _jsNames;
+
   /**
    * Variables in this method that have been captured by lambdas.
    * Don't reuse the names in child blocks.
@@ -529,7 +532,7 @@ class BlockScope {
   bool reentrant;
 
   BlockScope(this.enclosingMethod, this.parent, [reentrant = false])
-    : this.reentrant = reentrant, _vars = {} {
+    : this.reentrant = reentrant, _vars = {}, _jsNames = new Set() {
 
     if (isMethodScope) {
       _closedOver = new Set<String>();
@@ -588,6 +591,7 @@ class BlockScope {
 
     for (var s = parent; s != null; s = s.parent) {
       if (s._vars.containsKey(name)) return true;
+      if (s._jsNames.contains(name)) return true;
       // Don't reuse a name that's been closed over
       if (s.isMethodScope && s._closedOver.contains(name)) return true;
     }
@@ -623,6 +627,7 @@ class BlockScope {
     var ret = new Value(type, jsName, span, false);
     ret.isFinal = isFinal;
     _vars[name] = ret;
+    if (name != jsName) _jsNames.add(jsName);
     return ret;
   }
 

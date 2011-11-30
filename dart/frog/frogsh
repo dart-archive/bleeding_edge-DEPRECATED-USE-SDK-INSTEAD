@@ -13003,6 +13003,7 @@ function BlockScope(enclosingMethod, parent, reentrant) {
   this.parent = parent;
   this.reentrant = reentrant;
   this._vars = $map([]);
+  this._jsNames = new HashSetImplementation();
   // Initializers done
   if ($notnull_bool(this.get$isMethodScope())) {
     this._closedOver = new HashSetImplementation();
@@ -13050,6 +13051,7 @@ BlockScope.prototype._isDefinedInParent = function(name) {
   for (var s = this.parent;
    $notnull_bool($ne(s, null)); s = s.get$parent()) {
     if (s._vars.containsKey(name)) return true;
+    if (s._jsNames.contains(name)) return true;
     if ($notnull_bool(s.get$isMethodScope()) && s._closedOver.contains(name)) return true;
   }
   var type = this.enclosingMethod.method.declaringType;
@@ -13070,6 +13072,7 @@ BlockScope.prototype.create = function(name, type, span, isFinal, isParameter) {
   var ret = new Value(type, jsName, span, false);
   ret.set$isFinal(isFinal);
   this._vars.$setindex(name, ret);
+  if (name != jsName) this._jsNames.add(jsName);
   return (ret && ret.is$Value());
 }
 BlockScope.prototype.declareParameter = function(p) {
@@ -13234,7 +13237,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 812, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 817, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -14429,7 +14432,7 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2264, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2269, 12);
   if (!!(($0 = node.value) && $0.is$List)) {
     var items = [];
     var $list = node.value;
