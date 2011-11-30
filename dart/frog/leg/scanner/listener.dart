@@ -131,6 +131,12 @@ class Listener {
   void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
   }
 
+  void beginLiteralMapEntry(Token token) {
+  }
+
+  void endLiteralMapEntry(Token token) {
+  }
+
   void beginMember(Token token) {
   }
 
@@ -219,6 +225,10 @@ class Listener {
   void handleIdentifier(Token token) {
   }
 
+  void handleIndexedExpression(Token openCurlyBracket,
+                               Token closeCurlyBracket) {
+  }
+
   void handleLiteralBool(Token token) {
   }
 
@@ -228,10 +238,19 @@ class Listener {
   void handleLiteralInt(Token token) {
   }
 
+  void handleLiteralList(int count, Token beginToken, Token endToken) {
+  }
+
+  void handleLiteralMap(int count, Token beginToken, Token endToken) {
+  }
+
   void handleLiteralNull(Token token) {
   }
 
   void handleLiteralString(Token token) {
+  }
+
+  void handleNewExpression(Token token) {
   }
 
   void handleNoArguments(Token token) {
@@ -305,7 +324,6 @@ class ParserError {
  * A listener for parser events.
  */
 class ElementListener extends Listener {
-  Identifier previousIdentifier = null;
   final Canceler canceler;
 
   Link<Node> nodes = const EmptyLink<Node>();
@@ -554,8 +572,8 @@ class NodeListener extends ElementListener {
 
   void endFunction(Token token) {
     Statement body = popNode();
-    Node formals = popNode();
-    Node name = popNode();
+    NodeList formals = popNode();
+    Identifier name = popNode();
     // TODO(ahe): Return types are optional.
     TypeAnnotation type = popNode();
     pushNode(new FunctionExpression(name, formals, body, type));
@@ -702,6 +720,40 @@ class NodeListener extends ElementListener {
     Element methodElement =
         new PartialFunctionElement(name.source, beginToken, endToken);
     memberElements = memberElements.prepend(methodElement);
+  }
+
+  void endLiteralMapEntry(Token token) {
+    Expression value = popNode();
+    LiteralString key = popNode();
+    pushNode(null); // TODO(ahe): Create AST node.
+  }
+
+  void handleLiteralMap(int count, Token beginToken, Token endToken) {
+    NodeList entries = makeNodeList(count, beginToken, endToken, ',');
+    // TODO(ahe): Type arguments are discarded.
+    pushNode(null); // TODO(ahe): Create AST node.
+    canceler.cancel('literal map not implemented');
+  }
+
+  void handleLiteralList(int count, Token beginToken, Token endToken) {
+    NodeList elements = makeNodeList(count, beginToken, endToken, ',');
+    // TODO(ahe): Type arguments are discarded.
+    pushNode(null); // TODO(ahe): Create AST node.
+    canceler.cancel('literal list not implemented');
+  }
+
+  void handleIndexedExpression(Token openCurlyBracket,
+                               Token closeCurlyBracket) {
+    makeNodeList(1, openCurlyBracket, closeCurlyBracket, null);
+    endSend(closeCurlyBracket); // TODO(ahe): Consider how to represent this.
+    canceler.cancel('indexed expression not implemented');
+  }
+
+  void handleNewExpression(Token token) {
+    NodeList arguments = popNode();
+    TypeAnnotation type = popNode();
+    pushNode(null); // TODO(ahe): Create AST node.
+    canceler.cancel('new expression not implemented');
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,

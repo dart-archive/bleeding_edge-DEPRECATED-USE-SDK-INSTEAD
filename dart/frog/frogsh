@@ -3364,6 +3364,12 @@ Listener.prototype.beginLibraryTag = function(token) {
 Listener.prototype.endLibraryTag = function(hasPrefix, beginToken, endToken) {
 
 }
+Listener.prototype.beginLiteralMapEntry = function(token) {
+
+}
+Listener.prototype.endLiteralMapEntry = function(token) {
+
+}
 Listener.prototype.beginMember = function(token) {
 
 }
@@ -3439,6 +3445,9 @@ Listener.prototype.handleFinalKeyword = function(finalKeyword) {
 Listener.prototype.handleIdentifier = function(token) {
 
 }
+Listener.prototype.handleIndexedExpression = function(openCurlyBracket, closeCurlyBracket) {
+
+}
 Listener.prototype.handleLiteralBool = function(token) {
 
 }
@@ -3448,10 +3457,19 @@ Listener.prototype.handleLiteralDouble = function(token) {
 Listener.prototype.handleLiteralInt = function(token) {
 
 }
+Listener.prototype.handleLiteralList = function(count, beginToken, endToken) {
+
+}
+Listener.prototype.handleLiteralMap = function(count, beginToken, endToken) {
+
+}
 Listener.prototype.handleLiteralNull = function(token) {
 
 }
 Listener.prototype.handleLiteralString = function(token) {
+
+}
+Listener.prototype.handleNewExpression = function(token) {
 
 }
 Listener.prototype.handleNoArguments = function(token) {
@@ -3516,7 +3534,6 @@ ParserError.prototype.toString = function() {
 ParserError.prototype.toString$0 = ParserError.prototype.toString;
 // ********** Code for ElementListener **************
 function ElementListener(canceler) {
-  this.previousIdentifier = null
   this.nodes = const$209/*const EmptyLink<Node>()*/
   this.topLevelElements = const$210/*const EmptyLink<Element>()*/
   this.canceler = canceler;
@@ -3597,7 +3614,7 @@ ElementListener.prototype.pushNode = function(node) {
 }
 ElementListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 409, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 427, 12);
   var node = (($0 = this.nodes.get$head()) == null ? null : $0.assert$Node());
   this.nodes = (($0 = this.nodes.get$tail()) == null ? null : $0.assert$Link_Node());
   if (false/*null.VERBOSE*/) this.log(("pop " + this.nodes));
@@ -3730,8 +3747,8 @@ NodeListener.prototype.handleNoFunctionBody = function(token) {
 NodeListener.prototype.endFunction = function(token) {
   var $0;
   var body = (($0 = this.popNode()) == null ? null : $0.assert$Statement());
-  var formals = this.popNode();
-  var name = this.popNode();
+  var formals = (($0 = this.popNode()) == null ? null : $0.assert$NodeList());
+  var name = (($0 = this.popNode()) == null ? null : $0.assert$Identifier());
   var type = (($0 = this.popNode()) == null ? null : $0.assert$TypeAnnotation());
   this.pushNode(new FunctionExpression(name, formals, body, type));
 }
@@ -3857,6 +3874,34 @@ NodeListener.prototype.endMethod = function(beginToken, endToken) {
   this.pushNode(new FunctionExpression(name, null, null, null));
   var methodElement = new PartialFunctionElement(name.get$source(), beginToken, endToken);
   this.memberElements = (($0 = this.memberElements.prepend(methodElement)) == null ? null : $0.assert$Link_Element());
+}
+NodeListener.prototype.endLiteralMapEntry = function(token) {
+  var $0;
+  var value = (($0 = this.popNode()) == null ? null : $0.assert$Expression());
+  var key = (($0 = this.popNode()) == null ? null : $0.assert$LiteralString());
+  this.pushNode(null);
+}
+NodeListener.prototype.handleLiteralMap = function(count, beginToken, endToken) {
+  var entries = this.makeNodeList(count, beginToken, endToken, ',');
+  this.pushNode(null);
+  this.canceler.cancel('literal map not implemented');
+}
+NodeListener.prototype.handleLiteralList = function(count, beginToken, endToken) {
+  var elements = this.makeNodeList(count, beginToken, endToken, ',');
+  this.pushNode(null);
+  this.canceler.cancel('literal list not implemented');
+}
+NodeListener.prototype.handleIndexedExpression = function(openCurlyBracket, closeCurlyBracket) {
+  this.makeNodeList(1, openCurlyBracket, closeCurlyBracket, null);
+  this.endSend(closeCurlyBracket);
+  this.canceler.cancel('indexed expression not implemented');
+}
+NodeListener.prototype.handleNewExpression = function(token) {
+  var $0;
+  var arguments = (($0 = this.popNode()) == null ? null : $0.assert$NodeList());
+  var type = (($0 = this.popNode()) == null ? null : $0.assert$TypeAnnotation());
+  this.pushNode(null);
+  this.canceler.cancel('new expression not implemented');
 }
 NodeListener.prototype.makeNodeList = function(count, beginToken, endToken, delimiter) {
   var $0;
@@ -4530,7 +4575,7 @@ Parser.prototype.parseUnaryExpression = function(token) {
 Parser.prototype.parsePrimary = function(token) {
   var kind = token.kind;
   if (kind === 97/*null.IDENTIFIER_TOKEN*/) {
-    return this.parseSend(token);
+    return this.parseSendOrFunctionLiteral(token);
   }
   else if (kind === 105/*null.INT_TOKEN*/) {
     return this.parseLiteralInt(token);
@@ -4556,6 +4601,9 @@ Parser.prototype.parsePrimary = function(token) {
       else if (value === 'super') {
         return this.parseSuperExpression(token);
       }
+      else if (value === 'new') {
+        return this.parseNewExpression(token);
+      }
       else {
         this.listener.unexpected(token);
         $throw('not yet implemented');
@@ -4564,6 +4612,9 @@ Parser.prototype.parsePrimary = function(token) {
   }
   else if (kind === 40/*null.LPAREN_TOKEN*/) {
     return this.parseParenthesizedExpression(token);
+  }
+  else if ((kind === 60/*null.LT_TOKEN*/) || (kind === 91/*null.OPEN_SQUARE_BRACKET_TOKEN*/) || (kind === 123/*null.OPEN_CURLY_BRACKET_TOKEN*/)) {
+    return this.parseLiteralListOrMap(token);
   }
   else {
     this.listener.unexpected(token);
@@ -4574,7 +4625,7 @@ Parser.prototype.parseParenthesizedExpression = function(token) {
   var begin = (token == null ? null : token.assert$BeginGroupToken());
   token = this.expect('(', token);
   token = this.parseExpression(token);
-  $assert(begin.endGroup === token, "begin.endGroup === token", "parser.dart", 731, 12);
+  $assert(begin.endGroup === token, "begin.endGroup === token", "parser.dart", 737, 12);
   this.listener.handleParenthesizedExpression(begin);
   return this.expect(')', token);
 }
@@ -4594,6 +4645,61 @@ Parser.prototype.parseSuperExpression = function(token) {
     token = this.parseArgumentsOpt(token);
     this.listener.endSend(token);
   }
+  return token;
+}
+Parser.prototype.parseLiteralListOrMap = function(token) {
+  token = this.parseTypeArgumentsOpt(token);
+  var beginToken = token;
+  var count = 0;
+  if ($notnull_bool(this.optional('{', token))) {
+    if (!$notnull_bool(this.optional('}', token.next))) {
+      do {
+        token = this.parseMapLiteralEntry(token.next);
+        ++count;
+      }
+      while ($notnull_bool(this.optional(',', token)))
+    }
+    this.listener.handleLiteralMap(count, beginToken, token);
+    return this.expect('}', token);
+  }
+  else if ($notnull_bool(this.optional('[', token))) {
+    if (!$notnull_bool(this.optional(']', token.next))) {
+      do {
+        token = this.parseExpression(token.next);
+        ++count;
+      }
+      while ($notnull_bool(this.optional(',', token)))
+    }
+    this.listener.handleLiteralList(count, beginToken, token);
+    return this.expect(']', token);
+  }
+  else {
+    this.listener.unexpected(token);
+  }
+}
+Parser.prototype.parseMapLiteralEntry = function(token) {
+  this.listener.beginLiteralMapEntry(token);
+  token = this.parseString(token);
+  token = this.expect(':', token);
+  token = this.parseExpression(token);
+  this.listener.endLiteralMapEntry(token);
+  return token;
+}
+Parser.prototype.parseSendOrFunctionLiteral = function(token) {
+  var peek = this.peekAfterType(token);
+  if (peek.kind === 97/*null.IDENTIFIER_TOKEN*/) {
+    return this.parseFunction(token);
+  }
+  else {
+    return this.parseSend(token);
+  }
+}
+Parser.prototype.parseNewExpression = function(token) {
+  var newKeyword = token;
+  token = this.expect('new', token);
+  token = this.parseType(token);
+  token = this.parseArguments(token);
+  this.listener.handleNewExpression(newKeyword);
   return token;
 }
 Parser.prototype.parseLiteralInt = function(token) {
@@ -4621,6 +4727,12 @@ Parser.prototype.parseSend = function(token) {
   token = this.parseIdentifier(token);
   token = this.parseArgumentsOpt(token);
   this.listener.endSend(token);
+  while ($notnull_bool(this.optional('[', token))) {
+    var openCurlyBracket = token;
+    token = this.parseExpression(token.next);
+    this.listener.handleIndexedExpression(openCurlyBracket, token);
+    token = this.expect(']', token);
+  }
   return token;
 }
 Parser.prototype.parseArgumentsOpt = function(token) {
@@ -4635,7 +4747,7 @@ Parser.prototype.parseArgumentsOpt = function(token) {
 Parser.prototype.parseArguments = function(token) {
   var begin = token;
   this.listener.beginArguments(begin);
-  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 803, 12);
+  $assert('(' === token.get$stringValue(), "'(' === token.stringValue", "parser.dart", 869, 12);
   var argumentCount = 0;
   if ($notnull_bool(this.optional(')', token.next))) {
     this.listener.endArguments(argumentCount, begin, token.next);
@@ -6182,7 +6294,7 @@ function parse(canceler, logger, doParse) {
   var listener = new NodeListener(canceler, logger);
   doParse(new Parser(listener));
   var node = listener.popNode();
-  $assert(listener.nodes.isEmpty(), "listener.nodes.isEmpty()", "listener.dart", 744, 10);
+  $assert(listener.nodes.isEmpty(), "listener.nodes.isEmpty()", "listener.dart", 796, 10);
   return node;
 }
 //  ********** Library tree **************

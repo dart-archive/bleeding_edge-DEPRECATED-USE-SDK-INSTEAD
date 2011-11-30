@@ -694,7 +694,7 @@ class Parser {
     // TODO(ahe): Handle other expressions.
     final kind = token.kind;
     if (kind === IDENTIFIER_TOKEN) {
-      return parseSend(token);
+      return parseSendOrFunctionLiteral(token);
     } else if (kind === INT_TOKEN) {
       return parseLiteralInt(token);
     } else if (kind === DOUBLE_TOKEN) {
@@ -711,6 +711,8 @@ class Parser {
           return parseThisExpression(token);
         } else if (value === 'super') {
           return parseSuperExpression(token);
+        } else if (value === 'new') {
+          return parseNewExpression(token);
         } else {
           listener.unexpected(token);
           throw 'not yet implemented';
@@ -718,6 +720,10 @@ class Parser {
       }
     } else if (kind === LPAREN_TOKEN) {
       return parseParenthesizedExpression(token);
+    } else if ((kind === LT_TOKEN) ||
+               (kind === OPEN_SQUARE_BRACKET_TOKEN) ||
+               (kind === OPEN_CURLY_BRACKET_TOKEN)) {
+      return parseLiteralListOrMap(token);
     } else {
       listener.unexpected(token);
       throw 'not yet implemented';
@@ -755,6 +761,60 @@ class Parser {
     return token;
   }
 
+  Token parseLiteralListOrMap(Token token) {
+    token = parseTypeArgumentsOpt(token);
+    Token beginToken = token;
+    int count = 0;
+    if (optional('{', token)) {
+      if (!optional('}', token.next)) {
+        do {
+          token = parseMapLiteralEntry(token.next);
+          ++count;
+        } while (optional(',', token));
+      }
+      listener.handleLiteralMap(count, beginToken, token);
+      return expect('}', token);
+    } else if (optional('[', token)) {
+      if (!optional(']', token.next)) {
+        do {
+          token = parseExpression(token.next);
+          ++count;
+        } while (optional(',', token));
+      }
+      listener.handleLiteralList(count, beginToken, token);
+      return expect(']', token);
+    } else {
+      listener.unexpected(token);
+    }
+  }
+
+  Token parseMapLiteralEntry(Token token) {
+    listener.beginLiteralMapEntry(token);
+    token = parseString(token);
+    token = expect(':', token);
+    token = parseExpression(token);
+    listener.endLiteralMapEntry(token);
+    return token;
+  }
+
+  Token parseSendOrFunctionLiteral(Token token) {
+    Token peek = peekAfterType(token);
+    if (peek.kind === IDENTIFIER_TOKEN) {
+      return parseFunction(token);
+    } else {
+      return parseSend(token);
+    }
+  }
+
+  Token parseNewExpression(Token token) {
+    Token newKeyword = token;
+    token = expect('new', token);
+    token = parseType(token);
+    token = parseArguments(token);
+    listener.handleNewExpression(newKeyword);
+    return token;
+  }
+
   Token parseLiteralInt(Token token) {
     listener.handleLiteralInt(token);
     return token.next;
@@ -785,6 +845,12 @@ class Parser {
     token = parseIdentifier(token);
     token = parseArgumentsOpt(token);
     listener.endSend(token);
+    while (optional('[', token)) {
+      Token openCurlyBracket = token;
+      token = parseExpression(token.next);
+      listener.handleIndexedExpression(openCurlyBracket, token);
+      token = expect(']', token);
+    }
     return token;
   }
 
