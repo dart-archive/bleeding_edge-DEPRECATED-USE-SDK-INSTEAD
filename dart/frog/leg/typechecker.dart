@@ -7,7 +7,7 @@ class TypeCheckerTask extends CompilerTask {
   String get name() => "Type checker";
   Types types;
 
-  void check(Node tree, Map<Node, Element> elements) {
+  void check(Node tree, TreeElements elements) {
     measure(() {
       Visitor visitor =
           new TypeCheckerVisitor(compiler, elements, types);
@@ -113,11 +113,11 @@ class CancelTypeCheckException {
 
 class TypeCheckerVisitor implements Visitor<Type> {
   Compiler compiler;
-  Map<Node, Element> elements;
+  TreeElements elements;
   Type expectedReturnType;  // TODO(karlklose): put into a context.
   Types types;
 
-  TypeCheckerVisitor(Compiler this.compiler, Map this.elements,
+  TypeCheckerVisitor(Compiler this.compiler, TreeElements this.elements,
                      Types this.types);
 
   Type fail(node, [reason]) {

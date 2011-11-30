@@ -6,7 +6,7 @@ class SsaBuilderTask extends CompilerTask {
   SsaBuilderTask(Compiler compiler) : super(compiler);
   String get name() => 'SSA builder';
 
-  HGraph build(Node tree, Map<Node, Element> elements) {
+  HGraph build(Node tree, TreeElements elements) {
     return measure(() {
       FunctionExpression function = tree;
       HInstruction.idCounter = 0;
@@ -23,8 +23,8 @@ class SsaBuilderTask extends CompilerTask {
   }
 
   HGraph compileMethod(NodeList parameters,
-                       Node body, Map<Node,
-                       Element> elements) {
+                       Node body,
+                       TreeElements elements) {
     SsaBuilder builder = new SsaBuilder(compiler, elements);
     HGraph graph = builder.build(parameters, body);
     return graph;
@@ -33,7 +33,7 @@ class SsaBuilderTask extends CompilerTask {
 
 class SsaBuilder implements Visitor {
   final Compiler compiler;
-  final Map<Node, Element> elements;
+  final TreeElements elements;
   HGraph graph;
 
   // We build the Ssa graph by simulating a stack machine.

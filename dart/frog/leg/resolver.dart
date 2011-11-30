@@ -2,6 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class TreeElements {
+  Map<Node, Element> map;
+  TreeElements() : map = new LinkedHashMap<Node, Element>();
+  operator []=(Node node, Element element) => map[node] = element;
+  operator [](Node node) => map[node];
+}
+
 class ResolverTask extends CompilerTask {
   Queue<ClassElement> toResolve;
   ResolverTask(Compiler compiler)
@@ -9,7 +16,7 @@ class ResolverTask extends CompilerTask {
 
   String get name() => 'Resolver';
 
-  Map<Node, Element> resolve(FunctionExpression tree) {
+  TreeElements resolve(FunctionExpression tree) {
     return measure(() {
       ResolverVisitor visitor = new SignatureResolverVisitor(compiler);
       visitor.visit(tree);
@@ -26,7 +33,7 @@ class ResolverTask extends CompilerTask {
   }
 
   // Used for testing.
-  Map<Node, Element> resolveStatement(Node node) {
+  TreeElements resolveStatement(Node node) {
     ResolverVisitor visitor = new FullResolverVisitor(compiler);
     visitor.visit(node);
 
@@ -54,12 +61,12 @@ class ResolverTask extends CompilerTask {
 
 class ResolverVisitor implements Visitor<Element> {
   final Compiler compiler;
-  final Map<Node, Element> mapping;
+  final TreeElements mapping;
   Scope context;
 
   ResolverVisitor(Compiler compiler)
     : this.compiler = compiler,
-      mapping = new LinkedHashMap<Node, Element>(),
+      mapping = new TreeElements(),
       context = new Scope(new TopScope(compiler.universe));
 
   ResolverVisitor.from(ResolverVisitor other)

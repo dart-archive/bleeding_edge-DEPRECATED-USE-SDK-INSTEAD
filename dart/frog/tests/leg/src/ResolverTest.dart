@@ -76,7 +76,7 @@ testLocals(List variables) {
   // A VariableDefinitions does not have an element.
   Expect.equals(null, element);
   Expect.equals(variables.length, visitor.context.elements.length);
-  Expect.equals(variables.length, visitor.mapping.length);
+  Expect.equals(variables.length, visitor.mapping.map.length);
 
   for (final variable in variables) {
     final name = variable[0];
@@ -132,9 +132,9 @@ testLocalsTwo() {
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
   Expect.equals(0, visitor.context.elements.length);
-  Expect.equals(2, visitor.mapping.length);
+  Expect.equals(2, visitor.mapping.map.length);
 
-  List<Element> elements = visitor.mapping.getValues();
+  List<Element> elements = visitor.mapping.map.getValues();
   Expect.notEquals(elements[0], elements[1]);
 }
 
@@ -144,8 +144,8 @@ testLocalsThree() {
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
   Expect.equals(0, visitor.context.elements.length);
-  Expect.equals(2, visitor.mapping.length);
-  List<Element> elements = visitor.mapping.getValues();
+  Expect.equals(2, visitor.mapping.map.length);
+  List<Element> elements = visitor.mapping.map.getValues();
   Expect.equals(elements[0], elements[1]);
 }
 
@@ -155,8 +155,8 @@ testLocalsFour() {
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
   Expect.equals(0, visitor.context.elements.length);
-  Expect.equals(2, visitor.mapping.length);
-  List<Element> elements = visitor.mapping.getValues();
+  Expect.equals(2, visitor.mapping.map.length);
+  List<Element> elements = visitor.mapping.map.getValues();
   Expect.notEquals(elements[0], elements[1]);
 }
 
@@ -166,7 +166,7 @@ testLocalsFive() {
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
   Expect.equals(0, visitor.context.elements.length);
-  Expect.equals(4, visitor.mapping.length);
+  Expect.equals(4, visitor.mapping.map.length);
 
   Block thenPart = tree.thenPart;
   List statements1 = thenPart.statements.nodes.toList();
@@ -211,7 +211,7 @@ testFor() {
   visitor.visit(tree);
 
   Expect.equals(0, visitor.context.elements.length);
-  Expect.equals(7, visitor.mapping.length);
+  Expect.equals(7, visitor.mapping.map.length);
 
   VariableDefinitions initializer = tree.initializer;
   Node iNode = initializer.definitions.nodes.head;
@@ -219,9 +219,9 @@ testFor() {
 
   // Check that we have the expected nodes. This test relies on the mapping
   // field to be a linked hash map (preserving insertion order).
-  Expect.isTrue(visitor.mapping is LinkedHashMap);
-  List<Node> nodes = visitor.mapping.getKeys();
-  List<Element> elements = visitor.mapping.getValues();
+  Expect.isTrue(visitor.mapping.map is LinkedHashMap);
+  List<Node> nodes = visitor.mapping.map.getKeys();
+  List<Element> elements = visitor.mapping.map.getValues();
 
   Expect.isTrue(nodes[0] is SendSet);  // i = 0
   Expect.equals(elements[0], iElement);
@@ -252,7 +252,7 @@ testTypeAnnotation() {
   String statement = "Foo bar;";
 
   // Test that we get a warning when Foo is not defined.
-  Map mapping = compiler.resolveStatement(statement);
+  Map mapping = compiler.resolveStatement(statement).map;
 
   Expect.equals(1, mapping.length); // bar has an element.
   Expect.equals(1, compiler.warnings.length);
@@ -268,12 +268,12 @@ testTypeAnnotation() {
 
   // Test that there is no warning after defining Foo.
   compiler.parseScript("class Foo {}");
-  mapping = compiler.resolveStatement(statement);
+  mapping = compiler.resolveStatement(statement).map;
   Expect.equals(2, mapping.length);
   Expect.equals(0, compiler.warnings.length);
 
   // Test that 'var' does not create a warning.
-  mapping = compiler.resolveStatement("var foo;");
+  mapping = compiler.resolveStatement("var foo;").map;
   Expect.equals(1, mapping.length);
   Expect.equals(0, compiler.warnings.length);
 }
@@ -292,7 +292,7 @@ testSuperclass() {
       new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['Bar']).toString());
 
   compiler.parseScript("class Bar {}");
-  Map mapping = compiler.resolveStatement("Foo bar;");
+  Map mapping = compiler.resolveStatement("Foo bar;").map;
   Expect.equals(2, mapping.length);
 
   ClassElement fooElement = compiler.universe.find(buildSourceString('Foo'));
@@ -365,7 +365,7 @@ testTwoInterfaces() {
 testFunctionExpression() {
   MockCompiler compiler = new MockCompiler();
   ResolverVisitor visitor = new FullResolverVisitor(compiler);
-  Map mapping = compiler.resolveStatement("int f() {}");
+  Map mapping = compiler.resolveStatement("int f() {}").map;
   Expect.equals(1, mapping.length);
   Element element;
   Node node;

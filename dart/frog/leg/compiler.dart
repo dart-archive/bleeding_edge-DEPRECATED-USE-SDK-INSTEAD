@@ -90,7 +90,7 @@ class Compiler implements Canceler, Logger {
     String code = universe.generatedCode[element];
     if (code !== null) return code;
     Node tree = parser.parse(element);
-    Map<Node, Element> elements = resolver.resolve(tree);
+    TreeElements elements = resolver.resolve(tree);
     checker.check(tree, elements);
     HGraph graph = builder.build(tree, elements);
     optimizer.optimize(graph);

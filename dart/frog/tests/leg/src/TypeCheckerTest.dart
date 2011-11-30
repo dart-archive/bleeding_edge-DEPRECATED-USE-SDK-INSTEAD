@@ -157,7 +157,7 @@ MockCompiler compiler;
 Type analyzeType(String text) {
   var node = parseExpression(text);
   TypeCheckerVisitor visitor =
-      new TypeCheckerVisitor(compiler, new Map(), types);
+      new TypeCheckerVisitor(compiler, new TreeElements(), types);
   return visitor.type(node);
 }
 
@@ -212,7 +212,7 @@ analyze(String text, [expectedWarnings]) {
 
   FullResolverVisitor visitor = new FullResolverVisitor(compiler);
   visitor.visit(node);
-  Map elements = visitor.mapping;
+  TreeElements elements = visitor.mapping;
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
   compiler.clearWarnings();
