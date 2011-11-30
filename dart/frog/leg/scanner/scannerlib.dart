@@ -10,6 +10,7 @@
 #import('../tree/tree.dart');
 #import('../elements/elements.dart');
 
+#source('class_element_parser.dart');
 #source('keyword.dart');
 #source('listener.dart');
 #source('parser.dart');

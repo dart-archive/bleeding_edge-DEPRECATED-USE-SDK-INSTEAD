@@ -26,6 +26,7 @@ interface Type {}
 class SimpleType implements Type {
   final SourceString name;
   final Element element;
+  Type get returnType() => this; // TODO(karlklose): Evaluate this.
 
   const SimpleType(SourceString this.name, Element this.element);
   SimpleType.named(SourceString name)
@@ -113,7 +114,7 @@ class CancelTypeCheckException {
 
 class TypeCheckerVisitor implements Visitor<Type> {
   Compiler compiler;
-  Map elements;
+  Map<Node, Element> elements;
   Type expectedReturnType;  // TODO(karlklose): put into a context.
   Types types;
 
@@ -196,7 +197,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type visitFunctionExpression(FunctionExpression node) {
     final element = elements[node];
-    FunctionType functionType = element.computeType(compiler, types);
+    FunctionType functionType = computeType(element);
     Type returnType = functionType.returnType;
     Type previous = expectedReturnType;
     expectedReturnType = returnType;
@@ -246,7 +247,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
           fail(selector, 'unexpected operator ${name}');
         }
       }
-      final targetType = target.computeType(compiler, types);
+      final targetType = computeType(target);
       if (node.isPropertyAccess) {
         return targetType;
       } else if (node.isFunctionObjectInvocation) {
@@ -307,13 +308,13 @@ class TypeCheckerVisitor implements Visitor<Type> {
       // TODO(karlklose): move to validator.
       compiler.ensure(node.selector is Identifier);
       final Element element = elements[node.selector];
-      final Type receiverType = element.computeType(compiler, types);
+      final Type receiverType = computeType(element);
       // TODO(karlklose): this should be the return type instead of int.
       return node.isPrefix ? types.intType : receiverType;
     } else {
       // TODO(karlklose): move to validator.
       compiler.ensure(!node.arguments.isEmpty());
-      Type targetType = elements[node].computeType(compiler, types);
+      Type targetType = computeType(elements[node]);
       Node value = node.arguments.head;
       checkAssignable(value, targetType, type(value));
       return targetType;
@@ -385,10 +386,15 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return types.voidType;
   }
 
+  Type computeType(Element element) {
+    if (element === null) return types.dynamicType;
+    return element.computeType(compiler, types);
+  }
+
   Type visitTypeAnnotation(TypeAnnotation node) {
     if (node.typeName === null) return types.dynamicType;
     final name = node.typeName.source;
-    Type type = elements[node];
+    Type type = computeType(elements[node]);
     if (type === null) type = types.lookup(name);
     if (type === null) {
       // The type name cannot be resolved, but the resolver

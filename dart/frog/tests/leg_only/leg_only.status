@@ -4,6 +4,8 @@
 
 prefix leg_only
 
+ClassTest: Fail
+
 [ $component == leg || $component == frog || $component == frogsh ]
 StatementsTest: Fail
 TypedLocalsTest: Fail

@@ -771,9 +771,6 @@ Object.prototype.needsConversion$1 = function($0) {
 Object.prototype.next$0 = function() {
   return this.noSuchMethod("next", []);
 };
-Object.prototype.parseClass$1 = function($0) {
-  return this.noSuchMethod("parseClass", [$0]);
-};
 Object.prototype.parseFunction$1 = function($0) {
   return this.noSuchMethod("parseFunction", [$0]);
 };
@@ -3071,6 +3068,36 @@ function ArrayBasedScanner_SourceString() {
 $inherits(ArrayBasedScanner_SourceString, ArrayBasedScanner);
 // ********** Code for top level **************
 //  ********** Library scanner **************
+// ********** Code for ClassElementParser **************
+function ClassElementParser(listener) {
+  // Initializers done
+  PartialParser.call(this, listener);
+}
+$inherits(ClassElementParser, PartialParser);
+ClassElementParser.prototype.parseClassBody = function(token) {
+  return this.fullParseClassBody(token);
+}
+// ********** Code for PartialClassElement **************
+function PartialClassElement(name, beginToken, endToken) {
+  this.beginToken = beginToken;
+  this.endToken = endToken;
+  // Initializers done
+  ClassElement.call(this, name);
+}
+$inherits(PartialClassElement, ClassElement);
+PartialClassElement.prototype.get$members = function() { return this.members; };
+PartialClassElement.prototype.set$members = function(value) { return this.members = value; };
+PartialClassElement.prototype.parseNode = function(canceler, logger) {
+  var $0;
+  var listener = new NodeListener(canceler, logger);
+  var parser = new ClassElementParser(listener);
+  var token = parser.parseClass(this.beginToken);
+  $assert(token === this.endToken.next, "token === endToken.next", "class_element_parser.dart", 25, 12);
+  var node = (($0 = listener.popNode()) == null ? null : $0.assert$ClassNode());
+  $assert(listener.nodes.isEmpty(), "listener.nodes.isEmpty()", "class_element_parser.dart", 27, 12);
+  $assert(listener.topLevelElements.isEmpty(), "listener.topLevelElements.isEmpty()", "class_element_parser.dart", 28, 12);
+  return node;
+}
 // ********** Code for Keyword **************
 function Keyword(syntax, isPseudo) {
   this.syntax = syntax;
@@ -3283,6 +3310,9 @@ Listener.prototype.beginFunctionBody = function(token) {
 
 }
 Listener.prototype.endFunctionBody = function(count, beginToken, endToken) {
+
+}
+Listener.prototype.handleNoFunctionBody = function(token) {
 
 }
 Listener.prototype.beginFunctionName = function(token) {
@@ -3569,7 +3599,7 @@ ElementListener.prototype.pushNode = function(node) {
 }
 ElementListener.prototype.popNode = function() {
   var $0;
-  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 406, 12);
+  $assert(!$notnull_bool(this.nodes.isEmpty()), "!nodes.isEmpty()", "listener.dart", 409, 12);
   var node = (($0 = this.nodes.get$head()) == null ? null : $0.assert$Node());
   this.nodes = (($0 = this.nodes.get$tail()) == null ? null : $0.assert$Link_Node());
   if (false/*null.VERBOSE*/) this.log(("pop " + this.nodes));
@@ -3580,6 +3610,7 @@ ElementListener.prototype.log = function(message) {
 }
 // ********** Code for NodeListener **************
 function NodeListener(canceler, logger) {
+  this.memberElements = const$210/*const EmptyLink<Element>()*/
   this.logger = logger;
   // Initializers done
   ElementListener.call(this, canceler);
@@ -3694,6 +3725,9 @@ NodeListener.prototype.handleVoidKeyword = function(token) {
 }
 NodeListener.prototype.endFunctionBody = function(count, beginToken, endToken) {
   this.pushNode(new Block(this.makeNodeList(count, beginToken, endToken, null)));
+}
+NodeListener.prototype.handleNoFunctionBody = function(token) {
+  this.pushNode(null);
 }
 NodeListener.prototype.endFunction = function(token) {
   var $0;
@@ -3819,8 +3853,12 @@ NodeListener.prototype.endField = function(beginToken, endToken) {
   this.canceler.cancel("fields are not implemented yet", name);
 }
 NodeListener.prototype.endMethod = function(beginToken, endToken) {
-  var name = this.popNode();
+  var $0;
+  var body = (($0 = this.popNode()) == null ? null : $0.assert$Statement());
+  var name = (($0 = this.popNode()) == null ? null : $0.assert$Identifier());
   this.pushNode(new FunctionExpression(name, null, null, null));
+  var methodElement = new PartialFunctionElement(name.get$source(), beginToken, endToken);
+  this.memberElements = (($0 = this.memberElements.prepend(methodElement)) == null ? null : $0.assert$Link_Element());
 }
 NodeListener.prototype.makeNodeList = function(count, beginToken, endToken, delimiter) {
   var $0;
@@ -3850,24 +3888,6 @@ PartialFunctionElement.prototype.parseNode = function(canceler, logger) {
     return p.parseFunction$1($this.beginToken);
   })
   )) == null ? null : $0.assert$FunctionExpression());
-  return this.node;
-}
-// ********** Code for PartialClassElement **************
-function PartialClassElement(name, beginToken, endToken) {
-  this.beginToken = beginToken;
-  this.endToken = endToken;
-  // Initializers done
-  ClassElement.call(this, name);
-}
-$inherits(PartialClassElement, ClassElement);
-PartialClassElement.prototype.parseNode = function(canceler, logger) {
-  var $this = this; // closure support
-  var $0;
-  if (this.node != null) return this.node;
-  this.node = (($0 = parse(canceler, logger, (function (p) {
-    return p.parseClass$1($this.beginToken);
-  })
-  )) == null ? null : $0.assert$ClassNode());
   return this.node;
 }
 // ********** Code for Parser **************
@@ -4737,9 +4757,6 @@ Parser.prototype.parseThrowStatement = function(token) {
     return this.expectSemicolon(token);
   }
 }
-Parser.prototype.parseClass$1 = function($0) {
-  return this.parseClass(($0 == null ? null : $0.assert$Token()));
-};
 Parser.prototype.parseFunction$1 = function($0) {
   return this.parseFunction(($0 == null ? null : $0.assert$Token()));
 };
@@ -4769,6 +4786,9 @@ $inherits(PartialParser, Parser);
 PartialParser.prototype.parseClassBody = function(token) {
   return this.skipBlock(token);
 }
+PartialParser.prototype.fullParseClassBody = function(token) {
+  return Parser.prototype.parseClassBody.call(this, token);
+}
 PartialParser.prototype.parseExpression = function(token) {
   return this.skipExpression(token);
 }
@@ -4785,6 +4805,7 @@ PartialParser.prototype.skipExpression = function(token) {
 }
 PartialParser.prototype.parseFunctionBody = function(token) {
   if ($notnull_bool(this.optional(';', token))) {
+    this.listener.handleNoFunctionBody(token);
     return token;
   }
   else if ($notnull_bool(this.optional('=>', token))) {
@@ -4793,7 +4814,9 @@ PartialParser.prototype.parseFunctionBody = function(token) {
     return token;
   }
   else {
-    return this.skipBlock(token);
+    token = this.skipBlock(token);
+    this.listener.handleNoFunctionBody(token);
+    return token;
   }
 }
 // ********** Code for AbstractScanner **************
@@ -6161,7 +6184,7 @@ function parse(canceler, logger, doParse) {
   var listener = new NodeListener(canceler, logger);
   doParse(new Parser(listener));
   var node = listener.popNode();
-  $assert(listener.nodes.isEmpty(), "listener.nodes.isEmpty()", "listener.dart", 747, 10);
+  $assert(listener.nodes.isEmpty(), "listener.nodes.isEmpty()", "listener.dart", 744, 10);
   return node;
 }
 //  ********** Library tree **************
@@ -7883,6 +7906,9 @@ SsaBuilder.prototype.visitSend = function(node) {
     this.stack.add(instruction);
   }
   else {
+    if (element == null) {
+      this.compiler.unimplemented("SsaBuilder.visitSend with receiver");
+    }
     var link = node.get$arguments();
     if (element.kind === const$219/*ElementKind.FOREIGN*/) {
       link = (($0 = link.get$tail()) == null ? null : $0.assert$Link_Node());
@@ -7917,12 +7943,12 @@ SsaBuilder.prototype.visitSendSet = function(node) {
   var op = node.assignmentOperator;
   if ($notnull_bool($eq(const$281/*const SourceString("=")*/, op.get$source()))) {
     var link = node.get$arguments();
-    $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 567, 14);
+    $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 570, 14);
     this.visit((($0 = link.get$head()) == null ? null : $0.assert$Node()));
     this.stack.add(this.updateDefinition(node, this.pop()));
   }
   else {
-    $assert($notnull_bool($eq(const$284/*const SourceString("++")*/, op.get$source())) || $notnull_bool($eq(const$285/*const SourceString("--")*/, op.get$source())) || node.assignmentOperator.get$source().get$stringValue().endsWith("="), "const SourceString(\"++\") == op.source ||\n             const SourceString(\"--\") == op.source ||\n             node.assignmentOperator.source.stringValue.endsWith(\"=\")", "builder.dart", 571, 14);
+    $assert($notnull_bool($eq(const$284/*const SourceString("++")*/, op.get$source())) || $notnull_bool($eq(const$285/*const SourceString("--")*/, op.get$source())) || node.assignmentOperator.get$source().get$stringValue().endsWith("="), "const SourceString(\"++\") == op.source ||\n             const SourceString(\"--\") == op.source ||\n             node.assignmentOperator.source.stringValue.endsWith(\"=\")", "builder.dart", 574, 14);
     var isCompoundAssignment = !$notnull_bool(node.get$arguments().isEmpty());
     var isPrefix = !$notnull_bool(node.get$isPostfix());
     var getter = (($0 = this.elements.$index(node.selector)) == null ? null : $0.assert$Element());
@@ -7939,7 +7965,7 @@ SsaBuilder.prototype.visitSendSet = function(node) {
     var opElement = (($0 = this.elements.$index(op)) == null ? null : $0.assert$Element());
     this.visitBinary(left, op, right, opElement);
     var operation = this.pop();
-    $assert(operation != null, "operation !== null", "builder.dart", 589, 14);
+    $assert(operation != null, "operation !== null", "builder.dart", 592, 14);
     operation = this.updateDefinition(node, operation);
     if ($notnull_bool(isPrefix)) {
       this.stack.add(operation);
@@ -8010,7 +8036,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.updateDefinition(definition, initialValue);
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 669, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 672, 16);
       this.visitSendSet((definition == null ? null : definition.assert$SendSet()));
       this.pop();
     }
@@ -11921,18 +11947,21 @@ FullResolverVisitor.prototype.mapAssignmentOperatorToMethodName = function(name)
 }
 FullResolverVisitor.prototype.visitSend = function(node) {
   var $0;
-  this.visit(node.receiver);
+  var receiver = (($0 = this.visit(node.receiver)) == null ? null : $0.assert$Element());
   var identifier = (($0 = node.selector) == null ? null : $0.assert$Identifier());
-  if (node.receiver != null && !(identifier instanceof Operator)) {
-    this.cancel(node, 'Cannot handle qualified method calls');
+  var target = null;
+  if (receiver == null || (identifier instanceof Operator)) {
+    var name = this.potentiallyMapOperatorToMethodName(identifier.get$source(), node.get$isPrefix());
+    target = this.context.lookup(name);
+    if (target == null && !((name.get$stringValue() === '&&' || name.get$stringValue() === '||' || name.get$stringValue() === '!'))) {
+      this.error(node, const$225/*MessageKind.CANNOT_RESOLVE*/, [name]);
+    }
+    this.useElement(node, target);
   }
-  var name = this.potentiallyMapOperatorToMethodName(identifier.get$source(), node.get$isPrefix());
-  var target = this.context.lookup(name);
-  if (target == null && !((name.get$stringValue() === '&&' || name.get$stringValue() === '||' || name.get$stringValue() === '!'))) {
-    this.error(node, const$225/*MessageKind.CANNOT_RESOLVE*/, [name]);
+  else {
   }
   this.visit(node.argumentsNode);
-  return this.useElement(node, target);
+  return target;
 }
 FullResolverVisitor.prototype.visitSendSet = function(node) {
   var $0;
@@ -12061,7 +12090,7 @@ VariableDefinitionsVisitor.prototype.get$kind = function() { return this.kind; }
 VariableDefinitionsVisitor.prototype.set$kind = function(value) { return this.kind = value; };
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 417, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 419, 12);
   if (node.receiver != null) {
     this.resolver.cancel(node, "receiver on a variable definition not implemented");
   }
@@ -12222,6 +12251,9 @@ SimpleType.named$ctor.prototype = SimpleType.prototype;
 SimpleType.prototype.assert$Type = function(){return this};
 SimpleType.prototype.get$name = function() { return this.name; };
 SimpleType.prototype.get$element = function() { return this.element; };
+SimpleType.prototype.get$returnType = function() {
+  return this;
+}
 SimpleType.prototype.toString = function() {
   return this.name.toString();
 }
@@ -12369,7 +12401,7 @@ TypeCheckerVisitor.prototype.visitFor = function(node) {
 TypeCheckerVisitor.prototype.visitFunctionExpression = function(node) {
   var $0;
   var element = this.elements.$index(node);
-  var functionType = (($0 = element.computeType$2(this.compiler, this.types)) == null ? null : $0.assert$FunctionType());
+  var functionType = (($0 = this.computeType((element == null ? null : element.assert$Element()))) == null ? null : $0.assert$FunctionType());
   var returnType = functionType.returnType;
   var previous = this.expectedReturnType;
   this.expectedReturnType = returnType;
@@ -12405,9 +12437,9 @@ TypeCheckerVisitor.prototype.visitSend = function(node) {
         this.fail(selector, ('unexpected operator ' + name));
       }
     }
-    var targetType = target.computeType$2(this.compiler, this.types);
+    var targetType = this.computeType((target == null ? null : target.assert$Element()));
     if ($notnull_bool(node.get$isPropertyAccess())) {
-      return (targetType == null ? null : targetType.assert$Type());
+      return targetType;
     }
     else if ($notnull_bool(node.get$isFunctionObjectInvocation())) {
       this.fail(node);
@@ -12460,12 +12492,12 @@ TypeCheckerVisitor.prototype.visitSendSet = function(node) {
   if (name === '++' || name === '--') {
     this.compiler.ensure((node.selector instanceof Identifier));
     var element = (($0 = this.elements.$index(node.selector)) == null ? null : $0.assert$Element());
-    var receiverType = (($0 = element.computeType(this.compiler, this.types)) == null ? null : $0.assert$Type());
+    var receiverType = this.computeType(element);
     return $notnull_bool(node.get$isPrefix()) ? this.types.intType : receiverType;
   }
   else {
     this.compiler.ensure(!$notnull_bool(node.get$arguments().isEmpty()));
-    var targetType = (($0 = this.elements.$index(node).computeType$2(this.compiler, this.types)) == null ? null : $0.assert$Type());
+    var targetType = this.computeType((($0 = this.elements.$index(node)) == null ? null : $0.assert$Element()));
     var value = (($0 = node.get$arguments().get$head()) == null ? null : $0.assert$Node());
     this.checkAssignable(value, targetType, this.type(value));
     return targetType;
@@ -12518,11 +12550,16 @@ TypeCheckerVisitor.prototype.visitThrow = function(node) {
   if (node.expression != null) this.type(node.expression);
   return this.types.voidType;
 }
+TypeCheckerVisitor.prototype.computeType = function(element) {
+  var $0;
+  if (element == null) return this.types.dynamicType;
+  return (($0 = element.computeType(this.compiler, this.types)) == null ? null : $0.assert$Type());
+}
 TypeCheckerVisitor.prototype.visitTypeAnnotation = function(node) {
   var $0;
   if (node.typeName == null) return this.types.dynamicType;
   var name = node.typeName.get$source();
-  var type = (($0 = this.elements.$index(node)) == null ? null : $0.assert$Type());
+  var type = this.computeType((($0 = this.elements.$index(node)) == null ? null : $0.assert$Element()));
   if (type == null) type = this.types.lookup(name);
   if (type == null) {
     return this.types.dynamicType;

@@ -259,23 +259,25 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitSend(Send node) {
-    visit(node.receiver);
+    Element receiver = visit(node.receiver);
     final Identifier identifier = node.selector;
-    if (node.receiver !== null && identifier is !Operator) {
-      cancel(node, 'Cannot handle qualified method calls');
-    }
-    final SourceString name =
-        potentiallyMapOperatorToMethodName(identifier.source, node.isPrefix);
-    // TODO(ngeoffray): Use the receiver to do the lookup.
-    Element target = context.lookup(name);
-    // TODO(ngeoffray): implement resolution for logical operators.
+    Element target = null;
+    if (receiver === null || identifier is Operator) {
+      final SourceString name =
+          potentiallyMapOperatorToMethodName(identifier.source, node.isPrefix);
+      target = context.lookup(name);
+      // TODO(ngeoffray): implement resolution for logical operators.
     if (target == null && !((name.stringValue === '&&' ||
                              name.stringValue === '||' ||
                              name.stringValue === '!'))) {
-      error(node, MessageKind.CANNOT_RESOLVE, [name]);
+        error(node, MessageKind.CANNOT_RESOLVE, [name]);
+      }
+      useElement(node, target);
+    } else {
+      // TODO(ngeoffray): Use the receiver to do the lookup.
     }
     visit(node.argumentsNode);
-    return useElement(node, target);
+    return target;
   }
 
   visitSendSet(SendSet node) {

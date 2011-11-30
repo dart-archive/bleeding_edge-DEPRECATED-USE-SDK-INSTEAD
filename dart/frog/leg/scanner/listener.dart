@@ -77,6 +77,9 @@ class Listener {
   void endFunctionBody(int count, Token beginToken, Token endToken) {
   }
 
+  void handleNoFunctionBody(Token token) {
+  }
+
   void beginFunctionName(Token token) {
   }
 
@@ -416,6 +419,7 @@ class ElementListener extends Listener {
 
 class NodeListener extends ElementListener {
   final Logger logger;
+  Link<Element> memberElements = const EmptyLink<Element>();
 
   NodeListener(Canceler canceler, Logger this.logger) : super(canceler);
 
@@ -542,6 +546,10 @@ class NodeListener extends ElementListener {
 
   void endFunctionBody(int count, Token beginToken, Token endToken) {
     pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
+  }
+
+  void handleNoFunctionBody(Token token) {
+    pushNode(null);
   }
 
   void endFunction(Token token) {
@@ -686,9 +694,14 @@ class NodeListener extends ElementListener {
   }
 
   void endMethod(Token beginToken, Token endToken) {
-    Node name = popNode();
-    pushNode(new FunctionExpression(name, null, null, null));
+    Statement body = popNode();
+    Identifier name = popNode(); // TODO(ahe): What about constructors?
     // TODO(ahe): Save modifiers.
+    pushNode(new FunctionExpression(name, null, null, null));
+    // TODO(ahe): Record enclosing element?
+    Element methodElement =
+        new PartialFunctionElement(name.source, beginToken, endToken);
+    memberElements = memberElements.prepend(methodElement);
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
@@ -720,22 +733,6 @@ class PartialFunctionElement extends FunctionElement {
   FunctionExpression parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
     node = parse(canceler, logger, (p) => p.parseFunction(beginToken));
-    return node;
-  }
-}
-
-class PartialClassElement extends ClassElement {
-  final Token beginToken;
-  final Token endToken;
-  ClassNode node;
-
-  PartialClassElement(SourceString name,
-                      Token this.beginToken, Token this.endToken)
-    : super(name);
-
-  ClassNode parseNode(Canceler canceler, Logger logger) {
-    if (node != null) return node;
-    node = parse(canceler, logger, (p) => p.parseClass(beginToken));
     return node;
   }
 }

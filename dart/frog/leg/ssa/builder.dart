@@ -528,6 +528,9 @@ class SsaBuilder implements Visitor {
       assert(instruction !== null);
       stack.add(instruction);
     } else {
+      if (element === null) {
+        compiler.unimplemented("SsaBuilder.visitSend with receiver");
+      }
       Link<Node> link = node.arguments;
       if (element.kind === ElementKind.FOREIGN) {
         // If the invoke is on foreign code, don't visit the first

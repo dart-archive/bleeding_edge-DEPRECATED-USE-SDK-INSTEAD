@@ -7,6 +7,8 @@ class PartialParser extends Parser {
 
   Token parseClassBody(Token token) => skipBlock(token);
 
+  Token fullParseClassBody(Token token) => super.parseClassBody(token);
+
   Token parseExpression(Token token) => skipExpression(token);
 
   Token skipExpression(Token token) {
@@ -24,13 +26,16 @@ class PartialParser extends Parser {
 
   Token parseFunctionBody(Token token) {
     if (optional(';', token)) {
+      listener.handleNoFunctionBody(token);
       return token;
     } else if (optional('=>', token)) {
       token = parseExpression(token.next);
       expectSemicolon(token);
       return token;
     } else {
-      return skipBlock(token);
+      token = skipBlock(token);
+      listener.handleNoFunctionBody(token);
+      return token;
     }
   }
 }
