@@ -316,7 +316,10 @@ Object.prototype.$typeNameOf = function() {
     return this.constructor.name;
   }
   var str = Object.prototype.toString.call(this);
-  return str.substring(8, str.length - 1);
+  str = str.substring(8, str.length - 1);
+  if (str == 'Window') 
+    str = 'DOMWindow';
+  return str;
 }""");
     }
 
