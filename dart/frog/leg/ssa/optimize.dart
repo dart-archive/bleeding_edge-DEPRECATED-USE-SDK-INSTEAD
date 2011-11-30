@@ -13,6 +13,7 @@ class SsaOptimizerTask extends CompilerTask {
       new SsaRedundantPhiEliminator().visitGraph(graph);
       new SsaDeadPhiEliminator().visitGraph(graph);
       new SsaGlobalValueNumberer(compiler).visitGraph(graph);
+      new SsaCodeMotion().visitGraph(graph);
       new SsaDeadCodeEliminator().visitGraph(graph);
       new SsaInstructionMerger().visitGraph(graph);
     });
@@ -481,6 +482,95 @@ class SsaGlobalValueNumberer {
       }
     }
     return changesFlags;
+  }
+}
+
+// This phase merges equivalent instructions on different paths into
+// one instruction in a dominator block. It runs through the graph
+// post dominator order and computes a ValueSet for each block of
+// instructions that can be moved to a dominator block. These
+// instructions are the ones that:
+// 1) can be used for GVN, and
+// 2) do not use definitions of their own block.
+//
+// A basic block looks at its sucessors and finds the intersection of
+// these computed ValueSet. It moves all instructions of the
+// intersection into its own list of instructions.
+class SsaCodeMotion extends HBaseVisitor {
+  List<ValueSet> values;
+
+  void visitGraph(HGraph graph) {
+    values = new List<ValueSet>(graph.blocks.length);
+    for (int i = 0; i < graph.blocks.length; i++) {
+      values[graph.blocks[i].id] = new ValueSet();
+    }
+    visitPostDominatorTree(graph);
+  }
+
+  void visitBasicBlock(HBasicBlock block) {
+    List<HBasicBlock> successors = block.successors;
+
+    // Phase 1: get the ValueSet of all successors, compute the
+    // intersection and move the instructions of the intersection into
+    // this block.
+    if (successors.length != 0) {
+      ValueSet instructions = values[successors[0].id];
+      for (int i = 1; i < successors.length; i++) {
+        ValueSet other = values[successors[i].id];
+        instructions = instructions.intersection(other);
+      }
+
+      if (!instructions.isEmpty()) {
+        List<HInstruction> list = instructions.toList();
+        for (HInstruction instruction in list) {
+          // Move the instruction to the current block.
+          instruction.block.detach(instruction);
+          block.moveAtExit(instruction);
+          // Go through all successors and rewrite their instruction
+          // to the shared one.
+          for (final successor in successors) {
+            HInstruction toRewrite = values[successor.id].lookup(instruction);
+            if (toRewrite != instruction) {
+              successor.rewrite(toRewrite, instruction);
+              successor.remove(toRewrite);
+            }
+          }
+        }
+      }
+    }
+
+    // Don't try to merge instructions to a dominator if we have
+    // multiple predecessors.
+    if (block.predecessors.length != 1) return;
+
+    // Phase 2: Go through all instructions of this block and find
+    // which instructions can be moved to a dominator block.
+    ValueSet set_ = values[block.id];
+    HInstruction instruction = block.first;
+    int flags = 0;
+    while (instruction !== null) {
+      int dependsFlags = HInstruction.computeDependsOnFlags(flags);
+      flags |= instruction.getChangesFlags();
+
+      HInstruction current = instruction;
+      instruction = instruction.next;
+
+      if (!current.useGvn()) continue;
+      if ((current.flags & dependsFlags) != 0) continue;
+
+      bool canBeMoved = true;
+      for (final HInstruction input in current.inputs) {
+        if (input.block == block) {
+          canBeMoved = false;
+          break;
+        }
+      }
+      if (!canBeMoved) continue;
+
+      // This is safe because we are running after GVN.
+      // TODO(ngeoffray): ensure GVN has been run.
+      set_.add(current);
+    }
   }
 }
 

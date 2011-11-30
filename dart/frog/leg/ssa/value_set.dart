@@ -10,6 +10,7 @@ class ValueSet {
   ValueSet() : table = new List<ValueSetNode>(1);
 
   bool isEmpty() => size == 0;
+  int get length() => size;
 
   void add(HInstruction instruction) {
     assert(lookup(instruction) === null);
@@ -50,16 +51,42 @@ class ValueSet {
     }
   }
 
+  // Copy the instructions in this value set in [other] and returns
+  // [other]. The copy is done by iterating through this value set
+  // and calling [:other.add:].
+  copyTo(var other) {
+    for (int i = 0, length = table.length; i < length; i++) {
+      ValueSetNode current = table[i];
+      while (current !== null) {
+        other.add(current.value);
+        current = current.next;
+      }
+    }
+    return other;
+  }
+
   ValueSet copy() {
+    return copyTo(new ValueSet());
+  }
+
+  ValueSet intersection(ValueSet other) {
+    if (size > other.size) return other.intersection(this);
     ValueSet result = new ValueSet();
     for (int i = 0, length = table.length; i < length; i++) {
       ValueSetNode current = table[i];
       while (current !== null) {
-        result.add(current.value);
+        HInstruction value = current.value;
+        if (other.lookup(value) != null) {
+          result.add(value);
+        }
         current = current.next;
       }
     }
     return result;
+  }
+
+  List<HInstruction> toList() {
+    return copyTo(<HInstruction>[]);
   }
 
   // TODO(kasperl): Replace this with a proper hash based version.
