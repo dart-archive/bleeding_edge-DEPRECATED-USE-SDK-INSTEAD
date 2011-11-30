@@ -322,7 +322,7 @@ class _LibraryVisitor implements TreeVisitor {
       return;
     }
     library.sources.add(source);
-    final parser = new Parser(source, /*diet:*/options.dietParse);
+    final parser = new Parser(source, diet: options.dietParse);
     final unit = parser.compilationUnit();
 
     unit.forEach((def) => def.visit(this));

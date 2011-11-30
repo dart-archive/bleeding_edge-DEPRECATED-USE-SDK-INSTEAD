@@ -322,6 +322,14 @@ class ParenExpression extends Expression {
   visit(TreeVisitor visitor) => visitor.visitParenExpression(this);
 }
 
+class AwaitExpression extends Expression {
+  Expression body;
+
+  AwaitExpression(this.body, SourceSpan span): super(span) {}
+
+  visit(TreeVisitor visitor) => visitor.visitAwaitExpression(this);
+}
+
 class DotExpression extends Expression {
   Expression self;
   Identifier name;
@@ -535,6 +543,8 @@ interface TreeVisitor {
   visitIsExpression(IsExpression node);
 
   visitParenExpression(ParenExpression node);
+
+  visitAwaitExpression(AwaitExpression node);
 
   visitDotExpression(DotExpression node);
 
@@ -787,6 +797,11 @@ class TreePrinter implements TreeVisitor {
 
   void visitParenExpression(ParenExpression node) {
     output.heading('ParenExpression', node.span);
+    output.writeNode('body', node.body);
+  }
+
+  void visitAwaitExpression(AwaitExpression node) {
+    output.heading('AwaitExpression', node.span);
     output.writeNode('body', node.body);
   }
 

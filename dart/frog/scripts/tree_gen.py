@@ -154,7 +154,6 @@ nodes = [
     'bool isConst, TypeReference type, Identifier name,' +
     'List<ArgumentNode> arguments'),
 
-
   Expression('List',
     'bool isConst, TypeReference type, List<Expression> values'),
   Expression('Map',
@@ -165,7 +164,7 @@ nodes = [
 
   Expression('Is', 'bool isTrue, Expression x, TypeReference type'),
   Expression('Paren', 'Expression body'),
-
+  Expression('Await', 'Expression body'),
 
   Expression('Dot', 'Expression self, Identifier name'),
   Expression('Var', 'Identifier name'),
@@ -175,7 +174,6 @@ nodes = [
   Expression('Null'),
 
   Expression('Literal', 'var value, TypeReference type, String text'),
-
 
   # TODO(jimhug): Split into Simple and Qualified names
   TypeReference('Name',

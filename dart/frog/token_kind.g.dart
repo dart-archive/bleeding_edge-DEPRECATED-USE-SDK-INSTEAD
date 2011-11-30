@@ -265,86 +265,89 @@ class TokenKind {
   /** [TokenKind] representing pseudo-keyword 'typedef' tokens. */
   static final int TYPEDEF = 87;
 
+  /** [TokenKind] representing keyword 'await' tokens. */
+  static final int AWAIT = 88;
+
   /** [TokenKind] representing keyword 'break' tokens. */
-  static final int BREAK = 88;
+  static final int BREAK = 89;
 
   /** [TokenKind] representing keyword 'case' tokens. */
-  static final int CASE = 89;
+  static final int CASE = 90;
 
   /** [TokenKind] representing keyword 'catch' tokens. */
-  static final int CATCH = 90;
+  static final int CATCH = 91;
 
   /** [TokenKind] representing keyword 'const' tokens. */
-  static final int CONST = 91;
+  static final int CONST = 92;
 
   /** [TokenKind] representing keyword 'continue' tokens. */
-  static final int CONTINUE = 92;
+  static final int CONTINUE = 93;
 
   /** [TokenKind] representing keyword 'default' tokens. */
-  static final int DEFAULT = 93;
+  static final int DEFAULT = 94;
 
   /** [TokenKind] representing keyword 'do' tokens. */
-  static final int DO = 94;
+  static final int DO = 95;
 
   /** [TokenKind] representing keyword 'else' tokens. */
-  static final int ELSE = 95;
+  static final int ELSE = 96;
 
   /** [TokenKind] representing keyword 'false' tokens. */
-  static final int FALSE = 96;
+  static final int FALSE = 97;
 
   /** [TokenKind] representing keyword 'final' tokens. */
-  static final int FINAL = 97;
+  static final int FINAL = 98;
 
   /** [TokenKind] representing keyword 'finally' tokens. */
-  static final int FINALLY = 98;
+  static final int FINALLY = 99;
 
   /** [TokenKind] representing keyword 'for' tokens. */
-  static final int FOR = 99;
+  static final int FOR = 100;
 
   /** [TokenKind] representing keyword 'if' tokens. */
-  static final int IF = 100;
+  static final int IF = 101;
 
   /** [TokenKind] representing keyword 'in' tokens. */
-  static final int IN = 101;
+  static final int IN = 102;
 
   /** [TokenKind] representing keyword 'is' tokens. */
-  static final int IS = 102;
+  static final int IS = 103;
 
   /** [TokenKind] representing keyword 'new' tokens. */
-  static final int NEW = 103;
+  static final int NEW = 104;
 
   /** [TokenKind] representing keyword 'null' tokens. */
-  static final int NULL = 104;
+  static final int NULL = 105;
 
   /** [TokenKind] representing keyword 'return' tokens. */
-  static final int RETURN = 105;
+  static final int RETURN = 106;
 
   /** [TokenKind] representing keyword 'super' tokens. */
-  static final int SUPER = 106;
+  static final int SUPER = 107;
 
   /** [TokenKind] representing keyword 'switch' tokens. */
-  static final int SWITCH = 107;
+  static final int SWITCH = 108;
 
   /** [TokenKind] representing keyword 'this' tokens. */
-  static final int THIS = 108;
+  static final int THIS = 109;
 
   /** [TokenKind] representing keyword 'throw' tokens. */
-  static final int THROW = 109;
+  static final int THROW = 110;
 
   /** [TokenKind] representing keyword 'true' tokens. */
-  static final int TRUE = 110;
+  static final int TRUE = 111;
 
   /** [TokenKind] representing keyword 'try' tokens. */
-  static final int TRY = 111;
+  static final int TRY = 112;
 
   /** [TokenKind] representing keyword 'var' tokens. */
-  static final int VAR = 112;
+  static final int VAR = 113;
 
   /** [TokenKind] representing keyword 'void' tokens. */
-  static final int VOID = 113;
+  static final int VOID = 114;
 
   /** [TokenKind] representing keyword 'while' tokens. */
-  static final int WHILE = 114;
+  static final int WHILE = 115;
 
   static String kindToString(int kind) {
     switch(kind) {
@@ -435,6 +438,7 @@ class TokenKind {
       case TokenKind.SOURCE: return "pseudo-keyword 'source'";
       case TokenKind.STATIC: return "pseudo-keyword 'static'";
       case TokenKind.TYPEDEF: return "pseudo-keyword 'typedef'";
+      case TokenKind.AWAIT: return "keyword 'await'";
       case TokenKind.BREAK: return "keyword 'break'";
       case TokenKind.CASE: return "keyword 'case'";
       case TokenKind.CATCH: return "keyword 'catch'";
@@ -467,7 +471,7 @@ class TokenKind {
   }
 
   static bool isIdentifier(int kind) {
-    return kind >= IDENTIFIER && kind < BREAK;
+    return kind >= IDENTIFIER && kind < AWAIT;
   }
 
   static int infixPrecedence(int kind) {

@@ -167,6 +167,7 @@ tokens = [
 keywords = [
   Keyword('ABSTRACT', "abstract", True),
   Keyword('ASSERT', "assert", True),
+  Keyword('AWAIT', "await", False), # experimental feature
   Keyword('BREAK', "break", False),
   Keyword('CASE', "case", False),
   Keyword('CATCH', "catch", False),

@@ -14234,7 +14234,7 @@ MethodGenerator.prototype.visitDietStatement = function(node) {
 MethodGenerator.prototype.visitVariableDefinition = function(node) {
   var $0;
   var isFinal = false;
-  if (node.modifiers != null && $notnull_bool($eq(node.modifiers.$index(0).get$kind(), 97/*TokenKind.FINAL*/))) {
+  if (node.modifiers != null && $notnull_bool($eq(node.modifiers.$index(0).get$kind(), 98/*TokenKind.FINAL*/))) {
     isFinal = true;
   }
   this.writer.write('var ');
@@ -14917,6 +14917,9 @@ MethodGenerator.prototype.visitUnaryExpression = function(node) {
 
   }
 }
+MethodGenerator.prototype.visitAwaitExpression = function(node) {
+  $globals.world.internalError('Await expressions should have been eliminated before code generation', node.span);
+}
 MethodGenerator.prototype.visitPostfixExpression = function(node, isVoid) {
   var $this = this; // closure support
   var value = this.visitValue(node.body);
@@ -15119,7 +15122,7 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2264, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2270, 12);
   if (!!(($0 = node.value) && $0.is$List())) {
     var items = [];
     var $list = node.value;
@@ -16067,7 +16070,7 @@ FieldMember.prototype.resolve = function() {
         }
         this.isStatic = true;
       }
-      else if ($notnull_bool($eq(mod.get$kind(), 97/*TokenKind.FINAL*/))) {
+      else if ($notnull_bool($eq(mod.get$kind(), 98/*TokenKind.FINAL*/))) {
         if ($notnull_bool(this.isFinal)) {
           $globals.world.error('duplicate final modifier', (($0 = mod.get$span()) == null ? null : $0.assert$SourceSpan()));
         }
@@ -17054,7 +17057,7 @@ MethodMember.prototype.resolve = function() {
         }
         this.isStatic = true;
       }
-      else if ($notnull_bool(this.get$isConstructor()) && $notnull_bool($eq(mod.get$kind(), 91/*TokenKind.CONST*/))) {
+      else if ($notnull_bool(this.get$isConstructor()) && $notnull_bool($eq(mod.get$kind(), 92/*TokenKind.CONST*/))) {
         if ($notnull_bool(this.isConst)) {
           $globals.world.error('duplicate const modifier', (($0 = mod.get$span()) == null ? null : $0.assert$SourceSpan()));
         }
@@ -18328,17 +18331,17 @@ Tokenizer.prototype.getIdentifierKind = function() {
     case 2:
 
       if (this._text.charCodeAt(i0) == 100) {
-        if (this._text.charCodeAt(i0 + 1) == 111) return 94/*TokenKind.DO*/;
+        if (this._text.charCodeAt(i0 + 1) == 111) return 95/*TokenKind.DO*/;
       }
       else if (this._text.charCodeAt(i0) == 105) {
         if (this._text.charCodeAt(i0 + 1) == 102) {
-          return 100/*TokenKind.IF*/;
+          return 101/*TokenKind.IF*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 110) {
-          return 101/*TokenKind.IN*/;
+          return 102/*TokenKind.IN*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 115) {
-          return 102/*TokenKind.IS*/;
+          return 103/*TokenKind.IS*/;
         }
       }
       return 70/*TokenKind.IDENTIFIER*/;
@@ -18346,81 +18349,84 @@ Tokenizer.prototype.getIdentifierKind = function() {
     case 3:
 
       if (this._text.charCodeAt(i0) == 102) {
-        if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 114) return 99/*TokenKind.FOR*/;
+        if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 114) return 100/*TokenKind.FOR*/;
       }
       else if (this._text.charCodeAt(i0) == 103) {
         if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 116) return 76/*TokenKind.GET*/;
       }
       else if (this._text.charCodeAt(i0) == 110) {
-        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 119) return 103/*TokenKind.NEW*/;
+        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 119) return 104/*TokenKind.NEW*/;
       }
       else if (this._text.charCodeAt(i0) == 115) {
         if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 116) return 84/*TokenKind.SET*/;
       }
       else if (this._text.charCodeAt(i0) == 116) {
-        if (this._text.charCodeAt(i0 + 1) == 114 && this._text.charCodeAt(i0 + 2) == 121) return 111/*TokenKind.TRY*/;
+        if (this._text.charCodeAt(i0 + 1) == 114 && this._text.charCodeAt(i0 + 2) == 121) return 112/*TokenKind.TRY*/;
       }
       else if (this._text.charCodeAt(i0) == 118) {
-        if (this._text.charCodeAt(i0 + 1) == 97 && this._text.charCodeAt(i0 + 2) == 114) return 112/*TokenKind.VAR*/;
+        if (this._text.charCodeAt(i0 + 1) == 97 && this._text.charCodeAt(i0 + 2) == 114) return 113/*TokenKind.VAR*/;
       }
       return 70/*TokenKind.IDENTIFIER*/;
 
     case 4:
 
       if (this._text.charCodeAt(i0) == 99) {
-        if (this._text.charCodeAt(i0 + 1) == 97 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101) return 89/*TokenKind.CASE*/;
+        if (this._text.charCodeAt(i0 + 1) == 97 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101) return 90/*TokenKind.CASE*/;
       }
       else if (this._text.charCodeAt(i0) == 101) {
-        if (this._text.charCodeAt(i0 + 1) == 108 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101) return 95/*TokenKind.ELSE*/;
+        if (this._text.charCodeAt(i0 + 1) == 108 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101) return 96/*TokenKind.ELSE*/;
       }
       else if (this._text.charCodeAt(i0) == 110) {
-        if (this._text.charCodeAt(i0 + 1) == 117 && this._text.charCodeAt(i0 + 2) == 108 && this._text.charCodeAt(i0 + 3) == 108) return 104/*TokenKind.NULL*/;
+        if (this._text.charCodeAt(i0 + 1) == 117 && this._text.charCodeAt(i0 + 2) == 108 && this._text.charCodeAt(i0 + 3) == 108) return 105/*TokenKind.NULL*/;
       }
       else if (this._text.charCodeAt(i0) == 116) {
         if (this._text.charCodeAt(i0 + 1) == 104) {
-          if (this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 115) return 108/*TokenKind.THIS*/;
+          if (this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 115) return 109/*TokenKind.THIS*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 114) {
-          if (this._text.charCodeAt(i0 + 2) == 117 && this._text.charCodeAt(i0 + 3) == 101) return 110/*TokenKind.TRUE*/;
+          if (this._text.charCodeAt(i0 + 2) == 117 && this._text.charCodeAt(i0 + 3) == 101) return 111/*TokenKind.TRUE*/;
         }
       }
       else if (this._text.charCodeAt(i0) == 118) {
-        if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 100) return 113/*TokenKind.VOID*/;
+        if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 100) return 114/*TokenKind.VOID*/;
       }
       return 70/*TokenKind.IDENTIFIER*/;
 
     case 5:
 
-      if (this._text.charCodeAt(i0) == 98) {
-        if (this._text.charCodeAt(i0 + 1) == 114 && this._text.charCodeAt(i0 + 2) == 101 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 107) return 88/*TokenKind.BREAK*/;
+      if (this._text.charCodeAt(i0) == 97) {
+        if (this._text.charCodeAt(i0 + 1) == 119 && this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 105 && this._text.charCodeAt(i0 + 4) == 116) return 88/*TokenKind.AWAIT*/;
+      }
+      else if (this._text.charCodeAt(i0) == 98) {
+        if (this._text.charCodeAt(i0 + 1) == 114 && this._text.charCodeAt(i0 + 2) == 101 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 107) return 89/*TokenKind.BREAK*/;
       }
       else if (this._text.charCodeAt(i0) == 99) {
         if (this._text.charCodeAt(i0 + 1) == 97) {
-          if (this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 99 && this._text.charCodeAt(i0 + 4) == 104) return 90/*TokenKind.CATCH*/;
+          if (this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 99 && this._text.charCodeAt(i0 + 4) == 104) return 91/*TokenKind.CATCH*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 108) {
           if (this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 115) return 73/*TokenKind.CLASS*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 111) {
-          if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 116) return 91/*TokenKind.CONST*/;
+          if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 116) return 92/*TokenKind.CONST*/;
         }
       }
       else if (this._text.charCodeAt(i0) == 102) {
         if (this._text.charCodeAt(i0 + 1) == 97) {
-          if (this._text.charCodeAt(i0 + 2) == 108 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 101) return 96/*TokenKind.FALSE*/;
+          if (this._text.charCodeAt(i0 + 2) == 108 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 101) return 97/*TokenKind.FALSE*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 105) {
-          if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 108) return 97/*TokenKind.FINAL*/;
+          if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 108) return 98/*TokenKind.FINAL*/;
         }
       }
       else if (this._text.charCodeAt(i0) == 115) {
-        if (this._text.charCodeAt(i0 + 1) == 117 && this._text.charCodeAt(i0 + 2) == 112 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 114) return 106/*TokenKind.SUPER*/;
+        if (this._text.charCodeAt(i0 + 1) == 117 && this._text.charCodeAt(i0 + 2) == 112 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 114) return 107/*TokenKind.SUPER*/;
       }
       else if (this._text.charCodeAt(i0) == 116) {
-        if (this._text.charCodeAt(i0 + 1) == 104 && this._text.charCodeAt(i0 + 2) == 114 && this._text.charCodeAt(i0 + 3) == 111 && this._text.charCodeAt(i0 + 4) == 119) return 109/*TokenKind.THROW*/;
+        if (this._text.charCodeAt(i0 + 1) == 104 && this._text.charCodeAt(i0 + 2) == 114 && this._text.charCodeAt(i0 + 3) == 111 && this._text.charCodeAt(i0 + 4) == 119) return 110/*TokenKind.THROW*/;
       }
       else if (this._text.charCodeAt(i0) == 119) {
-        if (this._text.charCodeAt(i0 + 1) == 104 && this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 108 && this._text.charCodeAt(i0 + 4) == 101) return 114/*TokenKind.WHILE*/;
+        if (this._text.charCodeAt(i0 + 1) == 104 && this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 108 && this._text.charCodeAt(i0 + 4) == 101) return 115/*TokenKind.WHILE*/;
       }
       return 70/*TokenKind.IDENTIFIER*/;
 
@@ -18441,7 +18447,7 @@ Tokenizer.prototype.getIdentifierKind = function() {
         }
       }
       else if (this._text.charCodeAt(i0) == 114) {
-        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 117 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 110) return 105/*TokenKind.RETURN*/;
+        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 117 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 110) return 106/*TokenKind.RETURN*/;
       }
       else if (this._text.charCodeAt(i0) == 115) {
         if (this._text.charCodeAt(i0 + 1) == 111) {
@@ -18451,7 +18457,7 @@ Tokenizer.prototype.getIdentifierKind = function() {
           if (this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 105 && this._text.charCodeAt(i0 + 5) == 99) return 86/*TokenKind.STATIC*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 119) {
-          if (this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 99 && this._text.charCodeAt(i0 + 5) == 104) return 107/*TokenKind.SWITCH*/;
+          if (this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 99 && this._text.charCodeAt(i0 + 5) == 104) return 108/*TokenKind.SWITCH*/;
         }
       }
       return 70/*TokenKind.IDENTIFIER*/;
@@ -18459,7 +18465,7 @@ Tokenizer.prototype.getIdentifierKind = function() {
     case 7:
 
       if (this._text.charCodeAt(i0) == 100) {
-        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 102 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 117 && this._text.charCodeAt(i0 + 5) == 108 && this._text.charCodeAt(i0 + 6) == 116) return 93/*TokenKind.DEFAULT*/;
+        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 102 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 117 && this._text.charCodeAt(i0 + 5) == 108 && this._text.charCodeAt(i0 + 6) == 116) return 94/*TokenKind.DEFAULT*/;
       }
       else if (this._text.charCodeAt(i0) == 101) {
         if (this._text.charCodeAt(i0 + 1) == 120 && this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 110 && this._text.charCodeAt(i0 + 5) == 100 && this._text.charCodeAt(i0 + 6) == 115) return 74/*TokenKind.EXTENDS*/;
@@ -18469,7 +18475,7 @@ Tokenizer.prototype.getIdentifierKind = function() {
           if (this._text.charCodeAt(i0 + 2) == 99 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 111 && this._text.charCodeAt(i0 + 5) == 114 && this._text.charCodeAt(i0 + 6) == 121) return 75/*TokenKind.FACTORY*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 105) {
-          if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 108 && this._text.charCodeAt(i0 + 5) == 108 && this._text.charCodeAt(i0 + 6) == 121) return 98/*TokenKind.FINALLY*/;
+          if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 108 && this._text.charCodeAt(i0 + 5) == 108 && this._text.charCodeAt(i0 + 6) == 121) return 99/*TokenKind.FINALLY*/;
         }
       }
       else if (this._text.charCodeAt(i0) == 108) {
@@ -18486,7 +18492,7 @@ Tokenizer.prototype.getIdentifierKind = function() {
         if (this._text.charCodeAt(i0 + 1) == 98 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 97 && this._text.charCodeAt(i0 + 6) == 99 && this._text.charCodeAt(i0 + 7) == 116) return 71/*TokenKind.ABSTRACT*/;
       }
       else if (this._text.charCodeAt(i0) == 99) {
-        if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 105 && this._text.charCodeAt(i0 + 5) == 110 && this._text.charCodeAt(i0 + 6) == 117 && this._text.charCodeAt(i0 + 7) == 101) return 92/*TokenKind.CONTINUE*/;
+        if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 105 && this._text.charCodeAt(i0 + 5) == 110 && this._text.charCodeAt(i0 + 6) == 117 && this._text.charCodeAt(i0 + 7) == 101) return 93/*TokenKind.CONTINUE*/;
       }
       else if (this._text.charCodeAt(i0) == 111) {
         if (this._text.charCodeAt(i0 + 1) == 112 && this._text.charCodeAt(i0 + 2) == 101 && this._text.charCodeAt(i0 + 3) == 114 && this._text.charCodeAt(i0 + 4) == 97 && this._text.charCodeAt(i0 + 5) == 116 && this._text.charCodeAt(i0 + 6) == 111 && this._text.charCodeAt(i0 + 7) == 114) return 83/*TokenKind.OPERATOR*/;
@@ -18881,111 +18887,115 @@ TokenKind.kindToString = function(kind) {
 
       return "pseudo-keyword 'typedef'";
 
-    case 88/*TokenKind.BREAK*/:
+    case 88/*TokenKind.AWAIT*/:
+
+      return "keyword 'await'";
+
+    case 89/*TokenKind.BREAK*/:
 
       return "keyword 'break'";
 
-    case 89/*TokenKind.CASE*/:
+    case 90/*TokenKind.CASE*/:
 
       return "keyword 'case'";
 
-    case 90/*TokenKind.CATCH*/:
+    case 91/*TokenKind.CATCH*/:
 
       return "keyword 'catch'";
 
-    case 91/*TokenKind.CONST*/:
+    case 92/*TokenKind.CONST*/:
 
       return "keyword 'const'";
 
-    case 92/*TokenKind.CONTINUE*/:
+    case 93/*TokenKind.CONTINUE*/:
 
       return "keyword 'continue'";
 
-    case 93/*TokenKind.DEFAULT*/:
+    case 94/*TokenKind.DEFAULT*/:
 
       return "keyword 'default'";
 
-    case 94/*TokenKind.DO*/:
+    case 95/*TokenKind.DO*/:
 
       return "keyword 'do'";
 
-    case 95/*TokenKind.ELSE*/:
+    case 96/*TokenKind.ELSE*/:
 
       return "keyword 'else'";
 
-    case 96/*TokenKind.FALSE*/:
+    case 97/*TokenKind.FALSE*/:
 
       return "keyword 'false'";
 
-    case 97/*TokenKind.FINAL*/:
+    case 98/*TokenKind.FINAL*/:
 
       return "keyword 'final'";
 
-    case 98/*TokenKind.FINALLY*/:
+    case 99/*TokenKind.FINALLY*/:
 
       return "keyword 'finally'";
 
-    case 99/*TokenKind.FOR*/:
+    case 100/*TokenKind.FOR*/:
 
       return "keyword 'for'";
 
-    case 100/*TokenKind.IF*/:
+    case 101/*TokenKind.IF*/:
 
       return "keyword 'if'";
 
-    case 101/*TokenKind.IN*/:
+    case 102/*TokenKind.IN*/:
 
       return "keyword 'in'";
 
-    case 102/*TokenKind.IS*/:
+    case 103/*TokenKind.IS*/:
 
       return "keyword 'is'";
 
-    case 103/*TokenKind.NEW*/:
+    case 104/*TokenKind.NEW*/:
 
       return "keyword 'new'";
 
-    case 104/*TokenKind.NULL*/:
+    case 105/*TokenKind.NULL*/:
 
       return "keyword 'null'";
 
-    case 105/*TokenKind.RETURN*/:
+    case 106/*TokenKind.RETURN*/:
 
       return "keyword 'return'";
 
-    case 106/*TokenKind.SUPER*/:
+    case 107/*TokenKind.SUPER*/:
 
       return "keyword 'super'";
 
-    case 107/*TokenKind.SWITCH*/:
+    case 108/*TokenKind.SWITCH*/:
 
       return "keyword 'switch'";
 
-    case 108/*TokenKind.THIS*/:
+    case 109/*TokenKind.THIS*/:
 
       return "keyword 'this'";
 
-    case 109/*TokenKind.THROW*/:
+    case 110/*TokenKind.THROW*/:
 
       return "keyword 'throw'";
 
-    case 110/*TokenKind.TRUE*/:
+    case 111/*TokenKind.TRUE*/:
 
       return "keyword 'true'";
 
-    case 111/*TokenKind.TRY*/:
+    case 112/*TokenKind.TRY*/:
 
       return "keyword 'try'";
 
-    case 112/*TokenKind.VAR*/:
+    case 113/*TokenKind.VAR*/:
 
       return "keyword 'var'";
 
-    case 113/*TokenKind.VOID*/:
+    case 114/*TokenKind.VOID*/:
 
       return "keyword 'void'";
 
-    case 114/*TokenKind.WHILE*/:
+    case 115/*TokenKind.WHILE*/:
 
       return "keyword 'while'";
 
@@ -18996,7 +19006,7 @@ TokenKind.kindToString = function(kind) {
   }
 }
 TokenKind.isIdentifier = function(kind) {
-  return kind >= 70/*TokenKind.IDENTIFIER*/ && kind < 88/*TokenKind.BREAK*/;
+  return kind >= 70/*TokenKind.IDENTIFIER*/ && kind < 88/*TokenKind.AWAIT*/;
 }
 TokenKind.infixPrecedence = function(kind) {
   switch (kind) {
@@ -19144,7 +19154,7 @@ TokenKind.infixPrecedence = function(kind) {
 
       return 10;
 
-    case 102/*TokenKind.IS*/:
+    case 103/*TokenKind.IS*/:
 
       return 10;
 
@@ -19349,6 +19359,9 @@ function lang_Parser(source, diet, throwOnIncomplete, optionalSemicolons, startO
   this._afterParens = [];
 }
 lang_Parser.prototype.get$source = function() { return this.source; };
+lang_Parser.prototype.get$enableAwait = function() {
+  return $globals.experimentalAwaitPhase != null;
+}
 lang_Parser.prototype.isPrematureEndOfFile = function() {
   if ($notnull_bool(this.throwOnIncomplete) && $notnull_bool(this._maybeEat(1/*TokenKind.END_OF_FILE*/)) || $notnull_bool(this._maybeEat(68/*TokenKind.INCOMPLETE_MULTILINE_STRING_DQ*/)) || $notnull_bool(this._maybeEat(69/*TokenKind.INCOMPLETE_MULTILINE_STRING_SQ*/))) {
     $throw(new IncompleteSourceException(this._previousToken));
@@ -19374,7 +19387,10 @@ lang_Parser.prototype._peekKind = function(kind) {
   return this._peekToken.kind == kind;
 }
 lang_Parser.prototype._peekIdentifier = function() {
-  return TokenKind.isIdentifier(this._peekToken.kind);
+  return this._isIdentifier(this._peekToken.kind);
+}
+lang_Parser.prototype._isIdentifier = function(kind) {
+  return $notnull_bool(TokenKind.isIdentifier($assert_num(kind))) || (!$notnull_bool(this.get$enableAwait()) && $notnull_bool($eq(kind, 88/*TokenKind.AWAIT*/)));
 }
 lang_Parser.prototype._maybeEat = function(kind) {
   var $0;
@@ -19660,19 +19676,19 @@ lang_Parser.prototype.factoryConstructorDeclaration = function() {
 lang_Parser.prototype.statement = function() {
   var $0;
   switch (this._peek()) {
-    case 88/*TokenKind.BREAK*/:
+    case 89/*TokenKind.BREAK*/:
 
       return (($0 = this.breakStatement()) == null ? null : $0.assert$lang_Statement());
 
-    case 92/*TokenKind.CONTINUE*/:
+    case 93/*TokenKind.CONTINUE*/:
 
       return (($0 = this.continueStatement()) == null ? null : $0.assert$lang_Statement());
 
-    case 105/*TokenKind.RETURN*/:
+    case 106/*TokenKind.RETURN*/:
 
       return (($0 = this.returnStatement()) == null ? null : $0.assert$lang_Statement());
 
-    case 109/*TokenKind.THROW*/:
+    case 110/*TokenKind.THROW*/:
 
       return (($0 = this.throwStatement()) == null ? null : $0.assert$lang_Statement());
 
@@ -19680,27 +19696,27 @@ lang_Parser.prototype.statement = function() {
 
       return (($0 = this.assertStatement()) == null ? null : $0.assert$lang_Statement());
 
-    case 114/*TokenKind.WHILE*/:
+    case 115/*TokenKind.WHILE*/:
 
       return this.whileStatement();
 
-    case 94/*TokenKind.DO*/:
+    case 95/*TokenKind.DO*/:
 
       return this.doStatement();
 
-    case 99/*TokenKind.FOR*/:
+    case 100/*TokenKind.FOR*/:
 
       return (($0 = this.forStatement()) == null ? null : $0.assert$lang_Statement());
 
-    case 100/*TokenKind.IF*/:
+    case 101/*TokenKind.IF*/:
 
       return this.ifStatement();
 
-    case 107/*TokenKind.SWITCH*/:
+    case 108/*TokenKind.SWITCH*/:
 
       return (($0 = this.switchStatement()) == null ? null : $0.assert$lang_Statement());
 
-    case 111/*TokenKind.TRY*/:
+    case 112/*TokenKind.TRY*/:
 
       return (($0 = this.tryStatement()) == null ? null : $0.assert$lang_Statement());
 
@@ -19712,11 +19728,11 @@ lang_Parser.prototype.statement = function() {
 
       return this.emptyStatement();
 
-    case 97/*TokenKind.FINAL*/:
+    case 98/*TokenKind.FINAL*/:
 
       return (($0 = this.declaration(false)) == null ? null : $0.assert$lang_Statement());
 
-    case 112/*TokenKind.VAR*/:
+    case 113/*TokenKind.VAR*/:
 
       return (($0 = this.declaration(false)) == null ? null : $0.assert$lang_Statement());
 
@@ -19790,34 +19806,34 @@ lang_Parser.prototype.emptyStatement = function() {
 }
 lang_Parser.prototype.ifStatement = function() {
   var start = this._peekToken.start;
-  this._eat(100/*TokenKind.IF*/);
+  this._eat(101/*TokenKind.IF*/);
   var test = this.testCondition();
   var trueBranch = this.statement();
   var falseBranch = null;
-  if ($notnull_bool(this._maybeEat(95/*TokenKind.ELSE*/))) {
+  if ($notnull_bool(this._maybeEat(96/*TokenKind.ELSE*/))) {
     falseBranch = this.statement();
   }
   return new IfStatement(test, trueBranch, falseBranch, this._makeSpan(start));
 }
 lang_Parser.prototype.whileStatement = function() {
   var start = this._peekToken.start;
-  this._eat(114/*TokenKind.WHILE*/);
+  this._eat(115/*TokenKind.WHILE*/);
   var test = this.testCondition();
   var body = this.statement();
   return new WhileStatement(test, body, this._makeSpan(start));
 }
 lang_Parser.prototype.doStatement = function() {
   var start = this._peekToken.start;
-  this._eat(94/*TokenKind.DO*/);
+  this._eat(95/*TokenKind.DO*/);
   var body = this.statement();
-  this._eat(114/*TokenKind.WHILE*/);
+  this._eat(115/*TokenKind.WHILE*/);
   var test = this.testCondition();
   this._eatSemicolon();
   return new DoStatement(body, test, this._makeSpan(start));
 }
 lang_Parser.prototype.forStatement = function() {
   var start = this._peekToken.start;
-  this._eat(99/*TokenKind.FOR*/);
+  this._eat(100/*TokenKind.FOR*/);
   this._eatLeftParen();
   var init = this.forInitializerStatement(start);
   if ((init instanceof ForInStatement)) {
@@ -19854,7 +19870,7 @@ lang_Parser.prototype.forInitializerStatement = function(start) {
       var name = this.identifier();
       init = new DeclaredIdentifier(gt, name, this._makeSpan($assert_num(init.get$span().get$start())));
     }
-    if ($notnull_bool(this._maybeEat(101/*TokenKind.IN*/))) {
+    if ($notnull_bool(this._maybeEat(102/*TokenKind.IN*/))) {
       return this._finishForIn(start, (($0 = this._makeDeclaredIdentifier(init)) == null ? null : $0.assert$DeclaredIdentifier()));
     }
     else {
@@ -19870,21 +19886,21 @@ lang_Parser.prototype._finishForIn = function(start, di) {
 }
 lang_Parser.prototype.tryStatement = function() {
   var start = this._peekToken.start;
-  this._eat(111/*TokenKind.TRY*/);
+  this._eat(112/*TokenKind.TRY*/);
   var body = this.block();
   var catches = [];
-  while ($notnull_bool(this._peekKind(90/*TokenKind.CATCH*/))) {
+  while ($notnull_bool(this._peekKind(91/*TokenKind.CATCH*/))) {
     catches.add$1(this.catchNode());
   }
   var finallyBlock = null;
-  if ($notnull_bool(this._maybeEat(98/*TokenKind.FINALLY*/))) {
+  if ($notnull_bool(this._maybeEat(99/*TokenKind.FINALLY*/))) {
     finallyBlock = this.block();
   }
   return new TryStatement(body, catches, finallyBlock, this._makeSpan(start));
 }
 lang_Parser.prototype.catchNode = function() {
   var start = this._peekToken.start;
-  this._eat(90/*TokenKind.CATCH*/);
+  this._eat(91/*TokenKind.CATCH*/);
   this._eatLeftParen();
   var exc = this.declaredIdentifier(false);
   var trace = null;
@@ -19897,7 +19913,7 @@ lang_Parser.prototype.catchNode = function() {
 }
 lang_Parser.prototype.switchStatement = function() {
   var start = this._peekToken.start;
-  this._eat(107/*TokenKind.SWITCH*/);
+  this._eat(108/*TokenKind.SWITCH*/);
   var test = this.testCondition();
   var cases = [];
   this._eat(6/*TokenKind.LBRACE*/);
@@ -19908,7 +19924,7 @@ lang_Parser.prototype.switchStatement = function() {
 }
 lang_Parser.prototype._peekCaseEnd = function() {
   var kind = this._peek();
-  return $notnull_bool($eq(kind, 7/*TokenKind.RBRACE*/)) || $notnull_bool($eq(kind, 89/*TokenKind.CASE*/)) || $notnull_bool($eq(kind, 93/*TokenKind.DEFAULT*/));
+  return $notnull_bool($eq(kind, 7/*TokenKind.RBRACE*/)) || $notnull_bool($eq(kind, 90/*TokenKind.CASE*/)) || $notnull_bool($eq(kind, 94/*TokenKind.DEFAULT*/));
 }
 lang_Parser.prototype.caseNode = function() {
   var start = this._peekToken.start;
@@ -19919,11 +19935,11 @@ lang_Parser.prototype.caseNode = function() {
   }
   var cases = [];
   while (true) {
-    if ($notnull_bool(this._maybeEat(89/*TokenKind.CASE*/))) {
+    if ($notnull_bool(this._maybeEat(90/*TokenKind.CASE*/))) {
       cases.add$1(this.expression());
       this._eat(8/*TokenKind.COLON*/);
     }
-    else if ($notnull_bool(this._maybeEat(93/*TokenKind.DEFAULT*/))) {
+    else if ($notnull_bool(this._maybeEat(94/*TokenKind.DEFAULT*/))) {
       cases.add$1();
       this._eat(8/*TokenKind.COLON*/);
     }
@@ -19943,7 +19959,7 @@ lang_Parser.prototype.caseNode = function() {
 }
 lang_Parser.prototype.returnStatement = function() {
   var start = this._peekToken.start;
-  this._eat(105/*TokenKind.RETURN*/);
+  this._eat(106/*TokenKind.RETURN*/);
   var expr;
   if ($notnull_bool(this._maybeEat(10/*TokenKind.SEMICOLON*/))) {
     expr = null;
@@ -19956,7 +19972,7 @@ lang_Parser.prototype.returnStatement = function() {
 }
 lang_Parser.prototype.throwStatement = function() {
   var start = this._peekToken.start;
-  this._eat(109/*TokenKind.THROW*/);
+  this._eat(110/*TokenKind.THROW*/);
   var expr;
   if ($notnull_bool(this._maybeEat(10/*TokenKind.SEMICOLON*/))) {
     expr = null;
@@ -19978,7 +19994,7 @@ lang_Parser.prototype.assertStatement = function() {
 }
 lang_Parser.prototype.breakStatement = function() {
   var start = this._peekToken.start;
-  this._eat(88/*TokenKind.BREAK*/);
+  this._eat(89/*TokenKind.BREAK*/);
   var name = null;
   if ($notnull_bool(this._peekIdentifier())) {
     name = this.identifier();
@@ -19988,7 +20004,7 @@ lang_Parser.prototype.breakStatement = function() {
 }
 lang_Parser.prototype.continueStatement = function() {
   var start = this._peekToken.start;
-  this._eat(92/*TokenKind.CONTINUE*/);
+  this._eat(93/*TokenKind.CONTINUE*/);
   var name = null;
   if ($notnull_bool(this._peekIdentifier())) {
     name = this.identifier();
@@ -20029,7 +20045,7 @@ lang_Parser.prototype._finishDeclaredId = function(type) {
   return this.finishPostfixExpression(new DeclaredIdentifier(type, name, this._makeSpan($assert_num(type.get$span().get$start()))));
 }
 lang_Parser.prototype._fixAsType = function(x) {
-  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 799, 12);
+  $assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 810, 12);
   if ($notnull_bool(this._maybeEat(53/*TokenKind.GT*/))) {
     var base = this._makeType(x.x);
     var typeParam = this._makeType(x.y);
@@ -20037,7 +20053,7 @@ lang_Parser.prototype._fixAsType = function(x) {
     return this._finishDeclaredId(type);
   }
   else {
-    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 810, 14);
+    $assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 821, 14);
     var base = this._makeType(x.x);
     var paramBase = this._makeType(x.y);
     var firstParam = this.addTypeArguments((paramBase == null ? null : paramBase.assert$TypeReference()), 1);
@@ -20066,7 +20082,7 @@ lang_Parser.prototype.finishInfixExpression = function(x, precedence) {
         }
       }
       var op = this._lang_next();
-      if ($notnull_bool($eq(op.get$kind(), 102/*TokenKind.IS*/))) {
+      if ($notnull_bool($eq(op.get$kind(), 103/*TokenKind.IS*/))) {
         var isTrue = !$notnull_bool(this._maybeEat(19/*TokenKind.NOT*/));
         var typeRef = this.type(0);
         x = new IsExpression(isTrue, x, typeRef, this._makeSpan(x.span.start));
@@ -20111,6 +20127,10 @@ lang_Parser.prototype.unaryExpression = function() {
     var tok = this._lang_next();
     var expr = this.unaryExpression();
     return new UnaryExpression(tok, expr, this._makeSpan(start));
+  }
+  else if ($notnull_bool(this.get$enableAwait()) && $notnull_bool(this._maybeEat(88/*TokenKind.AWAIT*/))) {
+    var expr = this.unaryExpression();
+    return new AwaitExpression(expr, this._makeSpan(start));
   }
   return this.finishPostfixExpression(this.primary());
 }
@@ -20218,19 +20238,19 @@ lang_Parser.prototype._stringTypeRef = function(span) {
 lang_Parser.prototype.primary = function() {
   var start = this._peekToken.start;
   switch (this._peek()) {
-    case 108/*TokenKind.THIS*/:
+    case 109/*TokenKind.THIS*/:
 
-      this._eat(108/*TokenKind.THIS*/);
+      this._eat(109/*TokenKind.THIS*/);
       return new ThisExpression(this._makeSpan(start));
 
-    case 106/*TokenKind.SUPER*/:
+    case 107/*TokenKind.SUPER*/:
 
-      this._eat(106/*TokenKind.SUPER*/);
+      this._eat(107/*TokenKind.SUPER*/);
       return new SuperExpression(this._makeSpan(start));
 
-    case 91/*TokenKind.CONST*/:
+    case 92/*TokenKind.CONST*/:
 
-      this._eat(91/*TokenKind.CONST*/);
+      this._eat(92/*TokenKind.CONST*/);
       if ($notnull_bool(this._peekKind(4/*TokenKind.LBRACK*/)) || $notnull_bool(this._peekKind(56/*TokenKind.INDEX*/))) {
         return this.finishListLiteral(start, true, null);
       }
@@ -20244,9 +20264,9 @@ lang_Parser.prototype.primary = function() {
         return this.finishNewExpression(start, true);
       }
 
-    case 103/*TokenKind.NEW*/:
+    case 104/*TokenKind.NEW*/:
 
-      this._eat(103/*TokenKind.NEW*/);
+      this._eat(104/*TokenKind.NEW*/);
       return this.finishNewExpression(start, false);
 
     case 2/*TokenKind.LPAREN*/:
@@ -20262,19 +20282,19 @@ lang_Parser.prototype.primary = function() {
 
       return this.finishMapLiteral(start, false, null);
 
-    case 104/*TokenKind.NULL*/:
+    case 105/*TokenKind.NULL*/:
 
-      this._eat(104/*TokenKind.NULL*/);
+      this._eat(105/*TokenKind.NULL*/);
       return new NullExpression(this._makeSpan(start));
 
-    case 110/*TokenKind.TRUE*/:
+    case 111/*TokenKind.TRUE*/:
 
-      this._eat(110/*TokenKind.TRUE*/);
+      this._eat(111/*TokenKind.TRUE*/);
       return new LiteralExpression(true, this._boolTypeRef(this._makeSpan(start)), 'true', this._makeSpan(start));
 
-    case 96/*TokenKind.FALSE*/:
+    case 97/*TokenKind.FALSE*/:
 
-      this._eat(96/*TokenKind.FALSE*/);
+      this._eat(97/*TokenKind.FALSE*/);
       return new LiteralExpression(false, this._boolTypeRef(this._makeSpan(start)), 'false', this._makeSpan(start));
 
     case 61/*TokenKind.HEX_INTEGER*/:
@@ -20304,9 +20324,9 @@ lang_Parser.prototype.primary = function() {
 
       return this.finishTypedLiteral(start, false);
 
-    case 113/*TokenKind.VOID*/:
-    case 112/*TokenKind.VAR*/:
-    case 97/*TokenKind.FINAL*/:
+    case 114/*TokenKind.VOID*/:
+    case 113/*TokenKind.VAR*/:
+    case 98/*TokenKind.FINAL*/:
 
       return this.declaredIdentifier(false);
 
@@ -20345,7 +20365,7 @@ lang_Parser.prototype.stringInterpolation = function() {
       lits.add$1(this.expression());
       this._eat(7/*TokenKind.RBRACE*/);
     }
-    else if ($notnull_bool(this._maybeEat(108/*TokenKind.THIS*/))) {
+    else if ($notnull_bool(this._maybeEat(109/*TokenKind.THIS*/))) {
       lits.add$1(new ThisExpression(this._previousToken.get$span()));
     }
     else {
@@ -20462,9 +20482,9 @@ lang_Parser.prototype._specialIdentifier = function(includeOperators) {
       name = $assert_String(this.identifier().get$name());
       break;
 
-    case 108/*TokenKind.THIS*/:
+    case 109/*TokenKind.THIS*/:
 
-      this._eat(108/*TokenKind.THIS*/);
+      this._eat(109/*TokenKind.THIS*/);
       this._eat(14/*TokenKind.DOT*/);
       name = ('this.' + this.identifier().get$name());
       break;
@@ -20560,7 +20580,7 @@ lang_Parser.parseHex = function(hex) {
   for (var i = 0;
    i < hex.length; i++) {
     var digit = lang_Parser._hexDigit(hex.charCodeAt(i));
-    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1339, 14);
+    $assert($ne(digit, -1), "digit != -1", "parser.dart", 1353, 14);
     result = (result * 16) + $assert_num(digit);
   }
   return $assert_num(result);
@@ -20624,8 +20644,8 @@ lang_Parser.prototype._readModifiers = function() {
   while (true) {
     switch (this._peek()) {
       case 86/*TokenKind.STATIC*/:
-      case 97/*TokenKind.FINAL*/:
-      case 91/*TokenKind.CONST*/:
+      case 98/*TokenKind.FINAL*/:
+      case 92/*TokenKind.CONST*/:
       case 71/*TokenKind.ABSTRACT*/:
       case 75/*TokenKind.FACTORY*/:
 
@@ -20729,17 +20749,17 @@ lang_Parser.prototype.type = function(depth) {
   var typeArgs = null;
   var isFinal = false;
   switch (this._peek()) {
-    case 113/*TokenKind.VOID*/:
+    case 114/*TokenKind.VOID*/:
 
       return new TypeReference(this._lang_next().get$span(), $globals.world.voidType);
 
-    case 112/*TokenKind.VAR*/:
+    case 113/*TokenKind.VAR*/:
 
       return new TypeReference(this._lang_next().get$span(), $globals.world.varType);
 
-    case 97/*TokenKind.FINAL*/:
+    case 98/*TokenKind.FINAL*/:
 
-      this._eat(97/*TokenKind.FINAL*/);
+      this._eat(98/*TokenKind.FINAL*/);
       isFinal = true;
       name = this.identifier();
       break;
@@ -20818,7 +20838,7 @@ lang_Parser.prototype.formalParameterList = function() {
 lang_Parser.prototype.identifier = function() {
   var $0;
   var tok = this._lang_next();
-  if (!$notnull_bool(TokenKind.isIdentifier($assert_num(tok.get$kind())))) {
+  if (!$notnull_bool(this._isIdentifier(tok.get$kind()))) {
     this._lang_error(('expected identifier, but found ' + tok), (($0 = tok.get$span()) == null ? null : $0.assert$SourceSpan()));
   }
   return new lang_Identifier(tok.get$text(), this._makeSpan($assert_num(tok.get$start())));
@@ -21554,6 +21574,21 @@ ParenExpression.prototype.visit = function(visitor) {
   return visitor.visitParenExpression(this);
 }
 ParenExpression.prototype.visit$1 = function($0) {
+  return this.visit(($0 == null ? null : $0.assert$TreeVisitor()));
+};
+// ********** Code for AwaitExpression **************
+function AwaitExpression(body, span) {
+  this.body = body;
+  // Initializers done
+  lang_Expression.call(this, span);
+}
+$inherits(AwaitExpression, lang_Expression);
+AwaitExpression.prototype.get$body = function() { return this.body; };
+AwaitExpression.prototype.set$body = function(value) { return this.body = value; };
+AwaitExpression.prototype.visit = function(visitor) {
+  return visitor.visitAwaitExpression(this);
+}
+AwaitExpression.prototype.visit$1 = function($0) {
   return this.visit(($0 == null ? null : $0.assert$TreeVisitor()));
 };
 // ********** Code for DotExpression **************
@@ -23784,7 +23819,7 @@ World.prototype.init = function() {
   this.nonNullBool = new NonNullableType(this.boolType);
 }
 World.prototype._addMember = function(member) {
-  $assert(!$notnull_bool(member.get$isPrivate()), "!member.isPrivate", "world.dart", 145, 12);
+  $assert(!$notnull_bool(member.get$isPrivate()), "!member.isPrivate", "world.dart", 151, 12);
   if ($notnull_bool(member.get$isStatic())) {
     if ($notnull_bool(member.declaringType.get$isTop())) {
       this._addTopName(member);
@@ -23891,42 +23926,19 @@ World.prototype.runLeg = function() {
 }
 World.prototype.runCompilationPhases = function() {
   var $this = this; // closure support
-  var lib = this.withTiming('first pass', (function () {
-    return $this.processScript($globals.options.dartScript);
-  })
-  );
-  this.withTiming('resolve top level', (function () {
-    $this.resolveAll();
-  })
-  );
+  var lib = this.withTiming('first pass', this.get$processDartScript());
+  this.withTiming('resolve top level', this.get$resolveAll());
+  if ($globals.experimentalAwaitPhase != null) {
+    this.withTiming('await translation', to$call$0($globals.experimentalAwaitPhase));
+  }
   this.withTiming('generate code', (function () {
-    var $0;
-    var mainMembers = lib.get$topType().resolveMember$1('main');
-    var main = null;
-    if ($notnull_bool(mainMembers == null) || $notnull_bool($eq(mainMembers.get$members().length, 0))) {
-      $this.fatal('no main method specified');
-    }
-    else if (mainMembers.get$members().length > 1) {
-      var $list = mainMembers.get$members();
-      for (var $i = mainMembers.get$members().iterator$0(); $i.hasNext$0(); ) {
-        var m = $i.next$0();
-        main = m;
-        $this.error('more than one main member (using last?)', (($0 = main.get$span()) == null ? null : $0.assert$SourceSpan()));
-      }
-    }
-    else {
-      main = mainMembers.get$members().$index(0);
-    }
-    var codeWriter = new CodeWriter();
-    $this.gen = new WorldGenerator(main, codeWriter);
-    $this.gen.run();
-    $this.jsBytesWritten = $assert_num(codeWriter.get$text().length);
+    $this.generateCode((lib == null ? null : lib.assert$Library()));
   })
   );
 }
 World.prototype.getGeneratedCode = function() {
   if (this.legCode != null) {
-    $assert($globals.options.enableLeg, "options.enableLeg", "world.dart", 310, 14);
+    $assert($globals.options.enableLeg, "options.enableLeg", "world.dart", 298, 14);
     return this.legCode;
   }
   else {
@@ -23971,10 +23983,13 @@ World.prototype.process = function() {
     }
   }
 }
-World.prototype.processScript = function(filename) {
-  var library = this.getOrAddLibrary(filename);
+World.prototype.processDartScript = function() {
+  var library = this.getOrAddLibrary($globals.options.dartScript);
   this.process();
   return library;
+}
+World.prototype.get$processDartScript = function() {
+  return World.prototype.processDartScript.bind(this);
 }
 World.prototype.resolveAll = function() {
   var $list = this.libraries.getValues();
@@ -23982,6 +23997,32 @@ World.prototype.resolveAll = function() {
     var lib = $i.next$0();
     lib.resolve$0();
   }
+}
+World.prototype.get$resolveAll = function() {
+  return World.prototype.resolveAll.bind(this);
+}
+World.prototype.generateCode = function(lib) {
+  var $0;
+  var mainMembers = lib.topType.resolveMember('main');
+  var main = null;
+  if ($notnull_bool(mainMembers == null) || $notnull_bool($eq(mainMembers.get$members().length, 0))) {
+    this.fatal('no main method specified');
+  }
+  else if (mainMembers.get$members().length > 1) {
+    var $list = mainMembers.get$members();
+    for (var $i = mainMembers.get$members().iterator$0(); $i.hasNext$0(); ) {
+      var m = $i.next$0();
+      main = m;
+      this.error('more than one main member (using last?)', (($0 = main.get$span()) == null ? null : $0.assert$SourceSpan()));
+    }
+  }
+  else {
+    main = mainMembers.get$members().$index(0);
+  }
+  var codeWriter = new CodeWriter();
+  this.gen = new WorldGenerator(main, codeWriter);
+  this.gen.run();
+  this.jsBytesWritten = $assert_num(codeWriter.get$text().length);
 }
 World.prototype._message = function(message, span, span1, span2, throwing) {
   var text = message;
@@ -24470,8 +24511,9 @@ function stripLeadingNewline(text) {
   }
 }
 var world;
+var experimentalAwaitPhase;
 function initializeWorld(files) {
-  $assert($globals.world == null, "world == null", "world.dart", 13, 10);
+  $assert($globals.world == null, "world == null", "world.dart", 19, 10);
   $globals.world = new World(files);
   $globals.world.init();
 }

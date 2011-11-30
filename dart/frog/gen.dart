@@ -2006,6 +2006,12 @@ class MethodGenerator implements TreeVisitor {
     }
   }
 
+  visitAwaitExpression(AwaitExpression node) {
+    world.internalError(
+        'Await expressions should have been eliminated before code generation',
+        node.span);
+  }
+
   visitPostfixExpression(PostfixExpression node, [bool isVoid = false]) {
     var value = visitValue(node.body);
     if (value.type.isNum) {

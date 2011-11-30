@@ -285,7 +285,9 @@ class Tokenizer extends TokenizerBase {
         }
         return TokenKind.IDENTIFIER;
       case 5:
-        if (_text.charCodeAt(i0) == 98/*b*/) {
+        if (_text.charCodeAt(i0) == 97/*a*/) {
+          if (_text.charCodeAt(i0+1) == 119/*w*/ && _text.charCodeAt(i0+2) == 97/*a*/ && _text.charCodeAt(i0+3) == 105/*i*/ && _text.charCodeAt(i0+4) == 116/*t*/) return TokenKind.AWAIT;
+        } else if (_text.charCodeAt(i0) == 98/*b*/) {
           if (_text.charCodeAt(i0+1) == 114/*r*/ && _text.charCodeAt(i0+2) == 101/*e*/ && _text.charCodeAt(i0+3) == 97/*a*/ && _text.charCodeAt(i0+4) == 107/*k*/) return TokenKind.BREAK;
         } else if (_text.charCodeAt(i0) == 99/*c*/) {
           if (_text.charCodeAt(i0+1) == 97/*a*/) {

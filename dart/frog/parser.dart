@@ -28,6 +28,12 @@ class Parser {
   // TODO(nweiz): make this work for more than just end-of-file
   final bool optionalSemicolons;
 
+  /**
+   * Allow the await keyword, when the await transformation is available (see
+   * await/awaitc.dart).
+   */
+  bool get enableAwait() => experimentalAwaitPhase != null;
+
   /** To prevent conflicts in initializers */
   bool _inInitializers;
 
@@ -92,8 +98,13 @@ class Parser {
   }
 
   /* Is the next token a legal identifier?  This includes pseudo-keywords. */
-  bool _peekIdentifier() {
-    return TokenKind.isIdentifier(_peekToken.kind);
+  bool _peekIdentifier() => _isIdentifier(_peekToken.kind);
+
+  bool _isIdentifier(kind) {
+    return TokenKind.isIdentifier(kind)
+      // Note: 'await' is not a pseudo-keyword. When [enableAwait] is true, it
+      // is illegal to consider 'await' an identifier.
+      || (!enableAwait && kind == TokenKind.AWAIT);
   }
 
   bool _maybeEat(int kind) {
@@ -892,6 +903,9 @@ class Parser {
       var tok = _next();
       var expr = unaryExpression();
       return new UnaryExpression(tok, expr, _makeSpan(start));
+    } else if (enableAwait && _maybeEat(TokenKind.AWAIT)) {
+      var expr = unaryExpression();
+      return new AwaitExpression(expr, _makeSpan(start));
     }
 
     return finishPostfixExpression(primary());
@@ -1605,7 +1619,7 @@ class Parser {
 
   identifier() {
     var tok = _next();
-    if (!TokenKind.isIdentifier(tok.kind)) {
+    if (!_isIdentifier(tok.kind)) {
       _error('expected identifier, but found $tok', tok.span);
     }
 

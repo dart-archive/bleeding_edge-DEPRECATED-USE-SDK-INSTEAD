@@ -6,6 +6,12 @@
 World world;
 
 /**
+ * Experimental phase to enable await, only set when using the
+ * await/awaitc.dart entrypoint.
+ */
+Function experimentalAwaitPhase;
+
+/**
  * Should be called exactly once to setup singleton world.
  * Can use world.reset() to reinitialize.
  */
@@ -278,30 +284,12 @@ class World {
   }
 
   void runCompilationPhases() {
-    final lib = withTiming('first pass',
-        () => processScript(options.dartScript));
-
-    withTiming('resolve top level', () { resolveAll(); });
-
-    withTiming('generate code', () {
-      var mainMembers = lib.topType.resolveMember('main');
-      var main = null;
-      if (mainMembers == null || mainMembers.members.length == 0) {
-        fatal('no main method specified');
-      } else if (mainMembers.members.length > 1) {
-        for (var m in mainMembers.members) {
-          main = m;
-          error('more than one main member (using last?)', main.span);
-        }
-      } else {
-        main = mainMembers.members[0];
-      }
-
-      var codeWriter = new CodeWriter();
-      gen = new WorldGenerator(main, codeWriter);
-      gen.run();
-      jsBytesWritten = codeWriter.text.length;
-    });
+    final lib = withTiming('first pass', processDartScript);
+    withTiming('resolve top level', resolveAll);
+    if (experimentalAwaitPhase != null) {
+      withTiming('await translation', experimentalAwaitPhase);
+    }
+    withTiming('generate code', () { generateCode(lib); });
   }
 
   String getGeneratedCode() {
@@ -351,8 +339,8 @@ class World {
     }
   }
 
-  Library processScript(String filename) {
-    Library library = getOrAddLibrary(filename);
+  Library processDartScript() {
+    Library library = getOrAddLibrary(options.dartScript);
     process();
     return library;
   }
@@ -361,6 +349,26 @@ class World {
     for (var lib in libraries.getValues()) {
       lib.resolve();
     }
+  }
+
+  generateCode(Library lib) {
+    var mainMembers = lib.topType.resolveMember('main');
+    var main = null;
+    if (mainMembers == null || mainMembers.members.length == 0) {
+      fatal('no main method specified');
+    } else if (mainMembers.members.length > 1) {
+      for (var m in mainMembers.members) {
+        main = m;
+        error('more than one main member (using last?)', main.span);
+      }
+    } else {
+      main = mainMembers.members[0];
+    }
+
+    var codeWriter = new CodeWriter();
+    gen = new WorldGenerator(main, codeWriter);
+    gen.run();
+    jsBytesWritten = codeWriter.text.length;
   }
 
   // ********************** Message support ***********************

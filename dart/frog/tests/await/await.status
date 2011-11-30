@@ -1,0 +1,14 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+prefix await
+
+[ $component == frogsh || $component == frog ]
+ConditionalTest: Fail # await transformation not yet implemented.
+SingleAwaitTest: Fail # await transformation not yet implemented.
+TryCatchTest: Fail # await transformation not yet implemented.
+WhileLoopTest: Fail # await transformation not yet implemented.
+
+[ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == leg ]
+*: Skip
