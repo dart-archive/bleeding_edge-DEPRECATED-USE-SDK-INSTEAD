@@ -68,11 +68,14 @@ void print(Object obj) native '''if (typeof console == 'object') {
 
 class AssertError {
   final String failedAssertion;
+
+  // TODO(jmesserly): I don't think these should be here. They are properties of
+  // the stack trace
   final String url;
   final int line;
   final int column;
 
-  AssertError(this.failedAssertion, this.url, this.line, this.column);
+  AssertError._internal(this.failedAssertion, this.url, this.line, this.column);
 
   String toString() {
     return "Failed assertion: '$failedAssertion' is not true " +
@@ -80,25 +83,26 @@ class AssertError {
   }
 }
 
-class TypeError extends AssertError {
+// TODO(jmesserly): fix the strange interaction with JS TypeError, such as
+// toString(). Ideally this would generate to a different JS name but I'm not
+// sure how to force that.
+class TypeError extends AssertError native 'TypeError' {
   final String srcType;
   final String dstType;
 
-  TypeError(this.srcType, this.dstType) : super(null, null, null, null);
-
-  String toString() {
-    return "Failed type check: type $srcType is not assignable to type " +
-        "$dstType";
-  }
+  TypeError._internal(Object src, String dstType) native @'''
+this.srcType = (src == null ? "Null" : src.$typeNameOf());
+this.destType = destType;
+this.toString = function() {
+  return ("Failed type check: type " + this.srcType +
+      " is not assignable to type" + this.dstType);
+}''';
 }
 
 class FallThroughError {
-
   const FallThroughError();
 
-  String toString() {
-    return "Switch case fall-through.";
-  }
+  String toString() => "Switch case fall-through.";
 }
 
 // Dart core library.

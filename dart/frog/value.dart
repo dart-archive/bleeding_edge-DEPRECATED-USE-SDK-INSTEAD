@@ -293,7 +293,7 @@ class Value {
 
     // Generate a runtime checks if they're turned on, otherwise skip it.
     if (options.enableTypeChecks) {
-      return _typeAssert(context, toType, node);
+      return _typeAssert(context, toType, node, isDynamic);
     } else {
       return this;
     }
@@ -331,23 +331,29 @@ class Value {
    * [instanceOf], but it allows null since Dart types are nullable.
    * Also it will throw a TypeError if it gets the wrong type.
    */
-  Value _typeAssert(MethodGenerator context, Type toType, Node node) {
+  Value _typeAssert(MethodGenerator context, Type toType, Node node,
+      bool isDynamic) {
     if (toType is ParameterType) {
       ParameterType p = toType;
       toType = p.extendsType;
     }
 
-    // TODO(jmesserly): fix checking of function types, and DOM objects
-    // For now, don't generate a broken check.
-    // (For DOM types to work right, we need to lazily patch the "is$DOMWindow"
-    // check methods, by catching it on Object.prototype like VarMember does)
-    if (toType.getCallMethod() != null || toType.library == world.dom) {
-      return this;
+    if (toType.isObject || toType.isVar) {
+      world.internalError(
+          'We thought ${type.name} is not a subtype of ${toType.name}?');
     }
 
-    if (toType.isObject || toType.isVar) {
-      world.internalError('We thought ${type.name} is not a subtype of ${toType.name}?');
-    }
+    final typeError = world.corelib.types['TypeError'];
+    final typeErrorCtor = typeError.getConstructor('_internal');
+    world.gen.corejs.ensureTypeNameOf();
+    final result = typeErrorCtor.invoke(context, node,
+        new Value.type(typeError, null),
+        new Arguments(null, [
+          new Value(world.objectType, 'this', null),
+          new Value(world.stringType, '"${toType.name}"', null)]),
+        isDynamic);
+    world.gen.corejs.useThrow = true;
+    final throwTypeError = '\$throw(${result.code})';
 
     // TODO(jmesserly): better assert for integers?
     if (toType.isNum) toType = world.numType;
@@ -364,7 +370,8 @@ class Value {
       if (toType.typeCheckCode == null) {
         toType.typeCheckCode = '''
 function \$assert_void(x) {
-  return x == null ? x : x.is\$void(); // throws TypeError
+  if (x == null) return null;
+  $throwTypeError
 }''';
       }
     } else if (toType == world.nonNullBool) {
@@ -379,17 +386,25 @@ function \$assert_void(x) {
         toType.typeCheckCode = '''
 function \$assert_${toType.name}(x) {
   if (x == null || typeof(x) == "${toType.typeofName}") return x;
-  throw new TypeError("'" + x + "' is not a ${toType.name}.");
+  $throwTypeError
 }''';
       }
     } else {
-      toType.isTested = true;
+      toType.isChecked = true;
+
+      String checkName = 'assert\$' + toType.jsname;
 
       // If we track nullability, we could simplify this check.
       var temp = context.getTemp(this);
-      check = '(${context.assignTemp(temp, this).code} &&';
-      check += ' ${temp.code}.is\$${toType.jsname}())';
+      check = '(${context.assignTemp(temp, this).code} == null ? null :';
+      check += ' ${temp.code}.$checkName())';
       if (this != temp) context.freeTemp(temp);
+
+      // Generate the fallback on Object (that throws a TypeError)
+      if (!world.objectType.varStubs.containsKey(checkName)) {
+        world.objectType.varStubs[checkName] =
+          new VarMethodStub(checkName, null, Arguments.EMPTY, throwTypeError);
+      }
     }
 
     return new Value(toType, check, span);
@@ -428,7 +443,8 @@ function \$assert_${toType.name}(x) {
         testCode = "(typeof($code) ${isTrue ? '==' : '!='} '$typeofName')";
       }
     }
-    if (toType.isClass && toType is !ConcreteType) {
+    if (toType.isClass && toType is !ConcreteType
+        && !toType.isHiddenNativeType) {
       toType.markUsed();
       testCode = '($code instanceof ${toType.jsname})';
       if (!isTrue) {
@@ -441,8 +457,9 @@ function \$assert_${toType.name}(x) {
       // If we track nullability, we could simplify this check.
       var temp = context.getTemp(this);
 
+      String checkName = 'is\$${toType.jsname}';
       testCode = '(${context.assignTemp(temp, this).code} &&';
-      testCode += ' ${temp.code}.is\$${toType.jsname})';
+      testCode += ' ${temp.code}.$checkName())';
       if (isTrue) {
         // Add !! to convert to boolean.
         // TODO(jimhug): only do this if needed
@@ -453,6 +470,12 @@ function \$assert_${toType.name}(x) {
         testCode = '!' + testCode;
       }
       if (this != temp) context.freeTemp(temp);
+
+      // Generate the fallback on Object (that returns false)
+      if (!world.objectType.varStubs.containsKey(checkName)) {
+        world.objectType.varStubs[checkName] =
+          new VarMethodStub(checkName, null, Arguments.EMPTY, 'return false');
+      }
     }
     return new Value(world.nonNullBool, testCode, span);
   }

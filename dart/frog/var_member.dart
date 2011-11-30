@@ -112,39 +112,59 @@ class VarFunctionStub extends VarMember {
 class VarMethodStub extends VarMember {
   final Member member;
   final Arguments args;
-  final Value body;
+  final String body;
 
   VarMethodStub(String name, this.member, this.args, this.body): super(name);
+
+  bool get isHidden() =>
+      member != null ? member.declaringType.isHiddenNativeType : false;
 
   Type get returnType() =>
       member != null ? member.returnType : world.varType;
 
-  String get typeName() =>
-      member != null ? member.declaringType.jsname : 'Object';
+  Type get declaringType() =>
+      member != null ? member.declaringType : world.objectType;
 
   void generate(CodeWriter code) {
-    code.write('$typeName.prototype.$name = ');
-    generateBody(code, ';');
-  }
-
-  void generateBody(CodeWriter code, String end) {
-    if (_useDirectCall(member, args)) {
-      code.writeln('$typeName.prototype.${member.jsname}$end');
+    code.write(world.gen._prototypeOf(declaringType, name) + ' = ');
+    if (!isHidden && _useDirectCall(args)) {
+      code.writeln('${declaringType.jsname}.prototype.${member.jsname};');
+    } else if (_needsExactTypeCheck()) {
+      code.enterBlock('function(${args.getCode()}) {');
+      code.enterBlock(
+        'if (Object.getPrototypeOf(this).hasOwnProperty("$name")) {');
+      code.writeln('$body;');
+      code.exitBlock('}');
+      String argsCode = args.getCode();
+      if (argsCode != '') argsCode = ', ' + argsCode;
+      code.writeln('return Object.prototype.$name.call(this$argsCode);');
+      code.exitBlock('};');
     } else {
       code.enterBlock('function(${args.getCode()}) {');
-      code.writeln('return ${body.code};');
-      code.exitBlock('}$end');
+      code.writeln('$body;');
+      code.exitBlock('};');
     }
   }
 
-  bool _useDirectCall(Member member, Arguments args) {
-    // Create direct stubs when we can. We don't do this if the type is hidden,
-    // i.e. we can't use "TypeName.prototype" to initialize. We also don't do it
-    // for types like Object, that have native subtypes, otherwise things like
+  /**
+   * If we have a native method overridden by a hidden native method, we need to
+   * make sure the base one has an exact type test. Otherwise we don't need
+   * this.
+   */
+  bool _needsExactTypeCheck() {
+    if (member == null || member.declaringType.isObject) return false;
+
+    var members = member.declaringType.resolveMember(member.name).members;
+    return members.filter((m) => m != member
+        && m.declaringType.isHiddenNativeType).length >= 1;
+  }
+
+  bool _useDirectCall(Arguments args) {
+    // Create direct stubs when we can. We don't do this in some cases, such as
+    // types that have native subtypes (like Object), otherwise things like
     // Object.prototype.toString$0 end up calling the toString on Object instead
     // of on the derived type.
-    if (member is MethodMember && !member.declaringType.isHiddenNativeType
-        && !member.declaringType.hasNativeSubtypes) {
+    if (member is MethodMember && !member.declaringType.hasNativeSubtypes) {
       MethodMember method = member;
       if (method.needsArgumentConversion(args)) {
         return false;
@@ -175,8 +195,7 @@ class VarMethodSet extends VarMember {
   final Type returnType;
   final Arguments args;
 
-  /** The fallback stubs that need to be in our Object.prototype stub. */
-  List<VarMethodStub> _fallbackStubs;
+  bool invoked = false;
 
   VarMethodSet(String name, this.members, Arguments callArgs, this.returnType)
     : super(name), args = callArgs.toCallStubArgs() {
@@ -185,83 +204,42 @@ class VarMethodSet extends VarMember {
   /** The unmangled member name. */
   String get baseName() => members[0].name;
 
-  Value invoke(MethodGenerator context, Node node, Value target, Arguments args) {
+  Value invoke(MethodGenerator context, Node node, Value target,
+      Arguments args) {
     _invokeMembers(context, node);
     return super.invoke(context, node, target, args);
   }
 
   /** Invokes members to ensure they're generated. */
   _invokeMembers(MethodGenerator context, Node node) {
-    if (_fallbackStubs != null) return;
+    if (invoked) return;
+    invoked = true;
 
-    var objectStub = null;
-    _fallbackStubs = [];
+    bool hasObjectType = false;
     for (var member in members) {
       // Invoke the member with the stub args (this gives us the method body),
       // then create the stub method.
-      final target = new Value(member.declaringType, 'this', node.span);
+      final type = member.declaringType;
+      final target = new Value(type, 'this', node.span);
       var result = member.invoke(context, node, target, args, isDynamic:true);
-      var stub = new VarMethodStub(name, member, args, result);
+      var stub = new VarMethodStub(name, member, args, 'return ' + result.code);
+      type.varStubs[stub.name] = stub;
 
-      // Put the stub on the type directly if possible. Otherwise
-      // put the stub on Object.prototype.
-      var type = member.declaringType;
-      if (type.isObject) {
-        objectStub = stub;
-      } else if (!type.isHiddenNativeType) {
-        _addVarStub(type, stub);
-      } else {
-        _fallbackStubs.add(stub);
-      }
+      if (type.isObject) hasObjectType = true;
     }
 
     // Create a noSuchMethod fallback on Object if needed.
     // Some methods, like toString and == already have a fallback on Object.
-    if (objectStub == null) {
+    if (!hasObjectType) {
       final target = new Value(world.objectType, 'this', node.span);
       var result = target.invokeNoSuchMethod(context, baseName, node, args);
-      objectStub = new VarMethodStub(name, null, args, result);
-    }
-    if (_fallbackStubs.length == 0) {
-      _addVarStub(world.objectType, objectStub);
-    } else {
-      _fallbackStubs.add(objectStub);
-      world.gen.corejs.useVarMethod = true;
+      var stub = new VarMethodStub(name, null, args, 'return ' + result.code);
+      world.objectType.varStubs[stub.name] = stub;
     }
   }
 
-  static _addVarStub(Type type, VarMember stub) {
-    if (type.varStubs == null) type.varStubs = {};
-    type.varStubs[stub.name] = stub;
-  }
-
-  /**
-   * Generate var call fallbacks, like this:
-   *
-   * $varMethod('addEventListener$1$capture', {
-   *   'HTMLElement': function($0, capture) {
-   *     return this.addEventListener($0, capture);
-   *   },
-   *   'SomeOtherDOMType': function($0, capture) {
-   *     return this.addEventListener($0, false, true, capture);
-   *   },
-   *   'Object': function($0, capture) {
-   *     return this.noSuchMethod('addEventListener', [$0],
-   *       {'capture': capture});
-   *   }
-   * });
-   */
-  void generate(CodeWriter code) {
-    if (_fallbackStubs.length == 0) return;
-
-    code.enterBlock('\$varMethod("$name", {');
-    var lastOne = _fallbackStubs.last();
-    for (var stub in _fallbackStubs) {
-      code.write('"${stub.typeName}": ');
-      stub.generateBody(code, stub == lastOne ? '' : ',');
-    }
-    code.exitBlock('});');
-  }
+  // TODO(jmesserly): get rid of this as it's unused now
+  void generate(CodeWriter code) {}
 }
 
 String _getCallStubName(String name, Arguments args) {
@@ -271,3 +249,4 @@ String _getCallStubName(String name, Arguments args) {
   }
   return nameBuilder.toString();
 }
+

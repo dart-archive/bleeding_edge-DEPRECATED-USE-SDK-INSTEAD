@@ -976,7 +976,7 @@ class MethodMember extends Member {
 
     // TODO(jmesserly): factor this better
     if (name == 'get\$typeName' && declaringType.library == world.dom) {
-      world.gen.corejs.useTypeNameOf = true;
+      world.gen.corejs.ensureTypeNameOf();
     }
 
     return new Value(inferredResult, code, node.span);

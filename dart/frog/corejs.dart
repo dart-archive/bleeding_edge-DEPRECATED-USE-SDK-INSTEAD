@@ -12,10 +12,8 @@
 // include-if-used, etc for free. Not sure if it's worth doing that.
 class CoreJs {
   // These values track if the helper is actually used. If it is we generate it.
-  bool useTypeNameOf = false;
   bool useStackTraceOf = false;
   bool useThrow = false;
-  bool useVarMethod = false;
   bool useGenStub = false;
   bool useMap = false;
   bool useAssert = false;
@@ -30,9 +28,17 @@ class CoreJs {
   /** An experimental toString implementation. Currently unused. */
   bool useToString = false;
 
+  // These helpers had to switch to a new pattern, because they can be generated
+  // after everything else.
+  bool _generatedTypeNameOf = false;
+  bool _generatedDynamicProto = false;
+  bool _generatedInherits = false;
+
   Map<String, String> _usedOperators;
 
-  CoreJs(): _usedOperators = {};
+  CodeWriter writer;
+
+  CoreJs(): _usedOperators = {}, writer = new CodeWriter();
 
   /**
    * Generates the special operator method, e.g. $add.
@@ -141,28 +147,94 @@ function ${name}(x, y) {
     _usedOperators[name] = code;
   }
 
-  void generate(CodeWriter w) {
-    if (useVarMethod) {
-      useTypeNameOf = true;
-      w.writeln(@"""
-function $varMethod(name, methods) {
-  Object.prototype[name] = function() {
-    $patchMethod(this, name, methods);
-    return this[name].apply(this, Array.prototype.slice.call(arguments));
+  // NOTE: some helpers can't be generated when we generate corelib,
+  // because we don't discover that we need them until later.
+  // Generate on-demand instead
+  void ensureDynamicProto() {
+    if (_generatedDynamicProto) return;
+    _generatedDynamicProto = true;
+
+    ensureTypeNameOf();
+
+    // Usage:
+    // $dynamic(name).SomeTypeName = ... method ...;
+    // $dynamic(name).Object = ... noSuchMethod ...;
+    writer.writeln(@"""
+function $dynamic(name) {
+  var f = Object.prototype[name];
+  if (f && f.methods) return f.methods;
+
+  var methods = {};
+  if (f) methods.Object = f;
+  function $dynamicBind() {
+    // Find the target method
+    var method;
+    var proto = Object.getPrototypeOf(this);
+    var obj = proto;
+    do {
+      method = methods[obj.$typeNameOf()];
+      if (method) break;
+      obj = Object.getPrototypeOf(obj);
+    } while (obj);
+
+    // Patch the prototype, but don't overwrite an existing stub, like
+    // the one on Object.prototype.
+    if (!proto.hasOwnProperty(name)) proto[name] = method || methods.Object;
+
+    return method.apply(this, Array.prototype.slice.call(arguments));
   };
-}
-function $patchMethod(obj, name, methods) {
-  // Get the prototype to patch.
-  // Don't overwrite an existing stub, like the one on Object.prototype
-  var proto = Object.getPrototypeOf(obj);
-  if (!proto || proto.hasOwnProperty(name)) proto = obj;
-  var method;
-  while (obj && !(method = methods[obj.$typeNameOf()])) {
-    obj = Object.getPrototypeOf(obj);
-  }
-  obj[name] = method || methods['Object'];
+  $dynamicBind.methods = methods;
+  Object.prototype[name] = $dynamicBind;
+  return methods;
 }""");
-    }
+  }
+
+  void ensureTypeNameOf() {
+    if (_generatedTypeNameOf) return;
+    _generatedTypeNameOf = true;
+
+    // TODO(sigmund): find a way to make this work on all browsers, including
+    // checking the typeName on prototype objects (so we can fix dynamic
+    // dispatching on $varMethod).
+    writer.writeln(@"""
+Object.prototype.$typeNameOf = function() {
+  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
+      || typeof(process) != 'undefined') { // fast-path for Chrome and Node
+    return this.constructor.name;
+  }
+  var str = Object.prototype.toString.call(this);
+  str = str.substring(8, str.length - 1);
+  if (str == 'Window') str = 'DOMWindow';
+  return str;
+}""");
+  }
+
+
+  /** Generates the $inherits function when it's first used. */
+  ensureInheritsHelper() {
+    if (_generatedInherits) return;
+    _generatedInherits = true;
+
+    writer.writeln(@"""
+/** Implements extends for Dart classes on JavaScript prototypes. */
+function $inherits(child, parent) {
+  if (child.prototype.__proto__) {
+    child.prototype.__proto__ = parent.prototype;
+  } else {
+    function tmp() {};
+    tmp.prototype = parent.prototype;
+    child.prototype = new tmp();
+    child.prototype.constructor = child;
+  }
+}""");
+  }
+
+  void generate(CodeWriter w) {
+    // Write any stuff we had queued up, then replace our writer with the one
+    // in WorldGenerator so anything we discover that we need later on will be
+    // generated on-demand.
+    w.write(writer.text);
+    writer = w;
 
     if (useGenStub) {
       useThrow = true;
@@ -170,15 +242,13 @@ function $patchMethod(obj, name, methods) {
 /**
  * Generates a dynamic call stub for a function.
  * Our goal is to create a stub method like this on-the-fly:
- *   function($0, $1, capture) { this($0, $1, true, capture); }
+ *   function($0, $1, capture) { return this($0, $1, true, capture); }
  *
  * This stub then replaces the dynamic one on Function, with one that is
  * specialized for that particular function, taking into account its default
  * arguments.
  */
 Function.prototype.$genStub = function(argsLength, names) {
-  // TODO(jmesserly): only emit $genStub if actually needed
-
   // Fast path: if no named arguments and arg count matches
   if (this.length == argsLength && !names) {
     return this;
@@ -253,7 +323,8 @@ function $stackTraceOf(e) {
       // it's still decent on other browsers.
       w.writeln(@"""
 function $notnull_bool(test) {
-  return (test === true || test === false) ? test : test.is$bool(); // TypeError
+  if (test === true || test === false) return test;
+  $throw(new TypeError(test, 'bool'));
 }""");
     }
 
@@ -302,24 +373,6 @@ function $toString(o) {
   else if (t == 'bool') { return ''+o; }
   else if (t == 'number') { return ''+o; }
   else return o.toString();
-}""");
-    }
-
-    if (useTypeNameOf) {
-      // TODO(sigmund): find a way to make this work on all browsers, including
-      // checking the typeName on prototype objects (so we can fix dynamic
-      // dispatching on $varMethod).
-      w.writeln(@"""
-Object.prototype.$typeNameOf = function() {
-  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
-      || typeof(process) != 'undefined') { // fast-path for Chrome and Node
-    return this.constructor.name;
-  }
-  var str = Object.prototype.toString.call(this);
-  str = str.substring(8, str.length - 1);
-  if (str == 'Window') 
-    str = 'DOMWindow';
-  return str;
 }""");
     }
 

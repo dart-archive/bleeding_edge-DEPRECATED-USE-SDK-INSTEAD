@@ -7,57 +7,56 @@
 
 // Translate a JavaScript exception to a Dart exception
 // TODO(jmesserly): cross browser support. This is Chrome specific.
-_toDartException(e) native @"""{
-  function attachStack(dartEx) {
-    // TODO(jmesserly): setting the stack property is not a long term solution.
-    var stack = e.stack;
-    // The stack contains the error message, and the stack is all that is
-    // printed (the exception's toString() is never called).  Make the Dart
-    // exception's toString() be the dominant message.
-    if (typeof stack == 'string') {
-      var message = dartEx.toString();
-      if (/^(Type|Range)Error:/.test(stack)) {
-        // Indent JS message (it can be helpful) so new message stands out.
-        stack = '    (' + stack.substring(0, stack.indexOf('\n')) + ')\n' +
-                stack.substring(stack.indexOf('\n') + 1);
-      }
-      stack = message + '\n' + stack;
+_toDartException(e) native @"""
+function attachStack(dartEx) {
+  // TODO(jmesserly): setting the stack property is not a long term solution.
+  var stack = e.stack;
+  // The stack contains the error message, and the stack is all that is
+  // printed (the exception's toString() is never called).  Make the Dart
+  // exception's toString() be the dominant message.
+  if (typeof stack == 'string') {
+    var message = dartEx.toString();
+    if (/^(Type|Range)Error:/.test(stack)) {
+      // Indent JS message (it can be helpful) so new message stands out.
+      stack = '    (' + stack.substring(0, stack.indexOf('\n')) + ')\n' +
+              stack.substring(stack.indexOf('\n') + 1);
     }
-    dartEx.stack = stack;
-    return dartEx;
+    stack = message + '\n' + stack;
   }
+  dartEx.stack = stack;
+  return dartEx;
+}
 
-  if (e instanceof TypeError) {
-    switch(e.type) {
-      case 'property_not_function':
-      case 'called_non_callable':
-        if (e.arguments[0] == null) {
-          return attachStack(new NullPointerException());
-        } else {
-          return attachStack(new ObjectNotClosureException());
-        }
-        break;
-      case 'non_object_property_call':
-      case 'non_object_property_load':
+if (e instanceof TypeError) {
+  switch(e.type) {
+    case 'property_not_function':
+    case 'called_non_callable':
+      if (e.arguments[0] == null) {
         return attachStack(new NullPointerException());
-        break;
-      case 'undefined_method':
-        if (e.arguments[0] == 'call' || e.arguments[0] == 'apply') {
-          return attachStack(new ObjectNotClosureException());
-        } else {
-          // TODO(jmesserly): can this ever happen?
-          // sra: Yes, seen on '$add'.
-          return attachStack(new NoSuchMethodException('', e.arguments[0], []));
-        }
-        break;
-    }
-  } else if (e instanceof RangeError) {
-    if (e.message.indexOf('call stack') >= 0) {
-      return attachStack(new StackOverflowException());
-    }
+      } else {
+        return attachStack(new ObjectNotClosureException());
+      }
+      break;
+    case 'non_object_property_call':
+    case 'non_object_property_load':
+      return attachStack(new NullPointerException());
+      break;
+    case 'undefined_method':
+      if (e.arguments[0] == 'call' || e.arguments[0] == 'apply') {
+        return attachStack(new ObjectNotClosureException());
+      } else {
+        // TODO(jmesserly): can this ever happen?
+        // sra: Yes, seen on '$add'.
+        return attachStack(new NoSuchMethodException('', e.arguments[0], []));
+      }
+      break;
   }
-  return e;
-}""" {
+} else if (e instanceof RangeError) {
+  if (e.message.indexOf('call stack') >= 0) {
+    return attachStack(new StackOverflowException());
+  }
+}
+return e;""" {
   // Ensure constructors are generated
   new ObjectNotClosureException();
   new NullPointerException();

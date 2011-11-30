@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Type extends Element {
-  bool isTested;
+  bool isTested = false;
+  bool isChecked = false;
 
   /**
    * For core types (int, String, etc) this is the generated type assertion
@@ -13,13 +14,13 @@ class Type extends Element {
 
   Member _typeMember;
 
-  /** Stubs used to call into this method dynamically. Lazy initialized. */
+  /** Stubs used to call into this method dynamically. */
   Map<String, VarMember> varStubs;
 
   /** Cache of [MemberSet]s that have been resolved. */
   Map<String, MemberSet> _resolvedMembers;
 
-  Type(String name): isTested = false, _resolvedMembers = {}, super(name, null);
+  Type(String name): _resolvedMembers = {}, varStubs = {}, super(name, null);
 
   void markUsed() {}
   abstract void genMethod(Member method);
@@ -734,9 +735,8 @@ class DefinedType extends Type {
   }
 
   bool get isHiddenNativeType() =>
-      library == world.dom ||  // Legacy, remove after DOM is updated.
-      (definition.nativeType != null &&
-       definition.nativeType.isConstructorHidden);
+      (definition != null && definition.nativeType != null
+       && definition.nativeType.isConstructorHidden);
 
   // TODO(jmesserly): this is a workaround for generic types not filling in
   // "Dynamic" as their type arguments.
@@ -1184,7 +1184,6 @@ class DefinedType extends Type {
     assert(isFunction);
 
     var name = _getCallStubName('call', args);
-    if (varStubs == null) varStubs = {};
     var stub = varStubs[name];
     if (stub == null) {
       stub = new VarFunctionStub(name, args);

@@ -28,9 +28,9 @@ class WorldGenerator {
   /** Global const and static field initializations. */
   Map<String, GlobalValue> globals;
   CoreJs corejs;
-  bool _inheritsGenerated = false;
 
-  WorldGenerator(this.main, this.writer): globals = {}, corejs = new CoreJs();
+  WorldGenerator(this.main, this.writer)
+    : globals = {}, corejs = new CoreJs();
 
   run() {
     var metaGen = new MethodGenerator(main, null);
@@ -76,6 +76,8 @@ class WorldGenerator {
     writeTypes(main.declaringType.library);
 
     // Write out any inherited concrete members.
+    // TODO(jmesserly): this won't need to come last once we are sorting types
+    // correctly.
     if (_mixins != null) writer.write(_mixins.text);
 
     writeGlobals();
@@ -160,7 +162,9 @@ class WorldGenerator {
     lib.topType.markUsed(); // TODO(jimhug): EGREGIOUS HACK
 
     for (var type in _orderValues(lib.types)) {
-      if (type.isUsed && type.isClass) {
+      // TODO(jmesserly): we can't accurately track if DOM types are
+      // created or not, so we need to prepare to handle them.
+      if ((type.isUsed || type.isHiddenNativeType) && type.isClass) {
         writeType(type);
 
         if (type.isGeneric) {
@@ -168,9 +172,8 @@ class WorldGenerator {
             writeType(ct);
           }
         }
-      }
-      if (type.isFunction && type.varStubs != null) {
-        // Emit stubs on "Function" if needed
+      } else if (type.isFunction && type.varStubs.length > 0) {
+        // Emit stubs on "Function" or hidden types if needed
         writer.comment('// ********** Code for ${type.jsname} **************');
         _writeDynamicStubs(type);
       }
@@ -187,16 +190,34 @@ class WorldGenerator {
     }
   }
 
-  _maybeIsTest(Type onType, Type checkType) {
-    if (!checkType.isTested) return;
+  String _prototypeOf(Type type, String name) {
+    if (type.isHiddenNativeType) {
+      corejs.ensureDynamicProto();
+      return '\$dynamic("$name").${type.jsname}';
+    } else {
+      return '${type.jsname}.prototype.$name';
+    }
+  }
 
-    var value = 'false';
-    if (onType.isSubtypeOf(checkType)) {
-      value = 'function(){return this;}';
+  _maybeIsTest(Type onType, Type checkType) {
+    bool isSubtype = onType.isSubtypeOf(checkType);
+    if (checkType.isTested) {
+      // TODO(jmesserly): cache these functions? they just return true or false.
+      writer.writeln(_prototypeOf(onType, 'is\$${checkType.jsname}')
+          + ' = function(){return $isSubtype};');
     }
 
-    writer.writeln('${onType.jsname}.prototype.is\$${checkType.jsname} = '
-        + '$value;');
+    if (checkType.isChecked) {
+      String body = 'return this';
+      String checkName = 'assert\$${checkType.jsname}';
+      if (!isSubtype) {
+        // Get the code to throw a TypeError.
+        // TODO(jmesserly): it'd be nice not to duplicate this code, and instead
+        // be able to refer to the JS function.
+        body = world.objectType.varStubs[checkName].body;
+      }
+      writer.writeln(_prototypeOf(onType, checkName) + ' = function(){$body};');
+    }
   }
 
   writeType(Type type) {
@@ -247,7 +268,7 @@ class WorldGenerator {
     if (!type.isTop) {
       if (type is ConcreteType) {
         ConcreteType c = type;
-        _ensureInheritsHelper();
+        corejs.ensureInheritsHelper();
         writer.writeln('\$inherits(${c.jsname}, ${c.genericType.jsname});');
 
         // Mixin members from concrete specializations of base types too.
@@ -261,7 +282,7 @@ class WorldGenerator {
         }
       } else if (!type.isNative) {
         if (type.parent != null && !type.parent.isObject) {
-          _ensureInheritsHelper();
+          corejs.ensureInheritsHelper();
           writer.writeln('\$inherits(${type.jsname}, ${type.parent.jsname});');
         }
       }
@@ -320,29 +341,6 @@ class WorldGenerator {
   }
 
   /**
-   * Generates the $inherits function when it's first used. Unlike some of the
-   * other helpers in [CoreJS], we don't notice that we need this one until
-   * we're generating types.
-   */
-  _ensureInheritsHelper() {
-    if (_inheritsGenerated) return;
-
-    _inheritsGenerated = true;
-    writer.writeln(@"""
-/** Implements extends for Dart classes on JavaScript prototypes. */
-function $inherits(child, parent) {
-  if (child.prototype.__proto__) {
-    child.prototype.__proto__ = parent.prototype;
-  } else {
-    function tmp() {};
-    tmp.prototype = parent.prototype;
-    child.prototype = new tmp();
-    child.prototype.constructor = child;
-  }
-}""");
-  }
-
-  /**
    * Generates the $inheritsMembers function when it's first used.
    * This is used to mix in specialized generic members from the base class.
    */
@@ -362,10 +360,8 @@ function $inheritsMembers(child, parent) {
   }
 
   _writeDynamicStubs(Type type) {
-    if (type.varStubs != null) {
-      for (var stub in orderValuesByKeys(type.varStubs)) {
-        stub.generate(writer);
-      }
+    for (var stub in orderValuesByKeys(type.varStubs)) {
+      stub.generate(writer);
     }
   }
 
@@ -394,13 +390,11 @@ function $inheritsMembers(child, parent) {
 
     // generate code for instance fields
     if (field._providePropertySyntax) {
-      writer.writeln(
-        '${field.declaringType.jsname}.prototype.get\$${field.jsname} = ' +
-        'function() { return this.${field.jsname}; };');
+      writer.writeln(_prototypeOf(field.declaringType, 'get\$${field.jsname}')
+        + ' = function() { return this.${field.jsname}; };');
       if (!field.isFinal) {
-        writer.writeln(
-          '${field.declaringType.jsname}.prototype.set\$${field.jsname} = ' +
-          'function(value) { return this.${field.jsname} = value; };');
+        writer.writeln(_prototypeOf(field.declaringType, 'set\$${field.jsname}')
+          + ' = function(value) { return this.${field.jsname} = value; };');
       }
     }
 
@@ -413,6 +407,7 @@ function $inheritsMembers(child, parent) {
     if (property.getter != null) _writeMethod(property.getter);
     if (property.setter != null) _writeMethod(property.setter);
 
+    // TODO(jmesserly): make sure we don't do this on hidden native types!
     if (property._provideFieldSyntax) {
       writer.enterBlock('Object.defineProperty(' +
         '${property.declaringType.jsname}.prototype, "${property.jsname}", {');
@@ -995,7 +990,7 @@ class MethodGenerator implements TreeVisitor {
       writer.comment('// Initializers done');
     }
 
-    if (method.isConstructor && initializerCall == null) {
+    if (method.isConstructor && initializerCall == null && !method.isNative) {
       var parentType = method.declaringType.parent;
       if (parentType != null && !parentType.isObject) {
         // TODO(jmesserly): we could omit this if all supertypes are using
@@ -1297,7 +1292,7 @@ class MethodGenerator implements TreeVisitor {
     var test = visitValue(node.test); // TODO(jimhug): check bool or callable.
     if (options.enableAsserts) {
       var err = world.corelib.types['AssertError'];
-      world.gen.genMethod(err.getConstructor(''));
+      world.gen.genMethod(err.getConstructor('_internal'));
       world.gen.genMethod(err.members['toString']);
       var span = node.test.span;
 
