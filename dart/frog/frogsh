@@ -19874,7 +19874,7 @@ lang_Parser.parseHex = function(hex) {
    i < hex.length; i++) {
     var digit = lang_Parser._hexDigit(hex.charCodeAt(i));
     $assert($ne(digit, -1), "digit != -1", "parser.dart", 1339, 14);
-    result = (result << 4) + $assert_num(digit);
+    result = (result * 16) + $assert_num(digit);
   }
   return $assert_num(result);
 }

@@ -1334,10 +1334,14 @@ class Parser {
   static int parseHex(String hex) {
     var result = 0;
 
-    for (int i=0; i < hex.length; i++) {
+    for (int i = 0; i < hex.length; i++) {
       var digit = _hexDigit(hex.charCodeAt(i));
       assert(digit != -1);
-      result = (result << 4) + digit;
+      // Multiply by 16 rather than shift by 4 since that will result in a
+      // correct value for numbers that exceed the 32 bit precision of JS
+      // 'integers'.
+      // TODO: Figure out a better solution to integer truncation. Issue 638.
+      result = (result * 16) + digit;
     }
 
     return result;
