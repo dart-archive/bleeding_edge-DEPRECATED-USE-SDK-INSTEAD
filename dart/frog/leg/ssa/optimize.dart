@@ -384,6 +384,7 @@ class SsaGlobalValueNumberer {
   void visitBasicBlock(HBasicBlock block, ValueSet values) {
     HInstruction instruction = block.first;
     while (instruction !== null) {
+      HInstruction next = instruction.next;
       int flags = instruction.getChangesFlags();
       if (flags != 0) {
         assert(!instruction.useGvn());
@@ -398,7 +399,7 @@ class SsaGlobalValueNumberer {
           values.add(instruction);
         }
       }
-      instruction = instruction.next;
+      instruction = next;
     }
 
     List<HBasicBlock> dominatedBlocks = block.dominatedBlocks;

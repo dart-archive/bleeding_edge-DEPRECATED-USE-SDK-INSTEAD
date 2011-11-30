@@ -10722,15 +10722,16 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
   var $0;
   var instruction = block.first;
   while (instruction != null) {
+    var next = instruction.next;
     var flags = instruction.getChangesFlags();
     if (flags != 0) {
-      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 389, 16);
+      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 390, 16);
       values.kill(flags);
     }
     else if ($notnull_bool(instruction.useGvn())) {
       var other = values.lookup(instruction);
       if (other != null) {
-        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 394, 18);
+        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 395, 18);
         block.rewrite(instruction, other);
         block.remove(instruction);
       }
@@ -10738,14 +10739,14 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
         values.add(instruction);
       }
     }
-    instruction = instruction.next;
+    instruction = next;
   }
   var dominatedBlocks = block.dominatedBlocks;
   for (var i = 0, length = dominatedBlocks.length;
    i < length; i++) {
     var dominated = (($0 = dominatedBlocks.$index(i)) == null ? null : $0.assert$HBasicBlock());
     var successorValues = (i == length - 1) ? values : values.copy();
-    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 414, 14);
+    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 415, 14);
     if (!$notnull_bool(successorValues.isEmpty()) && block.id + 1 < dominated.id) {
       this.visited.clear();
       var changesFlags = this.getChangesFlagsForDominatedBlock(block, dominated);
@@ -10772,7 +10773,7 @@ SsaGlobalValueNumberer.prototype.computeChangesFlags = function(graph) {
       changesFlags |= instruction.getChangesFlags();
       instruction = instruction.next;
     }
-    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 447, 14);
+    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 448, 14);
     this.blockChangesFlags.$setindex(id, changesFlags);
     if ($notnull_bool(block.isLoopHeader())) {
       ($0 = this.loopChangesFlags).$setindex(id, $0.$index(id) | changesFlags);
