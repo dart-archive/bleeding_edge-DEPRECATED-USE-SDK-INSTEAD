@@ -18,7 +18,7 @@ class Element implements Hashable {
   Element _enclosingElement;
 
   Element(this.name, this._enclosingElement) {
-    _jsname = name;
+    _jsname = world.toJsIdentifier(name);
   }
 
   // TODO - walk tree

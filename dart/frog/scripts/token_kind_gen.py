@@ -60,9 +60,8 @@ def main():
   cw.enterBlock('switch(name) {')
   for tok in tokens:
     if tok.methodName is not None:
-      dname = repr(tok.methodName).replace('$', '\\$')
-      cw.writeln('case %s: return %s;' % (dname, repr(tok.text)))
-  cw.writeln("case '\\$ne': return '!=';");
+      cw.writeln('case %r: return %r;' % (tok.methodName, tok.text))
+  cw.writeln("case ':ne': return '!=';");
   cw.exitBlock('}')
   cw.exitBlock('}')
 

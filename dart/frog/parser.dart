@@ -1271,7 +1271,7 @@ class Parser {
         if (!includeOperators) return null;
         _eat(TokenKind.GET);
         if (_peekIdentifier()) {
-          name = 'get\$${identifier().name}';
+          name = 'get:${identifier().name}';
         } else {
           name = 'get';
         }
@@ -1280,7 +1280,7 @@ class Parser {
         if (!includeOperators) return null;
         _eat(TokenKind.SET);
         if (_peekIdentifier()) {
-          name = 'set\$${identifier().name}';
+          name = 'set:${identifier().name}';
         } else {
           name = 'set';
         }
@@ -1290,7 +1290,7 @@ class Parser {
         _eat(TokenKind.OPERATOR);
         var kind = _peek();
         if (kind == TokenKind.NEGATE) {
-          name = '\$negate';
+          name = ':negate';
           _next();
         } else {
           name = TokenKind.binaryMethodName(kind);

@@ -36,7 +36,7 @@ class Parameter {
           definition.value.span.start == definition.span.start) {
         return;
       }
-      if (method.name == '\$call') {
+      if (method.name == ':call') {
         // TODO(jimhug): Need simpler way to detect "true" function types vs.
         //   regular methods being used as function types for closures.
         if (method.definition.body == null) {
@@ -108,8 +108,8 @@ class Member extends Element {
   bool get isConst() => false;
   bool get isFactory() => false;
 
-  bool get isOperator() => name.startsWith('\$');
-  bool get isCallMethod() => name == '\$call';
+  bool get isOperator() => name.startsWith(':');
+  bool get isCallMethod() => name == ':call';
 
   bool get prefersPropertySyntax() => true;
   bool get requiresFieldSyntax() => false;
@@ -162,13 +162,13 @@ class Member extends Element {
   bool canInvoke(MethodGenerator context, Arguments args) {
     // No source location needed because canInvoke may not produce errors.
     return canGet &&
-      new Value(returnType, null, null).canInvoke(context, '\$call', args);
+      new Value(returnType, null, null).canInvoke(context, ':call', args);
   }
 
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
       [bool isDynamic=false]) {
     var newTarget = _get(context, node, target, isDynamic);
-    return newTarget.invoke(context, '\$call', node, args, isDynamic);
+    return newTarget.invoke(context, ':call', node, args, isDynamic);
   }
 
   bool override(Member other) {
@@ -963,7 +963,7 @@ class MethodMember extends Member {
       if (target is GlobalValue) {
         target = target.dynamic.exp; // TODO: an inline "cast" would be nice.
       }
-      if (name == 'get\$length') {
+      if (name == 'get:length') {
         if (target is ConstListValue || target is ConstMapValue) {
           code = '${target.dynamic.values.length}';
         }
@@ -975,7 +975,7 @@ class MethodMember extends Member {
     }
 
     // TODO(jmesserly): factor this better
-    if (name == 'get\$typeName' && declaringType.library == world.dom) {
+    if (name == 'get:typeName' && declaringType.library == world.dom) {
       world.gen.corejs.ensureTypeNameOf();
     }
 
@@ -1120,13 +1120,13 @@ class MethodMember extends Member {
       // TODO(jimhug): What about null?
       if (!allConst) {
         var code;
-        if (name == '\$negate') {
+        if (name == ':negate') {
           code = '-${target.code}';
-        } else if (name == '\$bit_not') {
+        } else if (name == ':bit_not') {
           code = '~${target.code}';
-        } else if (name == '\$truncdiv' || name == '\$mod') {
+        } else if (name == ':truncdiv' || name == ':mod') {
           world.gen.corejs.useOperator(name);
-          code = '$name(${target.code}, ${argsCode[0]})';
+          code = '$jsname(${target.code}, ${argsCode[0]})';
         } else {
           var op = TokenKind.rawOperatorFromMethod(name);
           code = '${target.code} $op ${argsCode[0]}';
@@ -1143,38 +1143,38 @@ class MethodMember extends Member {
           ival1 = val1.toInt();
         }
         switch (name) {
-          case '\$negate': value = -val0; break;
-          case '\$add': value = val0 + val1; break;
-          case '\$sub': value = val0 - val1; break;
-          case '\$mul': value = val0 * val1; break;
-          case '\$div': value = val0 / val1; break;
-          case '\$truncdiv': value = val0 ~/ val1; break;
-          case '\$mod': value = val0 % val1; break;
-          case '\$eq': value = val0 == val1; break;
-          case '\$lt': value = val0 < val1; break;
-          case '\$gt': value = val0 > val1; break;
-          case '\$lte': value = val0 <= val1; break;
-          case '\$gte': value = val0 >= val1; break;
-          case '\$ne': value = val0 != val1; break;
+          case ':negate': value = -val0; break;
+          case ':add': value = val0 + val1; break;
+          case ':sub': value = val0 - val1; break;
+          case ':mul': value = val0 * val1; break;
+          case ':div': value = val0 / val1; break;
+          case ':truncdiv': value = val0 ~/ val1; break;
+          case ':mod': value = val0 % val1; break;
+          case ':eq': value = val0 == val1; break;
+          case ':lt': value = val0 < val1; break;
+          case ':gt': value = val0 > val1; break;
+          case ':lte': value = val0 <= val1; break;
+          case ':gte': value = val0 >= val1; break;
+          case ':ne': value = val0 != val1; break;
 
           // Note: unfortunatelly bit operations fail on doubles in dartvm
-          case '\$bit_not': value = (~ival0).toDouble(); break;
-          case '\$bit_or': value = (ival0 | ival1).toDouble(); break;
-          case '\$bit_xor': value = (ival0 ^ ival1).toDouble(); break;
-          case '\$bit_and': value = (ival0 & ival1).toDouble(); break;
-          case '\$shl': value = (ival0 << ival1).toDouble(); break;
-          case '\$sar': value = (ival0 >> ival1).toDouble(); break;
-          case '\$shr': value = (ival0 >>> ival1).toDouble(); break;
+          case ':bit_not': value = (~ival0).toDouble(); break;
+          case ':bit_or': value = (ival0 | ival1).toDouble(); break;
+          case ':bit_xor': value = (ival0 ^ ival1).toDouble(); break;
+          case ':bit_and': value = (ival0 & ival1).toDouble(); break;
+          case ':shl': value = (ival0 << ival1).toDouble(); break;
+          case ':sar': value = (ival0 >> ival1).toDouble(); break;
+          case ':shr': value = (ival0 >>> ival1).toDouble(); break;
         }
         return new EvaluatedValue(inferredResult, value, "$value", node.span);
       }
     } else if (declaringType.isString) {
-      if (name == '\$index') {
+      if (name == ':index') {
         // Note: this could technically propagate constness, but that's not
         // specified explicitly and the VM doesn't do that.
         return new Value(declaringType, '${target.code}[${argsCode[0]}]',
           node.span);
-      } else if (name == '\$add') {
+      } else if (name == ':add') {
         if (allConst) {
           final value = _normConcat(target, args.values[0]);
           return new EvaluatedValue(world.stringType, value, value, node.span);
@@ -1185,29 +1185,29 @@ class MethodMember extends Member {
           node.span);
       }
     } else if (declaringType.isNative) {
-      if (name == '\$index') {
+      if (name == ':index') {
         // Note: this could technically propagate constness, but that's not
         // specified explicitly and the VM doesn't do that.
         return new Value(returnType, '${target.code}[${argsCode[0]}]', node.span);
-      } else if (name == '\$setindex') {
+      } else if (name == ':setindex') {
         return new Value(returnType,
           '${target.code}[${argsCode[0]}] = ${argsCode[1]}', node.span);
       }
     }
 
     // TODO(jimhug): Optimize null on lhs as well.
-    if (name == '\$eq' || name == '\$ne') {
-      final op = name == '\$eq' ? '==' : '!=';
+    if (name == ':eq' || name == ':ne') {
+      final op = name == ':eq' ? '==' : '!=';
 
-      if (name == '\$ne') {
+      if (name == ':ne') {
         // Ensure == is generated.
-        target.invoke(context, '\$eq', node, args, isDynamic);
+        target.invoke(context, ':eq', node, args, isDynamic);
       }
 
       if (allConst) {
         var val0 = target.dynamic.actualValue;
         var val1 = args.values[0].dynamic.actualValue;
-        var newVal = name == '\$eq' ? val0 == val1 : val0 != val1;
+        var newVal = name == ':eq' ? val0 == val1 : val0 != val1;
         return new EvaluatedValue(world.nonNullBool,
             newVal, "$newVal", node.span);
       }
@@ -1220,8 +1220,8 @@ class MethodMember extends Member {
           node.span);
       }
       world.gen.corejs.useOperator(name);
-      return new Value(inferredResult, '$name(${target.code}, ${argsCode[0]})',
-        node.span);
+      return new Value(inferredResult,
+        '$jsname(${target.code}, ${argsCode[0]})', node.span);
     }
 
     if (isCallMethod) {
@@ -1230,9 +1230,9 @@ class MethodMember extends Member {
         '${target.code}(${Strings.join(argsCode, ", ")})', node.span);
     }
 
-    if (name == '\$index') {
+    if (name == ':index') {
       world.gen.corejs.useIndex = true;
-    } else if (name == '\$setindex') {
+    } else if (name == ':setindex') {
       world.gen.corejs.useSetIndex = true;
     }
 
@@ -1539,18 +1539,40 @@ class MemberSet {
     }
 
     if (returnValue.code == null) {
-      if (name == '\$call') {
+      if (name == ':call') {
         // TODO(jmesserly): reconcile this with similar code in Value
         return target._varCall(context, args);
       } else if (isOperator) {
         // TODO(jmesserly): make operators less special.
-        return target.invokeSpecial(name, args, returnValue.type);
+        return invokeSpecial(target, args, returnValue.type);
       } else {
         return invokeOnVar(context, node, target, args);
       }
     }
 
     return returnValue;
+  }
+
+  Value invokeSpecial(Value target, Arguments args, Type returnType) {
+    assert(name.startsWith(':'));
+    assert(!args.hasNames);
+    // TODO(jimhug): We need to do this a little bit more like get and set on
+    // properties.  We should check the set of members for something
+    // like "requiresNativeIndexer" and "requiresDartIndexer" to
+    // decide on a strategy.
+
+    var argsString = args.getCode();
+    // Most operator calls need to be emitted as function calls, so we don't
+    // box numbers accidentally. Indexing is the exception.
+    if (name == ':index' || name == ':setindex') {
+      return new Value(returnType, '${target.code}.$jsname($argsString)',
+        target.span);
+    } else {
+      if (argsString.length > 0) argsString = ', $argsString';
+      world.gen.corejs.useOperator(name);
+      return new Value(returnType, '$jsname(${target.code}$argsString)',
+        target.span);
+    }
   }
 
   Value invokeOnVar(MethodGenerator context, Node node, Value target,

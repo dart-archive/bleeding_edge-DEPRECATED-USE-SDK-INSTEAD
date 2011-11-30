@@ -45,8 +45,7 @@ if (e instanceof TypeError) {
       if (e.arguments[0] == 'call' || e.arguments[0] == 'apply') {
         return attachStack(new ObjectNotClosureException());
       } else {
-        // TODO(jmesserly): can this ever happen?
-        // sra: Yes, seen on '$add'.
+        // TODO(jmesserly): fix noSuchMethod on operators so we don't hit this
         return attachStack(new NoSuchMethodException('', e.arguments[0], []));
       }
       break;

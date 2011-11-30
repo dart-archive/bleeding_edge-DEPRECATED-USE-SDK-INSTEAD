@@ -494,7 +494,7 @@ function $inheritsMembers(child, parent) {
   Type useMapFactory() {
     corejs.useMap = true;
     var factType = world.coreimpl.types['HashMapImplementation'];
-    var m = factType.resolveMember('\$setindex');
+    var m = factType.resolveMember(':setindex');
     genMethod(m.members[0]); // TODO(jimhug): Clean up initializing.
     var c = factType.getConstructor('');
     genMethod(c);
@@ -592,9 +592,11 @@ class BlockScope {
     }
 
     // Ensure that we don't shadow another name that would've been accessible,
-    // like to level names.
+    // like top level names.
     // (This lookup might report errors, which is a bit strange.
     // But probably harmless since we have to pay for the lookup anyway.)
+    // TODO(jmesserly): does this work right if JS name of the top-level thing
+    // is different from Dart name?
     final type = enclosingMethod.method.declaringType;
     if (type.library.lookup(name, null) != null) return true;
 
@@ -1412,7 +1414,7 @@ class MethodGenerator implements TreeVisitor {
       var tmpi = _scope.create('\$i', world.numType, null);
       writer.enterBlock('for (var ${tmpi.code} = 0;' +
           '${tmpi.code} < ${listVar.code}.length; ${tmpi.code}++) {');
-      var value = listVar.invoke(this, '\$index', node.list,
+      var value = listVar.invoke(this, ':index', node.list,
           new Arguments(null, [tmpi]));
       writer.writeln('var ${item.code} = ${value.code};');
     } else {
@@ -1708,7 +1710,7 @@ class MethodGenerator implements TreeVisitor {
   visitCallExpression(CallExpression node) {
     var target;
     var position = node.target;
-    var name = '\$call';
+    var name = ':call';
     if (node.target is DotExpression) {
       DotExpression dot = node.target;
       target = dot.self.visit(this);
@@ -1720,7 +1722,7 @@ class MethodGenerator implements TreeVisitor {
      // First check in block scopes.
       target = _scope.lookup(name);
       if (target != null) {
-        return target.invoke(this, '\$call', node, _makeArgs(node.arguments));
+        return target.invoke(this, ':call', node, _makeArgs(node.arguments));
       }
 
       target = _makeThisOrType(varExpr.span);
@@ -1735,7 +1737,7 @@ class MethodGenerator implements TreeVisitor {
   visitIndexExpression(IndexExpression node) {
     var target = visitValue(node.target);
     var index = visitValue(node.index);
-    return target.invoke(this, '\$index', node, new Arguments(null, [index]));
+    return target.invoke(this, ':index', node, new Arguments(null, [index]));
   }
 
   visitBinaryExpression(BinaryExpression node) {
@@ -1797,7 +1799,7 @@ class MethodGenerator implements TreeVisitor {
       final y = visitValue(node.y);
       var name = TokenKind.binaryMethodName(node.op.kind);
       if (node.op.kind == TokenKind.NE) {
-        name = '\$ne';
+        name = ':ne';
       }
       if (name == null) {
         world.internalError('unimplemented binary op ${node.op}', node.span);
@@ -1925,13 +1927,13 @@ class MethodGenerator implements TreeVisitor {
       tmptarget = getTemp(target);
       tmpindex = getTemp(index);
       index = assignTemp(tmpindex, index);
-      var right = tmptarget.invoke(this, '\$index',
+      var right = tmptarget.invoke(this, ':index',
           position, new Arguments(null, [tmpindex]));
       right = captureOriginal(right);
       y = right.invoke(this, TokenKind.binaryMethodName(kind),
           position, new Arguments(null, [y]));
     }
-    var ret = assignTemp(tmptarget, target).invoke(this, '\$setindex',
+    var ret = assignTemp(tmptarget, target).invoke(this, ':setindex',
         position, new Arguments(null, [index, y]));
     if (tmptarget != target) freeTemp(tmptarget);
     if (tmpindex != index) freeTemp(tmpindex);
@@ -1994,9 +1996,9 @@ class MethodGenerator implements TreeVisitor {
       case TokenKind.SUB:
       case TokenKind.BIT_NOT:
         if (node.op.kind == TokenKind.BIT_NOT) {
-          return value.invoke(this, '\$bit_not', node, Arguments.EMPTY);
+          return value.invoke(this, ':bit_not', node, Arguments.EMPTY);
         } else if (node.op.kind == TokenKind.SUB) {
-          return value.invoke(this, '\$negate', node, Arguments.EMPTY);
+          return value.invoke(this, ':negate', node, Arguments.EMPTY);
         } else {
           world.internalError('unimplemented: unary ${node.op}',
             node.span);

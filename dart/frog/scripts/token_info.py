@@ -22,7 +22,7 @@ class Token:
     EXCLUDES = ['!=', '===', '!==', '&&', '||']
     INCLUDES = ['[]', '[]=', '~']
     if text in INCLUDES or (self.precedence >= 6 and text not in EXCLUDES):
-      self.methodName = '$' + name.lower()
+      self.methodName = ':' + name.lower()
     else:
       self.methodName = None
 

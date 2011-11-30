@@ -114,8 +114,8 @@ class Library extends Element {
     // TODO(jimhug): This is redundant now that FunctionDef has type params.
     final def = new FunctionTypeDefinition(func, null, func.span);
     final type = new DefinedType(name, this, def, false);
-    type.addMethod('\$call', func);
-    var m = type.members['\$call'];
+    type.addMethod(':call', func);
+    var m = type.members[':call'];
     m.enclosingElement = enclosingElement;
     m.resolve();
     // Function types implement the Function interface.
@@ -484,6 +484,6 @@ class _LibraryVisitor implements TreeVisitor {
 
   void visitFunctionTypeDefinition(FunctionTypeDefinition node) {
     var type = library.addType(node.func.name.name, node, false);
-    type.addMethod('\$call', node.func);
+    type.addMethod(':call', node.func);
   }
 }

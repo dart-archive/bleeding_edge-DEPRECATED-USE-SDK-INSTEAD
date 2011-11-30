@@ -66,7 +66,7 @@ class Type extends Element {
 
   bool get isVarOrObject() => isVar || isObject;
 
-  /** Gets the $call method for a function type. */
+  /** Gets the :call method for a function type. */
   MethodMember getCallMethod() => null;
 
   /** These types may not be implemented or extended by user code. */
@@ -118,12 +118,12 @@ class Type extends Element {
 
   Member _createNotEqualMember() {
     // Add a != method just like the == one.
-    MethodMember eq = members['\$eq'];
+    MethodMember eq = members[':eq'];
     if (eq == null) {
       world.internalError('INTERNAL: object does not define ==',
         definition.span);
     }
-    final ne = new MethodMember('\$ne', this, eq.definition);
+    final ne = new MethodMember(':ne', this, eq.definition);
     ne.isGenerated = true;
     ne.returnType = eq.returnType;
     ne.parameters = eq.parameters;
@@ -141,7 +141,7 @@ class Type extends Element {
         return parent.getMember(memberName);
       } else if (isObject) {  // Could also be a top type so need check.
         // Create synthetic != method if needed.
-        if (memberName == '\$ne') {
+        if (memberName == ':ne') {
           var ret = _createNotEqualMember();
           members[memberName] = ret;
           return ret;
@@ -790,7 +790,7 @@ class DefinedType extends Type {
   bool get isInt() => this == world.intType;
   bool get isDouble() => this == world.doubleType;
 
-  MethodMember getCallMethod() => members['\$call'];
+  MethodMember getCallMethod() => members[':call'];
 
   Map<String, Member> getAllMembers() => new Map.from(members);
 
@@ -1013,7 +1013,7 @@ class DefinedType extends Type {
       return;
     }
 
-    if (methodName.startsWith('get\$') || methodName.startsWith('set\$')) {
+    if (methodName.startsWith('get:') || methodName.startsWith('set:')) {
       var propName = methodName.substring(4);
       var prop = members[propName];
       if (prop == null) {

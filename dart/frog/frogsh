@@ -1057,8 +1057,7 @@ function _toDartException(e) {
         if (e.arguments[0] == 'call' || e.arguments[0] == 'apply') {
           return attachStack(new ObjectNotClosureException());
         } else {
-          // TODO(jmesserly): can this ever happen?
-          // sra: Yes, seen on '$add'.
+          // TODO(jmesserly): fix noSuchMethod on operators so we don't hit this
           return attachStack(new NoSuchMethodException('', e.arguments[0], []));
         }
         break;
@@ -13063,38 +13062,38 @@ CoreJs.prototype.useOperator = function(name) {
   if ($notnull_bool($ne(this._usedOperators.$index(name), null))) return;
   var code;
   switch (name) {
-    case '\$ne':
+    case ':ne':
 
       code = "function $ne(x, y) {\n  if (x == null) return y != null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x != y : !x.$eq(y);\n}";
       break;
 
-    case '\$eq':
+    case ':eq':
 
       code = "function $eq(x, y) {\n  if (x == null) return y == null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x == y : x.$eq(y);\n}\n// TODO(jimhug): Should this or should it not match equals?\nObject.prototype.$eq = function(other) { return this === other; }";
       break;
 
-    case '\$bit_not':
+    case ':bit_not':
 
       code = "function $bit_not(x) {\n  return (typeof(x) == 'number') ? ~x : x.$bit_not();\n}";
       break;
 
-    case '\$negate':
+    case ':negate':
 
       code = "function $negate(x) {\n  return (typeof(x) == 'number') ? -x : x.$negate();\n}";
       break;
 
-    case '\$add':
+    case ':add':
 
       code = "function $add(x, y) {\n  return ((typeof(x) == 'number' && typeof(y) == 'number') ||\n          (typeof(x) == 'string'))\n    ? x + y : x.$add(y);\n}";
       break;
 
-    case '\$truncdiv':
+    case ':truncdiv':
 
       this.useThrow = true;
       code = "function $truncdiv(x, y) {\n  if (typeof(x) == 'number' && typeof(y) == 'number') {\n    if (y == 0) $throw(new IntegerDivisionByZeroException());\n    var tmp = x / y;\n    return (tmp < 0) ? Math.ceil(tmp) : Math.floor(tmp);\n  } else {\n    return x.$truncdiv(y);\n  }\n}";
       break;
 
-    case '\$mod':
+    case ':mod':
 
       code = "function $mod(x, y) {\n  if (typeof(x) == 'number' && typeof(y) == 'number') {\n    var result = x % y;\n    if (result == 0) {\n      return 0;  // Make sure we don't return -0.0.\n    } else if (result < 0) {\n      if (y < 0) {\n        return result - y;\n      } else {\n        return result + y;\n      }\n    }\n    return result;\n  } else {\n    return x.$mod(y);\n  }\n}";
       break;
@@ -13102,7 +13101,8 @@ CoreJs.prototype.useOperator = function(name) {
     default:
 
       var op = TokenKind.rawOperatorFromMethod(name);
-      code = ("function " + name + "(x, y) {\n  return (typeof(x) == 'number' && typeof(y) == 'number')\n    ? x " + op + " y : x." + name + "(y);\n}");
+      var jsname = $globals.world.toJsIdentifier(name);
+      code = ("function " + jsname + "(x, y) {\n  return (typeof(x) == 'number' && typeof(y) == 'number')\n    ? x " + op + " y : x." + jsname + "(y);\n}");
       break;
 
   }
@@ -13188,7 +13188,7 @@ function lang_Element(name, _enclosingElement) {
   this.name = name;
   this._enclosingElement = _enclosingElement;
   // Initializers done
-  this._jsname = this.name;
+  this._jsname = $globals.world.toJsIdentifier(this.name);
 }
 lang_Element.prototype.assert$lang_Element = function(){return this};
 lang_Element.prototype.get$name = function() { return this.name; };
@@ -13678,7 +13678,7 @@ WorldGenerator.prototype.useMapFactory = function() {
   var $0;
   this.corejs.useMap = true;
   var factType = $globals.world.get$coreimpl().types.$index('HashMapImplementation');
-  var m = factType.resolveMember$1('\$setindex');
+  var m = factType.resolveMember$1(':setindex');
   this.genMethod((($0 = m.get$members().$index(0)) == null ? null : $0.assert$Member()));
   var c = factType.getConstructor$1('');
   this.genMethod((c == null ? null : c.assert$Member()));
@@ -13924,7 +13924,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 812, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 814, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -14423,7 +14423,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   if ($notnull_bool(list.get$type().get$isList())) {
     var tmpi = this._scope.create('\$i', $globals.world.numType, null, false, false);
     this.writer.enterBlock(('for (var ' + tmpi.get$code() + ' = 0;') + ('' + tmpi.get$code() + ' < ' + listVar.code + '.length; ' + tmpi.get$code() + '++) {'));
-    var value = listVar.invoke(this, '\$index', node.list, new Arguments(null, [tmpi]), false);
+    var value = listVar.invoke(this, ':index', node.list, new Arguments(null, [tmpi]), false);
     this.writer.writeln(('var ' + item.get$code() + ' = ' + value.get$code() + ';'));
   }
   else {
@@ -14668,7 +14668,7 @@ MethodGenerator.prototype.visitCallExpression = function(node) {
   var $0;
   var target;
   var position = node.target;
-  var name = '\$call';
+  var name = ':call';
   if ((node.target instanceof DotExpression)) {
     var dot = (($0 = node.target) == null ? null : $0.assert$DotExpression());
     target = dot.self.visit(this);
@@ -14680,7 +14680,7 @@ MethodGenerator.prototype.visitCallExpression = function(node) {
     name = varExpr.name.name;
     target = this._scope.lookup($assert_String(name));
     if ($notnull_bool($ne(target, null))) {
-      return target.invoke$4(this, '\$call', node, this._makeArgs(node.arguments));
+      return target.invoke$4(this, ':call', node, this._makeArgs(node.arguments));
     }
     target = this._makeThisOrType(varExpr.span);
     return target.invoke$4(this, name, node, this._makeArgs(node.arguments));
@@ -14693,7 +14693,7 @@ MethodGenerator.prototype.visitCallExpression = function(node) {
 MethodGenerator.prototype.visitIndexExpression = function(node) {
   var target = this.visitValue(node.target);
   var index = this.visitValue(node.index);
-  return target.invoke$4(this, '\$index', node, new Arguments(null, [index]));
+  return target.invoke$4(this, ':index', node, new Arguments(null, [index]));
 }
 MethodGenerator.prototype.visitBinaryExpression = function(node) {
   var kind = node.op.kind;
@@ -14740,7 +14740,7 @@ MethodGenerator.prototype.visitBinaryExpression = function(node) {
     var y = this.visitValue(node.y);
     var name = TokenKind.binaryMethodName(node.op.kind);
     if (node.op.kind == 49/*TokenKind.NE*/) {
-      name = '\$ne';
+      name = ':ne';
     }
     if ($notnull_bool(name == null)) {
       $globals.world.internalError(('unimplemented binary op ' + node.op), node.span);
@@ -14843,11 +14843,11 @@ MethodGenerator.prototype._visitIndexAssign = function(kind, xn, yn, position, c
     tmptarget = this.getTemp((target == null ? null : target.assert$Value()));
     tmpindex = this.getTemp((index == null ? null : index.assert$Value()));
     index = this.assignTemp((tmpindex == null ? null : tmpindex.assert$Value()), (index == null ? null : index.assert$Value()));
-    var right = tmptarget.invoke$4(this, '\$index', position, new Arguments(null, [tmpindex]));
+    var right = tmptarget.invoke$4(this, ':index', position, new Arguments(null, [tmpindex]));
     right = captureOriginal((right == null ? null : right.assert$Value()));
     y = right.invoke$4(this, TokenKind.binaryMethodName(kind), position, new Arguments(null, [y]));
   }
-  var ret = this.assignTemp((tmptarget == null ? null : tmptarget.assert$Value()), (target == null ? null : target.assert$Value())).invoke(this, '\$setindex', position, new Arguments(null, [index, y]), false);
+  var ret = this.assignTemp((tmptarget == null ? null : tmptarget.assert$Value()), (target == null ? null : target.assert$Value())).invoke(this, ':setindex', position, new Arguments(null, [index, y]), false);
   if ($notnull_bool($ne(tmptarget, target))) this.freeTemp((tmptarget == null ? null : tmptarget.assert$Value()));
   if ($notnull_bool($ne(tmpindex, index))) this.freeTemp((tmpindex == null ? null : tmpindex.assert$Value()));
   return ret;
@@ -14901,10 +14901,10 @@ MethodGenerator.prototype.visitUnaryExpression = function(node) {
     case 18/*TokenKind.BIT_NOT*/:
 
       if (node.op.kind == 18/*TokenKind.BIT_NOT*/) {
-        return value.invoke$4(this, '\$bit_not', node, Arguments.get$EMPTY());
+        return value.invoke$4(this, ':bit_not', node, Arguments.get$EMPTY());
       }
       else if (node.op.kind == 43/*TokenKind.SUB*/) {
-        return value.invoke$4(this, '\$negate', node, Arguments.get$EMPTY());
+        return value.invoke$4(this, ':negate', node, Arguments.get$EMPTY());
       }
       else {
         $globals.world.internalError(('unimplemented: unary ' + node.op), node.span);
@@ -15122,7 +15122,7 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2270, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2272, 12);
   if (!!(($0 = node.value) && $0.is$List())) {
     var items = [];
     var $list = node.value;
@@ -15376,8 +15376,8 @@ Library.prototype._addMember = function(member) {
 Library.prototype.getOrAddFunctionType = function(enclosingElement, name, func) {
   var def = new FunctionTypeDefinition(func, null, func.span);
   var type = new DefinedType(name, this, def, false);
-  type.addMethod('\$call', func);
-  var m = type.members.$index('\$call');
+  type.addMethod(':call', func);
+  var m = type.members.$index(':call');
   m.set$enclosingElement(enclosingElement);
   m.resolve$0();
   type.interfaces = [$globals.world.functionType];
@@ -15723,7 +15723,7 @@ _LibraryVisitor.prototype.visitFunctionDefinition = function(node) {
 }
 _LibraryVisitor.prototype.visitFunctionTypeDefinition = function(node) {
   var type = this.library.addType(node.func.name.name, node, false);
-  type.addMethod$2('\$call', node.func);
+  type.addMethod$2(':call', node.func);
 }
 _LibraryVisitor.prototype.addSource$1 = function($0) {
   return this.addSource(($0 == null ? null : $0.assert$SourceFile()));
@@ -15760,7 +15760,7 @@ Parameter.prototype.resolve = function() {
     if ((this.definition.value instanceof NullExpression) && this.definition.value.span.start == this.definition.span.start) {
       return;
     }
-    if (this.method.name == '\$call') {
+    if (this.method.name == ':call') {
       if ($notnull_bool(this.method.get$definition().get$body() == null)) {
         $globals.world.error('default value not allowed on function type', this.definition.span);
       }
@@ -15843,10 +15843,10 @@ Member.prototype.get$isFactory = function() {
   return false;
 }
 Member.prototype.get$isOperator = function() {
-  return this.name.startsWith('\$');
+  return this.name.startsWith(':');
 }
 Member.prototype.get$isCallMethod = function() {
-  return this.name == '\$call';
+  return this.name == ':call';
 }
 Member.prototype.get$prefersPropertySyntax = function() {
   return true;
@@ -15889,12 +15889,12 @@ Member.prototype.get$parameters = function() {
   return [];
 }
 Member.prototype.canInvoke = function(context, args) {
-  return $notnull_bool(this.get$canGet()) && $notnull_bool(new Value(this.get$returnType(), null, null, true).canInvoke(context, '\$call', args));
+  return $notnull_bool(this.get$canGet()) && $notnull_bool(new Value(this.get$returnType(), null, null, true).canInvoke(context, ':call', args));
 }
 Member.prototype.invoke = function(context, node, target, args, isDynamic) {
   var $0;
   var newTarget = this._get(context, node, target, isDynamic);
-  return (($0 = newTarget.invoke$5(context, '\$call', node, args, isDynamic)) == null ? null : $0.assert$Value());
+  return (($0 = newTarget.invoke$5(context, ':call', node, args, isDynamic)) == null ? null : $0.assert$Value());
 }
 Member.prototype.override = function(other) {
   if ($notnull_bool(this.get$isStatic())) {
@@ -16716,7 +16716,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
     if ((target instanceof GlobalValue)) {
       target = (($0 = target.get$dynamic().get$exp()) == null ? null : $0.assert$Value());
     }
-    if (this.name == 'get\$length') {
+    if (this.name == 'get:length') {
       if ((target instanceof ConstListValue) || (target instanceof ConstMapValue)) {
         code = ('' + target.get$dynamic().get$values().length);
       }
@@ -16727,7 +16727,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
       }
     }
   }
-  if (this.name == 'get\$typeName' && $eq(this.declaringType.get$library(), $globals.world.get$dom())) {
+  if (this.name == 'get:typeName' && $eq(this.declaringType.get$library(), $globals.world.get$dom())) {
     $globals.world.gen.corejs.ensureTypeNameOf();
   }
   return new Value(this.get$inferredResult(), code, node.span, true);
@@ -16833,15 +16833,15 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
   if ($notnull_bool(this.declaringType.get$isNum())) {
     if (!$notnull_bool(allConst)) {
       var code;
-      if (this.name == '\$negate') {
+      if (this.name == ':negate') {
         code = ('-' + target.code);
       }
-      else if (this.name == '\$bit_not') {
+      else if (this.name == ':bit_not') {
         code = ('~' + target.code);
       }
-      else if (this.name == '\$truncdiv' || this.name == '\$mod') {
+      else if (this.name == ':truncdiv' || this.name == ':mod') {
         $globals.world.gen.corejs.useOperator(this.name);
-        code = ('' + this.name + '(' + target.code + ', ' + argsCode.$index(0) + ')');
+        code = ('' + this.get$jsname() + '(' + target.code + ', ' + argsCode.$index(0) + ')');
       }
       else {
         var op = TokenKind.rawOperatorFromMethod(this.name);
@@ -16859,102 +16859,102 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
         ival1 = val1.toInt();
       }
       switch (this.name) {
-        case '\$negate':
+        case ':negate':
 
           value = -val0;
           break;
 
-        case '\$add':
+        case ':add':
 
           value = val0 + val1;
           break;
 
-        case '\$sub':
+        case ':sub':
 
           value = val0 - val1;
           break;
 
-        case '\$mul':
+        case ':mul':
 
           value = val0 * val1;
           break;
 
-        case '\$div':
+        case ':div':
 
           value = val0 / val1;
           break;
 
-        case '\$truncdiv':
+        case ':truncdiv':
 
           value = $truncdiv(val0, val1);
           break;
 
-        case '\$mod':
+        case ':mod':
 
           value = $mod(val0, val1);
           break;
 
-        case '\$eq':
+        case ':eq':
 
           value = val0 == val1;
           break;
 
-        case '\$lt':
+        case ':lt':
 
           value = val0 < val1;
           break;
 
-        case '\$gt':
+        case ':gt':
 
           value = val0 > val1;
           break;
 
-        case '\$lte':
+        case ':lte':
 
           value = val0 <= val1;
           break;
 
-        case '\$gte':
+        case ':gte':
 
           value = val0 >= val1;
           break;
 
-        case '\$ne':
+        case ':ne':
 
           value = val0 != val1;
           break;
 
-        case '\$bit_not':
+        case ':bit_not':
 
           value = (~ival0).toDouble();
           break;
 
-        case '\$bit_or':
+        case ':bit_or':
 
           value = (ival0 | ival1).toDouble();
           break;
 
-        case '\$bit_xor':
+        case ':bit_xor':
 
           value = (ival0 ^ ival1).toDouble();
           break;
 
-        case '\$bit_and':
+        case ':bit_and':
 
           value = (ival0 & ival1).toDouble();
           break;
 
-        case '\$shl':
+        case ':shl':
 
           value = (ival0 << ival1).toDouble();
           break;
 
-        case '\$sar':
+        case ':sar':
 
           value = (ival0 >> ival1).toDouble();
           break;
 
-        case '\$shr':
+        case ':shr':
 
           value = (ival0 >>> ival1).toDouble();
           break;
@@ -16964,10 +16964,10 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
     }
   }
   else if ($notnull_bool(this.declaringType.get$isString())) {
-    if (this.name == '\$index') {
+    if (this.name == ':index') {
       return new Value(this.declaringType, ('' + target.code + '[' + argsCode.$index(0) + ']'), node.span, true);
     }
-    else if (this.name == '\$add') {
+    else if (this.name == ':add') {
       if ($notnull_bool(allConst)) {
         var value = this._normConcat(target, (($0 = args.values.$index(0)) == null ? null : $0.assert$Value()));
         return EvaluatedValue.EvaluatedValue$factory($globals.world.stringType, value, value, node.span);
@@ -16976,22 +16976,22 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
     }
   }
   else if ($notnull_bool(this.declaringType.get$isNative())) {
-    if (this.name == '\$index') {
+    if (this.name == ':index') {
       return new Value(this.returnType, ('' + target.code + '[' + argsCode.$index(0) + ']'), node.span, true);
     }
-    else if (this.name == '\$setindex') {
+    else if (this.name == ':setindex') {
       return new Value(this.returnType, ('' + target.code + '[' + argsCode.$index(0) + '] = ' + argsCode.$index(1)), node.span, true);
     }
   }
-  if (this.name == '\$eq' || this.name == '\$ne') {
-    var op = this.name == '\$eq' ? '==' : '!=';
-    if (this.name == '\$ne') {
-      target.invoke(context, '\$eq', node, args, isDynamic);
+  if (this.name == ':eq' || this.name == ':ne') {
+    var op = this.name == ':eq' ? '==' : '!=';
+    if (this.name == ':ne') {
+      target.invoke(context, ':eq', node, args, isDynamic);
     }
     if ($notnull_bool(allConst)) {
       var val0 = target.get$dynamic().get$actualValue();
       var val1 = args.values.$index(0).get$dynamic().get$actualValue();
-      var newVal = this.name == '\$eq' ? $eq(val0, val1) : $ne(val0, val1);
+      var newVal = this.name == ':eq' ? $eq(val0, val1) : $ne(val0, val1);
       return EvaluatedValue.EvaluatedValue$factory($globals.world.nonNullBool, newVal, ("" + newVal), node.span);
     }
     if ($notnull_bool($eq(argsCode.$index(0), 'null'))) {
@@ -17001,16 +17001,16 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
       return new Value(this.get$inferredResult(), ('' + target.code + ' ' + op + ' ' + argsCode.$index(0)), node.span, true);
     }
     $globals.world.gen.corejs.useOperator(this.name);
-    return new Value(this.get$inferredResult(), ('' + this.name + '(' + target.code + ', ' + argsCode.$index(0) + ')'), node.span, true);
+    return new Value(this.get$inferredResult(), ('' + this.get$jsname() + '(' + target.code + ', ' + argsCode.$index(0) + ')'), node.span, true);
   }
   if ($notnull_bool(this.get$isCallMethod())) {
     this.declaringType.markUsed();
     return new Value(this.get$inferredResult(), ('' + target.code + '(' + Strings.join((argsCode == null ? null : argsCode.assert$List_String()), ", ") + ')'), node.span, true);
   }
-  if (this.name == '\$index') {
+  if (this.name == ':index') {
     $globals.world.gen.corejs.useIndex = true;
   }
-  else if (this.name == '\$setindex') {
+  else if (this.name == ':setindex') {
     $globals.world.gen.corejs.useSetIndex = true;
   }
   var argsString = Strings.join((argsCode == null ? null : argsCode.assert$List_String()), ', ');
@@ -17333,17 +17333,30 @@ MemberSet.prototype.invoke = function(context, node, target, args, isDynamic) {
     return this._makeError(node, target, 'method');
   }
   if (returnValue.code == null) {
-    if (this.name == '\$call') {
+    if (this.name == ':call') {
       return target._varCall(context, args);
     }
     else if ($notnull_bool(this.get$isOperator())) {
-      return target.invokeSpecial(this.name, args, returnValue.type);
+      return this.invokeSpecial(target, args, returnValue.type);
     }
     else {
       return this.invokeOnVar(context, node, target, args);
     }
   }
   return returnValue;
+}
+MemberSet.prototype.invokeSpecial = function(target, args, returnType) {
+  $assert(this.name.startsWith(':'), "name.startsWith(':')", "member.dart", 1557, 12);
+  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "member.dart", 1558, 12);
+  var argsString = args.getCode();
+  if (this.name == ':index' || this.name == ':setindex') {
+    return new Value(returnType, ('' + target.code + '.' + this.jsname + '(' + argsString + ')'), target.span, true);
+  }
+  else {
+    if (argsString.length > 0) argsString = (', ' + argsString);
+    $globals.world.gen.corejs.useOperator(this.name);
+    return new Value(returnType, ('' + this.jsname + '(' + target.code + argsString + ')'), target.span, true);
+  }
 }
 MemberSet.prototype.invokeOnVar = function(context, node, target, args) {
   var $0;
@@ -19166,87 +19179,87 @@ TokenKind.infixPrecedence = function(kind) {
 }
 TokenKind.rawOperatorFromMethod = function(name) {
   switch (name) {
-    case '\$bit_not':
+    case ':bit_not':
 
       return '~';
 
-    case '\$bit_or':
+    case ':bit_or':
 
       return '|';
 
-    case '\$bit_xor':
+    case ':bit_xor':
 
       return '^';
 
-    case '\$bit_and':
+    case ':bit_and':
 
       return '&';
 
-    case '\$shl':
+    case ':shl':
 
       return '<<';
 
-    case '\$sar':
+    case ':sar':
 
       return '>>';
 
-    case '\$shr':
+    case ':shr':
 
       return '>>>';
 
-    case '\$add':
+    case ':add':
 
       return '+';
 
-    case '\$sub':
+    case ':sub':
 
       return '-';
 
-    case '\$mul':
+    case ':mul':
 
       return '*';
 
-    case '\$div':
+    case ':div':
 
       return '/';
 
-    case '\$truncdiv':
+    case ':truncdiv':
 
       return '~/';
 
-    case '\$mod':
+    case ':mod':
 
       return '%';
 
-    case '\$eq':
+    case ':eq':
 
       return '==';
 
-    case '\$lt':
+    case ':lt':
 
       return '<';
 
-    case '\$gt':
+    case ':gt':
 
       return '>';
 
-    case '\$lte':
+    case ':lte':
 
       return '<=';
 
-    case '\$gte':
+    case ':gte':
 
       return '>=';
 
-    case '\$index':
+    case ':index':
 
       return '[]';
 
-    case '\$setindex':
+    case ':setindex':
 
       return '[]=';
 
-    case '\$ne':
+    case ':ne':
 
       return '!=';
 
@@ -19256,83 +19269,83 @@ TokenKind.binaryMethodName = function(kind) {
   switch (kind) {
     case 18/*TokenKind.BIT_NOT*/:
 
-      return '\$bit_not';
+      return ':bit_not';
 
     case 36/*TokenKind.BIT_OR*/:
 
-      return '\$bit_or';
+      return ':bit_or';
 
     case 37/*TokenKind.BIT_XOR*/:
 
-      return '\$bit_xor';
+      return ':bit_xor';
 
     case 38/*TokenKind.BIT_AND*/:
 
-      return '\$bit_and';
+      return ':bit_and';
 
     case 39/*TokenKind.SHL*/:
 
-      return '\$shl';
+      return ':shl';
 
     case 40/*TokenKind.SAR*/:
 
-      return '\$sar';
+      return ':sar';
 
     case 41/*TokenKind.SHR*/:
 
-      return '\$shr';
+      return ':shr';
 
     case 42/*TokenKind.ADD*/:
 
-      return '\$add';
+      return ':add';
 
     case 43/*TokenKind.SUB*/:
 
-      return '\$sub';
+      return ':sub';
 
     case 44/*TokenKind.MUL*/:
 
-      return '\$mul';
+      return ':mul';
 
     case 45/*TokenKind.DIV*/:
 
-      return '\$div';
+      return ':div';
 
     case 46/*TokenKind.TRUNCDIV*/:
 
-      return '\$truncdiv';
+      return ':truncdiv';
 
     case 47/*TokenKind.MOD*/:
 
-      return '\$mod';
+      return ':mod';
 
     case 48/*TokenKind.EQ*/:
 
-      return '\$eq';
+      return ':eq';
 
     case 52/*TokenKind.LT*/:
 
-      return '\$lt';
+      return ':lt';
 
     case 53/*TokenKind.GT*/:
 
-      return '\$gt';
+      return ':gt';
 
     case 54/*TokenKind.LTE*/:
 
-      return '\$lte';
+      return ':lte';
 
     case 55/*TokenKind.GTE*/:
 
-      return '\$gte';
+      return ':gte';
 
     case 56/*TokenKind.INDEX*/:
 
-      return '\$index';
+      return ':index';
 
     case 57/*TokenKind.SETINDEX*/:
 
-      return '\$setindex';
+      return ':setindex';
 
   }
 }
@@ -20494,7 +20507,7 @@ lang_Parser.prototype._specialIdentifier = function(includeOperators) {
       if (!$notnull_bool(includeOperators)) return null;
       this._eat(76/*TokenKind.GET*/);
       if ($notnull_bool(this._peekIdentifier())) {
-        name = ('get\$' + this.identifier().get$name());
+        name = ('get:' + this.identifier().get$name());
       }
       else {
         name = 'get';
@@ -20506,7 +20519,7 @@ lang_Parser.prototype._specialIdentifier = function(includeOperators) {
       if (!$notnull_bool(includeOperators)) return null;
       this._eat(84/*TokenKind.SET*/);
       if ($notnull_bool(this._peekIdentifier())) {
-        name = ('set\$' + this.identifier().get$name());
+        name = ('set:' + this.identifier().get$name());
       }
       else {
         name = 'set';
@@ -20519,7 +20532,7 @@ lang_Parser.prototype._specialIdentifier = function(includeOperators) {
       this._eat(83/*TokenKind.OPERATOR*/);
       var kind = this._peek();
       if ($notnull_bool($eq(kind, 82/*TokenKind.NEGATE*/))) {
-        name = '\$negate';
+        name = ':negate';
         this._lang_next();
       }
       else {
@@ -22014,11 +22027,11 @@ lang_Type.prototype._checkOverride = function(member) {
 }
 lang_Type.prototype._createNotEqualMember = function() {
   var $0;
-  var eq = (($0 = this.get$members().$index('\$eq')) == null ? null : $0.assert$MethodMember());
+  var eq = (($0 = this.get$members().$index(':eq')) == null ? null : $0.assert$MethodMember());
   if (eq == null) {
     $globals.world.internalError('INTERNAL: object does not define ==', this.get$definition().span);
   }
-  var ne = new MethodMember('\$ne', this, eq.definition);
+  var ne = new MethodMember(':ne', this, eq.definition);
   ne.isGenerated = true;
   ne.returnType = eq.returnType;
   ne.parameters = eq.parameters;
@@ -22032,7 +22045,7 @@ lang_Type.prototype._getMemberInParents = function(memberName) {
       return this.get$parent().getMember(memberName);
     }
     else if ($notnull_bool(this.get$isObject())) {
-      if (memberName == '\$ne') {
+      if (memberName == ':ne') {
         var ret = this._createNotEqualMember();
         this.get$members().$setindex(memberName, ret);
         return (ret == null ? null : ret.assert$Member());
@@ -22707,7 +22720,7 @@ DefinedType.prototype.get$isNum = function() {
 }
 DefinedType.prototype.getCallMethod = function() {
   var $0;
-  return (($0 = this.members.$index('\$call')) == null ? null : $0.assert$MethodMember());
+  return (($0 = this.members.$index(':call')) == null ? null : $0.assert$MethodMember());
 }
 DefinedType.prototype.getAllMembers = function() {
   return HashMapImplementation.HashMapImplementation$from$factory(this.members);
@@ -22905,7 +22918,7 @@ DefinedType.prototype.addMethod = function(methodName, definition) {
     this.factories.addFactory($assert_String(method.get$constructorName()), $assert_String(method.get$name()), (method == null ? null : method.assert$Member()));
     return;
   }
-  if (methodName.startsWith('get\$') || methodName.startsWith('set\$')) {
+  if (methodName.startsWith('get:') || methodName.startsWith('set:')) {
     var propName = methodName.substring(4);
     var prop = this.members.$index(propName);
     if ($notnull_bool(prop == null)) {
@@ -23245,15 +23258,15 @@ Value.prototype.set_ = function(context, name, node, value, isDynamic) {
 }
 Value.prototype.invoke = function(context, name, node, args, isDynamic) {
   var $0;
-  if ($notnull_bool(this.get$_typeIsVarOrParameterType()) && name == '\$ne') {
+  if ($notnull_bool(this.get$_typeIsVarOrParameterType()) && name == ':ne') {
     if (args.values.length != 1) {
       $globals.world.warning('wrong number of arguments for !=', node.span);
     }
-    var eq = this.invoke(context, '\$eq', node, args, isDynamic);
-    $globals.world.gen.corejs.useOperator('\$ne');
+    var eq = this.invoke(context, ':eq', node, args, isDynamic);
+    $globals.world.gen.corejs.useOperator(':ne');
     return new Value(eq.get$type(), ('\$ne(' + this.code + ', ' + args.values.$index(0).get$code() + ')'), node.span, true);
   }
-  if (name == '\$call') {
+  if (name == ':call') {
     if ($notnull_bool(this.isType)) {
       $globals.world.error('must use "new" or "const" to construct a new instance', node.span);
     }
@@ -23270,10 +23283,10 @@ Value.prototype.invoke = function(context, name, node, args, isDynamic) {
   }
 }
 Value.prototype.canInvoke = function(context, name, args) {
-  if ($notnull_bool(this.get$_typeIsVarOrParameterType()) && name == '\$ne') {
+  if ($notnull_bool(this.get$_typeIsVarOrParameterType()) && name == ':ne') {
     return true;
   }
-  if ($notnull_bool(this.type.get$isVarOrFunction()) && name == '\$call') {
+  if ($notnull_bool(this.type.get$isVarOrFunction()) && name == ':call') {
     return true;
   }
   var member = this._resolveMember(context, name, null, true);
@@ -23514,19 +23527,6 @@ Value.prototype.invokeNoSuchMethod = function(context, name, node, args) {
   var noSuchArgs = [new Value($globals.world.stringType, ('"' + name + '"'), node.span, true), new Value($globals.world.listType, ('[' + pos + ']'), node.span, true)];
   return (($0 = this._resolveMember(context, 'noSuchMethod', node, false).invoke$4(context, node, this, new Arguments(null, noSuchArgs))) == null ? null : $0.assert$Value());
 }
-Value.prototype.invokeSpecial = function(name, args, returnType) {
-  $assert(name.startsWith('\$'), "name.startsWith('\\$')", "value.dart", 519, 12);
-  $assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "value.dart", 520, 12);
-  var argsString = args.getCode();
-  if (name == '\$index' || name == '\$setindex') {
-    return new Value(returnType, ('' + this.code + '.' + name + '(' + argsString + ')'), this.span, true);
-  }
-  else {
-    if (argsString.length > 0) argsString = (', ' + argsString);
-    $globals.world.gen.corejs.useOperator(name);
-    return new Value(returnType, ('' + name + '(' + this.code + argsString + ')'), this.span, true);
-  }
-}
 Value.prototype.checkFirstClass$1 = function($0) {
   return this.checkFirstClass(($0 == null ? null : $0.assert$SourceSpan()));
 };
@@ -23744,7 +23744,7 @@ BareValue.prototype._ensureCode = function() {
   }
 }
 BareValue.prototype._tryResolveMember = function(context, name) {
-  $assert($eq(context, this.home), "context == home", "value.dart", 740, 12);
+  $assert($eq(context, this.home), "context == home", "value.dart", 720, 12);
   var member = this.type.resolveMember(name);
   if ($notnull_bool($ne(member, null))) {
     this._ensureCode();
@@ -23882,6 +23882,7 @@ World.prototype._addToCoreLib = function(name, isClass) {
   return ret;
 }
 World.prototype.toJsIdentifier = function(name) {
+  if (name == null) return null;
   if (this._jsKeywords == null) {
     this._jsKeywords = HashSetImplementation.HashSetImplementation$from$factory(['break', 'case', 'catch', 'continue', 'debugger', 'default', 'delete', 'do', 'else', 'finally', 'for', 'function', 'if', 'in', 'instanceof', 'new', 'return', 'switch', 'this', 'throw', 'try', 'typeof', 'var', 'void', 'while', 'with', 'class', 'enum', 'export', 'extends', 'import', 'super', 'implements', 'interface', 'let', 'package', 'private', 'protected', 'public', 'static', 'yield', 'native']);
   }
@@ -23889,7 +23890,7 @@ World.prototype.toJsIdentifier = function(name) {
     return name + '_';
   }
   else {
-    return name;
+    return name.replaceAll("$", "$$").replaceAll(':', "$");
   }
 }
 World.prototype.compile = function() {
@@ -23938,7 +23939,7 @@ World.prototype.runCompilationPhases = function() {
 }
 World.prototype.getGeneratedCode = function() {
   if (this.legCode != null) {
-    $assert($globals.options.enableLeg, "options.enableLeg", "world.dart", 298, 14);
+    $assert($globals.options.enableLeg, "options.enableLeg", "world.dart", 299, 14);
     return this.legCode;
   }
   else {

@@ -79,26 +79,26 @@ class Value {
     // TODO(jmesserly): try to get rid of this code path. We're generating a
     // synthetic != on Object (see DefinedType._createNotEqualMember) already.
     // So it should be pretty easy to make this go away.
-    if (_typeIsVarOrParameterType && name == '\$ne') {
+    if (_typeIsVarOrParameterType && name == ':ne') {
       if (args.values.length != 1) {
         world.warning('wrong number of arguments for !=', node.span);
       }
       // Ensure the == operator is generated, and get its type
-      var eq = invoke(context, '\$eq', node, args, isDynamic);
-      world.gen.corejs.useOperator('\$ne');
+      var eq = invoke(context, ':eq', node, args, isDynamic);
+      world.gen.corejs.useOperator(':ne');
       return new Value(eq.type, '\$ne($code, ${args.values[0].code})',
           node.span);
     }
 
     // TODO(jmesserly): it'd be nice to remove these special cases
-    // We could create a $call (and $ne) in world members, and have
+    // We could create a :call (and :ne) in world members, and have
     // those guys handle the canInvoke/Invoke logic.
 
     // Note: this check is a little different than the one in canInvoke, because
-    // sometimes we need to call dynamically even if we found the $call method
+    // sometimes we need to call dynamically even if we found the :call method
     // statically.
 
-    if (name == '\$call') {
+    if (name == ':call') {
       if (isType) {
         world.error('must use "new" or "const" to construct a new instance',
             node.span);
@@ -118,11 +118,11 @@ class Value {
 
   bool canInvoke(MethodGenerator context, String name, Arguments args) {
     // TODO(jimhug): The != method is weird - understand it better.
-    if (_typeIsVarOrParameterType && name == '\$ne') {
+    if (_typeIsVarOrParameterType && name == ':ne') {
       return true;
     }
 
-    if (type.isVarOrFunction && name == '\$call') {
+    if (type.isVarOrFunction && name == ':call') {
       return true;
     }
 
@@ -513,26 +513,6 @@ function \$assert_${toType.name}(x) {
     // Finally, invoke noSuchMethod
     return _resolveMember(context, 'noSuchMethod', node).invoke(
         context, node, this, new Arguments(null, noSuchArgs));
-  }
-
-  Value invokeSpecial(String name, Arguments args, Type returnType) {
-    assert(name.startsWith('\$'));
-    assert(!args.hasNames);
-    // TODO(jimhug): We need to do this a little bit more like get and set on
-    // properties.  We should check the set of members for something
-    // like "requiresNativeIndexer" and "requiresDartIndexer" to
-    // decide on a strategy.
-
-    var argsString = args.getCode();
-    // Most operator calls need to be emitted as function calls, so we don't
-    // box numbers accidentally. Indexing is the exception.
-    if (name == '\$index' || name == '\$setindex') {
-      return new Value(returnType, '$code.$name($argsString)', span);
-    } else {
-      if (argsString.length > 0) argsString = ', $argsString';
-      world.gen.corejs.useOperator(name);
-      return new Value(returnType, '$name($code$argsString)', span);
-    }
   }
 }
 

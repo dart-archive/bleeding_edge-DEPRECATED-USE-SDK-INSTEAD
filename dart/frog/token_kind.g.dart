@@ -519,52 +519,52 @@ class TokenKind {
 
   static String rawOperatorFromMethod(String name) {
     switch(name) {
-      case '\$bit_not': return '~';
-      case '\$bit_or': return '|';
-      case '\$bit_xor': return '^';
-      case '\$bit_and': return '&';
-      case '\$shl': return '<<';
-      case '\$sar': return '>>';
-      case '\$shr': return '>>>';
-      case '\$add': return '+';
-      case '\$sub': return '-';
-      case '\$mul': return '*';
-      case '\$div': return '/';
-      case '\$truncdiv': return '~/';
-      case '\$mod': return '%';
-      case '\$eq': return '==';
-      case '\$lt': return '<';
-      case '\$gt': return '>';
-      case '\$lte': return '<=';
-      case '\$gte': return '>=';
-      case '\$index': return '[]';
-      case '\$setindex': return '[]=';
-      case '\$ne': return '!=';
+      case ':bit_not': return '~';
+      case ':bit_or': return '|';
+      case ':bit_xor': return '^';
+      case ':bit_and': return '&';
+      case ':shl': return '<<';
+      case ':sar': return '>>';
+      case ':shr': return '>>>';
+      case ':add': return '+';
+      case ':sub': return '-';
+      case ':mul': return '*';
+      case ':div': return '/';
+      case ':truncdiv': return '~/';
+      case ':mod': return '%';
+      case ':eq': return '==';
+      case ':lt': return '<';
+      case ':gt': return '>';
+      case ':lte': return '<=';
+      case ':gte': return '>=';
+      case ':index': return '[]';
+      case ':setindex': return '[]=';
+      case ':ne': return '!=';
     }
   }
 
   static String binaryMethodName(int kind) {
     switch(kind) {
-      case BIT_NOT: return '\$bit_not';
-      case BIT_OR: return '\$bit_or';
-      case BIT_XOR: return '\$bit_xor';
-      case BIT_AND: return '\$bit_and';
-      case SHL: return '\$shl';
-      case SAR: return '\$sar';
-      case SHR: return '\$shr';
-      case ADD: return '\$add';
-      case SUB: return '\$sub';
-      case MUL: return '\$mul';
-      case DIV: return '\$div';
-      case TRUNCDIV: return '\$truncdiv';
-      case MOD: return '\$mod';
-      case EQ: return '\$eq';
-      case LT: return '\$lt';
-      case GT: return '\$gt';
-      case LTE: return '\$lte';
-      case GTE: return '\$gte';
-      case INDEX: return '\$index';
-      case SETINDEX: return '\$setindex';
+      case BIT_NOT: return ':bit_not';
+      case BIT_OR: return ':bit_or';
+      case BIT_XOR: return ':bit_xor';
+      case BIT_AND: return ':bit_and';
+      case SHL: return ':shl';
+      case SAR: return ':sar';
+      case SHR: return ':shr';
+      case ADD: return ':add';
+      case SUB: return ':sub';
+      case MUL: return ':mul';
+      case DIV: return ':div';
+      case TRUNCDIV: return ':truncdiv';
+      case MOD: return ':mod';
+      case EQ: return ':eq';
+      case LT: return ':lt';
+      case GT: return ':gt';
+      case LTE: return ':lte';
+      case GTE: return ':gte';
+      case INDEX: return ':index';
+      case SETINDEX: return ':setindex';
     }
   }
 

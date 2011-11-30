@@ -229,6 +229,7 @@ class World {
 
   /** Ensures that identifiers are legal in the generated JS. */
   String toJsIdentifier(String name) {
+    if (name == null) return null;
     if (_jsKeywords == null) {
       // TODO(jmesserly): this doesn't work if I write "new Set<String>.from"
       // List of JS reserved words.
@@ -245,8 +246,8 @@ class World {
     if (_jsKeywords.contains(name)) {
       return name + '_';
     } else {
-      // regexs here?  Is it worth checking all names - or just libraries?
-      return name;
+      // regexs for better perf?
+      return name.replaceAll(@'$', @'$$').replaceAll(':', @'$');
     }
   }
 

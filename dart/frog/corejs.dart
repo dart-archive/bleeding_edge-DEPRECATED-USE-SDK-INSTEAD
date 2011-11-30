@@ -50,7 +50,7 @@ class CoreJs {
 
     var code;
     switch (name) {
-      case '\$ne':
+      case ':ne':
         code = @"""
 function $ne(x, y) {
   if (x == null) return y != null;
@@ -61,7 +61,7 @@ function $ne(x, y) {
 }""";
         break;
 
-      case '\$eq':
+      case ':eq':
         code = @"""
 function $eq(x, y) {
   if (x == null) return y == null;
@@ -74,14 +74,14 @@ function $eq(x, y) {
 Object.prototype.$eq = function(other) { return this === other; }""";
         break;
 
-      case '\$bit_not':
+      case ':bit_not':
         code = @"""
 function $bit_not(x) {
   return (typeof(x) == 'number') ? ~x : x.$bit_not();
 }""";
         break;
 
-      case '\$negate':
+      case ':negate':
         code = @"""
 function $negate(x) {
   return (typeof(x) == 'number') ? -x : x.$negate();
@@ -89,7 +89,7 @@ function $negate(x) {
         break;
 
       // This relies on JS's string "+" to match Dart's.
-      case '\$add':
+      case ':add':
         code = @"""
 function $add(x, y) {
   return ((typeof(x) == 'number' && typeof(y) == 'number') ||
@@ -98,7 +98,7 @@ function $add(x, y) {
 }""";
         break;
 
-      case '\$truncdiv':
+      case ':truncdiv':
         useThrow = true;
         code = @"""
 function $truncdiv(x, y) {
@@ -112,7 +112,7 @@ function $truncdiv(x, y) {
 }""";
         break;
 
-      case '\$mod':
+      case ':mod':
         code = @"""
 function $mod(x, y) {
   if (typeof(x) == 'number' && typeof(y) == 'number') {
@@ -136,10 +136,11 @@ function $mod(x, y) {
       default:
         // All of the other helpers are generated the same way
         var op = TokenKind.rawOperatorFromMethod(name);
+        var jsname = world.toJsIdentifier(name);
         code = """
-function ${name}(x, y) {
+function $jsname(x, y) {
   return (typeof(x) == 'number' && typeof(y) == 'number')
-    ? x ${op} y : x.${name}(y);
+    ? x $op y : x.$jsname(y);
 }""";
         break;
     }
