@@ -10,7 +10,7 @@ class SamplesTestSuite extends StandardTestSuite {
   SamplesTestSuite(Map configuration)
       : super(configuration,
               "samples/tests/samples/src",
-              ["tests/standalone/samples.status"]);
+              ["samples/tests/samples/samples.status"]);
 
   void listRecursively() => true;
 }
