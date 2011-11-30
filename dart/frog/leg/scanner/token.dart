@@ -21,8 +21,8 @@ final int COMMA_TOKEN = $COMMA;
 final int EQ_TOKEN = $EQ;
 final int GT_TOKEN = $GT;
 final int HASH_TOKEN = $HASH;
-final int LBRACE_TOKEN = $LBRACE;
-final int LBRACKET_TOKEN = $LBRACKET;
+final int OPEN_CURLY_BRACKET_TOKEN = $OPEN_CURLY_BRACKET;
+final int OPEN_SQUARE_BRACKET_TOKEN = $OPEN_SQUARE_BRACKET;
 final int LPAREN_TOKEN = $LPAREN;
 // TODO(ahe): Clean this up. Adding 128 is safe because all the $FOO
 // variables are below 127 (7bit ASCII).
@@ -32,8 +32,8 @@ final int MINUS_TOKEN = $MINUS;
 final int PERIOD_TOKEN = $PERIOD;
 final int PLUS_TOKEN = $PLUS;
 final int QUESTION_TOKEN = $QUESTION;
-final int RBRACE_TOKEN = $RBRACE;
-final int RBRACKET_TOKEN = $RBRACKET;
+final int CLOSE_CURLY_BRACKET_TOKEN = $CLOSE_CURLY_BRACKET;
+final int CLOSE_SQUARE_BRACKET_TOKEN = $CLOSE_SQUARE_BRACKET;
 final int RPAREN_TOKEN = $RPAREN;
 final int SEMICOLON_TOKEN = $SEMICOLON;
 final int SLASH_TOKEN = $SLASH;

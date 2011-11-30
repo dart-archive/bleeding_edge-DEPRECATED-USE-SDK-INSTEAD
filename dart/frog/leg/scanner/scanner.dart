@@ -54,7 +54,7 @@ class AbstractScanner<T> implements Scanner {
       return tokenizeKeywordOrIdentifier(next);
     }
 
-    if (($A <= next && next <= $Z) || next === $_ || next === $DOLLAR) {
+    if (($A <= next && next <= $Z) || next === $_ || next === $$) {
       return tokenizeIdentifier(next, byteOffset);
     }
 
@@ -102,8 +102,8 @@ class AbstractScanner<T> implements Scanner {
       return tokenizeCaret(next);
     }
 
-    if (next === $LBRACKET) {
-      return tokenizeOpenBracket(next);
+    if (next === $OPEN_SQUARE_BRACKET) {
+      return tokenizeOpenSquareBracket(next);
     }
 
     if (next === $TILDE) {
@@ -149,8 +149,9 @@ class AbstractScanner<T> implements Scanner {
       return advance();
     }
 
-    if (next === $RBRACKET) {
-      appendEndGroup(RBRACKET_TOKEN, "]", LBRACKET_TOKEN);
+    if (next === $CLOSE_SQUARE_BRACKET) {
+      appendEndGroup(CLOSE_SQUARE_BRACKET_TOKEN, "]",
+                     OPEN_SQUARE_BRACKET_TOKEN);
       return advance();
     }
 
@@ -159,13 +160,13 @@ class AbstractScanner<T> implements Scanner {
       return advance();
     }
 
-    if (next === $LBRACE) {
-      appendBeginGroup(LBRACE_TOKEN, "{");
+    if (next === $OPEN_CURLY_BRACKET) {
+      appendBeginGroup(OPEN_CURLY_BRACKET_TOKEN, "{");
       return advance();
     }
 
-    if (next === $RBRACE) {
-      appendEndGroup(RBRACE_TOKEN, "}", LBRACE_TOKEN);
+    if (next === $CLOSE_CURLY_BRACKET) {
+      appendEndGroup(CLOSE_CURLY_BRACKET_TOKEN, "}", OPEN_CURLY_BRACKET_TOKEN);
       return advance();
     }
 
@@ -230,13 +231,13 @@ class AbstractScanner<T> implements Scanner {
     }
   }
 
-  int tokenizeOpenBracket(int next) {
+  int tokenizeOpenSquareBracket(int next) {
     // [ [] []=
     next = advance();
-    if (next === $RBRACKET) {
+    if (next === $CLOSE_SQUARE_BRACKET) {
       return select($EQ, "[]=", "[]");
     } else {
-      appendBeginGroup(LBRACKET_TOKEN, "[");
+      appendBeginGroup(OPEN_SQUARE_BRACKET_TOKEN, "[");
       return next;
     }
   }
@@ -523,7 +524,6 @@ class AbstractScanner<T> implements Scanner {
     }
   }
 
-
   int tokenizeKeywordOrIdentifier(int next) {
     KeywordState state = KeywordState.KEYWORD_STATE;
     int start = byteOffset;
@@ -537,7 +537,7 @@ class AbstractScanner<T> implements Scanner {
     if (($A <= next && next <= $Z) ||
         ($0 <= next && next <= $9) ||
         next === $_ ||
-        next === $DOLLAR) {
+        next === $$) {
       return tokenizeIdentifier(next, start);
     } else if (next < 128) {
       appendKeywordToken(state.keyword);
@@ -554,7 +554,7 @@ class AbstractScanner<T> implements Scanner {
           ($A <= next && next <= $Z) ||
           ($0 <= next && next <= $9) ||
           next === $_ ||
-          next === $DOLLAR) {
+          next === $$) {
         next = advance();
       } else if (next < 128) {
         if (isAscii) {

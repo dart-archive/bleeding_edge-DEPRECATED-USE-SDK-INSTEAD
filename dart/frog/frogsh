@@ -4019,7 +4019,7 @@ Parser.prototype.skipBlock = function(token) {
     return this.listener.expectedBlock(token);
   }
   var beginGroupToken = (token == null ? null : token.assert$BeginGroupToken());
-  $assert(beginGroupToken.endGroup == null || beginGroupToken.endGroup.kind === 125/*null.$RBRACE*/, "beginGroupToken.endGroup === null ||\n           beginGroupToken.endGroup.kind === $RBRACE", "parser.dart", 127, 12);
+  $assert(beginGroupToken.endGroup == null || beginGroupToken.endGroup.kind === 125/*null.$CLOSE_CURLY_BRACKET*/, "beginGroupToken.endGroup === null ||\n           beginGroupToken.endGroup.kind === $CLOSE_CURLY_BRACKET", "parser.dart", 127, 12);
   return beginGroupToken.endGroup;
 }
 Parser.prototype.skipFormals = function(token) {
@@ -4854,7 +4854,7 @@ AbstractScanner.prototype.bigSwitch = function(next) {
   if (97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
     return this.tokenizeKeywordOrIdentifier(next);
   }
-  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || next === 95/*null.$_*/ || next === 36/*null.$$*/) {
     return this.tokenizeIdentifier(next, this.get$byteOffset());
   }
   if (next === 60/*null.$LT*/) {
@@ -4890,8 +4890,8 @@ AbstractScanner.prototype.bigSwitch = function(next) {
   if (next === 94/*null.$CARET*/) {
     return this.tokenizeCaret(next);
   }
-  if (next === 91/*null.$LBRACKET*/) {
-    return this.tokenizeOpenBracket(next);
+  if (next === 91/*null.$OPEN_SQUARE_BRACKET*/) {
+    return this.tokenizeOpenSquareBracket(next);
   }
   if (next === 126/*null.$TILDE*/) {
     return this.tokenizeTilde(next);
@@ -4927,20 +4927,20 @@ AbstractScanner.prototype.bigSwitch = function(next) {
     this.appendStringToken(63/*null.QUESTION_TOKEN*/, "?");
     return this.advance();
   }
-  if (next === 93/*null.$RBRACKET*/) {
-    this.appendEndGroup(93/*null.RBRACKET_TOKEN*/, "]", 91/*null.LBRACKET_TOKEN*/);
+  if (next === 93/*null.$CLOSE_SQUARE_BRACKET*/) {
+    this.appendEndGroup(93/*null.CLOSE_SQUARE_BRACKET_TOKEN*/, "]", 91/*null.OPEN_SQUARE_BRACKET_TOKEN*/);
     return this.advance();
   }
   if (next === 96/*null.$BACKPING*/) {
     this.appendStringToken(96/*null.BACKPING_TOKEN*/, "`");
     return this.advance();
   }
-  if (next === 123/*null.$LBRACE*/) {
-    this.appendBeginGroup(123/*null.LBRACE_TOKEN*/, "{");
+  if (next === 123/*null.$OPEN_CURLY_BRACKET*/) {
+    this.appendBeginGroup(123/*null.OPEN_CURLY_BRACKET_TOKEN*/, "{");
     return this.advance();
   }
-  if (next === 125/*null.$RBRACE*/) {
-    this.appendEndGroup(125/*null.RBRACE_TOKEN*/, "}", 123/*null.LBRACE_TOKEN*/);
+  if (next === 125/*null.$CLOSE_CURLY_BRACKET*/) {
+    this.appendEndGroup(125/*null.CLOSE_CURLY_BRACKET_TOKEN*/, "}", 123/*null.OPEN_CURLY_BRACKET_TOKEN*/);
     return this.advance();
   }
   if (next === 47/*null.$SLASH*/) {
@@ -4992,13 +4992,13 @@ AbstractScanner.prototype.tokenizeTilde = function(next) {
     return next;
   }
 }
-AbstractScanner.prototype.tokenizeOpenBracket = function(next) {
+AbstractScanner.prototype.tokenizeOpenSquareBracket = function(next) {
   next = this.advance();
-  if (next === 93/*null.$RBRACKET*/) {
+  if (next === 93/*null.$CLOSE_SQUARE_BRACKET*/) {
     return this.select(61/*null.$EQ*/, "[]=", "[]");
   }
   else {
-    this.appendBeginGroup(91/*null.LBRACKET_TOKEN*/, "[");
+    this.appendBeginGroup(91/*null.OPEN_SQUARE_BRACKET_TOKEN*/, "[");
     return next;
   }
 }
@@ -5295,7 +5295,7 @@ AbstractScanner.prototype.tokenizeKeywordOrIdentifier = function(next) {
   if (state == null || !$notnull_bool(state.isLeaf())) {
     return this.tokenizeIdentifier(next, start);
   }
-  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$$*/) {
     return this.tokenizeIdentifier(next, start);
   }
   else if (next < 128) {
@@ -5310,7 +5310,7 @@ AbstractScanner.prototype.tokenizeIdentifier = function(next, start) {
   var $0;
   var isAscii = true;
   while (true) {
-    if ((97/*null.$a*/ <= next && next <= 122/*null.$z*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+    if ((97/*null.$a*/ <= next && next <= 122/*null.$z*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$$*/) {
       next = this.advance();
     }
     else if (next < 128) {
@@ -5449,7 +5449,7 @@ AbstractScanner_SourceString.prototype.bigSwitch = function(next) {
   if (97/*null.$a*/ <= next && next <= 122/*null.$z*/) {
     return this.tokenizeKeywordOrIdentifier(next);
   }
-  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || next === 95/*null.$_*/ || next === 36/*null.$$*/) {
     return this.tokenizeIdentifier(next, this.get$byteOffset());
   }
   if (next === 60/*null.$LT*/) {
@@ -5485,8 +5485,8 @@ AbstractScanner_SourceString.prototype.bigSwitch = function(next) {
   if (next === 94/*null.$CARET*/) {
     return this.tokenizeCaret(next);
   }
-  if (next === 91/*null.$LBRACKET*/) {
-    return this.tokenizeOpenBracket(next);
+  if (next === 91/*null.$OPEN_SQUARE_BRACKET*/) {
+    return this.tokenizeOpenSquareBracket(next);
   }
   if (next === 126/*null.$TILDE*/) {
     return this.tokenizeTilde(next);
@@ -5522,20 +5522,20 @@ AbstractScanner_SourceString.prototype.bigSwitch = function(next) {
     this.appendStringToken(63/*null.QUESTION_TOKEN*/, "?");
     return this.advance();
   }
-  if (next === 93/*null.$RBRACKET*/) {
-    this.appendEndGroup(93/*null.RBRACKET_TOKEN*/, "]", 91/*null.LBRACKET_TOKEN*/);
+  if (next === 93/*null.$CLOSE_SQUARE_BRACKET*/) {
+    this.appendEndGroup(93/*null.CLOSE_SQUARE_BRACKET_TOKEN*/, "]", 91/*null.OPEN_SQUARE_BRACKET_TOKEN*/);
     return this.advance();
   }
   if (next === 96/*null.$BACKPING*/) {
     this.appendStringToken(96/*null.BACKPING_TOKEN*/, "`");
     return this.advance();
   }
-  if (next === 123/*null.$LBRACE*/) {
-    this.appendBeginGroup(123/*null.LBRACE_TOKEN*/, "{");
+  if (next === 123/*null.$OPEN_CURLY_BRACKET*/) {
+    this.appendBeginGroup(123/*null.OPEN_CURLY_BRACKET_TOKEN*/, "{");
     return this.advance();
   }
-  if (next === 125/*null.$RBRACE*/) {
-    this.appendEndGroup(125/*null.RBRACE_TOKEN*/, "}", 123/*null.LBRACE_TOKEN*/);
+  if (next === 125/*null.$CLOSE_CURLY_BRACKET*/) {
+    this.appendEndGroup(125/*null.CLOSE_CURLY_BRACKET_TOKEN*/, "}", 123/*null.OPEN_CURLY_BRACKET_TOKEN*/);
     return this.advance();
   }
   if (next === 47/*null.$SLASH*/) {
@@ -5587,13 +5587,13 @@ AbstractScanner_SourceString.prototype.tokenizeTilde = function(next) {
     return next;
   }
 }
-AbstractScanner_SourceString.prototype.tokenizeOpenBracket = function(next) {
+AbstractScanner_SourceString.prototype.tokenizeOpenSquareBracket = function(next) {
   next = this.advance();
-  if (next === 93/*null.$RBRACKET*/) {
+  if (next === 93/*null.$CLOSE_SQUARE_BRACKET*/) {
     return this.select(61/*null.$EQ*/, "[]=", "[]");
   }
   else {
-    this.appendBeginGroup(91/*null.LBRACKET_TOKEN*/, "[");
+    this.appendBeginGroup(91/*null.OPEN_SQUARE_BRACKET_TOKEN*/, "[");
     return next;
   }
 }
@@ -5887,7 +5887,7 @@ AbstractScanner_SourceString.prototype.tokenizeKeywordOrIdentifier = function(ne
   if (state == null || !$notnull_bool(state.isLeaf())) {
     return this.tokenizeIdentifier(next, start);
   }
-  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+  if ((65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$$*/) {
     return this.tokenizeIdentifier(next, start);
   }
   else if (next < 128) {
@@ -5901,7 +5901,7 @@ AbstractScanner_SourceString.prototype.tokenizeKeywordOrIdentifier = function(ne
 AbstractScanner_SourceString.prototype.tokenizeIdentifier = function(next, start) {
   var isAscii = true;
   while (true) {
-    if ((97/*null.$a*/ <= next && next <= 122/*null.$z*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$DOLLAR*/) {
+    if ((97/*null.$a*/ <= next && next <= 122/*null.$z*/) || (65/*null.$A*/ <= next && next <= 90/*null.$Z*/) || (48/*null.$0*/ <= next && next <= 57/*null.$9*/) || next === 95/*null.$_*/ || next === 36/*null.$$*/) {
       next = this.advance();
     }
     else if (next < 128) {

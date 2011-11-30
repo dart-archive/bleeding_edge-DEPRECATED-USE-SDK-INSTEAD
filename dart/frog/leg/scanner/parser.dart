@@ -125,7 +125,7 @@ class Parser {
     }
     BeginGroupToken beginGroupToken = token;
     assert(beginGroupToken.endGroup === null ||
-           beginGroupToken.endGroup.kind === $RBRACE);
+           beginGroupToken.endGroup.kind === $CLOSE_CURLY_BRACKET);
     return beginGroupToken.endGroup;
   }
 
