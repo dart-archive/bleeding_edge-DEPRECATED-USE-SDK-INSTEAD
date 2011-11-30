@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model.info;
 
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.tools.core.model.SourceRange;
 
 /**
  * Instances of the class <code>DeclarationElementInfo</code> define the behavior of elements that
@@ -21,9 +22,25 @@ import com.google.dart.compiler.ast.Modifiers;
  */
 public class DeclarationElementInfo extends SourceElementWithChildrenInfo {
   /**
+   * The range in the source of the DartDoc associated with this info's element, or
+   * <code>null</code> if the element does not have any DartDoc associated with it.
+   */
+  private SourceRange dartDocRange;
+
+  /**
    * The modifiers associated with the declared element.
    */
   private Modifiers modifiers = Modifiers.NONE;
+
+  /**
+   * Return the range in the source of the DartDoc associated with this info's element, or
+   * <code>null</code> if the element does not have any DartDoc associated with it.
+   * 
+   * @return the range in the source of the DartDoc associated with this info's element
+   */
+  public SourceRange getDartDocRange() {
+    return dartDocRange;
+  }
 
   /**
    * Return the modifiers associated with the declared element.
@@ -32,6 +49,16 @@ public class DeclarationElementInfo extends SourceElementWithChildrenInfo {
    */
   public Modifiers getModifiers() {
     return modifiers;
+  }
+
+  /**
+   * Set the range in the source of the DartDoc associated with this info's element to the given
+   * range.
+   * 
+   * @param range the range in the source of the DartDoc associated with this info's element
+   */
+  public void setDartDocRange(SourceRange range) {
+    dartDocRange = range;
   }
 
   /**

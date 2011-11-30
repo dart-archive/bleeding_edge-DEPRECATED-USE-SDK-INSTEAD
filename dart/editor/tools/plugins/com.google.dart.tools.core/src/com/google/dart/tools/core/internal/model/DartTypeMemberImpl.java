@@ -13,8 +13,9 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
+import com.google.dart.tools.core.internal.model.info.DeclarationElementInfo;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
@@ -35,8 +36,14 @@ public abstract class DartTypeMemberImpl extends SourceReferenceImpl implements 
 
   @Override
   public SourceRange getDartDocRange() {
-    // TODO(devoncarew): implement
-    DartCore.notYetImplemented();
+    try {
+      DartElementInfo info = getElementInfo();
+      if (info instanceof DeclarationElementInfo) {
+        return ((DeclarationElementInfo) info).getSourceRange();
+      }
+    } catch (DartModelException exception) {
+      // Fall through to return null
+    }
     return null;
   }
 
