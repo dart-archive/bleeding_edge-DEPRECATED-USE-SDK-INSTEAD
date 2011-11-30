@@ -1514,7 +1514,7 @@ class MethodGenerator implements TreeVisitor {
         if (tmp.type.isVarOrObject) {
           // We matched this for sure; no need to keep going
           if (i + 1 < node.catches.length) {
-            world.warning('Unreachable catch clause', node.catches[i + 1]);
+            world.error('Unreachable catch clause', node.catches[i + 1].span);
           }
           if (i > 0) {
             // Close the else block

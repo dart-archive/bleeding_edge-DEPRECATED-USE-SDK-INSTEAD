@@ -14511,7 +14511,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
       this._popBlock();
       if ($notnull_bool(tmp.get$type().get$isVarOrObject())) {
         if (i + 1 < node.catches.length) {
-          $globals.world.warning('Unreachable catch clause', (($0 = node.catches.$index(i + 1)) == null ? null : $0.assert$SourceSpan()));
+          $globals.world.error('Unreachable catch clause', (($0 = node.catches.$index(i + 1).get$span()) == null ? null : $0.assert$SourceSpan()));
         }
         if (i > 0) {
           this.writer.exitBlock('}');
