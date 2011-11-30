@@ -189,14 +189,19 @@ files.
 For development, we require that the Eclipse installation directory have a "libraries" directory
 containing the bundled dart:<name> libraries (e.g. dart:core). To build this directory...
 
-1) Right click on editor/build/build_rcp.xml
-2) Select "Run As > Ant Build..."
-3) Click the "Targets" tab and make sure only the "setupDevWorkspace" target is checked
-4) Click the "JRE" tab and select "Run in the same JRE as the workspace"
-5) Click "Run"
+1) Setup and run the RCP build locally using the directions at dart/editor/build/README.txt.
+2) In Eclipse, right click on editor/build/build_rcp.xml
+3) Select "Run As > Ant Build..."
+4) Click the "Targets" tab and make sure only the "setupDevWorkspace" target is checked
+5) Click the "JRE" tab and select "Run in the same JRE as the workspace"
+6) Click "Run"
 
 Alternately, you can run the Ant script outside Eclipse
 by defining the "eclipse.home" property to point to your Eclipse installation
+
+Finally, if you have any of the com.google.dart.library.* projects in your
+workspace (you may have these projects if you setup the workspace before
+libraries were built), remove or close them.
 
 ====================================
   Launching the Dart Editor
