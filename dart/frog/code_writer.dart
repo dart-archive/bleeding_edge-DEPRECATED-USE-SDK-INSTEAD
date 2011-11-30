@@ -36,7 +36,7 @@ class CodeWriter {
 
     if (_pendingIndent) _indent();
     // TODO(jimhug): Check perf consequences of this split.
-    if (text.indexOf('\n', 0) != -1) {
+    if (text.indexOf('\n') != -1) {
       var lines = text.split('\n');
       for (int i = 0; i < lines.length - 1; i++) {
         writeln(lines[i]);

@@ -58,7 +58,7 @@ Function.prototype.$genStub = function(argsLength, names) {
   for (var i = 0; i < argsNamed; i++) {
     var name = names[i];
     a[i + argsBare] = name;
-    var j = this.$optional.indexOf(name, 0);
+    var j = this.$optional.indexOf(name);
     if (j < 0 || j >= paramsNamed) {
       return $throwArgMismatch;
     } else if (lastParameterIndex && lastParameterIndex > j) {
@@ -699,8 +699,8 @@ Object.prototype.hasNext$0 = function() {
 Object.prototype.hashCode$0 = function() {
   return this.noSuchMethod("hashCode", []);
 };
-Object.prototype.indexOf$2 = function($0, $1) {
-  return this.noSuchMethod("indexOf", [$0, $1]);
+Object.prototype.indexOf$1 = function($0) {
+  return this.noSuchMethod("indexOf", [$0]);
 };
 Object.prototype.instanceOf$3$isTrue$forceCheck = function($0, $1, $2, isTrue, forceCheck) {
   return this.noSuchMethod("instanceOf", [$0, $1, $2, isTrue, forceCheck]);
@@ -1157,9 +1157,7 @@ ListFactory.prototype.filter$1 = function($0) {
 ListFactory.prototype.forEach$1 = function($0) {
   return this.forEach(to$call$1($0));
 };
-ListFactory.prototype.indexOf$2 = function($0, $1) {
-  return this.indexOf($0, $assert_num($1));
-};
+ListFactory.prototype.indexOf$1 = ListFactory.prototype.indexOf;
 ListFactory.prototype.isEmpty$0 = ListFactory.prototype.isEmpty;
 ListFactory.prototype.iterator$0 = ListFactory.prototype.iterator;
 ListFactory.prototype.last$0 = ListFactory.prototype.last;
@@ -2513,8 +2511,8 @@ StringImplementation.prototype.endsWith$1 = function($0) {
   return this.endsWith($assert_String($0));
 };
 StringImplementation.prototype.hashCode$0 = StringImplementation.prototype.hashCode;
-StringImplementation.prototype.indexOf$2 = function($0, $1) {
-  return this.indexOf($assert_String($0), $assert_num($1));
+StringImplementation.prototype.indexOf$1 = function($0) {
+  return this.indexOf($assert_String($0));
 };
 StringImplementation.prototype.isEmpty$0 = StringImplementation.prototype.isEmpty;
 StringImplementation.prototype.replaceAll$2 = function($0, $1) {
@@ -12896,7 +12894,7 @@ CodeWriter.prototype.write = function(text) {
   var $0;
   if (text.length == 0) return;
   if ($notnull_bool(this._pendingIndent)) this._indent();
-  if (text.indexOf('\n', 0) != -1) {
+  if (text.indexOf('\n') != -1) {
     var lines = text.split('\n');
     for (var i = 0;
      i < lines.length - 1; i++) {
@@ -13019,7 +13017,7 @@ CoreJs.prototype.generate = function(w) {
   this.writer = w;
   if ($notnull_bool(this.useGenStub)) {
     this.useThrow = true;
-    w.writeln("/**\n * Generates a dynamic call stub for a function.\n * Our goal is to create a stub method like this on-the-fly:\n *   function($0, $1, capture) { return this($0, $1, true, capture); }\n *\n * This stub then replaces the dynamic one on Function, with one that is\n * specialized for that particular function, taking into account its default\n * arguments.\n */\nFunction.prototype.$genStub = function(argsLength, names) {\n  // Fast path: if no named arguments and arg count matches\n  if (this.length == argsLength && !names) {\n    return this;\n  }\n\n  function $throwArgMismatch() {\n    // TODO(jmesserly): better error message\n    $throw(new ClosureArgumentMismatchException());\n  }\n\n  var paramsNamed = this.$optional ? (this.$optional.length / 2) : 0;\n  var paramsBare = this.length - paramsNamed;\n  var argsNamed = names ? names.length : 0;\n  var argsBare = argsLength - argsNamed;\n\n  // Check we got the right number of arguments\n  if (argsBare < paramsBare || argsLength > this.length ||\n      argsNamed > paramsNamed) {\n    return $throwArgMismatch;\n  }\n\n  // First, fill in all of the default values\n  var p = new Array(paramsBare);\n  if (paramsNamed) {\n    p = p.concat(this.$optional.slice(paramsNamed));\n  }\n  // Fill in positional args\n  var a = new Array(argsLength);\n  for (var i = 0; i < argsBare; i++) {\n    p[i] = a[i] = '$' + i;\n  }\n  // Then overwrite with supplied values for optional args\n  var lastParameterIndex;\n  var namesInOrder = true;\n  for (var i = 0; i < argsNamed; i++) {\n    var name = names[i];\n    a[i + argsBare] = name;\n    var j = this.$optional.indexOf(name, 0);\n    if (j < 0 || j >= paramsNamed) {\n      return $throwArgMismatch;\n    } else if (lastParameterIndex && lastParameterIndex > j) {\n      namesInOrder = false;\n    }\n    p[j + paramsBare] = name;\n    lastParameterIndex = j;\n  }\n\n  if (this.length == argsLength && namesInOrder) {\n    // Fast path #2: named arguments, but they're in order.\n    return this;\n  }\n\n  // Note: using Function instead of 'eval' to get a clean scope.\n  // TODO(jmesserly): evaluate the performance of these stubs.\n  var f = 'function(' + a.join(',') + '){return $f(' + p.join(',') + ');}';\n  return new Function('$f', 'return ' + f + '').call(null, this);\n}");
+    w.writeln("/**\n * Generates a dynamic call stub for a function.\n * Our goal is to create a stub method like this on-the-fly:\n *   function($0, $1, capture) { return this($0, $1, true, capture); }\n *\n * This stub then replaces the dynamic one on Function, with one that is\n * specialized for that particular function, taking into account its default\n * arguments.\n */\nFunction.prototype.$genStub = function(argsLength, names) {\n  // Fast path: if no named arguments and arg count matches\n  if (this.length == argsLength && !names) {\n    return this;\n  }\n\n  function $throwArgMismatch() {\n    // TODO(jmesserly): better error message\n    $throw(new ClosureArgumentMismatchException());\n  }\n\n  var paramsNamed = this.$optional ? (this.$optional.length / 2) : 0;\n  var paramsBare = this.length - paramsNamed;\n  var argsNamed = names ? names.length : 0;\n  var argsBare = argsLength - argsNamed;\n\n  // Check we got the right number of arguments\n  if (argsBare < paramsBare || argsLength > this.length ||\n      argsNamed > paramsNamed) {\n    return $throwArgMismatch;\n  }\n\n  // First, fill in all of the default values\n  var p = new Array(paramsBare);\n  if (paramsNamed) {\n    p = p.concat(this.$optional.slice(paramsNamed));\n  }\n  // Fill in positional args\n  var a = new Array(argsLength);\n  for (var i = 0; i < argsBare; i++) {\n    p[i] = a[i] = '$' + i;\n  }\n  // Then overwrite with supplied values for optional args\n  var lastParameterIndex;\n  var namesInOrder = true;\n  for (var i = 0; i < argsNamed; i++) {\n    var name = names[i];\n    a[i + argsBare] = name;\n    var j = this.$optional.indexOf(name);\n    if (j < 0 || j >= paramsNamed) {\n      return $throwArgMismatch;\n    } else if (lastParameterIndex && lastParameterIndex > j) {\n      namesInOrder = false;\n    }\n    p[j + paramsBare] = name;\n    lastParameterIndex = j;\n  }\n\n  if (this.length == argsLength && namesInOrder) {\n    // Fast path #2: named arguments, but they're in order.\n    return this;\n  }\n\n  // Note: using Function instead of 'eval' to get a clean scope.\n  // TODO(jmesserly): evaluate the performance of these stubs.\n  var f = 'function(' + a.join(',') + '){return $f(' + p.join(',') + ');}';\n  return new Function('$f', 'return ' + f + '').call(null, this);\n}");
   }
   if ($notnull_bool(this.useStackTraceOf)) {
     w.writeln("function $stackTraceOf(e) {\n  // TODO(jmesserly): we shouldn't be relying on the e.stack property.\n  // Need to mangle it.\n  return  (e && e.stack) ? e.stack : null;\n}");
@@ -15393,7 +15391,7 @@ Library.prototype.resolve = function() {
     if (index >= 0) {
       this.name = this.name.substring($assert_num(index + 1));
     }
-    index = this.name.indexOf('.', 0);
+    index = this.name.indexOf('.');
     if (index > 0) {
       this.name = this.name.substring(0, $assert_num(index));
     }
@@ -15506,7 +15504,7 @@ _LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
       if (node.arguments.length > 2 || node.arguments.length == 2 && $notnull_bool(prefix == null)) {
         $globals.world.error('expected at most one "name" argument and one optional "prefix"' + (' but found ' + node.arguments.length), node.span);
       }
-      else if ($notnull_bool($ne(prefix, null)) && prefix.indexOf$2('.', 0) >= 0) {
+      else if ($notnull_bool($ne(prefix, null)) && prefix.indexOf$1('.') >= 0) {
         $globals.world.error('library prefix canot contain "."', node.span);
       }
       else if ($notnull_bool(this.seenSource) || $notnull_bool(this.seenResource)) {
@@ -23553,10 +23551,10 @@ GlobalValue.prototype.compareTo = function(other) {
   if ($eq(other, this)) {
     return 0;
   }
-  else if (this.dependencies.indexOf(other, 0) >= 0) {
+  else if (this.dependencies.indexOf(other) >= 0) {
     return 1;
   }
-  else if (other.dependencies.indexOf(this, 0) >= 0) {
+  else if (other.dependencies.indexOf(this) >= 0) {
     return -1;
   }
   else if (this.dependencies.length > other.dependencies.length) {

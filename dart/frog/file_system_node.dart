@@ -47,7 +47,7 @@ class NodeFileSystem implements FileSystem {
         // Ugly hack. We only want to catch ENOENT exceptions from fs.statSync
         // which means the path we're trying doesn't exist. Since this is coming
         // from node, we can't check the exception's type.
-        if (e.toString().indexOf('ENOENT', 0) != -1) break;
+        if (e.toString().indexOf('ENOENT') != -1) break;
 
         // Re-throw any other exceptions.
         throw e;

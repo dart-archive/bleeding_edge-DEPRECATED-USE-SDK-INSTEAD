@@ -25,8 +25,8 @@ class StringImplementation implements String native "String" {
   '''if (other.length > this.length) return false;
   return other == this.substring(0, other.length);''';
 
-  int indexOf(String other, int startIndex) native;
-  int lastIndexOf(String other, int fromIndex) native;
+  int indexOf(String other, [int start]) native;
+  int lastIndexOf(String other, [int start]) native;
 
   bool isEmpty() => length == 0;
 

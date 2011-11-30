@@ -693,9 +693,9 @@ class GlobalValue extends Value implements Comparable {
     // order by dependencies, o.w. by name
     if (other == this) {
       return 0;
-    } else if (dependencies.indexOf(other, 0) >= 0) {
+    } else if (dependencies.indexOf(other) >= 0) {
       return 1;
-    } else if (other.dependencies.indexOf(this, 0) >= 0) {
+    } else if (other.dependencies.indexOf(this) >= 0) {
       return -1;
     } else if (dependencies.length > other.dependencies.length) {
       return 1;

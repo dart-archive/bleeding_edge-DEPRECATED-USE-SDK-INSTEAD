@@ -286,7 +286,7 @@ Function.prototype.$genStub = function(argsLength, names) {
   for (var i = 0; i < argsNamed; i++) {
     var name = names[i];
     a[i + argsBare] = name;
-    var j = this.$optional.indexOf(name, 0);
+    var j = this.$optional.indexOf(name);
     if (j < 0 || j >= paramsNamed) {
       return $throwArgMismatch;
     } else if (lastParameterIndex && lastParameterIndex > j) {

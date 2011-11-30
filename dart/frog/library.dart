@@ -263,7 +263,7 @@ class Library extends Element {
       if (index >= 0) {
         name = name.substring(index+1);
       }
-      index = name.indexOf('.', 0);
+      index = name.indexOf('.');
       if (index > 0) {
         name = name.substring(0, index);
       }
@@ -369,7 +369,7 @@ class _LibraryVisitor implements TreeVisitor {
           world.error(
               'expected at most one "name" argument and one optional "prefix"'
               + ' but found ${node.arguments.length}', node.span);
-        } else if (prefix != null && prefix.indexOf('.', 0) >= 0) {
+        } else if (prefix != null && prefix.indexOf('.') >= 0) {
           world.error('library prefix canot contain "."', node.span);
         } else if (seenSource || seenResource) {
           world.error('#imports must come before any #source or #resource',

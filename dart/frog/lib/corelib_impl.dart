@@ -56,8 +56,8 @@ class ListFactory<E> implements List<E> native "Array" {
   }
   void sort(int compare(E a, E b)) native;
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) native;
-  int indexOf(E element, int startIndex) native;
-  int lastIndexOf(E element, int startIndex) native;
+  int indexOf(E element, [int start]) native;
+  int lastIndexOf(E element, [int start]) native;
   void clear() { length = 0; }
 
   E removeLast() native "return this.pop();";
