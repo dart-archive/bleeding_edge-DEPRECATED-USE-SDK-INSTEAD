@@ -88,6 +88,8 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     commandsList.add(vmExecPath);
     commandsList.addAll(Arrays.asList(launchConfig.getVmArgumentsAsArray()));
+    // TODO(keertip): move to ui for setting dart vm arguments
+    commandsList.add("--new_gen_heap_size=64");
     commandsList.add(scriptPath);
     commandsList.addAll(Arrays.asList(launchConfig.getArgumentsAsArray()));
 
