@@ -118,6 +118,7 @@ class Compiler implements Canceler, Logger {
   }
 
   reportWarning(Node node, var message) {}
+  reportError(Node node, var message) {}
 
   Script readScript(String filename) {
     unimplemented('Compiler.readScript');

@@ -10,24 +10,33 @@
 
 class WarningMessage {
   Node node;
-  String message;
+  Message message;
   WarningMessage(this.node, this.message);
 }
 
 class MockCompiler extends Compiler {
   List warnings;
+  List errors;
   Node parsedTree;
 
-  MockCompiler() : super(null), warnings = [] {
+  MockCompiler() : super(null), warnings = [], errors = [] {
     parseScript('lt() {} add() {}');
   }
 
   void reportWarning(Node node, var message) {
-    warnings.add(new WarningMessage(node, message.toString()));
+    warnings.add(new WarningMessage(node, message.message));
+  }
+
+  void reportError(Node node, var message) {
+    errors.add(new WarningMessage(node, message.message));
   }
 
   void clearWarnings() {
     warnings = [];
+  }
+
+  void clearErrors() {
+    errors = [];
   }
 
   resolveStatement(String text) {
@@ -71,11 +80,11 @@ createLocals(List variables) {
 }
 
 testLocals(List variables) {
-  ResolverVisitor visitor = new FullResolverVisitor(new Compiler(null));
+  MockCompiler compiler = new MockCompiler();
+  ResolverVisitor visitor = new FullResolverVisitor(compiler);
   Element element = visitor.visit(createLocals(variables));
   // A VariableDefinitions does not have an element.
   Expect.equals(null, element);
-  Expect.equals(variables.length, visitor.context.elements.length);
   Expect.equals(variables.length, visitor.mapping.map.length);
 
   for (final variable in variables) {
@@ -84,6 +93,7 @@ testLocals(List variables) {
     final element = visitor.visit(id);
     Expect.equals(element, visitor.context.elements[buildSourceString(name)]);
   }
+  return compiler;
 }
 
 main() {
@@ -115,14 +125,11 @@ testLocalsOne() {
   testLocals([["foo", false], ["bar", true], ["foobar", true]]);
   testLocals([["foo", true], ["bar", true], ["foobar", true]]);
 
-  String msg = '';
-  try {
-    testLocals([["foo", false], ["foo", false]]);
-  } catch (CompilerCancelledException ex) {
-    msg = ex.reason;
-  }
-  Expect.equals(msg,
-      new Message(MessageKind.DUPLICATE_DEFINITION, ['foo']).toString());
+  MockCompiler compiler = testLocals([["foo", false], ["foo", false]]);
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(
+      new Message(MessageKind.DUPLICATE_DEFINITION, ['foo']),
+      compiler.errors[0].message);
 }
 
 
@@ -258,10 +265,10 @@ testTypeAnnotation() {
   Expect.equals(1, compiler.warnings.length);
 
   Node warningNode = compiler.warnings[0].node;
-  String warningMessage = compiler.warnings[0].message;
 
-  Expect.equals(warningMessage,
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['Foo']).toString());
+  Expect.equals(
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['Foo']),
+      compiler.warnings[0].message);
   VariableDefinitions definition = compiler.parsedTree;
   Expect.equals(warningNode, definition.type);
   compiler.clearWarnings();
@@ -281,16 +288,15 @@ testTypeAnnotation() {
 testSuperclass() {
   MockCompiler compiler = new MockCompiler();
   compiler.parseScript("class Foo extends Bar {}");
-  String msg = '';
-  try {
-    compiler.resolveStatement("Foo bar;");
-  } catch (CompilerCancelledException ex) {
-    // TODO(ngeoffray): Once it's there, use error reporting framework.
-    msg = ex.reason;
-  }
-  Expect.equals(msg,
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['Bar']).toString());
+  compiler.resolveStatement("Foo bar;");
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['Bar']),
+      compiler.errors[0].message);
+  compiler.clearErrors();
 
+  compiler = new MockCompiler();
+  compiler.parseScript("class Foo extends Bar {}");
   compiler.parseScript("class Bar {}");
   Map mapping = compiler.resolveStatement("Foo bar;").map;
   Expect.equals(2, mapping.length);
@@ -306,29 +312,23 @@ testSuperclass() {
 testVarSuperclass() {
   MockCompiler compiler = new MockCompiler();
   compiler.parseScript("class Foo extends var {}");
-  String msg = '';
-  try {
-    compiler.resolveStatement("Foo bar;");
-  } catch (CompilerCancelledException ex) {
-    // TODO(ngeoffray): Once it's there, use error reporting framework.
-    msg = ex.reason;
-  }
-  Expect.equals(msg,
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['var']).toString());
+  compiler.resolveStatement("Foo bar;");
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['var']),
+      compiler.errors[0].message);
+  compiler.clearErrors();
 }
 
 testOneInterface() {
   MockCompiler compiler = new MockCompiler();
   compiler.parseScript("class Foo implements Bar {}");
-  String msg = '';
-  try {
-    compiler.resolveStatement("Foo bar;");
-  } catch (CompilerCancelledException ex) {
-    // TODO(ngeoffray): Once it's there, use error reporting framework.
-    msg = ex.reason;
-  }
-  Expect.equals(msg,
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['bar']).toString());
+  compiler.resolveStatement("Foo bar;");
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['bar']),
+      compiler.errors[0].message);
+  compiler.clearErrors();
 
   // Add the interface to the world and make sure everything is setup correctly.
   compiler.parseScript("interface Bar {}");

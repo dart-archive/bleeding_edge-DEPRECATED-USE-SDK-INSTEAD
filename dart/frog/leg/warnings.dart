@@ -53,6 +53,11 @@ class Message {
     }
     return message;
   }
+
+  bool operator==(other) {
+    if (other is !Message) return false;
+    return (kind == other.kind) && (toString() == other.toString());
+  }
 }
 
 class TypeWarning {

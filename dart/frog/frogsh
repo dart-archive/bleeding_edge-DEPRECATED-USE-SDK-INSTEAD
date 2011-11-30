@@ -444,9 +444,6 @@ Object.prototype.assert$List_int = function() {
 Object.prototype.assert$LiteralString = function() {
   $throw(new TypeError._internal$ctor(this, "LiteralString"));
 };
-Object.prototype.assert$Map_Node$Element = function() {
-  $throw(new TypeError._internal$ctor(this, "Map<Node, Element>"));
-};
 Object.prototype.assert$Map_String$Member = function() {
   $throw(new TypeError._internal$ctor(this, "Map<String, Member>"));
 };
@@ -515,6 +512,9 @@ Object.prototype.assert$StringBuffer = function() {
 };
 Object.prototype.assert$Token = function() {
   $throw(new TypeError._internal$ctor(this, "Token"));
+};
+Object.prototype.assert$TreeElements = function() {
+  $throw(new TypeError._internal$ctor(this, "TreeElements"));
 };
 Object.prototype.assert$TreeVisitor = function() {
   $throw(new TypeError._internal$ctor(this, "TreeVisitor"));
@@ -1286,7 +1286,6 @@ function ImmutableMap(keyValuePairs) {
     this._internal.$setindex(keyValuePairs.$index(i), keyValuePairs.$index(i + 1));
   }
 }
-ImmutableMap.prototype.assert$Map_Node$Element = function(){return this};
 ImmutableMap.prototype.assert$Map_String$Member = function(){return this};
 ImmutableMap.prototype.$index = function(key) {
   return this._internal.$index(key);
@@ -1405,7 +1404,6 @@ function HashMapImplementation() {
   this._values = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
 }
 HashMapImplementation.prototype.assert$HashMapImplementation = function(){return this};
-HashMapImplementation.prototype.assert$Map_Node$Element = function(){return this};
 HashMapImplementation.prototype.assert$Map_String$Member = function(){return this};
 HashMapImplementation.HashMapImplementation$from$factory = function(other) {
   var result = new HashMapImplementation();
@@ -1591,7 +1589,6 @@ function HashMapImplementation_E$E() {
   this._values = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
 }
 $inherits(HashMapImplementation_E$E, HashMapImplementation);
-HashMapImplementation_E$E.prototype.assert$Map_Node$Element = function(){return this};
 HashMapImplementation_E$E.prototype.assert$Map_String$Member = function(){return this};
 HashMapImplementation_E$E._computeLoadLimit = function(capacity) {
   return $truncdiv((capacity * 3), 4);
@@ -1728,37 +1725,30 @@ HashMapImplementation_E$E.prototype.containsKey = function(key) {
 // ********** Code for HashMapImplementation_Element$HInstruction **************
 function HashMapImplementation_Element$HInstruction() {}
 $inherits(HashMapImplementation_Element$HInstruction, HashMapImplementation);
-HashMapImplementation_Element$HInstruction.prototype.assert$Map_Node$Element = function(){$throw(new TypeError._internal$ctor(this, "Map<Node, Element>"))};
 HashMapImplementation_Element$HInstruction.prototype.assert$Map_String$Member = function(){$throw(new TypeError._internal$ctor(this, "Map<String, Member>"))};
 // ********** Code for HashMapImplementation_Element$HLocal **************
 function HashMapImplementation_Element$HLocal() {}
 $inherits(HashMapImplementation_Element$HLocal, HashMapImplementation);
-HashMapImplementation_Element$HLocal.prototype.assert$Map_Node$Element = function(){$throw(new TypeError._internal$ctor(this, "Map<Node, Element>"))};
 HashMapImplementation_Element$HLocal.prototype.assert$Map_String$Member = function(){$throw(new TypeError._internal$ctor(this, "Map<String, Member>"))};
 // ********** Code for HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V **************
 function HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V() {}
 $inherits(HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V, HashMapImplementation);
-HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V.prototype.assert$Map_Node$Element = function(){$throw(new TypeError._internal$ctor(this, "Map<Node, Element>"))};
 HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V.prototype.assert$Map_String$Member = function(){$throw(new TypeError._internal$ctor(this, "Map<String, Member>"))};
 // ********** Code for HashMapImplementation_String$EvaluatedValue **************
 function HashMapImplementation_String$EvaluatedValue() {}
 $inherits(HashMapImplementation_String$EvaluatedValue, HashMapImplementation);
-HashMapImplementation_String$EvaluatedValue.prototype.assert$Map_Node$Element = function(){$throw(new TypeError._internal$ctor(this, "Map<Node, Element>"))};
 HashMapImplementation_String$EvaluatedValue.prototype.assert$Map_String$Member = function(){$throw(new TypeError._internal$ctor(this, "Map<String, Member>"))};
 // ********** Code for HashMapImplementation_String$int **************
 function HashMapImplementation_String$int() {}
 $inherits(HashMapImplementation_String$int, HashMapImplementation);
-HashMapImplementation_String$int.prototype.assert$Map_Node$Element = function(){$throw(new TypeError._internal$ctor(this, "Map<Node, Element>"))};
 HashMapImplementation_String$int.prototype.assert$Map_String$Member = function(){$throw(new TypeError._internal$ctor(this, "Map<String, Member>"))};
 // ********** Code for HashMapImplementation_int$HInstruction **************
 function HashMapImplementation_int$HInstruction() {}
 $inherits(HashMapImplementation_int$HInstruction, HashMapImplementation);
-HashMapImplementation_int$HInstruction.prototype.assert$Map_Node$Element = function(){$throw(new TypeError._internal$ctor(this, "Map<Node, Element>"))};
 HashMapImplementation_int$HInstruction.prototype.assert$Map_String$Member = function(){$throw(new TypeError._internal$ctor(this, "Map<String, Member>"))};
 // ********** Code for HashMapImplementation_int$String **************
 function HashMapImplementation_int$String() {}
 $inherits(HashMapImplementation_int$String, HashMapImplementation);
-HashMapImplementation_int$String.prototype.assert$Map_Node$Element = function(){$throw(new TypeError._internal$ctor(this, "Map<Node, Element>"))};
 HashMapImplementation_int$String.prototype.assert$Map_String$Member = function(){$throw(new TypeError._internal$ctor(this, "Map<String, Member>"))};
 // ********** Code for HashSetImplementation **************
 function HashSetImplementation() {
@@ -1974,7 +1964,6 @@ function LinkedHashMapImplementation() {
   this._map = new HashMapImplementation();
   this._list = new DoubleLinkedQueue_KeyValuePair_K$V();
 }
-LinkedHashMapImplementation.prototype.assert$Map_Node$Element = function(){return this};
 LinkedHashMapImplementation.prototype.assert$Map_String$Member = function(){return this};
 LinkedHashMapImplementation.prototype.$setindex = function(key, value) {
   if (this._map.containsKey(key)) {
@@ -2054,17 +2043,14 @@ LinkedHashMapImplementation.prototype.remove$1 = LinkedHashMapImplementation.pro
 // ********** Code for LinkedHashMapImplementation_Element$String **************
 function LinkedHashMapImplementation_Element$String() {}
 $inherits(LinkedHashMapImplementation_Element$String, LinkedHashMapImplementation);
-LinkedHashMapImplementation_Element$String.prototype.assert$Map_Node$Element = function(){$throw(new TypeError._internal$ctor(this, "Map<Node, Element>"))};
 LinkedHashMapImplementation_Element$String.prototype.assert$Map_String$Member = function(){$throw(new TypeError._internal$ctor(this, "Map<String, Member>"))};
 // ********** Code for LinkedHashMapImplementation_Node$Element **************
 function LinkedHashMapImplementation_Node$Element() {}
 $inherits(LinkedHashMapImplementation_Node$Element, LinkedHashMapImplementation);
-LinkedHashMapImplementation_Node$Element.prototype.assert$Map_Node$Element = function(){return this};
 LinkedHashMapImplementation_Node$Element.prototype.assert$Map_String$Member = function(){$throw(new TypeError._internal$ctor(this, "Map<String, Member>"))};
 // ********** Code for LinkedHashMapImplementation_String$Keyword **************
 function LinkedHashMapImplementation_String$Keyword() {}
 $inherits(LinkedHashMapImplementation_String$Keyword, LinkedHashMapImplementation);
-LinkedHashMapImplementation_String$Keyword.prototype.assert$Map_Node$Element = function(){$throw(new TypeError._internal$ctor(this, "Map<Node, Element>"))};
 LinkedHashMapImplementation_String$Keyword.prototype.assert$Map_String$Member = function(){$throw(new TypeError._internal$ctor(this, "Map<String, Member>"))};
 // ********** Code for DoubleLinkedQueueEntry **************
 function DoubleLinkedQueueEntry(e) {
@@ -11799,6 +11785,9 @@ Compiler.prototype.getGeneratedCode = function() {
 Compiler.prototype.reportWarning = function(node, message) {
 
 }
+Compiler.prototype.reportError = function(node, message) {
+
+}
 Compiler.prototype.readScript = function(filename) {
   this.unimplemented('Compiler.readScript');
 }
@@ -11833,6 +11822,18 @@ CompilerCancelledException.prototype.toString = function() {
   return (this.reason != null) ? ('' + banner + ': ' + this.reason) : ('' + banner);
 }
 CompilerCancelledException.prototype.toString$0 = CompilerCancelledException.prototype.toString;
+// ********** Code for TreeElements **************
+function TreeElements() {
+  this.map = new LinkedHashMapImplementation();
+  // Initializers done
+}
+TreeElements.prototype.assert$TreeElements = function(){return this};
+TreeElements.prototype.$setindex = function(node, element) {
+  return this.map.$setindex(node, element);
+}
+TreeElements.prototype.$index = function(node) {
+  return this.map.$index(node);
+}
 // ********** Code for ResolverTask **************
 function ResolverTask(compiler) {
   this.toResolve = new DoubleLinkedQueue();
@@ -11856,7 +11857,7 @@ ResolverTask.prototype.resolve = function(tree) {
     }
     return visitor.mapping;
   })
-  )) == null ? null : $0.assert$Map_Node$Element());
+  )) == null ? null : $0.assert$TreeElements());
 }
 ResolverTask.prototype.resolveType = function(tree) {
   var $this = this; // closure support
@@ -11880,7 +11881,7 @@ ResolverTask.prototype.resolve$1 = function($0) {
 // ********** Code for ResolverVisitor **************
 function ResolverVisitor(compiler) {
   this.compiler = compiler;
-  this.mapping = new LinkedHashMapImplementation();
+  this.mapping = new TreeElements();
   this.context = new Scope(new TopScope(compiler.universe));
   // Initializers done
 }
@@ -11894,7 +11895,7 @@ ResolverVisitor.from$ctor.prototype = ResolverVisitor.prototype;
 ResolverVisitor.prototype.assert$Visitor = function(){return this};
 ResolverVisitor.prototype.error = function(node, kind, arguments) {
   var error = new ResolutionError(kind, (arguments == null ? null : arguments.assert$List_Type()));
-  this.compiler.cancel(error.toString());
+  this.compiler.reportError(node, error);
 }
 ResolverVisitor.prototype.warning = function(node, kind, arguments) {
   var warning = new ResolutionWarning(kind, (arguments == null ? null : arguments.assert$List_Type()));
@@ -12175,10 +12176,10 @@ ClassResolverVisitor.prototype.visitTypeAnnotation = function(node) {
   var name = node.typeName;
   var element = this.context.lookup(name.get$source());
   if (element == null) {
-    this.compiler.cancel(new ResolutionError(const$228/*MessageKind.CANNOT_RESOLVE_TYPE*/, [name]).toString());
+    this.compiler.reportError(node, new ResolutionError(const$228/*MessageKind.CANNOT_RESOLVE_TYPE*/, [name]));
   }
   else if (element.kind !== const$214/*ElementKind.CLASS*/) {
-    this.compiler.cancel(new ResolutionError(const$230/*MessageKind.NOT_A_TYPE*/, [name]).toString());
+    this.compiler.reportError(node, new ResolutionError(const$230/*MessageKind.NOT_A_TYPE*/, [name]));
   }
   else {
     this.compiler.resolver.toResolve.add(element);
@@ -12212,7 +12213,7 @@ VariableDefinitionsVisitor.prototype.get$kind = function() { return this.kind; }
 VariableDefinitionsVisitor.prototype.set$kind = function(value) { return this.kind = value; };
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 419, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 424, 12);
   if (node.receiver != null) {
     this.resolver.cancel(node, "receiver on a variable definition not implemented");
   }
@@ -12254,10 +12255,11 @@ ParametersVisitor.prototype.visitNodeList = function(node) {
   }
 }
 ParametersVisitor.prototype.visitVariableDefinitions = function(node) {
+  var $0;
   this.resolver.visit(node.type);
   var visitor = new VariableDefinitionsVisitor(node, this.resolver, const$232/*ElementKind.PARAMETER*/);
   visitor.visit(node.definitions);
-  return this.resolver.mapping.$index(node.definitions.get$nodes().get$head());
+  return this.resolver.mapping.$index((($0 = node.definitions.get$nodes().get$head()) == null ? null : $0.assert$Node()));
 }
 ParametersVisitor.prototype.visit = function(node) {
   return node.accept(this);
@@ -12758,6 +12760,10 @@ Message.prototype.toString = function() {
   }
   return this.message;
 }
+Message.prototype.$eq = function(other) {
+  if (!(other instanceof Message)) return false;
+  return $notnull_bool(($eq(this.kind, other.get$kind()))) && (this.toString() == other.toString$0());
+}
 Message.prototype.toString$0 = Message.prototype.toString;
 // ********** Code for TypeWarning **************
 function TypeWarning(kind, arguments) {
@@ -12831,6 +12837,9 @@ WorldCompiler.prototype.reportWarning = function(node, message) {
   var $0;
   this.world.warning(('' + message + '.'), (($0 = this.spanFromNode(node)) == null ? null : $0.assert$SourceSpan()));
 }
+WorldCompiler.prototype.reportError = function(node, message) {
+  this.cancel(message.toString$0(), node);
+}
 WorldCompiler.prototype.readScript = function(filename) {
   var text = $globals.world.files.readAll(filename);
   var sourceFile = new SourceFile(filename, text);
@@ -12884,6 +12893,7 @@ CodeWriter.prototype.comment = function(text) {
   }
 }
 CodeWriter.prototype.write = function(text) {
+  var $0;
   if (text.length == 0) return;
   if ($notnull_bool(this._pendingIndent)) this._indent();
   if (text.indexOf('\n', 0) != -1) {
@@ -22015,6 +22025,7 @@ lang_Type.prototype.isSubtypeOf = function(other) {
   return false;
 }
 lang_Type._isFunctionSubtypeOf = function(t, s) {
+  var $0;
   if (!$notnull_bool(s.returnType.get$isVoid()) && !$notnull_bool(s.returnType.isAssignable(t.returnType))) {
     return false;
   }
@@ -22860,6 +22871,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
   return this;
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
+  var $0;
   $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1157, 12);
   var jsnames = [];
   var names = [];
@@ -24231,6 +24243,7 @@ VarMethodSet.prototype.invoke = function(context, node, target, args) {
   return VarMember.prototype.invoke.call(this, context, node, target, args);
 }
 VarMethodSet.prototype._invokeMembers = function(context, node) {
+  var $0;
   if ($notnull_bool(this.invoked)) return;
   this.invoked = true;
   var hasObjectType = false;

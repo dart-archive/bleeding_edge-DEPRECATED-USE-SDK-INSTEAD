@@ -57,6 +57,10 @@ class WorldCompiler extends Compiler {
     world.warning('$message.', spanFromNode(node));
   }
 
+  reportError(Node node, var message) {
+    cancel(message.toString(), node);
+  }
+
   Script readScript(String filename) {
     String text = frog.world.files.readAll(filename);
     frog.SourceFile sourceFile = new frog.SourceFile(filename, text);

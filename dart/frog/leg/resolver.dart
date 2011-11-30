@@ -76,7 +76,7 @@ class ResolverVisitor implements Visitor<Element> {
 
   error(Node node, MessageKind kind, [arguments = const []]) {
     ResolutionError error  = new ResolutionError(kind, arguments);
-    compiler.cancel(error.toString());
+    compiler.reportError(node, error);
   }
 
   warning(Node node, MessageKind kind, [arguments = const []]) {
@@ -390,13 +390,11 @@ class ClassResolverVisitor extends AbstractVisitor<Type> {
     Identifier name = node.typeName;
     Element element = context.lookup(name.source);
     if (element === null) {
-      // TODO(ngeoffray): Should be a reportError.
-      compiler.cancel(
-          new ResolutionError(MessageKind.CANNOT_RESOLVE_TYPE, [name]).toString());
+      compiler.reportError(node,
+          new ResolutionError(MessageKind.CANNOT_RESOLVE_TYPE, [name]));
     } else if (element.kind !== ElementKind.CLASS) {
-      // TODO(ngeoffray): Should be a reportError.
-      compiler.cancel(
-          new ResolutionError(MessageKind.NOT_A_TYPE, [name]).toString());
+      compiler.reportError(node,
+          new ResolutionError(MessageKind.NOT_A_TYPE, [name]));
     } else {
       compiler.resolver.toResolve.add(element);
       // TODO(ngeoffray): Use type variables.
