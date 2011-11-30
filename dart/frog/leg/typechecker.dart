@@ -26,7 +26,6 @@ interface Type {}
 class SimpleType implements Type {
   final SourceString name;
   final Element element;
-  Type get returnType() => this; // TODO(karlklose): Evaluate this.
 
   const SimpleType(SourceString this.name, Element this.element);
   SimpleType.named(SourceString name)

@@ -543,6 +543,9 @@ Object.prototype.assert$UnaryExpression = function() {
 Object.prototype.assert$Value = function() {
   $throw(new TypeError._internal$ctor(this, "Value"));
 };
+Object.prototype.assert$ValueSet = function() {
+  $throw(new TypeError._internal$ctor(this, "ValueSet"));
+};
 Object.prototype.assert$ValueSetNode = function() {
   $throw(new TypeError._internal$ctor(this, "ValueSetNode"));
 };
@@ -783,6 +786,9 @@ Object.prototype.provideFieldSyntax$0 = function() {
 Object.prototype.providePropertySyntax$0 = function() {
   return this.noSuchMethod("providePropertySyntax", []);
 };
+Object.prototype.remove$1 = function($0) {
+  return this.noSuchMethod("remove", [$0]);
+};
 Object.prototype.removeLast$0 = function() {
   return this.noSuchMethod("removeLast", []);
 };
@@ -806,6 +812,9 @@ Object.prototype.resolveMember$1 = function($0) {
 };
 Object.prototype.resolveTypeParams$1 = function($0) {
   return this.noSuchMethod("resolveTypeParams", [$0]);
+};
+Object.prototype.rewrite$2 = function($0, $1) {
+  return this.noSuchMethod("rewrite", [$0, $1]);
 };
 Object.prototype.setDefinition$1 = function($0) {
   return this.noSuchMethod("setDefinition", [$0]);
@@ -1169,6 +1178,7 @@ ListFactory_KeywordState = ListFactory;
 ListFactory_String = ListFactory;
 ListFactory_T = ListFactory;
 ListFactory_V = ListFactory;
+ListFactory_ValueSet = ListFactory;
 ListFactory_ValueSetNode = ListFactory;
 ListFactory_int = ListFactory;
 // ********** Code for ListIterator **************
@@ -1317,6 +1327,7 @@ ImmutableMap.prototype.forEach$1 = function($0) {
 ImmutableMap.prototype.getKeys$0 = ImmutableMap.prototype.getKeys;
 ImmutableMap.prototype.getValues$0 = ImmutableMap.prototype.getValues;
 ImmutableMap.prototype.isEmpty$0 = ImmutableMap.prototype.isEmpty;
+ImmutableMap.prototype.remove$1 = ImmutableMap.prototype.remove;
 // ********** Code for NumImplementation **************
 NumImplementation = Number;
 NumImplementation.prototype.assert$NumImplementation = function(){return this};
@@ -1569,6 +1580,7 @@ HashMapImplementation.prototype.forEach$1 = function($0) {
 HashMapImplementation.prototype.getKeys$0 = HashMapImplementation.prototype.getKeys;
 HashMapImplementation.prototype.getValues$0 = HashMapImplementation.prototype.getValues;
 HashMapImplementation.prototype.isEmpty$0 = HashMapImplementation.prototype.isEmpty;
+HashMapImplementation.prototype.remove$1 = HashMapImplementation.prototype.remove;
 // ********** Code for HashMapImplementation_E$E **************
 function HashMapImplementation_E$E() {
   // Initializers done
@@ -1837,6 +1849,7 @@ HashSetImplementation.prototype.forEach$1 = function($0) {
 };
 HashSetImplementation.prototype.isEmpty$0 = HashSetImplementation.prototype.isEmpty;
 HashSetImplementation.prototype.iterator$0 = HashSetImplementation.prototype.iterator;
+HashSetImplementation.prototype.remove$1 = HashSetImplementation.prototype.remove;
 HashSetImplementation.prototype.some$1 = function($0) {
   return this.some(to$call$1($0));
 };
@@ -2037,6 +2050,7 @@ LinkedHashMapImplementation.prototype.forEach$1 = function($0) {
 LinkedHashMapImplementation.prototype.getKeys$0 = LinkedHashMapImplementation.prototype.getKeys;
 LinkedHashMapImplementation.prototype.getValues$0 = LinkedHashMapImplementation.prototype.getValues;
 LinkedHashMapImplementation.prototype.isEmpty$0 = LinkedHashMapImplementation.prototype.isEmpty;
+LinkedHashMapImplementation.prototype.remove$1 = LinkedHashMapImplementation.prototype.remove;
 // ********** Code for LinkedHashMapImplementation_Element$String **************
 function LinkedHashMapImplementation_Element$String() {}
 $inherits(LinkedHashMapImplementation_Element$String, LinkedHashMapImplementation);
@@ -8835,6 +8849,9 @@ HInstructionList.prototype.isEmpty$0 = HInstructionList.prototype.isEmpty;
 HInstructionList.prototype.last$0 = function() {
   return this.last();
 };
+HInstructionList.prototype.remove$1 = function($0) {
+  return this.remove(($0 == null ? null : $0.assert$HInstruction()));
+};
 // ********** Code for HBasicBlock **************
 function HBasicBlock() {
   this.status = 0/*HBasicBlock.STATUS_NEW*/
@@ -9062,8 +9079,14 @@ HBasicBlock.prototype.forEachPhi$1 = function($0) {
   return this.forEachPhi(to$call$1($0));
 };
 HBasicBlock.prototype.isExitBlock$0 = HBasicBlock.prototype.isExitBlock;
+HBasicBlock.prototype.remove$1 = function($0) {
+  return this.remove(($0 == null ? null : $0.assert$HInstruction()));
+};
 HBasicBlock.prototype.removePhi$1 = function($0) {
   return this.removePhi(($0 == null ? null : $0.assert$HPhi()));
+};
+HBasicBlock.prototype.rewrite$2 = function($0, $1) {
+  return this.rewrite(($0 == null ? null : $0.assert$HInstruction()), ($1 == null ? null : $1.assert$HInstruction()));
 };
 // ********** Code for HLoopInformation **************
 function HLoopInformation(header) {
@@ -10403,6 +10426,7 @@ SsaOptimizerTask.prototype.optimize = function(graph) {
     new SsaRedundantPhiEliminator().visitGraph(graph);
     new SsaDeadPhiEliminator().visitGraph(graph);
     new SsaGlobalValueNumberer($this.compiler).visitGraph(graph);
+    new SsaCodeMotion().visitGraph(graph);
     new SsaDeadCodeEliminator().visitGraph(graph);
     new SsaInstructionMerger().visitGraph(graph);
   })
@@ -10439,7 +10463,7 @@ SsaConstantFolder.prototype.visitInstruction = function(node) {
 SsaConstantFolder.prototype.visitBoolify = function(node) {
   var $0;
   var inputs = node.inputs;
-  $assert(inputs.length == 1, "inputs.length == 1", "optimize.dart", 56, 12);
+  $assert(inputs.length == 1, "inputs.length == 1", "optimize.dart", 57, 12);
   var input = (($0 = inputs.$index(0)) == null ? null : $0.assert$HInstruction());
   if ($notnull_bool(input.isBoolean())) return input;
   if (!$notnull_bool(input.isUnknown())) return new HLiteral(false);
@@ -10448,7 +10472,7 @@ SsaConstantFolder.prototype.visitBoolify = function(node) {
 SsaConstantFolder.prototype.visitNot = function(node) {
   var $0;
   var inputs = node.inputs;
-  $assert(inputs.length == 1, "inputs.length == 1", "optimize.dart", 66, 12);
+  $assert(inputs.length == 1, "inputs.length == 1", "optimize.dart", 67, 12);
   var input = (($0 = inputs.$index(0)) == null ? null : $0.assert$HInstruction());
   if ((input instanceof HLiteral)) {
     var literal = (input == null ? null : input.assert$HLiteral());
@@ -10471,7 +10495,7 @@ SsaConstantFolder.prototype.visitAdd = function(node) {
 SsaConstantFolder.prototype.visitRelational = function(node) {
   var $0;
   var inputs = node.inputs;
-  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 93, 12);
+  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 94, 12);
   if ($notnull_bool(inputs.$index(0).isLiteralNumber$0()) && $notnull_bool(inputs.$index(1).isLiteralNumber$0())) {
     var op1 = (($0 = inputs.$index(0)) == null ? null : $0.assert$HLiteral());
     var op2 = (($0 = inputs.$index(1)) == null ? null : $0.assert$HLiteral());
@@ -10533,7 +10557,7 @@ SsaTypePropagator.prototype.processWorklist = function() {
   while (!this.worklist.isEmpty()) {
     var id = $assert_num(this.worklist.removeLast());
     var instruction = (($0 = this.workmap.$index(id)) == null ? null : $0.assert$HInstruction());
-    $assert(instruction != null, "instruction !== null", "optimize.dart", 156, 14);
+    $assert(instruction != null, "instruction !== null", "optimize.dart", 157, 14);
     this.workmap.remove(id);
     if ($notnull_bool(instruction.updateType())) this.addUsersAndInputsToWorklist(instruction);
   }
@@ -10670,7 +10694,7 @@ SsaRedundantPhiEliminator.prototype.visitGraph = function(graph) {
   while (!worklist.isEmpty()) {
     var phi = (($0 = worklist.removeLast()) == null ? null : $0.assert$HPhi());
     if (!$notnull_bool(phi.isInBasicBlock())) continue;
-    $assert(phi.inputs.$index(0) !== phi, "phi.inputs[0] !== phi", "optimize.dart", 295, 14);
+    $assert(phi.inputs.$index(0) !== phi, "phi.inputs[0] !== phi", "optimize.dart", 296, 14);
     var candidate = (($0 = phi.inputs.$index(0)) == null ? null : $0.assert$HInstruction());
     for (var i = 1;
      i < phi.inputs.length; i++) {
@@ -10751,13 +10775,13 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
     var next = instruction.next;
     var flags = instruction.getChangesFlags();
     if (flags != 0) {
-      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 390, 16);
+      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 391, 16);
       values.kill(flags);
     }
     else if ($notnull_bool(instruction.useGvn())) {
       var other = values.lookup(instruction);
       if (other != null) {
-        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 395, 18);
+        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 396, 18);
         block.rewrite(instruction, other);
         block.remove(instruction);
       }
@@ -10772,7 +10796,7 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
    i < length; i++) {
     var dominated = (($0 = dominatedBlocks.$index(i)) == null ? null : $0.assert$HBasicBlock());
     var successorValues = (i == length - 1) ? values : values.copy();
-    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 415, 14);
+    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 416, 14);
     if (!$notnull_bool(successorValues.isEmpty()) && block.id + 1 < dominated.id) {
       this.visited.clear();
       var changesFlags = this.getChangesFlagsForDominatedBlock(block, dominated);
@@ -10799,7 +10823,7 @@ SsaGlobalValueNumberer.prototype.computeChangesFlags = function(graph) {
       changesFlags |= instruction.getChangesFlags();
       instruction = instruction.next;
     }
-    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 448, 14);
+    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 449, 14);
     this.blockChangesFlags.$setindex(id, changesFlags);
     if ($notnull_bool(block.isLoopHeader())) {
       ($0 = this.loopChangesFlags).$setindex(id, $0.$index(id) | changesFlags);
@@ -10825,6 +10849,73 @@ SsaGlobalValueNumberer.prototype.getChangesFlagsForDominatedBlock = function(dom
     }
   }
   return changesFlags;
+}
+// ********** Code for SsaCodeMotion **************
+function SsaCodeMotion() {
+  // Initializers done
+  HBaseVisitor.call(this);
+}
+$inherits(SsaCodeMotion, HBaseVisitor);
+SsaCodeMotion.prototype.get$values = function() { return this.values; };
+SsaCodeMotion.prototype.set$values = function(value) { return this.values = value; };
+SsaCodeMotion.prototype.visitGraph = function(graph) {
+  this.values = new ListFactory(graph.blocks.length);
+  for (var i = 0;
+   i < graph.blocks.length; i++) {
+    this.values.$setindex(graph.blocks.$index(i).get$id(), new ValueSet());
+  }
+  this.visitPostDominatorTree(graph);
+}
+SsaCodeMotion.prototype.visitBasicBlock = function(block) {
+  var $0;
+  var successors = block.successors;
+  if (successors.length != 0) {
+    var instructions = (($0 = this.values.$index(successors.$index(0).get$id())) == null ? null : $0.assert$ValueSet());
+    for (var i = 1;
+     i < successors.length; i++) {
+      var other = (($0 = this.values.$index(successors.$index(i).get$id())) == null ? null : $0.assert$ValueSet());
+      instructions = instructions.intersection(other);
+    }
+    if (!$notnull_bool(instructions.isEmpty())) {
+      var list = instructions.toList();
+      for (var $i = 0;$i < list.length; $i++) {
+        var instruction = list.$index($i);
+        instruction.block.detach(instruction);
+        block.moveAtExit(instruction);
+        for (var $i0 = 0;$i0 < successors.length; $i0++) {
+          var successor = successors.$index($i0);
+          var toRewrite = (($0 = this.values.$index(successor.get$id()).lookup$1(instruction)) == null ? null : $0.assert$HInstruction());
+          if ($ne(toRewrite, instruction)) {
+            successor.rewrite$2(toRewrite, instruction);
+            successor.remove$1(toRewrite);
+          }
+        }
+      }
+    }
+  }
+  if (block.predecessors.length != 1) return;
+  var set_ = (($0 = this.values.$index(block.id)) == null ? null : $0.assert$ValueSet());
+  var instruction = block.first;
+  var flags = 0;
+  while (instruction != null) {
+    var dependsFlags = HInstruction.computeDependsOnFlags(flags);
+    flags |= instruction.getChangesFlags();
+    var current = instruction;
+    instruction = instruction.next;
+    if (!$notnull_bool(current.useGvn())) continue;
+    if ((current.flags & dependsFlags) != 0) continue;
+    var canBeMoved = true;
+    var $list = current.inputs;
+    for (var $i = 0;$i < $list.length; $i++) {
+      var input = $list.$index($i);
+      if ($eq(input.block, block)) {
+        canBeMoved = false;
+        break;
+      }
+    }
+    if (!$notnull_bool(canBeMoved)) continue;
+    set_.add(current);
+  }
 }
 // ********** Code for SsaInstructionMerger **************
 function SsaInstructionMerger() {
@@ -11497,11 +11588,18 @@ function ValueSet() {
   this.table = new ListFactory(1);
   // Initializers done
 }
+ValueSet.prototype.assert$ValueSet = function(){return this};
 ValueSet.prototype.isEmpty = function() {
   return this.size == 0;
 }
+ValueSet.prototype.get$length = function() {
+  return this.size;
+}
+Object.defineProperty(ValueSet.prototype, "length", {
+  get: ValueSet.prototype.get$length
+});
 ValueSet.prototype.add = function(instruction) {
-  $assert(this.lookup(instruction) == null, "lookup(instruction) === null", "value_set.dart", 15, 12);
+  $assert(this.lookup(instruction) == null, "lookup(instruction) === null", "value_set.dart", 16, 12);
   var index = this.tableIndexForInstruction(instruction);
   this.table.$setindex(index, new ValueSetNode(instruction, this.table.$index(index)));
   this.size++;
@@ -11542,18 +11640,42 @@ ValueSet.prototype.kill = function(flags) {
     }
   }
 }
+ValueSet.prototype.copyTo = function(other) {
+  var $0;
+  for (var i = 0, length = this.table.length;
+   i < length; i++) {
+    var current = (($0 = this.table.$index(i)) == null ? null : $0.assert$ValueSetNode());
+    while (current != null) {
+      other.add$1(current.value);
+      current = current.next;
+    }
+  }
+  return other;
+}
 ValueSet.prototype.copy = function() {
   var $0;
+  return (($0 = this.copyTo(new ValueSet())) == null ? null : $0.assert$ValueSet());
+}
+ValueSet.prototype.intersection = function(other) {
+  var $0;
+  if (this.size > other.size) return other.intersection(this);
   var result = new ValueSet();
   for (var i = 0, length = this.table.length;
    i < length; i++) {
     var current = (($0 = this.table.$index(i)) == null ? null : $0.assert$ValueSetNode());
     while (current != null) {
-      result.add(current.value);
+      var value = current.value;
+      if (other.lookup(value) != null) {
+        result.add(value);
+      }
       current = current.next;
     }
   }
   return result;
+}
+ValueSet.prototype.toList = function() {
+  var $0;
+  return (($0 = this.copyTo([])) == null ? null : $0.assert$List_HInstruction());
 }
 ValueSet.prototype.tableIndexForInstruction = function(instruction) {
   return 0;
@@ -12251,9 +12373,6 @@ SimpleType.named$ctor.prototype = SimpleType.prototype;
 SimpleType.prototype.assert$Type = function(){return this};
 SimpleType.prototype.get$name = function() { return this.name; };
 SimpleType.prototype.get$element = function() { return this.element; };
-SimpleType.prototype.get$returnType = function() {
-  return this;
-}
 SimpleType.prototype.toString = function() {
   return this.name.toString();
 }
