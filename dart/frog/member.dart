@@ -220,6 +220,8 @@ class TypeMember extends Member {
   bool get canGet() => true;
   bool get canSet() => false;
 
+  bool get requiresFieldSyntax() => true;
+
   Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
     return new Value.type(type, node.span);

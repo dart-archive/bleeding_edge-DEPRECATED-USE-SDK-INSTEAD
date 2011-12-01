@@ -17,6 +17,8 @@ class Evaluator {
 
   static void initWorld(String homedir, List<String> args, FileSystem files) {
     parseOptions(homedir, args, files);
+    options.forceDynamic = true;
+
     initializeWorld(files);
     world.process();
     world.resolveAll();

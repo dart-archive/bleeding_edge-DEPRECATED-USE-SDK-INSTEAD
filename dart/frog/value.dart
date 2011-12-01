@@ -6,8 +6,7 @@
  * Represents a meta-value for code generation.
  */
 class Value {
-  /** The [Type] of the [Value]. */
-  Type type;
+  Type _type;
 
   /** The javascript code to generate this value. */
   String code;
@@ -21,6 +20,9 @@ class Value {
   /** Is this a pretend first-class type? */
   bool isType = false;
 
+  /** Is this a target of an initializer? */
+  bool isInitializerTarget = false;
+
   /** Is this a final variable? */
   bool isFinal = false;
 
@@ -31,14 +33,24 @@ class Value {
   // "var".
   bool get _typeIsVarOrParameterType() => type.isVar || type is ParameterType;
 
-  Value(this.type, this.code, this.span, [this.needsTemp = true]) {
-    if (type == null) world.internalError('type passed as null', span);
+  /** The [Type] of the [Value]. */
+  Type get type() {
+    if (!options.forceDynamic || isType || isSuper || isInitializerTarget ||
+        isConst) {
+      return _type;
+    } else {
+      return world.varType;
+    }
+  }
+
+  Value(this._type, this.code, this.span, [this.needsTemp = true]) {
+    if (_type == null) world.internalError('type passed as null', span);
   }
 
   // TODO(jimhug): Replace with TypeValue.
-  Value.type(this.type, this.span)
+  Value.type(this._type, this.span)
     : code = null, needsTemp = false, isType = true {
-    if (type == null) world.internalError('type passed as null', span);
+    if (_type == null) world.internalError('type passed as null', span);
   }
 
   /** Is this value a constant expression? */
@@ -708,6 +720,11 @@ class BareValue extends Value {
     isType = outermost.isStatic;
   }
 
+  // Bare values should never be treated as though they have a var type. If we
+  // do end up calling an instance method that should be forced dynamic, we can
+  // handle that in `_tryResolveMember`.
+  Type get type() => _type;
+
   // TODO(jimhug): Lazy initialization here is weird!
   _ensureCode() {
     if (code != null) return;
@@ -724,6 +741,9 @@ class BareValue extends Value {
     // First look for members directly defined on my type.
     var member = type.resolveMember(name);
     if (member != null) {
+      if (options.forceDynamic && !member.isStatic) {
+        member = context.findMembers(name);
+      }
       _ensureCode();
       return member;
     }

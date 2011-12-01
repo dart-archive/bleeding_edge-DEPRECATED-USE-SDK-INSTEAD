@@ -1057,6 +1057,7 @@ class MethodGenerator implements TreeVisitor {
     } else {
       world.error('bad call in initializers', node.span);
     }
+    target.isInitializerTarget = true;
 
     var m = target.type.getConstructor(contructorName);
     method.initDelegate = m;
@@ -1858,6 +1859,9 @@ class MethodGenerator implements TreeVisitor {
       var members = method.declaringType.resolveMember(name);
       x = _makeThisOrType(position.span);
       if (members != null) {
+        if (options.forceDynamic && !members.isStatic) {
+          members = findMembers(xn.name.name);
+        }
         if (kind == 0) {
           return x.set_(this, name, position, y);
         } else if (!members.treatAsField || members.containsMethods) {
@@ -1983,7 +1987,9 @@ class MethodGenerator implements TreeVisitor {
           var operand = new LiteralExpression(1,
             new TypeReference(node.span, world.numType), '1', node.span);
 
-          return _visitAssign(kind, node.self, operand, node, null);
+          var assignValue = _visitAssign(kind, node.self, operand, node, null);
+          return new Value(assignValue.type, '(${assignValue.code})',
+              node.span);
         }
       case TokenKind.NOT:
         // TODO(jimhug): Issue #359 seeks to clarify this behavior.

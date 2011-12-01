@@ -30,6 +30,7 @@ class FrogOptions {
   bool warningsAsErrors = false;
   bool verifyImplements = false; // TODO(jimhug): Implement
   bool compileAll = false;
+  bool forceDynamic = false;
   bool dietParse = false;
   bool compileOnly = false;
 
@@ -117,6 +118,10 @@ class FrogOptions {
         case '--compile-only':
           // As opposed to compiling and running, the default behavior.
           compileOnly = true;
+          continue loop;
+
+        case '--force_dynamic':
+          forceDynamic = true;
           continue loop;
 
         default:
