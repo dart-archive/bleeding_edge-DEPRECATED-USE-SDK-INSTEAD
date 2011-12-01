@@ -17,6 +17,9 @@ def main(args):
     print "Could not find frog"
     return 1
 
+  frog_args = ['frog.py', '--vm=' + VM]
+  frog_args += args[2:len(args)]
+
   filename = None
   exit_code = 1
   try:
@@ -30,7 +33,3 @@ def main(args):
       filename.close()
 
   return exit_code
-
-
-if __name__ == '__main__':
-  sys.exit(main(sys.argv))

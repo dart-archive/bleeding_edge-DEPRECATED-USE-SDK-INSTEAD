@@ -19,7 +19,7 @@ import subprocess
 import sys
 
 
-from os.path import dirname, join, realpath, exists
+from os.path import dirname, join, realpath, exists, basename, relpath
 
 HOME = dirname(realpath(__file__))
 sys.path.append(join(HOME, os.pardir, 'tools'))
@@ -34,34 +34,23 @@ HTML = '''<html>
 '''
 
 def GetDart():
-  # Try a release version
-  dart = utils.GetDartRunner('release', 'ia32', 'vm')
-  if exists(dart): return dart
-  # Try at the top level
-  dart = join(os.pardir, dart)
-  if exists(dart): return dart
+  # Get the release version.
+  return utils.GetDartRunner('release', 'ia32', 'vm')
 
-  # Try a debug version
-  dart = utils.GetDartRunner('debug', 'ia32', 'vm')
-  if exists(dart): return dart
-  # Try at the top level
-  dart = join(os.pardir, dart)
-  return dart
+def GetReleaseVersion(dart):
+  product_dir = dirname(dart)
+  out_dir = dirname(product_dir)
+  config = basename(product_dir)
+
+  if config.find('Debug') != -1:
+    dart_release = join(out_dir, config.replace('Debug', 'Release'), 'dart')
+  else:
+    dart_release = dart
+
+  return dart_release
 
 def GetD8():
-  system = utils.GuessOS()
-  d8 = join(utils.GetBuildRoot(system, 'release', 'ia32'), 'd8')
-  if exists(d8): return d8
-  # Try at the top level
-  d8 = join(os.pardir, d8)
-  if exists(d8): return d8
-
-  # Try a debug version
-  d8 = join(utils.GetBuildRoot(system, 'debug', 'ia32'), 'd8')
-  if exists(d8): return d8
-  # Try at the top level
-  d8 = join(os.pardir, d8)
-  return d8
+  return join(dirname(GetDart()), 'd8')
 
 D8 = GetD8()
 
@@ -91,6 +80,10 @@ def parseOptions(args):
     #default='--enable_type_checks --enable_asserts',
     default='',
     help='Flags to pass to the VM that is running frog itself.')
+
+  optionParser.add_option('--vm',
+    default=GetDart(),
+    help='The location of the VM.')
 
   optionParser.add_option('--js_cmd',
     default = 'node --crankshaft', # node is really slow without this.
@@ -131,11 +124,11 @@ def main(args):
     optionParser.print_help()
     return 1
 
-  dart = GetDart()
+  dart = GetReleaseVersion(options.vm)
   if not exists(dart):
-    print("Dart VM not configured in %s," % dart),
-    print "run the following command from the dart directory"
-    print " tools/build.py -m release"
+    print "Dart VM not built. Please run the following command:"
+    build_file = relpath(join(HOME, os.pardir, 'tools', 'build.py'))
+    print ' ' + build_file + ' -m release'
     return 1
 
   if subprocess.call("node --help >/dev/null 2>&1", shell=True):

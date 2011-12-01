@@ -26,7 +26,7 @@
           'action': [
             'python',
             'scripts/bootstrap/frog_bootstrap_wrapper.py',
-            '<(PRODUCT_DIR)/frog/bin/frog',
+            '<(PRODUCT_DIR)',
           ],
           'message': 'Generating frog file'
         },
@@ -53,7 +53,7 @@
           'action': [
             'python',
             'scripts/bootstrap/frogsh_bootstrap_wrapper.py',
-            '--out=<(PRODUCT_DIR)/frog/bin/frogsh', 'frog.dart',
+            '<(PRODUCT_DIR)',
           ],
           'message': 'Generating frogsh file'
         },

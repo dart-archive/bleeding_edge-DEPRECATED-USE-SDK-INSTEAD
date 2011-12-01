@@ -12,14 +12,14 @@ sys.path.append(HOME)
 import frog
 
 def main(args):
-  for arg in args:
-    index = arg.find('--out=')
-    if index != -1:
-      js_out = arg[6:len(arg)];
+  product_dir = args[1]
+  js_out = os.path.join(product_dir, 'frog', 'bin', 'frogsh')
+  vm = os.path.join(product_dir, 'dart')
+  frog_args = ['frog.py', '--vm=' + vm, '--', '--out=' + js_out, 'frog.dart']
 
   # TODO(ngeoffray): Compile frogsh without checks integrated.
   # if js_out.find('Release') != -1:
-  exit_code = frog.main(args)
+  exit_code = frog.main(frog_args)
   if exit_code:
     return exit_code
 
