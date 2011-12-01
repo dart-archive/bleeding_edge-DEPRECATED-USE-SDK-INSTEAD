@@ -46,7 +46,7 @@ class StringImplementation implements String native "String" {
     "return this.replace(from, to);";
 
   String _replaceFirstRegExp(RegExp from, String to) native
-    "console.log(require('util').inspect(from)); return this.replace(from.re, to);";
+    "return this.replace(from.re, to);";
 
   String replaceFirst(Pattern from, String to) {
     if (from is String) return _replaceFirst(from, to);

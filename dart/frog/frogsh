@@ -2485,7 +2485,7 @@ StringImplementation.prototype._replaceFirst = function(from, to) {
   return this.replace(from, to);
 }
 StringImplementation.prototype._replaceFirstRegExp = function(from, to) {
-  console.log(require('util').inspect(from)); return this.replace(from.re, to);
+  return this.replace(from.re, to);
 }
 StringImplementation.prototype.replaceFirst = function(from, to) {
   if ((typeof(from) == 'string')) return this._replaceFirst($assert_String(from), to);
