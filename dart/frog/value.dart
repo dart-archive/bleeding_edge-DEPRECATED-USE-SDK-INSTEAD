@@ -343,17 +343,19 @@ class Value {
           'We thought ${type.name} is not a subtype of ${toType.name}?');
     }
 
-    final typeError = world.corelib.types['TypeError'];
-    final typeErrorCtor = typeError.getConstructor('_internal');
-    world.gen.corejs.ensureTypeNameOf();
-    final result = typeErrorCtor.invoke(context, node,
-        new Value.type(typeError, null),
-        new Arguments(null, [
-          new Value(world.objectType, 'this', null),
-          new Value(world.stringType, '"${toType.name}"', null)]),
-        isDynamic);
-    world.gen.corejs.useThrow = true;
-    final throwTypeError = '\$throw(${result.code})';
+    String throwTypeError(String paramName) {
+      final typeError = world.corelib.types['TypeError'];
+      final typeErrorCtor = typeError.getConstructor('_internal');
+      world.gen.corejs.ensureTypeNameOf();
+      final result = typeErrorCtor.invoke(context, node,
+          new Value.type(typeError, null),
+          new Arguments(null, [
+            new Value(world.objectType, paramName, null),
+            new Value(world.stringType, '"${toType.name}"', null)]),
+          isDynamic);
+      world.gen.corejs.useThrow = true;
+      return '\$throw(${result.code})';
+    }
 
     // TODO(jmesserly): better assert for integers?
     if (toType.isNum) toType = world.numType;
@@ -371,7 +373,7 @@ class Value {
         toType.typeCheckCode = '''
 function \$assert_void(x) {
   if (x == null) return null;
-  $throwTypeError
+  ${throwTypeError("x")}
 }''';
       }
     } else if (toType == world.nonNullBool) {
@@ -386,7 +388,7 @@ function \$assert_void(x) {
         toType.typeCheckCode = '''
 function \$assert_${toType.name}(x) {
   if (x == null || typeof(x) == "${toType.typeofName}") return x;
-  $throwTypeError
+  ${throwTypeError("x")}
 }''';
       }
     } else {
@@ -402,8 +404,8 @@ function \$assert_${toType.name}(x) {
 
       // Generate the fallback on Object (that throws a TypeError)
       if (!world.objectType.varStubs.containsKey(checkName)) {
-        world.objectType.varStubs[checkName] =
-          new VarMethodStub(checkName, null, Arguments.EMPTY, throwTypeError);
+        world.objectType.varStubs[checkName] = new VarMethodStub(checkName,
+            null, Arguments.EMPTY, throwTypeError('this'));
       }
     }
 

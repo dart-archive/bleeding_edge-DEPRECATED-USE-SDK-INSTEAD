@@ -91,12 +91,13 @@ class TypeError extends AssertError native 'TypeError' {
   final String srcType;
   final String dstType;
 
+  // TODO: make this non-native once $typeNameOf and toString issues are fixed.
   TypeError._internal(Object src, String dstType) native @'''
 this.srcType = (src == null ? "Null" : src.$typeNameOf());
-this.destType = destType;
+this.dstType = dstType;
 this.toString = function() {
   return ("Failed type check: type " + this.srcType +
-      " is not assignable to type" + this.dstType);
+      " is not assignable to type " + this.dstType);
 }''';
 }
 

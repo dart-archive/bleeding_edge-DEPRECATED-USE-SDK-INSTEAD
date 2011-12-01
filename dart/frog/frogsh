@@ -181,10 +181,10 @@ AssertError.prototype.toString$0 = function() {
 // ********** Code for TypeError **************
 TypeError._internal$ctor = function(src, dstType) {
   this.srcType = (src == null ? "Null" : src.$typeNameOf());
-  this.destType = destType;
+  this.dstType = dstType;
   this.toString = function() {
     return ("Failed type check: type " + this.srcType +
-        " is not assignable to type" + this.dstType);
+        " is not assignable to type " + this.dstType);
   }
 }
 TypeError._internal$ctor.prototype = TypeError.prototype;
@@ -860,7 +860,7 @@ Object.prototype.writeDefinition$2 = function($0, $1) {
 };
 function $assert_bool(x) {
   if (x == null || typeof(x) == "boolean") return x;
-  $throw(new TypeError._internal$ctor(this, "bool"))
+  $throw(new TypeError._internal$ctor(x, "bool"))
 }
 // ********** Code for IllegalAccessException **************
 function IllegalAccessException() {
@@ -995,11 +995,11 @@ Math.min = function(a, b) {
 }
 function $assert_num(x) {
   if (x == null || typeof(x) == "number") return x;
-  $throw(new TypeError._internal$ctor(this, "num"))
+  $throw(new TypeError._internal$ctor(x, "num"))
 }
 function $assert_String(x) {
   if (x == null || typeof(x) == "string") return x;
-  $throw(new TypeError._internal$ctor(this, "String"))
+  $throw(new TypeError._internal$ctor(x, "String"))
 }
 // ********** Code for Strings **************
 function Strings() {}
@@ -23428,18 +23428,20 @@ Value.prototype._typeAssert = function(context, toType, node, isDynamic) {
   if ($notnull_bool(toType.get$isObject()) || $notnull_bool(toType.get$isVar())) {
     $globals.world.internalError(('We thought ' + this.type.name + ' is not a subtype of ' + toType.name + '?'));
   }
-  var typeError = $globals.world.corelib.types.$index('TypeError');
-  var typeErrorCtor = typeError.getConstructor$1('_internal');
-  $globals.world.gen.corejs.ensureTypeNameOf();
-  var result = typeErrorCtor.invoke$5(context, node, new Value.type$ctor(typeError, null), new Arguments(null, [new Value($globals.world.objectType, 'this', null, true), new Value($globals.world.stringType, ('"' + toType.name + '"'), null, true)]), isDynamic);
-  $globals.world.gen.corejs.useThrow = true;
-  var throwTypeError = ('\$throw(' + result.get$code() + ')');
+  function throwTypeError(paramName) {
+    var typeError = $globals.world.corelib.types.$index('TypeError');
+    var typeErrorCtor = typeError.getConstructor$1('_internal');
+    $globals.world.gen.corejs.ensureTypeNameOf();
+    var result = typeErrorCtor.invoke$5(context, node, new Value.type$ctor(typeError, null), new Arguments(null, [new Value($globals.world.objectType, paramName, null, true), new Value($globals.world.stringType, ('"' + toType.name + '"'), null, true)]), isDynamic);
+    $globals.world.gen.corejs.useThrow = true;
+    return ('\$throw(' + result.get$code() + ')');
+  }
   if ($notnull_bool(toType.get$isNum())) toType = $globals.world.numType;
   var check;
   if ($notnull_bool(toType.get$isVoid())) {
     check = ('\$assert_void(' + this.code + ')');
     if (toType.typeCheckCode == null) {
-      toType.typeCheckCode = ("function $assert_void(x) {\n  if (x == null) return null;\n  " + throwTypeError + "\n}");
+      toType.typeCheckCode = ("function $assert_void(x) {\n  if (x == null) return null;\n  " + throwTypeError("x") + "\n}");
     }
   }
   else if ($eq(toType, $globals.world.nonNullBool)) {
@@ -23449,7 +23451,7 @@ Value.prototype._typeAssert = function(context, toType, node, isDynamic) {
   else if ($notnull_bool(toType.get$library().get$isCore()) && toType.get$typeofName() != null) {
     check = ('\$assert_' + toType.name + '(' + this.code + ')');
     if (toType.typeCheckCode == null) {
-      toType.typeCheckCode = ("function $assert_" + toType.name + "(x) {\n  if (x == null || typeof(x) == \"" + toType.get$typeofName() + "\") return x;\n  " + throwTypeError + "\n}");
+      toType.typeCheckCode = ("function $assert_" + toType.name + "(x) {\n  if (x == null || typeof(x) == \"" + toType.get$typeofName() + "\") return x;\n  " + throwTypeError("x") + "\n}");
     }
   }
   else {
@@ -23460,7 +23462,7 @@ Value.prototype._typeAssert = function(context, toType, node, isDynamic) {
     check = check + (' ' + temp.get$code() + '.' + checkName + '())');
     if ($ne(this, temp)) context.freeTemp((temp == null ? null : temp.assert$Value()));
     if (!$globals.world.objectType.varStubs.containsKey(checkName)) {
-      $globals.world.objectType.varStubs.$setindex(checkName, new VarMethodStub(checkName, null, Arguments.get$EMPTY(), throwTypeError));
+      $globals.world.objectType.varStubs.$setindex(checkName, new VarMethodStub(checkName, null, Arguments.get$EMPTY(), throwTypeError('this')));
     }
   }
   return new Value(toType, check, this.span, true);
@@ -23744,7 +23746,7 @@ BareValue.prototype._ensureCode = function() {
   }
 }
 BareValue.prototype._tryResolveMember = function(context, name) {
-  $assert($eq(context, this.home), "context == home", "value.dart", 720, 12);
+  $assert($eq(context, this.home), "context == home", "value.dart", 722, 12);
   var member = this.type.resolveMember(name);
   if ($notnull_bool($ne(member, null))) {
     this._ensureCode();
