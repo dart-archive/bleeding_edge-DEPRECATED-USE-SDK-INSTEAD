@@ -4,6 +4,9 @@
 
 prefix samples
 
+[ $component == vm && $system == macos ]
+ChatServerTest: Skip
+
 [ $component == dartc ]
 *: Skip
 
