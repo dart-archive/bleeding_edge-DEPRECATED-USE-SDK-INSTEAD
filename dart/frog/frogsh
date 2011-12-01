@@ -1475,7 +1475,7 @@ HashMapImplementation._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation.prototype._grow = function(newCapacity) {
-  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
+  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Volumes/Data/dart/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1652,7 +1652,7 @@ HashMapImplementation_E$E._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation_E$E.prototype._grow = function(newCapacity) {
-  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
+  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Volumes/Data/dart/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -2007,7 +2007,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  _assert(index == this.get$length(), "index == length", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/linked_hash_map.dart", 76, -17);
+  _assert(index == this.get$length(), "index == length", "/Volumes/Data/dart/dart/corelib/src/implementation/linked_hash_map.dart", 76, -17);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -2017,7 +2017,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  _assert(index == this.get$length(), "index == length", "/Users/jimhug/dartfrog/dart/corelib/src/implementation/linked_hash_map.dart", 87, -17);
+  _assert(index == this.get$length(), "index == length", "/Volumes/Data/dart/dart/corelib/src/implementation/linked_hash_map.dart", 87, -17);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -23726,7 +23726,7 @@ EvaluatedValue.prototype.get$isConst = function() {
 EvaluatedValue.prototype.get$canonicalCode = function() { return this.canonicalCode; };
 EvaluatedValue.prototype.set$canonicalCode = function(value) { return this.canonicalCode = value; };
 EvaluatedValue.codeWithComments = function(canonicalCode, span) {
-  return (span != null && span.get$text() != canonicalCode) ? ('' + canonicalCode + '/*' + span.get$text() + '*/') : canonicalCode;
+  return (span != null && span.get$text() != canonicalCode) ? ('' + canonicalCode + '/*' + _escapeForComment(span.get$text()) + '*/') : canonicalCode;
 }
 // ********** Code for ConstListValue **************
 function ConstListValue() {}
@@ -23817,7 +23817,7 @@ GlobalValue.GlobalValue$fromStatic$factory = function(field, exp, dependencies) 
 GlobalValue.GlobalValue$fromConst$factory = function(uniqueId, exp, dependencies) {
   var $0;
   var name = ("const\$" + uniqueId);
-  var codeWithComment = ("" + name + "/*" + exp.span.get$text() + "*/");
+  var codeWithComment = ("" + name + "/*" + _escapeForComment(exp.span.get$text()) + "*/");
   return new GlobalValue(exp.type, $assert_String(codeWithComment), true, null, name, exp, name, exp.span, (($0 = dependencies.filter$1((function (d) {
     return (d instanceof GlobalValue);
   })
@@ -24654,6 +24654,9 @@ function stripLeadingNewline(text) {
   else {
     return text;
   }
+}
+function _escapeForComment(text) {
+  return text.replaceAll('/*', '/ *').replaceAll('*/', '* /');
 }
 var world;
 var experimentalAwaitPhase;

@@ -546,7 +546,7 @@ class EvaluatedValue extends Value {
 
   static String codeWithComments(String canonicalCode, SourceSpan span) {
     return (span != null && span.text != canonicalCode)
-        ? '$canonicalCode/*${span.text}*/' : canonicalCode;
+        ? '$canonicalCode/*${_escapeForComment(span.text)}*/' : canonicalCode;
   }
 }
 
@@ -653,7 +653,7 @@ class GlobalValue extends Value implements Comparable {
 
   factory GlobalValue.fromConst(uniqueId, Value exp, dependencies) {
     var name = "const\$$uniqueId";
-    var codeWithComment = "$name/*${exp.span.text}*/";
+    var codeWithComment = "$name/*${_escapeForComment(exp.span.text)}*/";
     return new GlobalValue(
         exp.type, codeWithComment, true, null, name, exp, name,
         exp.span,
@@ -737,4 +737,8 @@ class BareValue extends Value {
     _ensureCode();
     return null;
   }
+}
+
+String _escapeForComment(String text) {
+  return text.replaceAll('/*', '/ *').replaceAll('*/', '* /');
 }
