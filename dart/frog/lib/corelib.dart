@@ -51,10 +51,12 @@ class Clock {
 
   /** Returns the frequency of clock ticks in Hz. */
   // TODO(jimhug): Why isn't this a property?
-  static int frequency() native 'return 1000;';
+  static int frequency() => 1000;
 }
 
-void print(Object obj) native '''if (typeof console == 'object') {
+// TODO(jmesserly): this is working around a name conflict with "window.print".
+void print(Object obj) => _print(obj);
+void _print(Object obj) native '''if (typeof console == 'object') {
   if (obj) obj = obj.toString();
   console.log(obj);
 } else {

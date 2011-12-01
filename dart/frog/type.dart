@@ -76,7 +76,11 @@ class Type extends Element {
 
   bool get isGeneric() => false;
 
-  bool get isHiddenNativeType() => false;
+  NativeType get nativeType() => null;
+  bool get isHiddenNativeType() =>
+      (nativeType != null && nativeType.isConstructorHidden);
+  bool get isJsGlobalObject() =>
+      (nativeType != null && nativeType.isJsGlobalObject);
 
   bool get hasTypeParams() => false;
 
@@ -734,9 +738,8 @@ class DefinedType extends Type {
     }
   }
 
-  bool get isHiddenNativeType() =>
-      (definition != null && definition.nativeType != null
-       && definition.nativeType.isConstructorHidden);
+  NativeType get nativeType() =>
+      (definition != null ? definition.nativeType : null);
 
   // TODO(jmesserly): this is a workaround for generic types not filling in
   // "Dynamic" as their type arguments.
@@ -983,6 +986,14 @@ class DefinedType extends Type {
     for (var c in constructors.getValues()) c.resolve();
     for (var m in members.getValues()) m.resolve();
     factories.forEach((f) => f.resolve());
+
+    // All names from the JS global object need to be treated as top-level
+    // native names, so we don't clobber them with other Dart top-level names.
+    if (isJsGlobalObject) {
+      for (var m in members.getValues()) {
+        if (!m.isStatic) world._addTopName(m);
+      }
+    }
   }
 
   addMethod(String methodName, FunctionDefinition definition) {
@@ -1200,18 +1211,22 @@ class DefinedType extends Type {
  *  "*Foo" - name is 'Foo', constructor function and prototype are not available
  *      in global scope during initialization.  This is characteristic of many
  *      DOM types like CanvasPixelArray.
+ *  "@Foo" - the type of the global object. Members will be treated as names
+ *      that can't be shadowed in generated JS.
  */
 class NativeType {
   String name;
-  bool isConstructorHidden;
+  bool isConstructorHidden = false;
+  bool isJsGlobalObject = false;
 
-  NativeType(String spec) {
-    if (spec.startsWith('*')) {
-      name = spec.substring(1);
+  NativeType(this.name) {
+    if (name.contains('@')) {
+      name = name.replaceAll('@', '');
+      isJsGlobalObject = true;
+    }
+    if (name.contains('*')) {
+      name = name.replaceAll('*', '');
       isConstructorHidden = true;
-    } else {
-      name = spec;
-      isConstructorHidden = false;
     }
   }
 }

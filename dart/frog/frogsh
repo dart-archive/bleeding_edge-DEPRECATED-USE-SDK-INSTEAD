@@ -462,6 +462,9 @@ Object.prototype.assert$MethodMember = function() {
 Object.prototype.assert$NameTypeReference = function() {
   $throw(new TypeError._internal$ctor(this, "NameTypeReference"));
 };
+Object.prototype.assert$NativeType = function() {
+  $throw(new TypeError._internal$ctor(this, "NativeType"));
+};
 Object.prototype.assert$Node = function() {
   $throw(new TypeError._internal$ctor(this, "Node"));
 };
@@ -999,6 +1002,9 @@ Strings.join = function(strings, separator) {
 }
 // ********** Code for top level **************
 function print(obj) {
+  return _print(obj);
+}
+function _print(obj) {
   if (typeof console == 'object') {
     if (obj) obj = obj.toString();
     console.log(obj);
@@ -19622,7 +19628,7 @@ lang_Parser.prototype.classDefinition = function(kind) {
   var _native = null;
   if ($notnull_bool(this._maybeEat(81/*TokenKind.NATIVE*/))) {
     _native = this.maybeStringLiteral();
-    if (_native != null) _native = new NativeType($assert_String(_native));
+    if (_native != null) _native = new NativeType(_native);
   }
   var _factory = null;
   if ($notnull_bool(this._maybeEat(75/*TokenKind.FACTORY*/))) {
@@ -22079,8 +22085,14 @@ lang_Type.prototype.get$isUsed = function() {
 lang_Type.prototype.get$isGeneric = function() {
   return false;
 }
+lang_Type.prototype.get$nativeType = function() {
+  return null;
+}
 lang_Type.prototype.get$isHiddenNativeType = function() {
-  return false;
+  return (this.get$nativeType() != null && $notnull_bool(this.get$nativeType().isConstructorHidden));
+}
+lang_Type.prototype.get$isJsGlobalObject = function() {
+  return (this.get$nativeType() != null && $notnull_bool(this.get$nativeType().isJsGlobalObject));
 }
 lang_Type.prototype.get$hasTypeParams = function() {
   return false;
@@ -22757,7 +22769,7 @@ DefinedType.prototype.get$isNative = function() { return this.isNative; };
 DefinedType.prototype.set$isNative = function(value) { return this.isNative = value; };
 DefinedType.prototype.setDefinition = function(def) {
   var $0;
-  $assert(this.definition == null, "definition == null", "type.dart", 726, 12);
+  $assert(this.definition == null, "definition == null", "type.dart", 730, 12);
   this.definition = def;
   if ((this.definition instanceof TypeDefinition) && $notnull_bool($ne(this.definition.get$nativeType(), null))) {
     this.isNative = true;
@@ -22767,8 +22779,9 @@ DefinedType.prototype.setDefinition = function(def) {
     this.typeParameters = (($0 = this.definition.get$typeParameters()) == null ? null : $0.assert$List_ParameterType());
   }
 }
-DefinedType.prototype.get$isHiddenNativeType = function() {
-  return (this.definition != null && $notnull_bool($ne(this.definition.get$nativeType(), null)) && $notnull_bool(this.definition.get$nativeType().get$isConstructorHidden()));
+DefinedType.prototype.get$nativeType = function() {
+  var $0;
+  return (($0 = (this.definition != null ? this.definition.get$nativeType() : null)) == null ? null : $0.assert$NativeType());
 }
 DefinedType.prototype.get$typeArgsInOrder = function() {
   if (this.typeParameters == null) return null;
@@ -22864,7 +22877,7 @@ DefinedType.prototype._resolveInterfaces = function(types) {
   return (interfaces == null ? null : interfaces.assert$List_Type());
 }
 DefinedType.prototype.addDirectSubtype = function(type) {
-  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 841, 12);
+  $assert(this._subtypes == null, "_subtypes == null", "type.dart", 844, 12);
   this.directSubtypes.add(type);
 }
 DefinedType.prototype.get$subtypes = function() {
@@ -22999,6 +23012,13 @@ DefinedType.prototype.resolve = function() {
     return f.resolve$0();
   })
   );
+  if ($notnull_bool(this.get$isJsGlobalObject())) {
+    var $list1 = this.members.getValues();
+    for (var $$i = this.members.getValues().iterator$0(); $$i.hasNext$0(); ) {
+      var m0 = $$i.next$0();
+      if (!$notnull_bool(m0.get$isStatic())) $globals.world._addTopName((m0 == null ? null : m0.assert$lang_Element()));
+    }
+  }
 }
 DefinedType.prototype.addMethod = function(methodName, definition) {
   if (methodName == null) methodName = definition.name.name;
@@ -23131,7 +23151,7 @@ DefinedType.prototype.resolveTypeParams = function(inType) {
 }
 DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   var $0;
-  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1157, 12);
+  $assert(this.get$isGeneric(), "isGeneric", "type.dart", 1168, 12);
   var jsnames = [];
   var names = [];
   var typeMap = $map([]);
@@ -23154,7 +23174,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   return (ret == null ? null : ret.assert$lang_Type());
 }
 DefinedType.prototype.getCallStub = function(args) {
-  $assert(this.get$isFunction(), "isFunction", "type.dart", 1184, 12);
+  $assert(this.get$isFunction(), "isFunction", "type.dart", 1195, 12);
   var name = _getCallStubName('call', args);
   var stub = this.varStubs.$index(name);
   if ($notnull_bool(stub == null)) {
@@ -23190,21 +23210,23 @@ DefinedType.prototype.setDefinition$1 = function($0) {
   return this.setDefinition(($0 == null ? null : $0.assert$Definition()));
 };
 // ********** Code for NativeType **************
-function NativeType(spec) {
+function NativeType(name) {
+  this.isConstructorHidden = false
+  this.isJsGlobalObject = false
+  this.name = name;
   // Initializers done
-  if (spec.startsWith('*')) {
-    this.name = spec.substring(1);
+  if (this.name.contains('@')) {
+    this.name = this.name.replaceAll('@', '');
+    this.isJsGlobalObject = true;
+  }
+  if (this.name.contains('*')) {
+    this.name = this.name.replaceAll('*', '');
     this.isConstructorHidden = true;
   }
-  else {
-    this.name = spec;
-    this.isConstructorHidden = false;
-  }
 }
+NativeType.prototype.assert$NativeType = function(){return this};
 NativeType.prototype.get$name = function() { return this.name; };
 NativeType.prototype.set$name = function(value) { return this.name = value; };
-NativeType.prototype.get$isConstructorHidden = function() { return this.isConstructorHidden; };
-NativeType.prototype.set$isConstructorHidden = function(value) { return this.isConstructorHidden = value; };
 // ********** Code for FixedCollection **************
 function FixedCollection(value, length) {
   this.value = value;
