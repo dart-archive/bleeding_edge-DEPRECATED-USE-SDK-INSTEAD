@@ -166,6 +166,8 @@ _deserializeMessage(message) {
 class MainWorker {
   int id = 0;
   void postMessage(msg) native "return \$globalThis.postMessage(msg);";
+  void onmessage(f) native "\$globalThis.onmessage = f;";
+  void terminate() {}
 }
 
 /** Context information tracked for each isolate. */
@@ -488,7 +490,7 @@ class IsolateNatives {
   """;
 
   /** Starts a new worker with the given URL. */
-  static void _newWorker(url) native "return new Worker(url)";
+  static _newWorker(url) native "return new Worker(url)";
 
   /**
    * Spawns an isolate in a worker. [factoryName] is the Javascript constructor
@@ -512,11 +514,18 @@ class IsolateNatives {
   }
 
   /**
+   * Assume that [e] is a browser message event and extract it's message data.
+   * We don't import the dom explicitly so, when workers are disabled, this
+   * library can also run on top of nodejs.
+   */
+  static _getEventData(e) native "return e.data";
+
+  /**
    * Process messages on a worker, either to control the worker instance or to
    * pass messages along to the isolate running in the worker.
    */
   static void _processWorkerMessage(sender, e) {
-    var msg = _deserializeMessage(e.data);
+    var msg = _deserializeMessage(_getEventData(e));
     switch (msg['command']) {
       case 'start':
         _globalState.currentWorkerId = msg['id'];
