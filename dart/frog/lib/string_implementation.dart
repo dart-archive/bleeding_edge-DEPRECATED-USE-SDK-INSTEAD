@@ -42,8 +42,20 @@ class StringImplementation implements String native "String" {
   bool contains(Pattern pattern, int startIndex) native
     "return this.indexOf(pattern, startIndex) >= 0;";
 
-  String replaceFirst(Pattern from, String to) native
+  String _replaceFirst(String from, String to) native
     "return this.replace(from, to);";
+
+  String _replaceFirstRegExp(RegExp from, String to) native
+    "console.log(require('util').inspect(from)); return this.replace(from.re, to);";
+
+  String replaceFirst(Pattern from, String to) {
+    if (from is String) return _replaceFirst(from, to);
+    if (from is RegExp) return _replaceFirstRegExp(from, to);
+    for (match in from.allMatches(this)) {
+      // We just care about the first match
+      return substring(0, match.start()) + to + substring(match.end());
+    }
+  }
 
   String replaceAll(Pattern from, String to) native @"""
 if (typeof(from) == 'string' || from instanceof String) {

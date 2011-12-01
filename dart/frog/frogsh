@@ -495,6 +495,9 @@ Object.prototype.assert$PostfixExpression = function() {
 Object.prototype.assert$PropertyMember = function() {
   $throw(new TypeError._internal$ctor(this, "PropertyMember"));
 };
+Object.prototype.assert$RegExp = function() {
+  $throw(new TypeError._internal$ctor(this, "RegExp"));
+};
 Object.prototype.assert$SendSet = function() {
   $throw(new TypeError._internal$ctor(this, "SendSet"));
 };
@@ -633,6 +636,9 @@ Object.prototype.copyWithNewType$2 = function($0, $1) {
 Object.prototype.dataEquals$1 = function($0) {
   return this.noSuchMethod("dataEquals", [$0]);
 };
+Object.prototype.end$0 = function() {
+  return this.noSuchMethod("end", []);
+};
 Object.prototype.endsWith$1 = function($0) {
   return this.noSuchMethod("endsWith", [$0]);
 };
@@ -721,6 +727,9 @@ Object.prototype.invoke$5 = function($0, $1, $2, $3, $4) {
   return this.noSuchMethod("invoke", [$0, $1, $2, $3, $4]);
 };
 Object.prototype.is$List = function() {
+  return false;
+};
+Object.prototype.is$RegExp = function() {
   return false;
 };
 Object.prototype.is$SourceString = function() {
@@ -821,6 +830,9 @@ Object.prototype.some$1 = function($0) {
 };
 Object.prototype.sort$1 = function($0) {
   return this.noSuchMethod("sort", [$0]);
+};
+Object.prototype.start$0 = function() {
+  return this.noSuchMethod("start", []);
 };
 Object.prototype.startsWith$1 = function($0) {
   return this.noSuchMethod("startsWith", [$0]);
@@ -2381,6 +2393,7 @@ StopwatchImplementation.prototype.elapsedInMs = function() {
 StopwatchImplementation.prototype.frequency = function() {
   return Clock.frequency();
 }
+StopwatchImplementation.prototype.start$0 = StopwatchImplementation.prototype.start;
 // ********** Code for StringBufferImpl **************
 function StringBufferImpl(content) {
   // Initializers done
@@ -2452,8 +2465,8 @@ StringBase.concatAll = function(strings) {
 }
 // ********** Code for StringImplementation **************
 StringImplementation = String;
-StringImplementation.prototype.assert$Pattern = function(){return this};
-StringImplementation.prototype.assert$Comparable = function(){return this};
+StringImplementation.prototype.assert$Pattern = function(){return String(this)};
+StringImplementation.prototype.assert$Comparable = function(){return String(this)};
 StringImplementation.prototype.endsWith = function(other) {
   if (other.length > this.length) return false;
     return other == this.substring(this.length - other.length);
@@ -2468,8 +2481,20 @@ StringImplementation.prototype.isEmpty = function() {
 StringImplementation.prototype.contains = function(pattern, startIndex) {
   return this.indexOf(pattern, startIndex) >= 0;
 }
-StringImplementation.prototype.replaceFirst = function(from, to) {
+StringImplementation.prototype._replaceFirst = function(from, to) {
   return this.replace(from, to);
+}
+StringImplementation.prototype._replaceFirstRegExp = function(from, to) {
+  console.log(require('util').inspect(from)); return this.replace(from.re, to);
+}
+StringImplementation.prototype.replaceFirst = function(from, to) {
+  if ((typeof(from) == 'string')) return this._replaceFirst($assert_String(from), to);
+  if (!!(from && from.is$RegExp())) return this._replaceFirstRegExp((from == null ? null : from.assert$RegExp()), to);
+  var $$list = from.allMatches(this);
+  for (var $$i = from.allMatches(this).iterator(); $$i.hasNext$0(); ) {
+    var match = $$i.next$0();
+    return this.substring(0, $assert_num(match.start$0())) + to + this.substring($assert_num(match.end$0()));
+  }
 }
 StringImplementation.prototype.replaceAll = function(from, to) {
   if (typeof(from) == 'string' || from instanceof String) {
@@ -6188,6 +6213,9 @@ SubstringWrapper.prototype.toString = function() {
 SubstringWrapper.prototype.get$stringValue = function() {
   return this.toString();
 }
+SubstringWrapper.prototype.end$0 = function() {
+  return this.end();
+};
 SubstringWrapper.prototype.hashCode$0 = SubstringWrapper.prototype.hashCode;
 SubstringWrapper.prototype.printOn$1 = function($0) {
   return this.printOn(($0 == null ? null : $0.assert$StringBuffer()));
@@ -13559,6 +13587,12 @@ WorldGenerator.prototype._maybeIsTest = function(onType, checkType) {
     if (!$notnull_bool(isSubtype)) {
       body = $assert_String($globals.world.objectType.varStubs.$index(checkName).get$body());
     }
+    else if ($notnull_bool(onType.get$library().get$isCoreImpl()) && onType.get$interfaces().length == 1) {
+      var inter = onType.get$interfaces().$index(0);
+      if ($notnull_bool(inter.get$library().get$isCore()) && $notnull_bool($ne(inter.get$typeofName(), null))) {
+        body = ('return ' + inter.get$jsname() + '(this)');
+      }
+    }
     this.writer.writeln(this._prototypeOf(onType, checkName) + (' = function(){' + body + '};'));
   }
 }
@@ -14034,7 +14068,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 814, 14);
+    $assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 819, 14);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -15232,7 +15266,7 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  $assert($ne(type, null), "type != null", "gen.dart", 2272, 12);
+  $assert($ne(type, null), "type != null", "gen.dart", 2277, 12);
   if (!!(($0 = node.value) && $0.is$List())) {
     var items = [];
     var $$list = node.value;
@@ -17608,6 +17642,12 @@ lang_Token.prototype.toString = function() {
 lang_Token.prototype.get$span = function() {
   return new SourceSpan(this.source, this.start, this.end);
 }
+lang_Token.prototype.end$0 = function() {
+  return this.end();
+};
+lang_Token.prototype.start$0 = function() {
+  return this.start();
+};
 lang_Token.prototype.toString$0 = lang_Token.prototype.toString;
 // ********** Code for SourceFile **************
 function SourceFile(filename, _text) {
@@ -17725,6 +17765,12 @@ SourceSpan.prototype.compareTo = function(other) {
 }
 SourceSpan.prototype.compareTo$1 = function($0) {
   return this.compareTo(($0 == null ? null : $0.assert$SourceSpan()));
+};
+SourceSpan.prototype.end$0 = function() {
+  return this.end();
+};
+SourceSpan.prototype.start$0 = function() {
+  return this.start();
 };
 SourceSpan.prototype.toMessageString$1 = function($0) {
   return this.toMessageString($assert_String($0));

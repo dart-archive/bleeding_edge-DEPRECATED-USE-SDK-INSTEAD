@@ -215,6 +215,11 @@ class WorldGenerator {
         // TODO(jmesserly): it'd be nice not to duplicate this code, and instead
         // be able to refer to the JS function.
         body = world.objectType.varStubs[checkName].body;
+      } else if (onType.library.isCoreImpl && onType.interfaces.length == 1) {
+        final inter = onType.interfaces[0];
+        if (inter.library.isCore && inter.typeofName != null) {
+          body = 'return ${inter.jsname}(this)';
+        }
       }
       writer.writeln(_prototypeOf(onType, checkName) + ' = function(){$body};');
     }
