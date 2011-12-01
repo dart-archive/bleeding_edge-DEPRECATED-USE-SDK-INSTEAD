@@ -60,7 +60,8 @@ def main(args):
              'frog.dart')
   elapsed = time.time() - start
   mode = 'in checked mode + compile all'
-  print 'Compiling on Dart VM took %s seconds %s' % (b(elapsed), b(mode))
+  print 'Compiling on Dart VM took %s seconds %s' % (b('%.1f' % elapsed),
+                                                     b(mode))
 
   # Selfhost Checked
   start = time.time()
@@ -69,7 +70,8 @@ def main(args):
              '--enable_type_checks', 'tests/hello.dart', verbose=True)
   elapsed = time.time() - start
   size = os.path.getsize('./frogsh') / 1024
-  print 'Bootstrapping took %s seconds %s' % (b(elapsed), b('in checked mode'))
+  print 'Bootstrapping took %s seconds %s' % (b('%.1f' % elapsed),
+                                              b('in checked mode'))
   print 'Generated %s frogsh is %s kB' % (b('checked'), b(size))
 
   RunCommand('../tools/build.py', '--mode=release')
