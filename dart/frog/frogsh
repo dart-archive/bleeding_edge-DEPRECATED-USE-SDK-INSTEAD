@@ -24095,7 +24095,10 @@ World.prototype.runLeg = function() {
 }
 World.prototype.runCompilationPhases = function() {
   var $this = this; // closure support
-  var lib = this.withTiming('first pass', this.get$processDartScript());
+  var lib = this.withTiming('first pass', (function () {
+    return $this.processDartScript();
+  })
+  );
   this.withTiming('resolve top level', this.get$resolveAll());
   if ($globals.experimentalAwaitPhase != null) {
     this.withTiming('await translation', to$call$0($globals.experimentalAwaitPhase));
@@ -24152,13 +24155,11 @@ World.prototype.process = function() {
     }
   }
 }
-World.prototype.processDartScript = function() {
-  var library = this.getOrAddLibrary($globals.options.dartScript);
+World.prototype.processDartScript = function(script) {
+  if (script == null) script = $globals.options.dartScript;
+  var library = this.getOrAddLibrary(script);
   this.process();
   return library;
-}
-World.prototype.get$processDartScript = function() {
-  return World.prototype.processDartScript.bind(this);
 }
 World.prototype.resolveAll = function() {
   var $$list = this.libraries.getValues();

@@ -285,7 +285,7 @@ class World {
   }
 
   void runCompilationPhases() {
-    final lib = withTiming('first pass', processDartScript);
+    final lib = withTiming('first pass', () => processDartScript());
     withTiming('resolve top level', resolveAll);
     if (experimentalAwaitPhase != null) {
       withTiming('await translation', experimentalAwaitPhase);
@@ -340,8 +340,9 @@ class World {
     }
   }
 
-  Library processDartScript() {
-    Library library = getOrAddLibrary(options.dartScript);
+  Library processDartScript([String script = null]) {
+    if (script == null) script = options.dartScript;
+    Library library = getOrAddLibrary(script);
     process();
     return library;
   }
