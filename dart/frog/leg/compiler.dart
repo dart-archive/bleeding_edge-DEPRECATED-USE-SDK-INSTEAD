@@ -6,6 +6,7 @@ class Compiler implements Canceler, Logger {
   final Script script;
   Queue<Element> worklist;
   Universe universe;
+  String generatedCode;
 
   List<CompilerTask> tasks;
   ScannerTask scanner;
@@ -84,6 +85,7 @@ class Compiler implements Canceler, Logger {
     while (!worklist.isEmpty()) {
       compileMethod(worklist.removeLast());
     }
+    generatedCode = assembleProgram();
   }
 
   String compileMethod(Element element) {
@@ -107,7 +109,7 @@ class Compiler implements Canceler, Logger {
     resolver.resolveSignature(parser.parse(element));
   }
 
-  String getGeneratedCode() {
+  String assembleProgram() {
     StringBuffer buffer = new StringBuffer();
     List<String> codeBlocks = universe.generatedCode.getValues();
     for (int i = codeBlocks.length - 1; i >= 0; i--) {

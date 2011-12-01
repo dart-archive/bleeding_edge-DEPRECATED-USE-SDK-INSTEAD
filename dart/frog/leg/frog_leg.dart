@@ -32,7 +32,7 @@ class WorldCompiler extends Compiler {
   bool run() {
     bool success = super.run();
     if (success) {
-      var code = getGeneratedCode();
+      var code = generatedCode;
       world.legCode = code;
       world.jsBytesWritten = code.length;
       for (final task in tasks) {

@@ -11953,6 +11953,7 @@ Compiler.prototype.runCompiler = function() {
   while (!this.worklist.isEmpty()) {
     this.compileMethod((($0 = this.worklist.removeLast()) == null ? null : $0.assert$Element()));
   }
+  this.generatedCode = this.assembleProgram();
 }
 Compiler.prototype.compileMethod = function(element) {
   var code = $assert_String(this.universe.generatedCode.$index(element));
@@ -11974,7 +11975,7 @@ Compiler.prototype.resolveSignature = function(element) {
   var $0;
   this.resolver.resolveSignature((($0 = this.parser.parse(element)) == null ? null : $0.assert$FunctionExpression()));
 }
-Compiler.prototype.getGeneratedCode = function() {
+Compiler.prototype.assembleProgram = function() {
   var $0;
   var buffer = new StringBufferImpl("");
   var codeBlocks = (($0 = this.universe.generatedCode.getValues()) == null ? null : $0.assert$List_String());
@@ -13018,7 +13019,7 @@ WorldCompiler.prototype.log = function(message) {
 WorldCompiler.prototype.run = function() {
   var success = Compiler.prototype.run.call(this);
   if ($notnull_bool(success)) {
-    var code = this.getGeneratedCode();
+    var code = this.generatedCode;
     this.world.legCode = $assert_String(code);
     this.world.jsBytesWritten = $assert_num(code.length);
     var $$list = this.tasks;
