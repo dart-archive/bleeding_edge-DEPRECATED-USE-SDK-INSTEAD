@@ -184,25 +184,22 @@ void testStartStop() {
 
 void testGET() {
   TestServerMain testServerMain = new TestServerMain();
-  testServerMain.setServerStartedHandler(
-      void _(int port) {
-        HTTPClient httpClient = new HTTPClient();
-        HTTPClientRequest request = httpClient.open("GET",
-                                                    "127.0.0.1",
-                                                    port,
-                                                    "/0123456789");
-        request.responseReceived =
-            void _(HTTPClientResponse response) {
-              Expect.equals(HTTPStatus.OK, response.statusCode);
-              response.dataEnd =
-                  void _(String body) {
-                    Expect.equals("01234567890", body);
-                    httpClient.shutdown();
-                    testServerMain.shutdown();
-                  };
-            };
-        request.writeDone();
-      });
+  testServerMain.setServerStartedHandler((int port) {
+    HTTPClient httpClient = new HTTPClient();
+    httpClient.openHandler = (HTTPClientRequest request) {
+      request.responseReceived = (HTTPClientResponse response) {
+        Expect.equals(HTTPStatus.OK, response.statusCode);
+        response.dataEnd =
+        void _(String body) {
+          Expect.equals("01234567890", body);
+          httpClient.shutdown();
+          testServerMain.shutdown();
+        };
+      };
+      request.writeDone();
+    }; 
+    httpClient.open("GET", "127.0.0.1", port, "/0123456789");
+  });
   testServerMain.start();
 }
 
@@ -217,34 +214,31 @@ void testPOST(bool chunkedEncoding) {
     int count = 0;
     HTTPClient httpClient = new HTTPClient();
     void sendRequest() {
-      HTTPClientRequest request = httpClient.open("POST",
-                                                  "127.0.0.1",
-                                                  port,
-                                                  "/echo");
 
-      request.responseReceived =
-          void _(HTTPClientResponse response) {
-            Expect.equals(HTTPStatus.OK, response.statusCode);
-            response.dataEnd =
-                void _(String body) {
-                  Expect.equals(data, body);
-                  count++;
-                  if (count < kMessageCount) {
-                    sendRequest();
-                  } else {
-                    httpClient.shutdown();
-                    testServerMain.shutdown();
-                  }
-                };
+      httpClient.openHandler = (HTTPClientRequest request) {
+        request.responseReceived = (HTTPClientResponse response) {
+          Expect.equals(HTTPStatus.OK, response.statusCode);
+          response.dataEnd =
+          void _(String body) {
+            Expect.equals(data, body);
+            count++;
+            if (count < kMessageCount) {
+              sendRequest();
+            } else {
+              httpClient.shutdown();
+              testServerMain.shutdown();
+            }
           };
-
-      if (chunkedEncoding) {
-        request.writeString(data);
-      } else {
-        request.contentLength = data.length;
-        request.writeList(data.charCodes(), 0, data.length);
-      }
-      request.writeDone();
+        };
+        if (chunkedEncoding) {
+          request.writeString(data);
+        } else {
+          request.contentLength = data.length;
+          request.writeList(data.charCodes(), 0, data.length);
+        }
+        request.writeDone();
+      };
+      httpClient.open("POST", "127.0.0.1", port, "/echo");
     }
 
     sendRequest();
@@ -260,22 +254,19 @@ void testPOST(bool chunkedEncoding) {
 
 void test404() {
   TestServerMain testServerMain = new TestServerMain();
-  testServerMain.setServerStartedHandler(
-      void _(int port) {
-        HTTPClient httpClient = new HTTPClient();
-        HTTPClientRequest request = httpClient.open("GET",
-                                                    "127.0.0.1",
-                                                    port,
-                                                    "/thisisnotfound");
-        request.writeDone();
-        request.keepAlive = false;
-        request.responseReceived =
-            void _(HTTPClientResponse response) {
-              Expect.equals(HTTPStatus.NOT_FOUND, response.statusCode);
-              httpClient.shutdown();
-              testServerMain.shutdown();
-            };
-      });
+  testServerMain.setServerStartedHandler((int port) {
+    HTTPClient httpClient = new HTTPClient();
+    httpClient.openHandler = (HTTPClientRequest request) {
+      request.writeDone();
+      request.keepAlive = false;
+      request.responseReceived = (HTTPClientResponse response) {
+        Expect.equals(HTTPStatus.NOT_FOUND, response.statusCode);
+        httpClient.shutdown();
+        testServerMain.shutdown();
+      };
+    };
+    httpClient.open("GET", "127.0.0.1", port, "/thisisnotfound");
+  });
   testServerMain.start();
 }
 

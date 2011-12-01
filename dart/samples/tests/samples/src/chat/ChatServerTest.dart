@@ -65,14 +65,17 @@ class ChatTestClient extends Isolate {
       Map messageRequest = new Map();
       messageRequest["request"] = "leave";
       messageRequest["sessionId"] = sessionId;
-      request = httpClient.open("POST", "127.0.0.1", port, "/leave");
-      request.writeString(JSON.stringify(messageRequest));
-      request.responseReceived =
-          void _(HTTPClientResponse r) {
-            response = r;
-            response.dataEnd = leaveResponseHandler;
-          };
-      request.writeDone();
+      httpClient.openHandler = (HTTPClientRequest request) {
+        print('leave');
+        request.writeString(JSON.stringify(messageRequest));
+        request.writeDone();
+        request.responseReceived = (HTTPClientResponse r) {
+          print('leave response');
+          response = r;
+          response.dataEnd = leaveResponseHandler;
+        };
+      };
+      httpClient.open("POST", "127.0.0.1", port, "/leave");
     }
 
     void receive() {
@@ -121,14 +124,17 @@ class ChatTestClient extends Isolate {
       messageRequest["request"] = "receive";
       messageRequest["sessionId"] = sessionId;
       messageRequest["nextMessage"] = receiveMessageNumber;
-      request = httpClient.open("POST", "127.0.0.1", port, "/receive");
-      request.writeString(JSON.stringify(messageRequest));
-      request.responseReceived =
-          void _(HTTPClientResponse r) {
-            response = r;
-            response.dataEnd = receiveResponseHandler;
-          };
-      request.writeDone();
+      httpClient.openHandler = (HTTPClientRequest request) {
+        print('receive');
+        request.writeString(JSON.stringify(messageRequest));
+        request.writeDone();
+        request.responseReceived = (HTTPClientResponse r) {
+          print('receive response');
+          response = r;
+          response.dataEnd = receiveResponseHandler;
+        };
+      };
+      httpClient.open("POST", "127.0.0.1", port, "/receive");
     }
 
     void sendMessage() {
@@ -151,14 +157,17 @@ class ChatTestClient extends Isolate {
       messageRequest["request"] = "message";
       messageRequest["sessionId"] = sessionId;
       messageRequest["message"] = "message " + sendMessageNumber;
-      request = httpClient.open("POST", "127.0.0.1", port, "/message");
-      request.writeString(JSON.stringify(messageRequest));
-      request.responseReceived =
-          void _(HTTPClientResponse r) {
-            response = r;
-            response.dataEnd = sendResponseHandler;
-          };
-      request.writeDone();
+      httpClient.openHandler = (HTTPClientRequest request) {
+        print('message');
+        request.writeString(JSON.stringify(messageRequest));
+        request.writeDone();
+        request.responseReceived = (HTTPClientResponse r) {
+          print('message response');
+          response = r;
+          response.dataEnd = sendResponseHandler;
+        };
+      };
+      httpClient.open("POST", "127.0.0.1", port, "/message");
     }
 
     void join() {
@@ -182,14 +191,18 @@ class ChatTestClient extends Isolate {
       Map joinRequest = new Map();
       joinRequest["request"] = "join";
       joinRequest["handle"] = "test1";
-      request = httpClient.open("POST", "127.0.0.1", port, "/join");
-      request.writeString(JSON.stringify(joinRequest));
-      request.responseReceived =
-          void _(HTTPClientResponse r) {
-            response = r;
-            response.dataEnd = joinResponseHandler;
-          };
-      request.writeDone();
+      httpClient.openHandler = (HTTPClientRequest request) {
+        print("join");
+        request.writeString(JSON.stringify(joinRequest));
+        request.writeDone();
+        request.responseReceived = (HTTPClientResponse r) {
+          print("join response");
+          response = r;
+          response.dataEnd = joinResponseHandler;
+        };
+      };
+      print('opening for join');
+      httpClient.open("POST", "127.0.0.1", port, "/join");
     }
 
     this.port.receive(

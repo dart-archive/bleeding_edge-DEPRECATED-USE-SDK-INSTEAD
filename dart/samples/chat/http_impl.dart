@@ -1386,17 +1386,12 @@ class HTTPClientImplementation implements HTTPClient{
 
   HTTPClientImplementation() : _openSockets = new Map(), _shutdown = false;
 
-  HTTPClientRequest open(String method,
-                         String host,
-                         int port,
-                         String path) {
-    // TODO(sgjesse): Throw exception.
-    if (_shutdown) return null;
-    SocketConnection socketConn = _getSocketConnection(host, port);
-    HTTPClientConnection connection =
-        new HTTPClientConnection(this, socketConn);
-    HTTPClientRequest request = connection.open(method, path);
-    return request;
+  void open(String method, String host, int port, String path) {
+    if (_shutdown && _openHandler) {
+      _openHandler(null);
+      return;
+    }
+    _getSocketConnection(host, port, method, path);
   }
 
   void shutdown() {
@@ -1417,17 +1412,29 @@ class HTTPClientImplementation implements HTTPClient{
     return "$host:$port";
   }
 
-  SocketConnection _getSocketConnection(String host, int port) {
-    SocketConnection entry;
+  void _getSocketConnection(String host, int port, String method, String path) {
+
+    void _connectionOpened(SocketConnection socketConn) {
+      HTTPClientConnection connection =
+          new HTTPClientConnection(this, socketConn);
+      HTTPClientRequest request = connection.open(method, path);
+      if (_openHandler != null) {
+        _openHandler(request);
+      }
+    }
 
     // If there are active connections for this key get the first one
     // otherwise create a new one.
     Queue socketConnections = _openSockets[_connectionKey(host, port)];
     if (socketConnections == null || socketConnections.isEmpty()) {
       Socket socket = new Socket(host, port);
-      entry = new SocketConnection(host, port, socket);
+      socket.connectHandler = () {
+        SocketConnection socketConn = new SocketConnection(host, port, socket);
+        _connectionOpened(socketConn);
+      };
     } else {
-      entry = socketConnections.removeFirst();
+      SocketConnection socketConn = socketConnections.removeFirst();
+      _connectionOpened(socketConn);
 
       // Get rid of eviction timer if there are no more active connections.
       if (socketConnections.isEmpty()) {
@@ -1435,8 +1442,6 @@ class HTTPClientImplementation implements HTTPClient{
         _evictionTimer = null;
       }
     }
-
-    return entry;
   }
 
   void _returnSocketConnection(SocketConnection socketConn) {
@@ -1482,6 +1487,11 @@ class HTTPClientImplementation implements HTTPClient{
     socketConn._markReturned();
   }
 
+  void set openHandler(void callback(HTTPClientRequest request)) {
+    _openHandler = callback;
+  }
+
+  var _openHandler;
   Map<String, Queue<SocketConnection>> _openSockets;
   Timer _evictionTimer;
   bool _shutdown;  // Has this HTTP client been shutdown?

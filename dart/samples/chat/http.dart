@@ -203,14 +203,21 @@ interface HTTPClient factory HTTPClientImplementation {
   HTTPClient();
 
   /**
-   * Open a HTTP connection.
+   * Open a HTTP connection. The [openHandler] is called with an
+   * HTTPClientRequest when the connection has been successfully
+   * opened.
    */
-  HTTPClientRequest open(String method, String host, int port, String path);
+  void open(String method, String host, int port, String path);
 
   /**
    * Shutdown the HTTP client releasing all resources.
    */
   void shutdown();
+
+  /**
+   * Set the open handler that is called on successful open operations.
+   */
+  void set openHandler(void handler(HTTPClientRequest request));
 }
 
 
