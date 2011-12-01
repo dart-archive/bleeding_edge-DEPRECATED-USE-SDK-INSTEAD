@@ -1054,7 +1054,9 @@ function _toDartException(e) {
         return attachStack(new NullPointerException());
         break;
       case 'undefined_method':
-        if (e.arguments[0] == 'call' || e.arguments[0] == 'apply') {
+        var mname = e.arguments[0];
+        if (typeof(mname) == 'string' && (mname.indexOf('call$') == 0
+            || mname == 'call' || mname == 'apply')) {
           return attachStack(new ObjectNotClosureException());
         } else {
           // TODO(jmesserly): fix noSuchMethod on operators so we don't hit this
@@ -1093,8 +1095,8 @@ ListFactory.prototype.assert$Collection_Type = function(){return this};
 ListFactory.prototype.assert$Iterable = function(){return this};
 ListFactory.ListFactory$from$factory = function(other) {
   var list = [];
-  for (var $i = other.iterator(); $i.hasNext$0(); ) {
-    var e = $i.next$0();
+  for (var $$i = other.iterator(); $$i.hasNext$0(); ) {
+    var e = $$i.next$0();
     list.add(e);
   }
   return (list == null ? null : list.assert$ListFactory());
@@ -1106,8 +1108,8 @@ ListFactory.prototype.addLast = function(value) {
   this.push(value);
 }
 ListFactory.prototype.addAll = function(collection) {
-  for (var $i = collection.iterator(); $i.hasNext$0(); ) {
-    var item = $i.next$0();
+  for (var $$i = collection.iterator(); $$i.hasNext$0(); ) {
+    var item = $$i.next$0();
     this.add(item);
   }
 }
@@ -1759,8 +1761,8 @@ HashSetImplementation.prototype.assert$Collection_Type = function(){return this}
 HashSetImplementation.prototype.assert$Iterable = function(){return this};
 HashSetImplementation.HashSetImplementation$from$factory = function(other) {
   var set = new HashSetImplementation();
-  for (var $i = other.iterator(); $i.hasNext$0(); ) {
-    var e = $i.next$0();
+  for (var $$i = other.iterator(); $$i.hasNext$0(); ) {
+    var e = $$i.next$0();
     set.add(e);
   }
   return (set == null ? null : set.assert$HashSetImplementation());
@@ -2185,8 +2187,8 @@ DoubleLinkedQueue.prototype.add = function(value) {
   this.addLast(value);
 }
 DoubleLinkedQueue.prototype.addAll = function(collection) {
-  for (var $i = collection.iterator(); $i.hasNext$0(); ) {
-    var e = $i.next$0();
+  for (var $$i = collection.iterator(); $$i.hasNext$0(); ) {
+    var e = $$i.next$0();
     this.add(e);
   }
 }
@@ -2409,8 +2411,8 @@ StringBufferImpl.prototype.add = function(obj) {
   return this;
 }
 StringBufferImpl.prototype.addAll = function(objects) {
-  for (var $i = objects.iterator(); $i.hasNext$0(); ) {
-    var obj = $i.next$0();
+  for (var $$i = objects.iterator(); $$i.hasNext$0(); ) {
+    var obj = $$i.next$0();
     this.add(obj);
   }
   return this;
@@ -2478,6 +2480,7 @@ StringImplementation.prototype.replaceFirst = function(from, to) {
 StringImplementation.prototype.replaceAll = function(from, to) {
   if (typeof(from) == 'string' || from instanceof String) {
     from = new RegExp(from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'g');
+    to = to.replace(/\$/g, '$$$$'); // Escape sequences are fun!
   }
   return this.replace(from, to);
 }
@@ -2532,28 +2535,28 @@ StringImplementation.prototype.substring$2 = function($0, $1) {
 // ********** Code for Collections **************
 function Collections() {}
 Collections.forEach = function(iterable, f) {
-  for (var $i = iterable.iterator(); $i.hasNext$0(); ) {
-    var e = $i.next$0();
+  for (var $$i = iterable.iterator(); $$i.hasNext$0(); ) {
+    var e = $$i.next$0();
     f(e);
   }
 }
 Collections.some = function(iterable, f) {
-  for (var $i = iterable.iterator(); $i.hasNext$0(); ) {
-    var e = $i.next$0();
+  for (var $$i = iterable.iterator(); $$i.hasNext$0(); ) {
+    var e = $$i.next$0();
     if (f(e)) return true;
   }
   return false;
 }
 Collections.every = function(iterable, f) {
-  for (var $i = iterable.iterator(); $i.hasNext$0(); ) {
-    var e = $i.next$0();
+  for (var $$i = iterable.iterator(); $$i.hasNext$0(); ) {
+    var e = $$i.next$0();
     if (!f(e)) return false;
   }
   return true;
 }
 Collections.filter = function(source, destination, f) {
-  for (var $i = source.iterator(); $i.hasNext$0(); ) {
-    var e = $i.next$0();
+  for (var $$i = source.iterator(); $$i.hasNext$0(); ) {
+    var e = $$i.next$0();
     if (f(e)) destination.add(e);
   }
   return destination;
@@ -2686,9 +2689,9 @@ function createSandbox() {
 // ********** Code for top level **************
 function joinPaths(path1, path2) {
   var pieces = path1.split('/');
-  var $list = path2.split('/');
-  for (var $i = 0;$i < $list.length; $i++) {
-    var piece = $list.$index($i);
+  var $$list = path2.split('/');
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var piece = $$list.$index($$i);
     if ($notnull_bool($eq(piece, '..')) && pieces.length > 0 && $notnull_bool($ne(pieces.last$0(), '.')) && $notnull_bool($ne(pieces.last$0(), '..'))) {
       pieces.removeLast$0();
     }
@@ -3113,8 +3116,8 @@ Keyword.get$keywords = function() {
 }
 Keyword.computeKeywordMap = function() {
   var result = new LinkedHashMapImplementation();
-  for (var $i0 = const$119/*Keyword.values*/.iterator(); $i0.hasNext(); ) {
-    var keyword = $i0.next();
+  for (var $$i = const$119/*Keyword.values*/.iterator(); $$i.hasNext(); ) {
+    var keyword = $$i.next();
     result.$setindex(keyword.syntax, keyword);
   }
   return result;
@@ -8215,9 +8218,9 @@ function SsaCodeGenerator(compiler, buffer, parameterNames) {
   this.names = new HashMapImplementation();
   this.prefixes = new HashMapImplementation();
   // Initializers done
-  var $list = this.parameterNames.getValues();
-  for (var $i = this.parameterNames.getValues().iterator$0(); $i.hasNext$0(); ) {
-    var name = $i.next$0();
+  var $$list = this.parameterNames.getValues();
+  for (var $$i = this.parameterNames.getValues().iterator$0(); $$i.hasNext$0(); ) {
+    var name = $$i.next$0();
     this.prefixes.$setindex(name, 0);
   }
 }
@@ -9078,9 +9081,9 @@ HBasicBlock.prototype.postProcessLoopHeader = function() {
   }
 }
 HBasicBlock.prototype.rewrite = function(from, to) {
-  var $list = from.usedBy;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var use = $list.$index($i);
+  var $$list = from.usedBy;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var use = $$list.$index($$i);
     HBasicBlock.rewriteInput(use, from, to);
   }
   to.usedBy.addAll(from.usedBy);
@@ -9307,9 +9310,9 @@ HInstruction.prototype.computeType = function() {
 }
 HInstruction.prototype.computeDesiredType = function() {
   var candidateType = 0/*HInstruction.TYPE_UNKNOWN*/;
-  var $list = this.usedBy;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var user = $list.$index($i);
+  var $$list = this.usedBy;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var user = $$list.$index($$i);
     var type = $assert_num(user.computeDesiredInputType$1(this));
     if (candidateType == 0/*HInstruction.TYPE_UNKNOWN*/) {
       candidateType = type;
@@ -10732,9 +10735,9 @@ SsaDeadPhiEliminator.prototype.visitGraph = function(graph) {
   var $0;
   var worklist = [];
   var livePhis = new HashSetImplementation();
-  var $list = graph.blocks;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var block = $list.$index($i);
+  var $$list = graph.blocks;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var block = $$list.$index($$i);
     block.forEachPhi$1((function (phi) {
       var $list0 = phi.usedBy;
       for (var $i0 = 0;$i0 < $list0.length; $i0++) {
@@ -10750,18 +10753,18 @@ SsaDeadPhiEliminator.prototype.visitGraph = function(graph) {
   }
   while (!worklist.isEmpty()) {
     var phi = (($0 = worklist.removeLast()) == null ? null : $0.assert$HPhi());
-    var $list = phi.inputs;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var input = $list.$index($i);
+    var $$list = phi.inputs;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var input = $$list.$index($$i);
       if ((input instanceof HPhi) && !livePhis.contains(input)) {
         worklist.add(input);
         livePhis.add(input);
       }
     }
   }
-  var $list = graph.blocks;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var block = $list.$index($i);
+  var $$list = graph.blocks;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var block = $$list.$index($$i);
     var current = (($0 = block.get$phis().get$first()) == null ? null : $0.assert$HPhi());
     var next = null;
     while (current != null) {
@@ -10778,9 +10781,9 @@ function SsaRedundantPhiEliminator() {
 SsaRedundantPhiEliminator.prototype.visitGraph = function(graph) {
   var $0;
   var worklist = [];
-  var $list = graph.blocks;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var block = $list.$index($i);
+  var $$list = graph.blocks;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var block = $$list.$index($$i);
     block.forEachPhi$1((function (phi) {
       return worklist.add(phi);
     })
@@ -10800,9 +10803,9 @@ SsaRedundantPhiEliminator.prototype.visitGraph = function(graph) {
       }
     }
     if (candidate == null) continue;
-    var $list = phi.usedBy;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var user = $list.$index($i);
+    var $$list = phi.usedBy;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var user = $$list.$index($$i);
       if ((user instanceof HPhi)) worklist.add(user);
     }
     phi.block.rewrite(phi, candidate);
@@ -10973,8 +10976,8 @@ SsaCodeMotion.prototype.visitBasicBlock = function(block) {
     }
     if (!$notnull_bool(instructions.isEmpty())) {
       var list = instructions.toList();
-      for (var $i = 0;$i < list.length; $i++) {
-        var instruction = list.$index($i);
+      for (var $$i = 0;$$i < list.length; $$i++) {
+        var instruction = list.$index($$i);
         instruction.block.detach(instruction);
         block.moveAtExit(instruction);
         for (var $i0 = 0;$i0 < successors.length; $i0++) {
@@ -11000,9 +11003,9 @@ SsaCodeMotion.prototype.visitBasicBlock = function(block) {
     if (!$notnull_bool(current.useGvn())) continue;
     if ((current.flags & dependsFlags) != 0) continue;
     var canBeMoved = true;
-    var $list = current.inputs;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var input = $list.$index($i);
+    var $$list = current.inputs;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var input = $$list.$index($$i);
       if ($eq(input.block, block)) {
         canBeMoved = false;
         break;
@@ -11170,8 +11173,8 @@ SsaPhiEliminator.prototype.visitPhi = function(phi, loads) {
 }
 SsaPhiEliminator.prototype.hasLoopPhiAsInput = function(stores, loads) {
   $assert(this.currentBlock.isLoopHeader(), "currentBlock.isLoopHeader()", "phi_eliminator.dart", 146, 12);
-  for (var $i = 0;$i < stores.length; $i++) {
-    var store = stores.$index($i);
+  for (var $$i = 0;$$i < stores.length; $$i++) {
+    var store = stores.$index($$i);
     var value = store.get$value();
     if ((value instanceof HPhi) && $eq(value.block, this.currentBlock)) {
       return true;
@@ -11220,9 +11223,9 @@ HTracer.prototype.addPredecessors = function(block) {
   else {
     this.addIndent();
     this.add("predecessors");
-    var $list = block.predecessors;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var predecessor = $list.$index($i);
+    var $$list = block.predecessors;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var predecessor = $$list.$index($$i);
       this.add((' "B' + predecessor.id + '"'));
     }
     this.add("\n");
@@ -11235,9 +11238,9 @@ HTracer.prototype.addSuccessors = function(block) {
   else {
     this.addIndent();
     this.add("successors");
-    var $list = block.successors;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var successor = $list.$index($i);
+    var $$list = block.successors;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var successor = $$list.$index($$i);
       this.add((' "B' + successor.id + '"'));
     }
     this.add("\n");
@@ -11587,9 +11590,9 @@ HValidator.prototype.visitBasicBlock = function(block) {
     this.markInvalid("Non-exit or throw block without successor");
   }
   if (block.id == null) this.markInvalid("block without id");
-  var $list = block.successors;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var successor = $list.$index($i);
+  var $$list = block.successors;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var successor = $$list.$index($$i);
     if (!$notnull_bool(this.isValid)) break;
     if (successor.id == null) this.markInvalid("successor without id");
     if (successor.id <= block.id && !$notnull_bool(successor.isLoopHeader())) {
@@ -11597,9 +11600,9 @@ HValidator.prototype.visitBasicBlock = function(block) {
     }
   }
   var lastId = 0;
-  var $list = block.dominatedBlocks;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var dominated = $list.$index($i);
+  var $$list = block.dominatedBlocks;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var dominated = $$list.$index($$i);
     if (!$notnull_bool(this.isValid)) break;
     if (dominated.dominator !== block) {
       this.markInvalid("dominated block not pointing back");
@@ -12861,9 +12864,9 @@ Message.prototype.toString = function() {
   if (this.message == null) {
     this.message = $assert_String(this.kind.get$template());
     var position = 1;
-    var $list = this.arguments;
-    for (var $i0 = 0;$i0 < $list.length; $i0++) {
-      var argument = $list.$index($i0);
+    var $$list = this.arguments;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var argument = $$list.$index($$i);
       this.message = this.message.replaceAll(('#{' + (position++) + '}'), argument.toString$0());
     }
   }
@@ -12924,9 +12927,9 @@ WorldCompiler.prototype.run = function() {
     var code = this.getGeneratedCode();
     this.world.legCode = $assert_String(code);
     this.world.jsBytesWritten = $assert_num(code.length);
-    var $list = this.tasks;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var task = $list.$index($i);
+    var $$list = this.tasks;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var task = $$list.$index($$i);
       this.log(('' + task.get$name() + ' took ' + task.get$timing() + 'msec'));
     }
   }
@@ -13174,9 +13177,9 @@ CoreJs.prototype.generate = function(w) {
       w.writeln("function $wrap_call$1(fn) { return fn; }");
     }
   }
-  var $list = orderValuesByKeys(this._usedOperators);
-  for (var $i = 0;$i < $list.length; $i++) {
-    var opImpl = $list.$index($i);
+  var $$list = orderValuesByKeys(this._usedOperators);
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var opImpl = $$list.$index($$i);
     w.writeln($assert_String(opImpl));
   }
 }
@@ -13235,9 +13238,9 @@ lang_Element.prototype.resolveType = function(node, typeErrors) {
       name = typeRef.name.name;
     }
     if (this.get$typeParameters() != null) {
-      var $list = this.get$typeParameters();
-      for (var $i = 0;$i < $list.length; $i++) {
-        var tp = $list.$index($i);
+      var $$list = this.get$typeParameters();
+      for (var $$i = 0;$$i < $$list.length; $$i++) {
+        var tp = $$list.$index($$i);
         if ($notnull_bool($eq(tp.get$name(), name))) {
           typeRef.type = (tp == null ? null : tp.assert$lang_Type());
         }
@@ -13338,9 +13341,9 @@ WorldGenerator.prototype.markLibraryUsed = function(l) {
     return $this.markLibraryUsed((($0 = i.get$library()) == null ? null : $0.assert$Library()));
   })
   );
-  var $list = l.types.getValues();
-  for (var $i = l.types.getValues().iterator$0(); $i.hasNext$0(); ) {
-    var type = $i.next$0();
+  var $$list = l.types.getValues();
+  for (var $$i = l.types.getValues().iterator$0(); $$i.hasNext$0(); ) {
+    var type = $$i.next$0();
     if (!$notnull_bool(type.get$isClass())) continue;
     type.markUsed$0();
     type.set$isTested(!$notnull_bool(type.get$isTop()) && !($notnull_bool(type.get$isNative()) && $notnull_bool(type.get$members().getValues$0().every$1((function (m) {
@@ -13380,9 +13383,9 @@ WorldGenerator.prototype.writeTypes = function(lib) {
   var $0;
   if ($notnull_bool(lib.isWritten)) return;
   lib.isWritten = true;
-  var $list = lib.imports;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var import_ = $list.$index($i);
+  var $$list = lib.imports;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var import_ = $$list.$index($$i);
     this.writeTypes((($0 = import_.get$library()) == null ? null : $0.assert$Library()));
   }
   for (var i = 0;
@@ -13394,17 +13397,17 @@ WorldGenerator.prototype.writeTypes = function(lib) {
     this.writer.comment('//  ********** Natives dart:core **************');
     this.corejs.generate(this.writer);
   }
-  var $list = lib.natives;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var file = $list.$index($i);
+  var $$list = lib.natives;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var file = $$list.$index($$i);
     var filename = basename($assert_String(file.get$filename()));
     this.writer.comment(('//  ********** Natives ' + filename + ' **************'));
     this.writer.writeln($assert_String(file.get$text()));
   }
   lib.topType.markUsed();
-  var $list = this._orderValues(lib.types);
-  for (var $i = 0;$i < $list.length; $i++) {
-    var type = $list.$index($i);
+  var $$list = this._orderValues(lib.types);
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var type = $$list.$index($$i);
     if (($notnull_bool(type.get$isUsed()) || $notnull_bool(type.get$isHiddenNativeType())) && $notnull_bool(type.get$isClass())) {
       this.writeType((type == null ? null : type.assert$lang_Type()));
       if ($notnull_bool(type.get$isGeneric())) {
@@ -13486,9 +13489,9 @@ WorldGenerator.prototype.writeType = function(type) {
     else {
       standardConstructor.generator.writeDefinition(this.writer, null);
     }
-    var $list = type.get$constructors().getValues();
-    for (var $i = type.get$constructors().getValues().iterator$0(); $i.hasNext$0(); ) {
-      var c = $i.next$0();
+    var $$list = type.get$constructors().getValues();
+    for (var $$i = type.get$constructors().getValues().iterator$0(); $$i.hasNext$0(); ) {
+      var c = $$i.next$0();
       if ($notnull_bool($ne(c.get$generator(), null)) && $notnull_bool($ne(c, standardConstructor))) {
         c.get$generator().writeDefinition$2(this.writer);
       }
@@ -13516,9 +13519,9 @@ WorldGenerator.prototype.writeType = function(type) {
     this._maybeIsTest(type, type);
   }
   if (type.get$genericType()._concreteTypes != null) {
-    var $list = this._orderValues(type.get$genericType()._concreteTypes);
-    for (var $i = 0;$i < $list.length; $i++) {
-      var ct = $list.$index($i);
+    var $$list = this._orderValues(type.get$genericType()._concreteTypes);
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var ct = $$list.$index($$i);
       this._maybeIsTest(type, (ct == null ? null : ct.assert$lang_Type()));
     }
   }
@@ -13531,15 +13534,15 @@ WorldGenerator.prototype.writeType = function(type) {
       var interface_ = worklist.removeLast();
       this._maybeIsTest(type, (($0 = interface_.get$genericType()) == null ? null : $0.assert$lang_Type()));
       if (interface_.get$genericType()._concreteTypes != null) {
-        var $list = this._orderValues(interface_.get$genericType()._concreteTypes);
-        for (var $i = 0;$i < $list.length; $i++) {
-          var ct = $list.$index($i);
+        var $$list = this._orderValues(interface_.get$genericType()._concreteTypes);
+        for (var $$i = 0;$$i < $$list.length; $$i++) {
+          var ct = $$list.$index($$i);
           this._maybeIsTest(type, (ct == null ? null : ct.assert$lang_Type()));
         }
       }
-      var $list = interface_.get$interfaces();
-      for (var $i = interface_.get$interfaces().iterator$0(); $i.hasNext$0(); ) {
-        var other = $i.next$0();
+      var $$list = interface_.get$interfaces();
+      for (var $$i = interface_.get$interfaces().iterator$0(); $$i.hasNext$0(); ) {
+        var other = $$i.next$0();
         if (!seen.contains(other)) {
           worklist.addLast(other);
           seen.add(other);
@@ -13548,9 +13551,9 @@ WorldGenerator.prototype.writeType = function(type) {
     }
   }
   type.get$factories().forEach(this.get$_writeMethod());
-  var $list = this._orderValues(type.get$members());
-  for (var $i = 0;$i < $list.length; $i++) {
-    var member = $list.$index($i);
+  var $$list = this._orderValues(type.get$members());
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var member = $$list.$index($$i);
     if ((member instanceof FieldMember)) {
       this._writeField((member == null ? null : member.assert$FieldMember()));
     }
@@ -13570,9 +13573,9 @@ WorldGenerator.prototype._ensureInheritMembersHelper = function() {
   this._mixins.writeln("/** Implements extends for generic types. */\nfunction $inheritsMembers(child, parent) {\n  child = child.prototype;\n  parent = parent.prototype;\n  Object.getOwnPropertyNames(parent).forEach(function(name) {\n    if (typeof(child[name]) == 'undefined') child[name] = parent[name];\n  });\n}");
 }
 WorldGenerator.prototype._writeDynamicStubs = function(type) {
-  var $list = orderValuesByKeys(type.varStubs);
-  for (var $i = 0;$i < $list.length; $i++) {
-    var stub = $list.$index($i);
+  var $$list = orderValuesByKeys(type.varStubs);
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var stub = $$list.$index($$i);
     stub.generate$1(this.writer);
   }
 }
@@ -13633,15 +13636,15 @@ WorldGenerator.prototype.writeGlobals = function() {
     })
     );
     this.writer.enterBlock('function \$static_init(){');
-    for (var $i = list.iterator$0(); $i.hasNext$0(); ) {
-      var global = $i.next$0();
+    for (var $$i = list.iterator$0(); $$i.hasNext$0(); ) {
+      var global = $$i.next$0();
       if ($notnull_bool($ne(global.get$field(), null))) {
         this._writeStaticField((($0 = global.get$field()) == null ? null : $0.assert$FieldMember()));
       }
     }
     this.writer.exitBlock('}');
-    for (var $i = list.iterator$0(); $i.hasNext$0(); ) {
-      var global0 = $i.next$0();
+    for (var $$i = list.iterator$0(); $$i.hasNext$0(); ) {
+      var global0 = $$i.next$0();
       if ($notnull_bool(global0.get$field() == null)) {
         this.writer.writeln(('var ' + global0.get$name() + ' = ' + global0.get$exp().get$code() + ';'));
       }
@@ -13966,9 +13969,9 @@ MethodGenerator.prototype._provideOptionalParamInfo = function(defWriter) {
       var optNames = [];
       var optValues = [];
       meth.genParameterValues();
-      var $list = meth.parameters;
-      for (var $i = 0;$i < $list.length; $i++) {
-        var param = $list.$index($i);
+      var $$list = meth.parameters;
+      for (var $$i = 0;$$i < $$list.length; $$i++) {
+        var param = $$list.$index($$i);
         if ($notnull_bool(param.get$isOptional())) {
           optNames.add$1(param.get$name());
           optValues.add$1(MethodGenerator._escapeString($assert_String(param.get$value().get$code())));
@@ -14000,8 +14003,8 @@ MethodGenerator.prototype.writeBody = function() {
     initializers = [];
     initializedFields = new HashSetImplementation();
     allMembers = $globals.world.gen._orderValues(this.method.declaringType.getAllMembers());
-    for (var $i = allMembers.iterator$0(); $i.hasNext$0(); ) {
-      var f = $i.next$0();
+    for (var $$i = allMembers.iterator$0(); $$i.hasNext$0(); ) {
+      var f = $$i.next$0();
       if ($notnull_bool(f.get$isField()) && !$notnull_bool(f.get$isStatic())) {
         var cv = f.computeValue$0();
         if ($notnull_bool($ne(cv, null))) {
@@ -14012,9 +14015,9 @@ MethodGenerator.prototype.writeBody = function() {
     }
   }
   this._paramCode = [];
-  var $list = this.method.get$parameters();
-  for (var $i = 0;$i < $list.length; $i++) {
-    var p = $list.$index($i);
+  var $$list = this.method.get$parameters();
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var p = $$list.$index($$i);
     if ($notnull_bool($ne(initializers, null)) && $notnull_bool(p.get$isInitializer())) {
       var field = this.method.declaringType.getMember($assert_String(p.get$name()));
       if ($notnull_bool(field == null)) {
@@ -14040,13 +14043,13 @@ MethodGenerator.prototype.writeBody = function() {
   var initializerCall = null;
   var declaredInitializers = this.method.get$definition().get$initializers();
   if ($notnull_bool($ne(initializers, null))) {
-    for (var $i = initializers.iterator$0(); $i.hasNext$0(); ) {
-      var i = $i.next$0();
+    for (var $$i = initializers.iterator$0(); $$i.hasNext$0(); ) {
+      var i = $$i.next$0();
       this.writer.writeln($assert_String(i));
     }
     if ($notnull_bool($ne(declaredInitializers, null))) {
-      for (var $i = declaredInitializers.iterator$0(); $i.hasNext$0(); ) {
-        var init = $i.next$0();
+      for (var $$i = declaredInitializers.iterator$0(); $$i.hasNext$0(); ) {
+        var init = $$i.next$0();
         if ((init instanceof CallExpression)) {
           if ($notnull_bool($ne(initializerCall, null))) {
             $globals.world.error('only one initializer redirecting call is allowed', (($0 = init.get$span()) == null ? null : $0.assert$SourceSpan()));
@@ -14088,9 +14091,9 @@ MethodGenerator.prototype.writeBody = function() {
     var target = this._writeInitializerCall((initializerCall == null ? null : initializerCall.assert$CallExpression()));
     if (!$notnull_bool(target.get$isSuper())) {
       if (initializers.length > 0) {
-        var $list = this.method.get$parameters();
-        for (var $i = 0;$i < $list.length; $i++) {
-          var p = $list.$index($i);
+        var $$list = this.method.get$parameters();
+        for (var $$i = 0;$$i < $$list.length; $$i++) {
+          var p = $$list.$index($$i);
           if ($notnull_bool(p.get$isInitializer())) {
             $globals.world.error('no initialization allowed on redirecting constructors', (($0 = p.get$definition().get$span()) == null ? null : $0.assert$SourceSpan()));
             break;
@@ -14105,8 +14108,8 @@ MethodGenerator.prototype.writeBody = function() {
     }
   }
   if ($notnull_bool($ne(initializedFields, null))) {
-    for (var $i = allMembers.iterator$0(); $i.hasNext$0(); ) {
-      var member = $i.next$0();
+    for (var $$i = allMembers.iterator$0(); $$i.hasNext$0(); ) {
+      var member = $$i.next$0();
       if ($notnull_bool(member.get$isField()) && $notnull_bool(member.get$isFinal()) && !$notnull_bool(member.get$isStatic()) && !$notnull_bool(this.method.get$isNative()) && !$notnull_bool(initializedFields.contains$1(member.get$name()))) {
         $globals.world.error(('Field "' + member.get$name() + '" is final and was not initialized'), (($0 = this.method.get$definition().get$span()) == null ? null : $0.assert$SourceSpan()));
       }
@@ -14153,8 +14156,8 @@ MethodGenerator.prototype._makeArgs = function(arguments) {
   var $0;
   var args = [];
   var seenLabel = false;
-  for (var $i = 0;$i < arguments.length; $i++) {
-    var arg = arguments.$index($i);
+  for (var $$i = 0;$$i < arguments.length; $$i++) {
+    var arg = arguments.$index($$i);
     if ($notnull_bool($ne(arg.get$label(), null))) {
       seenLabel = true;
     }
@@ -14180,9 +14183,9 @@ MethodGenerator._escapeString = function(text) {
 MethodGenerator.prototype.visitStatementsInBlock = function(body) {
   if ((body instanceof BlockStatement)) {
     var block = (body == null ? null : body.assert$BlockStatement());
-    var $list = block.body;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var stmt = $list.$index($i);
+    var $$list = block.body;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var stmt = $$list.$index($$i);
       stmt.visit$1(this);
     }
   }
@@ -14386,9 +14389,9 @@ MethodGenerator.prototype.visitForStatement = function(node) {
     this.writer.write('; ');
   }
   var needsComma = false;
-  var $list = node.step;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var s = $list.$index($i);
+  var $$list = node.step;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var s = $$list.$index($$i);
     if ($notnull_bool(needsComma)) this.writer.write(', ');
     var sv = this.visitVoid((s == null ? null : s.assert$lang_Expression()));
     this.writer.write($assert_String(sv.get$code()));
@@ -14540,9 +14543,9 @@ MethodGenerator.prototype.visitSwitchStatement = function(node) {
   var $0;
   var test = this.visitValue(node.test);
   this.writer.enterBlock(('switch (' + test.get$code() + ') {'));
-  var $list = node.cases;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var case_ = $list.$index($i);
+  var $$list = node.cases;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var case_ = $$list.$index($$i);
     if ($notnull_bool($ne(case_.get$label(), null))) {
       $globals.world.error('unimplemented: labeled case statement', (($0 = case_.get$span()) == null ? null : $0.assert$SourceSpan()));
     }
@@ -14979,9 +14982,9 @@ MethodGenerator.prototype.visitNewExpression = function(node) {
     if (!$notnull_bool(m.get$isConst())) {
       $globals.world.error('can\'t use const on a non-const constructor', node.span);
     }
-    var $list = node.arguments;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var arg = $list.$index($i);
+    var $$list = node.arguments;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var arg = $$list.$index($$i);
       if (!$notnull_bool(this.visitValue((($0 = arg.get$value()) == null ? null : $0.assert$lang_Expression())).get$isConst())) {
         $globals.world.error('const constructor expects const arguments', (($0 = arg.get$span()) == null ? null : $0.assert$SourceSpan()));
       }
@@ -14994,9 +14997,9 @@ MethodGenerator.prototype.visitListExpression = function(node) {
   var $0;
   var argsCode = [];
   var argValues = [];
-  var $list = node.values;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var item = $list.$index($i);
+  var $$list = node.values;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var item = $$list.$index($$i);
     var arg = this.visitValue((item == null ? null : item.assert$lang_Expression()));
     argValues.add$1(arg);
     if ($notnull_bool(node.isConst)) {
@@ -15125,9 +15128,9 @@ MethodGenerator.prototype.visitLiteralExpression = function(node) {
   $assert($ne(type, null), "type != null", "gen.dart", 2272, 12);
   if (!!(($0 = node.value) && $0.is$List())) {
     var items = [];
-    var $list = node.value;
-    for (var $i = node.value.iterator$0(); $i.hasNext$0(); ) {
-      var item = $i.next$0();
+    var $$list = node.value;
+    for (var $$i = node.value.iterator$0(); $$i.hasNext$0(); ) {
+      var item = $$i.next$0();
       var val = this.visitValue((item == null ? null : item.assert$lang_Expression()));
       val.invoke$4(this, 'toString', item, Arguments.get$EMPTY());
       var code = val.get$code();
@@ -15354,9 +15357,9 @@ Library.prototype._addMember = function(member) {
     }
     var mset = this._privateMembers.$index(member.name);
     if ($notnull_bool(mset == null)) {
-      var $list = $globals.world.libraries.getValues();
-      for (var $i = $globals.world.libraries.getValues().iterator$0(); $i.hasNext$0(); ) {
-        var lib = $i.next$0();
+      var $$list = $globals.world.libraries.getValues();
+      for (var $$i = $globals.world.libraries.getValues().iterator$0(); $$i.hasNext$0(); ) {
+        var lib = $$i.next$0();
         if (lib._privateMembers.containsKey(member.get$jsname())) {
           member._jsname = ('_' + this.get$jsname() + member.get$jsname());
           break;
@@ -15416,9 +15419,9 @@ Library.prototype.findType = function(type) {
 Library.prototype.findTypeByName = function(name) {
   var $0;
   var ret = this.types.$index(name);
-  var $list = this.imports;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var imported = $list.$index($i);
+  var $$list = this.imports;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var imported = $$list.$index($$i);
     var newRet = null;
     if ($notnull_bool(imported.get$prefix() == null)) {
       newRet = imported.get$library().get$types().$index(name);
@@ -15482,9 +15485,9 @@ Library.prototype.lookup = function(name, span) {
       ret = newRet;
     }
   }
-  var $list = this.imports;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var imported = $list.$index($i);
+  var $$list = this.imports;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var imported = $$list.$index($$i);
     if ($notnull_bool(imported.get$prefix() == null)) {
       newRet = imported.get$library().get$topType().getMember$1(name);
       if ($notnull_bool($ne(newRet, null))) {
@@ -15512,9 +15515,9 @@ Library.prototype.resolve = function() {
     }
   }
   this._jsname = this.name.replaceAll('.', '_').replaceAll(':', '_').replaceAll(' ', '_');
-  var $list = this.types.getValues();
-  for (var $i = this.types.getValues().iterator$0(); $i.hasNext$0(); ) {
-    var type = $i.next$0();
+  var $$list = this.types.getValues();
+  for (var $$i = this.types.getValues().iterator$0(); $$i.hasNext$0(); ) {
+    var type = $$i.next$0();
     type.resolve$0();
   }
 }
@@ -15582,8 +15585,8 @@ _LibraryVisitor.prototype.addSource = function(source) {
   this.isTop = false;
   var newSources = this.sources;
   this.sources = [];
-  for (var $i = newSources.iterator$0(); $i.hasNext$0(); ) {
-    var source0 = $i.next$0();
+  for (var $$i = newSources.iterator$0(); $$i.hasNext$0(); ) {
+    var source0 = $$i.next$0();
     this.addSource((source0 == null ? null : source0.assert$SourceFile()));
   }
 }
@@ -15692,8 +15695,8 @@ _LibraryVisitor.prototype.tryGetNamedStringArg = function(node, argName) {
   if (args.length > 1) {
     $globals.world.error(('expected at most one "' + argName + '" argument but found ') + node.arguments.length, node.span);
   }
-  for (var $i = args.iterator$0(); $i.hasNext$0(); ) {
-    var arg = $i.next$0();
+  for (var $$i = args.iterator$0(); $$i.hasNext$0(); ) {
+    var arg = $$i.next$0();
     return this._parseStringArgument((arg == null ? null : arg.assert$ArgumentNode()));
   }
 }
@@ -15708,9 +15711,9 @@ _LibraryVisitor.prototype._parseStringArgument = function(arg) {
 _LibraryVisitor.prototype.visitTypeDefinition = function(node) {
   var oldType = this.currentType;
   this.currentType = this.library.addType(node.name.name, node, node.isClass);
-  var $list = node.body;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var member = $list.$index($i);
+  var $$list = node.body;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var member = $$list.$index($$i);
     member.visit$1(this);
   }
   this.currentType = (oldType == null ? null : oldType.assert$DefinedType());
@@ -16061,9 +16064,9 @@ FieldMember.prototype.resolve = function() {
   this.isStatic = this.declaringType.get$isTop();
   this.isFinal = false;
   if (this.definition.modifiers != null) {
-    var $list = this.definition.modifiers;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var mod = $list.$index($i);
+    var $$list = this.definition.modifiers;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var mod = $$list.$index($$i);
       if ($notnull_bool($eq(mod.get$kind(), 86/*TokenKind.STATIC*/))) {
         if ($notnull_bool(this.isStatic)) {
           $globals.world.error('duplicate static modifier', (($0 = mod.get$span()) == null ? null : $0.assert$SourceSpan()));
@@ -16280,9 +16283,9 @@ function ConcreteMember(name, declaringType, baseMember) {
   Member.call(this, name, declaringType);
   this.parameters = [];
   this.returnType = this.baseMember.get$returnType().resolveTypeParams(declaringType);
-  var $list = this.baseMember.get$parameters();
-  for (var $i = 0;$i < $list.length; $i++) {
-    var p = $list.$index($i);
+  var $$list = this.baseMember.get$parameters();
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var p = $$list.$index($$i);
     var newType = p.get$type().resolveTypeParams$1(declaringType);
     if ($notnull_bool($ne(newType, p.get$type()))) {
       this.parameters.add(p.copyWithNewType$2(this, newType));
@@ -16609,9 +16612,9 @@ MethodMember.prototype._argError = function(context, node, target, args, msg) {
   return target.invokeNoSuchMethod(context, this.name, node, args);
 }
 MethodMember.prototype.genParameterValues = function() {
-  var $list = this.parameters;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var p = $list.$index($i);
+  var $$list = this.parameters;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var p = $$list.$index($$i);
     p.genValue$2(this, this.generator);
   }
 }
@@ -16785,9 +16788,9 @@ MethodMember.prototype._invokeConstConstructor = function(node, code, target, ar
       }
       this.generator._scope._vars.$setindex(name, value);
     }
-    var $list = this.definition.initializers;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var init = $list.$index($i);
+    var $$list = this.definition.initializers;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var init = $$list.$index($$i);
       if ((init instanceof CallExpression)) {
         var delegateArgs = this.generator._makeArgs((($0 = init.get$arguments()) == null ? null : $0.assert$List_ArgumentNode()));
         var value = this.initDelegate.invoke(this.generator, node, target, (delegateArgs == null ? null : delegateArgs.assert$Arguments()), false);
@@ -16815,9 +16818,9 @@ MethodMember.prototype._invokeConstConstructor = function(node, code, target, ar
     }
     this.generator._popBlock();
   }
-  var $list = this.declaringType.get$members().getValues();
-  for (var $i = this.declaringType.get$members().getValues().iterator$0(); $i.hasNext$0(); ) {
-    var f = $i.next$0();
+  var $$list = this.declaringType.get$members().getValues();
+  for (var $$i = this.declaringType.get$members().getValues().iterator$0(); $$i.hasNext$0(); ) {
+    var f = $$i.next$0();
     if ((f instanceof FieldMember) && !$notnull_bool(f.get$isStatic()) && $notnull_bool($ne(f.get$value(), null)) && !fields.containsKey(f.get$name())) {
       fields.$setindex(f.get$name(), f.computeValue$0());
     }
@@ -17048,9 +17051,9 @@ MethodMember.prototype.resolve = function() {
   this.isFactory = false;
   this.isAbstract = !$notnull_bool(this.declaringType.get$isClass());
   if (this.definition.modifiers != null) {
-    var $list = this.definition.modifiers;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var mod = $list.$index($i);
+    var $$list = this.definition.modifiers;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var mod = $$list.$index($$i);
       if ($notnull_bool($eq(mod.get$kind(), 86/*TokenKind.STATIC*/))) {
         if ($notnull_bool(this.isStatic)) {
           $globals.world.error('duplicate static modifier', (($0 = mod.get$span()) == null ? null : $0.assert$SourceSpan()));
@@ -17094,9 +17097,9 @@ MethodMember.prototype.resolve = function() {
     }
     else {
       this.typeParameters = this.definition.typeParameters;
-      var $list = this.definition.typeParameters;
-      for (var $i = 0;$i < $list.length; $i++) {
-        var tp = $list.$index($i);
+      var $$list = this.definition.typeParameters;
+      for (var $$i = 0;$$i < $$list.length; $$i++) {
+        var tp = $$list.$index($$i);
         tp.set$enclosingElement(this);
         tp.resolve$0();
       }
@@ -17125,9 +17128,9 @@ MethodMember.prototype.resolve = function() {
     this.returnType = this.resolveType(this.definition.returnType, false);
   }
   this.parameters = [];
-  var $list = this.definition.formals;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var formal = $list.$index($i);
+  var $$list = this.definition.formals;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var formal = $$list.$index($$i);
     var param = new Parameter(formal, this);
     param.resolve$0();
     this.parameters.add(param);
@@ -17206,9 +17209,9 @@ MemberSet.prototype._makeError = function(node, target, action) {
 MemberSet.prototype.get$treatAsField = function() {
   if (this._treatAsField == null) {
     this._treatAsField = !$notnull_bool(this.isVar);
-    var $list = this.members;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var member = $list.$index($i);
+    var $$list = this.members;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var member = $$list.$index($$i);
       if ($notnull_bool(member.get$requiresFieldSyntax())) {
         this._treatAsField = true;
         break;
@@ -17217,9 +17220,9 @@ MemberSet.prototype.get$treatAsField = function() {
         this._treatAsField = false;
       }
     }
-    var $list = this.members;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var member = $list.$index($i);
+    var $$list = this.members;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var member = $$list.$index($$i);
       if ($notnull_bool(this._treatAsField)) {
         member.provideFieldSyntax$0();
       }
@@ -17250,8 +17253,8 @@ MemberSet.prototype._get = function(context, node, target, isDynamic) {
     else if ($notnull_bool($eq(targets.length, 1))) {
       return targets.$index(0)._get(context, node, target, isDynamic);
     }
-    for (var $i = targets.iterator$0(); $i.hasNext$0(); ) {
-      var member = $i.next$0();
+    for (var $$i = targets.iterator$0(); $$i.hasNext$0(); ) {
+      var member = $$i.next$0();
       var value = member._get(context, node, target, true);
       returnValue = this._tryUnion(returnValue, value, node);
     }
@@ -17289,8 +17292,8 @@ MemberSet.prototype._set = function(context, node, target, value, isDynamic) {
     else if ($notnull_bool($eq(targets.length, 1))) {
       return targets.$index(0)._set(context, node, target, value, isDynamic);
     }
-    for (var $i = targets.iterator$0(); $i.hasNext$0(); ) {
-      var member = $i.next$0();
+    for (var $$i = targets.iterator$0(); $$i.hasNext$0(); ) {
+      var member = $$i.next$0();
       var res = member._set(context, node, target, value, true);
       returnValue = this._tryUnion(returnValue, res, node);
     }
@@ -17324,8 +17327,8 @@ MemberSet.prototype.invoke = function(context, node, target, args, isDynamic) {
     return (($0 = targets.$index(0).invoke$5(context, node, target, args, isDynamic)) == null ? null : $0.assert$Value());
   }
   var returnValue = null;
-  for (var $i = targets.iterator$0(); $i.hasNext$0(); ) {
-    var member = $i.next$0();
+  for (var $$i = targets.iterator$0(); $$i.hasNext$0(); ) {
+    var member = $$i.next$0();
     var res = member.invoke$4$isDynamic(context, node, target, args, true);
     returnValue = this._tryUnion(returnValue, (res == null ? null : res.assert$Value()), node);
   }
@@ -22055,9 +22058,9 @@ lang_Type.prototype._getMemberInParents = function(memberName) {
   }
   else {
     if (this.get$interfaces() != null && this.get$interfaces().length > 0) {
-      var $list = this.get$interfaces();
-      for (var $i = 0;$i < $list.length; $i++) {
-        var i = $list.$index($i);
+      var $$list = this.get$interfaces();
+      for (var $$i = 0;$$i < $$list.length; $$i++) {
+        var i = $$list.$index($$i);
         var ret = i.getMember$1(memberName);
         if ($notnull_bool($ne(ret, null))) {
           return (ret == null ? null : ret.assert$Member());
@@ -22084,9 +22087,9 @@ lang_Type.prototype.resolveMember = function(memberName) {
     return ret;
   }
   else {
-    var $list = this.get$subtypes();
-    for (var $i = this.get$subtypes().iterator(); $i.hasNext$0(); ) {
-      var t = $i.next$0();
+    var $$list = this.get$subtypes();
+    for (var $$i = this.get$subtypes().iterator(); $$i.hasNext$0(); ) {
+      var t = $$i.next$0();
       if (!$notnull_bool(this.get$isClass()) && $notnull_bool(t.get$isClass())) {
         var m = t.getMember$1(memberName);
         if ($notnull_bool($ne(m, null)) && ret.members.indexOf(m) == -1) {
@@ -22484,9 +22487,9 @@ ConcreteType.prototype.set$factories = function(value) { return this.factories =
 ConcreteType.prototype.resolveTypeParams = function(inType) {
   var newTypeArgs = [];
   var needsNewType = false;
-  var $list = this.typeArgsInOrder;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var t = $list.$index($i);
+  var $$list = this.typeArgsInOrder;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var t = $$list.$index($$i);
     var newType = t.resolveTypeParams$1(inType);
     if ($notnull_bool($ne(newType, t))) needsNewType = true;
     newTypeArgs.add$1(newType);
@@ -22506,9 +22509,9 @@ ConcreteType.prototype.get$parent = function() {
 ConcreteType.prototype.get$interfaces = function() {
   if (this._interfaces == null && this.genericType.interfaces != null) {
     this._interfaces = [];
-    var $list = this.genericType.interfaces;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var i = $list.$index($i);
+    var $$list = this.genericType.interfaces;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var i = $$list.$index($$i);
       this._interfaces.add(i.resolveTypeParams$1(this));
     }
   }
@@ -22517,9 +22520,9 @@ ConcreteType.prototype.get$interfaces = function() {
 ConcreteType.prototype.get$subtypes = function() {
   if (this._subtypes == null) {
     this._subtypes = new HashSetImplementation();
-    var $list = this.genericType.get$subtypes();
-    for (var $i = this.genericType.get$subtypes().iterator(); $i.hasNext$0(); ) {
-      var s = $i.next$0();
+    var $$list = this.genericType.get$subtypes();
+    for (var $$i = this.genericType.get$subtypes().iterator(); $$i.hasNext$0(); ) {
+      var s = $$i.next$0();
       this._subtypes.add(s.resolveTypeParams$1(this));
     }
   }
@@ -22530,9 +22533,9 @@ ConcreteType.prototype.getCallMethod = function() {
 }
 ConcreteType.prototype.getAllMembers = function() {
   var result = this.genericType.getAllMembers();
-  var $list = result.getKeys$0();
-  for (var $i = result.getKeys$0().iterator$0(); $i.hasNext$0(); ) {
-    var memberName = $i.next$0();
+  var $$list = result.getKeys$0();
+  for (var $$i = result.getKeys$0().iterator$0(); $$i.hasNext$0(); ) {
+    var memberName = $$i.next$0();
     var myMember = this.members.$index(memberName);
     if ($notnull_bool($ne(myMember, null))) {
       result.$setindex(memberName, myMember);
@@ -22729,9 +22732,9 @@ DefinedType.prototype.markUsed = function() {
   if ($notnull_bool(this.isUsed)) return;
   this.isUsed = true;
   if (this._lazyGenMethods != null) {
-    var $list = orderValuesByKeys(this._lazyGenMethods);
-    for (var $i = 0;$i < $list.length; $i++) {
-      var method = $list.$index($i);
+    var $$list = orderValuesByKeys(this._lazyGenMethods);
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var method = $$list.$index($$i);
       $globals.world.gen.genMethod((method == null ? null : method.assert$Member()));
     }
     this._lazyGenMethods = null;
@@ -22751,8 +22754,8 @@ DefinedType.prototype._resolveInterfaces = function(types) {
   var $0;
   if (types == null) return [];
   var interfaces = [];
-  for (var $i = 0;$i < types.length; $i++) {
-    var type = types.$index($i);
+  for (var $$i = 0;$$i < types.length; $$i++) {
+    var type = types.$index($$i);
     var resolvedInterface = this.resolveType((type == null ? null : type.assert$TypeReference()), true);
     if ($notnull_bool(resolvedInterface.get$isClosed()) && !($notnull_bool(this.library.get$isCore()) || $notnull_bool(this.library.get$isCoreImpl()))) {
       $globals.world.error(('can not implement "' + resolvedInterface.get$name() + '": ') + 'only native implementation allowed', (($0 = type.get$span()) == null ? null : $0.assert$SourceSpan()));
@@ -22770,9 +22773,9 @@ DefinedType.prototype.get$subtypes = function() {
   var $0;
   if (this._subtypes == null) {
     this._subtypes = new HashSetImplementation();
-    var $list = this.directSubtypes;
-    for (var $i = this.directSubtypes.iterator(); $i.hasNext$0(); ) {
-      var st = $i.next$0();
+    var $$list = this.directSubtypes;
+    for (var $$i = this.directSubtypes.iterator(); $$i.hasNext$0(); ) {
+      var st = $$i.next$0();
       this._subtypes.add(st);
       this._subtypes.addAll((($0 = st.get$subtypes()) == null ? null : $0.assert$Collection_E()));
     }
@@ -22807,9 +22810,9 @@ DefinedType.prototype._cycleInInterfaceExtends = function() {
     }
     seen.add(ancestor);
     if ($notnull_bool($ne(ancestor.get$interfaces(), null))) {
-      var $list = ancestor.get$interfaces();
-      for (var $i = ancestor.get$interfaces().iterator$0(); $i.hasNext$0(); ) {
-        var parent = $i.next$0();
+      var $$list = ancestor.get$interfaces();
+      for (var $$i = ancestor.get$interfaces().iterator$0(); $$i.hasNext$0(); ) {
+        var parent = $$i.next$0();
         if ($notnull_bool(_helper(parent))) return true;
       }
     }
@@ -22876,22 +22879,22 @@ DefinedType.prototype.resolve = function() {
     this.interfaces = [$globals.world.functionType];
   }
   if (this.typeParameters != null) {
-    var $list = this.typeParameters;
-    for (var $i = 0;$i < $list.length; $i++) {
-      var tp = $list.$index($i);
+    var $$list = this.typeParameters;
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var tp = $$list.$index($$i);
       tp.set$enclosingElement(this);
       tp.resolve$0();
     }
   }
   $globals.world._addType(this);
-  var $list = this.constructors.getValues();
-  for (var $i = this.constructors.getValues().iterator$0(); $i.hasNext$0(); ) {
-    var c = $i.next$0();
+  var $$list = this.constructors.getValues();
+  for (var $$i = this.constructors.getValues().iterator$0(); $$i.hasNext$0(); ) {
+    var c = $$i.next$0();
     c.resolve$0();
   }
   var $list0 = this.members.getValues();
-  for (var $i = this.members.getValues().iterator$0(); $i.hasNext$0(); ) {
-    var m = $i.next$0();
+  for (var $$i = this.members.getValues().iterator$0(); $$i.hasNext$0(); ) {
+    var m = $$i.next$0();
     m.resolve$0();
   }
   this.factories.forEach((function (f) {
@@ -23629,9 +23632,9 @@ ConstObjectValue._internal$ctor.prototype = ConstObjectValue.prototype;
 $inherits(ConstObjectValue, EvaluatedValue);
 ConstObjectValue.ConstObjectValue$factory = function(type, fields, canonicalCode, span) {
   var fieldValues = [];
-  var $list = fields.getKeys();
-  for (var $i = fields.getKeys().iterator$0(); $i.hasNext$0(); ) {
-    var f = $i.next$0();
+  var $$list = fields.getKeys();
+  for (var $$i = fields.getKeys().iterator$0(); $$i.hasNext$0(); ) {
+    var f = $$i.next$0();
     fieldValues.add(('' + f + ' = ' + fields.$index(f).get$actualValue()));
   }
   fieldValues.sort((function (a, b) {
@@ -23653,8 +23656,8 @@ function GlobalValue(type, code, isConst, field, name, exp, canonicalCode, span,
   this.dependencies = [];
   // Initializers done
   Value.call(this, type, code, span, !$notnull_bool(isConst));
-  for (var $i = 0;$i < _dependencies.length; $i++) {
-    var dep = _dependencies.$index($i);
+  for (var $$i = 0;$$i < _dependencies.length; $$i++) {
+    var dep = _dependencies.$index($$i);
     this.dependencies.add(dep);
     this.dependencies.addAll((($0 = dep.get$dependencies()) == null ? null : $0.assert$Collection_E()));
   }
@@ -23980,8 +23983,8 @@ World.prototype.process = function() {
   while (this._todo.length > 0) {
     var todo = this._todo;
     this._todo = [];
-    for (var $i = 0;$i < todo.length; $i++) {
-      var lib = todo.$index($i);
+    for (var $$i = 0;$$i < todo.length; $$i++) {
+      var lib = todo.$index($$i);
       lib.visitSources$0();
     }
   }
@@ -23995,9 +23998,9 @@ World.prototype.get$processDartScript = function() {
   return World.prototype.processDartScript.bind(this);
 }
 World.prototype.resolveAll = function() {
-  var $list = this.libraries.getValues();
-  for (var $i = this.libraries.getValues().iterator$0(); $i.hasNext$0(); ) {
-    var lib = $i.next$0();
+  var $$list = this.libraries.getValues();
+  for (var $$i = this.libraries.getValues().iterator$0(); $$i.hasNext$0(); ) {
+    var lib = $$i.next$0();
     lib.resolve$0();
   }
 }
@@ -24012,9 +24015,9 @@ World.prototype.generateCode = function(lib) {
     this.fatal('no main method specified');
   }
   else if (mainMembers.get$members().length > 1) {
-    var $list = mainMembers.get$members();
-    for (var $i = mainMembers.get$members().iterator$0(); $i.hasNext$0(); ) {
-      var m = $i.next$0();
+    var $$list = mainMembers.get$members();
+    for (var $$i = mainMembers.get$members().iterator$0(); $$i.hasNext$0(); ) {
+      var m = $$i.next$0();
       main = m;
       this.error('more than one main member (using last?)', (($0 = main.get$span()) == null ? null : $0.assert$SourceSpan()));
     }
@@ -24399,9 +24402,9 @@ VarMethodSet.prototype._invokeMembers = function(context, node) {
   if ($notnull_bool(this.invoked)) return;
   this.invoked = true;
   var hasObjectType = false;
-  var $list = this.members;
-  for (var $i = 0;$i < $list.length; $i++) {
-    var member = $list.$index($i);
+  var $$list = this.members;
+  for (var $$i = 0;$$i < $$list.length; $$i++) {
+    var member = $$list.$index($$i);
     var type = member.get$declaringType();
     var target = new Value(type, 'this', node.span, true);
     var result = member.invoke$4$isDynamic(context, node, target, this.args, true);
@@ -24437,8 +24440,8 @@ function map(source, mapper) {
     }
   }
   else {
-    for (var $i = source.iterator(); $i.hasNext$0(); ) {
-      var item = $i.next$0();
+    for (var $$i = source.iterator(); $$i.hasNext$0(); ) {
+      var item = $$i.next$0();
       result.add(mapper(item));
     }
   }
@@ -24463,8 +24466,8 @@ function orderValuesByKeys(map) {
   })
   );
   var values = [];
-  for (var $i = 0;$i < keys.length; $i++) {
-    var k = keys.$index($i);
+  for (var $$i = 0;$$i < keys.length; $$i++) {
+    var k = keys.$index($$i);
     values.add(map.$index(k));
   }
   return values;

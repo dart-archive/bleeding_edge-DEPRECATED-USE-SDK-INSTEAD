@@ -42,7 +42,9 @@ if (e instanceof TypeError) {
       return attachStack(new NullPointerException());
       break;
     case 'undefined_method':
-      if (e.arguments[0] == 'call' || e.arguments[0] == 'apply') {
+      var mname = e.arguments[0];
+      if (typeof(mname) == 'string' && (mname.indexOf('call$') == 0
+          || mname == 'call' || mname == 'apply')) {
         return attachStack(new ObjectNotClosureException());
       } else {
         // TODO(jmesserly): fix noSuchMethod on operators so we don't hit this

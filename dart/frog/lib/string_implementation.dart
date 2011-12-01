@@ -48,6 +48,7 @@ class StringImplementation implements String native "String" {
   String replaceAll(Pattern from, String to) native @"""
 if (typeof(from) == 'string' || from instanceof String) {
   from = new RegExp(from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'g');
+  to = to.replace(/\$/g, '$$$$'); // Escape sequences are fun!
 }
 return this.replace(from, to);""";
 
