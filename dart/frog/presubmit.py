@@ -75,6 +75,9 @@ def main(args):
   RunCommand('../tools/build.py', '--mode=release')
   test_cmd = ['../tools/test.py', '--report', '--timeout=10',
               '--progress=color', '--mode=release', '--checked']
+
+  if args[1:] == ['--notest']: return
+
   if args[1:]:
     test_cmd.append('--component=frogsh,leg')
     test_cmd.extend(args[1:])

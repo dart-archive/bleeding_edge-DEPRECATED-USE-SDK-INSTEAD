@@ -191,18 +191,17 @@ class VarMethodStub extends VarMember {
  * members.
  */
 class VarMethodSet extends VarMember {
+  final String baseName;
   final List<Member> members;
   final Type returnType;
   final Arguments args;
 
   bool invoked = false;
 
-  VarMethodSet(String name, this.members, Arguments callArgs, this.returnType)
+  VarMethodSet(this.baseName, String name, this.members, Arguments callArgs,
+               this.returnType)
     : super(name), args = callArgs.toCallStubArgs() {
   }
-
-  /** The unmangled member name. */
-  String get baseName() => members[0].name;
 
   Value invoke(MethodGenerator context, Node node, Value target,
       Arguments args) {
@@ -249,4 +248,3 @@ String _getCallStubName(String name, Arguments args) {
   }
   return nameBuilder.toString();
 }
-

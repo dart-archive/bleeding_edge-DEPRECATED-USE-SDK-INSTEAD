@@ -1636,7 +1636,8 @@ class MemberSet {
       final mset = context.findMembers(name).members;
 
       final targets = mset.filter((m) => m.canInvoke(context, args));
-      stub = new VarMethodSet(stubName, targets, args, _foldTypes(targets));
+      stub = new VarMethodSet(name, stubName, targets, args,
+                              _foldTypes(targets));
       world.objectType.varStubs[stubName] = stub;
     }
     return stub;

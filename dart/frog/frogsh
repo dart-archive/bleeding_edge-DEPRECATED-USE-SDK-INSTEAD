@@ -17397,7 +17397,7 @@ MemberSet.prototype.getVarMember = function(context, node, args) {
       return m.canInvoke$2(context, args);
     })
     );
-    stub = new VarMethodSet($assert_String(stubName), targets, args, this._foldTypes((targets == null ? null : targets.assert$List_Member())));
+    stub = new VarMethodSet(this.name, $assert_String(stubName), targets, args, this._foldTypes((targets == null ? null : targets.assert$List_Member())));
     $globals.world.objectType.varStubs.$setindex(stubName, stub);
   }
   return (stub == null ? null : stub.assert$VarMember());
@@ -24378,8 +24378,9 @@ VarMethodStub.prototype.generate$1 = function($0) {
   return this.generate(($0 == null ? null : $0.assert$CodeWriter()));
 };
 // ********** Code for VarMethodSet **************
-function VarMethodSet(name, members, callArgs, returnType) {
+function VarMethodSet(baseName, name, members, callArgs, returnType) {
   this.invoked = false
+  this.baseName = baseName;
   this.members = members;
   this.returnType = returnType;
   this.args = callArgs.toCallStubArgs();
@@ -24389,9 +24390,6 @@ function VarMethodSet(name, members, callArgs, returnType) {
 $inherits(VarMethodSet, VarMember);
 VarMethodSet.prototype.get$members = function() { return this.members; };
 VarMethodSet.prototype.get$returnType = function() { return this.returnType; };
-VarMethodSet.prototype.get$baseName = function() {
-  return $assert_String(this.members.$index(0).get$name());
-}
 VarMethodSet.prototype.invoke = function(context, node, target, args) {
   this._invokeMembers(context, node);
   return VarMember.prototype.invoke.call(this, context, node, target, args);
@@ -24413,7 +24411,7 @@ VarMethodSet.prototype._invokeMembers = function(context, node) {
   }
   if (!$notnull_bool(hasObjectType)) {
     var target = new Value($globals.world.objectType, 'this', node.span, true);
-    var result = target.invokeNoSuchMethod(context, this.get$baseName(), node, this.args);
+    var result = target.invokeNoSuchMethod(context, this.baseName, node, this.args);
     var stub = new VarMethodStub(this.name, null, this.args, 'return ' + result.get$code());
     $globals.world.objectType.varStubs.$setindex(stub.get$name(), stub);
   }
