@@ -456,45 +456,49 @@ class SsaBuilder implements Visitor {
     assert(node.argumentsNode is Prefix);
     visit(node.receiver);
     HInstruction operand = pop();
+    HInstruction target = new HStatic(element);
+    add(target);
     switch (op.source.stringValue) {
-      case "-": push(new HNegate(element, operand)); break;
-      case "~": push(new HBitNot(element, operand)); break;
+      case "-": push(new HNegate(target, operand)); break;
+      case "~": push(new HBitNot(target, operand)); break;
       default: unreachable();
     }
   }
 
   void visitBinary(HInstruction left, Operator op, HInstruction right,
                    Element element) {
+    HInstruction target = new HStatic(element);
+    add(target);
     switch (op.source.stringValue) {
       case "+":
       case "++":
-      case "+=":  push(new HAdd(element, left, right)); break;
+      case "+=":  push(new HAdd(target, left, right)); break;
       case "-":
       case "--":
-      case "-=":  push(new HSubtract(element, left, right)); break;
+      case "-=":  push(new HSubtract(target, left, right)); break;
       case "*":
-      case "*=":  push(new HMultiply(element, left, right)); break;
+      case "*=":  push(new HMultiply(target, left, right)); break;
       case "/":
-      case "/=":  push(new HDivide(element, left, right)); break;
+      case "/=":  push(new HDivide(target, left, right)); break;
       case "~/":
-      case "~/=": push(new HTruncatingDivide(element, left, right)); break;
+      case "~/=": push(new HTruncatingDivide(target, left, right)); break;
       case "%":
-      case "%=":  push(new HModulo(element, left, right)); break;
+      case "%=":  push(new HModulo(target, left, right)); break;
       case "<<":
-      case "<<=": push(new HShiftLeft(element, left, right)); break;
+      case "<<=": push(new HShiftLeft(target, left, right)); break;
       case ">>":
-      case ">>=": push(new HShiftRight(element, left, right)); break;
+      case ">>=": push(new HShiftRight(target, left, right)); break;
       case "|":
-      case "|=":  push(new HBitOr(element, left, right)); break;
+      case "|=":  push(new HBitOr(target, left, right)); break;
       case "&":
-      case "&=":  push(new HBitAnd(element, left, right)); break;
+      case "&=":  push(new HBitAnd(target, left, right)); break;
       case "^":
-      case "^=":  push(new HBitXor(element, left, right)); break;
-      case "==":  push(new HEquals(element, left, right)); break;
-      case "<":   push(new HLess(element, left, right)); break;
-      case "<=":  push(new HLessEqual(element, left, right)); break;
-      case ">":   push(new HGreater(element, left, right)); break;
-      case ">=":  push(new HGreaterEqual(element, left, right)); break;
+      case "^=":  push(new HBitXor(target, left, right)); break;
+      case "==":  push(new HEquals(target, left, right)); break;
+      case "<":   push(new HLess(target, left, right)); break;
+      case "<=":  push(new HLessEqual(target, left, right)); break;
+      case ">":   push(new HGreater(target, left, right)); break;
+      case ">=":  push(new HGreaterEqual(target, left, right)); break;
       default: compiler.unimplemented("SsaBuilder.visitBinary");
     }    
   }
@@ -548,7 +552,11 @@ class SsaBuilder implements Visitor {
         compiler.ensure(literal is LiteralString);
         push(new HForeign(arguments, unquote(literal)));
       } else {
-        push(new HInvoke(element, arguments));
+        HStatic target = new HStatic(element);
+        add(target);
+        List inputs = <HInstruction>[target];
+        inputs.addAll(arguments);
+        push(new HInvokeStatic(inputs));
       }
     }
   }

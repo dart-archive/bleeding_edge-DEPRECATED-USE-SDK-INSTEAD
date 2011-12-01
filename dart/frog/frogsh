@@ -735,18 +735,6 @@ Object.prototype.isExitBlock$0 = function() {
 Object.prototype.isInBasicBlock$0 = function() {
   return this.noSuchMethod("isInBasicBlock", []);
 };
-Object.prototype.isLiteralNumber$0 = function() {
-  return this.noSuchMethod("isLiteralNumber", []);
-};
-Object.prototype.isLiteralString$0 = function() {
-  return this.noSuchMethod("isLiteralString", []);
-};
-Object.prototype.isNumber$0 = function() {
-  return this.noSuchMethod("isNumber", []);
-};
-Object.prototype.isString$0 = function() {
-  return this.noSuchMethod("isString", []);
-};
 Object.prototype.isSubtypeOf$1 = function($0) {
   return this.noSuchMethod("isSubtypeOf", [$0]);
 };
@@ -7869,15 +7857,17 @@ SsaBuilder.prototype.visitUnary = function(node, op, element) {
   $assert((node.argumentsNode instanceof Prefix), "node.argumentsNode is Prefix", "builder.dart", 456, 12);
   this.visit(node.receiver);
   var operand = this.pop();
+  var target = new HStatic(element);
+  this.add(target);
   switch (op.get$source().get$stringValue()) {
     case "-":
 
-      this.push(new HNegate(element, operand));
+      this.push(new HNegate((target == null ? null : target.assert$HStatic()), operand));
       break;
 
     case "~":
 
-      this.push(new HBitNot(element, operand));
+      this.push(new HBitNot((target == null ? null : target.assert$HStatic()), operand));
       break;
 
     default:
@@ -7887,98 +7877,100 @@ SsaBuilder.prototype.visitUnary = function(node, op, element) {
   }
 }
 SsaBuilder.prototype.visitBinary = function(left, op, right, element) {
+  var target = new HStatic(element);
+  this.add(target);
   switch (op.get$source().get$stringValue()) {
     case "+":
     case "++":
     case "+=":
 
-      this.push(new HAdd(element, left, right));
+      this.push(new HAdd((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "-":
     case "--":
     case "-=":
 
-      this.push(new HSubtract(element, left, right));
+      this.push(new HSubtract((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "*":
     case "*=":
 
-      this.push(new HMultiply(element, left, right));
+      this.push(new HMultiply((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "/":
     case "/=":
 
-      this.push(new HDivide(element, left, right));
+      this.push(new HDivide((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "~/":
     case "~/=":
 
-      this.push(new HTruncatingDivide(element, left, right));
+      this.push(new HTruncatingDivide((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "%":
     case "%=":
 
-      this.push(new HModulo(element, left, right));
+      this.push(new HModulo((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "<<":
     case "<<=":
 
-      this.push(new HShiftLeft(element, left, right));
+      this.push(new HShiftLeft((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case ">>":
     case ">>=":
 
-      this.push(new HShiftRight(element, left, right));
+      this.push(new HShiftRight((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "|":
     case "|=":
 
-      this.push(new HBitOr(element, left, right));
+      this.push(new HBitOr((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "&":
     case "&=":
 
-      this.push(new HBitAnd(element, left, right));
+      this.push(new HBitAnd((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "^":
     case "^=":
 
-      this.push(new HBitXor(element, left, right));
+      this.push(new HBitXor((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "==":
 
-      this.push(new HEquals(element, left, right));
+      this.push(new HEquals((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "<":
 
-      this.push(new HLess(element, left, right));
+      this.push(new HLess((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case "<=":
 
-      this.push(new HLessEqual(element, left, right));
+      this.push(new HLessEqual((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case ">":
 
-      this.push(new HGreater(element, left, right));
+      this.push(new HGreater((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     case ">=":
 
-      this.push(new HGreaterEqual(element, left, right));
+      this.push(new HGreaterEqual((target == null ? null : target.assert$HStatic()), left, right));
       break;
 
     default:
@@ -8014,7 +8006,7 @@ SsaBuilder.prototype.visitSend = function(node) {
       this.compiler.unimplemented("SsaBuilder.visitSend with receiver");
     }
     var instruction = (($0 = this.definitions.$index(element)) == null ? null : $0.assert$HInstruction());
-    $assert(instruction != null, "instruction !== null", "builder.dart", 528, 14);
+    $assert(instruction != null, "instruction !== null", "builder.dart", 532, 14);
     this.stack.add(instruction);
   }
   else {
@@ -8036,7 +8028,11 @@ SsaBuilder.prototype.visitSend = function(node) {
       this.push(new HForeign(arguments, this.unquote(literal)));
     }
     else {
-      this.push(new HInvoke(element, arguments));
+      var target = new HStatic(element);
+      this.add(target);
+      var inputs = [target];
+      inputs.addAll((arguments == null ? null : arguments.assert$Collection_E()));
+      this.push(new HInvokeStatic(inputs));
     }
   }
 }
@@ -8055,12 +8051,12 @@ SsaBuilder.prototype.visitSendSet = function(node) {
   var op = node.assignmentOperator;
   if ($notnull_bool($eq(const$281/*const SourceString("=")*/, op.get$source()))) {
     var link = node.get$arguments();
-    $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 570, 14);
+    $assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "builder.dart", 578, 14);
     this.visit((($0 = link.get$head()) == null ? null : $0.assert$Node()));
     this.stack.add(this.updateDefinition(node, this.pop()));
   }
   else {
-    $assert($notnull_bool($eq(const$284/*const SourceString("++")*/, op.get$source())) || $notnull_bool($eq(const$285/*const SourceString("--")*/, op.get$source())) || node.assignmentOperator.get$source().get$stringValue().endsWith("="), "const SourceString(\"++\") == op.source ||\n             const SourceString(\"--\") == op.source ||\n             node.assignmentOperator.source.stringValue.endsWith(\"=\")", "builder.dart", 574, 14);
+    $assert($notnull_bool($eq(const$284/*const SourceString("++")*/, op.get$source())) || $notnull_bool($eq(const$285/*const SourceString("--")*/, op.get$source())) || node.assignmentOperator.get$source().get$stringValue().endsWith("="), "const SourceString(\"++\") == op.source ||\n             const SourceString(\"--\") == op.source ||\n             node.assignmentOperator.source.stringValue.endsWith(\"=\")", "builder.dart", 582, 14);
     var isCompoundAssignment = !$notnull_bool(node.get$arguments().isEmpty());
     var isPrefix = !$notnull_bool(node.get$isPostfix());
     var getter = (($0 = this.elements.$index(node.selector)) == null ? null : $0.assert$Element());
@@ -8077,7 +8073,7 @@ SsaBuilder.prototype.visitSendSet = function(node) {
     var opElement = (($0 = this.elements.$index(op)) == null ? null : $0.assert$Element());
     this.visitBinary(left, op, right, opElement);
     var operation = this.pop();
-    $assert(operation != null, "operation !== null", "builder.dart", 592, 14);
+    $assert(operation != null, "operation !== null", "builder.dart", 600, 14);
     operation = this.updateDefinition(node, operation);
     if ($notnull_bool(isPrefix)) {
       this.stack.add(operation);
@@ -8148,7 +8144,7 @@ SsaBuilder.prototype.visitVariableDefinitions = function(node) {
       this.updateDefinition(definition, initialValue);
     }
     else {
-      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 672, 16);
+      $assert((definition instanceof SendSet), "definition is SendSet", "builder.dart", 680, 16);
       this.visitSendSet((definition == null ? null : definition.assert$SendSet()));
       this.pop();
     }
@@ -8275,13 +8271,15 @@ SsaCodeGenerator.prototype.newName = function(id, name) {
   this.names.$setindex(id, result);
   return result;
 }
-SsaCodeGenerator.prototype.invoke = function(element, arguments) {
+SsaCodeGenerator.prototype.invoke = function(element, inputs) {
   var $0;
-  this.buffer.add(('' + element.name + '('));
-  for (var i = 0;
-   i < arguments.length; i++) {
-    if (i != 0) this.buffer.add(', ');
-    this.use((($0 = arguments.$index(i)) == null ? null : $0.assert$HInstruction()));
+  $assert(inputs.length >= 1, "inputs.length >= 1", "codegen.dart", 127, 12);
+  this.use((($0 = inputs.$index(0)) == null ? null : $0.assert$HInstruction()));
+  this.buffer.add('(');
+  for (var i = 1;
+   i < inputs.length; i++) {
+    if (i != 1) this.buffer.add(', ');
+    this.use((($0 = inputs.$index(i)) == null ? null : $0.assert$HInstruction()));
   }
   this.buffer.add(")");
 }
@@ -8327,87 +8325,85 @@ SsaCodeGenerator.prototype.visitBasicBlock = function(node) {
     instruction = instruction.next;
   }
 }
-SsaCodeGenerator.prototype.visitInvokeBinary = function(node, useOperator, op) {
-  var $0;
-  if ($notnull_bool(useOperator)) {
+SsaCodeGenerator.prototype.visitInvokeBinary = function(node, op) {
+  if ($notnull_bool(node.builtin)) {
     this.buffer.add('(');
-    this.use((($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction()));
+    this.use(node.get$left());
     this.buffer.add((' ' + op + ' '));
-    this.use((($0 = node.inputs.$index(1)) == null ? null : $0.assert$HInstruction()));
+    this.use(node.get$right());
     this.buffer.add(')');
   }
   else {
-    this.visitInvoke(node);
+    this.visitInvokeStatic(node);
   }
 }
-SsaCodeGenerator.prototype.visitInvokeUnary = function(node, useOperator, op) {
-  var $0;
-  if ($notnull_bool(useOperator)) {
+SsaCodeGenerator.prototype.visitInvokeUnary = function(node, op) {
+  if ($notnull_bool(node.builtin)) {
     this.buffer.add(('(' + op));
-    this.use((($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction()));
+    this.use(node.get$operand());
     this.buffer.add(')');
   }
   else {
-    this.visitInvoke(node);
+    this.visitInvokeStatic(node);
   }
 }
 SsaCodeGenerator.prototype.visitAdd = function(node) {
-  return this.visitInvokeBinary(node, node.builtin, '+');
+  return this.visitInvokeBinary(node, '+');
 }
 SsaCodeGenerator.prototype.visitDivide = function(node) {
-  return this.visitInvokeBinary(node, node.builtin, '/');
+  return this.visitInvokeBinary(node, '/');
 }
 SsaCodeGenerator.prototype.visitMultiply = function(node) {
-  return this.visitInvokeBinary(node, node.builtin, '*');
+  return this.visitInvokeBinary(node, '*');
 }
 SsaCodeGenerator.prototype.visitSubtract = function(node) {
-  return this.visitInvokeBinary(node, node.builtin, '-');
+  return this.visitInvokeBinary(node, '-');
 }
 SsaCodeGenerator.prototype.visitTruncatingDivide = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 SsaCodeGenerator.prototype.visitModulo = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 SsaCodeGenerator.prototype.visitBitAnd = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 SsaCodeGenerator.prototype.visitBitNot = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 SsaCodeGenerator.prototype.visitBitOr = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 SsaCodeGenerator.prototype.visitBitXor = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 SsaCodeGenerator.prototype.visitShiftLeft = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 SsaCodeGenerator.prototype.visitShiftRight = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 SsaCodeGenerator.prototype.visitNegate = function(node) {
-  return this.visitInvokeUnary(node, node.builtin, '-');
+  return this.visitInvokeUnary(node, '-');
 }
 SsaCodeGenerator.prototype.visitEquals = function(node) {
-  return this.visitInvokeBinary(node, node.builtin, '===');
+  return this.visitInvokeBinary(node, '===');
 }
 SsaCodeGenerator.prototype.visitLess = function(node) {
-  return this.visitInvokeBinary(node, node.builtin, '<');
+  return this.visitInvokeBinary(node, '<');
 }
 SsaCodeGenerator.prototype.visitLessEqual = function(node) {
-  return this.visitInvokeBinary(node, node.builtin, '<=');
+  return this.visitInvokeBinary(node, '<=');
 }
 SsaCodeGenerator.prototype.visitGreater = function(node) {
-  return this.visitInvokeBinary(node, node.builtin, '>');
+  return this.visitInvokeBinary(node, '>');
 }
 SsaCodeGenerator.prototype.visitGreaterEqual = function(node) {
-  return this.visitInvokeBinary(node, node.builtin, '>=');
+  return this.visitInvokeBinary(node, '>=');
 }
 SsaCodeGenerator.prototype.visitBoolify = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 248, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 233, 12);
   this.buffer.add('(');
   this.use((($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction()));
   this.buffer.add(' === true)');
@@ -8417,14 +8413,14 @@ SsaCodeGenerator.prototype.visitExit = function(node) {
 }
 SsaCodeGenerator.prototype.visitGoto = function(node) {
   var $0;
-  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 259, 12);
+  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 244, 12);
   var dominated = this.currentBlock.dominatedBlocks;
   if (dominated.isEmpty()) return;
   if (dominated.length > 2) unreachable();
   if (dominated.length == 2 && this.currentBlock !== this.currentGraph.entry) {
     unreachable();
   }
-  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 271, 12);
+  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 256, 12);
   this.visitBasicBlock((($0 = dominated.$index(0)) == null ? null : $0.assert$HBasicBlock()));
 }
 SsaCodeGenerator.prototype.visitIf = function(node) {
@@ -8435,13 +8431,13 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
   this.buffer.add(') {\n');
   this.indent++;
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 284, 12);
+  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 269, 12);
   this.visitBasicBlock((($0 = ifBlock.successors.$index(0)) == null ? null : $0.assert$HBasicBlock()));
   this.indent--;
   this.addIndentation();
   var nextDominatedIndex;
   if ($notnull_bool(node.hasElse)) {
-    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 290, 14);
+    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 275, 14);
     this.buffer.add('} else {\n');
     this.indent++;
     this.visitBasicBlock((($0 = ifBlock.successors.$index(1)) == null ? null : $0.assert$HBasicBlock()));
@@ -8456,24 +8452,24 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
     this.visitBasicBlock((($0 = dominated.$index(2)) == null ? null : $0.assert$HBasicBlock()));
   }
   else if ($notnull_bool(node.hasElse)) {
-    $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 318, 14);
+    $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 303, 14);
     return;
   }
   else if (!$notnull_bool(node.hasElse) && dominated.length == 2) {
-    $assert(!$notnull_bool(dominated.$index(1).isExitBlock$0()), "!dominated[1].isExitBlock()", "codegen.dart", 323, 14);
+    $assert(!$notnull_bool(dominated.$index(1).isExitBlock$0()), "!dominated[1].isExitBlock()", "codegen.dart", 308, 14);
     this.visitBasicBlock((($0 = dominated.$index(1)) == null ? null : $0.assert$HBasicBlock()));
   }
   else {
-    $assert(!$notnull_bool(node.hasElse), "!node.hasElse", "codegen.dart", 328, 14);
-    $assert(dominated.length == 3, "dominated.length == 3", "codegen.dart", 329, 14);
-    $assert(dominated.$index(2).isExitBlock$0(), "dominated[2].isExitBlock()", "codegen.dart", 330, 14);
+    $assert(!$notnull_bool(node.hasElse), "!node.hasElse", "codegen.dart", 313, 14);
+    $assert(dominated.length == 3, "dominated.length == 3", "codegen.dart", 314, 14);
+    $assert(dominated.$index(2).isExitBlock$0(), "dominated[2].isExitBlock()", "codegen.dart", 315, 14);
     this.visitBasicBlock((($0 = dominated.$index(1)) == null ? null : $0.assert$HBasicBlock()));
     this.visitBasicBlock((($0 = dominated.$index(2)) == null ? null : $0.assert$HBasicBlock()));
   }
 }
-SsaCodeGenerator.prototype.visitInvoke = function(node) {
-  this.compiler.worklist.add(node.element);
-  this.invoke(node.element, node.inputs);
+SsaCodeGenerator.prototype.visitInvokeStatic = function(node) {
+  this.compiler.worklist.add(node.get$element());
+  this.invoke(node.get$element(), node.inputs);
 }
 SsaCodeGenerator.prototype.visitForeign = function(node) {
   var $0;
@@ -8487,7 +8483,7 @@ SsaCodeGenerator.prototype.visitForeign = function(node) {
       name = this.parameter((input == null ? null : input.assert$HParameterValue()));
     }
     else {
-      $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 350, 16);
+      $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 335, 16);
       name = this.temporary(input);
     }
     code = code.replaceAll(('\$' + i), name);
@@ -8514,13 +8510,13 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   var dominated = this.currentBlock.dominatedBlocks;
   var loopSuccessor;
   if (dominated.length == 1) {
-    $assert(branchBlock.successors.$index(0).get$id() < branchBlock.id, "branchBlock.successors[0].id < branchBlock.id", "codegen.dart", 378, 14);
-    $assert(dominated.$index(0) === branchBlock.successors.$index(1), "dominated[0] === branchBlock.successors[1]", "codegen.dart", 379, 14);
+    $assert(branchBlock.successors.$index(0).get$id() < branchBlock.id, "branchBlock.successors[0].id < branchBlock.id", "codegen.dart", 363, 14);
+    $assert(dominated.$index(0) === branchBlock.successors.$index(1), "dominated[0] === branchBlock.successors[1]", "codegen.dart", 364, 14);
   }
   else {
-    $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 383, 14);
-    $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 384, 14);
-    $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 385, 14);
+    $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 368, 14);
+    $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 369, 14);
+    $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 370, 14);
     this.visit(dominated.$index(0));
   }
   this.indent--;
@@ -8530,7 +8526,7 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
 }
 SsaCodeGenerator.prototype.visitNot = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 395, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 380, 12);
   this.buffer.add('(!');
   this.use((($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction()));
   this.buffer.add(')');
@@ -8543,7 +8539,7 @@ SsaCodeGenerator.prototype.visitPhi = function(node) {
 }
 SsaCodeGenerator.prototype.visitReturn = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 411, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 396, 12);
   var input = (($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction());
   if ($notnull_bool(input.isLiteralNull())) {
     this.buffer.add('return;\n');
@@ -8583,6 +8579,9 @@ SsaCodeGenerator.prototype.addIndentation = function() {
    i < this.indent; i++) {
     this.buffer.add('  ');
   }
+}
+SsaCodeGenerator.prototype.visitStatic = function(node) {
+  this.buffer.add(('' + node.element.name));
 }
 SsaCodeGenerator.prototype.visitStore = function(node) {
   if (node.get$local().declaredBy === node) {
@@ -8739,17 +8738,17 @@ HBaseVisitor.prototype.visitBasicBlock = function(node) {
 HBaseVisitor.prototype.visitInstruction = function(HInstruction) {
 
 }
-HBaseVisitor.prototype.visitArithmetic = function(node) {
-  return this.visitInvoke(node);
-}
 HBaseVisitor.prototype.visitBinaryArithmetic = function(node) {
-  return this.visitArithmetic(node);
+  return this.visitInvokeBinary(node);
 }
 HBaseVisitor.prototype.visitBinaryBitOp = function(node) {
   return this.visitBinaryArithmetic(node);
 }
-HBaseVisitor.prototype.visitUnaryArithmetic = function(node) {
-  return this.visitArithmetic(node);
+HBaseVisitor.prototype.visitInvokeBinary = function(node) {
+  return this.visitInvokeStatic(node);
+}
+HBaseVisitor.prototype.visitInvokeUnary = function(node) {
+  return this.visitInvokeStatic(node);
 }
 HBaseVisitor.prototype.visitConditionalBranch = function(node) {
   return this.visitControlFlow(node);
@@ -8758,7 +8757,7 @@ HBaseVisitor.prototype.visitControlFlow = function(node) {
   return this.visitInstruction(node);
 }
 HBaseVisitor.prototype.visitRelational = function(node) {
-  return this.visitInstruction(node);
+  return this.visitInvokeBinary(node);
 }
 HBaseVisitor.prototype.visitAdd = function(node) {
   return this.visitBinaryArithmetic(node);
@@ -8767,7 +8766,7 @@ HBaseVisitor.prototype.visitBitAnd = function(node) {
   return this.visitBinaryBitOp(node);
 }
 HBaseVisitor.prototype.visitBitNot = function(node) {
-  return this.visitUnaryArithmetic(node);
+  return this.visitInvokeUnary(node);
 }
 HBaseVisitor.prototype.visitBitOr = function(node) {
   return this.visitBinaryBitOp(node);
@@ -8802,7 +8801,7 @@ HBaseVisitor.prototype.visitGreaterEqual = function(node) {
 HBaseVisitor.prototype.visitIf = function(node) {
   return this.visitConditionalBranch(node);
 }
-HBaseVisitor.prototype.visitInvoke = function(node) {
+HBaseVisitor.prototype.visitInvokeStatic = function(node) {
   return this.visitInstruction(node);
 }
 HBaseVisitor.prototype.visitLess = function(node) {
@@ -8827,7 +8826,7 @@ HBaseVisitor.prototype.visitModulo = function(node) {
   return this.visitBinaryArithmetic(node);
 }
 HBaseVisitor.prototype.visitNegate = function(node) {
-  return this.visitUnaryArithmetic(node);
+  return this.visitInvokeUnary(node);
 }
 HBaseVisitor.prototype.visitNot = function(node) {
   return this.visitInstruction(node);
@@ -8852,6 +8851,9 @@ HBaseVisitor.prototype.visitShiftLeft = function(node) {
 }
 HBaseVisitor.prototype.visitSubtract = function(node) {
   return this.visitBinaryArithmetic(node);
+}
+HBaseVisitor.prototype.visitStatic = function(node) {
+  return this.visitInstruction(node);
 }
 HBaseVisitor.prototype.visitStore = function(node) {
   return this.visitInstruction(node);
@@ -9275,6 +9277,9 @@ HInstruction.prototype.prepareGvn = function() {
 HInstruction.prototype.setAllSideEffects = function() {
   this.flags |= (1)/*((1 << FLAG_CHANGES_COUNT) - 1)*/;
 }
+HInstruction.prototype.clearAllSideEffects = function() {
+  this.flags &= -2/*~((1 << FLAG_CHANGES_COUNT) - 1)*/;
+}
 HInstruction.prototype.generateAtUseSite = function() {
   return this.getFlag(2/*HInstruction.FLAG_GENERATE_AT_USE_SITE*/);
 }
@@ -9330,25 +9335,6 @@ HInstruction.prototype.computeDesiredInputType = function(input) {
 HInstruction.prototype.hasExpectedType = function() {
   return false;
 }
-HInstruction.prototype.computeInputsType = function() {
-  var seenUnknown = false;
-  var candidateType = -1;
-  for (var i = 0, length = this.inputs.length;
-   i < length; i++) {
-    var inputType = $assert_num(this.inputs.$index(i).get$type());
-    if (inputType == 0/*HInstruction.TYPE_UNKNOWN*/) {
-      seenUnknown = true;
-    }
-    else if (candidateType == -1) {
-      candidateType = inputType;
-    }
-    else if (candidateType != inputType) {
-      return 4/*HInstruction.TYPE_CONFLICT*/;
-    }
-  }
-  if ($notnull_bool(seenUnknown)) return 0/*HInstruction.TYPE_UNKNOWN*/;
-  return candidateType;
-}
 HInstruction.prototype.updateType = function() {
   if (this.type == 4/*HInstruction.TYPE_CONFLICT*/) return false;
   var newType = this.computeType();
@@ -9367,7 +9353,7 @@ HInstruction.prototype.isInBasicBlock = function() {
   return this.block != null;
 }
 HInstruction.prototype.equals = function(other) {
-  $assert($notnull_bool(this.useGvn()) && $notnull_bool(other.useGvn()), "useGvn() && other.useGvn()", "nodes.dart", 724, 12);
+  $assert($notnull_bool(this.useGvn()) && $notnull_bool(other.useGvn()), "useGvn() && other.useGvn()", "nodes.dart", 703, 12);
   if (!$notnull_bool(this.typeEquals(other))) return false;
   if (this.flags != other.flags) return false;
   var inputsLength = this.inputs.length;
@@ -9386,21 +9372,21 @@ HInstruction.prototype.dataEquals = function(other) {
   return false;
 }
 HInstruction.prototype.notifyAddedToBlock = function(block) {
-  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 747, 12);
-  $assert(this.block == null, "this.block === null", "nodes.dart", 748, 12);
+  $assert(!$notnull_bool(this.isInBasicBlock()), "!isInBasicBlock()", "nodes.dart", 726, 12);
+  $assert(this.block == null, "this.block === null", "nodes.dart", 727, 12);
   for (var i = 0;
    i < this.inputs.length; i++) {
-    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 751, 14);
+    $assert(this.inputs.$index(i).isInBasicBlock$0(), "inputs[i].isInBasicBlock()", "nodes.dart", 730, 14);
     this.inputs.$index(i).get$usedBy().add$1(this);
   }
   this.block = block;
-  $assert(this.isValid(), "isValid()", "nodes.dart", 755, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 734, 12);
 }
 HInstruction.prototype.notifyRemovedFromBlock = function(block) {
   var $0;
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 759, 12);
-  $assert(this.usedBy.isEmpty(), "usedBy.isEmpty()", "nodes.dart", 760, 12);
-  $assert(this.block === block, "this.block === block", "nodes.dart", 761, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 738, 12);
+  $assert(this.usedBy.isEmpty(), "usedBy.isEmpty()", "nodes.dart", 739, 12);
+  $assert(this.block === block, "this.block === block", "nodes.dart", 740, 12);
   for (var i = 0;
    i < this.inputs.length; i++) {
     var inputUsedBy = (($0 = this.inputs.$index(i).get$usedBy()) == null ? null : $0.assert$List());
@@ -9414,7 +9400,7 @@ HInstruction.prototype.notifyRemovedFromBlock = function(block) {
     }
   }
   this.block = null;
-  $assert(this.isValid(), "isValid()", "nodes.dart", 775, 12);
+  $assert(this.isValid(), "isValid()", "nodes.dart", 754, 12);
 }
 HInstruction.prototype.isLiteralNull = function() {
   return false;
@@ -9446,10 +9432,6 @@ HInstruction.prototype.dataEquals$1 = function($0) {
 };
 HInstruction.prototype.hashCode$0 = HInstruction.prototype.hashCode;
 HInstruction.prototype.isInBasicBlock$0 = HInstruction.prototype.isInBasicBlock;
-HInstruction.prototype.isLiteralNumber$0 = HInstruction.prototype.isLiteralNumber;
-HInstruction.prototype.isLiteralString$0 = HInstruction.prototype.isLiteralString;
-HInstruction.prototype.isNumber$0 = HInstruction.prototype.isNumber;
-HInstruction.prototype.isString$0 = HInstruction.prototype.isString;
 HInstruction.prototype.isUnknown$0 = HInstruction.prototype.isUnknown;
 HInstruction.prototype.next$0 = function() {
   return this.next();
@@ -9462,7 +9444,7 @@ function HBoolify(value) {
 }
 $inherits(HBoolify, HInstruction);
 HBoolify.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 793, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 772, 12);
   this.setUseGvn();
 }
 HBoolify.prototype.computeType = function() {
@@ -9495,7 +9477,7 @@ function HTypeGuard(type, value) {
 $inherits(HTypeGuard, HInstruction);
 HTypeGuard.prototype.assert$HTypeGuard = function(){return this};
 HTypeGuard.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 811, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 790, 12);
   this.setUseGvn();
 }
 HTypeGuard.prototype.computeType = function() {
@@ -9533,24 +9515,29 @@ function HControlFlow(inputs) {
 }
 $inherits(HControlFlow, HInstruction);
 HControlFlow.prototype.toString$0 = HControlFlow.prototype.toString;
-// ********** Code for HInvoke **************
-function HInvoke(element, inputs) {
-  this.element = element;
+// ********** Code for HInvokeStatic **************
+function HInvokeStatic(inputs) {
   // Initializers done
   HInstruction.call(this, inputs);
 }
-$inherits(HInvoke, HInstruction);
-HInvoke.prototype.get$element = function() { return this.element; };
-HInvoke.prototype.toString = function() {
-  return ('invoke: ' + this.element.name);
+$inherits(HInvokeStatic, HInstruction);
+HInvokeStatic.prototype.toString = function() {
+  return ('invoke static: ' + this.get$element().name);
 }
-HInvoke.prototype.accept = function(visitor) {
-  return visitor.visitInvoke(this);
+HInvokeStatic.prototype.accept = function(visitor) {
+  return visitor.visitInvokeStatic(this);
 }
-HInvoke.prototype.accept$1 = function($0) {
+HInvokeStatic.prototype.get$element = function() {
+  return this.get$target().element;
+}
+HInvokeStatic.prototype.get$target = function() {
+  var $0;
+  return (($0 = this.inputs.$index(0)) == null ? null : $0.assert$HStatic());
+}
+HInvokeStatic.prototype.accept$1 = function($0) {
   return this.accept(($0 == null ? null : $0.assert$HVisitor()));
 };
-HInvoke.prototype.toString$0 = HInvoke.prototype.toString;
+HInvokeStatic.prototype.toString$0 = HInvokeStatic.prototype.toString;
 // ********** Code for HForeign **************
 function HForeign(inputs, code) {
   this.code = code;
@@ -9565,57 +9552,75 @@ HForeign.prototype.accept = function(visitor) {
 HForeign.prototype.accept$1 = function($0) {
   return this.accept(($0 == null ? null : $0.assert$HVisitor()));
 };
-// ********** Code for HArithmetic **************
-function HArithmetic(element, inputs) {
+// ********** Code for HInvokeBinary **************
+function HInvokeBinary(target, left, right) {
   this.builtin = false
   // Initializers done
-  HInvoke.call(this, element, inputs);
+  HInvokeStatic.call(this, [target, left, right]);
 }
-$inherits(HArithmetic, HInvoke);
-HArithmetic.prototype.prepareGvn = function() {
+$inherits(HInvokeBinary, HInvokeStatic);
+HInvokeBinary.prototype.fold = function() {
+  var $0;
+  if ($notnull_bool(this.get$left().isLiteralNumber()) && $notnull_bool(this.get$right().isLiteralNumber())) {
+    var op1 = (($0 = this.get$left()) == null ? null : $0.assert$HLiteral());
+    var op2 = (($0 = this.get$right()) == null ? null : $0.assert$HLiteral());
+    return new HLiteral(this.evaluate($assert_num(op1.value), $assert_num(op2.value)));
+  }
+  return this;
+}
+HInvokeBinary.prototype.get$left = function() {
+  var $0;
+  return (($0 = this.inputs.$index(1)) == null ? null : $0.assert$HInstruction());
+}
+HInvokeBinary.prototype.get$right = function() {
+  var $0;
+  return (($0 = this.inputs.$index(2)) == null ? null : $0.assert$HInstruction());
+}
+HInvokeBinary.prototype.computeInputsType = function() {
+  var leftType = this.get$left().type;
+  var rightType = this.get$right().type;
+  if (leftType == 0/*HInstruction.TYPE_UNKNOWN*/ || rightType == 0/*HInstruction.TYPE_UNKNOWN*/) {
+    return 0/*HInstruction.TYPE_UNKNOWN*/;
+  }
+  if (leftType != rightType) return 4/*HInstruction.TYPE_CONFLICT*/;
+  return leftType;
+}
+// ********** Code for HBinaryArithmetic **************
+function HBinaryArithmetic(target, left, right) {
+  // Initializers done
+  HInvokeBinary.call(this, target, left, right);
+}
+$inherits(HBinaryArithmetic, HInvokeBinary);
+HBinaryArithmetic.prototype.prepareGvn = function() {
   if ($notnull_bool(this.builtin)) {
-    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 855, 14);
+    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 866, 14);
     this.setUseGvn();
   }
   else {
     this.setAllSideEffects();
   }
 }
-HArithmetic.prototype.computeType = function() {
+HBinaryArithmetic.prototype.computeType = function() {
   var type = this.computeInputsType();
   this.builtin = (type == 2/*HInstruction.TYPE_NUMBER*/);
-  if ($notnull_bool(this.inputs.$index(0).isNumber$0())) return 2/*HInstruction.TYPE_NUMBER*/;
+  if ($notnull_bool(this.get$left().isNumber())) return 2/*HInstruction.TYPE_NUMBER*/;
   if (type != 0/*HInstruction.TYPE_UNKNOWN*/) return type;
   return HInstruction.prototype.computeType.call(this);
 }
-HArithmetic.prototype.computeDesiredInputType = function(input) {
-  return $notnull_bool(this.inputs.$index(0).isNumber$0()) ? 2/*HInstruction.TYPE_NUMBER*/ : 0/*HInstruction.TYPE_UNKNOWN*/;
+HBinaryArithmetic.prototype.computeDesiredInputType = function(input) {
+  if ($eq(input, this.get$target())) return 0/*HInstruction.TYPE_UNKNOWN*/;
+  return $notnull_bool(this.get$left().isNumber()) ? 2/*HInstruction.TYPE_NUMBER*/ : 0/*HInstruction.TYPE_UNKNOWN*/;
 }
-HArithmetic.prototype.hasExpectedType = function() {
+HBinaryArithmetic.prototype.hasExpectedType = function() {
   return this.type == 2/*HInstruction.TYPE_NUMBER*/;
 }
-HArithmetic.prototype.computeDesiredInputType$1 = function($0) {
+HBinaryArithmetic.prototype.computeDesiredInputType$1 = function($0) {
   return this.computeDesiredInputType(($0 == null ? null : $0.assert$HInstruction()));
 };
-// ********** Code for HBinaryArithmetic **************
-function HBinaryArithmetic(element, left, right) {
-  // Initializers done
-  HArithmetic.call(this, element, [left, right]);
-}
-$inherits(HBinaryArithmetic, HArithmetic);
-HBinaryArithmetic.prototype.fold = function() {
-  var $0;
-  if ($notnull_bool(this.inputs.$index(0).isLiteralNumber$0()) && $notnull_bool(this.inputs.$index(1).isLiteralNumber$0())) {
-    var op1 = (($0 = this.inputs.$index(0)) == null ? null : $0.assert$HLiteral());
-    var op2 = (($0 = this.inputs.$index(1)) == null ? null : $0.assert$HLiteral());
-    return new HLiteral(this.evaluate($assert_num(op1.value), $assert_num(op2.value)));
-  }
-  return this;
-}
 // ********** Code for HAdd **************
-function HAdd(element, left, right) {
+function HAdd(target, left, right) {
   // Initializers done
-  HBinaryArithmetic.call(this, element, left, right);
+  HBinaryArithmetic.call(this, target, left, right);
 }
 $inherits(HAdd, HBinaryArithmetic);
 HAdd.prototype.accept = function(visitor) {
@@ -9633,18 +9638,19 @@ HAdd.prototype.dataEquals = function(other) {
 HAdd.prototype.computeType = function() {
   var type = this.computeInputsType();
   this.builtin = (type == 2/*HInstruction.TYPE_NUMBER*/ || type == 3/*HInstruction.TYPE_STRING*/);
-  if ($notnull_bool(this.inputs.$index(0).isNumber$0())) return 2/*HInstruction.TYPE_NUMBER*/;
-  if ($notnull_bool(this.inputs.$index(0).isString$0())) return 3/*HInstruction.TYPE_STRING*/;
+  if ($notnull_bool(this.get$left().isNumber())) return 2/*HInstruction.TYPE_NUMBER*/;
+  if ($notnull_bool(this.get$left().isString())) return 3/*HInstruction.TYPE_STRING*/;
   return 0/*HInstruction.TYPE_UNKNOWN*/;
 }
 HAdd.prototype.computeDesiredInputType = function(input) {
-  if ($notnull_bool(this.inputs.$index(0).isString$0())) return 3/*HInstruction.TYPE_STRING*/;
-  if ($notnull_bool(this.inputs.$index(0).isNumber$0())) return 2/*HInstruction.TYPE_NUMBER*/;
+  if ($eq(input, this.get$target())) return 0/*HInstruction.TYPE_UNKNOWN*/;
+  if ($notnull_bool(this.get$left().isString())) return 3/*HInstruction.TYPE_STRING*/;
+  if ($notnull_bool(this.get$left().isNumber())) return 2/*HInstruction.TYPE_NUMBER*/;
   return 0/*HInstruction.TYPE_UNKNOWN*/;
 }
 HAdd.prototype.hasExpectedType = function() {
-  if ($notnull_bool(this.inputs.$index(0).isNumber$0())) return this.type == 2/*HInstruction.TYPE_NUMBER*/;
-  if ($notnull_bool(this.inputs.$index(0).isString$0())) return this.type == 3/*HInstruction.TYPE_STRING*/;
+  if ($notnull_bool(this.get$left().isNumber())) return this.type == 2/*HInstruction.TYPE_NUMBER*/;
+  if ($notnull_bool(this.get$left().isString())) return this.type == 3/*HInstruction.TYPE_STRING*/;
   return this.type == 0/*HInstruction.TYPE_UNKNOWN*/;
 }
 HAdd.prototype.accept$1 = function($0) {
@@ -9657,9 +9663,9 @@ HAdd.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HDivide **************
-function HDivide(element, left, right) {
+function HDivide(target, left, right) {
   // Initializers done
-  HBinaryArithmetic.call(this, element, left, right);
+  HBinaryArithmetic.call(this, target, left, right);
 }
 $inherits(HDivide, HBinaryArithmetic);
 HDivide.prototype.accept = function(visitor) {
@@ -9681,9 +9687,9 @@ HDivide.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HModulo **************
-function HModulo(element, left, right) {
+function HModulo(target, left, right) {
   // Initializers done
-  HBinaryArithmetic.call(this, element, left, right);
+  HBinaryArithmetic.call(this, target, left, right);
 }
 $inherits(HModulo, HBinaryArithmetic);
 HModulo.prototype.accept = function(visitor) {
@@ -9705,9 +9711,9 @@ HModulo.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HMultiply **************
-function HMultiply(element, left, right) {
+function HMultiply(target, left, right) {
   // Initializers done
-  HBinaryArithmetic.call(this, element, left, right);
+  HBinaryArithmetic.call(this, target, left, right);
 }
 $inherits(HMultiply, HBinaryArithmetic);
 HMultiply.prototype.accept = function(visitor) {
@@ -9729,9 +9735,9 @@ HMultiply.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HSubtract **************
-function HSubtract(element, left, right) {
+function HSubtract(target, left, right) {
   // Initializers done
-  HBinaryArithmetic.call(this, element, left, right);
+  HBinaryArithmetic.call(this, target, left, right);
 }
 $inherits(HSubtract, HBinaryArithmetic);
 HSubtract.prototype.accept = function(visitor) {
@@ -9753,19 +9759,19 @@ HSubtract.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HTruncatingDivide **************
-function HTruncatingDivide(element, left, right) {
+function HTruncatingDivide(target, left, right) {
   // Initializers done
-  HBinaryArithmetic.call(this, element, left, right);
+  HBinaryArithmetic.call(this, target, left, right);
 }
 $inherits(HTruncatingDivide, HBinaryArithmetic);
 HTruncatingDivide.prototype.accept = function(visitor) {
   return visitor.visitTruncatingDivide(this);
 }
 HTruncatingDivide.prototype.fold = function() {
-  if ($notnull_bool(this.inputs.$index(1).isLiteralNumber$0()) && $notnull_bool($eq(this.inputs.$index(1).get$dynamic().get$value(), 0))) {
+  if ($notnull_bool(this.get$right().isLiteralNumber()) && $notnull_bool($eq(this.get$right().get$dynamic().get$value(), 0))) {
     return this;
   }
-  return HBinaryArithmetic.prototype.fold.call(this);
+  return HInvokeBinary.prototype.fold.call(this);
 }
 HTruncatingDivide.prototype.evaluate = function(a, b) {
   return $truncdiv(a, b);
@@ -9783,16 +9789,16 @@ HTruncatingDivide.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HBinaryBitOp **************
-function HBinaryBitOp(element, left, right) {
+function HBinaryBitOp(target, left, right) {
   // Initializers done
-  HBinaryArithmetic.call(this, element, left, right);
+  HBinaryArithmetic.call(this, target, left, right);
 }
 $inherits(HBinaryBitOp, HBinaryArithmetic);
 HBinaryBitOp.prototype.fold = function() {
   var $0;
-  if ($notnull_bool(this.inputs.$index(0).isLiteralNumber$0()) && $notnull_bool(this.inputs.$index(1).isLiteralNumber$0())) {
-    var op1 = (($0 = this.inputs.$index(0)) == null ? null : $0.assert$HLiteral());
-    var op2 = (($0 = this.inputs.$index(1)) == null ? null : $0.assert$HLiteral());
+  if ($notnull_bool(this.get$left().isLiteralNumber()) && $notnull_bool(this.get$right().isLiteralNumber())) {
+    var op1 = (($0 = this.get$left()) == null ? null : $0.assert$HLiteral());
+    var op2 = (($0 = this.get$right()) == null ? null : $0.assert$HLiteral());
     if ((typeof(op1.value) == 'number') && (typeof(op2.value) == 'number')) {
       return new HLiteral(this.evaluate($assert_num(op1.value), $assert_num(op2.value)));
     }
@@ -9800,9 +9806,9 @@ HBinaryBitOp.prototype.fold = function() {
   return this;
 }
 // ********** Code for HShiftLeft **************
-function HShiftLeft(element, left, right) {
+function HShiftLeft(target, left, right) {
   // Initializers done
-  HBinaryBitOp.call(this, element, left, right);
+  HBinaryBitOp.call(this, target, left, right);
 }
 $inherits(HShiftLeft, HBinaryBitOp);
 HShiftLeft.prototype.accept = function(visitor) {
@@ -9810,9 +9816,9 @@ HShiftLeft.prototype.accept = function(visitor) {
 }
 HShiftLeft.prototype.fold = function() {
   var $0;
-  if ($notnull_bool(this.inputs.$index(1).isLiteralNumber$0())) {
+  if ($notnull_bool(this.get$right().isLiteralNumber())) {
     var MAX_SHIFT_LEFT_AMOUNT = 50;
-    var op2 = (($0 = this.inputs.$index(1)) == null ? null : $0.assert$HLiteral());
+    var op2 = (($0 = this.get$right()) == null ? null : $0.assert$HLiteral());
     if (op2.value < 0 || op2.value > MAX_SHIFT_LEFT_AMOUNT) return this;
   }
   return HBinaryBitOp.prototype.fold.call(this);
@@ -9833,9 +9839,9 @@ HShiftLeft.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HShiftRight **************
-function HShiftRight(element, left, right) {
+function HShiftRight(target, left, right) {
   // Initializers done
-  HBinaryBitOp.call(this, element, left, right);
+  HBinaryBitOp.call(this, target, left, right);
 }
 $inherits(HShiftRight, HBinaryBitOp);
 HShiftRight.prototype.accept = function(visitor) {
@@ -9843,8 +9849,8 @@ HShiftRight.prototype.accept = function(visitor) {
 }
 HShiftRight.prototype.fold = function() {
   var $0;
-  if ($notnull_bool(this.inputs.$index(1).isLiteralNumber$0())) {
-    var op2 = (($0 = this.inputs.$index(1)) == null ? null : $0.assert$HLiteral());
+  if ($notnull_bool(this.get$right().isLiteralNumber())) {
+    var op2 = (($0 = this.get$right()) == null ? null : $0.assert$HLiteral());
     if (op2.value < 0) return this;
   }
   return HBinaryBitOp.prototype.fold.call(this);
@@ -9865,9 +9871,9 @@ HShiftRight.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HBitOr **************
-function HBitOr(element, left, right) {
+function HBitOr(target, left, right) {
   // Initializers done
-  HBinaryBitOp.call(this, element, left, right);
+  HBinaryBitOp.call(this, target, left, right);
 }
 $inherits(HBitOr, HBinaryBitOp);
 HBitOr.prototype.accept = function(visitor) {
@@ -9889,9 +9895,9 @@ HBitOr.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HBitAnd **************
-function HBitAnd(element, left, right) {
+function HBitAnd(target, left, right) {
   // Initializers done
-  HBinaryBitOp.call(this, element, left, right);
+  HBinaryBitOp.call(this, target, left, right);
 }
 $inherits(HBitAnd, HBinaryBitOp);
 HBitAnd.prototype.accept = function(visitor) {
@@ -9913,9 +9919,9 @@ HBitAnd.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HBitXor **************
-function HBitXor(element, left, right) {
+function HBitXor(target, left, right) {
   // Initializers done
-  HBinaryBitOp.call(this, element, left, right);
+  HBinaryBitOp.call(this, target, left, right);
 }
 $inherits(HBitXor, HBinaryBitOp);
 HBitXor.prototype.accept = function(visitor) {
@@ -9936,25 +9942,38 @@ HBitXor.prototype.accept$1 = function($0) {
 HBitXor.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
-// ********** Code for HUnaryArithmetic **************
-function HUnaryArithmetic(element, input) {
+// ********** Code for HInvokeUnary **************
+function HInvokeUnary(target, input) {
+  this.builtin = false
   // Initializers done
-  HArithmetic.call(this, element, [input]);
+  HInvokeStatic.call(this, [target, input]);
 }
-$inherits(HUnaryArithmetic, HArithmetic);
+$inherits(HInvokeUnary, HInvokeStatic);
+HInvokeUnary.prototype.get$operand = function() {
+  var $0;
+  return (($0 = this.inputs.$index(1)) == null ? null : $0.assert$HInstruction());
+}
+HInvokeUnary.prototype.fold = function() {
+  var $0;
+  if ($notnull_bool(this.get$operand().isLiteralNumber())) {
+    var input = (($0 = this.get$operand()) == null ? null : $0.assert$HLiteral());
+    return new HLiteral(this.evaluate($assert_num(input.value)));
+  }
+  return this;
+}
 // ********** Code for HNegate **************
-function HNegate(element, input) {
+function HNegate(target, input) {
   // Initializers done
-  HUnaryArithmetic.call(this, element, input);
+  HInvokeUnary.call(this, target, input);
 }
-$inherits(HNegate, HUnaryArithmetic);
+$inherits(HNegate, HInvokeUnary);
 HNegate.prototype.accept = function(visitor) {
   return visitor.visitNegate(this);
 }
 HNegate.prototype.fold = function() {
   var $0;
-  if ($notnull_bool(this.inputs.$index(0).isLiteralNumber$0())) {
-    var input = (($0 = this.inputs.$index(0)) == null ? null : $0.assert$HLiteral());
+  if ($notnull_bool(this.get$operand().isLiteralNumber())) {
+    var input = (($0 = this.get$operand()) == null ? null : $0.assert$HLiteral());
     return new HLiteral(this.evaluate($assert_num(input.value)));
   }
   return this;
@@ -9975,18 +9994,18 @@ HNegate.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HBitNot **************
-function HBitNot(element, input) {
+function HBitNot(target, input) {
   // Initializers done
-  HUnaryArithmetic.call(this, element, input);
+  HInvokeUnary.call(this, target, input);
 }
-$inherits(HBitNot, HUnaryArithmetic);
+$inherits(HBitNot, HInvokeUnary);
 HBitNot.prototype.accept = function(visitor) {
   return visitor.visitBitNot(this);
 }
 HBitNot.prototype.fold = function() {
   var $0;
-  if ($notnull_bool(this.inputs.$index(0).isLiteralNumber$0())) {
-    var input = (($0 = this.inputs.$index(0)) == null ? null : $0.assert$HLiteral());
+  if ($notnull_bool(this.get$operand().isLiteralNumber())) {
+    var input = (($0 = this.get$operand()) == null ? null : $0.assert$HLiteral());
     if ((typeof(input.value) == 'number')) return new HLiteral(this.evaluate($assert_num(input.value)));
   }
   return this;
@@ -10081,7 +10100,7 @@ $inherits(HLiteral, HInstruction);
 HLiteral.prototype.assert$HLiteral = function(){return this};
 HLiteral.prototype.get$value = function() { return this.value; };
 HLiteral.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1139, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1151, 12);
   this.setUseGvn();
   this.setGenerateAtUseSite();
 }
@@ -10133,8 +10152,6 @@ HLiteral.prototype.accept$1 = function($0) {
 HLiteral.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HLiteral()));
 };
-HLiteral.prototype.isLiteralNumber$0 = HLiteral.prototype.isLiteralNumber;
-HLiteral.prototype.isLiteralString$0 = HLiteral.prototype.isLiteralString;
 HLiteral.prototype.toString$0 = HLiteral.prototype.toString;
 // ********** Code for HNot **************
 function HNot(value) {
@@ -10143,7 +10160,7 @@ function HNot(value) {
 }
 $inherits(HNot, HInstruction);
 HNot.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1171, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1183, 12);
   this.setUseGvn();
 }
 HNot.prototype.computeType = function() {
@@ -10178,7 +10195,7 @@ $inherits(HParameterValue, HInstruction);
 HParameterValue.prototype.assert$HParameterValue = function(){return this};
 HParameterValue.prototype.get$element = function() { return this.element; };
 HParameterValue.prototype.prepareGvn = function() {
-  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1191, 12);
+  $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1203, 12);
 }
 HParameterValue.prototype.toString = function() {
   return ('parameter ' + this.element.name);
@@ -10208,9 +10225,28 @@ $inherits(HPhi, HInstruction);
 HPhi.prototype.assert$HPhi = function(){return this};
 HPhi.prototype.get$element = function() { return this.element; };
 HPhi.prototype.addInput = function(input) {
-  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 1208, 12);
+  $assert(this.isInBasicBlock(), "isInBasicBlock()", "nodes.dart", 1220, 12);
   this.inputs.add(input);
   input.usedBy.add(this);
+}
+HPhi.prototype.computeInputsType = function() {
+  var seenUnknown = false;
+  var candidateType = -1;
+  for (var i = 0, length = this.inputs.length;
+   i < length; i++) {
+    var inputType = $assert_num(this.inputs.$index(i).get$type());
+    if (inputType == 0/*HInstruction.TYPE_UNKNOWN*/) {
+      seenUnknown = true;
+    }
+    else if (candidateType == -1) {
+      candidateType = inputType;
+    }
+    else if (candidateType != inputType) {
+      return 4/*HInstruction.TYPE_CONFLICT*/;
+    }
+  }
+  if ($notnull_bool(seenUnknown)) return 0/*HInstruction.TYPE_UNKNOWN*/;
+  return candidateType;
 }
 HPhi.prototype.computeType = function() {
   var type = this.computeInputsType();
@@ -10228,7 +10264,7 @@ HPhi.prototype.hasExpectedType = function() {
   return true;
 }
 HPhi.prototype.updateTypeForLoopPhi = function() {
-  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 1231, 12);
+  $assert(this.block.isLoopHeader(), "block.isLoopHeader()", "nodes.dart", 1264, 12);
   if ($notnull_bool(this.inputs.$index(0).isUnknown$0())) return false;
   this.type = $assert_num(this.inputs.$index(0).get$type());
   return true;
@@ -10247,15 +10283,14 @@ HPhi.prototype.computeDesiredInputType$1 = function($0) {
 };
 HPhi.prototype.toString$0 = HPhi.prototype.toString;
 // ********** Code for HRelational **************
-function HRelational(element, left, right) {
-  this.builtin = false
+function HRelational(target, left, right) {
   // Initializers done
-  HInvoke.call(this, element, [left, right]);
+  HInvokeBinary.call(this, target, left, right);
 }
-$inherits(HRelational, HInvoke);
+$inherits(HRelational, HInvokeBinary);
 HRelational.prototype.prepareGvn = function() {
   if ($notnull_bool(this.builtin)) {
-    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1251, 14);
+    $assert(!$notnull_bool(this.hasSideEffects()), "!hasSideEffects()", "nodes.dart", 1283, 14);
     this.setUseGvn();
   }
   else {
@@ -10264,12 +10299,13 @@ HRelational.prototype.prepareGvn = function() {
 }
 HRelational.prototype.computeType = function() {
   this.builtin = this.computeInputsType() == 2/*HInstruction.TYPE_NUMBER*/;
-  if ($notnull_bool(this.inputs.$index(0).isNumber$0())) return 1/*HInstruction.TYPE_BOOLEAN*/;
+  if ($notnull_bool(this.get$left().isNumber())) return 1/*HInstruction.TYPE_BOOLEAN*/;
   if (this.type != 0/*HInstruction.TYPE_UNKNOWN*/) return this.type;
   return HInstruction.prototype.computeType.call(this);
 }
 HRelational.prototype.computeDesiredInputType = function(input) {
-  return $notnull_bool(this.inputs.$index(0).isNumber$0()) ? 2/*HInstruction.TYPE_NUMBER*/ : 0/*HInstruction.TYPE_UNKNOWN*/;
+  if ($eq(input, this.inputs.$index(0))) return 0/*HInstruction.TYPE_UNKNOWN*/;
+  return $notnull_bool(this.get$left().isNumber()) ? 2/*HInstruction.TYPE_NUMBER*/ : 0/*HInstruction.TYPE_UNKNOWN*/;
 }
 HRelational.prototype.hasExpectedType = function() {
   return this.type == 1/*HInstruction.TYPE_BOOLEAN*/;
@@ -10278,9 +10314,9 @@ HRelational.prototype.computeDesiredInputType$1 = function($0) {
   return this.computeDesiredInputType(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HEquals **************
-function HEquals(element, left, right) {
+function HEquals(target, left, right) {
   // Initializers done
-  HRelational.call(this, element, left, right);
+  HRelational.call(this, target, left, right);
 }
 $inherits(HEquals, HRelational);
 HEquals.prototype.evaluate = function(a, b) {
@@ -10302,9 +10338,9 @@ HEquals.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HGreater **************
-function HGreater(element, left, right) {
+function HGreater(target, left, right) {
   // Initializers done
-  HRelational.call(this, element, left, right);
+  HRelational.call(this, target, left, right);
 }
 $inherits(HGreater, HRelational);
 HGreater.prototype.evaluate = function(a, b) {
@@ -10326,9 +10362,9 @@ HGreater.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HGreaterEqual **************
-function HGreaterEqual(element, left, right) {
+function HGreaterEqual(target, left, right) {
   // Initializers done
-  HRelational.call(this, element, left, right);
+  HRelational.call(this, target, left, right);
 }
 $inherits(HGreaterEqual, HRelational);
 HGreaterEqual.prototype.evaluate = function(a, b) {
@@ -10350,9 +10386,9 @@ HGreaterEqual.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HLess **************
-function HLess(element, left, right) {
+function HLess(target, left, right) {
   // Initializers done
-  HRelational.call(this, element, left, right);
+  HRelational.call(this, target, left, right);
 }
 $inherits(HLess, HRelational);
 HLess.prototype.evaluate = function(a, b) {
@@ -10374,9 +10410,9 @@ HLess.prototype.dataEquals$1 = function($0) {
   return this.dataEquals(($0 == null ? null : $0.assert$HInstruction()));
 };
 // ********** Code for HLessEqual **************
-function HLessEqual(element, left, right) {
+function HLessEqual(target, left, right) {
   // Initializers done
-  HRelational.call(this, element, left, right);
+  HRelational.call(this, target, left, right);
 }
 $inherits(HLessEqual, HRelational);
 HLessEqual.prototype.evaluate = function(a, b) {
@@ -10429,6 +10465,40 @@ HThrow.prototype.accept$1 = function($0) {
   return this.accept(($0 == null ? null : $0.assert$HVisitor()));
 };
 HThrow.prototype.toString$0 = HThrow.prototype.toString;
+// ********** Code for HStatic **************
+function HStatic(element) {
+  this.element = element;
+  // Initializers done
+  HInstruction.call(this, []);
+}
+$inherits(HStatic, HInstruction);
+HStatic.prototype.assert$HStatic = function(){return this};
+HStatic.prototype.get$element = function() { return this.element; };
+HStatic.prototype.set$element = function(value) { return this.element = value; };
+HStatic.prototype.prepareGvn = function() {
+  this.setUseGvn();
+  this.clearAllSideEffects();
+  this.setGenerateAtUseSite();
+}
+HStatic.prototype.toString = function() {
+  return ('static ' + this.element.name);
+}
+HStatic.prototype.accept = function(visitor) {
+  return visitor.visitStatic(this);
+}
+HStatic.prototype.typeEquals = function(other) {
+  return (other instanceof HStatic);
+}
+HStatic.prototype.dataEquals = function(other) {
+  return $eq(this.element, other.element);
+}
+HStatic.prototype.accept$1 = function($0) {
+  return this.accept(($0 == null ? null : $0.assert$HVisitor()));
+};
+HStatic.prototype.dataEquals$1 = function($0) {
+  return this.dataEquals(($0 == null ? null : $0.assert$HStatic()));
+};
+HStatic.prototype.toString$0 = HStatic.prototype.toString;
 // ********** Code for HNonSsaInstruction **************
 function HNonSsaInstruction(inputs) {
   // Initializers done
@@ -10578,36 +10648,26 @@ SsaConstantFolder.prototype.visitNot = function(node) {
   }
   return node;
 }
-SsaConstantFolder.prototype.visitArithmetic = function(node) {
+SsaConstantFolder.prototype.visitInvokeBinary = function(node) {
+  return node.fold();
+}
+SsaConstantFolder.prototype.visitInvokeUnary = function(node) {
   return node.fold();
 }
 SsaConstantFolder.prototype.visitAdd = function(node) {
   var $0;
-  if ($notnull_bool(node.inputs.$index(0).isLiteralString$0()) && (node.inputs.$index(1) instanceof HLiteral)) {
-    var op1 = (($0 = node.inputs.$index(0)) == null ? null : $0.assert$HLiteral());
-    var op2 = (($0 = node.inputs.$index(1)) == null ? null : $0.assert$HLiteral());
+  if ($notnull_bool(node.get$left().isLiteralString()) && (node.get$right() instanceof HLiteral)) {
+    var op1 = (($0 = node.get$left()) == null ? null : $0.assert$HLiteral());
+    var op2 = (($0 = node.get$right()) == null ? null : $0.assert$HLiteral());
     return new HLiteral(new StringWrapper(("" + op1.value + " + " + op2.value)));
   }
-  return this.visitArithmetic(node);
-}
-SsaConstantFolder.prototype.visitRelational = function(node) {
-  var $0;
-  var inputs = node.inputs;
-  $assert(inputs.length == 2, "inputs.length == 2", "optimize.dart", 94, 12);
-  if ($notnull_bool(inputs.$index(0).isLiteralNumber$0()) && $notnull_bool(inputs.$index(1).isLiteralNumber$0())) {
-    var op1 = (($0 = inputs.$index(0)) == null ? null : $0.assert$HLiteral());
-    var op2 = (($0 = inputs.$index(1)) == null ? null : $0.assert$HLiteral());
-    var folded = node.evaluate($assert_num(op1.value), $assert_num(op2.value));
-    return new HLiteral(folded);
-  }
-  return node;
+  return this.visitInvokeBinary(node);
 }
 SsaConstantFolder.prototype.visitEquals = function(node) {
   var $0;
-  var inputs = node.inputs;
-  if ((inputs.$index(0) instanceof HLiteral) && (inputs.$index(1) instanceof HLiteral)) {
-    var op1 = (($0 = inputs.$index(0)) == null ? null : $0.assert$HLiteral());
-    var op2 = (($0 = inputs.$index(1)) == null ? null : $0.assert$HLiteral());
+  if ((node.get$left() instanceof HLiteral) && (node.get$right() instanceof HLiteral)) {
+    var op1 = (($0 = node.get$left()) == null ? null : $0.assert$HLiteral());
+    var op2 = (($0 = node.get$right()) == null ? null : $0.assert$HLiteral());
     return new HLiteral($eq(op1.value, op2.value));
   }
   return node;
@@ -10655,7 +10715,7 @@ SsaTypePropagator.prototype.processWorklist = function() {
   while (!this.worklist.isEmpty()) {
     var id = $assert_num(this.worklist.removeLast());
     var instruction = (($0 = this.workmap.$index(id)) == null ? null : $0.assert$HInstruction());
-    $assert(instruction != null, "instruction !== null", "optimize.dart", 157, 14);
+    $assert(instruction != null, "instruction !== null", "optimize.dart", 145, 14);
     this.workmap.remove(id);
     if ($notnull_bool(instruction.updateType())) this.addUsersAndInputsToWorklist(instruction);
   }
@@ -10792,7 +10852,7 @@ SsaRedundantPhiEliminator.prototype.visitGraph = function(graph) {
   while (!worklist.isEmpty()) {
     var phi = (($0 = worklist.removeLast()) == null ? null : $0.assert$HPhi());
     if (!$notnull_bool(phi.isInBasicBlock())) continue;
-    $assert(phi.inputs.$index(0) !== phi, "phi.inputs[0] !== phi", "optimize.dart", 296, 14);
+    $assert(phi.inputs.$index(0) !== phi, "phi.inputs[0] !== phi", "optimize.dart", 284, 14);
     var candidate = (($0 = phi.inputs.$index(0)) == null ? null : $0.assert$HInstruction());
     for (var i = 1;
      i < phi.inputs.length; i++) {
@@ -10873,13 +10933,13 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
     var next = instruction.next;
     var flags = instruction.getChangesFlags();
     if (flags != 0) {
-      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 391, 16);
+      $assert(!$notnull_bool(instruction.useGvn()), "!instruction.useGvn()", "optimize.dart", 379, 16);
       values.kill(flags);
     }
     else if ($notnull_bool(instruction.useGvn())) {
       var other = values.lookup(instruction);
       if (other != null) {
-        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 396, 18);
+        $assert($notnull_bool(other.equals(instruction)) && $notnull_bool(instruction.equals(other)), "other.equals(instruction) && instruction.equals(other)", "optimize.dart", 384, 18);
         block.rewrite(instruction, other);
         block.remove(instruction);
       }
@@ -10894,7 +10954,7 @@ SsaGlobalValueNumberer.prototype.visitBasicBlock = function(block, values) {
    i < length; i++) {
     var dominated = (($0 = dominatedBlocks.$index(i)) == null ? null : $0.assert$HBasicBlock());
     var successorValues = (i == length - 1) ? values : values.copy();
-    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 416, 14);
+    $assert(block.id < dominated.id, "block.id < dominated.id", "optimize.dart", 404, 14);
     if (!$notnull_bool(successorValues.isEmpty()) && block.id + 1 < dominated.id) {
       this.visited.clear();
       var changesFlags = this.getChangesFlagsForDominatedBlock(block, dominated);
@@ -10921,7 +10981,7 @@ SsaGlobalValueNumberer.prototype.computeChangesFlags = function(graph) {
       changesFlags |= instruction.getChangesFlags();
       instruction = instruction.next;
     }
-    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 449, 14);
+    $assert(this.blockChangesFlags.$index(id) == null, "blockChangesFlags[id] === null", "optimize.dart", 437, 14);
     this.blockChangesFlags.$setindex(id, changesFlags);
     if ($notnull_bool(block.isLoopHeader())) {
       ($0 = this.loopChangesFlags).$setindex(id, $0.$index(id) | changesFlags);
@@ -11277,11 +11337,14 @@ HTracer.prototype.visitBasicBlock = function(block) {
         $this.printProperty("size", 0);
         $this.printProperty("method", "None");
         block.forEachPhi((function (phi) {
-          var $0;
           var phiId = stringifier.temporaryId((phi == null ? null : phi.assert$HInstruction()));
-          var inputId1 = stringifier.temporaryId((($0 = phi.get$inputs().$index(0)) == null ? null : $0.assert$HInstruction()));
-          var inputId2 = stringifier.temporaryId((($0 = phi.get$inputs().$index(1)) == null ? null : $0.assert$HInstruction()));
-          $this.print(("" + phi.get$id() + " " + phiId + " [ " + inputId1 + " " + inputId2 + " ]"));
+          var inputIds = new StringBufferImpl("");
+          for (var i = 0;
+           i < $assert_num(phi.get$inputs().length); i++) {
+            inputIds.add(phi.get$inputs().$index(i));
+            inputIds.add(" ");
+          }
+          $this.print(("" + phi.get$id() + " " + phiId + " [ " + inputIds + "]"));
         })
         );
       })
@@ -11387,25 +11450,25 @@ HInstructionStringifier.prototype.visitBoolify = function(node) {
   return ("Boolify: " + this.temporaryId((($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction())));
 }
 HInstructionStringifier.prototype.visitAdd = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitBitAnd = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitBitNot = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitBitOr = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitBitXor = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitDivide = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitEquals = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitExit = function(node) {
   return "exit";
@@ -11416,10 +11479,10 @@ HInstructionStringifier.prototype.visitGoto = function(node) {
   return ("Goto: (B" + target.id + ")");
 }
 HInstructionStringifier.prototype.visitGreater = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitGreaterEqual = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitIf = function(node) {
   var $0;
@@ -11438,19 +11501,20 @@ HInstructionStringifier.prototype.visitGenericInvoke = function(invokeType, func
   }
   return ("" + invokeType + ": " + functionName + "(" + argumentsString + ")");
 }
-HInstructionStringifier.prototype.visitInvoke = function(invoke) {
-  var target = ("" + invoke.element.name);
-  var arguments = invoke.inputs;
+HInstructionStringifier.prototype.visitInvokeStatic = function(invoke) {
+  var $0;
+  var target = this.temporaryId(invoke.get$target());
+  var arguments = (($0 = invoke.inputs.getRange(1, invoke.inputs.length - 1)) == null ? null : $0.assert$List());
   return this.visitGenericInvoke("Invoke", target, arguments);
 }
 HInstructionStringifier.prototype.visitForeign = function(foreign) {
   return this.visitGenericInvoke("Foreign", ("" + foreign.code), foreign.inputs);
 }
 HInstructionStringifier.prototype.visitLess = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitLessEqual = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitLiteral = function(literal) {
   return ("Literal " + literal.value);
@@ -11475,13 +11539,13 @@ HInstructionStringifier.prototype.visitLoopBranch = function(branch) {
   return ("While (" + conditionId + "): (B" + bodyBlock.id + ") then (B" + exitBlock.id + ")");
 }
 HInstructionStringifier.prototype.visitModulo = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitMultiply = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitNegate = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitNot = function(node) {
   var $0;
@@ -11499,10 +11563,13 @@ HInstructionStringifier.prototype.visitReturn = function(node) {
   return ("Return " + this.temporaryId((($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction())));
 }
 HInstructionStringifier.prototype.visitShiftLeft = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitShiftRight = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
+}
+HInstructionStringifier.prototype.visitStatic = function(node) {
+  return ("Static " + node.element.name);
 }
 HInstructionStringifier.prototype.visitStore = function(node) {
   var $0;
@@ -11511,14 +11578,14 @@ HInstructionStringifier.prototype.visitStore = function(node) {
   return ("Store: " + localId + " := " + valueId);
 }
 HInstructionStringifier.prototype.visitSubtract = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitThrow = function(node) {
   var $0;
   return ("Throw " + this.temporaryId((($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction())));
 }
 HInstructionStringifier.prototype.visitTruncatingDivide = function(node) {
-  return this.visitInvoke(node);
+  return this.visitInvokeStatic(node);
 }
 HInstructionStringifier.prototype.visitTypeGuard = function(node) {
   var $0;
@@ -22223,9 +22290,6 @@ lang_Type.prototype.getOrMakeConcreteType$1 = function($0) {
 lang_Type.prototype.isAssignable$1 = function($0) {
   return this.isAssignable(($0 == null ? null : $0.assert$lang_Type()));
 };
-lang_Type.prototype.isString$0 = function() {
-  return this.get$isString()();
-};
 lang_Type.prototype.isSubtypeOf$1 = function($0) {
   return this.isSubtypeOf(($0 == null ? null : $0.assert$lang_Type()));
 };
@@ -23082,9 +23146,6 @@ DefinedType.prototype.getMember$1 = function($0) {
 };
 DefinedType.prototype.getOrMakeConcreteType$1 = function($0) {
   return this.getOrMakeConcreteType(($0 == null ? null : $0.assert$List_Type()));
-};
-DefinedType.prototype.isString$0 = function() {
-  return this.get$isString()();
 };
 DefinedType.prototype.markUsed$0 = DefinedType.prototype.markUsed;
 DefinedType.prototype.resolve$0 = DefinedType.prototype.resolve;

@@ -88,9 +88,12 @@ class HTracer extends HGraphVisitor {
           printProperty("method", "None");
           block.forEachPhi((phi) {
             String phiId = stringifier.temporaryId(phi);
-            String inputId1 = stringifier.temporaryId(phi.inputs[0]);
-            String inputId2 = stringifier.temporaryId(phi.inputs[1]);
-            print("${phi.id} $phiId [ $inputId1 $inputId2 ]");
+            StringBuffer inputIds = new StringBuffer(); 
+            for (int i = 0; i < phi.inputs.length; i++) {
+              inputIds.add(phi.inputs[i]);
+              inputIds.add(" ");
+            }
+            print("${phi.id} $phiId [ $inputIds]");
           });
         });
       });
@@ -170,19 +173,19 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Boolify: ${temporaryId(node.inputs[0])}";
   }
 
-  String visitAdd(HAdd node) => visitInvoke(node);
+  String visitAdd(HAdd node) => visitInvokeStatic(node);
 
-  String visitBitAnd(HBitAnd node) => visitInvoke(node);
+  String visitBitAnd(HBitAnd node) => visitInvokeStatic(node);
 
-  String visitBitNot(HBitNot node) => visitInvoke(node);
+  String visitBitNot(HBitNot node) => visitInvokeStatic(node);
 
-  String visitBitOr(HBitOr node) => visitInvoke(node);
+  String visitBitOr(HBitOr node) => visitInvokeStatic(node);
 
-  String visitBitXor(HBitXor node) => visitInvoke(node);
+  String visitBitXor(HBitXor node) => visitInvokeStatic(node);
 
-  String visitDivide(HDivide node) => visitInvoke(node);
+  String visitDivide(HDivide node) => visitInvokeStatic(node);
 
-  String visitEquals(HEquals node) => visitInvoke(node);
+  String visitEquals(HEquals node) => visitInvokeStatic(node);
 
   String visitExit(HExit node) => "exit";
 
@@ -191,8 +194,8 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Goto: (B${target.id})";
   }
 
-  String visitGreater(HGreater node) => visitInvoke(node);
-  String visitGreaterEqual(HGreaterEqual node) => visitInvoke(node);
+  String visitGreater(HGreater node) => visitInvokeStatic(node);
+  String visitGreaterEqual(HGreaterEqual node) => visitInvokeStatic(node);
 
   String visitIf(HIf node) {
     HBasicBlock thenBlock = currentBlock.successors[0];
@@ -211,9 +214,9 @@ class HInstructionStringifier implements HVisitor<String> {
     return "$invokeType: $functionName($argumentsString)";
   }
 
-  String visitInvoke(HInvoke invoke) {
-    String target = "${invoke.element.name}";
-    List arguments = invoke.inputs;
+  String visitInvokeStatic(HInvokeStatic invoke) {
+    String target = temporaryId(invoke.target);
+    List arguments = invoke.inputs.getRange(1, invoke.inputs.length - 1);
     return visitGenericInvoke("Invoke", target, arguments);
   }
 
@@ -221,8 +224,8 @@ class HInstructionStringifier implements HVisitor<String> {
     return visitGenericInvoke("Foreign", "${foreign.code}", foreign.inputs);
   }
 
-  String visitLess(HLess node) => visitInvoke(node);
-  String visitLessEqual(HLessEqual node) => visitInvoke(node);
+  String visitLess(HLess node) => visitInvokeStatic(node);
+  String visitLessEqual(HLessEqual node) => visitInvokeStatic(node);
 
   String visitLiteral(HLiteral literal) => "Literal ${literal.value}";
 
@@ -243,11 +246,11 @@ class HInstructionStringifier implements HVisitor<String> {
     return "While ($conditionId): (B${bodyBlock.id}) then (B${exitBlock.id})";
   }
 
-  String visitModulo(HModulo node) => visitInvoke(node);
+  String visitModulo(HModulo node) => visitInvokeStatic(node);
 
-  String visitMultiply(HMultiply node) => visitInvoke(node);
+  String visitMultiply(HMultiply node) => visitInvokeStatic(node);
 
-  String visitNegate(HNegate node) => visitInvoke(node);
+  String visitNegate(HNegate node) => visitInvokeStatic(node);
 
   String visitNot(HNot node) => "Not: ${temporaryId(node.inputs[0])}";
 
@@ -259,9 +262,9 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitReturn(HReturn node) => "Return ${temporaryId(node.inputs[0])}";
 
-  String visitShiftLeft(HShiftLeft node) => visitInvoke(node);
+  String visitShiftLeft(HShiftLeft node) => visitInvokeStatic(node);
 
-  String visitShiftRight(HShiftRight node) => visitInvoke(node);
+  String visitShiftRight(HShiftRight node) => visitInvokeStatic(node);
 
   String visitStatic(HStatic node) => "Static ${node.element.name}";
 
@@ -271,11 +274,13 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Store: $localId := $valueId";
   }
 
-  String visitSubtract(HSubtract node) => visitInvoke(node);
+  String visitSubtract(HSubtract node) => visitInvokeStatic(node);
 
   String visitThrow(HThrow node) => "Throw ${temporaryId(node.inputs[0])}";
 
-  String visitTruncatingDivide(HTruncatingDivide node) => visitInvoke(node);
+  String visitTruncatingDivide(HTruncatingDivide node) {
+    return visitInvokeStatic(node);
+  }
 
   String visitTypeGuard(HTypeGuard node) {
     String type;

@@ -9,6 +9,7 @@ eq() {}
 add() {}
 print() {}
 foo(int param0, int param1, bool param2) {
+  var x = param0 + 5;  // '+' is now GVNed.
   if (param2) {
     print(param0 + param1);
   } else {

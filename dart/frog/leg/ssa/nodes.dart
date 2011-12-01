@@ -18,12 +18,12 @@ interface HVisitor<R> {
   R visitGreater(HGreater node);
   R visitGreaterEqual(HGreaterEqual node);
   R visitIf(HIf node);
+  R visitInvokeStatic(HInvokeStatic node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
   R visitLoad(HLoad node);
   R visitLocal(HLocal node);
   R visitLoopBranch(HLoopBranch node);
-  R visitInvoke(HInvoke node);
   R visitLiteral(HLiteral node);
   R visitModulo(HModulo node);
   R visitMultiply(HMultiply node);
@@ -168,17 +168,17 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
 
   visitInstruction(HInstruction) {}
 
-  visitArithmetic(HArithmetic node) => visitInvoke(node);
-  visitBinaryArithmetic(HBinaryArithmetic node) => visitArithmetic(node);
+  visitBinaryArithmetic(HBinaryArithmetic node) => visitInvokeBinary(node);
   visitBinaryBitOp(HBinaryBitOp node) => visitBinaryArithmetic(node);
-  visitUnaryArithmetic(HUnaryArithmetic node) => visitArithmetic(node);
+  visitInvokeBinary(HInvokeBinary node) => visitInvokeStatic(node);
+  visitInvokeUnary(HInvokeUnary node) => visitInvokeStatic(node);
   visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
   visitControlFlow(HControlFlow node) => visitInstruction(node);
-  visitRelational(HRelational node) => visitInstruction(node);
+  visitRelational(HRelational node) => visitInvokeBinary(node);
 
   visitAdd(HAdd node) => visitBinaryArithmetic(node);
   visitBitAnd(HBitAnd node) => visitBinaryBitOp(node);
-  visitBitNot(HBitNot node) => visitUnaryArithmetic(node);
+  visitBitNot(HBitNot node) => visitInvokeUnary(node);
   visitBitOr(HBitOr node) => visitBinaryBitOp(node);
   visitBitXor(HBitXor node) => visitBinaryBitOp(node);
   visitBoolify(HBoolify node) => visitInstruction(node);
@@ -190,7 +190,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitGreater(HGreater node) => visitRelational(node);
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
   visitIf(HIf node) => visitConditionalBranch(node);
-  visitInvoke(HInvoke node) => visitInstruction(node);
+  visitInvokeStatic(HInvokeStatic node) => visitInstruction(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLoad(HLoad node) => visitInstruction(node);
@@ -198,7 +198,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLiteral(HLiteral node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitModulo(HModulo node) => visitBinaryArithmetic(node);
-  visitNegate(HNegate node) => visitUnaryArithmetic(node);
+  visitNegate(HNegate node) => visitInvokeUnary(node);
   visitNot(HNot node) => visitInstruction(node);
   visitPhi(HPhi node) => visitInstruction(node);
   visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
@@ -662,27 +662,6 @@ class HInstruction implements Hashable {
   // inserted to make sure the users get the right type in.
   bool hasExpectedType() => false;
 
-  // Compute the (shared) type of the inputs if any. If all inputs
-  // have the same known type return it. If any two inputs have
-  // different known types, we'll return a conflict -- otherwise we'll
-  // simply return an unknown type.
-  int computeInputsType() {
-    bool seenUnknown = false;
-    int candidateType = -1;
-    for (int i = 0, length = inputs.length; i < length; i++) {
-      int inputType = inputs[i].type;
-      if (inputType == TYPE_UNKNOWN) {
-        seenUnknown = true;
-      } else if (candidateType == -1) {
-        candidateType = inputType;
-      } else if (candidateType != inputType) {
-        return TYPE_CONFLICT;
-      }
-    }
-    if (seenUnknown) return TYPE_UNKNOWN;
-    return candidateType;
-  }
-
   // Re-compute and update the type of the instruction. Returns
   // whether or not the type was changed.
   bool updateType() {
@@ -830,11 +809,13 @@ class HControlFlow extends HInstruction {
   abstract toString();
 }
 
-class HInvoke extends HInstruction {
-  final Element element;
-  HInvoke(this.element, inputs) : super(inputs);
-  toString() => 'invoke: ${element.name}';
-  accept(HVisitor visitor) => visitor.visitInvoke(this);
+class HInvokeStatic extends HInstruction {
+  /** The first input must be the target. */
+  HInvokeStatic(inputs) : super(inputs);
+  toString() => 'invoke static: ${element.name}';
+  accept(HVisitor visitor) => visitor.visitInvokeStatic(this);  
+  Element get element() => target.element;
+  HStatic get target() => inputs[0];
 }
 
 class HForeign extends HInstruction {
@@ -843,9 +824,39 @@ class HForeign extends HInstruction {
   accept(HVisitor visitor) => visitor.visitForeign(this);
 }
 
-class HArithmetic extends HInvoke {
+class HInvokeBinary extends HInvokeStatic {
   bool builtin = false;
-  HArithmetic(element, inputs) : super(element, inputs);
+  HInvokeBinary(HStatic target, HInstruction left, HInstruction right)
+      : super(<HInstruction>[target, left, right]);
+
+  HInstruction fold() {
+    if (left.isLiteralNumber() && right.isLiteralNumber()) {
+      HLiteral op1 = left;
+      HLiteral op2 = right;
+      return new HLiteral(evaluate(op1.value, op2.value));
+    }
+    return this;
+  }
+
+  HInstruction get left() => inputs[1];
+  HInstruction get right() => inputs[2];
+
+  int computeInputsType() {
+    int leftType = left.type;
+    int rightType = right.type;
+    if (leftType == TYPE_UNKNOWN || rightType == TYPE_UNKNOWN) {
+      return TYPE_UNKNOWN;
+    }
+    if (leftType != rightType) return TYPE_CONFLICT;
+    return leftType;
+  }
+
+  abstract evaluate(num a, num b);
+}
+
+class HBinaryArithmetic extends HInvokeBinary {
+  HBinaryArithmetic(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
 
   void prepareGvn() {
     // An arithmetic expression can take part in global value
@@ -862,36 +873,24 @@ class HArithmetic extends HInvoke {
   int computeType() {
     int type = computeInputsType();
     builtin = (type == TYPE_NUMBER);
-    if (inputs[0].isNumber()) return TYPE_NUMBER;
+    if (left.isNumber()) return TYPE_NUMBER;
     if (type != TYPE_UNKNOWN) return type;
     return super.computeType();
   }
 
-  int computeDesiredInputType(HInstruction input) =>
-    inputs[0].isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
-  bool hasExpectedType() => type == TYPE_NUMBER;
-
-  abstract HInstruction fold();
-}
-
-class HBinaryArithmetic extends HArithmetic {
-  HBinaryArithmetic(element, HInstruction left, HInstruction right)
-      : super(element, <HInstruction>[left, right]);
-  HInstruction fold() {
-    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
-      HLiteral op1 = inputs[0];
-      HLiteral op2 = inputs[1];
-      return new HLiteral(evaluate(op1.value, op2.value));
-    }
-    return this;
+  int computeDesiredInputType(HInstruction input) {
+    // TODO(floitsch): we want the target to be a function.
+    if (input == target) return TYPE_UNKNOWN;
+    return left.isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
   }
+  bool hasExpectedType() => type == TYPE_NUMBER;
 
   abstract num evaluate(num a, num b);
 }
 
 class HAdd extends HBinaryArithmetic {
-  HAdd(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HAdd(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitAdd(this);
   num evaluate(num a, num b) => a + b;
   bool typeEquals(other) => other is HAdd;
@@ -900,27 +899,29 @@ class HAdd extends HBinaryArithmetic {
   int computeType() {
     int type = computeInputsType();
     builtin = (type == TYPE_NUMBER || type == TYPE_STRING);
-    if (inputs[0].isNumber()) return TYPE_NUMBER;
-    if (inputs[0].isString()) return TYPE_STRING;
+    if (left.isNumber()) return TYPE_NUMBER;
+    if (left.isString()) return TYPE_STRING;
     return TYPE_UNKNOWN;
   }
 
   int computeDesiredInputType(HInstruction input) {
-    if (inputs[0].isString()) return TYPE_STRING;
-    if (inputs[0].isNumber()) return TYPE_NUMBER;
+    // TODO(floitsch): we want the target to be a function.
+    if (input == target) return TYPE_UNKNOWN;
+    if (left.isString()) return TYPE_STRING;
+    if (left.isNumber()) return TYPE_NUMBER;
     return TYPE_UNKNOWN;
   }
 
   bool hasExpectedType() {
-    if (inputs[0].isNumber()) return type == TYPE_NUMBER;
-    if (inputs[0].isString()) return type == TYPE_STRING;
+    if (left.isNumber()) return type == TYPE_NUMBER;
+    if (left.isString()) return type == TYPE_STRING;
     return type == TYPE_UNKNOWN;
   }
 }
 
 class HDivide extends HBinaryArithmetic {
-  HDivide(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HDivide(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitDivide(this);
   num evaluate(num a, num b) => a / b;
   bool typeEquals(other) => other is HDivide;
@@ -928,8 +929,8 @@ class HDivide extends HBinaryArithmetic {
 }
 
 class HModulo extends HBinaryArithmetic {
-  HModulo(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HModulo(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitModulo(this);
   num evaluate(num a, num b) => a % b;
   bool typeEquals(other) => other is HModulo;
@@ -937,8 +938,8 @@ class HModulo extends HBinaryArithmetic {
 }
 
 class HMultiply extends HBinaryArithmetic {
-  HMultiply(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HMultiply(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
   num evaluate(num a, num b) => a * b;
   bool typeEquals(other) => other is HMultiply;
@@ -946,8 +947,8 @@ class HMultiply extends HBinaryArithmetic {
 }
 
 class HSubtract extends HBinaryArithmetic {
-  HSubtract(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HSubtract(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
   num evaluate(num a, num b) => a - b;
   bool typeEquals(other) => other is HSubtract;
@@ -955,13 +956,13 @@ class HSubtract extends HBinaryArithmetic {
 }
 
 class HTruncatingDivide extends HBinaryArithmetic {
-  HTruncatingDivide(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HTruncatingDivide(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
   HInstruction fold() {
     // Avoid a DivisionByZeroException.
-    if (inputs[1].isLiteralNumber() && inputs[1].dynamic.value == 0) {
+    if (right.isLiteralNumber() && right.dynamic.value == 0) {
       return this;
     }
     return super.fold();
@@ -975,14 +976,14 @@ class HTruncatingDivide extends HBinaryArithmetic {
 // TODO(floitsch): Should HBinaryArithmetic really be the super class of
 // HBinaryBitOp?
 class HBinaryBitOp extends HBinaryArithmetic {
-  HBinaryBitOp(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HBinaryBitOp(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
 
   HInstruction fold() {
     // Bit-operations are only defined on integers.
-    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
-      HLiteral op1 = inputs[0];
-      HLiteral op2 = inputs[1];
+    if (left.isLiteralNumber() && right.isLiteralNumber()) {
+      HLiteral op1 = left;
+      HLiteral op2 = right;
       // Avoid exceptions.
       if (op1.value is int && op2.value is int) {
         return new HLiteral(evaluate(op1.value, op2.value));
@@ -993,15 +994,15 @@ class HBinaryBitOp extends HBinaryArithmetic {
 }
 
 class HShiftLeft extends HBinaryBitOp {
-  HShiftLeft(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HShiftLeft(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
   HInstruction fold() {
-    if (inputs[1].isLiteralNumber()) {
+    if (right.isLiteralNumber()) {
       // TODO(floitsch): find good max left-shift amount.
       final int MAX_SHIFT_LEFT_AMOUNT = 50;
-      HLiteral op2 = inputs[1];
+      HLiteral op2 = right;
       // Only positive shifting is allowed. Also guard against out-of-memory
       // shifts.
       if (op2.value < 0 || op2.value > MAX_SHIFT_LEFT_AMOUNT) return this;
@@ -1015,13 +1016,13 @@ class HShiftLeft extends HBinaryBitOp {
 }
 
 class HShiftRight extends HBinaryBitOp {
-  HShiftRight(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HShiftRight(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
   HInstruction fold() {
-    if (inputs[1].isLiteralNumber()) {
-      HLiteral op2 = inputs[1];
+    if (right.isLiteralNumber()) {
+      HLiteral op2 = right;
       // Only positive shifting is allowed.
       if (op2.value < 0) return this;
     }
@@ -1034,8 +1035,8 @@ class HShiftRight extends HBinaryBitOp {
 }
 
 class HBitOr extends HBinaryBitOp {
-  HBitOr(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HBitOr(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
   int evaluate(int a, int b) => a | b;
@@ -1044,8 +1045,8 @@ class HBitOr extends HBinaryBitOp {
 }
 
 class HBitAnd extends HBinaryBitOp {
-  HBitAnd(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HBitAnd(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
   int evaluate(int a, int b) => a & b;
@@ -1054,8 +1055,8 @@ class HBitAnd extends HBinaryBitOp {
 }
 
 class HBitXor extends HBinaryBitOp {
-  HBitXor(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HBitXor(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
   int evaluate(int a, int b) => a ^ b;
@@ -1063,19 +1064,31 @@ class HBitXor extends HBinaryBitOp {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HUnaryArithmetic extends HArithmetic {
-  HUnaryArithmetic(element, input) : super(element, <HInstruction>[input]);
+class HInvokeUnary extends HInvokeStatic {
+  bool builtin = false;
+  HInvokeUnary(HStatic target, HInstruction input)
+      : super(<HInstruction>[target, input]);
+
+  HInstruction get operand() => inputs[1];
+
+  HInstruction fold() {
+    if (operand.isLiteralNumber()) {
+      HLiteral input = operand;
+      return new HLiteral(evaluate(input.value));
+    }
+    return this;
+  }
 
   abstract num evaluate(num a);
 }
 
-class HNegate extends HUnaryArithmetic {
-  HNegate(element, input) : super(element, input);
+class HNegate extends HInvokeUnary {
+  HNegate(HStatic target, HInstruction input) : super(target, input);
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
   HInstruction fold() {
-    if (inputs[0].isLiteralNumber()) {
-      HLiteral input = inputs[0];
+    if (operand.isLiteralNumber()) {
+      HLiteral input = operand;
       return new HLiteral(evaluate(input.value));
     }
     return this;
@@ -1086,14 +1099,13 @@ class HNegate extends HUnaryArithmetic {
   bool dataEquals(HInstruction other) => true;
 }
 
-// TODO(floitsch): Should we have a special HUnaryBitOp?
-class HBitNot extends HUnaryArithmetic {
-  HBitNot(element, input) : super(element, input);
+class HBitNot extends HInvokeUnary {
+  HBitNot(HStatic target, HInstruction input) : super(target, input);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
   HInstruction fold() {
-    if (inputs[0].isLiteralNumber()) {
-      HLiteral input = inputs[0];
+    if (operand.isLiteralNumber()) {
+      HLiteral input = operand;
       if (input.value is int) return new HLiteral(evaluate(input.value));
     }
     return this;
@@ -1210,6 +1222,27 @@ class HPhi extends HInstruction {
     input.usedBy.add(this);
   }
 
+  // Compute the (shared) type of the inputs if any. If all inputs
+  // have the same known type return it. If any two inputs have
+  // different known types, we'll return a conflict -- otherwise we'll
+  // simply return an unknown type.
+  int computeInputsType() {
+    bool seenUnknown = false;
+    int candidateType = -1;
+    for (int i = 0, length = inputs.length; i < length; i++) {
+      int inputType = inputs[i].type;
+      if (inputType == TYPE_UNKNOWN) {
+        seenUnknown = true;
+      } else if (candidateType == -1) {
+        candidateType = inputType;
+      } else if (candidateType != inputType) {
+        return TYPE_CONFLICT;
+      }
+    }
+    if (seenUnknown) return TYPE_UNKNOWN;
+    return candidateType;
+  }
+
   int computeType() {
     int type = computeInputsType();
     if (type != TYPE_UNKNOWN) return type;
@@ -1238,10 +1271,9 @@ class HPhi extends HInstruction {
   accept(HVisitor visitor) => visitor.visitPhi(this);
 }
 
-class HRelational extends HInvoke {
-  bool builtin = false;
-  HRelational(Element element, HInstruction left, HInstruction right)
-      : super(element, <HInstruction>[left, right]);
+class HRelational extends HInvokeBinary {
+  HRelational(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
 
   void prepareGvn() {
     // Relational expressions can take part in global value numbering
@@ -1258,13 +1290,16 @@ class HRelational extends HInvoke {
   // TODO(kasperl): This can be improved for at least for equality.
   int computeType() {
     builtin = computeInputsType() == TYPE_NUMBER;
-    if (inputs[0].isNumber()) return TYPE_BOOLEAN;
+    if (left.isNumber()) return TYPE_BOOLEAN;
     if (type != TYPE_UNKNOWN) return type;
     return super.computeType();
   }
 
-  int computeDesiredInputType(HInstruction input) =>
-    inputs[0].isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
+  int computeDesiredInputType(HInstruction input) {
+    // TODO(floitsch): we want the target to be a function.
+    if (input == inputs[0]) return TYPE_UNKNOWN;
+    return left.isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
+  }
 
   bool hasExpectedType() => type == TYPE_BOOLEAN;
 
@@ -1272,8 +1307,8 @@ class HRelational extends HInvoke {
 }
 
 class HEquals extends HRelational {
-  HEquals(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HEquals(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   bool evaluate(num a, num b) => a == b;
   accept(HVisitor visitor) => visitor.visitEquals(this);
   bool typeEquals(other) => other is HEquals;
@@ -1281,8 +1316,8 @@ class HEquals extends HRelational {
 }
 
 class HGreater extends HRelational {
-  HGreater(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HGreater(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   bool evaluate(num a, num b) => a > b;
   accept(HVisitor visitor) => visitor.visitGreater(this);
   bool typeEquals(other) => other is HGreater;
@@ -1290,8 +1325,8 @@ class HGreater extends HRelational {
 }
 
 class HGreaterEqual extends HRelational {
-  HGreaterEqual(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HGreaterEqual(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   bool evaluate(num a, num b) => a >= b;
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
   bool typeEquals(other) => other is HGreaterEqual;
@@ -1299,8 +1334,8 @@ class HGreaterEqual extends HRelational {
 }
 
 class HLess extends HRelational {
-  HLess(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HLess(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   bool evaluate(num a, num b) => a < b;
   accept(HVisitor visitor) => visitor.visitLess(this);
   bool typeEquals(other) => other is HLess;
@@ -1308,8 +1343,8 @@ class HLess extends HRelational {
 }
 
 class HLessEqual extends HRelational {
-  HLessEqual(Element element, HInstruction left, HInstruction right)
-      : super(element, left, right);
+  HLessEqual(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
   bool evaluate(num a, num b) => a <= b;
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
   bool typeEquals(other) => other is HLessEqual;
@@ -1335,6 +1370,8 @@ class HStatic extends HInstruction {
     // TODO(floitsch): accesses to non-final values must be guarded.
     setUseGvn();
     clearAllSideEffects();
+    // TODO(floitsch): we probably want to share statics.
+    setGenerateAtUseSite();
   }
   toString() => 'static ${element.name}';
   accept(HVisitor visitor) => visitor.visitStatic(this);

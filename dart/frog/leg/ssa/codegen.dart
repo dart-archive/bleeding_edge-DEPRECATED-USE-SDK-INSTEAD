@@ -123,11 +123,13 @@ class SsaCodeGenerator implements HVisitor {
     return result;
   }
 
-  void invoke(Element element, List<HInstruction> arguments) {
-    buffer.add('${element.name}(');
-    for (int i = 0; i < arguments.length; i++) {
-      if (i != 0) buffer.add(', ');
-      use(arguments[i]);
+  void invoke(Element element, List<HInstruction> inputs) {
+    assert(inputs.length >= 1);
+    use(inputs[0]);
+    buffer.add('(');
+    for (int i = 1; i < inputs.length; i++) {
+      if (i != 1) buffer.add(', ');
+      use(inputs[i]);
     }
     buffer.add(")");
   }
@@ -179,70 +181,53 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
-  visitInvokeBinary(HInvoke node, bool useOperator, String op) {
-    if (useOperator) {
+  visitInvokeBinary(HInvokeBinary node, String op) {
+    if (node.builtin) {
       buffer.add('(');
-      use(node.inputs[0]);
+      use(node.left);
       buffer.add(' $op ');
-      use(node.inputs[1]);
+      use(node.right);
       buffer.add(')');
     } else {
-      visitInvoke(node);
+      visitInvokeStatic(node);
     }
   }
 
-  visitInvokeUnary(HInvoke node, bool useOperator, String op) {
-    if (useOperator) {
+  visitInvokeUnary(HInvokeUnary node, String op) {
+    if (node.builtin) {
       buffer.add('($op');
-      use(node.inputs[0]);
+      use(node.operand);
       buffer.add(')');
     } else {
-      visitInvoke(node);
+      visitInvokeStatic(node);
     }
   }
 
-  visitAdd(HAdd node)
-      => visitInvokeBinary(node, node.builtin, '+');
-  visitDivide(HDivide node)
-      => visitInvokeBinary(node, node.builtin, '/');
-  visitMultiply(HMultiply node)
-      => visitInvokeBinary(node, node.builtin, '*');
-  visitSubtract(HSubtract node)
-      => visitInvokeBinary(node, node.builtin, '-');
-  visitTruncatingDivide(HTruncatingDivide node)
-      => visitInvoke(node);
+  visitAdd(HAdd node)               => visitInvokeBinary(node, '+');
+  visitDivide(HDivide node)         => visitInvokeBinary(node, '/');
+  visitMultiply(HMultiply node)     => visitInvokeBinary(node, '*');
+  visitSubtract(HSubtract node)     => visitInvokeBinary(node, '-');
+  // Truncating divide does not have a JS equivalent.
+  visitTruncatingDivide(HTruncatingDivide node) => visitInvokeStatic(node);
   // Modulo cannot be mapped to the native operator (different semantics).
-  visitModulo(HModulo node)
-      => visitInvoke(node);
+  visitModulo(HModulo node)                     => visitInvokeStatic(node);
   // Bit-operations require its argument to be of type integer.
   // TODO(floitsch): use shift operators when we can detect that the inputs
   // are integers.
-  visitBitAnd(HBitAnd node)
-      => visitInvoke(node);
-  visitBitNot(HBitNot node)
-      => visitInvoke(node);
-  visitBitOr(HBitOr node)
-      => visitInvoke(node);
-  visitBitXor(HBitXor node)
-      => visitInvoke(node);
-  visitShiftLeft(HShiftLeft node)
-      => visitInvoke(node);
-  visitShiftRight(HShiftRight node)
-      => visitInvoke(node);
+  visitBitAnd(HBitAnd node)         => visitInvokeStatic(node);
+  visitBitNot(HBitNot node)         => visitInvokeStatic(node);
+  visitBitOr(HBitOr node)           => visitInvokeStatic(node);
+  visitBitXor(HBitXor node)         => visitInvokeStatic(node);
+  visitShiftLeft(HShiftLeft node)   => visitInvokeStatic(node);
+  visitShiftRight(HShiftRight node) => visitInvokeStatic(node);
 
-  visitNegate(HNegate node)
-      => visitInvokeUnary(node, node.builtin, '-');
+  visitNegate(HNegate node)         => visitInvokeUnary(node, '-');
 
-  visitEquals(HEquals node)
-      => visitInvokeBinary(node, node.builtin, '===');
-  visitLess(HLess node)
-      => visitInvokeBinary(node, node.builtin, '<');
-  visitLessEqual(HLessEqual node)
-      => visitInvokeBinary(node, node.builtin, '<=');
-  visitGreater(HGreater node)
-      => visitInvokeBinary(node, node.builtin, '>');
-  visitGreaterEqual(HGreaterEqual node)
-      => visitInvokeBinary(node, node.builtin, '>=');
+  visitEquals(HEquals node)             => visitInvokeBinary(node, '===');
+  visitLess(HLess node)                 => visitInvokeBinary(node, '<');
+  visitLessEqual(HLessEqual node)       => visitInvokeBinary(node, '<=');
+  visitGreater(HGreater node)           => visitInvokeBinary(node, '>');
+  visitGreaterEqual(HGreaterEqual node) => visitInvokeBinary(node, '>=');
 
   visitBoolify(HBoolify node) {
     assert(node.inputs.length == 1);
@@ -333,7 +318,7 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
-  visitInvoke(HInvoke node) {
+  visitInvokeStatic(HInvokeStatic node) {
     compiler.worklist.add(node.element);
     invoke(node.element, node.inputs);
   }

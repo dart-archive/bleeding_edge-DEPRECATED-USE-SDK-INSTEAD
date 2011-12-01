@@ -73,7 +73,8 @@ class SsaConstantFolder extends HBaseVisitor {
     return node;
   }
 
-  HInstruction visitArithmetic(HArithmetic node) => node.fold();
+  HInstruction visitInvokeBinary(HInvokeBinary node) => node.fold();
+  HInstruction visitInvokeUnary(HInvokeUnary node) => node.fold();
 
   HInstruction visitAdd(HAdd node) {
     // String + is defined for all literals. We don't need to know which
@@ -81,31 +82,18 @@ class SsaConstantFolder extends HBaseVisitor {
     // TODO(floitsch): is String + literal a compile-time expression? If not
     // we must pay attention not to canonicalize the concatenated string with
     // an already existing string.
-    if (node.inputs[0].isLiteralString() && node.inputs[1] is HLiteral) {
-      HLiteral op1 = node.inputs[0];
-      HLiteral op2 = node.inputs[1];
+    if (node.left.isLiteralString() && node.right is HLiteral) {
+      HLiteral op1 = node.left;
+      HLiteral op2 = node.right;
       return new HLiteral(new SourceString("${op1.value} + ${op2.value}"));
     }
-    return visitArithmetic(node);
-  }
-
-  HInstruction visitRelational(HRelational node) {
-    List<HInstruction> inputs = node.inputs;
-    assert(inputs.length == 2);
-    if (inputs[0].isLiteralNumber() && inputs[1].isLiteralNumber()) {
-      HLiteral op1 = inputs[0];
-      HLiteral op2 = inputs[1];
-      bool folded = node.evaluate(op1.value, op2.value);
-      return new HLiteral(folded);
-    }
-    return node;
+    return visitInvokeBinary(node);
   }
 
   HInstruction visitEquals(HEquals node) {
-    List<HInstruction> inputs = node.inputs;
-    if (inputs[0] is HLiteral && inputs[1] is HLiteral) {
-      HLiteral op1 = inputs[0];
-      HLiteral op2 = inputs[1];
+    if (node.left is HLiteral && node.right is HLiteral) {
+      HLiteral op1 = node.left;
+      HLiteral op2 = node.right;
       return new HLiteral(op1.value == op2.value);
     }
     return node;
