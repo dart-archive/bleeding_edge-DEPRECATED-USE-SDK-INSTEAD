@@ -104,7 +104,8 @@ public class OmniEntry {
           event.gc.drawImage(image, event.x + xNudge, event.y + 1);
         } else {
           //a lighter gray
-          event.gc.setForeground(event.display.getSystemColor(SWT.COLOR_GRAY));
+
+          event.gc.setForeground(OmniBoxColors.SEARCH_ENTRY_HEADER_TEXT);
         }
 
         textLayout.setText(label);
@@ -123,7 +124,7 @@ public class OmniEntry {
     }
     if (lastInCategory) {
       //a lighter gray
-      event.gc.setForeground(event.display.getSystemColor(SWT.COLOR_GRAY));
+      event.gc.setForeground(OmniBoxColors.SEARCH_ENTRY_HEADER_TEXT);
       Rectangle bounds = ((TableItem) event.item).getBounds(event.index);
       event.gc.drawLine(Math.max(0, bounds.x - 1), bounds.y + bounds.height, bounds.x
           + bounds.width, bounds.y + bounds.height);

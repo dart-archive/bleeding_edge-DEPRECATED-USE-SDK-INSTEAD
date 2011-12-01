@@ -25,7 +25,6 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackAdapter;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -55,11 +54,6 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   private static final String MOD_KEY = SWTKeySupport.getKeyFormatterForPlatform().format(SWT.MOD1);
 
   private static final String WATERMARK_TEXT;
-
-  private static final Color REGULAR_TEXT_COLOR = Display.getDefault().getSystemColor(
-      SWT.COLOR_WIDGET_FOREGROUND);
-  private static final Color WATERMARK_TEXT_COLOR = Display.getDefault().getSystemColor(
-      SWT.COLOR_DARK_GRAY);
 
   private static int SEARCH_BOX_STYLE_BITS = SWT.SEARCH;
 
@@ -188,11 +182,11 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
 
   private void clearWatermark() {
     //ensure watermark (or valid text) does not get re-cleared
-    if (control.getForeground().equals(REGULAR_TEXT_COLOR)) {
+    if (control.getForeground().equals(OmniBoxColors.SEARCHBOX_TEXT_COLOR)) {
       return;
     }
     silentSetControlText(""); //$NON-NLS-1$
-    control.setForeground(REGULAR_TEXT_COLOR);
+    control.setForeground(OmniBoxColors.SEARCHBOX_TEXT_COLOR);
   }
 
   private Text createTextControl(Composite parent) {
@@ -353,7 +347,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
 
   private void setWatermarkText() {
     silentSetControlText(WATERMARK_TEXT);
-    control.setForeground(WATERMARK_TEXT_COLOR);
+    control.setForeground(OmniBoxColors.WATERMARK_TEXT_COLOR);
   }
 
   //set text without notifying listeners

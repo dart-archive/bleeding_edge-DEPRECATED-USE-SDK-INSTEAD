@@ -73,7 +73,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.progress.ProgressManagerUtil;
 import org.eclipse.ui.keys.IBindingService;
-import org.eclipse.ui.themes.ColorUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -142,7 +141,6 @@ public class OmniBoxPopup extends BasePopupDialog {
   private LinkedList<OmniElement> previousPicksList = new LinkedList<OmniElement>();
   protected Map<String, OmniProposalProvider> providerMap;
   // private Font italicsFont;
-  private Color grayColor;
   private TextLayout textLayout;
   private TriggerSequence[] invokingCommandKeySequences;
   private Command invokingCommand;
@@ -427,8 +425,6 @@ public class OmniBoxPopup extends BasePopupDialog {
       boldStyle = new TextStyle(boldFont, null, null);
       // italicsFont = resourceManager.createFont(FontDescriptor.createFrom(
       // table.getFont()).setStyle(SWT.ITALIC));
-      grayColor = resourceManager.createColor(ColorUtil.blend(table.getBackground().getRGB(),
-          table.getForeground().getRGB()));
     } else {
       boldStyle = null;
     }
@@ -442,7 +438,8 @@ public class OmniBoxPopup extends BasePopupDialog {
               entry.measure(event, textLayout, resourceManager, boldStyle);
               break;
             case SWT.PaintItem:
-              entry.paint(event, textLayout, resourceManager, boldStyle, grayColor);
+              entry.paint(event, textLayout, resourceManager, boldStyle,
+                  OmniBoxColors.SEARCH_ENTRY_ITEM_TEXT);
               break;
             case SWT.EraseItem:
               entry.erase(event);
@@ -484,7 +481,7 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   @Override
   protected Color getBackground() {
-    return getShell().getDisplay().getSystemColor(SWT.COLOR_WHITE);
+    return OmniBoxColors.SEARCH_RESULT_BACKGROUND;
   }
 
   @Override
@@ -579,13 +576,13 @@ public class OmniBoxPopup extends BasePopupDialog {
       {
         TableItem item = new TableItem(table, SWT.NONE);
         item.setText(0, OmniBoxMessages.OmniBox_Providers);
-        item.setForeground(0, grayColor);
+        item.setForeground(0, OmniBoxColors.SEARCH_ENTRY_ITEM_TEXT);
       }
       for (int i = 0; i < providers.length; i++) {
         OmniProposalProvider provider = providers[i];
         TableItem item = new TableItem(table, SWT.NONE);
         item.setText(1, provider.getName());
-        item.setForeground(1, grayColor);
+        item.setForeground(1, OmniBoxColors.SEARCH_ENTRY_ITEM_TEXT);
       }
     }
 
