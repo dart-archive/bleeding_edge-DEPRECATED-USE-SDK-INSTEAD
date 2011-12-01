@@ -71,11 +71,11 @@ int foo(var start, bool test) {
 main() {
   String generated = compile(FOO, 'foo');
   // TODO(ngeoffray): Use 'contains' when frog supports it.
-  RegExp regexp = const RegExp("function foo\\(a, b\\) {");
+  RegExp regexp = const RegExp("function\\(a, b\\) {");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(BAR, 'bar');
-  regexp = const RegExp("function bar\\(\\\$eval, _\\\$eval\\) {");
+  regexp = const RegExp("function\\(\\\$eval, _\\\$eval\\) {");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(PARAMETER_AND_TEMP, 'bar');

@@ -17,9 +17,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         parameterNames[element] = JsNames.getValid('${element.name}');
       }
 
-      String code = generateMethod(function.name,
-                                   parameterNames,
-                                   graph);
+      String code = generateMethod(parameterNames, graph);
       return code;
     });
   }
@@ -38,8 +36,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     new SsaTypeGuardUnuser().visitGraph(graph);
   }
 
-  String generateMethod(SourceString methodName,
-                        Map<Element, String> parameterNames,
+  String generateMethod(Map<Element, String> parameterNames,
                         HGraph graph) {
     preGenerateMethod(graph);
     StringBuffer buffer = new StringBuffer();
@@ -52,7 +49,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       if (i != 0) parameters.add(', ');
       parameters.add(names[i]);
     }
-    return 'function $methodName($parameters) {\n$buffer}\n';
+    return 'function($parameters) {\n$buffer}';
   }
 }
 
@@ -421,7 +418,7 @@ class SsaCodeGenerator implements HVisitor {
     }
     Element element = compiler.universe.find(name);
     compiler.worklist.add(element);
-    buffer.add('$name(');
+    buffer.add('currentIsolate.$name(');
     use(node.inputs[0]);
     buffer.add(')');
   }
@@ -433,7 +430,7 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitStatic(HStatic node) {
-    buffer.add('${node.element.name}');
+    buffer.add('currentIsolate.${node.element.name}');
   }
 
   void visitStore(HStore node) {

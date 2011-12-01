@@ -111,11 +111,14 @@ class Compiler implements Canceler, Logger {
 
   String assembleProgram() {
     StringBuffer buffer = new StringBuffer();
-    List<String> codeBlocks = universe.generatedCode.getValues();
-    for (int i = codeBlocks.length - 1; i >= 0; i--) {
-      buffer.add(codeBlocks[i]);
-    }
-    buffer.add('main();\n');
+    buffer.add('function Isolate() {};\n\n');
+    universe.generatedCode.forEach((Element element, String codeBlock) {
+      buffer.add('Isolate.prototype.${element.name} = ');
+      buffer.add(codeBlock);
+      buffer.add(';\n\n');
+    });
+    buffer.add('var currentIsolate = new Isolate();\n');
+    buffer.add('currentIsolate.main();\n');
     return buffer.toString();
   }
 

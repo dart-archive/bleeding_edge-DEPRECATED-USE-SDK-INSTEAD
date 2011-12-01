@@ -8199,7 +8199,7 @@ SsaCodeGeneratorTask.prototype.generate = function(function_, graph) {
       var element = (($0 = link.get$head()) == null ? null : $0.assert$Element());
       parameterNames.$setindex(element, JsNames.getValid(('' + element.name)));
     }
-    var code = $this.generateMethod(function_.name, parameterNames, graph);
+    var code = $this.generateMethod(parameterNames, graph);
     return code;
   })
   ));
@@ -8214,7 +8214,7 @@ SsaCodeGeneratorTask.prototype.preGenerateMethod = function(graph) {
   }
   new SsaTypeGuardUnuser().visitGraph(graph);
 }
-SsaCodeGeneratorTask.prototype.generateMethod = function(methodName, parameterNames, graph) {
+SsaCodeGeneratorTask.prototype.generateMethod = function(parameterNames, graph) {
   var $0;
   this.preGenerateMethod(graph);
   var buffer = new StringBufferImpl("");
@@ -8227,7 +8227,7 @@ SsaCodeGeneratorTask.prototype.generateMethod = function(methodName, parameterNa
     if (i != 0) parameters.add(', ');
     parameters.add(names.$index(i));
   }
-  return ('function ' + methodName + '(' + parameters + ') {\n' + buffer + '}\n');
+  return ('function(' + parameters + ') {\n' + buffer + '}');
 }
 // ********** Code for SsaCodeGenerator **************
 function SsaCodeGenerator(compiler, buffer, parameterNames) {
@@ -8297,7 +8297,7 @@ SsaCodeGenerator.prototype.newName = function(id, name) {
 }
 SsaCodeGenerator.prototype.invoke = function(element, inputs) {
   var $0;
-  $assert(inputs.length >= 1, "inputs.length >= 1", "codegen.dart", 127, 12);
+  $assert(inputs.length >= 1, "inputs.length >= 1", "codegen.dart", 124, 12);
   this.use((($0 = inputs.$index(0)) == null ? null : $0.assert$HInstruction()));
   this.buffer.add('(');
   for (var i = 1;
@@ -8427,7 +8427,7 @@ SsaCodeGenerator.prototype.visitGreaterEqual = function(node) {
 }
 SsaCodeGenerator.prototype.visitBoolify = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 233, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 230, 12);
   this.buffer.add('(');
   this.use((($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction()));
   this.buffer.add(' === true)');
@@ -8437,14 +8437,14 @@ SsaCodeGenerator.prototype.visitExit = function(node) {
 }
 SsaCodeGenerator.prototype.visitGoto = function(node) {
   var $0;
-  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 244, 12);
+  $assert(this.currentBlock.successors.length == 1, "currentBlock.successors.length == 1", "codegen.dart", 241, 12);
   var dominated = this.currentBlock.dominatedBlocks;
   if (dominated.isEmpty()) return;
   if (dominated.length > 2) unreachable();
   if (dominated.length == 2 && this.currentBlock !== this.currentGraph.entry) {
     unreachable();
   }
-  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 256, 12);
+  $assert($eq(dominated.$index(0), this.currentBlock.successors.$index(0)), "dominated[0] == currentBlock.successors[0]", "codegen.dart", 253, 12);
   this.visitBasicBlock((($0 = dominated.$index(0)) == null ? null : $0.assert$HBasicBlock()));
 }
 SsaCodeGenerator.prototype.visitIf = function(node) {
@@ -8455,13 +8455,13 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
   this.buffer.add(') {\n');
   this.indent++;
   var dominated = this.currentBlock.dominatedBlocks;
-  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 269, 12);
+  $assert(dominated.$index(0) === ifBlock.successors.$index(0), "dominated[0] === ifBlock.successors[0]", "codegen.dart", 266, 12);
   this.visitBasicBlock((($0 = ifBlock.successors.$index(0)) == null ? null : $0.assert$HBasicBlock()));
   this.indent--;
   this.addIndentation();
   var nextDominatedIndex;
   if ($notnull_bool(node.hasElse)) {
-    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 275, 14);
+    $assert(dominated.$index(1) === ifBlock.successors.$index(1), "dominated[1] === ifBlock.successors[1]", "codegen.dart", 272, 14);
     this.buffer.add('} else {\n');
     this.indent++;
     this.visitBasicBlock((($0 = ifBlock.successors.$index(1)) == null ? null : $0.assert$HBasicBlock()));
@@ -8476,17 +8476,17 @@ SsaCodeGenerator.prototype.visitIf = function(node) {
     this.visitBasicBlock((($0 = dominated.$index(2)) == null ? null : $0.assert$HBasicBlock()));
   }
   else if ($notnull_bool(node.hasElse)) {
-    $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 303, 14);
+    $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 300, 14);
     return;
   }
   else if (!$notnull_bool(node.hasElse) && dominated.length == 2) {
-    $assert(!$notnull_bool(dominated.$index(1).isExitBlock$0()), "!dominated[1].isExitBlock()", "codegen.dart", 308, 14);
+    $assert(!$notnull_bool(dominated.$index(1).isExitBlock$0()), "!dominated[1].isExitBlock()", "codegen.dart", 305, 14);
     this.visitBasicBlock((($0 = dominated.$index(1)) == null ? null : $0.assert$HBasicBlock()));
   }
   else {
-    $assert(!$notnull_bool(node.hasElse), "!node.hasElse", "codegen.dart", 313, 14);
-    $assert(dominated.length == 3, "dominated.length == 3", "codegen.dart", 314, 14);
-    $assert(dominated.$index(2).isExitBlock$0(), "dominated[2].isExitBlock()", "codegen.dart", 315, 14);
+    $assert(!$notnull_bool(node.hasElse), "!node.hasElse", "codegen.dart", 310, 14);
+    $assert(dominated.length == 3, "dominated.length == 3", "codegen.dart", 311, 14);
+    $assert(dominated.$index(2).isExitBlock$0(), "dominated[2].isExitBlock()", "codegen.dart", 312, 14);
     this.visitBasicBlock((($0 = dominated.$index(1)) == null ? null : $0.assert$HBasicBlock()));
     this.visitBasicBlock((($0 = dominated.$index(2)) == null ? null : $0.assert$HBasicBlock()));
   }
@@ -8507,7 +8507,7 @@ SsaCodeGenerator.prototype.visitForeign = function(node) {
       name = this.parameter((input == null ? null : input.assert$HParameterValue()));
     }
     else {
-      $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 335, 16);
+      $assert(!$notnull_bool(input.generateAtUseSite()), "!input.generateAtUseSite()", "codegen.dart", 332, 16);
       name = this.temporary(input);
     }
     code = code.replaceAll(('\$' + i), name);
@@ -8534,13 +8534,13 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
   var dominated = this.currentBlock.dominatedBlocks;
   var loopSuccessor;
   if (dominated.length == 1) {
-    $assert(branchBlock.successors.$index(0).get$id() < branchBlock.id, "branchBlock.successors[0].id < branchBlock.id", "codegen.dart", 363, 14);
-    $assert(dominated.$index(0) === branchBlock.successors.$index(1), "dominated[0] === branchBlock.successors[1]", "codegen.dart", 364, 14);
+    $assert(branchBlock.successors.$index(0).get$id() < branchBlock.id, "branchBlock.successors[0].id < branchBlock.id", "codegen.dart", 360, 14);
+    $assert(dominated.$index(0) === branchBlock.successors.$index(1), "dominated[0] === branchBlock.successors[1]", "codegen.dart", 361, 14);
   }
   else {
-    $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 368, 14);
-    $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 369, 14);
-    $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 370, 14);
+    $assert(dominated.length == 2, "dominated.length == 2", "codegen.dart", 365, 14);
+    $assert(dominated.$index(0) === branchBlock.successors.$index(0), "dominated[0] === branchBlock.successors[0]", "codegen.dart", 366, 14);
+    $assert(dominated.$index(1) === branchBlock.successors.$index(1), "dominated[1] === branchBlock.successors[1]", "codegen.dart", 367, 14);
     this.visit(dominated.$index(0));
   }
   this.indent--;
@@ -8550,7 +8550,7 @@ SsaCodeGenerator.prototype.visitLoopBranch = function(node) {
 }
 SsaCodeGenerator.prototype.visitNot = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 380, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 377, 12);
   this.buffer.add('(!');
   this.use((($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction()));
   this.buffer.add(')');
@@ -8563,7 +8563,7 @@ SsaCodeGenerator.prototype.visitPhi = function(node) {
 }
 SsaCodeGenerator.prototype.visitReturn = function(node) {
   var $0;
-  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 396, 12);
+  $assert(node.inputs.length == 1, "node.inputs.length == 1", "codegen.dart", 393, 12);
   var input = (($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction());
   if ($notnull_bool(input.isLiteralNull())) {
     this.buffer.add('return;\n');
@@ -8594,7 +8594,7 @@ SsaCodeGenerator.prototype.visitTypeGuard = function(node) {
   }
   var element = this.compiler.universe.find(name);
   this.compiler.worklist.add(element);
-  this.buffer.add(('' + name + '('));
+  this.buffer.add(('currentIsolate.' + name + '('));
   this.use((($0 = node.inputs.$index(0)) == null ? null : $0.assert$HInstruction()));
   this.buffer.add(')');
 }
@@ -8605,7 +8605,7 @@ SsaCodeGenerator.prototype.addIndentation = function() {
   }
 }
 SsaCodeGenerator.prototype.visitStatic = function(node) {
-  this.buffer.add(('' + node.element.name));
+  this.buffer.add(('currentIsolate.' + node.element.name));
 }
 SsaCodeGenerator.prototype.visitStore = function(node) {
   if (node.get$local().declaredBy === node) {
@@ -11976,14 +11976,16 @@ Compiler.prototype.resolveSignature = function(element) {
   this.resolver.resolveSignature((($0 = this.parser.parse(element)) == null ? null : $0.assert$FunctionExpression()));
 }
 Compiler.prototype.assembleProgram = function() {
-  var $0;
   var buffer = new StringBufferImpl("");
-  var codeBlocks = (($0 = this.universe.generatedCode.getValues()) == null ? null : $0.assert$List_String());
-  for (var i = codeBlocks.length - 1;
-   i >= 0; i--) {
-    buffer.add(codeBlocks.$index(i));
-  }
-  buffer.add('main();\n');
+  buffer.add('function Isolate() {};\n\n');
+  this.universe.generatedCode.forEach((function (element, codeBlock) {
+    buffer.add(('Isolate.prototype.' + element.name + ' = '));
+    buffer.add(codeBlock);
+    buffer.add(';\n\n');
+  })
+  );
+  buffer.add('var currentIsolate = new Isolate();\n');
+  buffer.add('currentIsolate.main();\n');
   return buffer.toString();
 }
 Compiler.prototype.reportWarning = function(node, message) {
@@ -12231,11 +12233,14 @@ FullResolverVisitor.prototype.visitIf = function(node) {
   this.visit(node.thenPart);
   this.visit(node.elsePart);
 }
-FullResolverVisitor.prototype.potentiallyMapOperatorToMethodName = function(name, isPrefix) {
+FullResolverVisitor.isLogicalOperator = function(op) {
+  var str = op.get$source().get$stringValue();
+  return (str === '&&' || str == '||' || str == '!');
+}
+FullResolverVisitor.prototype.mapOperatorToMethodName = function(name, isPrefix) {
   if ($notnull_bool(isPrefix)) {
     if (name.get$stringValue() === '-') return const$237/*const SourceString('neg')*/;
     if (name.get$stringValue() === '~') return const$238/*const SourceString('not')*/;
-    if (name.get$stringValue() === '!') return name;
     unreachable();
   }
   if (name.get$stringValue() === '+') return const$240/*const SourceString('add')*/;
@@ -12249,12 +12254,12 @@ FullResolverVisitor.prototype.potentiallyMapOperatorToMethodName = function(name
   if (name.get$stringValue() === '|') return const$248/*const SourceString('or')*/;
   if (name.get$stringValue() === '&') return const$249/*const SourceString('and')*/;
   if (name.get$stringValue() === '^') return const$250/*const SourceString('xor')*/;
-  if (name.get$stringValue() === '==') return const$251/*const SourceString('eq')*/;
-  if (name.get$stringValue() === '<') return const$252/*const SourceString('lt')*/;
-  if (name.get$stringValue() === '<=') return const$253/*const SourceString('le')*/;
-  if (name.get$stringValue() === '>') return const$254/*const SourceString('gt')*/;
-  if (name.get$stringValue() === '>=') return const$255/*const SourceString('ge')*/;
-  return name;
+  if (name.get$stringValue() === '<') return const$251/*const SourceString('lt')*/;
+  if (name.get$stringValue() === '<=') return const$252/*const SourceString('le')*/;
+  if (name.get$stringValue() === '>') return const$253/*const SourceString('gt')*/;
+  if (name.get$stringValue() === '>=') return const$254/*const SourceString('ge')*/;
+  if (name.get$stringValue() === '==') return const$255/*const SourceString('eq')*/;
+  unreachable();
 }
 FullResolverVisitor.prototype.mapAssignmentOperatorToMethodName = function(name) {
   if (name.get$stringValue() === '+=') return const$240/*const SourceString('add')*/;
@@ -12270,33 +12275,35 @@ FullResolverVisitor.prototype.mapAssignmentOperatorToMethodName = function(name)
   if (name.get$stringValue() === '^=') return const$250/*const SourceString('xor')*/;
   if (name.get$stringValue() === '++') return const$240/*const SourceString('add')*/;
   if (name.get$stringValue() === '--') return const$241/*const SourceString('sub')*/;
-  this.compiler.unimplemented(("mapAssignmentOperatorToMethodName: " + name));
+  unreachable();
 }
 FullResolverVisitor.prototype.visitSend = function(node) {
   var $0;
   var receiver = (($0 = this.visit(node.receiver)) == null ? null : $0.assert$Element());
-  var identifier = (($0 = node.selector) == null ? null : $0.assert$Identifier());
+  this.visit(node.argumentsNode);
+  var selector = (($0 = node.selector) == null ? null : $0.assert$Identifier());
+  var name = selector.get$source();
+  if ($notnull_bool(FullResolverVisitor.isLogicalOperator(selector))) return null;
   var target = null;
-  if (receiver == null || (identifier instanceof Operator)) {
-    var name = this.potentiallyMapOperatorToMethodName(identifier.get$source(), node.get$isPrefix());
+  if ($notnull_bool(node.get$isOperator())) {
+    var opName = this.mapOperatorToMethodName(name, node.get$isPrefix());
+    target = this.compiler.universe.find(opName);
+  }
+  else if (receiver == null) {
     target = this.context.lookup(name);
-    if (target == null && !((name.get$stringValue() === '&&' || name.get$stringValue() === '||' || name.get$stringValue() === '!'))) {
+    if (target == null) {
       this.error(node, const$225/*MessageKind.CANNOT_RESOLVE*/, [name]);
     }
-    this.useElement(node, target);
   }
-  else {
+  else if (receiver.kind === const$214/*ElementKind.CLASS*/) {
   }
-  this.visit(node.argumentsNode);
-  return target;
+  return this.useElement(node, target);
 }
 FullResolverVisitor.prototype.visitSendSet = function(node) {
   var $0;
   var receiver = (($0 = this.visit(node.receiver)) == null ? null : $0.assert$Element());
+  this.visit(node.argumentsNode);
   var selector = (($0 = node.selector) == null ? null : $0.assert$Identifier());
-  if (receiver != null) {
-    this.compiler.unimplemented('Resolver: property access');
-  }
   var target = this.context.lookup(selector.get$source());
   if (target == null) {
     this.error(node, const$225/*MessageKind.CANNOT_RESOLVE*/, [node]);
@@ -12304,12 +12311,11 @@ FullResolverVisitor.prototype.visitSendSet = function(node) {
   var op = node.assignmentOperator;
   if (op.get$source().get$stringValue() !== '=') {
     var name = this.mapAssignmentOperatorToMethodName(op.get$source());
-    var operatorElement = this.context.lookup(name);
+    var operatorElement = this.compiler.universe.find(name);
     this.useElement(op, operatorElement);
     var getter = this.context.lookup(selector.get$source());
     this.useElement(selector, getter);
   }
-  this.visit(node.argumentsNode);
   return this.useElement(node, target);
 }
 FullResolverVisitor.prototype.visitLiteralInt = function(node) {
@@ -12420,7 +12426,7 @@ VariableDefinitionsVisitor.prototype.get$kind = function() { return this.kind; }
 VariableDefinitionsVisitor.prototype.set$kind = function(value) { return this.kind = value; };
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 428, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 443, 12);
   if (node.receiver != null) {
     this.resolver.cancel(node, "receiver on a variable definition not implemented");
   }
@@ -24730,11 +24736,11 @@ var const$247 = new StringWrapper('shr')/*const SourceString('shr')*/;
 var const$248 = new StringWrapper('or')/*const SourceString('or')*/;
 var const$249 = new StringWrapper('and')/*const SourceString('and')*/;
 var const$250 = new StringWrapper('xor')/*const SourceString('xor')*/;
-var const$251 = new StringWrapper('eq')/*const SourceString('eq')*/;
-var const$252 = new StringWrapper('lt')/*const SourceString('lt')*/;
-var const$253 = new StringWrapper('le')/*const SourceString('le')*/;
-var const$254 = new StringWrapper('gt')/*const SourceString('gt')*/;
-var const$255 = new StringWrapper('ge')/*const SourceString('ge')*/;
+var const$251 = new StringWrapper('lt')/*const SourceString('lt')*/;
+var const$252 = new StringWrapper('le')/*const SourceString('le')*/;
+var const$253 = new StringWrapper('gt')/*const SourceString('gt')*/;
+var const$254 = new StringWrapper('ge')/*const SourceString('ge')*/;
+var const$255 = new StringWrapper('eq')/*const SourceString('eq')*/;
 var const$256 = new ElementKind('variable')/*const ElementKind('variable')*/;
 var const$258 = new MessageKind('#{2} is not assignable to #{1}')/*const MessageKind(
       '#{2} is not assignable to #{1}')*/;

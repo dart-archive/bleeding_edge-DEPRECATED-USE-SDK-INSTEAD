@@ -33,10 +33,12 @@ foo(int param1, int param2) {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  RegExp regexp = const RegExp("var c = guard\\\$num\\(foo\\(1\\)\\);");
+  RegExp regexp = const RegExp(
+      "var c = currentIsolate\\.guard\\\$num\\(currentIsolate.foo\\(1\\)\\);");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp("c = guard\\\$num\\(foo\\(2\\)\\);");
+  regexp = const RegExp(
+      "c = currentIsolate\\.guard\\\$num\\(currentIsolate.foo\\(2\\)\\);");
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp("return c;");
