@@ -171,7 +171,7 @@ function $dynamic(name) {
     // Find the target method
     var method;
     var proto = Object.getPrototypeOf(this);
-    var obj = proto;
+    var obj = this;
     do {
       method = methods[obj.$typeNameOf()];
       if (method) break;
