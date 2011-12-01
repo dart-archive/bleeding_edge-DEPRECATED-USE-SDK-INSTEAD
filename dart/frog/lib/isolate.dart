@@ -514,7 +514,7 @@ class IsolateNatives {
   }
 
   /**
-   * Assume that [e] is a browser message event and extract it's message data.
+   * Assume that [e] is a browser message event and extract its message data.
    * We don't import the dom explicitly so, when workers are disabled, this
    * library can also run on top of nodejs.
    */
