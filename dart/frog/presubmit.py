@@ -75,7 +75,7 @@ def main(args):
   print 'Generated %s frogsh is %s kB' % (b('checked'), b(size))
 
   RunCommand('../tools/build.py', '--mode=release')
-  test_cmd = ['../tools/test.py', '--report', '--timeout=10',
+  test_cmd = ['../tools/test.py', '--report', '--timeout=30',
               '--progress=color', '--mode=release', '--checked']
 
   if args[1:] == ['--notest']: return

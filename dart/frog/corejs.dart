@@ -15,7 +15,6 @@ class CoreJs {
   bool useStackTraceOf = false;
   bool useThrow = false;
   bool useGenStub = false;
-  bool useMap = false;
   bool useAssert = false;
   bool useNotNullBool = false;
   bool useIndex = false;
@@ -329,15 +328,6 @@ function $notnull_bool(test) {
 }""");
     }
 
-    if (useAssert) {
-      useThrow = true;
-      w.writeln(@"""
-function $assert(test, text, url, line, column) {
-  if (typeof test == 'function') test = test();
-  if (!test) $throw(new AssertError(text, url, line, column));
-}""");
-    }
-
     if (useThrow) {
       w.writeln(@"""
 function $throw(e) {
@@ -348,17 +338,6 @@ function $throw(e) {
     Error.captureStackTrace(e, $throw);
   }
   throw e;
-}""");
-    }
-
-    if (useMap) {
-      w.writeln(@"""
-function $map(items) {
-  var ret = new HashMapImplementation();
-  for (var i=0; i < items.length;) {
-    ret.$setindex(items[i++], items[i++]);
-  }
-  return ret;
 }""");
     }
 

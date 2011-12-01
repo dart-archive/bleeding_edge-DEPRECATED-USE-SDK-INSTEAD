@@ -202,13 +202,7 @@ class ListIterator<T> implements Iterator<T> {
 class ImmutableMap<K, V> implements Map<K, V> {
   final Map<K, V> _internal;
 
-  ImmutableMap(List keyValuePairs) : _internal = {} {
-    // Note pairs accept repeated values, use the latest definition for the map
-    // (see langauge/MapLiteral3Test)
-    for (int i = 0; i < keyValuePairs.length; i += 2) {
-      _internal[keyValuePairs[i]] = keyValuePairs[i + 1];
-    }
-  }
+  ImmutableMap(List keyValuePairs) : _internal = _map(keyValuePairs);
 
   V operator [](K key) => _internal[key];
 

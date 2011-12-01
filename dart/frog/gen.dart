@@ -494,17 +494,6 @@ function $inheritsMembers(child, parent) {
     // If that fails, compare by name.
     return x.name.compareTo(y.name);
   }
-
-  /** Marks that a map literal is used, e.g. a call to $map. */
-  Type useMapFactory() {
-    corejs.useMap = true;
-    var factType = world.coreimpl.types['HashMapImplementation'];
-    var m = factType.resolveMember(':setindex');
-    genMethod(m.members[0]); // TODO(jimhug): Clean up initializing.
-    var c = factType.getConstructor('');
-    genMethod(c);
-    return factType;
-  }
 }
 
 
@@ -1298,18 +1287,30 @@ class MethodGenerator implements TreeVisitor {
     // be sure to walk test for static checking even is asserts disabled
     var test = visitValue(node.test); // TODO(jimhug): check bool or callable.
     if (options.enableAsserts) {
-      var err = world.corelib.types['AssertError'];
-      world.gen.genMethod(err.getConstructor('_internal'));
-      world.gen.genMethod(err.members['toString']);
       var span = node.test.span;
 
       // TODO(jmesserly): do we need to include path/line/column here?
       // It should be captured in the stack trace.
-      var line = span.file.getLine(span.start);
-      var column = span.file.getColumn(line, span.start);
-      writer.writeln('\$assert(${test.code}, "${_escapeString(span.text)}",' +
-        ' "${basename(span.file.filename)}", ${line + 1}, ${column + 1});');
-      world.gen.corejs.useAssert = true;
+      var line = span.file.getLine(span.start) + 1;
+      var column = span.file.getColumn(line, span.start) + 1;
+
+      // TODO(jimhug): Simplify code for creating const values.
+      var args = [
+        test,
+        new EvaluatedValue(world.stringType,
+          _escapeString(span.text), '"${_escapeString(span.text)}"', null),
+        new EvaluatedValue(world.stringType,
+          _escapeString(span.file.filename),
+          '"${_escapeString(span.file.filename)}"', null),
+        new EvaluatedValue(world.intType, line, line.toString(), null),
+        new EvaluatedValue(world.intType, column, column.toString(), null)
+      ];
+
+      var tp = world.corelib.topType;
+      Member f = tp.getMember('_assert');
+      var value = f.invoke(this, node, new Value.type(tp, null),
+        new Arguments(null, args));
+      writer.writeln('${value.code};');
     }
     return false;
   }
@@ -2153,8 +2154,11 @@ class MethodGenerator implements TreeVisitor {
 
 
   visitMapExpression(MapExpression node) {
-    // Ensure that Map factory is intialized - pseudo-call needed members.
-    var mapImplType = world.gen.useMapFactory();
+    // Special case the empty non-const map.
+    if (node.items.length == 0 && !node.isConst) {
+      return world.mapType.getConstructor('').invoke(this, node,
+        new Value.type(world.mapType, node.span), Arguments.EMPTY);
+    }
 
     var argValues = [];
     var argsCode = [];
@@ -2182,20 +2186,21 @@ class MethodGenerator implements TreeVisitor {
         argsCode.add(value.code);
       }
     }
+
     var argList = '[${Strings.join(argsCode, ", ")}]';
-    final code = '\$map($argList)';
+    var items = new Value(world.listType, argList, node.span);
+    var tp = world.corelib.topType;
+    Member f = node.isConst ? tp.getMember('_constMap') : tp.getMember('_map');
+    var value = f.invoke(this, node, new Value.type(tp, null),
+      new Arguments(null, [items]));
+
     if (node.isConst) {
-      final immutableMap = world.coreimpl.types['ImmutableMap'];
-      final immutableMapCtor = immutableMap.getConstructor('');
-      final argsValue = new Value(world.listType, argList, node.span);
-      final result = immutableMapCtor.invoke(this, node,
-          new Value.type(immutableMap, node.span),
-          new Arguments(null, [argsValue]));
-      final value = new ConstMapValue(
-          immutableMap, argValues, code, result.code, node.span);
+      value = new ConstMapValue(value.type, argValues, value.code,
+        value.code, value.span);
       return world.gen.globalForConst(value, argValues);
+    } else {
+      return value;
     }
-    return new Value(mapImplType, code, node.span);
   }
 
   visitConditionalExpression(ConditionalExpression node) {

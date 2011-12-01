@@ -69,7 +69,7 @@ void _print(Object obj) native '''if (typeof console == 'object') {
 
 // Exceptions thrown by the generated JS code.
 
-class AssertError {
+class AssertionError {
   final String failedAssertion;
 
   // TODO(jmesserly): I don't think these should be here. They are properties of
@@ -78,7 +78,7 @@ class AssertError {
   final int line;
   final int column;
 
-  AssertError._internal(this.failedAssertion, this.url, this.line, this.column);
+  AssertionError._internal(this.failedAssertion, this.url, this.line, this.column);
 
   String toString() {
     return "Failed assertion: '$failedAssertion' is not true " +
@@ -89,7 +89,7 @@ class AssertError {
 // TODO(jmesserly): fix the strange interaction with JS TypeError, such as
 // toString(). Ideally this would generate to a different JS name but I'm not
 // sure how to force that.
-class TypeError extends AssertError native 'TypeError' {
+class TypeError extends AssertionError native 'TypeError' {
   final String srcType;
   final String dstType;
 
@@ -125,4 +125,21 @@ class Object native "Object" {
   noSuchMethod(String name, List args) {
     throw new NoSuchMethodException(this, name, args);
   }
+}
+
+LinkedHashMapImplementation _map(List itemsAndKeys) {
+  LinkedHashMapImplementation ret = new LinkedHashMapImplementation();
+  for (int i=0; i < itemsAndKeys.length;) {
+    ret[itemsAndKeys[i++]] = itemsAndKeys[i++];
+  }
+  return ret;
+}
+
+ImmutableMap _constMap(List itemsAndKeys) {
+  return new ImmutableMap(itemsAndKeys);
+}
+
+void _assert(var test, String text, String url, int line, int column) {
+  if (test is Function) test = test();
+  if (!test) throw new AssertionError._internal(text, url, line, column);
 }
