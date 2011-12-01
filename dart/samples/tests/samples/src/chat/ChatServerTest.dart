@@ -66,11 +66,9 @@ class ChatTestClient extends Isolate {
       messageRequest["request"] = "leave";
       messageRequest["sessionId"] = sessionId;
       httpClient.openHandler = (HTTPClientRequest request) {
-        print('leave');
         request.writeString(JSON.stringify(messageRequest));
         request.writeDone();
         request.responseReceived = (HTTPClientResponse r) {
-          print('leave response');
           response = r;
           response.dataEnd = leaveResponseHandler;
         };
@@ -125,11 +123,9 @@ class ChatTestClient extends Isolate {
       messageRequest["sessionId"] = sessionId;
       messageRequest["nextMessage"] = receiveMessageNumber;
       httpClient.openHandler = (HTTPClientRequest request) {
-        print('receive');
         request.writeString(JSON.stringify(messageRequest));
         request.writeDone();
         request.responseReceived = (HTTPClientResponse r) {
-          print('receive response');
           response = r;
           response.dataEnd = receiveResponseHandler;
         };
@@ -158,11 +154,9 @@ class ChatTestClient extends Isolate {
       messageRequest["sessionId"] = sessionId;
       messageRequest["message"] = "message " + sendMessageNumber;
       httpClient.openHandler = (HTTPClientRequest request) {
-        print('message');
         request.writeString(JSON.stringify(messageRequest));
         request.writeDone();
         request.responseReceived = (HTTPClientResponse r) {
-          print('message response');
           response = r;
           response.dataEnd = sendResponseHandler;
         };
@@ -192,16 +186,13 @@ class ChatTestClient extends Isolate {
       joinRequest["request"] = "join";
       joinRequest["handle"] = "test1";
       httpClient.openHandler = (HTTPClientRequest request) {
-        print("join");
         request.writeString(JSON.stringify(joinRequest));
         request.writeDone();
         request.responseReceived = (HTTPClientResponse r) {
-          print("join response");
           response = r;
           response.dataEnd = joinResponseHandler;
         };
       };
-      print('opening for join');
       httpClient.open("POST", "127.0.0.1", port, "/join");
     }
 
