@@ -84,6 +84,10 @@ public class DartLibraryImplTest extends TestCase {
   private DartLibraryImpl dartLib2;
   private DartLibraryImpl dartLib3;
   private DartLibraryImpl dartLib3Alt;
+  private DartLibraryImpl dartLib4;
+  private DartLibraryImpl dartLib5;
+  private DartLibraryImpl dartLib5a;
+  private DartLibraryImpl dartLib6;
   private DartLibraryImpl dartLibExternal;
 
   private final Map<DartLibraryImpl, Collection<DartElement>> libraryChildrenWithCachedInfos = new HashMap<DartLibraryImpl, Collection<DartElement>>();
@@ -178,8 +182,8 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_equals_libExternal() throws Exception {
     DartLibraryImpl lib = getDartLibExternal();
-    File libDir = new File(getTempDir(), "lib5");
-    assertEquals(lib, new DartLibraryImpl(new File(libDir, "lib5.dart")));
+    File libDir = new File(getTempDir(), "libExternal");
+    assertEquals(lib, new DartLibraryImpl(new File(libDir, "libExternal.dart")));
   }
 
   public void test_DartLibraryImpl_findType() {
@@ -263,7 +267,7 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getChildren_libExternal() throws Exception {
     DartElement[] children = getDartLibExternal().getChildren();
-    assertContainsCompUnit(children, "lib5.dart", false, false);
+    assertContainsCompUnit(children, "libExternal.dart", false, false);
     assertContainsCompUnit(children, "ALib5MissingClass.dart", false, false);
     assertEquals(2, children.length);
   }
@@ -349,7 +353,7 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   public void test_DartLibraryImpl_getElementName_libExternal() throws Exception {
-    assertEquals("file:" + getTempDir().getAbsolutePath() + "/lib5/lib5.dart",
+    assertEquals("file:" + getTempDir().getAbsolutePath() + "/libExternal/libExternal.dart",
         getDartLibExternal().getElementName());
   }
 
@@ -466,6 +470,81 @@ public class DartLibraryImplTest extends TestCase {
     DartLibrary[] importedLibraries = getDartLibHtml().getImportedLibraries();
     assertEquals(2, importedLibraries.length);
     assertEquals("dart:dom", importedLibraries[0].getElementName());
+  }
+
+  public void test_DartLibraryImpl_hasMain_lib1() throws Exception {
+    DartLibraryImpl lib = getDartLib1();
+    assertEquals(true, lib.hasMain());
+  }
+
+  public void test_DartLibraryImpl_hasMain_lib2() throws Exception {
+    DartLibraryImpl lib = getDartLib2();
+    assertEquals(false, lib.hasMain());
+  }
+
+  public void test_DartLibraryImpl_hasMain_lib3() throws Exception {
+    DartLibraryImpl lib = getDartLib3();
+    assertEquals(false, lib.hasMain());
+  }
+
+  public void test_DartLibraryImpl_hasMain_libEmpty() throws Exception {
+    DartLibraryImpl lib = getDartLibEmpty();
+    assertEquals(false, lib.hasMain());
+  }
+
+  public void test_DartLibraryImpl_importsBrowserLibrary_lib1() throws Exception {
+    DartLibraryImpl lib = getDartLib1();
+    assertEquals(true, lib.isOrImportsBrowserLibrary());
+  }
+
+  public void test_DartLibraryImpl_importsBrowserLibrary_lib2() throws Exception {
+    DartLibraryImpl lib = getDartLib2();
+    assertEquals(true, lib.isOrImportsBrowserLibrary());
+  }
+
+  public void test_DartLibraryImpl_importsBrowserLibrary_lib3() throws Exception {
+    DartLibraryImpl lib = getDartLib3();
+    assertEquals(false, lib.isOrImportsBrowserLibrary());
+  }
+
+  public void test_DartLibraryImpl_importsBrowserLibrary_libEmpty() throws Exception {
+    DartLibraryImpl lib = getDartLibEmpty();
+    assertEquals(false, lib.isOrImportsBrowserLibrary());
+  }
+
+  public void test_DartLibraryImpl_isBrowserApplication_lib1() throws Exception {
+    DartLibraryImpl lib = getDartLib1();
+    assertEquals(true, lib.isBrowserApplication());
+  }
+
+  public void test_DartLibraryImpl_isBrowserApplication_lib2() throws Exception {
+    DartLibraryImpl lib = getDartLib2();
+    assertEquals(false, lib.isBrowserApplication());
+  }
+
+  public void test_DartLibraryImpl_isBrowserApplication_lib3() throws Exception {
+    DartLibraryImpl lib = getDartLib3();
+    assertEquals(false, lib.isBrowserApplication());
+  }
+
+  public void test_DartLibraryImpl_isBrowserApplication_lib4() throws Exception {
+    DartLibraryImpl lib = getDartLib4();
+    assertEquals(false, lib.isBrowserApplication());
+  }
+
+  public void test_DartLibraryImpl_isBrowserApplication_lib5() throws Exception {
+    DartLibraryImpl lib = getDartLib5();
+    assertEquals(true, lib.isBrowserApplication());
+  }
+
+  public void test_DartLibraryImpl_isBrowserApplication_lib6() throws Exception {
+    DartLibraryImpl lib = getDartLib6();
+    assertEquals(false, lib.isBrowserApplication());
+  }
+
+  public void test_DartLibraryImpl_isBrowserApplication_libEmpty() throws Exception {
+    DartLibraryImpl lib = getDartLibEmpty();
+    assertEquals(false, lib.isBrowserApplication());
   }
 
   public void test_DartLibraryImpl_isTopLevel() throws Exception {
@@ -587,7 +666,7 @@ public class DartLibraryImplTest extends TestCase {
     DartLibrary[] importedLibraries = getDartLib2().getImportedLibraries();
     assertContainsLibImpl(importedLibraries, "/lib1/lib1.dart");
     assertContainsLibImpl(importedLibraries, "/lib3/lib3.dart");
-    assertContainsLibImpl(importedLibraries, "/lib5/lib5.dart");
+    assertContainsLibImpl(importedLibraries, "/libExternal/libExternal.dart");
     assertContainsLibImpl(importedLibraries, "/empty/empty.dart");
     assertEquals(4, importedLibraries.length);
   }
@@ -690,7 +769,8 @@ public class DartLibraryImplTest extends TestCase {
 
   private DartLibraryImpl getDartLib1() throws Exception {
     if (dartLib1 == null) {
-      dartLib1 = getOrCreateDartLib("lib1", new DartLibrary[] {getDartLibDom()}, "SomeClass", true);
+      dartLib1 = getOrCreateDartLib("lib1", new DartLibrary[] {getDartLibDom()}, "SomeClass",
+          "class SomeClass { } main() { }");
     }
     return dartLib1;
   }
@@ -698,7 +778,7 @@ public class DartLibraryImplTest extends TestCase {
   private DartLibraryImpl getDartLib2() throws Exception {
     if (dartLib2 == null) {
       dartLib2 = getOrCreateDartLib("lib2", new DartLibrary[] {
-          getDartLibEmpty(), getDartLib1(), getDartLib3(), getDartLibExternal()}, null, false);
+          getDartLibEmpty(), getDartLib1(), getDartLib3(), getDartLibExternal()}, null, null);
     }
     return dartLib2;
   }
@@ -706,7 +786,7 @@ public class DartLibraryImplTest extends TestCase {
   private DartLibraryImpl getDartLib3() throws Exception {
     if (dartLib3 == null) {
       dartLib3 = getOrCreateDartLib("lib3", new DartLibrary[] {getDartLibEmpty()},
-          "AnotherMissingClass", false);
+          "AnotherMissingClass", null);
     }
     return dartLib3;
   }
@@ -718,6 +798,38 @@ public class DartLibraryImplTest extends TestCase {
       dartLib3Alt = new DartLibraryImpl(libFile);
     }
     return dartLib3Alt;
+  }
+
+  private DartLibraryImpl getDartLib4() throws Exception {
+    if (dartLib4 == null) {
+      dartLib4 = getOrCreateDartLib("lib4", new DartLibrary[] {getDartLibDom()}, "SomeClass",
+          "class SomeClass { }");
+    }
+    return dartLib4;
+  }
+
+  private DartLibraryImpl getDartLib5() throws Exception {
+    if (dartLib5 == null) {
+      dartLib5 = getOrCreateDartLib("lib5", new DartLibrary[] {getDartLib5a()}, "SomeClass",
+          "class SomeClass { } main() { }");
+    }
+    return dartLib5;
+  }
+
+  private DartLibraryImpl getDartLib5a() throws Exception {
+    if (dartLib5a == null) {
+      dartLib5a = getOrCreateDartLib("lib5a", new DartLibrary[] {getDartLibHtml()}, "SomeClass2",
+          "class SomeClass2 { }");
+    }
+    return dartLib5a;
+  }
+
+  private DartLibraryImpl getDartLib6() throws Exception {
+    if (dartLib6 == null) {
+      dartLib6 = getOrCreateDartLib("lib6", new DartLibrary[] {getDartLib3()}, "SomeClass",
+          "class SomeClass { } main() { }");
+    }
+    return dartLib6;
   }
 
   private DartLibraryImpl getDartLibCore() throws Exception {
@@ -734,15 +846,15 @@ public class DartLibraryImplTest extends TestCase {
 
   private DartLibraryImpl getDartLibEmpty() throws Exception {
     if (dartLibEmpty == null) {
-      dartLibEmpty = getOrCreateDartLib("empty", null, null, false);
+      dartLibEmpty = getOrCreateDartLib("empty", null, null, null);
     }
     return dartLibEmpty;
   }
 
   private DartLibraryImpl getDartLibExternal() throws Exception {
     if (dartLibExternal == null) {
-      File libFile = getOrCreateLibFile("lib5", new DartLibrary[] {getDartLibEmpty()},
-          "ALib5MissingClass", false);
+      File libFile = getOrCreateLibFile("libExternal", new DartLibrary[] {getDartLibEmpty()},
+          "ALib5MissingClass", null);
       dartLibExternal = new DartLibraryImpl(libFile);
     }
     return dartLibExternal;
@@ -761,8 +873,8 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   private DartLibraryImpl getOrCreateDartLib(String libName, DartLibrary[] importLibs,
-      String className, boolean createClass) throws Exception {
-    File libFile = getOrCreateLibFile(libName, importLibs, className, createClass);
+      String className, String fileContent) throws IOException, DartModelException {
+    File libFile = getOrCreateLibFile(libName, importLibs, className, fileContent);
     IFile libRes = ResourceUtil.getResource(libFile);
     if (libRes != null) {
       DartElement elem = DartCore.create(libRes);
@@ -777,7 +889,7 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   private File getOrCreateLibFile(String libName, DartLibrary[] importLibs, String className,
-      boolean createClass) throws IOException {
+      String fileContent) throws IOException {
     File libDir = new File(getTempDir(), libName);
     File libFile = new File(libDir, libName + ".dart");
     if (!libFile.exists()) {
@@ -799,10 +911,9 @@ public class DartLibraryImplTest extends TestCase {
           sourceFiles, null);
       makeTempDir(libDir);
       createTempFile(libFile, content);
-      if (createClass) {
+      if (fileContent != null) {
         File classFile = new File(libDir, className + ".dart");
-        String classContent = "class " + className + " { }";
-        createTempFile(classFile, classContent);
+        createTempFile(classFile, fileContent);
       }
     }
     return libFile;

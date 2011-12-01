@@ -31,11 +31,6 @@ import java.util.List;
  */
 public class DartFunctionImpl extends SourceReferenceImpl implements DartFunction {
 
-  /**
-   * The name of entry point function.
-   */
-  private static final String MAIN_FUNCTION_NAME = "main";
-
   private String name;
 
   protected DartFunctionImpl(DartElementImpl parent, String name) {
@@ -106,7 +101,7 @@ public class DartFunctionImpl extends SourceReferenceImpl implements DartFunctio
 
   @Override
   public boolean isMain() {
-    return MAIN_FUNCTION_NAME.equals(getElementName());
+    return MAIN.equals(getElementName());
   }
 
   @Override

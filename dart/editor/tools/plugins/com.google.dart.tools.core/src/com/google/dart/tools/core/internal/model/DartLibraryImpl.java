@@ -38,11 +38,13 @@ import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.ElementChangedEvent;
+import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceUtilities;
@@ -452,6 +454,57 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   /**
+   * Answer <code>true</code> if this library has a <code>main()</code> method
+   */
+  public boolean hasMain() {
+    DartElement[] children;
+    try {
+      children = getChildren();
+    } catch (DartModelException e) {
+      DartCore.logError("Could not determine whether " + getDisplayName()
+          + " contains a main() method", e);
+      return false;
+    }
+    for (DartElement child : children) {
+      if (child instanceof CompilationUnitImpl) {
+        CompilationUnitImpl unit = (CompilationUnitImpl) child;
+        List<DartFunction> functions;
+        try {
+          functions = unit.getChildrenOfType(DartFunction.class);
+        } catch (DartModelException e) {
+          DartCore.logError("Could not determine whether " + unit.getElementName() + " in "
+              + getDisplayName() + " contains a main() method", e);
+          continue;
+        }
+        for (DartFunction funct : functions) {
+          if (funct.isMain()) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Answer <code>true</code> if this library is an application that can be run in the browser.
+   */
+  public boolean isBrowserApplication() {
+    if (!hasMain()) {
+      return false;
+    }
+    try {
+      if (getChildrenOfType(HTMLFile.class).size() > 0) {
+        return true;
+      }
+    } catch (DartModelException e) {
+      DartCore.logError("Could not determine if " + getDisplayName() + " contains an HTML file", e);
+      // Fall through to check imports
+    }
+    return isOrImportsBrowserLibrary();
+  }
+
+  /**
    * Determine if the receiver is contained in an open project or maps to a library contained within
    * an open project.
    */
@@ -466,6 +519,36 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     // Check for external reference to file in open project
     IFile res = ResourceUtil.getResource(sourceFile);
     return res != null && res.getProject().isOpen();
+  }
+
+  /**
+   * Answer <code>true</code> if the receiver directly or indirectly imports the dart:dom or
+   * dart:html libraries
+   */
+  public boolean isOrImportsBrowserLibrary() {
+    List<DartLibrary> visited = new ArrayList<DartLibrary>(10);
+    visited.add(this);
+    for (int index = 0; index < visited.size(); index++) {
+      DartLibrary lib = visited.get(index);
+      String libName = lib.getElementName();
+      if ("dart:html".equals(libName) || "dart:dom".equals(libName)) {
+        return true;
+      }
+      DartLibrary[] importedLibraries;
+      try {
+        importedLibraries = lib.getImportedLibraries();
+      } catch (DartModelException e) {
+        DartCore.logError("Could not determine if " + lib.getDisplayName()
+            + " imports a browser based library", e);
+        continue;
+      }
+      for (DartLibrary importedLib : importedLibraries) {
+        if (!visited.contains(importedLib)) {
+          visited.add(importedLib);
+        }
+      }
+    }
+    return false;
   }
 
   @Override

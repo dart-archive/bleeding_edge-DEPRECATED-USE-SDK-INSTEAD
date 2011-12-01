@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
+import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
@@ -286,7 +287,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
    * @param monitor the progress monitor (not <code>null</code>)
    */
   protected void buildLibrary(DartLibrary lib, final IProgressMonitor monitor) {
-    DartLibraryImpl libImpl = (DartLibraryImpl) lib;
+    final DartLibraryImpl libImpl = (DartLibraryImpl) lib;
     try {
       // # compilation units * # phases (3) 
       //     + fudge factor for bundled library such as core and dom (# classes * 3 phases)
@@ -306,6 +307,17 @@ public class DartBuilder extends IncrementalProjectBuilder {
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
       final CompilerConfiguration config = new DefaultCompilerConfiguration(new CompilerOptions(),
           libraryManager) {
+
+        @Override
+        public List<Backend> getBackends() {
+          // Generate JS if this is a browser application
+          if (libImpl.isBrowserApplication()) {
+            return super.getBackends();
+          } else {
+            return new ArrayList<Backend>();
+          }
+        }
+
         @Override
         public CompilerMetrics getCompilerMetrics() {
           return metrics;
