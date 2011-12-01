@@ -3890,8 +3890,7 @@ NodeListener.prototype.handleNewExpression = function(token) {
   var $0;
   var arguments = (($0 = this.popNode()) == null ? null : $0.assert$NodeList());
   var type = (($0 = this.popNode()) == null ? null : $0.assert$TypeAnnotation());
-  this.pushNode(null);
-  this.canceler.cancel('new expression not implemented');
+  this.pushNode(new NewExpression(token, new Send(null, type, arguments)));
 }
 NodeListener.prototype.makeNodeList = function(count, beginToken, endToken, delimiter) {
   var $0;
@@ -6284,7 +6283,7 @@ function parse(canceler, logger, doParse) {
   var listener = new NodeListener(canceler, logger);
   doParse(new Parser(listener));
   var node = listener.popNode();
-  $assert(listener.nodes.isEmpty(), "listener.nodes.isEmpty()", "listener.dart", 796, 10);
+  $assert(listener.nodes.isEmpty(), "listener.nodes.isEmpty()", "listener.dart", 795, 10);
   return node;
 }
 //  ********** Library tree **************
@@ -6491,6 +6490,28 @@ SendSet.prototype.copyWithReceiver = function(receiver) {
 SendSet.prototype.accept$1 = function($0) {
   return this.accept(($0 == null ? null : $0.assert$Visitor()));
 };
+// ********** Code for NewExpression **************
+function NewExpression(newToken, send) {
+  this.newToken = newToken;
+  this.send = send;
+  // Initializers done
+  Expression.call(this);
+}
+$inherits(NewExpression, Expression);
+NewExpression.prototype.accept = function(visitor) {
+  return visitor.visitNewExpression(this);
+}
+NewExpression.prototype.getBeginToken = function() {
+  return this.newToken;
+}
+NewExpression.prototype.getEndToken = function() {
+  return this.send.getEndToken();
+}
+NewExpression.prototype.accept$1 = function($0) {
+  return this.accept(($0 == null ? null : $0.assert$Visitor()));
+};
+NewExpression.prototype.getBeginToken$0 = NewExpression.prototype.getBeginToken;
+NewExpression.prototype.getEndToken$0 = NewExpression.prototype.getEndToken;
 // ********** Code for NodeList **************
 function NodeList(beginToken, nodes, endToken, delimiter) {
   this.beginToken = beginToken;
@@ -7338,6 +7359,9 @@ AbstractVisitor_Type.prototype.visitLiteralString = function(node) {
 }
 AbstractVisitor_Type.prototype.visitLoop = function(node) {
   return this.visitStatement(node);
+}
+AbstractVisitor_Type.prototype.visitNewExpression = function(node) {
+  return this.visitExpression(node);
 }
 AbstractVisitor_Type.prototype.visitNodeList = function(node) {
   var $0;
@@ -12330,6 +12354,9 @@ FullResolverVisitor.prototype.visitWhile = function(node) {
 FullResolverVisitor.prototype.visitParenthesizedExpression = function(node) {
   this.visit(node.expression);
 }
+FullResolverVisitor.prototype.visitNewExpression = function(node) {
+  this.cancel(node, "Unimplemented");
+}
 // ********** Code for ClassResolverVisitor **************
 function ClassResolverVisitor(compiler) {
   this.compiler = compiler;
@@ -12392,7 +12419,7 @@ VariableDefinitionsVisitor.prototype.get$kind = function() { return this.kind; }
 VariableDefinitionsVisitor.prototype.set$kind = function(value) { return this.kind = value; };
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 424, 12);
+  $assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "resolver.dart", 428, 12);
   if (node.receiver != null) {
     this.resolver.cancel(node, "receiver on a variable definition not implemented");
   }

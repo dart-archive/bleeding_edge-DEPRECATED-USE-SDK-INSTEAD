@@ -16,6 +16,7 @@ interface Visitor<R> {
   R visitLiteralInt(LiteralInt node);
   R visitLiteralNull(LiteralNull node);
   R visitLiteralString(LiteralString node);
+  R visitNewExpression(NewExpression node);
   R visitNodeList(NodeList node);
   R visitOperator(Operator node);
   R visitParenthesizedExpression(ParenthesizedExpression node);
@@ -213,6 +214,8 @@ class NewExpression extends Expression {
   final Send send;
 
   NewExpression([this.newToken, this.send]);
+
+  accept(Visitor visitor) => visitor.visitNewExpression(this);
 
   Token getBeginToken() => newToken;
 

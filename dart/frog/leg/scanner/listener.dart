@@ -752,8 +752,7 @@ class NodeListener extends ElementListener {
   void handleNewExpression(Token token) {
     NodeList arguments = popNode();
     TypeAnnotation type = popNode();
-    pushNode(null); // TODO(ahe): Create AST node.
-    canceler.cancel('new expression not implemented');
+    pushNode(new NewExpression(token, new Send(null, type, arguments)));
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,

@@ -364,6 +364,10 @@ class FullResolverVisitor extends ResolverVisitor {
   visitParenthesizedExpression(ParenthesizedExpression node) {
     visit(node.expression);
   }
+
+  visitNewExpression(NewExpression node) {
+    cancel(node, "Unimplemented");
+  }
 }
 
 class ClassResolverVisitor extends AbstractVisitor<Type> {
