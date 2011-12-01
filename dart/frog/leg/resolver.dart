@@ -220,32 +220,45 @@ class FullResolverVisitor extends ResolverVisitor {
     visit(node.elsePart);
   }
 
-  SourceString potentiallyMapOperatorToMethodName(final SourceString name,
-                                                  final bool isPrefix) {
+  static bool isLogicalOperator(Identifier op) {
+    String str = op.source.stringValue;
+    return (str === '&&' || str == '||' || str == '!');
+  }
+
+  SourceString mapOperatorToMethodName(final SourceString name,
+                                       final bool isPrefix) {
     if (isPrefix) {
       if (name.stringValue === '-') return const SourceString('neg');
       if (name.stringValue === '~') return const SourceString('not');
-      // Logical operators must be handled specially.
-      if (name.stringValue === '!') return name;
       unreachable();
     }
+    // Additive operators.
     if (name.stringValue === '+') return const SourceString('add');
     if (name.stringValue === '-') return const SourceString('sub');
+
+    // Multiplicative operators.
     if (name.stringValue === '*') return const SourceString('mul');
     if (name.stringValue === '/') return const SourceString('div');
     if (name.stringValue === '~/') return const SourceString('tdiv');
     if (name.stringValue === '%') return const SourceString('mod');
+
+    // Shift operators.
     if (name.stringValue === '<<') return const SourceString('shl');
     if (name.stringValue === '>>') return const SourceString('shr');
+
+    // Bitwise operators.
     if (name.stringValue === '|') return const SourceString('or');
     if (name.stringValue === '&') return const SourceString('and');
     if (name.stringValue === '^') return const SourceString('xor');
-    if (name.stringValue === '==') return const SourceString('eq');
+
+    // Relational operators.
     if (name.stringValue === '<') return const SourceString('lt');
     if (name.stringValue === '<=') return const SourceString('le');
     if (name.stringValue === '>') return const SourceString('gt');
     if (name.stringValue === '>=') return const SourceString('ge');
-    return name;
+
+    if (name.stringValue === '==') return const SourceString('eq');
+    unreachable();
   }
 
   SourceString mapAssignmentOperatorToMethodName(SourceString name) {
@@ -262,49 +275,52 @@ class FullResolverVisitor extends ResolverVisitor {
     if (name.stringValue === '^=') return const SourceString('xor');
     if (name.stringValue === '++') return const SourceString('add');
     if (name.stringValue === '--') return const SourceString('sub');
-    compiler.unimplemented("mapAssignmentOperatorToMethodName: $name");
+    unreachable();
   }
 
   visitSend(Send node) {
     Element receiver = visit(node.receiver);
-    final Identifier identifier = node.selector;
+    visit(node.argumentsNode);
+
+    Identifier selector = node.selector;
+    SourceString name = selector.source;
+    // No need to assign an element for a logical operation.
+    if (isLogicalOperator(selector)) return null;
+
     Element target = null;
-    if (receiver === null || identifier is Operator) {
-      final SourceString name =
-          potentiallyMapOperatorToMethodName(identifier.source, node.isPrefix);
+    if (node.isOperator) {
+      SourceString opName = mapOperatorToMethodName(name, node.isPrefix);
+      target = compiler.universe.find(opName);
+    } else if (receiver == null) {
       target = context.lookup(name);
-      // TODO(ngeoffray): implement resolution for logical operators.
-    if (target == null && !((name.stringValue === '&&' ||
-                             name.stringValue === '||' ||
-                             name.stringValue === '!'))) {
+      if (target == null) {
+        // TODO(ngeoffray): Check if the enclosingElement has 'this'.
         error(node, MessageKind.CANNOT_RESOLVE, [name]);
       }
-      useElement(node, target);
-    } else {
-      // TODO(ngeoffray): Use the receiver to do the lookup.
+    } else if (receiver.kind === ElementKind.CLASS) {
+      // TODO(ngeoffray): Find the element in the class.
     }
-    visit(node.argumentsNode);
-    return target;
+
+    return useElement(node, target);
   }
 
   visitSendSet(SendSet node) {
     Element receiver = visit(node.receiver);
-    final Identifier selector = node.selector;
-    if (receiver != null) {
-      compiler.unimplemented('Resolver: property access');
-    }
-    // TODO(ngeoffray): Use the receiver to do the lookup.
+    visit(node.argumentsNode);
+
+    Identifier selector = node.selector;
     Element target = context.lookup(selector.source);
+    // TODO(ngeoffray): Check if the enclosingElement has 'this'.
     if (target == null) {
       error(node, MessageKind.CANNOT_RESOLVE, [node]);
     }
-    final Identifier op = node.assignmentOperator;
+
+    Identifier op = node.assignmentOperator;
     if (op.source.stringValue !== '=') {
       // Operation-assignment. For example +=.
       // We need to resolve the '+' and also the getter for the left-hand-side.
-      final SourceString name = mapAssignmentOperatorToMethodName(op.source);
-      // TODO(ngeoffray): Use the receiver to do the lookup.
-      Element operatorElement = context.lookup(name);
+      SourceString name = mapAssignmentOperatorToMethodName(op.source);
+      Element operatorElement = compiler.universe.find(name);
       useElement(op, operatorElement);
       // Resolve the getter for the lhs (receiver+selector).
       // Currently this is the same as the setter.
@@ -312,7 +328,6 @@ class FullResolverVisitor extends ResolverVisitor {
       Element getter = context.lookup(selector.source);
       useElement(selector, getter);
     }
-    visit(node.argumentsNode);
     return useElement(node, target);
   }
 
