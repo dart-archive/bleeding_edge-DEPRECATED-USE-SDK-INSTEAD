@@ -500,7 +500,7 @@ class SsaBuilder implements Visitor {
       case ">":   push(new HGreater(target, left, right)); break;
       case ">=":  push(new HGreaterEqual(target, left, right)); break;
       default: compiler.unimplemented("SsaBuilder.visitBinary");
-    }    
+    }
   }
 
   visitSend(Send node) {
@@ -521,7 +521,7 @@ class SsaBuilder implements Visitor {
         visit(node.receiver);
         visit(node.argumentsNode);
         var right = pop();
-        var left = pop();        
+        var left = pop();
         visitBinary(left, op, right, element);
       }
     } else if (node.isPropertyAccess) {
@@ -559,6 +559,10 @@ class SsaBuilder implements Visitor {
         push(new HInvokeStatic(inputs));
       }
     }
+  }
+
+  visitNewExpression(NewExpression node) {
+    compiler.unimplemented("SsaBuilder: new expression");
   }
 
   HInstruction updateDefinition(Node node, HInstruction value) {

@@ -31,6 +31,8 @@ class MessageKind {
       'duplicate definition of #{1}');
   static final NOT_A_TYPE = const MessageKind(
       '#{1} is not a type');
+  static final CANNOT_FIND_CONSTRUCTOR = const MessageKind(
+      'cannot find constructor #{1}');
 
   toString() => template;
 }

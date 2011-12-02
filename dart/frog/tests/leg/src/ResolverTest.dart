@@ -6,56 +6,8 @@
 #import("../../../leg/elements/elements.dart");
 #import("../../../leg/tree/tree.dart");
 #import("../../../leg/util/util.dart");
+#import("mock_compiler.dart");
 #import("parser_helper.dart");
-
-class WarningMessage {
-  Node node;
-  Message message;
-  WarningMessage(this.node, this.message);
-}
-
-class MockCompiler extends Compiler {
-  List warnings;
-  List errors;
-  Node parsedTree;
-
-  MockCompiler() : super(null), warnings = [], errors = [] {
-    parseScript('lt() {} add() {}');
-  }
-
-  void reportWarning(Node node, var message) {
-    warnings.add(new WarningMessage(node, message.message));
-  }
-
-  void reportError(Node node, var message) {
-    errors.add(new WarningMessage(node, message.message));
-  }
-
-  void clearWarnings() {
-    warnings = [];
-  }
-
-  void clearErrors() {
-    errors = [];
-  }
-
-  resolveStatement(String text) {
-    parsedTree = parseStatement(text);
-    return resolver.resolveStatement(parsedTree);
-  }
-
-  parseScript(String text) {
-    for (Link<Element> link = parseUnit(text, this);
-         !link.isEmpty();
-         link = link.tail) {
-      universe.define(link.head);
-    }
-  }
-
-  resolve(ClassElement element) {
-    return resolver.resolveType(element.parseNode(this, this));
-  }
-}
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
@@ -81,7 +33,7 @@ createLocals(List variables) {
 
 testLocals(List variables) {
   MockCompiler compiler = new MockCompiler();
-  ResolverVisitor visitor = new FullResolverVisitor(compiler);
+  ResolverVisitor visitor = compiler.resolverVisitor();
   Element element = visitor.visit(createLocals(variables));
   // A VariableDefinitions does not have an element.
   Expect.equals(null, element);
@@ -110,6 +62,7 @@ main() {
   // testOneInterface(); // The parser does not handle interfaces.
   // testTwoInterfaces(); // The parser does not handle interfaces.
   testFunctionExpression();
+  testNewExpression();
 }
 
 testLocalsOne() {
@@ -134,7 +87,8 @@ testLocalsOne() {
 
 
 testLocalsTwo() {
-  ResolverVisitor visitor = new FullResolverVisitor(new Compiler(null));
+  MockCompiler compiler = new MockCompiler();
+  ResolverVisitor visitor = compiler.resolverVisitor();
   Node tree = parseStatement("if (true) { var a = 1; var b = 2; }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
@@ -146,7 +100,8 @@ testLocalsTwo() {
 }
 
 testLocalsThree() {
-  ResolverVisitor visitor = new FullResolverVisitor(new Compiler(null));
+  MockCompiler compiler = new MockCompiler();
+  ResolverVisitor visitor = compiler.resolverVisitor();
   Node tree = parseStatement("{ var a = 1; if (true) { a; } }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
@@ -157,7 +112,8 @@ testLocalsThree() {
 }
 
 testLocalsFour() {
-  ResolverVisitor visitor = new FullResolverVisitor(new Compiler(null));
+  MockCompiler compiler = new MockCompiler();
+  ResolverVisitor visitor = compiler.resolverVisitor();
   Node tree = parseStatement("{ var a = 1; if (true) { var a = 1; } }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
@@ -168,7 +124,8 @@ testLocalsFour() {
 }
 
 testLocalsFive() {
-  ResolverVisitor visitor = new FullResolverVisitor(new Compiler(null));
+  MockCompiler compiler = new MockCompiler();
+  ResolverVisitor visitor = compiler.resolverVisitor();
   If tree = parseStatement("if (true) { var a = 1; a; } else { var a = 2; a;}");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
@@ -192,8 +149,8 @@ testLocalsFive() {
 }
 
 testParametersOne() {
-  Compiler compiler = new Compiler(null);
-  ResolverVisitor visitor = new FullResolverVisitor(compiler);
+  MockCompiler compiler = new MockCompiler();
+  ResolverVisitor visitor = compiler.resolverVisitor();
   FunctionExpression tree =
       parseFunction("void foo(int a) { return a; }", compiler);
   Element element = visitor.visit(tree);
@@ -213,7 +170,7 @@ testParametersOne() {
 
 testFor() {
   MockCompiler compiler = new MockCompiler();
-  ResolverVisitor visitor = new FullResolverVisitor(compiler);
+  ResolverVisitor visitor = compiler.resolverVisitor();
   For tree = parseStatement("for (int i = 0; i < 10; i = i + 1) { i = 5; }");
   visitor.visit(tree);
 
@@ -364,7 +321,7 @@ testTwoInterfaces() {
 
 testFunctionExpression() {
   MockCompiler compiler = new MockCompiler();
-  ResolverVisitor visitor = new FullResolverVisitor(compiler);
+  ResolverVisitor visitor = compiler.resolverVisitor();
   Map mapping = compiler.resolveStatement("int f() {}").map;
   Expect.equals(1, mapping.length);
   Element element;
@@ -376,4 +333,22 @@ testFunctionExpression() {
   Expect.equals(ElementKind.FUNCTION, element.kind);
   Expect.equals(buildSourceString('f'), element.name);
   Expect.equals(element.parseNode(compiler, compiler), node);
+}
+
+testNewExpression() {
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript("class A {} foo() { print(new A()); }");
+  ClassElement aElement = compiler.universe.find(buildSourceString('A'));
+  FunctionElement fooElement = compiler.universe.find(buildSourceString('foo'));
+  Expect.isTrue(aElement !== null);
+  Expect.isTrue(fooElement !== null);
+
+  fooElement.parseNode(compiler, compiler);
+  compiler.resolver.resolve(fooElement);
+
+  TreeElements elements = compiler.resolveStatement("new A();");
+  Element element =
+      elements[compiler.parsedTree.asExpressionStatement().expression];
+  Expect.equals(ElementKind.CONSTRUCTOR, element.kind);
+  Expect.isTrue(element is SynthesizedConstructorElement);
 }

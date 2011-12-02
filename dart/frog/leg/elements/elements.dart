@@ -29,6 +29,7 @@ class ElementKind {
   static final ElementKind FUNCTION = const ElementKind('function');
   static final ElementKind CLASS = const ElementKind('class');
   static final ElementKind FOREIGN = const ElementKind('foreign');
+  static final ElementKind CONSTRUCTOR = const ElementKind('constructor');
 
   toString() => id;
 }
@@ -39,6 +40,8 @@ class Element implements Hashable {
   final Element enclosingElement;
   abstract Node parseNode(Canceler canceler, Logger logger);
   abstract Type computeType(Compiler compiler, Types types);
+  bool isClassMember() =>
+      enclosingElement !== null && enclosingElement.kind == ElementKind.CLASS;
 
   const Element(this.name, this.kind, this.enclosingElement);
 
@@ -95,10 +98,14 @@ class FunctionElement extends Element {
   FunctionExpression node;
   Type type;
 
-  // TODO(ngeoffray): set the enclosingElement.
-  FunctionElement(SourceString name) : super(name, ElementKind.FUNCTION, null);
-  FunctionElement.node(FunctionExpression node, Element enclosing)
-    : super(node.name.dynamic.source, ElementKind.FUNCTION, enclosing),
+  FunctionElement(SourceString name,
+                  ElementKind kind,
+                  Element enclosing)
+    : super(name, kind, enclosing);
+  FunctionElement.node(FunctionExpression node,
+                       ElementKind kind,
+                       Element enclosing)
+    : super(node.name.asIdentifier().source, kind, enclosing),
       this.node = node;
 
   FunctionType computeType(Compiler compiler, types) {
@@ -120,11 +127,34 @@ class FunctionElement extends Element {
   Node parseNode(Canceler canceler, Logger logger) => node;
 }
 
+class SynthesizedConstructorElement extends FunctionElement {
+  SynthesizedConstructorElement(Element enclosing)
+    : super(const SourceString(''), ElementKind.CONSTRUCTOR, enclosing) {
+    parameters = const EmptyLink<Element>();
+  }
+
+  FunctionType computeType(Compiler compiler, types) {
+    if (type != null) return type;
+    type = new FunctionType(types.voidType, const EmptyLink<Type>());
+    return type;
+  }
+
+  Node parseNode(Canceler canceler, Logger logger) {
+    if (node != null) return node;
+    node = new FunctionExpression(
+        new Identifier.synthetic(''),
+        new NodeList.empty(),
+        new Block(new NodeList.empty()));
+    return node;
+  }
+}
+
 class ClassElement extends Element {
   Type type;
   Type supertype;
   Link<Type> interfaces = const EmptyLink<Type>();
   bool isResolved = false;
+  ClassNode node;
 
   ClassElement(SourceString name) : super(name, ElementKind.CLASS, null);
 
@@ -140,4 +170,9 @@ class ClassElement extends Element {
     compiler.resolveType(this);
     isResolved = true;
   }
+
+  // TODO(ngeoffray): Implement these.
+  Element lookupLocalElement(SourceString name) => null;
+  bool canHaveDefaultConstructor() => true;
+  void addConstructor(Element element) {}
 }

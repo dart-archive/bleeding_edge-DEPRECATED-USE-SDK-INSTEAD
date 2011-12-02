@@ -340,6 +340,11 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return types.dynamicType;
   }
 
+  Type visitNewExpression(NewExpression node) {
+    // TODO(karlklose): return the type.
+    return types.dynamicType;
+  }
+
   Type visitLiteralList(LiteralList node) {
     return types.dynamicType;
   }

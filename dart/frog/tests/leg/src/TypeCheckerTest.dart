@@ -7,6 +7,7 @@
 #import("../../../leg/tree/tree.dart");
 #import('../../../leg/scanner/scannerlib.dart');
 #import("../../../leg/util/util.dart");
+#import("mock_compiler.dart");
 #import("parser_helper.dart");
 
 main() {
@@ -122,29 +123,6 @@ final String CORELIB =
 Node parseExpression(String text) =>
   parseBodyCode(text, (parser, token) => parser.parseExpression(token));
 
-class MockCompiler extends Compiler {
-  List<MessageKind> warnings;
-  Node parsedTree;
-
-  MockCompiler() : super(null), warnings = [];
-
-  void reportWarning(Node node, var warning) {
-    warnings.add(warning.message.kind);
-  }
-
-  void clearWarnings() {
-    warnings = [];
-  }
-
-  parseScript(String text) {
-    for (Link<Element> link = parseUnit(text, this);
-         !link.isEmpty();
-         link = link.tail) {
-      universe.define(link.head);
-    }
-  }
-}
-
 // TODO(karlklose): implement with closures instead of global variables.
 void setup() {
   compiler = new MockCompiler();
@@ -185,10 +163,9 @@ analyzeTopLevel(String text, [expectedWarnings]) {
        !elements.isEmpty();
        elements = elements.tail) {
     Node node = elements.head.parseNode(compiler, compiler);
-    FullResolverVisitor visitor = new FullResolverVisitor(compiler);
-    visitor.visit(node);
+    TreeElements mapping = compiler.resolver.resolve(elements.head);
     TypeCheckerVisitor checker =
-        new TypeCheckerVisitor(compiler, visitor.mapping, types);
+        new TypeCheckerVisitor(compiler, mapping, types);
     compiler.clearWarnings();
     checker.type(node);
     compareWarningKinds(text, expectedWarnings, compiler.warnings);
@@ -210,9 +187,7 @@ analyze(String text, [expectedWarnings]) {
   compiler.universe = new Universe();
   compiler.parseScript(CORELIB);
 
-  FullResolverVisitor visitor = new FullResolverVisitor(compiler);
-  visitor.visit(node);
-  TreeElements elements = visitor.mapping;
+  TreeElements elements = compiler.resolveNodeStatement(node);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
   compiler.clearWarnings();
@@ -223,9 +198,9 @@ analyze(String text, [expectedWarnings]) {
 void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
   var fail = (message) => Expect.fail('$text: $message');
   Iterator<MessageKind> expected = expectedWarnings.iterator();
-  Iterator<MessageKind> found = foundWarnings.iterator();
+  Iterator<WarningMessage> found = foundWarnings.iterator();
   while (expected.hasNext() && found.hasNext()) {
-    Expect.equals(expected.next(), found.next());
+    Expect.equals(expected.next(), found.next().message.kind);
   }
   if (expected.hasNext()) {
     do {

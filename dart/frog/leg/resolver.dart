@@ -16,9 +16,10 @@ class ResolverTask extends CompilerTask {
 
   String get name() => 'Resolver';
 
-  TreeElements resolve(FunctionExpression tree) {
+  TreeElements resolve(FunctionElement element) {
     return measure(() {
-      ResolverVisitor visitor = new SignatureResolverVisitor(compiler);
+      FunctionExpression tree = element.node;
+      ResolverVisitor visitor = new SignatureResolverVisitor(compiler, element);
       visitor.visit(tree);
 
       visitor = new FullResolverVisitor.from(visitor);
@@ -32,28 +33,19 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  // Used for testing.
-  TreeElements resolveStatement(Node node) {
-    ResolverVisitor visitor = new FullResolverVisitor(compiler);
-    visitor.visit(node);
-
-    // Resolve the type annotations encountered in the code.
-    while (!toResolve.isEmpty()) {
-      toResolve.removeFirst().resolve(compiler);
-    }
-    return visitor.mapping;
-  }
-
-  void resolveType(ClassNode tree) {
+  void resolveType(ClassElement element) {
     measure(() {
+      ClassNode tree = element.node;
       ClassResolverVisitor visitor = new ClassResolverVisitor(compiler);
       visitor.visit(tree);
     });
   }
 
-  void resolveSignature(FunctionExpression node) {
+  void resolveSignature(FunctionElement element) {
     measure(() {
-      SignatureResolverVisitor visitor = new SignatureResolverVisitor(compiler);
+      FunctionExpression node = element.node;
+      SignatureResolverVisitor visitor =
+          new SignatureResolverVisitor(compiler, element);
       visitor.visitFunctionExpression(node);
     });
   }
@@ -64,10 +56,12 @@ class ResolverVisitor implements Visitor<Element> {
   final TreeElements mapping;
   Scope context;
 
-  ResolverVisitor(Compiler compiler)
+  ResolverVisitor(Compiler compiler, Element element)
     : this.compiler = compiler,
-      mapping = new TreeElements(),
-      context = new Scope(new TopScope(compiler.universe));
+      this.mapping  = new TreeElements(),
+      this.context  = element.isClassMember()
+        ? new ClassScope(element.enclosingElement, compiler.universe)
+        : new TopScope(compiler.universe);
 
   ResolverVisitor.from(ResolverVisitor other)
     : compiler = other.compiler,
@@ -136,34 +130,36 @@ class ResolverVisitor implements Visitor<Element> {
 }
 
 class SignatureResolverVisitor extends ResolverVisitor {
+  FunctionElement element;
 
-  SignatureResolverVisitor(Compiler compiler) : super(compiler);
+  SignatureResolverVisitor(Compiler compiler, FunctionElement element)
+      : super(compiler, element), this.element = element;
 
   visitFunctionExpression(FunctionExpression node) {
-    FunctionElement enclosingElement = context.lookup(node.name.dynamic.source);
-    useElement(node, enclosingElement);
-    context = new Scope.enclosing(context, enclosingElement);
+    useElement(node, element);
+    context = new MethodScope(context, element);
 
-    if (enclosingElement.parameters == null) {
+    if (element.parameters == null) {
       ParametersVisitor visitor = new ParametersVisitor(this);
       visitor.visit(node.parameters);
-      enclosingElement.parameters = visitor.elements.toLink();
+      element.parameters = visitor.elements.toLink();
     } else {
       Link<Node> parameterNodes = node.parameters.nodes;
-      for (Link<Element> link = enclosingElement.parameters;
+      for (Link<Element> link = element.parameters;
            !link.isEmpty() && !parameterNodes.isEmpty();
            link = link.tail, parameterNodes = parameterNodes.tail) {
         defineElement(parameterNodes.head.definitions.nodes.head, link.head);
       }
     }
 
-    return enclosingElement;
+    return element;
   }
 }
 
 class FullResolverVisitor extends ResolverVisitor {
 
-  FullResolverVisitor(Compiler compiler) : super(compiler);
+  FullResolverVisitor(Compiler compiler, Element element)
+    : super(compiler, element);
   FullResolverVisitor.from(ResolverVisitor other) : super.from(other);
 
   Element visitClassNode(ClassNode node) {
@@ -178,11 +174,11 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitBlock(Block node) {
-    visitIn(node.statements, new Scope(context));
+    visitIn(node.statements, new BlockScope(context));
   }
 
   visitDoWhile(DoWhile node) {
-    visitIn(node.body, new Scope(context));
+    visitIn(node.body, new BlockScope(context));
     visit(node.condition);
   }
 
@@ -191,7 +187,7 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitFor(For node) {
-    Scope scope = new Scope(context);
+    Scope scope = new BlockScope(context);
     visitIn(node.initializer, scope);
     visitIn(node.condition, scope);
     visitIn(node.update, scope);
@@ -200,10 +196,10 @@ class FullResolverVisitor extends ResolverVisitor {
 
   visitFunctionExpression(FunctionExpression node) {
     visit(node.returnType);
-    FunctionElement enclosingElement =
-        new FunctionElement.node(node, context.enclosingElement);
+    FunctionElement enclosingElement = new FunctionElement.node(
+        node, ElementKind.FUNCTION, context.element);
     defineElement(node, enclosingElement);
-    context = new Scope.enclosing(context, enclosingElement);
+    context = new MethodScope(context, enclosingElement);
 
     ParametersVisitor visitor = new ParametersVisitor(this);
     visitor.visit(node.parameters);
@@ -373,7 +369,7 @@ class FullResolverVisitor extends ResolverVisitor {
 
   visitWhile(While node) {
     visit(node.condition);
-    visitIn(node.body, new Scope(context));
+    visitIn(node.body, new BlockScope(context));
   }
 
   visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -381,7 +377,29 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitNewExpression(NewExpression node) {
-    cancel(node, "Unimplemented");
+    visit(node.send.argumentsNode);
+
+    ClassElement cls = visit(node.send.selector);
+    SourceString name = const SourceString("");
+    Element constructor = null;
+    if (cls !== null) {
+      // TODO(ngeoffray): define what isResolved means. Also, pass the
+      // needed element to resolve?
+      if (!cls.isResolved) compiler.resolveType(cls);
+      constructor = cls.lookupLocalElement(name);
+      if (name.stringValue === ''
+          && constructor === null
+          && node.send.argumentsNode.isEmpty()
+          && cls.canHaveDefaultConstructor()) {
+        constructor = new SynthesizedConstructorElement(cls);
+        cls.addConstructor(constructor);
+      }
+      if (constructor === null) {
+        error(node, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node]);
+      }
+    }
+
+    return useElement(node, constructor);
   }
 
   visitLiteralList(LiteralList node) {
@@ -461,7 +479,7 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
       Element element = new VariableElement(link.head, definitions.type,
-          kind, name, resolver.context.enclosingElement);
+          kind, name, resolver.context.element);
       resolver.defineElement(link.head, element);
     }
   }
@@ -492,17 +510,19 @@ class ParametersVisitor extends AbstractVisitor<Element> {
 }
 
 class Scope {
+  final Element element;
   final Scope parent;
+
+  Scope(this.parent, this.element);
+  abstract Element add(Element element);
+  abstract Element lookup(Element element);
+}
+
+class MethodScope extends Scope {
   final Map<SourceString, Element> elements;
-  final Element enclosingElement;
 
-  Scope(Scope parent)
-    : this.enclosing(parent, parent.enclosingElement);
-
-  Scope.enclosing(Scope this.parent, this.enclosingElement)
-    : this.elements = {};
-
-  Scope.top() : parent = null, elements = const {}, enclosingElement = null;
+  MethodScope(Scope parent, Element element)
+    : super(parent, element), this.elements = {};
 
   Element lookup(SourceString name) {
     Element element = elements[name];
@@ -517,12 +537,35 @@ class Scope {
   }
 }
 
+class BlockScope extends MethodScope {
+  BlockScope(Scope parent) : super(parent, parent.element);
+}
+
+class ClassScope extends Scope {
+  ClassScope(ClassElement element, Universe universe)
+    : super(new TopScope(universe), element);
+
+  Element lookup(SourceString name) {
+    ClassElement cls = element;
+    Element element = cls.lookupLocalElement(name);
+    if (element != null) return element;
+    element = parent.lookup(name);
+    if (element != null) return element;
+    // TODO(ngeoffray): Lookup in the super class.
+    return null;
+  }
+
+  Element add(Element element) {
+    throw "Cannot add an element in a class scope";
+  }
+}
+
 // TODO(ngeoffray): this top scope should have libraryElement as
-// enclosingElement.
+// element.
 class TopScope extends Scope {
   Universe universe;
 
-  TopScope(Universe this.universe) : super.top();
+  TopScope(Universe this.universe) : super(null, null);
   Element lookup(SourceString name) => universe.find(name);
 
   Element add(Element element) {

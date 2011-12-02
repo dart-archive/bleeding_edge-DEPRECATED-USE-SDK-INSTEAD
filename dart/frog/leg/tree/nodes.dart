@@ -233,12 +233,14 @@ class NodeList extends Node {
   final Token beginToken;
   final Token endToken;
   final SourceString delimiter;
+  bool isEmpty() => nodes.isEmpty();
 
   // TODO(floitsch): second argument should be this.nodes.
   NodeList([this.beginToken, nodes, this.endToken, this.delimiter])
       : _nodes = nodes;
 
   NodeList.singleton(Node node) : this(null, new Link<Node>(node));
+  NodeList.empty() : this(null, const EmptyLink<Node>());
 
   NodeList asNodeList() => this;
 
@@ -323,7 +325,7 @@ class For extends Loop {
 
   final Token forToken;
 
-  For(this.initializer, this.conditionStatement, this.update, body, 
+  For(this.initializer, this.conditionStatement, this.update, body,
       this.forToken) : super(body);
 
   For asFor() => this;
@@ -463,6 +465,7 @@ class Identifier extends Expression {
   SourceString get source() => token.value;
 
   Identifier(Token this.token);
+  Identifier.synthetic(String name) : token = new StringToken(null, name, null);
 
   Identifier asIdentifier() => this;
 

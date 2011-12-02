@@ -704,11 +704,11 @@ class NodeListener extends ElementListener {
   }
 
   void endField(Token beginToken, Token endToken) {
+    canceler.cancel("fields are not implemented yet");
     Expression initializer = popNode();
     Identifier name = popNode();
     // TODO(ahe): implement this.
     pushNode(null);
-    canceler.cancel("fields are not implemented yet", node: name);
   }
 
   void endMethod(Token beginToken, Token endToken) {
@@ -778,7 +778,7 @@ class PartialFunctionElement extends FunctionElement {
 
   PartialFunctionElement(SourceString name,
                          Token this.beginToken, Token this.endToken)
-    : super(name);
+    : super(name, ElementKind.FUNCTION, null);
 
   FunctionExpression parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;

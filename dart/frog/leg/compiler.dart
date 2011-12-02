@@ -92,7 +92,7 @@ class Compiler implements Canceler, Logger {
     String code = universe.generatedCode[element];
     if (code !== null) return code;
     Node tree = parser.parse(element);
-    TreeElements elements = resolver.resolve(tree);
+    TreeElements elements = resolver.resolve(element);
     checker.check(tree, elements);
     HGraph graph = builder.build(tree, elements);
     optimizer.optimize(graph);
@@ -102,11 +102,15 @@ class Compiler implements Canceler, Logger {
   }
 
   Element resolveType(ClassElement element) {
-    resolver.resolveType(parser.parse(element));
+    parser.parse(element);
+    resolver.resolveType(element);
+    return element;
   }
 
   Element resolveSignature(FunctionElement element) {
-    resolver.resolveSignature(parser.parse(element));
+    parser.parse(element);
+    resolver.resolveSignature(element);
+    return element;
   }
 
   String assembleProgram() {
