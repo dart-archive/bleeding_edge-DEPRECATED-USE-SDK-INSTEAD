@@ -8128,7 +8128,10 @@ Parser.prototype.classDefinition = function(kind) {
   }
   var _factory = null;
   if (this._maybeEat(75/*TokenKind.FACTORY*/)) {
-    _factory = this.type(0);
+    _factory = this.nameTypeReference();
+    if (this._peekKind(52/*TokenKind.LT*/)) {
+      this.typeParameters();
+    }
   }
   var body = [];
   if (this._maybeEat(6/*TokenKind.LBRACE*/)) {
@@ -9345,7 +9348,7 @@ Parser.prototype.typeList = function() {
   while (this._maybeEat(11/*TokenKind.COMMA*/))
   return types;
 }
-Parser.prototype.type = function(depth) {
+Parser.prototype.nameTypeReference = function() {
   var start = this._peekToken.start;
   var name;
   var names = null;
@@ -9377,7 +9380,10 @@ Parser.prototype.type = function(depth) {
     if (names == null) names = [];
     names.add$1(this.identifier());
   }
-  var typeRef = new NameTypeReference(isFinal, name, names, this._makeSpan(start));
+  return new NameTypeReference(isFinal, name, names, this._makeSpan(start));
+}
+Parser.prototype.type = function(depth) {
+  var typeRef = this.nameTypeReference();
   if (this._peekKind(52/*TokenKind.LT*/)) {
     return this.addTypeArguments(typeRef, depth);
   }
@@ -12444,6 +12450,7 @@ World.prototype.withTiming = function(name, f) {
 }
 // ********** Code for FrogOptions **************
 function FrogOptions(homedir, args, files) {
+  this.config = 'dev'
   this.enableLeg = false
   this.legOnly = false
   this.enableAsserts = false
@@ -12460,7 +12467,16 @@ function FrogOptions(homedir, args, files) {
   this.showInfo = false
   this.showWarnings = true
   // Initializers done
-  this.libDir = homedir + '/lib';
+  if ($eq(this.config, 'dev')) {
+    this.libDir = joinPaths(homedir, '/lib');
+  }
+  else if ($eq(this.config, 'sdk')) {
+    this.libDir = joinPaths(homedir, '/../lib');
+  }
+  else {
+    $globals.world.error(('Invalid configuration ' + this.config));
+    $throw(('Invalid configuration'));
+  }
   var ignoreUnrecognizedFlags = false;
   var passedLibDir = false;
   this.childArgs = [];
@@ -12568,7 +12584,7 @@ function FrogOptions(homedir, args, files) {
 
     }
   }
-  if (!passedLibDir && !files.fileExists(this.libDir)) {
+  if (!passedLibDir && $eq(this.config, 'dev') && !files.fileExists(this.libDir)) {
     var temp = 'frog/lib';
     if (files.fileExists(temp)) {
       this.libDir = temp;
@@ -12581,7 +12597,15 @@ function FrogOptions(homedir, args, files) {
 // ********** Code for LibraryReader **************
 function LibraryReader() {
   // Initializers done
-  this._specialLibs = _map(['dart:core', joinPaths($globals.options.libDir, 'corelib.dart'), 'dart:coreimpl', joinPaths($globals.options.libDir, 'corelib_impl.dart'), 'dart:html', joinPaths($globals.options.libDir, '../../client/html/release/html.dart'), 'dart:htmlimpl', joinPaths($globals.options.libDir, '../../client/html/release/htmlimpl.dart'), 'dart:dom', joinPaths($globals.options.libDir, '../../client/dom/frog/frog_dom.dart'), 'dart:json', joinPaths($globals.options.libDir, 'json.dart')]);
+  if ($eq($globals.options.config, 'dev')) {
+    this._specialLibs = _map(['dart:core', joinPaths($globals.options.libDir, 'corelib.dart'), 'dart:coreimpl', joinPaths($globals.options.libDir, 'corelib_impl.dart'), 'dart:html', joinPaths($globals.options.libDir, '../../client/html/release/html.dart'), 'dart:htmlimpl', joinPaths($globals.options.libDir, '../../client/html/release/htmlimpl.dart'), 'dart:dom', joinPaths($globals.options.libDir, '../../client/dom/frog/frog_dom.dart'), 'dart:json', joinPaths($globals.options.libDir, 'json.dart')]);
+  }
+  else if ($eq($globals.options.config, 'sdk')) {
+    this._specialLibs = _map(['dart:core', joinPaths($globals.options.libDir, 'core/core_frog.dart'), 'dart:coreimpl', joinPaths($globals.options.libDir, 'coreimpl/coreimpl_frog.dart'), 'dart:html', joinPaths($globals.options.libDir, 'html/html.dart'), 'dart:htmlimpl', joinPaths($globals.options.libDir, 'htmlimpl/htmlimpl.dart'), 'dart:dom', joinPaths($globals.options.libDir, 'dom/frog/frog_dom.dart'), 'dart:json', joinPaths($globals.options.libDir, 'coreimpl/frog/json.dart')]);
+  }
+  else {
+    $globals.world.error(('Invalid configuration ' + $globals.options.config));
+  }
 }
 LibraryReader.prototype.readFile = function(fullname) {
   var filename = this._specialLibs.$index(fullname);

@@ -252,7 +252,14 @@ class Parser {
 
     var _factory = null;
     if (_maybeEat(TokenKind.FACTORY)) {
-      _factory = type();
+      // Note: this can't be type(), because for some strange reason these are
+      // type parameters, not type arguments.
+      _factory = nameTypeReference();
+      if (_peekKind(TokenKind.LT)) {
+        // TODO(jmesserly): not sure what to do with these. They aren't used for
+        // anything as far as I can tell.
+        typeParameters();
+      }
     }
 
     var body = [];
@@ -1530,7 +1537,7 @@ class Parser {
     return types;
   }
 
-  type([int depth = 0]) {
+  nameTypeReference() {
     int start = _peekToken.start;
     var name;
     var names = null;
@@ -1557,8 +1564,11 @@ class Parser {
       names.add(identifier());
     }
 
-    var typeRef = new NameTypeReference(isFinal, name, names,
-      _makeSpan(start));
+    return new NameTypeReference(isFinal, name, names, _makeSpan(start));
+  }
+
+  type([int depth = 0]) {
+    var typeRef = nameTypeReference();
 
     if (_peekKind(TokenKind.LT)) {
       return addTypeArguments(typeRef, depth);
