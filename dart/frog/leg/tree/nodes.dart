@@ -14,6 +14,7 @@ interface Visitor<R> {
   R visitLiteralBool(LiteralBool node);
   R visitLiteralDouble(LiteralDouble node);
   R visitLiteralInt(LiteralInt node);
+  R visitLiteralList(LiteralList node);
   R visitLiteralNull(LiteralNull node);
   R visitLiteralString(LiteralString node);
   R visitNewExpression(NewExpression node);
@@ -85,6 +86,7 @@ class Node implements Hashable {
   LiteralInt asLiteralInt() => null;
   LiteralNull asLiteralNull() => null;
   LiteralString asLiteralString() => null;
+  LiteralString asLiteralList() => null;
   NodeList asNodeList() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;
@@ -441,6 +443,18 @@ class LiteralNull extends Literal<SourceString> {
   SourceString get value() => null;
 
   accept(Visitor visitor) => visitor.visitLiteralNull(this);
+}
+
+class LiteralList extends Expression {
+  final TypeAnnotation type;
+  final NodeList elements;
+
+  LiteralList(this.type, this.elements);
+  LiteralList asLiteralList() => this;
+  accept(Visitor visitor) => visitor.visitLiteralList(this);
+
+  getBeginToken() => firstBeginToken(type, elements);
+  getEndToken() => elements.getEndToken();
 }
 
 class Identifier extends Expression {

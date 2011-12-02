@@ -383,6 +383,10 @@ class FullResolverVisitor extends ResolverVisitor {
   visitNewExpression(NewExpression node) {
     cancel(node, "Unimplemented");
   }
+
+  visitLiteralList(LiteralList node) {
+    cancel(node, "Unimplemented");
+  }
 }
 
 class ClassResolverVisitor extends AbstractVisitor<Type> {

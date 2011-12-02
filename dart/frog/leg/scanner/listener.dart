@@ -738,8 +738,7 @@ class NodeListener extends ElementListener {
   void handleLiteralList(int count, Token beginToken, Token endToken) {
     NodeList elements = makeNodeList(count, beginToken, endToken, ',');
     // TODO(ahe): Type arguments are discarded.
-    pushNode(null); // TODO(ahe): Create AST node.
-    canceler.cancel('literal list not implemented');
+    pushNode(new LiteralList(null, elements));
   }
 
   void handleIndexedExpression(Token openCurlyBracket,
