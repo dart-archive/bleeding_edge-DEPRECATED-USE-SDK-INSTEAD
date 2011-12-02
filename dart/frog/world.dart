@@ -12,6 +12,14 @@ World world;
 Function experimentalAwaitPhase;
 
 /**
+ * Set when the leg compiler is available.  Should always be set
+ * to leg/frog_leg.dart/compile.
+ */
+typedef bool LegCompile(World world);
+LegCompile legCompile;
+
+
+/**
  * Should be called exactly once to setup singleton world.
  * Can use world.reset() to reinitialize.
  */
@@ -276,7 +284,10 @@ class World {
   /** Returns true if Leg handled the compilation job. */
   bool runLeg() {
     if (!options.enableLeg) return false;
-    bool res = withTiming('try leg compile', () => leg.compile(this));
+    if (legCompile === null) {
+      fatal('requested leg enabled, but no leg compiler available');
+    }
+    bool res = withTiming('try leg compile', () => legCompile(this));
     if (!res && options.legOnly) {
       fatal("Leg could not compile ${options.dartScript}");
       return true; // In --leg_only, always "handle" the compilation.

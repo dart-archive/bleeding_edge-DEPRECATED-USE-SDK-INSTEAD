@@ -6,7 +6,7 @@
 // 'await' keyword.
 
 #import('../lang.dart');
-#import('../frog.dart', prefix:'frog');
+#import('../minfrog.dart', prefix:'minfrog');
 
 // TODO(sigmund): add here a phase that performs the async transformations.
 _awaitCompilationPhase() {
@@ -14,5 +14,5 @@ _awaitCompilationPhase() {
 
 void main() {
   experimentalAwaitPhase = _awaitCompilationPhase;
-  frog.main();
+  minfrog.main();
 }

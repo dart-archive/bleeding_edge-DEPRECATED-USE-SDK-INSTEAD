@@ -4,6 +4,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import os
+import stat
 import subprocess
 import sys
 import time
@@ -46,6 +47,10 @@ def DiagnoseError(arguments, stdout):
     sys.stderr.write(stdout)
 
 
+EXECUTABLE = (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
+              stat.S_IRGRP | stat.S_IXGRP |
+              stat.S_IROTH | stat.S_IXOTH)
+
 def main(args):
   def b(s):
     """Adds ANSI escape-code for bold-face"""
@@ -60,19 +65,29 @@ def main(args):
              'frog.dart')
   elapsed = time.time() - start
   mode = 'in checked mode + compile all'
-  print 'Compiling on Dart VM took %s seconds %s' % (b('%.1f' % elapsed),
-                                                     b(mode))
+  print 'Compiling frog on Dart VM took %s seconds %s' % (
+      b('%.1f' % elapsed), b(mode))
+  os.chmod('./frogsh', EXECUTABLE)
 
-  # Selfhost Checked
+  # VM Production
   start = time.time()
-  RunCommand('./frogsh', '--out=frogsh',
-             '--enable_type_checks', '--warnings_as_errors', 'frog.dart',
-             '--enable_type_checks', 'tests/hello.dart', verbose=True)
+  RunCommand('./frog.py', '--', '--out=minfrog', 'minfrog.dart')
   elapsed = time.time() - start
-  size = os.path.getsize('./frogsh') / 1024
-  print 'Bootstrapping took %s seconds %s' % (b('%.1f' % elapsed),
-                                              b('in checked mode'))
-  print 'Generated %s frogsh is %s kB' % (b('checked'), b(size))
+  mode = 'in production mode'
+  print 'Compiling minfrog on Dart VM took %s seconds %s' % (
+      b('%.1f' % elapsed), b(mode))
+  os.chmod('./minfrog', EXECUTABLE)
+
+
+  # Selfhost Production
+  start = time.time()
+  RunCommand('./minfrog', '--out=minfrog', '--warnings_as_errors',
+             'minfrog.dart', 'tests/hello.dart', verbose=True)
+  elapsed = time.time() - start
+  size = os.path.getsize('./minfrog') / 1024
+  print 'Bootstrapping minfrog took %s seconds %s' % (b('%.1f' % elapsed),
+                                              b('in production mode'))
+  print 'Generated %s minfrog is %s kB' % (b('production'), b(size))
 
   RunCommand('../tools/build.py', '--mode=release')
   test_cmd = ['../tools/test.py', '--report', '--timeout=30',

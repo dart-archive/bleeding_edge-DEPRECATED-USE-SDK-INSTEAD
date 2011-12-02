@@ -1,10 +1,5 @@
-bin/
-lib/src/
-html/
-
-# The standard generated files
-go.dart
-toy.js
+# The standard generated file
+frogsh
 
 # Compiled python files
 *.pyc
@@ -23,5 +18,3 @@ Makefile
 /xcodebuild/
 /out/
 
-# Frog compiled JS files.
-*.dart.js
