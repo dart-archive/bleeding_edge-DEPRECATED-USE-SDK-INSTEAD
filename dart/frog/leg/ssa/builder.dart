@@ -598,7 +598,7 @@ class SsaBuilder implements Visitor {
       visitBinary(left, op, right, opElement);
       HInstruction operation = pop();
       assert(operation !== null);
-      // updateDefinition might guard the operation thus returning a new node. 
+      // updateDefinition might guard the operation thus returning a new node.
       operation = updateDefinition(node, operation);
       if (isPrefix) {
         stack.add(operation);
@@ -682,5 +682,16 @@ class SsaBuilder implements Visitor {
         pop();  // Discard value.
       }
     }
+  }
+
+  visitLiteralList(LiteralList node) {
+    List<HInstruction> inputs = <HInstruction>[];
+    for (Link<Node> link = node.elements.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      visit(link.head);
+      inputs.add(pop());
+    }
+    push(new HLiteralList(inputs));
   }
 }

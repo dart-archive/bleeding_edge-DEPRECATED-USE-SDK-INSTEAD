@@ -385,7 +385,7 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitLiteralList(LiteralList node) {
-    cancel(node, "Unimplemented");
+    visit(node.elements);
   }
 }
 

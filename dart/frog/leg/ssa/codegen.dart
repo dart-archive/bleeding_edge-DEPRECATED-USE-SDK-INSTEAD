@@ -448,4 +448,14 @@ class SsaCodeGenerator implements HVisitor {
   void visitLocal(HLocal node) {
     buffer.add('var ${local(node)}');
   }
+
+  void visitLiteralList(HLiteralList node) {
+    buffer.add('[');
+    int len = node.inputs.length;
+    for (int i = 0; i < len; i++) {
+      if (i != 0) buffer.add(', ');
+      use(node.inputs[i]);
+    }
+    buffer.add(']');
+  }
 }

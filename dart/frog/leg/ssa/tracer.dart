@@ -88,7 +88,7 @@ class HTracer extends HGraphVisitor {
           printProperty("method", "None");
           block.forEachPhi((phi) {
             String phiId = stringifier.temporaryId(phi);
-            StringBuffer inputIds = new StringBuffer(); 
+            StringBuffer inputIds = new StringBuffer();
             for (int i = 0; i < phi.inputs.length; i++) {
               inputIds.add(phi.inputs[i]);
               inputIds.add(" ");
@@ -228,6 +228,15 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitLessEqual(HLessEqual node) => visitInvokeStatic(node);
 
   String visitLiteral(HLiteral literal) => "Literal ${literal.value}";
+
+  String visitLiteralList(HLiteralList node) {
+    StringBuffer elementsString = new StringBuffer();
+    for (int i = 0; i < node.inputs.length; i++) {
+      if (i != 0) elementsString.add(", ");
+      elementsString.add(temporaryId(node.inputs[i]));
+    }
+    return "Literal list: [$elementsString]";
+  }
 
   String visitLoad(HLoad node) => "Load: ${temporaryId(node.inputs[0])}";
 

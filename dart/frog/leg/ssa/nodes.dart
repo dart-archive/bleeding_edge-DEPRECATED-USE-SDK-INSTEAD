@@ -25,6 +25,7 @@ interface HVisitor<R> {
   R visitLocal(HLocal node);
   R visitLoopBranch(HLoopBranch node);
   R visitLiteral(HLiteral node);
+  R visitLiteralList(HLiteralList node);
   R visitModulo(HModulo node);
   R visitMultiply(HMultiply node);
   R visitNegate(HNegate node);
@@ -196,6 +197,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLoad(HLoad node) => visitInstruction(node);
   visitLocal(HLocal node) => visitInstruction(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
+  visitLiteralList(HLiteralList node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitModulo(HModulo node) => visitBinaryArithmetic(node);
   visitNegate(HNegate node) => visitInvokeUnary(node);
@@ -813,7 +815,7 @@ class HInvokeStatic extends HInstruction {
   /** The first input must be the target. */
   HInvokeStatic(inputs) : super(inputs);
   toString() => 'invoke static: ${element.name}';
-  accept(HVisitor visitor) => visitor.visitInvokeStatic(this);  
+  accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   Element get element() => target.element;
   HStatic get target() => inputs[0];
 }
@@ -1378,6 +1380,13 @@ class HStatic extends HInstruction {
 
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
+}
+
+class HLiteralList extends HInstruction {
+  HLiteralList(inputs) : super(inputs);
+  void prepareGvn() => clearAllSideEffects();
+  toString() => 'literal list';
+  accept(HVisitor visitor) => visitor.visitLiteralList(this);
 }
 
 class HNonSsaInstruction extends HInstruction {
