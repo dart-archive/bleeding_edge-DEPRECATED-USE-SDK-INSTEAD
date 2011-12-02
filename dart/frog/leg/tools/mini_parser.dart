@@ -4,12 +4,12 @@
 
 #library('parser');
 
-#import('scanner/scanner_implementation.dart');
-#import('scanner/scannerlib.dart');
+#import('../scanner/scanner_implementation.dart');
+#import('../scanner/scannerlib.dart');
 
-#source('../source.dart');
-#source('scanner/byte_strings.dart');
-#source('scanner/byte_array_scanner.dart');
+#source('../../source.dart');
+#source('../scanner/byte_strings.dart');
+#source('../scanner/byte_array_scanner.dart');
 
 // Hack to allow satisfy sourcing in ../source.dart.
 var world;
