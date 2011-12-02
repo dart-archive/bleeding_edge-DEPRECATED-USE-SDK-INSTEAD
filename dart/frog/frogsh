@@ -1475,7 +1475,7 @@ HashMapImplementation._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation.prototype._grow = function(newCapacity) {
-  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/home/sra/dart-all/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
+  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1652,7 +1652,7 @@ HashMapImplementation_E$E._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation_E$E.prototype._grow = function(newCapacity) {
-  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/home/sra/dart-all/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
+  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -2007,7 +2007,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  _assert(index == this.get$length(), "index == length", "/usr/local/google/home/sra/dart-all/dart/corelib/src/implementation/linked_hash_map.dart", 76, -17);
+  _assert(index == this.get$length(), "index == length", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/linked_hash_map.dart", 76, -17);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -2017,7 +2017,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  _assert(index == this.get$length(), "index == length", "/usr/local/google/home/sra/dart-all/dart/corelib/src/implementation/linked_hash_map.dart", 87, -17);
+  _assert(index == this.get$length(), "index == length", "/Users/ahe/Dart/all/dart.googlecode.com/dart/corelib/src/implementation/linked_hash_map.dart", 87, -17);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -3530,19 +3530,22 @@ Listener.prototype.handleVoidKeyword = function(token) {
 
 }
 Listener.prototype.expected = function(string, token) {
-  $throw(new ParserError(("Expected '" + string + "', but got '" + token + "' @ ") + ("" + token.charOffset)));
+  this.error(("Expected '" + string + "', but got '" + token + "'"), token);
 }
 Listener.prototype.expectedIdentifier = function(token) {
-  $throw(new ParserError(("Expected identifier, but got '" + token + "' @ ") + ("" + token.charOffset)));
+  this.error(("Expected identifier, but got '" + token + "'"), token);
 }
 Listener.prototype.expectedType = function(token) {
-  $throw(new ParserError(("Expected a type, but got '" + token + "' @ ") + ("" + token.charOffset)));
+  this.error(("Expected a type, but got '" + token + "'"), token);
 }
 Listener.prototype.expectedBlock = function(token) {
-  $throw(new ParserError(("Expected a block, but got '" + token + "' @ ") + ("" + token.charOffset)));
+  this.error(("Expected a block, but got '" + token + "'"), token);
 }
 Listener.prototype.unexpected = function(token) {
-  $throw(new ParserError(("Unexpected token '" + token + "' @ " + token.charOffset)));
+  this.error(("Unexpected token '" + token + "'"), token);
+}
+Listener.prototype.error = function(message, token) {
+  $throw(new ParserError(("" + message + " @ " + token.charOffset)));
 }
 // ********** Code for ParserError **************
 function ParserError(reason) {
@@ -3909,8 +3912,7 @@ NodeListener.prototype.handleLiteralMap = function(count, beginToken, endToken) 
 }
 NodeListener.prototype.handleLiteralList = function(count, beginToken, endToken) {
   var elements = this.makeNodeList(count, beginToken, endToken, ',');
-  this.pushNode(null);
-  this.canceler.cancel('literal list not implemented');
+  this.pushNode(new LiteralList(null, elements));
 }
 NodeListener.prototype.handleIndexedExpression = function(openCurlyBracket, closeCurlyBracket) {
   this.makeNodeList(1, openCurlyBracket, closeCurlyBracket, null);
@@ -6317,7 +6319,7 @@ function parse(canceler, logger, doParse) {
   var listener = new NodeListener(canceler, logger);
   doParse(new Parser(listener));
   var node = listener.popNode();
-  _assert(listener.nodes.isEmpty(), "listener.nodes.isEmpty()", "leg/scanner/listener.dart", 795, -26);
+  _assert(listener.nodes.isEmpty(), "listener.nodes.isEmpty()", "leg/scanner/listener.dart", 794, -26);
   return node;
 }
 //  ********** Library tree **************
@@ -6859,6 +6861,29 @@ LiteralNull.prototype.accept = function(visitor) {
 LiteralNull.prototype.accept$1 = function($0) {
   return this.accept(($0 == null ? null : $0.assert$Visitor()));
 };
+// ********** Code for LiteralList **************
+function LiteralList(type, elements) {
+  this.type = type;
+  this.elements = elements;
+  // Initializers done
+  Expression.call(this);
+}
+$inherits(LiteralList, Expression);
+LiteralList.prototype.get$type = function() { return this.type; };
+LiteralList.prototype.accept = function(visitor) {
+  return visitor.visitLiteralList(this);
+}
+LiteralList.prototype.getBeginToken = function() {
+  return firstBeginToken(this.type, this.elements);
+}
+LiteralList.prototype.getEndToken = function() {
+  return this.elements.getEndToken();
+}
+LiteralList.prototype.accept$1 = function($0) {
+  return this.accept(($0 == null ? null : $0.assert$Visitor()));
+};
+LiteralList.prototype.getBeginToken$0 = LiteralList.prototype.getBeginToken;
+LiteralList.prototype.getEndToken$0 = LiteralList.prototype.getEndToken;
 // ********** Code for Identifier **************
 function Identifier(token) {
   this.token = token;
@@ -12398,6 +12423,9 @@ FullResolverVisitor.prototype.visitParenthesizedExpression = function(node) {
 FullResolverVisitor.prototype.visitNewExpression = function(node) {
   this.cancel(node, "Unimplemented");
 }
+FullResolverVisitor.prototype.visitLiteralList = function(node) {
+  this.cancel(node, "Unimplemented");
+}
 // ********** Code for ClassResolverVisitor **************
 function ClassResolverVisitor(compiler) {
   this.compiler = compiler;
@@ -12460,7 +12488,7 @@ VariableDefinitionsVisitor.prototype.get$kind = function() { return this.kind; }
 VariableDefinitionsVisitor.prototype.set$kind = function(value) { return this.kind = value; };
 VariableDefinitionsVisitor.prototype.visitSendSet = function(node) {
   var $0;
-  _assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "leg/resolver.dart", 443, -47);
+  _assert(node.get$arguments().get$tail().isEmpty$0(), "node.arguments.tail.isEmpty()", "leg/resolver.dart", 447, -47);
   if (node.receiver != null) {
     this.resolver.cancel(node, "receiver on a variable definition not implemented");
   }

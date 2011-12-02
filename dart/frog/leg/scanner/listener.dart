@@ -290,27 +290,27 @@ class Listener {
   }
 
   Token expected(String string, Token token) {
-    throw new ParserError("Expected '$string', but got '$token' @ " +
-                          "${token.charOffset}");
+    error("Expected '$string', but got '$token'", token);
   }
 
   void expectedIdentifier(Token token) {
-    throw new ParserError("Expected identifier, but got '$token' @ " +
-                          "${token.charOffset}");
+    error("Expected identifier, but got '$token'", token);
   }
 
   Token expectedType(Token token) {
-    throw new ParserError("Expected a type, but got '$token' @ " +
-                          "${token.charOffset}");
+    error("Expected a type, but got '$token'", token);
   }
 
   Token expectedBlock(Token token) {
-    throw new ParserError("Expected a block, but got '$token' @ " +
-                          "${token.charOffset}");
+    error("Expected a block, but got '$token'", token);
   }
 
   Token unexpected(Token token) {
-    throw new ParserError("Unexpected token '$token' @ ${token.charOffset}");
+    error("Unexpected token '$token'", token);
+  }
+
+  void error(String message, Token token) {
+    throw new ParserError("$message @ ${token.charOffset}");
   }
 }
 
