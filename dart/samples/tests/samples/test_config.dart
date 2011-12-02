@@ -9,6 +9,7 @@
 class SamplesTestSuite extends StandardTestSuite {
   SamplesTestSuite(Map configuration)
       : super(configuration,
+              "samples",
               "samples/tests/samples/src",
               ["samples/tests/samples/samples.status"]);
 

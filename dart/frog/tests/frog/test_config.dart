@@ -9,6 +9,7 @@
 class FrogTestSuite extends StandardTestSuite {
   FrogTestSuite(Map configuration)
       : super(configuration,
+              "frog",
               "frog/tests/frog/src",
               ["frog/tests/frog/frog.status"]);
 }

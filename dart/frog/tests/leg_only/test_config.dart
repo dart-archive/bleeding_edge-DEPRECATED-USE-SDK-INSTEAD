@@ -9,6 +9,7 @@
 class LegOnlyTestSuite extends StandardTestSuite {
   LegOnlyTestSuite(Map configuration)
       : super(configuration,
+              "leg_only",
               "frog/tests/leg_only/src",
               ["frog/tests/leg_only/leg_only.status"]);
 

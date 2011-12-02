@@ -9,6 +9,7 @@
 class LegTestSuite extends StandardTestSuite {
   LegTestSuite(Map configuration)
       : super(configuration,
+              "leg",
               "frog/tests/leg/src",
               ["frog/tests/leg/leg.status"]);
 }
