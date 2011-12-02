@@ -23589,12 +23589,15 @@ Value.prototype._typeAssert = function(context, toType, node, isDynamic) {
     $globals.world.internalError(('We thought ' + this.get$type().name + ' is not a subtype of ' + toType.name + '?'));
   }
   function throwTypeError(paramName) {
-    var typeError = $globals.world.corelib.types.$index('TypeError');
-    var typeErrorCtor = typeError.getConstructor$1('_internal');
-    $globals.world.gen.corejs.ensureTypeNameOf();
-    var result = typeErrorCtor.invoke$5(context, node, new Value.type$ctor(typeError, null), new Arguments(null, [new Value($globals.world.objectType, paramName, null, true), new Value($globals.world.stringType, ('"' + toType.name + '"'), null, true)]), isDynamic);
-    $globals.world.gen.corejs.useThrow = true;
-    return ('\$throw(' + result.get$code() + ')');
+    return $assert_String($globals.world.withoutTypeChecks((function () {
+      var typeError = $globals.world.corelib.types.$index('TypeError');
+      var typeErrorCtor = typeError.getConstructor$1('_internal');
+      $globals.world.gen.corejs.ensureTypeNameOf();
+      var result = typeErrorCtor.invoke$5(context, node, new Value.type$ctor(typeError, null), new Arguments(null, [new Value($globals.world.objectType, paramName, null, true), new Value($globals.world.stringType, ('"' + toType.name + '"'), null, true)]), isDynamic);
+      $globals.world.gen.corejs.useThrow = true;
+      return ('\$throw(' + result.get$code() + ')');
+    })
+    ));
   }
   if ($notnull_bool(toType.get$isNum())) toType = $globals.world.numType;
   var check;
@@ -24236,6 +24239,15 @@ World.prototype.internalError = function(message, span, span1, span2) {
 World.prototype.info = function(message, span, span1, span2) {
   if ($notnull_bool($globals.options.showInfo)) {
     this._message(('info: ' + message), span, span1, span2, false);
+  }
+}
+World.prototype.withoutTypeChecks = function(fn) {
+  var oldTypeChecks = $globals.options.enableTypeChecks;
+  $globals.options.enableTypeChecks = false;
+  try {
+    return fn();
+  } finally {
+    $globals.options.enableTypeChecks = $assert_bool(oldTypeChecks);
   }
 }
 World.prototype.get$hasErrors = function() {

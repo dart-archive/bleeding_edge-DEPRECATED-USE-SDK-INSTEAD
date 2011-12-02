@@ -355,7 +355,7 @@ class Value {
           'We thought ${type.name} is not a subtype of ${toType.name}?');
     }
 
-    String throwTypeError(String paramName) {
+    String throwTypeError(String paramName) => world.withoutTypeChecks(() {
       final typeError = world.corelib.types['TypeError'];
       final typeErrorCtor = typeError.getConstructor('_internal');
       world.gen.corejs.ensureTypeNameOf();
@@ -367,7 +367,7 @@ class Value {
           isDynamic);
       world.gen.corejs.useThrow = true;
       return '\$throw(${result.code})';
-    }
+    });
 
     // TODO(jmesserly): better assert for integers?
     if (toType.isNum) toType = world.numType;

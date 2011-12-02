@@ -435,6 +435,18 @@ class World {
     }
   }
 
+  /** Run [fn] without generating any type checking. */
+  withoutTypeChecks(void fn()) {
+    var oldTypeChecks = options.enableTypeChecks;
+    options.enableTypeChecks = false;
+
+    try {
+      return fn();
+    } finally {
+      options.enableTypeChecks = oldTypeChecks;
+    }
+  }
+
   bool get hasErrors() => errors > 0;
 
   void printStatus() {
