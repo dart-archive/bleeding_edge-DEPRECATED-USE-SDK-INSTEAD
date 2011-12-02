@@ -355,7 +355,11 @@ class Value {
           'We thought ${type.name} is not a subtype of ${toType.name}?');
     }
 
-    String throwTypeError(String paramName) => world.withoutTypeChecks(() {
+    // Prevent a stack overflow when forceDynamic and type checks are both
+    // enabled. forceDynamic would cause the TypeError constructor to type check
+    // its arguments, which in turn invokes the TypeError constructor, ad
+    // infinitum.
+    String throwTypeError(String paramName) => world.withoutForceDynamic(() {
       final typeError = world.corelib.types['TypeError'];
       final typeErrorCtor = typeError.getConstructor('_internal');
       world.gen.corejs.ensureTypeNameOf();

@@ -435,15 +435,15 @@ class World {
     }
   }
 
-  /** Run [fn] without generating any type checking. */
-  withoutTypeChecks(void fn()) {
-    var oldTypeChecks = options.enableTypeChecks;
-    options.enableTypeChecks = false;
+  /** Run [fn] without the forceDynamic option enabeld. */
+  withoutForceDynamic(void fn()) {
+    var oldForceDynamic = options.forceDynamic;
+    options.forceDynamic = false;
 
     try {
       return fn();
     } finally {
-      options.enableTypeChecks = oldTypeChecks;
+      options.forceDynamic = oldForceDynamic;
     }
   }
 
