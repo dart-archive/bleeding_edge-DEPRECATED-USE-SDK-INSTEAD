@@ -417,6 +417,8 @@ public class CompletionEngine {
                 proposeTypesForPrefix(identifier, true);
               }
               break;
+            case FunctionTypeInterface:
+              proposeTypesForPrefix(identifier, true);
           }
         }
       }
