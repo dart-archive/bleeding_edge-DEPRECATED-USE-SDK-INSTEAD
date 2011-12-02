@@ -5,8 +5,6 @@
 prefix await
 
 [ $component == frogsh || $component == frog ]
-ConditionalTest: Fail # await transformation not yet implemented.
-SingleAwaitTest: Fail # await transformation not yet implemented.
 TryCatchTest: Fail # await transformation not yet implemented.
 WhileLoopTest: Fail # await transformation not yet implemented.
 

@@ -7,9 +7,10 @@
 
 #import('../lang.dart');
 #import('../minfrog.dart', prefix:'minfrog');
+#source('transformation.dart');
 
-// TODO(sigmund): add here a phase that performs the async transformations.
 _awaitCompilationPhase() {
+  world.withTiming('remove await expressions', awaitTransformation);
 }
 
 void main() {

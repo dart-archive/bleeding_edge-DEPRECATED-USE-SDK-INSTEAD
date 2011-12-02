@@ -12,7 +12,7 @@ intFuture(v) {
 }
 
 bool get notAnalyzableCondition() {
-  return false;
+  return true;
 }
 
 main() {
@@ -23,7 +23,7 @@ main() {
   } else {
     x = 3;
   }
-  Expect.equals(x, 3);
+  Expect.equals(3, x);
 }
 
 // This is roughly equivalent to:

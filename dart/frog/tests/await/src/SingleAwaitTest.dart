@@ -15,7 +15,7 @@ intFuture(v) {
 main() {
   final f = intFuture(3);
   final x = await f;
-  Expect.equals(x, 3);
+  Expect.equals(3, x);
 }
 
 // This is roughly equivalent to:
@@ -23,7 +23,7 @@ main() {
 //   final _ret = new Completer();
 //   final f = intFuture(3);
 //   f.then((x) {
-//     Expect.equals(x, 3);
+//     Expect.equals(3, x);
 //     _ret.complete(null);
 //   });
 //   Futures.propagateError(f, _ret);
