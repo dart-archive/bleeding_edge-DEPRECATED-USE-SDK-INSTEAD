@@ -164,6 +164,7 @@ class WorldGenerator {
     for (var type in _orderValues(lib.types)) {
       // TODO(jmesserly): we can't accurately track if DOM types are
       // created or not, so we need to prepare to handle them.
+      // This should be fixed by tightening up the return types in DOM.
       if ((type.isUsed || type.isHiddenNativeType) && type.isClass) {
         writeType(type);
 

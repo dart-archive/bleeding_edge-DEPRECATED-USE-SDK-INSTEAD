@@ -372,10 +372,23 @@ class FieldMember extends Member {
 
   Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
-    if (!isDynamic) {
-      declaringType.markUsed();
+    if (isNative && returnType != null) {
+      returnType.markUsed();
+      if (returnType is DefinedType) {
+        // TODO(jmesserly): this handles native fields that return types like
+        // "List". Is there a better solution for fields? Unlike methods we have
+        // no good way to annotate them.
+        var factory_ = returnType.genericType.factory_;
+        if (factory_ != null && factory_.isNative) {
+          factory_.markUsed();
+        }
+      }
     }
+
     if (isStatic) {
+      // TODO(jmesserly): can we avoid generating the whole type?
+      declaringType.markUsed();
+
       // Make sure to compute the value of all static fields, even if we don't
       // use this value immediately.
       var cv = computeValue();
@@ -850,6 +863,8 @@ class MethodMember extends Member {
       declaringType.markUsed();
     }
 
+    // TODO(jmesserly): get rid of this in favor of using the native method
+    // "bodies" to tell the compiler about valid return types.
     if (isNative && returnType != null) returnType.markUsed();
 
     if (!namesInOrder(args)) {

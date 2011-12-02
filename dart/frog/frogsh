@@ -1475,7 +1475,7 @@ HashMapImplementation._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation.prototype._grow = function(newCapacity) {
-  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
+  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Volumes/Data/dart/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1652,7 +1652,7 @@ HashMapImplementation_E$E._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation_E$E.prototype._grow = function(newCapacity) {
-  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
+  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Volumes/Data/dart/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -2007,7 +2007,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  _assert(index == this.get$length(), "index == length", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/linked_hash_map.dart", 76, -17);
+  _assert(index == this.get$length(), "index == length", "/Volumes/Data/dart/dart/corelib/src/implementation/linked_hash_map.dart", 76, -17);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -2017,7 +2017,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  _assert(index == this.get$length(), "index == length", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/linked_hash_map.dart", 87, -17);
+  _assert(index == this.get$length(), "index == length", "/Volumes/Data/dart/dart/corelib/src/implementation/linked_hash_map.dart", 87, -17);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -7877,7 +7877,7 @@ SsaBuilder.prototype.unquote = function(literal) {
   return new StringWrapper(str.substring(quotes + 1, str.length - quotes));
 }
 SsaBuilder.prototype.visitLogicalAndOr = function(node, op) {
-  var isAnd = $assert_bool(($eq(const$278/*const SourceString("&&")*/, op.get$source())));
+  var isAnd = $assert_bool(($eq(const$275/*const SourceString("&&")*/, op.get$source())));
   this.visit(node.receiver);
   var boolifiedLeft = this.popBoolified();
   var condition;
@@ -8042,10 +8042,10 @@ SsaBuilder.prototype.visitSend = function(node) {
   var element = (($0 = this.elements.$index(node)) == null ? null : $0.assert$Element());
   if ((node.selector instanceof Operator)) {
     var op = (($0 = node.selector) == null ? null : $0.assert$Operator());
-    if ($notnull_bool($eq(const$278/*const SourceString("&&")*/, op.get$source())) || $notnull_bool($eq(const$279/*const SourceString("||")*/, op.get$source()))) {
+    if ($notnull_bool($eq(const$275/*const SourceString("&&")*/, op.get$source())) || $notnull_bool($eq(const$276/*const SourceString("||")*/, op.get$source()))) {
       this.visitLogicalAndOr(node, op);
     }
-    else if ($notnull_bool($eq(const$280/*const SourceString("!")*/, op.get$source()))) {
+    else if ($notnull_bool($eq(const$277/*const SourceString("!")*/, op.get$source()))) {
       this.visitLogicalNot(node);
     }
     else if ((node.argumentsNode instanceof Prefix) || (node.argumentsNode instanceof Postfix)) {
@@ -8107,14 +8107,14 @@ SsaBuilder.prototype.visitSendSet = function(node) {
     this.compiler.unimplemented("SsaBuilder: property access");
   }
   var op = node.assignmentOperator;
-  if ($notnull_bool($eq(const$281/*const SourceString("=")*/, op.get$source()))) {
+  if ($notnull_bool($eq(const$278/*const SourceString("=")*/, op.get$source()))) {
     var link = node.get$arguments();
     _assert(!$notnull_bool(link.isEmpty()) && $notnull_bool(link.get$tail().isEmpty$0()), "!link.isEmpty() && link.tail.isEmpty()", "leg/ssa/builder.dart", 578, -40);
     this.visit((($0 = link.get$head()) == null ? null : $0.assert$Node()));
     this.stack.add(this.updateDefinition(node, this.pop()));
   }
   else {
-    _assert($notnull_bool($eq(const$284/*const SourceString("++")*/, op.get$source())) || $notnull_bool($eq(const$285/*const SourceString("--")*/, op.get$source())) || node.assignmentOperator.get$source().get$stringValue().endsWith("="), "const SourceString(\"++\") == op.source ||\n             const SourceString(\"--\") == op.source ||\n             node.assignmentOperator.source.stringValue.endsWith(\"=\")", "leg/ssa/builder.dart", 582, -40);
+    _assert($notnull_bool($eq(const$281/*const SourceString("++")*/, op.get$source())) || $notnull_bool($eq(const$282/*const SourceString("--")*/, op.get$source())) || node.assignmentOperator.get$source().get$stringValue().endsWith("="), "const SourceString(\"++\") == op.source ||\n             const SourceString(\"--\") == op.source ||\n             node.assignmentOperator.source.stringValue.endsWith(\"=\")", "leg/ssa/builder.dart", 582, -40);
     var isCompoundAssignment = !$notnull_bool(node.get$arguments().isEmpty());
     var isPrefix = !$notnull_bool(node.get$isPostfix());
     var getter = (($0 = this.elements.$index(node.selector)) == null ? null : $0.assert$Element());
@@ -14047,7 +14047,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    _assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 806, -54);
+    _assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 807, -54);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -15253,7 +15253,7 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  _assert($ne(type, null), "type != null", "gen.dart", 2286, -14);
+  _assert($ne(type, null), "type != null", "gen.dart", 2287, -14);
   if (!!(($0 = node.value) && $0.is$List())) {
     var items = [];
     var $$list = node.value;
@@ -16254,10 +16254,17 @@ FieldMember.prototype.computeValue = function() {
 }
 FieldMember.prototype._get = function(context, node, target, isDynamic) {
   var $0;
-  if (!$notnull_bool(isDynamic)) {
-    this.declaringType.markUsed();
+  if ($notnull_bool(this.isNative) && this.get$returnType() != null) {
+    this.get$returnType().markUsed();
+    if ((this.get$returnType() instanceof DefinedType)) {
+      var factory_ = this.get$returnType().get$genericType().factory_;
+      if ($notnull_bool($ne(factory_, null)) && $notnull_bool(factory_.get$isNative())) {
+        factory_.markUsed$0();
+      }
+    }
   }
   if ($notnull_bool(this.isStatic)) {
+    this.declaringType.markUsed();
     var cv = this.computeValue();
     if ($notnull_bool(this.isFinal)) {
       return (cv == null ? null : cv.assert$Value());
@@ -16836,7 +16843,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
     return this._invokeBuiltin(context, node, target, args, argsCode, isDynamic);
   }
   if ($notnull_bool(this.isFactory)) {
-    _assert(target.isType, "target.isType", "member.dart", 948, -15);
+    _assert(target.isType, "target.isType", "member.dart", 963, -15);
     return new Value(target.get$type(), ('' + this.get$generatedFactoryName() + '(' + argsString + ')'), node.span, true);
   }
   if ($notnull_bool(this.isStatic)) {
@@ -17151,7 +17158,7 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
   return new Value(this.get$inferredResult(), ('' + target.code + '.' + this.get$jsname() + '(' + argsString + ')'), node.span, true);
 }
 MethodMember.prototype._normConcat = function(a, b) {
-  _assert(b.get$type().get$isString(), "b.type.isString", "member.dart", 1252, -17);
+  _assert(b.get$type().get$isString(), "b.type.isString", "member.dart", 1267, -17);
   var val0 = a.get$dynamic().get$actualValue();
   var quote0 = val0.$index(0);
   val0 = val0.substring$2(1, val0.length - 1);
@@ -17166,11 +17173,11 @@ MethodMember.prototype._normConcat = function(a, b) {
     value = ('' + quote0 + val0 + val1 + quote0);
   }
   else if ($notnull_bool($eq(quote0, '"'))) {
-    _assert($eq(quote1, "'"), "quote1 == \"'\"", "member.dart", 1270, -15);
+    _assert($eq(quote1, "'"), "quote1 == \"'\"", "member.dart", 1285, -15);
     value = ('' + quote0 + val0 + toDoubleQuote($assert_String(val1)) + quote0);
   }
   else {
-    _assert($eq(quote1, '"'), "quote1 == '\"'", "member.dart", 1273, -15);
+    _assert($eq(quote1, '"'), "quote1 == '\"'", "member.dart", 1288, -15);
     value = ('' + quote1 + toDoubleQuote($assert_String(val0)) + val1 + quote1);
   }
   return $assert_String(value);
@@ -17480,8 +17487,8 @@ MemberSet.prototype.invoke = function(context, node, target, args, isDynamic) {
   return returnValue;
 }
 MemberSet.prototype.invokeSpecial = function(target, args, returnType) {
-  _assert(this.name.startsWith(':'), "name.startsWith(':')", "member.dart", 1559, -22);
-  _assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "member.dart", 1560, -16);
+  _assert(this.name.startsWith(':'), "name.startsWith(':')", "member.dart", 1574, -22);
+  _assert(!$notnull_bool(args.get$hasNames()), "!args.hasNames", "member.dart", 1575, -16);
   var argsString = args.getCode();
   if (this.name == ':index' || this.name == ':setindex') {
     return new Value(returnType, ('' + target.code + '.' + this.jsname + '(' + argsString + ')'), target.span, true);
@@ -24846,12 +24853,12 @@ var const$268 = new MessageKind('variable cannot be of type void')/*const Messag
 var const$270 = new MessageKind('expression does not yield a value')/*const MessageKind(
       'expression does not yield a value')*/;
 var const$272 = new MessageKind('#{1}')/*const MessageKind('#{1}')*/;
-var const$278 = new StringWrapper("&&")/*const SourceString("&&")*/;
-var const$279 = new StringWrapper("||")/*const SourceString("||")*/;
-var const$280 = new StringWrapper("!")/*const SourceString("!")*/;
-var const$281 = new StringWrapper("=")/*const SourceString("=")*/;
-var const$284 = new StringWrapper("++")/*const SourceString("++")*/;
-var const$285 = new StringWrapper("--")/*const SourceString("--")*/;
+var const$275 = new StringWrapper("&&")/*const SourceString("&&")*/;
+var const$276 = new StringWrapper("||")/*const SourceString("||")*/;
+var const$277 = new StringWrapper("!")/*const SourceString("!")*/;
+var const$278 = new StringWrapper("=")/*const SourceString("=")*/;
+var const$281 = new StringWrapper("++")/*const SourceString("++")*/;
+var const$282 = new StringWrapper("--")/*const SourceString("--")*/;
 var const$295 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype"])/*const <String>["__PROTO__", "prototype"]*/;
 var const$297 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "\$wnd", "\$doc", "\$entry", "\$moduleName", "\$moduleBase", "\$gwt_version", "\$sessionId", "\$stack", "\$stackDepth", "\$location", "call"])/*const <String>[
     // Section references are from Ecma-262
