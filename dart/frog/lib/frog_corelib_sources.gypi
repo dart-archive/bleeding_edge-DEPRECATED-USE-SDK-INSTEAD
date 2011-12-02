@@ -4,18 +4,9 @@
 
 {
   'sources': [
-    'arrays.dart',
-    'collections.dart',
-    'core.js',
     'corelib.dart',
-    'corelib_impl.dart',
-    'date_implementation.dart',
-    'json.dart',
-    'json.js',
     'math.dart',
+    'natives.dart',
     'num.dart',
-    'string_base.dart',
-    'string_buffer.dart',
-    'node/node.dart',
   ],
 }
