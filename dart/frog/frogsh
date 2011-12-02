@@ -1475,7 +1475,7 @@ HashMapImplementation._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation.prototype._grow = function(newCapacity) {
-  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Volumes/Data/dart/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
+  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/home/sra/dart-all/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1652,7 +1652,7 @@ HashMapImplementation_E$E._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation_E$E.prototype._grow = function(newCapacity) {
-  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/Volumes/Data/dart/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
+  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/home/sra/dart-all/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -2007,7 +2007,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  _assert(index == this.get$length(), "index == length", "/Volumes/Data/dart/dart/corelib/src/implementation/linked_hash_map.dart", 76, -17);
+  _assert(index == this.get$length(), "index == length", "/usr/local/google/home/sra/dart-all/dart/corelib/src/implementation/linked_hash_map.dart", 76, -17);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -2017,7 +2017,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  _assert(index == this.get$length(), "index == length", "/Volumes/Data/dart/dart/corelib/src/implementation/linked_hash_map.dart", 87, -17);
+  _assert(index == this.get$length(), "index == length", "/usr/local/google/home/sra/dart-all/dart/corelib/src/implementation/linked_hash_map.dart", 87, -17);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -14893,7 +14893,7 @@ MethodGenerator.prototype._visitAssign = function(kind, xn, yn, position, captur
     return this._visitDotAssign(kind, (xn == null ? null : xn.assert$DotExpression()), yn, position, captureOriginal);
   }
   else {
-    $globals.world.error('illegal lhs', position.span);
+    $globals.world.error('illegal lhs', xn.span);
   }
 }
 MethodGenerator.prototype._visitVarAssign = function(kind, xn, yn, position, captureOriginal) {
@@ -19521,7 +19521,7 @@ function lang_Parser(source, diet, throwOnIncomplete, optionalSemicolons, startO
   this.tokenizer = new Tokenizer(this.source, true, startOffset);
   this._peekToken = (($0 = this.tokenizer.next()) == null ? null : $0.assert$lang_Token());
   this._previousToken = null;
-  this._inInitializers = false;
+  this._inhibitLambda = false;
   this._afterParens = [];
 }
 lang_Parser.prototype.get$source = function() { return this.source; };
@@ -19703,13 +19703,13 @@ lang_Parser.prototype.functionTypeAlias = function() {
   return new FunctionTypeDefinition(func, typeParams, this._makeSpan(start));
 }
 lang_Parser.prototype.initializers = function() {
-  this._inInitializers = true;
+  this._inhibitLambda = true;
   var ret = [];
   do {
     ret.add$1(this.expression());
   }
   while ($notnull_bool(this._maybeEat(11/*TokenKind.COMMA*/)))
-  this._inInitializers = false;
+  this._inhibitLambda = false;
   return ret;
 }
 lang_Parser.prototype.get$initializers = function() {
@@ -20211,7 +20211,7 @@ lang_Parser.prototype._finishDeclaredId = function(type) {
   return this.finishPostfixExpression(new DeclaredIdentifier(type, name, this._makeSpan($assert_num(type.get$span().get$start()))));
 }
 lang_Parser.prototype._fixAsType = function(x) {
-  _assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 810, -25);
+  _assert(this._isBin(x, 52/*TokenKind.LT*/), "_isBin(x, TokenKind.LT)", "parser.dart", 813, -25);
   if ($notnull_bool(this._maybeEat(53/*TokenKind.GT*/))) {
     var base = this._makeType(x.x);
     var typeParam = this._makeType(x.y);
@@ -20219,7 +20219,7 @@ lang_Parser.prototype._fixAsType = function(x) {
     return this._finishDeclaredId(type);
   }
   else {
-    _assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 821, -25);
+    _assert(this._peekKind(52/*TokenKind.LT*/), "_peekKind(TokenKind.LT)", "parser.dart", 824, -25);
     var base = this._makeType(x.x);
     var paramBase = this._makeType(x.y);
     var firstParam = this.addTypeArguments((paramBase == null ? null : paramBase.assert$TypeReference()), 1);
@@ -20317,6 +20317,8 @@ lang_Parser.prototype.argument = function() {
 lang_Parser.prototype.arguments = function() {
   var args = [];
   this._eatLeftParen();
+  var saved = this._inhibitLambda;
+  this._inhibitLambda = false;
   if (!$notnull_bool(this._maybeEat(3/*TokenKind.RPAREN*/))) {
     do {
       args.add$1(this.argument());
@@ -20324,6 +20326,7 @@ lang_Parser.prototype.arguments = function() {
     while ($notnull_bool(this._maybeEat(11/*TokenKind.COMMA*/)))
     this._eat(3/*TokenKind.RPAREN*/);
   }
+  this._inhibitLambda = $assert_bool(saved);
   return args;
 }
 lang_Parser.prototype.get$arguments = function() {
@@ -20581,21 +20584,17 @@ lang_Parser.prototype._parenOrLambda = function() {
     return new LambdaExpression(func, (($0 = func.get$span()) == null ? null : $0.assert$SourceSpan()));
   }
   else {
-    var saved = this._inInitializers;
-    this._inInitializers = false;
-    var args = this.arguments();
-    this._inInitializers = $assert_bool(saved);
-    if ($notnull_bool($eq(args.length, 1))) {
-      return new ParenExpression(args.$index(0).get$value(), this._makeSpan(start));
-    }
-    else {
-      this._lang_error('unexpected comma expression');
-      return args.$index(0).get$value();
-    }
+    this._eatLeftParen();
+    var saved = this._inhibitLambda;
+    this._inhibitLambda = false;
+    var expr = this.expression();
+    this._eat(3/*TokenKind.RPAREN*/);
+    this._inhibitLambda = $assert_bool(saved);
+    return new ParenExpression(expr, this._makeSpan(start));
   }
 }
 lang_Parser.prototype._atClosureParameters = function() {
-  if ($notnull_bool(this._inInitializers)) return false;
+  if ($notnull_bool(this._inhibitLambda)) return false;
   var after = this._peekAfterCloseParen();
   return after.kind == 9/*TokenKind.ARROW*/ || after.kind == 6/*TokenKind.LBRACE*/;
 }
@@ -20746,7 +20745,7 @@ lang_Parser.parseHex = function(hex) {
   for (var i = 0;
    i < hex.length; i++) {
     var digit = lang_Parser._hexDigit(hex.charCodeAt(i));
-    _assert($ne(digit, -1), "digit != -1", "parser.dart", 1353, -13);
+    _assert($ne(digit, -1), "digit != -1", "parser.dart", 1356, -13);
     result = (result * 16) + $assert_num(digit);
   }
   return $assert_num(result);

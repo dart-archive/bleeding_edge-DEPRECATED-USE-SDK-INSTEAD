@@ -34,8 +34,11 @@ class Parser {
    */
   bool get enableAwait() => experimentalAwaitPhase != null;
 
-  /** To prevent conflicts in initializers */
-  bool _inInitializers;
+  /**
+   * To resolve ambiguity in initializers between constructor body and lambda
+   * expression.
+   */
+  bool _inhibitLambda;
 
   Token _previousToken;
   Token _peekToken;
@@ -54,7 +57,7 @@ class Parser {
     tokenizer = new Tokenizer(source, true, startOffset);
     _peekToken = tokenizer.next();
     _previousToken = null;
-    _inInitializers = false;
+    _inhibitLambda = false;
     _afterParens = <Token>[];
   }
 
@@ -284,12 +287,12 @@ class Parser {
   }
 
   initializers() {
-    _inInitializers = true;
+    _inhibitLambda = true;
     var ret = [];
     do {
       ret.add(expression());
     } while (_maybeEat(TokenKind.COMMA));
-    _inInitializers = false;
+    _inhibitLambda = false;
     return ret;
   }
 
@@ -929,12 +932,15 @@ class Parser {
   arguments() {
     var args = [];
     _eatLeftParen();
+    var saved = _inhibitLambda;
+    _inhibitLambda = false;
     if (!_maybeEat(TokenKind.RPAREN)) {
       do {
         args.add(argument());
       } while (_maybeEat(TokenKind.COMMA));
       _eat(TokenKind.RPAREN);
     }
+     _inhibitLambda = saved;
     return args;
   }
 
@@ -1179,21 +1185,18 @@ class Parser {
         null, body, _makeSpan(start));
       return new LambdaExpression(func, func.span);
     } else {
-      var saved = _inInitializers;
-      _inInitializers = false;
-      var args = arguments();
-      _inInitializers = saved;
-      if (args.length == 1) {
-        return new ParenExpression(args[0].value, _makeSpan(start));
-      } else {
-        _error('unexpected comma expression');
-        return args[0].value;
-      }
+      _eatLeftParen();
+      var saved = _inhibitLambda;
+      _inhibitLambda = false;
+      var expr = expression();
+      _eat(TokenKind.RPAREN);
+      _inhibitLambda = saved;
+      return new ParenExpression(expr, _makeSpan(start));
     }
   }
 
   bool _atClosureParameters() {
-    if (_inInitializers) return false;
+    if (_inhibitLambda) return false;
     Token after = _peekAfterCloseParen();
     return after.kind == TokenKind.ARROW || after.kind == TokenKind.LBRACE;
   }

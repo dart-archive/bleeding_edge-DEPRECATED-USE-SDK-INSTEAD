@@ -1838,7 +1838,7 @@ class MethodGenerator implements TreeVisitor {
     } else if (xn is DotExpression) {
       return _visitDotAssign(kind, xn, yn, position, captureOriginal);
     } else {
-      world.error('illegal lhs', position.span);
+      world.error('illegal lhs', xn.span);
     }
   }
 
