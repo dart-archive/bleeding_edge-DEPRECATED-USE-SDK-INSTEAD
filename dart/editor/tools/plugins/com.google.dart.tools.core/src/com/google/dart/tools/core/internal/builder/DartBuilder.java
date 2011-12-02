@@ -242,12 +242,19 @@ public class DartBuilder extends IncrementalProjectBuilder {
    */
   private final ArtifactProvider provider = new ArtifactProvider();
 
+  private boolean firstBuildThisSession = true;
+
   @SuppressWarnings("rawtypes")
   @Override
   protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
     // If *anything* changes then find each Dart App and build it
-    if (hasDartSourceChanged()) {
-      buildAllApplications(monitor);
+    if (firstBuildThisSession || hasDartSourceChanged()) {
+      buildAllApplications(SubMonitor.convert(monitor, 100));
+      if (firstBuildThisSession) {
+        firstBuildThisSession = false;
+        triggerDependentBuilds(SubMonitor.convert(monitor, 100));
+      }
+      monitor.done();
     }
 
     // Return the projects upon which this project depends
@@ -453,6 +460,20 @@ public class DartBuilder extends IncrementalProjectBuilder {
       }
     });
     return shouldBuild[0];
+  }
+
+  /**
+   * When first launched, the prerequisite projects have not been set thus any dependent libraries
+   * will not be compiled. This method looks for dependent libraries and explicitly triggers a
+   * build.
+   */
+  private void triggerDependentBuilds(IProgressMonitor monitor) throws CoreException {
+    DartProject proj = DartCore.create(getProject());
+    for (DartLibrary lib : proj.getDartLibraries()) {
+      for (DartLibrary refLib : ((DartLibraryImpl) lib).getReferencingLibraries()) {
+        ((DartLibraryImpl) refLib).getDefiningCompilationUnit().getResource().touch(monitor);
+      }
+    }
   }
 
 //  private void queueFilesForIndexer(Collection<LibraryUnit> libraries) {
