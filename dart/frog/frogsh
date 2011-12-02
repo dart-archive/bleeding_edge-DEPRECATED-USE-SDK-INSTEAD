@@ -1334,8 +1334,8 @@ ImmutableMap.prototype.isEmpty$0 = ImmutableMap.prototype.isEmpty;
 ImmutableMap.prototype.remove$1 = ImmutableMap.prototype.remove;
 // ********** Code for NumImplementation **************
 NumImplementation = Number;
-NumImplementation.prototype.assert$NumImplementation = function(){return this};
-NumImplementation.prototype.assert$Comparable = function(){return this};
+NumImplementation.prototype.assert$NumImplementation = function(){return Number(this)};
+NumImplementation.prototype.assert$Comparable = function(){return Number(this)};
 NumImplementation.prototype.isNaN = function() {
   return isNaN(this);
 }
@@ -13579,11 +13579,8 @@ WorldGenerator.prototype._maybeIsTest = function(onType, checkType) {
     if (!$notnull_bool(isSubtype)) {
       body = $assert_String($globals.world.objectType.varStubs.$index(checkName).get$body());
     }
-    else if ($notnull_bool(onType.get$library().get$isCoreImpl()) && onType.get$interfaces().length == 1) {
-      var inter = onType.get$interfaces().$index(0);
-      if ($notnull_bool(inter.get$library().get$isCore()) && $notnull_bool($ne(inter.get$typeofName(), null))) {
-        body = ('return ' + inter.get$jsname() + '(this)');
-      }
+    else if (onType.name == 'StringImplementation' || onType.name == 'NumImplementation') {
+      body = ('return ' + onType.get$nativeType().name + '(this)');
     }
     this.writer.writeln(this._prototypeOf(onType, checkName) + (' = function(){' + body + '};'));
   }
@@ -14050,7 +14047,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln('var \$this = this; // closure support');
   }
   if (this._usedTemps.get$length() > 0 || this._freeTemps.length > 0) {
-    _assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 808, -54);
+    _assert(this._usedTemps.get$length() == 0, "_usedTemps.length == 0", "gen.dart", 806, -54);
     this._freeTemps.addAll(this._usedTemps);
     this._freeTemps.sort((function (x, y) {
       return x.compareTo$1(y);
@@ -15256,7 +15253,7 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
 MethodGenerator.prototype.visitLiteralExpression = function(node) {
   var $0;
   var type = node.type.type;
-  _assert($ne(type, null), "type != null", "gen.dart", 2288, -14);
+  _assert($ne(type, null), "type != null", "gen.dart", 2286, -14);
   if (!!(($0 = node.value) && $0.is$List())) {
     var items = [];
     var $$list = node.value;
