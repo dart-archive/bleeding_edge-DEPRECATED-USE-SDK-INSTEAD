@@ -22,6 +22,10 @@ class FrogOptions {
   /** Where to place the generated code. */
   String outfile;
 
+  // TODO(dgrove): fix this. For now, either 'sdk' or 'dev'.
+  final config = 'dev';
+
+
   // Options that modify behavior significantly
   bool enableLeg = false;
   bool legOnly = false;
@@ -48,7 +52,15 @@ class FrogOptions {
   List<String> childArgs;
 
   FrogOptions(String homedir, List<String> args, FileSystem files) {
-    libDir = homedir + '/lib'; // Default value for --libdir.
+    if (config == 'dev') {
+      libDir = joinPaths(homedir, '/lib'); // Default value for --libdir.
+    } else if (config == 'sdk') {
+      libDir = joinPaths(homedir, '/../lib');
+    } else {
+      world.error('Invalid configuration $config', null);
+      throw('Invalid configuration');
+    }
+
     bool ignoreUnrecognizedFlags = false;
     bool passedLibDir = false;
     childArgs = [];
@@ -143,7 +155,7 @@ class FrogOptions {
     }
 
     // TODO(jimhug): Remove this hack.
-    if (!passedLibDir && !files.fileExists(libDir)) {
+    if (!passedLibDir && config == 'dev' && !files.fileExists(libDir)) {
       // Try locally
       var temp = 'frog/lib';
       if (files.fileExists(temp)) {

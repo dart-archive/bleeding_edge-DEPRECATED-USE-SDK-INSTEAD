@@ -9,17 +9,31 @@
 class LibraryReader {
   Map _specialLibs;
   LibraryReader() {
-    _specialLibs = {
-      'dart:core': joinPaths(options.libDir, 'corelib.dart'),
-      'dart:coreimpl': joinPaths(options.libDir, 'corelib_impl.dart'),
-      'dart:html': joinPaths(options.libDir,
-          '../../client/html/release/html.dart'),
-      'dart:htmlimpl': joinPaths(options.libDir,
-          '../../client/html/release/htmlimpl.dart'),
-      'dart:dom': joinPaths(options.libDir,
-          '../../client/dom/frog/frog_dom.dart'),
-      'dart:json': joinPaths(options.libDir, 'json.dart'),
-    };
+    if (options.config == 'dev') {
+      _specialLibs = {
+        'dart:core': joinPaths(options.libDir, 'corelib.dart'),
+        'dart:coreimpl': joinPaths(options.libDir, 'corelib_impl.dart'),
+        'dart:html': joinPaths(options.libDir,
+            '../../client/html/release/html.dart'),
+        'dart:htmlimpl': joinPaths(options.libDir,
+            '../../client/html/release/htmlimpl.dart'),
+        'dart:dom': joinPaths(options.libDir,
+            '../../client/dom/frog/frog_dom.dart'),
+        'dart:json': joinPaths(options.libDir, 'json.dart'),
+      };
+    } else if (options.config == 'sdk') {
+      _specialLibs = {
+        'dart:core': joinPaths(options.libDir, 'core/core_frog.dart'),
+        'dart:coreimpl': joinPaths(options.libDir, 
+          'coreimpl/coreimpl_frog.dart'),
+        'dart:html': joinPaths(options.libDir, 'html/html.dart'),
+        'dart:htmlimpl': joinPaths(options.libDir, 'htmlimpl/htmlimpl.dart'),
+        'dart:dom': joinPaths(options.libDir, 'dom/frog/frog_dom.dart'),
+        'dart:json': joinPaths(options.libDir, 'coreimpl/frog/json.dart'),
+      };
+    } else {
+      world.error('Invalid configuration ${options.config}');
+    }
   }
 
   SourceFile readFile(String fullname) {
