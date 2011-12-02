@@ -2027,7 +2027,7 @@ class MethodGenerator implements TreeVisitor {
 
   visitPostfixExpression(PostfixExpression node, [bool isVoid = false]) {
     var value = visitValue(node.body);
-    if (value.type.isNum) {
+    if (value.type.isNum && !value.isFinal) {
       return new Value(value.type, '${value.code}${node.op}', node.span);
     }
 

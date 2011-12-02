@@ -15051,7 +15051,7 @@ MethodGenerator.prototype.visitAwaitExpression = function(node) {
 MethodGenerator.prototype.visitPostfixExpression = function(node, isVoid) {
   var $this = this; // closure support
   var value = this.visitValue(node.body);
-  if ($notnull_bool(value.get$type().get$isNum())) {
+  if ($notnull_bool(value.get$type().get$isNum()) && !$notnull_bool(value.get$isFinal())) {
     return new Value(value.get$type(), ('' + value.get$code() + node.op), node.span, true);
   }
   var kind = (16/*TokenKind.INCR*/ == node.op.kind) ? 42/*TokenKind.ADD*/ : 43/*TokenKind.SUB*/;
