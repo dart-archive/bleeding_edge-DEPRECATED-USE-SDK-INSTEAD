@@ -39,7 +39,7 @@ class StringImplementation implements String native "String" {
   String trim() native;
 
   // TODO(jmesserly): should support pattern too.
-  bool contains(Pattern pattern, int startIndex) native
+  bool contains(Pattern pattern, [int startIndex]) native
     "return this.indexOf(pattern, startIndex) >= 0;";
 
   String _replaceFirst(String from, String to) native

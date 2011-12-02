@@ -1426,7 +1426,7 @@ HashMapImplementation._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation.prototype._grow = function(newCapacity) {
-  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/home/ngeoffray/dart-all3/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
+  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1603,7 +1603,7 @@ HashMapImplementation_E$E._isPowerOfTwo = function(x) {
   return ((x & (x - 1)) == 0);
 }
 HashMapImplementation_E$E.prototype._grow = function(newCapacity) {
-  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google/home/ngeoffray/dart-all3/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
+  _assert(HashMapImplementation._isPowerOfTwo(newCapacity), "_isPowerOfTwo(newCapacity)", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/hash_map_set.dart", 149, -28);
   var capacity = this._keys.length;
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
@@ -1958,7 +1958,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
     list.$setindex(index++, entry.key);
   }
   );
-  _assert(index == this.get$length(), "index == length", "/usr/local/google/home/ngeoffray/dart-all3/dart/corelib/src/implementation/linked_hash_map.dart", 76, -17);
+  _assert(index == this.get$length(), "index == length", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/linked_hash_map.dart", 76, -17);
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
@@ -1968,7 +1968,7 @@ LinkedHashMapImplementation.prototype.getValues = function() {
     list.$setindex(index++, entry.value);
   }
   );
-  _assert(index == this.get$length(), "index == length", "/usr/local/google/home/ngeoffray/dart-all3/dart/corelib/src/implementation/linked_hash_map.dart", 87, -17);
+  _assert(index == this.get$length(), "index == length", "/usr/local/google-old/home/goog/dart/dart/corelib/src/implementation/linked_hash_map.dart", 87, -17);
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
@@ -2478,6 +2478,9 @@ StringImplementation.prototype.charCodeAt$1 = function($0) {
 };
 StringImplementation.prototype.compareTo$1 = function($0) {
   return this.compareTo($assert_String($0));
+};
+StringImplementation.prototype.contains$1 = function($0) {
+  return this.contains(($0 == null ? null : $0.assert$Pattern()));
 };
 StringImplementation.prototype.endsWith$1 = function($0) {
   return this.endsWith($assert_String($0));
@@ -23743,7 +23746,7 @@ Value.prototype._typeAssert = function(context, toType, node, isDynamic) {
     $globals.world.internalError(('We thought ' + this.get$type().name + ' is not a subtype of ' + toType.name + '?'));
   }
   function throwTypeError(paramName) {
-    return $assert_String($globals.world.withoutTypeChecks((function () {
+    return $assert_String($globals.world.withoutForceDynamic((function () {
       var typeError = $globals.world.corelib.types.$index('TypeError');
       var typeErrorCtor = typeError.getConstructor$1('_internal');
       $globals.world.gen.corejs.ensureTypeNameOf();
@@ -24067,7 +24070,7 @@ BareValue.prototype._ensureCode = function() {
   }
 }
 BareValue.prototype._tryResolveMember = function(context, name) {
-  _assert($eq(context, this.home), "context == home", "value.dart", 739, -17);
+  _assert($eq(context, this.home), "context == home", "value.dart", 743, -17);
   var member = this.get$type().resolveMember(name);
   if ($notnull_bool($ne(member, null))) {
     if ($notnull_bool($globals.options.forceDynamic) && !$notnull_bool(member.get$isStatic())) {
@@ -24397,13 +24400,13 @@ World.prototype.info = function(message, span, span1, span2) {
     this._message(('info: ' + message), span, span1, span2, false);
   }
 }
-World.prototype.withoutTypeChecks = function(fn) {
-  var oldTypeChecks = $globals.options.enableTypeChecks;
-  $globals.options.enableTypeChecks = false;
+World.prototype.withoutForceDynamic = function(fn) {
+  var oldForceDynamic = $globals.options.forceDynamic;
+  $globals.options.forceDynamic = false;
   try {
     return fn();
   } finally {
-    $globals.options.enableTypeChecks = $assert_bool(oldTypeChecks);
+    $globals.options.forceDynamic = $assert_bool(oldForceDynamic);
   }
 }
 World.prototype.get$hasErrors = function() {
