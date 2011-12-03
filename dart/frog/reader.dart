@@ -29,7 +29,7 @@ class LibraryReader {
         'dart:html': joinPaths(options.libDir, 'html/html.dart'),
         'dart:htmlimpl': joinPaths(options.libDir, 'htmlimpl/htmlimpl.dart'),
         'dart:dom': joinPaths(options.libDir, 'dom/frog/frog_dom.dart'),
-        'dart:json': joinPaths(options.libDir, 'coreimpl/frog/json.dart'),
+        'dart:json': joinPaths(options.libDir, 'json/json_frog.dart'),
       };
     } else {
       world.error('Invalid configuration ${options.config}');

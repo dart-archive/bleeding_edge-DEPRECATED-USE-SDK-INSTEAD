@@ -11,8 +11,6 @@
     'date_implementation.dart',
     'isolate.dart',
     'isolate_serialization.dart',
-    'json.dart',
-    'json.js',
     'math.dart',
     'num.dart',
     'string_base.dart',
