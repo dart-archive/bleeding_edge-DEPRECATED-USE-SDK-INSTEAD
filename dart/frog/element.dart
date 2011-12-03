@@ -103,14 +103,7 @@ class Element implements Hashable {
       }
       var typeArgs = [];
       for (int i=0; i < typeRef.typeArguments.length; i++) {
-        var extendsType = baseType.typeParameters[i].extendsType;
-        var typeArg = resolveType(typeRef.typeArguments[i], typeErrors);
-        typeArgs.add(typeArg);
-
-        if (extendsType != null && typeArg is! ParameterType) {
-          typeArg.ensureSubtypeOf(extendsType,
-              typeRef.typeArguments[i].span, typeErrors);
-        }
+        typeArgs.add(resolveType(typeRef.typeArguments[i], typeErrors));
       }
       typeRef.type = baseType.getOrMakeConcreteType(typeArgs);
     } else if (node is FunctionTypeReference) {

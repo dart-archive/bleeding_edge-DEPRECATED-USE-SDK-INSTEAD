@@ -2012,12 +2012,7 @@ Element.prototype.resolveType = function(node, typeErrors) {
     var typeArgs = [];
     for (var i = 0;
      i < typeRef.typeArguments.length; i++) {
-      var extendsType = baseType.get$typeParameters().$index(i).get$extendsType();
-      var typeArg = this.resolveType(typeRef.typeArguments.$index(i), typeErrors);
-      typeArgs.add$1(typeArg);
-      if ($ne(extendsType, null) && !(typeArg instanceof ParameterType)) {
-        typeArg.ensureSubtypeOf$3(extendsType, typeRef.typeArguments.$index(i).get$span(), typeErrors);
-      }
+      typeArgs.add$1(this.resolveType(typeRef.typeArguments.$index(i), typeErrors));
     }
     typeRef.type = baseType.getOrMakeConcreteType$1(typeArgs);
   }
@@ -10485,6 +10480,27 @@ Type.prototype.get$hasNativeSubtypes = function() {
   }
   return this._hasNativeSubtypes;
 }
+Type.prototype._checkExtends = function() {
+  var typeParams = this.get$genericType().typeParameters;
+  if ($ne(typeParams, null) && $ne(this.get$typeArgsInOrder(), null)) {
+    var args = this.get$typeArgsInOrder().iterator$0();
+    var params = typeParams.iterator$0();
+    while (args.hasNext$0() && params.hasNext$0()) {
+      var typeParam = params.next$0();
+      var typeArg = args.next$0();
+      if ($ne(typeParam.get$extendsType(), null) && $ne(typeArg, null)) {
+        typeArg.ensureSubtypeOf$3(typeParam.get$extendsType(), typeParam.get$span(), true);
+      }
+    }
+  }
+  if (this.get$interfaces() != null) {
+    var $$list = this.get$interfaces();
+    for (var $$i = 0;$$i < $$list.length; $$i++) {
+      var i = $$list.$index($$i);
+      i._checkExtends();
+    }
+  }
+}
 Type.prototype._checkOverride = function(member) {
   var parentMember = this._getMemberInParents(member.name);
   if ($ne(parentMember, null)) {
@@ -10849,6 +10865,7 @@ NonNullableType.prototype.markUsed$0 = NonNullableType.prototype.markUsed;
 NonNullableType.prototype.resolveTypeParams$1 = NonNullableType.prototype.resolveTypeParams;
 // ********** Code for ConcreteType **************
 function ConcreteType(name, genericType, typeArguments, typeArgsInOrder) {
+  this.isUsed = false
   this.genericType = genericType;
   this.typeArguments = typeArguments;
   this.typeArgsInOrder = typeArgsInOrder;
@@ -10880,6 +10897,8 @@ ConcreteType.prototype.get$hasTypeParams = function() {
   })
   );
 }
+ConcreteType.prototype.get$isUsed = function() { return this.isUsed; };
+ConcreteType.prototype.set$isUsed = function(value) { return this.isUsed = value; };
 ConcreteType.prototype.get$members = function() { return this.members; };
 ConcreteType.prototype.set$members = function(value) { return this.members = value; };
 ConcreteType.prototype.get$constructors = function() { return this.constructors; };
@@ -10946,10 +10965,13 @@ ConcreteType.prototype.getAllMembers = function() {
   return result;
 }
 ConcreteType.prototype.markUsed = function() {
+  if (this.isUsed) return;
+  this.isUsed = true;
+  this._checkExtends();
   this.genericType.markUsed();
 }
 ConcreteType.prototype.genMethod = function(method) {
-  this.genericType.genMethod(method);
+  return this.genericType.genMethod(method);
 }
 ConcreteType.prototype.getFactory = function(type, constructorName) {
   return this.genericType.getFactory(type, constructorName);
@@ -11115,6 +11137,7 @@ DefinedType.prototype.getAllMembers = function() {
 DefinedType.prototype.markUsed = function() {
   if (this.isUsed) return;
   this.isUsed = true;
+  this._checkExtends();
   if (this._lazyGenMethods != null) {
     var $$list = orderValuesByKeys(this._lazyGenMethods);
     for (var $$i = 0;$$i < $$list.length; $$i++) {

@@ -109,6 +109,31 @@ class Type extends Element {
     return _hasNativeSubtypes;
   }
 
+  void _checkExtends() {
+    var typeParams = genericType.typeParameters;
+    if (typeParams != null && typeArgsInOrder != null) {
+      // TODO(jmesserly): making typeArgsInOrder be a List instead of a
+      // Collection would clean this up.
+      var args = typeArgsInOrder.iterator();
+      var params = typeParams.iterator();
+      while (args.hasNext() && params.hasNext()) {
+        var typeParam = params.next();
+        var typeArg = args.next();
+        if (typeParam.extendsType != null && typeArg != null) {
+          typeArg.ensureSubtypeOf(typeParam.extendsType, typeParam.span, true);
+        }
+      }
+    }
+
+    // Parent should be handled by the super constructor call, but we still
+    // need to check our interfaces.
+    if (interfaces != null) {
+      for (var i in interfaces) {
+        i._checkExtends();
+      }
+    }
+  }
+
   void _checkOverride(Member member) {
     // always look in parents to check that any overloads are legal
     var parentMember = _getMemberInParents(member.name);
@@ -528,9 +553,10 @@ class ConcreteType extends Type {
   Library get library() => genericType.library;
   SourceSpan get span()  => genericType.span;
 
-
   bool get hasTypeParams() =>
     typeArguments.getValues().some((e) => e is ParameterType);
+
+  bool isUsed = false;
 
   /**
    * Keeps a collection of members for which a concrete version needed to
@@ -586,6 +612,8 @@ class ConcreteType extends Type {
     if (_subtypes == null) {
       _subtypes = new Set<Type>();
       for (var s in genericType.subtypes) {
+        // TODO(jmesserly): this substitution is not right if type names are
+        // different in the subtype.
         _subtypes.add(s.resolveTypeParams(this));
       }
     }
@@ -613,12 +641,14 @@ class ConcreteType extends Type {
   }
 
   void markUsed() {
+    if (isUsed) return;
+
+    isUsed = true;
+    _checkExtends();
     genericType.markUsed();
   }
-  void genMethod(Member method) {
-    genericType.genMethod(method);
-  }
 
+  void genMethod(Member method) => genericType.genMethod(method);
 
   getFactory(Type type, String constructorName) {
     return genericType.getFactory(type, constructorName);
@@ -801,6 +831,8 @@ class DefinedType extends Type {
     if (isUsed) return;
 
     isUsed = true;
+
+    _checkExtends();
 
     if (_lazyGenMethods != null) {
       for (var method in orderValuesByKeys(_lazyGenMethods)) {
