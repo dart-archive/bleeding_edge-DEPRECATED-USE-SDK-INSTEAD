@@ -59,8 +59,8 @@ class Evaluator {
     _lib.resolve();
   }
 
-  void _ensureVariableDefined(Identifier name, [List<Token> modifiers = [],
-      TypeReference type = null]) {
+  void _ensureVariableDefined(Identifier name,
+      [List<Token> modifiers = const [], TypeReference type = null]) {
     var member = _lib.topType.getMember(name.name);
     if (member is FieldMember || member is PropertyMember) return;
     _removeMember(name.name);

@@ -60,6 +60,9 @@ class Parameter {
       context = new MethodGenerator(method, null);
     }
     value = definition.value.visit(context);
+    if (!value.isConst) {
+      world.error('default arguments must be constant', value.span);
+    }
     value = value.convertTo(context, type, definition.value);
   }
 

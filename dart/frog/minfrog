@@ -4465,6 +4465,9 @@ Parameter.prototype.genValue = function(method, context) {
     context = new MethodGenerator(method, null);
   }
   this.value = this.definition.value.visit(context);
+  if (!this.value.get$isConst()) {
+    $globals.world.error('default arguments must be constant', this.value.span);
+  }
   this.value = this.value.convertTo(context, this.type, this.definition.value, false);
 }
 Parameter.prototype.copyWithNewType = function(newMethod, newType) {
@@ -12624,7 +12627,7 @@ function LibraryReader() {
     this._specialLibs = _map(['dart:core', joinPaths($globals.options.libDir, 'corelib.dart'), 'dart:coreimpl', joinPaths($globals.options.libDir, 'corelib_impl.dart'), 'dart:html', joinPaths($globals.options.libDir, '../../client/html/release/html.dart'), 'dart:htmlimpl', joinPaths($globals.options.libDir, '../../client/html/release/htmlimpl.dart'), 'dart:dom', joinPaths($globals.options.libDir, '../../client/dom/frog/frog_dom.dart'), 'dart:json', joinPaths($globals.options.libDir, 'json.dart')]);
   }
   else if ($eq($globals.options.config, 'sdk')) {
-    this._specialLibs = _map(['dart:core', joinPaths($globals.options.libDir, 'core/core_frog.dart'), 'dart:coreimpl', joinPaths($globals.options.libDir, 'coreimpl/coreimpl_frog.dart'), 'dart:html', joinPaths($globals.options.libDir, 'html/html.dart'), 'dart:htmlimpl', joinPaths($globals.options.libDir, 'htmlimpl/htmlimpl.dart'), 'dart:dom', joinPaths($globals.options.libDir, 'dom/frog/frog_dom.dart'), 'dart:json', joinPaths($globals.options.libDir, 'coreimpl/frog/json.dart')]);
+    this._specialLibs = _map(['dart:core', joinPaths($globals.options.libDir, 'core/core_frog.dart'), 'dart:coreimpl', joinPaths($globals.options.libDir, 'coreimpl/coreimpl_frog.dart'), 'dart:html', joinPaths($globals.options.libDir, 'html/html.dart'), 'dart:htmlimpl', joinPaths($globals.options.libDir, 'htmlimpl/htmlimpl.dart'), 'dart:dom', joinPaths($globals.options.libDir, 'dom/frog/frog_dom.dart'), 'dart:json', joinPaths($globals.options.libDir, 'json/json_frog.dart')]);
   }
   else {
     $globals.world.error(('Invalid configuration ' + $globals.options.config));
