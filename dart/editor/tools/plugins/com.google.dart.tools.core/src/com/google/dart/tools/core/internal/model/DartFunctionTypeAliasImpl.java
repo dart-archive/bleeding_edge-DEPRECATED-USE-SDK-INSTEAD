@@ -23,7 +23,6 @@ import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Instances of the class <code>DartFunctionTypeAliasImpl</code>
@@ -53,12 +52,6 @@ public class DartFunctionTypeAliasImpl extends SourceReferenceImpl implements Da
   @Override
   public int getElementType() {
     return DartElement.FUNCTION_TYPE_ALIAS;
-  }
-
-  @Override
-  public DartVariableDeclaration[] getLocalVariables() throws DartModelException {
-    List<DartVariableDeclaration> variables = getChildrenOfType(DartVariableDeclaration.class);
-    return variables.toArray(new DartVariableDeclaration[variables.size()]);
   }
 
   @Override
@@ -96,11 +89,6 @@ public class DartFunctionTypeAliasImpl extends SourceReferenceImpl implements Da
       return null;
     }
     return new String(name);
-  }
-
-  @Override
-  public boolean isMain() {
-    return false;
   }
 
   @Override

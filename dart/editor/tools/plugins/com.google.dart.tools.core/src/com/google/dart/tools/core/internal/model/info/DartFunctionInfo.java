@@ -17,7 +17,7 @@ package com.google.dart.tools.core.internal.model.info;
  * Instances of the class <code>DartFunctionInfo</code> represent the information known about a Dart
  * function.
  */
-public class DartFunctionInfo extends SourceElementWithChildrenInfo {
+public class DartFunctionInfo extends DeclarationElementInfo {
   /**
    * The name of the return type of this method, or <code>null</code> if this method is a
    * constructor or does not have a declared return type.

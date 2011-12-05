@@ -28,6 +28,7 @@ import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.compiler.parser.CommentPreservingParser;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.util.DartSourceString;
@@ -333,18 +334,29 @@ public class DartCompilerUtilities {
   private static final class ParserRunnable extends CompilerRunner {
     private final DartSource sourceRef;
     private final String source;
+    private boolean preserveComments;
     private DartUnit result;
 
-    public ParserRunnable(DartSource sourceRef, String source,
+    public ParserRunnable(DartSource sourceRef, String source, boolean preserveComments,
         Collection<DartCompilationError> parseErrors) {
       super(parseErrors);
       this.sourceRef = sourceRef;
       this.source = source;
+      this.preserveComments = preserveComments;
     }
 
     @Override
     public void run() throws Exception {
-      result = new DartParser(sourceRef, source, this).parseUnit(sourceRef);
+      result = createParser().parseUnit(sourceRef);
+    }
+
+    private DartParser createParser() {
+      if (preserveComments) {
+        return new CommentPreservingParser(CommentPreservingParser.createContext(sourceRef, source,
+            this), false);
+      } else {
+        return new DartParser(sourceRef, source, this);
+      }
     }
   }
 
@@ -476,19 +488,35 @@ public class DartCompilerUtilities {
    * 
    * @param sourceRef the Dart source being parsed
    * @param source the source to be parsed (not <code>null</code>)
+   * @param preserveComments <code>true</code> if comments are to be preserved
    * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
    *          parse errors should be ignored
    * @return the parse result
    */
-  public static DartUnit parseSource(DartSource sourceRef, String source,
-      final Collection<DartCompilationError> parseErrors) throws DartModelException {
-    ParserRunnable runnable = new ParserRunnable(sourceRef, source, parseErrors);
+  public static DartUnit parseSource(DartSource sourceRef, String source, boolean preserveComments,
+      Collection<DartCompilationError> parseErrors) throws DartModelException {
+    ParserRunnable runnable = new ParserRunnable(sourceRef, source, preserveComments, parseErrors);
     runnable.runSafe();
     if (runnable.exception != null) {
       throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
           "Failed to parse " + sourceRef.getName(), runnable.exception)));
     }
     return runnable.result;
+  }
+
+  /**
+   * Parse the specified source. Any exceptions thrown by the {@link DartParser} will be logged and
+   * a {@link DartModelException} thrown.
+   * 
+   * @param sourceRef the Dart source being parsed
+   * @param source the source to be parsed (not <code>null</code>)
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
+   *          parse errors should be ignored
+   * @return the parse result
+   */
+  public static DartUnit parseSource(DartSource sourceRef, String source,
+      Collection<DartCompilationError> parseErrors) throws DartModelException {
+    return parseSource(sourceRef, source, false, parseErrors);
   }
 
   /**
@@ -506,6 +534,23 @@ public class DartCompilerUtilities {
       return null;
     }
     return dartUnit;
+  }
+
+  /**
+   * Parse the specified source. Any exceptions thrown by the {@link DartParser} will be logged and
+   * a {@link DartModelException} thrown.
+   * 
+   * @param name a name for the source being parsed
+   * @param source the source to be parsed (not <code>null</code>)
+   * @param preserveComments <code>true</code> if comments are to be preserved
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
+   *          parse errors should be ignored
+   * @return the parse result
+   */
+  public static DartUnit parseSource(String name, String source, boolean preserveComments,
+      final Collection<DartCompilationError> parseErrors) throws DartModelException {
+    DartSource sourceRef = new DartSourceString(name, source);
+    return parseSource(sourceRef, source, preserveComments, parseErrors);
   }
 
   /**

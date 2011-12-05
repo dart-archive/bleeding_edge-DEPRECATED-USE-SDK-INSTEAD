@@ -17,6 +17,32 @@ package com.google.dart.tools.core.model;
  * The interface <code>DartFunctionTypeAlias</code> defines the behavior of objects representing
  * function type aliases defined in compilation units.
  */
-public interface DartFunctionTypeAlias extends CompilationUnitElement, DartFunction,
-    SourceManipulation, SourceReference {
+public interface DartFunctionTypeAlias extends CompilationUnitElement, SourceManipulation,
+    SourceReference {
+  /**
+   * Return an array containing the names of the parameters for this function, or an empty array if
+   * this function does not have any parameters.
+   * 
+   * @return an array containing the names of the parameters for this function
+   * @throws DartModelException if the names of the parameters cannot be accessed
+   */
+  public String[] getParameterNames() throws DartModelException;
+
+  /**
+   * Return an array containing the names of the parameter types for this function, or an empty
+   * array if this function does not have any parameters.
+   * 
+   * @return an array containing the names of the parameter types for this function
+   * @throws DartModelException if the names of the parameter types cannot be accessed
+   */
+  public String[] getParameterTypeNames() throws DartModelException;
+
+  /**
+   * Return the name of the return type of this function, or <code>null</code> if this function does
+   * not have a return type.
+   * 
+   * @return the name of the return type of this function
+   * @throws DartModelException if the return type of this function cannot be accessed
+   */
+  public String getReturnTypeName() throws DartModelException;
 }

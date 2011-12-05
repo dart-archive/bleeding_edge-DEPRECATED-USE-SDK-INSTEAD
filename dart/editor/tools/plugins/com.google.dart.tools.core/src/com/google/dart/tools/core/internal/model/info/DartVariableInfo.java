@@ -13,18 +13,11 @@
  */
 package com.google.dart.tools.core.internal.model.info;
 
-import com.google.dart.compiler.ast.Modifiers;
-
 /**
  * Instances of the class <code>DartVariableInfo</code> maintain the cached data shared by all equal
  * variables.
  */
-public class DartVariableInfo extends SourceElementWithChildrenInfo {
-  /**
-   * The modifiers associated with the declared element.
-   */
-  private Modifiers modifiers;
-
+public class DartVariableInfo extends DeclarationElementInfo {
   /**
    * The name of the declared type of this variable, or <code>null</code> if this variable does not
    * have a declared type.
@@ -35,15 +28,6 @@ public class DartVariableInfo extends SourceElementWithChildrenInfo {
    * A flag indicating whether this variable is a parameter.
    */
   private boolean isParameter;
-
-  /**
-   * Return the modifiers associated with the declared element.
-   * 
-   * @return the modifiers associated with the declared element
-   */
-  public Modifiers getModifiers() {
-    return modifiers;
-  }
 
   /**
    * Return the name of the declared type of this variable, or <code>null</code> if this variable
@@ -62,15 +46,6 @@ public class DartVariableInfo extends SourceElementWithChildrenInfo {
    */
   public boolean isParameter() {
     return isParameter;
-  }
-
-  /**
-   * Set the modifiers associated with the declared element to the given modifiers.
-   * 
-   * @param newModifiers the modifiers to be associated with the declared element
-   */
-  public void setModifiers(Modifiers newModifiers) {
-    modifiers = newModifiers;
   }
 
   /**
