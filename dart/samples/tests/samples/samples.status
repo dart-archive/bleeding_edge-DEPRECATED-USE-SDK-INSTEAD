@@ -5,6 +5,11 @@
 prefix samples
 
 [ $component == vm && $system == macos ]
+chat/ChatServerTest: Skip
+# TODO(ager): Remove this style of suppression when we retire the
+# python test scripts. The source code is in a subdirectory and that
+# should be reflected in the status file. However, the python script
+# does not do that currently.
 ChatServerTest: Skip
 
 [ $component == dartc ]
