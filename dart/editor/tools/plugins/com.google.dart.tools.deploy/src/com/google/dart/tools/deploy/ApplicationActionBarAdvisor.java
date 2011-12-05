@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.deploy;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.ui.launch.RunServerAction;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
@@ -418,9 +417,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       // Add the group for applications to contribute
       helpToolBar.add(new GroupMarker(IWorkbenchActionConstants.GROUP_APP));
       helpToolBar.add(runInBrowserAction);
-      if (DartCoreDebug.BLEEDING_EDGE) {
-        helpToolBar.add(runServerAction);
-      }
+      helpToolBar.add(runServerAction);
 
       // Add to the cool bar manager
       coolBar.add(actionBarConfigurer.createToolBarContributionItem(helpToolBar,
@@ -938,9 +935,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new Separator());
 
     menu.add(runInBrowserAction);
-    if (DartCoreDebug.BLEEDING_EDGE) {
-      menu.add(runServerAction);
-    }
+    menu.add(runServerAction);
 
     menu.add(new Separator());
 

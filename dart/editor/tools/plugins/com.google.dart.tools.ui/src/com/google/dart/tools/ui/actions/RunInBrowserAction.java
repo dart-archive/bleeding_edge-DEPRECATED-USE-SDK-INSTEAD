@@ -15,13 +15,11 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.HTMLFile;
-import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
@@ -121,11 +119,8 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
     setId(ACTION_ID);
     setDescription(ActionMessages.OpenInBrowserAction_description);
     setToolTipText(ActionMessages.OpenInBrowserAction_toolTip);
-    if (DartCoreDebug.BLEEDING_EDGE) {
-      setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/run_client.png"));
-    } else {
-      setImageDescriptor(DartPluginImages.DESC_TOOL_RUN);
-    }
+    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/run_client.png"));
+
     setEnabled(false);
 
     window.getPartService().addPartListener(this);

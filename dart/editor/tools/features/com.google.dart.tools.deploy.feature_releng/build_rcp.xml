@@ -309,6 +309,18 @@ build system.  The PDE build system has to run under Eclipse.
             </fileset>
         </copy>
 
+        <!-- Chat -->
+        <copy todir="${samples.out.dir}/chat">
+            <fileset dir="${build.source.root}/samples/chat">
+            </fileset>
+        </copy>
+        
+        <!-- Time -->
+        <copy todir="${samples.out.dir}/time">
+            <fileset dir="${build.source.root}/samples/time">
+            </fileset>
+        </copy>
+        
         <!-- Hi -->
         <!-- copy todir="${samples.out.dir}/hi">
             <fileset dir="${build.source.root}/client/samples/hi">

@@ -1,14 +1,25 @@
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.preferences.DebugPreferencePage;
 import com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.ui.IEditorPart;
@@ -25,9 +36,10 @@ import org.eclipse.ui.internal.dialogs.WorkbenchPreferenceDialog;
  */
 
 @SuppressWarnings("restriction")
-public class RunServerAction extends Action implements ISelectionListener, IPartListener {
+public class RunServerAction extends Action implements ISelectionListener,
+    ISelectionChangedListener, IPartListener {
   private IWorkbenchWindow window;
-  ISelection selection;
+  private IFile selectedFile;
 
   public RunServerAction(IWorkbenchWindow window) {
     this.window = window;
@@ -37,9 +49,11 @@ public class RunServerAction extends Action implements ISelectionListener, IPart
     setDescription("Launch in Dart Server");
     setToolTipText("Launch in Dart Server");
     setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/run_server.png"));
+
+    setEnabled(false);
+
     window.getSelectionService().addSelectionListener(this);
     window.getPartService().addPartListener(this);
-    setEnabled(true);
   }
 
   @Override
@@ -71,8 +85,8 @@ public class RunServerAction extends Action implements ISelectionListener, IPart
 
   @Override
   public void run() {
-
     String vmExecPath = DartDebugCorePlugin.getPlugin().getDartVmExecutablePath();
+
     if (vmExecPath.length() == 0) {
       if (showPreferenceDialog() != Window.OK) {
         return;
@@ -80,8 +94,8 @@ public class RunServerAction extends Action implements ISelectionListener, IPart
     }
 
     DartServerLaunchShortcut launchShortcut = new DartServerLaunchShortcut();
-    launchShortcut.launch(selection, ILaunchManager.RUN_MODE);
 
+    launchShortcut.launch(new StructuredSelection(selectedFile), ILaunchManager.RUN_MODE);
   }
 
   @Override
@@ -89,6 +103,33 @@ public class RunServerAction extends Action implements ISelectionListener, IPart
     if (selection instanceof IStructuredSelection) {
       handleSelectionChanged((IStructuredSelection) selection);
     }
+  }
+
+  @Override
+  public void selectionChanged(SelectionChangedEvent event) {
+    if (event.getSelection() instanceof IStructuredSelection) {
+      handleSelectionChanged((IStructuredSelection) event.getSelection());
+    }
+  }
+
+  private IFile findFile(IStructuredSelection selection) {
+    Object sel = selection.getFirstElement();
+
+    if (sel instanceof IFile) {
+      return (IFile) sel;
+    } else if (sel instanceof DartElement) {
+      try {
+        IResource resource = ((DartElement) sel).getCorrespondingResource();
+
+        if (resource instanceof IFile) {
+          return (IFile) resource;
+        }
+      } catch (DartModelException exception) {
+        DartUtil.logError(exception);
+      }
+    }
+
+    return null;
   }
 
   private void handleEditorActivated(IEditorPart editorPart) {
@@ -101,20 +142,49 @@ public class RunServerAction extends Action implements ISelectionListener, IPart
 
   private void handleSelectionChanged(IStructuredSelection selection) {
     if (selection != null && !selection.isEmpty()) {
-      this.selection = selection;
+      selectedFile = findFile(selection);
     } else {
-      selection = null;
+      selectedFile = null;
     }
-    setEnabled(selection != null);
 
+    setEnabled(isValidSelectedFile());
   }
 
-  private int showPreferenceDialog() {
+  private boolean isValidSelectedFile() {
+    if (selectedFile == null) {
+      return false;
+    }
 
+    if (!DartCore.isDartLikeFileName(selectedFile.getName())) {
+      return false;
+    }
+
+    DartElement element = DartCore.create(selectedFile);
+
+    if (element instanceof CompilationUnit) {
+      CompilationUnit cu = (CompilationUnit) element;
+
+      DartLibrary lib = cu.getLibrary();
+
+      if (lib instanceof DartLibraryImpl) {
+        DartLibraryImpl impl = (DartLibraryImpl) lib;
+
+        return impl.hasMain() && !impl.isBrowserApplication();
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * @return either Window.OK or Window.CANCEL
+   */
+  private int showPreferenceDialog() {
     FilteredPreferenceDialog dialog = WorkbenchPreferenceDialog.createDialogOn(window.getShell(),
         DebugPreferencePage.PAGE_ID);
 
     dialog.showOnly(new String[] {DebugPreferencePage.PAGE_ID});
+
     return dialog.open();
   }
 
