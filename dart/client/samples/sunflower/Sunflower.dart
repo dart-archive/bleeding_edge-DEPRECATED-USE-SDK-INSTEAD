@@ -28,6 +28,8 @@ class Sunflower {
       drawFrame();
     }, true);
     
+    seeds = Math.parseInt(slider.value);
+    
     drawFrame();
   }
   
@@ -46,9 +48,9 @@ class Sunflower {
   // Draw a small circle representing a seed centered at (x,y).
   void drawSeed(num x, num y) {
     ctx.beginPath();
-    ctx.setLineWidth(2);
-    ctx.setFillColor(ORANGE);
-    ctx.setStrokeColor(ORANGE);
+    ctx.lineWidth = 2;
+    ctx.fillStyle = ORANGE;
+    ctx.strokeStyle = ORANGE;
     ctx.arc(x, y, SEED_RADIUS, 0, TAU, false);
     ctx.fill();
     ctx.closePath();
