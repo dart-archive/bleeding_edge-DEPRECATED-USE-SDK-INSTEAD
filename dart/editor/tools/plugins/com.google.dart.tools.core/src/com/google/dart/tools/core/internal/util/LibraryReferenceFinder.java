@@ -202,6 +202,12 @@ public class LibraryReferenceFinder {
               fileName.length() - JavascriptBackend.EXTENSION_APP_JS.length() - 1);
           libraryList.add(fileName);
         }
+        // Match the "Generate Optimized Javascript" default extension
+        if (srcLocation.endsWith(".dart.js")) {
+          String fileName = extractFileNameFromSrc(srcLocation);
+          fileName = fileName.substring(0, fileName.length() - 3);
+          libraryList.add(fileName);
+        }
       } else if (scriptType.equals("application/dart")) {
         libraryList.add(srcLocation);
         return true;
