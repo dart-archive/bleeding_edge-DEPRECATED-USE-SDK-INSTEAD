@@ -2520,10 +2520,6 @@ function MethodGenerator(method, enclosingMethod) {
   else {
     this._scope = new BlockScope(this, null, false);
   }
-  if (this.enclosingMethod != null && this.method.name != '') {
-    var m = this.method;
-    this._scope.create(m.name, m.get$functionType(), m.definition.span, true, false);
-  }
   this._usedTemps = new HashSetImplementation();
   this._freeTemps = [];
 }
@@ -2920,7 +2916,6 @@ MethodGenerator.prototype._makeLambdaMethod = function(name, func) {
   meth.set$isLambda(true);
   meth.set$enclosingElement(this.method);
   meth.resolve$0();
-  $globals.world.gen.genMethod(meth, this);
   return meth;
 }
 MethodGenerator.prototype.visitBool = function(node) {
@@ -2989,9 +2984,9 @@ MethodGenerator.prototype.visitVariableDefinition = function(node) {
   return false;
 }
 MethodGenerator.prototype.visitFunctionDefinition = function(node) {
-  var name = $globals.world.toJsIdentifier(node.name.name);
-  var meth = this._makeLambdaMethod(name, node);
-  var funcValue = this._scope.create(name, meth.get$functionType(), this.method.get$definition().get$span(), true, false);
+  var meth = this._makeLambdaMethod(node.name.name, node);
+  var funcValue = this._scope.create(meth.get$name(), meth.get$functionType(), this.method.get$definition().get$span(), true, false);
+  $globals.world.gen.genMethod(meth, this);
   meth.get$generator().writeDefinition$2(this.writer);
   return false;
 }
@@ -3365,13 +3360,16 @@ MethodGenerator.prototype._makeThisValue = function(node) {
   }
 }
 MethodGenerator.prototype.visitLambdaExpression = function(node) {
-  var name = '';
-  if (node.func.name != null) {
-    name = $globals.world.toJsIdentifier(node.func.name.name);
-  }
+  var name = (node.func.name != null) ? node.func.name.name : '';
   var meth = this._makeLambdaMethod(name, node.func);
+  var lambdaGen = new MethodGenerator(meth, this);
+  if ($ne(name, '')) {
+    lambdaGen._scope.create(name, meth.get$functionType(), meth.definition.span, true, false);
+    lambdaGen._pushBlock(false);
+  }
+  lambdaGen.run();
   var w = new CodeWriter();
-  meth.get$generator().writeDefinition$2(w, node);
+  meth.generator.writeDefinition(w, node);
   return new Value(meth.get$functionType(), w.get$text(), node.span, true);
 }
 MethodGenerator.prototype.visitCallExpression = function(node) {

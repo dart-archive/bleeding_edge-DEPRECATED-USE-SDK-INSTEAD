@@ -681,12 +681,6 @@ class MethodGenerator implements TreeVisitor {
     } else {
       _scope = new BlockScope(this, null);
     }
-    // For named lambdas, add the name to this scope so we can call it
-    // recursively.
-    if (enclosingMethod != null && method.name != '') {
-      MethodMember m = method; // lambdas must be MethodMembers
-      _scope.create(m.name, m.functionType, m.definition.span, isFinal:true);
-    }
     _usedTemps = new Set();
     _freeTemps = [];
   }
@@ -1147,7 +1141,6 @@ class MethodGenerator implements TreeVisitor {
     meth.isLambda = true;
     meth.enclosingElement = method;
     meth.resolve();
-    world.gen.genMethod(meth, this);
     return meth;
   }
 
@@ -1236,13 +1229,11 @@ class MethodGenerator implements TreeVisitor {
   }
 
   bool visitFunctionDefinition(FunctionDefinition node) {
-    var name = world.toJsIdentifier(node.name.name);
-
-    var meth = _makeLambdaMethod(name, node);
-
-    // TODO(jimhug): Pass js name into writeDefinition?
-    var funcValue = _scope.create(name, meth.functionType,
+    var meth = _makeLambdaMethod(node.name.name, node);
+    var funcValue = _scope.create(meth.name, meth.functionType,
         method.definition.span, isFinal:true);
+
+    world.gen.genMethod(meth, this);
     meth.generator.writeDefinition(writer, null);
     return false;
   }
@@ -1703,16 +1694,23 @@ class MethodGenerator implements TreeVisitor {
 
   // ******************* Expressions *******************
   visitLambdaExpression(LambdaExpression node) {
-    var name = '';
-    if (node.func.name != null) {
-      name = world.toJsIdentifier(node.func.name.name);
-    }
+    var name = (node.func.name != null) ? node.func.name.name : '';
 
-    var meth = _makeLambdaMethod(name, node.func);
+    MethodMember meth = _makeLambdaMethod(name, node.func);
+    final lambdaGen = new MethodGenerator(meth, this);
+    if (name != '') {
+      // Note: we don't want to put this in our enclosing scope because the
+      // name shouldn't be visible except inside the lambda. We also don't want
+      // to put the name directly in the lambda's scope because parameters are
+      // allowed to shadow it. So we create an extra scope for it to go into.
+      lambdaGen._scope.create(name, meth.functionType, meth.definition.span,
+          isFinal:true);
+      lambdaGen._pushBlock();
+    }
+    lambdaGen.run();
 
     var w = new CodeWriter();
     meth.generator.writeDefinition(w, node);
-
     return new Value(meth.functionType, w.text, node.span);
   }
 
