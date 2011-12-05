@@ -139,11 +139,32 @@ Object.prototype.get$dynamic = function() {
 Object.prototype.noSuchMethod = function(name, args) {
   $throw(new NoSuchMethodException(this, name, args));
 }
+Object.prototype._checkExtends$0 = function() {
+  return this.noSuchMethod("_checkExtends", []);
+};
+Object.prototype._checkNonStatic$1 = function($0) {
+  return this.noSuchMethod("_checkNonStatic", [$0]);
+};
 Object.prototype._get$3 = function($0, $1, $2) {
   return this.noSuchMethod("_get", [$0, $1, $2]);
 };
+Object.prototype._get$3$isDynamic = function($0, $1, $2, isDynamic) {
+  return this.noSuchMethod("_get", [$0, $1, $2, isDynamic]);
+};
+Object.prototype._get$4 = function($0, $1, $2, $3) {
+  return this.noSuchMethod("_get", [$0, $1, $2, $3]);
+};
 Object.prototype._set$4 = function($0, $1, $2, $3) {
   return this.noSuchMethod("_set", [$0, $1, $2, $3]);
+};
+Object.prototype._set$4$isDynamic = function($0, $1, $2, $3, isDynamic) {
+  return this.noSuchMethod("_set", [$0, $1, $2, $3, isDynamic]);
+};
+Object.prototype._set$5 = function($0, $1, $2, $3, $4) {
+  return this.noSuchMethod("_set", [$0, $1, $2, $3, $4]);
+};
+Object.prototype._wrapDomCallback$2 = function($0, $1) {
+  return this.noSuchMethod("_wrapDomCallback", [$0, $1]);
 };
 Object.prototype.add$1 = function($0) {
   return this.noSuchMethod("add", [$0]);
@@ -177,6 +198,9 @@ Object.prototype.computeValue$0 = function() {
 };
 Object.prototype.contains$1 = function($0) {
   return this.noSuchMethod("contains", [$0]);
+};
+Object.prototype.containsKey$1 = function($0) {
+  return this.noSuchMethod("containsKey", [$0]);
 };
 Object.prototype.convertTo$3 = function($0, $1, $2) {
   return this.noSuchMethod("convertTo", [$0, $1, $2]);
@@ -847,6 +871,7 @@ HashMapImplementation.prototype.getValues = function() {
 HashMapImplementation.prototype.containsKey = function(key) {
   return (this._probeForLookup(key) != -1);
 }
+HashMapImplementation.prototype.containsKey$1 = HashMapImplementation.prototype.containsKey;
 HashMapImplementation.prototype.forEach$1 = function($0) {
   return this.forEach(to$call$2($0));
 };
@@ -1219,6 +1244,7 @@ Object.defineProperty(LinkedHashMapImplementation.prototype, "length", {
 LinkedHashMapImplementation.prototype.isEmpty = function() {
   return this.get$length() == 0;
 }
+LinkedHashMapImplementation.prototype.containsKey$1 = LinkedHashMapImplementation.prototype.containsKey;
 LinkedHashMapImplementation.prototype.forEach$1 = function($0) {
   return this.forEach(to$call$2($0));
 };
@@ -1945,6 +1971,8 @@ function Element(name, _enclosingElement) {
 }
 Element.prototype.get$name = function() { return this.name; };
 Element.prototype.set$name = function(value) { return this.name = value; };
+Element.prototype.get$_jsname = function() { return this._jsname; };
+Element.prototype.set$_jsname = function(value) { return this._jsname = value; };
 Element.prototype.get$library = function() {
   return null;
 }
@@ -2146,7 +2174,7 @@ WorldGenerator.prototype.writeTypes = function(lib) {
     if ((type.get$isUsed() || type.get$isHiddenNativeType()) && type.get$isClass()) {
       this.writeType(type);
       if (type.get$isGeneric()) {
-        var $list0 = this._orderValues(type._concreteTypes);
+        var $list0 = this._orderValues(type.get$_concreteTypes());
         for (var $i0 = 0;$i0 < $list0.length; $i0++) {
           var ct = $list0.$index($i0);
           this.writeType(ct);
@@ -2243,7 +2271,7 @@ WorldGenerator.prototype.writeType = function(type) {
       this.corejs.ensureInheritsHelper();
       this.writer.writeln(('\$inherits(' + c.get$jsname() + ', ' + c.genericType.get$jsname() + ');'));
       for (var p = c._parent;
-       (p instanceof ConcreteType); p = p._parent) {
+       (p instanceof ConcreteType); p = p.get$_parent()) {
         this._ensureInheritMembersHelper();
         this._mixins.writeln(('\$inheritsMembers(' + c.get$jsname() + ', ' + p.get$jsname() + ');'));
       }
@@ -2273,8 +2301,8 @@ WorldGenerator.prototype.writeType = function(type) {
     while (!worklist.isEmpty()) {
       var interface_ = worklist.removeLast();
       this._maybeIsTest(type, interface_.get$genericType());
-      if (interface_.get$genericType()._concreteTypes != null) {
-        var $$list = this._orderValues(interface_.get$genericType()._concreteTypes);
+      if ($ne(interface_.get$genericType().get$_concreteTypes(), null)) {
+        var $$list = this._orderValues(interface_.get$genericType().get$_concreteTypes());
         for (var $$i = 0;$$i < $$list.length; $$i++) {
           var ct = $$list.$index($$i);
           this._maybeIsTest(type, ct);
@@ -2434,6 +2462,12 @@ BlockScope.prototype.get$enclosingMethod = function() { return this.enclosingMet
 BlockScope.prototype.set$enclosingMethod = function(value) { return this.enclosingMethod = value; };
 BlockScope.prototype.get$parent = function() { return this.parent; };
 BlockScope.prototype.set$parent = function(value) { return this.parent = value; };
+BlockScope.prototype.get$_vars = function() { return this._vars; };
+BlockScope.prototype.set$_vars = function(value) { return this._vars = value; };
+BlockScope.prototype.get$_jsNames = function() { return this._jsNames; };
+BlockScope.prototype.set$_jsNames = function(value) { return this._jsNames = value; };
+BlockScope.prototype.get$_closedOver = function() { return this._closedOver; };
+BlockScope.prototype.set$_closedOver = function(value) { return this._closedOver = value; };
 BlockScope.prototype.get$rethrow = function() { return this.rethrow; };
 BlockScope.prototype.set$rethrow = function(value) { return this.rethrow = value; };
 BlockScope.prototype.get$reentrant = function() { return this.reentrant; };
@@ -2451,10 +2485,10 @@ BlockScope.prototype.lookup = function(name) {
   if ($ne(ret, null)) return ret;
   for (var s = this.parent;
    $ne(s, null); s = s.get$parent()) {
-    ret = s._vars.$index(name);
+    ret = s.get$_vars().$index(name);
     if ($ne(ret, null)) {
       if ($ne(s.get$enclosingMethod(), this.enclosingMethod)) {
-        s.get$methodScope()._closedOver.add(ret.get$code());
+        s.get$methodScope().get$_closedOver().add$1(ret.get$code());
         if (this.enclosingMethod.captures != null && s.get$reentrant()) {
           this.enclosingMethod.captures.add(ret.get$code());
         }
@@ -2467,9 +2501,9 @@ BlockScope.prototype._isDefinedInParent = function(name) {
   if (this.get$isMethodScope() && this._closedOver.contains(name)) return true;
   for (var s = this.parent;
    $ne(s, null); s = s.get$parent()) {
-    if (s._vars.containsKey(name)) return true;
-    if (s._jsNames.contains(name)) return true;
-    if (s.get$isMethodScope() && s._closedOver.contains(name)) return true;
+    if (s.get$_vars().containsKey$1(name)) return true;
+    if (s.get$_jsNames().contains$1(name)) return true;
+    if (s.get$isMethodScope() && s.get$_closedOver().contains$1(name)) return true;
   }
   var type = this.enclosingMethod.method.declaringType;
   if (type.get$library().lookup(name, null) != null) return true;
@@ -3350,7 +3384,7 @@ MethodGenerator.prototype._makeThisCode = function() {
 MethodGenerator.prototype._makeThisValue = function(node) {
   if (this.enclosingMethod != null) {
     var outermostMethod = this._getOutermostMethod();
-    outermostMethod._checkNonStatic(node);
+    outermostMethod._checkNonStatic$1(node);
     outermostMethod.set$needsThis(true);
     return new Value(outermostMethod.method.get$declaringType(), '\$this', node != null ? node.span : null, false);
   }
@@ -3865,6 +3899,7 @@ MethodGenerator.prototype.visitLiteralExpression = function(node) {
   }
   return EvaluatedValue.EvaluatedValue$factory(type, node.value, node.text, null);
 }
+MethodGenerator.prototype._checkNonStatic$1 = MethodGenerator.prototype._checkNonStatic;
 MethodGenerator.prototype.visitPostfixExpression$1 = function($0) {
   return this.visitPostfixExpression($0, false);
 };
@@ -3999,6 +4034,8 @@ $inherits(Library, Element);
 Library.prototype.get$baseSource = function() { return this.baseSource; };
 Library.prototype.get$types = function() { return this.types; };
 Library.prototype.set$types = function(value) { return this.types = value; };
+Library.prototype.get$_privateMembers = function() { return this._privateMembers; };
+Library.prototype.set$_privateMembers = function(value) { return this._privateMembers = value; };
 Library.prototype.get$topType = function() { return this.topType; };
 Library.prototype.set$topType = function(value) { return this.topType = value; };
 Library.prototype.get$enclosingElement = function() {
@@ -4055,12 +4092,12 @@ Library.prototype._addMember = function(member) {
       var $$list = $globals.world.libraries.getValues();
       for (var $$i = $globals.world.libraries.getValues().iterator$0(); $$i.hasNext$0(); ) {
         var lib = $$i.next$0();
-        if (lib._privateMembers.containsKey(member.get$jsname())) {
+        if (lib.get$_privateMembers().containsKey$1(member.get$jsname())) {
           member._jsname = ('_' + this.get$jsname() + member.get$jsname());
           break;
         }
       }
-      mset = new MemberSet(member, false);
+      mset = new MemberSet(member, true);
       this._privateMembers.$setindex(member.name, mset);
     }
     else {
@@ -4602,7 +4639,11 @@ Member.prototype.hashCode = function() {
   return (this.declaringType.hashCode() << 4) ^ this.name.hashCode();
 }
 Member.prototype._get$3 = Member.prototype._get;
+Member.prototype._get$3$isDynamic = Member.prototype._get;
+Member.prototype._get$4 = Member.prototype._get;
 Member.prototype._set$4 = Member.prototype._set;
+Member.prototype._set$4$isDynamic = Member.prototype._set;
+Member.prototype._set$5 = Member.prototype._set;
 Member.prototype.canInvoke$2 = Member.prototype.canInvoke;
 Member.prototype.computeValue$0 = Member.prototype.computeValue;
 Member.prototype.hashCode$0 = Member.prototype.hashCode;
@@ -4654,9 +4695,13 @@ TypeMember.prototype.invoke = function(context, node, target, args, isDynamic) {
 TypeMember.prototype._get$3 = function($0, $1, $2) {
   return this._get($0, $1, $2, false);
 };
+TypeMember.prototype._get$3$isDynamic = TypeMember.prototype._get;
+TypeMember.prototype._get$4 = TypeMember.prototype._get;
 TypeMember.prototype._set$4 = function($0, $1, $2, $3) {
   return this._set($0, $1, $2, $3, false);
 };
+TypeMember.prototype._set$4$isDynamic = TypeMember.prototype._set;
+TypeMember.prototype._set$5 = TypeMember.prototype._set;
 TypeMember.prototype.canInvoke$2 = TypeMember.prototype.canInvoke;
 TypeMember.prototype.invoke$4 = function($0, $1, $2, $3) {
   return this.invoke($0, $1, $2, $3, false);
@@ -4835,9 +4880,13 @@ FieldMember.prototype._set = function(context, node, target, value, isDynamic) {
 FieldMember.prototype._get$3 = function($0, $1, $2) {
   return this._get($0, $1, $2, false);
 };
+FieldMember.prototype._get$3$isDynamic = FieldMember.prototype._get;
+FieldMember.prototype._get$4 = FieldMember.prototype._get;
 FieldMember.prototype._set$4 = function($0, $1, $2, $3) {
   return this._set($0, $1, $2, $3, false);
 };
+FieldMember.prototype._set$4$isDynamic = FieldMember.prototype._set;
+FieldMember.prototype._set$5 = FieldMember.prototype._set;
 FieldMember.prototype.computeValue$0 = FieldMember.prototype.computeValue;
 FieldMember.prototype.provideFieldSyntax$0 = FieldMember.prototype.provideFieldSyntax;
 FieldMember.prototype.providePropertySyntax$0 = FieldMember.prototype.providePropertySyntax;
@@ -4933,9 +4982,13 @@ PropertyMember.prototype.resolve = function() {
 PropertyMember.prototype._get$3 = function($0, $1, $2) {
   return this._get($0, $1, $2, false);
 };
+PropertyMember.prototype._get$3$isDynamic = PropertyMember.prototype._get;
+PropertyMember.prototype._get$4 = PropertyMember.prototype._get;
 PropertyMember.prototype._set$4 = function($0, $1, $2, $3) {
   return this._set($0, $1, $2, $3, false);
 };
+PropertyMember.prototype._set$4$isDynamic = PropertyMember.prototype._set;
+PropertyMember.prototype._set$5 = PropertyMember.prototype._set;
 PropertyMember.prototype.provideFieldSyntax$0 = PropertyMember.prototype.provideFieldSyntax;
 PropertyMember.prototype.providePropertySyntax$0 = PropertyMember.prototype.providePropertySyntax;
 PropertyMember.prototype.resolve$0 = PropertyMember.prototype.resolve;
@@ -5064,9 +5117,13 @@ ConcreteMember.prototype.invoke = function(context, node, target, args, isDynami
 ConcreteMember.prototype._get$3 = function($0, $1, $2) {
   return this._get($0, $1, $2, false);
 };
+ConcreteMember.prototype._get$3$isDynamic = ConcreteMember.prototype._get;
+ConcreteMember.prototype._get$4 = ConcreteMember.prototype._get;
 ConcreteMember.prototype._set$4 = function($0, $1, $2, $3) {
   return this._set($0, $1, $2, $3, false);
 };
+ConcreteMember.prototype._set$4$isDynamic = ConcreteMember.prototype._set;
+ConcreteMember.prototype._set$5 = ConcreteMember.prototype._set;
 ConcreteMember.prototype.canInvoke$2 = ConcreteMember.prototype.canInvoke;
 ConcreteMember.prototype.computeValue$0 = ConcreteMember.prototype.computeValue;
 ConcreteMember.prototype.invoke$4 = function($0, $1, $2, $3) {
@@ -5786,9 +5843,13 @@ MethodMember.prototype.resolve = function() {
 MethodMember.prototype._get$3 = function($0, $1, $2) {
   return this._get($0, $1, $2, false);
 };
+MethodMember.prototype._get$3$isDynamic = MethodMember.prototype._get;
+MethodMember.prototype._get$4 = MethodMember.prototype._get;
 MethodMember.prototype._set$4 = function($0, $1, $2, $3) {
   return this._set($0, $1, $2, $3, false);
 };
+MethodMember.prototype._set$4$isDynamic = MethodMember.prototype._set;
+MethodMember.prototype._set$5 = MethodMember.prototype._set;
 MethodMember.prototype.canInvoke$2 = MethodMember.prototype.canInvoke;
 MethodMember.prototype.invoke$4 = function($0, $1, $2, $3) {
   return this.invoke($0, $1, $2, $3, false);
@@ -5876,21 +5937,21 @@ MemberSet.prototype._get = function(context, node, target, isDynamic) {
   );
   if (this.isVar) {
     targets.forEach$1((function (m) {
-      return m._get(context, node, target, true);
+      return m._get$3$isDynamic(context, node, target, true);
     })
     );
     returnValue = new Value(this._foldTypes(targets), null, node.span, true);
   }
   else {
     if (this.members.length == 1) {
-      return this.members.$index(0)._get(context, node, target, isDynamic);
+      return this.members.$index(0)._get$4(context, node, target, isDynamic);
     }
     else if ($eq(targets.length, 1)) {
-      return targets.$index(0)._get(context, node, target, isDynamic);
+      return targets.$index(0)._get$4(context, node, target, isDynamic);
     }
     for (var $$i = targets.iterator$0(); $$i.hasNext$0(); ) {
       var member = $$i.next$0();
-      var value = member._get(context, node, target, true);
+      var value = member._get$3$isDynamic(context, node, target, true);
       returnValue = this._tryUnion(returnValue, value, node);
     }
     if (returnValue == null) {
@@ -5915,21 +5976,21 @@ MemberSet.prototype._set = function(context, node, target, value, isDynamic) {
   );
   if (this.isVar) {
     targets.forEach$1((function (m) {
-      return m._set(context, node, target, value, true);
+      return m._set$4$isDynamic(context, node, target, value, true);
     })
     );
     returnValue = new Value(this._foldTypes(targets), null, node.span, true);
   }
   else {
     if (this.members.length == 1) {
-      return this.members.$index(0)._set(context, node, target, value, isDynamic);
+      return this.members.$index(0)._set$5(context, node, target, value, isDynamic);
     }
     else if ($eq(targets.length, 1)) {
-      return targets.$index(0)._set(context, node, target, value, isDynamic);
+      return targets.$index(0)._set$5(context, node, target, value, isDynamic);
     }
     for (var $$i = targets.iterator$0(); $$i.hasNext$0(); ) {
       var member = $$i.next$0();
-      var res = member._set(context, node, target, value, true);
+      var res = member._set$4$isDynamic(context, node, target, value, true);
       returnValue = this._tryUnion(returnValue, res, node);
     }
     if (returnValue == null) {
@@ -6045,9 +6106,13 @@ MemberSet.prototype._foldTypes = function(targets) {
 MemberSet.prototype._get$3 = function($0, $1, $2) {
   return this._get($0, $1, $2, false);
 };
+MemberSet.prototype._get$3$isDynamic = MemberSet.prototype._get;
+MemberSet.prototype._get$4 = MemberSet.prototype._get;
 MemberSet.prototype._set$4 = function($0, $1, $2, $3) {
   return this._set($0, $1, $2, $3, false);
 };
+MemberSet.prototype._set$4$isDynamic = MemberSet.prototype._set;
+MemberSet.prototype._set$5 = MemberSet.prototype._set;
 MemberSet.prototype.add$1 = MemberSet.prototype.add;
 MemberSet.prototype.canInvoke$2 = MemberSet.prototype.canInvoke;
 MemberSet.prototype.invoke$4 = function($0, $1, $2, $3) {
@@ -10504,7 +10569,7 @@ Type.prototype._checkExtends = function() {
     var $$list = this.get$interfaces();
     for (var $$i = 0;$$i < $$list.length; $$i++) {
       var i = $$list.$index($$i);
-      i._checkExtends();
+      i._checkExtends$0();
     }
   }
 }
@@ -10687,6 +10752,7 @@ Type._isFunctionSubtypeOf = function(t, s) {
   if (tp.length > sp.length && !tp.$index(sp.length).get$isOptional()) return false;
   return true;
 }
+Type.prototype._checkExtends$0 = Type.prototype._checkExtends;
 Type.prototype.addDirectSubtype$1 = Type.prototype.addDirectSubtype;
 Type.prototype.ensureSubtypeOf$3 = Type.prototype.ensureSubtypeOf;
 Type.prototype.getConstructor$1 = Type.prototype.getConstructor;
@@ -10884,6 +10950,8 @@ function ConcreteType(name, genericType, typeArguments, typeArgsInOrder) {
 }
 $inherits(ConcreteType, Type);
 ConcreteType.prototype.get$genericType = function() { return this.genericType; };
+ConcreteType.prototype.get$_parent = function() { return this._parent; };
+ConcreteType.prototype.set$_parent = function(value) { return this._parent = value; };
 ConcreteType.prototype.get$typeArgsInOrder = function() { return this.typeArgsInOrder; };
 ConcreteType.prototype.set$typeArgsInOrder = function(value) { return this.typeArgsInOrder = value; };
 ConcreteType.prototype.get$isList = function() {
@@ -11054,6 +11122,8 @@ DefinedType.prototype.get$definition = function() { return this.definition; };
 DefinedType.prototype.set$definition = function(value) { return this.definition = value; };
 DefinedType.prototype.get$library = function() { return this.library; };
 DefinedType.prototype.get$isClass = function() { return this.isClass; };
+DefinedType.prototype.get$_parent = function() { return this._parent; };
+DefinedType.prototype.set$_parent = function(value) { return this._parent = value; };
 DefinedType.prototype.get$parent = function() {
   return this._parent;
 }
@@ -11070,6 +11140,8 @@ DefinedType.prototype.get$members = function() { return this.members; };
 DefinedType.prototype.set$members = function(value) { return this.members = value; };
 DefinedType.prototype.get$factories = function() { return this.factories; };
 DefinedType.prototype.set$factories = function(value) { return this.factories = value; };
+DefinedType.prototype.get$_concreteTypes = function() { return this._concreteTypes; };
+DefinedType.prototype.set$_concreteTypes = function(value) { return this._concreteTypes = value; };
 DefinedType.prototype.get$isUsed = function() { return this.isUsed; };
 DefinedType.prototype.set$isUsed = function(value) { return this.isUsed = value; };
 DefinedType.prototype.get$isNative = function() { return this.isNative; };
@@ -11463,7 +11535,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   var ret = this._concreteTypes.$index(key);
   if (ret == null) {
     ret = new ConcreteType(simpleName, this, typeMap, typeArgs);
-    ret._jsname = jsname;
+    ret.set$_jsname(jsname);
     this._concreteTypes.$setindex(key, ret);
   }
   return ret;
@@ -11650,7 +11722,7 @@ Value.prototype.get_ = function(context, name, node) {
 Value.prototype.set_ = function(context, name, node, value, isDynamic) {
   var member = this._resolveMember(context, name, node, isDynamic);
   if ($ne(member, null)) {
-    return member._set(context, node, this, value, isDynamic);
+    return member._set$5(context, node, this, value, isDynamic);
   }
   else {
     return this.invokeNoSuchMethod(context, ('set:' + name), node, new Arguments(null, [value]));
@@ -11782,7 +11854,7 @@ Value.prototype.convertTo = function(context, toType, node, isDynamic) {
     if (myCall == null || $ne(myCall.get$parameters().length, arity)) {
       var stub = $globals.world.functionType.getCallStub(Arguments.Arguments$bare$factory(arity));
       var val = new Value(toType, ('to\$' + stub.name + '(' + this.code + ')'), node.span, true);
-      return this._isDomCallback(toType) && !this._isDomCallback(this.get$type()) ? val._wrapDomCallback(toType, arity) : val;
+      return this._isDomCallback(toType) && !this._isDomCallback(this.get$type()) ? val._wrapDomCallback$2(toType, arity) : val;
     }
     else if (this._isDomCallback(toType) && !this._isDomCallback(this.get$type())) {
       return this._wrapDomCallback(toType, arity);
@@ -11929,6 +12001,7 @@ Value.prototype.invokeNoSuchMethod = function(context, name, node, args) {
   var noSuchArgs = [new Value($globals.world.stringType, ('"' + name + '"'), node.span, true), new Value($globals.world.listType, ('[' + pos + ']'), node.span, true)];
   return this._resolveMember(context, 'noSuchMethod', node, false).invoke$4(context, node, this, new Arguments(null, noSuchArgs));
 }
+Value.prototype._wrapDomCallback$2 = Value.prototype._wrapDomCallback;
 Value.prototype.checkFirstClass$1 = Value.prototype.checkFirstClass;
 Value.prototype.convertTo$3 = function($0, $1, $2) {
   return this.convertTo($0, $1, $2, false);

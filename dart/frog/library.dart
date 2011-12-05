@@ -98,7 +98,7 @@ class Library extends Element {
           }
         }
 
-        mset = new MemberSet(member);
+        mset = new MemberSet(member, isVar:true);
         _privateMembers[member.name] = mset;
       } else {
         mset.members.add(member);
