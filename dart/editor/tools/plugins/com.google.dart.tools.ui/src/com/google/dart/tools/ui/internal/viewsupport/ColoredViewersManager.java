@@ -125,8 +125,8 @@ public class ColoredViewersManager implements IPropertyChangeListener {
 // happen.
       } else if (!newLabel.getString().equals(itemText)) {
         // the decorator manager has already queued an new update
-        newLabel = ColoredJavaElementLabels.decorateColoredString(newLabel, itemText,
-            ColoredJavaElementLabels.DECORATIONS_STYLE);
+        newLabel = ColoredDartElementLabels.decorateColoredString(newLabel, itemText,
+            ColoredDartElementLabels.DECORATIONS_STYLE);
       }
       item.setData(COLORED_LABEL_KEY, newLabel); // cache the result
       return newLabel;

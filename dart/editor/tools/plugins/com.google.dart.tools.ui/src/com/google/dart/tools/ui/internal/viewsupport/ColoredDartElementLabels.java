@@ -35,7 +35,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 
-public class ColoredJavaElementLabels {
+public class ColoredDartElementLabels {
 
   public static final Style QUALIFIER_STYLE = new Style(ColoredViewersManager.QUALIFIER_COLOR_NAME);
   public static final Style COUNTER_STYLE = new Style(ColoredViewersManager.COUNTER_COLOR_NAME);

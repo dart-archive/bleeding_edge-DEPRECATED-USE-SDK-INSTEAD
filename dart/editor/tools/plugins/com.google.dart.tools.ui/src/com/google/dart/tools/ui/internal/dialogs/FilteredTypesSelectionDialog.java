@@ -43,7 +43,7 @@ import com.google.dart.tools.ui.dialogs.TypeSelectionExtension;
 import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
 import com.google.dart.tools.ui.internal.util.Strings;
 import com.google.dart.tools.ui.internal.util.TypeNameMatchLabelProvider;
-import com.google.dart.tools.ui.internal.viewsupport.ColoredJavaElementLabels;
+import com.google.dart.tools.ui.internal.viewsupport.ColoredDartElementLabels;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredString;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
@@ -1580,7 +1580,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
         ColoredString str = new ColoredString(text);
         int index = text.indexOf('-');
         if (index != -1) {
-          str.colorize(index, str.length() - index, ColoredJavaElementLabels.QUALIFIER_STYLE);
+          str.colorize(index, str.length() - index, ColoredDartElementLabels.QUALIFIER_STYLE);
         }
         return str;
       }

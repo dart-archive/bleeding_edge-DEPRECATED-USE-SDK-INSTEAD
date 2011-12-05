@@ -90,8 +90,8 @@ public class DecoratingDartLabelProvider extends DecoratingLabelProvider impleme
           }
         }
         if (decorated != null) {
-          return ColoredJavaElementLabels.decorateColoredString(richLabel, decorated,
-              ColoredJavaElementLabels.DECORATIONS_STYLE);
+          return ColoredDartElementLabels.decorateColoredString(richLabel, decorated,
+              ColoredDartElementLabels.DECORATIONS_STYLE);
         }
         return richLabel;
       }
