@@ -192,7 +192,10 @@ class WorldGenerator {
   }
 
   String _prototypeOf(Type type, String name) {
-    if (type.isHiddenNativeType) {
+    if (type.isSingletonNative) {
+      // e.g. window.console.log$1
+      return '${type.jsname}.$name';
+    } else if (type.isHiddenNativeType) {
       corejs.ensureDynamicProto();
       return '\$dynamic("$name").${type.jsname}';
     } else {

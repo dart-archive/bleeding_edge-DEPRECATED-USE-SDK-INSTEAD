@@ -2168,7 +2168,10 @@ WorldGenerator.prototype.genMethod = function(meth, enclosingMethod) {
   }
 }
 WorldGenerator.prototype._prototypeOf = function(type, name) {
-  if (type.get$isHiddenNativeType()) {
+  if (type.get$isSingletonNative()) {
+    return ('' + type.get$jsname() + '.' + name);
+  }
+  else if (type.get$isHiddenNativeType()) {
     this.corejs.ensureDynamicProto();
     return ('\$dynamic("' + name + '").' + type.get$jsname());
   }
@@ -10441,6 +10444,9 @@ Type.prototype.get$nativeType = function() {
 Type.prototype.get$isHiddenNativeType = function() {
   return (this.get$nativeType() != null && this.get$nativeType().isConstructorHidden);
 }
+Type.prototype.get$isSingletonNative = function() {
+  return (this.get$nativeType() != null && this.get$nativeType().isSingleton);
+}
 Type.prototype.get$isJsGlobalObject = function() {
   return (this.get$nativeType() != null && this.get$nativeType().isJsGlobalObject);
 }
@@ -11487,6 +11493,7 @@ DefinedType.prototype.setDefinition$1 = DefinedType.prototype.setDefinition;
 function NativeType(name) {
   this.isConstructorHidden = false
   this.isJsGlobalObject = false
+  this.isSingleton = false
   this.name = name;
   // Initializers done
   if (this.name.contains('@')) {
@@ -11496,6 +11503,10 @@ function NativeType(name) {
   if (this.name.contains('*')) {
     this.name = this.name.replaceAll('*', '');
     this.isConstructorHidden = true;
+  }
+  if (this.name.contains('=')) {
+    this.name = this.name.replaceAll('=', '');
+    this.isSingleton = true;
   }
 }
 NativeType.prototype.get$name = function() { return this.name; };
@@ -12720,7 +12731,7 @@ VarMethodStub.prototype.get$declaringType = function() {
 VarMethodStub.prototype.generate = function(code) {
   code.write($globals.world.gen._prototypeOf(this.get$declaringType(), this.name) + ' = ');
   if (!this.get$isHidden() && this._useDirectCall(this.args)) {
-    code.writeln(('' + this.get$declaringType().get$jsname() + '.prototype.' + this.member.get$jsname() + ';'));
+    code.writeln($globals.world.gen._prototypeOf(this.get$declaringType(), this.member.get$jsname()) + ';');
   }
   else if (this._needsExactTypeCheck()) {
     code.enterBlock(('function(' + this.args.getCode() + ') {'));

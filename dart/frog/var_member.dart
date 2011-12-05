@@ -128,7 +128,7 @@ class VarMethodStub extends VarMember {
   void generate(CodeWriter code) {
     code.write(world.gen._prototypeOf(declaringType, name) + ' = ');
     if (!isHidden && _useDirectCall(args)) {
-      code.writeln('${declaringType.jsname}.prototype.${member.jsname};');
+      code.writeln(world.gen._prototypeOf(declaringType, member.jsname) + ';');
     } else if (_needsExactTypeCheck()) {
       code.enterBlock('function(${args.getCode()}) {');
       code.enterBlock(

@@ -76,9 +76,13 @@ class Type extends Element {
 
   bool get isGeneric() => false;
 
+  // Various special bits that we track on native types.
+  // Generally controls how prototypes are emitted.
   NativeType get nativeType() => null;
   bool get isHiddenNativeType() =>
       (nativeType != null && nativeType.isConstructorHidden);
+  bool get isSingletonNative() =>
+      (nativeType != null && nativeType.isSingleton);
   bool get isJsGlobalObject() =>
       (nativeType != null && nativeType.isJsGlobalObject);
 
@@ -1240,16 +1244,22 @@ class DefinedType extends Type {
  * Information about a native type from the native string.
  *
  *  "Foo"  - constructor function is called 'Foo'.
+ *  "=Foo" - a singleton instance that should be patched directly. For example,
+ *           "=window.console"
  *  "*Foo" - name is 'Foo', constructor function and prototype are not available
  *      in global scope during initialization.  This is characteristic of many
- *      DOM types like CanvasPixelArray.
+ *      DOM types like CanvasPixelArray. However, the *type name* is presumed to
+ *      be available at runtime from the prototype.
  *  "@Foo" - the type of the global object. Members will be treated as names
  *      that can't be shadowed in generated JS.
  */
+// TODO(jmesserly): we really need a richer annotation system than just encoding
+// this data in strings with magic characters.
 class NativeType {
   String name;
   bool isConstructorHidden = false;
   bool isJsGlobalObject = false;
+  bool isSingleton = false;
 
   NativeType(this.name) {
     if (name.contains('@')) {
@@ -1259,6 +1269,10 @@ class NativeType {
     if (name.contains('*')) {
       name = name.replaceAll('*', '');
       isConstructorHidden = true;
+    }
+    if (name.contains('=')) {
+      name = name.replaceAll('=', '');
+      isSingleton = true;
     }
   }
 }

@@ -49,13 +49,16 @@ class ServerResponse native "http.ServerResponse" {
   void end([String data, String encoding = 'utf8']) native;
 }
 
-class console native "console" {
+class Console native "=console" {
   // TODO(jimhug): Map node.js's ability to take multiple args to what?
-  static void log(String text) native;
-  static void info(String text) native;
-  static void warn(String text) native;
-  static void error(String text) native;
+  void log(String text) native;
+  void info(String text) native;
+  void warn(String text) native;
+  void error(String text) native;
 }
+
+// TODO(jmesserly): fix this so it can be a field
+Console get console() native 'return console';
 
 class process native "process" {
   static List<String> argv;
