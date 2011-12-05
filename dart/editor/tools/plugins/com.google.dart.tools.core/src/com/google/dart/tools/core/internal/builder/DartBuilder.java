@@ -295,6 +295,9 @@ public class DartBuilder extends IncrementalProjectBuilder {
    */
   protected void buildLibrary(DartLibrary lib, final IProgressMonitor monitor) {
     final DartLibraryImpl libImpl = (DartLibraryImpl) lib;
+
+    IResource libResource = getProject();
+
     try {
       // # compilation units * # phases (3) 
       //     + fudge factor for bundled library such as core and dom (# classes * 3 phases)
@@ -302,7 +305,8 @@ public class DartBuilder extends IncrementalProjectBuilder {
           lib.getCompilationUnits().length * 2 + 630);
 
       // Delete the previous compiler output, if it exists.
-      File file = getJsAppArtifactFile(lib.getCorrespondingResource());
+      libResource = lib.getCorrespondingResource();
+      File file = getJsAppArtifactFile(libResource);
 
       if (file != null && file.exists()) {
         file.delete();
@@ -392,8 +396,10 @@ public class DartBuilder extends IncrementalProjectBuilder {
       // they can be used to drive the indexer.
       // queueFilesForIndexer(...);
     } catch (Throwable exception) {
-//      createErrorMarker(getProject(), 0, 0, 0, exception.getMessage());
-      DartCore.logInformation("Exception caught while building " + lib.getElementName(), exception);
+      BuilderUtil.createErrorMarker(libResource, 0, 0, 0,
+          "Internal compiler error: " + exception.toString());
+
+      DartCore.logError("Exception caught while building " + lib.getElementName(), exception);
     } finally {
       monitor.done();
     }
