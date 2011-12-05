@@ -97,6 +97,12 @@ def main():
     to_bucket = 'gs://dart-editor-archive-testing'
 
   print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
+  builder_name = str(options.name)
+  if builder_name != 'dart-editor':
+    _PrintSeparator('new builder running on {0} not doing'
+                    ' anything'.format(builder_name))
+    return 0
+
   _PrintSeparator("running the build to produce the Zipped RCP's")
   status = _RunAnt('.', 'build_rcp.xml', options.revision, options.name,
                    buildroot, buildout, editorpath)
