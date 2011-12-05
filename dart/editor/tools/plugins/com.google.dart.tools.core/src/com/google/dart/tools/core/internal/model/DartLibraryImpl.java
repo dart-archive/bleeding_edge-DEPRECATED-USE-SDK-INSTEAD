@@ -44,7 +44,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.ElementChangedEvent;
-import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceUtilities;
@@ -334,7 +333,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   public String getDisplayName() {
     // If this is a bundled library, then show "dart:<libname>" to the user
     if (sourceFile != null) {
-      URI uri = SystemLibraryManagerProvider.getShortUri(sourceFile.getUri());
+      EditorLibraryManager libMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
+      URI uri = libMgr.getShortUri(sourceFile.getUri());
       if (uri != null) {
         return uri.toString();
       }
@@ -362,7 +362,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   @Override
   public String getElementName() {
     if (sourceFile != null) {
-      URI shortUri = SystemLibraryManagerProvider.getShortUri(sourceFile.getUri());
+      EditorLibraryManager libMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
+      URI shortUri = libMgr.getShortUri(sourceFile.getUri());
       if (shortUri != null) {
         return shortUri.toString();
       }
@@ -490,18 +491,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
    * Answer <code>true</code> if this library is an application that can be run in the browser.
    */
   public boolean isBrowserApplication() {
-    if (!hasMain()) {
-      return false;
-    }
-    try {
-      if (getChildrenOfType(HTMLFile.class).size() > 0) {
-        return true;
-      }
-    } catch (DartModelException e) {
-      DartCore.logError("Could not determine if " + getDisplayName() + " contains an HTML file", e);
-      // Fall through to check imports
-    }
-    return isOrImportsBrowserLibrary();
+    return hasMain() && (hasReferencingHtmlFile() || isOrImportsBrowserLibrary());
   }
 
   /**
@@ -821,7 +811,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   @Override
   protected String getHandleMementoName() {
     URI uri = getUri();
-    URI shortUri = SystemLibraryManagerProvider.getShortUri(uri);
+    URI shortUri = SystemLibraryManagerProvider.getSystemLibraryManager().getShortUri(uri);
     if (shortUri != null) {
       return shortUri.toString();
     }
@@ -921,6 +911,36 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     } catch (DartModelException exception) {
       return null;
     }
+  }
+
+  private boolean hasReferencingHtmlFile() {
+    DartElement[] children;
+    try {
+      children = getChildren();
+    } catch (DartModelException e) {
+      DartCore.logError("Could not determine if " + getDisplayName()
+          + " has an HTML file referencing it", e);
+      return false;
+    }
+    for (DartElement child : children) {
+      if (child instanceof HTMLFileImpl) {
+        HTMLFileImpl htmlFile = (HTMLFileImpl) child;
+        DartLibrary[] referencedLibraries;
+        try {
+          referencedLibraries = htmlFile.getReferencedLibraries();
+        } catch (DartModelException e) {
+          DartCore.logError("Could not determine if " + htmlFile.getElementName() + " references "
+              + getDisplayName(), e);
+          continue;
+        }
+        for (DartLibrary lib : referencedLibraries) {
+          if (this.equals(lib)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   /**

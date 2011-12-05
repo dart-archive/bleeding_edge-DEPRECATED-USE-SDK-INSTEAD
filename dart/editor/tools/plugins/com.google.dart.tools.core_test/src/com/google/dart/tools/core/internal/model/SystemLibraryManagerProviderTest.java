@@ -13,98 +13,64 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.compiler.SystemLibraryManager;
-
 import junit.framework.TestCase;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 
-public class SystemLibraryManagerProviderTest extends TestCase {
-  private SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
-
-  public void test_SystemLibraryManagerProvider_expandCore() throws Exception {
-    URI shortUri = new URI("dart:core");
-    URI fullUri = libraryManager.expandRelativeDartUri(shortUri);
-    assertNotNull(fullUri);
-    assertEquals("dart", fullUri.getScheme());
-    assertEquals("core", fullUri.getHost());
-    assertTrue(fullUri.getPath().endsWith("/corelib.dart"));
-    URI shortUri2 = SystemLibraryManagerProvider.getShortUri(fullUri);
-    assertEquals(shortUri, shortUri2);
-  }
-
-  public void test_SystemLibraryManagerProvider_expandCoreImpl() throws Exception {
-    URI shortUri = new URI("dart:core_impl");
-    URI fullUri1 = libraryManager.expandRelativeDartUri(shortUri);
-    assertNotNull(fullUri1);
-    assertEquals("dart", fullUri1.getScheme());
-    assertEquals("core", fullUri1.getHost());
-    assertTrue(fullUri1.getPath().endsWith("/corelib_impl.dart"));
-    URI fullUri2 = libraryManager.expandRelativeDartUri(fullUri1);
-    assertEquals(fullUri1, fullUri2);
-    URI shortUri2 = SystemLibraryManagerProvider.getShortUri(fullUri1);
-    assertEquals(shortUri, shortUri2);
-  }
+public abstract class SystemLibraryManagerProviderTest extends TestCase {
 
   public void test_SystemLibraryManagerProvider_expandDoesNotExist() throws Exception {
     URI shortUri = new URI("dart:doesnotexist.lib");
-    URI fullUri = libraryManager.expandRelativeDartUri(shortUri);
+    URI fullUri = getLibraryManager().expandRelativeDartUri(shortUri);
     assertNull(fullUri);
   }
 
-  public void test_SystemLibraryManagerProvider_expandDom() throws Exception {
-    URI shortUri = new URI("dart:dom");
-    URI fullUri = libraryManager.expandRelativeDartUri(shortUri);
-    assertNotNull(fullUri);
-    assertEquals("dart", fullUri.getScheme());
-    assertEquals("dom", fullUri.getHost());
-    assertTrue(fullUri.getPath().endsWith("/dom.dart"));
-    URI shortUri2 = SystemLibraryManagerProvider.getShortUri(fullUri);
-    assertEquals(shortUri, shortUri2);
-  }
-
   public void test_SystemLibraryManagerProvider_getAllLibrarySpecs() {
-    Collection<String> specs = SystemLibraryManagerProvider.getAllLibrarySpecs();
+    Collection<String> specs = getLibraryManager().getAllLibrarySpecs();
     assertNotNull(specs);
     assertTrue(specs.contains("dart:core"));
-    assertTrue(specs.contains("dart:core_impl"));
+    assertTrue(specs.contains("dart:coreimpl"));
+    assertTrue(specs.contains("dart:dom"));
     assertTrue(specs.contains("dart:html"));
-  }
-
-  public void test_SystemLibraryManagerProvider_translateCore() throws Exception {
-    URI shortUri = new URI("dart:core");
-    URI fullUri = libraryManager.expandRelativeDartUri(shortUri);
-    URI translatedURI = libraryManager.translateDartUri(fullUri);
-    assertNotNull(translatedURI);
-    String scheme = translatedURI.getScheme();
-    assertTrue(scheme.equals("file") || scheme.equals("jar"));
-    assertTrue(translatedURI.getPath().endsWith("/corelib.dart"));
-    URI shortUri2 = SystemLibraryManagerProvider.getShortUri(translatedURI);
-    assertEquals(shortUri, shortUri2);
-  }
-
-  public void test_SystemLibraryManagerProvider_translateCoreImpl() throws Exception {
-    URI shortUri = new URI("dart:core_impl");
-    URI fullUri = libraryManager.expandRelativeDartUri(shortUri);
-    URI translatedURI = libraryManager.translateDartUri(fullUri);
-    assertNotNull(translatedURI);
-    String scheme = translatedURI.getScheme();
-    assertTrue(scheme.equals("file") || scheme.equals("jar"));
-    assertTrue(translatedURI.getPath().endsWith("/corelib_impl.dart"));
-    URI shortUri2 = SystemLibraryManagerProvider.getShortUri(translatedURI);
-    assertEquals(shortUri, shortUri2);
+    assertTrue(specs.contains("dart:htmlimpl"));
   }
 
   public void test_SystemLibraryManagerProvider_translateDoesNotExist() throws Exception {
     URI fullUri = new URI("dart://doesnotexist/some/file.dart");
     try {
-      URI translatedURI = libraryManager.translateDartUri(fullUri);
+      URI translatedURI = getLibraryManager().translateDartUri(fullUri);
       fail("Expected translate " + fullUri + " to fail, but returned " + translatedURI);
     } catch (RuntimeException e) {
       String message = e.getMessage();
       assertTrue(message.startsWith("No system library"));
       assertTrue(message.contains(fullUri.toString()));
     }
+  }
+
+  protected abstract EditorLibraryManager getLibraryManager();
+
+  protected void testLibrary(String shortLibName, String libFileName) throws URISyntaxException,
+      AssertionError {
+    final URI shortUri = new URI("dart:" + shortLibName);
+
+    final URI fullUri1 = getLibraryManager().expandRelativeDartUri(shortUri);
+    assertNotNull(fullUri1);
+    assertEquals("dart", fullUri1.getScheme());
+    assertEquals(shortLibName, fullUri1.getHost());
+    assertTrue(fullUri1.getPath().endsWith("/" + libFileName));
+    URI fullUri2 = getLibraryManager().expandRelativeDartUri(fullUri1);
+    assertEquals(fullUri1, fullUri2);
+    URI shortUri2 = getLibraryManager().getShortUri(fullUri1);
+    assertEquals(shortUri, shortUri2);
+
+    URI translatedUri = getLibraryManager().translateDartUri(fullUri1);
+    assertNotNull(translatedUri);
+    String scheme = translatedUri.getScheme();
+    assertTrue(scheme.equals("file"));
+    assertTrue(translatedUri.getPath().endsWith("/" + libFileName));
+    URI shortUri3 = getLibraryManager().getShortUri(translatedUri);
+    assertEquals(shortUri, shortUri3);
   }
 }

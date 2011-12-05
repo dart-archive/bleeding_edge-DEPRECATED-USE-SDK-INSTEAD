@@ -194,17 +194,18 @@ build system.  The PDE build system has to run under Eclipse.
         <property name="libraries.out.dir" location="${build.stage.include.dir}/${libraries.out.name}" />
         <delete dir="${libraries.out.dir}"/>
         
-        <!-- dart:core and dart:core_impl 
+        <!-- dart:core and dart:coreimpl 
             copy "core" source directorys into a single temp directory before building libraries
+            and copy dart:coreimpl into its own directory to match sdk
         -->
         <mkdir dir="${build.tmp}/lib/core-dartc"/>
         <copy todir="${build.tmp}/lib/core-dartc">
             <fileset dir="${build.source.root}/corelib"/>
             <fileset dir="${build.source.root}/compiler/lib"/>
         </copy>
+        <replace file="${build.tmp}/lib/core-dartc/corelib.dart" token="corelib_impl.dart" value="dart:coreimpl"/>
         <copyDartLib name="core" dir="${build.tmp}/lib/core-dartc" libfile="corelib.dart"/>
-        <copyDartLib name="core_impl" dir="${build.tmp}/lib/core-dartc" libfile="corelib_impl.dart"
-            todir="${libraries.out.dir}/core"/>
+        <copyDartLib name="coreimpl" dir="${build.tmp}/lib/core-dartc" libfile="corelib_impl.dart"/>
         
         <!-- dart:dom -->
         <copyDartLib name="dom" dir="${build.source.root}/client/dom"/>

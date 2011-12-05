@@ -164,7 +164,8 @@ Set to ignore:
 File -> Import -> General -> Existing Projects into Workspace
 
 Import the existing projects in <DART_TRUNK>/editor
-  (including the "docs" project containing this README.txt file)
+  (including the "docs" project containing this README.txt file
+   but excluding the editor/tools/plugins/com.google.dart.library.* projects)
 
 Import the project in <DART_TRUNK>/third_party/closure_compiler_src
 

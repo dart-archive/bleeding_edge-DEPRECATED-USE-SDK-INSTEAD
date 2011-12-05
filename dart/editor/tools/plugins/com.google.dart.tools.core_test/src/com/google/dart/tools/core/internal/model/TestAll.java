@@ -30,7 +30,8 @@ public class TestAll {
     suite.addTestSuite(FieldImplTest.class);
     suite.addTestSuite(HTMLFileImplTest.class);
     suite.addTestSuite(MethodImplTest.class);
-    suite.addTestSuite(SystemLibraryManagerProviderTest.class);
+    suite.addTestSuite(SystemLibraryManagerProviderDartCTest.class);
+//    suite.addTestSuite(SystemLibraryManagerProviderVmTest.class);
     suite.addTestSuite(TypeImplTest.class);
 
     suite.addTest(com.google.dart.tools.core.internal.model.delta.TestAll.suite());
