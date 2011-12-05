@@ -11,6 +11,7 @@ class Compiler implements Canceler, Logger {
   List<CompilerTask> tasks;
   ScannerTask scanner;
   ParserTask parser;
+  TreeValidatorTask validator;
   ResolverTask resolver;
   TypeCheckerTask checker;
   SsaBuilderTask builder;
@@ -24,6 +25,7 @@ class Compiler implements Canceler, Logger {
     worklist = new Queue<Element>();
     scanner = new ScannerTask(this);
     parser = new ParserTask(this);
+    validator = new TreeValidatorTask(this);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
     builder = new SsaBuilderTask(this);
@@ -92,6 +94,7 @@ class Compiler implements Canceler, Logger {
     String code = universe.generatedCode[element];
     if (code !== null) return code;
     Node tree = parser.parse(element);
+    validator.validate(tree);
     TreeElements elements = resolver.resolve(element);
     checker.check(tree, elements);
     HGraph graph = builder.build(tree, elements);

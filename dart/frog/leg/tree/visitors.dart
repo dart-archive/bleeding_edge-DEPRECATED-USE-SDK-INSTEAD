@@ -38,3 +38,53 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitVariableDefinitions(VariableDefinitions node) => visitStatement(node);
   R visitWhile(While node) => visitLoop(node);
 }
+
+/**
+ * This visitor takes another visitor and applies it to every
+ * node in the tree. There is currently no way to control the
+ * traversal.
+ */
+class TraversingVisitor implements Visitor {
+  final Visitor visitor;
+
+  TraversingVisitor(Visitor this.visitor);
+
+  visitNode(Node node) {
+    node.accept(visitor);
+    node.visitChildren(this);
+  }
+
+  // TODO(karlklose): use abstract visitor. Currently, frog throws
+  //   away some default implementation when usings the abstract class
+  //   during compiling the leg_only tests.
+  visitBlock(Block node) {}
+  visitClassNode(ClassNode node) {}
+  visitDoWhile(DoWhile node) {}
+  visitExpression(Expression node) {}
+  visitExpressionStatement(ExpressionStatement node) {}
+  visitFor(For node) {}
+  visitFunctionExpression(FunctionExpression node) {}
+  visitIdentifier(Identifier node) {}
+  visitIf(If node) {}
+  visitLiteral(Literal node) {}
+  visitLiteralBool(LiteralBool node) {}
+  visitLiteralDouble(LiteralDouble node) {}
+  visitLiteralInt(LiteralInt node) {}
+  visitLiteralNull(LiteralNull node) {}
+  visitLiteralString(LiteralString node) {}
+  visitLoop(Loop node) {}
+  visitNewExpression(NewExpression node) {}
+  visitNodeList(NodeList node) {}
+  visitOperator(Operator node) {}
+  visitParenthesizedExpression(ParenthesizedExpression node) {}
+  visitPostfix(Postfix node) {}
+  visitPrefix(Prefix node) {}
+  visitReturn(Return node) {}
+  visitSend(Send node) {}
+  visitSendSet(SendSet node) {}
+  visitStatement(Statement node) {}
+  visitThrow(Throw node) {}
+  visitTypeAnnotation(TypeAnnotation node) {}
+  visitVariableDefinitions(VariableDefinitions node) {}
+  visitWhile(While node) {}
+}

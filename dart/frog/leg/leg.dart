@@ -16,6 +16,7 @@
 #source('compiler.dart');
 #source('resolver.dart');
 #source('script.dart');
+#source('tree_validator.dart');
 #source('typechecker.dart');
 #source('universe.dart');
 #source('warnings.dart');

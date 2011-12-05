@@ -56,6 +56,8 @@ class Node implements Hashable {
 
   abstract accept(Visitor visitor);
 
+  abstract visitChildren(Visitor visitor);
+
   toString() => unparse();
 
   String getObjectDescription() => super.toString();
@@ -115,6 +117,12 @@ class ClassNode extends Node {
 
   accept(Visitor visitor) => visitor.visitClassNode(this);
 
+  visitChildren(Visitor visitor) {
+    if (name !== null) name.accept(visitor);
+    if (superclass !== null) superclass.accept(visitor);
+    if (interfaces !== null) interfaces.accept(visitor);
+  }
+
   bool get isInterface() => beginToken.stringValue === 'interface';
 
   bool get isClass() => !isInterface;
@@ -152,6 +160,12 @@ class Send extends Expression {
   Send asSend() => this;
 
   accept(Visitor visitor) => visitor.visitSend(this);
+
+  visitChildren(Visitor visitor) {
+    if (receiver !== null) receiver.accept(visitor);
+    if (selector !== null) selector.accept(visitor);
+    if (argumentsNode !== null) argumentsNode.accept(visitor);
+  }
 
   bool get isOperator() => selector is Operator;
   bool get isPropertyAccess() => argumentsNode === null;
@@ -205,6 +219,11 @@ class SendSet extends Send {
 
   accept(Visitor visitor) => visitor.visitSendSet(this);
 
+  visitChildren(Visitor visitor) {
+    super.visitChildren(visitor);
+    if (assignmentOperator !== null) assignmentOperator.accept(visitor);
+  }
+
   Send copyWithReceiver(Node receiver) {
     throw 'not implemented';
   }
@@ -220,6 +239,10 @@ class NewExpression extends Expression {
   NewExpression([this.newToken, this.send]);
 
   accept(Visitor visitor) => visitor.visitNewExpression(this);
+
+  visitChildren(Visitor visitor) {
+    if (send !== null) send.accept(visitor);
+  }
 
   Token getBeginToken() => newToken;
 
@@ -247,6 +270,13 @@ class NodeList extends Node {
   NodeList asNodeList() => this;
 
   accept(Visitor visitor) => visitor.visitNodeList(this);
+
+  visitChildren(Visitor visitor) {
+    if (nodes === null) return;
+    for (Link<Node> link = nodes; !link.isEmpty(); link = link.tail) {
+      if (link.head !== null) link.head.accept(visitor);
+    }
+  }
 
   Token getBeginToken() {
     if (beginToken !== null) return beginToken;
@@ -285,6 +315,10 @@ class Block extends Statement {
 
   accept(Visitor visitor) => visitor.visitBlock(this);
 
+  visitChildren(Visitor visitor) {
+    if (statements !== null) statements.accept(visitor);
+  }
+
   Token getBeginToken() => statements.getBeginToken();
 
   Token getEndToken() => statements.getEndToken();
@@ -310,6 +344,12 @@ class If extends Statement {
   }
 
   accept(Visitor visitor) => visitor.visitIf(this);
+
+  visitChildren(Visitor visitor) {
+    if (condition !== null) condition.accept(visitor);
+    if (thenPart !== null) thenPart.accept(visitor);
+    if (elsePart !== null) elsePart.accept(visitor);
+  }
 
   Token getBeginToken() => ifToken;
 
@@ -338,6 +378,12 @@ class For extends Loop {
 
   accept(Visitor visitor) => visitor.visitFor(this);
 
+  visitChildren(Visitor visitor) {
+    if (initializer !== null) initializer.accept(visitor);
+    if (conditionStatement !== null) conditionStatement.accept(visitor);
+    if (update !== null) update.accept(visitor);
+  }
+
   Token getBeginToken() => forToken;
 
   Token getEndToken() {
@@ -357,6 +403,13 @@ class FunctionExpression extends Expression {
 
   accept(Visitor visitor) => visitor.visitFunctionExpression(this);
 
+  visitChildren(Visitor visitor) {
+    if (name !== null) name.accept(visitor);
+    if (parameters !== null) parameters.accept(visitor);
+    if (body !== null) body.accept(visitor);
+    if (returnType !== null) returnType.accept(visitor);
+  }
+
   Token getBeginToken() {
     return firstBeginToken(returnType, name);
   }
@@ -373,6 +426,8 @@ class Literal<T> extends Expression {
   Literal(Token this.token, DecodeErrorHandler this.handler);
 
   abstract T get value();
+
+  visitChildren(Visitor visitor) {}
 
   Token getBeginToken() => token;
 
@@ -473,6 +528,8 @@ class Identifier extends Expression {
 
   accept(Visitor visitor) => visitor.visitIdentifier(this);
 
+  visitChildren(Visitor visitor) {}
+
   getBeginToken() => token;
 
   getEndToken() => token;
@@ -500,6 +557,10 @@ class Return extends Statement {
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 
+  visitChildren(Visitor visitor) {
+    if (expression !== null) expression.accept(visitor);
+  }
+
   Token getBeginToken() => beginToken;
 
   Token getEndToken() => endToken;
@@ -514,6 +575,10 @@ class ExpressionStatement extends Statement {
   ExpressionStatement asExpressionStatement() => this;
 
   accept(Visitor visitor) => visitor.visitExpressionStatement(this);
+
+  visitChildren(Visitor visitor) {
+    if (expression !== null) expression.accept(visitor);
+  }
 
   Token getBeginToken() => expression.getBeginToken();
 
@@ -532,7 +597,12 @@ class Throw extends Statement {
 
   accept(Visitor visitor) => visitor.visitThrow(this);
 
+  visitChildren(Visitor visitor) {
+    if (expression !== null) expression.accept(visitor);
+  }
+
   Token getBeginToken() => throwToken;
+
   Token getEndToken() => endToken;
 }
 
@@ -544,6 +614,10 @@ class TypeAnnotation extends Node {
   TypeAnnotation asTypeAnnotation() => this;
 
   accept(Visitor visitor) => visitor.visitTypeAnnotation(this);
+
+  visitChildren(Visitor visitor) {
+    if (typeName !== null) typeName.accept(visitor);
+  }
 
   Token getBeginToken() => typeName.getBeginToken();
 
@@ -561,6 +635,11 @@ class VariableDefinitions extends Statement {
   VariableDefinitions asVariableDefinitions() => this;
 
   accept(Visitor visitor) => visitor.visitVariableDefinitions(this);
+
+  visitChildren(Visitor visitor) {
+    if (type !== null) type.accept(visitor);
+    if (definitions !== null) definitions.accept(visitor);
+  }
 
   Token getBeginToken() {
     return firstBeginToken(type, definitions);
@@ -591,6 +670,11 @@ class DoWhile extends Loop {
 
   accept(Visitor visitor) => visitor.visitDoWhile(this);
 
+  visitChildren(Visitor visitor) {
+    if (condition !== null) condition.accept(visitor);
+    if (body !== null) body.accept(visitor);
+  }
+
   Token getBeginToken() => doKeyword;
 
   Token getEndToken() => endToken;
@@ -607,6 +691,11 @@ class While extends Loop {
 
   accept(Visitor visitor) => visitor.visitWhile(this);
 
+  visitChildren(Visitor visitor) {
+    if (condition !== null) condition.accept(visitor);
+    if (body !== null) body.accept(visitor);
+  }
+
   Token getBeginToken() => whileKeyword;
 
   Token getEndToken() => body.getEndToken();
@@ -622,6 +711,10 @@ class ParenthesizedExpression extends Expression {
   ParenthesizedExpression asParenthesizedExpression() => this;
 
   accept(Visitor visitor) => visitor.visitParenthesizedExpression(this);
+
+  visitChildren(Visitor visitor) {
+    if (expression !== null) expression.accept(visitor);
+  }
 
   Token getBeginToken() => beginToken;
 

@@ -300,19 +300,14 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitSendSet(SendSet node) {
-    compiler.ensure(node.arguments !== null);
     Identifier selector = node.selector;
     final name = node.assignmentOperator.source.stringValue;
     if (name === '++' || name === '--') {
-      // TODO(karlklose): move to validator.
-      compiler.ensure(node.selector is Identifier);
       final Element element = elements[node.selector];
       final Type receiverType = computeType(element);
       // TODO(karlklose): this should be the return type instead of int.
       return node.isPrefix ? types.intType : receiverType;
     } else {
-      // TODO(karlklose): move to validator.
-      compiler.ensure(!node.arguments.isEmpty());
       Type targetType = computeType(elements[node]);
       Node value = node.arguments.head;
       checkAssignable(value, targetType, type(value));
