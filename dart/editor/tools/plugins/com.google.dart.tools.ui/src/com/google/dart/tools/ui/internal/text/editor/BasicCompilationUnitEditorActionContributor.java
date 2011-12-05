@@ -31,7 +31,7 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.RetargetTextEditorAction;
 
-public class BasicCompilationUnitEditorActionContributor extends BasicJavaEditorActionContributor {
+public class BasicCompilationUnitEditorActionContributor extends BasicDartEditorActionContributor {
 
   /**
    * A menu listener that can remove itself from the menu it listens to.
