@@ -585,11 +585,19 @@ class SsaBuilder implements Visitor {
   }
 
   visitSendSet(SendSet node) {
-    if (node.receiver != null) {
-      compiler.unimplemented("SsaBuilder: property access");
-    }
     Operator op = node.assignmentOperator;
-    if (const SourceString("=") == op.source) {
+    if (node.isIndex) {
+      HStatic target = new HStatic(elements[node]);
+      add(target);
+      visit(node.receiver);
+      HInstruction receiver = pop();
+      visit(node.argumentsNode);
+      HInstruction value = pop();
+      HInstruction index = pop();
+      push(new HIndexAssign(target, receiver, index, value));
+    } else if (node.receiver != null) {
+      compiler.unimplemented("SsaBuilder: property access");
+    } else if (const SourceString("=") == op.source) {
       Link<Node> link = node.arguments;
       assert(!link.isEmpty() && link.tail.isEmpty());
       visit(link.head);

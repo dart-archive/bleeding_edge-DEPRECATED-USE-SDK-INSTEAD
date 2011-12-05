@@ -460,4 +460,5 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitIndex(HIndex node) => visitInvokeStatic(node);
+  void visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
 }

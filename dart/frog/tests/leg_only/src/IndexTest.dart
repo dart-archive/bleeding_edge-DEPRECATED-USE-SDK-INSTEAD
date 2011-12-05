@@ -17,4 +17,12 @@ main() {
   a = [1, 2];
   expectEquals(1, a[0]);
   expectEquals(2, a[1]);
+
+  a[0] = 42;
+  expectEquals(42, a[0]);
+  expectEquals(2, a[1]);
+
+  a[1] = 43;
+  expectEquals(42, a[0]);
+  expectEquals(43, a[1]);
 }

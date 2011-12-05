@@ -158,6 +158,8 @@ class Send extends Expression {
   bool get isFunctionObjectInvocation() => selector === null;
   bool get isPrefix() => argumentsNode is Prefix;
   bool get isPostfix() => argumentsNode is Postfix;
+  bool get isIndex() =>
+      isOperator && selector.asOperator().source.stringValue === '[]';
 
   Token getBeginToken() {
     return firstBeginToken(receiver, selector);

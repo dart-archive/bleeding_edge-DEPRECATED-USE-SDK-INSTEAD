@@ -308,7 +308,12 @@ class FullResolverVisitor extends ResolverVisitor {
     visit(node.argumentsNode);
 
     Identifier selector = node.selector;
-    Element target = context.lookup(selector.source);
+    Element target;
+    if (node.isIndex) {
+      target = compiler.universe.find(const SourceString('indexSet'));
+    } else {
+      target = context.lookup(selector.source);
+    }
     // TODO(ngeoffray): Check if the enclosingElement has 'this'.
     if (target == null) {
       error(node, MessageKind.CANNOT_RESOLVE, [node]);

@@ -195,3 +195,10 @@ index(var a, var index) {
   if (JS(@"$0.constructor === Array", a)) return JS(@"$0[$1]", a, index);
   throw "Unimplemented user-defined [].";
 }
+
+indexSet(var a, var index, var value) {
+  if (JS(@"$0.constructor === Array", a)) {
+    return JS(@"$0[$1] = $2", a, index, value);
+  }
+  throw "Unimplemented user-defined []=.";
+}

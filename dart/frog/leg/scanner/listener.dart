@@ -525,17 +525,25 @@ class NodeListener extends ElementListener {
   }
 
   void handleAssignmentExpression(Token token) {
-    NodeList arguments = new NodeList.singleton(popNode());
+    Node arg = popNode();
     Node node = popNode();
     Send send = node.asSend();
     if (send === null) {
       canceler.cancel('not assignable: $node', node: node);
     }
-    if (!send.isPropertyAccess) {
+    if (!(send.isPropertyAccess || send.isIndex)) {
       canceler.cancel('not assignable: $send', node: send);
     }
     if (send.asSendSet() !== null) {
       canceler.cancel('chained assignment', node: send);
+    }
+    NodeList arguments;
+    if (send.isIndex) {
+      Link<Node> link = new Link<Node>(arg);
+      link = link.prepend(send.arguments.head);
+      arguments = new NodeList(null, link);
+    } else {
+      arguments = new NodeList.singleton(arg);
     }
     Operator op = new Operator(token);
     pushNode(new SendSet(send.receiver, send.selector, op, arguments));
