@@ -161,11 +161,16 @@ class KeywordState {
     assert(length != 0);
     int chunk = 0;
     int chunkStart = -1;
+    bool isLeaf = false;
     for (int i = offset; i < offset + length; i++) {
+      if (strings[i].length == start) {
+        isLeaf = true;
+      }
       if (strings[i].length > start) {
         int c = strings[i].charCodeAt(start);
         if (chunk != c) {
           if (chunkStart != -1) {
+            assert(result[chunk - $a] === null);
             result[chunk - $a] = computeKeywordStateTable(start + 1, strings,
                                                           chunkStart,
                                                           i - chunkStart);
@@ -176,6 +181,7 @@ class KeywordState {
       }
     }
     if (chunkStart != -1) {
+      assert(result[chunk - $a] === null);
       result[chunk - $a] =
         computeKeywordStateTable(start + 1, strings, chunkStart,
                                  offset + length - chunkStart);
@@ -183,7 +189,11 @@ class KeywordState {
       assert(length == 1);
       return new LeafKeywordState(strings[offset]);
     }
-    return new ArrayKeywordState(result);
+    if (isLeaf) {
+      return new ArrayKeywordState(result, strings[offset]);
+    } else {
+      return new ArrayKeywordState(result, null);
+    }
   }
 }
 
@@ -192,24 +202,27 @@ class KeywordState {
  */
 class ArrayKeywordState extends KeywordState {
   final List<KeywordState> table;
+  final Keyword keyword;
 
-  ArrayKeywordState(List<KeywordState> this.table);
+  ArrayKeywordState(List<KeywordState> this.table, String syntax)
+    : keyword = (syntax === null) ? null : Keyword.keywords[syntax];
 
   bool isLeaf() => false;
 
   KeywordState next(int c) => table[c - $a];
 
-  Keyword get keyword() {
-    throw "should not be called";
-  }
-
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add("[");
+    if (keyword !== null) {
+      sb.add("*");
+      sb.add(keyword);
+      sb.add(" ");
+    }
     List<KeywordState> foo = table;
     for (int i = 0; i < foo.length; i++) {
       if (foo[i] != null) {
-        sb.add("${i + $a}: ${foo[i]}; ");
+        sb.add("${new String.fromCharCodes([i + $a])}: ${foo[i]}; ");
       }
     }
     sb.add("]");
@@ -221,7 +234,7 @@ class ArrayKeywordState extends KeywordState {
  * A state that has no outgoing transitions.
  */
 class LeafKeywordState extends KeywordState {
-  Keyword keyword;
+  final Keyword keyword;
 
   LeafKeywordState(String syntax) : keyword = Keyword.keywords[syntax];
 

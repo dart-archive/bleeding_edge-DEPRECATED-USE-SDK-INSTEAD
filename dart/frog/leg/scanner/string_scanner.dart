@@ -18,8 +18,8 @@ class StringScanner extends ArrayBasedScanner<SourceString> {
   int charAt(index)
       => (string.length > index) ? string.charCodeAt(index) : $EOF;
 
-  SourceString asciiString(int start) {
-    return new SubstringWrapper(string, start, byteOffset);
+  SourceString asciiString(int start, int offset) {
+    return new SubstringWrapper(string, start, byteOffset + offset);
   }
 
   SourceString utf8String(int start, int offset) {

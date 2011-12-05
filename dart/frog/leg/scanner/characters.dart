@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 final int $EOF = 0;
+final int $STX = 2;
 final int $TAB = 9;
 final int $LF = 10;
 final int $CR = 13;

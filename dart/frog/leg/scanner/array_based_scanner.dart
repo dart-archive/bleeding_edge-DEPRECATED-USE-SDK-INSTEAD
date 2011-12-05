@@ -83,28 +83,42 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     groupingStack = groupingStack.prepend(token);
   }
 
-  void appendEndGroup(int kind, String value, int openKind) {
-    Token oldTail = tail;
+  int appendEndGroup(int kind, String value, int openKind) {
+    assert(openKind !== LT_TOKEN);
     appendStringToken(kind, value);
     if (groupingStack.isEmpty()) {
-      if (openKind === LT_TOKEN) return;
       throw new MalformedInputException('Unmatched $value');
     }
-    while (openKind !== LT_TOKEN &&
-           !groupingStack.isEmpty() &&
-           groupingStack.head.kind === LT_TOKEN) {
+    discardOpenLt();
+    BeginGroupToken begin = groupingStack.head;
+    if (begin.kind !== openKind) {
+      if (openKind !== OPEN_CURLY_BRACKET_TOKEN ||
+          begin.kind !== STRING_INTERPOLATION_TOKEN) {
+        // Not ending string interpolation.
+        throw new MalformedInputException('Unmatched ${begin.stringValue}');
+      }
+      // We're ending an interpolated expression.
+      begin.endGroup = tail;
+      groupingStack = groupingStack.tail;
+      // Using "start-of-text" to signal that we're back in string
+      // scanning mode.
+      return $STX;
+    }
+    begin.endGroup = tail;
+    groupingStack = groupingStack.tail;
+    return advance();
+  }
+
+  void appendGt(int kind, String value) {
+    appendStringToken(kind, value);
+    if (groupingStack.isEmpty()) return;
+    if (groupingStack.head.kind === LT_TOKEN) {
+      groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail;
     }
-    if (groupingStack.head.kind !== openKind) {
-      if (openKind === LT_TOKEN) return;
-      throw new MalformedInputException('Unmatched $value');
-    }
-    groupingStack.head.endGroup = oldTail.next;
-    groupingStack = groupingStack.tail;
   }
 
   void appendGtGt(int kind, String value) {
-    Token oldTail = tail;
     appendStringToken(kind, value);
     if (groupingStack.isEmpty()) return;
     if (groupingStack.head.kind === LT_TOKEN) {
@@ -112,13 +126,12 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     }
     if (groupingStack.isEmpty()) return;
     if (groupingStack.head.kind === LT_TOKEN) {
-      groupingStack.head.endGroup = oldTail.next;
+      groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail;
     }
   }
 
   void appendGtGtGt(int kind, String value) {
-    Token oldTail = tail;
     appendStringToken(kind, value);
     if (groupingStack.isEmpty()) return;
     if (groupingStack.head.kind === LT_TOKEN) {
@@ -130,7 +143,13 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     }
     if (groupingStack.isEmpty()) return;
     if (groupingStack.head.kind === LT_TOKEN) {
-      groupingStack.head.endGroup = oldTail.next;
+      groupingStack.head.endGroup = tail;
+      groupingStack = groupingStack.tail;
+    }
+  }
+
+  void discardOpenLt() {
+    while (!groupingStack.isEmpty() && groupingStack.head.kind === LT_TOKEN) {
       groupingStack = groupingStack.tail;
     }
   }

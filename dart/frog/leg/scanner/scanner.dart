@@ -20,7 +20,7 @@ class AbstractScanner<T> implements Scanner {
   abstract void appendKeywordToken(Keyword keyword);
   abstract void appendWhiteSpace(int next);
   abstract void appendEofToken();
-  abstract T asciiString(int start);
+  abstract T asciiString(int start, int offset);
   abstract T utf8String(int start, int offset);
   abstract Token firstToken();
   abstract void beginToken();
@@ -28,15 +28,16 @@ class AbstractScanner<T> implements Scanner {
   abstract int get charOffset();
   abstract int get byteOffset();
   abstract void appendBeginGroup(int kind, String value);
-  abstract void appendEndGroup(int kind, String value, int openKind);
+  abstract int appendEndGroup(int kind, String value, int openKind);
   abstract void appendGtGt(int kind, String value);
   abstract void appendGtGtGt(int kind, String value);
+  abstract void discardOpenLt();
 
   // TODO(ahe): Move this class to implementation.
 
   Token tokenize() {
     int next = advance();
-    while (next != $EOF) {
+    while (next !== $EOF) {
       next = bigSwitch(next);
     }
     appendEofToken();
@@ -125,8 +126,7 @@ class AbstractScanner<T> implements Scanner {
     }
 
     if (next === $RPAREN) {
-      appendEndGroup(RPAREN_TOKEN, ")", LPAREN_TOKEN);
-      return advance();
+      return appendEndGroup(RPAREN_TOKEN, ")", LPAREN_TOKEN);
     }
 
     if (next === $COMMA) {
@@ -141,6 +141,7 @@ class AbstractScanner<T> implements Scanner {
 
     if (next === $SEMICOLON) {
       appendStringToken(SEMICOLON_TOKEN, ";");
+      discardOpenLt();
       return advance();
     }
 
@@ -150,9 +151,8 @@ class AbstractScanner<T> implements Scanner {
     }
 
     if (next === $CLOSE_SQUARE_BRACKET) {
-      appendEndGroup(CLOSE_SQUARE_BRACKET_TOKEN, "]",
-                     OPEN_SQUARE_BRACKET_TOKEN);
-      return advance();
+      return appendEndGroup(CLOSE_SQUARE_BRACKET_TOKEN, "]",
+                            OPEN_SQUARE_BRACKET_TOKEN);
     }
 
     if (next === $BACKPING) {
@@ -166,8 +166,8 @@ class AbstractScanner<T> implements Scanner {
     }
 
     if (next === $CLOSE_CURLY_BRACKET) {
-      appendEndGroup(CLOSE_CURLY_BRACKET_TOKEN, "}", OPEN_CURLY_BRACKET_TOKEN);
-      return advance();
+      return appendEndGroup(CLOSE_CURLY_BRACKET_TOKEN, "}",
+                            OPEN_CURLY_BRACKET_TOKEN);
     }
 
     if (next === $SLASH) {
@@ -366,7 +366,7 @@ class AbstractScanner<T> implements Scanner {
         return next;
       }
     } else {
-      appendEndGroup(GT_TOKEN, ">", LT_TOKEN);
+      appendGt(GT_TOKEN, ">");
       return next;
     }
   }
@@ -396,7 +396,7 @@ class AbstractScanner<T> implements Scanner {
       } else if (next === $e || next === $E || next === $d || next === $D) {
         return tokenizeFractionPart(next, start);
       } else {
-        appendByteStringToken(INT_TOKEN, asciiString(start));
+        appendByteStringToken(INT_TOKEN, asciiString(start, 0));
         return next;
       }
     }
@@ -412,7 +412,7 @@ class AbstractScanner<T> implements Scanner {
   }
 
   int tokenizeHex(int next) {
-    int start = byteOffset;
+    int start = byteOffset - 1;
     bool hasDigits = false;
     while (true) {
       next = advance();
@@ -424,7 +424,7 @@ class AbstractScanner<T> implements Scanner {
         if (!hasDigits) {
           throw new MalformedInputException(charOffset);
         }
-        appendByteStringToken(HEXADECIMAL_TOKEN, asciiString(start));
+        appendByteStringToken(HEXADECIMAL_TOKEN, asciiString(start, 0));
         return next;
       }
     }
@@ -445,9 +445,12 @@ class AbstractScanner<T> implements Scanner {
 
   int tokenizeFractionPart(int next, int start) {
     bool done = false;
+    bool hasDigit = false;
     LOOP: while (!done) {
       if ($0 <= next && next <= $9) {
+        hasDigit = true;
       } else if ($e === next || $E === next) {
+        hasDigit = true;
         next = tokenizeExponent(advance());
         done = true;
         continue LOOP;
@@ -457,10 +460,16 @@ class AbstractScanner<T> implements Scanner {
       }
       next = advance();
     }
+    if (!hasDigit) {
+      appendByteStringToken(INT_TOKEN, asciiString(start, -2));
+      // TODO(ahe): Wrong offset for the period.
+      appendStringToken(PERIOD_TOKEN, ".");
+      return bigSwitch(next);
+    }
     if (next === $d || next === $D) {
       next = advance();
     }
-    appendByteStringToken(DOUBLE_TOKEN, asciiString(start));
+    appendByteStringToken(DOUBLE_TOKEN, asciiString(start, 0));
     return next;
   }
 
@@ -531,7 +540,7 @@ class AbstractScanner<T> implements Scanner {
       state = state.next(next);
       next = advance();
     }
-    if (state === null || !state.isLeaf()) {
+    if (state === null || state.keyword === null) {
       return tokenizeIdentifier(next, start);
     }
     if (($A <= next && next <= $Z) ||
@@ -558,7 +567,7 @@ class AbstractScanner<T> implements Scanner {
         next = advance();
       } else if (next < 128) {
         if (isAscii) {
-          appendByteStringToken(IDENTIFIER_TOKEN, asciiString(start));
+          appendByteStringToken(IDENTIFIER_TOKEN, asciiString(start, 0));
         } else {
           appendByteStringToken(IDENTIFIER_TOKEN, utf8String(start, -1));
         }
@@ -608,7 +617,7 @@ class AbstractScanner<T> implements Scanner {
   }
 
   int tokenizeSingleLineString(int next, int q1, int start) {
-    while (next != $EOF) {
+    while (next !== $EOF) {
       if (next === q1) {
         appendByteStringToken(STRING_TOKEN, utf8String(start, 0));
         return advance();
@@ -617,12 +626,30 @@ class AbstractScanner<T> implements Scanner {
         if (next === $EOF) {
           throw new MalformedInputException(charOffset);
         }
+      } else if (next === $$) {
+        beginToken();
+        next = advance();
+        if (next === $OPEN_CURLY_BRACKET) {
+          next = tokenizeInterpolatedExpression(next, q1, start);
+        }
+        continue;
       } else if (next === $LF || next === $CR) {
         throw new MalformedInputException(charOffset);
       }
       next = advance();
     }
     throw new MalformedInputException(charOffset);
+  }
+
+  int tokenizeInterpolatedExpression(int next, int q, int start) {
+    appendByteStringToken(STRING_TOKEN, utf8String(start, 0));
+    appendBeginGroup(STRING_INTERPOLATION_TOKEN, "\${");
+    next = advance();
+    while (next !== $EOF && next !== $STX) {
+      next = bigSwitch(next);
+    }
+    if (next === $EOF) return next;
+    return advance();
   }
 
   int tokenizeSingleLineRawString(int next, int q1, int start) {

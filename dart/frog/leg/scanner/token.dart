@@ -10,6 +10,7 @@ final int DOUBLE_TOKEN = $d;
 final int INT_TOKEN = $i;
 final int HEXADECIMAL_TOKEN = $x;
 final int STRING_TOKEN = $SQ;
+final int STRING_INTERPOLATION_TOKEN = $SQ + 128;
 
 final int AMPERSAND_TOKEN = $AMPERSAND;
 final int BACKPING_TOKEN = $BACKPING;

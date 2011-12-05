@@ -17,8 +17,8 @@ class ByteArrayScanner extends ArrayBasedScanner<ByteString> {
 
   int byteAt(int index) => bytes[index];
 
-  AsciiString asciiString(int start) {
-    return AsciiString.of(bytes, start, byteOffset - start);
+  AsciiString asciiString(int start, int offset) {
+    return AsciiString.of(bytes, start, byteOffset - start + offset);
   }
 
   Utf8String utf8String(int start, int offset) {
