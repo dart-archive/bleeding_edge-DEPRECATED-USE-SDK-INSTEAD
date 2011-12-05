@@ -32,6 +32,13 @@ class PublicClass {
     String localVariable = null;
   }
 
+  void nativeMethodNoBody() native;
+
+  void nativeMethodWithString() native "window.alert('?')";
+
+  static void nativeMethodWithBody() native {
+  }
+
   abstract double publicAbstractMethod();
 
   abstract double _privateAbstractMethod();
@@ -55,6 +62,9 @@ interface PublicInterface {
 }
 
 interface _PrivateInterface {
+}
+
+class NativeClass native "something" {
 }
 
 final double PublicTopLevelFinalVariable = 3.14;
