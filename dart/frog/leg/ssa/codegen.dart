@@ -458,4 +458,6 @@ class SsaCodeGenerator implements HVisitor {
     }
     buffer.add(']');
   }
+
+  void visitIndex(HIndex node) => visitInvokeStatic(node);
 }

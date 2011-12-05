@@ -18,6 +18,7 @@ interface HVisitor<R> {
   R visitGreater(HGreater node);
   R visitGreaterEqual(HGreaterEqual node);
   R visitIf(HIf node);
+  R visitIndex(HIndex node);
   R visitInvokeStatic(HInvokeStatic node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
@@ -191,6 +192,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitGreater(HGreater node) => visitRelational(node);
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
   visitIf(HIf node) => visitConditionalBranch(node);
+  visitIndex(HIndex node) => visitInvokeStatic(node);
   visitInvokeStatic(HInvokeStatic node) => visitInstruction(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
@@ -1387,6 +1389,13 @@ class HLiteralList extends HInstruction {
   void prepareGvn() => clearAllSideEffects();
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
+}
+
+class HIndex extends HInvokeStatic {
+  HIndex(HStatic target, HInstruction receiver, HInstruction index)
+      : super(<HInstruction>[target, receiver, index]);
+  toString() => 'index operator';
+  accept(HVisitor visitor) => visitor.visitIndex(this);
 }
 
 class HNonSsaInstruction extends HInstruction {

@@ -478,6 +478,7 @@ class Identifier extends Expression {
 
 class Operator extends Identifier {
   Operator(Token token) : super(token);
+  Operator.synthetic(String name) : super.synthetic(name);
 
   Operator asOperator() => this;
 

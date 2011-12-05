@@ -237,7 +237,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
             || name === '*' || name === '/' || name === '%'
             || name === '~/' || name === '|' || name ==='&'
             || name === '^' || name === '~'|| name === '<<'
-            || name === '>>') {
+            || name === '>>' || name === '[]') {
           return types.dynamicType;
         } else if (name === '<' || name === '>' || name === '<='
                    || name === '>=' || name === '==') {

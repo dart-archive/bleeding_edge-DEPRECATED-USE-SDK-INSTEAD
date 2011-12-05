@@ -190,3 +190,8 @@ neg(var a) {
   if (JS(@"typeof $0 === 'number'", a)) return JS(@"-$0", a);
   throw "Unimplemented user-defined unary-.";
 }
+
+index(var a, var index) {
+  if (JS(@"$0.constructor === Array", a)) return JS(@"$0[$1]", a, index);
+  throw "Unimplemented user-defined [].";
+}

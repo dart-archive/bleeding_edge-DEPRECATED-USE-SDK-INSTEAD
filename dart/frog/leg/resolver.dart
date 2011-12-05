@@ -254,6 +254,9 @@ class FullResolverVisitor extends ResolverVisitor {
     if (name.stringValue === '>=') return const SourceString('ge');
 
     if (name.stringValue === '==') return const SourceString('eq');
+
+    // Index operator.
+    if (name.stringValue === '[]') return const SourceString('index');
     unreachable();
   }
 

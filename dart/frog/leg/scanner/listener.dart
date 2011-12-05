@@ -741,11 +741,13 @@ class NodeListener extends ElementListener {
     pushNode(new LiteralList(null, elements));
   }
 
-  void handleIndexedExpression(Token openCurlyBracket,
-                               Token closeCurlyBracket) {
-    makeNodeList(1, openCurlyBracket, closeCurlyBracket, null);
-    endSend(closeCurlyBracket); // TODO(ahe): Consider how to represent this.
-    canceler.cancel('indexed expression not implemented');
+  void handleIndexedExpression(Token openSquareBracket,
+                               Token closeSquareBracket) {
+    NodeList arguments =
+        makeNodeList(1, openSquareBracket, closeSquareBracket, null);
+    Node receiver = popNode();
+    Node selector = new Operator.synthetic('[]');
+    pushNode(new Send(receiver, selector, arguments));
   }
 
   void handleNewExpression(Token token) {

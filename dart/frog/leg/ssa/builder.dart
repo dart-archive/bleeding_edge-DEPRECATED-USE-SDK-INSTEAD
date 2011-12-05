@@ -509,8 +509,16 @@ class SsaBuilder implements Visitor {
     // this way more general soon.
     if (node.selector is Operator) {
       Operator op = node.selector;
-      if (const SourceString("&&") == op.source ||
-          const SourceString("||") == op.source) {
+      if (const SourceString("[]") == op.source) {
+        HStatic target = new HStatic(element);
+        add(target);
+        visit(node.receiver);
+        HInstruction receiver = pop();
+        visit(node.argumentsNode);
+        HInstruction index = pop();
+        push(new HIndex(target, receiver, index));
+      } else if (const SourceString("&&") == op.source ||
+                 const SourceString("||") == op.source) {
         visitLogicalAndOr(node, op);
       } else if (const SourceString("!") == op.source) {
         visitLogicalNot(node);
@@ -542,6 +550,10 @@ class SsaBuilder implements Visitor {
         link = link.tail;
       }
       var arguments = [];
+      if (node.receiver !== null) {
+        visit(node.receiver);
+        arguments.add(pop());
+      }
       for (; !link.isEmpty(); link = link.tail) {
         visit(link.head);
         arguments.add(pop());
