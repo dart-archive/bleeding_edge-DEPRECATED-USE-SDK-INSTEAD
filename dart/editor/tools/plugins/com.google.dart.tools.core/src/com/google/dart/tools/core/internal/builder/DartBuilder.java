@@ -34,6 +34,7 @@ import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
@@ -497,7 +498,12 @@ public class DartBuilder extends IncrementalProjectBuilder {
     DartProject proj = DartCore.create(getProject());
     for (DartLibrary lib : proj.getDartLibraries()) {
       for (DartLibrary refLib : ((DartLibraryImpl) lib).getReferencingLibraries()) {
-        ((DartLibraryImpl) refLib).getDefiningCompilationUnit().getResource().touch(monitor);
+        CompilationUnit unit = ((DartLibraryImpl) refLib).getDefiningCompilationUnit();
+        IResource resource = unit.getResource();
+        if (resource != null) {
+          // The resource can be null when the unit is an external compilation unit.
+          resource.touch(monitor);
+        }
       }
     }
   }
