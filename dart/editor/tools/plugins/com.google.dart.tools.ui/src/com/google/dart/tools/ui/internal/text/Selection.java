@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text;
@@ -82,8 +80,8 @@ public class Selection {
   }
 
   public boolean coveredBy(DartNode node) {
-    int nodeStart = node.getStartPosition();
-    return nodeStart <= fStart && fExclusiveEnd <= nodeStart + node.getLength();
+    int nodeStart = node.getSourceStart();
+    return nodeStart <= fStart && fExclusiveEnd <= nodeStart + node.getSourceLength();
   }
 
   public boolean coveredBy(IRegion region) {
@@ -92,8 +90,8 @@ public class Selection {
   }
 
   public boolean covers(DartNode node) {
-    int nodeStart = node.getStartPosition();
-    return fStart <= nodeStart && nodeStart + node.getLength() <= fExclusiveEnd;
+    int nodeStart = node.getSourceStart();
+    return fStart <= nodeStart && nodeStart + node.getSourceLength() <= fExclusiveEnd;
   }
 
   public boolean covers(int position) {
@@ -101,13 +99,13 @@ public class Selection {
   }
 
   public boolean endsIn(DartNode node) {
-    int nodeStart = node.getStartPosition();
-    return nodeStart < fExclusiveEnd && fExclusiveEnd < nodeStart + node.getLength();
+    int nodeStart = node.getSourceStart();
+    return nodeStart < fExclusiveEnd && fExclusiveEnd < nodeStart + node.getSourceLength();
   }
 
   public int getEndVisitSelectionMode(DartNode node) {
-    int nodeStart = node.getStartPosition();
-    int nodeEnd = nodeStart + node.getLength();
+    int nodeStart = node.getSourceStart();
+    int nodeEnd = nodeStart + node.getSourceLength();
     if (nodeEnd <= fStart) {
       return BEFORE;
     } else if (covers(node)) {
@@ -148,8 +146,8 @@ public class Selection {
    * @see #AFTER
    */
   public int getVisitSelectionMode(DartNode node) {
-    int nodeStart = node.getStartPosition();
-    int nodeEnd = nodeStart + node.getLength();
+    int nodeStart = node.getSourceStart();
+    int nodeEnd = nodeStart + node.getSourceLength();
     if (nodeEnd <= fStart) {
       return BEFORE;
     } else if (covers(node)) {
@@ -161,8 +159,8 @@ public class Selection {
   }
 
   public boolean liesOutside(DartNode node) {
-    int nodeStart = node.getStartPosition();
-    int nodeEnd = nodeStart + node.getLength();
+    int nodeStart = node.getSourceStart();
+    int nodeEnd = nodeStart + node.getSourceLength();
     boolean nodeBeforeSelection = nodeEnd < fStart;
     boolean selectionBeforeNode = fExclusiveEnd < nodeStart;
     return nodeBeforeSelection || selectionBeforeNode;
