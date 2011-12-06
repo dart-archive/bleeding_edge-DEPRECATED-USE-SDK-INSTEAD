@@ -48,7 +48,6 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
-import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -677,7 +676,6 @@ public class DeltaProcessor {
         // enter this code with
         // an elementType DART_PROJECT (see #elementType(...)).
         if (resource instanceof IProject) {
-
           if (currentElement != null && currentElement.getElementType() == DartElement.DART_PROJECT
               && ((DartProject) currentElement).getProject().equals(resource)) {
             return currentElement;
@@ -693,12 +691,11 @@ public class DeltaProcessor {
         }
         break;
       case DartElement.COMPILATION_UNIT:
-        CompilationUnit cu = (CompilationUnit) DartCore.create(resource);
-        element = cu;
+        // Note: this element could be a compilation unit or library (if it is a defining CU)
+        element = DartCore.create(resource);
         break;
       case DartElement.HTML_FILE:
-        HTMLFile htmlFile = (HTMLFile) DartCore.create(resource);
-        element = htmlFile;
+        element = DartCore.create(resource);
         break;
     }
     if (element == null) {
