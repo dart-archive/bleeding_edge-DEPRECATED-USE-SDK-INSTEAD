@@ -373,6 +373,9 @@ Object.prototype.toString$0 = function() {
 Object.prototype.visit$1 = function($0) {
   return this.noSuchMethod("visit", [$0]);
 };
+Object.prototype.visitBinaryExpression$1 = function($0) {
+  return this.noSuchMethod("visitBinaryExpression", [$0]);
+};
 Object.prototype.visitPostfixExpression$1 = function($0) {
   return this.noSuchMethod("visitPostfixExpression", [$0]);
 };
@@ -2970,6 +2973,11 @@ MethodGenerator.prototype.visitVoid = function(node) {
     value.checkFirstClass$1(node.span);
     return value;
   }
+  else if ((node instanceof BinaryExpression)) {
+    var value = this.visitBinaryExpression(node, true);
+    value.checkFirstClass$1(node.span);
+    return value;
+  }
   return this.visitValue(node);
 }
 MethodGenerator.prototype.visitDietStatement = function(node) {
@@ -3436,7 +3444,7 @@ MethodGenerator.prototype.visitIndexExpression = function(node) {
   var index = this.visitValue(node.index);
   return target.invoke$4(this, ':index', node, new Arguments(null, [index]));
 }
-MethodGenerator.prototype.visitBinaryExpression = function(node) {
+MethodGenerator.prototype.visitBinaryExpression = function(node, isVoid) {
   var kind = node.op.kind;
   if (kind == 35/*TokenKind.AND*/ || kind == 34/*TokenKind.OR*/) {
     var x = this.visitTypedValue(node.x, $globals.world.nonNullBool);
@@ -3490,10 +3498,10 @@ MethodGenerator.prototype.visitBinaryExpression = function(node) {
     return x.invoke$4(this, name, node, new Arguments(null, [y]));
   }
   else {
-    return this._visitAssign(assignKind, node.x, node.y, node, to$call$1(null));
+    return this._visitAssign(assignKind, node.x, node.y, node, to$call$1(null), isVoid);
   }
 }
-MethodGenerator.prototype._visitAssign = function(kind, xn, yn, position, captureOriginal) {
+MethodGenerator.prototype._visitAssign = function(kind, xn, yn, position, captureOriginal, isVoid) {
   if (captureOriginal == null) {
     captureOriginal = (function (x) {
       return x;
@@ -3504,7 +3512,7 @@ MethodGenerator.prototype._visitAssign = function(kind, xn, yn, position, captur
     return this._visitVarAssign(kind, xn, yn, position, captureOriginal);
   }
   else if ((xn instanceof IndexExpression)) {
-    return this._visitIndexAssign(kind, xn, yn, position, captureOriginal);
+    return this._visitIndexAssign(kind, xn, yn, position, captureOriginal, isVoid);
   }
   else if ((xn instanceof DotExpression)) {
     return this._visitDotAssign(kind, xn, yn, position, captureOriginal);
@@ -3577,7 +3585,7 @@ MethodGenerator.prototype._visitVarAssign = function(kind, xn, yn, position, cap
     return new Value(y.get$type(), ('' + x.get$code() + ' = ' + y.get$code()), position.span, true);
   }
 }
-MethodGenerator.prototype._visitIndexAssign = function(kind, xn, yn, position, captureOriginal) {
+MethodGenerator.prototype._visitIndexAssign = function(kind, xn, yn, position, captureOriginal, isVoid) {
   var target = this.visitValue(xn.target);
   var index = this.visitValue(xn.index);
   var y = this.visitValue(yn);
@@ -3591,7 +3599,16 @@ MethodGenerator.prototype._visitIndexAssign = function(kind, xn, yn, position, c
     right = captureOriginal(right);
     y = right.invoke$4(this, TokenKind.binaryMethodName(kind), position, new Arguments(null, [y]));
   }
+  var tmpy = null;
+  if (!isVoid) {
+    tmpy = this.getTemp(y);
+    y = this.assignTemp(tmpy, y);
+  }
   var ret = this.assignTemp(tmptarget, target).invoke(this, ':setindex', position, new Arguments(null, [index, y]), false);
+  if ($ne(tmpy, null)) {
+    ret = new Value(ret.get$type(), ('(' + ret.get$code() + ', ' + tmpy.get$code() + ')'), ret.get$span(), true);
+    if ($ne(tmpy, y)) this.freeTemp(tmpy);
+  }
   if ($ne(tmptarget, target)) this.freeTemp(tmptarget);
   if ($ne(tmpindex, index)) this.freeTemp(tmpindex);
   return ret;
@@ -3622,7 +3639,7 @@ MethodGenerator.prototype.visitUnaryExpression = function(node) {
       else {
         var kind = (16/*TokenKind.INCR*/ == node.op.kind ? 42/*TokenKind.ADD*/ : 43/*TokenKind.SUB*/);
         var operand = new LiteralExpression(1, new TypeReference(node.span, $globals.world.numType), '1', node.span);
-        var assignValue = this._visitAssign(kind, node.self, operand, node, to$call$1(null));
+        var assignValue = this._visitAssign(kind, node.self, operand, node, to$call$1(null), false);
         return new Value(assignValue.get$type(), ('(' + assignValue.get$code() + ')'), node.span, true);
       }
 
@@ -3683,7 +3700,7 @@ MethodGenerator.prototype.visitPostfixExpression = function(node, isVoid) {
       return $this.assignTemp(tmpleft, left);
     }
   })
-  );
+  , false);
   if ($ne(tmpleft, null)) {
     ret = new Value(ret.get$type(), ("(" + ret.get$code() + ", " + tmpleft.get$code() + ")"), node.span, true);
   }
@@ -3900,6 +3917,9 @@ MethodGenerator.prototype.visitLiteralExpression = function(node) {
   return EvaluatedValue.EvaluatedValue$factory(type, node.value, node.text, null);
 }
 MethodGenerator.prototype._checkNonStatic$1 = MethodGenerator.prototype._checkNonStatic;
+MethodGenerator.prototype.visitBinaryExpression$1 = function($0) {
+  return this.visitBinaryExpression($0, false);
+};
 MethodGenerator.prototype.visitPostfixExpression$1 = function($0) {
   return this.visitPostfixExpression($0, false);
 };
@@ -10023,7 +10043,7 @@ BinaryExpression.prototype.set$x = function(value) { return this.x = value; };
 BinaryExpression.prototype.get$y = function() { return this.y; };
 BinaryExpression.prototype.set$y = function(value) { return this.y = value; };
 BinaryExpression.prototype.visit = function(visitor) {
-  return visitor.visitBinaryExpression(this);
+  return visitor.visitBinaryExpression$1(this);
 }
 BinaryExpression.prototype.visit$1 = BinaryExpression.prototype.visit;
 // ********** Code for UnaryExpression **************

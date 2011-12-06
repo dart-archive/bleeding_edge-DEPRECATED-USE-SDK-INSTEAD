@@ -1168,7 +1168,11 @@ class MethodGenerator implements TreeVisitor {
   visitVoid(Expression node) {
     // TODO(jmesserly): should we generalize this?
     if (node is PostfixExpression) {
-      var value = visitPostfixExpression(node, /*isVoid:*/true);
+      var value = visitPostfixExpression(node, isVoid: true);
+      value.checkFirstClass(node.span);
+      return value;
+    } else if (node is BinaryExpression) {
+      var value = visitBinaryExpression(node, isVoid: true);
       value.checkFirstClass(node.span);
       return value;
     }
@@ -1747,7 +1751,7 @@ class MethodGenerator implements TreeVisitor {
     return target.invoke(this, ':index', node, new Arguments(null, [index]));
   }
 
-  visitBinaryExpression(BinaryExpression node) {
+  visitBinaryExpression(BinaryExpression node, [bool isVoid = false]) {
     final kind = node.op.kind;
     // TODO(jimhug): Ensure these have same semantics as JS!
     if (kind == TokenKind.AND || kind == TokenKind.OR) {
@@ -1814,7 +1818,7 @@ class MethodGenerator implements TreeVisitor {
       }
       return x.invoke(this, name, node, new Arguments(null, [y]));
     } else {
-      return _visitAssign(assignKind, node.x, node.y, node, null);
+      return _visitAssign(assignKind, node.x, node.y, node, null, isVoid);
     }
   }
 
@@ -1825,7 +1829,7 @@ class MethodGenerator implements TreeVisitor {
    * original value, before it has been modified.
    */
   _visitAssign(int kind, Expression xn, Expression yn, Node position,
-      Value captureOriginal(Value right)) {
+      Value captureOriginal(Value right), [bool isVoid = false]) {
 
     if (captureOriginal == null) {
       captureOriginal = (x) => x;
@@ -1835,7 +1839,7 @@ class MethodGenerator implements TreeVisitor {
     if (xn is VarExpression) {
       return _visitVarAssign(kind, xn, yn, position, captureOriginal);
     } else if (xn is IndexExpression) {
-      return _visitIndexAssign(kind, xn, yn, position, captureOriginal);
+      return _visitIndexAssign(kind, xn, yn, position, captureOriginal, isVoid);
     } else if (xn is DotExpression) {
       return _visitDotAssign(kind, xn, yn, position, captureOriginal);
     } else {
@@ -1926,7 +1930,7 @@ class MethodGenerator implements TreeVisitor {
   }
 
   _visitIndexAssign(int kind, IndexExpression xn, Expression yn, Node position,
-      Value captureOriginal(Value right)) {
+      Value captureOriginal(Value right), [bool isVoid = false]) {
     var target = visitValue(xn.target);
     var index = visitValue(xn.index);
     var y = visitValue(yn);
@@ -1943,8 +1947,20 @@ class MethodGenerator implements TreeVisitor {
       y = right.invoke(this, TokenKind.binaryMethodName(kind),
           position, new Arguments(null, [y]));
     }
+
+    var tmpy = null;
+    // If the assignment is an expression statement (x[i] = y;) it is translated
+    // as (x.$setindex(i, y)), otherwise as (x.$setindex(i, t = y), t).
+    if (!isVoid) {
+      tmpy = getTemp(y);
+      y = assignTemp(tmpy, y);
+    }
     var ret = assignTemp(tmptarget, target).invoke(this, ':setindex',
         position, new Arguments(null, [index, y]));
+    if (tmpy != null) {
+      ret = new Value(ret.type, '(${ret.code}, ${tmpy.code})', ret.span);
+      if (tmpy != y) freeTemp(tmpy);
+    }
     if (tmptarget != target) freeTemp(tmptarget);
     if (tmpindex != index) freeTemp(tmpindex);
     return ret;
