@@ -31,6 +31,7 @@ import com.google.dart.tools.ui.internal.text.dart.DartStringDoubleClickSelector
 import com.google.dart.tools.ui.internal.text.dart.SmartSemicolonAutoEditStrategy;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocScanner;
+import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 import com.google.dart.tools.ui.internal.text.editor.ICompilationUnitDocumentProvider;
 import com.google.dart.tools.ui.internal.text.functions.AbstractDartScanner;
 import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
@@ -651,7 +652,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    */
   @Override
   public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
-    return null;
+    return new DartTextHover(fTextEditor, sourceViewer, this);
     // JavaEditorTextHoverDescriptor[] hoverDescs =
     // DartToolsPlugin.getDefault().getJavaEditorTextHoverDescriptors();
     // int i = 0;
@@ -701,6 +702,14 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
         fJavaDoubleClickSelector.setSourceVersion((String) event.getNewValue());
       }
     }
+  }
+
+  /**
+   * Made public for visibility outside of the package.
+   */
+  @Override
+  public boolean isShownInText(Annotation annotation) {
+    return super.isShownInText(annotation);
   }
 
   /**

@@ -17,33 +17,12 @@ package com.google.dart.tools.core.model;
  * The interface <code>DartFunction</code> defines the behavior of elements representing the
  * definition of a function within Dart source code.
  */
-public interface DartFunction extends CompilationUnitElement, ParentElement, SourceReference {
+public interface DartFunction extends CompilationUnitElement, ParentElement, SourceReference,
+    DartDocumentable {
   /**
    * The function main
    */
   public static String MAIN = "main";
-
-  /**
-   * Returns the dartdoc range if this element is from source or if this element is a binary element
-   * with an attached source, null otherwise.
-   * <p>
-   * If this element is from source, the dartdoc range is extracted from the corresponding source.
-   * </p>
-   * <p>
-   * If this element is from a binary, the dartdoc is extracted from the attached source if present.
-   * </p>
-   * <p>
-   * If this element's openable is not consistent, then null is returned.
-   * </p>
-   * 
-   * @exception DartModelException if this element does not exist or if an exception occurs while
-   *              accessing its corresponding resource.
-   * @return a source range corresponding to the dartdoc source or <code>null</code> if no source is
-   *         available, this element has no dartdoc comment or this element's openable is not
-   *         consistent
-   * @see IOpenable#isConsistent()
-   */
-  public SourceRange getDartDocRange() throws DartModelException;
 
   /**
    * Return an array containing all of the local variables and parameters defined for this function,

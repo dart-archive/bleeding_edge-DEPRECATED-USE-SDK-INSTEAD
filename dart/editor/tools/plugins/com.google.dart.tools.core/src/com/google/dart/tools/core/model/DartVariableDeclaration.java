@@ -19,29 +19,8 @@ package com.google.dart.tools.core.model;
  * functions}, {@link Method methods} and {@link CompilationUnit compilation units}, and include
  * parameters defined for either methods or functions.
  */
-public interface DartVariableDeclaration extends CompilationUnitElement, SourceReference {
-  /**
-   * Returns the dartdoc range if this element is from source or if this element is a binary element
-   * with an attached source, null otherwise.
-   * <p>
-   * If this element is from source, the dartdoc range is extracted from the corresponding source.
-   * </p>
-   * <p>
-   * If this element is from a binary, the dartdoc is extracted from the attached source if present.
-   * </p>
-   * <p>
-   * If this element's openable is not consistent, then null is returned.
-   * </p>
-   * 
-   * @exception DartModelException if this element does not exist or if an exception occurs while
-   *              accessing its corresponding resource.
-   * @return a source range corresponding to the dartdoc source or <code>null</code> if no source is
-   *         available, this element has no dartdoc comment or this element's openable is not
-   *         consistent
-   * @see IOpenable#isConsistent()
-   */
-  public SourceRange getDartDocRange() throws DartModelException;
-
+public interface DartVariableDeclaration extends CompilationUnitElement, SourceReference,
+    DartDocumentable {
   /**
    * Return the name of the type of this variable, or <code>null</code> if this variable does not
    * have a declared type.

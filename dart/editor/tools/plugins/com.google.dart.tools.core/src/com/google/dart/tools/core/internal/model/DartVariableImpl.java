@@ -59,7 +59,7 @@ public class DartVariableImpl extends SourceReferenceImpl implements DartVariabl
     try {
       DartElementInfo info = getElementInfo();
       if (info instanceof DeclarationElementInfo) {
-        return ((DeclarationElementInfo) info).getSourceRange();
+        return ((DeclarationElementInfo) info).getDartDocRange();
       }
     } catch (DartModelException exception) {
       // Fall through to return null
