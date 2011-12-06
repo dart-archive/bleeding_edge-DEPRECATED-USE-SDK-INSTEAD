@@ -27,6 +27,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.ILibrariesViewPart;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
+import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.preferences.MembersOrderPreferenceCache;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.SelectionUtil;
@@ -55,6 +56,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
@@ -68,6 +70,8 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
@@ -116,6 +120,15 @@ import java.util.List;
  */
 public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget, IMenuListener,
     IShowInTarget, ILibrariesViewPart, IPropertyChangeListener, IViewPartInputProvider {
+
+  private class FontPropertyChangeListener implements IPropertyChangeListener {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      if (viewer != null) {
+        viewer.updateTreeFont(event.getProperty());
+      }
+    }
+  }
 
   /**
    * Note: the JDT had the additional field "pendingRefreshes" for handling project top level
@@ -176,6 +189,16 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
         setSelection(newSelection);
       }
       super.handleInvalidSelection(invalidSelection, newSelection);
+    }
+
+    protected void updateTreeFont(String name) {
+      Font newFont = JFaceResources.getFont(DartBasePreferencePage.EDITOR_FONT_KEY);
+      Font oldFont = getTree().getFont();
+      FontData[] data = oldFont.getFontData();
+      int height = newFont.getFontData()[0].getHeight();
+      FontData newData = new FontData(data[0].getName(), height, data[0].getStyle());
+      Font font = new Font(oldFont.getDevice(), newData);
+      getTree().setFont(font);
     }
   }
 
@@ -274,7 +297,7 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
   private FilterUpdater filterUpdater;
 
   private LibraryExplorerActionGroup actionSet;
-  private ProblemTreeViewer viewer;
+  private LibraryExplorerProblemTreeViewer viewer;
 
   private Menu contextMenu;
 
@@ -354,6 +377,8 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
     }
   };
 
+  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
+
   /**
    * The only constructor for this class, it is called implicitly from the Eclipse framework. See
    * the contribution for this view in the <code>plugin.xml</code> file.
@@ -373,6 +398,7 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
     } catch (NumberFormatException e) {
       rootMode = LIBRARIES_AS_ROOTS;
     }
+    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
   }
 
   /**
@@ -418,6 +444,7 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
     }
     viewer = createViewer(parent);
     viewer.setUseHashlookup(true);
+    viewer.updateTreeFont(DartBasePreferencePage.EDITOR_FONT_KEY);
 
     setProviders();
 
@@ -517,6 +544,10 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
     DartToolsPlugin.getDefault().getPreferenceStore().removePropertyChangeListener(this);
     if (viewer != null) {
       viewer.removeTreeListener(expansionListener);
+    }
+    if (fontPropertyChangeListener != null) {
+      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
+      fontPropertyChangeListener = null;
     }
 
     if (actionSet != null) {
@@ -1037,7 +1068,7 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
     return original;
   }
 
-  private ProblemTreeViewer createViewer(Composite composite) {
+  private LibraryExplorerProblemTreeViewer createViewer(Composite composite) {
     return new LibraryExplorerProblemTreeViewer(composite, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
   }
 

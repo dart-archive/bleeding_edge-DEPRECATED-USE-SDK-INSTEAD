@@ -750,6 +750,9 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_show_line_numbers;
   public static String DartBasePreferencePage_show_line_numbers_tooltip;
   public static String DartBasePreferencePage_show_print_margin;
+  public static String DartBasePreferencePage_font_group_label;
+  public static String DartBasePreferencePage_font_scale_label;
+  public static String DartBasePreferencePage_font_scale_indicator;
   public static String DartBasePreferencePage_show_print_margin_tooltip;
   public static String DartBasePreferencePage_editor_preferences;
   public static String DartBasePreferencePage_general;

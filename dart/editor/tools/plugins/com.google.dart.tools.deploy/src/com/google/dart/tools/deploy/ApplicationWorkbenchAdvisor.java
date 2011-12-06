@@ -46,6 +46,9 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchPreferenceConstants;
 import org.eclipse.ui.PlatformUI;
@@ -81,6 +84,13 @@ import java.net.URL;
 @SuppressWarnings("restriction")
 public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
+  private class FontPropertyChangeListener implements IPropertyChangeListener {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      updateConsoleFont(event.getProperty());
+    }
+  }
+
   private static final String PERSPECTIVE_ID = "com.google.dart.tools.ui.DartPerspective"; //$NON-NLS-1$
 
   private static ApplicationWorkbenchAdvisor workbenchAdvisor = null;
@@ -104,6 +114,9 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
    * Helper class used to process delayed events.
    */
   private DelayedEventsProcessor delayedEventsProcessor;
+
+  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
+  private MessageConsole console;
 
   /**
    * Creates a new workbench advisor instance.
@@ -215,10 +228,11 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
       //Display.getCurrent().addListener(SWT.Settings, settingsChangeListener);
 
-      final MessageConsole console = new MessageConsole("", null); // empty string hides title bar
+      console = new MessageConsole("", null); // empty string hides title bar
       ConsolePlugin.getDefault().getConsoleManager().addConsoles(new IConsole[] {console});
       final MessageConsoleStream stream = console.newMessageStream();
       stream.setActivateOnWrite(false);
+      JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
 
       DartCore.getConsole().addStream(new MessageStream() {
         @Override
@@ -532,4 +546,9 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     }
   }
 
+  private void updateConsoleFont(String name) {
+    if (console != null) {
+      console.setFont(JFaceResources.getFont(name));
+    }
+  }
 }

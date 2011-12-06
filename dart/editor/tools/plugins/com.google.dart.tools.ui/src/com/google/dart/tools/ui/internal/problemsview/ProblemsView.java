@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.problemsview;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -38,6 +39,8 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.resource.ResourceManager;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
@@ -425,6 +428,15 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
+  private class FontPropertyChangeListener implements IPropertyChangeListener {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      if (tableViewer != null) {
+        updateTableFont(event.getProperty());
+      }
+    }
+  }
+
   private class GoToMarkerAction extends SelectionProviderAction {
 
     private static final String GOINTO_RESOURCE_IMG_PATH = "elcl16/gotoobj_tsk.gif"; //$NON-NLS-1$
@@ -701,8 +713,10 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   private boolean rescheduleJob;
 
-  public ProblemsView() {
+  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
+  public ProblemsView() {
+    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
   }
 
   @Override
@@ -768,7 +782,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     restoreColumnWidths();
 
     table.setLayoutData(new GridData(GridData.FILL_BOTH));
-    table.setFont(parent.getFont());
+//    table.setFont(parent.getFont());
+    updateTableFont(DartBasePreferencePage.EDITOR_FONT_KEY);
 
     table.setLinesVisible(true);
     table.setHeaderVisible(true);
@@ -808,6 +823,11 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     if (goToMarkerAction != null) {
       goToMarkerAction.dispose();
       goToMarkerAction = null;
+    }
+
+    if (fontPropertyChangeListener != null) {
+      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
+      fontPropertyChangeListener = null;
     }
 
     MarkersChangeService.getService().removeListener(this);
@@ -976,6 +996,16 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     String desc = getStatusSummary(markers);
 
     setContentDescription(desc);
+  }
+
+  protected void updateTableFont(String name) {
+    Font newFont = JFaceResources.getFont(DartBasePreferencePage.EDITOR_FONT_KEY);
+    Font oldFont = tableViewer.getTable().getFont();
+    FontData[] data = oldFont.getFontData();
+    int height = newFont.getFontData()[0].getHeight();
+    FontData newData = new FontData(data[0].getName(), height, data[0].getStyle());
+    Font font = new Font(oldFont.getDevice(), newData);
+    tableViewer.getTable().setFont(font);
   }
 
   private void addActionsForSelection(IMenuManager menuManager) {
