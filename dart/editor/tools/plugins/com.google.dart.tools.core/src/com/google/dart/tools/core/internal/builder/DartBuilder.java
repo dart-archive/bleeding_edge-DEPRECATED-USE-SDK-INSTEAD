@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
-import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
@@ -40,6 +39,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.core.utilities.compiler.NullWriter;
 
 import static com.google.dart.tools.core.internal.builder.BuilderUtil.clearErrorMarkers;
 
@@ -82,7 +82,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
    * An artifact provider for tracking prerequisite projects. All artifacts are cached in memory via
    * {@link RootArtifactProvider} except for the final app.js file which is written to disk.
    */
-  private class ArtifactProvider extends DartArtifactProvider {
+  private class ArtifactProvider extends CachingArtifactProvider {
     private final RootArtifactProvider rootProvider = RootArtifactProvider.getInstance();
     private final Collection<IProject> prerequisiteProjects = new HashSet<IProject>();
     private int writeArtifactCount;
@@ -110,6 +110,11 @@ public class DartBuilder extends IncrementalProjectBuilder {
       }
     }
 
+    public void endBuild() {
+      // Clear any artifacts cached for the duration of this compilation
+      super.clearCachedArtifacts();
+    }
+
     @Override
     public Reader getArtifactReader(Source source, String part, String extension)
         throws IOException {
@@ -118,9 +123,14 @@ public class DartBuilder extends IncrementalProjectBuilder {
         IProject project = res.getProject();
         prerequisiteProjects.add(project);
       }
-      File appJsFile = getAppJsFile(source, part, extension);
-      if (appJsFile != null) {
-        return new BufferedReader(new FileReader(appJsFile));
+      if (extension.startsWith(AbstractJsBackend.EXTENSION_APP_JS)) {
+        File appJsFile = getAppJsFile(source, part, extension);
+        if (appJsFile != null) {
+          return new BufferedReader(new FileReader(appJsFile));
+        }
+        // Artifacts with an "app.js*" extension
+        // are cached only for the duration of this compilation
+        return super.getArtifactReader(source, part, extension);
       }
       return rootProvider.getArtifactReader(source, part, extension);
     }
@@ -133,9 +143,18 @@ public class DartBuilder extends IncrementalProjectBuilder {
     @Override
     public Writer getArtifactWriter(Source source, String part, String extension)
         throws IOException {
-      final File appJsFile = getAppJsFile(source, part, extension);
-      if (appJsFile != null) {
-        return new BufferedWriter(new FileWriter(appJsFile));
+      if (extension.startsWith(AbstractJsBackend.EXTENSION_APP_JS)) {
+        final File appJsFile = getAppJsFile(source, part, extension);
+        if (appJsFile != null) {
+          return new BufferedWriter(new FileWriter(appJsFile));
+        }
+        // Don't bother caching or writing source maps until we need them
+        if (extension.equals(AbstractJsBackend.EXTENSION_APP_JS_SRC_MAP)) {
+          return new NullWriter();
+        }
+        // Otherwise, any artifact with an "app.js*" extension
+        // should be cached only for the duration of this compilation
+        return super.getArtifactWriter(source, part, extension);
       }
       writeArtifactCount++;
       return rootProvider.getArtifactWriter(source, part, extension);
@@ -377,6 +396,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
       //3. Have the Messenger tell the MetricsManager that a new build is in
       provider.beginBuild();
       DartCompilerUtilities.secureCompileLib(libSource, config, provider, listener);
+      provider.endBuild();
       config.getCompilerMetrics().done();
       if (DartCoreDebug.BUILD) {
         ByteArrayOutputStream out = new ByteArrayOutputStream(400);

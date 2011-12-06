@@ -51,6 +51,7 @@ public class DartCompilerWarmup {
    * {@link RootArtifactProvider}.
    */
   private static class ArtifactProvider extends CachingArtifactProvider {
+
     private final DartArtifactProvider rootProvider;
     private int writeArtifactCount = 0;
     private int outOfDateCount = 0;
@@ -83,21 +84,9 @@ public class DartCompilerWarmup {
 
         // Don't write the final application JS and map files
 
-        if (extension.startsWith(AbstractJsBackend.EXTENSION_APP_JS)) {
-          return new Writer() {
-
-            @Override
-            public void close() throws IOException {
-            }
-
-            @Override
-            public void flush() throws IOException {
-            }
-
-            @Override
-            public void write(char[] cbuf, int off, int len) throws IOException {
-            }
-          };
+        if (extension.equals(AbstractJsBackend.EXTENSION_APP_JS)
+            || extension.equals(AbstractJsBackend.EXTENSION_APP_JS_SRC_MAP)) {
+          return new NullWriter();
         }
 
         // Cache "warmup" artifacts locally so that they can be thrown away
