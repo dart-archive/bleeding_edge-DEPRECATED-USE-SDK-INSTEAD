@@ -219,6 +219,9 @@ class Listener {
   void handleConditionalExpression(Token question, Token colon) {
   }
 
+  void handleConstExpression(Token token, bool named) {
+  }
+
   void handleFinalKeyword(Token finalKeyword) {
   }
 
@@ -250,7 +253,10 @@ class Listener {
   void handleLiteralString(Token token) {
   }
 
-  void handleNewExpression(Token token) {
+  void handleNamedArgument(Token colon) {
+  }
+
+  void handleNewExpression(Token token, bool named) {
   }
 
   void handleNoArguments(Token token) {
@@ -265,7 +271,13 @@ class Listener {
   void handleNoTypeVariables(Token token) {
   }
 
+  void handleOperatorName(Token operatorKeyword, Token token) {
+  }
+
   void handleParenthesizedExpression(BeginGroupToken token) {
+  }
+
+  void handleStringInterpolationPart(Token token) {
   }
 
   void handleSuperExpression(Token token) {
@@ -758,10 +770,27 @@ class NodeListener extends ElementListener {
     pushNode(new Send(receiver, selector, arguments));
   }
 
-  void handleNewExpression(Token token) {
+  void handleNewExpression(Token token, bool named) {
+    if (named) canceler.cancel('named constructors are not implemented');
     NodeList arguments = popNode();
     TypeAnnotation type = popNode();
     pushNode(new NewExpression(token, new Send(null, type, arguments)));
+  }
+
+  void handleConstExpression(Token token, bool named) {
+    canceler.cancel('const expressions are not implemented');
+  }
+
+  void handleOperatorName(Token operatorKeyword, Token token) {
+    canceler.cancel('user defined operators are not implemented');
+  }
+
+  void handleNamedArgument(Token colon) {
+    canceler.cancel('named arguments are not implemented');
+  }
+
+  void handleStringInterpolationPart(Token token) {
+    canceler.cancel('string interpolation is not implemented');
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,

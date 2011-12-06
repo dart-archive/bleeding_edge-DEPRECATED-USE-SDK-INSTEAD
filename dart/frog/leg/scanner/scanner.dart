@@ -29,6 +29,7 @@ class AbstractScanner<T> implements Scanner {
   abstract int get byteOffset();
   abstract void appendBeginGroup(int kind, String value);
   abstract int appendEndGroup(int kind, String value, int openKind);
+  abstract void appendGt(int kind, String value);
   abstract void appendGtGt(int kind, String value);
   abstract void appendGtGtGt(int kind, String value);
   abstract void discardOpenLt();
