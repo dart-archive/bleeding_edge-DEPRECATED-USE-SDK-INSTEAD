@@ -73,7 +73,11 @@ public class DartDebugCorePlugin extends Plugin {
 
   private static final String PREFS_JRE_PATH = "jrePath";
 
-  private static final String PREFS_DART_VM_PATH = "vmPath";
+  public static final String PREFS_DART_VM_PATH = "vmPath";
+
+  public static final String PREFS_BROWSER_NAME = "browserName";
+
+  public static final String PREFS_DEFAULT_BROWSER = "defaultBrowser";
 
   /**
    * Create a Status object with the given message and this plugin's ID.
@@ -158,6 +162,16 @@ public class DartDebugCorePlugin extends Plugin {
   private IEclipsePreferences prefs;
 
   /**
+   * Returns the path to the Browser executable, if it has been set. Otherwise, this method returns
+   * the empty string.
+   * 
+   * @return the path to the Browser executable
+   */
+  public String getBrowserExecutablePath() {
+    return getPrefs().get(PREFS_BROWSER_NAME, "");
+  }
+
+  /**
    * @return the browser configuration given a name
    */
   public ChromeBrowserConfig getChromeBrowserConfig(String browserName) {
@@ -169,6 +183,20 @@ public class DartDebugCorePlugin extends Plugin {
    */
   public List<ChromeBrowserConfig> getConfiguredBrowsers() {
     return BrowserConfigManager.getManager().getConfiguredBrowsers();
+  }
+
+  /**
+   * Returns the path to the Dart VM executable, if it has been set. Otherwise, this method returns
+   * the empty string.
+   * 
+   * @return the path to the Dart VM executable
+   */
+  public String getDartVmExecutablePath() {
+    return getPrefs().get(PREFS_DART_VM_PATH, "");
+  }
+
+  public boolean getIsDefaultBrowser() {
+    return getPrefs().getBoolean(PREFS_DEFAULT_BROWSER, true);
   }
 
   /**
@@ -190,13 +218,18 @@ public class DartDebugCorePlugin extends Plugin {
   }
 
   /**
-   * Returns the path to the Dart VM executable, if it has been set. Otherwise, this method returns
-   * the empty string.
+   * Set the path to the Browser executable.
    * 
-   * @return the path to the Dart VM executable
+   * @param value the path to the Browser executable.
    */
-  public String getDartVmExecutablePath() {
-    return getPrefs().get(PREFS_DART_VM_PATH, "");
+  public void setBrowserExecutablePath(String value) {
+    getPrefs().put(PREFS_BROWSER_NAME, value);
+
+    try {
+      getPrefs().flush();
+    } catch (BackingStoreException exception) {
+      logError(exception);
+    }
   }
 
   /**
@@ -209,13 +242,12 @@ public class DartDebugCorePlugin extends Plugin {
   }
 
   /**
-   * Set the path to the JRE executable. This is used to invoke a Java process by the Rhino launch
-   * configuration.
+   * Set the path to the Dart VM executable.
    * 
-   * @param value the path to the JRE executable.
+   * @param value the path to the Dart VM executable.
    */
-  public void setJreExecutablePath(String value) {
-    getPrefs().put(PREFS_JRE_PATH, value);
+  public void setDartVmExecutablePath(String value) {
+    getPrefs().put(PREFS_DART_VM_PATH, value);
 
     try {
       getPrefs().flush();
@@ -224,14 +256,18 @@ public class DartDebugCorePlugin extends Plugin {
     }
   }
 
+  public void setDefaultBrowser(boolean value) {
+    getPrefs().putBoolean(PREFS_DEFAULT_BROWSER, value);
+  }
+
   /**
-   * Set the path to the Node executable. This is used to invoke a process running node by the Node
-   * launch configuration.
+   * Set the path to the JRE executable. This is used to invoke a Java process by the Rhino launch
+   * configuration.
    * 
-   * @param value the path to the Node executable.
+   * @param value the path to the JRE executable.
    */
-  public void setDartVmExecutablePath(String value) {
-    getPrefs().put(PREFS_DART_VM_PATH, value);
+  public void setJreExecutablePath(String value) {
+    getPrefs().put(PREFS_JRE_PATH, value);
 
     try {
       getPrefs().flush();

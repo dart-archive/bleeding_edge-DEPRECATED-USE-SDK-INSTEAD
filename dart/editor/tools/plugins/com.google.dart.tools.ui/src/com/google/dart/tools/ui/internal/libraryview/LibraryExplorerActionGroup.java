@@ -22,7 +22,6 @@ import com.google.dart.tools.ui.actions.NavigateActionGroup;
 import com.google.dart.tools.ui.actions.OpenExternalFileDialogAction;
 import com.google.dart.tools.ui.actions.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
-import com.google.dart.tools.ui.actions.RunInBrowserAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.text.editor.CompositeActionGroup;
 
@@ -68,7 +67,7 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
 
   private NavigateActionGroup navigateActionGroup;
 
-  private RunInBrowserAction runInBrowserAction;
+//  private RunInBrowserAction runInBrowserAction;
 
   private CloseLibraryAction closeLibraryAction;
 
@@ -104,7 +103,7 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
     openFileAction = new OpenExternalFileDialogAction(part.getSite().getWorkbenchWindow());
 
-    runInBrowserAction = new RunInBrowserAction(part.getSite().getWorkbenchWindow());
+    //   runInBrowserAction = new RunInBrowserAction(part.getSite().getWorkbenchWindow());
     closeLibraryAction = new CloseLibraryAction(part.getSite().getWorkbenchWindow());
     closeLibraryAction.setText(LibraryExplorerMessages.LibraryExplorer_close_library_action);
 
@@ -177,7 +176,7 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
     if (element instanceof HTMLFile) {
       menu.add(navigateActionGroup.getEditAction());
       menu.add(new Separator());
-      menu.add(runInBrowserAction);
+      //     menu.add(runInBrowserAction);
       return;
     }
 
@@ -222,7 +221,7 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
 
   /**
    * Called by Library Explorer.
-   *
+   * 
    * @param event the open event
    * @param activate <code>true</code> if the opened editor should be activated
    */

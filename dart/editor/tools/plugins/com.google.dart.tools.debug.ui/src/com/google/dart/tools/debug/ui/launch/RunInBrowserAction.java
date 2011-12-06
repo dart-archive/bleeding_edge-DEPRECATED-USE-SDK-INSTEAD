@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.actions;
+package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
@@ -20,9 +20,9 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.HTMLFile;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
-import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -31,6 +31,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -40,6 +42,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.program.Program;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorRegistry;
@@ -190,15 +193,35 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
         if (htmlFile.getReferencedLibraries().length > 0) {
           DartLibrary library = htmlFile.getReferencedLibraries()[0];
           File jsOutFile = getJsAppArtifactFile(library.getCorrespondingResource().getLocation());
-
+          boolean useDefaultBrowser;
           if (jsOutFile.exists()) {
             try {
+              if (InstanceScope.INSTANCE.getNode(DartDebugCorePlugin.PLUGIN_ID) != null) {
+                IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(DartDebugCorePlugin.PLUGIN_ID);
+                useDefaultBrowser = prefs.getBoolean(DartDebugCorePlugin.PREFS_DEFAULT_BROWSER,
+                    true);
+                if (!useDefaultBrowser) {
+                  String browserName = prefs.get(DartDebugCorePlugin.PREFS_BROWSER_NAME, "");
+                  if (!browserName.isEmpty()) {
+                    Program program = findProgram(browserName);
+                    if (program != null) {
+                      program.execute(file.getLocation().toOSString());
+
+                    } else {
+                      MessageDialog.openError(window.getShell(),
+                          ActionMessages.OpenInBrowserAction_unableToLaunch,
+                          ActionMessages.OpenInBrowserAction_couldNotOpenFile);
+                    }
+                    return;
+                  }
+                }
+              }
               String editorId = IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID;
               page.openEditor(new FileEditorInput(file), editorId, true, MATCH_BOTH);
             } catch (PartInitException e) {
-              ExceptionHandler.handle(e, window.getShell(),
-                  ActionMessages.OpenInBrowserAction_title,
+              MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_title,
                   ActionMessages.OpenInBrowserAction_couldNotOpenFile);
+              DartDebugCorePlugin.logError(e);
             }
           } else {
             MessageDialog.openError(
@@ -209,8 +232,9 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
           }
         }
       } catch (DartModelException ex) {
-        ExceptionHandler.handle(ex, window.getShell(), ActionMessages.OpenInBrowserAction_title,
+        MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_title,
             ActionMessages.OpenInBrowserAction_couldNotOpenFile);
+        DartDebugCorePlugin.logError(ex);
       }
     }
   }
@@ -247,8 +271,9 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
         job.schedule(isSaveNeeded ? 100 : 0);
       }
     } catch (DartModelException e) {
-      ExceptionHandler.handle(e, window.getShell(), ActionMessages.OpenInBrowserAction_title,
+      MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_title,
           ActionMessages.OpenInBrowserAction_couldNotOpenFile);
+      DartDebugCorePlugin.logError(e);
     }
   }
 
@@ -270,6 +295,18 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
     }
 
     return (IFile) result[0];
+  }
+
+  private Program findProgram(String name) {
+
+    Program[] programs = Program.getPrograms();
+    for (Program program : programs) {
+      if (program.getName().equals(name)) {
+        return program;
+      }
+    }
+
+    return null;
   }
 
   private List<IFile> getFileResourcesForSelection() throws DartModelException {

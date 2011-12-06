@@ -243,19 +243,6 @@ public final class ActionMessages extends NLS {
   public static String OpenExternalJavadocAction_opening_failed;
   public static String OpenExternalJavadocAction_dialog_title;
   public static String OpenExternalJavadocAction_code_resolve_failed;
-  public static String OpenInBrowserAction_couldNotOpenFile;
-
-  public static String OpenInBrowserAction_description;
-
-  public static String OpenInBrowserAction_errorMessage;
-
-  public static String OpenInBrowserAction_title;
-  public static String OpenInBrowserAction_unableToLaunch;
-  public static String OpenInBrowserAction_notInDartLib;
-  public static String OpenInBrowserAction_notAnHtmlFile;
-  public static String OpenInBrowserAction_noJSFile;
-
-  public static String OpenInBrowserAction_toolTip;
 
   public static String DeployOptimizedAction_title;
   public static String DeployOptimizedAction_description;
@@ -265,14 +252,6 @@ public final class ActionMessages extends NLS {
   public static String DeployOptimizedAction_unableToLaunch;
   public static String DeployOptimizedAction_errorLaunching;
   public static String DeployOptimizedAction_errorCompiling;
-
-  public static String OpenInBrowserAction_noFileTitle;
-  public static String OpenInBrowserAction_noFileMessage;
-
-  public static String OpenInBrowserAction_selectFileTitle;
-  public static String OpenInBrowserAction_selectFileMessage;
-
-  public static String OpenInBrowserAction_jobTitle;
 
   public static String SelfEncapsulateFieldAction_label;
   public static String SelfEncapsulateFieldAction_dialog_title;
