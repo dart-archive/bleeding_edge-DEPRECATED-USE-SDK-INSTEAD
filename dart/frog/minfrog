@@ -8054,7 +8054,9 @@ TokenKind.kindFromAssign = function(kind) {
 }
 // ********** Code for Parser **************
 function Parser(source, diet, throwOnIncomplete, optionalSemicolons, startOffset) {
+  this._inhibitLambda = false
   this._afterParensIndex = 0
+  this._recover = false
   this.source = source;
   this.diet = diet;
   this.throwOnIncomplete = throwOnIncomplete;
@@ -8062,8 +8064,6 @@ function Parser(source, diet, throwOnIncomplete, optionalSemicolons, startOffset
   // Initializers done
   this.tokenizer = new Tokenizer(this.source, true, startOffset);
   this._peekToken = this.tokenizer.next();
-  this._previousToken = null;
-  this._inhibitLambda = false;
   this._afterParens = [];
 }
 Parser.prototype.get$enableAwait = function() {
@@ -8080,6 +8080,17 @@ Parser.prototype.isPrematureEndOfFile = function() {
   else {
     return false;
   }
+}
+Parser.prototype._recoverTo = function(kind1, kind2, kind3) {
+  while (!this.isPrematureEndOfFile()) {
+    var kind = this._peek();
+    if (kind == kind1 || kind == kind2 || kind == kind3) {
+      this._recover = false;
+      return true;
+    }
+    this._next();
+  }
+  return false;
 }
 Parser.prototype._peek = function() {
   return this._peekToken.kind;
@@ -8124,10 +8135,12 @@ Parser.prototype._errorExpected = function(expected) {
   this._error(message, tok.get$span());
 }
 Parser.prototype._error = function(message, location) {
+  if (this._recover) return;
   if (location == null) {
     location = this._peekToken.get$span();
   }
   $globals.world.fatal(message, location);
+  this._recover = true;
 }
 Parser.prototype._skipBlock = function() {
   var depth = 1;
@@ -8156,9 +8169,11 @@ Parser.prototype.compilationUnit = function() {
   while (this._peekKind(12/*TokenKind.HASH*/)) {
     ret.add$1(this.directive());
   }
+  this._recover = false;
   while (!this._maybeEat(1/*TokenKind.END_OF_FILE*/)) {
     ret.add$1(this.topLevelDefinition());
   }
+  this._recover = false;
   return ret;
 }
 Parser.prototype.directive = function() {
@@ -8220,8 +8235,11 @@ Parser.prototype.classDefinition = function(kind) {
   var body = [];
   if (this._maybeEat(6/*TokenKind.LBRACE*/)) {
     while (!this._maybeEat(7/*TokenKind.RBRACE*/)) {
-      if (this.isPrematureEndOfFile()) break;
       body.add$1(this.declaration(true));
+      if (this._recover) {
+        if (!this._recoverTo(7/*TokenKind.RBRACE*/, 10/*TokenKind.SEMICOLON*/)) break;
+        this._maybeEat(10/*TokenKind.SEMICOLON*/);
+      }
     }
   }
   else {
@@ -8496,9 +8514,10 @@ Parser.prototype.block = function() {
   this._eat(6/*TokenKind.LBRACE*/);
   var stmts = [];
   while (!this._maybeEat(7/*TokenKind.RBRACE*/)) {
-    if (this.isPrematureEndOfFile()) break;
     stmts.add$1(this.statement());
+    if (this._recover && !this._recoverTo(7/*TokenKind.RBRACE*/, 10/*TokenKind.SEMICOLON*/)) break;
   }
+  this._recover = false;
   return new BlockStatement(stmts, this._makeSpan(start));
 }
 Parser.prototype.emptyStatement = function() {
@@ -8653,8 +8672,10 @@ Parser.prototype.caseNode = function() {
   }
   var stmts = [];
   while (!this._peekCaseEnd()) {
-    if (this.isPrematureEndOfFile()) break;
     stmts.add$1(this.statement());
+    if (this._recover && !this._recoverTo(7/*TokenKind.RBRACE*/, 90/*TokenKind.CASE*/, 94/*TokenKind.DEFAULT*/)) {
+      break;
+    }
   }
   return new CaseNode(label, cases, stmts, this._makeSpan(start));
 }
@@ -9291,8 +9312,8 @@ Parser.prototype.finishListLiteral = function(start, isConst, type) {
   var values = [];
   this._eat(4/*TokenKind.LBRACK*/);
   while (!this._maybeEat(5/*TokenKind.RBRACK*/)) {
-    if (this.isPrematureEndOfFile()) break;
     values.add$1(this.expression());
+    if (this._recover && !this._recoverTo(5/*TokenKind.RBRACK*/, 11/*TokenKind.COMMA*/)) break;
     if (!this._maybeEat(11/*TokenKind.COMMA*/)) {
       this._eat(5/*TokenKind.RBRACK*/);
       break;
@@ -9304,10 +9325,10 @@ Parser.prototype.finishMapLiteral = function(start, isConst, type) {
   var items = [];
   this._eat(6/*TokenKind.LBRACE*/);
   while (!this._maybeEat(7/*TokenKind.RBRACE*/)) {
-    if (this.isPrematureEndOfFile()) break;
     items.add$1(this.expression());
     this._eat(8/*TokenKind.COLON*/);
     items.add$1(this.expression());
+    if (this._recover && !this._recoverTo(7/*TokenKind.RBRACE*/, 11/*TokenKind.COMMA*/)) break;
     if (!this._maybeEat(11/*TokenKind.COMMA*/)) {
       this._eat(7/*TokenKind.RBRACE*/);
       break;

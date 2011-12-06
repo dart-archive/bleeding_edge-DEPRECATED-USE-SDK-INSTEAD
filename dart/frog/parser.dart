@@ -38,7 +38,7 @@ class Parser {
    * To resolve ambiguity in initializers between constructor body and lambda
    * expression.
    */
-  bool _inhibitLambda;
+  bool _inhibitLambda = false;
 
   Token _previousToken;
   Token _peekToken;
@@ -52,12 +52,12 @@ class Parser {
   List<Token> _afterParens;
   int _afterParensIndex = 0;
 
+  bool _recover = false;
+
   Parser(this.source, [this.diet = false, this.throwOnIncomplete = false,
       this.optionalSemicolons = false, int startOffset = 0]) {
     tokenizer = new Tokenizer(source, true, startOffset);
     _peekToken = tokenizer.next();
-    _previousToken = null;
-    _inhibitLambda = false;
     _afterParens = <Token>[];
   }
 
@@ -67,9 +67,6 @@ class Parser {
   }
 
   /** Guard to break out of parser when an unexpected end of file is found. */
-  // TODO(jimhug): Failure to call this method can lead to inifinite parser
-  //   loops.  Consider embracing exceptions for more errors to reduce
-  //   the danger here.
   bool isPrematureEndOfFile() {
     if (throwOnIncomplete && _maybeEat(TokenKind.END_OF_FILE) ||
         _maybeEat(TokenKind.INCOMPLETE_MULTILINE_STRING_DQ) ||
@@ -83,12 +80,28 @@ class Parser {
     }
   }
 
+  /**
+   * Recovers the parser after an error, by iterating until it finds one of
+   * the provide [TokenKind] values.
+   */
+  bool _recoverTo(int kind1, [int kind2, int kind3]) {
+    assert(_recover);
+    while (!isPrematureEndOfFile()) {
+      int kind = _peek();
+      if (kind == kind1 || kind == kind2 || kind == kind3) {
+        _recover = false; // Done recovering. Issue errors normally.
+        return true;
+      }
+      _next();
+    }
+    // End of file without finding a match
+    return false;
+  }
+
   ///////////////////////////////////////////////////////////////////
   // Basic support methods
   ///////////////////////////////////////////////////////////////////
-  int _peek() {
-    return _peekToken.kind;
-  }
+  int _peek() => _peekToken.kind;
 
   Token _next() {
     _previousToken = _peekToken;
@@ -96,9 +109,7 @@ class Parser {
     return _previousToken;
   }
 
-  bool _peekKind(int kind) {
-    return _peekToken.kind == kind;
-  }
+  bool _peekKind(int kind) => _peekToken.kind == kind;
 
   /* Is the next token a legal identifier?  This includes pseudo-keywords. */
   bool _peekIdentifier() => _isIdentifier(_peekToken.kind);
@@ -141,10 +152,14 @@ class Parser {
   }
 
   void _error(String message, [SourceSpan location=null]) {
+    // Suppress error messages while we're trying to recover.
+    if (_recover) return;
+
     if (location === null) {
       location = _peekToken.span;
     }
     world.fatal(message, location); // syntax errors are fatal for now
+    _recover = true; // start error recovery
   }
 
   /** Skips from an opening '{' to the syntactically matching '}'. */
@@ -173,15 +188,19 @@ class Parser {
   // Top level productions
   ///////////////////////////////////////////////////////////////////
 
+  /** Entry point to the parser for parsing a compilation unit (i.e. a file). */
   List<Definition> compilationUnit() {
     var ret = [];
     _maybeEat(TokenKind.HASHBANG);
+
     while (_peekKind(TokenKind.HASH)) {
       ret.add(directive());
     }
+    _recover = false;
     while (!_maybeEat(TokenKind.END_OF_FILE)) {
       ret.add(topLevelDefinition());
     }
+    _recover = false;
     return ret;
   }
 
@@ -207,6 +226,7 @@ class Parser {
     }
   }
 
+  /** Entry point to the parser for an eval unit (i.e. a repl command). */
   evalUnit() {
     switch (_peek()) {
       case TokenKind.CLASS:
@@ -218,6 +238,7 @@ class Parser {
       default:
         return statement();
     }
+    _recover = false;
   }
 
   ///////////////////////////////////////////////////////////////////
@@ -265,8 +286,11 @@ class Parser {
     var body = [];
     if (_maybeEat(TokenKind.LBRACE)) {
       while (!_maybeEat(TokenKind.RBRACE)) {
-        if (isPrematureEndOfFile()) break;
         body.add(declaration());
+        if (_recover) {
+          if (!_recoverTo(TokenKind.RBRACE, TokenKind.SEMICOLON)) break;
+          _maybeEat(TokenKind.SEMICOLON);
+        }
       }
     } else {
       _errorExpected('block starting with "{" or ";"');
@@ -529,14 +553,16 @@ class Parser {
     return ret;
   }
 
+  /** Parses a block. Also is an entry point when parsing [DietStatement]. */
   BlockStatement block() {
     int start = _peekToken.start;
     _eat(TokenKind.LBRACE);
     var stmts = [];
     while (!_maybeEat(TokenKind.RBRACE)) {
-      if (isPrematureEndOfFile()) break;
       stmts.add(statement());
+      if (_recover && !_recoverTo(TokenKind.RBRACE, TokenKind.SEMICOLON)) break;
     }
+    _recover = false;
     return new BlockStatement(stmts, _makeSpan(start));
   }
 
@@ -711,9 +737,12 @@ class Parser {
       _error('case or default');
     }
     var stmts = [];
-    while (!_peekCaseEnd() ) {
-      if (isPrematureEndOfFile()) break;
+    while (!_peekCaseEnd()) {
       stmts.add(statement());
+      if (_recover && !_recoverTo(
+          TokenKind.RBRACE, TokenKind.CASE, TokenKind.DEFAULT)) {
+        break;
+      }
     }
     return new CaseNode(label, cases, stmts, _makeSpan(start));
   }
@@ -1390,8 +1419,8 @@ class Parser {
     var values = [];
     _eat(TokenKind.LBRACK);
     while (!_maybeEat(TokenKind.RBRACK)) {
-      if (isPrematureEndOfFile()) break;
       values.add(expression());
+      if (_recover && !_recoverTo(TokenKind.RBRACK, TokenKind.COMMA)) break;
       if (!_maybeEat(TokenKind.COMMA)) {
         _eat(TokenKind.RBRACK);
         break;
@@ -1404,11 +1433,11 @@ class Parser {
     var items = [];
     _eat(TokenKind.LBRACE);
     while (!_maybeEat(TokenKind.RBRACE)) {
-      if (isPrematureEndOfFile()) break;
       // This is deliberately overly permissive - checked in later pass.
       items.add(expression());
       _eat(TokenKind.COLON);
       items.add(expression());
+      if (_recover && !_recoverTo(TokenKind.RBRACE, TokenKind.COMMA)) break;
       if (!_maybeEat(TokenKind.COMMA)) {
         _eat(TokenKind.RBRACE);
         break;

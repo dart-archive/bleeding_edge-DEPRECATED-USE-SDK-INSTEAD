@@ -811,7 +811,7 @@ class MethodGenerator implements TreeVisitor {
     defWriter.writeln(writer.text);
 
     if (names != null) {
-      // TODO(jmesserly): bind isn't implemented in Safari.
+      // TODO(jmesserly): bind isn't implemented in older Safari.
       defWriter.exitBlock('}).bind(null, ${Strings.join(names, ", ")})');
     } else if (isClosure && method.name == '') {
       defWriter.exitBlock('})');
