@@ -2109,6 +2109,16 @@ class MethodGenerator implements TreeVisitor {
       constructorName = '';
     }
 
+    if (method.isStatic
+        && ((method.typeParameters === null && type.hasTypeParams)
+          || type is ParameterType)) {
+      world.error('using type parameter in static context', node.span);
+      return _makeMissingValue(constructorName);
+    } else if (type is ParameterType) {
+      world.error('cannot instantiate a type parameter', node.span);
+      return _makeMissingValue(constructorName);
+    }
+
     var m = type.getConstructor(constructorName);
     if (m == null) {
       var name = type.jsname;

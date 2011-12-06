@@ -3726,6 +3726,14 @@ MethodGenerator.prototype.visitNewExpression = function(node) {
     type = type.get$library().findTypeByName$1(constructorName);
     constructorName = '';
   }
+  if (this.method.get$isStatic() && ((this.method.get$typeParameters() == null && type.get$hasTypeParams()) || (type instanceof ParameterType))) {
+    $globals.world.error('using type parameter in static context', node.span);
+    return this._makeMissingValue(constructorName);
+  }
+  else if ((type instanceof ParameterType)) {
+    $globals.world.error('cannot instantiate a type parameter', node.span);
+    return this._makeMissingValue(constructorName);
+  }
   var m = type.getConstructor$1(constructorName);
   if (m == null) {
     var name = type.get$jsname();
@@ -4524,7 +4532,7 @@ Parameter.prototype.genValue = function(method, context) {
   }
   this.value = this.definition.value.visit(context);
   if (!this.value.get$isConst()) {
-    $globals.world.error('default arguments must be constant', this.value.span);
+    $globals.world.error('default parameter values must be constant', this.value.span);
   }
   this.value = this.value.convertTo(context, this.type, this.definition.value, false);
 }

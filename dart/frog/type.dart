@@ -436,7 +436,7 @@ class ParameterType extends Type {
 
   bool get isClass() => false;
   Library get library() => null; // TODO(jimhug): Make right...
-  SourceSpan get span()  => typeParameter.span;
+  SourceSpan get span() => typeParameter.span;
 
   ParameterType(String name, this.typeParameter): super(name);
 
