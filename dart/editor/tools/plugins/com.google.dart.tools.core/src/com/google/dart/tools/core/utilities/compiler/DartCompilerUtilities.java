@@ -290,7 +290,12 @@ public class DartCompilerUtilities {
 
     @Override
     public LibrarySource getImportFor(String relPath) throws IOException {
-      return wrappedSource.getImportFor(relPath);
+      try {
+        return wrappedSource.getImportFor(relPath);
+      } catch (Exception exception) {
+        DartCore.logInformation("Could not find import: '" + relPath + "'", exception);
+        return null;
+      }
     }
 
     @Override
