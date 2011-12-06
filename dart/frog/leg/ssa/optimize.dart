@@ -20,6 +20,7 @@ class SsaOptimizerTask extends CompilerTask {
   }
 }
 
+
 /**
  * If both inputs to known operations are available execute the operation at
  * compile-time.
@@ -572,59 +573,59 @@ class SsaCodeMotion extends HBaseVisitor {
  * t0 and t1 would be marked and the resulting code would then be:
  *   t2 = add(4, 3);
  */
-class SsaInstructionMerger extends HInstructionVisitor {
-  Set<HInstruction> markedByMerger;
-  SsaInstructionMerger() : markedByMerger = new Set<HInstruction>();
-
+class SsaInstructionMerger extends HGraphVisitor {
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
 
-  // Because of the way the type guard unuser works, we cannot
-  // allow type guard inputs to be marked as generate at use site
-  // by the merger unless the type guard itself ends up being
-  // marked as generate at use site.
-  bool typeGuardCheck(HTypeGuard input) {
-    bool remarkTypeGuardInput = false;
-    remarkTypeGuardInput = markedByMerger.contains(input.inputs[0]);
-    if (remarkTypeGuardInput) input.inputs[0].clearGenerateAtUseSite();
-    return remarkTypeGuardInput;
+  bool usedOnlyByPhis(instruction) {
+    for (HInstruction user in instruction.usedBy) {
+      if (user is !HPhi) return false;
+    }
+    return true;
   }
 
-  void visitInstruction(HInstruction node) {
-    // We don't want to generate instructions at the call-site of JS.
-    if (node is HForeign) return;
+  void visitBasicBlock(HBasicBlock block) {
+    // Visit each instruction of the basic block in last-to-first order.
+    // Keep a list of expected inputs of the current "expression" being
+    // merged. If instructions occour in the expected order, they are
+    // included in the expression.
 
-    List<HInstruction> inputs = node.inputs;
-    HInstruction previousUnused = node.previous;
-    // We hope that the instruction's inputs have been pushed from left to
-    // right just before this instruction. The last input is then located just
-    // before this instruction. If we were able to match the last input we can
-    // look at the next-previous instruction and the next argument.
-    int i = inputs.length - 1;
-    for (; i >= 0; i--) {
-      if (previousUnused === null) break;
-      HInstruction input = inputs[i];
-      // If the input does not have too many uses and is in the right
-      // position, we can mark it as generate at use site.
-      if (input.usedBy.length != 1) break;
-      if (input !== previousUnused) break;
-      bool remarkTypeGuardInput = false;
-      if (input is HTypeGuard) remarkTypeGuardInput = typeGuardCheck(input);
-      // Our arguments are in the correct location to be inlined.
-      if (!input.generateAtUseSite()) {
-        markedByMerger.add(input);
-        input.setGenerateAtUseSite();
+    // The expectedInputs list holds non-trivial instructions that may
+    // be generated at their use site, if they occur in the correct order.
+    List<HInstruction> expectedInputs = new List<HInstruction>();
+
+    for (HInstruction instruction = block.last;
+         instruction !== null;
+         instruction = instruction.previous) {
+      if (instruction.generateAtUseSite()) {
+        continue;
       }
-      // If we ended up marking a type guard used as input as generate
-      // at use site, we can safely re-mark the type guard input.
-      if (remarkTypeGuardInput) input.inputs[0].setGenerateAtUseSite();
-      previousUnused = previousUnused.previous;
-    }
-
-    for (; i >=0; i--) {
-      HInstruction input = inputs[i];
-      if (input is HTypeGuard) typeGuardCheck(input);
+      // See if the current instruction is the next non-trivial
+      // expected input. If not, drop the expectedInputs and
+      // start over.
+      while (!expectedInputs.isEmpty()) {
+        HInstruction nextInput = expectedInputs.removeLast();
+        assert(!nextInput.generateAtUseSite());
+        assert(nextInput.usedBy.length == 1);
+        if (nextInput == instruction) {
+          instruction.setGenerateAtUseSite();
+          break;
+        }
+      }
+      if (instruction is HForeign) {
+        // Never try to merge inputs to HForeign.
+        continue;
+      } else if (instruction is !HTypeGuard ||
+                 instruction.generateAtUseSite() ||
+                 usedOnlyByPhis(instruction)) {
+        // In all other cases, try merging all non-trivial inputs.
+        for (HInstruction input in instruction.inputs) {
+          if (!input.generateAtUseSite() && input.usedBy.length == 1) {
+            expectedInputs.add(input);
+          }
+        }
+      }
     }
   }
 }
