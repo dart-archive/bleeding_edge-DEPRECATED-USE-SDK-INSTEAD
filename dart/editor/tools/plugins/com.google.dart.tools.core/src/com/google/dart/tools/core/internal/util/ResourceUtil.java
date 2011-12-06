@@ -32,7 +32,11 @@ public class ResourceUtil {
   public static IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 
   /**
-   * Answer the file for the specified Dart source or <code>null</code> if none
+   * Return the file corresponding to the specified Dart source, or <code>null</code> if there is no
+   * such file.
+   * 
+   * @param source the source corresponding to the file to be returned
+   * @return the file corresponding to the specified Dart source
    */
   public static File getFile(Source source) {
     if (source == null) {
@@ -46,10 +50,13 @@ public class ResourceUtil {
         return new File(uri);
       }
       String relativePath = uri.getPath();
+      if (relativePath == null) {
+        DartCore.logError("Illegal file URI: " + uri, new Exception());
+        return null;
+      }
       return new File(new File(".").getAbsoluteFile(), relativePath);
     } catch (IllegalArgumentException ex) {
       DartCore.logError("Illegal file URI: " + uri, ex);
-
       return null;
     }
   }
