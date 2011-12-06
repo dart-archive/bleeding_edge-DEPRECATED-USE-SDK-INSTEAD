@@ -26,7 +26,7 @@ class DateUtils {
   // Return a Date object corresponding to the given number of days after 1899-12-30.
   static Date getDateTime(double daysSince18991230) {
     double daysSinceEpoch = daysSince18991230 - DAYS_FROM_1900_TO_1970;
-    double millisSinceEpoch = daysSinceEpoch * MILLISECONDS_PER_DAY;
+    int millisSinceEpoch = (daysSinceEpoch * MILLISECONDS_PER_DAY).toInt();
     return new Date.fromEpoch(millisSinceEpoch, const TimeZone.utc());
   }
 
