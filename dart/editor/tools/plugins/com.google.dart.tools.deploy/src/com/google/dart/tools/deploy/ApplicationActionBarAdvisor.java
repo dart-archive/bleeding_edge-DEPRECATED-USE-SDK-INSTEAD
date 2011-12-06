@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.deploy;
 
+import com.google.dart.tools.debug.ui.launch.RunInBrowserAction;
 import com.google.dart.tools.debug.ui.launch.RunServerAction;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
@@ -20,7 +21,6 @@ import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.DeployOptimizedAction;
 import com.google.dart.tools.ui.actions.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
-import com.google.dart.tools.ui.actions.RunInBrowserAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
 
 import org.eclipse.core.resources.IResourceChangeEvent;
