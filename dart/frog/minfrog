@@ -6268,15 +6268,26 @@ SourceFile.prototype.getLocationMessage = function(message, start, end, includeT
     else {
       textLine = this.get$text().substring(this._lineStarts.$index(line)) + '\n';
     }
-    buf.add$1(textLine);
+    var toColumn = Math.min(column + (end - start), textLine.length);
+    if ($globals.options.useColors) {
+      buf.add$1(textLine.substring$2(0, column));
+      buf.add$1($globals._RED_COLOR);
+      buf.add$1(textLine.substring$2(column, toColumn));
+      buf.add$1($globals._NO_COLOR);
+      buf.add$1(textLine.substring$1(toColumn));
+    }
+    else {
+      buf.add$1(textLine);
+    }
     var i = 0;
     for (; i < column; i++) {
       buf.add$1(' ');
     }
-    var toColumn = Math.min(column + (end - start), textLine.length);
+    if ($globals.options.useColors) buf.add$1($globals._RED_COLOR);
     for (; i < toColumn; i++) {
       buf.add$1('^');
     }
+    if ($globals.options.useColors) buf.add$1($globals._NO_COLOR);
   }
   return buf.toString$0();
 }
@@ -12528,25 +12539,26 @@ World.prototype.generateCode = function(lib) {
   this.gen.run();
   this.jsBytesWritten = codeWriter.get$text().length;
 }
-World.prototype._message = function(message, span, span1, span2, throwing) {
-  var text = message;
+World.prototype._message = function(color, prefix, message, span, span1, span2, throwing) {
+  var messageWithPrefix = $globals.options.useColors ? (color + prefix + $globals._NO_COLOR + message) : (prefix + message);
+  var text = messageWithPrefix;
   if (span != null) {
-    text = span.toMessageString(message);
+    text = span.toMessageString(messageWithPrefix);
   }
   print(text);
   if (span1 != null) {
-    print(span1.toMessageString(message));
+    print(span1.toMessageString(messageWithPrefix));
   }
   if (span2 != null) {
-    print(span2.toMessageString(message));
+    print(span2.toMessageString(messageWithPrefix));
   }
   if (throwing) {
-    $throw(new CompilerException(message, span));
+    $throw(new CompilerException(messageWithPrefix, span));
   }
 }
 World.prototype.error = function(message, span, span1, span2) {
   this.errors++;
-  this._message(('error: ' + message), span, span1, span2, $globals.options.throwOnErrors);
+  this._message($globals._RED_COLOR, 'error: ', message, span, span1, span2, $globals.options.throwOnErrors);
 }
 World.prototype.warning = function(message, span, span1, span2) {
   if ($globals.options.warningsAsErrors) {
@@ -12555,20 +12567,20 @@ World.prototype.warning = function(message, span, span1, span2) {
   }
   this.warnings++;
   if ($globals.options.showWarnings) {
-    this._message(('warning: ' + message), span, span1, span2, $globals.options.throwOnWarnings);
+    this._message($globals._MAGENTA_COLOR, 'warning: ', message, span, span1, span2, $globals.options.throwOnWarnings);
   }
 }
 World.prototype.fatal = function(message, span, span1, span2) {
   this.errors++;
   this.seenFatal = true;
-  this._message(('fatal: ' + message), span, span1, span2, $globals.options.throwOnFatal || $globals.options.throwOnErrors);
+  this._message($globals._RED_COLOR, 'fatal: ', message, span, span1, span2, $globals.options.throwOnFatal || $globals.options.throwOnErrors);
 }
 World.prototype.internalError = function(message, span, span1, span2) {
-  this._message(('We are sorry, but... ' + message), span, span1, span2, true);
+  this._message($globals._NO_COLOR, 'We are sorry, but...', message, span, span1, span2, true);
 }
 World.prototype.info = function(message, span, span1, span2) {
   if ($globals.options.showInfo) {
-    this._message(('info: ' + message), span, span1, span2, false);
+    this._message($globals._GREEN_COLOR, 'info: ', message, span, span1, span2, false);
   }
 }
 World.prototype.withoutForceDynamic = function(fn) {
@@ -12623,6 +12635,7 @@ function FrogOptions(homedir, args, files) {
   this.throwOnFatal = false
   this.showInfo = false
   this.showWarnings = true
+  this.useColors = true
   // Initializers done
   if ($eq(this.config, 'dev')) {
     this.libDir = joinPaths(homedir, '/lib');
@@ -12645,79 +12658,84 @@ function FrogOptions(homedir, args, files) {
       case '--enable_leg':
 
         this.enableLeg = true;
-        continue loop;
+        break;
 
       case '--leg_only':
 
         this.enableLeg = true;
         this.legOnly = true;
-        continue loop;
+        break;
 
       case '--enable_asserts':
 
         this.enableAsserts = true;
-        continue loop;
+        break;
 
       case '--enable_type_checks':
 
         this.enableTypeChecks = true;
         this.enableAsserts = true;
-        continue loop;
+        break;
 
       case '--verify_implements':
 
         this.verifyImplements = true;
-        continue loop;
+        break;
 
       case '--compile_all':
 
         this.compileAll = true;
-        continue loop;
+        break;
 
       case '--diet-parse':
 
         this.dietParse = true;
-        continue loop;
+        break;
 
       case '--ignore-unrecognized-flags':
 
         ignoreUnrecognizedFlags = true;
-        continue loop;
+        break;
 
       case '--verbose':
 
         this.showInfo = true;
-        continue loop;
+        break;
 
       case '--suppress_warnings':
 
         this.showWarnings = false;
-        continue loop;
+        break;
 
       case '--warnings_as_errors':
 
         this.warningsAsErrors = true;
-        continue loop;
+        break;
 
       case '--throw_on_errors':
 
         this.throwOnErrors = true;
-        continue loop;
+        break;
 
       case '--throw_on_warnings':
 
         this.throwOnWarnings = true;
-        continue loop;
+        break;
 
       case '--compile-only':
 
         this.compileOnly = true;
-        continue loop;
+        break;
 
       case '--force_dynamic':
 
         this.forceDynamic = true;
-        continue loop;
+        break;
+
+      case '--no_colors':
+
+        this.useColors = false;
+        break;
 
       default:
 
@@ -13072,7 +13090,15 @@ function main() {
   var argv = ListFactory.ListFactory$from$factory(process.argv);
   if (compile(homedir, argv, new NodeFileSystem())) {
     var code = $globals.world.getGeneratedCode();
-    if (!$globals.options.compileOnly) {
+    if ($globals.options.compileOnly) {
+      if ($globals.options.outfile != null) {
+        print(('Compilation succeded. Code generated in: ' + $globals.options.outfile));
+      }
+      else {
+        print('Compilation succeded.');
+      }
+    }
+    else {
       process.argv = [argv.$index(0), argv.$index(1)];
       process.argv.addAll($globals.options.childArgs);
       vm.runInNewContext(code, createSandbox());
@@ -13095,6 +13121,10 @@ $inheritsMembers(_DoubleLinkedQueueEntrySentinel_E, DoubleLinkedQueueEntry_E);
 $inheritsMembers(_DoubleLinkedQueueEntrySentinel_KeyValuePair_K$V, DoubleLinkedQueueEntry_KeyValuePair_K$V);
 //  ********** Globals **************
 function $static_init(){
+  $globals._GREEN_COLOR = '\u001b[32m';
+  $globals._MAGENTA_COLOR = '\u001b[35m';
+  $globals._NO_COLOR = '\u001b[0m';
+  $globals._RED_COLOR = '\u001b[31m';
 }
 var const$0 = new NoMoreElementsException()/*const NoMoreElementsException()*/;
 var const$2 = new EmptyQueueException()/*const EmptyQueueException()*/;

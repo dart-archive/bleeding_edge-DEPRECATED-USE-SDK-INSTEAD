@@ -44,6 +44,7 @@ class FrogOptions {
   bool throwOnFatal = false;
   bool showInfo = false;
   bool showWarnings = true;
+  bool useColors = true;
 
   /**
    * Options to be used later for passing to the generated code. These are all
@@ -67,74 +68,77 @@ class FrogOptions {
 
     // Start from 2 to skip arguments representing the compiler command
     // (node/python followed by frogsh/frog.py).
-    // TODO(jimhug): break on switch cases seems broken?
     loop: for (int i = 2; i < args.length; i++) {
       var arg = args[i];
 
       switch (arg) {
         case '--enable_leg':
           enableLeg = true;
-          continue loop;
+          break;
 
         case '--leg_only':
           enableLeg = true;
           legOnly = true;
-          continue loop;
+          break;
 
         case '--enable_asserts':
           enableAsserts = true;
-          continue loop;
+          break;
 
         case '--enable_type_checks':
           enableTypeChecks = true;
           // This flag also enables asserts in VM
           enableAsserts = true;
-          continue loop;
+          break;
 
         case '--verify_implements':
           verifyImplements = true;
-          continue loop;
+          break;
 
         case '--compile_all':
           compileAll = true;
-          continue loop;
+          break;
 
         case '--diet-parse':
           dietParse = true;
-          continue loop;
+          break;
 
         case '--ignore-unrecognized-flags':
           ignoreUnrecognizedFlags = true;
-          continue loop;
+          break;
 
         case '--verbose':
           showInfo = true;
-          continue loop;
+          break;
 
         case '--suppress_warnings':
           showWarnings = false;
-          continue loop;
+          break;
 
         case '--warnings_as_errors':
           warningsAsErrors = true;
-          continue loop;
+          break;
 
         case '--throw_on_errors':
           throwOnErrors = true;
-          continue loop;
+          break;
 
         case '--throw_on_warnings':
           throwOnWarnings = true;
-          continue loop;
+          break;
 
         case '--compile-only':
           // As opposed to compiling and running, the default behavior.
           compileOnly = true;
-          continue loop;
+          break;
 
         case '--force_dynamic':
           forceDynamic = true;
-          continue loop;
+          break;
+
+        case '--no_colors':
+          useColors = false;
+          break;
 
         default:
           if (arg.endsWith('.dart')) {

@@ -154,6 +154,7 @@ def compileAndRun(options, args, dart):
   for i in range(len(args)):
     if args[i].startswith('--out'):
       outfile_given = True
+      outfile = args[i][6:]
       break;
 
   if options.verbose: print "nodeArgs %s" % ' '.join(nodeArgs);
@@ -212,6 +213,8 @@ def compileAndRun(options, args, dart):
       f.write(HTML)
       f.close()
       result = execute([browser, outhtml])
+  else:
+    print 'Compilation succeded. Code generated in: %s' % outfile
 
   if cleanup: shutil.rmtree(workdir)
   if result != 0:

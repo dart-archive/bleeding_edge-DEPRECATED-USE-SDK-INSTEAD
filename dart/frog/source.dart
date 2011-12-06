@@ -72,7 +72,8 @@ class SourceFile implements Comparable {
    * Create a pretty string representation from a character position
    * in the file.
    */
-  String getLocationMessage(String message, int start, [int end, bool includeText=false]) {
+  String getLocationMessage(String message, int start,
+      [int end, bool includeText=false]) {
     var line = getLine(start);
     var column = getColumn(line, start);
 
@@ -87,17 +88,28 @@ class SourceFile implements Comparable {
       } else {
         textLine = text.substring(_lineStarts[line]) + '\n';
       }
-      buf.add(textLine);
+
+      int toColumn = Math.min(column + (end-start), textLine.length);
+      if (options.useColors) {
+        buf.add(textLine.substring(0, column));
+        buf.add(_RED_COLOR);
+        buf.add(textLine.substring(column, toColumn));
+        buf.add(_NO_COLOR);
+        buf.add(textLine.substring(toColumn));
+      } else {
+        buf.add(textLine);
+      }
+
       int i = 0;
       for (; i < column; i++) {
         buf.add(' ');
       }
 
-      int toColumn = Math.min(column + (end-start), textLine.length);
-
+      if (options.useColors) buf.add(_RED_COLOR);
       for (; i < toColumn; i++) {
         buf.add('^');
       }
+      if (options.useColors) buf.add(_NO_COLOR);
     }
 
     return buf.toString();
@@ -138,7 +150,7 @@ class SourceSpan implements Comparable {
   }
 
   toMessageString(String message) {
-    return file.getLocationMessage(message, start, end, true);
+    return file.getLocationMessage(message, start, end: end, includeText: true);
   }
 
   String get locationText() {

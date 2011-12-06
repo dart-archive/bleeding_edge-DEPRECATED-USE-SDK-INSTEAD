@@ -386,63 +386,73 @@ class World {
 
   // ********************** Message support ***********************
 
-  void _message(String message, SourceSpan span, SourceSpan span1,
-      SourceSpan span2, bool throwing) {
-    var text = message;
+  void _message(String color, String prefix, String message,
+      SourceSpan span, SourceSpan span1, SourceSpan span2, bool throwing) {
+    final messageWithPrefix = options.useColors
+        ? (color + prefix + _NO_COLOR + message) : (prefix + message);
+    var text = messageWithPrefix;
     if (span != null) {
-      text = span.toMessageString(message);
+      text = span.toMessageString(messageWithPrefix);
     }
     print(text);
     if (span1 != null) {
-      print(span1.toMessageString(message));
+      print(span1.toMessageString(messageWithPrefix));
     }
     if (span2 != null) {
-      print(span2.toMessageString(message));
+      print(span2.toMessageString(messageWithPrefix));
     }
 
     if (throwing) {
-      throw new CompilerException(message, span);
+      throw new CompilerException(messageWithPrefix, span);
     }
   }
 
   /** [message] is considered a static compile-time error by the Dart lang. */
-  void error(String message, [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
+  void error(String message,
+      [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
     errors++;
-    _message('error: $message', span, span1, span2, options.throwOnErrors);
+    _message(_RED_COLOR, 'error: ', message,
+        span, span1, span2, options.throwOnErrors);
   }
 
   /** [message] is considered a type warning by the Dart lang. */
-  void warning(String message, [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
+  void warning(String message,
+      [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
     if (options.warningsAsErrors) {
       error(message, span, span1, span2);
       return;
     }
     warnings++;
     if (options.showWarnings) {
-      _message('warning: $message', span, span1, span2, options.throwOnWarnings);
+      _message(_MAGENTA_COLOR, 'warning: ', message,
+          span, span1, span2, options.throwOnWarnings);
     }
   }
 
   /** [message] at [location] is so bad we can't generate runnable code. */
-  void fatal(String message, [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
+  void fatal(String message,
+      [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
     errors++;
     seenFatal = true;
-    _message('fatal: $message', span, span1, span2,
-     options.throwOnFatal || options.throwOnErrors);
+    _message(_RED_COLOR, 'fatal: ', message,
+        span, span1, span2, options.throwOnFatal || options.throwOnErrors);
   }
 
   /** [message] at [location] is about a bug in the compiler. */
-  void internalError(String message, [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
-    _message('We are sorry, but... $message', span, span1, span2, true);
+  void internalError(String message,
+      [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
+    _message(_NO_COLOR,
+        'We are sorry, but...', message, span, span1, span2, true);
   }
 
   /**
    * [message] at [location] will tell the user about what the compiler
    * is doing.
    */
-  void info(String message, [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
+  void info(String message,
+      [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
     if (options.showInfo) {
-      _message('info: $message', span, span1, span2, false);
+      _message(_GREEN_COLOR, 'info: ', message, span, span1, span2, false);
     }
   }
 

@@ -142,3 +142,9 @@ class FixedIterator<E> implements Iterator<E> {
     return value;
   }
 }
+
+// Color constants used for generating messages.
+String _GREEN_COLOR = '\u001b[32m';
+String _RED_COLOR = '\u001b[31m';
+String _MAGENTA_COLOR = '\u001b[35m';
+String _NO_COLOR = '\u001b[0m';

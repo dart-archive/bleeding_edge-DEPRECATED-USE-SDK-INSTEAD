@@ -19,7 +19,13 @@ void main() {
 
   if (compile(homedir, argv, new NodeFileSystem())) {
     var code = world.getGeneratedCode();
-    if (!options.compileOnly) {
+    if (options.compileOnly) {
+      if (options.outfile !== null) {
+        print('Compilation succeded. Code generated in: ${options.outfile}');
+      } else {
+        print('Compilation succeded.');
+      }
+    } else {
       process.argv = [argv[0], argv[1]];
       process.argv.addAll(options.childArgs);
       // TODO(jmesserly): we shouldn't force the child process to patch argv.
