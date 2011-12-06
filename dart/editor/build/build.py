@@ -90,7 +90,18 @@ def main():
 
   #get user name if it does not start with chrome then deploy 
   # to the test bucket otherwise deploy to the continuous bucket
+  #I could not find any non-OS specific way to get the user under Python
+  # so the environemnt variables 'USER' Linux and Mac and 
+  # 'USERNAME' Windows were used.
   username = os.environ.get('USER')
+  if username is None:
+    username = os.environ.get('USERNAME')
+
+  if username is None:
+    _PrintError('could not find the user name'
+                ' tried environment variables'
+                ' USER and USERNAME')
+    return 1
   if username.startswith('chrome'):
     to_bucket = 'gs://dart-editor-archive-continuous'
   else:

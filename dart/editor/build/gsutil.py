@@ -49,6 +49,8 @@ class GsUtil(object):
       home_gs_util = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
     else:
       home_gs_util = gsutil_loc
+
+    path_gs_util = ''
     path = os.environ['PATH']
     if path is not None:
       pathelements = path.split(os.pathsep)
