@@ -119,6 +119,10 @@ public class ResourceUtil {
   public static IFile[] getResources(URI uri) {
     if (SystemLibraryManager.isDartUri(uri)) {
       return null;
+    } else if (!uri.isAbsolute()) {
+      DartCore.logError("Cannot get resource associated with non-absolute URI: " + uri,
+          new Exception());
+      return null;
     }
     return root.findFilesForLocationURI(uri);
   }
