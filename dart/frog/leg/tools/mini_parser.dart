@@ -21,6 +21,8 @@ void main() {
   bool diet = false;
   bool throwOnError = false;
   bool scanOnly = false;
+  bool readOnly = false;
+  bool decodeOnly = false;
   int charCount = 0;
   for (String filename in filenames) {
     if (filename == "--diet") {
@@ -35,7 +37,18 @@ void main() {
       scanOnly = true;
       continue;
     }
-    String source = new String.fromCharCodes(read(filename));
+    if (filename == "--read-only") {
+      readOnly = true;
+      continue;
+    }
+    if (filename == "--decode-only") {
+      decodeOnly = true;
+      continue;
+    }
+    List<int> bytes = read(filename);
+    if (readOnly) continue;
+    String source = new String.fromCharCodes(bytes);
+    if (decodeOnly) continue;
     charCount += source.length;
     SourceFile file = new SourceFile(filename, source);
     Listener listener = new MyListener(file);

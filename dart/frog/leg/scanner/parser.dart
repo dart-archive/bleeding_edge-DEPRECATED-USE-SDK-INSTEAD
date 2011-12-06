@@ -83,12 +83,9 @@ class Parser {
   }
 
   Token parseTypeOpt(Token token) {
-    final int kind = token.next.kind;
-    if ((kind === LT_TOKEN) ||
-        (kind === PERIOD_TOKEN) ||
-        kind === IDENTIFIER_TOKEN) {
-      return parseType(token);
-    } else if (kind === KEYWORD_TOKEN && token.next.value.isPseudo) {
+    if (token.stringValue === 'var') return parseType(token);
+    Token peek = peekAfterType(token);
+    if (isIdentifier(peek)) {
       return parseType(token);
     } else {
       listener.handleNoType(token);
@@ -990,7 +987,7 @@ class Parser {
   Token parseFinalVarOrType(Token token) {
     if ('final' === token.stringValue) {
       listener.handleFinalKeyword(token);
-      return token.next;
+      return parseTypeOpt(token.next);
     } else {
       return parseType(token);
     }
