@@ -28,6 +28,7 @@ public class DebugPreferenceMessages extends NLS {
   public static String DebugPreferencePage_DialogTitle;
   public static String DebugPreferencePage_SelectBrowserText;
   public static String DebugPreferencePage_VMExecutableLocation;
+  public static String DebugPreferencePage_VMPath;
   static {
     // initialize resource bundle
     NLS.initializeMessages(BUNDLE_NAME, DebugPreferenceMessages.class);

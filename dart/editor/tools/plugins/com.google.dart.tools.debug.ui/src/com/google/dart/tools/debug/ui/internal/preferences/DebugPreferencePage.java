@@ -90,7 +90,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
    * Create a new preference page.
    */
   public DebugPreferencePage() {
-
+    setDescription("Dart Launch Preferences");
   }
 
   @Override
@@ -116,7 +116,9 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
   @Override
   protected Control createContents(Composite parent) {
     Composite composite = new Composite(parent, SWT.NONE);
-    GridLayoutFactory.fillDefaults().spacing(5, 8).applyTo(composite);
+    GridDataFactory.fillDefaults().grab(true, false).indent(0, 10).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        composite);
+    GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
 
 //    // Chrome browser
 //    Group browersGroup = new Group(composite, SWT.NONE);
@@ -188,7 +190,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     createBrowserConfig(composite);
 
     // Dart VM
-    Label label = new Label(composite, SWT.NONE);
+//    Label label = new Label(composite, SWT.NONE);
     createVmConfig(composite);
 
     // browsers
@@ -268,9 +270,11 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
   private void createVmConfig(Composite composite) {
     Group vmGroup = new Group(composite, SWT.NONE);
     vmGroup.setText(DebugPreferenceMessages.DebugPreferencePage_VMExecutableLocation);
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(vmGroup);
-    GridLayoutFactory.swtDefaults().numColumns(2).spacing(5, 2).applyTo(vmGroup);
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(vmGroup);
+    GridLayoutFactory.fillDefaults().numColumns(3).margins(8, 8).applyTo(vmGroup);
 
+    Label vmLabel = new Label(vmGroup, SWT.NONE);
+    vmLabel.setText(DebugPreferenceMessages.DebugPreferencePage_VMPath);
     vmField = new Text(vmGroup, SWT.SINGLE | SWT.BORDER);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, SWT.DEFAULT).grab(true,
         false).applyTo(vmField);
