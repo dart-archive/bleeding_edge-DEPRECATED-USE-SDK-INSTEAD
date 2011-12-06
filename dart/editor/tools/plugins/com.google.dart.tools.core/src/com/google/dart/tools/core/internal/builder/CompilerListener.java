@@ -28,6 +28,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.indexer.task.CompilationUnitIndexingTarget;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 
@@ -96,14 +97,23 @@ class CompilerListener extends DartCompilerListener {
         }
         return;
       }
-      CompilationUnit compilationUnit = (CompilationUnit) DartCore.create(resources[0]);
-      if (compilationUnit == null) {
-        DartCore.logError("Could not find compilation unit corresponding to " + source.getUri()
-            + " (resource did not map)");
-        return;
+      DartElement element = DartCore.create(resources[0]);
+      if (element instanceof CompilationUnit) {
+        StandardDriver.getInstance().enqueueTargets(
+            new IndexingTarget[] {new CompilationUnitIndexingTarget((CompilationUnit) element, unit)});
+      } else {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Could not find compilation unit corresponding to ");
+        builder.append(source.getUri());
+        if (element == null) {
+          builder.append(" (resource did not map)");
+        } else {
+          builder.append(" (resource mapped to a ");
+          builder.append(element.getClass().getName());
+          builder.append(")");
+        }
+        DartCore.logError(builder.toString());
       }
-      StandardDriver.getInstance().enqueueTargets(
-          new IndexingTarget[] {new CompilationUnitIndexingTarget(compilationUnit, unit)});
     }
   }
 

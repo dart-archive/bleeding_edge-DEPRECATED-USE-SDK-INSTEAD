@@ -589,14 +589,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       libraryInfo.setChildren(DartElementImpl.EMPTY_ARRAY);
       return true;
     }
-    DartUnit unit = parseLibraryFile();
-    if (unit == null) {
-      libraryInfo.setChildren(DartElementImpl.EMPTY_ARRAY);
-      return true;
-    }
     final ArrayList<DartElementImpl> children = new ArrayList<DartElementImpl>();
-    final ArrayList<DartLibraryImpl> importedLibraries = new ArrayList<DartLibraryImpl>();
-    final ArrayList<IResource> resourceList = new ArrayList<IResource>();
     if (libraryFile == null) {
       String relativePath = sourceFile.getName();
       ExternalCompilationUnitImpl definingUnit = new ExternalCompilationUnitImpl(this,
@@ -609,6 +602,13 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       libraryInfo.setDefiningCompilationUnit(definingUnit);
       children.add(definingUnit);
     }
+    DartUnit unit = parseLibraryFile();
+    if (unit == null) {
+      libraryInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
+      return true;
+    }
+    final ArrayList<DartLibraryImpl> importedLibraries = new ArrayList<DartLibraryImpl>();
+    final ArrayList<IResource> resourceList = new ArrayList<IResource>();
     final DartModelManager modelManager = DartModelManager.getInstance();
     unit.accept(new SafeDartNodeTraverser<Void>() {
       @Override

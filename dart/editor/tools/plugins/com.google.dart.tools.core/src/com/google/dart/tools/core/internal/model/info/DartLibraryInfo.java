@@ -37,8 +37,10 @@ public class DartLibraryInfo extends OpenableElementInfo {
   private DartLibrary[] importedLibraries = DartLibrary.EMPTY_LIBRARY_ARRAY;
 
   /**
-   * Adds the passed {@link DartLibrary} to the {@link #importedLibraries} array. If the library
-   * already is in the array, then it is not added.
+   * Add the given library to the array of imported libraries. If the library was already in the
+   * array, then the array of imported libraries will not be modified.
+   * 
+   * @param library the library to be added
    */
   public void addImport(DartLibrary library) {
     int length = importedLibraries.length;
@@ -84,6 +86,12 @@ public class DartLibraryInfo extends OpenableElementInfo {
     return name;
   }
 
+  /**
+   * Remove the given library from the array of imported libraries. If the library was not in the
+   * array, then the array of imported libraries will not be modified.
+   * 
+   * @param library the library to be added
+   */
   public void removeImport(DartLibrary library) {
     for (int i = 0, length = importedLibraries.length; i < length; i++) {
       DartLibrary element = importedLibraries[i];
