@@ -72,14 +72,54 @@ class Parser {
       return token.next.next;
     }
     do {
-      listener.beginFormalParameter(token);
-      token = parseTypeOpt(token.next);
-      token = parseIdentifier(token);
-      listener.endFormalParameter(token);
+      token = token.next;
+      if (optional('[', token)) {
+        token = parseOptionalFormalParameters(token);
+        break;
+      }
+      token = parseFormalParameter(token);
       ++parameterCount;
     } while (optional(',', token));
     listener.endFormalParameters(parameterCount, begin, token);
     return expect(')', token);
+  }
+
+  Token parseFormalParameter(Token token) {
+    listener.beginFormalParameter(token);
+    if (optional('void', token)) {
+      token = parseReturnTypeOpt(token);
+      token = parseIdentifier(token);
+      token = parseFormalParameters(token);
+      listener.handleFunctionTypedFormalParameter(token);
+    } else {
+      token = parseFinalVarOrTypeOpt(token);
+      token = parseIdentifier(token);
+      if (optional('(', token)) {
+        token = parseFormalParameters(token);
+        listener.handleFunctionTypedFormalParameter(token);
+      }
+    }
+    if (optional('=', token)) {
+      Token equal = token;
+      token = parseExpression(token.next);
+      listener.handleValuedFormalParameter(equal, token);
+    }
+    listener.endFormalParameter(token);
+    return token;
+  }
+
+  Token parseOptionalFormalParameters(Token token) {
+    Token begin = token;
+    listener.beginOptionalFormalParameters(begin);
+    assert(optional('[', token));
+    int parameterCount = 0;
+    do {
+      token = token.next;
+      token = parseFormalParameter(token);
+      ++parameterCount;
+    } while (optional(',', token));
+    listener.endOptionalFormalParameters(parameterCount, begin, token);
+    return expect(']', token);
   }
 
   Token parseTypeOpt(Token token) {
@@ -990,6 +1030,16 @@ class Parser {
       return parseTypeOpt(token.next);
     } else {
       return parseType(token);
+    }
+  }
+
+  Token parseFinalVarOrTypeOpt(Token token) {
+    final String value = token.stringValue;
+    if ('final' === value) {
+      listener.handleFinalKeyword(token);
+      return parseTypeOpt(token.next);
+    } else {
+      return parseTypeOpt(token);
     }
   }
 

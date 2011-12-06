@@ -143,6 +143,13 @@ class Listener {
   void endMethod(Token beginToken, Token endToken) {
   }
 
+  void beginOptionalFormalParameters(Token token) {
+  }
+
+  void endOptionalFormalParameters(int count,
+                                   Token beginToken, Token endToken) {
+  }
+
   void beginReturnStatement(Token token) {
   }
 
@@ -225,6 +232,9 @@ class Listener {
   void handleFinalKeyword(Token finalKeyword) {
   }
 
+  void handleFunctionTypedFormalParameter(Token token) {
+  }
+
   void handleIdentifier(Token token) {
   }
 
@@ -293,6 +303,9 @@ class Listener {
   }
 
   void handleUnaryPrefixAssignmentExpression(Token token) {
+  }
+
+  void handleValuedFormalParameter(Token equals, Token token) {
   }
 
   void handleVarKeyword(Token token) {
@@ -724,7 +737,7 @@ class NodeListener extends ElementListener {
   }
 
   void endField(Token beginToken, Token endToken) {
-    canceler.cancel("fields are not implemented yet");
+    canceler.cancel("fields are not implemented yet", token: beginToken);
     Expression initializer = popNode();
     Identifier name = popNode();
     // TODO(ahe): implement this.
@@ -752,7 +765,7 @@ class NodeListener extends ElementListener {
     NodeList entries = makeNodeList(count, beginToken, endToken, ',');
     // TODO(ahe): Type arguments are discarded.
     pushNode(null); // TODO(ahe): Create AST node.
-    canceler.cancel('literal map not implemented');
+    canceler.cancel('literal map not implemented', node: entries);
   }
 
   void handleLiteralList(int count, Token beginToken, Token endToken) {
@@ -771,26 +784,44 @@ class NodeListener extends ElementListener {
   }
 
   void handleNewExpression(Token token, bool named) {
-    if (named) canceler.cancel('named constructors are not implemented');
+    if (named) {
+      canceler.cancel('named constructors are not implemented', token: token);
+    }
     NodeList arguments = popNode();
     TypeAnnotation type = popNode();
     pushNode(new NewExpression(token, new Send(null, type, arguments)));
   }
 
   void handleConstExpression(Token token, bool named) {
-    canceler.cancel('const expressions are not implemented');
+    canceler.cancel('const expressions are not implemented', token: token);
   }
 
   void handleOperatorName(Token operatorKeyword, Token token) {
-    canceler.cancel('user defined operators are not implemented');
+    canceler.cancel('user defined operators are not implemented', token: token);
   }
 
   void handleNamedArgument(Token colon) {
-    canceler.cancel('named arguments are not implemented');
+    canceler.cancel('named arguments are not implemented', token: colon);
   }
 
   void handleStringInterpolationPart(Token token) {
-    canceler.cancel('string interpolation is not implemented');
+    canceler.cancel('string interpolation is not implemented', token: token);
+  }
+
+  void endOptionalFormalParameters(int count,
+                                   Token beginToken, Token endToken) {
+    canceler.cancel('optional formal paramters are not implemented',
+                    token: beginToken);
+  }
+
+  void handleFunctionTypedFormalParameter(Token token) {
+    canceler.cancel('function typed formal paramters are not implemented',
+                    token: token);
+  }
+
+  void handleValuedFormalParameter(Token equals, Token token) {
+    canceler.cancel(' formal paramters are not implemented',
+                    token: equals);
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
