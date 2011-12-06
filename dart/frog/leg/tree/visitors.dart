@@ -18,6 +18,7 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitLiteralBool(LiteralBool node) => visitLiteral(node);
   R visitLiteralDouble(LiteralDouble node) => visitLiteral(node);
   R visitLiteralInt(LiteralInt node) => visitLiteral(node);
+  R visitLiteralList(LiteralList node) => visitExpression(node);
   R visitLiteralNull(LiteralNull node) => visitLiteral(node);
   R visitLiteralString(LiteralString node) => visitLiteral(node);
   R visitLoop(Loop node) => visitStatement(node);
@@ -70,6 +71,7 @@ class TraversingVisitor implements Visitor {
   visitLiteralBool(LiteralBool node) {}
   visitLiteralDouble(LiteralDouble node) {}
   visitLiteralInt(LiteralInt node) {}
+  visitLiteralList(LiteralList node) {}
   visitLiteralNull(LiteralNull node) {}
   visitLiteralString(LiteralString node) {}
   visitLoop(Loop node) {}

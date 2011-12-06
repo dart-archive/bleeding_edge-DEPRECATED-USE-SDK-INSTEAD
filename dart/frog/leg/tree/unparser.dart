@@ -107,6 +107,15 @@ class Unparser implements Visitor {
     add(node.token.value);
   }
 
+  visitLiteralList(LiteralList node) {
+    if (node.type !== null) {
+      sb.add('<');
+      visit(node.type);
+      sb.add('>');
+    }
+    visitNodeList(node.elements);
+  }
+
   visitNodeList(NodeList node) {
     if (node.beginToken !== null) add(node.beginToken.value);
     if (node.nodes !== null) {
@@ -150,6 +159,12 @@ class Unparser implements Visitor {
     visit(node.selector);
     add(node.assignmentOperator.token.value);
     visit(node.argumentsNode);
+  }
+
+  visitNewExpression(NewExpression node) {
+    add(node.newToken.value);
+    sb.add(' ');
+    visit(node.send);
   }
 
   visitThrow(Throw node) {
