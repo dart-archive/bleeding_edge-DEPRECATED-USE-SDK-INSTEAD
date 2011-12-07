@@ -99,6 +99,8 @@ class ResolverVisitor implements Visitor<Element> {
     Identifier name = node.typeName;
     if (name.source == const SourceString('var')) return null;
     if (name.source == const SourceString('void')) return null;
+    // TODO(karlklose): remove when we have int in the core lib.
+    if (name.source == const SourceString('int')) return null;
     Element element = context.lookup(name.source);
     if (element === null) {
       warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [name]);

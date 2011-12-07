@@ -11,7 +11,6 @@ class ClassElementParser extends PartialParser {
 class PartialClassElement extends ClassElement {
   final Token beginToken;
   final Token endToken;
-  Link<Element> members;
 
   PartialClassElement(SourceString name,
                       Token this.beginToken, Token this.endToken)
@@ -24,6 +23,7 @@ class PartialClassElement extends ClassElement {
     Token token = parser.parseClass(beginToken);
     assert(token === endToken.next);
     node = listener.popNode();
+    members = listener.memberElements;
     assert(listener.nodes.isEmpty());
     assert(listener.topLevelElements.isEmpty());
     return node;

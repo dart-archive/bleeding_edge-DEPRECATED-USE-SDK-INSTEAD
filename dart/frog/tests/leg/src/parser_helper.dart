@@ -11,7 +11,7 @@
 #import("../../../leg/util/util.dart");
 
 class LoggerCanceler implements Logger, Canceler {
-  void cancel([String reason]) {
+  void cancel([String reason, node, token, instruction]) {
     throw new CompilerCancelledException(reason);
   }
 

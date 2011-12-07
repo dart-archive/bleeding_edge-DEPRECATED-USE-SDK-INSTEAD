@@ -19,9 +19,11 @@ class MessageKind {
   static final RETURN_NOTHING = const MessageKind(
       'value of type #{1} expected');
   static final MISSING_ARGUMENT = const MessageKind(
-      'missing argument');
+      'missing argument of type #{1}');
   static final ADDITIONAL_ARGUMENT = const MessageKind(
       'additional argument');
+  static final METHOD_NOT_FOUND = const MessageKind(
+      'no method named #{2} in class #{1}');
 
   static final CANNOT_RESOLVE = const MessageKind(
       'cannot resolve #{1}');

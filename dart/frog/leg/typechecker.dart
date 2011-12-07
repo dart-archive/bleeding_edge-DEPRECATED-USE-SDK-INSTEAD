@@ -21,7 +21,9 @@ class TypeCheckerTask extends CompilerTask {
   }
 }
 
-interface Type {}
+interface Type {
+  Element get element();
+}
 
 class SimpleType implements Type {
   final SourceString name;
@@ -35,10 +37,12 @@ class SimpleType implements Type {
 }
 
 class FunctionType implements Type {
+  final Element element;
   final Type returnType;
   final Link<Type> parameterTypes;
 
-  const FunctionType(Type this.returnType, Link<Type> this.parameterTypes);
+  const FunctionType(Type this.returnType, Link<Type> this.parameterTypes,
+                     Element this.element);
 
   toString() {
     StringBuffer sb = new StringBuffer();
@@ -224,78 +228,108 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return types.voidType;
   }
 
+  Type lookupMethodType(Node node, ClassElement classElement,
+                        SourceString name) {
+    Element member = classElement.lookupLocalElement(name);
+    if (member !== null && member.kind == ElementKind.FUNCTION) {
+      return computeType(member);
+    }
+    reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
+                      [classElement.name, name]);
+    return types.dynamicType;
+  }
+
+  Link<Type> typeArguments(Link<Node> arguments) {
+    LinkBuilder<Type> builder = new LinkBuilder<Type>();
+    while(!arguments.isEmpty()) {
+      builder.addLast(type(arguments.head));
+      arguments = arguments.tail;
+    }
+    return builder.toLink();
+  }
+
   Type visitSend(Send node) {
-    final target = elements[node];
     Identifier selector = node.selector;
     String name = selector.source.stringValue;
-    if (target !== null) {
-      // TODO(karlklose): lookup operators in the receiver.
-      if (selector.asOperator() !== null) {
-        type(node.receiver);
-        if (node.arguments.head !== null) type(node.arguments.head);
-        if (name === '+' || name === '=' || name === '-'
-            || name === '*' || name === '/' || name === '%'
-            || name === '~/' || name === '|' || name ==='&'
-            || name === '^' || name === '~'|| name === '<<'
-            || name === '>>' || name === '[]') {
-          return types.dynamicType;
-        } else if (name === '<' || name === '>' || name === '<='
-                   || name === '>=' || name === '==') {
-          return types.boolType;
-        } else {
-          fail(selector, 'unexpected operator ${name}');
-        }
-      }
-      final targetType = computeType(target);
-      if (node.isPropertyAccess) {
-        return targetType;
-      } else if (node.isFunctionObjectInvocation) {
-        // TODO(karlklose): Function object invocations are not
-        // yet implemented.
-        fail(node);
-      } else {
-        if (targetType is !FunctionType) {
-          // TODO(karlklose): handle dynamic target types.
-          if (target is ForeignElement) {
-            //TODO(karlklose): we cannot report errors on foreigns.
-            return types.dynamicType;
-          }
-          fail(node, 'can only handle function types');
-        }
-        FunctionType funType = targetType;
-        Link<Type> formals = funType.parameterTypes;
-        Link<Node> arguments = node.arguments;
-        while ((!formals.isEmpty()) && (!arguments.isEmpty())) {
-          final Node argument = arguments.head;
-          final Type argumentType = type(argument);
-          checkAssignable(argument, formals.head, argumentType);
-          formals = formals.tail;
-          arguments = arguments.tail;
-        }
 
-        if (!formals.isEmpty()) {
-          reportTypeWarning(node, MessageKind.MISSING_ARGUMENT);
-        }
-        if (!arguments.isEmpty()) {
-          reportTypeWarning(node, MessageKind.ADDITIONAL_ARGUMENT);
-        }
+    if (node.isOperator) {
+      final Node firstArgument = node.receiver;
+      final Type firstArgumentType = type(node.receiver);
+      final arguments = node.arguments;
+      final Node secondArgument = arguments.isEmpty() ? null : arguments.head;
+      final Type secondArgumentType = typeWithDefault(secondArgument, null);
 
-        return funType.returnType;
-      }
-    } else {
-      if (name === '||' || name === '&&' || name === '!') {
-        final arguments = node.arguments;
-        final Node firstArgument = node.receiver;
-        checkAssignable(firstArgument, types.boolType, type(firstArgument));
+      if (name === '+' || name === '=' || name === '-'
+          || name === '*' || name === '/' || name === '%'
+          || name === '~/' || name === '|' || name ==='&'
+          || name === '^' || name === '~'|| name === '<<'
+          || name === '>>' || name === '[]') {
+        return types.dynamicType;
+      } else if (name === '<' || name === '>' || name === '<='
+                 || name === '>=' || name === '==') {
+        return types.boolType;
+      } else if (name === '||' || name === '&&' || name === '!') {
+        checkAssignable(firstArgument, types.boolType, firstArgumentType);
         if (!arguments.isEmpty()) {
-          // TODO(karlklose): check the correct number of arguments in validator.
-          final Node secondArgument = arguments.head;
-          checkAssignable(secondArgument, types.boolType, type(secondArgument));
+          // TODO(karlklose): check number of arguments in validator.
+          checkAssignable(secondArgument, types.boolType, secondArgumentType);
         }
         return types.boolType;
       }
-      // TODO(karlklose): Implement method lookup for unresolved targets.
-      fail(node, 'unresolved send ${selector.source}');
+      fail(selector, 'unexpected operator ${name}');
+
+    } else if (node.isPropertyAccess) {
+      if (node.receiver !== null) fail(node, 'cannot handle fields');
+      Element element = elements[node];
+      if (element === null) fail(node.selector, 'unresolved property');
+      return element.computeType(compiler, types);
+
+    } else if (node.isFunctionObjectInvocation) {
+      fail(node.receiver, 'function object invocation unimplemented');
+
+    } else {
+      Link<Type> argumentTypes = typeArguments(node.arguments);
+      FunctionType funType;
+      if (node.receiver !== null) {
+        Type receiverType = type(node.receiver);
+        if (receiverType === types.dynamicType) return types.dynamicType;
+        if (receiverType === null) {
+          fail(node.receiver, 'receivertype is null');
+        }
+        ClassElement classElement = receiverType.element;
+        // TODO(karlklose): substitute type arguments.
+        Type memberType = lookupMethodType(node, classElement, selector.source);
+        if (memberType === types.dynamicType) return types.dynamicType;
+        if (memberType is !FunctionType) {
+          fail(node, 'can only handle function types');
+        }
+        funType = memberType;
+      } else {
+        Element element = elements[node];
+        if (element.kind === ElementKind.FUNCTION) {
+          funType = element.computeType(compiler, types);
+        } else if (element.kind === ElementKind.FOREIGN) {
+          return types.dynamicType;
+        } else {
+          fail(node, 'unexpected element kind ${element.kind}');
+        }
+      }
+      Link<Type> parameterTypes = funType.parameterTypes;
+      Link<Node> argumentNodes = node.arguments;
+      while (!argumentTypes.isEmpty() && !parameterTypes.isEmpty()) {
+        checkAssignable(argumentNodes.head, parameterTypes.head,
+                        argumentTypes.head);
+        argumentTypes = argumentTypes.tail;
+        parameterTypes = parameterTypes.tail;
+        argumentNodes = argumentNodes.tail;
+      }
+      if (!argumentTypes.isEmpty()) {
+        reportTypeWarning(argumentNodes.head, MessageKind.ADDITIONAL_ARGUMENT);
+      } else if (!parameterTypes.isEmpty()) {
+        reportTypeWarning(node, MessageKind.MISSING_ARGUMENT,
+                          [parameterTypes.head]);
+      }
+      return funType.returnType;
     }
   }
 

@@ -88,7 +88,7 @@ class Node implements Hashable {
   LiteralInt asLiteralInt() => null;
   LiteralNull asLiteralNull() => null;
   LiteralString asLiteralString() => null;
-  LiteralString asLiteralList() => null;
+  LiteralList asLiteralList() => null;
   NodeList asNodeList() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;

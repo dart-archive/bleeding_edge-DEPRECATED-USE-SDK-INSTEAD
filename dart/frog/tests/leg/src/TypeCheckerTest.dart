@@ -16,6 +16,8 @@ main() {
   testFor();
   testWhile();
   testOperators();
+  testMethodInvocationArgumentCount();
+  testMethodInvocations();
 }
 
 testSimpleTypes() {
@@ -29,8 +31,8 @@ testSimpleTypes() {
 testReturn() {
   setup();
   analyzeTopLevel("void foo() { return 3; }", MessageKind.RETURN_VALUE_IN_VOID);
-  analyzeTopLevel("int main() { return 'hest'; }", MessageKind.NOT_ASSIGNABLE);
-  analyzeTopLevel("void main() { var x; return x; }");
+  analyzeTopLevel("int bar() { return 'hest'; }", MessageKind.NOT_ASSIGNABLE);
+  analyzeTopLevel("void baz() { var x; return x; }");
   analyzeTopLevel(returnWithType("int", "'string'"),
                   MessageKind.NOT_ASSIGNABLE);
   analyzeTopLevel(returnWithType("", "'string'"));
@@ -111,6 +113,69 @@ testOperators() {
   }
 }
 
+void testMethodInvocationArgumentCount() {
+  setup();
+  compiler.parseScript(CLASS_WITH_METHODS);
+  final String header = "{ ClassWithMethods c; ";
+  analyze(header + "c.untypedNoArgumentMethod(1); }",
+    MessageKind.ADDITIONAL_ARGUMENT);
+  analyze(header + "c.untypedOneArgumentMethod(); }",
+    MessageKind.MISSING_ARGUMENT);
+  analyze(header + "c.untypedOneArgumentMethod(1, 1); }",
+    MessageKind.ADDITIONAL_ARGUMENT);
+  analyze(header + "c.untypedTwoArgumentMethod(); }",
+      MessageKind.MISSING_ARGUMENT);
+  analyze(header + "c.untypedTwoArgumentMethod(1, 2, 3); }",
+    MessageKind.ADDITIONAL_ARGUMENT);
+  analyze(header + "c.intNoArgumentMethod(1); }",
+    MessageKind.ADDITIONAL_ARGUMENT);
+  analyze(header + "c.intOneArgumentMethod(); }",
+      MessageKind.MISSING_ARGUMENT);
+  analyze(header + "c.intOneArgumentMethod(1, 1); }",
+    MessageKind.ADDITIONAL_ARGUMENT);
+  analyze(header + "c.intTwoArgumentMethod(); }",
+      MessageKind.MISSING_ARGUMENT);
+  analyze(header + "c.intTwoArgumentMethod(1, 2, 3); }",
+    MessageKind.ADDITIONAL_ARGUMENT);
+  // analyze(header + "c.untypedField(); }");
+}
+
+void testMethodInvocations() {
+  setup();
+  compiler.parseScript(CLASS_WITH_METHODS);
+  final String header = "{ ClassWithMethods c; int i; int j; ";
+
+  analyze(header + "int k = c.untypedNoArgumentMethod(); }");
+  analyze(header + "ClassWithMethods x = c.untypedNoArgumentMethod(); }");
+
+  analyze(header + "int k = c.untypedOneArgumentMethod(c); }");
+  analyze(header + "ClassWithMethods x = c.untypedOneArgumentMethod(1); }");
+  analyze(header + "int k = c.untypedOneArgumentMethod('string'); }");
+  analyze(header + "int k = c.untypedOneArgumentMethod(i); }");
+
+  analyze(header + "int k = c.untypedTwoArgumentMethod(1, 'string'); }");
+  analyze(header + "int k = c.untypedTwoArgumentMethod(i, j); }");
+  analyze(header + "ClassWithMethods x = c.untypedTwoArgumentMethod(i, c); }");
+
+  analyze(header + "int k = c.intNoArgumentMethod(); }");
+  analyze(header + "ClassWithMethods x = c.intNoArgumentMethod(); }",
+      MessageKind.NOT_ASSIGNABLE);
+
+  analyze(header + "int k = c.intOneArgumentMethod(c); }",
+      MessageKind.NOT_ASSIGNABLE);
+  analyze(header + "ClassWithMethods x = c.intOneArgumentMethod(1); }",
+      MessageKind.NOT_ASSIGNABLE);
+  analyze(header + "int k = c.intOneArgumentMethod('string'); }",
+    MessageKind.NOT_ASSIGNABLE);
+  analyze(header + "int k = c.intOneArgumentMethod(i); }");
+
+  analyze(header + "int k = c.intTwoArgumentMethod(1, 'string'); }",
+    MessageKind.NOT_ASSIGNABLE);
+  analyze(header + "int k = c.intTwoArgumentMethod(i, j); }");
+  analyze(header + "ClassWithMethods x = c.intTwoArgumentMethod(i, j); }",
+      MessageKind.NOT_ASSIGNABLE);
+}
+
 String returnWithType(String type, expression)
     => "$type foo() { return $expression; }";
 
@@ -120,12 +185,29 @@ final String CORELIB =
     ' neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}' +
     ' or() {} and() {} not() {}';
 
+final CLASS_WITH_METHODS = '''
+class ClassWithMethods {
+  untypedNoArgumentMethod() {}
+  untypedOneArgumentMethod(argument) {}
+  untypedTwoArgumentMethod(argument1, argument2) {}
+
+  int intNoArgumentMethod() {}
+  int intOneArgumentMethod(int argument) {}
+  int intTwoArgumentMethod(int argument1, int argument2) {}
+
+// TODO(karlklose): uncomment when fields are implemented.
+//  Function functionField;
+//  var untypedField;
+//  int intField;
+}''';
+
+
 Node parseExpression(String text) =>
   parseBodyCode(text, (parser, token) => parser.parseExpression(token));
 
 // TODO(karlklose): implement with closures instead of global variables.
 void setup() {
-  compiler = new MockCompiler();
+  compiler = new MockCompiler(CORELIB);
   types = new Types();
 }
 
@@ -143,15 +225,13 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   if (expectedWarnings === null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
+  Universe universe = compiler.universe;
+  compiler.universe = new ExtendedUniverse(compiler.universe);
+
   Token tokens = scan(text);
-
   ElementListener listener = new ElementListener(compiler);
-
   PartialParser parser = new PartialParser(listener);
   parser.parseUnit(tokens);
-
-  compiler.universe = new Universe();
-  compiler.parseScript(CORELIB);
 
   for (Link<Element> elements = listener.topLevelElements;
        !elements.isEmpty();
@@ -170,29 +250,30 @@ analyzeTopLevel(String text, [expectedWarnings]) {
     checker.type(node);
     compareWarningKinds(text, expectedWarnings, compiler.warnings);
   }
+
+  compiler.universe = universe;
 }
 
 analyze(String text, [expectedWarnings]) {
   if (expectedWarnings === null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
+  Universe universe = compiler.universe;
+  compiler.universe = new ExtendedUniverse(compiler.universe);
+
   Token tokens = scan(text);
-
   NodeListener listener = new NodeListener(compiler, compiler);
-
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
-
-  compiler.universe = new Universe();
-  compiler.parseScript(CORELIB);
-
   TreeElements elements = compiler.resolveNodeStatement(node);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
   compiler.clearWarnings();
   checker.type(node);
   compareWarningKinds(text, expectedWarnings, compiler.warnings);
+
+  compiler.universe = universe;
 }
 
 void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
@@ -213,5 +294,22 @@ void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
       print('Additional warning "${found.next()}"');
     } while (found.hasNext());
     fail('Too many warnings');
+  }
+}
+
+class ExtendedUniverse extends Universe {
+  final Universe base;
+
+  ExtendedUniverse(Universe this.base);
+
+  Element find(SourceString name) {
+    Element result = elements[name];
+    if (result == null) result = base.find(name);
+    return result;
+  }
+
+  void define(Element element) {
+    assert(base.elements[element.name] == null);
+    super.define(element);
   }
 }

@@ -21,8 +21,9 @@ class MockCompiler extends Compiler {
   List errors;
   Node parsedTree;
 
-  MockCompiler() : super(null), warnings = [], errors = [] {
-    parseScript('lt() {} add() {}');
+  MockCompiler([String corelib = 'lt() {} add() {}'])
+      : super(null), warnings = [], errors = [] {
+    parseScript(corelib);
   }
 
   void reportWarning(Node node, var message) {

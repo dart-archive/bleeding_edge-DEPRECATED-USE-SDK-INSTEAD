@@ -49,6 +49,8 @@ class Element implements Hashable {
   // there's no reason why two elements with the same name should have
   // the same hash code. Replace this with a simple id in the element?
   int hashCode() => name.hashCode();
+
+  toString() => '$name';
 }
 
 class VariableElement extends Element {
@@ -66,7 +68,7 @@ class VariableElement extends Element {
 
   Type computeType(Compiler compiler, Types types) {
     if (type !== null) return type;
-    type = getType(typeAnnotation, types);
+    type = getType(typeAnnotation, compiler, types);
     return type;
   }
 }
@@ -86,11 +88,17 @@ class ForeignElement extends Element {
  * accepts annotations with 'typeName == null' to indicate a missing
  * annotation.
  */
-Type getType(TypeAnnotation annotation, types) {
-  if (annotation == null || annotation.typeName == null) {
+Type getType(TypeAnnotation typeAnnotation, compiler, types) {
+  if (typeAnnotation == null || typeAnnotation.typeName == null) {
     return types.dynamicType;
   }
-  return types.lookup(annotation.typeName.source);
+  final SourceString name = typeAnnotation.typeName.source;
+  Element element = compiler.universe.find(name);
+  if (element !== null && element.kind === ElementKind.CLASS) {
+    // TODO(karlklose): substitute type parameters.
+    return element.computeType(compiler, types);
+  }
+  return types.lookup(name);
 }
 
 class FunctionElement extends Element {
@@ -113,14 +121,14 @@ class FunctionElement extends Element {
     if (parameters == null) compiler.resolveSignature(this);
     FunctionExpression node =
         compiler.parser.measure(() => parseNode(compiler, compiler));
-    Type returnType = getType(node.returnType, types);
+    Type returnType = getType(node.returnType, compiler, types);
     if (returnType === null) compiler.cancel('unknown type ${node.returnType}');
 
     LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
     for (Link<Element> link = parameters; !link.isEmpty(); link = link.tail) {
       parameterTypes.addLast(link.head.computeType(compiler, types));
     }
-    type = new FunctionType(returnType, parameterTypes.toLink());
+    type = new FunctionType(returnType, parameterTypes.toLink(), this);
     return type;
   }
 
@@ -135,7 +143,7 @@ class SynthesizedConstructorElement extends FunctionElement {
 
   FunctionType computeType(Compiler compiler, types) {
     if (type != null) return type;
-    type = new FunctionType(types.voidType, const EmptyLink<Type>());
+    type = new FunctionType(types.voidType, const EmptyLink<Type>(), this);
     return type;
   }
 
@@ -152,6 +160,7 @@ class SynthesizedConstructorElement extends FunctionElement {
 class ClassElement extends Element {
   Type type;
   Type supertype;
+  Link<Element> members;
   Link<Type> interfaces = const EmptyLink<Type>();
   bool isResolved = false;
   ClassNode node;
@@ -171,8 +180,17 @@ class ClassElement extends Element {
     isResolved = true;
   }
 
+  Element lookupLocalElement(SourceString name) {
+    // TODO(karlklose): replace with more eficient solution.
+    for (Link<Element> link = members;
+         link !== null && !link.isEmpty();
+         link = link.tail) {
+      if (link.head.name == name) return link.head;
+    }
+    return null;
+  }
+
   // TODO(ngeoffray): Implement these.
-  Element lookupLocalElement(SourceString name) => null;
   bool canHaveDefaultConstructor() => true;
   void addConstructor(Element element) {}
 }

@@ -55,8 +55,8 @@ Isolate.$inherits = function(child, parent) {
     // TODO(floitsch): run through classElement.members() instead of [].
     for (Element member in []) {
       if (member.kind !== ElementKind.FUNCTION) continue;
-      if (member.isStatic()) continue;
       assert(member is FunctionElement);
+      // TODO(floitsch): if (element.isStatic()) continue;
       String codeBlock = compiler.universe.generatedCode[member];
       assert(codeBlock !== null);
       buffer.add('$prototype.${member.name} = $codeBlock;\n');
