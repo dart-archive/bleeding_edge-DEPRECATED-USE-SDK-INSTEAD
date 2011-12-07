@@ -1,5 +1,7 @@
 #!/bin/sh
 
-# TODO(dgrove) - Figure out how to handle this when
-# running somewhere other than the SDK.
-./dart --new_gen_heap_size=128 frogc.dart $@
+# Run frogc.dart on the Dart VM with its libdir set correctly.
+
+SCRIPTPATH=`dirname $0`
+LIBPATH=`dirname $SCRIPTPATH`/lib
+$SCRIPTPATH/dart --new_gen_heap_size=128 $SCRIPTPATH/frogc.dart --libdir=$LIBPATH $@
