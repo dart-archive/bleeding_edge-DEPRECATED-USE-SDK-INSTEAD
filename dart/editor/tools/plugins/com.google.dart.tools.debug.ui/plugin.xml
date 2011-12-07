@@ -262,6 +262,36 @@
             icon="icons/obj16/debug_exc.gif">
       </view>
    </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <viewerContribution
+            id="com.google.dart.tools.debug.ui.viewerContribution"
+            targetID="com.google.dart.tools.ui.LibraryExplorer">
+         <action
+               class="com.google.dart.tools.debug.ui.launch.RunInBrowserAction"
+               enablesFor="1"
+               id="com.google.dart.tools.debug.ui.runInBrowserAction"
+               label="Run in Browser"
+               menubarPath="additions">
+         </action>
+         <visibility>
+            <objectState
+                  name="elementType"
+                  value="com.google.dart.tools.core.model.DartElement.HTML_FILE">
+            </objectState>
+         </visibility>
+      </viewerContribution>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="com.google.dart.tools.core.model.DartElement"
+            class="com.google.dart.tools.debug.ui.launch.ActionFilterAdapterFactory">
+         <adapter
+               type="org.eclipse.ui.IActionFilter">
+         </adapter>
+      </factory>
+   </extension>
 
  <!--extension
          point="org.eclipse.ui.popupMenus">

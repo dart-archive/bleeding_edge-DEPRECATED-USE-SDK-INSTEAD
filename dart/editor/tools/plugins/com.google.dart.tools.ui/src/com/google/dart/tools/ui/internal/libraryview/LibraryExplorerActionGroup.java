@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -49,7 +49,7 @@ import org.eclipse.ui.handlers.IHandlerService;
  * The {@link CompositeActionGroup} for the {@link LibraryExplorerPart}. This action group brings
  * together actions and action groups contribute actions such as New, Cut, Copy, Paste, Delete,
  * Collapse All, and Link With Editor to the Libraries Explorer View.;
- *
+ * 
  * @see CompositeActionGroup
  * @see LibraryExplorerPart
  */
@@ -66,8 +66,6 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
 //  private RefactorActionGroup refactorActionGroup;
 
   private NavigateActionGroup navigateActionGroup;
-
-//  private RunInBrowserAction runInBrowserAction;
 
   private CloseLibraryAction closeLibraryAction;
 
@@ -103,7 +101,6 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
     openFileAction = new OpenExternalFileDialogAction(part.getSite().getWorkbenchWindow());
 
-    //   runInBrowserAction = new RunInBrowserAction(part.getSite().getWorkbenchWindow());
     closeLibraryAction = new CloseLibraryAction(part.getSite().getWorkbenchWindow());
     closeLibraryAction.setText(LibraryExplorerMessages.LibraryExplorer_close_library_action);
 
@@ -176,7 +173,6 @@ public final class LibraryExplorerActionGroup extends ActionGroup {
     if (element instanceof HTMLFile) {
       menu.add(navigateActionGroup.getEditAction());
       menu.add(new Separator());
-      //     menu.add(runInBrowserAction);
       return;
     }
 

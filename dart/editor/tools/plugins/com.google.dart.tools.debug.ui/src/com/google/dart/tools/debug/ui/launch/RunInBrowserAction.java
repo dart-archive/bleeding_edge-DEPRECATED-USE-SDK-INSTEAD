@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
 
@@ -34,6 +35,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -49,6 +51,8 @@ import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IViewActionDelegate;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -69,7 +73,7 @@ import java.util.Set;
  * A menu for opening html files in the system browser.
  */
 public class RunInBrowserAction extends Action implements ISelectionChangedListener,
-    ISelectionListener, IPartListener {
+    ISelectionListener, IPartListener, IViewActionDelegate {
 
   class RunInBrowserJob extends UIJob {
     private IWorkbenchPage page;
@@ -100,7 +104,7 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
   /**
    * The id of this action.
    */
-  public static final String ACTION_ID = DartToolsPlugin.PLUGIN_ID + ".runInBrowserAction"; //$NON-NLS-1$
+  public static final String ACTION_ID = DartDebugUIPlugin.PLUGIN_ID + ".runInBrowserAction"; //$NON-NLS-1$
 
   public static File getJsAppArtifactFile(IPath sourceLocation) {
     return sourceLocation.addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
@@ -115,19 +119,24 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
    */
   private static final int MATCH_BOTH = IWorkbenchPage.MATCH_INPUT | IWorkbenchPage.MATCH_ID;
 
+  public RunInBrowserAction() {
+    initialize();
+  }
+
   public RunInBrowserAction(IWorkbenchWindow window) {
     this.window = window;
 
-    setText(ActionMessages.OpenInBrowserAction_title);
-    setId(ACTION_ID);
-    setDescription(ActionMessages.OpenInBrowserAction_description);
-    setToolTipText(ActionMessages.OpenInBrowserAction_toolTip);
-    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/run_client.png"));
-
-    setEnabled(false);
+    initialize();
 
     window.getPartService().addPartListener(this);
     window.getSelectionService().addSelectionListener(this);
+  }
+
+  @Override
+  public void init(IViewPart view) {
+    view.getSite().getSelectionProvider().addSelectionChangedListener(this);
+    window = view.getViewSite().getWorkbenchWindow();
+
   }
 
   @Override
@@ -160,6 +169,20 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
   @Override
   public void run() {
     openInBrowser(window.getActivePage());
+  }
+
+  @Override
+  public void run(IAction action) {
+    run();
+
+  }
+
+  @Override
+  public void selectionChanged(IAction action, ISelection selection) {
+    if (selection instanceof IStructuredSelection) {
+      handleSelectionChanged((IStructuredSelection) selection);
+    }
+
   }
 
   @Override
@@ -394,6 +417,16 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
     } catch (DartModelException e) {
       setEnabled(false);
     }
+  }
+
+  private void initialize() {
+    setText(ActionMessages.OpenInBrowserAction_title);
+    setId(ACTION_ID);
+    setDescription(ActionMessages.OpenInBrowserAction_description);
+    setToolTipText(ActionMessages.OpenInBrowserAction_toolTip);
+    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/run_client.png"));
+
+    setEnabled(false);
   }
 
   private boolean isHtmlFile(IResource resource) {
