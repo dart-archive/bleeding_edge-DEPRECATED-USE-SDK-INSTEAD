@@ -6,9 +6,9 @@ class SsaBuilderTask extends CompilerTask {
   SsaBuilderTask(Compiler compiler) : super(compiler);
   String get name() => 'SSA builder';
 
-  HGraph build(Node tree, TreeElements elements) {
+  HGraph build(FunctionElement element, TreeElements elements) {
     return measure(() {
-      FunctionExpression function = tree;
+      FunctionExpression function = element.node;
       HInstruction.idCounter = 0;
       HGraph graph =
           compileMethod(function.parameters, function.body, elements);

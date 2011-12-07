@@ -2,6 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class WorkElement {
+  final Element element;
+  TreeElements resolutionTree;
+  Function run;
+
+  WorkElement.toCompile(this.element) : resolutionTree = null {
+    run = this.compile;
+  }
+
+  WorkElement.toCodegen(this.element, this.resolutionTree) {
+    run = this.codegen;
+  }
+
+  bool isAnalyzed() => resolutionTree != null;
+  int hashCode() => element.hashCode();
+
+  String compile(Compiler compiler) {
+    return compiler.compileMethod(this);
+  }
+
+  String codegen(Compiler compiler) {
+    return compiler.codegenMethod(this);
+  }
+}
+
 class Compiler implements Canceler, Logger {
   final Script script;
   Queue<Element> worklist;
@@ -88,25 +113,35 @@ class Compiler implements Canceler, Logger {
     scanner.scan(script);
     Element element = universe.find(MAIN);
     if (element === null) cancel('Could not find $MAIN');
-    compileMethod(element);
+    worklist.add(new WorkElement.toCompile(element));
     while (!worklist.isEmpty()) {
-      compileMethod(worklist.removeLast());
+      worklist.removeLast().run(this);
     }
     emitter.assembleProgram();
   }
 
-  String compileMethod(Element element) {
-    String code = universe.generatedCode[element];
-    if (code !== null) return code;
-    Node tree = parser.parse(element);
+  TreeElements analyzeMethod(WorkElement work) {
+    Node tree = parser.parse(work.element);
     validator.validate(tree);
-    TreeElements elements = resolver.resolve(element);
+    TreeElements elements = resolver.resolve(work.element);
+    work.resolutionTree = elements;
     checker.check(tree, elements);
-    HGraph graph = builder.build(tree, elements);
+    return elements;
+  }
+
+  String codegenMethod(WorkElement work) {
+    HGraph graph = builder.build(work.element, work.resolutionTree);
     optimizer.optimize(graph);
-    code = generator.generate(element, graph);
-    universe.addGeneratedCode(element, code);
+    String code = generator.generate(work.element, graph);
+    universe.addGeneratedCode(work.element, code);
     return code;
+  }
+
+  String compileMethod(WorkElement work) {
+    String code = universe.generatedCode[work.element];
+    if (code !== null) return code;
+    analyzeMethod(work);
+    return codegenMethod(work);
   }
 
   Element resolveType(ClassElement element) {

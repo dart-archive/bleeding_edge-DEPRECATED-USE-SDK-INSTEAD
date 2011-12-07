@@ -316,7 +316,7 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitInvokeStatic(HInvokeStatic node) {
-    compiler.worklist.add(node.element);
+    compiler.worklist.add(new WorkElement.toCompile(node.element));
     invoke(node.element, node.inputs);
   }
 
@@ -418,7 +418,7 @@ class SsaCodeGenerator implements HVisitor {
     }
     Element element = compiler.universe.find(name);
     assert(element !== null);
-    compiler.worklist.add(element);
+    compiler.worklist.add(new WorkElement.toCompile(element));
     buffer.add('currentIsolate.$name(');
     use(node.inputs[0]);
     buffer.add(')');
