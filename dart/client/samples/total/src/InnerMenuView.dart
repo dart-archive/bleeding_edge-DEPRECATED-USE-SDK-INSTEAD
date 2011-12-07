@@ -23,9 +23,9 @@ class InnerMenuView {
       String classOfDiv,
       void clickedFunc(DivElement div)) {
     Document document = parent.document;
-    ButtonElement button = document.createElement("button");
+    ButtonElement button = new Element.tag("button");
     button.attributes["class"] = classOfButton;
-    Element div = document.createElement("div");
+    Element div = new Element.tag("div");
     div.attributes["class"] = classOfDiv;
     button.nodes.add(div);
     parent.nodes.add(button);
@@ -104,12 +104,12 @@ class InnerMenuView {
     _pinHeight(_window, _row);
 
     Document document = _row.document;
-    _bar = document.createElement("div");
+    _bar = new Element.tag("div");
     _bar.classes.add("inner-menu");
 
     // Close the menu when the non-button area is clicked
     // We use the supplied _callToHide function to initiate the hiding
-    Element buttons = document.createElement("div");
+    Element buttons = new Element.tag("div");
     buttons.classes.add("inner-menu-buttons");
     buttons.on.click.add((Event e) { _callToHide(); });
 
@@ -259,7 +259,7 @@ class InnerMenuView {
 
   ColorPicker _createColorPicker(Element buttons, String name, String className,
       SetStyleFunction action) {
-    DivElement div = buttons.document.createElement("div");
+    DivElement div = new Element.tag("div");
     div.id = "${name}Div";
 
     ColorPicker picker = new ColorPicker(div, Formats.htmlColors, 8, 6, 18, 3);
@@ -285,7 +285,7 @@ class InnerMenuView {
 
   ValuePicker _createValuePicker(Element buttons, String name, String className,
       List<String> values, SetStyleFunction action) {
-    DivElement div = buttons.document.createElement("div");
+    DivElement div = new Element.tag("div");
     div.id = "${name}Div";
 
     DivElement button = _addButton(buttons, "inner-menu-button", "n",

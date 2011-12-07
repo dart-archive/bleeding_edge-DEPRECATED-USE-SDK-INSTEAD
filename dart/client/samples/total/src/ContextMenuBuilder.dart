@@ -170,7 +170,7 @@ class ContextMenuBuilder {
     Window window = _presenter.window;
     Document doc = window.document;
 
-    CanvasElement graphCanvas = doc.createElement("canvas");
+    CanvasElement graphCanvas = new Element.tag("canvas");
     graphCanvas.id = "graphCanvas-${_spreadsheet.name}";
     graphCanvas.attributes["class"] = "graphCanvas";
     graphCanvas.classes.add("graphCanvas");
@@ -183,7 +183,7 @@ class ContextMenuBuilder {
     });
     _contextMenu.parent.nodes.add(graphCanvas);
 
-    DivElement chartDiv = doc.createElement("div");
+    DivElement chartDiv = new Element.tag("div");
     chartDiv.id = "chartDiv-{$_spreadsheet.name}";
     chartDiv.attributes["class"] = "chartDiv";
     chartDiv.classes.add("chartDiv");
@@ -193,10 +193,10 @@ class ContextMenuBuilder {
       chartDiv.classes.remove("fadeIn");
       chartDiv.classes.add("fadeOut");
     });
-    ImageElement image = doc.createElement("img");
+    ImageElement image = new Element.tag("img");
     chartDiv.nodes.add(image);
 
-    SelectElement chartType = doc.createElement("select");
+    SelectElement chartType = new Element.tag("select");
     List<String> values = <String>[ "Line", "Pie", "3D Pie", "Concentric Pie", "Grouped Bar",
         "Stacked Bar", "Overlapped Bar" ];
     StringBuffer sb = new StringBuffer();

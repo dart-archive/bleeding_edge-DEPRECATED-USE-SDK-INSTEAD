@@ -14,7 +14,7 @@ class HtmlTable {
   // Must be called after the creation of the <tbody> element
   DivElement get formulaCellSelectingDiv() {
     if (_formulaCellSelectingDiv == null) {
-      _formulaCellSelectingDiv = _table.document.createElement("div");
+      _formulaCellSelectingDiv = new Element.tag("div");
       _formulaCellSelectingDiv.id = "formulaSelectingCell-${_spreadsheet.name}";
       _formulaCellSelectingDiv.attributes["class"] = "formulaSelectingCell";
     }
@@ -28,7 +28,7 @@ class HtmlTable {
   HtmlTable(this._spreadsheet, Element parent) {
     Document doc = parent.document;
 
-    _table = doc.createElement("table");
+    _table = new Element.tag("table");
     _table.attributes["class"] = "spreadsheet";
     _table.style.setProperty("position", "absolute");
     _table.style.setProperty("z-index", "2");
@@ -45,7 +45,7 @@ class HtmlTable {
       TableCellElement cell;
       if (first) {
         first = false;
-        cell = doc.createElement("td");
+        cell = new Element.tag("td");
         cell.width = HtmlUtils.toPx(columnWidth);
         row.insertBefore(cell, row.cells[col]);
       } else {

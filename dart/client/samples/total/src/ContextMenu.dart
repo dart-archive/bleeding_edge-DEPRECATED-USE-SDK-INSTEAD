@@ -27,7 +27,7 @@ class ContextMenu {
 
   ContextMenu(this._spreadsheetPresenter) {
     Document doc = _spreadsheetPresenter.window.document;
-    _contextMenu = doc.createElement("ul");
+    _contextMenu = new Element.tag("ul");
     _contextMenu.style.setProperty("left","0px");
     _contextMenu.style.setProperty("top", "0px");
     _contextMenu.classes.add("contextMenu");
@@ -42,7 +42,7 @@ class ContextMenu {
 
   Element addMenuItem(String label, int value,
       EnabledFunction enabled, CallbackFunction callback) {
-    Element item = _spreadsheetPresenter.window.document.createElement("li");
+    Element item = new Element.tag("li");
     item.classes.add("contextMenuItem");
     item.classes.add("contextMenuItem-enabled");
     item.innerHTML = label;

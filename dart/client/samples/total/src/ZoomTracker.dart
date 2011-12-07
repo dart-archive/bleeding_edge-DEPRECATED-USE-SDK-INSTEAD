@@ -17,7 +17,7 @@ class ZoomTracker {
   ZoomTracker(this._window) {
     _listeners = new List<ZoomListener>();
     // Append element with known CSS location
-    _zoomElement = _window.document.createElement("div");
+    _zoomElement = new Element.tag("div");
     _zoomElement.id = "zoomTracker";
     _zoomElement.style.setProperty("position", "absolute");
     _zoomElement.style.setProperty("top", "-100px");

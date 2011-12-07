@@ -36,7 +36,7 @@ class ColorPicker extends Picker {
       for (int i = 0; i < _columns; i++) {
         int x = _margin + i * (_width + _margin);
 
-        DivElement div = doc.createElement("div");
+        DivElement div = new Element.tag("div");
         div.attributes["class"] = "color-picker-item";
         div.id = "color-picker-${idx}";
         div.style.setProperty("position", "absolute");

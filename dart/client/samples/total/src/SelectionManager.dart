@@ -52,13 +52,13 @@ class SelectionManager {
     Document doc = window.document;
 
     Element spreadsheetElement = presenter.spreadsheetElement;
-    _selectionDiv = doc.createElement("div");
+    _selectionDiv = new Element.tag("div");
     _selectionDiv.id = "selection-${_spreadsheet.name}";
     _selectionDiv.attributes["class"] = "selection";
     _selectionDiv.style.setProperty("display", "none");
     spreadsheetElement.nodes.add(_selectionDiv);
 
-    Element thumb = doc.createElement("div");
+    Element thumb = new Element.tag("div");
     thumb.id = "selection-thumb-${_spreadsheet.name}";
     thumb.attributes["class"] = "selection-thumb";
     _selectionDiv.nodes.add(thumb);

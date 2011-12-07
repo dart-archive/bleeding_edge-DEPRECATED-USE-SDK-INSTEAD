@@ -124,7 +124,7 @@ class DemoIsolate extends Isolate {
   void init(String isolateName, SendPort chirpPort) {
     this.isolateName = isolateName;
     this.chirpPort = chirpPort;
-    div = document.createElement("div");
+    div = new Element.tag("div");
     div.classes = ["isolate", "isolate${isolateName}"];
     div.innerHTML = document.query("#isolateTemplate").
         firstElementChild.dynamic.innerHTML;

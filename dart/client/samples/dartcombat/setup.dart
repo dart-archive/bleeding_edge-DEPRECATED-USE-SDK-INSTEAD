@@ -11,7 +11,7 @@ void setUpGame() {
 /** Sets up the UI creating the board for each player. */
 void setupUI() {
   // Note: we set up the UI programatically to make testing easier.
-  var div = document.createElement("div");
+  var div = new Element.tag("div");
   div.innerHTML = """
     <div class='hbox'>
       <div class='vbox'>

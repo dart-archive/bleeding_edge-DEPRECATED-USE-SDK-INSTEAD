@@ -15,7 +15,7 @@ class ValuePicker extends Picker {
     root.classes = ["value-picker", "fadeOut"];
 
     Document doc = root.document;
-    Element _ul = doc.createElement("ul");
+    Element _ul = new Element.tag("ul");
     _ul.attributes["class"] = "value-picker-ul";
     root.nodes.add(_ul);
 
@@ -24,7 +24,7 @@ class ValuePicker extends Picker {
 
     int idx = 0;
     for (int i = 0; i < _values.length; i++) {
-      LIElement li = doc.createElement("li");
+      LIElement li = new Element.tag("li");
       li.classes = ["value-picker-item", "value-picker-item-enabled"];
       li.id = "value-picker-${i}";
       li.text = _values[i];

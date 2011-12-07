@@ -45,14 +45,14 @@ class PlayerGridView extends View {
 
   /** Adds to this view the respresentation of a missed shot. */
   void addMiss(int x, int y) {
-    Element node = ViewUtil.createDiv(this, "icons miss");
+    Element node = ViewUtil.createDiv("icons miss");
     ViewUtil.placeNodeAt(node, x, y);
     _rootNode.nodes.add(node);
   }
 
   /** Adds to this view the respresentation of a shot that hits our boat. */
   void addHit(int x, int y) {
-    Element node = ViewUtil.createDiv(this, "icons hit-onboat");
+    Element node = ViewUtil.createDiv("icons hit-onboat");
     ViewUtil.placeNodeAt(node, x, y);
     _rootNode.nodes.add(node);
   }
@@ -99,7 +99,7 @@ class PlaceBoatView extends View {
         _possibleBoat.remove();
         _moveListener = null;
       }
-      _possibleBoat = ViewUtil.createDiv(this, "icons boat2");
+      _possibleBoat = ViewUtil.createDiv("icons boat2");
       ViewUtil.placeNodeAt(_possibleBoat, _boatStartX, _boatStartY);
       _rootNode.nodes.add(_possibleBoat);
       _moveListener = handleMouseMove;
@@ -215,21 +215,21 @@ class EnemyGridView extends View {
 
   /** Update the view to indicate a shot that hit an enemy's boat. */
   void addHit(int x, int y) {
-    Element node = ViewUtil.createDiv(this, "icons hit");
+    Element node = ViewUtil.createDiv("icons hit");
     ViewUtil.placeNodeAt(node, x, y);
     _rootNode.nodes.add(node);
   }
 
   /** Update the view to indicate a shot that missed an enemy's boat. */
   void addMiss(int x, int y) {
-    Element node = ViewUtil.createDiv(this, "icons miss");
+    Element node = ViewUtil.createDiv("icons miss");
     ViewUtil.placeNodeAt(node, x, y);
     _rootNode.nodes.add(node);
   }
 
   /** Update the view to indicate a shot is in progress. */
   void addMaybeHit(int x, int y) {
-    Element node = ViewUtil.createDiv(this, "icons maybe-hit");
+    Element node = ViewUtil.createDiv("icons maybe-hit");
     ViewUtil.placeNodeAt(node, x, y);
     _rootNode.nodes.add(node);
   }
@@ -257,7 +257,7 @@ class ShootingStatusView extends View {
 
   ShootingStatusView(this.state, Document doc)
       : super(doc) {
-    _rootNode = ViewUtil.createDiv(this, "shooting-status");
+    _rootNode = ViewUtil.createDiv("shooting-status");
     updateStatus();
   }
 
@@ -296,8 +296,8 @@ class ViewUtil {
   }
 
   /** Create a div node with a given class name. */
-  static Element createDiv(View view, String className) {
-    Element node = view.doc.createElement("div");
+  static Element createDiv(String className) {
+    Element node = new Element.tag("div");
     node.attributes["class"] = className;
     return node;
   }

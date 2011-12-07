@@ -4,7 +4,7 @@
 
 #library('sunflower');
 
-#import('dart:dom');
+#import('dart:html');
 
 #resource('sunflower.css');
 
@@ -16,14 +16,13 @@ class Sunflower {
   
   Sunflower() {
     PHI = (Math.sqrt(5) + 1) / 2;
-    var doc = window.document;
     
-    HTMLCanvasElement canvas = doc.getElementById("canvas");
+    CanvasElement canvas = document.query("#canvas");
     xc = yc = MAX_D / 2;
     ctx = canvas.getContext("2d");
     
-    HTMLInputElement slider = doc.getElementById("slider");
-    slider.addEventListener('change', (Event e) {
+    InputElement slider = document.query("#slider");
+    slider.on.change.add((Event e) {
       seeds = Math.parseInt(slider.value);
       drawFrame();
     }, true);

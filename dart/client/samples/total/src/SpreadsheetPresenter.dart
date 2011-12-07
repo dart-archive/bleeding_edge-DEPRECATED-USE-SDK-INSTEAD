@@ -129,13 +129,13 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     // Create UI elements under a common parent
     Element parent = doc.query("#spreadsheets");
 
-    _spreadsheetElement = doc.createElement("div");
+    _spreadsheetElement = new Element.tag("div");
     _spreadsheetElement.id = "spreadsheet-${_spreadsheet.name}";
     _spreadsheetElement.attributes["class"] = "spreadsheetContainer";
     _spreadsheetElement.style.setProperty("z-index", "${_zIndex++}");
     parent.nodes.add(_spreadsheetElement);
 
-    _tableScrollContainer = doc.createElement("div");
+    _tableScrollContainer = new Element.tag("div");
     _tableScrollContainer.id = "tableScrollContainer-${_spreadsheet.name}";
     _tableScrollContainer.attributes["class"] = "tableScrollContainer";
     _spreadsheetElement.nodes.add(_tableScrollContainer);
@@ -556,7 +556,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   // Create the cell display dropdown.
   SelectElement _createCellDisplay(Document doc, String parentId, List<String> values) {
     Element parent = doc.query('#$parentId');
-    SelectElement element = doc.createElement("select");
+    SelectElement element = new Element.tag("select");
     StringBuffer sb = new StringBuffer();
     values.forEach((String value) {
       sb.add("<option>");
@@ -581,17 +581,17 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   }
 
   void _createFormulaInput(Document doc) {
-    _formulaDiv = doc.createElement("div");
+    _formulaDiv = new Element.tag("div");
     _formulaDiv.id = "formulaDiv-${_spreadsheet.name}";
     _formulaDiv.attributes["class"] = "formulaDiv fadeOut";
     _spreadsheetElement.nodes.add(_formulaDiv);
 
-    _formulaInput = doc.createElement("input");
+    _formulaInput = new Element.tag("input");
     _formulaInput.id = "formulaInput-${_spreadsheet.name}";
     _formulaInput.attributes["class"] = "formulaInput";
     _formulaDiv.nodes.add(_formulaInput);
 
-    _formulaInputMeasure = doc.createElement("div");
+    _formulaInputMeasure = new Element.tag("div");
     _formulaInputMeasure.id = "formulaInputMeasure-${_spreadsheet.name}";
     _formulaInputMeasure.attributes["class"] = "formulaInputMeasure";
     _spreadsheetElement.nodes.add(_formulaInputMeasure);
@@ -661,7 +661,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   }
 
   void _createMoveDragger(Document doc) {
-    _moveDragger = doc.createElement("div");
+    _moveDragger = new Element.tag("div");
     _moveDragger.id = "moveDragger-${_spreadsheet.name}";
     _moveDragger.attributes["class"] = "moveDragger";
     _moveDragger.style.setProperty("left", HtmlUtils.toPx(3));
@@ -700,7 +700,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   }
 
   void _createResizeDragger(Document doc) {
-    _resizeDragger = doc.createElement("div");
+    _resizeDragger = new Element.tag("div");
     _resizeDragger.id = "resizeDragger-${_spreadsheet.name}";
     _resizeDragger.attributes["class"] = "resizeDragger";
     _spreadsheetElement.nodes.add(_resizeDragger);
@@ -764,11 +764,11 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   // Initialize the HTML elements used to indicate dragging
   void _createSpreadsheetLayout(Document doc) {
-    DivElement columnDraggerElement = doc.createElement("div");
+    DivElement columnDraggerElement = new Element.tag("div");
     columnDraggerElement.id = "columnDragger-${_spreadsheet.name}";
     columnDraggerElement.attributes["class"] = "columnDragger rowColDragger";
 
-    DivElement rowDraggerElement = doc.createElement("div");
+    DivElement rowDraggerElement = new Element.tag("div");
     rowDraggerElement.id = "rowDragger-${_spreadsheet.name}";
     rowDraggerElement.attributes["class"] = "rowDragger rowColDragger";
 
@@ -795,7 +795,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     // to match the scroll coordinates.
 
     // Inner div
-    _tableScrollDiv = doc.createElement("div");
+    _tableScrollDiv = new Element.tag("div");
     _tableScrollDiv.id = "tableScrollDiv-${_spreadsheet.name}";
     _tableScrollDiv.attributes["class"] = "tableScrollDiv";
     _tableScrollContainer.style.setProperty("left", "0px");
