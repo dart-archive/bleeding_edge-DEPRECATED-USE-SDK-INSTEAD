@@ -197,7 +197,18 @@ class Member extends Element {
     }
   }
 
-  int hashCode() => (declaringType.hashCode() << 4) ^ name.hashCode();
+  int hashCode() {
+    final typeCode = declaringType == null ? 1 : declaringType.hashCode();
+    final nameCode = isConstructor ? constructorName.hashCode() :
+      name.hashCode();
+    return (typeCode << 4) ^ nameCode;
+  }
+
+  bool operator ==(other) {
+    return other is Member && isConstructor == other.isConstructor &&
+      declaringType == other.declaringType && (isConstructor ?
+          constructorName == other.constructorName : name == other.name);
+  }
 }
 
 

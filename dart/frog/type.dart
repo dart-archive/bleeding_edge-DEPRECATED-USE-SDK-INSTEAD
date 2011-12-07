@@ -41,6 +41,7 @@ class Type extends Element {
   abstract Map<String, MethodMember> get constructors();
   abstract addDirectSubtype(Type type);
   abstract bool get isClass();
+  abstract Library get library();
   Set<Type> get subtypes() => null;
 
   // TODO(jmesserly): rename to isDynamic?
@@ -376,6 +377,15 @@ class Type extends Element {
     // Unrelated types
     return false;
   }
+
+  int hashCode() {
+    var libraryCode = library == null ? 1 : library.hashCode();
+    var nameCode = name == null ? 1 : name.hashCode();
+    return (libraryCode << 4) ^ nameCode;
+  }
+
+  bool operator ==(other) =>
+    other is Type && other.name == name && library == other.library;
 
   /**
    * A function type (T1,...,Tn, [Tx1 x1,..., Txk xk]) -> T is a subtype of the

@@ -283,6 +283,11 @@ class Library extends Element {
   }
 
   toString() => baseSource.filename;
+
+  int hashCode() => baseSource.filename.hashCode();
+
+  bool operator ==(other) => other is Library &&
+    other.baseSource.filename == baseSource.filename;
 }
 
 
