@@ -6236,6 +6236,15 @@ Token.prototype.start$0 = function() {
   return this.start();
 };
 Token.prototype.toString$0 = Token.prototype.toString;
+// ********** Code for ErrorToken **************
+function ErrorToken(kind, source, start, end, message) {
+  this.message = message;
+  // Initializers done
+  Token.call(this, kind, source, start, end);
+}
+$inherits(ErrorToken, Token);
+ErrorToken.prototype.get$message = function() { return this.message; };
+ErrorToken.prototype.set$message = function(value) { return this.message = value; };
 // ********** Code for SourceFile **************
 function SourceFile(filename, _text) {
   this.filename = filename;
@@ -6423,8 +6432,8 @@ TokenizerBase.prototype._maybeEatChar = function(ch) {
 TokenizerBase.prototype._finishToken = function(kind) {
   return new Token(kind, this._source, this._startIndex, this._index);
 }
-TokenizerBase.prototype._errorToken = function() {
-  return this._finishToken(65/*TokenKind.ERROR*/);
+TokenizerBase.prototype._errorToken = function(message) {
+  return new ErrorToken(65/*TokenKind.ERROR*/, this._source, this._startIndex, this._index, message);
 }
 TokenizerBase.prototype.finishWhitespace = function() {
   this._index--;
@@ -6543,7 +6552,7 @@ TokenizerBase.prototype.finishNumberExtra = function(kind) {
   }
   if (this._peekChar() != 0 && TokenizerHelpers.isIdentifierStart(this._peekChar())) {
     this._nextChar();
-    return this._errorToken();
+    return this._errorToken("illegal character in number");
   }
   return this._finishToken(kind);
 }
@@ -6567,7 +6576,7 @@ TokenizerBase.prototype.finishMultilineString = function(quote) {
     }
     else if (ch == 92) {
       if (!this.eatEscapeSequence()) {
-        return this._errorToken();
+        return this._errorToken("invalid hex escape sequence");
       }
     }
   }
@@ -6648,7 +6657,7 @@ TokenizerBase.prototype.finishStringBody = function(quote) {
     }
     else if (ch == 92) {
       if (!this.eatEscapeSequence()) {
-        return this._errorToken();
+        return this._errorToken("invalid hex escape sequence");
       }
     }
   }
@@ -6705,7 +6714,7 @@ TokenizerBase.prototype.finishIdentifier = function(ch) {
   if (this._interpStack != null && this._interpStack.depth == -1) {
     this._interpStack.depth = 0;
     if (ch == 36) {
-      return this._errorToken();
+      return this._errorToken("illegal character after $ in string interpolation");
     }
     while (this._index < this._text.length) {
       if (!TokenizerHelpers.isInterpIdentifierPart(this._text.charCodeAt(this._index++))) {
@@ -8168,8 +8177,12 @@ Parser.prototype._eatSemicolon = function() {
 Parser.prototype._errorExpected = function(expected) {
   if (this.throwOnIncomplete) this.isPrematureEndOfFile();
   var tok = this._next();
-  var message = ('expected ' + expected + ', but found ' + tok);
-  this._error(message, tok.get$span());
+  if ((tok instanceof ErrorToken) && tok.get$message() != null) {
+    this._error(tok.get$message(), tok.get$span());
+  }
+  else {
+    this._error(('expected ' + expected + ', but found ' + tok), tok.get$span());
+  }
 }
 Parser.prototype._error = function(message, location) {
   if (this._recover) return;

@@ -147,8 +147,12 @@ class Parser {
     // throwOnIncomplete is true
     if (throwOnIncomplete) isPrematureEndOfFile();
     var tok = _next();
-    var message = 'expected $expected, but found $tok';
-    _error(message, tok.span);
+    if (tok is ErrorToken && tok.message != null) {
+      // give priority to tokenizer errors
+      _error(tok.message, tok.span);
+    } else {
+      _error('expected $expected, but found $tok', tok.span);
+    }
   }
 
   void _error(String message, [SourceSpan location=null]) {

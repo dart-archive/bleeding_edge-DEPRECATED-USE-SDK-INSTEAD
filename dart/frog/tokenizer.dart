@@ -93,10 +93,9 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
     return new Token(kind, _source, _startIndex, _index);
   }
 
-  // TODO(jmesserly): we need a way to emit human readable error messages from
-  // the tokenizer.
-  Token _errorToken() {
-    return _finishToken(TokenKind.ERROR);
+  Token _errorToken([String message = null]) {
+    return new ErrorToken(
+        TokenKind.ERROR, _source, _startIndex, _index, message);
   }
 
   Token nextFromPreviousLine(int kind) {
@@ -236,8 +235,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
     }
     if (_peekChar() != 0 && isIdentifierStart(_peekChar())) {
       _nextChar();
-      // numbers cannot contain identifiers
-      return _errorToken();
+      return _errorToken("illegal character in number");
     }
 
     return _finishToken(kind);
@@ -263,8 +261,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
         return _finishToken(TokenKind.INCOMPLETE_STRING); // TODO
       } else if (ch == 92/*\*/) {
         if (!eatEscapeSequence()) {
-          // invalid hex escape sequence
-          return _errorToken();
+          return _errorToken("invalid hex escape sequence");
         }
       }
     }
@@ -346,8 +343,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
         return _finishToken(TokenKind.INCOMPLETE_STRING);
       } else if (ch == 92/*\*/) {
         if (!eatEscapeSequence()) {
-          // invalid hex escape sequence
-          return _errorToken();
+          return _errorToken("invalid hex escape sequence");
         }
       }
     }
@@ -400,8 +396,8 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
     if (_interpStack != null && _interpStack.depth == -1) {
       _interpStack.depth = 0;
       if (ch == 36/*$*/) {
-        // illegal character after $ in string interpolation
-        return _errorToken();
+        return _errorToken(
+            @"illegal character after $ in string interpolation");
       }
       while (_index < _text.length) {
         if (!isInterpIdentifierPart(_text.charCodeAt(_index++))) {

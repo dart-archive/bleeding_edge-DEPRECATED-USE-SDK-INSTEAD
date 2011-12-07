@@ -44,3 +44,10 @@ class Token {
     return new SourceSpan(source, start, end);
   }
 }
+
+/** A token containing error information. */
+class ErrorToken extends Token {
+  String message;
+  ErrorToken(kind, source, start, end, this.message)
+      : super(kind, source, start, end);
+}
