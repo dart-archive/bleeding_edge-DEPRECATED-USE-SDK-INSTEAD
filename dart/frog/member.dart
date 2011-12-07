@@ -28,10 +28,8 @@ class Parameter {
       // To match VM, detect cases where value was not actually specified in
       // code and don't signal errors.
       // TODO(jimhug): Clean up after issue #352 is resolved.
-      if (definition.value is NullExpression &&
-          definition.value.span.start == definition.span.start) {
-        return;
-      }
+      if (!hasDefaultValue) return;
+
       if (method.name == ':call') {
         // TODO(jimhug): Need simpler way to detect "true" function types vs.
         //   regular methods being used as function types for closures.
@@ -71,6 +69,13 @@ class Parameter {
   }
 
   bool get isOptional() => definition != null && definition.value != null;
+
+  /**
+   * Gets whether this named parameter has an explicit default value or relies
+   * on the implicit `null`.
+   */
+  bool get hasDefaultValue() => definition.value is! NullExpression ||
+          (definition.value.span.start != definition.span.start);
 }
 
 
