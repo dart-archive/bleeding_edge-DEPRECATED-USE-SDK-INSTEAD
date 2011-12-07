@@ -146,6 +146,13 @@ class Compiler implements Canceler, Logger {
     return codegenMethod(work);
   }
 
+  void addToWorklist(Element element) {
+    if (element.kind === ElementKind.CONSTRUCTOR) {
+      universe.instantiatedClasses.add(element.enclosingElement);
+    }
+    worklist.add(new WorkElement.toCompile(element));
+  }
+
   Element resolveType(ClassElement element) {
     parser.parse(element);
     resolver.resolveType(element);

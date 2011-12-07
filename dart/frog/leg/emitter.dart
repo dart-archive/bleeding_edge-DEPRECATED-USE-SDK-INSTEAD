@@ -65,6 +65,13 @@ function(child, parent) {
       assert(codeBlock !== null);
       buffer.add('$prototype.${namer.methodName(member)} = $codeBlock;\n');
     }
+
+    Element synthesized = classElement.synthesizedConstructor;
+    if (synthesized !== null) {
+      String codeBlock = compiler.universe.generatedCode[synthesized];
+      assert(codeBlock !== null);
+      buffer.add('$prototype.${synthesized.name} = $codeBlock;\n');
+    }
   }
 
   String compileClasses(StringBuffer buffer) {
@@ -72,13 +79,6 @@ function(child, parent) {
     for (ClassElement element in compiler.universe.instantiatedClasses) {
       generateClass(element, buffer, seenClasses);
     }
-    assert(() {
-      for (Element element in compiler.universe.generatedCode.getKeys()) {
-        // TODO(floitsch): check that every element is static.
-        // if (!element.isStatic()) return false;
-      }
-      return true;
-    });
     return buffer.toString();
   }
 
@@ -90,9 +90,11 @@ function(child, parent) {
       compileClasses(buffer);
       Map<Element, String> generatedCode = compiler.universe.generatedCode;
       generatedCode.forEach((Element element, String codeBlock) {
-        buffer.add('${namer.isolatePropertyAccess(element)} = ');
-        buffer.add(codeBlock);
-        buffer.add(';\n\n');
+        if (element.isStatic()) {
+          buffer.add('${namer.isolatePropertyAccess(element)} = ');
+          buffer.add(codeBlock);
+          buffer.add(';\n\n');
+        }
       });
       buffer.add('var ${namer.currentIsolate} = new ${namer.isolate}();\n');
       buffer.add('${namer.currentIsolate}.main();\n');

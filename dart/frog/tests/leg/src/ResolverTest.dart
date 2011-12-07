@@ -348,7 +348,7 @@ testNewExpression() {
 
   TreeElements elements = compiler.resolveStatement("new A();");
   Element element =
-      elements[compiler.parsedTree.asExpressionStatement().expression];
+      elements[compiler.parsedTree.asExpressionStatement().expression.send];
   Expect.equals(ElementKind.CONSTRUCTOR, element.kind);
   Expect.isTrue(element is SynthesizedConstructorElement);
 }

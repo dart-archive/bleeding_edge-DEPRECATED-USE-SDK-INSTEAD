@@ -404,17 +404,16 @@ class FullResolverVisitor extends ResolverVisitor {
       constructor = cls.lookupLocalElement(name);
       if (name.stringValue === ''
           && constructor === null
-          && node.send.argumentsNode.isEmpty()
-          && cls.canHaveDefaultConstructor()) {
-        constructor = new SynthesizedConstructorElement(cls);
-        cls.addConstructor(constructor);
+          && node.send.argumentsNode.isEmpty()) {
+        constructor = cls.getSynthesizedConstructor();
       }
       if (constructor === null) {
         error(node, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node]);
       }
     }
 
-    return useElement(node, constructor);
+    useElement(node.send, constructor);
+    return null;
   }
 
   visitLiteralList(LiteralList node) {

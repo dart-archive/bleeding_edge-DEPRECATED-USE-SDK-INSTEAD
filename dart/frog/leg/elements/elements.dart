@@ -42,6 +42,8 @@ class Element implements Hashable {
   abstract Type computeType(Compiler compiler, Types types);
   bool isClassMember() =>
       enclosingElement !== null && enclosingElement.kind == ElementKind.CLASS;
+  // TODO(ngeoffray): override in function element to check for modifiers.
+  bool isStatic() => !isClassMember();
 
   const Element(this.name, this.kind, this.enclosingElement);
 
@@ -164,6 +166,7 @@ class ClassElement extends Element {
   Link<Type> interfaces = const EmptyLink<Type>();
   bool isResolved = false;
   ClassNode node;
+  SynthesizedConstructorElement synthesizedConstructor;
 
   ClassElement(SourceString name) : super(name, ElementKind.CLASS, null);
 
@@ -192,5 +195,11 @@ class ClassElement extends Element {
 
   // TODO(ngeoffray): Implement these.
   bool canHaveDefaultConstructor() => true;
-  void addConstructor(Element element) {}
+
+  SynthesizedConstructorElement getSynthesizedConstructor() {
+    if (synthesizedConstructor === null && canHaveDefaultConstructor()) {
+      synthesizedConstructor = new SynthesizedConstructorElement(this);
+    }
+    return synthesizedConstructor;
+  }
 }
