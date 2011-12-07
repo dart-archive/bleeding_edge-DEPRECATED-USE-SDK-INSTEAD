@@ -568,6 +568,16 @@ class Parser {
       return parseWhileStatement(token);
     } else if (value === 'do') {
       return parseDoWhileStatement(token);
+    } else if (value === 'try') {
+      return parseTryStatement(token);
+    } else if (value === 'switch') {
+      return parseSwitchStatement(token);
+    } else if (value === 'break') {
+      return parseBreakStatement(token);
+    } else if (value === 'continue') {
+      return parseContinueStatement(token);
+    } else if (value === ';') {
+      return parseEmptyStatement(token);
     } else {
       // TODO(ahe): Handle other statements.
       return parseExpressionStatement(token);
@@ -1120,5 +1130,75 @@ class Parser {
       listener.endThrowStatement(throwToken, token);
       return expectSemicolon(token);
     }
+  }
+
+  Token parseTryStatement(Token token) {
+    assert(optional('try', token));
+    Token tryKeyword = token;
+    listener.beginTryStatement(tryKeyword);
+    token = parseBlock(token.next);
+    int catchCount = 0;
+    while (optional('catch', token)) {
+      Token catchKeyword = token;
+      // TODO(ahe): Validate the "parameters".
+      token = parseFormalParameters(token.next);
+      token = parseBlock(token);
+      ++catchCount;
+      listener.handleCatchBlock(catchKeyword);
+    }
+    Token finallyKeyword = null;
+    if (optional('finally', token)) {
+      finallyKeyword = token;
+      token = parseBlock(token.next);
+      listener.handleFinallyBlock(finallyKeyword);
+    }
+    listener.endTryStatement(catchCount, tryKeyword, finallyKeyword);
+    return token;
+  }
+
+  Token parseSwitchStatement(Token token) {
+    assert(optional('switch', token));
+    Token switchKeyword = token;
+    listener.beginSwitchStatement(switchKeyword);
+    token = parseParenthesizedExpression(token.next);
+    token = parseSwitchBlock(token);
+    listener.endSwitchStatement(switchKeyword);
+    return token;
+  }
+
+  Token parseSwitchBlock(Token token) {
+    // TODO(ahe): Do not skip block.
+    return skipBlock(token).next;
+  }
+
+  Token parseBreakStatement(Token token) {
+    assert(optional('break', token));
+    Token breakKeyword = token;
+    token = token.next;
+    bool hasTarget = false;
+    if (isIdentifier(token)) {
+      token = parseIdentifier(token);
+      hasTarget = true;
+    }
+    listener.handleBreakStatement(hasTarget, breakKeyword, token);
+    return expectSemicolon(token);
+  }
+
+  Token parseContinueStatement(Token token) {
+    assert(optional('continue', token));
+    Token continueKeyword = token;
+    token = token.next;
+    bool hasTarget = false;
+    if (isIdentifier(token)) {
+      token = parseIdentifier(token);
+      hasTarget = true;
+    }
+    listener.handleContinueStatement(hasTarget, continueKeyword, token);
+    return expectSemicolon(token);
+  }
+
+  Token parseEmptyStatement(Token token) {
+    listener.handleEmptyStatement(token);
+    return expectSemicolon(token);
   }
 }

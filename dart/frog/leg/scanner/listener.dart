@@ -163,6 +163,12 @@ class Listener {
   void endSend(Token token) {
   }
 
+  void beginSwitchStatement(Token token) {
+  }
+
+  void endSwitchStatement(Token switchKeyword) {
+  }
+
   void beginThrowStatement(Token token) {
   }
 
@@ -179,6 +185,18 @@ class Listener {
   }
 
   void endTopLevelMethod(Token beginToken, Token endToken) {
+  }
+
+  void beginTryStatement(Token token) {
+  }
+
+  void handleCatchBlock(Token catchKeyword) {
+  }
+
+  void handleFinallyBlock(Token finallyKeyword) {
+  }
+
+  void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
   }
 
   void endType(int count, Token beginToken, Token endToken) {
@@ -243,6 +261,17 @@ class Listener {
   }
 
   void handleLiteralBool(Token token) {
+  }
+
+  void handleBreakStatement(bool hasTarget,
+                            Token breakKeyword, Token endToken) {
+  }
+
+  void handleContinueStatement(bool hasTarget,
+                               Token continueKeyword, Token endToken) {
+  }
+
+  void handleEmptyStatement(Token token) {
   }
 
   void handleLiteralDouble(Token token) {
@@ -820,8 +849,32 @@ class NodeListener extends ElementListener {
   }
 
   void handleValuedFormalParameter(Token equals, Token token) {
-    canceler.cancel(' formal paramters are not implemented',
+    canceler.cancel('formal paramters are not implemented',
                     token: equals);
+  }
+
+  void beginTryStatement(Token token) {
+    canceler.cancel('try statement is not implemented', token: token);
+  }
+
+  void endSwitchStatement(Token switchKeyword) {
+    canceler.cancel('switch statement is not implemented',
+                    token: switchKeyword);
+  }
+
+  void handleBreakStatement(bool hasTarget,
+                            Token breakKeyword, Token endToken) {
+    canceler.cancel('break statement is not implemented', token: breakKeyword);
+  }
+
+  void handleContinueStatement(bool hasTarget,
+                               Token continueKeyword, Token endToken) {
+    canceler.cancel('continue statement is not implemented',
+                    token: continueKeyword);
+  }
+
+  void handleEmptyStatement(Token token) {
+    canceler.cancel('empty statement is not implemented', token: token);
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
