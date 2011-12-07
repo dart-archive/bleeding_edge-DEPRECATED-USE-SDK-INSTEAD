@@ -219,7 +219,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     String filePath = fd.open();
 
     if (filePath != null) {
-      browserField.setText(filePath);
+      vmField.setText(filePath);
     }
   }
 
