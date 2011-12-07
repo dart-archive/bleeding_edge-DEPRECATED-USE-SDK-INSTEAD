@@ -417,6 +417,7 @@ class SsaCodeGenerator implements HVisitor {
       unreachable();
     }
     Element element = compiler.universe.find(name);
+    assert(element !== null);
     compiler.worklist.add(element);
     buffer.add('currentIsolate.$name(');
     use(node.inputs[0]);

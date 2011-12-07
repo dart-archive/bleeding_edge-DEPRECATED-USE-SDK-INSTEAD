@@ -7,6 +7,7 @@
 final String TEST_ONE = @"""
 lt() {}
 add() {}
+guard$num(x) { return true; }
 sum(param0, param1) {
   var sum = 0;
   for (var i = param0; i < param1; i += 1) sum = sum + i;

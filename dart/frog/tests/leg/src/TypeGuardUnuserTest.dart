@@ -5,6 +5,7 @@
 #import("compiler_helper.dart");
 
 final String TEST_ONE = @"""
+guard$num(x) { return true; }
 foo(a) {
   int c = foo(1);
   if (a) c = foo(2);
@@ -16,6 +17,7 @@ foo(a) {
 final String TEST_TWO = @"""
 add() {}
 bar(a) {}
+guard$num(x) { return true; }
 foo() {
   int a = 1;
   int c = foo(1);
@@ -26,6 +28,7 @@ foo() {
 
 final String TEST_THREE = @"""
 add() {}
+guard$num(x) { return true; }
 foo(int param1, int param2) {
   return param1 + param2;
 }

@@ -8,6 +8,7 @@ final String TEST_ONE = @"""
 eq() {}
 add() {}
 print() {}
+guard$num(x) { return true; }
 foo(int param0, int param1, bool param2) {
   var x = param0 + 5;  // '+' is now GVNed.
   if (param2) {
