@@ -329,7 +329,12 @@ class FullResolverVisitor extends ResolverVisitor {
       // Resolve the getter for the lhs (receiver+selector).
       // Currently this is the same as the setter.
       // TODO(ngeoffray): Adapt for fields.
-      Element getter = context.lookup(selector.source);
+      Element getter;
+      if (node.isIndex) {
+        getter = compiler.universe.find(const SourceString('index'));
+      } else {
+        getter = context.lookup(selector.source);
+      }
       useElement(selector, getter);
     }
     return useElement(node, target);

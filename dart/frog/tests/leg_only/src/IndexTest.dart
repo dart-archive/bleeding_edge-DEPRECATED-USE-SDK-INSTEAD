@@ -25,4 +25,9 @@ main() {
   a[1] = 43;
   expectEquals(42, a[0]);
   expectEquals(43, a[1]);
+
+  a[1] += 2;
+  expectEquals(45, a[1]);
+  a[1] -= a[1];
+  expectEquals(0, a[1]);
 }

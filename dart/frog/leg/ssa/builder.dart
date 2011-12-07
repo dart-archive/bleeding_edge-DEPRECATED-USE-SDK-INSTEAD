@@ -594,7 +594,20 @@ class SsaBuilder implements Visitor {
       visit(node.argumentsNode);
       HInstruction value = pop();
       HInstruction index = pop();
-      push(new HIndexAssign(target, receiver, index, value));
+      if (const SourceString("=") == op.source) {
+        push(new HIndexAssign(target, receiver, index, value));
+      } else if (const SourceString("++") == op.source ||
+                 const SourceString("--") == op.source) {
+        compiler.unimplemented("SsaBuilder: increment on array access");
+      } else {
+        HStatic indexMethod = new HStatic(elements[node.selector]);
+        add(indexMethod);
+        HInstruction left = new HIndex(indexMethod, receiver, index);
+        add(left);
+        Element opElement = elements[op];
+        visitBinary(left, op, value, opElement);
+        push(new HIndexAssign(target, receiver, index, pop()));
+      }
     } else if (node.receiver != null) {
       compiler.unimplemented("SsaBuilder: property access");
     } else if (const SourceString("=") == op.source) {
