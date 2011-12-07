@@ -3757,10 +3757,17 @@ MethodGenerator.prototype.visitNewExpression = function(node) {
 MethodGenerator.prototype.visitListExpression = function(node) {
   var argsCode = [];
   var argValues = [];
+  var type = null;
+  if (node.type != null) {
+    type = this.method.resolveType(node.type, true).get$typeArgsInOrder().$index(0);
+    if (node.isConst && ((type instanceof ParameterType) || type.get$hasTypeParams())) {
+      $globals.world.error('type parameter cannot be used in const list literals');
+    }
+  }
   var $$list = node.values;
   for (var $$i = 0;$$i < $$list.length; $$i++) {
     var item = $$list.$index($$i);
-    var arg = this.visitValue(item);
+    var arg = type == null ? this.visitValue(item) : this.visitTypedValue(item, type);
     argValues.add$1(arg);
     if (node.isConst) {
       if (!arg.get$isConst()) {
@@ -3792,11 +3799,18 @@ MethodGenerator.prototype.visitMapExpression = function(node) {
   }
   var argValues = [];
   var argsCode = [];
+  var type = null;
+  if (node.type != null) {
+    type = this.method.resolveType(node.type, true).get$typeArgsInOrder().$index(1);
+    if (node.isConst && ((type instanceof ParameterType) || type.get$hasTypeParams())) {
+      $globals.world.error('type parameter cannot be used in const map literals');
+    }
+  }
   for (var i = 0;
    i < node.items.length; i += 2) {
     var key = this.visitTypedValue(node.items.$index(i), $globals.world.stringType);
     var valueItem = node.items.$index(i + 1);
-    var value = this.visitValue(valueItem);
+    var value = type == null ? this.visitValue(valueItem) : this.visitTypedValue(valueItem, type);
     argValues.add$1(key);
     argValues.add$1(value);
     if (node.isConst) {
@@ -9364,9 +9378,15 @@ Parser.prototype.finishTypedLiteral = function(start, isConst) {
   var typeToBeNamedLater = new NameTypeReference(false, null, null, span);
   var genericType = this.addTypeArguments(typeToBeNamedLater, 0);
   if (this._peekKind(4/*TokenKind.LBRACK*/) || this._peekKind(56/*TokenKind.INDEX*/)) {
+    genericType.set$baseType(new TypeReference(span, $globals.world.listType));
     return this.finishListLiteral(start, isConst, genericType);
   }
   else if (this._peekKind(6/*TokenKind.LBRACE*/)) {
+    genericType.set$baseType(new TypeReference(span, $globals.world.mapType));
+    if ($ne(genericType.get$typeArguments().length, 1)) {
+      this._error('a map literal takes one type argument specfying the value type', $eq(genericType.get$typeArguments().length, 0) ? genericType.get$typeArguments().get$span() : genericType.get$typeArguments().$index(1).get$span());
+    }
+    genericType.set$typeArguments([new TypeReference(span, $globals.world.stringType), genericType.get$typeArguments().$index(0)]);
     return this.finishMapLiteral(start, isConst, genericType);
   }
   else {
@@ -10344,6 +10364,8 @@ function GenericTypeReference(baseType, typeArguments, depth, span) {
 $inherits(GenericTypeReference, TypeReference);
 GenericTypeReference.prototype.get$baseType = function() { return this.baseType; };
 GenericTypeReference.prototype.set$baseType = function(value) { return this.baseType = value; };
+GenericTypeReference.prototype.get$typeArguments = function() { return this.typeArguments; };
+GenericTypeReference.prototype.set$typeArguments = function(value) { return this.typeArguments = value; };
 GenericTypeReference.prototype.get$depth = function() { return this.depth; };
 GenericTypeReference.prototype.set$depth = function(value) { return this.depth = value; };
 GenericTypeReference.prototype.visit = function(visitor) {
@@ -11006,6 +11028,8 @@ function ConcreteType(name, genericType, typeArguments, typeArgsInOrder) {
 }
 $inherits(ConcreteType, Type);
 ConcreteType.prototype.get$genericType = function() { return this.genericType; };
+ConcreteType.prototype.get$typeArguments = function() { return this.typeArguments; };
+ConcreteType.prototype.set$typeArguments = function(value) { return this.typeArguments = value; };
 ConcreteType.prototype.get$_parent = function() { return this._parent; };
 ConcreteType.prototype.set$_parent = function(value) { return this._parent = value; };
 ConcreteType.prototype.get$typeArgsInOrder = function() { return this.typeArgsInOrder; };

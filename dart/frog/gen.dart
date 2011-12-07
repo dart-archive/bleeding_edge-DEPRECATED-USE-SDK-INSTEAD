@@ -2147,8 +2147,16 @@ class MethodGenerator implements TreeVisitor {
     // TODO(jimhug): Use node.type or other type inference here.
     var argsCode = [];
     var argValues = [];
+    var type = null;
+    if (node.type !== null) {
+      // The parser makes node.type a list type, we extract its type argument.
+      type = method.resolveType(node.type, true).typeArgsInOrder[0];
+      if (node.isConst && (type is ParameterType || type.hasTypeParams)) {
+        world.error('type parameter cannot be used in const list literals');
+      }
+    }
     for (var item in node.values) {
-      var arg = visitValue(item);
+      var arg = type === null ? visitValue(item) : visitTypedValue(item, type);
       argValues.add(arg);
       if (node.isConst) {
         if (!arg.isConst) {
@@ -2189,12 +2197,22 @@ class MethodGenerator implements TreeVisitor {
 
     var argValues = [];
     var argsCode = [];
+    var type = null;
+    if (node.type !== null) {
+      // node.type is a map type, extract the type argument for the values.
+      type = method.resolveType(node.type, true).typeArgsInOrder[1];
+      if (node.isConst && (type is ParameterType || type.hasTypeParams)) {
+        world.error('type parameter cannot be used in const map literals');
+      }
+    }
     for (int i = 0; i < node.items.length; i += 2) {
       // TODO(jimhug): Use node.type or other type inference here.
-      // TODO(jimhug): Would be nice to allow arbitrary keys here.
+      // TODO(jimhug): Would be nice to allow arbitrary keys here (this is
+      // currently not allowed by the spec).
       var key = visitTypedValue(node.items[i], world.stringType);
       final valueItem = node.items[i+1];
-      var value = visitValue(valueItem);
+      var value = type === null ? visitValue(valueItem)
+          : visitTypedValue(valueItem, type);
       argValues.add(key);
       argValues.add(value);
 

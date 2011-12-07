@@ -1451,10 +1451,19 @@ class Parser {
     var typeToBeNamedLater = new NameTypeReference(false, null, null, span);
     var genericType = addTypeArguments(typeToBeNamedLater, 0);
 
-    // TODO(jimhug): Fill in correct typeToBeNamedLater details...
     if (_peekKind(TokenKind.LBRACK) || _peekKind(TokenKind.INDEX)) {
+      genericType.baseType = new TypeReference(span, world.listType);
       return finishListLiteral(start, isConst, genericType);
     } else if (_peekKind(TokenKind.LBRACE)) {
+      genericType.baseType = new TypeReference(span, world.mapType);
+      if (genericType.typeArguments.length != 1) {
+        _error('a map literal takes one type argument specfying the value type',
+            genericType.typeArguments.length == 0
+              ? genericType.typeArguments.span
+              : genericType.typeArguments[1].span);
+      }
+      genericType.typeArguments = [new TypeReference(span, world.stringType),
+          genericType.typeArguments[0]];
       return finishMapLiteral(start, isConst, genericType);
     } else {
       _errorExpected('array or map literal');
