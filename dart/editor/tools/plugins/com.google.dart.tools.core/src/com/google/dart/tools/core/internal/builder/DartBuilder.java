@@ -451,18 +451,19 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
   private void emitArtifactDetailsToConsole(DartLibraryImpl libImpl) throws DartModelException {
     File artifactFile = getJsAppArtifactFile(libImpl.getCorrespondingResource());
-    if (artifactFile != null) {
+    if (artifactFile != null && artifactFile.exists()) {
       DartCore.getConsole().println(
           DartBuilderMessages.DartBuilder_console_js_file_description + ": "
               + artifactFile.getAbsolutePath());
-    }
-    List<HTMLFile> htmlFiles = libImpl.getChildrenOfType(HTMLFile.class);
-    IResource res;
-    for (HTMLFile htmlFile : htmlFiles) {
-      res = htmlFile.getCorrespondingResource();
-      DartCore.getConsole().println(
-          DartBuilderMessages.DartBuilder_console_html_file_description + ": "
-              + res.getLocation().toOSString());
+
+      List<HTMLFile> htmlFiles = libImpl.getChildrenOfType(HTMLFile.class);
+      IResource res;
+      for (HTMLFile htmlFile : htmlFiles) {
+        res = htmlFile.getCorrespondingResource();
+        DartCore.getConsole().println(
+            DartBuilderMessages.DartBuilder_console_html_file_description + ": "
+                + res.getLocation().toOSString());
+      }
     }
   }
 
