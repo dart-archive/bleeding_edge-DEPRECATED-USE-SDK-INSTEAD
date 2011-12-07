@@ -20,6 +20,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 import org.eclipse.core.runtime.Platform;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * The class <code>SystemLibraryManagerProvider</code> manages the {@link SystemLibraryManager
@@ -40,7 +41,7 @@ public class SystemLibraryManagerProvider {
 
           @Override
           protected String getPlatformName() {
-            return "compiler";
+            return DartCoreDebug.getPlatformName();
           }
 
           /**
@@ -49,7 +50,25 @@ public class SystemLibraryManagerProvider {
           @Override
           File getLibrariesDir() {
             File installDir = new File(Platform.getInstallLocation().getURL().getFile());
-            File libDir = new File(installDir, "libraries");
+            String libPath = DartCoreDebug.getLibrariesPath();
+            File libDir;
+            if (libPath.startsWith(File.separator)) {
+              libDir = new File(libPath);
+            } else {
+              libDir = new File(installDir, libPath);
+            }
+            try {
+              libDir = libDir.getCanonicalFile();
+            } catch (IOException e) {
+              DartCore.logError("Failed to get canonical path for libraries directory " + libDir);
+              // Fall through to check existence
+            }
+            if (!libDir.exists()) {
+              File defaultLibDir = new File(installDir, "libraries");
+              DartCore.logError("Specified libraries directory does not exist: " + libDir
+                  + "\n  using default libraries directory instead: " + defaultLibDir);
+              libDir = defaultLibDir;
+            }
             if (!libDir.exists()) {
               DartCore.logError("Missing libraries directory: " + libDir);
             }

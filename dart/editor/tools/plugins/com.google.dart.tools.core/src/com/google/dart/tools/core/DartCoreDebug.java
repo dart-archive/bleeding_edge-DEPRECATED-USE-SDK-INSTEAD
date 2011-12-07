@@ -28,6 +28,25 @@ public class DartCoreDebug {
 
   public static final boolean BLEEDING_EDGE = isOptionTrue("bleedingEdge");
 
+  public static String getLibrariesPath() {
+    return getOptionValue("libraries/path", "libraries");
+  }
+
+  public static String getPlatformName() {
+    return getOptionValue("platform/name", "compiler");
+  }
+
+  private static String getOptionValue(String optionSuffix, String defaultValue) {
+    String value = Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix);
+    if (value != null) {
+      value = value.trim();
+      if (value.length() > 0) {
+        return value;
+      }
+    }
+    return defaultValue;
+  }
+
   private static boolean isOptionTrue(String optionSuffix) {
     return "true".equalsIgnoreCase(Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix));
   }

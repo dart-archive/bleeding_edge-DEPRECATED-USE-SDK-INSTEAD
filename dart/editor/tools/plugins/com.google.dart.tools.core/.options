@@ -3,3 +3,34 @@ com.google.dart.tools.core/debug/dartlib = false
 com.google.dart.tools.core/debug/warmup = false
 
 com.google.dart.tools.core/bleedingEdge = false
+
+# These options allow you to override the default libraries used during compilation
+#   com.google.dart.tools.core/platform/name
+#     sets the "name" used when locating libraries
+#     "compiler" for DartC
+#     "frog" for Frog libraries
+#     "runtime" for VM libraries
+#   com.google.dart.tools.core/libraries/path
+#     the path to the "libraries" directory 
+#       this can be an absolute path or relative to the Dart Editor installation directory
+#     the libraries directory has the format
+#        sdk/lib/
+#          core/
+#            core_compiler.dart
+#            core_frog.dart
+#            core_runtime.dart
+#            ... other core source files and sub directories ...
+#          coreimpl/
+#            ... etc...
+#          dom/
+#            dom.dart  <--- no platform specific version thus no _<platform-name> suffix
+#            .. other dom files and subdirectories ...
+#          ... other library directories ...
+#
+# Using the default Dart Editor DartC libraries ...
+com.google.dart.tools.core/platform/name = compiler
+com.google.dart.tools.core/libraries/path = libraries
+#
+# Using VM libraries in SDK....
+#com.google.dart.tools.core/platform/name = runtime
+#com.google.dart.tools.core/libraries/path = sdk/lib
