@@ -7,8 +7,10 @@ class Universe {
 
   Map<SourceString, Element> elements;
   Map<Element, String> generatedCode;
+  final Set<ClassElement> instantiatedClasses;
 
   Universe() : elements = {}, generatedCode = {},
+               instantiatedClasses = new Set<ClassElement>(),
                scope = new Element(const SourceString('global scope'),
                                    null, null);
 

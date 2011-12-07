@@ -23,3 +23,11 @@ String compile(String code, [String entry = 'main']) {
   String generated = compiler.compileMethod(element);
   return generated;
 }
+
+String compileClasses(List instantiatedClasses) {
+  leg.Compiler compiler = new leg.Compiler(new StringScript(''));
+  leg.Universe universe = compiler.universe;
+  universe.instantiatedClasses.addAll(instantiatedClasses);
+  compiler.emitter.assembleProgram();
+  return compiler.assembledCode;
+}

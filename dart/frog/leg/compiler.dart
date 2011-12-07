@@ -6,7 +6,7 @@ class Compiler implements Canceler, Logger {
   final Script script;
   Queue<Element> worklist;
   Universe universe;
-  String generatedCode;
+  String assembledCode;
 
   CompilerTask measuredTask;
 
@@ -19,6 +19,7 @@ class Compiler implements Canceler, Logger {
   SsaBuilderTask builder;
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
+  CodeEmitterTask emitter;
 
   static final SourceString MAIN = const SourceString('main');
 
@@ -33,7 +34,9 @@ class Compiler implements Canceler, Logger {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
-    tasks = [scanner, parser, resolver, checker, builder, optimizer, generator];
+    emitter = new CodeEmitterTask(this);
+    tasks = [scanner, parser, resolver, checker, builder, optimizer, generator,
+             emitter];
   }
 
   void ensure(bool condition) {
@@ -89,7 +92,7 @@ class Compiler implements Canceler, Logger {
     while (!worklist.isEmpty()) {
       compileMethod(worklist.removeLast());
     }
-    generatedCode = assembleProgram();
+    emitter.assembleProgram();
   }
 
   String compileMethod(Element element) {
@@ -116,19 +119,6 @@ class Compiler implements Canceler, Logger {
     parser.parse(element);
     resolver.resolveSignature(element);
     return element;
-  }
-
-  String assembleProgram() {
-    StringBuffer buffer = new StringBuffer();
-    buffer.add('function Isolate() {};\n\n');
-    universe.generatedCode.forEach((Element element, String codeBlock) {
-      buffer.add('Isolate.prototype.${element.name} = ');
-      buffer.add(codeBlock);
-      buffer.add(';\n\n');
-    });
-    buffer.add('var currentIsolate = new Isolate();\n');
-    buffer.add('currentIsolate.main();\n');
-    return buffer.toString();
   }
 
   reportWarning(Node node, var message) {}
