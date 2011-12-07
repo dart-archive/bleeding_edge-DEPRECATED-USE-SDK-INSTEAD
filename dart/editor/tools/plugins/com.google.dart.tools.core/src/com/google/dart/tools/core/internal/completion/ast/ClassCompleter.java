@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
+import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.tools.core.internal.completion.Mark;
 
 import java.util.List;
@@ -31,16 +32,29 @@ public class ClassCompleter extends DartClass implements CompletionNode {
     return CompletionUtil.init(
         new ClassCompleter(type.getName(), type.getNativeName(), type.getSuperclass(),
             type.getInterfaces(), type.getMembers(), type.getTypeParameters(),
-            type.getDefaultClass(), type.isInterface()), type);
+            type.getDefaultClass(), type.isInterface(), type.getModifiers()), type);
   }
 
   private Stack<Mark> stack;
 
-  public ClassCompleter(DartIdentifier name, DartStringLiteral nativeName, DartTypeNode superclass,
-      List<DartTypeNode> interfaces, List<DartNode> members,
-      List<DartTypeParameter> typeParameters, DartTypeNode defaultClass, boolean isInterface) {
-    super(name, nativeName, superclass, interfaces, members, typeParameters, defaultClass,
-        isInterface);
+  public ClassCompleter(DartIdentifier name,
+      DartStringLiteral nativeName,
+      DartTypeNode superclass,
+      List<DartTypeNode> interfaces,
+      List<DartNode> members,
+      List<DartTypeParameter> typeParameters,
+      DartTypeNode defaultClass,
+      boolean isInterface,
+      Modifiers modifiers) {
+    super(name,
+        nativeName,
+        superclass,
+        interfaces,
+        members,
+        typeParameters,
+        defaultClass,
+        isInterface,
+        modifiers);
   }
 
   @Override

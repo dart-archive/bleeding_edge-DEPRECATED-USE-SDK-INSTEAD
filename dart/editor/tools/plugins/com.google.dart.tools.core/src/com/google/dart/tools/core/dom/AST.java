@@ -111,7 +111,7 @@ public class AST {
       return (N) new DartCatchBlock(null, null, null);
     } else if (nodeClass == DartClass.class) {
       return (N) new DartClass(null, null, null, new ArrayList<DartTypeNode>(),
-          new ArrayList<DartNode>(), new ArrayList<DartTypeParameter>(), null, false);
+          new ArrayList<DartNode>(), new ArrayList<DartTypeParameter>(), null, false, Modifiers.NONE);
     } else if (nodeClass == DartComment.class) {
       return (N) new DartComment(null, 0, 0, 0, 0, null);
     } else if (nodeClass == DartConditional.class) {
