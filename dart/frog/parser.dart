@@ -1456,14 +1456,21 @@ class Parser {
       return finishListLiteral(start, isConst, genericType);
     } else if (_peekKind(TokenKind.LBRACE)) {
       genericType.baseType = new TypeReference(span, world.mapType);
-      if (genericType.typeArguments.length != 1) {
-        _error('a map literal takes one type argument specfying the value type',
-            genericType.typeArguments.length == 0
-              ? genericType.typeArguments.span
-              : genericType.typeArguments[1].span);
-      }
-      genericType.typeArguments = [new TypeReference(span, world.stringType),
-          genericType.typeArguments[0]];
+      if (genericType.typeArguments.length == 1) {
+        genericType.typeArguments = [new TypeReference(span, world.stringType),
+            genericType.typeArguments[0]];
+      } else if (genericType.typeArguments.length == 2) {
+        var keyType = genericType.typeArguments[0];
+        if (keyType is! NameTypeReference || keyType.name.name !== "String") {
+          world.error('the key type of a map literal is implicitly "String"',
+              keyType.span);
+        } else {
+          // making key explicit is just a warning.
+          world.warning(
+              'a map literal takes one type argument specifying the value type',
+              keyType.span);
+        }
+      } // o.w. the type system will detect the mismatch in type arguments.
       return finishMapLiteral(start, isConst, genericType);
     } else {
       _errorExpected('array or map literal');

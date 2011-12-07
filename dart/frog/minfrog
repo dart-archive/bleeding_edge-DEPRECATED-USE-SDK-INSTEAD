@@ -9383,10 +9383,18 @@ Parser.prototype.finishTypedLiteral = function(start, isConst) {
   }
   else if (this._peekKind(6/*TokenKind.LBRACE*/)) {
     genericType.set$baseType(new TypeReference(span, $globals.world.mapType));
-    if ($ne(genericType.get$typeArguments().length, 1)) {
-      this._error('a map literal takes one type argument specfying the value type', $eq(genericType.get$typeArguments().length, 0) ? genericType.get$typeArguments().get$span() : genericType.get$typeArguments().$index(1).get$span());
+    if ($eq(genericType.get$typeArguments().length, 1)) {
+      genericType.set$typeArguments([new TypeReference(span, $globals.world.stringType), genericType.get$typeArguments().$index(0)]);
     }
-    genericType.set$typeArguments([new TypeReference(span, $globals.world.stringType), genericType.get$typeArguments().$index(0)]);
+    else if ($eq(genericType.get$typeArguments().length, 2)) {
+      var keyType = genericType.get$typeArguments().$index(0);
+      if (!(keyType instanceof NameTypeReference) || keyType.get$name().get$name() !== "String") {
+        $globals.world.error('the key type of a map literal is implicitly "String"', keyType.get$span());
+      }
+      else {
+        $globals.world.warning('a map literal takes one type argument specifying the value type', keyType.get$span());
+      }
+    }
     return this.finishMapLiteral(start, isConst, genericType);
   }
   else {
