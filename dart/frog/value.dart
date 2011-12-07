@@ -88,23 +88,10 @@ class Value {
 
   Value invoke(MethodGenerator context, String name, Node node, Arguments args,
       [bool isDynamic=false]) {
-    // TODO(jmesserly): try to get rid of this code path. We're generating a
-    // synthetic != on Object (see DefinedType._createNotEqualMember) already.
-    // So it should be pretty easy to make this go away.
-    if (_typeIsVarOrParameterType && name == ':ne') {
-      if (args.values.length != 1) {
-        world.warning('wrong number of arguments for !=', node.span);
-      }
-      // Ensure the == operator is generated, and get its type
-      var eq = invoke(context, ':eq', node, args, isDynamic);
-      world.gen.corejs.useOperator(':ne');
-      return new Value(eq.type, '\$ne($code, ${args.values[0].code})',
-          node.span);
-    }
 
     // TODO(jmesserly): it'd be nice to remove these special cases
-    // We could create a :call (and :ne) in world members, and have
-    // those guys handle the canInvoke/Invoke logic.
+    // We could create a :call in world members, and have that handle the
+    // canInvoke/Invoke logic.
 
     // Note: this check is a little different than the one in canInvoke, because
     // sometimes we need to call dynamically even if we found the :call method
@@ -129,11 +116,6 @@ class Value {
   }
 
   bool canInvoke(MethodGenerator context, String name, Arguments args) {
-    // TODO(jimhug): The != method is weird - understand it better.
-    if (_typeIsVarOrParameterType && name == ':ne') {
-      return true;
-    }
-
     if (type.isVarOrFunction && name == ':call') {
       return true;
     }

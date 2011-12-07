@@ -149,12 +149,15 @@ class Type extends Element {
     }
   }
 
-  Member _createNotEqualMember() {
+  void _createNotEqualMember() {
+    assert(isObject);
     // Add a != method just like the == one.
     MethodMember eq = members[':eq'];
     if (eq == null) {
-      world.internalError('INTERNAL: object does not define ==',
-        definition.span);
+      // TODO(jmesserly): should this be an error?
+      // Frog is being hosted by "utils/css" such that it doesn't have its
+      // standard lib initialized properly.
+      return;
     }
     final ne = new MethodMember(':ne', this, eq.definition);
     ne.isGenerated = true;
@@ -163,7 +166,7 @@ class Type extends Element {
     ne.isStatic = eq.isStatic;
     ne.isAbstract = eq.isAbstract;
     // TODO - What else to fill in?
-    return ne;
+    members[':ne'] = ne;
   }
 
   Member _getMemberInParents(String memberName) {
@@ -172,13 +175,7 @@ class Type extends Element {
     if (isClass) {
       if (parent != null) {
         return parent.getMember(memberName);
-      } else if (isObject) {  // Could also be a top type so need check.
-        // Create synthetic != method if needed.
-        if (memberName == ':ne') {
-          var ret = _createNotEqualMember();
-          members[memberName] = ret;
-          return ret;
-        }
+      } else {
         return null;
       }
     } else {
@@ -190,10 +187,8 @@ class Type extends Element {
             return ret;
           }
         }
-        return null;
-      } else {
-        return world.objectType.getMember(memberName);
       }
+      return world.objectType.getMember(memberName);
     }
   }
 
@@ -1016,6 +1011,8 @@ class DefinedType extends Type {
         tp.resolve();
       }
     }
+
+    if (isObject) _createNotEqualMember();
 
     world._addType(this);
 
