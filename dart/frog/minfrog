@@ -4502,9 +4502,7 @@ Parameter.prototype.resolve = function() {
   }
   this.type = this.method.resolveType(this.definition.type, false);
   if (this.definition.value != null) {
-    if ((this.definition.value instanceof NullExpression) && this.definition.value.span.start == this.definition.span.start) {
-      return;
-    }
+    if (!this.get$hasDefaultValue()) return;
     if (this.method.name == ':call') {
       if (this.method.get$definition().get$body() == null) {
         $globals.world.error('default value not allowed on function type', this.definition.span);
@@ -4538,6 +4536,9 @@ Parameter.prototype.copyWithNewType = function(newMethod, newType) {
 }
 Parameter.prototype.get$isOptional = function() {
   return this.definition != null && this.definition.value != null;
+}
+Parameter.prototype.get$hasDefaultValue = function() {
+  return !(this.definition.value instanceof NullExpression) || (this.definition.value.span.start != this.definition.span.start);
 }
 Parameter.prototype.copyWithNewType$2 = Parameter.prototype.copyWithNewType;
 Parameter.prototype.genValue$2 = Parameter.prototype.genValue;
