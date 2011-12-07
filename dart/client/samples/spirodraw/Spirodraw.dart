@@ -6,7 +6,6 @@
 
 #import('dart:dom');
 #source("ColorPicker.dart");
-#resource("spirodraw.css");
 
 void main() {
   new Spirodraw().go();

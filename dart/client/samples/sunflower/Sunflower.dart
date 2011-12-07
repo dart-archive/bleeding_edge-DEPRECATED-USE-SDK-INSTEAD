@@ -6,8 +6,6 @@
 
 #import('dart:html');
 
-#resource('sunflower.css');
-
 main() {
   new Sunflower();
 }
