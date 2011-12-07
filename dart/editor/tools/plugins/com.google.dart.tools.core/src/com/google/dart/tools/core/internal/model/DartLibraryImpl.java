@@ -520,6 +520,9 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     visited.add(this);
     for (int index = 0; index < visited.size(); index++) {
       DartLibrary lib = visited.get(index);
+      if (lib == null) {
+        continue;
+      }
       String libName = lib.getElementName();
       if ("dart:html".equals(libName) || "dart:dom".equals(libName)) {
         return true;
