@@ -8,6 +8,8 @@ class Compiler implements Canceler, Logger {
   Universe universe;
   String generatedCode;
 
+  CompilerTask measuredTask;
+
   List<CompilerTask> tasks;
   ScannerTask scanner;
   ParserTask parser;
@@ -152,9 +154,14 @@ class CompilerTask {
 
   measure(Function action) {
     // TODO(kasperl): Do we have to worry about exceptions here?
+    CompilerTask previous = compiler.measuredTask;
+    compiler.measuredTask = this;
+    if (previous !== null) previous.watch.stop();
     watch.start();
     var result = action();
     watch.stop();
+    if (previous !== null) previous.watch.start();
+    compiler.measuredTask = previous;
     return result;
   }
 }

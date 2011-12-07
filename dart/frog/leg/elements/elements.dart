@@ -111,8 +111,8 @@ class FunctionElement extends Element {
   FunctionType computeType(Compiler compiler, types) {
     if (type != null) return type;
     if (parameters == null) compiler.resolveSignature(this);
-
-    FunctionExpression node = parseNode(compiler, compiler);
+    FunctionExpression node =
+        compiler.parser.measure(() => parseNode(compiler, compiler));
     Type returnType = getType(node.returnType, types);
     if (returnType === null) compiler.cancel('unknown type ${node.returnType}');
 
