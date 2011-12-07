@@ -3068,7 +3068,7 @@ MethodGenerator.prototype.visitAssertStatement = function(node) {
   if ($globals.options.enableAsserts) {
     var span = node.test.span;
     var line = span.get$file().getLine$1(span.get$start()) + 1;
-    var column = span.get$file().getColumn$2(line, span.get$start()) + 1;
+    var column = span.get$file().getColumn$2(line - 1, span.get$start()) + 1;
     var args = [test, EvaluatedValue.EvaluatedValue$factory($globals.world.stringType, MethodGenerator._escapeString(span.get$text()), ('"' + MethodGenerator._escapeString(span.get$text()) + '"'), null), EvaluatedValue.EvaluatedValue$factory($globals.world.stringType, MethodGenerator._escapeString(span.get$file().get$filename()), ('"' + MethodGenerator._escapeString(span.get$file().get$filename()) + '"'), null), EvaluatedValue.EvaluatedValue$factory($globals.world.intType, line, line.toString$0(), null), EvaluatedValue.EvaluatedValue$factory($globals.world.intType, column, column.toString$0(), null)];
     var tp = $globals.world.corelib.topType;
     var f = tp.getMember$1('_assert');
@@ -4295,7 +4295,14 @@ Library.prototype.visitSources = function() {
 Library.prototype.toString = function() {
   return this.baseSource.filename;
 }
+Library.prototype.hashCode = function() {
+  return this.baseSource.filename.hashCode();
+}
+Library.prototype.$eq = function(other) {
+  return (other instanceof Library) && $eq(other.get$baseSource().get$filename(), this.baseSource.filename);
+}
 Library.prototype.findTypeByName$1 = Library.prototype.findTypeByName;
+Library.prototype.hashCode$0 = Library.prototype.hashCode;
 Library.prototype.resolve$0 = Library.prototype.resolve;
 Library.prototype.toString$0 = Library.prototype.toString;
 Library.prototype.visitSources$0 = Library.prototype.visitSources;
@@ -4672,7 +4679,12 @@ Member.prototype.get$generatedFactoryName = function() {
   }
 }
 Member.prototype.hashCode = function() {
-  return (this.declaringType.hashCode() << 4) ^ this.name.hashCode();
+  var typeCode = this.declaringType == null ? 1 : this.declaringType.hashCode();
+  var nameCode = this.get$isConstructor() ? this.get$constructorName().hashCode() : this.name.hashCode();
+  return (typeCode << 4) ^ nameCode;
+}
+Member.prototype.$eq = function(other) {
+  return (other instanceof Member) && $eq(this.get$isConstructor(), other.get$isConstructor()) && $eq(this.declaringType, other.get$declaringType()) && (this.get$isConstructor() ? this.get$constructorName() == other.get$constructorName() : this.name == other.get$name());
 }
 Member.prototype._get$3 = Member.prototype._get;
 Member.prototype._get$3$isDynamic = Member.prototype._get;
@@ -10835,6 +10847,14 @@ Type.prototype.isSubtypeOf = function(other) {
   }
   return false;
 }
+Type.prototype.hashCode = function() {
+  var libraryCode = this.get$library() == null ? 1 : this.get$library().hashCode();
+  var nameCode = this.name == null ? 1 : this.name.hashCode();
+  return (libraryCode << 4) ^ nameCode;
+}
+Type.prototype.$eq = function(other) {
+  return (other instanceof Type) && $eq(other.get$name(), this.name) && $eq(this.get$library(), other.get$library());
+}
 Type._isFunctionSubtypeOf = function(t, s) {
   if (!s.returnType.get$isVoid() && !s.returnType.isAssignable(t.returnType)) {
     return false;
@@ -10858,6 +10878,7 @@ Type.prototype.getConstructor$1 = Type.prototype.getConstructor;
 Type.prototype.getFactory$2 = Type.prototype.getFactory;
 Type.prototype.getMember$1 = Type.prototype.getMember;
 Type.prototype.getOrMakeConcreteType$1 = Type.prototype.getOrMakeConcreteType;
+Type.prototype.hashCode$0 = Type.prototype.hashCode;
 Type.prototype.isAssignable$1 = Type.prototype.isAssignable;
 Type.prototype.isSubtypeOf$1 = Type.prototype.isSubtypeOf;
 Type.prototype.markUsed$0 = Type.prototype.markUsed;
@@ -12571,6 +12592,15 @@ World.prototype.generateCode = function(lib) {
   this.jsBytesWritten = codeWriter.get$text().length;
 }
 World.prototype._message = function(color, prefix, message, span, span1, span2, throwing) {
+  if (this.messageHandler != null) {
+    this.messageHandler(prefix, message, span);
+    if (span1 != null) {
+      this.messageHandler(prefix, message, span1);
+    }
+    if (span2 != null) {
+      this.messageHandler(prefix, message, span2);
+    }
+  }
   var messageWithPrefix = $globals.options.useColors ? (color + prefix + $globals._NO_COLOR + message) : (prefix + message);
   var text = messageWithPrefix;
   if (span != null) {

@@ -83,6 +83,7 @@ h3 {
   padding: 0;
 
   color: green;
+  overflow: hidden;
 
   /* TODO(jimhug): When can be selected and unselected, make graceful. */
   transition: all 0.25s ease-in-out;
@@ -94,6 +95,19 @@ h3 {
  -moz-box-shadow: 0 0 5px rgba(0, 128, 0, 1);
  border: 1px solid rgba(0, 128, 0, 0.8);
  border-radius: 4px;
+}
+
+.message {
+  margin: 3px;
+  border-bottom: 1px solid hsl(220,  20%, 75%);
+  color: hsl(220,  20%, 30%);
+  cursor: pointer;
+  overflow: auto;
+}
+
+.message:hover {
+  color: hsl(220,  20%, 0%);
+  text-decoration: underline;
 }
 
 .errors {

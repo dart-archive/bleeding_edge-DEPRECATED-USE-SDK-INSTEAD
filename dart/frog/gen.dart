@@ -1290,7 +1290,7 @@ class MethodGenerator implements TreeVisitor {
       // TODO(jmesserly): do we need to include path/line/column here?
       // It should be captured in the stack trace.
       var line = span.file.getLine(span.start) + 1;
-      var column = span.file.getColumn(line, span.start) + 1;
+      var column = span.file.getColumn(line - 1, span.start) + 1;
 
       // TODO(jimhug): Simplify code for creating const values.
       var args = [

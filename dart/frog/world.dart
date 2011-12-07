@@ -18,6 +18,8 @@ Function experimentalAwaitPhase;
 typedef bool LegCompile(World world);
 LegCompile legCompile;
 
+typedef void MessageHandler(String prefix, String message, SourceSpan span);
+
 
 /**
  * Should be called exactly once to setup singleton world.
@@ -92,6 +94,8 @@ class World {
   Map<String, Element> _topNames;
 
   Map<String, MemberSet> _members;
+
+  MessageHandler messageHandler;
 
   int errors = 0, warnings = 0;
   int dartBytesRead = 0, jsBytesWritten = 0;
@@ -388,6 +392,19 @@ class World {
 
   void _message(String color, String prefix, String message,
       SourceSpan span, SourceSpan span1, SourceSpan span2, bool throwing) {
+    if (messageHandler != null) {
+      // TODO(jimhug): Multiple spans cleaner...
+      messageHandler(prefix, message, span);
+      if (span1 !== null) {
+        messageHandler(prefix, message, span1);
+      }
+      if (span2 !== null) {
+        messageHandler(prefix, message, span2);
+      }
+      // TODO(jimhug): keep logging to console or do something else?
+    }
+
+
     final messageWithPrefix = options.useColors
         ? (color + prefix + _NO_COLOR + message) : (prefix + message);
     var text = messageWithPrefix;

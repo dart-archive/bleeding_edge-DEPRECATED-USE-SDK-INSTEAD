@@ -32,6 +32,7 @@ void main() {
     shell = new Shell();
     document.body.appendChild(shell._node);
     initialize(systemPath, userPath);
+    world.messageHandler = shell.handleMessage;
   }
 }
 
@@ -113,7 +114,8 @@ void initialize(String systemPath, String userPath,
 final int LINE_HEIGHT = 22; // TODO(jimhug): This constant sucks.
 final int CHAR_WIDTH = 8; // TODO(jimhug): See above.
 
-final String CODE = '''#import("dart:dom");
+final String CODE = '''
+#import("dart:dom");
 
 // This is an interesting field;
 final int y = 22;
@@ -142,6 +144,7 @@ num fact(n) {
 }
 
 final x = 22;
+
 ''';
 
 final String HCODE = '''#import("dart:html");
@@ -162,7 +165,54 @@ void main() {
 }
 ''';
 
-var shell;
+
+class Message {
+  var _node;
+  String prefix, message;
+  SourceSpan span;
+
+  Message(this.prefix, this.message, this.span) {
+    var col = prefix.indexOf(':');
+    if (col != -1) {
+      prefix = prefix.substring(0, col);
+    }
+
+    _node = document.createElement('div');
+    _node.className = 'message ${prefix}';
+    _node.innerText = '$message at ${span.locationText}';
+
+    _node.addEventListener('click', click, false);
+  }
+
+  void click(MouseEvent event) {
+    shell.showSpan(span);
+  }
+}
+
+class MessageWindow {
+  var _node;
+  List<Message> messages;
+
+  MessageWindow() {
+    messages = [];
+    _node = document.createElement('div');
+    _node.className = 'errors';
+  }
+
+  addMessage(Message message) {
+    messages.add(message);
+    _node.appendChild(message._node);
+  }
+
+  clear() {
+    messages.length = 0;
+    _node.innerHTML = '';
+  }
+}
+
+
+// TODO(jimhug): Type is needed.
+Shell shell;
 
 class Shell {
   var _textInputArea;
@@ -182,7 +232,7 @@ class Shell {
     _node.className = 'shell';
     _editor = new Editor(this);
 
-    _editor._node.style.setProperty('height', '70%');
+    _editor._node.style.setProperty('height', '93%');
     _node.appendChild(_editor._node);
 
     _textInputArea = document.createElement('textarea');
@@ -192,7 +242,7 @@ class Shell {
 
     var outDiv = document.createElement('div');
     outDiv.className = 'output';
-    outDiv.style.setProperty('height', '49%');
+    outDiv.style.setProperty('height', '83%');
 
 
     _output = document.createElement('iframe');
@@ -201,16 +251,15 @@ class Shell {
 
     _repl = document.createElement('div');
     _repl.className = 'repl';
-    _repl.style.setProperty('height', '28%');
-    _repl.innerHTML = '<h3>REPL Under Construction...</h3>';
+    _repl.style.setProperty('height', '5%');
+    _repl.innerHTML = '<div>REPL Under Construction...</div>';
     _node.appendChild(_repl);
 
-    _errors = document.createElement('div');
-    _errors.className = 'errors';
-    _errors.innerHTML = '<h3>Errors/Warnings Under Construction...</h3>';
-    _errors.style.setProperty('height', '49%');
+    _errors = new MessageWindow();
 
-    _node.appendChild(_errors);
+    //_errors.innerHTML = '<h3>Errors/Warnings Under Construction...</h3>';
+    _errors._node.style.setProperty('height', '15%');
+    _node.appendChild(_errors._node);
 
     // TODO(jimhug): Ick!
     window.setTimeout( () {
@@ -373,15 +422,33 @@ class Shell {
         });
   }
 
+  void handleMessage(String prefix, String message, SourceSpan span) {
+    var m = new Message(prefix, message, span);
+    _errors.addMessage(m);
+  }
+
+  void showSpan(SourceSpan span) {
+    // TODO(jimhug): Get code from correct file.
+    var code = _editor._code;
+    var p1 = new CodePosition(code, span.start);
+    var p2 = new CodePosition(code, span.end);
+    _editor._cursor._pos = p1.toLeaf();
+    _editor._cursor._toPos = p2.toLeaf();
+    _editor._redraw();
+  }
+
   void run() {
     _output.contentDocument.body.innerHTML =
       '<h3 style="color:green">Compiling...</h3>';
+    _errors.clear();
 
     window.setTimeout( () {
       final sw = new Stopwatch();
       sw.start();
       var code = _editor.getCode();
       world.files.writeString(DART_FILENAME, code);
+      options.enableAsserts = true;
+      options.enableTypeChecks = true;
       world.reset();
       var success = world.compile();
       sw.stop();
@@ -481,7 +548,21 @@ class Editor {
     }
   }
 
+  void scrollToVisible(CodePosition pos) {
+    var top = _node.scrollTop;
+    var height = _node.getBoundingClientRect().height;
+    var pt = pos.getPoint();
+
+    if (pt.y < top) {
+      _node.scrollTop = pt.y;
+    } else if (pt.y > top + height - LINE_HEIGHT) {
+      var H = LINE_HEIGHT * ((height ~/ LINE_HEIGHT) - 1);
+      _node.scrollTop = Math.max(pt.y - H, 0);
+    }
+   }
+
   void _redraw() {
+    scrollToVisible(_cursor._pos);
     _code._redraw();
     _cursor._redraw();
   }
@@ -584,12 +665,15 @@ class Cursor {
     }
 
     // TODO(jimhug): separate out - this makes default copy/cut work
-    var i0 = _pos.offset;
-    var i1 = _toPos.offset;
+    var p0 = _pos.toRoot();
+    var p1 = _toPos.toRoot();
+
+    var i0 = p0.offset;
+    var i1 = p1.offset;
     if (i1 < i0) {
       var tmp = i1; i1 = i0; i0 = tmp;
     }
-    var text = _pos.block.text.substring(i0, i1);
+    var text = p0.block.text.substring(i0, i1);
     shell._textInputArea.value = text;
     shell._textInputArea.select();
   }
@@ -720,6 +804,14 @@ class BlockBlock extends CodeBlock {
   BlockBlock(CodeBlock parent, int depth): super(parent, depth) {
     text = '';
     children = new BlockChildren(this);
+  }
+
+  CodePosition get start() {
+    return _firstChild.start;
+  }
+
+  CodePosition get end() {
+    return _lastChild.end;
   }
 
   int get size() {
@@ -874,6 +966,8 @@ class BlockBlock extends CodeBlock {
       child._redraw();
       childTop += child.height;
     }
+
+    height = childTop;
   }
 
   CodePosition moveToOffset(int offset) {
@@ -1041,7 +1135,7 @@ class TextBlock extends CodeBlock {
       }
 
       final kind = classify(token);
-      final stringClass = ''; // TODO!!!
+      final stringClass = '';
       final text = htmlEscape(token.text);
       if (kind != null) {
         html.add('<span class="$kind $stringClass">$text</span>');
@@ -1094,6 +1188,9 @@ class TextBlock extends CodeBlock {
 
   // These are local line/column to this block
   LineColumn getLineColumn(int offset) {
+    if (_lineStarts === null) {
+      return new LineColumn(0, 0);
+    }
     // TODO(jimhug): Binary search would be faster but more complicated.
     int previousStart = 0;
     int line = 1;
@@ -1153,6 +1250,10 @@ class CodeBlock {
   }
 
   int getLine(CodeBlock forChild) {
+    throw "child missing";
+  }
+
+  _removeChild(CodeBlock child) {
     throw "child missing";
   }
 
@@ -1282,7 +1383,7 @@ class KeyBindings {
     node.addEventListener('keydown', onKeydown, false);
   }
 
-  onTextInput(event) {
+  onTextInput(TextEvent event) {
     var text = event.data;
     var ret;
     if (bindings[text] !== null) {
@@ -1295,7 +1396,8 @@ class KeyBindings {
     return ret;
   }
 
-  onKeydown(event) {
+  // TODO(jimhug): KeyboardEvent type is needed!
+  onKeydown(KeyboardEvent event) {
     final key = translate(event);
     if (key !== null) {
       if (bindings[key] !== null) {
