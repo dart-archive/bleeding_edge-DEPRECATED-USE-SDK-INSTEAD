@@ -262,7 +262,7 @@ class ChatServerCommand {
   String get host() => _host;
   int get port() => _port;
   bool get logging() => _logging;
-  bool get backlog() => _backlog;
+  int get backlog() => _backlog;
 
   int _command;
   String _host;
