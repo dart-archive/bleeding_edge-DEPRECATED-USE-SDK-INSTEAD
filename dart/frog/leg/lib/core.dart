@@ -202,3 +202,9 @@ indexSet(var a, var index, var value) {
   }
   throw "Unimplemented user-defined []=.";
 }
+
+class int {}
+class double {}
+class String {}
+class bool {}
+class Object {}

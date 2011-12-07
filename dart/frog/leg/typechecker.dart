@@ -22,6 +22,7 @@ class TypeCheckerTask extends CompilerTask {
 }
 
 interface Type {
+  String get name();
   Element get element();
 }
 
@@ -52,6 +53,8 @@ class FunctionType implements Type {
     sb.add(') -> ${returnType}');
     return sb.toString();
   }
+
+  String get name() => 'Function';
 }
 
 class Types {
@@ -64,43 +67,23 @@ class Types {
   static final OBJECT = const SourceString('Object');
 
   final SimpleType voidType;
-  final SimpleType intType;
-  final SimpleType doubleType;
   final SimpleType dynamicType;
-  final SimpleType stringType;
-  final SimpleType boolType;
-  final SimpleType objectType;
 
   Types() : voidType = new SimpleType.named(VOID),
-            intType = new SimpleType.named(INT),
-            doubleType = new SimpleType.named(DOUBLE),
-            dynamicType = new SimpleType.named(DYNAMIC),
-            stringType = new SimpleType.named(STRING),
-            boolType = new SimpleType.named(BOOL),
-            objectType = new SimpleType.named(OBJECT);
+            dynamicType = new SimpleType.named(DYNAMIC);
 
   Type lookup(SourceString s) {
     if (VOID == s) {
       return voidType;
-    } else if (INT == s) {
-      return intType;
-    } else if (DOUBLE == s) {
-      return doubleType;
     } else if (DYNAMIC == s || s.stringValue === 'var') {
       return dynamicType;
-    } else if (STRING == s) {
-      return stringType;
-    } else if (BOOL == s) {
-      return boolType;
-    } else if (OBJECT == s) {
-      return objectType;
     }
     return null;
   }
 
   bool isSubtype(Type r, Type s) {
     return r === s || r === dynamicType || s === dynamicType ||
-           s === objectType;
+           s.name == Types.OBJECT;
   }
 
   bool isAssignable(Type r, Type s) {
@@ -115,14 +98,31 @@ class CancelTypeCheckException {
   CancelTypeCheckException(this.node, this.reason);
 }
 
+Type lookupType(SourceString name, compiler, types) {
+  Element element = compiler.universe.find(name);
+  if (element !== null && element.kind === ElementKind.CLASS) {
+    return element.computeType(compiler, types);
+  }
+  return types.lookup(name);
+}
+
 class TypeCheckerVisitor implements Visitor<Type> {
-  Compiler compiler;
-  TreeElements elements;
+  final Compiler compiler;
+  final TreeElements elements;
   Type expectedReturnType;  // TODO(karlklose): put into a context.
-  Types types;
+  final Types types;
+  Type intType;
+  Type doubleType;
+  Type boolType;
+  Type stringType;
 
   TypeCheckerVisitor(Compiler this.compiler, TreeElements this.elements,
-                     Types this.types);
+                     Types this.types) {
+    intType = lookupType(Types.INT, compiler, types);
+    doubleType = lookupType(Types.DOUBLE, compiler, types);
+    boolType = lookupType(Types.BOOL, compiler, types);
+    stringType = lookupType(Types.STRING, compiler, types);
+  }
 
   Type fail(node, [reason]) {
     String message = 'cannot type-check';
@@ -166,7 +166,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   checkCondition(Expression condition) {
-    checkAssignable(condition, types.boolType, type(condition));
+    checkAssignable(condition, boolType, type(condition));
   }
 
   Type visitBlock(Block node) {
@@ -223,7 +223,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type visitLoop(Loop node) {
     final conditionNode = node.condition;
     Type conditionType = nonVoidType(conditionNode);
-    checkAssignable(conditionNode, types.boolType, conditionType);
+    checkAssignable(conditionNode, boolType, conditionType);
     type(node.body);
     return types.voidType;
   }
@@ -267,14 +267,14 @@ class TypeCheckerVisitor implements Visitor<Type> {
         return types.dynamicType;
       } else if (name === '<' || name === '>' || name === '<='
                  || name === '>=' || name === '==') {
-        return types.boolType;
+        return boolType;
       } else if (name === '||' || name === '&&' || name === '!') {
-        checkAssignable(firstArgument, types.boolType, firstArgumentType);
+        checkAssignable(firstArgument, boolType, firstArgumentType);
         if (!arguments.isEmpty()) {
           // TODO(karlklose): check number of arguments in validator.
-          checkAssignable(secondArgument, types.boolType, secondArgumentType);
+          checkAssignable(secondArgument, boolType, secondArgumentType);
         }
-        return types.boolType;
+        return boolType;
       }
       fail(selector, 'unexpected operator ${name}');
 
@@ -340,7 +340,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
       final Element element = elements[node.selector];
       final Type receiverType = computeType(element);
       // TODO(karlklose): this should be the return type instead of int.
-      return node.isPrefix ? types.intType : receiverType;
+      return node.isPrefix ? intType : receiverType;
     } else {
       Type targetType = computeType(elements[node]);
       Node value = node.arguments.head;
@@ -350,19 +350,19 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitLiteralInt(LiteralInt node) {
-    return types.intType;
+    return intType;
   }
 
   Type visitLiteralDouble(LiteralDouble node) {
-    return types.doubleType;
+    return doubleType;
   }
 
   Type visitLiteralBool(LiteralBool node) {
-    return types.boolType;
+    return boolType;
   }
 
   Type visitLiteralString(LiteralString node) {
-    return types.stringType;
+    return stringType;
   }
 
   Type visitLiteralNull(LiteralNull node) {

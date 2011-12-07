@@ -16,12 +16,23 @@ class WarningMessage {
   WarningMessage(this.node, this.message);
 }
 
+final String DEFAULT_CORELIB = @'''
+  lt() {} add(var a, var b) {} sub() {} mul() {} div() {} tdiv() {} mod() {}
+  neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}
+  or() {} and() {} not() {} print(var obj) {}
+  guard$num(x) { return true; }
+  class int {}
+  class double {}
+  class bool {}
+  class String {}
+  class Object {}''';
+
 class MockCompiler extends Compiler {
   List warnings;
   List errors;
   Node parsedTree;
 
-  MockCompiler([String corelib = 'lt() {} add() {}'])
+  MockCompiler([String corelib = DEFAULT_CORELIB])
       : super(null), warnings = [], errors = [] {
     parseScript(corelib);
   }

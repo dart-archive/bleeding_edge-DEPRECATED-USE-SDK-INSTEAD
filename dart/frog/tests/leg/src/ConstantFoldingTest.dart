@@ -6,9 +6,6 @@
 #import("compiler_helper.dart");
 
 final String STRING_FOLDING = """
-void add(var a, var b) {}
-void print(var obj) {}
-
 void main() {
   var a = 'hello';
   var b = 'world';
@@ -17,9 +14,6 @@ void main() {
 """;
 
 final String NUMBER_FOLDING = """
-void add(var a, var b) {}
-void print(var obj) {}
-
 void main() {
   var a = 4;
   var b = 3;

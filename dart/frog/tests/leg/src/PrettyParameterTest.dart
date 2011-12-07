@@ -18,7 +18,6 @@ void bar(var eval, var $eval) {
 
 
 final String PARAMETER_AND_TEMP = @"""
-void print(var a) {}
 void bar(var t0, var b) {
   {
     var t0 = 2;

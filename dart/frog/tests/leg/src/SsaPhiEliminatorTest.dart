@@ -6,7 +6,6 @@
 #import("compiler_helper.dart");
 
 final String TEST_ONE = @"""
-void print() {}
 void foo(bar) {
   var a = 1;
   if (bar) {
@@ -19,10 +18,6 @@ void foo(bar) {
 """;
 
 final String TEST_TWO = @"""
-void print() {}
-void eq() {}
-void add() {}
-
 void main() {
   var t = 0;
   for (var i = 0; i == 0; i = i + 1) {
@@ -33,7 +28,6 @@ void main() {
 """;
 
 final String TEST_THREE = @"""
-bool lt() {}
 foo(b, c) {
   var val = 42;
   if (b) {
@@ -46,10 +40,6 @@ foo(b, c) {
 """;
 
 final String TEST_FOUR = @"""
-void print() {}
-bool lt() {}
-void eq() {}
-void add() {}
 foo() {
   var cond1 = true;
   var cond2 = false;

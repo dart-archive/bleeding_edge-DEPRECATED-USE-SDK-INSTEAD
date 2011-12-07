@@ -10,6 +10,12 @@
 #import("mock_compiler.dart");
 #import("parser_helper.dart");
 
+Type intType;
+Type boolType;
+Type stringType;
+Type doubleType;
+Type objectType;
+
 main() {
   testSimpleTypes();
   testReturn();
@@ -22,10 +28,10 @@ main() {
 
 testSimpleTypes() {
   setup();
-  Expect.equals(types.intType, analyzeType("3"));
-  Expect.equals(types.boolType, analyzeType("false"));
-  Expect.equals(types.boolType, analyzeType("true"));
-  Expect.equals(types.stringType, analyzeType("'hestfisk'"));
+  Expect.equals(intType, analyzeType("3"));
+  Expect.equals(boolType, analyzeType("false"));
+  Expect.equals(boolType, analyzeType("true"));
+  Expect.equals(stringType, analyzeType("'hestfisk'"));
 }
 
 testReturn() {
@@ -180,11 +186,6 @@ String returnWithType(String type, expression)
     => "$type foo() { return $expression; }";
 
 
-final String CORELIB =
-    'lt() {} add() {} sub() {} mul() {} div() {} tdiv() {} mod() {}' +
-    ' neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}' +
-    ' or() {} and() {} not() {}';
-
 final CLASS_WITH_METHODS = '''
 class ClassWithMethods {
   untypedNoArgumentMethod() {}
@@ -207,8 +208,13 @@ Node parseExpression(String text) =>
 
 // TODO(karlklose): implement with closures instead of global variables.
 void setup() {
-  compiler = new MockCompiler(CORELIB);
+  compiler = new MockCompiler();
   types = new Types();
+  intType = lookupType(Types.INT, compiler, types);
+  doubleType = lookupType(Types.DOUBLE, compiler, types);
+  boolType = lookupType(Types.BOOL, compiler, types);
+  stringType = lookupType(Types.STRING, compiler, types);
+  objectType = lookupType(Types.OBJECT, compiler, types);
 }
 
 Types types;

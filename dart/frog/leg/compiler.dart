@@ -29,7 +29,7 @@ class WorkElement {
 
 class Compiler implements Canceler, Logger {
   final Script script;
-  Queue<Element> worklist;
+  Queue<WorkElement> worklist;
   Universe universe;
   String assembledCode;
   Namer namer;
@@ -51,8 +51,8 @@ class Compiler implements Canceler, Logger {
 
   Compiler(this.script) {
     universe = new Universe();
+    worklist = new Queue<WorkElement>();
     namer = new Namer();
-    worklist = new Queue<Element>();
     scanner = new ScannerTask(this);
     parser = new ParserTask(this);
     validator = new TreeValidatorTask(this);

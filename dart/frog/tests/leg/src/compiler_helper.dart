@@ -8,6 +8,7 @@
 #import("../../../leg/leg.dart", prefix: "leg");
 #import("../../../leg/elements/elements.dart", prefix: "lego");
 #import("parser_helper.dart");
+#import("mock_compiler.dart");
 
 class StringScript extends leg.Script {
   final String code;
@@ -16,8 +17,8 @@ class StringScript extends leg.Script {
 }
 
 String compile(String code, [String entry = 'main']) {
-  leg.Compiler compiler = new leg.Compiler(new StringScript(code));
-  compiler.scanner.scan(compiler.script);
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript(code);
   lego.Element element = compiler.universe.find(buildSourceString(entry));
   if (element === null) return null;
   String generated = compiler.compileMethod(

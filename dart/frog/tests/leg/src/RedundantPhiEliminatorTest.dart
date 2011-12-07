@@ -5,7 +5,6 @@
 #import("compiler_helper.dart");
 
 final String TEST_ONE = @"""
-print() {}
 void foo(bar) {
   var toBeRemoved = 1;
   if (bar) {
@@ -17,9 +16,6 @@ void foo(bar) {
 
 
 final String TEST_TWO = @"""
-print() {}
-eq() {}
-add() {}
 void foo() {
   var temp = 0;
   var toBeRemoved = temp;

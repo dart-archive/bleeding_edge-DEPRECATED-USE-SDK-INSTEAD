@@ -5,9 +5,6 @@
 #import("compiler_helper.dart");
 
 final String TEST_ONE = @"""
-add() {}
-print() {}
-guard$num(x) { return true; }
 void foo(bar) {
   print(1 + bar);
   print(1 + bar);

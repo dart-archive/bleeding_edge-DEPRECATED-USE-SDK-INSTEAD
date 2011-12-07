@@ -233,7 +233,7 @@ testTypeAnnotation() {
   // Test that there is no warning after defining Foo.
   compiler.parseScript("class Foo {}");
   mapping = compiler.resolveStatement(statement).map;
-  Expect.equals(2, mapping.length);
+  Expect.equals(1, mapping.length);
   Expect.equals(0, compiler.warnings.length);
 
   // Test that 'var' does not create a warning.
@@ -256,7 +256,7 @@ testSuperclass() {
   compiler.parseScript("class Foo extends Bar {}");
   compiler.parseScript("class Bar {}");
   Map mapping = compiler.resolveStatement("Foo bar;").map;
-  Expect.equals(2, mapping.length);
+  Expect.equals(1, mapping.length);
 
   ClassElement fooElement = compiler.universe.find(buildSourceString('Foo'));
   ClassElement barElement = compiler.universe.find(buildSourceString('Bar'));
