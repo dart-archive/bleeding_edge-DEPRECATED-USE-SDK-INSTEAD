@@ -32,6 +32,7 @@ class Compiler implements Canceler, Logger {
   Queue<Element> worklist;
   Universe universe;
   String assembledCode;
+  Namer namer;
 
   CompilerTask measuredTask;
 
@@ -50,6 +51,7 @@ class Compiler implements Canceler, Logger {
 
   Compiler(this.script) {
     universe = new Universe();
+    namer = new Namer();
     worklist = new Queue<Element>();
     scanner = new ScannerTask(this);
     parser = new ParserTask(this);

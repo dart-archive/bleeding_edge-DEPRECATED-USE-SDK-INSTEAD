@@ -36,8 +36,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     new SsaTypeGuardUnuser().visitGraph(graph);
   }
 
-  String generateMethod(Map<Element, String> parameterNames,
-                        HGraph graph) {
+  String generateMethod(Map<Element, String> parameterNames, HGraph graph) {
     preGenerateMethod(graph);
     StringBuffer buffer = new StringBuffer();
     SsaCodeGenerator codegen =
@@ -419,7 +418,8 @@ class SsaCodeGenerator implements HVisitor {
     Element element = compiler.universe.find(name);
     assert(element !== null);
     compiler.worklist.add(new WorkElement.toCompile(element));
-    buffer.add('currentIsolate.$name(');
+    buffer.add(compiler.namer.isolateAccess(element));
+    buffer.add('(');
     use(node.inputs[0]);
     buffer.add(')');
   }
@@ -431,7 +431,7 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitStatic(HStatic node) {
-    buffer.add('currentIsolate.${node.element.name}');
+    buffer.add(compiler.namer.isolateAccess(node.element));
   }
 
   void visitStore(HStore node) {

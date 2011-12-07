@@ -9,8 +9,8 @@
  * The code for the containing (used) methods must exist in the [:universe:].
  */
 class CodeEmitterTask extends CompilerTask {
-  static final String INHERIT_FUNCTION = @'''
-Isolate.$inherits = function(child, parent) {
+  static final String INHERIT_FUNCTION = '''
+function(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;
   } else {
@@ -19,23 +19,27 @@ Isolate.$inherits = function(child, parent) {
     child.prototype = new tmp();
     child.prototype.constructor = child;
   }
-}
-''';
+}''';
 
   bool addedInheritFunction = false;
 
   CodeEmitterTask(Compiler compiler) : super(compiler);
   String get name() => 'CodeEmitter';
 
+  String get inheritsName() => '${compiler.namer.isolate}.\$inherits';
+
   void addInheritFunctionIfNecessary(StringBuffer buffer) {
     if (addedInheritFunction) return;
     addedInheritFunction = true;
+    buffer.add('$inheritsName = ');
     buffer.add(INHERIT_FUNCTION);
+    buffer.add(';\n');
   }
 
   void generateClass(ClassElement classElement,
                      StringBuffer buffer,
                      Set<ClassElement> seenClasses) {
+    Namer namer = compiler.namer;
     if (seenClasses.contains(classElement)) return;
     seenClasses.add(classElement);
     Type supertype = classElement.supertype;
@@ -44,14 +48,14 @@ Isolate.$inherits = function(child, parent) {
       generateClass(superClass, buffer, seenClasses);
     }
 
-    buffer.add('Isolate.prototype.${classElement.name} = function() {};\n');
+    String className = namer.isolatePropertyAccess(classElement);
+    buffer.add('$className = function() {};\n');
     if (superClass !== null) {
       addInheritFunctionIfNecessary(buffer);
-      buffer.add('Isolate.\$inherits(' +
-                 'Isolate.prototype.${classElement.name}, ' +
-                 'Isolate.prototype.${superClass.name});\n');
+      String superName = namer.isolatePropertyAccess(superClass);
+      buffer.add('${inheritsName}($className, $superName);\n');
     }
-    String prototype = 'Isolate.prototype.${classElement.name}.prototype';
+    String prototype = '$className.prototype';
     // TODO(floitsch): run through classElement.members() instead of [].
     for (Element member in []) {
       if (member.kind !== ElementKind.FUNCTION) continue;
@@ -59,7 +63,7 @@ Isolate.$inherits = function(child, parent) {
       // TODO(floitsch): if (element.isStatic()) continue;
       String codeBlock = compiler.universe.generatedCode[member];
       assert(codeBlock !== null);
-      buffer.add('$prototype.${member.name} = $codeBlock;\n');
+      buffer.add('$prototype.${namer.methodName(member)} = $codeBlock;\n');
     }
   }
 
@@ -80,17 +84,18 @@ Isolate.$inherits = function(child, parent) {
 
   String assembleProgram() {
     measure(() {
+      Namer namer = compiler.namer;
       StringBuffer buffer = new StringBuffer();
-      buffer.add('function Isolate() {};\n\n');
+      buffer.add('function ${namer.isolate}() {};\n\n');
       compileClasses(buffer);
       Map<Element, String> generatedCode = compiler.universe.generatedCode;
       generatedCode.forEach((Element element, String codeBlock) {
-        buffer.add('Isolate.prototype.${element.name} = ');
+        buffer.add('${namer.isolatePropertyAccess(element)} = ');
         buffer.add(codeBlock);
         buffer.add(';\n\n');
       });
-      buffer.add('var currentIsolate = new Isolate();\n');
-      buffer.add('currentIsolate.main();\n');
+      buffer.add('var ${namer.currentIsolate} = new ${namer.isolate}();\n');
+      buffer.add('${namer.currentIsolate}.main();\n');
       compiler.assembledCode = buffer.toString();
     });
     return compiler.assembledCode;

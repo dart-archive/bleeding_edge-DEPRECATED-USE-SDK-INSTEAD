@@ -151,7 +151,7 @@ class JsNames {
   ];
 
   static final reservedPropertySymbols =
-      const <String>["__PROTO__", "prototype"];
+      const <String>["__PROTO__", "prototype", "constructor"];
 
   static Set<String> _reserved;
 

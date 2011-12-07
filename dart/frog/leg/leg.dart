@@ -21,6 +21,7 @@
 #source('universe.dart');
 #source('warnings.dart');
 #source('emitter.dart');
+#source('namer.dart');
 
 final bool GENERATE_SSA_TRACE = false;
 
