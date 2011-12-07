@@ -49,15 +49,30 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
+  buildos = sys.platform
   scriptdir = os.path.dirname(sys.argv[0])
   editorpath = os.path.abspath(os.path.join(scriptdir, '..'))
   thirdpartypath = os.path.abspath(os.path.join(scriptdir, '..', '..',
                                                 'third_party'))
+  toolspath = os.path.abspath(os.path.join(scriptdir, '..', '..',
+                                           'tools'))
+  dartpath = os.path.abspath(os.path.join(scriptdir, '..', '..'))
   antpath = os.path.join(thirdpartypath, 'apache_ant', 'v1_7_1')
   bzip2libpath = os.path.join(thirdpartypath, 'bzip2')
   buildpath = os.path.join(editorpath, 'tools', 'features',
                            'com.google.dart.tools.deploy.feature_releng')
   buildroot = os.path.join(editorpath, 'build_root')
+  print 'buildos        = {0}'.format(buildos)
+  print 'scriptdir      = {0}'.format(scriptdir)
+  print 'editorpath     = {0}'.format(editorpath)
+  print 'thirdpartypath = {0}'.format(thirdpartypath)
+  print 'toolspath      = {0}'.format(toolspath)
+  print 'antpath        = {0}'.format(antpath)
+  print 'bzip2libpath   = {0}'.format(bzip2libpath)
+  print 'buildpath      = {0}'.format(buildpath)
+  print 'buildroot      = {0}'.format(buildroot)
+  print 'dartpath       = {0}'.format(dartpath)
+
   os.chdir(buildpath)
 
   homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
@@ -109,14 +124,33 @@ def main():
 
   print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
   builder_name = str(options.name)
-  if builder_name != 'dart-editor':
-    _PrintSeparator('new builder running on {0} not doing'
-                    ' anything'.format(builder_name))
+
+  _PrintSeparator('running the build of the Dart SDK')
+  dartbuildscript = os.path.join(toolspath, 'build.py')
+  cmds = [sys.executable, dartbuildscript,
+          '--mode=release', 'create_sdk']
+  print ' '.join(cmds)
+  cwd = os.getcwd()
+  try:
+    os.chdir(dartpath)
+    status = subprocess.call(cmds)
+    if status:
+      _PrintError('the build of the SDK failed')
+      return status
+  finally:
+    os.chdir(cwd)
+
+  if builder_name == 'dart-editor':
+    buildos = None
+  else:
+    _PrintSeparator('new builder running on {0} is'
+                    ' terminating until os specific builds'
+                    ' are in place'.format(builder_name))
     return 0
 
-  _PrintSeparator("running the build to produce the Zipped RCP's")
+  _PrintSeparator('running the build to produce the Zipped RCP''s')
   status = _RunAnt('.', 'build_rcp.xml', options.revision, options.name,
-                   buildroot, buildout, editorpath)
+                   buildroot, buildout, editorpath, buildos)
   property_file = os.path.join('/var/tmp/' + options.name +
                                '-build.properties')
   #the ant script writes a property file in a known location so
@@ -152,7 +186,7 @@ def main():
   status = _RunAnt('../com.google.dart.tools.tests.feature_releng',
                    'buildTests.xml',
                    options.revision, options.name, buildroot, buildout,
-                   editorpath)
+                   editorpath, buildos)
   properties = _ReadPropertyFile(property_file)
   if status and properties['build.runtime']:
     #if there is a build.runtime and the status is not 
@@ -162,7 +196,7 @@ def main():
 
 
 def _RunAnt(build_dir, antfile, revision, name, buildroot,
-            buildout, sourcepath):
+            buildout, sourcepath, buildos):
   """Run the given Ant script from the given directory.
 
   Args:
@@ -173,6 +207,7 @@ def _RunAnt(build_dir, antfile, revision, name, buildroot,
     buildroot: root of the build source tree
     buildout: the location to copy output
     sourcepath: the path to the root of the source
+    buildos: the operating system this build is running under (may be null)
 
   Returns:
     returns the status of the ant call
@@ -203,6 +238,9 @@ def _RunAnt(build_dir, antfile, revision, name, buildroot,
           '-Dbuild.source=' + sourcepath,
           '-nouserlib',
          ]
+  if buildos:
+    args.append('-Dbuild.os={0}'.format(buildos))
+
   extra_args = os.environ.get('ANT_EXTRA_ARGS')
   if extra_args is not None:
     parsed_extra = extra_args.split()
