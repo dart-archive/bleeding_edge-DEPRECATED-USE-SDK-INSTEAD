@@ -14,7 +14,8 @@ void main() {
   // stopAfter for that.
   int stopAfter;
 
-  ServerMain serverMain = new ServerMain.start(new ChatServer(), DEFAULT_HOST, DEFAULT_PORT);
+  ServerMain serverMain =
+      new ServerMain.start(new ChatServer(), DEFAULT_HOST, DEFAULT_PORT);
 
   // Start a shutdown timer if requested.
   if (stopAfter != null) {

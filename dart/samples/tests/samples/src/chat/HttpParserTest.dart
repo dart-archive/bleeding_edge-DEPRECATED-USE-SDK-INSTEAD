@@ -282,7 +282,7 @@ Transfer-Encoding: chunked\r
 01234\r
 5\r
 56789\r
-0\r\n""";
+0\r\n\r\n""";
     _testParseRequest(request, "POST", "/test", -1, 10, null, true);
 
     // Test mixing chunked encoding and content length (content length
@@ -296,7 +296,7 @@ Transfer-Encoding: chunked\r
 01234\r
 5\r
 56789\r
-0\r\n""";
+0\r\n\r\n""";
     _testParseRequest(request, "POST", "/test", -1, 10, null, true);
 
     // Test mixing chunked encoding and content length (content length
@@ -310,7 +310,7 @@ Content-Length: 3\r
 01234\r
 5\r
 56789\r
-0\r\n""";
+0\r\n\r\n""";
     _testParseRequest(request, "POST", "/test", -1, 10, null, true);
 
     // Test upper and lower case hex digits in chunked encoding.
@@ -322,7 +322,7 @@ Transfer-Encoding: chunked\r
 012345678901234567890123456789\r
 1e\r
 012345678901234567890123456789\r
-0\r\n""";
+0\r\n\r\n""";
     _testParseRequest(request, "POST", "/test", -1, 60, null, true);
   }
 
@@ -355,7 +355,7 @@ Transfer-Encoding: chunked\r
 01234567890123456789012345\r
 1f\r
 0123456789012345678901234567890\r
-0\r\n""";
+0\r\n\r\n""";
     _testParseResponse(response, 200, "OK", -1, 57, null, true);
   }
 }

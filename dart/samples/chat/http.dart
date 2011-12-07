@@ -62,9 +62,14 @@ interface HTTPServer factory HTTPServerImplementation {
   /**
    * Start listening on the specified [host] and [port]. For each HTTP
    * request the specified [callback] will be invoked. If a [port] of
-   * 0 is specified the server will choose an ephemeral port.
+   * 0 is specified the server will choose an ephemeral port. The
+   * optional argument [backlog] can be used to specify the listen
+   * backlog for the underlying OS listen setup.
    */
-  void listen(String host, int port, void callback(HTTPRequest, HTTPResponse));
+  void listen(String host,
+              int port,
+              void callback(HTTPRequest, HTTPResponse),
+              [int backlog]);
 
   /**
    * Stop server listening.

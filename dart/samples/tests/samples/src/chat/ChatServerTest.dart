@@ -85,7 +85,6 @@ class ChatTestClient extends Isolate {
         var responseData = JSON.parse(data);
         Expect.equals("receive", responseData["response"]);
         Expect.equals(null, responseData["disconnect"]);
-        receiveMessageNumber += responseData["messages"].length;
         for (int i = 0; i < responseData["messages"].length; i++) {
           Map message = responseData["messages"][i];
           if (message["type"] == "join") {
@@ -106,6 +105,7 @@ class ChatTestClient extends Isolate {
               Expect.equals("message " + (i - 1).toString(), message["message"]);
             }
           }
+          receiveMessageNumber = message["number"] + 1;
         }
 
         // Receive all expected messages then leave.
@@ -277,8 +277,12 @@ class TestMain {
         if (liveClientsCount == clientCount) {
           // Once all clients are running send server start message to
           // the server. Use port 0 for an ephemeral port. The actual
-          // port will be returned with the server started message.
-          serverPort.send(new ChatServerCommand.start("127.0.0.1", 0, false),
+          // port will be returned with the server started
+          // message. Use a backlog equal to the client count to avoid
+          // connection issues.
+          serverPort.send(new ChatServerCommand.start("127.0.0.1",
+                                                      0,
+                                                      backlog: clientCount),
                           serverStatusPort.toSendPort());
         }
       });
@@ -322,6 +326,6 @@ void testTenClients() {
 void main() {
   testOneClient();
   testTwoClients();
-  testTwoClientsMoreMessages;
+  testTwoClientsMoreMessages();
   testTenClients();
 }

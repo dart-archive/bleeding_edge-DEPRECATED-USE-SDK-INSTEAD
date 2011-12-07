@@ -11,19 +11,24 @@ typedef void RequestHandler(HTTPRequest request, HTTPResponse response);
 class ChatServer extends IsolatedServer {
   ChatServer() : super() {
     addHandler("/",
-               (HTTPRequest request, HTTPResponse response)
-               => redirectPageHandler(request, response, "dart_client/index.html"));
+               (HTTPRequest request, HTTPResponse response) =>
+                   redirectPageHandler(
+                       request, response, "dart_client/index.html"));
     addHandler("/js_client/index.html",
-               (HTTPRequest request, HTTPResponse response) => fileHandler(request, response));
+               (HTTPRequest request, HTTPResponse response) =>
+                   fileHandler(request, response));
     addHandler("/js_client/code.js",
-               (HTTPRequest request, HTTPResponse response) => fileHandler(request, response));
+               (HTTPRequest request, HTTPResponse response) =>
+                   fileHandler(request, response));
     addHandler("/dart_client/index.html",
-               (HTTPRequest request, HTTPResponse response) => fileHandler(request, response));
+               (HTTPRequest request, HTTPResponse response) =>
+                   fileHandler(request, response));
     addHandler("/out/dart_client/chat.dart.app.js",
-               (HTTPRequest request, HTTPResponse response) => fileHandler(request, response));
+               (HTTPRequest request, HTTPResponse response) =>
+                   fileHandler(request, response));
     addHandler("/favicon.ico",
-               (HTTPRequest request, HTTPResponse response)
-               => fileHandler(request, response, "static/favicon.ico"));
+               (HTTPRequest request, HTTPResponse response) =>
+                   fileHandler(request, response, "static/favicon.ico"));
 
     addHandler("/join", _joinHandler);
     addHandler("/leave", _leaveHandler);
@@ -33,18 +38,22 @@ class ChatServer extends IsolatedServer {
 }
 
 class ServerMain {
-  ServerMain.start(IsolatedServer server, String hostAddress, int tcpPort)
+  ServerMain.start(IsolatedServer server,
+                   String hostAddress,
+                   int tcpPort,
+                   [int listenBacklog = 5])
       : _statusPort = new ReceivePort(),
         _serverPort = null {
     server.spawn().then((SendPort port) {
       _serverPort = port;
-      _start(hostAddress, tcpPort);
+      _start(hostAddress, tcpPort, listenBacklog);
     });
-    // We can only guess this is the right URL. At least it gives a hint to the user.
-    print('Server started http://${hostAddress}:${tcpPort}/');
+    // We can only guess this is the right URL. At least it gives a
+    // hint to the user.
+    print('Server starting http://${hostAddress}:${tcpPort}/');
   }
 
-  void _start(String hostAddress, int tcpPort) {
+    void _start(String hostAddress, int tcpPort, int listenBacklog) {
     // Handle status messages from the server.
     _statusPort.receive(
         void _(var message, SendPort replyTo) {
@@ -55,7 +64,7 @@ class ServerMain {
     // Send server start message to the server.
     var command = new ChatServerCommand.start(hostAddress,
                                               tcpPort,
-                                              false);
+                                              backlog: listenBacklog);
     _serverPort.send(command, _statusPort.toSendPort());
   }
 
@@ -242,8 +251,9 @@ class ChatServerCommand {
 
   ChatServerCommand.start(String this._host,
                           int this._port,
-                          bool this._logging)
-      : _command = START;
+                          [int backlog = 5,
+                           bool logging = false])
+      : _command = START, _backlog = backlog, _logging = logging;
   ChatServerCommand.stop() : _command = STOP;
 
   bool get isStart() => _command == START;
@@ -252,10 +262,12 @@ class ChatServerCommand {
   String get host() => _host;
   int get port() => _port;
   bool get logging() => _logging;
+  bool get backlog() => _backlog;
 
   int _command;
   String _host;
   int _port;
+  int _backlog;
   bool _logging;
 }
 
@@ -272,7 +284,7 @@ class ChatServerStatus {
   ChatServerStatus.started(this._port) : _state = STARTED;
   ChatServerStatus.stopping() : _state = STOPPING;
   ChatServerStatus.stopped() : _state = STOPPED;
-  ChatServerStatus.error() : _state = ERROR;
+  ChatServerStatus.error([this._error]) : _state = ERROR;
 
   bool get isStarting() => _state == STARTING;
   bool get isStarted() => _state == STARTED;
@@ -288,15 +300,22 @@ class ChatServerStatus {
       case STARTED: return "Server listening";
       case STOPPING: return "Server stopping";
       case STOPPED: return "Server stopped";
-      case ERROR: return "Server error";
+      case ERROR:
+        if (_error == null) {
+          return "Server error";
+        } else {
+          return "Server error: $_error";
+        }
     }
   }
 
   int get port() => _port;
+  Dynamic get error() => _error;
 
   int _state;
   String _message;
   int _port;
+  var _error;
 }
 
 
@@ -324,7 +343,9 @@ class IsolatedServer extends Isolate {
     _requestHandlers = new Map();
   }
 
-  void redirectPageHandler(HTTPRequest request, HTTPResponse response, String redirectPath) {
+  void redirectPageHandler(HTTPRequest request,
+                           HTTPResponse response,
+                           String redirectPath) {
     if (_redirectPage == null) {
       _redirectPage = redirectPageHtml.charCodes();
     }
@@ -545,7 +566,8 @@ class IsolatedServer extends Isolate {
     request.dataEnd = dataEndHandler;
   }
 
-  void addHandler(String path, void handler(HTTPRequest request, HTTPResponse response)) {
+  void addHandler(String path,
+                  void handler(HTTPRequest request, HTTPResponse response)) {
     _requestHandlers[path] = handler;
   }
 
@@ -583,11 +605,12 @@ class IsolatedServer extends Isolate {
                   _host,
                   _port,
                   (HTTPRequest req, HTTPResponse rsp) =>
-                  _requestReceivedHandler(req, rsp));
+                      _requestReceivedHandler(req, rsp),
+                  backlog: message.backlog);
               replyTo.send(new ChatServerStatus.started(_server.port), null);
               _loggingTimer = new Timer(_handleLogging, 1000, true);
             } catch (var e) {
-              replyTo.send(new ChatServerStatus.error(), null);
+              replyTo.send(new ChatServerStatus.error(e.toString()), null);
             }
           } else if (message.isStop) {
             replyTo.send(new ChatServerStatus.stopping(), null);

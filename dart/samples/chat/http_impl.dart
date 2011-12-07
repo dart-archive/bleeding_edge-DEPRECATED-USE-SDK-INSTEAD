@@ -312,7 +312,6 @@ class HTTPParser {
           if (_remainingContent > 0) {
             _state = State.BODY;
           } else {
-            if (dataEnd != null) dataEnd();
             _state = State.CHUNKED_BODY_DONE_CR;
           }
           break;
@@ -324,6 +323,7 @@ class HTTPParser {
 
         case State.CHUNKED_BODY_DONE_LF:
           _expect(byte, CharCode.LF);
+          if (dataEnd != null) dataEnd();
           _state = State.START;
           break;
 
@@ -1109,7 +1109,7 @@ class HTTPServerImplementation implements HTTPServer {
 
   HTTPServerImplementation () : _debugTrace = false;
 
-  void listen(String host, int port, var callback) {
+  void listen(String host, int port, var callback, [int backlog = 5]) {
 
     void connectionHandler(Socket socket) {
       // Accept the client connection.
@@ -1124,7 +1124,7 @@ class HTTPServerImplementation implements HTTPServer {
 
     _connections = new Queue<HTTPConnection>();
     _connectionsCount = 0;
-    _server = new ServerSocket(host, port, 5);
+    _server = new ServerSocket(host, port, backlog);
     _server.connectionHandler = connectionHandler;
   }
 
@@ -1345,12 +1345,14 @@ class HTTPClientConnection extends HTTPConnectionBase {
   }
 
   void _dataEndHandler() {
-    _response._dataEndHandler();
     if (_response.headers["connection"] == "close") {
       _socket.close();
     } else {
       _client._returnSocketConnection(_socketConn);
+      _socket = null;
+      _socketConn = null;
     }
+    _response._dataEndHandler();
   }
 
   HTTPClientImplementation _client;
@@ -1371,7 +1373,13 @@ class SocketConnection {
                    int this._port,
                    Socket this._socket);
 
-  void _markReturned() => _returnTime = new Date.now();
+  void _markReturned() {
+    _socket.dataHandler = null;
+    _socket.closeHandler = null;
+    _socket.errorHandler = null;
+    _returnTime = new Date.now();
+  }
+
   Duration _idleTime(Date now) => now.difference(_returnTime);
 
   String _host;
