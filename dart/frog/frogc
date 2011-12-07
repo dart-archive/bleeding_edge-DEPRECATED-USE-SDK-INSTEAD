@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# TODO(dgrove) - Figure out how to handle this when
+# running somewhere other than the SDK.
+./dart --new_gen_heap_size=128 frogc.dart $@
