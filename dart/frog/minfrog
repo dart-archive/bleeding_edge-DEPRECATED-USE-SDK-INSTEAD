@@ -3726,11 +3726,7 @@ MethodGenerator.prototype.visitNewExpression = function(node) {
     type = type.get$library().findTypeByName$1(constructorName);
     constructorName = '';
   }
-  if (this.method.get$isStatic() && ((this.method.get$typeParameters() == null && type.get$hasTypeParams()) || (type instanceof ParameterType))) {
-    $globals.world.error('using type parameter in static context', node.span);
-    return this._makeMissingValue(constructorName);
-  }
-  else if ((type instanceof ParameterType)) {
+  if ((type instanceof ParameterType)) {
     $globals.world.error('cannot instantiate a type parameter', node.span);
     return this._makeMissingValue(constructorName);
   }
@@ -4505,9 +4501,6 @@ Parameter.prototype.resolve = function() {
     this.isInitializer = true;
   }
   this.type = this.method.resolveType(this.definition.type, false);
-  if (this.method.get$isStatic() && this.method.get$typeParameters() == null && this.type.get$hasTypeParams()) {
-    $globals.world.error('using type parameter in static context', this.definition.span);
-  }
   if (this.definition.value != null) {
     if ((this.definition.value instanceof NullExpression) && this.definition.value.span.start == this.definition.span.start) {
       return;
@@ -5867,6 +5860,16 @@ MethodMember.prototype.resolve = function() {
   if (!this.isLambda) {
     this.get$library()._addMember(this);
   }
+}
+MethodMember.prototype.resolveType = function(node, typeErrors) {
+  var t = Element.prototype.resolveType.call(this, node, typeErrors);
+  if (this.isStatic && (t instanceof ParameterType) && (this.typeParameters == null || !this.typeParameters.some((function (p) {
+    return p === t;
+  })
+  ))) {
+    $globals.world.error('using type parameter in static context.', node.span);
+  }
+  return t;
 }
 MethodMember.prototype._get$3 = function($0, $1, $2) {
   return this._get($0, $1, $2, false);

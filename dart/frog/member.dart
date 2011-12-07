@@ -24,10 +24,6 @@ class Parameter {
 
     type = method.resolveType(definition.type, false);
 
-    if (method.isStatic && method.typeParameters === null && type.hasTypeParams) {
-      world.error('using type parameter in static context', definition.span);
-    }
-
     if (definition.value != null) {
       // To match VM, detect cases where value was not actually specified in
       // code and don't signal errors.
@@ -1389,6 +1385,16 @@ class MethodMember extends Member {
     if (!isLambda) {
       library._addMember(this);
     }
+  }
+
+  /** Overriden to ensure that type arguments aren't used in static methods. */
+  Type resolveType(TypeReference node, bool typeErrors) {
+    Type t = super.resolveType(node, typeErrors);
+    if (isStatic && t is ParameterType &&
+       (typeParameters === null || !typeParameters.some((p) => p === t))) {
+      world.error('using type parameter in static context.', node.span);
+    }
+    return t;
   }
 }
 
