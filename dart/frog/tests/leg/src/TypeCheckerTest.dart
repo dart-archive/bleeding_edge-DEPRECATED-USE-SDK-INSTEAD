@@ -17,17 +17,20 @@ Type doubleType;
 Type objectType;
 
 main() {
-  testSimpleTypes();
-  testReturn();
-  testFor();
-  testWhile();
-  testOperators();
-  testMethodInvocationArgumentCount();
-  testMethodInvocations();
+  List tests = [testSimpleTypes,
+                testReturn,
+                testFor,
+                testWhile,
+                testOperators,
+                testMethodInvocationArgumentCount,
+                testMethodInvocations];
+  for (Function test in tests) {
+    setup();
+    test();
+  }
 }
 
 testSimpleTypes() {
-  setup();
   Expect.equals(intType, analyzeType("3"));
   Expect.equals(boolType, analyzeType("false"));
   Expect.equals(boolType, analyzeType("true"));
@@ -35,7 +38,6 @@ testSimpleTypes() {
 }
 
 testReturn() {
-  setup();
   analyzeTopLevel("void foo() { return 3; }", MessageKind.RETURN_VALUE_IN_VOID);
   analyzeTopLevel("int bar() { return 'hest'; }", MessageKind.NOT_ASSIGNABLE);
   analyzeTopLevel("void baz() { var x; return x; }");
@@ -54,18 +56,17 @@ testReturn() {
 }
 
 testFor() {
-  setup();
   analyze("for (var x;true;x = x + 1) {}");
   analyze("for (var x;null;x = x + 1) {}");
   analyze("for (var x;0;x = x + 1) {}", MessageKind.NOT_ASSIGNABLE);
   analyze("for (var x;'';x = x + 1) {}", MessageKind.NOT_ASSIGNABLE);
 
-  // TODO(karlklose): These tests do not work because they use empty
-  // statements, which we cannot parse.
-  // analyze("for (;true;) {}");
-  // analyze("for (;null;) {}");
-  // analyze("for (;0;) {}", MessageKind.NOT_ASSIGNABLE);
-  // analyze("for (;'';) {}", MessageKind.NOT_ASSIGNABLE);
+//   TODO(karlklose): These tests do not work because they use empty
+//   statements, which we cannot parse.
+//   analyze("for (;true;) {}");
+//   analyze("for (;null;) {}");
+//   analyze("for (;0;) {}", MessageKind.NOT_ASSIGNABLE);
+//   analyze("for (;'';) {}", MessageKind.NOT_ASSIGNABLE);
 }
 
 testWhile() {
@@ -120,7 +121,6 @@ testOperators() {
 }
 
 void testMethodInvocationArgumentCount() {
-  setup();
   compiler.parseScript(CLASS_WITH_METHODS);
   final String header = "{ ClassWithMethods c; ";
   analyze(header + "c.untypedNoArgumentMethod(1); }",
@@ -147,7 +147,6 @@ void testMethodInvocationArgumentCount() {
 }
 
 void testMethodInvocations() {
-  setup();
   compiler.parseScript(CLASS_WITH_METHODS);
   final String header = "{ ClassWithMethods c; int i; int j; ";
 
@@ -182,10 +181,6 @@ void testMethodInvocations() {
       MessageKind.NOT_ASSIGNABLE);
 }
 
-String returnWithType(String type, expression)
-    => "$type foo() { return $expression; }";
-
-
 final CLASS_WITH_METHODS = '''
 class ClassWithMethods {
   untypedNoArgumentMethod() {}
@@ -202,6 +197,12 @@ class ClassWithMethods {
 //  int intField;
 }''';
 
+Types types;
+MockCompiler compiler;
+
+String returnWithType(String type, expression) {
+  return "$type foo() { return $expression; }";
+}
 
 Node parseExpression(String text) =>
   parseBodyCode(text, (parser, token) => parser.parseExpression(token));
@@ -217,14 +218,11 @@ void setup() {
   objectType = lookupType(Types.OBJECT, compiler, types);
 }
 
-Types types;
-MockCompiler compiler;
-
 Type analyzeType(String text) {
   var node = parseExpression(text);
   TypeCheckerVisitor visitor =
       new TypeCheckerVisitor(compiler, new TreeElements(), types);
-  return visitor.type(node);
+  return visitor.analyze(node);
 }
 
 analyzeTopLevel(String text, [expectedWarnings]) {
@@ -253,7 +251,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
     TypeCheckerVisitor checker =
         new TypeCheckerVisitor(compiler, mapping, types);
     compiler.clearWarnings();
-    checker.type(node);
+    checker.analyze(node);
     compareWarningKinds(text, expectedWarnings, compiler.warnings);
   }
 
@@ -276,7 +274,7 @@ analyze(String text, [expectedWarnings]) {
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
   compiler.clearWarnings();
-  checker.type(node);
+  checker.analyze(node);
   compareWarningKinds(text, expectedWarnings, compiler.warnings);
 
   compiler.universe = universe;

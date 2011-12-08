@@ -137,18 +137,18 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type nonVoidType(Node node) {
-    Type type = type(node);
+    Type type = analyze(node);
     if (type == types.voidType) {
       reportTypeWarning(node, MessageKind.VOID_EXPRESSION);
     }
     return type;
   }
 
-  Type typeWithDefault(Node node, Type defaultValue) {
-    return node !== null ? type(node) : defaultValue;
+  Type analyzeWithDefault(Node node, Type defaultValue) {
+    return node !== null ? analyze(node) : defaultValue;
   }
 
-  Type type(Node node) {
+  Type analyze(Node node) {
     if (node === null) fail(null, 'unexpected node: null');
     Type result = node.accept(this);
     // TODO(karlklose): record type?
@@ -166,11 +166,11 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   checkCondition(Expression condition) {
-    checkAssignable(condition, boolType, type(condition));
+    checkAssignable(condition, boolType, analyze(condition));
   }
 
   Type visitBlock(Block node) {
-    type(node.statements);
+    analyze(node.statements);
     return types.voidType;
   }
 
@@ -179,22 +179,22 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitDoWhile(DoWhile node) {
-    type(node.body);
+    analyze(node.body);
     checkCondition(node.condition);
     return types.voidType;
   }
 
   Type visitExpressionStatement(ExpressionStatement node) {
-    type(node.expression);
+    analyze(node.expression);
     return types.voidType;
   }
 
   /** Dart Programming Language Specification: 11.5.1 For Loop */
   Type visitFor(For node) {
-    type(node.initializer);
+    analyze(node.initializer);
     checkCondition(node.condition);
-    type(node.update);
-    type(node.body);
+    analyze(node.update);
+    analyze(node.body);
     return types.voidType;
   }
 
@@ -204,7 +204,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     Type returnType = functionType.returnType;
     Type previous = expectedReturnType;
     expectedReturnType = returnType;
-    type(node.body);
+    analyze(node.body);
     expectedReturnType = previous;
     return functionType;
   }
@@ -214,9 +214,9 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitIf(If node) {
-    type(node.condition);
-    type(node.thenPart);
-    if (node.hasElsePart) type(node.elsePart);
+    analyze(node.condition);
+    analyze(node.thenPart);
+    if (node.hasElsePart) analyze(node.elsePart);
     return types.voidType;
   }
 
@@ -224,7 +224,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     final conditionNode = node.condition;
     Type conditionType = nonVoidType(conditionNode);
     checkAssignable(conditionNode, boolType, conditionType);
-    type(node.body);
+    analyze(node.body);
     return types.voidType;
   }
 
@@ -239,10 +239,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return types.dynamicType;
   }
 
-  Link<Type> typeArguments(Link<Node> arguments) {
+  Link<Type> analyzeArguments(Link<Node> arguments) {
     LinkBuilder<Type> builder = new LinkBuilder<Type>();
     while(!arguments.isEmpty()) {
-      builder.addLast(type(arguments.head));
+      builder.addLast(analyze(arguments.head));
       arguments = arguments.tail;
     }
     return builder.toLink();
@@ -254,10 +254,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
     if (node.isOperator) {
       final Node firstArgument = node.receiver;
-      final Type firstArgumentType = type(node.receiver);
+      final Type firstArgumentType = analyze(node.receiver);
       final arguments = node.arguments;
       final Node secondArgument = arguments.isEmpty() ? null : arguments.head;
-      final Type secondArgumentType = typeWithDefault(secondArgument, null);
+      final Type secondArgumentType = analyzeWithDefault(secondArgument, null);
 
       if (name === '+' || name === '=' || name === '-'
           || name === '*' || name === '/' || name === '%'
@@ -288,10 +288,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
       fail(node.receiver, 'function object invocation unimplemented');
 
     } else {
-      Link<Type> argumentTypes = typeArguments(node.arguments);
+      Link<Type> argumentTypes = analyzeArguments(node.arguments);
       FunctionType funType;
       if (node.receiver !== null) {
-        Type receiverType = type(node.receiver);
+        Type receiverType = analyze(node.receiver);
         if (receiverType === types.dynamicType) return types.dynamicType;
         if (receiverType === null) {
           fail(node.receiver, 'receivertype is null');
@@ -344,7 +344,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     } else {
       Type targetType = computeType(elements[node]);
       Node value = node.arguments.head;
-      checkAssignable(value, targetType, type(value));
+      checkAssignable(value, targetType, analyze(value));
       return targetType;
     }
   }
@@ -380,7 +380,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
-      type(link.head);
+      analyze(link.head);
     }
     return null;
   }
@@ -398,7 +398,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     // if the type of e may not be assigned to the declared return type of the
     // immediately enclosing function.
     if (expression !== null) {
-      final expressionType = type(expression);
+      final expressionType = analyze(expression);
       if (isVoidFunction
           && !types.isAssignable(expressionType, types.voidType)) {
         reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID,
@@ -419,7 +419,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitThrow(Throw node) {
-    if (node.expression !== null) type(node.expression);
+    if (node.expression !== null) analyze(node.expression);
     return types.voidType;
   }
 
@@ -442,7 +442,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitVariableDefinitions(VariableDefinitions node) {
-    Type type = typeWithDefault(node.type, types.dynamicType);
+    Type type = analyzeWithDefault(node.type, types.dynamicType);
     if (type == types.voidType) {
       reportTypeWarning(node.type, MessageKind.VOID_VARIABLE);
       type = types.dynamicType;
@@ -462,10 +462,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type visitWhile(While node) {
     checkCondition(node.condition);
-    type(node.body);
+    analyze(node.body);
   }
 
   Type visitParenthesizedExpression(ParenthesizedExpression node) {
-    return type(node.expression);
+    return analyze(node.expression);
   }
 }
