@@ -23,7 +23,10 @@ main() {
                 testWhile,
                 testOperators,
                 testMethodInvocationArgumentCount,
-                testMethodInvocations];
+                testMethodInvocations,
+                testNewExpression,
+                testConditionalExpression,
+                testIfStatement];
   for (Function test in tests) {
     setup();
     test();
@@ -67,6 +70,14 @@ testFor() {
 //   analyze("for (;null;) {}");
 //   analyze("for (;0;) {}", MessageKind.NOT_ASSIGNABLE);
 //   analyze("for (;'';) {}", MessageKind.NOT_ASSIGNABLE);
+
+  // Foreach tests
+//  TODO(karlklose): for each is not yet implemented.
+//  analyze("{ List<String> strings = ['1','2','3']; " +
+//          "for (String s in strings) {} }");
+//  analyze("{ List<int> ints = [1,2,3]; for (String s in ints) {} }",
+//          MessageKind.NOT_ASSIGNABLE);
+//  analyze("for (String s in true) {}", MessageKind.METHOD_NOT_FOUND);
 }
 
 testWhile() {
@@ -124,25 +135,25 @@ void testMethodInvocationArgumentCount() {
   compiler.parseScript(CLASS_WITH_METHODS);
   final String header = "{ ClassWithMethods c; ";
   analyze(header + "c.untypedNoArgumentMethod(1); }",
-    MessageKind.ADDITIONAL_ARGUMENT);
+          MessageKind.ADDITIONAL_ARGUMENT);
   analyze(header + "c.untypedOneArgumentMethod(); }",
-    MessageKind.MISSING_ARGUMENT);
+          MessageKind.MISSING_ARGUMENT);
   analyze(header + "c.untypedOneArgumentMethod(1, 1); }",
-    MessageKind.ADDITIONAL_ARGUMENT);
+          MessageKind.ADDITIONAL_ARGUMENT);
   analyze(header + "c.untypedTwoArgumentMethod(); }",
-      MessageKind.MISSING_ARGUMENT);
+          MessageKind.MISSING_ARGUMENT);
   analyze(header + "c.untypedTwoArgumentMethod(1, 2, 3); }",
-    MessageKind.ADDITIONAL_ARGUMENT);
+          MessageKind.ADDITIONAL_ARGUMENT);
   analyze(header + "c.intNoArgumentMethod(1); }",
-    MessageKind.ADDITIONAL_ARGUMENT);
+          MessageKind.ADDITIONAL_ARGUMENT);
   analyze(header + "c.intOneArgumentMethod(); }",
-      MessageKind.MISSING_ARGUMENT);
+          MessageKind.MISSING_ARGUMENT);
   analyze(header + "c.intOneArgumentMethod(1, 1); }",
-    MessageKind.ADDITIONAL_ARGUMENT);
+          MessageKind.ADDITIONAL_ARGUMENT);
   analyze(header + "c.intTwoArgumentMethod(); }",
-      MessageKind.MISSING_ARGUMENT);
+          MessageKind.MISSING_ARGUMENT);
   analyze(header + "c.intTwoArgumentMethod(1, 2, 3); }",
-    MessageKind.ADDITIONAL_ARGUMENT);
+          MessageKind.ADDITIONAL_ARGUMENT);
   // analyze(header + "c.untypedField(); }");
 }
 
@@ -164,21 +175,87 @@ void testMethodInvocations() {
 
   analyze(header + "int k = c.intNoArgumentMethod(); }");
   analyze(header + "ClassWithMethods x = c.intNoArgumentMethod(); }",
-      MessageKind.NOT_ASSIGNABLE);
+          MessageKind.NOT_ASSIGNABLE);
 
   analyze(header + "int k = c.intOneArgumentMethod(c); }",
-      MessageKind.NOT_ASSIGNABLE);
+          MessageKind.NOT_ASSIGNABLE);
   analyze(header + "ClassWithMethods x = c.intOneArgumentMethod(1); }",
-      MessageKind.NOT_ASSIGNABLE);
+          MessageKind.NOT_ASSIGNABLE);
   analyze(header + "int k = c.intOneArgumentMethod('string'); }",
-    MessageKind.NOT_ASSIGNABLE);
+          MessageKind.NOT_ASSIGNABLE);
   analyze(header + "int k = c.intOneArgumentMethod(i); }");
 
   analyze(header + "int k = c.intTwoArgumentMethod(1, 'string'); }",
-    MessageKind.NOT_ASSIGNABLE);
+          MessageKind.NOT_ASSIGNABLE);
   analyze(header + "int k = c.intTwoArgumentMethod(i, j); }");
   analyze(header + "ClassWithMethods x = c.intTwoArgumentMethod(i, j); }",
-      MessageKind.NOT_ASSIGNABLE);
+          MessageKind.NOT_ASSIGNABLE);
+}
+
+testNewExpression() {
+  compiler.parseScript("class A {}");
+  analyze("A a = new A();");
+  analyze("int i = new A();", MessageKind.NOT_ASSIGNABLE);
+
+// TODO(karlklose): constructors are not yet implemented.
+//  compiler.parseScript(
+//    "class Foo {\n" +
+//    "  Foo(int x) {}\n" +
+//    "  Foo.foo() {}\n" +
+//    "  Foo.bar([int i = null]) {}\n" +
+//    "}\n" +
+//    "interface Bar<T> factory Baz {\n" +
+//    "  Bar.make();\n" +
+//    "}\n" +
+//    "class Baz {\n" +
+//    "  factory Bar<S>.make(S x) { return null; }\n" +
+//    "}");
+//
+//  analyze("Foo x = new Foo(0);");
+//  analyze("Foo x = new Foo();", MessageKind.MISSING_ARGUMENT);
+//  analyze("Foo x = new Foo('');", MessageKind.NOT_ASSIGNABLE);
+//  analyze("Foo x = new Foo(0, null);", MessageKind.ADDITIONAL_ARGUMENT);
+//
+//  analyze("Foo x = new Foo.foo();");
+//  analyze("Foo x = new Foo.foo(null);", MessageKind.ADDITIONAL_ARGUMENT);
+//
+//  analyze("Foo x = new Foo.bar();");
+//  analyze("Foo x = new Foo.bar(0);");
+//  analyze("Foo x = new Foo.bar('');", MessageKind.NOT_ASSIGNABLE);
+//  analyze("Foo x = new Foo.bar(0, null);",
+//          MessageKind.ADDITIONAL_ARGUMENT);
+//
+//  analyze("Bar<String> x = new Bar<String>.make('');");
+}
+
+testConditionalExpression() {
+  analyze("int i = true ? 2 : 1;");
+  analyze("int i = true ? 'hest' : 1;");
+  analyze("int i = true ? 'hest' : 'fisk';", MessageKind.NOT_ASSIGNABLE);
+  analyze("String s = true ? 'hest' : 'fisk';");
+
+  analyze("true ? 1 : 2;");
+  analyze("null ? 1 : 2;");
+  analyze("0 ? 1 : 2;", MessageKind.NOT_ASSIGNABLE);
+  analyze("'' ? 1 : 2;", MessageKind.NOT_ASSIGNABLE);
+  analyze("{ int i; true ? i = 2.7 : 2; }",
+          MessageKind.NOT_ASSIGNABLE);
+  analyze("{ int i; true ? 2 : i = 2.7; }",
+          MessageKind.NOT_ASSIGNABLE);
+  analyze("{ int i; i = true ? 2.7 : 2; }");
+}
+
+testIfStatement() {
+  analyze("if (true) {}");
+  analyze("if (null) {}");
+  analyze("if (0) {}",
+  MessageKind.NOT_ASSIGNABLE);
+  analyze("if ('') {}",
+          MessageKind.NOT_ASSIGNABLE);
+  analyze("{ int i = 27; if (true) { i = 2.7; } else {} }",
+          MessageKind.NOT_ASSIGNABLE);
+  analyze("{ int i = 27; if (true) {} else { i = 2.7; } }",
+          MessageKind.NOT_ASSIGNABLE);
 }
 
 final CLASS_WITH_METHODS = '''

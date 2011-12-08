@@ -81,8 +81,9 @@ class Types {
     return null;
   }
 
-  bool isSubtype(Type r, Type s) {
-    return r === s || r === dynamicType || s === dynamicType ||
+  /** Returns true if t is a subtype of s */
+  bool isSubtype(Type t, Type s) {
+    return t === s || t === dynamicType || s === dynamicType ||
            s.name == Types.OBJECT;
   }
 
@@ -99,11 +100,13 @@ class CancelTypeCheckException {
 }
 
 Type lookupType(SourceString name, compiler, types) {
+  Type t = types.lookup(name);
+  if (t !== null) return t;
   Element element = compiler.universe.find(name);
   if (element !== null && element.kind === ElementKind.CLASS) {
     return element.computeType(compiler, types);
   }
-  return types.lookup(name);
+  return null;
 }
 
 class TypeCheckerVisitor implements Visitor<Type> {
@@ -111,10 +114,12 @@ class TypeCheckerVisitor implements Visitor<Type> {
   final TreeElements elements;
   Type expectedReturnType;  // TODO(karlklose): put into a context.
   final Types types;
+
   Type intType;
   Type doubleType;
   Type boolType;
   Type stringType;
+  Type objectType;
 
   TypeCheckerVisitor(Compiler this.compiler, TreeElements this.elements,
                      Types this.types) {
@@ -122,6 +127,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     doubleType = lookupType(Types.DOUBLE, compiler, types);
     boolType = lookupType(Types.BOOL, compiler, types);
     stringType = lookupType(Types.STRING, compiler, types);
+    objectType = lookupType(Types.OBJECT, compiler, types);
   }
 
   Type fail(node, [reason]) {
@@ -136,7 +142,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     compiler.reportWarning(node, new TypeWarning(kind, arguments));
   }
 
-  Type nonVoidType(Node node) {
+  Type analyzeNonVoid(Node node) {
     Type type = analyze(node);
     if (type == types.voidType) {
       reportTypeWarning(node, MessageKind.VOID_EXPRESSION);
@@ -214,7 +220,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitIf(If node) {
-    analyze(node.condition);
+    checkCondition(node.condition);
     analyze(node.thenPart);
     if (node.hasElsePart) analyze(node.elsePart);
     return types.voidType;
@@ -222,7 +228,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type visitLoop(Loop node) {
     final conditionNode = node.condition;
-    Type conditionType = nonVoidType(conditionNode);
+    Type conditionType = analyzeNonVoid(conditionNode);
     checkAssignable(conditionNode, boolType, conditionType);
     analyze(node.body);
     return types.voidType;
@@ -370,8 +376,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitNewExpression(NewExpression node) {
-    // TODO(karlklose): return the type.
-    return types.dynamicType;
+    return analyze(node.send.selector);
   }
 
   Type visitLiteralList(LiteralList node) {
@@ -430,9 +435,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type visitTypeAnnotation(TypeAnnotation node) {
     if (node.typeName === null) return types.dynamicType;
-    final name = node.typeName.source;
-    Type type = computeType(elements[node]);
-    if (type === null) type = types.lookup(name);
+    Type type = lookupType(node.typeName.source, compiler, types);
     if (type === null) {
       // The type name cannot be resolved, but the resolver
       // already gave a warning, so we continue checking.
@@ -453,7 +456,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
       compiler.ensure(initialization is Identifier
                       || initialization is Send);
       if (initialization is Send) {
-        Type initializer = nonVoidType(link.head);
+        Type initializer = analyzeNonVoid(link.head);
         checkAssignable(node, type, initializer);
       }
     }
@@ -471,9 +474,14 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type visitConditional(Conditional node) {
     checkCondition(node.condition);
-    analyze(node.thenExpression);
-    analyze(node.elseExpression);
-    // TODO(karlklose): check thenExpression and elseExpression
-    return types.dynamicType;
+    Type thenType = analyzeNonVoid(node.thenExpression);
+    Type elseType = analyzeNonVoid(node.elseExpression);
+    if (types.isSubtype(thenType, elseType)) {
+      return thenType;
+    } else if (types.isSubtype(elseType, thenType)) {
+      return elseType;
+    } else {
+      return objectType;
+    }
   }
 }
