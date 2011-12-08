@@ -74,17 +74,21 @@ public final class DartDocUtilities {
   }
 
   /**
-   * Return the raw Dart doc string for the element in the given location, if any.
+   * Return the raw DartDoc string for the element in the given location, or <code>null</code> if
+   * there is no element at that location or if the element at that location has no DartDoc.
    * 
-   * @param compilationUnit
-   * @param unit
-   * @param start
-   * @param end
-   * @return
-   * @throws DartModelException
+   * @param compilationUnit the compilation unit containing the location
+   * @param unit the AST corresponding to the given compilation unit
+   * @param start the index of the start of the range identifying the location
+   * @param end the index of the end of the range identifying the location
+   * @return the raw DartDoc string for the element in the given location
+   * @throws DartModelException if the source containing the DartDoc cannot be accessed
    */
   public static String getDartDoc(CompilationUnit compilationUnit, DartUnit unit, int start, int end)
       throws DartModelException {
+    if (compilationUnit == null || unit == null) {
+      return null;
+    }
     DartElementLocator locator = new DartElementLocator(compilationUnit, start, end);
 
     DartElement element = locator.searchWithin(unit);

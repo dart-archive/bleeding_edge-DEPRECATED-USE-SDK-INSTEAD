@@ -44,6 +44,9 @@ public class DartTextHover extends DefaultTextHover {
     }
 
     DartUnit unit = editor.getAST();
+    if (unit == null) {
+      return null;
+    }
 
     try {
       return DartDocUtilities.getDartDoc((CompilationUnit) editor.getInputDartElement(), unit,
