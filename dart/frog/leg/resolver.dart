@@ -417,6 +417,10 @@ class FullResolverVisitor extends ResolverVisitor {
   visitLiteralList(LiteralList node) {
     visit(node.elements);
   }
+
+  visitConditional(Conditional node) {
+    node.visitChildren(this);
+  }
 }
 
 class ClassResolverVisitor extends AbstractVisitor<Type> {

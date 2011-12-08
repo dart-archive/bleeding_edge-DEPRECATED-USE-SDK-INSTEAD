@@ -48,6 +48,14 @@ class Unparser implements Visitor {
     sb.add('}\n');
   }
 
+  visitConditional(Conditional node) {
+    visit(node.condition);
+    node.questionToken.value.printOn(sb);
+    visit(node.thenExpression);
+    node.colonToken.value.printOn(sb);
+    visit(node.elseExpression);
+  }
+
   visitExpressionStatement(ExpressionStatement node) {
     visit(node.expression);
     add(node.endToken.value);

@@ -468,4 +468,12 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type visitParenthesizedExpression(ParenthesizedExpression node) {
     return analyze(node.expression);
   }
+
+  Type visitConditional(Conditional node) {
+    checkCondition(node.condition);
+    analyze(node.thenExpression);
+    analyze(node.elseExpression);
+    // TODO(karlklose): check thenExpression and elseExpression
+    return types.dynamicType;
+  }
 }

@@ -607,10 +607,8 @@ class NodeListener extends ElementListener {
     Node elseExpression = popNode();
     Node thenExpression = popNode();
     Node condition = popNode();
-    // TODO(ahe): Create an AST node.
-    pushNode(null);
-    canceler.cancel('conditional expression not implemented yet',
-                    token: question);
+    pushNode(new Conditional(
+        condition, thenExpression, elseExpression, question, colon));
   }
 
   void endSend(Token token) {

@@ -5,6 +5,7 @@
 interface Visitor<R> {
   R visitBlock(Block node);
   R visitClassNode(ClassNode node);
+  R visitConditional(Conditional node);
   R visitDoWhile(DoWhile node);
   R visitExpressionStatement(ExpressionStatement node);
   R visitFor(For node);
@@ -77,6 +78,7 @@ class Node implements Hashable {
 
   Block asBlock() => null;
   ClassNode asClassNode() => null;
+  Conditional asConditional() => null;
   DoWhile asDoWhile() => null;
   ExpressionStatement asExpressionStatement() => null;
   For asFor() => null;
@@ -371,6 +373,32 @@ class If extends Statement {
     if (elsePart === null) return thenPart.getEndToken();
     return elsePart.getEndToken();
   }
+}
+
+class Conditional extends Expression {
+  final Expression condition;
+  final Expression thenExpression;
+  final Expression elseExpression;
+
+  final Token questionToken;
+  final Token colonToken;
+
+  Conditional(this.condition, this.thenExpression,
+              this.elseExpression, this.questionToken, this.colonToken);
+
+  Conditional asConditional() => this;
+
+  accept(Visitor visitor) => visitor.visitConditional(this);
+
+  visitChildren(Visitor visitor) {
+    condition.accept(visitor);
+    thenExpression.accept(visitor);
+    elseExpression.accept(visitor);
+  }
+
+  Token getBeginToken() => condition.getBeginToken();
+
+  Token getEndToken() => elseExpression.getEndToken();
 }
 
 class For extends Loop {

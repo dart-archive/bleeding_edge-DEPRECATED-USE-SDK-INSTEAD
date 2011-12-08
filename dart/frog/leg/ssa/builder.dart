@@ -763,4 +763,8 @@ class SsaBuilder implements Visitor {
     }
     push(new HLiteralList(inputs));
   }
+
+  visitConditional(Conditional node) {
+    compiler.unimplemented("SsaBuilder: conditional");
+  }
 }
