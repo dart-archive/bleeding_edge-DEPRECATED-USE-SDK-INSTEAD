@@ -37,18 +37,6 @@ def GetDart():
   # Get the release version.
   return utils.GetDartRunner('release', 'ia32', 'vm')
 
-def GetReleaseVersion(dart):
-  product_dir = dirname(dart)
-  out_dir = dirname(product_dir)
-  config = basename(product_dir)
-
-  if config.find('Debug') != -1:
-    dart_release = join(out_dir, config.replace('Debug', 'Release'), 'dart')
-  else:
-    dart_release = dart
-
-  return dart_release
-
 def GetD8():
   return join(dirname(GetDart()), 'd8')
 
@@ -124,7 +112,7 @@ def main(args):
     optionParser.print_help()
     return 1
 
-  dart = GetReleaseVersion(options.vm)
+  dart = options.vm
   if not exists(dart):
     print "Dart VM not built. Please run the following command:"
     build_file = relpath(join(HOME, os.pardir, 'tools', 'build.py'))
