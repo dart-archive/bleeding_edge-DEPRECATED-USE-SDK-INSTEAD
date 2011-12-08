@@ -23,7 +23,7 @@ import utils
 def GetOutputPath(mode):
   return rootPath(
     utils.GetBuildRoot(utils.GuessOS(), mode, utils.GuessArchitecture()),
-    'dart_bin')
+    'dart')
 
 def BuildDart(mode):
   if subprocess.call([
