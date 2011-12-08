@@ -42,6 +42,24 @@ def _BuildOptions():
   return result
 
 
+def GetUtils(toolspath):
+  """Dynamically get the utils module.
+
+  We use a dynamic import for tools/util.py because we derive its location
+  dynamically using sys.argv[0]. This allows us to run this script from
+  different directories.
+
+  Args:
+    toolspath: the path to the tools directory
+
+  Returns:
+    the utils module
+  """
+  sys.path.append(os.path.abspath(toolspath))
+  utils = __import__('utils')
+  return utils
+
+
 def main():
   """Main entry point for the build program."""
 
@@ -49,7 +67,6 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
-  buildos = sys.platform
   scriptdir = os.path.dirname(sys.argv[0])
   editorpath = os.path.abspath(os.path.join(scriptdir, '..'))
   thirdpartypath = os.path.abspath(os.path.join(scriptdir, '..', '..',
@@ -62,6 +79,8 @@ def main():
   buildpath = os.path.join(editorpath, 'tools', 'features',
                            'com.google.dart.tools.deploy.feature_releng')
   buildroot = os.path.join(editorpath, 'build_root')
+  utils = GetUtils(toolspath)
+  buildos = utils.GuessOS()
   print 'buildos        = {0}'.format(buildos)
   print 'scriptdir      = {0}'.format(scriptdir)
   print 'editorpath     = {0}'.format(editorpath)
@@ -101,12 +120,18 @@ def main():
     parser.print_help()
     return 2
 
+  revision = options.revision
+  lastc = revision[-1]
+  if lastc.isalpha():
+    revision = revision[0:-1]
+  print 'revision       = {0}'.format(revision)
+
   buildout = os.path.join(buildroot, options.out)
 
-  #get user name if it does not start with chrome then deploy 
+  #get user name if it does not start with chrome then deploy
   # to the test bucket otherwise deploy to the continuous bucket
   #I could not find any non-OS specific way to get the user under Python
-  # so the environemnt variables 'USER' Linux and Mac and 
+  # so the environemnt variables 'USER' Linux and Mac and
   # 'USERNAME' Windows were used.
   username = os.environ.get('USER')
   if username is None:
@@ -125,20 +150,23 @@ def main():
   print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
   builder_name = str(options.name)
 
-  _PrintSeparator('running the build of the Dart SDK')
-  dartbuildscript = os.path.join(toolspath, 'build.py')
-  cmds = [sys.executable, dartbuildscript,
-          '--mode=release', 'create_sdk']
-  print ' '.join(cmds)
-  cwd = os.getcwd()
-  try:
-    os.chdir(dartpath)
-    status = subprocess.call(cmds)
-    if status:
-      _PrintError('the build of the SDK failed')
-      return status
-  finally:
-    os.chdir(cwd)
+  if builder_name != 'dart-editor-win' and builder_name != 'dart-editor':
+    _PrintSeparator('running the build of the Dart SDK')
+    dartbuildscript = os.path.join(toolspath, 'build.py')
+    cmds = [sys.executable, dartbuildscript,
+            '--mode=release', 'upload_sdk']
+    cwd = os.getcwd()
+    try:
+      os.chdir(dartpath)
+      print ' '.join(cmds)
+      status = subprocess.call(cmds)
+      if status:
+        _PrintError('the build of the SDK failed')
+        return status
+    finally:
+      os.chdir(cwd)
+
+    _CopySdk(buildos, revision, to_bucket, gsu)
 
   if builder_name == 'dart-editor':
     buildos = None
@@ -149,7 +177,7 @@ def main():
     return 0
 
   _PrintSeparator('running the build to produce the Zipped RCP''s')
-  status = _RunAnt('.', 'build_rcp.xml', options.revision, options.name,
+  status = _RunAnt('.', 'build_rcp.xml', revision, options.name,
                    buildroot, buildout, editorpath, buildos)
   property_file = os.path.join('/var/tmp/' + options.name +
                                '-build.properties')
@@ -172,20 +200,20 @@ def main():
   #if the build passed run the deploy artifacts
   _PrintSeparator("Deploying the built RCP's to Google Storage")
   status = _DeployArtifacts(buildout, to_bucket,
-                            properties['build.tmp'], options.revision,
+                            properties['build.tmp'], revision,
                             gsu)
   if status:
     return status
 
   _PrintSeparator("Setting the ACL'sfor the RCP's in Google Storage")
-  _SetAclOnArtifacts(to_bucket, [options.revision, 'latest'], gsu)
+  _SetAclOnArtifacts(to_bucket, [revision, 'latest'], gsu)
 
   sys.stdout.flush()
 
   _PrintSeparator('Running the tests')
   status = _RunAnt('../com.google.dart.tools.tests.feature_releng',
                    'buildTests.xml',
-                   options.revision, options.name, buildroot, buildout,
+                   revision, options.name, buildroot, buildout,
                    editorpath, buildos)
   properties = _ReadPropertyFile(property_file)
   if status and properties['build.runtime']:
@@ -403,6 +431,28 @@ def _SetAclOnArtifacts(to, bucket_tags, gsu):
         acl = gsu.GetAcl(element)
         acl = gsu.AddPublicAcl(acl)
         gsu.SetAcl(element, acl)
+
+
+def _CopySdk(buildos, revision, bucket, gsu):
+  '''copy the deployed SDK to the editor buckets.
+
+  Args:
+    buildos: the OS the build is running under
+    revision: the svn revision
+    bucket: the bucket to upload to
+    gsu: the gsutil object
+  '''
+  print '_UploadSdk({0}, {1}, gsu)'.format(buildos, revision)
+  gszip = 'dart-{0}-{1}.zip'.format(buildos, revision)
+  gssdkzip = 'gs://dart-dump-render-tree/sdk/{0}'.format(gszip)
+  gseditorzip = '{0}/{1}/{2}'.format(bucket, revision, gszip)
+  gseditorlatestzip = '{0}/{1}/{2}'.format(bucket, 'latest' , gszip)
+
+  print 'copying {0} to {1}'.format(gssdkzip, gseditorzip)
+  gsu.Copy(gssdkzip, gseditorzip)
+  print 'copying {0} to {1}'.format(gssdkzip, gseditorlatestzip)
+  gsu.Copy(gssdkzip, gseditorlatestzip)
+  _SetAclOnArtifacts(bucket, [gszip], gsu)
 
 
 def _PrintSeparator(text):
