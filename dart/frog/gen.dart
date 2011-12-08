@@ -165,7 +165,8 @@ class WorldGenerator {
       // TODO(jmesserly): we can't accurately track if DOM types are
       // created or not, so we need to prepare to handle them.
       // This should be fixed by tightening up the return types in DOM.
-      if ((type.isUsed || type.isHiddenNativeType) && type.isClass) {
+      if ((type.isUsed || type.library == world.dom
+          || type.isHiddenNativeType) && type.isClass) {
         writeType(type);
 
         if (type.isGeneric) {
@@ -280,7 +281,7 @@ class WorldGenerator {
         }
       }
     }
-    
+
     if (type.isTop) {
       // no preludes for top type
     } else if (type.constructors.length == 0) {

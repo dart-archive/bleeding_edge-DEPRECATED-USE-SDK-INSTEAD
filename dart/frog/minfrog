@@ -2184,7 +2184,7 @@ WorldGenerator.prototype.writeTypes = function(lib) {
   var $$list = this._orderValues(lib.types);
   for (var $$i = 0;$$i < $$list.length; $$i++) {
     var type = $$list.$index($$i);
-    if ((type.get$isUsed() || type.get$isHiddenNativeType()) && type.get$isClass()) {
+    if ((type.get$isUsed() || $eq(type.get$library(), $globals.world.get$dom()) || type.get$isHiddenNativeType()) && type.get$isClass()) {
       this.writeType(type);
       if (type.get$isGeneric()) {
         var $list0 = this._orderValues(type.get$_concreteTypes());
