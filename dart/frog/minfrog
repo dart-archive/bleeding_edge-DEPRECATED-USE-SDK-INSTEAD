@@ -13172,8 +13172,11 @@ function main() {
   for (var i = 0;
    i < process.argv.length; i++) {
     argv.add$1(process.argv.$index(i));
-    if (i == 1 && !process.get$env().$index('TERM').startsWith$1('xterm')) {
-      argv.add$1('--no_colors');
+    if (i == 1) {
+      var terminal = process.get$env().$index('TERM');
+      if (terminal == null || !terminal.startsWith$1('xterm')) {
+        argv.add$1('--no_colors');
+      }
     }
   }
   if (compile(homedir, argv, new NodeFileSystem())) {

@@ -18,8 +18,11 @@ void main() {
   var argv = [];
   for (int i = 0; i < process.argv.length; i++) {
     argv.add(process.argv[i]);
-    if (i == 1 && !process.env['TERM'].startsWith('xterm')) {
-      argv.add('--no_colors');
+    if (i == 1) {
+      var terminal = process.env['TERM'];
+      if (terminal == null || !terminal.startsWith('xterm')) {
+        argv.add('--no_colors');
+      }
     }
   }
 
