@@ -120,12 +120,14 @@ class SsaCodeGenerator implements HVisitor {
     return result;
   }
 
-  void invoke(Element element, List<HInstruction> inputs) {
-    assert(inputs.length >= 1);
-    use(inputs[0]);
+  /**
+    * Only visits the arguments starting at inputs[HInvoke.ARGUMENTS_OFFSET].
+    */
+  void visitArguments(List<HInstruction> inputs) {
+    assert(inputs.length >= HInvoke.ARGUMENTS_OFFSET);
     buffer.add('(');
-    for (int i = 1; i < inputs.length; i++) {
-      if (i != 1) buffer.add(', ');
+    for (int i = HInvoke.ARGUMENTS_OFFSET; i < inputs.length; i++) {
+      if (i != HInvoke.ARGUMENTS_OFFSET) buffer.add(', ');
       use(inputs[i]);
     }
     buffer.add(")");
@@ -315,9 +317,17 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
+  visitInvokeDynamic(HInvokeDynamic node) {
+    use(node.receiver);
+    buffer.add('.');
+    buffer.add(node.methodName);
+    visitArguments(node.inputs);
+  }
+
   visitInvokeStatic(HInvokeStatic node) {
     compiler.addToWorklist(node.element);
-    invoke(node.element, node.inputs);
+    use(node.target);
+    visitArguments(node.inputs);
   }
 
   visitForeign(HForeign node) {

@@ -20,6 +20,7 @@ interface HVisitor<R> {
   R visitIf(HIf node);
   R visitIndex(HIndex node);
   R visitIndexAssign(HIndexAssign node);
+  R visitInvokeDynamic(HInvokeDynamic node);
   R visitInvokeStatic(HInvokeStatic node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
@@ -173,6 +174,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
 
   visitBinaryArithmetic(HBinaryArithmetic node) => visitInvokeBinary(node);
   visitBinaryBitOp(HBinaryBitOp node) => visitBinaryArithmetic(node);
+  visitInvoke(HInvoke node) => visitInstruction(node);
   visitInvokeBinary(HInvokeBinary node) => visitInvokeStatic(node);
   visitInvokeUnary(HInvokeUnary node) => visitInvokeStatic(node);
   visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
@@ -195,7 +197,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIf(HIf node) => visitConditionalBranch(node);
   visitIndex(HIndex node) => visitInvokeStatic(node);
   visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
-  visitInvokeStatic(HInvokeStatic node) => visitInstruction(node);
+  visitInvokeDynamic(HInvokeDynamic node) => visitInvoke(node);
+  visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLoad(HLoad node) => visitInstruction(node);
@@ -820,7 +823,30 @@ class HControlFlow extends HInstruction {
   abstract toString();
 }
 
-class HInvokeStatic extends HInstruction {
+class HInvoke extends HInstruction {
+  /**
+    * The first argument must be the target: either an [HStatic] node, or
+    * the receiver of a method-call. The remaining inputs are the arguments
+    * to the invocation.
+    */
+  HInvoke(List<HInstruction> inputs) : super(inputs);
+  static final int ARGUMENTS_OFFSET = 1;
+}
+
+class HInvokeDynamic extends HInvoke {
+  String methodName;
+  /**
+    * The [methodName] must be mangled.
+    * The first input must be the receiver.
+    */
+  HInvokeDynamic(this.methodName, List<HInstruction> inputs) : super(inputs);
+  toString() => 'invoke dynamic: $methodName';
+  accept(HVisitor visitor) => visitor.visitInvokeDynamic(this);
+
+  HInstruction get receiver() => inputs[0];
+}
+
+class HInvokeStatic extends HInvoke {
   /** The first input must be the target. */
   HInvokeStatic(inputs) : super(inputs);
   toString() => 'invoke static: ${element.name}';
