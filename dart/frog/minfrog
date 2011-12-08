@@ -2673,7 +2673,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.enterBlock(('' + this.method.declaringType.get$jsname() + '.' + this.method.get$jsname() + ' = function' + _params + ' {'));
   }
   else {
-    defWriter.enterBlock(('' + this.method.declaringType.get$jsname() + '.prototype.') + ('' + this.method.get$jsname() + ' = function' + _params + ' {'));
+    defWriter.enterBlock($globals.world.gen._prototypeOf(this.method.declaringType, this.method.get$jsname()) + (' = function' + _params + ' {'));
   }
   if (this.needsThis) {
     defWriter.writeln('var \$this = this; // closure support');

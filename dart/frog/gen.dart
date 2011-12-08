@@ -792,8 +792,9 @@ class MethodGenerator implements TreeVisitor {
     } else if (method.isStatic) {
       defWriter.enterBlock('${method.declaringType.jsname}.${method.jsname} = function$_params {');
     } else {
-      defWriter.enterBlock('${method.declaringType.jsname}.prototype.'
-        + '${method.jsname} = function$_params {');
+      defWriter.enterBlock(
+          world.gen._prototypeOf(method.declaringType, method.jsname)
+          + ' = function$_params {');
     }
 
     if (needsThis) {
