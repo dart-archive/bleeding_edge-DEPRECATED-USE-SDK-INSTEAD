@@ -5,6 +5,7 @@
 class Type extends Element {
   bool isTested = false;
   bool isChecked = false;
+  bool isWritten = false;
 
   /**
    * For core types (int, String, etc) this is the generated type assertion

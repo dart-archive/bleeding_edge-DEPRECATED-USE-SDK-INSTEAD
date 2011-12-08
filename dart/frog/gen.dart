@@ -228,6 +228,15 @@ class WorldGenerator {
   }
 
   writeType(Type type) {
+    if (type.isWritten) return;
+
+    type.isWritten = true;
+    // Ensure parent has been written before the child. Important ordering for
+    // IE when we're using $inherits, since we don't have __proto__ available.
+    if (type.parent !=  null && !type.isNative) {
+      writeType(type.parent);
+    }
+
     // TODO(jimhug): Workaround for problems with reified generic Array.
     if (type.name != null && type is ConcreteType &&
         type.library == world.coreimpl &&
@@ -247,6 +256,31 @@ class WorldGenerator {
       }
     }
 
+    // We need the $inherits function to be declared before factory constructors
+    // so that inheritance ($inherits) will work correctly in IE.
+    if (!type.isTop) {
+      if (type is ConcreteType) {
+        ConcreteType c = type;
+        corejs.ensureInheritsHelper();
+        writer.writeln('\$inherits(${c.jsname}, ${c.genericType.jsname});');
+
+        // Mixin members from concrete specializations of base types too.
+        // TODO(jmesserly): emit this sooner instead of at the end.
+        // But it needs to come after we've emitted both types.
+        // TODO(jmesserly): HACK: using _parent instead of parent so we don't
+        // try to inherit things that we didn't actually use.
+        for (var p = c._parent; p is ConcreteType; p = p._parent) {
+          _ensureInheritMembersHelper();
+          _mixins.writeln('\$inheritsMembers(${c.jsname}, ${p.jsname});');
+        }
+      } else if (!type.isNative) {
+        if (type.parent != null && !type.parent.isObject) {
+          corejs.ensureInheritsHelper();
+          writer.writeln('\$inherits(${type.jsname}, ${type.parent.jsname});');
+        }
+      }
+    }
+    
     if (type.isTop) {
       // no preludes for top type
     } else if (type.constructors.length == 0) {
@@ -268,29 +302,6 @@ class WorldGenerator {
       for (var c in type.constructors.getValues()) {
         if (c.generator != null && c != standardConstructor) {
           c.generator.writeDefinition(writer, null);
-        }
-      }
-    }
-
-    if (!type.isTop) {
-      if (type is ConcreteType) {
-        ConcreteType c = type;
-        corejs.ensureInheritsHelper();
-        writer.writeln('\$inherits(${c.jsname}, ${c.genericType.jsname});');
-
-        // Mixin members from concrete specializations of base types too.
-        // TODO(jmesserly): emit this sooner instead of at the end.
-        // But it needs to come after we've emitted both types.
-        // TODO(jmesserly): HACK: using _parent instead of parent so we don't
-        // try to inherit things that we didn't actually use.
-        for (var p = c._parent; p is ConcreteType; p = p._parent) {
-          _ensureInheritMembersHelper();
-          _mixins.writeln('\$inheritsMembers(${c.jsname}, ${p.jsname});');
-        }
-      } else if (!type.isNative) {
-        if (type.parent != null && !type.parent.isObject) {
-          corejs.ensureInheritsHelper();
-          writer.writeln('\$inherits(${type.jsname}, ${type.parent.jsname});');
         }
       }
     }

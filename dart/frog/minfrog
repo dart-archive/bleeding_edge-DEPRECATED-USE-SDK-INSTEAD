@@ -124,14 +124,6 @@ function $truncdiv(x, y) {
     return x.$truncdiv(y);
   }
 }
-// ********** Code for Clock **************
-function Clock() {}
-Clock.now = function() {
-  return new Date().getTime();
-}
-Clock.frequency = function() {
-  return 1000;
-}
 // ********** Code for Object **************
 Object.prototype.get$dynamic = function() {
   return this;
@@ -385,6 +377,14 @@ Object.prototype.visitSources$0 = function() {
 Object.prototype.writeDefinition$2 = function($0, $1) {
   return this.noSuchMethod("writeDefinition", [$0, $1]);
 };
+// ********** Code for Clock **************
+function Clock() {}
+Clock.now = function() {
+  return new Date().getTime();
+}
+Clock.frequency = function() {
+  return 1000;
+}
 // ********** Code for NoSuchMethodException **************
 function NoSuchMethodException(_receiver, _functionName, _arguments) {
   this._receiver = _receiver;
@@ -648,17 +648,17 @@ ListFactory_V = ListFactory;
 // ********** Code for ListIterator **************
 function ListIterator(array) {
   this._array = array;
-  this._dart_coreimpl_pos = 0;
+  this._pos = 0;
   // Initializers done
 }
 ListIterator.prototype.hasNext = function() {
-  return this._array.length > this._dart_coreimpl_pos;
+  return this._array.length > this._pos;
 }
 ListIterator.prototype.next = function() {
   if (!this.hasNext()) {
     $throw(const$8/*const NoMoreElementsException()*/);
   }
-  return this._array.$index(this._dart_coreimpl_pos++);
+  return this._array.$index(this._pos++);
 }
 ListIterator.prototype.hasNext$0 = ListIterator.prototype.hasNext;
 ListIterator.prototype.next$0 = ListIterator.prototype.next;
@@ -882,14 +882,6 @@ HashMapImplementation.prototype.getKeys$0 = HashMapImplementation.prototype.getK
 HashMapImplementation.prototype.getValues$0 = HashMapImplementation.prototype.getValues;
 HashMapImplementation.prototype.isEmpty$0 = HashMapImplementation.prototype.isEmpty;
 // ********** Code for HashMapImplementation_E$E **************
-function HashMapImplementation_E$E() {
-  // Initializers done
-  this._numberOfEntries = 0;
-  this._numberOfDeleted = 0;
-  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-}
 /** Implements extends for Dart classes on JavaScript prototypes. */
 function $inherits(child, parent) {
   if (child.prototype.__proto__) {
@@ -902,6 +894,14 @@ function $inherits(child, parent) {
   }
 }
 $inherits(HashMapImplementation_E$E, HashMapImplementation);
+function HashMapImplementation_E$E() {
+  // Initializers done
+  this._numberOfEntries = 0;
+  this._numberOfDeleted = 0;
+  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._values = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+}
 HashMapImplementation_E$E._computeLoadLimit = function(capacity) {
   return $truncdiv((capacity * 3), 4);
 }
@@ -1024,11 +1024,11 @@ HashMapImplementation_E$E.prototype.containsKey = function(key) {
   return (this._probeForLookup(key) != -1);
 }
 // ********** Code for HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V **************
-function HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V() {}
 $inherits(HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V, HashMapImplementation);
+function HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V() {}
 // ********** Code for HashMapImplementation_String$EvaluatedValue **************
-function HashMapImplementation_String$EvaluatedValue() {}
 $inherits(HashMapImplementation_String$EvaluatedValue, HashMapImplementation);
+function HashMapImplementation_String$EvaluatedValue() {}
 // ********** Code for HashSetImplementation **************
 function HashSetImplementation() {
   // Initializers done
@@ -1112,14 +1112,14 @@ HashSetImplementation.prototype.some$1 = function($0) {
   return this.some(to$call$1($0));
 };
 // ********** Code for HashSetImplementation_E **************
-function HashSetImplementation_E() {}
 $inherits(HashSetImplementation_E, HashSetImplementation);
+function HashSetImplementation_E() {}
 // ********** Code for HashSetImplementation_String **************
-function HashSetImplementation_String() {}
 $inherits(HashSetImplementation_String, HashSetImplementation);
+function HashSetImplementation_String() {}
 // ********** Code for HashSetImplementation_Type **************
-function HashSetImplementation_Type() {}
 $inherits(HashSetImplementation_Type, HashSetImplementation);
+function HashSetImplementation_Type() {}
 // ********** Code for HashSetIterator **************
 function HashSetIterator(set_) {
   this._nextValidIndex = -1;
@@ -1155,13 +1155,13 @@ HashSetIterator.prototype._advance = function() {
 HashSetIterator.prototype.hasNext$0 = HashSetIterator.prototype.hasNext;
 HashSetIterator.prototype.next$0 = HashSetIterator.prototype.next;
 // ********** Code for HashSetIterator_E **************
+$inherits(HashSetIterator_E, HashSetIterator);
 function HashSetIterator_E(set_) {
   this._nextValidIndex = -1;
   this._entries = set_._backingMap._keys;
   // Initializers done
   this._advance();
 }
-$inherits(HashSetIterator_E, HashSetIterator);
 HashSetIterator_E.prototype._advance = function() {
   var length = this._entries.length;
   var entry;
@@ -1185,12 +1185,12 @@ function KeyValuePair(key, value) {
 KeyValuePair.prototype.get$value = function() { return this.value; };
 KeyValuePair.prototype.set$value = function(value) { return this.value = value; };
 // ********** Code for KeyValuePair_K$V **************
+$inherits(KeyValuePair_K$V, KeyValuePair);
 function KeyValuePair_K$V(key, value) {
   this.key = key;
   this.value = value;
   // Initializers done
 }
-$inherits(KeyValuePair_K$V, KeyValuePair);
 // ********** Code for LinkedHashMapImplementation **************
 function LinkedHashMapImplementation() {
   // Initializers done
@@ -1285,11 +1285,11 @@ DoubleLinkedQueueEntry.prototype.get$element = function() {
   return this._element;
 }
 // ********** Code for DoubleLinkedQueueEntry_E **************
+$inherits(DoubleLinkedQueueEntry_E, DoubleLinkedQueueEntry);
 function DoubleLinkedQueueEntry_E(e) {
   // Initializers done
   this._element = e;
 }
-$inherits(DoubleLinkedQueueEntry_E, DoubleLinkedQueueEntry);
 DoubleLinkedQueueEntry_E.prototype._link = function(p, n) {
   this._next = n;
   this._previous = p;
@@ -1313,11 +1313,11 @@ DoubleLinkedQueueEntry_E.prototype.previousEntry = function() {
   return this._previous._asNonSentinelEntry();
 }
 // ********** Code for DoubleLinkedQueueEntry_KeyValuePair_K$V **************
+$inherits(DoubleLinkedQueueEntry_KeyValuePair_K$V, DoubleLinkedQueueEntry);
 function DoubleLinkedQueueEntry_KeyValuePair_K$V(e) {
   // Initializers done
   this._element = e;
 }
-$inherits(DoubleLinkedQueueEntry_KeyValuePair_K$V, DoubleLinkedQueueEntry);
 DoubleLinkedQueueEntry_KeyValuePair_K$V.prototype._link = function(p, n) {
   this._next = n;
   this._previous = p;
@@ -1334,12 +1334,12 @@ DoubleLinkedQueueEntry_KeyValuePair_K$V.prototype.previousEntry = function() {
   return this._previous._asNonSentinelEntry();
 }
 // ********** Code for _DoubleLinkedQueueEntrySentinel **************
+$inherits(_DoubleLinkedQueueEntrySentinel, DoubleLinkedQueueEntry_E);
 function _DoubleLinkedQueueEntrySentinel() {
   // Initializers done
   DoubleLinkedQueueEntry_E.call(this, null);
   this._link(this, this);
 }
-$inherits(_DoubleLinkedQueueEntrySentinel, DoubleLinkedQueueEntry_E);
 _DoubleLinkedQueueEntrySentinel.prototype.remove = function() {
   $throw(const$2/*const EmptyQueueException()*/);
 }
@@ -1350,19 +1350,19 @@ _DoubleLinkedQueueEntrySentinel.prototype.get$element = function() {
   $throw(const$2/*const EmptyQueueException()*/);
 }
 // ********** Code for _DoubleLinkedQueueEntrySentinel_E **************
+$inherits(_DoubleLinkedQueueEntrySentinel_E, _DoubleLinkedQueueEntrySentinel);
 function _DoubleLinkedQueueEntrySentinel_E() {
   // Initializers done
   DoubleLinkedQueueEntry_E.call(this, null);
   this._link(this, this);
 }
-$inherits(_DoubleLinkedQueueEntrySentinel_E, _DoubleLinkedQueueEntrySentinel);
 // ********** Code for _DoubleLinkedQueueEntrySentinel_KeyValuePair_K$V **************
+$inherits(_DoubleLinkedQueueEntrySentinel_KeyValuePair_K$V, _DoubleLinkedQueueEntrySentinel);
 function _DoubleLinkedQueueEntrySentinel_KeyValuePair_K$V() {
   // Initializers done
   DoubleLinkedQueueEntry_KeyValuePair_K$V.call(this, null);
   this._link(this, this);
 }
-$inherits(_DoubleLinkedQueueEntrySentinel_KeyValuePair_K$V, _DoubleLinkedQueueEntrySentinel);
 // ********** Code for DoubleLinkedQueue **************
 function DoubleLinkedQueue() {
   // Initializers done
@@ -1461,14 +1461,14 @@ DoubleLinkedQueue.prototype.some$1 = function($0) {
   return this.some(to$call$1($0));
 };
 // ********** Code for DoubleLinkedQueue_E **************
-function DoubleLinkedQueue_E() {}
 $inherits(DoubleLinkedQueue_E, DoubleLinkedQueue);
+function DoubleLinkedQueue_E() {}
 // ********** Code for DoubleLinkedQueue_KeyValuePair_K$V **************
+$inherits(DoubleLinkedQueue_KeyValuePair_K$V, DoubleLinkedQueue);
 function DoubleLinkedQueue_KeyValuePair_K$V() {
   // Initializers done
   this._sentinel = new _DoubleLinkedQueueEntrySentinel_KeyValuePair_K$V();
 }
-$inherits(DoubleLinkedQueue_KeyValuePair_K$V, DoubleLinkedQueue);
 DoubleLinkedQueue_KeyValuePair_K$V.prototype.addLast = function(value) {
   this._sentinel.prepend(value);
 }
@@ -1502,12 +1502,12 @@ _DoubleLinkedQueueIterator.prototype.next = function() {
 _DoubleLinkedQueueIterator.prototype.hasNext$0 = _DoubleLinkedQueueIterator.prototype.hasNext;
 _DoubleLinkedQueueIterator.prototype.next$0 = _DoubleLinkedQueueIterator.prototype.next;
 // ********** Code for _DoubleLinkedQueueIterator_E **************
+$inherits(_DoubleLinkedQueueIterator_E, _DoubleLinkedQueueIterator);
 function _DoubleLinkedQueueIterator_E(_sentinel) {
   this._sentinel = _sentinel;
   // Initializers done
   this._currentEntry = this._sentinel;
 }
-$inherits(_DoubleLinkedQueueIterator_E, _DoubleLinkedQueueIterator);
 // ********** Code for StopwatchImplementation **************
 function StopwatchImplementation() {
   this._start = null;
@@ -2238,6 +2238,11 @@ WorldGenerator.prototype._maybeIsTest = function(onType, checkType) {
   }
 }
 WorldGenerator.prototype.writeType = function(type) {
+  if (type.isWritten) return;
+  type.isWritten = true;
+  if (type.get$parent() != null && !type.get$isNative()) {
+    this.writeType(type.get$parent());
+  }
   if (type.name != null && (type instanceof ConcreteType) && $eq(type.get$library(), $globals.world.get$coreimpl()) && type.name.startsWith('ListFactory')) {
     this.writer.writeln(('' + type.get$jsname() + ' = ' + type.get$genericType().get$jsname() + ';'));
     return;
@@ -2251,6 +2256,24 @@ WorldGenerator.prototype.writeType = function(type) {
     }
     else if (type.get$jsname() != nativeName) {
       this.writer.writeln(('' + type.get$jsname() + ' = ' + nativeName + ';'));
+    }
+  }
+  if (!type.get$isTop()) {
+    if ((type instanceof ConcreteType)) {
+      var c = type;
+      this.corejs.ensureInheritsHelper();
+      this.writer.writeln(('\$inherits(' + c.get$jsname() + ', ' + c.genericType.get$jsname() + ');'));
+      for (var p = c._parent;
+       (p instanceof ConcreteType); p = p.get$_parent()) {
+        this._ensureInheritMembersHelper();
+        this._mixins.writeln(('\$inheritsMembers(' + c.get$jsname() + ', ' + p.get$jsname() + ');'));
+      }
+    }
+    else if (!type.get$isNative()) {
+      if (type.get$parent() != null && !type.get$parent().get$isObject()) {
+        this.corejs.ensureInheritsHelper();
+        this.writer.writeln(('\$inherits(' + type.get$jsname() + ', ' + type.get$parent().get$jsname() + ');'));
+      }
     }
   }
   if (type.get$isTop()) {
@@ -2275,24 +2298,6 @@ WorldGenerator.prototype.writeType = function(type) {
       var c = $$i.next$0();
       if (c.get$generator() != null && $ne(c, standardConstructor)) {
         c.get$generator().writeDefinition$2(this.writer);
-      }
-    }
-  }
-  if (!type.get$isTop()) {
-    if ((type instanceof ConcreteType)) {
-      var c = type;
-      this.corejs.ensureInheritsHelper();
-      this.writer.writeln(('\$inherits(' + c.get$jsname() + ', ' + c.genericType.get$jsname() + ');'));
-      for (var p = c._parent;
-       (p instanceof ConcreteType); p = p.get$_parent()) {
-        this._ensureInheritMembersHelper();
-        this._mixins.writeln(('\$inheritsMembers(' + c.get$jsname() + ', ' + p.get$jsname() + ');'));
-      }
-    }
-    else if (!type.get$isNative()) {
-      if (type.get$parent() != null && !type.get$parent().get$isObject()) {
-        this.corejs.ensureInheritsHelper();
-        this.writer.writeln(('\$inherits(' + type.get$jsname() + ', ' + type.get$parent().get$jsname() + ');'));
       }
     }
   }
@@ -4064,6 +4069,7 @@ LibraryImport.prototype.set$prefix = function(value) { return this.prefix = valu
 LibraryImport.prototype.get$library = function() { return this.library; };
 LibraryImport.prototype.set$library = function(value) { return this.library = value; };
 // ********** Code for Library **************
+$inherits(Library, Element);
 function Library(baseSource) {
   this.isWritten = false
   this.isMarked = false
@@ -4078,7 +4084,6 @@ function Library(baseSource) {
   this.sources = [];
   this._privateMembers = new HashMapImplementation();
 }
-$inherits(Library, Element);
 Library.prototype.get$baseSource = function() { return this.baseSource; };
 Library.prototype.get$types = function() { return this.types; };
 Library.prototype.set$types = function(value) { return this.types = value; };
@@ -4575,13 +4580,13 @@ Parameter.prototype.copyWithNewType$2 = Parameter.prototype.copyWithNewType;
 Parameter.prototype.genValue$2 = Parameter.prototype.genValue;
 Parameter.prototype.resolve$0 = Parameter.prototype.resolve;
 // ********** Code for Member **************
+$inherits(Member, Element);
 function Member(name, declaringType) {
   this.isGenerated = false;
   this.declaringType = declaringType;
   // Initializers done
   Element.call(this, name, declaringType);
 }
-$inherits(Member, Element);
 Member.prototype.get$declaringType = function() { return this.declaringType; };
 Member.prototype.get$generator = function() { return this.generator; };
 Member.prototype.set$generator = function(value) { return this.generator = value; };
@@ -4713,12 +4718,12 @@ Member.prototype.invoke$5 = Member.prototype.invoke;
 Member.prototype.provideFieldSyntax$0 = Member.prototype.provideFieldSyntax;
 Member.prototype.providePropertySyntax$0 = Member.prototype.providePropertySyntax;
 // ********** Code for TypeMember **************
+$inherits(TypeMember, Member);
 function TypeMember(type) {
   this.type = type;
   // Initializers done
   Member.call(this, type.name, type.library.topType);
 }
-$inherits(TypeMember, Member);
 TypeMember.prototype.get$type = function() { return this.type; };
 TypeMember.prototype.get$span = function() {
   return this.type.definition.span;
@@ -4767,6 +4772,7 @@ TypeMember.prototype.invoke$4 = function($0, $1, $2, $3) {
 TypeMember.prototype.invoke$4$isDynamic = TypeMember.prototype.invoke;
 TypeMember.prototype.invoke$5 = TypeMember.prototype.invoke;
 // ********** Code for FieldMember **************
+$inherits(FieldMember, Member);
 function FieldMember(name, declaringType, definition, value) {
   this._providePropertySyntax = false
   this._computing = false
@@ -4776,7 +4782,6 @@ function FieldMember(name, declaringType, definition, value) {
   // Initializers done
   Member.call(this, name, declaringType);
 }
-$inherits(FieldMember, Member);
 FieldMember.prototype.get$definition = function() { return this.definition; };
 FieldMember.prototype.get$value = function() { return this.value; };
 FieldMember.prototype.get$type = function() { return this.type; };
@@ -4950,12 +4955,12 @@ FieldMember.prototype.provideFieldSyntax$0 = FieldMember.prototype.provideFieldS
 FieldMember.prototype.providePropertySyntax$0 = FieldMember.prototype.providePropertySyntax;
 FieldMember.prototype.resolve$0 = FieldMember.prototype.resolve;
 // ********** Code for PropertyMember **************
+$inherits(PropertyMember, Member);
 function PropertyMember(name, declaringType) {
   this._provideFieldSyntax = false
   // Initializers done
   Member.call(this, name, declaringType);
 }
-$inherits(PropertyMember, Member);
 PropertyMember.prototype.get$getter = function() { return this.getter; };
 PropertyMember.prototype.set$getter = function(value) { return this.getter = value; };
 PropertyMember.prototype.get$setter = function() { return this.setter; };
@@ -5061,6 +5066,7 @@ PropertyMember.prototype.provideFieldSyntax$0 = PropertyMember.prototype.provide
 PropertyMember.prototype.providePropertySyntax$0 = PropertyMember.prototype.providePropertySyntax;
 PropertyMember.prototype.resolve$0 = PropertyMember.prototype.resolve;
 // ********** Code for ConcreteMember **************
+$inherits(ConcreteMember, Member);
 function ConcreteMember(name, declaringType, baseMember) {
   this.baseMember = baseMember;
   // Initializers done
@@ -5079,7 +5085,6 @@ function ConcreteMember(name, declaringType, baseMember) {
     }
   }
 }
-$inherits(ConcreteMember, Member);
 ConcreteMember.prototype.get$returnType = function() { return this.returnType; };
 ConcreteMember.prototype.set$returnType = function(value) { return this.returnType = value; };
 ConcreteMember.prototype.get$parameters = function() { return this.parameters; };
@@ -5202,6 +5207,7 @@ ConcreteMember.prototype.invoke$5 = ConcreteMember.prototype.invoke;
 ConcreteMember.prototype.provideFieldSyntax$0 = ConcreteMember.prototype.provideFieldSyntax;
 ConcreteMember.prototype.providePropertySyntax$0 = ConcreteMember.prototype.providePropertySyntax;
 // ********** Code for MethodMember **************
+$inherits(MethodMember, Member);
 function MethodMember(name, declaringType, definition) {
   this.isStatic = false
   this.isAbstract = false
@@ -5215,7 +5221,6 @@ function MethodMember(name, declaringType, definition) {
   // Initializers done
   Member.call(this, name, declaringType);
 }
-$inherits(MethodMember, Member);
 MethodMember.prototype.get$definition = function() { return this.definition; };
 MethodMember.prototype.set$definition = function(value) { return this.definition = value; };
 MethodMember.prototype.get$returnType = function() { return this.returnType; };
@@ -6269,12 +6274,12 @@ Token.prototype.start$0 = function() {
 };
 Token.prototype.toString$0 = Token.prototype.toString;
 // ********** Code for ErrorToken **************
+$inherits(ErrorToken, Token);
 function ErrorToken(kind, source, start, end, message) {
   this.message = message;
   // Initializers done
   Token.call(this, kind, source, start, end);
 }
-$inherits(ErrorToken, Token);
 ErrorToken.prototype.get$message = function() { return this.message; };
 ErrorToken.prototype.set$message = function(value) { return this.message = value; };
 // ********** Code for SourceFile **************
@@ -6421,36 +6426,55 @@ InterpStack.push = function(stack, quote, isMultiline) {
 InterpStack.prototype.next$0 = function() {
   return this.next();
 };
+// ********** Code for TokenizerHelpers **************
+function TokenizerHelpers() {
+  // Initializers done
+}
+TokenizerHelpers.isIdentifierStart = function(c) {
+  return ((c >= 97 && c <= 122) || (c >= 65 && c <= 90) || c == 95);
+}
+TokenizerHelpers.isDigit = function(c) {
+  return (c >= 48 && c <= 57);
+}
+TokenizerHelpers.isHexDigit = function(c) {
+  return (TokenizerHelpers.isDigit(c) || (c >= 97 && c <= 102) || (c >= 65 && c <= 70));
+}
+TokenizerHelpers.isIdentifierPart = function(c) {
+  return (TokenizerHelpers.isIdentifierStart(c) || TokenizerHelpers.isDigit(c) || c == 36);
+}
+TokenizerHelpers.isInterpIdentifierPart = function(c) {
+  return (TokenizerHelpers.isIdentifierStart(c) || TokenizerHelpers.isDigit(c));
+}
 // ********** Code for TokenizerBase **************
+$inherits(TokenizerBase, TokenizerHelpers);
 function TokenizerBase(_source, _skipWhitespace, index) {
   this._source = _source;
   this._skipWhitespace = _skipWhitespace;
-  this._index = index;
+  this._lang_index = index;
   // Initializers done
   TokenizerHelpers.call(this);
   this._text = this._source.get$text();
 }
-$inherits(TokenizerBase, TokenizerHelpers);
 TokenizerBase.prototype._nextChar = function() {
-  if (this._index < this._text.length) {
-    return this._text.charCodeAt(this._index++);
+  if (this._lang_index < this._text.length) {
+    return this._text.charCodeAt(this._lang_index++);
   }
   else {
     return 0;
   }
 }
 TokenizerBase.prototype._peekChar = function() {
-  if (this._index < this._text.length) {
-    return this._text.charCodeAt(this._index);
+  if (this._lang_index < this._text.length) {
+    return this._text.charCodeAt(this._lang_index);
   }
   else {
     return 0;
   }
 }
 TokenizerBase.prototype._maybeEatChar = function(ch) {
-  if (this._index < this._text.length) {
-    if (this._text.charCodeAt(this._index) == ch) {
-      this._index++;
+  if (this._lang_index < this._text.length) {
+    if (this._text.charCodeAt(this._lang_index) == ch) {
+      this._lang_index++;
       return true;
     }
     else {
@@ -6462,15 +6486,15 @@ TokenizerBase.prototype._maybeEatChar = function(ch) {
   }
 }
 TokenizerBase.prototype._finishToken = function(kind) {
-  return new Token(kind, this._source, this._startIndex, this._index);
+  return new Token(kind, this._source, this._startIndex, this._lang_index);
 }
 TokenizerBase.prototype._errorToken = function(message) {
-  return new ErrorToken(65/*TokenKind.ERROR*/, this._source, this._startIndex, this._index, message);
+  return new ErrorToken(65/*TokenKind.ERROR*/, this._source, this._startIndex, this._lang_index, message);
 }
 TokenizerBase.prototype.finishWhitespace = function() {
-  this._index--;
-  while (this._index < this._text.length) {
-    var ch = this._text.charCodeAt(this._index++);
+  this._lang_index--;
+  while (this._lang_index < this._text.length) {
+    var ch = this._text.charCodeAt(this._lang_index++);
     if (ch == 32 || ch == 9 || ch == 13) {
     }
     else if (ch == 10) {
@@ -6479,7 +6503,7 @@ TokenizerBase.prototype.finishWhitespace = function() {
       }
     }
     else {
-      this._index--;
+      this._lang_index--;
       if (this._skipWhitespace) {
         return this.next();
       }
@@ -6531,9 +6555,9 @@ TokenizerBase.prototype.finishMultiLineComment = function() {
   return this._errorToken();
 }
 TokenizerBase.prototype.eatDigits = function() {
-  while (this._index < this._text.length) {
-    if (TokenizerHelpers.isDigit(this._text.charCodeAt(this._index))) {
-      this._index++;
+  while (this._lang_index < this._text.length) {
+    if (TokenizerHelpers.isDigit(this._text.charCodeAt(this._lang_index))) {
+      this._lang_index++;
     }
     else {
       return;
@@ -6541,9 +6565,9 @@ TokenizerBase.prototype.eatDigits = function() {
   }
 }
 TokenizerBase.prototype.eatHexDigits = function() {
-  while (this._index < this._text.length) {
-    if (TokenizerHelpers.isHexDigit(this._text.charCodeAt(this._index))) {
-      this._index++;
+  while (this._lang_index < this._text.length) {
+    if (TokenizerHelpers.isHexDigit(this._text.charCodeAt(this._lang_index))) {
+      this._lang_index++;
     }
     else {
       return;
@@ -6551,8 +6575,8 @@ TokenizerBase.prototype.eatHexDigits = function() {
   }
 }
 TokenizerBase.prototype.maybeEatHexDigit = function() {
-  if (this._index < this._text.length && TokenizerHelpers.isHexDigit(this._text.charCodeAt(this._index))) {
-    this._index++;
+  if (this._lang_index < this._text.length && TokenizerHelpers.isHexDigit(this._text.charCodeAt(this._lang_index))) {
+    this._lang_index++;
     return true;
   }
   return false;
@@ -6570,7 +6594,7 @@ TokenizerBase.prototype.finishNumber = function() {
       return this.finishNumberExtra(62/*TokenKind.DOUBLE*/);
     }
     else {
-      this._index--;
+      this._lang_index--;
     }
   }
   return this.finishNumberExtra(60/*TokenKind.INTEGER*/);
@@ -6704,9 +6728,9 @@ TokenizerBase.prototype.eatEscapeSequence = function() {
     case 117:
 
       if (this._maybeEatChar(123)) {
-        var start = this._index;
+        var start = this._lang_index;
         this.eatHexDigits();
-        var chars = this._index - start;
+        var chars = this._lang_index - start;
         if (chars > 0 && chars <= 6 && this._maybeEatChar(125)) {
           hex = this._text.substring(start, start + chars);
           break;
@@ -6717,7 +6741,7 @@ TokenizerBase.prototype.eatEscapeSequence = function() {
       }
       else {
         if (this.maybeEatHexDigit() && this.maybeEatHexDigit() && this.maybeEatHexDigit() && this.maybeEatHexDigit()) {
-          hex = this._text.substring(this._index - 4, this._index);
+          hex = this._text.substring(this._lang_index - 4, this._lang_index);
           break;
         }
         else {
@@ -6748,17 +6772,17 @@ TokenizerBase.prototype.finishIdentifier = function(ch) {
     if (ch == 36) {
       return this._errorToken("illegal character after $ in string interpolation");
     }
-    while (this._index < this._text.length) {
-      if (!TokenizerHelpers.isInterpIdentifierPart(this._text.charCodeAt(this._index++))) {
-        this._index--;
+    while (this._lang_index < this._text.length) {
+      if (!TokenizerHelpers.isInterpIdentifierPart(this._text.charCodeAt(this._lang_index++))) {
+        this._lang_index--;
         break;
       }
     }
   }
   else {
-    while (this._index < this._text.length) {
-      if (!TokenizerHelpers.isIdentifierPart(this._text.charCodeAt(this._index++))) {
-        this._index--;
+    while (this._lang_index < this._text.length) {
+      if (!TokenizerHelpers.isIdentifierPart(this._text.charCodeAt(this._lang_index++))) {
+        this._lang_index--;
         break;
       }
     }
@@ -6773,13 +6797,13 @@ TokenizerBase.prototype.finishIdentifier = function(ch) {
 }
 TokenizerBase.prototype.next$0 = TokenizerBase.prototype.next;
 // ********** Code for Tokenizer **************
+$inherits(Tokenizer, TokenizerBase);
 function Tokenizer(source, skipWhitespace, index) {
   // Initializers done
   TokenizerBase.call(this, source, skipWhitespace, index);
 }
-$inherits(Tokenizer, TokenizerBase);
 Tokenizer.prototype.next = function() {
-  this._startIndex = this._index;
+  this._startIndex = this._lang_index;
   if (this._interpStack != null && this._interpStack.depth == 0) {
     var istack = this._interpStack;
     this._interpStack = this._interpStack.pop();
@@ -7114,7 +7138,7 @@ Tokenizer.prototype.next = function() {
 }
 Tokenizer.prototype.getIdentifierKind = function() {
   var i0 = this._startIndex;
-  switch (this._index - i0) {
+  switch (this._lang_index - i0) {
     case 2:
 
       if (this._text.charCodeAt(i0) == 100) {
@@ -7303,25 +7327,6 @@ Tokenizer.prototype.getIdentifierKind = function() {
   }
 }
 Tokenizer.prototype.next$0 = Tokenizer.prototype.next;
-// ********** Code for TokenizerHelpers **************
-function TokenizerHelpers() {
-  // Initializers done
-}
-TokenizerHelpers.isIdentifierStart = function(c) {
-  return ((c >= 97 && c <= 122) || (c >= 65 && c <= 90) || c == 95);
-}
-TokenizerHelpers.isDigit = function(c) {
-  return (c >= 48 && c <= 57);
-}
-TokenizerHelpers.isHexDigit = function(c) {
-  return (TokenizerHelpers.isDigit(c) || (c >= 97 && c <= 102) || (c >= 65 && c <= 70));
-}
-TokenizerHelpers.isIdentifierPart = function(c) {
-  return (TokenizerHelpers.isIdentifierStart(c) || TokenizerHelpers.isDigit(c) || c == 36);
-}
-TokenizerHelpers.isInterpIdentifierPart = function(c) {
-  return (TokenizerHelpers.isIdentifierStart(c) || TokenizerHelpers.isDigit(c));
-}
 // ********** Code for TokenKind **************
 function TokenKind() {}
 TokenKind.kindToString = function(kind) {
@@ -8152,7 +8157,7 @@ Parser.prototype.isPrematureEndOfFile = function() {
     $throw(new IncompleteSourceException(this._previousToken));
   }
   else if (this._maybeEat(1/*TokenKind.END_OF_FILE*/)) {
-    this._error('unexpected end of file', this._peekToken.get$span());
+    this._lang_error('unexpected end of file', this._peekToken.get$span());
     return true;
   }
   else {
@@ -8166,14 +8171,14 @@ Parser.prototype._recoverTo = function(kind1, kind2, kind3) {
       this._recover = false;
       return true;
     }
-    this._next();
+    this._lang_next();
   }
   return false;
 }
 Parser.prototype._peek = function() {
   return this._peekToken.kind;
 }
-Parser.prototype._next = function() {
+Parser.prototype._lang_next = function() {
   this._previousToken = this._peekToken;
   this._peekToken = this.tokenizer.next();
   return this._previousToken;
@@ -8208,15 +8213,15 @@ Parser.prototype._eatSemicolon = function() {
 }
 Parser.prototype._errorExpected = function(expected) {
   if (this.throwOnIncomplete) this.isPrematureEndOfFile();
-  var tok = this._next();
+  var tok = this._lang_next();
   if ((tok instanceof ErrorToken) && tok.get$message() != null) {
-    this._error(tok.get$message(), tok.get$span());
+    this._lang_error(tok.get$message(), tok.get$span());
   }
   else {
-    this._error(('expected ' + expected + ', but found ' + tok), tok.get$span());
+    this._lang_error(('expected ' + expected + ', but found ' + tok), tok.get$span());
   }
 }
-Parser.prototype._error = function(message, location) {
+Parser.prototype._lang_error = function(message, location) {
   if (this._recover) return;
   if (location == null) {
     location = this._peekToken.get$span();
@@ -8228,7 +8233,7 @@ Parser.prototype._skipBlock = function() {
   var depth = 1;
   this._eat(6/*TokenKind.LBRACE*/);
   while (true) {
-    var tok = this._next();
+    var tok = this._lang_next();
     if ($eq(tok.get$kind(), 6/*TokenKind.LBRACE*/)) {
       depth += 1;
     }
@@ -8237,7 +8242,7 @@ Parser.prototype._skipBlock = function() {
       if (depth == 0) return;
     }
     else if ($eq(tok.get$kind(), 1/*TokenKind.END_OF_FILE*/)) {
-      this._error('unexpected end of file during diet parse', tok.get$span());
+      this._lang_error('unexpected end of file during diet parse', tok.get$span());
       return;
     }
   }
@@ -8378,7 +8383,7 @@ Parser.prototype.functionBody = function(inExpression) {
       return null;
     }
   }
-  this._error('Expected function body (neither { nor => found)');
+  this._lang_error('Expected function body (neither { nor => found)');
 }
 Parser.prototype.finishField = function(start, modifiers, typeParams, type, name, value) {
   if (typeParams != null) {
@@ -8445,7 +8450,7 @@ Parser.prototype.declaration = function(includeOperators) {
 }
 Parser.prototype.factoryConstructorDeclaration = function() {
   var start = this._peekToken.start;
-  var factoryToken = this._next();
+  var factoryToken = this._lang_next();
   var names = [this.identifier()];
   while (this._maybeEat(14/*TokenKind.DOT*/)) {
     names.add$1(this.identifier());
@@ -8471,7 +8476,7 @@ Parser.prototype.factoryConstructorDeclaration = function() {
     name = new Identifier('', names.$index(0).get$span());
   }
   if (names.length > 1) {
-    this._error('unsupported qualified name for factory', names.$index(0).get$span());
+    this._lang_error('unsupported qualified name for factory', names.$index(0).get$span());
   }
   type = new NameTypeReference(false, names.$index(0), null, names.$index(0).get$span());
   var di = new DeclaredIdentifier(type, name, this._makeSpan(start));
@@ -8750,7 +8755,7 @@ Parser.prototype.caseNode = function() {
     }
   }
   if ($eq(cases.length, 0)) {
-    this._error('case or default');
+    this._lang_error('case or default');
   }
   var stmts = [];
   while (!this._peekCaseEnd()) {
@@ -8835,7 +8840,7 @@ Parser.prototype._makeType = function(expr) {
     return type;
   }
   else {
-    this._error('expected type reference');
+    this._lang_error('expected type reference');
     return null;
   }
 }
@@ -8881,7 +8886,7 @@ Parser.prototype.finishInfixExpression = function(x, precedence) {
           return this._fixAsType(x);
         }
       }
-      var op = this._next();
+      var op = this._lang_next();
       if ($eq(op.get$kind(), 103/*TokenKind.IS*/)) {
         var isTrue = !this._maybeEat(19/*TokenKind.NOT*/);
         var typeRef = this.type(0);
@@ -8924,7 +8929,7 @@ Parser.prototype._isPrefixUnaryOperator = function(kind) {
 Parser.prototype.unaryExpression = function() {
   var start = this._peekToken.start;
   if (this._isPrefixUnaryOperator(this._peek())) {
-    var tok = this._next();
+    var tok = this._lang_next();
     var expr = this.unaryExpression();
     return new UnaryExpression(tok, expr, this._makeSpan(start));
   }
@@ -8989,7 +8994,7 @@ Parser.prototype.finishPostfixExpression = function(expr) {
     case 16/*TokenKind.INCR*/:
     case 17/*TokenKind.DECR*/:
 
-      var tok = this._next();
+      var tok = this._lang_next();
       return new PostfixExpression(expr, tok, this._makeSpan(expr.get$span().get$start()));
 
     case 9/*TokenKind.ARROW*/:
@@ -9016,7 +9021,7 @@ Parser.prototype.finishCallOrLambdaExpression = function(expr) {
   }
   else {
     if ((expr instanceof DeclaredIdentifier)) {
-      this._error('illegal target for call, did you mean to declare a function?', expr.get$span());
+      this._lang_error('illegal target for call, did you mean to declare a function?', expr.get$span());
     }
     var args = this.arguments();
     return this.finishPostfixExpression(new CallExpression(expr, args, this._makeSpan(expr.get$span().get$start())));
@@ -9101,17 +9106,17 @@ Parser.prototype.primary = function() {
 
     case 61/*TokenKind.HEX_INTEGER*/:
 
-      var t = this._next();
+      var t = this._lang_next();
       return new LiteralExpression(Parser.parseHex(t.get$text().substring$1(2)), this._intTypeRef(this._makeSpan(start)), t.get$text(), this._makeSpan(start));
 
     case 60/*TokenKind.INTEGER*/:
 
-      var t = this._next();
+      var t = this._lang_next();
       return new LiteralExpression(Math.parseInt(t.get$text()), this._intTypeRef(this._makeSpan(start)), t.get$text(), this._makeSpan(start));
 
     case 62/*TokenKind.DOUBLE*/:
 
-      var t = this._next();
+      var t = this._lang_next();
       return new LiteralExpression(Math.parseDouble(t.get$text()), this._doubleTypeRef(this._makeSpan(start)), t.get$text(), this._makeSpan(start));
 
     case 58/*TokenKind.STRING*/:
@@ -9146,7 +9151,7 @@ Parser.prototype.stringInterpolation = function() {
   var lits = [];
   var startQuote = null, endQuote = null;
   while (this._peekKind(66/*TokenKind.INCOMPLETE_STRING*/)) {
-    var token = this._next();
+    var token = this._lang_next();
     var text = token.get$text();
     if (startQuote == null) {
       if (isMultilineString(text)) {
@@ -9174,7 +9179,7 @@ Parser.prototype.stringInterpolation = function() {
       lits.add$1(new VarExpression(id, id.get$span()));
     }
   }
-  var tok = this._next();
+  var tok = this._lang_next();
   if ($ne(tok.get$kind(), 58/*TokenKind.STRING*/)) {
     this._errorExpected('interpolated string');
   }
@@ -9187,20 +9192,20 @@ Parser.prototype.makeStringLiteral = function(text, span) {
   return new LiteralExpression(text, this._stringTypeRef(span), text, span);
 }
 Parser.prototype.stringLiteralExpr = function() {
-  var token = this._next();
+  var token = this._lang_next();
   return this.makeStringLiteral(token.get$text(), token.get$span());
 }
 Parser.prototype.maybeStringLiteral = function() {
   var kind = this._peek();
   if ($eq(kind, 58/*TokenKind.STRING*/)) {
-    return parseStringLiteral(this._next().get$text());
+    return parseStringLiteral(this._lang_next().get$text());
   }
   else if ($eq(kind, 59/*TokenKind.STRING_PART*/)) {
-    this._next();
+    this._lang_next();
     this._errorExpected('string literal, but found interpolated string start');
   }
   else if ($eq(kind, 66/*TokenKind.INCOMPLETE_STRING*/)) {
-    this._next();
+    this._lang_next();
     this._errorExpected('string literal, but found incomplete string');
   }
   return null;
@@ -9238,19 +9243,19 @@ Parser.prototype._peekAfterCloseParen = function() {
   }
   this._afterParensIndex = 0;
   this._afterParens.clear();
-  var tokens = [this._next()];
+  var tokens = [this._lang_next()];
   this._lookaheadAfterParens(tokens);
   var after = this._peekToken;
   tokens.add$1(after);
   this.tokenizer = new DivertedTokenSource(tokens, this, this.tokenizer);
-  this._next();
+  this._lang_next();
   return after;
 }
 Parser.prototype._lookaheadAfterParens = function(tokens) {
   var saved = this._afterParens.length;
   this._afterParens.add(null);
   while (true) {
-    var token = this._next();
+    var token = this._lang_next();
     tokens.add(token);
     var kind = token.kind;
     if (kind == 3/*TokenKind.RPAREN*/ || kind == 1/*TokenKind.END_OF_FILE*/) {
@@ -9272,7 +9277,7 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
     case 15/*TokenKind.ELLIPSIS*/:
 
       this._eat(15/*TokenKind.ELLIPSIS*/);
-      this._error('rest no longer supported', this._previousToken.get$span());
+      this._lang_error('rest no longer supported', this._previousToken.get$span());
       name = this.identifier().get$name();
       break;
 
@@ -9314,7 +9319,7 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
       var kind = this._peek();
       if ($eq(kind, 82/*TokenKind.NEGATE*/)) {
         name = ':negate';
-        this._next();
+        this._lang_next();
       }
       else {
         name = TokenKind.binaryMethodName(kind);
@@ -9322,7 +9327,7 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
           name = 'operator';
         }
         else {
-          this._next();
+          this._lang_next();
         }
       }
       break;
@@ -9457,7 +9462,7 @@ Parser.prototype._readModifiers = function() {
       case 75/*TokenKind.FACTORY*/:
 
         if (modifiers == null) modifiers = [];
-        modifiers.add$1(this._next());
+        modifiers.add$1(this._lang_next());
         break;
 
       default:
@@ -9558,11 +9563,11 @@ Parser.prototype.nameTypeReference = function() {
   switch (this._peek()) {
     case 114/*TokenKind.VOID*/:
 
-      return new TypeReference(this._next().get$span(), $globals.world.voidType);
+      return new TypeReference(this._lang_next().get$span(), $globals.world.voidType);
 
     case 113/*TokenKind.VAR*/:
 
-      return new TypeReference(this._next().get$span(), $globals.world.varType);
+      return new TypeReference(this._lang_next().get$span(), $globals.world.varType);
 
     case 98/*TokenKind.FINAL*/:
 
@@ -9605,7 +9610,7 @@ Parser.prototype.formalParameter = function(inOptionalBlock) {
   var value = null;
   if (this._maybeEat(20/*TokenKind.ASSIGN*/)) {
     if (!inOptionalBlock) {
-      this._error('default values only allowed inside [optional] section');
+      this._lang_error('default values only allowed inside [optional] section');
     }
     value = this.expression();
   }
@@ -9631,7 +9636,7 @@ Parser.prototype.formalParameterList = function() {
     while (this._maybeEat(11/*TokenKind.COMMA*/)) {
       if (this._maybeEat(4/*TokenKind.LBRACK*/)) {
         if (inOptionalBlock) {
-          this._error('already inside an optional block', this._previousToken.get$span());
+          this._lang_error('already inside an optional block', this._previousToken.get$span());
         }
         inOptionalBlock = true;
       }
@@ -9645,9 +9650,9 @@ Parser.prototype.formalParameterList = function() {
   return formals;
 }
 Parser.prototype.identifier = function() {
-  var tok = this._next();
+  var tok = this._lang_next();
   if (!this._isIdentifier(tok.get$kind())) {
-    this._error(('expected identifier, but found ' + tok), tok.get$span());
+    this._lang_error(('expected identifier, but found ' + tok), tok.get$span());
   }
   return new Identifier(tok.get$text(), this._makeSpan(tok.get$start()));
 }
@@ -9662,7 +9667,7 @@ Parser.prototype._makeFunction = function(expr, formals, body) {
     type = expr.get$type();
   }
   else {
-    this._error('bad function body', expr.get$span());
+    this._lang_error('bad function body', expr.get$span());
   }
   var span = new SourceSpan(expr.get$span().get$file(), expr.get$span().get$start(), body.get$span().get$end());
   var func = new FunctionDefinition(null, type, name, formals, null, null, null, body, span);
@@ -9676,7 +9681,7 @@ Parser.prototype._makeDeclaredIdentifier = function(e) {
     return e;
   }
   else {
-    this._error('expected declared identifier');
+    this._lang_error('expected declared identifier');
     return new DeclaredIdentifier(null, null, e.get$span());
   }
 }
@@ -9702,16 +9707,16 @@ IncompleteSourceException.prototype.toString = function() {
 IncompleteSourceException.prototype.toString$0 = IncompleteSourceException.prototype.toString;
 // ********** Code for DivertedTokenSource **************
 function DivertedTokenSource(tokens, parser, previousTokenizer) {
-  this._pos = 0
+  this._lang_pos = 0
   this.tokens = tokens;
   this.parser = parser;
   this.previousTokenizer = previousTokenizer;
   // Initializers done
 }
 DivertedTokenSource.prototype.next = function() {
-  var token = this.tokens.$index(this._pos);
-  ++this._pos;
-  if (this._pos == this.tokens.length) {
+  var token = this.tokens.$index(this._lang_pos);
+  ++this._lang_pos;
+  if (this._lang_pos == this.tokens.length) {
     this.parser.tokenizer = this.previousTokenizer;
   }
   return token;
@@ -9725,37 +9730,37 @@ function Node(span) {
 Node.prototype.get$span = function() { return this.span; };
 Node.prototype.set$span = function(value) { return this.span = value; };
 Node.prototype.visit$1 = Node.prototype.visit;
+// ********** Code for Statement **************
+$inherits(Statement, Node);
+function Statement(span) {
+  // Initializers done
+  Node.call(this, span);
+}
 // ********** Code for Definition **************
+$inherits(Definition, Statement);
 function Definition(span) {
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(Definition, Statement);
 Definition.prototype.get$typeParameters = function() {
   return null;
 }
 Definition.prototype.get$nativeType = function() {
   return null;
 }
-// ********** Code for Statement **************
-function Statement(span) {
-  // Initializers done
-  Node.call(this, span);
-}
-$inherits(Statement, Node);
 // ********** Code for Expression **************
+$inherits(Expression, Node);
 function Expression(span) {
   // Initializers done
   Node.call(this, span);
 }
-$inherits(Expression, Node);
 // ********** Code for TypeReference **************
+$inherits(TypeReference, Node);
 function TypeReference(span, type) {
   this.type = type;
   // Initializers done
   Node.call(this, span);
 }
-$inherits(TypeReference, Node);
 TypeReference.prototype.get$type = function() { return this.type; };
 TypeReference.prototype.set$type = function(value) { return this.type = value; };
 TypeReference.prototype.visit = function(visitor) {
@@ -9766,13 +9771,13 @@ TypeReference.prototype.get$isFinal = function() {
 }
 TypeReference.prototype.visit$1 = TypeReference.prototype.visit;
 // ********** Code for DirectiveDefinition **************
+$inherits(DirectiveDefinition, Definition);
 function DirectiveDefinition(name, arguments, span) {
   this.name = name;
   this.arguments = arguments;
   // Initializers done
   Definition.call(this, span);
 }
-$inherits(DirectiveDefinition, Definition);
 DirectiveDefinition.prototype.get$name = function() { return this.name; };
 DirectiveDefinition.prototype.set$name = function(value) { return this.name = value; };
 DirectiveDefinition.prototype.get$arguments = function() { return this.arguments; };
@@ -9782,6 +9787,7 @@ DirectiveDefinition.prototype.visit = function(visitor) {
 }
 DirectiveDefinition.prototype.visit$1 = DirectiveDefinition.prototype.visit;
 // ********** Code for TypeDefinition **************
+$inherits(TypeDefinition, Definition);
 function TypeDefinition(isClass, name, typeParameters, extendsTypes, implementsTypes, nativeType, factoryType, body, span) {
   this.isClass = isClass;
   this.name = name;
@@ -9794,7 +9800,6 @@ function TypeDefinition(isClass, name, typeParameters, extendsTypes, implementsT
   // Initializers done
   Definition.call(this, span);
 }
-$inherits(TypeDefinition, Definition);
 TypeDefinition.prototype.get$isClass = function() { return this.isClass; };
 TypeDefinition.prototype.set$isClass = function(value) { return this.isClass = value; };
 TypeDefinition.prototype.get$name = function() { return this.name; };
@@ -9810,13 +9815,13 @@ TypeDefinition.prototype.visit = function(visitor) {
 }
 TypeDefinition.prototype.visit$1 = TypeDefinition.prototype.visit;
 // ********** Code for FunctionTypeDefinition **************
+$inherits(FunctionTypeDefinition, Definition);
 function FunctionTypeDefinition(func, typeParameters, span) {
   this.func = func;
   this.typeParameters = typeParameters;
   // Initializers done
   Definition.call(this, span);
 }
-$inherits(FunctionTypeDefinition, Definition);
 FunctionTypeDefinition.prototype.get$func = function() { return this.func; };
 FunctionTypeDefinition.prototype.set$func = function(value) { return this.func = value; };
 FunctionTypeDefinition.prototype.get$typeParameters = function() { return this.typeParameters; };
@@ -9826,6 +9831,7 @@ FunctionTypeDefinition.prototype.visit = function(visitor) {
 }
 FunctionTypeDefinition.prototype.visit$1 = FunctionTypeDefinition.prototype.visit;
 // ********** Code for VariableDefinition **************
+$inherits(VariableDefinition, Definition);
 function VariableDefinition(modifiers, type, names, values, span) {
   this.modifiers = modifiers;
   this.type = type;
@@ -9834,7 +9840,6 @@ function VariableDefinition(modifiers, type, names, values, span) {
   // Initializers done
   Definition.call(this, span);
 }
-$inherits(VariableDefinition, Definition);
 VariableDefinition.prototype.get$type = function() { return this.type; };
 VariableDefinition.prototype.set$type = function(value) { return this.type = value; };
 VariableDefinition.prototype.get$names = function() { return this.names; };
@@ -9846,6 +9851,7 @@ VariableDefinition.prototype.visit = function(visitor) {
 }
 VariableDefinition.prototype.visit$1 = VariableDefinition.prototype.visit;
 // ********** Code for FunctionDefinition **************
+$inherits(FunctionDefinition, Definition);
 function FunctionDefinition(modifiers, returnType, name, formals, typeParameters, initializers, nativeBody, body, span) {
   this.modifiers = modifiers;
   this.returnType = returnType;
@@ -9858,7 +9864,6 @@ function FunctionDefinition(modifiers, returnType, name, formals, typeParameters
   // Initializers done
   Definition.call(this, span);
 }
-$inherits(FunctionDefinition, Definition);
 FunctionDefinition.prototype.get$returnType = function() { return this.returnType; };
 FunctionDefinition.prototype.set$returnType = function(value) { return this.returnType = value; };
 FunctionDefinition.prototype.get$name = function() { return this.name; };
@@ -9876,12 +9881,12 @@ FunctionDefinition.prototype.visit = function(visitor) {
 }
 FunctionDefinition.prototype.visit$1 = FunctionDefinition.prototype.visit;
 // ********** Code for ReturnStatement **************
+$inherits(ReturnStatement, Statement);
 function ReturnStatement(value, span) {
   this.value = value;
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(ReturnStatement, Statement);
 ReturnStatement.prototype.get$value = function() { return this.value; };
 ReturnStatement.prototype.set$value = function(value) { return this.value = value; };
 ReturnStatement.prototype.visit = function(visitor) {
@@ -9889,12 +9894,12 @@ ReturnStatement.prototype.visit = function(visitor) {
 }
 ReturnStatement.prototype.visit$1 = ReturnStatement.prototype.visit;
 // ********** Code for ThrowStatement **************
+$inherits(ThrowStatement, Statement);
 function ThrowStatement(value, span) {
   this.value = value;
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(ThrowStatement, Statement);
 ThrowStatement.prototype.get$value = function() { return this.value; };
 ThrowStatement.prototype.set$value = function(value) { return this.value = value; };
 ThrowStatement.prototype.visit = function(visitor) {
@@ -9902,23 +9907,23 @@ ThrowStatement.prototype.visit = function(visitor) {
 }
 ThrowStatement.prototype.visit$1 = ThrowStatement.prototype.visit;
 // ********** Code for AssertStatement **************
+$inherits(AssertStatement, Statement);
 function AssertStatement(test, span) {
   this.test = test;
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(AssertStatement, Statement);
 AssertStatement.prototype.visit = function(visitor) {
   return visitor.visitAssertStatement(this);
 }
 AssertStatement.prototype.visit$1 = AssertStatement.prototype.visit;
 // ********** Code for BreakStatement **************
+$inherits(BreakStatement, Statement);
 function BreakStatement(label, span) {
   this.label = label;
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(BreakStatement, Statement);
 BreakStatement.prototype.get$label = function() { return this.label; };
 BreakStatement.prototype.set$label = function(value) { return this.label = value; };
 BreakStatement.prototype.visit = function(visitor) {
@@ -9926,12 +9931,12 @@ BreakStatement.prototype.visit = function(visitor) {
 }
 BreakStatement.prototype.visit$1 = BreakStatement.prototype.visit;
 // ********** Code for ContinueStatement **************
+$inherits(ContinueStatement, Statement);
 function ContinueStatement(label, span) {
   this.label = label;
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(ContinueStatement, Statement);
 ContinueStatement.prototype.get$label = function() { return this.label; };
 ContinueStatement.prototype.set$label = function(value) { return this.label = value; };
 ContinueStatement.prototype.visit = function(visitor) {
@@ -9939,6 +9944,7 @@ ContinueStatement.prototype.visit = function(visitor) {
 }
 ContinueStatement.prototype.visit$1 = ContinueStatement.prototype.visit;
 // ********** Code for IfStatement **************
+$inherits(IfStatement, Statement);
 function IfStatement(test, trueBranch, falseBranch, span) {
   this.test = test;
   this.trueBranch = trueBranch;
@@ -9946,19 +9952,18 @@ function IfStatement(test, trueBranch, falseBranch, span) {
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(IfStatement, Statement);
 IfStatement.prototype.visit = function(visitor) {
   return visitor.visitIfStatement(this);
 }
 IfStatement.prototype.visit$1 = IfStatement.prototype.visit;
 // ********** Code for WhileStatement **************
+$inherits(WhileStatement, Statement);
 function WhileStatement(test, body, span) {
   this.test = test;
   this.body = body;
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(WhileStatement, Statement);
 WhileStatement.prototype.get$body = function() { return this.body; };
 WhileStatement.prototype.set$body = function(value) { return this.body = value; };
 WhileStatement.prototype.visit = function(visitor) {
@@ -9966,13 +9971,13 @@ WhileStatement.prototype.visit = function(visitor) {
 }
 WhileStatement.prototype.visit$1 = WhileStatement.prototype.visit;
 // ********** Code for DoStatement **************
+$inherits(DoStatement, Statement);
 function DoStatement(body, test, span) {
   this.body = body;
   this.test = test;
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(DoStatement, Statement);
 DoStatement.prototype.get$body = function() { return this.body; };
 DoStatement.prototype.set$body = function(value) { return this.body = value; };
 DoStatement.prototype.visit = function(visitor) {
@@ -9980,6 +9985,7 @@ DoStatement.prototype.visit = function(visitor) {
 }
 DoStatement.prototype.visit$1 = DoStatement.prototype.visit;
 // ********** Code for ForStatement **************
+$inherits(ForStatement, Statement);
 function ForStatement(init, test, step, body, span) {
   this.init = init;
   this.test = test;
@@ -9988,7 +9994,6 @@ function ForStatement(init, test, step, body, span) {
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(ForStatement, Statement);
 ForStatement.prototype.get$body = function() { return this.body; };
 ForStatement.prototype.set$body = function(value) { return this.body = value; };
 ForStatement.prototype.visit = function(visitor) {
@@ -9996,6 +10001,7 @@ ForStatement.prototype.visit = function(visitor) {
 }
 ForStatement.prototype.visit$1 = ForStatement.prototype.visit;
 // ********** Code for ForInStatement **************
+$inherits(ForInStatement, Statement);
 function ForInStatement(item, list, body, span) {
   this.item = item;
   this.list = list;
@@ -10003,7 +10009,6 @@ function ForInStatement(item, list, body, span) {
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(ForInStatement, Statement);
 ForInStatement.prototype.get$body = function() { return this.body; };
 ForInStatement.prototype.set$body = function(value) { return this.body = value; };
 ForInStatement.prototype.visit = function(visitor) {
@@ -10011,6 +10016,7 @@ ForInStatement.prototype.visit = function(visitor) {
 }
 ForInStatement.prototype.visit$1 = ForInStatement.prototype.visit;
 // ********** Code for TryStatement **************
+$inherits(TryStatement, Statement);
 function TryStatement(body, catches, finallyBlock, span) {
   this.body = body;
   this.catches = catches;
@@ -10018,7 +10024,6 @@ function TryStatement(body, catches, finallyBlock, span) {
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(TryStatement, Statement);
 TryStatement.prototype.get$body = function() { return this.body; };
 TryStatement.prototype.set$body = function(value) { return this.body = value; };
 TryStatement.prototype.visit = function(visitor) {
@@ -10026,13 +10031,13 @@ TryStatement.prototype.visit = function(visitor) {
 }
 TryStatement.prototype.visit$1 = TryStatement.prototype.visit;
 // ********** Code for SwitchStatement **************
+$inherits(SwitchStatement, Statement);
 function SwitchStatement(test, cases, span) {
   this.test = test;
   this.cases = cases;
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(SwitchStatement, Statement);
 SwitchStatement.prototype.get$cases = function() { return this.cases; };
 SwitchStatement.prototype.set$cases = function(value) { return this.cases = value; };
 SwitchStatement.prototype.visit = function(visitor) {
@@ -10040,12 +10045,12 @@ SwitchStatement.prototype.visit = function(visitor) {
 }
 SwitchStatement.prototype.visit$1 = SwitchStatement.prototype.visit;
 // ********** Code for BlockStatement **************
+$inherits(BlockStatement, Statement);
 function BlockStatement(body, span) {
   this.body = body;
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(BlockStatement, Statement);
 BlockStatement.prototype.get$body = function() { return this.body; };
 BlockStatement.prototype.set$body = function(value) { return this.body = value; };
 BlockStatement.prototype.visit = function(visitor) {
@@ -10053,13 +10058,13 @@ BlockStatement.prototype.visit = function(visitor) {
 }
 BlockStatement.prototype.visit$1 = BlockStatement.prototype.visit;
 // ********** Code for LabeledStatement **************
+$inherits(LabeledStatement, Statement);
 function LabeledStatement(name, body, span) {
   this.name = name;
   this.body = body;
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(LabeledStatement, Statement);
 LabeledStatement.prototype.get$name = function() { return this.name; };
 LabeledStatement.prototype.set$name = function(value) { return this.name = value; };
 LabeledStatement.prototype.get$body = function() { return this.body; };
@@ -10069,12 +10074,12 @@ LabeledStatement.prototype.visit = function(visitor) {
 }
 LabeledStatement.prototype.visit$1 = LabeledStatement.prototype.visit;
 // ********** Code for ExpressionStatement **************
+$inherits(ExpressionStatement, Statement);
 function ExpressionStatement(body, span) {
   this.body = body;
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(ExpressionStatement, Statement);
 ExpressionStatement.prototype.get$body = function() { return this.body; };
 ExpressionStatement.prototype.set$body = function(value) { return this.body = value; };
 ExpressionStatement.prototype.visit = function(visitor) {
@@ -10082,32 +10087,32 @@ ExpressionStatement.prototype.visit = function(visitor) {
 }
 ExpressionStatement.prototype.visit$1 = ExpressionStatement.prototype.visit;
 // ********** Code for EmptyStatement **************
+$inherits(EmptyStatement, Statement);
 function EmptyStatement(span) {
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(EmptyStatement, Statement);
 EmptyStatement.prototype.visit = function(visitor) {
   return visitor.visitEmptyStatement(this);
 }
 EmptyStatement.prototype.visit$1 = EmptyStatement.prototype.visit;
 // ********** Code for DietStatement **************
+$inherits(DietStatement, Statement);
 function DietStatement(span) {
   // Initializers done
   Statement.call(this, span);
 }
-$inherits(DietStatement, Statement);
 DietStatement.prototype.visit = function(visitor) {
   return visitor.visitDietStatement(this);
 }
 DietStatement.prototype.visit$1 = DietStatement.prototype.visit;
 // ********** Code for LambdaExpression **************
+$inherits(LambdaExpression, Expression);
 function LambdaExpression(func, span) {
   this.func = func;
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(LambdaExpression, Expression);
 LambdaExpression.prototype.get$func = function() { return this.func; };
 LambdaExpression.prototype.set$func = function(value) { return this.func = value; };
 LambdaExpression.prototype.visit = function(visitor) {
@@ -10115,13 +10120,13 @@ LambdaExpression.prototype.visit = function(visitor) {
 }
 LambdaExpression.prototype.visit$1 = LambdaExpression.prototype.visit;
 // ********** Code for CallExpression **************
+$inherits(CallExpression, Expression);
 function CallExpression(target, arguments, span) {
   this.target = target;
   this.arguments = arguments;
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(CallExpression, Expression);
 CallExpression.prototype.get$target = function() { return this.target; };
 CallExpression.prototype.set$target = function(value) { return this.target = value; };
 CallExpression.prototype.get$arguments = function() { return this.arguments; };
@@ -10131,13 +10136,13 @@ CallExpression.prototype.visit = function(visitor) {
 }
 CallExpression.prototype.visit$1 = CallExpression.prototype.visit;
 // ********** Code for IndexExpression **************
+$inherits(IndexExpression, Expression);
 function IndexExpression(target, index, span) {
   this.target = target;
   this.index = index;
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(IndexExpression, Expression);
 IndexExpression.prototype.get$target = function() { return this.target; };
 IndexExpression.prototype.set$target = function(value) { return this.target = value; };
 IndexExpression.prototype.visit = function(visitor) {
@@ -10145,6 +10150,7 @@ IndexExpression.prototype.visit = function(visitor) {
 }
 IndexExpression.prototype.visit$1 = IndexExpression.prototype.visit;
 // ********** Code for BinaryExpression **************
+$inherits(BinaryExpression, Expression);
 function BinaryExpression(op, x, y, span) {
   this.op = op;
   this.x = x;
@@ -10152,7 +10158,6 @@ function BinaryExpression(op, x, y, span) {
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(BinaryExpression, Expression);
 BinaryExpression.prototype.get$op = function() { return this.op; };
 BinaryExpression.prototype.set$op = function(value) { return this.op = value; };
 BinaryExpression.prototype.get$x = function() { return this.x; };
@@ -10164,13 +10169,13 @@ BinaryExpression.prototype.visit = function(visitor) {
 }
 BinaryExpression.prototype.visit$1 = BinaryExpression.prototype.visit;
 // ********** Code for UnaryExpression **************
+$inherits(UnaryExpression, Expression);
 function UnaryExpression(op, self, span) {
   this.op = op;
   this.self = self;
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(UnaryExpression, Expression);
 UnaryExpression.prototype.get$op = function() { return this.op; };
 UnaryExpression.prototype.set$op = function(value) { return this.op = value; };
 UnaryExpression.prototype.get$self = function() { return this.self; };
@@ -10180,13 +10185,13 @@ UnaryExpression.prototype.visit = function(visitor) {
 }
 UnaryExpression.prototype.visit$1 = UnaryExpression.prototype.visit;
 // ********** Code for PostfixExpression **************
+$inherits(PostfixExpression, Expression);
 function PostfixExpression(body, op, span) {
   this.body = body;
   this.op = op;
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(PostfixExpression, Expression);
 PostfixExpression.prototype.get$body = function() { return this.body; };
 PostfixExpression.prototype.set$body = function(value) { return this.body = value; };
 PostfixExpression.prototype.get$op = function() { return this.op; };
@@ -10196,6 +10201,7 @@ PostfixExpression.prototype.visit = function(visitor) {
 }
 PostfixExpression.prototype.visit$1 = PostfixExpression.prototype.visit;
 // ********** Code for NewExpression **************
+$inherits(NewExpression, Expression);
 function NewExpression(isConst, type, name, arguments, span) {
   this.isConst = isConst;
   this.type = type;
@@ -10204,7 +10210,6 @@ function NewExpression(isConst, type, name, arguments, span) {
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(NewExpression, Expression);
 NewExpression.prototype.get$isConst = function() { return this.isConst; };
 NewExpression.prototype.set$isConst = function(value) { return this.isConst = value; };
 NewExpression.prototype.get$type = function() { return this.type; };
@@ -10218,6 +10223,7 @@ NewExpression.prototype.visit = function(visitor) {
 }
 NewExpression.prototype.visit$1 = NewExpression.prototype.visit;
 // ********** Code for ListExpression **************
+$inherits(ListExpression, Expression);
 function ListExpression(isConst, type, values, span) {
   this.isConst = isConst;
   this.type = type;
@@ -10225,7 +10231,6 @@ function ListExpression(isConst, type, values, span) {
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(ListExpression, Expression);
 ListExpression.prototype.get$isConst = function() { return this.isConst; };
 ListExpression.prototype.set$isConst = function(value) { return this.isConst = value; };
 ListExpression.prototype.get$type = function() { return this.type; };
@@ -10237,6 +10242,7 @@ ListExpression.prototype.visit = function(visitor) {
 }
 ListExpression.prototype.visit$1 = ListExpression.prototype.visit;
 // ********** Code for MapExpression **************
+$inherits(MapExpression, Expression);
 function MapExpression(isConst, type, items, span) {
   this.isConst = isConst;
   this.type = type;
@@ -10244,7 +10250,6 @@ function MapExpression(isConst, type, items, span) {
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(MapExpression, Expression);
 MapExpression.prototype.get$isConst = function() { return this.isConst; };
 MapExpression.prototype.set$isConst = function(value) { return this.isConst = value; };
 MapExpression.prototype.get$type = function() { return this.type; };
@@ -10254,6 +10259,7 @@ MapExpression.prototype.visit = function(visitor) {
 }
 MapExpression.prototype.visit$1 = MapExpression.prototype.visit;
 // ********** Code for ConditionalExpression **************
+$inherits(ConditionalExpression, Expression);
 function ConditionalExpression(test, trueBranch, falseBranch, span) {
   this.test = test;
   this.trueBranch = trueBranch;
@@ -10261,12 +10267,12 @@ function ConditionalExpression(test, trueBranch, falseBranch, span) {
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(ConditionalExpression, Expression);
 ConditionalExpression.prototype.visit = function(visitor) {
   return visitor.visitConditionalExpression(this);
 }
 ConditionalExpression.prototype.visit$1 = ConditionalExpression.prototype.visit;
 // ********** Code for IsExpression **************
+$inherits(IsExpression, Expression);
 function IsExpression(isTrue, x, type, span) {
   this.isTrue = isTrue;
   this.x = x;
@@ -10274,7 +10280,6 @@ function IsExpression(isTrue, x, type, span) {
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(IsExpression, Expression);
 IsExpression.prototype.get$x = function() { return this.x; };
 IsExpression.prototype.set$x = function(value) { return this.x = value; };
 IsExpression.prototype.get$type = function() { return this.type; };
@@ -10284,12 +10289,12 @@ IsExpression.prototype.visit = function(visitor) {
 }
 IsExpression.prototype.visit$1 = IsExpression.prototype.visit;
 // ********** Code for ParenExpression **************
+$inherits(ParenExpression, Expression);
 function ParenExpression(body, span) {
   this.body = body;
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(ParenExpression, Expression);
 ParenExpression.prototype.get$body = function() { return this.body; };
 ParenExpression.prototype.set$body = function(value) { return this.body = value; };
 ParenExpression.prototype.visit = function(visitor) {
@@ -10297,12 +10302,12 @@ ParenExpression.prototype.visit = function(visitor) {
 }
 ParenExpression.prototype.visit$1 = ParenExpression.prototype.visit;
 // ********** Code for AwaitExpression **************
+$inherits(AwaitExpression, Expression);
 function AwaitExpression(body, span) {
   this.body = body;
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(AwaitExpression, Expression);
 AwaitExpression.prototype.get$body = function() { return this.body; };
 AwaitExpression.prototype.set$body = function(value) { return this.body = value; };
 AwaitExpression.prototype.visit = function(visitor) {
@@ -10310,13 +10315,13 @@ AwaitExpression.prototype.visit = function(visitor) {
 }
 AwaitExpression.prototype.visit$1 = AwaitExpression.prototype.visit;
 // ********** Code for DotExpression **************
+$inherits(DotExpression, Expression);
 function DotExpression(self, name, span) {
   this.self = self;
   this.name = name;
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(DotExpression, Expression);
 DotExpression.prototype.get$self = function() { return this.self; };
 DotExpression.prototype.set$self = function(value) { return this.self = value; };
 DotExpression.prototype.get$name = function() { return this.name; };
@@ -10326,12 +10331,12 @@ DotExpression.prototype.visit = function(visitor) {
 }
 DotExpression.prototype.visit$1 = DotExpression.prototype.visit;
 // ********** Code for VarExpression **************
+$inherits(VarExpression, Expression);
 function VarExpression(name, span) {
   this.name = name;
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(VarExpression, Expression);
 VarExpression.prototype.get$name = function() { return this.name; };
 VarExpression.prototype.set$name = function(value) { return this.name = value; };
 VarExpression.prototype.visit = function(visitor) {
@@ -10339,36 +10344,37 @@ VarExpression.prototype.visit = function(visitor) {
 }
 VarExpression.prototype.visit$1 = VarExpression.prototype.visit;
 // ********** Code for ThisExpression **************
+$inherits(ThisExpression, Expression);
 function ThisExpression(span) {
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(ThisExpression, Expression);
 ThisExpression.prototype.visit = function(visitor) {
   return visitor.visitThisExpression(this);
 }
 ThisExpression.prototype.visit$1 = ThisExpression.prototype.visit;
 // ********** Code for SuperExpression **************
+$inherits(SuperExpression, Expression);
 function SuperExpression(span) {
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(SuperExpression, Expression);
 SuperExpression.prototype.visit = function(visitor) {
   return visitor.visitSuperExpression(this);
 }
 SuperExpression.prototype.visit$1 = SuperExpression.prototype.visit;
 // ********** Code for NullExpression **************
+$inherits(NullExpression, Expression);
 function NullExpression(span) {
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(NullExpression, Expression);
 NullExpression.prototype.visit = function(visitor) {
   return visitor.visitNullExpression(this);
 }
 NullExpression.prototype.visit$1 = NullExpression.prototype.visit;
 // ********** Code for LiteralExpression **************
+$inherits(LiteralExpression, Expression);
 function LiteralExpression(value, type, text, span) {
   this.value = value;
   this.type = type;
@@ -10376,7 +10382,6 @@ function LiteralExpression(value, type, text, span) {
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(LiteralExpression, Expression);
 LiteralExpression.prototype.get$value = function() { return this.value; };
 LiteralExpression.prototype.set$value = function(value) { return this.value = value; };
 LiteralExpression.prototype.get$type = function() { return this.type; };
@@ -10388,6 +10393,7 @@ LiteralExpression.prototype.visit = function(visitor) {
 }
 LiteralExpression.prototype.visit$1 = LiteralExpression.prototype.visit;
 // ********** Code for NameTypeReference **************
+$inherits(NameTypeReference, TypeReference);
 function NameTypeReference(isFinal, name, names, span) {
   this.isFinal = isFinal;
   this.name = name;
@@ -10395,7 +10401,6 @@ function NameTypeReference(isFinal, name, names, span) {
   // Initializers done
   TypeReference.call(this, span);
 }
-$inherits(NameTypeReference, TypeReference);
 NameTypeReference.prototype.get$isFinal = function() { return this.isFinal; };
 NameTypeReference.prototype.set$isFinal = function(value) { return this.isFinal = value; };
 NameTypeReference.prototype.get$name = function() { return this.name; };
@@ -10407,6 +10412,7 @@ NameTypeReference.prototype.visit = function(visitor) {
 }
 NameTypeReference.prototype.visit$1 = NameTypeReference.prototype.visit;
 // ********** Code for GenericTypeReference **************
+$inherits(GenericTypeReference, TypeReference);
 function GenericTypeReference(baseType, typeArguments, depth, span) {
   this.baseType = baseType;
   this.typeArguments = typeArguments;
@@ -10414,7 +10420,6 @@ function GenericTypeReference(baseType, typeArguments, depth, span) {
   // Initializers done
   TypeReference.call(this, span);
 }
-$inherits(GenericTypeReference, TypeReference);
 GenericTypeReference.prototype.get$baseType = function() { return this.baseType; };
 GenericTypeReference.prototype.set$baseType = function(value) { return this.baseType = value; };
 GenericTypeReference.prototype.get$typeArguments = function() { return this.typeArguments; };
@@ -10426,13 +10431,13 @@ GenericTypeReference.prototype.visit = function(visitor) {
 }
 GenericTypeReference.prototype.visit$1 = GenericTypeReference.prototype.visit;
 // ********** Code for FunctionTypeReference **************
+$inherits(FunctionTypeReference, TypeReference);
 function FunctionTypeReference(isFinal, func, span) {
   this.isFinal = isFinal;
   this.func = func;
   // Initializers done
   TypeReference.call(this, span);
 }
-$inherits(FunctionTypeReference, TypeReference);
 FunctionTypeReference.prototype.get$isFinal = function() { return this.isFinal; };
 FunctionTypeReference.prototype.set$isFinal = function(value) { return this.isFinal = value; };
 FunctionTypeReference.prototype.get$func = function() { return this.func; };
@@ -10442,13 +10447,13 @@ FunctionTypeReference.prototype.visit = function(visitor) {
 }
 FunctionTypeReference.prototype.visit$1 = FunctionTypeReference.prototype.visit;
 // ********** Code for ArgumentNode **************
+$inherits(ArgumentNode, Node);
 function ArgumentNode(label, value, span) {
   this.label = label;
   this.value = value;
   // Initializers done
   Node.call(this, span);
 }
-$inherits(ArgumentNode, Node);
 ArgumentNode.prototype.get$label = function() { return this.label; };
 ArgumentNode.prototype.set$label = function(value) { return this.label = value; };
 ArgumentNode.prototype.get$value = function() { return this.value; };
@@ -10458,6 +10463,7 @@ ArgumentNode.prototype.visit = function(visitor) {
 }
 ArgumentNode.prototype.visit$1 = ArgumentNode.prototype.visit;
 // ********** Code for FormalNode **************
+$inherits(FormalNode, Node);
 function FormalNode(isThis, isRest, type, name, value, span) {
   this.isThis = isThis;
   this.isRest = isRest;
@@ -10467,7 +10473,6 @@ function FormalNode(isThis, isRest, type, name, value, span) {
   // Initializers done
   Node.call(this, span);
 }
-$inherits(FormalNode, Node);
 FormalNode.prototype.get$type = function() { return this.type; };
 FormalNode.prototype.set$type = function(value) { return this.type = value; };
 FormalNode.prototype.get$name = function() { return this.name; };
@@ -10479,6 +10484,7 @@ FormalNode.prototype.visit = function(visitor) {
 }
 FormalNode.prototype.visit$1 = FormalNode.prototype.visit;
 // ********** Code for CatchNode **************
+$inherits(CatchNode, Node);
 function CatchNode(exception, trace, body, span) {
   this.exception = exception;
   this.trace = trace;
@@ -10486,7 +10492,6 @@ function CatchNode(exception, trace, body, span) {
   // Initializers done
   Node.call(this, span);
 }
-$inherits(CatchNode, Node);
 CatchNode.prototype.get$exception = function() { return this.exception; };
 CatchNode.prototype.set$exception = function(value) { return this.exception = value; };
 CatchNode.prototype.get$trace = function() { return this.trace; };
@@ -10498,6 +10503,7 @@ CatchNode.prototype.visit = function(visitor) {
 }
 CatchNode.prototype.visit$1 = CatchNode.prototype.visit;
 // ********** Code for CaseNode **************
+$inherits(CaseNode, Node);
 function CaseNode(label, cases, statements, span) {
   this.label = label;
   this.cases = cases;
@@ -10505,7 +10511,6 @@ function CaseNode(label, cases, statements, span) {
   // Initializers done
   Node.call(this, span);
 }
-$inherits(CaseNode, Node);
 CaseNode.prototype.get$label = function() { return this.label; };
 CaseNode.prototype.set$label = function(value) { return this.label = value; };
 CaseNode.prototype.get$cases = function() { return this.cases; };
@@ -10517,13 +10522,13 @@ CaseNode.prototype.visit = function(visitor) {
 }
 CaseNode.prototype.visit$1 = CaseNode.prototype.visit;
 // ********** Code for TypeParameter **************
+$inherits(TypeParameter, Node);
 function TypeParameter(name, extendsType, span) {
   this.name = name;
   this.extendsType = extendsType;
   // Initializers done
   Node.call(this, span);
 }
-$inherits(TypeParameter, Node);
 TypeParameter.prototype.get$name = function() { return this.name; };
 TypeParameter.prototype.set$name = function(value) { return this.name = value; };
 TypeParameter.prototype.get$extendsType = function() { return this.extendsType; };
@@ -10533,12 +10538,12 @@ TypeParameter.prototype.visit = function(visitor) {
 }
 TypeParameter.prototype.visit$1 = TypeParameter.prototype.visit;
 // ********** Code for Identifier **************
+$inherits(Identifier, Node);
 function Identifier(name, span) {
   this.name = name;
   // Initializers done
   Node.call(this, span);
 }
-$inherits(Identifier, Node);
 Identifier.prototype.get$name = function() { return this.name; };
 Identifier.prototype.set$name = function(value) { return this.name = value; };
 Identifier.prototype.visit = function(visitor) {
@@ -10546,13 +10551,13 @@ Identifier.prototype.visit = function(visitor) {
 }
 Identifier.prototype.visit$1 = Identifier.prototype.visit;
 // ********** Code for DeclaredIdentifier **************
+$inherits(DeclaredIdentifier, Expression);
 function DeclaredIdentifier(type, name, span) {
   this.type = type;
   this.name = name;
   // Initializers done
   Expression.call(this, span);
 }
-$inherits(DeclaredIdentifier, Expression);
 DeclaredIdentifier.prototype.get$type = function() { return this.type; };
 DeclaredIdentifier.prototype.set$type = function(value) { return this.type = value; };
 DeclaredIdentifier.prototype.get$name = function() { return this.name; };
@@ -10562,15 +10567,16 @@ DeclaredIdentifier.prototype.visit = function(visitor) {
 }
 DeclaredIdentifier.prototype.visit$1 = DeclaredIdentifier.prototype.visit;
 // ********** Code for Type **************
+$inherits(Type, Element);
 function Type(name) {
   this.isTested = false
   this.isChecked = false
+  this.isWritten = false
   this._resolvedMembers = new HashMapImplementation();
   this.varStubs = new HashMapImplementation();
   // Initializers done
   Element.call(this, name, null);
 }
-$inherits(Type, Element);
 Type.prototype.get$isTested = function() { return this.isTested; };
 Type.prototype.set$isTested = function(value) { return this.isTested = value; };
 Type.prototype.get$typeCheckCode = function() { return this.typeCheckCode; };
@@ -10904,12 +10910,12 @@ Type.prototype.isSubtypeOf$1 = Type.prototype.isSubtypeOf;
 Type.prototype.markUsed$0 = Type.prototype.markUsed;
 Type.prototype.resolveTypeParams$1 = Type.prototype.resolveTypeParams;
 // ********** Code for ParameterType **************
+$inherits(ParameterType, Type);
 function ParameterType(name, typeParameter) {
   this.typeParameter = typeParameter;
   // Initializers done
   Type.call(this, name);
 }
-$inherits(ParameterType, Type);
 ParameterType.prototype.get$typeParameter = function() { return this.typeParameter; };
 ParameterType.prototype.set$typeParameter = function(value) { return this.typeParameter = value; };
 ParameterType.prototype.get$extendsType = function() { return this.extendsType; };
@@ -10965,12 +10971,12 @@ ParameterType.prototype.isSubtypeOf$1 = ParameterType.prototype.isSubtypeOf;
 ParameterType.prototype.resolve$0 = ParameterType.prototype.resolve;
 ParameterType.prototype.resolveTypeParams$1 = ParameterType.prototype.resolveTypeParams;
 // ********** Code for NonNullableType **************
+$inherits(NonNullableType, Type);
 function NonNullableType(type) {
   this.type = type;
   // Initializers done
   Type.call(this, type.name);
 }
-$inherits(NonNullableType, Type);
 NonNullableType.prototype.get$type = function() { return this.type; };
 NonNullableType.prototype.get$isNullable = function() {
   return false;
@@ -11077,6 +11083,7 @@ NonNullableType.prototype.isSubtypeOf$1 = NonNullableType.prototype.isSubtypeOf;
 NonNullableType.prototype.markUsed$0 = NonNullableType.prototype.markUsed;
 NonNullableType.prototype.resolveTypeParams$1 = NonNullableType.prototype.resolveTypeParams;
 // ********** Code for ConcreteType **************
+$inherits(ConcreteType, Type);
 function ConcreteType(name, genericType, typeArguments, typeArgsInOrder) {
   this.isUsed = false
   this.genericType = genericType;
@@ -11088,7 +11095,6 @@ function ConcreteType(name, genericType, typeArguments, typeArgsInOrder) {
   // Initializers done
   Type.call(this, name);
 }
-$inherits(ConcreteType, Type);
 ConcreteType.prototype.get$genericType = function() { return this.genericType; };
 ConcreteType.prototype.get$typeArguments = function() { return this.typeArguments; };
 ConcreteType.prototype.set$typeArguments = function(value) { return this.typeArguments = value; };
@@ -11246,6 +11252,7 @@ ConcreteType.prototype.getOrMakeConcreteType$1 = ConcreteType.prototype.getOrMak
 ConcreteType.prototype.markUsed$0 = ConcreteType.prototype.markUsed;
 ConcreteType.prototype.resolveTypeParams$1 = ConcreteType.prototype.resolveTypeParams;
 // ********** Code for DefinedType **************
+$inherits(DefinedType, Type);
 function DefinedType(name, library, definition, isClass) {
   this.isUsed = false
   this.isNative = false
@@ -11259,7 +11266,6 @@ function DefinedType(name, library, definition, isClass) {
   Type.call(this, name);
   this.setDefinition(definition);
 }
-$inherits(DefinedType, Type);
 DefinedType.prototype.get$definition = function() { return this.definition; };
 DefinedType.prototype.set$definition = function(value) { return this.definition = value; };
 DefinedType.prototype.get$library = function() { return this.library; };
@@ -11764,12 +11770,12 @@ FixedCollection.prototype.some$1 = function($0) {
   return this.some(to$call$1($0));
 };
 // ********** Code for FixedCollection_Type **************
+$inherits(FixedCollection_Type, FixedCollection);
 function FixedCollection_Type(value, length) {
   this.value = value;
   this.length = length;
   // Initializers done
 }
-$inherits(FixedCollection_Type, FixedCollection);
 // ********** Code for FixedIterator **************
 function FixedIterator(value, length) {
   this._index = 0
@@ -11788,13 +11794,13 @@ FixedIterator.prototype.next = function() {
 FixedIterator.prototype.hasNext$0 = FixedIterator.prototype.hasNext;
 FixedIterator.prototype.next$0 = FixedIterator.prototype.next;
 // ********** Code for FixedIterator_E **************
+$inherits(FixedIterator_E, FixedIterator);
 function FixedIterator_E(value, length) {
   this._index = 0
   this.value = value;
   this.length = length;
   // Initializers done
 }
-$inherits(FixedIterator_E, FixedIterator);
 // ********** Code for Value **************
 function Value(_type, code, span, needsTemp) {
   this.isSuper = false
@@ -12154,6 +12160,7 @@ Value.prototype.set_$4 = function($0, $1, $2, $3) {
   return this.set_($0, $1, $2, $3, false);
 };
 // ********** Code for EvaluatedValue **************
+$inherits(EvaluatedValue, Value);
 function EvaluatedValue() {}
 EvaluatedValue._internal$ctor = function(type, actualValue, canonicalCode, span, code) {
   this.actualValue = actualValue;
@@ -12162,7 +12169,6 @@ EvaluatedValue._internal$ctor = function(type, actualValue, canonicalCode, span,
   Value.call(this, type, code, span, false);
 }
 EvaluatedValue._internal$ctor.prototype = EvaluatedValue.prototype;
-$inherits(EvaluatedValue, Value);
 EvaluatedValue.EvaluatedValue$factory = function(type, actualValue, canonicalCode, span) {
   return new EvaluatedValue._internal$ctor(type, actualValue, canonicalCode, span, EvaluatedValue.codeWithComments(canonicalCode, span));
 }
@@ -12177,6 +12183,7 @@ EvaluatedValue.codeWithComments = function(canonicalCode, span) {
   return (span != null && span.get$text() != canonicalCode) ? ('' + canonicalCode + '/*' + _escapeForComment(span.get$text()) + '*/') : canonicalCode;
 }
 // ********** Code for ConstListValue **************
+$inherits(ConstListValue, EvaluatedValue);
 function ConstListValue() {}
 ConstListValue._internal$ctor = function(type, values, actualValue, canonicalCode, span, code) {
   this.values = values;
@@ -12184,13 +12191,13 @@ ConstListValue._internal$ctor = function(type, values, actualValue, canonicalCod
   EvaluatedValue._internal$ctor.call(this, type, actualValue, canonicalCode, span, code);
 }
 ConstListValue._internal$ctor.prototype = ConstListValue.prototype;
-$inherits(ConstListValue, EvaluatedValue);
 ConstListValue.ConstListValue$factory = function(type, values, actualValue, canonicalCode, span) {
   return new ConstListValue._internal$ctor(type, values, actualValue, canonicalCode, span, EvaluatedValue.codeWithComments(canonicalCode, span));
 }
 ConstListValue.prototype.get$values = function() { return this.values; };
 ConstListValue.prototype.set$values = function(value) { return this.values = value; };
 // ********** Code for ConstMapValue **************
+$inherits(ConstMapValue, EvaluatedValue);
 function ConstMapValue() {}
 ConstMapValue._internal$ctor = function(type, values, actualValue, canonicalCode, span, code) {
   this.values = values;
@@ -12198,7 +12205,6 @@ ConstMapValue._internal$ctor = function(type, values, actualValue, canonicalCode
   EvaluatedValue._internal$ctor.call(this, type, actualValue, canonicalCode, span, code);
 }
 ConstMapValue._internal$ctor.prototype = ConstMapValue.prototype;
-$inherits(ConstMapValue, EvaluatedValue);
 ConstMapValue.ConstMapValue$factory = function(type, keyValuePairs, actualValue, canonicalCode, span) {
   var values = new HashMapImplementation();
   for (var i = 0;
@@ -12210,6 +12216,7 @@ ConstMapValue.ConstMapValue$factory = function(type, keyValuePairs, actualValue,
 ConstMapValue.prototype.get$values = function() { return this.values; };
 ConstMapValue.prototype.set$values = function(value) { return this.values = value; };
 // ********** Code for ConstObjectValue **************
+$inherits(ConstObjectValue, EvaluatedValue);
 function ConstObjectValue() {}
 ConstObjectValue._internal$ctor = function(type, fields, actualValue, canonicalCode, span, code) {
   this.fields = fields;
@@ -12217,7 +12224,6 @@ ConstObjectValue._internal$ctor = function(type, fields, actualValue, canonicalC
   EvaluatedValue._internal$ctor.call(this, type, actualValue, canonicalCode, span, code);
 }
 ConstObjectValue._internal$ctor.prototype = ConstObjectValue.prototype;
-$inherits(ConstObjectValue, EvaluatedValue);
 ConstObjectValue.ConstObjectValue$factory = function(type, fields, canonicalCode, span) {
   var fieldValues = [];
   var $$list = fields.getKeys();
@@ -12235,6 +12241,7 @@ ConstObjectValue.ConstObjectValue$factory = function(type, fields, canonicalCode
 ConstObjectValue.prototype.get$fields = function() { return this.fields; };
 ConstObjectValue.prototype.set$fields = function(value) { return this.fields = value; };
 // ********** Code for GlobalValue **************
+$inherits(GlobalValue, Value);
 function GlobalValue(type, code, isConst, field, name, exp, canonicalCode, span, _dependencies) {
   this.field = field;
   this.name = name;
@@ -12249,7 +12256,6 @@ function GlobalValue(type, code, isConst, field, name, exp, canonicalCode, span,
     this.dependencies.addAll(dep.get$dependencies());
   }
 }
-$inherits(GlobalValue, Value);
 GlobalValue.GlobalValue$fromStatic$factory = function(field, exp, dependencies) {
   var code = (exp.get$isConst() ? exp.get$canonicalCode() : exp.code);
   var codeWithComment = ('' + code + '/*' + field.get$declaringType().get$name() + '.' + field.get$name() + '*/');
@@ -12313,13 +12319,13 @@ GlobalValue.prototype.compareTo = function(other) {
 }
 GlobalValue.prototype.compareTo$1 = GlobalValue.prototype.compareTo;
 // ********** Code for BareValue **************
+$inherits(BareValue, Value);
 function BareValue(home, outermost, span) {
   this.home = home;
   // Initializers done
   Value.call(this, outermost.method.declaringType, null, span, false);
   this.isType = outermost.get$isStatic();
 }
-$inherits(BareValue, Value);
 BareValue.prototype.get$type = function() {
   return this._type;
 }
@@ -12350,16 +12356,16 @@ BareValue.prototype._tryResolveMember = function(context, name) {
 }
 // ********** Code for CompilerException **************
 function CompilerException(_message, _location) {
-  this._message = _message;
+  this._lang_message = _message;
   this._location = _location;
   // Initializers done
 }
 CompilerException.prototype.toString = function() {
   if (this._location != null) {
-    return ('CompilerException: ' + this._location.toMessageString(this._message));
+    return ('CompilerException: ' + this._location.toMessageString(this._lang_message));
   }
   else {
-    return ('CompilerException: ' + this._message);
+    return ('CompilerException: ' + this._lang_message);
   }
 }
 CompilerException.prototype.toString$0 = CompilerException.prototype.toString;
@@ -12891,13 +12897,13 @@ VarMember.prototype.invoke = function(context, node, target, args) {
 VarMember.prototype.generate$1 = VarMember.prototype.generate;
 VarMember.prototype.invoke$4 = VarMember.prototype.invoke;
 // ********** Code for VarFunctionStub **************
+$inherits(VarFunctionStub, VarMember);
 function VarFunctionStub(name, callArgs) {
   this.args = callArgs.toCallStubArgs();
   // Initializers done
   VarMember.call(this, name);
   $globals.world.gen.corejs.useGenStub = true;
 }
-$inherits(VarFunctionStub, VarMember);
 VarFunctionStub.prototype.generate = function(code) {
   if (this.args.get$hasNames()) {
     this.generateNamed(code);
@@ -12929,6 +12935,7 @@ VarFunctionStub.prototype.generateNamed = function(w) {
 }
 VarFunctionStub.prototype.generate$1 = VarFunctionStub.prototype.generate;
 // ********** Code for VarMethodStub **************
+$inherits(VarMethodStub, VarMember);
 function VarMethodStub(name, member, args, body) {
   this.member = member;
   this.args = args;
@@ -12936,7 +12943,6 @@ function VarMethodStub(name, member, args, body) {
   // Initializers done
   VarMember.call(this, name);
 }
-$inherits(VarMethodStub, VarMember);
 VarMethodStub.prototype.get$body = function() { return this.body; };
 VarMethodStub.prototype.get$isHidden = function() {
   return this.member != null ? this.member.declaringType.get$isHiddenNativeType() : false;
@@ -12997,6 +13003,7 @@ VarMethodStub.prototype._useDirectCall = function(args) {
 }
 VarMethodStub.prototype.generate$1 = VarMethodStub.prototype.generate;
 // ********** Code for VarMethodSet **************
+$inherits(VarMethodSet, VarMember);
 function VarMethodSet(baseName, name, members, callArgs, returnType) {
   this.invoked = false
   this.baseName = baseName;
@@ -13006,7 +13013,6 @@ function VarMethodSet(baseName, name, members, callArgs, returnType) {
   // Initializers done
   VarMember.call(this, name);
 }
-$inherits(VarMethodSet, VarMember);
 VarMethodSet.prototype.get$members = function() { return this.members; };
 VarMethodSet.prototype.get$returnType = function() { return this.returnType; };
 VarMethodSet.prototype.invoke = function(context, node, target, args) {
