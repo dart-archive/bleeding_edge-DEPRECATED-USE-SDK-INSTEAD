@@ -13,7 +13,7 @@ class Parser {
 
   void parseUnit(Token token) {
     while (token.kind !== EOF_TOKEN) {
-      var value = token.stringValue;
+      final String value = token.stringValue;
       if (value === 'interface') {
         token = parseInterface(token);
       } else if ((value === 'abstract') || (value === 'class')) {
@@ -151,7 +151,18 @@ class Parser {
 
   Token parseFactoryClauseOpt(Token token) {
     if (optional('factory', token)) {
-      return parseType(token.next);
+      Token factoryKeyword = token;
+      listener.beginFactoryClause(factoryKeyword);
+      token = parseIdentifier(token.next);
+      if (optional('.', token)) {
+        Token period = token;
+        token = parseIdentifier(token.next);
+        listener.handleQualified(period);
+      }
+      token = parseTypeVariablesOpt(token);
+      listener.endFactoryClause(factoryKeyword);
+    } else {
+      listener.handleNoFactoryClause(token);
     }
     return token;
   }
@@ -403,7 +414,7 @@ class Parser {
   Token skipModifiers(Token token) {
     while (token.kind === KEYWORD_TOKEN) {
       final String value = token.stringValue;
-      if (('final' !== value ) &&
+      if (('final' !== value) &&
           ('var' !== value) &&
           ('const' !== value) &&
           ('abstract' !== value) &&
@@ -458,6 +469,9 @@ class Parser {
   }
 
   Token parseMember(Token token) {
+    if (optional('factory', token)) {
+      return parseFactoryMethod(token);
+    }
     Token start = token;
     listener.beginMember(token);
     token = skipModifiers(token);
@@ -501,6 +515,29 @@ class Parser {
       }
       listener.endMethod(start, token);
     }
+    return token.next;
+  }
+
+  Token parseFactoryMethod(Token token) {
+    assert(optional('factory', token));
+    Token factoryKeyword = token;
+    listener.beginFactoryMethod(factoryKeyword);
+    token = token.next; // Skip 'factory'.
+    token = parseIdentifier(token);
+    if (optional('.', token)) {
+      Token period = token;
+      token = parseIdentifier(token.next);
+      listener.handleQualified(period);
+    }
+    token = parseTypeVariablesOpt(token);
+    Token period = null;
+    if (optional('.', token)) {
+      period = token;
+      token = parseIdentifier(token.next);
+    }
+    token = parseFormalParameters(token);
+    token = parseFunctionBody(token);
+    listener.endFactoryMethod(factoryKeyword, period);
     return token.next;
   }
 

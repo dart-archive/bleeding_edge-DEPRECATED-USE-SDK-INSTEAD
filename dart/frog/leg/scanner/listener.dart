@@ -44,6 +44,21 @@ class Listener {
   void endExpressionStatement(Token token) {
   }
 
+  void beginFactoryClause(Token token) {
+  }
+
+  void handleNoFactoryClause(Token token) {
+  }
+
+  void endFactoryClause(Token factoryKeyword) {
+  }
+
+  void beginFactoryMethod(Token token) {
+  }
+
+  void endFactoryMethod(Token factoryKeyword, Token periodBeforeName) {
+  }
+
   void beginFormalParameter(Token token) {
   }
 
@@ -316,6 +331,9 @@ class Listener {
   void handleParenthesizedExpression(BeginGroupToken token) {
   }
 
+  void handleQualified(Token period) {
+  }
+
   void handleStringInterpolationPart(Token token) {
   }
 
@@ -399,6 +417,11 @@ class ElementListener extends Listener {
     pushElement(new PartialClassElement(name.source, beginToken, endToken));
   }
 
+  void endFactoryClause(Token factoryKeyword) {
+    canceler.cancel("Factory clauses are not implemented",
+                    token: factoryKeyword);
+  }
+
   void endInterface(Token token) {
     // TODO(ahe): Implement this.
     canceler.cancel("Cannot handle interfaces", token: token);
@@ -422,6 +445,10 @@ class ElementListener extends Listener {
 
   void handleIdentifier(Token token) {
     pushNode(new Identifier(token));
+  }
+
+  void handleQualified(Token period) {
+    canceler.cancel("library prefixes are not implemented", token: period);
   }
 
   void handleNoType(Token token) {
@@ -876,6 +903,11 @@ class NodeListener extends ElementListener {
 
   void handleEmptyStatement(Token token) {
     canceler.cancel('empty statement is not implemented', token: token);
+  }
+
+  void endFactoryMethod(Token factoryKeyword, Token periodBeforeName) {
+    canceler.cancel('factory methods are not implemented',
+                    token: factoryKeyword);
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
