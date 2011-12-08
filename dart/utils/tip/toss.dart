@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('../lib/node/node.dart');
-#import('../file_system_node.dart');
-#import('../lang.dart');
+#import('../../frog/lib/node/node.dart');
+#import('../../frog/file_system_node.dart');
+#import('../../frog/lang.dart');
 
 String compileDart(String basename, String filename) {
   final basedir = path.dirname(basename);

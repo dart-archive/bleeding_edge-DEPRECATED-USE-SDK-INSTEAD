@@ -10,8 +10,8 @@
  */
 
 #import('dart:dom');
-#import('../lang.dart');
-#import('../file_system_dom.dart');
+#import('../../frog/lang.dart');
+#import('../../frog/file_system_dom.dart');
 
 
 void main() {
