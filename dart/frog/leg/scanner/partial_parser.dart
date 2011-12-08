@@ -14,9 +14,13 @@ class PartialParser extends Parser {
   Token skipExpression(Token token) {
     while (true) {
       final kind = token.kind;
-      if ((token.kind === EOF_TOKEN) || (token.kind === SEMICOLON_TOKEN))
+      final value = token.stringValue;
+      if ((kind === EOF_TOKEN) ||
+          (value === ';') ||
+          (value === ',') ||
+          (value === ']'))
         return token;
-      if (token is BeginGroupToken) {
+      if ((value !== '<') && (token is BeginGroupToken)) {
         BeginGroupToken begin = token;
         token = (begin.endGroup !== null) ? begin.endGroup : token;
       }
