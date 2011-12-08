@@ -90,7 +90,7 @@ class HTracer extends HGraphVisitor {
             String phiId = stringifier.temporaryId(phi);
             StringBuffer inputIds = new StringBuffer();
             for (int i = 0; i < phi.inputs.length; i++) {
-              inputIds.add(phi.inputs[i]);
+              inputIds.add(stringifier.temporaryId(phi.inputs[i]));
               inputIds.add(" ");
             }
             print("${phi.id} $phiId [ $inputIds]");

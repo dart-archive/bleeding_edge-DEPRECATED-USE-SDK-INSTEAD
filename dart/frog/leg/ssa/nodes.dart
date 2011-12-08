@@ -314,6 +314,8 @@ class HBasicBlock extends HInstructionList {
   HBasicBlock dominator = null;
   final List<HBasicBlock> dominatedBlocks;
 
+  bool isCondition = false;
+
   HBasicBlock() : this.withId(null);
   HBasicBlock.withId(this.id)
       : phis = new HInstructionList(),
@@ -326,6 +328,8 @@ class HBasicBlock extends HInstructionList {
   bool isClosed() => status == STATUS_CLOSED;
 
   bool isLoopHeader() => loopInformation !== null;
+  bool isConditionalExpression() =>
+      last is HConditionalBranch && last.isExpression;
 
   void open() {
     assert(isNew());
@@ -806,6 +810,7 @@ class HTypeGuard extends HInstruction {
 }
 
 class HConditionalBranch extends HControlFlow {
+  bool isExpression = false;
   HConditionalBranch(inputs) : super(inputs);
   abstract toString();
 }

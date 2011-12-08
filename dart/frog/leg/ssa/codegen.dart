@@ -26,6 +26,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     if (GENERATE_SSA_TRACE) {
       new HTracer.singleton().traceGraph("codegen", graph);
     }
+    new SsaInstructionMerger().visitGraph(graph);
     new SsaPhiEliminator().visitGraph(graph);
     if (GENERATE_SSA_TRACE) {
       new HTracer.singleton().traceGraph("no-phi", graph);
@@ -239,7 +240,7 @@ class SsaCodeGenerator implements HVisitor {
   visitGoto(HGoto node) {
     assert(currentBlock.successors.length == 1);
     List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
-    // With the exception of the entry-node which is dominates its successor
+    // With the exception of the entry-node which dominates its successor
     // and the exit node, no block finishing with a 'goto' can have more than
     // one dominated block (since it has only one successor).
     // If the successor is dominated by another block, then the other block
@@ -462,4 +463,194 @@ class SsaCodeGenerator implements HVisitor {
 
   void visitIndex(HIndex node) => visitInvokeStatic(node);
   void visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
+}
+
+
+/**
+ * Instead of emitting each SSA instruction with a temporary variable
+ * mark instructions that can be emitted at their use-site.
+ * For example, in:
+ *   t0 = 4;
+ *   t1 = 3;
+ *   t2 = add(t0, t1);
+ * t0 and t1 would be marked and the resulting code would then be:
+ *   t2 = add(4, 3);
+ */
+class SsaInstructionMerger extends HGraphVisitor {
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  bool usedOnlyByPhis(instruction) {
+    for (HInstruction user in instruction.usedBy) {
+      if (user is !HPhi) return false;
+    }
+    return true;
+  }
+
+  void visitBasicBlock(HBasicBlock block) {
+    // Visit each instruction of the basic block in last-to-first order.
+    // Keep a list of expected inputs of the current "expression" being
+    // merged. If instructions occour in the expected order, they are
+    // included in the expression.
+
+    // The expectedInputs list holds non-trivial instructions that may
+    // be generated at their use site, if they occur in the correct order.
+    List<HInstruction> expectedInputs = new List<HInstruction>();
+    // Add non-trivial inputs of instruction to expectedInputs, in
+    // evaluation order.
+    void addInputs(HInstruction instruction) {
+      for (HInstruction input in instruction.inputs) {
+        if (!input.generateAtUseSite() && input.usedBy.length == 1) {
+          expectedInputs.add(input);
+        }
+      }
+    }
+    // Pop instructions from expectedInputs until instruction is found.
+    // Return true if it is found, or false if not.
+    bool findInInputs(HInstruction instruction) {
+      while (!expectedInputs.isEmpty()) {
+        HInstruction nextInput = expectedInputs.removeLast();
+        assert(!nextInput.generateAtUseSite());
+        assert(nextInput.usedBy.length == 1);
+        if (nextInput == instruction) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    addInputs(block.last);
+    bool isExpression = true;
+    for (HInstruction instruction = block.last.previous;
+         instruction !== null;
+         instruction = instruction.previous) {
+      if (instruction.generateAtUseSite()) {
+        continue;
+      }
+      // See if the current instruction is the next non-trivial
+      // expected input. If not, drop the expectedInputs and
+      // start over.
+      if (findInInputs(instruction)) {
+        instruction.setGenerateAtUseSite();
+      } else {
+        assert(expectedInputs.isEmpty());
+        isExpression = false;
+      }
+      if (instruction is HForeign) {
+        // Never try to merge inputs to HForeign.
+        continue;
+      } else if (instruction is !HTypeGuard ||
+                 instruction.generateAtUseSite() ||
+                 usedOnlyByPhis(instruction)) {
+        // In all other cases, try merging all non-trivial inputs.
+        addInputs(instruction);
+      }
+    }
+    if (isExpression && block.last is HConditionalBranch) {
+      block.last.isExpression = true;
+    }
+  }
+}
+
+class SsaTypeGuardUnuser extends HBaseVisitor {
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  void visitTypeGuard(HTypeGuard node) {
+    // If the type guard itself is generated at the use site, it will
+    // introduce an extra temporary if we rewrite uses of it.
+    if (node.generateAtUseSite()) return;
+    currentBlock.rewrite(node, node.inputs[0]);
+  }
+}
+
+// This phase merges equivalent instructions on different paths into
+// one instruction in a dominator block. It runs through the graph
+// post dominator order and computes a ValueSet for each block of
+// instructions that can be moved to a dominator block. These
+// instructions are the ones that:
+// 1) can be used for GVN, and
+// 2) do not use definitions of their own block.
+//
+// A basic block looks at its sucessors and finds the intersection of
+// these computed ValueSet. It moves all instructions of the
+// intersection into its own list of instructions.
+class SsaCodeMotion extends HBaseVisitor {
+  List<ValueSet> values;
+
+  void visitGraph(HGraph graph) {
+    values = new List<ValueSet>(graph.blocks.length);
+    for (int i = 0; i < graph.blocks.length; i++) {
+      values[graph.blocks[i].id] = new ValueSet();
+    }
+    visitPostDominatorTree(graph);
+  }
+
+  void visitBasicBlock(HBasicBlock block) {
+    List<HBasicBlock> successors = block.successors;
+
+    // Phase 1: get the ValueSet of all successors, compute the
+    // intersection and move the instructions of the intersection into
+    // this block.
+    if (successors.length != 0) {
+      ValueSet instructions = values[successors[0].id];
+      for (int i = 1; i < successors.length; i++) {
+        ValueSet other = values[successors[i].id];
+        instructions = instructions.intersection(other);
+      }
+
+      if (!instructions.isEmpty()) {
+        List<HInstruction> list = instructions.toList();
+        for (HInstruction instruction in list) {
+          // Move the instruction to the current block.
+          instruction.block.detach(instruction);
+          block.moveAtExit(instruction);
+          // Go through all successors and rewrite their instruction
+          // to the shared one.
+          for (final successor in successors) {
+            HInstruction toRewrite = values[successor.id].lookup(instruction);
+            if (toRewrite != instruction) {
+              successor.rewrite(toRewrite, instruction);
+              successor.remove(toRewrite);
+            }
+          }
+        }
+      }
+    }
+
+    // Don't try to merge instructions to a dominator if we have
+    // multiple predecessors.
+    if (block.predecessors.length != 1) return;
+
+    // Phase 2: Go through all instructions of this block and find
+    // which instructions can be moved to a dominator block.
+    ValueSet set_ = values[block.id];
+    HInstruction instruction = block.first;
+    int flags = 0;
+    while (instruction !== null) {
+      int dependsFlags = HInstruction.computeDependsOnFlags(flags);
+      flags |= instruction.getChangesFlags();
+
+      HInstruction current = instruction;
+      instruction = instruction.next;
+
+      if (!current.useGvn()) continue;
+      if ((current.flags & dependsFlags) != 0) continue;
+
+      bool canBeMoved = true;
+      for (final HInstruction input in current.inputs) {
+        if (input.block == block) {
+          canBeMoved = false;
+          break;
+        }
+      }
+      if (!canBeMoved) continue;
+
+      // This is safe because we are running after GVN.
+      // TODO(ngeoffray): ensure GVN has been run.
+      set_.add(current);
+    }
+  }
 }

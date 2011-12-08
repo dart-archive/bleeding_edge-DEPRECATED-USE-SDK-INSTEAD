@@ -44,6 +44,10 @@ class SsaBuilder implements Visitor {
   // The current block to add instructions to. Might be null, if we are
   // visiting dead code.
   HBasicBlock current;
+  // Whether we are currently processing a condition expression (e.g., from
+  // an if, while, do-while, or for statement, or the conditional expression.
+  // (Currently, only if-statements are processed this way).
+  bool isConditionExpression = false;
 
   SsaBuilder(this.compiler, this.elements);
 
@@ -65,6 +69,12 @@ class SsaBuilder implements Visitor {
     if (!isAborted()) close(new HGoto()).addSuccessor(graph.exit);
     graph.finalize();
     return graph;
+  }
+
+  HBasicBlock addNewBlock() {
+    HBasicBlock block = graph.addNewBlock();
+    if (isConditionExpression) block.isCondition = true;
+    return block;
   }
 
   void open(HBasicBlock block) {
@@ -122,6 +132,12 @@ class SsaBuilder implements Visitor {
 
   void visit(Node node) {
     if (node !== null) node.accept(this);
+  }
+
+  void visitCondition(Node node) {
+    isConditionExpression = true;
+    visit(node);
+    isConditionExpression = false;
   }
 
   visitParameterValues(NodeList parameters) {
@@ -216,7 +232,7 @@ class SsaBuilder implements Visitor {
       }
     });
 
-    HBasicBlock loopExitBlock = graph.addNewBlock();
+    HBasicBlock loopExitBlock = addNewBlock();
     assert(branchBlock.successors.length == 1);
     branchBlock.addSuccessor(loopExitBlock);
     open(loopExitBlock);
@@ -241,7 +257,7 @@ class SsaBuilder implements Visitor {
     Map conditionDefinitions = new Map<Element, HInstruction>.from(definitions);
 
     // The body.
-    HBasicBlock bodyBlock = graph.addNewBlock();
+    HBasicBlock bodyBlock = addNewBlock();
     conditionExitBlock.addSuccessor(bodyBlock);
     open(bodyBlock);
     visit(body);
@@ -254,7 +270,7 @@ class SsaBuilder implements Visitor {
     // We create an update block, even when we are in a while loop. There the
     // update block is the jump-target for continue statements. We could avoid
     // the creation if there is no continue, but for now we always create it.
-    HBasicBlock updateBlock = graph.addNewBlock();
+    HBasicBlock updateBlock = addNewBlock();
     bodyBlock.addSuccessor(updateBlock);
     open(updateBlock);
     if (update !== null) {
@@ -266,7 +282,7 @@ class SsaBuilder implements Visitor {
     updateBlock = close(new HGoto());
     // The back-edge completing the cycle.
     updateBlock.addSuccessor(conditionBlock);
-    conditionBlock.postProcessLoopHeader();    
+    conditionBlock.postProcessLoopHeader();
 
     endLoop(conditionBlock, conditionExitBlock, false, conditionDefinitions);
   }
@@ -293,7 +309,7 @@ class SsaBuilder implements Visitor {
     // If there are no continues we could avoid the creation of the condition
     // block. This could also lead to a block having multiple entries and exits.
     HBasicBlock bodyExitBlock = close(new HGoto());
-    HBasicBlock conditionBlock = graph.addNewBlock();
+    HBasicBlock conditionBlock = addNewBlock();
     bodyExitBlock.addSuccessor(conditionBlock);
     open(conditionBlock);
     visit(node.condition);
@@ -346,14 +362,14 @@ class SsaBuilder implements Visitor {
   visitIf(If node) {
     // Add the condition to the current block.
     bool hasElse = node.hasElsePart;
-    visit(node.condition);
+    visitCondition(node.condition);
     HBasicBlock conditionBlock = close(new HIf(popBoolified(), hasElse));
 
     Map conditionDefinitions =
         new Map<Element, HInstruction>.from(definitions);
 
     // The then part.
-    HBasicBlock thenBlock = graph.addNewBlock();
+    HBasicBlock thenBlock = addNewBlock();
     conditionBlock.addSuccessor(thenBlock);
     open(thenBlock);
     visit(node.thenPart);
@@ -366,7 +382,7 @@ class SsaBuilder implements Visitor {
     // Now the else part.
     HBasicBlock elseBlock = null;
     if (hasElse) {
-      elseBlock = graph.addNewBlock();
+      elseBlock = addNewBlock();
       conditionBlock.addSuccessor(elseBlock);
       open(elseBlock);
       visit(node.elsePart);
@@ -376,7 +392,7 @@ class SsaBuilder implements Visitor {
     if (thenBlock === null && elseBlock === null && hasElse) {
       current = null;
     } else {
-      HBasicBlock joinBlock = graph.addNewBlock();
+      HBasicBlock joinBlock = addNewBlock();
       if (thenBlock !== null) goto(thenBlock, joinBlock);
       if (elseBlock !== null) goto(elseBlock, joinBlock);
       else if (!hasElse) conditionBlock.addSuccessor(joinBlock);
@@ -427,14 +443,14 @@ class SsaBuilder implements Visitor {
     HBasicBlock leftBlock = close(new HIf(condition, false));
     Map leftDefinitions = new Map<Element, HInstruction>.from(definitions);
 
-    HBasicBlock rightBlock = graph.addNewBlock();
+    HBasicBlock rightBlock = addNewBlock();
     leftBlock.addSuccessor(rightBlock);
     open(rightBlock);
     visit(node.argumentsNode);
     HInstruction boolifiedRight = popBoolified();
     rightBlock = close(new HGoto());
 
-    HBasicBlock joinBlock = graph.addNewBlock();
+    HBasicBlock joinBlock = addNewBlock();
     leftBlock.addSuccessor(joinBlock);
     rightBlock.addSuccessor(joinBlock);
     open(joinBlock);
