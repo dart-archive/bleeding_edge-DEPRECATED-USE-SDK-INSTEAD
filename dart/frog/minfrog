@@ -5357,14 +5357,14 @@ MethodMember.prototype.needsArgumentConversion = function(args) {
   return false;
 }
 MethodMember._argCountMsg = function(actual, expected, atLeast) {
-  return 'wrong number of arguments, expected ' + ('' + (atLeast ? "at least " : "") + expected + ' but found ' + actual);
+  return 'wrong number of positional arguments, expected ' + ('' + (atLeast ? "at least " : "") + expected + ' but found ' + actual);
 }
-MethodMember.prototype._argError = function(context, node, target, args, msg) {
+MethodMember.prototype._argError = function(context, node, target, args, msg, span) {
   if (this.isStatic || this.get$isConstructor()) {
-    $globals.world.error(msg, node.span);
+    $globals.world.error(msg, span);
   }
   else {
-    $globals.world.warning(msg, node.span);
+    $globals.world.warning(msg, span);
   }
   return target.invokeNoSuchMethod(context, this.name, node, args);
 }
@@ -5398,7 +5398,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
     var arg = args.values.$index(i);
     if (i >= this.parameters.length) {
       var msg = MethodMember._argCountMsg(args.get$length(), this.parameters.length, false);
-      return this._argError(context, node, target, args, msg);
+      return this._argError(context, node, target, args, msg, args.nodes.$index(i).get$span());
     }
     arg = arg.convertTo$4(context, this.parameters.$index(i).get$type(), node, isDynamic);
     if (this.isConst && arg.get$isConst()) {
@@ -5408,9 +5408,9 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
       argsCode.add$1(arg.get$code());
     }
   }
+  var namedArgsUsed = 0;
   if (bareCount < this.parameters.length) {
     this.genParameterValues();
-    var namedArgsUsed = 0;
     for (var i = bareCount;
      i < this.parameters.length; i++) {
       var arg = args.getValue(this.parameters.$index(i).get$name());
@@ -5423,32 +5423,32 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
       }
       if (arg == null || !this.parameters.$index(i).get$isOptional()) {
         var msg = MethodMember._argCountMsg(Math.min(i, args.get$length()), i + 1, true);
-        return this._argError(context, node, target, args, msg);
+        return this._argError(context, node, target, args, msg, args.nodes.$index(i).get$span());
       }
       else {
         argsCode.add$1(this.isConst && arg.get$isConst() ? arg.get$canonicalCode() : arg.get$code());
       }
     }
-    if (namedArgsUsed < args.get$nameCount()) {
-      var seen = new HashSetImplementation();
-      for (var i = bareCount;
-       i < args.get$length(); i++) {
-        var name = args.getName(i);
-        if (seen.contains$1(name)) {
-          return this._argError(context, node, target, args, ('duplicate argument "' + name + '"'));
-        }
-        seen.add$1(name);
-        var p = this.indexOfParameter(name);
-        if (p < 0) {
-          return this._argError(context, node, target, args, ('method does not have optional parameter "' + name + '"'));
-        }
-        else if (p < bareCount) {
-          return this._argError(context, node, target, args, ('argument "' + name + '" passed as positional and named'));
-        }
-      }
-      $globals.world.internalError(('wrong named arguments calling ' + this.name), node.span);
-    }
     Arguments.removeTrailingNulls(argsCode);
+  }
+  if (namedArgsUsed < args.get$nameCount()) {
+    var seen = new HashSetImplementation();
+    for (var i = bareCount;
+     i < args.get$length(); i++) {
+      var name = args.getName(i);
+      if (seen.contains$1(name)) {
+        return this._argError(context, node, target, args, ('duplicate argument "' + name + '"'), args.nodes.$index(i).get$span());
+      }
+      seen.add$1(name);
+      var p = this.indexOfParameter(name);
+      if (p < 0) {
+        return this._argError(context, node, target, args, ('method does not have optional parameter "' + name + '"'), args.nodes.$index(i).get$span());
+      }
+      else if (p < bareCount) {
+        return this._argError(context, node, target, args, ('argument "' + name + '" passed as positional and named'), args.nodes.$index(p).get$span());
+      }
+    }
+    $globals.world.internalError(('wrong named arguments calling ' + this.name), node.span);
   }
   var argsString = Strings.join(argsCode, ', ');
   if (this.get$isConstructor()) {

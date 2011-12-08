@@ -838,17 +838,16 @@ class MethodMember extends Member {
   }
 
   static String _argCountMsg(int actual, int expected, [bool atLeast=false]) {
-    // TODO(jimhug): better messages with default named args.
-    return 'wrong number of arguments, expected ' +
+    return 'wrong number of positional arguments, expected ' +
         '${atLeast ? "at least " : ""}$expected but found $actual';
   }
 
   Value _argError(MethodGenerator context, Node node, Value target,
-      Arguments args, String msg) {
+      Arguments args, String msg, SourceSpan span) {
     if (isStatic || isConstructor) {
-      world.error(msg, node.span);
+      world.error(msg, span);
     } else {
-      world.warning(msg, node.span);
+      world.warning(msg, span);
     }
     return target.invokeNoSuchMethod(context, name, node, args);
   }
@@ -897,9 +896,8 @@ class MethodMember extends Member {
     for (int i = 0; i < bareCount; i++) {
       var arg = args.values[i];
       if (i >= parameters.length) {
-        // TODO(jimhug): better error location
         var msg = _argCountMsg(args.length, parameters.length);
-        return _argError(context, node, target, args, msg);
+        return _argError(context, node, target, args, msg, args.nodes[i].span);
       }
       arg = arg.convertTo(context, parameters[i].type, node, isDynamic);
       if (isConst && arg.isConst) {
@@ -909,10 +907,10 @@ class MethodMember extends Member {
       }
     }
 
+    int namedArgsUsed = 0;
     if (bareCount < parameters.length) {
       genParameterValues();
 
-      int namedArgsUsed = 0;
       for (int i = bareCount; i < parameters.length; i++) {
         var arg = args.getValue(parameters[i].name);
         if (arg == null) {
@@ -923,39 +921,41 @@ class MethodMember extends Member {
         }
 
         if (arg == null || !parameters[i].isOptional) {
-          // TODO(jimhug): better error location
           var msg = _argCountMsg(Math.min(i, args.length), i + 1, atLeast:true);
-          return _argError(context, node, target, args, msg);
+          return _argError(context, node, target, args, msg,
+              args.nodes[i].span);
         } else {
           argsCode.add(isConst && arg.isConst
               ? arg.canonicalCode : arg.code);
         }
       }
-
-      if (namedArgsUsed < args.nameCount) {
-        // TODO(jmesserly): better error location
-        // Find the unused argument name
-        var seen = new Set<String>();
-        for (int i = bareCount; i < args.length; i++) {
-          var name = args.getName(i);
-          if (seen.contains(name)) {
-            return _argError(context, node, target, args,
-                'duplicate argument "$name"');
-          }
-          seen.add(name);
-          int p = indexOfParameter(name);
-          if (p < 0) {
-            return _argError(context, node, target, args,
-                'method does not have optional parameter "$name"');
-          } else if (p < bareCount) {
-            return _argError(context, node, target, args,
-                'argument "$name" passed as positional and named');
-          }
-        }
-        world.internalError('wrong named arguments calling $name', node.span);
-      }
-
       Arguments.removeTrailingNulls(argsCode);
+    }
+
+    if (namedArgsUsed < args.nameCount) {
+      // Find the unused argument name
+      var seen = new Set<String>();
+      for (int i = bareCount; i < args.length; i++) {
+        var name = args.getName(i);
+        if (seen.contains(name)) {
+          return _argError(context, node, target, args,
+              'duplicate argument "$name"', args.nodes[i].span);
+        }
+        seen.add(name);
+        int p = indexOfParameter(name);
+        if (p < 0) {
+          return _argError(context, node, target, args,
+              'method does not have optional parameter "$name"',
+              args.nodes[i].span);
+        } else if (p < bareCount) {
+          return _argError(context, node, target, args,
+              'argument "$name" passed as positional and named',
+              // Given that the named was mentioned explicitly, highlight the
+              // positional location instead:
+              args.nodes[p].span);
+        }
+      }
+      world.internalError('wrong named arguments calling $name', node.span);
     }
 
     var argsString = Strings.join(argsCode, ', ');
