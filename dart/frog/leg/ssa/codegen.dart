@@ -561,8 +561,12 @@ class SsaInstructionMerger extends HGraphVisitor {
         addInputs(instruction);
       }
     }
-    if (isExpression && block.last is HConditionalBranch) {
-      block.last.isExpression = true;
+    if (isExpression) {
+      HControlFlow last = block.last;
+      if (last is HConditionalBranch) {
+        HConditionalBranch tmp = last;
+        tmp.isExpression = true;
+      }
     }
   }
 }
