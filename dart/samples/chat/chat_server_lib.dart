@@ -366,7 +366,7 @@ class IsolatedServer extends Isolate {
     }
     File file = new File(fileName);
     if (file.existsSync()) {
-      file.openSync();
+      RandomAccessFile openedFile = file.openSync();
       int totalRead = 0;
       List<int> buffer = new List<int>(BUFFER_SIZE);
 
@@ -380,21 +380,32 @@ class IsolatedServer extends Isolate {
         if (extension == ".png") { mimeType = "image/png"; }
       }
       response.setHeader("Content-Type", mimeType);
-      response.contentLength = file.lengthSync();
+      response.contentLength = openedFile.lengthSync();
+
+      bool checkDone() {
+        if (totalRead == openedFile.lengthSync()) {
+          openedFile.closeSync();
+          response.writeDone();
+          return true;
+        }
+        return false;
+      }
 
       void writeFileData() {
-        while (totalRead < file.lengthSync()) {
-          var read = file.readListSync(buffer, 0, BUFFER_SIZE);
+        if (checkDone()) return;
+        while (totalRead < openedFile.lengthSync()) {
+          var read = openedFile.readListSync(buffer, 0, BUFFER_SIZE);
           totalRead += read;
 
           // Write this buffer and get a callback when it makes sense
           // to write more.
-          bool allWritten = response.writeList(buffer, 0, read, writeFileData);
-          if (!allWritten) break;
-        }
-
-        if (totalRead == file.lengthSync()) {
-          response.writeDone();
+          bool writeCompleted =
+              response.writeList(buffer, 0, read, writeFileData);
+          if (writeCompleted) {
+            if (checkDone()) return;
+          } else {
+            break;
+          }
         }
       }
 

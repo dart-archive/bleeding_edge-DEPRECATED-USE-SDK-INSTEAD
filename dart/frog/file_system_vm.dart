@@ -15,8 +15,7 @@ class VMFileSystem implements FileSystem {
   }
 
   String readAll(String filename) {
-    var file = new File(filename);
-    file.openSync();
+    var file = (new File(filename)).openSync();
     var length = file.lengthSync();
     var buffer = new List<int>(length);
     var bytes = file.readListSync(buffer, 0, length);

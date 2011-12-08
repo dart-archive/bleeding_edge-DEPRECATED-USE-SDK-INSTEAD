@@ -116,8 +116,7 @@ void forEachLine(InputStream input,
 }
 
 List<int> read(String filename) {
-  File file = new File(filename);
-  file.openSync();
+  File file = new File(filename).openSync();
   bool threw = true;
   try {
     int size = file.lengthSync();
