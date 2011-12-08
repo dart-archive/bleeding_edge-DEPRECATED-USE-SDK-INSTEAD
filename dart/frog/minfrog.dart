@@ -15,7 +15,13 @@ void main() {
   // Note: we create a copy of argv here because the one that is passed in is
   // potentially a JS Array object from outside the sandbox. Hence it will have
   // the wrong prototype.
-  var argv = new List.from(process.argv);
+  var argv = [];
+  for (int i = 0; i < process.argv.length; i++) {
+    argv.add(process.argv[i]);
+    if (i == 1 && !process.env['TERM'].startsWith('xterm')) {
+      argv.add('--no_colors');
+    }
+  }
 
   if (compile(homedir, argv, new NodeFileSystem())) {
     var code = world.getGeneratedCode();

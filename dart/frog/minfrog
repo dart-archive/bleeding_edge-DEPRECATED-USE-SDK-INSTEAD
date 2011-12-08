@@ -656,7 +656,7 @@ ListIterator.prototype.hasNext = function() {
 }
 ListIterator.prototype.next = function() {
   if (!this.hasNext()) {
-    $throw(const$0/*const NoMoreElementsException()*/);
+    $throw(const$8/*const NoMoreElementsException()*/);
   }
   return this._array.$index(this._dart_coreimpl_pos++);
 }
@@ -1136,7 +1136,7 @@ HashSetIterator.prototype.hasNext = function() {
 }
 HashSetIterator.prototype.next = function() {
   if (!this.hasNext()) {
-    $throw(const$0/*const NoMoreElementsException()*/);
+    $throw(const$8/*const NoMoreElementsException()*/);
   }
   var res = this._entries.$index(this._nextValidIndex);
   this._advance();
@@ -1494,7 +1494,7 @@ _DoubleLinkedQueueIterator.prototype.hasNext = function() {
 }
 _DoubleLinkedQueueIterator.prototype.next = function() {
   if (!this.hasNext()) {
-    $throw(const$0/*const NoMoreElementsException()*/);
+    $throw(const$8/*const NoMoreElementsException()*/);
   }
   this._currentEntry = this._currentEntry._next;
   return this._currentEntry.get$element();
@@ -1707,6 +1707,16 @@ Collections.filter = function(source, destination, f) {
 // ********** Code for top level **************
 //  ********** Library node **************
 // ********** Code for process **************
+process.get$env = function() {
+  return const$0/*const EnvMap()*/;
+}
+// ********** Code for EnvMap **************
+function EnvMap() {
+  // Initializers done
+}
+EnvMap.prototype.$index = function(key) {
+  return process.env[key];
+}
 // ********** Code for vm **************
 vm = require('vm');
 // ********** Code for fs **************
@@ -13158,7 +13168,14 @@ function _getCallStubName(name, args) {
 // ********** Code for top level **************
 function main() {
   var homedir = path.dirname(fs.realpathSync(process.argv.$index(1)));
-  var argv = ListFactory.ListFactory$from$factory(process.argv);
+  var argv = [];
+  for (var i = 0;
+   i < process.argv.length; i++) {
+    argv.add$1(process.argv.$index(i));
+    if (i == 1 && !process.get$env().$index('TERM').startsWith$1('xterm')) {
+      argv.add$1('--no_colors');
+    }
+  }
   if (compile(homedir, argv, new NodeFileSystem())) {
     var code = $globals.world.getGeneratedCode();
     if ($globals.options.compileOnly) {
@@ -13197,9 +13214,10 @@ function $static_init(){
   $globals._NO_COLOR = '\u001b[0m';
   $globals._RED_COLOR = '\u001b[31m';
 }
-var const$0 = new NoMoreElementsException()/*const NoMoreElementsException()*/;
+var const$0 = new EnvMap()/*const EnvMap()*/;
 var const$2 = new EmptyQueueException()/*const EmptyQueueException()*/;
 var const$3 = new _DeletedKeySentinel()/*const _DeletedKeySentinel()*/;
+var const$8 = new NoMoreElementsException()/*const NoMoreElementsException()*/;
 var $globals = {};
 $static_init();
 main();

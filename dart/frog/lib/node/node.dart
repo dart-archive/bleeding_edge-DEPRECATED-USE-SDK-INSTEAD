@@ -65,9 +65,15 @@ class process native "process" {
   // TODO(nweiz): add Stream type information
   static stdin;
   static stdout;
+  static get env() => const EnvMap();
 
   static void exit([int code = 0]) native;
   static String cwd() native;
+}
+
+class EnvMap {
+  const EnvMap();
+  operator [](key) native "return process.env[key];";
 }
 
 class vm native "require('vm')" {
