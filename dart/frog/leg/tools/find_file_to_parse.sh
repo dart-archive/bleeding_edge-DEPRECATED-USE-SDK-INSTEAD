@@ -1,0 +1,56 @@
+#!/bin/bash
+
+find .. \( \
+    -name README.dart \
+    -o -name Examples_A03_t01.dart \
+    -o -name Examples_A03_t02.dart \
+    -o -name Examples_A07_t01.dart \
+    -o -name 13_3_1_Typedef_A01_t02.dart \
+    -o -name 13_3_1_Typedef_A01_t03.dart \
+    -o -name 13_3_1_Typedef_A01_t04.dart \
+    -o -name 13_3_1_Typedef_A01_t06.dart \
+    -o -name 13_3_1_Typedef_A05_t01.dart \
+    -o -name 13_3_1_Typedef_A05_t02.dart \
+    -o -name 13_3_1_Typedef_A05_t03.dart \
+    -o -name 13_3_1_Typedef_A06_t01.dart \
+    -o -name 13_3_1_Typedef_A06_t03.dart \
+    -o -name 13_3_1_Typedef_A06_t04.dart \
+    -o -name 13_7_Type_Void_A01_t06.dart \
+    -o -name 13_7_Type_Void_A01_t07.dart \
+    -o -name 02_1_Class_A02_t02.dart \
+    -o -name 'Map_operator\[\]_A01_t03.dart' \
+    -o -name 'Map_operator\[\]=_A01_t03.dart' \
+    -o -name int_operator_mul_A01_t01.dart \
+    -o -name Isolate_A01_t01.dart \
+    -o -name Isolate_A02_t01.dart \
+    -o -name xcodebuild \
+    \) -prune -o \
+    -name \*.dart -type f -print \
+    | grep -v /editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/internal/model/testsource/ClassTest.dart \
+    | grep -v /editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/internal/model/testsource/FunctionTest.dart \
+    | grep -v /compiler/javatests/com/google/dart/compiler/parser/StringsErrorsNegativeTest.dart \
+    | grep -v /compiler/javatests/com/google/dart/compiler/resolver/ClassImplementsUnknownInterfaceNegativeTest.dart \
+    | grep -v /tests/language/src/InterfaceFunctionTypeAlias1NegativeTest.dart \
+    | grep -v /tests/language/src/InterfaceFunctionTypeAlias2NegativeTest.dart \
+    | grep -v /tests/language/src/InterfaceInjection1NegativeTest.dart \
+    | grep -v /tests/language/src/InterfaceFunctionTypeAlias3NegativeTest.dart \
+    | grep -v /tests/language/src/InterfaceInjection2NegativeTest.dart \
+    | grep -v /tests/language/src/NewExpression2NegativeTest.dart \
+    | grep -v /tests/language/src/NewExpression3NegativeTest.dart \
+    | grep -v /tests/language/src/TestNegativeTest.dart \
+    | grep -v /editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/internal/model/testsource/BadErrorMessages.dart \
+    | grep -v /editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/internal/model/testsource/CoreRuntimeTypesTest.dart \
+    | grep -v /editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/internal/model/testsource/NamingTest.dart \
+    | grep -v /editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/internal/model/testsource/SpreadArgumentTest.dart \
+    | grep -v /tests/language/src/IsNotClass1NegativeTest.dart \
+    | grep -v /tests/language/src/Label8NegativeTest.dart \
+    | grep -v /frog/tests/await/ \
+    | grep -v /tests/language/src/ListLiteralNegativeTest.dart \
+    | grep -v /tests/language/src/MapLiteralNegativeTest.dart \
+    | grep -v /tests/language/src/TryCatch2NegativeTest.dart \
+    | grep -v /tests/language/src/NewExpression1NegativeTest.dart \
+    | grep -v /tests/language/src/TryCatch4NegativeTest.dart \
+    | grep -v /tests/language/src/ParameterInitializer3NegativeTest.dart \
+    | grep -v /compiler/javatests/com/google/dart/compiler/parser/FactoryInitializersNegativeTest.dart \
+    | grep -v /frog/tests/leg_only/src/TypedLocalsTest.dart \
+    | xargs grep -L -E 'native|@compile-error|@needsreview'
