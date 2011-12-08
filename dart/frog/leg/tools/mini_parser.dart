@@ -105,7 +105,14 @@ void parseFilesFrom(InputStream input, MyOptions options, Function whenDone) {
 void forEachLine(InputStream input,
                  void lineHandler(String line),
                  void closeHandler()) {
-  throw "not implemented";
+  StringInputStream stringStream = new StringInputStream(input);
+  stringStream.lineHandler = () {
+    String line;
+    while ((line = stringStream.readLine()) !== null) {
+      lineHandler(line);
+    }
+  };
+  stringStream.closeHandler = closeHandler;
 }
 
 List<int> read(String filename) {
