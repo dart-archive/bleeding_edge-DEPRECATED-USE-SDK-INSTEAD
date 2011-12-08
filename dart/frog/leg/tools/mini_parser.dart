@@ -11,75 +11,77 @@
 #source('../scanner/byte_strings.dart');
 #source('../scanner/byte_array_scanner.dart');
 
-// Hack to allow satisfy sourcing in ../source.dart.
-var world;
+int charCount = 0;
+Stopwatch stopwatch;
 
 void main() {
-  Stopwatch stopwatch = new Stopwatch();
-  stopwatch.start();
+  stopwatch = new Stopwatch();
   List<String> filenames = new Options().arguments;
-  bool diet = false;
-  bool throwOnError = false;
-  bool scanOnly = false;
-  bool readOnly = false;
-  bool decodeOnly = false;
-  int charCount = 0;
+  MyOptions options = new MyOptions();
+
+  void printStats() {
+    int kb = (charCount / 1024).round().toInt();
+    String stats =
+        '$classCount classes (${kb}Kb) in ${stopwatch.elapsedInMs()}ms';
+    if (errorCount != 0) {
+      stats += ' with $errorCount errors';
+    }
+    if (options.diet) {
+      print('Diet parsed $stats.');
+    } else {
+      print('Parsed $stats.');
+    }
+  }
+
   for (String filename in filenames) {
     if (filename == "--diet") {
-      diet = true;
+      options.diet = true;
       continue;
     }
     if (filename == "--throw") {
-      throwOnError = true;
+      options.throwOnError = true;
       continue;
     }
     if (filename == "--scan-only") {
-      scanOnly = true;
+      options.scanOnly = true;
       continue;
     }
     if (filename == "--read-only") {
-      readOnly = true;
+      options.readOnly = true;
       continue;
     }
-    if (filename == "--decode-only") {
-      decodeOnly = true;
-      continue;
+    if (filename == "-") {
+      parseFilesFrom(stdin, options, printStats);
+      return;
     }
-    List<int> bytes = read(filename);
-    if (readOnly) continue;
-    String source = new String.fromCharCodes(bytes);
-    if (decodeOnly) continue;
-    charCount += source.length;
-    SourceFile file = new SourceFile(filename, source);
-    Listener listener = new MyListener(file);
-    Parser parser = diet ? new PartialParser(listener) : new Parser(listener);
-    try {
-      Token token = scan(file);
-      if (!scanOnly) parser.parseUnit(token);
-    } catch (ParserError ex) {
-      if (throwOnError) {
-        throw;
-      } else {
-        print(ex);
-      }
-    }
+    charCount += parseFile(filename, options);
   }
-  stopwatch.stop();
-  int kb = (charCount/1024).round().toInt();
-  String stats =
-      '$classCount classes (${kb}Kb) in ${stopwatch.elapsedInMs()}ms';
-  if (errorCount != 0) {
-    stats += ' with $errorCount errors';
-  }
-  if (diet) {
-    print('Diet parsed $stats.');
-  } else {
-    print('Parsed $stats.');
-  }
+
+  printStats();
 }
 
-Token scan(SourceFile source) {
-  Scanner scanner = new StringScanner(source.text);
+int parseFile(String filename, MyOptions options) {
+  List<int> bytes = read(filename);
+  if (options.readOnly) return bytes.length;
+  MySourceFile file = new MySourceFile(filename, bytes);
+  Listener listener = new MyListener(file);
+  Parser parser =
+      options.diet ? new PartialParser(listener) : new Parser(listener);
+  try {
+    Token token = scan(file);
+    if (!options.scanOnly) parser.parseUnit(token);
+  } catch (ParserError ex) {
+    if (options.throwOnError) {
+      throw;
+    } else {
+      print(ex);
+    }
+  }
+  return bytes.length;
+}
+
+Token scan(MySourceFile source) {
+  Scanner scanner = new ByteArrayScanner(source.rawText);
   try {
     return scanner.tokenize();
   } catch (MalformedInputException ex) {
@@ -89,6 +91,21 @@ Token scan(SourceFile source) {
     new MyListener(source).error(message, fakeToken);
     throw;
   }
+}
+
+void parseFilesFrom(InputStream input, MyOptions options, Function whenDone) {
+  void readLine(String line) {
+    stopwatch.start();
+    charCount += parseFile(line, options);
+    stopwatch.stop();
+  }
+  forEachLine(input, readLine, whenDone);
+}
+
+void forEachLine(InputStream input,
+                 void lineHandler(String line),
+                 void closeHandler()) {
+  throw "not implemented";
 }
 
 List<int> read(String filename) {
@@ -133,4 +150,47 @@ class MyListener extends Listener {
     }
     throw new ParserError(message);
   }
+}
+
+class MyOptions {
+  bool diet = false;
+  bool throwOnError = false;
+  bool scanOnly = false;
+  bool readOnly = false;
+}
+
+class MySourceFile extends SourceFile {
+  final rawText;
+  var stringText;
+
+  MySourceFile(filename, this.rawText) : super(filename, null);
+
+  String get text() {
+    if (rawText is String) {
+      return rawText;
+    } else {
+      if (stringText === null) {
+        stringText = new String.fromCharCodes(rawText);
+      }
+      return stringText;
+    }
+  }
+
+  set text(String newText) {
+    throw "not supported";
+  }
+}
+
+// Hacks to allow sourcing in ../source.dart:
+var world = const Mock();
+var options = const Mock();
+String _GREEN_COLOR = '\u001b[32m';
+String _RED_COLOR = '\u001b[31m';
+String _MAGENTA_COLOR = '\u001b[35m';
+String _NO_COLOR = '\u001b[0m';
+
+class Mock {
+  const Mock();
+  bool get useColors() => true;
+  internalError(message) { throw message.toString(); }
 }
