@@ -30,8 +30,6 @@ class ElementKind {
   static final ElementKind CLASS = const ElementKind('class');
   static final ElementKind FOREIGN = const ElementKind('foreign');
   static final ElementKind CONSTRUCTOR = const ElementKind('constructor');
-  static final ElementKind CONSTRUCTOR_BODY =
-      const ElementKind('constructor_body');
 
   toString() => id;
 }
@@ -139,26 +137,6 @@ class FunctionElement extends Element {
   Node parseNode(Canceler canceler, Logger logger) => node;
 }
 
-class ConstructorBodyElement extends FunctionElement {
-  FunctionElement constructor;
-
-  ConstructorBodyElement(FunctionElement constructor)
-      : this.constructor = constructor,
-        super(constructor.name,
-              ElementKind.CONSTRUCTOR_BODY,
-              constructor.enclosingElement) {
-    assert(constructor.node !== null);
-  }
-
-  Link<Element> get parameters() => constructor.parameters;
-  FunctionExpression get node() => constructor.node;
-  Type get type() => constructor.type;
-  bool isStatic() => false;
-
-  FunctionType computeType(Compiler compiler, types) { unreachable(); }
-  Node parseNode(Canceler canceler, Logger logger) { unreachable(); }
-}
-
 class SynthesizedConstructorElement extends FunctionElement {
   SynthesizedConstructorElement(Element enclosing)
     : super(const SourceString(''), ElementKind.CONSTRUCTOR, enclosing) {
@@ -188,14 +166,9 @@ class ClassElement extends Element {
   Link<Type> interfaces = const EmptyLink<Type>();
   bool isResolved = false;
   ClassNode node;
-  // backendMembers are members that have been added by the backend to simplify
-  // compilation. They don't have any user-side counter-part.
-  Link<Element> backendMembers; 
   SynthesizedConstructorElement synthesizedConstructor;
 
-  ClassElement(SourceString name)
-      : backendMembers = const EmptyLink(),
-        super(name, ElementKind.CLASS, null);
+  ClassElement(SourceString name) : super(name, ElementKind.CLASS, null);
 
   Type computeType(compiler, types) {
     if (type === null) {
