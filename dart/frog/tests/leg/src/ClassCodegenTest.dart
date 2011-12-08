@@ -4,12 +4,13 @@
 // Test that parameters keep their names in the output.
 
 #import("compiler_helper.dart");
+#import("parser_helper.dart");
 #import("../../../leg/leg.dart", prefix: "leg");
 #import("../../../leg/elements/elements.dart", prefix: "lego");
 
 twoClasses() {
-  var classA = new leg.ClassElement(const leg.SourceString("A"));
-  var classB = new leg.ClassElement(const leg.SourceString("B"));
+  var classA = new lego.ClassElement(buildSourceString("A"));
+  var classB = new lego.ClassElement(buildSourceString("B"));
   String generated = compileClasses([classA, classB]);
   Expect.isTrue(generated.contains("Isolate.prototype.A = function() {};"));
   Expect.isTrue(generated.contains("Isolate.prototype.B = function() {};"));
@@ -29,8 +30,8 @@ subClass() {
         "Isolate.\$inherits(Isolate.prototype.A, Isolate.prototype.B);\n"));
   }
 
-  var classA = new leg.ClassElement(const leg.SourceString("A"));
-  var classB = new leg.ClassElement(const leg.SourceString("B"));
+  var classA = new lego.ClassElement(buildSourceString("A"));
+  var classB = new lego.ClassElement(buildSourceString("B"));
   classA.supertype = new MockType(classB);
   checkOutput(compileClasses([classA, classB]));
   checkOutput(compileClasses([classB, classA]));
