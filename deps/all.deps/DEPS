@@ -19,10 +19,6 @@ deps = {
   "dart/third_party/gyp":
     "http://gyp.googlecode.com/svn/trunk" + Var("gyp_rev"),
 
-  # Copy of Python appengine latest release version
-  "dart/third_party/appengine-python/1.5.4":
-    "http://googleappengine.googlecode.com/svn/trunk/python@199",
-
   "dart/third_party/v8":
     "http://v8.googlecode.com/svn/branches/3.4",
 
