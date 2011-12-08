@@ -2980,7 +2980,8 @@ MethodGenerator.prototype.visitValue = function(node) {
   return value;
 }
 MethodGenerator.prototype.visitTypedValue = function(node, expectedType) {
-  return this.visitValue(node).convertTo$3(this, expectedType, node);
+  var val = this.visitValue(node);
+  return expectedType == null ? val : val.convertTo$3(this, expectedType, node);
 }
 MethodGenerator.prototype.visitVoid = function(node) {
   if ((node instanceof PostfixExpression)) {
@@ -3782,7 +3783,7 @@ MethodGenerator.prototype.visitListExpression = function(node) {
   var $$list = node.values;
   for (var $$i = 0;$$i < $$list.length; $$i++) {
     var item = $$list.$index($$i);
-    var arg = type == null ? this.visitValue(item) : this.visitTypedValue(item, type);
+    var arg = this.visitTypedValue(item, type);
     argValues.add$1(arg);
     if (node.isConst) {
       if (!arg.get$isConst()) {
@@ -3825,7 +3826,7 @@ MethodGenerator.prototype.visitMapExpression = function(node) {
    i < node.items.length; i += 2) {
     var key = this.visitTypedValue(node.items.$index(i), $globals.world.stringType);
     var valueItem = node.items.$index(i + 1);
-    var value = type == null ? this.visitValue(valueItem) : this.visitTypedValue(valueItem, type);
+    var value = this.visitTypedValue(valueItem, type);
     argValues.add$1(key);
     argValues.add$1(value);
     if (node.isConst) {
@@ -9439,11 +9440,12 @@ Parser.prototype.finishTypedLiteral = function(start, isConst) {
   }
   else if (this._peekKind(6/*TokenKind.LBRACE*/)) {
     genericType.set$baseType(new TypeReference(span, $globals.world.mapType));
-    if ($eq(genericType.get$typeArguments().length, 1)) {
-      genericType.set$typeArguments([new TypeReference(span, $globals.world.stringType), genericType.get$typeArguments().$index(0)]);
+    var typeArgs = genericType.get$typeArguments();
+    if ($eq(typeArgs.length, 1)) {
+      genericType.set$typeArguments([new TypeReference(span, $globals.world.stringType), typeArgs.$index(0)]);
     }
-    else if ($eq(genericType.get$typeArguments().length, 2)) {
-      var keyType = genericType.get$typeArguments().$index(0);
+    else if ($eq(typeArgs.length, 2)) {
+      var keyType = typeArgs.$index(0);
       if (!(keyType instanceof NameTypeReference) || $ne(keyType.get$name().get$name(), "String")) {
         $globals.world.error('the key type of a map literal is implicitly "String"', keyType.get$span());
       }

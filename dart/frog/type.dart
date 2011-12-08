@@ -680,7 +680,7 @@ class ConcreteType extends Type {
       var newDeclaringType =
         genericMember.declaringType.getOrMakeConcreteType(typeArgsInOrder);
       var factory = newDeclaringType.getFactory(genericType, constructorName);
-      if (factory !== null) return factory;
+      if (factory != null) return factory;
       return newDeclaringType.getConstructor(constructorName);
     }
 

@@ -288,7 +288,7 @@ class World {
   /** Returns true if Leg handled the compilation job. */
   bool runLeg() {
     if (!options.enableLeg) return false;
-    if (legCompile === null) {
+    if (legCompile == null) {
       fatal('requested leg enabled, but no leg compiler available');
     }
     bool res = withTiming('try leg compile', () => legCompile(this));
@@ -310,7 +310,7 @@ class World {
 
   String getGeneratedCode() {
     // TODO(jimhug): Assert compilation is all done here.
-    if (legCode !== null) {
+    if (legCode != null) {
       assert(options.enableLeg);
       return legCode;
     } else {
@@ -395,10 +395,10 @@ class World {
     if (messageHandler != null) {
       // TODO(jimhug): Multiple spans cleaner...
       messageHandler(prefix, message, span);
-      if (span1 !== null) {
+      if (span1 != null) {
         messageHandler(prefix, message, span1);
       }
-      if (span2 !== null) {
+      if (span2 != null) {
         messageHandler(prefix, message, span2);
       }
       // TODO(jimhug): keep logging to console or do something else?

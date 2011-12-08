@@ -48,7 +48,7 @@ class Element implements Hashable {
 
   // TODO(jimhug): Probably kill this.
   Element get enclosingElement() =>
-    _enclosingElement === null ? library : _enclosingElement;
+    _enclosingElement == null ? library : _enclosingElement;
 
   // TODO(jimhug): Absolutely kill this one.
   set enclosingElement(Element e) => _enclosingElement = e;

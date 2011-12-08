@@ -1174,8 +1174,13 @@ class MethodGenerator implements TreeVisitor {
     return value;
   }
 
+  /**
+   * Visit [node] and ensure statically or with an runtime check that it has the
+   * expected type (if specified).
+   */
   visitTypedValue(Expression node, Type expectedType) {
-    return visitValue(node).convertTo(this, expectedType, node);
+    final val = visitValue(node);
+    return expectedType == null ? val : val.convertTo(this, expectedType, node);
   }
 
   visitVoid(Expression node) {
@@ -2161,7 +2166,7 @@ class MethodGenerator implements TreeVisitor {
     var argsCode = [];
     var argValues = [];
     var type = null;
-    if (node.type !== null) {
+    if (node.type != null) {
       // The parser makes node.type a list type, we extract its type argument.
       type = method.resolveType(node.type, true).typeArgsInOrder[0];
       if (node.isConst && (type is ParameterType || type.hasTypeParams)) {
@@ -2169,7 +2174,7 @@ class MethodGenerator implements TreeVisitor {
       }
     }
     for (var item in node.values) {
-      var arg = type === null ? visitValue(item) : visitTypedValue(item, type);
+      var arg = visitTypedValue(item, type);
       argValues.add(arg);
       if (node.isConst) {
         if (!arg.isConst) {
@@ -2211,7 +2216,7 @@ class MethodGenerator implements TreeVisitor {
     var argValues = [];
     var argsCode = [];
     var type = null;
-    if (node.type !== null) {
+    if (node.type != null) {
       // node.type is a map type, extract the type argument for the values.
       type = method.resolveType(node.type, true).typeArgsInOrder[1];
       if (node.isConst && (type is ParameterType || type.hasTypeParams)) {
@@ -2224,8 +2229,7 @@ class MethodGenerator implements TreeVisitor {
       // currently not allowed by the spec).
       var key = visitTypedValue(node.items[i], world.stringType);
       final valueItem = node.items[i+1];
-      var value = type === null ? visitValue(valueItem)
-          : visitTypedValue(valueItem, type);
+      var value = visitTypedValue(valueItem, type);
       argValues.add(key);
       argValues.add(value);
 

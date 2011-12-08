@@ -1429,7 +1429,7 @@ class MethodMember extends Member {
   Type resolveType(TypeReference node, bool typeErrors) {
     Type t = super.resolveType(node, typeErrors);
     if (isStatic && t is ParameterType &&
-       (typeParameters === null || !typeParameters.some((p) => p === t))) {
+       (typeParameters == null || !typeParameters.some((p) => p === t))) {
       world.error('using type parameter in static context.', node.span);
     }
     return t;

@@ -84,7 +84,7 @@ class TreeOutput {
   }
 
   String toValue(value) {
-    if (value === null) return 'null';
+    if (value == null) return 'null';
     else if (value is Identifier) return value.name;
     else return value.toString();
   }
@@ -92,7 +92,7 @@ class TreeOutput {
   void writeNode(String label, Node node) {
     write(label + ': ');
     depth += 1;
-    if (node !== null) node.visit(printer);
+    if (node != null) node.visit(printer);
     else writeln('null');
     depth -= 1;
   }
@@ -104,7 +104,7 @@ class TreeOutput {
 
   void writeList(String label, List list) {
     write(label + ': ');
-    if (list === null) {
+    if (list == null) {
       buf.add('null');
       buf.add('\n');
     } else {
@@ -118,7 +118,7 @@ class TreeOutput {
 
   void writeNodeList(String label, List list) {
     writeln(label + ':...');
-    if (list !== null) {
+    if (list != null) {
       depth += 1;
       for (var node in list) {
         if (node != null) {

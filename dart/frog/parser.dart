@@ -159,7 +159,7 @@ class Parser {
     // Suppress error messages while we're trying to recover.
     if (_recover) return;
 
-    if (location === null) {
+    if (location == null) {
       location = _peekToken.span;
     }
     world.fatal(message, location); // syntax errors are fatal for now
@@ -272,7 +272,7 @@ class Parser {
     var _native = null;
     if (_maybeEat(TokenKind.NATIVE)) {
       _native = maybeStringLiteral();
-      if (_native !== null) _native = new NativeType(_native);
+      if (_native != null) _native = new NativeType(_native);
     }
 
     var _factory = null;
@@ -356,7 +356,7 @@ class Parser {
   }
 
   finishField(start, modifiers, typeParams, type, name, value) {
-    if (typeParams !== null) {
+    if (typeParams != null) {
       world.internalError('trying to create a generic field',
         _makeSpan(start));
     }
@@ -822,7 +822,7 @@ class Parser {
       return new NameTypeReference(false, expr.name, null, expr.span);
     } else if (expr is DotExpression) {
       var type = _makeType(expr.self);
-      if (type.names === null) {
+      if (type.names == null) {
         type.names = [expr.name];
       } else {
         type.names.add(expr.name);
@@ -962,7 +962,7 @@ class Parser {
       label = new Identifier('...', _makeSpan(start));
     }
     expr = expression();
-    if (label === null && _maybeEat(TokenKind.COLON)) {
+    if (label == null && _maybeEat(TokenKind.COLON)) {
       label = _makeLabel(expr);
       expr = expression();
     }
@@ -1358,10 +1358,10 @@ class Parser {
     int start = _peekToken.start;
     var myType = null;
     var name = _specialIdentifier(includeOperators);
-    if (name === null) {
+    if (name == null) {
       myType = type();
       name = _specialIdentifier(includeOperators);
-      if (name === null) {
+      if (name == null) {
         if (_peekIdentifier()) {
           name = identifier();
         } else if (myType is NameTypeReference && myType.names == null) {
@@ -1460,11 +1460,14 @@ class Parser {
       return finishListLiteral(start, isConst, genericType);
     } else if (_peekKind(TokenKind.LBRACE)) {
       genericType.baseType = new TypeReference(span, world.mapType);
-      if (genericType.typeArguments.length == 1) {
-        genericType.typeArguments = [new TypeReference(span, world.stringType),
-            genericType.typeArguments[0]];
-      } else if (genericType.typeArguments.length == 2) {
-        var keyType = genericType.typeArguments[0];
+      final typeArgs = genericType.typeArguments;
+      // TODO(sigmund): Would be nice to allow arbitrary keys here (this is
+      // currently not allowed by the spec).
+      if (typeArgs.length == 1) {
+        genericType.typeArguments =
+            [new TypeReference(span, world.stringType), typeArgs[0]];
+      } else if (typeArgs.length == 2) {
+        var keyType = typeArgs[0];
         if (keyType is! NameTypeReference || keyType.name.name != "String") {
           world.error('the key type of a map literal is implicitly "String"',
               keyType.span);
@@ -1493,7 +1496,7 @@ class Parser {
         case TokenKind.CONST:
         case TokenKind.ABSTRACT:
         case TokenKind.FACTORY:
-          if (modifiers === null) modifiers = [];
+          if (modifiers == null) modifiers = [];
           modifiers.add(_next());
           break;
         default:
@@ -1609,7 +1612,7 @@ class Parser {
     }
 
     while (_maybeEat(TokenKind.DOT)) {
-      if (names === null) names = [];
+      if (names == null) names = [];
       names.add(identifier());
     }
 

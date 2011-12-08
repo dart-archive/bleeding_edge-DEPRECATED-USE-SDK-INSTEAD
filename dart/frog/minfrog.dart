@@ -29,7 +29,7 @@ void main() {
   if (compile(homedir, argv, new NodeFileSystem())) {
     var code = world.getGeneratedCode();
     if (options.compileOnly) {
-      if (options.outfile !== null) {
+      if (options.outfile != null) {
         print('Compilation succeded. Code generated in: ${options.outfile}');
       } else {
         print('Compilation succeded.');
