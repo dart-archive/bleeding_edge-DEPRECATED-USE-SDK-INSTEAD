@@ -9413,7 +9413,7 @@ Parser.prototype.finishTypedLiteral = function(start, isConst) {
     }
     else if ($eq(genericType.get$typeArguments().length, 2)) {
       var keyType = genericType.get$typeArguments().$index(0);
-      if (!(keyType instanceof NameTypeReference) || keyType.get$name().get$name() !== "String") {
+      if (!(keyType instanceof NameTypeReference) || $ne(keyType.get$name().get$name(), "String")) {
         $globals.world.error('the key type of a map literal is implicitly "String"', keyType.get$span());
       }
       else {

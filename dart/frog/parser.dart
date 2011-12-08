@@ -1465,7 +1465,7 @@ class Parser {
             genericType.typeArguments[0]];
       } else if (genericType.typeArguments.length == 2) {
         var keyType = genericType.typeArguments[0];
-        if (keyType is! NameTypeReference || keyType.name.name !== "String") {
+        if (keyType is! NameTypeReference || keyType.name.name != "String") {
           world.error('the key type of a map literal is implicitly "String"',
               keyType.span);
         } else {
