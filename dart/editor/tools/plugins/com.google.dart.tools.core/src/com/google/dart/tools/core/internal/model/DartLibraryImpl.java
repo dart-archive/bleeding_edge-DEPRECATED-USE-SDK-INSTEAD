@@ -519,26 +519,22 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     List<DartLibrary> visited = new ArrayList<DartLibrary>(10);
     visited.add(this);
     for (int index = 0; index < visited.size(); index++) {
-      DartLibrary lib = visited.get(index);
-      if (lib == null) {
-        continue;
-      }
-      String libName = lib.getElementName();
-      if ("dart:html".equals(libName) || "dart:dom".equals(libName)) {
+      DartLibrary library = visited.get(index);
+      String libraryName = library.getElementName();
+      if ("dart:html".equals(libraryName) || "dart:dom".equals(libraryName)) {
         return true;
       }
-      DartLibrary[] importedLibraries;
       try {
-        importedLibraries = lib.getImportedLibraries();
-      } catch (DartModelException e) {
-        DartCore.logError("Could not determine if " + lib.getDisplayName()
-            + " imports a browser based library", e);
-        continue;
-      }
-      for (DartLibrary importedLib : importedLibraries) {
-        if (!visited.contains(importedLib)) {
-          visited.add(importedLib);
+        DartLibrary[] importedLibraries = library.getImportedLibraries();
+        for (DartLibrary importedLibrary : importedLibraries) {
+          if (!visited.contains(importedLibrary)) {
+            visited.add(importedLibrary);
+          }
         }
+      } catch (DartModelException exception) {
+        DartCore.logError("Could not get the libraries imported by " + library.getDisplayName(),
+            exception);
+        continue;
       }
     }
     return false;
@@ -650,13 +646,18 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         // Find an external library on disk.
         File libFile = ResourceUtil.getFile(lib);
         if (libFile != null) {
+          DartLibraryImpl library = null;
           try {
-            importedLibraries.add((DartLibraryImpl) modelManager.openLibrary(libFile, monitor));
+            library = (DartLibraryImpl) modelManager.openLibrary(libFile, monitor);
           } catch (DartModelException exception) {
             // I believe that this should not happen, but I'm leaving it in until I can confirm this.
             DartCore.logInformation("Failed to open imported library " + relativePath + " in "
                 + sourceFile.getUri(), exception);
+          }
+          if (library == null) {
             importedLibraries.add(new DartLibraryImpl(libFile));
+          } else {
+            importedLibraries.add(library);
           }
           return null;
         }

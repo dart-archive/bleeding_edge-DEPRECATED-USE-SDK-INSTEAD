@@ -43,6 +43,9 @@ public class DartLibraryInfo extends OpenableElementInfo {
    * @param library the library to be added
    */
   public void addImport(DartLibrary library) {
+    if (library == null) {
+      return;
+    }
     int length = importedLibraries.length;
     if (length == 0) {
       importedLibraries = new DartLibrary[] {library};
@@ -93,6 +96,9 @@ public class DartLibraryInfo extends OpenableElementInfo {
    * @param library the library to be added
    */
   public void removeImport(DartLibrary library) {
+    if (library == null) {
+      return;
+    }
     for (int i = 0, length = importedLibraries.length; i < length; i++) {
       DartLibrary element = importedLibraries[i];
       if (element.equals(library)) {
