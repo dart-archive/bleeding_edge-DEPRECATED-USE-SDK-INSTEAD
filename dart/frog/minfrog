@@ -5023,8 +5023,18 @@ PropertyMember.prototype.addFromParent = function(parentMember) {
   if (this.setter == null) this.setter = parent.setter;
 }
 PropertyMember.prototype.resolve = function() {
-  if (this.getter != null) this.getter.resolve();
-  if (this.setter != null) this.setter.resolve();
+  if (this.getter != null) {
+    this.getter.resolve();
+    if (this.getter.parameters.length != 0) {
+      $globals.world.error('getter methods should take no arguments', this.getter.definition.span);
+    }
+  }
+  if (this.setter != null) {
+    this.setter.resolve();
+    if (this.setter.parameters.length != 1) {
+      $globals.world.error('setter methods should take a single argument', this.setter.definition.span);
+    }
+  }
   this.get$library()._addMember(this);
 }
 PropertyMember.prototype._get$3 = function($0, $1, $2) {

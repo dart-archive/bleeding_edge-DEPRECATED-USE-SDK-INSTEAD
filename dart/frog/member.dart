@@ -535,8 +535,20 @@ class PropertyMember extends Member {
   }
 
   resolve() {
-    if (getter != null) getter.resolve();
-    if (setter != null) setter.resolve();
+    if (getter != null) {
+      getter.resolve();
+      if (getter.parameters.length != 0) {
+        world.error('getter methods should take no arguments',
+            getter.definition.span);
+      }
+    }
+    if (setter != null) {
+      setter.resolve();
+      if (setter.parameters.length != 1) {
+        world.error('setter methods should take a single argument',
+            setter.definition.span);
+      }
+    }
 
     library._addMember(this);
   }
