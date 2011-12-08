@@ -130,7 +130,7 @@ class Member extends Element {
   Member get initDelegate() {
     world.internalError('cannot have initializers', span);
   }
-  Member set initDelegate(ctor) {
+  void set initDelegate(ctor) {
     world.internalError('cannot have initializers', span);
   }
 
@@ -541,12 +541,22 @@ class PropertyMember extends Member {
         world.error('getter methods should take no arguments',
             getter.definition.span);
       }
+      if (getter.returnType.isVoid) {
+        world.warning('getter methods should not be void',
+            getter.definition.returnType.span);
+      }
     }
     if (setter != null) {
       setter.resolve();
       if (setter.parameters.length != 1) {
         world.error('setter methods should take a single argument',
             setter.definition.span);
+      }
+      // Not issue warning if setter is implicitly dynamic (returnType == null),
+      // but do if it is explicit (returnType.isVar)
+      if (!setter.returnType.isVoid && setter.definition.returnType != null) {
+        world.warning('setter methods should be void',
+            setter.definition.returnType.span);
       }
     }
 
@@ -612,7 +622,7 @@ class ConcreteMember extends Member {
 
   // TODO(sigmund): this is EGREGIOUS
   Member get initDelegate() => baseMember.initDelegate;
-  Member set initDelegate(ctor) { baseMember.initDelegate = ctor; }
+  void set initDelegate(ctor) { baseMember.initDelegate = ctor; }
 
   Type resolveType(TypeReference node, bool isRequired) {
     var type = baseMember.resolveType(node, isRequired);

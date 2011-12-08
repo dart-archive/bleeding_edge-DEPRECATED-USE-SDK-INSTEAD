@@ -648,17 +648,17 @@ ListFactory_V = ListFactory;
 // ********** Code for ListIterator **************
 function ListIterator(array) {
   this._array = array;
-  this._pos = 0;
+  this._dart_coreimpl_pos = 0;
   // Initializers done
 }
 ListIterator.prototype.hasNext = function() {
-  return this._array.length > this._pos;
+  return this._array.length > this._dart_coreimpl_pos;
 }
 ListIterator.prototype.next = function() {
   if (!this.hasNext()) {
     $throw(const$8/*const NoMoreElementsException()*/);
   }
-  return this._array.$index(this._pos++);
+  return this._array.$index(this._dart_coreimpl_pos++);
 }
 ListIterator.prototype.hasNext$0 = ListIterator.prototype.hasNext;
 ListIterator.prototype.next$0 = ListIterator.prototype.next;
@@ -5043,11 +5043,17 @@ PropertyMember.prototype.resolve = function() {
     if (this.getter.parameters.length != 0) {
       $globals.world.error('getter methods should take no arguments', this.getter.definition.span);
     }
+    if (this.getter.returnType.get$isVoid()) {
+      $globals.world.warning('getter methods should not be void', this.getter.definition.returnType.span);
+    }
   }
   if (this.setter != null) {
     this.setter.resolve();
     if (this.setter.parameters.length != 1) {
       $globals.world.error('setter methods should take a single argument', this.setter.definition.span);
+    }
+    if (!this.setter.returnType.get$isVoid() && this.setter.definition.returnType != null) {
+      $globals.world.warning('setter methods should be void', this.setter.definition.returnType.span);
     }
   }
   this.get$library()._addMember(this);
@@ -6450,31 +6456,31 @@ $inherits(TokenizerBase, TokenizerHelpers);
 function TokenizerBase(_source, _skipWhitespace, index) {
   this._source = _source;
   this._skipWhitespace = _skipWhitespace;
-  this._lang_index = index;
+  this._index = index;
   // Initializers done
   TokenizerHelpers.call(this);
   this._text = this._source.get$text();
 }
 TokenizerBase.prototype._nextChar = function() {
-  if (this._lang_index < this._text.length) {
-    return this._text.charCodeAt(this._lang_index++);
+  if (this._index < this._text.length) {
+    return this._text.charCodeAt(this._index++);
   }
   else {
     return 0;
   }
 }
 TokenizerBase.prototype._peekChar = function() {
-  if (this._lang_index < this._text.length) {
-    return this._text.charCodeAt(this._lang_index);
+  if (this._index < this._text.length) {
+    return this._text.charCodeAt(this._index);
   }
   else {
     return 0;
   }
 }
 TokenizerBase.prototype._maybeEatChar = function(ch) {
-  if (this._lang_index < this._text.length) {
-    if (this._text.charCodeAt(this._lang_index) == ch) {
-      this._lang_index++;
+  if (this._index < this._text.length) {
+    if (this._text.charCodeAt(this._index) == ch) {
+      this._index++;
       return true;
     }
     else {
@@ -6486,15 +6492,15 @@ TokenizerBase.prototype._maybeEatChar = function(ch) {
   }
 }
 TokenizerBase.prototype._finishToken = function(kind) {
-  return new Token(kind, this._source, this._startIndex, this._lang_index);
+  return new Token(kind, this._source, this._startIndex, this._index);
 }
 TokenizerBase.prototype._errorToken = function(message) {
-  return new ErrorToken(65/*TokenKind.ERROR*/, this._source, this._startIndex, this._lang_index, message);
+  return new ErrorToken(65/*TokenKind.ERROR*/, this._source, this._startIndex, this._index, message);
 }
 TokenizerBase.prototype.finishWhitespace = function() {
-  this._lang_index--;
-  while (this._lang_index < this._text.length) {
-    var ch = this._text.charCodeAt(this._lang_index++);
+  this._index--;
+  while (this._index < this._text.length) {
+    var ch = this._text.charCodeAt(this._index++);
     if (ch == 32 || ch == 9 || ch == 13) {
     }
     else if (ch == 10) {
@@ -6503,7 +6509,7 @@ TokenizerBase.prototype.finishWhitespace = function() {
       }
     }
     else {
-      this._lang_index--;
+      this._index--;
       if (this._skipWhitespace) {
         return this.next();
       }
@@ -6555,9 +6561,9 @@ TokenizerBase.prototype.finishMultiLineComment = function() {
   return this._errorToken();
 }
 TokenizerBase.prototype.eatDigits = function() {
-  while (this._lang_index < this._text.length) {
-    if (TokenizerHelpers.isDigit(this._text.charCodeAt(this._lang_index))) {
-      this._lang_index++;
+  while (this._index < this._text.length) {
+    if (TokenizerHelpers.isDigit(this._text.charCodeAt(this._index))) {
+      this._index++;
     }
     else {
       return;
@@ -6565,9 +6571,9 @@ TokenizerBase.prototype.eatDigits = function() {
   }
 }
 TokenizerBase.prototype.eatHexDigits = function() {
-  while (this._lang_index < this._text.length) {
-    if (TokenizerHelpers.isHexDigit(this._text.charCodeAt(this._lang_index))) {
-      this._lang_index++;
+  while (this._index < this._text.length) {
+    if (TokenizerHelpers.isHexDigit(this._text.charCodeAt(this._index))) {
+      this._index++;
     }
     else {
       return;
@@ -6575,8 +6581,8 @@ TokenizerBase.prototype.eatHexDigits = function() {
   }
 }
 TokenizerBase.prototype.maybeEatHexDigit = function() {
-  if (this._lang_index < this._text.length && TokenizerHelpers.isHexDigit(this._text.charCodeAt(this._lang_index))) {
-    this._lang_index++;
+  if (this._index < this._text.length && TokenizerHelpers.isHexDigit(this._text.charCodeAt(this._index))) {
+    this._index++;
     return true;
   }
   return false;
@@ -6594,7 +6600,7 @@ TokenizerBase.prototype.finishNumber = function() {
       return this.finishNumberExtra(62/*TokenKind.DOUBLE*/);
     }
     else {
-      this._lang_index--;
+      this._index--;
     }
   }
   return this.finishNumberExtra(60/*TokenKind.INTEGER*/);
@@ -6728,9 +6734,9 @@ TokenizerBase.prototype.eatEscapeSequence = function() {
     case 117:
 
       if (this._maybeEatChar(123)) {
-        var start = this._lang_index;
+        var start = this._index;
         this.eatHexDigits();
-        var chars = this._lang_index - start;
+        var chars = this._index - start;
         if (chars > 0 && chars <= 6 && this._maybeEatChar(125)) {
           hex = this._text.substring(start, start + chars);
           break;
@@ -6741,7 +6747,7 @@ TokenizerBase.prototype.eatEscapeSequence = function() {
       }
       else {
         if (this.maybeEatHexDigit() && this.maybeEatHexDigit() && this.maybeEatHexDigit() && this.maybeEatHexDigit()) {
-          hex = this._text.substring(this._lang_index - 4, this._lang_index);
+          hex = this._text.substring(this._index - 4, this._index);
           break;
         }
         else {
@@ -6772,17 +6778,17 @@ TokenizerBase.prototype.finishIdentifier = function(ch) {
     if (ch == 36) {
       return this._errorToken("illegal character after $ in string interpolation");
     }
-    while (this._lang_index < this._text.length) {
-      if (!TokenizerHelpers.isInterpIdentifierPart(this._text.charCodeAt(this._lang_index++))) {
-        this._lang_index--;
+    while (this._index < this._text.length) {
+      if (!TokenizerHelpers.isInterpIdentifierPart(this._text.charCodeAt(this._index++))) {
+        this._index--;
         break;
       }
     }
   }
   else {
-    while (this._lang_index < this._text.length) {
-      if (!TokenizerHelpers.isIdentifierPart(this._text.charCodeAt(this._lang_index++))) {
-        this._lang_index--;
+    while (this._index < this._text.length) {
+      if (!TokenizerHelpers.isIdentifierPart(this._text.charCodeAt(this._index++))) {
+        this._index--;
         break;
       }
     }
@@ -6803,7 +6809,7 @@ function Tokenizer(source, skipWhitespace, index) {
   TokenizerBase.call(this, source, skipWhitespace, index);
 }
 Tokenizer.prototype.next = function() {
-  this._startIndex = this._lang_index;
+  this._startIndex = this._index;
   if (this._interpStack != null && this._interpStack.depth == 0) {
     var istack = this._interpStack;
     this._interpStack = this._interpStack.pop();
@@ -7138,7 +7144,7 @@ Tokenizer.prototype.next = function() {
 }
 Tokenizer.prototype.getIdentifierKind = function() {
   var i0 = this._startIndex;
-  switch (this._lang_index - i0) {
+  switch (this._index - i0) {
     case 2:
 
       if (this._text.charCodeAt(i0) == 100) {
@@ -8157,7 +8163,7 @@ Parser.prototype.isPrematureEndOfFile = function() {
     $throw(new IncompleteSourceException(this._previousToken));
   }
   else if (this._maybeEat(1/*TokenKind.END_OF_FILE*/)) {
-    this._lang_error('unexpected end of file', this._peekToken.get$span());
+    this._error('unexpected end of file', this._peekToken.get$span());
     return true;
   }
   else {
@@ -8171,14 +8177,14 @@ Parser.prototype._recoverTo = function(kind1, kind2, kind3) {
       this._recover = false;
       return true;
     }
-    this._lang_next();
+    this._next();
   }
   return false;
 }
 Parser.prototype._peek = function() {
   return this._peekToken.kind;
 }
-Parser.prototype._lang_next = function() {
+Parser.prototype._next = function() {
   this._previousToken = this._peekToken;
   this._peekToken = this.tokenizer.next();
   return this._previousToken;
@@ -8213,15 +8219,15 @@ Parser.prototype._eatSemicolon = function() {
 }
 Parser.prototype._errorExpected = function(expected) {
   if (this.throwOnIncomplete) this.isPrematureEndOfFile();
-  var tok = this._lang_next();
+  var tok = this._next();
   if ((tok instanceof ErrorToken) && tok.get$message() != null) {
-    this._lang_error(tok.get$message(), tok.get$span());
+    this._error(tok.get$message(), tok.get$span());
   }
   else {
-    this._lang_error(('expected ' + expected + ', but found ' + tok), tok.get$span());
+    this._error(('expected ' + expected + ', but found ' + tok), tok.get$span());
   }
 }
-Parser.prototype._lang_error = function(message, location) {
+Parser.prototype._error = function(message, location) {
   if (this._recover) return;
   if (location == null) {
     location = this._peekToken.get$span();
@@ -8233,7 +8239,7 @@ Parser.prototype._skipBlock = function() {
   var depth = 1;
   this._eat(6/*TokenKind.LBRACE*/);
   while (true) {
-    var tok = this._lang_next();
+    var tok = this._next();
     if ($eq(tok.get$kind(), 6/*TokenKind.LBRACE*/)) {
       depth += 1;
     }
@@ -8242,7 +8248,7 @@ Parser.prototype._skipBlock = function() {
       if (depth == 0) return;
     }
     else if ($eq(tok.get$kind(), 1/*TokenKind.END_OF_FILE*/)) {
-      this._lang_error('unexpected end of file during diet parse', tok.get$span());
+      this._error('unexpected end of file during diet parse', tok.get$span());
       return;
     }
   }
@@ -8383,7 +8389,7 @@ Parser.prototype.functionBody = function(inExpression) {
       return null;
     }
   }
-  this._lang_error('Expected function body (neither { nor => found)');
+  this._error('Expected function body (neither { nor => found)');
 }
 Parser.prototype.finishField = function(start, modifiers, typeParams, type, name, value) {
   if (typeParams != null) {
@@ -8450,7 +8456,7 @@ Parser.prototype.declaration = function(includeOperators) {
 }
 Parser.prototype.factoryConstructorDeclaration = function() {
   var start = this._peekToken.start;
-  var factoryToken = this._lang_next();
+  var factoryToken = this._next();
   var names = [this.identifier()];
   while (this._maybeEat(14/*TokenKind.DOT*/)) {
     names.add$1(this.identifier());
@@ -8476,7 +8482,7 @@ Parser.prototype.factoryConstructorDeclaration = function() {
     name = new Identifier('', names.$index(0).get$span());
   }
   if (names.length > 1) {
-    this._lang_error('unsupported qualified name for factory', names.$index(0).get$span());
+    this._error('unsupported qualified name for factory', names.$index(0).get$span());
   }
   type = new NameTypeReference(false, names.$index(0), null, names.$index(0).get$span());
   var di = new DeclaredIdentifier(type, name, this._makeSpan(start));
@@ -8755,7 +8761,7 @@ Parser.prototype.caseNode = function() {
     }
   }
   if ($eq(cases.length, 0)) {
-    this._lang_error('case or default');
+    this._error('case or default');
   }
   var stmts = [];
   while (!this._peekCaseEnd()) {
@@ -8840,7 +8846,7 @@ Parser.prototype._makeType = function(expr) {
     return type;
   }
   else {
-    this._lang_error('expected type reference');
+    this._error('expected type reference');
     return null;
   }
 }
@@ -8886,7 +8892,7 @@ Parser.prototype.finishInfixExpression = function(x, precedence) {
           return this._fixAsType(x);
         }
       }
-      var op = this._lang_next();
+      var op = this._next();
       if ($eq(op.get$kind(), 103/*TokenKind.IS*/)) {
         var isTrue = !this._maybeEat(19/*TokenKind.NOT*/);
         var typeRef = this.type(0);
@@ -8929,7 +8935,7 @@ Parser.prototype._isPrefixUnaryOperator = function(kind) {
 Parser.prototype.unaryExpression = function() {
   var start = this._peekToken.start;
   if (this._isPrefixUnaryOperator(this._peek())) {
-    var tok = this._lang_next();
+    var tok = this._next();
     var expr = this.unaryExpression();
     return new UnaryExpression(tok, expr, this._makeSpan(start));
   }
@@ -8994,7 +9000,7 @@ Parser.prototype.finishPostfixExpression = function(expr) {
     case 16/*TokenKind.INCR*/:
     case 17/*TokenKind.DECR*/:
 
-      var tok = this._lang_next();
+      var tok = this._next();
       return new PostfixExpression(expr, tok, this._makeSpan(expr.get$span().get$start()));
 
     case 9/*TokenKind.ARROW*/:
@@ -9021,7 +9027,7 @@ Parser.prototype.finishCallOrLambdaExpression = function(expr) {
   }
   else {
     if ((expr instanceof DeclaredIdentifier)) {
-      this._lang_error('illegal target for call, did you mean to declare a function?', expr.get$span());
+      this._error('illegal target for call, did you mean to declare a function?', expr.get$span());
     }
     var args = this.arguments();
     return this.finishPostfixExpression(new CallExpression(expr, args, this._makeSpan(expr.get$span().get$start())));
@@ -9106,17 +9112,17 @@ Parser.prototype.primary = function() {
 
     case 61/*TokenKind.HEX_INTEGER*/:
 
-      var t = this._lang_next();
+      var t = this._next();
       return new LiteralExpression(Parser.parseHex(t.get$text().substring$1(2)), this._intTypeRef(this._makeSpan(start)), t.get$text(), this._makeSpan(start));
 
     case 60/*TokenKind.INTEGER*/:
 
-      var t = this._lang_next();
+      var t = this._next();
       return new LiteralExpression(Math.parseInt(t.get$text()), this._intTypeRef(this._makeSpan(start)), t.get$text(), this._makeSpan(start));
 
     case 62/*TokenKind.DOUBLE*/:
 
-      var t = this._lang_next();
+      var t = this._next();
       return new LiteralExpression(Math.parseDouble(t.get$text()), this._doubleTypeRef(this._makeSpan(start)), t.get$text(), this._makeSpan(start));
 
     case 58/*TokenKind.STRING*/:
@@ -9151,7 +9157,7 @@ Parser.prototype.stringInterpolation = function() {
   var lits = [];
   var startQuote = null, endQuote = null;
   while (this._peekKind(66/*TokenKind.INCOMPLETE_STRING*/)) {
-    var token = this._lang_next();
+    var token = this._next();
     var text = token.get$text();
     if (startQuote == null) {
       if (isMultilineString(text)) {
@@ -9179,7 +9185,7 @@ Parser.prototype.stringInterpolation = function() {
       lits.add$1(new VarExpression(id, id.get$span()));
     }
   }
-  var tok = this._lang_next();
+  var tok = this._next();
   if ($ne(tok.get$kind(), 58/*TokenKind.STRING*/)) {
     this._errorExpected('interpolated string');
   }
@@ -9192,20 +9198,20 @@ Parser.prototype.makeStringLiteral = function(text, span) {
   return new LiteralExpression(text, this._stringTypeRef(span), text, span);
 }
 Parser.prototype.stringLiteralExpr = function() {
-  var token = this._lang_next();
+  var token = this._next();
   return this.makeStringLiteral(token.get$text(), token.get$span());
 }
 Parser.prototype.maybeStringLiteral = function() {
   var kind = this._peek();
   if ($eq(kind, 58/*TokenKind.STRING*/)) {
-    return parseStringLiteral(this._lang_next().get$text());
+    return parseStringLiteral(this._next().get$text());
   }
   else if ($eq(kind, 59/*TokenKind.STRING_PART*/)) {
-    this._lang_next();
+    this._next();
     this._errorExpected('string literal, but found interpolated string start');
   }
   else if ($eq(kind, 66/*TokenKind.INCOMPLETE_STRING*/)) {
-    this._lang_next();
+    this._next();
     this._errorExpected('string literal, but found incomplete string');
   }
   return null;
@@ -9243,19 +9249,19 @@ Parser.prototype._peekAfterCloseParen = function() {
   }
   this._afterParensIndex = 0;
   this._afterParens.clear();
-  var tokens = [this._lang_next()];
+  var tokens = [this._next()];
   this._lookaheadAfterParens(tokens);
   var after = this._peekToken;
   tokens.add$1(after);
   this.tokenizer = new DivertedTokenSource(tokens, this, this.tokenizer);
-  this._lang_next();
+  this._next();
   return after;
 }
 Parser.prototype._lookaheadAfterParens = function(tokens) {
   var saved = this._afterParens.length;
   this._afterParens.add(null);
   while (true) {
-    var token = this._lang_next();
+    var token = this._next();
     tokens.add(token);
     var kind = token.kind;
     if (kind == 3/*TokenKind.RPAREN*/ || kind == 1/*TokenKind.END_OF_FILE*/) {
@@ -9277,7 +9283,7 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
     case 15/*TokenKind.ELLIPSIS*/:
 
       this._eat(15/*TokenKind.ELLIPSIS*/);
-      this._lang_error('rest no longer supported', this._previousToken.get$span());
+      this._error('rest no longer supported', this._previousToken.get$span());
       name = this.identifier().get$name();
       break;
 
@@ -9319,7 +9325,7 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
       var kind = this._peek();
       if ($eq(kind, 82/*TokenKind.NEGATE*/)) {
         name = ':negate';
-        this._lang_next();
+        this._next();
       }
       else {
         name = TokenKind.binaryMethodName(kind);
@@ -9327,7 +9333,7 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
           name = 'operator';
         }
         else {
-          this._lang_next();
+          this._next();
         }
       }
       break;
@@ -9462,7 +9468,7 @@ Parser.prototype._readModifiers = function() {
       case 75/*TokenKind.FACTORY*/:
 
         if (modifiers == null) modifiers = [];
-        modifiers.add$1(this._lang_next());
+        modifiers.add$1(this._next());
         break;
 
       default:
@@ -9563,11 +9569,11 @@ Parser.prototype.nameTypeReference = function() {
   switch (this._peek()) {
     case 114/*TokenKind.VOID*/:
 
-      return new TypeReference(this._lang_next().get$span(), $globals.world.voidType);
+      return new TypeReference(this._next().get$span(), $globals.world.voidType);
 
     case 113/*TokenKind.VAR*/:
 
-      return new TypeReference(this._lang_next().get$span(), $globals.world.varType);
+      return new TypeReference(this._next().get$span(), $globals.world.varType);
 
     case 98/*TokenKind.FINAL*/:
 
@@ -9610,7 +9616,7 @@ Parser.prototype.formalParameter = function(inOptionalBlock) {
   var value = null;
   if (this._maybeEat(20/*TokenKind.ASSIGN*/)) {
     if (!inOptionalBlock) {
-      this._lang_error('default values only allowed inside [optional] section');
+      this._error('default values only allowed inside [optional] section');
     }
     value = this.expression();
   }
@@ -9636,7 +9642,7 @@ Parser.prototype.formalParameterList = function() {
     while (this._maybeEat(11/*TokenKind.COMMA*/)) {
       if (this._maybeEat(4/*TokenKind.LBRACK*/)) {
         if (inOptionalBlock) {
-          this._lang_error('already inside an optional block', this._previousToken.get$span());
+          this._error('already inside an optional block', this._previousToken.get$span());
         }
         inOptionalBlock = true;
       }
@@ -9650,9 +9656,9 @@ Parser.prototype.formalParameterList = function() {
   return formals;
 }
 Parser.prototype.identifier = function() {
-  var tok = this._lang_next();
+  var tok = this._next();
   if (!this._isIdentifier(tok.get$kind())) {
-    this._lang_error(('expected identifier, but found ' + tok), tok.get$span());
+    this._error(('expected identifier, but found ' + tok), tok.get$span());
   }
   return new Identifier(tok.get$text(), this._makeSpan(tok.get$start()));
 }
@@ -9667,7 +9673,7 @@ Parser.prototype._makeFunction = function(expr, formals, body) {
     type = expr.get$type();
   }
   else {
-    this._lang_error('bad function body', expr.get$span());
+    this._error('bad function body', expr.get$span());
   }
   var span = new SourceSpan(expr.get$span().get$file(), expr.get$span().get$start(), body.get$span().get$end());
   var func = new FunctionDefinition(null, type, name, formals, null, null, null, body, span);
@@ -9681,7 +9687,7 @@ Parser.prototype._makeDeclaredIdentifier = function(e) {
     return e;
   }
   else {
-    this._lang_error('expected declared identifier');
+    this._error('expected declared identifier');
     return new DeclaredIdentifier(null, null, e.get$span());
   }
 }
@@ -9707,16 +9713,16 @@ IncompleteSourceException.prototype.toString = function() {
 IncompleteSourceException.prototype.toString$0 = IncompleteSourceException.prototype.toString;
 // ********** Code for DivertedTokenSource **************
 function DivertedTokenSource(tokens, parser, previousTokenizer) {
-  this._lang_pos = 0
+  this._pos = 0
   this.tokens = tokens;
   this.parser = parser;
   this.previousTokenizer = previousTokenizer;
   // Initializers done
 }
 DivertedTokenSource.prototype.next = function() {
-  var token = this.tokens.$index(this._lang_pos);
-  ++this._lang_pos;
-  if (this._lang_pos == this.tokens.length) {
+  var token = this.tokens.$index(this._pos);
+  ++this._pos;
+  if (this._pos == this.tokens.length) {
     this.parser.tokenizer = this.previousTokenizer;
   }
   return token;
@@ -12356,16 +12362,16 @@ BareValue.prototype._tryResolveMember = function(context, name) {
 }
 // ********** Code for CompilerException **************
 function CompilerException(_message, _location) {
-  this._lang_message = _message;
+  this._message = _message;
   this._location = _location;
   // Initializers done
 }
 CompilerException.prototype.toString = function() {
   if (this._location != null) {
-    return ('CompilerException: ' + this._location.toMessageString(this._lang_message));
+    return ('CompilerException: ' + this._location.toMessageString(this._message));
   }
   else {
-    return ('CompilerException: ' + this._lang_message);
+    return ('CompilerException: ' + this._message);
   }
 }
 CompilerException.prototype.toString$0 = CompilerException.prototype.toString;
