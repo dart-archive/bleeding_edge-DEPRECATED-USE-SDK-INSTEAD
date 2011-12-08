@@ -347,6 +347,18 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add('($code)');
   }
 
+  visitForeignNew(HForeignNew node) {
+    String jsClassReference = compiler.namer.isolateAccess(node.element);
+    buffer.add('new $jsClassReference(');
+    // We can't use 'visitArguments', since our arguments start at input[0].
+    List<HInstruction> inputs = node.inputs;
+    for (int i = 0; i < inputs.length; i++) {
+      if (i != 0) buffer.add(', ');
+      use(inputs[i]);
+    }
+    buffer.add(')');
+  }
+
   visitLiteral(HLiteral node) {
     if (node.value === null) {
       buffer.add("(void 0)");

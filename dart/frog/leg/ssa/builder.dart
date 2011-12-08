@@ -578,7 +578,7 @@ class SsaBuilder implements Visitor {
       if (element.kind === ElementKind.FOREIGN) {
         LiteralString literal = node.arguments.head;
         compiler.ensure(literal is LiteralString);
-        push(new HForeign(arguments, unquote(literal)));
+        push(new HForeign(unquote(literal), arguments));
       } else {
         HStatic target = new HStatic(element);
         add(target);

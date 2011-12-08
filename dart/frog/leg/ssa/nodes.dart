@@ -14,6 +14,7 @@ interface HVisitor<R> {
   R visitEquals(HEquals node);
   R visitExit(HExit node);
   R visitForeign(HForeign node);
+  R visitForeignNew(HForeignNew);
   R visitGoto(HGoto node);
   R visitGreater(HGreater node);
   R visitGreaterEqual(HGreaterEqual node);
@@ -192,6 +193,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitEquals(HEquals node) => visitRelational(node);
   visitExit(HExit node) => visitControlFlow(node);
   visitForeign(HForeign node) => visitInstruction(node);
+  visitForeignNew(HForeignNew node) => visitForeign(node);
   visitGoto(HGoto node) => visitControlFlow(node);
   visitGreater(HGreater node) => visitRelational(node);
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
@@ -859,8 +861,14 @@ class HInvokeStatic extends HInvoke {
 
 class HForeign extends HInstruction {
   final SourceString code;
-  HForeign(inputs, this.code) : super(inputs);
+  HForeign(this.code, List<HInstruction> inputs) : super(inputs);
   accept(HVisitor visitor) => visitor.visitForeign(this);
+}
+
+class HForeignNew extends HForeign {
+  ClassElement element;
+  HForeignNew(this.element, List<HInstruction> inputs) : super("new", inputs);
+  accept(HVisitor visitor) => visitor.visitForeignNew(this);
 }
 
 class HInvokeBinary extends HInvokeStatic {
