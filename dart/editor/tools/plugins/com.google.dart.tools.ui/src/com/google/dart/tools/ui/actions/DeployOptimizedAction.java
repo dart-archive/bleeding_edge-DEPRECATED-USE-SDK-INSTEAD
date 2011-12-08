@@ -28,7 +28,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -51,8 +50,8 @@ import java.io.File;
 /**
  * An action to create an optimized javascript build of a Dart library.
  */
-public class DeployOptimizedAction extends Action implements IWorkbenchAction, ISelectionListener,
-    IPartListener {
+public class DeployOptimizedAction extends AbstractInstrumentedAction implements IWorkbenchAction,
+    ISelectionListener, IPartListener {
 
   class DeployOptimizedJob extends Job {
     private IWorkbenchPage page;
@@ -131,6 +130,7 @@ public class DeployOptimizedAction extends Action implements IWorkbenchAction, I
 
   @Override
   public void run() {
+    EmitInstrumentationCommand();
     deployOptimized(window.getActivePage());
   }
 

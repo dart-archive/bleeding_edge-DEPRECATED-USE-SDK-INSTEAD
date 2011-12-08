@@ -245,6 +245,10 @@
             description="%command.omnibox.description"
             id="com.google.dart.tools.ui.omnibox"
             name="%command.omnibox.name"/>
+            <command
+                  id="com.google.dart.tools.ui.BroadcastCommand"
+                  name="BroadcastCommand">
+            </command>
    </extension>
    
    <extension

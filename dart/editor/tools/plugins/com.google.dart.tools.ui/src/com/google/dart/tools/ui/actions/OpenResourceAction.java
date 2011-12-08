@@ -21,7 +21,6 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -45,7 +44,7 @@ import java.util.List;
  * default editor to suit our needs.
  */
 @SuppressWarnings("restriction")
-public class OpenResourceAction extends Action implements IWorkbenchAction {
+public class OpenResourceAction extends AbstractInstrumentedAction implements IWorkbenchAction {
 
   public static final String ID = DartToolsPlugin.PLUGIN_ID + ".openResourceAction"; //$NON-NLS-1$
   public static final String ID_ORG_ECLIPSE_UI_OPEN_RESOURCE_ACTION = "org.eclipse.ui.navigate.openResource"; //$NON-NLS-1$
@@ -75,6 +74,7 @@ public class OpenResourceAction extends Action implements IWorkbenchAction {
 
   @Override
   public void run() {
+    EmitInstrumentationCommand();
     final List<IFile> files = new ArrayList<IFile>();
 
     // Prompt the user for the resource to open.

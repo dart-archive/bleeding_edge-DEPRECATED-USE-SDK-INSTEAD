@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.ui.dialogs.AboutDartDialog;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
@@ -23,7 +22,7 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 /**
  * Triggers the About Dart Dialog
  */
-public class AboutDartAction extends Action implements IWorkbenchAction {
+public class AboutDartAction extends AbstractInstrumentedAction implements IWorkbenchAction {
   private IWorkbenchWindow window;
 
   /**
@@ -46,15 +45,18 @@ public class AboutDartAction extends Action implements IWorkbenchAction {
 
   @Override
   public void run() {
+    EmitInstrumentationCommand();
     openDialog();
   }
 
   @Override
   public void runWithEvent(Event event) {
+    EmitInstrumentationCommand();
     openDialog();
   }
 
   private void openDialog() {
+
     new AboutDartDialog(window.getShell()).open();
   }
 

@@ -25,7 +25,6 @@ import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -45,8 +44,8 @@ import java.util.List;
  * Close Library action. Removes a library from the Libraries view (but keeps the source code on
  * disk).
  */
-public class CloseLibraryAction extends Action implements IWorkbenchAction, ISelectionListener,
-    ISelectionChangedListener {
+public class CloseLibraryAction extends AbstractInstrumentedAction implements IWorkbenchAction,
+    ISelectionListener, ISelectionChangedListener {
 
   public static final String ID = DartToolsPlugin.PLUGIN_ID + ".closeLibraryAction"; //$NON-NLS-1$
 
@@ -72,7 +71,7 @@ public class CloseLibraryAction extends Action implements IWorkbenchAction, ISel
   @SuppressWarnings("unchecked")
   @Override
   public void run() {
-
+    EmitInstrumentationCommand();
     final List<DartLibrary> libraries = selection.toList();
 
     try {

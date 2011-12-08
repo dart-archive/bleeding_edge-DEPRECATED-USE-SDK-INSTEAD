@@ -146,6 +146,7 @@ public class OpenAction extends SelectionDispatchAction {
 
   @Override
   public void run(IStructuredSelection selection) {
+    EmitInstrumentationCommand();
     if (!checkEnabled(selection)) {
       return;
     }
@@ -154,6 +155,7 @@ public class OpenAction extends SelectionDispatchAction {
 
   @Override
   public void run(ITextSelection selection) {
+    EmitInstrumentationCommand();
     if (!isProcessable()) {
       return;
     }
@@ -221,6 +223,7 @@ public class OpenAction extends SelectionDispatchAction {
    * @noreference This method is not intended to be referenced by clients.
    */
   public void run(Object[] elements) {
+    EmitInstrumentationCommand();
     if (elements == null) {
       return;
     }

@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.actions;
@@ -18,7 +16,6 @@ package com.google.dart.tools.ui.actions;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -48,7 +45,8 @@ import org.eclipse.ui.IWorkbenchSite;
  * this early stage to solicit feedback from pioneering adopters on the understanding that any code
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
-public abstract class SelectionDispatchAction extends Action implements ISelectionChangedListener {
+public abstract class SelectionDispatchAction extends AbstractInstrumentedAction implements
+    ISelectionChangedListener {
 
   private IWorkbenchSite fSite;
   private ISelectionProvider fSpecialSelectionProvider;
@@ -116,6 +114,7 @@ public abstract class SelectionDispatchAction extends Action implements ISelecti
    */
   @Override
   public void run() {
+    EmitInstrumentationCommand();
     dispatchRun(getSelection());
   }
 
@@ -125,6 +124,7 @@ public abstract class SelectionDispatchAction extends Action implements ISelecti
    * @param selection the selection
    */
   public void run(DartTextSelection selection) {
+    EmitInstrumentationCommand();
     run((ITextSelection) selection);
   }
 
@@ -143,6 +143,7 @@ public abstract class SelectionDispatchAction extends Action implements ISelecti
    * @param selection the selection
    */
   public void run(IStructuredSelection selection) {
+    EmitInstrumentationCommand();
     run((ISelection) selection);
   }
 
@@ -153,6 +154,7 @@ public abstract class SelectionDispatchAction extends Action implements ISelecti
    * @param selection the selection
    */
   public void run(ITextSelection selection) {
+    EmitInstrumentationCommand();
     run((ISelection) selection);
   }
 

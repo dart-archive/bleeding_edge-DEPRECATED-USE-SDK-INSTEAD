@@ -24,6 +24,7 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
+import com.google.dart.tools.ui.actions.AbstractInstrumentedAction;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -34,7 +35,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -72,8 +72,8 @@ import java.util.Set;
 /**
  * A menu for opening html files in the system browser.
  */
-public class RunInBrowserAction extends Action implements ISelectionChangedListener,
-    ISelectionListener, IPartListener, IViewActionDelegate {
+public class RunInBrowserAction extends AbstractInstrumentedAction implements
+    ISelectionChangedListener, ISelectionListener, IPartListener, IViewActionDelegate {
 
   class RunInBrowserJob extends UIJob {
     private IWorkbenchPage page;
@@ -168,6 +168,7 @@ public class RunInBrowserAction extends Action implements ISelectionChangedListe
 
   @Override
   public void run() {
+    EmitInstrumentationCommand();
     openInBrowser(window.getActivePage());
   }
 

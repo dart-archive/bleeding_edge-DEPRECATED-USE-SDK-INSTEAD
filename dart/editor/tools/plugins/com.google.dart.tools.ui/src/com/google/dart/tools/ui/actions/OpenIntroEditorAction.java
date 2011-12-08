@@ -16,17 +16,17 @@ package com.google.dart.tools.ui.actions;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.intro.IntroEditor;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 
 /**
  * Open the intro editor.
  */
-public class OpenIntroEditorAction extends Action {
+public class OpenIntroEditorAction extends AbstractInstrumentedAction {
 
   @Override
   public void run() {
+    EmitInstrumentationCommand();
     try {
       IDE.openEditor(DartToolsPlugin.getActivePage(), IntroEditor.getInput(), IntroEditor.ID);
     } catch (PartInitException e) {
