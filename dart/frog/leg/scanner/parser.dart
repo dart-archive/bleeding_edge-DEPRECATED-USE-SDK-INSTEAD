@@ -591,7 +591,7 @@ class Parser {
       return parseBlock(token);
     } else if (value === 'return') {
       return parseReturnStatement(token);
-    } else if (value === 'var') {
+    } else if (value === 'var' || value === 'final') {
       return parseVariablesDeclaration(token);
     } else if (value === 'if') {
       return parseIfStatement(token);
