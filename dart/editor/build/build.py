@@ -93,6 +93,9 @@ def main():
   print 'dartpath       = {0}'.format(dartpath)
 
   os.chdir(buildpath)
+  
+  _RunAnt(os.getcwd(), '', '', '', '',
+            '', '', buildos, ['-diagnostics'])
 
   homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
   gsu = gsutil.GsUtil(False, homegsutil)
@@ -160,6 +163,7 @@ def main():
       os.chdir(dartpath)
       print ' '.join(cmds)
       status = subprocess.call(cmds)
+      print 'sdk build returned ' + str(status)
       if status:
         _PrintError('the build of the SDK failed')
         return status
@@ -172,8 +176,9 @@ def main():
     buildos = None
   else:
     _PrintSeparator('new builder running on {0} is'
-                    ' terminating until os specific builds'
-                    ' are in place'.format(builder_name))
+                    ' a place holder until the os specific builds'
+                    ' are in place.  This is a '
+                    'normal termination'.format(builder_name))
     return 0
 
   _PrintSeparator('running the build to produce the Zipped RCP''s')
@@ -224,7 +229,7 @@ def main():
 
 
 def _RunAnt(build_dir, antfile, revision, name, buildroot,
-            buildout, sourcepath, buildos):
+            buildout, sourcepath, buildos, extra_args):
   """Run the given Ant script from the given directory.
 
   Args:
@@ -236,6 +241,7 @@ def _RunAnt(build_dir, antfile, revision, name, buildroot,
     buildout: the location to copy output
     sourcepath: the path to the root of the source
     buildos: the operating system this build is running under (may be null)
+    extra_args: any extra args to ant
 
   Returns:
     returns the status of the ant call
@@ -268,6 +274,8 @@ def _RunAnt(build_dir, antfile, revision, name, buildroot,
          ]
   if buildos:
     args.append('-Dbuild.os={0}'.format(buildos))
+  if extra_args:
+    args.extend(extra_args)
 
   extra_args = os.environ.get('ANT_EXTRA_ARGS')
   if extra_args is not None:
