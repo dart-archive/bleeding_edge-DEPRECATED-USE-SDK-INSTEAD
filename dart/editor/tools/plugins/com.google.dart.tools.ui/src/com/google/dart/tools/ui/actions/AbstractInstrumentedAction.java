@@ -27,10 +27,11 @@ public class AbstractInstrumentedAction extends Action {
 
       HashMap<String, String> props = new HashMap<String, String>();
       props.put("ActionType", this.getClass().toString());
+      if (ic.getHandler() != null) {
+        ExecutionEvent ev = new ExecutionEvent(ic, props, this, PlatformUI.getWorkbench());
 
-      ExecutionEvent ev = new ExecutionEvent(ic, props, this, PlatformUI.getWorkbench());
-
-      ic.executeWithChecks(ev);
+        ic.executeWithChecks(ev);
+      }
     } catch (Exception e) {
       DartCore.logError(e);
     }
