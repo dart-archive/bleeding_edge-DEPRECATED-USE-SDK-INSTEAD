@@ -867,7 +867,8 @@ class HForeign extends HInstruction {
 
 class HForeignNew extends HForeign {
   ClassElement element;
-  HForeignNew(this.element, List<HInstruction> inputs) : super("new", inputs);
+  HForeignNew(this.element, List<HInstruction> inputs)
+      : super(const SourceString("new"), inputs);
   accept(HVisitor visitor) => visitor.visitForeignNew(this);
 }
 

@@ -22,8 +22,9 @@ function(child, parent) {
 }''';
 
   bool addedInheritFunction = false;
+  final Namer namer;
 
-  CodeEmitterTask(Compiler compiler) : super(compiler);
+  CodeEmitterTask(Compiler compiler) : namer = compiler.namer, super(compiler);
   String get name() => 'CodeEmitter';
 
   String get inheritsName() => '${compiler.namer.isolate}.\$inherits';
@@ -36,10 +37,19 @@ function(child, parent) {
     buffer.add(';\n');
   }
 
+  void addInstanceMember(Element member,
+                         String prototype,
+                         StringBuffer buffer) {
+    assert(member is FunctionElement);
+    assert(!member.isStatic());
+    String codeBlock = compiler.universe.generatedCode[member];
+    assert(codeBlock !== null);
+    buffer.add('$prototype.${namer.instanceName(member)} = $codeBlock;\n');
+  }
+
   void generateClass(ClassElement classElement,
                      StringBuffer buffer,
                      Set<ClassElement> seenClasses) {
-    Namer namer = compiler.namer;
     if (seenClasses.contains(classElement)) return;
     seenClasses.add(classElement);
     Type supertype = classElement.supertype;
@@ -56,21 +66,19 @@ function(child, parent) {
       buffer.add('${inheritsName}($className, $superName);\n');
     }
     String prototype = '$className.prototype';
-    // TODO(floitsch): run through classElement.members() instead of [].
-    for (Element member in []) {
-      if (member.kind !== ElementKind.FUNCTION) continue;
-      assert(member is FunctionElement);
-      // TODO(floitsch): if (element.isStatic()) continue;
-      String codeBlock = compiler.universe.generatedCode[member];
-      assert(codeBlock !== null);
-      buffer.add('$prototype.${namer.methodName(member)} = $codeBlock;\n');
+
+    for (Element member in classElement.members) {
+      if (!member.isStatic()) addInstanceMember(member, prototype, buffer);
+    }
+    for (Element member in classElement.backendMembers) {
+      if (!member.isStatic()) addInstanceMember(member, prototype, buffer);      
     }
 
     Element synthesized = classElement.synthesizedConstructor;
     if (synthesized !== null) {
       String codeBlock = compiler.universe.generatedCode[synthesized];
       assert(codeBlock !== null);
-      buffer.add('$prototype.${synthesized.name} = $codeBlock;\n');
+      buffer.add('${namer.isolatePropertyAccess(synthesized)} = $codeBlock;\n');
     }
   }
 
@@ -84,7 +92,6 @@ function(child, parent) {
 
   String assembleProgram() {
     measure(() {
-      Namer namer = compiler.namer;
       StringBuffer buffer = new StringBuffer();
       buffer.add('function ${namer.isolate}() {};\n\n');
       compileClasses(buffer);

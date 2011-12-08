@@ -26,10 +26,20 @@ class Namer {
   String get currentIsolate() => "currentIsolate";
   String get isolate() => "Isolate";
 
+  String getName(Element element) {
+    String name = '${element.name}';
+    if (name == '') {
+      assert(element.kind == ElementKind.CONSTRUCTOR ||
+             element.kind == ElementKind.CONSTRUCTOR_BODY);
+      return 'default';
+    }
+    return name;
+  }
+
   String define(Element element) {
     assert(globals[element] === null);
 
-    String dartId = '${element.name}';
+    String dartId = getName(element);
     // Prefix the dartId with '$' if the name is reserved.
     if (jsReserved.contains(dartId)) {
       dartId = "\$$dartId";
@@ -53,7 +63,7 @@ class Namer {
       usedGlobals[dartId] = usedCount;
       globals[element] = id;
       return id;
-    }    
+    }
   }
 
   String isolateAccess(Element element) {
@@ -68,8 +78,24 @@ class Namer {
     return "$isolate.prototype.$jsId";     
   }
 
-  String methodName(Element element) {
+  String instanceName(Element element) {
+    if (element.kind == ElementKind.CONSTRUCTOR_BODY) {
+      ConstructorBodyElement bodyElement = element;
+      return constructorBodyName(element.constructor);
+    }
     // TODO(floitsch): mangle if necessary.
     return '${element.name}';
+  }
+
+  /**
+    * The element must be a constructor element. This way we can find the
+    * body method when we only have the constructor-element (as is the case
+    * when doing the super-initialization.
+    */
+  String constructorBodyName(FunctionElement element) {
+    assert(element.kind == ElementKind.CONSTRUCTOR);
+    // TODO(floitsch): mangle if necessary. Make sure it doesn't collide with
+    // normal methods.
+    return getName(element);
   }
 }
