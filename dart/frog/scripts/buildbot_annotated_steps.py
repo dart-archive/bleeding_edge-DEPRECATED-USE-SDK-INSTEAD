@@ -17,7 +17,6 @@ import sys
 BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 
 FROG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DART_PATH = os.path.dirname(FROG_PATH)
 
 BUILDER_PATTERN = r'(frog|frogsh)-linux-(debug|release)'
 
@@ -112,14 +111,6 @@ def main():
   status = TestFrog(arch, mode)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
-
-  if (arch =='frog' and mode == 'release'):
-    print '@@@BUILD_STEP upload sdk@@@'
-    os.chdir(DART_PATH)
-    if subprocess.call([sys.executable,
-        'tools/build.py', '--mode=release', 'upload_sdk']) != 0:
-      return 1
-
   return status
 
 
