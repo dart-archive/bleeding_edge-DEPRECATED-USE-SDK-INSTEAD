@@ -311,16 +311,24 @@ build system.  The PDE build system has to run under Eclipse.
         </copy>
 
         <!-- Chat -->
-        <copy todir="${samples.out.dir}/chat">
+        <!-- Commented out - this references the json library in a relative path from server code -->
+        <!-- copy todir="${samples.out.dir}/chat">
             <fileset dir="${build.source.root}/samples/chat">
             </fileset>
-        </copy>
+        </copy -->
         
         <!-- Time -->
         <copy todir="${samples.out.dir}/time">
-            <fileset dir="${build.source.root}/samples/time">
+            <fileset dir="${build.source.root}/samples/time"/>
+            <fileset dir="${build.source.root}/samples/chat">
+                <include name="http*"/>
             </fileset>
         </copy>
+        <replace dir="${samples.out.dir}/time"
+            token='#import("../chat/http.dart");'
+            value='#import("http.dart");'>
+            <include name="*.dart"/>
+        </replace>
         
         <!-- Hi -->
         <!-- copy todir="${samples.out.dir}/hi">
