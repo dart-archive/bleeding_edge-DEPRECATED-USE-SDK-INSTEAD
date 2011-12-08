@@ -31,7 +31,7 @@ class ColorPicker {
   String get selectedColor() => _selectedColor;
   
   void set selectedColor(num i) {
-    _selectedColor = getHexString(i.floor());
+    _selectedColor = getHexString(i.floor().toInt());
     showSelected();
     fireSelected();
   }
