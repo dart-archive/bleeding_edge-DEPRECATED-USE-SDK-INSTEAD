@@ -30,4 +30,20 @@ main() {
   expectEquals(45, a[1]);
   a[1] -= a[1];
   expectEquals(0, a[1]);
+
+  var b = a[1]++;
+  expectEquals(1, a[1]);
+  expectEquals(0, b);
+
+  b = ++a[1];
+  expectEquals(2, a[1]);
+  expectEquals(2, b);
+
+  b = a[1]--;
+  expectEquals(1, a[1]);
+  expectEquals(2, b);
+
+  b = --a[1];
+  expectEquals(0, a[1]);
+  expectEquals(0, b);
 }

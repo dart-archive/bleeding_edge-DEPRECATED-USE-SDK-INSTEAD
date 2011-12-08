@@ -200,7 +200,7 @@ class SsaBuilder implements Visitor {
    *   updated values.
    * - sets [exitDefinitions] as the new [definitions].
    * - creates a new block and adds it as successor to the [branchBlock].
-   * - opens the new block (setting as [current]). 
+   * - opens the new block (setting as [current]).
    */
   void endLoop(HBasicBlock loopEntry, HBasicBlock branchBlock,
                bool doUpdateDefinitions,
@@ -592,21 +592,37 @@ class SsaBuilder implements Visitor {
       visit(node.receiver);
       HInstruction receiver = pop();
       visit(node.argumentsNode);
-      HInstruction value = pop();
-      HInstruction index = pop();
       if (const SourceString("=") == op.source) {
+        HInstruction value = pop();
+        HInstruction index = pop();
         push(new HIndexAssign(target, receiver, index, value));
-      } else if (const SourceString("++") == op.source ||
-                 const SourceString("--") == op.source) {
-        compiler.unimplemented("SsaBuilder: increment on array access");
       } else {
+        HInstruction value;
+        HInstruction index;
+        bool isCompoundAssignment = op.source.stringValue.endsWith('=');
+        bool isPrefix = !node.isPostfix;  // Compound assignments are prefix.
+        Element getter = elements[node.selector];
+        if (isCompoundAssignment) {
+          value = pop();
+          index = pop();
+        } else {
+          index = pop();
+          value = new HLiteral(1);
+          add(value);
+        }
         HStatic indexMethod = new HStatic(elements[node.selector]);
         add(indexMethod);
         HInstruction left = new HIndex(indexMethod, receiver, index);
         add(left);
         Element opElement = elements[op];
         visitBinary(left, op, value, opElement);
-        push(new HIndexAssign(target, receiver, index, pop()));
+        HInstruction assign = new HIndexAssign(target, receiver, index, pop());
+        add(assign);
+        if (isPrefix) {
+          stack.add(assign);
+        } else {
+          stack.add(left);
+        }
       }
     } else if (node.receiver != null) {
       compiler.unimplemented("SsaBuilder: property access");

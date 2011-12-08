@@ -154,8 +154,14 @@ class Send extends Expression {
   Link<Node> get arguments() => argumentsNode.nodes;
 
   Send([this.receiver, this.selector, this.argumentsNode]);
-  Send.postfix(this.receiver, this.selector) : argumentsNode = new Postfix();
-  Send.prefix(this.receiver, this.selector) : argumentsNode = new Prefix();
+  Send.postfix(this.receiver, this.selector, [Node argument = null])
+      : argumentsNode = (argument === null)
+        ? new Postfix()
+        : new Postfix.singleton(argument);
+  Send.prefix(this.receiver, this.selector, [Node argument = null])
+      : argumentsNode = (argument === null)
+        ? new Prefix()
+        : new Prefix.singleton(argument);
 
   Send asSend() => this;
 
@@ -198,22 +204,30 @@ class Postfix extends NodeList {
   // TODO(floitsch): pass const EmptyLink<Node>() to super.
   // This currently doesn't work because of a bug of Frog.
   Postfix() : super(null);
+  Postfix.singleton(Node argument) : super.singleton(argument);
 }
 
 class Prefix extends NodeList {
   // TODO(floitsch): pass const EmptyLink<Node>() to super.
   // This currently doesn't work because of a bug of Frog.
   Prefix() : super(null);
+  Prefix.singleton(Node argument) : super.singleton(argument);
 }
 
 class SendSet extends Send {
   final Operator assignmentOperator;
   SendSet(receiver, selector, this.assignmentOperator, argumentsNode)
     : super(receiver, selector, argumentsNode);
-  SendSet.postfix(receiver, selector, this.assignmentOperator)
-      : super.postfix(receiver, selector);
-  SendSet.prefix(receiver, selector, this.assignmentOperator)
-      : super.prefix(receiver, selector);
+  SendSet.postfix(receiver,
+                  selector,
+                  this.assignmentOperator,
+                  [Node argument = null])
+      : super.postfix(receiver, selector, argument);
+  SendSet.prefix(receiver,
+                 selector,
+                 this.assignmentOperator,
+                 [Node argument = null])
+      : super.prefix(receiver, selector, argument);
 
   SendSet asSendSet() => this;
 

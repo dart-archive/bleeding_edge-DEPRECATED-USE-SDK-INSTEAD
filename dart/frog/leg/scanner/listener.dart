@@ -731,17 +731,20 @@ class NodeListener extends ElementListener {
     if (send === null) {
       canceler.cancel('not assignable: $node', node: node);
     }
-    if (!send.isPropertyAccess) {
+    if (!(send.isPropertyAccess || send.isIndex)) {
       canceler.cancel('not assignable: $send', node: send);
     }
     if (send.asSendSet() !== null) {
       canceler.cancel('chained assignment', node: send);
     }
+    Node argument = null;
+    if (send.isIndex) argument = send.arguments.head;
     Operator op = new Operator(token);
+
     if (isPrefix) {
-      pushNode(new SendSet.prefix(send.receiver, send.selector, op));
+      pushNode(new SendSet.prefix(send.receiver, send.selector, op, argument));
     } else {
-      pushNode(new SendSet.postfix(send.receiver, send.selector, op));
+      pushNode(new SendSet.postfix(send.receiver, send.selector, op, argument));
     }
   }
   void handleUnaryPostfixAssignmentExpression(Token token) {
