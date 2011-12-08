@@ -37,12 +37,11 @@ import org.eclipse.ui.part.EditorPart;
  * A "fake" editor for showing intro content to first time users.
  */
 public class IntroEditor extends EditorPart {
+  public static final String ID = "com.google.dart.tools.ui.intro.editor";
 
   /*
    * TODO (pquitslund): string content should be externalized.
    */
-
-  public static final String ID = "com.google.dart.tools.ui.intro.editor";
 
   public static IEditorInput getInput() {
     return new IEditorInput() {
@@ -88,6 +87,9 @@ public class IntroEditor extends EditorPart {
   }
 
   private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
+
+  public IntroEditor() {
+  }
 
   @Override
   public void createPartControl(Composite parent) {
@@ -169,7 +171,7 @@ public class IntroEditor extends EditorPart {
     formText.setLayoutData(twd_formText);
     formText.setImage("new_lib_image",
         DartToolsPlugin.getImage("icons/full/dart16/library_new.png"));
-    formText.setImage("run_image", DartToolsPlugin.getImage("icons/full/etool16/run_exc.gif"));
+    formText.setImage("run_image", DartToolsPlugin.getImage("icons/full/dart16/run_client.png"));
 
     formText.setColor("header", toolkit.getColors().getColor(IFormColors.TITLE));
     formText.setFont("header", JFaceResources.getHeaderFont());
