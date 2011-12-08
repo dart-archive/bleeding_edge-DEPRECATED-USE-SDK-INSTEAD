@@ -806,13 +806,9 @@ class BlockBlock extends CodeBlock {
     children = new BlockChildren(this);
   }
 
-  CodePosition get start() {
-    return _firstChild.start;
-  }
+  CodePosition get start() => _firstChild.start;
 
-  CodePosition get end() {
-    return _lastChild.end;
-  }
+  CodePosition get end() => _lastChild.end;
 
   int get size() {
     var ret = 0;
@@ -1237,13 +1233,9 @@ class CodeBlock {
 
   abstract CodePosition moveToOffset(int offset);
 
-  CodePosition get start() {
-    return new CodePosition(this, 0);
-  }
+  CodePosition get start() => new CodePosition(this, 0);
 
-  CodePosition get end() {
-    return new CodePosition(this, size);
-  }
+  CodePosition get end() => new CodePosition(this, size);
 
   int getOffset(CodeBlock forChild) {
     throw "child missing";

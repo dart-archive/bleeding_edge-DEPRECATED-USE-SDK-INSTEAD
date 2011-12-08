@@ -7,17 +7,13 @@
 #import('../lang.dart');
 
 String compileDart(String basename, String filename) {
-  // Get the home directory from our executable.
-  var homedir = path.dirname(fs.realpathSync(process.argv[1]));
+  final basedir = path.dirname(basename);
+  final fullname = '$basedir/$filename';
 
-  var fs = new NodeFileSystem();
-
-  var basedir = path.dirname(basename);
-  filename = '$basedir/$filename';
-
-  if (compile(homedir, [null, null, filename], fs)) {
-    var code = world.getGeneratedCode();
-    return code;
+  world.reset();
+  options.dartScript = fullname;
+  if (world.compile()) {
+    return world.getGeneratedCode();
   } else {
     return 'alert("compilation of $filename failed, see console for errors");';
   }
@@ -44,7 +40,38 @@ String frogify(String filename) {
     text.substring(m.start() + m.group(0).length);
 }
 
+void initializeCompiler(String homedir) {
+  final filesystem = new NodeFileSystem();
+
+  parseOptions(homedir, [null, null], filesystem);
+  initializeWorld(filesystem);
+}
+
+String dirToHtml(String url, String dirname) {
+  var names = new StringBuffer();
+  for (var name in fs.readdirSync(dirname)) {
+    var link = '$url/$name';
+    names.add('<li><a href=$link>$name</a></li>\n');
+  }
+
+  return '''
+  <html><head><title>$dirname</title></head>
+    <h3>$dirname</h3>
+    <ul>
+      $names
+    </ul>
+  </html>
+  ''';
+}
+
+
 void main() {
+  final homedir = path.dirname(fs.realpathSync(process.argv[1]));
+  final dartdir = path.dirname(homedir);
+  print('running with dart root at ${dartdir}');
+
+  initializeCompiler(homedir);
+
   http.createServer((ServerRequest req, ServerResponse res) {
     var filename;
     if (req.url.endsWith('.html')) {
@@ -54,7 +81,8 @@ void main() {
     } else {
       res.setHeader('Content-Type', 'text/plain');
     }
-    filename = '../' + req.url;
+
+    filename = '$dartdir/${req.url}';
 
     if (path.existsSync(filename)) {
       var stat = fs.statSync(filename);
@@ -67,8 +95,10 @@ void main() {
           res.end(fs.readFileSync(filename, 'utf8'));
         }
         return;
+      } else {
+        res.setHeader('Content-Type', 'text/html');
+        res.end(dirToHtml(req.url, filename));
       }
-      // TODO(jimhug): Directory listings?
     }
 
 
