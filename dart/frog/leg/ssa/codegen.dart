@@ -411,6 +411,10 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
+  visitThis(HThis node) {
+    buffer.add('this');
+  }
+
   visitThrow(HThrow node) {
     buffer.add('throw ');
     use(node.inputs[0]);

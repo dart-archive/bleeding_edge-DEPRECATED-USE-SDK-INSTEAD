@@ -41,6 +41,7 @@ interface HVisitor<R> {
   R visitStatic(HStatic node);
   R visitStore(HStore node);
   R visitSubtract(HSubtract node);
+  R visitThis(HThis node);
   R visitThrow(HThrow node);
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTypeGuard(HTypeGuard node);
@@ -218,6 +219,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
   visitStatic(HStatic node) => visitInstruction(node);
   visitStore(HStore node) => visitInstruction(node);
+  visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   visitTypeGuard(HTypeGuard node) => visitInstruction(node);
@@ -1241,6 +1243,12 @@ class HParameterValue extends HInstruction {
   }
   toString() => 'parameter ${element.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
+}
+
+class HThis extends HParameterValue {
+  HThis() : super(null);
+  toString() => 'this';
+  accept(HVisitor visitor) => visitor.visitThis(this);
 }
 
 class HPhi extends HInstruction {
