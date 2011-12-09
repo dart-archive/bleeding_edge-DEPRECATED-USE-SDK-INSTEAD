@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
-# Copyright (c) 2011 The Chromium Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+"""Copyright (c) 2011 The Chromium Authors. All rights reserved.
 
-"""Eclipse Dart Editor buildbot steps."""
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+
+Eclipse Dart Editor buildbot steps.
+"""
 
 import glob
 import optparse
@@ -14,6 +16,80 @@ import subprocess
 import sys
 import gsutil
 import postprocess
+
+
+class AntWrapper(object):
+  """Class to abstract the ant calls from the program."""
+
+  _antpath = None
+  _bzippath = None
+
+  def __init__(self, antpath='/usr/bin', bzippath=None):
+    """Initialize the class with the ant path.
+
+    Args:
+      antpath: the path to ant
+      bzippath: the path to the bzip jar
+    """
+    self._antpath = antpath
+    self._bzippath = bzippath
+    print 'AntWrapper.__init__({0}, {1}'.format(self._antpath, self._bzippath)
+
+  def RunAnt(self, build_dir, antfile, revision, name,
+             buildroot, buildout, sourcepath, buildos,
+             extra_args=None):
+    """Run the given Ant script from the given directory.
+
+    Args:
+      build_dir: the directory to run the ant script from
+      antfile: the ant file to run
+      revision: the SVN revision of this build
+      name: the name of the builder
+      buildroot: root of the build source tree
+      buildout: the location to copy output
+      sourcepath: the path to the root of the source
+      buildos: the operating system this build is running under (may be null)
+      extra_args: any extra args to ant
+
+    Returns:
+      returns the status of the ant call
+    """
+    cwd = os.getcwd()
+    os.chdir(build_dir)
+    print 'cwd = {0}'.format(os.getcwd())
+    print 'ant path = {0}'.format(self._antpath)
+    # run the ant file given
+    args = ['/bin/bash',
+            os.path.join(self._antpath, 'ant'),
+            '-lib',
+            os.path.join(self._bzippath, 'bzip2.jar'),
+            '-f',
+            antfile,
+            '-noinput',
+            '-Dbuild.revision=' + revision,
+            '-Dbuild.builder=' + name,
+            '-Dbuild.root=' + buildroot,
+            '-Dbuild.out=' + buildout,
+            '-Dbuild.source=' + sourcepath,
+            '-nouserlib',
+           ]
+    if buildos:
+      args.append('-Dbuild.os={0}'.format(buildos))
+    if extra_args:
+      args.extend(extra_args)
+
+    extra_args = os.environ.get('ANT_EXTRA_ARGS')
+    if extra_args is not None:
+      parsed_extra = extra_args.split()
+      for arg in parsed_extra:
+        args.append(arg)
+
+    print ' '.join(args)
+
+    status = subprocess.call(args)
+
+    os.chdir(cwd)
+    return status
 
 
 def _BuildOptions():
@@ -93,9 +169,10 @@ def main():
   print 'dartpath       = {0}'.format(dartpath)
 
   os.chdir(buildpath)
-  
-  _RunAnt(os.getcwd(), '', '', '', '',
-            '', '', buildos, ['-diagnostics'])
+  ant = AntWrapper(os.path.join(antpath, 'bin'), bzip2libpath)
+
+  ant.RunAnt(os.getcwd(), '', '', '', '',
+             '', '', buildos, ['-diagnostics'])
 
   homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
   gsu = gsutil.GsUtil(False, homegsutil)
@@ -182,8 +259,8 @@ def main():
     return 0
 
   _PrintSeparator('running the build to produce the Zipped RCP''s')
-  status = _RunAnt('.', 'build_rcp.xml', revision, options.name,
-                   buildroot, buildout, editorpath, buildos)
+  status = ant.RunAnt('.', 'build_rcp.xml', revision, options.name,
+                      buildroot, buildout, editorpath, buildos)
   property_file = os.path.join('/var/tmp/' + options.name +
                                '-build.properties')
   #the ant script writes a property file in a known location so
@@ -195,7 +272,7 @@ def main():
     _PrintErrorLog(properties['build.runtime'])
     #This build script is currently not using any post processing
     #so this line is commented out
-    # If the preprocessor needs to be run in the 
+    # If the preprocessor needs to be run in the
     #  if not status and properties['build.tmp']:
     #    postProcessZips(properties['build.tmp'], buildout)
   sys.stdout.flush()
@@ -216,78 +293,15 @@ def main():
   sys.stdout.flush()
 
   _PrintSeparator('Running the tests')
-  status = _RunAnt('../com.google.dart.tools.tests.feature_releng',
-                   'buildTests.xml',
-                   revision, options.name, buildroot, buildout,
-                   editorpath, buildos)
+  status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
+                      'buildTests.xml',
+                      revision, options.name, buildroot, buildout,
+                      editorpath, buildos)
   properties = _ReadPropertyFile(property_file)
   if status and properties['build.runtime']:
-    #if there is a build.runtime and the status is not 
-    #zero see if there are any *.log entries 
+    #if there is a build.runtime and the status is not
+    #zero see if there are any *.log entries
     _PrintErrorLog(properties['build.runtime'])
-  return status
-
-
-def _RunAnt(build_dir, antfile, revision, name, buildroot,
-            buildout, sourcepath, buildos, extra_args):
-  """Run the given Ant script from the given directory.
-
-  Args:
-    build_dir: the directory to run the ant script from
-    antfile: the ant file to run
-    revision: the SVN revision of this build
-    name: the name of the builder
-    buildroot: root of the build source tree
-    buildout: the location to copy output
-    sourcepath: the path to the root of the source
-    buildos: the operating system this build is running under (may be null)
-    extra_args: any extra args to ant
-
-  Returns:
-    returns the status of the ant call
-  """
-  cwd = os.getcwd()
-  os.chdir(build_dir)
-  print 'cwd = {0}'.format(os.getcwd())
-  # this is not used until we run under the Third_party copy of ant
-  #create the classpath
-#  env = os.environ
-#  env['CLASSPATH'] = os.path.join(bzip2libpath, 'bzip2.jar')
-  # Build the targets for each requested configuration.
-  args = ['/bin/bash',
-          '/usr/bin/ant',
-          #currently the copy of ant in third_party will not build the 
-          #code properly so we are going to use the version of Ant that
-          #is installed on the build slave.
-          #TODO(mrrussell): figure out why third_party Ant does not work and
-          # have the build use that version of ant
-          #         os.path.join(antpath, 'bin', 'ant'), '-lib', bzip2libpath,
-          '-f',
-          antfile,
-          '-noinput',
-          '-Dbuild.revision=' + revision,
-          '-Dbuild.builder=' + name,
-          '-Dbuild.root=' + buildroot,
-          '-Dbuild.out=' + buildout,
-          '-Dbuild.source=' + sourcepath,
-          '-nouserlib',
-         ]
-  if buildos:
-    args.append('-Dbuild.os={0}'.format(buildos))
-  if extra_args:
-    args.extend(extra_args)
-
-  extra_args = os.environ.get('ANT_EXTRA_ARGS')
-  if extra_args is not None:
-    parsed_extra = extra_args.split()
-    for arg in parsed_extra:
-      args.append(arg)
-
-  print ' '.join(args)
-
-  status = subprocess.call(args)
-
-  os.chdir(cwd)
   return status
 
 
@@ -442,19 +456,19 @@ def _SetAclOnArtifacts(to, bucket_tags, gsu):
 
 
 def _CopySdk(buildos, revision, bucket, gsu):
-  '''copy the deployed SDK to the editor buckets.
+  """copy the deployed SDK to the editor buckets.
 
   Args:
     buildos: the OS the build is running under
     revision: the svn revision
     bucket: the bucket to upload to
     gsu: the gsutil object
-  '''
-  print '_UploadSdk({0}, {1}, gsu)'.format(buildos, revision)
+  """
+  print '_CopySdk({0}, {1}, gsu)'.format(buildos, revision)
   gszip = 'dart-{0}-{1}.zip'.format(buildos, revision)
   gssdkzip = 'gs://dart-dump-render-tree/sdk/{0}'.format(gszip)
   gseditorzip = '{0}/{1}/{2}'.format(bucket, revision, gszip)
-  gseditorlatestzip = '{0}/{1}/{2}'.format(bucket, 'latest' , gszip)
+  gseditorlatestzip = '{0}/{1}/{2}'.format(bucket, 'latest', gszip)
 
   print 'copying {0} to {1}'.format(gssdkzip, gseditorzip)
   gsu.Copy(gssdkzip, gseditorzip)

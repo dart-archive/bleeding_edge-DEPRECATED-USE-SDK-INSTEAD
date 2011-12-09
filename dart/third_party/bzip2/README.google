@@ -1,0 +1,13 @@
+URL: 	http://www.kohsuke.org/bzip2
+License: Apache License 
+License File: http://www.apache.org/licenses/LICENSE-2.0.txt
+
+Description:
+
+  A bzip2 implementation for java from the apache ant project,
+  repackaged in its own jar.
+
+Why it is needed:
+
+  It allows compression/decompression of bzip2 files from within java
+  code
