@@ -34,7 +34,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -220,26 +219,24 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
           boolean useDefaultBrowser;
           if (jsOutFile.exists()) {
             try {
-              if (InstanceScope.INSTANCE.getNode(DartDebugCorePlugin.PLUGIN_ID) != null) {
-                IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(DartDebugCorePlugin.PLUGIN_ID);
-                useDefaultBrowser = prefs.getBoolean(DartDebugCorePlugin.PREFS_DEFAULT_BROWSER,
-                    true);
-                if (!useDefaultBrowser) {
-                  String browserName = prefs.get(DartDebugCorePlugin.PREFS_BROWSER_NAME, "");
-                  if (!browserName.isEmpty()) {
-                    Program program = findProgram(browserName);
-                    if (program != null) {
-                      program.execute(file.getLocation().toOSString());
+              IEclipsePreferences prefs = DartDebugCorePlugin.getPlugin().getPrefs();
+              useDefaultBrowser = prefs.getBoolean(DartDebugCorePlugin.PREFS_DEFAULT_BROWSER, true);
+              if (!useDefaultBrowser) {
+                String browserName = prefs.get(DartDebugCorePlugin.PREFS_BROWSER_NAME, "");
+                if (!browserName.isEmpty()) {
+                  Program program = findProgram(browserName);
+                  if (program != null) {
+                    program.execute(file.getLocation().toOSString());
 
-                    } else {
-                      MessageDialog.openError(window.getShell(),
-                          ActionMessages.OpenInBrowserAction_unableToLaunch,
-                          ActionMessages.OpenInBrowserAction_couldNotOpenFile);
-                    }
-                    return;
+                  } else {
+                    MessageDialog.openError(window.getShell(),
+                        ActionMessages.OpenInBrowserAction_unableToLaunch,
+                        ActionMessages.OpenInBrowserAction_couldNotOpenFile);
                   }
+                  return;
                 }
               }
+
               String editorId = IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID;
               page.openEditor(new FileEditorInput(file), editorId, true, MATCH_BOTH);
             } catch (PartInitException e) {

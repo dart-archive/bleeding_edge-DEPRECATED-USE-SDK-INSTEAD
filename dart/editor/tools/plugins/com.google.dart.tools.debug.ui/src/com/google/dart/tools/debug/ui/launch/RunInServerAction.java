@@ -36,12 +36,12 @@ import org.eclipse.ui.internal.dialogs.WorkbenchPreferenceDialog;
  */
 
 @SuppressWarnings("restriction")
-public class RunServerAction extends Action implements ISelectionListener,
+public class RunInServerAction extends Action implements ISelectionListener,
     ISelectionChangedListener, IPartListener {
   private IWorkbenchWindow window;
   private IFile selectedFile;
 
-  public RunServerAction(IWorkbenchWindow window) {
+  public RunInServerAction(IWorkbenchWindow window) {
     this.window = window;
 
     setText("Launch in Dart Server");
@@ -169,7 +169,7 @@ public class RunServerAction extends Action implements ISelectionListener,
       if (lib instanceof DartLibraryImpl) {
         DartLibraryImpl impl = (DartLibraryImpl) lib;
 
-        return impl.hasMain() && !impl.isBrowserApplication();
+        return impl.hasMain() && impl.isServerApplication();
       }
     }
 

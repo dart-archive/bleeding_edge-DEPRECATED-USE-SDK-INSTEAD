@@ -540,6 +540,17 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     return false;
   }
 
+  /**
+   * Returns whether this library is a server application. This is distinct from
+   * !isBrowserApplication() because a server application that is erroneously referenced from a html
+   * should still be considered a server application.
+   * 
+   * @return whether this library is a server application.
+   */
+  public boolean isServerApplication() {
+    return hasMain() && !isOrImportsBrowserLibrary();
+  }
+
   @Override
   public boolean isTopLevel() {
     try {

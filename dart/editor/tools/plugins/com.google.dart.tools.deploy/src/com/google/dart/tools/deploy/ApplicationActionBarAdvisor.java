@@ -14,7 +14,7 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.debug.ui.launch.RunInBrowserAction;
-import com.google.dart.tools.debug.ui.launch.RunServerAction;
+import com.google.dart.tools.debug.ui.launch.RunInServerAction;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
@@ -162,7 +162,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private RunInBrowserAction runInBrowserAction;
 
-  private RunServerAction runServerAction;
+  private RunInServerAction runServerAction;
 
   private IWorkbenchAction deployOptimizedAction;
 
@@ -457,7 +457,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     runInBrowserAction = new RunInBrowserAction(window);
 
-    runServerAction = new RunServerAction(window);
+    runServerAction = new RunInServerAction(window);
 
     deployOptimizedAction = new DeployOptimizedAction(window);
 
