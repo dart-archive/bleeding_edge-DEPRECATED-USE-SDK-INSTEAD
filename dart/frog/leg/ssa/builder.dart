@@ -765,6 +765,34 @@ class SsaBuilder implements Visitor {
   }
 
   visitConditional(Conditional node) {
-    compiler.unimplemented("SsaBuilder: conditional");
+    visitCondition(node.condition);
+    HBasicBlock conditionBlock = close(new HIf(popBoolified(), true));
+    Map conditionDefinitions = new Map<Element, HInstruction>.from(definitions);
+
+    HBasicBlock thenBlock = addNewBlock();
+    conditionBlock.addSuccessor(thenBlock);
+    open(thenBlock);
+    visit(node.thenExpression);
+    HInstruction thenInstruction = pop();
+    thenBlock = close(new HGoto());
+    Map thenDefinitions = definitions;
+    definitions = conditionDefinitions;
+
+    HBasicBlock elseBlock = addNewBlock();
+    conditionBlock.addSuccessor(elseBlock);
+    open(elseBlock);
+    visit(node.elseExpression);
+    HInstruction elseInstruction = pop();
+    elseBlock = close(new HGoto());
+
+    HBasicBlock joinBlock = addNewBlock();
+    thenBlock.addSuccessor(joinBlock);
+    elseBlock.addSuccessor(joinBlock);
+    open(joinBlock);
+
+    definitions = joinDefinitions(joinBlock, thenDefinitions, definitions);
+    HPhi phi = new HPhi.manyInputs(null, [thenInstruction, elseInstruction]);
+    joinBlock.addPhi(phi);
+    stack.add(phi);
   }
 }

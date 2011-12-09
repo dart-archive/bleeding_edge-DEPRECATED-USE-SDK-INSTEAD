@@ -50,9 +50,9 @@ class Unparser implements Visitor {
 
   visitConditional(Conditional node) {
     visit(node.condition);
-    node.questionToken.value.printOn(sb);
+    add(node.questionToken.value);
     visit(node.thenExpression);
-    node.colonToken.value.printOn(sb);
+    add(node.colonToken.value);
     visit(node.elseExpression);
   }
 
@@ -62,7 +62,7 @@ class Unparser implements Visitor {
   }
 
   visitFor(For node) {
-    node.forToken.value.printOn(sb);
+    add(node.forToken.value);
     sb.add('(');
     visit(node.initializer);
     visit(node.conditionStatement);
