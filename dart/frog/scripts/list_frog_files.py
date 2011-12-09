@@ -12,7 +12,9 @@ import sys
 def main(argv):
   for root, directories, files in os.walk(os.curdir):
     if root == os.curdir:
-      directories[0:] = ['leg', 'lib']
+      directories[0:] = ['leg', 'lib',
+                         os.path.join('..', 'client', 'dom', 'frog'),
+                         os.path.join('..', 'client', 'html', 'release')]
     for filename in files:
       if filename.endswith('.dart') or filename.endswith('.js'):
         print os.path.relpath(os.path.join(root, filename))
