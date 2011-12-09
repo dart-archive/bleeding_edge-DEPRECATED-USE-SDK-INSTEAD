@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("chat.dart");
-#import("dart:dom");
+#import("dart:html");
 #import("dart:json");
 
 void main() {
@@ -13,26 +13,25 @@ void main() {
 class Chat {
 
   Chat() {
-    window.addEventListener(
-        "DOMContentLoaded", (Event event) => ready(), false);
+    window.on.contentLoaded.add((Event event) => ready());
   }
 
   void ready() {
-    HTMLDocument doc = window.document;
-    _joinButton = doc.getElementById("joinButton");
-    _leaveButton = doc.getElementById("leaveButton");
-    _postButton = doc.getElementById("postButton");
-    _handleInput = doc.getElementById("handleInput");
-    _joinSection = doc.getElementById("joinSection");
-    _chatSection = doc.getElementById("chatSection");
-    _messageInput = doc.getElementById("messageInput");
-    _messages = doc.getElementById("messages");
-    _statusText = doc.getElementById("statusText");
-    _joinButton.onclick = handleJoin;
-    _leaveButton.onclick = handleLeave;
-    _postButton.onclick = handlePostMessage;
-    _handleInput.onkeydown = handleInputKeyDown;
-    _messageInput.onkeydown = messageInputKeyDown;
+    Document doc = window.document;
+    _joinButton = doc.query("#joinButton");
+    _leaveButton = doc.query("#leaveButton");
+    _postButton = doc.query("#postButton");
+    _handleInput = doc.query("#handleInput");
+    _joinSection = doc.query("#joinSection");
+    _chatSection = doc.query("#chatSection");
+    _messageInput = doc.query("#messageInput");
+    _messages = doc.query("#messages");
+    _statusText = doc.query("#statusText");
+    _joinButton.on.click.add(handleJoin);
+    _leaveButton.on.click.add(handleLeave);
+    _postButton.on.click.add(handlePostMessage);
+    _handleInput.on.keyDown.add(handleInputKeyDown);
+    _messageInput.on.keyDown.add(messageInputKeyDown);
     uiJoin();
   }
 
@@ -61,6 +60,7 @@ class Chat {
 
   void handlePostMessage(Event e) {
     var messageText = _messageInput.value;
+    _messageInput.value = "";
     var messageRequest = new Map();
     messageRequest["request"] = "message";
     messageRequest["sessionId"] = _session;
@@ -165,16 +165,15 @@ class Chat {
   }
 
   XMLHttpRequest sendRequest(String url, Map json, var onSuccess, var onError) {
-    XMLHttpRequest request = window.createXMLHttpRequest();
-    request.onreadystatechange =
-        void _(Event event) {
-          if (request.readyState != 4) return;
-          if (request.status == 200) {
-            onSuccess(JSON.parse(request.responseText));
-          } else {
-            onError();
-          }
-        };
+    XMLHttpRequest request = new XMLHttpRequest();
+    request.on.readyStateChange.add((Event event) {
+      if (request.readyState != 4) return;
+      if (request.status == 200) {
+        onSuccess(JSON.parse(request.responseText));
+      } else {
+        onError();
+      }
+    });
     request.open("POST", url, true);
     request.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
     request.send(JSON.stringify(json));
@@ -186,9 +185,7 @@ class Chat {
     showElement(_joinSection);
     hideElement(_chatSection);
     _nextMessage = 0;
-    while (_messages.firstChild != null) {
-      _messages.removeChild(_messages.firstChild);
-    }
+    _messages.elements.clear();
     showStatus("Welcome to dart chat sample. " +
                "This chat service is build using Dart for both the server and the client. " +
                "Enter your handle to join.");
@@ -221,7 +218,7 @@ class Chat {
   }
 
   void uiAddMessage(Map message) {
-    HTMLParagraphElement p = window.document.createElement('p');
+    ParagraphElement p = new Element.tag('p');
     String formattedTime = formatMessageTime(message["received"]);
     String from = message["from"];
     String text = "$formattedTime $from ";
@@ -234,14 +231,10 @@ class Chat {
     } else {
       text += "timeout";
     }
-    p.innerHTML = text;
-    if (_messages.firstChild == null) {
-      _messages.appendChild(p);
-    } else {
-      _messages.insertBefore(p, _messages.firstChild);
-    }
-    if (_messages.childNodes.length > 20) {
-      _messages.removeChild(_messages.lastChild);
+    p.text = text;
+    _messages.insertAdjacentElement('afterBegin', p);
+    if (_messages.elements.length > 20) {
+      _messages.elements.removeLast();
     }
   }
 
@@ -284,7 +277,7 @@ class Chat {
   }
 
   void showStatus(status) {
-    _statusText.innerText = status;
+    _statusText.text = status;
   }
 
   void showElement(Element element) {
@@ -295,31 +288,31 @@ class Chat {
     element.style.setProperty("display", "none");
   }
 
-  void enableButton(HTMLButtonElement element) {
+  void enableButton(ButtonElement element) {
     element.disabled = false;
   }
 
-  void disableButton(HTMLButtonElement element) {
+  void disableButton(ButtonElement element) {
     element.disabled = true;
   }
 
   void write(String message) {
-    HTMLDocument doc = window.document;
-    HTMLParagraphElement p = doc.createElement('p');
-    p.innerText = message;
-    doc.body.appendChild(p);
+    Document doc = window.document;
+    ParagraphElement p = new Element.tag('p');
+    p.text = message;
+    doc.body.elements.add(p);
   }
 
-  HTMLButtonElement _joinButton;
-  HTMLButtonElement _leaveButton;
-  HTMLButtonElement _postButton;
-  HTMLInputElement _handleInput;
+  ButtonElement _joinButton;
+  ButtonElement _leaveButton;
+  ButtonElement _postButton;
+  InputElement _handleInput;
 
-  HTMLElement _joinSection;
-  HTMLElement _chatSection;
-  HTMLInputElement _messageInput;
-  HTMLElement _messages;
-  HTMLElement _statusText;
+  Element _joinSection;
+  Element _chatSection;
+  InputElement _messageInput;
+  Element _messages;
+  Element _statusText;
 
   String _session = null;
   int _nextMessage = 0;
