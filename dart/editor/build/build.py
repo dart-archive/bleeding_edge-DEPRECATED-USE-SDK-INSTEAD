@@ -53,14 +53,26 @@ class AntWrapper(object):
 
     Returns:
       returns the status of the ant call
+
+    Raises:
+      Exception: if a shell can not be found
     """
+    os_shell = '/bin/bash'
+    ant_exec = 'ant'
+    if not os.path.exists(os_shell):
+      os_shell = os.environ['COMSPEC']
+      if os_shell is None:
+        raise Exception('could not find shell')
+      else:
+        ant_exec = 'ant.bat'
+
     cwd = os.getcwd()
     os.chdir(build_dir)
     print 'cwd = {0}'.format(os.getcwd())
     print 'ant path = {0}'.format(self._antpath)
     # run the ant file given
-    args = ['/bin/bash',
-            os.path.join(self._antpath, 'ant'),
+    args = [os_shell,
+            os.path.join(self._antpath, ant_exec),
             '-lib',
             os.path.join(self._bzippath, 'bzip2.jar'),
             '-f',
