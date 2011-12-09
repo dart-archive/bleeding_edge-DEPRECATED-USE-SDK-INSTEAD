@@ -8,6 +8,7 @@
  */
 class Parser {
   final Listener listener;
+  bool mayParseFunctionExpressions = true;
 
   Parser(Listener this.listener);
 
@@ -367,7 +368,7 @@ class Parser {
       listener.endTopLevelFields(fieldCount, start, token);
     } else {
       token = skipFormals(token).next;
-      token = parseFunctionBody(token);
+      token = parseFunctionBody(token, false);
       listener.endTopLevelMethod(start, token);
     }
     return token.next;
@@ -396,10 +397,13 @@ class Parser {
     listener.beginInitializers(begin);
     expect(':', token);
     int count = 0;
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = false;
     do {
       token = parseExpression(token.next);
       ++count;
     } while (optional(',', token));
+    mayParseFunctionExpressions = old;
     listener.endInitializers(count, begin, token);
     return token;
   }
@@ -530,7 +534,7 @@ class Parser {
       token = skipFormals(token).next;
       token = parseInitializersOpt(token);
       if (!optional(';', token)) {
-        token = parseFunctionBody(token);
+        token = parseFunctionBody(token, false);
       }
       listener.endMethod(start, token);
     }
@@ -555,7 +559,7 @@ class Parser {
       token = parseIdentifier(token.next);
     }
     token = parseFormalParameters(token);
-    token = parseFunctionBody(token);
+    token = parseFunctionBody(token, false);
     listener.endFactoryMethod(factoryKeyword, period);
     return token.next;
   }
@@ -578,17 +582,48 @@ class Parser {
     listener.endFunctionName(token);
     token = parseFormalParameters(token);
     token = parseInitializersOpt(token);
-    token = parseFunctionBody(token);
+    token = parseFunctionBody(token, false);
     listener.endFunction(token);
     return token.next;
   }
 
-  Token parseFunctionBody(Token token) {
+  Token parseUnamedFunction(Token token) {
+    listener.beginUnamedFunction(token);
+    token = parseFormalParameters(token);
+    bool isBlock = optional('{', token);
+    token = parseFunctionBody(token, true);
+    listener.endUnamedFunction(token);
+    return isBlock ? token.next : token;
+  }
+
+  Token parseFunctionExpression(Token token) {
+    listener.beginFunction(token);
+    token = parseReturnTypeOpt(token);
+    listener.beginFunctionName(token);
+    token = parseIdentifier(token);
+    listener.endFunctionName(token);
+    token = parseFormalParameters(token);
+    bool isBlock = optional('{', token);
+    token = parseFunctionBody(token, true);
+    listener.endFunction(token);
+    return isBlock ? token.next : token;
+  }
+
+  Token parseFunctionBody(Token token, bool isExpression) {
     if (optional(';', token)) {
       listener.endFunctionBody(0, null, token);
       return token.next;
+    } else if (optional('=>', token)) {
+      Token begin = token;
+      token = parseExpression(token.next);
+      if (!isExpression) {
+        expectSemicolon(token);
+        listener.endReturnStatement(true, begin, token);
+      } else {
+        listener.endReturnStatement(true, begin, null);
+      }
+      return token;
     }
-    // TODO(ahe): Handle '=>' syntax.
     Token begin = token;
     int statementCount = 0;
     listener.beginFunctionBody(begin);
@@ -687,6 +722,14 @@ class Parser {
         }
       }
       // Fall-through to expression statement.
+    } else {
+      if (optional('(', token.next)) {
+        BeginGroupToken begin = token.next;
+        String afterParens = begin.endGroup.next.stringValue;
+        if (afterParens === '{' || afterParens === '=>') {
+          return parseFunction(token);
+        }
+      }
     }
     return parseExpressionStatement(token);
   }
@@ -823,7 +866,10 @@ class Parser {
     while (true) {
       if (optional('[', token)) {
         Token openSquareBracket = token;
+        bool old = mayParseFunctionExpressions;
+        mayParseFunctionExpressions = true;
         token = parseExpression(token.next);
+        mayParseFunctionExpressions = old;
         listener.handleIndexedExpression(openSquareBracket, token);
         token = expect(']', token);
       } else if (optional('(', token)) {
@@ -861,6 +907,8 @@ class Parser {
           return parseNewExpression(token);
         } else if (value === 'const') {
           return parseConstExpression(token);
+        } else if (value === 'void') {
+          return parseFunction(token);
         } else if (isIdentifier(token)) {
           return parseSendOrFunctionLiteral(token);
         } else {
@@ -869,7 +917,7 @@ class Parser {
         }
       }
     } else if (kind === LPAREN_TOKEN) {
-      return parseParenthesizedExpression(token);
+      return parseParenthesizedExpressionOrFunctionLiteral(token);
     } else if ((kind === LT_TOKEN) ||
                (kind === OPEN_SQUARE_BRACKET_TOKEN) ||
                (kind === OPEN_CURLY_BRACKET_TOKEN) ||
@@ -878,6 +926,21 @@ class Parser {
     } else {
       listener.unexpected(token);
       throw 'not yet implemented';
+    }
+  }
+
+  Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
+    Token beginGroup = token;
+    int kind = beginGroup.endGroup.next.kind;
+    if (mayParseFunctionExpressions &&
+        (kind === FUNCTION_TOKEN || kind === OPEN_CURLY_BRACKET_TOKEN)) {
+      return parseUnamedFunction(token);
+    } else {
+      bool old = mayParseFunctionExpressions;
+      mayParseFunctionExpressions = true;
+      token = parseParenthesizedExpression(token);
+      mayParseFunctionExpressions = old;
+      return token;
     }
   }
 
@@ -917,6 +980,8 @@ class Parser {
     Token beginToken = token;
     int count = 0;
     if (optional('{', token)) {
+      bool old = mayParseFunctionExpressions;
+      mayParseFunctionExpressions = true;
       do {
         if (optional('}', token.next)) {
           token = token.next;
@@ -925,9 +990,12 @@ class Parser {
         token = parseMapLiteralEntry(token.next);
         ++count;
       } while (optional(',', token));
+      mayParseFunctionExpressions = old;
       listener.handleLiteralMap(count, beginToken, token);
       return expect('}', token);
     } else if (optional('[', token)) {
+      bool old = mayParseFunctionExpressions;
+      mayParseFunctionExpressions = true;
       do {
         if (optional(']', token.next)) {
           token = token.next;
@@ -936,6 +1004,7 @@ class Parser {
         token = parseExpression(token.next);
         ++count;
       } while (optional(',', token));
+      mayParseFunctionExpressions = old;
       listener.handleLiteralList(count, beginToken, token);
       return expect(']', token);
     } else if (optional('[]', token)) {
@@ -956,12 +1025,26 @@ class Parser {
   }
 
   Token parseSendOrFunctionLiteral(Token token) {
+    if (!mayParseFunctionExpressions) return parseSend(token);
     Token peek = peekAfterType(token);
-    if (peek.kind === IDENTIFIER_TOKEN) {
-      return parseFunction(token);
+    if (peek.kind === IDENTIFIER_TOKEN && isFunctionDeclaration(peek.next)) {
+      return parseFunctionExpression(token);
+    } else if (isFunctionDeclaration(token.next)) {
+      return parseFunctionExpression(token);
     } else {
       return parseSend(token);
     }
+  }
+
+  bool isFunctionDeclaration(Token token) {
+    if (optional('(', token)) {
+      BeginGroupToken begin = token;
+      String afterParens = begin.endGroup.next.stringValue;
+      if (afterParens === '{' || afterParens === '=>') {
+        return true;
+      }
+    }
+    return false;
   }
 
   Token parseNewExpression(Token token) {
@@ -1050,6 +1133,8 @@ class Parser {
       listener.endArguments(argumentCount, begin, token.next);
       return token.next.next;
     }
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
     do {
       Token colon = null;
       if (optional(':', token.next.next)) {
@@ -1060,6 +1145,7 @@ class Parser {
       if (colon !== null) listener.handleNamedArgument(colon);
       ++argumentCount;
     } while (optional(',', token));
+    mayParseFunctionExpressions = old;
     listener.endArguments(argumentCount, begin, token);
     return expect(')', token);
   }

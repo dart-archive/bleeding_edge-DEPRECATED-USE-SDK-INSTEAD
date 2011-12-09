@@ -242,6 +242,12 @@ class Listener {
   void endTypeVariables(int count, Token beginToken, Token endToken) {
   }
 
+  void beginUnamedFunction(Token token) {
+  }
+
+  void endUnamedFunction(Token token) {
+  }
+
   void beginVariablesDeclaration(Token token) {
   }
 

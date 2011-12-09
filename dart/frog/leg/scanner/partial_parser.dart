@@ -28,7 +28,8 @@ class PartialParser extends Parser {
     }
   }
 
-  Token parseFunctionBody(Token token) {
+  Token parseFunctionBody(Token token, bool isExpression) {
+    assert(!isExpression);
     if (optional(';', token)) {
       listener.handleNoFunctionBody(token);
       return token;
