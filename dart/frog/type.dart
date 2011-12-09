@@ -1270,16 +1270,19 @@ class NativeType {
   bool isSingleton = false;
 
   NativeType(this.name) {
-    if (name.contains('@')) {
-      name = name.replaceAll('@', '');
-      isJsGlobalObject = true;
+    while (true) {
+      if (name.startsWith('@')) {
+        name = name.substring(1);
+        isJsGlobalObject = true;
+      } else if (name.startsWith('*')) {
+        name = name.substring(1);
+        isConstructorHidden = true;
+      } else {
+        break;
+      }
     }
-    if (name.contains('*')) {
-      name = name.replaceAll('*', '');
-      isConstructorHidden = true;
-    }
-    if (name.contains('=')) {
-      name = name.replaceAll('=', '');
+    if (name.startsWith('=')) {
+      name = name.substring(1);
       isSingleton = true;
     }
   }

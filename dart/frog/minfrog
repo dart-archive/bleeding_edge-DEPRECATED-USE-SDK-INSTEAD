@@ -11723,16 +11723,21 @@ function NativeType(name) {
   this.isSingleton = false
   this.name = name;
   // Initializers done
-  if (this.name.contains('@')) {
-    this.name = this.name.replaceAll('@', '');
-    this.isJsGlobalObject = true;
+  while (true) {
+    if (this.name.startsWith('@')) {
+      this.name = this.name.substring(1);
+      this.isJsGlobalObject = true;
+    }
+    else if (this.name.startsWith('*')) {
+      this.name = this.name.substring(1);
+      this.isConstructorHidden = true;
+    }
+    else {
+      break;
+    }
   }
-  if (this.name.contains('*')) {
-    this.name = this.name.replaceAll('*', '');
-    this.isConstructorHidden = true;
-  }
-  if (this.name.contains('=')) {
-    this.name = this.name.replaceAll('=', '');
+  if (this.name.startsWith('=')) {
+    this.name = this.name.substring(1);
     this.isSingleton = true;
   }
 }
