@@ -162,13 +162,17 @@ class SynthesizedConstructorElement extends FunctionElement {
 class ClassElement extends Element {
   Type type;
   Type supertype;
-  Link<Element> members;
+  Link<Element> members = const EmptyLink<Element>();
   Link<Type> interfaces = const EmptyLink<Type>();
   bool isResolved = false;
   ClassNode node;
   SynthesizedConstructorElement synthesizedConstructor;
 
   ClassElement(SourceString name) : super(name, ElementKind.CLASS, null);
+
+  void addMember(Element element) {
+    members = members.prepend(element);
+  }
 
   Type computeType(compiler, types) {
     if (type === null) {

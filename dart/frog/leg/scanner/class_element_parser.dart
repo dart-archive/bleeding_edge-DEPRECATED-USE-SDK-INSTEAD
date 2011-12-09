@@ -18,12 +18,11 @@ class PartialClassElement extends ClassElement {
 
   ClassNode parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
-    NodeListener listener = new NodeListener(canceler, logger);
+    NodeListener listener = new NodeListener(canceler, logger, this);
     Parser parser = new ClassElementParser(listener);
     Token token = parser.parseClass(beginToken);
     assert(token === endToken.next);
     node = listener.popNode();
-    members = listener.memberElements;
     assert(listener.nodes.isEmpty());
     assert(listener.topLevelElements.isEmpty());
     return node;

@@ -451,7 +451,8 @@ class ElementListener extends Listener {
 
   void endTopLevelMethod(Token beginToken, Token endToken) {
     Identifier name = popNode();
-    pushElement(new PartialFunctionElement(name.source, beginToken, endToken));
+    pushElement(new PartialFunctionElement(name.source, beginToken, endToken,
+                                           ElementKind.FUNCTION));
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
@@ -534,9 +535,11 @@ class ElementListener extends Listener {
 
 class NodeListener extends ElementListener {
   final Logger logger;
-  Link<Element> memberElements = const EmptyLink<Element>();
+  final ClassElement enclosingElement;
 
-  NodeListener(Canceler canceler, Logger this.logger) : super(canceler);
+  NodeListener(Canceler canceler, Logger this.logger,
+               [this.enclosingElement = null])
+      : super(canceler);
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,
@@ -820,15 +823,24 @@ class NodeListener extends ElementListener {
     pushNode(null);
   }
 
+  bool isConstructor(Identifier name) {
+    return enclosingElement !== null &&
+           enclosingElement.kind == ElementKind.CLASS &&
+           enclosingElement.name == name.source;
+  }
+
   void endMethod(Token beginToken, Token endToken) {
     Statement body = popNode();
     Identifier name = popNode(); // TODO(ahe): What about constructors?
     // TODO(ahe): Save modifiers.
     pushNode(new FunctionExpression(name, null, null, null));
-    // TODO(ahe): Record enclosing element?
-    Element methodElement =
-        new PartialFunctionElement(name.source, beginToken, endToken);
-    memberElements = memberElements.prepend(methodElement);
+    ElementKind kind = isConstructor(name) ?
+                       ElementKind.CONSTRUCTOR :
+                       ElementKind.FUNCTION;
+    Element memberElement =
+        new PartialFunctionElement(name.source, beginToken, endToken,
+                                   kind, enclosingElement);
+    enclosingElement.addMember(memberElement);      
   }
 
   void endLiteralMapEntry(Token token) {
@@ -964,9 +976,11 @@ class PartialFunctionElement extends FunctionElement {
   final Token endToken;
 
   PartialFunctionElement(SourceString name,
-                         Token this.beginToken, Token this.endToken)
-    : super(name, ElementKind.FUNCTION, null);
-
+                         Token this.beginToken, Token this.endToken,
+                         ElementKind kind,
+                         [Element enclosing = null])
+    : super(name, kind, enclosing);
+  
   FunctionExpression parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
     node = parse(canceler, logger, (p) => p.parseFunction(beginToken));
