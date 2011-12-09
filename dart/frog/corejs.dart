@@ -364,8 +364,19 @@ function $toString(o) {
       // to get the right errors - at least in checked mode (once we have that).
       // TODO(jmesserly): do perf analysis, figure out if this is worth it and
       // what the cost of $index $setindex is on all browsers
+
+      // Performance of Object.prototype methods can go down because there are
+      // so many of them. Instead, first time we hit it, put it on the derived
+      // prototype. TODO(jmesserly): make this go away by handling index more
+      // like a normal method.
       w.writeln(@"""
-Object.prototype.$index = function(i) { return this[i]; }
+Object.prototype.$index = function(i) {
+  var proto = Object.getPrototypeOf(this);
+  if (proto !== Object) {
+    proto.$index = function(i) { return this[i]; }
+  }
+  return this[i];
+}
 Array.prototype.$index = function(i) { return this[i]; }
 String.prototype.$index = function(i) { return this[i]; }""");
     }
@@ -379,7 +390,13 @@ String.prototype.$index = function(i) { return this[i]; }""");
         native__ArrayJsUtil__throwIndexOutOfRangeException(index);
       }*/
       w.writeln(@"""
-Object.prototype.$setindex = function(i, value) { return this[i] = value; }
+Object.prototype.$setindex = function(i, value) {
+  var proto = Object.getPrototypeOf(this);
+  if (proto !== Object) {
+    proto.$setindex = function(i, value) { return this[i] = value; }
+  }
+  return this[i] = value;
+}
 Array.prototype.$setindex = function(i, value) { return this[i] = value; }""");
     }
 

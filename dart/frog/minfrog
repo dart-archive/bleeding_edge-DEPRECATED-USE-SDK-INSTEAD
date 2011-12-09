@@ -77,10 +77,22 @@ function $throw(e) {
   }
   throw e;
 }
-Object.prototype.$index = function(i) { return this[i]; }
+Object.prototype.$index = function(i) {
+  var proto = Object.getPrototypeOf(this);
+  if (proto !== Object) {
+    proto.$index = function(i) { return this[i]; }
+  }
+  return this[i];
+}
 Array.prototype.$index = function(i) { return this[i]; }
 String.prototype.$index = function(i) { return this[i]; }
-Object.prototype.$setindex = function(i, value) { return this[i] = value; }
+Object.prototype.$setindex = function(i, value) {
+  var proto = Object.getPrototypeOf(this);
+  if (proto !== Object) {
+    proto.$setindex = function(i, value) { return this[i] = value; }
+  }
+  return this[i] = value;
+}
 Array.prototype.$setindex = function(i, value) { return this[i] = value; }
 function $eq(x, y) {
   if (x == null) return y == null;
@@ -1946,10 +1958,10 @@ CoreJs.prototype.generate = function(w) {
     w.writeln("function $toString(o) {\n  if (o == null) return 'null';\n  var t = typeof(o);\n  if (t == 'object') { return o.toString(); }\n  else if (t == 'string') { return o; }\n  else if (t == 'bool') { return ''+o; }\n  else if (t == 'number') { return ''+o; }\n  else return o.toString();\n}");
   }
   if (this.useIndex) {
-    w.writeln("Object.prototype.$index = function(i) { return this[i]; }\nArray.prototype.$index = function(i) { return this[i]; }\nString.prototype.$index = function(i) { return this[i]; }");
+    w.writeln("Object.prototype.$index = function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n}\nArray.prototype.$index = function(i) { return this[i]; }\nString.prototype.$index = function(i) { return this[i]; }");
   }
   if (this.useSetIndex) {
-    w.writeln("Object.prototype.$setindex = function(i, value) { return this[i] = value; }\nArray.prototype.$setindex = function(i, value) { return this[i] = value; }");
+    w.writeln("Object.prototype.$setindex = function(i, value) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$setindex = function(i, value) { return this[i] = value; }\n  }\n  return this[i] = value;\n}\nArray.prototype.$setindex = function(i, value) { return this[i] = value; }");
   }
   if (this.useIsolates) {
     if (this.useWrap0) {
