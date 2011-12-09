@@ -178,6 +178,7 @@ class Parser {
   }
 
   Token skipFormals(BeginGroupToken token) {
+    expect('(', token);
     return token.endGroup;
   }
 
@@ -343,10 +344,11 @@ class Parser {
     while (true) {
       // Loop to allow the listener to rewrite the token stream for
       // error handling.
-      if (optional('(', token)) {
+      final String value = token.stringValue;
+      if (value === '(') {
         isField = false;
         break;
-      } else if (optional('=', token) || optional(';', token)) {
+      } else if ((value === '=') || (value === ';') || (value === ',')) {
         isField = true;
         break;
       } else {
@@ -354,17 +356,30 @@ class Parser {
       }
     }
     if (isField) {
-      if (optional('=', token)) {
-        token = parseExpression(token.next);
+      int fieldCount = 1;
+      token = parseFieldInitializerOpt(token);
+      while (optional(',', token)) {
+        token = parseIdentifier(token.next);
+        token = parseFieldInitializerOpt(token);
+        ++fieldCount;
       }
       expectSemicolon(token);
-      listener.endTopLevelField(start, token);
+      listener.endTopLevelFields(fieldCount, start, token);
     } else {
       token = skipFormals(token).next;
       token = parseFunctionBody(token);
       listener.endTopLevelMethod(start, token);
     }
     return token.next;
+  }
+
+  Token parseFieldInitializerOpt(Token token) {
+    if (optional('=', token)) {
+      return parseExpression(token.next);
+    } else {
+      listener.handleNoFieldInitializer(token);
+      return token;
+    }
   }
 
   Token parseInitializersOpt(Token token) {
@@ -489,10 +504,11 @@ class Parser {
     while (true) {
       // Loop to allow the listener to rewrite the token stream for
       // error handling.
-      if (optional('(', token)) {
+      final String value = token.stringValue;
+      if (value === '(') {
         isField = false;
         break;
-      } else if (optional('=', token) || optional(';', token)) {
+      } else if ((value === '=') || (value === ';') || (value === ',')) {
         isField = true;
         break;
       } else {
@@ -500,13 +516,16 @@ class Parser {
       }
     }
     if (isField) {
-      if (optional('=', token)) {
-        token = parseExpression(token.next);
-      } else {
-        listener.handleNoFieldInitializer(token);
+      int fieldCount = 1;
+      token = parseFieldInitializerOpt(token);
+      while (optional(',', token)) {
+        // TODO(ahe): Count these.
+        token = parseIdentifier(token.next);
+        token = parseFieldInitializerOpt(token);
+        ++fieldCount;
       }
       expectSemicolon(token);
-      listener.endField(start, token);
+      listener.endFields(fieldCount, start, token);
     } else {
       token = skipFormals(token).next;
       token = parseInitializersOpt(token);

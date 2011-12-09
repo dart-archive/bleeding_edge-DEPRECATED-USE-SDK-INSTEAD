@@ -71,7 +71,7 @@ class Listener {
   void endFormalParameters(int count, Token beginToken, Token endToken) {
   }
 
-  void endField(Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
   }
 
   void beginForStatement(Token token) {
@@ -200,7 +200,7 @@ class Listener {
   void beginTopLevelMember(Token token) {
   }
 
-  void endTopLevelField(Token beginToken, Token endToken) {
+  void endTopLevelFields(int count, Token beginToken, Token endToken) {
   }
 
   void endTopLevelMethod(Token beginToken, Token endToken) {
@@ -444,9 +444,7 @@ class ElementListener extends Listener {
     pushElement(new PartialFunctionElement(name.source, beginToken, endToken));
   }
 
-  void endTopLevelField(Token beginToken, Token endToken) {
-    Identifier name = popNode();
-    // TODO(ahe): Implement this.
+  void endTopLevelFields(int count, Token beginToken, Token endToken) {
     canceler.cancel("Cannot handle fields", token: beginToken);
   }
 
@@ -804,7 +802,7 @@ class NodeListener extends ElementListener {
     pushNode(null);
   }
 
-  void endField(Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     canceler.cancel("fields are not implemented yet", token: beginToken);
     Expression initializer = popNode();
     Identifier name = popNode();
