@@ -23,6 +23,7 @@ find .. \( \
     -o -name int_operator_mul_A01_t01.dart \
     -o -name Isolate_A01_t01.dart \
     -o -name Isolate_A02_t01.dart \
+    -o -name IsNotClass4NegativeTest.dart \
     -o -name xcodebuild \
     \) -prune -o \
     -name \*.dart -type f -print \

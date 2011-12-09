@@ -285,6 +285,10 @@ class Listener {
                                Token closeCurlyBracket) {
   }
 
+  void handleIsOperator(Token operathor, Token not, Token endToken) {
+    // TODO(ahe): Rename [operathor] to "operator" when VM bug is fixed.
+  }
+
   void handleLiteralBool(Token token) {
   }
 
@@ -931,6 +935,10 @@ class NodeListener extends ElementListener {
 
   void endUnamedFunction(Token token) {
     canceler.cancel('unnamed functions are not implemented', token: token);
+  }
+
+  void handleIsOperator(Token operathor, Token not, Token endToken) {
+    canceler.cancel('is-operator is not implemented', token: operathor);
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,

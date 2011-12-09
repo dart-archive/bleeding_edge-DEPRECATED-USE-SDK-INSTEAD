@@ -775,8 +775,12 @@ class Parser {
     for (int level = tokenLevel; level >= precedence; --level) {
       while (tokenLevel === level) {
         Token operator = token;
-        token = parseBinaryExpression(token.next, level + 1);
-        listener.handleBinaryExpression(operator);
+        if (tokenLevel === 10 && token.stringValue === 'is') {
+          token = parseIsOperatorRest(token);
+        } else {
+          token = parseBinaryExpression(token.next, level + 1);
+          listener.handleBinaryExpression(operator);
+        }
         tokenLevel = getPrecedence(token);
       }
     }
@@ -1148,6 +1152,24 @@ class Parser {
     mayParseFunctionExpressions = old;
     listener.endArguments(argumentCount, begin, token);
     return expect(')', token);
+  }
+
+  Token parseIsOperatorRest(Token token) {
+    assert(optional('is', token));
+    Token operator = token;
+    Token not = null;
+    if (optional('!', token.next)) {
+      token = token.next;
+      not = token;
+    }
+    token = parseType(token.next);
+    listener.handleIsOperator(operator, not, token);
+    if (optional('is', token)) {
+      // The is-operator cannot be chained, but it can take part of
+      // expressions like: foo is Foo || foo is Bar.
+      listener.unexpected(token);
+    }
+    return token;
   }
 
   Token parseVariablesDeclaration(Token token) {
