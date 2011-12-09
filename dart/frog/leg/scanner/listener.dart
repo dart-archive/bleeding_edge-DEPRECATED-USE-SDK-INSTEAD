@@ -929,6 +929,10 @@ class NodeListener extends ElementListener {
     canceler.cancel('for-in is not implemented', token: inKeyword);
   }
 
+  void endUnamedFunction(Token token) {
+    canceler.cancel('unnamed functions are not implemented', token: token);
+  }
+
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
                         String delimiter) {
     Link<Node> nodes = const EmptyLink<Node>();
