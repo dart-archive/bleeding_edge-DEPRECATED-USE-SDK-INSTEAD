@@ -139,7 +139,7 @@ class FunctionElement extends Element {
 
 class SynthesizedConstructorElement extends FunctionElement {
   SynthesizedConstructorElement(Element enclosing)
-    : super(const SourceString(''), ElementKind.CONSTRUCTOR, enclosing) {
+    : super(enclosing.name, ElementKind.CONSTRUCTOR, enclosing) {
     parameters = const EmptyLink<Element>();
   }
 

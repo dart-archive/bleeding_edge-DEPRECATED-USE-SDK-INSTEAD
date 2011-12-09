@@ -393,14 +393,15 @@ class FullResolverVisitor extends ResolverVisitor {
     visit(node.send.argumentsNode);
 
     ClassElement cls = visit(node.send.selector);
-    SourceString name = const SourceString("");
     Element constructor = null;
     if (cls !== null) {
+      // TODO(ngeoffray): set constructor-name correctly.
+      SourceString name = cls.name;
       // TODO(ngeoffray): define what isResolved means. Also, pass the
       // needed element to resolve?
       if (!cls.isResolved) compiler.resolveType(cls);
       constructor = cls.lookupLocalElement(name);
-      if (name.stringValue === ''
+      if (name == cls.name
           && constructor === null
           && node.send.argumentsNode.isEmpty()) {
         constructor = cls.getSynthesizedConstructor();
