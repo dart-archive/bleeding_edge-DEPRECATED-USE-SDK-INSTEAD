@@ -30,6 +30,8 @@ class ElementKind {
   static final ElementKind CLASS = const ElementKind('class');
   static final ElementKind FOREIGN = const ElementKind('foreign');
   static final ElementKind CONSTRUCTOR = const ElementKind('constructor');
+  static final ElementKind CONSTRUCTOR_BODY =
+      const ElementKind('constructor_body');
 
   toString() => id;
 }
@@ -43,7 +45,7 @@ class Element implements Hashable {
   bool isClassMember() =>
       enclosingElement !== null && enclosingElement.kind == ElementKind.CLASS;
   // TODO(ngeoffray): override in function element to check for modifiers.
-  bool isStatic() => !isClassMember();
+  bool isInstanceMember() => isClassMember();
 
   const Element(this.name, this.kind, this.enclosingElement);
 
@@ -118,6 +120,11 @@ class FunctionElement extends Element {
     : super(node.name.asIdentifier().source, kind, enclosing),
       this.node = node;
 
+  bool isInstanceMember() {
+    // TODO(ngeoffray): use modifiers.
+    return super.isInstanceMember() && kind != ElementKind.CONSTRUCTOR;
+  }
+
   FunctionType computeType(Compiler compiler, types) {
     if (type != null) return type;
     if (parameters == null) compiler.resolveSignature(this);
@@ -135,6 +142,26 @@ class FunctionElement extends Element {
   }
 
   Node parseNode(Canceler canceler, Logger logger) => node;
+}
+
+class ConstructorBodyElement extends FunctionElement {
+  FunctionElement constructor;
+
+  ConstructorBodyElement(FunctionElement constructor)
+      : this.constructor = constructor,
+        super(constructor.name,
+              ElementKind.CONSTRUCTOR_BODY,
+              constructor.enclosingElement) {
+    assert(constructor.node !== null);
+    this.parameters = constructor.parameters;
+    this.node = constructor.node;
+    this.type = constructor.type;
+  }
+
+  bool isInstanceMember() => true;
+
+  FunctionType computeType(Compiler compiler, types) { unreachable(); }
+  Node parseNode(Canceler canceler, Logger logger) { unreachable(); }
 }
 
 class SynthesizedConstructorElement extends FunctionElement {
@@ -166,6 +193,9 @@ class ClassElement extends Element {
   Link<Type> interfaces = const EmptyLink<Type>();
   bool isResolved = false;
   ClassNode node;
+  // backendMembers are members that have been added by the backend to simplify
+  // compilation. They don't have any user-side counter-part.
+  Link<Element> backendMembers = const EmptyLink<Element>(); 
   SynthesizedConstructorElement synthesizedConstructor;
 
   ClassElement(SourceString name) : super(name, ElementKind.CLASS, null);
@@ -188,7 +218,7 @@ class ClassElement extends Element {
   }
 
   Element lookupLocalElement(SourceString name) {
-    // TODO(karlklose): replace with more eficient solution.
+    // TODO(karlklose): replace with more efficient solution.
     for (Link<Element> link = members;
          link !== null && !link.isEmpty();
          link = link.tail) {

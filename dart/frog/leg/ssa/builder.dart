@@ -10,8 +10,19 @@ class SsaBuilderTask extends CompilerTask {
     return measure(() {
       FunctionExpression function = element.node;
       HInstruction.idCounter = 0;
-      HGraph graph =
-          compileMethod(function.parameters, function.body, elements);
+      SsaBuilder builder = new SsaBuilder(compiler, elements);
+      HGraph graph;
+      switch (element.kind) {
+        case ElementKind.CONSTRUCTOR:
+          graph = compileConstructor(builder, function, element, elements);
+          break;
+        case ElementKind.CONSTRUCTOR_BODY:
+          graph = compileConstructorBody(builder, function, element, elements);
+          break;
+        case ElementKind.FUNCTION:
+          graph = compileMethod(builder, function, element, elements);
+          break;
+      }
       assert(graph.isValid());
       if (GENERATE_SSA_TRACE) {
         Identifier name = function.name;
@@ -22,12 +33,35 @@ class SsaBuilderTask extends CompilerTask {
     });
   }
 
-  HGraph compileMethod(NodeList parameters,
-                       Node body,
+  HGraph compileConstructor(SsaBuilder builder,
+                            FunctionExpression function,
+                            FunctionElement element,
+                            TreeElements elements) {
+    // The body of the constructor will be generated in a separate function.
+    ConstructorBodyElement bodyElement = new ConstructorBodyElement(element);
+    compiler.worklist.add(new WorkElement.toCodegen(bodyElement, elements));
+    ClassElement classElement = element.enclosingElement;
+    classElement.backendMembers =
+        classElement.backendMembers.prepend(bodyElement);
+    // TODO(floitsch): pass initializer-list to builder.
+    return builder.buildFactory(classElement, bodyElement, function.parameters);
+  }
+
+  HGraph compileConstructorBody(SsaBuilder builder,
+                                FunctionExpression function,
+                                FunctionElement element,
+                                TreeElements elements) {
+    // TODO(floitsch): find super call and pass it to the builder.
+    return builder.buildConstructorBody(null,
+                                        function.parameters,
+                                        function.body);
+  }
+
+  HGraph compileMethod(SsaBuilder builder,
+                       FunctionExpression function,
+                       FunctionElement element,
                        TreeElements elements) {
-    SsaBuilder builder = new SsaBuilder(compiler, elements);
-    HGraph graph = builder.build(parameters, body);
-    return graph;
+    return builder.buildMethod(function.parameters, function.body);
   }
 }
 
@@ -51,7 +85,54 @@ class SsaBuilder implements Visitor {
 
   SsaBuilder(this.compiler, this.elements);
 
-  HGraph build(NodeList parameters, Node body) {
+  HGraph buildMethod(NodeList parameters, Node body) {
+    openFunction(parameters);
+    body.accept(this);
+    return closeFunction();
+  }
+
+  HGraph buildFactory(ClassElement classElement,
+                      ConstructorBodyElement bodyElement,
+                      NodeList parameters) {
+    openFunction(parameters);
+    HForeignNew newObject = new HForeignNew(classElement, []);
+    add(newObject);
+    String methodName = compiler.namer.getName(bodyElement);
+    List bodyCallInputs = <HInstruction>[];
+    bodyCallInputs.add(newObject);
+    Link link = parameters.nodes;
+    for (; !link.isEmpty(); link = link.tail) {
+      Element parameterElement = elements[link.head];
+      HInstruction currentValue = definitions[parameterElement];
+      bodyCallInputs.add(currentValue);
+    }
+    add(new HInvokeDynamic(methodName, bodyCallInputs));
+    close(new HReturn(newObject)).addSuccessor(graph.exit);
+    return closeFunction();
+  }
+
+  HGraph buildConstructorBody(Send superInvocation,
+                              NodeList parameters,
+                              Node body) {
+    openFunction(parameters);
+    if (superInvocation !== null) {
+      compiler.unimplemented('SsaBuilder.buildConstructorBody');
+      Element superElement = elements[superInvocation];
+      String methodName = compiler.namer.constructorBodyName(superElement);
+      List superInputs = <HInstruction>[];
+      superInputs.add(new HThis());
+      Link link = superInvocation.arguments.head;
+      for (; !link.isEmpty(); link = link.tail) {
+        visit(link.head);
+        superInputs.add(pop());
+      }
+      add(new HInvokeDynamic(methodName, superInputs));
+    }
+    body.accept(this);
+    return closeFunction();    
+  }
+
+  void openFunction(NodeList parameters) {
     stack = new List<HInstruction>();
     definitions = new Map<Element, HInstruction>();
 
@@ -62,9 +143,10 @@ class SsaBuilder implements Visitor {
     visitParameterValues(parameters);
     close(new HGoto()).addSuccessor(block);
 
-    open(block);
-    body.accept(this);
+    open(block);    
+  }
 
+  HGraph closeFunction() {
     // TODO(kasperl): Make this goto an implicit return.
     if (!isAborted()) close(new HGoto()).addSuccessor(graph.exit);
     graph.finalize();
@@ -589,9 +671,7 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  visitNewExpression(NewExpression node) {
-    compiler.unimplemented("SsaBuilder: new expression");
-  }
+  visitNewExpression(NewExpression node) => visitSend(node.send);
 
   HInstruction updateDefinition(Node node, HInstruction value) {
     VariableElement element = elements[node];

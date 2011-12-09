@@ -26,34 +26,82 @@ class Namer {
   String get currentIsolate() => "currentIsolate";
   String get isolate() => "Isolate";
 
+
+  String instanceName(SourceString instanceName) {
+    String candidate = '$instanceName';
+    // TODO(floitsch): mangle, while preserving uniqueness.
+    return candidate;
+  }
+
+  /**
+   * The constructor-body name is computed from the corresponding
+   * constructor element because, in the case of a super-initialization, the
+   * body element is not accessible.
+   */
+  String constructorBodyName(Element element) {
+    assert(element.kind == ElementKind.CONSTRUCTOR);
+    // TODO(floitsch): the constructor-body name must not conflict with other
+    // instance fields.
+    // TOD(floitsch): deal with named constructors.
+    return instanceName(element.name);
+  }
+
+  /**
+   * Returns a preferred JS-id for the given element. The returned id is
+   * guaranteed to be a valid JS-id.
+   *
+   * For instance-members the returned strings are guaranteed not to clash. For
+   * static variables there might be clashes. In the latter case the caller
+   * needs to ensure uniqueness.
+   */
+  String getName(Element element) {
+    switch (element.kind) {
+      case ElementKind.CONSTRUCTOR_BODY:
+        ConstructorBodyElement bodyElement = element;
+        return constructorBodyName(bodyElement.constructor);
+
+      case ElementKind.CONSTRUCTOR:
+      default:
+        if (element.isInstanceMember()) {
+          return instanceName(element.name);
+        }
+        // TODO(floitsch): deal with named constructors.
+        String name = '${element.name}';
+        // Prefix the name with '$' if it is reserved.
+        if (jsReserved.contains(name)) {
+          name = "\$$propertyName";
+          assert(!jsReserved.contains(name));
+        }
+        return name;
+    }
+  }
+
+  /**
+    * Don't use this method from the outside. Go through [isolateAccess] or
+    * [isolatePropertyAccess] instead.
+    */
   String define(Element element) {
     assert(globals[element] === null);
 
-    String dartId = '${element.name}';
-    // Prefix the dartId with '$' if the name is reserved.
-    if (jsReserved.contains(dartId)) {
-      dartId = "\$$dartId";
-      assert(!jsReserved.contains(dartId));
-    }
-
-    int usedCount = usedGlobals[dartId];
+    String name = getName(element);
+    int usedCount = usedGlobals[name];
     if (usedCount === null) {
       // No element with this name has been used before.
-      usedGlobals[dartId] = 1;
-      globals[element] = dartId;
-      return dartId;
+      usedGlobals[name] = 1;
+      globals[element] = name;
+      return name;
     } else {
       // Not the first time we see an element with this name. Append a number
       // to make it unique.
       String id;
       do {
         usedCount++;
-        id = '$dartId$usedCount';
+        id = '$name$usedCount';
       } while (usedGlobals[id] !== null);
-      usedGlobals[dartId] = usedCount;
+      usedGlobals[name] = usedCount;
       globals[element] = id;
       return id;
-    }    
+    }
   }
 
   String isolateAccess(Element element) {
@@ -66,10 +114,5 @@ class Namer {
     String jsId = globals[element];
     if (jsId === null) jsId = define(element);
     return "$isolate.prototype.$jsId";     
-  }
-
-  String methodName(Element element) {
-    // TODO(floitsch): mangle if necessary.
-    return '${element.name}';
   }
 }
