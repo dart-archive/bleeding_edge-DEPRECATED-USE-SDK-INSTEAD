@@ -20,11 +20,14 @@ class Value {
   /** Is this a pretend first-class type? */
   bool isType = false;
 
-  /** Is this a target of an initializer? */
-  bool isInitializerTarget = false;
-
   /** Is this a final variable? */
   bool isFinal = false;
+
+  /**
+   * May value be forced to varType by the forceDynamic option? Note that
+   * [isSuper], [isType], and [isConst] imply `!allowDynamic`.
+   */
+  bool allowDynamic = true;
 
   /** If we reference this value multiple times, do we need a temp? */
   bool needsTemp;
@@ -35,7 +38,7 @@ class Value {
 
   /** The [Type] of the [Value]. */
   Type get type() {
-    if (!options.forceDynamic || isType || isSuper || isInitializerTarget ||
+    if (!options.forceDynamic || !allowDynamic || isType || isSuper ||
         isConst) {
       return _type;
     } else {

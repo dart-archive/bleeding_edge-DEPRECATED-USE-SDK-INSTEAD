@@ -614,7 +614,8 @@ class BlockScope {
 
 
   Value create(String name, Type type, SourceSpan span,
-      [bool isFinal = false, bool isParameter = false]) {
+      [bool isFinal = false, bool isParameter = false,
+      bool allowDynamic = true]) {
 
     var jsName = world.toJsIdentifier(name);
     if (_vars.containsKey(name)) {
@@ -630,6 +631,7 @@ class BlockScope {
     }
 
     var ret = new Value(type, jsName, span, false);
+    ret.allowDynamic = allowDynamic;
     ret.isFinal = isFinal;
     _vars[name] = ret;
     if (name != jsName) _jsNames.add(jsName);
@@ -641,9 +643,9 @@ class BlockScope {
   }
 
   /** Declares a variable in the current scope for this identifier. */
-  Value declare(DeclaredIdentifier id) {
+  Value declare(DeclaredIdentifier id, [bool allowDynamic = true]) {
     var type = enclosingMethod.method.resolveType(id.type, false);
-    return create(id.name.name, type, id.span);
+    return create(id.name.name, type, id.span, allowDynamic: allowDynamic);
   }
 
   /**
@@ -1066,7 +1068,7 @@ class MethodGenerator implements TreeVisitor {
     } else {
       world.error('bad call in initializers', node.span);
     }
-    target.isInitializerTarget = true;
+    target.allowDynamic = false;
 
     var m = target.type.getConstructor(contructorName);
     method.initDelegate = m;
@@ -1474,7 +1476,7 @@ class MethodGenerator implements TreeVisitor {
       // multiple catch, such as no extra temp or if-else-if chain.
       var catch_ = node.catches[0];
       _pushBlock();
-      var ex = _scope.declare(catch_.exception);
+      var ex = _scope.declare(catch_.exception, allowDynamic: false);
       _scope.rethrow = ex;
       writer.nextBlock('} catch (${ex.code}) {');
       if (catch_.trace != null) {
@@ -1512,7 +1514,7 @@ class MethodGenerator implements TreeVisitor {
         var catch_ = node.catches[i];
 
         _pushBlock();
-        var tmp = _scope.declare(catch_.exception);
+        var tmp = _scope.declare(catch_.exception, allowDynamic: false);
         if (!tmp.type.isVarOrObject) {
           var test = ex.instanceOf(this, tmp.type, catch_.exception.span,
               isTrue:true, forceCheck:true);
