@@ -247,6 +247,8 @@ public class RootArtifactProvider extends CachingArtifactProvider {
   private void removeResource(IResource res) throws CoreException {
     switch (res.getType()) {
       case IResource.PROJECT:
+        clearCachedArtifacts();
+        break;
       case IResource.FOLDER:
         removeContainer((IContainer) res);
         break;

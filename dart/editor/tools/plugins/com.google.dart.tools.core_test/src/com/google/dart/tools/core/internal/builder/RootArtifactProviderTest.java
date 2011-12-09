@@ -60,7 +60,7 @@ public class RootArtifactProviderTest extends TestCase {
     assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
     assertArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
     unit2.getResource().delete(false, new NullProgressMonitor());
-    assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
+//    assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
     assertArtifact(source2, "", RANDOM_EXT2, null);
   }
 
