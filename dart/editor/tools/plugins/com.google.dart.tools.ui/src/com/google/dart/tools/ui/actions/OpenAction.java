@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -165,7 +166,8 @@ public class OpenAction extends SelectionDispatchAction {
     }
     DartElementLocator locator = new DartElementLocator((CompilationUnit) element,
         selection.getOffset(), selection.getOffset());
-    DartElement targetElement = locator.searchWithin(fEditor.getAST());
+    DartUnit unit = fEditor.getAST();
+    DartElement targetElement = unit == null ? null : locator.searchWithin(unit);
     if (targetElement == null) {
       IEditorStatusLine statusLine = (IEditorStatusLine) fEditor.getAdapter(IEditorStatusLine.class);
       if (statusLine != null) {
