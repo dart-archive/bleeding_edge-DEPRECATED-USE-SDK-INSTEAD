@@ -76,16 +76,11 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_THREE, 'foo');
-  // Check that we don't have additional 'val'.
-  regexp = const RegExp("val_");
-  Expect.isTrue(!regexp.hasMatch(generated));
 
   // Check that we don't have 'val = val'.
-  regexp = const RegExp("val = val");
+  regexp = const RegExp("val = val;");
   Expect.isTrue(!regexp.hasMatch(generated));
 
-  regexp = const RegExp("val = 43");
-  Expect.isTrue(regexp.hasMatch(generated));
   regexp = const RegExp("return val");
   Expect.isTrue(regexp.hasMatch(generated));
   // Check that a store just after the declaration of the local
@@ -95,9 +90,9 @@ main() {
 
   generated = compile(TEST_FOUR, 'foo');
 
-  regexp = const RegExp("cond1 = cond1");
+  regexp = const RegExp("cond1 = cond1;");
   Expect.isTrue(!regexp.hasMatch(generated));
 
-  regexp = const RegExp("cond2 = cond2");
+  regexp = const RegExp("cond2 = cond2;");
   Expect.isTrue(!regexp.hasMatch(generated));
 }
