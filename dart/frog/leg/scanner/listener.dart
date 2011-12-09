@@ -77,7 +77,11 @@ class Listener {
   void beginForStatement(Token token) {
   }
 
-  void endForStatement(Token beginToken, Token endToken) {
+  void endForStatement(int updateExpressionCount,
+                       Token beginToken, Token endToken) {
+  }
+
+  void endForInStatement(Token beginToken, Token inKeyword, Token endToken) {
   }
 
   void beginFunction(Token token) {
@@ -316,6 +320,9 @@ class Listener {
   void handleNoArguments(Token token) {
   }
 
+  void handleNoExpression(Token token) {
+  }
+
   void handleNoFieldInitializer(Token token) {
   }
 
@@ -471,7 +478,8 @@ class ElementListener extends Listener {
 
   void discardNodes(int count) {
     for (; count > 0; --count) {
-      popNode();
+      Node node = popNode();
+      canceler.cancel('Unsupported feature', node: node);
     }
   }
 
@@ -697,8 +705,10 @@ class NodeListener extends ElementListener {
     pushNode(new If(condition, thenPart, elsePart, ifToken, elseToken));
   }
 
-  void endForStatement(Token beginToken, Token endToken) {
+  void endForStatement(int updateExpressionCount,
+                       Token beginToken, Token endToken) {
     Statement body = popNode();
+    discardNodes(updateExpressionCount - 1); // TODO(ahe): Don't discard.
     Expression update = popNode();
     ExpressionStatement condition = popNode();
     VariableDefinitions initializer = popNode();
@@ -781,8 +791,9 @@ class NodeListener extends ElementListener {
   }
 
   void endInitializers(int count, Token beginToken, Token endToken) {
-    // TODO(ahe): Preserve initializers.
-    discardNodes(count);
+    if (count === 0) return;
+    // TODO(ahe): Implement this.
+    canceler.cancel("initializers are not implemented", token: beginToken);
   }
 
   void handleNoInitializers() {
@@ -908,6 +919,10 @@ class NodeListener extends ElementListener {
   void endFactoryMethod(Token factoryKeyword, Token periodBeforeName) {
     canceler.cancel('factory methods are not implemented',
                     token: factoryKeyword);
+  }
+
+  void endForInStatement(Token beginToken, Token inKeyword, Token endToken) {
+    canceler.cancel('for-in is not implemented', token: inKeyword);
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,

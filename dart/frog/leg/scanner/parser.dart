@@ -1046,6 +1046,11 @@ class Parser {
   }
 
   Token parseVariablesDeclaration(Token token) {
+    token = parseVariablesDeclarationNoSemicolon(token);
+    return expectSemicolon(token);
+  }
+
+  Token parseVariablesDeclarationNoSemicolon(Token token) {
     int count = 1;
     listener.beginVariablesDeclaration(token);
     token = parseFinalVarOrType(token);
@@ -1055,7 +1060,7 @@ class Parser {
       ++count;
     }
     listener.endVariablesDeclaration(count, token);
-    return expectSemicolon(token);
+    return token;
   }
 
   Token parseOptionallyInitializedIdentifier(Token token) {
@@ -1106,17 +1111,70 @@ class Parser {
   }
 
   Token parseForStatement(Token token) {
-    // TODO(ahe): Support for-in.
     Token forToken = token;
     listener.beginForStatement(forToken);
     token = expect('for', token);
     token = expect('(', token);
-    token = parseVariablesDeclaration(token); // TODO(ahe): Support other forms.
-    token = parseExpressionStatement(token);
-    token = parseExpression(token); // TODO(ahe): Support expression list here.
+    token = parseVariablesDeclarationOrExpressionOpt(token);
+    if (optional('in', token)) {
+      return parseForInRest(forToken, token);
+    } else {
+      return parseForRest(forToken, token);
+    }
+  }
+
+  Token parseVariablesDeclarationOrExpressionOpt(Token token) {
+    final String value = token.stringValue;
+    if (value === ';') {
+      listener.handleNoExpression(token);
+      return token;
+    } else if ((value === 'var') || (value === 'final')) {
+      return parseVariablesDeclarationNoSemicolon(token);
+    }
+    Token identifier = peekIdentifierAfterType(token);
+    if (identifier !== null) {
+      assert(identifier.kind === IDENTIFIER_TOKEN);
+      Token afterId = identifier.next;
+      int afterIdKind = afterId.kind;
+      if (afterIdKind === EQ_TOKEN || afterIdKind === SEMICOLON_TOKEN ||
+          afterIdKind === COMMA_TOKEN || optional('in', afterId)) {
+        return parseVariablesDeclarationNoSemicolon(token);
+      }
+    }
+    return parseExpression(token);
+  }
+
+  Token parseForRest(Token forToken, Token token) {
+    token = expectSemicolon(token);
+    if (optional(';', token)) {
+      token = parseEmptyStatement(token);
+    } else {
+      token = parseExpressionStatement(token);
+    }
+    int expressionCount = 0;
+    if (optional(')', token)) {
+      listener.endForStatement(expressionCount, forToken, token.next);
+      return token.next;
+    }
+    token = parseExpression(token);
+    ++expressionCount;
+    while (optional(',', token)) {
+      token = parseExpression(token.next);
+      ++expressionCount;
+    }
     token = expect(')', token);
     token = parseStatement(token);
-    listener.endForStatement(forToken, token);
+    listener.endForStatement(expressionCount, forToken, token);
+    return token;
+  }
+
+  Token parseForInRest(Token forToken, Token token) {
+    assert(optional('in', token));
+    Token inKeyword = token;
+    token = parseExpression(token.next);
+    token = expect(')', token);
+    token = parseStatement(token);
+    listener.endForInStatement(forToken, inKeyword, token);
     return token;
   }
 
