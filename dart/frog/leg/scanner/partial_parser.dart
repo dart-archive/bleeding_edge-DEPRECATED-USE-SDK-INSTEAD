@@ -30,17 +30,28 @@ class PartialParser extends Parser {
 
   Token parseFunctionBody(Token token, bool isExpression) {
     assert(!isExpression);
-    if (optional(';', token)) {
-      listener.handleNoFunctionBody(token);
-      return token;
-    } else if (optional('=>', token)) {
+    String value = token.stringValue;
+    if (value === ';') {
+      // No body.
+    } else if (value === '=>') {
       token = parseExpression(token.next);
       expectSemicolon(token);
-      return token;
     } else {
       token = skipBlock(token);
-      listener.handleNoFunctionBody(token);
-      return token;
     }
+    // There is no "skipped function body event", so we use
+    // handleNoFunctionBody instead.
+    listener.handleNoFunctionBody(token);
+    return token;
+  }
+
+  Token parseFormalParameters(Token token) => skipFormals(token);
+
+  Token skipFormals(BeginGroupToken token) {
+    listener.beginOptionalFormalParameters(token);
+    expect('(', token);
+    Token endToken = token.endGroup;
+    listener.endFormalParameters(0, token, endToken);
+    return endToken.next;
   }
 }

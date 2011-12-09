@@ -558,6 +558,13 @@ class NodeListener extends ElementListener {
     pushNode(makeNodeList(memberCount, beginToken, endToken, null));
   }
 
+  void endTopLevelMethod(Token beginToken, Token endToken) {
+    Statement body = popNode();
+    NodeList formalParameters = popNode();
+    Identifier name = popNode();
+    pushElement(new PartialFunctionElement(name.source, beginToken, endToken));
+  }
+
   void endFormalParameter(Token token) {
     NodeList name = new NodeList.singleton(popNode());
     TypeAnnotation type = popNode();
@@ -805,6 +812,7 @@ class NodeListener extends ElementListener {
     if (count === 0) return;
     // TODO(ahe): Implement this.
     canceler.cancel("initializers are not implemented", token: beginToken);
+    discardNodes(count);
   }
 
   void handleNoInitializers() {
@@ -831,16 +839,20 @@ class NodeListener extends ElementListener {
 
   void endMethod(Token beginToken, Token endToken) {
     Statement body = popNode();
+    NodeList formalParameters = popNode();
     Identifier name = popNode(); // TODO(ahe): What about constructors?
     // TODO(ahe): Save modifiers.
-    pushNode(new FunctionExpression(name, null, null, null));
+    pushNode(new FunctionExpression(name, formalParameters, body, null));
+    // TODO(ahe): We don't need to push the AST node and record the
+    // member. This should be cleaned up, preferably by moving the
+    // element stuff to a separate class.
     ElementKind kind = isConstructor(name) ?
                        ElementKind.CONSTRUCTOR :
                        ElementKind.FUNCTION;
     Element memberElement =
         new PartialFunctionElement(name.source, beginToken, endToken,
                                    kind, enclosingElement);
-    enclosingElement.addMember(memberElement);      
+    enclosingElement.addMember(memberElement);
   }
 
   void endLiteralMapEntry(Token token) {
@@ -977,10 +989,10 @@ class PartialFunctionElement extends FunctionElement {
 
   PartialFunctionElement(SourceString name,
                          Token this.beginToken, Token this.endToken,
-                         ElementKind kind,
-                         [Element enclosing = null])
+                         [ElementKind kind = ElementKind.FUNCTION,
+                          Element enclosing = null])
     : super(name, kind, enclosing);
-  
+
   FunctionExpression parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
     node = parse(canceler, logger, (p) => p.parseFunction(beginToken));

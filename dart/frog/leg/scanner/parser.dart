@@ -178,11 +178,6 @@ class Parser {
     return beginGroupToken.endGroup;
   }
 
-  Token skipFormals(BeginGroupToken token) {
-    expect('(', token);
-    return token.endGroup;
-  }
-
   Token parseClass(Token token) {
     Token begin = token;
     listener.beginClassDeclaration(token);
@@ -367,7 +362,7 @@ class Parser {
       expectSemicolon(token);
       listener.endTopLevelFields(fieldCount, start, token);
     } else {
-      token = skipFormals(token).next;
+      token = parseFormalParameters(token);
       token = parseFunctionBody(token, false);
       listener.endTopLevelMethod(start, token);
     }
@@ -531,11 +526,9 @@ class Parser {
       expectSemicolon(token);
       listener.endFields(fieldCount, start, token);
     } else {
-      token = skipFormals(token).next;
+      token = parseFormalParameters(token);
       token = parseInitializersOpt(token);
-      if (!optional(';', token)) {
-        token = parseFunctionBody(token, false);
-      }
+      token = parseFunctionBody(token, false);
       listener.endMethod(start, token);
     }
     return token.next;
@@ -612,7 +605,7 @@ class Parser {
   Token parseFunctionBody(Token token, bool isExpression) {
     if (optional(';', token)) {
       listener.endFunctionBody(0, null, token);
-      return token.next;
+      return token;
     } else if (optional('=>', token)) {
       Token begin = token;
       token = parseExpression(token.next);
@@ -934,7 +927,7 @@ class Parser {
   }
 
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
-    Token beginGroup = token;
+    BeginGroupToken beginGroup = token;
     int kind = beginGroup.endGroup.next.kind;
     if (mayParseFunctionExpressions &&
         (kind === FUNCTION_TOKEN || kind === OPEN_CURLY_BRACKET_TOKEN)) {

@@ -4,19 +4,19 @@
 
 #library('parser');
 
+#import('../elements/elements.dart');
 #import('../scanner/scanner_implementation.dart');
 #import('../scanner/scannerlib.dart');
 
 #source('../../source.dart');
-#source('../scanner/byte_strings.dart');
 #source('../scanner/byte_array_scanner.dart');
+#source('../scanner/byte_strings.dart');
 
 int charCount = 0;
 Stopwatch stopwatch;
 
 void main() {
   stopwatch = new Stopwatch();
-  List<String> filenames = new Options().arguments;
   MyOptions options = new MyOptions();
 
   void printStats() {
@@ -33,28 +33,32 @@ void main() {
     }
   }
 
-  for (String filename in filenames) {
-    if (filename == "--diet") {
+  for (String argument in new Options().arguments) {
+    if (argument == "--diet") {
       options.diet = true;
       continue;
     }
-    if (filename == "--throw") {
+    if (argument == "--throw") {
       options.throwOnError = true;
       continue;
     }
-    if (filename == "--scan-only") {
+    if (argument == "--scan-only") {
       options.scanOnly = true;
       continue;
     }
-    if (filename == "--read-only") {
+    if (argument == "--read-only") {
       options.readOnly = true;
       continue;
     }
-    if (filename == "-") {
+    if (argument == "--ast") {
+      options.buildAst = true;
+      continue;
+    }
+    if (argument == "-") {
       parseFilesFrom(stdin, options, printStats);
       return;
     }
-    charCount += parseFile(filename, options);
+    charCount += parseFile(argument, options);
   }
 
   printStats();
@@ -64,9 +68,12 @@ int parseFile(String filename, MyOptions options) {
   List<int> bytes = read(filename);
   if (options.readOnly) return bytes.length;
   MySourceFile file = new MySourceFile(filename, bytes);
-  Listener listener = new MyListener(file);
-  Parser parser =
-      options.diet ? new PartialParser(listener) : new Parser(listener);
+  final Listener listener = options.buildAst
+      ? new MyNodeListener(file, options)
+      : new MyListener(file);
+  final Parser parser = options.diet
+      ? new PartialParser(listener)
+      : new Parser(listener);
   try {
     Token token = scan(file);
     if (!options.scanOnly) parser.parseUnit(token);
@@ -116,7 +123,7 @@ void forEachLine(InputStream input,
 }
 
 List<int> read(String filename) {
-  File file = new File(filename).openSync();
+  RandomAccessFile file = new File(filename).openSync();
   bool threw = true;
   try {
     int size = file.lengthSync();
@@ -147,14 +154,50 @@ class MyListener extends Listener {
   }
 
   void error(String message, Token token) {
-    ++errorCount;
-    if (token !== null) {
-      String tokenString = token.toString();
-      int begin = token.charOffset;
-      int end = begin + tokenString.length;
-      throw new ParserError(file.getLocationMessage(message, begin, end, true));
+    parserError(message, token, file);
+  }
+}
+
+void parserError(String message, Token token, SourceFile file) {
+  ++errorCount;
+  if (token !== null) {
+    String tokenString = token.toString();
+    int begin = token.charOffset;
+    int end = begin + tokenString.length;
+    throw new ParserError(file.getLocationMessage(message, begin, end, true));
+  }
+  throw new ParserError(message);
+}
+
+class MyNodeListener extends NodeListener {
+  MyNodeListener(SourceFile file, MyOptions options)
+    : super(new MyCanceller(file, options), null,
+            new PartialClassElement(const SourceString('dummy'), null, null));
+
+  void log(message) {
+    print(message);
+  }
+}
+
+class MyCanceller implements Canceler {
+  final SourceFile file;
+  final MyOptions options;
+
+  MyCanceller(this.file, this.options);
+
+  void cancel([String reason, node, token, instruction]) {
+    try {
+      if (token !== null) {
+        parserError(reason, token, file);
+      } else if (node !== null) {
+        parserError(reason, node.getBeginToken(), file);
+      } else {
+        parserError(reason, null, file);
+      }
+    } catch (ParserError ex) {
+      if (options.throwOnError) throw;
+      print(ex);
     }
-    throw new ParserError(message);
   }
 }
 
@@ -163,6 +206,7 @@ class MyOptions {
   bool throwOnError = false;
   bool scanOnly = false;
   bool readOnly = false;
+  bool buildAst = false;
 }
 
 class MySourceFile extends SourceFile {
