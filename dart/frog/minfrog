@@ -2539,7 +2539,7 @@ BlockScope.prototype._isDefinedInParent = function(name) {
   if (type.get$library().lookup(name, null) != null) return true;
   return false;
 }
-BlockScope.prototype.create = function(name, type, span, isFinal, isParameter) {
+BlockScope.prototype.create = function(name, type, span, isFinal, isParameter, allowDynamic) {
   var jsName = $globals.world.toJsIdentifier(name);
   if (this._vars.containsKey(name)) {
     $globals.world.error(('duplicate name "' + name + '"'), span);
@@ -2551,17 +2551,18 @@ BlockScope.prototype.create = function(name, type, span, isFinal, isParameter) {
     }
   }
   var ret = new Value(type, jsName, span, false);
+  ret.set$allowDynamic(allowDynamic);
   ret.set$isFinal(isFinal);
   this._vars.$setindex(name, ret);
   if (name != jsName) this._jsNames.add(jsName);
   return ret;
 }
 BlockScope.prototype.declareParameter = function(p) {
-  return this.create(p.name, p.type, p.definition.span, false, true);
+  return this.create(p.name, p.type, p.definition.span, false, true, true);
 }
-BlockScope.prototype.declare = function(id) {
+BlockScope.prototype.declare = function(id, allowDynamic) {
   var type = this.enclosingMethod.method.resolveType(id.type, false);
-  return this.create(id.name.name, type, id.span, false, false);
+  return this.create(id.name.name, type, id.span, false, false, allowDynamic);
 }
 BlockScope.prototype.getRethrow = function() {
   var scope = this;
@@ -2911,7 +2912,7 @@ MethodGenerator.prototype._writeInitializerCall = function(node) {
   else {
     $globals.world.error('bad call in initializers', node.span);
   }
-  target.set$isInitializerTarget(true);
+  target.set$allowDynamic(false);
   var m = target.get$type().getConstructor$1(contructorName);
   this.method.set$initDelegate(m);
   var other = m;
@@ -3036,7 +3037,7 @@ MethodGenerator.prototype.visitVariableDefinition = function(node) {
         if (thisType.get$isVar()) thisType = value.get$type();
       }
     }
-    var val = this._scope.create(name, thisType, node.names.$index(i).get$span(), isFinal, false);
+    var val = this._scope.create(name, thisType, node.names.$index(i).get$span(), isFinal, false, true);
     if (value == null) {
       if (this._scope.reentrant) {
         this.writer.write(('' + val.get$code() + ' = null'));
@@ -3055,7 +3056,7 @@ MethodGenerator.prototype.visitVariableDefinition = function(node) {
 }
 MethodGenerator.prototype.visitFunctionDefinition = function(node) {
   var meth = this._makeLambdaMethod(node.name.name, node);
-  var funcValue = this._scope.create(meth.get$name(), meth.get$functionType(), this.method.get$definition().get$span(), true, false);
+  var funcValue = this._scope.create(meth.get$name(), meth.get$functionType(), this.method.get$definition().get$span(), true, false, true);
   $globals.world.gen.genMethod(meth, this);
   meth.get$generator().writeDefinition$2(this.writer);
   return false;
@@ -3192,14 +3193,14 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   var list = node.list.visit(this);
   this._pushBlock(true);
   var isFinal = this._isFinal(node.item.type);
-  var item = this._scope.create(itemName, itemType, node.item.name.span, isFinal, false);
+  var item = this._scope.create(itemName, itemType, node.item.name.span, isFinal, false, true);
   var listVar = list;
   if (list.get$needsTemp()) {
-    listVar = this._scope.create('\$list', list.get$type(), null, false, false);
+    listVar = this._scope.create('\$list', list.get$type(), null, false, false, true);
     this.writer.writeln(('var ' + listVar.code + ' = ' + list.get$code() + ';'));
   }
   if (list.get$type().get$isList()) {
-    var tmpi = this._scope.create('\$i', $globals.world.numType, null, false, false);
+    var tmpi = this._scope.create('\$i', $globals.world.numType, null, false, false, true);
     this.writer.enterBlock(('for (var ' + tmpi.get$code() + ' = 0;') + ('' + tmpi.get$code() + ' < ' + listVar.code + '.length; ' + tmpi.get$code() + '++) {'));
     var value = listVar.invoke(this, ':index', node.list, new Arguments(null, [tmpi]), false);
     this.writer.writeln(('var ' + item.get$code() + ' = ' + value.get$code() + ';'));
@@ -3207,7 +3208,7 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   else {
     this._pushBlock(false);
     var iterator = list.invoke$4(this, 'iterator', node.list, Arguments.get$EMPTY());
-    var tmpi = this._scope.create('\$i', iterator.get$type(), null, false, false);
+    var tmpi = this._scope.create('\$i', iterator.get$type(), null, false, false, true);
     var hasNext = tmpi.invoke$4(this, 'hasNext', node.list, Arguments.get$EMPTY());
     var next = tmpi.invoke$4(this, 'next', node.list, Arguments.get$EMPTY());
     this.writer.enterBlock(('for (var ' + tmpi.get$code() + ' = ' + iterator.get$code() + '; ' + hasNext.get$code() + '; ) {'));
@@ -3230,11 +3231,11 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
   if (node.catches.length == 1) {
     var catch_ = node.catches.$index(0);
     this._pushBlock(false);
-    var ex = this._scope.declare(catch_.get$exception());
+    var ex = this._scope.declare(catch_.get$exception(), false);
     this._scope.rethrow = ex;
     this.writer.nextBlock(('} catch (' + ex.get$code() + ') {'));
     if (catch_.get$trace() != null) {
-      var trace = this._scope.declare(catch_.get$trace());
+      var trace = this._scope.declare(catch_.get$trace(), true);
       this.writer.writeln(('var ' + trace.get$code() + ' = \$stackTraceOf(' + ex.get$code() + ');'));
       $globals.world.gen.corejs.useStackTraceOf = true;
     }
@@ -3248,7 +3249,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
   }
   else if (node.catches.length > 0) {
     this._pushBlock(false);
-    var ex = this._scope.create('\$ex', $globals.world.varType, null, false, false);
+    var ex = this._scope.create('\$ex', $globals.world.varType, null, false, false, true);
     this._scope.rethrow = ex;
     this.writer.nextBlock(('} catch (' + ex.get$code() + ') {'));
     var trace = null;
@@ -3256,7 +3257,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
       return c.get$trace() != null;
     })
     )) {
-      trace = this._scope.create('\$trace', $globals.world.varType, null, false, false);
+      trace = this._scope.create('\$trace', $globals.world.varType, null, false, false, true);
       this.writer.writeln(('var ' + trace.get$code() + ' = \$stackTraceOf(' + ex.get$code() + ');'));
       $globals.world.gen.corejs.useStackTraceOf = true;
     }
@@ -3266,7 +3267,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
      i < node.catches.length; i++) {
       var catch_ = node.catches.$index(i);
       this._pushBlock(false);
-      var tmp = this._scope.declare(catch_.get$exception());
+      var tmp = this._scope.declare(catch_.get$exception(), false);
       if (!tmp.get$type().get$isVarOrObject()) {
         var test = ex.instanceOf$3$isTrue$forceCheck(this, tmp.get$type(), catch_.get$exception().get$span(), true, true);
         if (i == 0) {
@@ -3281,7 +3282,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
       }
       this.writer.writeln(('var ' + tmp.get$code() + ' = ' + ex.get$code() + ';'));
       if (catch_.get$trace() != null) {
-        var tmptrace = this._scope.declare(catch_.get$trace());
+        var tmptrace = this._scope.declare(catch_.get$trace(), true);
         this.writer.writeln(('var ' + tmptrace.get$code() + ' = ' + trace.get$code() + ';'));
       }
       this.visitStatementsInBlock(catch_.get$body());
@@ -3434,7 +3435,7 @@ MethodGenerator.prototype.visitLambdaExpression = function(node) {
   var meth = this._makeLambdaMethod(name, node.func);
   var lambdaGen = new MethodGenerator(meth, this);
   if ($ne(name, '')) {
-    lambdaGen._scope.create(name, meth.get$functionType(), meth.definition.span, true, false);
+    lambdaGen._scope.create(name, meth.get$functionType(), meth.definition.span, true, false, true);
     lambdaGen._pushBlock(false);
   }
   lambdaGen.run();
@@ -11830,8 +11831,8 @@ function FixedIterator_E(value, length) {
 function Value(_type, code, span, needsTemp) {
   this.isSuper = false
   this.isType = false
-  this.isInitializerTarget = false
   this.isFinal = false
+  this.allowDynamic = true
   this._type = _type;
   this.code = code;
   this.span = span;
@@ -11842,8 +11843,8 @@ function Value(_type, code, span, needsTemp) {
 Value.type$ctor = function(_type, span) {
   this.isSuper = false
   this.isType = false
-  this.isInitializerTarget = false
   this.isFinal = false
+  this.allowDynamic = true
   this._type = _type;
   this.span = span;
   this.code = null;
@@ -11861,17 +11862,17 @@ Value.prototype.get$isSuper = function() { return this.isSuper; };
 Value.prototype.set$isSuper = function(value) { return this.isSuper = value; };
 Value.prototype.get$isType = function() { return this.isType; };
 Value.prototype.set$isType = function(value) { return this.isType = value; };
-Value.prototype.get$isInitializerTarget = function() { return this.isInitializerTarget; };
-Value.prototype.set$isInitializerTarget = function(value) { return this.isInitializerTarget = value; };
 Value.prototype.get$isFinal = function() { return this.isFinal; };
 Value.prototype.set$isFinal = function(value) { return this.isFinal = value; };
+Value.prototype.get$allowDynamic = function() { return this.allowDynamic; };
+Value.prototype.set$allowDynamic = function(value) { return this.allowDynamic = value; };
 Value.prototype.get$needsTemp = function() { return this.needsTemp; };
 Value.prototype.set$needsTemp = function(value) { return this.needsTemp = value; };
 Value.prototype.get$_typeIsVarOrParameterType = function() {
   return this.get$type().get$isVar() || (this.get$type() instanceof ParameterType);
 }
 Value.prototype.get$type = function() {
-  if (!$globals.options.forceDynamic || this.isType || this.isSuper || this.isInitializerTarget || this.get$isConst()) {
+  if (!$globals.options.forceDynamic || !this.allowDynamic || this.isType || this.isSuper || this.get$isConst()) {
     return this._type;
   }
   else {
