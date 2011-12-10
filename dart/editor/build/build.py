@@ -33,7 +33,8 @@ class AntWrapper(object):
     """
     self._antpath = antpath
     self._bzippath = bzippath
-    print 'AntWrapper.__init__({0}, {1}'.format(self._antpath, self._bzippath)
+    print 'AntWrapper.__init__({0}, {1})'.format(self._antpath,
+                                                 self._bzippath)
 
   def RunAnt(self, build_dir, antfile, revision, name,
              buildroot, buildout, sourcepath, buildos,
@@ -75,16 +76,22 @@ class AntWrapper(object):
             os.path.join(self._antpath, ant_exec),
             '-lib',
             os.path.join(self._bzippath, 'bzip2.jar'),
-            '-f',
-            antfile,
             '-noinput',
-            '-Dbuild.revision=' + revision,
-            '-Dbuild.builder=' + name,
-            '-Dbuild.root=' + buildroot,
-            '-Dbuild.out=' + buildout,
-            '-Dbuild.source=' + sourcepath,
-            '-nouserlib',
+            '-nouserlib'
            ]
+    if antfile:
+      args.append('-f')
+      args.append(antfile)
+    if revision:
+      args.append('-Dbuild.revision=' + revision)
+    if name:
+      args.append('-Dbuild.builder=' + name)
+    if buildroot:
+      args.append('-Dbuild.root=' + buildroot)
+    if buildout:
+      args.append('-Dbuild.out=' + buildout)
+    if sourcepath:
+      args.append('-Dbuild.source=' + sourcepath)
     if buildos:
       args.append('-Dbuild.os={0}'.format(buildos))
     if extra_args:
@@ -97,9 +104,7 @@ class AntWrapper(object):
         args.append(arg)
 
     print ' '.join(args)
-
     status = subprocess.call(args)
-
     os.chdir(cwd)
     return status
 
