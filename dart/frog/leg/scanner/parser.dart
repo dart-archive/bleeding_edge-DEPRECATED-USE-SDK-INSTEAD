@@ -693,6 +693,7 @@ class Parser {
   }
 
   Token parseExpressionStatementOrDeclaration(Token token) {
+    assert(isIdentifier(token) || token.stringValue === 'void');
     Token identifier = peekIdentifierAfterType(token);
     if (identifier !== null) {
       assert(identifier.kind === IDENTIFIER_TOKEN);
@@ -716,7 +717,9 @@ class Parser {
       }
       // Fall-through to expression statement.
     } else {
-      if (optional('(', token.next)) {
+      if (optional(':', token.next)) {
+        return parseLabelledStatement(token);
+      } else if (optional('(', token.next)) {
         BeginGroupToken begin = token.next;
         String afterParens = begin.endGroup.next.stringValue;
         if (afterParens === '{' || afterParens === '=>') {
@@ -725,6 +728,16 @@ class Parser {
       }
     }
     return parseExpressionStatement(token);
+  }
+
+  Token parseLabelledStatement(Token token) {
+    listener.beginLabelledStatement(token);
+    token = parseIdentifier(token);
+    Token colon = token;
+    token = expect(':', token);
+    token = parseStatement(token);
+    listener.endLabelledStatement(colon);
+    return token;
   }
 
   Token parseExpressionStatement(Token token) {

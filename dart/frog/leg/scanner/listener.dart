@@ -144,6 +144,12 @@ class Listener {
   void endInterface(Token token) {
   }
 
+  void beginLabelledStatement(Token token) {
+  }
+
+  void endLabelledStatement(Token colon) {
+  }
+
   void beginLibraryTag(Token token) {
   }
 
@@ -963,6 +969,12 @@ class NodeListener extends ElementListener {
 
   void handleIsOperator(Token operathor, Token not, Token endToken) {
     canceler.cancel('is-operator is not implemented', token: operathor);
+  }
+
+  void endLabelledStatement(Token colon) {
+    Statement statement = popNode();
+    Identifier label = popNode();
+    canceler.cancel('labels are not implemented', node: identifier);
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
