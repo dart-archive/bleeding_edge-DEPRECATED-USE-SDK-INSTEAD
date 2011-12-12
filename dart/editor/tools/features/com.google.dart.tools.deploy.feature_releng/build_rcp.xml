@@ -47,29 +47,9 @@ build system.  The PDE build system has to run under Eclipse.
             These properties should have been set by the Python code
         </fail>
     </target>
-
-    <!--
-    initializethe build environment by cleaning up the builchrome-botd.tmp directory and 
-    creating the needed directories
-    -->
-    <target name="init" depends="buildBotFastFail">
-        <property environment="env" />
-        <echoproperties prefix="env." />
-
-        <tstamp>
-            <format property="build.date" pattern="yyyyMMddHHmm" />
-        </tstamp>
-        <echoProperty propertyName="ant.file" />
-        <echoProperty propertyName="ant.home" />
-        <echoProperty propertyName="ant.version" />
-        <echoProperty propertyName="java.home" />
-        <echoProperty propertyName="java.vendor" />
-        <echoProperty propertyName="java.version" />
-        <echoProperty propertyName="user.name" />
-        <echoProperty propertyName="dataLocation" />
-        <condition property="data.location" value="${dataLocation}">
-            <isset property="dataLocation" />
-        </condition>
+    
+    <!-- configure and validate the data location -->
+    <target name="configDataLocation">
         <property name="data.location" location="./build-settings" />
         <echoProperty propertyName="data.location" />
         <!--
@@ -78,7 +58,8 @@ build system.  The PDE build system has to run under Eclipse.
         <fail>*
             **********************************
             Error: 
-            data.location must be set to a valid directory containing the configuration properties file.
+            data.location must be set to a valid directory containing 
+            the configuration properties file.
             the current value is ${data.location}.
             **********************************
             <condition>
@@ -87,12 +68,37 @@ build system.  The PDE build system has to run under Eclipse.
                 </not>
             </condition>
         </fail>
+    </target>
+    
+    <!-- conditiuonally read the os specific property file -->
+    <target name="readOsSpecificPropertyFile" if="build.os">
+        <property name="user.os.property.file" location="${data.location}/${user.name}.${build.os}.properties" />
+        <fail>*
+            **********************************
+            Error: 
+            ${user.os.property.file} must exist.
+            In the directory ${data.location}
+            look at ${data.location}/chrome-bot.linux.properties
+            and use it as a template to create 
+            ${user.os.property.file}
+            **********************************
+            <condition>
+                <not>
+                    <available file="${user.os.property.file}" type="file" />
+                </not>
+            </condition>
+        </fail>
+        <echo message="reading ${user.os.property.file}" />
+        <property file="${user.os.property.file}" />
+    </target>
+    
+    <!-- read the properties files -->
+    <target name="readProperties" depends="readOsSpecificPropertyFile">
         <property name="user.property.file" location="${data.location}/${user.name}.properties" /> 
         <property name="default-user.property.file" location="${data.location}/default-user.properties" /> 
         <property name="eclipse.property.file" location="${data.location}/eclipse-platform.properties" />
         <echo message="reading ${eclipse.property.file}" />
         <property file="${eclipse.property.file}" />
-        
         <!--
           validate that the ${user.name}.property file exists
         -->
@@ -124,6 +130,31 @@ build system.  The PDE build system has to run under Eclipse.
                 </not>
             </condition>
         </fail>
+        <property file="${default-user.property.file}" />
+     </target>
+        
+    <!--
+    initializethe build environment by cleaning up the builchrome-botd.tmp directory and 
+    creating the needed directories
+    -->
+    <target name="init" depends="buildBotFastFail, configDataLocation, readProperties">
+        <property environment="env" />
+        <echoproperties prefix="env." />
+
+        <tstamp>
+            <format property="build.date" pattern="yyyyMMddHHmm" />
+        </tstamp>
+        <echoProperty propertyName="ant.file" />
+        <echoProperty propertyName="ant.home" />
+        <echoProperty propertyName="ant.version" />
+        <echoProperty propertyName="java.home" />
+        <echoProperty propertyName="java.vendor" />
+        <echoProperty propertyName="java.version" />
+        <echoProperty propertyName="user.name" />
+        <echoProperty propertyName="dataLocation" />
+        <condition property="data.location" value="${dataLocation}">
+            <isset property="dataLocation" />
+        </condition>
         
         <!-- 
           validate the the build.source is correctly set
@@ -143,7 +174,6 @@ build system.  The PDE build system has to run under Eclipse.
             </condition>
         </fail>
         
-        <property environment="env" />
         <condition property="build.revision" value="${env.BUILDBOT_GOT_REVISION}">
             <isset property="env.BUILDBOT_GOT_REVISION" />
         </condition>
@@ -152,7 +182,6 @@ build system.  The PDE build system has to run under Eclipse.
 
         <property name="build.thirdparty" location="${build.source.root}/third_party" />
         
-        <property file="${default-user.property.file}" />
         <property name="build.stage.scripts" location="${build.stage}/scripts" />
         <echoproperties prefix="java." />
         <echoproperties prefix="build." />
@@ -183,7 +212,6 @@ build system.  The PDE build system has to run under Eclipse.
         <mkdir dir="${build.stage.plugins}" />
         <mkdir dir="${build.stage.features}" />
         <mkdir dir="${build.out}" />
-
     </target>
 
     <!-- - - - - - - - - - - - - - - - - - 
@@ -293,6 +321,11 @@ build system.  The PDE build system has to run under Eclipse.
             <include name="*.mappings" />
             <replacefilter token="@BUILDDATE@" value="${build.date}" />
             <replacefilter token="@REVISION@" value="${build.revision}" />
+        </replace>
+        <echo message="replacing @BUILDCONFIGS@ in ${build.stage.features}/com.google.dart.tools.deploy.feature_releng/build.properties" />
+        <replace dir="${build.stage.features}/com.google.dart.tools.deploy.feature_releng">
+            <include name="build.properties" />
+            <replacefilter token="@BUILDCONFIGS@" value="${build.configs}" />
         </replace>
         
         <replace dir="${build.stage.plugins}/com.google.dart.tools.ui" >
@@ -466,7 +499,11 @@ build system.  The PDE build system has to run under Eclipse.
         <property name="pde.scripts.rcp" location="${pde.build.dir}/scripts/productBuild" />
         <echo message="PDE is located in ${pde.build.dir}" /> 
         <mkdir dir="${build.stage.scripts}" />
-        <copy todir="${build.stage.scripts}" file="build.properties" />
+        <copy todir="${build.stage.scripts}">
+            <fileset  dir="${build.stage.features}/com.google.dart.tools.deploy.feature_releng">
+                <include name="build.properties" />
+            </fileset>
+        </copy>
         <runAntBuildInEclipse script="${pde.scripts.rcp}/productBuild.xml" eclipse="3.7"
                               builddir="${build.stage.scripts}" />
     </target>
