@@ -1069,6 +1069,10 @@ class MethodGenerator implements TreeVisitor {
     target.allowDynamic = false;
 
     var m = target.type.getConstructor(contructorName);
+    if (m == null) {
+      world.error('no matching constructor for ${target.type.name}', node.span);
+    }
+
     method.initDelegate = m;
     // check no cycles in in initialization:
     var other = m;

@@ -2913,6 +2913,9 @@ MethodGenerator.prototype._writeInitializerCall = function(node) {
   }
   target.set$allowDynamic(false);
   var m = target.get$type().getConstructor$1(contructorName);
+  if (m == null) {
+    $globals.world.error(('no matching constructor for ' + target.get$type().get$name()), node.span);
+  }
   this.method.set$initDelegate(m);
   var other = m;
   while (other != null) {
