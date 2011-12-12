@@ -15,6 +15,10 @@ package com.google.dart.tools.core;
 
 import org.eclipse.core.runtime.Platform;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Debug/Tracing options for the {@link DartCore} plugin
  */
@@ -27,6 +31,17 @@ public class DartCoreDebug {
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
 
   public static final boolean BLEEDING_EDGE = isOptionTrue("bleedingEdge");
+
+  public static Collection<String> getLibrariesEmbedded() {
+    List<String> result = new ArrayList<String>();
+    for (String spec : getOptionValue("libraries/embedded", "").split(",")) {
+      spec = spec.trim();
+      if (spec.length() > 0) {
+        result.add(spec);
+      }
+    }
+    return result;
+  }
 
   public static String getLibrariesPath() {
     return getOptionValue("libraries/path", "libraries");

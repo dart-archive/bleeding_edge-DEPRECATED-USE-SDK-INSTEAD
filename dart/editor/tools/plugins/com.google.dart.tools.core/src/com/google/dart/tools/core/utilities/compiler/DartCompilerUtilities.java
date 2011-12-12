@@ -33,6 +33,7 @@ import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.cache.LRUCache;
@@ -58,6 +59,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -784,7 +786,14 @@ public class DartCompilerUtilities {
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
     synchronized (compilerLock) {
       // Any calls to compiler involving artifact provider must be synchronized
-      DartCompiler.compileLib(libSource, config, provider, listener);
+      List<LibrarySource> embeddedLibraries = new ArrayList<LibrarySource>();
+      for (String spec : DartCoreDebug.getLibrariesEmbedded()) {
+        LibrarySource lib = config.getSystemLibraryFor(spec);
+        if (lib != null) {
+          embeddedLibraries.add(lib);
+        }
+      }
+      DartCompiler.compileLib(libSource, embeddedLibraries, config, provider, listener);
     }
   }
 

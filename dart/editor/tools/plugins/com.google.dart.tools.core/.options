@@ -10,6 +10,9 @@ com.google.dart.tools.core/bleedingEdge = false
 #     "compiler" for DartC
 #     "frog" for Frog libraries
 #     "runtime" for VM libraries
+#   com.google.dart.tools.core/libraries/embedded
+#     a comma separate list of dart libraries that should be implicitly imported 
+#     other than dart:core
 #   com.google.dart.tools.core/libraries/path
 #     the path to the "libraries" directory 
 #       this can be an absolute path or relative to the Dart Editor installation directory
@@ -29,8 +32,10 @@ com.google.dart.tools.core/bleedingEdge = false
 #
 # Using the default Dart Editor DartC libraries ...
 com.google.dart.tools.core/platform/name = compiler
+com.google.dart.tools.core/libraries/embedded = 
 com.google.dart.tools.core/libraries/path = libraries
 #
 # Using VM libraries in SDK....
 #com.google.dart.tools.core/platform/name = runtime
+#com.google.dart.tools.core/libraries/embedded = dart:builtin
 #com.google.dart.tools.core/libraries/path = sdk/lib
