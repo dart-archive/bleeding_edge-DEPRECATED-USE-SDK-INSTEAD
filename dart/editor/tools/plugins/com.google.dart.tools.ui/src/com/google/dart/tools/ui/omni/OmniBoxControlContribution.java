@@ -34,6 +34,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
 
 import java.util.HashMap;
@@ -98,7 +100,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
     if (contrib == null) {
       return new Point(0, 0);
     }
-    return locationRelativeToControl(contrib.control);
+    return locationRelativeToControl(contrib.textControl);
   }
 
   private static Point locationRelativeToControl(Text control) {
@@ -106,7 +108,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
         + POPUP_PIXEL_VERT_NUDGE);
   }
 
-  private Text control;
+  private Text textControl;
 
   private boolean inControl;
 
@@ -138,40 +140,26 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   }
 
   public void giveFocus() {
-    cacheFocusControl(control.getDisplay().getFocusControl());
-    control.setFocus();
+    cacheFocusControl(textControl.getDisplay().getFocusControl());
+    textControl.setFocus();
     clearWatermark();
   }
 
   @Override
   protected Control createControl(Composite parent) {
-    control = createTextControl(parent);
+    textControl = createTextControl(parent);
     setWatermarkText();
     hookupListeners();
     CONTROL_MAP.put(getWorkbenchWindow(), this);
-    return control;
+    return textControl;
   }
 
   protected void defocus() {
     if (previousFocusControl != null && !previousFocusControl.isDisposed()) {
       previousFocusControl.setFocus();
     } else {
-      control.getParent().setFocus();
+      textControl.getParent().setFocus();
     }
-  }
-
-  protected void handleMouseEnter() {
-    inControl = true;
-    //cache on mouse enter to ensure we can restore focus after an invocation initiated by a mouse click
-    cacheFocusControl(control.getDisplay().getFocusControl());
-  }
-
-  protected void handleMouseExit() {
-    inControl = false;
-  }
-
-  protected void handleSelection() {
-    clearWatermark();
   }
 
   protected void refreshPopup() {
@@ -183,18 +171,18 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   private void cacheFocusControl(Control focusControl) {
     //since the point of caching the control is to restore focus away from us,
     //ignore any sets to "self"
-    if (focusControl != control) {
+    if (focusControl != textControl) {
       previousFocusControl = focusControl;
     }
   }
 
   private void clearWatermark() {
     //ensure watermark (or valid text) does not get re-cleared
-    if (control.getForeground().equals(OmniBoxColors.SEARCHBOX_TEXT_COLOR)) {
+    if (textControl.getForeground().equals(OmniBoxColors.SEARCHBOX_TEXT_COLOR)) {
       return;
     }
     silentSetControlText(""); //$NON-NLS-1$
-    control.setForeground(OmniBoxColors.SEARCHBOX_TEXT_COLOR);
+    textControl.setForeground(OmniBoxColors.SEARCHBOX_TEXT_COLOR);
   }
 
   private Text createTextControl(Composite parent) {
@@ -206,20 +194,111 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   }
 
   private String getFilterText() {
-    return control.getText().toLowerCase();
+    return textControl.getText().toLowerCase();
+  }
+
+  private void handleFocusGained() {
+    //disable global keybinding handlers so we can trap copy/paste/etc
+    ((IBindingService) PlatformUI.getWorkbench().getService(IBindingService.class)).setKeyFilterEnabled(false);
+    clearWatermark();
+  }
+
+  private void handleFocusLost() {
+    //re-enable global keybinding handlers
+    ((IBindingService) PlatformUI.getWorkbench().getService(IBindingService.class)).setKeyFilterEnabled(true);
+
+    //GTK linux requires special casing to handle the case where a click
+    //outside the search box (or popup) should cause the popup to close
+    //We identify this case by keying off focus changes --- if focus
+    //is transfered to another control we trigger a close
+    if (Util.isLinux()) {
+      //Exec async to ensure that it occurs after the focus change
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          Control focusControl = Display.getDefault().getFocusControl();
+          if (focusControl != textControl && popup != null && focusControl != popup.table) {
+            popup.close();
+          }
+        }
+      });
+    }
+    if (popupClosed()) {
+      setWatermarkText();
+    }
+  }
+
+  private void handleKeyPressed(KeyEvent e) {
+    if (SWT.ARROW_DOWN == e.keyCode) {
+      if (popupClosed()) {
+        openPopup();
+        refreshPopup();
+      }
+
+    }
+
+    if (popupClosed()) {
+      //have escape defocus
+      if (SWT.ESC == e.character) {
+        defocus();
+        return;
+      }
+      //and don't let other control characters invoke the popup
+      if (Character.isISOControl(e.character)) {
+        return;
+      }
+      openPopup();
+    }
+
+    if (popup != null && !popup.isDisposed()) {
+      popup.sendKeyPress(e);
+    }
+  }
+
+  private void handleModifyText() {
+    if (!listenForTextModify) {
+      return;
+    }
+    String filterText = getFilterText();
+    if (filterText.length() > 0) {
+      if (popupClosed()) {
+        openPopup();
+      }
+      refreshPopup();
+    } else {
+      popup.close();
+    }
+  }
+
+  private void handleMouseEnter() {
+    inControl = true;
+    //cache on mouse enter to ensure we can restore focus after an invocation initiated by a mouse click
+    cacheFocusControl(textControl.getDisplay().getFocusControl());
+  }
+
+  private void handleMouseExit() {
+    inControl = false;
+  }
+
+  private void handleMouseUp() {
+    if (inControl) {
+      handleSelection();
+    }
+  }
+
+  private void handleSelection() {
+    clearWatermark();
   }
 
   private void hookupListeners() {
-    control.addMouseListener(new MouseAdapter() {
+    textControl.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseUp(MouseEvent e) {
-        if (inControl) {
-          handleSelection();
-        }
+        handleMouseUp();
       }
     });
 
-    control.addMouseTrackListener(new MouseTrackAdapter() {
+    textControl.addMouseTrackListener(new MouseTrackAdapter() {
       @Override
       public void mouseEnter(MouseEvent e) {
         handleMouseEnter();
@@ -231,82 +310,29 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
       }
     });
 
-    control.addModifyListener(new ModifyListener() {
+    textControl.addModifyListener(new ModifyListener() {
       @Override
       public void modifyText(ModifyEvent e) {
-        if (!listenForTextModify) {
-          return;
-        }
-        String filterText = getFilterText();
-        if (filterText.length() > 0) {
-          if (popupClosed()) {
-            openPopup();
-          }
-          refreshPopup();
-        } else {
-          popup.close();
-        }
+        handleModifyText();
       }
     });
 
-    control.addKeyListener(new KeyAdapter() {
+    textControl.addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
-
-        if (SWT.ARROW_DOWN == e.keyCode) {
-          if (popupClosed()) {
-            openPopup();
-            refreshPopup();
-          }
-
-        }
-
-        if (popupClosed()) {
-          //have escape defocus
-          if (SWT.ESC == e.character) {
-            defocus();
-            return;
-          }
-          //and don't let other control characters invoke the popup
-          if (Character.isISOControl(e.character)) {
-            return;
-          }
-          openPopup();
-        }
-
-        if (popup != null && !popup.isDisposed()) {
-          popup.sendKeyPress(e);
-        }
+        handleKeyPressed(e);
       }
     });
 
-    control.addFocusListener(new FocusListener() {
+    textControl.addFocusListener(new FocusListener() {
       @Override
       public void focusGained(FocusEvent e) {
-        clearWatermark();
+        handleFocusGained();
       }
 
       @Override
       public void focusLost(FocusEvent e) {
-        //GTK linux requires special casing to handle the case where a click
-        //outside the search box (or popup) should cause the popup to close
-        //We identify this case by keying off focus changes --- if focus
-        //is transfered to another control we trigger a close
-        if (Util.isLinux()) {
-          //Exec async to esnure that it occurs after the focus change
-          Display.getDefault().asyncExec(new Runnable() {
-            @Override
-            public void run() {
-              Control focusControl = Display.getDefault().getFocusControl();
-              if (focusControl != control && popup != null && focusControl != popup.table) {
-                popup.close();
-              }
-            }
-          });
-        }
-        if (popupClosed()) {
-          setWatermarkText();
-        }
+        handleFocusLost();
       }
     });
   }
@@ -322,27 +348,27 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
 
       @Override
       protected Point getDefaultLocation(Point initialSize) {
-        return locationRelativeToControl(control);
+        return locationRelativeToControl(textControl);
       }
 
       @Override
       protected Point getDefaultSize() {
-        return new Point(control.getSize().x - POPUP_PIXEL_HORIZ_NUDGE * 2, 360);
+        return new Point(textControl.getSize().x - POPUP_PIXEL_HORIZ_NUDGE * 2, 360);
       }
 
     };
-    popup.setFilterControl(control);
+    popup.setFilterControl(textControl);
     popup.open();
 
     if (Util.isMac()) {
-      control.addListener(SWT.Deactivate, new Listener() {
+      textControl.addListener(SWT.Deactivate, new Listener() {
         @Override
         public void handleEvent(Event event) {
           //selecting the scrollbar will deactivate but in that case we don't want to close
           if (event.display.getFocusControl() != popup.table) {
             popup.close();
           }
-          control.removeListener(SWT.Deactivate, this);
+          textControl.removeListener(SWT.Deactivate, this);
         }
       });
     }
@@ -354,13 +380,13 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
 
   private void setWatermarkText() {
     silentSetControlText(WATERMARK_TEXT);
-    control.setForeground(OmniBoxColors.WATERMARK_TEXT_COLOR);
+    textControl.setForeground(OmniBoxColors.WATERMARK_TEXT_COLOR);
   }
 
   //set text without notifying listeners
   private void silentSetControlText(String txt) {
     listenForTextModify = false;
-    control.setText(txt);
+    textControl.setText(txt);
     listenForTextModify = true;
   }
 
