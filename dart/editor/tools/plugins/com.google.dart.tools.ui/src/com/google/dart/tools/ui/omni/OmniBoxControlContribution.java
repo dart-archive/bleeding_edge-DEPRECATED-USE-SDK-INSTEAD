@@ -138,7 +138,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   }
 
   public void giveFocus() {
-    previousFocusControl = control.getDisplay().getFocusControl();
+    cacheFocusControl(control.getDisplay().getFocusControl());
     control.setFocus();
     clearWatermark();
   }
@@ -163,7 +163,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   protected void handleMouseEnter() {
     inControl = true;
     //cache on mouse enter to ensure we can restore focus after an invocation initiated by a mouse click
-    previousFocusControl = Display.getDefault().getFocusControl();
+    cacheFocusControl(control.getDisplay().getFocusControl());
   }
 
   protected void handleMouseExit() {
@@ -177,6 +177,14 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   protected void refreshPopup() {
     if (popup != null && !popup.isDisposed()) {
       popup.refresh(getFilterText());
+    }
+  }
+
+  private void cacheFocusControl(Control focusControl) {
+    //since the point of caching the control is to restore focus away from us,
+    //ignore any sets to "self"
+    if (focusControl != control) {
+      previousFocusControl = focusControl;
     }
   }
 
@@ -301,7 +309,6 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
         }
       }
     });
-
   }
 
   private void openPopup() {
