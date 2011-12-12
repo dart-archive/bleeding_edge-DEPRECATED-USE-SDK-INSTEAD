@@ -30,6 +30,9 @@ class ElementKind {
   static final ElementKind CLASS = const ElementKind('class');
   static final ElementKind FOREIGN = const ElementKind('foreign');
   static final ElementKind CONSTRUCTOR = const ElementKind('constructor');
+  static final ElementKind FIELD = const ElementKind('field');
+  static final ElementKind VARIABLE_LIST = const ElementKind('variable_list');
+  static final ElementKind FIELD_LIST = const ElementKind('field_list');
   static final ElementKind CONSTRUCTOR_BODY =
       const ElementKind('constructor_body');
 
@@ -58,21 +61,47 @@ class Element implements Hashable {
 }
 
 class VariableElement extends Element {
-  final Node node;
-  final TypeAnnotation typeAnnotation;
-  Type type;
+  final VariableListElement variables;
 
-  VariableElement(Node this.node, TypeAnnotation this.typeAnnotation,
-                  ElementKind kind, SourceString name, Element enclosingElement)
-    : super(name, kind, enclosingElement);
+  VariableElement(SourceString name, VariableListElement this.variables,
+                  ElementKind kind, [Element enclosing = null])
+    : super(name, kind, enclosing);
 
   Node parseNode(Canceler canceler, Logger logger) {
+    return variables.parseNode(canceler, logger);
+  }
+
+  Type computeType(Compiler compiler, types) {
+    return variables.computeType(compiler, types);
+  }
+
+  Type get type() => variables.type;
+}
+
+// This element represents a list of variable or field declaration.
+// It contains the node, and the type. A [VariableElement] always
+// references its [VariableListElement]. It forwards its
+// [computeType] and [parseNode] methods to this element.
+class VariableListElement extends Element {
+  VariableDefinitions node;
+  Type type;
+
+  VariableListElement(ElementKind kind, [Element enclosing = null])
+    : super(null, kind, enclosing);
+
+  VariableListElement.node(VariableDefinitions node,
+                           ElementKind kind,
+                           [Element enclosing = null])
+    : super(null, kind, enclosing),
+      this.node = node;
+
+  VariableDefinitions parseNode(Canceler canceler, Logger logger) {
     return node;
   }
 
-  Type computeType(Compiler compiler, Types types) {
-    if (type !== null) return type;
-    type = getType(typeAnnotation, compiler, types);
+  Type computeType(Compiler compiler, types) {
+    if (type != null) return type;
+    type = getType(parseNode(compiler, compiler).type, compiler, types);
     return type;
   }
 }
@@ -80,7 +109,7 @@ class VariableElement extends Element {
 class ForeignElement extends Element {
   ForeignElement(SourceString name) : super(name, ElementKind.FOREIGN, null);
 
-  Type computeType(Compiler compiler, Types types) {
+  Type computeType(Compiler compiler, types) {
     return types.dynamicType;
   }
 }
@@ -195,7 +224,7 @@ class ClassElement extends Element {
   ClassNode node;
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.
-  Link<Element> backendMembers = const EmptyLink<Element>(); 
+  Link<Element> backendMembers = const EmptyLink<Element>();
   SynthesizedConstructorElement synthesizedConstructor;
 
   ClassElement(SourceString name) : super(name, ElementKind.CLASS, null);

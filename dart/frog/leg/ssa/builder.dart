@@ -129,7 +129,7 @@ class SsaBuilder implements Visitor {
       add(new HInvokeDynamic(methodName, superInputs));
     }
     body.accept(this);
-    return closeFunction();    
+    return closeFunction();
   }
 
   void openFunction(NodeList parameters) {
@@ -143,7 +143,7 @@ class SsaBuilder implements Visitor {
     visitParameterValues(parameters);
     close(new HGoto()).addSuccessor(block);
 
-    open(block);    
+    open(block);
   }
 
   HGraph closeFunction() {
@@ -634,9 +634,16 @@ class SsaBuilder implements Visitor {
       if (node.receiver !== null) {
         compiler.unimplemented("SsaBuilder.visitSend with receiver");
       }
-      HInstruction instruction = definitions[element];
-      assert(instruction !== null);
-      stack.add(instruction);
+      if (element != null
+          && !element.isInstanceMember()
+          && element.kind === ElementKind.FIELD) {
+        compiler.unimplemented("SsaBuilder.visitSend with static field");
+        push(new HStatic(element));
+      } else {
+        HInstruction instruction = definitions[element];
+        assert(instruction !== null);
+        stack.add(instruction);
+      }
     } else {
       if (element === null) {
         compiler.unimplemented("SsaBuilder.visitSend with receiver");

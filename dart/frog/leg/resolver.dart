@@ -475,8 +475,12 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
   ElementKind kind;
+  VariableListElement variables;
 
-  VariableDefinitionsVisitor(this.definitions, this.resolver, this.kind);
+  VariableDefinitionsVisitor(this.definitions, this.resolver, this.kind) {
+    variables = new VariableListElement.node(
+        definitions, ElementKind.VARIABLE_LIST, resolver.context.element);
+  }
 
   SourceString visitSendSet(SendSet node) {
     assert(node.arguments.tail.isEmpty()); // Sanity check
@@ -495,8 +499,8 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
-      Element element = new VariableElement(link.head, definitions.type,
-          kind, name, resolver.context.element);
+      Element element = new VariableElement(
+          name, variables, kind, resolver.context.element);
       resolver.defineElement(link.head, element);
     }
   }

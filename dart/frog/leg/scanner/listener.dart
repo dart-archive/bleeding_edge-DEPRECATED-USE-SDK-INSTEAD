@@ -462,7 +462,14 @@ class ElementListener extends Listener {
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
-    canceler.cancel("Cannot handle fields", token: beginToken);
+    Element fields = new PartialFieldListElement(beginToken, endToken);
+    Link<Identifier> names = const EmptyLink<Identifier>();
+    for (int i = 0; i < count; i++) {
+      names = names.prepend(popNode());
+    }
+    for (; !names.isEmpty(); names = names.tail) {
+      pushElement(new PartialFieldElement(names.head.source, fields));
+    }
   }
 
   void handleIdentifier(Token token) {
@@ -1012,6 +1019,34 @@ class PartialFunctionElement extends FunctionElement {
   FunctionExpression parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
     node = parse(canceler, logger, (p) => p.parseFunction(beginToken));
+    return node;
+  }
+}
+
+class PartialFieldElement extends VariableElement {
+  PartialFieldElement(SourceString name,
+                      Element variables,
+                      [Element enclosing = null])
+    : super(name, variables, ElementKind.FIELD, enclosing);
+
+  Node parseNode(Canceler canceler, Logger logger) {
+    return variables.parseNode(canceler, logger);
+  }
+}
+
+class PartialFieldListElement extends VariableListElement {
+  final Token beginToken;
+  final Token endToken;
+
+  PartialFieldListElement(Token this.beginToken,
+                          Token this.endToken,
+                          [Element enclosing = null])
+    : super(ElementKind.VARIABLE_LIST, enclosing);
+
+  Node parseNode(Canceler canceler, Logger logger) {
+    if (node != null) return node;
+    node = parse(canceler, logger,
+        (p) => p.parseVariablesDeclaration(beginToken));
     return node;
   }
 }

@@ -63,6 +63,7 @@ main() {
   // testTwoInterfaces(); // The parser does not handle interfaces.
   testFunctionExpression();
   testNewExpression();
+  testTopLevelFields();
 }
 
 testLocalsOne() {
@@ -351,4 +352,25 @@ testNewExpression() {
       elements[compiler.parsedTree.asExpressionStatement().expression.send];
   Expect.equals(ElementKind.CONSTRUCTOR, element.kind);
   Expect.isTrue(element is SynthesizedConstructorElement);
+}
+
+testTopLevelFields() {
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript("int a;");
+  Element element = compiler.universe.find(buildSourceString("a"));
+  Expect.equals(ElementKind.FIELD, element.kind);
+  Node node = element.parseNode(compiler, compiler);
+  Expect.equals(node.type.typeName.source.stringValue, 'int');
+
+  compiler.parseScript("var b, c;");
+  Element bElement = compiler.universe.find(buildSourceString("b"));
+  Element cElement = compiler.universe.find(buildSourceString("c"));
+  Expect.equals(ElementKind.FIELD, bElement.kind);
+  Expect.equals(ElementKind.FIELD, cElement.kind);
+  Expect.isTrue(bElement != cElement);
+
+  Node bNode = bElement.parseNode(compiler, compiler);
+  Node cNode = cElement.parseNode(compiler, compiler);
+  Expect.equals(bNode, cNode);
+  Expect.equals(bNode.type.typeName.source.stringValue, 'var');
 }
