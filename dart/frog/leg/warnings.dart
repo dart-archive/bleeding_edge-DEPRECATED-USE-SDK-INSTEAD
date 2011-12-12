@@ -25,6 +25,13 @@ class MessageKind {
   static final METHOD_NOT_FOUND = const MessageKind(
       'no method named #{2} in class #{1}');
 
+  static final UNREACHABLE_CODE = const MessageKind(
+      'unreachable code');
+  static final MISSING_RETURN = const MessageKind(
+      'missing return');
+  static final MAYBE_MISSING_RETURN = const MessageKind(
+      'not all paths lead to a return or throw statement');
+
   static final CANNOT_RESOLVE = const MessageKind(
       'cannot resolve #{1}');
   static final CANNOT_RESOLVE_TYPE = const MessageKind(

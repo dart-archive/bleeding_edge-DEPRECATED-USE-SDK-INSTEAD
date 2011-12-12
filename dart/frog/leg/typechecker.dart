@@ -26,6 +26,33 @@ interface Type {
   Element get element();
 }
 
+/**
+ * A statement type tracks whether a statement returns or may return.
+ */
+class StatementType implements Type {
+  final String name;
+  String get element() => null;
+
+  const StatementType(this.name);
+
+  static final RETURNING = const StatementType('<returning>');
+  static final NOT_RETURNING = const StatementType('<not returning>');
+  static final MAYBE_RETURNING = const StatementType('<maybe returning>');
+
+  /** Combine the information about two control-flow edges that are joined. */
+  StatementType join(StatementType other) {
+    if (this === RETURNING && other === NOT_RETURNING) {
+      return MAYBE_RETURNING;
+    } else if (this === NOT_RETURNING && other === RETURNING) {
+      return MAYBE_RETURNING;
+    } else {
+      return other;
+    }
+  }
+
+  String toString() => name;
+}
+
 class SimpleType implements Type {
   final SourceString name;
   final Element element;
@@ -176,8 +203,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitBlock(Block node) {
-    analyze(node.statements);
-    return types.voidType;
+    return analyze(node.statements);
   }
 
   Type visitClassNode(ClassNode node) {
@@ -185,14 +211,14 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitDoWhile(DoWhile node) {
-    analyze(node.body);
+    StatementType bodyType = analyze(node.body);
     checkCondition(node.condition);
-    return types.voidType;
+    return bodyType.join(StatementType.NOT_RETURNING);
   }
 
   Type visitExpressionStatement(ExpressionStatement node) {
     analyze(node.expression);
-    return types.voidType;
+    return StatementType.NOT_RETURNING;
   }
 
   /** Dart Programming Language Specification: 11.5.1 For Loop */
@@ -200,8 +226,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
     analyze(node.initializer);
     checkCondition(node.condition);
     analyze(node.update);
-    analyze(node.body);
-    return types.voidType;
+    StatementType bodyType = analyze(node.body);
+    return bodyType.join(StatementType.NOT_RETURNING);
   }
 
   Type visitFunctionExpression(FunctionExpression node) {
@@ -210,28 +236,35 @@ class TypeCheckerVisitor implements Visitor<Type> {
     Type returnType = functionType.returnType;
     Type previous = expectedReturnType;
     expectedReturnType = returnType;
-    analyze(node.body);
+    StatementType bodyType = analyze(node.body);
+    if (returnType != types.voidType && returnType != types.dynamicType
+        && bodyType != StatementType.RETURNING) {
+      MessageKind kind;
+      if (bodyType == StatementType.MAYBE_RETURNING) {
+        kind = MessageKind.MAYBE_MISSING_RETURN;
+      } else {
+        kind = MessageKind.MISSING_RETURN;
+      }
+      reportTypeWarning(node.name, kind);
+    }
     expectedReturnType = previous;
     return functionType;
   }
 
   Type visitIdentifier(Identifier node) {
-    fail(node);
+    fail(node, 'internal error');
   }
 
   Type visitIf(If node) {
     checkCondition(node.condition);
-    analyze(node.thenPart);
-    if (node.hasElsePart) analyze(node.elsePart);
-    return types.voidType;
+    StatementType thenType = analyze(node.thenPart);
+    StatementType elseType = node.hasElsePart ? analyze(node.elsePart)
+                                              : StatementType.NOT_RETURNING;
+    return thenType.join(elseType);
   }
 
   Type visitLoop(Loop node) {
-    final conditionNode = node.condition;
-    Type conditionType = analyzeNonVoid(conditionNode);
-    checkAssignable(conditionNode, boolType, conditionType);
-    analyze(node.body);
-    return types.voidType;
+    fail(node, 'internal error');
   }
 
   Type lookupMethodType(Node node, ClassElement classElement,
@@ -380,18 +413,32 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitLiteralList(LiteralList node) {
-    return types.dynamicType;
+    fail(node, 'unimplemented');
   }
 
   Type visitNodeList(NodeList node) {
+    Type type = StatementType.NOT_RETURNING;
+    bool reportedDeadCode = false;
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
-      analyze(link.head);
+      Type nextType = analyze(link.head);
+      if (type == StatementType.RETURNING) {
+        if (!reportedDeadCode) {
+          reportTypeWarning(link.head, MessageKind.UNREACHABLE_CODE);
+          reportedDeadCode = true;
+        }
+      } else if (type == StatementType.MAYBE_RETURNING){
+        if (nextType == StatementType.RETURNING) {
+          type = nextType;
+        }
+      } else {
+        type = nextType;
+      }
     }
-    return null;
+    return type;
   }
 
   Type visitOperator(Operator node) {
-    return types.dynamicType;
+    fail(node, 'internal error');
   }
 
   /** Dart Programming Language Specification: 11.10 Return */
@@ -420,12 +467,12 @@ class TypeCheckerVisitor implements Visitor<Type> {
     } else if (!types.isAssignable(expectedReturnType, types.voidType)) {
       reportTypeWarning(node, MessageKind.RETURN_NOTHING, [expectedReturnType]);
     }
-    return null;
+    return StatementType.RETURNING;
   }
 
   Type visitThrow(Throw node) {
     if (node.expression !== null) analyze(node.expression);
-    return types.voidType;
+    return StatementType.RETURNING;
   }
 
   Type computeType(Element element) {
@@ -460,12 +507,13 @@ class TypeCheckerVisitor implements Visitor<Type> {
         checkAssignable(node, type, initializer);
       }
     }
-    return null;
+    return StatementType.NOT_RETURNING;
   }
 
   Type visitWhile(While node) {
     checkCondition(node.condition);
-    analyze(node.body);
+    StatementType bodyType = analyze(node.body);
+    return bodyType.join(StatementType.NOT_RETURNING);
   }
 
   Type visitParenthesizedExpression(ParenthesizedExpression node) {

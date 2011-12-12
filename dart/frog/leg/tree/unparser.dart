@@ -177,8 +177,9 @@ class Unparser implements Visitor {
   }
 
   visitThrow(Throw node) {
-    node.throwToken.value.printOn(sb);
+    add(node.throwToken.value);
     if (node.expression !== null) {
+      sb.add(' ');
       visit(node.expression);
     }
     node.endToken.value.printOn(sb);

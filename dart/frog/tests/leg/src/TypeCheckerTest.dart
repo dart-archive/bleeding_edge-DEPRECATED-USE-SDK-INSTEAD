@@ -24,6 +24,7 @@ main() {
                 testOperators,
                 testMethodInvocationArgumentCount,
                 testMethodInvocations,
+                testControlFlow,
                 testNewExpression,
                 testConditionalExpression,
                 testIfStatement];
@@ -190,6 +191,35 @@ void testMethodInvocations() {
   analyze(header + "int k = c.intTwoArgumentMethod(i, j); }");
   analyze(header + "ClassWithMethods x = c.intTwoArgumentMethod(i, j); }",
           MessageKind.NOT_ASSIGNABLE);
+}
+
+/** Tests analysis of returns (not required by the specification). */
+void testControlFlow() {
+  analyzeTopLevel("int foo() { if (true) { return 1; } }",
+                  MessageKind.MAYBE_MISSING_RETURN);
+  final bar =
+      """void bar() {
+        if (true) {
+          if (true) { return; } else { return; }
+        } else { return; }
+      }""";
+  analyzeTopLevel(bar);
+  analyzeTopLevel("void baz() { return; int i = 1; }",
+                  MessageKind.UNREACHABLE_CODE);
+  final qux =
+      """void qux() {
+        if (true) {
+          return;
+        } else if (true) {
+          if (true) {
+            return;
+          }
+          throw 'hest';
+        }
+        throw 'fisk';
+      }""";
+  analyzeTopLevel(qux);
+  analyzeTopLevel("int hest() {}", MessageKind.MISSING_RETURN);
 }
 
 testNewExpression() {
