@@ -1143,6 +1143,10 @@ class MethodMember extends Member {
           var x = assign.x; // DotExpression or VarExpression
           var fname = x.name.name;
           var val = generator.visitValue(assign.y);
+          if (!val.isConst) {
+            world.error('invalid non-const initializer in const constructor',
+                assign.y.span);
+          }
           fields[fname] = val;
         }
       }
@@ -1152,9 +1156,14 @@ class MethodMember extends Member {
 
     // Add default values only if they weren't overriden in the constructor.
     for (var f in declaringType.members.getValues()) {
-      if (f is FieldMember && !f.isStatic && f.value != null
-          && !fields.containsKey(f.name)) {
-        fields[f.name] = f.computeValue();
+      if (f is FieldMember && !f.isStatic && !fields.containsKey(f.name)) {
+        if (!f.isFinal) {
+          world.error('const class "${declaringType.name}" has non-final '
+              + 'field "${f.name}"', f.span);
+        }
+        if (f.value != null) {
+          fields[f.name] = f.computeValue();
+        }
       }
     }
 

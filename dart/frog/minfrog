@@ -5612,6 +5612,9 @@ MethodMember.prototype._invokeConstConstructor = function(node, code, target, ar
         var x = assign.x;
         var fname = x.get$name().get$name();
         var val = this.generator.visitValue(assign.y);
+        if (!val.get$isConst()) {
+          $globals.world.error('invalid non-const initializer in const constructor', assign.y.span);
+        }
         fields.$setindex(fname, val);
       }
     }
@@ -5620,8 +5623,13 @@ MethodMember.prototype._invokeConstConstructor = function(node, code, target, ar
   var $$list = this.declaringType.get$members().getValues();
   for (var $$i = this.declaringType.get$members().getValues().iterator$0(); $$i.hasNext$0(); ) {
     var f = $$i.next$0();
-    if ((f instanceof FieldMember) && !f.get$isStatic() && f.get$value() != null && !fields.containsKey(f.get$name())) {
-      fields.$setindex(f.get$name(), f.computeValue$0());
+    if ((f instanceof FieldMember) && !f.get$isStatic() && !fields.containsKey(f.get$name())) {
+      if (!f.get$isFinal()) {
+        $globals.world.error(('const class "' + this.declaringType.name + '" has non-final ') + ('field "' + f.get$name() + '"'), f.get$span());
+      }
+      if (f.get$value() != null) {
+        fields.$setindex(f.get$name(), f.computeValue$0());
+      }
     }
   }
   return $globals.world.gen.globalForConst(ConstObjectValue.ConstObjectValue$factory(target.get$type(), fields, code, node.span), args.values);
