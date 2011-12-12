@@ -24,6 +24,7 @@ find .. \( \
     -o -name Isolate_A01_t01.dart \
     -o -name Isolate_A02_t01.dart \
     -o -name IsNotClass4NegativeTest.dart \
+    -o -name NamedParameters9NegativeTest.dart \
     -o -name xcodebuild \
     \) -prune -o \
     -name \*.dart -type f -print \
@@ -54,4 +55,6 @@ find .. \( \
     | grep -v /tests/language/src/ParameterInitializer3NegativeTest.dart \
     | grep -v /compiler/javatests/com/google/dart/compiler/parser/FactoryInitializersNegativeTest.dart \
     | grep -v /frog/tests/leg_only/src/TypedLocalsTest.dart \
+    | grep -v '/editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/formatter/testsource/test006$A_in.dart' \
+    | grep -v '/editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/formatter/testsource/test006$A_out.dart' \
     | xargs grep -L -E 'native|@compile-error|@needsreview'

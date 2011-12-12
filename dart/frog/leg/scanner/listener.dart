@@ -62,7 +62,7 @@ class Listener {
   void beginFormalParameter(Token token) {
   }
 
-  void endFormalParameter(Token token) {
+  void endFormalParameter(Token token, Token thisKeyword) {
   }
 
   void beginFormalParameters(Token token) {
@@ -571,10 +571,14 @@ class NodeListener extends ElementListener {
     pushElement(new PartialFunctionElement(name.source, beginToken, endToken));
   }
 
-  void endFormalParameter(Token token) {
+  void endFormalParameter(Token token, Token thisKeyword) {
     NodeList name = new NodeList.singleton(popNode());
     TypeAnnotation type = popNode();
     pushNode(new VariableDefinitions(type, null, name, token));
+    if (thisKeyword !== null) {
+      canceler.cancel('field formal parameters not implemented',
+                      token: thisKeyword);
+    }
   }
 
   void endFormalParameters(int count, Token beginToken, Token endToken) {
@@ -974,7 +978,7 @@ class NodeListener extends ElementListener {
   void endLabelledStatement(Token colon) {
     Statement statement = popNode();
     Identifier label = popNode();
-    canceler.cancel('labels are not implemented', node: identifier);
+    canceler.cancel('labels are not implemented', node: label);
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,

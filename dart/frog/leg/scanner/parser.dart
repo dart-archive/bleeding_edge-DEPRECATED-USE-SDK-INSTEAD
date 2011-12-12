@@ -88,24 +88,30 @@ class Parser {
   Token parseFormalParameter(Token token) {
     listener.beginFormalParameter(token);
     if (optional('void', token)) {
+      // TODO(ahe): Validate that there are formal parameters.
       token = parseReturnTypeOpt(token);
-      token = parseIdentifier(token);
-      token = parseFormalParameters(token);
-      listener.handleFunctionTypedFormalParameter(token);
     } else {
       token = parseFinalVarOrTypeOpt(token);
-      token = parseIdentifier(token);
-      if (optional('(', token)) {
-        token = parseFormalParameters(token);
-        listener.handleFunctionTypedFormalParameter(token);
-      }
+    }
+    Token thisKeyword = null;
+    if (optional('this', token)) {
+      thisKeyword = token;
+      // TODO(ahe): Validate field initializers are only used in
+      // constructors, and not for function-typed arguments.
+      token = expect('.', token.next);
+    }
+    token = parseIdentifier(token);
+    if (optional('(', token)) {
+      token = parseFormalParameters(token);
+      listener.handleFunctionTypedFormalParameter(token);
     }
     if (optional('=', token)) {
+      // TODO(ahe): Validate that these are only used for optional parameters.
       Token equal = token;
       token = parseExpression(token.next);
       listener.handleValuedFormalParameter(equal, token);
     }
-    listener.endFormalParameter(token);
+    listener.endFormalParameter(token, thisKeyword);
     return token;
   }
 
@@ -124,14 +130,16 @@ class Parser {
   }
 
   Token parseTypeOpt(Token token) {
-    if (token.stringValue === 'var') return parseType(token);
-    Token peek = peekAfterType(token);
-    if (isIdentifier(peek)) {
-      return parseType(token);
-    } else {
-      listener.handleNoType(token);
-      return token;
+    String value = token.stringValue;
+    if (value === 'var') return parseType(token);
+    if (value !== 'this') {
+      Token peek = peekAfterType(token);
+      if (isIdentifier(peek) || optional('this', peek)) {
+        return parseType(token);
+      }
     }
+    listener.handleNoType(token);
+    return token;
   }
 
   bool isIdentifier(Token token) {
@@ -447,7 +455,7 @@ class Parser {
     // We are looking at "identifier ...".
     Token peek = token.next;
     if (peek.kind === PERIOD_TOKEN) {
-      if (peek.next.kind === IDENTIFIER_TOKEN) {
+      if (isIdentifier(peek.next)) {
         // Look past a library prefix.
         peek = peek.next.next;
       }
