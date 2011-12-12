@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.functions;
@@ -26,69 +24,70 @@ import org.eclipse.jface.text.rules.Token;
 /**
  * This scanner recognizes doc comments, multi-line comments, single-line comments, strings, and
  * multi-line strings, in addition to the default.
- * <p>
- * TODO Do string partitions include their delimiters?
  */
 public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPartitions {
+  private static class StringState {
+    /**
+     * The state that was current before this state.
+     */
+    private StringState previous;
 
-  // states
+    /**
+     * A flag indicating whether this string is a raw string.
+     */
+    private boolean raw;
+
+    /**
+     * The quote character used to start this string.
+     */
+    private int quote;
+
+    /**
+     * The number of quote characters (1 or 3) used to start this string.
+     */
+    private int quoteCount;
+
+    /**
+     * The number of unclosed braces that have been encountered in the current string interpolation.
+     */
+    private int braceCount;
+
+    /**
+     * Initialize a newly created string state to supersede the previous state.
+     * 
+     * @param previous the state that was current before this state
+     * @param raw a flag indicating whether this string is a raw string
+     * @param quote the quote character used to start this string
+     * @param quoteCount the number of quote characters (1 or 3) used to start this string
+     */
+    public StringState(StringState previous, boolean raw, int quote, int quoteCount) {
+      this.previous = previous;
+      this.raw = raw;
+      this.quote = quote;
+      this.quoteCount = quoteCount;
+      this.braceCount = 0;
+    }
+  }
+
+  // states corresponding to partitions (used to do lookup in tokens)
   private static final int CODE = 0;
   private static final int SINGLE_LINE_COMMENT = 1;
   private static final int MULTI_LINE_COMMENT = 2;
   private static final int DOC_COMMENT = 3;
   private static final int STRING = 4;
   private static final int MULTI_LINE_STRING = 5;
-
-  // beginning of prefixes and postfixes
-  private static final int NONE = 0;
-  // postfix for STRING and CHARACTER
-  private static final int BACKSLASH = 1;
-  // prefix for SINGLE_LINE or MULTI_LINE or DOC_COMMENT
-  private static final int SLASH = 2;
-  // prefix for MULTI_LINE_COMMENT or DOC_COMMENT
-  private static final int SLASH_STAR = 3;
-  // prefix for MULTI_LINE_COMMENT or DOC_COMMENT
-  private static final int SLASH_STAR_STAR = 4;
-  // postfix for MULTI_LINE_COMMENT or DOC_COMMENT
-  private static final int STAR = 5;
-  // postfix for STRING, CHARACTER and SINGLE_LINE_COMMENT
-  private static final int CARRIAGE_RETURN = 6;
-  // anti-postfix for STRING, CHARACTER
-  private static final int BACKSLASH_CARRIAGE_RETURN = 7;
-  private static final int DOUBLE_QUOTE = 8;
-  private static final int DOUBLE_QUOTE_QUOTE = 9;
-  private static final int DOUBLE_QUOTE_QUOTE_QUOTE = 10;
-  private static final int SINGLE_QUOTE = 11;
-  private static final int SINGLE_QUOTE_QUOTE = 12;
-  private static final int SINGLE_QUOTE_QUOTE_QUOTE = 13;
-
-  private static final int getLastLength(int last) {
-    switch (last) {
-      default:
-        return -1;
-
-      case NONE:
-        return 0;
-
-      case CARRIAGE_RETURN:
-      case BACKSLASH:
-      case SLASH:
-      case STAR:
-      case DOUBLE_QUOTE:
-      case SINGLE_QUOTE:
-        return 1;
-
-      case SLASH_STAR:
-      case DOUBLE_QUOTE_QUOTE:
-      case SINGLE_QUOTE_QUOTE:
-        return 2;
-
-      case SLASH_STAR_STAR:
-      case DOUBLE_QUOTE_QUOTE_QUOTE:
-      case SINGLE_QUOTE_QUOTE_QUOTE:
-        return 3;
-    }
-  }
+  // other states
+  private static final int SINGLE_LINE_COMMENT_PREFIX = 6;
+  private static final int MULTI_LINE_COMMENT_PREFIX = 7;
+  private static final int DOC_COMMENT_PREFIX = 8;
+  private static final int RAW_STRING_PREFIX = 9;
+  private static final int STRING_PREFIX = 10;
+  private static final int RAW_MULTI_LINE_STRING_PREFIX = 11;
+  private static final int MULTI_LINE_STRING_PREFIX = 12;
+  private static final int SIMPLE_INTERPOLATION_PREFIX = 13;
+  private static final int SIMPLE_INTERPOLATION = 14;
+  private static final int BLOCK_INTERPOLATION_PREFIX = 15;
+  private static final int BLOCK_INTERPOLATION = 16;
 
   private static int getState(String contentType) {
 
@@ -109,20 +108,31 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     }
   }
 
-  /** The scanner. */
+  /**
+   * The scanner used to read characters from the document.
+   */
   private final BufferedDocumentScanner scanner = new BufferedDocumentScanner(1000); // faster implementation
-  /** The offset of the last returned token. */
+
+  /**
+   * The offset of the last returned token.
+   */
   private int tokenOffset;
-  /** The length of the last returned token. */
+
+  /**
+   * The length of the last returned token.
+   */
   private int tokenLength;
-  /** The state of the scanner. */
+
+  /**
+   * The state of the scanner.
+   */
   private int scannerState;
-  /** The last significant characters read. */
-  private int lastChar;
-  /** The amount of characters already read on first call to nextToken(). */
-  private int prefixLength;
-  /** The active string delimiter while scanning a STRING or MULTI_LINE_STRING */
-  private int activeStringDelimiter;
+
+  /**
+   * The state of the string that we are currently parsing, or <code>null</code> if we are not
+   * inside a string.
+   */
+  private StringState stringState = null;
 
   private final IToken[] tokens = new IToken[] {
       new Token(null), new Token(DART_SINGLE_LINE_COMMENT), new Token(DART_MULTI_LINE_COMMENT),
@@ -132,342 +142,242 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     // create the scanner
   }
 
-  /*
-   * @see ITokenScanner#getTokenLength()
-   */
   @Override
   public int getTokenLength() {
     return tokenLength;
   }
 
-  /*
-   * @see ITokenScanner#getTokenOffset()
-   */
   @Override
   public int getTokenOffset() {
     return tokenOffset;
   }
 
-  /*
-   * @see org.eclipse.jface.text.rules.ITokenScanner#nextToken()
-   */
   @Override
   public IToken nextToken() {
     tokenOffset += tokenLength;
-    tokenLength = prefixLength;
-
-    // int lastNonWhitespaceChar = NONE;
-    int currentChar = NONE;
-
-    while (true) {
-      // if (!Character.isWhitespace((char) currentChar))
-      // lastNonWhitespaceChar = currentChar;
-
-      // read in the next char
-      currentChar = scanner.read();
-
-      // characters
-      switch (currentChar) {
-        case ICharacterScanner.EOF:
-          if (tokenLength > 0) {
-            lastChar = NONE; // ignore last
-            return preFix(scannerState, CODE, NONE, 0);
-
-          } else {
-            lastChar = NONE;
-            prefixLength = 0;
-            return Token.EOF;
-          }
-
-        case '\r':
-          if (scannerState == STRING && lastChar == BACKSLASH) {
-            lastChar = BACKSLASH_CARRIAGE_RETURN;
-            tokenLength++;
-            continue;
-          }
-          if (lastChar != CARRIAGE_RETURN) {
-            lastChar = CARRIAGE_RETURN;
-            tokenLength++;
-            continue;
-
-          } else {
-            switch (scannerState) {
-              case SINGLE_LINE_COMMENT:
-              case STRING:
-                if (tokenLength > 0) {
-                  IToken token = tokens[scannerState];
-
-                  lastChar = CARRIAGE_RETURN;
-                  prefixLength = 1;
-
-                  scannerState = CODE;
-                  return token;
-
-                } else {
-                  consume();
-                  continue;
-                }
-
-              default:
-                consume();
-                continue;
-            }
-          }
-
-        case '\n':
-        case '\u2028':
-        case '\u2029':
-          switch (scannerState) {
-            case STRING:
-              if (lastChar == BACKSLASH || lastChar == BACKSLASH_CARRIAGE_RETURN) {
-                consume();
-                continue;
-              }
-            case SINGLE_LINE_COMMENT:
-              return postFix(scannerState);
-
-            default:
-              consume();
-              continue;
-          }
-
-        default:
-          if (lastChar == CARRIAGE_RETURN) {
-            switch (scannerState) {
-              case SINGLE_LINE_COMMENT:
-              case STRING:
-
-                int last;
-                int newState;
-                switch (currentChar) {
-                  case '/':
-                    last = SLASH;
-                    newState = CODE;
-                    break;
-
-                  case '*':
-                    last = STAR;
-                    newState = CODE;
-                    break;
-
-                  case '\'':
-                  case '"':
-                    last = NONE;
-                    newState = STRING;
-                    break;
-
-                  case '\r':
-                    last = CARRIAGE_RETURN;
-                    newState = CODE;
-                    break;
-
-                  case '\\':
-                    last = BACKSLASH;
-                    newState = CODE;
-                    break;
-
-                  default:
-                    last = NONE;
-                    newState = CODE;
-                    break;
-                }
-
-                lastChar = NONE; // ignore lastChar
-                return preFix(scannerState, newState, last, 1);
-
-              default:
-                break;
-            }
-          }
-      }
-
-      // states
+    tokenLength = 0;
+    int currentChar = scanner.peek(0);
+    while (currentChar != ICharacterScanner.EOF) {
       switch (scannerState) {
-        case CODE:
-          switch (currentChar) {
-            case '/':
-              if (lastChar == SLASH) {
-                if (tokenLength - getLastLength(lastChar) > 0) {
-                  return preFix(CODE, SINGLE_LINE_COMMENT, NONE, 2);
-                } else {
-                  preFix(CODE, SINGLE_LINE_COMMENT, NONE, 2);
-                  tokenOffset += tokenLength;
-                  tokenLength = prefixLength;
-                  break;
-                }
-
-              } else {
-                tokenLength++;
-                lastChar = SLASH;
-                break;
-              }
-
-            case '*':
-              if (lastChar == SLASH) {
-                if (tokenLength - getLastLength(lastChar) > 0) {
-                  return preFix(CODE, MULTI_LINE_COMMENT, SLASH_STAR, 2);
-                } else {
-                  preFix(CODE, MULTI_LINE_COMMENT, SLASH_STAR, 2);
-                  tokenOffset += tokenLength;
-                  tokenLength = prefixLength;
-                  break;
-                }
-
-              } else {
-                consume();
-                break;
-              }
-
-            case '\'':
-            case '\"':
-              activeStringDelimiter = currentChar;
-              lastChar = NONE; // ignore lastChar
-              if (tokenLength > 0) {
-                // set lastChar = currentChar
-                return preFix(CODE, STRING, currentChar, 1);
-              } else {
-                // set lastChar = currentChar
-                preFix(CODE, STRING, currentChar, 1);
-                tokenOffset += tokenLength;
-                tokenLength = prefixLength;
-                break;
-              }
-
-            default:
-              consume();
-              break;
-          }
+        case SINGLE_LINE_COMMENT_PREFIX:
+          advance();
+          advance();
+          scannerState = SINGLE_LINE_COMMENT;
           break;
-
         case SINGLE_LINE_COMMENT:
-          consume();
-          break;
-
-        case DOC_COMMENT:
-          switch (currentChar) {
-            case '/':
-              switch (lastChar) {
-                case SLASH_STAR_STAR:
-                  return postFix(MULTI_LINE_COMMENT);
-
-                case STAR:
-                  return postFix(DOC_COMMENT);
-
-                default:
-                  consume();
-                  break;
-              }
-              break;
-
-            case '*':
-              tokenLength++;
-              lastChar = STAR;
-              break;
-
-            default:
-              consume();
-              break;
+          if (isEol(currentChar)) {
+            scannerState = CODE;
+            return tokens[SINGLE_LINE_COMMENT];
           }
+          advance();
           break;
-
+        case MULTI_LINE_COMMENT_PREFIX:
+          advance();
+          advance();
+          scannerState = MULTI_LINE_COMMENT;
+          break;
         case MULTI_LINE_COMMENT:
-          switch (currentChar) {
-            case '*':
-              if (lastChar == SLASH_STAR) {
-                lastChar = SLASH_STAR_STAR;
-                tokenLength++;
-                scannerState = DOC_COMMENT;
-              } else {
-                tokenLength++;
-                lastChar = STAR;
-              }
-              break;
-
-            case '/':
-              if (lastChar == STAR) {
-                return postFix(MULTI_LINE_COMMENT);
-              } else {
-                consume();
-                break;
-              }
-
-            default:
-              consume();
-              break;
+          if (currentChar == '*') {
+            advance();
+            if (scanner.peek(0) == '/') {
+              advance();
+              scannerState = CODE;
+              return tokens[MULTI_LINE_COMMENT];
+            }
+          } else {
+            advance();
           }
           break;
-
+        case DOC_COMMENT_PREFIX:
+          advance();
+          advance();
+          advance();
+          scannerState = DOC_COMMENT;
+          break;
+        case DOC_COMMENT:
+          if (currentChar == '*') {
+            advance();
+            if (scanner.peek(0) == '/') {
+              advance();
+              scannerState = CODE;
+              return tokens[DOC_COMMENT];
+            }
+          } else {
+            advance();
+          }
+          break;
+        case RAW_STRING_PREFIX:
+          advance();
+        case STRING_PREFIX:
+          advance();
+          scannerState = STRING;
+          break;
         case STRING:
-          switch (currentChar) {
-            case '\\':
-              lastChar = (lastChar == BACKSLASH) ? NONE : BACKSLASH;
-              tokenLength++;
-              break;
-
-            case '\'':
-            case '\"':
-              if (currentChar != activeStringDelimiter) {
-                consume();
-                break;
-              }
-              if (lastChar == currentChar) {
-                int ch = scanner.read();
-                if (ch == currentChar) {
-                  tokenLength++;
-                  lastChar = activeStringDelimiter == '\"' ? DOUBLE_QUOTE_QUOTE
-                      : SINGLE_QUOTE_QUOTE;
-                  return preFix(CODE, MULTI_LINE_STRING, NONE, 3);
-                }
-                scanner.unread();
-              }
-              if (lastChar != BACKSLASH) {
-                return postFix(STRING);
-
-              } else {
-                consume();
-                break;
-              }
-
-            default:
-              consume();
-              break;
+          if (isEol(currentChar)) {
+            stringState = stringState.previous;
+            if (stringState == null) {
+              scannerState = CODE;
+            } else {
+              scannerState = BLOCK_INTERPOLATION;
+            }
+            return tokens[STRING];
+          } else if (currentChar == stringState.quote) {
+            advance();
+            stringState = stringState.previous;
+            if (stringState == null) {
+              scannerState = CODE;
+            } else {
+              scannerState = BLOCK_INTERPOLATION;
+            }
+            return tokens[STRING];
+          } else if (currentChar == '\\') {
+            advance();
+            if (scanner.peek(0) == stringState.quote) {
+              advance();
+            }
+          } else if (!stringState.raw && currentChar == '$') {
+            if (scanner.peek(1) == '{') {
+              scannerState = BLOCK_INTERPOLATION_PREFIX;
+            } else {
+              scannerState = SIMPLE_INTERPOLATION_PREFIX;
+            }
+            return tokens[STRING];
+          } else {
+            advance();
           }
           break;
-
+        case RAW_MULTI_LINE_STRING_PREFIX:
+          advance();
+        case MULTI_LINE_STRING_PREFIX:
+          advance();
+          advance();
+          advance();
+          scannerState = MULTI_LINE_STRING;
+          break;
         case MULTI_LINE_STRING:
-          switch (currentChar) {
-            case '\"':
-            case '\'':
-              if (currentChar != activeStringDelimiter) {
-                consume();
-                break;
+          if (currentChar == stringState.quote) {
+            advance();
+            if (scanner.peek(0) == stringState.quote) {
+              advance();
+              if (scanner.peek(0) == stringState.quote) {
+                advance();
+                stringState = stringState.previous;
+                if (stringState == null) {
+                  scannerState = CODE;
+                } else {
+                  scannerState = BLOCK_INTERPOLATION;
+                }
+                return tokens[MULTI_LINE_STRING];
               }
-              if (lastChar == DOUBLE_QUOTE_QUOTE) {
-                lastChar = DOUBLE_QUOTE_QUOTE_QUOTE;
-                return postFix(MULTI_LINE_STRING);
-              } else if (lastChar == DOUBLE_QUOTE) {
-                lastChar = DOUBLE_QUOTE_QUOTE;
-              } else if (lastChar == SINGLE_QUOTE_QUOTE) {
-                lastChar = SINGLE_QUOTE_QUOTE_QUOTE;
-                return postFix(MULTI_LINE_STRING);
-              } else if (lastChar == SINGLE_QUOTE) {
-                lastChar = SINGLE_QUOTE_QUOTE;
-              } else {
-                lastChar = activeStringDelimiter == '\"' ? DOUBLE_QUOTE : SINGLE_QUOTE;
-              }
-              tokenLength++;
-              break;
-            default:
-              consume();
-              break;
+            }
+          } else if (currentChar == '\\') {
+            advance();
+            if (scanner.peek(0) == stringState.quote) {
+              advance();
+            }
+          } else if (!stringState.raw && currentChar == '$') {
+            if (scanner.peek(1) == '{') {
+              scannerState = BLOCK_INTERPOLATION_PREFIX;
+            } else {
+              scannerState = SIMPLE_INTERPOLATION_PREFIX;
+            }
+            return tokens[MULTI_LINE_STRING];
+          } else {
+            advance();
           }
+          break;
+        case SIMPLE_INTERPOLATION_PREFIX:
+          advance();
+          scannerState = SIMPLE_INTERPOLATION;
+          break;
+        case SIMPLE_INTERPOLATION:
+          if (!isIdentifierChar(currentChar)) {
+            if (stringState.quoteCount == 1) {
+              scannerState = STRING;
+            } else {
+              scannerState = MULTI_LINE_STRING;
+            }
+            return tokens[CODE];
+          }
+          advance();
+          break;
+        case BLOCK_INTERPOLATION_PREFIX:
+          advance();
+          advance();
+          scannerState = BLOCK_INTERPOLATION;
+          break;
+        case BLOCK_INTERPOLATION:
+          if (currentChar == '}') {
+            if (stringState.braceCount == 0) {
+              advance();
+              if (stringState.quoteCount == 1) {
+                scannerState = STRING;
+              } else {
+                scannerState = MULTI_LINE_STRING;
+              }
+              return tokens[CODE];
+            } else {
+              stringState.braceCount--;
+            }
+          } else if (currentChar == '{') {
+            stringState.braceCount++;
+          }
+          // Intentional fall-through
+        case CODE:
+          if (currentChar == '/') {
+            int nextChar = scanner.peek(1);
+            if (nextChar == '*') {
+              scannerState = MULTI_LINE_COMMENT_PREFIX;
+              if (scanner.peek(2) == '*' && scanner.peek(3) != '/') {
+                scannerState = DOC_COMMENT_PREFIX;
+              }
+              return tokens[CODE];
+            } else if (nextChar == '/') {
+              scannerState = SINGLE_LINE_COMMENT_PREFIX;
+              return tokens[CODE];
+            } else {
+              advance();
+            }
+          } else if (currentChar == '@') {
+            int secondChar = scanner.peek(1);
+            if (secondChar == '\'' || secondChar == '"') {
+              int thirdChar = scanner.peek(2);
+              int fourthChar = scanner.peek(3);
+              if (thirdChar == secondChar && fourthChar == secondChar) {
+                stringState = new StringState(stringState, true, secondChar, 3);
+                scannerState = RAW_MULTI_LINE_STRING_PREFIX;
+              } else {
+                stringState = new StringState(stringState, true, secondChar, 1);
+                scannerState = RAW_STRING_PREFIX;
+              }
+              return tokens[CODE];
+            } else {
+              advance();
+            }
+          } else if (currentChar == '\'' || currentChar == '"') {
+            int secondChar = scanner.peek(1);
+            int thirdChar = scanner.peek(2);
+            if (secondChar == currentChar && thirdChar == currentChar) {
+              stringState = new StringState(stringState, false, currentChar, 3);
+              scannerState = MULTI_LINE_STRING_PREFIX;
+            } else {
+              stringState = new StringState(stringState, false, currentChar, 1);
+              scannerState = STRING_PREFIX;
+            }
+            return tokens[CODE];
+          } else {
+            advance();
+          }
+          break;
       }
+      currentChar = scanner.peek(0);
     }
+    if (tokenLength > 0) {
+      return tokens[scannerState];
+    }
+    return Token.EOF;
   }
 
-  /*
-   * @see IPartitionTokenScanner#setPartialRange(IDocument, int, int, String, int)
-   */
   @Override
   public void setPartialRange(IDocument document, int offset, int length, String contentType,
       int partitionOffset) {
@@ -480,8 +390,6 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     scanner.setRange(document, offset, length);
     tokenOffset = partitionOffset;
     tokenLength = 0;
-    prefixLength = offset - partitionOffset;
-    lastChar = NONE;
 
     if (offset == partitionOffset) {
       // restart at beginning of partition
@@ -491,39 +399,25 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     }
   }
 
-  /*
-   * @see ITokenScanner#setRange(IDocument, int, int)
-   */
   @Override
   public void setRange(IDocument document, int offset, int length) {
     scanner.setRange(document, offset, length);
     tokenOffset = offset;
     tokenLength = 0;
-    prefixLength = 0;
-    lastChar = NONE;
     scannerState = CODE;
   }
 
-  private final void consume() {
+  private void advance() {
     tokenLength++;
-    lastChar = NONE;
+    scanner.read();
   }
 
-  private final IToken postFix(int state) {
-    tokenLength++;
-    lastChar = NONE;
-    scannerState = CODE;
-    prefixLength = 0;
-    return tokens[state];
+  private boolean isEol(int character) {
+    return character == '\r' || character == '\n' || character == '\u2028' || character == '\u2029';
   }
 
-  private final IToken preFix(int state, int newState, int last, int prefLength) {
-    tokenLength -= getLastLength(lastChar);
-    lastChar = last;
-    prefixLength = prefLength;
-    IToken token = tokens[state];
-    scannerState = newState;
-    return token;
+  private boolean isIdentifierChar(int character) {
+    return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z')
+        || (character >= '0' && character <= '9') || character == '_';
   }
-
 }

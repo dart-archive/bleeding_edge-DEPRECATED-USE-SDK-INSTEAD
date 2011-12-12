@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.functions;
@@ -58,9 +56,6 @@ public final class BufferedDocumentScanner implements ICharacterScanner {
     fBuffer = new char[size];
   }
 
-  /*
-   * @see ICharacterScanner#getColumn()
-   */
   @Override
   public final int getColumn() {
 
@@ -75,17 +70,46 @@ public final class BufferedDocumentScanner implements ICharacterScanner {
     return -1;
   }
 
-  /*
-   * @see ICharacterScanner#getLegalLineDelimiters()
-   */
   @Override
   public final char[][] getLegalLineDelimiters() {
     return fDelimiters;
   }
 
-  /*
-   * @see ICharacterScanner#read()
+  /**
+   * Peek ahead in the buffer without changing the current offset. The distance, which must be both
+   * non-negative and less than the maximum size of the buffer, is the number of characters past the
+   * current position to look. A distance of zero (<code>0</code>) will return the same character
+   * that {@link #read()} would return, but without advancing the position.
+   * 
+   * @param distance the number of characters past the current character to look
+   * @return the character at the specified position, or {@link ICharacterScanner#EOF} if the
+   *         position is past the end of the document
    */
+  public final int peek(int distance) {
+    if (distance < 0) {
+      throw new IllegalArgumentException("Cannot peek before current position (distance = "
+          + distance + ")");
+    } else if (distance >= fBuffer.length) {
+      throw new IllegalArgumentException("Cannot peek more than " + (fBuffer.length - 1)
+          + " character after the current position (distance = " + distance + ")");
+    }
+    int targetOffset = fOffset + distance;
+    if (targetOffset >= fBufferLength) {
+      int end = fBufferOffset + fBufferLength;
+      if (end == fDocument.getLength() || end == fRangeOffset + fRangeLength) {
+        return EOF;
+      } else {
+        updateBuffer(fBufferOffset + fBufferLength);
+        fOffset = 0;
+      }
+    }
+    if (targetOffset < fBufferLength) {
+      return fBuffer[targetOffset];
+    } else {
+      return EOF;
+    }
+  }
+
   @Override
   public final int read() {
 
@@ -142,9 +166,6 @@ public final class BufferedDocumentScanner implements ICharacterScanner {
     fOffset = 0;
   }
 
-  /*
-   * @see ICharacterScanner#unread
-   */
   @Override
   public final void unread() {
 
