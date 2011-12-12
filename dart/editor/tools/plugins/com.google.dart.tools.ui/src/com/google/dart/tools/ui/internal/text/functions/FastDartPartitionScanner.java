@@ -124,6 +124,12 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
   private int tokenLength;
 
   /**
+   * At the beginning of a scan, the number of characters between the beginning of the partition and
+   * the beginning of the range being scanned. At other times, zero (0).
+   */
+  private int prefixLength;
+
+  /**
    * The state of the scanner.
    */
   private int scannerState;
@@ -155,7 +161,8 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
   @Override
   public IToken nextToken() {
     tokenOffset += tokenLength;
-    tokenLength = 0;
+    tokenLength = prefixLength;
+    prefixLength = 0;
     int currentChar = scanner.peek(0);
     while (currentChar != ICharacterScanner.EOF) {
       switch (scannerState) {
@@ -390,6 +397,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     scanner.setRange(document, offset, length);
     tokenOffset = partitionOffset;
     tokenLength = 0;
+    prefixLength = offset - partitionOffset;
 
     if (offset == partitionOffset) {
       // restart at beginning of partition
@@ -404,6 +412,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     scanner.setRange(document, offset, length);
     tokenOffset = offset;
     tokenLength = 0;
+    prefixLength = 0;
     scannerState = CODE;
   }
 
