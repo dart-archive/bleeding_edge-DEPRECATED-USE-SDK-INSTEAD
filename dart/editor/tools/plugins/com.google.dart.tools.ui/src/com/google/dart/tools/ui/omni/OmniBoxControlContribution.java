@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni;
 
+import org.eclipse.core.commands.Command;
 import org.eclipse.jface.bindings.keys.SWTKeySupport;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.SWT;
@@ -29,8 +30,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -46,6 +45,42 @@ import java.util.Map.Entry;
  * Contributes the omnibox toolbar control.
  */
 public class OmniBoxControlContribution extends WorkbenchWindowControlContribution {
+
+  private final class Popup extends OmniBoxPopup {
+
+    private Popup(IWorkbenchWindow window, Command invokingCommand) {
+      super(window, invokingCommand);
+    }
+
+    /**
+     * Close the popup and reset the searchbox to it's initial state.
+     */
+    @Override
+    public boolean close() {
+      setWatermarkText();
+      defocus();
+      return simpleClose();
+    }
+
+    @Override
+    protected Point getDefaultLocation(Point initialSize) {
+      return locationRelativeToControl(textControl);
+    }
+
+    @Override
+    protected Point getDefaultSize() {
+      return new Point(textControl.getSize().x - POPUP_PIXEL_HORIZ_NUDGE * 2, 360);
+    }
+
+    /**
+     * Simple close of the pop-up (that does not reset the watermark or change focus).
+     * 
+     * @see OmniBoxPopup#close()
+     */
+    protected boolean simpleClose() {
+      return super.close();
+    }
+  }
 
   /**
    * Map of windows to control contributions. Needed in order to calculate an appropriate location
@@ -112,7 +147,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
 
   private boolean inControl;
 
-  private OmniBoxPopup popup;
+  private Popup popup;
 
   //used to track whether text is being modified programmatically (e.g., watermark-setting)
   private boolean listenForTextModify = true;
@@ -266,7 +301,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
       }
       refreshPopup();
     } else {
-      popup.close();
+      popup.simpleClose();
     }
   }
 
@@ -338,40 +373,9 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   }
 
   private void openPopup() {
-    popup = new OmniBoxPopup(getWorkbenchWindow(), null) {
-      @Override
-      public boolean close() {
-        setWatermarkText();
-        defocus();
-        return super.close();
-      }
-
-      @Override
-      protected Point getDefaultLocation(Point initialSize) {
-        return locationRelativeToControl(textControl);
-      }
-
-      @Override
-      protected Point getDefaultSize() {
-        return new Point(textControl.getSize().x - POPUP_PIXEL_HORIZ_NUDGE * 2, 360);
-      }
-
-    };
+    popup = new Popup(getWorkbenchWindow(), null);
     popup.setFilterControl(textControl);
     popup.open();
-
-    if (Util.isMac()) {
-      textControl.addListener(SWT.Deactivate, new Listener() {
-        @Override
-        public void handleEvent(Event event) {
-          //selecting the scrollbar will deactivate but in that case we don't want to close
-          if (event.display.getFocusControl() != popup.table) {
-            popup.close();
-          }
-          textControl.removeListener(SWT.Deactivate, this);
-        }
-      });
-    }
   }
 
   private boolean popupClosed() {
