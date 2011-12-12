@@ -78,13 +78,6 @@ function(child, parent) {
         addInstanceMember(member, prototype, buffer);      
       }
     }
-
-    Element synthesized = classElement.synthesizedConstructor;
-    if (synthesized !== null) {
-      String codeBlock = compiler.universe.generatedCode[synthesized];
-      assert(codeBlock !== null);
-      buffer.add('${namer.isolatePropertyAccess(synthesized)} = $codeBlock;\n');
-    }
   }
 
   String compileClasses(StringBuffer buffer) {

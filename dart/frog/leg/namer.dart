@@ -69,7 +69,7 @@ class Namer {
         String name = '${element.name}';
         // Prefix the name with '$' if it is reserved.
         if (jsReserved.contains(name)) {
-          name = "\$$propertyName";
+          name = "\$$name";
           assert(!jsReserved.contains(name));
         }
         return name;
