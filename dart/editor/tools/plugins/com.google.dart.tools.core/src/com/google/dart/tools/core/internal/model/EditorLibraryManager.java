@@ -145,7 +145,7 @@ public abstract class EditorLibraryManager extends SystemLibraryManager {
       return false;
     }
     if (DartCoreDebug.DARTLIB) {
-      DartCore.logInformation("Found dart:" + name + " in " + dir);
+      DartCore.logInformation("Found dart:" + name + " in " + libFile);
     }
     SystemLibrary lib = new SystemLibrary(name, host, libFileName, dir);
     libraries.add(lib);

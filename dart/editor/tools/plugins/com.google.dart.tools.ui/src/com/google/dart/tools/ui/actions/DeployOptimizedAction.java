@@ -74,6 +74,15 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
+//      IPath path = new Path(file.getAbsolutePath());
+//      try {
+//        FrogManager.getServer().compile(path, null);
+//      } catch (Exception e) {
+//        String message = "Failed to Generate Optimized Javascript for " + path;
+//        DartCore.logError(message, e);
+//        return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0, message, e);
+//      }
+//      return Status.OK_STATUS;
       return deployOptimizedLibrary(monitor, page, file, library);
     }
   }

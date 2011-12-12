@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core;
 
+import com.google.dart.tools.core.frog.FrogManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
@@ -666,6 +667,7 @@ public class DartCore extends Plugin {
     try {
       DartModelManager.shutdown();
       RootArtifactProvider.shutdown();
+      FrogManager.shutdown();
 
       StringWriter writer = new StringWriter();
       PerformanceManager.getInstance().printMetrics(new PrintWriter(writer));
