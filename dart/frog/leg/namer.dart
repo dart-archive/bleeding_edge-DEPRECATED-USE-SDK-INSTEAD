@@ -76,12 +76,12 @@ class Namer {
     }
   }
 
-  String setterName(Element element) {
-    return 'set\$${element.name}';
+  String setterName(SourceString name) {
+    return 'set\$$name';
   }
 
-  String getterName(Element element) {
-    return 'get\$${element.name}';
+  String getterName(SourceString name) {
+    return 'get\$$name';
   }
 
   /**
@@ -115,12 +115,12 @@ class Namer {
   String isolateAccess(Element element) {
     String jsId = globals[element];
     if (jsId === null) jsId = define(element);
-    return "$currentIsolate.$jsId"; 
+    return "$currentIsolate.$jsId";
   }
 
   String isolatePropertyAccess(Element element) {
     String jsId = globals[element];
     if (jsId === null) jsId = define(element);
-    return "$isolate.prototype.$jsId";     
+    return "$isolate.prototype.$jsId";
   }
 }

@@ -297,7 +297,6 @@ class FullResolverVisitor extends ResolverVisitor {
         error(node, MessageKind.CANNOT_RESOLVE, [name]);
       }
     } else if (receiver.kind === ElementKind.CLASS) {
-      // TODO(ngeoffray): Find the element in the class.
       ClassElement receiverClass = receiver;
       target = receiverClass.lookupLocalElement(name);
     }
@@ -313,12 +312,15 @@ class FullResolverVisitor extends ResolverVisitor {
     Element target;
     if (node.isIndex) {
       target = compiler.universe.find(const SourceString('indexSet'));
-    } else {
+    } else if (receiver == null) {
       target = context.lookup(selector.source);
-    }
-    // TODO(ngeoffray): Check if the enclosingElement has 'this'.
-    if (target == null) {
-      error(node, MessageKind.CANNOT_RESOLVE, [node]);
+      if (target == null) {
+        // TODO(ngeoffray): Check if the enclosingElement has 'this'.
+        error(selector, MessageKind.CANNOT_RESOLVE, [selector]);
+      }
+    } else if (receiver.kind == ElementKind.CLASS) {
+      ClassElement receiverClass = receiver;
+      target = receiverClass.lookupLocalElement(name);
     }
 
     Identifier op = node.assignmentOperator;

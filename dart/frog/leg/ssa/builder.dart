@@ -606,8 +606,6 @@ class SsaBuilder implements Visitor {
 
   visitSend(Send node) {
     Element element = elements[node];
-    // TODO(kasperl): This only works for very special cases. Make
-    // this way more general soon.
     if (node.selector is Operator) {
       Operator op = node.selector;
       if (const SourceString("[]") == op.source) {
@@ -634,16 +632,25 @@ class SsaBuilder implements Visitor {
         visitBinary(left, op, right, element);
       }
     } else if (node.isPropertyAccess) {
-      if (node.receiver !== null) {
-        compiler.unimplemented("SsaBuilder.visitSend with receiver");
-      }
       if (Elements.isStaticOrTopLevelField(element)) {
         push(new HStatic(element));
       } else if (Elements.isInstanceField(element)) {
-        String methodName = compiler.namer.getterName(element);
+        String methodName = compiler.namer.getterName(element.name);
         HInstruction receiver = new HThis();
         add(receiver);
         push(new HInvokeDynamicGetter(element, methodName, receiver));
+      } else if (element == null) {
+        SourceString dartGetterName = node.selector.asIdentifier().source;
+        String jsGetterName = compiler.namer.getterName(dartGetterName);
+        HInstruction receiver;
+        if (node.receiver == null) {
+          receiver = new HThis();
+          add(receiver);
+        } else {
+          visit(node.receiver);
+          receiver = pop();
+        }
+        push(new HInvokeDynamicGetter(null, jsGetterName, receiver));
       } else {
         HInstruction instruction = definitions[element];
         if (instruction === null) {
@@ -756,7 +763,7 @@ class SsaBuilder implements Visitor {
         add(new HStaticStore(element, value));
         stack.add(value);
       } else if (Elements.isInstanceField(element)) {
-        String methodName = compiler.namer.setterName(element);
+        String methodName = compiler.namer.setterName(element.name);
         HInstruction receiver = new HThis();
         add(receiver);
         add(new HInvokeDynamicSetter(element, methodName, receiver, value));

@@ -13,6 +13,7 @@ void expectEquals(var expected, var actual) {
 class A {
   foo() { return 499; }
   bar(x) { return x + 499; }
+  baz() { return 54; }
 }
 
 class B {
@@ -35,4 +36,7 @@ void main() {
   var c = new C();
   expectEquals(99, c.foo());
   expectEquals(100, c.bar(1));
+
+  expectEquals(54, a.baz());
+  expectEquals(54, c.baz());
 }

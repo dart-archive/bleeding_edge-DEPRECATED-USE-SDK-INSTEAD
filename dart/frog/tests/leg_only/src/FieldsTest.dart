@@ -12,18 +12,26 @@ void expectEquals(var expected, var actual) {
 
 class A {
   A() {
-    x = 42;
   }
   int x;
 
   foo() {
-    expectEquals(x, 42);
+    x = 42;
+    expectEquals(42, x);
     x = 0;
-    expectEquals(x, 0);
+    expectEquals(0, x);
   }
+}
+
+class B extends A {
 }
 
 main() {
   A a = new A();
   a.foo();
+  expectEquals(0, a.x);
+
+  B b = new B();
+  b.foo();
+  expectEquals(0, b.x);
 }
