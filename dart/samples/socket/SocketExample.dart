@@ -10,10 +10,6 @@
  */
 class SocketExample {
 
-  static void main() {
-    new SocketExample().go();
-  }
-
   int bytesSent = 0;
   int bytesReceived = 0;
   final int bytesTotal = 8;
@@ -35,7 +31,7 @@ class SocketExample {
     if (serverSocket == null) {
       throw "can't get server socket";
     }
-    serverSocket.setConnectionHandler(onConnect);
+    serverSocket.connectionHandler = onConnect;
     print("accepting connections on ${host}:${serverSocket.port}");
 
     // initialize the sender
@@ -60,10 +56,10 @@ class SocketExample {
     }, 500, true );
   }
 
-  void onConnect() {
-    receiveSocket = serverSocket.accept();
+  void onConnect(Socket connection) {
+    receiveSocket = connection;
     inputStream = receiveSocket.inputStream;
-    receiveBytes();
+    inputStream.dataHandler = receiveBytes;
   }
 
   void sendByte() {
@@ -73,22 +69,19 @@ class SocketExample {
   }
 
   void receiveBytes() {
-    bool gotData = inputStream.read(receiveBuffer, 0, 4, bufferReady);
-    if (gotData) {
-      bufferReady();
+    int numBytes = inputStream.readInto(receiveBuffer, 0, 4);
+    if (numBytes == 0) {
+      return;
     }
-  }
 
-  // receive buffer has been filled
-  void bufferReady() {
-    bytesReceived += receiveBuffer.length;
-    print("received ${receiveBuffer.length} bytes (${bytesReceived} bytes total)");
-    if (bytesReceived < bytesTotal) {
-      receiveBytes();
-    } else {
+    bytesReceived += numBytes;
+    print("received ${numBytes} bytes (${bytesReceived} bytes total)");
+    if (bytesReceived >= bytesTotal) {
       receiveSocket.close();
       serverSocket.close();
       print("done");
     }
   }
 }
+
+void main() => new SocketExample().go();
