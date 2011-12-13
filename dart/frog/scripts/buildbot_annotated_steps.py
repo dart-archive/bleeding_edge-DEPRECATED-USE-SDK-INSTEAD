@@ -18,7 +18,7 @@ BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 
 FROG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-BUILDER_PATTERN = r'(frog|frogsh)-linux-(debug|release)'
+BUILDER_PATTERN = r'(frog|frogsh|frogium)-linux-(debug|release)'
 
 def GetBuildInfo():
   """Returns a tuple (name, mode) where:
@@ -70,7 +70,7 @@ def TestStep(name, mode, component, targets, flags):
 def TestFrog(arch, mode):
   """ build and test frog.
    Args:
-     - arch: either 'frog' or 'frogsh' (frog self-hosted)
+     - arch: either 'frog', 'frogsh' (frog self-hosted), or 'frogium'
      - mode: either 'debug' (with type checks) or 'release' (without)
   """
 
@@ -83,17 +83,19 @@ def TestFrog(arch, mode):
       [sys.executable, '../tools/build.py', '--mode=' + testpy_mode]) != 0:
     return 1
 
-  if TestStep("frog", testpy_mode, arch,
-      ['language', 'corelib', 'isolate', 'frog', 'leg', 'peg', 'await'],
-      flags) != 0:
-    return 1
+  if arch != 'frogium': # frog and frogsh
+    if TestStep("frog", testpy_mode, arch,
+        ['language', 'corelib', 'isolate', 'frog', 'leg', 'peg', 'await'],
+        flags) != 0:
+      return 1
 
-  if TestStep("leg only", testpy_mode, 'leg', ['leg_only'], flags) != 0:
-    return 1
-
-  if (arch == 'frogsh' and
-      TestStep("client", testpy_mode, 'frogium', ['client'], flags) != 0):
-    return 1
+    if TestStep("leg only", testpy_mode, 'leg', ['leg_only'], flags) != 0:
+      return 1
+  else:
+    if (TestStep("browser", testpy_mode, 'frogium',
+          ['client', 'language', 'corelib', 'isolate', 'frog',
+           'leg', 'peg', 'await'], flags) != 0):
+      return 1
 
   return 0
 
