@@ -167,6 +167,10 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
       node.accept(childVisitor);
     } catch (DartElementFoundException exception) {
       // A node with the right source position was found.
+    } catch (Exception exception) {
+      DartCore.logInformation("Unable to locate element at offset (" + startOffset + " - "
+          + endOffset + ") in " + compilationUnit.getElementName(), exception);
+      return null;
     }
     return foundElement;
   }
