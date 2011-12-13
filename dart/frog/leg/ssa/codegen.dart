@@ -320,10 +320,19 @@ class SsaCodeGenerator implements HVisitor {
   visitInvokeDynamic(HInvokeDynamic node) {
     use(node.receiver);
     buffer.add('.');
-    buffer.add(node.methodName);
+    buffer.add(node.name);
     visitArguments(node.inputs);
-    compiler.registerDynamicInvocation(node.methodName);
+    compiler.registerDynamicInvocation(node.name);
   }
+
+  visitInvokeDynamicMethod(HInvokeDynamicMethod node)
+      => visitInvokeDynamic(node);
+
+  visitInvokeDynamicSetter(HInvokeDynamicSetter node)
+      => visitInvokeDynamic(node);
+
+  visitInvokeDynamicGetter(HInvokeDynamicGetter node)
+      => visitInvokeDynamic(node);
 
   visitInvokeStatic(HInvokeStatic node) {
     compiler.registerStaticInvocation(node.element);

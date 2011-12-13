@@ -896,15 +896,21 @@ class NodeListener extends ElementListener {
   }
 
   void endFields(int count, Token beginToken, Token endToken) {
-    canceler.cancel("fields are not implemented yet", token: beginToken);
-    var fields = [];
+    Element fields = new PartialFieldListElement(beginToken, endToken);
+    Link<Identifier> names = const EmptyLink<Identifier>();
     for (int i = 0; i < count; i++) {
-      Expression initializer = popNode();
-      Identifier name = popNode();
-      fields.add(name);
+      Node initializer = popNode();
+      if (initializer != null) {
+        canceler.cancel(
+            "field initializers are not implemented", node: initializer);
+      }
+      names = names.prepend(popNode());
     }
-    // TODO(ahe): implement this.
-    pushNode(new UnimplementedExpression('fields', fields));
+    for (; !names.isEmpty(); names = names.tail) {
+      enclosingElement.addMember(new VariableElement(
+          names.head.source, fields, ElementKind.FIELD, enclosingElement));
+    }
+    pushNode(null);
   }
 
   bool isConstructor(Identifier name) {

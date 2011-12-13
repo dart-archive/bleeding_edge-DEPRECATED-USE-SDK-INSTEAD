@@ -106,7 +106,7 @@ class SsaBuilder implements Visitor {
       HInstruction currentValue = definitions[parameterElement];
       bodyCallInputs.add(currentValue);
     }
-    add(new HInvokeDynamic(methodName, bodyCallInputs));
+    add(new HInvokeDynamicMethod(methodName, bodyCallInputs));
     close(new HReturn(newObject)).addSuccessor(graph.exit);
     return closeFunction();
   }
@@ -126,7 +126,7 @@ class SsaBuilder implements Visitor {
         visit(link.head);
         superInputs.add(pop());
       }
-      add(new HInvokeDynamic(methodName, superInputs));
+      add(new HInvokeDynamicMethod(methodName, superInputs));
     }
     body.accept(this);
     return closeFunction();
@@ -639,14 +639,16 @@ class SsaBuilder implements Visitor {
       }
       if (Elements.isStaticOrTopLevelField(element)) {
         push(new HStatic(element));
+      } else if (Elements.isInstanceField(element)) {
+        String methodName = compiler.namer.getterName(element);
+        HInstruction receiver = new HThis();
+        add(receiver);
+        push(new HInvokeDynamicGetter(element, methodName, receiver));
       } else {
         HInstruction instruction = definitions[element];
-      if (instruction === null) {
-        // TODO(floitsch): this is probably because the Resolver does not
-        // resolve static elements correctly yet.
-        assert(element.kind == ElementKind.CLASS);
-        compiler.unimplemented("SsaBuilder.visitSend of statics");
-      }
+        if (instruction === null) {
+          compiler.unimplemented("SsaBuilder.visitSend with static");
+        }
         assert(instruction !== null);
         stack.add(instruction);
       }
@@ -658,7 +660,7 @@ class SsaBuilder implements Visitor {
 
       Link<Node> link = node.arguments;
       var inputs = <HInstruction>[];
-      
+
       if (isInvokeDynamic) {
         visit(node.receiver);
         inputs.add(pop());
@@ -681,7 +683,7 @@ class SsaBuilder implements Visitor {
         SourceString dartMethodName = node.selector.asIdentifier().source;
         String jsMethodName = compiler.namer.instanceName(dartMethodName);
         // The first entry in the inputs list is the receiver.
-        push(new HInvokeDynamic(jsMethodName, inputs));
+        push(new HInvokeDynamicMethod(jsMethodName, inputs));
       } else if (isForeign) {
         LiteralString literal = node.arguments.head;
         compiler.ensure(literal is LiteralString);
@@ -749,12 +751,18 @@ class SsaBuilder implements Visitor {
       Link<Node> link = node.arguments;
       assert(!link.isEmpty() && link.tail.isEmpty());
       visit(link.head);
+      HInstruction value = pop();
       if (Elements.isStaticOrTopLevelField(element)) {
-        HInstruction value = pop();
         add(new HStaticStore(element, value));
         stack.add(value);
+      } else if (Elements.isInstanceField(element)) {
+        String methodName = compiler.namer.setterName(element);
+        HInstruction receiver = new HThis();
+        add(receiver);
+        add(new HInvokeDynamicSetter(element, methodName, receiver, value));
+        stack.add(value);
       } else {
-        stack.add(updateDefinition(node, pop()));
+        stack.add(updateDefinition(node, value));
       }
     } else {
       assert(const SourceString("++") == op.source ||

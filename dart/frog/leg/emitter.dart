@@ -40,11 +40,27 @@ function(child, parent) {
   void addInstanceMember(Element member,
                          String prototype,
                          StringBuffer buffer) {
-    assert(member is FunctionElement);
     assert(member.isInstanceMember());
-    String codeBlock = compiler.universe.generatedCode[member];
-    if (codeBlock !== null) {
-      buffer.add('$prototype.${namer.getName(member)} = $codeBlock;\n');
+    if (member.kind === ElementKind.FUNCTION
+        || member.kind === ElementKind.CONSTRUCTOR_BODY) {
+      String codeBlock = compiler.universe.generatedCode[member];
+      if (codeBlock !== null) {
+        buffer.add('$prototype.${namer.getName(member)} = $codeBlock;\n');
+      }
+    } else {
+      // TODO(ngeoffray): Have another class generate the code for the
+      // fields.
+      assert(member.kind === ElementKind.FIELD);
+      String setterName = namer.setterName(member);
+      String getterName = namer.getterName(member);
+      if (compiler.universe.invokedNames.contains(setterName)) {
+        buffer.add('$prototype.$setterName = function(v){\n' +
+          '  this.${namer.getName(member)} = v;\n}\n');
+      }
+      if (compiler.universe.invokedNames.contains(getterName)) {
+        buffer.add('$prototype.$getterName = function(){\n' +
+          '  return this.${namer.getName(member)};\n}\n');
+      }
     }
   }
 
@@ -75,7 +91,7 @@ function(child, parent) {
     }
     for (Element member in classElement.backendMembers) {
       if (member.isInstanceMember()) {
-        addInstanceMember(member, prototype, buffer);      
+        addInstanceMember(member, prototype, buffer);
       }
     }
   }

@@ -76,6 +76,14 @@ class Namer {
     }
   }
 
+  String setterName(Element element) {
+    return 'set\$${element.name}';
+  }
+
+  String getterName(Element element) {
+    return 'get\$${element.name}';
+  }
+
   /**
     * Don't use this method from the outside. Go through [isolateAccess] or
     * [isolatePropertyAccess] instead.

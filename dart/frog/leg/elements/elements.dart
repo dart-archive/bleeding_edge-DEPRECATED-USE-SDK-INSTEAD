@@ -268,9 +268,21 @@ class ClassElement extends Element {
 }
 
 class Elements {
+  static bool isInstanceField(Element element) {
+    return (element !== null)
+           && element.isInstanceMember()
+           && (element.kind === ElementKind.FIELD);
+  }
+
   static bool isStaticOrTopLevelField(Element element) {
     return (element != null)
            && !element.isInstanceMember()
            && (element.kind === ElementKind.FIELD);
+  }
+
+  static bool isInstanceMethod(Element element) {
+    return (element != null)
+           && element.isInstanceMember()
+           && (element.kind === ElementKind.FUNCTION);
   }
 }

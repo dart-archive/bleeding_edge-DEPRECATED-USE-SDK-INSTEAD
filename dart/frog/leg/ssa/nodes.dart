@@ -21,7 +21,9 @@ interface HVisitor<R> {
   R visitIf(HIf node);
   R visitIndex(HIndex node);
   R visitIndexAssign(HIndexAssign node);
-  R visitInvokeDynamic(HInvokeDynamic node);
+  R visitInvokeDynamicMethod(HInvokeDynamicMethod node);
+  R visitInvokeDynamicGetter(HInvokeDynamicGetter node);
+  R visitInvokeDynamicSetter(HInvokeDynamicSetter node);
   R visitInvokeStatic(HInvokeStatic node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
@@ -179,6 +181,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBinaryBitOp(HBinaryBitOp node) => visitBinaryArithmetic(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
   visitInvokeBinary(HInvokeBinary node) => visitInvokeStatic(node);
+  visitInvokeDynamic(HInvokeDynamic node) => visitInvoke(node);
+  visitInvokeDynamicField(HInvokeDynamicField node) => visitInvokeDynamic(node);
   visitInvokeUnary(HInvokeUnary node) => visitInvokeStatic(node);
   visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
   visitControlFlow(HControlFlow node) => visitInstruction(node);
@@ -201,7 +205,12 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIf(HIf node) => visitConditionalBranch(node);
   visitIndex(HIndex node) => visitInvokeStatic(node);
   visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
-  visitInvokeDynamic(HInvokeDynamic node) => visitInvoke(node);
+  visitInvokeDynamicMethod(HInvokeDynamicMethod node)
+      => visitInvokeDynamic(node);
+  visitInvokeDynamicGetter(HInvokeDynamicGetter node)
+      => visitInvokeDynamicField(node);
+  visitInvokeDynamicSetter(HInvokeDynamicSetter node)
+      => visitInvokeDynamicField(node);
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
@@ -840,16 +849,42 @@ class HInvoke extends HInstruction {
 }
 
 class HInvokeDynamic extends HInvoke {
-  String methodName;
   /**
-    * The [methodName] must be mangled.
+    * The [name] must be mangled.
     * The first input must be the receiver.
     */
-  HInvokeDynamic(this.methodName, List<HInstruction> inputs) : super(inputs);
-  toString() => 'invoke dynamic: $methodName';
+  String name;
+  HInvokeDynamic(this.name, List<HInstruction> inputs) : super(inputs);
+  toString() => 'invoke dynamic: $name';
   accept(HVisitor visitor) => visitor.visitInvokeDynamic(this);
-
   HInstruction get receiver() => inputs[0];
+}
+
+class HInvokeDynamicMethod extends HInvokeDynamic {
+  HInvokeDynamicMethod(String methodName, List<HInstruction> inputs)
+    : super(methodName, inputs);
+  toString() => 'invoke dynamic method: $name';
+  accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
+}
+
+class HInvokeDynamicField extends HInvokeDynamic {
+  Element element;
+  HInvokeDynamicField(this.element, name, inputs) : super(name, inputs);
+  toString() => 'invoke dynamic field: $name';
+}
+
+class HInvokeDynamicGetter extends HInvokeDynamicField {
+  HInvokeDynamicGetter(element, name, receiver)
+    : super(element, name, [receiver]);
+  toString() => 'invoke dynamic getter: $name';
+  accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
+}
+
+class HInvokeDynamicSetter extends HInvokeDynamicField {
+  HInvokeDynamicSetter(element, name, receiver, value)
+    : super(element, name, [receiver, value]);
+  toString() => 'invoke dynamic setter: ${element.name}';
+  accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
 }
 
 class HInvokeStatic extends HInvoke {

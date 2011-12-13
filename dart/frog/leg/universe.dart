@@ -10,11 +10,11 @@ class Universe {
   final Set<ClassElement> instantiatedClasses;
   // TODO(floitsch): we want more information than just the method name. For
   // example the number of arguments, etc.
-  final Set<String> invokedMethods;
+  final Set<String> invokedNames;
 
   Universe() : elements = {}, generatedCode = {},
                instantiatedClasses = new Set<ClassElement>(),
-               invokedMethods = new Set<String>(),
+               invokedNames = new Set<String>(),
                scope = new Element(const SourceString('global scope'),
                                    null, null);
 

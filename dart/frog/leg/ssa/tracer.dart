@@ -217,14 +217,20 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitIndex(HIndex node) => visitInvokeStatic(node);
   String visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
 
-  String visitInvokeDynamyc(HInvokeDynamic invoke) {
+  String visitInvokeDynamic(HInvokeDynamic invoke, String kind) {
     String receiver = temporaryId(invoke.receiver);
-    String target = "$receiver.${invoke.methodName}";
+    String target = "($kind) $receiver.${invoke.name}";
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments =
         invoke.inputs.getRange(offset, invoke.inputs.length - offset);
-    return visitGenericInvoke("Invoke", target, arguments);    
+    return visitGenericInvoke("Invoke", target, arguments);
   }
+  String visitInvokeDynamicMethod(HInvokeDynamicMethod node)
+      => visitInvokeDynamic(node, "method");
+  String visitInvokeDynamicGetter(HInvokeDynamicGetter node)
+      => visitInvokeDynamic(node, "get");
+  String visitInvokeDynamicSetter(HInvokeDynamicSetter node)
+      => visitInvokeDynamic(node, "set");
 
   String visitInvokeStatic(HInvokeStatic invoke) {
     String target = temporaryId(invoke.target);
@@ -239,7 +245,7 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitForeignNew(HForeignNew node) {
-    return visitGenericInvoke("New", "${node.element.name}", node.inputs);    
+    return visitGenericInvoke("New", "${node.element.name}", node.inputs);
   }
 
   String visitLess(HLess node) => visitInvokeStatic(node);
@@ -293,7 +299,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitShiftRight(HShiftRight node) => visitInvokeStatic(node);
 
-  String visitStatic(HStatic node) => "Static ${node.element.name}";
+  String visitStatic(HStatic node)
+      => "Static ${node.element.name}";
+  String visitStaticStore(HStatic node)
+      => "Static ${node.element.name} = ${temporaryId(node.inputs[0])}";
 
   String visitStore(HStore node) {
     String localId = temporaryId(node.inputs[0]);
