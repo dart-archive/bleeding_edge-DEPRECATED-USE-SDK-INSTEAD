@@ -165,7 +165,7 @@ class Listener {
   void beginMember(Token token) {
   }
 
-  void endMethod(Token beginToken, Token endToken) {
+  void endMethod(Token beginToken, Token period, Token endToken) {
   }
 
   void beginOptionalFormalParameters(Token token) {
@@ -855,10 +855,14 @@ class NodeListener extends ElementListener {
            enclosingElement.name == name.source;
   }
 
-  void endMethod(Token beginToken, Token endToken) {
+  void endMethod(Token beginToken, Token period, Token endToken) {
     Statement body = popNode();
     NodeList formalParameters = popNode();
     Identifier name = popNode(); // TODO(ahe): What about constructors?
+    if (period !== null) {
+      canceler.cancel('named constructors are not implemented', node: name);
+      name = popNode();
+    }
     // TODO(ahe): Save modifiers.
     pushNode(new FunctionExpression(name, formalParameters, body, null));
     // TODO(ahe): We don't need to push the AST node and record the

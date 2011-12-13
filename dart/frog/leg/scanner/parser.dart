@@ -512,7 +512,7 @@ class Parser {
       // Loop to allow the listener to rewrite the token stream for
       // error handling.
       final String value = token.stringValue;
-      if (value === '(') {
+      if ((value === '(') || (value === '.')) {
         isField = false;
         break;
       } else if ((value === '=') || (value === ';') || (value === ',')) {
@@ -534,10 +534,15 @@ class Parser {
       expectSemicolon(token);
       listener.endFields(fieldCount, start, token);
     } else {
+      Token period = null;
+      if (optional('.', token)) {
+        period = token;
+        token = parseIdentifier(token.next);
+      }
       token = parseFormalParameters(token);
       token = parseInitializersOpt(token);
       token = parseFunctionBody(token, false);
-      listener.endMethod(start, token);
+      listener.endMethod(start, period, token);
     }
     return token.next;
   }
