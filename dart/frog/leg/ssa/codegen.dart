@@ -146,7 +146,7 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
-  visit(node) {
+  visit(HInstruction node) {
     return node.accept(this);
   }
 
@@ -397,12 +397,12 @@ class SsaCodeGenerator implements HVisitor {
       assert(dominated.length == 2);
       assert(dominated[0] === branchBlock.successors[0]);
       assert(dominated[1] === branchBlock.successors[1]);
-      visit(dominated[0]);
+      visitBasicBlock(dominated[0]);
     }
     indent--;
     addIndentation();
     buffer.add('}\n');  // Close 'while' loop.
-    visit(branchBlock.successors[1]);
+    visitBasicBlock(branchBlock.successors[1]);
   }
 
   visitNot(HNot node) {

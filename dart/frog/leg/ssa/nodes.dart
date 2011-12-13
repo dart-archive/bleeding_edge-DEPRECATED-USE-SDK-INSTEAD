@@ -4,7 +4,6 @@
 
 interface HVisitor<R> {
   R visitAdd(HAdd node);
-  R visitBasicBlock(HBasicBlock node);
   R visitBitAnd(HBitAnd node);
   R visitBitNot(HBitNot node);
   R visitBitOr(HBitOr node);
@@ -370,8 +369,6 @@ class HBasicBlock extends HInstructionList {
       instruction = instruction.next;
     }
   }
-
-  accept(HVisitor visitor) => visitor.visitBasicBlock(this);
 
   void addAtEntry(HInstruction instruction) {
     assert(isClosed());
@@ -856,7 +853,6 @@ class HInvokeDynamic extends HInvoke {
   String name;
   HInvokeDynamic(this.name, List<HInstruction> inputs) : super(inputs);
   toString() => 'invoke dynamic: $name';
-  accept(HVisitor visitor) => visitor.visitInvokeDynamic(this);
   HInstruction get receiver() => inputs[0];
 }
 
