@@ -1891,45 +1891,45 @@ CoreJs.prototype.useOperator = function(name) {
   switch (name) {
     case ':ne':
 
-      code = "function $ne(x, y) {\n  if (x == null) return y != null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x != y : !x.$eq(y);\n}";
+      code = "function $ne(x, y) {\n  if (x == null) return y != null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x != y : !x.$eq(y);\n}"/*null._NE_FUNCTION*/;
       break;
 
     case ':eq':
 
-      code = "function $eq(x, y) {\n  if (x == null) return y == null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x == y : x.$eq(y);\n}\n// TODO(jimhug): Should this or should it not match equals?\nObject.prototype.$eq = function(other) { return this === other; }";
+      code = "function $eq(x, y) {\n  if (x == null) return y == null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x == y : x.$eq(y);\n}\n// TODO(jimhug): Should this or should it not match equals?\nObject.prototype.$eq = function(other) { return this === other; }"/*null._EQ_FUNCTION*/;
       break;
 
     case ':bit_not':
 
-      code = "function $bit_not(x) {\n  return (typeof(x) == 'number') ? ~x : x.$bit_not();\n}";
+      code = "function $bit_not(x) {\n  return (typeof(x) == 'number') ? ~x : x.$bit_not();\n}"/*null._BIT_NOT_FUNCTION*/;
       break;
 
     case ':negate':
 
-      code = "function $negate(x) {\n  return (typeof(x) == 'number') ? -x : x.$negate();\n}";
+      code = "function $negate(x) {\n  return (typeof(x) == 'number') ? -x : x.$negate();\n}"/*null._NEGATE_FUNCTION*/;
       break;
 
     case ':add':
 
-      code = "function $add(x, y) {\n  return ((typeof(x) == 'number' && typeof(y) == 'number') ||\n          (typeof(x) == 'string'))\n    ? x + y : x.$add(y);\n}";
+      code = "function $add(x, y) {\n  return ((typeof(x) == 'number' && typeof(y) == 'number') ||\n          (typeof(x) == 'string'))\n    ? x + y : x.$add(y);\n}"/*null._ADD_FUNCTION*/;
       break;
 
     case ':truncdiv':
 
       this.useThrow = true;
-      code = "function $truncdiv(x, y) {\n  if (typeof(x) == 'number' && typeof(y) == 'number') {\n    if (y == 0) $throw(new IntegerDivisionByZeroException());\n    var tmp = x / y;\n    return (tmp < 0) ? Math.ceil(tmp) : Math.floor(tmp);\n  } else {\n    return x.$truncdiv(y);\n  }\n}";
+      code = "function $truncdiv(x, y) {\n  if (typeof(x) == 'number' && typeof(y) == 'number') {\n    if (y == 0) $throw(new IntegerDivisionByZeroException());\n    var tmp = x / y;\n    return (tmp < 0) ? Math.ceil(tmp) : Math.floor(tmp);\n  } else {\n    return x.$truncdiv(y);\n  }\n}"/*null._TRUNCDIV_FUNCTION*/;
       break;
 
     case ':mod':
 
-      code = "function $mod(x, y) {\n  if (typeof(x) == 'number' && typeof(y) == 'number') {\n    var result = x % y;\n    if (result == 0) {\n      return 0;  // Make sure we don't return -0.0.\n    } else if (result < 0) {\n      if (y < 0) {\n        return result - y;\n      } else {\n        return result + y;\n      }\n    }\n    return result;\n  } else {\n    return x.$mod(y);\n  }\n}";
+      code = "function $mod(x, y) {\n  if (typeof(x) == 'number' && typeof(y) == 'number') {\n    var result = x % y;\n    if (result == 0) {\n      return 0;  // Make sure we don't return -0.0.\n    } else if (result < 0) {\n      if (y < 0) {\n        return result - y;\n      } else {\n        return result + y;\n      }\n    }\n    return result;\n  } else {\n    return x.$mod(y);\n  }\n}"/*null._MOD_FUNCTION*/;
       break;
 
     default:
 
       var op = TokenKind.rawOperatorFromMethod(name);
       var jsname = $globals.world.toJsIdentifier(name);
-      code = ("function " + jsname + "(x, y) {\n  return (typeof(x) == 'number' && typeof(y) == 'number')\n    ? x " + op + " y : x." + jsname + "(y);\n}");
+      code = _otherOperator(jsname, op);
       break;
 
   }
@@ -1939,59 +1939,59 @@ CoreJs.prototype.ensureDynamicProto = function() {
   if (this._generatedDynamicProto) return;
   this._generatedDynamicProto = true;
   this.ensureTypeNameOf();
-  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var method;\n    var proto = Object.getPrototypeOf(this);\n    var obj = this;\n    do {\n      method = methods[obj.$typeNameOf()];\n      if (method) break;\n      obj = Object.getPrototypeOf(obj);\n    } while (obj);\n\n    // Patch the prototype, but don't overwrite an existing stub, like\n    // the one on Object.prototype.\n    if (!proto.hasOwnProperty(name)) proto[name] = method || methods.Object;\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  Object.prototype[name] = $dynamicBind;\n  return methods;\n}");
+  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var method;\n    var proto = Object.getPrototypeOf(this);\n    var obj = this;\n    do {\n      method = methods[obj.$typeNameOf()];\n      if (method) break;\n      obj = Object.getPrototypeOf(obj);\n    } while (obj);\n\n    // Patch the prototype, but don't overwrite an existing stub, like\n    // the one on Object.prototype.\n    if (!proto.hasOwnProperty(name)) proto[name] = method || methods.Object;\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  Object.prototype[name] = $dynamicBind;\n  return methods;\n}"/*null._DYNAMIC_FUNCTION*/);
 }
 CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
   this._generatedTypeNameOf = true;
-  this.writer.writeln("Object.prototype.$typeNameOf = function() {\n  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')\n      || typeof(process) != 'undefined') { // fast-path for Chrome and Node\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  str = str.substring(8, str.length - 1);\n  if (str == 'Window') str = 'DOMWindow';\n  return str;\n}");
+  this.writer.writeln("Object.prototype.$typeNameOf = function() {\n  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')\n      || typeof(process) != 'undefined') { // fast-path for Chrome and Node\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  str = str.substring(8, str.length - 1);\n  if (str == 'Window') str = 'DOMWindow';\n  return str;\n}"/*null._TYPE_NAME_OF_FUNCTION*/);
 }
 CoreJs.prototype.ensureInheritsHelper = function() {
   if (this._generatedInherits) return;
   this._generatedInherits = true;
-  this.writer.writeln("/** Implements extends for Dart classes on JavaScript prototypes. */\nfunction $inherits(child, parent) {\n  if (child.prototype.__proto__) {\n    child.prototype.__proto__ = parent.prototype;\n  } else {\n    function tmp() {};\n    tmp.prototype = parent.prototype;\n    child.prototype = new tmp();\n    child.prototype.constructor = child;\n  }\n}");
+  this.writer.writeln("/** Implements extends for Dart classes on JavaScript prototypes. */\nfunction $inherits(child, parent) {\n  if (child.prototype.__proto__) {\n    child.prototype.__proto__ = parent.prototype;\n  } else {\n    function tmp() {};\n    tmp.prototype = parent.prototype;\n    child.prototype = new tmp();\n    child.prototype.constructor = child;\n  }\n}"/*null._INHERITS_FUNCTION*/);
 }
 CoreJs.prototype.generate = function(w) {
   w.write(this.writer.get$text());
   this.writer = w;
   if (this.useGenStub) {
     this.useThrow = true;
-    w.writeln("/**\n * Generates a dynamic call stub for a function.\n * Our goal is to create a stub method like this on-the-fly:\n *   function($0, $1, capture) { return this($0, $1, true, capture); }\n *\n * This stub then replaces the dynamic one on Function, with one that is\n * specialized for that particular function, taking into account its default\n * arguments.\n */\nFunction.prototype.$genStub = function(argsLength, names) {\n  // Fast path: if no named arguments and arg count matches\n  if (this.length == argsLength && !names) {\n    return this;\n  }\n\n  function $throwArgMismatch() {\n    // TODO(jmesserly): better error message\n    $throw(new ClosureArgumentMismatchException());\n  }\n\n  var paramsNamed = this.$optional ? (this.$optional.length / 2) : 0;\n  var paramsBare = this.length - paramsNamed;\n  var argsNamed = names ? names.length : 0;\n  var argsBare = argsLength - argsNamed;\n\n  // Check we got the right number of arguments\n  if (argsBare < paramsBare || argsLength > this.length ||\n      argsNamed > paramsNamed) {\n    return $throwArgMismatch;\n  }\n\n  // First, fill in all of the default values\n  var p = new Array(paramsBare);\n  if (paramsNamed) {\n    p = p.concat(this.$optional.slice(paramsNamed));\n  }\n  // Fill in positional args\n  var a = new Array(argsLength);\n  for (var i = 0; i < argsBare; i++) {\n    p[i] = a[i] = '$' + i;\n  }\n  // Then overwrite with supplied values for optional args\n  var lastParameterIndex;\n  var namesInOrder = true;\n  for (var i = 0; i < argsNamed; i++) {\n    var name = names[i];\n    a[i + argsBare] = name;\n    var j = this.$optional.indexOf(name);\n    if (j < 0 || j >= paramsNamed) {\n      return $throwArgMismatch;\n    } else if (lastParameterIndex && lastParameterIndex > j) {\n      namesInOrder = false;\n    }\n    p[j + paramsBare] = name;\n    lastParameterIndex = j;\n  }\n\n  if (this.length == argsLength && namesInOrder) {\n    // Fast path #2: named arguments, but they're in order.\n    return this;\n  }\n\n  // Note: using Function instead of 'eval' to get a clean scope.\n  // TODO(jmesserly): evaluate the performance of these stubs.\n  var f = 'function(' + a.join(',') + '){return $f(' + p.join(',') + ');}';\n  return new Function('$f', 'return ' + f + '').call(null, this);\n}");
+    w.writeln("/**\n * Generates a dynamic call stub for a function.\n * Our goal is to create a stub method like this on-the-fly:\n *   function($0, $1, capture) { return this($0, $1, true, capture); }\n *\n * This stub then replaces the dynamic one on Function, with one that is\n * specialized for that particular function, taking into account its default\n * arguments.\n */\nFunction.prototype.$genStub = function(argsLength, names) {\n  // Fast path: if no named arguments and arg count matches\n  if (this.length == argsLength && !names) {\n    return this;\n  }\n\n  function $throwArgMismatch() {\n    // TODO(jmesserly): better error message\n    $throw(new ClosureArgumentMismatchException());\n  }\n\n  var paramsNamed = this.$optional ? (this.$optional.length / 2) : 0;\n  var paramsBare = this.length - paramsNamed;\n  var argsNamed = names ? names.length : 0;\n  var argsBare = argsLength - argsNamed;\n\n  // Check we got the right number of arguments\n  if (argsBare < paramsBare || argsLength > this.length ||\n      argsNamed > paramsNamed) {\n    return $throwArgMismatch;\n  }\n\n  // First, fill in all of the default values\n  var p = new Array(paramsBare);\n  if (paramsNamed) {\n    p = p.concat(this.$optional.slice(paramsNamed));\n  }\n  // Fill in positional args\n  var a = new Array(argsLength);\n  for (var i = 0; i < argsBare; i++) {\n    p[i] = a[i] = '$' + i;\n  }\n  // Then overwrite with supplied values for optional args\n  var lastParameterIndex;\n  var namesInOrder = true;\n  for (var i = 0; i < argsNamed; i++) {\n    var name = names[i];\n    a[i + argsBare] = name;\n    var j = this.$optional.indexOf(name);\n    if (j < 0 || j >= paramsNamed) {\n      return $throwArgMismatch;\n    } else if (lastParameterIndex && lastParameterIndex > j) {\n      namesInOrder = false;\n    }\n    p[j + paramsBare] = name;\n    lastParameterIndex = j;\n  }\n\n  if (this.length == argsLength && namesInOrder) {\n    // Fast path #2: named arguments, but they're in order.\n    return this;\n  }\n\n  // Note: using Function instead of 'eval' to get a clean scope.\n  // TODO(jmesserly): evaluate the performance of these stubs.\n  var f = 'function(' + a.join(',') + '){return $f(' + p.join(',') + ');}';\n  return new Function('$f', 'return ' + f + '').call(null, this);\n}"/*null._GENSTUB_FUNCTION*/);
   }
   if (this.useStackTraceOf) {
-    w.writeln("function $stackTraceOf(e) {\n  // TODO(jmesserly): we shouldn't be relying on the e.stack property.\n  // Need to mangle it.\n  return  (e && e.stack) ? e.stack : null;\n}");
+    w.writeln("function $stackTraceOf(e) {\n  // TODO(jmesserly): we shouldn't be relying on the e.stack property.\n  // Need to mangle it.\n  return  (e && e.stack) ? e.stack : null;\n}"/*null._STACKTRACEOF_FUNCTION*/);
   }
   if (this.useNotNullBool) {
     this.useThrow = true;
-    w.writeln("function $notnull_bool(test) {\n  if (test === true || test === false) return test;\n  $throw(new TypeError(test, 'bool'));\n}");
+    w.writeln("function $notnull_bool(test) {\n  if (test === true || test === false) return test;\n  $throw(new TypeError(test, 'bool'));\n}"/*null._NOTNULL_BOOL_FUNCTION*/);
   }
   if (this.useThrow) {
-    w.writeln("function $throw(e) {\n  // If e is not a value, we can use V8's captureStackTrace utility method.\n  // TODO(jmesserly): capture the stack trace on other JS engines.\n  if (e && (typeof e == 'object') && Error.captureStackTrace) {\n    // TODO(jmesserly): this will clobber the e.stack property\n    Error.captureStackTrace(e, $throw);\n  }\n  throw e;\n}");
+    w.writeln("function $throw(e) {\n  // If e is not a value, we can use V8's captureStackTrace utility method.\n  // TODO(jmesserly): capture the stack trace on other JS engines.\n  if (e && (typeof e == 'object') && Error.captureStackTrace) {\n    // TODO(jmesserly): this will clobber the e.stack property\n    Error.captureStackTrace(e, $throw);\n  }\n  throw e;\n}"/*null._THROW_FUNCTION*/);
   }
   if (this.useToString) {
-    w.writeln("function $toString(o) {\n  if (o == null) return 'null';\n  var t = typeof(o);\n  if (t == 'object') { return o.toString(); }\n  else if (t == 'string') { return o; }\n  else if (t == 'bool') { return ''+o; }\n  else if (t == 'number') { return ''+o; }\n  else return o.toString();\n}");
+    w.writeln("function $toString(o) {\n  if (o == null) return 'null';\n  var t = typeof(o);\n  if (t == 'object') { return o.toString(); }\n  else if (t == 'string') { return o; }\n  else if (t == 'bool') { return ''+o; }\n  else if (t == 'number') { return ''+o; }\n  else return o.toString();\n}"/*null._TOSTRING_FUNCTION*/);
   }
   if (this.useIndex) {
-    w.writeln("Object.prototype.$index = function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n}\nArray.prototype.$index = function(i) { return this[i]; }\nString.prototype.$index = function(i) { return this[i]; }");
+    w.writeln("Object.prototype.$index = function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n}\nArray.prototype.$index = function(i) { return this[i]; }\nString.prototype.$index = function(i) { return this[i]; }"/*null._INDEX_OPERATORS*/);
   }
   if (this.useSetIndex) {
-    w.writeln("Object.prototype.$setindex = function(i, value) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$setindex = function(i, value) { return this[i] = value; }\n  }\n  return this[i] = value;\n}\nArray.prototype.$setindex = function(i, value) { return this[i] = value; }");
+    w.writeln("Object.prototype.$setindex = function(i, value) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$setindex = function(i, value) { return this[i] = value; }\n  }\n  return this[i] = value;\n}\nArray.prototype.$setindex = function(i, value) { return this[i] = value; }"/*null._SETINDEX_OPERATORS*/);
   }
   if (this.useIsolates) {
     if (this.useWrap0) {
-      w.writeln("// Wrap a 0-arg dom-callback to bind it with the current isolate:\nfunction $wrap_call$0(fn) { return fn && fn.wrap$call$0(); }\nFunction.prototype.wrap$call$0 = function() {\n  var isolateContext = $globalState.currentContext;\n  var self = this;\n  this.wrap$0 = function() {\n    isolateContext.eval(self);\n    $globalState.topEventLoop.run();\n  };\n  this.wrap$call$0 = function() { return this.wrap$0; };\n  return this.wrap$0;\n}");
+      w.writeln("// Wrap a 0-arg dom-callback to bind it with the current isolate:\nfunction $wrap_call$0(fn) { return fn && fn.wrap$call$0(); }\nFunction.prototype.wrap$call$0 = function() {\n  var isolateContext = $globalState.currentContext;\n  var self = this;\n  this.wrap$0 = function() {\n    isolateContext.eval(self);\n    $globalState.topEventLoop.run();\n  };\n  this.wrap$call$0 = function() { return this.wrap$0; };\n  return this.wrap$0;\n}"/*null._WRAP_CALL0_FUNCTION*/);
     }
     if (this.useWrap1) {
-      w.writeln("// Wrap a 1-arg dom-callback to bind it with the current isolate:\nfunction $wrap_call$1(fn) { return fn && fn.wrap$call$1(); }\nFunction.prototype.wrap$call$1 = function() {\n  var isolateContext = $globalState.currentContext;\n  var self = this;\n  this.wrap$1 = function(arg) {\n    isolateContext.eval(function() { self(arg); });\n    $globalState.topEventLoop.run();\n  };\n  this.wrap$call$1 = function() { return this.wrap$1; };\n  return this.wrap$1;\n}");
+      w.writeln("// Wrap a 1-arg dom-callback to bind it with the current isolate:\nfunction $wrap_call$1(fn) { return fn && fn.wrap$call$1(); }\nFunction.prototype.wrap$call$1 = function() {\n  var isolateContext = $globalState.currentContext;\n  var self = this;\n  this.wrap$1 = function(arg) {\n    isolateContext.eval(function() { self(arg); });\n    $globalState.topEventLoop.run();\n  };\n  this.wrap$call$1 = function() { return this.wrap$1; };\n  return this.wrap$1;\n}"/*null._WRAP_CALL1_FUNCTION*/);
     }
-    w.writeln("var $globalThis = this;\nvar $globals = null;\nvar $globalState = null;");
+    w.writeln("var $globalThis = this;\nvar $globals = null;\nvar $globalState = null;"/*null._ISOLATE_INIT_CODE*/);
   }
   else {
     if (this.useWrap0) {
-      w.writeln("function $wrap_call$0(fn) { return fn; }");
+      w.writeln("function $wrap_call$0(fn) { return fn; }"/*null._EMPTY_WRAP_CALL0_FUNCTION*/);
     }
     if (this.useWrap1) {
-      w.writeln("function $wrap_call$1(fn) { return fn; }");
+      w.writeln("function $wrap_call$1(fn) { return fn; }"/*null._EMPTY_WRAP_CALL1_FUNCTION*/);
     }
   }
   var $$list = orderValuesByKeys(this._usedOperators);
@@ -13126,6 +13126,9 @@ VarMethodSet.prototype.generate = function(code) {
 VarMethodSet.prototype.generate$1 = VarMethodSet.prototype.generate;
 VarMethodSet.prototype.invoke$4 = VarMethodSet.prototype.invoke;
 // ********** Code for top level **************
+function _otherOperator(jsname, op) {
+  return ("function " + jsname + "(x, y) {\n  return (typeof(x) == 'number' && typeof(y) == 'number')\n    ? x " + op + " y : x." + jsname + "(y);\n}");
+}
 function map(source, mapper) {
   var result = new ListFactory();
   if (!!(source && source.is$List())) {

@@ -50,7 +50,132 @@ class CoreJs {
     var code;
     switch (name) {
       case ':ne':
-        code = @"""
+        code = _NE_FUNCTION;
+        break;
+
+      case ':eq':
+        code = _EQ_FUNCTION;
+        break;
+
+      case ':bit_not':
+        code = _BIT_NOT_FUNCTION;
+        break;
+
+      case ':negate':
+        code = _NEGATE_FUNCTION;
+        break;
+
+      case ':add':
+        code = _ADD_FUNCTION;
+        break;
+
+      case ':truncdiv':
+        useThrow = true;
+        code = _TRUNCDIV_FUNCTION;
+        break;
+
+      case ':mod':
+        code = _MOD_FUNCTION;
+        break;
+
+      default:
+        // All of the other helpers are generated the same way
+        var op = TokenKind.rawOperatorFromMethod(name);
+        var jsname = world.toJsIdentifier(name);
+        code = _otherOperator(jsname, op);
+        break;
+    }
+
+    _usedOperators[name] = code;
+  }
+
+  // NOTE: some helpers can't be generated when we generate corelib,
+  // because we don't discover that we need them until later.
+  // Generate on-demand instead
+  void ensureDynamicProto() {
+    if (_generatedDynamicProto) return;
+    _generatedDynamicProto = true;
+    ensureTypeNameOf();
+    writer.writeln(_DYNAMIC_FUNCTION);
+  }
+
+  void ensureTypeNameOf() {
+    if (_generatedTypeNameOf) return;
+    _generatedTypeNameOf = true;
+    writer.writeln(_TYPE_NAME_OF_FUNCTION);
+  }
+
+  /** Generates the $inherits function when it's first used. */
+  ensureInheritsHelper() {
+    if (_generatedInherits) return;
+    _generatedInherits = true;
+    writer.writeln(_INHERITS_FUNCTION);
+  }
+
+  void generate(CodeWriter w) {
+    // Write any stuff we had queued up, then replace our writer with the one
+    // in WorldGenerator so anything we discover that we need later on will be
+    // generated on-demand.
+    w.write(writer.text);
+    writer = w;
+
+    if (useGenStub) {
+      useThrow = true;
+      w.writeln(_GENSTUB_FUNCTION);
+    }
+
+    if (useStackTraceOf) {
+      w.writeln(_STACKTRACEOF_FUNCTION);
+    }
+
+    if (useNotNullBool) {
+      useThrow = true;
+      w.writeln(_NOTNULL_BOOL_FUNCTION);
+    }
+
+    if (useThrow) {
+      w.writeln(_THROW_FUNCTION);
+    }
+
+    if (useToString) {
+      w.writeln(_TOSTRING_FUNCTION);
+    }
+
+    if (useIndex) {
+      w.writeln(_INDEX_OPERATORS);
+    }
+
+    if (useSetIndex) {
+      w.writeln(_SETINDEX_OPERATORS);
+    }
+
+    if (useIsolates) {
+      if (useWrap0) {
+        w.writeln(_WRAP_CALL0_FUNCTION);
+      }
+      if (useWrap1) {
+        w.writeln(_WRAP_CALL1_FUNCTION);
+      }
+      w.writeln(_ISOLATE_INIT_CODE);
+    } else {
+      if (useWrap0) {
+        w.writeln(_EMPTY_WRAP_CALL0_FUNCTION);
+      }
+      if (useWrap1) {
+        w.writeln(_EMPTY_WRAP_CALL1_FUNCTION);
+      }
+    }
+
+    // Write operator helpers
+    for (var opImpl in orderValuesByKeys(_usedOperators)) {
+      w.writeln(opImpl);
+    }
+  }
+}
+
+
+/** Snippet for `$ne`. */
+final String _NE_FUNCTION = @"""
 function $ne(x, y) {
   if (x == null) return y != null;
   return (typeof(x) == 'number' && typeof(y) == 'number') ||
@@ -58,10 +183,9 @@ function $ne(x, y) {
          (typeof(x) == 'string' && typeof(y) == 'string')
     ? x != y : !x.$eq(y);
 }""";
-        break;
 
-      case ':eq':
-        code = @"""
+/** Snippet for `$eq`. */
+final String _EQ_FUNCTION = @"""
 function $eq(x, y) {
   if (x == null) return y == null;
   return (typeof(x) == 'number' && typeof(y) == 'number') ||
@@ -71,35 +195,29 @@ function $eq(x, y) {
 }
 // TODO(jimhug): Should this or should it not match equals?
 Object.prototype.$eq = function(other) { return this === other; }""";
-        break;
 
-      case ':bit_not':
-        code = @"""
+/** Snippet for `$bit_not`. */
+final String _BIT_NOT_FUNCTION = @"""
 function $bit_not(x) {
   return (typeof(x) == 'number') ? ~x : x.$bit_not();
 }""";
-        break;
 
-      case ':negate':
-        code = @"""
+/** Snippet for `$negate`. */
+final String _NEGATE_FUNCTION = @"""
 function $negate(x) {
   return (typeof(x) == 'number') ? -x : x.$negate();
 }""";
-        break;
 
-      // This relies on JS's string "+" to match Dart's.
-      case ':add':
-        code = @"""
+/** Snippet for `$add`. This relies on JS's string "+" to match Dart's. */
+final String _ADD_FUNCTION = @"""
 function $add(x, y) {
   return ((typeof(x) == 'number' && typeof(y) == 'number') ||
           (typeof(x) == 'string'))
     ? x + y : x.$add(y);
 }""";
-        break;
 
-      case ':truncdiv':
-        useThrow = true;
-        code = @"""
+/** Snippet for `$truncdiv`. This uses `$throw`. */
+final String _TRUNCDIV_FUNCTION = @"""
 function $truncdiv(x, y) {
   if (typeof(x) == 'number' && typeof(y) == 'number') {
     if (y == 0) $throw(new IntegerDivisionByZeroException());
@@ -109,10 +227,9 @@ function $truncdiv(x, y) {
     return x.$truncdiv(y);
   }
 }""";
-        break;
 
-      case ':mod':
-        code = @"""
+/** Snippet for `$mod`. */
+final String _MOD_FUNCTION = @"""
 function $mod(x, y) {
   if (typeof(x) == 'number' && typeof(y) == 'number') {
     var result = x % y;
@@ -130,36 +247,22 @@ function $mod(x, y) {
     return x.$mod(y);
   }
 }""";
-        break;
 
-      default:
-        // All of the other helpers are generated the same way
-        var op = TokenKind.rawOperatorFromMethod(name);
-        var jsname = world.toJsIdentifier(name);
-        code = """
+/** Code snippet for all other operators. */
+String _otherOperator(String jsname, String op) {
+  return """
 function $jsname(x, y) {
   return (typeof(x) == 'number' && typeof(y) == 'number')
     ? x $op y : x.$jsname(y);
 }""";
-        break;
-    }
+}
 
-    _usedOperators[name] = code;
-  }
-
-  // NOTE: some helpers can't be generated when we generate corelib,
-  // because we don't discover that we need them until later.
-  // Generate on-demand instead
-  void ensureDynamicProto() {
-    if (_generatedDynamicProto) return;
-    _generatedDynamicProto = true;
-
-    ensureTypeNameOf();
-
-    // Usage:
-    // $dynamic(name).SomeTypeName = ... method ...;
-    // $dynamic(name).Object = ... noSuchMethod ...;
-    writer.writeln(@"""
+/**
+ * Snippet for `$dynamic`. Usage:
+ *    $dynamic(name).SomeTypeName = ... method ...;
+ *    $dynamic(name).Object = ... noSuchMethod ...;
+ */
+final String _DYNAMIC_FUNCTION = @"""
 function $dynamic(name) {
   var f = Object.prototype[name];
   if (f && f.methods) return f.methods;
@@ -186,17 +289,13 @@ function $dynamic(name) {
   $dynamicBind.methods = methods;
   Object.prototype[name] = $dynamicBind;
   return methods;
-}""");
-  }
+}""";
 
-  void ensureTypeNameOf() {
-    if (_generatedTypeNameOf) return;
-    _generatedTypeNameOf = true;
-
-    // TODO(sigmund): find a way to make this work on all browsers, including
-    // checking the typeName on prototype objects (so we can fix dynamic
-    // dispatching on $varMethod).
-    writer.writeln(@"""
+/** Snippet for `$typeNameOf`. */
+// TODO(sigmund): find a way to make this work on all browsers, including
+// checking the typeName on prototype objects (so we can fix dynamic
+// dispatching on $varMethod).
+final String _TYPE_NAME_OF_FUNCTION = @"""
 Object.prototype.$typeNameOf = function() {
   if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
       || typeof(process) != 'undefined') { // fast-path for Chrome and Node
@@ -206,16 +305,10 @@ Object.prototype.$typeNameOf = function() {
   str = str.substring(8, str.length - 1);
   if (str == 'Window') str = 'DOMWindow';
   return str;
-}""");
-  }
+}""";
 
-
-  /** Generates the $inherits function when it's first used. */
-  ensureInheritsHelper() {
-    if (_generatedInherits) return;
-    _generatedInherits = true;
-
-    writer.writeln(@"""
+/** Snippet for `$inherits`. */
+final String _INHERITS_FUNCTION = @"""
 /** Implements extends for Dart classes on JavaScript prototypes. */
 function $inherits(child, parent) {
   if (child.prototype.__proto__) {
@@ -226,19 +319,10 @@ function $inherits(child, parent) {
     child.prototype = new tmp();
     child.prototype.constructor = child;
   }
-}""");
-  }
+}""";
 
-  void generate(CodeWriter w) {
-    // Write any stuff we had queued up, then replace our writer with the one
-    // in WorldGenerator so anything we discover that we need later on will be
-    // generated on-demand.
-    w.write(writer.text);
-    writer = w;
-
-    if (useGenStub) {
-      useThrow = true;
-      w.writeln(@"""
+/** Snippet for `$genStub`. */
+final String _GENSTUB_FUNCTION = @"""
 /**
  * Generates a dynamic call stub for a function.
  * Our goal is to create a stub method like this on-the-fly:
@@ -305,31 +389,28 @@ Function.prototype.$genStub = function(argsLength, names) {
   // TODO(jmesserly): evaluate the performance of these stubs.
   var f = 'function(' + a.join(',') + '){return $f(' + p.join(',') + ');}';
   return new Function('$f', 'return ' + f + '').call(null, this);
-}""");
-    }
+}""";
 
-    if (useStackTraceOf) {
-      w.writeln(@"""
+/** Snippet for `$stackTraceOf`. */
+final String _STACKTRACEOF_FUNCTION = @"""
 function $stackTraceOf(e) {
   // TODO(jmesserly): we shouldn't be relying on the e.stack property.
   // Need to mangle it.
   return  (e && e.stack) ? e.stack : null;
-}""");
-    }
+}""";
 
-    if (useNotNullBool) {
-      useThrow = true;
-      // This pattern chosen because IE9 does really badly with typeof, and
-      // it's still decent on other browsers.
-      w.writeln(@"""
+/**
+ * Snippet for `$notnull_bool`. This pattern chosen because IE9 does really
+ * badly with typeof, and it's still decent on other browsers.
+ */
+final String _NOTNULL_BOOL_FUNCTION = @"""
 function $notnull_bool(test) {
   if (test === true || test === false) return test;
   $throw(new TypeError(test, 'bool'));
-}""");
-    }
+}""";
 
-    if (useThrow) {
-      w.writeln(@"""
+/** Snippet for `$throw`. */
+final String _THROW_FUNCTION = @"""
 function $throw(e) {
   // If e is not a value, we can use V8's captureStackTrace utility method.
   // TODO(jmesserly): capture the stack trace on other JS engines.
@@ -338,13 +419,12 @@ function $throw(e) {
     Error.captureStackTrace(e, $throw);
   }
   throw e;
-}""");
-    }
+}""";
 
-    if (useToString) {
-      // TODO(jimhug): Test perf - idea is this speeds up primitives and
-      //  semi-elegantly handles null - currently unused...
-      w.writeln(@"""
+/** Snippet for `$toString`. */
+// TODO(jimhug): Test perf - idea is this speeds up primitives and
+//  semi-elegantly handles null - currently unused...
+final String _TOSTRING_FUNCTION = @"""
 function $toString(o) {
   if (o == null) return 'null';
   var t = typeof(o);
@@ -353,23 +433,23 @@ function $toString(o) {
   else if (t == 'bool') { return ''+o; }
   else if (t == 'number') { return ''+o; }
   else return o.toString();
-}""");
-    }
+}""";
 
-    if (useIndex) {
-      // If not overridden, $index and $setindex fall back to JS [] and []=
-      // accessors
-      // TODO(jimhug): This fallback could be very confusing in a few cases -
-      // because of the bizare default [] rules in JS.  We need to revisit this
-      // to get the right errors - at least in checked mode (once we have that).
-      // TODO(jmesserly): do perf analysis, figure out if this is worth it and
-      // what the cost of $index $setindex is on all browsers
+/**
+ * Snippet for `$index` in Object, Array, and String.  If not overridden,
+ * `$index` and `$setindex` fall back to JS [] and []= accessors.
+ */
+// TODO(jimhug): This fallback could be very confusing in a few cases -
+// because of the bizare default [] rules in JS.  We need to revisit this
+// to get the right errors - at least in checked mode (once we have that).
+// TODO(jmesserly): do perf analysis, figure out if this is worth it and
+// what the cost of $index $setindex is on all browsers
 
-      // Performance of Object.prototype methods can go down because there are
-      // so many of them. Instead, first time we hit it, put it on the derived
-      // prototype. TODO(jmesserly): make this go away by handling index more
-      // like a normal method.
-      w.writeln(@"""
+// Performance of Object.prototype methods can go down because there are
+// so many of them. Instead, first time we hit it, put it on the derived
+// prototype. TODO(jmesserly): make this go away by handling index more
+// like a normal method.
+final String _INDEX_OPERATORS = @"""
 Object.prototype.$index = function(i) {
   var proto = Object.getPrototypeOf(this);
   if (proto !== Object) {
@@ -378,18 +458,18 @@ Object.prototype.$index = function(i) {
   return this[i];
 }
 Array.prototype.$index = function(i) { return this[i]; }
-String.prototype.$index = function(i) { return this[i]; }""");
-    }
+String.prototype.$index = function(i) { return this[i]; }""";
 
-    if (useSetIndex) {
-      /* TODO(jimhug): Add array bounds checking in checked mode
-      function $inlineArrayIndexCheck(array, index) {
-        if (index >= 0 && index < array.length) {
-          return index;
-        }
-        native__ArrayJsUtil__throwIndexOutOfRangeException(index);
-      }*/
-      w.writeln(@"""
+/** Snippet for `$setindex` in Object, Array, and String. */
+// TODO(jimhug): Add array bounds checking in checked mode
+/*
+function $inlineArrayIndexCheck(array, index) {
+  if (index >= 0 && index < array.length) {
+    return index;
+  }
+  native__ArrayJsUtil__throwIndexOutOfRangeException(index);
+}*/
+final String _SETINDEX_OPERATORS = @"""
 Object.prototype.$setindex = function(i, value) {
   var proto = Object.getPrototypeOf(this);
   if (proto !== Object) {
@@ -397,12 +477,10 @@ Object.prototype.$setindex = function(i, value) {
   }
   return this[i] = value;
 }
-Array.prototype.$setindex = function(i, value) { return this[i] = value; }""");
-    }
+Array.prototype.$setindex = function(i, value) { return this[i] = value; }""";
 
-    if (useIsolates) {
-      if (useWrap0) {
-        w.writeln(@"""
+/** Snippet for `$wrap_call$0`. */
+final String _WRAP_CALL0_FUNCTION = @"""
 // Wrap a 0-arg dom-callback to bind it with the current isolate:
 function $wrap_call$0(fn) { return fn && fn.wrap$call$0(); }
 Function.prototype.wrap$call$0 = function() {
@@ -414,10 +492,14 @@ Function.prototype.wrap$call$0 = function() {
   };
   this.wrap$call$0 = function() { return this.wrap$0; };
   return this.wrap$0;
-}""");
-      }
-      if (useWrap1) {
-        w.writeln(@"""
+}""";
+
+/** Snippet for `$wrap_call$0`, in case it was not necessary. */
+final String _EMPTY_WRAP_CALL0_FUNCTION =
+    @"function $wrap_call$0(fn) { return fn; }";
+
+/** Snippet for `$wrap_call$1`. */
+final String _WRAP_CALL1_FUNCTION = @"""
 // Wrap a 1-arg dom-callback to bind it with the current isolate:
 function $wrap_call$1(fn) { return fn && fn.wrap$call$1(); }
 Function.prototype.wrap$call$1 = function() {
@@ -429,24 +511,14 @@ Function.prototype.wrap$call$1 = function() {
   };
   this.wrap$call$1 = function() { return this.wrap$1; };
   return this.wrap$1;
-}""");
-      }
-      w.writeln(@"""
+}""";
+
+/** Snippet for `$wrap_call$1`, in case it was not necessary. */
+final String _EMPTY_WRAP_CALL1_FUNCTION =
+    @"function $wrap_call$1(fn) { return fn; }";
+
+/** Snippet that initializes the isolates state. */
+final String _ISOLATE_INIT_CODE = @"""
 var $globalThis = this;
 var $globals = null;
-var $globalState = null;""");
-    } else {
-      if (useWrap0) {
-        w.writeln(@"function $wrap_call$0(fn) { return fn; }");
-      }
-      if (useWrap1) {
-        w.writeln(@"function $wrap_call$1(fn) { return fn; }");
-      }
-    }
-
-    // Write operator helpers
-    for (var opImpl in orderValuesByKeys(_usedOperators)) {
-      w.writeln(opImpl);
-    }
-  }
-}
+var $globalState = null;""";
