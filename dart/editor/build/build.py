@@ -239,15 +239,30 @@ def main():
                 ' tried environment variables'
                 ' USER and USERNAME')
     return 1
+  sdk_environment = os.environ
   if username.startswith('chrome'):
     to_bucket = 'gs://dart-editor-archive-continuous'
+    run_sdk_build = True
+    running_on_buildbot = True
   else:
     to_bucket = 'gs://dart-editor-archive-testing'
+    run_sdk_build = False
+    running_on_buildbot = False
+    sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
+
+  #this is a hack to allow the SDK build to be run on a local machine
+  if sdk_environment.has_key('FORCE_RUN_SDK_BUILD'):
+    run_sdk_build = True
+  #end hack
 
   print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
+  if sdk_environment.has_key('JAVA_HOME'):
+    print 'JAVA_HOME = {0}'.format(str(sdk_environment['JAVA_HOME']))
   builder_name = str(options.name)
 
-  if builder_name != 'dart-editor-win' and builder_name != 'dart-editor':
+  if (run_sdk_build and
+      builder_name != 'dart-editor-win'
+      and builder_name != 'dart-editor'):
     _PrintSeparator('running the build of the Dart SDK')
     dartbuildscript = os.path.join(toolspath, 'build.py')
     cmds = [sys.executable, dartbuildscript,
@@ -256,15 +271,15 @@ def main():
     try:
       os.chdir(dartpath)
       print ' '.join(cmds)
-      status = subprocess.call(cmds)
+      status = subprocess.call(cmds, env=sdk_environment)
       print 'sdk build returned ' + str(status)
       if status:
         _PrintError('the build of the SDK failed')
         return status
     finally:
       os.chdir(cwd)
-
-    _CopySdk(buildos, revision, to_bucket, gsu)
+    if running_on_buildbot:
+      _CopySdk(buildos, revision, to_bucket, gsu)
 
   if builder_name == 'dart-editor':
     buildos = None
@@ -305,7 +320,9 @@ def main():
     return status
 
   _PrintSeparator("Setting the ACL'sfor the RCP's in Google Storage")
-  _SetAclOnArtifacts(to_bucket, [revision, 'latest'], gsu)
+  _SetAclOnArtifacts(to_bucket,
+                     [revision + '/DartBuild', 'latest/DartBuild'],
+                     gsu)
 
   sys.stdout.flush()
 
@@ -472,26 +489,26 @@ def _SetAclOnArtifacts(to, bucket_tags, gsu):
         gsu.SetAcl(element, acl)
 
 
-def _CopySdk(buildos, revision, bucket, gsu):
+def _CopySdk(buildos, revision, bucket_to, gsu):
   """copy the deployed SDK to the editor buckets.
 
   Args:
     buildos: the OS the build is running under
     revision: the svn revision
-    bucket: the bucket to upload to
+    bucket_to: the bucket to upload to
     gsu: the gsutil object
   """
   print '_CopySdk({0}, {1}, gsu)'.format(buildos, revision)
   gszip = 'dart-{0}-{1}.zip'.format(buildos, revision)
   gssdkzip = 'gs://dart-dump-render-tree/sdk/{0}'.format(gszip)
-  gseditorzip = '{0}/{1}/{2}'.format(bucket, revision, gszip)
-  gseditorlatestzip = '{0}/{1}/{2}'.format(bucket, 'latest', gszip)
+  gseditorzip = '{0}/{1}/{2}'.format(bucket_to, revision, gszip)
+  gseditorlatestzip = '{0}/{1}/{2}'.format(bucket_to, 'latest', gszip)
 
   print 'copying {0} to {1}'.format(gssdkzip, gseditorzip)
   gsu.Copy(gssdkzip, gseditorzip)
   print 'copying {0} to {1}'.format(gssdkzip, gseditorlatestzip)
   gsu.Copy(gssdkzip, gseditorlatestzip)
-  _SetAclOnArtifacts(bucket, [gszip], gsu)
+  _SetAclOnArtifacts(bucket_to, [gszip], gsu)
 
 
 def _PrintSeparator(text):
