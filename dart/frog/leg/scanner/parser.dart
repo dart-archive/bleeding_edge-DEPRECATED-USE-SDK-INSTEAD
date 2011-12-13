@@ -33,15 +33,22 @@ class Parser {
     listener.beginInterface(token);
     token = parseIdentifier(token.next);
     token = parseTypeVariablesOpt(token);
-    token = parseSupertypesClauseOpt(token);
+    int supertypeCount = 0;
+    if (optional('extends', token)) {
+      do {
+        token = parseType(token.next);
+        ++supertypeCount;
+      } while (optional(',', token));
+    }
     token = parseFactoryClauseOpt(token);
-    return parseInterfaceBody(token);
+    token = parseInterfaceBody(token);
+    listener.endInterface(supertypeCount, token);
+    return token.next;
   }
 
   Token parseInterfaceBody(Token token) {
-    token = skipBlock(token);
-    listener.endInterface(token);
-    return token.next;
+    // TODO(ahe): Implement this.
+    return skipBlock(token);
   }
 
   Token parseNamedFunctionAlias(Token token) {
@@ -147,15 +154,6 @@ class Parser {
     if (kind === IDENTIFIER_TOKEN) return true;
     if (kind === KEYWORD_TOKEN) return token.value.isPseudo;
     return false;
-  }
-
-  Token parseSupertypesClauseOpt(Token token) {
-    if (optional('extends', token)) {
-      do {
-        token = parseType(token.next);
-      } while (optional(',', token));
-    }
-    return token;
   }
 
   Token parseFactoryClauseOpt(Token token) {
@@ -709,7 +707,7 @@ class Parser {
     assert(isIdentifier(token) || token.stringValue === 'void');
     Token identifier = peekIdentifierAfterType(token);
     if (identifier !== null) {
-      assert(identifier.kind === IDENTIFIER_TOKEN);
+      assert(isIdentifier(identifier));
       Token afterId = identifier.next;
       int afterIdKind = afterId.kind;
       if (afterIdKind === EQ_TOKEN ||
@@ -1310,15 +1308,15 @@ class Parser {
       token = parseExpressionStatement(token);
     }
     int expressionCount = 0;
-    if (optional(')', token)) {
-      listener.endForStatement(expressionCount, forToken, token.next);
-      return token.next;
-    }
-    token = parseExpression(token);
-    ++expressionCount;
-    while (optional(',', token)) {
-      token = parseExpression(token.next);
+    while (true) {
+      if (optional(')', token)) break;
+      token = parseExpression(token);
       ++expressionCount;
+      if (optional(',', token)) {
+        token = token.next;
+      } else {
+        break;
+      }
     }
     token = expect(')', token);
     token = parseStatement(token);

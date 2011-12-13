@@ -7,6 +7,7 @@
 #import('../elements/elements.dart');
 #import('../scanner/scanner_implementation.dart');
 #import('../scanner/scannerlib.dart');
+#import('../tree/tree.dart');
 
 #source('../../source.dart');
 #source('../scanner/byte_array_scanner.dart');
@@ -82,6 +83,13 @@ int parseFile(String filename, MyOptions options) {
       throw;
     } else {
       print(ex);
+    }
+  }
+  if (options.buildAst) {
+    MyNodeListener l = listener;
+    if (!l.nodes.isEmpty()) {
+      parserError('Stack not empty after parsing',
+                  l.nodes.head.getBeginToken(), file);
     }
   }
   return bytes.length;
@@ -173,6 +181,19 @@ class MyNodeListener extends NodeListener {
   MyNodeListener(SourceFile file, MyOptions options)
     : super(new MyCanceller(file, options), null,
             new PartialClassElement(const SourceString('dummy'), null, null));
+
+  void beginClassDeclaration(Token token) {
+    classCount++;
+  }
+
+  void endClassDeclaration(int interfacesCount, Token beginToken,
+                           Token extendsKeyword, Token implementsKeyword,
+                           Token endToken) {
+    super.endClassDeclaration(interfacesCount, beginToken,
+                              extendsKeyword, implementsKeyword,
+                              endToken);
+    ClassNode node = popNode(); // Discard ClassNode and assert the type.
+  }
 
   void log(message) {
     print(message);

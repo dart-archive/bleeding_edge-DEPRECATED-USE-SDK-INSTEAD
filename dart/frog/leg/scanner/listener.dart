@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final bool VERBOSE = false;
+final bool VERBOSE = true;
 
 class Listener {
   void beginArguments(Token token) {
@@ -141,7 +141,7 @@ class Listener {
   void beginInterface(Token token) {
   }
 
-  void endInterface(Token token) {
+  void endInterface(int supertypeCount, Token token) {
   }
 
   void beginLabelledStatement(Token token) {
@@ -428,9 +428,17 @@ class ElementListener extends Listener {
 
   ElementListener(Canceler this.canceler);
 
-  void beginLibraryTag(Token token) {
+  void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
     // TODO(ahe): Implement this.
-    canceler.cancel("Cannot handle library tags", token: token);
+    canceler.cancel("Cannot handle library tags", token: beginToken);
+    LiteralString prefix = null;
+    Identifier argumentName = null;
+    if (hasPrefix) {
+      prefix = popNode();
+      argumentName = popNode();
+    }
+    LiteralString firstArgument = popNode();
+    Identifier tag = popNode();
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
@@ -447,14 +455,24 @@ class ElementListener extends Listener {
                     token: factoryKeyword);
   }
 
-  void endInterface(Token token) {
+  void handleNoFactoryClause(Token token) {
+    pushNode(null);
+  }
+
+  void endInterface(int supertypeCount, Token token) {
     // TODO(ahe): Implement this.
     canceler.cancel("Cannot handle interfaces", token: token);
+    Node factoryClause = popNode();
+    discardNodes(supertypeCount);
+    Identifier name = popNode();
   }
 
   void endFunctionTypeAlias(Token token) {
     // TODO(ahe): Implement this.
     canceler.cancel("Cannot handle typedefs", token: token);
+    NodeList parameters = popNode();
+    Identifier name = popNode();
+    TypeAnnotation returnType = popNode();
   }
 
   void endTopLevelMethod(Token beginToken, Token endToken) {
@@ -467,12 +485,21 @@ class ElementListener extends Listener {
     Element fields = new PartialFieldListElement(beginToken, endToken);
     Link<Identifier> names = const EmptyLink<Identifier>();
     for (int i = 0; i < count; i++) {
+      Expression initializer = popNode();
+      if (initializer !== null) {
+        canceler.cancel("field initializers are not implemented",
+                        node: initializer);
+      }
       names = names.prepend(popNode());
     }
     for (; !names.isEmpty(); names = names.tail) {
-      pushElement(
-          new VariableElement(names.head.source, fields, ElementKind.FIELD));
+      pushElement(new VariableElement(names.head.source, fields,
+                                      ElementKind.FIELD));
     }
+  }
+
+  void handleNoFieldInitializer(Token token) {
+    pushNode(null);
   }
 
   void handleIdentifier(Token token) {
@@ -481,6 +508,7 @@ class ElementListener extends Listener {
 
   void handleQualified(Token period) {
     canceler.cancel("library prefixes are not implemented", token: period);
+    Identifier part = popNode();
   }
 
   void handleNoType(Token token) {
@@ -542,6 +570,13 @@ class ElementListener extends Listener {
     Node node = nodes.head;
     nodes = nodes.tail;
     if (VERBOSE) log("pop $nodes");
+    return node;
+  }
+
+  Node peekNode() {
+    assert(!nodes.isEmpty());
+    Node node = nodes.head;
+    if (VERBOSE) log("peek $node");
     return node;
   }
 
@@ -642,6 +677,12 @@ class NodeListener extends ElementListener {
     Node receiver = popNode();
     if ((token.stringValue === '.') &&
         (argument is Send) && (argument.asSend().receiver === null)) {
+      if (argument is SendSet) {
+        canceler.cancel('not implemented', node: argument);
+        pushNode(new UnimplementedExpression('binary SendSet',
+                                             [receiver, argument]));
+        return;
+      }
       pushNode(argument.asSend().copyWithReceiver(receiver));
     } else {
       // TODO(ahe): If token.stringValue === '.', the resolver should
@@ -717,7 +758,7 @@ class NodeListener extends ElementListener {
   }
 
   void handleFinalKeyword(Token token) {
-    pushNode(new Identifier(token));
+    canceler.cancel('Final not implemented yet', token: token);
   }
 
   void endVariablesDeclaration(int count, Token endToken) {
@@ -747,10 +788,17 @@ class NodeListener extends ElementListener {
                        Token beginToken, Token endToken) {
     Statement body = popNode();
     discardNodes(updateExpressionCount - 1); // TODO(ahe): Don't discard.
-    Expression update = popNode();
-    ExpressionStatement condition = popNode();
-    VariableDefinitions initializer = popNode();
+    if (updateExpressionCount == 0) {
+      pushNode(null); // TODO(ahe): Hack.
+    }
+    Node update = popNode();
+    Statement condition = popNode();
+    Node initializer = popNode();
     pushNode(new For(initializer, condition, update, body, beginToken));
+  }
+
+  void handleNoExpression(Token token) {
+    pushNode(null);
   }
 
   void endDoWhileStatement(Token doKeyword, Token whileKeyword,
@@ -803,12 +851,20 @@ class NodeListener extends ElementListener {
     Send send = node.asSend();
     if (send === null) {
       canceler.cancel('not assignable: $node', node: node);
+      pushNode(new UnimplementedExpression('not assignable: $node',
+                                           [send, node]));
+      return;
     }
     if (!(send.isPropertyAccess || send.isIndex)) {
       canceler.cancel('not assignable: $send', node: send);
+      pushNode(new UnimplementedExpression('not assignable: $send',
+                                           [send, node]));
+      return;
     }
     if (send.asSendSet() !== null) {
       canceler.cancel('chained assignment', node: send);
+      pushNode(new UnimplementedExpression('chained assignment', [send, node]));
+      return;
     }
     Node argument = null;
     if (send.isIndex) argument = send.arguments.head;
@@ -839,16 +895,16 @@ class NodeListener extends ElementListener {
     // TODO(ahe): pushNode(null);
   }
 
-  void handleNoFieldInitializer(Token token) {
-    pushNode(null);
-  }
-
   void endFields(int count, Token beginToken, Token endToken) {
     canceler.cancel("fields are not implemented yet", token: beginToken);
-    Expression initializer = popNode();
-    Identifier name = popNode();
+    var fields = [];
+    for (int i = 0; i < count; i++) {
+      Expression initializer = popNode();
+      Identifier name = popNode();
+      fields.add(name);
+    }
     // TODO(ahe): implement this.
-    pushNode(null);
+    pushNode(new UnimplementedExpression('fields', fields));
   }
 
   bool isConstructor(Identifier name) {
@@ -882,14 +938,16 @@ class NodeListener extends ElementListener {
   void endLiteralMapEntry(Token token) {
     Expression value = popNode();
     LiteralString key = popNode();
-    pushNode(null); // TODO(ahe): Create AST node.
+    // TODO(ahe): Create AST node.
+    pushNode(new UnimplementedExpression('map entry', [key, value]));
   }
 
   void handleLiteralMap(int count, Token beginToken, Token constKeyword,
                         Token endToken) {
     NodeList entries = makeNodeList(count, beginToken, endToken, ',');
     // TODO(ahe): Type arguments are discarded.
-    pushNode(null); // TODO(ahe): Create AST node.
+    // TODO(ahe): Create AST node.
+    pushNode(new UnimplementedExpression('map', [entries]));
     canceler.cancel('literal map not implemented', node: entries);
   }
 
@@ -918,87 +976,155 @@ class NodeListener extends ElementListener {
       canceler.cancel('named constructors are not implemented', token: token);
     }
     NodeList arguments = popNode();
+    if (named) {
+      Identifier name = popNode();
+    }
     TypeAnnotation type = popNode();
     pushNode(new NewExpression(token, new Send(null, type, arguments)));
   }
 
   void handleConstExpression(Token token, bool named) {
     canceler.cancel('const expressions are not implemented', token: token);
+    NodeList arguments = popNode();
+    if (named) {
+      Identifier name = popNode();
+    }
+    TypeAnnotation type = popNode();
+    pushNode(new NewExpression(token, new Send(null, type, arguments)));
   }
 
   void handleOperatorName(Token operatorKeyword, Token token) {
     canceler.cancel('user defined operators are not implemented', token: token);
+    pushNode(new Identifier(operatorKeyword));
   }
 
   void handleNamedArgument(Token colon) {
     canceler.cancel('named arguments are not implemented', token: colon);
+    Expression argument = popNode();
+    Identifier name = popNode();
+    pushNode(new UnimplementedExpression('named argument', [name, argument]));
   }
 
   void handleStringInterpolationPart(Token token) {
-    canceler.cancel('string interpolation is not implemented', token: token);
+    LiteralString string = popNode();
+    Expression expression = popNode();
+    canceler.cancel('string interpolation is not implemented',
+                    node: expression);
   }
 
   void endOptionalFormalParameters(int count,
                                    Token beginToken, Token endToken) {
-    canceler.cancel('optional formal paramters are not implemented',
+    canceler.cancel('optional formal parameters are not implemented',
                     token: beginToken);
+    discardNodes(count);
   }
 
   void handleFunctionTypedFormalParameter(Token token) {
-    canceler.cancel('function typed formal paramters are not implemented',
+    canceler.cancel('function typed formal parameters are not implemented',
                     token: token);
+    NodeList parameters = popNode();
   }
 
   void handleValuedFormalParameter(Token equals, Token token) {
-    canceler.cancel('formal paramters are not implemented',
+    canceler.cancel('valued formal parameters are not implemented',
                     token: equals);
+    Expression defaultValue = popNode();
   }
 
-  void beginTryStatement(Token token) {
-    canceler.cancel('try statement is not implemented', token: token);
+  void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
+    canceler.cancel('try statement is not implemented', token: tryKeyword);
+  }
+
+  void handleCatchBlock(Token catchKeyword) {
+    canceler.cancel('catch blocks are not implemented', token: catchKeyword);
+    Block block = popNode();
+    NodeList parameters = popNode();
+  }
+
+  void handleFinallyBlock(Token finallyKeyword) {
+    canceler.cancel('finally blocks are not implemented',
+                    token: finallyKeyword);
+    Block block = popNode();
   }
 
   void endSwitchStatement(Token switchKeyword) {
     canceler.cancel('switch statement is not implemented',
                     token: switchKeyword);
+    ParenthesizedExpression expression = popNode();
+    pushNode(new UnimplementedStatement('switch', [expression]));
   }
 
   void handleBreakStatement(bool hasTarget,
                             Token breakKeyword, Token endToken) {
     canceler.cancel('break statement is not implemented', token: breakKeyword);
+    Identifier target = null;
+    if (hasTarget) {
+      target = popNode();
+    }
+    pushNode(new UnimplementedStatement('break', [target]));
   }
 
   void handleContinueStatement(bool hasTarget,
                                Token continueKeyword, Token endToken) {
     canceler.cancel('continue statement is not implemented',
                     token: continueKeyword);
+    Identifier target = null;
+    if (hasTarget) {
+      target = popNode();
+    }
+    pushNode(new UnimplementedStatement('continue', [target]));
   }
 
   void handleEmptyStatement(Token token) {
     canceler.cancel('empty statement is not implemented', token: token);
+    pushNode(new UnimplementedStatement('empty', []));
   }
 
   void endFactoryMethod(Token factoryKeyword, Token periodBeforeName) {
     canceler.cancel('factory methods are not implemented',
                     token: factoryKeyword);
+    Statement body = popNode();
+    NodeList parameters = popNode();
+    Identifier name = null;
+    if (periodBeforeName !== null) {
+      name = popNode();
+    }
+    Node typeName = popNode();
+    pushNode(new UnimplementedStatement('factory',
+                                        [typeName, name, parameters, body]));
   }
 
   void endForInStatement(Token beginToken, Token inKeyword, Token endToken) {
     canceler.cancel('for-in is not implemented', token: inKeyword);
+    Statement statement = popNode();
+    Expression expression = popNode();
+    Node variablesDeclarationOrExpression = popNode();
+    pushNode(new UnimplementedStatement('for-in',
+                                        [variablesDeclarationOrExpression,
+                                         expression,
+                                         statement]));
   }
 
   void endUnamedFunction(Token token) {
-    canceler.cancel('unnamed functions are not implemented', token: token);
+    Statement body = popNode();
+    NodeList parameters = popNode();
+    pushNode(new UnimplementedExpression('unamed function',
+                                         [parameters, body]));
+    canceler.cancel('unnamed functions are not implemented', node: parameters);
   }
 
   void handleIsOperator(Token operathor, Token not, Token endToken) {
     canceler.cancel('is-operator is not implemented', token: operathor);
+    TypeAnnotation type = popNode();
+    Expression expression = popNode();
+    pushNode(new UnimplementedExpression('is', [expression, type]));
   }
 
   void endLabelledStatement(Token colon) {
     Statement statement = popNode();
     Identifier label = popNode();
     canceler.cancel('labels are not implemented', node: label);
+    pushNode(new UnimplementedStatement('labelled', [label, statement]));
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
@@ -1049,10 +1175,11 @@ class PartialFieldListElement extends VariableListElement {
     if (node != null) return node;
     node = parse(canceler, logger,
         (p) => p.parseVariablesDeclaration(beginToken));
-    for (Node tmp in node.definitions.nodes) {
-      if (tmp is !Identifier) {
-        canceler.cancel(
-            'field with initializer not implemented', token: beginToken);
+    for (Expression definition in node.definitions.nodes) {
+      Send initializedField = definition.asSend();
+      if (initializedField !== null) {
+        canceler.cancel('field initializers are not implemented',
+                        node: initializedField.argumentsNode);
       }
     }
     return node;

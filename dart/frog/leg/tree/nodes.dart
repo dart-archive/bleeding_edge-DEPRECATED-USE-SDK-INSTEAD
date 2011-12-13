@@ -402,9 +402,10 @@ class Conditional extends Expression {
 }
 
 class For extends Loop {
-  /** Either a variable declaration or an ExpressionStatement. */
-  final Statement initializer;
-  final ExpressionStatement conditionStatement;
+  /** Either a variable declaration or an expression. */
+  final Node initializer;
+  /** Either an expression statement or an empty statement. */
+  final Statement conditionStatement;
   final Node update; // TODO(ahe): Should be an expression list.
 
   final Token forToken;
@@ -415,7 +416,11 @@ class For extends Loop {
   For asFor() => this;
 
   Expression get condition() {
-    return conditionStatement.expression;
+    if (conditionStatement is ExpressionStatement) {
+      return conditionStatement.asExpressionStatement().expression;
+    } else {
+      return null;
+    }
   }
 
   accept(Visitor visitor) => visitor.visitFor(this);
@@ -436,7 +441,7 @@ class For extends Loop {
 class FunctionExpression extends Expression {
   final Node name;
   final NodeList parameters;
-  final Block body;
+  final Statement body;
   final TypeAnnotation returnType;
 
   FunctionExpression([this.name, this.parameters, this.body, this.returnType]);
@@ -770,4 +775,32 @@ class Modifiers {
   final int flags;
 
   const Modifiers([this.modifiers, this.flags = 0]);
+}
+
+class UnimplementedExpression extends Expression {
+  final String description;
+  final NodeList nodes;
+
+  UnimplementedExpression(this.description, List<Node> nodes)
+    : this.nodes = new NodeList(null, new Link<Node>.fromList(nodes));
+
+  toString() => '$description($nodes)';
+
+  Token getBeginToken() => nodes.getBeginToken();
+
+  Token getEndToken() => nodes.getEndToken();
+}
+
+class UnimplementedStatement extends Statement {
+  final String description;
+  final NodeList nodes;
+
+  UnimplementedStatement(this.description, List<Node> nodes)
+    : this.nodes = new NodeList(null, new Link<Node>.fromList(nodes));
+
+  toString() => '$description($nodes)';
+
+  Token getBeginToken() => nodes.getBeginToken();
+
+  Token getEndToken() => nodes.getEndToken();
 }

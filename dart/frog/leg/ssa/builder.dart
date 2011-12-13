@@ -370,7 +370,10 @@ class SsaBuilder implements Visitor {
   }
 
   visitFor(For node) {
-    assert(node.initializer !== null && node.condition !== null &&
+    if (node.condition === null) {
+      compiler.unimplemented("SsaBuilder for loop without condition");
+    }
+    assert(node.initializer !== null &&
            node.update !== null && node.body !== null);
     visitLoop(node.initializer, node.condition, node.update, node.body);
   }
