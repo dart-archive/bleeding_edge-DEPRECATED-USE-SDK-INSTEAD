@@ -266,3 +266,11 @@ class ClassElement extends Element {
     return synthesizedConstructor;
   }
 }
+
+class Elements {
+  static bool isStaticOrTopLevelField(Element element) {
+    return (element != null)
+           && !element.isInstanceMember()
+           && (element.kind === ElementKind.FIELD);
+  }
+}

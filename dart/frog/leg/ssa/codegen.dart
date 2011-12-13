@@ -360,7 +360,7 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitLiteral(HLiteral node) {
-    if (node.value === null) {
+    if (node.isLiteralNull()) {
       buffer.add("(void 0)");
     } else if (node.value is num && node.value < 0) {
       buffer.add('(${node.value})');
@@ -459,6 +459,12 @@ class SsaCodeGenerator implements HVisitor {
 
   void visitStatic(HStatic node) {
     buffer.add(compiler.namer.isolateAccess(node.element));
+  }
+
+  void visitStaticStore(HStaticStore node) {
+    buffer.add(compiler.namer.isolateAccess(node.element));
+    buffer.add(' = ');
+    use(node.inputs[0]);
   }
 
   void visitStore(HStore node) {

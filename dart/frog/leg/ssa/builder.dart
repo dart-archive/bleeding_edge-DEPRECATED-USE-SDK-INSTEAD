@@ -634,10 +634,7 @@ class SsaBuilder implements Visitor {
       if (node.receiver !== null) {
         compiler.unimplemented("SsaBuilder.visitSend with receiver");
       }
-      if (element != null
-          && !element.isInstanceMember()
-          && element.kind === ElementKind.FIELD) {
-        compiler.unimplemented("SsaBuilder.visitSend with static field");
+      if (Elements.isStaticOrTopLevelField(element)) {
         push(new HStatic(element));
       } else {
         HInstruction instruction = definitions[element];
@@ -689,8 +686,9 @@ class SsaBuilder implements Visitor {
 
   visitSendSet(SendSet node) {
     Operator op = node.assignmentOperator;
+    Element element = elements[node];
     if (node.isIndex) {
-      HStatic target = new HStatic(elements[node]);
+      HStatic target = new HStatic(element);
       add(target);
       visit(node.receiver);
       HInstruction receiver = pop();
@@ -733,7 +731,13 @@ class SsaBuilder implements Visitor {
       Link<Node> link = node.arguments;
       assert(!link.isEmpty() && link.tail.isEmpty());
       visit(link.head);
-      stack.add(updateDefinition(node, pop()));
+      if (Elements.isStaticOrTopLevelField(element)) {
+        HInstruction value = pop();
+        add(new HStaticStore(element, value));
+        stack.add(value);
+      } else {
+        stack.add(updateDefinition(node, pop()));
+      }
     } else {
       assert(const SourceString("++") == op.source ||
              const SourceString("--") == op.source ||
@@ -754,8 +758,12 @@ class SsaBuilder implements Visitor {
       visitBinary(left, op, right, opElement);
       HInstruction operation = pop();
       assert(operation !== null);
-      // updateDefinition might guard the operation thus returning a new node.
-      operation = updateDefinition(node, operation);
+      if (Elements.isStaticOrTopLevelField(element)) {
+        add(new HStaticStore(element, operation));
+      } else {
+        // updateDefinition might guard the operation thus returning a new node.
+        operation = updateDefinition(node, operation);
+      }
       if (isPrefix) {
         stack.add(operation);
       } else {

@@ -40,6 +40,7 @@ interface HVisitor<R> {
   R visitShiftLeft(HShiftLeft node);
   R visitShiftRight(HShiftRight node);
   R visitStatic(HStatic node);
+  R visitStaticStore(HStaticStore node);
   R visitStore(HStore node);
   R visitSubtract(HSubtract node);
   R visitThis(HThis node);
@@ -220,6 +221,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
   visitStatic(HStatic node) => visitInstruction(node);
+  visitStaticStore(HStaticStore node) => visitInstruction(node);
   visitStore(HStore node) => visitInstruction(node);
   visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
@@ -1432,6 +1434,16 @@ class HStatic extends HInstruction {
 
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
+}
+
+class HStaticStore extends HInstruction {
+  Element element;
+  HStaticStore(this.element, HInstruction value) : super([value]);
+  toString() => 'static store ${element.name}';
+  accept(HVisitor visitor) => visitor.visitStaticStore(this);
+
+  bool typeEquals(other) => other is HStaticStore;
+  bool dataEquals(HStaticStore other) => element == other.element;
 }
 
 class HLiteralList extends HInstruction {

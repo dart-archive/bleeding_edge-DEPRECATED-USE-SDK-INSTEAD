@@ -1037,6 +1037,12 @@ class PartialFieldListElement extends VariableListElement {
     if (node != null) return node;
     node = parse(canceler, logger,
         (p) => p.parseVariablesDeclaration(beginToken));
+    for (Node tmp in node.definitions.nodes) {
+      if (tmp is !Identifier) {
+        canceler.cancel(
+            'field with initializer not implemented', token: beginToken);
+      }
+    }
     return node;
   }
 }
