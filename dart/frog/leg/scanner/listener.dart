@@ -468,7 +468,8 @@ class ElementListener extends Listener {
       names = names.prepend(popNode());
     }
     for (; !names.isEmpty(); names = names.tail) {
-      pushElement(new PartialFieldElement(names.head.source, fields));
+      pushElement(
+          new VariableElement(names.head.source, fields, ElementKind.FIELD));
     }
   }
 
@@ -1020,17 +1021,6 @@ class PartialFunctionElement extends FunctionElement {
     if (node != null) return node;
     node = parse(canceler, logger, (p) => p.parseFunction(beginToken));
     return node;
-  }
-}
-
-class PartialFieldElement extends VariableElement {
-  PartialFieldElement(SourceString name,
-                      Element variables,
-                      [Element enclosing = null])
-    : super(name, variables, ElementKind.FIELD, enclosing);
-
-  Node parseNode(Canceler canceler, Logger logger) {
-    return variables.parseNode(canceler, logger);
   }
 }
 
