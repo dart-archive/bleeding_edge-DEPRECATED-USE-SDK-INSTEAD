@@ -39,8 +39,8 @@ class WorldGenerator {
     main.declaringType.markUsed();
 
     if (options.compileAll) {
-      markLibraryUsed(world.corelib);
-      markLibraryUsed(main.declaringType.library);
+      markLibrariesUsed(
+          [world.coreimpl, world.corelib, main.declaringType.library]);
     } else {
       // TODO(jimhug): Better way to capture hidden control flow.
       world.corelib.types['BadNumberFormatException'].markUsed();
@@ -84,28 +84,49 @@ class WorldGenerator {
     writer.writeln('${mainCall.code};');
   }
 
-  void markLibraryUsed(Library l) {
-    if (l.isMarked) return;
-    l.isMarked = true;
+  void markLibrariesUsed(List<Library> libs) =>
+    getAllTypes(libs).forEach(markTypeUsed);
 
-    l.imports.forEach((i) => markLibraryUsed(i.library));
-    for (var type in l.types.getValues()) {
-      if (!type.isClass) continue;
+  void markTypeUsed(Type type) {
+    if (!type.isClass) return;
 
-      type.markUsed();
-      // Don't generate is for top types or native types without prototypes
-      // (e.g. Math, console, process)
-      type.isTested = !type.isTop && !(type.isNative &&
-          type.members.getValues().every((m) => m.isStatic && !m.isFactory));
-      for (var member in type.members.getValues()) {
-        if (member is PropertyMember) {
-          if (member.getter != null) genMethod(member.getter);
-          if (member.setter != null) genMethod(member.setter);
-        }
+    type.markUsed();
+    type.isTested = true;
+    // (e.g. Math, console, process)
+    type.isTested = !type.isTop && !(type.isNative &&
+        type.members.getValues().every((m) => m.isStatic && !m.isFactory));
+    final members = new List.from(type.members.getValues());
+    members.addAll(type.constructors.getValues());
+    type.factories.forEach((f) => members.add(f));
+    for (var member in members) {
+      if (member is PropertyMember) {
+        if (member.getter != null) genMethod(member.getter);
+        if (member.setter != null) genMethod(member.setter);
+      }
 
-        if (member.isMethod) genMethod(member);
+      if (member is MethodMember) genMethod(member);
+    }
+  }
+
+  void writeAllDynamicStubs(List<Library> libs) =>
+    getAllTypes(libs).forEach((Type type) {
+      if (type.isClass || type.isFunction) _writeDynamicStubs(type);
+    });
+
+  List<Type> getAllTypes(List<Library> libs) {
+    List<Type> types = <Type>[];
+    Set<Library> seen = new Set<Library>();
+    for (var mainLib in libs) {
+      Queue<Library> toCheck = new Queue.from([mainLib]);
+      while (!toCheck.isEmpty()) {
+        var lib = toCheck.removeFirst();
+        if (seen.contains(lib)) continue;
+        seen.add(lib);
+        lib.imports.forEach((i) => toCheck.addLast(lib));
+        lib.types.getValues().forEach((t) => types.add(t));
       }
     }
+    return types;
   }
 
   GlobalValue globalForStaticField(FieldMember field, Value fieldValue,
@@ -380,7 +401,7 @@ function $inheritsMembers(child, parent) {
 
   _writeDynamicStubs(Type type) {
     for (var stub in orderValuesByKeys(type.varStubs)) {
-      stub.generate(writer);
+      if (!stub.isGenerated) stub.generate(writer);
     }
   }
 

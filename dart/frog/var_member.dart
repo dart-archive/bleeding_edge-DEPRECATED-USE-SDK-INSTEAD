@@ -5,6 +5,7 @@
 /** A dynamic member stub. */
 class VarMember {
   final String name;
+  bool isGenerated = false;
 
   VarMember(this.name);
 
@@ -71,6 +72,7 @@ class VarFunctionStub extends VarMember {
   }
 
   void generate(CodeWriter code) {
+    isGenerated = true;
     if (args.hasNames) {
       generateNamed(code);
     } else {
@@ -126,6 +128,7 @@ class VarMethodStub extends VarMember {
       member != null ? member.declaringType : world.objectType;
 
   void generate(CodeWriter code) {
+    isGenerated = true;
     code.write(world.gen._prototypeOf(declaringType, name) + ' = ');
     if (!isHidden && _useDirectCall(args)) {
       code.writeln(world.gen._prototypeOf(declaringType, member.jsname) + ';');

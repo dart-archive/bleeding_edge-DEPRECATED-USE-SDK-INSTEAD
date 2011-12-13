@@ -882,8 +882,6 @@ class DefinedType extends Type {
   }
 
   addDirectSubtype(Type type) {
-    // Ensure that this is only called during resolve pass
-    assert(_subtypes == null);
     directSubtypes.add(type);
   }
 

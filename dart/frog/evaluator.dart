@@ -18,13 +18,14 @@ class Evaluator {
   static void initWorld(String homedir, List<String> args, FileSystem files) {
     parseOptions(homedir, args, files);
     options.forceDynamic = true;
+    options.compileAll = true;
 
     initializeWorld(files);
     world.process();
     world.resolveAll();
 
     world.gen = new WorldGenerator(null, new CodeWriter());
-    world.gen.markLibraryUsed(world.corelib);
+    world.gen.markLibrariesUsed([world.coreimpl, world.corelib]);
 
     world.gen.writeTypes(world.coreimpl);
     world.gen.writeTypes(world.corelib);
@@ -112,15 +113,20 @@ class Evaluator {
       code = world.gen.writer.text;
     } else if (parsed is TypeDefinition) {
       _removeMember(parsed.name.name);
-      var type = _lib.addType(parsed.name.name, parsed, parsed.isClass);
+      parsed.visit(new _LibraryVisitor(_lib));
+      var type = _lib.findTypeByName(parsed.name.name);
       type.resolve();
+      world.gen.markTypeUsed(type);
       world.gen.writeType(type);
-      code = world.gen.writer.text;
+      code = '${world.gen.writer.text}; undefined';
     } else {
       parsed.visit(methGen);
       code = methGen.writer.text;
     }
 
-    return this._jsEvaluator.eval(code);
+    world.gen.writer = new CodeWriter();
+    world.gen.writeAllDynamicStubs([world.coreimpl, world.corelib, _lib]);
+
+    return this._jsEvaluator.eval('${world.gen.writer.text}; $code');
   }
 }

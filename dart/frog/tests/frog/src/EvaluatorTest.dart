@@ -64,14 +64,13 @@ main() {
       Expect.equals("foo12", ev.eval('foo(12)'));
     });
 
-    // TODO(nweiz): make this work
-    // test('user-defined classes', () {
-    //   var ev = evaluator();
-    //   ev.eval('class Foo { int a; Foo(this.a); foo(b) => a + b; }');
-    //   ev.eval('f = new Foo(5)');
-    //   Expect.equals(5, ev.eval('f.a'));
-    //   Expect.equals(9, ev.eval('f.foo(4)'));
-    // });
+    test('user-defined classes', () {
+      var ev = evaluator();
+      ev.eval('class Foo { int a; Foo(this.a); foo(b) => a + b; }');
+      ev.eval('f = new Foo(5)');
+      Expect.equals(5, ev.eval('f.a'));
+      Expect.equals(9, ev.eval('f.foo(4)'));
+    });
 
     test('list literals', () {
       var ev = evaluator();

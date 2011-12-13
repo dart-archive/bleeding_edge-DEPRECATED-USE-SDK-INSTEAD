@@ -1126,6 +1126,9 @@ HashSetImplementation.prototype.some$1 = function($0) {
 // ********** Code for HashSetImplementation_E **************
 $inherits(HashSetImplementation_E, HashSetImplementation);
 function HashSetImplementation_E() {}
+// ********** Code for HashSetImplementation_Library **************
+$inherits(HashSetImplementation_Library, HashSetImplementation);
+function HashSetImplementation_Library() {}
 // ********** Code for HashSetImplementation_String **************
 $inherits(HashSetImplementation_String, HashSetImplementation);
 function HashSetImplementation_String() {}
@@ -1380,6 +1383,14 @@ function DoubleLinkedQueue() {
   // Initializers done
   this._sentinel = new _DoubleLinkedQueueEntrySentinel_E();
 }
+DoubleLinkedQueue.DoubleLinkedQueue$from$factory = function(other) {
+  var list = new DoubleLinkedQueue();
+  for (var $$i = other.iterator(); $$i.hasNext$0(); ) {
+    var e = $$i.next$0();
+    list.addLast(e);
+  }
+  return list;
+}
 DoubleLinkedQueue.prototype.addLast = function(value) {
   this._sentinel.prepend(value);
 }
@@ -1394,6 +1405,9 @@ DoubleLinkedQueue.prototype.addAll = function(collection) {
 }
 DoubleLinkedQueue.prototype.removeLast = function() {
   return this._sentinel._previous.remove();
+}
+DoubleLinkedQueue.prototype.removeFirst = function() {
+  return this._sentinel._next.remove();
 }
 DoubleLinkedQueue.prototype.last = function() {
   return this._sentinel._previous.get$element();
@@ -2099,8 +2113,7 @@ WorldGenerator.prototype.run = function() {
   var mainCall = this.main.invoke(metaGen, null, mainTarget, Arguments.get$EMPTY(), false);
   this.main.declaringType.markUsed();
   if ($globals.options.compileAll) {
-    this.markLibraryUsed($globals.world.corelib);
-    this.markLibraryUsed(this.main.declaringType.get$library());
+    this.markLibrariesUsed([$globals.world.get$coreimpl(), $globals.world.corelib, this.main.declaringType.get$library()]);
   }
   else {
     $globals.world.corelib.types.$index('BadNumberFormatException').markUsed$0();
@@ -2125,33 +2138,56 @@ WorldGenerator.prototype.run = function() {
   this.writeGlobals();
   this.writer.writeln(('' + mainCall.get$code() + ';'));
 }
-WorldGenerator.prototype.markLibraryUsed = function(l) {
-  var $this = this; // closure support
-  if (l.isMarked) return;
-  l.isMarked = true;
-  l.imports.forEach((function (i) {
-    return $this.markLibraryUsed(i.get$library());
+WorldGenerator.prototype.markLibrariesUsed = function(libs) {
+  return this.getAllTypes(libs).forEach(this.get$markTypeUsed());
+}
+WorldGenerator.prototype.markTypeUsed = function(type) {
+  if (!type.get$isClass()) return;
+  type.markUsed();
+  type.isTested = true;
+  type.isTested = !type.get$isTop() && !(type.get$isNative() && type.get$members().getValues().every$1((function (m) {
+    return m.get$isStatic() && !m.get$isFactory();
+  })
+  ));
+  var members = ListFactory.ListFactory$from$factory(type.get$members().getValues());
+  members.addAll(type.get$constructors().getValues());
+  type.get$factories().forEach((function (f) {
+    return members.add(f);
   })
   );
-  var $$list = l.types.getValues();
-  for (var $$i = l.types.getValues().iterator$0(); $$i.hasNext$0(); ) {
-    var type = $$i.next$0();
-    if (!type.get$isClass()) continue;
-    type.markUsed$0();
-    type.set$isTested(!type.get$isTop() && !(type.get$isNative() && type.get$members().getValues$0().every$1((function (m) {
-      return m.get$isStatic() && !m.get$isFactory();
-    })
-    )));
-    var $list0 = type.get$members().getValues$0();
-    for (var $i0 = type.get$members().getValues$0().iterator$0(); $i0.hasNext$0(); ) {
-      var member = $i0.next$0();
-      if ((member instanceof PropertyMember)) {
-        if (member.get$getter() != null) this.genMethod(member.get$getter());
-        if (member.get$setter() != null) this.genMethod(member.get$setter());
-      }
-      if (member.get$isMethod()) this.genMethod(member);
+  for (var $$i = 0;$$i < members.length; $$i++) {
+    var member = members.$index($$i);
+    if ((member instanceof PropertyMember)) {
+      if (member.get$getter() != null) this.genMethod(member.get$getter());
+      if (member.get$setter() != null) this.genMethod(member.get$setter());
+    }
+    if ((member instanceof MethodMember)) this.genMethod(member);
+  }
+}
+WorldGenerator.prototype.get$markTypeUsed = function() {
+  return WorldGenerator.prototype.markTypeUsed.bind(this);
+}
+WorldGenerator.prototype.getAllTypes = function(libs) {
+  var types = [];
+  var seen = new HashSetImplementation();
+  for (var $$i = 0;$$i < libs.length; $$i++) {
+    var mainLib = libs.$index($$i);
+    var toCheck = DoubleLinkedQueue.DoubleLinkedQueue$from$factory([mainLib]);
+    while (!toCheck.isEmpty()) {
+      var lib = toCheck.removeFirst();
+      if (seen.contains(lib)) continue;
+      seen.add(lib);
+      lib.get$imports().forEach$1((function (lib, toCheck, i) {
+        return toCheck.addLast(lib);
+      }).bind(null, lib, toCheck)
+      );
+      lib.get$types().getValues$0().forEach$1((function (t) {
+        return types.add(t);
+      })
+      );
     }
   }
+  return types;
 }
 WorldGenerator.prototype.globalForStaticField = function(field, fieldValue, dependencies) {
   this.hasStatics = true;
@@ -2374,7 +2410,7 @@ WorldGenerator.prototype._writeDynamicStubs = function(type) {
   var $$list = orderValuesByKeys(type.varStubs);
   for (var $$i = 0;$$i < $$list.length; $$i++) {
     var stub = $$list.$index($$i);
-    stub.generate$1(this.writer);
+    if (!stub.get$isGenerated()) stub.generate$1(this.writer);
   }
 }
 WorldGenerator.prototype._writeStaticField = function(field) {
@@ -4090,7 +4126,6 @@ LibraryImport.prototype.set$library = function(value) { return this.library = va
 $inherits(Library, Element);
 function Library(baseSource) {
   this.isWritten = false
-  this.isMarked = false
   this.baseSource = baseSource;
   // Initializers done
   Element.call(this, null, null);
@@ -4105,6 +4140,8 @@ function Library(baseSource) {
 Library.prototype.get$baseSource = function() { return this.baseSource; };
 Library.prototype.get$types = function() { return this.types; };
 Library.prototype.set$types = function(value) { return this.types = value; };
+Library.prototype.get$imports = function() { return this.imports; };
+Library.prototype.set$imports = function(value) { return this.imports = value; };
 Library.prototype.get$_privateMembers = function() { return this._privateMembers; };
 Library.prototype.set$_privateMembers = function(value) { return this._privateMembers = value; };
 Library.prototype.get$topType = function() { return this.topType; };
@@ -4606,6 +4643,8 @@ function Member(name, declaringType) {
   Element.call(this, name, declaringType);
 }
 Member.prototype.get$declaringType = function() { return this.declaringType; };
+Member.prototype.get$isGenerated = function() { return this.isGenerated; };
+Member.prototype.set$isGenerated = function(value) { return this.isGenerated = value; };
 Member.prototype.get$generator = function() { return this.generator; };
 Member.prototype.set$generator = function(value) { return this.generator = value; };
 Member.prototype.get$library = function() {
@@ -10610,8 +10649,6 @@ function Type(name) {
   // Initializers done
   Element.call(this, name, null);
 }
-Type.prototype.get$isTested = function() { return this.isTested; };
-Type.prototype.set$isTested = function(value) { return this.isTested = value; };
 Type.prototype.get$typeCheckCode = function() { return this.typeCheckCode; };
 Type.prototype.set$typeCheckCode = function(value) { return this.typeCheckCode = value; };
 Type.prototype.get$varStubs = function() { return this.varStubs; };
@@ -12922,10 +12959,13 @@ LibraryReader.prototype.readFile = function(fullname) {
 }
 // ********** Code for VarMember **************
 function VarMember(name) {
+  this.isGenerated = false
   this.name = name;
   // Initializers done
 }
 VarMember.prototype.get$name = function() { return this.name; };
+VarMember.prototype.get$isGenerated = function() { return this.isGenerated; };
+VarMember.prototype.set$isGenerated = function(value) { return this.isGenerated = value; };
 VarMember.prototype.get$returnType = function() {
   return $globals.world.varType;
 }
@@ -12943,6 +12983,7 @@ function VarFunctionStub(name, callArgs) {
   $globals.world.gen.corejs.useGenStub = true;
 }
 VarFunctionStub.prototype.generate = function(code) {
+  this.isGenerated = true;
   if (this.args.get$hasNames()) {
     this.generateNamed(code);
   }
@@ -12992,6 +13033,7 @@ VarMethodStub.prototype.get$declaringType = function() {
   return this.member != null ? this.member.declaringType : $globals.world.objectType;
 }
 VarMethodStub.prototype.generate = function(code) {
+  this.isGenerated = true;
   code.write($globals.world.gen._prototypeOf(this.get$declaringType(), this.name) + ' = ');
   if (!this.get$isHidden() && this._useDirectCall(this.args)) {
     code.writeln($globals.world.gen._prototypeOf(this.get$declaringType(), this.member.get$jsname()) + ';');
