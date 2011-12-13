@@ -4,7 +4,6 @@
 
 #library('file_system_memory');
 
-#import('dart:dom');
 #import('file_system.dart');
 
 /**
