@@ -1,6 +1,7 @@
 package com.google.dart.tools.core.utilities.dartdoc;
 
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartDocumentable;
 import com.google.dart.tools.core.model.DartElement;
@@ -91,19 +92,25 @@ public final class DartDocUtilities {
     }
     DartElementLocator locator = new DartElementLocator(compilationUnit, start, end);
 
-    DartElement element = locator.searchWithin(unit);
+    try {
+      DartElement element = locator.searchWithin(unit);
 
-    if (element instanceof DartDocumentable) {
-      DartDocumentable documentable = (DartDocumentable) element;
+      if (element instanceof DartDocumentable) {
+        DartDocumentable documentable = (DartDocumentable) element;
 
-      if (documentable.getDartDocRange() != null) {
-        SourceRange range = documentable.getDartDocRange();
+        if (documentable.getDartDocRange() != null) {
+          SourceRange range = documentable.getDartDocRange();
 
-        String dartDoc = element.getOpenable().getBuffer().getText(range.getOffset(),
-            range.getLength());
+          String dartDoc = element.getOpenable().getBuffer().getText(range.getOffset(),
+              range.getLength());
 
-        return cleanDartDoc(dartDoc);
+          return cleanDartDoc(dartDoc);
+        }
       }
+    } catch (Exception exception) {
+      DartCore.logInformation(
+          "Could not get DartDoc for element in " + compilationUnit.getElementName() + ", start = "
+              + start + ", end = " + end, exception);
     }
 
     return null;
