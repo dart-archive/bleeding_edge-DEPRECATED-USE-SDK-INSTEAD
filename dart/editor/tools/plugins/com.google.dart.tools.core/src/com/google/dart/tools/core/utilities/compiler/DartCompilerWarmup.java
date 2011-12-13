@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.utilities.compiler;
 
+import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
@@ -32,6 +33,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.compiler.LoggingDartCompilerListener;
+import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
 import java.io.ByteArrayOutputStream;
@@ -40,6 +42,8 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utility class for "warming up" the compiler by loading artifacts and performing some simple
@@ -188,13 +192,16 @@ public class DartCompilerWarmup {
    */
   public static void warmUpCompiler(CachingArtifactProvider rootProvider,
       DartCompilerListener listener) {
+    EditorLibraryManager sysLibMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
 
-    String warmupSrcCode = "#import('dart:html');\n" // dart:html should pull in dart:dom
-        + "#import('dart:json');\n" + "main() {if (window != null) print('success');}";
-
+    String warmupSrcCode = "";
+    final boolean htmlLibExists = sysLibMgr.getAllLibrarySpecs().contains("dart:html");
+    if (htmlLibExists) {
+      warmupSrcCode += "#import('dart:html');\n";
+    }
+    warmupSrcCode += "main() {print('success');}";
     DartSource dartSrc = new DartSourceString(WARMUP_DART, warmupSrcCode);
 
-    SystemLibraryManager sysLibMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
     LibrarySource libSrc = new DartCompilerWarmup.LibraryDartSource(dartSrc, sysLibMgr);
     CompilerOptions options = new CompilerOptions();
     final CompilerMetrics metrics = new CompilerMetrics();
@@ -202,6 +209,16 @@ public class DartCompilerWarmup {
 
     try {
       CompilerConfiguration config = new DefaultCompilerConfiguration(options, sysLibMgr) {
+
+        @Override
+        public List<Backend> getBackends() {
+          if (htmlLibExists) {
+            return super.getBackends();
+          } else {
+            return new ArrayList<Backend>();
+          }
+        }
+
         @Override
         public CompilerMetrics getCompilerMetrics() {
           return metrics;
