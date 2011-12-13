@@ -999,6 +999,11 @@ class Parser {
   }
 
   Token parseLiteralListOrMap(Token token) {
+    Token constKeyword = null;
+    if (optional('const', token)) {
+      constKeyword = token;
+      token = token.next;
+    }
     token = parseTypeArgumentsOpt(token);
     Token beginToken = token;
     int count = 0;
@@ -1014,7 +1019,7 @@ class Parser {
         ++count;
       } while (optional(',', token));
       mayParseFunctionExpressions = old;
-      listener.handleLiteralMap(count, beginToken, token);
+      listener.handleLiteralMap(count, beginToken, constKeyword, token);
       return expect('}', token);
     } else if (optional('[', token)) {
       bool old = mayParseFunctionExpressions;
@@ -1028,10 +1033,10 @@ class Parser {
         ++count;
       } while (optional(',', token));
       mayParseFunctionExpressions = old;
-      listener.handleLiteralList(count, beginToken, token);
+      listener.handleLiteralList(count, beginToken, constKeyword, token);
       return expect(']', token);
     } else if (optional('[]', token)) {
-      listener.handleLiteralList(0, token, token);
+      listener.handleLiteralList(0, token, constKeyword, token);
       return token.next;
     } else {
       listener.unexpected(token);
@@ -1087,6 +1092,13 @@ class Parser {
   Token parseConstExpression(Token token) {
     Token constKeyword = token;
     token = expect('const', token);
+    final String value = token.stringValue;
+    if ((value === '<') ||
+        (value === '[') ||
+        (value === '[]') ||
+        (value === '{')) {
+      return parseLiteralListOrMap(constKeyword);
+    }
     token = parseType(token);
     bool named = false;
     if (optional('.', token)) {

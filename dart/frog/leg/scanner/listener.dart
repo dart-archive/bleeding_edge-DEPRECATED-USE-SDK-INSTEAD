@@ -315,10 +315,12 @@ class Listener {
   void handleLiteralInt(Token token) {
   }
 
-  void handleLiteralList(int count, Token beginToken, Token endToken) {
+  void handleLiteralList(int count, Token beginToken, Token constKeyword,
+                         Token endToken) {
   }
 
-  void handleLiteralMap(int count, Token beginToken, Token endToken) {
+  void handleLiteralMap(int count, Token beginToken, Token constKeyword,
+                        Token endToken) {
   }
 
   void handleLiteralNull(Token token) {
@@ -883,14 +885,20 @@ class NodeListener extends ElementListener {
     pushNode(null); // TODO(ahe): Create AST node.
   }
 
-  void handleLiteralMap(int count, Token beginToken, Token endToken) {
+  void handleLiteralMap(int count, Token beginToken, Token constKeyword,
+                        Token endToken) {
     NodeList entries = makeNodeList(count, beginToken, endToken, ',');
     // TODO(ahe): Type arguments are discarded.
     pushNode(null); // TODO(ahe): Create AST node.
     canceler.cancel('literal map not implemented', node: entries);
   }
 
-  void handleLiteralList(int count, Token beginToken, Token endToken) {
+  void handleLiteralList(int count, Token beginToken, Token constKeyword,
+                         Token endToken) {
+    if (constKeyword !== null) {
+      canceler.cancel('const literal lists are not implemented',
+                      token: constKeyword);
+    }
     NodeList elements = makeNodeList(count, beginToken, endToken, ',');
     // TODO(ahe): Type arguments are discarded.
     pushNode(new LiteralList(null, elements));
