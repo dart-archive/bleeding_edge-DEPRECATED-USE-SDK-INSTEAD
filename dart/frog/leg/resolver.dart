@@ -298,6 +298,8 @@ class FullResolverVisitor extends ResolverVisitor {
       }
     } else if (receiver.kind === ElementKind.CLASS) {
       // TODO(ngeoffray): Find the element in the class.
+      ClassElement receiverClass = receiver;
+      target = receiverClass.lookupLocalElement(name);
     }
 
     return useElement(node, target);

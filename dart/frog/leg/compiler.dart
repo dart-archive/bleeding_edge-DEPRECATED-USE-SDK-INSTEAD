@@ -110,15 +110,34 @@ class Compiler implements Canceler, Logger {
     universe.define(element);
   }
 
+  void enqueueInvokedInstanceMethods() {
+    // TODO(floitsch): find a more efficient way of doing this.
+    // Run through the classes and see if we need to compile methods.
+    for (ClassElement classElement in universe.instantiatedClasses) {
+      for (Element member in classElement.members) {
+        SourceString name = member.name;
+        if (member.isInstanceMember() &&
+            member.kind == ElementKind.FUNCTION &&
+            universe.generatedCode[member] === null &&
+            universe.invokedMethods.contains(namer.instanceName(name))) {
+          addToWorklist(member);
+        }
+      }
+    }    
+  }
+
   void runCompiler() {
     scanCoreLibrary();
     scanner.scan(script);
     Element element = universe.find(MAIN);
     if (element === null) cancel('Could not find $MAIN');
     worklist.add(new WorkElement.toCompile(element));
-    while (!worklist.isEmpty()) {
-      worklist.removeLast().run(this);
-    }
+    do {
+      while (!worklist.isEmpty()) {
+        worklist.removeLast().run(this);
+      }
+      enqueueInvokedInstanceMethods();
+    } while (!worklist.isEmpty());
     emitter.assembleProgram();
   }
 
@@ -148,9 +167,21 @@ class Compiler implements Canceler, Logger {
 
   void addToWorklist(Element element) {
     if (element.kind === ElementKind.CONSTRUCTOR) {
-      universe.instantiatedClasses.add(element.enclosingElement);
+      registerInstantiatedClass(element.enclosingElement);
     }
     worklist.add(new WorkElement.toCompile(element));
+  }
+
+  void registerStaticInvocation(Element element) {
+    addToWorklist(element);
+  }
+
+  void registerDynamicInvocation(String methodName) {
+    universe.invokedMethods.add(methodName);
+  }
+
+  void registerInstantiatedClass(ClassElement element) {
+    universe.instantiatedClasses.add(element);
   }
 
   Element resolveType(ClassElement element) {

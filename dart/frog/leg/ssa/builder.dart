@@ -638,38 +638,53 @@ class SsaBuilder implements Visitor {
         push(new HStatic(element));
       } else {
         HInstruction instruction = definitions[element];
+      if (instruction === null) {
+        // TODO(floitsch): this is probably because the Resolver does not
+        // resolve static elements correctly yet.
+        assert(element.kind == ElementKind.CLASS);
+        compiler.unimplemented("SsaBuilder.visitSend of statics");
+      }
         assert(instruction !== null);
         stack.add(instruction);
       }
     } else {
-      if (element === null) {
-        compiler.unimplemented("SsaBuilder.visitSend with receiver");
-      }
+      bool isInvokeDynamic = (element === null);
+      bool isForeign =
+          (element !== null) && (element.kind === ElementKind.FOREIGN);
+      bool isStatic = !isInvokeDynamic && !isForeign;
+
       Link<Node> link = node.arguments;
-      if (element.kind === ElementKind.FOREIGN) {
+      var inputs = <HInstruction>[];
+      
+      if (isInvokeDynamic) {
+        visit(node.receiver);
+        inputs.add(pop());
+      } else if (isForeign) {
         // If the invoke is on foreign code, don't visit the first
         // argument, which is the foreign code.
         link = link.tail;
-      }
-      var arguments = [];
-      if (node.receiver !== null) {
-        visit(node.receiver);
-        arguments.add(pop());
-      }
-      for (; !link.isEmpty(); link = link.tail) {
-        visit(link.head);
-        arguments.add(pop());
-      }
-
-      if (element.kind === ElementKind.FOREIGN) {
-        LiteralString literal = node.arguments.head;
-        compiler.ensure(literal is LiteralString);
-        push(new HForeign(unquote(literal), arguments));
       } else {
         HStatic target = new HStatic(element);
         add(target);
-        List inputs = <HInstruction>[target];
-        inputs.addAll(arguments);
+        inputs.add(target);
+      }
+
+      for (; !link.isEmpty(); link = link.tail) {
+        visit(link.head);
+        inputs.add(pop());
+      }
+
+      if (isInvokeDynamic) {
+        SourceString dartMethodName = node.selector.asIdentifier().source;
+        String jsMethodName = compiler.namer.instanceName(dartMethodName);
+        // The first entry in the inputs list is the receiver.
+        push(new HInvokeDynamic(jsMethodName, inputs));
+      } else if (isForeign) {
+        LiteralString literal = node.arguments.head;
+        compiler.ensure(literal is LiteralString);
+        push(new HForeign(unquote(literal), inputs));
+      } else {
+        assert(isStatic);
         push(new HInvokeStatic(inputs));
       }
     }

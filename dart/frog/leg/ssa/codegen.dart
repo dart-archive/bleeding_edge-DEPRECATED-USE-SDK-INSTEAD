@@ -322,10 +322,11 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add('.');
     buffer.add(node.methodName);
     visitArguments(node.inputs);
+    compiler.registerDynamicInvocation(node.methodName);
   }
 
   visitInvokeStatic(HInvokeStatic node) {
-    compiler.addToWorklist(node.element);
+    compiler.registerStaticInvocation(node.element);
     use(node.target);
     visitArguments(node.inputs);
   }
@@ -444,7 +445,7 @@ class SsaCodeGenerator implements HVisitor {
     }
     Element element = compiler.universe.find(name);
     assert(element !== null);
-    compiler.addToWorklist(element);
+    compiler.registerStaticInvocation(element);
     buffer.add(compiler.namer.isolateAccess(element));
     buffer.add('(');
     use(node.inputs[0]);
