@@ -380,6 +380,9 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
       currentChar = scanner.peek(0);
     }
     if (tokenLength > 0) {
+      if (scannerState >= tokens.length) {
+        scannerState = CODE;
+      }
       return tokens[scannerState];
     }
     return Token.EOF;
