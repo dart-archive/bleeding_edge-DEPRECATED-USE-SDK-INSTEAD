@@ -20,6 +20,9 @@ FROG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 BUILDER_PATTERN = r'(frog|frogsh|frogium)-linux-(debug|release)'
 
+NO_COLOR_ENV = dict(os.environ)
+NO_COLOR_ENV['TERM'] = 'nocolor'
+
 def GetBuildInfo():
   """Returns a tuple (name, mode) where:
     - name: 'frog', 'frogsh', or None when the builder has an incorrect name
@@ -65,7 +68,7 @@ def TestStep(name, mode, component, targets, flags):
       + targets)
   if flags:
     cmd.append(flags)
-  return subprocess.call(cmd)
+  return subprocess.call(cmd, env=NO_COLOR_ENV)
 
 def TestFrog(arch, mode):
   """ build and test frog.
@@ -80,7 +83,8 @@ def TestFrog(arch, mode):
 
   print '@@@BUILD_STEP build frog@@@'
   if subprocess.call(
-      [sys.executable, '../tools/build.py', '--mode=' + testpy_mode]) != 0:
+      [sys.executable, '../tools/build.py', '--mode=' + testpy_mode],
+      env=NO_COLOR_ENV) != 0:
     return 1
 
   if arch != 'frogium': # frog and frogsh
