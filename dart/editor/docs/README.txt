@@ -164,8 +164,7 @@ Set to ignore:
 File -> Import -> General -> Existing Projects into Workspace
 
 Import the existing projects in <DART_TRUNK>/editor
-  (including the "docs" project containing this README.txt file
-   but excluding the editor/tools/plugins/com.google.dart.library.* projects)
+  including the "docs" project containing this README.txt file
 
 Import the project in <DART_TRUNK>/third_party/closure_compiler_src
 
@@ -217,4 +216,13 @@ Eclipse should launch, running the Dart Editor!
   Building the Dart Editor
 ====================================
 
-See the dart/editor/build/README.txt file for build instructions.
+In the dart/editor/tools/features/com.google.dart.tools.deploy.feature_releng/build-settings
+directory, copy the user.properties file to <username>.properties, where <username> is your
+login name. Adjust the two properties in that file to point to:
+
+  -the Dart Editor source directory (dart/editor)
+  -a build output directory
+
+Run the build_rcp.xml ant script in the com.google.dart.tools.deploy.feature_releng project
+(ant -f build_rcp.xml). It will create Windows, Linux, and Mac builds in the 'out' directory
+of the build directory specified above.
