@@ -445,6 +445,33 @@ class Parser {
     return token;
   }
 
+  Token parseModifier(Token token) {
+    assert(('final' === token.stringValue) ||
+           ('var' === token.stringValue) ||
+           ('const' === token.stringValue) ||
+           ('abstract' === token.stringValue) ||
+           ('static' === token.stringValue));
+    listener.handleModifier(token);
+    return token.next;
+  }
+
+  Token parseModifiers(Token token) {
+    int count = 0;
+    while (token.kind === KEYWORD_TOKEN) {
+      final String value = token.stringValue;
+      if (('final' !== value) &&
+          ('var' !== value) &&
+          ('const' !== value) &&
+          ('abstract' !== value) &&
+          ('static' !== value))
+        break;
+      token = parseModifier(token);
+      count++;
+    }
+    listener.handleModifiers(count);
+    return token;
+  }
+
   Token peekAfterType(Token token) {
     // TODO(ahe): Also handle var?
     if ('void' !== token.stringValue && !isIdentifier(token)) {
@@ -494,7 +521,7 @@ class Parser {
     }
     Token start = token;
     listener.beginMember(token);
-    token = skipModifiers(token);
+    token = parseModifiers(token);
     Token peek = peekAfterType(token);
     while (isIdentifier(peek)) {
       token = peek;

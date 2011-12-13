@@ -18,6 +18,7 @@ interface Visitor<R> {
   R visitLiteralList(LiteralList node);
   R visitLiteralNull(LiteralNull node);
   R visitLiteralString(LiteralString node);
+  R visitModifiers(Modifiers node);
   R visitNewExpression(NewExpression node);
   R visitNodeList(NodeList node);
   R visitOperator(Operator node);
@@ -91,6 +92,7 @@ class Node implements Hashable {
   LiteralNull asLiteralNull() => null;
   LiteralString asLiteralString() => null;
   LiteralList asLiteralList() => null;
+  Modifiers asModifiers() => null;
   NodeList asNodeList() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;
@@ -769,12 +771,44 @@ class ParenthesizedExpression extends Expression {
 }
 
 /** Representation of modifiers such as static, abstract, final, etc. */
-class Modifiers {
-  final Link<Token> modifiers;
+class Modifiers extends Node {
+  final NodeList nodes;
   /** Bit pattern to easy check what modifiers are present. */
   final int flags;
 
-  const Modifiers([this.modifiers, this.flags = 0]);
+  static final int FLAG_STATIC = 1;
+  static final int FLAG_ABSTRACT = FLAG_STATIC << 1;
+  static final int FLAG_FINAL = FLAG_ABSTRACT << 1;
+  static final int FLAG_VAR = FLAG_FINAL << 1;
+  static final int FLAG_CONST = FLAG_VAR << 1;
+
+  Modifiers(NodeList nodes)
+    : this.nodes = nodes, flags = computeFlags(nodes.nodes);
+
+  static int computeFlags(Link<Node> nodes) {
+    int flags = 0;
+    for (; !nodes.isEmpty(); nodes = nodes.tail) {
+      String value = nodes.head.asIdentifier().source.stringValue;
+      if (value === 'static') flags += FLAG_STATIC;
+      else if (value === 'abstract') flags += FLAG_ABSTRACT;
+      else if (value === 'final') flags += FLAG_FINAL;
+      else if (value === 'var') flags += FLAG_VAR;
+      else if (value === 'const') flags += FLAG_CONST;
+    }
+    return flags;
+  }
+
+  Modifiers asModifiers() => this;
+  Token getBeginToken() => nodes.getBeginToken();
+  Token getEndToken() => nodes.getEndToken();
+  accept(Visitor visitor) => visitor.visitModifiers(this);
+  visitChilren(Visitor visitor) => nodes.accept(visitor);
+
+  bool isStatic() => (flags & FLAG_STATIC) != 0;
+  bool isAbstract() => (flags & FLAG_ABSTRACT) != 0;
+  bool isFinal() => (flags & FLAG_FINAL) != 0;
+  bool isVar() => (flags & FLAG_VAR) != 0;
+  bool isConst() => (flags & FLAG_CONST) != 0;
 }
 
 class UnimplementedExpression extends Expression {

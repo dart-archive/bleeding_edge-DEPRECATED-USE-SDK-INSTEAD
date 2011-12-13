@@ -62,9 +62,13 @@ class Element implements Hashable {
 
 class VariableElement extends Element {
   final VariableListElement variables;
+  final Modifiers modifiers;
 
-  VariableElement(SourceString name, VariableListElement this.variables,
-                  ElementKind kind, [Element enclosing = null])
+  VariableElement(SourceString name,
+                  VariableListElement this.variables,
+                  ElementKind kind,
+                  [Modifiers this.modifiers = null,
+                   Element enclosing = null])
     : super(name, kind, enclosing);
 
   Node parseNode(Canceler canceler, Logger logger) {
@@ -138,13 +142,16 @@ class FunctionElement extends Element {
   Link<Element> parameters;
   FunctionExpression node;
   Type type;
+  final Modifiers modifiers;
 
   FunctionElement(SourceString name,
                   ElementKind kind,
+                  Modifiers this.modifiers,
                   Element enclosing)
     : super(name, kind, enclosing);
   FunctionElement.node(FunctionExpression node,
                        ElementKind kind,
+                       Modifiers this.modifiers,
                        Element enclosing)
     : super(node.name.asIdentifier().source, kind, enclosing),
       this.node = node;
@@ -180,6 +187,7 @@ class ConstructorBodyElement extends FunctionElement {
       : this.constructor = constructor,
         super(constructor.name,
               ElementKind.CONSTRUCTOR_BODY,
+              null,
               constructor.enclosingElement) {
     assert(constructor.node !== null);
     this.parameters = constructor.parameters;
@@ -195,7 +203,7 @@ class ConstructorBodyElement extends FunctionElement {
 
 class SynthesizedConstructorElement extends FunctionElement {
   SynthesizedConstructorElement(Element enclosing)
-    : super(enclosing.name, ElementKind.CONSTRUCTOR, enclosing) {
+    : super(enclosing.name, ElementKind.CONSTRUCTOR, null, enclosing) {
     parameters = const EmptyLink<Element>();
   }
 

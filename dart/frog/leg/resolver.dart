@@ -197,7 +197,7 @@ class FullResolverVisitor extends ResolverVisitor {
   visitFunctionExpression(FunctionExpression node) {
     visit(node.returnType);
     FunctionElement enclosingElement = new FunctionElement.node(
-        node, ElementKind.FUNCTION, context.element);
+        node, ElementKind.FUNCTION, null, context.element);
     defineElement(node, enclosingElement);
     context = new MethodScope(context, enclosingElement);
 
@@ -501,8 +501,9 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
+      // TODO(ngeoffray): pass the modifiers.
       Element element = new VariableElement(
-          name, variables, kind, resolver.context.element);
+          name, variables, kind, null, resolver.context.element);
       resolver.defineElement(link.head, element);
     }
   }

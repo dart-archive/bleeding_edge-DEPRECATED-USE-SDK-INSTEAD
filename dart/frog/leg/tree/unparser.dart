@@ -131,6 +131,8 @@ class Unparser implements Visitor {
     visit(node.elements);
   }
 
+  visitModifiers(Modifiers node) => node.visitChildren(this);
+
   visitNodeList(NodeList node) {
     if (node.beginToken !== null) add(node.beginToken.value);
     if (node.nodes !== null) {

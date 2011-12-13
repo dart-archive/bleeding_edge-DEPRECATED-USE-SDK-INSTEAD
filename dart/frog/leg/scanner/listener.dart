@@ -329,6 +329,12 @@ class Listener {
   void handleLiteralString(Token token) {
   }
 
+  void handleModifier(Token token) {
+  }
+
+  void handleModifiers(int count) {
+  }
+
   void handleNamedArgument(Token colon) {
   }
 
@@ -529,6 +535,15 @@ class ElementListener extends Listener {
     pushNode(new ParenthesizedExpression(expression, token));
   }
 
+  void handleModifier(Token token) {
+    pushNode(new Identifier(token));
+  }
+
+  void handleModifiers(int count) {
+    NodeList nodes = makeNodeList(count, null, null, null);
+    pushNode(new Modifiers(nodes));
+  }
+
   void discardNodes(int count) {
     for (; count > 0; --count) {
       Node node = popNode();
@@ -581,6 +596,19 @@ class ElementListener extends Listener {
   }
 
   void log(message) {
+  }
+
+  NodeList makeNodeList(int count, Token beginToken, Token endToken,
+                        String delimiter) {
+    Link<Node> nodes = const EmptyLink<Node>();
+    for (; count > 0; --count) {
+      // This effectively reverses the order of nodes so they end up
+      // in correct (source) order.
+      nodes = nodes.prepend(popNode());
+    }
+    SourceString sourceDelimiter =
+        (delimiter === null) ? null : new SourceString(delimiter);
+    return new NodeList(beginToken, nodes, endToken, sourceDelimiter);
   }
 }
 
@@ -906,9 +934,11 @@ class NodeListener extends ElementListener {
       }
       names = names.prepend(popNode());
     }
+    Modifiers modifiers = popNode();
     for (; !names.isEmpty(); names = names.tail) {
       enclosingElement.addMember(new VariableElement(
-          names.head.source, fields, ElementKind.FIELD, enclosingElement));
+          names.head.source, fields, ElementKind.FIELD, modifiers,
+          enclosingElement));
     }
     pushNode(null);
   }
@@ -927,7 +957,7 @@ class NodeListener extends ElementListener {
       canceler.cancel('named constructors are not implemented', node: name);
       name = popNode();
     }
-    // TODO(ahe): Save modifiers.
+    Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formalParameters, body, null));
     // TODO(ahe): We don't need to push the AST node and record the
     // member. This should be cleaned up, preferably by moving the
@@ -937,7 +967,7 @@ class NodeListener extends ElementListener {
                        ElementKind.FUNCTION;
     Element memberElement =
         new PartialFunctionElement(name.source, beginToken, endToken,
-                                   kind, enclosingElement);
+                                   kind, modifiers, enclosingElement);
     enclosingElement.addMember(memberElement);
   }
 
@@ -1133,19 +1163,6 @@ class NodeListener extends ElementListener {
     pushNode(new UnimplementedStatement('labelled', [label, statement]));
   }
 
-  NodeList makeNodeList(int count, Token beginToken, Token endToken,
-                        String delimiter) {
-    Link<Node> nodes = const EmptyLink<Node>();
-    for (; count > 0; --count) {
-      // This effectively reverses the order of nodes so they end up
-      // in correct (source) order.
-      nodes = nodes.prepend(popNode());
-    }
-    SourceString sourceDelimiter =
-        (delimiter === null) ? null : new SourceString(delimiter);
-    return new NodeList(beginToken, nodes, endToken, sourceDelimiter);
-  }
-
   void log(message) {
     logger.log(message);
   }
@@ -1158,8 +1175,9 @@ class PartialFunctionElement extends FunctionElement {
   PartialFunctionElement(SourceString name,
                          Token this.beginToken, Token this.endToken,
                          [ElementKind kind = ElementKind.FUNCTION,
+                          Modifiers modifiers = null,
                           Element enclosing = null])
-    : super(name, kind, enclosing);
+    : super(name, kind, modifiers, enclosing);
 
   FunctionExpression parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
