@@ -25,111 +25,139 @@ import org.eclipse.jface.text.ITypedRegion;
 
 public class FastDartPartitionScannerTest extends TestCase implements DartPartitions {
   public void test_FastDartPartitionScanner_blockComment() {
-    ITypedRegion[] regions = partition("class X {\n/* comment */\n}\n");
-    assertCount(3, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_MULTI_LINE_COMMENT, 10, 13);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
+    // class X { /* comment */ } 
+    assertPartitions( //
+        "class X {\n", "__dftl_partition_content_type", //
+        "/* comment */", DART_MULTI_LINE_COMMENT, //
+        "\n}\n", "__dftl_partition_content_type" //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_blockComment_unclosed() {
+    // class X { /* comment
+    assertPartitions( //
+        "class X {\n", "__dftl_partition_content_type", //
+        "/* comment", DART_MULTI_LINE_COMMENT //
+    );
   }
 
   public void test_FastDartPartitionScanner_docComment() {
-    ITypedRegion[] regions = partition("class X {\n/** comment */\nvar s = null;}\n");
-    assertCount(3, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_DOC, 10, 14);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
+    // class X { /** comment */ var s=null; } 
+    assertPartitions( //
+        "class X {\n", "__dftl_partition_content_type", //
+        "/** comment */", DART_DOC, //
+        "\nvar s = null;}\n", "__dftl_partition_content_type" //
+    );
   }
 
   public void test_FastDartPartitionScanner_endOfLineComment() {
-    ITypedRegion[] regions = partition("class X {\n// comment\n}\n");
-    assertCount(3, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_SINGLE_LINE_COMMENT, 10, 10);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
+    // class X { // comment } 
+    assertPartitions( //
+        "class X {\n", "__dftl_partition_content_type", //
+        "// comment", DART_SINGLE_LINE_COMMENT, //
+        "\n}\n", "__dftl_partition_content_type" //
+    );
   }
 
   public void test_FastDartPartitionScanner_multilineString_double() {
-    ITypedRegion[] regions = partition("class X {\nvar s=\"\"\"test\"\"\";\n}\n");
-    assertCount(3, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_MULTI_LINE_STRING, 16, 10);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
+    // class X { var s="""test"""; } 
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "\"\"\"test\"\"\"", DART_MULTI_LINE_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
+    );
   }
 
   public void test_FastDartPartitionScanner_multilineString_single() {
-    ITypedRegion[] regions = partition("class X {\nvar s='''test''';\n}\n");
-    assertCount(3, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_MULTI_LINE_STRING, 16, 10);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
+    // class X { var s='''test'''; } 
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "'''test'''", DART_MULTI_LINE_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
+    );
   }
 
   public void test_FastDartPartitionScanner_nestedBraces() {
-    ITypedRegion[] regions = partition("class X {\nvar s=\"xxx ${f((v) {return v;})} xxx\";\n}\n");
-    assertCount(5, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_STRING, 16, 5);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[3], DART_STRING, 42, 5);
-    assertRegion(regions[4], "__dftl_partition_content_type", -1, -1);
+    // class X { var s="xxx ${f((v) {return v;})} xxx"; } 
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "\"xxx ", DART_STRING, //
+        "${f((v) {return v;})}", "__dftl_partition_content_type", //
+        " xxx\"", DART_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
+    );
   }
 
   public void test_FastDartPartitionScanner_nestedStrings() {
-    ITypedRegion[] regions = partition("class X {\nvar s=\"xxx ${yyy 'zzz' \"\"\"aaa ${bbb '''ccc''' bbb} aaa\"\"\" yyy} xxx\";\n}\n");
-    assertCount(13, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_STRING, 16, 5);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[3], DART_STRING, 27, 5);
-    assertRegion(regions[4], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[5], DART_MULTI_LINE_STRING, 33, 7);
-    assertRegion(regions[6], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[7], DART_MULTI_LINE_STRING, 46, 9);
-    assertRegion(regions[8], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[9], DART_MULTI_LINE_STRING, 60, 7);
-    assertRegion(regions[10], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[11], DART_STRING, 72, 5);
-    assertRegion(regions[12], "__dftl_partition_content_type", -1, -1);
+    // class X { var s="xxx ${yyy 'zzz' """aaa ${bbb '''ccc''' bbb} aaa""" yyy} xxx"; } 
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "\"xxx ", DART_STRING, //
+        "${yyy ", "__dftl_partition_content_type", //
+        "'zzz'", DART_STRING, //
+        " ", "__dftl_partition_content_type", //
+        "\"\"\"aaa ", DART_MULTI_LINE_STRING, //
+        "${bbb ", "__dftl_partition_content_type", //
+        "'''ccc'''", DART_MULTI_LINE_STRING, //
+        " bbb}", "__dftl_partition_content_type", //
+        " aaa\"\"\"", DART_MULTI_LINE_STRING, //
+        " yyy}", "__dftl_partition_content_type", //
+        " xxx\"", DART_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_normalString_atEOF() {
+    // class X { var s='
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "'", DART_STRING //
+    );
   }
 
   public void test_FastDartPartitionScanner_normalString_double() {
-    ITypedRegion[] regions = partition("class X {\nvar s=\"test\";\n}\n");
-    assertCount(3, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_STRING, 16, 6);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
+    // class X { var s="test"; } 
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "\"test\"", DART_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
+    );
   }
 
   public void test_FastDartPartitionScanner_normalString_single() {
-    ITypedRegion[] regions = partition("class X {\nvar s='test';\n}\n");
-    assertCount(3, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_STRING, 16, 6);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
+    // class X { var s='test'; } 
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "'test'", DART_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
+    );
   }
 
   public void test_FastDartPartitionScanner_normalString_unclosed() {
-    ITypedRegion[] regions = partition("class X {\nvar s='xxxyyy;\n}\n");
-    assertCount(3, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_STRING, 16, 8);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
+    // class X { var s='xxxyyy; } 
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "'xxxyyy;", DART_STRING, //
+        "\n}\n", "__dftl_partition_content_type" //
+    );
   }
 
   public void test_FastDartPartitionScanner_rawString_double() {
-    ITypedRegion[] regions = partition("class X {\nvar s=@\"test\";\n}\n");
-    assertCount(3, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_STRING, 16, 7);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
+    // class X { var s=@"test"; } 
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "@\"test\"", DART_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
+    );
   }
 
   public void test_FastDartPartitionScanner_rawString_single() {
-    ITypedRegion[] regions = partition("class X {\nvar s=@'test';\n}\n");
-    assertCount(3, regions);
-    assertRegion(regions[0], "__dftl_partition_content_type", -1, -1);
-    assertRegion(regions[1], DART_STRING, 16, 7);
-    assertRegion(regions[2], "__dftl_partition_content_type", -1, -1);
+    // class X { var s=@'test'; } 
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "@'test'", DART_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
+    );
   }
 
   /**
@@ -140,6 +168,37 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
    */
   private void assertCount(int expectedCount, ITypedRegion[] regions) {
     assertEquals("wrong number of partitions:", expectedCount, regions.length);
+  }
+
+  /**
+   * Given an array containing pairs of strings of the form
+   * 
+   * <pre>
+   *   [codeSnippet1, partitionType1, codeSnippet2, partitionType2, ..., codeSnippetN, partitionTypeN]
+   * </pre>
+   * 
+   * where each code snippet should be a single partition of the given type, compose the snippets
+   * into a single source string, partition it, and compare the results to see whether they have the
+   * expected type and position.
+   * 
+   * @param strings
+   */
+  private void assertPartitions(String... strings) {
+    int stringCount = strings.length;
+    assertTrue(stringCount % 2 == 0);
+    int expectedCount = stringCount / 2;
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < expectedCount; i++) {
+      builder.append(strings[i * 2]);
+    }
+    ITypedRegion[] regions = partition(builder.toString());
+    assertCount(expectedCount, regions);
+    int start = 0;
+    for (int i = 0; i < expectedCount; i++) {
+      int length = strings[i * 2].length();
+      assertRegion(regions[i], strings[(i * 2) + 1], start, length);
+      start += length;
+    }
   }
 
   /**
@@ -161,6 +220,12 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
     }
   }
 
+  /**
+   * Create partitions for the given source string.
+   * 
+   * @param source the source string to be partitioned
+   * @return the partitions that were created
+   */
   private ITypedRegion[] partition(String source) {
     Document doc = new Document(source);
     DartTextTools tools = DartToolsPlugin.getDefault().getJavaTextTools();
