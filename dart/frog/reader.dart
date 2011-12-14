@@ -18,7 +18,7 @@ class LibraryReader {
         'dart:htmlimpl': joinPaths(options.libDir,
             '../../client/html/release/htmlimpl.dart'),
         'dart:dom': joinPaths(options.libDir,
-            '../../client/dom/frog/frog_dom.dart'),
+            '../../client/dom/frog/dom_frog.dart'),
         'dart:json': joinPaths(options.libDir, 'json.dart'),
       };
     } else if (options.config == 'sdk') {
@@ -28,7 +28,7 @@ class LibraryReader {
           'coreimpl/coreimpl_frog.dart'),
         'dart:html': joinPaths(options.libDir, 'html/html.dart'),
         'dart:htmlimpl': joinPaths(options.libDir, 'htmlimpl/htmlimpl.dart'),
-        'dart:dom': joinPaths(options.libDir, 'dom/frog/frog_dom.dart'),
+        'dart:dom': joinPaths(options.libDir, 'dom/frog/dom_frog.dart'),
         'dart:json': joinPaths(options.libDir, 'json/json_frog.dart'),
       };
     } else {
