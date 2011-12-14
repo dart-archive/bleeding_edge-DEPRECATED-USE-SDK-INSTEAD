@@ -28,6 +28,7 @@ interface HVisitor<R> {
   R visitLessEqual(HLessEqual node);
   R visitLoad(HLoad node);
   R visitLocal(HLocal node);
+  R visitLogicalOperator(HLogicalOperator node);
   R visitLoopBranch(HLoopBranch node);
   R visitLiteral(HLiteral node);
   R visitLiteralList(HLiteralList node);
@@ -215,6 +216,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLoad(HLoad node) => visitInstruction(node);
   visitLocal(HLocal node) => visitInstruction(node);
+  visitLogicalOperator(HLogicalOperator node) => visitInstruction(node);
   visitLiteral(HLiteral node) => visitInstruction(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
@@ -803,7 +805,7 @@ class HBoolify extends HInstruction {
 }
 
 class HTypeGuard extends HInstruction {
-  HTypeGuard(type, value) : super([value]) {
+  HTypeGuard(type, value) : super(<HInstruction>[value]) {
     this.type = type;
   }
 
@@ -1222,7 +1224,7 @@ class HLoopBranch extends HConditionalBranch {
 
 class HLiteral extends HInstruction {
   final value;
-  HLiteral(this.value) : super([]);
+  HLiteral(this.value) : super(<HInstruction>[]);
   void prepareGvn() {
     // We allow global value numbering of literals, but we still
     // prefer generating them at use sites. This allows us to do
@@ -1274,7 +1276,7 @@ class HNot extends HInstruction {
 class HParameterValue extends HInstruction {
   final Element element;
 
-  HParameterValue(this.element) : super([]) {
+  HParameterValue(this.element) : super(<HInstruction>[]) {
     setGenerateAtUseSite();
   }
 
@@ -1453,20 +1455,20 @@ class HLessEqual extends HRelational {
 }
 
 class HReturn extends HControlFlow {
-  HReturn(value) : super([value]);
+  HReturn(value) : super(<HInstruction>[value]);
   toString() => 'return';
   accept(HVisitor visitor) => visitor.visitReturn(this);
 }
 
 class HThrow extends HControlFlow {
-  HThrow(value) : super([value]);
+  HThrow(value) : super(<HInstruction>[value]);
   toString() => 'throw';
   accept(HVisitor visitor) => visitor.visitThrow(this);
 }
 
 class HStatic extends HInstruction {
   Element element;
-  HStatic(this.element) : super([]);
+  HStatic(this.element) : super(<HInstruction>[]);
   void prepareGvn() {
     // TODO(floitsch): accesses to non-final values must be guarded.
     setUseGvn();
@@ -1483,7 +1485,7 @@ class HStatic extends HInstruction {
 
 class HStaticStore extends HInstruction {
   Element element;
-  HStaticStore(this.element, HInstruction value) : super([value]);
+  HStaticStore(this.element, HInstruction value) : super(<HInstruction>[value]);
   toString() => 'static store ${element.name}';
   accept(HVisitor visitor) => visitor.visitStaticStore(this);
 
@@ -1524,14 +1526,15 @@ class HNonSsaInstruction extends HInstruction {
 }
 
 class HLoad extends HNonSsaInstruction {
-  HLoad(HLocal local, type) : super([local]) { this.type = type; }
+  HLoad(HLocal local, type) : super(<HInstruction>[local]) { this.type = type; }
   HLocal get local() => inputs[0];
   toString() => 'load';
   accept(HVisitor visitor) => visitor.visitLoad(this);
 }
 
 class HStore extends HNonSsaInstruction {
-  HStore(HLocal local, HInstruction value) : super([local, value]);
+  HStore(HLocal local, HInstruction value)
+      : super(<HInstruction>[local, value]);
   HLocal get local() => inputs[0];
   HInstruction get value() => inputs[1];
   toString() => 'store';
@@ -1541,9 +1544,23 @@ class HStore extends HNonSsaInstruction {
 class HLocal extends HNonSsaInstruction {
   Element element;
   HInstruction declaredBy;
-  HLocal(Element this.element) : super([]) {
+  HLocal(Element this.element) : super(<HInstruction>[]) {
     declaredBy = this;
   }
   toString() => 'local';
   accept(HVisitor visitor) => visitor.visitLocal(this);
+}
+
+class HLogicalOperator extends HNonSsaInstruction {
+  String operation;
+  HLogicalOperator(String this.operation,
+                   HInstruction first,
+                   HInstruction second)
+      : super(<HInstruction>[first, second]);
+  toString() => operation;
+  accept(HVisitor visitor) => visitor.visitLogicalOperator(this);
+  HInstruction get left() => inputs[0];
+  HInstruction get right() => inputs[1];
+  int computeType() => TYPE_BOOLEAN;
+  bool hasExpectedType() => true;
 }

@@ -201,6 +201,15 @@ class HInstructionStringifier implements HVisitor<String> {
     HBasicBlock thenBlock = currentBlock.successors[0];
     HBasicBlock elseBlock = currentBlock.successors[1];
     String conditionId = temporaryId(node.inputs[0]);
+    if (node.generateAtUseSite()) {
+      String operation = "&&/||";
+      if (elseBlock.first is HLogicalOperator) {
+        HLogicalOperator op = elseBlock.first;
+        operation = op.operation;
+      }
+      return "LogicalOperatorBranch: ($conditionId) $operation Goto(" +
+          "B${thenBlock.id}) -> B${elseBlock.id}";
+    }
     return "If ($conditionId): (B${thenBlock.id}) else (B${elseBlock.id})";
   }
 
@@ -270,6 +279,11 @@ class HInstructionStringifier implements HVisitor<String> {
     } else {
       return "Local";
     }
+  }
+
+  String visitLogicalOperator(HLogicalOperator node) {
+    return "LogicalOepration: ${temporaryId(node.left)} ${node.operation} " +
+        "${temporaryId(node.right)}";
   }
 
   String visitLoopBranch(HLoopBranch branch) {
