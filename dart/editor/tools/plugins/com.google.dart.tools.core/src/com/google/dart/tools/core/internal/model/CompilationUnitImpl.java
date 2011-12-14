@@ -286,8 +286,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     @Override
     public Void visitMethodDefinition(DartMethodDefinition node) {
       DartExpression functionNameNode = node.getName();
-      String functionName = functionNameNode == null ? null
-          : ((DartIdentifier) functionNameNode).getTargetName();
+      String functionName = functionNameNode == null ? null : extractName(functionNameNode);
       if (com.google.dart.tools.core.model.DartFunction.MAIN.equals(functionName)) {
         definesLibrary = true;
       }
