@@ -117,8 +117,9 @@ class SsaBuilder implements Visitor {
       String methodName = compiler.namer.constructorBodyName(superElement);
       List superInputs = <HInstruction>[];
       superInputs.add(new HThis());
-      Link link = superInvocation.arguments.head;
-      for (; !link.isEmpty(); link = link.tail) {
+      for (Link<Node> link = superInvocation.arguments;
+           !link.isEmpty();
+           link = link.tail) {
         visit(link.head);
         superInputs.add(pop());
       }
