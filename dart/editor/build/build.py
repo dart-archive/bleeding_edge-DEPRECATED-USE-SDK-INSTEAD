@@ -261,8 +261,8 @@ def main():
   builder_name = str(options.name)
 
   if (run_sdk_build and
-      builder_name != 'dart-editor-win'
-      and builder_name != 'dart-editor'):
+#      builder_name != 'dart-editor-win' and
+      builder_name != 'dart-editor'):
     _PrintSeparator('running the build of the Dart SDK')
     dartbuildscript = os.path.join(toolspath, 'build.py')
     cmds = [sys.executable, dartbuildscript,
