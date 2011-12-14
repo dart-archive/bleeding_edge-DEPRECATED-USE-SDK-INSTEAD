@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -20,7 +18,6 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
-import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IDocument;
@@ -146,15 +143,15 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
      * 3) by parameter count 4) by parameter type names
      */
     char[] name = fProposal.getName();
-    char[] parameterList = Signature.toCharArray(fProposal.getSignature(), null, null, false, false);
+//    char[] parameterList = Signature.toCharArray(fProposal.getSignature(), null, null, false, false);
     // we don't care about insane methods with >9 parameters
-    int parameterCount = Signature.getParameterCount(fProposal.getSignature()) % 10;
-    StringBuffer buf = new StringBuffer(name.length + 2 + parameterList.length);
+    int parameterCount = fProposal.getParameterNames().length % 10;
+    StringBuffer buf = new StringBuffer(name.length + 2 /* + parameterList.length */);
 
     buf.append(name);
     buf.append('\0'); // separator
     buf.append(parameterCount);
-    buf.append(parameterList);
+//    buf.append(parameterList);
     return buf.toString();
   }
 
@@ -247,6 +244,6 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
   }
 
   private boolean computeHasParameters() throws IllegalArgumentException {
-    return Signature.getParameterCount(fProposal.getSignature()) > 0;
+    return fProposal.getParameterNames().length > 0;
   }
 }

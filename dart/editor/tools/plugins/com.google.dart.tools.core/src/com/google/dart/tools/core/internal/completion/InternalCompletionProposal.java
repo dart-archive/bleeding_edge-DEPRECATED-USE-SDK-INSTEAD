@@ -169,7 +169,7 @@ public class InternalCompletionProposal extends CompletionProposal {
    * Creates a basic completion proposal. All instance field have plausible default values unless
    * otherwise noted.
    * <p>
-   * Note that the constructors for this class are internal to the Java model implementation.
+   * Note that the constructors for this class are internal to the Dart model implementation.
    * Clients cannot directly create CompletionProposal objects.
    * </p>
    * 
@@ -200,7 +200,7 @@ public class InternalCompletionProposal extends CompletionProposal {
    * The client must not modify the array returned.
    * </p>
    * <p>
-   * <b>Note that this is an expensive thing to compute, which may require parsing Java source
+   * <b>Note that this is an expensive thing to compute, which may require parsing Dart source
    * files, etc. Use sparingly.</b>
    * </p>
    * 
@@ -487,6 +487,11 @@ public class InternalCompletionProposal extends CompletionProposal {
   }
 
   @Override
+  public char[][] getParameterNames() {
+    return this.parameterNames;
+  }
+
+  @Override
   public char[][] getParameterTypeNames() {
     return this.parameterTypeNames;
   }
@@ -707,7 +712,7 @@ public class InternalCompletionProposal extends CompletionProposal {
 
   /**
    * Returns the character index of the start of the subrange in the source file buffer containing
-   * the relevant token being completed. This token is either the identifier or Java language
+   * the relevant token being completed. This token is either the identifier or Dart language
    * keyword under, or immediately preceding, the original request offset. If the original request
    * offset is not within or immediately after an identifier or keyword, then the position returned
    * is original request offset and the token range is empty.
@@ -968,7 +973,7 @@ public class InternalCompletionProposal extends CompletionProposal {
 
   /**
    * Sets the character indices of the subrange in the source file buffer containing the relevant
-   * token being completed. This token is either the identifier or Java language keyword under, or
+   * token being completed. This token is either the identifier or Dart language keyword under, or
    * immediately preceding, the original request offset. If the original request offset is not
    * within or immediately after an identifier or keyword, then the source range begins at original
    * request offset and is empty.
@@ -1336,10 +1341,6 @@ public class InternalCompletionProposal extends CompletionProposal {
     }
     return (Type) matches.get(0).getElement();
   }
-
-//  private int getOpenedBinaryTypesThreshold() {
-//    return JavaModelManager.getJavaModelManager().getOpenableCacheSize() / 10;
-//  }
 
   private char[][] getParameterTypes(char[] arg) {
     DartCore.notYetImplemented();

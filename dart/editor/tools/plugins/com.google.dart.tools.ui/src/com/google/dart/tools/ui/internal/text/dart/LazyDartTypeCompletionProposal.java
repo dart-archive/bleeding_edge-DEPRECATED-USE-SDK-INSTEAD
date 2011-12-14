@@ -43,7 +43,7 @@ import org.eclipse.jface.text.IDocument;
 public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
   /** Triggers for types. Do not modify. */
   protected static final char[] TYPE_TRIGGERS = new char[] {'\t', '[', '(', ' '};
-  /** Triggers for types in javadoc. Do not modify. */
+  /** Triggers for types in dart doc. Do not modify. */
   protected static final char[] JDOC_TYPE_TRIGGERS = new char[] {'#', '}', ' ', '.'};
 
   /** The compilation unit, or <code>null</code> if none is available. */
@@ -124,7 +124,7 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
 
   public final String getQualifiedTypeName() {
     if (fQualifiedName == null) {
-      fQualifiedName = String.valueOf(Signature.toCharArray(fProposal.getSignature()));
+      fQualifiedName = String.valueOf(fProposal.getSignature());
     }
     return fQualifiedName;
   }
@@ -140,7 +140,7 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
    * are added for the proposal. For example:
    * <ul>
    * <li>when completing within the import section</li>
-   * <li>when completing informal javadoc references (e.g. within <code>&lt;code&gt;</code> tags)</li>
+   * <li>when completing informal dart doc references (e.g. within <code>&lt;code&gt;</code> tags)</li>
    * <li>when completing a type that conflicts with an existing import</li>
    * <li>when completing an implicitly imported type (same package, <code>java.lang</code> types)</li>
    * </ul>

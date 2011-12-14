@@ -892,6 +892,10 @@ public class CompletionProposal {
     return null; // default overridden by concrete implementation
   }
 
+  public char[][] getParameterNames() {
+    return null;
+  }
+
   public char[][] getParameterTypeNames() {
     return null;
   }

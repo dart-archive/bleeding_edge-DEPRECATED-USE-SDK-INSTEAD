@@ -55,7 +55,7 @@ public final class FieldProposalInfo extends MemberProposalInfo {
       return null;
     }
     String typeName = SignatureUtil.stripSignatureToFQN(String.valueOf(declarationSignature));
-    Type[] types = this.fJavaProject.findTypes(typeName);
+    Type[] types = this.dartProject.findTypes(typeName);
     if (types != null && types.length > 0) {
       for (int i = 0; i < types.length; ++i) {
         Type type = types[i];

@@ -1,21 +1,20 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.tools.core.completion.CompletionProposal;
+import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Method;
@@ -28,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Proposal info that computes the javadoc lazily when it is queried.
+ * Proposal info that computes the Dart doc lazily when it is queried.
  */
 public final class MethodProposalInfo extends MemberProposalInfo {
 
@@ -41,7 +40,7 @@ public final class MethodProposalInfo extends MemberProposalInfo {
   /**
    * Creates a new proposal info.
    * 
-   * @param project the java project to reference when resolving types
+   * @param project the Dart project to reference when resolving types
    * @param proposal the proposal to generate information for
    */
   public MethodProposalInfo(DartProject project, CompletionProposal proposal) {
@@ -53,7 +52,7 @@ public final class MethodProposalInfo extends MemberProposalInfo {
    * <code>null</code> if no corresponding member can be found.
    * 
    * @return the resolved member or <code>null</code> if none is found
-   * @throws DartModelException if accessing the java model fails
+   * @throws DartModelException if accessing the Dart model fails
    */
   @Override
   protected TypeMember resolveMember() throws DartModelException {
@@ -62,9 +61,9 @@ public final class MethodProposalInfo extends MemberProposalInfo {
     if (declarationSignature != null) {
       String typeName = SignatureUtil.stripSignatureToFQN(String.valueOf(declarationSignature));
       String name = String.valueOf(fProposal.getName());
-      String[] parameters = Signature.getParameterTypes(String.valueOf(fProposal.getSignature()));
+      String[] parameters = CharOperation.toStrings(fProposal.getParameterTypeNames());
       // search all the possible types until a match is found
-      Type[] types = fJavaProject.findTypes(typeName);
+      Type[] types = dartProject.findTypes(typeName);
       if (types != null && types.length > 0) {
         for (int i = 0; i < types.length && func == null; ++i) {
           Type type = types[i];
@@ -122,7 +121,7 @@ public final class MethodProposalInfo extends MemberProposalInfo {
    * 
    * @param type the type to get the variables from
    * @return a map from type variables to concrete type signatures
-   * @throws DartModelException if accessing the java model fails
+   * @throws DartModelException if accessing the Dart model fails
    */
   private Map<String, char[]> computeTypeVariables(Type type) throws DartModelException {
     Map<String, char[]> map = new HashMap<String, char[]>();

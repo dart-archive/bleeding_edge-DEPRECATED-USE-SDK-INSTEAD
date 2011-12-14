@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.text.dart;
@@ -758,8 +756,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
       String completion = String.valueOf(methodProposal.getCompletion());
       // normal behavior if this is not a normal completion or has no parameters
       if ((completion.length() == 0) || ((completion.length() == 1) && completion.charAt(0) == ')')
-          || Signature.getParameterCount(methodProposal.getSignature()) == 0
-          || getContext().isInJavadoc()) {
+          || methodProposal.getParameterNames().length == 0 || getContext().isInJavadoc()) {
         proposal = new DartMethodCompletionProposal(methodProposal, getInvocationContext());
       } else {
         if (preferenceStore.getBoolean(PreferenceConstants.CODEASSIST_GUESS_METHOD_ARGUMENTS)) {

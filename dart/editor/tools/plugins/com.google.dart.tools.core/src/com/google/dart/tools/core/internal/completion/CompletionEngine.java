@@ -852,6 +852,17 @@ public class CompletionEngine {
     return names;
   }
 
+  static private int countPositionalParameters(List<VariableElement> params) {
+    int posParamCount = 0;
+    for (VariableElement elem : params) {
+      if (elem.getModifiers().isNamed()) {
+        break;
+      }
+      posParamCount++;
+    }
+    return posParamCount;
+  }
+
   static private List<Element> getAllElements(Type type) {
     Map<String, Element> map = new HashMap<String, Element>();
     List<Element> list = new ArrayList<Element>();
@@ -894,8 +905,9 @@ public class CompletionEngine {
 
   static private char[][] getParameterNames(MethodElement method) {
     List<VariableElement> params = method.getParameters();
-    char[][] names = new char[method.getParameters().size()][];
-    for (int i = 0; i < method.getParameters().size(); i++) {
+    int posParamCount = countPositionalParameters(params);
+    char[][] names = new char[posParamCount][];
+    for (int i = 0; i < posParamCount; i++) {
       names[i] = params.get(i).getName().toCharArray();
     }
     return names;
@@ -917,8 +929,9 @@ public class CompletionEngine {
 
   static private char[][] getParameterTypeNames(MethodElement method) {
     List<VariableElement> params = method.getParameters();
-    char[][] names = new char[method.getParameters().size()][];
-    for (int i = 0; i < method.getParameters().size(); i++) {
+    int posParamCount = countPositionalParameters(params);
+    char[][] names = new char[posParamCount][];
+    for (int i = 0; i < posParamCount; i++) {
       names[i] = params.get(i).getType().getElement().getName().toCharArray();
     }
     return names;
@@ -1327,7 +1340,7 @@ public class CompletionEngine {
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
           CompletionProposal.FIELD_REF, actualCompletionPosition - offset);
       proposal.setDeclarationSignature(field.getEnclosingElement().getName().toCharArray());
-      proposal.setSignature(name.toCharArray());
+      proposal.setSignature(field.getType().getElement().getName().toCharArray());
       proposal.setCompletion(name.toCharArray());
       proposal.setName(name.toCharArray());
       proposal.setIsContructor(false);

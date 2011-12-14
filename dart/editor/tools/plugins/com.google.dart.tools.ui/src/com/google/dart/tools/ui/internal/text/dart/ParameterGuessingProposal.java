@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -100,7 +98,7 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
         }
 
         model.forceInstall();
-        DartEditor editor = getJavaEditor();
+        DartEditor editor = getDartEditor();
         if (editor != null) {
           model.addLinkingListener(new EditorHighlightingSynchronizer(editor));
         }
@@ -279,11 +277,11 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
   }
 
   /**
-   * Returns the currently active java editor, or <code>null</code> if it cannot be determined.
+   * Returns the currently active Dart editor, or <code>null</code> if it cannot be determined.
    * 
-   * @return the currently active java editor, or <code>null</code>
+   * @return the currently active Dart editor, or <code>null</code>
    */
-  private DartEditor getJavaEditor() {
+  private DartEditor getDartEditor() {
     IEditorPart part = DartToolsPlugin.getActivePage().getActiveEditor();
     if (part instanceof DartEditor) {
       return (DartEditor) part;
@@ -293,8 +291,7 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
   }
 
   private String[][] getParameterSignatures() {
-    char[] signature = fProposal.getSignature();
-    char[][] types = Signature.getParameterTypes(signature);
+    char[][] types = fProposal.getParameterTypeNames();
     String[][] ret = new String[types.length][2];
 
     for (int i = 0; i < types.length; i++) {
