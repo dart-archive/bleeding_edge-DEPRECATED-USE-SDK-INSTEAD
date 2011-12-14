@@ -42,7 +42,8 @@ main() {
       return;
     }
 
-    Expect.equals('compileDone', response['kind']);
+    Expect.equals('done', response['kind']);
+    Expect.equals('compile', response['command']);
     Expect.equals(true, response['result']);
     print('test: PASS. Compile successful!');
 

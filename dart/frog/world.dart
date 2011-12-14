@@ -37,23 +37,7 @@ void initializeWorld(FileSystem files) {
 bool compile(String homedir, List<String> args, FileSystem files) {
   parseOptions(homedir, args, files);
   initializeWorld(files);
-
-  var success = world.compile();
-  if (options.outfile != null) {
-    if (success) {
-      var code = world.getGeneratedCode();
-      if (!options.outfile.endsWith('.js')) {
-        // Add in #! to invoke node.js on files with non-js extensions
-        code = '#!/usr/bin/env node\n' + code;
-      }
-      world.files.writeString(options.outfile, code);
-    } else {
-      // Throw here so we get a non-zero exit code when running.
-      world.files.writeString(options.outfile,
-        "throw 'Sorry, but I could not generate reasonable code to run.\\n';");
-    }
-  }
-  return success;
+  return world.compileAndSave();
 }
 
 
@@ -261,6 +245,30 @@ class World {
       // regexs for better perf?
       return name.replaceAll(@'$', @'$$').replaceAll(':', @'$');
     }
+  }
+
+  /**
+   * Runs the compiler and updates the output file. The output will either be
+   * the program, or a file that throws an error when run.
+   */
+  bool compileAndSave() {
+    bool success = compile();
+    if (options.outfile != null) {
+      if (success) {
+        var code = world.getGeneratedCode();
+        if (!options.outfile.endsWith('.js')) {
+          // Add in #! to invoke node.js on files with non-js extensions
+          code = '#!/usr/bin/env node\n' + code;
+        }
+        world.files.writeString(options.outfile, code);
+      } else {
+        // Throw here so we get a non-zero exit code when running.
+        // TODO(jmesserly): make this an alert when compiling for the browser?
+        world.files.writeString(options.outfile, "throw " +
+          "'Sorry, but I could not generate reasonable code to run.\\n';");
+      }
+    }
+    return success;
   }
 
   bool compile() {

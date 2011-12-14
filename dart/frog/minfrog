@@ -12580,6 +12580,23 @@ World.prototype.toJsIdentifier = function(name) {
     return name.replaceAll("$", "$$").replaceAll(':', "$");
   }
 }
+World.prototype.compileAndSave = function() {
+  var success = this.compile();
+  if ($globals.options.outfile != null) {
+    if (success) {
+      var code = $globals.world.getGeneratedCode();
+      if (!$globals.options.outfile.endsWith('.js')) {
+        code = '#!/usr/bin/env node\n' + code;
+      }
+      $globals.world.files.writeString($globals.options.outfile, code);
+    }
+    else {
+      $globals.world.files.writeString($globals.options.outfile, "throw 'Sorry, but I could not generate reasonable code to run.\\n';"/*"throw " +
+                "'Sorry, but I could not generate reasonable code to run.\\n';"*/);
+    }
+  }
+  return success;
+}
 World.prototype.compile = function() {
   if ($globals.options.dartScript == null) {
     this.fatal('no script provided to compile');
@@ -13247,20 +13264,7 @@ function initializeWorld(files) {
 function compile(homedir, args, files) {
   parseOptions(homedir, args, files);
   initializeWorld(files);
-  var success = $globals.world.compile();
-  if ($globals.options.outfile != null) {
-    if (success) {
-      var code = $globals.world.getGeneratedCode();
-      if (!$globals.options.outfile.endsWith('.js')) {
-        code = '#!/usr/bin/env node\n' + code;
-      }
-      $globals.world.files.writeString($globals.options.outfile, code);
-    }
-    else {
-      $globals.world.files.writeString($globals.options.outfile, "throw 'Sorry, but I could not generate reasonable code to run.\\n';");
-    }
-  }
-  return success;
+  return $globals.world.compileAndSave();
 }
 var options;
 function parseOptions(homedir, args, files) {

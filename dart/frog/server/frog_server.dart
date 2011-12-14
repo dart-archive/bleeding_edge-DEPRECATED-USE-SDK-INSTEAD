@@ -45,7 +45,7 @@ compileCommand(Map request, OutputStream output) {
       'span': jsonSpan
     });
   };
-  bool success = world.compile();
+  bool success = world.compileAndSave();
   writeJson(output, {
     'kind': 'done',
     'command': 'compile',
