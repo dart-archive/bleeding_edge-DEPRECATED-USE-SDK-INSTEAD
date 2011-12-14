@@ -245,13 +245,15 @@ class VarMethodSet extends VarMember {
 
 String _getCallStubName(String name, Arguments args) {
   // TODO: This code needs global knowledge to ensure the stub name does not
-  // collide with any other name.
+  // collide with any other name.  E.g. it is unlikely but possible for the user
+  // to have methods called 'foo' and 'foo$0'.
   final nameBuilder = new StringBuffer('${name}\$${args.bareCount}');
   for (int i = args.bareCount; i < args.length; i++) {
     var name = args.getName(i);
     nameBuilder.add('\$');
     if (name.contains('\$')) {
-      // Disambiguate "a:b:" from "a$b:"
+      // Disambiguate "a:b:" from "a$b:".  Using the length works well because
+      // the names can't start with digits.
       nameBuilder.add('${name.length}');
     }
     nameBuilder.add(name);

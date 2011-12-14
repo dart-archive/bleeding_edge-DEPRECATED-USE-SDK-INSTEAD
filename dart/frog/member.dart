@@ -817,14 +817,21 @@ class MethodMember extends Member {
     return new Value(functionType, '${target.code}.get\$$jsname()', node.span);
   }
 
+  /**
+   * Checks if the named arguments are in their natural or 'home' positions,
+   * i.e. they may be passed directly without inserting, deleting or moving the
+   * arguments to correspond with the parameters.
+   */
   bool namesInHomePositions(Arguments args) {
     if (!args.hasNames) return true;
 
     for (int i = args.bareCount; i < args.values.length; i++) {
-      if (i >= parameters.length)
+      if (i >= parameters.length) {
         return false;
-      if (args.getName(i) != parameters[i].name)
+      }
+      if (args.getName(i) != parameters[i].name) {
         return false;
+      }
     }
     return true;
   }
