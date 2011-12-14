@@ -237,28 +237,12 @@ public class DeltaProcessor {
    * dependents
    */
   public void resetProjectCaches() {
-    if (projectCachesToReset.size() == 0) {
+    if (projectCachesToReset.isEmpty()) {
       return;
     }
-    DartCore.notYetImplemented();
-    // DartModelManager.getInstance().resetJarTypeCache();
-
-    Iterator<DartProjectImpl> iterator = projectCachesToReset.iterator();
-    // HashMap<DartProject, DartProject[]> projectDepencies =
-    // state.projectDependencies;
-    HashSet<DartProjectImpl> affectedDependents = new HashSet<DartProjectImpl>();
-    while (iterator.hasNext()) {
-      DartProjectImpl project = iterator.next();
-      project.resetCaches();
-      // addDependentProjects(project, projectDepencies, affectedDependents);
+    for (DartProjectImpl dartProjectImpl : projectCachesToReset) {
+      dartProjectImpl.resetCaches();
     }
-    // reset caches of dependent projects
-    iterator = affectedDependents.iterator();
-    while (iterator.hasNext()) {
-      DartProjectImpl project = iterator.next();
-      project.resetCaches();
-    }
-
     projectCachesToReset.clear();
   }
 
@@ -691,7 +675,7 @@ public class DeltaProcessor {
         }
         break;
       case DartElement.COMPILATION_UNIT:
-        // Note: this element could be a compilation unit or library (if it is a defining CU)
+        // Note: this element could be a compilation unit or library (if it is a defining compilation unit)
         element = DartCore.create(resource);
         break;
       case DartElement.HTML_FILE:
@@ -728,7 +712,7 @@ public class DeltaProcessor {
       // when a project is created, it does not yet have a Dart nature
       IProject project = (IProject) delta.getResource();
       // if this project is a Dart project
-      if (delta != null && DartProjectNature.hasDartNature(project)) {
+      if (delta != null && project != null && DartProjectNature.hasDartNature(project)) {
         //////////
         //try {
         //project.create(project.getDescription(), new NullProgressMonitor());
@@ -760,7 +744,7 @@ public class DeltaProcessor {
           currentDelta().added(element);
         }
         // remember that the project's cache must be reset
-        projectCachesToReset.add((DartProjectImpl) element);
+        resetThisProjectCache((DartProjectImpl) element);
       }
     } else {
       // else, not a project
@@ -867,7 +851,7 @@ public class DeltaProcessor {
     }
     if (elementType == DartElement.DART_PROJECT) {
       // remember that the project's cache must be reset
-      projectCachesToReset.add((DartProjectImpl) element);
+      resetThisProjectCache((DartProjectImpl) element);
     }
   }
 
@@ -1280,31 +1264,8 @@ public class DeltaProcessor {
         IResourceDelta delta = deltas[i];
         IResource res = delta.getResource();
 
-        // find out the element type
-        int elementType;
-        IProject proj = (IProject) res;
-        boolean wasDartProject = state.findDartProject(proj.getName()) != null;
-        boolean isDartProject = DartProjectNature.hasDartNature(proj);
-        if (!wasDartProject && !isDartProject) {
-          elementType = NON_DART_RESOURCE;
-        } else {
-          elementType = DartElement.DART_PROJECT;
-        }
-
         // traverse delta
-        traverseDelta(delta, elementType);
-
-//        if (elementType == NON_DART_RESOURCE
-//            || (wasDartProject != isDartProject && (delta.getKind()) == IResourceDelta.CHANGED)) {
-//          // project has changed nature (description or open/closed)
-//          try {
-//            // add child as non Dart resource
-//            nonDartResourcesChanged((DartModelImpl) model, delta);
-//          } catch (DartModelException e) {
-//            // Dart model could not be opened
-//          }
-//        }
-
+        traverseDelta(delta, DartElement.DART_PROJECT);
       }
       resetProjectCaches();
 
@@ -1330,6 +1291,23 @@ public class DeltaProcessor {
         // do nothing - we already checked if open
       }
     }
+  }
+
+  /**
+   * This is called by the {@link DeltaProcessor} when some Dart project has been changed.
+   * <p>
+   * Since the user cannot directly delete, open or close the dart projects, this is currently only
+   * ever called when the user creates (or opens) a new dart library.
+   * <p>
+   * By enforcing all callers of <code>projectCachesToReset.add(..)</code> to use this method, this
+   * method can be used easily for debugging of the project cache story.
+   * 
+   * @see DeltaProcessor#resetProjectCaches()
+   * @param dartProjectImpl some non-<code>null</code> dart project
+   * @return <code>true</code> if this set did not already contain the specified element
+   */
+  private boolean resetThisProjectCache(DartProjectImpl dartProjectImpl) {
+    return projectCachesToReset.add(dartProjectImpl);
   }
 
   /**
@@ -1459,56 +1437,59 @@ public class DeltaProcessor {
             return true;
           }
           contentChanged(element, delta);
-        } else if (elementType == DartElement.DART_PROJECT) {
-          if ((flags & IResourceDelta.OPEN) != 0) {
-            // project has been opened or closed
-            IProject res = (IProject) delta.getResource();
-            element = createElement(res, elementType);
-            if (element == null) {
-              // resource might be containing shared roots (see bug 19058)
-              //state.updateRoots(res.getFullPath(), delta, this);
-              return false;
-            }
-            if (res.isOpen()) {
-              if (DartProjectNature.hasDartNature(res)) {
-                addToParentInfo(element);
-                currentDelta().opened(element);
-
-                // remember that the project's cache must be reset
-                projectCachesToReset.add((DartProjectImpl) element);
-              }
-            } else {
-              boolean wasDartProject = state.findDartProject(res.getName()) != null;
-              if (wasDartProject) {
-                close(element);
-                removeFromParentInfo(element);
-                currentDelta().closed(element);
-              }
-            }
-            // when a project is opened/closed don't process children
-            return false;
-          }
-          if ((flags & IResourceDelta.DESCRIPTION) != 0) {
-            IProject res = (IProject) delta.getResource();
-            boolean wasDartProject = state.findDartProject(res.getName()) != null;
-            boolean isDartProject = DartProjectNature.hasDartNature(res);
-            if (wasDartProject != isDartProject) {
-              // project's nature has been added or removed
-              element = createElement(res, elementType);
-              if (element == null) {
-                // note its resources are still visible as roots to other projects
-                return false;
-              }
-              if (isDartProject) {
-                elementAdded(element, delta);
-              } else {
-                elementRemoved(element, delta);
-              }
-              // when a project's nature is added/removed don't process children
-              return false;
-            }
-          }
         }
+        // The following has all been commented out as DartProjects cannot be opened or closed in
+        // the current UX (adding and removing libraries is different than closing a project).
+//        else if (elementType == DartElement.DART_PROJECT) {
+//          if ((flags & IResourceDelta.OPEN) != 0) {
+//            // project has been opened or closed
+//            IProject res = (IProject) delta.getResource();
+//            element = createElement(res, elementType);
+//            if (element == null) {
+//              // resource might be containing shared roots (see bug 19058)
+//              //state.updateRoots(res.getFullPath(), delta, this);
+//              return false;
+//            }
+//            if (res.isOpen()) {
+//              if (DartProjectNature.hasDartNature(res)) {
+//                addToParentInfo(element);
+//                currentDelta().opened(element);
+//
+//                // remember that the project's cache must be reset
+//                projectCachesToReset.add((DartProjectImpl) element);
+//              }
+//            } else {
+//              boolean wasDartProject = state.findDartProject(res.getName()) != null;
+//              if (wasDartProject) {
+//                close(element);
+//                removeFromParentInfo(element);
+//                currentDelta().closed(element);
+//              }
+//            }
+//            // when a project is opened/closed don't process children
+//            return false;
+//          }
+//          if ((flags & IResourceDelta.DESCRIPTION) != 0) {
+//            IProject res = (IProject) delta.getResource();
+//            boolean wasDartProject = state.findDartProject(res.getName()) != null;
+//            boolean isDartProject = DartProjectNature.hasDartNature(res);
+//            if (wasDartProject != isDartProject) {
+//              // project's nature has been added or removed
+//              element = createElement(res, elementType);
+//              if (element == null) {
+//                // note its resources are still visible as roots to other projects
+//                return false;
+//              }
+//              if (isDartProject) {
+//                elementAdded(element, delta);
+//              } else {
+//                elementRemoved(element, delta);
+//              }
+//              // when a project's nature is added/removed don't process children
+//              return false;
+//            }
+//          }
+//        }
         return true;
     }
     return true;
