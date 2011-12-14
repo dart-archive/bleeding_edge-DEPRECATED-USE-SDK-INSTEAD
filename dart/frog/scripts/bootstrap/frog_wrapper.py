@@ -17,7 +17,7 @@ def main(args):
     print "Could not find frog"
     return 1
 
-  frog_args = ['frog.py', '--vm=' + VM]
+  frog_args = ['frog.py', '--vm=' + VM, '--']
   frog_args += args[2:len(args)]
 
   filename = None
@@ -27,7 +27,7 @@ def main(args):
     paths = [os.path.dirname(home)]
     (filename, pathname, description) = imp.find_module('frog', paths)
     module = imp.load_module('frog', filename, pathname, description)
-    exit_code = module.main(args)
+    exit_code = module.main(frog_args)
   finally:
     if filename:
       filename.close()
