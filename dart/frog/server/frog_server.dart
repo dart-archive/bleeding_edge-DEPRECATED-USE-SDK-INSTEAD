@@ -32,26 +32,23 @@ compileCommand(Map request, OutputStream output) {
       '${options.dartScript} -> ${options.outfile}');
 
   world.messageHandler = (String prefix, String message, SourceSpan span) {
-    var line = span.getLine(span.start);
-    var column = span.getColumn(line, span.start);
+    // TODO (danrubel) span is null if frog cannot find the input file
+    var jsonSpan = null;
+    if (span != null) {
+      jsonSpan = { 'file': span.file.filename, 'start': span.start, 'end': span.end };
+    }
     writeJson(output, {
       'kind': 'message',
       'id': id,
       'prefix': prefix,
       'message': message,
-      'span': {
-        'file': span.file.filename,
-        'start': span.start,
-        'end': span.end,
-        // TODO(jmesserly): remove these?
-        'line': line,
-        'column': column
-      }
+      'span': jsonSpan
     });
   };
   bool success = world.compile();
   writeJson(output, {
-    'kind': 'compileDone',
+    'kind': 'done',
+    'command': 'compile',
     'id': id,
     'result': success
   });
@@ -60,12 +57,13 @@ compileCommand(Map request, OutputStream output) {
 /// Writes the supplied JSON-serializable [obj] to the output stream.
 writeJson(OutputStream output, obj) {
   var jsonBytes = encodeUtf8(JSON.stringify(obj));
+  print('jsonBytes.length = ' + jsonBytes.length + ', ' + (jsonBytes.length & 0xFF));
   output.write(int32ToBigEndian(jsonBytes.length), copyBuffer:false);
   output.write(jsonBytes, copyBuffer:false);
 }
 
 List<int> int32ToBigEndian(int len) =>
-  [len >> 24 & 0x7F, len >> 16 & 0xFF, len >> 8 & 0xFF, len & 0xFF];
+  [(len >> 24) & 0x7F, (len >> 16) & 0xFF, (len >> 8) & 0xFF, len & 0xFF];
 
 int bigEndianToInt32(List<int> bytes) =>
   (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
@@ -137,6 +135,6 @@ main() {
 
   var argv = new Options().arguments;
   var host = argv.length > 0 ? argv[0] : '127.0.0.1';
-  var port = argv.length > 1 ? Math.parseInt(argv[1]) : 0;
-  startServer(homdedir, host, port);
+  var port = argv.length > 1 ? Math.parseInt(argv[1]) : 1236;
+  startServer(homedir, host, port);
 }

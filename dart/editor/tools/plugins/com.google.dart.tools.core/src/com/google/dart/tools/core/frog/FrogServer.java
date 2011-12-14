@@ -70,8 +70,9 @@ public class FrogServer {
   public void compile(IPath path, ResponseHandler handler) throws IOException {
     JSONObject request = new JSONObject();
     try {
-      request.put("op", "compile");
-      request.put("path", path.toOSString());
+      request.put("command", "compile");
+      request.put("input", path.toOSString());
+      request.put("output", path.toOSString() + ".js");
       sendRequest(request, handler);
     } catch (JSONException e) {
       throw new IOException("Failed to format request", e);
@@ -82,11 +83,14 @@ public class FrogServer {
    * Close the socket and streams, signaling the external process to terminate
    */
   public void shutdown() {
+    JSONObject request = new JSONObject();
     try {
+      request.put("command", "close");
+      sendRequest(request, null);
       responseStream.close();
       requestStream.close();
       requestSocket.close();
-    } catch (IOException e) {
+    } catch (Exception e) {
       DartCore.logError("Failed to close server connection", e);
     }
   }
@@ -99,7 +103,8 @@ public class FrogServer {
     byte[] messageBuf = new byte[10];
     while (true) {
       readBytes(buf, 4);
-      int messageLen = (buf[0] << 24) + (buf[1] << 16) + (buf[2] << 8) + buf[3];
+      int messageLen = ((buf[0] & 0xFF) << 24) | ((buf[1] & 0xFF) << 16) | ((buf[2] & 0xFF) << 8)
+          | (buf[3] & 0xFF);
       if (messageBuf.length < messageLen) {
         messageBuf = new byte[messageLen];
       }
@@ -110,9 +115,9 @@ public class FrogServer {
       try {
         response = new JSONObject(message);
         int id = response.getInt("id");
-        String status = response.getString("status");
+        String kind = response.getString("kind");
         ResponseHandler handler;
-        if (status.equals("complete")) {
+        if (kind.equals("done")) {
           handler = responseHandlers.remove(id);
         } else {
           handler = responseHandlers.get(id);
@@ -139,6 +144,9 @@ public class FrogServer {
     int start = 0;
     while (start < numBytes) {
       int count = responseStream.read(buffer, start, numBytes - start);
+      if (count < 0) {
+        throw new IOException("Failed to read response because stream is closed");
+      }
       start += count;
     }
   }
