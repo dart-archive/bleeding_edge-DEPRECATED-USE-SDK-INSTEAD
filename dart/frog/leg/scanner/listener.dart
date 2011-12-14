@@ -448,7 +448,7 @@ class ElementListener extends Listener {
                            Token extendsKeyword, Token implementsKeyword,
                            Token endToken) {
     discardNodes(interfacesCount);
-    Identifier supertype = popNode();
+    TypeAnnotation supertype = popNode();
     Identifier name = popNode();
     pushElement(new PartialClassElement(name.source, beginToken, endToken));
   }
@@ -530,7 +530,20 @@ class ElementListener extends Listener {
   }
 
   void endTypeArguments(int count, Token beginToken, Token endToken) {
-    discardNodes(count);
+    pushNode(makeNodeList(count, beginToken, endToken, ','));
+  }
+
+  void handleNoTypeArguments(Token token) {
+    pushNode(null);
+  }
+
+  void endType(int count, Token beginToken, Token endToken) {
+    NodeList typeArguments = popNode();
+    Identifier typeName = popNode();
+    TypeAnnotation type = new TypeAnnotation(typeName, typeArguments);
+    // TODO(ahe): Don't discard library prefixes.
+    discardNodes(count - 1); // Discard library prefixes.
+    pushNode(type);
   }
 
   void handleParenthesizedExpression(BeginGroupToken token) {
@@ -766,7 +779,7 @@ class NodeListener extends ElementListener {
   }
 
   void handleVoidKeyword(Token token) {
-    pushNode(new TypeAnnotation(new Identifier(token)));
+    pushNode(new TypeAnnotation(new Identifier(token), null));
   }
 
   void endFunctionBody(int count, Token beginToken, Token endToken) {
@@ -787,7 +800,7 @@ class NodeListener extends ElementListener {
   }
 
   void handleVarKeyword(Token token) {
-    pushNode(new Identifier(token));
+    pushNode(new TypeAnnotation(new Identifier(token), null));
   }
 
   void handleFinalKeyword(Token token) {
@@ -851,13 +864,6 @@ class NodeListener extends ElementListener {
     pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
   }
 
-  void endType(int count, Token beginToken, Token endToken) {
-    TypeAnnotation type = new TypeAnnotation(popNode());
-    // TODO(ahe): Don't discard library prefixes.
-    discardNodes(count - 1); // Discard library prefixes.
-    pushNode(type);
-  }
-
   void endThrowStatement(Token throwToken, Token endToken) {
     Expression expression = popNode();
     pushNode(new Throw(expression, throwToken, endToken));
@@ -909,6 +915,7 @@ class NodeListener extends ElementListener {
       pushNode(new SendSet.postfix(send.receiver, send.selector, op, argument));
     }
   }
+
   void handleUnaryPostfixAssignmentExpression(Token token) {
     handleUnaryAssignmentExpression(token, false);
   }
@@ -956,6 +963,7 @@ class NodeListener extends ElementListener {
   void handleLiteralMap(int count, Token beginToken, Token constKeyword,
                         Token endToken) {
     NodeList entries = makeNodeList(count, beginToken, endToken, ',');
+    NodeList typeArguments = popNode();
     // TODO(ahe): Type arguments are discarded.
     // TODO(ahe): Create AST node.
     pushNode(new UnimplementedExpression('map', [entries]));
@@ -969,6 +977,7 @@ class NodeListener extends ElementListener {
                       token: constKeyword);
     }
     NodeList elements = makeNodeList(count, beginToken, endToken, ',');
+    NodeList typeArguments = popNode();
     // TODO(ahe): Type arguments are discarded.
     pushNode(new LiteralList(null, elements));
   }

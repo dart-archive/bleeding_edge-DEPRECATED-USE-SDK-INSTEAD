@@ -59,7 +59,9 @@ void main() {
       parseFilesFrom(stdin, options, printStats);
       return;
     }
+    stopwatch.start();
     charCount += parseFile(argument, options);
+    stopwatch.stop();
   }
 
   printStats();

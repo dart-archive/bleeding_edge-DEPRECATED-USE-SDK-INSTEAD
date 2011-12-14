@@ -658,15 +658,17 @@ class Throw extends Statement {
 
 class TypeAnnotation extends Node {
   final Identifier typeName;
+  final NodeList typeArguments;
 
-  TypeAnnotation(Identifier this.typeName);
+  TypeAnnotation(Identifier this.typeName, NodeList this.typeArguments);
 
   TypeAnnotation asTypeAnnotation() => this;
 
   accept(Visitor visitor) => visitor.visitTypeAnnotation(this);
 
   visitChildren(Visitor visitor) {
-    if (typeName !== null) typeName.accept(visitor);
+    typeName.accept(visitor);
+    if (typeArguments !== null) typeArguments.accept(visitor);
   }
 
   Token getBeginToken() => typeName.getBeginToken();

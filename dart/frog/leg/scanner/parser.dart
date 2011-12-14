@@ -279,7 +279,6 @@ class Parser {
       }
     } else if (optional('var', token)) {
       listener.handleVarKeyword(token);
-      listener.endType(identifierCount, begin, token);
       return token.next;
     } else {
       token = listener.expectedType(token);

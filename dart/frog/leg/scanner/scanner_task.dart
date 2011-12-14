@@ -10,6 +10,10 @@ class ScannerTask extends CompilerTask {
     measure(() {
       Link<Element> elements = scanElements(script.text);
       for (Link<Element> link = elements; !link.isEmpty(); link = link.tail) {
+        Element existing = compiler.universe.find(link.head.name);
+        if (existing !== null) {
+          compiler.cancel('Duplicate definition', token: link.head.beginToken);
+        }
         compiler.universe.define(link.head);
       }
     });

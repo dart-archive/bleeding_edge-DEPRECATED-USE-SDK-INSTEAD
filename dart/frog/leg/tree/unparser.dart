@@ -188,7 +188,7 @@ class Unparser implements Visitor {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    visit(node.typeName);
+    node.visitChildren(this);
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
