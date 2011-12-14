@@ -10,7 +10,7 @@ EvaluatorTest: Pass, Crash # flaky, no data yet available to track it down.
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium ]
 EvaluatorTest: Skip
 
-[ $component == frog || $component == frogsh || $component == dartc || $component == chromium || $component == dartium || $component == frogium ]
+[ $component == frog || $component == frogsh || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == leg ]
 FrogServerTest: Skip
 
 [ $component == frogium || $component == vm ]
