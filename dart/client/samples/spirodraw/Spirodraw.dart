@@ -6,6 +6,8 @@
 
 #import('dart:dom');
 #source("ColorPicker.dart");
+// TODO(732): Reenable when this works in the VM.
+// #resource("spirodraw.css");
 
 void main() {
   new Spirodraw().go();
