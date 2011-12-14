@@ -180,7 +180,7 @@ class VarMethodStub extends VarMember {
           return false;
         }
       }
-      return method.namesInOrder(args);
+      return method.namesInHomePositions(args);
     } else {
       return false;
     }
@@ -226,7 +226,6 @@ class VarMethodSet extends VarMember {
       var result = member.invoke(context, node, target, args, isDynamic:true);
       var stub = new VarMethodStub(name, member, args, 'return ' + result.code);
       type.varStubs[stub.name] = stub;
-
       if (type.isObject) hasObjectType = true;
     }
 
@@ -245,9 +244,17 @@ class VarMethodSet extends VarMember {
 }
 
 String _getCallStubName(String name, Arguments args) {
+  // TODO: This code needs global knowledge to ensure the stub name does not
+  // collide with any other name.
   final nameBuilder = new StringBuffer('${name}\$${args.bareCount}');
   for (int i = args.bareCount; i < args.length; i++) {
-    nameBuilder.add('\$').add(args.getName(i));
+    var name = args.getName(i);
+    nameBuilder.add('\$');
+    if (name.contains('\$')) {
+      // Disambiguate "a:b:" from "a$b:"
+      nameBuilder.add('${name.length}');
+    }
+    nameBuilder.add(name);
   }
   return nameBuilder.toString();
 }

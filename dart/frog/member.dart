@@ -817,6 +817,18 @@ class MethodMember extends Member {
     return new Value(functionType, '${target.code}.get\$$jsname()', node.span);
   }
 
+  bool namesInHomePositions(Arguments args) {
+    if (!args.hasNames) return true;
+
+    for (int i = args.bareCount; i < args.values.length; i++) {
+      if (i >= parameters.length)
+        return false;
+      if (args.getName(i) != parameters[i].name)
+        return false;
+    }
+    return true;
+  }
+
   bool namesInOrder(Arguments args) {
     if (!args.hasNames) return true;
 

@@ -5408,6 +5408,15 @@ MethodMember.prototype._get = function(context, node, target, isDynamic) {
   this._providePropertySyntax = true;
   return new Value(this.get$functionType(), ('' + target.code + '.get\$' + this.get$jsname() + '()'), node.span, true);
 }
+MethodMember.prototype.namesInHomePositions = function(args) {
+  if (!args.get$hasNames()) return true;
+  for (var i = args.get$bareCount();
+   i < args.values.length; i++) {
+    if (i >= this.parameters.length) return false;
+    if (args.getName(i) != this.parameters.$index(i).get$name()) return false;
+  }
+  return true;
+}
 MethodMember.prototype.namesInOrder = function(args) {
   if (!args.get$hasNames()) return true;
   var lastParameter = null;
@@ -13075,7 +13084,7 @@ VarMethodStub.prototype._useDirectCall = function(args) {
         return false;
       }
     }
-    return method.namesInOrder(args);
+    return method.namesInHomePositions(args);
   }
   else {
     return false;
@@ -13249,7 +13258,12 @@ function _getCallStubName(name, args) {
   var nameBuilder = new StringBufferImpl(('' + name + '\$' + args.get$bareCount()));
   for (var i = args.get$bareCount();
    i < args.get$length(); i++) {
-    nameBuilder.add('\$').add(args.getName(i));
+    var name0 = args.getName(i);
+    nameBuilder.add('\$');
+    if (name0.contains$1('\$')) {
+      nameBuilder.add(('' + name0.length));
+    }
+    nameBuilder.add(name0);
   }
   return nameBuilder.toString();
 }

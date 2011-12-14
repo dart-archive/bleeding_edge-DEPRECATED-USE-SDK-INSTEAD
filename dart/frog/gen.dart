@@ -2469,7 +2469,7 @@ class Arguments {
     if (_bareCount == null) {
       _bareCount = length;
       if (nodes != null) {
-        for (int i=0; i < nodes.length; i++) {
+        for (int i = 0; i < nodes.length; i++) {
           if (nodes[i].label != null) {
             _bareCount = i;
             break;
