@@ -261,6 +261,16 @@ public interface Type extends CompilationUnitElement, ParentElement, SourceManip
   public Method[] findMethods(Method method);
 
   /**
+   * Return all of the existing members in this type that have the given name.
+   * 
+   * @param memberName the name of the members to be returned
+   * @return all of the members in this type that have the given name
+   * @throws DartModelException if this element does not exist or if an exception occurs while
+   *           accessing its corresponding resource
+   */
+  public TypeMember[] getExistingMembers(String memberName) throws DartModelException;
+
+  /**
    * Return the field with the specified name in this type (for example, <code>"bar"</code>). This
    * is a handle-only method. The field may or may not exist.
    * 
@@ -337,6 +347,16 @@ public interface Type extends CompilationUnitElement, ParentElement, SourceManip
    *           accessing its corresponding resource
    */
   public String[] getSuperInterfaceNames() throws DartModelException;
+
+  /**
+   * Return the names of the supertypes of this type, including both the superclass name (if it
+   * exists) and the names of the superinterfaces.
+   * 
+   * @return the names of the supertypes of this type
+   * @throws DartModelException if this element does not exist or if an exception occurs while
+   *           accessing its corresponding resource
+   */
+  public String[] getSupertypeNames() throws DartModelException;
 
   /**
    * Return the qualified type name, using the given char as a separator.

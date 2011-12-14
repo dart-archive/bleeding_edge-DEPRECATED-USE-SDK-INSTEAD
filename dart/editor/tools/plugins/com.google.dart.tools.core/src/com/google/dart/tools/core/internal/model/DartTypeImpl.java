@@ -33,6 +33,7 @@ import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -184,6 +185,18 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
   }
 
   @Override
+  public TypeMember[] getExistingMembers(String memberName) throws DartModelException {
+    List<TypeMember> allMembers = getChildrenOfType(TypeMember.class);
+    List<TypeMember> matchingMembers = new ArrayList<TypeMember>(allMembers.size());
+    for (TypeMember member : allMembers) {
+      if (member.getElementName().equals(memberName)) {
+        matchingMembers.add(member);
+      }
+    }
+    return matchingMembers.toArray(new TypeMember[matchingMembers.size()]);
+  }
+
+  @Override
   public Field getField(String fieldName) {
     return new DartFieldImpl(this, fieldName);
   }
@@ -230,6 +243,27 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
     DartTypeInfo info = (DartTypeInfo) getElementInfo();
     char[][] names = info.getInterfaceNames();
     return CharOperation.toStrings(names);
+  }
+
+  @Override
+  public String[] getSupertypeNames() throws DartModelException {
+    DartTypeInfo info = (DartTypeInfo) getElementInfo();
+    char[] superclassName = info.getSuperclassName();
+    char[][] names = info.getInterfaceNames();
+    int count = names.length;
+    if (superclassName != null) {
+      count++;
+    }
+    String[] supertypeNames = new String[count];
+    int index = 0;
+    if (superclassName != null) {
+      supertypeNames[0] = new String(superclassName);
+      index++;
+    }
+    for (char[] interfaceName : names) {
+      supertypeNames[index++] = new String(interfaceName);
+    }
+    return supertypeNames;
   }
 
   @Override

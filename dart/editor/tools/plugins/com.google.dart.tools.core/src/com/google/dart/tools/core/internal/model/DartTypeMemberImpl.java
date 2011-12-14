@@ -15,10 +15,16 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DeclarationElementInfo;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Instances of the class <code>DartTypeMemberImpl</code> implement the behavior common to elements
@@ -50,6 +56,34 @@ public abstract class DartTypeMemberImpl extends SourceReferenceImpl implements 
   @Override
   public Type getDeclaringType() {
     return getAncestor(Type.class);
+  }
+
+  @Override
+  public TypeMember[] getOverriddenMembers() throws DartModelException {
+    String name = getElementName();
+    List<TypeMember> overriddenMembers = new ArrayList<TypeMember>();
+    Set<Type> visitedTypes = new HashSet<Type>();
+    List<Type> startTypes = new ArrayList<Type>();
+    startTypes.add(getDeclaringType());
+    while (!startTypes.isEmpty()) {
+      Type startType = startTypes.remove(0);
+      DartLibrary library = startType.getLibrary();
+      for (String supertypeName : startType.getSupertypeNames()) {
+        Type supertype = library.findType(supertypeName);
+        if (supertype != null) {
+          TypeMember[] members = supertype.getExistingMembers(name);
+          if (members.length > 0) {
+            for (TypeMember member : members) {
+              overriddenMembers.add(member);
+            }
+          } else if (!visitedTypes.contains(supertype)) {
+            visitedTypes.add(supertype);
+            startTypes.add(supertype);
+          }
+        }
+      }
+    }
+    return overriddenMembers.toArray(new TypeMember[overriddenMembers.size()]);
   }
 
   @Override

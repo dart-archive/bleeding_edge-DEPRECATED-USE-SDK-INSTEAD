@@ -22,17 +22,17 @@ public class TestAll {
     suite.addTestSuite(CompilationUnitImplTest.class);
 //    suite.addTestSuite(CompilationUnitImpl2Test.class);
     suite.addTestSuite(DartElementImplTest.class);
+    suite.addTestSuite(DartFieldImplTest.class);
     suite.addTestSuite(DartLibraryImplTest.class);
+    suite.addTestSuite(DartMethodImplTest.class);
     suite.addTestSuite(DartModelImplTest.class);
     suite.addTestSuite(DartModelManagerTest.class);
     suite.addTestSuite(DartProjectImplTest.class);
     suite.addTestSuite(DartProjectNatureTest.class);
-    suite.addTestSuite(FieldImplTest.class);
+    suite.addTestSuite(DartTypeImplTest.class);
     suite.addTestSuite(HTMLFileImplTest.class);
-    suite.addTestSuite(MethodImplTest.class);
     suite.addTestSuite(SystemLibraryManagerProviderDartCTest.class);
 //    suite.addTestSuite(SystemLibraryManagerProviderVmTest.class);
-    suite.addTestSuite(TypeImplTest.class);
 
     suite.addTest(com.google.dart.tools.core.internal.model.delta.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.model.info.TestAll.suite());
