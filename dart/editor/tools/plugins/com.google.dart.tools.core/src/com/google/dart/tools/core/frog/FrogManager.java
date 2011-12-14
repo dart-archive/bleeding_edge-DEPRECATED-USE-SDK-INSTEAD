@@ -13,6 +13,11 @@
  */
 package com.google.dart.tools.core.frog;
 
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
+
+import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
@@ -20,7 +25,12 @@ import java.net.UnknownHostException;
  * Manages instances of {@link FrogServer}
  */
 public class FrogManager {
+  public static final String LOCALHOST_ADDRESS = "127.0.0.1";
+  public static final int DEFAULT_PORT = 1236;
+
   private static final Object lock = new Object();
+
+  private static FrogProcess frogProcess;
   private static FrogServer server;
 
   /**
@@ -30,8 +40,13 @@ public class FrogManager {
    */
   public static FrogServer getServer() throws UnknownHostException, IOException {
     synchronized (lock) {
+      if (frogProcess == null) {
+        frogProcess = new FrogProcess();
+        frogProcess.startProcess();
+      }
+
       if (server == null) {
-        server = new FrogServer();
+        server = new FrogServer(LOCALHOST_ADDRESS, frogProcess.getPort());
       }
     }
     return server;
@@ -46,6 +61,35 @@ public class FrogManager {
         server.shutdown();
         server = null;
       }
+
+      if (frogProcess != null) {
+        frogProcess.stopProcess();
+      }
     }
   }
+
+  /**
+   * Return the path to the dart executable, or null if the path has not been set.
+   * 
+   * @return the path to the dart executable, or null if the path has not been set
+   */
+  protected static String getDartVmExecutablePath() {
+    final String DEBUG_PLUGIN_ID = "com.google.dart.tools.debug.core";
+    final String PREFS_DART_VM_PATH = "vmPath";
+
+    IEclipsePreferences prefs = new InstanceScope().getNode(DEBUG_PLUGIN_ID);
+
+    if (prefs != null) {
+      return prefs.get(PREFS_DART_VM_PATH, null);
+    }
+
+    return null;
+  }
+
+  protected static File getSdkDirectory() {
+    File eclipseInstallDir = new File(Platform.getInstallLocation().getURL().getFile());
+
+    return new File(eclipseInstallDir, "dart-sdk");
+  }
+
 }

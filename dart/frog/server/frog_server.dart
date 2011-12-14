@@ -116,6 +116,8 @@ onConnect(Socket socket) {
   };
 }
 
+final STARTUP_TOKEN = 'frog: accepting connections';
+
 /// Initialize the server and start listening for requests. Needs hostname/ip
 /// and port that it should listen on, and the Frog library directory.
 ServerSocket startServer(String homedir, String host, int port) {
@@ -123,7 +125,7 @@ ServerSocket startServer(String homedir, String host, int port) {
   initializeCompiler(homedir);
   var serverSocket = new ServerSocket(host, port, 50);
   serverSocket.connectionHandler = onConnect;
-  print('info: accepting connections on ${host}:${serverSocket.port}');
+  print('${STARTUP_TOKEN} on ${host}:${serverSocket.port}');
   return serverSocket;
 }
 

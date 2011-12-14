@@ -41,16 +41,16 @@ public class FrogServer {
   }
 
   private final Object lock = new Object();
-  private final Charset utf8;
+  private final Charset utf8Charset;
   private final Socket requestSocket;
   private final OutputStream requestStream;
   private final InputStream responseStream;
   private final Map<Integer, ResponseHandler> responseHandlers;
   private int nextRequestId = 0;
 
-  public FrogServer() throws UnknownHostException, IOException {
-    utf8 = Charset.forName("UTF-8");
-    requestSocket = new Socket("127.0.0.1", 1236);
+  public FrogServer(String host, int port) throws UnknownHostException, IOException {
+    utf8Charset = Charset.forName("UTF-8");
+    requestSocket = new Socket(host, port);
     requestStream = requestSocket.getOutputStream();
     responseStream = requestSocket.getInputStream();
     responseHandlers = new HashMap<Integer, ResponseHandler>();
@@ -109,7 +109,7 @@ public class FrogServer {
         messageBuf = new byte[messageLen];
       }
       readBytes(messageBuf, messageLen);
-      String message = new String(messageBuf, 0, messageLen, utf8);
+      String message = new String(messageBuf, 0, messageLen, utf8Charset);
       System.out.println(message);
       JSONObject response;
       try {
@@ -157,7 +157,7 @@ public class FrogServer {
    * @param message the message (not <code>null</code>)
    */
   private void sendMessage(String message) throws IOException {
-    byte[] bytes = message.getBytes(utf8);
+    byte[] bytes = message.getBytes(utf8Charset);
     int len = bytes.length;
     requestStream.write((len >>> 24) & 0xFF);
     requestStream.write((len >>> 16) & 0xFF);
@@ -187,4 +187,5 @@ public class FrogServer {
     sendMessage(request.toString());
     return handler;
   }
+
 }
