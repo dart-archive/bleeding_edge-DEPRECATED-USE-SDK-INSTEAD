@@ -45,24 +45,35 @@ class StringImplementation implements String native "String" {
   String _replaceFirst(String from, String to) native
     "return this.replace(from, to);";
 
-  String _replaceFirstRegExp(RegExp from, String to) native
+  String _replaceRegExp(RegExp from, String to) native
     "return this.replace(from.re, to);";
 
   String replaceFirst(Pattern from, String to) {
     if (from is String) return _replaceFirst(from, to);
-    if (from is RegExp) return _replaceFirstRegExp(from, to);
-    for (match in from.allMatches(this)) {
+    if (from is RegExp) return _replaceRegExp(from, to);
+    for (var match in from.allMatches(this)) {
       // We just care about the first match
       return substring(0, match.start()) + to + substring(match.end());
     }
   }
 
-  String replaceAll(Pattern from, String to) native @"""
-if (typeof(from) == 'string' || from instanceof String) {
-  from = new RegExp(from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'g');
-  to = to.replace(/\$/g, '$$$$'); // Escape sequences are fun!
-}
+  String _replaceAll(String from, String to) native @"""
+from = new RegExp(from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'g');
+to = to.replace(/\$/g, '$$$$'); // Escape sequences are fun!
 return this.replace(from, to);""";
+
+  String replaceAll(Pattern from, String to) {
+    if (from is String) return _replaceAll(from, to);
+    if (from is RegExp) return _replaceRegExp(from.dynamic._global, to);
+    var buffer = new StringBuffer();
+    var lastMatchEnd = 0;
+    for (var match in from.allMatches(this)) {
+      buffer.add(substring(lastMatchEnd, match.start()));
+      buffer.add(to);
+      lastMatchEnd = match.end();
+    }
+    buffer.add(substring(lastMatchEnd));
+  }
 
   List<String> split(Pattern pattern) native;
 

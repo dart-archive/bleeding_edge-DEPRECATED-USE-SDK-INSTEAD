@@ -1652,24 +1652,36 @@ StringImplementation.prototype.contains = function(pattern, startIndex) {
 StringImplementation.prototype._replaceFirst = function(from, to) {
   return this.replace(from, to);
 }
-StringImplementation.prototype._replaceFirstRegExp = function(from, to) {
+StringImplementation.prototype._replaceRegExp = function(from, to) {
   return this.replace(from.re, to);
 }
 StringImplementation.prototype.replaceFirst = function(from, to) {
   if ((typeof(from) == 'string')) return this._replaceFirst(from, to);
-  if (!!(from && from.is$RegExp())) return this._replaceFirstRegExp(from, to);
+  if (!!(from && from.is$RegExp())) return this._replaceRegExp(from, to);
   var $$list = from.allMatches(this);
   for (var $$i = from.allMatches(this).iterator(); $$i.hasNext$0(); ) {
     var match = $$i.next$0();
     return this.substring(0, match.start$0()) + to + this.substring(match.end$0());
   }
 }
-StringImplementation.prototype.replaceAll = function(from, to) {
-  if (typeof(from) == 'string' || from instanceof String) {
-    from = new RegExp(from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'g');
-    to = to.replace(/\$/g, '$$$$'); // Escape sequences are fun!
-  }
+StringImplementation.prototype._replaceAll = function(from, to) {
+  from = new RegExp(from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'g');
+  to = to.replace(/\$/g, '$$$$'); // Escape sequences are fun!
   return this.replace(from, to);
+}
+StringImplementation.prototype.replaceAll = function(from, to) {
+  if ((typeof(from) == 'string')) return this._replaceAll(from, to);
+  if (!!(from && from.is$RegExp())) return this._replaceRegExp(from.get$dynamic().get$_global(), to);
+  var buffer = new StringBufferImpl("");
+  var lastMatchEnd = 0;
+  var $$list = from.allMatches(this);
+  for (var $$i = from.allMatches(this).iterator(); $$i.hasNext$0(); ) {
+    var match = $$i.next$0();
+    buffer.add$1(this.substring(lastMatchEnd, match.start$0()));
+    buffer.add$1(to);
+    lastMatchEnd = match.end$0();
+  }
+  buffer.add$1(this.substring(lastMatchEnd));
 }
 StringImplementation.prototype.hashCode = function() {
   if (this.hash_ === undefined) {

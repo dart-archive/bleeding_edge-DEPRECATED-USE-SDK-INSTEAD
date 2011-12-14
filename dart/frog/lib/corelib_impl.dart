@@ -279,6 +279,18 @@ class JSSyntaxRegExp implements RegExp {
   }
 
   Iterable<Match> allMatches(String str) => new _AllMatchesIterable(this, str);
+
+  /**
+   * Returns a new RegExp with the same pattern as this one and with the
+   * "global" flag set. This allows us to match this RegExp against a string
+   * multiple times, to support things like [allMatches] and
+   * [String.replaceAll].
+   *
+   * Note that the returned RegExp disobeys the normal API in that it maintains
+   * state about the location of the last match.
+   */
+  JSSyntaxRegExp get _global() => new JSSyntaxRegExp._create(pattern,
+      'g' + (multiLine ? 'm' : '') + (ignoreCase ? 'i' : ''));
 }
 
 class MatchImplementation implements Match {
@@ -323,13 +335,8 @@ class _AllMatchesIterator implements Iterator<Match> {
   Match _next;
   bool _done;
 
-  _AllMatchesIterator(RegExp re, String this._str)
-    : _done = false,
-      _re = new JSSyntaxRegExp._create(re.pattern,
-        // Create a new RegExp with the "global" flag set so we can use it to
-        // iterate over multiple matches. Note that this will make the RegExp
-        // disobey the normal API.
-        'g' + (re.multiLine ? 'm' : '') + (re.ignoreCase ? 'i' : ''));
+  _AllMatchesIterator(JSSyntaxRegExp re, String this._str)
+    : _done = false, _re = re._global;
 
   Match next() {
     if (!hasNext()) {
