@@ -347,9 +347,6 @@ class Listener {
   void handleNoExpression(Token token) {
   }
 
-  void handleNoFieldInitializer(Token token) {
-  }
-
   void handleNoType(Token token) {
   }
 
@@ -488,24 +485,30 @@ class ElementListener extends Listener {
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
-    Element fields = new PartialFieldListElement(beginToken, endToken);
-    Link<Identifier> names = const EmptyLink<Identifier>();
-    for (int i = 0; i < count; i++) {
-      Expression initializer = popNode();
-      if (initializer !== null) {
-        canceler.cancel("field initializers are not implemented",
-                        node: initializer);
-      }
-      names = names.prepend(popNode());
+    void buildFieldElement(SourceString name, Element fields) {
+      pushElement(new VariableElement(name, fields, ElementKind.FIELD,
+                                      null, null));
     }
-    for (; !names.isEmpty(); names = names.tail) {
-      pushElement(new VariableElement(names.head.source, fields,
-                                      ElementKind.FIELD));
+    buildFieldElements(makeNodeList(count, null, null, ","), buildFieldElement,
+                       beginToken, endToken);
+  }
+
+  void buildFieldElements(NodeList variables,
+                          void buildFieldElement(SourceString name,
+                                                 Element fields),
+                          Token beginToken, Token endToken) {
+    Element fields = new PartialFieldListElement(beginToken, endToken);
+    for (Link<Node> nodes = variables.nodes; !nodes.isEmpty();
+         nodes = nodes.tail) {
+      Expression initializedIdentifier = nodes.head;
+      SourceString name = initializedIdentifier.asIdentifier().source;
+      buildFieldElement(name, fields);
     }
   }
 
-  void handleNoFieldInitializer(Token token) {
-    pushNode(null);
+  void endInitializer(Token assignmentOperator) {
+    canceler.cancel("field initializers are not implemented",
+                    token: assignmentOperator);
   }
 
   void handleIdentifier(Token token) {
@@ -614,11 +617,8 @@ class ElementListener extends Listener {
 
 class NodeListener extends ElementListener {
   final Logger logger;
-  final ClassElement enclosingElement;
 
-  NodeListener(Canceler canceler, Logger this.logger,
-               [this.enclosingElement = null])
-      : super(canceler);
+  NodeListener(Canceler canceler, Logger this.logger) : super(canceler);
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,
@@ -635,6 +635,11 @@ class NodeListener extends ElementListener {
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     pushNode(makeNodeList(memberCount, beginToken, endToken, null));
+  }
+
+  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+    NodeList variables = makeNodeList(count, null, null, ",");
+    pushNode(new VariableDefinitions(null, null, variables, endToken));
   }
 
   void endTopLevelMethod(Token beginToken, Token endToken) {
@@ -924,29 +929,9 @@ class NodeListener extends ElementListener {
   }
 
   void endFields(int count, Token beginToken, Token endToken) {
-    Element fields = new PartialFieldListElement(beginToken, endToken);
-    Link<Identifier> names = const EmptyLink<Identifier>();
-    for (int i = 0; i < count; i++) {
-      Node initializer = popNode();
-      if (initializer != null) {
-        canceler.cancel(
-            "field initializers are not implemented", node: initializer);
-      }
-      names = names.prepend(popNode());
-    }
+    NodeList variables = makeNodeList(count, null, null, ",");
     Modifiers modifiers = popNode();
-    for (; !names.isEmpty(); names = names.tail) {
-      enclosingElement.addMember(new VariableElement(
-          names.head.source, fields, ElementKind.FIELD, modifiers,
-          enclosingElement));
-    }
-    pushNode(null);
-  }
-
-  bool isConstructor(Identifier name) {
-    return enclosingElement !== null &&
-           enclosingElement.kind == ElementKind.CLASS &&
-           enclosingElement.name == name.source;
+    pushNode(new VariableDefinitions(null, modifiers, variables, endToken));
   }
 
   void endMethod(Token beginToken, Token period, Token endToken) {
@@ -958,17 +943,7 @@ class NodeListener extends ElementListener {
       name = popNode();
     }
     Modifiers modifiers = popNode();
-    pushNode(new FunctionExpression(name, formalParameters, body, null));
-    // TODO(ahe): We don't need to push the AST node and record the
-    // member. This should be cleaned up, preferably by moving the
-    // element stuff to a separate class.
-    ElementKind kind = isConstructor(name) ?
-                       ElementKind.CONSTRUCTOR :
-                       ElementKind.FUNCTION;
-    Element memberElement =
-        new PartialFunctionElement(name.source, beginToken, endToken,
-                                   kind, modifiers, enclosingElement);
-    enclosingElement.addMember(memberElement);
+    pushNode(new FunctionExpression(name, formalParameters, body, null, modifiers));
   }
 
   void endLiteralMapEntry(Token token) {

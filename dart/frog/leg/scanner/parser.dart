@@ -359,10 +359,10 @@ class Parser {
     }
     if (isField) {
       int fieldCount = 1;
-      token = parseFieldInitializerOpt(token);
+      token = parseVariableInitializerOpt(token);
       while (optional(',', token)) {
         token = parseIdentifier(token.next);
-        token = parseFieldInitializerOpt(token);
+        token = parseVariableInitializerOpt(token);
         ++fieldCount;
       }
       expectSemicolon(token);
@@ -375,13 +375,14 @@ class Parser {
     return token.next;
   }
 
-  Token parseFieldInitializerOpt(Token token) {
+  Token parseVariableInitializerOpt(Token token) {
     if (optional('=', token)) {
-      return parseExpression(token.next);
-    } else {
-      listener.handleNoFieldInitializer(token);
-      return token;
+      Token assignment = token;
+      listener.beginInitializer(token);
+      token = parseExpression(token.next);
+      listener.endInitializer(assignment);
     }
+    return token;
   }
 
   Token parseInitializersOpt(Token token) {
@@ -549,11 +550,11 @@ class Parser {
     }
     if (isField) {
       int fieldCount = 1;
-      token = parseFieldInitializerOpt(token);
+      token = parseVariableInitializerOpt(token);
       while (optional(',', token)) {
         // TODO(ahe): Count these.
         token = parseIdentifier(token.next);
-        token = parseFieldInitializerOpt(token);
+        token = parseVariableInitializerOpt(token);
         ++fieldCount;
       }
       expectSemicolon(token);
@@ -1249,12 +1250,7 @@ class Parser {
   Token parseOptionallyInitializedIdentifier(Token token) {
     listener.beginInitializedIdentifier(token);
     token = parseIdentifier(token);
-    if (optional('=', token)) {
-      Token assignment = token;
-      listener.beginInitializer(token);
-      token = parseExpression(token.next);
-      listener.endInitializer(assignment);
-    }
+    token = parseVariableInitializerOpt(token);
     listener.endInitializedIdentifier();
     return token;
   }

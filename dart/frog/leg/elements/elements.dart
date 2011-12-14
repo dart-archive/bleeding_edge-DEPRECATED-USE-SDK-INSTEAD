@@ -57,7 +57,7 @@ class Element implements Hashable {
   // the same hash code. Replace this with a simple id in the element?
   int hashCode() => name.hashCode();
 
-  toString() => '$name';
+  toString() => '$kind($name)';
 }
 
 class VariableElement extends Element {

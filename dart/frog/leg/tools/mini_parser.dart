@@ -179,8 +179,7 @@ void parserError(String message, Token token, SourceFile file) {
 
 class MyNodeListener extends NodeListener {
   MyNodeListener(SourceFile file, MyOptions options)
-    : super(new MyCanceller(file, options), null,
-            new PartialClassElement(const SourceString('dummy'), null, null));
+    : super(new MyCanceller(file, options), null);
 
   void beginClassDeclaration(Token token) {
     classCount++;
@@ -193,6 +192,11 @@ class MyNodeListener extends NodeListener {
                               extendsKeyword, implementsKeyword,
                               endToken);
     ClassNode node = popNode(); // Discard ClassNode and assert the type.
+  }
+
+  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+    super.endTopLevelFields(count, beginToken, endToken);
+    VariableDefinitions node = popNode(); // Discard node and assert the type.
   }
 
   void log(message) {

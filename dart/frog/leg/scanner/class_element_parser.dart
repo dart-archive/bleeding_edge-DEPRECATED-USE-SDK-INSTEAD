@@ -18,7 +18,7 @@ class PartialClassElement extends ClassElement {
 
   ClassNode parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
-    NodeListener listener = new NodeListener(canceler, logger, this);
+    MemberListener listener = new MemberListener(canceler, logger, this);
     Parser parser = new ClassElementParser(listener);
     Token token = parser.parseClass(beginToken);
     assert(token === endToken.next);
@@ -26,5 +26,52 @@ class PartialClassElement extends ClassElement {
     assert(listener.nodes.isEmpty());
     assert(listener.topLevelElements.isEmpty());
     return node;
+  }
+}
+
+class MemberListener extends NodeListener {
+  final ClassElement enclosingElement;
+
+  MemberListener(Canceler canceler, Logger logger,
+                 [Element this.enclosingElement = null])
+    : super(canceler, logger);
+
+  bool isConstructor(Identifier name) {
+    return enclosingElement !== null &&
+           enclosingElement.kind == ElementKind.CLASS &&
+           enclosingElement.name == name.source;
+  }
+
+  void endMethod(Token beginToken, Token period, Token endToken) {
+    super.endMethod(beginToken, period, endToken);
+    FunctionExpression method = popNode();
+    pushNode(null);
+    Identifier name = method.name;
+    ElementKind kind = isConstructor(name) ?
+                       ElementKind.CONSTRUCTOR :
+                       ElementKind.FUNCTION;
+    Element memberElement =
+        new PartialFunctionElement(name.source, beginToken, endToken,
+                                   kind, method.modifiers, enclosingElement);
+    enclosingElement.addMember(memberElement);
+  }
+
+  void endFields(int count, Token beginToken, Token endToken) {
+    super.endFields(count, beginToken, endToken);
+    VariableDefinitions variableDefinitions = popNode();
+    Modifiers modifiers = variableDefinitions.modifiers;
+    pushNode(null);
+    void buildFieldElement(SourceString name, Element fields) {
+      Element element = new VariableElement(name, fields, ElementKind.FIELD,
+                                            modifiers, enclosingElement);
+      enclosingElement.addMember(element);
+    }
+    buildFieldElements(variableDefinitions.definitions, buildFieldElement,
+                       beginToken, endToken);
+  }
+
+  void endInitializer(Token assignmentOperator) {
+    canceler.cancel("field initializers are not implemented",
+                    token: assignmentOperator);
   }
 }

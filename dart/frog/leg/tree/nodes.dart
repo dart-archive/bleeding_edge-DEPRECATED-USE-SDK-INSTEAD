@@ -445,8 +445,9 @@ class FunctionExpression extends Expression {
   final NodeList parameters;
   final Statement body;
   final TypeAnnotation returnType;
+  final Modifiers modifiers;
 
-  FunctionExpression([this.name, this.parameters, this.body, this.returnType]);
+  FunctionExpression([this.name, this.parameters, this.body, this.returnType, this.modifiers]);
 
   FunctionExpression asFunctionExpression() => this;
 
