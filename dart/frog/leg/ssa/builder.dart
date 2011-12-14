@@ -595,6 +595,63 @@ class SsaBuilder implements Visitor {
     }
   }
 
+  void generateGetter(Send send, Element element) {
+    if (Elements.isStaticOrTopLevelField(element)) {
+      push(new HStatic(element));
+    } else if (Elements.isInstanceField(element)) {
+      String methodName = compiler.namer.getterName(element.name);
+      HInstruction receiver = new HThis();
+      add(receiver);
+      push(new HInvokeDynamicGetter(element, methodName, receiver));
+    } else if (element == null) {
+      SourceString getterName = send.selector.asIdentifier().source;
+      String jsGetterName = compiler.namer.getterName(getterName);
+      HInstruction receiver;
+      if (send.receiver == null) {
+        receiver = new HThis();
+        add(receiver);
+      } else {
+        visit(send.receiver);
+        receiver = pop();
+      }
+      push(new HInvokeDynamicGetter(null, jsGetterName, receiver));
+    } else {
+      HInstruction instruction = definitions[element];
+      if (instruction === null) {
+        compiler.unimplemented("SsaBuilder.visitSend with static");
+      }
+      assert(instruction !== null);
+      stack.add(instruction);
+    }
+  }
+
+  void generateSetter(SendSet send, Element element, HInstruction value) {
+    if (Elements.isStaticOrTopLevelField(element)) {
+      add(new HStaticStore(element, value));
+      stack.add(value);
+    } else if (Elements.isInstanceField(element)) {
+      String methodName = compiler.namer.setterName(element.name);
+      HInstruction receiver = new HThis();
+      add(receiver);
+      add(new HInvokeDynamicSetter(element, methodName, receiver, value));
+      stack.add(value);
+    } else if (element === null) {
+      SourceString dartSetterName = send.selector.asIdentifier().source;
+      String jsSetterName = compiler.namer.setterName(dartSetterName);
+      HInstruction receiver;
+      if (send.receiver == null) {
+        receiver = new HThis();
+        add(receiver);
+      } else {
+        visit(send.receiver);
+        receiver = pop();
+      }
+      push(new HInvokeDynamicSetter(null, jsSetterName, receiver, value));
+    } else {
+      stack.add(updateDefinition(send, value));
+    }
+  }
+
   visitSend(Send node) {
     Element element = elements[node];
     if (node.selector is Operator) {
@@ -623,33 +680,7 @@ class SsaBuilder implements Visitor {
         visitBinary(left, op, right, element);
       }
     } else if (node.isPropertyAccess) {
-      if (Elements.isStaticOrTopLevelField(element)) {
-        push(new HStatic(element));
-      } else if (Elements.isInstanceField(element)) {
-        String methodName = compiler.namer.getterName(element.name);
-        HInstruction receiver = new HThis();
-        add(receiver);
-        push(new HInvokeDynamicGetter(element, methodName, receiver));
-      } else if (element == null) {
-        SourceString dartGetterName = node.selector.asIdentifier().source;
-        String jsGetterName = compiler.namer.getterName(dartGetterName);
-        HInstruction receiver;
-        if (node.receiver == null) {
-          receiver = new HThis();
-          add(receiver);
-        } else {
-          visit(node.receiver);
-          receiver = pop();
-        }
-        push(new HInvokeDynamicGetter(null, jsGetterName, receiver));
-      } else {
-        HInstruction instruction = definitions[element];
-        if (instruction === null) {
-          compiler.unimplemented("SsaBuilder.visitSend with static");
-        }
-        assert(instruction !== null);
-        stack.add(instruction);
-      }
+      generateGetter(node, element);
     } else {
       bool isInvokeDynamic = (element === null);
       bool isForeign =
@@ -743,33 +774,20 @@ class SsaBuilder implements Visitor {
           stack.add(left);
         }
       }
-    } else if (node.receiver != null) {
-      compiler.unimplemented("SsaBuilder: property access");
     } else if (const SourceString("=") == op.source) {
       Link<Node> link = node.arguments;
       assert(!link.isEmpty() && link.tail.isEmpty());
       visit(link.head);
       HInstruction value = pop();
-      if (Elements.isStaticOrTopLevelField(element)) {
-        add(new HStaticStore(element, value));
-        stack.add(value);
-      } else if (Elements.isInstanceField(element)) {
-        String methodName = compiler.namer.setterName(element.name);
-        HInstruction receiver = new HThis();
-        add(receiver);
-        add(new HInvokeDynamicSetter(element, methodName, receiver, value));
-        stack.add(value);
-      } else {
-        stack.add(updateDefinition(node, value));
-      }
+      generateSetter(node, element, value);
     } else {
       assert(const SourceString("++") == op.source ||
              const SourceString("--") == op.source ||
              node.assignmentOperator.source.stringValue.endsWith("="));
       bool isCompoundAssignment = !node.arguments.isEmpty();
       bool isPrefix = !node.isPostfix;  // Compound assignments are prefix.
-      Element getter = elements[node.selector];
-      HInstruction left = definitions[getter];
+      generateGetter(node, elements[node.selector]);
+      HInstruction left = pop();
       HInstruction right;
       if (isCompoundAssignment) {
         visit(node.argumentsNode);
@@ -782,15 +800,9 @@ class SsaBuilder implements Visitor {
       visitBinary(left, op, right, opElement);
       HInstruction operation = pop();
       assert(operation !== null);
-      if (Elements.isStaticOrTopLevelField(element)) {
-        add(new HStaticStore(element, operation));
-      } else {
-        // updateDefinition might guard the operation thus returning a new node.
-        operation = updateDefinition(node, operation);
-      }
-      if (isPrefix) {
-        stack.add(operation);
-      } else {
+      generateSetter(node, element, operation);
+      if (!isPrefix) {
+        pop();
         stack.add(left);
       }
     }

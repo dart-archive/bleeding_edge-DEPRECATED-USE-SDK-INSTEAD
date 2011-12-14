@@ -51,8 +51,8 @@ function(child, parent) {
       // TODO(ngeoffray): Have another class generate the code for the
       // fields.
       assert(member.kind === ElementKind.FIELD);
-      String setterName = namer.setterName(member);
-      String getterName = namer.getterName(member);
+      String setterName = namer.setterName(member.name);
+      String getterName = namer.getterName(member.name);
       if (compiler.universe.invokedNames.contains(setterName)) {
         buffer.add('$prototype.$setterName = function(v){\n' +
           '  this.${namer.getName(member)} = v;\n}\n');

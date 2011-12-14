@@ -30,6 +30,10 @@ main() {
   A a = new A();
   a.foo();
   expectEquals(0, a.x);
+  a.x = 4;
+  expectEquals(4, a.x);
+  a.x += 1;
+  expectEquals(5, a.x);
 
   B b = new B();
   b.foo();
