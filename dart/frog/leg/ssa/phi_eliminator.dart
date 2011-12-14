@@ -68,6 +68,7 @@ class SsaPhiEliminator extends HGraphVisitor {
 
   visitPhi(HPhi phi, List<HLoad> loads) {
     assert(phi !== null);
+    if (phi.isLogicalOperator()) return;
     HLocal local;
     if (phi.element != null) {
       // If the phi represents a variable in Dart source, check if we

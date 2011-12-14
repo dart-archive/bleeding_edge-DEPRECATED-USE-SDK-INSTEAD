@@ -27,6 +27,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       new HTracer.singleton().traceGraph("codegen", graph);
     }
     new SsaInstructionMerger().visitGraph(graph);
+    new SsaConditionMerger().visitGraph(graph);
     new SsaPhiEliminator().visitGraph(graph);
     if (GENERATE_SSA_TRACE) {
       new HTracer.singleton().traceGraph("no-phi", graph);
@@ -151,6 +152,11 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitBasicBlock(HBasicBlock node) {
+    currentBlock = node;
+    for (HPhi phi = node.phis.first; phi != null; phi = phi.next) {
+      if (!phi.generateAtUseSite()) visit(phi);
+    }
+
     // While loop will be closed by the conditional loop-branch.
     // TODO(floitsch): HACK HACK HACK.
     if (node.isLoopHeader()) {
@@ -158,12 +164,11 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add('while (true) {\n');
       indent++;
     }
-    currentBlock = node;
-
     HInstruction instruction = node.first;
     while (instruction != null) {
       if (instruction is HGoto || instruction is HExit) {
         visit(instruction);
+        return;
       } else if (!instruction.generateAtUseSite()) {
         addIndentation();
         if (instruction.usedBy.isEmpty() || instruction is HLocal) {
@@ -175,6 +180,14 @@ class SsaCodeGenerator implements HVisitor {
         if (instruction is !HControlFlow) {
           buffer.add(';\n');
         }
+      } else if (instruction is HIf) {
+        HIf hif = instruction;
+        // The "if" is implementing part of a logical expression.
+        // Skip directly forward to to its latest successor, since everything
+        // in-between must also be generateAtUseSite.
+        assert(hif.trueBranch.id < hif.falseBranch.id);
+        visitBasicBlock(hif.falseBranch);
+        return;
       }
       instruction = instruction.next;
     }
@@ -260,27 +273,26 @@ class SsaCodeGenerator implements HVisitor {
     // The currentBlock will be changed when we visit the successors. So keep
     // a local copy around.
     HBasicBlock ifBlock = currentBlock;
+    assert(!node.generateAtUseSite());
     buffer.add('if (');
     use(node.inputs[0]);
     buffer.add(') {\n');
-    indent++;
-    List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
+    List<HBasicBlock> dominated = ifBlock.dominatedBlocks;
     assert(dominated[0] === ifBlock.successors[0]);
+    indent++;
     visitBasicBlock(ifBlock.successors[0]);
     indent--;
     addIndentation();
     int nextDominatedIndex;
     if (node.hasElse) {
-      assert(dominated[1] === ifBlock.successors[1]);
       buffer.add('} else {\n');
       indent++;
+      assert(dominated[1] === ifBlock.successors[1]);
       visitBasicBlock(ifBlock.successors[1]);
       indent--;
       addIndentation();
-      buffer.add("}\n");
-    } else {
-      buffer.add("}\n");
     }
+    buffer.add("}\n");
 
     // Normally the HIf dominates the join-block. In this case there is one
     // dominated block that we need to visit:
@@ -417,8 +429,13 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitPhi(HPhi node) {
-    // The SsaPhiEliminator made sure phis are gone in the function.
-    unreachable();
+    // All non-logical-operation phis have been eliminated.
+    assert(node.isLogicalOperator());
+    buffer.add('((');
+    use(node.inputs[0]);
+    buffer.add(')${node.logicalOperator()}(');
+    use(node.inputs[1]);
+    buffer.add('))');
   }
 
   visitReturn(HReturn node) {
@@ -563,7 +580,6 @@ class SsaInstructionMerger extends HGraphVisitor {
     }
 
     addInputs(block.last);
-    bool isExpression = true;
     for (HInstruction instruction = block.last.previous;
          instruction !== null;
          instruction = instruction.previous) {
@@ -577,7 +593,6 @@ class SsaInstructionMerger extends HGraphVisitor {
         instruction.setGenerateAtUseSite();
       } else {
         assert(expectedInputs.isEmpty());
-        isExpression = false;
       }
       if (instruction is HForeign) {
         // Never try to merge inputs to HForeign.
@@ -587,13 +602,6 @@ class SsaInstructionMerger extends HGraphVisitor {
                  usedOnlyByPhis(instruction)) {
         // In all other cases, try merging all non-trivial inputs.
         addInputs(instruction);
-      }
-    }
-    if (isExpression) {
-      HControlFlow last = block.last;
-      if (last is HConditionalBranch) {
-        HConditionalBranch tmp = last;
-        tmp.isExpression = true;
       }
     }
   }
@@ -609,5 +617,118 @@ class SsaTypeGuardUnuser extends HBaseVisitor {
     // introduce an extra temporary if we rewrite uses of it.
     if (node.generateAtUseSite()) return;
     currentBlock.rewrite(node, node.inputs[0]);
+  }
+}
+
+
+/**
+ *  Detect control flow arising from short-circuit logical operators, and
+ *  prepare the program to be generated using these operators instead of
+ *  nested ifs and boolean variables.
+ */
+class SsaConditionMerger extends HGraphVisitor {
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  /**
+   * Returns true if the given instruction is an expression that uses up all
+   * instructions up to the given [limit].
+   *
+   * That is, all instructions starting after the [limit] block (at the branch
+   * leading to the [instruction]) down to the given [instruction] can be generated
+   * at use-site.
+   */
+  static bool isExpression(HInstruction instruction, HBasicBlock limit) {
+    if (instruction is !HPhi) {
+      while (instruction.previous != null) {
+        instruction = instruction.previous;
+        if (!instruction.generateAtUseSite()) {
+          return false;
+        }
+      }
+      HBasicBlock block = instruction.block;
+      if (block.phis.isEmpty()) {
+        return block.predecessors.length == 1 && block.predecessors[0] == limit;
+      }
+      if (block.phis.first != block.phis.last) {
+        return false;
+      }
+      instruction = block.phis.first;
+    }
+    HPhi phi = instruction;
+    if (phi.generateAtUseSite()) {
+      // Part of an already detected logical expression.
+      // In that case, we know that the second input is an expression,
+      // but the first one might not be.
+      return isExpression(phi.inputs[0], limit);
+    }
+    return false;
+  }
+
+  static void DetectLogicControlFlow(HPhi phi) {
+    // Check for the most common pattern for a short-circuit logic operation:
+    //   B0 b0 = ...; if (b0) goto B1 else B2 (or: if (!b0) goto B2 else B1)
+    //   |\
+    //   | B1 b1 = ...; goto B2
+    //   |/
+    //   B2 b2 = phi(b0,b1); if(b2) ...
+    // TODO(lrn): Also recognize ?:-flow?
+
+    if (phi.inputs.length != 2) return;
+    HInstruction first = phi.inputs[0];
+    HBasicBlock firstBlock = first.block;
+    HInstruction second = phi.inputs[1];
+    HBasicBlock secondBlock = second.block;
+
+    // Check second input of phi being an expression followed by a goto.
+    if (second.usedBy.length != 1) return;
+    HInstruction secondNext =
+        (second is HPhi) ? secondBlock.first : second.next;
+    if (secondNext != secondBlock.last) return;
+    if (secondBlock.last is !HGoto) return;
+    if (secondBlock.successors[0] != phi.block) return;
+    if (!isExpression(second, firstBlock)) return;
+
+    // Check first input of phi being followed by a (possibly negated)
+    // conditional branch based on the same value.
+    if (firstBlock != phi.block.dominator) return;
+    if (firstBlock.last is !HConditionalBranch) return;
+    HConditionalBranch firstBranch = firstBlock.last;
+    // Must be used both for value and for control to avoid the second branch.
+    if (first.usedBy.length != 2) return;
+    if (firstBlock.successors[1] != phi.block) return;
+    HInstruction firstNext = (first is HPhi) ? firstBlock.first : first.next;
+    if (firstNext == firstBlock.last &&
+        firstBranch.condition == first) {
+      phi.logicalOperatorType = HPhi.IS_AND;
+    } else if (firstNext is HNot &&
+               firstNext.inputs[0] == first &&
+               firstNext.generateAtUseSite() &&
+               firstNext.next == firstBlock.last &&
+               firstBranch.condition == firstNext) {
+      phi.logicalOperatorType = HPhi.IS_OR;
+    } else {
+      return;
+    }
+    // Detected as logic control flow. Mark the corresponding
+    // inputs as generated at use site. These will now be generated
+    // as part of an expression.
+    first.setGenerateAtUseSite();
+    firstBlock.last.setGenerateAtUseSite();
+    second.setGenerateAtUseSite();
+    secondBlock.last.setGenerateAtUseSite();
+    // The phi should be used in only one place.
+    if (phi.usedBy.length == 1) {
+      // TODO(lrn): More tests here?
+      phi.setGenerateAtUseSite();
+    }
+  }
+
+  void visitBasicBlock(HBasicBlock block) {
+    if (!block.phis.isEmpty() &&
+        block.phis.first == block.phis.last) {
+      DetectLogicControlFlow(block.phis.first);
+    }
   }
 }

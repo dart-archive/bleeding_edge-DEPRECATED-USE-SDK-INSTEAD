@@ -78,10 +78,6 @@ class SsaBuilder implements Visitor {
   // The current block to add instructions to. Might be null, if we are
   // visiting dead code.
   HBasicBlock current;
-  // Whether we are currently processing a condition expression (e.g., from
-  // an if, while, do-while, or for statement, or the conditional expression.
-  // (Currently, only if-statements are processed this way).
-  bool isConditionExpression = false;
 
   SsaBuilder(this.compiler, this.elements);
 
@@ -155,7 +151,8 @@ class SsaBuilder implements Visitor {
 
   HBasicBlock addNewBlock() {
     HBasicBlock block = graph.addNewBlock();
-    if (isConditionExpression) block.isCondition = true;
+    // If adding a new block during building of an expression, it is due to
+    // conditional expressions or short-circuit logical operators.
     return block;
   }
 
@@ -214,12 +211,6 @@ class SsaBuilder implements Visitor {
 
   void visit(Node node) {
     if (node !== null) node.accept(this);
-  }
-
-  void visitCondition(Node node) {
-    isConditionExpression = true;
-    visit(node);
-    isConditionExpression = false;
   }
 
   visitParameterValues(NodeList parameters) {
@@ -447,7 +438,7 @@ class SsaBuilder implements Visitor {
   visitIf(If node) {
     // Add the condition to the current block.
     bool hasElse = node.hasElsePart;
-    visitCondition(node.condition);
+    visit(node.condition);
     HBasicBlock conditionBlock = close(new HIf(popBoolified(), hasElse));
 
     Map conditionDefinitions =
@@ -893,7 +884,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitConditional(Conditional node) {
-    visitCondition(node.condition);
+    visit(node.condition);
     HBasicBlock conditionBlock = close(new HIf(popBoolified(), true));
     Map conditionDefinitions = new Map<Element, HInstruction>.from(definitions);
 

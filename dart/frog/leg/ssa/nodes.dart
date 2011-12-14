@@ -331,8 +331,6 @@ class HBasicBlock extends HInstructionList {
   HBasicBlock dominator = null;
   final List<HBasicBlock> dominatedBlocks;
 
-  bool isCondition = false;
-
   HBasicBlock() : this.withId(null);
   HBasicBlock.withId(this.id)
       : phis = new HInstructionList(),
@@ -345,8 +343,6 @@ class HBasicBlock extends HInstructionList {
   bool isClosed() => status == STATUS_CLOSED;
 
   bool isLoopHeader() => loopInformation !== null;
-  bool isConditionalExpression() =>
-      last is HConditionalBranch && last.isExpression;
 
   void open() {
     assert(isNew());
@@ -825,8 +821,10 @@ class HTypeGuard extends HInstruction {
 }
 
 class HConditionalBranch extends HControlFlow {
-  bool isExpression = false;
   HConditionalBranch(inputs) : super(inputs);
+  HInstruction get condition() => inputs[0];
+  HBasicBlock get trueBranch() => block.successors[0];
+  HBasicBlock get falseBranch() => block.successors[1];
   abstract toString();
 }
 
@@ -1295,6 +1293,13 @@ class HThis extends HParameterValue {
 
 class HPhi extends HInstruction {
   final Element element;
+
+  static final IS_NOT_LOGICAL_OPERATOR = 0;
+  static final IS_AND = 1;
+  static final IS_OR = 2;
+
+  int logicalOperatorType = IS_NOT_LOGICAL_OPERATOR;
+
   // The order of the [inputs] must correspond to the order of the
   // predecessor-edges. That is if an input comes from the first predecessor
   // of the surrounding block, then the input must be the first in the [HPhi].
@@ -1352,6 +1357,15 @@ class HPhi extends HInstruction {
     if (inputs[0].isUnknown()) return false;
     type = inputs[0].type;
     return true;
+  }
+
+  bool isLogicalOperator() => logicalOperatorType != IS_NOT_LOGICAL_OPERATOR;
+
+  String logicalOperator() {
+    assert(isLogicalOperator());
+    if (logicalOperatorType == IS_AND) return "&&";
+    assert(logicalOperatorType == IS_OR);
+    return "||";
   }
 
   toString() => 'phi';
