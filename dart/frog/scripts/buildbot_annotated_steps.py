@@ -87,14 +87,14 @@ def TestFrog(arch, mode):
       env=NO_COLOR_ENV) != 0:
     return 1
 
-  frog_tests = ['language', 'corelib', 'isolate', 'frog',
-                'leg', 'leg_only', 'peg', 'await']
-
   if arch != 'frogium': # frog and frogsh
-    if TestStep("frog", testpy_mode, arch, frog_tests, flags) != 0:
+    if TestStep("frog", testpy_mode, arch,
+                  ['language', 'corelib', 'isolate', 'frog',
+                   'leg', 'leg_only', 'peg', 'await'], flags) != 0:
       return 1
 
-    if TestStep("leg", testpy_mode, 'leg', frog_tests, flags) != 0:
+    leg_tests = ['language', 'corelib', 'leg', 'leg_only']
+    if TestStep("leg", testpy_mode, 'leg', leg_tests, flags) != 0:
       return 1
   else:
     if (TestStep("browser", testpy_mode, 'frogium',

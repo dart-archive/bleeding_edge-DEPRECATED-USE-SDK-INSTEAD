@@ -3,6 +3,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import optparse
 import os
 import stat
 import subprocess
@@ -12,6 +13,22 @@ import time
 
 class Error(Exception):
   pass
+
+
+def BuildOptions():
+  """Configures an option parser for this script"""
+  result = optparse.OptionParser()
+  result.add_option(
+      '--notest',
+      help='Skip running test.py',
+      default=False,
+      action='store_true')
+  result.add_option(
+      '--leg-only',
+      help='Only run leg tests',
+      default=False,
+      action='store_true')
+  return result
 
 
 def RunCommand(*arguments, **kwargs):
@@ -51,7 +68,7 @@ EXECUTABLE = (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
               stat.S_IRGRP | stat.S_IXGRP |
               stat.S_IROTH | stat.S_IXOTH)
 
-def main(args):
+def SelfHost():
   def b(s):
     """Adds ANSI escape-code for bold-face"""
     return "\033[1m%s\033[0m" % s
@@ -78,7 +95,6 @@ def main(args):
       b('%.1f' % elapsed), b(mode))
   os.chmod('./minfrog', EXECUTABLE)
 
-
   # Selfhost Production
   start = time.time()
   RunCommand('./minfrog', '--out=minfrog', '--warnings_as_errors',
@@ -89,36 +105,51 @@ def main(args):
                                               b('in production mode'))
   print 'Generated %s minfrog is %s kB' % (b('production'), b(size))
 
+
+def main():
+  (options, args) = BuildOptions().parse_args()
+
+  if not options.leg_only:
+    SelfHost()
+
   RunCommand('../tools/build.py', '--mode=release')
   test_cmd = ['../tools/test.py', '--report', '--timeout=30',
               '--progress=color', '--mode=release', '--checked']
 
-  if args[1:] == ['--notest']: return
+  if options.notest: return
 
-  if args[1:]:
+  if args:
     test_cmd.append('--component=frogsh,leg')
-    test_cmd.extend(args[1:])
+    test_cmd.extend(args)
     RunCommand(*test_cmd, verbose=True)
   else:
-    # Run frog.py on the corelib tests, so we get some frog.py coverage.
-    cmd = test_cmd + ['--component=frog', 'corelib']
-    RunCommand(*cmd, verbose=True)
+    if not options.leg_only:
+      # Run frog.py on the corelib tests, so we get some frog.py coverage.
+      cmd = test_cmd + ['--component=frog', 'corelib']
+      RunCommand(*cmd, verbose=True)
 
-    # Run frogium client tests. This is a pretty quick test but tends to uncover
-    # different issues due to the size/complexity of the DOM APIs.
-    cmd = test_cmd + ['--component=frogium', 'client']
-    RunCommand(*cmd, verbose=True)
+      # Run frogium client tests. This is a pretty quick test but
+      # tends to uncover different issues due to the size/complexity
+      # of the DOM APIs.
+      cmd = test_cmd + ['--component=frogium', 'client']
+      RunCommand(*cmd, verbose=True)
 
-    # TODO(jimhug): Consider adding co19 back when it delivers more value
-    #   than pain.
-    # Run leg and frogsh on most of the tests.
-    cmd = test_cmd + ['--component=frogsh,leg', 'language', 'corelib', 'leg',
-                      'isolate', 'peg', 'leg_only', 'frog', 'css', 'await']
+      # TODO(jimhug): Consider adding co19 back when it delivers more value
+      #   than pain.
+      # Run frogsh on most of the tests.
+      cmd = test_cmd + ['--component=frogsh', 'language', 'corelib', 'leg',
+                        'isolate', 'peg', 'leg_only', 'frog', 'css', 'await']
+      RunCommand(*cmd, verbose=True)
+
+    # Run leg on most of the tests.
+    # TODO(ahe): Add co19 tests once leg gets more mature.
+    cmd = test_cmd + ['--component=leg',
+                      'language', 'corelib', 'leg', 'leg_only']
     RunCommand(*cmd, verbose=True)
 
 if __name__ == '__main__':
   try:
-    sys.exit(main(sys.argv))
+    sys.exit(main())
   except Error as e:
     sys.stderr.write('%s\n' % e)
     sys.exit(1)
