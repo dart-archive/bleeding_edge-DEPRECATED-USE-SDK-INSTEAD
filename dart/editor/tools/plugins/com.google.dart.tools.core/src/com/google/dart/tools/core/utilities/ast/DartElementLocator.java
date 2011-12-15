@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
@@ -85,6 +86,12 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
   private final int endOffset;
 
   /**
+   * A flag indicating whether elements should be returned for declaration sites as well as for
+   * reference sites.
+   */
+  private final boolean includeDeclarations;
+
+  /**
    * The element that was found that corresponds to the given source range, or <code>null</code> if
    * there is no such element.
    */
@@ -108,7 +115,33 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
   private ChildVisitor<Void> childVisitor = new ChildVisitor<Void>(this);
 
   /**
-   * Initialize a newly create locator to locate one or more {@link DartElement Dart elements} by
+   * Initialize a newly created locator to locate one or more {@link DartElement Dart elements} by
+   * locating the node within the given compilation unit that corresponds to the given offset in the
+   * source.
+   * 
+   * @param input the compilation unit containing the element to be found
+   * @param offset the offset used to identify the element
+   */
+  public DartElementLocator(CompilationUnit input, int offset) {
+    this(input, offset, offset, false);
+  }
+
+  /**
+   * Initialize a newly created locator to locate one or more {@link DartElement Dart elements} by
+   * locating the node within the given compilation unit that corresponds to the given range of
+   * characters in the source.
+   * 
+   * @param input the compilation unit containing the element to be found
+   * @param offset the offset used to identify the element
+   * @param includeDeclarations <code>true</code> if elements should be returned for declaration
+   *          sites as well as for reference sites
+   */
+  public DartElementLocator(CompilationUnit input, int offset, boolean includeDeclarations) {
+    this(input, offset, offset, includeDeclarations);
+  }
+
+  /**
+   * Initialize a newly created locator to locate one or more {@link DartElement Dart elements} by
    * locating the node within the given compilation unit that corresponds to the given range of
    * characters in the source.
    * 
@@ -117,9 +150,25 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
    * @param end the end offset of the range used to identify the element
    */
   public DartElementLocator(CompilationUnit input, int start, int end) {
+    this(input, start, end, false);
+  }
+
+  /**
+   * Initialize a newly created locator to locate one or more {@link DartElement Dart elements} by
+   * locating the node within the given compilation unit that corresponds to the given range of
+   * characters in the source.
+   * 
+   * @param input the compilation unit containing the element to be found
+   * @param start the start offset of the range used to identify the element
+   * @param end the end offset of the range used to identify the element
+   * @param includeDeclarations <code>true</code> if elements should be returned for declaration
+   *          sites as well as for reference sites
+   */
+  public DartElementLocator(CompilationUnit input, int start, int end, boolean includeDeclarations) {
     this.compilationUnit = input;
     this.startOffset = start;
     this.endOffset = end;
+    this.includeDeclarations = includeDeclarations;
   }
 
   /**
@@ -248,6 +297,38 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
             DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation) parent;
             if (node == invocation.getTarget()) {
               targetSymbol = invocation.getReferencedElement();
+            }
+          } else if (includeDeclarations) {
+            DartNode nameNode = node;
+            if (parent instanceof DartPropertyAccess) {
+              nameNode = parent;
+              parent = nameNode.getParent();
+            }
+            if (parent instanceof DartClass) {
+              DartClass classDefinition = (DartClass) parent;
+              if (nameNode == classDefinition.getName()) {
+                targetSymbol = classDefinition.getSymbol();
+              }
+            } else if (parent instanceof DartField) {
+              DartField field = (DartField) parent;
+              if (nameNode == field.getName()) {
+                targetSymbol = field.getSymbol();
+              }
+            } else if (parent instanceof DartMethodDefinition) {
+              DartMethodDefinition method = (DartMethodDefinition) parent;
+              if (nameNode == method.getName()) {
+                targetSymbol = method.getSymbol();
+              }
+            } else if (parent instanceof DartParameter) {
+              DartParameter parameter = (DartParameter) parent;
+              if (nameNode == parameter.getName()) {
+                targetSymbol = parameter.getSymbol();
+              }
+            } else if (parent instanceof DartVariable) {
+              DartVariable variable = (DartVariable) parent;
+              if (nameNode == variable.getName()) {
+                targetSymbol = variable.getSymbol();
+              }
             }
           }
           if (targetSymbol == null) {
