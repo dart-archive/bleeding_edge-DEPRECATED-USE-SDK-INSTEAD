@@ -3588,6 +3588,9 @@ MethodGenerator.prototype.visitIndexExpression = function(node) {
   var index = this.visitValue(node.index);
   return target.invoke$4(this, ':index', node, new Arguments(null, [index]));
 }
+MethodGenerator.prototype._expressionNeedsParens = function(e) {
+  return ((e instanceof BinaryExpression) || (e instanceof ConditionalExpression) || (e instanceof PostfixExpression) || this._isUnaryIncrement(e));
+}
 MethodGenerator.prototype.visitBinaryExpression = function(node, isVoid) {
   var kind = node.op.kind;
   if (kind == 35/*TokenKind.AND*/ || kind == 34/*TokenKind.OR*/) {
@@ -3640,6 +3643,9 @@ MethodGenerator.prototype.visitBinaryExpression = function(node, isVoid) {
       return;
     }
     return x.invoke$4(this, name, node, new Arguments(null, [y]));
+  }
+  else if ((assignKind != 0) && this._expressionNeedsParens(node.y)) {
+    return this._visitAssign(assignKind, node.x, new ParenExpression(node.y, node.y.span), node, to$call$1(null), isVoid);
   }
   else {
     return this._visitAssign(assignKind, node.x, node.y, node, to$call$1(null), isVoid);
@@ -4050,7 +4056,7 @@ MethodGenerator.prototype.visitLiteralExpression = function(node) {
       var val = this.visitValue(item);
       val.invoke$4(this, 'toString', item, Arguments.get$EMPTY());
       var code = val.get$code();
-      if ((item instanceof BinaryExpression) || (item instanceof ConditionalExpression) || (item instanceof PostfixExpression) || this._isUnaryIncrement(item)) {
+      if (this._expressionNeedsParens(item)) {
         code = ('(' + code + ')');
       }
       if ($eq(items.get$length(), 0) || ($ne(code, "''") && $ne(code, '""'))) {

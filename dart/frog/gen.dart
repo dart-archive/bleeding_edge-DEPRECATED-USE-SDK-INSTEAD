@@ -1804,6 +1804,11 @@ class MethodGenerator implements TreeVisitor {
     return target.invoke(this, ':index', node, new Arguments(null, [index]));
   }
 
+  bool _expressionNeedsParens(Expression e) {
+    return (e is BinaryExpression || e is ConditionalExpression
+            || e is PostfixExpression || _isUnaryIncrement(e));
+  }
+
   visitBinaryExpression(BinaryExpression node, [bool isVoid = false]) {
     final kind = node.op.kind;
     // TODO(jimhug): Ensure these have same semantics as JS!
@@ -1870,7 +1875,10 @@ class MethodGenerator implements TreeVisitor {
         return;
       }
       return x.invoke(this, name, node, new Arguments(null, [y]));
-    } else {
+    } else if ((assignKind != 0) && _expressionNeedsParens(node.y)) {
+      return _visitAssign(assignKind, node.x,
+          new ParenExpression(node.y, node.y.span), node, null, isVoid);
+    } else {  
       return _visitAssign(assignKind, node.x, node.y, node, null, isVoid);
     }
   }
@@ -2388,8 +2396,7 @@ class MethodGenerator implements TreeVisitor {
         // TODO(jmesserly): We could be smarter about prefix/postfix, but we'd
         // need to know if it will compile to a ++ or to some sort of += form.
         var code = val.code;
-        if (item is BinaryExpression || item is ConditionalExpression
-            || item is PostfixExpression || _isUnaryIncrement(item)) {
+        if (_expressionNeedsParens(item)) {
           code = '(${code})';
         }
         // No need to concat empty strings except the first.
