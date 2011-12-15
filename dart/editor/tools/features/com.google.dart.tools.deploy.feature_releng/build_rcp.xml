@@ -273,6 +273,40 @@ build system.  The PDE build system has to run under Eclipse.
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
+          target: installDartSDK                      
+         - - - - - - - - - - - - - - - - - -->
+    <target name="installDartSDK">
+        <!-- This build script must be executed in Eclipse 
+          so that the ${eclipse.home} Ant property is defined -->
+        <fail unless="eclipse.home">*
+            **********************************
+            Execute this Ant script inside Eclipse
+            and select the 'Run in the same JRE as the workspace' option
+            on the 'JRE' tab of the launch dialog
+            -- OR --
+            Define the "eclipse.home" property to point to your Eclipse installation
+            **********************************
+        </fail>
+        
+        <condition property="osfamily" value="windows">
+            <os family="windows"/>
+        </condition>
+        <condition property="osfamily" value="macos">
+            <os family="mac"/>
+        </condition>
+        <condition property="osfamily" value="linux">
+            <os family="unix"/>
+        </condition>
+        
+        <property name="dart.sdk.dir" location="${eclipse.home}/dart-sdk"/>
+        <get src="http://commondatastorage.googleapis.com/dart-dump-render-tree/sdk/dart-${osfamily}-latest.zip"
+             dest="${eclipse.home}/sdk.zip"/>
+        <delete dir="${dart.sdk.dir}"/>
+        <unzip src="${eclipse.home}/sdk.zip" dest="${eclipse.home}" />
+        <delete file="${eclipse.home}/sdk.zip"/>
+    </target>
+    
+    <!-- - - - - - - - - - - - - - - - - - 
           target: setupRuntimeEclipse
          - - - - - - - - - - - - - - - - - -->
     <target name="setupRuntimeEclipse">
