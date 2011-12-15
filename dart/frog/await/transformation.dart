@@ -673,7 +673,7 @@ class AwaitProcessor implements TreeVisitor {
         [new FormalNode(
           false, false, null /* infer type from body? */,
           param, null, param.span)
-        ], null, null, null,
+        ], null, null,
         new BlockStatement(afterAwait, node.span), node.span),
         node.span);
     continuation.clear();
@@ -739,7 +739,7 @@ class AwaitProcessor implements TreeVisitor {
     List<Statement> continuationBlock = [];
     continuationBlock.addAll(continuation);
     return new FunctionDefinition([], null,
-        new Identifier(name, span), [], null, null, null,
+        new Identifier(name, span), [], null, null,
         new BlockStatement(continuationBlock, span), span);
   }
 

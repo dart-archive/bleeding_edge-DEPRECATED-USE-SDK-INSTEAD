@@ -97,7 +97,9 @@ def SelfHost():
 
   # Selfhost Production
   start = time.time()
-  RunCommand('./minfrog', '--out=minfrog', '--warnings_as_errors',
+  # TODO(jmesserly): --warnings_as_errors disabled until corelib is moved to
+  # new factory syntax.
+  RunCommand('./minfrog', '--out=minfrog', # '--warnings_as_errors',
              'minfrog.dart', 'tests/hello.dart', verbose=True)
   elapsed = time.time() - start
   size = os.path.getsize('./minfrog') / 1024

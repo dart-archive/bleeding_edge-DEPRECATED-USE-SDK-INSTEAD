@@ -275,16 +275,24 @@ class Parser {
       if (_native != null) _native = new NativeType(_native);
     }
 
-    var _factory = null;
-    if (_maybeEat(TokenKind.FACTORY)) {
-      // Note: this can't be type(), because for some strange reason these are
-      // type parameters, not type arguments.
-      _factory = nameTypeReference();
-      if (_peekKind(TokenKind.LT)) {
-        // TODO(jmesserly): not sure what to do with these. They aren't used for
-        // anything as far as I can tell.
-        typeParameters();
+    bool oldFactory = _maybeEat(TokenKind.FACTORY);
+    var defaultType = null;
+    if (oldFactory || _maybeEat(TokenKind.DEFAULT)) {
+      // TODO(jmesserly): keep old factory support for now. Remove soon.
+      if (oldFactory) {
+        world.warning('factory no longer supported, use "default" instead',
+            _previousToken.span);
       }
+
+      // Note: this can't be type() because it has type parameters not type
+      // arguments.
+      var baseType = nameTypeReference();
+      var typeParams = null;
+      if (_peekKind(TokenKind.LT)) {
+        typeParams = typeParameters();
+      }
+      defaultType = new DefaultTypeReference(oldFactory,
+          baseType, typeParams, _makeSpan(baseType.span.start));
     }
 
     var body = [];
@@ -300,7 +308,7 @@ class Parser {
       _errorExpected('block starting with "{" or ";"');
     }
     return new TypeDefinition(kind == TokenKind.CLASS, name, typeParams,
-      _extends, _implements, _native, _factory, body, _makeSpan(start));
+      _extends, _implements, _native, defaultType, body, _makeSpan(start));
   }
 
   functionTypeAlias() {
@@ -316,7 +324,7 @@ class Parser {
     _eatSemicolon();
 
     var func = new FunctionDefinition(null, di.type, di.name, formals,
-        null, null, null, null, _makeSpan(start));
+        null, null, null, _makeSpan(start));
 
     return new FunctionTypeDefinition(func, typeParams, _makeSpan(start));
   }
@@ -355,11 +363,7 @@ class Parser {
     _error('Expected function body (neither { nor => found)');
   }
 
-  finishField(start, modifiers, typeParams, type, name, value) {
-    if (typeParams != null) {
-      world.internalError('trying to create a generic field',
-        _makeSpan(start));
-    }
+  finishField(start, modifiers, type, name, value) {
     var names = [name];
     var values = [value];
 
@@ -377,8 +381,7 @@ class Parser {
                                    _makeSpan(start));
   }
 
-  finishDefinition(int start, List<Token> modifiers, di,
-      List<ParameterType> typeParams) {
+  finishDefinition(int start, List<Token> modifiers, di) {
     switch(_peek()) {
       case TokenKind.LPAREN:
         var formals = formalParameterList();
@@ -396,16 +399,16 @@ class Parser {
           di.name = di.type.name;
         }
         return new FunctionDefinition(modifiers, di.type, di.name, formals,
-          typeParams, inits, native, body, _makeSpan(start));
+          inits, native, body, _makeSpan(start));
 
       case TokenKind.ASSIGN:
         _eat(TokenKind.ASSIGN);
         var value = expression();
-        return finishField(start, modifiers, typeParams, di.type, di.name, value);
+        return finishField(start, modifiers, di.type, di.name, value);
 
       case TokenKind.COMMA:
       case TokenKind.SEMICOLON:
-        return finishField(start, modifiers, typeParams, di.type, di.name, null);
+        return finishField(start, modifiers, di.type, di.name, null);
 
       default:
         // TODO(jimhug): This error message sucks.
@@ -423,9 +426,11 @@ class Parser {
 
     var modifiers = _readModifiers();
     return finishDefinition(start, modifiers,
-        declaredIdentifier(includeOperators), null);
+        declaredIdentifier(includeOperators));
   }
 
+  // TODO(jmesserly): do we still need this method?
+  // I left it here for now to support old-style factories
   factoryConstructorDeclaration() {
     int start = _peekToken.start;
     var factoryToken = _next();
@@ -434,23 +439,22 @@ class Parser {
     while (_maybeEat(TokenKind.DOT)) {
       names.add(identifier());
     }
-    var typeParams = null;
     if (_peekKind(TokenKind.LT)) {
-      typeParams = typeParameters();
+      var tp = typeParameters();
+      world.warning('type parameters on factories are no longer supported, '
+          + 'place them on the class instead', _makeSpan(tp[0].span.start));
     }
 
     var name = null;
     var type = null;
     if (_maybeEat(TokenKind.DOT)) {
       name = identifier();
-    } else if (typeParams == null) {
+    } else {
       if (names.length > 1) {
         name = names.removeLast();
       } else {
         name = new Identifier('', names[0].span);
       }
-    } else {
-      name = new Identifier('', names[0].span);
     }
 
     if (names.length > 1) {
@@ -459,7 +463,7 @@ class Parser {
     }
     type = new NameTypeReference(false, names[0], null, names[0].span);
     var di = new DeclaredIdentifier(type, name, _makeSpan(start));
-    return finishDefinition(start, [factoryToken], di, typeParams);
+    return finishDefinition(start, [factoryToken], di);
   }
 
   ///////////////////////////////////////////////////////////////////
@@ -529,11 +533,11 @@ class Parser {
       if (_maybeEat(TokenKind.ASSIGN)) {
         value = expression();
       }
-      return finishField(start, null, null, expr.type, expr.name, value);
+      return finishField(start, null, expr.type, expr.name, value);
     } else if (_isBin(expr, TokenKind.ASSIGN) &&
                (expr.x is DeclaredIdentifier)) {
       DeclaredIdentifier di = expr.x; // TODO(jimhug): inference should handle!
-      return finishField(start, null, null, di.type, di.name, expr.y);
+      return finishField(start, null, di.type, di.name, expr.y);
     } else if (_isBin(expr, TokenKind.LT) && _maybeEat(TokenKind.COMMA)) {
       var baseType = _makeType(expr.x);
       var typeArgs = [_makeType(expr.y)];
@@ -543,7 +547,7 @@ class Parser {
       if (_maybeEat(TokenKind.ASSIGN)) {
         value = expression();
       }
-      return finishField(expr.span.start, null, null, gt, name, value);
+      return finishField(expr.span.start, null, gt, name, value);
     } else {
       _eatSemicolon();
       return new ExpressionStatement(expr, _makeSpan(expr.span.start));
@@ -1222,7 +1226,7 @@ class Parser {
       var formals = formalParameterList();
       var body = functionBody(true);
       var func = new FunctionDefinition(null, null, null, formals, null, null,
-        null, body, _makeSpan(start));
+        body, _makeSpan(start));
       return new LambdaExpression(func, func.span);
     } else {
       _eatLeftParen();
@@ -1646,7 +1650,7 @@ class Parser {
     } else if (_peekKind(TokenKind.LPAREN)) {
       var formals = formalParameterList();
       var func = new FunctionDefinition(null, type, name, formals,
-          null, null, null, null, _makeSpan(start));
+          null, null, null, _makeSpan(start));
       type = new FunctionTypeReference(false, func, func.span);
     }
     if (inOptionalBlock && value == null) {
@@ -1713,7 +1717,7 @@ class Parser {
     }
     var span = new SourceSpan(expr.span.file, expr.span.start, body.span.end);
     var func = new FunctionDefinition(null, type, name, formals, null, null,
-                                      null, body, span);
+                                      body, span);
     return new LambdaExpression(func, func.span);
   }
 

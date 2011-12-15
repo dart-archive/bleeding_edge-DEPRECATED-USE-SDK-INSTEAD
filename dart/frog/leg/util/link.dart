@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Link<T> extends Iterable<T> factory LinkFactory {
+interface Link<T> extends Iterable<T> default LinkFactory<T> {
   final T head;
   final Link<T> tail;
 
@@ -17,11 +17,11 @@ interface Link<T> extends Iterable<T> factory LinkFactory {
   void printOn(StringBuffer buffer, [separatedBy]);
 }
 
-interface EmptyLink<T> extends Link<T> factory LinkTail<T> {
+interface EmptyLink<T> extends Link<T> default LinkTail<T> {
   const EmptyLink();
 }
 
-interface LinkBuilder<T> factory LinkBuilderImplementation<T> {
+interface LinkBuilder<T> default LinkBuilderImplementation<T> {
   LinkBuilder();
 
   Link<T> toLink();

@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(ahe): This class should not be generic.
-class LinkFactory {
-  factory Link<T>(T head, [Link<T> tail]) {
+class LinkFactory<T> {
+  factory Link(T head, [Link<T> tail]) {
     if (tail === null) {
       tail = new LinkTail<T>();
     }
     return new LinkEntry<T>(head, tail);
   }
 
-  factory Link<T>.fromList(List<T> list) {
+  factory Link.fromList(List<T> list) {
     switch (list.length) {
       case 0:
         return new LinkTail<T>();

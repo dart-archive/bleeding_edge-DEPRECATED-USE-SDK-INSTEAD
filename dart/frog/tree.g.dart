@@ -19,10 +19,10 @@ class TypeDefinition extends Definition {
   List<TypeReference> extendsTypes;
   List<TypeReference> implementsTypes;
   NativeType nativeType;
-  TypeReference factoryType;
+  DefaultTypeReference defaultType;
   List<Statement> body;
 
-  TypeDefinition(this.isClass, this.name, this.typeParameters, this.extendsTypes, this.implementsTypes, this.nativeType, this.factoryType, this.body, SourceSpan span): super(span) {}
+  TypeDefinition(this.isClass, this.name, this.typeParameters, this.extendsTypes, this.implementsTypes, this.nativeType, this.defaultType, this.body, SourceSpan span): super(span) {}
 
   visit(TreeVisitor visitor) => visitor.visitTypeDefinition(this);
 }
@@ -52,12 +52,11 @@ class FunctionDefinition extends Definition {
   TypeReference returnType;
   Identifier name;
   List<FormalNode> formals;
-  List<ParameterType> typeParameters;
   List<Expression> initializers;
   String nativeBody;
   Statement body;
 
-  FunctionDefinition(this.modifiers, this.returnType, this.name, this.formals, this.typeParameters, this.initializers, this.nativeBody, this.body, SourceSpan span): super(span) {}
+  FunctionDefinition(this.modifiers, this.returnType, this.name, this.formals, this.initializers, this.nativeBody, this.body, SourceSpan span): super(span) {}
 
   visit(TreeVisitor visitor) => visitor.visitFunctionDefinition(this);
 }
@@ -407,6 +406,16 @@ class FunctionTypeReference extends TypeReference {
   visit(TreeVisitor visitor) => visitor.visitFunctionTypeReference(this);
 }
 
+class DefaultTypeReference extends TypeReference {
+  bool oldFactory;
+  NameTypeReference baseType;
+  List<ParameterType> typeParameters;
+
+  DefaultTypeReference(this.oldFactory, this.baseType, this.typeParameters, SourceSpan span): super(span) {}
+
+  visit(TreeVisitor visitor) => visitor.visitDefaultTypeReference(this);
+}
+
 class ArgumentNode extends Node {
   Identifier label;
   Expression value;
@@ -564,6 +573,8 @@ interface TreeVisitor {
 
   visitFunctionTypeReference(FunctionTypeReference node);
 
+  visitDefaultTypeReference(DefaultTypeReference node);
+
   visitArgumentNode(ArgumentNode node);
 
   visitFormalNode(FormalNode node);
@@ -599,7 +610,7 @@ class TreePrinter implements TreeVisitor {
     output.writeNodeList('extendsTypes', node.extendsTypes);
     output.writeNodeList('implementsTypes', node.implementsTypes);
     output.writeValue('nativeType', node.nativeType);
-    output.writeNode('factoryType', node.factoryType);
+    output.writeNode('defaultType', node.defaultType);
     output.writeNodeList('body', node.body);
   }
 
@@ -623,7 +634,6 @@ class TreePrinter implements TreeVisitor {
     output.writeNode('returnType', node.returnType);
     output.writeNode('name', node.name);
     output.writeNodeList('formals', node.formals);
-    output.writeList('typeParameters', node.typeParameters);
     output.writeNodeList('initializers', node.initializers);
     output.writeValue('nativeBody', node.nativeBody);
     output.writeNode('body', node.body);
@@ -852,6 +862,13 @@ class TreePrinter implements TreeVisitor {
     output.heading('FunctionTypeReference', node.span);
     output.writeValue('isFinal', node.isFinal);
     output.writeNode('func', node.func);
+  }
+
+  void visitDefaultTypeReference(DefaultTypeReference node) {
+    output.heading('DefaultTypeReference', node.span);
+    output.writeValue('oldFactory', node.oldFactory);
+    output.writeNode('baseType', node.baseType);
+    output.writeList('typeParameters', node.typeParameters);
   }
 
   void visitArgumentNode(ArgumentNode node) {

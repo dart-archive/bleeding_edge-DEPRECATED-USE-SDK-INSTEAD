@@ -397,6 +397,14 @@ Clock.now = function() {
 Clock.frequency = function() {
   return 1000;
 }
+// ********** Code for IllegalAccessException **************
+function IllegalAccessException() {
+  // Initializers done
+}
+IllegalAccessException.prototype.toString = function() {
+  return "Attempt to modify an immutable object";
+}
+IllegalAccessException.prototype.toString$0 = IllegalAccessException.prototype.toString;
 // ********** Code for NoSuchMethodException **************
 function NoSuchMethodException(_receiver, _functionName, _arguments) {
   this._receiver = _receiver;
@@ -676,6 +684,76 @@ ListIterator.prototype.next = function() {
 }
 ListIterator.prototype.hasNext$0 = ListIterator.prototype.hasNext;
 ListIterator.prototype.next$0 = ListIterator.prototype.next;
+// ********** Code for ImmutableList **************
+/** Implements extends for Dart classes on JavaScript prototypes. */
+function $inherits(child, parent) {
+  if (child.prototype.__proto__) {
+    child.prototype.__proto__ = parent.prototype;
+  } else {
+    function tmp() {};
+    tmp.prototype = parent.prototype;
+    child.prototype = new tmp();
+    child.prototype.constructor = child;
+  }
+}
+$inherits(ImmutableList, ListFactory_E);
+function ImmutableList(length) {
+  this._length = length;
+  // Initializers done
+  ListFactory_E.call(this, length);
+}
+ImmutableList.ImmutableList$from$factory = function(other) {
+  var list = new ImmutableList(other.get$length());
+  for (var i = 0;
+   i < other.get$length(); i++) {
+    list._setindex(i, other.$index(i));
+  }
+  return list;
+}
+ImmutableList.prototype.get$length = function() {
+  return this._length;
+}
+ImmutableList.prototype.set$length = function(length) {
+  $throw(const$127/*const IllegalAccessException()*/);
+}
+Object.defineProperty(ImmutableList.prototype, "length", {
+  get: ImmutableList.prototype.get$length,
+  set: ImmutableList.prototype.set$length
+});
+ImmutableList.prototype._setindex = function(index, value) {
+  return this[index] = value;
+}
+ImmutableList.prototype.$setindex = function(index, value) {
+  $throw(const$127/*const IllegalAccessException()*/);
+}
+ImmutableList.prototype.sort = function(compare) {
+  $throw(const$127/*const IllegalAccessException()*/);
+}
+ImmutableList.prototype.add = function(element) {
+  $throw(const$127/*const IllegalAccessException()*/);
+}
+ImmutableList.prototype.addLast = function(element) {
+  $throw(const$127/*const IllegalAccessException()*/);
+}
+ImmutableList.prototype.addAll = function(elements) {
+  $throw(const$127/*const IllegalAccessException()*/);
+}
+ImmutableList.prototype.clear = function() {
+  $throw(const$127/*const IllegalAccessException()*/);
+}
+ImmutableList.prototype.removeLast = function() {
+  $throw(const$127/*const IllegalAccessException()*/);
+}
+ImmutableList.prototype.toString = function() {
+  return ListFactory.ListFactory$from$factory(this).toString();
+}
+ImmutableList.prototype.add$1 = ImmutableList.prototype.add;
+ImmutableList.prototype.addAll$1 = ImmutableList.prototype.addAll;
+ImmutableList.prototype.removeLast$0 = ImmutableList.prototype.removeLast;
+ImmutableList.prototype.sort$1 = function($0) {
+  return this.sort(to$call$2($0));
+};
+ImmutableList.prototype.toString$0 = ImmutableList.prototype.toString;
 // ********** Code for NumImplementation **************
 NumImplementation = Number;
 NumImplementation.prototype.isNaN = function() {
@@ -893,17 +971,6 @@ HashMapImplementation.prototype.getKeys$0 = HashMapImplementation.prototype.getK
 HashMapImplementation.prototype.getValues$0 = HashMapImplementation.prototype.getValues;
 HashMapImplementation.prototype.isEmpty$0 = HashMapImplementation.prototype.isEmpty;
 // ********** Code for HashMapImplementation_E$E **************
-/** Implements extends for Dart classes on JavaScript prototypes. */
-function $inherits(child, parent) {
-  if (child.prototype.__proto__) {
-    child.prototype.__proto__ = parent.prototype;
-  } else {
-    function tmp() {};
-    tmp.prototype = parent.prototype;
-    child.prototype = new tmp();
-    child.prototype.constructor = child;
-  }
-}
 $inherits(HashMapImplementation_E$E, HashMapImplementation);
 function HashMapImplementation_E$E() {
   // Initializers done
@@ -4913,7 +4980,7 @@ FieldMember.prototype.resolve = function() {
     }
   }
   this.type = this.resolveType(this.definition.type, false);
-  if (this.isStatic && this.type.get$hasTypeParams()) {
+  if (this.isStatic && !this.get$isFactory() && this.type.get$hasTypeParams()) {
     $globals.world.error('using type parameter in static context', this.definition.type.span);
   }
   if (this.isStatic && this.isFinal && this.value == null) {
@@ -4952,9 +5019,9 @@ FieldMember.prototype._get = function(context, node, target, isDynamic) {
   if (this.isNative && this.get$returnType() != null) {
     this.get$returnType().markUsed();
     if ((this.get$returnType() instanceof DefinedType)) {
-      var factory_ = this.get$returnType().get$genericType().factory_;
-      if (factory_ != null && factory_.get$isNative()) {
-        factory_.markUsed$0();
+      var defaultType = this.get$returnType().get$genericType().defaultType;
+      if (defaultType != null && defaultType.get$isNative()) {
+        defaultType.markUsed$0();
       }
     }
   }
@@ -5288,8 +5355,6 @@ MethodMember.prototype.get$returnType = function() { return this.returnType; };
 MethodMember.prototype.set$returnType = function(value) { return this.returnType = value; };
 MethodMember.prototype.get$parameters = function() { return this.parameters; };
 MethodMember.prototype.set$parameters = function(value) { return this.parameters = value; };
-MethodMember.prototype.get$typeParameters = function() { return this.typeParameters; };
-MethodMember.prototype.set$typeParameters = function(value) { return this.typeParameters = value; };
 MethodMember.prototype.get$isStatic = function() { return this.isStatic; };
 MethodMember.prototype.set$isStatic = function(value) { return this.isStatic = value; };
 MethodMember.prototype.get$isAbstract = function() { return this.isAbstract; };
@@ -5944,20 +6009,6 @@ MethodMember.prototype.resolve = function() {
   if (this.isFactory) {
     this.isStatic = true;
   }
-  if (this.definition.typeParameters != null) {
-    if (!this.isFactory) {
-      $globals.world.error('Only factories are allowed to have explicit type parameters', this.definition.typeParameters.$index(0).get$span());
-    }
-    else {
-      this.typeParameters = this.definition.typeParameters;
-      var $$list = this.definition.typeParameters;
-      for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
-        var tp = $$list.$index($$i);
-        tp.set$enclosingElement(this);
-        tp.resolve$0();
-      }
-    }
-  }
   if (this.get$isOperator() && this.isStatic && !this.get$isCallMethod()) {
     $globals.world.error(('operator method may not be static "' + this.name + '"'), this.get$span());
   }
@@ -5994,10 +6045,7 @@ MethodMember.prototype.resolve = function() {
 }
 MethodMember.prototype.resolveType = function(node, typeErrors) {
   var t = Element.prototype.resolveType.call(this, node, typeErrors);
-  if (this.isStatic && (t instanceof ParameterType) && (this.typeParameters == null || !this.typeParameters.some((function (p) {
-    return p === t;
-  })
-  ))) {
+  if (this.isStatic && !this.isFactory && (t instanceof ParameterType)) {
     $globals.world.error('using type parameter in static context.', node.span);
   }
   return t;
@@ -8386,12 +8434,18 @@ Parser.prototype.classDefinition = function(kind) {
     _native = this.maybeStringLiteral();
     if (_native != null) _native = new NativeType(_native);
   }
-  var _factory = null;
-  if (this._maybeEat(75/*TokenKind.FACTORY*/)) {
-    _factory = this.nameTypeReference();
-    if (this._peekKind(52/*TokenKind.LT*/)) {
-      this.typeParameters();
+  var oldFactory = this._maybeEat(75/*TokenKind.FACTORY*/);
+  var defaultType = null;
+  if (oldFactory || this._maybeEat(94/*TokenKind.DEFAULT*/)) {
+    if (oldFactory) {
+      $globals.world.warning('factory no longer supported, use "default" instead', this._previousToken.get$span());
     }
+    var baseType = this.nameTypeReference();
+    var typeParams0 = null;
+    if (this._peekKind(52/*TokenKind.LT*/)) {
+      typeParams0 = this.typeParameters();
+    }
+    defaultType = new DefaultTypeReference(oldFactory, baseType, typeParams0, this._makeSpan(baseType.get$span().get$start()));
   }
   var body = [];
   if (this._maybeEat(6/*TokenKind.LBRACE*/)) {
@@ -8406,7 +8460,7 @@ Parser.prototype.classDefinition = function(kind) {
   else {
     this._errorExpected('block starting with "{" or ";"');
   }
-  return new TypeDefinition(kind == 73/*TokenKind.CLASS*/, name, typeParams, _extends, _implements, _native, _factory, body, this._makeSpan(start));
+  return new TypeDefinition(kind == 73/*TokenKind.CLASS*/, name, typeParams, _extends, _implements, _native, defaultType, body, this._makeSpan(start));
 }
 Parser.prototype.functionTypeAlias = function() {
   var start = this._peekToken.start;
@@ -8418,7 +8472,7 @@ Parser.prototype.functionTypeAlias = function() {
   }
   var formals = this.formalParameterList();
   this._eatSemicolon();
-  var func = new FunctionDefinition(null, di.get$type(), di.get$name(), formals, null, null, null, null, this._makeSpan(start));
+  var func = new FunctionDefinition(null, di.get$type(), di.get$name(), formals, null, null, null, this._makeSpan(start));
   return new FunctionTypeDefinition(func, typeParams, this._makeSpan(start));
 }
 Parser.prototype.initializers = function() {
@@ -8459,10 +8513,7 @@ Parser.prototype.functionBody = function(inExpression) {
   }
   this._error('Expected function body (neither { nor => found)');
 }
-Parser.prototype.finishField = function(start, modifiers, typeParams, type, name, value) {
-  if (typeParams != null) {
-    $globals.world.internalError('trying to create a generic field', this._makeSpan(start));
-  }
+Parser.prototype.finishField = function(start, modifiers, type, name, value) {
   var names = [name];
   var values = [value];
   while (this._maybeEat(11/*TokenKind.COMMA*/)) {
@@ -8477,7 +8528,7 @@ Parser.prototype.finishField = function(start, modifiers, typeParams, type, name
   this._eatSemicolon();
   return new VariableDefinition(modifiers, type, names, values, this._makeSpan(start));
 }
-Parser.prototype.finishDefinition = function(start, modifiers, di, typeParams) {
+Parser.prototype.finishDefinition = function(start, modifiers, di) {
   switch (this._peek()) {
     case 2/*TokenKind.LPAREN*/:
 
@@ -8494,18 +8545,18 @@ Parser.prototype.finishDefinition = function(start, modifiers, di, typeParams) {
       if (di.get$name() == null) {
         di.set$name(di.get$type().get$name());
       }
-      return new FunctionDefinition(modifiers, di.get$type(), di.get$name(), formals, typeParams, inits, native_, body, this._makeSpan(start));
+      return new FunctionDefinition(modifiers, di.get$type(), di.get$name(), formals, inits, native_, body, this._makeSpan(start));
 
     case 20/*TokenKind.ASSIGN*/:
 
       this._eat(20/*TokenKind.ASSIGN*/);
       var value = this.expression();
-      return this.finishField(start, modifiers, typeParams, di.get$type(), di.get$name(), value);
+      return this.finishField(start, modifiers, di.get$type(), di.get$name(), value);
 
     case 11/*TokenKind.COMMA*/:
     case 10/*TokenKind.SEMICOLON*/:
 
-      return this.finishField(start, modifiers, typeParams, di.get$type(), di.get$name(), null);
+      return this.finishField(start, modifiers, di.get$type(), di.get$name(), null);
 
     default:
 
@@ -8520,7 +8571,7 @@ Parser.prototype.declaration = function(includeOperators) {
     return this.factoryConstructorDeclaration();
   }
   var modifiers = this._readModifiers();
-  return this.finishDefinition(start, modifiers, this.declaredIdentifier(includeOperators), null);
+  return this.finishDefinition(start, modifiers, this.declaredIdentifier(includeOperators));
 }
 Parser.prototype.factoryConstructorDeclaration = function() {
   var start = this._peekToken.start;
@@ -8529,16 +8580,17 @@ Parser.prototype.factoryConstructorDeclaration = function() {
   while (this._maybeEat(14/*TokenKind.DOT*/)) {
     names.add$1(this.identifier());
   }
-  var typeParams = null;
   if (this._peekKind(52/*TokenKind.LT*/)) {
-    typeParams = this.typeParameters();
+    var tp = this.typeParameters();
+    $globals.world.warning('type parameters on factories are no longer supported, place them on the class instead'/*'type parameters on factories are no longer supported, '
+              + 'place them on the class instead'*/, this._makeSpan(tp.$index(0).get$span().get$start()));
   }
   var name = null;
   var type = null;
   if (this._maybeEat(14/*TokenKind.DOT*/)) {
     name = this.identifier();
   }
-  else if (typeParams == null) {
+  else {
     if (names.get$length() > 1) {
       name = names.removeLast$0();
     }
@@ -8546,15 +8598,12 @@ Parser.prototype.factoryConstructorDeclaration = function() {
       name = new Identifier('', names.$index(0).get$span());
     }
   }
-  else {
-    name = new Identifier('', names.$index(0).get$span());
-  }
   if (names.get$length() > 1) {
     this._error('unsupported qualified name for factory', names.$index(0).get$span());
   }
   type = new NameTypeReference(false, names.$index(0), null, names.$index(0).get$span());
   var di = new DeclaredIdentifier(type, name, this._makeSpan(start));
-  return this.finishDefinition(start, [factoryToken], di, typeParams);
+  return this.finishDefinition(start, [factoryToken], di);
 }
 Parser.prototype.statement = function() {
   switch (this._peek()) {
@@ -8642,11 +8691,11 @@ Parser.prototype.finishExpressionAsStatement = function(expr) {
     if (this._maybeEat(20/*TokenKind.ASSIGN*/)) {
       value = this.expression();
     }
-    return this.finishField(start, null, null, expr.get$type(), expr.get$name(), value);
+    return this.finishField(start, null, expr.get$type(), expr.get$name(), value);
   }
   else if (this._isBin(expr, 20/*TokenKind.ASSIGN*/) && ((expr.get$x() instanceof DeclaredIdentifier))) {
     var di = expr.get$x();
-    return this.finishField(start, null, null, di.type, di.name, expr.get$y());
+    return this.finishField(start, null, di.type, di.name, expr.get$y());
   }
   else if (this._isBin(expr, 52/*TokenKind.LT*/) && this._maybeEat(11/*TokenKind.COMMA*/)) {
     var baseType = this._makeType(expr.get$x());
@@ -8657,7 +8706,7 @@ Parser.prototype.finishExpressionAsStatement = function(expr) {
     if (this._maybeEat(20/*TokenKind.ASSIGN*/)) {
       value = this.expression();
     }
-    return this.finishField(expr.get$span().get$start(), null, null, gt, name, value);
+    return this.finishField(expr.get$span().get$start(), null, gt, name, value);
   }
   else {
     this._eatSemicolon();
@@ -9289,7 +9338,7 @@ Parser.prototype._parenOrLambda = function() {
   if (this._atClosureParameters()) {
     var formals = this.formalParameterList();
     var body = this.functionBody(true);
-    var func = new FunctionDefinition(null, null, null, formals, null, null, null, body, this._makeSpan(start));
+    var func = new FunctionDefinition(null, null, null, formals, null, null, body, this._makeSpan(start));
     return new LambdaExpression(func, func.get$span());
   }
   else {
@@ -9692,7 +9741,7 @@ Parser.prototype.formalParameter = function(inOptionalBlock) {
   }
   else if (this._peekKind(2/*TokenKind.LPAREN*/)) {
     var formals = this.formalParameterList();
-    var func = new FunctionDefinition(null, type, name, formals, null, null, null, null, this._makeSpan(start));
+    var func = new FunctionDefinition(null, type, name, formals, null, null, null, this._makeSpan(start));
     type = new FunctionTypeReference(false, func, func.get$span());
   }
   if (inOptionalBlock && value == null) {
@@ -9746,7 +9795,7 @@ Parser.prototype._makeFunction = function(expr, formals, body) {
     this._error('bad function body', expr.get$span());
   }
   var span = new SourceSpan(expr.get$span().get$file(), expr.get$span().get$start(), body.get$span().get$end());
-  var func = new FunctionDefinition(null, type, name, formals, null, null, null, body, span);
+  var func = new FunctionDefinition(null, type, name, formals, null, null, body, span);
   return new LambdaExpression(func, func.get$span());
 }
 Parser.prototype._makeDeclaredIdentifier = function(e) {
@@ -9864,14 +9913,14 @@ DirectiveDefinition.prototype.visit = function(visitor) {
 DirectiveDefinition.prototype.visit$1 = DirectiveDefinition.prototype.visit;
 // ********** Code for TypeDefinition **************
 $inherits(TypeDefinition, Definition);
-function TypeDefinition(isClass, name, typeParameters, extendsTypes, implementsTypes, nativeType, factoryType, body, span) {
+function TypeDefinition(isClass, name, typeParameters, extendsTypes, implementsTypes, nativeType, defaultType, body, span) {
   this.isClass = isClass;
   this.name = name;
   this.typeParameters = typeParameters;
   this.extendsTypes = extendsTypes;
   this.implementsTypes = implementsTypes;
   this.nativeType = nativeType;
-  this.factoryType = factoryType;
+  this.defaultType = defaultType;
   this.body = body;
   // Initializers done
   Definition.call(this, span);
@@ -9928,12 +9977,11 @@ VariableDefinition.prototype.visit = function(visitor) {
 VariableDefinition.prototype.visit$1 = VariableDefinition.prototype.visit;
 // ********** Code for FunctionDefinition **************
 $inherits(FunctionDefinition, Definition);
-function FunctionDefinition(modifiers, returnType, name, formals, typeParameters, initializers, nativeBody, body, span) {
+function FunctionDefinition(modifiers, returnType, name, formals, initializers, nativeBody, body, span) {
   this.modifiers = modifiers;
   this.returnType = returnType;
   this.name = name;
   this.formals = formals;
-  this.typeParameters = typeParameters;
   this.initializers = initializers;
   this.nativeBody = nativeBody;
   this.body = body;
@@ -9944,8 +9992,6 @@ FunctionDefinition.prototype.get$returnType = function() { return this.returnTyp
 FunctionDefinition.prototype.set$returnType = function(value) { return this.returnType = value; };
 FunctionDefinition.prototype.get$name = function() { return this.name; };
 FunctionDefinition.prototype.set$name = function(value) { return this.name = value; };
-FunctionDefinition.prototype.get$typeParameters = function() { return this.typeParameters; };
-FunctionDefinition.prototype.set$typeParameters = function(value) { return this.typeParameters = value; };
 FunctionDefinition.prototype.get$initializers = function() { return this.initializers; };
 FunctionDefinition.prototype.set$initializers = function(value) { return this.initializers = value; };
 FunctionDefinition.prototype.get$nativeBody = function() { return this.nativeBody; };
@@ -10522,6 +10568,23 @@ FunctionTypeReference.prototype.visit = function(visitor) {
   return visitor.visitFunctionTypeReference(this);
 }
 FunctionTypeReference.prototype.visit$1 = FunctionTypeReference.prototype.visit;
+// ********** Code for DefaultTypeReference **************
+$inherits(DefaultTypeReference, TypeReference);
+function DefaultTypeReference(oldFactory, baseType, typeParameters, span) {
+  this.oldFactory = oldFactory;
+  this.baseType = baseType;
+  this.typeParameters = typeParameters;
+  // Initializers done
+  TypeReference.call(this, span);
+}
+DefaultTypeReference.prototype.get$baseType = function() { return this.baseType; };
+DefaultTypeReference.prototype.set$baseType = function(value) { return this.baseType = value; };
+DefaultTypeReference.prototype.get$typeParameters = function() { return this.typeParameters; };
+DefaultTypeReference.prototype.set$typeParameters = function(value) { return this.typeParameters = value; };
+DefaultTypeReference.prototype.visit = function(visitor) {
+  return visitor.visitDefaultTypeReference(this);
+}
+DefaultTypeReference.prototype.visit$1 = DefaultTypeReference.prototype.visit;
 // ********** Code for ArgumentNode **************
 $inherits(ArgumentNode, Node);
 function ArgumentNode(label, value, span) {
@@ -11558,8 +11621,8 @@ DefinedType.prototype.resolve = function() {
         }
       }
       this.interfaces = this._resolveInterfaces(typeDef.implementsTypes);
-      if (typeDef.factoryType != null) {
-        $globals.world.error('factory not allowed on classes', typeDef.factoryType.span);
+      if (typeDef.defaultType != null) {
+        $globals.world.error('default not allowed on classes', typeDef.defaultType.span);
       }
     }
     else {
@@ -11571,10 +11634,13 @@ DefinedType.prototype.resolve = function() {
       if (res >= 0) {
         $globals.world.error(('interface "' + this.name + '" has a cycle in its inheritance chain'), typeDef.extendsTypes.$index(res).get$span());
       }
-      if (typeDef.factoryType != null) {
-        this.factory_ = this.resolveType(typeDef.factoryType, true);
-        if (this.factory_ == null) {
-          $globals.world.warning('unresolved factory', typeDef.factoryType.span);
+      if (typeDef.defaultType != null) {
+        this.defaultType = this.resolveType(typeDef.defaultType.baseType, true);
+        if (this.defaultType == null) {
+          $globals.world.warning('unresolved default class', typeDef.defaultType.span);
+        }
+        else {
+          this.defaultType._resolveTypeParams(typeDef.defaultType.typeParameters);
         }
       }
     }
@@ -11582,14 +11648,7 @@ DefinedType.prototype.resolve = function() {
   else if ((this.definition instanceof FunctionTypeDefinition)) {
     this.interfaces = [$globals.world.functionType];
   }
-  if (this.typeParameters != null) {
-    var $$list = this.typeParameters;
-    for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
-      var tp = $$list.$index($$i);
-      tp.set$enclosingElement(this);
-      tp.resolve$0();
-    }
-  }
+  this._resolveTypeParams(this.typeParameters);
   if (this.get$isObject()) this._createNotEqualMember();
   $globals.world._addType(this);
   var $$list = this.constructors.getValues();
@@ -11612,6 +11671,14 @@ DefinedType.prototype.resolve = function() {
       var m0 = $$i.next$0();
       if (!m0.get$isStatic()) $globals.world._addTopName(m0);
     }
+  }
+}
+DefinedType.prototype._resolveTypeParams = function(params) {
+  if (params == null) return;
+  for (var $$i = 0;$$i < params.get$length(); $$i++) {
+    var tp = params.$index($$i);
+    tp.set$enclosingElement(this);
+    tp.resolve$0();
   }
 }
 DefinedType.prototype.addMethod = function(methodName, definition) {
@@ -11695,14 +11762,51 @@ DefinedType.prototype.getFactory = function(type, constructorName) {
 DefinedType.prototype.getConstructor = function(constructorName) {
   var ret = this.constructors.$index(constructorName);
   if (ret != null) {
-    if (this.factory_ != null) {
-      return this.factory_.getFactory(this, constructorName);
+    if (this.defaultType != null) {
+      this._checkDefaultTypeParams();
+      return this.defaultType.getFactory(this, constructorName);
     }
     return ret;
   }
   ret = this.factories.getFactory(this.name, constructorName);
   if (ret != null) return ret;
   return this._tryCreateDefaultConstructor(constructorName);
+}
+DefinedType.prototype._checkDefaultTypeParams = function() {
+  function toList(list) {
+    return (list != null ? list : const$128/*const []*/);
+  }
+  var typeDef = this.definition;
+  if (typeDef.defaultType.oldFactory) {
+    return;
+  }
+  var interfaceParams = toList(this.typeParameters);
+  var defaultParams = toList(typeDef.defaultType.typeParameters);
+  var classParams = toList(this.defaultType.typeParameters);
+  if ($ne(interfaceParams.get$length(), defaultParams.get$length()) || $ne(defaultParams.get$length(), classParams.get$length())) {
+    $globals.world.error('"default" must have the same number of type parameters as the class and interface do'/*'"default" must have the same number of type parameters as '
+              + 'the class and interface do'*/, this.get$span(), typeDef.defaultType.span, this.defaultType.get$span());
+    return;
+  }
+  for (var i = 0;
+   i < interfaceParams.get$length(); i++) {
+    var ip = interfaceParams.$index(i);
+    var dp = defaultParams.$index(i);
+    var cp = classParams.$index(i);
+    dp.resolve$0();
+    if ($ne(ip.get$name(), dp.get$name()) || $ne(dp.get$name(), cp.get$name())) {
+      $globals.world.error('default class must have the same type parameter names as the class and interface'/*'default class must have the same type parameter names as '
+                  + 'the class and interface'*/, ip.get$span(), dp.get$span(), cp.get$span());
+    }
+    else if ($ne(dp.get$extendsType(), cp.get$extendsType())) {
+      $globals.world.error('default class type parameters must have the same extends as the class does'/*'default class type parameters must have the same extends '
+                  + 'as the class does'*/, dp.get$span(), cp.get$span());
+    }
+    else if (!dp.get$extendsType().isSubtypeOf$1(ip.get$extendsType())) {
+      $globals.world.warning('"default" can only have tighter type parameter "extends" than the interface'/*'"default" can only have tighter type parameter "extends"'
+                  + ' than the interface'*/, dp.get$span(), ip.get$span());
+    }
+  }
 }
 DefinedType.prototype._tryCreateDefaultConstructor = function(name) {
   if (name == '' && this.definition != null && this.isClass && this.constructors.get$length() == 0) {
@@ -11717,7 +11821,7 @@ DefinedType.prototype._tryCreateDefaultConstructor = function(name) {
       inits = [new CallExpression(new SuperExpression(span), [], span)];
     }
     var typeDef = this.definition;
-    var c = new FunctionDefinition(null, null, typeDef.name, [], null, inits, native_, body, span);
+    var c = new FunctionDefinition(null, null, typeDef.name, [], inits, native_, body, span);
     this.addMethod(null, c);
     this.constructors.$index('').resolve$0();
     return this.constructors.$index('');
@@ -13322,6 +13426,8 @@ function $static_init(){
   $globals._RED_COLOR = '\u001b[31m';
 }
 var const$0 = new EnvMap()/*const EnvMap()*/;
+var const$127 = new IllegalAccessException()/*const IllegalAccessException()*/;
+var const$128 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
 var const$2 = new EmptyQueueException()/*const EmptyQueueException()*/;
 var const$3 = new _DeletedKeySentinel()/*const _DeletedKeySentinel()*/;
 var const$8 = new NoMoreElementsException()/*const NoMoreElementsException()*/;

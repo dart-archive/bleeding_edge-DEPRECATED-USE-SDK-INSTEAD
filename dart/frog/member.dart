@@ -333,7 +333,7 @@ class FieldMember extends Member {
       }
     }
     type = resolveType(definition.type, false);
-    if (isStatic && type.hasTypeParams) {
+    if (isStatic && !isFactory && type.hasTypeParams) {
       world.error('using type parameter in static context',
         definition.type.span);
     }
@@ -391,9 +391,9 @@ class FieldMember extends Member {
         // TODO(jmesserly): this handles native fields that return types like
         // "List". Is there a better solution for fields? Unlike methods we have
         // no good way to annotate them.
-        var factory_ = returnType.genericType.factory_;
-        if (factory_ != null && factory_.isNative) {
-          factory_.markUsed();
+        var defaultType = returnType.genericType.defaultType;
+        if (defaultType != null && defaultType.isNative) {
+          defaultType.markUsed();
         }
       }
     }
@@ -674,11 +674,6 @@ class MethodMember extends Member {
   FunctionDefinition definition;
   Type returnType;
   List<Parameter> parameters;
-
-  // Could support generic methods in general.  Right now only used for
-  // strange corner case of factory methods for generic types.
-  List<ParameterType> typeParameters;
-
 
   Type _functionType;
   bool isStatic = false;
@@ -1399,20 +1394,6 @@ class MethodMember extends Member {
       isStatic = true;
     }
 
-    if (definition.typeParameters != null) {
-      if (!isFactory) {
-        world.error(
-          'Only factories are allowed to have explicit type parameters',
-          definition.typeParameters[0].span);
-      } else {
-        typeParameters = definition.typeParameters;
-        for (var tp in definition.typeParameters) {
-          tp.enclosingElement = this;
-          tp.resolve();
-        }
-      }
-    }
-
     // TODO(jimhug): need a better annotation for being an operator method
     if (isOperator && isStatic && !isCallMethod) {
       world.error('operator method may not be static "${name}"', span);
@@ -1456,8 +1437,7 @@ class MethodMember extends Member {
   /** Overriden to ensure that type arguments aren't used in static methods. */
   Type resolveType(TypeReference node, bool typeErrors) {
     Type t = super.resolveType(node, typeErrors);
-    if (isStatic && t is ParameterType &&
-       (typeParameters == null || !typeParameters.some((p) => p === t))) {
+    if (isStatic && !isFactory && t is ParameterType) {
       world.error('using type parameter in static context.', node.span);
     }
     return t;

@@ -740,7 +740,7 @@ class DefinedType extends Type {
   void set parent(Type p) { _parent = p; }
 
   List<Type> interfaces;
-  Type factory_;
+  DefinedType defaultType;
 
   Set<Type> directSubtypes;
   Set<Type> _subtypes;
@@ -984,9 +984,9 @@ class DefinedType extends Type {
           }
         }
         this.interfaces = _resolveInterfaces(typeDef.implementsTypes);
-        if (typeDef.factoryType != null) {
-          world.error('factory not allowed on classes',
-            typeDef.factoryType.span);
+        if (typeDef.defaultType != null) {
+          world.error('default not allowed on classes',
+            typeDef.defaultType.span);
         }
       } else {
         if (typeDef.implementsTypes != null &&
@@ -1001,11 +1001,13 @@ class DefinedType extends Type {
               typeDef.extendsTypes[res].span);
         }
 
-        if (typeDef.factoryType != null) {
-          factory_ = resolveType(typeDef.factoryType, true);
-          if (factory_ == null) {
+        if (typeDef.defaultType != null) {
+          defaultType = resolveType(typeDef.defaultType.baseType, true);
+          if (defaultType == null) {
             // TODO(jimhug): Appropriate warning levels;
-            world.warning('unresolved factory', typeDef.factoryType.span);
+            world.warning('unresolved default class', typeDef.defaultType.span);
+          } else {
+            defaultType._resolveTypeParams(typeDef.defaultType.typeParameters);
           }
         }
       }
@@ -1014,12 +1016,7 @@ class DefinedType extends Type {
       this.interfaces = [world.functionType];
     }
 
-    if (typeParameters != null) {
-      for (var tp in typeParameters) {
-        tp.enclosingElement = this;
-        tp.resolve();
-      }
-    }
+    _resolveTypeParams(typeParameters);
 
     if (isObject) _createNotEqualMember();
 
@@ -1035,6 +1032,14 @@ class DefinedType extends Type {
       for (var m in members.getValues()) {
         if (!m.isStatic) world._addTopName(m);
       }
+    }
+  }
+
+  _resolveTypeParams(List<ParameterType> params) {
+    if (params == null) return;
+    for (var tp in params) {
+      tp.enclosingElement = this;
+      tp.resolve();
     }
   }
 
@@ -1147,8 +1152,10 @@ class DefinedType extends Type {
   getConstructor(String constructorName) {
     var ret = constructors[constructorName];
     if (ret != null) {
-      if (factory_ != null) {
-        return factory_.getFactory(this, constructorName);
+      if (defaultType != null) {
+        // TODO(jmesserly): only need to check once.
+        _checkDefaultTypeParams();
+        return defaultType.getFactory(this, constructorName);
       }
       return ret;
     }
@@ -1156,6 +1163,55 @@ class DefinedType extends Type {
     if (ret != null) return ret;
 
     return _tryCreateDefaultConstructor(constructorName);
+  }
+
+  /**
+   * Checks that default type parameters match between all 3 locations:
+   *   1. the interface (this)
+   *   2. the "default" type parameters
+   *   3. the class's type parameters
+   *
+   * The only deviation is that 2 and 3 can have a tighter "extends" bound.
+   */
+  _checkDefaultTypeParams() {
+    // Convert null to empty list so it doesn't complicate the logic
+    List<ParameterType> toList(list) => (list != null ? list : const []);
+
+    TypeDefinition typeDef = definition;
+    if (typeDef.defaultType.oldFactory) {
+      // TODO(jmesserly): for now skip checking of old factories
+      return;
+    }
+
+    var interfaceParams = toList(typeParameters);
+    var defaultParams = toList(typeDef.defaultType.typeParameters);
+    var classParams = toList(defaultType.typeParameters);
+
+    if (interfaceParams.length != defaultParams.length
+        || defaultParams.length != classParams.length) {
+      world.error('"default" must have the same number of type parameters as '
+          + 'the class and interface do', span, typeDef.defaultType.span,
+          defaultType.span);
+      return;
+    }
+
+    for (int i = 0; i < interfaceParams.length; i++) {
+      var ip = interfaceParams[i];
+      var dp = defaultParams[i];
+      var cp = classParams[i];
+      dp.resolve();
+      if (ip.name != dp.name || dp.name != cp.name) {
+        world.error('default class must have the same type parameter names as '
+            + 'the class and interface', ip.span, dp.span, cp.span);
+      } else if (dp.extendsType != cp.extendsType) {
+        world.error('default class type parameters must have the same extends '
+            + 'as the class does', dp.span, cp.span);
+      } else if (!dp.extendsType.isSubtypeOf(ip.extendsType)) {
+        // TODO(jmesserly): left this as a warning; it seems harmless to me
+        world.warning('"default" can only have tighter type parameter "extends"'
+            + ' than the interface', dp.span, ip.span);
+      }
+    }
   }
 
   _tryCreateDefaultConstructor(String name) {
@@ -1175,7 +1231,7 @@ class DefinedType extends Type {
 
       TypeDefinition typeDef = definition;
       var c = new FunctionDefinition(null, null, typeDef.name, [],
-        null, inits, native, body, span);
+        inits, native, body, span);
       addMethod(null, c);
       constructors[''].resolve();
       return constructors[''];

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -98,8 +99,9 @@ nodes = [
 
   Definition('Type',
     'bool isClass, Identifier name, List<ParameterType> typeParameters, '+
-    'List<TypeReference> extendsTypes, List<TypeReference> implementsTypes,'+
-    'NativeType nativeType, TypeReference factoryType, List<Statement> body'),
+    'List<TypeReference> extendsTypes, List<TypeReference> implementsTypes, '+
+    'NativeType nativeType, DefaultTypeReference defaultType, '+
+    'List<Statement> body'),
 
   Definition('FunctionType',
     'FunctionDefinition func, List<ParameterType> typeParameters'),
@@ -110,8 +112,8 @@ nodes = [
 
   Definition('Function',
     'List<Token> modifiers, TypeReference returnType, Identifier name,' +
-    'List<FormalNode> formals, List<ParameterType> typeParameters,' +
-    'List<Expression> initializers, String nativeBody, Statement body'),
+    'List<FormalNode> formals, List<Expression> initializers, ' +
+    'String nativeBody, Statement body'),
 
   Statement('Return', 'Expression value'),
   Statement('Throw', 'Expression value'),
@@ -183,6 +185,8 @@ nodes = [
     'TypeReference baseType, List<TypeReference> typeArguments, int depth'),
   TypeReference('Function',
     'bool isFinal, FunctionDefinition func'),
+  TypeReference('Default', 'bool oldFactory, NameTypeReference baseType, '+
+    'List<ParameterType> typeParameters'),
 
   Node('Argument', 'Identifier label, Expression value'),
   Node('Formal',

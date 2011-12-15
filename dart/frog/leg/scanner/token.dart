@@ -88,7 +88,7 @@ class StringToken extends Token {
   String toString() => value.toString();
 }
 
-interface SourceString extends Hashable factory StringWrapper {
+interface SourceString extends Hashable default StringWrapper {
   const SourceString(String string);
 
   void printOn(StringBuffer sb);
