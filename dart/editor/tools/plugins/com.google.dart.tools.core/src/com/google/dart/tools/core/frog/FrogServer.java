@@ -67,12 +67,15 @@ public class FrogServer {
     }.start();
   }
 
-  public void compile(IPath path, ResponseHandler handler) throws IOException {
+  public void compile(IPath inputPath, IPath outputPath, ResponseHandler handler)
+      throws IOException {
     JSONObject request = new JSONObject();
     try {
       request.put("command", "compile");
-      request.put("input", path.toOSString());
-      request.put("output", path.toOSString() + ".js");
+      request.put("input", inputPath.toOSString());
+      if (outputPath != null) {
+        request.put("output", outputPath.toOSString());
+      }
       sendRequest(request, handler);
     } catch (JSONException e) {
       throw new IOException("Failed to format request", e);

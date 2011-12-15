@@ -48,8 +48,8 @@ public class FrogProcess {
   public void startProcess() throws IOException {
     ProcessBuilder builder = new ProcessBuilder();
 
-    builder.command(FrogManager.getDartVmExecutablePath(), FROG_SERVER_PATH,
-        FrogManager.LOCALHOST_ADDRESS, Integer.toString(getPort()));
+    builder.command(FrogManager.getDartVmExecutablePath(), "--new_gen_heap_size=128",
+        FROG_SERVER_PATH, FrogManager.LOCALHOST_ADDRESS, Integer.toString(getPort()));
     builder.directory(new File(FrogManager.getSdkDirectory(), "lib/frog"));
     builder.redirectErrorStream(true);
 

@@ -27,7 +27,7 @@ public class FrogServerTest extends TestCase {
   protected JSONObject response;
 
   public void test_FrogServer_compile() throws Exception {
-    server.compile(new Path("path/to/dart/app/file.dart"), new ResponseHandler() {
+    server.compile(new Path("path/to/dart/app/file.dart"), null, new ResponseHandler() {
       @Override
       public void response(JSONObject response) throws IOException, JSONException {
         FrogServerTest.this.response = response;
@@ -40,7 +40,7 @@ public class FrogServerTest extends TestCase {
       lock.wait(3000);
     }
     assertNotNull(response);
-    server.compile(new Path("path/to/dart/app/file2.dart"), new ResponseHandler() {
+    server.compile(new Path("path/to/dart/app/file2.dart"), null, new ResponseHandler() {
       @Override
       public void response(JSONObject response) throws IOException, JSONException {
         FrogServerTest.this.response = response;

@@ -16,6 +16,9 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.compiler.backend.js.AbstractJsBackend;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.frog.FrogManager;
+import com.google.dart.tools.core.frog.ResponseHandler;
 import com.google.dart.tools.core.internal.builder.CompileOptimized;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -25,8 +28,11 @@ import com.google.dart.tools.ui.ImportedDartLibraryContainer;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -44,14 +50,55 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * An action to create an optimized javascript build of a Dart library.
  */
 public class DeployOptimizedAction extends AbstractInstrumentedAction implements IWorkbenchAction,
     ISelectionListener, IPartListener {
+
+  class CompileResponseHandler extends ResponseHandler {
+    IStatus status;
+    Object done;
+
+    public CompileResponseHandler(Object done, IStatus status) {
+      this.status = status;
+      this.done = done;
+    }
+
+    @Override
+    public void response(JSONObject response) throws IOException, JSONException {
+      // process response
+      // TODO(keertip): show only the warnings/errors that are in the user code
+      String kind = response.getString("kind"); //$NON-NLS-1$
+      if (kind.equals("message")) { //$NON-NLS-1$
+        String prefix = response.getString("prefix"); //$NON-NLS-1$
+        String fileName = "";
+        JSONObject span = response.getJSONObject("span"); //$NON-NLS-1$
+        if (!span.equals("null")) { //$NON-NLS-1$
+          fileName = span.getString("file"); //$NON-NLS-1$
+        }
+        DartCore.getConsole().println(
+            prefix + (fileName.length() == 0 ? "" : fileName + " ") + response.getString("message")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+      } else if (kind.equals("done")) { //$NON-NLS-1$
+        String result = response.getString("result"); //$NON-NLS-1$
+        if (!result.equals("true")) { //$NON-NLS-1$
+          status = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
+              ActionMessages.DeployOptimizedAction_Fail, null);
+        }
+        synchronized (done) {
+          done.notifyAll();
+        }
+      }
+
+    }
+
+  }
 
   class DeployOptimizedJob extends Job {
     private IWorkbenchPage page;
@@ -74,15 +121,39 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-//      IPath path = new Path(file.getAbsolutePath());
-//      try {
-//        FrogManager.getServer().compile(path, null);
-//      } catch (Exception e) {
-//        String message = "Failed to Generate Optimized Javascript for " + path;
-//        DartCore.logError(message, e);
-//        return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0, message, e);
-//      }
-//      return Status.OK_STATUS;
+      IPath path = new Path(file.getAbsolutePath());
+      if (DartCoreDebug.BLEEDING_EDGE) {
+        IStatus status = Status.OK_STATUS;
+        try {
+          Object done = new Object();
+          monitor.beginTask(
+              ActionMessages.DeployOptimizedAction_Compiling + library.getElementName(),
+              IProgressMonitor.UNKNOWN);
+          CompileResponseHandler responseHandler = new CompileResponseHandler(done, status);
+          DartCore.getConsole().clear();
+          DartCore.getConsole().println(
+              ActionMessages.DeployOptimizedAction_GenerateMessage + path.toString());
+          FrogManager.getServer().compile(library.getCorrespondingResource().getLocation(), path,
+              responseHandler);
+
+          synchronized (done) {
+            done.wait();
+          }
+
+        } catch (Exception e) {
+          String message = ActionMessages.DeployOptimizedAction_FailMessage + path;
+          DartCore.logError(message, e);
+          status = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0, message, e);
+        } finally {
+          if (status.isOK()) {
+            DartCore.getConsole().print(ActionMessages.DeployOptimizedAction_DoneSuccess);
+          } else {
+            DartCore.getConsole().println(ActionMessages.DeployOptimizedAction_Fail);
+          }
+          monitor.done();
+        }
+        return status;
+      }
       return deployOptimizedLibrary(monitor, page, file, library);
     }
   }
@@ -95,7 +166,7 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
     this.window = window;
 
     setText(ActionMessages.DeployOptimizedAction_title);
-    setId(DartToolsPlugin.PLUGIN_ID + ".deployOptimizedAction");
+    setId(DartToolsPlugin.PLUGIN_ID + ".deployOptimizedAction"); //$NON-NLS-1$
     setDescription(ActionMessages.DeployOptimizedAction_description);
     setToolTipText(ActionMessages.DeployOptimizedAction_tooltip);
     //setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/library_opt.png"));
@@ -172,7 +243,7 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
         FileDialog saveDialog = new FileDialog(window.getShell(), SWT.SAVE);
         IResource libraryResource = library.getCorrespondingResource();
         saveDialog.setFilterPath(libraryResource.getRawLocation().toFile().toString());
-        saveDialog.setFileName(libraryResource.getName() + "." + AbstractJsBackend.EXTENSION_JS);
+        saveDialog.setFileName(libraryResource.getName() + "." + AbstractJsBackend.EXTENSION_JS); //$NON-NLS-1$
 
         String fileName = saveDialog.open();
 

@@ -244,14 +244,20 @@ public final class ActionMessages extends NLS {
   public static String OpenExternalJavadocAction_dialog_title;
   public static String OpenExternalJavadocAction_code_resolve_failed;
 
+  public static String DeployOptimizedAction_Compiling;
   public static String DeployOptimizedAction_title;
   public static String DeployOptimizedAction_description;
+  public static String DeployOptimizedAction_DoneFail;
+  public static String DeployOptimizedAction_DoneSuccess;
   public static String DeployOptimizedAction_tooltip;
   public static String DeployOptimizedAction_jobTitle;
   public static String DeployOptimizedAction_noneSelected;
   public static String DeployOptimizedAction_unableToLaunch;
   public static String DeployOptimizedAction_errorLaunching;
   public static String DeployOptimizedAction_errorCompiling;
+  public static String DeployOptimizedAction_Fail;
+  public static String DeployOptimizedAction_FailMessage;
+  public static String DeployOptimizedAction_GenerateMessage;
 
   public static String SelfEncapsulateFieldAction_label;
   public static String SelfEncapsulateFieldAction_dialog_title;
