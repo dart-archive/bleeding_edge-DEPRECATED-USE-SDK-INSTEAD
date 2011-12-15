@@ -13,8 +13,12 @@ To use frog:
 1) Frog is now included in the checkout of the public repo of the bleeding_edge
    branch. The code will be located under dart/frog.
 
-2) Make sure you have 'node' in your path (http://nodejs.org/, and
-   https://github.com/joyent/node/wiki/Installation for how to install)
+2) Make sure you have 'node' in your path.
+   See http://nodejs.org/ and https://github.com/joyent/node/wiki/Installation
+   for how to install.  Notes:
+    - If using "git clone", use local disk rather than an NFS working dir,
+      as NFS will disallow "sudo make install".
+    - v0.6 is currently popular.
    # TODO(jimhug): Move this dependency to third_party.
 
 3) From the dart/frog directory, run the presubmit script to check your
