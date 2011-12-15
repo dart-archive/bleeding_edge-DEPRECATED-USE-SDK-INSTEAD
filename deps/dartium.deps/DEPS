@@ -5,7 +5,7 @@ vars = {
   "dartium_url": "svn://svn.chromium.org/dash",
   "dartium_chromium_revision": "8892",
   "dartium_webkit_revision": "8881",
-  "dartium_tools_revision": "8893",
+  "dartium_tools_revision": "8895",
   "dartium_closure_revision": "1519",
 
   # Use this googlecode_url variable only if there is an internal mirror for it.
