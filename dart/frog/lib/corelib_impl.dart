@@ -118,84 +118,84 @@ class ListIterator<T> implements Iterator<T> {
 }
 
 /** An immutable list. Attempting to modify the list will throw an exception. */
- class ImmutableList<E> extends ListFactory<E> {
-   final int _length;
+class ImmutableList<E> extends ListFactory<E> {
+  final int _length;
 
-   // TODO(sigmund): remove this when we stop overriding the [length] property
-   // in Array.
-   int get length() => _length;
+  // TODO(sigmund): remove this when we stop overriding the [length] property
+  // in Array.
+  int get length() => _length;
 
-   void set length(int length) {
-     throw const IllegalAccessException();
-   }
+  void set length(int length) {
+    throw const IllegalAccessException();
+  }
 
-   ImmutableList([int length]) : _length = length, super(length);
+  ImmutableList([int length]) : _length = length, super(length);
 
-   factory ImmutableList.from(List other) {
-     final list = new ImmutableList(other.length);
-     for (int i = 0; i < other.length; i++) {
-       // Note: push invokes the setter of [length], which we override. So
-       // instead we use the native []= operator that cannot be overriden.
-       list._setindex(i, other[i]);
-     }
-     return list;
-   }
+  factory ImmutableList.from(List other) {
+    final list = new ImmutableList(other.length);
+    for (int i = 0; i < other.length; i++) {
+      // Note: push invokes the setter of [length], which we override. So
+      // instead we use the native []= operator that cannot be overriden.
+      list._setindex(i, other[i]);
+    }
+    return list;
+  }
 
-   void _setindex(int index, E value) native "return this[index] = value;";
+  void _setindex(int index, E value) native "return this[index] = value;";
 
-   void operator []=(int index, E value) {
-     throw const IllegalAccessException();
-   }
+  void operator []=(int index, E value) {
+    throw const IllegalAccessException();
+  }
 
-   void copyFrom(List src, int srcStart, int dstStart, int count) {
-     throw const IllegalAccessException();
-   }
+  void copyFrom(List src, int srcStart, int dstStart, int count) {
+    throw const IllegalAccessException();
+  }
 
-   void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
-     throw const IllegalAccessException();
-   }
+  void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
+    throw const IllegalAccessException();
+  }
 
-   void removeRange(int start, int length) {
-     throw const IllegalAccessException();
-   }
+  void removeRange(int start, int length) {
+    throw const IllegalAccessException();
+  }
 
-   void insertRange(int start, int length, [E initialValue = null]) {
-     throw const IllegalAccessException();
-   }
+  void insertRange(int start, int length, [E initialValue = null]) {
+    throw const IllegalAccessException();
+  }
 
-   void sort(int compare(E a, E b)) {
-     throw const IllegalAccessException();
-   }
+  void sort(int compare(E a, E b)) {
+    throw const IllegalAccessException();
+  }
 
-   void add(E element) {
-     throw const IllegalAccessException();
-   }
+  void add(E element) {
+    throw const IllegalAccessException();
+  }
 
-   void addLast(E element) {
-     throw const IllegalAccessException();
-   }
+  void addLast(E element) {
+    throw const IllegalAccessException();
+  }
 
-   void addAll(Collection<E> elements) {
-     throw const IllegalAccessException();
-   }
+  void addAll(Collection<E> elements) {
+    throw const IllegalAccessException();
+  }
 
-   void clear() {
-     throw const IllegalAccessException();
-   }
+  void clear() {
+    throw const IllegalAccessException();
+  }
 
-   E removeLast() {
-     throw const IllegalAccessException();
-   }
+  E removeLast() {
+    throw const IllegalAccessException();
+  }
 
 
-   // The base Array.prototype.toString does not like getting derived arrays,
-   // so copy the array if needed.
-   // TODO(jmesserly): this is not the right long term fix because it only works
-   // for ImmutableList, but all derived types of ListFactory have this problem.
-   // We need to implment ListFactory.toString in Dart. However, the
-   // mplmentation needs correct handling of cycles (isolate tests depend on
-   // this), so it's not trivial.
-   String toString() => new List.from(this).toString();
+  // The base Array.prototype.toString does not like getting derived arrays,
+  // so copy the array if needed.
+  // TODO(jmesserly): this is not the right long term fix because it only works
+  // for ImmutableList, but all derived types of ListFactory have this problem.
+  // We need to implment ListFactory.toString in Dart. However, the
+  // mplmentation needs correct handling of cycles (isolate tests depend on
+  // this), so it's not trivial.
+  String toString() => new List.from(this).toString();
 }
 
 /** An immutable map. */
@@ -267,7 +267,11 @@ class JSSyntaxRegExp implements RegExp {
         : new MatchImplementation(pattern, str, _matchStart(m), _lastIndex, m);
   }
 
-  List<String> _exec(String str) native "return this.re.exec(str);";
+  List<String> _exec(String str) native "return this.re.exec(str);" {
+    // Note: this code is just a hint to tell the frog compiler the dependencies
+    // this native code might have. It is not an implementation.
+    return [];
+  }
   int _matchStart(m) native "return m.index;";
   int get _lastIndex() native "return this.re.lastIndex;";
 

@@ -75,7 +75,11 @@ return this.replace(from, to);""";
     buffer.add(substring(lastMatchEnd));
   }
 
-  List<String> split(Pattern pattern) native;
+  List<String> split(Pattern pattern) native {
+    // Note: this code is just a hint to tell the frog compiler the dependencies
+    // this native code might have. It is not an implementation.
+    return [];
+  }
 
   /*
   Iterable<Match> allMatches(String str) {
@@ -96,7 +100,11 @@ return this.replace(from, to);""";
   */
 
   // TODO(jimhug): Get correct reified generic list here.
-  List<String> splitChars() native "return this.split('');";
+  List<String> splitChars() native "return this.split('');" {
+    // Note: this code is just a hint to tell the frog compiler the dependencies
+    // this native code might have. It is not an implementation.
+    return [];
+  }
 
   List<int> charCodes() {
     int len = length;

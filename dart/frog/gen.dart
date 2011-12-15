@@ -466,9 +466,12 @@ function $inheritsMembers(child, parent) {
     }
   }
 
-  _writeMethod(Member method) {
-    if (method.generator != null) {
-      method.generator.writeDefinition(writer, null);
+  _writeMethod(Member m) {
+    if (m.generator != null) {
+      m.generator.writeDefinition(writer, null);
+    } else if (m is MethodMember && m.isNative
+        && m._providePropertySyntax && !m._provideFieldSyntax) {
+      MethodGenerator._maybeGenerateBoundGetter(m, writer);
     }
   }
 
@@ -861,18 +864,22 @@ class MethodGenerator implements TreeVisitor {
     _provideOptionalParamInfo(defWriter);
 
     if (method is MethodMember) {
-      MethodMember m = method;
-      if (m._providePropertySyntax) {
-        defWriter.enterBlock('${m.declaringType.jsname}.prototype'
-            + '.get\$${m.jsname} = function() {');
-        // TODO(jimhug): Bind not available in older Safari, need fallback?
-        defWriter.writeln('return ${m.declaringType.jsname}.prototype.'
-            + '${m.jsname}.bind(this);');
-        defWriter.exitBlock('}');
+      _maybeGenerateBoundGetter(method, defWriter);
+    }
+  }
 
-        if (m._provideFieldSyntax) {
-          world.internalError('bound m accessed with field syntax');
-        }
+  static _maybeGenerateBoundGetter(MethodMember m, CodeWriter defWriter) {
+    if (m._providePropertySyntax) {
+      defWriter.enterBlock(
+          world.gen._prototypeOf(m.declaringType, "get\$" + m.jsname) 
+          + ' = function() {');
+      // TODO(jimhug): Bind not available in older Safari, need fallback?
+      defWriter.writeln('return this.${m.jsname}.bind(this);');
+      defWriter.exitBlock('}');
+
+      if (m._provideFieldSyntax) {
+        world.internalError('bound "${m.name}" accessed with field syntax',
+            m.definition.span);
       }
     }
   }
@@ -1459,8 +1466,9 @@ class MethodGenerator implements TreeVisitor {
     // Special path for list for readability and perf optimization.
     if (list.type.isList) {
       var tmpi = _scope.create('\$i', world.numType, null);
+      var listLength = listVar.get_(this, 'length', node.list);
       writer.enterBlock('for (var ${tmpi.code} = 0;' +
-          '${tmpi.code} < ${listVar.code}.length; ${tmpi.code}++) {');
+          '${tmpi.code} < ${listLength.code}; ${tmpi.code}++) {');
       var value = listVar.invoke(this, ':index', node.list,
           new Arguments(null, [tmpi]));
       writer.writeln('var ${item.code} = ${value.code};');

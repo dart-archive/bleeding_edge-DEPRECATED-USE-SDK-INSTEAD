@@ -33,7 +33,8 @@ class Parameter {
       if (method.name == ':call') {
         // TODO(jimhug): Need simpler way to detect "true" function types vs.
         //   regular methods being used as function types for closures.
-        if (method.definition.body == null) {
+        // TODO(sigmund): Disallow non-null default values for native calls?
+        if (method.definition.body == null && !method.isNative) {
           world.error('default value not allowed on function type',
             definition.span);
         }
@@ -115,8 +116,10 @@ class Member extends Element {
   bool get isOperator() => name.startsWith(':');
   bool get isCallMethod() => name == ':call';
 
-  bool get prefersPropertySyntax() => true;
+  bool get requiresPropertySyntax() => false;
+  bool _providePropertySyntax = false;
   bool get requiresFieldSyntax() => false;
+  bool _provideFieldSyntax = false;
 
   bool get isNative() => false;
   String get constructorName() {
@@ -265,8 +268,6 @@ class FieldMember extends Member {
   bool isFinal;
   bool isNative;
 
-  bool _providePropertySyntax = false;
-
   // TODO(jimhug): Better notion of fields that need special handling...
   bool get overridesProperty() {
     if (isStatic) return false;
@@ -295,9 +296,6 @@ class FieldMember extends Member {
       return false;
     }
   }
-
-  bool get prefersPropertySyntax() => false;
-  bool get requiresFieldSyntax() => isNative;
 
   void provideFieldSyntax() {} // Nothing to do.
   void providePropertySyntax() { _providePropertySyntax = true; }
@@ -454,19 +452,25 @@ class PropertyMember extends Member {
 
   Member _overriddenField;
 
-  bool _provideFieldSyntax = false;
-
   // TODO(jimhug): What is the right span for this beast?
   SourceSpan get span() => getter != null ? getter.span : null;
 
   bool get canGet() => getter != null;
   bool get canSet() => setter != null;
 
-  bool get prefersPropertySyntax() => true;
-  bool get requiresFieldSyntax() => false;
+  // If the property is just a declaration in an interface, continue to allow
+  // field syntax in the generated code.
+  bool get requiresPropertySyntax() => declaringType.isClass;
 
   void provideFieldSyntax() { _provideFieldSyntax = true; }
-  void providePropertySyntax() {}// Nothing to do.
+  void providePropertySyntax() {
+    // when overriding native fields, we still provide a field syntax to ensure
+    // that native functions will find the appropriate property implementation.
+    // TODO(sigmund): should check for this transitively...
+    if (_overriddenField != null && _overriddenField.isNative) {
+      provideFieldSyntax();
+    }
+  }
 
   // TODO(jimhug): Union of getter and setters sucks!
   bool get isStatic() => getter == null ? setter.isStatic : getter.isStatic;
@@ -608,7 +612,7 @@ class ConcreteMember extends Member {
   bool get isMethod() => baseMember.isMethod;
   bool get isProperty() => baseMember.isProperty;
 
-  bool get prefersPropertySyntax() => baseMember.prefersPropertySyntax;
+  bool get requiresPropertySyntax() => baseMember.requiresPropertySyntax;
   bool get requiresFieldSyntax() => baseMember.requiresFieldSyntax;
 
   void provideFieldSyntax() => baseMember.provideFieldSyntax();
@@ -687,9 +691,6 @@ class MethodMember extends Member {
   /** True if this is a function defined inside another method. */
   bool isLambda = false;
 
-  bool _providePropertySyntax = false;
-  bool _provideFieldSyntax = false;
-
   /**
    * True if we should provide info on optional parameters for use by runtime
    * dispatch.
@@ -710,8 +711,10 @@ class MethodMember extends Member {
 
   bool get isNative() => definition.nativeBody != null;
 
-  bool get canGet() => false; // TODO(jimhug): get bound method support.
+  bool get canGet() => true;
   bool get canSet() => false;
+
+  bool get requiresPropertySyntax() => true;
 
   SourceSpan get span() => definition == null ? null : definition.span;
 
@@ -788,9 +791,6 @@ class MethodMember extends Member {
     }
     return -1;
   }
-
-  bool get prefersPropertySyntax() => true;
-  bool get requiresFieldSyntax() => false;
 
   void provideFieldSyntax() { _provideFieldSyntax = true; }
   void providePropertySyntax() { _providePropertySyntax = true; }
@@ -1383,7 +1383,7 @@ class MethodMember extends Member {
           if (isAbstract) {
             if (declaringType.isClass) {
               world.error('duplicate abstract modifier', mod.span);
-            } else {
+            } else if (!isCallMethod) {
               world.error('abstract modifier not allowed on interface members',
                 mod.span);
             }
@@ -1504,16 +1504,9 @@ class MemberSet {
     if (_treatAsField == null) {
       // If this is the global MemberSet from world, always bind dynamically.
       // Note: we need this for proper noSuchMethod and REPL behavior.
-      _treatAsField = !isVar;
-      for (var member in members) {
-        if (member.requiresFieldSyntax) {
-          _treatAsField = true;
-          break;
-        }
-        if (member.prefersPropertySyntax) {
-          _treatAsField = false;
-        }
-      }
+      _treatAsField = !isVar && (members.some((m) => m.requiresFieldSyntax)
+          || members.every((m) => !m.requiresPropertySyntax));
+
       for (var member in members) {
         if (_treatAsField) {
           member.provideFieldSyntax();
