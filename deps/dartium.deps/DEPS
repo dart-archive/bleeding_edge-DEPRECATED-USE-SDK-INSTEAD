@@ -4,7 +4,7 @@ vars = {
   "dart_url": "https://dart.googlecode.com/svn",
   "dartium_url": "svn://svn.chromium.org/dash",
   "dartium_chromium_revision": "8896",
-  "dartium_webkit_revision": "8897",
+  "dartium_webkit_revision": "8898",
   "dartium_tools_revision": "8895",
   "dartium_closure_revision": "1519",
 
