@@ -634,6 +634,7 @@ class Parser {
     token = parseIdentifier(token);
     listener.endFunctionName(token);
     token = parseFormalParameters(token);
+    listener.handleNoInitializers();
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true);
     listener.endFunction(token);

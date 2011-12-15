@@ -19,6 +19,10 @@ class ResolverTask extends CompilerTask {
   TreeElements resolve(FunctionElement element) {
     return measure(() {
       FunctionExpression tree = element.node;
+      if (tree.initializers !== null) {
+        compiler.cancel('initializers are not implemented',
+                        node: tree.initializers);
+      }
       ResolverVisitor visitor = new SignatureResolverVisitor(compiler, element);
       visitor.visit(tree);
 

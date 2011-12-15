@@ -792,11 +792,13 @@ class NodeListener extends ElementListener {
 
   void endFunction(Token token) {
     Statement body = popNode();
+    NodeList initializers = popNode();
     NodeList formals = popNode();
     Identifier name = popNode();
     // TODO(ahe): Return types are optional.
     TypeAnnotation type = popNode();
-    pushNode(new FunctionExpression(name, formals, body, type));
+    pushNode(new FunctionExpression(name, formals, body, type,
+                                    null, initializers));
   }
 
   void handleVarKeyword(Token token) {
@@ -925,14 +927,11 @@ class NodeListener extends ElementListener {
   }
 
   void endInitializers(int count, Token beginToken, Token endToken) {
-    if (count === 0) return;
-    // TODO(ahe): Implement this.
-    canceler.cancel("initializers are not implemented", token: beginToken);
-    discardNodes(count);
+    pushNode(makeNodeList(count, beginToken, null, ','));
   }
 
   void handleNoInitializers() {
-    // TODO(ahe): pushNode(null);
+    pushNode(null);
   }
 
   void endFields(int count, Token beginToken, Token endToken) {
@@ -943,6 +942,7 @@ class NodeListener extends ElementListener {
 
   void endMethod(Token beginToken, Token period, Token endToken) {
     Statement body = popNode();
+    NodeList initializers = popNode();
     NodeList formalParameters = popNode();
     Identifier name = popNode(); // TODO(ahe): What about constructors?
     if (period !== null) {
@@ -950,7 +950,8 @@ class NodeListener extends ElementListener {
       name = popNode();
     }
     Modifiers modifiers = popNode();
-    pushNode(new FunctionExpression(name, formalParameters, body, null, modifiers));
+    pushNode(new FunctionExpression(name, formalParameters, body, null,
+                                    modifiers, initializers));
   }
 
   void endLiteralMapEntry(Token token) {

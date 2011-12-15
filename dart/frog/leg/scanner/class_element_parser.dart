@@ -74,4 +74,8 @@ class MemberListener extends NodeListener {
     canceler.cancel("field initializers are not implemented",
                     token: assignmentOperator);
   }
+
+  void endInitializers(int count, Token beginToken, Token endToken) {
+    pushNode(null);
+  }
 }

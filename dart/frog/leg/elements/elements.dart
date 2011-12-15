@@ -218,7 +218,8 @@ class SynthesizedConstructorElement extends FunctionElement {
     node = new FunctionExpression(
         new Identifier.synthetic(''),
         new NodeList.empty(),
-        new Block(new NodeList.empty()));
+        new Block(new NodeList.empty()),
+        null, null, null);
     return node;
   }
 }
