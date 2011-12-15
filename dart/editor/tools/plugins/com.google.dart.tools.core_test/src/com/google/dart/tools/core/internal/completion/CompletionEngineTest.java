@@ -185,6 +185,16 @@ public class CompletionEngineTest extends TestCase {
 //        "2-int", "3-int"); // not clear these negative results should be eliminated
   }
 
+  public void testCompletion_function() throws Exception {
+    test("class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1) => a.compareTo(b)); }}",
+        "1+String");
+  }
+
+  public void testCompletion_function_partial() throws Exception {
+    // TODO fix CC in function arguments when function is only partially specified
+    //test("class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1)); }}", "1+String");
+  }
+
   public void testCompletion_ifStmt_field1() throws Exception {
     test("class Foo { int myField = 7; mth() { if (!1) {}}}", "1-myField");
   }
@@ -221,6 +231,11 @@ public class CompletionEngineTest extends TestCase {
     test("topValue = 7; class Foo { mth() { if (t!1) {}}}", "1-topValue");
   }
 
+  public void testCompletion_keyword_in() throws Exception {
+    // TODO fix CC for variables starting with keyword "in"
+    //test("class Foo { int input = 7; mth() { if (in!1) {}}}", "1+input");
+  }
+
   public void testCompletion_newMemberType1() throws Exception {
     test("class Foo { !1 }", "1+Collection", "1+List");
   }
@@ -250,6 +265,11 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCompletion_topLevelField_init2() throws Exception {
     test("final num PI2 = Mat!1h.PI;", "1+Math", "1+Match", "1-void");
+  }
+
+  public void testCompletion_while() throws Exception {
+    // TODO fix CC in while statement
+    //test("class Foo { int boo = 7; mth() { while (b!1) {} }}", "1+boo");
   }
 
   /**
