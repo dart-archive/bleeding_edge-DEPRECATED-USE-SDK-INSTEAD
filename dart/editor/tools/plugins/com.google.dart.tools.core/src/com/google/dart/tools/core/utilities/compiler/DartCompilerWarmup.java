@@ -194,12 +194,7 @@ public class DartCompilerWarmup {
       DartCompilerListener listener) {
     EditorLibraryManager sysLibMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
 
-    String warmupSrcCode = "";
-    final boolean htmlLibExists = sysLibMgr.getAllLibrarySpecs().contains("dart:html");
-    if (htmlLibExists) {
-      warmupSrcCode += "#import('dart:html');\n";
-    }
-    warmupSrcCode += "main() {print('success');}";
+    String warmupSrcCode = "main() {print('success');}";
     DartSource dartSrc = new DartSourceString(WARMUP_DART, warmupSrcCode);
 
     LibrarySource libSrc = new DartCompilerWarmup.LibraryDartSource(dartSrc, sysLibMgr);
@@ -212,11 +207,7 @@ public class DartCompilerWarmup {
 
         @Override
         public List<Backend> getBackends() {
-          if (htmlLibExists) {
-            return super.getBackends();
-          } else {
-            return new ArrayList<Backend>();
-          }
+          return new ArrayList<Backend>();
         }
 
         @Override
