@@ -8,6 +8,14 @@ class _WindowActor extends Actor {
     on["print"] = (String m) {
       print("${m}");
     };
+
+    /**
+     * Sends a message back using the 'reply' parameter after specified number
+     * of milliseconds specified by 'timeout' parameter.
+     */
+    on["setTimeout"] = (Reply reply, int timeout) {
+      new Timer((Timer t) {reply.respond();}, timeout, false);
+    };
   }
 }
 
@@ -16,4 +24,7 @@ class _WindowProxyImpl extends _NullWindowProxy {
   _WindowProxyImpl(this._window);
   
   void print(String m) => _window.send("print", [m]);
+
+  void setTimeout(Reply t, int timeout) =>
+    _window.send("setTimeout", [t, timeout]);
 }
