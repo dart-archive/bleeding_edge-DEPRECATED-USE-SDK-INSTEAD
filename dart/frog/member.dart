@@ -959,7 +959,7 @@ class MethodMember extends Member {
         if (arg == null || !parameters[i].isOptional) {
           var msg = _argCountMsg(Math.min(i, args.length), i + 1, atLeast:true);
           return _argError(context, node, target, args, msg,
-              args.nodes[i].span);
+              (i >= args.nodes.length) ? node.span : args.nodes[i].span);
         } else {
           argsCode.add(isConst && arg.isConst
               ? arg.canonicalCode : arg.code);

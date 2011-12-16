@@ -5595,7 +5595,7 @@ MethodMember.prototype.invoke = function(context, node, target, args, isDynamic)
       }
       if (arg == null || !this.parameters.$index(i).get$isOptional()) {
         var msg = MethodMember._argCountMsg(Math.min(i, args.get$length()), i + 1, true);
-        return this._argError(context, node, target, args, msg, args.nodes.$index(i).get$span());
+        return this._argError(context, node, target, args, msg, (i >= args.nodes.get$length()) ? node.span : args.nodes.$index(i).get$span());
       }
       else {
         argsCode.add$1(this.isConst && arg.get$isConst() ? arg.get$canonicalCode() : arg.get$code());
