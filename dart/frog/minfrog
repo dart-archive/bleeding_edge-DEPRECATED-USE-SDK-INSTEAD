@@ -814,8 +814,8 @@ function HashMapImplementation() {
   this._numberOfEntries = 0;
   this._numberOfDeleted = 0;
   this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._keys = new Array(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._values = new Array(8/*HashMapImplementation._INITIAL_CAPACITY*/);
 }
 HashMapImplementation.HashMapImplementation$from$factory = function(other) {
   var result = new HashMapImplementation();
@@ -886,8 +886,8 @@ HashMapImplementation.prototype._grow = function(newCapacity) {
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
   var oldValues = this._values;
-  this._keys = new ListFactory(newCapacity);
-  this._values = new ListFactory(newCapacity);
+  this._keys = new Array(newCapacity);
+  this._values = new Array(newCapacity);
   for (var i = 0;
    i < capacity; i++) {
     var key = oldKeys.$index(i);
@@ -943,7 +943,7 @@ HashMapImplementation.prototype.forEach = function(f) {
   }
 }
 HashMapImplementation.prototype.getKeys = function() {
-  var list = new ListFactory(this.get$length());
+  var list = new Array(this.get$length());
   var i = 0;
   this.forEach(function _(key, value) {
     list.$setindex(i++, key);
@@ -952,7 +952,7 @@ HashMapImplementation.prototype.getKeys = function() {
   return list;
 }
 HashMapImplementation.prototype.getValues = function() {
-  var list = new ListFactory(this.get$length());
+  var list = new Array(this.get$length());
   var i = 0;
   this.forEach(function _(key, value) {
     list.$setindex(i++, value);
@@ -977,8 +977,8 @@ function HashMapImplementation_E$E() {
   this._numberOfEntries = 0;
   this._numberOfDeleted = 0;
   this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._keys = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
-  this._values = new ListFactory(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._keys = new Array(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._values = new Array(8/*HashMapImplementation._INITIAL_CAPACITY*/);
 }
 HashMapImplementation_E$E._computeLoadLimit = function(capacity) {
   return $truncdiv((capacity * 3), 4);
@@ -1041,8 +1041,8 @@ HashMapImplementation_E$E.prototype._grow = function(newCapacity) {
   this._loadLimit = HashMapImplementation._computeLoadLimit(newCapacity);
   var oldKeys = this._keys;
   var oldValues = this._values;
-  this._keys = new ListFactory(newCapacity);
-  this._values = new ListFactory(newCapacity);
+  this._keys = new Array(newCapacity);
+  this._values = new Array(newCapacity);
   for (var i = 0;
    i < capacity; i++) {
     var key = oldKeys.$index(i);
@@ -1090,7 +1090,7 @@ HashMapImplementation_E$E.prototype.forEach = function(f) {
   }
 }
 HashMapImplementation_E$E.prototype.getKeys = function() {
-  var list = new ListFactory(this.get$length());
+  var list = new Array(this.get$length());
   var i = 0;
   this.forEach(function _(key, value) {
     list.$setindex(i++, key);
@@ -1290,7 +1290,7 @@ LinkedHashMapImplementation.prototype.$index = function(key) {
   return entry.get$element().get$value();
 }
 LinkedHashMapImplementation.prototype.getKeys = function() {
-  var list = new ListFactory(this.get$length());
+  var list = new Array(this.get$length());
   var index = 0;
   this._list.forEach(function _(entry) {
     list.$setindex(index++, entry.key);
@@ -1299,7 +1299,7 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
   return list;
 }
 LinkedHashMapImplementation.prototype.getValues = function() {
-  var list = new ListFactory(this.get$length());
+  var list = new Array(this.get$length());
   var index = 0;
   this._list.forEach(function _(entry) {
     list.$setindex(index++, entry.value);
@@ -1657,7 +1657,7 @@ StringBufferImpl.prototype.addAll = function(objects) {
   return this;
 }
 StringBufferImpl.prototype.clear = function() {
-  this._buffer = new ListFactory();
+  this._buffer = new Array();
   this._length = 0;
   return this;
 }
@@ -2371,7 +2371,7 @@ WorldGenerator.prototype.writeType = function(type) {
     }
     else if (type.get$jsname() != nativeName) {
       if (type.get$isHiddenNativeType()) {
-        this.writer.writeln(('function ' + type.get$jsname() + '() {}'));
+        this.writer.writeln(('var ' + type.get$jsname() + ' = {};'));
       }
       else {
         this.writer.writeln(('' + type.get$jsname() + ' = ' + nativeName + ';'));
@@ -5669,7 +5669,8 @@ MethodMember.prototype._invokeConstructor = function(context, node, target, args
     return new Value(target.get$type(), code, node.span, true);
   }
   else {
-    var code = (this.get$constructorName() != '') ? ('new ' + this.declaringType.get$jsname() + '.' + this.get$constructorName() + '\$ctor(' + argsString + ')') : ('new ' + this.declaringType.get$jsname() + '(' + argsString + ')');
+    var typeName = this.declaringType.get$isNative() ? this.declaringType.get$nativeType().name : this.declaringType.get$jsname();
+    var code = (this.get$constructorName() != '') ? ('new ' + typeName + '.' + this.get$constructorName() + '\$ctor(' + argsString + ')') : ('new ' + typeName + '(' + argsString + ')');
     if (this.isConst && (node instanceof NewExpression) && node.get$dynamic().get$isConst()) {
       return this._invokeConstConstructor(node, code, target, args);
     }
@@ -11939,7 +11940,7 @@ FixedCollection.prototype.forEach = function(f) {
   Collections.forEach(this, f);
 }
 FixedCollection.prototype.filter = function(f) {
-  return Collections.filter(this, new ListFactory(), f);
+  return Collections.filter(this, new Array(), f);
 }
 FixedCollection.prototype.every = function(f) {
   return Collections.every(this, f);
@@ -12623,6 +12624,26 @@ World.prototype._addMember = function(member) {
   }
 }
 World.prototype._addTopName = function(named) {
+  if (named.get$isNative() && (named instanceof Type)) {
+    var namedType = named;
+    if (namedType.get$isHiddenNativeType()) {
+      var nativeName = namedType.get$definition().get$nativeType().get$name();
+      var existing = this._topNames.$index(nativeName);
+      if (existing != null) {
+        if (existing.get$isNative()) {
+          $globals.world.internalError(('conflicting native names "' + named.get$jsname() + '" ') + ('(already defined in ' + existing.get$span().get$locationText() + ')'), named.get$span());
+        }
+        else {
+          this._addJavascriptTopName(existing);
+        }
+      }
+      this._topNames.$setindex(nativeName, named);
+      if ($eq(nativeName, named.get$jsname())) {
+        this._addJavascriptTopName(named);
+        return;
+      }
+    }
+  }
   var existing = this._topNames.$index(named.get$jsname());
   if (existing != null) {
     this.info(('mangling matching top level name "' + named.get$jsname() + '" in ') + ('both "' + named.get$library().get$jsname() + '" and "' + existing.get$library().get$jsname() + '"'));
@@ -13268,7 +13289,7 @@ function _otherOperator(jsname, op) {
   return ("function " + jsname + "(x, y) {\n  return (typeof(x) == 'number' && typeof(y) == 'number')\n    ? x " + op + " y : x." + jsname + "(y);\n}");
 }
 function map(source, mapper) {
-  var result = new ListFactory();
+  var result = new Array();
   if (!!(source && source.is$List())) {
     var list = source;
     result.set$length(list.get$length());

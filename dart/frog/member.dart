@@ -1061,9 +1061,17 @@ class MethodMember extends Member {
           : '${declaringType.jsname}.call($argsString)';
       return new Value(target.type, code, node.span);
     } else {
+      // If a hidden native class has a direct (non-factory) constructor, use
+      // the native name.  This will work if the name is available in the
+      // execution environment, and will fail at run-time if the name is really
+      // hidden.  This lets the generated code run on some browsers before the
+      // browser compat issue is finalized.
+      var typeName = declaringType.isNative
+          ? declaringType.nativeType.name
+          : declaringType.jsname;
       var code = (constructorName != '')
-          ? 'new ${declaringType.jsname}.${constructorName}\$ctor($argsString)'
-          : 'new ${declaringType.jsname}($argsString)';
+          ? 'new ${typeName}.${constructorName}\$ctor($argsString)'
+          : 'new ${typeName}($argsString)';
       // TODO(jmesserly): using the "node" here feels really hacky
       if (isConst && node is NewExpression && node.dynamic.isConst) {
         return _invokeConstConstructor(node, code, target, args);

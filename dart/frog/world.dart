@@ -162,6 +162,49 @@ class World {
   }
 
   _addTopName(Element named) {
+    // What makes this method so complicated is that it is incremental.  It
+    // would me much simpler if the names could be added in priority order,
+    // e.g. native classes, library classes and finally user code.
+
+    if (named.isNative && named is Type) {
+      // Hidden native classes have two names: a native name that should be
+      // avoided since it might not actually be hidden, and a jsname that is
+      // used for class data, e.g. static members.
+      //
+      // Consider:
+      //
+      //  #library('public');
+      //   interface DOMWindow { ... }
+      //  #library('impl');
+      //   class DOMWindow implements public.DOMWindow native '*DOMWindow' { }
+      //  #library('proxy');
+      //   class DOMWindow implements public.DOMWindow { ... }
+      //
+      // The global name 'DOMWindow' is reserved for the native implementation,
+      // so the others all need to be renamed to avoid conflict.
+
+      Type namedType = named;
+      if (namedType.isHiddenNativeType) {
+        var nativeName = namedType.definition.nativeType.name;
+        var existing = _topNames[nativeName];
+        if (existing != null) {
+          if (existing.isNative) {
+            world.internalError('conflicting native names "${named.jsname}" '
+                + '(already defined in ${existing.span.locationText})',
+                named.span);
+          } else {
+            _addJavascriptTopName(existing);  // Rename conflicting type.
+          }
+        }
+        _topNames[nativeName] = named;
+        if (nativeName == named.jsname) {
+          // class X native '*X' {} - need to rename the jsname.
+          _addJavascriptTopName(named);
+          return;
+        }
+      }
+    }
+
     var existing = _topNames[named.jsname];
     if (existing != null) {
       info('mangling matching top level name "${named.jsname}" in '

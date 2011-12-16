@@ -277,7 +277,7 @@ class WorldGenerator {
         if (type.isHiddenNativeType) {
           // This is a holder for static methods.
           // TODO(sra): Generate only if used.
-          writer.writeln('function ${type.jsname}() {}');
+          writer.writeln('var ${type.jsname} = {};');
         } else {
           writer.writeln('${type.jsname} = ${nativeName};');
         }
