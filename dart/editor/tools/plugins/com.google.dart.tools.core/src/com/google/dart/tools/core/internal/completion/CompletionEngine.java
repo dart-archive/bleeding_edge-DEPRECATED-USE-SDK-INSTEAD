@@ -45,6 +45,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
+import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.parser.ParserContext;
 import com.google.dart.compiler.resolver.ClassElement;
@@ -448,6 +449,14 @@ public class CompletionEngine {
 //      }
 //      Type type = analyzeType(completionNode.getQualifier());
 //      createCompletionsForQualifiedMemberAccess(propertyName, type);
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitWhileStatement(DartWhileStatement node) {
+      if (node.getCondition() == this.identifier) {
+        proposeIdentifierPrefixCompletions(identifier);
       }
       return null;
     }
