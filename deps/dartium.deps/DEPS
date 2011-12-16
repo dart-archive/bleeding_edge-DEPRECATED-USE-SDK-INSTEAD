@@ -1,9 +1,9 @@
 vars = {
   # Additions for Dart
   "chromium_url": "http://src.chromium.org/svn",
-  "dart_url": "https://dart.googlecode.com/svn",
+  "dart_url": "http://dart.googlecode.com/svn",
   "dartium_url": "svn://svn.chromium.org/dash",
-  "multivm_url": "svn://svn.chromium.org/multivm/trunk",
+  "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_chromium_revision": "8896",
   "dartium_webkit_revision": "8898",
   "dartium_tools_revision": "4",
