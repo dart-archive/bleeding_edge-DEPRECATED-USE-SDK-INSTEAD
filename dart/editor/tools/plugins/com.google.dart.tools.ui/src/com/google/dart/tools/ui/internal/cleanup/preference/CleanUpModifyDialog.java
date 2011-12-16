@@ -23,7 +23,7 @@ import com.google.dart.tools.ui.cleanup.ICleanUpConfigurationUI;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpConstants;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRegistry.CleanUpTabPageDescriptor;
 import com.google.dart.tools.ui.internal.cleanup.preference.ProfileManager.Profile;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -116,7 +116,7 @@ public class CleanUpModifyDialog extends ModifyDialog {
    */
   @Override
   protected String getHelpContextId() {
-    return IJavaHelpContextIds.CLEAN_UP_PREFERENCE_PAGE;
+    return DartHelpContextIds.CLEAN_UP_PREFERENCE_PAGE;
   }
 
   private void updateCountLabel() {

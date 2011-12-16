@@ -19,7 +19,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.IJavaEditorActionDefinitionIds;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -43,7 +43,7 @@ public class ToggleTextHoverAction extends TextEditorAction implements IProperty
     DartPluginImages.setToolImageDescriptors(this, "jdoc_hover_edit.gif"); //$NON-NLS-1$
     setActionDefinitionId(IJavaEditorActionDefinitionIds.TOGGLE_TEXT_HOVER);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-        IJavaHelpContextIds.TOGGLE_TEXTHOVER_ACTION);
+        DartHelpContextIds.TOGGLE_TEXTHOVER_ACTION);
     update();
   }
 

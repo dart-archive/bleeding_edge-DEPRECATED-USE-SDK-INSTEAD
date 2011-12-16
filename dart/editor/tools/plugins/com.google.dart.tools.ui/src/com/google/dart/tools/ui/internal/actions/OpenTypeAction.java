@@ -23,7 +23,7 @@ import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartUIMessages;
 import com.google.dart.tools.ui.internal.dialogs.OpenTypeSelectionDialog;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -63,7 +63,7 @@ public class OpenTypeAction extends Action implements IWorkbenchWindowActionDele
     setDescription(DartUIMessages.OpenTypeAction_description);
     setToolTipText(DartUIMessages.OpenTypeAction_tooltip);
     setImageDescriptor(DartPluginImages.DESC_TOOL_OPENTYPE);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.OPEN_TYPE_ACTION);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.OPEN_TYPE_ACTION);
   }
 
   @Override

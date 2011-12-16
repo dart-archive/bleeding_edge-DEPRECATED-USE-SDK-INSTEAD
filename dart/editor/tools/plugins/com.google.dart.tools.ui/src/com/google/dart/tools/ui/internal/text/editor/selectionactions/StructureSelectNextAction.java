@@ -18,7 +18,7 @@ import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.SelectionAnalyzer;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
@@ -79,7 +79,7 @@ public class StructureSelectNextAction extends StructureSelectionAction {
     setToolTipText(SelectionActionMessages.StructureSelectNext_tooltip);
     setDescription(SelectionActionMessages.StructureSelectNext_description);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-        IJavaHelpContextIds.STRUCTURED_SELECT_NEXT_ACTION);
+        DartHelpContextIds.STRUCTURED_SELECT_NEXT_ACTION);
   }
 
   /*

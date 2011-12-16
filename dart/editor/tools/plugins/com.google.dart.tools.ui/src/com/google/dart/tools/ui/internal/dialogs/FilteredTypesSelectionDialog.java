@@ -40,7 +40,7 @@ import com.google.dart.tools.ui.dialogs.ITypeInfoFilterExtension;
 import com.google.dart.tools.ui.dialogs.ITypeInfoImageProvider;
 import com.google.dart.tools.ui.dialogs.ITypeSelectionComponent;
 import com.google.dart.tools.ui.dialogs.TypeSelectionExtension;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.Strings;
 import com.google.dart.tools.ui.internal.util.TypeNameMatchLabelProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredDartElementLabels;
@@ -1161,7 +1161,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       scope = SearchScopeFactory.createWorkspaceScope();
     }
     PlatformUI.getWorkbench().getHelpSystem().setHelp(shell,
-        IJavaHelpContextIds.TYPE_SELECTION_DIALOG2);
+        DartHelpContextIds.TYPE_SELECTION_DIALOG2);
 
     fElementKinds = elementKinds;
     fExtension = extension;

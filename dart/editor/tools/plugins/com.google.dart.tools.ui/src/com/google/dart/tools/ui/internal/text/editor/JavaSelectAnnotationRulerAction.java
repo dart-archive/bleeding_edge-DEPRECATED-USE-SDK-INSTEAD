@@ -18,7 +18,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IDocument;
@@ -67,7 +67,7 @@ public class JavaSelectAnnotationRulerAction extends SelectMarkerRulerAction {
     fStore = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
 
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-        IJavaHelpContextIds.JAVA_SELECT_MARKER_RULER_ACTION);
+        DartHelpContextIds.JAVA_SELECT_MARKER_RULER_ACTION);
   }
 
   @Override

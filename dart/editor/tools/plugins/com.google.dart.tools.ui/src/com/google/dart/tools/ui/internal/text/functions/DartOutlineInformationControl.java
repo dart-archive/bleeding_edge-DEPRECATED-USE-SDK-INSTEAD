@@ -27,7 +27,7 @@ import com.google.dart.tools.ui.OverrideIndicatorLabelDecorator;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.StandardDartElementContentProvider;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.StringMatcher;
 import com.google.dart.tools.ui.internal.viewsupport.AppearanceAwareLabelProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
@@ -91,7 +91,7 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
       boolean checked = getDialogSettings().getBoolean(STORE_LEXICAL_SORTING_CHECKED);
       setChecked(checked);
       PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-          IJavaHelpContextIds.LEXICAL_SORTING_BROWSING_ACTION);
+          DartHelpContextIds.LEXICAL_SORTING_BROWSING_ACTION);
     }
 
     @Override
@@ -416,7 +416,7 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 //          "gointo_toplevel_type.gif"); //$NON-NLS-1$
 //
 //      PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-//          IJavaHelpContextIds.GO_INTO_TOP_LEVEL_TYPE_ACTION);
+//          DartHelpContextIds.GO_INTO_TOP_LEVEL_TYPE_ACTION);
 //
 //      fOutlineViewer = outlineViewer;
 //
@@ -475,7 +475,7 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
       fOutlineViewer = outlineViewer;
 
       PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-          IJavaHelpContextIds.SORT_BY_DEFINING_TYPE_ACTION);
+          DartHelpContextIds.SORT_BY_DEFINING_TYPE_ACTION);
 
       boolean state = getDialogSettings().getBoolean(STORE_SORT_BY_DEFINING_TYPE_CHECKED);
       setChecked(state);

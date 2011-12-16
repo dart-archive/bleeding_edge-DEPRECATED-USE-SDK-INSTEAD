@@ -22,7 +22,7 @@ import com.google.dart.tools.ui.internal.dialogs.StatusUtil;
 import com.google.dart.tools.ui.internal.dialogs.fields.DialogField;
 import com.google.dart.tools.ui.internal.dialogs.fields.IDialogFieldListener;
 import com.google.dart.tools.ui.internal.dialogs.fields.SelectionButtonDialogField;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.Dialog;
@@ -83,7 +83,7 @@ public class AppearancePreferencePage extends PreferencePage implements IWorkben
   public void createControl(Composite parent) {
     super.createControl(parent);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(),
-        IJavaHelpContextIds.APPEARANCE_PREFERENCE_PAGE);
+        DartHelpContextIds.APPEARANCE_PREFERENCE_PAGE);
   }
 
   /*

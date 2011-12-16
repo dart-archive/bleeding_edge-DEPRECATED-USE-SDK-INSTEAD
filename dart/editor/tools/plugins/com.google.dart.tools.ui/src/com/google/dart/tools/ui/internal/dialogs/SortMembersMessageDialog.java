@@ -23,7 +23,7 @@ import com.google.dart.tools.ui.internal.dialogs.fields.DialogField;
 import com.google.dart.tools.ui.internal.dialogs.fields.IDialogFieldListener;
 import com.google.dart.tools.ui.internal.dialogs.fields.LayoutUtil;
 import com.google.dart.tools.ui.internal.dialogs.fields.SelectionButtonDialogField;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -114,7 +114,7 @@ public class SortMembersMessageDialog extends OptionalMessageDialog {
   protected Control createContents(Composite parent) {
     Control contents = super.createContents(parent);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(parent,
-        IJavaHelpContextIds.SORT_MEMBERS_DIALOG);
+        DartHelpContextIds.SORT_MEMBERS_DIALOG);
     return contents;
   }
 

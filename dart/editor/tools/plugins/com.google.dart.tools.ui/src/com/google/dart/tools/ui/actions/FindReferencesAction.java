@@ -20,7 +20,7 @@ import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.core.search.SearchScopeFactory;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.search.ElementQuerySpecification;
 import com.google.dart.tools.ui.search.QuerySpecification;
@@ -84,6 +84,6 @@ public class FindReferencesAction extends FindAction {
     setToolTipText(SearchMessages.Search_FindReferencesAction_tooltip);
     setImageDescriptor(DartPluginImages.DESC_OBJS_SEARCH_REF);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-        IJavaHelpContextIds.FIND_REFERENCES_IN_WORKSPACE_ACTION);
+        DartHelpContextIds.FIND_REFERENCES_IN_WORKSPACE_ACTION);
   }
 }

@@ -18,7 +18,7 @@ package com.google.dart.tools.ui.internal.dialogs;
 import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.dialogs.TypeSelectionExtension;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.operation.IRunnableContext;
@@ -52,7 +52,7 @@ public class OpenTypeSelectionDialog extends FilteredTypesSelectionDialog {
   protected void configureShell(Shell newShell) {
     super.configureShell(newShell);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(newShell,
-        IJavaHelpContextIds.OPEN_TYPE_DIALOG);
+        DartHelpContextIds.OPEN_TYPE_DIALOG);
   }
 
   /*

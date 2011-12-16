@@ -17,7 +17,7 @@ package com.google.dart.tools.ui.internal.actions;
 
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.actions.ActionMessages;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.Action;
@@ -38,7 +38,7 @@ public final class CollapseAllAction extends Action {
     Assert.isNotNull(viewer);
     setToolTipText(ActionMessages.CollapseAllAction_tooltip);
     setDescription(ActionMessages.CollapseAllAction_description);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.COLLAPSE_ALL_ACTION);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.COLLAPSE_ALL_ACTION);
     this.viewer = viewer;
   }
 

@@ -17,7 +17,7 @@ package com.google.dart.tools.ui.internal.actions;
 
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.actions.ActionMessages;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.ui.PlatformUI;
@@ -36,7 +36,7 @@ public abstract class AbstractToggleLinkingAction extends Action {
     setDescription(ActionMessages.ToggleLinkingAction_description);
     setToolTipText(ActionMessages.ToggleLinkingAction_tooltip);
     DartPluginImages.setLocalImageDescriptors(this, "synced.gif"); //$NON-NLS-1$		
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.LINK_EDITOR_ACTION);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.LINK_EDITOR_ACTION);
   }
 
   /**

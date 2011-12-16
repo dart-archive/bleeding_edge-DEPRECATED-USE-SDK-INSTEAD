@@ -22,7 +22,7 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.runtime.Assert;
@@ -180,10 +180,10 @@ public class GoToNextPreviousMemberAction extends Action implements IUpdate {
     update();
     if (isGotoNext) {
       PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-          IJavaHelpContextIds.GOTO_NEXT_MEMBER_ACTION);
+          DartHelpContextIds.GOTO_NEXT_MEMBER_ACTION);
     } else {
       PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-          IJavaHelpContextIds.GOTO_PREVIOUS_MEMBER_ACTION);
+          DartHelpContextIds.GOTO_PREVIOUS_MEMBER_ACTION);
     }
   }
 

@@ -23,7 +23,7 @@ import com.google.dart.tools.ui.DartUI;
  * This interface contains constants only; it is not intended to be implemented or extended.
  * </p>
  */
-public interface IJavaHelpContextIds {
+public interface DartHelpContextIds {
   public static final String PREFIX = DartUI.ID_PLUGIN + '.';
 
   // Actions

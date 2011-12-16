@@ -25,7 +25,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartUIMessages;
 import com.google.dart.tools.ui.Messages;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.internal.util.ViewerPane;
 import com.google.dart.tools.ui.internal.viewsupport.BindingLabelProvider;
@@ -371,7 +371,7 @@ public class OverrideMethodDialog extends SourceActionDialog {
   protected void configureShell(Shell newShell) {
     super.configureShell(newShell);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(newShell,
-        IJavaHelpContextIds.OVERRIDE_TREE_SELECTION_DIALOG);
+        DartHelpContextIds.OVERRIDE_TREE_SELECTION_DIALOG);
   }
 
   /*

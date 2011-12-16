@@ -18,7 +18,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.PreferenceConstants;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -46,7 +46,7 @@ public class ToggleMarkOccurrencesAction extends TextEditorAction implements
         "ToggleMarkOccurrencesAction.", null, IAction.AS_CHECK_BOX); //$NON-NLS-1$
     DartPluginImages.setToolImageDescriptors(this, "mark_occurrences.gif"); //$NON-NLS-1$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-        IJavaHelpContextIds.TOGGLE_MARK_OCCURRENCES_ACTION);
+        DartHelpContextIds.TOGGLE_MARK_OCCURRENCES_ACTION);
     update();
   }
 

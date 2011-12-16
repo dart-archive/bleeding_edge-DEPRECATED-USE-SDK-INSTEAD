@@ -16,7 +16,7 @@
 package com.google.dart.tools.ui.internal.cleanup.preference;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
@@ -44,7 +44,7 @@ public final class SaveParticipantPreferencePage extends
    */
   @Override
   protected String getHelpId() {
-    return IJavaHelpContextIds.JAVA_EDITOR_PREFERENCE_PAGE;
+    return DartHelpContextIds.JAVA_EDITOR_PREFERENCE_PAGE;
   }
 
   /**

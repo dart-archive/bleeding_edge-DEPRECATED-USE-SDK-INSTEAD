@@ -16,7 +16,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.ui.DartX;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.ITextOperationTarget;
@@ -43,7 +43,7 @@ public class DartSelectMarkerRulerAction2 extends SelectAnnotationRulerAction {
   public DartSelectMarkerRulerAction2(ResourceBundle bundle, String prefix, ITextEditor editor) {
     super(bundle, prefix, editor);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-        IJavaHelpContextIds.JAVA_SELECT_MARKER_RULER_ACTION);
+        DartHelpContextIds.JAVA_SELECT_MARKER_RULER_ACTION);
   }
 
   /*

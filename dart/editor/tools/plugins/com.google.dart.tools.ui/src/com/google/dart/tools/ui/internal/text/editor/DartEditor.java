@@ -35,7 +35,7 @@ import com.google.dart.tools.ui.actions.IJavaEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
 import com.google.dart.tools.ui.internal.text.dart.hover.SourceViewerInformationControl;
@@ -1986,7 +1986,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
 
     if (required == IContextProvider.class) {
-      return DartUIHelp.getHelpContextProvider(this, IJavaHelpContextIds.JAVA_EDITOR);
+      return DartUIHelp.getHelpContextProvider(this, DartHelpContextIds.JAVA_EDITOR);
     }
 
     return super.getAdapter(required);
@@ -2376,21 +2376,21 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     action.setActionDefinitionId(IJavaEditorActionDefinitionIds.SHOW_OUTLINE);
     setAction(IJavaEditorActionDefinitionIds.SHOW_OUTLINE, action);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
-        IJavaHelpContextIds.SHOW_OUTLINE_ACTION);
+        DartHelpContextIds.SHOW_OUTLINE_ACTION);
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "OpenStructure.", this, DartSourceViewer.OPEN_STRUCTURE, true); //$NON-NLS-1$
     action.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_STRUCTURE);
     setAction(IJavaEditorActionDefinitionIds.OPEN_STRUCTURE, action);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
-        IJavaHelpContextIds.OPEN_STRUCTURE_ACTION);
+        DartHelpContextIds.OPEN_STRUCTURE_ACTION);
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "OpenHierarchy.", this, DartSourceViewer.SHOW_HIERARCHY, true); //$NON-NLS-1$
     action.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_HIERARCHY);
     setAction(IJavaEditorActionDefinitionIds.OPEN_HIERARCHY, action);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
-        IJavaHelpContextIds.OPEN_HIERARCHY_ACTION);
+        DartHelpContextIds.OPEN_HIERARCHY_ACTION);
 
     fSelectionHistory = new SelectionHistory(this);
 
@@ -2590,7 +2590,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     ISourceViewer viewer = createDartSourceViewer(parent, verticalRuler, getOverviewRuler(),
         isOverviewRulerVisible(), styles, store);
 
-    DartUIHelp.setHelp(this, viewer.getTextWidget(), IJavaHelpContextIds.JAVA_EDITOR);
+    DartUIHelp.setHelp(this, viewer.getTextWidget(), DartHelpContextIds.JAVA_EDITOR);
 
     DartSourceViewer dartSourceViewer = null;
     if (viewer instanceof DartSourceViewer) {

@@ -19,7 +19,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.SelectionAnalyzer;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
@@ -38,7 +38,7 @@ public class StructureSelectEnclosingAction extends StructureSelectionAction {
     setToolTipText(SelectionActionMessages.StructureSelectEnclosing_tooltip);
     setDescription(SelectionActionMessages.StructureSelectEnclosing_description);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-        IJavaHelpContextIds.STRUCTURED_SELECT_ENCLOSING_ACTION);
+        DartHelpContextIds.STRUCTURED_SELECT_ENCLOSING_ACTION);
   }
 
   /*

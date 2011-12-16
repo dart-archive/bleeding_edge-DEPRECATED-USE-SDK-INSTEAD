@@ -24,7 +24,7 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.actions.WorkbenchRunnableAdapter;
 import com.google.dart.tools.ui.internal.dialogs.OptionalMessageDialog;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingContext;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartFormattingStrategy;
@@ -131,7 +131,7 @@ public class FormatAllAction extends SelectionDispatchAction {
     setToolTipText(ActionMessages.FormatAllAction_tooltip);
     setDescription(ActionMessages.FormatAllAction_description);
 
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.FORMAT_ALL);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.FORMAT_ALL);
   }
 
   /*

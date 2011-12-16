@@ -15,7 +15,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.Action;
@@ -33,7 +33,7 @@ public class GotoMatchingBracketAction extends Action {
     fEditor = editor;
     setEnabled(true);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-        IJavaHelpContextIds.GOTO_MATCHING_BRACKET_ACTION);
+        DartHelpContextIds.GOTO_MATCHING_BRACKET_ACTION);
   }
 
   @Override

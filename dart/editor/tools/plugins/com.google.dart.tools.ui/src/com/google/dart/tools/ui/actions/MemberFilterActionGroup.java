@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.actions;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.viewsupport.MemberFilter;
 import com.google.dart.tools.ui.internal.viewsupport.MemberFilterAction;
 
@@ -132,7 +132,7 @@ public class MemberFilterActionGroup extends ActionGroup {
         fFilter.addFilter(filterProperty);
       }
       title = ActionMessages.MemberFilterActionGroup_hide_fields_label;
-      helpContext = IJavaHelpContextIds.FILTER_FIELDS_ACTION;
+      helpContext = DartHelpContextIds.FILTER_FIELDS_ACTION;
       MemberFilterAction hideFields = new MemberFilterAction(this, title, filterProperty,
           helpContext, filterEnabled);
       hideFields.setDescription(ActionMessages.MemberFilterActionGroup_hide_fields_description);
@@ -149,7 +149,7 @@ public class MemberFilterActionGroup extends ActionGroup {
         fFilter.addFilter(filterProperty);
       }
       title = ActionMessages.MemberFilterActionGroup_hide_static_label;
-      helpContext = IJavaHelpContextIds.FILTER_STATIC_ACTION;
+      helpContext = DartHelpContextIds.FILTER_STATIC_ACTION;
       MemberFilterAction hideStatic = new MemberFilterAction(this, title, FILTER_STATIC,
           helpContext, filterEnabled);
       hideStatic.setDescription(ActionMessages.MemberFilterActionGroup_hide_static_description);
@@ -166,7 +166,7 @@ public class MemberFilterActionGroup extends ActionGroup {
 //        fFilter.addFilter(filterProperty);
 //      }
 //      title = ActionMessages.MemberFilterActionGroup_hide_localtypes_label;
-//      helpContext = IJavaHelpContextIds.FILTER_LOCALTYPES_ACTION;
+//      helpContext = DartHelpContextIds.FILTER_LOCALTYPES_ACTION;
 //      MemberFilterAction hideLocalTypes = new MemberFilterAction(this, title,
 //          filterProperty, helpContext, filterEnabled);
 //      hideLocalTypes.setDescription(ActionMessages.MemberFilterActionGroup_hide_localtypes_description);

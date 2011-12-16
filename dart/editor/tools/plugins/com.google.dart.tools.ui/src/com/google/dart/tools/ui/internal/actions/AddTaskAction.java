@@ -16,7 +16,7 @@
 package com.google.dart.tools.ui.internal.actions;
 
 import com.google.dart.tools.ui.actions.SelectionDispatchAction;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
@@ -30,7 +30,7 @@ public class AddTaskAction extends SelectionDispatchAction {
   public AddTaskAction(IWorkbenchSite site) {
     super(site);
     setEnabled(false);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.ADD_TASK_ACTION);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.ADD_TASK_ACTION);
   }
 
   @Override

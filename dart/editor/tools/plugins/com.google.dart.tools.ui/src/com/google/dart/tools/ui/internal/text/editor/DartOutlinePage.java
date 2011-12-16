@@ -36,7 +36,7 @@ import com.google.dart.tools.ui.ProblemsLabelDecorator.ProblemsLabelChangedEvent
 import com.google.dart.tools.ui.internal.actions.AbstractToggleLinkingAction;
 import com.google.dart.tools.ui.internal.libraryview.LibraryExplorerContentProvider;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
@@ -650,7 +650,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 //    public ClassOnlyAction() {
 //      super();
 //      PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-//          IJavaHelpContextIds.GO_INTO_TOP_LEVEL_TYPE_ACTION);
+//          DartHelpContextIds.GO_INTO_TOP_LEVEL_TYPE_ACTION);
 //      setText(DartEditorMessages.JavaOutlinePage_GoIntoTopLevelType_label);
 //      setToolTipText(DartEditorMessages.JavaOutlinePage_GoIntoTopLevelType_tooltip);
 //      setDescription(DartEditorMessages.JavaOutlinePage_GoIntoTopLevelType_description);
@@ -687,7 +687,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     public LexicalSortingAction() {
       super();
       PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-          IJavaHelpContextIds.LEXICAL_SORTING_OUTLINE_ACTION);
+          DartHelpContextIds.LEXICAL_SORTING_OUTLINE_ACTION);
       setText(DartEditorMessages.JavaOutlinePage_Sort_label);
       DartPluginImages.setLocalImageDescriptors(this, "alphab_sort_co.gif"); //$NON-NLS-1$
       setToolTipText(DartEditorMessages.JavaOutlinePage_Sort_tooltip);
@@ -752,7 +752,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
       fJavaOutlineViewer = viewer;
       PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-          IJavaHelpContextIds.COLLAPSE_ALL_ACTION);
+          DartHelpContextIds.COLLAPSE_ALL_ACTION);
     }
 
     @Override

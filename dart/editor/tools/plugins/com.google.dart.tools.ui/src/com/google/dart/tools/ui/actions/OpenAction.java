@@ -26,7 +26,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
@@ -91,7 +91,7 @@ public class OpenAction extends SelectionDispatchAction {
     setText(ActionMessages.OpenAction_label);
     setToolTipText(ActionMessages.OpenAction_tooltip);
     setDescription(ActionMessages.OpenAction_description);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.OPEN_ACTION);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.OPEN_ACTION);
   }
 
   /**

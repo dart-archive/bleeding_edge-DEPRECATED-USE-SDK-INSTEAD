@@ -18,7 +18,7 @@ import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.wizard.NewFileWizard;
 import com.google.dart.tools.ui.wizard.NewFileWizardPage;
 
@@ -51,7 +51,7 @@ public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements
     setToolTipText(ActionMessages.OpenNewFileWizardAction_tooltip);
     setImageDescriptor(DartPluginImages.DESC_TOOL_NEW_FILE);
     setId(ACTION_ID); //$NON-NLS-N$
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.OPEN_ACTION);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.OPEN_ACTION);
     window.getSelectionService().addSelectionListener(this);
   }
 

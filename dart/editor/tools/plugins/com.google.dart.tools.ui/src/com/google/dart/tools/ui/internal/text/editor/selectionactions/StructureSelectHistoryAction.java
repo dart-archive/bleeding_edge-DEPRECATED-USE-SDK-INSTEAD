@@ -16,7 +16,7 @@
 package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 
 import com.google.dart.tools.core.model.SourceRange;
-import com.google.dart.tools.ui.internal.text.IJavaHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.runtime.Assert;
@@ -38,7 +38,7 @@ public class StructureSelectHistoryAction extends Action implements IUpdate {
     fEditor = editor;
     update();
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-        IJavaHelpContextIds.STRUCTURED_SELECTION_HISTORY_ACTION);
+        DartHelpContextIds.STRUCTURED_SELECTION_HISTORY_ACTION);
   }
 
   @Override
