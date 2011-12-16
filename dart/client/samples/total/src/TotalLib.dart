@@ -51,3 +51,31 @@
 #source("Value.dart");
 #source("ValuePicker.dart");
 #source("ZoomTracker.dart");
+
+class Total {
+  static final int DEFAULT_VISIBLE_COLUMNS = 10;
+  static final int DEFAULT_VISIBLE_ROWS = 25;
+
+  Spreadsheet _spreadsheet;
+  SpreadsheetPresenter _presenter;
+
+  Total() {
+    Element recalcButton = document.query("#recalcButton");
+    recalcButton.innerHTML = "Recalculate";
+    recalcButton.on.click.add((Event e) {
+      _presenter.recalculateAll();
+    });
+  }
+
+  void run() {
+    _spreadsheet = new Spreadsheet();
+    SYLKReader reader = new SYLKReader();
+    reader.request("mortgage", (String data) {
+        reader.loadFromString(_spreadsheet, data);
+        _presenter = new SpreadsheetPresenter(_spreadsheet, window,
+            0, 0, DEFAULT_VISIBLE_ROWS, DEFAULT_VISIBLE_COLUMNS);
+        _spreadsheet.setListener(_presenter);
+        _presenter.recalculateViewport();
+      });
+  }
+}
