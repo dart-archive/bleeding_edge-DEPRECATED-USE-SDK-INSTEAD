@@ -2329,7 +2329,7 @@ WorldGenerator.prototype._prototypeOf = function(type, name) {
   }
   else if (type.get$isHiddenNativeType()) {
     this.corejs.ensureDynamicProto();
-    return ('\$dynamic("' + name + '").' + type.get$jsname());
+    return ('\$dynamic("' + name + '").' + type.get$definition().get$nativeType().get$name());
   }
   else {
     return ('' + type.get$jsname() + '.prototype.' + name);
@@ -2370,7 +2370,12 @@ WorldGenerator.prototype.writeType = function(type) {
       this.writer.writeln(('function ' + type.get$jsname() + '() {}'));
     }
     else if (type.get$jsname() != nativeName) {
-      this.writer.writeln(('' + type.get$jsname() + ' = ' + nativeName + ';'));
+      if (type.get$isHiddenNativeType()) {
+        this.writer.writeln(('function ' + type.get$jsname() + '() {}'));
+      }
+      else {
+        this.writer.writeln(('' + type.get$jsname() + ' = ' + nativeName + ';'));
+      }
     }
   }
   if (!type.get$isTop()) {

@@ -219,7 +219,7 @@ class WorldGenerator {
       return '${type.jsname}.$name';
     } else if (type.isHiddenNativeType) {
       corejs.ensureDynamicProto();
-      return '\$dynamic("$name").${type.jsname}';
+      return '\$dynamic("$name").${type.definition.nativeType.name}';
     } else {
       return '${type.jsname}.prototype.$name';
     }
@@ -274,7 +274,13 @@ class WorldGenerator {
       if (nativeName == '') {
         writer.writeln('function ${type.jsname}() {}');
       } else if (type.jsname != nativeName) {
-        writer.writeln('${type.jsname} = ${nativeName};');
+        if (type.isHiddenNativeType) {
+          // This is a holder for static methods.
+          // TODO(sra): Generate only if used.
+          writer.writeln('function ${type.jsname}() {}');
+        } else {
+          writer.writeln('${type.jsname} = ${nativeName};');
+        }
       }
     }
 
