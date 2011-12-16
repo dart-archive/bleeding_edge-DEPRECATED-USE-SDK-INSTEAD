@@ -13,6 +13,6 @@ class Test002sub extends Test002 {
 }
 
 class Test002def {
-  int a(b = 2, c = 5) {
+  int a(b, c) {
   }
 }

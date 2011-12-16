@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -47,7 +47,7 @@ public class Scanner {
 
     @Override
     protected void recordCommentLocation(int begin, int stop, int line, int col) {
-      int start = begin - 1;
+      int start = begin; // - 1;
       int size = commentLocs.size();
       if (size > 0) {
         // check for duplicates
@@ -249,7 +249,7 @@ public class Scanner {
    * <p>
    * NOTE: This destroys all internal scanner state. Do not use this method, for example, while
    * scanning string interpolation unless it is followed by restoreState().
-   * 
+   *
    * @param newStart the beginning index into <code>source</code>
    * @param newEnd the terminating index into <code>source</code>
    */
@@ -278,6 +278,13 @@ public class Scanner {
       // only prime at beginning, assuming scanner only reset backward
       getScanner().peek(0);
     }
+//    System.out.print("reset to: startPos = " + startPos);
+//    System.out.print(" endpos = " + endPos);
+//    System.out.print(" skipComments = " + skipComments);
+//    System.out.print(" startPosition = " + startPosition);
+//    System.out.print(" currentPosition = " + currentPosition);
+//    System.out.println(" currentCharacter = " + (char)currentCharacter);
+
   }
 
   /**
@@ -285,7 +292,7 @@ public class Scanner {
    * it should generally be used following a call to resetTo().
    * <p>
    * TODO Unify resetTo() and restoreState() someday.
-   * 
+   *
    * @param state a previously saved State object for the DartScanner
    */
   public void restoreState(DartScanner.State state) {
@@ -301,50 +308,6 @@ public class Scanner {
     this.sourceString = sourceString;
     source = sourceString.toCharArray();
     resetTo(0, source.length);
-  }
-
-  int getNextChar() {
-    // only called while formatting comments
-    try {
-      startPosition = currentPosition;
-      currentCharacter = source[currentPosition++];
-      nextTokenIsWhitespace = Character.isWhitespace(source[currentPosition]);
-      // The Dart scanner won't skip chars so we need to toss it and
-      // create a new one that starts scanning at the next char.
-      scanner = null;
-      startPos = currentPosition;
-    } catch (IndexOutOfBoundsException ex) {
-      currentCharacter = -1;
-      nextTokenIsWhitespace = false;
-    }
-    return currentCharacter;
-  }
-
-  boolean getNextChar(int ch) {
-    // no state change on failure
-    if (startPosition >= source.length) {
-      return false;
-    }
-    if (source[currentPosition] == ch) {
-      getNextChar();
-      return true;
-    }
-    return false;
-  }
-
-  void skipNewline() {
-    if (nextTokenIsWhitespace && currentCharacter == '\n') {
-      if (++currentPosition < source.length) {
-        currentCharacter = source[currentPosition];
-        nextTokenIsWhitespace = Character.isWhitespace(currentCharacter);
-      } else {
-        currentPosition -= 1;
-        currentCharacter = -1;
-        nextTokenIsWhitespace = false;
-      }
-      startPos = startPosition = currentPosition;
-      scanner = null;
-    }
   }
 
   private Token getNextComment() {
@@ -368,6 +331,13 @@ public class Scanner {
     Token tok = getScanner().next();
     startPosition = getScanner().getTokenLocation().getBegin().getPos();
     currentPosition = getScanner().getTokenLocation().getEnd().getPos();
+//    System.out.println("Scanner.getNextFromScanner {");
+//    System.out.print(" " + tok + "(" + getScanner().getTokenValue() + ")");
+//    System.out.println(" current loc " + getScanner().getTokenLocation().getBegin().toString());
+//    System.out.println(" next token = " + getScanner().peek(0));
+//    System.out.println(" startPos = " + startPosition);
+//    System.out.println(" currPos = " + currentPosition);
+//    System.out.println("}");
     if (tok == Token.EOS) {
       if (currentPosition < source.length) {
         throw new InvalidInputException();
@@ -410,6 +380,9 @@ public class Scanner {
   private DartScanner getScanner() {
     if (scanner == null) {
       scanner = new CommentScanner(sourceString, startPos, endPos);
+//      System.out.println("creating new comment scanner (" + startPos + "," +
+//          + endPos + ") hash: 0x" +
+//          Integer.toHexString(scanner.hashCode()));
     }
     return scanner;
   }
@@ -481,5 +454,49 @@ public class Scanner {
       }
     }
     return endOffset;
+  }
+
+  int getNextChar() {
+    // only called while formatting comments
+    try {
+      startPosition = currentPosition;
+      currentCharacter = source[currentPosition++];
+      nextTokenIsWhitespace = Character.isWhitespace(source[currentPosition]);
+      // The Dart scanner won't skip chars so we need to toss it and
+      // create a new one that starts scanning at the next char.
+      scanner = null;
+      startPos = currentPosition;
+    } catch (IndexOutOfBoundsException ex) {
+      currentCharacter = -1;
+      nextTokenIsWhitespace = false;
+    }
+    return currentCharacter;
+  }
+
+  boolean getNextChar(int ch) {
+    // no state change on failure
+    if (startPosition >= source.length) {
+      return false;
+    }
+    if (source[currentPosition] == ch) {
+      getNextChar();
+      return true;
+    }
+    return false;
+  }
+
+  void skipNewline() {
+    if (nextTokenIsWhitespace && currentCharacter == '\n') {
+      if (++currentPosition < source.length) {
+        currentCharacter = source[currentPosition];
+        nextTokenIsWhitespace = Character.isWhitespace(currentCharacter);
+      } else {
+        currentPosition -= 1;
+        currentCharacter = -1;
+        nextTokenIsWhitespace = false;
+      }
+      startPos = startPosition = currentPosition;
+      scanner = null;
+    }
   }
 }

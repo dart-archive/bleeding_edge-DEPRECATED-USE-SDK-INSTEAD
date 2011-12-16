@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -26,7 +26,9 @@ import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartConditional;
 import com.google.dart.compiler.ast.DartContinueStatement;
+import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartDefault;
+import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartEmptyStatement;
@@ -34,6 +36,7 @@ import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartForInStatement;
 import com.google.dart.compiler.ast.DartForStatement;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionExpression;
@@ -42,24 +45,32 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartGotoStatement;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIfStatement;
+import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartInitializer;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartLabel;
+import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartLiteral;
 import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMapLiteralEntry;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
+import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNativeBlock;
+import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartParameterizedNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
+import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartReturnStatement;
+import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
@@ -67,6 +78,8 @@ import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartSwitchMember;
 import com.google.dart.compiler.ast.DartSwitchStatement;
+import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
+import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartThrowStatement;
 import com.google.dart.compiler.ast.DartTryStatement;
@@ -138,7 +151,7 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
   long expressionsPos;
   int arrayInitializersDepth = -1;
 
-  private Scanner localScanner;
+  private final Scanner localScanner;
 
   // be careful to preserve comparison order
   private static Token[] TYPEREFERENCE_EXPECTEDTOKENS = {Token.VOID, Token.IDENTIFIER};
@@ -771,11 +784,23 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
   }
 
   @Override
+  public DartNode visitDeclaration(DartDeclaration<?> node) {
+
+    return null;
+  }
+
+  @Override
   public DartNode visitDefault(DartDefault node) {
     formatLabel(node.getLabel());
     scribe.printNextToken(Token.DEFAULT);
     scribe.printNextToken(Token.COLON, preferences.insert_space_before_colon_in_default);
     formatCaseStatements(node);
+    return null;
+  }
+
+  @Override
+  public DartNode visitDirective(DartDirective node) {
+
     return null;
   }
 
@@ -860,8 +885,20 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
   }
 
   @Override
+  public DartNode visitField(DartField node) {
+
+    return null;
+  }
+
+  @Override
   public DartNode visitFieldDefinition(DartFieldDefinition node) {
     format(node, this, false, false);
+    return null;
+  }
+
+  @Override
+  public DartNode visitForInStatement(DartForInStatement node) {
+
     return null;
   }
 
@@ -1231,6 +1268,18 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
   }
 
   @Override
+  public DartNode visitImportDirective(DartImportDirective node) {
+    scribe.printNextToken(Token.IMPORT);
+//    System.out.println("nextToken: " + scribe.scanner.peekNextToken());
+    scribe.printNextToken(Token.LPAREN);
+//    System.out.println("nextToken: " + scribe.scanner.peekNextToken());
+    scribe.printNextToken(Token.STRING, true);
+    scribe.printNextToken(Token.RPAREN);
+
+    return null;
+  }
+
+  @Override
   public DartNode visitInitializer(DartInitializer node) {
     scribe.printNextToken(Token.IDENTIFIER);
     scribe.printNextToken(Token.ASSIGN, preferences.insert_space_before_assignment_operator);
@@ -1282,6 +1331,12 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
     }
     final DartStatement statement = node.getStatement();
     statement.accept(this);
+    return null;
+  }
+
+  @Override
+  public DartNode visitLibraryDirective(DartLibraryDirective node) {
+
     return null;
   }
 
@@ -1480,10 +1535,22 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
   }
 
   @Override
+  public DartNode visitNamedExpression(DartNamedExpression node) {
+
+    return null;
+  }
+
+  @Override
   public DartNode visitNativeBlock(DartNativeBlock node) {
     scribe.space();
     scribe.printNextToken(Token.IDENTIFIER);
     scribe.printNextToken(Token.SEMICOLON);
+    return null;
+  }
+
+  @Override
+  public DartNode visitNativeDirective(DartNativeDirective node) {
+
     return null;
   }
 
@@ -1600,6 +1667,12 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
   }
 
   @Override
+  public DartNode visitParameterizedNode(DartParameterizedNode node) {
+
+    return null;
+  }
+
+  @Override
   public DartNode visitParenthesizedExpression(DartParenthesizedExpression node) {
     if (node.getExpression() != null) {
       node.getExpression().accept(this);
@@ -1615,6 +1688,19 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
     node.getQualifier().accept(this);
     scribe.printNextToken(Token.PERIOD);
     node.getName().accept(this);
+    return null;
+  }
+
+  @Override
+  public DartNode
+    visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
+
+    return null;
+  }
+
+  @Override
+  public DartNode visitResourceDirective(DartResourceDirective node) {
+
     return null;
   }
 
@@ -1635,6 +1721,12 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
      */
     scribe.printNextToken(Token.SEMICOLON, preferences.insert_space_before_semicolon);
     scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
+    return null;
+  }
+
+  @Override
+  public DartNode visitSourceDirective(DartSourceDirective node) {
+
     return null;
   }
 
@@ -1742,6 +1834,20 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
     if (switch_brace.equals(DefaultCodeFormatterConstants.NEXT_LINE_SHIFTED)) {
       scribe.unIndent();
     }
+    return null;
+  }
+
+  @Override
+  public DartNode
+    visitSyntheticErrorExpression(DartSyntheticErrorExpression node) {
+
+    return null;
+  }
+
+  @Override
+  public DartNode
+    visitSyntheticErrorStatement(DartSyntheticErrorStatement node) {
+
     return null;
   }
 
@@ -1868,6 +1974,8 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
     scribe.lastNumberOfNewLines = 1;
 
     // Set header end position
+    final List<DartDirective> directives =
+        compilationUnitDeclaration.getDirectives();
     final List<DartNode> types = compilationUnitDeclaration.getTopLevelNodes();
     int headerEndPosition = types == null || types.isEmpty()
         ? compilationUnitDeclaration.getSourceStart()
@@ -1877,10 +1985,29 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
 
     formatEmptyTypeDeclaration(true);
 
-    int blankLineBetweenTypeDeclarations = preferences.blank_lines_between_type_declarations;
+    /*
+     * Directives
+     */
+    if (preferences.blank_lines_before_imports != 0) {
+      scribe.printEmptyLines(preferences.blank_lines_before_imports);
+    }
+
+    if (directives != null && !directives.isEmpty()) {
+      for (DartDirective directive : directives) {
+        directive.accept(this);
+      }
+    }
+
+    if (preferences.blank_lines_after_imports != 0) {
+      scribe.printEmptyLines(preferences.blank_lines_after_imports);
+    } else {
+      scribe.printNewLine();
+    }
+
     /*
      * Top-level declarations
      */
+    int blankLineBetweenTypeDeclarations = preferences.blank_lines_between_type_declarations;
     if (types != null && !types.isEmpty()) {
       int typesLength = types.size();
       for (int i = 0; i < typesLength - 1; i++) {
@@ -2117,7 +2244,7 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
     scribe.printNextToken(Token.IDENTIFIER, true); // "class" or "interface"
     scribe.printNextToken(Token.IDENTIFIER, true); // print type name
     List<DartTypeParameter> typeParameters = typeDef.getTypeParameters();
-    if (typeParameters != null) {
+    if (typeParameters != null && !typeParameters.isEmpty()) {
       scribe.printNextToken(Token.LT,
           preferences.insert_space_before_opening_angle_bracket_in_type_parameters);
       if (preferences.insert_space_after_opening_angle_bracket_in_type_parameters) {
@@ -3274,5 +3401,4 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
     System.out.println("MISSING formatter for " + cls.getSimpleName() + " to handle " + node);
     return null;
   }
-
 }
