@@ -6,7 +6,7 @@ vars = {
   "multivm_url": "svn://svn.chromium.org/multivm/trunk",
   "dartium_chromium_revision": "8896",
   "dartium_webkit_revision": "8898",
-  "dartium_tools_revision": "2",
+  "dartium_tools_revision": "3",
   "dartium_closure_revision": "1519",
 
   # Use this googlecode_url variable only if there is an internal mirror for it.
