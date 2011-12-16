@@ -278,8 +278,7 @@ def main():
         return status
     finally:
       os.chdir(cwd)
-    if running_on_buildbot:
-      _CopySdk(buildos, revision, to_bucket, gsu)
+    _CopySdk(buildos, revision, to_bucket, gsu)
 
   if builder_name == 'dart-editor':
     buildos = None
@@ -490,7 +489,7 @@ def _SetAclOnArtifacts(to, bucket_tags, gsu):
 
 
 def _CopySdk(buildos, revision, bucket_to, gsu):
-  """copy the deployed SDK to the editor buckets.
+  """Copy the deployed SDK to the editor buckets.
 
   Args:
     buildos: the OS the build is running under
@@ -498,17 +497,18 @@ def _CopySdk(buildos, revision, bucket_to, gsu):
     bucket_to: the bucket to upload to
     gsu: the gsutil object
   """
-  print '_CopySdk({0}, {1}, gsu)'.format(buildos, revision)
-  gszip = 'dart-{0}-{1}.zip'.format(buildos, revision)
-  gssdkzip = 'gs://dart-dump-render-tree/sdk/{0}'.format(gszip)
-  gseditorzip = '{0}/{1}/{2}'.format(bucket_to, revision, gszip)
-  gseditorlatestzip = '{0}/{1}/{2}'.format(bucket_to, 'latest', gszip)
+  print '_CopySdk({0}, {1}, {2}, gsu)'.format(buildos, revision, bucket_to)
+  sdkfullzip = 'dart-{0}-{1}.zip'.format(buildos, revision)
+  sdkshortzip = 'dart-{0}.zip'.format(buildos)
+  gssdkzip = 'gs://dart-dump-render-tree/sdk/{0}'.format(sdkfullzip)
+  gseditorzip = '{0}/{1}/{2}'.format(bucket_to, revision, sdkshortzip)
+  gseditorlatestzip = '{0}/{1}/{2}'.format(bucket_to, 'latest', sdkshortzip)
 
   print 'copying {0} to {1}'.format(gssdkzip, gseditorzip)
   gsu.Copy(gssdkzip, gseditorzip)
   print 'copying {0} to {1}'.format(gssdkzip, gseditorlatestzip)
   gsu.Copy(gssdkzip, gseditorlatestzip)
-  _SetAclOnArtifacts(bucket_to, [gszip], gsu)
+  _SetAclOnArtifacts(bucket_to, [sdkshortzip], gsu)
 
 
 def _PrintSeparator(text):
