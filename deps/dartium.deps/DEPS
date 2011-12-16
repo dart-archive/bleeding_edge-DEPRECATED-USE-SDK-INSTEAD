@@ -3,7 +3,7 @@ vars = {
   "chromium_url": "http://src.chromium.org/svn",
   "dart_url": "http://dart.googlecode.com/svn",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
-  "dartium_chromium_revision": "9",
+  "dartium_chromium_revision": "10",
   "dartium_webkit_revision": "5",
   "dartium_tools_revision": "7",
   "dartium_closure_revision": "1519",
