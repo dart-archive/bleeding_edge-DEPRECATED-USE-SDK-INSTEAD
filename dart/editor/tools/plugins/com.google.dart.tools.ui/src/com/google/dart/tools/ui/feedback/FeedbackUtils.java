@@ -1,25 +1,29 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.tools.ui.DartToolsPlugin;
+
+import org.eclipse.swt.internal.Library;
+
+import java.lang.reflect.Field;
 import java.util.zip.CRC32;
 
 /**
  * Provides utility methods for feedback submission.
  */
+@SuppressWarnings("restriction")
 public class FeedbackUtils {
 
   /**
@@ -46,12 +50,29 @@ public class FeedbackUtils {
   }
 
   /**
+   * Get a String representation of editor version details. Minimally, this will include the build
+   * id. If a binary mismatch is detected (e.g., editor binary is 32 bit while the OS arch is 64
+   * bit) the current binary bit info will be appended as well.
+   * 
+   * @return a String representation of editor version details
+   */
+  public static String getEditorVersionDetails() {
+    String binaryDetails = null;
+    try {
+      binaryDetails = binaryMismatch() ? getBinaryString() : "";
+    } catch (Exception e) {
+      binaryDetails = "- <unable to detect binary type>";
+    }
+    return DartToolsPlugin.getBuildId() + binaryDetails;
+  }
+
+  /**
    * Get a String representation of the current OS.
    * 
    * @return a String representation of the current OS
    */
   public static String getOSName() {
-    return System.getProperty("os.name");
+    return System.getProperty("os.name") + " - " + getOSArch();
   }
 
   /**
@@ -74,6 +95,29 @@ public class FeedbackUtils {
     }
 
     return results;
+  }
+
+  private static boolean binaryMismatch() throws Exception {
+    return is64bitOS() != is64bitBinary();
+  }
+
+  private static String getBinaryString() throws Exception {
+    return " - *" + (is64bitBinary() ? "64" : "32") + " bit binary*";
+  }
+
+  private static String getOSArch() {
+    return System.getProperty("os.arch");
+  }
+
+  private static boolean is64bitBinary() throws Exception {
+    Class<Library> swtLibraryClass = Library.class;
+    Field is64 = swtLibraryClass.getDeclaredField("IS_64");
+    is64.setAccessible(true);
+    return is64.getBoolean(swtLibraryClass);
+  }
+
+  private static boolean is64bitOS() {
+    return getOSArch().contains("64");
   }
 
   /**
