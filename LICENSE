@@ -4,7 +4,6 @@ Dart are:
 
 JSCRE - in runtime/third_party/jscre
 Ant - in third_party/apache_ant
-Google App Engine for Java SDK - in third_party/appengine-java-sdk
 args4j - in third_party/args4j
 Chrome SDK - in third_party/chromesdk
 Eclipse - in third_party/eclipse
@@ -12,7 +11,6 @@ gsutil = in third_party/gsutil
 Guava - in third_party/guava
 hamcrest - in third_party/hamcrest
 Httplib2 - in third_party/httplib2
-Jetty - in third_party/jetty
 JSON - in third_party/json
 JUnit - in third_party/junit
 Ouath - in third_party/oauth2client
