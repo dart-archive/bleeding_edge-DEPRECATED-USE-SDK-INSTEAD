@@ -217,11 +217,6 @@ public class DartSearchQuery implements ISearchQuery {
           engine.searchReferences((DartFunction) element, scope, null, collector, monitor);
         } else if (element instanceof Type) {
           engine.searchReferences((Type) element, scope, null, collector, monitor);
-
-          //TODO (pquitslund): hack to force match results (for testing purposes)
-          //Next step, extract matches from the collector
-          textResult.addMatch(new DartElementMatch(element, 0, 0, 10, 0, false, false, false, false));
-
         } else {
           throw new UnsupportedOperationException("unsupported search type: " + element.getClass()); //$NON-NLS-1$
         }

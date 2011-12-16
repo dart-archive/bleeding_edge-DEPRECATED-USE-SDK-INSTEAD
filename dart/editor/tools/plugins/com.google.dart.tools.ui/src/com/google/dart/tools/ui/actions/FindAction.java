@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -22,6 +23,7 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.core.search.SearchScopeFactory;
+import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.search.ui.NewSearchUI;
 import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -29,7 +31,9 @@ import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.search.DartSearchQuery;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
+import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import com.google.dart.tools.ui.search.ElementQuerySpecification;
@@ -47,8 +51,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.progress.IProgressService;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
-
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Abstract class for Dart search actions.
@@ -119,38 +121,24 @@ public abstract class FindAction extends SelectionDispatchAction {
     if (!ActionUtil.isProcessable(editor)) {
       return;
     }
-    try {
-      String title = SearchMessages.SearchElementSelectionDialog_title;
-      String message = SearchMessages.SearchElementSelectionDialog_message;
-
-      DartElement[] elements = SelectionConverter.codeResolveForked(editor, true);
-      if (elements.length > 0 && canOperateOn(elements[0])) {
-        DartElement element = elements[0];
-        if (elements.length > 1) {
-          element = SelectionConverter.selectJavaElement(elements, getShell(), title, message);
-        }
-        if (element != null) {
-          run(element);
-        }
-      } else {
-        showOperationUnavailableDialog();
-      }
-    } catch (InvocationTargetException ex) {
-      boolean statusSet = false;
+    DartUnit ast = ((CompilationUnitEditor) editor).getAST();
+    CompilationUnit compilationUnit = (CompilationUnit) EditorUtility.getEditorInputJavaElement(
+        editor, false);
+    int offset = selection.getOffset();
+    DartElementLocator elementLocator = new DartElementLocator(compilationUnit, offset, true);
+    DartElement dartElement = elementLocator.searchWithin(ast);
+    if (dartElement == null) {
       if (editor != null) {
         IEditorStatusLine statusLine = (IEditorStatusLine) editor.getAdapter(IEditorStatusLine.class);
         if (statusLine != null) {
           statusLine.setMessage(true, SearchMessages.FindAction_unresolvable_selection, null);
-          statusSet = true;
         }
       }
-      if (!statusSet) {
-        String title = SearchMessages.Search_Error_search_title;
-        String message = SearchMessages.Search_Error_codeResolve;
-        ExceptionHandler.handle(ex, getShell(), title, message);
-      }
-    } catch (InterruptedException e) {
-      // ignore
+    }
+    if (canOperateOn(dartElement)) {
+      run(dartElement);
+    } else {
+      showOperationUnavailableDialog();
     }
   }
 
