@@ -150,7 +150,7 @@ public abstract class StructureSelectionAction extends Action {
    */
   @Override
   public final void run() {
-    DartElement inputElement = EditorUtility.getEditorInputJavaElement(fEditor, false);
+    DartElement inputElement = EditorUtility.getEditorInputDartElement(fEditor, false);
     if (!(inputElement instanceof SourceReference && inputElement.exists())) {
       return;
     }

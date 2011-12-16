@@ -78,7 +78,7 @@ public class DartElementProvider implements IInformationProvider, IInformationPr
         return element;
       }
 
-      return EditorUtility.getEditorInputJavaElement(fEditor, false);
+      return EditorUtility.getEditorInputDartElement(fEditor, false);
     } catch (DartModelException e) {
       return null;
     }

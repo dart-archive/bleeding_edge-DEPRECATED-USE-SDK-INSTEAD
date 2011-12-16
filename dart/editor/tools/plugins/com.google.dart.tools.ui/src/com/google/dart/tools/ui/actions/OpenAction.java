@@ -76,7 +76,7 @@ public class OpenAction extends SelectionDispatchAction {
     this(editor.getEditorSite());
     fEditor = editor;
     setText(ActionMessages.OpenAction_declaration_label);
-    setEnabled(EditorUtility.getEditorInputJavaElement(fEditor, false) != null);
+    setEnabled(EditorUtility.getEditorInputDartElement(fEditor, false) != null);
   }
 
   /**
@@ -160,7 +160,7 @@ public class OpenAction extends SelectionDispatchAction {
     if (!isProcessable()) {
       return;
     }
-    DartElement element = EditorUtility.getEditorInputJavaElement(fEditor, false);
+    DartElement element = EditorUtility.getEditorInputDartElement(fEditor, false);
     if (!(element instanceof CompilationUnit)) {
       return;
     }
@@ -319,7 +319,7 @@ public class OpenAction extends SelectionDispatchAction {
 
   private boolean isProcessable() {
     if (fEditor != null) {
-      DartElement de = EditorUtility.getEditorInputJavaElement(fEditor, false);
+      DartElement de = EditorUtility.getEditorInputDartElement(fEditor, false);
       if (de instanceof CompilationUnit && !DartModelUtil.isPrimary((CompilationUnit) de)) {
         return true; // can process non-primary working copies
       }

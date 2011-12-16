@@ -175,7 +175,7 @@ public abstract class AbstractDartWizardPage extends WizardPage {
       element = ((TreeSelection) selectedFolder).getFirstElement();
     }
     if (element == null) {
-      element = EditorUtility.getActiveEditorJavaInput();
+      element = EditorUtility.getActiveEditorDartInput();
     }
     if (element != null) {
       if (element instanceof DartElement) {

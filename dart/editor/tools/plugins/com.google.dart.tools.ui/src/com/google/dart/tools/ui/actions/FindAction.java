@@ -122,7 +122,7 @@ public abstract class FindAction extends SelectionDispatchAction {
       return;
     }
     DartUnit ast = ((CompilationUnitEditor) editor).getAST();
-    CompilationUnit compilationUnit = (CompilationUnit) EditorUtility.getEditorInputJavaElement(
+    CompilationUnit compilationUnit = (CompilationUnit) EditorUtility.getEditorInputDartElement(
         editor, false);
     int offset = selection.getOffset();
     DartElementLocator elementLocator = new DartElementLocator(compilationUnit, offset, true);

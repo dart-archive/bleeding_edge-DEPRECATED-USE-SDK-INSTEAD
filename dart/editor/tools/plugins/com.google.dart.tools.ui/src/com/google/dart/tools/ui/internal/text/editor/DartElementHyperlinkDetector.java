@@ -64,7 +64,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
 
     int offset = region.getOffset();
 
-    CompilationUnit input = (CompilationUnit) EditorUtility.getEditorInputJavaElement(textEditor,
+    CompilationUnit input = (CompilationUnit) EditorUtility.getEditorInputDartElement(textEditor,
         false);
     if (input == null) {
       return null;

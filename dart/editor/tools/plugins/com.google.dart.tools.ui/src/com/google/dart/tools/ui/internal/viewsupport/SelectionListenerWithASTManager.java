@@ -87,7 +87,7 @@ public class SelectionListenerWithASTManager {
       if (fCurrentJob != null) {
         fCurrentJob.cancel();
       }
-      final DartElement input = EditorUtility.getEditorInputJavaElement(fPart, false);
+      final DartElement input = EditorUtility.getEditorInputDartElement(fPart, false);
       if (input == null) {
         return;
       }

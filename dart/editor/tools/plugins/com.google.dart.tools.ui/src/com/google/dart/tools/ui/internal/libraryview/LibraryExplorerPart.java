@@ -1104,7 +1104,7 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
   }
 
   private Object getInputFromEditor(IEditorInput editorInput) {
-    Object input = DartUI.getEditorInputJavaElement(editorInput);
+    Object input = DartUI.getEditorInputDartElement(editorInput);
     if (input instanceof CompilationUnit) {
       //CompilationUnit cu = (CompilationUnit) input;
       //if (!cu.getDartProject().isOnClasspath(cu)) { // test needed for Java files in non-source folders (bug 207839)

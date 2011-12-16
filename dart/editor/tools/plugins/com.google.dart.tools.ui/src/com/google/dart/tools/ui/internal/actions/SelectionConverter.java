@@ -305,7 +305,7 @@ public class SelectionConverter {
     if (editor == null) {
       return null;
     }
-    return EditorUtility.getEditorInputJavaElement(editor, primaryOnly);
+    return EditorUtility.getEditorInputDartElement(editor, primaryOnly);
   }
 
   private static DartElement[] performForkedCodeResolve(final DartEditor editor,

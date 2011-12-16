@@ -91,7 +91,7 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
       if (fCollector != null) {
         fCU = fCollector.getCompilationUnit();
       } else {
-        DartElement je = EditorUtility.getEditorInputJavaElement(fEditor, false);
+        DartElement je = EditorUtility.getEditorInputDartElement(fEditor, false);
         if (je instanceof CompilationUnit) {
           fCU = (CompilationUnit) je;
         }

@@ -2879,7 +2879,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @return the Dart element wrapped by this editors input.
    */
   protected DartElement getInputDartElement() {
-    return EditorUtility.getEditorInputJavaElement(this, false);
+    return EditorUtility.getEditorInputDartElement(this, false);
   }
 
   /**
@@ -3787,7 +3787,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private IPreferenceStore createCombinedPreferenceStore(IEditorInput input) {
     List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
 
-    DartProject project = EditorUtility.getJavaProject(input);
+    DartProject project = EditorUtility.getDartProject(input);
     if (project != null) {
       stores.add(new EclipsePreferencesAdapter(new ProjectScope(project.getProject()),
           DartCore.PLUGIN_ID));

@@ -80,7 +80,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A number of routines for working with JavaElements in editors. Use 'isOpenInEditor' to test if an
+ * A number of routines for working with DartElements in editors. Use 'isOpenInEditor' to test if an
  * element is already open in a editor Use 'openInEditor' to force opening an element in a editor
  * With 'getWorkingCopy' you get the working copy (element in the editor) of an element
  */
@@ -116,20 +116,41 @@ public class EditorUtility {
   }
 
   /**
-   * If the current active editor edits a java element return it, else return null
+   * If the current active editor edits a Dart element return it, else return null
    */
-  public static DartElement getActiveEditorJavaInput() {
+  public static DartElement getActiveEditorDartInput() {
     IWorkbenchPage page = DartToolsPlugin.getActivePage();
     if (page != null) {
       IEditorPart part = page.getActiveEditor();
       if (part != null) {
         IEditorInput editorInput = part.getEditorInput();
         if (editorInput != null) {
-          return DartUI.getEditorInputJavaElement(editorInput);
+          return DartUI.getEditorInputDartElement(editorInput);
         }
       }
     }
     return null;
+  }
+
+  /**
+   * Returns the Dart project for a given editor input or <code>null</code> if no corresponding Dart
+   * project exists.
+   * 
+   * @param input the editor input
+   * @return the corresponding Dart project
+   */
+  public static DartProject getDartProject(IEditorInput input) {
+    DartProject jProject = null;
+    if (input instanceof IFileEditorInput) {
+      IProject project = ((IFileEditorInput) input).getFile().getProject();
+      if (project != null) {
+        jProject = DartCore.create(project);
+        if (!jProject.exists()) {
+          jProject = null;
+        }
+      }
+    }
+    return jProject;
   }
 
   /**
@@ -160,7 +181,7 @@ public class EditorUtility {
   }
 
   /**
-   * Returns the editors to save before performing global Java-related operations.
+   * Returns the editors to save before performing global Dart-related operations.
    * 
    * @param saveUnknownEditors <code>true</code> iff editors with unknown buffer management should
    *          also be saved
@@ -226,46 +247,25 @@ public class EditorUtility {
   }
 
   /**
-   * Returns the given editor's input as Java element.
+   * Returns the given editor's input as Dart element.
    * 
    * @param editor the editor
    * @param primaryOnly if <code>true</code> only primary working copies will be returned
-   * @return the given editor's input as Java element or <code>null</code> if none
+   * @return the given editor's input as Dart element or <code>null</code> if none
    */
-  public static DartElement getEditorInputJavaElement(IEditorPart editor, boolean primaryOnly) {
+  public static DartElement getEditorInputDartElement(IEditorPart editor, boolean primaryOnly) {
     Assert.isNotNull(editor);
     IEditorInput editorInput = editor.getEditorInput();
     if (editorInput == null) {
       return null;
     }
 
-    DartElement je = DartUI.getEditorInputJavaElement(editorInput);
+    DartElement je = DartUI.getEditorInputDartElement(editorInput);
     if (je != null || primaryOnly) {
       return je;
     }
 
     return DartToolsPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(editorInput, false);
-  }
-
-  /**
-   * Returns the Java project for a given editor input or <code>null</code> if no corresponding Java
-   * project exists.
-   * 
-   * @param input the editor input
-   * @return the corresponding Java project
-   */
-  public static DartProject getJavaProject(IEditorInput input) {
-    DartProject jProject = null;
-    if (input instanceof IFileEditorInput) {
-      IProject project = ((IFileEditorInput) input).getFile().getProject();
-      if (project != null) {
-        jProject = DartCore.create(project);
-        if (!jProject.exists()) {
-          jProject = null;
-        }
-      }
-    }
-    return jProject;
   }
 
   /**
@@ -317,7 +317,7 @@ public class EditorUtility {
   }
 
   /**
-   * Opens a Java editor for an element such as <code>DartElement</code>, <code>IFile</code>, or
+   * Opens a Dart editor for an element such as <code>DartElement</code>, <code>IFile</code>, or
    * <code>IStorage</code>. The editor is activated by default.
    * 
    * @return an open editor or <code>null</code> if an external editor was opened
@@ -392,7 +392,7 @@ public class EditorUtility {
         if (page != null) {
           IEditorPart editor = page.getActiveEditor();
           if (editor != null) {
-            DartElement editorCU = EditorUtility.getEditorInputJavaElement(editor, false);
+            DartElement editorCU = EditorUtility.getEditorInputDartElement(editor, false);
             if (cu.equals(editorCU)) {
               if (activate && page.getActivePart() != editor) {
                 page.activate(editor);
@@ -413,7 +413,7 @@ public class EditorUtility {
   }
 
   /**
-   * Selects a Java Element in an editor
+   * Selects a Dart Element in an editor
    */
   public static void revealInEditor(IEditorPart part, DartElement element) {
     if (element == null) {
@@ -425,7 +425,7 @@ public class EditorUtility {
       return;
     }
 
-    // Support for non-Java editor
+    // Support for non-Dart editor
     try {
       SourceRange range = null;
       DartX.todo();
@@ -630,9 +630,9 @@ public class EditorUtility {
       return saveUnknownEditors;
     }
 
-    DartElement javaElement = DartCore.create(resource);
-    if (javaElement instanceof CompilationUnit) {
-      CompilationUnit cu = (CompilationUnit) javaElement;
+    DartElement dartElement = DartCore.create(resource);
+    if (dartElement instanceof CompilationUnit) {
+      CompilationUnit cu = (CompilationUnit) dartElement;
       if (!cu.isWorkingCopy()) {
         return true;
       }

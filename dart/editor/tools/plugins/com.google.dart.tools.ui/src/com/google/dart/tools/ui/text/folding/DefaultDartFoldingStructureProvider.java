@@ -1324,7 +1324,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     if (fEditor == null) {
       return null;
     }
-    return EditorUtility.getEditorInputJavaElement(fEditor, false);
+    return EditorUtility.getEditorInputDartElement(fEditor, false);
   }
 
   private ProjectionAnnotationModel getModel() {
