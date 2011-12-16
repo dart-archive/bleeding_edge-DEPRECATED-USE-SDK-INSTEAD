@@ -3569,7 +3569,12 @@ MethodGenerator.prototype.visitCallExpression = function(node) {
   var name = ':call';
   if ((node.target instanceof DotExpression)) {
     var dot = node.target;
-    target = dot.self.visit(this);
+    if ((dot.self instanceof LiteralExpression)) {
+      target = (new ParenExpression(dot.self, dot.self.span)).visit(this);
+    }
+    else {
+      target = dot.self.visit(this);
+    }
     name = dot.name.name;
     position = dot.name;
   }

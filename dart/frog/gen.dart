@@ -1783,7 +1783,11 @@ class MethodGenerator implements TreeVisitor {
     var name = ':call';
     if (node.target is DotExpression) {
       DotExpression dot = node.target;
-      target = dot.self.visit(this);
+      if (dot.self is LiteralExpression) {
+        target = (new ParenExpression(dot.self, dot.self.span)).visit(this);
+      } else {
+        target = dot.self.visit(this);
+      }
       name = dot.name.name;
       position = dot.name;
     } else if (node.target is VarExpression) {
