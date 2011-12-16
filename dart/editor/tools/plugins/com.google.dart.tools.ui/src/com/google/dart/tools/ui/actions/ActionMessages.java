@@ -247,7 +247,6 @@ public final class ActionMessages extends NLS {
   public static String DeployOptimizedAction_Compiling;
   public static String DeployOptimizedAction_title;
   public static String DeployOptimizedAction_description;
-  public static String DeployOptimizedAction_DoneFail;
   public static String DeployOptimizedAction_DoneSuccess;
   public static String DeployOptimizedAction_tooltip;
   public static String DeployOptimizedAction_jobTitle;
