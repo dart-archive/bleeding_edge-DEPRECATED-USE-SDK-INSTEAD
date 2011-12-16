@@ -45,11 +45,8 @@ D8 = GetD8()
 def execute(cmd):
   """Execute a command in a subprocess. """
   try:
-    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = pipe.communicate()
-    if out is not None: sys.stdout.write(out)
-    if err is not None: sys.stderr.write(err)
-    return pipe.returncode
+    proc = subprocess.Popen(cmd, stdout=sys.stdout, stderr=sys.stderr)
+    return proc.wait()
   except Exception as e:
     print 'Exception when executing: ' + ' '.join(cmd)
     print e
