@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.frog;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -22,5 +21,5 @@ import java.io.IOException;
  * Class for handling responses from requests made of a {@link FrogServer}.
  */
 public abstract class ResponseHandler {
-  public abstract void response(JSONObject response) throws IOException, JSONException;
+  public abstract void response(ResponseObject response) throws IOException, JSONException;
 }

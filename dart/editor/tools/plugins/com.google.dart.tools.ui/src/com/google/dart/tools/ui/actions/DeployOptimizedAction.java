@@ -19,6 +19,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.frog.FrogManager;
 import com.google.dart.tools.core.frog.ResponseHandler;
+import com.google.dart.tools.core.frog.ResponseObject;
 import com.google.dart.tools.core.internal.builder.CompileOptimized;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -51,7 +52,6 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,30 +72,33 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
     }
 
     @Override
-    public void response(JSONObject response) throws IOException, JSONException {
-      // process response
-      // TODO(keertip): show only the warnings/errors that are in the user code
-      String kind = response.getString("kind"); //$NON-NLS-1$
-      if (kind.equals("message")) { //$NON-NLS-1$
-        String prefix = response.getString("prefix"); //$NON-NLS-1$
-        String fileName = "";
-        JSONObject span = response.getJSONObject("span"); //$NON-NLS-1$
-        if (!span.equals("null")) { //$NON-NLS-1$
-          fileName = span.getString("file"); //$NON-NLS-1$
+    public void response(ResponseObject response) throws IOException, JSONException {
+
+      try {
+        // process response
+        String kind = response.getKind();
+        if (kind.equals("message")) { //$NON-NLS-1$
+          String prefix = response.getPrefix();
+          String fileName = "";
+          if (response.hasSpan()) {
+            fileName = response.getFileName();
+          }
+          DartCore.getConsole().println(
+              prefix + (fileName.length() == 0 ? "" : fileName + " ") + response.getMessage());
+        } else if (kind.equals("done")) { //$NON-NLS-1$
+
+          if (!response.isTrueResult()) {
+            status = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
+                ActionMessages.DeployOptimizedAction_Fail, null);
+          }
         }
-        DartCore.getConsole().println(
-            prefix + (fileName.length() == 0 ? "" : fileName + " ") + response.getString("message")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-      } else if (kind.equals("done")) { //$NON-NLS-1$
-        String result = response.getString("result"); //$NON-NLS-1$
-        if (!result.equals("true")) { //$NON-NLS-1$
-          status = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
-              ActionMessages.DeployOptimizedAction_Fail, null);
-        }
+      } catch (JSONException e) {
+        throw (e);
+      } finally {
         synchronized (done) {
           done.notifyAll();
         }
       }
-
     }
 
   }

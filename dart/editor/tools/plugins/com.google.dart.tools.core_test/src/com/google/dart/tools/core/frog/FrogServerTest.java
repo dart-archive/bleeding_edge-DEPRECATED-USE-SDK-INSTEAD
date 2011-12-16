@@ -29,7 +29,7 @@ public class FrogServerTest extends TestCase {
   public void test_FrogServer_compile() throws Exception {
     server.compile(new Path("path/to/dart/app/file.dart"), null, new ResponseHandler() {
       @Override
-      public void response(JSONObject response) throws IOException, JSONException {
+      public void response(ResponseObject response) throws IOException, JSONException {
         FrogServerTest.this.response = response;
         synchronized (lock) {
           lock.notifyAll();
@@ -42,7 +42,7 @@ public class FrogServerTest extends TestCase {
     assertNotNull(response);
     server.compile(new Path("path/to/dart/app/file2.dart"), null, new ResponseHandler() {
       @Override
-      public void response(JSONObject response) throws IOException, JSONException {
+      public void response(ResponseObject response) throws IOException, JSONException {
         FrogServerTest.this.response = response;
         synchronized (lock) {
           lock.notifyAll();

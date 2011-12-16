@@ -35,7 +35,7 @@ import java.util.Map;
 public class FrogServer {
   private final class NullResponseHandler extends ResponseHandler {
     @Override
-    public void response(JSONObject response) throws IOException, JSONException {
+    public void response(ResponseObject response) throws IOException, JSONException {
       // ignored
     }
   }
@@ -114,11 +114,11 @@ public class FrogServer {
       readBytes(messageBuf, messageLen);
       String message = new String(messageBuf, 0, messageLen, utf8Charset);
       System.out.println(message);
-      JSONObject response;
+      ResponseObject response;
       try {
-        response = new JSONObject(message);
-        int id = response.getInt("id");
-        String kind = response.getString("kind");
+        response = new ResponseObject(message);
+        int id = response.getId();
+        String kind = response.getKind();
         ResponseHandler handler;
         if (kind.equals("done")) {
           handler = responseHandlers.remove(id);
