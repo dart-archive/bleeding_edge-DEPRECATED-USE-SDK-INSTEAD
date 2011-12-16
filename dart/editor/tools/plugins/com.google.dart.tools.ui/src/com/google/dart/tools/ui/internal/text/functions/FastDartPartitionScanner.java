@@ -26,6 +26,52 @@ import org.eclipse.jface.text.rules.Token;
  * multi-line strings, in addition to the default.
  */
 public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPartitions {
+  private enum ScannerState {
+    //
+    // Final states corresponding to partitions.
+    //
+    CODE(CODE_TOKEN), //
+    SINGLE_LINE_COMMENT(SINGLE_LINE_COMMENT_TOKEN), //
+    MULTI_LINE_COMMENT(MULTI_LINE_COMMENT_TOKEN), //
+    DOC_COMMENT(DOC_COMMENT_TOKEN), //
+    STRING(STRING_TOKEN), //
+    MULTI_LINE_STRING(MULTI_LINE_STRING_TOKEN),
+    //
+    // Non-final states. The token type associated with these states is the type that will be
+    // returned if we are in the state at the end of the file.
+    //
+    SINGLE_LINE_COMMENT_PREFIX(SINGLE_LINE_COMMENT_TOKEN), //
+    MULTI_LINE_COMMENT_PREFIX(MULTI_LINE_COMMENT_TOKEN), //
+    DOC_COMMENT_PREFIX(DOC_COMMENT_TOKEN), //
+    RAW_STRING_PREFIX(STRING_TOKEN), //
+    STRING_PREFIX(STRING_TOKEN), //
+    RAW_MULTI_LINE_STRING_PREFIX(MULTI_LINE_STRING_TOKEN), //
+    MULTI_LINE_STRING_PREFIX(MULTI_LINE_STRING_TOKEN), //
+    SIMPLE_INTERPOLATION_PREFIX(CODE_TOKEN), //
+    SIMPLE_INTERPOLATION(CODE_TOKEN), //
+    BLOCK_INTERPOLATION_PREFIX(CODE_TOKEN), //
+    BLOCK_INTERPOLATION(CODE_TOKEN);
+
+    /**
+     * The token that will be returned to represent the state as a partition.
+     */
+    private IToken token;
+
+    /**
+     * Initialize a newly created state to have the given token.
+     * 
+     * @param token the token that will be returned to represent the state as a partition
+     */
+    private ScannerState(IToken token) {
+      this.token = token;
+    }
+  }
+
+  /**
+   * Instances of the class <code>StringState</code> represent the information about a string that
+   * is needed when we return to scanning that string, such as after completing an interpolation
+   * within a string.
+   */
   private static class StringState {
     /**
      * The state that was current before this state.
@@ -69,42 +115,34 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     }
   }
 
-  // states corresponding to partitions (used to do lookup in tokens)
-  private static final int CODE = 0;
-  private static final int SINGLE_LINE_COMMENT = 1;
-  private static final int MULTI_LINE_COMMENT = 2;
-  private static final int DOC_COMMENT = 3;
-  private static final int STRING = 4;
-  private static final int MULTI_LINE_STRING = 5;
-  // other states
-  private static final int SINGLE_LINE_COMMENT_PREFIX = 6;
-  private static final int MULTI_LINE_COMMENT_PREFIX = 7;
-  private static final int DOC_COMMENT_PREFIX = 8;
-  private static final int RAW_STRING_PREFIX = 9;
-  private static final int STRING_PREFIX = 10;
-  private static final int RAW_MULTI_LINE_STRING_PREFIX = 11;
-  private static final int MULTI_LINE_STRING_PREFIX = 12;
-  private static final int SIMPLE_INTERPOLATION_PREFIX = 13;
-  private static final int SIMPLE_INTERPOLATION = 14;
-  private static final int BLOCK_INTERPOLATION_PREFIX = 15;
-  private static final int BLOCK_INTERPOLATION = 16;
+  private static IToken CODE_TOKEN = new Token(null);
+  private static IToken SINGLE_LINE_COMMENT_TOKEN = new Token(DART_SINGLE_LINE_COMMENT);
+  private static IToken MULTI_LINE_COMMENT_TOKEN = new Token(DART_MULTI_LINE_COMMENT);
+  private static IToken DOC_COMMENT_TOKEN = new Token(DART_DOC);
+  private static IToken STRING_TOKEN = new Token(DART_STRING);
+  private static IToken MULTI_LINE_STRING_TOKEN = new Token(DART_MULTI_LINE_STRING);
 
-  private static int getState(String contentType) {
-
+  /**
+   * Return the scanner state corresponding to the given partition type.
+   * 
+   * @param contentType the partition type being converted to a scanner state
+   * @return the scanner state corresponding to the given partition type
+   */
+  private static ScannerState getState(String contentType) {
     if (contentType == null) {
-      return CODE;
+      return ScannerState.CODE;
     } else if (contentType.equals(DART_SINGLE_LINE_COMMENT)) {
-      return SINGLE_LINE_COMMENT;
+      return ScannerState.SINGLE_LINE_COMMENT;
     } else if (contentType.equals(DART_MULTI_LINE_COMMENT)) {
-      return MULTI_LINE_COMMENT;
+      return ScannerState.MULTI_LINE_COMMENT;
     } else if (contentType.equals(DART_DOC)) {
-      return DOC_COMMENT;
+      return ScannerState.DOC_COMMENT;
     } else if (contentType.equals(DART_STRING)) {
-      return STRING;
+      return ScannerState.STRING;
     } else if (contentType.equals(DART_MULTI_LINE_STRING)) {
-      return MULTI_LINE_STRING;
+      return ScannerState.MULTI_LINE_STRING;
     } else {
-      return CODE;
+      return ScannerState.CODE;
     }
   }
 
@@ -132,7 +170,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
   /**
    * The state of the scanner.
    */
-  private int scannerState;
+  private ScannerState scannerState;
 
   /**
    * The state of the string that we are currently parsing, or <code>null</code> if we are not
@@ -140,9 +178,10 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
    */
   private StringState stringState = null;
 
-  private final IToken[] tokens = new IToken[] {
-      new Token(null), new Token(DART_SINGLE_LINE_COMMENT), new Token(DART_MULTI_LINE_COMMENT),
-      new Token(DART_DOC), new Token(DART_STRING), new Token(DART_MULTI_LINE_STRING)};
+  /**
+   * The current nesting depth for block comments.
+   */
+  private int commentDepth = 0;
 
   public FastDartPartitionScanner() {
     // create the scanner
@@ -160,6 +199,14 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
 
   @Override
   public IToken nextToken() {
+    // Uncomment the code below for debugging output.
+//    IToken result = nextToken_internal();
+//    System.out.println(tokenOffset + " - " + (tokenOffset + tokenLength - 1) + " (" + tokenLength
+//        + ") : " + result.getData());
+//    return result;
+//  }
+//
+//  public IToken nextToken_internal() {
     tokenOffset += tokenLength;
     tokenLength = prefixLength;
     prefixLength = 0;
@@ -169,27 +216,37 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
         case SINGLE_LINE_COMMENT_PREFIX:
           advance();
           advance();
-          scannerState = SINGLE_LINE_COMMENT;
+          scannerState = ScannerState.SINGLE_LINE_COMMENT;
           break;
         case SINGLE_LINE_COMMENT:
           if (isEol(currentChar)) {
-            scannerState = CODE;
-            return tokens[SINGLE_LINE_COMMENT];
+            scannerState = getCodeLikeState();
+            return ScannerState.SINGLE_LINE_COMMENT.token;
           }
           advance();
           break;
         case MULTI_LINE_COMMENT_PREFIX:
           advance();
           advance();
-          scannerState = MULTI_LINE_COMMENT;
+          scannerState = ScannerState.MULTI_LINE_COMMENT;
+          commentDepth++;
           break;
         case MULTI_LINE_COMMENT:
           if (currentChar == '*') {
             advance();
             if (scanner.peek(0) == '/') {
               advance();
-              scannerState = CODE;
-              return tokens[MULTI_LINE_COMMENT];
+              commentDepth--;
+              if (commentDepth == 0) {
+                scannerState = getCodeLikeState();
+                return ScannerState.MULTI_LINE_COMMENT.token;
+              }
+            }
+          } else if (currentChar == '/') {
+            advance();
+            if (scanner.peek(0) == '*') {
+              advance();
+              commentDepth++;
             }
           } else {
             advance();
@@ -199,15 +256,25 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
           advance();
           advance();
           advance();
-          scannerState = DOC_COMMENT;
+          scannerState = ScannerState.DOC_COMMENT;
+          commentDepth++;
           break;
         case DOC_COMMENT:
           if (currentChar == '*') {
             advance();
             if (scanner.peek(0) == '/') {
               advance();
-              scannerState = CODE;
-              return tokens[DOC_COMMENT];
+              commentDepth--;
+              if (commentDepth == 0) {
+                scannerState = getCodeLikeState();
+                return ScannerState.DOC_COMMENT.token;
+              }
+            }
+          } else if (currentChar == '/') {
+            advance();
+            if (scanner.peek(0) == '*') {
+              advance();
+              commentDepth++;
             }
           } else {
             advance();
@@ -217,26 +284,18 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
           advance();
         case STRING_PREFIX:
           advance();
-          scannerState = STRING;
+          scannerState = ScannerState.STRING;
           break;
         case STRING:
           if (isEol(currentChar)) {
             stringState = stringState.previous;
-            if (stringState == null) {
-              scannerState = CODE;
-            } else {
-              scannerState = BLOCK_INTERPOLATION;
-            }
-            return tokens[STRING];
+            scannerState = getCodeLikeState();
+            return ScannerState.STRING.token;
           } else if (currentChar == stringState.quote) {
             advance();
             stringState = stringState.previous;
-            if (stringState == null) {
-              scannerState = CODE;
-            } else {
-              scannerState = BLOCK_INTERPOLATION;
-            }
-            return tokens[STRING];
+            scannerState = getCodeLikeState();
+            return ScannerState.STRING.token;
           } else if (currentChar == '\\') {
             advance();
             if (scanner.peek(0) == stringState.quote) {
@@ -244,11 +303,11 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
             }
           } else if (!stringState.raw && currentChar == '$') {
             if (scanner.peek(1) == '{') {
-              scannerState = BLOCK_INTERPOLATION_PREFIX;
+              scannerState = ScannerState.BLOCK_INTERPOLATION_PREFIX;
             } else {
-              scannerState = SIMPLE_INTERPOLATION_PREFIX;
+              scannerState = ScannerState.SIMPLE_INTERPOLATION_PREFIX;
             }
-            return tokens[STRING];
+            return ScannerState.STRING.token;
           } else {
             advance();
           }
@@ -259,7 +318,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
           advance();
           advance();
           advance();
-          scannerState = MULTI_LINE_STRING;
+          scannerState = ScannerState.MULTI_LINE_STRING;
           break;
         case MULTI_LINE_STRING:
           if (currentChar == stringState.quote) {
@@ -269,12 +328,8 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
               if (scanner.peek(0) == stringState.quote) {
                 advance();
                 stringState = stringState.previous;
-                if (stringState == null) {
-                  scannerState = CODE;
-                } else {
-                  scannerState = BLOCK_INTERPOLATION;
-                }
-                return tokens[MULTI_LINE_STRING];
+                scannerState = getCodeLikeState();
+                return ScannerState.MULTI_LINE_STRING.token;
               }
             }
           } else if (currentChar == '\\') {
@@ -284,45 +339,45 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
             }
           } else if (!stringState.raw && currentChar == '$') {
             if (scanner.peek(1) == '{') {
-              scannerState = BLOCK_INTERPOLATION_PREFIX;
+              scannerState = ScannerState.BLOCK_INTERPOLATION_PREFIX;
             } else {
-              scannerState = SIMPLE_INTERPOLATION_PREFIX;
+              scannerState = ScannerState.SIMPLE_INTERPOLATION_PREFIX;
             }
-            return tokens[MULTI_LINE_STRING];
+            return ScannerState.MULTI_LINE_STRING.token;
           } else {
             advance();
           }
           break;
         case SIMPLE_INTERPOLATION_PREFIX:
           advance();
-          scannerState = SIMPLE_INTERPOLATION;
+          scannerState = ScannerState.SIMPLE_INTERPOLATION;
           break;
         case SIMPLE_INTERPOLATION:
           if (!isIdentifierChar(currentChar)) {
             if (stringState.quoteCount == 1) {
-              scannerState = STRING;
+              scannerState = ScannerState.STRING;
             } else {
-              scannerState = MULTI_LINE_STRING;
+              scannerState = ScannerState.MULTI_LINE_STRING;
             }
-            return tokens[CODE];
+            return ScannerState.CODE.token;
           }
           advance();
           break;
         case BLOCK_INTERPOLATION_PREFIX:
           advance();
           advance();
-          scannerState = BLOCK_INTERPOLATION;
+          scannerState = ScannerState.BLOCK_INTERPOLATION;
           break;
         case BLOCK_INTERPOLATION:
           if (currentChar == '}') {
             if (stringState.braceCount == 0) {
               advance();
               if (stringState.quoteCount == 1) {
-                scannerState = STRING;
+                scannerState = ScannerState.STRING;
               } else {
-                scannerState = MULTI_LINE_STRING;
+                scannerState = ScannerState.MULTI_LINE_STRING;
               }
-              return tokens[CODE];
+              return ScannerState.CODE.token;
             } else {
               stringState.braceCount--;
             }
@@ -334,14 +389,14 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
           if (currentChar == '/') {
             int nextChar = scanner.peek(1);
             if (nextChar == '*') {
-              scannerState = MULTI_LINE_COMMENT_PREFIX;
+              scannerState = ScannerState.MULTI_LINE_COMMENT_PREFIX;
               if (scanner.peek(2) == '*' && scanner.peek(3) != '/') {
-                scannerState = DOC_COMMENT_PREFIX;
+                scannerState = ScannerState.DOC_COMMENT_PREFIX;
               }
-              return tokens[CODE];
+              return ScannerState.CODE.token;
             } else if (nextChar == '/') {
-              scannerState = SINGLE_LINE_COMMENT_PREFIX;
-              return tokens[CODE];
+              scannerState = ScannerState.SINGLE_LINE_COMMENT_PREFIX;
+              return ScannerState.CODE.token;
             } else {
               advance();
             }
@@ -352,12 +407,12 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
               int fourthChar = scanner.peek(3);
               if (thirdChar == secondChar && fourthChar == secondChar) {
                 stringState = new StringState(stringState, true, secondChar, 3);
-                scannerState = RAW_MULTI_LINE_STRING_PREFIX;
+                scannerState = ScannerState.RAW_MULTI_LINE_STRING_PREFIX;
               } else {
                 stringState = new StringState(stringState, true, secondChar, 1);
-                scannerState = RAW_STRING_PREFIX;
+                scannerState = ScannerState.RAW_STRING_PREFIX;
               }
-              return tokens[CODE];
+              return ScannerState.CODE.token;
             } else {
               advance();
             }
@@ -366,12 +421,12 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
             int thirdChar = scanner.peek(2);
             if (secondChar == currentChar && thirdChar == currentChar) {
               stringState = new StringState(stringState, false, currentChar, 3);
-              scannerState = MULTI_LINE_STRING_PREFIX;
+              scannerState = ScannerState.MULTI_LINE_STRING_PREFIX;
             } else {
               stringState = new StringState(stringState, false, currentChar, 1);
-              scannerState = STRING_PREFIX;
+              scannerState = ScannerState.STRING_PREFIX;
             }
-            return tokens[CODE];
+            return ScannerState.CODE.token;
           } else {
             advance();
           }
@@ -380,10 +435,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
       currentChar = scanner.peek(0);
     }
     if (tokenLength > 0) {
-      if (scannerState >= tokens.length) {
-        scannerState = CODE;
-      }
-      return tokens[scannerState];
+      return scannerState.token;
     }
     return Token.EOF;
   }
@@ -391,8 +443,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
   @Override
   public void setPartialRange(IDocument document, int offset, int length, String contentType,
       int partitionOffset) {
-    // scan multi line string from the beginning, so that the activeStringDelimiter 
-    // gets set
+    // Scan a multi-line string from the beginning, so that the active string delimiter gets set.
     if (contentType != null && contentType.equals(DART_MULTI_LINE_STRING)) {
       length += offset - partitionOffset;
       offset = partitionOffset;
@@ -404,7 +455,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
 
     if (offset == partitionOffset) {
       // restart at beginning of partition
-      scannerState = CODE;
+      scannerState = ScannerState.CODE;
     } else {
       scannerState = getState(contentType);
     }
@@ -416,12 +467,27 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     tokenOffset = offset;
     tokenLength = 0;
     prefixLength = 0;
-    scannerState = CODE;
+    scannerState = ScannerState.CODE;
   }
 
   private void advance() {
     tokenLength++;
     scanner.read();
+  }
+
+  /**
+   * Return the code-like scanner state to which the scanner should return at the end of the current
+   * state. This can either be {@link ScannerState#CODE} or {@link ScannerState#BLOCK_INTERPOLATION}
+   * , depending on whether the scanner is currently within a multi-line string.
+   * 
+   * @return the code-like scanner state to which the scanner should return
+   */
+  private ScannerState getCodeLikeState() {
+    if (stringState == null) {
+      return ScannerState.CODE;
+    } else {
+      return ScannerState.BLOCK_INTERPOLATION;
+    }
   }
 
   private boolean isEol(int character) {

@@ -33,6 +33,36 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
     );
   }
 
+  public void test_FastDartPartitionScanner_blockComment_inInterpolation() {
+    // class X { var s="xxx ${yyy /* comment */ + zzz} xxx"; }
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "\"xxx ", DART_STRING, //
+        "${yyy ", "__dftl_partition_content_type", //
+        "/* comment */", DART_MULTI_LINE_COMMENT, //
+        " + zzz}", "__dftl_partition_content_type", //
+        " xxx\"", DART_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_blockComment_nested() {
+    // class X { /* a/one /* comment /* nested */ inside */ another */ }
+    assertPartitions( //
+        "class X {\n", "__dftl_partition_content_type", //
+        "/* a/one /* comment /* nested */ inside */ another */", DART_MULTI_LINE_COMMENT, //
+        "\n}\n", "__dftl_partition_content_type" //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_blockComment_nested_unclosed() {
+    // class X { /* a/one /* comment /* nested */ inside */ }
+    assertPartitions( //
+        "class X {\n", "__dftl_partition_content_type", //
+        "/* a/one /* comment /* nested */ inside */\n}\n", DART_MULTI_LINE_COMMENT //
+    );
+  }
+
   public void test_FastDartPartitionScanner_blockComment_unclosed() {
     // class X { /* comment
     assertPartitions( //
@@ -56,6 +86,19 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
         "class X {\n", "__dftl_partition_content_type", //
         "// comment", DART_SINGLE_LINE_COMMENT, //
         "\n}\n", "__dftl_partition_content_type" //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_endOfLineComment_inInterpolation() {
+    // class X { var s="xxx ${yyy // comment + zzz} xxx"; }
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "\"xxx ", DART_STRING, //
+        "${yyy ", "__dftl_partition_content_type", //
+        "// comment", DART_SINGLE_LINE_COMMENT, //
+        "\n + zzz}", "__dftl_partition_content_type", //
+        " xxx\"", DART_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
     );
   }
 
@@ -99,6 +142,28 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
         "\"\"\"aaa ", DART_MULTI_LINE_STRING, //
         "${bbb ", "__dftl_partition_content_type", //
         "'''ccc'''", DART_MULTI_LINE_STRING, //
+        " bbb}", "__dftl_partition_content_type", //
+        " aaa\"\"\"", DART_MULTI_LINE_STRING, //
+        " yyy}", "__dftl_partition_content_type", //
+        " xxx\"", DART_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_nestedStrings_with_comments() {
+    // class X { var s="xxx ${yyy 'zzz' /* comment */ """aaa ${bbb '''ccc'''/* comment/*nested*/*/ bbb} aaa""" yyy} xxx"; } 
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "\"xxx ", DART_STRING, //
+        "${yyy ", "__dftl_partition_content_type", //
+        "'zzz'", DART_STRING, //
+        " ", "__dftl_partition_content_type", //
+        "/* comment */", DART_MULTI_LINE_COMMENT, //
+        " ", "__dftl_partition_content_type", //
+        "\"\"\"aaa ", DART_MULTI_LINE_STRING, //
+        "${bbb ", "__dftl_partition_content_type", //
+        "'''ccc'''", DART_MULTI_LINE_STRING, //
+        "/* comment/*nested*/*/", DART_MULTI_LINE_COMMENT, //
         " bbb}", "__dftl_partition_content_type", //
         " aaa\"\"\"", DART_MULTI_LINE_STRING, //
         " yyy}", "__dftl_partition_content_type", //
