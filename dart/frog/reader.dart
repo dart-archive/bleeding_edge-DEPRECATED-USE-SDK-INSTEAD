@@ -19,7 +19,7 @@ class LibraryReader {
             '../../client/html/release/htmlimpl.dart'),
         'dart:dom': joinPaths(options.libDir,
             '../../client/dom/frog/dom_frog.dart'),
-        'dart:json': joinPaths(options.libDir, 'json.dart'),
+        'dart:json': joinPaths(options.libDir, 'json_frog.dart'),
       };
     } else if (options.config == 'sdk') {
       _specialLibs = {

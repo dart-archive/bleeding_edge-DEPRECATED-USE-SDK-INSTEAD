@@ -4,7 +4,7 @@
 
 {
   'sources': [
-    'json.dart',
-    'json.js',
+    'json_frog.dart',
+    'json_frog.js',
   ],
 }
