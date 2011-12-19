@@ -3,6 +3,7 @@ vars = {
   "chromium_url": "http://src.chromium.org/svn",
   "dart_url": "http://dart.googlecode.com/svn",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
+  "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
   "dartium_chromium_revision": "13",
   "dartium_webkit_revision": "21",
   "dartium_tools_revision": "19",
@@ -140,8 +141,20 @@ deps = {
   "src/third_party/skia/third_party/glu":
     (Var("googlecode_url") % "skia") + "/trunk/third_party/glu@" + Var("skia_revision"),
 
-  "src/third_party/WebKit":
-    Var("multivm_url") + "/webkit@" + Var("dartium_webkit_revision"),
+  "src/third_party/WebKit/LayoutTests":
+    Var("dartium_webkit_trunk") + "/LayoutTests@" + Var("dartium_webkit_revision"),
+
+  "src/third_party/WebKit/Source":
+    Var("dartium_webkit_trunk") + "/Source@" + Var("dartium_webkit_revision"),
+
+  "src/third_party/WebKit/Tools/DumpRenderTree":
+    Var("dartium_webkit_trunk") + "/Tools/DumpRenderTree@" + Var("dartium_webkit_revision"),
+
+  "src/third_party/WebKit/Tools/Scripts":
+    Var("dartium_webkit_trunk") + "/Tools/Scripts@" + Var("dartium_webkit_revision"),
+
+  "src/third_party/WebKit/Tools/TestWebKitAPI":
+    Var("dartium_webkit_trunk") + "/Tools/TestWebKitAPI@" + Var("dartium_webkit_revision"),
 
   "src/third_party/ots":
     (Var("googlecode_url") % "ots") + "/trunk@74",
