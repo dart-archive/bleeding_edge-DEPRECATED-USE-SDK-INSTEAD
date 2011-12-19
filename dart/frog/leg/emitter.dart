@@ -64,19 +64,46 @@ function(child, parent) {
     }
   }
 
+  bool generateFieldInits(ClassElement classElement,
+                          StringBuffer argumentsBuffer,
+                          StringBuffer bodyBuffer,
+                          bool isFirst) {
+    ClassElement superClass = classElement.superClass;
+    if (superClass !== null) {
+      isFirst =
+          generateFieldInits(superClass, argumentsBuffer, bodyBuffer, isFirst);
+    }
+    // TODO(floitsch): make sure there are no name clashes.
+    String className = namer.getName(classElement);
+    for (Element member in classElement.members) {
+      if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
+        if (!isFirst) argumentsBuffer.add(', ');
+        isFirst = false;
+        String memberName = namer.instanceName(member.name);
+        argumentsBuffer.add('${className}_$memberName');
+        bodyBuffer.add('  this.$memberName = ${className}_$memberName;\n');
+      }
+    }
+    return isFirst;
+  }
+
   void generateClass(ClassElement classElement,
                      StringBuffer buffer,
                      Set<ClassElement> seenClasses) {
     if (seenClasses.contains(classElement)) return;
     seenClasses.add(classElement);
-    Type supertype = classElement.supertype;
-    ClassElement superClass = (supertype === null ? null : supertype.element);
+    ClassElement superClass = classElement.superClass;
     if (superClass !== null) {
-      generateClass(superClass, buffer, seenClasses);
+      generateClass(classElement.superClass, buffer, seenClasses);
     }
 
     String className = namer.isolatePropertyAccess(classElement);
-    buffer.add('$className = function() {};\n');
+    buffer.add('$className = function(');
+    StringBuffer bodyBuffer = new StringBuffer();
+    generateFieldInits(classElement, buffer, bodyBuffer, true);
+    buffer.add(') {\n');
+    buffer.add(bodyBuffer);
+    buffer.add('};\n');
     if (superClass !== null) {
       addInheritFunctionIfNecessary(buffer);
       String superName = namer.isolatePropertyAccess(superClass);

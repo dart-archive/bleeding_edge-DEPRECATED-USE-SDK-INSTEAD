@@ -26,10 +26,13 @@ String compile(String code, [String entry = 'main']) {
   return generated;
 }
 
-String compileClasses(List instantiatedClasses) {
-  leg.Compiler compiler = new leg.Compiler(new StringScript(''));
-  leg.Universe universe = compiler.universe;
-  universe.instantiatedClasses.addAll(instantiatedClasses);
+String compileClasses(String code, [String entry = 'main']) {
+  leg.Compiler compiler = new MockCompiler();
+  compiler.parseScript(code);
+  lego.Element element = compiler.universe.find(buildSourceString(entry));
+  if (element === null) return null;
+  String generated = compiler.compileMethod(
+      new leg.WorkElement.toCompile(element));
   compiler.emitter.assembleProgram();
   return compiler.assembledCode;
 }

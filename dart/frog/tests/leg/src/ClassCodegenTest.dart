@@ -5,39 +5,85 @@
 
 #import("compiler_helper.dart");
 #import("parser_helper.dart");
-#import("../../../leg/leg.dart", prefix: "leg");
-#import("../../../leg/elements/elements.dart", prefix: "lego");
 
-twoClasses() {
-  var classA = new lego.ClassElement(buildSourceString("A"));
-  var classB = new lego.ClassElement(buildSourceString("B"));
-  String generated = compileClasses([classA, classB]);
-  Expect.isTrue(generated.contains("Isolate.prototype.A = function() {};"));
-  Expect.isTrue(generated.contains("Isolate.prototype.B = function() {};"));
+final String TEST_ONE = @"""
+class A { }
+class B { }
+
+main() {
+  new A();
+  new B();
+}
+""";
+
+final String TEST_TWO = @"""
+class A { }
+class B extends A { }
+
+main() {
+  new A();
+  new B();
+}
+""";
+
+final String TEST_THREE = @"""
+class B extends A { }
+class A { }
+
+main() {
+  new B();
+  new A();
+}
+""";
+
+final String TEST_FOUR = @"""
+class A {
+  var x;
 }
 
-class MockType implements leg.Type {
-  var element;
-  MockType(this.element);
+class B extends A {
+  var y;
+  var z;
+}
+
+main() {
+  new B();
+}
+""";
+
+twoClasses() {
+  String generated = compileClasses(TEST_ONE);
+  Expect.isTrue(generated.contains("Isolate.prototype.A2 = function() {\n};"));
+  Expect.isTrue(generated.contains("Isolate.prototype.B2 = function() {\n};"));
 }
 
 subClass() {
   checkOutput(String generated) {
-    Expect.isTrue(generated.contains("Isolate.prototype.A = function() {};"));
-    Expect.isTrue(generated.contains("Isolate.prototype.B = function() {};"));
+    Expect.isTrue(
+        generated.contains("Isolate.prototype.A2 = function() {\n};"));
+    Expect.isTrue(
+        generated.contains("Isolate.prototype.B2 = function() {\n};"));
     Expect.isTrue(generated.contains(@"Isolate.$inherits = function"));
     Expect.isTrue(generated.contains(
-        "Isolate.\$inherits(Isolate.prototype.A, Isolate.prototype.B);\n"));
+        "Isolate.\$inherits(Isolate.prototype.B2, Isolate.prototype.A2);\n"));
   }
 
-  var classA = new lego.ClassElement(buildSourceString("A"));
-  var classB = new lego.ClassElement(buildSourceString("B"));
-  classA.supertype = new MockType(classB);
-  checkOutput(compileClasses([classA, classB]));
-  checkOutput(compileClasses([classB, classA]));
+  checkOutput(compileClasses(TEST_TWO));
+  checkOutput(compileClasses(TEST_THREE));
+}
+
+fieldTest() {
+  String generated = compileClasses(TEST_FOUR);
+  Expect.isTrue(generated.contains("""
+Isolate.prototype.B2 = function(A_x, B_z, B_y) {
+  this.x = A_x;
+  this.z = B_z;
+  this.y = B_y;
+};"""));
 }
 
 main() {
   twoClasses();
   subClass();
+  fieldTest();
 }

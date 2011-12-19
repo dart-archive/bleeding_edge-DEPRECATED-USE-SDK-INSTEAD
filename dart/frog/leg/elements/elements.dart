@@ -280,6 +280,16 @@ class ClassElement extends Element {
   }
 
   parseNode(compiler, types) => node;
+
+  /**  
+   * Returns the super class, if any.
+   *
+   * The returned element may not be resolved yet.
+   */
+  ClassElement get superClass() {
+    assert(isResolved);
+    return supertype === null ? null : supertype.element;
+  }
 }
 
 class Elements {
