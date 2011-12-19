@@ -121,7 +121,10 @@ def main():
   if options.notest: return
 
   if args:
-    test_cmd.append('--component=frogsh,leg')
+    if options.leg_only:
+      test_cmd.append('--component=leg')
+    else:
+      test_cmd.append('--component=frogsh,leg')
     test_cmd.extend(args)
     RunCommand(*test_cmd, verbose=True)
   else:
