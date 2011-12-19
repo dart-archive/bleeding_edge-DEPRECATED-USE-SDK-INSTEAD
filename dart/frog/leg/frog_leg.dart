@@ -11,15 +11,17 @@
 
 bool compile(frog.World world) {
   final file = world.readFile(frog.options.dartScript);
+  final throwOnError = frog.options.throwOnErrors;
   final script = new Script(file);
-  final compiler = new WorldCompiler(world, script);
+  final compiler = new WorldCompiler(world, script, throwOnError);
   return compiler.run();
 }
 
 class WorldCompiler extends Compiler {
   final frog.World world;
+  final bool throwOnError;
 
-  WorldCompiler(this.world, Script script) : super(script);
+  WorldCompiler(this.world, Script script, this.throwOnError) : super(script);
 
   void log(message) {
     if (frog.options.showInfo) {
@@ -79,6 +81,15 @@ class WorldCompiler extends Compiler {
       print(script.file.getLocationMessage("cancel leg: $reason",
                                            begin, end, true));
     }
+    if (throwOnError) {
+      throw new AbortLeg(reason);
+    }
     super.cancel(reason, node, token, instruction);
   }
+}
+
+class AbortLeg {
+  final message;
+  AbortLeg(this.message);
+  toString() => 'Aborted due to --throw-on-error: $message';
 }
