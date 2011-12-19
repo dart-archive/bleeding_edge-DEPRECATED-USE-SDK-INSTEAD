@@ -107,7 +107,7 @@ function(child, parent) {
   String assembleProgram() {
     measure(() {
       StringBuffer buffer = new StringBuffer();
-      buffer.add('function ${namer.isolate}() {};\n\n');
+      buffer.add('function ${namer.isolate}() {}\n\n');
       compileClasses(buffer);
       Map<Element, String> generatedCode = compiler.universe.generatedCode;
       generatedCode.forEach((Element element, String codeBlock) {
