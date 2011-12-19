@@ -63,11 +63,11 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
     ISelectionListener, IPartListener {
 
   class CompileResponseHandler extends ResponseHandler {
-    IStatus status;
+    //   IStatus status;
     Object done;
 
     public CompileResponseHandler(Object done, IStatus status) {
-      this.status = status;
+//      this.status = status;
       this.done = done;
     }
 
@@ -126,7 +126,7 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
     protected IStatus run(IProgressMonitor monitor) {
       IPath path = new Path(file.getAbsolutePath());
       if (DartCoreDebug.BLEEDING_EDGE) {
-        IStatus status = Status.OK_STATUS;
+        status = Status.OK_STATUS;
         try {
           Object done = new Object();
           monitor.beginTask(
@@ -160,6 +160,8 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
       return deployOptimizedLibrary(monitor, page, file, library);
     }
   }
+
+  private IStatus status;
 
   private IWorkbenchWindow window;
 
