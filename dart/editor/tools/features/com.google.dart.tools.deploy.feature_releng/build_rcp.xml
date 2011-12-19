@@ -299,11 +299,11 @@ build system.  The PDE build system has to run under Eclipse.
         </condition>
         
         <property name="dart.sdk.dir" location="${eclipse.home}/dart-sdk"/>
-        <get src="http://commondatastorage.googleapis.com/dart-dump-render-tree/sdk/dart-${osfamily}-latest.zip"
-             dest="${eclipse.home}/sdk.zip"/>
+        <delete file="${dart.sdk.dir}.zip"/>
+        <get src="http://gsdview.appspot.com/dart-editor-archive-continuous/latest/dart-${osfamily}.zip"
+             dest="${dart.sdk.dir}.zip"/>
         <delete dir="${dart.sdk.dir}"/>
-        <unzip src="${eclipse.home}/sdk.zip" dest="${eclipse.home}" />
-        <delete file="${eclipse.home}/sdk.zip"/>
+        <unzip src="${dart.sdk.dir}.zip" dest="${eclipse.home}" />
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
