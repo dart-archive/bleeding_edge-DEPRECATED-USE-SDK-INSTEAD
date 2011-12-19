@@ -294,12 +294,14 @@ class FullResolverVisitor extends ResolverVisitor {
     if (node.isOperator) {
       SourceString opName = mapOperatorToMethodName(name, node.isPrefix);
       target = compiler.universe.find(opName);
-    } else if (receiver == null) {
+    } else if (node.receiver === null) {
       target = context.lookup(name);
       if (target == null) {
         // TODO(ngeoffray): Check if the enclosingElement has 'this'.
         error(node, MessageKind.CANNOT_RESOLVE, [name]);
       }
+    } else if (receiver === null) {
+      return null;
     } else if (receiver.kind === ElementKind.CLASS) {
       ClassElement receiverClass = receiver;
       target = receiverClass.lookupLocalElement(name);
