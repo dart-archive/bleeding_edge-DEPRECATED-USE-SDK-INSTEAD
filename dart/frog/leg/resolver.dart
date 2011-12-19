@@ -324,7 +324,7 @@ class FullResolverVisitor extends ResolverVisitor {
       }
     } else if (receiver.kind == ElementKind.CLASS) {
       ClassElement receiverClass = receiver;
-      target = receiverClass.lookupLocalElement(name);
+      target = receiverClass.lookupLocalElement(selector.source);
     }
 
     Identifier op = node.assignmentOperator;
