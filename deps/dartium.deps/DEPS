@@ -426,6 +426,11 @@ hooks = [
                "--no-gyp"],
   },
   {
+    "pattern": ".",
+    "action": ["svn", "export", "svn://svn.chromium.org/multivm/trunk/chromium/build/buildbot_annotated_steps.py",
+               "src/build/buildbot_annotated_steps.py"],
+  },
+  {
     # This downloads binaries for Native Client's newlib toolchain.
     # Done in lieu of building the toolchain from scratch as it can take
     # anywhere from 30 minutes to 4 hours depending on platform to build.
