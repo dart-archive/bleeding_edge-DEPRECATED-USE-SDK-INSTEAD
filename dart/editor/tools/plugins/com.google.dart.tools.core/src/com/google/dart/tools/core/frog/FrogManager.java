@@ -13,7 +13,8 @@
  */
 package com.google.dart.tools.core.frog;
 
-import org.eclipse.core.runtime.Platform;
+import com.google.dart.tools.core.model.DartSdk;
+
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
@@ -77,19 +78,28 @@ public class FrogManager {
     final String DEBUG_PLUGIN_ID = "com.google.dart.tools.debug.core";
     final String PREFS_DART_VM_PATH = "vmPath";
 
-    IEclipsePreferences prefs = new InstanceScope().getNode(DEBUG_PLUGIN_ID);
+    IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(DEBUG_PLUGIN_ID);
 
     if (prefs != null) {
-      return prefs.get(PREFS_DART_VM_PATH, null);
+      String value = prefs.get(PREFS_DART_VM_PATH, null);
+      if (value != null) {
+        value = value.trim();
+        if (value.length() > 0) {
+          return value;
+        }
+      }
+    }
+
+    // Use the VM in the bundled SDK if none specified
+    DartSdk sdk = DartSdk.getInstance();
+    if (sdk != null) {
+      File vm = sdk.getVm();
+      if (vm != null) {
+        return vm.getPath();
+      }
     }
 
     return null;
-  }
-
-  protected static File getSdkDirectory() {
-    File eclipseInstallDir = new File(Platform.getInstallLocation().getURL().getFile());
-
-    return new File(eclipseInstallDir, "dart-sdk");
   }
 
 }

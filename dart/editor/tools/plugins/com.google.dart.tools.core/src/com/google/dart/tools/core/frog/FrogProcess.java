@@ -1,6 +1,7 @@
 package com.google.dart.tools.core.frog;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,7 +51,7 @@ public class FrogProcess {
 
     builder.command(FrogManager.getDartVmExecutablePath(), "--new_gen_heap_size=128",
         FROG_SERVER_PATH, FrogManager.LOCALHOST_ADDRESS, Integer.toString(getPort()));
-    builder.directory(new File(FrogManager.getSdkDirectory(), "lib/frog"));
+    builder.directory(new File(DartSdk.getInstance().getDirectory(), "lib/frog"));
     builder.redirectErrorStream(true);
 
     process = builder.start();
