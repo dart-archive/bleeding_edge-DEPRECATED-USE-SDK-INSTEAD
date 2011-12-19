@@ -1,10 +1,10 @@
 package com.google.dart.tools.core.frog;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,8 +17,11 @@ import java.util.concurrent.TimeUnit;
 public class FrogProcess {
   private static final String FROG_STARTUP_TOKEN = "frog: accepting connections";
 
-  /** @return the path to the the frog server script, relative to the frog source directory */
-  private static final String FROG_SERVER_PATH = "server/frog_server.dart";
+  /** @return the path to the the frog server script, relative to the SDK directory */
+  private static final String FROG_SERVER_PATH = "frog/server/frog_server.dart";
+
+  // 20 seconds
+  private static final int MAX_STARTUP_WAIT = 20000;
 
   private int port;
 
@@ -27,15 +30,15 @@ public class FrogProcess {
   private boolean frogRunning;
 
   public FrogProcess() {
-    this(-1);
+    this(FrogManager.AUTO_BIND_PORT);
   }
 
   public FrogProcess(int port) {
-    this.port = port;
-
-    if (this.port == -1) {
-      this.port = FrogManager.DEFAULT_PORT;
+    if (port == -1) {
+      throw new IllegalArgumentException("port cannot == -1");
     }
+
+    this.port = port;
   }
 
   public int getPort() {
@@ -49,17 +52,18 @@ public class FrogProcess {
   public void startProcess() throws IOException {
     ProcessBuilder builder = new ProcessBuilder();
 
+    // Set the heap size to 128MB.
     builder.command(FrogManager.getDartVmExecutablePath(), "--new_gen_heap_size=128",
         FROG_SERVER_PATH, FrogManager.LOCALHOST_ADDRESS, Integer.toString(getPort()));
-    builder.directory(new File(DartSdk.getInstance().getDirectory(), "lib/frog"));
+    builder.directory(DartSdk.getInstance().getLibraryDirectory());
     builder.redirectErrorStream(true);
 
     process = builder.start();
 
     final CountDownLatch latch = new CountDownLatch(1);
 
-    // We need to consume the text the VM writes to its stdout / stderr. For now we log it, in the
-    // future we'll just silently ignore it.
+    // We need to consume the text the VM writes to its stdout / stderr so that the process does not
+    // stall out trying to write to stdout.
     Thread readerThread = new Thread(new Runnable() {
       @Override
       public void run() {
@@ -72,9 +76,16 @@ public class FrogProcess {
           while (line != null) {
             if (line.contains(FROG_STARTUP_TOKEN)) {
               frogRunning = true;
+
+              port = parseServerPort(line);
+
               latch.countDown();
+            } else {
+              // TODO(devoncarew): we need to make the frog server less noisy.
+              if (DartCoreDebug.FROG) {
+                DartCore.logInformation("frog: [" + line.trim() + "]");
+              }
             }
-            DartCore.logInformation("frog: [" + line.trim() + "]");
 
             line = reader.readLine();
           }
@@ -92,13 +103,20 @@ public class FrogProcess {
 
     // If we didn't start up normally, then throw an exception.
     try {
-      latch.await(5000, TimeUnit.MILLISECONDS);
+      latch.await(MAX_STARTUP_WAIT, TimeUnit.MILLISECONDS);
     } catch (InterruptedException exception) {
 
     }
 
     if (!frogRunning) {
       throw new IOException("unable to start frog server");
+    }
+
+    if (port == -1) {
+      // Kill the server - it is unreachable at this point.
+      stopProcess();
+
+      throw new IOException("unable to retrieve server port");
     }
   }
 
@@ -126,6 +144,30 @@ public class FrogProcess {
 
       return false;
     }
+  }
+
+  protected int parseServerPort(String line) {
+    // "FROG_STARTUP_TOKEN on host:port"
+
+    final String START_TOKEN = " on ";
+
+    int index = line.indexOf(START_TOKEN);
+
+    if (index != -1) {
+      line = line.substring(index + START_TOKEN.length());
+    }
+
+    String[] strs = line.split(":");
+
+    if (strs.length >= 2) {
+      try {
+        return port = Integer.parseInt(strs[1]);
+      } catch (NumberFormatException nfe) {
+
+      }
+    }
+
+    return -1;
   }
 
 }

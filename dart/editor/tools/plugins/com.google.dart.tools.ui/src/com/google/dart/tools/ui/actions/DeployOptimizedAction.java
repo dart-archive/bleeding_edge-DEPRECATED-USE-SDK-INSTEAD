@@ -52,55 +52,84 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 
 /**
- * An action to create an optimized javascript build of a Dart library.
+ * An action to create an optimized Javascript build of a Dart library.
  */
 public class DeployOptimizedAction extends AbstractInstrumentedAction implements IWorkbenchAction,
     ISelectionListener, IPartListener {
 
   class CompileResponseHandler extends ResponseHandler {
-    //   IStatus status;
-    Object done;
+    private CountDownLatch latch;
+    private IStatus exitStatus = Status.OK_STATUS;
 
-    public CompileResponseHandler(Object done, IStatus status) {
-//      this.status = status;
-      this.done = done;
+    public CompileResponseHandler(CountDownLatch latch) {
+      this.latch = latch;
     }
 
     @Override
     public void response(ResponseObject response) throws IOException, JSONException {
-
       try {
         // process response
         String kind = response.getKind();
+
         if (kind.equals("message")) { //$NON-NLS-1$
           String prefix = response.getPrefix();
-          String fileName = "";
-          if (response.hasSpan()) {
-            fileName = response.getFileName();
-          }
-          DartCore.getConsole().println(
-              prefix + (fileName.length() == 0 ? "" : fileName + " ") + response.getMessage());
-        } else if (kind.equals("done")) { //$NON-NLS-1$
+          String path = null;
 
+          if (response.hasSpan()) {
+            path = response.getFileName();
+          }
+
+          if (prefix != null) {
+            prefix = prefix.trim();
+
+            if (prefix.endsWith(":")) {
+              prefix = prefix.substring(0, prefix.length() - 1);
+            }
+            prefix = "[" + prefix + "] ";
+          } else {
+            prefix = "";
+          }
+
+          if (path != null && response.hasSpan()) {
+            JSONObject span = response.getSpan();
+
+            if (span.has("line")) {
+              Object line = span.get("line");
+
+              if (line instanceof Integer) {
+                // Frog has 0-based lines; we use 1-based lines.
+                path += ":" + (((Integer) line).intValue() + 1);
+              }
+            }
+          }
+
+          DartCore.getConsole().println(
+              prefix + (path == null ? "" : path + ", ") + response.getMessage());
+        } else if (kind.equals("done")) { //$NON-NLS-1$
           if (!response.isTrueResult()) {
-            status = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
+            exitStatus = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
                 ActionMessages.DeployOptimizedAction_Fail, null);
           }
+
+          latch.countDown();
         }
       } catch (JSONException e) {
-        throw (e);
-      } finally {
-        synchronized (done) {
-          done.notifyAll();
-        }
+        latch.countDown();
+
+        throw e;
       }
     }
 
+    protected IStatus getExitStatus() {
+      return exitStatus;
+    }
   }
 
   class DeployOptimizedJob extends Job {
@@ -125,43 +154,59 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
     @Override
     protected IStatus run(IProgressMonitor monitor) {
       IPath path = new Path(file.getAbsolutePath());
+
       if (DartCoreDebug.BLEEDING_EDGE) {
-        status = Status.OK_STATUS;
+        long startTime = System.currentTimeMillis();
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        CompileResponseHandler responseHandler = new CompileResponseHandler(latch);
+
         try {
-          Object done = new Object();
           monitor.beginTask(
               ActionMessages.DeployOptimizedAction_Compiling + library.getElementName(),
               IProgressMonitor.UNKNOWN);
-          CompileResponseHandler responseHandler = new CompileResponseHandler(done, status);
+
           DartCore.getConsole().clear();
-          DartCore.getConsole().println(
-              ActionMessages.DeployOptimizedAction_GenerateMessage + path.toString());
+          DartCore.getConsole().println(ActionMessages.DeployOptimizedAction_GenerateMessage);
+
           FrogManager.getServer().compile(library.getCorrespondingResource().getLocation(), path,
               responseHandler);
 
-          synchronized (done) {
-            done.wait();
-          }
+          latch.await();
 
+          return Status.OK_STATUS;
         } catch (Exception e) {
-          String message = ActionMessages.DeployOptimizedAction_FailMessage + path;
-          DartCore.logError(message, e);
-          status = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0, message, e);
+          return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
+              ActionMessages.DeployOptimizedAction_FailMessage + path, e);
         } finally {
-          if (status.isOK()) {
-            DartCore.getConsole().print(ActionMessages.DeployOptimizedAction_DoneSuccess);
+          long elapsed = System.currentTimeMillis() - startTime;
+
+          // Trim to 1/10th of a second.
+          elapsed = (elapsed / 100) * 100;
+
+          if (responseHandler.getExitStatus().isOK()) {
+            File outputFile = path.toFile();
+            // Trim to 1/10th of a kb.
+            double fileLength = ((int) ((outputFile.length() / 1024) * 10)) / 10;
+
+            String message = fileLength + "kb";
+            message += " written in " + (elapsed / 1000.0) + "sec";
+
+            DartCore.getConsole().println(
+                NLS.bind(ActionMessages.DeployOptimizedAction_DoneSuccess, outputFile.getPath(),
+                    message));
           } else {
             DartCore.getConsole().println(ActionMessages.DeployOptimizedAction_Fail);
           }
+
           monitor.done();
         }
-        return status;
+      } else {
+        return deployOptimizedLibrary(monitor, page, file, library);
       }
-      return deployOptimizedLibrary(monitor, page, file, library);
     }
   }
-
-  private IStatus status;
 
   private IWorkbenchWindow window;
 

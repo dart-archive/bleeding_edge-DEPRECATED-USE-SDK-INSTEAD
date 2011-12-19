@@ -28,7 +28,7 @@ import java.io.IOException;
  * <pre>
  *    dart-sdk/
  *       bin/
- *          dart  <-- VM
+ *          dart[.exe]  <-- VM
  *       lib/
  *          core/
  *             core_runtime.dart
@@ -78,12 +78,19 @@ public class DartSdk {
   }
 
   /**
+   * @return the SDK's library directory path
+   */
+  public File getLibraryDirectory() {
+    return new File(DartSdk.getInstance().getDirectory(), "lib");
+  }
+
+  /**
    * Answer the VM executable or <code>null</code> if it does not exist
    */
-  public File getVm() {
+  public File getVmExecutable() {
     synchronized (lock) {
       if (vm == null) {
-        File file = sdkPath.append("bin").append("dart").toFile();
+        File file = sdkPath.append("bin").append(getBinaryName()).toFile();
         if (file.exists()) {
           vm = file;
         }
@@ -91,4 +98,18 @@ public class DartSdk {
     }
     return vm;
   }
+
+  private String getBinaryName() {
+    if (isWindows()) {
+      return "dart.exe";
+    } else {
+      return "dart";
+    }
+  }
+
+  private boolean isWindows() {
+    // Look for the "Windows" OS name.
+    return System.getProperty("os.name").toLowerCase().startsWith("win");
+  }
+
 }

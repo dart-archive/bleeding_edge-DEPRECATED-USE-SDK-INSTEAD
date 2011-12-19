@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.frog;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 
 import org.eclipse.core.runtime.IPath;
 import org.json.JSONException;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -54,15 +56,24 @@ public class FrogServer {
     requestStream = requestSocket.getOutputStream();
     responseStream = requestSocket.getInputStream();
     responseHandlers = new HashMap<Integer, ResponseHandler>();
+
     new Thread() {
       @Override
       public void run() {
         try {
           processResponses();
-        } catch (IOException e) {
-          DartCore.logError("Failed to get response from frog server", e);
+        } catch (SocketException exception) {
+          // java.net.SocketException: Socket closed
+          if (!exception.toString().contains(" closed")) {
+            if (DartCoreDebug.FROG) {
+              DartCore.logError("Exception from frog server", exception);
+            }
+          }
+        } catch (IOException exception) {
+          if (DartCoreDebug.FROG) {
+            DartCore.logError("Exception from frog server", exception);
+          }
         }
-        DartCore.logInformation("Exiting response processing thread");
       };
     }.start();
   }
@@ -113,7 +124,6 @@ public class FrogServer {
       }
       readBytes(messageBuf, messageLen);
       String message = new String(messageBuf, 0, messageLen, utf8Charset);
-      System.out.println(message);
       ResponseObject response;
       try {
         response = new ResponseObject(message);

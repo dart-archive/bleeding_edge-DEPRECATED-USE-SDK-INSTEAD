@@ -4,7 +4,8 @@
 
 #library('frog_server');
 
-#import('../../client/json/dart_json.dart');
+// TODO(devoncarew): importing this file is temporary until dart:json is resolved
+#import('dart_json.dart');
 #import('../lang.dart');
 #import('../file_system_vm.dart');
 #source('utf8.dart');
@@ -35,7 +36,8 @@ compileCommand(Map request, OutputStream output) {
     // TODO (danrubel) span is null if frog cannot find the input file
     var jsonSpan = null;
     if (span != null) {
-      jsonSpan = { 'file': span.file.filename, 'start': span.start, 'end': span.end };
+      jsonSpan = { 'file': span.file.filename, 'start': span.start, 'end': span.end,
+          'line': span.line, 'column': span.column };
     }
     writeJson(output, {
       'kind': 'message',
@@ -57,7 +59,6 @@ compileCommand(Map request, OutputStream output) {
 /// Writes the supplied JSON-serializable [obj] to the output stream.
 writeJson(OutputStream output, obj) {
   var jsonBytes = encodeUtf8(JSON.stringify(obj));
-  print('jsonBytes.length = ' + jsonBytes.length + ', ' + (jsonBytes.length & 0xFF));
   output.write(int32ToBigEndian(jsonBytes.length), copyBuffer:false);
   output.write(jsonBytes, copyBuffer:false);
 }
@@ -116,6 +117,7 @@ onConnect(Socket socket) {
   };
 }
 
+/// This token is used by the editor to know when frogc has successfully come up.
 final STARTUP_TOKEN = 'frog: accepting connections';
 
 /// Initialize the server and start listening for requests. Needs hostname/ip
@@ -125,7 +127,7 @@ ServerSocket startServer(String homedir, String host, int port) {
   initializeCompiler(homedir);
   var serverSocket = new ServerSocket(host, port, 50);
   serverSocket.connectionHandler = onConnect;
-  print('${STARTUP_TOKEN} on ${host}:${serverSocket.port}');
+  print('$STARTUP_TOKEN on $host:${serverSocket.port}');
   return serverSocket;
 }
 

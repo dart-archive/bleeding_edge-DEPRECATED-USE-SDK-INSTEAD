@@ -26,7 +26,7 @@ public class ResponseObject extends JSONObject {
   }
 
   public String getFileName() throws JSONException {
-    return ((JSONObject) getSpan()).getString("file");
+    return getSpan().getString("file");
   }
 
   public int getId() throws JSONException {
@@ -45,12 +45,12 @@ public class ResponseObject extends JSONObject {
     return getString("prefix");
   }
 
-  public Object getSpan() throws JSONException {
-    return get("span");
+  public JSONObject getSpan() throws JSONException {
+    return (JSONObject) get("span");
   }
 
   public boolean hasSpan() throws JSONException {
-    return getSpan() instanceof JSONObject;
+    return get("span") instanceof JSONObject;
   }
 
   public boolean isTrueResult() throws JSONException {

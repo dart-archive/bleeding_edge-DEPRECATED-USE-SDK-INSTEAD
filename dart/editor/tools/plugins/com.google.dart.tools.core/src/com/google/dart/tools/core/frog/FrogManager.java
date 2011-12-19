@@ -27,6 +27,7 @@ import java.net.UnknownHostException;
  */
 public class FrogManager {
   public static final String LOCALHOST_ADDRESS = "127.0.0.1";
+  public static final int AUTO_BIND_PORT = 0;
   public static final int DEFAULT_PORT = 1236;
 
   private static final Object lock = new Object();
@@ -93,7 +94,7 @@ public class FrogManager {
     // Use the VM in the bundled SDK if none specified
     DartSdk sdk = DartSdk.getInstance();
     if (sdk != null) {
-      File vm = sdk.getVm();
+      File vm = sdk.getVmExecutable();
       if (vm != null) {
         return vm.getPath();
       }

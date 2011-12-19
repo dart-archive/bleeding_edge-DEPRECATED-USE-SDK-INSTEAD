@@ -18,6 +18,7 @@ import com.google.dart.tools.core.MessageConsole.MessageStream;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.DeployConsolePatternMatcher;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 
 import org.eclipse.core.filesystem.IFileStore;
@@ -229,6 +230,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
       //Display.getCurrent().addListener(SWT.Settings, settingsChangeListener);
 
       console = new MessageConsole("", null); // empty string hides title bar
+      console.addPatternMatchListener(new DeployConsolePatternMatcher());
       ConsolePlugin.getDefault().getConsoleManager().addConsoles(new IConsole[] {console});
       final MessageConsoleStream stream = console.newMessageStream();
       stream.setActivateOnWrite(false);

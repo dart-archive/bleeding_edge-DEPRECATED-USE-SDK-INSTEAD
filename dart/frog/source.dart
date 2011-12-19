@@ -153,6 +153,14 @@ class SourceSpan implements Comparable {
     return file.getLocationMessage(message, start, end: end, includeText: true);
   }
 
+  int get line() {
+    return file.getLine(start);
+  }
+
+  int get column() {
+    return file.getColumn(line(), start);
+  }
+
   String get locationText() {
     var line = file.getLine(start);
     var column = file.getColumn(line, start);

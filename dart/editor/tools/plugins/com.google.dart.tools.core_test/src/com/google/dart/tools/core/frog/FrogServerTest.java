@@ -57,7 +57,7 @@ public class FrogServerTest extends TestCase {
 
   @Override
   protected void setUp() throws Exception {
-    server = new FrogServer(FrogManager.LOCALHOST_ADDRESS, FrogManager.DEFAULT_PORT);
+    server = new FrogServer(FrogManager.LOCALHOST_ADDRESS, FrogManager.AUTO_BIND_PORT);
   }
 
   @Override
