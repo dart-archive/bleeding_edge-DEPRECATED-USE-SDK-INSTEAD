@@ -112,10 +112,11 @@ def SelfHost():
 def main():
   (options, args) = BuildOptions().parse_args()
 
+  RunCommand('../tools/build.py', '--mode=release')
+
   if not options.leg_only:
     SelfHost()
 
-  RunCommand('../tools/build.py', '--mode=release')
   test_cmd = ['../tools/test.py', '--report', '--timeout=30',
               '--progress=color', '--mode=release', '--checked']
 
