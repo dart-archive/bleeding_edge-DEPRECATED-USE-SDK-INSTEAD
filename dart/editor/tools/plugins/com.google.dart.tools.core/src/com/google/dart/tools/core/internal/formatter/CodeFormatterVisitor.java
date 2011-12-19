@@ -1667,7 +1667,7 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
   }
 
   @Override
-  public DartNode visitParameterizedNode(DartParameterizedTypeNode node) {
+  public DartNode visitParameterizedTypeNode(DartParameterizedTypeNode node) {
 
     return null;
   }

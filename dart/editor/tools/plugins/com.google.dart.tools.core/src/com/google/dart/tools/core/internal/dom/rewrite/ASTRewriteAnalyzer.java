@@ -1303,7 +1303,7 @@ public final class ASTRewriteAnalyzer {
     }
 
     @Override
-    public Object visitParameterizedNode(DartParameterizedTypeNode node) {
+    public Object visitParameterizedTypeNode(DartParameterizedTypeNode node) {
       if (!hasChildrenChanges(node)) {
         return doVisitUnchangedChildren(node);
       }

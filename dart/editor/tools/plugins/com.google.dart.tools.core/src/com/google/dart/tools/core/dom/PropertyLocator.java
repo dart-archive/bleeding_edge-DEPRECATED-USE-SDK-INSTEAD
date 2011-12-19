@@ -622,7 +622,7 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
   }
 
   @Override
-  public StructuralPropertyDescriptor visitParameterizedNode(DartParameterizedTypeNode node) {
+  public StructuralPropertyDescriptor visitParameterizedTypeNode(DartParameterizedTypeNode node) {
     if (childNode == node.getExpression()) {
       return PropertyDescriptorHelper.DART_PARAMETERIZED_NODE_EXPRESSION;
     } else if (childContainedIn(node.getTypeParameters())) {

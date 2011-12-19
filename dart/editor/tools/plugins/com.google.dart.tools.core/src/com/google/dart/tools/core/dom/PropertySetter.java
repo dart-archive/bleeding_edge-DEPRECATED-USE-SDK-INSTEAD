@@ -693,7 +693,7 @@ public class PropertySetter extends PropertyVisitor {
   }
 
   @Override
-  public Object visitParameterizedNode(DartParameterizedTypeNode node) {
+  public Object visitParameterizedTypeNode(DartParameterizedTypeNode node) {
     if (property == PropertyDescriptorHelper.DART_PARAMETERIZED_NODE_EXPRESSION) {
       // node.setExpression(propertyValue);
     } else if (property == PropertyDescriptorHelper.DART_PARAMETERIZED_NODE_TYPE_PARAMETERS) {

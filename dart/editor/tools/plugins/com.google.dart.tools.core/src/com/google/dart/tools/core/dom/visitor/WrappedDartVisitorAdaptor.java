@@ -452,9 +452,9 @@ public class WrappedDartVisitorAdaptor<R> implements DartPlainVisitor<R> {
   }
 
   @Override
-  public R visitParameterizedNode(DartParameterizedTypeNode node) {
+  public R visitParameterizedTypeNode(DartParameterizedTypeNode node) {
     baseVisitor.preVisit(node);
-    R result = baseVisitor.visitParameterizedNode(node);
+    R result = baseVisitor.visitParameterizedTypeNode(node);
     baseVisitor.postVisit(node);
     return result;
   }
