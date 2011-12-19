@@ -481,12 +481,14 @@ def _SetAclOnArtifacts(to, bucket_tags, gsu):
   for element in contents:
     for tag in bucket_tags:
       if tag in element:
-        print 'setting ACL on {0}'.format(element)
-        gsu.SetCannedAcl(element, 'project-private')
-        acl = gsu.GetAcl(element)
-        acl = gsu.AddPublicAcl(acl)
-        gsu.SetAcl(element, acl)
+        _SetAcl(to, element, gsu)
 
+def _SetAcl(to, element, gsu):
+  print 'setting ACL on {0}'.format(element)
+  gsu.SetCannedAcl(element, 'project-private')
+  acl = gsu.GetAcl(element)
+  acl = gsu.AddPublicAcl(acl)
+  gsu.SetAcl(element, acl)
 
 def _CopySdk(buildos, revision, bucket_to, gsu):
   """Copy the deployed SDK to the editor buckets.
@@ -506,10 +508,10 @@ def _CopySdk(buildos, revision, bucket_to, gsu):
 
   print 'copying {0} to {1}'.format(gssdkzip, gseditorzip)
   gsu.Copy(gssdkzip, gseditorzip)
+  _SetAcl(bucket_to, gseditorzip, gsu)
   print 'copying {0} to {1}'.format(gssdkzip, gseditorlatestzip)
   gsu.Copy(gssdkzip, gseditorlatestzip)
-  _SetAclOnArtifacts(bucket_to, [sdkshortzip], gsu)
-
+  _SetAcl(bucket_to, gseditorlatestzip, gsu)
 
 def _PrintSeparator(text):
   """Print a separator for the build steps."""
