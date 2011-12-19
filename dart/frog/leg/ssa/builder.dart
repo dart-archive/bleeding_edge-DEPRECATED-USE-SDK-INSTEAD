@@ -96,9 +96,16 @@ class SsaBuilder implements Visitor {
     String methodName = compiler.namer.getName(bodyElement);
     List bodyCallInputs = <HInstruction>[];
     bodyCallInputs.add(newObject);
-    Link link = parameters.nodes;
-    for (; !link.isEmpty(); link = link.tail) {
-      Element parameterElement = elements[link.head];
+    for (Link link = parameters.nodes; !link.isEmpty(); link = link.tail) {
+      Link<Node> identifierLink = link.head.definitions.nodes;
+      // We expect exactly one identifier.
+      assert(!identifierLink.isEmpty() && identifierLink.tail.isEmpty());
+      if (identifierLink.head is !Identifier) {
+        compiler.unimplemented(
+            "SsaBuilder.buildFactory non-identifier");
+      }
+      Identifier name = identifierLink.head;
+      Element parameterElement = elements[name];
       HInstruction currentValue = definitions[parameterElement];
       bodyCallInputs.add(currentValue);
     }
