@@ -93,8 +93,12 @@ def TestFrog(arch, mode):
                    'leg', 'leg_only', 'peg', 'await'], flags) != 0:
       return 1
 
-    leg_tests = ['language', 'corelib', 'leg', 'leg_only']
+    leg_tests = ['language', 'corelib', 'leg_only']
     if TestStep("leg", testpy_mode, 'leg', leg_tests, flags) != 0:
+      return 1
+
+    # Leg isn't self-hosted (yet) so we run the unit tests on the VM.
+    if TestStep("leg", testpy_mode, 'vm', ['leg'], flags) != 0:
       return 1
   else:
     if (TestStep("browser", testpy_mode, 'frogium',

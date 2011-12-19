@@ -40,6 +40,7 @@ def RunCommand(*arguments, **kwargs):
     expected_exit_code = kwargs['exit_code']
   stdout = subprocess.PIPE
   if 'verbose' in kwargs and kwargs['verbose']:
+    print ' '.join(arguments)
     stdout = None
   try:
     proc = subprocess.Popen(arguments,
@@ -142,14 +143,16 @@ def main():
       # TODO(jimhug): Consider adding co19 back when it delivers more value
       #   than pain.
       # Run frogsh on most of the tests.
-      cmd = test_cmd + ['--component=frogsh', 'language', 'corelib', 'leg',
-                        'isolate', 'peg', 'leg_only', 'frog', 'css', 'await']
+      cmd = test_cmd + ['--component=frogsh', 'language', 'corelib',
+                        'isolate', 'peg', 'frog', 'css', 'await']
       RunCommand(*cmd, verbose=True)
 
     # Run leg on most of the tests.
     # TODO(ahe): Add co19 tests once leg gets more mature.
-    cmd = test_cmd + ['--component=leg',
-                      'language', 'corelib', 'leg', 'leg_only']
+    cmd = test_cmd + ['--component=leg', 'language', 'corelib', 'leg_only']
+    RunCommand(*cmd, verbose=True)
+
+    cmd = test_cmd + ['--component=vm', 'leg']
     RunCommand(*cmd, verbose=True)
 
 if __name__ == '__main__':

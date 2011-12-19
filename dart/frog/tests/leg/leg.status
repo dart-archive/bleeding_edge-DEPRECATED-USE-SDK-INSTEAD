@@ -5,24 +5,13 @@
 prefix leg
 
 [ $component == dartc ]
-*: Fail # Too many type errors in frog.
+*: Skip # Too many type errors in frog.
+
 
 [ $component == frogium ]
 # Tests have # directives (not supported by the browser test architecture)
-ClassCodegenTest: Fail
-CodeMotionTest: Fail
-ConstantFoldingTest: Fail
-DeadPhiEliminatorTest: Fail
-GVNTest: Fail
-LinkTest: Fail
-LiteralListTest: Fail
-ParserTest: Fail
-PartialParserTest: Fail
-PrettyParameterTest: Fail
-RedundantPhiEliminatorTest: Fail
-ResolverTest: Fail
-ScannerTest: Fail
-SsaPhiEliminatorTest: Fail
-TypeCheckerTest: Fail
-TypeGuardUnuserTest: Fail
-TypeInferenceTest: Fail
+*: Skip
+
+
+[ $component == leg ]
+*: Skip # Leg is not self-hosted (yet).
