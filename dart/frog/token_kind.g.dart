@@ -220,77 +220,77 @@ class TokenKind {
   /** [TokenKind] representing pseudo-keyword 'assert' tokens. */
   static final int ASSERT = 72;
 
-  /** [TokenKind] representing pseudo-keyword 'class' tokens. */
-  static final int CLASS = 73;
-
-  /** [TokenKind] representing pseudo-keyword 'extends' tokens. */
-  static final int EXTENDS = 74;
-
   /** [TokenKind] representing pseudo-keyword 'factory' tokens. */
-  static final int FACTORY = 75;
+  static final int FACTORY = 73;
 
   /** [TokenKind] representing pseudo-keyword 'get' tokens. */
-  static final int GET = 76;
+  static final int GET = 74;
 
   /** [TokenKind] representing pseudo-keyword 'implements' tokens. */
-  static final int IMPLEMENTS = 77;
+  static final int IMPLEMENTS = 75;
 
   /** [TokenKind] representing pseudo-keyword 'import' tokens. */
-  static final int IMPORT = 78;
+  static final int IMPORT = 76;
 
   /** [TokenKind] representing pseudo-keyword 'interface' tokens. */
-  static final int INTERFACE = 79;
+  static final int INTERFACE = 77;
 
   /** [TokenKind] representing pseudo-keyword 'library' tokens. */
-  static final int LIBRARY = 80;
+  static final int LIBRARY = 78;
 
   /** [TokenKind] representing pseudo-keyword 'native' tokens. */
-  static final int NATIVE = 81;
+  static final int NATIVE = 79;
 
   /** [TokenKind] representing pseudo-keyword 'negate' tokens. */
-  static final int NEGATE = 82;
+  static final int NEGATE = 80;
 
   /** [TokenKind] representing pseudo-keyword 'operator' tokens. */
-  static final int OPERATOR = 83;
+  static final int OPERATOR = 81;
 
   /** [TokenKind] representing pseudo-keyword 'set' tokens. */
-  static final int SET = 84;
+  static final int SET = 82;
 
   /** [TokenKind] representing pseudo-keyword 'source' tokens. */
-  static final int SOURCE = 85;
+  static final int SOURCE = 83;
 
   /** [TokenKind] representing pseudo-keyword 'static' tokens. */
-  static final int STATIC = 86;
+  static final int STATIC = 84;
 
   /** [TokenKind] representing pseudo-keyword 'typedef' tokens. */
-  static final int TYPEDEF = 87;
+  static final int TYPEDEF = 85;
 
   /** [TokenKind] representing keyword 'await' tokens. */
-  static final int AWAIT = 88;
+  static final int AWAIT = 86;
 
   /** [TokenKind] representing keyword 'break' tokens. */
-  static final int BREAK = 89;
+  static final int BREAK = 87;
 
   /** [TokenKind] representing keyword 'case' tokens. */
-  static final int CASE = 90;
+  static final int CASE = 88;
 
   /** [TokenKind] representing keyword 'catch' tokens. */
-  static final int CATCH = 91;
+  static final int CATCH = 89;
+
+  /** [TokenKind] representing keyword 'class' tokens. */
+  static final int CLASS = 90;
 
   /** [TokenKind] representing keyword 'const' tokens. */
-  static final int CONST = 92;
+  static final int CONST = 91;
 
   /** [TokenKind] representing keyword 'continue' tokens. */
-  static final int CONTINUE = 93;
+  static final int CONTINUE = 92;
 
   /** [TokenKind] representing keyword 'default' tokens. */
-  static final int DEFAULT = 94;
+  static final int DEFAULT = 93;
 
   /** [TokenKind] representing keyword 'do' tokens. */
-  static final int DO = 95;
+  static final int DO = 94;
 
   /** [TokenKind] representing keyword 'else' tokens. */
-  static final int ELSE = 96;
+  static final int ELSE = 95;
+
+  /** [TokenKind] representing keyword 'extends' tokens. */
+  static final int EXTENDS = 96;
 
   /** [TokenKind] representing keyword 'false' tokens. */
   static final int FALSE = 97;

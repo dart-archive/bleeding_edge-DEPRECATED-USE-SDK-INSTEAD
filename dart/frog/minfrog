@@ -4978,7 +4978,7 @@ FieldMember.prototype.resolve = function() {
     var $$list = this.definition.modifiers;
     for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
       var mod = $$list.$index($$i);
-      if ($eq(mod.get$kind(), 86/*TokenKind.STATIC*/)) {
+      if ($eq(mod.get$kind(), 84/*TokenKind.STATIC*/)) {
         if (this.isStatic) {
           $globals.world.error('duplicate static modifier', mod.get$span());
         }
@@ -5989,19 +5989,19 @@ MethodMember.prototype.resolve = function() {
     var $$list = this.definition.modifiers;
     for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
       var mod = $$list.$index($$i);
-      if ($eq(mod.get$kind(), 86/*TokenKind.STATIC*/)) {
+      if ($eq(mod.get$kind(), 84/*TokenKind.STATIC*/)) {
         if (this.isStatic) {
           $globals.world.error('duplicate static modifier', mod.get$span());
         }
         this.isStatic = true;
       }
-      else if (this.get$isConstructor() && $eq(mod.get$kind(), 92/*TokenKind.CONST*/)) {
+      else if (this.get$isConstructor() && $eq(mod.get$kind(), 91/*TokenKind.CONST*/)) {
         if (this.isConst) {
           $globals.world.error('duplicate const modifier', mod.get$span());
         }
         this.isConst = true;
       }
-      else if ($eq(mod.get$kind(), 75/*TokenKind.FACTORY*/)) {
+      else if ($eq(mod.get$kind(), 73/*TokenKind.FACTORY*/)) {
         if (this.isFactory) {
           $globals.world.error('duplicate factory modifier', mod.get$span());
         }
@@ -7281,7 +7281,7 @@ Tokenizer.prototype.getIdentifierKind = function() {
     case 2:
 
       if (this._text.charCodeAt(i0) == 100) {
-        if (this._text.charCodeAt(i0 + 1) == 111) return 95/*TokenKind.DO*/;
+        if (this._text.charCodeAt(i0 + 1) == 111) return 94/*TokenKind.DO*/;
       }
       else if (this._text.charCodeAt(i0) == 105) {
         if (this._text.charCodeAt(i0 + 1) == 102) {
@@ -7302,13 +7302,13 @@ Tokenizer.prototype.getIdentifierKind = function() {
         if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 114) return 100/*TokenKind.FOR*/;
       }
       else if (this._text.charCodeAt(i0) == 103) {
-        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 116) return 76/*TokenKind.GET*/;
+        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 116) return 74/*TokenKind.GET*/;
       }
       else if (this._text.charCodeAt(i0) == 110) {
         if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 119) return 104/*TokenKind.NEW*/;
       }
       else if (this._text.charCodeAt(i0) == 115) {
-        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 116) return 84/*TokenKind.SET*/;
+        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 116) return 82/*TokenKind.SET*/;
       }
       else if (this._text.charCodeAt(i0) == 116) {
         if (this._text.charCodeAt(i0 + 1) == 114 && this._text.charCodeAt(i0 + 2) == 121) return 112/*TokenKind.TRY*/;
@@ -7321,10 +7321,10 @@ Tokenizer.prototype.getIdentifierKind = function() {
     case 4:
 
       if (this._text.charCodeAt(i0) == 99) {
-        if (this._text.charCodeAt(i0 + 1) == 97 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101) return 90/*TokenKind.CASE*/;
+        if (this._text.charCodeAt(i0 + 1) == 97 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101) return 88/*TokenKind.CASE*/;
       }
       else if (this._text.charCodeAt(i0) == 101) {
-        if (this._text.charCodeAt(i0 + 1) == 108 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101) return 96/*TokenKind.ELSE*/;
+        if (this._text.charCodeAt(i0 + 1) == 108 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101) return 95/*TokenKind.ELSE*/;
       }
       else if (this._text.charCodeAt(i0) == 110) {
         if (this._text.charCodeAt(i0 + 1) == 117 && this._text.charCodeAt(i0 + 2) == 108 && this._text.charCodeAt(i0 + 3) == 108) return 105/*TokenKind.NULL*/;
@@ -7345,20 +7345,20 @@ Tokenizer.prototype.getIdentifierKind = function() {
     case 5:
 
       if (this._text.charCodeAt(i0) == 97) {
-        if (this._text.charCodeAt(i0 + 1) == 119 && this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 105 && this._text.charCodeAt(i0 + 4) == 116) return 88/*TokenKind.AWAIT*/;
+        if (this._text.charCodeAt(i0 + 1) == 119 && this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 105 && this._text.charCodeAt(i0 + 4) == 116) return 86/*TokenKind.AWAIT*/;
       }
       else if (this._text.charCodeAt(i0) == 98) {
-        if (this._text.charCodeAt(i0 + 1) == 114 && this._text.charCodeAt(i0 + 2) == 101 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 107) return 89/*TokenKind.BREAK*/;
+        if (this._text.charCodeAt(i0 + 1) == 114 && this._text.charCodeAt(i0 + 2) == 101 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 107) return 87/*TokenKind.BREAK*/;
       }
       else if (this._text.charCodeAt(i0) == 99) {
         if (this._text.charCodeAt(i0 + 1) == 97) {
-          if (this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 99 && this._text.charCodeAt(i0 + 4) == 104) return 91/*TokenKind.CATCH*/;
+          if (this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 99 && this._text.charCodeAt(i0 + 4) == 104) return 89/*TokenKind.CATCH*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 108) {
-          if (this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 115) return 73/*TokenKind.CLASS*/;
+          if (this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 115) return 90/*TokenKind.CLASS*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 111) {
-          if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 116) return 92/*TokenKind.CONST*/;
+          if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 116) return 91/*TokenKind.CONST*/;
         }
       }
       else if (this._text.charCodeAt(i0) == 102) {
@@ -7386,14 +7386,14 @@ Tokenizer.prototype.getIdentifierKind = function() {
         if (this._text.charCodeAt(i0 + 1) == 115 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 116) return 72/*TokenKind.ASSERT*/;
       }
       else if (this._text.charCodeAt(i0) == 105) {
-        if (this._text.charCodeAt(i0 + 1) == 109 && this._text.charCodeAt(i0 + 2) == 112 && this._text.charCodeAt(i0 + 3) == 111 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 116) return 78/*TokenKind.IMPORT*/;
+        if (this._text.charCodeAt(i0 + 1) == 109 && this._text.charCodeAt(i0 + 2) == 112 && this._text.charCodeAt(i0 + 3) == 111 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 116) return 76/*TokenKind.IMPORT*/;
       }
       else if (this._text.charCodeAt(i0) == 110) {
         if (this._text.charCodeAt(i0 + 1) == 97) {
-          if (this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 105 && this._text.charCodeAt(i0 + 4) == 118 && this._text.charCodeAt(i0 + 5) == 101) return 81/*TokenKind.NATIVE*/;
+          if (this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 105 && this._text.charCodeAt(i0 + 4) == 118 && this._text.charCodeAt(i0 + 5) == 101) return 79/*TokenKind.NATIVE*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 101) {
-          if (this._text.charCodeAt(i0 + 2) == 103 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 116 && this._text.charCodeAt(i0 + 5) == 101) return 82/*TokenKind.NEGATE*/;
+          if (this._text.charCodeAt(i0 + 2) == 103 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 116 && this._text.charCodeAt(i0 + 5) == 101) return 80/*TokenKind.NEGATE*/;
         }
       }
       else if (this._text.charCodeAt(i0) == 114) {
@@ -7401,10 +7401,10 @@ Tokenizer.prototype.getIdentifierKind = function() {
       }
       else if (this._text.charCodeAt(i0) == 115) {
         if (this._text.charCodeAt(i0 + 1) == 111) {
-          if (this._text.charCodeAt(i0 + 2) == 117 && this._text.charCodeAt(i0 + 3) == 114 && this._text.charCodeAt(i0 + 4) == 99 && this._text.charCodeAt(i0 + 5) == 101) return 85/*TokenKind.SOURCE*/;
+          if (this._text.charCodeAt(i0 + 2) == 117 && this._text.charCodeAt(i0 + 3) == 114 && this._text.charCodeAt(i0 + 4) == 99 && this._text.charCodeAt(i0 + 5) == 101) return 83/*TokenKind.SOURCE*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 116) {
-          if (this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 105 && this._text.charCodeAt(i0 + 5) == 99) return 86/*TokenKind.STATIC*/;
+          if (this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 105 && this._text.charCodeAt(i0 + 5) == 99) return 84/*TokenKind.STATIC*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 119) {
           if (this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 99 && this._text.charCodeAt(i0 + 5) == 104) return 108/*TokenKind.SWITCH*/;
@@ -7415,24 +7415,24 @@ Tokenizer.prototype.getIdentifierKind = function() {
     case 7:
 
       if (this._text.charCodeAt(i0) == 100) {
-        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 102 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 117 && this._text.charCodeAt(i0 + 5) == 108 && this._text.charCodeAt(i0 + 6) == 116) return 94/*TokenKind.DEFAULT*/;
+        if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 102 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 117 && this._text.charCodeAt(i0 + 5) == 108 && this._text.charCodeAt(i0 + 6) == 116) return 93/*TokenKind.DEFAULT*/;
       }
       else if (this._text.charCodeAt(i0) == 101) {
-        if (this._text.charCodeAt(i0 + 1) == 120 && this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 110 && this._text.charCodeAt(i0 + 5) == 100 && this._text.charCodeAt(i0 + 6) == 115) return 74/*TokenKind.EXTENDS*/;
+        if (this._text.charCodeAt(i0 + 1) == 120 && this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 110 && this._text.charCodeAt(i0 + 5) == 100 && this._text.charCodeAt(i0 + 6) == 115) return 96/*TokenKind.EXTENDS*/;
       }
       else if (this._text.charCodeAt(i0) == 102) {
         if (this._text.charCodeAt(i0 + 1) == 97) {
-          if (this._text.charCodeAt(i0 + 2) == 99 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 111 && this._text.charCodeAt(i0 + 5) == 114 && this._text.charCodeAt(i0 + 6) == 121) return 75/*TokenKind.FACTORY*/;
+          if (this._text.charCodeAt(i0 + 2) == 99 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 111 && this._text.charCodeAt(i0 + 5) == 114 && this._text.charCodeAt(i0 + 6) == 121) return 73/*TokenKind.FACTORY*/;
         }
         else if (this._text.charCodeAt(i0 + 1) == 105) {
           if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 108 && this._text.charCodeAt(i0 + 5) == 108 && this._text.charCodeAt(i0 + 6) == 121) return 99/*TokenKind.FINALLY*/;
         }
       }
       else if (this._text.charCodeAt(i0) == 108) {
-        if (this._text.charCodeAt(i0 + 1) == 105 && this._text.charCodeAt(i0 + 2) == 98 && this._text.charCodeAt(i0 + 3) == 114 && this._text.charCodeAt(i0 + 4) == 97 && this._text.charCodeAt(i0 + 5) == 114 && this._text.charCodeAt(i0 + 6) == 121) return 80/*TokenKind.LIBRARY*/;
+        if (this._text.charCodeAt(i0 + 1) == 105 && this._text.charCodeAt(i0 + 2) == 98 && this._text.charCodeAt(i0 + 3) == 114 && this._text.charCodeAt(i0 + 4) == 97 && this._text.charCodeAt(i0 + 5) == 114 && this._text.charCodeAt(i0 + 6) == 121) return 78/*TokenKind.LIBRARY*/;
       }
       else if (this._text.charCodeAt(i0) == 116) {
-        if (this._text.charCodeAt(i0 + 1) == 121 && this._text.charCodeAt(i0 + 2) == 112 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 100 && this._text.charCodeAt(i0 + 5) == 101 && this._text.charCodeAt(i0 + 6) == 102) return 87/*TokenKind.TYPEDEF*/;
+        if (this._text.charCodeAt(i0 + 1) == 121 && this._text.charCodeAt(i0 + 2) == 112 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 100 && this._text.charCodeAt(i0 + 5) == 101 && this._text.charCodeAt(i0 + 6) == 102) return 85/*TokenKind.TYPEDEF*/;
       }
       return 70/*TokenKind.IDENTIFIER*/;
 
@@ -7442,21 +7442,21 @@ Tokenizer.prototype.getIdentifierKind = function() {
         if (this._text.charCodeAt(i0 + 1) == 98 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 97 && this._text.charCodeAt(i0 + 6) == 99 && this._text.charCodeAt(i0 + 7) == 116) return 71/*TokenKind.ABSTRACT*/;
       }
       else if (this._text.charCodeAt(i0) == 99) {
-        if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 105 && this._text.charCodeAt(i0 + 5) == 110 && this._text.charCodeAt(i0 + 6) == 117 && this._text.charCodeAt(i0 + 7) == 101) return 93/*TokenKind.CONTINUE*/;
+        if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 105 && this._text.charCodeAt(i0 + 5) == 110 && this._text.charCodeAt(i0 + 6) == 117 && this._text.charCodeAt(i0 + 7) == 101) return 92/*TokenKind.CONTINUE*/;
       }
       else if (this._text.charCodeAt(i0) == 111) {
-        if (this._text.charCodeAt(i0 + 1) == 112 && this._text.charCodeAt(i0 + 2) == 101 && this._text.charCodeAt(i0 + 3) == 114 && this._text.charCodeAt(i0 + 4) == 97 && this._text.charCodeAt(i0 + 5) == 116 && this._text.charCodeAt(i0 + 6) == 111 && this._text.charCodeAt(i0 + 7) == 114) return 83/*TokenKind.OPERATOR*/;
+        if (this._text.charCodeAt(i0 + 1) == 112 && this._text.charCodeAt(i0 + 2) == 101 && this._text.charCodeAt(i0 + 3) == 114 && this._text.charCodeAt(i0 + 4) == 97 && this._text.charCodeAt(i0 + 5) == 116 && this._text.charCodeAt(i0 + 6) == 111 && this._text.charCodeAt(i0 + 7) == 114) return 81/*TokenKind.OPERATOR*/;
       }
       return 70/*TokenKind.IDENTIFIER*/;
 
     case 9:
 
-      if (this._text.charCodeAt(i0) == 105 && this._text.charCodeAt(i0 + 1) == 110 && this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 102 && this._text.charCodeAt(i0 + 6) == 97 && this._text.charCodeAt(i0 + 7) == 99 && this._text.charCodeAt(i0 + 8) == 101) return 79/*TokenKind.INTERFACE*/;
+      if (this._text.charCodeAt(i0) == 105 && this._text.charCodeAt(i0 + 1) == 110 && this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 102 && this._text.charCodeAt(i0 + 6) == 97 && this._text.charCodeAt(i0 + 7) == 99 && this._text.charCodeAt(i0 + 8) == 101) return 77/*TokenKind.INTERFACE*/;
       return 70/*TokenKind.IDENTIFIER*/;
 
     case 10:
 
-      if (this._text.charCodeAt(i0) == 105 && this._text.charCodeAt(i0 + 1) == 109 && this._text.charCodeAt(i0 + 2) == 112 && this._text.charCodeAt(i0 + 3) == 108 && this._text.charCodeAt(i0 + 4) == 101 && this._text.charCodeAt(i0 + 5) == 109 && this._text.charCodeAt(i0 + 6) == 101 && this._text.charCodeAt(i0 + 7) == 110 && this._text.charCodeAt(i0 + 8) == 116 && this._text.charCodeAt(i0 + 9) == 115) return 77/*TokenKind.IMPLEMENTS*/;
+      if (this._text.charCodeAt(i0) == 105 && this._text.charCodeAt(i0 + 1) == 109 && this._text.charCodeAt(i0 + 2) == 112 && this._text.charCodeAt(i0 + 3) == 108 && this._text.charCodeAt(i0 + 4) == 101 && this._text.charCodeAt(i0 + 5) == 109 && this._text.charCodeAt(i0 + 6) == 101 && this._text.charCodeAt(i0 + 7) == 110 && this._text.charCodeAt(i0 + 8) == 116 && this._text.charCodeAt(i0 + 9) == 115) return 75/*TokenKind.IMPLEMENTS*/;
       return 70/*TokenKind.IDENTIFIER*/;
 
     default:
@@ -7758,99 +7758,99 @@ TokenKind.kindToString = function(kind) {
 
       return "pseudo-keyword 'assert'";
 
-    case 73/*TokenKind.CLASS*/:
+    case 90/*TokenKind.CLASS*/:
 
       return "pseudo-keyword 'class'";
 
-    case 74/*TokenKind.EXTENDS*/:
+    case 96/*TokenKind.EXTENDS*/:
 
       return "pseudo-keyword 'extends'";
 
-    case 75/*TokenKind.FACTORY*/:
+    case 73/*TokenKind.FACTORY*/:
 
       return "pseudo-keyword 'factory'";
 
-    case 76/*TokenKind.GET*/:
+    case 74/*TokenKind.GET*/:
 
       return "pseudo-keyword 'get'";
 
-    case 77/*TokenKind.IMPLEMENTS*/:
+    case 75/*TokenKind.IMPLEMENTS*/:
 
       return "pseudo-keyword 'implements'";
 
-    case 78/*TokenKind.IMPORT*/:
+    case 76/*TokenKind.IMPORT*/:
 
       return "pseudo-keyword 'import'";
 
-    case 79/*TokenKind.INTERFACE*/:
+    case 77/*TokenKind.INTERFACE*/:
 
       return "pseudo-keyword 'interface'";
 
-    case 80/*TokenKind.LIBRARY*/:
+    case 78/*TokenKind.LIBRARY*/:
 
       return "pseudo-keyword 'library'";
 
-    case 81/*TokenKind.NATIVE*/:
+    case 79/*TokenKind.NATIVE*/:
 
       return "pseudo-keyword 'native'";
 
-    case 82/*TokenKind.NEGATE*/:
+    case 80/*TokenKind.NEGATE*/:
 
       return "pseudo-keyword 'negate'";
 
-    case 83/*TokenKind.OPERATOR*/:
+    case 81/*TokenKind.OPERATOR*/:
 
       return "pseudo-keyword 'operator'";
 
-    case 84/*TokenKind.SET*/:
+    case 82/*TokenKind.SET*/:
 
       return "pseudo-keyword 'set'";
 
-    case 85/*TokenKind.SOURCE*/:
+    case 83/*TokenKind.SOURCE*/:
 
       return "pseudo-keyword 'source'";
 
-    case 86/*TokenKind.STATIC*/:
+    case 84/*TokenKind.STATIC*/:
 
       return "pseudo-keyword 'static'";
 
-    case 87/*TokenKind.TYPEDEF*/:
+    case 85/*TokenKind.TYPEDEF*/:
 
       return "pseudo-keyword 'typedef'";
 
-    case 88/*TokenKind.AWAIT*/:
+    case 86/*TokenKind.AWAIT*/:
 
       return "keyword 'await'";
 
-    case 89/*TokenKind.BREAK*/:
+    case 87/*TokenKind.BREAK*/:
 
       return "keyword 'break'";
 
-    case 90/*TokenKind.CASE*/:
+    case 88/*TokenKind.CASE*/:
 
       return "keyword 'case'";
 
-    case 91/*TokenKind.CATCH*/:
+    case 89/*TokenKind.CATCH*/:
 
       return "keyword 'catch'";
 
-    case 92/*TokenKind.CONST*/:
+    case 91/*TokenKind.CONST*/:
 
       return "keyword 'const'";
 
-    case 93/*TokenKind.CONTINUE*/:
+    case 92/*TokenKind.CONTINUE*/:
 
       return "keyword 'continue'";
 
-    case 94/*TokenKind.DEFAULT*/:
+    case 93/*TokenKind.DEFAULT*/:
 
       return "keyword 'default'";
 
-    case 95/*TokenKind.DO*/:
+    case 94/*TokenKind.DO*/:
 
       return "keyword 'do'";
 
-    case 96/*TokenKind.ELSE*/:
+    case 95/*TokenKind.ELSE*/:
 
       return "keyword 'else'";
 
@@ -7937,7 +7937,7 @@ TokenKind.kindToString = function(kind) {
   }
 }
 TokenKind.isIdentifier = function(kind) {
-  return kind >= 70/*TokenKind.IDENTIFIER*/ && kind < 88/*TokenKind.AWAIT*/;
+  return kind >= 70/*TokenKind.IDENTIFIER*/ && kind < 86/*TokenKind.AWAIT*/;
 }
 TokenKind.infixPrecedence = function(kind) {
   switch (kind) {
@@ -8329,7 +8329,7 @@ Parser.prototype._peekIdentifier = function() {
   return this._isIdentifier(this._peekToken.kind);
 }
 Parser.prototype._isIdentifier = function(kind) {
-  return TokenKind.isIdentifier(kind) || (!this.get$enableAwait() && $eq(kind, 88/*TokenKind.AWAIT*/));
+  return TokenKind.isIdentifier(kind) || (!this.get$enableAwait() && $eq(kind, 86/*TokenKind.AWAIT*/));
 }
 Parser.prototype._maybeEat = function(kind) {
   if (this._peekToken.kind == kind) {
@@ -8412,15 +8412,15 @@ Parser.prototype.directive = function() {
 }
 Parser.prototype.topLevelDefinition = function() {
   switch (this._peek()) {
-    case 73/*TokenKind.CLASS*/:
+    case 90/*TokenKind.CLASS*/:
 
-      return this.classDefinition(73/*TokenKind.CLASS*/);
+      return this.classDefinition(90/*TokenKind.CLASS*/);
 
-    case 79/*TokenKind.INTERFACE*/:
+    case 77/*TokenKind.INTERFACE*/:
 
-      return this.classDefinition(79/*TokenKind.INTERFACE*/);
+      return this.classDefinition(77/*TokenKind.INTERFACE*/);
 
-    case 87/*TokenKind.TYPEDEF*/:
+    case 85/*TokenKind.TYPEDEF*/:
 
       return this.functionTypeAlias();
 
@@ -8439,21 +8439,21 @@ Parser.prototype.classDefinition = function(kind) {
     typeParams = this.typeParameters();
   }
   var _extends = null;
-  if (this._maybeEat(74/*TokenKind.EXTENDS*/)) {
+  if (this._maybeEat(96/*TokenKind.EXTENDS*/)) {
     _extends = this.typeList();
   }
   var _implements = null;
-  if (this._maybeEat(77/*TokenKind.IMPLEMENTS*/)) {
+  if (this._maybeEat(75/*TokenKind.IMPLEMENTS*/)) {
     _implements = this.typeList();
   }
   var _native = null;
-  if (this._maybeEat(81/*TokenKind.NATIVE*/)) {
+  if (this._maybeEat(79/*TokenKind.NATIVE*/)) {
     _native = this.maybeStringLiteral();
     if (_native != null) _native = new NativeType(_native);
   }
-  var oldFactory = this._maybeEat(75/*TokenKind.FACTORY*/);
+  var oldFactory = this._maybeEat(73/*TokenKind.FACTORY*/);
   var defaultType = null;
-  if (oldFactory || this._maybeEat(94/*TokenKind.DEFAULT*/)) {
+  if (oldFactory || this._maybeEat(93/*TokenKind.DEFAULT*/)) {
     if (oldFactory) {
       $globals.world.warning('factory no longer supported, use "default" instead', this._previousToken.get$span());
     }
@@ -8477,11 +8477,11 @@ Parser.prototype.classDefinition = function(kind) {
   else {
     this._errorExpected('block starting with "{" or ";"');
   }
-  return new TypeDefinition(kind == 73/*TokenKind.CLASS*/, name, typeParams, _extends, _implements, _native, defaultType, body, this._makeSpan(start));
+  return new TypeDefinition(kind == 90/*TokenKind.CLASS*/, name, typeParams, _extends, _implements, _native, defaultType, body, this._makeSpan(start));
 }
 Parser.prototype.functionTypeAlias = function() {
   var start = this._peekToken.start;
-  this._eat(87/*TokenKind.TYPEDEF*/);
+  this._eat(85/*TokenKind.TYPEDEF*/);
   var di = this.declaredIdentifier(false);
   var typeParams = null;
   if (this._peekKind(52/*TokenKind.LT*/)) {
@@ -8554,7 +8554,7 @@ Parser.prototype.finishDefinition = function(start, modifiers, di) {
       if (this._maybeEat(8/*TokenKind.COLON*/)) {
         inits = this.initializers();
       }
-      if (this._maybeEat(81/*TokenKind.NATIVE*/)) {
+      if (this._maybeEat(79/*TokenKind.NATIVE*/)) {
         native_ = this.maybeStringLiteral();
         if (native_ == null) native_ = '';
       }
@@ -8584,7 +8584,7 @@ Parser.prototype.finishDefinition = function(start, modifiers, di) {
 }
 Parser.prototype.declaration = function(includeOperators) {
   var start = this._peekToken.start;
-  if (this._peekKind(75/*TokenKind.FACTORY*/)) {
+  if (this._peekKind(73/*TokenKind.FACTORY*/)) {
     return this.factoryConstructorDeclaration();
   }
   var modifiers = this._readModifiers();
@@ -8624,11 +8624,11 @@ Parser.prototype.factoryConstructorDeclaration = function() {
 }
 Parser.prototype.statement = function() {
   switch (this._peek()) {
-    case 89/*TokenKind.BREAK*/:
+    case 87/*TokenKind.BREAK*/:
 
       return this.breakStatement();
 
-    case 93/*TokenKind.CONTINUE*/:
+    case 92/*TokenKind.CONTINUE*/:
 
       return this.continueStatement();
 
@@ -8648,7 +8648,7 @@ Parser.prototype.statement = function() {
 
       return this.whileStatement();
 
-    case 95/*TokenKind.DO*/:
+    case 94/*TokenKind.DO*/:
 
       return this.doStatement();
 
@@ -8758,7 +8758,7 @@ Parser.prototype.ifStatement = function() {
   var test = this.testCondition();
   var trueBranch = this.statement();
   var falseBranch = null;
-  if (this._maybeEat(96/*TokenKind.ELSE*/)) {
+  if (this._maybeEat(95/*TokenKind.ELSE*/)) {
     falseBranch = this.statement();
   }
   return new IfStatement(test, trueBranch, falseBranch, this._makeSpan(start));
@@ -8772,7 +8772,7 @@ Parser.prototype.whileStatement = function() {
 }
 Parser.prototype.doStatement = function() {
   var start = this._peekToken.start;
-  this._eat(95/*TokenKind.DO*/);
+  this._eat(94/*TokenKind.DO*/);
   var body = this.statement();
   this._eat(115/*TokenKind.WHILE*/);
   var test = this.testCondition();
@@ -8836,7 +8836,7 @@ Parser.prototype.tryStatement = function() {
   this._eat(112/*TokenKind.TRY*/);
   var body = this.block();
   var catches = [];
-  while (this._peekKind(91/*TokenKind.CATCH*/)) {
+  while (this._peekKind(89/*TokenKind.CATCH*/)) {
     catches.add$1(this.catchNode());
   }
   var finallyBlock = null;
@@ -8847,7 +8847,7 @@ Parser.prototype.tryStatement = function() {
 }
 Parser.prototype.catchNode = function() {
   var start = this._peekToken.start;
-  this._eat(91/*TokenKind.CATCH*/);
+  this._eat(89/*TokenKind.CATCH*/);
   this._eatLeftParen();
   var exc = this.declaredIdentifier(false);
   var trace = null;
@@ -8871,7 +8871,7 @@ Parser.prototype.switchStatement = function() {
 }
 Parser.prototype._peekCaseEnd = function() {
   var kind = this._peek();
-  return $eq(kind, 7/*TokenKind.RBRACE*/) || $eq(kind, 90/*TokenKind.CASE*/) || $eq(kind, 94/*TokenKind.DEFAULT*/);
+  return $eq(kind, 7/*TokenKind.RBRACE*/) || $eq(kind, 88/*TokenKind.CASE*/) || $eq(kind, 93/*TokenKind.DEFAULT*/);
 }
 Parser.prototype.caseNode = function() {
   var start = this._peekToken.start;
@@ -8882,11 +8882,11 @@ Parser.prototype.caseNode = function() {
   }
   var cases = [];
   while (true) {
-    if (this._maybeEat(90/*TokenKind.CASE*/)) {
+    if (this._maybeEat(88/*TokenKind.CASE*/)) {
       cases.add$1(this.expression());
       this._eat(8/*TokenKind.COLON*/);
     }
-    else if (this._maybeEat(94/*TokenKind.DEFAULT*/)) {
+    else if (this._maybeEat(93/*TokenKind.DEFAULT*/)) {
       cases.add$1();
       this._eat(8/*TokenKind.COLON*/);
     }
@@ -8900,7 +8900,7 @@ Parser.prototype.caseNode = function() {
   var stmts = [];
   while (!this._peekCaseEnd()) {
     stmts.add$1(this.statement());
-    if (this._recover && !this._recoverTo(7/*TokenKind.RBRACE*/, 90/*TokenKind.CASE*/, 94/*TokenKind.DEFAULT*/)) {
+    if (this._recover && !this._recoverTo(7/*TokenKind.RBRACE*/, 88/*TokenKind.CASE*/, 93/*TokenKind.DEFAULT*/)) {
       break;
     }
   }
@@ -8943,7 +8943,7 @@ Parser.prototype.assertStatement = function() {
 }
 Parser.prototype.breakStatement = function() {
   var start = this._peekToken.start;
-  this._eat(89/*TokenKind.BREAK*/);
+  this._eat(87/*TokenKind.BREAK*/);
   var name = null;
   if (this._peekIdentifier()) {
     name = this.identifier();
@@ -8953,7 +8953,7 @@ Parser.prototype.breakStatement = function() {
 }
 Parser.prototype.continueStatement = function() {
   var start = this._peekToken.start;
-  this._eat(93/*TokenKind.CONTINUE*/);
+  this._eat(92/*TokenKind.CONTINUE*/);
   var name = null;
   if (this._peekIdentifier()) {
     name = this.identifier();
@@ -9073,7 +9073,7 @@ Parser.prototype.unaryExpression = function() {
     var expr = this.unaryExpression();
     return new UnaryExpression(tok, expr, this._makeSpan(start));
   }
-  else if (this.get$enableAwait() && this._maybeEat(88/*TokenKind.AWAIT*/)) {
+  else if (this.get$enableAwait() && this._maybeEat(86/*TokenKind.AWAIT*/)) {
     var expr = this.unaryExpression();
     return new AwaitExpression(expr, this._makeSpan(start));
   }
@@ -9195,9 +9195,9 @@ Parser.prototype.primary = function() {
       this._eat(107/*TokenKind.SUPER*/);
       return new SuperExpression(this._makeSpan(start));
 
-    case 92/*TokenKind.CONST*/:
+    case 91/*TokenKind.CONST*/:
 
-      this._eat(92/*TokenKind.CONST*/);
+      this._eat(91/*TokenKind.CONST*/);
       if (this._peekKind(4/*TokenKind.LBRACK*/) || this._peekKind(56/*TokenKind.INDEX*/)) {
         return this.finishListLiteral(start, true, null);
       }
@@ -9428,10 +9428,10 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
       name = ('this.' + this.identifier().get$name());
       break;
 
-    case 76/*TokenKind.GET*/:
+    case 74/*TokenKind.GET*/:
 
       if (!includeOperators) return null;
-      this._eat(76/*TokenKind.GET*/);
+      this._eat(74/*TokenKind.GET*/);
       if (this._peekIdentifier()) {
         name = ('get:' + this.identifier().get$name());
       }
@@ -9440,10 +9440,10 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
       }
       break;
 
-    case 84/*TokenKind.SET*/:
+    case 82/*TokenKind.SET*/:
 
       if (!includeOperators) return null;
-      this._eat(84/*TokenKind.SET*/);
+      this._eat(82/*TokenKind.SET*/);
       if (this._peekIdentifier()) {
         name = ('set:' + this.identifier().get$name());
       }
@@ -9452,12 +9452,12 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
       }
       break;
 
-    case 83/*TokenKind.OPERATOR*/:
+    case 81/*TokenKind.OPERATOR*/:
 
       if (!includeOperators) return null;
-      this._eat(83/*TokenKind.OPERATOR*/);
+      this._eat(81/*TokenKind.OPERATOR*/);
       var kind = this._peek();
-      if ($eq(kind, 82/*TokenKind.NEGATE*/)) {
+      if ($eq(kind, 80/*TokenKind.NEGATE*/)) {
         name = ':negate';
         this._next();
       }
@@ -9596,11 +9596,11 @@ Parser.prototype._readModifiers = function() {
   var modifiers = null;
   while (true) {
     switch (this._peek()) {
-      case 86/*TokenKind.STATIC*/:
+      case 84/*TokenKind.STATIC*/:
       case 98/*TokenKind.FINAL*/:
-      case 92/*TokenKind.CONST*/:
+      case 91/*TokenKind.CONST*/:
       case 71/*TokenKind.ABSTRACT*/:
-      case 75/*TokenKind.FACTORY*/:
+      case 73/*TokenKind.FACTORY*/:
 
         if (modifiers == null) modifiers = [];
         modifiers.add$1(this._next());
@@ -9618,7 +9618,7 @@ Parser.prototype.typeParameter = function() {
   var start = this._peekToken.start;
   var name = this.identifier();
   var myType = null;
-  if (this._maybeEat(74/*TokenKind.EXTENDS*/)) {
+  if (this._maybeEat(96/*TokenKind.EXTENDS*/)) {
     myType = this.type(1);
   }
   var tp = new TypeParameter(name, myType, this._makeSpan(start));
@@ -11709,7 +11709,7 @@ DefinedType.prototype.addMethod = function(methodName, definition) {
     this.constructors.$setindex(method.get$constructorName(), method);
     return;
   }
-  if (definition.modifiers != null && definition.modifiers.get$length() == 1 && $eq(definition.modifiers.$index(0).get$kind(), 75/*TokenKind.FACTORY*/)) {
+  if (definition.modifiers != null && definition.modifiers.get$length() == 1 && $eq(definition.modifiers.$index(0).get$kind(), 73/*TokenKind.FACTORY*/)) {
     if (this.factories.getFactory(method.get$constructorName(), method.get$name()) != null) {
       $globals.world.error(('duplicate factory definition of "' + method.get$name() + '"'), definition.span);
       return;
