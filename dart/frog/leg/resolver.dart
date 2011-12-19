@@ -11,6 +11,7 @@ class TreeElements {
 
 class ResolverTask extends CompilerTask {
   Queue<ClassElement> toResolve;
+
   ResolverTask(Compiler compiler)
     : super(compiler), toResolve = new Queue<ClassElement>();
 
@@ -18,7 +19,7 @@ class ResolverTask extends CompilerTask {
 
   TreeElements resolve(FunctionElement element) {
     return measure(() {
-      FunctionExpression tree = element.node;
+      FunctionExpression tree = element.parseNode(compiler, compiler);
       if (tree.initializers !== null) {
         compiler.cancel('initializers are not implemented',
                         node: tree.initializers);
@@ -425,6 +426,11 @@ class FullResolverVisitor extends ResolverVisitor {
     return null;
   }
 
+  visitModifiers(Modifiers node) {
+    // TODO(ngeoffray): Implement this.
+    cancel(node, "Unimplemented");
+  }
+
   visitLiteralList(LiteralList node) {
     visit(node.elements);
   }
@@ -544,6 +550,8 @@ class ParametersVisitor extends AbstractVisitor<Element> {
 class Scope {
   final Element element;
   final Scope parent;
+
+  Map<SourceString, Element> get elements() => const {};
 
   Scope(this.parent, this.element);
   abstract Element add(Element element);

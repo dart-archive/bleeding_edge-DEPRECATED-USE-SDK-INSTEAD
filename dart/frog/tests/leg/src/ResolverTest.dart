@@ -15,7 +15,6 @@ Node buildInitialization(String name) =>
   parseBodyCode('$name = 1',
       (parser, tokens) => parser.parseOptionallyInitializedIdentifier(tokens));
 
-
 createLocals(List variables) {
   var locals = [];
   for (final variable in variables) {
@@ -43,7 +42,8 @@ testLocals(List variables) {
     final name = variable[0];
     Identifier id = buildIdentifier(name);
     final element = visitor.visit(id);
-    Expect.equals(element, visitor.context.elements[buildSourceString(name)]);
+    MethodScope scope = visitor.context;
+    Expect.equals(element, scope.elements[buildSourceString(name)]);
   }
   return compiler;
 }
@@ -158,7 +158,8 @@ testParametersOne() {
   Expect.equals(ElementKind.FUNCTION, element.kind);
 
   // Check that an element has been created for the parameter.
-  Node param = tree.parameters.nodes.head.definitions.nodes.head;
+  VariableDefinitions vardef = tree.parameters.nodes.head;
+  Node param = vardef.definitions.nodes.head;
   Expect.equals(ElementKind.PARAMETER, visitor.mapping[param].kind);
 
   // Check that 'a' in 'return a' is resolved to the parameter.
@@ -291,18 +292,18 @@ testOneInterface() {
   // Add the interface to the world and make sure everything is setup correctly.
   compiler.parseScript("interface Bar {}");
 
-  visitor = new FullResolverVisitor(compiler);
-  compiler.resolverStatement("Foo bar;");
+  FullResolverVisitor visitor = new FullResolverVisitor(compiler, null);
+  compiler.resolveStatement("Foo bar;");
 
-  Element fooElement = compiler.universe.find(buildSourceString('Foo'));
-  Element barElement = compiler.universe.find(buildSourceString('Bar'));
+  ClassElement fooElement = compiler.universe.find(buildSourceString('Foo'));
+  ClassElement barElement = compiler.universe.find(buildSourceString('Bar'));
 
   Expect.equals(null, barElement.supertype);
   Expect.isTrue(barElement.interfaces.isEmpty());
 
   Expect.equals(barElement.computeType(compiler, null),
-                fooElement.interfaces[0]);
-  Expect.equals(1, fooElement.interfaces.length);
+                fooElement.interfaces.head);
+  Expect.equals(1, length(fooElement.interfaces));
 }
 
 testTwoInterfaces() {
@@ -311,13 +312,13 @@ testTwoInterfaces() {
       "interface I1 {} interface I2 {} class C implements I1, I2 {}");
   compiler.resolveStatement("Foo bar;");
 
-  Element c = compiler.universe.find(buildSourceString('C'));
+  ClassElement c = compiler.universe.find(buildSourceString('C'));
   Element i1 = compiler.universe.find(buildSourceString('I1'));
   Element i2 = compiler.universe.find(buildSourceString('I2'));
 
-  Expect.equals(2, c.interfaces.length);
-  Expect.equals(i1.computeType(compiler, null), c.interfaces[0]);
-  Expect.equals(i2.computeType(compiler, null), c.interfaces[1]);
+  Expect.equals(2, length(c.interfaces));
+  Expect.equals(i1.computeType(compiler, null), at(c.interfaces, 0));
+  Expect.equals(i2.computeType(compiler, null), at(c.interfaces, 1));
 }
 
 testFunctionExpression() {
@@ -348,8 +349,9 @@ testNewExpression() {
   compiler.resolver.resolve(fooElement);
 
   TreeElements elements = compiler.resolveStatement("new A();");
-  Element element =
-      elements[compiler.parsedTree.asExpressionStatement().expression.send];
+  NewExpression expression =
+      compiler.parsedTree.asExpressionStatement().expression;
+  Element element = elements[expression.send];
   Expect.equals(ElementKind.CONSTRUCTOR, element.kind);
   Expect.isTrue(element is SynthesizedConstructorElement);
 }
@@ -359,7 +361,7 @@ testTopLevelFields() {
   compiler.parseScript("int a;");
   Element element = compiler.universe.find(buildSourceString("a"));
   Expect.equals(ElementKind.FIELD, element.kind);
-  Node node = element.parseNode(compiler, compiler);
+  VariableDefinitions node = element.parseNode(compiler, compiler);
   Expect.equals(node.type.typeName.source.stringValue, 'int');
 
   compiler.parseScript("var b, c;");
@@ -369,8 +371,12 @@ testTopLevelFields() {
   Expect.equals(ElementKind.FIELD, cElement.kind);
   Expect.isTrue(bElement != cElement);
 
-  Node bNode = bElement.parseNode(compiler, compiler);
-  Node cNode = cElement.parseNode(compiler, compiler);
+  VariableDefinitions bNode = bElement.parseNode(compiler, compiler);
+  VariableDefinitions cNode = cElement.parseNode(compiler, compiler);
   Expect.equals(bNode, cNode);
   Expect.equals(bNode.type.typeName.source.stringValue, 'var');
 }
+
+length(Link link) => link.isEmpty() ? 0 : length(link.tail) + 1;
+
+at(Link link, int index) => (index == 0) ? link.head : at(link.tail, index - 1);

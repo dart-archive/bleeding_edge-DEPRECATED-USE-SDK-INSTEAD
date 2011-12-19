@@ -116,6 +116,10 @@ class ForeignElement extends Element {
   Type computeType(Compiler compiler, types) {
     return types.dynamicType;
   }
+
+  parseNode(compiler, types) {
+    throw "internal error: ForeignElement has no node";
+  }
 }
 
 /**
@@ -274,6 +278,8 @@ class ClassElement extends Element {
     }
     return synthesizedConstructor;
   }
+
+  parseNode(compiler, types) => node;
 }
 
 class Elements {

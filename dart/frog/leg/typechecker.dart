@@ -126,7 +126,7 @@ class CancelTypeCheckException {
   CancelTypeCheckException(this.node, this.reason);
 }
 
-Type lookupType(SourceString name, compiler, types) {
+Type lookupType(SourceString name, Compiler compiler, types) {
   Type t = types.lookup(name);
   if (t !== null) return t;
   Element element = compiler.universe.find(name);
