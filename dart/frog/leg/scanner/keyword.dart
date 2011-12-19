@@ -9,11 +9,13 @@ class Keyword implements SourceString {
   static final Keyword BREAK = const Keyword("break");
   static final Keyword CASE = const Keyword("case");
   static final Keyword CATCH = const Keyword("catch");
+  static final Keyword CLASS = const Keyword("class");
   static final Keyword CONST = const Keyword("const");
   static final Keyword CONTINUE = const Keyword("continue");
   static final Keyword DEFAULT = const Keyword("default");
   static final Keyword DO = const Keyword("do");
   static final Keyword ELSE = const Keyword("else");
+  static final Keyword EXTENDS = const Keyword("extends");
   static final Keyword FALSE = const Keyword("false");
   static final Keyword FINAL = const Keyword("final");
   static final Keyword FINALLY = const Keyword("finally");
@@ -37,8 +39,6 @@ class Keyword implements SourceString {
   // Pseudo keywords:
   static final Keyword ABSTRACT = const Keyword("abstract", true);
   static final Keyword ASSERT = const Keyword("assert", true);
-  static final Keyword CLASS = const Keyword("class", true);
-  static final Keyword EXTENDS = const Keyword("extends", true);
   static final Keyword FACTORY = const Keyword("factory", true);
   static final Keyword GET = const Keyword("get", true);
   static final Keyword IMPLEMENTS = const Keyword("implements", true);
