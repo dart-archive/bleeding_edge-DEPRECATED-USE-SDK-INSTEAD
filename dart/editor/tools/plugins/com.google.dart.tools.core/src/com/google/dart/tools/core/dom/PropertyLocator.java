@@ -63,7 +63,7 @@ import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartParameterizedNode;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPlainVisitor;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -622,7 +622,7 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
   }
 
   @Override
-  public StructuralPropertyDescriptor visitParameterizedNode(DartParameterizedNode node) {
+  public StructuralPropertyDescriptor visitParameterizedNode(DartParameterizedTypeNode node) {
     if (childNode == node.getExpression()) {
       return PropertyDescriptorHelper.DART_PARAMETERIZED_NODE_EXPRESSION;
     } else if (childContainedIn(node.getTypeParameters())) {

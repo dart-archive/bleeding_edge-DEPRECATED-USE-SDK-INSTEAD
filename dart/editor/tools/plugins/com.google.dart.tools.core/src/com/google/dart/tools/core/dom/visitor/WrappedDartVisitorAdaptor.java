@@ -56,7 +56,7 @@ import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartParameterizedNode;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPlainVisitor;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -452,7 +452,7 @@ public class WrappedDartVisitorAdaptor<R> implements DartPlainVisitor<R> {
   }
 
   @Override
-  public R visitParameterizedNode(DartParameterizedNode node) {
+  public R visitParameterizedNode(DartParameterizedTypeNode node) {
     baseVisitor.preVisit(node);
     R result = baseVisitor.visitParameterizedNode(node);
     baseVisitor.postVisit(node);

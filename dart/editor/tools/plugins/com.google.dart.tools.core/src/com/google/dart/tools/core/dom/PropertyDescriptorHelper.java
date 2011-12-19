@@ -63,7 +63,7 @@ import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartParameterizedNode;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
@@ -669,14 +669,14 @@ public class PropertyDescriptorHelper {
    * The expression being parameterized.
    */
   public static final StructuralPropertyDescriptor DART_PARAMETERIZED_NODE_EXPRESSION = new ChildPropertyDescriptor(
-      DartParameterizedNode.class, "expression", DartExpression.class,
+      DartParameterizedTypeNode.class, "expression", DartExpression.class,
       StructuralPropertyDescriptor.MANDATORY, StructuralPropertyDescriptor.CYCLE_RISK);
 
   /**
    * The type parameters used to parameterize the expression.
    */
   public static final StructuralPropertyDescriptor DART_PARAMETERIZED_NODE_TYPE_PARAMETERS = new ChildListPropertyDescriptor(
-      DartParameterizedNode.class, "typeParameters", DartTypeParameter.class,
+      DartParameterizedTypeNode.class, "typeParameters", DartTypeParameter.class,
       StructuralPropertyDescriptor.CYCLE_RISK);
 
   /**
