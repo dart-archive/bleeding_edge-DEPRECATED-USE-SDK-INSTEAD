@@ -40,7 +40,7 @@ class Parser {
         ++supertypeCount;
       } while (optional(',', token));
     }
-    token = parseFactoryClauseOpt(token);
+    token = parseDefaultClauseOpt(token);
     token = parseInterfaceBody(token);
     listener.endInterface(supertypeCount, token);
     return token.next;
@@ -156,10 +156,11 @@ class Parser {
     return false;
   }
 
-  Token parseFactoryClauseOpt(Token token) {
-    if (optional('factory', token)) {
-      Token factoryKeyword = token;
-      listener.beginFactoryClause(factoryKeyword);
+  Token parseDefaultClauseOpt(Token token) {
+    if (optional('default', token) || optional('factory', token)) {
+      // TODO(ahe): Remove support for 'factory' in this position.
+      Token defaultKeyword = token;
+      listener.beginDefaultClause(defaultKeyword);
       token = parseIdentifier(token.next);
       if (optional('.', token)) {
         Token period = token;
@@ -167,9 +168,9 @@ class Parser {
         listener.handleQualified(period);
       }
       token = parseTypeVariablesOpt(token);
-      listener.endFactoryClause(factoryKeyword);
+      listener.endDefaultClause(defaultKeyword);
     } else {
-      listener.handleNoFactoryClause(token);
+      listener.handleNoDefaultClause(token);
     }
     return token;
   }

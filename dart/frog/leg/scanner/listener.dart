@@ -44,13 +44,13 @@ class Listener {
   void endExpressionStatement(Token token) {
   }
 
-  void beginFactoryClause(Token token) {
+  void beginDefaultClause(Token token) {
   }
 
-  void handleNoFactoryClause(Token token) {
+  void handleNoDefaultClause(Token token) {
   }
 
-  void endFactoryClause(Token factoryKeyword) {
+  void endDefaultClause(Token defaultKeyword) {
   }
 
   void beginFactoryMethod(Token token) {
@@ -453,19 +453,19 @@ class ElementListener extends Listener {
     pushElement(new PartialClassElement(name.source, beginToken, endToken));
   }
 
-  void endFactoryClause(Token factoryKeyword) {
-    canceler.cancel("Factory clauses are not implemented",
-                    token: factoryKeyword);
+  void endDefaultClause(Token defaultKeyword) {
+    canceler.cancel("Default clauses are not implemented",
+                    token: defaultKeyword);
   }
 
-  void handleNoFactoryClause(Token token) {
+  void handleNoDefaultClause(Token token) {
     pushNode(null);
   }
 
   void endInterface(int supertypeCount, Token token) {
     // TODO(ahe): Implement this.
     canceler.cancel("Cannot handle interfaces", token: token);
-    Node factoryClause = popNode();
+    Node defaultClause = popNode();
     discardNodes(supertypeCount);
     Identifier name = popNode();
   }
