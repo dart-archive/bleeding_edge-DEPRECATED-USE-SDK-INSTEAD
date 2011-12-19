@@ -292,7 +292,7 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
         // Get the output location
         FileDialog saveDialog = new FileDialog(window.getShell(), SWT.SAVE);
         IResource libraryResource = library.getCorrespondingResource();
-        saveDialog.setFilterPath(libraryResource.getRawLocation().toFile().toString());
+        saveDialog.setFilterPath(libraryResource.getRawLocation().toFile().getParent());
         saveDialog.setFileName(libraryResource.getName() + "." + AbstractJsBackend.EXTENSION_JS); //$NON-NLS-1$
 
         String fileName = saveDialog.open();
