@@ -591,7 +591,7 @@ class IsolatedServer extends Isolate {
 
     // Start a timer for cleanup events.
     _cleanupTimer =
-        new Timer((timer) => _topic._handleTimer(timer), 10000, true);
+        new Timer.repeating((timer) => _topic._handleTimer(timer), 10000);
 
     // Start timer for periodic logging.
     void _handleLogging(Timer timer) {
@@ -619,7 +619,7 @@ class IsolatedServer extends Isolate {
                       _requestReceivedHandler(req, rsp),
                   backlog: message.backlog);
               replyTo.send(new ChatServerStatus.started(_server.port), null);
-              _loggingTimer = new Timer(_handleLogging, 1000, true);
+              _loggingTimer = new Timer.repeating(_handleLogging, 1000);
             } catch (var e) {
               replyTo.send(new ChatServerStatus.error(e.toString()), null);
             }

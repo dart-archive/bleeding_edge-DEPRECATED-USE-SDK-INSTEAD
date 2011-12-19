@@ -46,14 +46,14 @@ class SocketExample {
     }
 
     // send next 4 bytes slowly
-    new Timer((Timer t) {
+    new Timer.repeating((Timer t) {
       sendByte();
       if (bytesSent == bytesTotal) {
         sendSocket.close();
         t.cancel();
         print("finished sending");
       }
-    }, 500, true );
+    }, 500);
   }
 
   void onConnect(Socket connection) {

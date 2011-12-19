@@ -1487,7 +1487,7 @@ class HTTPClientImplementation implements HTTPClient{
               }
             });
       }
-      _evictionTimer = new Timer(_handleEviction, 10000, true);
+      _evictionTimer = new Timer.repeating(_handleEviction, 10000);
     }
 
     // Return connection.

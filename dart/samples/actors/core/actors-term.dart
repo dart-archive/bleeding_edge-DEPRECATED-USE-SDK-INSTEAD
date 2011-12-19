@@ -14,7 +14,7 @@ class _WindowActor extends Actor {
      * of milliseconds specified by 'timeout' parameter.
      */
     on["setTimeout"] = (Reply reply, int timeout) {
-      new Timer((Timer t) {reply.respond();}, timeout, false);
+      new Timer((Timer t) {reply.respond();}, timeout);
     };
   }
 }
