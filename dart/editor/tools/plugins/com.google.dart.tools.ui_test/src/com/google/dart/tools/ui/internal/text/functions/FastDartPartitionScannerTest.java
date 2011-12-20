@@ -207,6 +207,17 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
     );
   }
 
+  public void test_FastDartPartitionScanner_normalString_withEscapes() {
+    // class X { var s=' \$$foo '; } 
+    assertPartitions( //
+        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "' \\$", DART_STRING, //
+        "$foo", "__dftl_partition_content_type", //
+        " '", DART_STRING, //
+        ";\n}\n", "__dftl_partition_content_type" //
+    );
+  }
+
   public void test_FastDartPartitionScanner_rawString_double() {
     // class X { var s=@"test"; } 
     assertPartitions( //
