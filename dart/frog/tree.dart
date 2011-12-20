@@ -79,7 +79,8 @@ class TreeOutput {
   }
 
   void heading(String name, span) {
-    buf.add(name);
+    write(name);
+    buf.add('  (${span.locationText})');
     buf.add('\n');
   }
 
@@ -117,7 +118,7 @@ class TreeOutput {
   }
 
   void writeNodeList(String label, List list) {
-    writeln(label + ':...');
+    writeln('${label} [');
     if (list != null) {
       depth += 1;
       for (var node in list) {
@@ -128,6 +129,7 @@ class TreeOutput {
         }
       }
       depth -= 1;
+      writeln(']');
     }
   }
 }

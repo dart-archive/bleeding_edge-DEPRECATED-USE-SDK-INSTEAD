@@ -43,7 +43,7 @@ class NodeFileSystem implements FileSystem {
           throw 'Cannot create directory $path because $existing exists and ' +
               'is not a directory.';
         }
-      } catch (e) {
+      } catch (var e) {
         // Ugly hack. We only want to catch ENOENT exceptions from fs.statSync
         // which means the path we're trying doesn't exist. Since this is coming
         // from node, we can't check the exception's type.

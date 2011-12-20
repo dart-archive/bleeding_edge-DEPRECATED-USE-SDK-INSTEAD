@@ -5,14 +5,14 @@
 #import("dart:html");
 
 void main() {
-  var element = document.createElement('div');
-  element.innerHTML = "Hello from Dart!";
-  document.body.nodes.add(element);
+  var element = new Element.tag('div');
+  element.text = "Hello from Dart!";
+  document.body.elements.add(element);
 
-  CanvasElement canvas = document.createElement('canvas');
+  CanvasElement canvas = new Element.tag('canvas');
   canvas.width = 100;
   canvas.height = 100;
-  document.body.nodes.add(canvas);
+  document.body.elements.add(canvas);
 
   var context = canvas.getContext('2d');
   context.fillRect(10, 10, 20, 20);
