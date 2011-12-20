@@ -4,6 +4,9 @@
 
 #library("json");
 
+// TODO(devoncarew): this file is a copy of client/json/dart_json.dart and should be deleted as
+// soon as it is no longer referenced from frog_server.dart.
+
 // Pure Dart implementation of JSON protocol.
 
 /**

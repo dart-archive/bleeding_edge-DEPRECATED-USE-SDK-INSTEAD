@@ -158,7 +158,7 @@ class SourceSpan implements Comparable {
   }
 
   int get column() {
-    return file.getColumn(line(), start);
+    return file.getColumn(line, start);
   }
 
   String get locationText() {

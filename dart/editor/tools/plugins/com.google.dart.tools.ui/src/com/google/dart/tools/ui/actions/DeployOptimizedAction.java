@@ -162,6 +162,8 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
 
         CompileResponseHandler responseHandler = new CompileResponseHandler(latch);
 
+        Exception serverException = null;
+
         try {
           monitor.beginTask(
               ActionMessages.DeployOptimizedAction_Compiling + library.getElementName(),
@@ -176,16 +178,23 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
           latch.await();
 
           return Status.OK_STATUS;
-        } catch (Exception e) {
-          return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
-              ActionMessages.DeployOptimizedAction_FailMessage + path, e);
+        } catch (Exception exception) {
+          serverException = exception;
+
+          return Status.CANCEL_STATUS;
         } finally {
           long elapsed = System.currentTimeMillis() - startTime;
 
           // Trim to 1/10th of a second.
           elapsed = (elapsed / 100) * 100;
 
-          if (responseHandler.getExitStatus().isOK()) {
+          if (serverException != null) {
+            DartCore.getConsole().println(
+                NLS.bind(ActionMessages.DeployOptimizedAction_FailException,
+                    serverException.toString()));
+          } else if (!responseHandler.getExitStatus().isOK()) {
+            DartCore.getConsole().println(ActionMessages.DeployOptimizedAction_Fail);
+          } else {
             File outputFile = path.toFile();
             // Trim to 1/10th of a kb.
             double fileLength = ((int) ((outputFile.length() / 1024) * 10)) / 10;
@@ -196,8 +205,6 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
             DartCore.getConsole().println(
                 NLS.bind(ActionMessages.DeployOptimizedAction_DoneSuccess, outputFile.getPath(),
                     message));
-          } else {
-            DartCore.getConsole().println(ActionMessages.DeployOptimizedAction_Fail);
           }
 
           monitor.done();
