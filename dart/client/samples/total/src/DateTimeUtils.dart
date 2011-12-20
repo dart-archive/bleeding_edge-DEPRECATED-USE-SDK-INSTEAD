@@ -63,8 +63,8 @@ class DateUtils {
 
   // Return the number of days between 1899-12-30 and the current time.
   static double now() {
-    Date now = new Date.now();
-    int milliseconds = now.difference(EPOCH).inMilliseconds;
+    Date nowDate = new Date.now();
+    int milliseconds = nowDate.difference(EPOCH).inMilliseconds;
     milliseconds += MILLISECONDS_PER_HOUR; // FIXME - something is one hour behind
     double days = milliseconds / MILLISECONDS_PER_DAY;
     return days;
@@ -78,8 +78,8 @@ class DateUtils {
     if (m != null) {
       int month = _parseInt(m[1]);
       int day = _parseInt(m[2]);
-      Date now = new Date.now();
-      int thisYear = now.year;
+      Date nowDate = new Date.now();
+      int thisYear = nowDate.year;
       Date dateTime = new Date(thisYear, month, day, 0, 0, 0, 0);
       int milliseconds = dateTime.difference(EPOCH).inMilliseconds;
       milliseconds += MILLISECONDS_PER_HOUR; // FIXME - something is one hour behind

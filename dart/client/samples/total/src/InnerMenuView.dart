@@ -340,8 +340,8 @@ class InnerMenuView {
     _selectionManager.updateSelection();
 
     if (!_transitionDidComplete) {
-      _window.webkitRequestAnimationFrame((int time) {
-        _onRequestAnimationFrame(time);
+      _window.webkitRequestAnimationFrame((int time_) {
+        _onRequestAnimationFrame(time_);
       }, _row);
     }
   }

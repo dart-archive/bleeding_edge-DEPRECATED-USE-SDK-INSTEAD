@@ -72,8 +72,8 @@ class IsolateSample  {
         String greeting = document.query("#greetingText").dynamic.value;
         var message = { "id": MessageId.GREETING, "args" : [ greeting ] };
         ports[isolateName].call(message).receive(
-            (var message, SendPort replyTo) {
-              replyElement.text = message;
+            (var msg, SendPort replyTo) {
+              replyElement.text = msg;
         });
       });
     }
@@ -121,9 +121,9 @@ class DemoIsolate extends Isolate {
     });
   }
 
-  void init(String isolateName, SendPort chirpPort) {
-    this.isolateName = isolateName;
-    this.chirpPort = chirpPort;
+  void init(String isolateName_, SendPort chirpPort_) {
+    this.isolateName = isolateName_;
+    this.chirpPort = chirpPort_;
     div = new Element.tag("div");
     div.classes = ["isolate", "isolate${isolateName}"];
     div.innerHTML = document.query("#isolateTemplate").
@@ -131,7 +131,7 @@ class DemoIsolate extends Isolate {
     div.query(".isolateName").text = isolateName;
     document.query("#isolateParent").nodes.add(div);
     div.query(".chirpButton").on.click.add(
-        void _(Event) { chirpPort.call(
+        void _(event) { chirpPort.call(
               "this is a chirp message from isolate " + isolateName);
     }, false);
   }

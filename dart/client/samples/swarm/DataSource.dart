@@ -126,8 +126,8 @@ class Section {
     return new Section(sectionId, sectionTitle, feeds);
   }
 
-  Feed findFeed(String id) {
-    return CollectionUtils.find(feeds, (feed) => feed.id == id);
+  Feed findFeed(String id_) {
+    return CollectionUtils.find(feeds, (feed) => feed.id == id_);
   }
 }
 
@@ -157,8 +157,8 @@ class Feed {
     return feed;
   }
 
-  Article findArticle(String id) {
-    return CollectionUtils.find(articles, (article) => article.id == id);
+  Article findArticle(String id_) {
+    return CollectionUtils.find(articles, (article) => article.id == id_);
   }
 
   void refresh() {}

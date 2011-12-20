@@ -376,7 +376,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     _setTableWidth(_getVisibleTableWidth());
     _tableSizeChanged();
 
-    int num = _table.redraw(_selectionManager, _rows, _columns,
+    int renderedCells = _table.redraw(_selectionManager, _rows, _columns,
         _rowShift, _columnShift, _cellDisplay);
 
     // Cell sizes may change so update the selection marquee
@@ -387,7 +387,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
     int t = end - start;
     double s = _spreadsheet.calculated * 1000.0 / t;
-    print("Recalculated ${calculated}, rendered ${num} cells in ${t} msec (${s} cells/sec)");
+    print("Recalculated ${calculated}, rendered ${renderedCells} cells in ${t} msec (${s} cells/sec)");
 
     return calculated;
   }
@@ -681,9 +681,9 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         int startY = rect.top;
         _window.document.body.style.setProperty("cursor", "move");
 
-        _setDragFunction((MouseEvent e) {
-          int x = startX + e.x - mouseStartX;
-          int y = startY + e.y - mouseStartY;
+        _setDragFunction((MouseEvent e_) {
+          int x = startX + e_.x - mouseStartX;
+          int y = startY + e_.y - mouseStartY;
 
           x = Math.max(x, CssStyles.OBJECTBAR_WIDTH);
           y = Math.max(y, CssStyles.SANDBAR_HEIGHT);
@@ -693,7 +693,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         });
         });
 
-      _setUndragFunction((MouseEvent e) {
+      _setUndragFunction((MouseEvent e_) {
         _window.document.body.style.setProperty("cursor", "auto");
       });
     });
@@ -718,9 +718,9 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
       int startY = HtmlUtils.fromPx(_resizeDragger.style.getPropertyValue("top"));
       _window.document.body.style.setProperty("cursor", "move");
 
-      _setDragFunction((MouseEvent e) {
-        int x = startX + e.x - mouseStartX;
-        int y = startY + e.y - mouseStartY;
+      _setDragFunction((MouseEvent e_) {
+        int x = startX + e_.x - mouseStartX;
+        int y = startY + e_.y - mouseStartY;
 
         // Move the drag handle
         _resizeDragger.style.setProperty("left", HtmlUtils.toPx(x));
@@ -754,7 +754,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         _spreadsheet.refresh();
       });
 
-      _setUndragFunction((MouseEvent e) {
+      _setUndragFunction((MouseEvent e_) {
         _window.document.body.style.setProperty("cursor", "auto");
       });
     });
@@ -1550,7 +1550,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
       _setDragFunction(mouseMove);
 
-      _setUndragFunction((MouseEvent e) {
+      _setUndragFunction((MouseEvent e_) {
         dragRowColumn(true);
         _table.setDefaultCursor();
         draggingSelection = false;
@@ -1601,15 +1601,15 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         // disable text selection, because browser inverts selection once we drag over input
         _formulaInput.style.setProperty("-webkit-user-select", "none");
         // listen for drag operation
-        _setDragFunction((MouseEvent e) {
-          Element target = e.target;
-          CellLocation location = _getCellLocation(target);
-          if (location == null) {
+        _setDragFunction((MouseEvent e_) {
+          Element target_ = e_.target;
+          CellLocation location_ = _getCellLocation(target_);
+          if (location_ == null) {
             return;
           }
-          _formulaCellSelectingInsertReference(null, location.rowCol);
+          _formulaCellSelectingInsertReference(null, location_.rowCol);
         });
-        _setUndragFunction((MouseEvent e) {
+        _setUndragFunction((MouseEvent e_) {
           _formulaInput.style.removeProperty("-webkit-user-select");
           _formulaCellSelectingSelectText();
         });

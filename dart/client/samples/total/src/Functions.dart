@@ -601,7 +601,7 @@ class Functions {
           Value value = stack[top + i];
           if (value.datatype == Value.TYPE_CELLREF || value.datatype == Value.TYPE_RANGE) {
             count += _countCellsInRange(value.asRangeToken().getCellRange(location),
-              int _(Cell cell) { return cell.isNumeric() ? 1 : 0; });
+              int __(Cell cell) { return cell.isNumeric() ? 1 : 0; });
           } else if (value.datatype == Value.TYPE_DOUBLE) {
             count++;
           }
@@ -614,7 +614,7 @@ class Functions {
           Value value = stack[top + i];
           if (value.datatype == Value.TYPE_CELLREF || value.datatype == Value.TYPE_RANGE) {
             count += _countCellsInRange(value.asRangeToken().getCellRange(location),
-              int _(Cell cell) { return cell.isEmpty() ? 0 : 1; });
+              int __(Cell cell) { return cell.isEmpty() ? 0 : 1; });
           } else {
             count++;
           }
@@ -732,7 +732,7 @@ class Functions {
         int index = 1;
         double bestValue = matchType == 1 ? -1.0e100 : 1.0e100;
         int bestIndex = -1;
-        range.forEach(_(CellLocation loc) {
+        range.forEach(__(CellLocation loc) {
           Cell cell = loc.getCell();
           if (cell != null) {
             double d = cell.getDoubleValue();

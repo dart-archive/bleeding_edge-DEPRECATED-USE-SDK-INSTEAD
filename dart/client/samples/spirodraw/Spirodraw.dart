@@ -57,7 +57,7 @@ class Spirodraw {
     backCanvas = doc.createElement("canvas");
     back = backCanvas.getContext("2d");
     paletteElement = doc.getElementById("palette");
-    window.addEventListener('resize', (Event) => onResize(), true);
+    window.addEventListener('resize', (event) => onResize(), true);
     initControlPanel();
   }
 
@@ -78,18 +78,18 @@ class Spirodraw {
   }
   
   void initControlPanel() {
-    inOrOut.addEventListener('change', (Event) => refresh(), true);
-    fixedRadiusSlider.addEventListener('change', (Event) => refresh(), true);
-    wheelRadiusSlider.addEventListener('change', (Event) => refresh(), true);
-    speedSlider.addEventListener('change', (Event) => onSpeedChange(), true);
-    penRadiusSlider.addEventListener('change', (Event) => refresh(), true);
-    penWidthSlider.addEventListener('change', (Event) => onPenWidthChange(), true);
+    inOrOut.addEventListener('change', (event) => refresh(), true);
+    fixedRadiusSlider.addEventListener('change', (event) => refresh(), true);
+    wheelRadiusSlider.addEventListener('change', (event) => refresh(), true);
+    speedSlider.addEventListener('change', (event) => onSpeedChange(), true);
+    penRadiusSlider.addEventListener('change', (event) => refresh(), true);
+    penWidthSlider.addEventListener('change', (event) => onPenWidthChange(), true);
     colorPicker = new ColorPicker(paletteElement);
     colorPicker.addListener((String color) => onColorChange(color));
-    doc.getElementById("start").addEventListener('click', (EventListener) => start(), true);
-    doc.getElementById("stop").addEventListener('click', (EventListener) => stop(), true);
-    doc.getElementById("clear").addEventListener('click', (EventListener) => clear(), true);
-    doc.getElementById("lucky").addEventListener('click', (EventListener) => lucky(), true);
+    doc.getElementById("start").addEventListener('click', (event) => start(), true);
+    doc.getElementById("stop").addEventListener('click', (event) => stop(), true);
+    doc.getElementById("clear").addEventListener('click', (event) => clear(), true);
+    doc.getElementById("lucky").addEventListener('click', (event) => lucky(), true);
   }
   
   void onColorChange(String color) {
@@ -134,13 +134,13 @@ class Spirodraw {
     if ((dUnits==0) || (rUnits==0))
       // Empirically, treat it like an oval
       return 2;
-    int gcf = gcf(RUnits, rUnits);
-    int n = RUnits ~/ gcf;
-    int d = rUnits ~/ gcf;
+    int gcf_ = gcf(RUnits, rUnits);
+    int n = RUnits ~/ gcf_;
+    int d_ = rUnits ~/ gcf_;
     if (n % 2 == 1)
       // odd
       return n;
-    else if (d %2 == 1)
+    else if (d_ %2 == 1)
       return n;
     else
       return n~/2;

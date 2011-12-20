@@ -183,7 +183,7 @@ class PlayerState extends Isolate {
   static final DOWN_DIR = const [0, 1];
 
   Future<bool> _exploreAllDirections(int x, int y, bool parallel) {
-    Completer<bool> superShot = new Completer<bool>();
+    Completer<bool> superShot_ = new Completer<bool>();
     if (parallel) {
       final arr = new List<Future<bool>>();
       arr.add(_exploreDirectionHelper(LEFT_DIR, x, y));
@@ -191,15 +191,15 @@ class PlayerState extends Isolate {
       arr.add(_exploreDirectionHelper(UP_DIR, x, y));
       arr.add(_exploreDirectionHelper(DOWN_DIR, x, y));
       Futures.wait(arr).then((arrValues) {
-        superShot.complete(true);
+        superShot_.complete(true);
       });
     } else {
-      _seqExploreDirectionHelper(LEFT_DIR, x, y, superShot,
-          _seqExploreDirectionHelper(RIGHT_DIR, x, y, superShot,
-            _seqExploreDirectionHelper(UP_DIR, x, y, superShot,
-              _seqExploreDirectionHelper(DOWN_DIR, x, y, superShot, null))))(false);
+      _seqExploreDirectionHelper(LEFT_DIR, x, y, superShot_,
+          _seqExploreDirectionHelper(RIGHT_DIR, x, y, superShot_,
+            _seqExploreDirectionHelper(UP_DIR, x, y, superShot_,
+              _seqExploreDirectionHelper(DOWN_DIR, x, y, superShot_, null))))(false);
     }
-    return superShot.future;
+    return superShot_.future;
   }
   Function _seqExploreDirectionHelper(List<int> dir, int x, int y,
       Completer<bool> seq, void _next(bool res)) {
