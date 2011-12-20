@@ -36,11 +36,11 @@ class Parameter {
         // TODO(sigmund): Disallow non-null default values for native calls?
         if (method.definition.body == null && !method.isNative) {
           world.error('default value not allowed on function type',
-            definition.span);
+              definition.span);
         }
       } else if (method.isAbstract) {
         world.error('default value not allowed on abstract methods',
-          definition.span);
+            definition.span);
       }
     } else if (isInitializer && !method.isConstructor) {
       world.error('initializer parameters only allowed on constructors',
@@ -76,7 +76,7 @@ class Parameter {
    * on the implicit `null`.
    */
   bool get hasDefaultValue() => definition.value is! NullExpression ||
-          (definition.value.span.start != definition.span.start);
+      (definition.value.span.start != definition.span.start);
 }
 
 
@@ -87,8 +87,8 @@ class Member extends Element {
   MethodGenerator generator;
 
   Member(String name, Type declaringType)
-    : isGenerated = false, this.declaringType = declaringType,
-      super(name, declaringType);
+      : isGenerated = false, this.declaringType = declaringType,
+        super(name, declaringType);
 
   abstract bool get isStatic();
   abstract Type get returnType();
@@ -169,7 +169,7 @@ class Member extends Element {
   bool canInvoke(MethodGenerator context, Arguments args) {
     // No source location needed because canInvoke may not produce errors.
     return canGet &&
-      new Value(returnType, null, null).canInvoke(context, ':call', args);
+        new Value(returnType, null, null).canInvoke(context, ':call', args);
   }
 
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
@@ -181,7 +181,7 @@ class Member extends Element {
   bool override(Member other) {
     if (isStatic) {
       world.error('static members can not hide parent members',
-        span, other.span);
+          span, other.span);
       return false;
     } else if (other.isStatic) {
       world.error('can not override static member', span, other.span);
@@ -209,8 +209,8 @@ class Member extends Element {
 
   bool operator ==(other) {
     return other is Member && isConstructor == other.isConstructor &&
-      declaringType == other.declaringType && (isConstructor ?
-          constructorName == other.constructorName : name == other.name);
+        declaringType == other.declaringType && (isConstructor ?
+            constructorName == other.constructorName : name == other.name);
   }
 }
 
@@ -292,7 +292,7 @@ class FieldMember extends Member {
       // TODO(jimhug): Merge in overridesProperty logic here.
     } else {
       world.error('field can not override anything but property',
-        span, other.span);
+          span, other.span);
       return false;
     }
   }
@@ -335,7 +335,7 @@ class FieldMember extends Member {
     type = resolveType(definition.type, false);
     if (isStatic && !isFactory && type.hasTypeParams) {
       world.error('using type parameter in static context',
-        definition.type.span);
+          definition.type.span);
     }
 
     if (isStatic && isFinal && value == null) {
@@ -357,8 +357,7 @@ class FieldMember extends Member {
         return null;
       }
       _computing = true;
-      var finalMethod =
-        new MethodMember('final_context', declaringType, null);
+      var finalMethod = new MethodMember('final_context', declaringType, null);
       finalMethod.isStatic = true;
       var finalGen = new MethodGenerator(finalMethod, null);
       _computedValue = value.visit(finalGen);
@@ -369,8 +368,8 @@ class FieldMember extends Member {
             value.span);
         } else {
           world.error(
-            'non constant field must be initialized in constructor',
-            value.span);
+              'non constant field must be initialized in constructor',
+              value.span);
         }
       }
 
@@ -419,7 +418,7 @@ class FieldMember extends Member {
         if (declaringType.isHiddenNativeType) {
           // TODO: Could warn at parse time.
           world.error('static field of hidden native type is inaccessible',
-                      node.span);
+              node.span);
         }
         return new Value(type, '${declaringType.jsname}.$jsname', node.span);
       } else {
@@ -495,7 +494,7 @@ class PropertyMember extends Member {
       return true;
     } else {
       world.error('property can only override field or property',
-        span, other.span);
+          span, other.span);
       return false;
     }
   }
@@ -521,7 +520,7 @@ class PropertyMember extends Member {
         new Arguments(null, [value]));
     }
     return setter.invoke(context, node, target, new Arguments(null, [value]),
-      isDynamic);
+        isDynamic);
   }
 
   addFromParent(Member parentMember) {
@@ -699,7 +698,7 @@ class MethodMember extends Member {
   Member initDelegate;
 
   MethodMember(String name, Type declaringType, this.definition)
-    : super(name, declaringType);
+      : super(name, declaringType);
 
   bool get isConstructor() => name == declaringType.name;
   bool get isMethod() => !isConstructor;
@@ -731,7 +730,8 @@ class MethodMember extends Member {
 
   Type get functionType() {
     if (_functionType == null) {
-      _functionType = library.getOrAddFunctionType(declaringType, name, definition);
+      _functionType = 
+          library.getOrAddFunctionType(declaringType, name, definition);
       // TODO(jimhug): Better resolution checks.
       if (parameters == null) {
         resolve();
@@ -881,7 +881,6 @@ class MethodMember extends Member {
   Value _argError(MethodGenerator context, Node node, Value target,
       Arguments args, String msg, int argIndex) {
     SourceSpan span;
-
     if ((args.nodes == null) || (argIndex >= args.nodes.length)) {
       span = node.span;
     } else {
@@ -981,7 +980,7 @@ class MethodMember extends Member {
         var name = args.getName(i);
         if (seen.contains(name)) {
           return _argError(context, node, target, args,
-                           'duplicate argument "$name"', i);
+              'duplicate argument "$name"', i);
         }
         seen.add(name);
         int p = indexOfParameter(name);
@@ -1018,16 +1017,17 @@ class MethodMember extends Member {
     if (isFactory) {
       assert(target.isType);
       return new Value(target.type, '$generatedFactoryName($argsString)',
-        node.span);
+          node.span);
     }
 
     if (isStatic) {
       if (declaringType.isTop) {
         // TODO(jimhug): Explore moving libraries into their own namespaces
-        return new Value(inferredResult, '$jsname($argsString)', node != null ? node.span : node);
+        return new Value(inferredResult, 
+            '$jsname($argsString)', node != null ? node.span : node);
       }
       return new Value(inferredResult,
-        '${declaringType.jsname}.$jsname($argsString)', node.span);
+          '${declaringType.jsname}.$jsname($argsString)', node.span);
     }
 
     var code = '${target.code}.$jsname($argsString)';
@@ -1276,10 +1276,11 @@ class MethodMember extends Member {
       if (name == ':index') {
         // Note: this could technically propagate constness, but that's not
         // specified explicitly and the VM doesn't do that.
-        return new Value(returnType, '${target.code}[${argsCode[0]}]', node.span);
+        return 
+            new Value(returnType, '${target.code}[${argsCode[0]}]', node.span);
       } else if (name == ':setindex') {
         return new Value(returnType,
-          '${target.code}[${argsCode[0]}] = ${argsCode[1]}', node.span);
+            '${target.code}[${argsCode[0]}] = ${argsCode[1]}', node.span);
       }
     }
 
@@ -1305,17 +1306,17 @@ class MethodMember extends Member {
       } else if (target.type.isNum || target.type.isString) {
         // TODO(jimhug): Maybe check rhs.
         return new Value(inferredResult, '${target.code} $op ${argsCode[0]}',
-          node.span);
+            node.span);
       }
       world.gen.corejs.useOperator(name);
       return new Value(inferredResult,
-        '$jsname(${target.code}, ${argsCode[0]})', node.span);
+          '$jsname(${target.code}, ${argsCode[0]})', node.span);
     }
 
     if (isCallMethod) {
       declaringType.markUsed();
       return new Value(inferredResult,
-        '${target.code}(${Strings.join(argsCode, ", ")})', node.span);
+          '${target.code}(${Strings.join(argsCode, ", ")})', node.span);
     }
 
     if (name == ':index') {
@@ -1327,7 +1328,7 @@ class MethodMember extends Member {
     // Fall back to normal method invocation.
     var argsString = Strings.join(argsCode, ', ');
     return new Value(inferredResult, '${target.code}.$jsname($argsString)',
-      node.span);
+        node.span);
   }
 
   /**
@@ -1487,7 +1488,7 @@ class MemberSet {
       world.warning('could not find applicable $action for "$name"', node.span);
     }
     return new Value(world.varType,
-      '${target.code}.$jsname() /*no applicable $action*/', node.span);
+        '${target.code}.$jsname() /*no applicable $action*/', node.span);
   }
 
   bool _treatAsField;
@@ -1537,10 +1538,10 @@ class MemberSet {
     if (returnValue.code == null) {
       if (treatAsField) {
         return new Value(returnValue.type, '${target.code}.$jsname',
-          node.span);
+            node.span);
       } else {
         return new Value(returnValue.type, '${target.code}.get\$$jsname()',
-          node.span);
+            node.span);
       }
     }
     return returnValue;
@@ -1642,12 +1643,12 @@ class MemberSet {
     // box numbers accidentally. Indexing is the exception.
     if (name == ':index' || name == ':setindex') {
       return new Value(returnType, '${target.code}.$jsname($argsString)',
-        target.span);
+          target.span);
     } else {
       if (argsString.length > 0) argsString = ', $argsString';
       world.gen.corejs.useOperator(name);
       return new Value(returnType, '$jsname(${target.code}$argsString)',
-        target.span);
+          target.span);
     }
   }
 
@@ -1690,7 +1691,7 @@ class MemberSet {
   dumpAllMembers() {
     for (var member in members) {
       world.warning('hard-multi $name on ${member.declaringType.name}',
-        member.span);
+          member.span);
     }
   }
 
@@ -1713,7 +1714,7 @@ class MemberSet {
 
       final targets = mset.filter((m) => m.canInvoke(context, args));
       stub = new VarMethodSet(name, stubName, targets, args,
-                              _foldTypes(targets));
+          _foldTypes(targets));
       world.objectType.varStubs[stubName] = stub;
     }
     return stub;
