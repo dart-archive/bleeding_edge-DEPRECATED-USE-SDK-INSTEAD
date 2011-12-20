@@ -94,7 +94,6 @@ def TestFrog(arch, mode):
     TestStep("frog", testpy_mode, arch, [], flags)
     TestStep("frog_extra", testpy_mode, arch, ['frog', 'peg', 'await'], flags)
 
-    TestStep("leg", testpy_mode, arch, [], flags)
     TestStep("leg_extra", testpy_mode, arch, ['leg', 'leg_only'], flags)
 
     TestStep("leg", testpy_mode, 'leg', [], flags)
