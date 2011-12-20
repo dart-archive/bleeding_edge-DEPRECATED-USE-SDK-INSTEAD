@@ -818,7 +818,7 @@ function HashMapImplementation() {
   this._values = new Array(8/*HashMapImplementation._INITIAL_CAPACITY*/);
 }
 HashMapImplementation.HashMapImplementation$from$factory = function(other) {
-  var result = new HashMapImplementation();
+  var result = new HashMapImplementation_K$V();
   other.forEach((function (key, value) {
     result.$setindex(key, value);
   })
@@ -1104,6 +1104,19 @@ HashMapImplementation_E$E.prototype.containsKey = function(key) {
 // ********** Code for HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V **************
 $inherits(HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V, HashMapImplementation);
 function HashMapImplementation_K$DoubleLinkedQueueEntry_KeyValuePair_K$V() {}
+// ********** Code for HashMapImplementation_K$V **************
+$inherits(HashMapImplementation_K$V, HashMapImplementation);
+function HashMapImplementation_K$V() {
+  // Initializers done
+  this._numberOfEntries = 0;
+  this._numberOfDeleted = 0;
+  this._loadLimit = HashMapImplementation._computeLoadLimit(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._keys = new Array(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+  this._values = new Array(8/*HashMapImplementation._INITIAL_CAPACITY*/);
+}
+HashMapImplementation_K$V._computeLoadLimit = function(capacity) {
+  return $truncdiv((capacity * 3), 4);
+}
 // ********** Code for HashMapImplementation_String$EvaluatedValue **************
 $inherits(HashMapImplementation_String$EvaluatedValue, HashMapImplementation);
 function HashMapImplementation_String$EvaluatedValue() {}
@@ -1113,7 +1126,7 @@ function HashSetImplementation() {
   this._backingMap = new HashMapImplementation_E$E();
 }
 HashSetImplementation.HashSetImplementation$from$factory = function(other) {
-  var set = new HashSetImplementation();
+  var set = new HashSetImplementation_E();
   for (var $$i = other.iterator(); $$i.hasNext$0(); ) {
     var e = $$i.next$0();
     set.add(e);
@@ -1188,7 +1201,10 @@ HashSetImplementation.prototype.some$1 = function($0) {
 };
 // ********** Code for HashSetImplementation_E **************
 $inherits(HashSetImplementation_E, HashSetImplementation);
-function HashSetImplementation_E() {}
+function HashSetImplementation_E() {
+  // Initializers done
+  this._backingMap = new HashMapImplementation_E$E();
+}
 // ********** Code for HashSetImplementation_Library **************
 $inherits(HashSetImplementation_Library, HashSetImplementation);
 function HashSetImplementation_Library() {}
@@ -5699,6 +5715,9 @@ MethodMember.prototype._invokeConstConstructor = function(node, code, target, ar
         if (value == null) {
           value = param.get$value();
         }
+      }
+      if ((value instanceof GlobalValue)) {
+        value = EvaluatedValue.EvaluatedValue$factory(value.get$type(), value, value.get$canonicalCode(), value.get$span());
       }
       fields.$setindex(param.get$name(), value);
     }

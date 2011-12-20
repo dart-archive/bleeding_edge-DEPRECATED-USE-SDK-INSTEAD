@@ -1116,6 +1116,13 @@ class MethodMember extends Member {
             value = param.value;
           }
         }
+        if (value is GlobalValue) {
+          // TODO(ahe): This fixes a problem in which was preventing
+          // Frog from bootstrapping. I have no idea if this is the
+          // right way to fix it.
+          value = new EvaluatedValue(value.type, value,
+                                     value.canonicalCode, value.span);
+        }
         fields[param.name] = value;
       }
     }
