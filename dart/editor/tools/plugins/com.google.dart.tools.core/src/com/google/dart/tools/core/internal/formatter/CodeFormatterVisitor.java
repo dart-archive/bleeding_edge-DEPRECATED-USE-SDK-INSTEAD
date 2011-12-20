@@ -2334,7 +2334,7 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
     /*
      * Default class (for interfaces)
      */
-    DartTypeNode defaultClass = typeDef.getDefaultClass();
+    DartParameterizedTypeNode defaultClass = typeDef.getDefaultClass();
     if (defaultClass != null) {
       // TODO consider not reusing superclass alignment
       Alignment defaultClassAlignment = scribe.createAlignment(Alignment.SUPER_CLASS,

@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -588,23 +588,6 @@ public class CompletionEngine {
     @Override
     public Void visitFunction(DartFunction node) {
       DartNode parentNode = node.getParent();
-      if (parentNode instanceof DartMethodDefinition) {
-        // Apparently the visitor ignores type parameters for factory methods
-        DartMethodDefinition parent = (DartMethodDefinition) parentNode;
-        if (parent.getSymbol().isConstructor()) {
-          List<DartTypeParameter> typeParameters = parent.getTypeParameters();
-          if (typeParameters != null) {
-            for (DartTypeParameter type : typeParameters) {
-              int start = type.getSourceStart();
-              int len = type.getSourceLength();
-              if (start <= actualCompletionPosition && actualCompletionPosition <= start + len) {
-                type.accept(this);
-                return null;
-              }
-            }
-          }
-        }
-      }
       if (node instanceof FunctionCompleter) {
         // new parameter: bar(!) {} or bar(! int x) {} or bar(x, B !) {}
         List<DartParameter> params = node.getParams();

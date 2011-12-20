@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -85,7 +85,7 @@ import java.util.ArrayList;
 public class AST {
   /**
    * Create a new node with the given type.
-   * 
+   *
    * @param nodeClass the class of the node to be created
    * @return the node that was created
    */
@@ -156,7 +156,7 @@ public class AST {
     } else if (nodeClass == DartMapLiteralEntry.class) {
       return (N) new DartMapLiteralEntry(null, null);
     } else if (nodeClass == DartMethodDefinition.class) {
-      return (N) DartMethodDefinition.create(null, null, null, null, null);
+      return (N) DartMethodDefinition.create(null, null, null, null);
     } else if (nodeClass == DartMethodInvocation.class) {
       return (N) new DartMethodInvocation(null, null, new ArrayList<DartExpression>());
     } else if (nodeClass == DartNativeBlock.class) {
@@ -214,7 +214,7 @@ public class AST {
 
   /**
    * Create a new node with the given type.
-   * 
+   *
    * @param nodeType the type of the node to be created
    * @return the node that was created
    */
@@ -225,7 +225,7 @@ public class AST {
 
   /**
    * Create a new block with an empty list of statements.
-   * 
+   *
    * @return the block that was created
    */
   public DartBlock newBlock() {
