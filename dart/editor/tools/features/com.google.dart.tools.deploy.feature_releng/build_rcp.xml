@@ -277,17 +277,6 @@ build system.  The PDE build system has to run under Eclipse.
          - - - - - - - - - - - - - - - - - -->
     <target name="setupDevWorkspace" 
             depends="buildLibraries, installSdkInDevWorkspace">
-        <!-- This build script must be executed in Eclipse 
-          so that the ${eclipse.home} Ant property is defined -->
-        <fail unless="eclipse.home">*
-            **********************************
-            Execute this Ant script inside Eclipse
-            and select the 'Run in the same JRE as the workspace' option
-            on the 'JRE' tab of the launch dialog
-            -- OR --
-            Define the "eclipse.home" property to point to your Eclipse installation
-            **********************************
-        </fail>
         <property name="libraries.dev.dir" location="${eclipse.home}/${libraries.out.name}"/>
         <echo message="Copying ${libraries.out.dir}"/>
         <echo message="to ${libraries.dev.dir}"/>
@@ -302,6 +291,17 @@ build system.  The PDE build system has to run under Eclipse.
           target: installSdkInDevWorkspace
          - - - - - - - - - - - - - - - - - -->
     <target name="installSdkInDevWorkspace" depends="setOS">
+        <!-- This build script must be executed in Eclipse 
+          so that the ${eclipse.home} Ant property is defined -->
+        <fail unless="eclipse.home">*
+            **********************************
+            Execute this Ant script inside Eclipse
+            and select the 'Run in the same JRE as the workspace' option
+            on the 'JRE' tab of the launch dialog
+            -- OR --
+            Define the "eclipse.home" property to point to your Eclipse installation
+            **********************************
+        </fail>
         <property name="dart.sdk.dir" location="${eclipse.home}/dart-sdk"/>
         <delete file="${dart.sdk.dir}.zip"/>
         <get src="http://gsdview.appspot.com/dart-editor-archive-continuous/latest/dart-${osfamily}.zip"
