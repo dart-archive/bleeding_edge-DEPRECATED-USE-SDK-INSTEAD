@@ -28,6 +28,9 @@ prefix samples
 [ $component == frog ]
 *: Skip
 
+[ $component == frogsh ]
+*: Skip
+
 [ $component == leg ]
 *: Skip
 
