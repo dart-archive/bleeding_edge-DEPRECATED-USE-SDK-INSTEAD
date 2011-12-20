@@ -238,3 +238,50 @@ class String {}
 class bool {}
 class Object {}
 class List<T> {}
+
+class Stopwatch {
+  double startMs;
+  double elapsedMs;
+
+  Stopwatch() {
+    elapsedMs = 0.0;
+  }
+
+  void start() {
+    if (startMs == null) {
+      startMs = JS(@"Date.now()");
+    }
+  }
+
+  void stop() {
+    if (startMs == null) return;
+    elapsedMs += JS(@"Date.now() - $0", startMs);
+    startMs = null;
+  }
+
+  void reset() {
+    elapsedMs = 0.0;
+    if (startMs == null) return;
+    startMs = JS(@"Date.now()");
+  }
+
+  int elapsed() {
+    return elapsedInMs();
+  }
+
+  int elapsedInUs() {
+    return elapsedInMs() * 1000;
+  }
+
+  int elapsedInMs() {
+    if (startMs == null) {
+      return JS(@"Math.floor($0)", elapsedMs);
+    } else {
+      return JS(@"Math.floor($0 + (Date.now() - $1))", elapsedMs, startMs);
+    }
+  }
+
+  int frequency() {
+    return 1000;
+  }
+}
