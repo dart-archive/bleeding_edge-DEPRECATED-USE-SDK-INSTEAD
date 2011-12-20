@@ -5,6 +5,10 @@
 #import("compiler_helper.dart");
 
 final String TEST_ONE = @"""
+
+builtin$add$1(x) => null;
+builtin$removeLast$0() { }
+
 foo() {
   var a = [];
   a.add(42);
@@ -14,6 +18,6 @@ foo() {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  Expect.isTrue(generated.contains('.push(42)'));
-  Expect.isTrue(generated.contains('.pop'));
+  Expect.isTrue(generated.contains(@'.builtin$add$1('));
+  Expect.isTrue(generated.contains(@'.builtin$removeLast$0('));
 }
