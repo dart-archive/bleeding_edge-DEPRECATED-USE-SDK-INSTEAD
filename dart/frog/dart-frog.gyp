@@ -3,12 +3,21 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
+  'variables': {
+    # These variables are used in the creation of the .vcproj file on 
+    # Windows.
+    'cygwin_dir': '../third_party/cygwin',
+    'msvs_cygwin_dirs': ['<(cygwin_dir)'],
+  },
   'targets': [
     {
       'target_name': 'frog',
       'dependencies': [
         '../runtime/dart-runtime.gyp:dart',
-        '../third_party/v8/src/d8.gyp:d8',
+        # TODO(efortuna): Currently the Windows build only runs using the 
+        # dart VM, so we don't depend on d8 because of v8 build issues. Fix
+        # this so that Windows can also run with node.js and d8. 
+        '<!@(["python", "scripts/list_frog_dependencies.py"])'
       ],
       'type': 'none',
       'actions': [
@@ -36,7 +45,7 @@
       'target_name': 'frogsh',
       'dependencies': [
         '../runtime/dart-runtime.gyp:dart',
-        '../third_party/v8/src/d8.gyp:d8',
+        '<!@(["python", "scripts/list_frog_dependencies.py"])',
       ],
       'type': 'none',
       'actions': [
