@@ -9749,6 +9749,9 @@ Parser.prototype.formalParameter = function(inOptionalBlock) {
   var di = this.declaredIdentifier(false);
   var type = di.get$type();
   var name = di.get$name();
+  if (name == null) {
+    this._error('Formal parameter invalid', this._makeSpan(start));
+  }
   var value = null;
   if (this._maybeEat(20/*TokenKind.ASSIGN*/)) {
     if (!inOptionalBlock) {

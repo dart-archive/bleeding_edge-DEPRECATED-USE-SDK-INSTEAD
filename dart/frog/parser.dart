@@ -1641,6 +1641,10 @@ class Parser {
     var type = di.type;
     var name = di.name;
 
+    if (name == null) {
+      _error('Formal parameter invalid', _makeSpan(start));
+    }
+
     var value = null;
     if (_maybeEat(TokenKind.ASSIGN)) {
       if (!inOptionalBlock) {
