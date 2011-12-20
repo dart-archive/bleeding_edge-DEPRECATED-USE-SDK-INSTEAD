@@ -26,9 +26,9 @@ class StringScanner extends ArrayBasedScanner<SourceString> {
     return new SubstringWrapper(string, start, byteOffset + offset + 1);
   }
 
-  void appendByteStringToken(int kind, SourceString value) {
+  void appendByteStringToken(PrecedenceInfo info, SourceString value) {
     // assert(kind != $a || keywords.get(value) == null);
-    tail.next = new StringToken.fromSource(kind, value, tokenStart);
+    tail.next = new StringToken.fromSource(info, value, tokenStart);
     tail = tail.next;
   }
 }

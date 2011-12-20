@@ -25,9 +25,8 @@ class ByteArrayScanner extends ArrayBasedScanner<ByteString> {
     return Utf8String.of(bytes, start, byteOffset - start + offset + 1);
   }
 
-  void appendByteStringToken(int kind, ByteString value) {
-    // assert(kind != $a || keywords.get(value) == null);
-    tail.next = new ByteStringToken(kind, value, tokenStart);
+  void appendByteStringToken(PrecedenceInfo info, ByteString value) {
+    tail.next = new ByteStringToken(info, value, tokenStart);
     tail = tail.next;
   }
 

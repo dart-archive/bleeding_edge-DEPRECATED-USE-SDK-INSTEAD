@@ -7,7 +7,7 @@
  */
 class ParserBench extends BaseParserBench {
   int charCount = 0;
-  int score = 0;
+  double score = 0.0;
 
   Token scanFileNamed(String filename) {
     Token token;

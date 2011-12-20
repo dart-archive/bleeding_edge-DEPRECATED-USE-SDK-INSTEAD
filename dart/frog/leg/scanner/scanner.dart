@@ -14,9 +14,10 @@ class AbstractScanner<T> implements Scanner {
   abstract int advance();
   abstract int nextByte();
   abstract int peek();
-  abstract int select(int choice, String yes, String no);
-  abstract void appendStringToken(int kind, String value);
-  abstract void appendByteStringToken(int kind, T value);
+  abstract int select(int choice, PrecedenceInfo yes, PrecedenceInfo no);
+  abstract void appendPrecenceToken(PrecedenceInfo info);
+  abstract void appendStringToken(PrecedenceInfo info, String value);
+  abstract void appendByteStringToken(PrecedenceInfo info, T value);
   abstract void appendKeywordToken(Keyword keyword);
   abstract void appendWhiteSpace(int next);
   abstract void appendEofToken();
@@ -113,7 +114,7 @@ class AbstractScanner<T> implements Scanner {
     }
 
     if (next === $BACKSLASH) {
-      appendStringToken(BACKSLASH_TOKEN, "\\");
+      appendPrecenceToken(BACKSLASH_INFO);
       return advance();
     }
 
@@ -121,53 +122,53 @@ class AbstractScanner<T> implements Scanner {
       return tokenizeTag(next);
     }
 
-    if (next === $LPAREN) {
-      appendBeginGroup(LPAREN_TOKEN, "(");
+    if (next === $OPEN_PAREN) {
+      appendBeginGroup(OPEN_PAREN_INFO, "(");
       return advance();
     }
 
-    if (next === $RPAREN) {
-      return appendEndGroup(RPAREN_TOKEN, ")", LPAREN_TOKEN);
+    if (next === $CLOSE_PAREN) {
+      return appendEndGroup(CLOSE_PAREN_INFO, ")", OPEN_PAREN_TOKEN);
     }
 
     if (next === $COMMA) {
-      appendStringToken(COMMA_TOKEN, ",");
+      appendPrecenceToken(COMMA_INFO);
       return advance();
     }
 
     if (next === $COLON) {
-      appendStringToken(COLON_TOKEN, ":");
+      appendPrecenceToken(COLON_INFO);
       return advance();
     }
 
     if (next === $SEMICOLON) {
-      appendStringToken(SEMICOLON_TOKEN, ";");
+      appendPrecenceToken(SEMICOLON_INFO);
       discardOpenLt();
       return advance();
     }
 
     if (next === $QUESTION) {
-      appendStringToken(QUESTION_TOKEN, "?");
+      appendPrecenceToken(QUESTION_INFO);
       return advance();
     }
 
     if (next === $CLOSE_SQUARE_BRACKET) {
-      return appendEndGroup(CLOSE_SQUARE_BRACKET_TOKEN, "]",
+      return appendEndGroup(CLOSE_SQUARE_BRACKET_INFO, "]",
                             OPEN_SQUARE_BRACKET_TOKEN);
     }
 
     if (next === $BACKPING) {
-      appendStringToken(BACKPING_TOKEN, "`");
+      appendPrecenceToken(BACKPING_INFO);
       return advance();
     }
 
     if (next === $OPEN_CURLY_BRACKET) {
-      appendBeginGroup(OPEN_CURLY_BRACKET_TOKEN, "{");
+      appendBeginGroup(OPEN_CURLY_BRACKET_INFO, "{");
       return advance();
     }
 
     if (next === $CLOSE_CURLY_BRACKET) {
-      return appendEndGroup(CLOSE_CURLY_BRACKET_TOKEN, "}",
+      return appendEndGroup(CLOSE_CURLY_BRACKET_INFO, "}",
                             OPEN_CURLY_BRACKET_TOKEN);
     }
 
@@ -217,7 +218,7 @@ class AbstractScanner<T> implements Scanner {
         return next;
       }
     }
-    appendStringToken(HASH_TOKEN, "#");
+    appendPrecenceToken(HASH_INFO);
     return advance();
   }
 
@@ -225,9 +226,9 @@ class AbstractScanner<T> implements Scanner {
     // ~ ~/ ~/=
     next = advance();
     if (next === $SLASH) {
-      return select($EQ, "~/=", "~/");
+      return select($EQ, TILDE_SLASH_EQ_INFO, TILDE_SLASH_INFO);
     } else {
-      appendStringToken(TILDE_TOKEN, "~");
+      appendPrecenceToken(TILDE_INFO);
       return next;
     }
   }
@@ -236,29 +237,29 @@ class AbstractScanner<T> implements Scanner {
     // [ [] []=
     next = advance();
     if (next === $CLOSE_SQUARE_BRACKET) {
-      return select($EQ, "[]=", "[]");
+      return select($EQ, INDEX_EQ_INFO, INDEX_INFO);
     } else {
-      appendBeginGroup(OPEN_SQUARE_BRACKET_TOKEN, "[");
+      appendBeginGroup(OPEN_SQUARE_BRACKET_INFO, "[");
       return next;
     }
   }
 
   int tokenizeCaret(int next) {
     // ^ ^=
-    return select($EQ, "^=", "^");
+    return select($EQ, CARET_EQ_INFO, CARET_INFO);
   }
 
   int tokenizeBar(int next) {
     // | || |=
     next = advance();
     if (next === $BAR) {
-      appendStringToken(BAR_TOKEN, "||");
+      appendPrecenceToken(BAR_BAR_INFO);
       return advance();
     } else if (next === $EQ) {
-      appendStringToken(BAR_TOKEN, "|=");
+      appendPrecenceToken(BAR_EQ_INFO);
       return advance();
     } else {
-      appendStringToken(BAR_TOKEN, "|");
+      appendPrecenceToken(BAR_INFO);
       return next;
     }
   }
@@ -267,38 +268,38 @@ class AbstractScanner<T> implements Scanner {
     // && &= &
     next = advance();
     if (next === $AMPERSAND) {
-      appendStringToken(AMPERSAND_TOKEN, "&&");
+      appendPrecenceToken(AMPERSAND_AMPERSAND_INFO);
       return advance();
     } else if (next === $EQ) {
-      appendStringToken(AMPERSAND_TOKEN, "&=");
+      appendPrecenceToken(AMPERSAND_EQ_INFO);
       return advance();
     } else {
-      appendStringToken(AMPERSAND_TOKEN, "&");
+      appendPrecenceToken(AMPERSAND_INFO);
       return next;
     }
   }
 
   int tokenizePercent(int next) {
     // % %=
-    return select($EQ, "%=", "%");
+    return select($EQ, PERCENT_EQ_INFO, PERCENT_INFO);
   }
 
   int tokenizeMultiply(int next) {
     // * *=
-    return select($EQ, "*=", "*");
+    return select($EQ, STAR_EQ_INFO, STAR_INFO);
   }
 
   int tokenizeMinus(int next) {
     // - -- -=
     next = advance();
     if (next === $MINUS) {
-      appendStringToken(MINUS_TOKEN, "--");
+      appendPrecenceToken(MINUS_MINUS_INFO);
       return advance();
     } else if (next === $EQ) {
-      appendStringToken(MINUS_TOKEN, "-=");
+      appendPrecenceToken(MINUS_EQ_INFO);
       return advance();
     } else {
-      appendStringToken(MINUS_TOKEN, "-");
+      appendPrecenceToken(MINUS_INFO);
       return next;
     }
   }
@@ -308,13 +309,13 @@ class AbstractScanner<T> implements Scanner {
     // + ++ +=
     next = advance();
     if ($PLUS === next) {
-      appendStringToken(PLUS_TOKEN, "++");
+      appendPrecenceToken(PLUS_PLUS_INFO);
       return advance();
     } else if ($EQ === next) {
-      appendStringToken(PLUS_TOKEN, "+=");
+      appendPrecenceToken(PLUS_EQ_INFO);
       return advance();
     } else {
-      appendStringToken(PLUS_TOKEN, "+");
+      appendPrecenceToken(PLUS_INFO);
       return next;
     }
   }
@@ -323,9 +324,9 @@ class AbstractScanner<T> implements Scanner {
     // ! != !==
     next = advance();
     if (next === $EQ) {
-      return select($EQ, "!==", "!=");
+      return select($EQ, BANG_EQ_EQ_INFO, BANG_EQ_INFO);
     }
-    appendStringToken(BANG_TOKEN, "!");
+    appendPrecenceToken(BANG_INFO);
     return next;
   }
 
@@ -333,12 +334,12 @@ class AbstractScanner<T> implements Scanner {
     // = == ===
     next = advance();
     if (next === $EQ) {
-      return select($EQ, "===", "==");
+      return select($EQ, EQ_EQ_EQ_INFO, EQ_EQ_INFO);
     } else if (next === $GT) {
-      appendStringToken(FUNCTION_TOKEN, "=>");
+      appendPrecenceToken(FUNCTION_INFO);
       return advance();
     }
-    appendStringToken(EQ_TOKEN, "=");
+    appendPrecenceToken(EQ_INFO);
     return next;
   }
 
@@ -346,28 +347,28 @@ class AbstractScanner<T> implements Scanner {
     // > >= >> >>= >>> >>>=
     next = advance();
     if ($EQ === next) {
-      appendStringToken(GT_TOKEN, ">=");
+      appendPrecenceToken(GT_EQ_INFO);
       return advance();
     } else if ($GT === next) {
       next = advance();
       if ($EQ === next) {
-        appendStringToken(GT_TOKEN, ">>=");
+        appendPrecenceToken(GT_GT_EQ_INFO);
         return advance();
       } else if ($GT === next) {
         next = advance();
         if (next === $EQ) {
-          appendStringToken(GT_TOKEN, ">>>=");
+          appendPrecenceToken(GT_GT_GT_EQ_INFO);
           return advance();
         } else {
-          appendGtGtGt(GT_TOKEN, ">>>");
+          appendGtGtGt(GT_GT_GT_INFO, ">>>");
           return next;
         }
       } else {
-        appendGtGt(GT_TOKEN, ">>");
+        appendGtGt(GT_GT_INFO, ">>");
         return next;
       }
     } else {
-      appendGt(GT_TOKEN, ">");
+      appendGt(GT_INFO, ">");
       return next;
     }
   }
@@ -376,12 +377,12 @@ class AbstractScanner<T> implements Scanner {
     // < <= << <<=
     next = advance();
     if ($EQ === next) {
-      appendStringToken(LT_EQ_TOKEN, "<=");
+      appendPrecenceToken(LT_EQ_INFO);
       return advance();
     } else if ($LT === next) {
-      return select($EQ, "<<=", "<<");
+      return select($EQ, LT_LT_EQ_INFO, LT_LT_INFO);
     } else {
-      appendBeginGroup(LT_TOKEN, "<");
+      appendBeginGroup(LT_INFO, "<");
       return next;
     }
   }
@@ -397,7 +398,7 @@ class AbstractScanner<T> implements Scanner {
       } else if (next === $e || next === $E || next === $d || next === $D) {
         return tokenizeFractionPart(next, start);
       } else {
-        appendByteStringToken(INT_TOKEN, asciiString(start, 0));
+        appendByteStringToken(INT_INFO, asciiString(start, 0));
         return next;
       }
     }
@@ -425,7 +426,7 @@ class AbstractScanner<T> implements Scanner {
         if (!hasDigits) {
           throw new MalformedInputException(charOffset);
         }
-        appendByteStringToken(HEXADECIMAL_TOKEN, asciiString(start, 0));
+        appendByteStringToken(HEXADECIMAL_INFO, asciiString(start, 0));
         return next;
       }
     }
@@ -437,9 +438,9 @@ class AbstractScanner<T> implements Scanner {
     if (($0 <= next && next <= $9)) {
       return tokenizeFractionPart(next, start);
     } else if ($PERIOD === next) {
-      return select($PERIOD, "...", "..");
+      return select($PERIOD, PERIOD_PERIOD_PERIOD_INFO, PERIOD_PERIOD_INFO);
     } else {
-      appendStringToken(PERIOD_TOKEN, ".");
+      appendPrecenceToken(PERIOD_INFO);
       return next;
     }
   }
@@ -462,15 +463,15 @@ class AbstractScanner<T> implements Scanner {
       next = advance();
     }
     if (!hasDigit) {
-      appendByteStringToken(INT_TOKEN, asciiString(start, -2));
+      appendByteStringToken(INT_INFO, asciiString(start, -2));
       // TODO(ahe): Wrong offset for the period.
-      appendStringToken(PERIOD_TOKEN, ".");
+      appendPrecenceToken(PERIOD_INFO);
       return bigSwitch(next);
     }
     if (next === $d || next === $D) {
       next = advance();
     }
-    appendByteStringToken(DOUBLE_TOKEN, asciiString(start, 0));
+    appendByteStringToken(DOUBLE_INFO, asciiString(start, 0));
     return next;
   }
 
@@ -499,10 +500,10 @@ class AbstractScanner<T> implements Scanner {
     } else if ($SLASH === next) {
       return tokenizeSingleLineComment(next);
     } else if ($EQ === next) {
-      appendStringToken(SLASH_TOKEN, "/=");
+      appendPrecenceToken(SLASH_EQ_INFO);
       return advance();
     } else {
-      appendStringToken(SLASH_TOKEN, "/");
+      appendPrecenceToken(SLASH_INFO);
       return next;
     }
   }
@@ -568,9 +569,9 @@ class AbstractScanner<T> implements Scanner {
         next = advance();
       } else if (next < 128) {
         if (isAscii) {
-          appendByteStringToken(IDENTIFIER_TOKEN, asciiString(start, 0));
+          appendByteStringToken(IDENTIFIER_INFO, asciiString(start, 0));
         } else {
-          appendByteStringToken(IDENTIFIER_TOKEN, utf8String(start, -1));
+          appendByteStringToken(IDENTIFIER_INFO, utf8String(start, -1));
         }
         return next;
       } else {
@@ -619,9 +620,9 @@ class AbstractScanner<T> implements Scanner {
         next = advance();
       } else if (next < 128) {
         if (isAscii) {
-          appendByteStringToken(IDENTIFIER_TOKEN, asciiString(start, 0));
+          appendByteStringToken(IDENTIFIER_INFO, asciiString(start, 0));
         } else {
-          appendByteStringToken(IDENTIFIER_TOKEN, utf8String(start, -1));
+          appendByteStringToken(IDENTIFIER_INFO, utf8String(start, -1));
         }
         return next;
       } else {
@@ -657,7 +658,7 @@ class AbstractScanner<T> implements Scanner {
         return tokenizeMultiLineString(q, start, raw);
       } else {
         // Empty string.
-        appendByteStringToken(STRING_TOKEN, utf8String(start, -1));
+        appendByteStringToken(STRING_INFO, utf8String(start, -1));
         return next;
       }
     }
@@ -671,7 +672,7 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeSingleLineString(int next, int q1, int start) {
     while (next !== $EOF) {
       if (next === q1) {
-        appendByteStringToken(STRING_TOKEN, utf8String(start, 0));
+        appendByteStringToken(STRING_INFO, utf8String(start, 0));
         return advance();
       } else if (next === $BACKSLASH) {
         next = advance();
@@ -697,8 +698,8 @@ class AbstractScanner<T> implements Scanner {
   }
 
   int tokenizeInterpolatedExpression(int next, int start) {
-    appendByteStringToken(STRING_TOKEN, utf8String(start, -2));
-    appendBeginGroup(STRING_INTERPOLATION_TOKEN, "\${");
+    appendByteStringToken(STRING_INFO, utf8String(start, -2));
+    appendBeginGroup(STRING_INTERPOLATION_INFO, "\${");
     next = advance();
     while (next !== $EOF && next !== $STX) {
       next = bigSwitch(next);
@@ -708,10 +709,10 @@ class AbstractScanner<T> implements Scanner {
   }
 
   int tokenizeInterpolatedIdentifier(int next, int start) {
-    appendByteStringToken(STRING_TOKEN, utf8String(start, -2));
-    appendBeginGroup(STRING_INTERPOLATION_TOKEN, "\${");
+    appendByteStringToken(STRING_INFO, utf8String(start, -2));
+    appendBeginGroup(STRING_INTERPOLATION_INFO, "\${");
     next = tokenizeIdentifierOrKeywordNoDollar(next);
-    appendEndGroup(CLOSE_CURLY_BRACKET_TOKEN, "}", OPEN_CURLY_BRACKET_TOKEN);
+    appendEndGroup(CLOSE_CURLY_BRACKET_INFO, "}", OPEN_CURLY_BRACKET_TOKEN);
     return next;
   }
 
@@ -719,7 +720,7 @@ class AbstractScanner<T> implements Scanner {
     next = advance();
     while (next != $EOF) {
       if (next === q1) {
-        appendByteStringToken(STRING_TOKEN, utf8String(start, 0));
+        appendByteStringToken(STRING_INFO, utf8String(start, 0));
         return advance();
       } else if (next === $LF || next === $CR) {
         throw new MalformedInputException(charOffset);
@@ -739,7 +740,7 @@ class AbstractScanner<T> implements Scanner {
         if (next === q) {
           next = advance();
           if (next === q) {
-            appendByteStringToken(STRING_TOKEN, utf8String(start, 0));
+            appendByteStringToken(STRING_INFO, utf8String(start, 0));
             return advance();
           }
         }

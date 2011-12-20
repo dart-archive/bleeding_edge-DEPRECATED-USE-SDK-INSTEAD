@@ -238,12 +238,11 @@ class Parser {
     if (string !== token.stringValue) {
       if (string === '>') {
         if (token.stringValue === '>>') {
-          Token gt = new StringToken(GT_TOKEN, '>', token.charOffset + 1);
+          Token gt = new Token(GT_INFO, token.charOffset + 1);
           gt.next = token.next;
           return gt;
         } else if (token.stringValue === '>>>') {
-          Token gtgt = new StringToken(UNKNOWN_TOKEN, '>>',
-                                       token.charOffset + 1);
+          Token gtgt = new Token(GT_GT_INFO, token.charOffset + 1);
           gtgt.next = token.next;
           return gtgt;
         }
@@ -731,7 +730,7 @@ class Parser {
           afterIdKind === COMMA_TOKEN) {
         // We are looking at "type identifier" followed by '=', ';', ','.
         return parseVariablesDeclaration(token);
-      } else if (afterIdKind === LPAREN_TOKEN) {
+      } else if (afterIdKind === OPEN_PAREN_TOKEN) {
         // We are looking at "type identifier '('".
         BeginGroupToken beginParen = afterId;
         Token endParen = beginParen.endGroup;
@@ -785,7 +784,7 @@ class Parser {
   }
 
   bool isAssignmentOperator(Token token) {
-    return 2 === getPrecedence(token);
+    return 2 === token.precedence;
   }
 
   Token parseConditionalExpression(Token token) {
@@ -804,68 +803,20 @@ class Parser {
   Token parseBinaryExpression(Token token, int precedence) {
     assert(precedence >= 4);
     token = parseUnaryExpression(token);
-    var tokenLevel = getPrecedence(token);
+    var tokenLevel = token.precedence;
     for (int level = tokenLevel; level >= precedence; --level) {
       while (tokenLevel === level) {
         Token operator = token;
-        if (tokenLevel === 10 && token.stringValue === 'is') {
+        if (token.info === IS_INFO) {
           token = parseIsOperatorRest(token);
         } else {
           token = parseBinaryExpression(token.next, level + 1);
           listener.handleBinaryExpression(operator);
         }
-        tokenLevel = getPrecedence(token);
+        tokenLevel = token.precedence;
       }
     }
     return token;
-  }
-
-  int getPrecedence(Token token) {
-    if (token === null) return 0;
-    // TODO(ahe): Find a better way to represent this.
-    var value = token.stringValue;
-    if (value === null) return 0;
-    if (value === '(') return 0;
-    if (value === ')') return 0;
-    if (value === '%=') return 2;
-    if (value === '&=') return 2;
-    if (value === '*=') return 2;
-    if (value === '+=') return 2;
-    if (value === '-=') return 2;
-    if (value === '/=') return 2;
-    if (value === '<<=') return 2;
-    if (value === '=') return 2;
-    if (value === '>>=') return 2;
-    if (value === '>>>=') return 2;
-    if (value === '^=') return 2;
-    if (value === '|=') return 2;
-    if (value === '~/=') return 2;
-    if (value === '?') return 3;
-    if (value === '||') return 4;
-    if (value === '&&') return 5;
-    if (value === '|') return 6;
-    if (value === '^') return 7;
-    if (value === '&') return 8;
-    if (value === '!=') return 9;
-    if (value === '!==') return 9;
-    if (value === '==') return 9;
-    if (value === '===') return 9;
-    if (value === '<') return 10;
-    if (value === '<=') return 10;
-    if (value === '>') return 10;
-    if (value === '>=') return 10;
-    if (value === 'is') return 10;
-    if (value === '<<') return 11;
-    if (value === '>>') return 11;
-    if (value === '>>>') return 11;
-    if (value === '+') return 12;
-    if (value === '-') return 12;
-    if (value === '%') return 13;
-    if (value === '*') return 13;
-    if (value === '/') return 13;
-    if (value === '~/') return 13;
-    if (value === '.') return 14; // TODO(ahe): Remove this line.
-    return 0;
   }
 
   Token parseUnaryExpression(Token token) {
@@ -953,7 +904,7 @@ class Parser {
           throw 'not yet implemented';
         }
       }
-    } else if (kind === LPAREN_TOKEN) {
+    } else if (kind === OPEN_PAREN_TOKEN) {
       return parseParenthesizedExpressionOrFunctionLiteral(token);
     } else if ((kind === LT_TOKEN) ||
                (kind === OPEN_SQUARE_BRACKET_TOKEN) ||

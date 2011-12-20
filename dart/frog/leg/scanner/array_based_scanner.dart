@@ -18,7 +18,7 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     : this.extraCharOffset = 0,
       this.tokenStart = -1,
       this.byteOffset = -1,
-      this.tokens = new Token(EOF_TOKEN, -1) {
+      this.tokens = new Token(EOF_INFO, -1) {
     this.tail = this.tokens;
   }
 
@@ -27,19 +27,24 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     return next;
   }
 
-  int select(int choice, String yes, String no) {
+  int select(int choice, PrecedenceInfo yes, PrecedenceInfo no) {
     int next = advance();
     if (next === choice) {
-      appendStringToken(UNKNOWN_TOKEN, yes);
+      appendPrecenceToken(yes);
       return advance();
     } else {
-      appendStringToken(UNKNOWN_TOKEN, no);
+      appendPrecenceToken(no);
       return next;
     }
   }
 
-  void appendStringToken(int kind, String value) {
-    tail.next = new StringToken(kind, value, tokenStart);
+  void appendPrecenceToken(PrecedenceInfo info) {
+    tail.next = new Token(info, tokenStart);
+    tail = tail.next;
+  }
+
+  void appendStringToken(PrecedenceInfo info, String value) {
+    tail.next = new StringToken(info, value, tokenStart);
     tail = tail.next;
   }
 
@@ -49,7 +54,7 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
   }
 
   void appendEofToken() {
-    tail.next = new Token(EOF_TOKEN, charOffset);
+    tail.next = new Token(EOF_INFO, charOffset);
     tail = tail.next;
     // EOF points to itself so there's always infinite look-ahead.
     tail.next = tail;
@@ -71,11 +76,11 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     // Do nothing, we don't collect white space.
   }
 
-  void appendBeginGroup(int kind, String value) {
-    Token token = new BeginGroupToken(kind, value, tokenStart);
+  void appendBeginGroup(PrecedenceInfo info, String value) {
+    Token token = new BeginGroupToken(info, value, tokenStart);
     tail.next = token;
     tail = tail.next;
-    while (kind !== LT_TOKEN &&
+    while (info.kind !== LT_TOKEN &&
            !groupingStack.isEmpty() &&
            groupingStack.head.kind === LT_TOKEN) {
       groupingStack = groupingStack.tail;
@@ -83,9 +88,9 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     groupingStack = groupingStack.prepend(token);
   }
 
-  int appendEndGroup(int kind, String value, int openKind) {
+  int appendEndGroup(PrecedenceInfo info, String value, int openKind) {
     assert(openKind !== LT_TOKEN);
-    appendStringToken(kind, value);
+    appendStringToken(info, value);
     if (groupingStack.isEmpty()) {
       throw new MalformedInputException('Unmatched $value');
     }
@@ -109,8 +114,8 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     return advance();
   }
 
-  void appendGt(int kind, String value) {
-    appendStringToken(kind, value);
+  void appendGt(PrecedenceInfo info, String value) {
+    appendStringToken(info, value);
     if (groupingStack.isEmpty()) return;
     if (groupingStack.head.kind === LT_TOKEN) {
       groupingStack.head.endGroup = tail;
@@ -118,8 +123,8 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     }
   }
 
-  void appendGtGt(int kind, String value) {
-    appendStringToken(kind, value);
+  void appendGtGt(PrecedenceInfo info, String value) {
+    appendStringToken(info, value);
     if (groupingStack.isEmpty()) return;
     if (groupingStack.head.kind === LT_TOKEN) {
       groupingStack = groupingStack.tail;
@@ -131,8 +136,8 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     }
   }
 
-  void appendGtGtGt(int kind, String value) {
-    appendStringToken(kind, value);
+  void appendGtGtGt(PrecedenceInfo info, String value) {
+    appendStringToken(info, value);
     if (groupingStack.isEmpty()) return;
     if (groupingStack.head.kind === LT_TOKEN) {
       groupingStack = groupingStack.tail;

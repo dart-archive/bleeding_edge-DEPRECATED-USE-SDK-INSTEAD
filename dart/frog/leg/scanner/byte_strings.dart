@@ -151,8 +151,8 @@ class Utf8String extends ByteString {
 class ByteStringToken extends Token {
   final ByteString value;
 
-  ByteStringToken(int kind, ByteString this.value, int charOffset)
-    : super(kind, charOffset);
+  ByteStringToken(PrecedenceInfo info, ByteString this.value, int charOffset)
+    : super(info, charOffset);
 
   String toString() => value.toString();
 }

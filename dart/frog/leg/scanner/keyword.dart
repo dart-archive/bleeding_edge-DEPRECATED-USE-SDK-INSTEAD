@@ -22,7 +22,7 @@ class Keyword implements SourceString {
   static final Keyword FOR = const Keyword("for");
   static final Keyword IF = const Keyword("if");
   static final Keyword IN = const Keyword("in");
-  static final Keyword IS = const Keyword("is");
+  static final Keyword IS = const Keyword("is", false, IS_INFO);
   static final Keyword NEW = const Keyword("new");
   static final Keyword NULL = const Keyword("null");
   static final Keyword RETURN = const Keyword("return");
@@ -101,6 +101,7 @@ class Keyword implements SourceString {
 
   final String syntax;
   final bool isPseudo;
+  final PrecedenceInfo info;
 
   static Map<String, Keyword> _keywords;
   static Map<String, Keyword> get keywords() {
@@ -110,7 +111,9 @@ class Keyword implements SourceString {
     return _keywords;
   }
 
-  const Keyword(String this.syntax, [bool this.isPseudo = false]);
+  const Keyword(String this.syntax,
+                [bool this.isPseudo = false,
+                 PrecedenceInfo this.info = KEYWORD_INFO]);
 
   static Map<String, Keyword> computeKeywordMap() {
     Map<String, Keyword> result = new LinkedHashMap<String, Keyword>();
