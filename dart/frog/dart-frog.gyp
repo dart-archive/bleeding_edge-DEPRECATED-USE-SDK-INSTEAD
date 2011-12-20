@@ -7,7 +7,6 @@
     # These variables are used in the creation of the .vcproj file on 
     # Windows.
     'cygwin_dir': '../third_party/cygwin',
-    'msvs_cygwin_dirs': ['<(cygwin_dir)'],
   },
   'targets': [
     {
@@ -32,6 +31,7 @@
             # this so that Windows can also run with node.js and d8. 
             '../runtime/dart-runtime.gyp:dart',
           ],
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
        }]],
       'type': 'none',
       'actions': [
@@ -77,6 +77,7 @@
             # this so that Windows can also run with node.js and d8. 
             '../runtime/dart-runtime.gyp:dart',
           ],
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
        }]],
       'type': 'none',
       'actions': [
