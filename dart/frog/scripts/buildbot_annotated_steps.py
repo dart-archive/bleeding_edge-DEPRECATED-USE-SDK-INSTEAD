@@ -88,18 +88,26 @@ def TestFrog(arch, mode):
     return 1
 
   if arch != 'frogium': # frog and frogsh
+    failed = False
     if TestStep("frog", testpy_mode, arch,
                   ['language', 'corelib', 'isolate', 'frog',
-                   'leg', 'leg_only', 'peg', 'await'], flags) != 0:
-      return 1
+                   'peg', 'await'], flags) != 0:
+      failed = True
+
+    if TestStep("leg", testpy_mode, arch, ['leg', 'leg_only'], flags) != 0:
+      failed = True
 
     leg_tests = ['language', 'corelib', 'leg_only']
     if TestStep("leg", testpy_mode, 'leg', leg_tests, flags) != 0:
-      return 1
+      failed = True
 
     # Leg isn't self-hosted (yet) so we run the unit tests on the VM.
     if TestStep("leg", testpy_mode, 'vm', ['leg'], flags) != 0:
+      failed = True
+
+    if failed:
       return 1
+
   else:
     if (TestStep("browser", testpy_mode, 'frogium',
           ['client', 'language', 'corelib', 'isolate', 'frog',

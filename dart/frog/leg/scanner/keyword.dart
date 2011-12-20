@@ -6,52 +6,56 @@
  * A keyword in the Dart programming language.
  */
 class Keyword implements SourceString {
-  static final Keyword BREAK = const Keyword("break");
-  static final Keyword CASE = const Keyword("case");
-  static final Keyword CATCH = const Keyword("catch");
-  static final Keyword CLASS = const Keyword("class");
-  static final Keyword CONST = const Keyword("const");
-  static final Keyword CONTINUE = const Keyword("continue");
-  static final Keyword DEFAULT = const Keyword("default");
-  static final Keyword DO = const Keyword("do");
-  static final Keyword ELSE = const Keyword("else");
-  static final Keyword EXTENDS = const Keyword("extends");
-  static final Keyword FALSE = const Keyword("false");
-  static final Keyword FINAL = const Keyword("final");
-  static final Keyword FINALLY = const Keyword("finally");
-  static final Keyword FOR = const Keyword("for");
-  static final Keyword IF = const Keyword("if");
-  static final Keyword IN = const Keyword("in");
+  // TODO(ahe): Remove "false, KEYWORD_INFO" which works around a Frog bug.
+  static final Keyword BREAK = const Keyword("break", false, KEYWORD_INFO);
+  static final Keyword CASE = const Keyword("case", false, KEYWORD_INFO);
+  static final Keyword CATCH = const Keyword("catch", false, KEYWORD_INFO);
+  static final Keyword CLASS = const Keyword("class", false, KEYWORD_INFO);
+  static final Keyword CONST = const Keyword("const", false, KEYWORD_INFO);
+  static final Keyword CONTINUE = const Keyword("continue", false,
+                                                KEYWORD_INFO);
+  static final Keyword DEFAULT = const Keyword("default", false, KEYWORD_INFO);
+  static final Keyword DO = const Keyword("do", false, KEYWORD_INFO);
+  static final Keyword ELSE = const Keyword("else", false, KEYWORD_INFO);
+  static final Keyword EXTENDS = const Keyword("extends", false, KEYWORD_INFO);
+  static final Keyword FALSE = const Keyword("false", false, KEYWORD_INFO);
+  static final Keyword FINAL = const Keyword("final", false, KEYWORD_INFO);
+  static final Keyword FINALLY = const Keyword("finally", false, KEYWORD_INFO);
+  static final Keyword FOR = const Keyword("for", false, KEYWORD_INFO);
+  static final Keyword IF = const Keyword("if", false, KEYWORD_INFO);
+  static final Keyword IN = const Keyword("in", false, KEYWORD_INFO);
   static final Keyword IS = const Keyword("is", false, IS_INFO);
-  static final Keyword NEW = const Keyword("new");
-  static final Keyword NULL = const Keyword("null");
-  static final Keyword RETURN = const Keyword("return");
-  static final Keyword SUPER = const Keyword("super");
-  static final Keyword SWITCH = const Keyword("switch");
-  static final Keyword THIS = const Keyword("this");
-  static final Keyword THROW = const Keyword("throw");
-  static final Keyword TRUE = const Keyword("true");
-  static final Keyword TRY = const Keyword("try");
-  static final Keyword VAR = const Keyword("var");
-  static final Keyword VOID = const Keyword("void");
-  static final Keyword WHILE = const Keyword("while");
+  static final Keyword NEW = const Keyword("new", false, KEYWORD_INFO);
+  static final Keyword NULL = const Keyword("null", false, KEYWORD_INFO);
+  static final Keyword RETURN = const Keyword("return", false, KEYWORD_INFO);
+  static final Keyword SUPER = const Keyword("super", false, KEYWORD_INFO);
+  static final Keyword SWITCH = const Keyword("switch", false, KEYWORD_INFO);
+  static final Keyword THIS = const Keyword("this", false, KEYWORD_INFO);
+  static final Keyword THROW = const Keyword("throw", false, KEYWORD_INFO);
+  static final Keyword TRUE = const Keyword("true", false, KEYWORD_INFO);
+  static final Keyword TRY = const Keyword("try", false, KEYWORD_INFO);
+  static final Keyword VAR = const Keyword("var", false, KEYWORD_INFO);
+  static final Keyword VOID = const Keyword("void", false, KEYWORD_INFO);
+  static final Keyword WHILE = const Keyword("while", false, KEYWORD_INFO);
 
   // Pseudo keywords:
-  static final Keyword ABSTRACT = const Keyword("abstract", true);
-  static final Keyword ASSERT = const Keyword("assert", true);
-  static final Keyword FACTORY = const Keyword("factory", true);
-  static final Keyword GET = const Keyword("get", true);
-  static final Keyword IMPLEMENTS = const Keyword("implements", true);
-  static final Keyword IMPORT = const Keyword("import", true);
-  static final Keyword INTERFACE = const Keyword("interface", true);
-  static final Keyword LIBRARY = const Keyword("library", true);
-  static final Keyword NATIVE = const Keyword("native", true);
-  static final Keyword NEGATE = const Keyword("negate", true);
-  static final Keyword OPERATOR = const Keyword("operator", true);
-  static final Keyword SET = const Keyword("set", true);
-  static final Keyword SOURCE = const Keyword("source", true);
-  static final Keyword STATIC = const Keyword("static", true);
-  static final Keyword TYPEDEF = const Keyword("typedef", true);
+  static final Keyword ABSTRACT = const Keyword("abstract", true, KEYWORD_INFO);
+  static final Keyword ASSERT = const Keyword("assert", true, KEYWORD_INFO);
+  static final Keyword FACTORY = const Keyword("factory", true, KEYWORD_INFO);
+  static final Keyword GET = const Keyword("get", true, KEYWORD_INFO);
+  static final Keyword IMPLEMENTS = const Keyword("implements", true,
+                                                  KEYWORD_INFO);
+  static final Keyword IMPORT = const Keyword("import", true, KEYWORD_INFO);
+  static final Keyword INTERFACE = const Keyword("interface", true,
+                                                 KEYWORD_INFO);
+  static final Keyword LIBRARY = const Keyword("library", true, KEYWORD_INFO);
+  static final Keyword NATIVE = const Keyword("native", true, KEYWORD_INFO);
+  static final Keyword NEGATE = const Keyword("negate", true, KEYWORD_INFO);
+  static final Keyword OPERATOR = const Keyword("operator", true, KEYWORD_INFO);
+  static final Keyword SET = const Keyword("set", true, KEYWORD_INFO);
+  static final Keyword SOURCE = const Keyword("source", true, KEYWORD_INFO);
+  static final Keyword STATIC = const Keyword("static", true, KEYWORD_INFO);
+  static final Keyword TYPEDEF = const Keyword("typedef", true, KEYWORD_INFO);
 
   static final List<Keyword> values = const <Keyword> [
       BREAK,
