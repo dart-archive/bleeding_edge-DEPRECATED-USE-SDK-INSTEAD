@@ -275,9 +275,10 @@ class WorldGenerator {
         writer.writeln('function ${type.jsname}() {}');
       } else if (type.jsname != nativeName) {
         if (type.isHiddenNativeType) {
-          // This is a holder for static methods.
-          // TODO(sra): Generate only if used.
-          writer.writeln('var ${type.jsname} = {};');
+          if (_typeHasStaticMethods(type)) {
+            // This is a holder for static methods.
+            writer.writeln('var ${type.jsname} = {};');
+          }
         } else {
           writer.writeln('${type.jsname} = ${nativeName};');
         }
@@ -384,6 +385,19 @@ class WorldGenerator {
     }
 
     _writeDynamicStubs(type);
+  }
+
+  _typeHasStaticMethods(Type type) {
+    for (var member in type.members.getValues()) {
+      if (member.isMethod) {
+        if (member.isConstructor || member.isStatic) {
+          if (member.isGenerated) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   /**

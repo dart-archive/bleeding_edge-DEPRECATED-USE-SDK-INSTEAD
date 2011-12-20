@@ -2387,7 +2387,9 @@ WorldGenerator.prototype.writeType = function(type) {
     }
     else if (type.get$jsname() != nativeName) {
       if (type.get$isHiddenNativeType()) {
-        this.writer.writeln(('var ' + type.get$jsname() + ' = {};'));
+        if (this._typeHasStaticMethods(type)) {
+          this.writer.writeln(('var ' + type.get$jsname() + ' = {};'));
+        }
       }
       else {
         this.writer.writeln(('' + type.get$jsname() + ' = ' + nativeName + ';'));
@@ -2487,6 +2489,20 @@ WorldGenerator.prototype.writeType = function(type) {
     }
   }
   this._writeDynamicStubs(type);
+}
+WorldGenerator.prototype._typeHasStaticMethods = function(type) {
+  var $$list = type.get$members().getValues();
+  for (var $$i = type.get$members().getValues().iterator$0(); $$i.hasNext$0(); ) {
+    var member = $$i.next$0();
+    if (member.get$isMethod()) {
+      if (member.get$isConstructor() || member.get$isStatic()) {
+        if (member.get$isGenerated()) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 WorldGenerator.prototype._ensureInheritMembersHelper = function() {
   if (this._mixins != null) return;
