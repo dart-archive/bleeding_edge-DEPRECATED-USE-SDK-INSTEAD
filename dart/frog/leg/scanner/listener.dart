@@ -278,9 +278,6 @@ class Listener {
   void handleConstExpression(Token token, bool named) {
   }
 
-  void handleFinalKeyword(Token finalKeyword) {
-  }
-
   void handleFunctionTypedFormalParameter(Token token) {
   }
 
@@ -381,9 +378,6 @@ class Listener {
   }
 
   void handleValuedFormalParameter(Token equals, Token token) {
-  }
-
-  void handleVarKeyword(Token token) {
   }
 
   void handleVoidKeyword(Token token) {
@@ -686,7 +680,8 @@ class NodeListener extends ElementListener {
   void endFormalParameter(Token token, Token thisKeyword) {
     NodeList name = new NodeList.singleton(popNode());
     TypeAnnotation type = popNode();
-    pushNode(new VariableDefinitions(type, null, name, token));
+    Modifiers modifiers = popNode();
+    pushNode(new VariableDefinitions(type, modifiers, name, token));
     if (thisKeyword !== null) {
       canceler.cancel('field formal parameters not implemented',
                       token: thisKeyword);
@@ -822,20 +817,13 @@ class NodeListener extends ElementListener {
                                     modifiers, initializers));
   }
 
-  void handleVarKeyword(Token token) {
-    pushNode(new TypeAnnotation(new Identifier(token), null));
-  }
-
-  void handleFinalKeyword(Token token) {
-    canceler.cancel('Final not implemented yet', token: token);
-  }
-
   void endVariablesDeclaration(int count, Token endToken) {
     // TODO(ahe): Pick one name for this concept, either
     // VariablesDeclaration or VariableDefinitions.
     NodeList variables = makeNodeList(count, null, null, ",");
     TypeAnnotation type = popNode();
-    pushNode(new VariableDefinitions(type, null, variables, endToken));
+    Modifiers modifiers = popNode();
+    pushNode(new VariableDefinitions(type, modifiers, variables, endToken));
   }
 
   void endInitializer(Token assignmentOperator) {

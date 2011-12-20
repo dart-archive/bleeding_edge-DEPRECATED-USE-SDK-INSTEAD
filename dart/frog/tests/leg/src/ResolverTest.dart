@@ -374,7 +374,8 @@ testTopLevelFields() {
   VariableDefinitions bNode = bElement.parseNode(compiler, compiler);
   VariableDefinitions cNode = cElement.parseNode(compiler, compiler);
   Expect.equals(bNode, cNode);
-  Expect.equals(bNode.type.typeName.source.stringValue, 'var');
+  Expect.isNull(bNode.type);
+  Expect.isTrue(bNode.modifiers.isVar());
 }
 
 length(Link link) => link.isEmpty() ? 0 : length(link.tail) + 1;

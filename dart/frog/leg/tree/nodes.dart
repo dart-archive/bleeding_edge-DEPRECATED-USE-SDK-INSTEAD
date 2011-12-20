@@ -791,6 +791,12 @@ class ParenthesizedExpression extends Expression {
 
 /** Representation of modifiers such as static, abstract, final, etc. */
 class Modifiers extends Node {
+  /* TODO(ahe): The following should be validated relating to modifiers:
+   * 1. The nodes must come in a certain order.
+   * 2. The keywords "var" and "final" may not be used at the same time.
+   * 3. The type of an element must be null if isVar() is true.
+   */
+
   final NodeList nodes;
   /** Bit pattern to easy check what modifiers are present. */
   final int flags;

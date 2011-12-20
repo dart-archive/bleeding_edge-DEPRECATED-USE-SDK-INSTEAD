@@ -94,12 +94,9 @@ class Parser {
 
   Token parseFormalParameter(Token token) {
     listener.beginFormalParameter(token);
-    if (optional('void', token)) {
-      // TODO(ahe): Validate that there are formal parameters.
-      token = parseReturnTypeOpt(token);
-    } else {
-      token = parseFinalVarOrTypeOpt(token);
-    }
+    token = parseModifiers(token);
+    // TODO(ahe): Validate that there are formal parameters if void.
+    token = parseReturnTypeOpt(token);
     Token thisKeyword = null;
     if (optional('this', token)) {
       thisKeyword = token;
@@ -277,9 +274,6 @@ class Parser {
         token = parseIdentifier(token.next);
         ++identifierCount;
       }
-    } else if (optional('var', token)) {
-      listener.handleVarKeyword(token);
-      return token.next;
     } else {
       token = listener.expectedType(token);
     }
@@ -1179,7 +1173,8 @@ class Parser {
   Token parseVariablesDeclarationNoSemicolon(Token token) {
     int count = 1;
     listener.beginVariablesDeclaration(token);
-    token = parseFinalVarOrType(token);
+    token = parseModifiers(token);
+    token = parseTypeOpt(token);
     token = parseOptionallyInitializedIdentifier(token);
     while (optional(',', token)) {
       token = parseOptionallyInitializedIdentifier(token.next);
@@ -1195,25 +1190,6 @@ class Parser {
     token = parseVariableInitializerOpt(token);
     listener.endInitializedIdentifier();
     return token;
-  }
-
-  Token parseFinalVarOrType(Token token) {
-    if ('final' === token.stringValue) {
-      listener.handleFinalKeyword(token);
-      return parseTypeOpt(token.next);
-    } else {
-      return parseType(token);
-    }
-  }
-
-  Token parseFinalVarOrTypeOpt(Token token) {
-    final String value = token.stringValue;
-    if ('final' === value) {
-      listener.handleFinalKeyword(token);
-      return parseTypeOpt(token.next);
-    } else {
-      return parseTypeOpt(token);
-    }
   }
 
   Token parseIfStatement(Token token) {
