@@ -45,10 +45,9 @@ class Element implements Hashable {
   final Element enclosingElement;
   abstract Node parseNode(Canceler canceler, Logger logger);
   abstract Type computeType(Compiler compiler, Types types);
-  bool isClassMember() =>
+  bool isMember() =>
       enclosingElement !== null && enclosingElement.kind == ElementKind.CLASS;
-  // TODO(ngeoffray): override in function element to check for modifiers.
-  bool isInstanceMember() => isClassMember();
+  bool isInstanceMember() => false;
 
   const Element(this.name, this.kind, this.enclosingElement);
 
@@ -79,6 +78,10 @@ class VariableElement extends Element {
   }
 
   Type get type() => variables.type;
+
+  bool isInstanceMember() {
+    return isMember() && !modifiers.isStatic();
+  }
 }
 
 // This element represents a list of variable or field declaration.
@@ -164,8 +167,9 @@ class FunctionElement extends Element {
       this.node = node;
 
   bool isInstanceMember() {
-    // TODO(ngeoffray): use modifiers.
-    return super.isInstanceMember() && kind != ElementKind.CONSTRUCTOR;
+    return isMember()
+           && kind != ElementKind.CONSTRUCTOR
+           && !modifiers.isStatic();
   }
 
   FunctionType computeType(Compiler compiler, types) {
@@ -284,7 +288,7 @@ class ClassElement extends Element {
 
   parseNode(compiler, types) => node;
 
-  /**  
+  /**
    * Returns the super class, if any.
    *
    * The returned element may not be resolved yet.

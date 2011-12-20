@@ -66,7 +66,7 @@ class ResolverVisitor implements Visitor<Element> {
     : this.compiler = compiler,
       this.mapping  = new TreeElements(),
       this.enclosingElement = element,
-      this.context  = element.isClassMember()
+      this.context  = element.isMember()
         ? new ClassScope(element.enclosingElement, compiler.universe)
         : new TopScope(compiler.universe);
 
