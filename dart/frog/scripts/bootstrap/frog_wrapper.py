@@ -18,7 +18,7 @@ def main(args):
     return 1
 
   frog_args = ['frog.py', '--vm=' + VM, '--']
-  frog_args += args[2:len(args)]
+  frog_args += args[1:]
 
   filename = None
   exit_code = 1
