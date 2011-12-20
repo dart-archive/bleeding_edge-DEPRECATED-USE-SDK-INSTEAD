@@ -57,12 +57,6 @@ deps = {
   "src":
     Var("multivm_url") + "/chromium@" + Var("dartium_chromium_revision"),
 
-  "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@875",
-
-  "src/build/util/support":
-    Var("chromium_url") + "/trunk/deps/support@20411",
-
   "src/dart":
     Var("dart_url") + "/branches/bleeding_edge/dart",
 
@@ -71,6 +65,12 @@ deps = {
 
   "src/dartium_tools":
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
+
+  "src/breakpad/src":
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@875",
+
+  "src/build/util/support":
+    Var("chromium_url") + "/trunk/deps/support@20411",
 
   "src/googleurl":
     (Var("googlecode_url") % "google-url") + "/trunk@159",
@@ -89,6 +89,13 @@ deps = {
 
   "src/third_party/angle":
     (Var("googlecode_url") % "angleproject") + "/trunk@809",
+
+  # Note that this is *not* where we check out WebKit -- this just
+  # puts some extra files into place for the real WebKit checkout to
+  # happen.  See lines mentioning "webkit_revision" for the real
+  # WebKit checkout.
+  "src/third_party/WebKit":
+    "/trunk/deps/third_party/WebKit@76115",
 
   "src/third_party/icu":
     Var("chromium_url") + "/trunk/deps/third_party/icu46@107982",
@@ -373,6 +380,9 @@ deps_os = {
       (Var("googlecode_url") % "pdfsqueeze") + "/trunk@4",
     "src/third_party/lighttpd":
       Var("chromium_url") + "/trunk/deps/third_party/lighttpd@33737",
+
+    "src/third_party/WebKit/WebKitLibraries":
+      Var("webkit_trunk") + "/WebKitLibraries@" + Var("webkit_revision"),
 
     "src/third_party/swig/mac":
       Var("chromium_url") + "/trunk/deps/third_party/swig/mac@" + Var("swig_revision"),
