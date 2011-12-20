@@ -46,7 +46,7 @@ class MemberListener extends NodeListener {
     super.endMethod(beginToken, period, endToken);
     FunctionExpression method = popNode();
     pushNode(null);
-    Identifier name = method.name;
+    Identifier name = method.name; // TODO(ahe): Named constructors.
     ElementKind kind = isConstructor(name) ?
                        ElementKind.CONSTRUCTOR :
                        ElementKind.FUNCTION;
@@ -63,11 +63,11 @@ class MemberListener extends NodeListener {
     pushNode(null);
     void buildFieldElement(SourceString name, Element fields) {
       Element element = new VariableElement(name, fields, ElementKind.FIELD,
-                                            modifiers, enclosingElement);
+                                            enclosingElement);
       enclosingElement.addMember(element);
     }
-    buildFieldElements(variableDefinitions.definitions, buildFieldElement,
-                       beginToken, endToken);
+    buildFieldElements(modifiers, variableDefinitions.definitions,
+                       buildFieldElement, beginToken, endToken);
   }
 
   void endInitializer(Token assignmentOperator) {

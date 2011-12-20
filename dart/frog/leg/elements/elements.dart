@@ -62,13 +62,12 @@ class Element implements Hashable {
 
 class VariableElement extends Element {
   final VariableListElement variables;
-  final Modifiers modifiers;
+  Modifiers get modifiers() => variables.modifiers;
 
   VariableElement(SourceString name,
                   VariableListElement this.variables,
                   ElementKind kind,
-                  [Modifiers this.modifiers = null,
-                   Element enclosing = null])
+                  Element enclosing)
     : super(name, kind, enclosing);
 
   Node parseNode(Canceler canceler, Logger logger) {
@@ -89,15 +88,19 @@ class VariableElement extends Element {
 class VariableListElement extends Element {
   VariableDefinitions node;
   Type type;
+  final Modifiers modifiers;
 
-  VariableListElement(ElementKind kind, [Element enclosing = null])
+  VariableListElement(ElementKind kind,
+                      Modifiers this.modifiers,
+                      Element enclosing)
     : super(null, kind, enclosing);
 
   VariableListElement.node(VariableDefinitions node,
                            ElementKind kind,
-                           [Element enclosing = null])
+                           Element enclosing)
     : super(null, kind, enclosing),
-      this.node = node;
+      this.node = node,
+      this.modifiers = node.modifiers;
 
   VariableDefinitions parseNode(Canceler canceler, Logger logger) {
     return node;

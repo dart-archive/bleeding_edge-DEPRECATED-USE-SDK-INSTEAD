@@ -25,7 +25,7 @@ find .. \( \
     -o -name Isolate_A02_t01.dart \
     -o -name IsNotClass4NegativeTest.dart \
     -o -name NamedParameters9NegativeTest.dart \
-    -o -name ClassKeywordNegativeTest.dart \
+    -o -name ClassKeywordTest.dart \
     -o -name xcodebuild \
     \) -prune -o \
     -name \*.dart -type f -print \

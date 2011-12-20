@@ -515,9 +515,8 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
-      // TODO(ngeoffray): pass the modifiers.
       Element element = new VariableElement(
-          name, variables, kind, null, resolver.context.element);
+          name, variables, kind, resolver.context.element);
       resolver.defineElement(link.head, element);
     }
   }

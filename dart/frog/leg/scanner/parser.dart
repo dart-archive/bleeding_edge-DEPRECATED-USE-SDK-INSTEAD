@@ -335,7 +335,7 @@ class Parser {
   Token parseTopLevelMember(Token token) {
     Token start = token;
     listener.beginTopLevelMember(token);
-    token = skipModifiers(token);
+    token = parseModifiers(token);
     Token peek = peekAfterType(token);
     while (isIdentifier(peek)) {
       token = peek;
@@ -430,20 +430,6 @@ class Parser {
 
   Token expectSemicolon(Token token) {
     return expect(';', token);
-  }
-
-  Token skipModifiers(Token token) {
-    while (token.kind === KEYWORD_TOKEN) {
-      final String value = token.stringValue;
-      if (('final' !== value) &&
-          ('var' !== value) &&
-          ('const' !== value) &&
-          ('abstract' !== value) &&
-          ('static' !== value))
-        break;
-      token = token.next;
-    }
-    return token;
   }
 
   Token parseModifier(Token token) {
@@ -607,7 +593,7 @@ class Parser {
 
   Token parseFunction(Token token) {
     listener.beginFunction(token);
-    token = skipModifiers(token);
+    token = parseModifiers(token);
     token = parseReturnTypeOpt(token);
     listener.beginFunctionName(token);
     token = parseIdentifier(token);
@@ -630,6 +616,7 @@ class Parser {
 
   Token parseFunctionExpression(Token token) {
     listener.beginFunction(token);
+    listener.handleModifiers(0);
     token = parseReturnTypeOpt(token);
     listener.beginFunctionName(token);
     token = parseIdentifier(token);

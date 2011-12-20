@@ -428,6 +428,7 @@ class ElementListener extends Listener {
 
   Link<Node> nodes = const EmptyLink<Node>();
   Link<Element> topLevelElements = const EmptyLink<Element>();
+  Element compilationUnitElement = null; // TODO(ahe): Initalize this.
 
   ElementListener(Canceler this.canceler);
 
@@ -480,24 +481,29 @@ class ElementListener extends Listener {
 
   void endTopLevelMethod(Token beginToken, Token endToken) {
     Identifier name = popNode();
+    Modifiers modifiers = popNode();
     pushElement(new PartialFunctionElement(name.source, beginToken, endToken,
-                                           ElementKind.FUNCTION));
+                                           ElementKind.FUNCTION, modifiers,
+                                           compilationUnitElement));
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     void buildFieldElement(SourceString name, Element fields) {
-      pushElement(new VariableElement(name, fields, ElementKind.FIELD,
-                                      null, null));
+      pushElement(new VariableElement(name, fields, ElementKind.FIELD, null));
     }
-    buildFieldElements(makeNodeList(count, null, null, ","), buildFieldElement,
+    NodeList variables = makeNodeList(count, null, null, ",");
+    Modifiers modifiers = popNode();
+    buildFieldElements(modifiers, variables, buildFieldElement,
                        beginToken, endToken);
   }
 
-  void buildFieldElements(NodeList variables,
+  void buildFieldElements(Modifiers modifiers,
+                          NodeList variables,
                           void buildFieldElement(SourceString name,
                                                  Element fields),
                           Token beginToken, Token endToken) {
-    Element fields = new PartialFieldListElement(beginToken, endToken);
+    Element fields = new PartialFieldListElement(beginToken, endToken,
+                                                 modifiers, null);
     for (Link<Node> nodes = variables.nodes; !nodes.isEmpty();
          nodes = nodes.tail) {
       Expression initializedIdentifier = nodes.head;
@@ -652,14 +658,18 @@ class NodeListener extends ElementListener {
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     NodeList variables = makeNodeList(count, null, null, ",");
-    pushNode(new VariableDefinitions(null, null, variables, endToken));
+    Modifiers modifiers = popNode();
+    pushNode(new VariableDefinitions(null, modifiers, variables, endToken));
   }
 
   void endTopLevelMethod(Token beginToken, Token endToken) {
     Statement body = popNode();
     NodeList formalParameters = popNode();
     Identifier name = popNode();
-    pushElement(new PartialFunctionElement(name.source, beginToken, endToken));
+    Modifiers modifiers = popNode();
+    pushElement(new PartialFunctionElement(name.source, beginToken, endToken,
+                                           ElementKind.FUNCTION, modifiers,
+                                           compilationUnitElement));
   }
 
   void endFormalParameter(Token token, Token thisKeyword) {
@@ -795,10 +805,10 @@ class NodeListener extends ElementListener {
     NodeList initializers = popNode();
     NodeList formals = popNode();
     Identifier name = popNode();
-    // TODO(ahe): Return types are optional.
     TypeAnnotation type = popNode();
+    Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formals, body, type,
-                                    null, initializers));
+                                    modifiers, initializers));
   }
 
   void handleVarKeyword(Token token) {
@@ -1159,9 +1169,9 @@ class PartialFunctionElement extends FunctionElement {
 
   PartialFunctionElement(SourceString name,
                          Token this.beginToken, Token this.endToken,
-                         [ElementKind kind = ElementKind.FUNCTION,
-                          Modifiers modifiers = null,
-                          Element enclosing = null])
+                         ElementKind kind,
+                         Modifiers modifiers,
+                         Element enclosing)
     : super(name, kind, modifiers, enclosing);
 
   FunctionExpression parseNode(Canceler canceler, Logger logger) {
@@ -1177,8 +1187,9 @@ class PartialFieldListElement extends VariableListElement {
 
   PartialFieldListElement(Token this.beginToken,
                           Token this.endToken,
-                          [Element enclosing = null])
-    : super(ElementKind.VARIABLE_LIST, enclosing);
+                          Modifiers modifiers,
+                          Element enclosing)
+    : super(ElementKind.VARIABLE_LIST, modifiers, enclosing);
 
   Node parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
