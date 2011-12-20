@@ -954,4 +954,13 @@ class SsaBuilder implements Visitor {
     joinBlock.addPhi(phi);
     stack.add(phi);
   }
+
+  visitStringInterpolation(StringInterpolation node) {
+    compiler.unimplemented('SsaBuilder.visitStringInterpolation', node: node);
+  }
+
+  visitStringInterpolationPart(StringInterpolationPart node) {
+    compiler.unimplemented('SsaBuilder.visitStringInterpolationPart',
+                           node: node);
+  }
 }

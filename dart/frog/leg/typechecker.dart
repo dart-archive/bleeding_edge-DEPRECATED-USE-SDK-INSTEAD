@@ -532,4 +532,13 @@ class TypeCheckerVisitor implements Visitor<Type> {
       return objectType;
     }
   }
+
+  visitStringInterpolation(StringInterpolation node) {
+    node.visitChildren(this);
+    return stringType;
+  }
+
+  visitStringInterpolationPart(StringInterpolationPart node) {
+    node.visitChildren(this);
+  }
 }

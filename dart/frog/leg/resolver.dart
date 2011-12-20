@@ -438,6 +438,14 @@ class FullResolverVisitor extends ResolverVisitor {
   visitConditional(Conditional node) {
     node.visitChildren(this);
   }
+
+  visitStringInterpolation(StringInterpolation node) {
+    node.visitChildren(this);
+  }
+
+  visitStringInterpolationPart(StringInterpolationPart node) {
+    node.visitChildren(this);
+  }
 }
 
 class ClassResolverVisitor extends AbstractVisitor<Type> {

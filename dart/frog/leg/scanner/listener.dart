@@ -362,7 +362,7 @@ class Listener {
   void handleQualified(Token period) {
   }
 
-  void handleStringInterpolationPart(Token token) {
+  void handleStringInterpolationParts(int count) {
   }
 
   void handleSuperExpression(Token token) {
@@ -407,6 +407,13 @@ class Listener {
 
   Token unexpected(Token token) {
     error("Unexpected token '$token'", token);
+  }
+
+  void recoverableError(String message, [Token token, Node node]) {
+    if (token === null && node !== null) {
+      token = node.getBeginToken();
+    }
+    error(message, token);
   }
 
   void error(String message, Token token) {
@@ -591,6 +598,10 @@ class ElementListener extends Listener {
 
   Token unexpected(Token token) {
     canceler.cancel("Unexpected token '$token'", token: token);
+  }
+
+  void recoverableError(String message, [Token token, Node node]) {
+    canceler.cancel(message, token: token, node: node);
   }
 
   void pushElement(Element element) {
@@ -966,7 +977,10 @@ class NodeListener extends ElementListener {
 
   void endLiteralMapEntry(Token token) {
     Expression value = popNode();
-    LiteralString key = popNode();
+    Expression key = popNode();
+    if (key.asLiteralString() === null) {
+      recoverableError('Expected a constant string', node: key);
+    }
     // TODO(ahe): Create AST node.
     pushNode(new UnimplementedExpression('map entry', [key, value]));
   }
@@ -1036,11 +1050,19 @@ class NodeListener extends ElementListener {
     pushNode(new UnimplementedExpression('named argument', [name, argument]));
   }
 
-  void handleStringInterpolationPart(Token token) {
-    LiteralString string = popNode();
-    Expression expression = popNode();
-    canceler.cancel('string interpolation is not implemented',
-                    node: expression);
+  void handleStringInterpolationParts(int count) {
+    Link<StringInterpolationPart> parts =
+      const EmptyLink<StringInterpolationPart>();
+    for (int i = 0; i < count; i++) {
+      LiteralString string = popNode();
+      Expression expression = popNode();
+      parts = parts.prepend(new StringInterpolationPart(expression, string));
+    }
+    if (!parts.isEmpty()) {
+      LiteralString string = popNode();
+      NodeList nodes = new NodeList(null, parts, null, null);
+      pushNode(new StringInterpolation(string, nodes));
+    }
   }
 
   void endOptionalFormalParameters(int count,

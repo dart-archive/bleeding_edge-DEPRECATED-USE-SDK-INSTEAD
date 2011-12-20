@@ -70,8 +70,9 @@ class Compiler implements Canceler, Logger {
     if (!condition) cancel('failed assertion in leg');
   }
 
-  void unimplemented(String methodName) {
-    cancel("$methodName not implemented");
+  void unimplemented(String methodName,
+                     [Node node, Token token, HInstruction instruction]) {
+    cancel("$methodName not implemented", node, token, instruction);
   }
 
   void cancel([String reason, Node node, Token token,

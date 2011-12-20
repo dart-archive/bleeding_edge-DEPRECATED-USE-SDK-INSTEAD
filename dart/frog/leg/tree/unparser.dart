@@ -229,4 +229,16 @@ class Unparser implements Visitor {
     visit(node.expression);
     add(node.getEndToken().value);
   }
+
+  visitStringInterpolation(StringInterpolation node) {
+    visit(node.string);
+    visit(node.parts);
+  }
+
+  visitStringInterpolationPart(StringInterpolationPart node) {
+    sb.add('\${'); // TODO(ahe): Preserve the real tokens.
+    visit(node.expression);
+    sb.add('}');
+    visit(node.string);
+  }
 }

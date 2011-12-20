@@ -36,6 +36,10 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitSend(Send node) => visitExpression(node);
   R visitSendSet(SendSet node) => visitSend(node);
   R visitStatement(Statement node) => visitNode(node);
+  R visitStringInterpolation(StringInterpolation node) => visitExpression(node);
+  R visitStringInterpolationPart(StringInterpolationPart node) {
+    return visitNode(node);
+  }
   R visitThrow(Throw node) => visitStatement(node);
   R visitTypeAnnotation(TypeAnnotation node) => visitNode(node);
   R visitVariableDefinitions(VariableDefinitions node) => visitStatement(node);
@@ -89,6 +93,8 @@ class TraversingVisitor implements Visitor {
   visitSend(Send node) {}
   visitSendSet(SendSet node) {}
   visitStatement(Statement node) {}
+  visitStringInterpolation(StringInterpolation node) {}
+  visitStringInterpolationPart(StringInterpolationPart node) {}
   visitThrow(Throw node) {}
   visitTypeAnnotation(TypeAnnotation node) {}
   visitVariableDefinitions(VariableDefinitions node) {}

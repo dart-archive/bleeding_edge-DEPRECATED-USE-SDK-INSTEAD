@@ -586,6 +586,57 @@ class AbstractScanner<T> implements Scanner {
     }
   }
 
+  int tokenizeIdentifierOrKeywordNoDollar(int next) {
+    KeywordState state = KeywordState.KEYWORD_STATE;
+    int start = byteOffset;
+    while (state !== null && $a <= next && next <= $z) {
+      state = state.next(next);
+      next = advance();
+    }
+    if (state === null || state.keyword === null) {
+      return tokenizeIdentifierNoDollar(next, start);
+    }
+    if (($A <= next && next <= $Z) ||
+        ($0 <= next && next <= $9) ||
+        next === $_ ||
+        next === $$) {
+      return tokenizeIdentifierNoDollar(next, start);
+    } else if (next < 128) {
+      appendKeywordToken(state.keyword);
+      return next;
+    } else {
+      return tokenizeIdentifierNoDollar(next, start);
+    }
+  }
+
+  int tokenizeIdentifierNoDollar(int next, int start) {
+    bool isAscii = true;
+    while (true) {
+      if (($a <= next && next <= $z) ||
+          ($A <= next && next <= $Z) ||
+          ($0 <= next && next <= $9) ||
+          next === $_) {
+        next = advance();
+      } else if (next < 128) {
+        if (isAscii) {
+          appendByteStringToken(IDENTIFIER_TOKEN, asciiString(start, 0));
+        } else {
+          appendByteStringToken(IDENTIFIER_TOKEN, utf8String(start, -1));
+        }
+        return next;
+      } else {
+        int nonAsciiStart = byteOffset;
+        do {
+          next = nextByte();
+        } while (next > 127);
+        String string = utf8String(nonAsciiStart, -1).toString();
+        isAscii = false;
+        int byteLength = nonAsciiStart - byteOffset;
+        addToCharOffset(string.length - byteLength);
+      }
+    }
+  }
+
   int tokenizeRawString(int next) {
     int start = byteOffset;
     next = advance();
@@ -631,8 +682,11 @@ class AbstractScanner<T> implements Scanner {
         beginToken();
         next = advance();
         if (next === $OPEN_CURLY_BRACKET) {
-          next = tokenizeInterpolatedExpression(next, q1, start);
+          next = tokenizeInterpolatedExpression(next, start);
+        } else {
+          next = tokenizeInterpolatedIdentifier(next, start);
         }
+        start = byteOffset;
         continue;
       } else if (next === $LF || next === $CR) {
         throw new MalformedInputException(charOffset);
@@ -642,8 +696,8 @@ class AbstractScanner<T> implements Scanner {
     throw new MalformedInputException(charOffset);
   }
 
-  int tokenizeInterpolatedExpression(int next, int q, int start) {
-    appendByteStringToken(STRING_TOKEN, utf8String(start, 0));
+  int tokenizeInterpolatedExpression(int next, int start) {
+    appendByteStringToken(STRING_TOKEN, utf8String(start, -2));
     appendBeginGroup(STRING_INTERPOLATION_TOKEN, "\${");
     next = advance();
     while (next !== $EOF && next !== $STX) {
@@ -651,6 +705,14 @@ class AbstractScanner<T> implements Scanner {
     }
     if (next === $EOF) return next;
     return advance();
+  }
+
+  int tokenizeInterpolatedIdentifier(int next, int start) {
+    appendByteStringToken(STRING_TOKEN, utf8String(start, -2));
+    appendBeginGroup(STRING_INTERPOLATION_TOKEN, "\${");
+    next = tokenizeIdentifierOrKeywordNoDollar(next);
+    appendEndGroup(CLOSE_CURLY_BRACKET_TOKEN, "}", OPEN_CURLY_BRACKET_TOKEN);
+    return next;
   }
 
   int tokenizeSingleLineRawString(int next, int q1, int start) {
@@ -669,6 +731,7 @@ class AbstractScanner<T> implements Scanner {
 
   int tokenizeMultiLineString(int q, int start, bool raw) {
     // TODO(ahe): Handle escapes.
+    // TODO(ahe): Handle string interpolation.
     int next = advance();
     while (next != $EOF) {
       if (next === q) {

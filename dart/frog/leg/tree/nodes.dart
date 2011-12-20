@@ -26,6 +26,8 @@ interface Visitor<R> {
   R visitReturn(Return node);
   R visitSend(Send node);
   R visitSendSet(SendSet node);
+  R visitStringInterpolation(StringInterpolation node);
+  R visitStringInterpolationPart(StringInterpolationPart node);
   R visitThrow(Throw node);
   R visitTypeAnnotation(TypeAnnotation node);
   R visitVariableDefinitions(VariableDefinitions node);
@@ -99,6 +101,8 @@ class Node implements Hashable {
   Return asReturn() => null;
   Send asSend() => null;
   SendSet asSendSet() => null;
+  StringInterpolation asStringInterpolation() => null;
+  StringInterpolationPart asStringInterpolationPart() => null;
   Throw asThrow() => null;
   TypeAnnotation asTypeAnnotation() => null;
   VariableDefinitions asVariableDefinitions() => null;
@@ -824,6 +828,46 @@ class Modifiers extends Node {
   bool isFinal() => (flags & FLAG_FINAL) != 0;
   bool isVar() => (flags & FLAG_VAR) != 0;
   bool isConst() => (flags & FLAG_CONST) != 0;
+}
+
+class StringInterpolation extends Expression {
+  final LiteralString string;
+  final NodeList parts;
+
+  StringInterpolation(this.string, this.parts);
+
+  StringInterpolation asStringInterpolation() => this;
+
+  accept(Visitor visitor) => visitor.visitStringInterpolation(this);
+
+  visitChildren(Visitor visitor) {
+    string.accept(visitor);
+    parts.accept(visitor);
+  }
+
+  Token getBeginToken() => string.getBeginToken();
+
+  Token getEndToken() => parts.getEndToken();
+}
+
+class StringInterpolationPart extends Node {
+  final Expression expression;
+  final LiteralString string;
+
+  StringInterpolationPart(this.expression, this.string);
+
+  StringInterpolationPart asStringInterpolationPart() => this;
+
+  accept(Visitor visitor) => visitor.visitStringInterpolationPart(this);
+
+  visitChildren(Visitor visitor) {
+    expression.accept(visitor);
+    string.accept(visitor);
+  }
+
+  Token getBeginToken() => expression.getBeginToken();
+
+  Token getEndToken() => string.getEndToken();
 }
 
 class UnimplementedExpression extends Expression {

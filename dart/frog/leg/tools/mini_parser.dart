@@ -105,7 +105,12 @@ Token scan(MySourceFile source) {
     var message = ex.message;
     if (message is !String) message = "unexpected character";
     Token fakeToken = new Token($QUESTION, scanner.charOffset);
-    new MyListener(source).error(message, fakeToken);
+    try {
+      new MyListener(source).error(message, fakeToken);
+    } catch (ParserError ex) {
+      // TODO(ahe): Clean this up, don't throw exceptions.
+      print(ex);
+    }
     throw;
   }
 }

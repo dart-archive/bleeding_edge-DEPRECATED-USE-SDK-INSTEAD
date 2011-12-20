@@ -1059,7 +1059,8 @@ class Parser {
 
   Token parseMapLiteralEntry(Token token) {
     listener.beginLiteralMapEntry(token);
-    token = parseString(token);
+    // Assume the listener rejects non-string keys.
+    token = parseExpression(token);
     token = expect(':', token);
     token = parseExpression(token);
     listener.endLiteralMapEntry(token);
@@ -1137,12 +1138,14 @@ class Parser {
   Token parseLiteralString(Token token) {
     listener.handleLiteralString(token);
     token = token.next;
+    int interpolationCount = 0;
     while (optional('\${', token)) {
       token = parseExpression(token.next);
       token = expect('}', token);
       token = parseString(token);
-      listener.handleStringInterpolationPart(token);
+      ++interpolationCount;
     }
+    listener.handleStringInterpolationParts(interpolationCount);
     return token;
   }
 
