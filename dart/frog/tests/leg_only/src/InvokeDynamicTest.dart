@@ -20,6 +20,7 @@ class A {
 class B {
   foo() { return 42; }
   bar(x) { return x + 42; }
+  toto() { return foo() + 42; }
 }
 
 class C extends A {
@@ -44,4 +45,6 @@ void main() {
   // We don't call a.titi. This means that the compiler needs to trigger the
   // compilation of A.titi by going through the super-chain.
   expectEquals(123, c.titi());
+
+  expectEquals(84, b.toto());
 }

@@ -696,7 +696,7 @@ class SsaBuilder implements Visitor {
     } else if (node.isPropertyAccess) {
       generateGetter(node, element);
     } else {
-      bool isInvokeDynamic = (element === null);
+      bool isInvokeDynamic = (element === null) || element.isInstanceMember();
       bool isForeign =
           (element !== null) && (element.kind === ElementKind.FOREIGN);
       bool isStatic = !isInvokeDynamic && !isForeign;
@@ -717,6 +717,10 @@ class SsaBuilder implements Visitor {
           inputs.add(pop());
           isInvokeDynamic = false;
           isStatic = true;
+        } else if (node.receiver === null) {
+          HThis receiver = new HThis();
+          add(receiver);
+          inputs.add(receiver);
         } else {
           visit(node.receiver);
           inputs.add(pop());
