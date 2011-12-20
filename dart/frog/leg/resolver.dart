@@ -344,7 +344,7 @@ class FullResolverVisitor extends ResolverVisitor {
       if (node.isIndex) {
         getter = target;
       } else {
-        getter = context.lookup(node.selector.source);
+        getter = context.lookup(node.selector.asIdentifier().source);
       }
       useElement(node.selector, getter);
     }
