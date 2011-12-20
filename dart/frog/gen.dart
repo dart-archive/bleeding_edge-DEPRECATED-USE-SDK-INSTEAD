@@ -275,7 +275,7 @@ class WorldGenerator {
         writer.writeln('function ${type.jsname}() {}');
       } else if (type.jsname != nativeName) {
         if (type.isHiddenNativeType) {
-          if (_typeHasStaticMethods(type)) {
+          if (_typeNeedsHolderForStaticMethods(type)) {
             // This is a holder for static methods.
             writer.writeln('var ${type.jsname} = {};');
           }
@@ -387,7 +387,24 @@ class WorldGenerator {
     _writeDynamicStubs(type);
   }
 
-  _typeHasStaticMethods(Type type) {
+  /**
+   * Returns [:true:] if the type has any methods that are namespaced in
+   * JavaScript by putting them on the constructor or, for a hidden native
+   * class, the surrogate 'holder'.
+   *
+   *  class Float32Array native '*Float32Array' {
+   *    factory Float32Array(int len) => _construct(len);
+   *    static _construct(len) native 'return createFloat32Array(len);';
+   *  }
+   *
+   * The factory method and static member are generated something like this:
+   *    var lib_Float32Array = {};
+   *    lib_Float32Array.Float32Array$factory = ... ;
+   *    lib_Float32Array._construct = ... ;
+   *
+   * This predicate determines when we need to define lib_Float32Array.
+   */
+  _typeNeedsHolderForStaticMethods(Type type) {
     for (var member in type.members.getValues()) {
       if (member.isMethod) {
         if (member.isConstructor || member.isStatic) {

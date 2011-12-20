@@ -2387,7 +2387,7 @@ WorldGenerator.prototype.writeType = function(type) {
     }
     else if (type.get$jsname() != nativeName) {
       if (type.get$isHiddenNativeType()) {
-        if (this._typeHasStaticMethods(type)) {
+        if (this._typeNeedsHolderForStaticMethods(type)) {
           this.writer.writeln(('var ' + type.get$jsname() + ' = {};'));
         }
       }
@@ -2490,7 +2490,7 @@ WorldGenerator.prototype.writeType = function(type) {
   }
   this._writeDynamicStubs(type);
 }
-WorldGenerator.prototype._typeHasStaticMethods = function(type) {
+WorldGenerator.prototype._typeNeedsHolderForStaticMethods = function(type) {
   var $$list = type.get$members().getValues();
   for (var $$i = type.get$members().getValues().iterator$0(); $$i.hasNext$0(); ) {
     var member = $$i.next$0();
