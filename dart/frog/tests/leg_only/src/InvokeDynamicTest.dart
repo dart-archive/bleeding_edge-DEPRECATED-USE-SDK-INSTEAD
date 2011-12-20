@@ -14,6 +14,7 @@ class A {
   foo() { return 499; }
   bar(x) { return x + 499; }
   baz() { return 54; }
+  titi() { return 123; }
 }
 
 class B {
@@ -39,4 +40,8 @@ void main() {
 
   expectEquals(54, a.baz());
   expectEquals(54, c.baz());
+
+  // We don't call a.titi. This means that the compiler needs to trigger the
+  // compilation of A.titi by going through the super-chain.
+  expectEquals(123, c.titi());
 }

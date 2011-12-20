@@ -115,12 +115,18 @@ class Compiler implements Canceler, Logger {
     // TODO(floitsch): find a more efficient way of doing this.
     // Run through the classes and see if we need to compile methods.
     for (ClassElement classElement in universe.instantiatedClasses) {
-      for (Element member in classElement.members) {
-        SourceString name = member.name;
-        if (Elements.isInstanceMethod(member) &&
-            universe.generatedCode[member] === null &&
-            universe.invokedNames.contains(namer.instanceName(name))) {
-          addToWorklist(member);
+      for (ClassElement currentClass = classElement;
+           currentClass !== null;
+           currentClass = currentClass.superClass) {
+        // TODO(floitsch): we don't need to add members that have been
+        // overwritten by subclasses.
+        for (Element member in currentClass.members) {
+          SourceString name = member.name;
+          if (Elements.isInstanceMethod(member) &&
+              universe.generatedCode[member] === null &&
+              universe.invokedNames.contains(namer.instanceName(name))) {
+            addToWorklist(member);
+          }
         }
       }
     }
