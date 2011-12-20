@@ -59,11 +59,13 @@ class ResolverTask extends CompilerTask {
 class ResolverVisitor implements Visitor<Element> {
   final Compiler compiler;
   final TreeElements mapping;
+  final Element enclosingElement;
   Scope context;
 
   ResolverVisitor(Compiler compiler, Element element)
     : this.compiler = compiler,
       this.mapping  = new TreeElements(),
+      this.enclosingElement = element,
       this.context  = element.isClassMember()
         ? new ClassScope(element.enclosingElement, compiler.universe)
         : new TopScope(compiler.universe);
@@ -71,6 +73,7 @@ class ResolverVisitor implements Visitor<Element> {
   ResolverVisitor.from(ResolverVisitor other)
     : compiler = other.compiler,
       mapping = other.mapping,
+      enclosingElement = other.enclosingElement,
       context = other.context;
 
   error(Node node, MessageKind kind, [arguments = const []]) {
@@ -231,6 +234,7 @@ class FullResolverVisitor extends ResolverVisitor {
     if (isPrefix) {
       if (name.stringValue === '-') return const SourceString('neg');
       if (name.stringValue === '~') return const SourceString('not');
+      if (name.stringValue === '[]') return const SourceString('index');
       unreachable();
     }
     // Additive operators.
@@ -282,7 +286,7 @@ class FullResolverVisitor extends ResolverVisitor {
     unreachable();
   }
 
-  visitSend(Send node) {
+  Element resolveSend(Send node) {
     Element receiver = visit(node.receiver);
     visit(node.argumentsNode);
 
@@ -297,8 +301,7 @@ class FullResolverVisitor extends ResolverVisitor {
       target = compiler.universe.find(opName);
     } else if (node.receiver === null) {
       target = context.lookup(name);
-      if (target == null) {
-        // TODO(ngeoffray): Check if the enclosingElement has 'this'.
+      if (target == null && !enclosingElement.isInstanceMember()) {
         error(node, MessageKind.CANNOT_RESOLVE, [name]);
       }
     } else if (receiver === null) {
@@ -306,30 +309,27 @@ class FullResolverVisitor extends ResolverVisitor {
     } else if (receiver.kind === ElementKind.CLASS) {
       ClassElement receiverClass = receiver;
       target = receiverClass.lookupLocalElement(name);
+      if (target == null) {
+        error(node, MessageKind.METHOD_NOT_FOUND, [receiver, name]);
+      } else if (target.isInstanceMember()) {
+        error(node, MessageKind.MEMBER_NOT_STATIC, [receiver, name]);
+      }
     }
+    return target;
+  }
 
+  visitSend(Send node) {
+    Element target = resolveSend(node);
+    // TODO(ngeoffray): If target is a field, check that there's a
+    // getter.
     return useElement(node, target);
   }
 
   visitSendSet(SendSet node) {
-    Element receiver = visit(node.receiver);
-    visit(node.argumentsNode);
-
-    Identifier selector = node.selector;
-    Element target;
-    if (node.isIndex) {
-      target = compiler.universe.find(const SourceString('indexSet'));
-    } else if (receiver == null) {
-      target = context.lookup(selector.source);
-      if (target == null) {
-        // TODO(ngeoffray): Check if the enclosingElement has 'this'.
-        error(selector, MessageKind.CANNOT_RESOLVE, [selector]);
-      }
-    } else if (receiver.kind == ElementKind.CLASS) {
-      ClassElement receiverClass = receiver;
-      target = receiverClass.lookupLocalElement(selector.source);
-    }
-
+    Element target = resolveSend(node);
+    // TODO(ngeoffray): If target is a field, check that there's a
+    // setter.
+    // TODO(ngeoffray): Check if the target can be assigned.
     Identifier op = node.assignmentOperator;
     if (op.source.stringValue !== '=') {
       // Operation-assignment. For example +=.
@@ -342,11 +342,15 @@ class FullResolverVisitor extends ResolverVisitor {
       // TODO(ngeoffray): Adapt for fields.
       Element getter;
       if (node.isIndex) {
-        getter = compiler.universe.find(const SourceString('index'));
+        getter = target;
       } else {
-        getter = context.lookup(selector.source);
+        getter = context.lookup(node.selector.source);
       }
-      useElement(selector, getter);
+      useElement(node.selector, getter);
+    }
+    if (node.isIndex) {
+      assert(target.name.stringValue === 'index');
+      target = compiler.universe.find(const SourceString('indexSet'));
     }
     return useElement(node, target);
   }

@@ -24,6 +24,8 @@ class MessageKind {
       'additional argument');
   static final METHOD_NOT_FOUND = const MessageKind(
       'no method named #{2} in class #{1}');
+  static final MEMBER_NOT_STATIC = const MessageKind(
+      '#{1}.#{2} is not static');
 
   static final UNREACHABLE_CODE = const MessageKind(
       'unreachable code');
