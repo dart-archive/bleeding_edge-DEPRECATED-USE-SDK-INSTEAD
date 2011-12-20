@@ -72,9 +72,7 @@ class SsaBuilder implements Visitor {
 
   Element useStaticInterceptor(SourceString name, int parameters) {
     String mangleName = "builtin\$${name}\$${parameters}";
-    print("[$mangleName]");
     Element result = compiler.universe.find(new SourceString(mangleName));
-    print("[$result]");
     return result;
   }
 

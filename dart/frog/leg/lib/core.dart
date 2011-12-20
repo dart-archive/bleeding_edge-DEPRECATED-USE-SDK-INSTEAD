@@ -40,6 +40,12 @@ bool checkNumbers(var a, var b, var message) {
   return false;
 }
 
+
+bool isJSArray(var value) {
+  return JS(@"$0.constructor === Array", value);
+}
+
+
 add(var a, var b) {
   if (checkNumbers(a, b, "num+ expects a number as second operand.")) {
     return JS(@"$0 + $1", a, b);
@@ -192,23 +198,38 @@ neg(var a) {
 }
 
 index(var a, var index) {
-  if (JS(@"$0.constructor === Array", a)) return JS(@"$0[$1]", a, index);
+  if (isJSArray(a)) return JS(@"$0[$1]", a, index);
   throw "Unimplemented user-defined [].";
 }
 
 indexSet(var a, var index, var value) {
-  if (JS(@"$0.constructor === Array", a)) {
+  if (isJSArray(a)) {
     return JS(@"$0[$1] = $2", a, index, value);
   }
   throw "Unimplemented user-defined []=.";
 }
 
 builtin$add$1(var receiver, var value) {
-  if (JS(@"$0.constructor === Array)", receiver)) {
+  if (isJSArray(receiver)) {
     JS(@"$0.push($1)", receiver, value);
     return;
   }
   throw "Unimplemented user-defined add().";
+}
+
+builtin$removeLast$0(var receiver) {
+  if (isJSArray(receiver)) {
+    return JS(@"$0.pop()", receiver);
+  }
+  throw "Unimplemented user-defined removeLast().";
+}
+
+builtin$filter$1(var receiver, var predicate) {
+  if (isJSArray(receiver)) {
+    return JS(@"$0.filter(function(v) { return $1(v) === true; })",
+              receiver, predicate);
+  }
+  throw "Unimplemented user-defined filter().";
 }
 
 class int {}
@@ -216,3 +237,4 @@ class double {}
 class String {}
 class bool {}
 class Object {}
+class List<T> {}
