@@ -68,7 +68,10 @@ def TestStep(name, mode, component, targets, flags):
       + targets)
   if flags:
     cmd.append(flags)
-  return subprocess.call(cmd, env=NO_COLOR_ENV)
+  exit_code = subprocess.call(cmd, env=NO_COLOR_ENV)
+  if exit_code != 0:
+    print '@@@STEP_FAILURE@@@'
+  return exit_code
 
 def TestFrog(arch, mode):
   """ build and test frog.
@@ -88,25 +91,17 @@ def TestFrog(arch, mode):
     return 1
 
   if arch != 'frogium': # frog and frogsh
-    failed = False
-    if TestStep("frog", testpy_mode, arch,
-                  ['language', 'corelib', 'isolate', 'frog',
-                   'peg', 'await'], flags) != 0:
-      failed = True
+    TestStep("frog", testpy_mode, arch, [], flags)
+    TestStep("frog_extra", testpy_mode, arch, ['frog', 'peg', 'await'], flags)
 
-    if TestStep("leg", testpy_mode, arch, ['leg', 'leg_only'], flags) != 0:
-      failed = True
+    TestStep("leg", testpy_mode, arch, [], flags)
+    TestStep("leg_extra", testpy_mode, arch, ['leg', 'leg_only'], flags)
 
-    leg_tests = ['language', 'corelib', 'leg_only']
-    if TestStep("leg", testpy_mode, 'leg', leg_tests, flags) != 0:
-      failed = True
+    TestStep("leg", testpy_mode, 'leg', [], flags)
 
-    # Leg isn't self-hosted (yet) so we run the unit tests on the VM.
-    if TestStep("leg", testpy_mode, 'vm', ['leg'], flags) != 0:
-      failed = True
-
-    if failed:
-      return 1
+    TestStep("leg_extra", testpy_mode, 'leg', ['leg_only'], flags)
+    # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
+    TestStep("leg_extra", testpy_mode, 'vm', ['leg'], flags)
 
   else:
     if (TestStep("browser", testpy_mode, 'frogium',
