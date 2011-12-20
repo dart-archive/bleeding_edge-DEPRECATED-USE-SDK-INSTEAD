@@ -5739,10 +5739,7 @@ MethodMember.prototype._invokeConstConstructor = function(node, code, target, ar
           value = param.get$value();
         }
       }
-      if ((value instanceof GlobalValue)) {
-        value = EvaluatedValue.EvaluatedValue$factory(value.get$type(), value, value.get$canonicalCode(), value.get$span());
-      }
-      fields.$setindex(param.get$name(), value);
+      fields.$setindex(param.get$name(), value.get$constValue());
     }
   }
   if (this.definition.initializers != null) {
@@ -5772,9 +5769,7 @@ MethodMember.prototype._invokeConstConstructor = function(node, code, target, ar
           return value;
         }
         else {
-          if ((value instanceof GlobalValue)) {
-            value = value.get$exp();
-          }
+          value = value.get$constValue();
           var $list0 = value.get$fields().getKeys$0();
           for (var $i0 = value.get$fields().getKeys$0().iterator$0(); $i0.hasNext$0(); ) {
             var fname = $i0.next$0();
@@ -12106,6 +12101,9 @@ Value.prototype.get$isConst = function() {
 Value.prototype.get$canonicalCode = function() {
   return null;
 }
+Value.prototype.get$constValue = function() {
+  return null;
+}
 Value.prototype.get_ = function(context, name, node) {
   var member = this._resolveMember(context, name, node, false);
   if (member != null) {
@@ -12424,6 +12422,9 @@ EvaluatedValue.prototype.set$actualValue = function(value) { return this.actualV
 EvaluatedValue.prototype.get$isConst = function() {
   return true;
 }
+EvaluatedValue.prototype.get$constValue = function() {
+  return this;
+}
 EvaluatedValue.prototype.get$canonicalCode = function() { return this.canonicalCode; };
 EvaluatedValue.prototype.set$canonicalCode = function(value) { return this.canonicalCode = value; };
 EvaluatedValue.codeWithComments = function(canonicalCode, span) {
@@ -12532,6 +12533,9 @@ GlobalValue.prototype.get$isConst = function() {
 }
 GlobalValue.prototype.get$actualValue = function() {
   return this.exp.get$dynamic().get$actualValue();
+}
+GlobalValue.prototype.get$constValue = function() {
+  return this.get$isConst() ? this.exp.get$constValue() : null;
 }
 GlobalValue.prototype.get$dependencies = function() { return this.dependencies; };
 GlobalValue.prototype.set$dependencies = function(value) { return this.dependencies = value; };

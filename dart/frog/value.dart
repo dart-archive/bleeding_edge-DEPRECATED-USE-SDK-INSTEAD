@@ -65,6 +65,9 @@ class Value {
    */
   String get canonicalCode() => null;
 
+  /** If [isConst], the [EvaluatedValue] that defines this value. */
+  EvaluatedValue get constValue() => null;
+
   // TODO(jimhug): Fix these names once get/set are truly pseudo-keywords.
   //   See issue #379.
   Value get_(MethodGenerator context, String name, Node node) {
@@ -529,6 +532,8 @@ class EvaluatedValue extends Value {
 
   bool get isConst() => true;
 
+  EvaluatedValue get constValue() => this;
+
   /**
    * A canonicalized form of the code. Two const expressions that result in the
    * same instance should have the same [canonicalCode].
@@ -638,8 +643,11 @@ class GlobalValue extends Value implements Comparable {
   /** True for either cont expressions or a final static field. */
   bool get isConst() => exp.isConst && (field == null || field.isFinal);
 
-  /** The actual constant value, if [isConst] is true. */
+  /** The actual constant value, when [isConst] is true. */
   get actualValue() => exp.dynamic.actualValue;
+
+  /** If [isConst], the [EvaluatedValue] that defines this value. */
+  EvaluatedValue get constValue() => isConst ? exp.constValue : null;
 
   /** Other globals that should be defined before this global. */
   List<GlobalValue> dependencies;

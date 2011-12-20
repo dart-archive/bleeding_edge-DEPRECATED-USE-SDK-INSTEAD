@@ -1121,14 +1121,7 @@ class MethodMember extends Member {
             value = param.value;
           }
         }
-        if (value is GlobalValue) {
-          // TODO(ahe): This fixes a problem in which was preventing
-          // Frog from bootstrapping. I have no idea if this is the
-          // right way to fix it.
-          value = new EvaluatedValue(value.type, value,
-                                     value.canonicalCode, value.span);
-        }
-        fields[param.name] = value;
+        fields[param.name] = value.constValue;
       }
     }
 
@@ -1164,9 +1157,7 @@ class MethodMember extends Member {
             return value;
           } else {
             // Super-call: embed the value the super class fields.
-            if (value is GlobalValue) {
-              value = value.exp;
-            }
+            value = value.constValue;
             for (var fname in value.fields.getKeys()) {
               fields[fname] = value.fields[fname];
             }
