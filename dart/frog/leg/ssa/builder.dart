@@ -70,6 +70,14 @@ class SsaBuilder implements Visitor {
   final TreeElements elements;
   HGraph graph;
 
+  Element useStaticInterceptor(SourceString name, int parameters) {
+    String mangleName = "builtin\$${name}\$${parameters}";
+    print("[$mangleName]");
+    Element result = compiler.universe.find(new SourceString(mangleName));
+    print("[$result]");
+    return result;
+  }
+
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
 
@@ -699,8 +707,22 @@ class SsaBuilder implements Visitor {
       var inputs = <HInstruction>[];
 
       if (isInvokeDynamic) {
-        visit(node.receiver);
-        inputs.add(pop());
+        SourceString dartMethodName = node.selector.asIdentifier().source;
+
+        Element interceptor = useStaticInterceptor(dartMethodName,
+                                                   node.argumentCount());
+        if (interceptor != null) {
+          HStatic target = new HStatic(interceptor);
+          add(target);
+          inputs.add(target);
+          visit(node.receiver);
+          inputs.add(pop());
+          isInvokeDynamic = false;
+          isStatic = true;
+        } else {
+          visit(node.receiver);
+          inputs.add(pop());
+        }
       } else if (isForeign) {
         // If the invoke is on foreign code, don't visit the first
         // argument, which is the foreign code.

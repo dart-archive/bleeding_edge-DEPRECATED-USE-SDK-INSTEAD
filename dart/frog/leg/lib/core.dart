@@ -203,6 +203,14 @@ indexSet(var a, var index, var value) {
   throw "Unimplemented user-defined []=.";
 }
 
+builtin$add$1(var receiver, var value) {
+  if (JS(@"$0.constructor === Array)", receiver)) {
+    JS(@"$0.push($1)", receiver, value);
+    return;
+  }
+  throw "Unimplemented user-defined add().";
+}
+
 class int {}
 class double {}
 class String {}

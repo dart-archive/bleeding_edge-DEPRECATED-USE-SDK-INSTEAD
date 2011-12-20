@@ -177,6 +177,8 @@ class Send extends Expression {
     if (argumentsNode !== null) argumentsNode.accept(visitor);
   }
 
+  int argumentCount() => argumentsNode.length();
+
   bool get isOperator() => selector is Operator;
   bool get isPropertyAccess() => argumentsNode === null;
   bool get isFunctionObjectInvocation() => selector === null;
@@ -286,6 +288,14 @@ class NodeList extends Node {
   NodeList.empty() : this(null, const EmptyLink<Node>());
 
   NodeList asNodeList() => this;
+
+  int length() {
+    int length = 0;
+    for (Link<Node> cursor = _nodes; !cursor.isEmpty(); cursor = cursor.tail) {
+      length++;
+    }
+    return length;
+  }
 
   accept(Visitor visitor) => visitor.visitNodeList(this);
 
