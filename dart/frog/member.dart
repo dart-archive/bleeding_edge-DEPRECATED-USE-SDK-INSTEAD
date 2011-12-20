@@ -879,7 +879,14 @@ class MethodMember extends Member {
   }
 
   Value _argError(MethodGenerator context, Node node, Value target,
-      Arguments args, String msg, SourceSpan span) {
+      Arguments args, String msg, int argIndex) {
+    SourceSpan span;
+
+    if ((args.nodes == null) || (argIndex >= args.nodes.length)) {
+      span = node.span;
+    } else {
+      span = args.nodes[argIndex].span;
+    }
     if (isStatic || isConstructor) {
       world.error(msg, span);
     } else {
@@ -933,7 +940,7 @@ class MethodMember extends Member {
       var arg = args.values[i];
       if (i >= parameters.length) {
         var msg = _argCountMsg(args.length, parameters.length);
-        return _argError(context, node, target, args, msg, args.nodes[i].span);
+        return _argError(context, node, target, args, msg, i);
       }
       arg = arg.convertTo(context, parameters[i].type, node, isDynamic);
       if (isConst && arg.isConst) {
@@ -958,8 +965,7 @@ class MethodMember extends Member {
 
         if (arg == null || !parameters[i].isOptional) {
           var msg = _argCountMsg(Math.min(i, args.length), i + 1, atLeast:true);
-          return _argError(context, node, target, args, msg,
-              (i >= args.nodes.length) ? node.span : args.nodes[i].span);
+          return _argError(context, node, target, args, msg, i);
         } else {
           argsCode.add(isConst && arg.isConst
               ? arg.canonicalCode : arg.code);
@@ -975,20 +981,19 @@ class MethodMember extends Member {
         var name = args.getName(i);
         if (seen.contains(name)) {
           return _argError(context, node, target, args,
-              'duplicate argument "$name"', args.nodes[i].span);
+                           'duplicate argument "$name"', i);
         }
         seen.add(name);
         int p = indexOfParameter(name);
         if (p < 0) {
           return _argError(context, node, target, args,
-              'method does not have optional parameter "$name"',
-              args.nodes[i].span);
+              'method does not have optional parameter "$name"', i);
         } else if (p < bareCount) {
           return _argError(context, node, target, args,
               'argument "$name" passed as positional and named',
               // Given that the named was mentioned explicitly, highlight the
               // positional location instead:
-              args.nodes[p].span);
+              p);
         }
       }
       world.internalError('wrong named arguments calling $name', node.span);
