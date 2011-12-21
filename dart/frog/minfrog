@@ -1925,6 +1925,7 @@ path = require('path');
 // ********** Code for top level **************
 function createSandbox() {
   return {'require': require, 'process': process, 'console': console,
+        'Buffer' : Buffer,
         'setTimeout': setTimeout, 'clearTimeout': clearTimeout};
 }
 function get$_process() {

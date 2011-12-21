@@ -56,7 +56,13 @@ class WorldCompiler extends Compiler {
   }
 
   reportWarning(Node node, var message) {
-    world.warning('$message.', spanFromNode(node));
+    frog.SourceSpan span;
+    if (node == null) {
+      span = new frog.SourceSpan(script.file, 0, 0);
+    } else {
+      span = spanFromNode(node);
+    }
+    world.warning('$message.', span);
   }
 
   reportError(Node node, var message) {

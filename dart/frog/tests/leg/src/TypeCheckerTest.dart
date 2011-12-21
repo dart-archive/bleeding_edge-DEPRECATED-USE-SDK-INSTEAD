@@ -65,12 +65,10 @@ testFor() {
   analyze("for (var x;0;x = x + 1) {}", MessageKind.NOT_ASSIGNABLE);
   analyze("for (var x;'';x = x + 1) {}", MessageKind.NOT_ASSIGNABLE);
 
-//   TODO(karlklose): These tests do not work because they use empty
-//   statements, which we cannot parse.
-//   analyze("for (;true;) {}");
-//   analyze("for (;null;) {}");
-//   analyze("for (;0;) {}", MessageKind.NOT_ASSIGNABLE);
-//   analyze("for (;'';) {}", MessageKind.NOT_ASSIGNABLE);
+   analyze("for (;true;) {}");
+   analyze("for (;null;) {}");
+   analyze("for (;0;) {}", MessageKind.NOT_ASSIGNABLE);
+   analyze("for (;'';) {}", MessageKind.NOT_ASSIGNABLE);
 
   // Foreach tests
 //  TODO(karlklose): for each is not yet implemented.

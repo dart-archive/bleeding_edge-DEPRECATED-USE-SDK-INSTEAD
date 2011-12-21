@@ -140,6 +140,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   final Compiler compiler;
   final TreeElements elements;
   Type expectedReturnType;  // TODO(karlklose): put into a context.
+  Node lastSeenNode;
   final Types types;
 
   Type intType;
@@ -182,7 +183,16 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type analyze(Node node) {
-    if (node === null) fail(null, 'unexpected node: null');
+    if (node == null) {
+      final String error = 'internal error: unexpected node: null';
+      if (lastSeenNode != null) {
+        fail(null, error);
+      } else {
+        compiler.cancel(error);
+      }
+    } else {
+      lastSeenNode = node;
+    }
     Type result = node.accept(this);
     // TODO(karlklose): record type?
     return result;
@@ -223,9 +233,9 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   /** Dart Programming Language Specification: 11.5.1 For Loop */
   Type visitFor(For node) {
-    analyze(node.initializer);
+    analyzeWithDefault(node.initializer, StatementType.NOT_RETURNING);
     checkCondition(node.condition);
-    analyze(node.update);
+    analyzeWithDefault(node.update, StatementType.NOT_RETURNING);
     StatementType bodyType = analyze(node.body);
     return bodyType.join(StatementType.NOT_RETURNING);
   }
