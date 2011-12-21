@@ -5,6 +5,5 @@
 {
   'sources': [
     'json_frog.dart',
-    'json_frog.js',
   ],
 }
