@@ -261,7 +261,6 @@ def main():
   builder_name = str(options.name)
 
   if (run_sdk_build and
-#      builder_name != 'dart-editor-win' and
       builder_name != 'dart-editor'):
     _PrintSeparator('running the build of the Dart SDK')
     dartbuildscript = os.path.join(toolspath, 'build.py')
@@ -282,12 +281,12 @@ def main():
 
   if builder_name == 'dart-editor':
     buildos = None
-  else:
-    _PrintSeparator('new builder running on {0} is'
-                    ' a place holder until the os specific builds'
-                    ' are in place.  This is a '
-                    'normal termination'.format(builder_name))
-    return 0
+#  else:
+#    _PrintSeparator('new builder running on {0} is'
+#                    ' a place holder until the os specific builds'
+#                    ' are in place.  This is a '
+#                    'normal termination'.format(builder_name))
+#    return 0
 
   _PrintSeparator('running the build to produce the Zipped RCP''s')
   status = ant.RunAnt('.', 'build_rcp.xml', revision, options.name,
@@ -309,6 +308,10 @@ def main():
   sys.stdout.flush()
   if status:
     return status
+
+  #return on any builder but dart-editor
+  if buildos:
+    return 0
 
   #if the build passed run the deploy artifacts
   _PrintSeparator("Deploying the built RCP's to Google Storage")
@@ -481,14 +484,22 @@ def _SetAclOnArtifacts(to, bucket_tags, gsu):
   for element in contents:
     for tag in bucket_tags:
       if tag in element:
-        _SetAcl(to, element, gsu)
+        _SetAcl(element, gsu)
 
-def _SetAcl(to, element, gsu):
+
+def _SetAcl(element, gsu):
+  """Set the ACL on a GoogleStorage object.
+
+  Args:
+    element: the object to set the ACL on
+    gsu: the gsutil object
+  """
   print 'setting ACL on {0}'.format(element)
   gsu.SetCannedAcl(element, 'project-private')
   acl = gsu.GetAcl(element)
   acl = gsu.AddPublicAcl(acl)
   gsu.SetAcl(element, acl)
+
 
 def _CopySdk(buildos, revision, bucket_to, gsu):
   """Copy the deployed SDK to the editor buckets.
@@ -508,10 +519,11 @@ def _CopySdk(buildos, revision, bucket_to, gsu):
 
   print 'copying {0} to {1}'.format(gssdkzip, gseditorzip)
   gsu.Copy(gssdkzip, gseditorzip)
-  _SetAcl(bucket_to, gseditorzip, gsu)
+  _SetAcl(gseditorzip, gsu)
   print 'copying {0} to {1}'.format(gssdkzip, gseditorlatestzip)
   gsu.Copy(gssdkzip, gseditorlatestzip)
-  _SetAcl(bucket_to, gseditorlatestzip, gsu)
+  _SetAcl(gseditorlatestzip, gsu)
+
 
 def _PrintSeparator(text):
   """Print a separator for the build steps."""
