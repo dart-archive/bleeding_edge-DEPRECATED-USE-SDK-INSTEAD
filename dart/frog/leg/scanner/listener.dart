@@ -623,6 +623,7 @@ class ElementListener extends Listener {
   }
 
   void log(message) {
+    print(message);
   }
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
@@ -739,12 +740,7 @@ class NodeListener extends ElementListener {
     Node receiver = popNode();
     if ((token.stringValue === '.') &&
         (argument is Send) && (argument.asSend().receiver === null)) {
-      if (argument is SendSet) {
-        canceler.cancel('not implemented', node: argument);
-        pushNode(new UnimplementedExpression('binary SendSet',
-                                             [receiver, argument]));
-        return;
-      }
+      if (argument is SendSet) internalError(node: argument);
       pushNode(argument.asSend().copyWithReceiver(receiver));
     } else {
       // TODO(ahe): If token.stringValue === '.', the resolver should
@@ -758,15 +754,9 @@ class NodeListener extends ElementListener {
     Node arg = popNode();
     Node node = popNode();
     Send send = node.asSend();
-    if (send === null) {
-      canceler.cancel('not assignable: $node', node: node);
-    }
-    if (!(send.isPropertyAccess || send.isIndex)) {
-      canceler.cancel('not assignable: $send', node: send);
-    }
-    if (send.asSendSet() !== null) {
-      canceler.cancel('chained assignment', node: send);
-    }
+    if (send === null) internalError(node: node);
+    if (!(send.isPropertyAccess || send.isIndex)) internalError(node: send);
+    if (send.asSendSet() !== null) internalError(node: send);
     NodeList arguments;
     if (send.isIndex) {
       Link<Node> link = new Link<Node>(arg);
@@ -899,23 +889,9 @@ class NodeListener extends ElementListener {
   void handleUnaryAssignmentExpression(Token token, bool isPrefix) {
     Node node = popNode();
     Send send = node.asSend();
-    if (send === null) {
-      canceler.cancel('not assignable: $node', node: node);
-      pushNode(new UnimplementedExpression('not assignable: $node',
-                                           [send, node]));
-      return;
-    }
-    if (!(send.isPropertyAccess || send.isIndex)) {
-      canceler.cancel('not assignable: $send', node: send);
-      pushNode(new UnimplementedExpression('not assignable: $send',
-                                           [send, node]));
-      return;
-    }
-    if (send.asSendSet() !== null) {
-      canceler.cancel('chained assignment', node: send);
-      pushNode(new UnimplementedExpression('chained assignment', [send, node]));
-      return;
-    }
+    if (send === null) internalError(node: node);
+    if (!(send.isPropertyAccess || send.isIndex)) internalError(node: send);
+    if (send.asSendSet() !== null) internalError(node: send);
     Node argument = null;
     if (send.isIndex) argument = send.arguments.head;
     Operator op = new Operator(token);
@@ -1170,6 +1146,11 @@ class NodeListener extends ElementListener {
 
   void log(message) {
     logger.log(message);
+  }
+
+  void internalError([Token token, Node node]) {
+    canceler.cancel('internal error', token: token, node: node);
+    throw 'internal error';
   }
 }
 

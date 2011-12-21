@@ -103,42 +103,42 @@ void testConditionalExpression() {
   Conditional conditional = node.expression;
 
   node = parseStatement("a ? b ? c : d : e;");
-  // Should parse as: a ? ( b ? c : d ) : e
+  // Should parse as: a ? ( b ? c : d ) : e.
   conditional = node.expression;
   Expect.isNotNull(conditional.thenExpression.asConditional());
   Expect.isNotNull(conditional.elseExpression.asSend());
 
   node = parseStatement("a ? b : c ? d : e;");
-  // Should parse as: a ? b : (c ? d : e)
+  // Should parse as: a ? b : (c ? d : e).
   conditional = node.expression;
   Expect.isNotNull(conditional.thenExpression.asSend());
   Expect.isNotNull(conditional.elseExpression.asConditional());
 
   node = parseStatement("a ? b ? c : d : e ? f : g;");
-  // Should parse as: a ? (b ? c : d) : (e ? f : g)
+  // Should parse as: a ? (b ? c : d) : (e ? f : g).
   conditional = node.expression;
   Expect.isNotNull(conditional.thenExpression.asConditional());
   Expect.isNotNull(conditional.elseExpression.asConditional());
 
   node = parseStatement("a = b ? c : d;");
-  // Should parse as: a = (b ? c : d)
+  // Should parse as: a = (b ? c : d).
   SendSet sendSet = node.expression;
   Expect.isNotNull(sendSet.arguments.head.asConditional());
 
   node = parseStatement("a ? b : c = d;");
-  // Should parse as: a ? b : (c = d)
+  // Should parse as: a ? b : (c = d).
   conditional = node.expression;
   Expect.isNull(conditional.thenExpression.asSendSet());
   Expect.isNotNull(conditional.elseExpression.asSendSet());
 
   node = parseStatement("a ? b = c : d;");
-  // Should parse as: a ? (b = c) : d
+  // Should parse as: a ? (b = c) : d.
   conditional = node.expression;
   Expect.isNotNull(conditional.thenExpression.asSendSet());
   Expect.isNull(conditional.elseExpression.asSendSet());
 
   node = parseStatement("a ? b = c : d = e;");
-  // Should parse as: a ? (b = c) : (d = e)
+  // Should parse as: a ? (b = c) : (d = e).
   conditional = node.expression;
   Expect.isNotNull(conditional.thenExpression.asSendSet());
   Expect.isNotNull(conditional.elseExpression.asSendSet());
@@ -154,13 +154,13 @@ void testAssignment() {
   Expect.isNotNull(expression.asSendSet());
 
   node = parseStatement("a = b = c;");
-  // Should parse as: a = (b = c)
+  // Should parse as: a = (b = c).
   expression = node.expression;
   Expect.isNotNull(sendSet = expression.asSendSet());
   Expect.isNotNull(sendSet.arguments.head.asSendSet());
 
   node = parseStatement("a = b = c = d;");
-  // Should parse as: a = (b = (c = d))
+  // Should parse as: a = (b = (c = d)).
   expression = node.expression;
   Expect.isNotNull(sendSet = expression.asSendSet());
   Expect.isNotNull(sendSet = sendSet.arguments.head.asSendSet());
@@ -183,7 +183,7 @@ void testAssignment() {
   Expect.stringEquals("c.d", sendSet.arguments.head.toString());
 
   node = parseStatement("a.b = c.d = e.f;");
-  // Should parse as: a.b = (c.d = (e.f))
+  // Should parse as: a.b = (c.d = (e.f)).
   expression = node.expression;
   Expect.isNotNull(sendSet = expression.asSendSet());
   Expect.stringEquals("a", sendSet.receiver.toString());
@@ -192,6 +192,65 @@ void testAssignment() {
   Expect.stringEquals("c", sendSet.receiver.toString());
   Expect.stringEquals("d", sendSet.selector.toString());
   Expect.stringEquals("e.f", sendSet.arguments.head.toString());
+}
+
+void testIndex() {
+  ExpressionStatement node;
+  Expression expression;
+  Send send;
+  SendSet sendSet;
+
+  node = parseStatement("a[b];");
+  // Should parse as: (a)[b].
+  expression = node.expression;
+  Expect.isNotNull(send = expression.asSend());
+  Expect.stringEquals("a", send.receiver.toString());
+  Expect.stringEquals("[]", send.selector.toString());
+  Expect.stringEquals("b", send.arguments.head.toString());
+
+  node = parseStatement("a[b] = c;");
+  // Should parse as: (a)[b] = c.
+  expression = node.expression;
+  Expect.isNotNull(sendSet = expression.asSendSet());
+  Expect.stringEquals("a", sendSet.receiver.toString());
+  Expect.stringEquals("[]", sendSet.selector.toString());
+  Expect.stringEquals("=", sendSet.assignmentOperator.toString());
+  Expect.stringEquals("b", sendSet.arguments.head.toString());
+  Expect.stringEquals("c", sendSet.arguments.tail.head.toString());
+
+  node = parseStatement("a.b[c];");
+  // Should parse as: (a.b)[c].
+  expression = node.expression;
+  Expect.isNotNull(send = expression.asSend());
+  Expect.stringEquals("a.b", send.receiver.toString());
+  Expect.stringEquals("[]", send.selector.toString());
+  Expect.stringEquals("c", send.arguments.head.toString());
+
+  node = parseStatement("a.b[c] = d;");
+  // Should parse as: (a.b)[] = (c, d).
+  expression = node.expression;
+  Expect.isNotNull(sendSet = expression.asSendSet());
+  Expect.isNotNull(send = sendSet.receiver.asSend());
+  Expect.stringEquals("a.b", send.toString());
+  Expect.stringEquals("[]", sendSet.selector.toString());
+  Expect.stringEquals("=", sendSet.assignmentOperator.toString());
+  Expect.stringEquals("c", sendSet.arguments.head.toString());
+  Expect.stringEquals("d", sendSet.arguments.tail.head.toString());
+}
+
+void testPostfix() {
+  ExpressionStatement node;
+  Expression expression;
+  SendSet sendSet;
+
+  node = parseStatement("a.b++;");
+  // Should parse as: (a.b)++.
+  expression = node.expression;
+  Expect.isNotNull(sendSet = expression.asSendSet());
+  Expect.stringEquals("a", sendSet.receiver.toString());
+  Expect.stringEquals("b", sendSet.selector.toString());
+  Expect.stringEquals("++", sendSet.assignmentOperator.toString());
+  Expect.isTrue(sendSet.arguments.isEmpty());
 }
 
 void main() {
@@ -205,4 +264,6 @@ void main() {
   testWhileStatement();
   testConditionalExpression();
   testAssignment();
+  testIndex();
+  testPostfix();
 }

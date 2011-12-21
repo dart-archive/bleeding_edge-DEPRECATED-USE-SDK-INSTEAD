@@ -164,8 +164,6 @@ class PrecedenceInfo {
   toString() => 'PrecedenceInfo($value, $precedence, $kind)';
 }
 
-final int TODO_PRECEDENCE = 0;
-
 // TODO(ahe): The following are not tokens in Dart.
 final PrecedenceInfo BACKPING_INFO =
   const PrecedenceInfo(const SourceString('`'), 0, BACKPING_TOKEN);
@@ -179,21 +177,20 @@ final PrecedenceInfo PERIOD_PERIOD_PERIOD_INFO =
 final PrecedenceInfo PERIOD_PERIOD_INFO =
   const PrecedenceInfo(const SourceString('..'), 0, PERIOD_PERIOD_TOKEN);
 
-// TODO(ahe): Determine precedence for these guys.
 final PrecedenceInfo BANG_INFO =
-  const PrecedenceInfo(const SourceString('!'), TODO_PRECEDENCE, BANG_TOKEN);
+  const PrecedenceInfo(const SourceString('!'), 0, BANG_TOKEN);
 final PrecedenceInfo COLON_INFO =
-  const PrecedenceInfo(const SourceString(':'), TODO_PRECEDENCE, COLON_TOKEN);
+  const PrecedenceInfo(const SourceString(':'), 0, COLON_TOKEN);
 final PrecedenceInfo INDEX_INFO =
-  const PrecedenceInfo(const SourceString('[]'), TODO_PRECEDENCE, INDEX_TOKEN);
+  const PrecedenceInfo(const SourceString('[]'), 0, INDEX_TOKEN);
 final PrecedenceInfo MINUS_MINUS_INFO =
-  const PrecedenceInfo(const SourceString('--'), TODO_PRECEDENCE,
+  const PrecedenceInfo(const SourceString('--'), POSTFIX_PRECEDENCE,
                        MINUS_MINUS_TOKEN);
 final PrecedenceInfo PLUS_PLUS_INFO =
-  const PrecedenceInfo(const SourceString('++'), TODO_PRECEDENCE,
+  const PrecedenceInfo(const SourceString('++'), POSTFIX_PRECEDENCE,
                        PLUS_PLUS_TOKEN);
 final PrecedenceInfo TILDE_INFO =
-  const PrecedenceInfo(const SourceString('~'), TODO_PRECEDENCE, TILDE_TOKEN);
+  const PrecedenceInfo(const SourceString('~'), 0, TILDE_TOKEN);
 
 final PrecedenceInfo FUNCTION_INFO =
   const PrecedenceInfo(const SourceString('=>'), 0, FUNCTION_TOKEN);
@@ -312,9 +309,10 @@ final PrecedenceInfo STAR_INFO =
 final PrecedenceInfo TILDE_SLASH_INFO =
   const PrecedenceInfo(const SourceString('~/'), 13, TILDE_SLASH_TOKEN);
 
+final int POSTFIX_PRECEDENCE = 14;
 final PrecedenceInfo PERIOD_INFO =
-  const PrecedenceInfo(const SourceString('.'), 14, PERIOD_TOKEN);
-
+  const PrecedenceInfo(const SourceString('.'), POSTFIX_PRECEDENCE,
+                       PERIOD_TOKEN);
 
 final PrecedenceInfo KEYWORD_INFO =
   const PrecedenceInfo(const SourceString('keyword'), 0, KEYWORD_TOKEN);
@@ -326,7 +324,8 @@ final PrecedenceInfo IDENTIFIER_INFO =
   const PrecedenceInfo(const SourceString('identifier'), 0, IDENTIFIER_TOKEN);
 
 final PrecedenceInfo OPEN_PAREN_INFO =
-  const PrecedenceInfo(const SourceString('('), 0, OPEN_PAREN_TOKEN);
+  const PrecedenceInfo(const SourceString('('), POSTFIX_PRECEDENCE,
+                       OPEN_PAREN_TOKEN);
 
 final PrecedenceInfo CLOSE_PAREN_INFO =
   const PrecedenceInfo(const SourceString(')'), 0, CLOSE_PAREN_TOKEN);
@@ -344,7 +343,8 @@ final PrecedenceInfo STRING_INFO =
   const PrecedenceInfo(const SourceString('string'), 0, STRING_TOKEN);
 
 final PrecedenceInfo OPEN_SQUARE_BRACKET_INFO =
-  const PrecedenceInfo(const SourceString('['), 0, OPEN_SQUARE_BRACKET_TOKEN);
+  const PrecedenceInfo(const SourceString('['), POSTFIX_PRECEDENCE,
+                       OPEN_SQUARE_BRACKET_TOKEN);
 
 final PrecedenceInfo CLOSE_SQUARE_BRACKET_INFO =
   const PrecedenceInfo(const SourceString(']'), 0, CLOSE_SQUARE_BRACKET_TOKEN);

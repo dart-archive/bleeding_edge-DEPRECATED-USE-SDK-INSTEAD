@@ -784,6 +784,7 @@ class Parser {
 
   Token parsePrecedenceExpression(Token token, int precedence) {
     assert(precedence >= 2);
+    assert(precedence <= POSTFIX_PRECEDENCE);
     token = parseUnaryExpression(token);
     PrecedenceInfo info = token.info;
     int tokenLevel = info.precedence;
@@ -795,6 +796,24 @@ class Parser {
           // level.
           token = parsePrecedenceExpression(token.next, level);
           listener.handleAssignmentExpression(operator);
+        } else if (tokenLevel === POSTFIX_PRECEDENCE) {
+          if (info === PERIOD_INFO) {
+            // Left associative, so we recurse at the next higher
+            // precedence level. However, POSTFIX_PRECEDENCE is the
+            // highest level, so we just call parseUnaryExpression
+            // directly.
+            token = parseUnaryExpression(token.next);
+            listener.handleBinaryExpression(operator);
+          } else if ((info === OPEN_PAREN_INFO) ||
+                     (info === OPEN_SQUARE_BRACKET_INFO)) {
+            token = parseArgumentsOrIndex(token);
+          } else if ((info === PLUS_PLUS_INFO) ||
+                     (info === MINUS_MINUS_INFO)) {
+            listener.handleUnaryPostfixAssignmentExpression(token);
+            token = token.next;
+          } else {
+            token = listener.unexpected(token);
+          }
         } else if (info === IS_INFO) {
           token = parseIsOperatorRest(token);
         } else if (info === QUESTION_INFO) {
@@ -820,30 +839,24 @@ class Parser {
         (value === '-') ||
         (value === '~')) {
       Token operator = token;
-      token = token.next;
-      token = parseUnaryExpression(token);
+      // Right associative, so we recurse at the same precedence
+      // level.
+      token = parsePrecedenceExpression(token.next, POSTFIX_PRECEDENCE);
       listener.handleUnaryPrefixExpression(operator);
     } else if ((value === '++') || value === '--') {
       // TODO(ahe): Validate this is used correctly.
       Token operator = token;
-      token = token.next;
-      token = parseUnaryExpression(token);
+      // Right associative, so we recurse at the same precedence
+      // level.
+      token = parsePrecedenceExpression(token.next, POSTFIX_PRECEDENCE);
       listener.handleUnaryPrefixAssignmentExpression(operator);
     } else {
-      token = parsePostfixExpression(token);
-      value = token.stringValue;
-      // Postfix:
-      if ((value === '++') || (value === '--')) {
-        // TODO(ahe): Validate this is used correctly.
-        listener.handleUnaryPostfixAssignmentExpression(token);
-        token = token.next;
-      }
+      token = parsePrimary(token);
     }
     return token;
   }
 
-  Token parsePostfixExpression(Token token) {
-    token = parsePrimary(token);
+  Token parseArgumentsOrIndex(Token token) {
     while (true) {
       if (optional('[', token)) {
         Token openSquareBracket = token;
