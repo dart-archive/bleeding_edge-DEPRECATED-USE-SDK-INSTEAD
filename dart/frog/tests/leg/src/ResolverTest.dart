@@ -74,7 +74,7 @@ testThis() {
   compiler.resolveStatement("Foo foo;");
   ClassElement fooElement = universe.find(buildSourceString("Foo"));
   FunctionElement funElement =
-      fooElement.lookupLocalElement(buildSourceString("foo"));
+      fooElement.lookupLocalMember(buildSourceString("foo"));
   FullResolverVisitor visitor = new FullResolverVisitor(compiler, funElement);
   FunctionExpression function = funElement.parseNode(compiler, compiler);
   visitor.visit(function.body);
@@ -96,7 +96,7 @@ testThis() {
   compiler.resolveStatement("Foo foo;");
   fooElement = universe.find(buildSourceString("Foo"));
   funElement =
-      fooElement.lookupLocalElement(buildSourceString("foo"));
+      fooElement.lookupLocalMember(buildSourceString("foo"));
   visitor = new FullResolverVisitor(compiler, funElement);
   function = funElement.parseNode(compiler, compiler);
   visitor.visit(function.body);
