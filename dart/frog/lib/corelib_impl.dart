@@ -28,6 +28,10 @@
 #source("isolate.dart");
 #source("isolate_serialization.dart");
 
+/**
+ * The default implementation of the [List<E>] interface. Essentially a growable
+ * array that will expand automatically as more elements are added.
+ */
 class ListFactory<E> implements List<E> native "Array" {
   ListFactory([int length]) native;
 
@@ -373,46 +377,50 @@ class _AllMatchesIterator implements Iterator<Match> {
 
 class NumImplementation implements int, double native "Number" {
   // TODO(jimhug): Move these out of methods to avoid boxing when not needed.
-  num remainder(num other) native "return this % other;";
+  // TODO(jmesserly): for now I'm avoiding boxing with "use strict", however,
+  // we might want to do something better. It would be nice if operators and
+  // methods on String/num were handled in a uniform way.
+  num remainder(num other) native "'use strict'; return this % other;";
 
-  bool isEven() native "return ((this & 1) == 0);";
-  bool isOdd() native "return ((this & 1) == 1);";
-  bool isNaN() native "return isNaN(this);";
+  bool isEven() native "'use strict'; return ((this & 1) == 0);";
+  bool isOdd() native "'use strict'; return ((this & 1) == 1);";
+  bool isNaN() native "'use strict'; return isNaN(this);";
   bool isNegative() native
-    "return this == 0 ? (1 / this) < 0 : this < 0;";
+    "'use strict'; return this == 0 ? (1 / this) < 0 : this < 0;";
   bool isInfinite() native
-    "return (this == Infinity) || (this == -Infinity);";
+    "'use strict'; return (this == Infinity) || (this == -Infinity);";
 
-  num abs() native "return Math.abs(this);";
-  num round() native "return Math.round(this);";
-  num floor() native "return Math.floor(this);";
-  num ceil() native "return Math.ceil(this);";
+  num abs() native "'use strict'; return Math.abs(this);";
+  num round() native "'use strict'; return Math.round(this);";
+  num floor() native "'use strict'; return Math.floor(this);";
+  num ceil() native "'use strict'; return Math.ceil(this);";
   num truncate() native
-    "return (this < 0) ? Math.ceil(this) : Math.floor(this);";
+    "'use strict'; return (this < 0) ? Math.ceil(this) : Math.floor(this);";
 
-  int hashCode() native "return this & 0xFFFFFFF;";
+  int hashCode() native "'use strict'; return this & 0x1FFFFFFF;";
 
   // If truncated is -0.0 return +0. The test will also trigger for positive
   // 0s but that's not a problem.
-  int toInt() native
-  '''if (isNaN(this)) throw new BadNumberFormatException("NaN");
+  int toInt() native '''
+  'use strict';
+  if (isNaN(this)) throw new BadNumberFormatException("NaN");
   if ((this == Infinity) || (this == -Infinity)) {
     throw new BadNumberFormatException("Infinity");
   }
   var truncated = (this < 0) ? Math.ceil(this) : Math.floor(this);
-
   if (truncated == -0.0) return 0;
   return truncated;''';
 
-  double toDouble() native "return this + 0;";
+  double toDouble() native "'use strict'; return this + 0;";
 
   String toStringAsFixed(int fractionDigits) native
-    "return this.toFixed(fractionDigits);";
+    "'use strict'; return this.toFixed(fractionDigits);";
   String toStringAsExponential(int fractionDigits) native
-    "return this.toExponential(fractionDigits)";
+    "'use strict'; return this.toExponential(fractionDigits)";
   String toStringAsPrecision(int precision) native
-    "return this.toPrecision(precision)";
-  String toRadixString(int radix) native "return this.toString(radix)";
+    "'use strict'; return this.toPrecision(precision)";
+  String toRadixString(int radix) native
+    "'use strict'; return this.toString(radix)";
 
   // CompareTo has to give a complete order, including -0/+0, NaN and
   // Infinities.

@@ -17,12 +17,14 @@ class StringImplementation implements String native "String" {
 
   bool operator ==(var other) native;
 
-  bool endsWith(String other) native
-  '''if (other.length > this.length) return false;
+  bool endsWith(String other) native '''
+  'use strict';
+  if (other.length > this.length) return false;
   return other == this.substring(this.length - other.length);''';
 
-  bool startsWith(String other) native
-  '''if (other.length > this.length) return false;
+  bool startsWith(String other) native '''
+  'use strict';
+  if (other.length > this.length) return false;
   return other == this.substring(0, other.length);''';
 
   int indexOf(String other, [int start]) native;
@@ -40,13 +42,13 @@ class StringImplementation implements String native "String" {
 
   // TODO(jmesserly): should support pattern too.
   bool contains(Pattern pattern, [int startIndex]) native
-    "return this.indexOf(pattern, startIndex) >= 0;";
+    "'use strict'; return this.indexOf(pattern, startIndex) >= 0;";
 
   String _replaceFirst(String from, String to) native
-    "return this.replace(from, to);";
+    "'use strict';return this.replace(from, to);";
 
   String _replaceRegExp(RegExp from, String to) native
-    "return this.replace(from.re, to);";
+    "'use strict';return this.replace(from.re, to);";
 
   String replaceFirst(Pattern from, String to) {
     if (from is String) return _replaceFirst(from, to);
@@ -58,6 +60,7 @@ class StringImplementation implements String native "String" {
   }
 
   String _replaceAll(String from, String to) native @"""
+'use strict';
 from = new RegExp(from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'g');
 to = to.replace(/\$/g, '$$$$'); // Escape sequences are fun!
 return this.replace(from, to);""";
@@ -75,10 +78,9 @@ return this.replace(from, to);""";
     buffer.add(substring(lastMatchEnd));
   }
 
+  // TODO(jimhug): Get correct reified generic list here.
   List<String> split(Pattern pattern) native {
-    // Note: this code is just a hint to tell the frog compiler the dependencies
-    // this native code might have. It is not an implementation.
-    return [];
+    return []; // tell the compiler an array is created
   }
 
   /*
@@ -99,12 +101,7 @@ return this.replace(from, to);""";
   }
   */
 
-  // TODO(jimhug): Get correct reified generic list here.
-  List<String> splitChars() native "return this.split('');" {
-    // Note: this code is just a hint to tell the frog compiler the dependencies
-    // this native code might have. It is not an implementation.
-    return [];
-  }
+  List<String> splitChars() => split('');
 
   List<int> charCodes() {
     int len = length;
@@ -118,23 +115,29 @@ return this.replace(from, to);""";
   String toLowerCase() native;
   String toUpperCase() native;
 
-  int hashCode() native '''if (this.hash_ === undefined) {
+  // TODO(jmesserly): we might want to optimize this further.
+  // This is the [Jenkins hash function][1], but with masking to keep the
+  // hash in the Smi range. I did some simple microbenchmarks to verify that
+  // this performs adequately on the standard words list. Letting it spill over
+  // into doubles and truncating at the end was ~2x worse, letting it box was
+  // ~70x worse.
+  //
+  // [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
+  int hashCode() native '''
+    'use strict';
+    var hash = 0;
     for (var i = 0; i < this.length; i++) {
-      var ch = this.charCodeAt(i);
-      this.hash_ += ch;
-      this.hash_ += this.hash_ << 10;
-      this.hash_ ^= this.hash_ >> 6;
+      hash = 0x1fffffff & (hash + this.charCodeAt(i));
+      hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+      hash ^= hash >> 6;
     }
 
-    this.hash_ += this.hash_ << 3;
-    this.hash_ ^= this.hash_ >> 11;
-    this.hash_ += this.hash_ << 15;
-    this.hash_ = this.hash_ & ((1 << 29) - 1);
-  }
-  return this.hash_;''';
+    hash = 0x1fffffff & (hash + (0x03ffffff & hash) << 3);
+    hash ^= hash >> 11;
+    return 0x1fffffff & (hash + (0x00003fff & hash) << 15);''';
 
   int compareTo(String other) native
-    "return this == other ? 0 : this < other ? -1 : 1;";
+    "'use strict'; return this == other ? 0 : this < other ? -1 : 1;";
 }
 
 /*
