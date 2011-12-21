@@ -6,7 +6,6 @@ prefix frog
 
 [ $component == frogsh ]
 EvaluatorTest: Pass, Crash # flaky, no data yet available to track it down.
-NodeBufferTest: Fail # Buffer is not defined error?
 
 [ $component == frogsh && $checked]
 NodeProcessTest: Fail # Checked mode failure -- looked like it failed to find assert$WritableStream

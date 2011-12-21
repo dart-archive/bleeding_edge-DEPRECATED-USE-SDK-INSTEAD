@@ -10,8 +10,11 @@
  */
 #library('node');
 
+// The sandbox needs to import the constructor functions for all the non-hidden native types we use.
+
 var createSandbox() native
   """return {'require': require, 'process': process, 'console': console,
+      'Buffer' : Buffer,
       'setTimeout': setTimeout, 'clearTimeout': clearTimeout};""";
 
 typedef void RequestListener(ServerRequest request, ServerResponse response);
