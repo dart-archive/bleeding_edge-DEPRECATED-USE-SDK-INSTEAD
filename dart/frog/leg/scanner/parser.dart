@@ -768,17 +768,7 @@ class Parser {
   }
 
   Token parseExpression(Token token) {
-    token = parsePrecedenceExpression(token, 3);
-    if (isAssignmentOperator(token)) {
-      Token operator = token;
-      token = parseExpression(token.next);
-      listener.handleAssignmentExpression(operator);
-    }
-    return token;
-  }
-
-  bool isAssignmentOperator(Token token) {
-    return ASSIGNMENT_PRECEDENCE === token.info.precedence;
+    return parsePrecedenceExpression(token, 2);
   }
 
   Token parseConditionalExpressionRest(Token token) {
@@ -793,18 +783,25 @@ class Parser {
   }
 
   Token parsePrecedenceExpression(Token token, int precedence) {
-    assert(precedence >= 3);
+    assert(precedence >= 2);
     token = parseUnaryExpression(token);
     PrecedenceInfo info = token.info;
     int tokenLevel = info.precedence;
     for (int level = tokenLevel; level >= precedence; --level) {
       while (tokenLevel === level) {
         Token operator = token;
-        if (info === IS_INFO) {
+        if (tokenLevel === ASSIGNMENT_PRECEDENCE) {
+          // Right associative, so we recurse at the same precedence
+          // level.
+          token = parsePrecedenceExpression(token.next, level);
+          listener.handleAssignmentExpression(operator);
+        } else if (info === IS_INFO) {
           token = parseIsOperatorRest(token);
         } else if (info === QUESTION_INFO) {
           token = parseConditionalExpressionRest(token);
         } else {
+          // Left associative, so we recurse at the next higher
+          // precedence level.
           token = parsePrecedenceExpression(token.next, level + 1);
           listener.handleBinaryExpression(operator);
         }

@@ -144,6 +144,56 @@ void testConditionalExpression() {
   Expect.isNotNull(conditional.elseExpression.asSendSet());
 }
 
+void testAssignment() {
+  ExpressionStatement node;
+  Expression expression;
+  SendSet sendSet;
+
+  node = parseStatement("a = b;");
+  expression = node.expression;
+  Expect.isNotNull(expression.asSendSet());
+
+  node = parseStatement("a = b = c;");
+  // Should parse as: a = (b = c)
+  expression = node.expression;
+  Expect.isNotNull(sendSet = expression.asSendSet());
+  Expect.isNotNull(sendSet.arguments.head.asSendSet());
+
+  node = parseStatement("a = b = c = d;");
+  // Should parse as: a = (b = (c = d))
+  expression = node.expression;
+  Expect.isNotNull(sendSet = expression.asSendSet());
+  Expect.isNotNull(sendSet = sendSet.arguments.head.asSendSet());
+  Expect.isNotNull(sendSet = sendSet.arguments.head.asSendSet());
+
+  node = parseStatement("a.b = c;");
+  // Should parse as: receiver = a, selector = b, arguments = c.
+  expression = node.expression;
+  Expect.isNotNull(sendSet = expression.asSendSet());
+  Expect.stringEquals("a", sendSet.receiver.toString());
+  Expect.stringEquals("b", sendSet.selector.toString());
+  Expect.stringEquals("c", sendSet.arguments.head.toString());
+
+  node = parseStatement("a.b = c.d;");
+  // Should parse as: a.b = (c.d).
+  expression = node.expression;
+  Expect.isNotNull(sendSet = expression.asSendSet());
+  Expect.stringEquals("a", sendSet.receiver.toString());
+  Expect.stringEquals("b", sendSet.selector.toString());
+  Expect.stringEquals("c.d", sendSet.arguments.head.toString());
+
+  node = parseStatement("a.b = c.d = e.f;");
+  // Should parse as: a.b = (c.d = (e.f))
+  expression = node.expression;
+  Expect.isNotNull(sendSet = expression.asSendSet());
+  Expect.stringEquals("a", sendSet.receiver.toString());
+  Expect.stringEquals("b", sendSet.selector.toString());
+  Expect.isNotNull(sendSet = sendSet.arguments.head.asSendSet());
+  Expect.stringEquals("c", sendSet.receiver.toString());
+  Expect.stringEquals("d", sendSet.selector.toString());
+  Expect.stringEquals("e.f", sendSet.arguments.head.toString());
+}
+
 void main() {
   testGenericTypes();
   // TODO(ahe): Enable this test when we handle library prefixes.
@@ -154,4 +204,5 @@ void main() {
   testDoStatement();
   testWhileStatement();
   testConditionalExpression();
+  testAssignment();
 }
