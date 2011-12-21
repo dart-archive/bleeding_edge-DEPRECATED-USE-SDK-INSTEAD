@@ -151,9 +151,11 @@ def main():
     cmd = test_cmd + ['--component=frogsh', 'leg', 'leg_only']
     RunCommand(*cmd, verbose=True)
 
-    # Run leg on most of the tests.
-    # TODO(ahe): Add co19 tests once leg gets more mature.
-    cmd = test_cmd + ['--component=leg', 'language', 'corelib', 'leg_only']
+    # Run leg on "built-in" tests.
+    cmd = test_cmd + ['--component=leg']
+    RunCommand(*cmd, verbose=True)
+
+    cmd = test_cmd + ['--component=leg', 'leg_only']
     RunCommand(*cmd, verbose=True)
 
     cmd = test_cmd + ['--component=vm', 'leg']

@@ -808,6 +808,7 @@ class Modifiers extends Node {
   static final int FLAG_FINAL = FLAG_ABSTRACT << 1;
   static final int FLAG_VAR = FLAG_FINAL << 1;
   static final int FLAG_CONST = FLAG_VAR << 1;
+  static final int FLAG_FACTORY = FLAG_CONST << 1;
 
   Modifiers(NodeList nodes)
     : this.nodes = nodes, flags = computeFlags(nodes.nodes);
@@ -821,6 +822,8 @@ class Modifiers extends Node {
       else if (value === 'final') flags += FLAG_FINAL;
       else if (value === 'var') flags += FLAG_VAR;
       else if (value === 'const') flags += FLAG_CONST;
+      else if (value === 'factory') flags += FLAG_FACTORY;
+      else throw 'internal error: ${nodes.head}';
     }
     return flags;
   }
@@ -836,6 +839,7 @@ class Modifiers extends Node {
   bool isFinal() => (flags & FLAG_FINAL) != 0;
   bool isVar() => (flags & FLAG_VAR) != 0;
   bool isConst() => (flags & FLAG_CONST) != 0;
+  bool isFactory() => (flags & FLAG_FACTORY) != 0;
 }
 
 class StringInterpolation extends Expression {

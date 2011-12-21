@@ -1100,17 +1100,19 @@ class NodeListener extends ElementListener {
   }
 
   void endFactoryMethod(Token factoryKeyword, Token periodBeforeName) {
-    canceler.cancel('factory methods are not implemented',
-                    token: factoryKeyword);
     Statement body = popNode();
-    NodeList parameters = popNode();
+    NodeList formals = popNode();
     Identifier name = null;
     if (periodBeforeName !== null) {
       name = popNode();
     }
-    Node typeName = popNode();
-    pushNode(new UnimplementedStatement('factory',
-                                        [typeName, name, parameters, body]));
+    Identifier typeName = popNode();
+    TypeAnnotation type = new TypeAnnotation(typeName, null);
+    handleModifier(factoryKeyword);
+    handleModifiers(1);
+    Modifiers modifiers = popNode();
+    pushNode(new FunctionExpression(name, formals, body, type,
+                                    modifiers, null));
   }
 
   void endForInStatement(Token beginToken, Token inKeyword, Token endToken) {
