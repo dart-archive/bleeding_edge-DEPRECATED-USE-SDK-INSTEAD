@@ -6,6 +6,13 @@ prefix frog
 
 [ $component == frogsh ]
 EvaluatorTest: Pass, Crash # flaky, no data yet available to track it down.
+NodeBufferTest: Pass
+NodeConsoleTest: Pass
+NodeProcessTest: Pass
+
+
+[ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == frog || $component == leg]
+Node*Test: Skip
 
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium ]
 EvaluatorTest: Skip

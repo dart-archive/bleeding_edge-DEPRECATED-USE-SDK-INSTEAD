@@ -14,6 +14,7 @@
 #import('unittest_node.dart');
 #import('../../../lang.dart');
 #import('../../../file_system_node.dart');
+#import('../../../lib/node/node.dart');
 
 class D extends B {
   String msg() => 'd';
