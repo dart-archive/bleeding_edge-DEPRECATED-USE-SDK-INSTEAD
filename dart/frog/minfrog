@@ -678,7 +678,7 @@ ListIterator.prototype.hasNext = function() {
 }
 ListIterator.prototype.next = function() {
   if (!this.hasNext()) {
-    $throw(const$8/*const NoMoreElementsException()*/);
+    $throw(const$7/*const NoMoreElementsException()*/);
   }
   return this._array.$index(this._dart_coreimpl_pos++);
 }
@@ -714,7 +714,7 @@ ImmutableList.prototype.get$length = function() {
   return this._length;
 }
 ImmutableList.prototype.set$length = function(length) {
-  $throw(const$127/*const IllegalAccessException()*/);
+  $throw(const$126/*const IllegalAccessException()*/);
 }
 Object.defineProperty(ImmutableList.prototype, "length", {
   get: ImmutableList.prototype.get$length,
@@ -724,25 +724,25 @@ ImmutableList.prototype._setindex = function(index, value) {
   return this[index] = value;
 }
 ImmutableList.prototype.$setindex = function(index, value) {
-  $throw(const$127/*const IllegalAccessException()*/);
+  $throw(const$126/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.sort = function(compare) {
-  $throw(const$127/*const IllegalAccessException()*/);
+  $throw(const$126/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.add = function(element) {
-  $throw(const$127/*const IllegalAccessException()*/);
+  $throw(const$126/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.addLast = function(element) {
-  $throw(const$127/*const IllegalAccessException()*/);
+  $throw(const$126/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.addAll = function(elements) {
-  $throw(const$127/*const IllegalAccessException()*/);
+  $throw(const$126/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.clear = function() {
-  $throw(const$127/*const IllegalAccessException()*/);
+  $throw(const$126/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.removeLast = function() {
-  $throw(const$127/*const IllegalAccessException()*/);
+  $throw(const$126/*const IllegalAccessException()*/);
 }
 ImmutableList.prototype.toString = function() {
   return ListFactory.ListFactory$from$factory(this).toString();
@@ -848,7 +848,7 @@ HashMapImplementation.prototype._probeForAdding = function(key) {
     else if ($eq(existingKey, key)) {
       return hash;
     }
-    else if ((insertionIndex < 0) && (const$3/*HashMapImplementation._DELETED_KEY*/ === existingKey)) {
+    else if ((insertionIndex < 0) && (const$2/*HashMapImplementation._DELETED_KEY*/ === existingKey)) {
       insertionIndex = hash;
     }
     hash = HashMapImplementation._nextProbe(hash, numberOfProbes++, this._keys.get$length());
@@ -891,7 +891,7 @@ HashMapImplementation.prototype._grow = function(newCapacity) {
   for (var i = 0;
    i < capacity; i++) {
     var key = oldKeys.$index(i);
-    if (key == null || key === const$3/*HashMapImplementation._DELETED_KEY*/) {
+    if (key == null || key === const$2/*HashMapImplementation._DELETED_KEY*/) {
       continue;
     }
     var value = oldValues.$index(i);
@@ -904,7 +904,7 @@ HashMapImplementation.prototype._grow = function(newCapacity) {
 HashMapImplementation.prototype.$setindex = function(key, value) {
   this._ensureCapacity();
   var index = this._probeForAdding(key);
-  if ((this._keys.$index(index) == null) || (this._keys.$index(index) === const$3/*HashMapImplementation._DELETED_KEY*/)) {
+  if ((this._keys.$index(index) == null) || (this._keys.$index(index) === const$2/*HashMapImplementation._DELETED_KEY*/)) {
     this._numberOfEntries++;
   }
   this._keys.$setindex(index, key);
@@ -921,7 +921,7 @@ HashMapImplementation.prototype.remove = function(key) {
     this._numberOfEntries--;
     var value = this._values.$index(index);
     this._values.$setindex(index);
-    this._keys.$setindex(index, const$3/*HashMapImplementation._DELETED_KEY*/);
+    this._keys.$setindex(index, const$2/*HashMapImplementation._DELETED_KEY*/);
     this._numberOfDeleted++;
     return value;
   }
@@ -937,7 +937,7 @@ HashMapImplementation.prototype.forEach = function(f) {
   var length = this._keys.get$length();
   for (var i = 0;
    i < length; i++) {
-    if ((this._keys.$index(i) != null) && (this._keys.$index(i) !== const$3/*HashMapImplementation._DELETED_KEY*/)) {
+    if ((this._keys.$index(i) != null) && (this._keys.$index(i) !== const$2/*HashMapImplementation._DELETED_KEY*/)) {
       f(this._keys.$index(i), this._values.$index(i));
     }
   }
@@ -1003,7 +1003,7 @@ HashMapImplementation_E$E.prototype._probeForAdding = function(key) {
     else if ($eq(existingKey, key)) {
       return hash;
     }
-    else if ((insertionIndex < 0) && (const$3/*HashMapImplementation._DELETED_KEY*/ === existingKey)) {
+    else if ((insertionIndex < 0) && (const$2/*HashMapImplementation._DELETED_KEY*/ === existingKey)) {
       insertionIndex = hash;
     }
     hash = HashMapImplementation._nextProbe(hash, numberOfProbes++, this._keys.get$length());
@@ -1046,7 +1046,7 @@ HashMapImplementation_E$E.prototype._grow = function(newCapacity) {
   for (var i = 0;
    i < capacity; i++) {
     var key = oldKeys.$index(i);
-    if (key == null || key === const$3/*HashMapImplementation._DELETED_KEY*/) {
+    if (key == null || key === const$2/*HashMapImplementation._DELETED_KEY*/) {
       continue;
     }
     var value = oldValues.$index(i);
@@ -1059,7 +1059,7 @@ HashMapImplementation_E$E.prototype._grow = function(newCapacity) {
 HashMapImplementation_E$E.prototype.$setindex = function(key, value) {
   this._ensureCapacity();
   var index = this._probeForAdding(key);
-  if ((this._keys.$index(index) == null) || (this._keys.$index(index) === const$3/*HashMapImplementation._DELETED_KEY*/)) {
+  if ((this._keys.$index(index) == null) || (this._keys.$index(index) === const$2/*HashMapImplementation._DELETED_KEY*/)) {
     this._numberOfEntries++;
   }
   this._keys.$setindex(index, key);
@@ -1071,7 +1071,7 @@ HashMapImplementation_E$E.prototype.remove = function(key) {
     this._numberOfEntries--;
     var value = this._values.$index(index);
     this._values.$setindex(index);
-    this._keys.$setindex(index, const$3/*HashMapImplementation._DELETED_KEY*/);
+    this._keys.$setindex(index, const$2/*HashMapImplementation._DELETED_KEY*/);
     this._numberOfDeleted++;
     return value;
   }
@@ -1084,7 +1084,7 @@ HashMapImplementation_E$E.prototype.forEach = function(f) {
   var length = this._keys.get$length();
   for (var i = 0;
    i < length; i++) {
-    if ((this._keys.$index(i) != null) && (this._keys.$index(i) !== const$3/*HashMapImplementation._DELETED_KEY*/)) {
+    if ((this._keys.$index(i) != null) && (this._keys.$index(i) !== const$2/*HashMapImplementation._DELETED_KEY*/)) {
       f(this._keys.$index(i), this._values.$index(i));
     }
   }
@@ -1223,14 +1223,14 @@ function HashSetIterator(set_) {
 }
 HashSetIterator.prototype.hasNext = function() {
   if (this._nextValidIndex >= this._entries.get$length()) return false;
-  if (this._entries.$index(this._nextValidIndex) === const$3/*HashMapImplementation._DELETED_KEY*/) {
+  if (this._entries.$index(this._nextValidIndex) === const$2/*HashMapImplementation._DELETED_KEY*/) {
     this._advance();
   }
   return this._nextValidIndex < this._entries.get$length();
 }
 HashSetIterator.prototype.next = function() {
   if (!this.hasNext()) {
-    $throw(const$8/*const NoMoreElementsException()*/);
+    $throw(const$7/*const NoMoreElementsException()*/);
   }
   var res = this._entries.$index(this._nextValidIndex);
   this._advance();
@@ -1239,7 +1239,7 @@ HashSetIterator.prototype.next = function() {
 HashSetIterator.prototype._advance = function() {
   var length = this._entries.get$length();
   var entry;
-  var deletedKey = const$3/*HashMapImplementation._DELETED_KEY*/;
+  var deletedKey = const$2/*HashMapImplementation._DELETED_KEY*/;
   do {
     if (++this._nextValidIndex >= length) break;
     entry = this._entries.$index(this._nextValidIndex);
@@ -1259,7 +1259,7 @@ function HashSetIterator_E(set_) {
 HashSetIterator_E.prototype._advance = function() {
   var length = this._entries.get$length();
   var entry;
-  var deletedKey = const$3/*HashMapImplementation._DELETED_KEY*/;
+  var deletedKey = const$2/*HashMapImplementation._DELETED_KEY*/;
   do {
     if (++this._nextValidIndex >= length) break;
     entry = this._entries.$index(this._nextValidIndex);
@@ -1432,13 +1432,13 @@ function _DoubleLinkedQueueEntrySentinel() {
   this._link(this, this);
 }
 _DoubleLinkedQueueEntrySentinel.prototype.remove = function() {
-  $throw(const$2/*const EmptyQueueException()*/);
+  $throw(const$1/*const EmptyQueueException()*/);
 }
 _DoubleLinkedQueueEntrySentinel.prototype._asNonSentinelEntry = function() {
   return null;
 }
 _DoubleLinkedQueueEntrySentinel.prototype.get$element = function() {
-  $throw(const$2/*const EmptyQueueException()*/);
+  $throw(const$1/*const EmptyQueueException()*/);
 }
 // ********** Code for _DoubleLinkedQueueEntrySentinel_E **************
 $inherits(_DoubleLinkedQueueEntrySentinel_E, _DoubleLinkedQueueEntrySentinel);
@@ -1593,7 +1593,7 @@ _DoubleLinkedQueueIterator.prototype.hasNext = function() {
 }
 _DoubleLinkedQueueIterator.prototype.next = function() {
   if (!this.hasNext()) {
-    $throw(const$8/*const NoMoreElementsException()*/);
+    $throw(const$7/*const NoMoreElementsException()*/);
   }
   this._currentEntry = this._currentEntry._next;
   return this._currentEntry.get$element();
@@ -1815,17 +1815,107 @@ Collections.filter = function(source, destination, f) {
 }
 // ********** Code for top level **************
 //  ********** Library node **************
-// ********** Code for process **************
-process.get$env = function() {
-  return const$0/*const EnvMap()*/;
+// ********** Code for Process **************
+function Process(_process) {
+  this.SIGHUP = 'SIGHUP'
+  this.SIGINT = 'SIGINT'
+  this.SIGQUIT = 'SIGQUIT'
+  this.SIGILL = 'SIGILL'
+  this.SIGTRAP = 'SIGTRAP'
+  this.SIGABRT = 'SIGABRT'
+  this.SIGEMT = 'SIGEMT'
+  this.SIGFPE = 'SIGFPE'
+  this.SIGKILL = 'SIGKILL'
+  this.SIGBUS = 'SIGBUS'
+  this.SIGSEGV = 'SIGSEGV'
+  this.SIGSYS = 'SIGSYS'
+  this.SIGPIPE = 'SIGPIPE'
+  this.SIGALRM = 'SIGALRM'
+  this.SIGTERM = 'SIGTERM'
+  this.SIGURG = 'SIGURG'
+  this.SIGSTOP = 'SIGSTOP'
+  this.SIGTSTP = 'SIGTSTP'
+  this.SIGCONT = 'SIGCONT'
+  this.SIGCHLD = 'SIGCHLD'
+  this.SIGTTIN = 'SIGTTIN'
+  this.SIGTTOU = 'SIGTTOU'
+  this.SIGIO = 'SIGIO'
+  this.SIGXCPU = 'SIGXCPU'
+  this.SIGXFSZ = 'SIGXFSZ'
+  this.SIGVTALRM = 'SIGVTALRM'
+  this.SIGPROF = 'SIGPROF'
+  this.SIGWINCH = 'SIGWINCH'
+  this.SIGINFO = 'SIGINFO'
+  this.SIGUSR1 = 'SIGUSR1'
+  this.SIGUSR2 = 'SIGUSR2'
+  this._process = _process;
+  // Initializers done
+}
+Process.prototype.get$argv = function() {
+  return this._process.argv;
+}
+Process.prototype.set$argv = function(value) {
+  this._process.argv = value;
+}
+Process.prototype.get$env = function() {
+  return new EnvMap(this._process);
+}
+Process.prototype.exit = function(code) {
+  this._process.exit(code);
 }
 // ********** Code for EnvMap **************
-function EnvMap() {
+function EnvMap(_process) {
+  this._process = _process;
   // Initializers done
 }
 EnvMap.prototype.$index = function(key) {
-  return process.env[key];
+  return this._process.env[key];
 }
+// ********** Code for ReadableStream **************
+// ********** Code for WritableStream **************
+Object.prototype.$typeNameOf = function() {
+  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
+      || typeof(process) != 'undefined') { // fast-path for Chrome and Node
+    return this.constructor.name;
+  }
+  var str = Object.prototype.toString.call(this);
+  str = str.substring(8, str.length - 1);
+  if (str == 'Window') str = 'DOMWindow';
+  return str;
+}
+function $dynamic(name) {
+  var f = Object.prototype[name];
+  if (f && f.methods) return f.methods;
+
+  var methods = {};
+  if (f) methods.Object = f;
+  function $dynamicBind() {
+    // Find the target method
+    var method;
+    var proto = Object.getPrototypeOf(this);
+    var obj = this;
+    do {
+      method = methods[obj.$typeNameOf()];
+      if (method) break;
+      obj = Object.getPrototypeOf(obj);
+    } while (obj);
+
+    // Patch the prototype, but don't overwrite an existing stub, like
+    // the one on Object.prototype.
+    if (!proto.hasOwnProperty(name)) proto[name] = method || methods.Object;
+
+    return method.apply(this, Array.prototype.slice.call(arguments));
+  };
+  $dynamicBind.methods = methods;
+  Object.prototype[name] = $dynamicBind;
+  return methods;
+}
+$dynamic("get$end").WriteStream = function() {
+  return this.end.bind(this);
+}
+$dynamic("end$0").WriteStream = function() {
+  return this.end(null, 'utf8');
+};
 // ********** Code for vm **************
 vm = require('vm');
 // ********** Code for fs **************
@@ -1836,6 +1926,12 @@ path = require('path');
 function createSandbox() {
   return {'require': require, 'process': process, 'console': console,
         'setTimeout': setTimeout, 'clearTimeout': clearTimeout};
+}
+function get$_process() {
+  return process;
+}
+function get$process() {
+  return new Process(get$_process());
 }
 //  ********** Library file_system **************
 // ********** Code for top level **************
@@ -11846,7 +11942,7 @@ DefinedType.prototype.getConstructor = function(constructorName) {
 }
 DefinedType.prototype._checkDefaultTypeParams = function() {
   function toList(list) {
-    return (list != null ? list : const$128/*const []*/);
+    return (list != null ? list : const$127/*const []*/);
   }
   var typeDef = this.definition;
   if (typeDef.defaultType.oldFactory) {
@@ -12716,7 +12812,7 @@ World.prototype._addJavascriptTopName = function(named, name) {
       this._renameJavascriptTopName(existing);
     }
     else {
-      $globals.world.internalError(('conflicting JS name "' + name + '" of same ') + ('priority ' + existing.get$jsnamePriority() + ':  ') + ('(already defined in ' + existing.get$span().get$locationText() + ')'), named.get$span(), existing.get$span());
+      $globals.world.internalError(('conflicting JS name "' + name + '" of same ') + ('priority ' + existingPri + ': (already defined in) ') + ('' + existing.get$span().get$locationText() + ' with priority ' + namedPri + ')'), named.get$span(), existing.get$span());
     }
   }
   else {
@@ -13457,13 +13553,13 @@ function _getCallStubName(name, args) {
 //  ********** Library minfrog **************
 // ********** Code for top level **************
 function main() {
-  var homedir = path.dirname(fs.realpathSync(process.argv.$index(1)));
+  var homedir = path.dirname(fs.realpathSync(get$process().get$argv().$index(1)));
   var argv = [];
   for (var i = 0;
-   i < process.argv.get$length(); i++) {
-    argv.add$1(process.argv.$index(i));
+   i < get$process().get$argv().get$length(); i++) {
+    argv.add$1(get$process().get$argv().$index(i));
     if (i == 1) {
-      var terminal = process.get$env().$index('TERM');
+      var terminal = get$process().get$env().$index('TERM');
       if (terminal == null || !terminal.startsWith$1('xterm')) {
         argv.add$1('--no_colors');
       }
@@ -13480,13 +13576,13 @@ function main() {
       }
     }
     else {
-      process.argv = [argv.$index(0), argv.$index(1)];
-      process.argv.addAll($globals.options.childArgs);
+      get$process().set$argv([argv.$index(0), argv.$index(1)]);
+      get$process().get$argv().addAll($globals.options.childArgs);
       vm.runInNewContext(code, createSandbox());
     }
   }
   else {
-    process.exit(1);
+    get$process().exit(1);
   }
 }
 // ********** Generic Type Inheritance **************
@@ -13507,12 +13603,11 @@ function $static_init(){
   $globals._NO_COLOR = '\u001b[0m';
   $globals._RED_COLOR = '\u001b[31m';
 }
-var const$0 = new EnvMap()/*const EnvMap()*/;
-var const$127 = new IllegalAccessException()/*const IllegalAccessException()*/;
-var const$128 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
-var const$2 = new EmptyQueueException()/*const EmptyQueueException()*/;
-var const$3 = new _DeletedKeySentinel()/*const _DeletedKeySentinel()*/;
-var const$8 = new NoMoreElementsException()/*const NoMoreElementsException()*/;
+var const$1 = new EmptyQueueException()/*const EmptyQueueException()*/;
+var const$126 = new IllegalAccessException()/*const IllegalAccessException()*/;
+var const$127 = ImmutableList.ImmutableList$from$factory([])/*const []*/;
+var const$2 = new _DeletedKeySentinel()/*const _DeletedKeySentinel()*/;
+var const$7 = new NoMoreElementsException()/*const NoMoreElementsException()*/;
 var $globals = {};
 $static_init();
 main();
