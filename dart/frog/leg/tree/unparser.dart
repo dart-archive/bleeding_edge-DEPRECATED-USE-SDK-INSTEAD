@@ -136,7 +136,8 @@ class Unparser implements Visitor {
   visitNodeList(NodeList node) {
     if (node.beginToken !== null) add(node.beginToken.value);
     if (node.nodes !== null) {
-      node.nodes.printOn(sb, node.delimiter);
+      String delimiter = (node.delimiter === null) ? " " : "${node.delimiter} ";
+      node.nodes.printOn(sb, delimiter);
     }
     if (node.endToken !== null) add(node.endToken.value);
   }
@@ -154,7 +155,8 @@ class Unparser implements Visitor {
     add(node.endToken.value);
   }
 
-  visitSend(Send node) {
+
+  printSendPart(Send node) {
     if (node.isPrefix) {
       visit(node.selector);
     }
@@ -165,15 +167,15 @@ class Unparser implements Visitor {
     if (!node.isPrefix) {
       visit(node.selector);
     }
+  }
+
+  visitSend(Send node) {
+    printSendPart(node);
     visit(node.argumentsNode);
   }
 
   visitSendSet(SendSet node) {
-    if (node.receiver !== null) {
-      visit(node.receiver);
-      sb.add('.');
-    }
-    visit(node.selector);
+    printSendPart(node);
     add(node.assignmentOperator.token.value);
     visit(node.argumentsNode);
   }

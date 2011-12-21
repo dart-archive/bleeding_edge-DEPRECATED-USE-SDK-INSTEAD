@@ -829,7 +829,7 @@ class Modifiers extends Node {
   Token getBeginToken() => nodes.getBeginToken();
   Token getEndToken() => nodes.getEndToken();
   accept(Visitor visitor) => visitor.visitModifiers(this);
-  visitChilren(Visitor visitor) => nodes.accept(visitor);
+  visitChildren(Visitor visitor) => nodes.accept(visitor);
 
   bool isStatic() => (flags & FLAG_STATIC) != 0;
   bool isAbstract() => (flags & FLAG_ABSTRACT) != 0;
