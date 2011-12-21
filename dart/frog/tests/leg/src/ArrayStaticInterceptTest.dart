@@ -6,13 +6,15 @@
 
 final String TEST_ONE = @"""
 
-builtin$add$1(x) => null;
-builtin$removeLast$0() { }
+builtin$add$1(x) { }
+builtin$removeLast$0() => null;
+builtin$get$length(x) => 0;
 
 foo() {
   var a = [];
   a.add(42);
   a.removeLast();
+  return a.length;
 }
 """;
 
@@ -20,4 +22,5 @@ main() {
   String generated = compile(TEST_ONE, 'foo');
   Expect.isTrue(generated.contains(@'.builtin$add$1('));
   Expect.isTrue(generated.contains(@'.builtin$removeLast$0('));
+  Expect.isTrue(generated.contains(@'.builtin$get$length('));
 }

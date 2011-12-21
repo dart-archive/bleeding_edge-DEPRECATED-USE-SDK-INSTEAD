@@ -232,6 +232,14 @@ builtin$filter$1(var receiver, var predicate) {
   throw "Unimplemented user-defined filter().";
 }
 
+
+builtin$get$length(var receiver) {
+  if (JS(@"typeof $0 === 'string'", receiver) || isJSArray(receiver)) {
+    return JS(@"$0.length", receiver);
+  }
+  throw "Unimplemented user-defined length.";
+}
+
 class int {}
 class double {}
 class String {}

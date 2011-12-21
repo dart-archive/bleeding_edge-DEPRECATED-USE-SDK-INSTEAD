@@ -70,8 +70,14 @@ class SsaBuilder implements Visitor {
   final TreeElements elements;
   HGraph graph;
 
-  Element useStaticInterceptor(SourceString name, int parameters) {
+  Element getStaticInterceptor(SourceString name, int parameters) {
     String mangleName = "builtin\$${name}\$${parameters}";
+    Element result = compiler.universe.find(new SourceString(mangleName));
+    return result;
+  }
+
+  Element getStaticGetInterceptor(SourceString name) {
+    String mangleName = "builtin\$get\$${name}";
     Element result = compiler.universe.find(new SourceString(mangleName));
     return result;
   }
@@ -619,7 +625,6 @@ class SsaBuilder implements Visitor {
       push(new HInvokeDynamicGetter(element, methodName, receiver));
     } else if (element == null) {
       SourceString getterName = send.selector.asIdentifier().source;
-      String jsGetterName = compiler.namer.getterName(getterName);
       HInstruction receiver;
       if (send.receiver == null) {
         receiver = new HThis();
@@ -628,7 +633,16 @@ class SsaBuilder implements Visitor {
         visit(send.receiver);
         receiver = pop();
       }
-      push(new HInvokeDynamicGetter(null, jsGetterName, receiver));
+      Element staticInterceptor = getStaticGetInterceptor(getterName);
+      if (staticInterceptor != null) {
+        HStatic target = new HStatic(staticInterceptor);
+        add(target);
+        List<HInstruction> inputs = <HInstruction>[target, receiver];
+        push(new HInvokeStatic(inputs));
+      } else {
+        String jsGetterName = compiler.namer.getterName(getterName);
+        push(new HInvokeDynamicGetter(null, jsGetterName, receiver));
+      }
     } else {
       HInstruction instruction = definitions[element];
       if (instruction === null) {
@@ -707,7 +721,7 @@ class SsaBuilder implements Visitor {
       if (isInvokeDynamic) {
         SourceString dartMethodName = node.selector.asIdentifier().source;
 
-        Element interceptor = useStaticInterceptor(dartMethodName,
+        Element interceptor = getStaticInterceptor(dartMethodName,
                                                    node.argumentCount());
         if (interceptor != null) {
           HStatic target = new HStatic(interceptor);
