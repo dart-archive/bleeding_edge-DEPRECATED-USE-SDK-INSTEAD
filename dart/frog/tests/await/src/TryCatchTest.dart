@@ -4,16 +4,11 @@
 
 // Await within a try-catch block:
 
-intFuture(v) {
-  final c = new Completer<int>();
-  final f = c.future;
-  c.complete(v);
-  return f;
-}
+#import("await_test_helper.dart");
 
 main() {
   try {
-    final f = intFuture(1);
+    final f = futureOf(1);
     final t = await f;
     return t;
   } catch (Ex1 ex) {
@@ -24,7 +19,7 @@ main() {
 // This is roughly equivalent to:
 // main() {
 //   final _ret = new Completer();
-//   final f = intFuture(1);
+//   final f = futureOf(1);
 //   f.then((t) {
 //     _ret.complete(t);
 //   });

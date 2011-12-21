@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Await within a conditional - the branch taken.
+// Await within a conditional - the branch non-taken.
 
 #import("await_test_helper.dart");
 
 main() {
   var x;
-  if (x == null) {
-    final f = futureOf(3);
+  if (x != null) {
+    final f = futureOf(4);
     x = await f;
   } else {
-    x = 4;
+    x = 3;
   }
   Expect.equals(3, x);
 }
@@ -25,15 +25,15 @@ main() {
 //     Expect.equals(x, 3);
 //     _ret.complete(null);
 //   }
-//   if (x == null) {
-//     final f = futureOf(3);
+//   if (x != null) {
+//     final f = futureOf(4);
 //     f.then((_v) {
 //       x = _v;
 //       _after_if();
 //     });
 //     Futures.propagateError(f, _ret);
 //   } else {
-//     x = 4;
+//     x = 3;
 //     _after_if();
 //   }
 //   return _ret;

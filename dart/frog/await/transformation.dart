@@ -41,7 +41,7 @@ _processFunction(FunctionDefinition func) {
   }
 
   // Then rewrite the function, if necessary.
-  func.visit(new AwaitProcessor(checker.nodesWithAwait));
+  func.visit(new AwaitProcessor(checker.haveAwait));
 }
 
 /** Weak set of AST nodes. */
@@ -93,20 +93,21 @@ class AwaitChecker implements TreeVisitor {
   bool _entryFunction = true;
 
   /** AST nodes that contain await expressions. */
-  NodeSet nodesWithAwait;
+  NodeSet haveAwait;
 
-  AwaitChecker() : nestedFunctions = [], nodesWithAwait = new NodeSet();
+  // TODO: track haveExit (return/throw) and haveBreak (break/continue) to
+  // property transform nodes that don't contain await, but may be affected
+  AwaitChecker() : nestedFunctions = [], haveAwait = new NodeSet();
 
   visitVariableDefinition(VariableDefinition node) {
     bool awaitSeen = _visitList(node.values);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitFunctionDefinition(FunctionDefinition node) {
     if (_entryFunction) {
       _entryFunction = false;
-      // TODO(sigmund) check that return type is Dynamic or a future.
       if (node.initializers != null) {
         for (Expression e in node.initializers) {
           if (e.visit(this)) {
@@ -115,8 +116,9 @@ class AwaitChecker implements TreeVisitor {
           }
         }
       }
-      if (node.body != null && node.body.visit(this)) {
-        nodesWithAwait.add(node);
+      if (_visit(node.body)) {
+        haveAwait.add(node);
+        // TODO(sigmund) check that return type is Dynamic or a future.
         return true;
       }
       return false;
@@ -128,20 +130,20 @@ class AwaitChecker implements TreeVisitor {
   }
 
   visitReturnStatement(ReturnStatement node) {
-    bool awaitSeen = node.value != null && node.value.visit(this);
-    if (awaitSeen) nodesWithAwait.add(node);
+    bool awaitSeen = _visit(node.value);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitThrowStatement(ThrowStatement node) {
-    bool awaitSeen = node.value != null && node.value.visit(this);
-    if (awaitSeen) nodesWithAwait.add(node);
+    bool awaitSeen = _visit(node.value);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitAssertStatement(AssertStatement node) {
     bool awaitSeen = node.test.visit(this);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
@@ -158,75 +160,75 @@ class AwaitChecker implements TreeVisitor {
     if (node.trueBranch.visit(this)) {
       awaitSeen = true;
     }
-    if (node.falseBranch != null && node.falseBranch.visit(this)) {
+    if (_visit(node.falseBranch)) {
       awaitSeen = true;
     }
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitWhileStatement(WhileStatement node) {
     bool awaitSeen = node.test.visit(this);
-    if (node.body != null && node.body.visit(this)) awaitSeen = true;
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (_visit(node.body)) awaitSeen = true;
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitDoStatement(DoStatement node) {
     bool awaitSeen = node.test.visit(this);
-    if (node.body != null && node.body.visit(this)) awaitSeen = true;
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (_visit(node.body)) awaitSeen = true;
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitForStatement(ForStatement node) {
     bool awaitSeen = node.test.visit(this);
-    if (node.body != null && node.body.visit(this)) awaitSeen = true;
-    if (node.init != null && node.init.visit(this)) awaitSeen = true;
+    if (_visit(node.body)) awaitSeen = true;
+    if (_visit(node.init)) awaitSeen = true;
     if (_visitList(node.step)) awaitSeen = true;
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitForInStatement(ForInStatement node) {
     bool awaitSeen = node.list.visit(this);
-    if (node.body != null && node.body.visit(this)) awaitSeen = true;
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (_visit(node.body)) awaitSeen = true;
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitTryStatement(TryStatement node) {
-    bool awaitSeen = (node.body != null && node.body.visit(this));
+    bool awaitSeen = (_visit(node.body));
     if (_visitList(node.catches)) awaitSeen = true;
-    if (node.finallyBlock != null && node.finallyBlock.visit(this)) {
+    if (_visit(node.finallyBlock)) {
       awaitSeen = true;
     }
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitSwitchStatement(SwitchStatement node) {
     bool awaitSeen = node.test.visit(this);
     if (_visitList(node.cases)) awaitSeen = true;
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitBlockStatement(BlockStatement node) {
     bool awaitSeen = _visitList(node.body);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitLabeledStatement(LabeledStatement node) {
     bool awaitSeen = node.body.visit(this);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitExpressionStatement(ExpressionStatement node) {
     bool awaitSeen = node.body.visit(this);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
@@ -242,53 +244,53 @@ class AwaitChecker implements TreeVisitor {
   visitCallExpression(CallExpression node) {
     bool awaitSeen = node.target.visit(this);
     if (_visitList(node.arguments)) awaitSeen = true;
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitIndexExpression(IndexExpression node) {
     bool awaitSeen = node.target.visit(this);
     if (node.index.visit(this)) awaitSeen = true;
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitBinaryExpression(BinaryExpression node) {
     bool awaitSeen = node.x.visit(this);
     if (node.y.visit(this)) awaitSeen = true;
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitUnaryExpression(UnaryExpression node) {
     // TODO(sigmund): issue errors for ++/-- cases where we expect an l-value.
     bool awaitSeen = node.self.visit(this);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitPostfixExpression(PostfixExpression node) {
     // TODO(sigmund): issue errors for ++/-- cases where we expect an l-value.
     bool awaitSeen = node.body.visit(this);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitNewExpression(NewExpression node) {
     bool awaitSeen = _visitList(node.arguments);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitListExpression(ListExpression node) {
     bool awaitSeen = _visitList(node.values);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitMapExpression(MapExpression node) {
     bool awaitSeen = _visitList(node.items);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
@@ -296,30 +298,30 @@ class AwaitChecker implements TreeVisitor {
     bool awaitSeen = node.test.visit(this);
     if (node.trueBranch.visit(this)) awaitSeen = true;
     if (node.falseBranch.visit(this)) awaitSeen = true;
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitIsExpression(IsExpression node) {
     bool awaitSeen = node.x.visit(this);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitParenExpression(ParenExpression node) {
     bool awaitSeen = node.body.visit(this);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitAwaitExpression(AwaitExpression node) {
-    nodesWithAwait.add(node);
+    haveAwait.add(node);
     return true;
   }
 
   visitDotExpression(DotExpression node) {
     bool awaitSeen = node.self.visit(this);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
@@ -345,21 +347,21 @@ class AwaitChecker implements TreeVisitor {
 
   visitArgumentNode(ArgumentNode node) {
     bool awaitSeen = node.value.visit(this);
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitCatchNode(CatchNode node) {
     bool awaitSeen = false;
-    if (node.body != null && node.body.visit(this)) awaitSeen = true;
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (_visit(node.body)) awaitSeen = true;
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitCaseNode(CaseNode node) {
     bool awaitSeen = false;
     for (Expression e in node.cases) {
-      if (e != null && e.visit(this)) {
+      if (_visit(e)) {
         world.error(
             'Await is not allowed in case expressions of switch statements.',
             e.span);
@@ -367,7 +369,7 @@ class AwaitChecker implements TreeVisitor {
       }
     }
     if (_visitList(node.statements)) awaitSeen = true;
-    if (awaitSeen) nodesWithAwait.add(node);
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
@@ -379,10 +381,15 @@ class AwaitChecker implements TreeVisitor {
     bool awaitSeen = false;
     if (nodes != null) {
       for (final n in nodes) {
-        if (n != null && n.visit(this)) awaitSeen = true;
+        if (_visit(n)) awaitSeen = true;
       }
     }
     return awaitSeen;
+  }
+
+  _visit(node) {
+    if (node == null) return false;
+    return node.visit(this);
   }
 }
 
@@ -428,14 +435,16 @@ class AwaitProcessor implements TreeVisitor {
    * Name of the variable introduced on asynchronous functions (of type
    * [Completer] used to create a future of the function's result.
    */
-  static final _COMPLETER_NAME = '_a:res';
-  static final _THEN_PARAM = '_a:v';
+  // TODO(sigmund): fix frog to make it possible to switch to '_a:res'. The
+  // current mangling breaks across closure-boundaries.
+  static final _COMPLETER_NAME = '_a_res';
+  static final _THEN_PARAM = '_a_v';
+  static final _IGNORED_THEN_PARAM = '_a_ignored_param';
   static final _COMPLETE_METHOD = 'complete';
   static final _COMPLETE_EXCEPTION_METHOD = 'completeException';
 
-  // TODO(sigmund): fix frog to make it possible to switch to '_a:after'. The
-  // current mangling breaks across closure-boundaries.
-  static final _CONTINUATION_PREFIX = '_a_after';
+  static final _CONTINUATION_PREFIX = '_a_after_';
+  static final _LOOP_CONTINUATION_PREFIX = '_a_';
 
   /** The continuation when visiting a particular statement. */
   Queue<Statement> continuation;
@@ -444,12 +453,12 @@ class AwaitProcessor implements TreeVisitor {
   int continuationClosures = 0;
 
   /** Nodes containing await expressions (determined by [AwaitChecker]). */
-  final NodeSet nodesWithAwait;
+  final NodeSet haveAwait;
 
-  AwaitProcessor(this.nodesWithAwait) : continuation = new Queue<Statement>();
+  AwaitProcessor(this.haveAwait) : continuation = new Queue<Statement>();
 
   visitVariableDefinition(VariableDefinition node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     final values = node.values;
     // After normalization, variable declarations with await can only occur at
     // the top-level and there is no other declaration.
@@ -466,7 +475,7 @@ class AwaitProcessor implements TreeVisitor {
   }
 
   visitFunctionDefinition(FunctionDefinition node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     // TODO(sigmund): consider making this part of the normalizer
     // make implicit return explicit:
     if (node.body is BlockStatement) {
@@ -480,7 +489,12 @@ class AwaitProcessor implements TreeVisitor {
     Statement newBody = node.body.visit(this);
     // TODO(sigmund): extract type arg and put it in completer
     final newList = [_declareCompleter(null, node.span)];
-    newList.addAll(newBody.dynamic.body);
+    if (newBody is BlockStatement) {
+      BlockStatement block = newBody;
+      newList.addAll(block.body);
+    } else {
+      newList.add(newBody);
+    }
     // We update the body in-place to make it easier to update nested functions
     // without having to rewrite the containing function's AST.
     node.body = new BlockStatement(newList, newBody.span);
@@ -514,87 +528,89 @@ class AwaitProcessor implements TreeVisitor {
   }
 
   visitIfStatement(IfStatement node) {
-    if (!nodesWithAwait.contains(node)) return node;
-    // create a continuation closure if there are more than one statements
-    // in the continuation
-    Statement def = null;
-    Statement afterIf = null;
-
-     // TODO(sigmund): consider whether this optimization is worth it, or if we
-     // should do it also on larger continuations.
-     if (continuation.length > 1) {
-      String afterIfName = '${_CONTINUATION_PREFIX}_if_$continuationClosures';
-      continuationClosures++;
-      def = _createContinuationClosure(afterIfName, node.span);
-      afterIf = _makeCallNoArgs(afterIfName, node.span);
-    } else if (continuation.length == 1) {
-      afterIf = continuation.first();
-    }
+    if (!haveAwait.contains(node)) return node;
+    // TODO(sigmund): consider whether we should create this continuation
+    // closure when there are few statements following (e.g a simple expression
+    // statement, no loops, etc).
+    String afterIf = _newClosureName("if", false);
+    Statement def = _makeContinuation(afterIf, node.span);
 
     final trueContinuation = new Queue();
-    trueContinuation.addFirst(afterIf); // TODO(sigmund): create a deep copy
+    trueContinuation.addFirst(_callNoArg(afterIf, node.span));
     continuation = trueContinuation;
     Statement tRes = node.trueBranch.visit(this);
 
     Statement fRes = null;
     if (node.falseBranch != null) {
       final falseContinuation = new Queue();
-      falseContinuation.addFirst(afterIf); // TODO(sigmund): create a deep copy
+      falseContinuation.addFirst(_callNoArg(afterIf, node.span));
       continuation = falseContinuation;
       fRes = node.falseBranch.visit(this);
       continuation = new Queue();
     } else {
       continuation = new Queue();
-      continuation.addFirst(afterIf);
+      continuation.addFirst(_callNoArg(afterIf, node.span));
     }
 
-    final newNode = new IfStatement(node.test, tRes, fRes, node.span);
-    if (def != null) {
-      continuation.addFirst(_returnFuture(node.span));
-      continuation.addFirst(newNode);
-      return def;
-    }
-    return newNode;
+    continuation.addFirst(new IfStatement(node.test, tRes, fRes, node.span));
+    return def;
   }
 
   visitWhileStatement(WhileStatement node) {
-    if (!nodesWithAwait.contains(node)) return node;
-    // TODO(sigmund): implement
-    return node;
+    if (!haveAwait.contains(node)) return node;
+
+    String afterWhile = _newClosureName("while", false);
+    Statement def = _makeContinuation(afterWhile, node.span);
+    String repeatWhile = _newClosureName("while", true);
+
+    final bodyContinuation = new Queue();
+    bodyContinuation.addFirst(_callNoArg(repeatWhile, node.span));
+    continuation = bodyContinuation;
+    Statement tRes = node.body.visit(this);
+
+    continuation = new Queue();
+    continuation.addFirst(_callNoArg(afterWhile, node.span));
+    continuation.addFirst(new IfStatement(node.test, tRes, null, node.span));
+    Statement defLoop = _makeContinuation(repeatWhile, node.span);
+
+    continuation = new Queue();
+    continuation.addFirst(_callNoArg(repeatWhile, node.span));
+    continuation.addFirst(defLoop);
+    return def;
   }
 
   visitDoStatement(DoStatement node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     // TODO(sigmund): implement
     return node;
   }
 
   visitForStatement(ForStatement node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     // TODO(sigmund): implement
     return node;
   }
 
   visitForInStatement(ForInStatement node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     // TODO(sigmund): implement
     return node;
   }
 
   visitTryStatement(TryStatement node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     // TODO(sigmund): implement
     return node;
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     // TODO(sigmund): implement
     return node;
   }
 
   visitBlockStatement(BlockStatement node) {
-    if (!nodesWithAwait.contains(node) && continuation.isEmpty()) return node;
+    if (!haveAwait.contains(node) && continuation.isEmpty()) return node;
     // TODO(sigmund): test also when !continuation.isEmpty();
     for (int i = node.body.length - 1; i >= 0; i--) {
       final res = node.body[i].visit(this);
@@ -610,20 +626,19 @@ class AwaitProcessor implements TreeVisitor {
   }
 
   visitLabeledStatement(LabeledStatement node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     // TODO(sigmund): implement
     return node;
   }
 
   visitExpressionStatement(ExpressionStatement node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     // After normalization, expression statements with await can only occur at
     // the top-level or as the rhs of simple assignments (= but not +=).
     if (node.body is AwaitExpression) {
       return new ExpressionStatement(
-          // TODO(sigmund): introduce temporary variable that produces no
-          // shadowing to ignore the result
-          _desugarAwaitCall(node.body, null), node.span);
+          _desugarAwaitCall(node.body,
+            new Identifier(_IGNORED_THEN_PARAM, node.span)), node.span);
     } else {
       assert(node.body is BinaryExpression);
       BinaryExpression bin = node.body;
@@ -640,22 +655,22 @@ class AwaitProcessor implements TreeVisitor {
   }
 
   visitEmptyStatement(EmptyStatement node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     return node;
   }
 
   visitArgumentNode(ArgumentNode node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     return node;
   }
 
   visitCatchNode(CatchNode node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     return node;
   }
 
   visitCaseNode(CaseNode node) {
-    if (!nodesWithAwait.contains(node)) return node;
+    if (!haveAwait.contains(node)) return node;
     return node;
   }
 
@@ -719,6 +734,7 @@ class AwaitProcessor implements TreeVisitor {
 
   /** Make the statement: [: target.method(value); :]. */
   _makeCall(String target, String method, Expression value, SourceSpan span) {
+    if (value == null) value = new NullExpression(span);
     return new ExpressionStatement(new CallExpression(
         new DotExpression(
             new VarExpression(new Identifier(target, span), span),
@@ -734,35 +750,33 @@ class AwaitProcessor implements TreeVisitor {
             new Identifier("future", span), span), span);
   }
 
+  /** Create a unique name for a continuation. */
+  String _newClosureName(String name, bool isLoop) {
+    String mName = (isLoop ? _LOOP_CONTINUATION_PREFIX : _CONTINUATION_PREFIX)
+        + '${name}_$continuationClosures';
+    continuationClosures++;
+    return mName;
+  }
+
   /** Create a closure that contains the continuation statements. */
-  _createContinuationClosure(String name, SourceSpan span) {
+  _makeContinuation(String mName, SourceSpan span) {
     List<Statement> continuationBlock = [];
     continuationBlock.addAll(continuation);
     return new FunctionDefinition([], null,
-        new Identifier(name, span), [], null, null,
+        new Identifier(mName, span), [], null, null,
         new BlockStatement(continuationBlock, span), span);
   }
 
   /** Make a statement invoking a function in scope. */
-  _makeCallNoArgs(String func, SourceSpan span) {
+  _callNoArg(String mName, SourceSpan span) {
     return new ExpressionStatement(new CallExpression(
-        new VarExpression(new Identifier(func, span), span), [], span), span);
+        new VarExpression(new Identifier(mName, span), span), [], span), span);
   }
 }
 
 // TODO(sigmund): create the following tests:
 // - await within the body of getter or setter properties
-// - await in nested function
-// - nested functions that are lambdas with or without name, top-level or within
-// expressions
 // - await in each valid AST construct
-// - await in invalid locations (initializers, case expressions)
-// - await in variable declarations with more than one name declared:
-//     e.g. final x = 1, y = await 2, z = 3;
-// - async function with a Future return type.
-// - async function with incorrect return type.
-// - apply await on an asynchronous function that contains awaits
-//   (check propagation works)
 // - exceptions - make some of these fail and propagate errors.
 // - methods with and without returns (are returns added implicitly)
 // - await within assignmetns, but not declarations (see what happens with
