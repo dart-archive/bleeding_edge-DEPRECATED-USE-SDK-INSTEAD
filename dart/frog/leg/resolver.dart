@@ -263,10 +263,11 @@ class FullResolverVisitor extends ResolverVisitor {
     if (name.stringValue === '>=') return const SourceString('ge');
 
     if (name.stringValue === '==') return const SourceString('eq');
+    if (name.stringValue === '!=') return const SourceString('eq');
 
     // Index operator.
     if (name.stringValue === '[]') return const SourceString('index');
-    unreachable();
+    compiler.unimplemented("mapOperatorToMethodName");
   }
 
   SourceString mapAssignmentOperatorToMethodName(SourceString name) {
@@ -283,7 +284,7 @@ class FullResolverVisitor extends ResolverVisitor {
     if (name.stringValue === '^=') return const SourceString('xor');
     if (name.stringValue === '++') return const SourceString('add');
     if (name.stringValue === '--') return const SourceString('sub');
-    unreachable();
+    compiler.unimplemented("mapAssignmentOperatorToMethodName");
   }
 
   Element resolveSend(Send node) {

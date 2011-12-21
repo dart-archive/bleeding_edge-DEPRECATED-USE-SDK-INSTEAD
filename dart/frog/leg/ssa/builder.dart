@@ -611,6 +611,13 @@ class SsaBuilder implements Visitor {
       case "<=":  push(new HLessEqual(target, left, right)); break;
       case ">":   push(new HGreater(target, left, right)); break;
       case ">=":  push(new HGreaterEqual(target, left, right)); break;
+      case "!=":
+        HEquals eq = new HEquals(target, left, right);
+        add(eq);
+        HBoolify bl = new HBoolify(eq);
+        add(bl);
+        push(new HNot(bl));
+        break;
       default: compiler.unimplemented("SsaBuilder.visitBinary");
     }
   }
