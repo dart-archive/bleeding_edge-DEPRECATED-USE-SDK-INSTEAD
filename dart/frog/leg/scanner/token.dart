@@ -207,32 +207,46 @@ final PrecedenceInfo COMMA_INFO =
   const PrecedenceInfo(const SourceString(','), 0, COMMA_TOKEN);
 
 // Assignment operators.
+final int ASSIGNMENT_PRECEDENCE = 2;
 final PrecedenceInfo AMPERSAND_EQ_INFO =
-  const PrecedenceInfo(const SourceString('&='), 2, AMPERSAND_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('&='),
+                       ASSIGNMENT_PRECEDENCE, AMPERSAND_EQ_TOKEN);
 final PrecedenceInfo BAR_EQ_INFO =
-  const PrecedenceInfo(const SourceString('|='), 2, BAR_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('|='),
+                       ASSIGNMENT_PRECEDENCE, BAR_EQ_TOKEN);
 final PrecedenceInfo CARET_EQ_INFO =
-  const PrecedenceInfo(const SourceString('^='), 2, CARET_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('^='),
+                       ASSIGNMENT_PRECEDENCE, CARET_EQ_TOKEN);
 final PrecedenceInfo EQ_INFO =
-  const PrecedenceInfo(const SourceString('='), 2, EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('='),
+                       ASSIGNMENT_PRECEDENCE, EQ_TOKEN);
 final PrecedenceInfo GT_GT_EQ_INFO =
-  const PrecedenceInfo(const SourceString('>>='), 2, GT_GT_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('>>='),
+                       ASSIGNMENT_PRECEDENCE, GT_GT_EQ_TOKEN);
 final PrecedenceInfo GT_GT_GT_EQ_INFO =
-  const PrecedenceInfo(const SourceString('>>>='), 2, GT_GT_GT_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('>>>='),
+                       ASSIGNMENT_PRECEDENCE, GT_GT_GT_EQ_TOKEN);
 final PrecedenceInfo LT_LT_EQ_INFO =
-  const PrecedenceInfo(const SourceString('<<='), 2, LT_LT_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('<<='),
+                       ASSIGNMENT_PRECEDENCE, LT_LT_EQ_TOKEN);
 final PrecedenceInfo MINUS_EQ_INFO =
-  const PrecedenceInfo(const SourceString('-='), 2, MINUS_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('-='),
+                       ASSIGNMENT_PRECEDENCE, MINUS_EQ_TOKEN);
 final PrecedenceInfo PERCENT_EQ_INFO =
-  const PrecedenceInfo(const SourceString('%='), 2, PERCENT_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('%='),
+                       ASSIGNMENT_PRECEDENCE, PERCENT_EQ_TOKEN);
 final PrecedenceInfo PLUS_EQ_INFO =
-  const PrecedenceInfo(const SourceString('+='), 2, PLUS_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('+='),
+                       ASSIGNMENT_PRECEDENCE, PLUS_EQ_TOKEN);
 final PrecedenceInfo SLASH_EQ_INFO =
-  const PrecedenceInfo(const SourceString('/='), 2, SLASH_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('/='),
+                       ASSIGNMENT_PRECEDENCE, SLASH_EQ_TOKEN);
 final PrecedenceInfo STAR_EQ_INFO =
-  const PrecedenceInfo(const SourceString('*='), 2, STAR_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('*='),
+                       ASSIGNMENT_PRECEDENCE, STAR_EQ_TOKEN);
 final PrecedenceInfo TILDE_SLASH_EQ_INFO =
-  const PrecedenceInfo(const SourceString('~/='), 2, TILDE_SLASH_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('~/='),
+                       ASSIGNMENT_PRECEDENCE, TILDE_SLASH_EQ_TOKEN);
 
 final PrecedenceInfo QUESTION_INFO =
   const PrecedenceInfo(const SourceString('?'), 3, QUESTION_TOKEN);

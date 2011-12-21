@@ -768,7 +768,7 @@ class Parser {
   }
 
   Token parseExpression(Token token) {
-    token = parseConditionalExpression(token);
+    token = parsePrecedenceExpression(token, 3);
     if (isAssignmentOperator(token)) {
       Token operator = token;
       token = parseExpression(token.next);
@@ -778,36 +778,38 @@ class Parser {
   }
 
   bool isAssignmentOperator(Token token) {
-    return 2 === token.precedence;
+    return ASSIGNMENT_PRECEDENCE === token.info.precedence;
   }
 
-  Token parseConditionalExpression(Token token) {
-    token = parseBinaryExpression(token, 4);
-    if (optional('?', token)) {
-      Token question = token;
-      token = parseExpression(token.next);
-      Token colon = token;
-      token = expect(':', token);
-      token = parseExpression(token);
-      listener.handleConditionalExpression(question, colon);
-    }
+  Token parseConditionalExpressionRest(Token token) {
+    assert(optional('?', token));
+    Token question = token;
+    token = parseExpression(token.next);
+    Token colon = token;
+    token = expect(':', token);
+    token = parseExpression(token);
+    listener.handleConditionalExpression(question, colon);
     return token;
   }
 
-  Token parseBinaryExpression(Token token, int precedence) {
-    assert(precedence >= 4);
+  Token parsePrecedenceExpression(Token token, int precedence) {
+    assert(precedence >= 3);
     token = parseUnaryExpression(token);
-    var tokenLevel = token.precedence;
+    PrecedenceInfo info = token.info;
+    int tokenLevel = info.precedence;
     for (int level = tokenLevel; level >= precedence; --level) {
       while (tokenLevel === level) {
         Token operator = token;
-        if (token.info === IS_INFO) {
+        if (info === IS_INFO) {
           token = parseIsOperatorRest(token);
+        } else if (info === QUESTION_INFO) {
+          token = parseConditionalExpressionRest(token);
         } else {
-          token = parseBinaryExpression(token.next, level + 1);
+          token = parsePrecedenceExpression(token.next, level + 1);
           listener.handleBinaryExpression(operator);
         }
-        tokenLevel = token.precedence;
+        info = token.info;
+        tokenLevel = info.precedence;
       }
     }
     return token;
