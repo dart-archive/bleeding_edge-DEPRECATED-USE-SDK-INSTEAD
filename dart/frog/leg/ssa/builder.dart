@@ -423,12 +423,15 @@ class SsaBuilder implements Visitor {
   }
 
   visitIdentifier(Identifier node) {
-    if (node.isThis()) compiler.unimplemented("'this'");
-    Element element = elements[node];
-    compiler.ensure(element !== null);
-    HInstruction def = definitions[element];
-    assert(def !== null);
-    stack.add(def);
+    if (node.isThis()) {
+      push(new HThis());
+    } else {
+      Element element = elements[node];
+      compiler.ensure(element !== null);
+      HInstruction def = definitions[element];
+      assert(def !== null);
+      stack.add(def);
+    }
   }
 
   Map<Element, HInstruction> joinDefinitions(

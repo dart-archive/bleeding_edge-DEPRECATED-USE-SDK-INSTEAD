@@ -76,6 +76,7 @@ class ResolverVisitor implements Visitor<Element> {
     : compiler = other.compiler,
       mapping = other.mapping,
       enclosingElement = other.enclosingElement,
+      inInstanceContext = other.inInstanceContext,
       context = other.context;
 
   error(Node node, MessageKind kind, [arguments = const []]) {
