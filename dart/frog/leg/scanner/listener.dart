@@ -449,7 +449,7 @@ class ElementListener extends Listener {
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,
                            Token endToken) {
-    discardNodes(interfacesCount);
+    discardNodes("implements", interfacesCount);
     TypeAnnotation supertype = popNode();
     Identifier name = popNode();
     pushElement(new PartialClassElement(name.source, beginToken, endToken));
@@ -468,7 +468,7 @@ class ElementListener extends Listener {
     // TODO(ahe): Implement this.
     canceler.cancel("Cannot handle interfaces", token: token);
     Node defaultClause = popNode();
-    discardNodes(supertypeCount);
+    discardNodes("extends", supertypeCount);
     Identifier name = popNode();
   }
 
@@ -549,7 +549,7 @@ class ElementListener extends Listener {
     Identifier typeName = popNode();
     TypeAnnotation type = new TypeAnnotation(typeName, typeArguments);
     // TODO(ahe): Don't discard library prefixes.
-    discardNodes(count - 1); // Discard library prefixes.
+    discardNodes("library prefix", count - 1); // Discard library prefixes.
     pushNode(type);
   }
 
@@ -567,10 +567,10 @@ class ElementListener extends Listener {
     pushNode(new Modifiers(nodes));
   }
 
-  void discardNodes(int count) {
+  void discardNodes(String reason, int count) {
     for (; count > 0; --count) {
       Node node = popNode();
-      canceler.cancel('Unsupported feature', node: node);
+      canceler.cancel('Unsupported feature $reason', node: node);
     }
   }
 
@@ -834,7 +834,8 @@ class NodeListener extends ElementListener {
   void endForStatement(int updateExpressionCount,
                        Token beginToken, Token endToken) {
     Statement body = popNode();
-    discardNodes(updateExpressionCount - 1); // TODO(ahe): Don't discard.
+    // TODO(ahe): Don't discard.
+    discardNodes("additional update expression", updateExpressionCount - 1);
     if (updateExpressionCount == 0) {
       pushNode(null); // TODO(ahe): Hack.
     }
@@ -947,6 +948,7 @@ class NodeListener extends ElementListener {
     }
     // TODO(ahe): Create AST node.
     pushNode(new UnimplementedExpression('map entry', [key, value]));
+    canceler.cancel('map entries are not implemented', node: key);
   }
 
   void handleLiteralMap(int count, Token beginToken, Token constKeyword,
@@ -1033,7 +1035,7 @@ class NodeListener extends ElementListener {
                                    Token beginToken, Token endToken) {
     canceler.cancel('optional formal parameters are not implemented',
                     token: beginToken);
-    discardNodes(count);
+    discardNodes("optional formal parameter", count);
   }
 
   void handleFunctionTypedFormalParameter(Token token) {

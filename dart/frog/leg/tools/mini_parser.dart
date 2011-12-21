@@ -91,7 +91,8 @@ int parseFile(String filename, MyOptions options) {
     MyNodeListener l = listener;
     if (!l.nodes.isEmpty()) {
       parserError('Stack not empty after parsing',
-                  l.nodes.head.getBeginToken(), file);
+                  l.nodes.head.getBeginToken(), l.nodes.head.getEndToken(),
+                  file);
     }
   }
   return bytes.length;
@@ -169,16 +170,17 @@ class MyListener extends Listener {
   }
 
   void error(String message, Token token) {
-    parserError(message, token, file);
+    parserError(message, token, token, file);
   }
 }
 
-void parserError(String message, Token token, SourceFile file) {
+void parserError(String message, Token beginToken, Token endToken,
+                 SourceFile file) {
   ++errorCount;
-  if (token !== null) {
-    String tokenString = token.toString();
-    int begin = token.charOffset;
-    int end = begin + tokenString.length;
+  if (beginToken !== null) {
+    String tokenString = endToken.toString();
+    int begin = beginToken.charOffset;
+    int end = endToken.charOffset + tokenString.length;
     throw new ParserError(file.getLocationMessage(message, begin, end, true));
   }
   throw new ParserError(message);
@@ -220,11 +222,11 @@ class MyCanceller implements Canceler {
   void cancel([String reason, node, token, instruction]) {
     try {
       if (token !== null) {
-        parserError(reason, token, file);
+        parserError(reason, token, token, file);
       } else if (node !== null) {
-        parserError(reason, node.getBeginToken(), file);
+        parserError(reason, node.getBeginToken(), node.getEndToken(), file);
       } else {
-        parserError(reason, null, file);
+        parserError(reason, null, null, file);
       }
     } catch (ParserError ex) {
       if (options.throwOnError) throw;
