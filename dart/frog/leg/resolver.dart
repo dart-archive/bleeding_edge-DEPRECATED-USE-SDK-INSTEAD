@@ -419,7 +419,7 @@ class FullResolverVisitor extends ResolverVisitor {
       if (node.isIndex) {
         getter = target;
       } else {
-        getter = visit(node);
+        getter = visit(node.selector);
       }
       useElement(node.selector, getter);
     }
