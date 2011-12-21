@@ -288,7 +288,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type lookupMethodType(Node node, ClassElement classElement,
                         SourceString name) {
-    Element member = classElement.lookupLocalElement(name);
+    Element member = classElement.lookupLocalMember(name);
     if (member !== null && member.kind == ElementKind.FUNCTION) {
       return computeType(member);
     }

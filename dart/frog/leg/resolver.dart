@@ -316,7 +316,7 @@ class FullResolverVisitor extends ResolverVisitor {
       return null;
     } else if (receiver.kind === ElementKind.CLASS) {
       ClassElement receiverClass = receiver;
-      target = receiverClass.resolve(compiler).lookupLocalElement(name);
+      target = receiverClass.resolve(compiler).lookupLocalMember(name);
       if (target == null) {
         error(node, MessageKind.METHOD_NOT_FOUND, [receiver, name]);
       } else if (target.isInstanceMember()) {
@@ -420,7 +420,7 @@ class FullResolverVisitor extends ResolverVisitor {
     if (cls !== null) {
       // TODO(ngeoffray): set constructor-name correctly.
       SourceString name = cls.name;
-      constructor = cls.resolve(compiler).lookupLocalElement(name);
+      constructor = cls.resolve(compiler).lookupConstructor(name);
       if (name == cls.name
           && constructor === null
           && node.send.argumentsNode.isEmpty()) {
@@ -601,7 +601,7 @@ class ClassScope extends Scope {
 
   Element lookup(SourceString name) {
     ClassElement cls = element;
-    Element element = cls.lookupLocalElement(name);
+    Element element = cls.lookupLocalMember(name);
     if (element != null) return element;
     element = parent.lookup(name);
     if (element != null) return element;

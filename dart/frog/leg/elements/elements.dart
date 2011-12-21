@@ -268,14 +268,31 @@ class ClassElement extends Element {
     return this;
   }
 
-  Element lookupLocalElement(SourceString name) {
+  Element lookupLocalElement(SourceString name, bool matches(Element)) {
     // TODO(karlklose): replace with more efficient solution.
     for (Link<Element> link = members;
          link !== null && !link.isEmpty();
          link = link.tail) {
-      if (link.head.name == name) return link.head;
+      Element element = link.head;
+      if (matches(element)) return element;
     }
     return null;
+  }
+
+  Element lookupLocalMember(SourceString name) {
+    bool matches(Element element) {
+      return element.name == name
+             && element.kind != ElementKind.CONSTRUCTOR;
+    }
+    return lookupLocalElement(name, matches);
+  }
+
+  Element lookupConstructor(SourceString name) {
+    bool matches(Element element) {
+      return element.name == name
+             && element.kind == ElementKind.CONSTRUCTOR;
+    }
+    return lookupLocalElement(name, matches);
   }
 
   // TODO(ngeoffray): Implement these.
