@@ -119,7 +119,8 @@ class ResolverVisitor implements Visitor<Element> {
     : this.compiler = compiler,
       this.mapping  = new TreeElements(),
       this.enclosingElement = element,
-      inInstanceContext = element.isInstanceMember(),
+      inInstanceContext =
+        element.isInstanceMember() || element.kind == ElementKind.CONSTRUCTOR,
       this.context  = element.isMember()
         ? new ClassScope(element.enclosingElement, compiler.universe)
         : new TopScope(compiler.universe);
@@ -375,7 +376,7 @@ class FullResolverVisitor extends ResolverVisitor {
       SourceString opName = mapOperatorToMethodName(name, node.isPrefix);
       target = compiler.universe.find(opName);
     } else if (node.receiver === null) {
-      target = visit(selector);
+      target = lookup(node, name);
       if (target == null && !enclosingElement.isInstanceMember()) {
         error(node, MessageKind.CANNOT_RESOLVE, [name]);
       }
@@ -419,7 +420,8 @@ class FullResolverVisitor extends ResolverVisitor {
       if (node.isIndex) {
         getter = target;
       } else {
-        getter = visit(node.selector);
+        // TODO(ngeoffray): Find the getter from the setter.
+        getter = context.lookup(node.selector.asIdentifier().source);
       }
       useElement(node.selector, getter);
     }

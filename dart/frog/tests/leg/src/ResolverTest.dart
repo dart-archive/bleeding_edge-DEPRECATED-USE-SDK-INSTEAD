@@ -434,7 +434,7 @@ resolveConstructor(String script, String statement, String className,
   ClassElement classElement =
       compiler.universe.find(buildSourceString(className));
   Element element =
-      classElement.lookupLocalElement(buildSourceString(constructor));
+      classElement.lookupConstructor(buildSourceString(constructor));
   FunctionExpression tree = element.parseNode(compiler, compiler);
   ResolverVisitor visitor = new FullResolverVisitor(compiler, element);
   compiler.resolver.resolveInitializers(element, tree, visitor);
