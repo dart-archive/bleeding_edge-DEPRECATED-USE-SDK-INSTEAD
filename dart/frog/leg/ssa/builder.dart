@@ -44,7 +44,10 @@ class SsaBuilderTask extends CompilerTask {
     classElement.backendMembers =
         classElement.backendMembers.prepend(bodyElement);
     // TODO(floitsch): pass initializer-list to builder.
-    return builder.buildFactory(classElement, bodyElement, function.parameters);
+    return builder.buildFactory(classElement,
+                                bodyElement,
+                                function.initializers,
+                                function.parameters);
   }
 
   HGraph compileConstructorBody(SsaBuilder builder,
@@ -101,10 +104,46 @@ class SsaBuilder implements Visitor {
 
   HGraph buildFactory(ClassElement classElement,
                       ConstructorBodyElement bodyElement,
+                      NodeList initializers,
                       NodeList parameters) {
     openFunction(parameters);
-    HForeignNew newObject = new HForeignNew(classElement, []);
+
+    // Run through the initializers.
+    if (initializers !== null) {
+      for (Link<Node> link = initializers.nodes;
+           !link.isEmpty();
+           link = link.tail) {
+        assert(link.head is Send);
+        if (link.head is !SendSet) {
+          compiler.unimplemented('SsaBuilder.buildFactory super-init');
+        }
+        SendSet init = link.head;
+        Link<Node> arguments = init.arguments;
+        assert(!arguments.isEmpty() && arguments.tail.isEmpty());
+        visit(arguments.head);
+        HInstruction value = pop();
+        updateDefinition(init, value);
+      }
+    }
+
+    // Call the JavaScript constructor with the fields as argument.
+    // TODO(floitsch): allow super calls.
+    // TODO(floitsch): allow inits at field declarations.
+    List<HInstruction> fieldValues = <HInstruction>[];
+    for (Element member in classElement.members) {
+      if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
+        HInstruction value = definitions[member];
+        if (value === null) {
+          value = new HLiteral(null);
+          add(value);
+        }
+        fieldValues.add(value);
+      }
+    }
+    HForeignNew newObject = new HForeignNew(classElement, fieldValues);
     add(newObject);
+
+    // Call the method body.
     String methodName = compiler.namer.getName(bodyElement);
     List bodyCallInputs = <HInstruction>[];
     bodyCallInputs.add(newObject);

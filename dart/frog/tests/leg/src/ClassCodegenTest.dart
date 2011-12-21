@@ -51,6 +51,17 @@ main() {
 }
 """;
 
+final String TEST_FIVE = @"""
+class A {
+  var x;
+  A(x) : this.x = x {}
+}
+
+main() {
+  new A(3);
+}
+""";
+
 twoClasses() {
   String generated = compileClasses(TEST_ONE);
   Expect.isTrue(generated.contains("Isolate.prototype.A2 = function() {\n};"));
@@ -82,8 +93,14 @@ Isolate.prototype.B2 = function(A_x, B_z, B_y) {
 };"""));
 }
 
+constructor1() {
+  String generated = compileClasses(TEST_FIVE);
+  Expect.isTrue(generated.contains("new currentIsolate.A2(x);"));
+}
+
 main() {
   twoClasses();
   subClass();
   fieldTest();
+  constructor1();
 }

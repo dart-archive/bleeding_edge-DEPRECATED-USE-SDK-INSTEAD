@@ -34,8 +34,8 @@ class MockCompiler extends Compiler {
   List<WarningMessage> errors;
   Node parsedTree;
 
-  MockCompiler([String corelib = DEFAULT_CORELIB])
-      : super(null), warnings = [], errors = [] {
+  MockCompiler([String corelib = DEFAULT_CORELIB, Script script = null])
+      : super(script), warnings = [], errors = [] {
     parseScript(corelib);
   }
 
@@ -94,6 +94,10 @@ class MockCompiler extends Compiler {
 
   resolve(ClassElement element) {
     return resolver.resolveType(element);
+  }
+
+  void scanCoreLibrary() {
+    // Do nothing. The mock core library is already handled in the constructor.
   }
 }
 
