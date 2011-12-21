@@ -35,6 +35,18 @@ class Element implements Hashable {
   /** Will return a safe name to refer to this element with in JS code. */
   String get jsname() => _jsname;
 
+  /** The native name of this element if it has one. */
+  String get nativeName() => null;
+
+  /** Avoid the native name if hidden native. */
+  bool get avoidNativeName() => false;
+
+  /**
+   * [jsname] priority of this element, if two elements conflict.
+   * Higher one gets the name.
+   */
+  int get jsnamePriority() => isNative ? 2 : (library.isCore ? 1 : 0);
+
   /** Resolve types and other references in the [Element]. */
   void resolve() {}
 

@@ -665,7 +665,7 @@ ListFactory.prototype.sort$1 = function($0) {
 };
 ListFactory_E = ListFactory;
 ListFactory_K = ListFactory;
-ListFactory_String = ListFactory;
+ListFactory_dart_core_String = ListFactory;
 ListFactory_V = ListFactory;
 // ********** Code for ListIterator **************
 function ListIterator(array) {
@@ -1117,9 +1117,9 @@ function HashMapImplementation_K$V() {
 HashMapImplementation_K$V._computeLoadLimit = function(capacity) {
   return $truncdiv((capacity * 3), 4);
 }
-// ********** Code for HashMapImplementation_String$EvaluatedValue **************
-$inherits(HashMapImplementation_String$EvaluatedValue, HashMapImplementation);
-function HashMapImplementation_String$EvaluatedValue() {}
+// ********** Code for HashMapImplementation_dart_core_String$EvaluatedValue **************
+$inherits(HashMapImplementation_dart_core_String$EvaluatedValue, HashMapImplementation);
+function HashMapImplementation_dart_core_String$EvaluatedValue() {}
 // ********** Code for HashSetImplementation **************
 function HashSetImplementation() {
   // Initializers done
@@ -1208,9 +1208,9 @@ function HashSetImplementation_E() {
 // ********** Code for HashSetImplementation_Library **************
 $inherits(HashSetImplementation_Library, HashSetImplementation);
 function HashSetImplementation_Library() {}
-// ********** Code for HashSetImplementation_String **************
-$inherits(HashSetImplementation_String, HashSetImplementation);
-function HashSetImplementation_String() {}
+// ********** Code for HashSetImplementation_dart_core_String **************
+$inherits(HashSetImplementation_dart_core_String, HashSetImplementation);
+function HashSetImplementation_dart_core_String() {}
 // ********** Code for HashSetImplementation_Type **************
 $inherits(HashSetImplementation_Type, HashSetImplementation);
 function HashSetImplementation_Type() {}
@@ -2109,6 +2109,15 @@ Element.prototype.hashCode = function() {
 }
 Element.prototype.get$jsname = function() {
   return this._jsname;
+}
+Element.prototype.get$nativeName = function() {
+  return null;
+}
+Element.prototype.get$avoidNativeName = function() {
+  return false;
+}
+Element.prototype.get$jsnamePriority = function() {
+  return this.get$isNative() ? 2 : (this.get$library().get$isCore() ? 1 : 0);
 }
 Element.prototype.resolve = function() {
 
@@ -10882,6 +10891,12 @@ Type.prototype.get$parent = function() {
 Type.prototype.getAllMembers = function() {
   return new HashMapImplementation();
 }
+Type.prototype.get$nativeName = function() {
+  return this.get$isNative() ? this.get$definition().get$nativeType().get$name() : null;
+}
+Type.prototype.get$avoidNativeName = function() {
+  return this.get$isHiddenNativeType();
+}
 Type.prototype.get$hasNativeSubtypes = function() {
   if (this._hasNativeSubtypes == null) {
     this._hasNativeSubtypes = this.get$subtypes().some((function (t) {
@@ -12678,56 +12693,37 @@ World.prototype._addMember = function(member) {
   }
 }
 World.prototype._addTopName = function(named) {
-  if (named.get$isNative() && (named instanceof Type)) {
-    var namedType = named;
-    if (namedType.get$isHiddenNativeType()) {
-      var nativeName = namedType.get$definition().get$nativeType().get$name();
-      var existing = this._topNames.$index(nativeName);
-      if (existing != null) {
-        if (existing.get$isNative()) {
-          $globals.world.internalError(('conflicting native names "' + named.get$jsname() + '" ') + ('(already defined in ' + existing.get$span().get$locationText() + ')'), named.get$span());
-        }
-        else {
-          this._addJavascriptTopName(existing);
-        }
-      }
-      this._topNames.$setindex(nativeName, named);
-      if ($eq(nativeName, named.get$jsname())) {
-        this._addJavascriptTopName(named);
-        return;
-      }
+  if (named.get$nativeName() != null) {
+    this._addJavascriptTopName(named, named.get$nativeName());
+  }
+  this._addJavascriptTopName(named, named.get$jsname());
+}
+World.prototype._addJavascriptTopName = function(named, name) {
+  var existing = this._topNames.$index(name);
+  if (existing === named) {
+    if (named.get$avoidNativeName()) {
+      this._renameJavascriptTopName(named);
     }
   }
-  var existing = this._topNames.$index(named.get$jsname());
-  if (existing != null) {
+  else if (existing != null) {
     this.info(('mangling matching top level name "' + named.get$jsname() + '" in ') + ('both "' + named.get$library().get$jsname() + '" and "' + existing.get$library().get$jsname() + '"'));
-    if (named.get$isNative()) {
-      if (existing.get$isNative()) {
-        $globals.world.internalError(('conflicting native names "' + named.get$jsname() + '" ') + ('(already defined in ' + existing.get$span().get$locationText() + ')'), named.get$span());
-      }
-      else {
-        this._topNames.$setindex(named.get$jsname(), named);
-        this._addJavascriptTopName(existing);
-      }
+    var existingPri = existing.get$jsnamePriority();
+    var namedPri = named.get$jsnamePriority();
+    if (existingPri > namedPri || namedPri == 0) {
+      this._renameJavascriptTopName(named);
     }
-    else if (named.get$library().get$isCore()) {
-      if (existing.get$library().get$isCore()) {
-        $globals.world.internalError(('conflicting top-level names in core "' + named.get$jsname() + '" ') + ('(previously defined in ' + existing.get$span().get$locationText() + ')'), named.get$span());
-      }
-      else {
-        this._topNames.$setindex(named.get$jsname(), named);
-        this._addJavascriptTopName(existing);
-      }
+    else if (namedPri > existingPri) {
+      this._renameJavascriptTopName(existing);
     }
     else {
-      this._addJavascriptTopName(named);
+      $globals.world.internalError(('conflicting JS name "' + name + '" of same ') + ('priority ' + existing.get$jsnamePriority() + ':  ') + ('(already defined in ' + existing.get$span().get$locationText() + ')'), named.get$span(), existing.get$span());
     }
   }
   else {
-    this._topNames.$setindex(named.get$jsname(), named);
+    this._topNames.$setindex(name, named);
   }
 }
-World.prototype._addJavascriptTopName = function(named) {
+World.prototype._renameJavascriptTopName = function(named) {
   named._jsname = ('' + named.get$library().get$jsname() + '_' + named.get$jsname());
   var existing = this._topNames.$index(named.get$jsname());
   if (existing != null && $ne(existing, named)) {

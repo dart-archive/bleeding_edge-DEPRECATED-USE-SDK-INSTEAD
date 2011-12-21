@@ -161,89 +161,80 @@ class World {
     }
   }
 
+  /**
+   * Adds a top level named [Element] so we track which names will be used in
+   * the generated JS.
+   */
   _addTopName(Element named) {
-    // What makes this method so complicated is that it is incremental.  It
-    // would me much simpler if the names could be added in priority order,
-    // e.g. native classes, library classes and finally user code.
-
-    if (named.isNative && named is Type) {
-      // Hidden native classes have two names: a native name that should be
-      // avoided since it might not actually be hidden, and a jsname that is
-      // used for class data, e.g. static members.
-      //
-      // Consider:
-      //
-      //  #library('public');
-      //   interface DOMWindow { ... }
-      //  #library('impl');
-      //   class DOMWindow implements public.DOMWindow native '*DOMWindow' { }
-      //  #library('proxy');
-      //   class DOMWindow implements public.DOMWindow { ... }
-      //
-      // The global name 'DOMWindow' is reserved for the native implementation,
-      // so the others all need to be renamed to avoid conflict.
-
-      Type namedType = named;
-      if (namedType.isHiddenNativeType) {
-        var nativeName = namedType.definition.nativeType.name;
-        var existing = _topNames[nativeName];
-        if (existing != null) {
-          if (existing.isNative) {
-            world.internalError('conflicting native names "${named.jsname}" '
-                + '(already defined in ${existing.span.locationText})',
-                named.span);
-          } else {
-            _addJavascriptTopName(existing);  // Rename conflicting type.
-          }
-        }
-        _topNames[nativeName] = named;
-        if (nativeName == named.jsname) {
-          // class X native '*X' {} - need to rename the jsname.
-          _addJavascriptTopName(named);
-          return;
-        }
-      }
+    if (named.nativeName != null) {
+      // Reserve the native name if we have one. This ensures no other type
+      // will take our native name.
+      _addJavascriptTopName(named, named.nativeName);
     }
+    _addJavascriptTopName(named, named.jsname);
+  }
 
-    var existing = _topNames[named.jsname];
-    if (existing != null) {
+  /**
+   * Reserves [name] in the generated JS, or renames the lower priority
+   * [Element] if the name we wanted was already taken.
+   */
+  _addJavascriptTopName(Element named, String name) {
+    var existing = _topNames[name];
+    if (existing === named) {
+      // We're conflicting with ourself:
+
+      if (named.avoidNativeName) {
+        // Avoid using hidden native class names, because we want to use it in
+        // our native implementation code.
+        //
+        // Consider:
+        //  #library('public');
+        //   interface DOMWindow { ... }
+        //  #library('impl');
+        //   class DOMWindow implements public.DOMWindow native '*DOMWindow' { }
+        //  #library('proxy');
+        //   class DOMWindow implements public.DOMWindow { ... }
+        //
+        // The global name 'DOMWindow' will be reserved for the native
+        // implementation, so all of them need to be renamed to avoid conflict.
+        _renameJavascriptTopName(named);
+      }
+
+      // Otherwise the conflict is harmless. Do nothing.
+    } else if (existing != null) {
       info('mangling matching top level name "${named.jsname}" in '
           + 'both "${named.library.jsname}" and "${existing.library.jsname}"');
 
-      if (named.isNative) {
-        // resolve conflicts in favor first of natives
-        if (existing.isNative) {
-          world.internalError('conflicting native names "${named.jsname}" '
-              + '(already defined in ${existing.span.locationText})',
-              named.span);
-        } else {
-          _topNames[named.jsname] = named;
-          _addJavascriptTopName(existing);
-        }
-      } else if (named.library.isCore) {
-        // then in favor of corelib
-        if (existing.library.isCore) {
-          world.internalError(
-              'conflicting top-level names in core "${named.jsname}" '
-              + '(previously defined in ${existing.span.locationText})',
-              named.span);
-        } else {
-          _topNames[named.jsname] = named;
-          _addJavascriptTopName(existing);
-        }
+      // resolve conflicts based on priority
+      int existingPri = existing.jsnamePriority;
+      int namedPri = named.jsnamePriority;
+      if (existingPri > namedPri || namedPri == 0) {
+        // Either existing was higher priority, or they're both 0 so first one
+        // wins.
+        _renameJavascriptTopName(named);
+      } else if (namedPri > existingPri) {
+        // New one takes priority over existing
+        _renameJavascriptTopName(existing);
       } else {
-        // then just first in wins
-        _addJavascriptTopName(named);
+        // Two conflicting native names or names in corelib. Libraries need
+        // to be fixed.
+        world.internalError('conflicting JS name "$name" of same '
+            + 'priority $existingPri: (already defined in) '
+            + '${existing.span.locationText} with priority $namedPri)',
+            named.span, existing.span);
       }
     } else {
-      _topNames[named.jsname] = named;
+      // No one was using the name. Take it for ourselves.
+      _topNames[name] = named;
     }
   }
 
-  _addJavascriptTopName(Element named) {
+  /** Renames an [Element] that had a name conflict in the generated JS. */
+  _renameJavascriptTopName(Element named) {
     named._jsname = '${named.library.jsname}_${named.jsname}';
     final existing = _topNames[named.jsname];
     if (existing != null && existing != named) {
+      // If this happens it means the library name wasn't unique enough.
       world.internalError('name mangling failed for "${named.jsname}" '
           + '("${named.jsname}" defined also in ${existing.span.locationText})',
           named.span);

@@ -107,6 +107,15 @@ class Type extends Element {
 
   Map<String, Member> getAllMembers() => {};
 
+  /** The native name of this element if it has one. */
+  String get nativeName() => isNative ? definition.nativeType.name : null;
+
+  /**
+   * Avoid the native name if hidden native. It might exist on some browsers and
+   * we want to use it if it does.
+   */
+  bool get avoidNativeName() => isHiddenNativeType;
+
   bool _hasNativeSubtypes;
   bool get hasNativeSubtypes() {
     if (_hasNativeSubtypes == null) {
