@@ -62,7 +62,7 @@ class ResolverTask extends CompilerTask {
         SendSet init = link.head;
         SourceString name = getInitializerFieldName(init, onError);
         ClassElement classElement = element.enclosingElement;
-        Element target = classElement.lookupLocalElement(name);
+        Element target = classElement.lookupLocalMember(name);
         Node selector = init.selector;
         if (target == null) {
           visitor.error(selector, MessageKind.CANNOT_RESOLVE, [name]);
@@ -375,7 +375,7 @@ class FullResolverVisitor extends ResolverVisitor {
       SourceString opName = mapOperatorToMethodName(name, node.isPrefix);
       target = compiler.universe.find(opName);
     } else if (node.receiver === null) {
-      target = visit(node);
+      target = visit(selector);
       if (target == null && !enclosingElement.isInstanceMember()) {
         error(node, MessageKind.CANNOT_RESOLVE, [name]);
       }
