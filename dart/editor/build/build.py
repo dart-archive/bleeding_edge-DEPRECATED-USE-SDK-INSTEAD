@@ -265,7 +265,7 @@ def main():
     _PrintSeparator('running the build of the Dart SDK')
     dartbuildscript = os.path.join(toolspath, 'build.py')
     cmds = [sys.executable, dartbuildscript,
-            '--mode=release', 'upload_sdk']
+            '--mode=release', 'runtime']
     cwd = os.getcwd()
     try:
       os.chdir(dartpath)
