@@ -6,6 +6,7 @@ prefix frog
 
 [ $component == frogsh ]
 EvaluatorTest: Pass, Crash # flaky, no data yet available to track it down.
+InheritanceOrderingTest: Pass, Crash # Flaky, no data yet. Two flaky tests is starting to look like a pattern ...
 
 [ $component == frogsh && $checked]
 NodeProcessTest: Fail # Checked mode failure -- looked like it failed to find assert$WritableStream
