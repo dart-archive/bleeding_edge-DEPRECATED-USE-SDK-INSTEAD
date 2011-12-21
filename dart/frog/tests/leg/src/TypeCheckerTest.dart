@@ -416,27 +416,6 @@ analyzeIn(ClassElement classElement, String text, [expectedWarnings]) {
   compiler.universe = universe;
 }
 
-void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
-  var fail = (message) => Expect.fail('$text: $message');
-  Iterator<MessageKind> expected = expectedWarnings.iterator();
-  Iterator<WarningMessage> found = foundWarnings.iterator();
-  while (expected.hasNext() && found.hasNext()) {
-    Expect.equals(expected.next(), found.next().message.kind);
-  }
-  if (expected.hasNext()) {
-    do {
-      print('Expected warning "${expected.next()}" did not occur');
-    } while (expected.hasNext());
-    fail('Too few warnings');
-  }
-  if (found.hasNext()) {
-    do {
-      print('Additional warning "${found.next()}"');
-    } while (found.hasNext());
-    fail('Too many warnings');
-  }
-}
-
 class ExtendedUniverse extends Universe {
   final Universe base;
 

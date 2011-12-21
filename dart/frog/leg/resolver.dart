@@ -20,14 +20,13 @@ class ResolverTask extends CompilerTask {
   TreeElements resolve(FunctionElement element) {
     return measure(() {
       FunctionExpression tree = element.parseNode(compiler, compiler);
-      if (tree.initializers !== null) {
-        compiler.cancel('initializers are not implemented',
-                        node: tree.initializers);
-      }
       ResolverVisitor visitor = new SignatureResolverVisitor(compiler, element);
       visitor.visit(tree);
 
       visitor = new FullResolverVisitor.from(visitor);
+      if (tree.initializers != null) {
+        resolveInitializers(element, tree, visitor);
+      }
       visitor.visit(tree.body);
 
       // Resolve the type annotations encountered in the method.
@@ -36,6 +35,59 @@ class ResolverTask extends CompilerTask {
       }
       return visitor.mapping;
     });
+  }
+
+  bool isInitializer(SendSet node) {
+    if (node.selector.asIdentifier() == null) return false;
+    if (node.receiver == null) return true;
+    if (node.receiver.asIdentifier() == null) return false;
+    return node.receiver.asIdentifier().isThis();
+  }
+
+  SourceString getInitializerFieldName(SendSet node, onError(node)) {
+    if (!isInitializer(node)) onError(node);
+    return node.selector.asIdentifier().source;
+  }
+
+  void resolveInitializers(Element element, FunctionExpression node,
+                           ResolverVisitor visitor) {
+    void onError(node) {
+      visitor.error(node, MessageKind.INVALID_RECEIVER_IN_INITIALIZER);
+    }
+    Map<SourceString, Node> initialized = new Map<SourceString, Node>();
+    for (Link<Node> link = node.initializers.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      if (link.head.asSendSet() != null) {
+        SendSet init = link.head;
+        SourceString name = getInitializerFieldName(init, onError);
+        ClassElement classElement = element.enclosingElement;
+        Element target = classElement.lookupLocalElement(name);
+        Node selector = init.selector;
+        if (target == null) {
+          visitor.error(selector, MessageKind.CANNOT_RESOLVE, [name]);
+        } else if (target.kind != ElementKind.FIELD) {
+          visitor.error(selector, MessageKind.NOT_A_FIELD, [name]);
+        } else if (!target.isInstanceMember()) {
+          visitor.error(selector, MessageKind.INIT_STATIC_FIELD, [name]);
+        }
+        visitor.useElement(init, target);
+        if (initialized.containsKey(name)) {
+          visitor.error(init, MessageKind.DUPLICATE_INITIALIZER, [name]);
+          visitor.warning(initialized[name], MessageKind.ALREADY_INITIALIZED,
+                          [name]);
+        }
+        initialized[name] = init;
+        Node value = init.arguments.head;
+        visitor.visitInStaticContext(value);
+      } else if (link.head.asSend() !== null) {
+        // TODO(karlklose): super(...), this(...).
+        compiler.cancel('uniplemented', node:link.head);
+      } else {
+        compiler.cancel('internal error: invalid initializer',
+                        node: link.head);
+      }
+    }
   }
 
   void resolveType(ClassElement element) {
@@ -93,6 +145,21 @@ class ResolverVisitor implements Visitor<Element> {
     compiler.cancel(message);
   }
 
+  Element lookup(Node node, SourceString name) {
+    Element result = context.lookup(name);
+    if (!inInstanceContext && result != null && result.isInstanceMember()) {
+      error(node, MessageKind.NOT_STATIC, [node]);
+    }
+    return result;
+  }
+
+  visitInStaticContext(Node node) {
+    bool wasInstanceContext = inInstanceContext;
+    inInstanceContext = false;
+    visit(node);
+    inInstanceContext = wasInstanceContext;
+  }
+
   visit(Node node) {
     if (node == null) return null;
     return node.accept(this);
@@ -103,7 +170,7 @@ class ResolverVisitor implements Visitor<Element> {
       if (!inInstanceContext) error(node, MessageKind.NO_THIS_IN_STATIC);
       return null;
     } else {
-      Element element = context.lookup(node.source);
+      Element element = lookup(node, node.source);
       if (element == null) {
         error(node, MessageKind.CANNOT_RESOLVE, [node]);
       }
@@ -154,7 +221,6 @@ class SignatureResolverVisitor extends ResolverVisitor {
   visitFunctionExpression(FunctionExpression node) {
     useElement(node, element);
     context = new MethodScope(context, element);
-
     if (element.parameters == null) {
       ParametersVisitor visitor = new ParametersVisitor(this);
       visitor.visit(node.parameters);
@@ -309,7 +375,7 @@ class FullResolverVisitor extends ResolverVisitor {
       SourceString opName = mapOperatorToMethodName(name, node.isPrefix);
       target = compiler.universe.find(opName);
     } else if (node.receiver === null) {
-      target = context.lookup(name);
+      target = visit(node);
       if (target == null && !enclosingElement.isInstanceMember()) {
         error(node, MessageKind.CANNOT_RESOLVE, [name]);
       }
@@ -353,7 +419,7 @@ class FullResolverVisitor extends ResolverVisitor {
       if (node.isIndex) {
         getter = target;
       } else {
-        getter = context.lookup(node.selector.asIdentifier().source);
+        getter = visit(node);
       }
       useElement(node.selector, getter);
     }
@@ -570,7 +636,7 @@ class Scope {
 
   Scope(this.parent, this.element);
   abstract Element add(Element element);
-  abstract Element lookup(Element element);
+  abstract Element lookup(SourceString name);
 }
 
 class MethodScope extends Scope {

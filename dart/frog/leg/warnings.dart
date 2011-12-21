@@ -26,6 +26,8 @@ class MessageKind {
       'no method named #{2} in class #{1}');
   static final MEMBER_NOT_STATIC = const MessageKind(
       '#{1}.#{2} is not static');
+  static final NOT_STATIC = const MessageKind(
+      '#{1} is not static');
 
   static final UNREACHABLE_CODE = const MessageKind(
       'unreachable code');
@@ -44,8 +46,18 @@ class MessageKind {
       '#{1} is not a type');
   static final CANNOT_FIND_CONSTRUCTOR = const MessageKind(
       'cannot find constructor #{1}');
+  static final INVALID_RECEIVER_IN_INITIALIZER = const MessageKind(
+      'field initializer expected');
   static final NO_THIS_IN_STATIC = const MessageKind(
       '\'this\' is only available in instance methods');
+  static final DUPLICATE_INITIALIZER = const MessageKind(
+      'field #{1} is initialized more than once');
+  static final ALREADY_INITIALIZED = const MessageKind(
+      '#{1} was already initialized here');
+  static final INIT_STATIC_FIELD = const MessageKind(
+      'cannot initialize static field #{1}');
+  static final NOT_A_FIELD = const MessageKind(
+      '#{1} is not a field');
 
   toString() => template;
 }

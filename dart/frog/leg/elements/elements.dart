@@ -123,7 +123,7 @@ class ForeignElement extends Element {
     return types.dynamicType;
   }
 
-  parseNode(compiler, types) {
+  parseNode(Canceler canceler, Logger logger) {
     throw "internal error: ForeignElement has no node";
   }
 }
@@ -305,7 +305,7 @@ class ClassElement extends Element {
     return synthesizedConstructor;
   }
 
-  parseNode(compiler, types) => node;
+  parseNode(Canceler canceler, Logger logger) => node;
 
   /**
    * Returns the super class, if any.

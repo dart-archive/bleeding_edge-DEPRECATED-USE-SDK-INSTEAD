@@ -64,6 +64,7 @@ main() {
   testFunctionExpression();
   testNewExpression();
   testTopLevelFields();
+  testInitializers();
   testThis();
 }
 
@@ -133,7 +134,8 @@ testLocalsTwo() {
   Node tree = parseStatement("if (true) { var a = 1; var b = 2; }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  Expect.equals(0, visitor.context.elements.length);
+  BlockScope scope = visitor.context;
+  Expect.equals(0, scope.elements.length);
   Expect.equals(2, visitor.mapping.map.length);
 
   List<Element> elements = visitor.mapping.map.getValues();
@@ -146,7 +148,8 @@ testLocalsThree() {
   Node tree = parseStatement("{ var a = 1; if (true) { a; } }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  Expect.equals(0, visitor.context.elements.length);
+  BlockScope scope = visitor.context;
+  Expect.equals(0, scope.elements.length);
   Expect.equals(2, visitor.mapping.map.length);
   List<Element> elements = visitor.mapping.map.getValues();
   Expect.equals(elements[0], elements[1]);
@@ -158,7 +161,8 @@ testLocalsFour() {
   Node tree = parseStatement("{ var a = 1; if (true) { var a = 1; } }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  Expect.equals(0, visitor.context.elements.length);
+  BlockScope scope = visitor.context;
+  Expect.equals(0, scope.elements.length);
   Expect.equals(2, visitor.mapping.map.length);
   List<Element> elements = visitor.mapping.map.getValues();
   Expect.notEquals(elements[0], elements[1]);
@@ -170,7 +174,8 @@ testLocalsFive() {
   If tree = parseStatement("if (true) { var a = 1; a; } else { var a = 2; a;}");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  Expect.equals(0, visitor.context.elements.length);
+  BlockScope scope = visitor.context;
+  Expect.equals(0, scope.elements.length);
   Expect.equals(4, visitor.mapping.map.length);
 
   Block thenPart = tree.thenPart;
@@ -216,7 +221,8 @@ testFor() {
   For tree = parseStatement("for (int i = 0; i < 10; i = i + 1) { i = 5; }");
   visitor.visit(tree);
 
-  Expect.equals(0, visitor.context.elements.length);
+  BlockScope scope = visitor.context;
+  Expect.equals(0, scope.elements.length);
   Expect.equals(7, visitor.mapping.map.length);
 
   VariableDefinitions initializer = tree.initializer;
@@ -416,6 +422,64 @@ testTopLevelFields() {
   Expect.equals(bNode, cNode);
   Expect.isNull(bNode.type);
   Expect.isTrue(bNode.modifiers.isVar());
+}
+
+resolveConstructor(String script, String statement, String className,
+                   String constructor, int expectedElementCount,
+                   [List expectedWarnings = const [],
+                   List expectedErrors = const []]) {
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript(script);
+  compiler.resolveStatement(statement);
+  ClassElement classElement =
+      compiler.universe.find(buildSourceString(className));
+  Element element =
+      classElement.lookupLocalElement(buildSourceString(constructor));
+  FunctionExpression tree = element.parseNode(compiler, compiler);
+  ResolverVisitor visitor = new FullResolverVisitor(compiler, element);
+  compiler.resolver.resolveInitializers(element, tree, visitor);
+  Expect.equals(expectedElementCount, visitor.mapping.map.length);
+
+  compareWarningKinds(script, expectedWarnings, compiler.warnings);
+  compareWarningKinds(script, expectedErrors, compiler.errors);
+}
+
+testInitializers() {
+  String script;
+  script = """class A {
+                int foo; int bar;
+                A() : this.foo = 1, bar = 2;
+              }""";
+  resolveConstructor(script, "A a = new A();", "A", "A", 2);
+
+  script = """class A {
+                int foo; A a;
+                A() : a.foo = 1;
+                }""";
+  resolveConstructor(script, "A a = new A();", "A", "A", 1,
+                     [], [MessageKind.INVALID_RECEIVER_IN_INITIALIZER]);
+
+  script = """class A {
+                int foo;
+                A() : this.foo = 1, this.foo = 2;
+              }""";
+  resolveConstructor(script, "A a = new A();", "A", "A", 2,
+                     [MessageKind.ALREADY_INITIALIZED],
+                     [MessageKind.DUPLICATE_INITIALIZER]);
+
+  script = """class A {
+                A() : this.foo = 1;
+              }""";
+  resolveConstructor(script, "A a = new A();", "A", "A", 0,
+                     [], [MessageKind.CANNOT_RESOLVE]);
+
+  script = """class A {
+                int foo;
+                int bar;
+                A() : this.foo = bar;
+              }""";
+  resolveConstructor(script, "A a = new A();", "A", "A", 2,
+                     [], [MessageKind.NOT_STATIC]);
 }
 
 length(Link link) => link.isEmpty() ? 0 : length(link.tail) + 1;
