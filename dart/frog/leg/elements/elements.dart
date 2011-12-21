@@ -260,10 +260,12 @@ class ClassElement extends Element {
     return type;
   }
 
-  void resolve(Compiler compiler) {
-    if (isResolved) return;
-    compiler.resolveType(this);
-    isResolved = true;
+  ClassElement resolve(Compiler compiler) {
+    if (!isResolved) {
+      compiler.resolveType(this);
+      isResolved = true;
+    }
+    return this;
   }
 
   Element lookupLocalElement(SourceString name) {

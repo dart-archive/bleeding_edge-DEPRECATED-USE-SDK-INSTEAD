@@ -308,7 +308,7 @@ class FullResolverVisitor extends ResolverVisitor {
       return null;
     } else if (receiver.kind === ElementKind.CLASS) {
       ClassElement receiverClass = receiver;
-      target = receiverClass.lookupLocalElement(name);
+      target = receiverClass.resolve(compiler).lookupLocalElement(name);
       if (target == null) {
         error(node, MessageKind.METHOD_NOT_FOUND, [receiver, name]);
       } else if (target.isInstanceMember()) {
@@ -412,10 +412,7 @@ class FullResolverVisitor extends ResolverVisitor {
     if (cls !== null) {
       // TODO(ngeoffray): set constructor-name correctly.
       SourceString name = cls.name;
-      // TODO(ngeoffray): define what isResolved means. Also, pass the
-      // needed element to resolve?
-      if (!cls.isResolved) compiler.resolveType(cls);
-      constructor = cls.lookupLocalElement(name);
+      constructor = cls.resolve(compiler).lookupLocalElement(name);
       if (name == cls.name
           && constructor === null
           && node.send.argumentsNode.isEmpty()) {
@@ -561,8 +558,6 @@ class ParametersVisitor extends AbstractVisitor<Element> {
 class Scope {
   final Element element;
   final Scope parent;
-
-  Map<SourceString, Element> get elements() => const {};
 
   Scope(this.parent, this.element);
   abstract Element add(Element element);
