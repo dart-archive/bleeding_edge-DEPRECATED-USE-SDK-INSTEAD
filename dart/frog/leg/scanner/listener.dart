@@ -1124,17 +1124,15 @@ class NodeListener extends ElementListener {
 
   void endUnamedFunction(Token token) {
     Statement body = popNode();
-    NodeList parameters = popNode();
-    pushNode(new UnimplementedExpression('unamed function',
-                                         [parameters, body]));
-    canceler.cancel('unnamed functions are not implemented', node: parameters);
+    NodeList formals = popNode();
+    pushNode(new FunctionExpression(null, formals, body, null, null, null));
   }
 
   void handleIsOperator(Token operathor, Token not, Token endToken) {
-    canceler.cancel('is-operator is not implemented', token: operathor);
     TypeAnnotation type = popNode();
     Expression expression = popNode();
-    pushNode(new UnimplementedExpression('is', [expression, type]));
+    NodeList arguments = new NodeList.singleton(type);
+    pushNode(new Send(expression, new Operator(operathor), arguments));
   }
 
   void endLabelledStatement(Token colon) {
