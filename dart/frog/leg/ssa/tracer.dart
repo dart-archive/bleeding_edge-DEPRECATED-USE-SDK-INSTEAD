@@ -315,7 +315,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitStatic(HStatic node)
       => "Static ${node.element.name}";
-  String visitStaticStore(HStatic node)
+  String visitStaticStore(HStaticStore node)
       => "Static ${node.element.name} = ${temporaryId(node.inputs[0])}";
 
   String visitStore(HStore node) {
@@ -339,6 +339,7 @@ class HInstructionStringifier implements HVisitor<String> {
     switch (node.type) {
       case HInstruction.TYPE_BOOLEAN: type = "bool"; break;
       case HInstruction.TYPE_NUMBER: type = "number"; break;
+      case HInstruction.TYPE_STRING: type = "string"; break;
       default: unreachable();
     }
     return "TypeGuard: ${temporaryId(node.inputs[0])} is $type";
