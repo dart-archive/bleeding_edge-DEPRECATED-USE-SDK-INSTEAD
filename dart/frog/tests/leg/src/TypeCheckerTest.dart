@@ -27,7 +27,8 @@ main() {
                 testControlFlow,
                 testNewExpression,
                 testConditionalExpression,
-                testIfStatement];
+                testIfStatement,
+                testThis];
   for (Function test in tests) {
     setup();
     test();
@@ -286,6 +287,15 @@ testIfStatement() {
           MessageKind.NOT_ASSIGNABLE);
 }
 
+testThis() {
+  String script = "class Foo {}";
+  compiler.parseScript(script);
+  ClassElement foo = compiler.universe.find(const SourceString("Foo"));
+  analyzeIn(foo, "{ int i = this; }", MessageKind.NOT_ASSIGNABLE);
+  analyzeIn(foo, "{ Object o = this; }");
+  analyzeIn(foo, "{ Foo f = this; }");
+}
+
 final CLASS_WITH_METHODS = '''
 class ClassWithMethods {
   untypedNoArgumentMethod() {}
@@ -296,10 +306,9 @@ class ClassWithMethods {
   int intOneArgumentMethod(int argument) {}
   int intTwoArgumentMethod(int argument1, int argument2) {}
 
-// TODO(karlklose): uncomment when fields are implemented.
-//  Function functionField;
-//  var untypedField;
-//  int intField;
+  Function functionField;
+  var untypedField;
+  int intField;
 }''';
 
 Types types;
@@ -312,7 +321,6 @@ String returnWithType(String type, expression) {
 Node parseExpression(String text) =>
   parseBodyCode(text, (parser, token) => parser.parseExpression(token));
 
-// TODO(karlklose): implement with closures instead of global variables.
 void setup() {
   compiler = new MockCompiler();
   types = new Types();
@@ -379,6 +387,29 @@ analyze(String text, [expectedWarnings]) {
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
   compiler.clearWarnings();
+  checker.analyze(node);
+  compareWarningKinds(text, expectedWarnings, compiler.warnings);
+
+  compiler.universe = universe;
+}
+
+analyzeIn(ClassElement classElement, String text, [expectedWarnings]) {
+  if (expectedWarnings === null) expectedWarnings = [];
+  if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
+
+  Universe universe = compiler.universe;
+  compiler.universe = new ExtendedUniverse(compiler.universe);
+
+  Token tokens = scan(text);
+  NodeListener listener = new NodeListener(compiler, compiler);
+  Parser parser = new Parser(listener);
+  parser.parseStatement(tokens);
+  Node node = listener.popNode();
+  TreeElements elements = compiler.resolveNodeStatement(node, classElement);
+  TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
+                                                                types);
+  compiler.clearWarnings();
+  checker.currentClass = classElement;
   checker.analyze(node);
   compareWarningKinds(text, expectedWarnings, compiler.warnings);
 

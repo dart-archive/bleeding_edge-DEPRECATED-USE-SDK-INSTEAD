@@ -590,6 +590,8 @@ class Identifier extends Expression {
   Identifier(Token this.token);
   Identifier.synthetic(String name) : token = new StringToken(null, name, null);
 
+  bool isThis() => source.stringValue == 'this';
+
   Identifier asIdentifier() => this;
 
   accept(Visitor visitor) => visitor.visitIdentifier(this);

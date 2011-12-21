@@ -60,12 +60,14 @@ class ResolverVisitor implements Visitor<Element> {
   final Compiler compiler;
   final TreeElements mapping;
   final Element enclosingElement;
+  bool inInstanceContext;
   Scope context;
 
   ResolverVisitor(Compiler compiler, Element element)
     : this.compiler = compiler,
       this.mapping  = new TreeElements(),
       this.enclosingElement = element,
+      inInstanceContext = element.isInstanceMember(),
       this.context  = element.isMember()
         ? new ClassScope(element.enclosingElement, compiler.universe)
         : new TopScope(compiler.universe);
@@ -96,11 +98,16 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   visitIdentifier(Identifier node) {
-    Element element = context.lookup(node.source);
-    if (element == null) {
-      error(node, MessageKind.CANNOT_RESOLVE, [node]);
+    if (node.isThis()) {
+      if (!inInstanceContext) error(node, MessageKind.NO_THIS_IN_STATIC);
+      return null;
+    } else {
+      Element element = context.lookup(node.source);
+      if (element == null) {
+        error(node, MessageKind.CANNOT_RESOLVE, [node]);
+      }
+      return useElement(node, element);
     }
-    return useElement(node, element);
   }
 
   visitTypeAnnotation(TypeAnnotation node) {

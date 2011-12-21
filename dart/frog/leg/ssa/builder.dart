@@ -423,6 +423,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitIdentifier(Identifier node) {
+    if (node.isThis()) compiler.unimplemented("'this'");
     Element element = elements[node];
     compiler.ensure(element !== null);
     HInstruction def = definitions[element];

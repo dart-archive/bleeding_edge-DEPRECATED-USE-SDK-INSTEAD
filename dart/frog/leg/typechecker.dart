@@ -22,7 +22,7 @@ class TypeCheckerTask extends CompilerTask {
 }
 
 interface Type {
-  String get name();
+  SourceString get name();
   Element get element();
 }
 
@@ -30,10 +30,12 @@ interface Type {
  * A statement type tracks whether a statement returns or may return.
  */
 class StatementType implements Type {
-  final String name;
+  final String stringName;
   String get element() => null;
 
-  const StatementType(this.name);
+  SourceString get name() => new SourceString(stringName);
+
+  const StatementType(this.stringName);
 
   static final RETURNING = const StatementType('<returning>');
   static final NOT_RETURNING = const StatementType('<not returning>');
@@ -81,7 +83,7 @@ class FunctionType implements Type {
     return sb.toString();
   }
 
-  String get name() => 'Function';
+  SourceString get name() => const SourceString('Function');
 }
 
 class Types {
@@ -139,9 +141,11 @@ Type lookupType(SourceString name, Compiler compiler, types) {
 class TypeCheckerVisitor implements Visitor<Type> {
   final Compiler compiler;
   final TreeElements elements;
-  Type expectedReturnType;  // TODO(karlklose): put into a context.
   Node lastSeenNode;
   final Types types;
+
+  Type expectedReturnType;
+  ClassElement currentClass;
 
   Type intType;
   Type doubleType;
@@ -241,11 +245,12 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitFunctionExpression(FunctionExpression node) {
-    final element = elements[node];
+    final FunctionElement element = elements[node];
     FunctionType functionType = computeType(element);
     Type returnType = functionType.returnType;
     Type previous = expectedReturnType;
     expectedReturnType = returnType;
+    currentClass = element.enclosingElement;
     StatementType bodyType = analyze(node.body);
     if (returnType != types.voidType && returnType != types.dynamicType
         && bodyType != StatementType.RETURNING) {
@@ -262,7 +267,11 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitIdentifier(Identifier node) {
-    fail(node, 'internal error');
+    if (node.isThis()) {
+      return currentClass.computeType(compiler, types);;
+    } else {
+      fail(node, 'internal error: unexpected identifier');
+    }
   }
 
   Type visitIf(If node) {
@@ -542,6 +551,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
       return objectType;
     }
   }
+
+  Type visitModifiers(Modifiers node) {}
 
   visitStringInterpolation(StringInterpolation node) {
     node.visitChildren(this);

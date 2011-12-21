@@ -28,8 +28,8 @@ final String DEFAULT_CORELIB = @'''
   class Object {}''';
 
 class MockCompiler extends Compiler {
-  List warnings;
-  List errors;
+  List<WarningMessage> warnings;
+  List<WarningMessage> errors;
   Node parsedTree;
 
   MockCompiler([String corelib = DEFAULT_CORELIB])
@@ -58,9 +58,15 @@ class MockCompiler extends Compiler {
     return resolveNodeStatement(parsedTree);
   }
 
-  TreeElements resolveNodeStatement(Node tree) {
+  TreeElements resolveNodeStatement(Node tree, [ClassElement element]) {
     ResolverVisitor visitor = resolverVisitor();
+    if (element != null) {
+      visitor.context = new ClassScope(element, universe);
+    }
     visitor.visit(tree);
+    if (element != null) {
+      visitor.context = visitor.context.parent;
+    }
     // Resolve the type annotations encountered in the code.
     while (!resolver.toResolve.isEmpty()) {
       resolver.toResolve.removeFirst().resolve(this);

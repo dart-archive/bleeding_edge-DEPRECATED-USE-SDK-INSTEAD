@@ -64,6 +64,46 @@ main() {
   testFunctionExpression();
   testNewExpression();
   testTopLevelFields();
+  testThis();
+}
+
+testThis() {
+  MockCompiler compiler = new MockCompiler();
+  Universe universe = compiler.universe;
+  compiler.parseScript("class Foo { foo() { return this; } }");
+  compiler.resolveStatement("Foo foo;");
+  ClassElement fooElement = universe.find(buildSourceString("Foo"));
+  FunctionElement funElement =
+      fooElement.lookupLocalElement(buildSourceString("foo"));
+  FullResolverVisitor visitor = new FullResolverVisitor(compiler, funElement);
+  FunctionExpression function = funElement.parseNode(compiler, compiler);
+  visitor.visit(function.body);
+  Map mapping = visitor.mapping.map;
+  List<Element> values = mapping.getValues();
+  Expect.equals(0, mapping.length);
+  Expect.equals(0, compiler.warnings.length);
+
+  compiler = new MockCompiler();
+  compiler.resolveStatement("main() { return this; }");
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(MessageKind.NO_THIS_IN_STATIC,
+                compiler.errors[0].message.kind);
+
+  compiler = new MockCompiler();
+  universe = compiler.universe;
+  compiler.parseScript("class Foo { static foo() { return this; } }");
+  compiler.resolveStatement("Foo foo;");
+  fooElement = universe.find(buildSourceString("Foo"));
+  funElement =
+      fooElement.lookupLocalElement(buildSourceString("foo"));
+  visitor = new FullResolverVisitor(compiler, funElement);
+  function = funElement.parseNode(compiler, compiler);
+  visitor.visit(function.body);
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(MessageKind.NO_THIS_IN_STATIC,
+                compiler.errors[0].message.kind);
 }
 
 testLocalsOne() {

@@ -44,6 +44,8 @@ class MessageKind {
       '#{1} is not a type');
   static final CANNOT_FIND_CONSTRUCTOR = const MessageKind(
       'cannot find constructor #{1}');
+  static final NO_THIS_IN_STATIC = const MessageKind(
+      '\'this\' is only available in instance methods');
 
   toString() => template;
 }
