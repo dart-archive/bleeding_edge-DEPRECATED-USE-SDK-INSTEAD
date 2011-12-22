@@ -398,7 +398,7 @@ testNewExpression() {
   NewExpression expression =
       compiler.parsedTree.asExpressionStatement().expression;
   Element element = elements[expression.send];
-  Expect.equals(ElementKind.CONSTRUCTOR, element.kind);
+  Expect.equals(ElementKind.GENERATIVE_CONSTRUCTOR, element.kind);
   Expect.isTrue(element is SynthesizedConstructorElement);
 }
 

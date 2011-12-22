@@ -242,12 +242,22 @@ builtin$get$length(var receiver) {
   throw "Unimplemented user-defined length.";
 }
 
+bool isInt(var v) {
+  return JS(@"($0 | 0) === $1", v, v);
+}
+
 class int {}
 class double {}
 class String {}
 class bool {}
 class Object {}
-class List<T> {}
+class List<T> {
+  factory List(int n) {
+    if (!isInt(n)) throw "Invalid argument";
+    if (n < 0) throw "Negative size";
+    return JS(@"new Array($0)", n);
+  }
+}
 
 class Expect {
   static void equals(var expected, var actual) {

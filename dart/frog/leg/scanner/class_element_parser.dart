@@ -48,11 +48,28 @@ class MemberListener extends NodeListener {
     pushNode(null);
     Identifier name = method.name; // TODO(ahe): Named constructors.
     ElementKind kind = isConstructor(name) ?
-                       ElementKind.CONSTRUCTOR :
+                       ElementKind.GENERATIVE_CONSTRUCTOR :
                        ElementKind.FUNCTION;
     Element memberElement =
         new PartialFunctionElement(name.source, beginToken, endToken,
                                    kind, method.modifiers, enclosingElement);
+    enclosingElement.addMember(memberElement);
+  }
+
+  void endFactoryMethod(Token factoryKeyword, Token periodBeforeName,
+                        Token endToken) {
+    super.endFactoryMethod(factoryKeyword, periodBeforeName, endToken);
+    FunctionExpression method = popNode();
+    pushNode(null);
+    // TODO(ahe): Named constructors.
+    if (method.name.asIdentifier() == null) {
+      canceler.cancel('Qualified factory names not implemented', node: method);
+    }
+    Identifier name = method.name;
+    ElementKind kind = ElementKind.FUNCTION;
+    Element memberElement =
+        new PartialFunctionElement(name.source, factoryKeyword, endToken, kind,
+                                   method.modifiers, enclosingElement);
     enclosingElement.addMember(memberElement);
   }
 

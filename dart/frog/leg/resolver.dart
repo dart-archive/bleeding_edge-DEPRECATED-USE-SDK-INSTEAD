@@ -120,8 +120,8 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
     : this.compiler = compiler,
       this.mapping  = new TreeElements(),
       this.enclosingElement = element,
-      inInstanceContext =
-        element.isInstanceMember() || element.kind == ElementKind.CONSTRUCTOR,
+      inInstanceContext = element.isInstanceMember()
+          || element.isGenerativeConstructor(),
       this.context  = element.isMember()
         ? new ClassScope(element.enclosingElement, compiler.universe)
         : new TopScope(compiler.universe);

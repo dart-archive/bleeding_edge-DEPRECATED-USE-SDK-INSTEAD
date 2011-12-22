@@ -13,10 +13,10 @@ class SsaBuilderTask extends CompilerTask {
       SsaBuilder builder = new SsaBuilder(compiler, elements);
       HGraph graph;
       switch (element.kind) {
-        case ElementKind.CONSTRUCTOR:
+        case ElementKind.GENERATIVE_CONSTRUCTOR:
           graph = compileConstructor(builder, function, element, elements);
           break;
-        case ElementKind.CONSTRUCTOR_BODY:
+        case ElementKind.GENERATIVE_CONSTRUCTOR_BODY:
           graph = compileConstructorBody(builder, function, element, elements);
           break;
         case ElementKind.FUNCTION:
@@ -28,7 +28,7 @@ class SsaBuilderTask extends CompilerTask {
         String name;
         if (element.enclosingElement !== null) {
           name = "${element.enclosingElement.name}.${element.name}";
-          if (element.kind == ElementKind.CONSTRUCTOR_BODY) {
+          if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
             name = "$name (body)";
           }
         } else {

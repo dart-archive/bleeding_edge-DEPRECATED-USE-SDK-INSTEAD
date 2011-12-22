@@ -29,12 +29,13 @@ class ElementKind {
   static final ElementKind FUNCTION = const ElementKind('function');
   static final ElementKind CLASS = const ElementKind('class');
   static final ElementKind FOREIGN = const ElementKind('foreign');
-  static final ElementKind CONSTRUCTOR = const ElementKind('constructor');
+  static final ElementKind GENERATIVE_CONSTRUCTOR =
+      const ElementKind('generative_constructor');
   static final ElementKind FIELD = const ElementKind('field');
   static final ElementKind VARIABLE_LIST = const ElementKind('variable_list');
   static final ElementKind FIELD_LIST = const ElementKind('field_list');
-  static final ElementKind CONSTRUCTOR_BODY =
-      const ElementKind('constructor_body');
+  static final ElementKind GENERATIVE_CONSTRUCTOR_BODY =
+      const ElementKind('generative_constructor_body');
 
   toString() => id;
 }
@@ -48,6 +49,8 @@ class Element implements Hashable {
   bool isMember() =>
       enclosingElement !== null && enclosingElement.kind == ElementKind.CLASS;
   bool isInstanceMember() => false;
+  bool isGenerativeConstructor() => kind == ElementKind.GENERATIVE_CONSTRUCTOR;
+  Modifiers get modifiers() => null;
 
   const Element(this.name, this.kind, this.enclosingElement);
 
@@ -173,7 +176,8 @@ class FunctionElement extends Element {
 
   bool isInstanceMember() {
     return isMember()
-           && kind != ElementKind.CONSTRUCTOR
+           && kind != ElementKind.GENERATIVE_CONSTRUCTOR
+           && !modifiers.isFactory()
            && !modifiers.isStatic();
   }
 
@@ -183,7 +187,7 @@ class FunctionElement extends Element {
     FunctionExpression node =
         compiler.parser.measure(() => parseNode(compiler, compiler));
     Type returnType = getType(node.returnType, compiler, types);
-    if (returnType === null) compiler.cancel('unknown type ${node.returnType}');
+    if (returnType === null) returnType = types.dynamicType;
 
     LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
     for (Link<Element> link = parameters; !link.isEmpty(); link = link.tail) {
@@ -202,7 +206,7 @@ class ConstructorBodyElement extends FunctionElement {
   ConstructorBodyElement(FunctionElement constructor)
       : this.constructor = constructor,
         super(constructor.name,
-              ElementKind.CONSTRUCTOR_BODY,
+              ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
               null,
               constructor.enclosingElement) {
     assert(constructor.node !== null);
@@ -219,7 +223,8 @@ class ConstructorBodyElement extends FunctionElement {
 
 class SynthesizedConstructorElement extends FunctionElement {
   SynthesizedConstructorElement(Element enclosing)
-    : super(enclosing.name, ElementKind.CONSTRUCTOR, null, enclosing) {
+    : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
+            null, enclosing) {
     parameters = const EmptyLink<Element>();
   }
 
@@ -287,7 +292,7 @@ class ClassElement extends Element {
   Element lookupLocalMember(SourceString name) {
     bool matches(Element element) {
       return element.name == name
-             && element.kind != ElementKind.CONSTRUCTOR;
+             && element.kind != ElementKind.GENERATIVE_CONSTRUCTOR;
     }
     return lookupLocalElement(name, matches);
   }
@@ -295,7 +300,8 @@ class ClassElement extends Element {
   Element lookupConstructor(SourceString name) {
     bool matches(Element element) {
       return element.name == name
-             && element.kind == ElementKind.CONSTRUCTOR;
+             && (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR
+                 || element.modifiers.isFactory());
     }
     return lookupLocalElement(name, matches);
   }

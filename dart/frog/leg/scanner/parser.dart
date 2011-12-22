@@ -572,7 +572,7 @@ class Parser {
     }
     token = parseFormalParameters(token);
     token = parseFunctionBody(token, false);
-    listener.endFactoryMethod(factoryKeyword, period);
+    listener.endFactoryMethod(factoryKeyword, period, token);
     return token.next;
   }
 

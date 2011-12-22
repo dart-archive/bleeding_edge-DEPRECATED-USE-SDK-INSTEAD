@@ -56,7 +56,8 @@ class Listener {
   void beginFactoryMethod(Token token) {
   }
 
-  void endFactoryMethod(Token factoryKeyword, Token periodBeforeName) {
+  void endFactoryMethod(Token factoryKeyword, Token periodBeforeName,
+                        Token endToken) {
   }
 
   void beginFormalParameter(Token token) {
@@ -1107,7 +1108,8 @@ class NodeListener extends ElementListener {
     pushNode(new EmptyStatement(token));
   }
 
-  void endFactoryMethod(Token factoryKeyword, Token periodBeforeName) {
+  void endFactoryMethod(Token factoryKeyword, Token periodBeforeName,
+                        Token endToken) {
     Statement body = popNode();
     NodeList formals = popNode();
     Node name = popNode();

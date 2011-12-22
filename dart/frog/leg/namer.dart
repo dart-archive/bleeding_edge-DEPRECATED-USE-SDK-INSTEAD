@@ -39,7 +39,7 @@ class Namer {
    * body element is not accessible.
    */
   String constructorBodyName(Element element) {
-    assert(element.kind == ElementKind.CONSTRUCTOR);
+    assert(element.kind == ElementKind.GENERATIVE_CONSTRUCTOR);
     // TODO(floitsch): the constructor-body name must not conflict with other
     // instance fields.
     // TOD(floitsch): deal with named constructors.
@@ -56,11 +56,11 @@ class Namer {
    */
   String getName(Element element) {
     switch (element.kind) {
-      case ElementKind.CONSTRUCTOR_BODY:
+      case ElementKind.GENERATIVE_CONSTRUCTOR_BODY:
         ConstructorBodyElement bodyElement = element;
         return constructorBodyName(bodyElement.constructor);
 
-      case ElementKind.CONSTRUCTOR:
+      case ElementKind.GENERATIVE_CONSTRUCTOR:
       default:
         if (element.isInstanceMember()) {
           return instanceName(element.name);

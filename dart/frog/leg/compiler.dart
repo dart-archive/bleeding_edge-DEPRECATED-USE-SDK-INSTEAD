@@ -172,7 +172,7 @@ class Compiler implements Canceler, Logger {
   }
 
   void addToWorklist(Element element) {
-    if (element.kind === ElementKind.CONSTRUCTOR) {
+    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
       registerInstantiatedClass(element.enclosingElement);
     }
     worklist.add(new WorkElement.toCompile(element));
