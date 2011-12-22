@@ -5,10 +5,9 @@
 void main() {
   var prev = -1;
   for (int i = 0; i < 2; i++) {
-    var x = i;
     if (prev != -1) {
       Expect.equals(0, prev);
     }
-    prev = x;
+    prev = i;
   }
 }

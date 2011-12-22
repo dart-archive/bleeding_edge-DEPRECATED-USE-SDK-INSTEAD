@@ -45,8 +45,9 @@ class SsaPhiEliminator extends HGraphVisitor {
         }
         return store;
       }
+      if (current.isLoopHeader()) break;
       current = current.dominator;
-    } while (current != dominator && !current.isLoopHeader());
+    } while (current != dominator);
 
     // We could not get to the definition, just put the store in the
     // predecessor.
@@ -71,8 +72,6 @@ class SsaPhiEliminator extends HGraphVisitor {
     if (phi.isLogicalOperator()) return;
     HLocal local;
     if (phi.element != null) {
-      // If the phi represents a variable in Dart source, check if we
-      // already introduced a local for it.
       local = new HLocal(phi.element);
       entry.addAtEntry(local);
       if (phi.element.kind === ElementKind.PARAMETER) {
