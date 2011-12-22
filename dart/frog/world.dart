@@ -443,26 +443,25 @@ class World {
       if (span2 != null) {
         messageHandler(prefix, message, span2);
       }
-      // TODO(jimhug): keep logging to console or do something else?
-    }
+    } else {
+      final messageWithPrefix = options.useColors
+          ? (color + prefix + _NO_COLOR + message) : (prefix + message);
 
-
-    final messageWithPrefix = options.useColors
-        ? (color + prefix + _NO_COLOR + message) : (prefix + message);
-    var text = messageWithPrefix;
-    if (span != null) {
-      text = span.toMessageString(messageWithPrefix);
-    }
-    print(text);
-    if (span1 != null) {
-      print(span1.toMessageString(messageWithPrefix));
-    }
-    if (span2 != null) {
-      print(span2.toMessageString(messageWithPrefix));
+      var text = messageWithPrefix;
+      if (span != null) {
+        text = span.toMessageString(messageWithPrefix);
+      }
+      print(text);
+      if (span1 != null) {
+        print(span1.toMessageString(messageWithPrefix));
+      }
+      if (span2 != null) {
+        print(span2.toMessageString(messageWithPrefix));
+      }
     }
 
     if (throwing) {
-      throw new CompilerException(messageWithPrefix, span);
+      throw new CompilerException(prefix + message, span);
     }
   }
 

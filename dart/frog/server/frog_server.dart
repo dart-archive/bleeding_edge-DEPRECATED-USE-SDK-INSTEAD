@@ -29,16 +29,21 @@ compileCommand(Map request, OutputStream output) {
   world.reset();
   options.dartScript = request['input'];
   options.outfile = request['output'];
-  print('info: starting compile with id $id, ' +
+  print('starting compile with id $id, ' +
       '${options.dartScript} -> ${options.outfile}');
 
   world.messageHandler = (String prefix, String message, SourceSpan span) {
-    // TODO (danrubel) span is null if frog cannot find the input file
-    var jsonSpan = null;
-    if (span != null) {
+    var jsonSpan;
+    if (span == null) {
+      // Any messages that are not associated with a file become associated with
+      // the library file.
+      jsonSpan = { 'file': request['input'], 'start': 0, 'end': 0,
+          'line': 0, 'column': 0 };
+    } else {
       jsonSpan = { 'file': span.file.filename, 'start': span.start, 'end': span.end,
           'line': span.line, 'column': span.column };
     }
+    
     writeJson(output, {
       'kind': 'message',
       'id': id,
