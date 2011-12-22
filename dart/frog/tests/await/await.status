@@ -12,8 +12,5 @@ WhileLoopWithBreakTest: Fail       # break not yet implemented.
 *NormalizationTest: Fail           # normalization not yet implemented.
 TypedFunctionNegativeTest: Fail    # checking return-type is not implemented.
 
-# Passing for the wrong reasons:
-InitializerNegativeTest: Pass      # should give a different compile-time error
-
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == leg ]
 *: Skip

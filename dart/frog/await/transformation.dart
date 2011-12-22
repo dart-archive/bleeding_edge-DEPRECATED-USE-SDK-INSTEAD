@@ -12,6 +12,9 @@ awaitTransformation() {
       for (var member in type.members.getValues()) {
         _process(member);
       }
+      for (var member in type.constructors.getValues()) {
+        _process(member);
+      }
     }
   }
 }
@@ -129,21 +132,40 @@ class AwaitChecker implements TreeVisitor {
     }
   }
 
+  _notSupportedStmt(name, node) {
+    world.error("Await is not supported in '$name' statements yet.", node.span);
+  }
+
+  _notSupported(name, node) {
+    world.error(
+        "Await is not supported in $name yet, try pulling into a tmp var.",
+        node.span);
+  }
+
   visitReturnStatement(ReturnStatement node) {
     bool awaitSeen = _visit(node.value);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupportedStmt("return", node);
+    }
     return awaitSeen;
   }
 
   visitThrowStatement(ThrowStatement node) {
     bool awaitSeen = _visit(node.value);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupportedStmt("throw", node);
+    }
     return awaitSeen;
   }
 
   visitAssertStatement(AssertStatement node) {
     bool awaitSeen = node.test.visit(this);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupportedStmt("assert", node);
+    }
     return awaitSeen;
   }
 
@@ -177,7 +199,10 @@ class AwaitChecker implements TreeVisitor {
   visitDoStatement(DoStatement node) {
     bool awaitSeen = node.test.visit(this);
     if (_visit(node.body)) awaitSeen = true;
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupportedStmt("do while", node);
+    }
     return awaitSeen;
   }
 
@@ -186,14 +211,20 @@ class AwaitChecker implements TreeVisitor {
     if (_visit(node.body)) awaitSeen = true;
     if (_visit(node.init)) awaitSeen = true;
     if (_visitList(node.step)) awaitSeen = true;
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupportedStmt("for", node);
+    }
     return awaitSeen;
   }
 
   visitForInStatement(ForInStatement node) {
     bool awaitSeen = node.list.visit(this);
     if (_visit(node.body)) awaitSeen = true;
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupportedStmt("for-in", node);
+    }
     return awaitSeen;
   }
 
@@ -203,14 +234,20 @@ class AwaitChecker implements TreeVisitor {
     if (_visit(node.finallyBlock)) {
       awaitSeen = true;
     }
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupportedStmt("try", node);
+    }
     return awaitSeen;
   }
 
   visitSwitchStatement(SwitchStatement node) {
     bool awaitSeen = node.test.visit(this);
     if (_visitList(node.cases)) awaitSeen = true;
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupportedStmt("switch", node);
+    }
     return awaitSeen;
   }
 
@@ -244,14 +281,20 @@ class AwaitChecker implements TreeVisitor {
   visitCallExpression(CallExpression node) {
     bool awaitSeen = node.target.visit(this);
     if (_visitList(node.arguments)) awaitSeen = true;
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("call expressions", node);
+    }
     return awaitSeen;
   }
 
   visitIndexExpression(IndexExpression node) {
     bool awaitSeen = node.target.visit(this);
     if (node.index.visit(this)) awaitSeen = true;
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("index expressions", node);
+    }
     return awaitSeen;
   }
 
@@ -265,32 +308,47 @@ class AwaitChecker implements TreeVisitor {
   visitUnaryExpression(UnaryExpression node) {
     // TODO(sigmund): issue errors for ++/-- cases where we expect an l-value.
     bool awaitSeen = node.self.visit(this);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("unary expressions", node);
+    }
     return awaitSeen;
   }
 
   visitPostfixExpression(PostfixExpression node) {
     // TODO(sigmund): issue errors for ++/-- cases where we expect an l-value.
     bool awaitSeen = node.body.visit(this);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("postfix expressions", node);
+    }
     return awaitSeen;
   }
 
   visitNewExpression(NewExpression node) {
     bool awaitSeen = _visitList(node.arguments);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("new expressions", node);
+    }
     return awaitSeen;
   }
 
   visitListExpression(ListExpression node) {
     bool awaitSeen = _visitList(node.values);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("list literals", node);
+    }
     return awaitSeen;
   }
 
   visitMapExpression(MapExpression node) {
     bool awaitSeen = _visitList(node.items);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("map literals", node);
+    }
     return awaitSeen;
   }
 
@@ -298,19 +356,28 @@ class AwaitChecker implements TreeVisitor {
     bool awaitSeen = node.test.visit(this);
     if (node.trueBranch.visit(this)) awaitSeen = true;
     if (node.falseBranch.visit(this)) awaitSeen = true;
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("ternary expressions", node);
+    }
     return awaitSeen;
   }
 
   visitIsExpression(IsExpression node) {
     bool awaitSeen = node.x.visit(this);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("'is' checks", node);
+    }
     return awaitSeen;
   }
 
   visitParenExpression(ParenExpression node) {
     bool awaitSeen = node.body.visit(this);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("paren expressions", node);
+    }
     return awaitSeen;
   }
 
@@ -321,7 +388,10 @@ class AwaitChecker implements TreeVisitor {
 
   visitDotExpression(DotExpression node) {
     bool awaitSeen = node.self.visit(this);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("dot expressions", node);
+    }
     return awaitSeen;
   }
 
@@ -347,14 +417,20 @@ class AwaitChecker implements TreeVisitor {
 
   visitArgumentNode(ArgumentNode node) {
     bool awaitSeen = node.value.visit(this);
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("call arguments", node);
+    }
     return awaitSeen;
   }
 
   visitCatchNode(CatchNode node) {
     bool awaitSeen = false;
     if (_visit(node.body)) awaitSeen = true;
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("catch blocks", node);
+    }
     return awaitSeen;
   }
 
@@ -369,7 +445,10 @@ class AwaitChecker implements TreeVisitor {
       }
     }
     if (_visitList(node.statements)) awaitSeen = true;
-    if (awaitSeen) haveAwait.add(node);
+    if (awaitSeen) {
+      haveAwait.add(node);
+      _notSupported("case blocks", node);
+    }
     return awaitSeen;
   }
 
@@ -588,12 +667,16 @@ class AwaitProcessor implements TreeVisitor {
   visitForStatement(ForStatement node) {
     if (!haveAwait.contains(node)) return node;
     // TODO(sigmund): implement
+    // Note: this is harder than while loops because of dart's special semantics
+    // capturing the loop variable.
     return node;
   }
 
   visitForInStatement(ForInStatement node) {
     if (!haveAwait.contains(node)) return node;
     // TODO(sigmund): implement
+    // Note: this is harder than while loops because of dart's special semantics
+    // capturing the loop variable.
     return node;
   }
 
