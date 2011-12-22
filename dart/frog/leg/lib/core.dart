@@ -249,6 +249,15 @@ class bool {}
 class Object {}
 class List<T> {}
 
+class Expect {
+  static void equals(var expected, var actual) {
+    if (expected == actual) return;
+    print('Expect.equals(expected: <' + expected.toString() +
+          '>, actual:<' + actual.toString() + '> fails.');
+    throw 'Expect.equals failed.';
+  }
+}
+
 class Stopwatch {
   double startMs;
   double elapsedMs;
