@@ -155,7 +155,7 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
     protected IStatus run(IProgressMonitor monitor) {
       IPath path = new Path(file.getAbsolutePath());
 
-      if (DartCoreDebug.BLEEDING_EDGE) {
+      if (DartCoreDebug.DEPLOY_FROG) {
         long startTime = System.currentTimeMillis();
 
         CountDownLatch latch = new CountDownLatch(1);

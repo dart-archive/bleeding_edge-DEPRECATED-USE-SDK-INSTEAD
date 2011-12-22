@@ -2,8 +2,8 @@ com.google.dart.tools.core/debug/build = false
 com.google.dart.tools.core/debug/dartlib = false
 com.google.dart.tools.core/debug/frog = false
 com.google.dart.tools.core/debug/warmup = false
-
 com.google.dart.tools.core/bleedingEdge = false
+com.google.dart.tools.core/deployFrog = false
 
 
 # These options allow you to override the default libraries used during compilation

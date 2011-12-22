@@ -30,7 +30,7 @@ public class DartCoreDebug {
   public static final boolean DARTLIB = isOptionTrue("debug/dartlib");
   public static final boolean FROG = isOptionTrue("debug/frog");
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
-
+  public static final boolean DEPLOY_FROG = isOptionTrue("deployFrog");
   public static final boolean BLEEDING_EDGE = isOptionTrue("bleedingEdge");
 
   public static Collection<String> getLibrariesEmbedded() {
