@@ -60,13 +60,20 @@ public class FrogManager {
   public static void shutdown() {
     synchronized (lock) {
       if (server != null) {
-        server.shutdown();
+        try {
+          server.shutdown();
+        } catch (IOException ioe) {
+        }
+
         server = null;
       }
 
+      // TODO(devoncarew): in the future, only kill the process if we were not able
+      // to send the shutdown message.
       if (frogProcess != null) {
-        frogProcess.stopProcess();
+        frogProcess.killProcess();
       }
+      frogProcess = null;
     }
   }
 

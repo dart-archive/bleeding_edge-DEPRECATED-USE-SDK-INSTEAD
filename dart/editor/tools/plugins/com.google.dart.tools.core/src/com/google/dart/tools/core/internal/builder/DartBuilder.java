@@ -57,31 +57,37 @@ public class DartBuilder extends IncrementalProjectBuilder {
   }
 
   private final DartcBuildHandler dartcBuildHandler = new DartcBuildHandler();
+  private final FrogBuilderHandler frogBuilderHandler = new FrogBuilderHandler();
 
   private boolean firstBuildThisSession = true;
 
   @SuppressWarnings("rawtypes")
   @Override
   protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
-    // If *anything* changes then find each Dart App and build it
-    if (DartCoreDebug.BLEEDING_EDGE) {
-      // call frog builder
-
-    }
     // TODO(keertip) : remove call to dartc if frog is being used, once indexer is independent
     // If bleeding edge, then dartc does not produce any js files
     if (firstBuildThisSession || hasDartSourceChanged()) {
-      dartcBuildHandler.buildAllApplications(getProject(), !DartCoreDebug.BLEEDING_EDGE,
-          SubMonitor.convert(monitor, 100));
+      if (DartCoreDebug.BLEEDING_EDGE) {
+        SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
+
+        // call frog builder
+        frogBuilderHandler.build(subMonitor.newChild(50), getProject());
+
+        monitor = subMonitor.newChild(50);
+      }
+
+      dartcBuildHandler.buildAllApplications(getProject(), !DartCoreDebug.BLEEDING_EDGE, monitor);
+
       if (firstBuildThisSession) {
         firstBuildThisSession = false;
         dartcBuildHandler.triggerDependentBuilds(getProject(), SubMonitor.convert(monitor, 100));
       }
+
       monitor.done();
     }
+
     // Return the projects upon which this project depends
     return dartcBuildHandler.getPrerequisiteProjects();
-
   }
 
   /**

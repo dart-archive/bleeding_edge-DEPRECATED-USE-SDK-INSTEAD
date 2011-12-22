@@ -372,7 +372,7 @@ public class DartcBuildHandler {
           return true;
         }
       };
-      final CompilerListener listener = new CompilerListener(lib, project);
+      final CompilerListener listener = new CompilerListener(lib, project, shouldGenerateJs);
 
       //Try:
       //1. Have the compiler build the Library

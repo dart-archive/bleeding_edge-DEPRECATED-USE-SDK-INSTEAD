@@ -61,6 +61,38 @@ class BuilderUtil {
    * 
    * @param res the resource (not <code>null</code>)
    * @param offset the character offset into the file where the error occurred
+   * @param errMsg the error message (not <code>null</code>)
+   */
+  static void createMarker(IResource res, int severity, int offset, int length, int lineNumber,
+      String errMsg) {
+    if (res == null || !res.exists()) {
+      return;
+    }
+
+    // Remove newlines and indent spaces from the compiler's error messages.
+    if (errMsg.indexOf('\n') != -1) {
+      errMsg = errMsg.replace('\n', ' ');
+      errMsg = errMsg.replaceAll(" +", " ");
+    }
+
+    try {
+      IMarker marker = res.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
+      marker.setAttribute(IMarker.SEVERITY, severity);
+      marker.setAttribute(IMarker.MESSAGE, errMsg);
+      marker.setAttribute(IMarker.CHAR_START, offset);
+      marker.setAttribute(IMarker.CHAR_END, offset + length);
+      marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+    } catch (CoreException e) {
+      Util.log(e, "Failed to create marker for " + res + "\n   at " + offset + " message: "
+          + errMsg);
+    }
+  }
+
+  /**
+   * Create an error marker for the specified file
+   * 
+   * @param res the resource (not <code>null</code>)
+   * @param offset the character offset into the file where the error occurred
    * @param warnMsg the warning message (not <code>null</code>)
    */
   static void createWarningMarker(IResource res, int offset, int length, int lineNumber,
@@ -103,37 +135,5 @@ class BuilderUtil {
    */
   static void run(IWorkspaceRunnable runnable, IProgressMonitor monitor) throws CoreException {
     ResourcesPlugin.getWorkspace().run(runnable, monitor);
-  }
-
-  /**
-   * Create an error marker for the specified file
-   * 
-   * @param res the resource (not <code>null</code>)
-   * @param offset the character offset into the file where the error occurred
-   * @param errMsg the error message (not <code>null</code>)
-   */
-  private static void createMarker(IResource res, int severity, int offset, int length,
-      int lineNumber, String errMsg) {
-    if (res == null || !res.exists()) {
-      return;
-    }
-
-    // Remove newlines and indent spaces from the compiler's error messages.
-    if (errMsg.indexOf('\n') != -1) {
-      errMsg = errMsg.replace('\n', ' ');
-      errMsg = errMsg.replaceAll(" +", " ");
-    }
-
-    try {
-      IMarker marker = res.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
-      marker.setAttribute(IMarker.SEVERITY, severity);
-      marker.setAttribute(IMarker.MESSAGE, errMsg);
-      marker.setAttribute(IMarker.CHAR_START, offset);
-      marker.setAttribute(IMarker.CHAR_END, offset + length);
-      marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
-    } catch (CoreException e) {
-      Util.log(e, "Failed to create marker for " + res + "\n   at " + offset + " message: "
-          + errMsg);
-    }
   }
 }

@@ -63,21 +63,26 @@ class CompilerListener extends DartCompilerListener {
    */
   private final IProject project;
 
+  private boolean createMarkers;
+
   private static final int MISSING_SOURCE_REPORT_LIMIT = 5;
 
-  CompilerListener(DartLibrary library, IProject project) {
+  CompilerListener(DartLibrary library, IProject project, boolean createMarkers) {
     this.project = project;
     this.library = library;
+    this.createMarkers = createMarkers;
   }
 
   @Override
   public void onError(DartCompilationError event) {
-    if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
-      processWarning(event);
-    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
-      processError(event);
-    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
-      processWarning(event);
+    if (createMarkers) {
+      if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+        processWarning(event);
+      } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+        processError(event);
+      } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+        processWarning(event);
+      }
     }
   }
 

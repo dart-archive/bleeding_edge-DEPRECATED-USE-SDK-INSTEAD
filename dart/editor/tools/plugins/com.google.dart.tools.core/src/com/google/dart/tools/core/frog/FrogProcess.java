@@ -49,6 +49,16 @@ public class FrogProcess {
     return frogRunning;
   }
 
+  public void killProcess() {
+    if (process != null) {
+      if (!hasStopped()) {
+        process.destroy();
+      }
+
+      process = null;
+    }
+  }
+
   public void startProcess() throws IOException {
     ProcessBuilder builder = new ProcessBuilder();
 
@@ -81,7 +91,6 @@ public class FrogProcess {
 
               latch.countDown();
             } else {
-              // TODO(devoncarew): we need to make the frog server less noisy.
               if (DartCoreDebug.FROG) {
                 DartCore.logInformation("frog: [" + line.trim() + "]");
               }
@@ -114,19 +123,9 @@ public class FrogProcess {
 
     if (port == -1) {
       // Kill the server - it is unreachable at this point.
-      stopProcess();
+      killProcess();
 
       throw new IOException("unable to retrieve server port");
-    }
-  }
-
-  public void stopProcess() {
-    if (process != null) {
-      if (!hasStopped()) {
-        process.destroy();
-      }
-
-      process = null;
     }
   }
 

@@ -70,7 +70,8 @@ public class FrogServer {
             }
           }
         } catch (IOException exception) {
-          if (DartCoreDebug.FROG) {
+          // java.io.IOException: ...stream is closed
+          if (!exception.toString().contains(" closed")) {
             DartCore.logError("Exception from frog server", exception);
           }
         }
@@ -96,17 +97,19 @@ public class FrogServer {
   /**
    * Close the socket and streams, signaling the external process to terminate
    */
-  public void shutdown() {
+  public void shutdown() throws IOException {
     JSONObject request = new JSONObject();
+
     try {
       request.put("command", "close");
       sendRequest(request, null);
-      responseStream.close();
-      requestStream.close();
-      requestSocket.close();
-    } catch (Exception e) {
-      DartCore.logError("Failed to close server connection", e);
+    } catch (JSONException exception) {
+      throw new IOException(exception);
     }
+
+    responseStream.close();
+    requestStream.close();
+    requestSocket.close();
   }
 
   /**
@@ -171,11 +174,20 @@ public class FrogServer {
    */
   private void sendMessage(String message) throws IOException {
     byte[] bytes = message.getBytes(utf8Charset);
+
     int len = bytes.length;
-    requestStream.write((len >>> 24) & 0xFF);
-    requestStream.write((len >>> 16) & 0xFF);
-    requestStream.write((len >>> 8) & 0xFF);
-    requestStream.write(len & 0xFF);
+
+    byte[] temp = new byte[len + 4];
+    System.arraycopy(bytes, 0, temp, 4, len);
+    bytes = temp;
+
+    bytes[0] = (byte) (len >>> 24);
+    bytes[1] = (byte) (len >>> 16);
+    bytes[2] = (byte) (len >>> 8);
+    bytes[3] = (byte) len;
+
+    // We send the bytes out in one write to decrease the chance that the receiving code will get
+    // the data in multiple packets, and cause a false warning on the server side.
     requestStream.write(bytes);
     requestStream.flush();
   }

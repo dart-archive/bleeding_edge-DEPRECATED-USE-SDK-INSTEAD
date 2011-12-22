@@ -19,7 +19,9 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 
 /**
@@ -85,6 +87,25 @@ public class DartSdk {
   }
 
   /**
+   * @return the revision number of the SDK
+   */
+  public String getSdkVersion() {
+    File revisionFile = new File(getDirectory(), "revision");
+
+    try {
+      String revision = readFully(revisionFile);
+
+      if (revision != null) {
+        return revision;
+      }
+    } catch (IOException ioe) {
+
+    }
+
+    return "0";
+  }
+
+  /**
    * Answer the VM executable or <code>null</code> if it does not exist
    */
   public File getVmExecutable() {
@@ -110,6 +131,22 @@ public class DartSdk {
   private boolean isWindows() {
     // Look for the "Windows" OS name.
     return System.getProperty("os.name").toLowerCase().startsWith("win");
+  }
+
+  private String readFully(File revisionFile) throws IOException {
+    BufferedReader reader = new BufferedReader(new FileReader(revisionFile));
+
+    try {
+      String line = reader.readLine();
+
+      if (line != null) {
+        return line.trim();
+      } else {
+        return null;
+      }
+    } finally {
+      reader.close();
+    }
   }
 
 }

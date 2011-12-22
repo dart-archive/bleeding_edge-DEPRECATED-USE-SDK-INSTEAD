@@ -18,7 +18,9 @@ import com.google.dart.compiler.backend.js.AbstractJsBackend;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.frog.FrogManager;
+import com.google.dart.tools.core.frog.ResponseDone;
 import com.google.dart.tools.core.frog.ResponseHandler;
+import com.google.dart.tools.core.frog.ResponseMessage;
 import com.google.dart.tools.core.frog.ResponseObject;
 import com.google.dart.tools.core.internal.builder.CompileOptimized;
 import com.google.dart.tools.core.model.DartElement;
@@ -52,7 +54,6 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,44 +77,26 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
     public void response(ResponseObject response) throws IOException, JSONException {
       try {
         // process response
-        String kind = response.getKind();
+        if (response.isMessageResponse()) {
+          ResponseMessage message = response.createMessageResponse();
 
-        if (kind.equals("message")) { //$NON-NLS-1$
-          String prefix = response.getPrefix();
           String path = null;
 
-          if (response.hasSpan()) {
-            path = response.getFileName();
-          }
+          if (message.getLocation() != null) {
+            path = message.getLocation().path;
 
-          if (prefix != null) {
-            prefix = prefix.trim();
-
-            if (prefix.endsWith(":")) {
-              prefix = prefix.substring(0, prefix.length() - 1);
-            }
-            prefix = "[" + prefix + "] ";
-          } else {
-            prefix = "";
-          }
-
-          if (path != null && response.hasSpan()) {
-            JSONObject span = response.getSpan();
-
-            if (span.has("line")) {
-              Object line = span.get("line");
-
-              if (line instanceof Integer) {
-                // Frog has 0-based lines; we use 1-based lines.
-                path += ":" + (((Integer) line).intValue() + 1);
-              }
+            if (message.getLocation().line != -1) {
+              path += ":" + message.getLocation().line;
             }
           }
 
           DartCore.getConsole().println(
-              prefix + (path == null ? "" : path + ", ") + response.getMessage());
-        } else if (kind.equals("done")) { //$NON-NLS-1$
-          if (!response.isTrueResult()) {
+              "[" + message.getSeverity() + "] " + (path == null ? "" : path + ", ")
+                  + message.getMessage());
+        } else if (response.isDoneResponse()) {
+          ResponseDone done = response.createDoneResponse();
+
+          if (!done.isSuccess()) {
             exitStatus = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
                 ActionMessages.DeployOptimizedAction_Fail, null);
           }
@@ -322,8 +305,8 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
       File outputFile, DartLibrary library) {
 
     CompileOptimized dartCompile = new CompileOptimized(library, outputFile);
-    return dartCompile.compileToJs(monitor);
 
+    return dartCompile.compileToJs(monitor);
   }
 
   private DartLibrary getCurrentLibrary() {

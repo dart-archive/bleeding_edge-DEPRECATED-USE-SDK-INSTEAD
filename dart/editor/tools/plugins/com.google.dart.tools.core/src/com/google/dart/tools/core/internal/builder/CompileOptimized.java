@@ -196,7 +196,7 @@ public class CompileOptimized {
           return true;
         }
       };
-      final CompilerListener listener = new CompilerListener(library, null);
+      final CompilerListener listener = new CompilerListener(library, null, false);
 
       //Try:
       //1. Have the compiler build the Library

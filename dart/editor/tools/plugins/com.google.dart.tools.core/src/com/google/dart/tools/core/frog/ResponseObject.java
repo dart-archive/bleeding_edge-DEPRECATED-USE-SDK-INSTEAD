@@ -25,8 +25,12 @@ public class ResponseObject extends JSONObject {
     super(message);
   }
 
-  public String getFileName() throws JSONException {
-    return getSpan().getString("file");
+  public ResponseDone createDoneResponse() throws JSONException {
+    return new ResponseDone(this);
+  }
+
+  public ResponseMessage createMessageResponse() throws JSONException {
+    return new ResponseMessage(this);
   }
 
   public int getId() throws JSONException {
@@ -37,24 +41,12 @@ public class ResponseObject extends JSONObject {
     return getString("kind");
   }
 
-  public String getMessage() throws JSONException {
-    return getString("message");
+  public boolean isDoneResponse() throws JSONException {
+    return "done".equals(getKind());
   }
 
-  public String getPrefix() throws JSONException {
-    return getString("prefix");
-  }
-
-  public JSONObject getSpan() throws JSONException {
-    return (JSONObject) get("span");
-  }
-
-  public boolean hasSpan() throws JSONException {
-    return get("span") instanceof JSONObject;
-  }
-
-  public boolean isTrueResult() throws JSONException {
-    return getBoolean("result");
+  public boolean isMessageResponse() throws JSONException {
+    return "message".equals(getKind());
   }
 
 }
