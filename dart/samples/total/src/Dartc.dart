@@ -46,15 +46,12 @@ class Dartc {
     }
     args.add(scriptName);
 
-    Process compiler = new Process(DARTC_EXEC_PATH, args);
-
+    Process compiler = new Process.start(DARTC_EXEC_PATH, args);
     StringBuffer messages = new StringBuffer();
     compiler.exitHandler = (int status) {
-        compiler.close();
-        callback(status, messages.toString());
-      };
-
-    compiler.start();
+      compiler.close();
+      callback(status, messages.toString());
+    };
 
     compiler.stdout.dataHandler = () => _readAll(compiler.stdout, messages);
     compiler.stderr.dataHandler = () => _readAll(compiler.stderr, messages);

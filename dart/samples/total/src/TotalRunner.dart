@@ -39,14 +39,12 @@ class ServerRunner {
   ServerRunner(String this._serverMain);
 
   void run(ExitCallback exitCallback) {
-    Process dart = new Process(DART_EXEC_PATH, [_serverMain]);
+    Process dart = new Process.start(DART_EXEC_PATH, [_serverMain]);
 
     dart.exitHandler = (int status) {
-        dart.close();
-        exitCallback(status, this);
-      };
-
-    dart.start();
+      dart.close();
+      exitCallback(status, this);
+    };
 
     dart.stdout.dataHandler = () => readMore(dart.stdout, new StringBuffer());
     dart.stderr.dataHandler = () => readMore(dart.stderr, new StringBuffer());
