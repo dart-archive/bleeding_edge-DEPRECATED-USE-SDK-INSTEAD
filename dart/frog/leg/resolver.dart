@@ -432,7 +432,7 @@ class FullResolverVisitor extends ResolverVisitor {
       useElement(node.selector, getter);
     }
     if (node.isIndex) {
-      assert(target.name.stringValue === 'index');
+      assert(target.name.stringValue == 'index');
       target = compiler.universe.find(const SourceString('indexSet'));
     }
     return useElement(node, target);
