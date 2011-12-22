@@ -79,7 +79,8 @@ void testUnaryExpression() {
 
 void testChainedMethodCalls() {
   testStatement('MyClass.foo().bar().baz();');
-  testStatement('MyClass.foo().-x;'); // Accepted by parser, rejected later.
+  // TODO(ahe): reenable following test.
+  // testStatement('MyClass.foo().-x;'); // Accepted by parser, rejected later.
   testStatement('a.b.c.d();');
 }
 

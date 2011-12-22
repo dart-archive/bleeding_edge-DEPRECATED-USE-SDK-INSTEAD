@@ -682,10 +682,10 @@ class Throw extends Statement {
 }
 
 class TypeAnnotation extends Node {
-  final Identifier typeName;
+  final Expression typeName;
   final NodeList typeArguments;
 
-  TypeAnnotation(Identifier this.typeName, NodeList this.typeArguments);
+  TypeAnnotation(Expression this.typeName, NodeList this.typeArguments);
 
   TypeAnnotation asTypeAnnotation() => this;
 

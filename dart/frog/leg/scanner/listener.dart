@@ -523,8 +523,9 @@ class ElementListener extends Listener {
   }
 
   void handleQualified(Token period) {
-    canceler.cancel("library prefixes are not implemented", token: period);
-    Identifier part = popNode();
+    Identifier last = popNode();
+    Identifier first = popNode();
+    pushNode(new Send(first, last));
   }
 
   void handleNoType(Token token) {
@@ -546,11 +547,12 @@ class ElementListener extends Listener {
 
   void endType(int count, Token beginToken, Token endToken) {
     NodeList typeArguments = popNode();
-    Identifier typeName = popNode();
-    TypeAnnotation type = new TypeAnnotation(typeName, typeArguments);
-    // TODO(ahe): Don't discard library prefixes.
-    discardNodes("library prefix", count - 1); // Discard library prefixes.
-    pushNode(type);
+    Expression typeName = popNode();
+    for (int i = 1; i < count; i++) {
+      // TODO(ahe): I don't think this is correct for foo.bar.baz.
+      typeName = new Send(popNode(), typeName);
+    }
+    pushNode(new TypeAnnotation(typeName, typeArguments));
   }
 
   void handleParenthesizedExpression(BeginGroupToken token) {
@@ -679,14 +681,14 @@ class NodeListener extends ElementListener {
   }
 
   void endFormalParameter(Token token, Token thisKeyword) {
-    NodeList name = new NodeList.singleton(popNode());
+    Expression name = popNode();
+    if (thisKeyword !== null) {
+      name = new Send(new Identifier(thisKeyword), name);
+    }
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
-    pushNode(new VariableDefinitions(type, modifiers, name, token));
-    if (thisKeyword !== null) {
-      canceler.cancel('field formal parameters not implemented',
-                      token: thisKeyword);
-    }
+    pushNode(new VariableDefinitions(type, modifiers,
+                                     new NodeList.singleton(name), token));
   }
 
   void endFormalParameters(int count, Token beginToken, Token endToken) {
@@ -738,13 +740,12 @@ class NodeListener extends ElementListener {
   void handleBinaryExpression(Token token) {
     Node argument = popNode();
     Node receiver = popNode();
-    if ((token.stringValue === '.') &&
-        (argument is Send) && (argument.asSend().receiver === null)) {
+    if (token.stringValue === '.') {
+      if (argument is !Send) internalError(node: argument);
+      if (argument.asSend().receiver !== null) internalError(node: argument);
       if (argument is SendSet) internalError(node: argument);
       pushNode(argument.asSend().copyWithReceiver(receiver));
     } else {
-      // TODO(ahe): If token.stringValue === '.', the resolver should
-      // reject this.
       NodeList arguments = new NodeList.singleton(argument);
       pushNode(new Send(receiver, new Operator(token), arguments));
     }
@@ -930,10 +931,9 @@ class NodeListener extends ElementListener {
     Statement body = popNode();
     NodeList initializers = popNode();
     NodeList formalParameters = popNode();
-    Identifier name = popNode(); // TODO(ahe): What about constructors?
+    Expression name = popNode();
     if (period !== null) {
-      canceler.cancel('named constructors are not implemented', node: name);
-      name = popNode();
+      name = new Send(popNode(), name);
     }
     Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formalParameters, body, null,
@@ -983,15 +983,13 @@ class NodeListener extends ElementListener {
   }
 
   void handleNewExpression(Token token, bool named) {
-    if (named) {
-      canceler.cancel('named constructors are not implemented', token: token);
-    }
     NodeList arguments = popNode();
+    Node name = popNode();
     if (named) {
-      Identifier name = popNode();
+      TypeAnnotation type = popNode();
+      name = new Send(type, name);
     }
-    TypeAnnotation type = popNode();
-    pushNode(new NewExpression(token, new Send(null, type, arguments)));
+    pushNode(new NewExpression(token, new Send(null, name, arguments)));
   }
 
   void handleConstExpression(Token token, bool named) {
@@ -1101,16 +1099,15 @@ class NodeListener extends ElementListener {
   void endFactoryMethod(Token factoryKeyword, Token periodBeforeName) {
     Statement body = popNode();
     NodeList formals = popNode();
-    Identifier name = null;
+    Node name = popNode();
     if (periodBeforeName !== null) {
-      name = popNode();
+      // A library prefix was handled in [handleQualified].
+      name = new Send(popNode(), name);
     }
-    Identifier typeName = popNode();
-    TypeAnnotation type = new TypeAnnotation(typeName, null);
     handleModifier(factoryKeyword);
     handleModifiers(1);
     Modifiers modifiers = popNode();
-    pushNode(new FunctionExpression(name, formals, body, type,
+    pushNode(new FunctionExpression(name, formals, body, null,
                                     modifiers, null));
   }
 
