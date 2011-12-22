@@ -475,6 +475,8 @@ class SsaCodeGenerator implements HVisitor {
       name = const SourceString('guard\$num');
     } else if (node.isString()) {
       name = const SourceString('guard\$string');
+    } else if (node.isBoolean()) {
+      name = const SourceString('guard\$bool');
     } else {
       unreachable();
     }

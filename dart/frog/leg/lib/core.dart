@@ -24,6 +24,11 @@ guard$string(x) {
   throw "Type guard failed.";
 }
 
+guard$bool(x) {
+  if (JS(@"typeof $0 == 'boolean'", x)) return x;
+  throw "Type guard failed.";
+}
+
 /**
   * Returns true if both arguments are numbers.
   * If only the first argument is a number, throws the given message as
