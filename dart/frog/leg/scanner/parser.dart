@@ -30,6 +30,7 @@ class Parser {
   }
 
   Token parseInterface(Token token) {
+    Token interfaceKeyword = token;
     listener.beginInterface(token);
     token = parseIdentifier(token.next);
     token = parseTypeVariablesOpt(token);
@@ -42,7 +43,7 @@ class Parser {
     }
     token = parseDefaultClauseOpt(token);
     token = parseInterfaceBody(token);
-    listener.endInterface(supertypeCount, token);
+    listener.endInterface(supertypeCount, interfaceKeyword, token);
     return token.next;
   }
 

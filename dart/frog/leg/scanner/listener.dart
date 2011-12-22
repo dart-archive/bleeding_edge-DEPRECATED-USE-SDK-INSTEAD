@@ -142,7 +142,8 @@ class Listener {
   void beginInterface(Token token) {
   }
 
-  void endInterface(int supertypeCount, Token token) {
+  void endInterface(int supertypeCount,
+                    Token interfaceKeyword, Token endToken) {
   }
 
   void beginLabelledStatement(Token token) {
@@ -456,12 +457,9 @@ class ElementListener extends Listener {
     pushNode(null);
   }
 
-  void endInterface(int supertypeCount, Token token) {
-    // TODO(ahe): Implement this.
-    canceler.cancel("interfaces are not implemented", token: token);
-    Node defaultClause = popNode();
-    discardNodes("extends", supertypeCount);
-    Identifier name = popNode();
+  void endInterface(int supertypeCount,
+                    Token interfaceKeyword, Token endToken) {
+    canceler.cancel("interfaces are not implemented", token: interfaceKeyword);
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
@@ -670,9 +668,10 @@ class NodeListener extends ElementListener {
                            beginToken, endToken));
   }
 
-  void endInterface(int supertypeCount, Token token) {
+  void endInterface(int supertypeCount,
+                    Token interfaceKeyword, Token endToken) {
     // TODO(ahe): Implement this.
-    canceler.cancel("interfaces are not implemented", token: token);
+    canceler.cancel("interfaces are not implemented", token: interfaceKeyword);
     Node defaultClause = popNode();
     NodeList supertypes = makeNodeList(supertypeCount, null, null, ',');
     Identifier name = popNode();
@@ -1016,8 +1015,8 @@ class NodeListener extends ElementListener {
   }
 
   void handleOperatorName(Token operatorKeyword, Token token) {
-    canceler.cancel('user defined operators are not implemented', token: token);
-    pushNode(new Identifier(operatorKeyword));
+    Operator op = new Operator(token);
+    pushNode(new Send(new Identifier(operatorKeyword), op, null));
   }
 
   void handleNamedArgument(Token colon) {
@@ -1043,10 +1042,10 @@ class NodeListener extends ElementListener {
 
   void endOptionalFormalParameters(int count,
                                    Token beginToken, Token endToken) {
-    canceler.cancel('optional formal parameters are not implemented',
-                    token: beginToken);
     NodeList optionalParameters =
       makeNodeList(count, beginToken, endToken, ',');
+    canceler.cancel('optional formal parameters are not implemented',
+                    node: optionalParameters);
   }
 
   void handleFunctionTypedFormalParameter(Token token) {
@@ -1080,10 +1079,11 @@ class NodeListener extends ElementListener {
   }
 
   void endSwitchStatement(Token switchKeyword, Token endToken) {
-    canceler.cancel('switch statement is not implemented',
-                    token: switchKeyword);
     ParenthesizedExpression expression = popNode();
-    pushNode(new SwitchStatement(expression, switchKeyword, endToken));
+    SwitchStatement node =
+      new SwitchStatement(expression, switchKeyword, endToken);
+    canceler.cancel('switch statement is not implemented', node: node);
+    pushNode(node);
   }
 
   void handleBreakStatement(bool hasTarget,
