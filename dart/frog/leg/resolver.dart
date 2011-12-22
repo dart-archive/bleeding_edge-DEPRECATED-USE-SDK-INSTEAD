@@ -488,6 +488,8 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitNewExpression(NewExpression node) {
+    if (node.isConst()) cancel(node, 'const expressions are not implemented');
+
     visit(node.send.argumentsNode);
 
     ClassElement cls = visit(node.send.selector);
@@ -512,10 +514,11 @@ class FullResolverVisitor extends ResolverVisitor {
 
   visitModifiers(Modifiers node) {
     // TODO(ngeoffray): Implement this.
-    cancel(node, "Unimplemented");
+    cancel(node, 'unimplemented');
   }
 
   visitLiteralList(LiteralList node) {
+    if (node.isConst()) cancel(node, 'const literal lists are not implemented');
     visit(node.elements);
   }
 

@@ -975,14 +975,10 @@ class NodeListener extends ElementListener {
 
   void handleLiteralList(int count, Token beginToken, Token constKeyword,
                          Token endToken) {
-    if (constKeyword !== null) {
-      canceler.cancel('const literal lists are not implemented',
-                      token: constKeyword);
-    }
     NodeList elements = makeNodeList(count, beginToken, endToken, ',');
     NodeList typeArguments = popNode();
     // TODO(ahe): Type arguments are discarded.
-    pushNode(new LiteralList(null, elements));
+    pushNode(new LiteralList(null, elements, constKeyword));
   }
 
   void handleIndexedExpression(Token openSquareBracket,
@@ -1005,7 +1001,6 @@ class NodeListener extends ElementListener {
   }
 
   void handleConstExpression(Token token, bool named) {
-    canceler.cancel('const expressions are not implemented', token: token);
     NodeList arguments = popNode();
     if (named) {
       Identifier name = popNode();

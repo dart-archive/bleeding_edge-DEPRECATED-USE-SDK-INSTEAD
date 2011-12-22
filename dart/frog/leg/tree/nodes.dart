@@ -294,6 +294,8 @@ class NewExpression extends Expression {
     if (send !== null) send.accept(visitor);
   }
 
+  bool isConst() => newToken.stringValue === 'const';
+
   Token getBeginToken() => newToken;
 
   Token getEndToken() => send.getEndToken();
@@ -600,7 +602,12 @@ class LiteralList extends Expression {
   final TypeAnnotation type;
   final NodeList elements;
 
-  LiteralList(this.type, this.elements);
+  final Token constKeyword;
+
+  LiteralList(this.type, this.elements, this.constKeyword);
+
+  bool isConst() => constKeyword !== null;
+
   LiteralList asLiteralList() => this;
   accept(Visitor visitor) => visitor.visitLiteralList(this);
 
@@ -609,8 +616,12 @@ class LiteralList extends Expression {
     elements.accept(visitor);
   }
 
-  getBeginToken() => firstBeginToken(type, elements);
-  getEndToken() => elements.getEndToken();
+  Token getBeginToken() {
+    if (constKeyword !== null) return constKeyword;
+    return firstBeginToken(type, elements);
+  }
+
+  Token getEndToken() => elements.getEndToken();
 }
 
 class Identifier extends Expression {
@@ -629,9 +640,9 @@ class Identifier extends Expression {
 
   visitChildren(Visitor visitor) {}
 
-  getBeginToken() => token;
+  Token getBeginToken() => token;
 
-  getEndToken() => token;
+  Token getEndToken() => token;
 }
 
 class Operator extends Identifier {
