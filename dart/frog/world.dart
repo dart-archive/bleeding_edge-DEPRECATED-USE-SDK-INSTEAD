@@ -216,12 +216,19 @@ class World {
         // New one takes priority over existing
         _renameJavascriptTopName(existing);
       } else {
-        // Two conflicting native names or names in corelib. Libraries need
-        // to be fixed.
-        world.internalError('conflicting JS name "$name" of same '
+        final msg = 'conflicting JS name "$name" of same '
             + 'priority $existingPri: (already defined in) '
-            + '${existing.span.locationText} with priority $namedPri)',
-            named.span, existing.span);
+            + '${existing.span.locationText} with priority $namedPri)';
+        if (named.isNative) {
+          // We trust that conflicting native names in builtin libraries are
+          // harmless. Most cases there are no conflicts, currently isolates
+          // in coreimpl and dart:dom define web workers to avoid adding a
+          // dependency from corelib to dart:dom.
+          world.info(msg, named.span, existing.span);
+        } else {
+          // Conflicting name in corelib needs to be fixed.
+          world.internalError(msg, named.span, existing.span);
+        }
       }
     } else {
       // No one was using the name. Take it for ourselves.

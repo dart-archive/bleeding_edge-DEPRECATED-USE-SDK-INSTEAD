@@ -1813,6 +1813,7 @@ Collections.filter = function(source, destination, f) {
   }
   return destination;
 }
+// ********** Code for _Worker **************
 // ********** Code for top level **************
 //  ********** Library node **************
 // ********** Code for Process **************
@@ -1880,7 +1881,11 @@ Object.prototype.$typeNameOf = function() {
   }
   var str = Object.prototype.toString.call(this);
   str = str.substring(8, str.length - 1);
-  if (str == 'Window') str = 'DOMWindow';
+  if (str == 'Window') {
+    str = 'DOMWindow';
+  } else if (str == 'Document') {
+    str = 'HTMLDocument';
+  }
   return str;
 }
 function $dynamic(name) {
@@ -2124,7 +2129,7 @@ CoreJs.prototype.ensureDynamicProto = function() {
 CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
   this._generatedTypeNameOf = true;
-  this.writer.writeln("Object.prototype.$typeNameOf = function() {\n  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')\n      || typeof(process) != 'undefined') { // fast-path for Chrome and Node\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  str = str.substring(8, str.length - 1);\n  if (str == 'Window') str = 'DOMWindow';\n  return str;\n}"/*null._TYPE_NAME_OF_FUNCTION*/);
+  this.writer.writeln("Object.prototype.$typeNameOf = function() {\n  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')\n      || typeof(process) != 'undefined') { // fast-path for Chrome and Node\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  str = str.substring(8, str.length - 1);\n  if (str == 'Window') {\n    str = 'DOMWindow';\n  } else if (str == 'Document') {\n    str = 'HTMLDocument';\n  }\n  return str;\n}"/*null._TYPE_NAME_OF_FUNCTION*/);
 }
 CoreJs.prototype.ensureInheritsHelper = function() {
   if (this._generatedInherits) return;
@@ -12813,7 +12818,13 @@ World.prototype._addJavascriptTopName = function(named, name) {
       this._renameJavascriptTopName(existing);
     }
     else {
-      $globals.world.internalError(('conflicting JS name "' + name + '" of same ') + ('priority ' + existingPri + ': (already defined in) ') + ('' + existing.get$span().get$locationText() + ' with priority ' + namedPri + ')'), named.get$span(), existing.get$span());
+      var msg = ('conflicting JS name "' + name + '" of same ') + ('priority ' + existingPri + ': (already defined in) ') + ('' + existing.get$span().get$locationText() + ' with priority ' + namedPri + ')');
+      if (named.get$isNative()) {
+        $globals.world.info(msg, named.get$span(), existing.get$span());
+      }
+      else {
+        $globals.world.internalError(msg, named.get$span(), existing.get$span());
+      }
     }
   }
   else {
@@ -13008,20 +13019,22 @@ World.prototype._message = function(color, prefix, message, span, span1, span2, 
       this.messageHandler(prefix, message, span2);
     }
   }
-  var messageWithPrefix = $globals.options.useColors ? (color + prefix + $globals._NO_COLOR + message) : (prefix + message);
-  var text = messageWithPrefix;
-  if (span != null) {
-    text = span.toMessageString(messageWithPrefix);
-  }
-  print(text);
-  if (span1 != null) {
-    print(span1.toMessageString(messageWithPrefix));
-  }
-  if (span2 != null) {
-    print(span2.toMessageString(messageWithPrefix));
+  else {
+    var messageWithPrefix = $globals.options.useColors ? (color + prefix + $globals._NO_COLOR + message) : (prefix + message);
+    var text = messageWithPrefix;
+    if (span != null) {
+      text = span.toMessageString(messageWithPrefix);
+    }
+    print(text);
+    if (span1 != null) {
+      print(span1.toMessageString(messageWithPrefix));
+    }
+    if (span2 != null) {
+      print(span2.toMessageString(messageWithPrefix));
+    }
   }
   if (throwing) {
-    $throw(new CompilerException(messageWithPrefix, span));
+    $throw(new CompilerException(prefix + message, span));
   }
 }
 World.prototype.error = function(message, span, span1, span2) {

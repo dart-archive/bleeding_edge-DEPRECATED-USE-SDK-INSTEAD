@@ -166,8 +166,21 @@ _deserializeMessage(message) {
 class MainWorker {
   int id = 0;
   void postMessage(msg) native "return \$globalThis.postMessage(msg);";
-  void onmessage(f) native "\$globalThis.onmessage = f;";
+  void set onmessage(f) native "\$globalThis.onmessage = f;";
   void terminate() {}
+}
+
+/**
+ * A web worker. This type is also defined in 'dart:dom', but we define it here
+ * to avoid introducing a dependency from corelib to dom. This definition uses a
+ * 'hidden' type (* prefix on the native name) to enforce that the type is
+ * defined dynamically only when web workers are actually available.
+ */
+class _Worker native "*Worker" {
+  get id() native "return this.id;";
+  void set id(i) native "this.id = i;";
+  void set onmessage(f) native "this.onmessage = f;";
+  void postMessage(msg) native "return this.postMessage(msg);";
 }
 
 /** Context information tracked for each isolate. */
@@ -203,7 +216,7 @@ class IsolateContext {
       result = code();
     } finally {
       _globalState.currentContext = old;
-      old._setGlobals();
+      if (old != null) old._setGlobals();
     }
     return result;
   }
@@ -292,10 +305,9 @@ class EventLoop {
     } else {
       try {
         _runHelper();
-      } catch(e) {
-        // TODO(floitsch): try to send stack-trace to the other side.
+      } catch(var e, var trace) {
         _globalState.mainWorker.postMessage(_serializeMessage(
-            {'command': 'error', 'msg': "" + e }));
+            {'command': 'error', 'msg': '$e\n$trace' }));
       }
     }
   }
@@ -490,18 +502,15 @@ class IsolateNatives {
   """;
 
   /** Starts a new worker with the given URL. */
-  static _newWorker(url) native "return new Worker(url)";
+  static _Worker _newWorker(url) native "return new Worker(url);";
 
   /**
    * Spawns an isolate in a worker. [factoryName] is the Javascript constructor
    * name for the isolate entry point class.
    */
   static void _spawnWorker(factoryName, serializedReplyPort) {
-    var worker = _newWorker(_thisScript);
-    // TODO(sigmund): make this work.
-    worker.onmessage = function(e) {
-      _processWorkerMessage(worker, e);
-    };
+    final worker = _newWorker(_thisScript);
+    worker.onmessage = (e) { _processWorkerMessage(worker, e); };
     var workerId = _globalState.nextWorkerId++;
     // We also store the id on the worker itself so that we can unregister it.
     worker.id = workerId;
