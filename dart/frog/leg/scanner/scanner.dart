@@ -54,11 +54,11 @@ class AbstractScanner<T> implements Scanner {
     }
 
     if ($a <= next && next <= $z) {
-      return tokenizeKeywordOrIdentifier(next);
+      return tokenizeKeywordOrIdentifier(next, true);
     }
 
     if (($A <= next && next <= $Z) || next === $_ || next === $$) {
-      return tokenizeIdentifier(next, byteOffset);
+      return tokenizeIdentifier(next, byteOffset, true);
     }
 
     if (next === $LT) {
@@ -205,7 +205,7 @@ class AbstractScanner<T> implements Scanner {
       throw new MalformedInputException(charOffset);
     }
     // Non-ascii identifier.
-    return tokenizeIdentifier(next, byteOffset);
+    return tokenizeIdentifier(next, byteOffset, true);
   }
 
   int tokenizeTag(int next) {
@@ -535,7 +535,7 @@ class AbstractScanner<T> implements Scanner {
     }
   }
 
-  int tokenizeKeywordOrIdentifier(int next) {
+  int tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
     KeywordState state = KeywordState.KEYWORD_STATE;
     int start = byteOffset;
     while (state !== null && $a <= next && next <= $z) {
@@ -543,80 +543,29 @@ class AbstractScanner<T> implements Scanner {
       next = advance();
     }
     if (state === null || state.keyword === null) {
-      return tokenizeIdentifier(next, start);
+      return tokenizeIdentifier(next, start, allowDollar);
     }
     if (($A <= next && next <= $Z) ||
         ($0 <= next && next <= $9) ||
         next === $_ ||
         next === $$) {
-      return tokenizeIdentifier(next, start);
+      return tokenizeIdentifier(next, start, allowDollar);
     } else if (next < 128) {
       appendKeywordToken(state.keyword);
       return next;
     } else {
-      return tokenizeIdentifier(next, start);
+      return tokenizeIdentifier(next, start, allowDollar);
     }
   }
 
-  int tokenizeIdentifier(int next, int start) {
+  int tokenizeIdentifier(int next, int start, bool allowDollar) {
     bool isAscii = true;
     while (true) {
       if (($a <= next && next <= $z) ||
           ($A <= next && next <= $Z) ||
           ($0 <= next && next <= $9) ||
           next === $_ ||
-          next === $$) {
-        next = advance();
-      } else if (next < 128) {
-        if (isAscii) {
-          appendByteStringToken(IDENTIFIER_INFO, asciiString(start, 0));
-        } else {
-          appendByteStringToken(IDENTIFIER_INFO, utf8String(start, -1));
-        }
-        return next;
-      } else {
-        int nonAsciiStart = byteOffset;
-        do {
-          next = nextByte();
-        } while (next > 127);
-        String string = utf8String(nonAsciiStart, -1).toString();
-        isAscii = false;
-        int byteLength = nonAsciiStart - byteOffset;
-        addToCharOffset(string.length - byteLength);
-      }
-    }
-  }
-
-  int tokenizeIdentifierOrKeywordNoDollar(int next) {
-    KeywordState state = KeywordState.KEYWORD_STATE;
-    int start = byteOffset;
-    while (state !== null && $a <= next && next <= $z) {
-      state = state.next(next);
-      next = advance();
-    }
-    if (state === null || state.keyword === null) {
-      return tokenizeIdentifierNoDollar(next, start);
-    }
-    if (($A <= next && next <= $Z) ||
-        ($0 <= next && next <= $9) ||
-        next === $_ ||
-        next === $$) {
-      return tokenizeIdentifierNoDollar(next, start);
-    } else if (next < 128) {
-      appendKeywordToken(state.keyword);
-      return next;
-    } else {
-      return tokenizeIdentifierNoDollar(next, start);
-    }
-  }
-
-  int tokenizeIdentifierNoDollar(int next, int start) {
-    bool isAscii = true;
-    while (true) {
-      if (($a <= next && next <= $z) ||
-          ($A <= next && next <= $Z) ||
-          ($0 <= next && next <= $9) ||
-          next === $_) {
+          (next === $$ && allowDollar)) {
         next = advance();
       } else if (next < 128) {
         if (isAscii) {
@@ -711,7 +660,7 @@ class AbstractScanner<T> implements Scanner {
   int tokenizeInterpolatedIdentifier(int next, int start) {
     appendByteStringToken(STRING_INFO, utf8String(start, -2));
     appendBeginGroup(STRING_INTERPOLATION_INFO, "\${");
-    next = tokenizeIdentifierOrKeywordNoDollar(next);
+    next = tokenizeKeywordOrIdentifier(next, false);
     appendEndGroup(CLOSE_CURLY_BRACKET_INFO, "}", OPEN_CURLY_BRACKET_TOKEN);
     return next;
   }
