@@ -243,4 +243,8 @@ class Unparser implements Visitor {
     sb.add('}');
     visit(node.string);
   }
+
+  visitEmptyStatement(EmptyStatement node) {
+    add(node.semicolon.value);
+  }
 }

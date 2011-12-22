@@ -562,4 +562,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
   visitStringInterpolationPart(StringInterpolationPart node) {
     node.visitChildren(this);
   }
+
+  visitEmptyStatement(EmptyStatement node) {
+    return StatementType.NOT_RETURNING;
+  }
 }

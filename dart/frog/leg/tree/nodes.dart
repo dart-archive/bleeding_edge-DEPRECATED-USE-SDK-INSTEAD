@@ -7,6 +7,7 @@ interface Visitor<R> {
   R visitClassNode(ClassNode node);
   R visitConditional(Conditional node);
   R visitDoWhile(DoWhile node);
+  R visitEmptyStatement(EmptyStatement node);
   R visitExpressionStatement(ExpressionStatement node);
   R visitFor(For node);
   R visitFunctionExpression(FunctionExpression node);
@@ -83,6 +84,7 @@ class Node implements Hashable {
   ClassNode asClassNode() => null;
   Conditional asConditional() => null;
   DoWhile asDoWhile() => null;
+  EmptyStatement asEmptyStatement() => null;
   ExpressionStatement asExpressionStatement() => null;
   For asFor() => null;
   FunctionExpression asFunctionExpression() => null;
@@ -880,6 +882,22 @@ class StringInterpolationPart extends Node {
   Token getBeginToken() => expression.getBeginToken();
 
   Token getEndToken() => string.getEndToken();
+}
+
+class EmptyStatement extends Statement {
+  final Token semicolon;
+
+  EmptyStatement(this.semicolon);
+
+  EmptyStatement asEmptyStatement() => this;
+
+  accept(Visitor visitor) => visitor.visitEmptyStatement(this);
+
+  visitChildren(Visitor visitor) {}
+
+  Token getBeginToken() => semicolon;
+
+  Token getEndToken() => semicolon;
 }
 
 class UnimplementedExpression extends Expression {

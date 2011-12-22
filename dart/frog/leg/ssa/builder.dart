@@ -1031,4 +1031,9 @@ class SsaBuilder implements Visitor {
     compiler.unimplemented('SsaBuilder.visitStringInterpolationPart',
                            node: node);
   }
+
+  visitEmptyStatement(EmptyStatement node) {
+    compiler.unimplemented('SsaBuilder.visitEmptyStatement',
+                           node: node);
+  }
 }

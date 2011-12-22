@@ -1095,8 +1095,7 @@ class NodeListener extends ElementListener {
   }
 
   void handleEmptyStatement(Token token) {
-    canceler.cancel('empty statement is not implemented', token: token);
-    pushNode(new UnimplementedStatement('empty', []));
+    pushNode(new EmptyStatement(token));
   }
 
   void endFactoryMethod(Token factoryKeyword, Token periodBeforeName) {

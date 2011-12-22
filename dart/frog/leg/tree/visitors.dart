@@ -9,6 +9,7 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitClassNode(ClassNode node) => visitNode(node);
   R visitConditional(Conditional node) => visitExpression(node);
   R visitDoWhile(DoWhile node) => visitLoop(node);
+  R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
   R visitExpression(Expression node) => visitNode(node);
   R visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
   R visitFor(For node) => visitStatement(node);
@@ -68,6 +69,7 @@ class TraversingVisitor implements Visitor {
   visitClassNode(ClassNode node) {}
   visitConditional(Conditional node) {}
   visitDoWhile(DoWhile node) {}
+  visitEmptyStatement(EmptyStatement node) {}
   visitExpression(Expression node) {}
   visitExpressionStatement(ExpressionStatement node) {}
   visitFor(For node) {}
