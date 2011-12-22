@@ -56,12 +56,4 @@ class PartialParser extends Parser {
     listener.endFormalParameters(0, token, endToken);
     return endToken.next;
   }
-
-  Token parseFieldInitializerOpt(Token token) {
-    if (optional('=', token)) {
-      token = skipExpression(token.next);
-    }
-    listener.handleNoFieldInitializer(token);
-    return token;
-  }
 }

@@ -1036,4 +1036,8 @@ class SsaBuilder implements Visitor {
     compiler.unimplemented('SsaBuilder.visitEmptyStatement',
                            node: node);
   }
+
+  visitModifiers(Modifiers node) {
+    compiler.unimplemented('SsaBuilder.visitModifiers', node: node);
+  }
 }

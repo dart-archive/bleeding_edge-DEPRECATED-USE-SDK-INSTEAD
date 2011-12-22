@@ -23,7 +23,7 @@ class TreeValidatorTask extends CompilerTask {
   }
 }
 
-class ValidatorVisitor implements Visitor {
+class ValidatorVisitor extends AbstractVisitor {
   final Function reportInvalidNode;
 
   ValidatorVisitor(Function this.reportInvalidNode);
@@ -48,42 +48,6 @@ class ValidatorVisitor implements Visitor {
       expect(node, !node.arguments.isEmpty());
     }
   }
-
-  // TODO(karlklose): use abstract visitor. Currently, frog throws
-  //   away some default implementations when using the abstract class
-  //   during compiling the leg_only tests.
-  visitBlock(Block node) => visitStatement(node);
-  visitClassNode(ClassNode node) => visitNode(node);
-  visitDoWhile(DoWhile node) => visitLoop(node);
-  visitExpression(Expression node) => visitNode(node);
-  visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
-  visitFor(For node) => visitStatement(node);
-  visitFunctionExpression(FunctionExpression node) => visitExpression(node);
-  visitIdentifier(Identifier node) => visitExpression(node);
-  visitIf(If node) => visitStatement(node);
-  visitLiteral(Literal node) => visitExpression(node);
-  visitLiteralBool(LiteralBool node) => visitLiteral(node);
-  visitLiteralDouble(LiteralDouble node) => visitLiteral(node);
-  visitLiteralInt(LiteralInt node) => visitLiteral(node);
-  visitLiteralNull(LiteralNull node) => visitLiteral(node);
-  visitLiteralString(LiteralString node) => visitLiteral(node);
-  visitLoop(Loop node) => visitStatement(node);
-  visitNewExpression(NewExpression node) => visitExpression(node);
-  visitNodeList(NodeList node) => visitNode(node);
-  visitOperator(Operator node) => visitIdentifier(node);
-  visitParenthesizedExpression(ParenthesizedExpression node) {
-    return visitExpression(node);
-  }
-  visitPostfix(Postfix node) => visitNodeList(node);
-  visitPrefix(Prefix node) => visitNodeList(node);
-  visitReturn(Return node) => visitStatement(node);
-  visitSend(Send node) => visitExpression(node);
-
-  visitStatement(Statement node) => visitNode(node);
-  visitThrow(Throw node) => visitStatement(node);
-  visitTypeAnnotation(TypeAnnotation node) => visitNode(node);
-  visitVariableDefinitions(VariableDefinitions node) => visitStatement(node);
-  visitWhile(While node) => visitLoop(node);
 }
 
 class InvalidNodeError {

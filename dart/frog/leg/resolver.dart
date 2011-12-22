@@ -108,7 +108,7 @@ class ResolverTask extends CompilerTask {
   }
 }
 
-class ResolverVisitor implements Visitor<Element> {
+class ResolverVisitor extends AbstractVisitor<Element> {
   final Compiler compiler;
   final TreeElements mapping;
   final Element enclosingElement;
@@ -143,7 +143,7 @@ class ResolverVisitor implements Visitor<Element> {
   }
 
   cancel(Node node, String message) {
-    compiler.cancel(message);
+    compiler.cancel(message, node: node);
   }
 
   Element lookup(Node node, SourceString name) {
@@ -211,6 +211,10 @@ class ResolverVisitor implements Visitor<Element> {
     // TODO(ngeoffray): frog does not like a return on an assignment.
     return element;
   }
+
+  visitNode(Node node) {
+    cancel(node, 'not implemented');
+  }
 }
 
 class SignatureResolverVisitor extends ResolverVisitor {
@@ -231,7 +235,8 @@ class SignatureResolverVisitor extends ResolverVisitor {
       for (Link<Element> link = element.parameters;
            !link.isEmpty() && !parameterNodes.isEmpty();
            link = link.tail, parameterNodes = parameterNodes.tail) {
-        defineElement(parameterNodes.head.definitions.nodes.head, link.head);
+        VariableDefinitions variableDefinitions = parameterNodes.head;
+        defineElement(variableDefinitions.definitions.nodes.head, link.head);
       }
     }
 
@@ -608,6 +613,10 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   }
 
   visit(Node node) => node.accept(this);
+
+  visitNode(Node node) {
+    resolver.cancel(node, 'not implemented');
+  }
 }
 
 class ParametersVisitor extends AbstractVisitor<Element> {
@@ -630,6 +639,10 @@ class ParametersVisitor extends AbstractVisitor<Element> {
   }
 
   visit(Node node) => node.accept(this);
+
+  visitNode(Node node) {
+    resolver.cancel(node, 'not implemented');
+  }
 }
 
 class Scope {

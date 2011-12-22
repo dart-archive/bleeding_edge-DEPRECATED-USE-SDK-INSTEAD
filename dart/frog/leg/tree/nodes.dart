@@ -580,6 +580,11 @@ class LiteralList extends Expression {
   LiteralList asLiteralList() => this;
   accept(Visitor visitor) => visitor.visitLiteralList(this);
 
+  visitChildren(Visitor visitor) {
+    if (type !== null) type.accept(visitor);
+    elements.accept(visitor);
+  }
+
   getBeginToken() => firstBeginToken(type, elements);
   getEndToken() => elements.getEndToken();
 }
@@ -912,6 +917,9 @@ class UnimplementedExpression extends Expression {
   Token getBeginToken() => nodes.getBeginToken();
 
   Token getEndToken() => nodes.getEndToken();
+
+  accept(Visitor visitor) { throw toString(); }
+  visitChildren(Visitor visitor) {}
 }
 
 class UnimplementedStatement extends Statement {
@@ -926,4 +934,7 @@ class UnimplementedStatement extends Statement {
   Token getBeginToken() => nodes.getBeginToken();
 
   Token getEndToken() => nodes.getEndToken();
+
+  accept(Visitor visitor) { throw toString(); }
+  visitChildren(Visitor visitor) {}
 }

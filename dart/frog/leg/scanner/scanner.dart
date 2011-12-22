@@ -28,11 +28,11 @@ class AbstractScanner<T> implements Scanner {
   abstract void addToCharOffset(int offset);
   abstract int get charOffset();
   abstract int get byteOffset();
-  abstract void appendBeginGroup(int kind, String value);
-  abstract int appendEndGroup(int kind, String value, int openKind);
-  abstract void appendGt(int kind, String value);
-  abstract void appendGtGt(int kind, String value);
-  abstract void appendGtGtGt(int kind, String value);
+  abstract void appendBeginGroup(PrecedenceInfo info, String value);
+  abstract int appendEndGroup(PrecedenceInfo info, String value, int openKind);
+  abstract void appendGt(PrecedenceInfo info, String value);
+  abstract void appendGtGt(PrecedenceInfo info, String value);
+  abstract void appendGtGtGt(PrecedenceInfo info, String value);
   abstract void discardOpenLt();
 
   // TODO(ahe): Move this class to implementation.

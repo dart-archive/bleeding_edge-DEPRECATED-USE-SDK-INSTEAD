@@ -31,7 +31,7 @@ interface Type {
  */
 class StatementType implements Type {
   final String stringName;
-  String get element() => null;
+  Element get element() => null;
 
   SourceString get name() => new SourceString(stringName);
 
@@ -52,7 +52,7 @@ class StatementType implements Type {
     }
   }
 
-  String toString() => name;
+  String toString() => stringName;
 }
 
 class SimpleType implements Type {
