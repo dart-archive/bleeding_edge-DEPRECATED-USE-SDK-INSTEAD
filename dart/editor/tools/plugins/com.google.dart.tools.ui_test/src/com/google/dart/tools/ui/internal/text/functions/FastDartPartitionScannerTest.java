@@ -24,41 +24,46 @@ import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.ITypedRegion;
 
 public class FastDartPartitionScannerTest extends TestCase implements DartPartitions {
+  /**
+   * The default partition content type, used to represent "plain" code.
+   */
+  private static final String DEFAULT_TYPE = "__dftl_partition_content_type";
+
   public void test_FastDartPartitionScanner_blockComment() {
     // class X { /* comment */ } 
     assertPartitions( //
-        "class X {\n", "__dftl_partition_content_type", //
+        "class X {\n", DEFAULT_TYPE, //
         "/* comment */", DART_MULTI_LINE_COMMENT, //
-        "\n}\n", "__dftl_partition_content_type" //
+        "\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_blockComment_inInterpolation() {
     // class X { var s="xxx ${yyy /* comment */ + zzz} xxx"; }
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "\"xxx ", DART_STRING, //
-        "${yyy ", "__dftl_partition_content_type", //
+        "${yyy ", DEFAULT_TYPE, //
         "/* comment */", DART_MULTI_LINE_COMMENT, //
-        " + zzz}", "__dftl_partition_content_type", //
+        " + zzz}", DEFAULT_TYPE, //
         " xxx\"", DART_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_blockComment_nested() {
     // class X { /* a/one /* comment /* nested */ inside */ another */ }
     assertPartitions( //
-        "class X {\n", "__dftl_partition_content_type", //
+        "class X {\n", DEFAULT_TYPE, //
         "/* a/one /* comment /* nested */ inside */ another */", DART_MULTI_LINE_COMMENT, //
-        "\n}\n", "__dftl_partition_content_type" //
+        "\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_blockComment_nested_unclosed() {
     // class X { /* a/one /* comment /* nested */ inside */ }
     assertPartitions( //
-        "class X {\n", "__dftl_partition_content_type", //
+        "class X {\n", DEFAULT_TYPE, //
         "/* a/one /* comment /* nested */ inside */\n}\n", DART_MULTI_LINE_COMMENT //
     );
   }
@@ -66,7 +71,7 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
   public void test_FastDartPartitionScanner_blockComment_unclosed() {
     // class X { /* comment
     assertPartitions( //
-        "class X {\n", "__dftl_partition_content_type", //
+        "class X {\n", DEFAULT_TYPE, //
         "/* comment", DART_MULTI_LINE_COMMENT //
     );
   }
@@ -74,165 +79,176 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
   public void test_FastDartPartitionScanner_docComment() {
     // class X { /** comment */ var s=null; } 
     assertPartitions( //
-        "class X {\n", "__dftl_partition_content_type", //
+        "class X {\n", DEFAULT_TYPE, //
         "/** comment */", DART_DOC, //
-        "\nvar s = null;}\n", "__dftl_partition_content_type" //
+        "\nvar s = null;}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_endOfLineComment() {
     // class X { // comment } 
     assertPartitions( //
-        "class X {\n", "__dftl_partition_content_type", //
+        "class X {\n", DEFAULT_TYPE, //
         "// comment", DART_SINGLE_LINE_COMMENT, //
-        "\n}\n", "__dftl_partition_content_type" //
+        "\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_endOfLineComment_inInterpolation() {
     // class X { var s="xxx ${yyy // comment + zzz} xxx"; }
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "\"xxx ", DART_STRING, //
-        "${yyy ", "__dftl_partition_content_type", //
+        "${yyy ", DEFAULT_TYPE, //
         "// comment", DART_SINGLE_LINE_COMMENT, //
-        "\n + zzz}", "__dftl_partition_content_type", //
+        "\n + zzz}", DEFAULT_TYPE, //
         " xxx\"", DART_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_multilineString_double() {
     // class X { var s="""test"""; } 
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "\"\"\"test\"\"\"", DART_MULTI_LINE_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_multilineString_single() {
     // class X { var s='''test'''; } 
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "'''test'''", DART_MULTI_LINE_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_nestedBraces() {
     // class X { var s="xxx ${f((v) {return v;})} xxx"; } 
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "\"xxx ", DART_STRING, //
-        "${f((v) {return v;})}", "__dftl_partition_content_type", //
+        "${f((v) {return v;})}", DEFAULT_TYPE, //
         " xxx\"", DART_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_nestedStrings() {
     // class X { var s="xxx ${yyy 'zzz' """aaa ${bbb '''ccc''' bbb} aaa""" yyy} xxx"; } 
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "\"xxx ", DART_STRING, //
-        "${yyy ", "__dftl_partition_content_type", //
+        "${yyy ", DEFAULT_TYPE, //
         "'zzz'", DART_STRING, //
-        " ", "__dftl_partition_content_type", //
+        " ", DEFAULT_TYPE, //
         "\"\"\"aaa ", DART_MULTI_LINE_STRING, //
-        "${bbb ", "__dftl_partition_content_type", //
+        "${bbb ", DEFAULT_TYPE, //
         "'''ccc'''", DART_MULTI_LINE_STRING, //
-        " bbb}", "__dftl_partition_content_type", //
+        " bbb}", DEFAULT_TYPE, //
         " aaa\"\"\"", DART_MULTI_LINE_STRING, //
-        " yyy}", "__dftl_partition_content_type", //
+        " yyy}", DEFAULT_TYPE, //
         " xxx\"", DART_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_nestedStrings_with_comments() {
     // class X { var s="xxx ${yyy 'zzz' /* comment */ """aaa ${bbb '''ccc'''/* comment/*nested*/*/ bbb} aaa""" yyy} xxx"; } 
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "\"xxx ", DART_STRING, //
-        "${yyy ", "__dftl_partition_content_type", //
+        "${yyy ", DEFAULT_TYPE, //
         "'zzz'", DART_STRING, //
-        " ", "__dftl_partition_content_type", //
+        " ", DEFAULT_TYPE, //
         "/* comment */", DART_MULTI_LINE_COMMENT, //
-        " ", "__dftl_partition_content_type", //
+        " ", DEFAULT_TYPE, //
         "\"\"\"aaa ", DART_MULTI_LINE_STRING, //
-        "${bbb ", "__dftl_partition_content_type", //
+        "${bbb ", DEFAULT_TYPE, //
         "'''ccc'''", DART_MULTI_LINE_STRING, //
         "/* comment/*nested*/*/", DART_MULTI_LINE_COMMENT, //
-        " bbb}", "__dftl_partition_content_type", //
+        " bbb}", DEFAULT_TYPE, //
         " aaa\"\"\"", DART_MULTI_LINE_STRING, //
-        " yyy}", "__dftl_partition_content_type", //
+        " yyy}", DEFAULT_TYPE, //
         " xxx\"", DART_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_normalString_atEOF() {
     // class X { var s='
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "'", DART_STRING //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_normalString_backToBackInterpolations() {
+    // class X { return newName(id, '${prefix}${prefixes[prefix]++}'); } 
+    assertPartitions( //
+        "class X {\nreturn newName(id, ", DEFAULT_TYPE, //
+        "'", DART_STRING, //
+        "${prefix}${prefixes[prefix]++}", DEFAULT_TYPE, //
+        "'", DART_STRING, //
+        ");\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_normalString_double() {
     // class X { var s="test"; } 
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "\"test\"", DART_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_normalString_single() {
     // class X { var s='test'; } 
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "'test'", DART_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_normalString_unclosed() {
     // class X { var s='xxxyyy; } 
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "'xxxyyy;", DART_STRING, //
-        "\n}\n", "__dftl_partition_content_type" //
+        "\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_normalString_withEscapes() {
     // class X { var s=' \$$foo '; } 
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "' \\$", DART_STRING, //
-        "$foo", "__dftl_partition_content_type", //
+        "$foo", DEFAULT_TYPE, //
         " '", DART_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_rawString_double() {
     // class X { var s=@"test"; } 
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "@\"test\"", DART_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_rawString_single() {
     // class X { var s=@'test'; } 
     assertPartitions( //
-        "class X {\nvar s=", "__dftl_partition_content_type", //
+        "class X {\nvar s=", DEFAULT_TYPE, //
         "@'test'", DART_STRING, //
-        ";\n}\n", "__dftl_partition_content_type" //
+        ";\n}\n", DEFAULT_TYPE //
     );
   }
 

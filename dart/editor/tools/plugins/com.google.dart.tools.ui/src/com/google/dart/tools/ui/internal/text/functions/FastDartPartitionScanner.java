@@ -349,7 +349,13 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
           scannerState = ScannerState.SIMPLE_INTERPOLATION;
           break;
         case SIMPLE_INTERPOLATION:
-          if (!isIdentifierChar(currentChar)) {
+          if (currentChar == '$') {
+            if (scanner.peek(1) == '{') {
+              scannerState = ScannerState.BLOCK_INTERPOLATION_PREFIX;
+            } else {
+              scannerState = ScannerState.SIMPLE_INTERPOLATION_PREFIX;
+            }
+          } else if (!isIdentifierChar(currentChar)) {
             if (stringState.quoteCount == 1) {
               scannerState = ScannerState.STRING;
             } else {
@@ -368,12 +374,20 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
           if (currentChar == '}') {
             if (stringState.braceCount == 0) {
               advance();
-              if (stringState.quoteCount == 1) {
-                scannerState = ScannerState.STRING;
+              if (scanner.peek(0) == '$') {
+                if (scanner.peek(1) == '{') {
+                  scannerState = ScannerState.BLOCK_INTERPOLATION_PREFIX;
+                } else {
+                  scannerState = ScannerState.SIMPLE_INTERPOLATION_PREFIX;
+                }
               } else {
-                scannerState = ScannerState.MULTI_LINE_STRING;
+                if (stringState.quoteCount == 1) {
+                  scannerState = ScannerState.STRING;
+                } else {
+                  scannerState = ScannerState.MULTI_LINE_STRING;
+                }
+                return ScannerState.CODE.token;
               }
-              return ScannerState.CODE.token;
             } else {
               stringState.braceCount--;
             }
