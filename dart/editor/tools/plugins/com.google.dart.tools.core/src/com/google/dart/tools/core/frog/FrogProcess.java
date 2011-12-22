@@ -161,7 +161,7 @@ public class FrogProcess {
 
     if (strs.length >= 2) {
       try {
-        return port = Integer.parseInt(strs[1]);
+        return Integer.parseInt(strs[1]);
       } catch (NumberFormatException nfe) {
 
       }
