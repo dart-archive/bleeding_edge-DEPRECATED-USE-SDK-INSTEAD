@@ -414,7 +414,6 @@ class SsaCodeGenerator implements HVisitor {
       // The body has already been visited. Nothing to do in this branch.
     } else {
       // A normal while loop. Visit the body.
-      assert(dominated.length == 2);
       assert(dominated[0] === branchBlock.successors[0]);
       assert(dominated[1] === branchBlock.successors[1]);
       visitBasicBlock(dominated[0]);
@@ -423,6 +422,14 @@ class SsaCodeGenerator implements HVisitor {
     addIndentation();
     buffer.add('}\n');  // Close 'while' loop.
     visitBasicBlock(branchBlock.successors[1]);
+    // TODO(floitsch): with labeled breaks we can have more dominated blocks.
+    assert(dominated.length <= 3);
+    if (dominated.length == 3) {
+      // This happens when the body contains a 'return', and the exit-block is
+      // not dominated by a dominator of the while loop.
+      assert(dominated[2].isExitBlock());
+      visitBasicBlock(dominated[2]);
+    }
   }
 
   visitNot(HNot node) {

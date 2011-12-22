@@ -64,9 +64,25 @@ void while4() {
   expectEquals(100, result);
 }
 
+int while5_2() {
+  // The while condition dominates 3 blocks: the body, the block after the loop
+  // and the exit block.
+  while (true) {
+    if (true) {
+      return 499;
+    }
+  }
+  return 0;
+}
+
+void while5() {
+  expectEquals(499, while5_2());
+}
+
 void main() {
   while1();
   while2();
   while3();
   while4();
+  while5();
 }
