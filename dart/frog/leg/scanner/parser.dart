@@ -35,7 +35,9 @@ class Parser {
     token = parseIdentifier(token.next);
     token = parseTypeVariablesOpt(token);
     int supertypeCount = 0;
+    Token extendsKeyword = null;
     if (optional('extends', token)) {
+      extendsKeyword = token;
       do {
         token = parseType(token.next);
         ++supertypeCount;
@@ -43,13 +45,13 @@ class Parser {
     }
     token = parseDefaultClauseOpt(token);
     token = parseInterfaceBody(token);
-    listener.endInterface(supertypeCount, interfaceKeyword, token);
+    listener.endInterface(supertypeCount, interfaceKeyword,
+                          extendsKeyword, token);
     return token.next;
   }
 
   Token parseInterfaceBody(Token token) {
-    // TODO(ahe): Implement this.
-    return skipBlock(token);
+    return parseClassBody(token);
   }
 
   Token parseNamedFunctionAlias(Token token) {
@@ -579,11 +581,40 @@ class Parser {
 
   Token parseOperatorName(Token token) {
     assert(optional('operator', token));
-    Token operator = token;
-    token = token.next;
-    // TODO(ahe): Validate that [token] really is an operator.
-    listener.handleOperatorName(operator, token);
-    return token.next;
+    if (isUserDefinableOperator(token.next)) {
+      Token operator = token;
+      token = token.next;
+      listener.handleOperatorName(operator, token);
+      return token.next;
+    } else {
+      return parseIdentifier(token);
+    }
+  }
+
+  bool isUserDefinableOperator(Token token) {
+    String value = token.stringValue;
+    return
+      (value === '==') ||
+      (value === '~') ||
+      (value === 'negate') ||
+      (value === '[]') ||
+      (value === '[]=') ||
+      (value === '*') ||
+      (value === '/') ||
+      (value === '%') ||
+      (value === '~/') ||
+      (value === '+') ||
+      (value === '-') ||
+      (value === '<<') ||
+      (value === '>>>') ||
+      (value === '>>') ||
+      (value === '>=') ||
+      (value === '>') ||
+      (value === '<=') ||
+      (value === '<') ||
+      (value === '&') ||
+      (value === '^') ||
+      (value === '|');
   }
 
   Token parseFunction(Token token) {

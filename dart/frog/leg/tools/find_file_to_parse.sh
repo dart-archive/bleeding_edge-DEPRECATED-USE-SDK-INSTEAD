@@ -27,6 +27,7 @@ find .. \( \
     -o -name NamedParameters9NegativeTest.dart \
     -o -name ClassKeywordTest.dart \
     -o -name Prefix19NegativeTest.dart \
+    -o -name Operator2NegativeTest.dart \
     -o -name xcodebuild \
     \) -prune -o \
     -name \*.dart -type f -print \

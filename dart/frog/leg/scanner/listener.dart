@@ -142,8 +142,8 @@ class Listener {
   void beginInterface(Token token) {
   }
 
-  void endInterface(int supertypeCount,
-                    Token interfaceKeyword, Token endToken) {
+  void endInterface(int supertypeCount, Token interfaceKeyword,
+                    Token extendsKeyword, Token endToken) {
   }
 
   void beginLabelledStatement(Token token) {
@@ -457,8 +457,8 @@ class ElementListener extends Listener {
     pushNode(null);
   }
 
-  void endInterface(int supertypeCount,
-                    Token interfaceKeyword, Token endToken) {
+  void endInterface(int supertypeCount, Token interfaceKeyword,
+                    Token extendsKeyword, Token endToken) {
     canceler.cancel("interfaces are not implemented", token: interfaceKeyword);
   }
 
@@ -668,13 +668,15 @@ class NodeListener extends ElementListener {
                            beginToken, endToken));
   }
 
-  void endInterface(int supertypeCount,
-                    Token interfaceKeyword, Token endToken) {
-    // TODO(ahe): Implement this.
-    canceler.cancel("interfaces are not implemented", token: interfaceKeyword);
+  void endInterface(int supertypeCount, Token interfaceKeyword,
+                    Token extendsKeyword, Token endToken) {
+    NodeList body = popNode();
     Node defaultClause = popNode();
-    NodeList supertypes = makeNodeList(supertypeCount, null, null, ',');
+    NodeList supertypes = makeNodeList(supertypeCount, extendsKeyword,
+                                       null, ',');
     Identifier name = popNode();
+    pushNode(new ClassNode(name, null, supertypes, interfaceKeyword,
+                           null, endToken));
   }
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
