@@ -92,7 +92,7 @@ typedef BcapHandler Reviver(String key);
 typedef BcapServerInterface Resolver(String instID);
 typedef void SaveState(String state);
 
-interface BcapServer extends BcapServerInterface factory BcapServerImpl {
+interface BcapServer extends BcapServerInterface default BcapServerImpl {
   BcapServer(String instanceID, [String snapshot, SaveState saveState]);
 
   void setReviver(Reviver newReviver);

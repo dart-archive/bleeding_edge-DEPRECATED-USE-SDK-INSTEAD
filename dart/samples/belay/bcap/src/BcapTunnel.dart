@@ -129,7 +129,7 @@ class PongMsg extends TunnelMsg {
   }
 }
 
-interface BcapTunnel extends BcapServerInterface factory BcapTunnelImpl {
+interface BcapTunnel extends BcapServerInterface default BcapTunnelImpl {
   
   void sendOutpost(var msg);
 

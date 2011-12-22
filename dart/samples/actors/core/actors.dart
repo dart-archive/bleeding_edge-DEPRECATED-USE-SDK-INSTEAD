@@ -151,7 +151,7 @@ class _ActorWorkerImpl extends Actor {
   }
 }
 
-interface ActorManager factory _ActorManagerImpl {
+interface ActorManager default _ActorManagerImpl {
 
   /**
    * Creates an Actor Manager with the specified number of isolates as 

@@ -56,7 +56,7 @@ interface HTTPStatus {
 /**
  * HTTP server.
  */
-interface HTTPServer factory HTTPServerImplementation {
+interface HTTPServer default HTTPServerImplementation {
   HTTPServer();
 
   /**
@@ -86,7 +86,7 @@ interface HTTPServer factory HTTPServerImplementation {
 /**
  * HTTP request delivered to the HTTP server callback.
  */
-interface HTTPRequest factory HTTPRequestImplementation {
+interface HTTPRequest default HTTPRequestImplementation {
   /**
    * Returns the content length of the request body. If the size of
    * the request body is not known in advance this -1.
@@ -149,7 +149,7 @@ interface HTTPRequest factory HTTPRequestImplementation {
 /**
  * HTTP response to be send back to the client.
  */
-interface HTTPResponse factory HTTPResponseImplementation {
+interface HTTPResponse default HTTPResponseImplementation {
   /**
    * Gets and sets the content length of the response. If the size of
    * the response is not known in advance set the content length to
@@ -204,7 +204,7 @@ interface HTTPResponse factory HTTPResponseImplementation {
 /**
  * HTTP client factory.
  */
-interface HTTPClient factory HTTPClientImplementation {
+interface HTTPClient default HTTPClientImplementation {
   HTTPClient();
 
   /**
@@ -229,7 +229,7 @@ interface HTTPClient factory HTTPClientImplementation {
 /**
  * HTTP request for a client connection.
  */
-interface HTTPClientRequest factory HTTPClientRequestImplementation {
+interface HTTPClientRequest default HTTPClientRequestImplementation {
   /**
    * Gets and sets the content length of the request. If the size of
    * the request is not known in advance set content length to -1,
@@ -293,7 +293,7 @@ interface HTTPClientRequest factory HTTPClientRequestImplementation {
 /**
  * HTTP response for a client connection.
  */
-interface HTTPClientResponse factory HTTPClientResponseImplementation {
+interface HTTPClientResponse default HTTPClientResponseImplementation {
   /**
    * Returns the status code.
    */
