@@ -245,6 +245,117 @@ class Unparser implements Visitor {
   }
 
   visitEmptyStatement(EmptyStatement node) {
-    add(node.semicolon.value);
+    add(node.semicolonToken.value);
+  }
+
+  visitGotoStatement(GotoStatement node) {
+    add(node.keywordToken.value);
+    if (node.target !== null) {
+      sb.add(' ');
+      visit(node.target);
+    }
+    add(node.semicolonToken.value);
+  }
+
+  visitBreakStatement(BreakStatement node) {
+    visitGotoStatement(node);
+  }
+
+  visitContinueStatement(ContinueStatement node) {
+    visitGotoStatement(node);
+  }
+
+  visitForInStatement(ForInStatement node) {
+    add(node.forToken.value);
+    sb.add(' (');
+    visit(node.declaredIdentifier);
+    add(node.inToken.value);
+    visit(node.expression);
+    sb.add(') ');
+    visit(node.body);
+  }
+
+  visitLabelledStatement(LabelledStatement node) {
+    visit(node.label);
+    add(node.colonToken.value);
+    sb.add(' ');
+    visit(node.statement);
+  }
+
+  visitLiteralMap(LiteralMap node) {
+    if (node.typeArguments !== null) visit(node.typeArguments);
+    visit(node.entries);
+  }
+
+  visitLiteralMapEntry(LiteralMapEntry node) {
+    visit(node.key);
+    add(node.colonToken.value);
+    sb.add(' ');
+    visit(node.value);
+  }
+
+  visitNamedArgument(NamedArgument node) {
+    visit(node.name);
+    add(node.colonToken.value);
+    sb.add(' ');
+    visit(node.expression);
+  }
+
+  visitSwitchStatement(SwitchStatement node) {
+    add(node.switchKeyword.value);
+    sb.add(' ');
+    visit(node.parenthesizedExpression);
+    sb.add(' { /* NOT IMPLEMENTED YET */ }');
+    // TODO(ahe): More to come...
+  }
+
+  visitScriptTag(ScriptTag node) {
+    add(node.beginToken.value);
+    visit(node.tag);
+    sb.add('(');
+    visit(node.argument);
+    if (node.prefixIdentifier !== null) {
+      visit(node.prefixIdentifier);
+      sb.add(': ');
+      visit(node.prefix);
+    }
+    sb.add(')');
+    add(node.endToken.value);
+  }
+
+  visitTryStatement(TryStatement node) {
+    add(node.tryKeyword.value);
+    sb.add(' ');
+    visit(node.tryBlock);
+    visit(node.catchBlocks);
+    if (node.finallyKeyword !== null) {
+      sb.add(' ');
+      add(node.finallyKeyword.value);
+      sb.add(' ');
+      visit(node.finallyBlock);
+    }
+  }
+
+  visitCatchBlock(CatchBlock node) {
+    add(node.catchKeyword.value);
+    sb.add(' ');
+    visit(node.formals);
+    sb.add(' ');
+    visit(node.block);
+  }
+
+  visitTypedef(Typedef node) {
+    add(node.typedefKeyword.value);
+    sb.add(' ');
+    if (node.returnType !== null) {
+      visit(node.returnType);
+      sb.add(' ');
+    }
+    visit(node.name);
+    if (node.typeParameters !== null) {
+      visit(node.typeParameters);
+    }
+    visit(node.formals);
+    add(node.endToken.value);
   }
 }

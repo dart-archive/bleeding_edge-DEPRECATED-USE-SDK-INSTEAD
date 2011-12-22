@@ -268,7 +268,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type visitIdentifier(Identifier node) {
     if (node.isThis()) {
-      return currentClass.computeType(compiler, types);;
+      return currentClass.computeType(compiler, types);
     } else {
       fail(node, 'internal error: unexpected identifier');
     }
@@ -501,7 +501,13 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type visitTypeAnnotation(TypeAnnotation node) {
     if (node.typeName === null) return types.dynamicType;
-    Type type = lookupType(node.typeName.source, compiler, types);
+    Identifier identifier = node.typeName.asIdentifier();
+    if (identifier === null) {
+      compiler.cancel('library prefix not implemented',
+                      node: node.typeName);
+    }
+    // TODO(ahe): Why wasn't this resolved by the resolver?
+    Type type = lookupType(identifier.source, compiler, types);
     if (type === null) {
       // The type name cannot be resolved, but the resolver
       // already gave a warning, so we continue checking.
@@ -565,5 +571,53 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   visitEmptyStatement(EmptyStatement node) {
     return StatementType.NOT_RETURNING;
+  }
+
+  visitBreakStatement(BreakStatement node) {
+    compiler.unimplemented('visitBreakStatement', node: node);
+  }
+
+  visitContinueStatement(ContinueStatement node) {
+    compiler.unimplemented('visitContinueStatement', node: node);
+  }
+
+  visitForInStatement(ForInStatement node) {
+    compiler.unimplemented('visitForInStatement', node: node);
+  }
+
+  visitLabelledStatement(LabelledStatement node) {
+    compiler.unimplemented('visitLabelledStatement', node: node);
+  }
+
+  visitLiteralMap(LiteralMap node) {
+    compiler.unimplemented('visitLiteralMap', node: node);
+  }
+
+  visitLiteralMapEntry(LiteralMapEntry node) {
+    compiler.unimplemented('visitLiteralMapEntry', node: node);
+  }
+
+  visitNamedArgument(NamedArgument node) {
+    compiler.unimplemented('visitNamedArgument', node: node);
+  }
+
+  visitSwitchStatement(SwitchStatement node) {
+    compiler.unimplemented('visitSwitchStatement', node: node);
+  }
+
+  visitTryStatement(TryStatement node) {
+    compiler.unimplemented('visitTryStatement', node: node);
+  }
+
+  visitScriptTag(ScriptTag node) {
+    compiler.unimplemented('visitScriptTag', node: node);
+  }
+
+  visitCatchBlock(CatchBlock node) {
+    compiler.unimplemented('visitCatchBlock', node: node);
+  }
+
+  visitTypedef(Typedef node) {
+    compiler.unimplemented('visitTypedef', node: node);
   }
 }

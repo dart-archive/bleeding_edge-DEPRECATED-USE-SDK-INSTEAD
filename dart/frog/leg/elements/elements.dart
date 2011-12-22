@@ -139,7 +139,12 @@ Type getType(TypeAnnotation typeAnnotation, compiler, types) {
   if (typeAnnotation == null || typeAnnotation.typeName == null) {
     return types.dynamicType;
   }
-  final SourceString name = typeAnnotation.typeName.source;
+  Identifier identifier = typeAnnotation.typeName.asIdentifier();
+  if (identifier === null) {
+    compiler.cancel('library prefixes not handled',
+                    node: typeAnnotation.typeName);
+  }
+  final SourceString name = identifier.source;
   Element element = compiler.universe.find(name);
   if (element !== null && element.kind === ElementKind.CLASS) {
     // TODO(karlklose): substitute type parameters.

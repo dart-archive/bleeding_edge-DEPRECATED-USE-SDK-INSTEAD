@@ -108,7 +108,7 @@ class Listener {
   void beginFunctionTypeAlias(Token token) {
   }
 
-  void endFunctionTypeAlias(Token token) {
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
   }
 
   void beginIfStatement(Token token) {
@@ -159,7 +159,7 @@ class Listener {
   void beginLiteralMapEntry(Token token) {
   }
 
-  void endLiteralMapEntry(Token token) {
+  void endLiteralMapEntry(Token colon, Token endToken) {
   }
 
   void beginMember(Token token) {
@@ -191,7 +191,7 @@ class Listener {
   void beginSwitchStatement(Token token) {
   }
 
-  void endSwitchStatement(Token switchKeyword) {
+  void endSwitchStatement(Token switchKeyword, Token endToken) {
   }
 
   void beginThrowStatement(Token token) {
@@ -434,16 +434,7 @@ class ElementListener extends Listener {
   ElementListener(Canceler this.canceler);
 
   void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
-    // TODO(ahe): Implement this.
-    canceler.cancel("Cannot handle library tags", token: beginToken);
-    LiteralString prefix = null;
-    Identifier argumentName = null;
-    if (hasPrefix) {
-      prefix = popNode();
-      argumentName = popNode();
-    }
-    LiteralString firstArgument = popNode();
-    Identifier tag = popNode();
+    canceler.cancel("library tags are not implemented", token: beginToken);
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
@@ -466,18 +457,14 @@ class ElementListener extends Listener {
 
   void endInterface(int supertypeCount, Token token) {
     // TODO(ahe): Implement this.
-    canceler.cancel("Cannot handle interfaces", token: token);
+    canceler.cancel("interfaces are not implemented", token: token);
     Node defaultClause = popNode();
     discardNodes("extends", supertypeCount);
     Identifier name = popNode();
   }
 
-  void endFunctionTypeAlias(Token token) {
-    // TODO(ahe): Implement this.
-    canceler.cancel("Cannot handle typedefs", token: token);
-    NodeList parameters = popNode();
-    Identifier name = popNode();
-    TypeAnnotation returnType = popNode();
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
+    canceler.cancel("typedef is not implemented", token: typedefKeyword);
   }
 
   void endTopLevelMethod(Token beginToken, Token endToken) {
@@ -658,6 +645,36 @@ class NodeListener extends ElementListener {
     Identifier name = popNode();
     pushNode(new ClassNode(name, supertype, interfaces, beginToken,
                            extendsKeyword, endToken));
+  }
+
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
+    NodeList formals = popNode();
+    NodeList typeParameters = null; // TODO(ahe): Don't discard these.
+    Identifier name = popNode();
+    TypeAnnotation returnType = popNode();
+    pushNode(new Typedef(returnType, name, typeParameters, formals,
+                         typedefKeyword, endToken));
+  }
+
+  void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
+    LiteralString prefix = null;
+    Identifier argumentName = null;
+    if (hasPrefix) {
+      prefix = popNode();
+      argumentName = popNode();
+    }
+    LiteralString firstArgument = popNode();
+    Identifier tag = popNode();
+    pushNode(new ScriptTag(tag, firstArgument, argumentName, prefix,
+                           beginToken, endToken));
+  }
+
+  void endInterface(int supertypeCount, Token token) {
+    // TODO(ahe): Implement this.
+    canceler.cancel("interfaces are not implemented", token: token);
+    Node defaultClause = popNode();
+    NodeList supertypes = makeNodeList(supertypeCount, null, null, ',');
+    Identifier name = popNode();
   }
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
@@ -940,25 +957,20 @@ class NodeListener extends ElementListener {
                                     modifiers, initializers));
   }
 
-  void endLiteralMapEntry(Token token) {
+  void handleLiteralMap(int count, Token beginToken, Token constKeyword,
+                        Token endToken) {
+    NodeList entries = makeNodeList(count, beginToken, endToken, ',');
+    NodeList typeArguments = popNode();
+    pushNode(new LiteralMap(typeArguments, entries));
+  }
+
+  void endLiteralMapEntry(Token colon, Token endToken) {
     Expression value = popNode();
     Expression key = popNode();
     if (key.asLiteralString() === null) {
       recoverableError('Expected a constant string', node: key);
     }
-    // TODO(ahe): Create AST node.
-    pushNode(new UnimplementedExpression('map entry', [key, value]));
-    canceler.cancel('map entries are not implemented', node: key);
-  }
-
-  void handleLiteralMap(int count, Token beginToken, Token constKeyword,
-                        Token endToken) {
-    NodeList entries = makeNodeList(count, beginToken, endToken, ',');
-    NodeList typeArguments = popNode();
-    // TODO(ahe): Type arguments are discarded.
-    // TODO(ahe): Create AST node.
-    pushNode(new UnimplementedExpression('map', [entries]));
-    canceler.cancel('literal map not implemented', node: entries);
+    pushNode(new LiteralMapEntry(key, colon, value));
   }
 
   void handleLiteralList(int count, Token beginToken, Token constKeyword,
@@ -1008,10 +1020,9 @@ class NodeListener extends ElementListener {
   }
 
   void handleNamedArgument(Token colon) {
-    canceler.cancel('named arguments are not implemented', token: colon);
-    Expression argument = popNode();
+    Expression expression = popNode();
     Identifier name = popNode();
-    pushNode(new UnimplementedExpression('named argument', [name, argument]));
+    pushNode(new NamedArgument(name, colon, expression));
   }
 
   void handleStringInterpolationParts(int count) {
@@ -1033,7 +1044,8 @@ class NodeListener extends ElementListener {
                                    Token beginToken, Token endToken) {
     canceler.cancel('optional formal parameters are not implemented',
                     token: beginToken);
-    discardNodes("optional formal parameter", count);
+    NodeList optionalParameters =
+      makeNodeList(count, beginToken, endToken, ',');
   }
 
   void handleFunctionTypedFormalParameter(Token token) {
@@ -1043,53 +1055,52 @@ class NodeListener extends ElementListener {
   }
 
   void handleValuedFormalParameter(Token equals, Token token) {
-    canceler.cancel('valued formal parameters are not implemented',
-                    token: equals);
     Expression defaultValue = popNode();
+    Expression parameterName = popNode();
+    pushNode(new SendSet(null, parameterName, new Operator(equals),
+                         new NodeList.singleton(defaultValue)));
   }
 
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
-    canceler.cancel('try statement is not implemented', token: tryKeyword);
+    Block finallyBlock = null;
+    if (finallyKeyword !== null) {
+      finallyBlock = popNode();
+    }
+    NodeList catchBlocks = makeNodeList(catchCount, null, null, null);
+    Block tryBlock = popNode();
+    pushNode(new TryStatement(tryBlock, catchBlocks, finallyBlock,
+                              tryKeyword, finallyKeyword));
   }
 
   void handleCatchBlock(Token catchKeyword) {
-    canceler.cancel('catch blocks are not implemented', token: catchKeyword);
     Block block = popNode();
-    NodeList parameters = popNode();
+    NodeList formals = popNode();
+    pushNode(new CatchBlock(formals, block, catchKeyword));
   }
 
-  void handleFinallyBlock(Token finallyKeyword) {
-    canceler.cancel('finally blocks are not implemented',
-                    token: finallyKeyword);
-    Block block = popNode();
-  }
-
-  void endSwitchStatement(Token switchKeyword) {
+  void endSwitchStatement(Token switchKeyword, Token endToken) {
     canceler.cancel('switch statement is not implemented',
                     token: switchKeyword);
     ParenthesizedExpression expression = popNode();
-    pushNode(new UnimplementedStatement('switch', [expression]));
+    pushNode(new SwitchStatement(expression, switchKeyword, endToken));
   }
 
   void handleBreakStatement(bool hasTarget,
                             Token breakKeyword, Token endToken) {
-    canceler.cancel('break statement is not implemented', token: breakKeyword);
     Identifier target = null;
     if (hasTarget) {
       target = popNode();
     }
-    pushNode(new UnimplementedStatement('break', [target]));
+    pushNode(new BreakStatement(target, breakKeyword, endToken));
   }
 
   void handleContinueStatement(bool hasTarget,
                                Token continueKeyword, Token endToken) {
-    canceler.cancel('continue statement is not implemented',
-                    token: continueKeyword);
     Identifier target = null;
     if (hasTarget) {
       target = popNode();
     }
-    pushNode(new UnimplementedStatement('continue', [target]));
+    pushNode(new ContinueStatement(target, continueKeyword, endToken));
   }
 
   void handleEmptyStatement(Token token) {
@@ -1112,14 +1123,11 @@ class NodeListener extends ElementListener {
   }
 
   void endForInStatement(Token beginToken, Token inKeyword, Token endToken) {
-    canceler.cancel('for-in is not implemented', token: inKeyword);
-    Statement statement = popNode();
+    Statement body = popNode();
     Expression expression = popNode();
-    Node variablesDeclarationOrExpression = popNode();
-    pushNode(new UnimplementedStatement('for-in',
-                                        [variablesDeclarationOrExpression,
-                                         expression,
-                                         statement]));
+    Node declaredIdentifier = popNode();
+    pushNode(new ForInStatement(declaredIdentifier, expression, body,
+                                beginToken, inKeyword));
   }
 
   void endUnamedFunction(Token token) {
@@ -1138,8 +1146,7 @@ class NodeListener extends ElementListener {
   void endLabelledStatement(Token colon) {
     Statement statement = popNode();
     Identifier label = popNode();
-    canceler.cancel('labels are not implemented', node: label);
-    pushNode(new UnimplementedStatement('labelled', [label, statement]));
+    pushNode(new LabelledStatement(label, colon, statement));
   }
 
   void log(message) {

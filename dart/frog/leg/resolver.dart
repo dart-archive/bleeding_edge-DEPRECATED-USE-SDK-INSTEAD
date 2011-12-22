@@ -108,7 +108,8 @@ class ResolverTask extends CompilerTask {
   }
 }
 
-class ResolverVisitor extends AbstractVisitor<Element> {
+// TODO(ahe): Frog cannot handle generic types.
+class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
   final Compiler compiler;
   final TreeElements mapping;
   final Element enclosingElement;
@@ -529,9 +530,58 @@ class FullResolverVisitor extends ResolverVisitor {
   visitStringInterpolationPart(StringInterpolationPart node) {
     node.visitChildren(this);
   }
+
+  visitBreakStatement(BreakStatement node) {
+    cancel(node, 'unimplemented');
+  }
+
+  visitContinueStatement(ContinueStatement node) {
+    cancel(node, 'unimplemented');
+  }
+
+  visitForInStatement(ForInStatement node) {
+    cancel(node, 'unimplemented');
+  }
+
+  visitLabelledStatement(LabelledStatement node) {
+    cancel(node, 'unimplemented');
+  }
+
+  visitLiteralMap(LiteralMap node) {
+    cancel(node, 'unimplemented');
+  }
+
+  visitLiteralMapEntry(LiteralMapEntry node) {
+    cancel(node, 'unimplemented');
+  }
+
+  visitNamedArgument(NamedArgument node) {
+    cancel(node, 'unimplemented');
+  }
+
+  visitSwitchStatement(SwitchStatement node) {
+    cancel(node, 'unimplemented');
+  }
+
+  visitTryStatement(TryStatement node) {
+    cancel(node, 'unimplemented');
+  }
+
+  visitScriptTag(ScriptTag node) {
+    cancel(node, 'unimplemented');
+  }
+
+  visitCatchBlock(CatchBlock node) {
+    cancel(node, 'unimplemented');
+  }
+
+  visitTypedef(Typedef node) {
+    cancel(node, 'unimplemented');
+  }
 }
 
-class ClassResolverVisitor extends AbstractVisitor<Type> {
+// TODO(ahe): Frog cannot handle generic types.
+class ClassResolverVisitor extends AbstractVisitor/* <Type> */ {
   Compiler compiler;
   Scope context;
 
@@ -578,7 +628,8 @@ class ClassResolverVisitor extends AbstractVisitor<Type> {
   }
 }
 
-class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
+// TODO(ahe): Frog cannot handle generic types.
+class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
   ElementKind kind;
@@ -619,7 +670,8 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   }
 }
 
-class ParametersVisitor extends AbstractVisitor<Element> {
+// TODO(ahe): Frog cannot handle generic types.
+class ParametersVisitor extends AbstractVisitor/*<Element>*/ {
   ResolverVisitor resolver;
   LinkBuilder<Element> elements;
   ParametersVisitor(this.resolver) : elements = new LinkBuilder<Element>();

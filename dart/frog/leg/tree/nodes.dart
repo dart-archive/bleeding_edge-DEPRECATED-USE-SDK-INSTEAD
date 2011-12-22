@@ -4,33 +4,45 @@
 
 interface Visitor<R> {
   R visitBlock(Block node);
+  R visitBreakStatement(BreakStatement node);
+  R visitCatchBlock(CatchBlock node);
   R visitClassNode(ClassNode node);
   R visitConditional(Conditional node);
+  R visitContinueStatement(ContinueStatement node);
   R visitDoWhile(DoWhile node);
   R visitEmptyStatement(EmptyStatement node);
   R visitExpressionStatement(ExpressionStatement node);
   R visitFor(For node);
+  R visitForInStatement(ForInStatement node);
   R visitFunctionExpression(FunctionExpression node);
   R visitIdentifier(Identifier node);
   R visitIf(If node);
+  R visitLabelledStatement(LabelledStatement node);
   R visitLiteralBool(LiteralBool node);
   R visitLiteralDouble(LiteralDouble node);
   R visitLiteralInt(LiteralInt node);
   R visitLiteralList(LiteralList node);
+  R visitLiteralMap(LiteralMap node);
+  R visitLiteralMapEntry(LiteralMapEntry node);
   R visitLiteralNull(LiteralNull node);
   R visitLiteralString(LiteralString node);
   R visitModifiers(Modifiers node);
+  R visitNamedArgument(NamedArgument node);
   R visitNewExpression(NewExpression node);
   R visitNodeList(NodeList node);
   R visitOperator(Operator node);
   R visitParenthesizedExpression(ParenthesizedExpression node);
   R visitReturn(Return node);
+  R visitScriptTag(ScriptTag node);
   R visitSend(Send node);
   R visitSendSet(SendSet node);
   R visitStringInterpolation(StringInterpolation node);
   R visitStringInterpolationPart(StringInterpolationPart node);
+  R visitSwitchStatement(SwitchStatement node);
   R visitThrow(Throw node);
+  R visitTryStatement(TryStatement node);
   R visitTypeAnnotation(TypeAnnotation node);
+  R visitTypedef(Typedef node);
   R visitVariableDefinitions(VariableDefinitions node);
   R visitWhile(While node);
 }
@@ -81,32 +93,44 @@ class Node implements Hashable {
   abstract Token getEndToken();
 
   Block asBlock() => null;
+  BreakStatement asBreakStatement() => null;
+  CatchBlock asCatchBlock() => null;
   ClassNode asClassNode() => null;
   Conditional asConditional() => null;
+  ContinueStatement asContinueStatement() => null;
   DoWhile asDoWhile() => null;
   EmptyStatement asEmptyStatement() => null;
   ExpressionStatement asExpressionStatement() => null;
   For asFor() => null;
+  ForInStatement asForInStatement() => null;
   FunctionExpression asFunctionExpression() => null;
   Identifier asIdentifier() => null;
   If asIf() => null;
+  LabelledStatement asLabelledStatement() => null;
   LiteralBool asLiteralBool() => null;
   LiteralDouble asLiteralDouble() => null;
   LiteralInt asLiteralInt() => null;
+  LiteralList asLiteralList() => null;
+  LiteralMap asLiteralMap() => null;
+  LiteralMapEntry asLiteralMapEntry() => null;
   LiteralNull asLiteralNull() => null;
   LiteralString asLiteralString() => null;
-  LiteralList asLiteralList() => null;
   Modifiers asModifiers() => null;
+  NamedArgument asNamedArgument() => null;
   NodeList asNodeList() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;
   Return asReturn() => null;
+  ScriptTag asScriptTag() => null;
   Send asSend() => null;
   SendSet asSendSet() => null;
   StringInterpolation asStringInterpolation() => null;
   StringInterpolationPart asStringInterpolationPart() => null;
+  SwitchStatement asSwitchStatement() => null;
   Throw asThrow() => null;
+  TryStatement asTryStatement() => null;
   TypeAnnotation asTypeAnnotation() => null;
+  Typedef asTypedef() => null;
   VariableDefinitions asVariableDefinitions() => null;
   While asWhile() => null;
 }
@@ -890,9 +914,9 @@ class StringInterpolationPart extends Node {
 }
 
 class EmptyStatement extends Statement {
-  final Token semicolon;
+  final Token semicolonToken;
 
-  EmptyStatement(this.semicolon);
+  EmptyStatement(this.semicolonToken);
 
   EmptyStatement asEmptyStatement() => this;
 
@@ -900,41 +924,286 @@ class EmptyStatement extends Statement {
 
   visitChildren(Visitor visitor) {}
 
-  Token getBeginToken() => semicolon;
+  Token getBeginToken() => semicolonToken;
 
-  Token getEndToken() => semicolon;
+  Token getEndToken() => semicolonToken;
 }
 
-class UnimplementedExpression extends Expression {
-  final String description;
-  final NodeList nodes;
+class LiteralMap extends Expression {
+  final NodeList typeArguments;
+  final NodeList entries;
 
-  UnimplementedExpression(this.description, List<Node> nodes)
-    : this.nodes = new NodeList(null, new Link<Node>.fromList(nodes));
+  LiteralMap(this.typeArguments, this.entries);
 
-  toString() => '$description($nodes)';
+  LiteralMap asLiteralMap() => this;
 
-  Token getBeginToken() => nodes.getBeginToken();
+  accept(Visitor visitor) => visitor.visitLiteralMap(this);
 
-  Token getEndToken() => nodes.getEndToken();
+  visitChildren(Visitor visitor) {
+    if (typeArguments != null) typeArguments.accept(visitor);
+    entries.accept(visitor);
+  }
 
-  accept(Visitor visitor) { throw toString(); }
-  visitChildren(Visitor visitor) {}
+  Token getBeginToken() => firstBeginToken(typeArguments, entries);
+
+  Token getEndToken() => entries.getEndToken();
 }
 
-class UnimplementedStatement extends Statement {
-  final String description;
-  final NodeList nodes;
+class LiteralMapEntry extends Node {
+  final Expression key;
+  final Expression value;
 
-  UnimplementedStatement(this.description, List<Node> nodes)
-    : this.nodes = new NodeList(null, new Link<Node>.fromList(nodes));
+  final Token colonToken;
 
-  toString() => '$description($nodes)';
+  LiteralMapEntry(this.key, this.colonToken, this.value);
 
-  Token getBeginToken() => nodes.getBeginToken();
+  LiteralMapEntry asLiteralMapEntry() => this;
 
-  Token getEndToken() => nodes.getEndToken();
+  accept(Visitor visitor) => visitor.visitLiteralMapEntry(this);
 
-  accept(Visitor visitor) { throw toString(); }
-  visitChildren(Visitor visitor) {}
+  visitChildren(Visitor visitor) {
+    key.accept(visitor);
+    value.accept(visitor);
+  }
+
+  Token getBeginToken() => key.getBeginToken();
+
+  Token getEndToken() => value.getEndToken();
+}
+
+class NamedArgument extends Expression {
+  final Identifier name;
+  final Expression expression;
+
+  final Token colonToken;
+
+  NamedArgument(this.name, this.colonToken, this.expression);
+
+  NamedArgument asNamedArgument() => this;
+
+  accept(Visitor visitor) => visitor.visitNamedArgument(this);
+
+  visitChildren(Visitor visitor) {
+    name.accept(visitor);
+    expression.accept(visitor);
+  }
+
+  Token getBeginToken() => name.getBeginToken();
+
+  Token getEndToken() => expression.getEndToken();
+}
+
+class SwitchStatement extends Statement {
+  final ParenthesizedExpression parenthesizedExpression;
+
+  final Token switchKeyword;
+  final Token endToken;
+  // TODO(ahe): More to come...
+
+  SwitchStatement(this.parenthesizedExpression,
+                  this.switchKeyword, this.endToken);
+
+  SwitchStatement asSwitchStatement() => this;
+
+  Expression get expression() => parenthesizedExpression.expression;
+
+  accept(Visitor visitor) => visitor.visitSwitchStatement(this);
+
+  visitChildren(Visitor visitor) {
+    parenthesizedExpression.accept(visitor);
+    // TODO(ahe): Add more stuff here.
+  }
+
+  Token getBeginToken() => switchKeyword;
+
+  Token getEndToken() => endToken;
+}
+
+class GotoStatement extends Statement {
+  final Identifier target;
+  final Token keywordToken;
+  final Token semicolonToken;
+
+  GotoStatement(this.target, this.keywordToken, this.semicolonToken);
+
+  visitChildren(Visitor visitor) {
+    if (target !== null) target.accept(visitor);
+  }
+
+  Token getBeginToken() => keywordToken;
+
+  Token getEndToken() => semicolonToken;
+}
+
+class BreakStatement extends GotoStatement {
+  BreakStatement(Identifier target, Token keywordToken, Token semicolonToken)
+    : super(target, keywordToken, semicolonToken);
+
+  BreakStatement asBreakStatement() => this;
+
+  accept(Visitor visitor) => visitor.visitBreakStatement(this);
+}
+
+class ContinueStatement extends GotoStatement {
+  ContinueStatement(Identifier target, Token keywordToken, Token semicolonToken)
+    : super(target, keywordToken, semicolonToken);
+
+  ContinueStatement asContinueStatement() => this;
+
+  accept(Visitor visitor) => visitor.visitContinueStatement(this);
+}
+
+class ForInStatement extends Loop {
+  final Node declaredIdentifier;
+  final Expression expression;
+
+  final Token forToken;
+  final Token inToken;
+
+  ForInStatement(this.declaredIdentifier, this.expression,
+                 Statement body, this.forToken, this.inToken) : super(body);
+
+  Expression get condition() => null;
+
+  ForInStatement asForInStatement() => this;
+
+  accept(Visitor visitor) => visitor.visitForInStatement(this);
+
+  visitChildren(Visitor visitor) {
+    declaredIdentifier.accept(visitor);
+    expression.accept(visitor);
+    body.accept(visitor);
+  }
+
+  Token getBeginToken() => forToken;
+
+  Token getEndToken() => body.getEndToken();
+}
+
+class LabelledStatement extends Statement {
+  final Identifier label;
+  final Token colonToken;
+  final Statement statement;
+
+  LabelledStatement(this.label, this.colonToken, this.statement);
+
+  LabelledStatement asLabelledStatement() => this;
+
+  accept(Visitor visitor) => visitor.visitLabelledStatement(this);
+
+  visitChildren(Visitor visitor) {
+    label.accept(visitor);
+    statement.accept(visitor);
+  }
+
+  Token getBeginToken() => label.getBeginToken();
+
+  Token getEndToken() => statement.getEndToken();
+}
+
+class ScriptTag extends Node {
+  final Identifier tag;
+  final LiteralString argument;
+  final Identifier prefixIdentifier;
+  final LiteralString prefix;
+
+  final Token beginToken;
+  final Token endToken;
+
+  ScriptTag(this.tag, this.argument, this.prefixIdentifier, this.prefix,
+            this.beginToken, this.endToken);
+
+  ScriptTag asScriptTag() => this;
+
+  accept(Visitor visitor) => visitor.visitScriptTag(this);
+
+  visitChildren(Visitor visitor) {
+    tag.accept(visitor);
+    argument.accept(visitor);
+    if (prefixIdentifier !== null) prefixIdentifier.accept(visitor);
+    if (prefix !== null) prefix.accept(visitor);
+  }
+
+  Token getBeginToken() => beginToken;
+
+  Token getEndToken() => endToken;
+}
+
+class Typedef extends Node {
+  final TypeAnnotation returnType;
+  final Identifier name;
+  final NodeList typeParameters;
+  final NodeList formals;
+
+  final Token typedefKeyword;
+  final Token endToken;
+
+  Typedef(this.returnType, this.name, this.typeParameters, this.formals,
+          this.typedefKeyword, this.endToken);
+
+  Typedef asTypedef() => this;
+
+  accept(Visitor visitor) => visitor.visitTypedef(this);
+
+  visitChildren(Visitor visitor) {
+    if (returnType !== null) returnType.accept(visitor);
+    name.accept(visitor);
+    if (typeParameters !== null) typeParameters.accept(visitor);
+    formals.accept(visitor);
+  }
+
+  Token getBeginToken() => typedefKeyword;
+
+  Token getEndToken() => endToken;
+}
+
+class TryStatement extends Statement {
+  final Block tryBlock;
+  final NodeList catchBlocks;
+  final Block finallyBlock;
+
+  final Token tryKeyword;
+  final Token finallyKeyword;
+
+  TryStatement(this.tryBlock, this.catchBlocks, this.finallyBlock,
+               this.tryKeyword, this.finallyKeyword);
+
+  TryStatement asTryStatement() => this;
+
+  accept(Visitor visitor) => visitor.visitTryStatement(this);
+
+  visitChildren(Visitor visitor) {
+    tryBlock.accept(visitor);
+    catchBlocks.accept(visitor);
+    if (finallyBlock !== null) finallyBlock.accept(visitor);
+  }
+
+  Token getBeginToken() => tryKeyword;
+
+  Token getEndToken() {
+    if (finallyBlock !== null) return finallyBlock.getEndToken();
+    return catchBlocks.getEndToken();
+  }
+}
+
+class CatchBlock extends Node {
+  final NodeList formals;
+  final Block block;
+
+  final catchKeyword;
+
+  CatchBlock(this.formals, this.block, this.catchKeyword);
+
+  CatchBlock asCatchBlock() => this;
+
+  accept(Visitor visitor) => visitor.visitCatchBlock(this);
+
+  visitChildren(Visitor visitor) {
+    formals.accept(visitor);
+    block.accept(visitor);
+  }
+
+  Token getBeginToken() => catchKeyword;
+
+  Token getEndToken() => block.getEndToken();
 }

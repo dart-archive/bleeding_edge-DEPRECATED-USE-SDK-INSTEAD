@@ -1040,4 +1040,52 @@ class SsaBuilder implements Visitor {
   visitModifiers(Modifiers node) {
     compiler.unimplemented('SsaBuilder.visitModifiers', node: node);
   }
+
+  visitBreakStatement(BreakStatement node) {
+    compiler.unimplemented('SsaBuilder.visitBreakStatement', node: node);
+  }
+
+  visitContinueStatement(ContinueStatement node) {
+    compiler.unimplemented('SsaBuilder.visitContinueStatement', node: node);
+  }
+
+  visitForInStatement(ForInStatement node) {
+    compiler.unimplemented('SsaBuilder.visitForInStatement', node: node);
+  }
+
+  visitLabelledStatement(LabelledStatement node) {
+    compiler.unimplemented('SsaBuilder.visitLabelledStatement', node: node);
+  }
+
+  visitLiteralMap(LiteralMap node) {
+    compiler.unimplemented('SsaBuilder.visitLiteralMap', node: node);
+  }
+
+  visitLiteralMapEntry(LiteralMapEntry node) {
+    compiler.unimplemented('SsaBuilder.visitLiteralMapEntry', node: node);
+  }
+
+  visitNamedArgument(NamedArgument node) {
+    compiler.unimplemented('SsaBuilder.visitNamedArgument', node: node);
+  }
+
+  visitSwitchStatement(SwitchStatement node) {
+    compiler.unimplemented('SsaBuilder.visitSwitchStatement', node: node);
+  }
+
+  visitTryStatement(TryStatement node) {
+    compiler.unimplemented('SsaBuilder.visitTryStatement', node: node);
+  }
+
+  visitScriptTag(ScriptTag node) {
+    compiler.unimplemented('SsaBuilder.visitScriptTag', node: node);
+  }
+
+  visitCatchBlock(CatchBlock node) {
+    compiler.unimplemented('SsaBuilder.visitCatchBlock', node: node);
+  }
+
+  visitTypedef(Typedef node) {
+    compiler.unimplemented('SsaBuilder.visitTypedef', node: node);
+  }
 }

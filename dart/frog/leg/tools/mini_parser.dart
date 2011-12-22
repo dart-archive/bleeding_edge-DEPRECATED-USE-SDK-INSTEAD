@@ -208,6 +208,16 @@ class MyNodeListener extends NodeListener {
     VariableDefinitions node = popNode(); // Discard node and assert the type.
   }
 
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
+    super.endFunctionTypeAlias(typedefKeyword, endToken);
+    Typedef node = popNode(); // Discard Typedef and assert type type.
+  }
+
+  void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
+    super.endLibraryTag(hasPrefix, beginToken, endToken);
+    ScriptTag node = popNode(); // Discard ScriptTag and assert type type.
+  }
+
   void log(message) {
     print(message);
   }

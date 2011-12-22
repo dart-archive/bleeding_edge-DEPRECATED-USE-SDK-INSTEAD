@@ -52,12 +52,13 @@ class Parser {
   }
 
   Token parseNamedFunctionAlias(Token token) {
+    Token typedefKeyword = token;
     listener.beginFunctionTypeAlias(token);
     token = parseReturnTypeOpt(token.next);
     token = parseIdentifier(token);
     token = parseTypeVariablesOpt(token);
     token = parseFormalParameters(token);
-    listener.endFunctionTypeAlias(token);
+    listener.endFunctionTypeAlias(typedefKeyword, token);
     return expect(';', token);
   }
 
@@ -1018,9 +1019,10 @@ class Parser {
     listener.beginLiteralMapEntry(token);
     // Assume the listener rejects non-string keys.
     token = parseExpression(token);
+    Token colon = token;
     token = expect(':', token);
     token = parseExpression(token);
-    listener.endLiteralMapEntry(token);
+    listener.endLiteralMapEntry(colon, token);
     return token;
   }
 
@@ -1366,13 +1368,13 @@ class Parser {
     listener.beginSwitchStatement(switchKeyword);
     token = parseParenthesizedExpression(token.next);
     token = parseSwitchBlock(token);
-    listener.endSwitchStatement(switchKeyword);
-    return token;
+    listener.endSwitchStatement(switchKeyword, token);
+    return token.next;
   }
 
   Token parseSwitchBlock(Token token) {
     // TODO(ahe): Do not skip block.
-    return skipBlock(token).next;
+    return skipBlock(token);
   }
 
   Token parseBreakStatement(Token token) {
