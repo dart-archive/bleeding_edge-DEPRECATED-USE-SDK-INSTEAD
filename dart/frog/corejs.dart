@@ -303,7 +303,11 @@ Object.prototype.$typeNameOf = function() {
   }
   var str = Object.prototype.toString.call(this);
   str = str.substring(8, str.length - 1);
-  if (str == 'Window') str = 'DOMWindow';
+  if (str == 'Window') {
+    str = 'DOMWindow';
+  } else if (str == 'Document') {
+    str = 'HTMLDocument';
+  }
   return str;
 }""";
 
