@@ -116,7 +116,9 @@ eq(var a, var b) {
       JS(@"typeof $0 === 'string'", a)) {
     return JS(@"$0 === $1", a, b);
   }
-  throw "Unimplemented user-defined ==.";
+  // TODO(kasperl): This is not the right implementation if the a has
+  // a user-defined == operator.
+  return JS(@"$0 === $1", a, b);
 }
 
 gt(var a, var b) {
