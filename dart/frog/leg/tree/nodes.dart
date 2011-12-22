@@ -100,6 +100,7 @@ class Node implements Hashable {
   ContinueStatement asContinueStatement() => null;
   DoWhile asDoWhile() => null;
   EmptyStatement asEmptyStatement() => null;
+  Expression asExpression() => null;
   ExpressionStatement asExpressionStatement() => null;
   For asFor() => null;
   ForInStatement asForInStatement() => null;
@@ -124,6 +125,7 @@ class Node implements Hashable {
   ScriptTag asScriptTag() => null;
   Send asSend() => null;
   SendSet asSendSet() => null;
+  Statement asStatement() => null;
   StringInterpolation asStringInterpolation() => null;
   StringInterpolationPart asStringInterpolationPart() => null;
   SwitchStatement asSwitchStatement() => null;
@@ -168,10 +170,14 @@ class ClassNode extends Node {
 
 class Expression extends Node {
   Expression();
+
+  Expression asExpression() => this;
 }
 
 class Statement extends Node {
   Statement();
+
+  Statement asStatement() => this;
 }
 
 /**

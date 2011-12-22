@@ -355,11 +355,15 @@ class SsaBuilder implements Visitor {
   }
 
   // For while loops, initializer and update are null.
-  visitLoop(Statement initializer, Expression condition, Expression update,
+  visitLoop(Node initializer, Expression condition, Expression update,
             Node body) {
     assert(condition !== null && body !== null);
     // The initializer.
-    if (initializer !== null) visit(initializer);
+    if (initializer !== null) {
+      visit(initializer);
+      // We don't care about the value of the initialization.
+      if (initializer.asExpression() !== null) pop();
+    }
     assert(!isAborted());
 
     Map initializerDefinitions = startLoop();
