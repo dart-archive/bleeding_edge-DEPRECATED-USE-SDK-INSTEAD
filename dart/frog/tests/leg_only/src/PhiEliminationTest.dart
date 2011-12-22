@@ -2,18 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-void expectEquals(expected, actual) {
-  if (expected == actual) {
-    // Nothing to do.
-  } else {
-    print("Actual not equal to expected");
-    print(actual);
-    print(expected);
-    throw "expectEquals failed";
-  }
-}
-
 void bar() {
   var a = 0;
   var c = 0;
@@ -21,14 +9,14 @@ void bar() {
   if (a == 0) c = a++;
   else c = a--;
 
-  expectEquals(1, a);
-  expectEquals(0, c);
+  Expect.equals(1, a);
+  Expect.equals(0, c);
 
   if (a == 0) c = a++;
   else c = a--;
 
-  expectEquals(0, a);
-  expectEquals(1, c);
+  Expect.equals(0, a);
+  Expect.equals(1, c);
 }
 
 void foo() {
@@ -43,8 +31,8 @@ void foo() {
     a = a - 1;
   }
 
-  expectEquals(1, a);
-  expectEquals(0, c);
+  Expect.equals(1, a);
+  Expect.equals(0, c);
 
   if (a == 0) {
     c = a;
@@ -54,8 +42,8 @@ void foo() {
     a = a - 1;
   }
 
-  expectEquals(0, a);
-  expectEquals(1, c);
+  Expect.equals(0, a);
+  Expect.equals(1, c);
 }
 
 main() {

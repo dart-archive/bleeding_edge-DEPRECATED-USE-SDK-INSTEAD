@@ -2,21 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void expectEquals(expected, actual) {
-  if (expected == actual) {
-    // Nothing to do.
-  } else {
-    print("Actual not equal to expected");
-    print(actual);
-    print(expected);
-    throw "expectEquals failed";
-  }
-}
-
-void unreachable() {
-  throw "Unreachable";
-}
-
 void for1() {
   var cond = true;
   var result = 0;
@@ -24,7 +9,7 @@ void for1() {
     if (x == 10) cond = false;
     result = result + x;
   }
-  expectEquals(55, result);
+  Expect.equals(55, result);
 }
 
 void for2() {
@@ -32,12 +17,12 @@ void for2() {
   for (var i = 0; i == 0; i = i + 1) {
     t = t + 10;
   }
-  expectEquals(10, t);
+  Expect.equals(10, t);
 }
 
 void for3() {
   for (var i = 0; i == 1; i = i + 1) {
-    unreachable();
+    Expect.fail('unreachable');
   }
 }
 
@@ -52,7 +37,7 @@ void for4() {
       result = result + 1;
     }
   }
-  expectEquals(100, result);
+  Expect.equals(100, result);
 }
 
 void main() {

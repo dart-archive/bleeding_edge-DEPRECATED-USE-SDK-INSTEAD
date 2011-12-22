@@ -2,14 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void expectEquals(var expected, var actual) {
-  if (expected == actual) {
-  } else {
-    print("Actual does not match expected");
-    throw actual;
-  }
-}
-
 null1() {
   return;  // implicit null;
 }
@@ -24,7 +16,7 @@ null3() {
 }
 
 void main() {
-  expectEquals(null, null1());
-  expectEquals(null, null2());
-  expectEquals(null, null3());
+  Expect.equals(null, null1());
+  Expect.equals(null, null2());
+  Expect.equals(null, null3());
 }

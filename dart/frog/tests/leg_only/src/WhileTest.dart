@@ -2,21 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void expectEquals(expected, actual) {
-  if (expected == actual) {
-    // Nothing to do.
-  } else {
-    print("Actual not equal to expected");
-    print(actual);
-    print(expected);
-    throw "expectEquals failed";
-  }
-}
-
-void unreachable() {
-  throw "Unreachable";
-}
-
 void while1() {
   bool cond = true;
   var result = 0;
@@ -26,7 +11,7 @@ void while1() {
     result += x;
     x = x + 1;
   }
-  expectEquals(55, result);
+  Expect.equals(55, result);
 }
 
 void while2() {
@@ -36,13 +21,13 @@ void while2() {
     t = t + 10;
     i++;
   }
-  expectEquals(10, t);
+  Expect.equals(10, t);
 }
 
 void while3() {
   var i = 0;
   while (i == 1) {
-    unreachable();
+    Expect.fail('unreachable');
   }
 }
 
@@ -61,7 +46,7 @@ void while4() {
     }
     i = i + 1;
   }
-  expectEquals(100, result);
+  Expect.equals(100, result);
 }
 
 int while5_2() {
@@ -76,7 +61,7 @@ int while5_2() {
 }
 
 void while5() {
-  expectEquals(499, while5_2());
+  Expect.equals(499, while5_2());
 }
 
 void main() {

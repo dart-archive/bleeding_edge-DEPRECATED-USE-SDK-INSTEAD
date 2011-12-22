@@ -2,18 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void expectEquals(var expected, var actual) {
-  if (expected == actual) {
-  } else {
-    print("Actual does not match expected");
-    throw actual;
-  }
-}
-
-void unreachable() {
-  throw "unreachable";
-}
-
 int zero() { return 0; }
 int one() { return 1; }
 int minus1() { return 0 - 1; }
@@ -28,180 +16,180 @@ int four99times99plus1() { return 499 * 99 + 1; }
 
 void addTest() {
   var m1 = 0 - 1;
-  expectEquals(0, 0 + 0);
-  expectEquals(m1, m1 + 0);
-  expectEquals(0, m1 + 1);
-  expectEquals(499, 400 + 99);
-  expectEquals(1, 0 + one());
-  expectEquals(1, one() + 0);
-  expectEquals(2, one() + one());
+  Expect.equals(0, 0 + 0);
+  Expect.equals(m1, m1 + 0);
+  Expect.equals(0, m1 + 1);
+  Expect.equals(499, 400 + 99);
+  Expect.equals(1, 0 + one());
+  Expect.equals(1, one() + 0);
+  Expect.equals(2, one() + one());
 }
 
 void subTest() {
   var m1 = 0 - 1;
-  expectEquals(0, 0 - 0);
-  expectEquals(m1, 0 - 1);
-  expectEquals(0, 1 - 1);
-  expectEquals(400, 499 - 99);
-  expectEquals(m1, 0 - one());
-  expectEquals(1, one() - 0);
-  expectEquals(0, one() - one());
+  Expect.equals(0, 0 - 0);
+  Expect.equals(m1, 0 - 1);
+  Expect.equals(0, 1 - 1);
+  Expect.equals(400, 499 - 99);
+  Expect.equals(m1, 0 - one());
+  Expect.equals(1, one() - 0);
+  Expect.equals(0, one() - one());
 }
 
 void mulTest() {
   var m1 = 0 - 1;
-  expectEquals(0, 0 * 0);
-  expectEquals(m1, m1 * 1);
-  expectEquals(1, 1 * 1);
-  expectEquals(49401, 499 * 99);
-  expectEquals(499, 499 * one());
-  expectEquals(499, one() * 499);
-  expectEquals(49401, four99() * 99);
+  Expect.equals(0, 0 * 0);
+  Expect.equals(m1, m1 * 1);
+  Expect.equals(1, 1 * 1);
+  Expect.equals(49401, 499 * 99);
+  Expect.equals(499, 499 * one());
+  Expect.equals(499, one() * 499);
+  Expect.equals(49401, four99() * 99);
 }
 
 void divTest() {
   var m1 = 0.0 - 1.0;
   var m2 = 0 - 2;
-  expectEquals(1.0, 2 / 2);
-  expectEquals(m1, m2 / 2);
-  expectEquals(0.5, 1 / 2);
-  expectEquals(499.0, 49401 / 99);
+  Expect.equals(1.0, 2 / 2);
+  Expect.equals(m1, m2 / 2);
+  Expect.equals(0.5, 1 / 2);
+  Expect.equals(499.0, 49401 / 99);
 
-  expectEquals(1.0, two() / 2);
-  expectEquals(1.0, 2 / two());
-  expectEquals(m1, m2 / two());
-  expectEquals(m1, two() / m2);
-  expectEquals(0.5, 1 / two());
-  expectEquals(0.5, one() / 2);
-  expectEquals(499.0, four99times99() / 99);
+  Expect.equals(1.0, two() / 2);
+  Expect.equals(1.0, 2 / two());
+  Expect.equals(m1, m2 / two());
+  Expect.equals(m1, two() / m2);
+  Expect.equals(0.5, 1 / two());
+  Expect.equals(0.5, one() / 2);
+  Expect.equals(499.0, four99times99() / 99);
 }
 
 void tdivTest() {
   var m1 = 0 - 1;
   var m2 = 0 - 2;
-  expectEquals(1, 2 ~/ 2);
-  expectEquals(m1, m2 ~/ 2);
-  expectEquals(0, 1 ~/ 2);
-  expectEquals(0, m1 ~/ 2);
-  expectEquals(499, 49401 ~/ 99);
-  expectEquals(499, 49402 ~/ 99);
+  Expect.equals(1, 2 ~/ 2);
+  Expect.equals(m1, m2 ~/ 2);
+  Expect.equals(0, 1 ~/ 2);
+  Expect.equals(0, m1 ~/ 2);
+  Expect.equals(499, 49401 ~/ 99);
+  Expect.equals(499, 49402 ~/ 99);
 
-  expectEquals(1, two() ~/ 2);
-  expectEquals(1, 2 ~/ two());
-  expectEquals(m1, m2 ~/ two());
-  expectEquals(m1, two() ~/ m2);
-  expectEquals(0, 1 ~/ two());
-  expectEquals(0, one() ~/ 2);
-  expectEquals(499, four99times99() ~/ 99);
-  expectEquals(499, four99times99plus1() ~/ 99);
+  Expect.equals(1, two() ~/ 2);
+  Expect.equals(1, 2 ~/ two());
+  Expect.equals(m1, m2 ~/ two());
+  Expect.equals(m1, two() ~/ m2);
+  Expect.equals(0, 1 ~/ two());
+  Expect.equals(0, one() ~/ 2);
+  Expect.equals(499, four99times99() ~/ 99);
+  Expect.equals(499, four99times99plus1() ~/ 99);
 }
 
 void modTest() {
   var m5 = 0 - 5;
   var m3 = 0 - 3;
-  expectEquals(2, 5 % 3);
-  expectEquals(0, 49401 % 99);
-  expectEquals(1, 49402 % 99);
-  expectEquals(1, m5 % 3);
-  expectEquals(2, 5 % m3);
+  Expect.equals(2, 5 % 3);
+  Expect.equals(0, 49401 % 99);
+  Expect.equals(1, 49402 % 99);
+  Expect.equals(1, m5 % 3);
+  Expect.equals(2, 5 % m3);
 
-  expectEquals(2, five() % 3);
-  expectEquals(2, 5 % three());
-  expectEquals(0, four99times99() % 99);
-  expectEquals(1, four99times99plus1() % 99);
-  expectEquals(1, minus5() % 3);
-  expectEquals(2, five() % m3);
+  Expect.equals(2, five() % 3);
+  Expect.equals(2, 5 % three());
+  Expect.equals(0, four99times99() % 99);
+  Expect.equals(1, four99times99plus1() % 99);
+  Expect.equals(1, minus5() % 3);
+  Expect.equals(2, five() % m3);
 }
 
 void shlTest() {
-  expectEquals(2, 1 << 1);
-  expectEquals(8, 1 << 3);
-  expectEquals(6, 3 << 1);
+  Expect.equals(2, 1 << 1);
+  Expect.equals(8, 1 << 3);
+  Expect.equals(6, 3 << 1);
 
-  expectEquals(10, five() << 1);
-  expectEquals(24, 3 << three());
-  expectEquals(0 - 10, minus5() << 1);
+  Expect.equals(10, five() << 1);
+  Expect.equals(24, 3 << three());
+  Expect.equals(0 - 10, minus5() << 1);
 }
 
 void shrTest() {
-  expectEquals(1, 2 >> 1);
-  expectEquals(1, 8 >> 3);
-  expectEquals(3, 6 >> 1);
+  Expect.equals(1, 2 >> 1);
+  Expect.equals(1, 8 >> 3);
+  Expect.equals(3, 6 >> 1);
 
   var x = 0 - ninetyNine();
-  expectEquals(6, ninetyNine() >> 4);
-  expectEquals(0 - 7, x >> 4);
+  Expect.equals(6, ninetyNine() >> 4);
+  Expect.equals(0 - 7, x >> 4);
 }
 
 void andTest() {
-  expectEquals(2, 10 & 3);
-  expectEquals(7, 15 & 7);
-  expectEquals(10, 10 & 10);
+  Expect.equals(2, 10 & 3);
+  Expect.equals(7, 15 & 7);
+  Expect.equals(10, 10 & 10);
 
-  expectEquals(99, ninetyNine() & ninetyNine());
-  expectEquals(34, four99() & 42);
-  expectEquals(3, minus5() & 7);
+  Expect.equals(99, ninetyNine() & ninetyNine());
+  Expect.equals(34, four99() & 42);
+  Expect.equals(3, minus5() & 7);
 }
 
 void orTest() {
-  expectEquals(11, 10 | 3);
-  expectEquals(15, 15 | 7);
-  expectEquals(10, 10 | 10);
+  Expect.equals(11, 10 | 3);
+  Expect.equals(15, 15 | 7);
+  Expect.equals(10, 10 | 10);
 
-  expectEquals(99, ninetyNine() | ninetyNine());
-  expectEquals(507, four99() | 42);
-  expectEquals(-1, minus5() | 7);
-  expectEquals(-5, minus5() | -5);
+  Expect.equals(99, ninetyNine() | ninetyNine());
+  Expect.equals(507, four99() | 42);
+  Expect.equals(-1, minus5() | 7);
+  Expect.equals(-5, minus5() | -5);
 }
 
 void xorTest() {
-  expectEquals(9, 10 ^ 3);
-  expectEquals(8, 15 ^ 7);
-  expectEquals(0, 10 ^ 10);
+  Expect.equals(9, 10 ^ 3);
+  Expect.equals(8, 15 ^ 7);
+  Expect.equals(0, 10 ^ 10);
 
-  expectEquals(0, ninetyNine() ^ ninetyNine());
-  expectEquals(473, four99() ^ 42);
-  expectEquals(-4, minus5() ^ 7);
-  expectEquals(0, minus5() ^ -5);
-  expectEquals(6, minus5() ^ -3);
+  Expect.equals(0, ninetyNine() ^ ninetyNine());
+  Expect.equals(473, four99() ^ 42);
+  Expect.equals(-4, minus5() ^ 7);
+  Expect.equals(0, minus5() ^ -5);
+  Expect.equals(6, minus5() ^ -3);
 }
 
 void notTest() {
-  expectEquals(-11, ~10);
-  expectEquals(-1, ~0);
+  Expect.equals(-11, ~10);
+  Expect.equals(-1, ~0);
 
-  expectEquals(-500, ~four99());
-  expectEquals(4, ~minus5());
+  Expect.equals(-500, ~four99());
+  Expect.equals(4, ~minus5());
 }
 
 void negateTest() {
-  expectEquals(minus5(), -5);
-  expectEquals(-5, -five());
-  expectEquals(5, -minus5());
+  Expect.equals(minus5(), -5);
+  Expect.equals(-5, -five());
+  Expect.equals(5, -minus5());
   var x = 3;
   if (false) x = 5;
-  expectEquals(-3, -x);
+  Expect.equals(-3, -x);
   var y = -5;
-  expectEquals(8, x - y);
+  Expect.equals(8, x - y);
 }
 
 void equalsTest() {
-  // Equality of normal numbers is already well tested with "expectEquals".
-  expectEquals(true, true == true);
-  expectEquals(true, false == false);
-  expectEquals(true, 0 == 0);
-  expectEquals(true, null == null);
+  // Equality of normal numbers is already well tested with "Expect.equals".
+  Expect.equals(true, true == true);
+  Expect.equals(true, false == false);
+  Expect.equals(true, 0 == 0);
+  Expect.equals(true, null == null);
 
-  expectEquals(false, 1 == 2);
-  expectEquals(false, 1 == "foo");
-  expectEquals(false, 1 == true);
-  expectEquals(false, 1 == false);
-  expectEquals(false, false == "");
-  expectEquals(false, false == 0);
-  expectEquals(false, false == null);
-  expectEquals(false, "" == false);
-  expectEquals(false, 0 == false);
-  expectEquals(false, null == false);
+  Expect.equals(false, 1 == 2);
+  Expect.equals(false, 1 == "foo");
+  Expect.equals(false, 1 == true);
+  Expect.equals(false, 1 == false);
+  Expect.equals(false, false == "");
+  Expect.equals(false, false == 0);
+  Expect.equals(false, false == null);
+  Expect.equals(false, "" == false);
+  Expect.equals(false, 0 == false);
+  Expect.equals(false, null == false);
 
   var falseValue = false;
   var trueValue = true;
@@ -212,112 +200,112 @@ void equalsTest() {
     nullValue = 5;
   }
 
-  expectEquals(true, true == trueValue);
-  expectEquals(true, false == falseValue);
-  expectEquals(true, 1 == one());
-  expectEquals(true, null == nullValue);
-  expectEquals(false, one() == 2);
-  expectEquals(false, one() == "foo");
-  expectEquals(false, one() == true);
-  expectEquals(false, one() == false);
-  expectEquals(false, falseValue == "");
-  expectEquals(false, falseValue == 0);
-  expectEquals(false, falseValue == null);
-  expectEquals(false, "" == falseValue);
-  expectEquals(false, 0 == falseValue);
-  expectEquals(false, null == falseValue);
+  Expect.equals(true, true == trueValue);
+  Expect.equals(true, false == falseValue);
+  Expect.equals(true, 1 == one());
+  Expect.equals(true, null == nullValue);
+  Expect.equals(false, one() == 2);
+  Expect.equals(false, one() == "foo");
+  Expect.equals(false, one() == true);
+  Expect.equals(false, one() == false);
+  Expect.equals(false, falseValue == "");
+  Expect.equals(false, falseValue == 0);
+  Expect.equals(false, falseValue == null);
+  Expect.equals(false, "" == falseValue);
+  Expect.equals(false, 0 == falseValue);
+  Expect.equals(false, null == falseValue);
 }
 
 void lessTest() {
   var m1 = minus1();
-  expectEquals(true, 1 < 2);
-  expectEquals(false, 2 < 1);
-  expectEquals(false, 1 < 1);
+  Expect.equals(true, 1 < 2);
+  Expect.equals(false, 2 < 1);
+  Expect.equals(false, 1 < 1);
 
-  expectEquals(true, 0 < 1);
-  expectEquals(false, 1 < 0);
-  expectEquals(false, 0 < 0);
+  Expect.equals(true, 0 < 1);
+  Expect.equals(false, 1 < 0);
+  Expect.equals(false, 0 < 0);
 
-  expectEquals(true, one() < 2);
-  expectEquals(false, 2 < one());
-  expectEquals(false, 1 < one());
+  Expect.equals(true, one() < 2);
+  Expect.equals(false, 2 < one());
+  Expect.equals(false, 1 < one());
 
-  expectEquals(true, 0 < one());
-  expectEquals(false, one() < 0);
-  expectEquals(false, 0 < 0);
+  Expect.equals(true, 0 < one());
+  Expect.equals(false, one() < 0);
+  Expect.equals(false, 0 < 0);
 
-  expectEquals(true, m1 < 0);
-  expectEquals(false, 0 < m1);
-  expectEquals(false, m1 < m1);
+  Expect.equals(true, m1 < 0);
+  Expect.equals(false, 0 < m1);
+  Expect.equals(false, m1 < m1);
 }
 
 void lessEqualTest() {
   var m1 = minus1();
-  expectEquals(true, 1 <= 2);
-  expectEquals(false, 2 <= 1);
-  expectEquals(true, 1 <= 1);
+  Expect.equals(true, 1 <= 2);
+  Expect.equals(false, 2 <= 1);
+  Expect.equals(true, 1 <= 1);
 
-  expectEquals(true, 0 <= 1);
-  expectEquals(false, 1 <= 0);
-  expectEquals(true, 0 <= 0);
+  Expect.equals(true, 0 <= 1);
+  Expect.equals(false, 1 <= 0);
+  Expect.equals(true, 0 <= 0);
 
-  expectEquals(true, one() <= 2);
-  expectEquals(false, 2 <= one());
-  expectEquals(true, 1 <= one());
+  Expect.equals(true, one() <= 2);
+  Expect.equals(false, 2 <= one());
+  Expect.equals(true, 1 <= one());
 
-  expectEquals(true, 0 <= one());
-  expectEquals(false, one() <= 0);
-  expectEquals(true, 0 <= 0);
+  Expect.equals(true, 0 <= one());
+  Expect.equals(false, one() <= 0);
+  Expect.equals(true, 0 <= 0);
 
-  expectEquals(true, m1 <= 0);
-  expectEquals(false, 0 <= m1);
-  expectEquals(true, m1 <= m1);
+  Expect.equals(true, m1 <= 0);
+  Expect.equals(false, 0 <= m1);
+  Expect.equals(true, m1 <= m1);
 }
 
 void greaterTest() {
   var m1 = minus1();
-  expectEquals(false, 1 > 2);
-  expectEquals(true, 2 > 1);
-  expectEquals(false, 1 > 1);
+  Expect.equals(false, 1 > 2);
+  Expect.equals(true, 2 > 1);
+  Expect.equals(false, 1 > 1);
 
-  expectEquals(false, 0 > 1);
-  expectEquals(true, 1 > 0);
-  expectEquals(false, 0 > 0);
+  Expect.equals(false, 0 > 1);
+  Expect.equals(true, 1 > 0);
+  Expect.equals(false, 0 > 0);
 
-  expectEquals(false, one() > 2);
-  expectEquals(true, 2 > one());
-  expectEquals(false, 1 > one());
+  Expect.equals(false, one() > 2);
+  Expect.equals(true, 2 > one());
+  Expect.equals(false, 1 > one());
 
-  expectEquals(false, 0 > one());
-  expectEquals(true, one() > 0);
-  expectEquals(false, 0 > 0);
+  Expect.equals(false, 0 > one());
+  Expect.equals(true, one() > 0);
+  Expect.equals(false, 0 > 0);
 
-  expectEquals(false, m1 > 0);
-  expectEquals(true, 0 > m1);
-  expectEquals(false, m1 > m1);
+  Expect.equals(false, m1 > 0);
+  Expect.equals(true, 0 > m1);
+  Expect.equals(false, m1 > m1);
 }
 
 void greaterEqualTest() {
   var m1 = minus1();
-  expectEquals(false, 1 >= 2);
-  expectEquals(true, 2 >= 1);
-  expectEquals(true, 1 >= 1);
+  Expect.equals(false, 1 >= 2);
+  Expect.equals(true, 2 >= 1);
+  Expect.equals(true, 1 >= 1);
 
-  expectEquals(false, 0 >= 1);
-  expectEquals(true, 1 >= 0);
-  expectEquals(true, 0 >= 0);
+  Expect.equals(false, 0 >= 1);
+  Expect.equals(true, 1 >= 0);
+  Expect.equals(true, 0 >= 0);
 
-  expectEquals(false, one() >= 2);
-  expectEquals(true, 2 >= one());
-  expectEquals(true, 1 >= one());
+  Expect.equals(false, one() >= 2);
+  Expect.equals(true, 2 >= one());
+  Expect.equals(true, 1 >= one());
 
-  expectEquals(false, 0 >= one());
-  expectEquals(true, one() >= 0);
-  expectEquals(true, 0 >= 0);
+  Expect.equals(false, 0 >= one());
+  Expect.equals(true, one() >= 0);
+  Expect.equals(true, 0 >= 0);
 
-  expectEquals(false, m1 >= 0);
-  expectEquals(true, 0 >= m1);
-  expectEquals(true, m1 >= m1);
+  Expect.equals(false, m1 >= 0);
+  Expect.equals(true, 0 >= m1);
+  Expect.equals(true, m1 >= m1);
 }
 
 void main() {

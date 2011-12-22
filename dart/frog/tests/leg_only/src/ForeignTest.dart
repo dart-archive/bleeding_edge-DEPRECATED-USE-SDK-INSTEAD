@@ -2,14 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void expectEquals(var expected, var actual) {
-  if (expected == actual) {
-  } else {
-    print("Actual does not match expected");
-    throw actual;
-  }
-}
-
 foreign1(var a, var b) {
   return JS(@"$0 + $1", a, b);
 }
@@ -30,6 +22,6 @@ foreign2() {
 }
 
 void main() {
-  expectEquals(9, foreign1(4, 5));
-  expectEquals(998, foreign2());
+  Expect.equals(9, foreign1(4, 5));
+  Expect.equals(998, foreign2());
 }

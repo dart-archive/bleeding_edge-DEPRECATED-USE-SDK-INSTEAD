@@ -2,14 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void expectEquals(var expected, var actual) {
-  if (expected == actual) {
-  } else {
-    print("Actual does not match expected");
-    throw actual;
-  }
-}
-
 class A {
   static foo(res) {
     return res;
@@ -17,5 +9,5 @@ class A {
 }
 
 main() {
-  expectEquals(42, A.foo(42));
+  Expect.equals(42, A.foo(42));
 }

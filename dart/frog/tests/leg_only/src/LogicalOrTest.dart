@@ -2,53 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void expectEquals(var expected, var actual) {
-  if (expected == actual) {
-  } else {
-    print("Actual does not match expected");
-    throw actual;
-  }
-}
-
-void unreachable() {
-  throw "unreachable";
-}
-
 void or1() {
   var b = true;
   b = b || b;
-  expectEquals(true, b);
+  Expect.equals(true, b);
 }
 
 void or2() {
   var b = false;
   b = b || b;
-  expectEquals(false, b);
+  Expect.equals(false, b);
 }
 
 void or3() {
   var b = true;
   b = b || false;
-  expectEquals(true, b);
+  Expect.equals(true, b);
 }
 
 void or4() {
   var b = true;
   b = b || true;
-  expectEquals(true, b);
+  Expect.equals(true, b);
 }
 
 void or5() {
   if (true || false) {
   } else {
-    unreachable();
+    Expect.fail('unreachable');
   }
 }
 
 void or6() {
   var b = true;
   if (true || true) b = false;
-  expectEquals(false, b);
+  Expect.equals(false, b);
 }
 
 void or7() {
@@ -58,7 +46,7 @@ void or7() {
   } else {
     b = false;
   }
-  expectEquals(true, b);
+  Expect.equals(true, b);
 }
 
 void main() {

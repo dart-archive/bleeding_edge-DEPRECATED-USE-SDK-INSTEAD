@@ -252,9 +252,16 @@ class List<T> {}
 class Expect {
   static void equals(var expected, var actual) {
     if (expected == actual) return;
-    print('Expect.equals(expected: <' + expected.toString() +
+    _fail('Expect.equals(expected: <' + expected.toString() +
           '>, actual:<' + actual.toString() + '> fails.');
-    throw 'Expect.equals failed.';
+  }
+
+  static void fail(String message) {
+    _fail("Expect.fail('" + message + "')");
+  }
+
+  static void _fail(String message) {
+    throw message;
   }
 }
 
