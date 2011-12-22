@@ -62,10 +62,7 @@ class SsaBuilderTask extends CompilerTask {
                                 FunctionExpression function,
                                 FunctionElement element,
                                 TreeElements elements) {
-    // TODO(floitsch): find super call and pass it to the builder.
-    return builder.buildConstructorBody(null,
-                                        function.parameters,
-                                        function.body);
+    return builder.buildMethod(function.parameters, function.body);
   }
 
   HGraph compileMethod(SsaBuilder builder,
@@ -170,28 +167,6 @@ class SsaBuilder implements Visitor {
     }
     add(new HInvokeDynamicMethod(methodName, bodyCallInputs));
     close(new HReturn(newObject)).addSuccessor(graph.exit);
-    return closeFunction();
-  }
-
-  HGraph buildConstructorBody(Send superInvocation,
-                              NodeList parameters,
-                              Node body) {
-    openFunction(parameters);
-    if (superInvocation !== null) {
-      compiler.unimplemented('SsaBuilder.buildConstructorBody');
-      Element superElement = elements[superInvocation];
-      String methodName = compiler.namer.constructorBodyName(superElement);
-      List superInputs = <HInstruction>[];
-      superInputs.add(new HThis());
-      for (Link<Node> link = superInvocation.arguments;
-           !link.isEmpty();
-           link = link.tail) {
-        visit(link.head);
-        superInputs.add(pop());
-      }
-      add(new HInvokeDynamicMethod(methodName, superInputs));
-    }
-    body.accept(this);
     return closeFunction();
   }
 

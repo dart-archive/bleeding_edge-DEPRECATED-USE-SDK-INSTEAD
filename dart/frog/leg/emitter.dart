@@ -66,25 +66,22 @@ function(child, parent) {
 
   bool generateFieldInits(ClassElement classElement,
                           StringBuffer argumentsBuffer,
-                          StringBuffer bodyBuffer,
-                          bool isFirst) {
-    ClassElement superClass = classElement.superClass;
-    if (superClass !== null) {
-      isFirst =
-          generateFieldInits(superClass, argumentsBuffer, bodyBuffer, isFirst);
-    }
-    // TODO(floitsch): make sure there are no name clashes.
-    String className = namer.getName(classElement);
-    for (Element member in classElement.members) {
-      if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
-        if (!isFirst) argumentsBuffer.add(', ');
-        isFirst = false;
-        String memberName = namer.instanceName(member.name);
-        argumentsBuffer.add('${className}_$memberName');
-        bodyBuffer.add('  this.$memberName = ${className}_$memberName;\n');
+                          StringBuffer bodyBuffer) {
+    bool isFirst = true;
+    do { 
+      // TODO(floitsch): make sure there are no name clashes.
+      String className = namer.getName(classElement);
+      for (Element member in classElement.members) {
+        if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
+          if (!isFirst) argumentsBuffer.add(', ');
+          isFirst = false;
+          String memberName = namer.instanceName(member.name);
+          argumentsBuffer.add('${className}_$memberName');
+          bodyBuffer.add('  this.$memberName = ${className}_$memberName;\n');
+        }
       }
-    }
-    return isFirst;
+      classElement = classElement.superClass;
+    } while(classElement !== null); 
   }
 
   void generateClass(ClassElement classElement,
@@ -100,7 +97,7 @@ function(child, parent) {
     String className = namer.isolatePropertyAccess(classElement);
     buffer.add('$className = function(');
     StringBuffer bodyBuffer = new StringBuffer();
-    generateFieldInits(classElement, buffer, bodyBuffer, true);
+    generateFieldInits(classElement, buffer, bodyBuffer);
     buffer.add(') {\n');
     buffer.add(bodyBuffer);
     buffer.add('};\n');
