@@ -59,7 +59,7 @@ class VarMember {
  */
 // TODO(jmesserly): we don't currently put $optional on lambdas.
 // Also, maybe a string encoding would perform better?
-// TODO(jmesserly): $genStub is a hole in the run-time type checker.
+// TODO(jmesserly): _genStub is a hole in the run-time type checker.
 // It bypasses the checks we would do at the callsite for methods.
 // Also, it won't work properly for native JS functions (those don't have
 // an accurate .length)
@@ -68,7 +68,15 @@ class VarFunctionStub extends VarMember {
 
   VarFunctionStub(String name, Arguments callArgs)
     : super(name), args = callArgs.toCallStubArgs() {
-    world.gen.corejs.useGenStub = true;
+    // Ensure dependency is generated
+    var funcImpl = world.coreimpl.types['_FunctionImplementation'];
+    funcImpl.markUsed();
+    world.gen.genMethod(funcImpl.getMember('_genStub'));
+  }
+
+  Value invoke(MethodGenerator context, Node node, Value target,
+      Arguments args) {
+    return super.invoke(context, node, target, args);
   }
 
   void generate(CodeWriter code) {
@@ -85,7 +93,7 @@ class VarFunctionStub extends VarMember {
     // function type. So emit a to$N stub as well as the call$N stub.
     int arity = args.length;
     w.enterBlock('Function.prototype.to\$$name = function() {');
-    w.writeln('this.$name = this.\$genStub($arity);');
+    w.writeln('this.$name = this._genStub($arity);');
     w.writeln('this.to\$$name = function() { return this.$name; };');
     w.writeln('return this.$name;');
     w.exitBlock('};');
@@ -105,7 +113,7 @@ class VarFunctionStub extends VarMember {
     var named = Strings.join(args.getNames(), '", "');
     var argsCode = args.getCode();
     w.enterBlock('Function.prototype.$name = function(${argsCode}) {');
-    w.writeln('this.$name = this.\$genStub(${args.length}, ["$named"]);');
+    w.writeln('this.$name = this._genStub(${args.length}, ["$named"]);');
     w.writeln('return this.$name($argsCode);');
     w.exitBlock('}');
   }

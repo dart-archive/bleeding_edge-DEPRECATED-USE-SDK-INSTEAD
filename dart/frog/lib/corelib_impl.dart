@@ -20,13 +20,14 @@
 #source("string_buffer.dart");
 #source("string_base.dart");
 #source("string_implementation.dart");
-
 #source("arrays.dart");
 #source("collections.dart");
 #source("date_implementation.dart");
 
 #source("isolate.dart");
 #source("isolate_serialization.dart");
+
+#source("function_implementation.dart");
 
 /**
  * The default implementation of the [List<E>] interface. Essentially a growable
@@ -403,13 +404,13 @@ class NumImplementation implements int, double native "Number" {
   // 0s but that's not a problem.
   int toInt() native '''
   'use strict';
-  if (isNaN(this)) throw new BadNumberFormatException("NaN");
+  if (isNaN(this)) \$throw(new BadNumberFormatException("NaN"));
   if ((this == Infinity) || (this == -Infinity)) {
-    throw new BadNumberFormatException("Infinity");
+    \$throw(new BadNumberFormatException("Infinity"));
   }
   var truncated = (this < 0) ? Math.ceil(this) : Math.floor(this);
   if (truncated == -0.0) return 0;
-  return truncated;''';
+  return truncated;''' { throw new BadNumberFormatException(""); }
 
   double toDouble() native "'use strict'; return this + 0;";
 

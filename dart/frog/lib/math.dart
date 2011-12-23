@@ -52,7 +52,7 @@ class Math native 'Math' {
    */
   static int parseInt(String str) native '''var ret = parseInt(str);
   if (isNaN(ret)) \$throw(new BadNumberFormatException(str));
-  return ret;''';
+  return ret;''' { throw new BadNumberFormatException(""); }
 
   /**
    * Parses a [String] representation of a [double], and returns
@@ -61,7 +61,7 @@ class Math native 'Math' {
    */
   static double parseDouble(String str) native '''var ret = parseFloat(str);
   if (isNaN(ret) && str != 'NaN') \$throw(new BadNumberFormatException(str));
-  return ret;''';
+  return ret;''' { throw new BadNumberFormatException(""); }
 
   static num min(num a, num b) native '''if (a == b) return a;
   if (a < b) {

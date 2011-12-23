@@ -12,9 +12,7 @@
 // include-if-used, etc for free. Not sure if it's worth doing that.
 class CoreJs {
   // These values track if the helper is actually used. If it is we generate it.
-  bool useStackTraceOf = false;
   bool useThrow = false;
-  bool useGenStub = false;
   bool useAssert = false;
   bool useNotNullBool = false;
   bool useIndex = false;
@@ -23,9 +21,6 @@ class CoreJs {
   bool useWrap0 = false;
   bool useWrap1 = false;
   bool useIsolates = false;
-
-  /** An experimental toString implementation. Currently unused. */
-  bool useToString = false;
 
   // These helpers had to switch to a new pattern, because they can be generated
   // after everything else.
@@ -119,15 +114,6 @@ class CoreJs {
     w.write(writer.text);
     writer = w;
 
-    if (useGenStub) {
-      useThrow = true;
-      w.writeln(_GENSTUB_FUNCTION);
-    }
-
-    if (useStackTraceOf) {
-      w.writeln(_STACKTRACEOF_FUNCTION);
-    }
-
     if (useNotNullBool) {
       useThrow = true;
       w.writeln(_NOTNULL_BOOL_FUNCTION);
@@ -135,10 +121,6 @@ class CoreJs {
 
     if (useThrow) {
       w.writeln(_THROW_FUNCTION);
-    }
-
-    if (useToString) {
-      w.writeln(_TOSTRING_FUNCTION);
     }
 
     if (useIndex) {
@@ -325,76 +307,6 @@ function $inherits(child, parent) {
   }
 }""";
 
-/** Snippet for `$genStub`. */
-final String _GENSTUB_FUNCTION = @"""
-/**
- * Generates a dynamic call stub for a function.
- * Our goal is to create a stub method like this on-the-fly:
- *   function($0, $1, capture) { return this($0, $1, true, capture); }
- *
- * This stub then replaces the dynamic one on Function, with one that is
- * specialized for that particular function, taking into account its default
- * arguments.
- */
-Function.prototype.$genStub = function(argsLength, names) {
-  // Fast path: if no named arguments and arg count matches
-  if (this.length == argsLength && !names) {
-    return this;
-  }
-
-  function $throwArgMismatch() {
-    // TODO(jmesserly): better error message
-    $throw(new ClosureArgumentMismatchException());
-  }
-
-  var paramsNamed = this.$optional ? (this.$optional.length / 2) : 0;
-  var paramsBare = this.length - paramsNamed;
-  var argsNamed = names ? names.length : 0;
-  var argsBare = argsLength - argsNamed;
-
-  // Check we got the right number of arguments
-  if (argsBare < paramsBare || argsLength > this.length ||
-      argsNamed > paramsNamed) {
-    return $throwArgMismatch;
-  }
-
-  // First, fill in all of the default values
-  var p = new Array(paramsBare);
-  if (paramsNamed) {
-    p = p.concat(this.$optional.slice(paramsNamed));
-  }
-  // Fill in positional args
-  var a = new Array(argsLength);
-  for (var i = 0; i < argsBare; i++) {
-    p[i] = a[i] = '$' + i;
-  }
-  // Then overwrite with supplied values for optional args
-  var lastParameterIndex;
-  var namesInOrder = true;
-  for (var i = 0; i < argsNamed; i++) {
-    var name = names[i];
-    a[i + argsBare] = name;
-    var j = this.$optional.indexOf(name);
-    if (j < 0 || j >= paramsNamed) {
-      return $throwArgMismatch;
-    } else if (lastParameterIndex && lastParameterIndex > j) {
-      namesInOrder = false;
-    }
-    p[j + paramsBare] = name;
-    lastParameterIndex = j;
-  }
-
-  if (this.length == argsLength && namesInOrder) {
-    // Fast path #2: named arguments, but they're in order.
-    return this;
-  }
-
-  // Note: using Function instead of 'eval' to get a clean scope.
-  // TODO(jmesserly): evaluate the performance of these stubs.
-  var f = 'function(' + a.join(',') + '){return $f(' + p.join(',') + ');}';
-  return new Function('$f', 'return ' + f + '').call(null, this);
-}""";
-
 /** Snippet for `$stackTraceOf`. */
 final String _STACKTRACEOF_FUNCTION = @"""
 function $stackTraceOf(e) {
@@ -423,20 +335,6 @@ function $throw(e) {
     Error.captureStackTrace(e, $throw);
   }
   throw e;
-}""";
-
-/** Snippet for `$toString`. */
-// TODO(jimhug): Test perf - idea is this speeds up primitives and
-//  semi-elegantly handles null - currently unused...
-final String _TOSTRING_FUNCTION = @"""
-function $toString(o) {
-  if (o == null) return 'null';
-  var t = typeof(o);
-  if (t == 'object') { return o.toString(); }
-  else if (t == 'string') { return o; }
-  else if (t == 'bool') { return ''+o; }
-  else if (t == 'number') { return ''+o; }
-  else return o.toString();
 }""";
 
 /**

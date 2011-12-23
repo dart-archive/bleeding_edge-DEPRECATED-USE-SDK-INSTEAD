@@ -730,7 +730,7 @@ class MethodMember extends Member {
 
   Type get functionType() {
     if (_functionType == null) {
-      _functionType = 
+      _functionType =
           library.getOrAddFunctionType(declaringType, name, definition);
       // TODO(jimhug): Better resolution checks.
       if (parameters == null) {
@@ -1023,7 +1023,7 @@ class MethodMember extends Member {
     if (isStatic) {
       if (declaringType.isTop) {
         // TODO(jimhug): Explore moving libraries into their own namespaces
-        return new Value(inferredResult, 
+        return new Value(inferredResult,
             '$jsname($argsString)', node != null ? node.span : node);
       }
       return new Value(inferredResult,
@@ -1276,7 +1276,7 @@ class MethodMember extends Member {
       if (name == ':index') {
         // Note: this could technically propagate constness, but that's not
         // specified explicitly and the VM doesn't do that.
-        return 
+        return
             new Value(returnType, '${target.code}[${argsCode[0]}]', node.span);
       } else if (name == ':setindex') {
         return new Value(returnType,
@@ -1618,7 +1618,7 @@ class MemberSet {
     if (returnValue.code == null) {
       if (name == ':call') {
         // TODO(jmesserly): reconcile this with similar code in Value
-        return target._varCall(context, args);
+        return target._varCall(context, node, args);
       } else if (isOperator) {
         // TODO(jmesserly): make operators less special.
         return invokeSpecial(target, args, returnValue.type);

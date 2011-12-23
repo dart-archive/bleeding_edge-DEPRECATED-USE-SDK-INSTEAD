@@ -1,73 +1,6 @@
 #!/usr/bin/env node
 //  ********** Library dart:core **************
 //  ********** Natives dart:core **************
-/**
- * Generates a dynamic call stub for a function.
- * Our goal is to create a stub method like this on-the-fly:
- *   function($0, $1, capture) { return this($0, $1, true, capture); }
- *
- * This stub then replaces the dynamic one on Function, with one that is
- * specialized for that particular function, taking into account its default
- * arguments.
- */
-Function.prototype.$genStub = function(argsLength, names) {
-  // Fast path: if no named arguments and arg count matches
-  if (this.length == argsLength && !names) {
-    return this;
-  }
-
-  function $throwArgMismatch() {
-    // TODO(jmesserly): better error message
-    $throw(new ClosureArgumentMismatchException());
-  }
-
-  var paramsNamed = this.$optional ? (this.$optional.length / 2) : 0;
-  var paramsBare = this.length - paramsNamed;
-  var argsNamed = names ? names.length : 0;
-  var argsBare = argsLength - argsNamed;
-
-  // Check we got the right number of arguments
-  if (argsBare < paramsBare || argsLength > this.length ||
-      argsNamed > paramsNamed) {
-    return $throwArgMismatch;
-  }
-
-  // First, fill in all of the default values
-  var p = new Array(paramsBare);
-  if (paramsNamed) {
-    p = p.concat(this.$optional.slice(paramsNamed));
-  }
-  // Fill in positional args
-  var a = new Array(argsLength);
-  for (var i = 0; i < argsBare; i++) {
-    p[i] = a[i] = '$' + i;
-  }
-  // Then overwrite with supplied values for optional args
-  var lastParameterIndex;
-  var namesInOrder = true;
-  for (var i = 0; i < argsNamed; i++) {
-    var name = names[i];
-    a[i + argsBare] = name;
-    var j = this.$optional.indexOf(name);
-    if (j < 0 || j >= paramsNamed) {
-      return $throwArgMismatch;
-    } else if (lastParameterIndex && lastParameterIndex > j) {
-      namesInOrder = false;
-    }
-    p[j + paramsBare] = name;
-    lastParameterIndex = j;
-  }
-
-  if (this.length == argsLength && namesInOrder) {
-    // Fast path #2: named arguments, but they're in order.
-    return this;
-  }
-
-  // Note: using Function instead of 'eval' to get a clean scope.
-  // TODO(jmesserly): evaluate the performance of these stubs.
-  var f = 'function(' + a.join(',') + '){return $f(' + p.join(',') + ');}';
-  return new Function('$f', 'return ' + f + '').call(null, this);
-}
 function $throw(e) {
   // If e is not a value, we can use V8's captureStackTrace utility method.
   // TODO(jmesserly): capture the stack trace on other JS engines.
@@ -425,6 +358,14 @@ NoSuchMethodException.prototype.toString = function() {
   return ("NoSuchMethodException - receiver: '" + this._receiver + "' ") + ("function name: '" + this._functionName + "' arguments: [" + sb + "]");
 }
 NoSuchMethodException.prototype.toString$0 = NoSuchMethodException.prototype.toString;
+// ********** Code for ClosureArgumentMismatchException **************
+function ClosureArgumentMismatchException() {
+  // Initializers done
+}
+ClosureArgumentMismatchException.prototype.toString = function() {
+  return "Closure argument mismatch";
+}
+ClosureArgumentMismatchException.prototype.toString$0 = ClosureArgumentMismatchException.prototype.toString;
 // ********** Code for ObjectNotClosureException **************
 function ObjectNotClosureException() {
   // Initializers done
@@ -442,7 +383,10 @@ StackOverflowException.prototype.toString = function() {
 }
 StackOverflowException.prototype.toString$0 = StackOverflowException.prototype.toString;
 // ********** Code for BadNumberFormatException **************
-function BadNumberFormatException() {}
+function BadNumberFormatException(_s) {
+  this._s = _s;
+  // Initializers done
+}
 BadNumberFormatException.prototype.toString = function() {
   return ("BadNumberFormatException: '" + this._s + "'");
 }
@@ -471,9 +415,9 @@ EmptyQueueException.prototype.toString = function() {
   return "EmptyQueueException";
 }
 EmptyQueueException.prototype.toString$0 = EmptyQueueException.prototype.toString;
-// ********** Code for Function **************
+// ********** Code for dart_core_Function **************
 Function.prototype.to$call$0 = function() {
-  this.call$0 = this.$genStub(0);
+  this.call$0 = this._genStub(0);
   this.to$call$0 = function() { return this.call$0; };
   return this.call$0;
 };
@@ -482,7 +426,7 @@ Function.prototype.call$0 = function() {
 };
 function to$call$0(f) { return f && f.to$call$0(); }
 Function.prototype.to$call$1 = function() {
-  this.call$1 = this.$genStub(1);
+  this.call$1 = this._genStub(1);
   this.to$call$1 = function() { return this.call$1; };
   return this.call$1;
 };
@@ -491,7 +435,7 @@ Function.prototype.call$1 = function($0) {
 };
 function to$call$1(f) { return f && f.to$call$1(); }
 Function.prototype.to$call$2 = function() {
-  this.call$2 = this.$genStub(2);
+  this.call$2 = this._genStub(2);
   this.to$call$2 = function() { return this.call$2; };
   return this.call$2;
 };
@@ -767,9 +711,9 @@ NumImplementation.prototype.hashCode = function() {
 }
 NumImplementation.prototype.toInt = function() {
     'use strict';
-    if (isNaN(this)) throw new BadNumberFormatException("NaN");
+    if (isNaN(this)) $throw(new BadNumberFormatException("NaN"));
     if ((this == Infinity) || (this == -Infinity)) {
-      throw new BadNumberFormatException("Infinity");
+      $throw(new BadNumberFormatException("Infinity"));
     }
     var truncated = (this < 0) ? Math.ceil(this) : Math.floor(this);
     if (truncated == -0.0) return 0;
@@ -1814,6 +1758,83 @@ Collections.filter = function(source, destination, f) {
   return destination;
 }
 // ********** Code for _Worker **************
+// ********** Code for _ArgumentMismatchException **************
+$inherits(_ArgumentMismatchException, ClosureArgumentMismatchException);
+function _ArgumentMismatchException(_message) {
+  this._dart_coreimpl_message = _message;
+  // Initializers done
+  ClosureArgumentMismatchException.call(this);
+}
+_ArgumentMismatchException.prototype.toString = function() {
+  return ("Closure argument mismatch: " + this._dart_coreimpl_message);
+}
+_ArgumentMismatchException.prototype.toString$0 = _ArgumentMismatchException.prototype.toString;
+// ********** Code for _FunctionImplementation **************
+_FunctionImplementation = Function;
+_FunctionImplementation.prototype._genStub = function(argsLength, names) {
+      // Fast path #1: if no named arguments and arg count matches
+      if (this.length == argsLength && !names) {
+        return this;
+      }
+
+      var paramsNamed = this.$optional ? (this.$optional.length / 2) : 0;
+      var paramsBare = this.length - paramsNamed;
+      var argsNamed = names ? names.length : 0;
+      var argsBare = argsLength - argsNamed;
+
+      // Check we got the right number of arguments
+      if (argsBare < paramsBare || argsLength > this.length ||
+          argsNamed > paramsNamed) {
+        return function() {
+          $throw(new _ArgumentMismatchException(
+            'Wrong number of arguments to function. Expected ' + paramsBare +
+            ' positional arguments and at most ' + paramsNamed +
+            ' named arguments, but got ' + argsBare +
+            ' positional arguments and ' + argsNamed + ' named arguments.'));
+        };
+      }
+
+      // First, fill in all of the default values
+      var p = new Array(paramsBare);
+      if (paramsNamed) {
+        p = p.concat(this.$optional.slice(paramsNamed));
+      }
+      // Fill in positional args
+      var a = new Array(argsLength);
+      for (var i = 0; i < argsBare; i++) {
+        p[i] = a[i] = '$' + i;
+      }
+      // Then overwrite with supplied values for optional args
+      var lastParameterIndex;
+      var namesInOrder = true;
+      for (var i = 0; i < argsNamed; i++) {
+        var name = names[i];
+        a[i + argsBare] = name;
+        var j = this.$optional.indexOf(name);
+        if (j < 0 || j >= paramsNamed) {
+          return function() {
+            $throw(new _ArgumentMismatchException(
+              'Named argument "' + name + '" was not expected by function.' +
+              ' Did you forget to mark the function parameter [optional]?'));
+          };
+        } else if (lastParameterIndex && lastParameterIndex > j) {
+          namesInOrder = false;
+        }
+        p[j + paramsBare] = name;
+        lastParameterIndex = j;
+      }
+
+      if (this.length == argsLength && namesInOrder) {
+        // Fast path #2: named arguments, but they're in order and all supplied.
+        return this;
+      }
+
+      // Note: using Function instead of 'eval' to get a clean scope.
+      // TODO(jmesserly): evaluate the performance of these stubs.
+      var f = 'function(' + a.join(',') + '){return $f(' + p.join(',') + ');}';
+      return new Function('$f', 'return ' + f + '').call(null, this);
+    
+}
 // ********** Code for top level **************
 //  ********** Library node **************
 // ********** Code for Process **************
@@ -2052,9 +2073,7 @@ CodeWriter.prototype.nextBlock = function(text) {
 }
 // ********** Code for CoreJs **************
 function CoreJs() {
-  this.useStackTraceOf = false
   this.useThrow = false
-  this.useGenStub = false
   this.useAssert = false
   this.useNotNullBool = false
   this.useIndex = false
@@ -2062,7 +2081,6 @@ function CoreJs() {
   this.useWrap0 = false
   this.useWrap1 = false
   this.useIsolates = false
-  this.useToString = false
   this._generatedTypeNameOf = false
   this._generatedDynamicProto = false
   this._generatedInherits = false
@@ -2139,22 +2157,12 @@ CoreJs.prototype.ensureInheritsHelper = function() {
 CoreJs.prototype.generate = function(w) {
   w.write(this.writer.get$text());
   this.writer = w;
-  if (this.useGenStub) {
-    this.useThrow = true;
-    w.writeln("/**\n * Generates a dynamic call stub for a function.\n * Our goal is to create a stub method like this on-the-fly:\n *   function($0, $1, capture) { return this($0, $1, true, capture); }\n *\n * This stub then replaces the dynamic one on Function, with one that is\n * specialized for that particular function, taking into account its default\n * arguments.\n */\nFunction.prototype.$genStub = function(argsLength, names) {\n  // Fast path: if no named arguments and arg count matches\n  if (this.length == argsLength && !names) {\n    return this;\n  }\n\n  function $throwArgMismatch() {\n    // TODO(jmesserly): better error message\n    $throw(new ClosureArgumentMismatchException());\n  }\n\n  var paramsNamed = this.$optional ? (this.$optional.length / 2) : 0;\n  var paramsBare = this.length - paramsNamed;\n  var argsNamed = names ? names.length : 0;\n  var argsBare = argsLength - argsNamed;\n\n  // Check we got the right number of arguments\n  if (argsBare < paramsBare || argsLength > this.length ||\n      argsNamed > paramsNamed) {\n    return $throwArgMismatch;\n  }\n\n  // First, fill in all of the default values\n  var p = new Array(paramsBare);\n  if (paramsNamed) {\n    p = p.concat(this.$optional.slice(paramsNamed));\n  }\n  // Fill in positional args\n  var a = new Array(argsLength);\n  for (var i = 0; i < argsBare; i++) {\n    p[i] = a[i] = '$' + i;\n  }\n  // Then overwrite with supplied values for optional args\n  var lastParameterIndex;\n  var namesInOrder = true;\n  for (var i = 0; i < argsNamed; i++) {\n    var name = names[i];\n    a[i + argsBare] = name;\n    var j = this.$optional.indexOf(name);\n    if (j < 0 || j >= paramsNamed) {\n      return $throwArgMismatch;\n    } else if (lastParameterIndex && lastParameterIndex > j) {\n      namesInOrder = false;\n    }\n    p[j + paramsBare] = name;\n    lastParameterIndex = j;\n  }\n\n  if (this.length == argsLength && namesInOrder) {\n    // Fast path #2: named arguments, but they're in order.\n    return this;\n  }\n\n  // Note: using Function instead of 'eval' to get a clean scope.\n  // TODO(jmesserly): evaluate the performance of these stubs.\n  var f = 'function(' + a.join(',') + '){return $f(' + p.join(',') + ');}';\n  return new Function('$f', 'return ' + f + '').call(null, this);\n}"/*null._GENSTUB_FUNCTION*/);
-  }
-  if (this.useStackTraceOf) {
-    w.writeln("function $stackTraceOf(e) {\n  // TODO(jmesserly): we shouldn't be relying on the e.stack property.\n  // Need to mangle it.\n  return  (e && e.stack) ? e.stack : null;\n}"/*null._STACKTRACEOF_FUNCTION*/);
-  }
   if (this.useNotNullBool) {
     this.useThrow = true;
     w.writeln("function $notnull_bool(test) {\n  if (test === true || test === false) return test;\n  $throw(new TypeError(test, 'bool'));\n}"/*null._NOTNULL_BOOL_FUNCTION*/);
   }
   if (this.useThrow) {
     w.writeln("function $throw(e) {\n  // If e is not a value, we can use V8's captureStackTrace utility method.\n  // TODO(jmesserly): capture the stack trace on other JS engines.\n  if (e && (typeof e == 'object') && Error.captureStackTrace) {\n    // TODO(jmesserly): this will clobber the e.stack property\n    Error.captureStackTrace(e, $throw);\n  }\n  throw e;\n}"/*null._THROW_FUNCTION*/);
-  }
-  if (this.useToString) {
-    w.writeln("function $toString(o) {\n  if (o == null) return 'null';\n  var t = typeof(o);\n  if (t == 'object') { return o.toString(); }\n  else if (t == 'string') { return o; }\n  else if (t == 'bool') { return ''+o; }\n  else if (t == 'number') { return ''+o; }\n  else return o.toString();\n}"/*null._TOSTRING_FUNCTION*/);
   }
   if (this.useIndex) {
     w.writeln("Object.prototype.$index = function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n}\nArray.prototype.$index = function(i) { return this[i]; }\nString.prototype.$index = function(i) { return this[i]; }"/*null._INDEX_OPERATORS*/);
@@ -2308,12 +2316,6 @@ WorldGenerator.prototype.run = function() {
   this.main.declaringType.markUsed();
   if ($globals.options.compileAll) {
     this.markLibrariesUsed([$globals.world.get$coreimpl(), $globals.world.corelib, this.main.declaringType.get$library()]);
-  }
-  else {
-    $globals.world.corelib.types.$index('BadNumberFormatException').markUsed$0();
-    $globals.world.get$coreimpl().types.$index('NumImplementation').markUsed$0();
-    $globals.world.get$coreimpl().types.$index('StringImplementation').markUsed$0();
-    this.genMethod($globals.world.get$coreimpl().types.$index('StringImplementation').getMember$1('contains'));
   }
   if ($globals.world.corelib.types.$index('Isolate').get$isUsed() || $globals.world.get$coreimpl().types.$index('ReceivePortImpl').get$isUsed()) {
     if (this.corejs.useWrap0 || this.corejs.useWrap1) {
@@ -3480,9 +3482,13 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
   this._popBlock();
   return false;
 }
-MethodGenerator.prototype._genToDartException = function(ex, node) {
+MethodGenerator.prototype._genToDartException = function(ex) {
   var result = this._invokeNative("_toDartException", [ex]);
   this.writer.writeln(('' + ex.code + ' = ' + result.get$code() + ';'));
+}
+MethodGenerator.prototype._genStackTraceOf = function(trace, ex) {
+  var result = this._invokeNative("_stackTraceOf", [ex]);
+  this.writer.writeln(('var ' + trace.code + ' = ' + result.get$code() + ';'));
 }
 MethodGenerator.prototype.visitTryStatement = function(node) {
   this.writer.enterBlock('try {');
@@ -3498,10 +3504,9 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
     this.writer.nextBlock(('} catch (' + ex.get$code() + ') {'));
     if (catch_.get$trace() != null) {
       var trace = this._scope.declare(catch_.get$trace());
-      this.writer.writeln(('var ' + trace.get$code() + ' = \$stackTraceOf(' + ex.get$code() + ');'));
-      $globals.world.gen.corejs.useStackTraceOf = true;
+      this._genStackTraceOf(trace, ex);
     }
-    this._genToDartException(ex, node);
+    this._genToDartException(ex);
     if (!exType.get$isVarOrObject()) {
       var test = ex.instanceOf$3$isTrue$forceCheck(this, exType, catch_.get$exception().get$span(), false, true);
       this.writer.writeln(('if (' + test.get$code() + ') throw ' + ex.get$code() + ';'));
@@ -3520,10 +3525,9 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
     })
     )) {
       trace = this._scope.create('\$trace', $globals.world.varType, null, false, false);
-      this.writer.writeln(('var ' + trace.get$code() + ' = \$stackTraceOf(' + ex.get$code() + ');'));
-      $globals.world.gen.corejs.useStackTraceOf = true;
+      this._genStackTraceOf(trace, ex);
     }
-    this._genToDartException(ex, node);
+    this._genToDartException(ex);
     var needsRethrow = true;
     for (var i = 0;
      i < node.catches.get$length(); i++) {
@@ -4218,8 +4222,12 @@ MethodGenerator.prototype.visitLiteralExpression = function(node) {
     }
     return new Value(type, ('(' + Strings.join(items, " + ") + ')'), node.span, true);
   }
+  if ((typeof(node.value) == 'number')) {
+    $globals.world.get$coreimpl().types.$index('NumImplementation').markUsed$0();
+  }
   var text = node.text;
   if (type.get$isString()) {
+    $globals.world.get$coreimpl().types.$index('StringImplementation').markUsed$0();
     if (text.startsWith$1('@')) {
       text = MethodGenerator._escapeString(parseStringLiteral(text));
       text = ('"' + text + '"');
@@ -6402,7 +6410,7 @@ MemberSet.prototype.invoke = function(context, node, target, args, isDynamic) {
   }
   if (returnValue.code == null) {
     if (this.name == ':call') {
-      return target._varCall(context, args);
+      return target._varCall(context, node, args);
     }
     else if (this.get$isOperator()) {
       return this.invokeSpecial(target, args, returnValue.get$type());
@@ -6554,10 +6562,10 @@ Token.prototype.get$span = function() {
   return new SourceSpan(this.source, this.start, this.end);
 }
 Token.prototype.end$0 = function() {
-  return this.end.call$0();
+  return this.end();
 };
 Token.prototype.start$0 = function() {
-  return this.start.call$0();
+  return this.start();
 };
 Token.prototype.toString$0 = Token.prototype.toString;
 // ********** Code for ErrorToken **************
@@ -6683,10 +6691,10 @@ SourceSpan.prototype.compareTo = function(other) {
 }
 SourceSpan.prototype.compareTo$1 = SourceSpan.prototype.compareTo;
 SourceSpan.prototype.end$0 = function() {
-  return this.end.call$0();
+  return this.end();
 };
 SourceSpan.prototype.start$0 = function() {
-  return this.start.call$0();
+  return this.start();
 };
 // ********** Code for InterpStack **************
 function InterpStack(previous, quote, isMultiline) {
@@ -12245,7 +12253,7 @@ Value.prototype.invoke = function(context, name, node, args, isDynamic) {
       $globals.world.error('must use "new" or "const" to construct a new instance', node.span);
     }
     if (this.get$type().needsVarCall(args)) {
-      return this._varCall(context, args);
+      return this._varCall(context, node, args);
     }
   }
   var member = this._resolveMember(context, name, node, isDynamic);
@@ -12319,9 +12327,9 @@ Value.prototype.checkFirstClass = function(span) {
     $globals.world.error('Types are not first class', span);
   }
 }
-Value.prototype._varCall = function(context, args) {
+Value.prototype._varCall = function(context, node, args) {
   var stub = $globals.world.functionType.getCallStub(args);
-  return new Value($globals.world.varType, ('' + this.code + '.' + stub.get$name() + '(' + args.getCode() + ')'), this.span, true);
+  return stub.invoke$4(context, node, this, args);
 }
 Value.prototype.needsConversion = function(toType) {
   var callMethod = toType.getCallMethod();
@@ -13299,7 +13307,12 @@ function VarFunctionStub(name, callArgs) {
   this.args = callArgs.toCallStubArgs();
   // Initializers done
   VarMember.call(this, name);
-  $globals.world.gen.corejs.useGenStub = true;
+  var funcImpl = $globals.world.get$coreimpl().types.$index('_FunctionImplementation');
+  funcImpl.markUsed$0();
+  $globals.world.gen.genMethod(funcImpl.getMember$1('_genStub'));
+}
+VarFunctionStub.prototype.invoke = function(context, node, target, args) {
+  return VarMember.prototype.invoke.call(this, context, node, target, args);
 }
 VarFunctionStub.prototype.generate = function(code) {
   this.isGenerated = true;
@@ -13313,7 +13326,7 @@ VarFunctionStub.prototype.generate = function(code) {
 VarFunctionStub.prototype.generatePositional = function(w) {
   var arity = this.args.get$length();
   w.enterBlock(('Function.prototype.to\$' + this.name + ' = function() {'));
-  w.writeln(('this.' + this.name + ' = this.\$genStub(' + arity + ');'));
+  w.writeln(('this.' + this.name + ' = this._genStub(' + arity + ');'));
   w.writeln(('this.to\$' + this.name + ' = function() { return this.' + this.name + '; };'));
   w.writeln(('return this.' + this.name + ';'));
   w.exitBlock('};');
@@ -13327,11 +13340,12 @@ VarFunctionStub.prototype.generateNamed = function(w) {
   var named = Strings.join(this.args.getNames(), '", "');
   var argsCode = this.args.getCode();
   w.enterBlock(('Function.prototype.' + this.name + ' = function(' + argsCode + ') {'));
-  w.writeln(('this.' + this.name + ' = this.\$genStub(' + this.args.get$length() + ', ["' + named + '"]);'));
+  w.writeln(('this.' + this.name + ' = this._genStub(' + this.args.get$length() + ', ["' + named + '"]);'));
   w.writeln(('return this.' + this.name + '(' + argsCode + ');'));
   w.exitBlock('}');
 }
 VarFunctionStub.prototype.generate$1 = VarFunctionStub.prototype.generate;
+VarFunctionStub.prototype.invoke$4 = VarFunctionStub.prototype.invoke;
 // ********** Code for VarMethodStub **************
 $inherits(VarMethodStub, VarMember);
 function VarMethodStub(name, member, args, body) {

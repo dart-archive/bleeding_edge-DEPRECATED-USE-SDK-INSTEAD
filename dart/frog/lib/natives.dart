@@ -64,3 +64,7 @@ return e;""" {
   new NoSuchMethodException(null, null, null);
   new StackOverflowException();
 }
+
+// TODO(jmesserly): we shouldn't be relying on the e.stack property.
+// Need to mangle it.
+_stackTraceOf(e) native @"return  (e && e.stack) ? e.stack : null;";

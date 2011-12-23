@@ -41,13 +41,6 @@ class WorldGenerator {
     if (options.compileAll) {
       markLibrariesUsed(
           [world.coreimpl, world.corelib, main.declaringType.library]);
-    } else {
-      // TODO(jimhug): Better way to capture hidden control flow.
-      world.corelib.types['BadNumberFormatException'].markUsed();
-      world.coreimpl.types['NumImplementation'].markUsed();
-      world.coreimpl.types['StringImplementation'].markUsed();
-      genMethod(
-          world.coreimpl.types['StringImplementation'].getMember('contains'));
     }
 
     // Only include isolate-specific code if isolates are used.
@@ -908,7 +901,7 @@ class MethodGenerator implements TreeVisitor {
   static _maybeGenerateBoundGetter(MethodMember m, CodeWriter defWriter) {
     if (m._providePropertySyntax) {
       defWriter.enterBlock(
-          world.gen._prototypeOf(m.declaringType, "get\$" + m.jsname) 
+          world.gen._prototypeOf(m.declaringType, "get\$" + m.jsname)
           + ' = function() {');
       // TODO(jimhug): Bind not available in older Safari, need fallback?
       defWriter.writeln('return this.${m.jsname}.bind(this);');
@@ -1528,9 +1521,14 @@ class MethodGenerator implements TreeVisitor {
     return false;
   }
 
-  void _genToDartException(Value ex, Node node) {
+  void _genToDartException(Value ex) {
     var result = _invokeNative("_toDartException", [ex]);
     writer.writeln('${ex.code} = ${result.code};');
+  }
+
+  void _genStackTraceOf(Value trace, Value ex) {
+    var result = _invokeNative("_stackTraceOf", [ex]);
+    writer.writeln('var ${trace.code} = ${result.code};');
   }
 
   bool visitTryStatement(TryStatement node) {
@@ -1550,10 +1548,9 @@ class MethodGenerator implements TreeVisitor {
       writer.nextBlock('} catch (${ex.code}) {');
       if (catch_.trace != null) {
         var trace = _scope.declare(catch_.trace);
-        writer.writeln('var ${trace.code} = \$stackTraceOf(${ex.code});');
-        world.gen.corejs.useStackTraceOf = true;
+        _genStackTraceOf(trace, ex);
       }
-      _genToDartException(ex, node);
+      _genToDartException(ex);
 
       if (!exType.isVarOrObject) {
         var test = ex.instanceOf(this, exType, catch_.exception.span,
@@ -1571,10 +1568,9 @@ class MethodGenerator implements TreeVisitor {
       var trace = null;
       if (node.catches.some((c) => c.trace != null)) {
         trace = _scope.create('\$trace', world.varType, null);
-        writer.writeln('var ${trace.code} = \$stackTraceOf(${ex.code});');
-        world.gen.corejs.useStackTraceOf = true;
+        _genStackTraceOf(trace, ex);
       }
-      _genToDartException(ex, node);
+      _genToDartException(ex);
 
       // We need a rethrow unless we encounter a "var" or "Object" catch
       bool needsRethrow = true;
@@ -1919,7 +1915,7 @@ class MethodGenerator implements TreeVisitor {
     } else if ((assignKind != 0) && _expressionNeedsParens(node.y)) {
       return _visitAssign(assignKind, node.x,
           new ParenExpression(node.y, node.y.span), node, null, isVoid);
-    } else {  
+    } else {
       return _visitAssign(assignKind, node.x, node.y, node, null, isVoid);
     }
   }
@@ -2448,9 +2444,15 @@ class MethodGenerator implements TreeVisitor {
       return new Value(type, '(${Strings.join(items, " + ")})', node.span);
     }
 
+    if (node.value is num) {
+      world.coreimpl.types['NumImplementation'].markUsed();
+    }
+
     var text = node.text;
     // TODO(jimhug): Confirm that only strings need possible translation
     if (type.isString) {
+      world.coreimpl.types['StringImplementation'].markUsed();
+
       if (text.startsWith('@')) {
         text = _escapeString(parseStringLiteral(text));
         text = '"$text"';

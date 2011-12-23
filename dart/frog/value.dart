@@ -109,7 +109,7 @@ class Value {
             node.span);
       }
       if (type.needsVarCall(args)) {
-        return _varCall(context, args);
+        return _varCall(context, node, args);
       }
     }
 
@@ -202,13 +202,12 @@ class Value {
   }
 
   /** Generate a call to an unknown function type. */
-  Value _varCall(MethodGenerator context, Arguments args) {
+  Value _varCall(MethodGenerator context, Node node, Arguments args) {
     // TODO(jmesserly): calls to unknown functions will bypass type checks,
     // which normally happen on the caller side, or in the generated stub for
     // dynamic method calls. What should we do?
     var stub = world.functionType.getCallStub(args);
-    return new Value(world.varType, '$code.${stub.name}(${args.getCode()})',
-      span);
+    return stub.invoke(context, node, this, args);
   }
 
   /** True if convertTo would generate a conversion. */
