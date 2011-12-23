@@ -55,7 +55,7 @@ vars = {
 deps = {
   # Additions for Dart
   "src":
-    Var("multivm_url") + "/chromium@" + Var("dartium_chromium_revision"),
+    Var("chromium_url") + "/trunk/src@108088",
 
   "src/dart":
     Var("dart_url") + "/branches/bleeding_edge/dart",
