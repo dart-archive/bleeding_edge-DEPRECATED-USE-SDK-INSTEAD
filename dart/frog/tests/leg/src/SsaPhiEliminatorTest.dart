@@ -54,6 +54,8 @@ foo() {
 }
 """;
 
+String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
+
 main() {
   String generated = compile(TEST_ONE, 'foo');
   RegExp regexp = const RegExp("a = 2");
@@ -66,13 +68,10 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, 'main');
-  regexp = const RegExp("t = \\(t +");
+  regexp = new RegExp("t = \\($anyIdentifier +");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp("i = \\(i +");
-  Expect.isTrue(regexp.hasMatch(generated));
-
-  regexp = const RegExp("print\\(t\\)");
+  regexp = new RegExp("i = \\($anyIdentifier +");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_THREE, 'foo');

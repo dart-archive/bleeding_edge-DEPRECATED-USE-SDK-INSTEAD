@@ -58,16 +58,15 @@ class SsaPhiEliminator extends HGraphVisitor {
 
   visitBasicBlock(HBasicBlock block) {
     currentBlock = block;
-    List<HLoad> loads = <HLoad>[];
     HPhi phi = block.phis.first;
     while (phi != null) {
       HPhi next = phi.next;
-      visitPhi(phi, loads);
+      visitPhi(phi);
       phi = next;
     }
   }
 
-  visitPhi(HPhi phi, List<HLoad> loads) {
+  visitPhi(HPhi phi) {
     assert(phi !== null);
     if (phi.isLogicalOperator()) return;
     HLocal local;
@@ -86,7 +85,6 @@ class SsaPhiEliminator extends HGraphVisitor {
 
 
     List<HBasicBlock> predecessors = currentBlock.predecessors;
-    List<HStore> stores = <HStore>[];
 
     for (int i = 0, len = predecessors.length; i < len; i++) {
       HInstruction value = phi.inputs[i];
@@ -111,7 +109,6 @@ class SsaPhiEliminator extends HGraphVisitor {
             local.declaredBy = store;
           }
         }
-        stores.add(store);
       }
     }
 
@@ -119,29 +116,10 @@ class SsaPhiEliminator extends HGraphVisitor {
     // than the local because we may end up sharing a single local
     // between different phis of different types.
     HLoad load = new HLoad(local, phi.type);
-    loads.add(load);
-
     currentBlock.addAtEntry(load);
     currentBlock.rewrite(phi, load);
     currentBlock.removePhi(phi);
 
-    if (!currentBlock.isLoopHeader() || !hasLoopPhiAsInput(stores, loads)) {
-      load.setGenerateAtUseSite();
-    }
-  }
-
-  bool hasLoopPhiAsInput(List<HStore> stores, List<HLoad> loads) {
-    // [stores] contains the stores of a specific phi.
-    // [loads] contains the phis that were converted to loads.
-    assert(currentBlock.isLoopHeader());
-    for (HStore store in stores) {
-      HInstruction value = store.value;
-      if (value is HPhi && value.block == currentBlock) {
-        return true;
-      } else if (value is HLoad && loads.indexOf(value) != -1) {
-        return true;
-      }
-    }
-    return false;
+    if (!currentBlock.isLoopHeader()) load.setGenerateAtUseSite();
   }
 }
