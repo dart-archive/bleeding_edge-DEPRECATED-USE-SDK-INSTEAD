@@ -5,7 +5,7 @@ vars = {
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
   "dartium_chromium_revision": "29",
-  "dartium_webkit_revision": "39",
+  "dartium_webkit_revision": "40",
   "dartium_tools_revision": "34",
   "dartium_closure_revision": "1519",
 
