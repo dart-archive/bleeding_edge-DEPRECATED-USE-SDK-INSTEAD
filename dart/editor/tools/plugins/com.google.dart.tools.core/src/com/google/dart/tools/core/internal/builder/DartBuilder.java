@@ -90,6 +90,16 @@ public class DartBuilder extends IncrementalProjectBuilder {
     return dartcBuildHandler.getPrerequisiteProjects();
   }
 
+  @Override
+  protected void clean(IProgressMonitor monitor) throws CoreException {
+    if (DartCoreDebug.BLEEDING_EDGE) {
+      SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
+      frogBuilderHandler.clean(getProject(), subMonitor.newChild(50));
+      monitor = subMonitor.newChild(50);
+    }
+    dartcBuildHandler.clean(getProject(), monitor);
+  }
+
   /**
    * Obtain the current resource changed delta(s) to determine if any of the resources that have
    * changed were Dart related source files.

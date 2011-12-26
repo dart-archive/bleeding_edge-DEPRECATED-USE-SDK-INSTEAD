@@ -138,6 +138,10 @@ public class FrogBuilderHandler {
     return new IProject[0];
   }
 
+  public void clean(IProject project, IProgressMonitor monitor) {
+    // TODO (danrubel): implement
+  }
+
   private void buildLibrary(IProject project, DartLibrary library) throws CoreException {
     CountDownLatch latch = new CountDownLatch(1);
     CompileResponseHandler responseHandler = new CompileResponseHandler(project, latch);
