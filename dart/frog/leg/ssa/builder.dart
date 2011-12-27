@@ -710,7 +710,8 @@ class SsaBuilder implements Visitor {
         visit(send.receiver);
         receiver = pop();
       }
-      push(new HInvokeDynamicSetter(null, jsSetterName, receiver, value));
+      add(new HInvokeDynamicSetter(null, jsSetterName, receiver, value));
+      stack.add(value);
     } else {
       stack.add(updateDefinition(send, value));
     }

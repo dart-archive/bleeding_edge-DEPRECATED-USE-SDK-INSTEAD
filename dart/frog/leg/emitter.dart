@@ -68,7 +68,7 @@ function(child, parent) {
                           StringBuffer argumentsBuffer,
                           StringBuffer bodyBuffer) {
     bool isFirst = true;
-    do { 
+    do {
       // TODO(floitsch): make sure there are no name clashes.
       String className = namer.getName(classElement);
       for (Element member in classElement.members) {
@@ -81,7 +81,7 @@ function(child, parent) {
         }
       }
       classElement = classElement.superClass;
-    } while(classElement !== null); 
+    } while(classElement !== null);
   }
 
   void generateClass(ClassElement classElement,
