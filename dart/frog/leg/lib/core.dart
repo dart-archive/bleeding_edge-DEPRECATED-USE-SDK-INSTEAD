@@ -14,19 +14,28 @@ void print(var obj) {
   }
 }
 
+$throw(String msg) {
+  var e = JS(@"new Error($0)", msg);
+  var hasError = JS(@"typeof Error == 'object'");
+  if (hasError) {
+    JS(@"Error.captureStackTrace($0)", e);
+  }
+  throw e;
+}
+
 guard$num(x) {
   if (JS(@"typeof $0 == 'number'", x)) return x;
-  throw "Type guard failed.";
+  $throw("Num type guard failed.");
 }
 
 guard$string(x) {
   if (JS(@"typeof $0 == 'string'", x)) return x;
-  throw "Type guard failed.";
+  $throw("String type guard failed.");
 }
 
 guard$bool(x) {
   if (JS(@"typeof $0 == 'boolean'", x)) return x;
-  throw "Type guard failed.";
+  $throw("Bool type guard failed.");
 }
 
 /**
@@ -257,11 +266,15 @@ class String {}
 class bool {}
 class Object {}
 class List<T> {
+  static void _checkConstructorInput(n) {
+    if (!isInt(n)) throw "Invalid argument";
+    if (n < 0) throw "Negative size";
+  }
+
   factory List(n) {
     // TODO(ngeoffray): Adjust to optional parameters.
     if (JS(@"$0 === (void 0)", n)) return JS(@"new Array()");
-    if (!isInt(n)) throw "Invalid argument";
-    if (n < 0) throw "Negative size";
+    _checkConstructorInput(n);
     return JS(@"new Array($0)", n);
   }
 }
