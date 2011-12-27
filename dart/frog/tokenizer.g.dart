@@ -238,125 +238,140 @@ class Tokenizer extends TokenizerBase {
 
   int getIdentifierKind() {
     final i0 = _startIndex;
+    int ch;
     switch (_index - i0) {
       case 2:
-        if (_text.charCodeAt(i0) == 100/*d*/) {
+        ch = _text.charCodeAt(i0);
+        if (ch == 100/*d*/) {
           if (_text.charCodeAt(i0+1) == 111/*o*/) return TokenKind.DO;
-        } else if (_text.charCodeAt(i0) == 105/*i*/) {
-          if (_text.charCodeAt(i0+1) == 102/*f*/) {
+        } else if (ch == 105/*i*/) {
+          ch = _text.charCodeAt(i0+1);
+          if (ch == 102/*f*/) {
             return TokenKind.IF;
-          } else if (_text.charCodeAt(i0+1) == 110/*n*/) {
+          } else if (ch == 110/*n*/) {
             return TokenKind.IN;
-          } else if (_text.charCodeAt(i0+1) == 115/*s*/) {
+          } else if (ch == 115/*s*/) {
             return TokenKind.IS;
           }
         }
         return TokenKind.IDENTIFIER;
       case 3:
-        if (_text.charCodeAt(i0) == 102/*f*/) {
+        ch = _text.charCodeAt(i0);
+        if (ch == 102/*f*/) {
           if (_text.charCodeAt(i0+1) == 111/*o*/ && _text.charCodeAt(i0+2) == 114/*r*/) return TokenKind.FOR;
-        } else if (_text.charCodeAt(i0) == 103/*g*/) {
+        } else if (ch == 103/*g*/) {
           if (_text.charCodeAt(i0+1) == 101/*e*/ && _text.charCodeAt(i0+2) == 116/*t*/) return TokenKind.GET;
-        } else if (_text.charCodeAt(i0) == 110/*n*/) {
+        } else if (ch == 110/*n*/) {
           if (_text.charCodeAt(i0+1) == 101/*e*/ && _text.charCodeAt(i0+2) == 119/*w*/) return TokenKind.NEW;
-        } else if (_text.charCodeAt(i0) == 115/*s*/) {
+        } else if (ch == 115/*s*/) {
           if (_text.charCodeAt(i0+1) == 101/*e*/ && _text.charCodeAt(i0+2) == 116/*t*/) return TokenKind.SET;
-        } else if (_text.charCodeAt(i0) == 116/*t*/) {
+        } else if (ch == 116/*t*/) {
           if (_text.charCodeAt(i0+1) == 114/*r*/ && _text.charCodeAt(i0+2) == 121/*y*/) return TokenKind.TRY;
-        } else if (_text.charCodeAt(i0) == 118/*v*/) {
+        } else if (ch == 118/*v*/) {
           if (_text.charCodeAt(i0+1) == 97/*a*/ && _text.charCodeAt(i0+2) == 114/*r*/) return TokenKind.VAR;
         }
         return TokenKind.IDENTIFIER;
       case 4:
-        if (_text.charCodeAt(i0) == 99/*c*/) {
+        ch = _text.charCodeAt(i0);
+        if (ch == 99/*c*/) {
           if (_text.charCodeAt(i0+1) == 97/*a*/ && _text.charCodeAt(i0+2) == 115/*s*/ && _text.charCodeAt(i0+3) == 101/*e*/) return TokenKind.CASE;
-        } else if (_text.charCodeAt(i0) == 101/*e*/) {
+        } else if (ch == 101/*e*/) {
           if (_text.charCodeAt(i0+1) == 108/*l*/ && _text.charCodeAt(i0+2) == 115/*s*/ && _text.charCodeAt(i0+3) == 101/*e*/) return TokenKind.ELSE;
-        } else if (_text.charCodeAt(i0) == 110/*n*/) {
+        } else if (ch == 110/*n*/) {
           if (_text.charCodeAt(i0+1) == 117/*u*/ && _text.charCodeAt(i0+2) == 108/*l*/ && _text.charCodeAt(i0+3) == 108/*l*/) return TokenKind.NULL;
-        } else if (_text.charCodeAt(i0) == 116/*t*/) {
-          if (_text.charCodeAt(i0+1) == 104/*h*/) {
+        } else if (ch == 116/*t*/) {
+          ch = _text.charCodeAt(i0+1);
+          if (ch == 104/*h*/) {
             if (_text.charCodeAt(i0+2) == 105/*i*/ && _text.charCodeAt(i0+3) == 115/*s*/) return TokenKind.THIS;
-          } else if (_text.charCodeAt(i0+1) == 114/*r*/) {
+          } else if (ch == 114/*r*/) {
             if (_text.charCodeAt(i0+2) == 117/*u*/ && _text.charCodeAt(i0+3) == 101/*e*/) return TokenKind.TRUE;
           }
-        } else if (_text.charCodeAt(i0) == 118/*v*/) {
+        } else if (ch == 118/*v*/) {
           if (_text.charCodeAt(i0+1) == 111/*o*/ && _text.charCodeAt(i0+2) == 105/*i*/ && _text.charCodeAt(i0+3) == 100/*d*/) return TokenKind.VOID;
         }
         return TokenKind.IDENTIFIER;
       case 5:
-        if (_text.charCodeAt(i0) == 97/*a*/) {
+        ch = _text.charCodeAt(i0);
+        if (ch == 97/*a*/) {
           if (_text.charCodeAt(i0+1) == 119/*w*/ && _text.charCodeAt(i0+2) == 97/*a*/ && _text.charCodeAt(i0+3) == 105/*i*/ && _text.charCodeAt(i0+4) == 116/*t*/) return TokenKind.AWAIT;
-        } else if (_text.charCodeAt(i0) == 98/*b*/) {
+        } else if (ch == 98/*b*/) {
           if (_text.charCodeAt(i0+1) == 114/*r*/ && _text.charCodeAt(i0+2) == 101/*e*/ && _text.charCodeAt(i0+3) == 97/*a*/ && _text.charCodeAt(i0+4) == 107/*k*/) return TokenKind.BREAK;
-        } else if (_text.charCodeAt(i0) == 99/*c*/) {
-          if (_text.charCodeAt(i0+1) == 97/*a*/) {
+        } else if (ch == 99/*c*/) {
+          ch = _text.charCodeAt(i0+1);
+          if (ch == 97/*a*/) {
             if (_text.charCodeAt(i0+2) == 116/*t*/ && _text.charCodeAt(i0+3) == 99/*c*/ && _text.charCodeAt(i0+4) == 104/*h*/) return TokenKind.CATCH;
-          } else if (_text.charCodeAt(i0+1) == 108/*l*/) {
+          } else if (ch == 108/*l*/) {
             if (_text.charCodeAt(i0+2) == 97/*a*/ && _text.charCodeAt(i0+3) == 115/*s*/ && _text.charCodeAt(i0+4) == 115/*s*/) return TokenKind.CLASS;
-          } else if (_text.charCodeAt(i0+1) == 111/*o*/) {
+          } else if (ch == 111/*o*/) {
             if (_text.charCodeAt(i0+2) == 110/*n*/ && _text.charCodeAt(i0+3) == 115/*s*/ && _text.charCodeAt(i0+4) == 116/*t*/) return TokenKind.CONST;
           }
-        } else if (_text.charCodeAt(i0) == 102/*f*/) {
-          if (_text.charCodeAt(i0+1) == 97/*a*/) {
+        } else if (ch == 102/*f*/) {
+          ch = _text.charCodeAt(i0+1);
+          if (ch == 97/*a*/) {
             if (_text.charCodeAt(i0+2) == 108/*l*/ && _text.charCodeAt(i0+3) == 115/*s*/ && _text.charCodeAt(i0+4) == 101/*e*/) return TokenKind.FALSE;
-          } else if (_text.charCodeAt(i0+1) == 105/*i*/) {
+          } else if (ch == 105/*i*/) {
             if (_text.charCodeAt(i0+2) == 110/*n*/ && _text.charCodeAt(i0+3) == 97/*a*/ && _text.charCodeAt(i0+4) == 108/*l*/) return TokenKind.FINAL;
           }
-        } else if (_text.charCodeAt(i0) == 115/*s*/) {
+        } else if (ch == 115/*s*/) {
           if (_text.charCodeAt(i0+1) == 117/*u*/ && _text.charCodeAt(i0+2) == 112/*p*/ && _text.charCodeAt(i0+3) == 101/*e*/ && _text.charCodeAt(i0+4) == 114/*r*/) return TokenKind.SUPER;
-        } else if (_text.charCodeAt(i0) == 116/*t*/) {
+        } else if (ch == 116/*t*/) {
           if (_text.charCodeAt(i0+1) == 104/*h*/ && _text.charCodeAt(i0+2) == 114/*r*/ && _text.charCodeAt(i0+3) == 111/*o*/ && _text.charCodeAt(i0+4) == 119/*w*/) return TokenKind.THROW;
-        } else if (_text.charCodeAt(i0) == 119/*w*/) {
+        } else if (ch == 119/*w*/) {
           if (_text.charCodeAt(i0+1) == 104/*h*/ && _text.charCodeAt(i0+2) == 105/*i*/ && _text.charCodeAt(i0+3) == 108/*l*/ && _text.charCodeAt(i0+4) == 101/*e*/) return TokenKind.WHILE;
         }
         return TokenKind.IDENTIFIER;
       case 6:
-        if (_text.charCodeAt(i0) == 97/*a*/) {
+        ch = _text.charCodeAt(i0);
+        if (ch == 97/*a*/) {
           if (_text.charCodeAt(i0+1) == 115/*s*/ && _text.charCodeAt(i0+2) == 115/*s*/ && _text.charCodeAt(i0+3) == 101/*e*/ && _text.charCodeAt(i0+4) == 114/*r*/ && _text.charCodeAt(i0+5) == 116/*t*/) return TokenKind.ASSERT;
-        } else if (_text.charCodeAt(i0) == 105/*i*/) {
+        } else if (ch == 105/*i*/) {
           if (_text.charCodeAt(i0+1) == 109/*m*/ && _text.charCodeAt(i0+2) == 112/*p*/ && _text.charCodeAt(i0+3) == 111/*o*/ && _text.charCodeAt(i0+4) == 114/*r*/ && _text.charCodeAt(i0+5) == 116/*t*/) return TokenKind.IMPORT;
-        } else if (_text.charCodeAt(i0) == 110/*n*/) {
-          if (_text.charCodeAt(i0+1) == 97/*a*/) {
+        } else if (ch == 110/*n*/) {
+          ch = _text.charCodeAt(i0+1);
+          if (ch == 97/*a*/) {
             if (_text.charCodeAt(i0+2) == 116/*t*/ && _text.charCodeAt(i0+3) == 105/*i*/ && _text.charCodeAt(i0+4) == 118/*v*/ && _text.charCodeAt(i0+5) == 101/*e*/) return TokenKind.NATIVE;
-          } else if (_text.charCodeAt(i0+1) == 101/*e*/) {
+          } else if (ch == 101/*e*/) {
             if (_text.charCodeAt(i0+2) == 103/*g*/ && _text.charCodeAt(i0+3) == 97/*a*/ && _text.charCodeAt(i0+4) == 116/*t*/ && _text.charCodeAt(i0+5) == 101/*e*/) return TokenKind.NEGATE;
           }
-        } else if (_text.charCodeAt(i0) == 114/*r*/) {
+        } else if (ch == 114/*r*/) {
           if (_text.charCodeAt(i0+1) == 101/*e*/ && _text.charCodeAt(i0+2) == 116/*t*/ && _text.charCodeAt(i0+3) == 117/*u*/ && _text.charCodeAt(i0+4) == 114/*r*/ && _text.charCodeAt(i0+5) == 110/*n*/) return TokenKind.RETURN;
-        } else if (_text.charCodeAt(i0) == 115/*s*/) {
-          if (_text.charCodeAt(i0+1) == 111/*o*/) {
+        } else if (ch == 115/*s*/) {
+          ch = _text.charCodeAt(i0+1);
+          if (ch == 111/*o*/) {
             if (_text.charCodeAt(i0+2) == 117/*u*/ && _text.charCodeAt(i0+3) == 114/*r*/ && _text.charCodeAt(i0+4) == 99/*c*/ && _text.charCodeAt(i0+5) == 101/*e*/) return TokenKind.SOURCE;
-          } else if (_text.charCodeAt(i0+1) == 116/*t*/) {
+          } else if (ch == 116/*t*/) {
             if (_text.charCodeAt(i0+2) == 97/*a*/ && _text.charCodeAt(i0+3) == 116/*t*/ && _text.charCodeAt(i0+4) == 105/*i*/ && _text.charCodeAt(i0+5) == 99/*c*/) return TokenKind.STATIC;
-          } else if (_text.charCodeAt(i0+1) == 119/*w*/) {
+          } else if (ch == 119/*w*/) {
             if (_text.charCodeAt(i0+2) == 105/*i*/ && _text.charCodeAt(i0+3) == 116/*t*/ && _text.charCodeAt(i0+4) == 99/*c*/ && _text.charCodeAt(i0+5) == 104/*h*/) return TokenKind.SWITCH;
           }
         }
         return TokenKind.IDENTIFIER;
       case 7:
-        if (_text.charCodeAt(i0) == 100/*d*/) {
+        ch = _text.charCodeAt(i0);
+        if (ch == 100/*d*/) {
           if (_text.charCodeAt(i0+1) == 101/*e*/ && _text.charCodeAt(i0+2) == 102/*f*/ && _text.charCodeAt(i0+3) == 97/*a*/ && _text.charCodeAt(i0+4) == 117/*u*/ && _text.charCodeAt(i0+5) == 108/*l*/ && _text.charCodeAt(i0+6) == 116/*t*/) return TokenKind.DEFAULT;
-        } else if (_text.charCodeAt(i0) == 101/*e*/) {
+        } else if (ch == 101/*e*/) {
           if (_text.charCodeAt(i0+1) == 120/*x*/ && _text.charCodeAt(i0+2) == 116/*t*/ && _text.charCodeAt(i0+3) == 101/*e*/ && _text.charCodeAt(i0+4) == 110/*n*/ && _text.charCodeAt(i0+5) == 100/*d*/ && _text.charCodeAt(i0+6) == 115/*s*/) return TokenKind.EXTENDS;
-        } else if (_text.charCodeAt(i0) == 102/*f*/) {
-          if (_text.charCodeAt(i0+1) == 97/*a*/) {
+        } else if (ch == 102/*f*/) {
+          ch = _text.charCodeAt(i0+1);
+          if (ch == 97/*a*/) {
             if (_text.charCodeAt(i0+2) == 99/*c*/ && _text.charCodeAt(i0+3) == 116/*t*/ && _text.charCodeAt(i0+4) == 111/*o*/ && _text.charCodeAt(i0+5) == 114/*r*/ && _text.charCodeAt(i0+6) == 121/*y*/) return TokenKind.FACTORY;
-          } else if (_text.charCodeAt(i0+1) == 105/*i*/) {
+          } else if (ch == 105/*i*/) {
             if (_text.charCodeAt(i0+2) == 110/*n*/ && _text.charCodeAt(i0+3) == 97/*a*/ && _text.charCodeAt(i0+4) == 108/*l*/ && _text.charCodeAt(i0+5) == 108/*l*/ && _text.charCodeAt(i0+6) == 121/*y*/) return TokenKind.FINALLY;
           }
-        } else if (_text.charCodeAt(i0) == 108/*l*/) {
+        } else if (ch == 108/*l*/) {
           if (_text.charCodeAt(i0+1) == 105/*i*/ && _text.charCodeAt(i0+2) == 98/*b*/ && _text.charCodeAt(i0+3) == 114/*r*/ && _text.charCodeAt(i0+4) == 97/*a*/ && _text.charCodeAt(i0+5) == 114/*r*/ && _text.charCodeAt(i0+6) == 121/*y*/) return TokenKind.LIBRARY;
-        } else if (_text.charCodeAt(i0) == 116/*t*/) {
+        } else if (ch == 116/*t*/) {
           if (_text.charCodeAt(i0+1) == 121/*y*/ && _text.charCodeAt(i0+2) == 112/*p*/ && _text.charCodeAt(i0+3) == 101/*e*/ && _text.charCodeAt(i0+4) == 100/*d*/ && _text.charCodeAt(i0+5) == 101/*e*/ && _text.charCodeAt(i0+6) == 102/*f*/) return TokenKind.TYPEDEF;
         }
         return TokenKind.IDENTIFIER;
       case 8:
-        if (_text.charCodeAt(i0) == 97/*a*/) {
+        ch = _text.charCodeAt(i0);
+        if (ch == 97/*a*/) {
           if (_text.charCodeAt(i0+1) == 98/*b*/ && _text.charCodeAt(i0+2) == 115/*s*/ && _text.charCodeAt(i0+3) == 116/*t*/ && _text.charCodeAt(i0+4) == 114/*r*/ && _text.charCodeAt(i0+5) == 97/*a*/ && _text.charCodeAt(i0+6) == 99/*c*/ && _text.charCodeAt(i0+7) == 116/*t*/) return TokenKind.ABSTRACT;
-        } else if (_text.charCodeAt(i0) == 99/*c*/) {
+        } else if (ch == 99/*c*/) {
           if (_text.charCodeAt(i0+1) == 111/*o*/ && _text.charCodeAt(i0+2) == 110/*n*/ && _text.charCodeAt(i0+3) == 116/*t*/ && _text.charCodeAt(i0+4) == 105/*i*/ && _text.charCodeAt(i0+5) == 110/*n*/ && _text.charCodeAt(i0+6) == 117/*u*/ && _text.charCodeAt(i0+7) == 101/*e*/) return TokenKind.CONTINUE;
-        } else if (_text.charCodeAt(i0) == 111/*o*/) {
+        } else if (ch == 111/*o*/) {
           if (_text.charCodeAt(i0+1) == 112/*p*/ && _text.charCodeAt(i0+2) == 101/*e*/ && _text.charCodeAt(i0+3) == 114/*r*/ && _text.charCodeAt(i0+4) == 97/*a*/ && _text.charCodeAt(i0+5) == 116/*t*/ && _text.charCodeAt(i0+6) == 111/*o*/ && _text.charCodeAt(i0+7) == 114/*r*/) return TokenKind.OPERATOR;
         }
         return TokenKind.IDENTIFIER;

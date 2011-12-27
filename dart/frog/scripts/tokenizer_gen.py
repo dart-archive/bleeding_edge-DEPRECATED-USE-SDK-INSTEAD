@@ -193,17 +193,12 @@ class LengthGroup:
       if index == len(kw):
         cw.writeln('return TokenKind.%s;' % (kws[0].name))
       else:
-        needsAnd = False
-        test = 'if ('
-        while (index < len(kw)):
-          if needsAnd:
-            test += ' && '
-          else:
-            needsAnd = True
-          test += "_text.charCodeAt(%s) == %s" % (
-            makeIndex('i0', index), makeSafe(kw[index]))
-          index += 1
-        test += ') return TokenKind.%s;' % (kws[0].name)
+        clauses = [
+            "_text.charCodeAt(%s) == %s" % (
+                makeIndex('i0', i), makeSafe(kw[i]))
+            for i in range(index, len(kw))]
+        test = 'if (%s) return TokenKind.%s;' % (
+            ' && '.join(clauses), kws[0].name)
         cw.writeln(test)
     else:
       starts = {}
@@ -213,10 +208,10 @@ class LengthGroup:
           starts[c0] = []
         starts[c0].append(kw)
 
+      cw.writeln('ch = _text.charCodeAt(%s);' % makeIndex('i0', index))
       prefix = ''
       for key, value in sorted(starts.items()):
-        cw.enterBlock('%sif (_text.charCodeAt(%s) == %s) {' %
-          (prefix, makeIndex('i0', index), makeSafe(key)))
+        cw.enterBlock('%sif (ch == %s) {' % (prefix, makeSafe(key)))
         #cw.writeln(repr(value))
         self.writeTests(cw, value, index+1)
         cw.exitBlock()
@@ -264,10 +259,11 @@ def writeExtraMethods(cw):
   cw.enterBlock()
   cw.enterBlock('int getIdentifierKind() {')
   cw.writeln('final i0 = _startIndex;')
+  cw.writeln('int ch;')
   cw.enterBlock('switch (_index - i0) {')
   for key, value in sorted(lengths.items()):
     value.writeCode(cw)
-  cw.writeln('default: return TokenKind.IDENTIFIER;');
+  cw.writeln('default: return TokenKind.IDENTIFIER;')
   cw.exitBlock('}')
   cw.exitBlock('}')
 

@@ -7433,20 +7433,23 @@ Tokenizer.prototype.next = function() {
 }
 Tokenizer.prototype.getIdentifierKind = function() {
   var i0 = this._startIndex;
+  var ch;
   switch (this._lang_index - i0) {
     case 2:
 
-      if (this._text.charCodeAt(i0) == 100) {
+      ch = this._text.charCodeAt(i0);
+      if (ch == 100) {
         if (this._text.charCodeAt(i0 + 1) == 111) return 94/*TokenKind.DO*/;
       }
-      else if (this._text.charCodeAt(i0) == 105) {
-        if (this._text.charCodeAt(i0 + 1) == 102) {
+      else if (ch == 105) {
+        ch = this._text.charCodeAt(i0 + 1);
+        if (ch == 102) {
           return 101/*TokenKind.IF*/;
         }
-        else if (this._text.charCodeAt(i0 + 1) == 110) {
+        else if (ch == 110) {
           return 102/*TokenKind.IN*/;
         }
-        else if (this._text.charCodeAt(i0 + 1) == 115) {
+        else if (ch == 115) {
           return 103/*TokenKind.IS*/;
         }
       }
@@ -7454,115 +7457,124 @@ Tokenizer.prototype.getIdentifierKind = function() {
 
     case 3:
 
-      if (this._text.charCodeAt(i0) == 102) {
+      ch = this._text.charCodeAt(i0);
+      if (ch == 102) {
         if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 114) return 100/*TokenKind.FOR*/;
       }
-      else if (this._text.charCodeAt(i0) == 103) {
+      else if (ch == 103) {
         if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 116) return 74/*TokenKind.GET*/;
       }
-      else if (this._text.charCodeAt(i0) == 110) {
+      else if (ch == 110) {
         if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 119) return 104/*TokenKind.NEW*/;
       }
-      else if (this._text.charCodeAt(i0) == 115) {
+      else if (ch == 115) {
         if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 116) return 82/*TokenKind.SET*/;
       }
-      else if (this._text.charCodeAt(i0) == 116) {
+      else if (ch == 116) {
         if (this._text.charCodeAt(i0 + 1) == 114 && this._text.charCodeAt(i0 + 2) == 121) return 112/*TokenKind.TRY*/;
       }
-      else if (this._text.charCodeAt(i0) == 118) {
+      else if (ch == 118) {
         if (this._text.charCodeAt(i0 + 1) == 97 && this._text.charCodeAt(i0 + 2) == 114) return 113/*TokenKind.VAR*/;
       }
       return 70/*TokenKind.IDENTIFIER*/;
 
     case 4:
 
-      if (this._text.charCodeAt(i0) == 99) {
+      ch = this._text.charCodeAt(i0);
+      if (ch == 99) {
         if (this._text.charCodeAt(i0 + 1) == 97 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101) return 88/*TokenKind.CASE*/;
       }
-      else if (this._text.charCodeAt(i0) == 101) {
+      else if (ch == 101) {
         if (this._text.charCodeAt(i0 + 1) == 108 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101) return 95/*TokenKind.ELSE*/;
       }
-      else if (this._text.charCodeAt(i0) == 110) {
+      else if (ch == 110) {
         if (this._text.charCodeAt(i0 + 1) == 117 && this._text.charCodeAt(i0 + 2) == 108 && this._text.charCodeAt(i0 + 3) == 108) return 105/*TokenKind.NULL*/;
       }
-      else if (this._text.charCodeAt(i0) == 116) {
-        if (this._text.charCodeAt(i0 + 1) == 104) {
+      else if (ch == 116) {
+        ch = this._text.charCodeAt(i0 + 1);
+        if (ch == 104) {
           if (this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 115) return 109/*TokenKind.THIS*/;
         }
-        else if (this._text.charCodeAt(i0 + 1) == 114) {
+        else if (ch == 114) {
           if (this._text.charCodeAt(i0 + 2) == 117 && this._text.charCodeAt(i0 + 3) == 101) return 111/*TokenKind.TRUE*/;
         }
       }
-      else if (this._text.charCodeAt(i0) == 118) {
+      else if (ch == 118) {
         if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 100) return 114/*TokenKind.VOID*/;
       }
       return 70/*TokenKind.IDENTIFIER*/;
 
     case 5:
 
-      if (this._text.charCodeAt(i0) == 97) {
+      ch = this._text.charCodeAt(i0);
+      if (ch == 97) {
         if (this._text.charCodeAt(i0 + 1) == 119 && this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 105 && this._text.charCodeAt(i0 + 4) == 116) return 86/*TokenKind.AWAIT*/;
       }
-      else if (this._text.charCodeAt(i0) == 98) {
+      else if (ch == 98) {
         if (this._text.charCodeAt(i0 + 1) == 114 && this._text.charCodeAt(i0 + 2) == 101 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 107) return 87/*TokenKind.BREAK*/;
       }
-      else if (this._text.charCodeAt(i0) == 99) {
-        if (this._text.charCodeAt(i0 + 1) == 97) {
+      else if (ch == 99) {
+        ch = this._text.charCodeAt(i0 + 1);
+        if (ch == 97) {
           if (this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 99 && this._text.charCodeAt(i0 + 4) == 104) return 89/*TokenKind.CATCH*/;
         }
-        else if (this._text.charCodeAt(i0 + 1) == 108) {
+        else if (ch == 108) {
           if (this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 115) return 90/*TokenKind.CLASS*/;
         }
-        else if (this._text.charCodeAt(i0 + 1) == 111) {
+        else if (ch == 111) {
           if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 116) return 91/*TokenKind.CONST*/;
         }
       }
-      else if (this._text.charCodeAt(i0) == 102) {
-        if (this._text.charCodeAt(i0 + 1) == 97) {
+      else if (ch == 102) {
+        ch = this._text.charCodeAt(i0 + 1);
+        if (ch == 97) {
           if (this._text.charCodeAt(i0 + 2) == 108 && this._text.charCodeAt(i0 + 3) == 115 && this._text.charCodeAt(i0 + 4) == 101) return 97/*TokenKind.FALSE*/;
         }
-        else if (this._text.charCodeAt(i0 + 1) == 105) {
+        else if (ch == 105) {
           if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 108) return 98/*TokenKind.FINAL*/;
         }
       }
-      else if (this._text.charCodeAt(i0) == 115) {
+      else if (ch == 115) {
         if (this._text.charCodeAt(i0 + 1) == 117 && this._text.charCodeAt(i0 + 2) == 112 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 114) return 107/*TokenKind.SUPER*/;
       }
-      else if (this._text.charCodeAt(i0) == 116) {
+      else if (ch == 116) {
         if (this._text.charCodeAt(i0 + 1) == 104 && this._text.charCodeAt(i0 + 2) == 114 && this._text.charCodeAt(i0 + 3) == 111 && this._text.charCodeAt(i0 + 4) == 119) return 110/*TokenKind.THROW*/;
       }
-      else if (this._text.charCodeAt(i0) == 119) {
+      else if (ch == 119) {
         if (this._text.charCodeAt(i0 + 1) == 104 && this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 108 && this._text.charCodeAt(i0 + 4) == 101) return 115/*TokenKind.WHILE*/;
       }
       return 70/*TokenKind.IDENTIFIER*/;
 
     case 6:
 
-      if (this._text.charCodeAt(i0) == 97) {
+      ch = this._text.charCodeAt(i0);
+      if (ch == 97) {
         if (this._text.charCodeAt(i0 + 1) == 115 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 116) return 72/*TokenKind.ASSERT*/;
       }
-      else if (this._text.charCodeAt(i0) == 105) {
+      else if (ch == 105) {
         if (this._text.charCodeAt(i0 + 1) == 109 && this._text.charCodeAt(i0 + 2) == 112 && this._text.charCodeAt(i0 + 3) == 111 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 116) return 76/*TokenKind.IMPORT*/;
       }
-      else if (this._text.charCodeAt(i0) == 110) {
-        if (this._text.charCodeAt(i0 + 1) == 97) {
+      else if (ch == 110) {
+        ch = this._text.charCodeAt(i0 + 1);
+        if (ch == 97) {
           if (this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 105 && this._text.charCodeAt(i0 + 4) == 118 && this._text.charCodeAt(i0 + 5) == 101) return 79/*TokenKind.NATIVE*/;
         }
-        else if (this._text.charCodeAt(i0 + 1) == 101) {
+        else if (ch == 101) {
           if (this._text.charCodeAt(i0 + 2) == 103 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 116 && this._text.charCodeAt(i0 + 5) == 101) return 80/*TokenKind.NEGATE*/;
         }
       }
-      else if (this._text.charCodeAt(i0) == 114) {
+      else if (ch == 114) {
         if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 117 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 110) return 106/*TokenKind.RETURN*/;
       }
-      else if (this._text.charCodeAt(i0) == 115) {
-        if (this._text.charCodeAt(i0 + 1) == 111) {
+      else if (ch == 115) {
+        ch = this._text.charCodeAt(i0 + 1);
+        if (ch == 111) {
           if (this._text.charCodeAt(i0 + 2) == 117 && this._text.charCodeAt(i0 + 3) == 114 && this._text.charCodeAt(i0 + 4) == 99 && this._text.charCodeAt(i0 + 5) == 101) return 83/*TokenKind.SOURCE*/;
         }
-        else if (this._text.charCodeAt(i0 + 1) == 116) {
+        else if (ch == 116) {
           if (this._text.charCodeAt(i0 + 2) == 97 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 105 && this._text.charCodeAt(i0 + 5) == 99) return 84/*TokenKind.STATIC*/;
         }
-        else if (this._text.charCodeAt(i0 + 1) == 119) {
+        else if (ch == 119) {
           if (this._text.charCodeAt(i0 + 2) == 105 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 99 && this._text.charCodeAt(i0 + 5) == 104) return 108/*TokenKind.SWITCH*/;
         }
       }
@@ -7570,37 +7582,40 @@ Tokenizer.prototype.getIdentifierKind = function() {
 
     case 7:
 
-      if (this._text.charCodeAt(i0) == 100) {
+      ch = this._text.charCodeAt(i0);
+      if (ch == 100) {
         if (this._text.charCodeAt(i0 + 1) == 101 && this._text.charCodeAt(i0 + 2) == 102 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 117 && this._text.charCodeAt(i0 + 5) == 108 && this._text.charCodeAt(i0 + 6) == 116) return 93/*TokenKind.DEFAULT*/;
       }
-      else if (this._text.charCodeAt(i0) == 101) {
+      else if (ch == 101) {
         if (this._text.charCodeAt(i0 + 1) == 120 && this._text.charCodeAt(i0 + 2) == 116 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 110 && this._text.charCodeAt(i0 + 5) == 100 && this._text.charCodeAt(i0 + 6) == 115) return 96/*TokenKind.EXTENDS*/;
       }
-      else if (this._text.charCodeAt(i0) == 102) {
-        if (this._text.charCodeAt(i0 + 1) == 97) {
+      else if (ch == 102) {
+        ch = this._text.charCodeAt(i0 + 1);
+        if (ch == 97) {
           if (this._text.charCodeAt(i0 + 2) == 99 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 111 && this._text.charCodeAt(i0 + 5) == 114 && this._text.charCodeAt(i0 + 6) == 121) return 73/*TokenKind.FACTORY*/;
         }
-        else if (this._text.charCodeAt(i0 + 1) == 105) {
+        else if (ch == 105) {
           if (this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 97 && this._text.charCodeAt(i0 + 4) == 108 && this._text.charCodeAt(i0 + 5) == 108 && this._text.charCodeAt(i0 + 6) == 121) return 99/*TokenKind.FINALLY*/;
         }
       }
-      else if (this._text.charCodeAt(i0) == 108) {
+      else if (ch == 108) {
         if (this._text.charCodeAt(i0 + 1) == 105 && this._text.charCodeAt(i0 + 2) == 98 && this._text.charCodeAt(i0 + 3) == 114 && this._text.charCodeAt(i0 + 4) == 97 && this._text.charCodeAt(i0 + 5) == 114 && this._text.charCodeAt(i0 + 6) == 121) return 78/*TokenKind.LIBRARY*/;
       }
-      else if (this._text.charCodeAt(i0) == 116) {
+      else if (ch == 116) {
         if (this._text.charCodeAt(i0 + 1) == 121 && this._text.charCodeAt(i0 + 2) == 112 && this._text.charCodeAt(i0 + 3) == 101 && this._text.charCodeAt(i0 + 4) == 100 && this._text.charCodeAt(i0 + 5) == 101 && this._text.charCodeAt(i0 + 6) == 102) return 85/*TokenKind.TYPEDEF*/;
       }
       return 70/*TokenKind.IDENTIFIER*/;
 
     case 8:
 
-      if (this._text.charCodeAt(i0) == 97) {
+      ch = this._text.charCodeAt(i0);
+      if (ch == 97) {
         if (this._text.charCodeAt(i0 + 1) == 98 && this._text.charCodeAt(i0 + 2) == 115 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 114 && this._text.charCodeAt(i0 + 5) == 97 && this._text.charCodeAt(i0 + 6) == 99 && this._text.charCodeAt(i0 + 7) == 116) return 71/*TokenKind.ABSTRACT*/;
       }
-      else if (this._text.charCodeAt(i0) == 99) {
+      else if (ch == 99) {
         if (this._text.charCodeAt(i0 + 1) == 111 && this._text.charCodeAt(i0 + 2) == 110 && this._text.charCodeAt(i0 + 3) == 116 && this._text.charCodeAt(i0 + 4) == 105 && this._text.charCodeAt(i0 + 5) == 110 && this._text.charCodeAt(i0 + 6) == 117 && this._text.charCodeAt(i0 + 7) == 101) return 92/*TokenKind.CONTINUE*/;
       }
-      else if (this._text.charCodeAt(i0) == 111) {
+      else if (ch == 111) {
         if (this._text.charCodeAt(i0 + 1) == 112 && this._text.charCodeAt(i0 + 2) == 101 && this._text.charCodeAt(i0 + 3) == 114 && this._text.charCodeAt(i0 + 4) == 97 && this._text.charCodeAt(i0 + 5) == 116 && this._text.charCodeAt(i0 + 6) == 111 && this._text.charCodeAt(i0 + 7) == 114) return 81/*TokenKind.OPERATOR*/;
       }
       return 70/*TokenKind.IDENTIFIER*/;
