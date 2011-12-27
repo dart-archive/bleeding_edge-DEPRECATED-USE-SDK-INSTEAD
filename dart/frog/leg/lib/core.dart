@@ -267,6 +267,8 @@ class bool {}
 class Object {}
 class List<T> {
   static void _checkConstructorInput(n) {
+    // TODO(ngeoffray): Inline once we support optional parameters or
+    // bailout.
     if (!isInt(n)) throw "Invalid argument";
     if (n < 0) throw "Negative size";
   }

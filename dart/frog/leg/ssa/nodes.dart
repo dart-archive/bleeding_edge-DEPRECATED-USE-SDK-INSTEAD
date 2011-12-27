@@ -1168,7 +1168,7 @@ class HInvokeUnary extends HInvokeStatic {
 
   void prepareGvn() {
     // A unary arithmetic expression can take part in global value
-    // numbering and do not have any side-effects if ht input is a
+    // numbering and does not have any side-effects if its input is a
     // number.
     if (builtin) {
       assert(!hasSideEffects());
