@@ -257,7 +257,9 @@ class String {}
 class bool {}
 class Object {}
 class List<T> {
-  factory List(int n) {
+  factory List(n) {
+    // TODO(ngeoffray): Adjust to optional parameters.
+    if (JS(@"$0 === (void 0)", n)) return JS(@"new Array()");
     if (!isInt(n)) throw "Invalid argument";
     if (n < 0) throw "Negative size";
     return JS(@"new Array($0)", n);
