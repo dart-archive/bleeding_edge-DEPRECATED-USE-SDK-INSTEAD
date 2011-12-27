@@ -1389,21 +1389,22 @@ class HRelational extends HInvokeBinary {
     }
   }
 
-  // TODO(kasperl): This can be improved for at least for equality.
   int computeType() {
     builtin = computeInputsType() == TYPE_NUMBER;
-    if (left.isNumber()) return TYPE_BOOLEAN;
-    if (type != TYPE_UNKNOWN) return type;
-    return super.computeType();
+    return TYPE_BOOLEAN;
   }
 
   int computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
     if (input == inputs[0]) return TYPE_UNKNOWN;
-    return left.isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
+    // For all relational operations exept HEquals, we expect to only
+    // get numbers.
+    return TYPE_NUMBER;
   }
 
-  bool hasExpectedType() => type == TYPE_BOOLEAN;
+  // A HRelational goes through the builtin operator or the top level
+  // element. Therefore, it always has the expected type.
+  bool hasExpectedType() => true;
 
   abstract bool evaluate(num a, num b);
 }
@@ -1415,6 +1416,14 @@ class HEquals extends HRelational {
   accept(HVisitor visitor) => visitor.visitEquals(this);
   bool typeEquals(other) => other is HEquals;
   bool dataEquals(HInstruction other) => true;
+
+  int computeDesiredInputType(HInstruction input) {
+    // TODO(floitsch): we want the target to be a function.
+    if (input == inputs[0]) return TYPE_UNKNOWN;
+    if (left.isNumber() || right.isNumber()) return TYPE_NUMBER;
+    if (left.isString() || right.isString()) return TYPE_STRING;
+    return TYPE_UNKNOWN;
+  }
 }
 
 class HGreater extends HRelational {
