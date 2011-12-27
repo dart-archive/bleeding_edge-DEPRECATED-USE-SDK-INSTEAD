@@ -925,7 +925,9 @@ class HInvokeBinary extends HInvokeStatic {
     if (left.isLiteralNumber() && right.isLiteralNumber()) {
       HLiteral op1 = left;
       HLiteral op2 = right;
-      return new HLiteral(evaluate(op1.value, op2.value));
+      HLiteral res = new HLiteral(evaluate(op1.value, op2.value));
+      res.type = TYPE_NUMBER;
+      return res;
     }
     return this;
   }
@@ -952,7 +954,7 @@ class HBinaryArithmetic extends HInvokeBinary {
 
   void prepareGvn() {
     // An arithmetic expression can take part in global value
-    // numbering and do not have any side-effects if we that all
+    // numbering and do not have any side-effects if we know that all
     // inputs are numbers.
     if (builtin) {
       assert(!hasSideEffects());
@@ -1077,7 +1079,9 @@ class HBinaryBitOp extends HBinaryArithmetic {
       HLiteral op2 = right;
       // Avoid exceptions.
       if (op1.value is int && op2.value is int) {
-        return new HLiteral(evaluate(op1.value, op2.value));
+        HLiteral res = new HLiteral(evaluate(op1.value, op2.value));
+        res.type = TYPE_NUMBER;
+        return res;
       }
     }
     return this;
@@ -1162,13 +1166,35 @@ class HInvokeUnary extends HInvokeStatic {
 
   HInstruction get operand() => inputs[1];
 
-  HInstruction fold() {
-    if (operand.isLiteralNumber()) {
-      HLiteral input = operand;
-      return new HLiteral(evaluate(input.value));
+  void prepareGvn() {
+    // A unary arithmetic expression can take part in global value
+    // numbering and do not have any side-effects if ht input is a
+    // number.
+    if (builtin) {
+      assert(!hasSideEffects());
+      setUseGvn();
+    } else {
+      setAllSideEffects();
     }
-    return this;
   }
+
+  int computeType() {
+    int type = operand.type;
+    builtin = (type == TYPE_NUMBER);
+    if (type != TYPE_UNKNOWN) return type;
+    return computeDesiredType();
+  }
+
+  int computeDesiredInputType(HInstruction input) {
+    // TODO(floitsch): we want the target to be a function.
+    if (input == target) return TYPE_UNKNOWN;
+    if (type == TYPE_UNKNOWN || type == TYPE_NUMBER) return TYPE_NUMBER;
+    return TYPE_UNKNOWN;
+  }
+
+  bool hasExpectedType() => builtin || (type == TYPE_UNKNOWN);
+
+  abstract HInstruction fold();
 
   abstract num evaluate(num a);
 }
@@ -1180,7 +1206,9 @@ class HNegate extends HInvokeUnary {
   HInstruction fold() {
     if (operand.isLiteralNumber()) {
       HLiteral input = operand;
-      return new HLiteral(evaluate(input.value));
+      HLiteral res = new HLiteral(evaluate(input.value));
+      res.type = TYPE_NUMBER;
+      return res;
     }
     return this;
   }
@@ -1197,7 +1225,11 @@ class HBitNot extends HInvokeUnary {
   HInstruction fold() {
     if (operand.isLiteralNumber()) {
       HLiteral input = operand;
-      if (input.value is int) return new HLiteral(evaluate(input.value));
+      if (input.value is int) {
+        HLiteral res = new HLiteral(evaluate(input.value));
+        res.type = TYPE_NUMBER;
+        return res;
+      }
     }
     return this;
   }

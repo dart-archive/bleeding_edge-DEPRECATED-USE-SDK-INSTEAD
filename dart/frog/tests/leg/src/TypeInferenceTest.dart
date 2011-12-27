@@ -12,6 +12,12 @@ sum(param0, param1) {
 }
 """;
 
+final String TEST_TWO = @"""
+foo(int param0) {
+  return -param0;
+}
+""";
+
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 
 main() {
@@ -26,5 +32,12 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp('guard\\\$num\\(param1\\)');
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  generated = compile(TEST_TWO, 'foo');
+  regexp = const RegExp('guard\\\$num\\(param0\\)');
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  regexp = const RegExp('-param0');
   Expect.isTrue(regexp.hasMatch(generated));
 }

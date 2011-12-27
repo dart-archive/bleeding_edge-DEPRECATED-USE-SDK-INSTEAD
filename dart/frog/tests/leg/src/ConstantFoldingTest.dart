@@ -21,6 +21,14 @@ void main() {
 }
 """;
 
+final String NEGATIVE_NUMBER_FOLDING = """
+void main() {
+  var a = 4;
+  var b = -3;
+  print(a + b);
+}
+""";
+
 
 void compileAndTest(String code, String entry, RegExp regexp) {
   String generated = compile(code, entry);
@@ -32,4 +40,6 @@ main() {
       STRING_FOLDING, 'main', const RegExp("print\\('hello' \\+ 'world'\\)"));
   compileAndTest(
       NUMBER_FOLDING, 'main', const RegExp("print\\(7\\)"));
+  compileAndTest(
+      NEGATIVE_NUMBER_FOLDING, 'main', const RegExp("print\\(1\\)"));
 }
