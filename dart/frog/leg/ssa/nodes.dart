@@ -1421,7 +1421,6 @@ class HEquals extends HRelational {
     // TODO(floitsch): we want the target to be a function.
     if (input == inputs[0]) return TYPE_UNKNOWN;
     if (left.isNumber() || right.isNumber()) return TYPE_NUMBER;
-    if (left.isString() || right.isString()) return TYPE_STRING;
     return TYPE_UNKNOWN;
   }
 }
