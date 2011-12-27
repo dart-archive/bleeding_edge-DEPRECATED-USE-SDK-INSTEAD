@@ -954,17 +954,20 @@ class HBinaryArithmetic extends HInvokeBinary {
   int computeType() {
     int type = computeInputsType();
     builtin = (type == TYPE_NUMBER);
-    if (left.isNumber()) return TYPE_NUMBER;
     if (type != TYPE_UNKNOWN) return type;
-    return super.computeType();
+    if (left.isNumber()) return TYPE_NUMBER;
+    return computeDesiredType();
   }
 
   int computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return TYPE_UNKNOWN;
-    return left.isNumber() ? TYPE_NUMBER : TYPE_UNKNOWN;
+    if (isNumber() || left.isNumber() || right.isNumber()) return TYPE_NUMBER;
+    if (type == TYPE_UNKNOWN) return TYPE_NUMBER;
+    return TYPE_UNKNOWN;
   }
-  bool hasExpectedType() => type == TYPE_NUMBER;
+
+  bool hasExpectedType() => builtin || (type == TYPE_UNKNOWN);
 
   abstract num evaluate(num a, num b);
 }
@@ -980,23 +983,19 @@ class HAdd extends HBinaryArithmetic {
   int computeType() {
     int type = computeInputsType();
     builtin = (type == TYPE_NUMBER || type == TYPE_STRING);
-    if (left.isNumber()) return TYPE_NUMBER;
+    if (type != TYPE_UNKNOWN) return type;
     if (left.isString()) return TYPE_STRING;
-    return TYPE_UNKNOWN;
+    if (left.isNumber()) return TYPE_NUMBER;
+    return computeDesiredType();
   }
 
   int computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return TYPE_UNKNOWN;
-    if (left.isString()) return TYPE_STRING;
-    if (left.isNumber()) return TYPE_NUMBER;
+    if (isString() || left.isString() || right.isString()) return TYPE_STRING;
+    if (isNumber() || left.isNumber() || right.isNumber()) return TYPE_NUMBER;
+    if (type == TYPE_UNKNOWN) return TYPE_NUMBER;
     return TYPE_UNKNOWN;
-  }
-
-  bool hasExpectedType() {
-    if (left.isNumber()) return type == TYPE_NUMBER;
-    if (left.isString()) return type == TYPE_STRING;
-    return type == TYPE_UNKNOWN;
   }
 }
 
