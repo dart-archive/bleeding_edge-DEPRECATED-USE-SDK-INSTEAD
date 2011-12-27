@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 foreign1(var a, var b) {
-  return JS(@"$0 + $1", a, b);
+  return JS("num", @"$0 + $1", a, b);
 }
 
 // TODO(floitsch): don't do a JS side-effect once we have static variables.
@@ -11,14 +11,14 @@ foreign1(var a, var b) {
 callOnce() {
   // We can't easily throw in a JS foreign. Simply access an undefined global in
   // case of failure.
-  JS(@"(typeof _FOREIGN_TEST_GLOBAL_ !== 'undefined') ? _FOREIGN_TEST_FAIL_ : 'ok'");
-  JS(@"_FOREIGN_TEST_GLOBAL_ = 'defined'");
+  JS("bool", @"(typeof _FOREIGN_TEST_GLOBAL_ !== 'undefined') ? _FOREIGN_TEST_FAIL_ : 'ok'");
+  JS("void", @"_FOREIGN_TEST_GLOBAL_ = 'defined'");
   return 499;
 }
 
 foreign2() {
   var t = callOnce();
-  return JS(@"$0 + $0", t);
+  return JS("num", @"$0 + $0", t);
 }
 
 void main() {

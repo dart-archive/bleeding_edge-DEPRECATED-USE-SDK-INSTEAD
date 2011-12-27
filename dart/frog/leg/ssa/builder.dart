@@ -535,13 +535,12 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  SourceString unquote(LiteralString literal) {
+  SourceString unquote(LiteralString literal, int start) {
     String str = '${literal.value}';
-    compiler.ensure(str[0] == '@');
     int quotes = 1;
-    String quote = str[1];
-    while (str[quotes + 1] === quote) quotes++;
-    return new SourceString(str.substring(quotes + 1, str.length - quotes));
+    String quote = str[start];
+    while (str[quotes + start] === quote) quotes++;
+    return new SourceString(str.substring(quotes + start, str.length - quotes));
   }
 
   void visitLogicalAndOr(Send node, Operator op) {
@@ -778,8 +777,9 @@ class SsaBuilder implements Visitor {
         }
       } else if (isForeign) {
         // If the invoke is on foreign code, don't visit the first
-        // argument, which is the foreign code.
-        link = link.tail;
+        // argument, which is the type, and the second argument,
+        // which is the foreign code.
+        link = link.tail.tail;
       } else {
         HStatic target = new HStatic(element);
         add(target);
@@ -797,9 +797,12 @@ class SsaBuilder implements Visitor {
         // The first entry in the inputs list is the receiver.
         push(new HInvokeDynamicMethod(jsMethodName, inputs));
       } else if (isForeign) {
-        LiteralString literal = node.arguments.head;
+        LiteralString type = node.arguments.head;
+        LiteralString literal = node.arguments.tail.head;
         compiler.ensure(literal is LiteralString);
-        push(new HForeign(unquote(literal), inputs));
+        compiler.ensure(type is LiteralString);
+        compiler.ensure(literal.value.stringValue[0] == '@');
+        push(new HForeign(unquote(literal, 1), unquote(type, 0), inputs));
       } else {
         assert(isStatic);
         push(new HInvokeStatic(inputs));

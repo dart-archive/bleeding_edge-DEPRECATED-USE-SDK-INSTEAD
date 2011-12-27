@@ -5,36 +5,36 @@
 void print(var obj) {
   // TODO(ngeoffray): enable when the parser accepts it.
   // obj = obj.toString();
-  var hasConsole = JS(@"typeof console == 'object'");
+  var hasConsole = JS("bool", @"typeof console == 'object'");
   if (hasConsole) {
-    JS(@"console.log($0)", obj);
+    JS("void", @"console.log($0)", obj);
   } else {
-    JS(@"write($0)", obj);
-    JS(@"write('\n')");
+    JS("void", @"write($0)", obj);
+    JS("void", @"write('\n')");
   }
 }
 
 $throw(String msg) {
-  var e = JS(@"new Error($0)", msg);
-  var hasError = JS(@"typeof Error == 'object'");
+  var e = JS("Object", @"new Error($0)", msg);
+  var hasError = JS("bool", @"typeof Error == 'object'");
   if (hasError) {
-    JS(@"Error.captureStackTrace($0)", e);
+    JS("void", @"Error.captureStackTrace($0)", e);
   }
   throw e;
 }
 
 guard$num(x) {
-  if (JS(@"typeof $0 == 'number'", x)) return x;
+  if (JS("bool", @"typeof $0 == 'number'", x)) return x;
   $throw("Num type guard failed.");
 }
 
 guard$string(x) {
-  if (JS(@"typeof $0 == 'string'", x)) return x;
+  if (JS("bool", @"typeof $0 == 'string'", x)) return x;
   $throw("String type guard failed.");
 }
 
 guard$bool(x) {
-  if (JS(@"typeof $0 == 'boolean'", x)) return x;
+  if (JS("bool", @"typeof $0 == 'boolean'", x)) return x;
   $throw("Bool type guard failed.");
 }
 
@@ -44,8 +44,8 @@ guard$bool(x) {
   * exception.
   */
 bool checkNumbers(var a, var b, var message) {
-  if (JS(@"typeof $0 === 'number'", a)) {
-    if (JS(@"typeof $0 === 'number'", b)) {
+  if (JS("bool", @"typeof $0 === 'number'", a)) {
+    if (JS("bool", @"typeof $0 === 'number'", b)) {
       return true;
     } else {
       throw message;
@@ -56,17 +56,17 @@ bool checkNumbers(var a, var b, var message) {
 
 
 bool isJSArray(var value) {
-  return JS(@"$0.constructor === Array", value);
+  return JS("bool", @"$0.constructor === Array", value);
 }
 
 
 add(var a, var b) {
   if (checkNumbers(a, b, "num+ expects a number as second operand.")) {
-    return JS(@"$0 + $1", a, b);
-  } else if (JS(@"typeof $0 === 'string'", a)) {
-    if (JS(@"typeof $0 === 'string'", b) ||
-        JS(@"typeof $0 === 'number'", b)) {
-      return JS(@"$0 + $1", a, b);
+    return JS("num", @"$0 + $1", a, b);
+  } else if (JS("bool", @"typeof $0 === 'string'", a)) {
+    if (JS("bool", @"typeof $0 === 'string'", b) ||
+        JS("bool", @"typeof $0 === 'number'", b)) {
+      return JS("String", @"$0 + $1", a, b);
     }
     throw "Unimplemented String+.";
   }
@@ -75,21 +75,21 @@ add(var a, var b) {
 
 div(var a, var b) {
   if (checkNumbers(a, b, "num/ expects a number as second operand.")) {
-    return JS(@"$0 / $1", a, b);
+    return JS("num", @"$0 / $1", a, b);
   }
   throw "Unimplemented user-defined /.";
 }
 
 mul(var a, var b) {
   if (checkNumbers(a, b, "num* expects a number as second operand.")) {
-    return JS(@"$0 * $1", a, b);
+    return JS("num", @"$0 * $1", a, b);
   }
   throw "Unimplemented user-defined *.";
 }
 
 sub(var a, var b) {
   if (checkNumbers(a, b, "num- expects a number as second operand.")) {
-    return JS(@"$0 - $1", a, b);
+    return JS("num", @"$0 - $1", a, b);
   }
   throw "Unimplemented user-defined binary -.";
 }
@@ -97,7 +97,7 @@ sub(var a, var b) {
 mod(var a, var b) {
   if (checkNumbers(a, b, "int% expects an int as second operand.")) {
     // Euclidean Modulo.
-    int result = JS(@"$0 % $1", a, b);
+    int result = JS("num", @"$0 % $1", a, b);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (b < 0) {
@@ -115,50 +115,50 @@ tdiv(var a, var b) {
     // TODO(ngeoffray): Use tmp.floor and tmp.ceil when
     // we can handle them.
     if (tmp < 0) {
-      return JS(@"Math.ceil($0)", tmp);
+      return JS("num", @"Math.ceil($0)", tmp);
     } else {
-      return JS(@"Math.floor($0)", tmp);
+      return JS("num", @"Math.floor($0)", tmp);
     }
   }
   throw "Unimplemented user-defined ~/.";
 }
 
 eq(var a, var b) {
-  if (JS(@"typeof $0 === 'undefined'", a) ||
-      JS(@"typeof $0 === 'number'", a) ||
-      JS(@"typeof $0 === 'boolean'", a) ||
-      JS(@"typeof $0 === 'string'", a)) {
-    return JS(@"$0 === $1", a, b);
+  if (JS("bool", @"typeof $0 === 'undefined'", a) ||
+      JS("bool", @"typeof $0 === 'number'", a) ||
+      JS("bool", @"typeof $0 === 'boolean'", a) ||
+      JS("bool", @"typeof $0 === 'string'", a)) {
+    return JS("bool", @"$0 === $1", a, b);
   }
   // TODO(kasperl): This is not the right implementation if the a has
   // a user-defined == operator.
-  return JS(@"$0 === $1", a, b);
+  return JS("bool", @"$0 === $1", a, b);
 }
 
 gt(var a, var b) {
   if (checkNumbers(a, b, "num> expects a number as second operand.")) {
-    return JS(@"$0 > $1", a, b);
+    return JS("bool", @"$0 > $1", a, b);
   }
   throw "Unimplemented user-defined binary >.";
 }
 
 ge(var a, var b) {
   if (checkNumbers(a, b, "num>= expects a number as second operand.")) {
-    return JS(@"$0 >= $1", a, b);
+    return JS("bool", @"$0 >= $1", a, b);
   }
   throw "Unimplemented user-defined binary >=.";
 }
 
 lt(var a, var b) {
   if (checkNumbers(a, b, "num< expects a number as second operand.")) {
-    return JS(@"$0 < $1", a, b);
+    return JS("bool", @"$0 < $1", a, b);
   }
   throw "Unimplemented user-defined binary <.";
 }
 
 le(var a, var b) {
   if (checkNumbers(a, b, "num<= expects a number as second operand.")) {
-    return JS(@"$0 <= $1", a, b);
+    return JS("bool", @"$0 <= $1", a, b);
   }
   throw "Unimplemented user-defined binary <=.";
 }
@@ -166,7 +166,7 @@ le(var a, var b) {
 shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b, "int<< expects an int as second operand.")) {
-    return JS(@"$0 << $1", a, b);
+    return JS("num", @"$0 << $1", a, b);
   }
   throw "Unimplemented user-defined binary <<.";
 }
@@ -174,7 +174,7 @@ shl(var a, var b) {
 shr(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b, "int>> expects an int as second operand.")) {
-    return JS(@"$0 >> $1", a, b);
+    return JS("num", @"$0 >> $1", a, b);
   }
   throw "Unimplemented user-defined binary >>.";
 }
@@ -182,7 +182,7 @@ shr(var a, var b) {
 and(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b, "int& expects an int as second operand.")) {
-    return JS(@"$0 & $1", a, b);
+    return JS("num", @"$0 & $1", a, b);
   }
   throw "Unimplemented user-defined binary &.";
 }
@@ -190,7 +190,7 @@ and(var a, var b) {
 or(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b, "int| expects an int as second operand.")) {
-    return JS(@"$0 | $1", a, b);
+    return JS("num", @"$0 | $1", a, b);
   }
   throw "Unimplemented user-defined binary |.";
 }
@@ -198,36 +198,36 @@ or(var a, var b) {
 xor(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b, "int^ expects an int as second operand.")) {
-    return JS(@"$0 ^ $1", a, b);
+    return JS("num", @"$0 ^ $1", a, b);
   }
   throw "Unimplemented user-defined binary ^.";
 }
 
 not(var a) {
-  if (JS(@"typeof $0 === 'number'", a)) return JS(@"~$0", a);
+  if (JS("bool", @"typeof $0 === 'number'", a)) return JS("num", @"~$0", a);
   throw "Unimplemented user-defined ~.";
 }
 
 neg(var a) {
-  if (JS(@"typeof $0 === 'number'", a)) return JS(@"-$0", a);
+  if (JS("bool", @"typeof $0 === 'number'", a)) return JS("num", @"-$0", a);
   throw "Unimplemented user-defined unary-.";
 }
 
 index(var a, var index) {
-  if (isJSArray(a)) return JS(@"$0[$1]", a, index);
+  if (isJSArray(a)) return JS("Object", @"$0[$1]", a, index);
   throw "Unimplemented user-defined [].";
 }
 
 indexSet(var a, var index, var value) {
   if (isJSArray(a)) {
-    return JS(@"$0[$1] = $2", a, index, value);
+    return JS("Object", @"$0[$1] = $2", a, index, value);
   }
   throw "Unimplemented user-defined []=.";
 }
 
 builtin$add$1(var receiver, var value) {
   if (isJSArray(receiver)) {
-    JS(@"$0.push($1)", receiver, value);
+    JS("Object", @"$0.push($1)", receiver, value);
     return;
   }
   throw "Unimplemented user-defined add().";
@@ -235,14 +235,14 @@ builtin$add$1(var receiver, var value) {
 
 builtin$removeLast$0(var receiver) {
   if (isJSArray(receiver)) {
-    return JS(@"$0.pop()", receiver);
+    return JS("Object", @"$0.pop()", receiver);
   }
   throw "Unimplemented user-defined removeLast().";
 }
 
 builtin$filter$1(var receiver, var predicate) {
   if (isJSArray(receiver)) {
-    return JS(@"$0.filter(function(v) { return $1(v) === true; })",
+    return JS("Object", @"$0.filter(function(v) { return $1(v) === true; })",
               receiver, predicate);
   }
   throw "Unimplemented user-defined filter().";
@@ -250,14 +250,14 @@ builtin$filter$1(var receiver, var predicate) {
 
 
 builtin$get$length(var receiver) {
-  if (JS(@"typeof $0 === 'string'", receiver) || isJSArray(receiver)) {
-    return JS(@"$0.length", receiver);
+  if (JS("bool", @"typeof $0 === 'string'", receiver) || isJSArray(receiver)) {
+    return JS("num", @"$0.length", receiver);
   }
   throw "Unimplemented user-defined length.";
 }
 
 bool isInt(var v) {
-  return JS(@"($0 | 0) === $1", v, v);
+  return JS("bool", @"($0 | 0) === $1", v, v);
 }
 
 class int {}
@@ -273,9 +273,9 @@ class List<T> {
 
   factory List(n) {
     // TODO(ngeoffray): Adjust to optional parameters.
-    if (JS(@"$0 === (void 0)", n)) return JS(@"new Array()");
+    if (JS("bool", @"$0 === (void 0)", n)) return JS("Object", @"new Array()");
     _checkConstructorInput(n);
-    return JS(@"new Array($0)", n);
+    return JS("Object", @"new Array($0)", n);
   }
 }
 
@@ -305,20 +305,20 @@ class Stopwatch {
 
   void start() {
     if (startMs == null) {
-      startMs = JS(@"Date.now()");
+      startMs = JS("num", @"Date.now()");
     }
   }
 
   void stop() {
     if (startMs == null) return;
-    elapsedMs += JS(@"Date.now() - $0", startMs);
+    elapsedMs += JS("num", @"Date.now() - $0", startMs);
     startMs = null;
   }
 
   void reset() {
     elapsedMs = 0.0;
     if (startMs == null) return;
-    startMs = JS(@"Date.now()");
+    startMs = JS("num", @"Date.now()");
   }
 
   int elapsed() {
@@ -331,9 +331,10 @@ class Stopwatch {
 
   int elapsedInMs() {
     if (startMs == null) {
-      return JS(@"Math.floor($0)", elapsedMs);
+      return JS("num", @"Math.floor($0)", elapsedMs);
     } else {
-      return JS(@"Math.floor($0 + (Date.now() - $1))", elapsedMs, startMs);
+      return
+        JS("num", @"Math.floor($0 + (Date.now() - $1))", elapsedMs, startMs);
     }
   }
 

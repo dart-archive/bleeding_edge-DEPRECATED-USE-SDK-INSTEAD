@@ -894,14 +894,25 @@ class HInvokeStatic extends HInvoke {
 
 class HForeign extends HInstruction {
   final SourceString code;
-  HForeign(this.code, List<HInstruction> inputs) : super(inputs);
+  final SourceString declaredType;
+  HForeign(this.code, this.declaredType, List<HInstruction> inputs)
+    : super(inputs);
   accept(HVisitor visitor) => visitor.visitForeign(this);
+
+  int computeType() {
+    if (declaredType.stringValue == 'bool') return TYPE_BOOLEAN;
+    if (declaredType.stringValue == 'num') return TYPE_NUMBER;
+    if (declaredType.stringValue == 'String') return TYPE_STRING;
+    return TYPE_UNKNOWN;
+  }
+
+  bool hasExpectedType() => true;
 }
 
 class HForeignNew extends HForeign {
   ClassElement element;
   HForeignNew(this.element, List<HInstruction> inputs)
-      : super(const SourceString("new"), inputs);
+      : super(const SourceString("new"), const SourceString("Object"), inputs);
   accept(HVisitor visitor) => visitor.visitForeignNew(this);
 }
 
