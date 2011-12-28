@@ -10,6 +10,9 @@
 #import('../file_system_vm.dart');
 #source('utf8.dart');
 
+/// The server socket used to listen for incoming connections.
+ServerSocket serverSocket;
+
 initializeCompiler(String homedir) {
   final filesystem = new VMFileSystem();
   parseOptions(homedir, [null, null], filesystem);
@@ -120,6 +123,11 @@ onConnect(Socket socket) {
     socket.readList(bytes, pos, len);
     handleRequest(bytes, socket);
   };
+  socket.errorHandler = () => socket.close();
+  socket.closeHandler = () => socket.close();
+
+  // Close the serverSocket - we only ever service one client.
+  serverSocket.close();
 }
 
 /// This token is used by the editor to know when frogc has successfully come up.
@@ -130,7 +138,7 @@ final STARTUP_TOKEN = 'frog: accepting connections';
 ServerSocket startServer(String homedir, String host, int port) {
   // Initialize the compiler. Only need to happen once.
   initializeCompiler(homedir);
-  var serverSocket = new ServerSocket(host, port, 50);
+  serverSocket = new ServerSocket(host, port, 50);
   serverSocket.connectionHandler = onConnect;
   print('$STARTUP_TOKEN on $host:${serverSocket.port}');
   return serverSocket;

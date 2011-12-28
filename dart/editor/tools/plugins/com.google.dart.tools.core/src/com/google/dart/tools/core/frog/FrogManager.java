@@ -63,16 +63,15 @@ public class FrogManager {
         try {
           server.shutdown();
         } catch (IOException ioe) {
+          // We were not able to send the shutdown message - kill the process.
+          if (frogProcess != null) {
+            frogProcess.killProcess();
+          }
         }
 
         server = null;
       }
 
-      // TODO(devoncarew): in the future, only kill the process if we were not able
-      // to send the shutdown message.
-      if (frogProcess != null) {
-        frogProcess.killProcess();
-      }
       frogProcess = null;
     }
   }
