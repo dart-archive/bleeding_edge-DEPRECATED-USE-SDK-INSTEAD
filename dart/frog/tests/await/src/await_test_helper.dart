@@ -14,3 +14,10 @@ Future futureOf(value) {
   setTimeout(() { c.complete(value); }, 0);
   return f;
 }
+
+Future errorOf(error) {
+  final c = new Completer();
+  final f = c.future;
+  setTimeout(() { c.completeException(error); }, 0);
+  return f;
+}

@@ -13010,7 +13010,7 @@ World.prototype.resolveAll = function() {
 World.prototype.get$resolveAll = function() {
   return this.resolveAll.bind(this);
 }
-World.prototype.generateCode = function(lib) {
+World.prototype.findMainMethod = function(lib) {
   var mainMembers = lib.topType.resolveMember('main');
   var main = null;
   if (mainMembers == null || $eq(mainMembers.get$members().get$length(), 0)) {
@@ -13027,8 +13027,11 @@ World.prototype.generateCode = function(lib) {
   else {
     main = mainMembers.get$members().$index(0);
   }
+  return main;
+}
+World.prototype.generateCode = function(lib) {
   var codeWriter = new CodeWriter();
-  this.gen = new WorldGenerator(main, codeWriter);
+  this.gen = new WorldGenerator(this.findMainMethod(lib), codeWriter);
   this.gen.run();
   this.jsBytesWritten = codeWriter.get$text().get$length();
 }

@@ -417,7 +417,7 @@ class World {
     }
   }
 
-  generateCode(Library lib) {
+  findMainMethod(Library lib) {
     var mainMembers = lib.topType.resolveMember('main');
     var main = null;
     if (mainMembers == null || mainMembers.members.length == 0) {
@@ -430,9 +430,12 @@ class World {
     } else {
       main = mainMembers.members[0];
     }
+    return main;
+  }
 
+  generateCode(Library lib) {
     var codeWriter = new CodeWriter();
-    gen = new WorldGenerator(main, codeWriter);
+    gen = new WorldGenerator(findMainMethod(lib), codeWriter);
     gen.run();
     jsBytesWritten = codeWriter.text.length;
   }

@@ -2,33 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Await within a try-catch block:
+// Await within a try-catch block, no error occurs.
 
 #import("await_test_helper.dart");
 
-main() {
+noerror() {
   try {
-    final f = futureOf(1);
-    final t = await f;
+    final t = await futureOf(0);
     return t;
-  } catch (Ex1 ex) {
+  } catch (e) {
     return -1;
   }
 }
 
-// This is roughly equivalent to:
-// main() {
+main() {
+  int t = await noerror();
+  Expect.equals(0, t);
+}
+
+// The transformation is roughly as follows:
+// noerror() {
 //   final _ret = new Completer();
-//   final f = futureOf(1);
-//   f.then((t) {
-//     _ret.complete(t);
-//   });
-//   f.addExceptionHandler((ex) {
-//     if (ex is Ex1) {
-//       _ret.complete(-1);
-//       return true;
-//     }
-//     return false;
-//   });
-//   Futures.propagateError(f, _ret);
+//   _catch(Ex1 ex) {
+//     _ret.complete(-1);
+//   }
+//   try {
+//     final f = futureOf(0);
+//     f.then((t) {
+//       _ret.complete(t);
+//     });
+//     f.addExceptionHandler((ex) {
+//       if (ex is Ex1) {
+//         _catch(ex);
+//         return true;
+//       }
+//       return false;
+//     });
+//     Futures.propagateError(f, _ret);
+//     return _ret;
+//   } catch(Ex1 ex) {
+//      _catch(ex);
+//      return _ret;
+//   }
 // }

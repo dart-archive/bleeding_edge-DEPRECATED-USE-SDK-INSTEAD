@@ -7,6 +7,8 @@
  * desugars await expressions.
  */
 awaitTransformation() {
+  _mainMethod =
+      world.findMainMethod(world.getOrAddLibrary(options.dartScript));
   for (var lib in world.libraries.getValues()) {
     for (var type in lib.types.getValues()) {
       for (var member in type.members.getValues()) {
@@ -18,6 +20,8 @@ awaitTransformation() {
     }
   }
 }
+
+Member _mainMethod;
 
 /** Transform a single member (method or property). */
 _process(Member member) {
@@ -234,10 +238,7 @@ class AwaitChecker implements TreeVisitor {
     if (_visit(node.finallyBlock)) {
       awaitSeen = true;
     }
-    if (awaitSeen) {
-      haveAwait.add(node);
-      _notSupportedStmt("try", node);
-    }
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
@@ -516,17 +517,22 @@ class AwaitProcessor implements TreeVisitor {
    */
   // TODO(sigmund): fix frog to make it possible to switch to '_a:res'. The
   // current mangling breaks across closure-boundaries.
-  static final _COMPLETER_NAME = '_a_res';
-  static final _THEN_PARAM = '_a_v';
-  static final _IGNORED_THEN_PARAM = '_a_ignored_param';
+  static final _PREFIX = '_a_';
+  static final _COMPLETER_NAME = _PREFIX + 'res';
+  static final _THEN_PARAM = _PREFIX + 'v';
+  static final _EXCEPTION_HANDLER_PARAM = _PREFIX + 'e';
+  static final _IGNORED_THEN_PARAM = _PREFIX + 'ignored_param';
+  static final _CONTINUATION_PREFIX = _PREFIX + 'after_';
+
   static final _COMPLETE_METHOD = 'complete';
   static final _COMPLETE_EXCEPTION_METHOD = 'completeException';
 
-  static final _CONTINUATION_PREFIX = '_a_after_';
-  static final _LOOP_CONTINUATION_PREFIX = '_a_';
 
   /** The continuation when visiting a particular statement. */
   Queue<Statement> continuation;
+
+  /** If not null, a closure to call when a future ends with an exception. */
+  Identifier currentExceptionHandler;
 
   /** Counter to ensure created closure names are unique. */
   int continuationClosures = 0;
@@ -567,16 +573,12 @@ class AwaitProcessor implements TreeVisitor {
 
     Statement newBody = node.body.visit(this);
     // TODO(sigmund): extract type arg and put it in completer
-    final newList = [_declareCompleter(null, node.span)];
-    if (newBody is BlockStatement) {
-      BlockStatement block = newBody;
-      newList.addAll(block.body);
-    } else {
-      newList.add(newBody);
-    }
     // We update the body in-place to make it easier to update nested functions
     // without having to rewrite the containing function's AST.
-    node.body = new BlockStatement(newList, newBody.span);
+    node.body = new BlockStatement([
+        _declareCompleter(null, node.span),
+        _wrapInTryCatch(newBody, node == _mainMethod.definition),
+        _returnFuture(node.span)], newBody.span);
     return node;
   }
 
@@ -586,8 +588,11 @@ class AwaitProcessor implements TreeVisitor {
   }
 
   visitThrowStatement(ThrowStatement node) {
+    // instead of calling the exception handler here, we take a different
+    // approach and use throw directly. This helps make the try-catch
+    // transformation simpler.
     continuation.clear();
-    return _callCompleterException(node.value, node.span);
+    return node;
   }
 
   visitAssertStatement(AssertStatement node) {
@@ -611,7 +616,7 @@ class AwaitProcessor implements TreeVisitor {
     // TODO(sigmund): consider whether we should create this continuation
     // closure when there are few statements following (e.g a simple expression
     // statement, no loops, etc).
-    String afterIf = _newClosureName("if", false);
+    String afterIf = _newClosureName(_CONTINUATION_PREFIX + "_if");
     Statement def = _makeContinuation(afterIf, node.span);
 
     final trueContinuation = new Queue();
@@ -638,18 +643,18 @@ class AwaitProcessor implements TreeVisitor {
   visitWhileStatement(WhileStatement node) {
     if (!haveAwait.contains(node)) return node;
 
-    String afterWhile = _newClosureName("while", false);
+    String afterWhile = _newClosureName(_CONTINUATION_PREFIX + "_while");
     Statement def = _makeContinuation(afterWhile, node.span);
-    String repeatWhile = _newClosureName("while", true);
+    String repeatWhile = _newClosureName(_PREFIX + "_while");
 
     final bodyContinuation = new Queue();
     bodyContinuation.addFirst(_callNoArg(repeatWhile, node.span));
     continuation = bodyContinuation;
-    Statement tRes = node.body.visit(this);
+    Statement body = node.body.visit(this);
 
     continuation = new Queue();
     continuation.addFirst(_callNoArg(afterWhile, node.span));
-    continuation.addFirst(new IfStatement(node.test, tRes, null, node.span));
+    continuation.addFirst(new IfStatement(node.test, body, null, node.span));
     Statement defLoop = _makeContinuation(repeatWhile, node.span);
 
     continuation = new Queue();
@@ -682,8 +687,117 @@ class AwaitProcessor implements TreeVisitor {
 
   visitTryStatement(TryStatement node) {
     if (!haveAwait.contains(node)) return node;
-    // TODO(sigmund): implement
-    return node;
+    // TODO(sigmund): pending to do on try-catch blocks
+    // - consider when await shows in catch blocks, but not in the try block
+    // - support exceptions after the await
+    // - handle nested try blocks
+    // - support finally
+    // - consider throws within catch blocks, e.g:
+    //   try { a } catch (E e1) { throw new E2(); } catch (E2 e2) { -- }
+
+    String afterTry = _newClosureName(_CONTINUATION_PREFIX + "_try");
+    Statement afterTryDef = _makeContinuation(afterTry, node.span);
+
+    // Transform the body first:
+    continuation = new Queue();
+    final exceptionHandlerName = new Identifier(
+        _newClosureName(_PREFIX + "exception_handler"), node.span);
+    currentExceptionHandler = exceptionHandlerName;
+    continuation.addFirst(_callNoArg(afterTry, node.span));
+    Statement body = node.body.visit(this);
+    currentExceptionHandler = null;
+
+    final defs = []; // closures for each catch block (avoid duplicating code).
+    final catches = []; // catch clauses of the transformed try-catch block
+
+    // Catch blocks are passed as an exception handler on de-sugared awaits:
+    // TODO(sigmund): add trace argument (library change in Future<T>)
+    final handlerArg = new Identifier(_EXCEPTION_HANDLER_PARAM, node.span);
+    final handlerBody = [];
+
+    // The exception handler is smaller when we encounter an untyped catch.
+    bool untypedCatch = false;
+
+    for (CatchNode n in node.catches) {
+      String fname = _newClosureName(_PREFIX + "catch");
+
+      // Code in transformed catch-block:
+      continuation = new Queue();
+      continuation.addFirst(_callNoArg(afterTry, node.span));
+      continuation.addFirst(n.body.visit(this));
+
+      defs.add(_makeCatchFunction(n, fname));
+      catches.add(new CatchNode(n.exception, n.trace,
+          new BlockStatement(
+            [_callCatchFunction(n, fname), _returnFuture(n.span)], n.span),
+          n.span));
+
+      // Code in exceptionHandler:
+      if (!untypedCatch) {
+        final exceptionHandlerCases = [
+            _callCatchFunctionHelper(fname, handlerArg, null, n.span),
+            _returnBoolean(n.span, true)];
+        if (n.exception.type == null) {
+          handlerBody.addAll(exceptionHandlerCases);
+          untypedCatch = true;
+        } else {
+          handlerBody.add(new IfStatement(
+                new IsExpression(true, handlerArg, n.exception.type, n.span),
+                new BlockStatement(exceptionHandlerCases, n.span),
+                null, n.span));
+        }
+      }
+    }
+
+    if (!untypedCatch) {
+      handlerBody.add(_returnBoolean(node.span, false));
+    }
+
+    final handlerDef = new FunctionDefinition([], null,
+        exceptionHandlerName, [new FormalNode(
+          false, false, null, handlerArg, null, node.span)],
+        null, null, new BlockStatement(handlerBody, node.span), node.span);
+
+    continuation = new Queue();
+    continuation.addAll(defs);
+    continuation.add(handlerDef);
+    continuation.add(new TryStatement(body,
+          catches, node.finallyBlock, node.span));
+    continuation.add(_callNoArg(afterTry, node.span));
+    return afterTryDef;
+  }
+
+  /**
+   * Create a closure representing the catch block. The closure takes either 1
+   * or 2 args, depending on whether [n] has a `trace` declaration.
+   */
+  Statement _makeCatchFunction(CatchNode n, String fname) {
+    if (n.trace == null) {
+      return _makeContinuation1(fname,
+          n.exception.type, n.exception.name, n.span);
+    } else {
+      return _makeContinuation2(fname,
+          n.exception.type, n.exception.name,
+          n.trace.type, n.trace.name, n.span);
+    }
+  }
+
+  /** Calls the catch function declared for [n] using [_makeCatchFunction]. */
+  Statement _callCatchFunction(CatchNode n, String fname) {
+    return _callCatchFunctionHelper(fname, n.exception.name,
+        n.trace == null ?  null : n.trace.name, n.span);
+  }
+
+  /** Helper to call a catch function declared using [_makeCatchFunction]. */
+  Statement _callCatchFunctionHelper(
+      String fname, Identifier exception, Identifier trace, SourceSpan span) {
+    if (trace == null) {
+      return _call1Arg(fname,
+          new VarExpression(exception, exception.span), span);
+    } else {
+      return _call2Args(fname, new VarExpression(exception, exception.span),
+          new VarExpression(trace, trace.span), span);
+    }
   }
 
   visitSwitchStatement(SwitchStatement node) {
@@ -759,13 +873,19 @@ class AwaitProcessor implements TreeVisitor {
 
   /**
    * Converts an await expression into several statements: calling
-   * [:Future.then:] and propatating errors.
+   * [:Future.then:] and propatating errors. This implementation assumes that
+   * await calls are within blocks (after normalization).
    */
   _desugarAwaitCall(AwaitExpression node, Identifier param) {
-    final thenMethod = new DotExpression(node.body,
-            new Identifier('then', node.span), node.span);
     List<Statement> afterAwait = [];
     afterAwait.addAll(continuation);
+    if (afterAwait[afterAwait.length - 1] is ReturnStatement) {
+      // The only reason there is a `return` is because there was another await
+      // and we introduced it. Such `return` is not needed in the callback.
+      afterAwait.length = afterAwait.length - 1;
+    }
+
+    // A lambda function that executes the continuation.
     final thenArg = new LambdaExpression(
         new FunctionDefinition([], null, null,
         [new FormalNode(
@@ -774,15 +894,28 @@ class AwaitProcessor implements TreeVisitor {
         ], null, null,
         new BlockStatement(afterAwait, node.span), node.span),
         node.span);
+
     continuation.clear();
-    // TODO(sigmund): insert in new continuation all additional statements that
-    // propagate errors.
-    // this assumes that the normalization ensures await calls are within blocks
     continuation.addFirst(_returnFuture(node.span));
-    return new CallExpression(thenMethod,
-        [new ArgumentNode(null, thenArg, node.span)], node.span);
+    // Within try-blocks, we also add an exception handler to propagate errors.
+    if (currentExceptionHandler != null) {
+      continuation.addFirst(new ExpressionStatement(new CallExpression(
+          new DotExpression(node.body,
+              new Identifier('handleException', node.span), node.span),
+          [new ArgumentNode(null,
+              new VarExpression(currentExceptionHandler, node.span),
+              node.span)],
+          node.span), node.span));
+    }
+    return _callThen(node.body, thenArg, node.span);
   }
 
+  /** Make the statement: [: future.then(arg); :] */
+  _callThen(Expression future, Expression arg, SourceSpan span) {
+    return new CallExpression(
+        new DotExpression(future, new Identifier('then', span), span),
+        [new ArgumentNode(null, arg, span)], span);
+  }
 
   /** Make the statement: [: final Completer<T> v = new Completer<T>(); :]. */
   _declareCompleter(Type argType, SourceSpan span) {
@@ -805,24 +938,47 @@ class AwaitProcessor implements TreeVisitor {
     return def;
   }
 
+  /**
+   * Wrap [s] in a try-catch block that propagates errors through the future
+   * that is returned from the asynchronous function. If the function that we
+   * are generating is `main`, we add a noop listener on the resulting future.
+   * Without it, we would have to make it illegal to use `await` in main. This
+   * is because futures swallow exceptions if their values are never used. 
+   */
+  Statement _wrapInTryCatch(Statement s, bool isMain) {
+    final ex = new Identifier("ex", s.span);
+    Statement catchStatement =
+        _callCompleterException(new VarExpression(ex, ex.span), s.span);
+    if (isMain) {
+      final future = new DotExpression(
+          new VarExpression(new Identifier(_COMPLETER_NAME, s.span), s.span),
+          new Identifier("future", s.span), s.span);
+      final noopHandler = new LambdaExpression(
+          new FunctionDefinition([], null, null,
+            [new FormalNode(false, false, null,
+                new Identifier(_IGNORED_THEN_PARAM, s.span), null, s.span)
+            ], null, null,
+            new BlockStatement([], s.span), s.span), s.span);
+      catchStatement = new BlockStatement([
+          // _a_res.future.then((_ignored_param) { });
+          new ExpressionStatement(
+              _callThen(future, noopHandler, s.span), s.span),
+          catchStatement], s.span);
+    }
+    return new TryStatement(s, [
+        new CatchNode(new DeclaredIdentifier(null, ex, ex.span), null,
+            catchStatement, s.span)], null, s.span);
+  }
+
   /** Make the statement: [: _a$res.complete(value); :]. */
   _callCompleter(Expression value, SourceSpan span) {
-    return _makeCall(_COMPLETER_NAME, _COMPLETE_METHOD, value, span);
+    return _callTarget1Arg(_COMPLETER_NAME, _COMPLETE_METHOD, value, span);
   }
 
   /** Make the statement: [: _a$res.completeException(value); :]. */
   _callCompleterException(Expression value, SourceSpan span) {
-    return _makeCall(_COMPLETER_NAME, _COMPLETE_EXCEPTION_METHOD, value, span);
-  }
-
-  /** Make the statement: [: target.method(value); :]. */
-  _makeCall(String target, String method, Expression value, SourceSpan span) {
-    if (value == null) value = new NullExpression(span);
-    return new ExpressionStatement(new CallExpression(
-        new DotExpression(
-            new VarExpression(new Identifier(target, span), span),
-            new Identifier(method, span), span),
-        [new ArgumentNode(null, value, value.span)], span), span);
+    return _callTarget1Arg(
+        _COMPLETER_NAME, _COMPLETE_EXCEPTION_METHOD, value, span);
   }
 
   /** Make the statement: [: return _a$res.future; :]. */
@@ -834,26 +990,90 @@ class AwaitProcessor implements TreeVisitor {
   }
 
   /** Create a unique name for a continuation. */
-  String _newClosureName(String name, bool isLoop) {
-    String mName = (isLoop ? _LOOP_CONTINUATION_PREFIX : _CONTINUATION_PREFIX)
-        + '${name}_$continuationClosures';
+  String _newClosureName(String name) {
     continuationClosures++;
-    return mName;
+    return '${name}_$continuationClosures';
+  }
+
+  /** Return the current continuation as a statement block for a method body. */
+  Statement _continuationAsBody(SourceSpan span) {
+    if (continuation.length == 1 && continuation.first() is BlockStatement) {
+      // No need to wrap a single block statement within a block statement:
+      return continuation.first();
+    } else {
+      List<Statement> continuationBlock = [];
+      continuationBlock.addAll(continuation);
+      return new BlockStatement(continuationBlock, span);
+    }
   }
 
   /** Create a closure that contains the continuation statements. */
-  _makeContinuation(String mName, SourceSpan span) {
-    List<Statement> continuationBlock = [];
-    continuationBlock.addAll(continuation);
+  FunctionDefinition _makeContinuation(String mName, SourceSpan span) {
     return new FunctionDefinition([], null,
         new Identifier(mName, span), [], null, null,
-        new BlockStatement(continuationBlock, span), span);
+        _continuationAsBody(span), span);
+  }
+
+  /** Create a 1-arg closure that contains the continuation statements. */
+  FunctionDefinition _makeContinuation1(String mName,
+      TypeReference arg1Type, Identifier arg1Name, SourceSpan span) {
+    return new FunctionDefinition([], null,
+        new Identifier(mName, span),
+        [new FormalNode(false, false, arg1Type, arg1Name, null, arg1Name.span)],
+        null, null, _continuationAsBody(span), span);
+  }
+
+  /** Create a 2-arg closure that contains the continuation statements. */
+  FunctionDefinition _makeContinuation2(
+      String mName, TypeReference arg1Type, Identifier arg1Name,
+      TypeReference arg2Type, Identifier arg2Name, SourceSpan span) {
+    return new FunctionDefinition([], null,
+        new Identifier(mName, span),
+        [new FormalNode(false, false, arg1Type, arg1Name, null, arg1Name.span),
+         new FormalNode(false, false, arg2Type, arg2Name, null, arg2Name.span)],
+        null, null, _continuationAsBody(span), span);
   }
 
   /** Make a statement invoking a function in scope. */
-  _callNoArg(String mName, SourceSpan span) {
+  Statement _callNoArg(String mName, SourceSpan span) {
     return new ExpressionStatement(new CallExpression(
         new VarExpression(new Identifier(mName, span), span), [], span), span);
+  }
+
+  /** Make the statement: [: target.method(value); :]. */
+  Statement _callTarget1Arg(
+      String target, String method, Expression value, SourceSpan span) {
+    if (value == null) value = new NullExpression(span);
+    return new ExpressionStatement(new CallExpression(
+        new DotExpression(
+            new VarExpression(new Identifier(target, span), span),
+            new Identifier(method, span), span),
+        [new ArgumentNode(null, value, value.span)], span), span);
+  }
+
+  /** Make the statement: [: f(value); :]. */
+  Statement _call1Arg(String f, Expression value, SourceSpan span) {
+    if (value == null) value = new NullExpression(span);
+    return new ExpressionStatement(new CallExpression(
+        new VarExpression(new Identifier(f, span), span),
+        [new ArgumentNode(null, value, value.span)], span), span);
+  }
+
+  /** Make the statement: [: f(a, b); :]. */
+  Statement _call2Args(String f, Expression a, Expression b,
+      SourceSpan span) {
+    if (a == null) a = new NullExpression(span);
+    if (b == null) b = new NullExpression(span);
+    return new ExpressionStatement(new CallExpression(
+        new VarExpression(new Identifier(f, span), span),
+        [new ArgumentNode(null, a, a.span),
+         new ArgumentNode(null, b, b.span)], span), span);
+  }
+
+  /** Make a return statement for a boolean value. */
+  Statement _returnBoolean(SourceSpan span, value) {
+    return new ReturnStatement(new LiteralExpression(value,
+        new TypeReference(span, world.nonNullBool), "$value", span), span);
   }
 }
 
