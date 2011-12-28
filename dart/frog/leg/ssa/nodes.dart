@@ -604,6 +604,49 @@ class HLoopInformation {
   }
 }
 
+class HType {
+  final int flag;
+  const HType(int this.flag);
+
+  static final int FLAG_CONFLICTING = 0;
+  static final int FLAG_UNKNOWN = 1;
+  static final int FLAG_BOOLEAN = FLAG_UNKNOWN << 1;
+  static final int FLAG_NUMBER = FLAG_BOOLEAN << 1;
+  static final int FLAG_STRING = FLAG_NUMBER << 1;
+  static final int FLAG_ARRAY = FLAG_STRING << 1;
+
+  static final HType CONFLICTING = const HType(FLAG_CONFLICTING);
+  static final HType UNKNOWN = const HType(FLAG_UNKNOWN);
+  static final HType BOOLEAN = const HType(FLAG_BOOLEAN);
+  static final HType NUMBER = const HType(FLAG_NUMBER);
+  static final HType STRING = const HType(FLAG_STRING);
+  static final HType ARRAY = const HType(FLAG_ARRAY);
+  static final HType STRING_OR_ARRAY = const HType(FLAG_STRING | FLAG_ARRAY);
+
+  bool isConflicting() => this === CONFLICTING;
+  bool isUnknown() => this === UNKNOWN;
+  bool isBoolean() => this === BOOLEAN;
+  bool isNumber() => this === NUMBER;
+  bool isString() => (this.flag & FLAG_STRING) == FLAG_STRING;
+  bool isArray() => (this.flag & FLAG_ARRAY) == FLAG_ARRAY;
+  bool isKnown() => this !== UNKNOWN && this !== CONFLICTING;
+
+  static HType getTypeFromFlag(int flag) {
+    if (flag === CONFLICTING.flag) return CONFLICTING;
+    if (flag === UNKNOWN.flag) return UNKNOWN;
+    if (flag === BOOLEAN.flag) return BOOLEAN;
+    if (flag === NUMBER.flag) return NUMBER;
+    if (flag === STRING.flag) return STRING;
+    if (flag === ARRAY.flag) return ARRAY;
+    if (flag === STRING_OR_ARRAY.flag) return STRING_OR_ARRAY;
+    assert(false);
+  }
+
+  HType combine(HType other) {
+    return getTypeFromFlag(this.flag & other.flag);
+  }
+}
+
 class HInstruction implements Hashable {
   final int id;
   static int idCounter;
@@ -615,7 +658,7 @@ class HInstruction implements Hashable {
   HInstruction previous = null;
   HInstruction next = null;
   int flags = 0;
-  int type = TYPE_UNKNOWN;
+  HType type = HType.UNKNOWN;
 
   // Changes flags.
   static final int FLAG_CHANGES_SOMETHING    = 0;
@@ -627,13 +670,6 @@ class HInstruction implements Hashable {
   // Other flags.
   static final int FLAG_GENERATE_AT_USE_SITE = FLAG_DEPENDS_ON_SOMETHING + 1;
   static final int FLAG_USE_GVN              = FLAG_GENERATE_AT_USE_SITE + 1;
-
-  // Types.
-  static final int TYPE_UNKNOWN = 0;
-  static final int TYPE_BOOLEAN = 1;
-  static final int TYPE_NUMBER = 2;
-  static final int TYPE_STRING = 3;
-  static final int TYPE_CONFLICT = 4;
 
   HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[];
 
@@ -659,29 +695,28 @@ class HInstruction implements Hashable {
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
 
-  bool isUnknown() => type == TYPE_UNKNOWN || type == TYPE_CONFLICT;
-  bool isBoolean() => type == TYPE_BOOLEAN;
-  bool isNumber() => type == TYPE_NUMBER;
-  bool isString() => type == TYPE_STRING;
+  bool isBoolean() => type.isBoolean();
+  bool isNumber() => type.isNumber();
+  bool isString() => type.isString();
 
   // Compute the type of the instruction.
-  int computeType() => computeDesiredType();
+  HType computeType() => computeDesiredType();
 
-  int computeDesiredType() {
-    int candidateType = TYPE_UNKNOWN;
+  HType computeDesiredType() {
+    HType candidateType = HType.UNKNOWN;
     for (final user in usedBy) {
-      int type = user.computeDesiredInputType(this);
-      if (candidateType == TYPE_UNKNOWN) {
+      HType type = user.computeDesiredInputType(this);
+      if (candidateType.isUnknown()) {
         candidateType = type;
-      } else if (type != TYPE_UNKNOWN && candidateType != type) {
-        candidateType = TYPE_UNKNOWN;
+      } else if (!type.isUnknown() && candidateType != type) {
+        candidateType = HType.UNKNOWN;
         break;
       }
     }
     return candidateType;
   }
 
-  int computeDesiredInputType(HInstruction input) => TYPE_UNKNOWN;
+  HType computeDesiredInputType(HInstruction input) => HType.UNKNOWN;
 
   // Returns whether the instruction does produce the type it claims.
   // For most instructions, this returns false. A type guard will be
@@ -691,16 +726,14 @@ class HInstruction implements Hashable {
   // Re-compute and update the type of the instruction. Returns
   // whether or not the type was changed.
   bool updateType() {
-    if (type == TYPE_CONFLICT) return false;
-    int newType = computeType();
+    if (type.isConflicting()) return false;
+    HType newType = computeType();
     bool changed = (type != newType);
-    if (type == TYPE_UNKNOWN) {
+    if (type.isUnknown()) {
       type = newType;
       return changed;
     } else if (changed) {
-      // We found a different type from what we found before. Be
-      // pessismistic for now and mark it as conflicting.
-      type = TYPE_CONFLICT;
+      type = type.combine(newType);
       return changed;
     }
     return false;
@@ -799,7 +832,7 @@ class HBoolify extends HInstruction {
     setUseGvn();
   }
 
-  int computeType() => TYPE_BOOLEAN;
+  HType computeType() => HType.BOOLEAN;
   bool hasExpectedType() => true;
 
   accept(HVisitor visitor) => visitor.visitBoolify(this);
@@ -817,7 +850,7 @@ class HTypeGuard extends HInstruction {
     setUseGvn();
   }
 
-  int computeType() => type;
+  HType computeType() => type;
   bool hasExpectedType() => true;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
@@ -904,10 +937,10 @@ class HInvokeInterceptor extends HInvokeStatic {
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
-  int computeType() {
+  HType computeType() {
     if (name == 'length' && inputs[1].isString()) {
       builtin = true;
-      return TYPE_NUMBER;
+      return HType.NUMBER;
     }
     return computeDesiredType();
   }
@@ -918,7 +951,7 @@ class HInvokeInterceptor extends HInvokeStatic {
     if (name == 'length' && inputs[1].isLiteralString()) {
       int quotes = 2; // Make sure to remove the quotes.
       HLiteral res = new HLiteral(inputs[1].value.stringValue.length - quotes);
-      res.type = TYPE_NUMBER;
+      res.type = HType.NUMBER;
       return res;
     }
     return this;
@@ -942,11 +975,11 @@ class HForeign extends HInstruction {
     : super(inputs);
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
-  int computeType() {
-    if (declaredType.stringValue == 'bool') return TYPE_BOOLEAN;
-    if (declaredType.stringValue == 'num') return TYPE_NUMBER;
-    if (declaredType.stringValue == 'String') return TYPE_STRING;
-    return TYPE_UNKNOWN;
+  HType computeType() {
+    if (declaredType.stringValue == 'bool') return HType.BOOLEAN;
+    if (declaredType.stringValue == 'num') return HType.NUMBER;
+    if (declaredType.stringValue == 'String') return HType.STRING;
+    return HType.UNKNOWN;
   }
 
   bool hasExpectedType() => true;
@@ -969,7 +1002,7 @@ class HInvokeBinary extends HInvokeStatic {
       HLiteral op1 = left;
       HLiteral op2 = right;
       HLiteral res = new HLiteral(evaluate(op1.value, op2.value));
-      res.type = TYPE_NUMBER;
+      res.type = HType.NUMBER;
       return res;
     }
     return this;
@@ -978,14 +1011,13 @@ class HInvokeBinary extends HInvokeStatic {
   HInstruction get left() => inputs[1];
   HInstruction get right() => inputs[2];
 
-  int computeInputsType() {
-    int leftType = left.type;
-    int rightType = right.type;
-    if (leftType == TYPE_UNKNOWN || rightType == TYPE_UNKNOWN) {
-      return TYPE_UNKNOWN;
+  HType computeInputsType() {
+    HType leftType = left.type;
+    HType rightType = right.type;
+    if (leftType.isUnknown() || rightType.isUnknown()) {
+      return HType.UNKNOWN;
     }
-    if (leftType != rightType) return TYPE_CONFLICT;
-    return leftType;
+    return leftType.combine(rightType);
   }
 
   abstract evaluate(num a, num b);
@@ -1007,23 +1039,23 @@ class HBinaryArithmetic extends HInvokeBinary {
     }
   }
 
-  int computeType() {
-    int type = computeInputsType();
-    builtin = (type == TYPE_NUMBER);
-    if (type != TYPE_UNKNOWN) return type;
-    if (left.isNumber()) return TYPE_NUMBER;
+  HType computeType() {
+    HType type = computeInputsType();
+    builtin = type.isNumber();
+    if (!type.isUnknown()) return type;
+    if (left.isNumber()) return HType.NUMBER;
     return computeDesiredType();
   }
 
-  int computeDesiredInputType(HInstruction input) {
+  HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
-    if (input == target) return TYPE_UNKNOWN;
-    if (isNumber() || left.isNumber() || right.isNumber()) return TYPE_NUMBER;
-    if (type == TYPE_UNKNOWN) return TYPE_NUMBER;
-    return TYPE_UNKNOWN;
+    if (input == target) return HType.UNKNOWN;
+    if (isNumber() || left.isNumber() || right.isNumber()) return HType.NUMBER;
+    if (type.isUnknown()) return HType.NUMBER;
+    return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => builtin || (type == TYPE_UNKNOWN);
+  bool hasExpectedType() => builtin || type.isUnknown();
 
   abstract num evaluate(num a, num b);
 }
@@ -1036,22 +1068,22 @@ class HAdd extends HBinaryArithmetic {
   bool typeEquals(other) => other is HAdd;
   bool dataEquals(HInstruction other) => true;
 
-  int computeType() {
-    int type = computeInputsType();
-    builtin = (type == TYPE_NUMBER || type == TYPE_STRING);
-    if (type != TYPE_UNKNOWN) return type;
-    if (left.isString()) return TYPE_STRING;
-    if (left.isNumber()) return TYPE_NUMBER;
+  HType computeType() {
+    HType type = computeInputsType();
+    builtin = (type.isNumber() || type.isString());
+    if (!type.isUnknown()) return type;
+    if (left.isString()) return HType.STRING;
+    if (left.isNumber()) return HType.NUMBER;
     return computeDesiredType();
   }
 
-  int computeDesiredInputType(HInstruction input) {
+  HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
-    if (input == target) return TYPE_UNKNOWN;
-    if (isString() || left.isString() || right.isString()) return TYPE_STRING;
-    if (isNumber() || left.isNumber() || right.isNumber()) return TYPE_NUMBER;
-    if (type == TYPE_UNKNOWN) return TYPE_NUMBER;
-    return TYPE_UNKNOWN;
+    if (input == target) return HType.UNKNOWN;
+    if (isString() || left.isString() || right.isString()) return HType.STRING;
+    if (isNumber() || left.isNumber() || right.isNumber()) return HType.NUMBER;
+    if (type.isUnknown()) return HType.NUMBER;
+    return HType.UNKNOWN;
   }
 }
 
@@ -1123,7 +1155,7 @@ class HBinaryBitOp extends HBinaryArithmetic {
       // Avoid exceptions.
       if (op1.value is int && op2.value is int) {
         HLiteral res = new HLiteral(evaluate(op1.value, op2.value));
-        res.type = TYPE_NUMBER;
+        res.type = HType.NUMBER;
         return res;
       }
     }
@@ -1221,21 +1253,21 @@ class HInvokeUnary extends HInvokeStatic {
     }
   }
 
-  int computeType() {
-    int type = operand.type;
-    builtin = (type == TYPE_NUMBER);
-    if (type != TYPE_UNKNOWN) return type;
+  HType computeType() {
+    HType type = operand.type;
+    builtin = type.isNumber();
+    if (!type.isUnknown()) return type;
     return computeDesiredType();
   }
 
-  int computeDesiredInputType(HInstruction input) {
+  HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
-    if (input == target) return TYPE_UNKNOWN;
-    if (type == TYPE_UNKNOWN || type == TYPE_NUMBER) return TYPE_NUMBER;
-    return TYPE_UNKNOWN;
+    if (input == target) return HType.UNKNOWN;
+    if (type.isUnknown() || type.isNumber()) return HType.NUMBER;
+    return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => builtin || (type == TYPE_UNKNOWN);
+  bool hasExpectedType() => builtin || (type.isUnknown());
 
   abstract HInstruction fold();
 
@@ -1250,7 +1282,7 @@ class HNegate extends HInvokeUnary {
     if (operand.isLiteralNumber()) {
       HLiteral input = operand;
       HLiteral res = new HLiteral(evaluate(input.value));
-      res.type = TYPE_NUMBER;
+      res.type = HType.NUMBER;
       return res;
     }
     return this;
@@ -1270,7 +1302,7 @@ class HBitNot extends HInvokeUnary {
       HLiteral input = operand;
       if (input.value is int) {
         HLiteral res = new HLiteral(evaluate(input.value));
-        res.type = TYPE_NUMBER;
+        res.type = HType.NUMBER;
         return res;
       }
     }
@@ -1321,15 +1353,15 @@ class HLiteral extends HInstruction {
   toString() => 'literal: $value';
   accept(HVisitor visitor) => visitor.visitLiteral(this);
 
-  int computeType() {
+  HType computeType() {
     if (isLiteralNumber()) {
-      return TYPE_NUMBER;
+      return HType.NUMBER;
     } else if (isLiteralBoolean()) {
-      return TYPE_BOOLEAN;
+      return HType.BOOLEAN;
     } else if (isLiteralString()) {
-      return TYPE_STRING;
+      return HType.STRING;
     } else {
-      return TYPE_UNKNOWN;
+      return HType.UNKNOWN;
     }
   }
 
@@ -1350,7 +1382,7 @@ class HNot extends HInstruction {
     setUseGvn();
   }
 
-  int computeType() => TYPE_BOOLEAN;
+  HType computeType() => HType.BOOLEAN;
   bool hasExpectedType() => true;
 
   accept(HVisitor visitor) => visitor.visitNot(this);
@@ -1405,43 +1437,46 @@ class HPhi extends HInstruction {
   // have the same known type return it. If any two inputs have
   // different known types, we'll return a conflict -- otherwise we'll
   // simply return an unknown type.
-  int computeInputsType() {
+  HType computeInputsType() {
     bool seenUnknown = false;
-    int candidateType = -1;
+    HType candidateType = null;
     for (int i = 0, length = inputs.length; i < length; i++) {
-      int inputType = inputs[i].type;
-      if (inputType == TYPE_UNKNOWN) {
+      HType inputType = inputs[i].type;
+      if (inputType.isUnknown()) {
         seenUnknown = true;
-      } else if (candidateType == -1) {
+      } else if (candidateType == null) {
         candidateType = inputType;
-      } else if (candidateType != inputType) {
-        return TYPE_CONFLICT;
+      } else {
+        candidateType = candidateType.combine(inputType);
+        if (candidateType.isConflicting()) return HType.CONFLICTING;
       }
     }
-    if (seenUnknown) return TYPE_UNKNOWN;
+    if (seenUnknown) return HType.UNKNOWN;
     return candidateType;
   }
 
-  int computeType() {
-    int type = computeInputsType();
-    if (type != TYPE_UNKNOWN) return type;
+  HType computeType() {
+    HType type = computeInputsType();
+    if (!type.isUnknown()) return type;
     return super.computeType();
   }
 
-  int computeDesiredInputType(HInstruction input) {
+  HType computeDesiredInputType(HInstruction input) {
     return type;
   }
 
   bool hasExpectedType() {
     for (int i = 0; i < inputs.length; i++) {
-      if (inputs[i].type !== type) return false;
+      if (type.combine(inputs[i].type).isConflicting()) return false;
     }
     return true;
   }
 
   bool updateTypeForLoopPhi() {
     assert(block.isLoopHeader());
-    if (inputs[0].isUnknown()) return false;
+    if (!inputs[0].type.isKnown()) {
+      return false;
+    }
     type = inputs[0].type;
     return true;
   }
@@ -1475,17 +1510,17 @@ class HRelational extends HInvokeBinary {
     }
   }
 
-  int computeType() {
-    builtin = computeInputsType() == TYPE_NUMBER;
-    return TYPE_BOOLEAN;
+  HType computeType() {
+    builtin = computeInputsType().isNumber();
+    return HType.BOOLEAN;
   }
 
-  int computeDesiredInputType(HInstruction input) {
+  HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
-    if (input == inputs[0]) return TYPE_UNKNOWN;
+    if (input == inputs[0]) return HType.UNKNOWN;
     // For all relational operations exept HEquals, we expect to only
     // get numbers.
-    return TYPE_NUMBER;
+    return HType.NUMBER;
   }
 
   // A HRelational goes through the builtin operator or the top level
@@ -1503,11 +1538,11 @@ class HEquals extends HRelational {
   bool typeEquals(other) => other is HEquals;
   bool dataEquals(HInstruction other) => true;
 
-  int computeDesiredInputType(HInstruction input) {
+  HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
-    if (input == inputs[0]) return TYPE_UNKNOWN;
-    if (left.isNumber() || right.isNumber()) return TYPE_NUMBER;
-    return TYPE_UNKNOWN;
+    if (input == inputs[0]) return HType.UNKNOWN;
+    if (left.isNumber() || right.isNumber()) return HType.NUMBER;
+    return HType.UNKNOWN;
   }
 }
 
@@ -1654,6 +1689,6 @@ class HLogicalOperator extends HNonSsaInstruction {
   accept(HVisitor visitor) => visitor.visitLogicalOperator(this);
   HInstruction get left() => inputs[0];
   HInstruction get right() => inputs[1];
-  int computeType() => TYPE_BOOLEAN;
+  HType computeType() => HType.BOOLEAN;
   bool hasExpectedType() => true;
 }

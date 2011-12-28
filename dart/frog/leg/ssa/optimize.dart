@@ -58,7 +58,7 @@ class SsaConstantFolder extends HBaseVisitor {
     HInstruction input = inputs[0];
     if (input.isBoolean()) return input;
     // All values !== true are boolified to false.
-    if (!input.isUnknown()) return new HLiteral(false);
+    if (input.type.isKnown()) return new HLiteral(false);
     return node;
   }
 
@@ -189,11 +189,11 @@ class TypeGuardInserter extends HGraphVisitor {
                               HInstruction insertionPoint) {
     // If we found a type for the instruction, but the instruction
     // does not know if it produces that type, add a guard.
-    if (!instruction.isUnknown() && !instruction.hasExpectedType()) {
+    if (instruction.type.isKnown() && !instruction.hasExpectedType()) {
       HTypeGuard guard = new HTypeGuard(instruction.type, instruction);
       // Remove the instruction's type, the guard is now holding that
       // type.
-      instruction.type = HInstruction.TYPE_UNKNOWN;
+      instruction.type = HType.UNKNOWN;
       instruction.block.rewrite(instruction, guard);
       insertionPoint.block.addAfter(insertionPoint, guard);
       return guard.next;

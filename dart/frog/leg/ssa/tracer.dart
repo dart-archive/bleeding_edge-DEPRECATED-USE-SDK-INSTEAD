@@ -159,11 +159,11 @@ class HInstructionStringifier implements HVisitor<String> {
   String temporaryId(HInstruction instruction) {
     String prefix;
     switch (instruction.type) {
-      case HInstruction.TYPE_BOOLEAN: prefix = 'b'; break;
-      case HInstruction.TYPE_NUMBER: prefix = 'n'; break;
-      case HInstruction.TYPE_STRING: prefix = 's'; break;
-      case HInstruction.TYPE_UNKNOWN: prefix = 'v'; break;
-      case HInstruction.TYPE_CONFLICT: prefix = 'c'; break;
+      case HType.BOOLEAN: prefix = 'b'; break;
+      case HType.NUMBER: prefix = 'n'; break;
+      case HType.STRING: prefix = 's'; break;
+      case HType.UNKNOWN: prefix = 'v'; break;
+      case HType.CONFLICTING: prefix = 'c'; break;
       default: unreachable();
     }
     return "$prefix${instruction.id}";
@@ -340,9 +340,9 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitTypeGuard(HTypeGuard node) {
     String type;
     switch (node.type) {
-      case HInstruction.TYPE_BOOLEAN: type = "bool"; break;
-      case HInstruction.TYPE_NUMBER: type = "number"; break;
-      case HInstruction.TYPE_STRING: type = "string"; break;
+      case HType.BOOLEAN: type = "bool"; break;
+      case HType.NUMBER: type = "number"; break;
+      case HType.STRING: type = "string"; break;
       default: unreachable();
     }
     return "TypeGuard: ${temporaryId(node.inputs[0])} is $type";

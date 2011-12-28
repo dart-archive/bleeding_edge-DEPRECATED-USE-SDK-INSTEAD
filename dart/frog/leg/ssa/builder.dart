@@ -241,10 +241,10 @@ class SsaBuilder implements Visitor {
   HInstruction guard(Type type, HInstruction value) {
     if (type !== null) {
       if (type.toString() == 'int') {
-        value = new HTypeGuard(HInstruction.TYPE_NUMBER, value);
+        value = new HTypeGuard(HType.NUMBER, value);
         add(value);
       } else if (type.toString() == 'String') {
-        value = new HTypeGuard(HInstruction.TYPE_STRING, value);
+        value = new HTypeGuard(HType.STRING, value);
         add(value);
       }
     }
