@@ -241,6 +241,9 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitInvokeDynamicSetter(HInvokeDynamicSetter node)
       => visitInvokeDynamic(node, "set");
 
+  String visitInvokeInterceptor(HInvokeInterceptor invoke)
+      => visitInvokeStatic(invoke);
+
   String visitInvokeStatic(HInvokeStatic invoke) {
     String target = temporaryId(invoke.target);
     int offset = HInvoke.ARGUMENTS_OFFSET;

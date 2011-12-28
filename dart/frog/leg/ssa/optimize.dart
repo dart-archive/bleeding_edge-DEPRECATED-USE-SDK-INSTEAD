@@ -75,6 +75,8 @@ class SsaConstantFolder extends HBaseVisitor {
 
   HInstruction visitInvokeBinary(HInvokeBinary node) => node.fold();
   HInstruction visitInvokeUnary(HInvokeUnary node) => node.fold();
+  HInstruction visitInvokeInterceptor(HInvokeInterceptor node)
+      => node.fold();
 
   HInstruction visitAdd(HAdd node) {
     // String + is defined for all literals. We don't need to know which

@@ -23,6 +23,7 @@ interface HVisitor<R> {
   R visitInvokeDynamicMethod(HInvokeDynamicMethod node);
   R visitInvokeDynamicGetter(HInvokeDynamicGetter node);
   R visitInvokeDynamicSetter(HInvokeDynamicSetter node);
+  R visitInvokeInterceptor(HInvokeInterceptor node);
   R visitInvokeStatic(HInvokeStatic node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
@@ -211,6 +212,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
       => visitInvokeDynamicField(node);
   visitInvokeDynamicSetter(HInvokeDynamicSetter node)
       => visitInvokeDynamicField(node);
+  visitInvokeInterceptor(HInvokeInterceptor node)
+      => visitInvokeStatic(node);
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
@@ -890,6 +893,46 @@ class HInvokeStatic extends HInvoke {
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   Element get element() => target.element;
   HStatic get target() => inputs[0];
+}
+
+class HInvokeInterceptor extends HInvokeStatic {
+  final String name;
+  final bool getter;
+  bool builtin = false;
+  HInvokeInterceptor(String this.name, bool this.getter, inputs)
+    : super(inputs);
+  toString() => 'invoke interceptor: ${element.name}';
+  accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
+
+  int computeType() {
+    if (name == 'length' && inputs[1].isString()) {
+      builtin = true;
+      return TYPE_NUMBER;
+    }
+    return computeDesiredType();
+  }
+
+  bool hasExpectedType() => builtin;
+
+  HInstruction fold() {
+    if (name == 'length' && inputs[1].isLiteralString()) {
+      int quotes = 2; // Make sure to remove the quotes.
+      HLiteral res = new HLiteral(inputs[1].value.stringValue.length - quotes);
+      res.type = TYPE_NUMBER;
+      return res;
+    }
+    return this;
+  }
+
+  void prepareGvn() {
+    // TODO(ngeoffray): Use something else than 'builtin'.
+    if (builtin) {
+      assert(!hasSideEffects());
+      setUseGvn();
+    } else {
+      setAllSideEffects();
+    }
+  }
 }
 
 class HForeign extends HInstruction {

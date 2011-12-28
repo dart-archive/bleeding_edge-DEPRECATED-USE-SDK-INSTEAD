@@ -535,6 +535,23 @@ class SsaCodeGenerator implements HVisitor {
 
   void visitIndex(HIndex node) => visitInvokeStatic(node);
   void visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
+
+  void visitInvokeInterceptor(HInvokeInterceptor node) {
+    if (node.builtin) {
+      use(node.inputs[1]);
+      buffer.add('.');
+      buffer.add(node.name);
+      if (node.getter) return;
+      buffer.add('(');
+      for (int i = 2; i < node.inputs.length; i++) {
+        if (i != 2) buffer.add(', ');
+        use(node.inputs[i]);
+      }
+      buffer.add(")");
+    } else {
+      return visitInvokeStatic(node);
+    }
+  }
 }
 
 

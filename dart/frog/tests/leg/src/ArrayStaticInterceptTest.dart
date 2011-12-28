@@ -5,11 +5,6 @@
 #import("compiler_helper.dart");
 
 final String TEST_ONE = @"""
-
-builtin$add$1(x) { }
-builtin$removeLast$0() => null;
-builtin$get$length(x) => 0;
-
 foo() {
   var a = [];
   a.add(42);

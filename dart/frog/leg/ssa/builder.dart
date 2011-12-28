@@ -673,7 +673,7 @@ class SsaBuilder implements Visitor {
         HStatic target = new HStatic(staticInterceptor);
         add(target);
         List<HInstruction> inputs = <HInstruction>[target, receiver];
-        push(new HInvokeStatic(inputs));
+        push(new HInvokeInterceptor(getterName.stringValue, true, inputs));
       } else {
         String jsGetterName = compiler.namer.getterName(getterName);
         push(new HInvokeDynamicGetter(null, jsGetterName, receiver));
@@ -754,11 +754,12 @@ class SsaBuilder implements Visitor {
       Link<Node> link = node.arguments;
       var inputs = <HInstruction>[];
 
+      SourceString dartMethodName;
+      Element interceptor;
       if (isInvokeDynamic) {
-        SourceString dartMethodName = node.selector.asIdentifier().source;
-
-        Element interceptor = getStaticInterceptor(dartMethodName,
-                                                   node.argumentCount());
+        dartMethodName = node.selector.asIdentifier().source;
+        interceptor = getStaticInterceptor(dartMethodName,
+                                           node.argumentCount());
         if (interceptor != null) {
           HStatic target = new HStatic(interceptor);
           add(target);
@@ -766,7 +767,6 @@ class SsaBuilder implements Visitor {
           visit(node.receiver);
           inputs.add(pop());
           isInvokeDynamic = false;
-          isStatic = true;
         } else if (node.receiver === null) {
           HThis receiver = new HThis();
           add(receiver);
@@ -792,7 +792,6 @@ class SsaBuilder implements Visitor {
       }
 
       if (isInvokeDynamic) {
-        SourceString dartMethodName = node.selector.asIdentifier().source;
         String jsMethodName = compiler.namer.instanceName(dartMethodName);
         // The first entry in the inputs list is the receiver.
         push(new HInvokeDynamicMethod(jsMethodName, inputs));
@@ -803,6 +802,8 @@ class SsaBuilder implements Visitor {
         compiler.ensure(type is LiteralString);
         compiler.ensure(literal.value.stringValue[0] == '@');
         push(new HForeign(unquote(literal, 1), unquote(type, 0), inputs));
+      } else if (interceptor != null) {
+        push(new HInvokeInterceptor(dartMethodName.stringValue, false, inputs));
       } else {
         assert(isStatic);
         push(new HInvokeStatic(inputs));
@@ -907,6 +908,9 @@ class SsaBuilder implements Visitor {
   }
 
   void visitLiteralString(LiteralString node) {
+    if (node.value.stringValue[0] == '@') {
+      compiler.unimplemented("SsaBuilder: raw strings", node: node);
+    }
     push(new HLiteral(node.value));
   }
 

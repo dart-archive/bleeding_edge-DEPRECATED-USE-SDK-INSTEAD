@@ -22,7 +22,12 @@ final String DEFAULT_CORELIB = @'''
   lt() {} add(var a, var b) {} sub() {} mul() {} div() {} tdiv() {} mod() {}
   neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}
   or() {} and() {} not() {} print(var obj) {}
-  guard$num(x) { return true; }
+  guard$num(x) { return x; }
+  guard$string(x) { return x; }
+  builtin$add$1(receiver, value) {}
+  builtin$get$length(var receiver) {}
+  builtin$filter$1(receiver, predicate) {}
+  builtin$removeLast$0(receiver) {}
   class int {}
   class double {}
   class bool {}

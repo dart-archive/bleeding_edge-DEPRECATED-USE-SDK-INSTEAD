@@ -237,7 +237,7 @@ class CompilerTask {
   }
 }
 
-class CompilerCancelledException {
+class CompilerCancelledException implements Exception {
   final String reason;
   CompilerCancelledException(this.reason);
 
