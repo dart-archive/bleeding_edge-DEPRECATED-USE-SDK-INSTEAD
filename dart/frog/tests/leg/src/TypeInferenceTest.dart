@@ -18,6 +18,12 @@ foo(int param0) {
 }
 """;
 
+final String TEST_THREE = @"""
+foo(c) {
+  for (int i = 0; i < 10; i++) print(c[i]);
+}
+""";
+
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 
 main() {
@@ -39,5 +45,9 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp('-param0');
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  generated = compile(TEST_THREE, 'foo');
+  regexp = new RegExp("c[$anyIdentifier]");
   Expect.isTrue(regexp.hasMatch(generated));
 }

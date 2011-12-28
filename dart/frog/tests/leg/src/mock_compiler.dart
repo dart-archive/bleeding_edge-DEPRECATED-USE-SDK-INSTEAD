@@ -24,10 +24,13 @@ final String DEFAULT_CORELIB = @'''
   or() {} and() {} not() {} print(var obj) {}
   guard$num(x) { return x; }
   guard$string(x) { return x; }
+  guard$stringOrArray(x) { return x; }
   builtin$add$1(receiver, value) {}
   builtin$get$length(var receiver) {}
   builtin$filter$1(receiver, predicate) {}
   builtin$removeLast$0(receiver) {}
+  index(a, index) {}
+  indexSet(a, index, value) {}
   class int {}
   class double {}
   class bool {}
