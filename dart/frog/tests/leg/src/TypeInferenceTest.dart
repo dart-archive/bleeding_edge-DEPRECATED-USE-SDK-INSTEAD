@@ -24,6 +24,12 @@ foo(c) {
 }
 """;
 
+final String TEST_FOUR = @"""
+foo(String c) {
+  while (true) print(c.length);
+}
+""";
+
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 
 main() {
@@ -49,5 +55,9 @@ main() {
 
   generated = compile(TEST_THREE, 'foo');
   regexp = new RegExp("c[$anyIdentifier]");
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  generated = compile(TEST_FOUR, 'foo');
+  regexp = new RegExp("c.length");
   Expect.isTrue(regexp.hasMatch(generated));
 }

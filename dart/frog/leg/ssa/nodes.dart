@@ -1477,6 +1477,11 @@ class HPhi extends HInstruction {
     return true;
   }
 
+  void updateTypeForLoopPhi() {
+    assert(block.isLoopHeader());
+    type = inputs[0].type;
+  }
+
   bool isLogicalOperator() => logicalOperatorType != IS_NOT_LOGICAL_OPERATOR;
 
   String logicalOperator() {
