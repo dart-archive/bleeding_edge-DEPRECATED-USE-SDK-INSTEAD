@@ -7,8 +7,6 @@ prefix await
 [ $component == frogsh || $component == frog ]
 
 # Not implemented yet
-TryCatch4Test: Fail             # try-catch with error after await
-TryCatch7Test: Fail             # try-catch with error after await
 TryCatch8Test: Fail             # handle-error on non-normalized future argument
 WhileLoopWithBreakTest: Fail    # break within a loop
 *NormalizationTest: Fail        # normalization in general

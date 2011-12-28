@@ -30,8 +30,11 @@ class AwaitProcessor implements TreeVisitor {
   /** The continuation when visiting a particular statement. */
   Queue<Statement> continuation;
 
-  /** If not null, a closure to call when a future ends with an exception. */
-  Identifier currentExceptionHandler;
+  /** Closures to call when a future throws an exception (in reverse order). */
+  List<Identifier> exceptionHandlers;
+
+  /** All try-catch blocks enclosing the current statement. */
+  List<TryStatement> enclosingTrys;
 
   /** Counter to ensure created closure names are unique. */
   int continuationClosures = 0;
@@ -39,7 +42,10 @@ class AwaitProcessor implements TreeVisitor {
   /** Nodes containing await expressions (determined by [AwaitChecker]). */
   final NodeSet haveAwait;
 
-  AwaitProcessor(this.haveAwait) : continuation = new Queue<Statement>();
+  AwaitProcessor(this.haveAwait)
+      : continuation = new Queue<Statement>(),
+        exceptionHandlers = [],
+        enclosingTrys = [];
 
   visitVariableDefinition(VariableDefinition node) {
     if (!haveAwait.contains(node)) return node;
@@ -197,26 +203,18 @@ class AwaitProcessor implements TreeVisitor {
     String afterTry = _newClosureName(_CONTINUATION_PREFIX + "_try");
     Statement afterTryDef = _makeContinuation(afterTry, node.span);
 
-    // Transform the body first:
-    continuation = new Queue();
-    final exceptionHandlerName = new Identifier(
-        _newClosureName(_PREFIX + "exception_handler"), node.span);
-    currentExceptionHandler = exceptionHandlerName;
-    continuation.addFirst(_callNoArg(afterTry, node.span));
-    Statement body = node.body.visit(this);
-    currentExceptionHandler = null;
-
     final defs = []; // closures for each catch block (avoid duplicating code).
     final catches = []; // catch clauses of the transformed try-catch block
 
     // Catch blocks are passed as an exception handler on de-sugared awaits:
+    final handlerName = new Identifier(
+        _newClosureName(_PREFIX + "exception_handler"), node.span);
     // TODO(sigmund): add trace argument (library change in Future<T>)
     final handlerArg = new Identifier(_EXCEPTION_HANDLER_PARAM, node.span);
     final handlerBody = [];
 
-    // The exception handler is smaller when we encounter an untyped catch.
-    bool untypedCatch = false;
-
+    // Transform each catch-block internally.
+    bool untypedCatch = false; // When true, the exception handler is smaller.
     for (CatchNode n in node.catches) {
       String fname = _newClosureName(_PREFIX + "catch");
 
@@ -231,7 +229,7 @@ class AwaitProcessor implements TreeVisitor {
             [_callCatchFunction(n, fname), _returnFuture(n.span)], n.span),
           n.span));
 
-      // Code in exceptionHandler:
+      // Code in exception handler:
       if (!untypedCatch) {
         final exceptionHandlerCases = [
             _callCatchFunctionHelper(fname, handlerArg, null, n.span),
@@ -241,7 +239,9 @@ class AwaitProcessor implements TreeVisitor {
           untypedCatch = true;
         } else {
           handlerBody.add(new IfStatement(
-                new IsExpression(true, handlerArg, n.exception.type, n.span),
+                new IsExpression(true,
+                    new VarExpression(handlerArg, n.span),
+                    n.exception.type, n.span),
                 new BlockStatement(exceptionHandlerCases, n.span),
                 null, n.span));
         }
@@ -252,10 +252,22 @@ class AwaitProcessor implements TreeVisitor {
       handlerBody.add(_returnBoolean(node.span, false));
     }
 
-    final handlerDef = new FunctionDefinition([], null,
-        exceptionHandlerName, [new FormalNode(
-          false, false, null, handlerArg, null, node.span)],
+    // Declare the exception handler
+    final handlerDef = new FunctionDefinition([], null, handlerName,
+        [new FormalNode(false, false, null, handlerArg, null, node.span)],
         null, null, new BlockStatement(handlerBody, node.span), node.span);
+
+    // Transform the try body, tracking the enclosing try blocks and
+    // exception handlers.
+    enclosingTrys.addLast(new TryStatement(
+          null /* this is replaced with code in [_desugarAwaitCall] */,
+          catches, node.finallyBlock, node.span));
+    exceptionHandlers.addLast(handlerName);
+    continuation = new Queue();
+    continuation.addFirst(_callNoArg(afterTry, node.span));
+    Statement body = node.body.visit(this);
+    exceptionHandlers.removeLast();
+    enclosingTrys.removeLast();
 
     continuation = new Queue();
     continuation.addAll(defs);
@@ -378,10 +390,17 @@ class AwaitProcessor implements TreeVisitor {
   _desugarAwaitCall(AwaitExpression node, Identifier param) {
     List<Statement> afterAwait = [];
     afterAwait.addAll(continuation);
-    if (afterAwait[afterAwait.length - 1] is ReturnStatement) {
+    if (afterAwait.last() is ReturnStatement) {
       // The only reason there is a `return` is because there was another await
       // and we introduced it. Such `return` is not needed in the callback.
-      afterAwait.length = afterAwait.length - 1;
+      afterAwait.removeLast();
+    }
+    // Within try-blocks, we wrap the continuation in a try-catch block:
+    Statement thenBody = new BlockStatement(afterAwait, node.span);
+    for (int i = enclosingTrys.length - 1; i >= 0; i--) {
+      final templateTry = enclosingTrys[i];
+      thenBody = new TryStatement(thenBody,
+          templateTry.catches, templateTry.finallyBlock, templateTry.span);
     }
 
     // A lambda function that executes the continuation.
@@ -391,18 +410,18 @@ class AwaitProcessor implements TreeVisitor {
           false, false, null /* infer type from body? */,
           param, null, param.span)
         ], null, null,
-        new BlockStatement(afterAwait, node.span), node.span),
+        thenBody, node.span),
         node.span);
 
     continuation.clear();
     continuation.addFirst(_returnFuture(node.span));
     // Within try-blocks, we also add an exception handler to propagate errors.
-    if (currentExceptionHandler != null) {
+    for (final handlerName in exceptionHandlers) {
       continuation.addFirst(new ExpressionStatement(new CallExpression(
           new DotExpression(node.body,
               new Identifier('handleException', node.span), node.span),
           [new ArgumentNode(null,
-              new VarExpression(currentExceptionHandler, node.span),
+              new VarExpression(handlerName, node.span),
               node.span)],
           node.span), node.span));
     }

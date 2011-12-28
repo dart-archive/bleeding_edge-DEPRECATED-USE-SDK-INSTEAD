@@ -9,7 +9,7 @@
 
 errorDuring() {
   try {
-    final t = await errorOf("my error");
+    final t = await errorOf("my error"); // needs normalization
     return t;
   } catch (e) {
     Expect.equals("my error", e);
