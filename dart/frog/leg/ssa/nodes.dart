@@ -627,8 +627,12 @@ class HType {
   bool isUnknown() => this === UNKNOWN;
   bool isBoolean() => this === BOOLEAN;
   bool isNumber() => this === NUMBER;
-  bool isString() => (this.flag & FLAG_STRING) == FLAG_STRING;
-  bool isArray() => (this.flag & FLAG_ARRAY) == FLAG_ARRAY;
+  bool isString() => this === STRING;
+  bool isArray() => this === ARRAY;
+  bool isStringOrArray() {
+    return (this.flag & FLAG_STRING) != 0
+           || (this.flag & FLAG_ARRAY) != 0;
+  }
   bool isKnown() => this !== UNKNOWN && this !== CONFLICTING;
 
   static HType getTypeFromFlag(int flag) {
@@ -695,9 +699,11 @@ class HInstruction implements Hashable {
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
 
+  bool isArray() => type.isArray();
   bool isBoolean() => type.isBoolean();
   bool isNumber() => type.isNumber();
   bool isString() => type.isString();
+  bool isStringOrArray() => type.isStringOrArray();
 
   // Compute the type of the instruction.
   HType computeType() => computeDesiredType();
@@ -920,6 +926,7 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
+  bool builtin = false;
   /** The first input must be the target. */
   HInvokeStatic(inputs) : super(inputs);
   toString() => 'invoke static: ${element.name}';
@@ -931,7 +938,7 @@ class HInvokeStatic extends HInvoke {
 class HInvokeInterceptor extends HInvokeStatic {
   final String name;
   final bool getter;
-  bool builtin = false;
+
   HInvokeInterceptor(String this.name, bool this.getter, inputs)
     : super(inputs);
   toString() => 'invoke interceptor: ${element.name}';
@@ -993,7 +1000,6 @@ class HForeignNew extends HForeign {
 }
 
 class HInvokeBinary extends HInvokeStatic {
-  bool builtin = false;
   HInvokeBinary(HStatic target, HInstruction left, HInstruction right)
       : super(<HInstruction>[target, left, right]);
 
@@ -1235,7 +1241,6 @@ class HBitXor extends HBinaryBitOp {
 }
 
 class HInvokeUnary extends HInvokeStatic {
-  bool builtin = false;
   HInvokeUnary(HStatic target, HInstruction input)
       : super(<HInstruction>[target, input]);
 
@@ -1626,6 +1631,8 @@ class HLiteralList extends HInstruction {
   void prepareGvn() => clearAllSideEffects();
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
+  HType computeType() => HType.ARRAY;
+  bool hasExpectedType() => true;
 }
 
 class HIndex extends HInvokeStatic {
@@ -1633,6 +1640,27 @@ class HIndex extends HInvokeStatic {
       : super(<HInstruction>[target, receiver, index]);
   toString() => 'index operator';
   accept(HVisitor visitor) => visitor.visitIndex(this);
+
+  void prepareGvn() {
+    if (builtin) {
+      clearAllSideEffects();
+    } else {
+      setAllSideEffects();
+    }
+  }
+
+  HType computeType() {
+    builtin = inputs[1].isStringOrArray() && inputs[2].type.isNumber();
+    return computeDesiredType();
+  }
+
+  HType computeDesiredInputType(HInstruction input) {
+    // TODO(floitsch): we want the target to be a function.
+    if (input == inputs[0]) return HType.UNKNOWN;
+    if (input == inputs[1]) return HType.STRING_OR_ARRAY;
+    if (input == inputs[2]) return HType.NUMBER;
+    assert(false);
+  }
 }
 
 class HIndexAssign extends HInvokeStatic {
@@ -1643,6 +1671,19 @@ class HIndexAssign extends HInvokeStatic {
       : super(<HInstruction>[target, receiver, index, value]);
   toString() => 'index assign operator';
   accept(HVisitor visitor) => visitor.visitIndexAssign(this);
+
+  HType computeType() {
+    builtin = inputs[1].isStringOrArray() && inputs[2].type.isNumber();
+    return inputs[3].type;
+  }
+
+  HType computeDesiredInputType(HInstruction input) {
+    // TODO(floitsch): we want the target to be a function.
+    if (input == inputs[0]) return HType.UNKNOWN;
+    if (input == inputs[1]) return HType.STRING_OR_ARRAY;
+    if (input == inputs[2]) return HType.NUMBER;
+    return HType.UNKNOWN;
+  }
 }
 
 class HNonSsaInstruction extends HInstruction {

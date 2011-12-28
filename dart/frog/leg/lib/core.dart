@@ -33,6 +33,14 @@ guard$string(x) {
   $throw("String type guard failed.");
 }
 
+guard$stringOrArray(x) {
+  if (JS("bool", @"$0.constructor === Array", x) ||
+      JS("bool", @"typeof $0 == 'string'", x)) {
+    return x;
+  }
+  $throw("String or Array type guard failed.");
+}
+
 guard$bool(x) {
   if (JS("bool", @"typeof $0 == 'boolean'", x)) return x;
   $throw("Bool type guard failed.");

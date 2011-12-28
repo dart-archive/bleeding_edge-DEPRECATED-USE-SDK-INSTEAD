@@ -475,10 +475,12 @@ class SsaCodeGenerator implements HVisitor {
     SourceString name;
     if (node.isNumber()) {
       name = const SourceString('guard\$num');
-    } else if (node.isString()) {
-      name = const SourceString('guard\$string');
     } else if (node.isBoolean()) {
       name = const SourceString('guard\$bool');
+    } else if (node.isString()) {
+      name = const SourceString('guard\$string');
+    } else if (node.isStringOrArray()) {
+      name = const SourceString('guard\$stringOrArray');
     } else {
       unreachable();
     }
@@ -533,8 +535,30 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(']');
   }
 
-  void visitIndex(HIndex node) => visitInvokeStatic(node);
-  void visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
+  void visitIndex(HIndex node) {
+    if (node.builtin) {
+      use(node.inputs[1]);
+      buffer.add('[');
+      use(node.inputs[2]);
+      buffer.add(']');
+    } else {
+      visitInvokeStatic(node);
+    }
+  }
+
+  void visitIndexAssign(HIndexAssign node) {
+    if (node.builtin) {
+      buffer.add('(');
+      use(node.inputs[1]);
+      buffer.add('[');
+      use(node.inputs[2]);
+      buffer.add('] = ');
+      use(node.inputs[3]);
+      buffer.add(')');
+    } else {
+      visitInvokeStatic(node);
+    }
+  }
 
   void visitInvokeInterceptor(HInvokeInterceptor node) {
     if (node.builtin) {
