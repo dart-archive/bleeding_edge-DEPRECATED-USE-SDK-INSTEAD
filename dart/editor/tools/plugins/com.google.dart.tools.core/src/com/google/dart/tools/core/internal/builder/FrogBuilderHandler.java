@@ -17,10 +17,10 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.frog.FrogManager;
+import com.google.dart.tools.core.frog.Response;
 import com.google.dart.tools.core.frog.ResponseDone;
 import com.google.dart.tools.core.frog.ResponseHandler;
 import com.google.dart.tools.core.frog.ResponseMessage;
-import com.google.dart.tools.core.frog.ResponseObject;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartProject;
@@ -35,7 +35,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +47,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class FrogBuilderHandler {
 
-  class CompileResponseHandler extends ResponseHandler {
+  public class CompileResponseHandler extends ResponseHandler {
     private IProject project;
     private CountDownLatch latch;
     private IStatus exitStatus = Status.OK_STATUS;
@@ -60,33 +59,25 @@ public class FrogBuilderHandler {
     }
 
     @Override
-    public void response(ResponseObject response) throws IOException, JSONException {
-      try {
-        // process response
-        if (response.isMessageResponse()) {
-          ResponseMessage message = response.createMessageResponse();
+    public void handleException(Response response, Exception exception) {
+      super.handleException(response, exception);
+      BuilderUtil.createErrorMarker(project, 0, 0, 1, "Internal compiler error: " + exception
+          + " while processing " + response);
+      latch.countDown();
+    }
 
-          messages.add(message);
-        } else if (response.isDoneResponse()) {
-          ResponseDone done = response.createDoneResponse();
-
-          if (!done.isSuccess()) {
-            exitStatus = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
-                "Unable to generate Javascript.", null);
-          }
-
-          latch.countDown();
-        }
-      } catch (JSONException exception) {
-        BuilderUtil.createErrorMarker(project, 0, 0, 1,
-            "Internal compiler error: " + exception.toString());
-
-        DartCore.logError("Exception caught from frog protocol:", exception);
-
-        latch.countDown();
-
-        throw exception;
+    @Override
+    public void processDone(ResponseDone done) {
+      if (!done.isSuccess()) {
+        exitStatus = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
+            "Unable to generate Javascript.", null);
       }
+      latch.countDown();
+    }
+
+    @Override
+    public void processMessage(ResponseMessage message) {
+      messages.add(message);
     }
 
     protected IStatus getExitStatus() {
@@ -96,10 +87,6 @@ public class FrogBuilderHandler {
     protected List<ResponseMessage> getMessages() {
       return messages;
     }
-  }
-
-  public FrogBuilderHandler() {
-
   }
 
   public IProject[] build(IProgressMonitor monitor, IProject project) throws CoreException {

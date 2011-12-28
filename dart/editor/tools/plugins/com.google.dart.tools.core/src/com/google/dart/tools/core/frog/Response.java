@@ -16,37 +16,53 @@ package com.google.dart.tools.core.frog;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * A JSON object that represents a response from the frog server
  */
-public class ResponseObject extends JSONObject {
+public class Response {
+  public enum Kind {
+    Done, Message, Unknown
+  }
 
-  public ResponseObject(String message) throws JSONException {
-    super(message);
+  private static final Map<String, Kind> kindMap = new HashMap<String, Kind>();
+  static {
+    kindMap.put("done", Kind.Done);
+    kindMap.put("message", Kind.Message);
+  }
+
+  private final JSONObject json;
+
+  public Response(JSONObject json) {
+    this.json = json;
   }
 
   public ResponseDone createDoneResponse() throws JSONException {
-    return new ResponseDone(this);
+    return new ResponseDone(json);
   }
 
   public ResponseMessage createMessageResponse() throws JSONException {
-    return new ResponseMessage(this);
+    return new ResponseMessage(json);
   }
 
   public int getId() throws JSONException {
-    return getInt("id");
+    return json.getInt("id");
   }
 
-  public String getKind() throws JSONException {
-    return getString("kind");
+  public Kind getKind() throws JSONException {
+    Kind kind = kindMap.get(getKindText());
+    return kind != null ? kind : Kind.Unknown;
   }
 
-  public boolean isDoneResponse() throws JSONException {
-    return "done".equals(getKind());
+  public String getKindText() throws JSONException {
+    return json.getString("kind");
   }
 
-  public boolean isMessageResponse() throws JSONException {
-    return "message".equals(getKind());
+  @Override
+  public String toString() {
+    return "Response[" + json.toString() + "]";
   }
 
 }

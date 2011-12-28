@@ -13,13 +13,57 @@
  */
 package com.google.dart.tools.core.frog;
 
-import org.json.JSONException;
-
-import java.io.IOException;
+import com.google.dart.tools.core.DartCore;
 
 /**
- * Class for handling responses from requests made of a {@link FrogServer}.
+ * Class for handling responses from requests made of a {@link FrogServer}. Subclasses should
+ * implement {@link #processMessage(ResponseMessage)} and {@link #processDone(ResponseDone)}, and
+ * optionally {@link #handleException(Response, Exception)}.
  */
 public abstract class ResponseHandler {
-  public abstract void response(ResponseObject response) throws IOException, JSONException;
+
+  /**
+   * Handle an exception that occurred while processing the specified response
+   * 
+   * @param response the response (not <code>null</code>)
+   * @param exception the exception that occurred (not <code>null</code>)
+   */
+  public void handleException(Response response, Exception exception) {
+    DartCore.logError("Exception processing response: " + response, exception);
+  }
+
+  /**
+   * Process the specified response from {@link FrogServer}
+   * 
+   * @param response the response (not <code>null</code>)
+   * @return <code>true</code> if this is the last response for this handler (e.g. "done")
+   */
+  public final boolean process(Response response) {
+    boolean isDone = false;
+    try {
+      switch (response.getKind()) {
+        case Done:
+          isDone = true;
+          processDone(response.createDoneResponse());
+          break;
+
+        case Message:
+          processMessage(response.createMessageResponse());
+          break;
+
+        default:
+          DartCore.logError("Unknown response kind: " + response);
+          break;
+      }
+    } catch (Exception e) {
+      handleException(response, e);
+    }
+    return isDone;
+  }
+
+  public void processDone(ResponseDone createDoneResponse) {
+  }
+
+  public void processMessage(ResponseMessage createMessageResponse) {
+  }
 }

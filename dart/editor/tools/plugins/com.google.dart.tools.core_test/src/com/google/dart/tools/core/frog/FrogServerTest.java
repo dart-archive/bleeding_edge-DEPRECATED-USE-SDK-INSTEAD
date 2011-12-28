@@ -16,54 +16,42 @@ package com.google.dart.tools.core.frog;
 import junit.framework.TestCase;
 
 import org.eclipse.core.runtime.Path;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class FrogServerTest extends TestCase {
-  private final Object lock = new Object();
-  private FrogServer server;
-  protected JSONObject response;
+  private CountDownLatch doneLatch;
+  private List<String> messages;
 
   public void test_FrogServer_compile() throws Exception {
-    server.compile(new Path("path/to/dart/app/file.dart"), null, new ResponseHandler() {
-      @Override
-      public void response(ResponseObject response) throws IOException, JSONException {
-        FrogServerTest.this.response = response;
-        synchronized (lock) {
-          lock.notifyAll();
-        }
-      }
-    });
-    synchronized (lock) {
-      lock.wait(3000);
-    }
-    assertNotNull(response);
-    server.compile(new Path("path/to/dart/app/file2.dart"), null, new ResponseHandler() {
-      @Override
-      public void response(ResponseObject response) throws IOException, JSONException {
-        FrogServerTest.this.response = response;
-        synchronized (lock) {
-          lock.notifyAll();
-        }
-      }
-    });
-    synchronized (lock) {
-      lock.wait(3000);
-    }
-    assertNotNull(response);
-  }
+    doneLatch = new CountDownLatch(1);
+    messages = new ArrayList<String>();
+    String path = "path/to/non/existant/dart/app/file.dart";
+    FrogManager.getServer().compile(new Path(path), null, new ResponseHandler() {
 
-  @Override
-  protected void setUp() throws Exception {
-    server = new FrogServer(FrogManager.LOCALHOST_ADDRESS, FrogManager.AUTO_BIND_PORT);
+      @Override
+      public void processDone(ResponseDone done) {
+        messages.add("done: " + done.isSuccess());
+        doneLatch.countDown();
+      }
+
+      @Override
+      public void processMessage(ResponseMessage message) {
+        messages.add(message.getMessage());
+      }
+    });
+    doneLatch.await(3000, TimeUnit.MILLISECONDS);
+    assertEquals(0, doneLatch.getCount());
+    assertEquals("File not found: " + path, messages.remove(0));
+    assertEquals("no main method specified", messages.remove(0));
+    assertEquals("done: false", messages.remove(0));
   }
 
   @Override
   protected void tearDown() throws Exception {
-    if (server != null) {
-      server.shutdown();
-    }
+    FrogManager.shutdown();
   }
 }

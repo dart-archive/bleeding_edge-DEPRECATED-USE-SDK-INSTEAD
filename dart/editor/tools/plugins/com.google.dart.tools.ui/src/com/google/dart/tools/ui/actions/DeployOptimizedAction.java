@@ -18,10 +18,10 @@ import com.google.dart.compiler.backend.js.AbstractJsBackend;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.frog.FrogManager;
+import com.google.dart.tools.core.frog.Response;
 import com.google.dart.tools.core.frog.ResponseDone;
 import com.google.dart.tools.core.frog.ResponseHandler;
 import com.google.dart.tools.core.frog.ResponseMessage;
-import com.google.dart.tools.core.frog.ResponseObject;
 import com.google.dart.tools.core.internal.builder.CompileOptimized;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -53,10 +53,8 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
-import org.json.JSONException;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -74,40 +72,34 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
     }
 
     @Override
-    public void response(ResponseObject response) throws IOException, JSONException {
-      try {
-        // process response
-        if (response.isMessageResponse()) {
-          ResponseMessage message = response.createMessageResponse();
+    public void handleException(Response response, Exception exception) {
+      super.handleException(response, exception);
+      DartCore.getConsole().println(
+          "Internal compiler error: " + exception + " while processing " + response);
+      latch.countDown();
+    }
 
-          String path = null;
-
-          if (message.getLocation() != null) {
-            path = message.getLocation().path;
-
-            if (message.getLocation().line != -1) {
-              path += ":" + message.getLocation().line;
-            }
-          }
-
-          DartCore.getConsole().println(
-              "[" + message.getSeverity() + "] " + (path == null ? "" : path + ", ")
-                  + message.getMessage());
-        } else if (response.isDoneResponse()) {
-          ResponseDone done = response.createDoneResponse();
-
-          if (!done.isSuccess()) {
-            exitStatus = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
-                ActionMessages.DeployOptimizedAction_Fail, null);
-          }
-
-          latch.countDown();
-        }
-      } catch (JSONException e) {
-        latch.countDown();
-
-        throw e;
+    @Override
+    public void processDone(ResponseDone done) {
+      if (!done.isSuccess()) {
+        exitStatus = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
+            ActionMessages.DeployOptimizedAction_Fail, null);
       }
+      latch.countDown();
+    }
+
+    @Override
+    public void processMessage(ResponseMessage message) {
+      String path = null;
+      if (message.getLocation() != null) {
+        path = message.getLocation().path;
+        if (message.getLocation().line != -1) {
+          path += ":" + message.getLocation().line;
+        }
+      }
+      DartCore.getConsole().println(
+          "[" + message.getSeverity() + "] " + (path == null ? "" : path + ", ")
+              + message.getMessage());
     }
 
     protected IStatus getExitStatus() {

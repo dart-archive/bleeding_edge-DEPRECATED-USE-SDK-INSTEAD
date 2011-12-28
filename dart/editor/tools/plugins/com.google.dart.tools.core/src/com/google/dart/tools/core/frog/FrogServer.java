@@ -35,13 +35,6 @@ import java.util.Map;
  * process.
  */
 public class FrogServer {
-  private final class NullResponseHandler extends ResponseHandler {
-    @Override
-    public void response(ResponseObject response) throws IOException, JSONException {
-      // ignored
-    }
-  }
-
   private final Object lock = new Object();
   private final Charset utf8Charset;
   private final Socket requestSocket;
@@ -99,14 +92,13 @@ public class FrogServer {
    */
   public void shutdown() throws IOException {
     JSONObject request = new JSONObject();
-
     try {
       request.put("command", "close");
-      sendRequest(request, null);
+      sendRequest(request, new ResponseHandler() {
+      });
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
-
     responseStream.close();
     requestStream.close();
     requestSocket.close();
@@ -127,24 +119,22 @@ public class FrogServer {
       }
       readBytes(messageBuf, messageLen);
       String message = new String(messageBuf, 0, messageLen, utf8Charset);
-      ResponseObject response;
+      Response response;
+      int id;
       try {
-        response = new ResponseObject(message);
-        int id = response.getId();
-        String kind = response.getKind();
-        ResponseHandler handler;
-        if (kind.equals("done")) {
-          handler = responseHandlers.remove(id);
-        } else {
-          handler = responseHandlers.get(id);
-        }
-        if (handler != null) {
-          handler.response(response);
-        } else {
-          DartCore.logError("Unknown handler for server response: " + message);
-        }
+        response = new Response(new JSONObject(message));
+        id = response.getId();
       } catch (JSONException e) {
-        throw new IOException("Exception handling response: " + message, e);
+        DartCore.logError("Failed to parse server response: " + message, e);
+        continue;
+      }
+      ResponseHandler handler = responseHandlers.get(id);
+      if (handler == null) {
+        DartCore.logError("Unknown handler for server response: " + message);
+        continue;
+      }
+      if (handler.process(response)) {
+        responseHandlers.remove(id);
       }
     }
   }
@@ -202,7 +192,7 @@ public class FrogServer {
   private ResponseHandler sendRequest(JSONObject request, ResponseHandler handler)
       throws IOException, JSONException {
     if (handler == null) {
-      handler = new NullResponseHandler();
+      throw new IllegalArgumentException("handler cannot be null");
     }
     synchronized (lock) {
       nextRequestId++;
