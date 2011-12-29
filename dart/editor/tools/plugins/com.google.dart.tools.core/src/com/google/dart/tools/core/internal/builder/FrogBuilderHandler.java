@@ -188,6 +188,12 @@ public class FrogBuilderHandler {
 
     if (location == null) {
       file = libraryFile;
+
+      location = new ResponseMessage.Location();
+      location.line = 1;
+      location.column = 1;
+      location.start = 0;
+      location.end = 0;
     } else {
       IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocation(new Path(path));
 
