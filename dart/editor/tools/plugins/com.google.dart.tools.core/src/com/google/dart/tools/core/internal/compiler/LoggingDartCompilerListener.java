@@ -28,15 +28,29 @@ public class LoggingDartCompilerListener extends DartCompilerListener {
    * A compiler listener that can be shared.
    */
   public static final LoggingDartCompilerListener INSTANCE = new LoggingDartCompilerListener();
-  
+
+  private boolean ignoreWarnings;
+
+  public LoggingDartCompilerListener() {
+    this(false);
+  }
+
+  public LoggingDartCompilerListener(boolean ignoreWarnings) {
+    this.ignoreWarnings = ignoreWarnings;
+  }
+
   @Override
   public void onError(DartCompilationError event) {
     if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
       DartCore.logError("Compilation error: " + event);
     }
+
     if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
-      DartCore.logError("Compilation warning: " + event);
+      if (!ignoreWarnings) {
+        DartCore.logError("Compilation warning: " + event);
+      }
     }
+
     if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
       DartCore.logError("Type error: " + event);
     }
@@ -44,5 +58,7 @@ public class LoggingDartCompilerListener extends DartCompilerListener {
 
   @Override
   public void unitCompiled(DartUnit unit) {
+
   }
+
 }

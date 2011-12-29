@@ -183,8 +183,7 @@ public class DartCompilerWarmup {
    */
   public static void warmUpCompiler() {
     RootArtifactProvider rootProvider = RootArtifactProvider.getInstance();
-    LoggingDartCompilerListener listener = LoggingDartCompilerListener.INSTANCE;
-    warmUpCompiler(rootProvider, listener);
+    warmUpCompiler(rootProvider, new LoggingDartCompilerListener(true));
   }
 
   /**
