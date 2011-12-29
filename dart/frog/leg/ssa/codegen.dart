@@ -479,6 +479,8 @@ class SsaCodeGenerator implements HVisitor {
       name = const SourceString('guard\$bool');
     } else if (node.isString()) {
       name = const SourceString('guard\$string');
+    } else if (node.isArray()) {
+      name = const SourceString('guard\$array');
     } else if (node.isStringOrArray()) {
       name = const SourceString('guard\$stringOrArray');
     } else {
@@ -561,10 +563,10 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitInvokeInterceptor(HInvokeInterceptor node) {
-    if (node.builtin) {
+    if (node.jsNameBuiltin != null) {
       use(node.inputs[1]);
       buffer.add('.');
-      buffer.add(node.name);
+      buffer.add(node.jsNameBuiltin);
       if (node.getter) return;
       buffer.add('(');
       for (int i = 2; i < node.inputs.length; i++) {

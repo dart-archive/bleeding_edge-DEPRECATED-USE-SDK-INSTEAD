@@ -930,11 +930,23 @@ class HInvokeStatic extends HInvoke {
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   Element get element() => target.element;
   HStatic get target() => inputs[0];
+
+  HType computeType() {
+    if (element.isFactory()
+        && element.enclosingElement.name.toString() == 'List') {
+      builtin = true;
+      return HType.ARRAY;
+    }
+    return computeDesiredType();
+  }
+
+  bool hasExpectedType() => builtin;
 }
 
 class HInvokeInterceptor extends HInvokeStatic {
   final String name;
   final bool getter;
+  String jsNameBuiltin;
 
   HInvokeInterceptor(String this.name, bool this.getter, inputs)
     : super(inputs);
@@ -942,14 +954,28 @@ class HInvokeInterceptor extends HInvokeStatic {
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
   HType computeType() {
-    if (name == 'length' && inputs[1].isString()) {
-      builtin = true;
+    if (name == 'length' && inputs[1].isStringOrArray()) {
+      jsNameBuiltin = 'length';
       return HType.NUMBER;
+    } else if (name == 'add' && inputs[1].isArray()) {
+      jsNameBuiltin = 'push';
+    } else if (name == 'removeLast' && inputs[1].isArray()) {
+      jsNameBuiltin = 'pop';
     }
     return computeDesiredType();
   }
 
-  bool hasExpectedType() => builtin;
+  HType computeDesiredInputType(HInstruction input) {
+    if (input == inputs[0]) return HType.UNKNOWN;
+    if (input == inputs[1] && input.isStringOrArray()) {
+      if (name == 'add' || name == 'removeLast') {
+        return HType.ARRAY;
+      }
+    }
+    return HType.UNKNOWN;
+  }
+
+  bool hasExpectedType() => jsNameBuiltin != null;
 
   HInstruction fold() {
     if (name == 'length' && inputs[1].isLiteralString()) {
@@ -962,13 +988,16 @@ class HInvokeInterceptor extends HInvokeStatic {
   }
 
   void prepareGvn() {
-    // TODO(ngeoffray): Use something else than 'builtin'.
-    if (builtin) {
-      assert(!hasSideEffects());
-      setUseGvn();
+    if (jsNameBuiltin == 'length') {
+      clearAllSideEffects();
     } else {
       setAllSideEffects();
     }
+  }
+
+  bool typeEquals(other) => other is HInvokeInterceptor;
+  bool dataEquals(HInvokeInterceptor other) {
+    return jsNameBuiltin == other.jsNameBuiltin;
   }
 }
 
@@ -1386,6 +1415,9 @@ class HNot extends HInstruction {
 
   HType computeType() => HType.BOOLEAN;
   bool hasExpectedType() => true;
+  HType computeDesiredInputType(HInstruction input) {
+    return HType.BOOLEAN;
+  }
 
   accept(HVisitor visitor) => visitor.visitNot(this);
   bool typeEquals(other) => other is HNot;
@@ -1657,6 +1689,8 @@ class HIndex extends HInvokeStatic {
     if (input == index) return HType.NUMBER;
     assert(false);
   }
+
+  bool hasExpectedType() => false;
 }
 
 class HIndexAssign extends HInvokeStatic {
@@ -1684,6 +1718,8 @@ class HIndexAssign extends HInvokeStatic {
     if (input == index) return HType.NUMBER;
     return HType.UNKNOWN;
   }
+
+  bool hasExpectedType() => value.hasExpectedType();
 }
 
 class HNonSsaInstruction extends HInstruction {

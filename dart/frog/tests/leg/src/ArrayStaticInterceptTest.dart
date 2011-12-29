@@ -5,8 +5,7 @@
 #import("compiler_helper.dart");
 
 final String TEST_ONE = @"""
-foo() {
-  var a = [];
+foo(a) {
   a.add(42);
   a.removeLast();
   return a.length;

@@ -51,6 +51,7 @@ class Element implements Hashable {
   bool isInstanceMember() => false;
   bool isGenerativeConstructor() => kind == ElementKind.GENERATIVE_CONSTRUCTOR;
   Modifiers get modifiers() => null;
+  bool isFactory() => modifiers != null && modifiers.isFactory();
 
   const Element(this.name, this.kind, this.enclosingElement);
 
