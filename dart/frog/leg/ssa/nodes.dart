@@ -629,10 +629,7 @@ class HType {
   bool isNumber() => this === NUMBER;
   bool isString() => this === STRING;
   bool isArray() => this === ARRAY;
-  bool isStringOrArray() {
-    return (this.flag & FLAG_STRING) != 0
-           || (this.flag & FLAG_ARRAY) != 0;
-  }
+  bool isStringOrArray() => (this.flag & (FLAG_STRING | FLAG_ARRAY)) != 0;
   bool isKnown() => this !== UNKNOWN && this !== CONFLICTING;
 
   static HType getTypeFromFlag(int flag) {
@@ -1645,16 +1642,19 @@ class HIndex extends HInvokeStatic {
     }
   }
 
+  HInstruction get receiver() => inputs[1];
+  HInstruction get index() => inputs[2];
+
   HType computeType() {
-    builtin = inputs[1].isStringOrArray() && inputs[2].type.isNumber();
+    builtin = receiver.isStringOrArray() && index.isNumber();
     return computeDesiredType();
   }
 
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
-    if (input == inputs[0]) return HType.UNKNOWN;
-    if (input == inputs[1]) return HType.STRING_OR_ARRAY;
-    if (input == inputs[2]) return HType.NUMBER;
+    if (input == target) return HType.UNKNOWN;
+    if (input == receiver) return HType.STRING_OR_ARRAY;
+    if (input == index) return HType.NUMBER;
     assert(false);
   }
 }
@@ -1668,16 +1668,20 @@ class HIndexAssign extends HInvokeStatic {
   toString() => 'index assign operator';
   accept(HVisitor visitor) => visitor.visitIndexAssign(this);
 
+  HInstruction get receiver() => inputs[1];
+  HInstruction get index() => inputs[2];
+  HInstruction get value() => inputs[3];
+
   HType computeType() {
-    builtin = inputs[1].isStringOrArray() && inputs[2].type.isNumber();
-    return inputs[3].type;
+    builtin = receiver.isStringOrArray() && index.isNumber();
+    return value.type;
   }
 
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
-    if (input == inputs[0]) return HType.UNKNOWN;
-    if (input == inputs[1]) return HType.STRING_OR_ARRAY;
-    if (input == inputs[2]) return HType.NUMBER;
+    if (input == target) return HType.UNKNOWN;
+    if (input == receiver) return HType.STRING_OR_ARRAY;
+    if (input == index) return HType.NUMBER;
     return HType.UNKNOWN;
   }
 }

@@ -34,8 +34,8 @@ guard$string(x) {
 }
 
 guard$stringOrArray(x) {
-  if (JS("bool", @"$0.constructor === Array", x) ||
-      JS("bool", @"typeof $0 == 'string'", x)) {
+  if (JS("bool", @"typeof $0 == 'string'", x)
+      || JS("bool", @"$0.constructor === Array", x)) {
     return x;
   }
   $throw("String or Array type guard failed.");

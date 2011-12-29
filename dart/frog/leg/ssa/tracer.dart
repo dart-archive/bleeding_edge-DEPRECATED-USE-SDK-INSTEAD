@@ -343,6 +343,7 @@ class HInstructionStringifier implements HVisitor<String> {
       case HType.BOOLEAN: type = "bool"; break;
       case HType.NUMBER: type = "number"; break;
       case HType.STRING: type = "string"; break;
+      case HType.STRING_OR_ARRAY: type = "string_or_array"; break;
       default: unreachable();
     }
     return "TypeGuard: ${temporaryId(node.inputs[0])} is $type";
