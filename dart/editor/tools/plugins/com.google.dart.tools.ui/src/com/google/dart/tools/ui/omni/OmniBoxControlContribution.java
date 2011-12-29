@@ -30,6 +30,8 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -376,6 +378,20 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
     popup = new Popup(getWorkbenchWindow(), null);
     popup.setFilterControl(textControl);
     popup.open();
+
+    if (Util.isMac()) {
+      textControl.addListener(SWT.Deactivate, new Listener() {
+        @Override
+        public void handleEvent(Event event) {
+          //selecting the scrollbar will deactivate but in that case we don't want to close  
+          if (event.display.getFocusControl() != popup.table) {
+            popup.close();
+          }
+          textControl.removeListener(SWT.Deactivate, this);
+        }
+      });
+    }
+
   }
 
   private boolean popupClosed() {
