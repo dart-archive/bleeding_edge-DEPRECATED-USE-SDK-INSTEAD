@@ -340,6 +340,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitTypeGuard(HTypeGuard node) {
     String type;
     switch (node.type) {
+      case HType.ARRAY: type = "array"; break;
       case HType.BOOLEAN: type = "bool"; break;
       case HType.NUMBER: type = "number"; break;
       case HType.STRING: type = "string"; break;
