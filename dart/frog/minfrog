@@ -1917,24 +1917,47 @@ function $dynamic(name) {
   if (f) methods.Object = f;
   function $dynamicBind() {
     // Find the target method
-    var method;
-    var proto = Object.getPrototypeOf(this);
     var obj = this;
-    do {
-      method = methods[obj.$typeNameOf()];
-      if (method) break;
-      obj = Object.getPrototypeOf(obj);
-    } while (obj);
-
+    var tag = obj.$typeNameOf();
+    var method = methods[tag];
+    if (!method) {
+      var table = $dynamicMetadata;
+      for (var i = 0; i < table.length; i++) {
+        var entry = table[i];
+        if (entry.map.hasOwnProperty(tag)) {
+          method = methods[entry.tag];
+          if (method) break;
+        }
+      }
+    }
+    method = method || methods.Object;
     // Patch the prototype, but don't overwrite an existing stub, like
     // the one on Object.prototype.
-    if (!proto.hasOwnProperty(name)) proto[name] = method || methods.Object;
+    var proto = Object.getPrototypeOf(obj);
+    if (!proto.hasOwnProperty(name)) proto[name] = method;
 
     return method.apply(this, Array.prototype.slice.call(arguments));
   };
   $dynamicBind.methods = methods;
   Object.prototype[name] = $dynamicBind;
   return methods;
+}
+if (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];
+
+function $dynamicSetMetadata(inputTable) {
+  // TODO: Deal with light isolates.
+  var table = [];
+  for (var i = 0; i < inputTable.length; i++) {
+    var tag = inputTable[i][0];
+    var tags = inputTable[i][1];
+    var map = {};
+    var tagNames = tags.split('|');
+    for (var j = 0; j < tagNames.length; j++) {
+      map[tagNames[j]] = true;
+    }
+    table.push({tag: tag, tags: tags, map: map});
+  }
+  $dynamicMetadata = table;
 }
 $dynamic("get$end").WriteStream = function() {
   return this.end.bind(this);
@@ -2142,7 +2165,7 @@ CoreJs.prototype.ensureDynamicProto = function() {
   if (this._generatedDynamicProto) return;
   this._generatedDynamicProto = true;
   this.ensureTypeNameOf();
-  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var method;\n    var proto = Object.getPrototypeOf(this);\n    var obj = this;\n    do {\n      method = methods[obj.$typeNameOf()];\n      if (method) break;\n      obj = Object.getPrototypeOf(obj);\n    } while (obj);\n\n    // Patch the prototype, but don't overwrite an existing stub, like\n    // the one on Object.prototype.\n    if (!proto.hasOwnProperty(name)) proto[name] = method || methods.Object;\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  Object.prototype[name] = $dynamicBind;\n  return methods;\n}"/*null._DYNAMIC_FUNCTION*/);
+  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var obj = this;\n    var tag = obj.$typeNameOf();\n    var method = methods[tag];\n    if (!method) {\n      var table = $dynamicMetadata;\n      for (var i = 0; i < table.length; i++) {\n        var entry = table[i];\n        if (entry.map.hasOwnProperty(tag)) {\n          method = methods[entry.tag];\n          if (method) break;\n        }\n      }\n    }\n    method = method || methods.Object;\n    // Patch the prototype, but don't overwrite an existing stub, like\n    // the one on Object.prototype.\n    var proto = Object.getPrototypeOf(obj);\n    if (!proto.hasOwnProperty(name)) proto[name] = method;\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  Object.prototype[name] = $dynamicBind;\n  return methods;\n}\nif (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];\n\nfunction $dynamicSetMetadata(inputTable) {\n  // TODO: Deal with light isolates.\n  var table = [];\n  for (var i = 0; i < inputTable.length; i++) {\n    var tag = inputTable[i][0];\n    var tags = inputTable[i][1];\n    var map = {};\n    var tagNames = tags.split('|');\n    for (var j = 0; j < tagNames.length; j++) {\n      map[tagNames[j]] = true;\n    }\n    table.push({tag: tag, tags: tags, map: map});\n  }\n  $dynamicMetadata = table;\n}\n"/*null._DYNAMIC_FUNCTION*/);
 }
 CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
@@ -2331,6 +2354,7 @@ WorldGenerator.prototype.run = function() {
   this.writeTypes($globals.world.corelib);
   this.writeTypes(this.main.declaringType.get$library());
   if (this._mixins != null) this.writer.write(this._mixins.get$text());
+  this.writeDynamicDispatchMetadata();
   this.writeGlobals();
   this.writer.writeln(('' + mainCall.get$code() + ';'));
 }
@@ -2458,6 +2482,7 @@ WorldGenerator.prototype._prototypeOf = function(type, name) {
   }
   else if (type.get$isHiddenNativeType()) {
     this.corejs.ensureDynamicProto();
+    this._usedDynamicDispatchOnType(type);
     return ('\$dynamic("' + name + '").' + type.get$definition().get$nativeType().get$name());
   }
   else {
@@ -2712,8 +2737,114 @@ WorldGenerator.prototype.writeGlobals = function() {
     }
   }
 }
+WorldGenerator.prototype._usedDynamicDispatchOnType = function(type) {
+  if (this.typesWithDynamicDispatch == null) this.typesWithDynamicDispatch = new HashSetImplementation();
+  this.typesWithDynamicDispatch.add(type);
+}
+WorldGenerator.prototype.writeDynamicDispatchMetadata = function() {
+  var $this = this; // closure support
+  if (this.typesWithDynamicDispatch == null) return;
+  this.writer.comment(('// ' + this.typesWithDynamicDispatch.get$length() + ' dynamic types.'));
+  function typeTag(type) {
+    return type.get$definition().get$nativeType().get$name();
+  }
+  var seen = new HashSetImplementation();
+  var types = [];
+  function visit(type) {
+    if (seen.contains$1(type)) return;
+    seen.add$1(type);
+    var $$list = $this._orderCollectionValues(type.get$directSubtypes());
+    for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
+      var subtype = $$list.$index($$i);
+      visit(subtype);
+    }
+    types.add$1(type);
+  }
+  var $$list = this._orderCollectionValues(this.typesWithDynamicDispatch);
+  for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
+    var type = $$list.$index($$i);
+    visit(type);
+  }
+  var dispatchTypes = types.filter$1((function (type) {
+    return !type.get$directSubtypes().isEmpty$0() && $this.typesWithDynamicDispatch.contains(type);
+  })
+  );
+  this.writer.comment(('// ' + types.get$length() + ' types'));
+  this.writer.comment(('// ' + types.filter$1((function (t) {
+    return !t.get$directSubtypes().isEmpty$0();
+  })
+  ).get$length() + ' !leaf'));
+  var varNames = [];
+  var varDefns = new HashMapImplementation();
+  var tagDefns = new HashMapImplementation();
+  function makeExpression(type) {
+    var expressions = [];
+    var subtags = [typeTag(type)];
+    function walk(type) {
+      var $$list = $this._orderCollectionValues(type.get$directSubtypes());
+      for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
+        var subtype = $$list.$index($$i);
+        var tag = typeTag(subtype);
+        var existing = tagDefns.$index(tag);
+        if (existing == null) {
+          subtags.add$1(tag);
+          walk(subtype);
+        }
+        else {
+          if (varDefns.containsKey$1(existing)) {
+            expressions.add$1(existing);
+          }
+          else {
+            var varName = ('v' + varNames.get$length() + '/*' + tag + '*/');
+            varNames.add$1(varName);
+            varDefns.$setindex(varName, existing);
+            tagDefns.$setindex(tag, varName);
+            expressions.add$1(varName);
+          }
+        }
+      }
+    }
+    walk(type);
+    var constantPart = ("'" + Strings.join(subtags, '|') + "'");
+    if ($ne(constantPart, "''")) expressions.add$1(constantPart);
+    var expression;
+    if ($eq(expressions.get$length(), 1)) {
+      expression = expressions.$index(0);
+    }
+    else {
+      expression = ("[" + Strings.join(expressions, ',') + "].join('|')");
+    }
+    return expression;
+  }
+  for (var $$i = dispatchTypes.iterator$0(); $$i.hasNext$0(); ) {
+    var type = $$i.next$0();
+    tagDefns.$setindex(typeTag(type), makeExpression(type));
+  }
+  if (!tagDefns.isEmpty$0()) {
+    this.writer.enterBlock('(function(){');
+    for (var $$i = varNames.iterator$0(); $$i.hasNext$0(); ) {
+      var varName = $$i.next$0();
+      this.writer.writeln(('var ' + varName + ' = ' + varDefns.$index(varName) + ';'));
+    }
+    this.writer.enterBlock('var table = [');
+    this.writer.comment('// [dynamic-dispatch-tag, tags of classes implementing dynamic-dispatch-tag]'/*'// [dynamic-dispatch-tag, '
+              + 'tags of classes implementing dynamic-dispatch-tag]'*/);
+    for (var $$i = dispatchTypes.iterator$0(); $$i.hasNext$0(); ) {
+      var type0 = $$i.next$0();
+      this.writer.writeln(("['" + typeTag(type0) + "', " + tagDefns.$index(typeTag(type0)) + "],"));
+    }
+    this.writer.exitBlock('];');
+    this.writer.writeln('\$dynamicSetMetadata(table);');
+    this.writer.exitBlock('})();');
+  }
+}
 WorldGenerator.prototype._orderValues = function(map) {
   var values = map.getValues();
+  values.sort(this.get$_compareMembers());
+  return values;
+}
+WorldGenerator.prototype._orderCollectionValues = function(collection) {
+  var values = ListFactory.ListFactory$from$factory(collection);
   values.sort(this.get$_compareMembers());
   return values;
 }
@@ -11614,6 +11745,8 @@ DefinedType.prototype.set$parent = function(p) {
 }
 DefinedType.prototype.get$interfaces = function() { return this.interfaces; };
 DefinedType.prototype.set$interfaces = function(value) { return this.interfaces = value; };
+DefinedType.prototype.get$directSubtypes = function() { return this.directSubtypes; };
+DefinedType.prototype.set$directSubtypes = function(value) { return this.directSubtypes = value; };
 DefinedType.prototype.get$typeParameters = function() { return this.typeParameters; };
 DefinedType.prototype.set$typeParameters = function(value) { return this.typeParameters = value; };
 DefinedType.prototype.get$constructors = function() { return this.constructors; };
@@ -13642,6 +13775,9 @@ function $inheritsMembers(child, parent) {
 }
 $inheritsMembers(_DoubleLinkedQueueEntrySentinel_E, DoubleLinkedQueueEntry_E);
 $inheritsMembers(_DoubleLinkedQueueEntrySentinel_KeyValuePair_K$V, DoubleLinkedQueueEntry_KeyValuePair_K$V);
+// 1 dynamic types.
+// 1 types
+// 0 !leaf
 //  ********** Globals **************
 function $static_init(){
   $globals._GREEN_COLOR = '\u001b[32m';

@@ -29,6 +29,9 @@ class WorldGenerator {
   Map<String, GlobalValue> globals;
   CoreJs corejs;
 
+  /** */
+  Set<Type> typesWithDynamicDispatch;
+
   WorldGenerator(this.main, this.writer)
     : globals = {}, corejs = new CoreJs();
 
@@ -72,6 +75,8 @@ class WorldGenerator {
     // TODO(jmesserly): this won't need to come last once we are sorting types
     // correctly.
     if (_mixins != null) writer.write(_mixins.text);
+
+    writeDynamicDispatchMetadata();
 
     writeGlobals();
     writer.writeln('${mainCall.code};');
@@ -212,6 +217,7 @@ class WorldGenerator {
       return '${type.jsname}.$name';
     } else if (type.isHiddenNativeType) {
       corejs.ensureDynamicProto();
+      _usedDynamicDispatchOnType(type);
       return '\$dynamic("$name").${type.definition.nativeType.name}';
     } else {
       return '${type.jsname}.prototype.$name';
@@ -541,11 +547,131 @@ function $inheritsMembers(child, parent) {
     }
   }
 
+  _usedDynamicDispatchOnType(Type type) {
+    if (typesWithDynamicDispatch == null) typesWithDynamicDispatch = new Set();
+    typesWithDynamicDispatch.add(type);
+  }
+
+  writeDynamicDispatchMetadata() {
+    if (typesWithDynamicDispatch == null) return;
+    writer.comment('// ${typesWithDynamicDispatch.length} dynamic types.');
+
+    typeTag(type) => type.definition.nativeType.name;
+    
+    // Build a pre-order traversal over all the types and their subtypes.
+    var seen = new Set();
+    var types = [];
+    visit(type) {
+      if (seen.contains(type)) return;
+      seen.add(type);
+      for (final subtype in _orderCollectionValues(type.directSubtypes)) {
+        visit(subtype);
+      }
+      types.add(type);
+    }
+    for (final type in _orderCollectionValues(typesWithDynamicDispatch)) {
+      visit(type);
+    }
+
+    var dispatchTypes = types.filter(
+        (type) => !type.directSubtypes.isEmpty() &&
+                  typesWithDynamicDispatch.contains(type));
+
+    writer.comment('// ${types.length} types');
+    writer.comment(
+        '// ${types.filter((t) => !t.directSubtypes.isEmpty()).length} !leaf');
+
+    // Generate code that builds the map from type tags used in dynamic dispatch
+    // to the set of type tags of types that extend (TODO: or implement) those
+    // types.  The set is represented as a string of tags joined with '|'.  This
+    // is easily split into an array of tags, or converted into a regexp.
+    //
+    // To reduce the size of the sets, subsets are CSE-ed out into variables.
+    // The sets could be much smaller if we could make assumptions about the
+    // type tags of other types (which are constructor names or part of the
+    // result of Object.prototype.toString).  For example, if objects that are
+    // Dart objects could be easily excluded, then we might be able to simplify
+    // the test, replacing dozens of HTMLxxxElement types with the regexp
+    // /HTML.*Element/.
+
+    var varNames = [];  // temporary variables for common substrings.
+    var varDefns = {};  // var -> expression
+    var tagDefns = {};  // tag -> expression (a string or a variable)
+
+    makeExpression(type) {
+      var expressions = [];  // expression fragments for this set of type keys.
+      var subtags = [typeTag(type)];  // TODO: Remove if type is abstract.
+      walk(type) {
+        for (final subtype in _orderCollectionValues(type.directSubtypes)) {
+          var tag = typeTag(subtype);
+          var existing = tagDefns[tag];
+          if (existing == null) {
+            subtags.add(tag);
+            walk(subtype);
+          } else {
+            if (varDefns.containsKey(existing)) {
+              expressions.add(existing);
+            } else {
+              var varName = 'v${varNames.length}/*${tag}*/';
+              varNames.add(varName);
+              varDefns[varName] = existing;
+              tagDefns[tag] = varName;
+              expressions.add(varName);
+            }
+          }
+        }
+      }
+      walk(type);
+      var constantPart = "'${Strings.join(subtags, '|')}'";
+      if (constantPart != "''") expressions.add(constantPart);
+      var expression;
+      if (expressions.length == 1) {
+        expression = expressions[0];
+      } else {
+        expression = "[${Strings.join(expressions, ',')}].join('|')";
+      }
+      return expression;
+    }
+
+    for (final type in dispatchTypes) {
+      tagDefns[typeTag(type)] = makeExpression(type);
+    }
+
+    // Write out a thunk that builds the metadata.
+
+    if (!tagDefns.isEmpty()) {
+      writer.enterBlock('(function(){');
+
+      for (final varName in varNames) {
+        writer.writeln('var ${varName} = ${varDefns[varName]};');
+      }
+
+      writer.enterBlock('var table = [');
+      writer.comment(
+          '// [dynamic-dispatch-tag, '
+          + 'tags of classes implementing dynamic-dispatch-tag]');
+      for (final type in dispatchTypes) {
+        writer.writeln("['${typeTag(type)}', ${tagDefns[typeTag(type)]}],");
+      }
+      writer.exitBlock('];');
+      writer.writeln('\$dynamicSetMetadata(table);');
+
+      writer.exitBlock('})();');
+    }
+  }
+
   /** Order a list of values in a Map by SourceSpan, then by name. */
   List _orderValues(Map map) {
     // TODO(jmesserly): should we copy the list?
     // Right now, the Maps are returning a copy already.
     List values = map.getValues();
+    values.sort(_compareMembers);
+    return values;
+  }
+
+  /** Order a list of values in a Collection by SourceSpan, then by name. */
+  List _orderCollectionValues(Collection collection) {
+    List values = new List.from(collection);
     values.sort(_compareMembers);
     return values;
   }

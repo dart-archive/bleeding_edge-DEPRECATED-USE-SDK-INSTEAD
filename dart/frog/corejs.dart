@@ -253,25 +253,49 @@ function $dynamic(name) {
   if (f) methods.Object = f;
   function $dynamicBind() {
     // Find the target method
-    var method;
-    var proto = Object.getPrototypeOf(this);
     var obj = this;
-    do {
-      method = methods[obj.$typeNameOf()];
-      if (method) break;
-      obj = Object.getPrototypeOf(obj);
-    } while (obj);
-
+    var tag = obj.$typeNameOf();
+    var method = methods[tag];
+    if (!method) {
+      var table = $dynamicMetadata;
+      for (var i = 0; i < table.length; i++) {
+        var entry = table[i];
+        if (entry.map.hasOwnProperty(tag)) {
+          method = methods[entry.tag];
+          if (method) break;
+        }
+      }
+    }
+    method = method || methods.Object;
     // Patch the prototype, but don't overwrite an existing stub, like
     // the one on Object.prototype.
-    if (!proto.hasOwnProperty(name)) proto[name] = method || methods.Object;
+    var proto = Object.getPrototypeOf(obj);
+    if (!proto.hasOwnProperty(name)) proto[name] = method;
 
     return method.apply(this, Array.prototype.slice.call(arguments));
   };
   $dynamicBind.methods = methods;
   Object.prototype[name] = $dynamicBind;
   return methods;
-}""";
+}
+if (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];
+
+function $dynamicSetMetadata(inputTable) {
+  // TODO: Deal with light isolates.
+  var table = [];
+  for (var i = 0; i < inputTable.length; i++) {
+    var tag = inputTable[i][0];
+    var tags = inputTable[i][1];
+    var map = {};
+    var tagNames = tags.split('|');
+    for (var j = 0; j < tagNames.length; j++) {
+      map[tagNames[j]] = true;
+    }
+    table.push({tag: tag, tags: tags, map: map});
+  }
+  $dynamicMetadata = table;
+}
+""";
 
 /** Snippet for `$typeNameOf`. */
 // TODO(sigmund): find a way to make this work on all browsers, including
