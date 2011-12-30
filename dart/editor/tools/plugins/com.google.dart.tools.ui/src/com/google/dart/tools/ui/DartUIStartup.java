@@ -54,6 +54,9 @@ public class DartUIStartup implements IStartup {
         }
       } catch (InterruptedException ie) {
 
+      } catch (Throwable throwable) {
+        // Catch any runtime exceptions that occur during warmup and log them.
+        DartToolsPlugin.log("Exception occured during editor warmup", throwable);
       }
 
       synchronized (startupSync) {
