@@ -46,12 +46,13 @@ class Element implements Hashable {
   final Element enclosingElement;
   abstract Node parseNode(Canceler canceler, Logger logger);
   abstract Type computeType(Compiler compiler, Types types);
+  Modifiers get modifiers() => null;
+
   bool isMember() =>
       enclosingElement !== null && enclosingElement.kind == ElementKind.CLASS;
   bool isInstanceMember() => false;
+  bool isFactoryConstructor() => modifiers != null && modifiers.isFactory();
   bool isGenerativeConstructor() => kind == ElementKind.GENERATIVE_CONSTRUCTOR;
-  Modifiers get modifiers() => null;
-  bool isFactory() => modifiers != null && modifiers.isFactory();
 
   const Element(this.name, this.kind, this.enclosingElement);
 

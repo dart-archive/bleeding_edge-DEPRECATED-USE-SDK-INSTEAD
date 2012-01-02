@@ -563,10 +563,10 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitInvokeInterceptor(HInvokeInterceptor node) {
-    if (node.jsNameBuiltin != null) {
+    if (node.builtinJsName != null) {
       use(node.inputs[1]);
       buffer.add('.');
-      buffer.add(node.jsNameBuiltin);
+      buffer.add(node.builtinJsName);
       if (node.getter) return;
       buffer.add('(');
       for (int i = 2; i < node.inputs.length; i++) {

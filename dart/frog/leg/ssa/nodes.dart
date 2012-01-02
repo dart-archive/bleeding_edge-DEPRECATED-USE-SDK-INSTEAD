@@ -932,7 +932,7 @@ class HInvokeStatic extends HInvoke {
   HStatic get target() => inputs[0];
 
   HType computeType() {
-    if (element.isFactory()
+    if (element.isFactoryConstructor()
         && element.enclosingElement.name.toString() == 'List') {
       builtin = true;
       return HType.ARRAY;
@@ -946,7 +946,7 @@ class HInvokeStatic extends HInvoke {
 class HInvokeInterceptor extends HInvokeStatic {
   final String name;
   final bool getter;
-  String jsNameBuiltin;
+  String builtinJsName;
 
   HInvokeInterceptor(String this.name, bool this.getter, inputs)
     : super(inputs);
@@ -955,12 +955,12 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   HType computeType() {
     if (name == 'length' && inputs[1].isStringOrArray()) {
-      jsNameBuiltin = 'length';
+      builtinJsName = 'length';
       return HType.NUMBER;
     } else if (name == 'add' && inputs[1].isArray()) {
-      jsNameBuiltin = 'push';
+      builtinJsName = 'push';
     } else if (name == 'removeLast' && inputs[1].isArray()) {
-      jsNameBuiltin = 'pop';
+      builtinJsName = 'pop';
     }
     return computeDesiredType();
   }
@@ -975,7 +975,7 @@ class HInvokeInterceptor extends HInvokeStatic {
     return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => jsNameBuiltin != null;
+  bool hasExpectedType() => builtinJsName != null;
 
   HInstruction fold() {
     if (name == 'length' && inputs[1].isLiteralString()) {
@@ -988,8 +988,8 @@ class HInvokeInterceptor extends HInvokeStatic {
   }
 
   void prepareGvn() {
-    if (jsNameBuiltin == 'length') {
-      clearAllSideEffects();
+    if (builtinJsName == 'length') {
+      assert(!hasSideEffects());
     } else {
       setAllSideEffects();
     }
@@ -997,7 +997,7 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   bool typeEquals(other) => other is HInvokeInterceptor;
   bool dataEquals(HInvokeInterceptor other) {
-    return jsNameBuiltin == other.jsNameBuiltin;
+    return builtinJsName == other.builtinJsName;
   }
 }
 
@@ -1629,8 +1629,8 @@ class HStatic extends HInstruction {
   HStatic(this.element) : super(<HInstruction>[]);
   void prepareGvn() {
     // TODO(floitsch): accesses to non-final values must be guarded.
+    assert(!hasSideEffects());
     setUseGvn();
-    clearAllSideEffects();
     // TODO(floitsch): we probably want to share statics.
     setGenerateAtUseSite();
   }
@@ -1653,11 +1653,14 @@ class HStaticStore extends HInstruction {
 
 class HLiteralList extends HInstruction {
   HLiteralList(inputs) : super(inputs);
-  void prepareGvn() => clearAllSideEffects();
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
   HType computeType() => HType.ARRAY;
   bool hasExpectedType() => true;
+
+  void prepareGvn() {
+    assert(!hasSideEffects());
+  }
 }
 
 class HIndex extends HInvokeStatic {
@@ -1668,7 +1671,7 @@ class HIndex extends HInvokeStatic {
 
   void prepareGvn() {
     if (builtin) {
-      clearAllSideEffects();
+      assert(!hasSideEffects());
     } else {
       setAllSideEffects();
     }

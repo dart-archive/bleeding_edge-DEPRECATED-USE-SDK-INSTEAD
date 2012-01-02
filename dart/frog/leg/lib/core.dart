@@ -35,7 +35,7 @@ guard$string(x) {
 
 guard$array(x) {
   if (JS("bool", @"$0.constructor === Array", x)) return x;
-  $throw("String type guard failed.");
+  $throw("Array type guard failed.");
 }
 
 guard$stringOrArray(x) {
