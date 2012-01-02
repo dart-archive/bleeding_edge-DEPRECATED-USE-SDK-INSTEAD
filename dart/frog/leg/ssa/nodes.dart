@@ -980,9 +980,7 @@ class HInvokeInterceptor extends HInvokeStatic {
   HInstruction fold() {
     if (name == 'length' && inputs[1].isLiteralString()) {
       int quotes = 2; // Make sure to remove the quotes.
-      HLiteral res = new HLiteral(inputs[1].value.stringValue.length - quotes);
-      res.type = HType.NUMBER;
-      return res;
+      return new HLiteral(inputs[1].value.stringValue.length - quotes);
     }
     return this;
   }
@@ -1033,9 +1031,7 @@ class HInvokeBinary extends HInvokeStatic {
     if (left.isLiteralNumber() && right.isLiteralNumber()) {
       HLiteral op1 = left;
       HLiteral op2 = right;
-      HLiteral res = new HLiteral(evaluate(op1.value, op2.value));
-      res.type = HType.NUMBER;
-      return res;
+      return new HLiteral(evaluate(op1.value, op2.value));
     }
     return this;
   }
@@ -1332,9 +1328,7 @@ class HBitNot extends HInvokeUnary {
     if (operand.isLiteralNumber()) {
       HLiteral input = operand;
       if (input.value is int) {
-        HLiteral res = new HLiteral(evaluate(input.value));
-        res.type = HType.NUMBER;
-        return res;
+        return new HLiteral(evaluate(input.value));
       }
     }
     return this;

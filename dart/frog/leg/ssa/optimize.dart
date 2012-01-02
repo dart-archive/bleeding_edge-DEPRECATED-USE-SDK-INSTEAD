@@ -43,6 +43,11 @@ class SsaConstantFolder extends HBaseVisitor {
         }
         block.rewrite(instruction, replacement);
         block.remove(instruction);
+        // Because the constant folder runs after type propagation, we
+        // must update the type of this instruction manually. Later
+        // phases can then optimize this instruction based on its
+        // type.
+        replacement.updateType();
       }
       instruction = next;
     }
