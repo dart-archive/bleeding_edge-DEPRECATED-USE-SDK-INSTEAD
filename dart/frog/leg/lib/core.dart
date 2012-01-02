@@ -16,8 +16,8 @@ void print(var obj) {
 
 $throw(String msg) {
   var e = JS("Object", @"new Error($0)", msg);
-  var hasError = JS("bool", @"typeof Error == 'object'");
-  if (hasError) {
+  var hasTrace = JS("bool", @"Error.captureStackTrace !== (void 0)");
+  if (hasTrace) {
     JS("void", @"Error.captureStackTrace($0)", e);
   }
   throw e;
