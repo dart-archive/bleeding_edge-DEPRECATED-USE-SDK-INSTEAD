@@ -692,7 +692,7 @@ class HInstruction implements Hashable {
   void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
 
   bool generateAtUseSite() => getFlag(FLAG_GENERATE_AT_USE_SITE);
-  void setGenerateAtUseSite() { setFlag(FLAG_GENERATE_AT_USE_SITE); }
+  void tryGenerateAtUseSite() { setFlag(FLAG_GENERATE_AT_USE_SITE); }
   void clearGenerateAtUseSite()  { clearFlag(FLAG_GENERATE_AT_USE_SITE); }
 
   bool useGvn() => getFlag(FLAG_USE_GVN);
@@ -865,6 +865,10 @@ class HTypeGuard extends HInstruction {
   HType computeType() => type;
   bool hasExpectedType() => true;
 
+  // A type guard should never be generate at use site, otherwise we
+  // cannot bailout.
+  void tryGenerateAtUseSite() {}
+
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   bool typeEquals(other) => other is HTypeGuard;
   bool dataEquals(HTypeGuard other) => type == other.type;
@@ -927,7 +931,7 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
 class HInvokeDynamicSetter extends HInvokeDynamicField {
   HInvokeDynamicSetter(element, name, receiver, value)
     : super(element, name, [receiver, value]);
-  toString() => 'invoke dynamic setter: ${element.name}';
+  toString() => 'invoke dynamic setter: $name';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
 }
 
@@ -1382,7 +1386,7 @@ class HLiteral extends HInstruction {
     // better GVN'ing of instructions that use literals as input.
     assert(!hasSideEffects());
     setUseGvn();
-    setGenerateAtUseSite();  // Maybe avoid this if the literal is big?
+    tryGenerateAtUseSite();  // Maybe avoid this if the literal is big?
   }
   toString() => 'literal: $value';
   accept(HVisitor visitor) => visitor.visitLiteral(this);
@@ -1431,7 +1435,7 @@ class HParameterValue extends HInstruction {
   final Element element;
 
   HParameterValue(this.element) : super(<HInstruction>[]) {
-    setGenerateAtUseSite();
+    tryGenerateAtUseSite();
   }
 
   void prepareGvn() {
@@ -1626,11 +1630,11 @@ class HStatic extends HInstruction {
   Element element;
   HStatic(this.element) : super(<HInstruction>[]);
   void prepareGvn() {
-    // TODO(floitsch): accesses to non-final values must be guarded.
     assert(!hasSideEffects());
-    setUseGvn();
-    // TODO(floitsch): we probably want to share statics.
-    setGenerateAtUseSite();
+    if (!element.isAssignable()) {
+      setUseGvn();
+      tryGenerateAtUseSite();
+    }
   }
   toString() => 'static ${element.name}';
   accept(HVisitor visitor) => visitor.visitStatic(this);

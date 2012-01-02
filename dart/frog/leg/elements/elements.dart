@@ -48,11 +48,18 @@ class Element implements Hashable {
   abstract Type computeType(Compiler compiler, Types types);
   Modifiers get modifiers() => null;
 
+  bool isFunction() => kind == ElementKind.FUNCTION;
   bool isMember() =>
       enclosingElement !== null && enclosingElement.kind == ElementKind.CLASS;
   bool isInstanceMember() => false;
   bool isFactoryConstructor() => modifiers != null && modifiers.isFactory();
   bool isGenerativeConstructor() => kind == ElementKind.GENERATIVE_CONSTRUCTOR;
+
+  bool isAssignable() {
+    if (modifiers != null && modifiers.isFinal()) return false;
+    if (isFunction() || isGenerativeConstructor()) return false;
+    return true;
+  }
 
   const Element(this.name, this.kind, this.enclosingElement);
 

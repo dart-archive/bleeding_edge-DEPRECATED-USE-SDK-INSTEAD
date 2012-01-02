@@ -41,7 +41,7 @@ class SsaPhiEliminator extends HGraphVisitor {
         // This is also valid if the store is null: it checks whether
         // the existing store and the current phi are the only users.
         if (value.usedBy.length == 2) {
-          value.setGenerateAtUseSite();
+          value.tryGenerateAtUseSite();
         }
         return store;
       }
@@ -120,6 +120,6 @@ class SsaPhiEliminator extends HGraphVisitor {
     currentBlock.rewrite(phi, load);
     currentBlock.removePhi(phi);
 
-    if (!currentBlock.isLoopHeader()) load.setGenerateAtUseSite();
+    if (!currentBlock.isLoopHeader()) load.tryGenerateAtUseSite();
   }
 }

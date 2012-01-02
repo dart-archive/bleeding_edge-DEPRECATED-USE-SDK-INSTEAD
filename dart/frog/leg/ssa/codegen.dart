@@ -27,15 +27,15 @@ class SsaCodeGeneratorTask extends CompilerTask {
       new HTracer.singleton().traceGraph("codegen", graph);
     }
     new SsaInstructionMerger().visitGraph(graph);
+    // Replace the results of type guard instructions with the
+    // original value, if the result is used. This is safe now,
+    // since we don't do code motion after this point.
+    new SsaTypeGuardUnuser().visitGraph(graph);
     new SsaConditionMerger().visitGraph(graph);
     new SsaPhiEliminator().visitGraph(graph);
     if (GENERATE_SSA_TRACE) {
       new HTracer.singleton().traceGraph("no-phi", graph);
     }
-    // Replace the results of type guard instructions with the
-    // original value, if the result is used. This is safe now,
-    // since we don't do code motion after this point.
-    new SsaTypeGuardUnuser().visitGraph(graph);
   }
 
   String generateMethod(Map<Element, String> parameterNames, HGraph graph) {
@@ -645,15 +645,14 @@ class SsaInstructionMerger extends HGraphVisitor {
       // expected input. If not, drop the expectedInputs and
       // start over.
       if (findInInputs(instruction)) {
-        instruction.setGenerateAtUseSite();
+        instruction.tryGenerateAtUseSite();
       } else {
         assert(expectedInputs.isEmpty());
       }
       if (instruction is HForeign) {
         // Never try to merge inputs to HForeign.
         continue;
-      } else if (instruction is !HTypeGuard ||
-                 instruction.generateAtUseSite() ||
+      } else if (instruction.generateAtUseSite() ||
                  usedOnlyByPhis(instruction)) {
         // In all other cases, try merging all non-trivial inputs.
         addInputs(instruction);
@@ -662,16 +661,23 @@ class SsaInstructionMerger extends HGraphVisitor {
   }
 }
 
+/**
+ * In order to generate efficient code that works with bailouts, we
+ * rewrite users of type guards to use the input of the guard instead
+ * of the guard itself. We also remove generate at use site for
+ * the input, except for parameters, since they do not
+ * introduce any computation.
+ */
 class SsaTypeGuardUnuser extends HBaseVisitor {
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
 
   void visitTypeGuard(HTypeGuard node) {
-    // If the type guard itself is generated at the use site, it will
-    // introduce an extra temporary if we rewrite uses of it.
-    if (node.generateAtUseSite()) return;
-    currentBlock.rewrite(node, node.inputs[0]);
+    assert(!node.generateAtUseSite());
+    HInstruction guarded = node.inputs[0];
+    currentBlock.rewrite(node, guarded);
+    if (guarded is !HParameterValue) guarded.clearGenerateAtUseSite();
   }
 }
 
@@ -717,7 +723,7 @@ class SsaConditionMerger extends HGraphVisitor {
         new HLogicalOperator(type, phi.inputs[0], phi.inputs[1]);
     if (canGenerateAtUseSite(phi))  {
       // TODO(lrn): More tests here?
-      logicalOp.setGenerateAtUseSite();
+      logicalOp.tryGenerateAtUseSite();
     }
     block.addAtEntry(logicalOp);
     // Move instruction that uses phi as input to using the logicalOp instead.
@@ -798,10 +804,10 @@ class SsaConditionMerger extends HGraphVisitor {
     // Detected as logic control flow. Mark the corresponding
     // inputs as generated at use site. These will now be generated
     // as part of an expression.
-    first.setGenerateAtUseSite();
-    firstBlock.last.setGenerateAtUseSite();
-    second.setGenerateAtUseSite();
-    secondBlock.last.setGenerateAtUseSite();
+    first.tryGenerateAtUseSite();
+    firstBlock.last.tryGenerateAtUseSite();
+    second.tryGenerateAtUseSite();
+    secondBlock.last.tryGenerateAtUseSite();
   }
 
   void visitBasicBlock(HBasicBlock block) {

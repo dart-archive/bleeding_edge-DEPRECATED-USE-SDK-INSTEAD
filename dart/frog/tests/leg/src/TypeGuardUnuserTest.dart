@@ -29,25 +29,34 @@ foo(int param1, int param2) {
 }
 """;
 
+bool checkNumberOfMatches(Iterator it, int nb) {
+  for (int i = 0; i < nb; i++) {
+    Expect.isTrue(it.hasNext());
+    it.next();
+  }
+  Expect.isFalse(it.hasNext());
+}
+
+String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
+
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  RegExp regexp = const RegExp(
-      "var c = currentIsolate\\.guard\\\$num\\(currentIsolate.foo\\(1\\)\\);");
-  Expect.isTrue(regexp.hasMatch(generated));
+  // Check that there is no assignment from a guard.
+  RegExp regexp = const RegExp("= currentIsolate\\.guard\\\$num");
+  Expect.isFalse(regexp.hasMatch(generated));
 
-  regexp = const RegExp(
-      "c = currentIsolate\\.guard\\\$num\\(currentIsolate.foo\\(2\\)\\);");
-  Expect.isTrue(regexp.hasMatch(generated));
+  regexp = new RegExp(
+      "currentIsolate\\.guard\\\$num\\($anyIdentifier\\);");
+  Iterator<Match> matches = regexp.allMatches(generated).iterator();
+  checkNumberOfMatches(matches, 2);
 
   regexp = const RegExp("return c;");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, 'foo');
   regexp = const RegExp("foo\\(1\\)");
-  Iterator<Match> matches = regexp.allMatches(generated).iterator();
-  Expect.isTrue(matches.hasNext());
-  matches.next();
-  Expect.isFalse(matches.hasNext());
+  matches = regexp.allMatches(generated).iterator();
+  checkNumberOfMatches(matches, 1);
 
   generated = compile(TEST_THREE, 'foo');
   regexp = const RegExp("guard\\\$num\\(param1\\)");
