@@ -130,7 +130,7 @@ class SsaTypePropagator extends HGraphVisitor {
   visitBasicBlock(HBasicBlock block) {
     if (block.isLoopHeader()) {
       block.forEachPhi((HPhi phi) {
-        phi.updateTypeForLoopPhi();
+        phi.setInitialTypeForLoopPhi();
         addToWorklist(phi);
       });
     } else {

@@ -1503,8 +1503,9 @@ class HPhi extends HInstruction {
     return true;
   }
 
-  void updateTypeForLoopPhi() {
+  void setInitialTypeForLoopPhi() {
     assert(block.isLoopHeader());
+    assert(type.isUnknown());
     type = inputs[0].type;
   }
 
