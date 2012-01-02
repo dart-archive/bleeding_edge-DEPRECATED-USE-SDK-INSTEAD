@@ -23,34 +23,6 @@ $throw(String msg) {
   throw e;
 }
 
-guard$num(x) {
-  if (JS("bool", @"typeof $0 == 'number'", x)) return x;
-  $throw("Num type guard failed.");
-}
-
-guard$string(x) {
-  if (JS("bool", @"typeof $0 == 'string'", x)) return x;
-  $throw("String type guard failed.");
-}
-
-guard$array(x) {
-  if (JS("bool", @"$0.constructor === Array", x)) return x;
-  $throw("Array type guard failed.");
-}
-
-guard$stringOrArray(x) {
-  if (JS("bool", @"typeof $0 == 'string'", x)
-      || JS("bool", @"$0.constructor === Array", x)) {
-    return x;
-  }
-  $throw("String or Array type guard failed.");
-}
-
-guard$bool(x) {
-  if (JS("bool", @"typeof $0 == 'boolean'", x)) return x;
-  $throw("Bool type guard failed.");
-}
-
 /**
   * Returns true if both arguments are numbers.
   * If only the first argument is a number, throws the given message as

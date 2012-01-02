@@ -56,14 +56,14 @@ main() {
   regexp = new RegExp("sum = \\($anyIdentifier \\+ $anyIdentifier\\)");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp('guard\\\$num\\(param0\\)');
+  regexp = const RegExp("typeof param0 !== 'number'");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp('guard\\\$num\\(param1\\)');
+  regexp = const RegExp("typeof param1 !== 'number'");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, 'foo');
-  regexp = const RegExp('guard\\\$num\\(param0\\)');
+  regexp = const RegExp("typeof param0 !== 'number'");
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp('-param0');
@@ -78,13 +78,13 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_FIVE, 'foo');
-  regexp = const RegExp('guard\\\$array\\(a\\)');
+  regexp = const RegExp('a.constructor !== Array');
   Expect.isTrue(regexp.hasMatch(generated));
   Expect.isTrue(!generated.contains('index'));
   Expect.isTrue(!generated.contains('indexSet'));
 
   generated = compile(TEST_FIVE, 'foo');
-  regexp = const RegExp('guard\\\$array\\(a\\)');
+  regexp = const RegExp('a.constructor !== Array');
   Expect.isTrue(regexp.hasMatch(generated));
   Expect.isTrue(!generated.contains('index'));
   Expect.isTrue(!generated.contains('indexSet'));

@@ -471,27 +471,33 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitTypeGuard(HTypeGuard node) {
-    SourceString name;
+    HInstruction input = node.inputs[0];
+    assert(!input.generateAtUseSite() || input is HParameterValue);
     if (node.isNumber()) {
-      name = const SourceString('guard\$num');
+      buffer.add('if (typeof ');
+      use(input);
+      buffer.add(" !== 'number') throw('Not a number')");
     } else if (node.isBoolean()) {
-      name = const SourceString('guard\$bool');
+      buffer.add('if (typeof ');
+      use(input);
+      buffer.add(" !== 'boolean') throw('Not a boolean')");
     } else if (node.isString()) {
-      name = const SourceString('guard\$string');
+      buffer.add('if (typeof ');
+      use(input);
+      buffer.add(" !== 'string') throw('Not a string')");
     } else if (node.isArray()) {
-      name = const SourceString('guard\$array');
+      buffer.add('if (');
+      use(input);
+      buffer.add(".constructor !== Array) throw('Not an array')");
     } else if (node.isStringOrArray()) {
-      name = const SourceString('guard\$stringOrArray');
+      buffer.add('if (typeof ');
+      use(input);
+      buffer.add(" !== 'string' && ");
+      use(input);
+      buffer.add(".constructor !== Array) throw('Not a string or array')");
     } else {
       unreachable();
     }
-    Element element = compiler.universe.find(name);
-    assert(element !== null);
-    compiler.registerStaticInvocation(element);
-    buffer.add(compiler.namer.isolateAccess(element));
-    buffer.add('(');
-    use(node.inputs[0]);
-    buffer.add(')');
   }
 
   void addIndentation() {

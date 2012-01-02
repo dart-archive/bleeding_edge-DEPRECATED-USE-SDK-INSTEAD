@@ -41,12 +41,7 @@ String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  // Check that there is no assignment from a guard.
-  RegExp regexp = const RegExp("= currentIsolate\\.guard\\\$num");
-  Expect.isFalse(regexp.hasMatch(generated));
-
-  regexp = new RegExp(
-      "currentIsolate\\.guard\\\$num\\($anyIdentifier\\);");
+  RegExp regexp = new RegExp("typeof $anyIdentifier !== 'number'");
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 2);
 
@@ -59,8 +54,8 @@ main() {
   checkNumberOfMatches(matches, 1);
 
   generated = compile(TEST_THREE, 'foo');
-  regexp = const RegExp("guard\\\$num\\(param1\\)");
+  regexp = const RegExp("typeof param1 !== 'number'");
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = const RegExp("guard\\\$num\\(param2\\)");
+  regexp = const RegExp("typeof param2 !== 'number'");
   Expect.isTrue(regexp.hasMatch(generated));
 }
