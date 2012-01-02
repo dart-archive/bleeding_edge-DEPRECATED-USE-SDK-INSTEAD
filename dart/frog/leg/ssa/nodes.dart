@@ -644,6 +644,8 @@ class HType {
   }
 
   HType combine(HType other) {
+    if (isUnknown()) return other;
+    if (other.isUnknown()) return this;
     return getTypeFromFlag(this.flag & other.flag);
   }
 }
@@ -703,7 +705,7 @@ class HInstruction implements Hashable {
   bool isStringOrArray() => type.isStringOrArray();
 
   // Compute the type of the instruction.
-  HType computeType() => computeDesiredType();
+  HType computeType() => HType.UNKNOWN;
 
   HType computeDesiredType() {
     HType candidateType = HType.UNKNOWN;
@@ -712,8 +714,11 @@ class HInstruction implements Hashable {
       if (candidateType.isUnknown()) {
         candidateType = type;
       } else if (!type.isUnknown() && candidateType != type) {
-        candidateType = HType.UNKNOWN;
-        break;
+        candidateType = candidateType.combine(type);
+        if (!candidateType.isKnown()) {
+          candidateType = HType.UNKNOWN;
+          break;
+        }
       }
     }
     return candidateType;
@@ -731,6 +736,10 @@ class HInstruction implements Hashable {
   bool updateType() {
     if (type.isConflicting()) return false;
     HType newType = computeType();
+    HType desiredType = computeDesiredType();
+    HType combined = newType.combine(desiredType);
+    if (combined.isKnown()) newType = combined;
+
     bool changed = (type != newType);
     if (type.isUnknown()) {
       type = newType;
@@ -937,7 +946,7 @@ class HInvokeStatic extends HInvoke {
       builtin = true;
       return HType.ARRAY;
     }
-    return computeDesiredType();
+    return HType.UNKNOWN;
   }
 
   bool hasExpectedType() => builtin;
@@ -962,7 +971,7 @@ class HInvokeInterceptor extends HInvokeStatic {
     } else if (name == 'removeLast' && inputs[1].isArray()) {
       builtinJsName = 'pop';
     }
-    return computeDesiredType();
+    return HType.UNKNOWN;
   }
 
   HType computeDesiredInputType(HInstruction input) {
@@ -1072,7 +1081,7 @@ class HBinaryArithmetic extends HInvokeBinary {
     builtin = type.isNumber();
     if (!type.isUnknown()) return type;
     if (left.isNumber()) return HType.NUMBER;
-    return computeDesiredType();
+    return HType.UNKNOWN;
   }
 
   HType computeDesiredInputType(HInstruction input) {
@@ -1102,7 +1111,7 @@ class HAdd extends HBinaryArithmetic {
     if (!type.isUnknown()) return type;
     if (left.isString()) return HType.STRING;
     if (left.isNumber()) return HType.NUMBER;
-    return computeDesiredType();
+    return HType.UNKNOWN;
   }
 
   HType computeDesiredInputType(HInstruction input) {
@@ -1284,7 +1293,7 @@ class HInvokeUnary extends HInvokeStatic {
     HType type = operand.type;
     builtin = type.isNumber();
     if (!type.isUnknown()) return type;
-    return computeDesiredType();
+    return HType.UNKNOWN;
   }
 
   HType computeDesiredInputType(HInstruction input) {
@@ -1467,19 +1476,13 @@ class HPhi extends HInstruction {
   // simply return an unknown type.
   HType computeInputsType() {
     bool seenUnknown = false;
-    HType candidateType = null;
-    for (int i = 0, length = inputs.length; i < length; i++) {
+    HType candidateType = inputs[0].type;
+    for (int i = 1, length = inputs.length; i < length; i++) {
       HType inputType = inputs[i].type;
-      if (inputType.isUnknown()) {
-        seenUnknown = true;
-      } else if (candidateType == null) {
-        candidateType = inputType;
-      } else {
-        candidateType = candidateType.combine(inputType);
-        if (candidateType.isConflicting()) return HType.CONFLICTING;
-      }
+      if (inputType.isUnknown()) return HType.UNKNOWN;
+      candidateType = candidateType.combine(inputType);
+      if (candidateType.isConflicting()) return HType.CONFLICTING;
     }
-    if (seenUnknown) return HType.UNKNOWN;
     return candidateType;
   }
 
@@ -1676,7 +1679,7 @@ class HIndex extends HInvokeStatic {
 
   HType computeType() {
     builtin = receiver.isStringOrArray() && index.isNumber();
-    return computeDesiredType();
+    return HType.UNKNOWN;
   }
 
   HType computeDesiredInputType(HInstruction input) {
@@ -1704,14 +1707,14 @@ class HIndexAssign extends HInvokeStatic {
   HInstruction get value() => inputs[3];
 
   HType computeType() {
-    builtin = receiver.isStringOrArray() && index.isNumber();
+    builtin = receiver.isArray() && index.isNumber();
     return value.type;
   }
 
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return HType.UNKNOWN;
-    if (input == receiver) return HType.STRING_OR_ARRAY;
+    if (input == receiver) return HType.ARRAY;
     if (input == index) return HType.NUMBER;
     return HType.UNKNOWN;
   }

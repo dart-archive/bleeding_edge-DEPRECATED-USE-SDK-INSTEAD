@@ -159,11 +159,13 @@ class HInstructionStringifier implements HVisitor<String> {
   String temporaryId(HInstruction instruction) {
     String prefix;
     switch (instruction.type) {
+      case HType.ARRAY: prefix = 'a'; break;
       case HType.BOOLEAN: prefix = 'b'; break;
       case HType.NUMBER: prefix = 'n'; break;
       case HType.STRING: prefix = 's'; break;
       case HType.UNKNOWN: prefix = 'v'; break;
       case HType.CONFLICTING: prefix = 'c'; break;
+      case HType.STRING_OR_ARRAY: prefix = 'sa'; break;
       default: unreachable();
     }
     return "$prefix${instruction.id}";

@@ -30,6 +30,22 @@ foo(String c) {
 }
 """;
 
+final String TEST_FIVE = @"""
+foo(a) {
+  a[0] = 1;
+  print(a[1]);
+}
+""";
+
+final String TEST_SIX = @"""
+main(a) {
+  print(a[0]);
+  while (true) {
+    a[0] = a[1];
+  }
+}
+""";
+
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 
 main() {
@@ -60,4 +76,16 @@ main() {
   generated = compile(TEST_FOUR, 'foo');
   regexp = new RegExp("c.length");
   Expect.isTrue(regexp.hasMatch(generated));
+
+  generated = compile(TEST_FIVE, 'foo');
+  regexp = const RegExp('guard\\\$array\\(a\\)');
+  Expect.isTrue(regexp.hasMatch(generated));
+  Expect.isTrue(!generated.contains('index'));
+  Expect.isTrue(!generated.contains('indexSet'));
+
+  generated = compile(TEST_FIVE, 'foo');
+  regexp = const RegExp('guard\\\$array\\(a\\)');
+  Expect.isTrue(regexp.hasMatch(generated));
+  Expect.isTrue(!generated.contains('index'));
+  Expect.isTrue(!generated.contains('indexSet'));
 }

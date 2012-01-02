@@ -22,6 +22,7 @@ final String DEFAULT_CORELIB = @'''
   lt() {} add(var a, var b) {} sub() {} mul() {} div() {} tdiv() {} mod() {}
   neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}
   or() {} and() {} not() {} print(var obj) {}
+  guard$array(x) { return x; }
   guard$num(x) { return x; }
   guard$string(x) { return x; }
   guard$stringOrArray(x) { return x; }
