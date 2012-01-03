@@ -12,5 +12,8 @@ WhileLoopWithBreakTest: Fail    # break within a loop
 *NormalizationTest: Fail        # normalization in general
 TypedFunctionNegativeTest: Fail # checking return-type of async functions
 
+[ $component == frogsh ]
+MintMakerRpcTest: Pass, Crash # Issue 1024.
+
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == leg ]
 *: Skip
