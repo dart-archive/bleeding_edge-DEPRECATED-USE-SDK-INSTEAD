@@ -469,6 +469,10 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
       scannerState = ScannerState.CODE;
     } else {
       scannerState = getState(contentType);
+      if (scannerState == ScannerState.MULTI_LINE_COMMENT
+          || scannerState == ScannerState.DOC_COMMENT) {
+        commentDepth++;
+      }
     }
     stringState = null;
   }
