@@ -458,6 +458,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
       length += offset - partitionOffset;
       offset = partitionOffset;
     }
+    commentDepth = 0;
     scanner.setRange(document, offset, length);
     tokenOffset = partitionOffset;
     tokenLength = 0;
@@ -469,15 +470,18 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     } else {
       scannerState = getState(contentType);
     }
+    stringState = null;
   }
 
   @Override
   public void setRange(IDocument document, int offset, int length) {
+    commentDepth = 0;
     scanner.setRange(document, offset, length);
     tokenOffset = offset;
     tokenLength = 0;
     prefixLength = 0;
     scannerState = ScannerState.CODE;
+    stringState = null;
   }
 
   private void advance() {

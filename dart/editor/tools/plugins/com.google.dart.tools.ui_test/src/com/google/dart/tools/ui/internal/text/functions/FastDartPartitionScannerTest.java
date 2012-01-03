@@ -85,6 +85,13 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
     );
   }
 
+  public void test_FastDartPartitionScanner_docComment_unfinishedToFinished() {
+    assertPartitionsAfter("/** *\nvoid main() {}", //
+        "/** */", DART_DOC, //
+        "void main() {}", DEFAULT_TYPE //
+    );
+  }
+
   public void test_FastDartPartitionScanner_endOfLineComment() {
     // class X { // comment } 
     assertPartitions( //
@@ -273,7 +280,7 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
    * into a single source string, partition it, and compare the results to see whether they have the
    * expected type and position.
    * 
-   * @param strings
+   * @param strings an array containing the (snippet, partition type) pairs
    */
   private void assertPartitions(String... strings) {
     int stringCount = strings.length;
@@ -284,6 +291,47 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
       builder.append(strings[i * 2]);
     }
     ITypedRegion[] regions = partition(builder.toString());
+    assertCount(expectedCount, regions);
+    int start = 0;
+    for (int i = 0; i < expectedCount; i++) {
+      int length = strings[i * 2].length();
+      assertRegion(regions[i], strings[(i * 2) + 1], start, length);
+      start += length;
+    }
+  }
+
+  /**
+   * Given an array containing pairs of strings of the form
+   * 
+   * <pre>
+   *   [codeSnippet1, partitionType1, codeSnippet2, partitionType2, ..., codeSnippetN, partitionTypeN]
+   * </pre>
+   * 
+   * where each code snippet should be a single partition of the given type, compose the snippets
+   * into a single source string, partition it, and compare the results to see whether they have the
+   * expected type and position.
+   * 
+   * @param previousContent the content of the document prior to the composed source being tested
+   * @param strings an array containing the (snippet, partition type) pairs
+   */
+  private void assertPartitionsAfter(String previousContent, String... strings) {
+    Document doc = new Document(previousContent);
+    DartTextTools tools = DartToolsPlugin.getDefault().getJavaTextTools();
+    IDocumentPartitioner part = tools.createDocumentPartitioner();
+    doc.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, part);
+    part.connect(doc);
+    part.computePartitioning(0, previousContent.length());
+
+    int stringCount = strings.length;
+    assertTrue(stringCount % 2 == 0);
+    int expectedCount = stringCount / 2;
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < expectedCount; i++) {
+      builder.append(strings[i * 2]);
+    }
+    String source = builder.toString();
+    doc.set(source);
+    ITypedRegion[] regions = part.computePartitioning(0, source.length());
     assertCount(expectedCount, regions);
     int start = 0;
     for (int i = 0; i < expectedCount; i++) {
