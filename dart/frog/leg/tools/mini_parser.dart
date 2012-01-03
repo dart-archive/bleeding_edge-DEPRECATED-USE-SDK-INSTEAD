@@ -169,6 +169,10 @@ class MyListener extends Listener {
     classCount++;
   }
 
+  void beginInterface(Token token) {
+    classCount++;
+  }
+
   void error(String message, Token token) {
     parserError(message, token, token, file);
   }
@@ -191,6 +195,10 @@ class MyNodeListener extends NodeListener {
     : super(new MyCanceller(file, options), null);
 
   void beginClassDeclaration(Token token) {
+    classCount++;
+  }
+
+  void beginInterface(Token token) {
     classCount++;
   }
 
