@@ -669,11 +669,13 @@ public class DartCore extends Plugin {
       RootArtifactProvider.shutdown();
       FrogManager.shutdown();
 
-      StringWriter writer = new StringWriter();
-      PerformanceManager.getInstance().printMetrics(new PrintWriter(writer));
-      String metricsInfo = writer.toString();
-      if (metricsInfo.length() > 0) {
-        getLog().log(new Status(Status.INFO, PLUGIN_ID, metricsInfo, null));
+      if (DartCoreDebug.METRICS) {
+        StringWriter writer = new StringWriter();
+        PerformanceManager.getInstance().printMetrics(new PrintWriter(writer));
+        String metricsInfo = writer.toString();
+        if (metricsInfo.length() > 0) {
+          getLog().log(new Status(Status.INFO, PLUGIN_ID, metricsInfo, null));
+        }
       }
     } finally {
       super.stop(context);
