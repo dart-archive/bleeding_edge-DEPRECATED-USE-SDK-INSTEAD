@@ -9,6 +9,7 @@ interface HVisitor<R> {
   R visitBitOr(HBitOr node);
   R visitBitXor(HBitXor node);
   R visitBoolify(HBoolify node);
+  R visitBoundsCheck(HBoundsCheck node);
   R visitDivide(HDivide node);
   R visitEquals(HEquals node);
   R visitExit(HExit node);
@@ -195,6 +196,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBitOr(HBitOr node) => visitBinaryBitOp(node);
   visitBitXor(HBitXor node) => visitBinaryBitOp(node);
   visitBoolify(HBoolify node) => visitInstruction(node);
+  visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
+  visitCheck(HCheck node) => visitInstruction(node);
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitEquals(HEquals node) => visitRelational(node);
   visitExit(HExit node) => visitControlFlow(node);
@@ -239,7 +242,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
-  visitTypeGuard(HTypeGuard node) => visitInstruction(node);
+  visitTypeGuard(HTypeGuard node) => visitCheck(node);
 }
 
 class HInstructionList {
@@ -852,7 +855,15 @@ class HBoolify extends HInstruction {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HTypeGuard extends HInstruction {
+class HCheck extends HInstruction {
+  HCheck(inputs) : super(inputs);
+
+  // A check should never be generate at use site, otherwise we
+  // cannot bailout or throw.
+  void tryGenerateAtUseSite() {}
+}
+
+class HTypeGuard extends HCheck {
   HTypeGuard(type, value) : super(<HInstruction>[value]) {
     this.type = type;
   }
@@ -865,13 +876,29 @@ class HTypeGuard extends HInstruction {
   HType computeType() => type;
   bool hasExpectedType() => true;
 
-  // A type guard should never be generate at use site, otherwise we
-  // cannot bailout.
-  void tryGenerateAtUseSite() {}
-
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   bool typeEquals(other) => other is HTypeGuard;
   bool dataEquals(HTypeGuard other) => type == other.type;
+}
+
+class HBoundsCheck extends HCheck {
+  HBoundsCheck(length, index) : super(<HInstruction>[length, index]) {
+    type = HType.NUMBER;
+  }
+
+  HInstruction get length() => inputs[0];
+  HInstruction get index() => inputs[1];
+
+  void prepareGvn() {
+    assert(!hasSideEffects());
+    setUseGvn();
+  }
+
+  HType computeType() => HType.NUMBER;
+  bool hasExpectedType() => true;
+
+  accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
+  bool typeEquals(other) => other is HBoundsCheck;
 }
 
 class HConditionalBranch extends HControlFlow {
@@ -1631,7 +1658,7 @@ class HStatic extends HInstruction {
   HStatic(this.element) : super(<HInstruction>[]);
   void prepareGvn() {
     assert(!hasSideEffects());
-    if (!element.isAssignable()) {
+    if (element != null && !element.isAssignable()) {
       setUseGvn();
       tryGenerateAtUseSite();
     }

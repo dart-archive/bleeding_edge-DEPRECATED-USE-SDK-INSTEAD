@@ -8,7 +8,7 @@ class SsaOptimizerTask extends CompilerTask {
 
   void optimize(HGraph graph) {
     measure(() {
-      new SsaTypePropagator().visitGraph(graph);
+      new SsaTypePropagator(compiler).visitGraph(graph);
       new SsaConstantFolder().visitGraph(graph);
       new SsaRedundantPhiEliminator().visitGraph(graph);
       new SsaDeadPhiEliminator().visitGraph(graph);
@@ -116,15 +116,16 @@ class SsaTypePropagator extends HGraphVisitor {
 
   final Map<int, HInstruction> workmap;
   final List<int> worklist;
+  final Compiler compiler;
 
-  SsaTypePropagator()
+  SsaTypePropagator(Compiler this.compiler)
       : workmap = new Map<int, HInstruction>(),
         worklist = new List<int>();
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
     processWorklist();
-    new TypeGuardInserter().visitGraph(graph);
+    new CheckInserter(compiler).visitGraph(graph);
   }
 
   visitBasicBlock(HBasicBlock block) {
@@ -174,7 +175,14 @@ class SsaTypePropagator extends HGraphVisitor {
   }
 }
 
-class TypeGuardInserter extends HGraphVisitor {
+class CheckInserter extends HBaseVisitor {
+  Element lengthInterceptor;
+
+  CheckInserter(Compiler compiler) {
+    SourceString name = const SourceString('length');
+    lengthInterceptor =
+        compiler.builder.interceptors.getStaticGetInterceptor(name);
+  }
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -183,18 +191,19 @@ class TypeGuardInserter extends HGraphVisitor {
   visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.phis.first;
     while (instruction !== null) {
-      instruction = tryInsertGuard(instruction, block.first);
+      instruction = tryInsertTypeGuard(instruction, block.first);
     }
     instruction = block.first;
     while (instruction !== null) {
-      instruction = tryInsertGuard(instruction, instruction);
+      instruction.accept(this);
+      instruction = tryInsertTypeGuard(instruction, instruction);
     }
   }
 
-  HInstruction tryInsertGuard(HInstruction instruction,
-                              HInstruction insertionPoint) {
+  HInstruction tryInsertTypeGuard(HInstruction instruction,
+                                  HInstruction insertionPoint) {
     // If we found a type for the instruction, but the instruction
-    // does not know if it produces that type, add a guard.
+    // does not know if it produces that type, add a type guard.
     if (instruction.type.isKnown() && !instruction.hasExpectedType()) {
       HTypeGuard guard = new HTypeGuard(instruction.type, instruction);
       // Remove the instruction's type, the guard is now holding that
@@ -206,11 +215,39 @@ class TypeGuardInserter extends HGraphVisitor {
     }
     return instruction.next;
   }
+
+  insertBoundsCheck(HInstruction node,
+                    HInstruction receiver,
+                    HInstruction index) {
+    HStatic interceptor = new HStatic(lengthInterceptor);
+    node.block.addBefore(node, interceptor);
+    HInvokeInterceptor length =
+        new HInvokeInterceptor("length", true, [interceptor, receiver]);
+    length.builtinJsName = "length";
+    length.type = HType.NUMBER;
+    node.block.addBefore(node, length);
+
+    HBoundsCheck check = new HBoundsCheck(length, index);
+    node.block.rewrite(index, check);
+    node.block.addBefore(node, check);
+  }
+
+  void visitIndex(HIndex node) {
+    if (!node.builtin) return;
+    insertBoundsCheck(node, node.receiver, node.index);
+  }
+
+  void visitIndexAssign(HIndexAssign node) {
+    if (!node.builtin) return;
+    insertBoundsCheck(node, node.receiver, node.index);
+  }
 }
 
 class SsaDeadCodeEliminator extends HGraphVisitor {
   static bool isDeadCode(HInstruction instruction) {
-    return !instruction.hasSideEffects() && instruction.usedBy.isEmpty();
+    return !instruction.hasSideEffects()
+           && instruction.usedBy.isEmpty()
+           && instruction is !HBoundsCheck;
   }
 
   void visitGraph(HGraph graph) {

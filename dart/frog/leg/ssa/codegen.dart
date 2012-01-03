@@ -27,10 +27,10 @@ class SsaCodeGeneratorTask extends CompilerTask {
       new HTracer.singleton().traceGraph("codegen", graph);
     }
     new SsaInstructionMerger().visitGraph(graph);
-    // Replace the results of type guard instructions with the
+    // Replace the results of check instructions with the
     // original value, if the result is used. This is safe now,
     // since we don't do code motion after this point.
-    new SsaTypeGuardUnuser().visitGraph(graph);
+    new SsaCheckInstructionUnuser().visitGraph(graph);
     new SsaConditionMerger().visitGraph(graph);
     new SsaPhiEliminator().visitGraph(graph);
     if (GENERATE_SSA_TRACE) {
@@ -470,6 +470,16 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(';\n');
   }
 
+  visitBoundsCheck(HBoundsCheck node) {
+    buffer.add('if (');
+    use(node.index);
+    buffer.add(' < 0 || ');
+    use(node.index);
+    buffer.add(' >= ');
+    use(node.length);
+    buffer.add(") throw 'Out of bounds'");
+  }
+
   visitTypeGuard(HTypeGuard node) {
     HInstruction input = node.inputs[0];
     assert(!input.generateAtUseSite() || input is HParameterValue);
@@ -611,7 +621,7 @@ class SsaInstructionMerger extends HGraphVisitor {
   void visitBasicBlock(HBasicBlock block) {
     // Visit each instruction of the basic block in last-to-first order.
     // Keep a list of expected inputs of the current "expression" being
-    // merged. If instructions occour in the expected order, they are
+    // merged. If instructions occur in the expected order, they are
     // included in the expression.
 
     // The expectedInputs list holds non-trivial instructions that may
@@ -669,12 +679,10 @@ class SsaInstructionMerger extends HGraphVisitor {
 
 /**
  * In order to generate efficient code that works with bailouts, we
- * rewrite users of type guards to use the input of the guard instead
- * of the guard itself. We also remove generate at use site for
- * the input, except for parameters, since they do not
- * introduce any computation.
+ * rewrite users of check instruction to use the input of the
+ * instruction instead of the check itself.
  */
-class SsaTypeGuardUnuser extends HBaseVisitor {
+class SsaCheckInstructionUnuser extends HBaseVisitor {
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
@@ -683,7 +691,18 @@ class SsaTypeGuardUnuser extends HBaseVisitor {
     assert(!node.generateAtUseSite());
     HInstruction guarded = node.inputs[0];
     currentBlock.rewrite(node, guarded);
+    // Remove generate at use site for the input, except for
+    // parameters, since they do not introduce any computation.
     if (guarded is !HParameterValue) guarded.clearGenerateAtUseSite();
+  }
+
+  void visitBoundsCheck(HBoundsCheck node) {
+    assert(!node.generateAtUseSite());
+    currentBlock.rewrite(node, node.index);
+    // The instruction merger may have not analyzed the 'length'
+    // instruction because this bounds check instruction is not
+    // generate at use site.
+    if (node.length.usedBy.length == 1) node.length.tryGenerateAtUseSite();
   }
 }
 

@@ -185,6 +185,12 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitBitXor(HBitXor node) => visitInvokeStatic(node);
 
+  String visitBoundsCheck(HBoundsCheck node) {
+    String lengthId = temporaryId(node.length);
+    String indexId = temporaryId(node.index);
+    return "Bounds check: length = $lengthId, index = $indexId";
+  }
+
   String visitDivide(HDivide node) => visitInvokeStatic(node);
 
   String visitEquals(HEquals node) => visitInvokeStatic(node);

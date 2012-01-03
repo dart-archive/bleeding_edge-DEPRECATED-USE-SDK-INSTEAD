@@ -78,9 +78,9 @@ class Interceptors {
 
 class SsaBuilderTask extends CompilerTask {
   SsaBuilderTask(Compiler compiler)
-    : super(compiler), elements = new Interceptors(compiler);
+    : super(compiler), interceptors = new Interceptors(compiler);
   String get name() => 'SSA builder';
-  Interceptors elements;
+  Interceptors interceptors;
 
   HGraph build(FunctionElement element, TreeElements elements) {
     return measure(() {
@@ -167,7 +167,7 @@ class SsaBuilder implements Visitor {
 
   SsaBuilder(Compiler compiler, this.elements)
     : this.compiler = compiler,
-      interceptors = compiler.builder.elements;
+      interceptors = compiler.builder.interceptors;
 
   HGraph buildMethod(NodeList parameters, Node body) {
     openFunction(parameters);
