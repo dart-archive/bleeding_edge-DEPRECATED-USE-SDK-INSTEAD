@@ -158,7 +158,7 @@ class Parser {
   }
 
   Token parseDefaultClauseOpt(Token token) {
-    if (optional('default', token) || optional('factory', token)) {
+    if (isDefaultKeyword(token)) {
       // TODO(ahe): Remove support for 'factory' in this position.
       Token defaultKeyword = token;
       listener.beginDefaultClause(defaultKeyword);
@@ -174,6 +174,16 @@ class Parser {
       listener.handleNoDefaultClause(token);
     }
     return token;
+  }
+
+  bool isDefaultKeyword(Token token) {
+    String value = token.stringValue;
+    if (value === 'default') return true;
+    if (value === 'factory') {
+      listener.recoverableError("expected 'default'", token: token);
+      return true;
+    }
+    return false;
   }
 
   Token skipBlock(Token token) {
