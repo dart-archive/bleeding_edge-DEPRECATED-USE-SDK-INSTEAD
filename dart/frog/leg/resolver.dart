@@ -310,64 +310,6 @@ class FullResolverVisitor extends ResolverVisitor {
     return (str === '&&' || str == '||' || str == '!');
   }
 
-  SourceString mapOperatorToMethodName(final SourceString name,
-                                       final bool isPrefix) {
-    if (isPrefix) {
-      if (name.stringValue === '-') return const SourceString('neg');
-      if (name.stringValue === '~') return const SourceString('not');
-      if (name.stringValue === '[]') return const SourceString('index');
-      unreachable();
-    }
-    // Additive operators.
-    if (name.stringValue === '+') return const SourceString('add');
-    if (name.stringValue === '-') return const SourceString('sub');
-
-    // Multiplicative operators.
-    if (name.stringValue === '*') return const SourceString('mul');
-    if (name.stringValue === '/') return const SourceString('div');
-    if (name.stringValue === '~/') return const SourceString('tdiv');
-    if (name.stringValue === '%') return const SourceString('mod');
-
-    // Shift operators.
-    if (name.stringValue === '<<') return const SourceString('shl');
-    if (name.stringValue === '>>') return const SourceString('shr');
-
-    // Bitwise operators.
-    if (name.stringValue === '|') return const SourceString('or');
-    if (name.stringValue === '&') return const SourceString('and');
-    if (name.stringValue === '^') return const SourceString('xor');
-
-    // Relational operators.
-    if (name.stringValue === '<') return const SourceString('lt');
-    if (name.stringValue === '<=') return const SourceString('le');
-    if (name.stringValue === '>') return const SourceString('gt');
-    if (name.stringValue === '>=') return const SourceString('ge');
-
-    if (name.stringValue === '==') return const SourceString('eq');
-    if (name.stringValue === '!=') return const SourceString('eq');
-
-    // Index operator.
-    if (name.stringValue === '[]') return const SourceString('index');
-    compiler.unimplemented("mapOperatorToMethodName");
-  }
-
-  SourceString mapAssignmentOperatorToMethodName(SourceString name) {
-    if (name.stringValue === '+=') return const SourceString('add');
-    if (name.stringValue === '-=') return const SourceString('sub');
-    if (name.stringValue === '*=') return const SourceString('mul');
-    if (name.stringValue === '/=') return const SourceString('div');
-    if (name.stringValue === '~/=') return const SourceString('tdiv');
-    if (name.stringValue === '%=') return const SourceString('mod');
-    if (name.stringValue === '<<=') return const SourceString('shl');
-    if (name.stringValue === '>>=') return const SourceString('shr');
-    if (name.stringValue === '|=') return const SourceString('or');
-    if (name.stringValue === '&=') return const SourceString('and');
-    if (name.stringValue === '^=') return const SourceString('xor');
-    if (name.stringValue === '++') return const SourceString('add');
-    if (name.stringValue === '--') return const SourceString('sub');
-    compiler.unimplemented("mapAssignmentOperatorToMethodName");
-  }
-
   Element resolveSend(Send node) {
     Element receiver = visit(node.receiver);
     visit(node.argumentsNode);
@@ -379,8 +321,7 @@ class FullResolverVisitor extends ResolverVisitor {
 
     Element target = null;
     if (node.isOperator) {
-      SourceString opName = mapOperatorToMethodName(name, node.isPrefix);
-      target = compiler.universe.find(opName);
+      return null;
     } else if (node.receiver === null) {
       target = lookup(node, name);
       if (target == null && !enclosingElement.isInstanceMember()) {
@@ -414,11 +355,6 @@ class FullResolverVisitor extends ResolverVisitor {
     // TODO(ngeoffray): Check if the target can be assigned.
     Identifier op = node.assignmentOperator;
     if (op.source.stringValue !== '=') {
-      // Operation-assignment. For example +=.
-      // We need to resolve the '+' and also the getter for the left-hand-side.
-      SourceString name = mapAssignmentOperatorToMethodName(op.source);
-      Element operatorElement = compiler.universe.find(name);
-      useElement(op, operatorElement);
       // Resolve the getter for the lhs (receiver+selector).
       // Currently this is the same as the setter.
       // TODO(ngeoffray): Adapt for fields.
@@ -430,10 +366,6 @@ class FullResolverVisitor extends ResolverVisitor {
         getter = context.lookup(node.selector.asIdentifier().source);
       }
       useElement(node.selector, getter);
-    }
-    if (node.isIndex) {
-      assert(target.name.stringValue == 'index');
-      target = compiler.universe.find(const SourceString('indexSet'));
     }
     return useElement(node, target);
   }

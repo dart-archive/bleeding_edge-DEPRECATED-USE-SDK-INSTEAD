@@ -223,7 +223,7 @@ testFor() {
 
   BlockScope scope = visitor.context;
   Expect.equals(0, scope.elements.length);
-  Expect.equals(7, visitor.mapping.map.length);
+  Expect.equals(5, visitor.mapping.map.length);
 
   VariableDefinitions initializer = tree.initializer;
   Node iNode = initializer.definitions.nodes.head;
@@ -242,21 +242,15 @@ testFor() {
   Expect.isTrue(nodes[1] is !SendSet);
   Expect.equals(elements[1], iElement);
 
-  Expect.isTrue(nodes[2] is Send);     // < call
+  Expect.isTrue(nodes[2] is Send);     // i (in i + 1)
   Expect.isTrue(nodes[2] is !SendSet);
+  Expect.equals(elements[2], iElement);
 
-  Expect.isTrue(nodes[3] is Send);     // i (in i + 1)
-  Expect.isTrue(nodes[3] is !SendSet);
+  Expect.isTrue(nodes[3] is SendSet);  // i = i + 1
   Expect.equals(elements[3], iElement);
 
-  Expect.isTrue(nodes[4] is Send);     // + call
-  Expect.isTrue(nodes[4] is !SendSet);
-
-  Expect.isTrue(nodes[5] is SendSet);  // i = i + 1
-  Expect.equals(elements[5], iElement);
-
-  Expect.isTrue(nodes[6] is SendSet);  // i = 5
-  Expect.equals(elements[6], iElement);
+  Expect.isTrue(nodes[4] is SendSet);  // i = 5
+  Expect.equals(elements[4], iElement);
 }
 
 testTypeAnnotation() {

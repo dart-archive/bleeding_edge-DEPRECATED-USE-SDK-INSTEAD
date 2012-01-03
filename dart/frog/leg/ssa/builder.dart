@@ -2,9 +2,85 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class Interceptors {
+  Compiler compiler;
+  Interceptors(Compiler this.compiler);
+
+  SourceString mapOperatorToMethodName(Operator op) {
+    String name = op.source.stringValue;
+    if (name === '-') return const SourceString('neg');
+    if (name === '+') return const SourceString('add');
+    if (name === '-') return const SourceString('sub');
+    if (name === '*') return const SourceString('mul');
+    if (name === '/') return const SourceString('div');
+    if (name === '~/') return const SourceString('tdiv');
+    if (name === '%') return const SourceString('mod');
+    if (name === '<<') return const SourceString('shl');
+    if (name === '>>') return const SourceString('shr');
+    if (name === '|') return const SourceString('or');
+    if (name === '&') return const SourceString('and');
+    if (name === '^') return const SourceString('xor');
+    if (name === '<') return const SourceString('lt');
+    if (name === '<=') return const SourceString('le');
+    if (name === '>') return const SourceString('gt');
+    if (name === '>=') return const SourceString('ge');
+    if (name === '==') return const SourceString('eq');
+    if (name === '!=') return const SourceString('eq');
+    if (name === '+=') return const SourceString('add');
+    if (name === '-=') return const SourceString('sub');
+    if (name === '*=') return const SourceString('mul');
+    if (name === '/=') return const SourceString('div');
+    if (name === '~/=') return const SourceString('tdiv');
+    if (name === '%=') return const SourceString('mod');
+    if (name === '<<=') return const SourceString('shl');
+    if (name === '>>=') return const SourceString('shr');
+    if (name === '|=') return const SourceString('or');
+    if (name === '&=') return const SourceString('and');
+    if (name === '^=') return const SourceString('xor');
+    if (name === '++') return const SourceString('add');
+    if (name === '--') return const SourceString('sub');
+    compiler.unimplemented('Unknown operator', node: op);
+  }
+
+  Element getStaticInterceptor(SourceString name, int parameters) {
+    String mangledName = "builtin\$${name}\$${parameters}";
+    Element result = compiler.universe.find(new SourceString(mangledName));
+    return result;
+  }
+
+  Element getStaticGetInterceptor(SourceString name) {
+    String mangledName = "builtin\$get\$${name}";
+    Element result = compiler.universe.find(new SourceString(mangledName));
+    return result;
+  }
+
+  Element getOperatorInterceptor(Operator op) {
+    SourceString name = mapOperatorToMethodName(op);
+    Element result = compiler.universe.find(name);
+    return result;
+  }
+
+  Element getPrefixOperatorInterceptor(Operator op) {
+    String name = op.source.stringValue;
+    if (name === '~') return compiler.universe.find(const SourceString('not'));
+    if (name === '-') return compiler.universe.find(const SourceString('neg'));
+    compiler.unimplemented('Unknown operator', node: op);
+  }
+
+  Element getIndexInterceptor() {
+    return compiler.universe.find(const SourceString('index'));
+  }
+
+  Element getIndexAssignmentInterceptor() {
+    return compiler.universe.find(const SourceString('indexSet'));
+  }
+}
+
 class SsaBuilderTask extends CompilerTask {
-  SsaBuilderTask(Compiler compiler) : super(compiler);
+  SsaBuilderTask(Compiler compiler)
+    : super(compiler), elements = new Interceptors(compiler);
   String get name() => 'SSA builder';
+  Interceptors elements;
 
   HGraph build(FunctionElement element, TreeElements elements) {
     return measure(() {
@@ -76,19 +152,9 @@ class SsaBuilderTask extends CompilerTask {
 class SsaBuilder implements Visitor {
   final Compiler compiler;
   final TreeElements elements;
+  final Interceptors interceptors;
   HGraph graph;
 
-  Element getStaticInterceptor(SourceString name, int parameters) {
-    String mangleName = "builtin\$${name}\$${parameters}";
-    Element result = compiler.universe.find(new SourceString(mangleName));
-    return result;
-  }
-
-  Element getStaticGetInterceptor(SourceString name) {
-    String mangleName = "builtin\$get\$${name}";
-    Element result = compiler.universe.find(new SourceString(mangleName));
-    return result;
-  }
 
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
@@ -99,7 +165,9 @@ class SsaBuilder implements Visitor {
   // visiting dead code.
   HBasicBlock current;
 
-  SsaBuilder(this.compiler, this.elements);
+  SsaBuilder(Compiler compiler, this.elements)
+    : this.compiler = compiler,
+      interceptors = compiler.builder.elements;
 
   HGraph buildMethod(NodeList parameters, Node body) {
     openFunction(parameters);
@@ -595,11 +663,12 @@ class SsaBuilder implements Visitor {
     push(not);
   }
 
-  void visitUnary(Send node, Operator op, Element element) {
+  void visitUnary(Send node, Operator op) {
     assert(node.argumentsNode is Prefix);
     visit(node.receiver);
     HInstruction operand = pop();
-    HInstruction target = new HStatic(element);
+    HInstruction target =
+        new HStatic(interceptors.getPrefixOperatorInterceptor(op));
     add(target);
     switch (op.source.stringValue) {
       case "-": push(new HNegate(target, operand)); break;
@@ -608,40 +677,71 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  void visitBinary(HInstruction left, Operator op, HInstruction right,
-                   Element element) {
-    HInstruction target = new HStatic(element);
+  void visitBinary(HInstruction left, Operator op, HInstruction right) {
+    HInstruction target = new HStatic(interceptors.getOperatorInterceptor(op));
     add(target);
     switch (op.source.stringValue) {
       case "+":
       case "++":
-      case "+=":  push(new HAdd(target, left, right)); break;
+      case "+=":
+        push(new HAdd(target, left, right));
+        break;
       case "-":
       case "--":
-      case "-=":  push(new HSubtract(target, left, right)); break;
+      case "-=":
+        push(new HSubtract(target, left, right));
+        break;
       case "*":
-      case "*=":  push(new HMultiply(target, left, right)); break;
+      case "*=":
+        push(new HMultiply(target, left, right));
+        break;
       case "/":
-      case "/=":  push(new HDivide(target, left, right)); break;
+      case "/=":
+        push(new HDivide(target, left, right));
+        break;
       case "~/":
-      case "~/=": push(new HTruncatingDivide(target, left, right)); break;
+      case "~/=":
+        push(new HTruncatingDivide(target, left, right));
+        break;
       case "%":
-      case "%=":  push(new HModulo(target, left, right)); break;
+      case "%=":
+        push(new HModulo(target, left, right));
+        break;
       case "<<":
-      case "<<=": push(new HShiftLeft(target, left, right)); break;
+      case "<<=":
+        push(new HShiftLeft(target, left, right));
+        break;
       case ">>":
-      case ">>=": push(new HShiftRight(target, left, right)); break;
+      case ">>=":
+        push(new HShiftRight(target, left, right));
+        break;
       case "|":
-      case "|=":  push(new HBitOr(target, left, right)); break;
+      case "|=":
+        push(new HBitOr(target, left, right));
+        break;
       case "&":
-      case "&=":  push(new HBitAnd(target, left, right)); break;
+      case "&=":
+        push(new HBitAnd(target, left, right));
+        break;
       case "^":
-      case "^=":  push(new HBitXor(target, left, right)); break;
-      case "==":  push(new HEquals(target, left, right)); break;
-      case "<":   push(new HLess(target, left, right)); break;
-      case "<=":  push(new HLessEqual(target, left, right)); break;
-      case ">":   push(new HGreater(target, left, right)); break;
-      case ">=":  push(new HGreaterEqual(target, left, right)); break;
+      case "^=":
+        push(new HBitXor(target, left, right));
+        break;
+      case "==":
+        push(new HEquals(target, left, right));
+        break;
+      case "<":
+        push(new HLess(target, left, right));
+        break;
+      case "<=":
+        push(new HLessEqual(target, left, right));
+        break;
+      case ">":
+        push(new HGreater(target, left, right));
+        break;
+      case ">=":
+        push(new HGreaterEqual(target, left, right));
+        break;
       case "!=":
         HEquals eq = new HEquals(target, left, right);
         add(eq);
@@ -671,7 +771,8 @@ class SsaBuilder implements Visitor {
         visit(send.receiver);
         receiver = pop();
       }
-      Element staticInterceptor = getStaticGetInterceptor(getterName);
+      Element staticInterceptor =
+          interceptors.getStaticGetInterceptor(getterName);
       if (staticInterceptor != null) {
         HStatic target = new HStatic(staticInterceptor);
         add(target);
@@ -720,11 +821,10 @@ class SsaBuilder implements Visitor {
   }
 
   visitSend(Send node) {
-    Element element = elements[node];
     if (node.selector is Operator) {
       Operator op = node.selector;
       if (const SourceString("[]") == op.source) {
-        HStatic target = new HStatic(element);
+        HStatic target = new HStatic(interceptors.getIndexInterceptor());
         add(target);
         visit(node.receiver);
         HInstruction receiver = pop();
@@ -736,19 +836,19 @@ class SsaBuilder implements Visitor {
         visitLogicalAndOr(node, op);
       } else if (const SourceString("!") == op.source) {
         visitLogicalNot(node);
-      } else if (node.argumentsNode is Prefix ||
-                 node.argumentsNode is Postfix) {
-        visitUnary(node, op, element);
+      } else if (node.argumentsNode is Prefix) {
+        visitUnary(node, op);
       } else {
         visit(node.receiver);
         visit(node.argumentsNode);
         var right = pop();
         var left = pop();
-        visitBinary(left, op, right, element);
+        visitBinary(left, op, right);
       }
     } else if (node.isPropertyAccess) {
-      generateGetter(node, element);
+      generateGetter(node, elements[node]);
     } else {
+      Element element = elements[node];
       bool isInvokeDynamic = (element === null) || element.isInstanceMember();
       bool isForeign =
           (element !== null) && (element.kind === ElementKind.FOREIGN);
@@ -761,8 +861,8 @@ class SsaBuilder implements Visitor {
       Element interceptor;
       if (isInvokeDynamic) {
         dartMethodName = node.selector.asIdentifier().source;
-        interceptor = getStaticInterceptor(dartMethodName,
-                                           node.argumentCount());
+        interceptor = interceptors.getStaticInterceptor(
+            dartMethodName, node.argumentCount());
         if (interceptor != null) {
           HStatic target = new HStatic(interceptor);
           add(target);
@@ -825,9 +925,8 @@ class SsaBuilder implements Visitor {
 
   visitSendSet(SendSet node) {
     Operator op = node.assignmentOperator;
-    Element element = elements[node];
     if (node.isIndex) {
-      HStatic target = new HStatic(element);
+      HStatic target = new HStatic(interceptors.getIndexAssignmentInterceptor());
       add(target);
       visit(node.receiver);
       HInstruction receiver = pop();
@@ -850,12 +949,12 @@ class SsaBuilder implements Visitor {
           value = new HLiteral(1);
           add(value);
         }
-        HStatic indexMethod = new HStatic(elements[node.selector]);
+        HStatic indexMethod = new HStatic(interceptors.getIndexInterceptor());
         add(indexMethod);
         HInstruction left = new HIndex(indexMethod, receiver, index);
         add(left);
         Element opElement = elements[op];
-        visitBinary(left, op, value, opElement);
+        visitBinary(left, op, value);
         HInstruction assign = new HIndexAssign(target, receiver, index, pop());
         add(assign);
         if (isPrefix) {
@@ -865,6 +964,7 @@ class SsaBuilder implements Visitor {
         }
       }
     } else if (const SourceString("=") == op.source) {
+      Element element = elements[node];
       Link<Node> link = node.arguments;
       assert(!link.isEmpty() && link.tail.isEmpty());
       visit(link.head);
@@ -874,6 +974,7 @@ class SsaBuilder implements Visitor {
       assert(const SourceString("++") == op.source ||
              const SourceString("--") == op.source ||
              node.assignmentOperator.source.stringValue.endsWith("="));
+      Element element = elements[node];
       bool isCompoundAssignment = !node.arguments.isEmpty();
       bool isPrefix = !node.isPostfix;  // Compound assignments are prefix.
       generateGetter(node, elements[node.selector]);
@@ -886,8 +987,7 @@ class SsaBuilder implements Visitor {
         right = new HLiteral(1);
         add(right);
       }
-      Element opElement = elements[op];
-      visitBinary(left, op, right, opElement);
+      visitBinary(left, op, right);
       HInstruction operation = pop();
       assert(operation !== null);
       generateSetter(node, element, operation);
