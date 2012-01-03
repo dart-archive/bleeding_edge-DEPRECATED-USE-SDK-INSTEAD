@@ -23,7 +23,7 @@ class Namer {
       : globals = new Map<Element, String>(),
         usedGlobals = new Map<String, int>();
 
-  String get currentIsolate() => "currentIsolate";
+  String get currentIsolate() => "\$";
   String get isolate() => "Isolate";
 
 
