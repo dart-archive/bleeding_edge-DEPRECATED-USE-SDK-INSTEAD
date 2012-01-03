@@ -11,11 +11,14 @@ build system.  The PDE build system has to run under Eclipse.
     <target name="deploy_rcp" depends="build_rcp, doDeploy_rcp" />
     
     <target name="build_rcp" depends="init, setupBuild, doBuild_rcp, package_rcp" />
+    
     <!-- - - - - - - - - - - - - - - - - - 
           target: setOS
-          set the osfamily property 
+          set the osfamily, isWindows, and notWindows properties
+          but only if running an OS specific build (e.g. build.os is set)
+          TODO remove build.os when the old buildbot is not building editor
          - - - - - - - - - - - - - - - - - -->
-    <target name="setOS">
+    <target name="setOS" if="build.os">
         <condition property="osfamily" value="windows">
             <os family="windows"/>
         </condition>
@@ -25,8 +28,15 @@ build system.  The PDE build system has to run under Eclipse.
         <condition property="osfamily" value="linux">
             <os family="unix"/>
         </condition>
+        <condition property="isWindows">
+            <os family="windows"/>
+        </condition>
+        <condition property="isNotWindows">
+            <not>
+                <os family="windows"/>
+            </not>
+        </condition>
     </target>
-
     
     <!-- - - - - - - - - - - - - - - - - - 
           target: buildBot
@@ -153,7 +163,7 @@ build system.  The PDE build system has to run under Eclipse.
     initializethe build environment by cleaning up the builchrome-botd.tmp directory and 
     creating the needed directories
     -->
-    <target name="init" depends="setOS, buildBotFastFail, configDataLocation, readProperties">
+    <target name="init" depends="buildBotFastFail, configDataLocation, readProperties">
         <property environment="env" />
         <echoproperties prefix="env." />
 
@@ -262,18 +272,44 @@ build system.  The PDE build system has to run under Eclipse.
         <copyDartLib name="json" dir="${build.source.root}/client/json"/>
     </target>
     
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: getSdk
+         - - - - - - - - - - - - - - - - - -->
+    <target name="getSdk" if="osfamily" depends="setOS">
+        <delete file="${build.dart.sdk.zip}"/>
+        <get src="http://gsdview.appspot.com/dart-editor-archive-continuous/latest/dart-${osfamily}.zip"
+             dest="${build.dart.sdk.zip}"/>
+        <delete dir="${build.stage.include.dir}/dart-sdk"/>
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: installSdkInWindows
+          Use the standard Ant unzip task to install the sdk
+         - - - - - - - - - - - - - - - - - -->
+    <target name="installSdkInWindows" if="isWindows" depends="getSdk">
+        <unzip src="${build.dart.sdk.zip}" dest="${build.stage.include.dir}" />
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: installSdkInNonWindows
+          The standard Ant unzip task destroys execute permissions in the sdk
+          so use the command line unzip instead
+         - - - - - - - - - - - - - - - - - -->
+    <target name="installSdkInNonWindows" if="isNotWindows" depends="getSdk">
+        <exec executable="unzip" dir="${build.stage.include.dir}">
+            <arg value="${build.dart.sdk.zip}"/>
+        </exec>
+    </target>
+
     <!-- - - - - - - - - - - - - - - - - - - 
           target: installSdk
           Install the sdk zip if build.os is set
          - - - - - - - - - - - - - - - - - -->
-    <target name="installSdk" if="build.os">
-        <get src="http://gsdview.appspot.com/dart-editor-archive-continuous/latest/dart-${osfamily}.zip"
-             dest="${build.dart.sdk.zip}"/>
-        <unzip src="${build.dart.sdk.zip}" dest="${build.stage.include.dir}" />
+    <target name="installSdk" depends="installSdkInNonWindows, installSdkInWindows">
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
-          target: setupDevWorkspace                      
+          target: setupDevWorkspace
          - - - - - - - - - - - - - - - - - -->
     <target name="setupDevWorkspace" 
             depends="buildLibraries, installSdkInDevWorkspace">
@@ -288,9 +324,9 @@ build system.  The PDE build system has to run under Eclipse.
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
-          target: installSdkInDevWorkspace
+          target: initSdkInDevWorkspace                      
          - - - - - - - - - - - - - - - - - -->
-    <target name="installSdkInDevWorkspace" depends="setOS">
+    <target name="initSdkInDevWorkspace">
         <!-- This build script must be executed in Eclipse 
           so that the ${eclipse.home} Ant property is defined -->
         <fail unless="eclipse.home">*
@@ -302,12 +338,16 @@ build system.  The PDE build system has to run under Eclipse.
             Define the "eclipse.home" property to point to your Eclipse installation
             **********************************
         </fail>
-        <property name="dart.sdk.dir" location="${eclipse.home}/dart-sdk"/>
-        <delete file="${dart.sdk.dir}.zip"/>
-        <get src="http://gsdview.appspot.com/dart-editor-archive-continuous/latest/dart-${osfamily}.zip"
-             dest="${dart.sdk.dir}.zip"/>
-        <delete dir="${dart.sdk.dir}"/>
-        <unzip src="${dart.sdk.dir}.zip" dest="${eclipse.home}" />
+        <property name="build.stage.include.dir" location="${eclipse.home}"/>
+        <property name="build.dart.sdk.zip" location="${eclipse.home}/dart-sdk.zip"/>
+        <property name="build.os" value="true"/>
+    </target>
+
+    
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: installSdkInDevWorkspace
+         - - - - - - - - - - - - - - - - - -->
+    <target name="installSdkInDevWorkspace" depends="initSdkInDevWorkspace, installSdk">
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
