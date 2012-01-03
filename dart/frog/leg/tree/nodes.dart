@@ -307,7 +307,7 @@ class NewExpression extends Expression {
   Token getEndToken() => send.getEndToken();
 }
 
-class NodeList extends Node {
+class NodeList extends Node implements Iterable<Node> {
   // TODO(floitsch): don't make nodes private. This is needed, because we
   // work around a bug in Frog that doesn't allow to initialize the field
   // with a const object.
@@ -321,6 +321,8 @@ class NodeList extends Node {
   // TODO(floitsch): second argument should be this.nodes.
   NodeList([this.beginToken, nodes, this.endToken, this.delimiter])
       : _nodes = nodes;
+
+  Iterator<Node> iterator() => nodes.iterator();
 
   NodeList.singleton(Node node) : this(null, new Link<Node>(node));
   NodeList.empty() : this(null, const EmptyLink<Node>());
@@ -456,7 +458,7 @@ class For extends Loop {
   final Node initializer;
   /** Either an expression statement or an empty statement. */
   final Statement conditionStatement;
-  final Node update; // TODO(ahe): Should be an expression list.
+  final NodeList update;
 
   final Token forToken;
 

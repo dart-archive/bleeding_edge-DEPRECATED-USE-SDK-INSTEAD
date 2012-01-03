@@ -854,15 +854,10 @@ class NodeListener extends ElementListener {
   void endForStatement(int updateExpressionCount,
                        Token beginToken, Token endToken) {
     Statement body = popNode();
-    // TODO(ahe): Don't discard.
-    discardNodes("additional update expression", updateExpressionCount - 1);
-    if (updateExpressionCount == 0) {
-      pushNode(null); // TODO(ahe): Hack.
-    }
-    Node update = popNode();
+    NodeList updates = makeNodeList(updateExpressionCount, null, null, ',');
     Statement condition = popNode();
     Node initializer = popNode();
-    pushNode(new For(initializer, condition, update, body, beginToken));
+    pushNode(new For(initializer, condition, updates, body, beginToken));
   }
 
   void handleNoExpression(Token token) {

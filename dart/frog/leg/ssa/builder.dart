@@ -355,7 +355,7 @@ class SsaBuilder implements Visitor {
   }
 
   // For while loops, initializer and update are null.
-  visitLoop(Node initializer, Expression condition, Expression update,
+  visitLoop(Node initializer, Expression condition, NodeList updates,
             Node body) {
     assert(condition !== null && body !== null);
     // The initializer.
@@ -392,11 +392,14 @@ class SsaBuilder implements Visitor {
     HBasicBlock updateBlock = addNewBlock();
     bodyBlock.addSuccessor(updateBlock);
     open(updateBlock);
-    if (update !== null) {
-      visit(update);
-      assert(!isAborted());
-      // The update instruction can just be popped. It is not used.
-      HInstruction updateInstruction = pop();
+    if (updates !== null) {
+      for (Expression expression in updates) {
+        visit(expression);
+        assert(!isAborted());
+        // The result of the update instruction isn't used, and can just
+        // be dropped.
+        HInstruction updateInstruction = pop();
+      }
     }
     updateBlock = close(new HGoto());
     // The back-edge completing the cycle.

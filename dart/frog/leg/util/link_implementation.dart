@@ -2,6 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class LinkIterator<T> implements Iterator<T> {
+  Link<T> current;
+  LinkIterator(Link<T> this.current);
+  bool hasNext() => !current.isEmpty();
+  T next() {
+    T result = current.head;
+    current = current.tail;
+    return result;
+  }
+}
+
 class LinkFactory<T> {
   factory Link(T head, [Link<T> tail]) {
     if (tail === null) {
@@ -40,7 +51,7 @@ class LinkTail<T> implements EmptyLink<T> {
     return new LinkEntry<T>(element, this);
   }
 
-  Iterator<T> iterator() => toList().iterator();
+  Iterator<T> iterator() => new LinkIterator<T>(this);
 
   void printOn(StringBuffer buffer, [separatedBy]) {
   }
@@ -65,7 +76,7 @@ class LinkEntry<T> implements Link<T> {
     return new LinkEntry<T>(element, this);
   }
 
-  Iterator<T> iterator() => toList().iterator();
+  Iterator<T> iterator() => new LinkIterator<T>(this);
 
   void printOn(StringBuffer buffer, [separatedBy]) {
     // TODO(ngeofray): Work around Frog bug
