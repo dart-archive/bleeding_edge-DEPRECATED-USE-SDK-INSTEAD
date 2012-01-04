@@ -241,10 +241,12 @@ def main():
     return 1
   sdk_environment = os.environ
   if username.startswith('chrome'):
+    from_bucket = 'gs://dart-dump-render-tree'
     to_bucket = 'gs://dart-editor-archive-continuous'
     run_sdk_build = True
     running_on_buildbot = True
   else:
+    from_bucket = 'gs://dart-editor-archive-testing'
     to_bucket = 'gs://dart-editor-archive-testing'
     run_sdk_build = False
     running_on_buildbot = False
@@ -277,7 +279,7 @@ def main():
         return status
     finally:
       os.chdir(cwd)
-    _CopySdk(buildos, revision, to_bucket, gsu)
+    _CopySdk(buildos, revision, to_bucket, from_bucket, gsu)
 
   if builder_name == 'dart-editor':
     buildos = None
@@ -497,23 +499,25 @@ def _SetAcl(element, gsu):
   print 'setting ACL on {0}'.format(element)
   gsu.SetCannedAcl(element, 'project-private')
   acl = gsu.GetAcl(element)
+  print 'acl = {0}'.format(acl)
   acl = gsu.AddPublicAcl(acl)
   gsu.SetAcl(element, acl)
 
 
-def _CopySdk(buildos, revision, bucket_to, gsu):
+def _CopySdk(buildos, revision, bucket_to, bucket_from, gsu):
   """Copy the deployed SDK to the editor buckets.
 
   Args:
     buildos: the OS the build is running under
     revision: the svn revision
     bucket_to: the bucket to upload to
+    bucket_from: the bucket to copy the sdk from
     gsu: the gsutil object
   """
   print '_CopySdk({0}, {1}, {2}, gsu)'.format(buildos, revision, bucket_to)
   sdkfullzip = 'dart-{0}-{1}.zip'.format(buildos, revision)
   sdkshortzip = 'dart-{0}.zip'.format(buildos)
-  gssdkzip = 'gs://dart-dump-render-tree/sdk/{0}'.format(sdkfullzip)
+  gssdkzip = '{0}/sdk/{1}'.format(bucket_from, sdkfullzip)
   gseditorzip = '{0}/{1}/{2}'.format(bucket_to, revision, sdkshortzip)
   gseditorlatestzip = '{0}/{1}/{2}'.format(bucket_to, 'latest', sdkshortzip)
 
