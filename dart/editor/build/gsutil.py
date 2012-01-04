@@ -8,6 +8,7 @@ found in the LICENSE file.
 Cleanup the Google Storage dart-editor-archive-continuous bucket.
 """
 import os
+import platform
 import string
 import subprocess
 import tempfile
@@ -45,6 +46,11 @@ class GsUtil(object):
       Exception: gsutil is not found
     """
     bot_gs_util = '/b/build/scripts/slave/gsutil'
+    id = platform.system()
+    if id == "Windows" or id == "Microsoft":
+    # On Windows Vista platform.system() can return "Microsoft" with some
+    # versions of Python, see http://bugs.python.org/issue1082 for details.
+      bot_gs_util = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
     if gsutil_loc is None:
       home_gs_util = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
     else:
@@ -68,8 +74,11 @@ class GsUtil(object):
     elif path_gs_util is not None:
       gsutil = path_gs_util
     else:
-      raise Exception('could not find gsutil.'
-                      '  Tried {0} and {1}'.format(bot_gs_util, home_gs_util))
+      msg = 'Could not find gsutil.  '
+      msg += 'Tried {0}, {1}'.format(bot_gs_util, home_gs_util)
+      if path_gs_util is not None:
+        msg += ', {0}'.format(path_gs_util)
+      raise Exception(msg)
     return gsutil
 
   def _LogStream(self, stream, header, error_flag=False):

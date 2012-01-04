@@ -272,7 +272,7 @@
          - - - - - - - - - - - - - - - - - -->
     <target name="setupRuntimeEclipse">
         <setupEclipse location="${build.runtime}" eclipse="${build.runtime.eclipse.version}"
-                      arch="${build.eclipse.arch}" />
+                      arch="${build.eclipse.arch}" os.ws="${build.eclipse.os.ws}" />
         <fileset dir="${build.runtime}/eclipse/plugins" id="launcherFs" >
             <include name="*launcher_*.jar" />
         </fileset>
@@ -281,7 +281,7 @@
 
     <target name="setupBuild" depends="init, setupRuntimeEclipse">
         <setupEclipse location="${build.target}" eclipse="${build.target.eclipse.version}"
-                      arch="${build.eclipse.arch}" />
+                      arch="${build.eclipse.arch}" os.ws="${build.eclipse.os.ws}" />
         <setupDeltaPack location="${build.target}" eclipse="${build.target.eclipse.version}" />
         <copy todir="${build.stage.plugins}">
             <fileset dir="${build.source}/tools/plugins">
@@ -315,7 +315,7 @@
     initialize the build environment by cleaning up the  directory and 
     creating the needed directories
        - - - - - - - - - - - - - - - - - -->
-    <target name="init">
+    <target name="init" depends="setOS">
         <property environment="env" />
         <echoproperties prefix="env." />
 

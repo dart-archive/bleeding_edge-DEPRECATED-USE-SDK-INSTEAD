@@ -21,6 +21,41 @@
             it is intended to be included by other ant scripts
         </fail>
     </target>
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: setOS
+          set the osfamily, isWindows, and notWindows properties
+         - - - - - - - - - - - - - - - - - -->
+    <target name="setOS">
+        <condition property="osfamily" value="windows">
+            <os family="windows"/>
+        </condition>
+        <condition property="build.eclipse.os.ws" value="win32.win32">
+            <os family="windows"/>
+        </condition>
+        <condition property="osfamily" value="macos">
+            <os family="mac"/>
+        </condition>
+        <condition property="build.eclipse.os.ws" value="macosx.macosx">
+            <os family="mac"/>
+        </condition>
+        <condition property="osfamily" value="linux">
+            <os family="unix"/>
+        </condition>
+        <condition property="build.eclipse.os.ws" value="linux.gtk">
+            <os family="unix"/>
+        </condition>
+                <condition property="isWindows">
+            <os family="windows"/>
+        </condition>
+        <condition property="isNotWindows">
+            <not>
+                <os family="windows"/>
+            </not>
+        </condition>
+        
+    </target>
+    
+
     <!--
     ********************************************************************************
       Macro: echoProperty
@@ -73,17 +108,19 @@
     -->
     <macrodef name="setupEclipse">
         <attribute name="location" />
-        <attribute name="eclipse" />
+        <attribute name="version" />
         <attribute name="arch" />
+        <attribute name="os.ws" />
         <sequential>
-            <echo message="setting up Eclipse @{eclipse} (@{arch}) in @{location}" />
+            <echo message="setting up Eclipse @{version} (@{arch}) in @{location}" />
             <mkdir dir="${build.downloads}" />
-            <get src="${eclipse-sdk.@{eclipse}.url}/${eclipse-sdk.@{eclipse}.linux.gtk.@{arch}.zip}"
-                  dest="${build.downloads}/eclipse.@{eclipse}.@{arch}.tar.gz" 
-                  verbose="true" 
-                  usetimestamp="true"/>
+            <get src="${eclipse-sdk.@{version}.url}/${eclipse-sdk.@{version}.@{os.ws}.@{arch}.zip}"
+                 dest="${build.downloads}/eclipse-SDK-@{version}-@{os.ws}-@{arch}.tar.gz" 
+                 verbose="true" 
+                 usetimestamp="true"/>
             <mkdir dir="@{location}"/>
-            <untar src="${build.downloads}/eclipse.@{eclipse}.@{arch}.tar.gz" dest="@{location}" compression="gzip" />
+            <untar src="${build.downloads}/eclipse-SDK-@{version}-@{os.ws}-@{arch}.tar.gz"
+                   dest="@{location}" compression="gzip" />
         </sequential>
     </macrodef>
 

@@ -13,32 +13,6 @@ build system.  The PDE build system has to run under Eclipse.
     <target name="build_rcp" depends="init, setupBuild, doBuild_rcp, package_rcp" />
     
     <!-- - - - - - - - - - - - - - - - - - 
-          target: setOS
-          set the osfamily, isWindows, and notWindows properties
-          but only if running an OS specific build (e.g. build.os is set)
-          TODO remove build.os when the old buildbot is not building editor
-         - - - - - - - - - - - - - - - - - -->
-    <target name="setOS" if="build.os">
-        <condition property="osfamily" value="windows">
-            <os family="windows"/>
-        </condition>
-        <condition property="osfamily" value="macos">
-            <os family="mac"/>
-        </condition>
-        <condition property="osfamily" value="linux">
-            <os family="unix"/>
-        </condition>
-        <condition property="isWindows">
-            <os family="windows"/>
-        </condition>
-        <condition property="isNotWindows">
-            <not>
-                <os family="windows"/>
-            </not>
-        </condition>
-    </target>
-    
-    <!-- - - - - - - - - - - - - - - - - - 
           target: buildBot
          - - - - - - - - - - - - - - - - - -->
     <target name="buildBotFastFail">
@@ -163,7 +137,7 @@ build system.  The PDE build system has to run under Eclipse.
     initializethe build environment by cleaning up the builchrome-botd.tmp directory and 
     creating the needed directories
     -->
-    <target name="init" depends="buildBotFastFail, configDataLocation, readProperties">
+    <target name="init" depends="setOS, buildBotFastFail, configDataLocation, readProperties">
         <property environment="env" />
         <echoproperties prefix="env." />
 
@@ -303,7 +277,8 @@ build system.  The PDE build system has to run under Eclipse.
           target: installSdk
           Install the sdk zip if build.os is set
          - - - - - - - - - - - - - - - - - -->
-    <target name="installSdk" depends="installSdkInNonWindows, installSdkInWindows">
+    <target name="installSdk" if="build.os"
+            depends="installSdkInNonWindows, installSdkInWindows">
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
@@ -322,9 +297,9 @@ build system.  The PDE build system has to run under Eclipse.
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
-          target: initSdkInDevWorkspace                      
+          target: initSdkInDevWorkspace
          - - - - - - - - - - - - - - - - - -->
-    <target name="initSdkInDevWorkspace">
+    <target name="initSdkInDevWorkspace" depends="setOS">
         <!-- This build script must be executed in Eclipse 
           so that the ${eclipse.home} Ant property is defined -->
         <fail unless="eclipse.home">*
@@ -353,7 +328,7 @@ build system.  The PDE build system has to run under Eclipse.
          - - - - - - - - - - - - - - - - - -->
     <target name="setupRuntimeEclipse">
         <setupEclipse location="${build.runtime}" eclipse="${build.runtime.eclipse.version}"
-                      arch="${build.eclipse.arch}" />
+                      arch="${build.eclipse.arch}" os.ws="${build.eclipse.os.ws}" />
         <fileset dir="${build.runtime}/eclipse/plugins" id="launcherFs" >
             <include name="*launcher_*.jar" />
         </fileset>
