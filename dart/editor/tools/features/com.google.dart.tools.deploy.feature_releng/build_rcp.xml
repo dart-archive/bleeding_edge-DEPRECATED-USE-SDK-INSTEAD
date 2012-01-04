@@ -219,8 +219,6 @@ build system.  The PDE build system has to run under Eclipse.
         <echoProperty propertyName="eclipse-sdk.3.8.linux.gtk.x86.zip" />
         <echoProperty propertyName="eclipse-sdk.3.7.url" />
         <echoProperty propertyName="eclipse-sdk.3.7.linux.gtk.x86.zip" />
-        <echoProperty propertyName="eclipse-sdk.3.6.url" />
-        <echoProperty propertyName="eclipse-sdk.3.6.linux.gtk.x86.zip" />
         <!--
         cleanup build directories
         -->
