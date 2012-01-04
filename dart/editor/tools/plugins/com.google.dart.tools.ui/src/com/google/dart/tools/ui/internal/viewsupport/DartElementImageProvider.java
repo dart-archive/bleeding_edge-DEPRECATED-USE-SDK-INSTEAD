@@ -181,7 +181,13 @@ public class DartElementImageProvider {
         if (((DartFunction) element).isPrivate()) {
           return DartPluginImages.DESC_DART_METHOD_PRIVATE;
         }
-        return getMethodImageDescriptor(false, false);
+        if (element.getParent().getElementType() == DartElement.COMPILATION_UNIT) {
+          return DartPluginImages.DESC_DART_METHOD_PUBLIC;
+        } else {
+          // If functions defined within methods are displayed in the outline (or elsewhere) then a
+          // new icon should be added, since they are private but not defined by the user as such.
+          return DartPluginImages.DESC_MISC_DEFAULT;
+        }
       case DartElement.FUNCTION_TYPE_ALIAS:
         return getFuntionTypeDescriptor((DartFunctionTypeAlias) element);
       case DartElement.METHOD: {
