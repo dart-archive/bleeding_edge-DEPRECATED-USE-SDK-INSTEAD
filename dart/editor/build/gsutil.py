@@ -20,6 +20,7 @@ class GsUtil(object):
 
   _gsutil = None
   _dryrun = False
+  _useshell = False
 
   def __init__(self, dryrun=False, gsutil_loc=None):
     """Initialize the class by finding the gsutil programs location.
@@ -46,11 +47,12 @@ class GsUtil(object):
       Exception: gsutil is not found
     """
     bot_gs_util = '/b/build/scripts/slave/gsutil'
-    id = platform.system()
-    if id == "Windows" or id == "Microsoft":
+    operating_system = platform.system()
+    if operating_system == 'Windows' or operating_system == 'Microsoft':
     # On Windows Vista platform.system() can return "Microsoft" with some
     # versions of Python, see http://bugs.python.org/issue1082 for details.
       bot_gs_util = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
+      self._useshell = True
     if gsutil_loc is None:
       home_gs_util = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
     else:
@@ -114,7 +116,9 @@ class GsUtil(object):
 
     print ' '.join(args)
 
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         shell=self._useshell)
     (out, err) = p.communicate()
     if p.returncode:
       failure_message = ('failed to read the contents'
@@ -160,7 +164,8 @@ class GsUtil(object):
     print ' '.join(cmd)
     if not self._dryrun:
       p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE)
+                           stderr=subprocess.PIPE,
+                           shell=self._useshell)
       (out, err) = p.communicate()
       if p.returncode:
         failure_message = 'failed to copy {0} to {1}'.format(from_uri, to_uri)
@@ -184,7 +189,8 @@ class GsUtil(object):
     print ' '.join(args)
     if not self._dryrun:
       p = subprocess.Popen(args, stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE)
+                           stderr=subprocess.PIPE,
+                           shell=self._useshell)
       (out, err) = p.communicate()
       if p.returncode:
         failure_message = 'failed to remove {0}\n'.format(item_uri)
@@ -208,7 +214,8 @@ class GsUtil(object):
     #echo the command to the screen
     print ' '.join(args)
     p = subprocess.Popen(args, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
+                         stderr=subprocess.PIPE,
+                         shell=self._useshell)
     (out, err) = p.communicate()
     if p.returncode:
       failure_message = 'failed to getacl {0}\n'.format(item_uri)
@@ -305,7 +312,8 @@ class GsUtil(object):
     print ' '.join(args)
     if not self._dryrun:
       p = subprocess.Popen(args, stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE)
+                           stderr=subprocess.PIPE,
+                           shell=self._useshell)
       (out, err) = p.communicate()
       if p.returncode:
         failure_message = 'failed to setacl {0}\n'.format(object_uri)

@@ -278,8 +278,7 @@ build system.  The PDE build system has to run under Eclipse.
           target: installSdk
           Install the sdk zip if build.os is set
          - - - - - - - - - - - - - - - - - -->
-    <target name="installSdk" if="build.os"
-            depends="installSdkInNonWindows, installSdkInWindows">
+    <target name="installSdk" depends="installSdkInNonWindows, installSdkInWindows">
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 

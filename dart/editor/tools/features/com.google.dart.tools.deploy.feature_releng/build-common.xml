@@ -44,13 +44,21 @@
         <condition property="build.eclipse.os.ws" value="linux.gtk">
             <os family="unix"/>
         </condition>
-                <condition property="isWindows">
-            <os family="windows"/>
+        <condition property="isWindows">
+            <and>
+                <os family="windows"/>
+                <!-- TODO (mrrusell) this can be removed once the build is only running on OS specific builds -->
+                <isset property="build.os" />
+            </and>
         </condition>
         <condition property="isNotWindows">
-            <not>
-                <os family="windows"/>
-            </not>
+            <and>
+                <not>
+                    <os family="windows"/>
+                </not>
+                <!-- TODO (mrrussell) this can be removed once the build is only running on OS specific builds -->
+                <isset property="build.os" />
+            </and>
         </condition>
         
     </target>
