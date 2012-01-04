@@ -2,6 +2,7 @@ This license applies to all parts of Dart that are not externally
 maintained libraries. The external maintained libraries used by
 Dart are:
 
+7-Zip - in third_party/7zip
 JSCRE - in runtime/third_party/jscre
 Ant - in third_party/apache_ant
 args4j - in third_party/args4j
