@@ -557,7 +557,7 @@ function $inheritsMembers(child, parent) {
     writer.comment('// ${typesWithDynamicDispatch.length} dynamic types.');
 
     typeTag(type) => type.definition.nativeType.name;
-    
+
     // Build a pre-order traversal over all the types and their subtypes.
     var seen = new Set();
     var types = [];
@@ -2258,6 +2258,10 @@ class MethodGenerator implements TreeVisitor {
       default:
         world.internalError('unimplemented: ${node.op}', node.span);
     }
+  }
+
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    world.error('Expected expression', node.span);
   }
 
   visitAwaitExpression(AwaitExpression node) {

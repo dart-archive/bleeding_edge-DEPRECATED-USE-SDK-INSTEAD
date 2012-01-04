@@ -4116,6 +4116,9 @@ MethodGenerator.prototype.visitUnaryExpression = function(node) {
 
   }
 }
+MethodGenerator.prototype.visitDeclaredIdentifier = function(node) {
+  $globals.world.error('Expected expression', node.span);
+}
 MethodGenerator.prototype.visitAwaitExpression = function(node) {
   $globals.world.internalError('Await expressions should have been eliminated before code generation', node.span);
 }
