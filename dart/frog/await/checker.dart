@@ -64,19 +64,13 @@ class AwaitChecker implements TreeVisitor {
 
   visitReturnStatement(ReturnStatement node) {
     bool awaitSeen = _visit(node.value);
-    if (awaitSeen) {
-      haveAwait.add(node);
-      _notSupportedStmt("return", node);
-    }
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitThrowStatement(ThrowStatement node) {
     bool awaitSeen = _visit(node.value);
-    if (awaitSeen) {
-      haveAwait.add(node);
-      _notSupportedStmt("throw", node);
-    }
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
@@ -198,20 +192,14 @@ class AwaitChecker implements TreeVisitor {
   visitCallExpression(CallExpression node) {
     bool awaitSeen = node.target.visit(this);
     if (_visitList(node.arguments)) awaitSeen = true;
-    if (awaitSeen) {
-      haveAwait.add(node);
-      _notSupported("call expressions", node);
-    }
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
   visitIndexExpression(IndexExpression node) {
     bool awaitSeen = node.target.visit(this);
     if (node.index.visit(this)) awaitSeen = true;
-    if (awaitSeen) {
-      haveAwait.add(node);
-      _notSupported("index expressions", node);
-    }
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
@@ -291,10 +279,7 @@ class AwaitChecker implements TreeVisitor {
 
   visitParenExpression(ParenExpression node) {
     bool awaitSeen = node.body.visit(this);
-    if (awaitSeen) {
-      haveAwait.add(node);
-      _notSupported("paren expressions", node);
-    }
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
@@ -305,10 +290,7 @@ class AwaitChecker implements TreeVisitor {
 
   visitDotExpression(DotExpression node) {
     bool awaitSeen = node.self.visit(this);
-    if (awaitSeen) {
-      haveAwait.add(node);
-      _notSupported("dot expressions", node);
-    }
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 
@@ -334,10 +316,7 @@ class AwaitChecker implements TreeVisitor {
 
   visitArgumentNode(ArgumentNode node) {
     bool awaitSeen = node.value.visit(this);
-    if (awaitSeen) {
-      haveAwait.add(node);
-      _notSupported("call arguments", node);
-    }
+    if (awaitSeen) haveAwait.add(node);
     return awaitSeen;
   }
 

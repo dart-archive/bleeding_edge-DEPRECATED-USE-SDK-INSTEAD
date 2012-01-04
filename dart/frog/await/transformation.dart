@@ -15,7 +15,7 @@ class AwaitProcessor implements TreeVisitor {
    * [Completer] used to create a future of the function's result.
    */
   // TODO(sigmund): fix frog to make it possible to switch to '_a:res'. The
-  // current mangling breaks across closure-boundaries.
+  // mangling code currently breaks across closure-boundaries.
   static final _PREFIX = '_a_';
   static final _COMPLETER_NAME = _PREFIX + 'res';
   static final _THEN_PARAM = _PREFIX + 'v';
@@ -101,8 +101,6 @@ class AwaitProcessor implements TreeVisitor {
   }
 
   visitAssertStatement(AssertStatement node) {
-    // TODO(sigmund): implement. This should be normalized into a conditional
-    // and call completeException only when the assertion fails.
     return node;
   }
 
@@ -322,8 +320,9 @@ class AwaitProcessor implements TreeVisitor {
     // TODO(sigmund): test also when !continuation.isEmpty();
     for (int i = node.body.length - 1; i >= 0; i--) {
       final res = node.body[i].visit(this);
-      // Note: we can't inline [res] below because, visit might redefine
-      // 'continuation' and we want to use it here.
+      // Note: we can't inline [res] in the line below because [continuation]
+      // might be redefined and we want to use the latest reference after we
+      // finish visiting [node.body].
       continuation.addFirst(res);
     }
 
@@ -373,8 +372,9 @@ class AwaitProcessor implements TreeVisitor {
   }
 
   visitCatchNode(CatchNode node) {
-    if (!haveAwait.contains(node)) return node;
-    return node;
+    // shouldn't reach here.
+    world.fatal("'catch' should be handled with the enclosing try statement",
+        node.span);
   }
 
   visitCaseNode(CaseNode node) {
@@ -387,7 +387,7 @@ class AwaitProcessor implements TreeVisitor {
    * [:Future.then:] and propatating errors. This implementation assumes that
    * await calls are within blocks (after normalization).
    */
-  _desugarAwaitCall(AwaitExpression node, Identifier param) {
+  CallExpression _desugarAwaitCall(AwaitExpression node, Identifier param) {
     List<Statement> afterAwait = [];
     afterAwait.addAll(continuation);
     if (afterAwait.last() is ReturnStatement) {
@@ -428,15 +428,15 @@ class AwaitProcessor implements TreeVisitor {
     return _callThen(node.body, thenArg, node.span);
   }
 
-  /** Make the statement: [: future.then(arg); :] */
-  _callThen(Expression future, Expression arg, SourceSpan span) {
+  /** Make the call expression: [: future.then(arg); :] */
+  CallExpression _callThen(Expression future, Expression arg, SourceSpan span) {
     return new CallExpression(
         new DotExpression(future, new Identifier('then', span), span),
         [new ArgumentNode(null, arg, span)], span);
   }
 
   /** Make the statement: [: final Completer<T> v = new Completer<T>(); :]. */
-  _declareCompleter(Type argType, SourceSpan span) {
+  VariableDefinition _declareCompleter(Type argType, SourceSpan span) {
     final name = new Identifier('Completer', span);
     final ctorName = new Identifier('', span);
     var typeRef = new NameTypeReference(false, name, [ctorName], span);

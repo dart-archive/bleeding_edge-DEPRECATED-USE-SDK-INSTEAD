@@ -7,10 +7,11 @@ prefix await
 [ $component == frogsh || $component == frog ]
 
 # Not implemented yet
-TryCatch8Test: Fail             # handle-error on non-normalized future argument
 WhileLoopWithBreakTest: Fail    # break within a loop
-*NormalizationTest: Fail        # normalization in general
 TypedFunctionNegativeTest: Fail # checking return-type of async functions
+TryCatch10Test: Fail            # traps more exceptions than it should
+WhileNormalizationTest: Skip    # normalization code is incorrect, currently
+                                # causing test to loop forever.
 
 [ $component == frogsh ]
 MintMakerRpcTest: Pass, Crash # Issue 1024.

@@ -9,7 +9,7 @@
 noerror() {
   try {
     final t = await futureOf(0);
-    return t;
+    return t; // this returns 0
   } catch (e) {
     return -1;
   }
@@ -17,5 +17,5 @@ noerror() {
 
 main() {
   int t = await noerror();
-  Expect.notEquals(0, t);
+  Expect.notEquals(0, t); // this should fail
 }

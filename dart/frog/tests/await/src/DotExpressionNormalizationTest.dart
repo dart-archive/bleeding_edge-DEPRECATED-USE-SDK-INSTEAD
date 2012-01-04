@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// await on multi-variable initialization.
+// await on (non short-circuit, ie not: || &&) binary expressions.
 #import("await_test_helper.dart");
 
+class A {
+  int x;
+  A(this.x);
+}
+
 main() {
-  int x = 1, y = await futureOf(x + 1), z = y + 1;
-  Expect.equals(3, z);
+  Expect.equals(2, (await futureOf(new A(2))).x);
 }

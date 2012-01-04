@@ -61,8 +61,18 @@ _processFunction(FunctionDefinition func) {
     _processFunction(f);
   }
 
-  // Then rewrite the function, if necessary.
-  func.visit(new AwaitProcessor(checker.haveAwait));
+  if (checker.haveAwait.contains(func)) {
+    // Normalize
+    func.visit(new AwaitNormalizer(checker.haveAwait));
+    // Re-run the checker to derive appropriate node information (this
+    // makes the normalizer simpler as we don't have to keep track of this
+    // information).
+    checker = new AwaitChecker();
+    func.visit(checker);
+
+    // Transform the code.
+    func.visit(new AwaitProcessor(checker.haveAwait));
+  }
 }
 
 /** Run frog, setting the await transformation correctly. */

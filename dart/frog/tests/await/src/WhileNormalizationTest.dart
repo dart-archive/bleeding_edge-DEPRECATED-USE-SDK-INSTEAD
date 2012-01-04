@@ -2,10 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// await on multi-variable initialization.
+// Await within the test of a while loop.
+
 #import("await_test_helper.dart");
 
 main() {
-  int x = 1, y = await futureOf(x + 1), z = y + 1;
-  Expect.equals(3, z);
+  var x = 10;
+  var y = 0;
+  while (y < 3 || await futureOf(x) > 0) {
+    x--;
+    y++;
+  }
+  Expect.equals(7, x);
 }
