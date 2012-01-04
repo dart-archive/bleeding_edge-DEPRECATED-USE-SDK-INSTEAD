@@ -200,8 +200,8 @@ neg(var a) {
 
 index(var a, var index) {
   if (isJSArray(a)) {
-    if (a < 0 || a >= a.length) $throw('Out of bounds');
     if (!isInt(index)) $throw('Illegal argument');
+    if (index < 0 || index >= a.length) $throw('Out of bounds');
     return JS("Object", @"$0[$1]", a, index);
   }
   throw "Unimplemented user-defined [].";
@@ -209,8 +209,8 @@ index(var a, var index) {
 
 indexSet(var a, var index, var value) {
   if (isJSArray(a)) {
-    if (a < 0 || a >= a.length) $throw('Out of bounds');
     if (!isInt(index)) $throw('Illegal argument');
+    if (index < 0 || index >= a.length) $throw('Out of bounds');
     return JS("Object", @"$0[$1] = $2", a, index, value);
   }
   throw "Unimplemented user-defined []=.";
