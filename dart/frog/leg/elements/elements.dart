@@ -36,6 +36,8 @@ class ElementKind {
   static final ElementKind FIELD_LIST = const ElementKind('field_list');
   static final ElementKind GENERATIVE_CONSTRUCTOR_BODY =
       const ElementKind('generative_constructor_body');
+  static final ElementKind COMPILATION_UNIT =
+      const ElementKind('compilation_unit');
 
   toString() => id;
 }
@@ -54,6 +56,7 @@ class Element implements Hashable {
   bool isInstanceMember() => false;
   bool isFactoryConstructor() => modifiers != null && modifiers.isFactory();
   bool isGenerativeConstructor() => kind == ElementKind.GENERATIVE_CONSTRUCTOR;
+  bool isCompilationUnit() => kind == ElementKind.COMPILATION_UNIT;
 
   bool isAssignable() {
     if (modifiers != null && modifiers.isFinal()) return false;
@@ -69,6 +72,15 @@ class Element implements Hashable {
   int hashCode() => name.hashCode();
 
   toString() => '$kind($name)';
+}
+
+class CompilationUnitElement extends Element {
+  final Script script;
+  CompilationUnitElement(Script script, Element enclosing)
+    : super(new SourceString(script.name),
+            ElementKind.COMPILATION_UNIT,
+            enclosing),
+      this.script = script;
 }
 
 class VariableElement extends Element {
@@ -266,7 +278,8 @@ class ClassElement extends Element {
   Link<Element> backendMembers = const EmptyLink<Element>();
   SynthesizedConstructorElement synthesizedConstructor;
 
-  ClassElement(SourceString name) : super(name, ElementKind.CLASS, null);
+  ClassElement(SourceString name, CompilationUnitElement enclosing)
+    : super(name, ElementKind.CLASS, enclosing);
 
   void addMember(Element element) {
     members = members.prepend(element);

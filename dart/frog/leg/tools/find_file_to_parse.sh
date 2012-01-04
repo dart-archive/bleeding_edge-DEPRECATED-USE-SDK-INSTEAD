@@ -29,6 +29,7 @@ find .. \( \
     -o -name Prefix19NegativeTest.dart \
     -o -name Operator2NegativeTest.dart \
     -o -name xcodebuild \
+    -o -name out \
     \) -prune -o \
     -name \*.dart -type f -print \
     | grep -v /editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/internal/model/testsource/ClassTest.dart \

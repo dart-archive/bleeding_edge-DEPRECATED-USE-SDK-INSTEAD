@@ -346,7 +346,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   compiler.universe = new ExtendedUniverse(compiler.universe);
 
   Token tokens = scan(text);
-  ElementListener listener = new ElementListener(compiler);
+  ElementListener listener = new ElementListener(compiler, null);
   PartialParser parser = new PartialParser(listener);
   parser.parseUnit(tokens);
 

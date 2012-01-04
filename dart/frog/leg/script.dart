@@ -7,4 +7,5 @@ class Script {
   Script(this.file);
 
   String get text() => file.text;
+  String get name() => file.filename;
 }

@@ -28,13 +28,14 @@ class WorkElement {
 }
 
 class Compiler implements Canceler, Logger {
-  final Script script;
   Queue<WorkElement> worklist;
   Universe universe;
   String assembledCode;
   Namer namer;
 
   CompilerTask measuredTask;
+  Element currentElement;
+  Element currentLibrary = null; // TODO(ngeoffray): initialize this.
 
   List<CompilerTask> tasks;
   ScannerTask scanner;
@@ -49,7 +50,7 @@ class Compiler implements Canceler, Logger {
 
   static final SourceString MAIN = const SourceString('main');
 
-  Compiler(this.script) {
+  Compiler() {
     universe = new Universe();
     worklist = new Queue<WorkElement>();
     namer = new Namer();
@@ -84,9 +85,9 @@ class Compiler implements Canceler, Logger {
     // Do nothing.
   }
 
-  bool run() {
+  bool run(Script script) {
     try {
-      runCompiler();
+      runCompiler(script);
     } catch (CompilerCancelledException exception) {
       log(exception.toString());
       log('compilation failed');
@@ -105,7 +106,9 @@ class Compiler implements Canceler, Logger {
 
   void scanCoreLibrary() {
     String fileName = io.join([legDirectory, 'lib', 'core.dart']);
-    scanner.scan(readScript(fileName));
+    currentElement = new CompilationUnitElement(
+        readScript(fileName), currentLibrary);
+    scanner.scan(currentElement);
     // Make our special function a foreign kind.
     Element element = new ForeignElement(const SourceString('JS'));
     universe.define(element);
@@ -132,15 +135,18 @@ class Compiler implements Canceler, Logger {
     }
   }
 
-  void runCompiler() {
+  void runCompiler(Script script) {
     scanCoreLibrary();
-    scanner.scan(script);
+    currentElement = new CompilationUnitElement(script, currentLibrary);
+    scanner.scan(currentElement);
     Element element = universe.find(MAIN);
     if (element === null) cancel('Could not find $MAIN');
     worklist.add(new WorkElement.toCompile(element));
     do {
       while (!worklist.isEmpty()) {
-        worklist.removeLast().run(this);
+        WorkElement work = worklist.removeLast();
+        currentElement = work.element;
+        work.run(this);
       }
       enqueueInvokedInstanceMethods();
     } while (!worklist.isEmpty());

@@ -5,6 +5,7 @@
 #library('frog_leg');
 
 #import('../lang.dart', prefix: 'frog');
+#import('elements/elements.dart');
 #import('io/io.dart', prefix: 'io');
 #import('leg.dart');
 #import('tree/tree.dart');
@@ -12,16 +13,16 @@
 bool compile(frog.World world) {
   final file = world.readFile(frog.options.dartScript);
   final throwOnError = frog.options.throwOnErrors;
+  final compiler = new WorldCompiler(world, throwOnError);
   final script = new Script(file);
-  final compiler = new WorldCompiler(world, script, throwOnError);
-  return compiler.run();
+  return compiler.run(script);
 }
 
 class WorldCompiler extends Compiler {
   final frog.World world;
   final bool throwOnError;
 
-  WorldCompiler(this.world, Script script, this.throwOnError) : super(script);
+  WorldCompiler(this.world, this.throwOnError) : super();
 
   void log(message) {
     if (frog.options.showInfo) {
@@ -31,8 +32,8 @@ class WorldCompiler extends Compiler {
     }
   }
 
-  bool run() {
-    bool success = super.run();
+  bool run(Script script) {
+    bool success = super.run(script);
     if (success) {
       var code = assembledCode;
       world.legCode = code;
@@ -44,7 +45,7 @@ class WorldCompiler extends Compiler {
     return success;
   }
 
-  spanFromNode(Node node) {
+  spanFromNode(Node node, Script current) {
     final begin = node.getBeginToken();
     final end = node.getEndToken();
     if (begin === null || end === null) {
@@ -52,15 +53,28 @@ class WorldCompiler extends Compiler {
     }
     final startOffset = begin.charOffset;
     final endOffset = end.charOffset + end.toString().length;
-    return new frog.SourceSpan(script.file, startOffset, endOffset);
+    return new frog.SourceSpan(current.file, startOffset, endOffset);
+  }
+
+  currentScript() {
+    Element element = currentElement;
+    while (element !== null && !element.isCompilationUnit()) {
+      element = element.enclosingElement;
+    }
+    CompilationUnitElement compilationUnit = element;
+    if (compilationUnit === null) return null;
+    return compilationUnit.script;
   }
 
   reportWarning(Node node, var message) {
     frog.SourceSpan span;
-    if (node == null) {
-      span = new frog.SourceSpan(script.file, 0, 0);
+    Script current = currentScript();
+    if (current === null) {
+      world.fatal('No current script');
+    } else if (node === null) {
+      span = new frog.SourceSpan(current.file, 0, 0);
     } else {
-      span = spanFromNode(node);
+      span = spanFromNode(node, current);
     }
     world.warning('$message.', span);
   }

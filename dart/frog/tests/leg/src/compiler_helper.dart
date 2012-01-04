@@ -14,6 +14,7 @@ class StringScript extends leg.Script {
   final String code;
   StringScript(this.code) : super(null);
   String get text() => code;
+  String get name() => "mock script";
 }
 
 String compile(String code, [String entry = 'main']) {
@@ -27,7 +28,7 @@ String compile(String code, [String entry = 'main']) {
 }
 
 String compileClasses(String code) {
-  leg.Compiler compiler = new MockCompiler(script: new StringScript(code));
-  compiler.runCompiler();
+  leg.Compiler compiler = new MockCompiler();
+  compiler.runCompiler(new StringScript(code));
   return compiler.assembledCode;
 }

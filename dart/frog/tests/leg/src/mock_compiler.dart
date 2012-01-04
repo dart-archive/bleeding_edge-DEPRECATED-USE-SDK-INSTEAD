@@ -43,8 +43,8 @@ class MockCompiler extends Compiler {
   List<WarningMessage> errors;
   Node parsedTree;
 
-  MockCompiler([String corelib = DEFAULT_CORELIB, Script script = null])
-      : super(script), warnings = [], errors = [] {
+  MockCompiler([String corelib = DEFAULT_CORELIB])
+      : super(), warnings = [], errors = [] {
     parseScript(corelib);
   }
 

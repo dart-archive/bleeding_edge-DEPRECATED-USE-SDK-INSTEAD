@@ -428,12 +428,13 @@ class ParserError {
  */
 class ElementListener extends Listener {
   final Canceler canceler;
+  final CompilationUnitElement compilationUnitElement;
 
   Link<Node> nodes = const EmptyLink<Node>();
   Link<Element> topLevelElements = const EmptyLink<Element>();
-  Element compilationUnitElement = null; // TODO(ahe): Initalize this.
 
-  ElementListener(Canceler this.canceler);
+  ElementListener(Canceler this.canceler,
+                  CompilationUnitElement this.compilationUnitElement);
 
   void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
     canceler.cancel("library tags are not implemented", token: beginToken);
@@ -445,7 +446,8 @@ class ElementListener extends Listener {
     discardNodes("implements", interfacesCount);
     TypeAnnotation supertype = popNode();
     Identifier name = popNode();
-    pushElement(new PartialClassElement(name.source, beginToken, endToken));
+    pushElement(new PartialClassElement(
+        name.source, beginToken, endToken, compilationUnitElement));
   }
 
   void endDefaultClause(Token defaultKeyword) {
@@ -631,7 +633,7 @@ class ElementListener extends Listener {
 class NodeListener extends ElementListener {
   final Logger logger;
 
-  NodeListener(Canceler canceler, Logger this.logger) : super(canceler);
+  NodeListener(Canceler canceler, Logger this.logger) : super(canceler, null);
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,

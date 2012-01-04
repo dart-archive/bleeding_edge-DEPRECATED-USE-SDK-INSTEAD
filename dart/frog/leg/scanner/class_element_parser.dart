@@ -13,8 +13,10 @@ class PartialClassElement extends ClassElement {
   final Token endToken;
 
   PartialClassElement(SourceString name,
-                      Token this.beginToken, Token this.endToken)
-    : super(name);
+                      Token this.beginToken,
+                      Token this.endToken,
+                      CompilationUnitElement enclosing)
+    : super(name, enclosing);
 
   ClassNode parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
