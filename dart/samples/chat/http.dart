@@ -50,6 +50,7 @@ interface HTTPStatus {
   static final int SERVICE_UNAVAILABLE = 503;
   static final int GATEWAY_TIMEOUT = 504;
   static final int HTTP_VERSION_NOT_SUPPORTED = 505;
+  static final int NETWORK_CONNECT_TIMEOUT_ERROR = 599; // Client generated status code.
 }
 
 
@@ -223,6 +224,11 @@ interface HTTPClient default HTTPClientImplementation {
    * Set the open handler that is called on successful open operations.
    */
   void set openHandler(void handler(HTTPClientRequest request));
+
+  /**
+   * Set the error handler that is called on failure to open a connection.
+   */
+  void set errorHandler(void handler(HTTPStatus status));
 }
 
 

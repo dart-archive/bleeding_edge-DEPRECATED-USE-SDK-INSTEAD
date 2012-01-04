@@ -1437,8 +1437,14 @@ class HTTPClientImplementation implements HTTPClient{
     if (socketConnections == null || socketConnections.isEmpty()) {
       Socket socket = new Socket(host, port);
       socket.connectHandler = () {
+        socket.errorHandler = null;
         SocketConnection socketConn = new SocketConnection(host, port, socket);
         _connectionOpened(socketConn);
+      };
+      socket.errorHandler = () {
+        if (_errorHandler !== null) {
+          _errorHandler(HTTPStatus.NETWORK_CONNECT_TIMEOUT_ERROR);
+        }
       };
     } else {
       SocketConnection socketConn = socketConnections.removeFirst();
@@ -1499,7 +1505,12 @@ class HTTPClientImplementation implements HTTPClient{
     _openHandler = callback;
   }
 
-  var _openHandler;
+  void set errorHandler(void callback(HTTPStatus status)) {
+    _errorHandler = callback;
+  }
+
+  Function _openHandler;
+  Function _errorHandler;
   Map<String, Queue<SocketConnection>> _openSockets;
   Timer _evictionTimer;
   bool _shutdown;  // Has this HTTP client been shutdown?
