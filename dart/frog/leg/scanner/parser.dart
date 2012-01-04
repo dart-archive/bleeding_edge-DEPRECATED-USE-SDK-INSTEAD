@@ -849,7 +849,7 @@ class Parser {
             listener.handleBinaryExpression(operator);
           } else if ((info === OPEN_PAREN_INFO) ||
                      (info === OPEN_SQUARE_BRACKET_INFO)) {
-            token = parseArgumentsOrIndex(token);
+            token = parseArgumentOrIndexStar(token);
           } else if ((info === PLUS_PLUS_INFO) ||
                      (info === MINUS_MINUS_INFO)) {
             listener.handleUnaryPostfixAssignmentExpression(token);
@@ -899,7 +899,7 @@ class Parser {
     return token;
   }
 
-  Token parseArgumentsOrIndex(Token token) {
+  Token parseArgumentOrIndexStar(Token token) {
     while (true) {
       if (optional('[', token)) {
         Token openSquareBracket = token;

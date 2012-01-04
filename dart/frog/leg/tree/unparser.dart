@@ -156,7 +156,7 @@ class Unparser implements Visitor {
   }
 
 
-  printSendPart(Send node) {
+  unparseSendPart(Send node) {
     if (node.isPrefix) {
       visit(node.selector);
     }
@@ -170,12 +170,12 @@ class Unparser implements Visitor {
   }
 
   visitSend(Send node) {
-    printSendPart(node);
+    unparseSendPart(node);
     visit(node.argumentsNode);
   }
 
   visitSendSet(SendSet node) {
-    printSendPart(node);
+    unparseSendPart(node);
     add(node.assignmentOperator.token.value);
     visit(node.argumentsNode);
   }
