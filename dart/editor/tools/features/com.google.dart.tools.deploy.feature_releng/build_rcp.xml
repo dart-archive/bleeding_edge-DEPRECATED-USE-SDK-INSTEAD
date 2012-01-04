@@ -130,6 +130,7 @@ build system.  The PDE build system has to run under Eclipse.
                 </not>
             </condition>
         </fail>
+        <echo message="reading ${default-user.property.file}" />
         <property file="${default-user.property.file}" />
      </target>
     
@@ -327,7 +328,7 @@ build system.  The PDE build system has to run under Eclipse.
           target: setupRuntimeEclipse
          - - - - - - - - - - - - - - - - - -->
     <target name="setupRuntimeEclipse">
-        <setupEclipse location="${build.runtime}" eclipse="${build.runtime.eclipse.version}"
+        <setupEclipse location="${build.runtime}" version="${build.runtime.eclipse.version}"
                       arch="${build.eclipse.arch}" os.ws="${build.eclipse.os.ws}" />
         <fileset dir="${build.runtime}/eclipse/plugins" id="launcherFs" >
             <include name="*launcher_*.jar" />
@@ -565,7 +566,8 @@ build system.  The PDE build system has to run under Eclipse.
          - - - - - - - - - - - - - - - - - -->
     <target name="package_rcp" depends="init, setupBuild, doBuild_rcp" >
         <property file="build.properties" prefix="pde." />
-        <copy todir="${build.out}">
+        <echo message="copying zip files from ${build.stage}/${pde.buildLabel} to ${build.out}"/>
+        <copy todir="${build.out}" verbose="true">
             <fileset dir="${build.stage}/${pde.buildLabel}">
                 <include name="*.zip" />
             </fileset>

@@ -271,7 +271,7 @@
           target: setupRuntimeEclipse
          - - - - - - - - - - - - - - - - - -->
     <target name="setupRuntimeEclipse">
-        <setupEclipse location="${build.runtime}" eclipse="${build.runtime.eclipse.version}"
+        <setupEclipse location="${build.runtime}" version="${build.runtime.eclipse.version}"
                       arch="${build.eclipse.arch}" os.ws="${build.eclipse.os.ws}" />
         <fileset dir="${build.runtime}/eclipse/plugins" id="launcherFs" >
             <include name="*launcher_*.jar" />
@@ -280,7 +280,7 @@
     </target>
 
     <target name="setupBuild" depends="init, setupRuntimeEclipse">
-        <setupEclipse location="${build.target}" eclipse="${build.target.eclipse.version}"
+        <setupEclipse location="${build.target}" version="${build.target.eclipse.version}"
                       arch="${build.eclipse.arch}" os.ws="${build.eclipse.os.ws}" />
         <setupDeltaPack location="${build.target}" eclipse="${build.target.eclipse.version}" />
         <copy todir="${build.stage.plugins}">
@@ -302,7 +302,7 @@
             <fileset dir="${build.source.root}/compiler/javatests" />
         </copy>
         -->
-        <unzip dest="${build.target.dropins}" src="${build.out}/DartBuild-linux.gtk.${build.eclipse.arch}.zip">
+        <unzip dest="${build.target.dropins}" src="${build.out}/DartBuild-${build.eclipse.os.ws}.${build.eclipse.arch}.zip">
             <patternset>
                 <include name="**/plugins/com.google.dart*/**" />
                 <include name="**/features/com.google.dart*/**" />
@@ -411,8 +411,6 @@
         <echoProperty propertyName="eclipse-sdk.3.8.linux.gtk.x86.zip" />
         <echoProperty propertyName="eclipse-sdk.3.7.url" />
         <echoProperty propertyName="eclipse-sdk.3.7.linux.gtk.x86.zip" />
-        <echoProperty propertyName="eclipse-sdk.3.6.url" />
-        <echoProperty propertyName="eclipse-sdk.3.6.linux.gtk.x86.zip" />
         <!--
         cleanup the build.tmp directory
         -->
