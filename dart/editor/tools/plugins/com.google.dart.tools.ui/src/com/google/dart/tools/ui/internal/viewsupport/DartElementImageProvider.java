@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.viewsupport;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
@@ -177,7 +178,10 @@ public class DartElementImageProvider {
   public ImageDescriptor getBaseImageDescriptor(DartElement element, int renderFlags) {
     switch (element.getElementType()) {
       case DartElement.FUNCTION:
-        return DartPluginImages.DESC_DART_METHOD_PRIVATE;
+        if (((DartFunction) element).isPrivate()) {
+          return DartPluginImages.DESC_DART_METHOD_PRIVATE;
+        }
+        return getMethodImageDescriptor(false, false);
       case DartElement.FUNCTION_TYPE_ALIAS:
         return getFuntionTypeDescriptor((DartFunctionTypeAlias) element);
       case DartElement.METHOD: {
