@@ -20,6 +20,7 @@ class ResolverTask extends CompilerTask {
   TreeElements resolve(FunctionElement element) {
     return measure(() {
       FunctionExpression tree = element.parseNode(compiler, compiler);
+      // TODO(ahe): Can this be cleaned up to use resolveSignature?
       ResolverVisitor visitor = new SignatureResolverVisitor(compiler, element);
       visitor.visit(tree);
 
@@ -227,11 +228,12 @@ class SignatureResolverVisitor extends ResolverVisitor {
   visitFunctionExpression(FunctionExpression node) {
     useElement(node, element);
     context = new MethodScope(context, element);
-    if (element.parameters == null) {
+    if (element.parameters === null) {
       ParametersVisitor visitor = new ParametersVisitor(this);
       visitor.visit(node.parameters);
       element.parameters = visitor.elements.toLink();
     } else {
+      // TODO(ahe): What is this for?
       Link<Node> parameterNodes = node.parameters.nodes;
       for (Link<Element> link = element.parameters;
            !link.isEmpty() && !parameterNodes.isEmpty();
@@ -290,6 +292,7 @@ class FullResolverVisitor extends ResolverVisitor {
     defineElement(node, enclosingElement);
     context = new MethodScope(context, enclosingElement);
 
+    // TODO(ahe): Can this be cleaned up to use resolveSignature?
     ParametersVisitor visitor = new ParametersVisitor(this);
     visitor.visit(node.parameters);
     enclosingElement.parameters = visitor.elements.toLink();
@@ -621,8 +624,22 @@ class ParametersVisitor extends AbstractVisitor/*<Element>*/ {
     resolver.visit(node.type);
     VariableDefinitionsVisitor visitor =
         new VariableDefinitionsVisitor(node, resolver, ElementKind.PARAMETER);
+    Link<Node> definitions = node.definitions.nodes;
+    if (definitions.isEmpty()) {
+      resolver.cancel(node, 'internal error: no parameter definition');
+      return;
+    }
+    if (!definitions.tail.isEmpty()) {
+      resolver.cancel(definitions.tail.head,
+                      'internal error: extra definition');
+      return;
+    }
+    Node definition = definitions.head;
+    if (definition is NodeList) {
+      resolver.cancel(node, 'optional parameters are not implemented');
+    }
     visitor.visit(node.definitions);
-    return resolver.mapping[node.definitions.nodes.head];
+    return resolver.mapping[definition];
   }
 
   visit(Node node) => node.accept(this);

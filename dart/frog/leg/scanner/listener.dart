@@ -1034,10 +1034,7 @@ class NodeListener extends ElementListener {
 
   void endOptionalFormalParameters(int count,
                                    Token beginToken, Token endToken) {
-    NodeList optionalParameters =
-      makeNodeList(count, beginToken, endToken, ',');
-    canceler.cancel('optional formal parameters are not implemented',
-                    node: optionalParameters);
+    pushNode(makeNodeList(count, beginToken, endToken, ','));
   }
 
   void handleFunctionTypedFormalParameter(Token token) {

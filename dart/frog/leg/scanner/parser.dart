@@ -84,13 +84,13 @@ class Parser {
       return token.next.next;
     }
     do {
+      ++parameterCount;
       token = token.next;
       if (optional('[', token)) {
         token = parseOptionalFormalParameters(token);
         break;
       }
       token = parseFormalParameter(token);
-      ++parameterCount;
     } while (optional(',', token));
     listener.endFormalParameters(parameterCount, begin, token);
     return expect(')', token);

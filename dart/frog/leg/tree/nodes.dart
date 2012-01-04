@@ -492,7 +492,14 @@ class For extends Loop {
 
 class FunctionExpression extends Expression {
   final Node name;
+
+  /**
+   * List of VariableDefinitions or NodeList.
+   *
+   * A NodeList can only occur at the end and holds named parameters.
+   */
   final NodeList parameters;
+
   final Statement body;
   final TypeAnnotation returnType;
   final Modifiers modifiers;
