@@ -34,9 +34,26 @@ int if4() {
   }
 }
 
+int if5() {
+  if (true) {
+    if (false) return 42;
+  } else {
+  }
+  return 499;
+}
+
+int if6() {
+  if (true) {
+    if (false) return 42;
+  }
+  return 499;
+}
+
 void main() {
   Expect.equals(499, if1());
   Expect.equals(499, if2());
   Expect.equals(499, if3());
   Expect.equals(499, if4());
+  Expect.equals(499, if5());
+  Expect.equals(499, if6());
 }

@@ -313,26 +313,28 @@ class SsaCodeGenerator implements HVisitor {
     // three dominated blocks: the then, the code after the if, and the exit
     // block.
 
-    if (node.hasElse && dominated.length == 3) {
-      // Normal case. If both branches terminate then the third dominated
-      // block is the exit-block.
+    int dominatedCount = dominated.length;
+    if (node.hasElse && (dominatedCount == 3 || dominatedCount == 4)) {
+      // Normal case. The third dominated block is either the join-block or
+      // the exit-block (if both branches terminate).
+      // If the if dominates 4 blocks, then it also dominates the exit-block.
+      assert(dominatedCount != 4 || dominated.last().isExitBlock());
       visitBasicBlock(dominated[2]);
     } else if (node.hasElse) {
       // Both branches terminate, but this HIf is not the dominator of the exit
       // block.
-      assert(dominated.length == 2);
-      return;
-    } else if (!node.hasElse && dominated.length == 2) {
+      assert(dominatedCount == 2);
+    } else if (!node.hasElse && dominatedCount == 2) {
       // Normal case. Even if the then-branch terminated there is still
       // a join-block.
-      assert(!dominated[1].isExitBlock());
+      assert(!dominated.last().isExitBlock());
       visitBasicBlock(dominated[1]);
     } else {
       // The then-branch terminates, and the code following the if terminates
       // too. The if happens to dominate the exit-block.
       assert(!node.hasElse);
-      assert(dominated.length == 3);
-      assert(dominated[2].isExitBlock());
+      assert(dominatedCount == 3);
+      assert(dominated.last().isExitBlock());
       visitBasicBlock(dominated[1]);
       visitBasicBlock(dominated[2]);
     }
