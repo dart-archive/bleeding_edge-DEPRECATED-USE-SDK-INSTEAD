@@ -207,7 +207,7 @@ class SsaBuilder implements Visitor {
       if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
         HInstruction value = definitions[member];
         if (value === null) {
-          value = new HLiteral(null);
+          value = new HLiteral(null, HType.UNKNOWN);
           add(value);
         }
         fieldValues.add(value);
@@ -946,7 +946,7 @@ class SsaBuilder implements Visitor {
           index = pop();
         } else {
           index = pop();
-          value = new HLiteral(1);
+          value = new HLiteral(1, HType.INTEGER);
           add(value);
         }
         HStatic indexMethod = new HStatic(interceptors.getIndexInterceptor());
@@ -984,7 +984,7 @@ class SsaBuilder implements Visitor {
         visit(node.argumentsNode);
         right = pop();
       } else {
-        right = new HLiteral(1);
+        right = new HLiteral(1, HType.INTEGER);
         add(right);
       }
       visitBinary(left, op, right);
@@ -999,26 +999,26 @@ class SsaBuilder implements Visitor {
   }
 
   void visitLiteralInt(LiteralInt node) {
-    push(new HLiteral(node.value));
+    push(new HLiteral(node.value, HType.INTEGER));
   }
 
   void visitLiteralDouble(LiteralDouble node) {
-    push(new HLiteral(node.value));
+    push(new HLiteral(node.value, HType.DOUBLE));
   }
 
   void visitLiteralBool(LiteralBool node) {
-    push(new HLiteral(node.value));
+    push(new HLiteral(node.value, HType.BOOLEAN));
   }
 
   void visitLiteralString(LiteralString node) {
     if (node.value.stringValue[0] == '@') {
       compiler.unimplemented("SsaBuilder: raw strings", node: node);
     }
-    push(new HLiteral(node.value));
+    push(new HLiteral(node.value, HType.STRING));
   }
 
   void visitLiteralNull(LiteralNull node) {
-    push(new HLiteral(null));
+    push(new HLiteral(null, HType.UNKNOWN));
   }
 
   visitNodeList(NodeList node) {
@@ -1039,7 +1039,7 @@ class SsaBuilder implements Visitor {
   visitReturn(Return node) {
     HInstruction value;
     if (node.expression === null) {
-      value = new HLiteral(null);
+      value = new HLiteral(null, HType.UNKNOWN);
       add(value);
     } else {
       visit(node.expression);
@@ -1066,7 +1066,7 @@ class SsaBuilder implements Visitor {
          link = link.tail) {
       Node definition = link.head;
       if (definition is Identifier) {
-        HInstruction initialValue = new HLiteral(null);
+        HInstruction initialValue = new HLiteral(null, HType.UNKNOWN);
         add(initialValue);
         updateDefinition(definition, initialValue);
       } else {

@@ -234,6 +234,11 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitIndex(HIndex node) => visitInvokeStatic(node);
   String visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
 
+  String visitIntegerCheck(HIntegerCheck node) {
+    String value = temporaryId(node.value);
+    return "Integer check: $value";
+  }
+
   String visitInvokeDynamic(HInvokeDynamic invoke, String kind) {
     String receiver = temporaryId(invoke.receiver);
     String target = "($kind) $receiver.${invoke.name}";

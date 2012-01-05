@@ -63,7 +63,7 @@ class SsaConstantFolder extends HBaseVisitor {
     HInstruction input = inputs[0];
     if (input.isBoolean()) return input;
     // All values !== true are boolified to false.
-    if (input.type.isKnown()) return new HLiteral(false);
+    if (input.type.isKnown()) return new HLiteral(false, HType.BOOLEAN);
     return node;
   }
 
@@ -73,7 +73,7 @@ class SsaConstantFolder extends HBaseVisitor {
     HInstruction input = inputs[0];
     if (input is HLiteral) {
       HLiteral literal = input;
-      return new HLiteral(literal.value !== true);
+      return new HLiteral(literal.value !== true, HType.BOOLEAN);
     }
     return node;
   }
@@ -92,7 +92,8 @@ class SsaConstantFolder extends HBaseVisitor {
     if (node.left.isLiteralString() && node.right is HLiteral) {
       HLiteral op1 = node.left;
       HLiteral op2 = node.right;
-      return new HLiteral(new SourceString("${op1.value} + ${op2.value}"));
+      return new HLiteral(
+          new SourceString("${op1.value} + ${op2.value}"), HType.STRING);
     }
     return visitInvokeBinary(node);
   }
@@ -101,14 +102,19 @@ class SsaConstantFolder extends HBaseVisitor {
     if (node.left is HLiteral && node.right is HLiteral) {
       HLiteral op1 = node.left;
       HLiteral op2 = node.right;
-      return new HLiteral(op1.value == op2.value);
+      return new HLiteral(op1.value == op2.value, HType.BOOLEAN);
     }
     return node;
   }
 
   HInstruction visitTypeGuard(HTypeGuard node) {
     HInstruction value = node.inputs[0];
-    return (value.type == node.type) ? value : node;
+    return (value.type.combine(node.type) == value.type) ? value : node;
+  }
+
+  HInstruction visitIntegerCheck(HIntegerCheck node) {
+    HInstruction value = node.value;
+    return value.isInteger() ? value : node;
   }
 }
 
@@ -195,7 +201,7 @@ class CheckInserter extends HBaseVisitor {
     }
     instruction = block.first;
     while (instruction !== null) {
-      instruction.accept(this);
+      instruction = instruction.accept(this);
       instruction = tryInsertTypeGuard(instruction, instruction);
     }
   }
@@ -228,18 +234,41 @@ class CheckInserter extends HBaseVisitor {
     node.block.addBefore(node, length);
 
     HBoundsCheck check = new HBoundsCheck(length, index);
-    node.block.rewrite(index, check);
     node.block.addBefore(node, check);
+    return check;
   }
 
-  void visitIndex(HIndex node) {
-    if (!node.builtin) return;
-    insertBoundsCheck(node, node.receiver, node.index);
+  insertIntegerCheck(HInstruction node, HInstruction value) {
+    HIntegerCheck check = new HIntegerCheck(value);
+    node.block.addBefore(node, check);
+    return check;
   }
 
-  void visitIndexAssign(HIndexAssign node) {
-    if (!node.builtin) return;
-    insertBoundsCheck(node, node.receiver, node.index);
+  visitInstruction(HInstruction node) => node;
+
+  visitIndex(HIndex node) {
+    if (!node.builtin) return node;
+    HInstruction index = insertIntegerCheck(node, node.index);
+    index = insertBoundsCheck(node, node.receiver, index);
+    HIndex newInstruction = new HIndex(node.target, node.receiver, index);
+    newInstruction.builtin = true;
+    node.block.addBefore(node, newInstruction);
+    node.block.rewrite(node, newInstruction);
+    node.block.remove(node);
+    return newInstruction;
+  }
+
+  visitIndexAssign(HIndexAssign node) {
+    if (!node.builtin) return node;
+    HInstruction index = insertIntegerCheck(node, node.index);
+    index = insertBoundsCheck(node, node.receiver, index);
+    HIndexAssign newInstruction =
+        new HIndexAssign(node.target, node.receiver, index, node.value);
+    newInstruction.builtin = true;
+    node.block.addBefore(node, newInstruction);
+    node.block.rewrite(node, newInstruction);
+    node.block.remove(node);
+    return newInstruction;
   }
 }
 
@@ -247,7 +276,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor {
   static bool isDeadCode(HInstruction instruction) {
     return !instruction.hasSideEffects()
            && instruction.usedBy.isEmpty()
-           && instruction is !HBoundsCheck;
+           && instruction is !HCheck;
   }
 
   void visitGraph(HGraph graph) {

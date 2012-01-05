@@ -21,6 +21,7 @@ interface HVisitor<R> {
   R visitIf(HIf node);
   R visitIndex(HIndex node);
   R visitIndexAssign(HIndexAssign node);
+  R visitIntegerCheck(HIntegerCheck node);
   R visitInvokeDynamicMethod(HInvokeDynamicMethod node);
   R visitInvokeDynamicGetter(HInvokeDynamicGetter node);
   R visitInvokeDynamicSetter(HInvokeDynamicSetter node);
@@ -209,6 +210,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIf(HIf node) => visitConditionalBranch(node);
   visitIndex(HIndex node) => visitInvokeStatic(node);
   visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
+  visitIntegerCheck(HIntegerCheck node) => visitCheck(node);
   visitInvokeDynamicMethod(HInvokeDynamicMethod node)
       => visitInvokeDynamic(node);
   visitInvokeDynamicGetter(HInvokeDynamicGetter node)
@@ -242,7 +244,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
-  visitTypeGuard(HTypeGuard node) => visitCheck(node);
+  visitTypeGuard(HTypeGuard node) => visitInstruction(node);
 }
 
 class HInstructionList {
@@ -614,24 +616,28 @@ class HType {
   static final int FLAG_CONFLICTING = 0;
   static final int FLAG_UNKNOWN = 1;
   static final int FLAG_BOOLEAN = FLAG_UNKNOWN << 1;
-  static final int FLAG_NUMBER = FLAG_BOOLEAN << 1;
-  static final int FLAG_STRING = FLAG_NUMBER << 1;
+  static final int FLAG_INTEGER = FLAG_BOOLEAN << 1;
+  static final int FLAG_STRING = FLAG_INTEGER << 1;
   static final int FLAG_ARRAY = FLAG_STRING << 1;
+  static final int FLAG_DOUBLE = FLAG_ARRAY << 1;
 
   static final HType CONFLICTING = const HType(FLAG_CONFLICTING);
   static final HType UNKNOWN = const HType(FLAG_UNKNOWN);
   static final HType BOOLEAN = const HType(FLAG_BOOLEAN);
-  static final HType NUMBER = const HType(FLAG_NUMBER);
   static final HType STRING = const HType(FLAG_STRING);
   static final HType ARRAY = const HType(FLAG_ARRAY);
+  static final HType INTEGER = const HType(FLAG_INTEGER);
+  static final HType DOUBLE = const HType(FLAG_DOUBLE);
   static final HType STRING_OR_ARRAY = const HType(FLAG_STRING | FLAG_ARRAY);
+  static final HType NUMBER = const HType(FLAG_DOUBLE | FLAG_INTEGER);
 
   bool isConflicting() => this === CONFLICTING;
   bool isUnknown() => this === UNKNOWN;
   bool isBoolean() => this === BOOLEAN;
-  bool isNumber() => this === NUMBER;
+  bool isInteger() => this === INTEGER;
   bool isString() => this === STRING;
   bool isArray() => this === ARRAY;
+  bool isNumber() => (this.flag & (FLAG_INTEGER | FLAG_DOUBLE)) != 0;
   bool isStringOrArray() => (this.flag & (FLAG_STRING | FLAG_ARRAY)) != 0;
   bool isKnown() => this !== UNKNOWN && this !== CONFLICTING;
 
@@ -639,9 +645,11 @@ class HType {
     if (flag === CONFLICTING.flag) return CONFLICTING;
     if (flag === UNKNOWN.flag) return UNKNOWN;
     if (flag === BOOLEAN.flag) return BOOLEAN;
-    if (flag === NUMBER.flag) return NUMBER;
+    if (flag === INTEGER.flag) return INTEGER;
+    if (flag === DOUBLE.flag) return DOUBLE;
     if (flag === STRING.flag) return STRING;
     if (flag === ARRAY.flag) return ARRAY;
+    if (flag === NUMBER.flag) return NUMBER;
     if (flag === STRING_OR_ARRAY.flag) return STRING_OR_ARRAY;
     assert(false);
   }
@@ -703,6 +711,7 @@ class HInstruction implements Hashable {
 
   bool isArray() => type.isArray();
   bool isBoolean() => type.isBoolean();
+  bool isInteger() => type.isInteger();
   bool isNumber() => type.isNumber();
   bool isString() => type.isString();
   bool isStringOrArray() => type.isStringOrArray();
@@ -859,11 +868,11 @@ class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
 
   // A check should never be generate at use site, otherwise we
-  // cannot bailout or throw.
+  // cannot throw.
   void tryGenerateAtUseSite() {}
 }
 
-class HTypeGuard extends HCheck {
+class HTypeGuard extends HInstruction {
   HTypeGuard(type, value) : super(<HInstruction>[value]) {
     this.type = type;
   }
@@ -876,6 +885,10 @@ class HTypeGuard extends HCheck {
   HType computeType() => type;
   bool hasExpectedType() => true;
 
+  // A type guard should never be generate at use site, otherwise we
+  // cannot bailout.
+  void tryGenerateAtUseSite() {}
+
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   bool typeEquals(other) => other is HTypeGuard;
   bool dataEquals(HTypeGuard other) => type == other.type;
@@ -883,7 +896,7 @@ class HTypeGuard extends HCheck {
 
 class HBoundsCheck extends HCheck {
   HBoundsCheck(length, index) : super(<HInstruction>[length, index]) {
-    type = HType.NUMBER;
+    type = HType.INTEGER;
   }
 
   HInstruction get length() => inputs[0];
@@ -894,11 +907,30 @@ class HBoundsCheck extends HCheck {
     setUseGvn();
   }
 
-  HType computeType() => HType.NUMBER;
+  HType computeType() => HType.INTEGER;
   bool hasExpectedType() => true;
 
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
   bool typeEquals(other) => other is HBoundsCheck;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HIntegerCheck extends HCheck {
+  HIntegerCheck(value) : super(<HInstruction>[value]);
+
+  HInstruction get value() => inputs[0];
+
+  void prepareGvn() {
+    assert(!hasSideEffects());
+    setUseGvn();
+  }
+
+  HType computeType() => HType.INTEGER;
+  bool hasExpectedType() => true;
+
+  accept(HVisitor visitor) => visitor.visitIntegerCheck(this);
+  bool typeEquals(other) => other is HIntegerCheck;
+  bool dataEquals(HInstruction other) => true;
 }
 
 class HConditionalBranch extends HControlFlow {
@@ -996,7 +1028,7 @@ class HInvokeInterceptor extends HInvokeStatic {
   HType computeType() {
     if (name == 'length' && inputs[1].isStringOrArray()) {
       builtinJsName = 'length';
-      return HType.NUMBER;
+      return HType.INTEGER;
     } else if (name == 'add' && inputs[1].isArray()) {
       builtinJsName = 'push';
     } else if (name == 'removeLast' && inputs[1].isArray()) {
@@ -1020,7 +1052,8 @@ class HInvokeInterceptor extends HInvokeStatic {
   HInstruction fold() {
     if (name == 'length' && inputs[1].isLiteralString()) {
       int quotes = 2; // Make sure to remove the quotes.
-      return new HLiteral(inputs[1].value.stringValue.length - quotes);
+      return new HLiteral(
+          inputs[1].value.stringValue.length - quotes, HType.INTEGER);
     }
     return this;
   }
@@ -1048,6 +1081,7 @@ class HForeign extends HInstruction {
 
   HType computeType() {
     if (declaredType.stringValue == 'bool') return HType.BOOLEAN;
+    if (declaredType.stringValue == 'int') return HType.INTEGER;
     if (declaredType.stringValue == 'num') return HType.NUMBER;
     if (declaredType.stringValue == 'String') return HType.STRING;
     return HType.UNKNOWN;
@@ -1071,7 +1105,7 @@ class HInvokeBinary extends HInvokeStatic {
     if (left.isLiteralNumber() && right.isLiteralNumber()) {
       HLiteral op1 = left;
       HLiteral op2 = right;
-      return new HLiteral(evaluate(op1.value, op2.value));
+      return new HLiteral(evaluate(op1.value, op2.value), type);
     }
     return this;
   }
@@ -1221,10 +1255,8 @@ class HBinaryBitOp extends HBinaryArithmetic {
       HLiteral op1 = left;
       HLiteral op2 = right;
       // Avoid exceptions.
-      if (op1.value is int && op2.value is int) {
-        HLiteral res = new HLiteral(evaluate(op1.value, op2.value));
-        res.type = HType.NUMBER;
-        return res;
+      if (op1.isInteger() && op2.isInteger()) {
+        return new HLiteral(evaluate(op1.value, op2.value), HType.INTEGER);
       }
     }
     return this;
@@ -1348,9 +1380,7 @@ class HNegate extends HInvokeUnary {
   HInstruction fold() {
     if (operand.isLiteralNumber()) {
       HLiteral input = operand;
-      HLiteral res = new HLiteral(evaluate(input.value));
-      res.type = HType.NUMBER;
-      return res;
+      return new HLiteral(evaluate(input.value), type);
     }
     return this;
   }
@@ -1367,8 +1397,8 @@ class HBitNot extends HInvokeUnary {
   HInstruction fold() {
     if (operand.isLiteralNumber()) {
       HLiteral input = operand;
-      if (input.value is int) {
-        return new HLiteral(evaluate(input.value));
+      if (input.isInteger()) {
+        return new HLiteral(evaluate(input.value), HType.INTEGER);
       }
     }
     return this;
@@ -1406,7 +1436,9 @@ class HLoopBranch extends HConditionalBranch {
 
 class HLiteral extends HInstruction {
   final value;
-  HLiteral(this.value) : super(<HInstruction>[]);
+  HLiteral(this.value, HType type) : super(<HInstruction>[]) {
+    this.type = type;
+  }
   void prepareGvn() {
     // We allow global value numbering of literals, but we still
     // prefer generating them at use sites. This allows us to do
@@ -1419,15 +1451,7 @@ class HLiteral extends HInstruction {
   accept(HVisitor visitor) => visitor.visitLiteral(this);
 
   HType computeType() {
-    if (isLiteralNumber()) {
-      return HType.NUMBER;
-    } else if (isLiteralBoolean()) {
-      return HType.BOOLEAN;
-    } else if (isLiteralString()) {
-      return HType.STRING;
-    } else {
-      return HType.UNKNOWN;
-    }
+    return type;
   }
 
   bool hasExpectedType() => true;
@@ -1710,7 +1734,7 @@ class HIndex extends HInvokeStatic {
   HInstruction get index() => inputs[2];
 
   HType computeType() {
-    builtin = receiver.isStringOrArray() && index.isNumber();
+    builtin = receiver.isStringOrArray();
     return HType.UNKNOWN;
   }
 
@@ -1718,8 +1742,7 @@ class HIndex extends HInvokeStatic {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return HType.UNKNOWN;
     if (input == receiver) return HType.STRING_OR_ARRAY;
-    if (input == index) return HType.NUMBER;
-    assert(false);
+    return HType.UNKNOWN;
   }
 
   bool hasExpectedType() => false;
@@ -1739,7 +1762,7 @@ class HIndexAssign extends HInvokeStatic {
   HInstruction get value() => inputs[3];
 
   HType computeType() {
-    builtin = receiver.isArray() && index.isNumber();
+    builtin = receiver.isArray();
     return value.type;
   }
 
@@ -1747,7 +1770,6 @@ class HIndexAssign extends HInvokeStatic {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return HType.UNKNOWN;
     if (input == receiver) return HType.ARRAY;
-    if (input == index) return HType.NUMBER;
     return HType.UNKNOWN;
   }
 

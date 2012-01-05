@@ -482,6 +482,14 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(") throw 'Out of bounds'");
   }
 
+  visitIntegerCheck(HIntegerCheck node) {
+    buffer.add('if (');
+    use(node.value);
+    buffer.add(' !== (');
+    use(node.value);
+    buffer.add(" | 0)) throw 'Illegal argument'");
+  }
+
   visitTypeGuard(HTypeGuard node) {
     HInstruction input = node.inputs[0];
     assert(!input.generateAtUseSite() || input is HParameterValue);
@@ -705,6 +713,11 @@ class SsaCheckInstructionUnuser extends HBaseVisitor {
     // instruction because this bounds check instruction is not
     // generate at use site.
     if (node.length.usedBy.length == 1) node.length.tryGenerateAtUseSite();
+  }
+
+  void visitIntegerCheck(HIntegerCheck node) {
+    assert(!node.generateAtUseSite());
+    currentBlock.rewrite(node, node.value);
   }
 }
 
