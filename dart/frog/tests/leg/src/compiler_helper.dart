@@ -32,3 +32,9 @@ String compileClasses(String code) {
   compiler.runCompiler(new StringScript(code));
   return compiler.assembledCode;
 }
+
+String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
+
+String getIntTypeCheck(String variable) {
+  return "\\($variable !== \\($variable \\| 0\\)\\)";
+}

@@ -37,11 +37,9 @@ bool checkNumberOfMatches(Iterator it, int nb) {
   Expect.isFalse(it.hasNext());
 }
 
-String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
-
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  RegExp regexp = new RegExp("typeof $anyIdentifier !== 'number'");
+  RegExp regexp = new RegExp(getIntTypeCheck(anyIdentifier));
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 2);
 
@@ -54,8 +52,8 @@ main() {
   checkNumberOfMatches(matches, 1);
 
   generated = compile(TEST_THREE, 'foo');
-  regexp = const RegExp("typeof param1 !== 'number'");
+  regexp = new RegExp(getIntTypeCheck('param1'));
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = const RegExp("typeof param2 !== 'number'");
+  regexp = new RegExp(getIntTypeCheck('param2'));
   Expect.isTrue(regexp.hasMatch(generated));
 }

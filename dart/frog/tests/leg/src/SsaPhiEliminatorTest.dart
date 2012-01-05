@@ -54,8 +54,6 @@ foo() {
 }
 """;
 
-String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
-
 main() {
   String generated = compile(TEST_ONE, 'foo');
   RegExp regexp = const RegExp("a = 2");

@@ -223,15 +223,15 @@ class SsaCodeGenerator implements HVisitor {
   visitTruncatingDivide(HTruncatingDivide node) => visitInvokeStatic(node);
   // Modulo cannot be mapped to the native operator (different semantics).
   visitModulo(HModulo node)                     => visitInvokeStatic(node);
-  // Bit-operations require its argument to be of type integer.
-  // TODO(floitsch): use shift operators when we can detect that the inputs
-  // are integers.
-  visitBitAnd(HBitAnd node)         => visitInvokeStatic(node);
-  visitBitNot(HBitNot node)         => visitInvokeStatic(node);
-  visitBitOr(HBitOr node)           => visitInvokeStatic(node);
-  visitBitXor(HBitXor node)         => visitInvokeStatic(node);
+
+  visitBitAnd(HBitAnd node)         => visitInvokeBinary(node, '&');
+  visitBitNot(HBitNot node)         => visitInvokeUnary(node, '~');
+  visitBitOr(HBitOr node)           => visitInvokeBinary(node, '|');
+  visitBitXor(HBitXor node)         => visitInvokeBinary(node, '^');
+  visitShiftRight(HShiftRight node) => visitInvokeBinary(node, '>>');
+
+  // Shift left cannot be mapped to the native operator (different semantics).
   visitShiftLeft(HShiftLeft node)   => visitInvokeStatic(node);
-  visitShiftRight(HShiftRight node) => visitInvokeStatic(node);
 
   visitNegate(HNegate node)         => visitInvokeUnary(node, '-');
 
@@ -494,7 +494,13 @@ class SsaCodeGenerator implements HVisitor {
   visitTypeGuard(HTypeGuard node) {
     HInstruction input = node.inputs[0];
     assert(!input.generateAtUseSite() || input is HParameterValue);
-    if (node.isNumber()) {
+    if (node.isInteger()) {
+      buffer.add('if (');
+      use(input);
+      buffer.add(' !== (');
+      use(input);
+      buffer.add(" | 0)) throw('Not an integer')");
+    } else if (node.isNumber()) {
       buffer.add('if (typeof ');
       use(input);
       buffer.add(" !== 'number') throw('Not a number')");

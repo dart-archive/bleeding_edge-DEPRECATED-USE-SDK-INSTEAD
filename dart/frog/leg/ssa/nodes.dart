@@ -1249,6 +1249,20 @@ class HBinaryBitOp extends HBinaryArithmetic {
   HBinaryBitOp(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
 
+  HType computeType() {
+    HType type = computeInputsType();
+    builtin = type.isInteger();
+    if (!type.isUnknown()) return type;
+    if (left.isInteger()) return HType.INTEGER;
+    return HType.UNKNOWN;
+  }
+
+  HType computeDesiredInputType(HInstruction input) {
+    // TODO(floitsch): we want the target to be a function.
+    if (input == target) return HType.UNKNOWN;
+    return HType.INTEGER;
+  }
+
   HInstruction fold() {
     // Bit-operations are only defined on integers.
     if (left.isLiteralNumber() && right.isLiteralNumber()) {
@@ -1393,6 +1407,19 @@ class HNegate extends HInvokeUnary {
 class HBitNot extends HInvokeUnary {
   HBitNot(HStatic target, HInstruction input) : super(target, input);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
+
+  HType computeType() {
+    HType type = operand.type;
+    builtin = type.isInteger();
+    if (!type.isUnknown()) return type;
+    return HType.UNKNOWN;
+  }
+
+  HType computeDesiredInputType(HInstruction input) {
+    // TODO(floitsch): we want the target to be a function.
+    if (input == target) return HType.UNKNOWN;
+    return HType.INTEGER;
+  }
 
   HInstruction fold() {
     if (operand.isLiteralNumber()) {
@@ -1548,6 +1575,8 @@ class HPhi extends HInstruction {
   }
 
   HType computeDesiredInputType(HInstruction input) {
+    if (type.isNumber()) return HType.NUMBER;
+    if (type.isStringOrArray()) return HType.STRING_OR_ARRAY;
     return type;
   }
 

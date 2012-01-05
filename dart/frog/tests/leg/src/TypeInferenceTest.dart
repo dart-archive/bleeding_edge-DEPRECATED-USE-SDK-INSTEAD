@@ -46,8 +46,6 @@ main(a) {
 }
 """;
 
-String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
-
 main() {
   String generated = compile(TEST_ONE, 'sum');
   RegExp regexp = new RegExp("i = \\($anyIdentifier \\+ 1\\)");
@@ -63,7 +61,7 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, 'foo');
-  regexp = const RegExp("typeof param0 !== 'number'");
+  regexp = new RegExp(getIntTypeCheck('param0'));
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp('-param0');
