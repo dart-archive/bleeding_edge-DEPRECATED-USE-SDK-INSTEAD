@@ -220,6 +220,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
           break;
         case SINGLE_LINE_COMMENT:
           if (isEol(currentChar)) {
+            advance();
             scannerState = getCodeLikeState();
             return ScannerState.SINGLE_LINE_COMMENT.token;
           }

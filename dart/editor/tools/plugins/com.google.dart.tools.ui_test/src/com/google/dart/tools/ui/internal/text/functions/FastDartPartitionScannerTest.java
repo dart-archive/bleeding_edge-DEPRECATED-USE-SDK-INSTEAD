@@ -96,8 +96,8 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
     // class X { // comment } 
     assertPartitions( //
         "class X {\n", DEFAULT_TYPE, //
-        "// comment", DART_SINGLE_LINE_COMMENT, //
-        "\n}\n", DEFAULT_TYPE //
+        "// comment\n", DART_SINGLE_LINE_COMMENT, //
+        "}\n", DEFAULT_TYPE //
     );
   }
 
@@ -107,8 +107,8 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
         "class X {\nvar s=", DEFAULT_TYPE, //
         "\"xxx ", DART_STRING, //
         "${yyy ", DEFAULT_TYPE, //
-        "// comment", DART_SINGLE_LINE_COMMENT, //
-        "\n + zzz}", DEFAULT_TYPE, //
+        "// comment\n", DART_SINGLE_LINE_COMMENT, //
+        " + zzz}", DEFAULT_TYPE, //
         " xxx\"", DART_STRING, //
         ";\n}\n", DEFAULT_TYPE //
     );
