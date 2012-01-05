@@ -989,16 +989,23 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
         viewer.reveal(element);
       } else {
         viewer.setSelection(newSelection, true);
-
+        List<ISelection> selectionList = new ArrayList<ISelection>();
         while (element != null && viewer.getSelection().isEmpty()) {
           // Try to select parent in case element is filtered
+          selectionList.add(newSelection);
           element = getParent(element);
           if (element != null) {
             newSelection = new StructuredSelection(element);
             viewer.setSelection(newSelection, true);
           }
         }
+        for (int i = selectionList.size() - 1; i >= 0; i--) {
+          newSelection = selectionList.get(i);
+          viewer.setSelection(newSelection, true);
+          viewer.reveal(newSelection);
+        }
       }
+
       return true;
     }
     return false;
@@ -1131,12 +1138,7 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
    * @return the parent or <code>null</code> if there's no parent
    */
   private Object getParent(Object element) {
-    if (element instanceof DartElement) {
-      return ((DartElement) element).getParent();
-    } else if (element instanceof IResource) {
-      return ((IResource) element).getParent();
-    }
-    return null;
+    return contentProvider.getParent(element);
   }
 
   private ISelection getSelection() {

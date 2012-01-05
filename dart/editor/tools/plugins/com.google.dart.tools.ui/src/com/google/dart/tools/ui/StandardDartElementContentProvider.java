@@ -17,6 +17,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -441,45 +442,23 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
       return parent;
     } else if (element instanceof ExternalCompilationUnitImpl) {
       DartLibrary targetLibrary = ((ExternalCompilationUnitImpl) element).getLibrary();
-      URI targetUri = ImportedDartLibraryContainer.getUri(targetLibrary);
-      for (ImportedDartLibraryContainer container : libraryContainers.keySet()) {
-        for (ImportedDartLibrary importedLibrary : container.getDartLibraries()) {
-          URI importedUri = ImportedDartLibraryContainer.getUri(importedLibrary.getDartLibrary());
-          if (targetUri.equals(importedUri)) {
-            return importedLibrary;
-          }
-        }
+      return getParentLibrary(targetLibrary);
+
+    } else if (element instanceof CompilationUnit) {
+      DartLibrary targetLibrary = ((CompilationUnitImpl) element).getLibrary();
+      if (targetLibrary.isTopLevel()) {
+        return targetLibrary;
+      } else {
+        return getParentLibrary(targetLibrary);
       }
-      DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
-      try {
-        DartProject[] projects = model.getDartProjects();
-        for (DartProject project : projects) {
-          for (DartLibrary library : project.getDartLibraries()) {
-            for (DartLibrary importedLibrary : library.getImportedLibraries()) {
-              URI importedUri = ImportedDartLibraryContainer.getUri(importedLibrary);
-              if (targetUri.equals(importedUri)) {
-                return new ImportedDartLibrary(importedLibrary, new ImportedDartLibraryContainer(
-                    importedLibrary, importedLibrary));
-              }
-            }
-          }
-        }
-        if (projects.length > 0) {
-          DartLibrary[] libraries = projects[0].getDartLibraries();
-          if (libraries.length > 0) {
-            DartLibrary[] bundledLibraries = model.getBundledLibraries();
-            for (DartLibrary bundledLibrary : bundledLibraries) {
-              URI bundledUri = ImportedDartLibraryContainer.getUri(bundledLibrary);
-              if (targetUri.equals(bundledUri)) {
-                return new ImportedDartLibrary(bundledLibrary, new ImportedDartLibraryContainer(
-                    libraries[0], libraries[0]));
-              }
-            }
-          }
-        }
-      } catch (DartModelException exception) {
-        // Ignored. Simply fall through to return null.
+
+    } else if (element instanceof DartLibrary) {
+      if (((DartLibrary) element).isTopLevel()) {
+        return ((DartLibrary) element).getParent();
+      } else {
+        return getParentLibrary((DartLibrary) element);
       }
+
     } else if (element instanceof DartElement) {
       return ((DartElement) element).getParent();
     } else if (element instanceof ImportedDartLibraryContainer) {
@@ -552,6 +531,49 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
       children.add(dartElement);
     }
     return children.toArray(new Object[children.size()]);
+  }
+
+  private ImportedDartLibrary getParentLibrary(DartLibrary targetLibrary) {
+    URI targetUri = ImportedDartLibraryContainer.getUri(targetLibrary);
+    for (ImportedDartLibraryContainer container : libraryContainers.keySet()) {
+      for (ImportedDartLibrary importedLibrary : container.getDartLibraries()) {
+        URI importedUri = ImportedDartLibraryContainer.getUri(importedLibrary.getDartLibrary());
+        if (targetUri.equals(importedUri)) {
+          return importedLibrary;
+        }
+      }
+    }
+    DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
+    try {
+      DartProject[] projects = model.getDartProjects();
+      for (DartProject project : projects) {
+        for (DartLibrary library : project.getDartLibraries()) {
+          for (DartLibrary importedLibrary : library.getImportedLibraries()) {
+            URI importedUri = ImportedDartLibraryContainer.getUri(importedLibrary);
+            if (targetUri.equals(importedUri)) {
+              return new ImportedDartLibrary(importedLibrary, new ImportedDartLibraryContainer(
+                  library, library));
+            }
+          }
+        }
+      }
+      if (projects.length > 0) {
+        DartLibrary[] libraries = projects[0].getDartLibraries();
+        if (libraries.length > 0) {
+          DartLibrary[] bundledLibraries = model.getBundledLibraries();
+          for (DartLibrary bundledLibrary : bundledLibraries) {
+            URI bundledUri = ImportedDartLibraryContainer.getUri(bundledLibrary);
+            if (targetUri.equals(bundledUri)) {
+              return new ImportedDartLibrary(bundledLibrary, new ImportedDartLibraryContainer(
+                  libraries[0], libraries[0]));
+            }
+          }
+        }
+      }
+    } catch (DartModelException exception) {
+      // Ignored. Simply fall through to return null.
+    }
+    return null;
   }
 
 }
