@@ -44,6 +44,8 @@ class Pond {
       options.useColors = false;
       options.warningsAsErrors = 
         document.query("#warningCheckbox").dynamic.checked;
+
+      int millis1 = new Date.now().value;
       initializeWorld(fs);
       world.messageHandler = (String prefix, String message, SourceSpan span) {
         warnings += prefix + message + span.locationText + "\n";
@@ -60,12 +62,14 @@ class Pond {
           }
           markers.add(markText(startLine, startCol, endLine, endCol, cssClass));
         }
-      };      
+      };
       bool success = world.compile();
       if (success) {
         String code = world.getGeneratedCode();
         setEditorText("jsEditor", code);
       }
+      int millis2 = new Date.now().value;
+      warnings += "\ncompile time: ${millis2 - millis1}ms\n";
       setEditorText("warningEditor", warnings);
     });
   }
