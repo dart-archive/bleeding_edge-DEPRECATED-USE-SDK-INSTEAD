@@ -15,6 +15,8 @@ WhileNormalizationTest: Skip    # normalization code is incorrect, currently
 
 [ $component == frogsh ]
 MintMakerRpcTest: Pass, Crash # Issue 1024.
+TryCatchTest: Pass, Crash # Issue 1024.
+
 
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == leg ]
 *: Skip
