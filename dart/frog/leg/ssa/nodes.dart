@@ -18,6 +18,7 @@ interface HVisitor<R> {
   R visitGoto(HGoto node);
   R visitGreater(HGreater node);
   R visitGreaterEqual(HGreaterEqual node);
+  R visitIdentity(HIdentity node);
   R visitIf(HIf node);
   R visitIndex(HIndex node);
   R visitIndexAssign(HIndexAssign node);
@@ -207,6 +208,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitGoto(HGoto node) => visitControlFlow(node);
   visitGreater(HGreater node) => visitRelational(node);
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
+  visitIdentity(HIdentity node) => visitRelational(node);
   visitIf(HIf node) => visitConditionalBranch(node);
   visitIndex(HIndex node) => visitInvokeStatic(node);
   visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
@@ -1629,7 +1631,7 @@ class HRelational extends HInvokeBinary {
 
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
-    if (input == inputs[0]) return HType.UNKNOWN;
+    if (input == target) return HType.UNKNOWN;
     // For all relational operations exept HEquals, we expect to only
     // get numbers.
     return HType.NUMBER;
@@ -1652,10 +1654,28 @@ class HEquals extends HRelational {
 
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
-    if (input == inputs[0]) return HType.UNKNOWN;
+    if (input == target) return HType.UNKNOWN;
     if (left.isNumber() || right.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
+}
+
+class HIdentity extends HRelational {
+  HIdentity(HStatic target, HInstruction left, HInstruction right)
+      : super(target, left, right);
+  bool evaluate(num a, num b) => a === b;
+  accept(HVisitor visitor) => visitor.visitIdentity(this);
+  bool typeEquals(other) => other is HIdentity;
+  bool dataEquals(HInstruction other) => true;
+
+  HType computeType() {
+    builtin = true;
+    return HType.BOOLEAN;
+  }
+
+  bool hasExpectedType() => true;
+
+  HType computeDesiredInputType(HInstruction input) => HType.UNKNOWN;
 }
 
 class HGreater extends HRelational {

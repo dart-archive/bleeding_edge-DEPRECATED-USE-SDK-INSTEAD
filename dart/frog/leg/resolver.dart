@@ -449,6 +449,9 @@ class FullResolverVisitor extends ResolverVisitor {
       if (constructor === null) {
         error(node, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node]);
       }
+    } else {
+      Node selector = node.send.selector;
+      error(selector, MessageKind.CANNOT_RESOLVE_TYPE, [selector]);
     }
 
     useElement(node.send, constructor);

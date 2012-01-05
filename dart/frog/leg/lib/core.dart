@@ -120,6 +120,10 @@ eq(var a, var b) {
   return JS("bool", @"$0 === $1", a, b);
 }
 
+eqq(var a, var b) {
+  return JS("bool", @"$0 === $1", a, b);
+}
+
 gt(var a, var b) {
   if (checkNumbers(a, b, "num> expects a number as second operand.")) {
     return JS("bool", @"$0 > $1", a, b);

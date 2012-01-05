@@ -207,6 +207,8 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitGreater(HGreater node) => visitInvokeStatic(node);
   String visitGreaterEqual(HGreaterEqual node) => visitInvokeStatic(node);
 
+  String visitIdentity(HIdentity node) => visitInvokeStatic(node);
+
   String visitIf(HIf node) {
     HBasicBlock thenBlock = currentBlock.successors[0];
     HBasicBlock elseBlock = currentBlock.successors[1];

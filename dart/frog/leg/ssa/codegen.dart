@@ -236,6 +236,7 @@ class SsaCodeGenerator implements HVisitor {
   visitNegate(HNegate node)         => visitInvokeUnary(node, '-');
 
   visitEquals(HEquals node)             => visitInvokeBinary(node, '===');
+  visitIdentity(HIdentity node)         => visitInvokeBinary(node, '===');
   visitLess(HLess node)                 => visitInvokeBinary(node, '<');
   visitLessEqual(HLessEqual node)       => visitInvokeBinary(node, '<=');
   visitGreater(HGreater node)           => visitInvokeBinary(node, '>');

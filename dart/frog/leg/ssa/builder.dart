@@ -26,6 +26,8 @@ class Interceptors {
     if (name === '>=') return const SourceString('ge');
     if (name === '==') return const SourceString('eq');
     if (name === '!=') return const SourceString('eq');
+    if (name === '===') return const SourceString('eqq');
+    if (name === '!==') return const SourceString('eqq');
     if (name === '+=') return const SourceString('add');
     if (name === '-=') return const SourceString('sub');
     if (name === '*=') return const SourceString('mul');
@@ -729,6 +731,14 @@ class SsaBuilder implements Visitor {
         break;
       case "==":
         push(new HEquals(target, left, right));
+        break;
+      case "===":
+        push(new HIdentity(target, left, right));
+        break;
+      case "!==":
+        HIdentity eq = new HIdentity(target, left, right);
+        add(eq);
+        push(new HNot(eq));
         break;
       case "<":
         push(new HLess(target, left, right));
