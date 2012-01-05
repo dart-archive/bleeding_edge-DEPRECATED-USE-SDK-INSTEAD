@@ -216,7 +216,7 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
       try {
 
         // First 2 characters, "v3", indicate the version
-        if (reader.read() != 'v' || reader.read() != '3' || reader.read() != '\n') {
+        if (reader.read() != 'v' || reader.read() != '4' || reader.read() != '\n') {
           throw new IOException("Invalid artifact file format");
         }
 
@@ -363,7 +363,7 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
     BufferedWriter writer = new BufferedWriter(new FileWriter(file));
     boolean failed = true;
     try {
-      writer.append("v3\n");
+      writer.append("v4\n");
       for (Entry<String, CacheElement> entry : entries) {
         writer.append('=');
         writer.append(entry.getKey());
