@@ -92,7 +92,7 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     assert(openKind !== LT_TOKEN);
     appendStringToken(info, value);
     if (groupingStack.isEmpty()) {
-      throw new MalformedInputException('Unmatched $value');
+      return advance();
     }
     discardOpenLt();
     BeginGroupToken begin = groupingStack.head;

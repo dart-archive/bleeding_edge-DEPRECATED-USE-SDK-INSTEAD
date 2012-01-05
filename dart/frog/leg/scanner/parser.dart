@@ -277,6 +277,10 @@ class Parser {
 
   bool optional(String value, Token token) => value === token.stringValue;
 
+  bool notEofOrValue(String value, Token token) {
+    return token.kind !== EOF_TOKEN && value !== token.stringValue;
+  }
+
   Token parseType(Token token) {
     // TODO(ahe): Rename this method to parseTypeOrVar?
     Token begin = token;
@@ -362,6 +366,12 @@ class Parser {
         break;
       } else {
         token = listener.unexpected(token);
+        if (token.kind === EOF_TOKEN) {
+          // TODO(ahe): This is a hack. It would be better to tell the
+          // listener more explicitly that it must pop an identifier.
+          listener.endTopLevelFields(0, start, token);
+          return token;
+        }
       }
     }
     if (isField) {
@@ -501,7 +511,7 @@ class Parser {
     }
     token = token.next;
     int count = 0;
-    while (!optional('}', token)) {
+    while (notEofOrValue('}', token)) {
       token = parseMember(token);
       ++count;
     }
@@ -684,7 +694,7 @@ class Parser {
     int statementCount = 0;
     listener.beginFunctionBody(begin);
     token = expect('{', token);
-    while (!optional('}', token)) {
+    while (notEofOrValue('}', token)) {
       token = parseStatement(token);
       ++statementCount;
     }
@@ -1358,7 +1368,7 @@ class Parser {
     listener.beginBlock(begin);
     int statementCount = 0;
     token = expect('{', token);
-    while (!optional('}', token)) {
+    while (notEofOrValue('}', token)) {
       token = parseStatement(token);
       ++statementCount;
     }

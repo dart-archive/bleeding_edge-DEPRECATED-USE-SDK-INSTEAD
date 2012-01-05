@@ -86,6 +86,11 @@ int parseFile(String filename, MyOptions options) {
     } else {
       print(ex);
     }
+  } catch (MalformedInputException ex) {
+    print('$filename: $ex');
+  } catch (var ex) {
+    print('Error in file: $filename');
+    throw;
   }
   if (options.buildAst) {
     MyNodeListener l = listener;
@@ -105,7 +110,7 @@ Token scan(MySourceFile source) {
   } catch (MalformedInputException ex) {
     var message = ex.message;
     if (message is !String) message = "unexpected character";
-    Token fakeToken = new Token($QUESTION, scanner.charOffset);
+    Token fakeToken = new Token(QUESTION_INFO, scanner.charOffset);
     try {
       new MyListener(source).error(message, fakeToken);
     } catch (ParserError ex) {
