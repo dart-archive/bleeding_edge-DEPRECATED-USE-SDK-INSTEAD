@@ -317,8 +317,8 @@ class SsaCodeGenerator implements HVisitor {
     if (node.hasElse && (dominatedCount == 3 || dominatedCount == 4)) {
       // Normal case. The third dominated block is either the join-block or
       // the exit-block (if both branches terminate).
-      // If the if dominates 4 blocks, then at least on branch does a
-      // conditional return and the 4th block is the exit-block.
+      // If the if dominates 4 blocks, then at least one branch does a
+      // conditional return, and the 4th block is the exit-block.
       assert(dominatedCount != 4 || dominated.last().isExitBlock());
       visitBasicBlock(dominated[2]);
     } else if (node.hasElse) {
