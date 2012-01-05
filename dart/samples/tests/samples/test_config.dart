@@ -13,5 +13,5 @@ class SamplesTestSuite extends StandardTestSuite {
               "samples/tests/samples/src",
               ["samples/tests/samples/samples.status"]);
 
-  void listRecursively() => true;
+  bool listRecursively() => true;
 }
