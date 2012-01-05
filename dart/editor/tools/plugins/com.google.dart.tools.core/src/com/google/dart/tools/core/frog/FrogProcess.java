@@ -62,6 +62,10 @@ public class FrogProcess {
   }
 
   public void startProcess() throws IOException {
+    if (DartSdk.getInstance() == null) {
+      throw new IOException("Unable to start Frog - no dart-sdk found");
+    }
+
     ProcessBuilder builder = new ProcessBuilder();
 
     // Set the heap size to 128MB.
@@ -86,14 +90,12 @@ public class FrogProcess {
           String line = reader.readLine();
 
           while (line != null) {
-            if (DartCoreDebug.FROG) {
-              DartCore.logInformation("frog: [" + line.trim() + "]");
-            }
-
             if (line.contains(FROG_STARTUP_TOKEN)) {
               frogRunning = true;
               port = parseServerPort(line);
               latch.countDown();
+            } else if (DartCoreDebug.FROG) {
+              DartCore.logInformation("frog: [" + line.trim() + "]");
             }
 
             // Log any internal frog server problems
