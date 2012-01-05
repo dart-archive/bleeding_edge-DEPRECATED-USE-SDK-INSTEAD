@@ -274,6 +274,8 @@ class CheckInserter extends HBaseVisitor {
 
 class SsaDeadCodeEliminator extends HGraphVisitor {
   static bool isDeadCode(HInstruction instruction) {
+    // TODO(ngeoffray): the way we handle side effects is not right
+    // (e.g. branching instructions have side effects).
     return !instruction.hasSideEffects()
            && instruction.usedBy.isEmpty()
            && instruction is !HCheck;
@@ -418,7 +420,9 @@ class SsaGlobalValueNumberer {
     HInstruction instruction = block.first;
     while (instruction != null) {
       HInstruction next = instruction.next;
-      if (instruction.useGvn() && (instruction.flags & dependsFlags) == 0) {
+      if (instruction.useGvn()
+          && (instruction is !HCheck)
+          && (instruction.flags & dependsFlags) == 0) {
         bool loopInvariantInputs = true;
         List<HInstruction> inputs = instruction.inputs;
         for (int i = 0, length = inputs.length; i < length; i++) {
@@ -617,6 +621,9 @@ class SsaCodeMotion extends HBaseVisitor {
       HInstruction current = instruction;
       instruction = instruction.next;
 
+      // TODO(ngeoffray): this check is needed because we currently do
+      // not have flags to express 'Gvn'able', but not movable.
+      if (current is HCheck) continue;
       if (!current.useGvn()) continue;
       if ((current.flags & dependsFlags) != 0) continue;
 
