@@ -6965,23 +6965,30 @@ TokenizerBase.prototype.finishSingleLineComment = function() {
   }
 }
 TokenizerBase.prototype.finishMultiLineComment = function() {
-  while (true) {
+  var nesting = 1;
+  do {
     var ch = this._nextChar();
     if (ch == 0) {
       return this._finishToken(67/*TokenKind.INCOMPLETE_COMMENT*/);
     }
     else if (ch == 42) {
       if (this._maybeEatChar(47)) {
-        if (this._skipWhitespace) {
-          return this.next();
-        }
-        else {
-          return this._finishToken(64/*TokenKind.COMMENT*/);
-        }
+        nesting--;
+      }
+    }
+    else if (ch == 47) {
+      if (this._maybeEatChar(42)) {
+        nesting++;
       }
     }
   }
-  return this._errorToken();
+  while (nesting > 0)
+  if (this._skipWhitespace) {
+    return this.next();
+  }
+  else {
+    return this._finishToken(64/*TokenKind.COMMENT*/);
+  }
 }
 TokenizerBase.prototype.eatDigits = function() {
   while (this._lang_index < this._text.length) {
