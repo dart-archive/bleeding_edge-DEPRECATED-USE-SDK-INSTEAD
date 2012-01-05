@@ -13,6 +13,6 @@ TypedLocalsTest: Fail
 StaticVarTest: Fail
 
 
-[ $component == leg ]
+[ $component == leg || $component == frog ]
 # leg/tree_validator.dart:9:12: Failed assertion: 'check(tree)' is not true.
 IndexTest: Crash
