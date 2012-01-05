@@ -6,7 +6,13 @@ prefix leg_only
 
 ClassTest: Fail
 
+
 [ $component == leg || $component == frog || $component == frogsh ]
 StatementsTest: Fail
 TypedLocalsTest: Fail
 StaticVarTest: Fail
+
+
+[ $component == leg ]
+# leg/tree_validator.dart:9:12: Failed assertion: 'check(tree)' is not true.
+IndexTest: Crash

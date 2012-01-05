@@ -17,7 +17,11 @@ def main(args):
     print "Could not find frog"
     return 1
 
-  frog_args = ['frog.py', '--vm=' + VM, '--']
+  frog_args = [
+    'frog.py',
+    '--vm=' + VM,
+    '--vm_flags=--enable_asserts --enable_type_checks',
+    '--']
   frog_args += args[1:]
 
   filename = None

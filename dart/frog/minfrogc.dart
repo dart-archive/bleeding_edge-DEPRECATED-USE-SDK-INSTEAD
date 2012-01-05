@@ -29,6 +29,7 @@ main() {
   var homedir = (new File('.')).fullPathSync();
 
   if (!compile(homedir, argv, new VMFileSystem())) {
-    throw "Compilation failed";
+    print("Compilation failed");
+    exit(1);
   }
 }

@@ -8,5 +8,18 @@
 
 void main() {
   lang.legCompile = leg.compile;
-  minfrogc.main();
+  try {
+    minfrogc.main();
+  } catch (var exception, var trace) {
+    try {
+      print('Internal error: $exception');
+    } catch (var ignored) {
+      print('Internal error: error while printing exception');
+    }
+    try {
+      print(trace);
+    } finally {
+      exit(253);
+    }
+  }
 }
