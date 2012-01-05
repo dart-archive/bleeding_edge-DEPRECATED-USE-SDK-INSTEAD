@@ -71,7 +71,7 @@ function $truncdiv(x, y) {
 }
 // ********** Code for Object **************
 Object.prototype.get$dynamic = function() {
-  return this;
+  "use strict"; return this;
 }
 Object.prototype.noSuchMethod = function(name, args) {
   $throw(new NoSuchMethodException(this, name, args));

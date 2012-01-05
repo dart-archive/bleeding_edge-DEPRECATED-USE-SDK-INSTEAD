@@ -118,8 +118,10 @@ class Object native "Object" {
   bool operator ==(Object other) native;
   String toString() native;
 
-  // TODO(jmesserly): optimize this. No need to call it.
-  get dynamic() => this;
+  // TODO(jmesserly): optimize this. No need to call it, unless it's overridden.
+  // Notes: "use strict" prevents boxing.
+  // The Dart "return this" might help with type inference.
+  get dynamic() native '"use strict"; return this;' { return this; }
 
   // TODO(jmesserly): add named args. For now stay compatible with the VM.
   noSuchMethod(String name, List args) {
