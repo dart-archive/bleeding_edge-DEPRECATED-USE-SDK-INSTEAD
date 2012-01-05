@@ -7,7 +7,6 @@ vars = {
   "co19_rev": "@16",
   "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",
   "chromium_url": "http://src.chromium.org/svn",
-  "pyparsing_rev": "@211",
   "closure_compiler_rev": "@1519",
 }
 
@@ -27,10 +26,6 @@ deps = {
 
   "dart/tests/co19/src":
     Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
-
-  # Module needed for Python-scss to run.
-  "dart/third_party/pyparsing":
-    "http://pyparsing.svn.sourceforge.net/svnroot/pyparsing" + Var("pyparsing_rev"),
 }
 
 deps_os = {
