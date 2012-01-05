@@ -161,6 +161,8 @@ class HInstructionStringifier implements HVisitor<String> {
     switch (instruction.type) {
       case HType.ARRAY: prefix = 'a'; break;
       case HType.BOOLEAN: prefix = 'b'; break;
+      case HType.INTEGER: prefix = 'i'; break;
+      case HType.DOUBLE: prefix = 'd'; break;
       case HType.NUMBER: prefix = 'n'; break;
       case HType.STRING: prefix = 's'; break;
       case HType.UNKNOWN: prefix = 'v'; break;
