@@ -820,96 +820,145 @@ class SsaBuilder implements Visitor {
     }
   }
 
+  visitOperatorSend(node) {
+    assert(node.selector is Operator);
+    Operator op = node.selector;
+    if (const SourceString("[]") == op.source) {
+      HStatic target = new HStatic(interceptors.getIndexInterceptor());
+      add(target);
+      visit(node.receiver);
+      HInstruction receiver = pop();
+      visit(node.argumentsNode);
+      HInstruction index = pop();
+      push(new HIndex(target, receiver, index));
+    } else if (const SourceString("&&") == op.source ||
+               const SourceString("||") == op.source) {
+      visitLogicalAndOr(node, op);
+    } else if (const SourceString("!") == op.source) {
+      visitLogicalNot(node);
+    } else if (node.argumentsNode is Prefix) {
+      visitUnary(node, op);
+    } else {
+      visit(node.receiver);
+      visit(node.argumentsNode);
+      var right = pop();
+      var left = pop();
+      visitBinary(left, op, right);
+    }    
+  }
+
+  addVisitedSendArgumentsToList(Link<Node> link, List<HInstruction> list) {
+    for (; !link.isEmpty(); link = link.tail) {
+      visit(link.head);
+      list.add(pop());
+    }    
+  }
+
+  visitDynamicSend(Send node) {
+    var inputs = <HInstruction>[];
+
+    SourceString dartMethodName = node.selector.asIdentifier().source;
+
+    Element interceptor =
+        interceptors.getStaticInterceptor(dartMethodName, node.argumentCount());
+    if (interceptor != null) {
+      HStatic target = new HStatic(interceptor);
+      add(target);
+      inputs.add(target);
+      visit(node.receiver);
+      inputs.add(pop());
+      addVisitedSendArgumentsToList(node.arguments, inputs);
+      push(new HInvokeInterceptor(dartMethodName.stringValue, false, inputs));
+      return;
+    }
+
+    if (node.receiver === null) {
+      HThis receiver = new HThis();
+      add(receiver);
+      inputs.add(receiver);
+    } else {
+      visit(node.receiver);
+      inputs.add(pop());
+    }
+
+    addVisitedSendArgumentsToList(node.arguments, inputs);
+
+    String jsMethodName = compiler.namer.instanceName(dartMethodName);
+    // The first entry in the inputs list is the receiver.
+    push(new HInvokeDynamicMethod(jsMethodName, inputs));
+  }
+
+  visitClosureSend(Send node) {
+    assert(node.receiver === null);
+    Element element = elements[node];
+    HInstruction closureTarget;
+    if (element === null) {
+      visit(node.selector);
+      closureTarget = pop();            
+    } else {
+      assert(element.kind === ElementKind.VARIABLE ||
+             element.kind === ElementKind.PARAMETER);
+      closureTarget = definitions[element];
+      assert(closureTarget !== null);
+    }
+    var inputs = <HInstruction>[];    
+    inputs.add(closureTarget);
+    addVisitedSendArgumentsToList(node.arguments, inputs);
+    String jsMethodName = compiler.namer.closureInvocationName();
+    push(new HInvokeDynamicMethod(jsMethodName, inputs));
+  }
+
+  visitForeignSend(Send node) {
+    Link<Node> link = node.arguments;
+    // If the invoke is on foreign code, don't visit the first
+    // argument, which is the type, and the second argument,
+    // which is the foreign code.
+    link = link.tail.tail;
+    var inputs = <HInstruction>[];
+    addVisitedSendArgumentsToList(link, inputs);
+    LiteralString type = node.arguments.head;
+    LiteralString literal = node.arguments.tail.head;
+    compiler.ensure(literal is LiteralString);
+    compiler.ensure(type is LiteralString);
+    compiler.ensure(literal.value.stringValue[0] == '@');
+    push(new HForeign(unquote(literal, 1), unquote(type, 0), inputs));
+  }
+
+  visitStaticSend(Send node) {
+    Element element = elements[node];
+    HStatic target = new HStatic(element);
+    add(target);
+    var inputs = <HInstruction>[];
+    inputs.add(target);
+    addVisitedSendArgumentsToList(node.arguments, inputs);
+    push(new HInvokeStatic(inputs));
+  }
+
   visitSend(Send node) {
     if (node.selector is Operator) {
-      Operator op = node.selector;
-      if (const SourceString("[]") == op.source) {
-        HStatic target = new HStatic(interceptors.getIndexInterceptor());
-        add(target);
-        visit(node.receiver);
-        HInstruction receiver = pop();
-        visit(node.argumentsNode);
-        HInstruction index = pop();
-        push(new HIndex(target, receiver, index));
-      } else if (const SourceString("&&") == op.source ||
-                 const SourceString("||") == op.source) {
-        visitLogicalAndOr(node, op);
-      } else if (const SourceString("!") == op.source) {
-        visitLogicalNot(node);
-      } else if (node.argumentsNode is Prefix) {
-        visitUnary(node, op);
-      } else {
-        visit(node.receiver);
-        visit(node.argumentsNode);
-        var right = pop();
-        var left = pop();
-        visitBinary(left, op, right);
-      }
+      visitOperatorSend(node);
     } else if (node.isPropertyAccess) {
       generateGetter(node, elements[node]);
+    } else if (Elements.isClosureSend(node, elements)) {
+      visitClosureSend(node);
     } else {
       Element element = elements[node];
-      bool isInvokeDynamic = (element === null) || element.isInstanceMember();
-      bool isForeign =
-          (element !== null) && (element.kind === ElementKind.FOREIGN);
-      bool isStatic = !isInvokeDynamic && !isForeign;
-
-      Link<Node> link = node.arguments;
-      var inputs = <HInstruction>[];
-
-      SourceString dartMethodName;
-      Element interceptor;
-      if (isInvokeDynamic) {
-        dartMethodName = node.selector.asIdentifier().source;
-        interceptor = interceptors.getStaticInterceptor(
-            dartMethodName, node.argumentCount());
-        if (interceptor != null) {
-          HStatic target = new HStatic(interceptor);
-          add(target);
-          inputs.add(target);
-          visit(node.receiver);
-          inputs.add(pop());
-          isInvokeDynamic = false;
-        } else if (node.receiver === null) {
-          HThis receiver = new HThis();
-          add(receiver);
-          inputs.add(receiver);
-        } else {
-          visit(node.receiver);
-          inputs.add(pop());
-        }
-      } else if (isForeign) {
-        // If the invoke is on foreign code, don't visit the first
-        // argument, which is the type, and the second argument,
-        // which is the foreign code.
-        link = link.tail.tail;
+      if (element === null) {
+        // Example: f() with 'f' unbound.
+        // This can only happen inside an instance method.
+        visitDynamicSend(node);
+      } else if (element.isInstanceMember()) {
+        // Example: f() with 'f' bound to instance method.
+        visitDynamicSend(node);
+      } else if (element.kind === ElementKind.FOREIGN) {
+        visitForeignSend(node);
+      } else if (!element.isInstanceMember()) {
+        // Example: A.f() or f() with 'f' bound to a static function.
+        // Also includes new A() or new A.named() which is treated like a
+        // static call to a factory.
+        visitStaticSend(node);
       } else {
-        HStatic target = new HStatic(element);
-        add(target);
-        inputs.add(target);
-      }
-
-      for (; !link.isEmpty(); link = link.tail) {
-        visit(link.head);
-        inputs.add(pop());
-      }
-
-      if (isInvokeDynamic) {
-        String jsMethodName = compiler.namer.instanceName(dartMethodName);
-        // The first entry in the inputs list is the receiver.
-        push(new HInvokeDynamicMethod(jsMethodName, inputs));
-      } else if (isForeign) {
-        LiteralString type = node.arguments.head;
-        LiteralString literal = node.arguments.tail.head;
-        compiler.ensure(literal is LiteralString);
-        compiler.ensure(type is LiteralString);
-        compiler.ensure(literal.value.stringValue[0] == '@');
-        push(new HForeign(unquote(literal, 1), unquote(type, 0), inputs));
-      } else if (interceptor != null) {
-        push(new HInvokeInterceptor(dartMethodName.stringValue, false, inputs));
-      } else {
-        assert(isStatic);
-        push(new HInvokeStatic(inputs));
+        compiler.internalError("Cannot generate code for send", node: node);
       }
     }
   }

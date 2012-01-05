@@ -317,7 +317,15 @@ class FullResolverVisitor extends ResolverVisitor {
     Element receiver = visit(node.receiver);
     visit(node.argumentsNode);
 
-    Identifier selector = node.selector;
+    Identifier selector = node.selector.asIdentifier();
+    if (selector === null) {
+      // We are calling a closure returned from an expression.
+      assert(node.selector.asExpression() !== null);
+      assert(receiver === null);
+      visit(node.selector);
+      return null;
+    }
+
     SourceString name = selector.source;
     // No need to assign an element for a logical operation.
     if (isLogicalOperator(selector)) return null;

@@ -27,6 +27,11 @@ class Namer {
   String get isolate() => "Isolate";
 
 
+  String closureInvocationName() {
+    // TODO(floitsch): mangle, while not conflicting with instance names.
+    return '\$call';
+  }
+
   String instanceName(SourceString instanceName) {
     String candidate = '$instanceName';
     // TODO(floitsch): mangle, while preserving uniqueness.

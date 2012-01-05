@@ -57,6 +57,8 @@ class Element implements Hashable {
   bool isFactoryConstructor() => modifiers != null && modifiers.isFactory();
   bool isGenerativeConstructor() => kind == ElementKind.GENERATIVE_CONSTRUCTOR;
   bool isCompilationUnit() => kind == ElementKind.COMPILATION_UNIT;
+  bool isVariable() => kind == ElementKind.VARIABLE;
+  bool isParameter() => kind == ElementKind.PARAMETER;
 
   bool isAssignable() {
     if (modifiers != null && modifiers.isFinal()) return false;
@@ -368,5 +370,15 @@ class Elements {
     return (element != null)
            && element.isInstanceMember()
            && (element.kind === ElementKind.FUNCTION);
+  }
+
+  static bool isClosureSend(Send send, TreeElements elements) {
+    if (send.isPropertyAccess) return false;
+    if (send.receiver !== null) return false;
+    Element element = elements[send];
+    // (o)() or foo()().
+    if (element === null && send.selector.asIdentifier() === null) return true;
+    // foo() with foo a local or a parameter.
+    return element.isVariable() || element.isParameter();
   }
 }

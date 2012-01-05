@@ -76,6 +76,11 @@ class Compiler implements Canceler, Logger {
     cancel("$methodName not implemented", node, token, instruction);
   }
 
+  void internalError(String message,
+                     [Node node, Token token, HInstruction instruction]) {
+    cancel("Internal Error: $message", node, token, instruction);
+  }
+
   void cancel([String reason, Node node, Token token,
                HInstruction instruction]) {
     throw new CompilerCancelledException(reason);
