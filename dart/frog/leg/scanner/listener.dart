@@ -1057,9 +1057,12 @@ class NodeListener extends ElementListener {
   }
 
   void handleFunctionTypedFormalParameter(Token token) {
-    canceler.cancel('function typed formal parameters are not implemented',
-                    token: token);
-    NodeList parameters = popNode();
+    NodeList formals = popNode();
+    Identifier name = popNode();
+    TypeAnnotation returnType = popNode();
+    pushNode(null); // Signal "no type" to endFormalParameter.
+    pushNode(new FunctionExpression(name, formals, null, returnType,
+                                    null, null));
   }
 
   void handleValuedFormalParameter(Token equals, Token token) {

@@ -152,7 +152,7 @@ class Unparser implements Visitor {
       sb.add(' ');
       visit(node.expression);
     }
-    add(node.endToken.value);
+    if (node.endToken !== null) add(node.endToken.value);
   }
 
 

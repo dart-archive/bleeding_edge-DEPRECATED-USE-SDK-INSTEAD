@@ -83,7 +83,8 @@ class Node implements Hashable {
     Unparser unparser = new Unparser();
     try {
       return unparser.unparse(this);
-    } catch (var e) {
+    } catch (var e, var trace) {
+      print(trace);
       return '<<unparse error: ${getObjectDescription()}: ${unparser.sb}>>';
     }
   }
@@ -523,7 +524,9 @@ class FunctionExpression extends Expression {
     return firstBeginToken(returnType, name);
   }
 
-  Token getEndToken() => body.getEndToken();
+  Token getEndToken() {
+    return (body === null) ? parameters.getEndToken() : body.getEndToken();
+  }
 }
 
 typedef void DecodeErrorHandler(Token token, var error);

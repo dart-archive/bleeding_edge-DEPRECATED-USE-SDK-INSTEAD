@@ -595,9 +595,7 @@ class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
       resolver.cancel(node,
           "receiver on a variable definition not implemented");
     }
-    Identifier selector = node.selector;
     resolver.visit(node.arguments.head);
-
     return visit(node.selector);
   }
 
