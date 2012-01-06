@@ -62,6 +62,7 @@ class SsaCodeGenerator implements HVisitor {
   final Map<int, String> names;
   final Map<String, int> prefixes;
 
+  Element equalsNullElement;
   int indent = 0;
   HGraph currentGraph;
   HBasicBlock currentBlock;
@@ -72,6 +73,8 @@ class SsaCodeGenerator implements HVisitor {
     for (final name in parameterNames.getValues()) {
       prefixes[name] = 0;
     }
+    equalsNullElement =
+        compiler.builder.interceptors.getEqualsNullInterceptor();
   }
 
   visitGraph(HGraph graph) {
@@ -215,6 +218,24 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
+  visitEquals(HEquals node) {
+    if (node.builtin) {
+      buffer.add('(');
+      use(node.left);
+      buffer.add(' === ');
+      use(node.right);
+      buffer.add(')');
+    } else if (node.element === equalsNullElement) {
+      compiler.registerStaticInvocation(node.element);
+      use(node.target);
+      buffer.add('(');
+      use(node.left);
+      buffer.add(')');
+    } else {
+      visitInvokeStatic(node);
+    }
+  }
+
   visitAdd(HAdd node)               => visitInvokeBinary(node, '+');
   visitDivide(HDivide node)         => visitInvokeBinary(node, '/');
   visitMultiply(HMultiply node)     => visitInvokeBinary(node, '*');
@@ -235,7 +256,6 @@ class SsaCodeGenerator implements HVisitor {
 
   visitNegate(HNegate node)         => visitInvokeUnary(node, '-');
 
-  visitEquals(HEquals node)             => visitInvokeBinary(node, '===');
   visitIdentity(HIdentity node)         => visitInvokeBinary(node, '===');
   visitLess(HLess node)                 => visitInvokeBinary(node, '<');
   visitLessEqual(HLessEqual node)       => visitInvokeBinary(node, '<=');

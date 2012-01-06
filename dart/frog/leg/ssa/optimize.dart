@@ -9,7 +9,7 @@ class SsaOptimizerTask extends CompilerTask {
   void optimize(HGraph graph) {
     measure(() {
       new SsaTypePropagator(compiler).visitGraph(graph);
-      new SsaConstantFolder().visitGraph(graph);
+      new SsaConstantFolder(compiler).visitGraph(graph);
       new SsaRedundantPhiEliminator().visitGraph(graph);
       new SsaDeadPhiEliminator().visitGraph(graph);
       new SsaGlobalValueNumberer(compiler).visitGraph(graph);
@@ -25,6 +25,10 @@ class SsaOptimizerTask extends CompilerTask {
  * compile-time.
  */
 class SsaConstantFolder extends HBaseVisitor {
+  Compiler compiler;
+
+  SsaConstantFolder(Compiler this.compiler);
+
   visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
@@ -106,6 +110,11 @@ class SsaConstantFolder extends HBaseVisitor {
       } else {
         return new HLiteral(op1.value == op2.value, HType.BOOLEAN);
       }
+    } else if (node.right.isLiteralNull()) {
+      HStatic target = new HStatic(
+          compiler.builder.interceptors.getEqualsNullInterceptor());
+      node.block.addBefore(node, target);
+      return new HEquals(target, node.left, node.right);
     }
     return node;
   }

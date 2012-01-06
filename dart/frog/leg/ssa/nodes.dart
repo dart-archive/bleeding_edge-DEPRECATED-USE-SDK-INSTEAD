@@ -25,6 +25,7 @@ interface HVisitor<R> {
   R visitIntegerCheck(HIntegerCheck node);
   R visitInvokeDynamicMethod(HInvokeDynamicMethod node);
   R visitInvokeDynamicGetter(HInvokeDynamicGetter node);
+  R visitInvokeDynamicSetter(HInvokeDynamicSetter node);
   R visitInvokeInterceptor(HInvokeInterceptor node);
   R visitInvokeStatic(HInvokeStatic node);
   R visitLess(HLess node);
@@ -1711,7 +1712,9 @@ class HPhi extends HInstruction {
 
 class HRelational extends HInvokeBinary {
   HRelational(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+      : super(target, left, right) {
+    type = HType.BOOLEAN;
+  }
 
   void prepareGvn() {
     // Relational expressions can take part in global value numbering
@@ -1752,6 +1755,11 @@ class HEquals extends HRelational {
   accept(HVisitor visitor) => visitor.visitEquals(this);
   bool typeEquals(other) => other is HEquals;
   bool dataEquals(HInstruction other) => true;
+
+  HType computeType() {
+    builtin = computeInputsType().isNumber() || (left is HLiteral);
+    return HType.BOOLEAN;
+  }
 
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.

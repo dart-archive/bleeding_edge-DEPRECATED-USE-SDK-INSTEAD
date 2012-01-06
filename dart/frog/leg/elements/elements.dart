@@ -378,6 +378,7 @@ class Elements {
     Element element = elements[send];
     // (o)() or foo()().
     if (element === null && send.selector.asIdentifier() === null) return true;
+    if (element === null) return false;
     // foo() with foo a local or a parameter.
     return element.isVariable() || element.isParameter();
   }

@@ -76,6 +76,10 @@ class Interceptors {
   Element getIndexAssignmentInterceptor() {
     return compiler.universe.find(const SourceString('indexSet'));
   }
+
+  Element getEqualsNullInterceptor() {
+    return compiler.universe.find(const SourceString('eqNull'));
+  }
 }
 
 class SsaBuilderTask extends CompilerTask {

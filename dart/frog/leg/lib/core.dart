@@ -109,19 +109,30 @@ tdiv(var a, var b) {
 }
 
 eq(var a, var b) {
-  if (JS("bool", @"typeof $0 === 'undefined'", a) ||
-      JS("bool", @"typeof $0 === 'number'", a) ||
-      JS("bool", @"typeof $0 === 'boolean'", a) ||
-      JS("bool", @"typeof $0 === 'string'", a)) {
-    return JS("bool", @"$0 === $1", a, b);
+  if (JS("bool", @"typeof $0 === 'object'", a)) {
+    if (JS("bool", @"$0.$equals", a)) {
+      return JS("bool", @"$0.$equals($1) === true", a, b);
+    } else {
+      return JS("bool", @"$0 === $1", a, b);
+    }
   }
-  // TODO(kasperl): This is not the right implementation if the a has
-  // a user-defined == operator.
   return JS("bool", @"$0 === $1", a, b);
 }
 
 eqq(var a, var b) {
   return JS("bool", @"$0 === $1", a, b);
+}
+
+eqNull(var a) {
+  if (JS("bool", @"typeof $0 === 'object'", a)) {
+    if (JS("bool", @"$0.$equals", a)) {
+      return JS("bool", @"$0.$equals(void 0) === true", a);
+    } else {
+      return false;
+    }
+  } else {
+    return JS("bool", @"typeof $0 === 'undefined'", a);
+  }
 }
 
 gt(var a, var b) {

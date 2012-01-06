@@ -21,6 +21,15 @@ void main() {
 }
 """;
 
+final String NULL_EQUALS_FOLDING = """
+foo(a, b, c, d) {
+  if (a == null) return 1;
+  if (null == b) return 2;
+  if (4 == c) return 3;
+  if ("foo" == d) return 3;
+}
+""";
+
 
 void compileAndTest(String code, String entry, RegExp regexp) {
   String generated = compile(code, entry);
@@ -32,4 +41,17 @@ main() {
       NUMBER_FOLDING, 'main', const RegExp("print\\(7\\)"));
   compileAndTest(
       NEGATIVE_NUMBER_FOLDING, 'main', const RegExp("print\\(1\\)"));
+
+  String generated = compile(NULL_EQUALS_FOLDING, 'foo');
+  RegExp regexp = const RegExp('eqNull\\(a\\)');
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  regexp = const RegExp('\\(void 0\\) === b');
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  regexp = const RegExp('4 === c');
+  Expect.isTrue(regexp.hasMatch(generated));
+
+  regexp = const RegExp('"foo" === d');
+  Expect.isTrue(regexp.hasMatch(generated));
 }
