@@ -306,7 +306,7 @@ class GsUtil(object):
     finally:
       if xmlfile is not None:
         print 'removing {0}'.format(xmlfile.name)
-        os.remove(xmlfile.name);
+        os.remove(xmlfile.name)
 
   def _GsutilSetAcl(self, object_uri, acl):
     """Call gsutil to set the given ACL on a Google Storeage object.

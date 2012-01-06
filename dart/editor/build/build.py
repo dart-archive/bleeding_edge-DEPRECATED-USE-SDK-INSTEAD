@@ -14,6 +14,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import gsutil
 import postprocess
 
@@ -23,16 +24,20 @@ class AntWrapper(object):
 
   _antpath = None
   _bzippath = None
+  _propertyfile = None
 
-  def __init__(self, antpath='/usr/bin', bzippath=None):
+  def __init__(self, propertyfile, antpath='/usr/bin', bzippath=None):
     """Initialize the class with the ant path.
 
     Args:
+      propertyfile: the file to write the build properties to
       antpath: the path to ant
       bzippath: the path to the bzip jar
+
     """
     self._antpath = antpath
     self._bzippath = bzippath
+    self._propertyfile = propertyfile
     print 'AntWrapper.__init__({0}, {1})'.format(self._antpath,
                                                  self._bzippath)
 
@@ -92,6 +97,8 @@ class AntWrapper(object):
       args.append('-Dbuild.out=' + buildout)
     if sourcepath:
       args.append('-Dbuild.source=' + sourcepath)
+    if self._propertyfile:
+      args.append('-Dbuild.out.property.file=' + self._propertyfile)
     if buildos:
       args.append('-Dbuild.os={0}'.format(buildos))
     if extra_args:
@@ -186,166 +193,175 @@ def main():
   print 'dartpath       = {0}'.format(dartpath)
 
   os.chdir(buildpath)
-  ant = AntWrapper(os.path.join(antpath, 'bin'), bzip2libpath)
+  ant_property_file = None
+  try:
+    ant_property_file = tempfile.NamedTemporaryFile(suffix='.property',
+                                                    prefix='AntProperties',
+                                                    delete=False)
+    ant_property_file.close()
+    ant = AntWrapper(ant_property_file.name, os.path.join(antpath, 'bin'),
+                     bzip2libpath)
 
-  ant.RunAnt(os.getcwd(), '', '', '', '',
-             '', '', buildos, ['-diagnostics'])
+    ant.RunAnt(os.getcwd(), '', '', '', '',
+               '', '', buildos, ['-diagnostics'])
 
-  homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
-  gsu = gsutil.GsUtil(False, homegsutil)
+    homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
+    gsu = gsutil.GsUtil(False, homegsutil)
 
-  parser = _BuildOptions()
-  (options, args) = parser.parse_args()
-  # Determine which targets to build. By default we build the "all" target.
-  if args:
-    print 'only options should be passed to this script'
-    parser.print_help()
-    return 1
+    parser = _BuildOptions()
+    (options, args) = parser.parse_args()
+    # Determine which targets to build. By default we build the "all" target.
+    if args:
+      print 'only options should be passed to this script'
+      parser.print_help()
+      return 1
 
-  if str(options.revision) == 'None':
-    print 'missing revision option'
-    parser.print_help()
-    return 2
+    if str(options.revision) == 'None':
+      print 'missing revision option'
+      parser.print_help()
+      return 2
 
-  if str(options.name) == 'None':
-    print 'missing builder name'
-    parser.print_help()
-    return 2
+    if str(options.name) == 'None':
+      print 'missing builder name'
+      parser.print_help()
+      return 2
 
-  if str(options.out) == 'None':
-    print 'missing output directory'
-    parser.print_help()
-    return 2
+    if str(options.out) == 'None':
+      print 'missing output directory'
+      parser.print_help()
+      return 2
 
-  #this code handles getting the revision on the developer machine
-  #where it can be 123, 123M 123:125M
-  revision = options.revision
-  lastc = revision[-1]
-  if lastc.isalpha():
-    revision = revision[0:-1]
-  index = revision.find(':')
-  if index > -1:
-    revision = revision[0:index]
-  print 'revision       = {0}'.format(revision)
+    #this code handles getting the revision on the developer machine
+    #where it can be 123, 123M 123:125M
+    revision = options.revision
+    lastc = revision[-1]
+    if lastc.isalpha():
+      revision = revision[0:-1]
+    index = revision.find(':')
+    if index > -1:
+      revision = revision[0:index]
+    print 'revision       = {0}'.format(revision)
 
-  buildout = os.path.join(buildroot, options.out)
+    buildout = os.path.join(buildroot, options.out)
 
-  #get user name if it does not start with chrome then deploy
-  # to the test bucket otherwise deploy to the continuous bucket
-  #I could not find any non-OS specific way to get the user under Python
-  # so the environemnt variables 'USER' Linux and Mac and
-  # 'USERNAME' Windows were used.
-  username = os.environ.get('USER')
-  if username is None:
-    username = os.environ.get('USERNAME')
+    #get user name if it does not start with chrome then deploy
+    # to the test bucket otherwise deploy to the continuous bucket
+    #I could not find any non-OS specific way to get the user under Python
+    # so the environemnt variables 'USER' Linux and Mac and
+    # 'USERNAME' Windows were used.
+    username = os.environ.get('USER')
+    if username is None:
+      username = os.environ.get('USERNAME')
 
-  if username is None:
-    _PrintError('could not find the user name'
-                ' tried environment variables'
-                ' USER and USERNAME')
-    return 1
-  sdk_environment = os.environ
-  if username.startswith('chrome'):
-    from_bucket = 'gs://dart-dump-render-tree'
-    to_bucket = 'gs://dart-editor-archive-continuous'
-    run_sdk_build = True
-    running_on_buildbot = True
-  else:
-    from_bucket = 'gs://dart-editor-archive-testing'
-    to_bucket = 'gs://dart-editor-archive-testing'
-    run_sdk_build = False
-    running_on_buildbot = False
-    sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
+    if username is None:
+      _PrintError('could not find the user name'
+                  ' tried environment variables'
+                  ' USER and USERNAME')
+      return 1
+    sdk_environment = os.environ
+    if username.startswith('chrome'):
+      from_bucket = 'gs://dart-dump-render-tree'
+      to_bucket = 'gs://dart-editor-archive-continuous'
+      run_sdk_build = True
+      running_on_buildbot = True
+    else:
+      from_bucket = 'gs://dart-editor-archive-testing'
+      to_bucket = 'gs://dart-editor-archive-testing'
+      run_sdk_build = False
+      running_on_buildbot = False
+      sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
 
-  #this is a hack to allow the SDK build to be run on a local machine
-  if sdk_environment.has_key('FORCE_RUN_SDK_BUILD'):
-    run_sdk_build = True
-  #end hack
+    #this is a hack to allow the SDK build to be run on a local machine
+    if sdk_environment.has_key('FORCE_RUN_SDK_BUILD'):
+      run_sdk_build = True
+    #end hack
 
-  print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
-  if sdk_environment.has_key('JAVA_HOME'):
-    print 'JAVA_HOME = {0}'.format(str(sdk_environment['JAVA_HOME']))
-  builder_name = str(options.name)
+    print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
+    if sdk_environment.has_key('JAVA_HOME'):
+      print 'JAVA_HOME = {0}'.format(str(sdk_environment['JAVA_HOME']))
+    builder_name = str(options.name)
 
-  if (run_sdk_build and
-      builder_name != 'dart-editor'):
-    _PrintSeparator('running the build of the Dart SDK')
-    dartbuildscript = os.path.join(toolspath, 'build.py')
-    cmds = [sys.executable, dartbuildscript,
-            '--mode=release', 'upload_sdk']
-    cwd = os.getcwd()
-    try:
-      os.chdir(dartpath)
-      print ' '.join(cmds)
-      status = subprocess.call(cmds, env=sdk_environment)
-      print 'sdk build returned ' + str(status)
-      if status:
-        _PrintError('the build of the SDK failed')
-        return status
-    finally:
-      os.chdir(cwd)
-    _CopySdk(buildos, revision, to_bucket, from_bucket, gsu)
+    if (run_sdk_build and
+        builder_name != 'dart-editor'):
+      _PrintSeparator('running the build of the Dart SDK')
+      dartbuildscript = os.path.join(toolspath, 'build.py')
+      cmds = [sys.executable, dartbuildscript,
+              '--mode=release', 'upload_sdk']
+      cwd = os.getcwd()
+      try:
+        os.chdir(dartpath)
+        print ' '.join(cmds)
+        status = subprocess.call(cmds, env=sdk_environment)
+        print 'sdk build returned ' + str(status)
+        if status:
+          _PrintError('the build of the SDK failed')
+          return status
+      finally:
+        os.chdir(cwd)
+      _CopySdk(buildos, revision, to_bucket, from_bucket, gsu)
 
-  if builder_name == 'dart-editor':
-    buildos = None
-#  else:
-#    _PrintSeparator('new builder running on {0} is'
-#                    ' a place holder until the os specific builds'
-#                    ' are in place.  This is a '
-#                    'normal termination'.format(builder_name))
-#    return 0
+    if builder_name == 'dart-editor':
+      buildos = None
+  #  else:
+  #    _PrintSeparator('new builder running on {0} is'
+  #                    ' a place holder until the os specific builds'
+  #                    ' are in place.  This is a '
+  #                    'normal termination'.format(builder_name))
+  #    return 0
 
-  _PrintSeparator('running the build to produce the Zipped RCP''s')
-  status = ant.RunAnt('.', 'build_rcp.xml', revision, options.name,
-                      buildroot, buildout, editorpath, buildos)
-  property_file = os.path.join('/var/tmp/' + options.name +
-                               '-build.properties')
-  #the ant script writes a property file in a known location so
-  #we can read it. This build script is currently not using any post
-  #processin
-  properties = _ReadPropertyFile(property_file)
+    _PrintSeparator('running the build to produce the Zipped RCP''s')
+    status = ant.RunAnt('.', 'build_rcp.xml', revision, options.name,
+                        buildroot, buildout, editorpath, buildos)
+    #the ant script writes a property file in a known location so
+    #we can read it. This build script is currently not using any post
+    #processing
+    properties = _ReadPropertyFile(ant_property_file.name)
 
-  if status and properties['build.runtime']:
-    _PrintErrorLog(properties['build.runtime'])
-    #This build script is currently not using any post processing
-    #so this line is commented out
-    # If the preprocessor needs to be run in the
-    #  if not status and properties['build.tmp']:
-    #    postProcessZips(properties['build.tmp'], buildout)
-  sys.stdout.flush()
-  if status:
+    if status and properties['build.runtime']:
+      _PrintErrorLog(properties['build.runtime'])
+      #This build script is currently not using any post processing
+      #so this line is commented out
+      # If the preprocessor needs to be run in the
+      #  if not status and properties['build.tmp']:
+      #    postProcessZips(properties['build.tmp'], buildout)
+    sys.stdout.flush()
+    if status:
+      return status
+
+    #return on any builder but dart-editor
+    if buildos:
+      return 0
+
+    #if the build passed run the deploy artifacts
+    _PrintSeparator("Deploying the built RCP's to Google Storage")
+    status = _DeployArtifacts(buildout, to_bucket,
+                              properties['build.tmp'], revision,
+                              gsu)
+    if status:
+      return status
+
+    _PrintSeparator("Setting the ACL'sfor the RCP's in Google Storage")
+    _SetAclOnArtifacts(to_bucket,
+                       [revision + '/DartBuild', 'latest/DartBuild'],
+                       gsu)
+
+    sys.stdout.flush()
+
+    _PrintSeparator('Running the tests')
+    status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
+                        'buildTests.xml',
+                        revision, options.name, buildroot, buildout,
+                        editorpath, buildos)
+    properties = _ReadPropertyFile(ant_property_file.name)
+    if status and properties['build.runtime']:
+      #if there is a build.runtime and the status is not
+      #zero see if there are any *.log entries
+      _PrintErrorLog(properties['build.runtime'])
     return status
-
-  #return on any builder but dart-editor
-  if buildos:
-    return 0
-
-  #if the build passed run the deploy artifacts
-  _PrintSeparator("Deploying the built RCP's to Google Storage")
-  status = _DeployArtifacts(buildout, to_bucket,
-                            properties['build.tmp'], revision,
-                            gsu)
-  if status:
-    return status
-
-  _PrintSeparator("Setting the ACL'sfor the RCP's in Google Storage")
-  _SetAclOnArtifacts(to_bucket,
-                     [revision + '/DartBuild', 'latest/DartBuild'],
-                     gsu)
-
-  sys.stdout.flush()
-
-  _PrintSeparator('Running the tests')
-  status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
-                      'buildTests.xml',
-                      revision, options.name, buildroot, buildout,
-                      editorpath, buildos)
-  properties = _ReadPropertyFile(property_file)
-  if status and properties['build.runtime']:
-    #if there is a build.runtime and the status is not
-    #zero see if there are any *.log entries
-    _PrintErrorLog(properties['build.runtime'])
-  return status
+  finally:
+    if ant_property_file is not None:
+      print 'cleaning up temp file {0}'.format(ant_property_file.name)
+      os.remove(ant_property_file.name)
 
 
 def _ReadPropertyFile(property_file):
