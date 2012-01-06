@@ -65,12 +65,14 @@ class AntWrapper(object):
     """
     os_shell = '/bin/bash'
     ant_exec = 'ant'
+    useshell = False
     if not os.path.exists(os_shell):
       os_shell = os.environ['COMSPEC']
       if os_shell is None:
         raise Exception('could not find shell')
       else:
         ant_exec = 'ant.bat'
+        useshell = True
 
     cwd = os.getcwd()
     os.chdir(build_dir)

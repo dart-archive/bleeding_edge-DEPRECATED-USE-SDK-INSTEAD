@@ -189,13 +189,8 @@ build system.  The PDE build system has to run under Eclipse.
         <property name="build.runtime.abs" location="${build.runtime}" />
         <property name="build.target.abs" location="${build.target}" />
         <property name="build.stage.abs" location="${build.stage}" />
-        <fail message="outputFile for build.properties needs to be set">
-            <condition>
-                <not>
-                    <isset property="build.out.property.file" />
-                </not>
-            </condition>
-        </fail>
+        <property name="build.out.property.file"
+                  value="${java.io.tmpdir}/dart-build.properties" />
         <echoproperties prefix="build." destfile="${build.out.property.file}"/>
         <echoProperty propertyName="eclipse-sdk.3.8.url" />
         <echoProperty propertyName="eclipse-sdk.3.8.linux.gtk.x86.zip" />
