@@ -185,11 +185,13 @@ public final class DartCodeScanner extends AbstractDartScanner {
     }
   }
 
+  public static final String[] DIRECTIVES;
   public static final String[] KEYWORDS;
 
   public static final String[] OPERATORS;
 
   static {
+    ArrayList<String> directives = new ArrayList<String>();
     ArrayList<String> keywords = new ArrayList<String>();
     ArrayList<String> operators = new ArrayList<String>();
     com.google.dart.compiler.parser.Token[] tokens = com.google.dart.compiler.parser.Token.values();
@@ -200,7 +202,7 @@ public final class DartCodeScanner extends AbstractDartScanner {
         keywords.add(token.getSyntax());
       } else if ((LIBRARY.ordinal() <= token.ordinal()) && (token.ordinal() <= NATIVE.ordinal())) {
         String name = token.getSyntax();
-        keywords.add(name.substring(1));
+        directives.add(name.substring(1));
       }
       if (token.isBinaryOperator() || token.isUnaryOperator()
           || (token.ordinal() == ELLIPSIS.ordinal()) && (token.ordinal() != IS.ordinal())) {
@@ -210,6 +212,7 @@ public final class DartCodeScanner extends AbstractDartScanner {
     for (String kw : DartParser.PSEUDO_KEYWORDS) {
       keywords.add(kw);
     }
+    DIRECTIVES = directives.toArray(new String[keywords.size()]);
     KEYWORDS = keywords.toArray(new String[keywords.size()]);
     OPERATORS = operators.toArray(new String[operators.size()]);
   }
@@ -290,6 +293,9 @@ public final class DartCodeScanner extends AbstractDartScanner {
     }
     for (int i = 0; i < fgConstants.length; i++) {
       wordRule.addWord(fgConstants[i], token);
+    }
+    for (int i = 0; i < DIRECTIVES.length; i++) {
+      rules.add(new SingleLineRule("#", DIRECTIVES[i], token));
     }
 
     combinedWordRule.addWordMatcher(wordRule);
