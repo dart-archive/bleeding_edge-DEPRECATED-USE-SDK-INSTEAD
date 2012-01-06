@@ -25,6 +25,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.indexer.standard.StandardDriver;
 import com.google.dart.indexer.workspace.index.IndexingTarget;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.indexer.task.CompilationUnitIndexingTarget;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -137,7 +138,17 @@ class CompilerListener implements DartCompilerListener {
     Source source = error.getSource();
     IResource res = ResourceUtil.getResource(source);
     if (res == null) {
-      if (missingSourceCount <= MISSING_SOURCE_REPORT_LIMIT) {
+      if (source != null && source.getUri().toString().startsWith("dart://")) {
+        // We can't find the source associated with this error. However, this is in system
+        // code that the user has no control over. Don't complain to the user about these
+        // errors.
+
+        if (DartCoreDebug.VERBOSE) {
+          DartCore.logInformation(error.toString());
+        }
+
+        return null;
+      } else if (missingSourceCount <= MISSING_SOURCE_REPORT_LIMIT) {
         // Don't flood the log
         missingSourceCount++;
         StringBuilder builder = new StringBuilder();
@@ -155,15 +166,15 @@ class CompilerListener implements DartCompilerListener {
           builder.append("): ");
         }
         builder.append(error.getMessage());
-        RuntimeException exception = new RuntimeException(builder.toString());
-        DartCore.logInformation(exception.getMessage(), exception);
-        // TODO (danrubel): generalize the logging mechanism for all plugins
+        DartCore.logInformation(builder.toString());
       }
+
       try {
         res = library.getDefiningCompilationUnit().getCorrespondingResource();
       } catch (DartModelException exception) {
         // Fall through to use the project as a resource
       }
+
       if (res == null) {
         res = project;
       }
