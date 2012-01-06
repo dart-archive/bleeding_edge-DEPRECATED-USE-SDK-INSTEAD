@@ -359,6 +359,8 @@ class HInstructionStringifier implements HVisitor<String> {
     switch (node.type) {
       case HType.ARRAY: type = "array"; break;
       case HType.BOOLEAN: type = "bool"; break;
+      case HType.INTEGER: type = "integer"; break;
+      case HType.DOUBLE: type = "double"; break;
       case HType.NUMBER: type = "number"; break;
       case HType.STRING: type = "string"; break;
       case HType.STRING_OR_ARRAY: type = "string_or_array"; break;
