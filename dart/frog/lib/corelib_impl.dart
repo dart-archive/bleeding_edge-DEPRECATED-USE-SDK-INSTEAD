@@ -72,7 +72,25 @@ class ListFactory<E> implements List<E> native "Array" {
   List<E> getRange(int start, int length) native
     "return this.slice(start, start + length);";
 
-  void setRange(int start, int length, List<E> from, [int startFrom]) native;
+  void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
+    // length of 0 prevails and should not throw exceptions.
+    if (length == 0) return;
+    if (length < 0) throw new IllegalArgumentException('length is negative');
+
+    if (start < 0) throw new IndexOutOfRangeException(start);
+
+    int end = start + length;
+    if (end > this.length) throw new IndexOutOfRangeException(end);
+
+    if (startFrom < 0) throw new IndexOutOfRangeException(startFrom);
+
+    int endFrom = startFrom + length;
+    if (endFrom > from.length) throw new IndexOutOfRangeException(endFrom);
+
+    for (var i = 0; i < length; ++i)
+      this[start + i] = from[startFrom + i];
+  }
+
   void removeRange(int start, int length) native "this.splice(start, length);";
 
   void insertRange(int start, int length, [E initialValue]) native
