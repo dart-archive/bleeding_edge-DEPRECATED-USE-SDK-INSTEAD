@@ -898,22 +898,20 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   }
 
   /**
-   * Computes the folding structure for a given {@link DartElement JavaScript element}. Computed
+   * Computes the folding structure for a given {@link DartElement Dart element}. Computed
    * projection annotations are
    * {@link DefaultDartFoldingStructureProvider.FoldingStructureComputationContext#addProjectionRange(DefaultDartFoldingStructureProvider.DartProjectionAnnotation, Position)
    * added} to the computation context.
    * <p>
-   * Subclasses may extend or replace. The default implementation creates projection annotations for
-   * the following elements:
+   * Subclasses may extend or replace. This implementation creates projection annotations for the
+   * following elements:
    * <ul>
-   * <li>true members (not for top-level types)</li>
-   * <li>the javadoc comments of any member</li>
-   * <li>header comments (javadoc or multi-line comments appearing before the first type's javadoc
-   * or before the package or import declarations).</li>
+   * <li>top-level functions, fields, and typedefs
+   * <li>members of types (not for top-level types)</li>
    * </ul>
    * </p>
    * 
-   * @param element the JavaScript element to compute the folding structure for
+   * @param element the Dart element to compute the folding structure for
    * @param ctx the computation context
    */
   protected void computeFoldingStructure(DartElement element, FoldingStructureComputationContext ctx) {
@@ -931,6 +929,8 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
         break;
       case DartElement.METHOD:
       case DartElement.FIELD:
+      case DartElement.FUNCTION:
+      case DartElement.FUNCTION_TYPE_ALIAS:
         collapse = ctx.collapseMembers();
         break;
       default:
