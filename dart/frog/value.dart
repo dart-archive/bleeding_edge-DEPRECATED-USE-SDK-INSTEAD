@@ -211,25 +211,8 @@ class Value {
   }
 
   /** True if convertTo would generate a conversion. */
-  // TODO(jmesserly): I don't like how this is coupled to convertTo.
   bool needsConversion(Type toType) {
-    var callMethod = toType.getCallMethod();
-    if (callMethod != null) {
-      int arity = callMethod.parameters.length;
-      var myCall = type.getCallMethod();
-      if (myCall == null || myCall.parameters.length != arity) {
-        return true;
-      }
-    }
-    if (options.enableTypeChecks) {
-      Type fromType = type;
-      if (type.isVar && (code != 'null' || !toType.isNullable)) {
-        fromType = world.objectType;
-      }
-      bool bothNum = type.isNum && toType.isNum;
-      return !(fromType.isSubtypeOf(toType) || bothNum);
-    }
-    return false;
+    return this != convertTo(null, toType, isDynamic:true);
   }
 
   /**
@@ -238,8 +221,7 @@ class Value {
    * checks when --enable_type_checks is enabled, and wrapping callback
    * functions passed to the dom so we can restore their isolate context.
    */
-  // WARNING: this needs to be kept in sync with needsConversion above.
-  Value convertTo(MethodGenerator context, Type toType, Node node,
+  Value convertTo(MethodGenerator context, Type toType,
       [bool isDynamic=false]) {
 
     // Issue type warnings unless we are processing a dynamic operation.
@@ -248,21 +230,10 @@ class Value {
     var callMethod = toType.getCallMethod();
     if (callMethod != null) {
       if (checked && !toType.isAssignable(type)) {
-        convertWarning(toType, node);
+        convertWarning(toType);
       }
 
-      int arity = callMethod.parameters.length;
-      var myCall = type.getCallMethod();
-      if (myCall == null || myCall.parameters.length != arity) {
-        final stub = world.functionType.getCallStub(new Arguments.bare(arity));
-        var val = new Value(toType, 'to\$${stub.name}($code)', node.span);
-        // TODO(sigmund): try to remove, see below
-        return _isDomCallback(toType) && !_isDomCallback(type) ?
-            val._wrapDomCallback(toType, arity) : val;
-      } else if (_isDomCallback(toType) && !_isDomCallback(type)) {
-        // TODO(sigmund): try to remove, see below
-        return _wrapDomCallback(toType, arity);
-      }
+      return _maybeWrapFunction(toType, callMethod);
     }
 
     // If we're assigning from a var, pretend it's Object for the purpose of
@@ -287,42 +258,61 @@ class Value {
 
     if (checked && !toType.isSubtypeOf(type)) {
       // According to the static types, this conversion can't work.
-      convertWarning(toType, node);
+      convertWarning(toType);
     }
 
     // Generate a runtime checks if they're turned on, otherwise skip it.
     if (options.enableTypeChecks) {
-      return _typeAssert(context, toType, node, isDynamic);
+      if (context == null && isDynamic) {
+        // If we're just testing if we need the conversion, not actually doing
+        // it we don't need a context. Just return something that is != this.
+        // TODO(jmesserly): I don't like using null in this fashion, but it's
+        // better than before where we had two code paths that needed to be
+        // kept in sync.
+        return null;
+      }
+      return _typeAssert(context, toType, isDynamic);
     } else {
       return this;
     }
   }
 
   /**
-   * Checks whether [toType] is a callback function, and it is defined in the
-   * dom library.
+   * Wraps a function with a conversion, so it can be called directly from
+   * Dart or JS code with the proper arity. We avoid the wrapping if the target
+   * function has the same arity.
+   *
+   * Also wraps a callback attached to the dom (e.g. event listeners,
+   * setTimeout) so we can restore it's isolate context information. This is
+   * needed so that callbacks are executed within the context of the isolate
+   * that created them in the first place.
    */
-  bool _isDomCallback(toType) {
-    return (toType.definition is FunctionTypeDefinition
-        && toType.library == world.dom);
-  }
+  Value _maybeWrapFunction(Type toType, MethodMember callMethod) {
+    int arity = callMethod.parameters.length;
+    var myCall = type.getCallMethod();
 
-  /**
-   * Wraps a callback attached to the dom (e.g. event listeners, setTimeout) so
-   * we can restore it's isolate context information. This is needed so that
-   * callbacks are executed within the context of the isolate that created them
-   * in the first place.
-   */
-  // TODO(sigmund): try to remove this specialized logic about isolates
-  // and the dom from the compiler, move into the actual dom library if
-  // possible.
-  Value _wrapDomCallback(Type toType, int arity) {
-    if (arity == 0) {
-      world.gen.corejs.useWrap0 = true;
-    } else {
-      world.gen.corejs.useWrap1 = true;
+    Value result = this;
+    if (myCall == null || myCall.parameters.length != arity) {
+      final stub = world.functionType.getCallStub(new Arguments.bare(arity));
+      result = new Value(toType, 'to\$${stub.name}($code)', span);
     }
-    return new Value(toType, '\$wrap_call\$$arity($code)', span);
+
+    if (toType.library.isDom && !type.library.isDom) {
+      // TODO(jmesserly): either remove this or make it a more first class
+      // feature of our native interop. We shouldn't be checking for the DOM
+      // library--any host environment (like node.js) might need this feature
+      // for isolates too. But we don't want to wrap every function we send to
+      // native code--many callbacks like List.filter are perfectly safe.
+      if (arity == 0) {
+        world.gen.corejs.useWrap0 = true;
+      } else {
+        world.gen.corejs.useWrap1 = true;
+      }
+
+      result = new Value(toType, '\$wrap_call\$$arity(${result.code})', span);
+    }
+
+    return result;
   }
 
   /**
@@ -330,8 +320,7 @@ class Value {
    * [instanceOf], but it allows null since Dart types are nullable.
    * Also it will throw a TypeError if it gets the wrong type.
    */
-  Value _typeAssert(MethodGenerator context, Type toType, Node node,
-      bool isDynamic) {
+  Value _typeAssert(MethodGenerator context, Type toType, bool isDynamic) {
     if (toType is ParameterType) {
       ParameterType p = toType;
       toType = p.extendsType;
@@ -347,11 +336,10 @@ class Value {
     // its arguments, which in turn invokes the TypeError constructor, ad
     // infinitum.
     String throwTypeError(String paramName) => world.withoutForceDynamic(() {
-      final typeError = world.corelib.types['TypeError'];
-      final typeErrorCtor = typeError.getConstructor('_internal');
+      final typeErrorCtor = world.typeErrorType.getConstructor('_internal');
       world.gen.corejs.ensureTypeNameOf();
-      final result = typeErrorCtor.invoke(context, node,
-          new Value.type(typeError, null),
+      final result = typeErrorCtor.invoke(context, null,
+          new Value.type(world.typeErrorType, null),
           new Arguments(null, [
             new Value(world.objectType, paramName, null),
             new Value(world.stringType, '"${toType.name}"', null)]),
@@ -406,10 +394,9 @@ function \$assert_${toType.name}(x) {
       if (this != temp) context.freeTemp(temp);
 
       // Generate the fallback on Object (that throws a TypeError)
-      if (!world.objectType.varStubs.containsKey(checkName)) {
-        world.objectType.varStubs[checkName] = new VarMethodStub(checkName,
-            null, Arguments.EMPTY, throwTypeError('this'));
-      }
+      world.objectType.varStubs.putIfAbsent(checkName,
+          () => new VarMethodStub(checkName, null, Arguments.EMPTY,
+            throwTypeError('this')));
     }
 
     return new Value(toType, check, span);
@@ -485,10 +472,10 @@ function \$assert_${toType.name}(x) {
     return new Value(world.nonNullBool, testCode, span);
   }
 
-  void convertWarning(Type toType, Node node) {
+  void convertWarning(Type toType) {
     // TODO(jmesserly): better error messages for type conversion failures
     world.warning('type "${type.name}" is not assignable to "${toType.name}"',
-        node.span);
+        span);
   }
 
   Value invokeNoSuchMethod(MethodGenerator context, String name, Node node,

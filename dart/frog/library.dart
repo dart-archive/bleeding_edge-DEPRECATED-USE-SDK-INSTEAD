@@ -44,6 +44,9 @@ class Library extends Element {
   bool get isCore() => this == world.corelib;
   bool get isCoreImpl() => this == world.coreimpl;
 
+  // TODO(jmesserly): we shouldn't be special casing DOM anywhere.
+  bool get isDom() => this == world.dom;
+
   SourceSpan get span() => new SourceSpan(baseSource, 0, 0);
 
   String makeFullPath(String filename) {
@@ -122,7 +125,7 @@ class Library extends Element {
   DefinedType addType(String name, Node definition, bool isClass) {
     if (types.containsKey(name)) {
       var existingType = types[name];
-      if (isCore && existingType.definition == null) {
+      if ((isCore || isCoreImpl) && existingType.definition == null) {
         // TODO(jimhug): Validate compatibility with natives.
         existingType.setDefinition(definition);
       } else {

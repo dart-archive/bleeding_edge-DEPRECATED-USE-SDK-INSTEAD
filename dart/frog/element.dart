@@ -36,7 +36,7 @@ class Element implements Hashable {
   String get jsname() => _jsname;
 
   /** The native name of this element if it has one. */
-  String get nativeName() => null;
+  String get nativeName() => _jsname;
 
   /** Avoid the native name if hidden native. */
   bool get avoidNativeName() => false;

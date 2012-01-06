@@ -58,7 +58,7 @@ class Parameter {
     if (!value.isConst) {
       world.error('default parameter values must be constant', value.span);
     }
-    value = value.convertTo(context, type, definition.value);
+    value = value.convertTo(context, type);
   }
 
   Parameter copyWithNewType(Member newMethod, Type newType) {
@@ -409,7 +409,8 @@ class FieldMember extends Member {
       }
       world.gen.hasStatics = true;
       if (declaringType.isTop) {
-        if (declaringType.library == world.dom) {
+        if (declaringType.library.isDom) {
+          // TODO(jmesserly): this check doesn't look right.
           return new Value(type, '$jsname', node.span);
         } else {
           return new Value(type, '\$globals.$jsname', node.span);
@@ -440,7 +441,7 @@ class FieldMember extends Member {
   Value _set(MethodGenerator context, Node node, Value target, Value value,
       [bool isDynamic=false]) {
     var lhs = _get(context, node, target, isDynamic);
-    value = value.convertTo(context, type, node, isDynamic);
+    value = value.convertTo(context, type, isDynamic);
     return new Value(type, '${lhs.code} = ${value.code}', node.span);
   }
 }
@@ -941,7 +942,7 @@ class MethodMember extends Member {
         var msg = _argCountMsg(args.length, parameters.length);
         return _argError(context, node, target, args, msg, i);
       }
-      arg = arg.convertTo(context, parameters[i].type, node, isDynamic);
+      arg = arg.convertTo(context, parameters[i].type, isDynamic);
       if (isConst && arg.isConst) {
         argsCode.add(arg.canonicalCode);
       } else {
@@ -958,7 +959,7 @@ class MethodMember extends Member {
         if (arg == null) {
           arg = parameters[i].value;
         } else {
-          arg = arg.convertTo(context, parameters[i].type, node, isDynamic);
+          arg = arg.convertTo(context, parameters[i].type, isDynamic);
           namedArgsUsed++;
         }
 
@@ -1048,7 +1049,7 @@ class MethodMember extends Member {
     }
 
     // TODO(jmesserly): factor this better
-    if (name == 'get:typeName' && declaringType.library == world.dom) {
+    if (name == 'get:typeName' && declaringType.library.isDom) {
       world.gen.corejs.ensureTypeNameOf();
     }
 
@@ -1059,29 +1060,23 @@ class MethodMember extends Member {
       Value target, Arguments args, argsString) {
     declaringType.markUsed();
 
+    String ctor = constructorName;
+    if (ctor != '') ctor = '.${ctor}\$ctor';
+
     if (!target.isType) {
       // initializer call to another constructor
-      var code = (constructorName != '')
-          ? '${declaringType.jsname}.${constructorName}\$ctor.call($argsString)'
-          : '${declaringType.jsname}.call($argsString)';
+      var code = '${declaringType.nativeName}${ctor}.call($argsString)';
       return new Value(target.type, code, node.span);
     } else {
-      // If a hidden native class has a direct (non-factory) constructor, use
-      // the native name.  This will work if the name is available in the
-      // execution environment, and will fail at run-time if the name is really
-      // hidden.  This lets the generated code run on some browsers before the
-      // browser compat issue is finalized.
-      var typeName = declaringType.isNative
-          ? declaringType.nativeType.name
-          : declaringType.jsname;
-      var code = (constructorName != '')
-          ? 'new ${typeName}.${constructorName}\$ctor($argsString)'
-          : 'new ${typeName}($argsString)';
+
+      var code = 'new ${declaringType.nativeName}${ctor}($argsString)';
+
       // TODO(jmesserly): using the "node" here feels really hacky
       if (isConst && node is NewExpression && node.dynamic.isConst) {
         return _invokeConstConstructor(node, code, target, args);
       } else {
-        return new Value(target.type, code, node.span);
+        final span = node != null ? node.span : target.span;
+        return new Value(target.type, code, span);
       }
     }
   }

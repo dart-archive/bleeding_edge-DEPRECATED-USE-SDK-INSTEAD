@@ -69,9 +69,8 @@ class VarFunctionStub extends VarMember {
   VarFunctionStub(String name, Arguments callArgs)
     : super(name), args = callArgs.toCallStubArgs() {
     // Ensure dependency is generated
-    var funcImpl = world.coreimpl.types['_FunctionImplementation'];
-    funcImpl.markUsed();
-    world.gen.genMethod(funcImpl.getMember('_genStub'));
+    world.functionImplType.markUsed();
+    world.gen.genMethod(world.functionImplType.getMember('_genStub'));
   }
 
   Value invoke(MethodGenerator context, Node node, Value target,

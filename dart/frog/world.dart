@@ -68,9 +68,10 @@ class World {
 
   Map<String, Library> libraries;
   Library corelib;
+  Library coreimpl;
 
-  Library get coreimpl() => libraries['dart:coreimpl'];
-  Library get dom() => libraries['dart:dom'];
+  // TODO(jmesserly): we shouldn't be special casing DOM anywhere.
+  Library dom;
 
   List<Library> _todo;
 
@@ -91,7 +92,6 @@ class World {
   DefinedType dynamicType;
 
   DefinedType voidType;
-
   DefinedType objectType;
   DefinedType numType;
   DefinedType intType;
@@ -101,6 +101,14 @@ class World {
   DefinedType listType;
   DefinedType mapType;
   DefinedType functionType;
+  DefinedType typeErrorType;
+
+  // Types from dart:coreimpl that the compiler needs
+  DefinedType numImplType;
+  DefinedType stringImplType;
+  DefinedType functionImplType;
+  DefinedType listFactoryType;
+  DefinedType immutableListType;
 
   NonNullableType nonNullBool;
 
@@ -125,19 +133,28 @@ class World {
     libraries['dart:core'] = corelib;
     _todo.add(corelib);
 
-    voidType = _addToCoreLib('void', false);
-    dynamicType = _addToCoreLib('Dynamic', false);
+    coreimpl = getOrAddLibrary('dart:coreimpl');
+
+    voidType = corelib.addType('void', null, false);
+    dynamicType = corelib.addType('Dynamic', null, false);
     varType = dynamicType;
 
-    objectType = _addToCoreLib('Object', true);
-    numType = _addToCoreLib('num', false);
-    intType = _addToCoreLib('int', false);
-    doubleType = _addToCoreLib('double', false);
-    boolType = _addToCoreLib('bool', false);
-    stringType = _addToCoreLib('String', false);
-    listType = _addToCoreLib('List', false);
-    mapType = _addToCoreLib('Map', false);
-    functionType = _addToCoreLib('Function', false);
+    objectType = corelib.addType('Object', null, true);
+    numType = corelib.addType('num', null, false);
+    intType = corelib.addType('int', null, false);
+    doubleType = corelib.addType('double', null, false);
+    boolType = corelib.addType('bool', null, false);
+    stringType = corelib.addType('String', null, false);
+    listType = corelib.addType('List', null, false);
+    mapType = corelib.addType('Map', null, false);
+    functionType = corelib.addType('Function', null, false);
+    typeErrorType = corelib.addType('TypeError', null, false);
+
+    numImplType = coreimpl.addType('NumImplementation', null, true);
+    stringImplType = coreimpl.addType('StringImplementation', null, true);
+    immutableListType = coreimpl.addType('ImmutableList', null, true);
+    listFactoryType = coreimpl.addType('ListFactory', null, true);
+    functionImplType = coreimpl.addType('_FunctionImplementation', null, true);
 
     nonNullBool = new NonNullableType(boolType);
   }
@@ -166,7 +183,7 @@ class World {
    * the generated JS.
    */
   _addTopName(Element named) {
-    if (named.nativeName != null) {
+    if (named is Type && named.isNative) {
       // Reserve the native name if we have one. This ensures no other type
       // will take our native name.
       _addJavascriptTopName(named, named.nativeName);
@@ -253,12 +270,6 @@ class World {
     // Top types don't have a name - we will capture their members in
     // [_addMember].
     if (!type.isTop) _addTopName(type);
-  }
-
-  _addToCoreLib(String name, bool isClass) {
-    var ret = new DefinedType(name, corelib, null, isClass);
-    corelib.types[name] = ret;
-    return ret;
   }
 
   // TODO(jimhug): Can this just be a const Set?
@@ -390,6 +401,10 @@ class World {
       }
       libraries[filename] = library;
       _todo.add(library);
+
+      if (filename == 'dart:dom') {
+        dom = library;
+      }
     }
     return library;
   }

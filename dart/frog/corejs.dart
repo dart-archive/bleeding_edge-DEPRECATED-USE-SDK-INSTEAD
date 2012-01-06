@@ -101,7 +101,7 @@ class CoreJs {
   }
 
   /** Generates the $inherits function when it's first used. */
-  ensureInheritsHelper() {
+  void ensureInheritsHelper() {
     if (_generatedInherits) return;
     _generatedInherits = true;
     writer.writeln(_INHERITS_FUNCTION);
@@ -151,6 +151,15 @@ class CoreJs {
     // Write operator helpers
     for (var opImpl in orderValuesByKeys(_usedOperators)) {
       w.writeln(opImpl);
+    }
+
+    if (world.dom != null) {
+      ensureTypeNameOf();
+      // TODO(jmesserly): we need to find a way to avoid conflicts with other
+      // generated "typeName" fields. Ideally we wouldn't be patching 'Object'
+      // here.
+      w.writeln('Object.prototype.get\$typeName = ' +
+          ' Object.prototype.\$typeNameOf;');
     }
   }
 }
@@ -298,9 +307,6 @@ function $dynamicSetMetadata(inputTable) {
 """;
 
 /** Snippet for `$typeNameOf`. */
-// TODO(sigmund): find a way to make this work on all browsers, including
-// checking the typeName on prototype objects (so we can fix dynamic
-// dispatching on $varMethod).
 final String _TYPE_NAME_OF_FUNCTION = @"""
 Object.prototype.$typeNameOf = function() {
   if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')

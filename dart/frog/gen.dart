@@ -184,7 +184,7 @@ class WorldGenerator {
       // TODO(jmesserly): we can't accurately track if DOM types are
       // created or not, so we need to prepare to handle them.
       // This should be fixed by tightening up the return types in DOM.
-      if ((type.isUsed || type.library == world.dom
+      if ((type.isUsed || type.library.isDom
           || type.isHiddenNativeType) && type.isClass) {
         writeType(type);
 
@@ -240,8 +240,8 @@ class WorldGenerator {
         // TODO(jmesserly): it'd be nice not to duplicate this code, and instead
         // be able to refer to the JS function.
         body = world.objectType.varStubs[checkName].body;
-      } else if (onType.name == 'StringImplementation' ||
-          onType.name == 'NumImplementation') {
+      } else if (onType == world.stringImplType
+          || onType == world.numImplType) {
         body = 'return ${onType.nativeType.name}(this)';
       }
       writer.writeln(_prototypeOf(onType, checkName) + ' = function(){$body};');
@@ -556,8 +556,6 @@ function $inheritsMembers(child, parent) {
     if (typesWithDynamicDispatch == null) return;
     writer.comment('// ${typesWithDynamicDispatch.length} dynamic types.');
 
-    typeTag(type) => type.definition.nativeType.name;
-
     // Build a pre-order traversal over all the types and their subtypes.
     var seen = new Set();
     var types = [];
@@ -600,10 +598,10 @@ function $inheritsMembers(child, parent) {
 
     makeExpression(type) {
       var expressions = [];  // expression fragments for this set of type keys.
-      var subtags = [typeTag(type)];  // TODO: Remove if type is abstract.
+      var subtags = [type.nativeName];  // TODO: Remove if type is abstract.
       walk(type) {
         for (final subtype in _orderCollectionValues(type.directSubtypes)) {
-          var tag = typeTag(subtype);
+          var tag = subtype.nativeName;
           var existing = tagDefns[tag];
           if (existing == null) {
             subtags.add(tag);
@@ -634,7 +632,7 @@ function $inheritsMembers(child, parent) {
     }
 
     for (final type in dispatchTypes) {
-      tagDefns[typeTag(type)] = makeExpression(type);
+      tagDefns[type.nativeName] = makeExpression(type);
     }
 
     // Write out a thunk that builds the metadata.
@@ -651,7 +649,7 @@ function $inheritsMembers(child, parent) {
           '// [dynamic-dispatch-tag, '
           + 'tags of classes implementing dynamic-dispatch-tag]');
       for (final type in dispatchTypes) {
-        writer.writeln("['${typeTag(type)}', ${tagDefns[typeTag(type)]}],");
+        writer.writeln("['${type.nativeName}', ${tagDefns[type.nativeName]}],");
       }
       writer.exitBlock('];');
       writer.writeln('\$dynamicSetMetadata(table);');
@@ -1351,7 +1349,7 @@ class MethodGenerator implements TreeVisitor {
     // TODO(jmesserly): why do we have this rule? It seems inconsistent with
     // the rest of the type system, and just causes bogus asserts unless all
     // bools are initialized to false.
-    return visitValue(node).convertTo(this, world.nonNullBool, node);
+    return visitValue(node).convertTo(this, world.nonNullBool);
   }
 
   visitValue(Expression node) {
@@ -1368,7 +1366,7 @@ class MethodGenerator implements TreeVisitor {
    */
   visitTypedValue(Expression node, Type expectedType) {
     final val = visitValue(node);
-    return expectedType == null ? val : val.convertTo(this, expectedType, node);
+    return expectedType == null ? val : val.convertTo(this, expectedType);
   }
 
   visitVoid(Expression node) {
@@ -1429,7 +1427,7 @@ class MethodGenerator implements TreeVisitor {
           writer.write('${val.code}');
         }
       } else {
-        value = value.convertTo(this, type, node.values[i]);
+        value = value.convertTo(this, type);
         writer.write('${val.code} = ${value.code}');
       }
     }
@@ -2133,7 +2131,7 @@ class MethodGenerator implements TreeVisitor {
           position.span);
     }
 
-    y = y.convertTo(this, x.type, yn);
+    y = y.convertTo(this, x.type);
 
     if (kind == 0) {
       x = captureOriginal(x);
@@ -2237,13 +2235,13 @@ class MethodGenerator implements TreeVisitor {
           var newVal = !value.actualValue;
           return new EvaluatedValue(value.type, newVal, '${newVal}', node.span);
         } else {
-          var newVal = value.convertTo(this, world.nonNullBool, node);
+          var newVal = value.convertTo(this, world.nonNullBool);
           return new Value(newVal.type, '!${newVal.code}', node.span);
         }
 
       case TokenKind.ADD:
         // TODO(jimhug): Issue #359 seeks to clarify this behavior.
-        return value.convertTo(this, world.numType, node);
+        return value.convertTo(this, world.numType);
 
       case TokenKind.SUB:
       case TokenKind.BIT_NOT:
@@ -2364,7 +2362,7 @@ class MethodGenerator implements TreeVisitor {
     }
 
     // Call the constructor on the type we want to construct.
-    // NOTE: this is important for correct checking of factories.
+    // NOTE: this is important for correct type checking of factories.
     // If the user calls "new Interface()" we want the result type to be the
     // interface, not the class.
     var target = new Value.type(type, typeRef.span);
@@ -2398,12 +2396,12 @@ class MethodGenerator implements TreeVisitor {
       }
     }
 
-    world.coreimpl.types['ListFactory'].markUsed();
+    world.listFactoryType.markUsed();
 
     final code = '[${Strings.join(argsCode, ", ")}]';
     var value = new Value(world.listType, code, node.span);
     if (node.isConst) {
-      final immutableList = world.coreimpl.types['ImmutableList'];
+      final immutableList = world.immutableListType;
       final immutableListCtor = immutableList.getConstructor('from');
       final result = immutableListCtor.invoke(this, node,
           new Value.type(value.type, node.span), new Arguments(null, [value]));
@@ -2575,13 +2573,13 @@ class MethodGenerator implements TreeVisitor {
     }
 
     if (node.value is num) {
-      world.coreimpl.types['NumImplementation'].markUsed();
+      world.numImplType.markUsed();
     }
 
     var text = node.text;
     // TODO(jimhug): Confirm that only strings need possible translation
     if (type.isString) {
-      world.coreimpl.types['StringImplementation'].markUsed();
+      world.stringImplType.markUsed();
 
       if (text.startsWith('@')) {
         text = _escapeString(parseStringLiteral(text));

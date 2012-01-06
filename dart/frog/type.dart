@@ -107,8 +107,8 @@ class Type extends Element {
 
   Map<String, Member> getAllMembers() => {};
 
-  /** The native name of this element if it has one. */
-  String get nativeName() => isNative ? definition.nativeType.name : null;
+  /** The native name of this element if it has one, otherwise the JS name. */
+  String get nativeName() => isNative ? definition.nativeType.name : jsname;
 
   /**
    * Avoid the native name if hidden native. It might exist on some browsers and
