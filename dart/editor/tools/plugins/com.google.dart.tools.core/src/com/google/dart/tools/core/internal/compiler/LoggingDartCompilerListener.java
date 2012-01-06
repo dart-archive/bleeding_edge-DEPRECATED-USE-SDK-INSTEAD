@@ -17,18 +17,16 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.SubSystem;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 
 /**
- * Log compilation errors for debugging purposes
+ * Log compilation errors for debugging purposes.
  */
-public class LoggingDartCompilerListener extends DartCompilerListener {
+public class LoggingDartCompilerListener extends DartCompilerListener.Empty {
   /**
    * A compiler listener that can be shared.
    */
   public static final LoggingDartCompilerListener INSTANCE = new LoggingDartCompilerListener();
-
   private boolean ignoreWarnings;
 
   public LoggingDartCompilerListener() {
@@ -44,21 +42,13 @@ public class LoggingDartCompilerListener extends DartCompilerListener {
     if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
       DartCore.logError("Compilation error: " + event);
     }
-
     if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
       if (!ignoreWarnings) {
         DartCore.logError("Compilation warning: " + event);
       }
     }
-
     if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
       DartCore.logError("Type error: " + event);
     }
   }
-
-  @Override
-  public void unitCompiled(DartUnit unit) {
-
-  }
-
 }

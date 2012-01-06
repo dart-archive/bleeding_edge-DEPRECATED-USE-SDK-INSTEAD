@@ -71,7 +71,7 @@ public class DartCompilerUtilities {
    * The abstract class <code>CompilerRunner</code> defines behavior common to classes used to
    * safely invoke the parser, record compilation errors, and capture any parser exception.
    */
-  private static abstract class CompilerRunner extends DartCompilerListener {
+  private static abstract class CompilerRunner implements DartCompilerListener {
     private final Collection<DartCompilationError> parseErrors;
     protected Throwable exception;
 
@@ -103,6 +103,10 @@ public class DartCompilerUtilities {
         DartCore.logError(e);
         handleException(e);
       }
+    }
+
+    @Override
+    public void unitAboutToCompile(DartSource source, boolean diet) {
     }
 
     @Override

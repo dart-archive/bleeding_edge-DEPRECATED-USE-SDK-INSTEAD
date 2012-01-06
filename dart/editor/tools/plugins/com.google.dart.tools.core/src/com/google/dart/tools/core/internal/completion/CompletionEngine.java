@@ -70,7 +70,6 @@ import com.google.dart.tools.core.completion.CompletionMetrics;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.dom.NodeFinder;
-import com.google.dart.tools.core.internal.compiler.SilentDartCompilerListener;
 import com.google.dart.tools.core.internal.completion.ScopedNameFinder.ScopedName;
 import com.google.dart.tools.core.internal.completion.ast.BlockCompleter;
 import com.google.dart.tools.core.internal.completion.ast.FunctionCompleter;
@@ -1046,7 +1045,7 @@ public class CompletionEngine {
         && source.charAt(actualCompletionPosition) == '.';
     CompletionMetrics metrics = requestor.getMetrics();
 
-    DartCompilerListener listener = SilentDartCompilerListener.INSTANCE;
+    DartCompilerListener listener = DartCompilerListener.EMPTY;
     ParserContext ctx = new DartScannerParserContext(sourceFile, source, listener);
     CompletionParser parser = new CompletionParser(ctx);
     parser.setCompletionPosition(completionPosition);
@@ -1087,8 +1086,7 @@ public class CompletionEngine {
       return;
     }
     Scope unitScope = resolvedUnit.getLibrary().getElement().getScope();
-    typeProvider = new CoreTypeProviderImplementation(unitScope,
-        SilentDartCompilerListener.INSTANCE);
+    typeProvider = new CoreTypeProviderImplementation(unitScope, DartCompilerListener.EMPTY);
 
     classElement = null;
     if (resolvedMember != null) {

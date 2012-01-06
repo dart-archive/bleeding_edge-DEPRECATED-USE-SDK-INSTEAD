@@ -132,14 +132,10 @@ public class CodeSnippetParsingUtil {
     String sourceCode = new String(source);
     final CompilationResult compilationResult = new CompilationResult();
     compilationResult.scanLines(sourceCode);
-    DartCompilerListener listener = new DartCompilerListener() {
+    DartCompilerListener listener = new DartCompilerListener.Empty() {
       @Override
       public void onError(DartCompilationError event) {
         compilationResult.problemCount += 1;
-      }
-
-      @Override
-      public void unitCompiled(DartUnit unit) {
       }
     };
     DartScannerParserContext ctx = new DartScannerParserContext(null, sourceCode, listener);

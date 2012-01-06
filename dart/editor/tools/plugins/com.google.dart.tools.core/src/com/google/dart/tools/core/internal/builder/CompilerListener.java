@@ -45,7 +45,7 @@ import java.net.URI;
  * An Eclipse specific implementation of {@link DartCompilerContext} for intercepting compilation
  * errors and translating them into {@link IResource} markers.
  */
-class CompilerListener extends DartCompilerListener {
+class CompilerListener implements DartCompilerListener {
   /**
    * The number of times that we have logged a message about compilation errors that were reported
    * for which we could not associate a source file and were forced to associate the marker with the
@@ -84,6 +84,10 @@ class CompilerListener extends DartCompilerListener {
         processWarning(event);
       }
     }
+  }
+
+  @Override
+  public void unitAboutToCompile(DartSource source, boolean diet) {
   }
 
   @Override

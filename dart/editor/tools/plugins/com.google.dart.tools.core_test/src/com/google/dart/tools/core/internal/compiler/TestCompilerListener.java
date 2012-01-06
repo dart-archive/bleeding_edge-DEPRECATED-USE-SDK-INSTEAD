@@ -13,17 +13,16 @@
  */
 package com.google.dart.tools.core.internal.compiler;
 
-import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.DartCompilerListener;
-import com.google.dart.compiler.ast.DartUnit;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.DartCompilerListener;
 
 /**
  * A listener for validating that zero or more specific errors occurred during a compilation.
  */
-public class TestCompilerListener extends DartCompilerListener {
+public class TestCompilerListener extends DartCompilerListener.Empty {
   private String[] messages;
   private int[] line;
   private int[] column;
@@ -64,9 +63,5 @@ public class TestCompilerListener extends DartCompilerListener {
     assertEquals("Wrong line number", line[current], event.getLineNumber());
     assertEquals("Wrong column number", column[current], event.getColumnNumber());
     current++;
-  }
-
-  @Override
-  public void unitCompiled(DartUnit unit) {
   }
 }
