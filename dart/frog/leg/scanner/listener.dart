@@ -386,22 +386,22 @@ class Listener {
   }
 
   Token expected(String string, Token token) {
-    error("Expected '$string', but got '$token'", token);
+    error("expected '$string', but got '$token'", token);
     return skipToEof(token);
   }
 
   void expectedIdentifier(Token token) {
-    error("Expected identifier, but got '$token'", token);
+    error("expected identifier, but got '$token'", token);
     return skipToEof(token);
   }
 
   Token expectedType(Token token) {
-    error("Expected a type, but got '$token'", token);
+    error("expected a type, but got '$token'", token);
     return skipToEof(token);
   }
 
   Token expectedBlock(Token token) {
-    error("Expected a block, but got '$token'", token);
+    error("expected a block, but got '$token'", token);
     return skipToEof(token);
   }
 
@@ -577,22 +577,22 @@ class ElementListener extends Listener {
   }
 
   Token expected(String string, Token token) {
-    canceler.cancel("Expected '$string', but got '$token'", token: token);
+    canceler.cancel("expected '$string', but got '$token'", token: token);
     return skipToEof(token);
   }
 
   void expectedIdentifier(Token token) {
-    canceler.cancel("Expected identifier, but got '$token'", token: token);
+    canceler.cancel("expected identifier, but got '$token'", token: token);
     return skipToEof(token);
   }
 
   Token expectedType(Token token) {
-    canceler.cancel("Expected a type, but got '$token'", token: token);
+    canceler.cancel("expected a type, but got '$token'", token: token);
     return skipToEof(token);
   }
 
   Token expectedBlock(Token token) {
-    canceler.cancel("Expected a block, but got '$token'", token: token);
+    canceler.cancel("expected a block, but got '$token'", token: token);
     return skipToEof(token);
   }
 
@@ -984,7 +984,7 @@ class NodeListener extends ElementListener {
     Expression value = popNode();
     Expression key = popNode();
     if (key.asLiteralString() === null) {
-      recoverableError('Expected a constant string', node: key);
+      recoverableError('expected a constant string', node: key);
     }
     pushNode(new LiteralMapEntry(key, colon, value));
   }
