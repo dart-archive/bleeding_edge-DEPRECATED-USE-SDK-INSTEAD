@@ -132,9 +132,9 @@ return this.replace(from, to);""";
       hash ^= hash >> 6;
     }
 
-    hash = 0x1fffffff & (hash + (0x03ffffff & hash) << 3);
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
     hash ^= hash >> 11;
-    return 0x1fffffff & (hash + (0x00003fff & hash) << 15);''';
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));''';
 
   int compareTo(String other) native
     "'use strict'; return this == other ? 0 : this < other ? -1 : 1;";
