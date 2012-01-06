@@ -1539,6 +1539,16 @@ class HLoopBranch extends HConditionalBranch {
   int get contentEnd() =>
      wrappedString.length - (hasRightQuote ? (isMultiLine ? 3 : 1) : 0);
 
+  /**
+    * Does a conservative test for equality between two quoted strings.
+    * Returns true if the two definitly have the same string.
+    * Returns false if the strings are different, or if it's not possible
+    * to (quickly) determine whether they are equal.
+    */
+  bool definitlyEquals(QuotedString other) {
+    return flags == other.flags && wrappedString == other.wrappedString;
+  }
+
   void printOn(StringBuffer buffer) {
     int start = contentStart;
     int end = contentEnd;
