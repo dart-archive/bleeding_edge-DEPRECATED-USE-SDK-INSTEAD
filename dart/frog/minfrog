@@ -2739,9 +2739,9 @@ WorldGenerator.prototype.writeGlobals = function() {
     }
     this.writer.exitBlock('}');
     for (var $$i = list.iterator$0(); $$i.hasNext$0(); ) {
-      var global0 = $$i.next$0();
-      if (global0.get$field() == null) {
-        this.writer.writeln(('var ' + global0.get$name() + ' = ' + global0.get$exp().get$code() + ';'));
+      var global = $$i.next$0();
+      if (global.get$field() == null) {
+        this.writer.writeln(('var ' + global.get$name() + ' = ' + global.get$exp().get$code() + ';'));
       }
     }
   }
@@ -2844,8 +2844,8 @@ WorldGenerator.prototype.writeDynamicDispatchMetadata = function() {
     this.writer.comment('// [dynamic-dispatch-tag, tags of classes implementing dynamic-dispatch-tag]'/*'// [dynamic-dispatch-tag, '
               + 'tags of classes implementing dynamic-dispatch-tag]'*/);
     for (var $$i = dispatchTypes.iterator$0(); $$i.hasNext$0(); ) {
-      var type0 = $$i.next$0();
-      this.writer.writeln(("['" + type0.get$nativeName() + "', " + tagDefns.$index(type0.get$nativeName()) + "],"));
+      var type = $$i.next$0();
+      this.writer.writeln(("['" + type.get$nativeName() + "', " + tagDefns.$index(type.get$nativeName()) + "],"));
     }
     this.writer.exitBlock('];');
     this.writer.writeln('\$dynamicSetMetadata(table);');
@@ -3614,7 +3614,6 @@ MethodGenerator.prototype.visitForInStatement = function(node) {
     this.writer.writeln(('var ' + item.get$code() + ' = ' + value.get$code() + ';'));
   }
   else {
-    this._pushBlock(false);
     var iterator = list.invoke$4(this, 'iterator', node.list, Arguments.get$EMPTY());
     var tmpi = this._scope.create('\$i', iterator.get$type(), null, false, false);
     var hasNext = tmpi.invoke$4(this, 'hasNext', node.list, Arguments.get$EMPTY());
@@ -12015,7 +12014,7 @@ DefinedType.prototype.resolve = function() {
     var c = $$i.next$0();
     c.resolve$0();
   }
-  var $list0 = this.members.getValues();
+  var $$list = this.members.getValues();
   for (var $$i = this.members.getValues().iterator$0(); $$i.hasNext$0(); ) {
     var m = $$i.next$0();
     m.resolve$0();
@@ -12025,10 +12024,10 @@ DefinedType.prototype.resolve = function() {
   })
   );
   if (this.get$isJsGlobalObject()) {
-    var $list1 = this.members.getValues();
+    var $$list = this.members.getValues();
     for (var $$i = this.members.getValues().iterator$0(); $$i.hasNext$0(); ) {
-      var m0 = $$i.next$0();
-      if (!m0.get$isStatic()) $globals.world._addTopName(m0);
+      var m = $$i.next$0();
+      if (!m.get$isStatic()) $globals.world._addTopName(m);
     }
   }
 }

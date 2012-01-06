@@ -1552,7 +1552,7 @@ class MethodGenerator implements TreeVisitor {
   bool visitWhileStatement(WhileStatement node) {
     var test = visitBool(node.test);
     writer.write('while (${test.code}) ');
-    _pushBlock(/*reentrant:*/true);
+    _pushBlock(reentrant:true);
     node.body.visit(this);
     _popBlock();
     return false;
@@ -1560,7 +1560,7 @@ class MethodGenerator implements TreeVisitor {
 
   bool visitDoStatement(DoStatement node) {
     writer.write('do ');
-    _pushBlock(/*reentrant:*/true);
+    _pushBlock(reentrant:true);
     node.body.visit(this);
     _popBlock();
     var test = visitBool(node.test);
@@ -1588,7 +1588,7 @@ class MethodGenerator implements TreeVisitor {
       needsComma = true;
     }
     writer.write(') ');
-    _pushBlock(/*reentrant:*/true);
+    _pushBlock(reentrant:true);
     node.body.visit(this);
     _popBlock();
     _popBlock();
@@ -1607,7 +1607,7 @@ class MethodGenerator implements TreeVisitor {
     var itemType = method.resolveType(node.item.type, false);
     var itemName = node.item.name.name;
     var list = node.list.visit(this);
-    _pushBlock(/*reentrant:*/true);
+    _pushBlock(reentrant:true);
     // TODO(jimhug): Check that itemType matches list members...
     bool isFinal = _isFinal(node.item.type);
     var item = _scope.create(itemName, itemType, node.item.name.span, isFinal);
@@ -1627,7 +1627,6 @@ class MethodGenerator implements TreeVisitor {
           new Arguments(null, [tmpi]));
       writer.writeln('var ${item.code} = ${value.code};');
     } else {
-      _pushBlock();
       var iterator = list.invoke(this, 'iterator', node.list, Arguments.EMPTY);
       var tmpi = _scope.create('\$i', iterator.type, null);
 
