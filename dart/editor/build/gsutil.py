@@ -291,22 +291,22 @@ class GsUtil(object):
         #the ACL is an XML document.  Write to to a temp file and
         #  then pass the temp file to the gsutil command
         xmlfile = tempfile.NamedTemporaryFile(suffix='.xml', prefix='GsACL',
-                                              delete=True)
+                                              delete=False)
         print 'using temp file {0} to store the xml'.format(xmlfile.name)
-        f = None
         try:
-          f = open(xmlfile.name, 'w')
-          f.write(acl_content)
+          xmlfile.write(acl_content)
         finally:
-          if f is None:
+          if xmlfile is None:
             print 'never opened the file'
           else:
-            f.close()
+            print 'closing {0}'.format(xmlfile.name)
+            xmlfile.close()
 
         self._GsutilSetAcl(object_uri, xmlfile.name)
     finally:
       if xmlfile is not None:
-        xmlfile.close()
+        print 'removing {0}'.format(xmlfile.name)
+        os.remove(xmlfile.name);
 
   def _GsutilSetAcl(self, object_uri, acl):
     """Call gsutil to set the given ACL on a Google Storeage object.
