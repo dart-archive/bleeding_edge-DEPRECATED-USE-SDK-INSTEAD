@@ -497,11 +497,16 @@ def _SetAcl(element, gsu):
     gsu: the gsutil object
   """
   print 'setting ACL on {0}'.format(element)
-  gsu.SetCannedAcl(element, 'project-private')
-  acl = gsu.GetAcl(element)
-  print 'acl = {0}'.format(acl)
-  acl = gsu.AddPublicAcl(acl)
-  gsu.SetAcl(element, acl)
+  #These lines are being commented out because the windows build is having
+  # an issue parsing the XML that comes back from the gsu.GetAcl() command.
+  # The workaround is to use a static ACL from the acl.xml file to set the
+  # to set the ACL's for the given object.
+#  gsu.SetCannedAcl(element, 'project-private')
+#  acl = gsu.GetAcl(element)
+#  print 'acl = {0}'.format(acl)
+#  acl = gsu.AddPublicAcl(acl)
+  aclfile = os.path.abspath(os.path.join('..', '..', '..', 'build', 'acl.xml'))
+  gsu.SetAclFromFile(element, aclfile)
 
 
 def _CopySdk(buildos, revision, bucket_to, bucket_from, gsu):

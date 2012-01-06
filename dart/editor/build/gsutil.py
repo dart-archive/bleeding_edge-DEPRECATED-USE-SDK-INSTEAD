@@ -255,6 +255,16 @@ class GsUtil(object):
 
     return ET.tostring(root)
 
+  def SetAclFromFile(self, object_uri, acl_file):
+    """Set the ACL on an object to the given ACL xml file.
+
+    Args:
+      object_uri: the uri of the item to set the ACL on
+      acl_file: the file containing the ACL XML for this object
+    """
+    print 'SetAclFromFile({0}, {1})'.format(object_uri, acl_file)
+    self.SetAcl(object_uri, open(acl_file, 'r').read())
+
   def SetCannedAcl(self, object_uri, canned_acl):
     """Set a canned ACL on an object in GoogleStorage.
 

@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+<AccessControlList>
+    <Owner>
+        <ID>
+            00b4903a97605d6af9956add3db87ec2b37e292aa1cf75d92695977bb8f29e6d
+        </ID>
+    </Owner>
+    <Entries>
+        <Entry>
+            <Scope type="UserById">
+                <ID>
+                    00b4903a97605d6af9956add3db87ec2b37e292aa1cf75d92695977bb8f29e6d
+                </ID>
+            </Scope>
+            <Permission>
+                FULL_CONTROL
+            </Permission>
+        </Entry>
+        <Entry>
+            <Scope type="GroupById">
+                <ID>
+                    00b4903a978f7f3451b937b64448d8b224b502b99109c0151f3d1317753841b7
+                </ID>
+            </Scope>
+            <Permission>
+                FULL_CONTROL
+            </Permission>
+        </Entry>
+        <Entry>
+            <Scope type="GroupById">
+                <ID>
+                    00b4903a97a28c62392989dc952c874f3a1a0fbcdc69e13fd8da499b0042bdbe
+                </ID>
+            </Scope>
+            <Permission>
+                FULL_CONTROL
+            </Permission>
+        </Entry>
+        <Entry>
+            <Scope type="AllUsers"/>
+            <Permission>
+                READ
+            </Permission>
+        </Entry>
+    </Entries>
+</AccessControlList>
