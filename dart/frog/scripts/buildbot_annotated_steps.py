@@ -53,14 +53,12 @@ def TestStep(name, mode, component, targets, flags):
   print '@@@BUILD_STEP %s tests: %s@@@' % (name, component)
   if component == 'frogium':
     cmd = ['xvfb-run']
-    test_script = '../tools/test.py'
   else:
     cmd = []
-    test_script = '../tools/test_wrapper.py'
 
   cmd = (cmd
       + [sys.executable,
-          test_script,
+          '../tools/test_wrapper.py',
           '--mode=' + mode,
           '--component=' + component,
           '--time',
