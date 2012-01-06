@@ -217,10 +217,15 @@ def main():
     parser.print_help()
     return 2
 
+  #this code handles getting the revision on the developer machine
+  #where it can be 123, 123M 123:125M
   revision = options.revision
   lastc = revision[-1]
   if lastc.isalpha():
     revision = revision[0:-1]
+  index = revision.find(':')
+  if index > -1:
+    revision = revision[0:index]
   print 'revision       = {0}'.format(revision)
 
   buildout = os.path.join(buildroot, options.out)

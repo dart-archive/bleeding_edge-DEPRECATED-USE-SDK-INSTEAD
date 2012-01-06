@@ -284,6 +284,7 @@ class GsUtil(object):
       object_uri: the uri of the item to set the acl on
       acl_content:an XML document setting the ACL
     """
+    print 'SetAcl({0}, aclxml)'.format(object_uri)
     xmlfile = None
     try:
       if not self._dryrun:
@@ -291,11 +292,16 @@ class GsUtil(object):
         #  then pass the temp file to the gsutil command
         xmlfile = tempfile.NamedTemporaryFile(suffix='.xml', prefix='GsACL',
                                               delete=True)
+        print 'using temp file {0} to store the xml'.format(xmlfile.name)
+        f = None
         try:
           f = open(xmlfile.name, 'w')
           f.write(acl_content)
         finally:
-          f.close()
+          if f is None:
+            print 'never opened the file'
+          else:
+            f.close()
 
         self._GsutilSetAcl(object_uri, xmlfile.name)
     finally:
