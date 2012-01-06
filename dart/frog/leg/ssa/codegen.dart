@@ -394,11 +394,20 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(')');
   }
 
+  static String makeStringLiteral(SourceString literal) {
+    // TODO(lrn): Escape string content.
+    return literal.toString();
+  }
+
+
   visitLiteral(HLiteral node) {
     if (node.isLiteralNull()) {
       buffer.add("(void 0)");
     } else if (node.value is num && node.value < 0) {
       buffer.add('(${node.value})');
+    } else if (node.isLiteralString()) {
+      QuotedString string = node.value;
+      string.printOn(buffer);
     } else {
       buffer.add(node.value);
     }

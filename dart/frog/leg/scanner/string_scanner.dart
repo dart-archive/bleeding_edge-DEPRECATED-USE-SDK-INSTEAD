@@ -47,6 +47,8 @@ class SubstringWrapper implements SourceString {
     return other is SourceString && toString() == other.toString();
   }
 
+  int get length() => end - begin;
+
   void printOn(StringBuffer sb) {
     sb.add(this);
   }

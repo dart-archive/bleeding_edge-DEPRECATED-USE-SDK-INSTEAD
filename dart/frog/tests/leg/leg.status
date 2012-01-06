@@ -4,6 +4,8 @@
 
 prefix leg
 
+ConstantFoldingStringTest: FAIL
+
 [ $component == dartc ]
 *: Skip # Too many type errors in frog.
 

@@ -125,6 +125,8 @@ class StringToken extends Token {
 interface SourceString extends Hashable default StringWrapper {
   const SourceString(String string);
 
+  int get length();
+
   void printOn(StringBuffer sb);
 
   String get stringValue();
@@ -140,6 +142,8 @@ class StringWrapper implements SourceString {
   bool operator ==(other) {
     return other is SourceString && toString() == other.toString();
   }
+
+  int get length() => stringValue.length;
 
   void printOn(StringBuffer sb) {
     sb.add(stringValue);

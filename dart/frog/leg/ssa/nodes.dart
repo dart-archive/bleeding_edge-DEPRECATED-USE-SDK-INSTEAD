@@ -25,7 +25,6 @@ interface HVisitor<R> {
   R visitIntegerCheck(HIntegerCheck node);
   R visitInvokeDynamicMethod(HInvokeDynamicMethod node);
   R visitInvokeDynamicGetter(HInvokeDynamicGetter node);
-  R visitInvokeDynamicSetter(HInvokeDynamicSetter node);
   R visitInvokeInterceptor(HInvokeInterceptor node);
   R visitInvokeStatic(HInvokeStatic node);
   R visitLess(HLess node);
@@ -716,6 +715,7 @@ class HInstruction implements Hashable {
   bool isInteger() => type.isInteger();
   bool isNumber() => type.isNumber();
   bool isString() => type.isString();
+  bool isTypeUnknown() => type.isUnknown();
   bool isStringOrArray() => type.isStringOrArray();
 
   // Compute the type of the instruction.
@@ -1053,9 +1053,11 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   HInstruction fold() {
     if (name == 'length' && inputs[1].isLiteralString()) {
-      int quotes = 2; // Make sure to remove the quotes.
-      return new HLiteral(
-          inputs[1].value.stringValue.length - quotes, HType.INTEGER);
+      // TODO(lrn): Account for escapes in string. Currently we count characters
+      // in the uninterpreted (but unquoted) string.
+      QuotedString string = inputs[1].value;
+      int contentLength = string.contentEnd - string.contentStart;
+      return new HLiteral(contentLength, HType.INTEGER);
     }
     return this;
   }
@@ -1175,11 +1177,15 @@ class HAdd extends HBinaryArithmetic {
   HType computeType() {
     HType type = computeInputsType();
     builtin = (type.isNumber() || type.isString());
+    if (type.isConflicting() && left.isString()) {
+      return HType.STRING;
+    }
     if (!type.isUnknown()) return type;
-    if (left.isString()) return HType.STRING;
     if (left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
+
+  bool hasExpectedType() => builtin || type.isUnknown() || left.isString();
 
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
@@ -1463,6 +1469,91 @@ class HLoopBranch extends HConditionalBranch {
   accept(HVisitor visitor) => visitor.visitLoopBranch(this);
 }
 
+/**
+ * A wrapper around a SourceString that stores extra information about
+ * the (potentially implicit) quoting style of the original string.
+ * For most strings, the quotes are included in the [wrappedString], but
+ * parts of strings from a string interpolation might be missing one or
+ * both quotes.
+ */
+ class QuotedString {
+  // Bits of flag values.
+  static final int RAW = 1 << 0;
+  static final int MULTI_LINE = 1 << 1;
+  static final int HAS_LEFT_QUOTE = 1 << 2;
+  static final int HAS_RIGHT_QUOTE = 1 << 3;
+  static final int HAS_BOTH_QUOTES = HAS_LEFT_QUOTE | HAS_RIGHT_QUOTE;
+  // Whether the string uses single quotes ('). Default is double quotes (").
+  static final int SINGLE_QUOTED = 1 << 4;
+
+  final SourceString wrappedString;
+  final int flags;
+
+  /**
+   * Finds the quote type for a string given a part of it containing the
+   * staring quote. Returns flags, but doesn't include HAS_LEFT_QUOTE
+   * or HAS_RIGHT_QUOTE.
+   */
+  static int flagsFromLeftQuote(SourceString sourceString) {
+    String string = sourceString.stringValue;
+    int flags = 0;
+    int start = 0;
+    String quoteChar = string[0];
+    if (quoteChar == '@') {
+      flags |= RAW;
+      start = 1;
+      quoteChar = string[1];
+    }
+    if (quoteChar == '\'') {
+      flags |= SINGLE_QUOTED;
+    } else {
+      assert(quoteChar == '"');
+    }
+    if (string.length > start + 2) {
+      if (string[start + 1] == quoteChar) {
+        assert(string[start + 2] == quoteChar);
+        flags |= MULTI_LINE;
+      }
+    }
+    return flags;
+  }
+
+  const QuotedString(this.wrappedString, this.flags);
+
+  /**
+   * Crates a [QuotedString] from a [SourceString] that contains
+   * both its quotes.
+   */
+  QuotedString.explicit(SourceString string)
+      : this.wrappedString = string,
+        flags = (flagsFromLeftQuote(string) | HAS_BOTH_QUOTES);
+
+  bool get hasLeftQuote() => (flags & HAS_LEFT_QUOTE) != 0;
+  bool get hasRightQuote() => (flags & HAS_RIGHT_QUOTE) != 0;
+  bool get isMultiLine() => (flags & MULTI_LINE) != 0;
+  bool get isRaw() => (flags & RAW) != 0;
+  String get quoteChar() => ((flags & SINGLE_QUOTED) != 0) ? "'" : '"';
+
+  int get contentStart() =>
+     hasLeftQuote ? (isRaw ? 1 : 0) + (isMultiLine ? 3 : 1) : 0;
+  int get contentEnd() =>
+     wrappedString.length - (hasRightQuote ? (isMultiLine ? 3 : 1) : 0);
+
+  void printOn(StringBuffer buffer) {
+    int start = contentStart;
+    int end = contentEnd;
+    int length = wrappedString.length;
+    if (start == 1 && end == length - 1) {
+      wrappedString.printOn(buffer);
+    } else {
+      String quote = quoteChar;
+      buffer.add(quote);
+      buffer.add(wrappedString.stringValue.substring(start, end));
+      buffer.add(quote);
+    }
+  }
+}
+
 class HLiteral extends HInstruction {
   final value;
   HLiteral(this.value, HType type) : super(<HInstruction>[]) {
@@ -1488,7 +1579,7 @@ class HLiteral extends HInstruction {
   bool isLiteralBoolean() => value is bool;
   bool isLiteralNull() => value === null;
   bool isLiteralNumber() => value is num;
-  bool isLiteralString() => value is SourceString;
+  bool isLiteralString() => value is QuotedString;
   bool typeEquals(other) => other is HLiteral;
   bool dataEquals(HLiteral other) => value == other.value;
 }

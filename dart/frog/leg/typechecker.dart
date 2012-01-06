@@ -309,7 +309,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type visitSend(Send node) {
     if (Elements.isClosureSend(node, elements)) {
       // TODO(karlklose): Finish implementation.
-      return types.dynamicType;      
+      return types.dynamicType;
     }
 
     Identifier selector = node.selector.asIdentifier();

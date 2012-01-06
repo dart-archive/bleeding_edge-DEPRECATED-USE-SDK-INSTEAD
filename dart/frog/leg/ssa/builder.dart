@@ -854,14 +854,14 @@ class SsaBuilder implements Visitor {
       var right = pop();
       var left = pop();
       visitBinary(left, op, right);
-    }    
+    }
   }
 
   addVisitedSendArgumentsToList(Link<Node> link, List<HInstruction> list) {
     for (; !link.isEmpty(); link = link.tail) {
       visit(link.head);
       list.add(pop());
-    }    
+    }
   }
 
   visitDynamicSend(Send node) {
@@ -904,14 +904,14 @@ class SsaBuilder implements Visitor {
     HInstruction closureTarget;
     if (element === null) {
       visit(node.selector);
-      closureTarget = pop();            
+      closureTarget = pop();
     } else {
       assert(element.kind === ElementKind.VARIABLE ||
              element.kind === ElementKind.PARAMETER);
       closureTarget = definitions[element];
       assert(closureTarget !== null);
     }
-    var inputs = <HInstruction>[];    
+    var inputs = <HInstruction>[];
     inputs.add(closureTarget);
     addVisitedSendArgumentsToList(node.arguments, inputs);
     String jsMethodName = compiler.namer.closureInvocationName();
@@ -1073,7 +1073,7 @@ class SsaBuilder implements Visitor {
     if (node.value.stringValue[0] == '@') {
       compiler.unimplemented("SsaBuilder: raw strings", node: node);
     }
-    push(new HLiteral(node.value, HType.STRING));
+    push(new HLiteral(new QuotedString.explicit(node.value), HType.STRING));
   }
 
   void visitLiteralNull(LiteralNull node) {
@@ -1180,12 +1180,43 @@ class SsaBuilder implements Visitor {
   }
 
   visitStringInterpolation(StringInterpolation node) {
-    compiler.unimplemented('SsaBuilder.visitStringInterpolation', node: node);
+    Operator op = new Operator.synthetic("+");
+    HInstruction target = new HStatic(interceptors.getOperatorInterceptor(op));
+    add(target);
+    // Ensure that string literals are marked with the correct quoting
+    // style and presence of quotes (left quote only on the first one,
+    // right quote only on the last one).
+    int quoteFlags = QuotedString.flagsFromLeftQuote(node.string.value);
+    // The loop is complicated because we have to do something extra for
+    // the *last* element. To do that, we handle the [string] of a part
+    // in the next iteration, or after the loop for the last element.
+    int firstPartFlags = quoteFlags | QuotedString.HAS_LEFT_QUOTE;
+    push(new HLiteral(new QuotedString(node.string.value, firstPartFlags),
+                      HType.STRING));
+
+    SourceString string = null;
+    for (StringInterpolationPart part in node.parts) {
+      HInstruction prefix = pop();
+      if (string != null) {
+        push(new HLiteral(new QuotedString(string, quoteFlags),
+                          HType.STRING));
+        push(new HAdd(target, prefix, pop()));
+        prefix = pop();
+      }
+      visit(part.expression);
+      push(new HAdd(target, prefix, pop()));
+      string = part.string.value;
+    }
+    HInstruction prefix = pop();
+    int lastPartFlags = quoteFlags | QuotedString.HAS_RIGHT_QUOTE;
+    push(new HLiteral(new QuotedString(string, lastPartFlags),
+                      HType.STRING));
+    push(new HAdd(target, prefix, pop()));
   }
 
   visitStringInterpolationPart(StringInterpolationPart node) {
-    compiler.unimplemented('SsaBuilder.visitStringInterpolationPart',
-                           node: node);
+    // The parts are iterated in visitStringInterpolation.
+    unreachable();
   }
 
   visitEmptyStatement(EmptyStatement node) {

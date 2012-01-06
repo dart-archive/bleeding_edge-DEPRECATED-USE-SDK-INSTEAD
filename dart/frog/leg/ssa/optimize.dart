@@ -90,10 +90,7 @@ class SsaConstantFolder extends HBaseVisitor {
     // we must pay attention not to canonicalize the concatenated string with
     // an already existing string.
     if (node.left.isLiteralString() && node.right is HLiteral) {
-      HLiteral op1 = node.left;
-      HLiteral op2 = node.right;
-      return new HLiteral(
-          new SourceString("${op1.value} + ${op2.value}"), HType.STRING);
+      // TODO(lrn): Perform concatenation in Dart.
     }
     return visitInvokeBinary(node);
   }
