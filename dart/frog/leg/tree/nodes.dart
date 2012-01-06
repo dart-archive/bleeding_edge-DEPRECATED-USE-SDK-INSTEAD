@@ -143,11 +143,15 @@ class ClassNode extends Node {
   final TypeAnnotation superclass;
   final NodeList interfaces;
 
+  // Using a NodeList to record the keyword "default".
+  // TODO(ahe): Consider if there is a better way to represent this.
+  final NodeList defaultClause;
+
   final Token beginToken;
   final Token extendsKeyword;
   final Token endToken;
 
-  ClassNode(this.name, this.superclass, this.interfaces,
+  ClassNode(this.name, this.superclass, this.interfaces, this.defaultClause,
             this.beginToken, this.extendsKeyword, this.endToken);
 
   ClassNode asClassNode() => this;

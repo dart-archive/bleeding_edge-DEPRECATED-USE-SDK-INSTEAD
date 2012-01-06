@@ -661,8 +661,8 @@ class NodeListener extends ElementListener {
     TypeAnnotation supertype = popNode();
     // TODO(ahe): Type variables.
     Identifier name = popNode();
-    pushNode(new ClassNode(name, supertype, interfaces, beginToken,
-                           extendsKeyword, endToken));
+    pushNode(new ClassNode(name, supertype, interfaces, null,
+                           beginToken, extendsKeyword, endToken));
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
@@ -690,12 +690,16 @@ class NodeListener extends ElementListener {
   void endInterface(int supertypeCount, Token interfaceKeyword,
                     Token extendsKeyword, Token endToken) {
     NodeList body = popNode();
-    Node defaultClause = popNode();
+    NodeList defaultClause = popNode();
     NodeList supertypes = makeNodeList(supertypeCount, extendsKeyword,
                                        null, ',');
     Identifier name = popNode();
-    pushNode(new ClassNode(name, null, supertypes, interfaceKeyword,
-                           null, endToken));
+    pushNode(new ClassNode(name, null, supertypes, defaultClause,
+                           interfaceKeyword, null, endToken));
+  }
+
+  void endDefaultClause(Token defaultKeyword) {
+    pushNode(makeNodeList(1, defaultKeyword, null, null));
   }
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {

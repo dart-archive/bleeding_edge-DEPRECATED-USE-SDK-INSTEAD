@@ -44,6 +44,10 @@ class Unparser implements Visitor {
       sb.add(' ');
     }
     visit(node.interfaces);
+    if (node.defaultClause !== null) {
+      visit(node.defaultClause);
+      sb.add(' ');
+    }
     sb.add('{\n');
     sb.add('}\n');
   }
