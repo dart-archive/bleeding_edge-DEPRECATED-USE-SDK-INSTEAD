@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Type added to asynchornous function is correct.
-
 #import("await_test_helper.dart");
 
 int f() { // incorrect return type
