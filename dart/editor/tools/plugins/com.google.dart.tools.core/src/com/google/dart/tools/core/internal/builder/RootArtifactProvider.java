@@ -148,7 +148,13 @@ public class RootArtifactProvider extends CachingArtifactProvider {
       artifactCount = INSTANCE.loadCachedArtifacts(cacheFile);
       delta = System.currentTimeMillis() - start;
     } catch (IOException e) {
-      DartCore.logError("Load cached artifacts failed", e);
+      if (e.getMessage() != null && e.getMessage().startsWith(INVALID_FORMAT_PREFIX)) {
+        if (DartCoreDebug.WARMUP) {
+          DartCore.logInformation("Discarding old cached artifacts in " + cacheFile);
+        }
+      } else {
+        DartCore.logError("Load cached artifacts failed", e);
+      }
       return;
     }
     if (DartCoreDebug.WARMUP) {

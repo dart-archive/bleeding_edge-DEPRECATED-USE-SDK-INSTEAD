@@ -200,7 +200,7 @@ public class DartToolsPlugin extends AbstractUIPlugin {
    * Returns the SVN revision number as a String suitable for display.
    */
   public static String getBuildId() {
-    return "@REVISION@";
+    return DartCore.getBuildId();
   }
 
   /**

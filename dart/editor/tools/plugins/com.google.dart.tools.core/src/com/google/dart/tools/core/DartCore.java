@@ -280,6 +280,13 @@ public class DartCore extends Plugin {
   }
 
   /**
+   * Returns the SVN revision number as a String.
+   */
+  public static String getBuildId() {
+    return "@REVISION@";
+  }
+
+  /**
    * Returns the shared message console. Unlike the log ({@link DartCore#getLog()}), the console is
    * intended for communication with the end-user.
    * 

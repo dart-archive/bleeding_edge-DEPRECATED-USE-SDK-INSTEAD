@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.common.io.Closeables;
 import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.Source;
+import com.google.dart.tools.core.DartCore;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -28,6 +29,8 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -61,6 +64,8 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
       return this.part.equals(part);
     }
   }
+
+  public static final String INVALID_FORMAT_PREFIX = "Invalid artifact file format";
 
   private int cacheSize = 0;
 
@@ -215,9 +220,18 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
       boolean failed = true;
       try {
 
-        // First 2 characters, "v3", indicate the version
-        if (reader.read() != 'v' || reader.read() != '4' || reader.read() != '\n') {
-          throw new IOException("Invalid artifact file format");
+        // First line, "v####", indicate the version
+        StringBuilder version = new StringBuilder(20);
+        while (true) {
+          int ch = reader.read();
+          if (ch == '\n' || version.length() >= 20) {
+            break;
+          }
+          version.append((char) ch);
+        }
+        if (!version.toString().equals(getExpectedVersion())) {
+          throw new IOException(INVALID_FORMAT_PREFIX + ": expected=" + getExpectedVersion()
+              + " actual=" + version.toString());
         }
 
         int state = 0;
@@ -363,7 +377,8 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
     BufferedWriter writer = new BufferedWriter(new FileWriter(file));
     boolean failed = true;
     try {
-      writer.append("v4\n");
+      writer.append(getExpectedVersion());
+      writer.append("\n");
       for (Entry<String, CacheElement> entry : entries) {
         writer.append('=');
         writer.append(entry.getKey());
@@ -390,5 +405,21 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
       Closeables.close(writer, failed);
     }
     return count;
+  }
+
+  /**
+   * Answer the version used to determine if an artifact file is invalid or out of date. Since
+   * artifacts are tightly coupled to the compiler itself, return a version string containing the
+   * SVN build number. If this is a development environment, then return a version string containing
+   * the date causing artifacts more than 24 hours old to be discarded.
+   * 
+   * @return the version (not <code>null</code>)
+   */
+  private String getExpectedVersion() {
+    String version = DartCore.getBuildId();
+    if (version.startsWith("@")) {
+      version = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+    }
+    return "v" + version;
   }
 }
