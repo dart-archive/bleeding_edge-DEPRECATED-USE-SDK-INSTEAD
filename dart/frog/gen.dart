@@ -46,6 +46,10 @@ class WorldGenerator {
           [world.coreimpl, world.corelib, main.declaringType.library]);
     }
 
+    // These are essentially always used through literals - just include them
+    world.numImplType.markUsed();
+    world.stringImplType.markUsed();
+
     // Only include isolate-specific code if isolates are used.
     if (world.corelib.types['Isolate'].isUsed
         || world.coreimpl.types['ReceivePortImpl'].isUsed) {
@@ -1053,6 +1057,7 @@ class MethodGenerator implements TreeVisitor {
         for (var param in meth.parameters) {
           if (param.isOptional) {
             optNames.add(param.name);
+            // TODO(jimhug): Remove this last usage of escapeString.
             optValues.add(_escapeString(param.value.code));
           }
         }
@@ -1499,13 +1504,10 @@ class MethodGenerator implements TreeVisitor {
       // TODO(jimhug): Simplify code for creating const values.
       var args = [
         test,
-        new EvaluatedValue(world.stringType,
-          _escapeString(span.text), '"${_escapeString(span.text)}"', null),
-        new EvaluatedValue(world.stringType,
-          _escapeString(span.file.filename),
-          '"${_escapeString(span.file.filename)}"', null),
-        new EvaluatedValue(world.intType, line, line.toString(), null),
-        new EvaluatedValue(world.intType, column, column.toString(), null)
+        Value.fromString(span.text, node.span),
+        Value.fromString(span.file.filename, node.span),
+        Value.fromInt(line, node.span),
+        Value.fromInt(column, node.span)
       ];
 
       var tp = world.corelib.topType;
@@ -1933,6 +1935,7 @@ class MethodGenerator implements TreeVisitor {
     var name = ':call';
     if (node.target is DotExpression) {
       DotExpression dot = node.target;
+      // ????
       if (dot.self is LiteralExpression) {
         target = (new ParenExpression(dot.self, dot.self.span)).visit(this);
       } else {
@@ -1979,8 +1982,7 @@ class MethodGenerator implements TreeVisitor {
       if (x.isConst && y.isConst) {
         var value = (kind == TokenKind.AND)
             ? x.actualValue && y.actualValue : x.actualValue || y.actualValue;
-        return new EvaluatedValue(world.nonNullBool, value, '$value',
-            node.span);
+        return Value.fromBool(value, node.span);
       }
       return new Value(world.nonNullBool, code, node.span);
     } else if (kind == TokenKind.EQ_STRICT || kind == TokenKind.NE_STRICT) {
@@ -1990,25 +1992,12 @@ class MethodGenerator implements TreeVisitor {
         var xVal = x.actualValue;
         var yVal = y.actualValue;
 
-        // cannonicalize strings if they are using different quote chars:
-        if (x.type.isString && y.type.isString
-            && xVal[0] != yVal[0]) {
-          if (xVal[0] == '"') {
-            xVal = xVal.substring(1, xVal.length - 1);
-            yVal = toDoubleQuote(yVal.substring(1, yVal.length - 1));
-          } else {
-            xVal = toDoubleQuote(xVal.substring(1, xVal.length - 1));
-            yVal = yVal.substring(1, yVal.length - 1);
-          }
-        }
-
         // Note: it is ok to use == and not === here since all of these
         // constant comparisons are applied to doubles, bool, or strings.
         // We need it for the compile-time evaluator because
         // (9).toDouble() === 9.0 is false in dartvm.
         var value = kind == TokenKind.EQ_STRICT ? xVal == yVal : xVal != yVal;
-        return new EvaluatedValue(world.nonNullBool, value, "$value",
-            node.span);
+        return Value.fromBool(value, node.span);
       }
       if (x.code == 'null' || y.code == 'null') {
         // Switching to == ensures that null and undefined are interchangable.
@@ -2221,8 +2210,9 @@ class MethodGenerator implements TreeVisitor {
           // TODO(jimhug): Confirm that --x becomes x -= 1 as it is in VM.
           var kind = (TokenKind.INCR == node.op.kind ?
               TokenKind.ADD : TokenKind.SUB);
-          var operand = new LiteralExpression(1,
-            new TypeReference(node.span, world.numType), '1', node.span);
+          // TODO(jimhug): Shouldn't need a full-expression here.
+          var operand = new LiteralExpression(Value.fromInt(1, node.span),
+            node.span);
 
           var assignValue = _visitAssign(kind, node.self, operand, node, null);
           return new Value(assignValue.type, '(${assignValue.code})',
@@ -2277,8 +2267,9 @@ class MethodGenerator implements TreeVisitor {
     // needed to evaluate x so we're not evaluating multiple times. Likewise,
     // x-- is equivalent to (t = x, x = t - 1, t).
     var kind = (TokenKind.INCR == node.op.kind) ? TokenKind.ADD : TokenKind.SUB;
-    var operand = new LiteralExpression(1,
-      new TypeReference(node.span, world.numType), '1', node.span);
+    // TODO(jimhug): Shouldn't need a full-expression here.
+    var operand = new LiteralExpression(Value.fromInt(1, node.span),
+      node.span);
 
     // Use _visitAssign to do most of the work, but save the right side in a
     // temporary variable if needed.
@@ -2530,10 +2521,8 @@ class MethodGenerator implements TreeVisitor {
     return _makeSuperValue(node);
   }
 
-  visitNullExpression(NullExpression node) {
-    // TODO(jimhug): should be passing node.span
-    // TODO(jimhug): Can we do better than var for the type?
-    return new EvaluatedValue(world.varType, null, 'null', null);
+  visitLiteralExpression(LiteralExpression node) {
+    return node.value;
   }
 
   _isUnaryIncrement(Expression item) {
@@ -2545,60 +2534,25 @@ class MethodGenerator implements TreeVisitor {
     }
   }
 
-  visitLiteralExpression(LiteralExpression node) {
-    // All Literal types are filled in at parse time, so no need to resolve.
-    var type = node.type.type;
-    assert(type != null);
-
-    if (node.value is List) {
-      var items = [];
-      for (var item in node.value) {
-        var val = visitValue(item);
-        val.invoke(this, 'toString', item, Arguments.EMPTY);
-
-        // TODO(jimhug): Ensure this solves all precedence problems.
-        // TODO(jmesserly): We could be smarter about prefix/postfix, but we'd
-        // need to know if it will compile to a ++ or to some sort of += form.
-        var code = val.code;
-        if (_expressionNeedsParens(item)) {
-          code = '(${code})';
-        }
-        // No need to concat empty strings except the first.
-        if (items.length == 0 || (code != "''" && code != '""')) {
-          items.add(code);
-        }
+  visitStringInterpExpression(StringInterpExpression node) {
+    var items = [];
+    for (var item in node.pieces) {
+      var val = visitValue(item);
+      val.invoke(this, 'toString', item, Arguments.EMPTY);
+      // TODO(jimhug): Ensure this solves all precedence problems.
+      // TODO(jmesserly): We could be smarter about prefix/postfix, but we'd
+      // need to know if it will compile to a ++ or to some sort of += form.
+      var code = val.code;
+      if (_expressionNeedsParens(item)) {
+        code = '(${code})';
       }
-      return new Value(type, '(${Strings.join(items, " + ")})', node.span);
-    }
-
-    if (node.value is num) {
-      world.numImplType.markUsed();
-    }
-
-    var text = node.text;
-    // TODO(jimhug): Confirm that only strings need possible translation
-    if (type.isString) {
-      world.stringImplType.markUsed();
-
-      if (text.startsWith('@')) {
-        text = _escapeString(parseStringLiteral(text));
-        text = '"$text"';
-      } else if (isMultilineString(text)) {
-        // convert multi-line strings into single-line
-        text = parseStringLiteral(text);
-        // TODO(jimhug): What about \r?
-        text = text.replaceAll('\n', '\\n');
-        text = toDoubleQuote(text);
-        text = '"$text"';
-      }
-      if (text !== node.text) {
-        node.value = text;
-        node.text = text;
+      // No need to concat empty strings except the first.
+      if (items.length == 0 || (code != "''" && code != '""')) {
+        items.add(code);
       }
     }
-
-    // TODO(jimhug): Should pass node.span - but that breaks something...
-    return new EvaluatedValue(type, node.value, node.text, null);
+    return new Value(world.stringType, '(${Strings.join(items, " + ")})',
+      node.span);
   }
 }
 

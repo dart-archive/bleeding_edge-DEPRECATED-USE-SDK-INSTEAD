@@ -462,10 +462,10 @@ class _LibraryVisitor implements TreeVisitor {
 
   String _parseStringArgument(ArgumentNode arg) {
     var expr = arg.value;
-    if (expr is! LiteralExpression || !expr.type.type.isString) {
-      world.error('expected string', expr.span);
+    if (expr is! LiteralExpression || !expr.value.type.isString) {
+      world.error('expected string literal', expr.span);
     }
-    return parseStringLiteral(expr.value);
+    return expr.value.actualValue;
   }
 
   void visitTypeDefinition(TypeDefinition node) {

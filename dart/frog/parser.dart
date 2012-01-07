@@ -68,9 +68,7 @@ class Parser {
 
   /** Guard to break out of parser when an unexpected end of file is found. */
   bool isPrematureEndOfFile() {
-    if (throwOnIncomplete && _maybeEat(TokenKind.END_OF_FILE) ||
-        _maybeEat(TokenKind.INCOMPLETE_MULTILINE_STRING_DQ) ||
-        _maybeEat(TokenKind.INCOMPLETE_MULTILINE_STRING_SQ)) {
+    if (throwOnIncomplete && _maybeEat(TokenKind.END_OF_FILE)) {
       throw new IncompleteSourceException(_previousToken);
     } else if (_maybeEat(TokenKind.END_OF_FILE)) {
       _error('unexpected end of file', _peekToken.span);
@@ -1048,20 +1046,8 @@ class Parser {
     return expr is BinaryExpression && expr.op.kind == kind;
   }
 
-  _boolTypeRef(SourceSpan span) {
-    return new TypeReference(span, world.nonNullBool);
-  }
-
-  _intTypeRef(SourceSpan span) {
-    return new TypeReference(span, world.intType);
-  }
-
-  _doubleTypeRef(SourceSpan span) {
-    return new TypeReference(span, world.doubleType);
-  }
-
-  _stringTypeRef(SourceSpan span) {
-    return new TypeReference(span, world.stringType);
+  _makeLiteral(Value value) {
+    return new LiteralExpression(value, value.span);
   }
 
   primary() {
@@ -1103,39 +1089,35 @@ class Parser {
       // Literals
       case TokenKind.NULL:
         _eat(TokenKind.NULL);
-        return new NullExpression(_makeSpan(start));
+        return _makeLiteral(Value.fromNull(_makeSpan(start)));
 
       // TODO(jimhug): Make Literal creation less wasteful - no dup span/text.
       case TokenKind.TRUE:
         _eat(TokenKind.TRUE);
-        return new LiteralExpression(true, _boolTypeRef(_makeSpan(start)),
-          'true', _makeSpan(start));
+        return _makeLiteral(Value.fromBool(true, _makeSpan(start)));
 
       case TokenKind.FALSE:
         _eat(TokenKind.FALSE);
-        return new LiteralExpression(false,_boolTypeRef(_makeSpan(start)),
-          'false', _makeSpan(start));
+        return _makeLiteral(Value.fromBool(false, _makeSpan(start)));
 
       case TokenKind.HEX_INTEGER:
         var t = _next();
-        // Remove the 0x or 0X before parsing the hex number.
-        return new LiteralExpression(parseHex(t.text.substring(2)),
-          _intTypeRef(_makeSpan(start)), t.text, _makeSpan(start));
+        return _makeLiteral(Value.fromInt(t.value, t.span));
 
       case TokenKind.INTEGER:
         var t = _next();
-        return new LiteralExpression(Math.parseInt(t.text),
-          _intTypeRef(_makeSpan(start)), t.text, _makeSpan(start));
+        return _makeLiteral(Value.fromInt(Math.parseInt(t.text), t.span));
 
       case TokenKind.DOUBLE:
         var t = _next();
-        return new LiteralExpression(Math.parseDouble(t.text),
-          _doubleTypeRef(_makeSpan(start)), t.text, _makeSpan(start));
+        return _makeLiteral(
+          Value.fromDouble(Math.parseDouble(t.text), t.span));
 
       case TokenKind.STRING:
-        return stringLiteralExpr();
+      var t = _next();
+      return _makeLiteral(Value.fromString(t.value, t.span));
 
-      case TokenKind.INCOMPLETE_STRING:
+      case TokenKind.STRING_PART:
         return stringInterpolation();
 
       case TokenKind.LT:
@@ -1157,65 +1139,38 @@ class Parser {
 
   stringInterpolation() {
     int start = _peekToken.start;
-    var lits = [];
+    var pieces = new List<Expression>();
     var startQuote = null, endQuote = null;
-    while(_peekKind(TokenKind.INCOMPLETE_STRING)) {
+    while(_peekKind(TokenKind.STRING_PART)) {
       var token = _next();
-      var text = token.text;
-      if (startQuote == null) {
-        if (isMultilineString(text)) {
-          endQuote = text.substring(0, 3);
-          // TODO(jmesserly): HACK add a newline to everything that's not
-          // the first multiline string, so we don't incorrectly strip off any
-          // real newlines later in the interpolated string.
-          startQuote = endQuote + '\n';
-        } else {
-          startQuote = endQuote = text[0];
-        }
-        text = text.substring(0, text.length-1) + endQuote; // fix trailing $
-      } else {
-        text = startQuote + text.substring(0, text.length-1) + endQuote;
-      }
-      lits.add(makeStringLiteral(text, token.span));
+      pieces.add(_makeLiteral(Value.fromString(token.value, token.span)));
       if (_maybeEat(TokenKind.LBRACE)) {
-        lits.add(expression());
+        pieces.add(expression());
         _eat(TokenKind.RBRACE);
       } else if (_maybeEat(TokenKind.THIS)) {
-        lits.add(new ThisExpression(_previousToken.span));
+        pieces.add(new ThisExpression(_previousToken.span));
       } else {
         var id = identifier();
-        lits.add(new VarExpression(id, id.span));
+        pieces.add(new VarExpression(id, id.span));
       }
     }
     var tok = _next();
     if (tok.kind != TokenKind.STRING) {
       _errorExpected('interpolated string');
     }
-    var text = startQuote + tok.text;
-    lits.add(makeStringLiteral(text, tok.span));
+    pieces.add(_makeLiteral(Value.fromString(tok.value, tok.span)));
     var span = _makeSpan(start);
-    return new LiteralExpression(lits, _stringTypeRef(span), '\$\$\$', span);
-  }
-
-  makeStringLiteral(String text, SourceSpan span) {
-    return new LiteralExpression(text, _stringTypeRef(span), text, span);
-  }
-
-  stringLiteralExpr() {
-    var token = _next();
-    return makeStringLiteral(token.text, token.span);
+    return new StringInterpExpression(pieces, span);
   }
 
   String maybeStringLiteral() {
     var kind = _peek();
     if (kind == TokenKind.STRING) {
-      return parseStringLiteral(_next().text);
+      var t = _next();
+      return t.value;
     } else if (kind == TokenKind.STRING_PART) {
       _next();
       _errorExpected('string literal, but found interpolated string start');
-    } else if (kind == TokenKind.INCOMPLETE_STRING) {
-      _next();
-      _errorExpected('string literal, but found incomplete string');
     }
     return null;
   }
@@ -1377,35 +1332,6 @@ class Parser {
       }
     }
     return new DeclaredIdentifier(myType, name, _makeSpan(start));
-  }
-
-  // TODO(jimhug): Move this to base <= 36 and into shared code.
-  static int _hexDigit(int c) {
-    if(c >= 48/*0*/ && c <= 57/*9*/) {
-      return c - 48;
-    } else if (c >= 97/*a*/ && c <= 102/*f*/) {
-      return c - 87;
-    } else if (c >= 65/*A*/ && c <= 70/*F*/) {
-      return c - 55;
-    } else {
-      return -1;
-    }
-  }
-
-  static int parseHex(String hex) {
-    var result = 0;
-
-    for (int i = 0; i < hex.length; i++) {
-      var digit = _hexDigit(hex.charCodeAt(i));
-      assert(digit != -1);
-      // Multiply by 16 rather than shift by 4 since that will result in a
-      // correct value for numbers that exceed the 32 bit precision of JS
-      // 'integers'.
-      // TODO: Figure out a better solution to integer truncation. Issue 638.
-      result = (result * 16) + digit;
-    }
-
-    return result;
   }
 
   finishNewExpression(int start, bool isConst) {
@@ -1658,7 +1584,7 @@ class Parser {
       type = new FunctionTypeReference(false, func, func.span);
     }
     if (inOptionalBlock && value == null) {
-      value = new NullExpression(_makeSpan(start));
+      value = _makeLiteral(Value.fromNull(_makeSpan(start)));
     }
 
     return new FormalNode(isThis, isRest, type, name, value, _makeSpan(start));

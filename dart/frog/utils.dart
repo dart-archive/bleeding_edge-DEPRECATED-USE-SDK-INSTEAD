@@ -61,56 +61,6 @@ List orderValuesByKeys(Map map) {
   return values;
 }
 
-/** True if this is a triple quoted Dart string literal. */
-bool isMultilineString(String text) {
-  return text.startsWith('"""') || text.startsWith("'''");
-}
-
-bool isRawMultilineString(String text) {
-  return text.startsWith('@"""') || text.startsWith("@'''");
-}
-
-/**
- * Convert a single-quote string to be a double-quote string by replacing " with
- * \" and \' with '.
- */
-String toDoubleQuote(String s) {
-  return s.replaceAll('"', '\\"').replaceAll("\\'", "'");
-}
-
-
-// TODO(jmesserly): it'd be nice to deal with this in the tokenizer, rather than
-// taking another pass over the string.
-String parseStringLiteral(String lit) {
-  if (lit.startsWith('@')) {
-    if (isRawMultilineString(lit)) {
-      return stripLeadingNewline(lit.substring(4, lit.length - 3));
-    } else {
-      return lit.substring(2, lit.length - 1);
-    }
-  } else if (isMultilineString(lit)) {
-    lit = lit.substring(3, lit.length - 3).replaceAll('\\\$', '\$');
-    return stripLeadingNewline(lit);
-  } else {
-    return lit.substring(1, lit.length - 1).replaceAll('\\\$', '\$');
-  }
-}
-
-// The first newline in a multiline string is removed.
-String stripLeadingNewline(String text) {
-  if (text.startsWith('\n')) {
-    return text.substring(1);
-  } else if (text.startsWith('\r')) {
-    if (text.startsWith('\r\n')) {
-      return text.substring(2);
-    } else {
-      return text.substring(1);
-    }
-  } else {
-    return text;
-  }
-}
-
 /**
  * A [FixedCollection] is a collection of [length] items all of which have the
  * identical [value]

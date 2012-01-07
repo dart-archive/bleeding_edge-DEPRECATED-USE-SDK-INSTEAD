@@ -360,21 +360,20 @@ class SuperExpression extends Expression {
   visit(TreeVisitor visitor) => visitor.visitSuperExpression(this);
 }
 
-class NullExpression extends Expression {
-
-  NullExpression(SourceSpan span): super(span) {}
-
-  visit(TreeVisitor visitor) => visitor.visitNullExpression(this);
-}
-
 class LiteralExpression extends Expression {
-  var value;
-  TypeReference type;
-  String text;
+  Value value;
 
-  LiteralExpression(this.value, this.type, this.text, SourceSpan span): super(span) {}
+  LiteralExpression(this.value, SourceSpan span): super(span) {}
 
   visit(TreeVisitor visitor) => visitor.visitLiteralExpression(this);
+}
+
+class StringInterpExpression extends Expression {
+  List<Expression> pieces;
+
+  StringInterpExpression(this.pieces, SourceSpan span): super(span) {}
+
+  visit(TreeVisitor visitor) => visitor.visitStringInterpExpression(this);
 }
 
 class NameTypeReference extends TypeReference {
@@ -563,9 +562,9 @@ interface TreeVisitor {
 
   visitSuperExpression(SuperExpression node);
 
-  visitNullExpression(NullExpression node);
-
   visitLiteralExpression(LiteralExpression node);
+
+  visitStringInterpExpression(StringInterpExpression node);
 
   visitNameTypeReference(NameTypeReference node);
 
@@ -833,15 +832,13 @@ class TreePrinter implements TreeVisitor {
     output.heading('SuperExpression', node.span);
   }
 
-  void visitNullExpression(NullExpression node) {
-    output.heading('NullExpression', node.span);
+  void visitLiteralExpression(LiteralExpression node) {
+    output.heading('LiteralExpression(' + output.toValue(node.value) + ")", node.span);
   }
 
-  void visitLiteralExpression(LiteralExpression node) {
-    output.heading('LiteralExpression', node.span);
-    output.writeValue('value', node.value);
-    output.writeNode('type', node.type);
-    output.writeValue('text', node.text);
+  void visitStringInterpExpression(StringInterpExpression node) {
+    output.heading('StringInterpExpression', node.span);
+    output.writeNodeList('pieces', node.pieces);
   }
 
   void visitNameTypeReference(NameTypeReference node) {

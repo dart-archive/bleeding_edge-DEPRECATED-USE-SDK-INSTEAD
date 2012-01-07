@@ -96,21 +96,6 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
         TokenKind.ERROR, _source, _startIndex, _index, message);
   }
 
-  Token nextFromPreviousLine(int kind) {
-    _startIndex = _index;
-
-    switch(kind) {
-      case TokenKind.INCOMPLETE_COMMENT:
-        return finishMultiLineComment();
-      case TokenKind.INCOMPLETE_MULTILINE_STRING_DQ:
-        return finishMultilineString(34/*"*/);
-      case TokenKind.INCOMPLETE_MULTILINE_STRING_SQ:
-        return finishMultilineString(39/*'*/);
-      default:
-        return next();
-    }
-  }
-
   Token finishWhitespace() {
     _index--;
     while (_index < _text.length) {
@@ -161,7 +146,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
     do {
       int ch = _nextChar();
       if (ch == 0) {
-        return _finishToken(TokenKind.INCOMPLETE_COMMENT);
+        return _errorToken();
       } else if (ch == 42/*'*'*/) {
         if (_maybeEatChar(47/*'/'*/)) {
           nesting--;
@@ -190,27 +175,53 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
     }
   }
 
-  void eatHexDigits() {
-    while (_index < _text.length) {
-     if (isHexDigit(_text.charCodeAt(_index))) {
-       _index++;
-     } else {
-       return;
-     }
+  static int _hexDigit(int c) {
+    if(c >= 48/*0*/ && c <= 57/*9*/) {
+      return c - 48;
+    } else if (c >= 97/*a*/ && c <= 102/*f*/) {
+      return c - 87;
+    } else if (c >= 65/*A*/ && c <= 70/*F*/) {
+      return c - 55;
+    } else {
+      return -1;
     }
   }
 
-  bool maybeEatHexDigit() {
-    if (_index < _text.length && isHexDigit(_text.charCodeAt(_index))) {
-      _index++;
-      return true;
+  int readHex([int hexLength]) {
+    int maxIndex;
+    if (hexLength === null) {
+      maxIndex = _text.length - 1;
+    } else {
+      // TODO(jimhug): What if this is too long?
+      maxIndex = _index + hexLength;
+      if (maxIndex >= _text.length) return -1;
     }
-    return false;
+    var result = 0;
+    while (_index < maxIndex) {
+      final digit = _hexDigit(_text.charCodeAt(_index));
+      if (digit == -1) {
+        if (hexLength === null) {
+          return result;
+        } else {
+          return -1;
+        }
+      }
+      _hexDigit(_text.charCodeAt(_index));
+      // Multiply by 16 rather than shift by 4 since that will result in a
+      // correct value for numbers that exceed the 32 bit precision of JS
+      // 'integers'.
+      // TODO: Figure out a better solution to integer truncation. Issue 638.
+      result = (result * 16) + digit;
+      _index++;
+    }
+
+    return result;
   }
 
   Token finishHex() {
-    eatHexDigits();
-    return _finishToken(TokenKind.HEX_INTEGER);
+    final value = readHex();
+    return new LiteralToken(TokenKind.HEX_INTEGER, _source, _startIndex,
+        _index, value);
   }
 
   Token finishNumber() {
@@ -245,28 +256,54 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
     return _finishToken(kind);
   }
 
+  Token _makeStringToken(List<int> buf, bool isPart) {
+    final s = new String.fromCharCodes(buf);
+    final kind = isPart ? TokenKind.STRING_PART : TokenKind.STRING;
+    return new LiteralToken(kind, _source, _startIndex, _index, s);
+  }
+
+  Token _makeRawStringToken(bool isMultiline) {
+    String s;
+    if (isMultiline) {
+      // Skip initial newline in multiline strings
+      if (_source.text[_startIndex + 4] == '\n') {
+        s = _source.text.substring(_startIndex + 5, _index - 3);
+      } else {
+        s = _source.text.substring(_startIndex + 4, _index - 3);
+      }
+    } else {
+      s = _source.text.substring(_startIndex + 2, _index - 1);
+    }
+    return new LiteralToken(TokenKind.STRING, _source, _startIndex, _index, s);
+  }
+
   Token finishMultilineString(int quote) {
+    var buf = new List<int>();
     while (true) {
       int ch = _nextChar();
       if (ch == 0) {
-        final kind = quote == 34/*"*/ ?
-            TokenKind.INCOMPLETE_MULTILINE_STRING_DQ :
-            TokenKind.INCOMPLETE_MULTILINE_STRING_SQ;
-        return _finishToken(kind);
+        return _errorToken();
       } else if (ch == quote) {
         if (_maybeEatChar(quote)) {
           if (_maybeEatChar(quote)) {
-            return _finishToken(TokenKind.STRING);
+            return _makeStringToken(buf, false);
           }
+          buf.add(quote);
         }
+        buf.add(quote);
       } else if (ch == 36/*$*/) {
         // start of string interp
         _interpStack = InterpStack.push(_interpStack, quote, true);
-        return _finishToken(TokenKind.INCOMPLETE_STRING); // TODO
+        return _makeStringToken(buf, true);
       } else if (ch == 92/*\*/) {
-        if (!eatEscapeSequence()) {
+        var escapeVal = readEscapeSequence();
+        if (escapeVal == -1) {
           return _errorToken("invalid hex escape sequence");
+        } else {
+          buf.add(escapeVal);
         }
+      } else {
+        buf.add(ch);
       }
     }
   }
@@ -294,9 +331,11 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
   Token finishString(int quote) {
     if (_maybeEatChar(quote)) {
       if (_maybeEatChar(quote)) {
+        // skip an initial newline
+        _maybeEatChar(10/*'\n'*/);
         return finishMultilineString(quote);
       } else {
-        return _finishToken(TokenKind.STRING);
+        return _makeStringToken(new List<int>(), false);
       }
     }
     return finishStringBody(quote);
@@ -307,15 +346,15 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
       if (_maybeEatChar(quote)) {
         return finishMultilineRawString(quote);
       } else {
-        return _finishToken(TokenKind.STRING);
+        return _makeStringToken(new List<int>(), false);
       }
     }
     while (true) {
       int ch = _nextChar();
       if (ch == quote) {
-        return _finishToken(TokenKind.STRING);
+        return _makeRawStringToken(false);
       } else if (ch == 0) {
-        return _finishToken(TokenKind.INCOMPLETE_STRING);
+        return _errorToken();
       }
     }
   }
@@ -324,67 +363,85 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
     while (true) {
       int ch = _nextChar();
       if (ch == 0) {
-        final kind = quote == 34/*"*/ ?
-            TokenKind.INCOMPLETE_MULTILINE_STRING_DQ :
-            TokenKind.INCOMPLETE_MULTILINE_STRING_SQ;
-        return _finishToken(kind);
+        return _errorToken();
       } else if (ch == quote && _maybeEatChar(quote) && _maybeEatChar(quote)) {
-        return _finishToken(TokenKind.STRING);
+        return _makeRawStringToken(true);
       }
     }
   }
 
   Token finishStringBody(int quote) {
+    var buf = new List<int>();
     while (true) {
       int ch = _nextChar();
       if (ch == quote) {
-        return _finishToken(TokenKind.STRING);
+        return _makeStringToken(buf, false);
       } else if (ch == 36/*$*/) {
         // start of string interp
         _interpStack = InterpStack.push(_interpStack, quote, false);
-        return _finishToken(TokenKind.INCOMPLETE_STRING); // TODO
+        return _makeStringToken(buf, true);
       } else if (ch == 0) {
-        return _finishToken(TokenKind.INCOMPLETE_STRING);
+        return _errorToken();
       } else if (ch == 92/*\*/) {
-        if (!eatEscapeSequence()) {
+        var escapeVal = readEscapeSequence();
+        if (escapeVal == -1) {
           return _errorToken("invalid hex escape sequence");
+        } else {
+          buf.add(escapeVal);
         }
+      } else {
+        buf.add(ch);
       }
     }
   }
 
-  bool eatEscapeSequence() {
-    String hex;
-    switch (_nextChar()) {
+  int readEscapeSequence() {
+    final ch = _nextChar();
+    int hexValue;
+    switch (ch) {
+      case 110/*n*/:
+        return 0x0a/*'\n'*/;
+      case 114/*r*/:
+        return 0x0d/*'\r'*/;
+      case 102/*f*/:
+        return 0x0c/*'\f'*/;
+      case 98/*b*/:
+        return 0x08/*'\b'*/;
+      case 116/*t*/:
+        return 0x09/*'\t'*/;
+      case 118/*v*/:
+        return 0x0b/*'\v'*/;
       case 120/*x*/:
-        return maybeEatHexDigit() && maybeEatHexDigit();
+        hexValue = readHex(2);
+        break;
       case 117/*u*/:
         if (_maybeEatChar(123/*{*/)) {
-          int start = _index;
-          eatHexDigits();
-          int chars = _index - start;
-          if (chars > 0 && chars <= 6 && _maybeEatChar(125/*}*/)) {
-            hex = _text.substring(start, start + chars);
-            break;
+          hexValue = readHex();
+          if (!_maybeEatChar(125/*}*/)) {
+            return -1;
           } else {
-            return false;
+            break;
           }
         } else {
-          if (maybeEatHexDigit() && maybeEatHexDigit() &&
-              maybeEatHexDigit() && maybeEatHexDigit()) {
-            hex = _text.substring(_index - 4, _index);
-            break;
-          } else {
-            return false;
-          }
+          hexValue = readHex(4);
+          break;
         }
-      default: return true;
+      default: return ch;
     }
+
+    if (hexValue == -1) return -1;
+
     // According to the Unicode standard the high and low surrogate halves
     // used by UTF-16 (U+D800 through U+DFFF) and values above U+10FFFF
     // are not legal Unicode values.
-    num n = Parser.parseHex(hex);
-    return n < 0xD800 || n > 0xDFFF && n <= 0x10FFFF;
+    if (hexValue < 0xD800 || hexValue > 0xDFFF && hexValue <= 0xFFFF) {
+      return hexValue;
+    } else if (hexValue <= 0x10FFFF){
+      world.fatal('unicode values greater than 2 bytes not implemented yet');
+      return -1;
+    } else {
+      return -1;
+    }
   }
 
   Token finishDot() {

@@ -306,7 +306,7 @@ class AwaitChecker implements TreeVisitor {
     return false;
   }
 
-  visitNullExpression(NullExpression node) {
+  visitStringInterpExpression(StringInterpExpression node) {
     return false;
   }
 

@@ -506,7 +506,69 @@ function \$assert_${toType.name}(x) {
     return _resolveMember(context, 'noSuchMethod', node).invoke(
         context, node, this, new Arguments(null, noSuchArgs));
   }
+
+
+  static Value fromBool(bool value, SourceSpan span) {
+    return new EvaluatedValue(world.nonNullBool, value, value.toString(),
+      span);
+  }
+
+  static Value fromInt(int value, SourceSpan span) {
+    final strValue = value.toString();
+    assert(strValue.indexOf('.') == -1);
+    return new EvaluatedValue(world.numType, value, strValue, span);
+  }
+
+  static Value fromDouble(double value, SourceSpan span) {
+    var strValue = value.toString();
+    // Ensure that string version looks different from int
+    if (strValue.indexOf('.') == -1 && strValue.indexOf('e') == -1) {
+      strValue = strValue + '.0';
+    }
+    return new EvaluatedValue(world.numType, value, strValue, span);
+  }
+
+  static Value fromString(String value, SourceSpan span) {
+    // TODO(jimhug): This could be much more efficient
+    StringBuffer buf = new StringBuffer();
+    buf.add('"');
+    for (int i=0; i < value.length; i++) {
+      var ch = value.charCodeAt(i);
+      switch (ch) {
+        case 9/*'\t'*/: buf.add(@'\t'); break;
+        case 10/*'\n'*/: buf.add(@'\n'); break;
+        case 13/*'\r'*/: buf.add(@'\r'); break;
+        case 34/*"*/: buf.add(@'\"'); break;
+        case 92/*\*/: buf.add(@'\\'); break;
+        default:
+          if (ch >= 32 && ch <= 126) {
+            buf.add(value[i]);
+          } else {
+            final hex = ch.toRadixString(16);
+            switch (hex.length) {
+              case 1: buf.add(@'\x0'); buf.add(hex); break;
+              case 2: buf.add(@'\x'); buf.add(hex); break;
+              case 3: buf.add(@'\u0'); buf.add(hex); break;
+              case 4: buf.add(@'\u'); buf.add(hex); break;
+              default:
+                world.internalError(
+                  'unicode values greater than 2 bytes not implemented');
+                break;
+            }
+          }
+          break;
+      }
+    }
+    buf.add('"');
+
+    return new EvaluatedValue(world.stringType, value, buf.toString(), span);
+  }
+
+  static Value fromNull(SourceSpan span) {
+    return new EvaluatedValue(world.varType, null, 'null', span);
+  }
 }
+
 
 // TODO(jmesserly): the subtypes of Value require a lot of type checks and
 // downcasts to use; can we make that cleaner? (search for ".dynamic")
@@ -537,8 +599,7 @@ class EvaluatedValue extends Value {
     : super(type, code, span, false);
 
   static String codeWithComments(String canonicalCode, SourceSpan span) {
-    return (span != null && span.text != canonicalCode)
-        ? '$canonicalCode/*${_escapeForComment(span.text)}*/' : canonicalCode;
+    return canonicalCode;
   }
 }
 

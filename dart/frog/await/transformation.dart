@@ -72,7 +72,7 @@ class AwaitProcessor implements TreeVisitor {
       BlockStatement block = node.body;
       if (block.body.last() is! ReturnStatement) {
         continuation.addFirst(
-            _callCompleter(new NullExpression(node.span), node.span));
+            _callCompleter(_makeNull(node.span), node.span));
       }
     }
 
@@ -461,7 +461,7 @@ class AwaitProcessor implements TreeVisitor {
    * that is returned from the asynchronous function. If the function that we
    * are generating is `main`, we add a noop listener on the resulting future.
    * Without it, we would have to make it illegal to use `await` in main. This
-   * is because futures swallow exceptions if their values are never used. 
+   * is because futures swallow exceptions if their values are never used.
    */
   Statement _wrapInTryCatch(Statement s, bool isMain) {
     final ex = new Identifier("ex", s.span);
@@ -561,7 +561,7 @@ class AwaitProcessor implements TreeVisitor {
   /** Make the statement: [: target.method(value); :]. */
   Statement _callTarget1Arg(
       String target, String method, Expression value, SourceSpan span) {
-    if (value == null) value = new NullExpression(span);
+    if (value == null) value = _makeNull(span);
     return new ExpressionStatement(new CallExpression(
         new DotExpression(
             new VarExpression(new Identifier(target, span), span),
@@ -571,7 +571,7 @@ class AwaitProcessor implements TreeVisitor {
 
   /** Make the statement: [: f(value); :]. */
   Statement _call1Arg(String f, Expression value, SourceSpan span) {
-    if (value == null) value = new NullExpression(span);
+    if (value == null) value = _makeNull(span);
     return new ExpressionStatement(new CallExpression(
         new VarExpression(new Identifier(f, span), span),
         [new ArgumentNode(null, value, value.span)], span), span);
@@ -580,8 +580,8 @@ class AwaitProcessor implements TreeVisitor {
   /** Make the statement: [: f(a, b); :]. */
   Statement _call2Args(String f, Expression a, Expression b,
       SourceSpan span) {
-    if (a == null) a = new NullExpression(span);
-    if (b == null) b = new NullExpression(span);
+    if (a == null) a = _makeNull(span);
+    if (b == null) b = _makeNull(span);
     return new ExpressionStatement(new CallExpression(
         new VarExpression(new Identifier(f, span), span),
         [new ArgumentNode(null, a, a.span),
@@ -589,9 +589,13 @@ class AwaitProcessor implements TreeVisitor {
   }
 
   /** Make a return statement for a boolean value. */
-  Statement _returnBoolean(SourceSpan span, value) {
-    return new ReturnStatement(new LiteralExpression(value,
-        new TypeReference(span, world.nonNullBool), "$value", span), span);
+  Statement _returnBoolean(SourceSpan span, bool value) {
+    return new ReturnStatement(
+      new LiteralExpression(Value.fromBool(value, span), span), span);
+  }
+
+  Expression _makeNull(SourceSpan span) {
+    return new LiteralExpression(Value.fromNull(span), span);
   }
 }
 

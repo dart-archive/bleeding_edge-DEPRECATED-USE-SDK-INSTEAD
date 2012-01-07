@@ -28,7 +28,9 @@ class Parameter {
       // To match VM, detect cases where value was not actually specified in
       // code and don't signal errors.
       // TODO(jimhug): Clean up after issue #352 is resolved.
-      if (!hasDefaultValue) return;
+      if (definition.value.span.start == definition.span.start) {
+        return;
+      }
 
       if (method.name == ':call') {
         // TODO(jimhug): Need simpler way to detect "true" function types vs.
@@ -70,13 +72,6 @@ class Parameter {
   }
 
   bool get isOptional() => definition != null && definition.value != null;
-
-  /**
-   * Gets whether this named parameter has an explicit default value or relies
-   * on the implicit `null`.
-   */
-  bool get hasDefaultValue() => definition.value is! NullExpression ||
-      (definition.value.span.start != definition.span.start);
 }
 
 
@@ -1259,11 +1254,11 @@ class MethodMember extends Member {
           node.span);
       } else if (name == ':add') {
         if (allConst) {
-          final value = _normConcat(target, args.values[0]);
-          return new EvaluatedValue(world.stringType, value, value, node.span);
+          final value = target.dynamic.actualValue +
+            args.values[0].dynamic.actualValue;
+          return Value.fromString(value, node.span);
         }
 
-        // Ensure we generate toString on the right side
         return new Value(declaringType, '${target.code} + ${argsCode[0]}',
           node.span);
       }
@@ -1324,38 +1319,6 @@ class MethodMember extends Member {
     var argsString = Strings.join(argsCode, ', ');
     return new Value(inferredResult, '${target.code}.$jsname($argsString)',
         node.span);
-  }
-
-  /**
-   * Return the string concatenation of two values, which is normalized to use
-   * double-quotes if any of the input strings used double-quotes.
-   */
-  String _normConcat(Value a, Value b) {
-    assert(b.type.isString);
-    var val0 = a.dynamic.actualValue;
-    var quote0 = val0[0];
-    val0 = val0.substring(1, val0.length - 1);
-    var val1 = b.dynamic.actualValue;
-    var quote1 = null;
-    if (b.type.isString) {
-      quote1 = val1[0];
-      val1 = val1.substring(1, val1.length - 1);
-    }
-    var value;
-    if (quote0 == quote1 || quote1 == null) {
-      // If both strings use the same quote, then keep using it.
-      value = '$quote0${val0}${val1}$quote0';
-    } else if (quote0 == '"') {
-      // If they are different, escape the single-quote to be double-quote
-      // the choice of single vs double is arbitrary, but choosing one
-      // ensures that we only do this escaping once on a string portion.
-      assert(quote1 == "'");
-      value = '$quote0${val0}${toDoubleQuote(val1)}$quote0';
-    } else {
-      assert(quote1 == '"');
-      value = '$quote1${toDoubleQuote(val0)}${val1}$quote1';
-    }
-    return value;
   }
 
   resolve() {

@@ -173,9 +173,10 @@ nodes = [
 
   Expression('This'),
   Expression('Super'),
-  Expression('Null'),
 
-  Expression('Literal', 'var value, TypeReference type, String text'),
+  Expression('Literal', 'Value value'),
+
+  Expression('StringInterp', 'List<Expression> pieces'),
 
   # TODO(jimhug): Split into Simple and Qualified names
   TypeReference('Name',

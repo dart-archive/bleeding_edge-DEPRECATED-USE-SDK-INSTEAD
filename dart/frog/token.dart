@@ -45,6 +45,13 @@ class Token {
   }
 }
 
+/** A token containing a parsed literal value. */
+class LiteralToken extends Token {
+  var value;
+  LiteralToken(kind, source, start, end, this.value)
+      : super(kind, source, start, end);
+}
+
 /** A token containing error information. */
 class ErrorToken extends Token {
   String message;

@@ -56,7 +56,7 @@ class Clock {
 
 // TODO(jmesserly): this is working around a name conflict with "window.print".
 void print(Object obj) => _print(obj);
-void _print(Object obj) native '''if (typeof console == 'object') {
+void _print(Object obj) native @'''if (typeof console == 'object') {
   if (obj) obj = obj.toString();
   console.log(obj);
 } else {
