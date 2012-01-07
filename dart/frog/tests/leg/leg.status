@@ -10,7 +10,7 @@ ConstantFoldingStringTest: FAIL
 *: Skip # Too many type errors in frog.
 
 [ $component == frog ]
-ScannerTest: Skip # Failing after bug fix to frog
+ScannerTest: Skip # Bug 1084 in Frog - no utf8 support when on VM
 
 [ $component == frogium ]
 # Tests have # directives (not supported by the browser test architecture)
