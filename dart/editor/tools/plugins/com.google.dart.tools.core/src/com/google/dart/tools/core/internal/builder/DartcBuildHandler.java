@@ -231,6 +231,7 @@ public class DartcBuildHandler {
   private final ArtifactProvider provider = new ArtifactProvider();
 
   public void clean(IProject project, IProgressMonitor monitor) throws CoreException {
+    BuilderUtil.clearErrorMarkers(project);
     provider.clean(project, monitor);
   }
 
@@ -266,9 +267,6 @@ public class DartcBuildHandler {
   protected void buildAllApplications(IProject project, boolean shouldGenerateJs,
       IProgressMonitor monitor) throws CoreException {
     DartProject proj = DartCore.create(project);
-    if (shouldGenerateJs) {
-      BuilderUtil.clearErrorMarkers(project);
-    }
     DartLibrary[] allLibraries = proj.getDartLibraries();
 
     SubMonitor subMonitor = SubMonitor.convert(monitor,

@@ -39,6 +39,7 @@ import static com.google.dart.tools.core.internal.builder.BuilderUtil.createWarn
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 
 import java.net.URI;
 
@@ -89,6 +90,20 @@ class CompilerListener implements DartCompilerListener {
 
   @Override
   public void unitAboutToCompile(DartSource source, boolean diet) {
+    IFile file = ResourceUtil.getResource(source);
+    if (file == null) {
+      if (DartCoreDebug.VERBOSE) {
+        DartCore.logInformation("Unable to remove markers for source \""
+            + source.getUri().toString() + "\"");
+      }
+      return;
+    }
+    try {
+      file.deleteMarkers(null, true, IResource.DEPTH_ZERO);
+    } catch (CoreException exception) {
+      DartCore.logInformation("Unable to remove markers for source \"" + source.getUri().toString()
+          + "\"", exception);
+    }
   }
 
   @Override
@@ -139,14 +154,18 @@ class CompilerListener implements DartCompilerListener {
     IResource res = ResourceUtil.getResource(source);
     if (res == null) {
       if (source != null && source.getUri().toString().startsWith("dart://")) {
-        // We can't find the source associated with this error. However, this is in system
-        // code that the user has no control over. Don't complain to the user about these
-        // errors.
-
+        //
+        // We can't find the source associated with this error. However, this is in system code that
+        // the user has no control over. Don't complain to the user about these
+        //
         if (DartCoreDebug.VERBOSE) {
-          DartCore.logInformation(error.toString());
+          StringBuilder builder = new StringBuilder();
+          builder.append("Ignoring error reported against core library source \"");
+          builder.append(source.getUri().toString());
+          builder.append("\": ");
+          builder.append(error.getMessage());
+          DartCore.logInformation(builder.toString());
         }
-
         return null;
       } else if (missingSourceCount <= MISSING_SOURCE_REPORT_LIMIT) {
         // Don't flood the log
@@ -174,7 +193,6 @@ class CompilerListener implements DartCompilerListener {
       } catch (DartModelException exception) {
         // Fall through to use the project as a resource
       }
-
       if (res == null) {
         res = project;
       }
