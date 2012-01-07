@@ -9,6 +9,8 @@ ConstantFoldingStringTest: FAIL
 [ $component == dartc ]
 *: Skip # Too many type errors in frog.
 
+[ $component == frog ]
+ScannerTest: Skip # Failing after bug fix to frog
 
 [ $component == frogium ]
 # Tests have # directives (not supported by the browser test architecture)
