@@ -275,20 +275,21 @@ class NewExpression extends Expression {
 
 class ListExpression extends Expression {
   bool isConst;
-  TypeReference type;
+  TypeReference itemType;
   List<Expression> values;
 
-  ListExpression(this.isConst, this.type, this.values, SourceSpan span): super(span) {}
+  ListExpression(this.isConst, this.itemType, this.values, SourceSpan span): super(span) {}
 
   visit(TreeVisitor visitor) => visitor.visitListExpression(this);
 }
 
 class MapExpression extends Expression {
   bool isConst;
-  TypeReference type;
+  TypeReference keyType;
+  TypeReference valueType;
   List<Expression> items;
 
-  MapExpression(this.isConst, this.type, this.items, SourceSpan span): super(span) {}
+  MapExpression(this.isConst, this.keyType, this.valueType, this.items, SourceSpan span): super(span) {}
 
   visit(TreeVisitor visitor) => visitor.visitMapExpression(this);
 }
@@ -779,14 +780,15 @@ class TreePrinter implements TreeVisitor {
   void visitListExpression(ListExpression node) {
     output.heading('ListExpression', node.span);
     output.writeValue('isConst', node.isConst);
-    output.writeNode('type', node.type);
+    output.writeNode('itemType', node.itemType);
     output.writeNodeList('values', node.values);
   }
 
   void visitMapExpression(MapExpression node) {
     output.heading('MapExpression', node.span);
     output.writeValue('isConst', node.isConst);
-    output.writeNode('type', node.type);
+    output.writeNode('keyType', node.keyType);
+    output.writeNode('valueType', node.valueType);
     output.writeNodeList('items', node.items);
   }
 

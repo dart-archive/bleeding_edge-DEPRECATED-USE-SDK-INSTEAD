@@ -1066,7 +1066,7 @@ class Parser {
         if (_peekKind(TokenKind.LBRACK) || _peekKind(TokenKind.INDEX)) {
           return finishListLiteral(start, true, null);
         } else if (_peekKind(TokenKind.LBRACE)) {
-          return finishMapLiteral(start, true, null);
+          return finishMapLiteral(start, true, null, null);
         } else if (_peekKind(TokenKind.LT)) {
           return finishTypedLiteral(start, true);
         } else {
@@ -1084,7 +1084,7 @@ class Parser {
       case TokenKind.INDEX:
         return finishListLiteral(start, false, null);
       case TokenKind.LBRACE:
-        return finishMapLiteral(start, false, null);
+        return finishMapLiteral(start, false, null, null);
 
       // Literals
       case TokenKind.NULL:
@@ -1344,10 +1344,10 @@ class Parser {
     return new NewExpression(isConst, type, name, args, _makeSpan(start));
   }
 
-  finishListLiteral(int start, bool isConst, TypeReference type) {
+  finishListLiteral(int start, bool isConst, TypeReference itemType) {
     if (_maybeEat(TokenKind.INDEX)) {
       // This is an empty array.
-      return new ListExpression(isConst, type, [], _makeSpan(start));
+      return new ListExpression(isConst, itemType, [], _makeSpan(start));
     }
 
     var values = [];
@@ -1360,10 +1360,11 @@ class Parser {
         break;
       }
     }
-    return new ListExpression(isConst, type, values, _makeSpan(start));
+    return new ListExpression(isConst, itemType, values, _makeSpan(start));
   }
 
-  finishMapLiteral(int start, bool isConst, TypeReference type) {
+  finishMapLiteral(int start, bool isConst,
+      TypeReference keyType, TypeReference valueType) {
     var items = [];
     _eat(TokenKind.LBRACE);
     while (!_maybeEat(TokenKind.RBRACE)) {
@@ -1377,38 +1378,37 @@ class Parser {
         break;
       }
     }
-    return new MapExpression(isConst, type, items, _makeSpan(start));
+    return new MapExpression(isConst, keyType, valueType, items,
+      _makeSpan(start));
   }
 
   finishTypedLiteral(int start, bool isConst) {
     var span = _makeSpan(start);
-    var typeToBeNamedLater = new NameTypeReference(false, null, null, span);
-    var genericType = addTypeArguments(typeToBeNamedLater, 0);
+
+    final typeToBeNamedLater = new NameTypeReference(false, null, null, span);
+    final genericType = addTypeArguments(typeToBeNamedLater, 0);
+    final typeArgs = genericType.typeArguments;
 
     if (_peekKind(TokenKind.LBRACK) || _peekKind(TokenKind.INDEX)) {
-      genericType.baseType = new TypeReference(span, world.listType);
-      return finishListLiteral(start, isConst, genericType);
+      if (typeArgs.length != 1) {
+        world.error('exactly one type argument expected for list',
+          genericType.span);
+      }
+      return finishListLiteral(start, isConst, typeArgs[0]);
     } else if (_peekKind(TokenKind.LBRACE)) {
-      genericType.baseType = new TypeReference(span, world.mapType);
-      final typeArgs = genericType.typeArguments;
-      // TODO(sigmund): Would be nice to allow arbitrary keys here (this is
-      // currently not allowed by the spec).
+      var keyType, valueType;
       if (typeArgs.length == 1) {
-        genericType.typeArguments =
-            [new TypeReference(span, world.stringType), typeArgs[0]];
+        keyType = null;
+        valueType = typeArgs[0];
       } else if (typeArgs.length == 2) {
         var keyType = typeArgs[0];
-        if (keyType is! NameTypeReference || keyType.name.name != "String") {
-          world.error('the key type of a map literal is implicitly "String"',
-              keyType.span);
-        } else {
-          // making key explicit is just a warning.
-          world.warning(
-              'a map literal takes one type argument specifying the value type',
-              keyType.span);
-        }
+        // making key explicit is just a warning.
+        world.warning(
+            'a map literal takes one type argument specifying the value type',
+            keyType.span);
+        valueType = typeArgs[1];
       } // o.w. the type system will detect the mismatch in type arguments.
-      return finishMapLiteral(start, isConst, genericType);
+      return finishMapLiteral(start, isConst, keyType, valueType);
     } else {
       _errorExpected('array or map literal');
     }

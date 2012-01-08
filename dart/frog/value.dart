@@ -59,12 +59,6 @@ class Value {
   /** Is this value a constant expression? */
   bool get isConst() => false;
 
-  /**
-   * A canonicalized form of the code. Two const expressions that result in the
-   * same instance should have the same [canonicalCode].
-   */
-  String get canonicalCode() => null;
-
   /** If [isConst], the [EvaluatedValue] that defines this value. */
   EvaluatedValue get constValue() => null;
 
@@ -89,6 +83,25 @@ class Value {
       return invokeNoSuchMethod(context, 'set:$name', node,
           new Arguments(null, [value]));
     }
+  }
+
+  Value binop(int kind, Value other, MethodGenerator context, var node) {
+    switch (kind) {
+      case TokenKind.AND:
+      case TokenKind.OR:
+        final code = '${code} ${node.op} ${other.code}';
+        return new Value(world.nonNullBool, code, node.span);
+      // TODO(jimhug): Lot's to resolve here.
+      case TokenKind.EQ_STRICT:
+        return new Value(world.nonNullBool, '${code} == ${other.code}',
+          node.span);
+      case TokenKind.NE_STRICT:
+        return new Value(world.nonNullBool, '${code} != ${other.code}',
+          node.span);
+    }
+
+    var name = kind == TokenKind.NE ? ':ne': TokenKind.binaryMethodName(kind);
+    return invoke(context, name, node, new Arguments(null, [other]));
   }
 
 
@@ -425,7 +438,8 @@ function \$assert_${toType.name}(x) {
       if (needsTemp) {
         return new Value(world.nonNullBool, '($code, true)', span);
       } else {
-        return new EvaluatedValue(world.nonNullBool, true, 'true', null);
+        // TODO(jimhug): Mark non-const?
+        return Value.fromBool(true, span);
       }
     }
 
@@ -509,31 +523,189 @@ function \$assert_${toType.name}(x) {
 
 
   static Value fromBool(bool value, SourceSpan span) {
-    return new EvaluatedValue(world.nonNullBool, value, value.toString(),
-      span);
+    return new BoolValue(value, true, span);
   }
 
   static Value fromInt(int value, SourceSpan span) {
-    final strValue = value.toString();
-    assert(strValue.indexOf('.') == -1);
-    return new EvaluatedValue(world.numType, value, strValue, span);
+    return new IntValue(value, true, span);
   }
 
   static Value fromDouble(double value, SourceSpan span) {
-    var strValue = value.toString();
-    // Ensure that string version looks different from int
-    if (strValue.indexOf('.') == -1 && strValue.indexOf('e') == -1) {
-      strValue = strValue + '.0';
-    }
-    return new EvaluatedValue(world.numType, value, strValue, span);
+    return new DoubleValue(value, true, span);
   }
 
   static Value fromString(String value, SourceSpan span) {
+    return new StringValue(value, true, span);
+  }
+
+  static Value fromNull(SourceSpan span) {
+    return new NullValue(true, span);
+  }
+}
+
+
+// rename to PrimitiveValue
+class EvaluatedValue extends Value implements Hashable {
+  /** Is this value treated as const by dart language? */
+  bool isConst;
+
+  EvaluatedValue(this.isConst, Type type, SourceSpan span):
+    super(type, '@@@', span, false);
+
+  String get code() => '@@@';
+
+  EvaluatedValue get constValue() => this;
+
+  // TODO(jimhug): Using computed code here with caching is major perf fear.
+  int hashCode() => code.hashCode();
+
+  bool operator ==(var other) {
+    return other is EvaluatedValue && other.type == this.type &&
+      other.code == this.code;
+  }
+}
+
+class NullValue extends EvaluatedValue {
+  NullValue(bool isConst, SourceSpan span):
+    super(isConst, world.varType, span);
+
+  get actualValue() => null;
+
+  String get code() => 'null';
+
+  Value binop(int kind, var other, MethodGenerator context, var node) {
+    // TODO(jimhug): Support int/double better
+    if (other is! ListValue) return super.binop(kind, other, context, node);
+
+    switch (kind) {
+      case TokenKind.EQ_STRICT:
+        return new BoolValue(type == other.type && code == other.code,
+          isConst && other.isConst, node.span);
+      case TokenKind.NE_STRICT:
+        return new BoolValue(type != other.type || code != other.code,
+          isConst && other.isConst, node.span);
+    }
+
+    // TODO(jimhug): Will flesh out ops here!
+    return super.binop(kind, other, context, node);
+  }
+}
+
+class BoolValue extends EvaluatedValue {
+  bool actualValue;
+
+  BoolValue(this.actualValue, bool isConst, SourceSpan span):
+    super(isConst, world.nonNullBool, span);
+
+  String get code() => actualValue ? 'true' : 'false';
+
+  Value binop(int kind, var other, MethodGenerator context, var node) {
+    if (other is! BoolValue) return super.binop(kind, other, context, node);
+
+    switch (kind) {
+      case TokenKind.AND:
+        return new BoolValue(actualValue && other.actualValue,
+          isConst && other.isConst, node.span);
+      case TokenKind.OR:
+        return new BoolValue(actualValue || other.actualValue,
+          isConst && other.isConst, node.span);
+      case TokenKind.EQ_STRICT:
+        return new BoolValue(actualValue == other.actualValue,
+          isConst && other.isConst, node.span);
+      case TokenKind.NE_STRICT:
+        return new BoolValue(actualValue != other.actualValue,
+          isConst && other.isConst, node.span);
+    }
+
+    // TODO(jimhug): Could handle more ops here, but does it matter?
+    return super.binop(kind, other, context, node);
+  }
+}
+
+class IntValue extends EvaluatedValue {
+  int actualValue;
+
+  IntValue(this.actualValue, bool isConst, SourceSpan span):
+    super(isConst, world.intType, span);
+
+  // TODO(jimhug): Only add parens when needed.
+  String get code() => '(${actualValue})';
+
+  Value binop(int kind, var other, MethodGenerator context, var node) {
+    // TODO(jimhug): Support int/double better
+    if (other is! IntValue) return super.binop(kind, other, context, node);
+
+    switch (kind) {
+      case TokenKind.EQ_STRICT:
+        return new BoolValue(actualValue == other.actualValue,
+          isConst && other.isConst, node.span);
+      case TokenKind.NE_STRICT:
+        return new BoolValue(actualValue != other.actualValue,
+          isConst && other.isConst, node.span);
+    }
+
+    // TODO(jimhug): Will flesh out ops here!
+    return super.binop(kind, other, context, node);
+  }
+}
+
+class DoubleValue extends EvaluatedValue {
+  double actualValue;
+
+  DoubleValue(this.actualValue, bool isConst, SourceSpan span):
+    super(isConst, world.doubleType, span);
+
+  String get code() => '(${actualValue})';
+
+  Value binop(int kind, var other, MethodGenerator context, var node) {
+    // TODO(jimhug): Support int/double better
+    if (other is! DoubleValue) return super.binop(kind, other, context, node);
+
+    switch (kind) {
+      case TokenKind.EQ_STRICT:
+        return new BoolValue(actualValue == other.actualValue,
+          isConst && other.isConst, node.span);
+      case TokenKind.NE_STRICT:
+        return new BoolValue(actualValue != other.actualValue,
+          isConst && other.isConst, node.span);
+    }
+
+    // TODO(jimhug): Will flesh out ops here!
+    return super.binop(kind, other, context, node);
+  }
+}
+
+class StringValue extends EvaluatedValue {
+  String actualValue;
+
+  StringValue(this.actualValue, bool isConst, SourceSpan span):
+    super(isConst, world.stringType, span);
+
+  Value binop(int kind, var other, MethodGenerator context, var node) {
+    // TODO(jimhug): Support int/double better
+    if (other is! StringValue) return super.binop(kind, other, context, node);
+
+    switch (kind) {
+      case TokenKind.EQ_STRICT:
+        return new BoolValue(actualValue == other.actualValue,
+          isConst && other.isConst, node.span);
+      case TokenKind.NE_STRICT:
+        return new BoolValue(actualValue != other.actualValue,
+          isConst && other.isConst, node.span);
+    }
+
+    // TODO(jimhug): Will flesh out ops here!
+    return super.binop(kind, other, context, node);
+  }
+
+
+  // This is expensive and we may want to cache its value if called often
+  String get code() {
     // TODO(jimhug): This could be much more efficient
     StringBuffer buf = new StringBuffer();
     buf.add('"');
-    for (int i=0; i < value.length; i++) {
-      var ch = value.charCodeAt(i);
+    for (int i=0; i < actualValue.length; i++) {
+      var ch = actualValue.charCodeAt(i);
       switch (ch) {
         case 9/*'\t'*/: buf.add(@'\t'); break;
         case 10/*'\n'*/: buf.add(@'\n'); break;
@@ -542,7 +714,7 @@ function \$assert_${toType.name}(x) {
         case 92/*\*/: buf.add(@'\\'); break;
         default:
           if (ch >= 32 && ch <= 126) {
-            buf.add(value[i]);
+            buf.add(actualValue[i]);
           } else {
             final hex = ch.toRadixString(16);
             switch (hex.length) {
@@ -560,84 +732,131 @@ function \$assert_${toType.name}(x) {
       }
     }
     buf.add('"');
-
-    return new EvaluatedValue(world.stringType, value, buf.toString(), span);
-  }
-
-  static Value fromNull(SourceSpan span) {
-    return new EvaluatedValue(world.varType, null, 'null', span);
+    return buf.toString();
   }
 }
 
 
-// TODO(jmesserly): the subtypes of Value require a lot of type checks and
-// downcasts to use; can we make that cleaner? (search for ".dynamic")
+class ListValue extends EvaluatedValue {
+  List<Value> values;
 
-/** A value that can has been evaluated statically. */
-class EvaluatedValue extends Value {
+  ListValue(this.values, bool isConst, Type type, SourceSpan span):
+    super(isConst, type, span);
 
-  var actualValue;
-
-  bool get isConst() => true;
-
-  EvaluatedValue get constValue() => this;
-
-  /**
-   * A canonicalized form of the code. Two const expressions that result in the
-   * same instance should have the same [canonicalCode].
-   */
-  String canonicalCode;
-
-  factory EvaluatedValue(Type type, actualValue, String canonicalCode,
-      SourceSpan span) {
-    return new EvaluatedValue._internal(type, actualValue,
-        canonicalCode, span, codeWithComments(canonicalCode, span));
-  }
-
-  EvaluatedValue._internal(Type type, this.actualValue, this.canonicalCode,
-      SourceSpan span, String code)
-    : super(type, code, span, false);
-
-  static String codeWithComments(String canonicalCode, SourceSpan span) {
-    return canonicalCode;
-  }
-}
-
-/** An evaluated constant list expression. */
-class ConstListValue extends EvaluatedValue {
-  List<EvaluatedValue> values;
-
-  factory ConstListValue(Type type, List<EvaluatedValue> values,
-      String actualValue, String canonicalCode, SourceSpan span) {
-    return new ConstListValue._internal(type, values, actualValue,
-        canonicalCode, span, codeWithComments(canonicalCode, span));
-  }
-
-  ConstListValue._internal(type, this.values,
-      actualValue, canonicalCode, span, code) :
-    super._internal(type, actualValue, canonicalCode, span, code);
-}
-
-/** An evaluated constant map expression. */
-class ConstMapValue extends EvaluatedValue {
-  Map<String, EvaluatedValue> values;
-
-  factory ConstMapValue(Type type, List<EvaluatedValue> keyValuePairs,
-      String actualValue, String canonicalCode, SourceSpan span) {
-    final values = new Map<String, EvaluatedValue>();
-    for (int i = 0; i < keyValuePairs.length; i += 2) {
-      values[keyValuePairs[i].actualValue] = keyValuePairs[i + 1];
+  String get code() {
+    final buf = new StringBuffer();
+    buf.add('[');
+    for (var i=0; i < values.length; i++) {
+      if (i > 0) buf.add(', ');
+      buf.add(values[i].code);
     }
-    return new ConstMapValue._internal(type, values, actualValue,
-        canonicalCode, span, codeWithComments(canonicalCode, span));
+    buf.add(']');
+    var listCode = buf.toString();
+
+    if (!isConst) return listCode;
+
+    var v = new Value(world.listType, listCode, span);
+    final immutableListCtor = world.immutableListType.getConstructor('from');
+    final result = immutableListCtor.invoke(null, null,
+        new Value.type(v.type, span), new Arguments(null, [v]));
+    return result.code;
   }
 
-  ConstMapValue._internal(type, this.values,
-      actualValue, canonicalCode, span, code) :
-    super._internal(type, actualValue, canonicalCode, span, code);
+  Value binop(int kind, var other, MethodGenerator context, var node) {
+    // TODO(jimhug): Support int/double better
+    if (other is! ListValue) return super.binop(kind, other, context, node);
+
+    switch (kind) {
+      case TokenKind.EQ_STRICT:
+        return new BoolValue(type == other.type && code == other.code,
+          isConst && other.isConst, node.span);
+      case TokenKind.NE_STRICT:
+        return new BoolValue(type != other.type || code != other.code,
+          isConst && other.isConst, node.span);
+    }
+
+    return super.binop(kind, other, context, node);
+  }
+
+  GlobalValue getGlobalValue() {
+    assert(isConst);
+
+    return world.gen.globalForConst(this, values);
+  }
 }
+
+
+class MapValue extends EvaluatedValue {
+  List<Value> values;
+
+  MapValue(this.values, bool isConst, Type type, SourceSpan span):
+    super(isConst, type, span);
+
+  String get code() {
+    // Cache?
+    var items = new ListValue(values, false, world.listType, span);
+    var tp = world.corelib.topType;
+    Member f = isConst ? tp.getMember('_constMap') : tp.getMember('_map');
+    // TODO(jimhug): Clean up invoke signature
+    var value = f.invoke(null, null, new Value.type(tp, null),
+      new Arguments(null, [items]));
+    return value.code;
+  }
+
+  GlobalValue getGlobalValue() {
+    assert(isConst);
+
+    return world.gen.globalForConst(this, values);
+  }
+
+  Value binop(int kind, var other, MethodGenerator context, var node) {
+    if (other is! MapValue) return super.binop(kind, other, context, node);
+
+    switch (kind) {
+      case TokenKind.EQ_STRICT:
+        return new BoolValue(type == other.type && code == other.code,
+          isConst && other.isConst, node.span);
+      case TokenKind.NE_STRICT:
+        return new BoolValue(type != other.type || code != other.code,
+          isConst && other.isConst, node.span);
+    }
+
+    return super.binop(kind, other, context, node);
+  }
+}
+
+
+class ObjectValue extends EvaluatedValue {
+  Map<String, Value> fields;
+  String _code;
+
+  ObjectValue(this.fields, bool isConst, Type type, this._code, SourceSpan span):
+    super(isConst, type, span);
+
+  String get code() {
+    return _code;
+  }
+
+  Value binop(int kind, var other, MethodGenerator context, var node) {
+    if (other is! ObjectValue) return super.binop(kind, other, context, node);
+
+    switch (kind) {
+      case TokenKind.EQ_STRICT:
+        return new BoolValue(type == other.type && code == other.code,
+          isConst && other.isConst, node.span);
+      case TokenKind.NE_STRICT:
+        return new BoolValue(type != other.type || code != other.code,
+          isConst && other.isConst, node.span);
+    }
+
+    return super.binop(kind, other, context, node);
+  }
+
+}
+
 
 /** An evaluated constant object expression. */
+/*
 class ConstObjectValue extends EvaluatedValue {
   Map<String, EvaluatedValue> fields;
 
@@ -661,8 +880,8 @@ class ConstObjectValue extends EvaluatedValue {
   ConstObjectValue._internal(type, this.fields,
       actualValue, canonicalCode, span, code) :
     super._internal(type, actualValue, canonicalCode, span, code);
-
 }
+*/
 
 /**
  * A global value in the generated code, which corresponds to either a static
@@ -681,11 +900,6 @@ class GlobalValue extends Value implements Comparable {
   /** The value of the field or constant expression to declare. */
   Value exp;
 
-  /**
-   * A canonicalized form of the code. Two const expressions that result in the
-   * same instance should have the same [canonicalCode].
-   */
-  String canonicalCode;
 
   /** True for either cont expressions or a final static field. */
   bool get isConst() => exp.isConst && (field == null || field.isFinal);
@@ -699,31 +913,16 @@ class GlobalValue extends Value implements Comparable {
   /** Other globals that should be defined before this global. */
   List<GlobalValue> dependencies;
 
-  factory GlobalValue.fromStatic(field, Value exp, dependencies) {
-    var code = (exp.isConst ? exp.canonicalCode : exp.code);
-    var codeWithComment = '$code/*${field.declaringType.name}.${field.name}*/';
-    return new GlobalValue(
-        exp.type, codeWithComment, field.isFinal, field, null, exp,
-        code, exp.span, dependencies.filter((d) => d is GlobalValue));
-  }
-
-  factory GlobalValue.fromConst(uniqueId, Value exp, dependencies) {
-    var name = "const\$$uniqueId";
-    var codeWithComment = "$name/*${_escapeForComment(exp.span.text)}*/";
-    return new GlobalValue(
-        exp.type, codeWithComment, true, null, name, exp, name,
-        exp.span,
-        dependencies.filter((d) => d is GlobalValue));
-  }
-
   GlobalValue(Type type, String code, bool isConst,
-      this.field, this.name, this.exp, this.canonicalCode,
-      SourceSpan span, List<GlobalValue> _dependencies)
+      this.field, this.name, this.exp,
+      SourceSpan span, List<Value> _dependencies)
       : super(type, code, span, !isConst), dependencies = [] {
     // store transitive-dependencies so sorting algorithm works correctly.
-    for (final dep in _dependencies) {
-      dependencies.add(dep);
-      dependencies.addAll(dep.dependencies);
+    for (var dep in _dependencies) {
+      if (dep is GlobalValue) {
+        dependencies.add(dep);
+        dependencies.addAll(dep.dependencies);
+      }
     }
   }
 

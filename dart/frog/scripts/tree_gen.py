@@ -157,9 +157,10 @@ nodes = [
     'List<ArgumentNode> arguments'),
 
   Expression('List',
-    'bool isConst, TypeReference type, List<Expression> values'),
+    'bool isConst, TypeReference itemType, List<Expression> values'),
   Expression('Map',
-    'bool isConst, TypeReference type, List<Expression> items'),
+    'bool isConst, TypeReference keyType, TypeReference valueType,' +
+    'List<Expression> items'),
 
   Expression('Conditional',
     'Expression test, Expression trueBranch, Expression falseBranch'),

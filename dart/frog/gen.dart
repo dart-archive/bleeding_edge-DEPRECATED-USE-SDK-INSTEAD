@@ -131,27 +131,32 @@ class WorldGenerator {
     return types;
   }
 
-  GlobalValue globalForStaticField(FieldMember field, Value fieldValue,
+  GlobalValue globalForStaticField(FieldMember field, Value exp,
       List<Value> dependencies) {
     hasStatics = true;
-    var fullname = "${field.declaringType.jsname}.${field.jsname}";
-    if (!globals.containsKey(fullname)) {
-      globals[fullname] = new GlobalValue.fromStatic(
-          field, fieldValue, dependencies);
+    var key = "${field.declaringType.jsname}.${field.jsname}";
+    var ret = globals[key];
+    if (ret === null) {
+      ret = new GlobalValue(exp.type, exp.code, field.isFinal, field, null,
+        exp, exp.span, dependencies);
+      globals[key] = ret;
     }
-    return globals[fullname];
+    return ret;
   }
 
   GlobalValue globalForConst(EvaluatedValue exp, List<Value> dependencies) {
     // Include type name to ensure unique constants - this matches
     // the code above that includes the type name for static fields.
-    var key = exp.type.jsname + ':' + exp.canonicalCode;
-    if (!globals.containsKey(key)) {
-      globals[key] =
-        new GlobalValue.fromConst(globals.length, exp, dependencies);
+    var key = exp.type.jsname + ':' + exp.code;
+    var ret = globals[key];
+    if (ret === null) {
+      var name = "const\$${globals.length}";
+      ret = new GlobalValue(exp.type, name, true, null, name, exp,
+          exp.span, dependencies);
+      globals[key] = ret;
     }
-    assert(globals[key].type == exp.type);
-    return globals[key];
+    assert(ret.type == exp.type);
+    return ret;
   }
 
   writeTypes(Library lib) {
@@ -1935,12 +1940,7 @@ class MethodGenerator implements TreeVisitor {
     var name = ':call';
     if (node.target is DotExpression) {
       DotExpression dot = node.target;
-      // ????
-      if (dot.self is LiteralExpression) {
-        target = (new ParenExpression(dot.self, dot.self.span)).visit(this);
-      } else {
-        target = dot.self.visit(this);
-      }
+      target = dot.self.visit(this);
       name = dot.name.name;
       position = dot.name;
     } else if (node.target is VarExpression) {
@@ -1978,52 +1978,18 @@ class MethodGenerator implements TreeVisitor {
     if (kind == TokenKind.AND || kind == TokenKind.OR) {
       var x = visitTypedValue(node.x, world.nonNullBool);
       var y = visitTypedValue(node.y, world.nonNullBool);
-      final code = '${x.code} ${node.op} ${y.code}';
-      if (x.isConst && y.isConst) {
-        var value = (kind == TokenKind.AND)
-            ? x.actualValue && y.actualValue : x.actualValue || y.actualValue;
-        return Value.fromBool(value, node.span);
-      }
-      return new Value(world.nonNullBool, code, node.span);
+      return x.binop(kind, y, this, node);
     } else if (kind == TokenKind.EQ_STRICT || kind == TokenKind.NE_STRICT) {
       var x = visitValue(node.x);
       var y = visitValue(node.y);
-      if (x.isConst && y.isConst) {
-        var xVal = x.actualValue;
-        var yVal = y.actualValue;
-
-        // Note: it is ok to use == and not === here since all of these
-        // constant comparisons are applied to doubles, bool, or strings.
-        // We need it for the compile-time evaluator because
-        // (9).toDouble() === 9.0 is false in dartvm.
-        var value = kind == TokenKind.EQ_STRICT ? xVal == yVal : xVal != yVal;
-        return Value.fromBool(value, node.span);
-      }
-      if (x.code == 'null' || y.code == 'null') {
-        // Switching to == ensures that null and undefined are interchangable.
-        final op = node.op.toString().substring(0,2);
-        return new Value(world.nonNullBool, '${x.code} $op ${y.code}',
-            node.span);
-      } else {
-        // TODO(jimhug): Resolve issue with undefined and null here.
-        return new Value(world.nonNullBool, '${x.code} ${node.op} ${y.code}',
-          node.span);
-      }
+      return x.binop(kind, y, this, node);
     }
 
     final assignKind = TokenKind.kindFromAssign(node.op.kind);
     if (assignKind == -1) {
       final x = visitValue(node.x);
       final y = visitValue(node.y);
-      var name = TokenKind.binaryMethodName(node.op.kind);
-      if (node.op.kind == TokenKind.NE) {
-        name = ':ne';
-      }
-      if (name == null) {
-        world.internalError('unimplemented binary op ${node.op}', node.span);
-        return;
-      }
-      return x.invoke(this, name, node, new Arguments(null, [y]));
+      return x.binop(kind, y, this, node);
     } else if ((assignKind != 0) && _expressionNeedsParens(node.y)) {
       return _visitAssign(assignKind, node.x,
           new ParenExpression(node.y, node.y.span), node, null, isVoid);
@@ -2202,6 +2168,7 @@ class MethodGenerator implements TreeVisitor {
     switch (node.op.kind) {
       case TokenKind.INCR:
       case TokenKind.DECR:
+        // TODO(jimhug): Requires non-null num to be correct.
         if (value.type.isNum) {
           return new Value(value.type, '${node.op}${value.code}', node.span);
         } else {
@@ -2222,7 +2189,7 @@ class MethodGenerator implements TreeVisitor {
         // TODO(jimhug): Issue #359 seeks to clarify this behavior.
         if (value.type.isBool && value.isConst) {
           var newVal = !value.actualValue;
-          return new EvaluatedValue(value.type, newVal, '${newVal}', node.span);
+          return Value.fromBool(newVal, node.span);
         } else {
           var newVal = value.convertTo(this, world.nonNullBool);
           return new Value(newVal.type, '!${newVal.code}', node.span);
@@ -2360,47 +2327,30 @@ class MethodGenerator implements TreeVisitor {
   }
 
   visitListExpression(ListExpression node) {
-    // TODO(jimhug): Use node.type or other type inference here.
-    var argsCode = [];
     var argValues = [];
-    var type = null;
-    if (node.type != null) {
-      // The parser makes node.type a list type, we extract its type argument.
-      type = method.resolveType(node.type, true).typeArgsInOrder[0];
+    //var listType = node.isConst ? world.immutableListType : world.listType;
+    var listType = world.listType;
+    var type = world.varType;
+    if (node.itemType != null) {
+      type = method.resolveType(node.itemType, true);
       if (node.isConst && (type is ParameterType || type.hasTypeParams)) {
         world.error('type parameter cannot be used in const list literals');
       }
+      listType = listType.getOrMakeConcreteType([type]);
     }
     for (var item in node.values) {
       var arg = visitTypedValue(item, type);
       argValues.add(arg);
-      if (node.isConst) {
-        if (!arg.isConst) {
-          world.error('const list can only contain const values', item.span);
-          argsCode.add(arg.code);
-        } else {
-          argsCode.add(arg.canonicalCode);
-        }
-      } else {
-        argsCode.add(arg.code);
+      if (node.isConst && !arg.isConst) {
+        world.error('const list can only contain const values', arg.span);
       }
     }
 
     world.listFactoryType.markUsed();
 
-    final code = '[${Strings.join(argsCode, ", ")}]';
-    var value = new Value(world.listType, code, node.span);
-    if (node.isConst) {
-      final immutableList = world.immutableListType;
-      final immutableListCtor = immutableList.getConstructor('from');
-      final result = immutableListCtor.invoke(this, node,
-          new Value.type(value.type, node.span), new Arguments(null, [value]));
-      value = world.gen.globalForConst(
-          new ConstListValue(immutableList, argValues, 'const $code',
-              result.code, node.span),
-          argValues);
-    }
-    return value;
+    var ret = new ListValue(argValues, node.isConst, listType, node.span);
+    if (ret.isConst) return ret.getGlobalValue();
+    return ret;
   }
 
 
@@ -2411,56 +2361,48 @@ class MethodGenerator implements TreeVisitor {
         new Value.type(world.mapType, node.span), Arguments.EMPTY);
     }
 
-    var argValues = [];
-    var argsCode = [];
-    var type = null;
-    if (node.type != null) {
-      // node.type is a map type, extract the type argument for the values.
-      type = method.resolveType(node.type, true).typeArgsInOrder[1];
-      if (node.isConst && (type is ParameterType || type.hasTypeParams)) {
+    var values = new List<Value>();
+    var valueType = world.varType, keyType = world.stringType;
+    var mapType = world.mapType; // TODO(jimhug): immutable type?
+    if (node.valueType !== null) {
+      if (node.keyType !== null) {
+        keyType = method.resolveType(node.keyType, true);
+        // TODO(jimhug): Would be nice to allow arbitrary keys here (this is
+        // currently not allowed by the spec).
+        if (!keyType.isString) {
+          world.error('the key type of a map literal must be "String"',
+              keyType.span);
+        }
+        if (node.isConst && (keyType is ParameterType || keyType.hasTypeParams)) {
+          world.error('type parameter cannot be used in const map literals');
+        }
+      }
+
+      valueType = method.resolveType(node.valueType, true);
+      if (node.isConst && (valueType is ParameterType || valueType.hasTypeParams)) {
         world.error('type parameter cannot be used in const map literals');
       }
+
+      mapType = mapType.getOrMakeConcreteType([keyType, valueType]);
     }
+
     for (int i = 0; i < node.items.length; i += 2) {
-      // TODO(jimhug): Use node.type or other type inference here.
-      // TODO(jimhug): Would be nice to allow arbitrary keys here (this is
-      // currently not allowed by the spec).
-      var key = visitTypedValue(node.items[i], world.stringType);
-      final valueItem = node.items[i+1];
-      var value = visitTypedValue(valueItem, type);
-      argValues.add(key);
-      argValues.add(value);
-
-      if (node.isConst) {
-        if (!key.isConst || !value.isConst) {
-          world.error('const map can only contain const values',
-              valueItem.span);
-          argsCode.add(key.code);
-          argsCode.add(value.code);
-        } else {
-          argsCode.add(key.canonicalCode);
-          argsCode.add(value.canonicalCode);
-        }
-      } else {
-        argsCode.add(key.code);
-        argsCode.add(value.code);
+      var key = visitTypedValue(node.items[i], keyType);
+      if (node.isConst && !key.isConst) {
+        world.error('const map can only contain const keys', key.span);
       }
+      values.add(key);
+
+      var value = visitTypedValue(node.items[i+1], valueType);
+      if (node.isConst && !value.isConst) {
+        world.error('const map can only contain const values', value.span);
+      }
+      values.add(value);
     }
 
-    var argList = '[${Strings.join(argsCode, ", ")}]';
-    var items = new Value(world.listType, argList, node.span);
-    var tp = world.corelib.topType;
-    Member f = node.isConst ? tp.getMember('_constMap') : tp.getMember('_map');
-    var value = f.invoke(this, node, new Value.type(tp, null),
-      new Arguments(null, [items]));
-
-    if (node.isConst) {
-      value = new ConstMapValue(value.type, argValues, value.code,
-        value.code, value.span);
-      return world.gen.globalForConst(value, argValues);
-    } else {
-      return value;
-    }
+    var ret = new MapValue(values, node.isConst, mapType, node.span);
+    if (ret.isConst) return ret.getGlobalValue();
+    return ret;
   }
 
   visitConditionalExpression(ConditionalExpression node) {
@@ -2481,10 +2423,8 @@ class MethodGenerator implements TreeVisitor {
 
   visitParenExpression(ParenExpression node) {
     var body = visitValue(node.body);
-    if (body.isConst) {
-      return new EvaluatedValue(body.type, body.actualValue,
-          '(${body.canonicalCode})', node.span);
-    }
+    // Assumption implicit here that const values never need parens...
+    if (body.isConst) return body;
     return new Value(body.type, '(${body.code})', node.span);
   }
 

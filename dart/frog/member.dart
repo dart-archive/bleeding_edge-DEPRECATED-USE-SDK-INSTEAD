@@ -421,7 +421,8 @@ class FieldMember extends Member {
         return new Value(type,
             '\$globals.${declaringType.jsname}_$jsname', node.span);
       }
-    } else if (target.isConst && isFinal) {
+    }
+    /*else if (target.isConst && isFinal) {
       // take advantage of consts and retrieve the value directly if possible
       var constTarget = target is GlobalValue ? target.dynamic.exp : target;
       if (constTarget is ConstObjectValue) {
@@ -429,7 +430,7 @@ class FieldMember extends Member {
       } else if (constTarget.type == world.stringType && name == 'length') {
         return new Value(type, '${constTarget.actualValue.length}', node.span);
       }
-    }
+    }*/
     return new Value(type, '${target.code}.$jsname', node.span);
   }
 
@@ -938,11 +939,7 @@ class MethodMember extends Member {
         return _argError(context, node, target, args, msg, i);
       }
       arg = arg.convertTo(context, parameters[i].type, isDynamic);
-      if (isConst && arg.isConst) {
-        argsCode.add(arg.canonicalCode);
-      } else {
-        argsCode.add(arg.code);
-      }
+      argsCode.add(arg.code);
     }
 
     int namedArgsUsed = 0;
@@ -962,8 +959,7 @@ class MethodMember extends Member {
           var msg = _argCountMsg(Math.min(i, args.length), i + 1, atLeast:true);
           return _argError(context, node, target, args, msg, i);
         } else {
-          argsCode.add(isConst && arg.isConst
-              ? arg.canonicalCode : arg.code);
+          argsCode.add(arg.code);
         }
       }
       Arguments.removeTrailingNulls(argsCode);
@@ -1013,14 +1009,14 @@ class MethodMember extends Member {
     if (isFactory) {
       assert(target.isType);
       return new Value(target.type, '$generatedFactoryName($argsString)',
-          node.span);
+          node !== null ? node.span : null);
     }
 
     if (isStatic) {
       if (declaringType.isTop) {
         // TODO(jimhug): Explore moving libraries into their own namespaces
         return new Value(inferredResult,
-            '$jsname($argsString)', node != null ? node.span : node);
+            '$jsname($argsString)', node !== null ? node.span : null);
       }
       return new Value(inferredResult,
           '${declaringType.jsname}.$jsname($argsString)', node.span);
@@ -1028,6 +1024,8 @@ class MethodMember extends Member {
 
     var code = '${target.code}.$jsname($argsString)';
     // optimize expressions which we know statically their value.
+    // ????
+    /*
     if (target.isConst) {
       if (target is GlobalValue) {
         target = target.dynamic.exp; // TODO: an inline "cast" would be nice.
@@ -1042,6 +1040,7 @@ class MethodMember extends Member {
         }
       }
     }
+    */
 
     // TODO(jmesserly): factor this better
     if (name == 'get:typeName' && declaringType.library.isDom) {
@@ -1063,7 +1062,6 @@ class MethodMember extends Member {
       var code = '${declaringType.nativeName}${ctor}.call($argsString)';
       return new Value(target.type, code, node.span);
     } else {
-
       var code = 'new ${declaringType.nativeName}${ctor}($argsString)';
 
       // TODO(jmesserly): using the "node" here feels really hacky
@@ -1095,8 +1093,10 @@ class MethodMember extends Member {
    */
   Value _invokeConstConstructor(
       Node node, String code, Value target, Arguments args) {
+    // TODO(jimhug): This should be low-hanging fruit for abstract eval!
+
     // Statically compute the actual value for every field in the const object.
-    final fields = new Map<String, EvaluatedValue>();
+    final fields = new Map<String, Value>();
 
     // First deduce the value for fields initialized with the 'this.x' syntax.
     for (int i = 0; i < parameters.length; i++) {
@@ -1183,7 +1183,7 @@ class MethodMember extends Member {
     }
 
     return world.gen.globalForConst(
-        new ConstObjectValue(target.type, fields, code, node.span),
+      new ObjectValue(fields, true, target.type, code, node.span),
         args.values);
   }
 
@@ -1244,7 +1244,20 @@ class MethodMember extends Member {
           case ':sar': value = (ival0 >> ival1).toDouble(); break;
           case ':shr': value = (ival0 >>> ival1).toDouble(); break;
         }
-        return new EvaluatedValue(inferredResult, value, "$value", node.span);
+        if (inferredResult.isInt) {
+          return Value.fromInt(value.toInt(), node.span);
+        } else if (inferredResult.isDouble) {
+          return Value.fromDouble(value.toDouble(), node.span);
+        } else if (inferredResult.isNum) {
+          // TODO(jimhug): Number type system is flawed here...
+          return Value.fromDouble(value.toDouble(), node.span);
+        } else if (inferredResult.isBool) {
+          return Value.fromBool(value, node.span);
+        } else {
+          world.internalError(
+            'unsupported const result type "${inferredResult.name}"',
+            node.span);
+        }
       }
     } else if (declaringType.isString) {
       if (name == ':index') {
@@ -1287,8 +1300,7 @@ class MethodMember extends Member {
         var val0 = target.dynamic.actualValue;
         var val1 = args.values[0].dynamic.actualValue;
         var newVal = name == ':eq' ? val0 == val1 : val0 != val1;
-        return new EvaluatedValue(world.nonNullBool,
-            newVal, "$newVal", node.span);
+        return Value.fromBool(newVal, node.span);
       }
       // Optimize test when null is on the rhs.
       if (argsCode[0] == 'null') {
