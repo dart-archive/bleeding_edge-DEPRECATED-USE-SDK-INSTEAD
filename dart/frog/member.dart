@@ -28,9 +28,7 @@ class Parameter {
       // To match VM, detect cases where value was not actually specified in
       // code and don't signal errors.
       // TODO(jimhug): Clean up after issue #352 is resolved.
-      if (definition.value.span.start == definition.span.start) {
-        return;
-      }
+      if (!hasDefaultValue) return;
 
       if (method.name == ':call') {
         // TODO(jimhug): Need simpler way to detect "true" function types vs.
