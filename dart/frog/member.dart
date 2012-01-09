@@ -72,6 +72,13 @@ class Parameter {
   }
 
   bool get isOptional() => definition != null && definition.value != null;
+
+  /**
+   * Gets whether this named parameter has an explicit default value or relies
+   * on the implicit `null`.
+   */
+  bool get hasDefaultValue() =>
+    definition.value.span.start != definition.span.start;
 }
 
 
