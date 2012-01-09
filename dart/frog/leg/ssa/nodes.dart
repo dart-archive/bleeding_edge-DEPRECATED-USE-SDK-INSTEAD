@@ -1179,6 +1179,7 @@ class HAdd extends HBinaryArithmetic {
     HType type = computeInputsType();
     builtin = (type.isNumber() || type.isString());
     if (type.isConflicting() && left.isString()) {
+      builtin = right is HLiteral;
       return HType.STRING;
     }
     if (!type.isUnknown()) return type;
@@ -1482,6 +1483,7 @@ class HLoopBranch extends HConditionalBranch {
  */
  class QuotedString {
   // Bits of flag values.
+  static final int NO_FLAGS = 0;
   static final int RAW = 1 << 0;
   static final int MULTI_LINE = 1 << 1;
   static final int HAS_LEFT_QUOTE = 1 << 2;
@@ -1523,6 +1525,8 @@ class HLoopBranch extends HConditionalBranch {
   }
 
   const QuotedString(this.wrappedString, this.flags);
+  // TODO(lrn): Make flags RAW for a literal string when we support it.
+  const QuotedString.literal(this.wrappedString) : flags = NO_FLAGS;
 
   /**
    * Crates a [QuotedString] from a [SourceString] that contains
@@ -1542,6 +1546,8 @@ class HLoopBranch extends HConditionalBranch {
      hasLeftQuote ? (isRaw ? 1 : 0) + (isMultiLine ? 3 : 1) : 0;
   int get contentEnd() =>
      wrappedString.length - (hasRightQuote ? (isMultiLine ? 3 : 1) : 0);
+
+  bool isEmpty() => contentStart == contentEnd;
 
   /**
     * Does a conservative test for equality between two quoted strings.

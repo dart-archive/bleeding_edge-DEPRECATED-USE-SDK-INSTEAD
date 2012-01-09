@@ -90,11 +90,41 @@ class SsaConstantFolder extends HBaseVisitor {
   HInstruction visitAdd(HAdd node) {
     // String + is defined for all literals. We don't need to know which
     // literal type the right-hand side is.
-    // TODO(floitsch): is String + literal a compile-time expression? If not
-    // we must pay attention not to canonicalize the concatenated string with
-    // an already existing string.
-    if (node.left.isLiteralString() && node.right is HLiteral) {
-      // TODO(lrn): Perform concatenation in Dart.
+
+    if (node.left.isString()) {
+      // First try to eliminate adding the empty string to a string.
+      if (node.right.isLiteralString()) {
+        HLiteral right = node.right;
+        QuotedString rightString = right.value;
+        if (rightString.isEmpty()) {
+          // String has no content, i.e., it's the empty string.
+          return node.left;
+        }
+      }
+      // Then, if both are literals, try to do the concatenation statically.
+      if (node.left.isLiteralString()) {
+        QuotedString leftString = node.left.value;
+        if (leftString.isEmpty()) {
+          // Left is empty String.
+          if (node.right.isString()) {
+            // Right is already a String, just return that.
+            return node.right;
+          }
+          if (node.right is HLiteral) {
+            HLiteral right = node.right;
+            // Right is a literal, so we can statically convert it to String
+            // and return that.
+            // Remaining literal types are represented by their Dart value.
+            assert(right.isLiteralBoolean() ||
+                   right.isLiteralNumber() ||
+                   right.isLiteralNull());
+            SourceString newLiteral = new SourceString(right.value.toString());
+            return new HLiteral(new QuotedString.literal(newLiteral),
+                                HType.STRING);
+          }
+        }
+        // TODO(lrn): Perform concatenation in Dart.
+      }
     }
     return visitInvokeBinary(node);
   }
