@@ -237,13 +237,12 @@ class ConstructorBodyElement extends FunctionElement {
     assert(constructor.node !== null);
     this.parameters = constructor.parameters;
     this.node = constructor.node;
-    this.type = constructor.type;
   }
 
   bool isInstanceMember() => true;
 
   FunctionType computeType(Compiler compiler) { unreachable(); }
-  Node parseNode(Canceler canceler, Logger logger) { unreachable(); }
+  Node parseNode(Canceler canceler, Logger logger) => node;
 }
 
 class SynthesizedConstructorElement extends FunctionElement {
