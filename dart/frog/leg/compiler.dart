@@ -6,6 +6,7 @@ class WorkElement {
   final Element element;
   TreeElements resolutionTree;
   Function run;
+  bool bailoutVersion = false;
 
   WorkElement.toCompile(this.element) : resolutionTree = null {
     run = this.compile;
@@ -13,6 +14,11 @@ class WorkElement {
 
   WorkElement.toCodegen(this.element, this.resolutionTree) {
     run = this.codegen;
+  }
+
+  WorkElement.bailoutVersion(this.element, this.resolutionTree) {
+    run = this.codegen;
+    bailoutVersion = true;
   }
 
   bool isAnalyzed() => resolutionTree != null;
@@ -170,10 +176,10 @@ class Compiler implements Canceler, Logger {
   }
 
   String codegenMethod(WorkElement work) {
-    HGraph graph = builder.build(work.element, work.resolutionTree);
-    optimizer.optimize(graph);
-    String code = generator.generate(work.element, graph);
-    universe.addGeneratedCode(work.element, code);
+    HGraph graph = builder.build(work);
+    optimizer.optimize(work, graph);
+    String code = generator.generate(work, graph);
+    universe.addGeneratedCode(work, code);
     return code;
   }
 

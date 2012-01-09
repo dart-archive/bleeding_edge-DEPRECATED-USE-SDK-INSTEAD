@@ -88,8 +88,10 @@ class SsaBuilderTask extends CompilerTask {
   String get name() => 'SSA builder';
   Interceptors interceptors;
 
-  HGraph build(FunctionElement element, TreeElements elements) {
+  HGraph build(WorkElement work) {
     return measure(() {
+      FunctionElement element = work.element;
+      TreeElements elements = work.resolutionTree;
       FunctionExpression function = element.node;
       HInstruction.idCounter = 0;
       SsaBuilder builder = new SsaBuilder(compiler, elements);

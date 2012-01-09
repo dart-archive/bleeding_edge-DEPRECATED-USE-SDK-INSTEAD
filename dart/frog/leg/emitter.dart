@@ -47,6 +47,11 @@ function(child, parent) {
       if (codeBlock !== null) {
         buffer.add('$prototype.${namer.getName(member)} = $codeBlock;\n');
       }
+      codeBlock = compiler.universe.generatedBailoutCode[member];
+      if (codeBlock !== null) {
+        String name = namer.getBailoutName(member);;
+        buffer.add('$prototype.$name = $codeBlock;\n');
+      }
     } else {
       // TODO(ngeoffray): Have another class generate the code for the
       // fields.
@@ -120,12 +125,23 @@ function(child, parent) {
     }
   }
 
-  String compileClasses(StringBuffer buffer) {
+  void compileClasses(StringBuffer buffer) {
     Set seenClasses = new Set<ClassElement>();
     for (ClassElement element in compiler.universe.instantiatedClasses) {
       generateClass(element, buffer, seenClasses);
     }
-    return buffer.toString();
+  }
+
+  void compileIsolateStatic(StringBuffer buffer,
+                            Map<Element, String> generatedCode,
+                            String namer(Element element)) {
+    generatedCode.forEach((Element element, String codeBlock) {
+      if (!element.isInstanceMember()) {
+        buffer.add('${namer(element)} = ');
+        buffer.add(codeBlock);
+        buffer.add(';\n\n');
+      }
+    });
   }
 
   String assembleProgram() {
@@ -133,14 +149,12 @@ function(child, parent) {
       StringBuffer buffer = new StringBuffer();
       buffer.add('function ${namer.isolate}() {}\n\n');
       compileClasses(buffer);
-      Map<Element, String> generatedCode = compiler.universe.generatedCode;
-      generatedCode.forEach((Element element, String codeBlock) {
-        if (!element.isInstanceMember()) {
-          buffer.add('${namer.isolatePropertyAccess(element)} = ');
-          buffer.add(codeBlock);
-          buffer.add(';\n\n');
-        }
-      });
+      compileIsolateStatic(buffer,
+                           compiler.universe.generatedCode,
+                           namer.isolatePropertyAccess);
+      compileIsolateStatic(buffer,
+                           compiler.universe.generatedBailoutCode,
+                           namer.isolateBailoutPropertyAccess);
       buffer.add('var ${namer.currentIsolate} = new ${namer.isolate}();\n');
       buffer.add('${namer.currentIsolate}.main();\n');
       compiler.assembledCode = buffer.toString();

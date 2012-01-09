@@ -6,8 +6,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
   SsaCodeGeneratorTask(Compiler compiler) : super(compiler);
   String get name() => 'SSA code generator';
 
-  String generate(FunctionElement function, HGraph graph) {
+  String generate(WorkElement work, HGraph graph) {
     return measure(() {
+      FunctionElement function = work.element;
       Map<Element, String> parameterNames =
           new LinkedHashMap<Element, String>();
       for (Link<Element> link = function.parameters;
@@ -17,7 +18,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         parameterNames[element] = JsNames.getValid('${element.name}');
       }
 
-      String code = generateMethod(parameterNames, graph);
+      String code = generateMethod(parameterNames, work, graph);
       return code;
     });
   }
@@ -38,17 +39,24 @@ class SsaCodeGeneratorTask extends CompilerTask {
     }
   }
 
-  String generateMethod(Map<Element, String> parameterNames, HGraph graph) {
+  String generateMethod(Map<Element, String> parameterNames,
+                        WorkElement work,
+                        HGraph graph) {
     preGenerateMethod(graph);
     StringBuffer buffer = new StringBuffer();
-    SsaCodeGenerator codegen =
-        new SsaCodeGenerator(compiler, buffer, parameterNames);
-    codegen.visitGraph(graph);
     StringBuffer parameters = new StringBuffer();
     List<String> names = parameterNames.getValues();
     for (int i = 0; i < names.length; i++) {
       if (i != 0) parameters.add(', ');
       parameters.add(names[i]);
+    }
+    SsaCodeGenerator codegen = new SsaCodeGenerator(
+        compiler, work, buffer, parameters, parameterNames);
+    codegen.visitGraph(graph);
+    if (codegen.hasBailouts) {
+      assert(!work.bailoutVersion);
+      compiler.worklist.add(new WorkElement.bailoutVersion(
+          work.element, work.resolutionTree));
     }
     return 'function($parameters) {\n$buffer}';
   }
@@ -56,18 +64,25 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
 class SsaCodeGenerator implements HVisitor {
   final Compiler compiler;
+  final WorkElement work;
   final StringBuffer buffer;
+  final StringBuffer parameters;
 
   final Map<Element, String> parameterNames;
   final Map<int, String> names;
   final Map<String, int> prefixes;
 
   Element equalsNullElement;
+  bool hasBailouts = false;
   int indent = 0;
   HGraph currentGraph;
   HBasicBlock currentBlock;
 
-  SsaCodeGenerator(this.compiler, this.buffer, this.parameterNames)
+  SsaCodeGenerator(this.compiler,
+                   this.work,
+                   this.buffer,
+                   this.parameters,
+                   this.parameterNames)
     : names = new Map<int, String>(),
       prefixes = new Map<String, int>() {
     for (final name in parameterNames.getValues()) {
@@ -521,6 +536,25 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(" | 0)) throw 'Illegal argument'");
   }
 
+  bailout(HTypeGuard guard, String reason) {
+    assert(!work.bailoutVersion);
+    hasBailouts = true;
+    HInstruction input = guard.inputs[0];
+    Namer namer = compiler.namer;
+    Element element = work.element;
+    if (input is HParameterValue) {
+      buffer.add('return ');
+      if (element.isInstanceMember()) {
+        buffer.add('this.${namer.getBailoutName(element)}');
+      } else {
+        buffer.add(namer.isolateBailoutAccess(element));
+      }
+      buffer.add('($parameters)');
+    } else {
+      buffer.add('throw "$reason"');
+    }
+  }
+
   visitTypeGuard(HTypeGuard node) {
     HInstruction input = node.inputs[0];
     assert(!input.generateAtUseSite() || input is HParameterValue);
@@ -529,29 +563,35 @@ class SsaCodeGenerator implements HVisitor {
       use(input);
       buffer.add(' !== (');
       use(input);
-      buffer.add(" | 0)) throw('Not an integer')");
+      buffer.add(' | 0)) ');
+      bailout(node, 'Not an integer');
     } else if (node.isNumber()) {
       buffer.add('if (typeof ');
       use(input);
-      buffer.add(" !== 'number') throw('Not a number')");
+      buffer.add(" !== 'number') ");
+      bailout(node, 'Not a number');
     } else if (node.isBoolean()) {
       buffer.add('if (typeof ');
       use(input);
-      buffer.add(" !== 'boolean') throw('Not a boolean')");
+      buffer.add(" !== 'boolean') ");
+      bailout(node, 'Not a boolean');
     } else if (node.isString()) {
       buffer.add('if (typeof ');
       use(input);
-      buffer.add(" !== 'string') throw('Not a string')");
+      buffer.add(" !== 'string') ");
+      bailout(node, 'Not a string');
     } else if (node.isArray()) {
       buffer.add('if (');
       use(input);
-      buffer.add(".constructor !== Array) throw('Not an array')");
+      buffer.add(".constructor !== Array) ");
+      bailout(node, 'Not an array');
     } else if (node.isStringOrArray()) {
       buffer.add('if (typeof ');
       use(input);
       buffer.add(" !== 'string' && ");
       use(input);
-      buffer.add(".constructor !== Array) throw('Not a string or array')");
+      buffer.add(".constructor !== Array) ");
+      bailout(node, 'Not a string or array');
     } else {
       unreachable();
     }

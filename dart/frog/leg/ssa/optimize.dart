@@ -6,9 +6,13 @@ class SsaOptimizerTask extends CompilerTask {
   SsaOptimizerTask(Compiler compiler) : super(compiler);
   String get name() => 'SSA optimizer';
 
-  void optimize(HGraph graph) {
+  void optimize(WorkElement work, HGraph graph) {
     measure(() {
-      new SsaTypePropagator(compiler).visitGraph(graph);
+      if (!work.bailoutVersion) {
+        // TODO(ngeoffray): We should be more fine-grained and still
+        // allow type propagation of instructions we know the type.
+        new SsaTypePropagator(compiler).visitGraph(graph);
+      }
       new SsaConstantFolder(compiler).visitGraph(graph);
       new SsaRedundantPhiEliminator().visitGraph(graph);
       new SsaDeadPhiEliminator().visitGraph(graph);
@@ -103,7 +107,8 @@ class SsaConstantFolder extends HBaseVisitor {
       }
       // Then, if both are literals, try to do the concatenation statically.
       if (node.left.isLiteralString()) {
-        QuotedString leftString = node.left.value;
+        HLiteral left = node.left;
+        QuotedString leftString = left.value;
         if (leftString.isEmpty()) {
           // Left is empty String.
           if (node.right.isString()) {

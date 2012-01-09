@@ -81,6 +81,10 @@ class Namer {
     }
   }
 
+  String getBailoutName(Element element) {
+    return '${getName(element)}\$bailout';
+  }
+
   String setterName(SourceString name) {
     return 'set\$$name';
   }
@@ -127,5 +131,13 @@ class Namer {
     String jsId = globals[element];
     if (jsId === null) jsId = define(element);
     return "$isolate.prototype.$jsId";
+  }
+
+  String isolateBailoutPropertyAccess(Element element) {
+    return '${isolatePropertyAccess(element)}\$bailout';
+  }
+
+  String isolateBailoutAccess(Element element) {
+    return '${isolateAccess(element)}\$bailout';
   }
 }

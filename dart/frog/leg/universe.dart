@@ -7,12 +7,13 @@ class Universe {
 
   Map<SourceString, Element> elements;
   Map<Element, String> generatedCode;
+  Map<Element, String> generatedBailoutCode;
   final Set<ClassElement> instantiatedClasses;
   // TODO(floitsch): we want more information than just the method name. For
   // example the number of arguments, etc.
   final Set<String> invokedNames;
 
-  Universe() : elements = {}, generatedCode = {},
+  Universe() : elements = {}, generatedCode = {}, generatedBailoutCode = {},
                instantiatedClasses = new Set<ClassElement>(),
                invokedNames = new Set<String>(),
                scope = new Element(const SourceString('global scope'),
@@ -27,7 +28,11 @@ class Universe {
     elements[element.name] = element;
   }
 
-  void addGeneratedCode(Element element, String code) {
-    generatedCode[element] = code;
+  void addGeneratedCode(WorkElement work, String code) {
+    if (work.bailoutVersion) {
+      generatedBailoutCode[work.element] = code;
+    } else {
+      generatedCode[work.element] = code;
+    }
   }
 }
