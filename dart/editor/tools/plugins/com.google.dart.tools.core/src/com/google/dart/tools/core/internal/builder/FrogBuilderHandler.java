@@ -23,10 +23,12 @@ import com.google.dart.tools.core.frog.ResponseHandler;
 import com.google.dart.tools.core.frog.ResponseMessage;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -39,14 +41,15 @@ import org.eclipse.core.runtime.Status;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**
  * Called from DartBuilder - this is a Frog specific builder handler to perform a build.
  */
 public class FrogBuilderHandler {
-
   public class CompileResponseHandler extends ResponseHandler {
     private IProject project;
     private CountDownLatch latch;
@@ -89,16 +92,18 @@ public class FrogBuilderHandler {
     }
   }
 
+  private static final String APP_JS_EXTENSION = ".app.js";
+
   public IProject[] build(IProgressMonitor monitor, IProject project) throws CoreException {
     DartProject proj = DartCore.create(project);
 
-    // TODO(devoncarew): This is temporary - we should associate errors with the
-    // library we're compiling, and clear them out before the next compile.
     BuilderUtil.clearErrorMarkers(project);
 
     DartLibrary[] allLibraries = proj.getDartLibraries();
 
     monitor.beginTask("Building " + proj.getElementName() + "...", allLibraries.length);
+
+    Set<IProject> referencedProjects = new HashSet<IProject>();
 
     try {
       for (DartLibrary library : allLibraries) {
@@ -108,6 +113,8 @@ public class FrogBuilderHandler {
 
         try {
           buildLibrary(project, library);
+
+          calculateReferencedProjects(referencedProjects, library);
 
           monitor.worked(1);
         } catch (Throwable exception) {
@@ -122,11 +129,30 @@ public class FrogBuilderHandler {
       monitor.done();
     }
 
-    return new IProject[0];
+    referencedProjects.remove(project);
+
+    return referencedProjects.toArray(new IProject[referencedProjects.size()]);
   }
 
-  public void clean(IProject project, IProgressMonitor monitor) {
-    // TODO (danrubel): implement
+  public void clean(IProject project, IProgressMonitor monitor) throws CoreException {
+    DartProject dartProject = DartCore.create(project);
+
+    // Index over the libraries in this project.
+    for (DartLibrary library : dartProject.getDartLibraries()) {
+      IPath libraryPath = library.getCorrespondingResource().getLocation();
+      // Determine the Javascript output file location.
+      IPath outputPath = Path.fromPortableString(libraryPath.toPortableString() + APP_JS_EXTENSION);
+
+      IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(
+          outputPath.toFile().toURI());
+
+      // Delete any files that map to that location.
+      for (IFile outputFile : files) {
+        if (outputFile.exists()) {
+          outputFile.delete(true, null);
+        }
+      }
+    }
   }
 
   private void buildLibrary(IProject project, DartLibrary library) throws CoreException {
@@ -134,13 +160,10 @@ public class FrogBuilderHandler {
     CompileResponseHandler responseHandler = new CompileResponseHandler(project, latch);
 
     IPath libraryPath = library.getCorrespondingResource().getLocation();
-    IPath outputPath = Path.fromPortableString(libraryPath.toPortableString() + ".app.js");
+    IPath outputPath = Path.fromPortableString(libraryPath.toPortableString() + APP_JS_EXTENSION);
 
     // Don't try and generate Javascript from non-application libraries.
     if (!((DartLibraryImpl) library).hasMain()) {
-      // TODO(devoncarew): Need to ask the model which libraries depend upon this library and trigger
-      // those builders.
-
       outputPath = null;
     }
 
@@ -179,6 +202,17 @@ public class FrogBuilderHandler {
       message += " written in " + (elapsed / 1000.0) + "sec";
 
       DartCore.logInformation("Wrote " + outputFile.getPath() + " [" + message + "]");
+    }
+  }
+
+  private void calculateReferencedProjects(Set<IProject> referencedProjects, DartLibrary library)
+      throws DartModelException {
+    for (DartLibrary childLibrary : library.getImportedLibraries()) {
+      IResource resource = childLibrary.getCorrespondingResource();
+
+      if (resource != null) {
+        referencedProjects.add(resource.getProject());
+      }
     }
   }
 

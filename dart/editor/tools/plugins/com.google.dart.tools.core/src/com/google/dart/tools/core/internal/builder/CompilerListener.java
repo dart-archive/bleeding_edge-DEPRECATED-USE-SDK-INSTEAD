@@ -90,7 +90,7 @@ class CompilerListener implements DartCompilerListener {
 
   @Override
   public void unitAboutToCompile(DartSource source, boolean diet) {
-    if (diet) {
+    if (diet || !createMarkers) {
       return;
     }
     IFile file = ResourceUtil.getResource(source);
