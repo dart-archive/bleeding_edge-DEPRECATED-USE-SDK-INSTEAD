@@ -47,6 +47,8 @@ public class ApplicationGenerator extends AbstractGenerator {
 
   private String applicationLocation;
 
+  private boolean isWebApplication;
+
   private IFile iApplicationFile = null;
 
   /**
@@ -71,30 +73,12 @@ public class ApplicationGenerator extends AbstractGenerator {
     }
 
     String applicationFileName = appendIfNoExtension(applicationName, Extensions.DOT_DART);
-
-    SubMonitor subMonitor = SubMonitor.convert(monitor,
-        GeneratorMessages.ApplicationGenerator_message, 100);
-    String className = applicationFileName.substring(0, applicationFileName.indexOf('.'));
-    final HashMap<String, String> substitutions = new HashMap<String, String>();
-    substitutions.put("className", className); //$NON-NLS-1$
-    substitutions.put("extends", ""); //$NON-NLS-1$ //$NON-NLS-2$
-    substitutions.put("implements", ""); //$NON-NLS-1$ //$NON-NLS-2$
-
-    File applicationFile = getSystemFile(applicationFileName);
-    execute("generated-dart-class-main.txt", applicationFile, substitutions, monitor); //$NON-NLS-1$
-    subMonitor.newChild(100);
-    subMonitor.done();
-
-    // html file
-    subMonitor = SubMonitor.convert(monitor,
-        GeneratorMessages.ApplicationGenerator_htmlFileMessage, 100);
-    String htmlFileName = appendIfNoExtension(applicationName, HTML_FILENAME_EXTENSION);
-    File iHtmlFile = getSystemFile(htmlFileName);
-    substitutions.put("title", className);
-    substitutions.put("dartPath", applicationFileName + "." + JavascriptBackend.EXTENSION_APP_JS);
-    execute("generated-html.txt", iHtmlFile, substitutions, monitor); //$NON-NLS-1$
-    subMonitor.newChild(100);
-    subMonitor.done();
+    File applicationFile;
+    if (isWebApplication) {
+      applicationFile = generateWebApplication(monitor, applicationFileName);
+    } else {
+      applicationFile = generateCommandLineApp(monitor, applicationFileName);
+    }
 
     DartLibrary library = DartCore.openLibrary(applicationFile, monitor);
     if (library != null) {
@@ -126,12 +110,20 @@ public class ApplicationGenerator extends AbstractGenerator {
     return new File(applicationLocation + File.separator + fileName);
   }
 
+  public boolean isWebApplication() {
+    return isWebApplication;
+  }
+
   public void setApplicationLocation(String applicationLocation) {
     this.applicationLocation = applicationLocation;
   }
 
   public void setApplicationName(String applicationName) {
     this.applicationName = applicationName;
+  }
+
+  public void setWebApplication(boolean isWebApplication) {
+    this.isWebApplication = isWebApplication;
   }
 
   /**
@@ -146,6 +138,51 @@ public class ApplicationGenerator extends AbstractGenerator {
     IStatus status = StatusUtil.getMoreSevere(Status.OK_STATUS, validateLocation());
     status = StatusUtil.getMoreSevere(status, validateName());
     return status;
+  }
+
+  private File generateCommandLineApp(IProgressMonitor monitor, String applicationFileName)
+      throws CoreException {
+    SubMonitor subMonitor = SubMonitor.convert(monitor,
+        GeneratorMessages.ApplicationGenerator_message, 100);
+
+    final HashMap<String, String> substitutions = new HashMap<String, String>();
+
+    File applicationFile = getSystemFile(applicationFileName);
+    execute("generated-dart-server.txt", applicationFile, substitutions, monitor); //$NON-NLS-1$
+    subMonitor.newChild(100);
+    subMonitor.done();
+
+    return applicationFile;
+  }
+
+  private File generateWebApplication(IProgressMonitor monitor, String applicationFileName)
+      throws CoreException {
+    SubMonitor subMonitor = SubMonitor.convert(monitor,
+        GeneratorMessages.ApplicationGenerator_message, 100);
+
+    String className = applicationFileName.substring(0, applicationFileName.indexOf('.'));
+
+    final HashMap<String, String> substitutions = new HashMap<String, String>();
+    substitutions.put("className", className); //$NON-NLS-1$
+    substitutions.put("extends", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    substitutions.put("implements", ""); //$NON-NLS-1$ //$NON-NLS-2$
+
+    File applicationFile = getSystemFile(applicationFileName);
+    execute("generated-dart-class-main.txt", applicationFile, substitutions, monitor); //$NON-NLS-1$
+    subMonitor.newChild(100);
+    subMonitor.done();
+
+    // html file
+    subMonitor = SubMonitor.convert(monitor,
+        GeneratorMessages.ApplicationGenerator_htmlFileMessage, 100);
+    String htmlFileName = appendIfNoExtension(applicationName, HTML_FILENAME_EXTENSION);
+    File iHtmlFile = getSystemFile(htmlFileName);
+    substitutions.put("title", className);
+    substitutions.put("dartPath", applicationFileName + "." + JavascriptBackend.EXTENSION_APP_JS);
+    execute("generated-html.txt", iHtmlFile, substitutions, monitor); //$NON-NLS-1$
+    subMonitor.newChild(100);
+    subMonitor.done();
+    return applicationFile;
   }
 
   /**

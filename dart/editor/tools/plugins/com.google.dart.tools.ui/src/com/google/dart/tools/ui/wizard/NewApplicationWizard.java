@@ -20,6 +20,7 @@ import com.google.dart.tools.ui.internal.handlers.NewFileCommandState;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
@@ -36,12 +37,13 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class NewApplicationWizard extends AbstractDartWizard implements INewWizard {
 
+  private static final String WEB_APPLICATION = "webApplication";
+
   private final ApplicationGenerator appGenerator = new ApplicationGenerator();
 
   private IWorkbench workbench;
 
   public NewApplicationWizard() {
-
     setWindowTitle(WizardMessages.NewApplicationWizard_title);
   }
 
@@ -57,10 +59,19 @@ public class NewApplicationWizard extends AbstractDartWizard implements INewWiza
   public void init(IWorkbench workbench, IStructuredSelection selection) {
     super.init(workbench, selection);
     this.workbench = workbench;
+    IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
+        getClass().getName());
+    if (settings.get(WEB_APPLICATION) != null) {
+      appGenerator.setWebApplication(settings.getBoolean(WEB_APPLICATION));
+    } else {
+      settings.put(WEB_APPLICATION, true);
+      appGenerator.setWebApplication(true);
+    }
   }
 
   @Override
   public boolean performFinish() {
+    saveSettings();
     try {
       getContainer().run(true, true, new WorkspaceModifyOperation() {
         @Override
@@ -115,5 +126,11 @@ public class NewApplicationWizard extends AbstractDartWizard implements INewWiza
 
       newFileCommandStateProvider.checkState();
     }
+  }
+
+  private void saveSettings() {
+    IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
+        getClass().getName());
+    settings.put(WEB_APPLICATION, appGenerator.isWebApplication());
   }
 }

@@ -33,6 +33,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
@@ -54,11 +55,13 @@ public class NewApplicationWizardPage extends AbstractDartWizardPage {
 
   private Text applicationNameField;
 
+  private Button webApplicationButton;
+
   private boolean useDefaultLocation = true;
   private String defaultLocation;
 
   protected NewApplicationWizardPage(ApplicationGenerator applicationGenerator) {
-    super("newApplicationWizardPage1");
+    super("newApplicationWizardPage1"); //$NON-NLS-1$
     Assert.isNotNull(applicationGenerator);
     this.applicationGenerator = applicationGenerator;
     setTitle(WizardMessages.NewApplicationWizardPage_title);
@@ -69,8 +72,6 @@ public class NewApplicationWizardPage extends AbstractDartWizardPage {
   @Override
   public void createControl(Composite parent) {
     Composite container = new Composite(parent, SWT.NULL);
-    setControl(container);
-    container.setLayout(new GridLayout(1, false));
 
     GridData gd_composite_1 = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
     container.setLayoutData(gd_composite_1);
@@ -80,7 +81,7 @@ public class NewApplicationWizardPage extends AbstractDartWizardPage {
     nameLabel.setText(WizardMessages.NewApplicationWizardPage_name);
 
     applicationNameField = new Text(container, SWT.BORDER);
-    applicationNameField.setText("");
+    applicationNameField.setText(""); //$NON-NLS-1$
     applicationNameField.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
     applicationNameField.addFocusListener(new FocusAdapter() {
       @Override
@@ -124,14 +125,37 @@ public class NewApplicationWizardPage extends AbstractDartWizardPage {
       }
     });
 
+    Label label = new Label(container, SWT.NONE);
+    label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+    Group group = new Group(container, SWT.NONE);
+    group.setText(WizardMessages.NewApplicationWizardPage_ApplicationType_Title);
+    group.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+    group.setLayout(new GridLayout(1, false));
+
+    webApplicationButton = new Button(group, SWT.RADIO);
+    webApplicationButton.setText(WizardMessages.NewApplicationWizardPage_WebApplication);
+    webApplicationButton.setToolTipText(WizardMessages.NewApplicationWizardPage_WebButtonToolTip);
+    webApplicationButton.setSelection(applicationGenerator.isWebApplication());
+    webApplicationButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        updateApplicationType();
+      }
+    });
+    Button serverApplicationButton = new Button(group, SWT.RADIO);
+    serverApplicationButton.setText(WizardMessages.NewApplicationWizardPage_CommandLineApplication);
+    serverApplicationButton.setToolTipText(WizardMessages.NewApplicationWizardPage_CommandLineButtonToolTip);
+    serverApplicationButton.setSelection(!applicationGenerator.isWebApplication());
+
     applicationNameField.setFocus();
     setPageComplete(false);
+    setControl(container);
   }
 
   @Override
   protected String getDefaultFolder() {
     String defaultLocation = System.getProperty("user.home"); //$NON-NLS-1$
-    return defaultLocation + File.separator + "dart" + File.separator;
+    return defaultLocation + File.separator + "dart" + File.separator; //$NON-NLS-1$
 
   }
 
@@ -176,6 +200,11 @@ public class NewApplicationWizardPage extends AbstractDartWizardPage {
     updateState();
   }
 
+  private void updateApplicationType() {
+    applicationGenerator.setWebApplication(webApplicationButton.getSelection());
+    updateState();
+  }
+
   private void updateState() {
     if (applicationNameField.getText().isEmpty()) {
       return;
@@ -183,13 +212,13 @@ public class NewApplicationWizardPage extends AbstractDartWizardPage {
     IStatus status = applicationGenerator.validate();
     // Should this be a trace instead of a local DEBUG flag?
     if (DEBUG) {
-      System.out.println("NewLibraryWizardPage.updateState()");
-      System.out.println("\t\"" + applicationLocationField.getText() + "\"");
-      System.out.println("\t\"" + applicationNameField.getText() + "\"");
+      System.out.println("NewLibraryWizardPage.updateState()"); //$NON-NLS-1$
+      System.out.println("\t\"" + applicationLocationField.getText() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+      System.out.println("\t\"" + applicationNameField.getText() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
       if (status.isOK()) {
-        System.out.println("\tSTATUS IS OKAY \"" + status.getMessage() + "\"");
+        System.out.println("\tSTATUS IS OKAY \"" + status.getMessage() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
       } else {
-        System.out.println("\tSTATUS NOT OKAY \"" + status.getMessage() + "\"");
+        System.out.println("\tSTATUS NOT OKAY \"" + status.getMessage() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
       }
     }
     setMessage(WizardMessages.NewApplicationWizardPage_message);
