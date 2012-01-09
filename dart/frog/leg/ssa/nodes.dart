@@ -1191,7 +1191,10 @@ class HAdd extends HBinaryArithmetic {
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return HType.UNKNOWN;
-    if (isString() || right.isString()) return HType.STRING;
+    if (isString() || left.isString()) {
+      return (input == left) ? HType.STRING : HType.UNKNOWN;
+    }
+    if (right.isString()) return HType.STRING;
     if (isNumber() || left.isNumber() || right.isNumber()) return HType.NUMBER;
     if (type.isUnknown()) return HType.NUMBER;
     return HType.UNKNOWN;
@@ -1584,6 +1587,9 @@ class HLiteral extends HInstruction {
   HType computeType() {
     return type;
   }
+
+  // Literals have the type they have. It can't be changed.
+  bool updateType() => false;
 
   bool hasExpectedType() => true;
 

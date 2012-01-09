@@ -50,10 +50,27 @@ add(var a, var b) {
     return JS("num", @"$0 + $1", a, b);
   } else if (JS("bool", @"typeof $0 === 'string'", a)) {
     if (JS("bool", @"typeof $0 === 'string'", b) ||
-        JS("bool", @"typeof $0 === 'number'", b)) {
+        JS("bool", @"typeof $0 === 'boolean'", b)) {
       return JS("String", @"$0 + $1", a, b);
     }
-    throw "Unimplemented String+.";
+    if (JS("bool", @"typeof $0 === 'number'", b)) {
+      if (JS("bool", @"$0 === 0 && (1/$0) < 0", b)) {
+        return JS("String", @"$0 + '-0.0'", a);
+      }
+      return JS("String", @"$0 + $1", a, b);
+    }
+    if (b === null) return JS("String", @"$0 + 'null'", a);
+    if (isJSArray(b)) {
+      return JS("String", @"$0 + 'Instance of List'", a);
+    }
+    // No further native values.
+    b = b.toString();
+    if (JS("bool", @"typeof $0 === 'string'", b)) {
+      return JS("String", @"$0 + $1", a, b);
+    }
+    // The following line is too long, but we can't break it using the +
+    // operator, since that's what we are defining here.
+    throw "calling toString() on right hand operand of operator + did not return a String";
   }
   throw "Unimplemented user-defined +.";
 }
@@ -116,6 +133,7 @@ eq(var a, var b) {
       return JS("bool", @"$0 === $1", a, b);
     }
   }
+  // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
   return JS("bool", @"$0 === $1", a, b);
 }
 
@@ -261,6 +279,22 @@ builtin$get$length(var receiver) {
   }
   throw "Unimplemented user-defined length.";
 }
+
+
+builtin$toString$0(var value) {
+  if (JS("bool", @"typeof $0 == 'object'", value)) {
+    if (isJSArray(value)) {
+      return "Instance of List";
+    }
+    return value.toString();
+  }
+  if (JS("bool", @"$0 === 0 && (1 / $0) < 0", value)) {
+    return "-0.0";
+  }
+  if (value === null) return "null";
+  return JS("string", @"String($0)", value);
+}
+
 
 bool isInt(var v) {
   return JS("bool", @"($0 | 0) === $1", v, v);
