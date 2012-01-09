@@ -199,7 +199,7 @@ public class AST {
     } else if (nodeClass == DartUnaryExpression.class) {
       return (N) new DartUnaryExpression(null, null, true);
     } else if (nodeClass == DartUnit.class) {
-      return (N) new DartUnit(null);
+      return (N) new DartUnit(null, false);
     } else if (nodeClass == DartUnqualifiedInvocation.class) {
       return (N) new DartUnqualifiedInvocation(null, new ArrayList<DartExpression>());
     } else if (nodeClass == DartVariable.class) {

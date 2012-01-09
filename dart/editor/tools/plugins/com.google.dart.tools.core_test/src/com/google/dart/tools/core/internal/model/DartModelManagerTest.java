@@ -60,7 +60,8 @@ public class DartModelManagerTest extends TestCase {
 
   public void test_DartModelManager_getBaseLibraryName_directive() throws Exception {
     String libraryName = "library";
-    DartUnit unit = new DartUnit(new TestDartSource("test.dart", "#library('" + libraryName + "')"));
+    DartUnit unit =
+        new DartUnit(new TestDartSource("test.dart", "#library('" + libraryName + "')"), false);
     unit.addDirective(new DartLibraryDirective(DartStringLiteral.get(libraryName)));
     String result = getBaseLibraryName(unit);
     assertEquals(libraryName, result);
@@ -68,7 +69,7 @@ public class DartModelManagerTest extends TestCase {
 
   public void test_DartModelManager_getBaseLibraryName_noDirective() throws Exception {
     String baseFileName = "test";
-    DartUnit unit = new DartUnit(new TestDartSource(baseFileName + ".dart", ""));
+    DartUnit unit = new DartUnit(new TestDartSource(baseFileName + ".dart", ""), false);
     String result = getBaseLibraryName(unit);
     assertEquals(baseFileName, result);
   }
@@ -97,7 +98,7 @@ public class DartModelManagerTest extends TestCase {
         File libraryFile = new File(tempDirectory, libraryFileName);
         String secondFileName = "source.dart";
         String thirdFileName = "unique.dart";
-        DartUnit libraryUnit = new DartUnit(new TestDartSource(libraryFileName, ""));
+        DartUnit libraryUnit = new DartUnit(new TestDartSource(libraryFileName, ""), false);
         libraryUnit.addDirective(new DartSourceDirective(DartStringLiteral.get(libraryFileName)));
         libraryUnit.addDirective(new DartSourceDirective(DartStringLiteral.get(secondFileName)));
         libraryUnit.addDirective(new DartSourceDirective(DartStringLiteral.get(secondFileName)));
@@ -118,7 +119,8 @@ public class DartModelManagerTest extends TestCase {
 
   public void test_DartModelManager_getLibraryName_directive() throws Exception {
     String libraryName = "library";
-    DartUnit unit = new DartUnit(new TestDartSource("test.dart", "#library('" + libraryName + "')"));
+    DartUnit unit =
+        new DartUnit(new TestDartSource("test.dart", "#library('" + libraryName + "')"), false);
     unit.addDirective(new DartLibraryDirective(DartStringLiteral.get(libraryName)));
     String result = getLibraryName(unit);
     assertEquals(libraryName, result);
@@ -126,7 +128,7 @@ public class DartModelManagerTest extends TestCase {
 
   public void test_DartModelManager_getLibraryName_noDirective() throws Exception {
     String baseFileName = "test";
-    DartUnit unit = new DartUnit(new TestDartSource(baseFileName + ".dart", ""));
+    DartUnit unit = new DartUnit(new TestDartSource(baseFileName + ".dart", ""), false);
     String result = getLibraryName(unit);
     assertEquals(baseFileName, result);
   }
