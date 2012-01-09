@@ -32,7 +32,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
-import com.google.dart.tools.core.internal.compiler.LoggingDartCompilerListener;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
@@ -176,6 +175,14 @@ public class DartCompilerWarmup {
   }
 
   private static final String WARMUP_DART = "warmup.dart";
+  private static boolean complete = false;
+
+  /**
+   * Accessor for testing
+   */
+  public static boolean isComplete() {
+    return complete;
+  }
 
   /**
    * Perform some work that will cause compiler classes and artifacts to be loaded, Dart core and
@@ -183,7 +190,12 @@ public class DartCompilerWarmup {
    */
   public static void warmUpCompiler() {
     RootArtifactProvider rootProvider = RootArtifactProvider.getInstance();
-    warmUpCompiler(rootProvider, new LoggingDartCompilerListener(true));
+    // TODO (danrubel) Warmup is causing subsequent compilation to fail
+    // To reproduce, uncomment the line below, launch a new instance of Dart Editor,
+    // create a new Dart application, launch in browser, JS does not run in browser.
+    // Uncomment this once the underlying problem is fixed.
+//    warmUpCompiler(rootProvider, new LoggingDartCompilerListener(true));
+    complete = true;
   }
 
   /**
