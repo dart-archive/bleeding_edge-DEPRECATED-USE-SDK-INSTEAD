@@ -32,6 +32,12 @@ void main() {
     } else {
       print('Parsed $stats.');
     }
+    if (filesWithCrashes.length !== 0) {
+      print('The following files caused a crash:');
+      for (String file in filesWithCrashes) {
+        print(file);
+      }
+    }
   }
 
   for (String argument in new Options().arguments) {
@@ -67,9 +73,10 @@ void main() {
   printStats();
 }
 
-int parseFile(String filename, MyOptions options) {
+void parseFile(String filename, MyOptions options) {
   List<int> bytes = read(filename);
-  if (options.readOnly) return bytes.length;
+  charCount += bytes.length;
+  if (options.readOnly) return;
   MySourceFile file = new MySourceFile(filename, bytes);
   final Listener listener = options.buildAst
       ? new MyNodeListener(file, options)
@@ -95,12 +102,12 @@ int parseFile(String filename, MyOptions options) {
   if (options.buildAst) {
     MyNodeListener l = listener;
     if (!l.nodes.isEmpty()) {
-      parserError('Stack not empty after parsing',
-                  l.nodes.head.getBeginToken(), l.nodes.head.getEndToken(),
-                  file);
+      String message = 'Stack not empty after parsing';
+      print(formatError(message, l.nodes.head.getBeginToken(),
+                        l.nodes.head.getEndToken(), file));
+      throw message;
     }
   }
-  return bytes.length;
 }
 
 Token scan(MySourceFile source) {
@@ -111,20 +118,24 @@ Token scan(MySourceFile source) {
     var message = ex.message;
     if (message is !String) message = "unexpected character";
     Token fakeToken = new Token(QUESTION_INFO, scanner.charOffset);
-    try {
-      new MyListener(source).error(message, fakeToken);
-    } catch (ParserError ex) {
-      // TODO(ahe): Clean this up, don't throw exceptions.
-      print(ex);
-    }
+    print(formatError(message, fakeToken, fakeToken, source));
     throw;
   }
 }
 
+var filesWithCrashes;
+
 void parseFilesFrom(InputStream input, MyOptions options, Function whenDone) {
+  filesWithCrashes = [];
   void readLine(String line) {
     stopwatch.start();
-    charCount += parseFile(line, options);
+    try {
+      parseFile(line, options);
+    } catch (var ex, var trace) {
+      filesWithCrashes.add(line);
+      print(ex);
+      print(trace);
+    }
     stopwatch.stop();
   }
   forEachLine(input, readLine, whenDone);
@@ -179,20 +190,18 @@ class MyListener extends Listener {
   }
 
   void error(String message, Token token) {
-    parserError(message, token, token, file);
+    ++errorCount;
+    throw new ParserError(formatError(message, beginToken, endToken, file));
   }
 }
 
-void parserError(String message, Token beginToken, Token endToken,
+void formatError(String message, Token beginToken, Token endToken,
                  SourceFile file) {
-  ++errorCount;
-  if (beginToken !== null) {
-    String tokenString = endToken.toString();
-    int begin = beginToken.charOffset;
-    int end = endToken.charOffset + tokenString.length;
-    throw new ParserError(file.getLocationMessage(message, begin, end, true));
-  }
-  throw new ParserError(message);
+  if (beginToken === null) return '${file.filename}: $message';
+  String tokenString = endToken.toString();
+  int begin = beginToken.charOffset;
+  int end = endToken.charOffset + tokenString.length;
+  return file.getLocationMessage(message, begin, end, true);
 }
 
 class MyNodeListener extends NodeListener {
@@ -250,18 +259,18 @@ class MyCanceller implements Canceler {
   MyCanceller(this.file, this.options);
 
   void cancel([String reason, node, token, instruction]) {
-    try {
-      if (token !== null) {
-        parserError(reason, token, token, file);
-      } else if (node !== null) {
-        parserError(reason, node.getBeginToken(), node.getEndToken(), file);
-      } else {
-        parserError(reason, null, null, file);
-      }
-    } catch (ParserError ex) {
-      if (options.throwOnError) throw;
-      print(ex);
+    Token beginToken;
+    Token endToken;
+    if (token !== null) {
+      beginToken = token;
+      endToken = token;
+    } else if (node !== null) {
+      beginToken = node.getBeginToken();
+      endToken = node.getEndToken();
     }
+    String message = formatError(reason, beginToken, endToken, file);
+    print(message);
+    if (options.throwOnError) new ParserError(message);
   }
 }
 
