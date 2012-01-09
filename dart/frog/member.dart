@@ -368,9 +368,14 @@ class FieldMember extends Member {
         }
       }
 
+
       if (isStatic) {
-        _computedValue = world.gen.globalForStaticField(
-            this, _computedValue, [_computedValue]);
+        if (isFinal && _computedValue.isConst) {
+          ; // keep const as is here
+        } else {
+          _computedValue = world.gen.globalForStaticField(
+              this, _computedValue, [_computedValue]);
+        }
       }
       _computing = false;
     }
@@ -646,6 +651,12 @@ class ConcreteMember extends Member {
     Value ret = baseMember._set(context, node, target, value, isDynamic);
     return new Value(returnType, ret.code, node.span);
   }
+
+  _evalConstConstructor(ObjectValue newObject, Arguments args) {
+    // TODO(jimhug): Concrete type probably matters somehow here
+    return baseMember.dynamic._evalConstConstructor(newObject, args);
+  }
+
 
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
       [bool isDynamic=false]) {
@@ -1014,7 +1025,6 @@ class MethodMember extends Member {
 
     if (isStatic) {
       if (declaringType.isTop) {
-        // TODO(jimhug): Explore moving libraries into their own namespaces
         return new Value(inferredResult,
             '$jsname($argsString)', node !== null ? node.span : null);
       }
@@ -1022,31 +1032,12 @@ class MethodMember extends Member {
           '${declaringType.jsname}.$jsname($argsString)', node.span);
     }
 
-    var code = '${target.code}.$jsname($argsString)';
-    // optimize expressions which we know statically their value.
-    // ????
-    /*
-    if (target.isConst) {
-      if (target is GlobalValue) {
-        target = target.dynamic.exp; // TODO: an inline "cast" would be nice.
-      }
-      if (name == 'get:length') {
-        if (target is ConstListValue || target is ConstMapValue) {
-          code = '${target.dynamic.values.length}';
-        }
-      } else if (name == 'isEmpty') {
-        if (target is ConstListValue || target is ConstMapValue) {
-          code = '${target.dynamic.values.isEmpty()}';
-        }
-      }
-    }
-    */
-
     // TODO(jmesserly): factor this better
     if (name == 'get:typeName' && declaringType.library.isDom) {
       world.gen.corejs.ensureTypeNameOf();
     }
 
+    var code = '${target.code}.$jsname($argsString)';
     return new Value(inferredResult, code, node.span);
   }
 
@@ -1057,228 +1048,71 @@ class MethodMember extends Member {
     String ctor = constructorName;
     if (ctor != '') ctor = '.${ctor}\$ctor';
 
+    final span = node != null ? node.span : target.span;
     if (!target.isType) {
       // initializer call to another constructor
       var code = '${declaringType.nativeName}${ctor}.call($argsString)';
-      return new Value(target.type, code, node.span);
+      return new Value(target.type, code, span);
     } else {
-      var code = 'new ${declaringType.nativeName}${ctor}($argsString)';
-
+      // Start of abstract interpretation to replace const hacks goes here
       // TODO(jmesserly): using the "node" here feels really hacky
       if (isConst && node is NewExpression && node.dynamic.isConst) {
-        return _invokeConstConstructor(node, code, target, args);
+        // !!!!!! Egregious hack !!!!!!!
+        if (isNative || declaringType.name == 'JSSyntaxRegExp') {
+          // check that all args are const?
+          var code = 'new ${declaringType.nativeName}${ctor}($argsString)';
+          return world.gen.globalForConst(new Value(target.type, code, span),
+            [args.values]);
+        }
+        var newType = declaringType;
+        var newObject = new ObjectValue(true, newType, span);
+        newObject.initFields();
+        _evalConstConstructor(newObject, args);
+        // ??? Does args.values include named args???
+        return world.gen.globalForConst(newObject, [args.values]);
       } else {
-        final span = node != null ? node.span : target.span;
+        var code = 'new ${declaringType.nativeName}${ctor}($argsString)';
         return new Value(target.type, code, span);
       }
     }
   }
 
-  /**
-   * Special handling for const constructors so that so that:
-   * [: const B() === const B.a(0, 1) === const B.b(0) :]
-   * where: [:
-   *   class A {
-   *     final int x;
-   *     const A(this.x);
-   *   }
-   *
-   *   class B {
-   *     final int y;
-   *     const B() : y = 0, super(1);
-   *     const B.a(this.y, x) : super(x);
-   *     const B.b(v) : this.a(v, 1);
-   *   }
-   * :]
-   */
-  Value _invokeConstConstructor(
-      Node node, String code, Value target, Arguments args) {
-    // TODO(jimhug): This should be low-hanging fruit for abstract eval!
-
-    // Statically compute the actual value for every field in the const object.
-    final fields = new Map<String, Value>();
-
-    // First deduce the value for fields initialized with the 'this.x' syntax.
-    for (int i = 0; i < parameters.length; i++) {
-      var param = parameters[i];
-      if (param.isInitializer) {
-        var value = null;
-        if (i < args.length) {
-          value = args.values[i];
-        } else { // named arguments
-          value = args.getValue(param.name);
-          if (value == null) {
-            value = param.value;
-          }
-        }
-        fields[param.name] = value.constValue;
-      }
-    }
-
-    // Then evaluate initializer expressions.
-    if (definition.initializers != null) {
-      // Introduce a temporary scope to evaluate initializers, which defines the
-      // value for any formal argument as it's constant expression value.
-      generator._pushBlock();
-      for (int j = 0; j < definition.formals.length; j++) {
-        var name = definition.formals[j].name.name;
-        var value = null;
-        if (j < args.length) {
-          value = args.values[j];
-        } else { // named arguments
-          value = args.getValue(parameters[j].name);
-          if (value == null) {
-            value = parameters[j].value;
-          }
-        }
-        generator._scope._vars[name] = value;
-      }
-
-      // TODO(jmesserly): unify with initializer code in gen.dart
-      for (var init in definition.initializers) {
-        if (init is CallExpression) {
-          // Construct arguments to delegate and invoke it.
-          var delegateArgs = generator._makeArgs(init.arguments);
-          var value = initDelegate.invoke(
-              generator, node, target, delegateArgs);
-          if (init.target is ThisExpression) {
-            // Redirection: Use directly the delegate result. E.g. so that
-            //   const B.b(0) === const B.a(0, 1)
-            return value;
-          } else {
-            // Super-call: embed the value the super class fields.
-            value = value.constValue;
-            for (var fname in value.fields.getKeys()) {
-              fields[fname] = value.fields[fname];
-            }
-          }
-        } else {
-          // Normal field initializer assignment.
-          BinaryExpression assign = init;
-          var x = assign.x; // DotExpression or VarExpression
-          var fname = x.name.name;
-          var val = generator.visitValue(assign.y);
-          if (!val.isConst) {
-            world.error('invalid non-const initializer in const constructor',
-                assign.y.span);
-          }
-          fields[fname] = val;
-        }
-      }
-
-      generator._popBlock();
-    }
-
-    // Add default values only if they weren't overriden in the constructor.
-    for (var f in declaringType.members.getValues()) {
-      if (f is FieldMember && !f.isStatic && !fields.containsKey(f.name)) {
-        if (!f.isFinal) {
-          world.error('const class "${declaringType.name}" has non-final '
-              + 'field "${f.name}"', f.span);
-        }
-        if (f.value != null) {
-          fields[f.name] = f.computeValue();
-        }
-      }
-    }
-
-    return world.gen.globalForConst(
-      new ObjectValue(fields, true, target.type, code, node.span),
-        args.values);
+  _evalConstConstructor(Value newObject, Arguments args) {
+    declaringType.markUsed();
+    var generator = new MethodGenerator(this, null);
+    generator.evalBody(newObject, args);
   }
-
 
   Value _invokeBuiltin(MethodGenerator context, Node node, Value target,
       Arguments args, argsCode, bool isDynamic) {
-    var allConst = target.isConst && args.values.every((arg) => arg.isConst);
-
     // Handle some fast paths for Number, String, List and DOM.
     if (declaringType.isNum) {
       // TODO(jimhug): This fails in bad ways when argsCode[1] is not num.
       // TODO(jimhug): What about null?
-      if (!allConst) {
-        var code;
-        if (name == ':negate') {
-          code = '-${target.code}';
-        } else if (name == ':bit_not') {
-          code = '~${target.code}';
-        } else if (name == ':truncdiv' || name == ':mod') {
-          world.gen.corejs.useOperator(name);
-          code = '$jsname(${target.code}, ${argsCode[0]})';
-        } else {
-          var op = TokenKind.rawOperatorFromMethod(name);
-          code = '${target.code} $op ${argsCode[0]}';
-        }
-
-        return new Value(inferredResult, code, node.span);
+      var code;
+      if (name == ':negate') {
+        code = '-${target.code}';
+      } else if (name == ':bit_not') {
+        code = '~${target.code}';
+      } else if (name == ':truncdiv' || name == ':mod') {
+        world.gen.corejs.useOperator(name);
+        code = '$jsname(${target.code}, ${argsCode[0]})';
       } else {
-        var value;
-        num val0, val1, ival0, ival1;
-        val0 = target.dynamic.actualValue;
-        ival0 = val0.toInt();
-        if (args.values.length > 0) {
-          val1 = args.values[0].dynamic.actualValue;
-          ival1 = val1.toInt();
-        }
-        switch (name) {
-          case ':negate': value = -val0; break;
-          case ':add': value = val0 + val1; break;
-          case ':sub': value = val0 - val1; break;
-          case ':mul': value = val0 * val1; break;
-          case ':div': value = val0 / val1; break;
-          case ':truncdiv': value = val0 ~/ val1; break;
-          case ':mod': value = val0 % val1; break;
-          case ':eq': value = val0 == val1; break;
-          case ':lt': value = val0 < val1; break;
-          case ':gt': value = val0 > val1; break;
-          case ':lte': value = val0 <= val1; break;
-          case ':gte': value = val0 >= val1; break;
-          case ':ne': value = val0 != val1; break;
-
-          // Note: unfortunatelly bit operations fail on doubles in dartvm
-          case ':bit_not': value = (~ival0).toDouble(); break;
-          case ':bit_or': value = (ival0 | ival1).toDouble(); break;
-          case ':bit_xor': value = (ival0 ^ ival1).toDouble(); break;
-          case ':bit_and': value = (ival0 & ival1).toDouble(); break;
-          case ':shl': value = (ival0 << ival1).toDouble(); break;
-          case ':sar': value = (ival0 >> ival1).toDouble(); break;
-          case ':shr': value = (ival0 >>> ival1).toDouble(); break;
-        }
-        if (inferredResult.isInt) {
-          return Value.fromInt(value.toInt(), node.span);
-        } else if (inferredResult.isDouble) {
-          return Value.fromDouble(value.toDouble(), node.span);
-        } else if (inferredResult.isNum) {
-          // TODO(jimhug): Number type system is flawed here...
-          return Value.fromDouble(value.toDouble(), node.span);
-        } else if (inferredResult.isBool) {
-          return Value.fromBool(value, node.span);
-        } else {
-          world.internalError(
-            'unsupported const result type "${inferredResult.name}"',
-            node.span);
-        }
+        var op = TokenKind.rawOperatorFromMethod(name);
+        code = '${target.code} $op ${argsCode[0]}';
       }
+
+      return new Value(inferredResult, code, node.span);
     } else if (declaringType.isString) {
       if (name == ':index') {
-        // Note: this could technically propagate constness, but that's not
-        // specified explicitly and the VM doesn't do that.
         return new Value(declaringType, '${target.code}[${argsCode[0]}]',
           node.span);
       } else if (name == ':add') {
-        if (allConst) {
-          final value = target.dynamic.actualValue +
-            args.values[0].dynamic.actualValue;
-          return Value.fromString(value, node.span);
-        }
-
         return new Value(declaringType, '${target.code} + ${argsCode[0]}',
           node.span);
       }
     } else if (declaringType.isNative) {
       if (name == ':index') {
-        // Note: this could technically propagate constness, but that's not
-        // specified explicitly and the VM doesn't do that.
         return
             new Value(returnType, '${target.code}[${argsCode[0]}]', node.span);
       } else if (name == ':setindex') {
@@ -1296,12 +1130,6 @@ class MethodMember extends Member {
         target.invoke(context, ':eq', node, args, isDynamic);
       }
 
-      if (allConst) {
-        var val0 = target.dynamic.actualValue;
-        var val1 = args.values[0].dynamic.actualValue;
-        var newVal = name == ':eq' ? val0 == val1 : val0 != val1;
-        return Value.fromBool(newVal, node.span);
-      }
       // Optimize test when null is on the rhs.
       if (argsCode[0] == 'null') {
         return new Value(inferredResult, '${target.code} $op null', node.span);
@@ -1311,6 +1139,7 @@ class MethodMember extends Member {
             node.span);
       }
       world.gen.corejs.useOperator(name);
+      // TODO(jimhug): Should be able to use faster path sometimes here!
       return new Value(inferredResult,
           '$jsname(${target.code}, ${argsCode[0]})', node.span);
     }
@@ -1334,7 +1163,7 @@ class MethodMember extends Member {
   }
 
   resolve() {
-    // TODO(jimhug): cut-and-paste-and-edit from Field.resolve
+    // TODO(jimhug): work through side-by-side with spec
     isStatic = declaringType.isTop;
     isConst = false;
     isFactory = false;
@@ -1350,10 +1179,19 @@ class MethodMember extends Member {
           if (isConst) {
             world.error('duplicate const modifier', mod.span);
           }
+          if (isFactory) {
+            world.error('const factory not allowed', mod.span);
+          }
           isConst = true;
         } else if (mod.kind == TokenKind.FACTORY) {
           if (isFactory) {
             world.error('duplicate factory modifier', mod.span);
+          }
+          if (isConst) {
+            world.error('const factory not allowed', mod.span);
+          }
+          if (isStatic) {
+            world.error('static factory not allowed', mod.span);
           }
           isFactory = true;
         } else if (mod.kind == TokenKind.ABSTRACT) {

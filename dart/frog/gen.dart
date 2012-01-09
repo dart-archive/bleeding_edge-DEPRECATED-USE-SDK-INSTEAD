@@ -144,13 +144,16 @@ class WorldGenerator {
     return ret;
   }
 
-  GlobalValue globalForConst(EvaluatedValue exp, List<Value> dependencies) {
+  GlobalValue globalForConst(Value exp, List<Value> dependencies) {
     // Include type name to ensure unique constants - this matches
     // the code above that includes the type name for static fields.
     var key = exp.type.jsname + ':' + exp.code;
     var ret = globals[key];
     if (ret === null) {
-      var name = "const\$${globals.length}";
+      // another egregious hack!!!
+      var ns = globals.length.toString();
+      while (ns.length < 4) ns = '0' + ns;
+      var name = "const\$${ns}";
       ret = new GlobalValue(exp.type, name, true, null, name, exp,
           exp.span, dependencies);
       globals[key] = ret;
@@ -929,6 +932,13 @@ class MethodGenerator implements TreeVisitor {
     }
   }
 
+  /*
+  run1(Value thisValue, Arguments args) {
+    // Use some sort of key to do a lookup
+
+
+  }*/
+
   run() {
     if (method.isGenerated) return;
 
@@ -936,7 +946,21 @@ class MethodGenerator implements TreeVisitor {
     method.isGenerated = true;
     method.generator = this;
 
-    writeBody();
+    // Create most generic possible call for this method.
+    var thisObject;
+    if (method.isConstructor) {
+      thisObject = new ObjectValue(false, method.declaringType, method.span);
+      thisObject.initFields();
+    } else {
+      thisObject = new Value(method.declaringType, 'this', null);
+    }
+    var values = [];
+    for (var p in method.parameters) {
+      values.add(new Value(p.type, p.name, null));
+    }
+    var args = new Arguments(null, values);
+
+    evalBody(thisObject, args);
 
     if (method.definition.nativeBody != null) {
       // Throw away the code--it was just used for tree shaking purposes.
@@ -1087,104 +1111,80 @@ class MethodGenerator implements TreeVisitor {
     }
   }
 
-  writeBody() {
-    var initializers = null;
-    var initializedFields = null; // to check that final fields are initialized
-    var allMembers = null;
-    if (method.isConstructor) {
-      initializers = [];
-      initializedFields = new Set();
-      allMembers = world.gen._orderValues(method.declaringType.getAllMembers());
-      for (var f in allMembers) {
-        if (f.isField && !f.isStatic) {
-          var cv = f.computeValue();
-          if (cv != null) {
-            initializers.add('this.${f.jsname} = ${cv.code}');
-            initializedFields.add(f.name);
-          }
-        }
-      }
+  _initField(ObjectValue newObject, String name, Value value, SourceSpan span) {
+    var field = method.declaringType.getMember(name);
+    if (field == null) {
+      world.error('bad initializer - no matching field', span);
     }
+    if (!field.isField) {
+      world.error('"this.${name}" does not refer to a field', span);
+    }
+    return newObject.setField(field, value, duringInit: true);
+  }
 
+  evalBody(Value newObject, Arguments args) {
+    bool fieldsSet = false;
+    if (method.isNative && method.isConstructor && newObject is ObjectValue) {
+      newObject.dynamic.seenNativeInitializer = true;
+    }
     // Collects parameters for writing signature in the future.
     _paramCode = [];
-    for (var p in method.parameters) {
-      if (initializers != null && p.isInitializer) {
-        var field = method.declaringType.getMember(p.name);
-        if (field == null) {
-          world.error('bad this parameter - no matching field',
-            p.definition.span);
+    for (int i = 0; i < method.parameters.length; i++) {
+      var p = method.parameters[i];
+      Value currentArg = null;
+      // TODO(jimhug): bareCount is O(N)
+      if (i < args.bareCount) {
+        currentArg = args.values[i];
+      } else {
+        // Handle named or missing arguments
+        currentArg = args.getValue(p.name);
+        if (currentArg === null) {
+          // Ensure default value for param has been generated
+          p.genValue(method, method.generator);
+          currentArg = p.value;
         }
-        if (!field.isField) {
-          world.error('"this.${p.name}" does not refer to a field',
-            p.definition.span);
-        }
-        var paramValue = new Value(field.returnType, p.name,
-          p.definition.span, false);
-        _paramCode.add(paramValue.code);
+      }
 
-        initializers.add('this.${field.jsname} = ${paramValue.code};');
-        initializedFields.add(p.name);
+      if (p.isInitializer) {
+        _paramCode.add(p.name);
+        fieldsSet = true;
+        _initField(newObject, p.name, currentArg, p.definition.span);
       } else {
         var paramValue = _scope.declareParameter(p);
         _paramCode.add(paramValue.code);
+        if (newObject != null && newObject.isConst) {
+          _scope._vars[p.name] = currentArg;
+        }
       }
-    }
-
-    var body = method.definition.body;
-
-    if (body == null && !method.isConstructor && !method.isNative) {
-      world.error('unexpected empty body for ${method.name}',
-        method.definition.span);
     }
 
     var initializerCall = null;
     final declaredInitializers = method.definition.initializers;
-    if (initializers != null) {
-      for (var i in initializers) {
-        writer.writeln(i);
-      }
-      if (declaredInitializers != null) {
-        for (var init in declaredInitializers) {
-          // TODO(jmesserly): eval right side of initializers in static context,
-          // so "this." is not in scope
-          // TODO(jmesserly): this has diverged from code in member.dart,
-          // _invokeConstConstructor. Need to unify these paths.
-          // TODO(jimhug): Lot's of correctness to verify here.
-          if (init is CallExpression) {
-            if (initializerCall != null) {
-              world.error('only one initializer redirecting call is allowed',
-                  init.span);
-            }
-            initializerCall = init;
-          } else if (init is BinaryExpression
-              && TokenKind.kindFromAssign(init.op.kind) == 0) {
-
-            var left = init.x;
-            if (!(left is DotExpression && left.self is ThisExpression
-                || left is VarExpression)) {
-              world.error('invalid left side of initializer', left.span);
-              continue;
-            }
-
-            var f = method.declaringType.getMember(left.name.name);
-            if (f == null) {
-              world.error('bad initializer - no matching field', left.span);
-              continue;
-            } else if (!f.isField) {
-              world.error('"${left.name.name}" does not refer to a field',
-                  left.span);
-              continue;
-            }
-
-            initializedFields.add(f.name);
-            writer.writeln('this.${f.jsname} = ${visitValue(init.y).code};');
-          } else {
-            world.error('invalid initializer', init.span);
+    if (declaredInitializers != null) {
+      for (var init in declaredInitializers) {
+        if (init is CallExpression) {
+          if (initializerCall != null) {
+            world.error('only one initializer redirecting call is allowed',
+                init.span);
           }
+          initializerCall = init;
+        } else if (init is BinaryExpression
+            && TokenKind.kindFromAssign(init.op.kind) == 0) {
+          var left = init.x;
+          if (!(left is DotExpression && left.self is ThisExpression
+              || left is VarExpression)) {
+            world.error('invalid left side of initializer', left.span);
+            continue;
+          }
+          // TODO(jmesserly): eval right side of initializers in static
+          // context, so "this." is not in scope
+          var initValue = visitValue(init.y);
+          fieldsSet = true;
+          _initField(newObject, left.name.name, initValue, left.span);
+        } else {
+          world.error('invalid initializer', init.span);
         }
       }
-      writer.comment('// Initializers done');
     }
 
     if (method.isConstructor && initializerCall == null && !method.isNative) {
@@ -1197,51 +1197,51 @@ class MethodGenerator implements TreeVisitor {
       }
     }
 
+    if (method.isConstructor && newObject is ObjectValue) {
+      var fields = newObject.dynamic.fields;
+      for (var field in fields.getKeys()) {
+        var value = fields[field];
+        if (value !== null) {
+          writer.writeln('this.${field.jsname} = ${value.code};');
+        }
+      }
+    }
+
+    // TODO(jimhug): Doing this call last does not match spec.
     if (initializerCall != null) {
-      var target = _writeInitializerCall(initializerCall);
-      if (!target.isSuper) {
-        // when calling another constructor on the same class
-        // no other initialization is allowed
-        if (initializers.length > 0) {
-          for (var p in method.parameters) {
-            if (p.isInitializer) {
-              world.error(
-                  'no initialization allowed on redirecting constructors',
-                  p.definition.span);
-              break;
-            }
-          }
-        }
-        if (declaredInitializers != null && declaredInitializers.length > 1) {
-          var init = declaredInitializers[0] == initializerCall
-              ? declaredInitializers[1] : declaredInitializers[0];
-          world.error(
-              'no initialization allowed on redirecting constructors',
-              init.span);
-        }
-        initializedFields = null;
-      }
+      evalInitializerCall(newObject, initializerCall, fieldsSet);
     }
 
-    // check that initialization was correct
-    if (initializedFields != null) {
-      for (var member in allMembers) {
-        if (member.isField && member.isFinal && !member.isStatic
-            && !method.isNative && !initializedFields.contains(member.name)) {
-          world.error('Field "${member.name}" is final and was not initialized',
-              method.definition.span);
+    if (method.isConstructor && newObject !== null && newObject.isConst) {
+      newObject.validateInitialized(method.span);
+    } else if (method.isConstructor) {
+      var fields = newObject.dynamic.fields;
+      for (var field in fields.getKeys()) {
+        var value = fields[field];
+        if (value === null && field.isFinal &&
+            field.declaringType == method.declaringType &&
+            !newObject.dynamic.seenNativeInitializer) {
+          world.error('uninitialized final field "${field.name}"',
+            field.span, method.span);
         }
       }
     }
 
-    visitStatementsInBlock(body);
+    var body = method.definition.body;
+
+    if (body === null) {
+      // TODO(jimhug): Move check into resolve on method.
+      if (!method.isConstructor && !method.isNative) {
+        world.error('unexpected empty body for ${method.name}',
+          method.definition.span);
+      }
+    } else {
+      visitStatementsInBlock(body);
+    }
   }
 
-  /**
-   * Calls another constructor (super, super.name, this, this.name).  Returns
-   * the value of the target expression.
-   */
-  Value _writeInitializerCall(CallExpression node) {
+  evalInitializerCall(ObjectValue newObject, CallExpression node,
+      [bool fieldsSet = false]) {
     String contructorName = '';
     var targetExp = node.target;
     if (targetExp is DotExpression) {
@@ -1250,21 +1250,30 @@ class MethodGenerator implements TreeVisitor {
       contructorName = dot.name.name;
     }
 
+    Type targetType = null;
     var target = null;
     if (targetExp is SuperExpression) {
+      targetType = method.declaringType.parent;
       target = _makeSuperValue(targetExp);
     } else if (targetExp is ThisExpression) {
+      targetType = method.declaringType;
       target = _makeThisValue(targetExp);
+      if (fieldsSet) {
+        world.error('no initialization allowed with redirecting constructor',
+          node.span);
+      }
     } else {
       world.error('bad call in initializers', node.span);
     }
     target.allowDynamic = false;
 
-    var m = target.type.getConstructor(contructorName);
+
+    var m = targetType.getConstructor(contructorName);
     if (m == null) {
-      world.error('no matching constructor for ${target.type.name}', node.span);
+      world.error('no matching constructor for ${targetType.name}', node.span);
     }
 
+    // TODO(jimhug): Replace with more generic recursion detection
     method.initDelegate = m;
     // check no cycles in in initialization:
     var other = m;
@@ -1276,14 +1285,19 @@ class MethodGenerator implements TreeVisitor {
       other = other.initDelegate;
     }
 
-    // move this all to happen when new first constuctor is walked.
+    var newArgs = _makeArgs(node.arguments);
+    // ???? wacky stuff ????
     world.gen.genMethod(m);
-    var value = m.invoke(this, node, target, _makeArgs(node.arguments));
-    if (target.type != world.objectType) {
-      // No need to actually call Object's empty super constructor.
-      writer.writeln('${value.code};');
+
+    m._evalConstConstructor(newObject, newArgs);
+
+    if (!newObject.isConst) {
+      var value = m.invoke(this, node, target, newArgs);
+      if (target.type != world.objectType) {
+        // No need to actually call Object's empty super constructor.
+        writer.writeln('${value.code};');
+      }
     }
-    return target;
   }
 
   _makeArgs(List<ArgumentNode> arguments) {
@@ -2185,33 +2199,8 @@ class MethodGenerator implements TreeVisitor {
           return new Value(assignValue.type, '(${assignValue.code})',
               node.span);
         }
-      case TokenKind.NOT:
-        // TODO(jimhug): Issue #359 seeks to clarify this behavior.
-        if (value.type.isBool && value.isConst) {
-          var newVal = !value.actualValue;
-          return Value.fromBool(newVal, node.span);
-        } else {
-          var newVal = value.convertTo(this, world.nonNullBool);
-          return new Value(newVal.type, '!${newVal.code}', node.span);
-        }
-
-      case TokenKind.ADD:
-        // TODO(jimhug): Issue #359 seeks to clarify this behavior.
-        return value.convertTo(this, world.numType);
-
-      case TokenKind.SUB:
-      case TokenKind.BIT_NOT:
-        if (node.op.kind == TokenKind.BIT_NOT) {
-          return value.invoke(this, ':bit_not', node, Arguments.EMPTY);
-        } else if (node.op.kind == TokenKind.SUB) {
-          return value.invoke(this, ':negate', node, Arguments.EMPTY);
-        } else {
-          world.internalError('unimplemented: unary ${node.op}',
-            node.span);
-        }
-      default:
-        world.internalError('unimplemented: ${node.op}', node.span);
     }
+    return value.unop(node.op.kind, this, node);
   }
 
   visitDeclaredIdentifier(DeclaredIdentifier node) {

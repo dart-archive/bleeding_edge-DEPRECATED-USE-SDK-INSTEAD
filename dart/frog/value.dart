@@ -56,11 +56,23 @@ class Value {
     if (_type == null) world.internalError('type passed as null', span);
   }
 
+  Value union(Value other) {
+    // TODO(jimhug): What the hell is right here?
+    if (this == other) return this;
+    world.internalError('not yet ready for union');
+  }
+
   /** Is this value a constant expression? */
   bool get isConst() => false;
 
   /** If [isConst], the [EvaluatedValue] that defines this value. */
   EvaluatedValue get constValue() => null;
+
+  // TODO(jimhug): remove once type system works better.
+  setField(Member field, Value value, [bool duringInit = false]) { }
+
+  // Nothing to do in general?
+  validateInitialized(SourceSpan span) { }
 
   // TODO(jimhug): Fix these names once get/set are truly pseudo-keywords.
   //   See issue #379.
@@ -83,6 +95,23 @@ class Value {
       return invokeNoSuchMethod(context, 'set:$name', node,
           new Arguments(null, [value]));
     }
+  }
+
+  Value unop(int kind, MethodGenerator context, var node) {
+    switch (kind) {
+      case TokenKind.NOT:
+        // TODO(jimhug): Issue #359 seeks to clarify this behavior.
+        var newVal = convertTo(context, world.nonNullBool);
+        return new Value(newVal.type, '!${newVal.code}', node.span);
+      case TokenKind.ADD:
+        world.error('no unary add operator in dart', node.span);
+        break;
+      case TokenKind.SUB:
+        return invoke(context, ':negate', node, Arguments.EMPTY);
+      case TokenKind.BIT_NOT:
+        return invoke(context, ':bit_not', node, Arguments.EMPTY);
+    }
+    world.internalError('unimplemented: ${node.op}', node.span);
   }
 
   Value binop(int kind, Value other, MethodGenerator context, var node) {
@@ -544,7 +573,7 @@ function \$assert_${toType.name}(x) {
 }
 
 
-// rename to PrimitiveValue
+// TODO(jimhug): rename to PrimitiveValue and refactor further
 class EvaluatedValue extends Value implements Hashable {
   /** Is this value treated as const by dart language? */
   bool isConst;
@@ -556,7 +585,7 @@ class EvaluatedValue extends Value implements Hashable {
 
   EvaluatedValue get constValue() => this;
 
-  // TODO(jimhug): Using computed code here with caching is major perf fear.
+  // TODO(jimhug): Using computed code here without caching is major fear.
   int hashCode() => code.hashCode();
 
   bool operator ==(var other) {
@@ -564,6 +593,7 @@ class EvaluatedValue extends Value implements Hashable {
       other.code == this.code;
   }
 }
+
 
 class NullValue extends EvaluatedValue {
   NullValue(bool isConst, SourceSpan span):
@@ -574,19 +604,19 @@ class NullValue extends EvaluatedValue {
   String get code() => 'null';
 
   Value binop(int kind, var other, MethodGenerator context, var node) {
-    // TODO(jimhug): Support int/double better
-    if (other is! ListValue) return super.binop(kind, other, context, node);
+    if (other is! NullValue) return super.binop(kind, other, context, node);
 
+    final c = isConst && other.isConst;
+    final s = node.span;
     switch (kind) {
       case TokenKind.EQ_STRICT:
-        return new BoolValue(type == other.type && code == other.code,
-          isConst && other.isConst, node.span);
+      case TokenKind.EQ:
+        return new BoolValue(true, c, s);
       case TokenKind.NE_STRICT:
-        return new BoolValue(type != other.type || code != other.code,
-          isConst && other.isConst, node.span);
+      case TokenKind.NE:
+        return new BoolValue(false, c, s);
     }
 
-    // TODO(jimhug): Will flesh out ops here!
     return super.binop(kind, other, context, node);
   }
 }
@@ -599,25 +629,33 @@ class BoolValue extends EvaluatedValue {
 
   String get code() => actualValue ? 'true' : 'false';
 
+  Value unop(int kind, MethodGenerator context, var node) {
+    switch (kind) {
+      case TokenKind.NOT:
+        return new BoolValue(!actualValue, isConst, node.span);
+    }
+    return super.unop(kind, context, node);
+  }
+
   Value binop(int kind, var other, MethodGenerator context, var node) {
     if (other is! BoolValue) return super.binop(kind, other, context, node);
 
+    final c = isConst && other.isConst;
+    final s = node.span;
+    bool x = actualValue, y = other.actualValue;
     switch (kind) {
-      case TokenKind.AND:
-        return new BoolValue(actualValue && other.actualValue,
-          isConst && other.isConst, node.span);
-      case TokenKind.OR:
-        return new BoolValue(actualValue || other.actualValue,
-          isConst && other.isConst, node.span);
       case TokenKind.EQ_STRICT:
-        return new BoolValue(actualValue == other.actualValue,
-          isConst && other.isConst, node.span);
+      case TokenKind.EQ:
+        return new BoolValue(x == y, c, s);
       case TokenKind.NE_STRICT:
-        return new BoolValue(actualValue != other.actualValue,
-          isConst && other.isConst, node.span);
+      case TokenKind.NE:
+        return new BoolValue(x != y, c, s);
+      case TokenKind.AND:
+        return new BoolValue(x && y, c, s);
+      case TokenKind.OR:
+        return new BoolValue(x || y, c, s);
     }
 
-    // TODO(jimhug): Could handle more ops here, but does it matter?
     return super.binop(kind, other, context, node);
   }
 }
@@ -631,20 +669,102 @@ class IntValue extends EvaluatedValue {
   // TODO(jimhug): Only add parens when needed.
   String get code() => '(${actualValue})';
 
-  Value binop(int kind, var other, MethodGenerator context, var node) {
-    // TODO(jimhug): Support int/double better
-    if (other is! IntValue) return super.binop(kind, other, context, node);
-
+  Value unop(int kind, MethodGenerator context, var node) {
     switch (kind) {
-      case TokenKind.EQ_STRICT:
-        return new BoolValue(actualValue == other.actualValue,
-          isConst && other.isConst, node.span);
-      case TokenKind.NE_STRICT:
-        return new BoolValue(actualValue != other.actualValue,
-          isConst && other.isConst, node.span);
+      case TokenKind.ADD:
+        // This is allowed on numeric constants only
+        return new IntValue(actualValue, isConst, span);
+      case TokenKind.SUB:
+        return new IntValue(-actualValue, isConst, span);
+      case TokenKind.BIT_NOT:
+        return new IntValue(~actualValue, isConst, span);
+    }
+    return super.unop(kind, context, node);
+  }
+
+
+  Value binop(int kind, var other, MethodGenerator context, var node) {
+    final c = isConst && other.isConst;
+    final s = node.span;
+    if (other is IntValue) {
+      int x = actualValue;
+      int y = other.actualValue;
+      switch (kind) {
+        case TokenKind.EQ_STRICT:
+        case TokenKind.EQ:
+          return new BoolValue(x == y, c, s);
+        case TokenKind.NE_STRICT:
+        case TokenKind.NE:
+          return new BoolValue(x != y, c, s);
+
+        case TokenKind.BIT_OR:
+          return new IntValue(x | y, c, s);
+        case TokenKind.BIT_XOR:
+          return new IntValue(x ^ y, c, s);
+        case TokenKind.BIT_AND:
+          return new IntValue(x & y, c, s);
+        case TokenKind.SHL:
+          return new IntValue(x << y, c, s);
+        case TokenKind.SAR:
+          return new IntValue(x >> y, c, s);
+        case TokenKind.SHR:
+          return new IntValue(x >>> y, c, s);
+        case TokenKind.ADD:
+          return new IntValue(x + y, c, s);
+        case TokenKind.SUB:
+          return new IntValue(x - y, c, s);
+        case TokenKind.MUL:
+          return new IntValue(x * y, c, s);
+        case TokenKind.DIV:
+          return new DoubleValue(x / y, c, s);
+        case TokenKind.TRUNCDIV:
+          return new IntValue(x ~/ y, c, s);
+        case TokenKind.MOD:
+          return new IntValue(x % y, c, s);
+        case TokenKind.LT:
+          return new BoolValue(x < y, c, s);
+        case TokenKind.GT:
+          return new BoolValue(x > y, c, s);
+        case TokenKind.LTE:
+          return new BoolValue(x <= y, c, s);
+        case TokenKind.GTE:
+          return new BoolValue(x >= y, c, s);
+      }
+    } else if (other is DoubleValue) {
+      int x = actualValue;
+      double y = other.actualValue;
+      switch (kind) {
+        case TokenKind.EQ_STRICT:
+        case TokenKind.EQ:
+          return new BoolValue(x == y, c, s);
+        case TokenKind.NE_STRICT:
+        case TokenKind.NE:
+          return new BoolValue(x != y, c, s);
+
+        case TokenKind.ADD:
+          return new DoubleValue(x + y, c, s);
+        case TokenKind.SUB:
+          return new DoubleValue(x - y, c, s);
+        case TokenKind.MUL:
+          return new DoubleValue(x * y, c, s);
+        case TokenKind.DIV:
+          return new DoubleValue(x / y, c, s);
+        case TokenKind.TRUNCDIV:
+          // TODO(jimhug): I expected int, but corelib says double here...
+          return new DoubleValue(x ~/ y, c, s);
+        case TokenKind.MOD:
+          return new DoubleValue(x % y, c, s);
+        case TokenKind.LT:
+          return new BoolValue(x < y, c, s);
+        case TokenKind.GT:
+          return new BoolValue(x > y, c, s);
+        case TokenKind.LTE:
+          return new BoolValue(x <= y, c, s);
+        case TokenKind.GTE:
+          return new BoolValue(x >= y, c, s);
+      }
     }
 
-    // TODO(jimhug): Will flesh out ops here!
     return super.binop(kind, other, context, node);
   }
 }
@@ -657,20 +777,88 @@ class DoubleValue extends EvaluatedValue {
 
   String get code() => '(${actualValue})';
 
-  Value binop(int kind, var other, MethodGenerator context, var node) {
-    // TODO(jimhug): Support int/double better
-    if (other is! DoubleValue) return super.binop(kind, other, context, node);
-
+  Value unop(int kind, MethodGenerator context, var node) {
     switch (kind) {
-      case TokenKind.EQ_STRICT:
-        return new BoolValue(actualValue == other.actualValue,
-          isConst && other.isConst, node.span);
-      case TokenKind.NE_STRICT:
-        return new BoolValue(actualValue != other.actualValue,
-          isConst && other.isConst, node.span);
+      case TokenKind.ADD:
+        // This is allowed on numeric constants only
+        return new DoubleValue(actualValue, isConst, span);
+      case TokenKind.SUB:
+        return new DoubleValue(-actualValue, isConst, span);
+    }
+    return super.unop(kind, context, node);
+  }
+
+  Value binop(int kind, var other, MethodGenerator context, var node) {
+    final c = isConst && other.isConst;
+    final s = node.span;
+    if (other is DoubleValue) {
+      double x = actualValue;
+      double y = other.actualValue;
+      switch (kind) {
+        case TokenKind.EQ_STRICT:
+        case TokenKind.EQ:
+          return new BoolValue(x == y, c, s);
+        case TokenKind.NE_STRICT:
+        case TokenKind.NE:
+          return new BoolValue(x != y, c, s);
+
+        case TokenKind.ADD:
+          return new DoubleValue(x + y, c, s);
+        case TokenKind.SUB:
+          return new DoubleValue(x - y, c, s);
+        case TokenKind.MUL:
+          return new DoubleValue(x * y, c, s);
+        case TokenKind.DIV:
+          return new DoubleValue(x / y, c, s);
+        case TokenKind.TRUNCDIV:
+          // TODO(jimhug): I expected int, but corelib says double here...
+          return new DoubleValue(x ~/ y, c, s);
+        case TokenKind.MOD:
+          return new DoubleValue(x % y, c, s);
+        case TokenKind.LT:
+          return new BoolValue(x < y, c, s);
+        case TokenKind.GT:
+          return new BoolValue(x > y, c, s);
+        case TokenKind.LTE:
+          return new BoolValue(x <= y, c, s);
+        case TokenKind.GTE:
+          return new BoolValue(x >= y, c, s);
+      }
+    } else if (other is IntValue) {
+      double x = actualValue;
+      int y = other.actualValue;
+      switch (kind) {
+        case TokenKind.EQ_STRICT:
+        case TokenKind.EQ:
+          return new BoolValue(x == y, c, s);
+        case TokenKind.NE_STRICT:
+        case TokenKind.NE:
+          return new BoolValue(x != y, c, s);
+
+        case TokenKind.ADD:
+          return new DoubleValue(x + y, c, s);
+        case TokenKind.SUB:
+          return new DoubleValue(x - y, c, s);
+        case TokenKind.MUL:
+          return new DoubleValue(x * y, c, s);
+        case TokenKind.DIV:
+          return new DoubleValue(x / y, c, s);
+        case TokenKind.TRUNCDIV:
+          // TODO(jimhug): I expected int, but corelib says double here...
+          return new DoubleValue(x ~/ y, c, s);
+        case TokenKind.MOD:
+          return new DoubleValue(x % y, c, s);
+        case TokenKind.LT:
+          return new BoolValue(x < y, c, s);
+        case TokenKind.GT:
+          return new BoolValue(x > y, c, s);
+        case TokenKind.LTE:
+          return new BoolValue(x <= y, c, s);
+        case TokenKind.GTE:
+          return new BoolValue(x >= y, c, s);
+      }
     }
 
-    // TODO(jimhug): Will flesh out ops here!
     return super.binop(kind, other, context, node);
   }
 }
@@ -682,19 +870,22 @@ class StringValue extends EvaluatedValue {
     super(isConst, world.stringType, span);
 
   Value binop(int kind, var other, MethodGenerator context, var node) {
-    // TODO(jimhug): Support int/double better
     if (other is! StringValue) return super.binop(kind, other, context, node);
 
+    final c = isConst && other.isConst;
+    final s = node.span;
+    String x = actualValue, y = other.actualValue;
     switch (kind) {
       case TokenKind.EQ_STRICT:
-        return new BoolValue(actualValue == other.actualValue,
-          isConst && other.isConst, node.span);
+      case TokenKind.EQ:
+        return new BoolValue(x == y, c, s);
       case TokenKind.NE_STRICT:
-        return new BoolValue(actualValue != other.actualValue,
-          isConst && other.isConst, node.span);
+      case TokenKind.NE:
+        return new BoolValue(x != y, c, s);
+      case TokenKind.ADD:
+        return new StringValue(x + y, c, s);
     }
 
-    // TODO(jimhug): Will flesh out ops here!
     return super.binop(kind, other, context, node);
   }
 
@@ -827,14 +1018,72 @@ class MapValue extends EvaluatedValue {
 
 
 class ObjectValue extends EvaluatedValue {
-  Map<String, Value> fields;
+  Map<FieldMember, Value> fields;
+  bool seenNativeInitializer = false;
+
   String _code;
 
-  ObjectValue(this.fields, bool isConst, Type type, this._code, SourceSpan span):
-    super(isConst, type, span);
+  ObjectValue(bool isConst, Type type, SourceSpan span):
+    fields = {}, super(isConst, type, span);
 
   String get code() {
+    if (_code === null) validateInitialized(null);
     return _code;
+  }
+
+  initFields() {
+    var allMembers = world.gen._orderValues(type.getAllMembers());
+    for (var f in allMembers) {
+      if (f.isField && !f.isStatic && f.declaringType.isClass) {
+        fields[f] = f.computeValue();
+      }
+    }
+  }
+
+  setField(Member field, Value value, [bool duringInit = false]) {
+    var currentValue = fields[field];
+    if (isConst && !value.isConst) {
+      world.error('used of non-const value in const intializer', value.span);
+    }
+
+    if (currentValue === null) {
+      fields[field] = value;
+      if (field.isFinal && !duringInit) {
+        world.error('can not initialize final fields outside of initializer',
+          value.span);
+      }
+    } else {
+      // TODO(jimhug): Clarify spec on reinitializing fields with defaults.
+      if (field.isFinal && field.computeValue() === null) {
+        world.error('reassignment of field not allowed', value.span,
+          field.span);
+      } else {
+        fields[field] = value; //currentValue.union(value);
+      }
+    }
+  }
+
+  validateInitialized(SourceSpan span) {
+    var buf = new StringBuffer();
+    buf.add('Object.create(');
+    buf.add('${type.jsname}.prototype, ');
+
+    buf.add('{');
+    for (var field in fields.getKeys()) {
+      buf.add(field.name);
+      buf.add(': ');
+      buf.add('{"value": ');
+      if (fields[field] === null) {
+        world.error('Required field "${field.name}" was not initialized',
+          span, field.span);
+        buf.add('null');
+      } else {
+        buf.add(fields[field].code);
+      }
+      buf.add(', writeable: false}, ');
+    }
+    buf.add('})');
+    _code = buf.toString();
   }
 
   Value binop(int kind, var other, MethodGenerator context, var node) {
@@ -842,9 +1091,11 @@ class ObjectValue extends EvaluatedValue {
 
     switch (kind) {
       case TokenKind.EQ_STRICT:
+      case TokenKind.EQ:
         return new BoolValue(type == other.type && code == other.code,
           isConst && other.isConst, node.span);
       case TokenKind.NE_STRICT:
+      case TokenKind.NE:
         return new BoolValue(type != other.type || code != other.code,
           isConst && other.isConst, node.span);
     }
@@ -854,34 +1105,6 @@ class ObjectValue extends EvaluatedValue {
 
 }
 
-
-/** An evaluated constant object expression. */
-/*
-class ConstObjectValue extends EvaluatedValue {
-  Map<String, EvaluatedValue> fields;
-
-  factory ConstObjectValue(
-      Type type, Map<String, EvaluatedValue> fields,
-      String canonicalCode, SourceSpan span) {
-    // compute a unique-string form used to index this value in the global const
-    // map. This is used to ensure that multiple const object values are
-    // equivalent if they have the same type name and values on each field.
-    final fieldValues = [];
-    for (var f in fields.getKeys()) {
-      fieldValues.add('$f = ${fields[f].actualValue}');
-    }
-    fieldValues.sort((a, b) => a.compareTo(b));
-    final actualValue = 'const ${type.jsname} ['
-        + Strings.join(fieldValues, ',') + ']';
-    return new ConstObjectValue._internal(type, fields, actualValue,
-        canonicalCode, span, codeWithComments(canonicalCode, span));
-  }
-
-  ConstObjectValue._internal(type, this.fields,
-      actualValue, canonicalCode, span, code) :
-    super._internal(type, actualValue, canonicalCode, span, code);
-}
-*/
 
 /**
  * A global value in the generated code, which corresponds to either a static
@@ -900,9 +1123,8 @@ class GlobalValue extends Value implements Comparable {
   /** The value of the field or constant expression to declare. */
   Value exp;
 
-
   /** True for either cont expressions or a final static field. */
-  bool get isConst() => exp.isConst && (field == null || field.isFinal);
+  bool isConst;
 
   /** The actual constant value, when [isConst] is true. */
   get actualValue() => exp.dynamic.actualValue;
@@ -916,7 +1138,8 @@ class GlobalValue extends Value implements Comparable {
   GlobalValue(Type type, String code, bool isConst,
       this.field, this.name, this.exp,
       SourceSpan span, List<Value> _dependencies)
-      : super(type, code, span, !isConst), dependencies = [] {
+      : super(type, code, span, !isConst),
+        dependencies = [], isConst = isConst {
     // store transitive-dependencies so sorting algorithm works correctly.
     for (var dep in _dependencies) {
       if (dep is GlobalValue) {
