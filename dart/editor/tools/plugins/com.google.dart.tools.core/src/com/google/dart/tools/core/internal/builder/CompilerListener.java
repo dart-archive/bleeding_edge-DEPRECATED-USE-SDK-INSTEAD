@@ -90,6 +90,9 @@ class CompilerListener implements DartCompilerListener {
 
   @Override
   public void unitAboutToCompile(DartSource source, boolean diet) {
+    if (diet) {
+      return;
+    }
     IFile file = ResourceUtil.getResource(source);
     if (file == null) {
       if (DartCoreDebug.VERBOSE) {
