@@ -178,6 +178,7 @@ class SsaTypePropagator extends HGraphVisitor {
         worklist = new List<int>();
 
   void visitGraph(HGraph graph) {
+    new TypeAnnotationReader(compiler).visitGraph(graph);
     visitDominatorTree(graph);
     processWorklist();
     new CheckInserter(compiler).visitGraph(graph);
@@ -227,6 +228,35 @@ class SsaTypePropagator extends HGraphVisitor {
       worklist.add(id);
       workmap[id] = instruction;
     }
+  }
+}
+
+class TypeAnnotationReader extends HBaseVisitor {
+  final Compiler compiler;
+
+  TypeAnnotationReader(Compiler this.compiler);
+
+  visitParameterValue(HParameterValue parameter) {
+    // element is null for 'this'.
+    if (parameter.element === null) return;
+
+    Type type = parameter.element.computeType(compiler);
+    if (type == null) return;
+
+    HTypeGuard guard = null;
+    if (type.toString() == 'int') {
+      guard = new HTypeGuard(HType.INTEGER, parameter);
+    } else if (type.toString() == 'String') {
+      guard = new HTypeGuard(HType.STRING, parameter);
+    }
+    if (guard == null) return;
+
+    parameter.block.rewrite(parameter, guard);
+    parameter.block.addAfter(parameter, guard);
+  }
+
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
   }
 }
 
