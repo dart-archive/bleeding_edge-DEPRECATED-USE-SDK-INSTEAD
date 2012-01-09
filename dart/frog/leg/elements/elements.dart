@@ -47,7 +47,7 @@ class Element implements Hashable {
   final ElementKind kind;
   final Element enclosingElement;
   abstract Node parseNode(Canceler canceler, Logger logger);
-  abstract Type computeType(Compiler compiler, Types types);
+  abstract Type computeType(Compiler compiler);
   Modifiers get modifiers() => null;
 
   bool isFunction() => kind == ElementKind.FUNCTION;
@@ -99,8 +99,8 @@ class VariableElement extends Element {
     return variables.parseNode(canceler, logger);
   }
 
-  Type computeType(Compiler compiler, types) {
-    return variables.computeType(compiler, types);
+  Type computeType(Compiler compiler) {
+    return variables.computeType(compiler);
   }
 
   Type get type() => variables.type;
@@ -135,9 +135,10 @@ class VariableListElement extends Element {
     return node;
   }
 
-  Type computeType(Compiler compiler, types) {
+  Type computeType(Compiler compiler) {
     if (type != null) return type;
-    type = getType(parseNode(compiler, compiler).type, compiler, types);
+    type = getType(parseNode(compiler, compiler).type, compiler,
+                   compiler.types);
     return type;
   }
 }
@@ -145,8 +146,8 @@ class VariableListElement extends Element {
 class ForeignElement extends Element {
   ForeignElement(SourceString name) : super(name, ElementKind.FOREIGN, null);
 
-  Type computeType(Compiler compiler, types) {
-    return types.dynamicType;
+  Type computeType(Compiler compiler) {
+    return compiler.types.dynamicType;
   }
 
   parseNode(Canceler canceler, Logger logger) {
@@ -174,7 +175,7 @@ Type getType(TypeAnnotation typeAnnotation, compiler, types) {
   Element element = compiler.universe.find(name);
   if (element !== null && element.kind === ElementKind.CLASS) {
     // TODO(karlklose): substitute type parameters.
-    return element.computeType(compiler, types);
+    return element.computeType(compiler);
   }
   return types.lookup(name);
 }
@@ -204,9 +205,10 @@ class FunctionElement extends Element {
            && !modifiers.isStatic();
   }
 
-  FunctionType computeType(Compiler compiler, types) {
+  FunctionType computeType(Compiler compiler) {
     if (type != null) return type;
     if (parameters == null) compiler.resolveSignature(this);
+    Types types = compiler.types;
     FunctionExpression node =
         compiler.parser.measure(() => parseNode(compiler, compiler));
     Type returnType = getType(node.returnType, compiler, types);
@@ -214,7 +216,7 @@ class FunctionElement extends Element {
 
     LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
     for (Link<Element> link = parameters; !link.isEmpty(); link = link.tail) {
-      parameterTypes.addLast(link.head.computeType(compiler, types));
+      parameterTypes.addLast(link.head.computeType(compiler));
     }
     type = new FunctionType(returnType, parameterTypes.toLink(), this);
     return type;
@@ -240,7 +242,7 @@ class ConstructorBodyElement extends FunctionElement {
 
   bool isInstanceMember() => true;
 
-  FunctionType computeType(Compiler compiler, types) { unreachable(); }
+  FunctionType computeType(Compiler compiler) { unreachable(); }
   Node parseNode(Canceler canceler, Logger logger) { unreachable(); }
 }
 
@@ -251,9 +253,10 @@ class SynthesizedConstructorElement extends FunctionElement {
     parameters = const EmptyLink<Element>();
   }
 
-  FunctionType computeType(Compiler compiler, types) {
+  FunctionType computeType(Compiler compiler) {
     if (type != null) return type;
-    type = new FunctionType(types.voidType, const EmptyLink<Type>(), this);
+    Type returnType = compiler.types.voidType;
+    type = new FunctionType(returnType, const EmptyLink<Type>(), this);
     return type;
   }
 
@@ -287,7 +290,7 @@ class ClassElement extends Element {
     members = members.prepend(element);
   }
 
-  Type computeType(compiler, types) {
+  Type computeType(compiler) {
     if (type === null) {
       type = new SimpleType(name, this);
     }

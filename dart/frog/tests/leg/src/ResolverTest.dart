@@ -302,7 +302,7 @@ testSuperclass() {
 
   ClassElement fooElement = compiler.universe.find(buildSourceString('Foo'));
   ClassElement barElement = compiler.universe.find(buildSourceString('Bar'));
-  Expect.equals(barElement.computeType(compiler, null),
+  Expect.equals(barElement.computeType(compiler),
                 fooElement.supertype);
   Expect.isTrue(fooElement.interfaces.isEmpty());
   Expect.isTrue(barElement.interfaces.isEmpty());
@@ -341,7 +341,7 @@ testOneInterface() {
   Expect.equals(null, barElement.supertype);
   Expect.isTrue(barElement.interfaces.isEmpty());
 
-  Expect.equals(barElement.computeType(compiler, null),
+  Expect.equals(barElement.computeType(compiler),
                 fooElement.interfaces.head);
   Expect.equals(1, length(fooElement.interfaces));
 }
@@ -357,8 +357,8 @@ testTwoInterfaces() {
   Element i2 = compiler.universe.find(buildSourceString('I2'));
 
   Expect.equals(2, length(c.interfaces));
-  Expect.equals(i1.computeType(compiler, null), at(c.interfaces, 0));
-  Expect.equals(i2.computeType(compiler, null), at(c.interfaces, 1));
+  Expect.equals(i1.computeType(compiler), at(c.interfaces, 0));
+  Expect.equals(i2.computeType(compiler), at(c.interfaces, 1));
 }
 
 testFunctionExpression() {

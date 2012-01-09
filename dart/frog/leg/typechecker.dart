@@ -3,14 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class TypeCheckerTask extends CompilerTask {
-  TypeCheckerTask(Compiler compiler) : types = new Types(), super(compiler);
+  TypeCheckerTask(Compiler compiler) : super(compiler);
   String get name() => "Type checker";
-  Types types;
 
   void check(Node tree, TreeElements elements) {
     measure(() {
       Visitor visitor =
-          new TypeCheckerVisitor(compiler, elements, types);
+          new TypeCheckerVisitor(compiler, elements, compiler.types);
       try {
         tree.accept(visitor);
       } catch (CancelTypeCheckException e) {
@@ -133,7 +132,7 @@ Type lookupType(SourceString name, Compiler compiler, types) {
   if (t !== null) return t;
   Element element = compiler.universe.find(name);
   if (element !== null && element.kind === ElementKind.CLASS) {
-    return element.computeType(compiler, types);
+    return element.computeType(compiler);
   }
   return null;
 }
@@ -268,7 +267,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type visitIdentifier(Identifier node) {
     if (node.isThis()) {
-      return currentClass.computeType(compiler, types);
+      return currentClass.computeType(compiler);
     } else {
       fail(node, 'internal error: unexpected identifier');
     }
@@ -345,7 +344,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
       if (node.receiver !== null) fail(node, 'cannot handle fields');
       Element element = elements[node];
       if (element === null) fail(node.selector, 'unresolved property');
-      return element.computeType(compiler, types);
+      return element.computeType(compiler);
 
     } else if (node.isFunctionObjectInvocation) {
       fail(node.receiver, 'function object invocation unimplemented');
@@ -370,7 +369,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
       } else {
         Element element = elements[node];
         if (element.kind === ElementKind.FUNCTION) {
-          funType = element.computeType(compiler, types);
+          funType = element.computeType(compiler);
         } else if (element.kind === ElementKind.FOREIGN) {
           return types.dynamicType;
         } else {
@@ -501,7 +500,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type computeType(Element element) {
     if (element === null) return types.dynamicType;
-    return element.computeType(compiler, types);
+    return element.computeType(compiler);
   }
 
   Type visitTypeAnnotation(TypeAnnotation node) {

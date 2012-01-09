@@ -32,6 +32,7 @@ class Compiler implements Canceler, Logger {
   Universe universe;
   String assembledCode;
   Namer namer;
+  Types types;
 
   CompilerTask measuredTask;
   Element currentElement;
@@ -51,6 +52,7 @@ class Compiler implements Canceler, Logger {
   static final SourceString MAIN = const SourceString('main');
 
   Compiler() {
+    types = new Types();
     universe = new Universe();
     worklist = new Queue<WorkElement>();
     namer = new Namer();

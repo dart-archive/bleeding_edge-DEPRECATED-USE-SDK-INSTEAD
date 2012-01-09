@@ -1191,7 +1191,7 @@ class HAdd extends HBinaryArithmetic {
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return HType.UNKNOWN;
-    if (isString() || left.isString() || right.isString()) return HType.STRING;
+    if (isString() || right.isString()) return HType.STRING;
     if (isNumber() || left.isNumber() || right.isNumber()) return HType.NUMBER;
     if (type.isUnknown()) return HType.NUMBER;
     return HType.UNKNOWN;

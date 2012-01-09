@@ -345,7 +345,8 @@ class SsaBuilder implements Visitor {
       VariableElement element = elements[parameterId];
       HParameterValue parameter = new HParameterValue(element);
       add(parameter);
-      definitions[element] = guard(element.type, parameter);
+      Type type = element.computeType(compiler);
+      definitions[element] = guard(type, parameter);
     }
   }
 
@@ -981,7 +982,6 @@ class SsaBuilder implements Visitor {
 
   HInstruction updateDefinition(Node node, HInstruction value) {
     VariableElement element = elements[node];
-    value = guard(element.type, value);
     definitions[element] = value;
     return value;
   }

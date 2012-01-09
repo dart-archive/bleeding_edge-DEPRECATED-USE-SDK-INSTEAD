@@ -323,7 +323,7 @@ Node parseExpression(String text) =>
 
 void setup() {
   compiler = new MockCompiler();
-  types = new Types();
+  types = compiler.types;
   intType = lookupType(Types.INT, compiler, types);
   doubleType = lookupType(Types.DOUBLE, compiler, types);
   boolType = lookupType(Types.BOOL, compiler, types);

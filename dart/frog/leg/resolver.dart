@@ -547,7 +547,7 @@ class ClassResolverVisitor extends AbstractVisitor/* <Type> */ {
          link = link.tail) {
       element.interfaces = element.interfaces.prepend(visit(link.head));
     }
-    return element.computeType(compiler, null);
+    return element.computeType(compiler);
   }
 
   Type visitTypeAnnotation(TypeAnnotation node) {
@@ -562,7 +562,7 @@ class ClassResolverVisitor extends AbstractVisitor/* <Type> */ {
     } else {
       compiler.resolver.toResolve.add(element);
       // TODO(ngeoffray): Use type variables.
-      return element.computeType(compiler, null);
+      return element.computeType(compiler);
     }
     return null;
   }

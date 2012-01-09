@@ -41,7 +41,7 @@ main() {
   String generated = compile(TEST_ONE, 'foo');
   RegExp regexp = new RegExp(getIntTypeCheck(anyIdentifier));
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
-  checkNumberOfMatches(matches, 2);
+  checkNumberOfMatches(matches, 0);
 
   regexp = const RegExp("return c;");
   Expect.isTrue(regexp.hasMatch(generated));
