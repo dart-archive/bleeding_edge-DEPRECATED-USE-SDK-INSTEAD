@@ -427,15 +427,6 @@ class FieldMember extends Member {
             '\$globals.${declaringType.jsname}_$jsname', node.span);
       }
     }
-    /*else if (target.isConst && isFinal) {
-      // take advantage of consts and retrieve the value directly if possible
-      var constTarget = target is GlobalValue ? target.dynamic.exp : target;
-      if (constTarget is ConstObjectValue) {
-        return constTarget.fields[name];
-      } else if (constTarget.type == world.stringType && name == 'length') {
-        return new Value(type, '${constTarget.actualValue.length}', node.span);
-      }
-    }*/
     return new Value(type, '${target.code}.$jsname', node.span);
   }
 
@@ -1057,7 +1048,8 @@ class MethodMember extends Member {
       // Start of abstract interpretation to replace const hacks goes here
       // TODO(jmesserly): using the "node" here feels really hacky
       if (isConst && node is NewExpression && node.dynamic.isConst) {
-        // !!!!!! Egregious hack !!!!!!!
+        // TODO(jimhug): Embedding JSSyntaxRegExp works around an annoying
+        //   issue with tracking native constructors for const objects.
         if (isNative || declaringType.name == 'JSSyntaxRegExp') {
           // check that all args are const?
           var code = 'new ${declaringType.nativeName}${ctor}($argsString)';
@@ -1068,7 +1060,6 @@ class MethodMember extends Member {
         var newObject = new ObjectValue(true, newType, span);
         newObject.initFields();
         _evalConstConstructor(newObject, args);
-        // ??? Does args.values include named args???
         return world.gen.globalForConst(newObject, [args.values]);
       } else {
         var code = 'new ${declaringType.nativeName}${ctor}($argsString)';

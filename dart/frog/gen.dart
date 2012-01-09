@@ -2345,7 +2345,6 @@ class MethodGenerator implements TreeVisitor {
 
   visitListExpression(ListExpression node) {
     var argValues = [];
-    //var listType = node.isConst ? world.immutableListType : world.listType;
     var listType = world.listType;
     var type = world.varType;
     if (node.itemType != null) {
@@ -2378,7 +2377,7 @@ class MethodGenerator implements TreeVisitor {
         new Value.type(world.mapType, node.span), Arguments.EMPTY);
     }
 
-    var values = new List<Value>();
+    var values = <Value>[];
     var valueType = world.varType, keyType = world.stringType;
     var mapType = world.mapType; // TODO(jimhug): immutable type?
     if (node.valueType !== null) {
@@ -2390,13 +2389,15 @@ class MethodGenerator implements TreeVisitor {
           world.error('the key type of a map literal must be "String"',
               keyType.span);
         }
-        if (node.isConst && (keyType is ParameterType || keyType.hasTypeParams)) {
+        if (node.isConst &&
+            (keyType is ParameterType || keyType.hasTypeParams)) {
           world.error('type parameter cannot be used in const map literals');
         }
       }
 
       valueType = method.resolveType(node.valueType, true);
-      if (node.isConst && (valueType is ParameterType || valueType.hasTypeParams)) {
+      if (node.isConst &&
+          (valueType is ParameterType || valueType.hasTypeParams)) {
         world.error('type parameter cannot be used in const map literals');
       }
 
@@ -2410,7 +2411,7 @@ class MethodGenerator implements TreeVisitor {
       }
       values.add(key);
 
-      var value = visitTypedValue(node.items[i+1], valueType);
+      var value = visitTypedValue(node.items[i + 1], valueType);
       if (node.isConst && !value.isConst) {
         world.error('const map can only contain const values', value.span);
       }

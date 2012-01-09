@@ -581,7 +581,11 @@ class EvaluatedValue extends Value implements Hashable {
   EvaluatedValue(this.isConst, Type type, SourceSpan span):
     super(type, '@@@', span, false);
 
-  String get code() => '@@@';
+  String get code() {
+    world.internalError('Should not be getting code from raw EvaluatedValue',
+      span);
+  }
+
 
   EvaluatedValue get constValue() => this;
 
@@ -937,7 +941,7 @@ class ListValue extends EvaluatedValue {
   String get code() {
     final buf = new StringBuffer();
     buf.add('[');
-    for (var i=0; i < values.length; i++) {
+    for (var i = 0; i < values.length; i++) {
       if (i > 0) buf.add(', ');
       buf.add(values[i].code);
     }

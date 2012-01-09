@@ -635,7 +635,6 @@ ListFactory_Expression = ListFactory;
 ListFactory_K = ListFactory;
 ListFactory_dart_core_String = ListFactory;
 ListFactory_V = ListFactory;
-ListFactory_Value = ListFactory;
 ListFactory_int = ListFactory;
 // ********** Code for ListIterator **************
 function ListIterator(array) {
@@ -4210,7 +4209,7 @@ MethodGenerator.prototype.visitMapExpression = function(node) {
   if (node.items.get$length() == (0) && !node.isConst) {
     return $globals.world.mapType.getConstructor("").invoke$4(this, node, new Value.type$ctor($globals.world.mapType, node.span), Arguments.get$EMPTY());
   }
-  var values = new Array();
+  var values = [];
   var valueType = $globals.world.varType, keyType = $globals.world.stringType;
   var mapType = $globals.world.mapType;
   if (node.valueType != null) {
@@ -6774,12 +6773,9 @@ TokenizerBase.prototype._makeStringToken = function(buf, isPart) {
 TokenizerBase.prototype._makeRawStringToken = function(isMultiline) {
   var s;
   if (isMultiline) {
-    if (this._source.get$text()[this._startIndex + (4)] == "\n") {
-      s = this._source.get$text().substring(this._startIndex + (5), this._lang_index - (3));
-    }
-    else {
-      s = this._source.get$text().substring(this._startIndex + (4), this._lang_index - (3));
-    }
+    var start = this._startIndex + (4);
+    if (this._source.get$text()[start] == "\n") start++;
+    s = this._source.get$text().substring(start, this._lang_index - (3));
   }
   else {
     s = this._source.get$text().substring(this._startIndex + (2), this._lang_index - (1));
@@ -6787,7 +6783,7 @@ TokenizerBase.prototype._makeRawStringToken = function(isMultiline) {
   return new LiteralToken((58), this._source, this._startIndex, this._lang_index, s);
 }
 TokenizerBase.prototype.finishMultilineString = function(quote) {
-  var buf = new Array();
+  var buf = [];
   while (true) {
     var ch = this._nextChar();
     if (ch == (0)) {
@@ -6857,7 +6853,7 @@ TokenizerBase.prototype.finishRawString = function(quote) {
       return this.finishMultilineRawString(quote);
     }
     else {
-      return this._makeStringToken(new Array(), false);
+      return this._makeStringToken([], false);
     }
   }
   while (true) {
@@ -12358,7 +12354,7 @@ function EvaluatedValue(isConst, type, span) {
 EvaluatedValue.prototype.get$isConst = function() { return this.isConst; };
 EvaluatedValue.prototype.set$isConst = function(value) { return this.isConst = value; };
 EvaluatedValue.prototype.get$code = function() {
-  return "@@@";
+  $globals.world.internalError("Should not be getting code from raw EvaluatedValue", this.span);
 }
 EvaluatedValue.prototype.hashCode = function() {
   return this.get$code().hashCode();

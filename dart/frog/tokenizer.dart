@@ -266,11 +266,9 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
     String s;
     if (isMultiline) {
       // Skip initial newline in multiline strings
-      if (_source.text[_startIndex + 4] == '\n') {
-        s = _source.text.substring(_startIndex + 5, _index - 3);
-      } else {
-        s = _source.text.substring(_startIndex + 4, _index - 3);
-      }
+      int start = _startIndex + 4;
+      if (_source.text[start] == '\n') start++;
+      s = _source.text.substring(start, _index - 3);
     } else {
       s = _source.text.substring(_startIndex + 2, _index - 1);
     }
@@ -278,7 +276,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
   }
 
   Token finishMultilineString(int quote) {
-    var buf = new List<int>();
+    var buf = <int>[];
     while (true) {
       int ch = _nextChar();
       if (ch == 0) {
@@ -346,7 +344,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
       if (_maybeEatChar(quote)) {
         return finishMultilineRawString(quote);
       } else {
-        return _makeStringToken(new List<int>(), false);
+        return _makeStringToken(<int>[], false);
       }
     }
     while (true) {
