@@ -136,23 +136,28 @@ class VarMethodStub extends VarMember {
 
   void generate(CodeWriter code) {
     isGenerated = true;
-    code.write(world.gen._prototypeOf(declaringType, name) + ' = ');
     if (!isHidden && _useDirectCall(args)) {
-      code.writeln(world.gen._prototypeOf(declaringType, member.jsname) + ';');
-    } else if (_needsExactTypeCheck()) {
-      code.enterBlock('function(${args.getCode()}) {');
-      code.enterBlock(
-        'if (Object.getPrototypeOf(this).hasOwnProperty("$name")) {');
-      code.writeln('$body;');
-      code.exitBlock('}');
-      String argsCode = args.getCode();
-      if (argsCode != '') argsCode = ', ' + argsCode;
-      code.writeln('return Object.prototype.$name.call(this$argsCode);');
-      code.exitBlock('};');
+      world.gen._writePrototypePatch(declaringType, name, 
+          world.gen._prototypeOf(declaringType, member.jsname), code);
     } else {
-      code.enterBlock('function(${args.getCode()}) {');
-      code.writeln('$body;');
-      code.exitBlock('};');
+      String suffix = world.gen._writePrototypePatch(declaringType, name, 
+          'function(${args.getCode()}) {', code, false);
+      if (!suffix.endsWith(';')) {
+        suffix += ';';
+      }
+      if (_needsExactTypeCheck()) {
+        code.enterBlock(
+          'if (Object.getPrototypeOf(this).hasOwnProperty("$name")) {');
+        code.writeln('$body;');
+        code.exitBlock('}');
+        String argsCode = args.getCode();
+        if (argsCode != '') argsCode = ', ' + argsCode;
+        code.writeln('return Object.prototype.$name.call(this$argsCode);');
+        code.exitBlock(suffix);
+      } else {
+        code.writeln('$body;');
+        code.exitBlock(suffix);
+      }
     }
   }
 

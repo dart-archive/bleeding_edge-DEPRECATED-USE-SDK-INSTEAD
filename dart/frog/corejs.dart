@@ -158,8 +158,9 @@ class CoreJs {
       // TODO(jmesserly): we need to find a way to avoid conflicts with other
       // generated "typeName" fields. Ideally we wouldn't be patching 'Object'
       // here.
-      w.writeln('Object.prototype.get\$typeName = ' +
-          ' Object.prototype.\$typeNameOf;');
+      w.writeln('Object.defineProperty(Object.prototype, "get\$typeName", ' +
+          '{ value: Object.prototype.\$typeNameOf, enumerable: false, ' +
+          'configurable: true});');
     }
   }
 }
@@ -185,7 +186,9 @@ function $eq(x, y) {
     ? x == y : x.$eq(y);
 }
 // TODO(jimhug): Should this or should it not match equals?
-Object.prototype.$eq = function(other) { return this === other; }""";
+Object.defineProperty(Object.prototype, '$eq', { value: function(other) { 
+  return this === other; 
+}, enumerable: false, configurable: true });""";
 
 /** Snippet for `$bit_not`. */
 final String _BIT_NOT_FUNCTION = @"""
@@ -279,12 +282,16 @@ function $dynamic(name) {
     // Patch the prototype, but don't overwrite an existing stub, like
     // the one on Object.prototype.
     var proto = Object.getPrototypeOf(obj);
-    if (!proto.hasOwnProperty(name)) proto[name] = method;
+    if (!proto.hasOwnProperty(name)) {
+      Object.defineProperty(proto, name, 
+        { value: method, enumerable: false, configurable: true });
+    }
 
     return method.apply(this, Array.prototype.slice.call(arguments));
   };
   $dynamicBind.methods = methods;
-  Object.prototype[name] = $dynamicBind;
+  Object.defineProperty(Object.prototype, name, { value: $dynamicBind,
+    enumerable: false, configurable: true});
   return methods;
 }
 if (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];
@@ -308,7 +315,7 @@ function $dynamicSetMetadata(inputTable) {
 
 /** Snippet for `$typeNameOf`. */
 final String _TYPE_NAME_OF_FUNCTION = @"""
-Object.prototype.$typeNameOf = function() {
+Object.defineProperty(Object.prototype, '$typeNameOf', { value: function() {
   if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
       || typeof(process) != 'undefined') { // fast-path for Chrome and Node
     return this.constructor.name;
@@ -321,7 +328,7 @@ Object.prototype.$typeNameOf = function() {
     str = 'HTMLDocument';
   }
   return str;
-}""";
+}, enumerable: false, configurable: true});""";
 
 /** Snippet for `$inherits`. */
 final String _INHERITS_FUNCTION = @"""
@@ -382,15 +389,19 @@ function $throw(e) {
 // prototype. TODO(jmesserly): make this go away by handling index more
 // like a normal method.
 final String _INDEX_OPERATORS = @"""
-Object.prototype.$index = function(i) {
+Object.defineProperty(Object.prototype, '$index', { value: function(i) {
   var proto = Object.getPrototypeOf(this);
   if (proto !== Object) {
     proto.$index = function(i) { return this[i]; }
   }
   return this[i];
-}
-Array.prototype.$index = function(i) { return this[i]; }
-String.prototype.$index = function(i) { return this[i]; }""";
+}, enumerable: false, configurable: true});
+Object.defineProperty(Array.prototype, '$index', { value: function(i) { 
+  return this[i]; 
+}, enumerable: false, configurable: true});
+Object.defineProperty(String.prototype, '$index', { value: function(i) { 
+  return this[i]; 
+}, enumerable: false, configurable: true});""";
 
 /** Snippet for `$setindex` in Object, Array, and String. */
 // TODO(jimhug): Add array bounds checking in checked mode
@@ -402,14 +413,15 @@ function $inlineArrayIndexCheck(array, index) {
   native__ArrayJsUtil__throwIndexOutOfRangeException(index);
 }*/
 final String _SETINDEX_OPERATORS = @"""
-Object.prototype.$setindex = function(i, value) {
+Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value) {
   var proto = Object.getPrototypeOf(this);
   if (proto !== Object) {
     proto.$setindex = function(i, value) { return this[i] = value; }
   }
   return this[i] = value;
-}
-Array.prototype.$setindex = function(i, value) { return this[i] = value; }""";
+}, enumerable: false, configurable: true});
+Object.defineProperty(Array.prototype, '$setindex', { value: function(i, value) { 
+  return this[i] = value; }, enumerable: false, configurable: true});""";
 
 /** Snippet for `$wrap_call$0`. */
 final String _WRAP_CALL0_FUNCTION = @"""

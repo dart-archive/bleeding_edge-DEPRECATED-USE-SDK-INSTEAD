@@ -236,12 +236,41 @@ class WorldGenerator {
     }
   }
 
+  /**
+   * Make sure the methods that we add to Array and Object are
+   * non-enumerable, so that we don't mess up any other third-party JS
+   * libraries we might be using. 
+   * We return the necessary suffix (if any) we need to complete the patching.
+   */
+  String _writePrototypePatch(Type type, String name, String functionBody, 
+      CodeWriter writer, [bool isOneLiner=true]) {
+    var writeFunction = writer.writeln;
+    String ending = ';';
+    if (!isOneLiner) {
+      writeFunction = writer.enterBlock;
+      ending = '';
+    }
+    if (type.isObject || type.name == 'ListFactory') {
+      // We special case these two so that by default we can use "= function()" 
+      // syntax for better readability.
+      if (isOneLiner) {
+        ending = ', enumerable: false, configurable: true })' + ending;
+      }
+      writeFunction('Object.defineProperty(${type.jsname}.prototype, "$name",' +
+        ' { value: $functionBody$ending');
+      return (!isOneLiner)? '}, enumerable: false, configurable: true });' : '}';
+    } else {
+      writeFunction(_prototypeOf(type, name) + ' = ' + functionBody + ending);
+      return (!isOneLiner)? '}' : '';
+    }
+  }
+
   _maybeIsTest(Type onType, Type checkType) {
     bool isSubtype = onType.isSubtypeOf(checkType);
     if (checkType.isTested) {
       // TODO(jmesserly): cache these functions? they just return true or false.
-      writer.writeln(_prototypeOf(onType, 'is\$${checkType.jsname}')
-          + ' = function(){return $isSubtype};');
+      _writePrototypePatch(onType, 'is\$${checkType.jsname}', 
+          'function(){return $isSubtype}', writer);
     }
 
     if (checkType.isChecked) {
@@ -256,7 +285,7 @@ class WorldGenerator {
           || onType == world.numImplType) {
         body = 'return ${onType.nativeType.name}(this)';
       }
-      writer.writeln(_prototypeOf(onType, checkName) + ' = function(){$body};');
+      _writePrototypePatch(onType, checkName, 'function(){$body}', writer);
     }
   }
 
@@ -478,11 +507,11 @@ function $inheritsMembers(child, parent) {
 
     // generate code for instance fields
     if (field._providePropertySyntax) {
-      writer.writeln(_prototypeOf(field.declaringType, 'get\$${field.jsname}')
-        + ' = function() { return this.${field.jsname}; };');
+      _writePrototypePatch(field.declaringType, 'get\$${field.jsname}',
+          'function() { return this.${field.jsname}; }', writer);
       if (!field.isFinal) {
-        writer.writeln(_prototypeOf(field.declaringType, 'set\$${field.jsname}')
-          + ' = function(value) { return this.${field.jsname} = value; };');
+        _writePrototypePatch(field.declaringType, 'set\$${field.jsname}',
+          'function(value) { return this.${field.jsname} = value; }', writer);
       }
     }
 
@@ -989,6 +1018,7 @@ class MethodGenerator implements TreeVisitor {
 
     String _params = '(${Strings.join(_paramCode, ", ")})';
     String params = '(${Strings.join(paramCode, ", ")})';
+    String suffix = '}';
     // TODO(jmesserly): many of these are similar, it'd be nice to clean up.
     if (method.declaringType.isTop && !isClosure) {
       defWriter.enterBlock('function ${method.jsname}$params {');
@@ -1015,9 +1045,8 @@ class MethodGenerator implements TreeVisitor {
     } else if (method.isStatic) {
       defWriter.enterBlock('${method.declaringType.jsname}.${method.jsname} = function$_params {');
     } else {
-      defWriter.enterBlock(
-          world.gen._prototypeOf(method.declaringType, method.jsname)
-          + ' = function$_params {');
+      suffix = world.gen._writePrototypePatch(method.declaringType, 
+          method.jsname, 'function$_params {', defWriter, false);
     }
 
     if (needsThis) {
@@ -1031,7 +1060,7 @@ class MethodGenerator implements TreeVisitor {
       defWriter.writeln('var ${Strings.join(_freeTemps, ", ")};');
     }
 
-    // TODO(jimhug): Lot's of string translation here - perf bottleneck?
+    // TODO(jimhug): Lots of string translation here - perf bottleneck?
     defWriter.writeln(writer.text);
 
     if (names != null) {
@@ -1040,7 +1069,7 @@ class MethodGenerator implements TreeVisitor {
     } else if (isClosure && method.name == '') {
       defWriter.exitBlock('})');
     } else {
-      defWriter.exitBlock('}');
+      defWriter.exitBlock(suffix);
     }
     if (method.isConstructor && method.constructorName != '') {
       defWriter.writeln(
@@ -1057,12 +1086,11 @@ class MethodGenerator implements TreeVisitor {
 
   static _maybeGenerateBoundGetter(MethodMember m, CodeWriter defWriter) {
     if (m._providePropertySyntax) {
-      defWriter.enterBlock(
-          world.gen._prototypeOf(m.declaringType, "get\$" + m.jsname)
-          + ' = function() {');
+      String suffix = world.gen._writePrototypePatch(m.declaringType, 
+          'get\$' + m.jsname, 'function() {', defWriter, false);
       // TODO(jimhug): Bind not available in older Safari, need fallback?
       defWriter.writeln('return this.${m.jsname}.bind(this);');
-      defWriter.exitBlock('}');
+      defWriter.exitBlock(suffix);
 
       if (m._provideFieldSyntax) {
         world.internalError('bound "${m.name}" accessed with field syntax',

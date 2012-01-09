@@ -10,23 +10,28 @@ function $throw(e) {
   }
   throw e;
 }
-Object.prototype.$index = function(i) {
+Object.defineProperty(Object.prototype, '$index', { value: function(i) {
   var proto = Object.getPrototypeOf(this);
   if (proto !== Object) {
     proto.$index = function(i) { return this[i]; }
   }
   return this[i];
-}
-Array.prototype.$index = function(i) { return this[i]; }
-String.prototype.$index = function(i) { return this[i]; }
-Object.prototype.$setindex = function(i, value) {
+}, enumerable: false, configurable: true});
+Object.defineProperty(Array.prototype, '$index', { value: function(i) { 
+  return this[i]; 
+}, enumerable: false, configurable: true});
+Object.defineProperty(String.prototype, '$index', { value: function(i) { 
+  return this[i]; 
+}, enumerable: false, configurable: true});
+Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value) {
   var proto = Object.getPrototypeOf(this);
   if (proto !== Object) {
     proto.$setindex = function(i, value) { return this[i] = value; }
   }
   return this[i] = value;
-}
-Array.prototype.$setindex = function(i, value) { return this[i] = value; }
+}, enumerable: false, configurable: true});
+Object.defineProperty(Array.prototype, '$setindex', { value: function(i, value) { 
+  return this[i] = value; }, enumerable: false, configurable: true});
 function $eq(x, y) {
   if (x == null) return y == null;
   return (typeof(x) == 'number' && typeof(y) == 'number') ||
@@ -35,7 +40,9 @@ function $eq(x, y) {
     ? x == y : x.$eq(y);
 }
 // TODO(jimhug): Should this or should it not match equals?
-Object.prototype.$eq = function(other) { return this === other; }
+Object.defineProperty(Object.prototype, '$eq', { value: function(other) { 
+  return this === other; 
+}, enumerable: false, configurable: true });
 function $mod(x, y) {
   if (typeof(x) == 'number' && typeof(y) == 'number') {
     var result = x % y;
@@ -70,273 +77,273 @@ function $truncdiv(x, y) {
   }
 }
 // ********** Code for Object **************
-Object.prototype.get$dynamic = function() {
+Object.defineProperty(Object.prototype, "get$dynamic", { value: function() {
   "use strict"; return this;
-}
-Object.prototype.noSuchMethod = function(name, args) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "noSuchMethod", { value: function(name, args) {
   $throw(new NoSuchMethodException(this, name, args));
-}
-Object.prototype._checkExtends$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "_checkExtends$0", { value: function() {
   return this.noSuchMethod("_checkExtends", []);
-};
-Object.prototype._checkNonStatic$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "_checkNonStatic$1", { value: function($0) {
   return this.noSuchMethod("_checkNonStatic", [$0]);
-};
-Object.prototype._evalConstConstructor$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "_evalConstConstructor$2", { value: function($0, $1) {
   return this.noSuchMethod("_evalConstConstructor", [$0, $1]);
-};
-Object.prototype._get$3 = function($0, $1, $2) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "_get$3", { value: function($0, $1, $2) {
   return this.noSuchMethod("_get", [$0, $1, $2]);
-};
-Object.prototype._get$3$isDynamic = function($0, $1, $2, isDynamic) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "_get$3$isDynamic", { value: function($0, $1, $2, isDynamic) {
   return this.noSuchMethod("_get", [$0, $1, $2, isDynamic]);
-};
-Object.prototype._get$4 = function($0, $1, $2, $3) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "_get$4", { value: function($0, $1, $2, $3) {
   return this.noSuchMethod("_get", [$0, $1, $2, $3]);
-};
-Object.prototype._set$4 = function($0, $1, $2, $3) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "_set$4", { value: function($0, $1, $2, $3) {
   return this.noSuchMethod("_set", [$0, $1, $2, $3]);
-};
-Object.prototype._set$4$isDynamic = function($0, $1, $2, $3, isDynamic) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "_set$4$isDynamic", { value: function($0, $1, $2, $3, isDynamic) {
   return this.noSuchMethod("_set", [$0, $1, $2, $3, isDynamic]);
-};
-Object.prototype._set$5 = function($0, $1, $2, $3, $4) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "_set$5", { value: function($0, $1, $2, $3, $4) {
   return this.noSuchMethod("_set", [$0, $1, $2, $3, $4]);
-};
-Object.prototype.add$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "add$1", { value: function($0) {
   return this.noSuchMethod("add", [$0]);
-};
-Object.prototype.addAll$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "addAll$1", { value: function($0) {
   return this.noSuchMethod("addAll", [$0]);
-};
-Object.prototype.addDirectSubtype$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "addDirectSubtype$1", { value: function($0) {
   return this.noSuchMethod("addDirectSubtype", [$0]);
-};
-Object.prototype.addMethod$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "addMethod$2", { value: function($0, $1) {
   return this.noSuchMethod("addMethod", [$0, $1]);
-};
-Object.prototype.addSource$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "addSource$1", { value: function($0) {
   return this.noSuchMethod("addSource", [$0]);
-};
-Object.prototype.binop$4 = function($0, $1, $2, $3) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "binop$4", { value: function($0, $1, $2, $3) {
   return this.noSuchMethod("binop", [$0, $1, $2, $3]);
-};
-Object.prototype.block$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "block$0", { value: function() {
   return this.noSuchMethod("block", []);
-};
-Object.prototype.canInvoke$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "canInvoke$2", { value: function($0, $1) {
   return this.noSuchMethod("canInvoke", [$0, $1]);
-};
-Object.prototype.checkFirstClass$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "checkFirstClass$1", { value: function($0) {
   return this.noSuchMethod("checkFirstClass", [$0]);
-};
-Object.prototype.compareTo$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "compareTo$1", { value: function($0) {
   return this.noSuchMethod("compareTo", [$0]);
-};
-Object.prototype.computeValue$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "computeValue$0", { value: function() {
   return this.noSuchMethod("computeValue", []);
-};
-Object.prototype.contains$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "contains$1", { value: function($0) {
   return this.noSuchMethod("contains", [$0]);
-};
-Object.prototype.containsKey$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "containsKey$1", { value: function($0) {
   return this.noSuchMethod("containsKey", [$0]);
-};
-Object.prototype.convertTo$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "convertTo$2", { value: function($0, $1) {
   return this.noSuchMethod("convertTo", [$0, $1]);
-};
-Object.prototype.convertTo$3 = function($0, $1, $2) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "convertTo$3", { value: function($0, $1, $2) {
   return this.noSuchMethod("convertTo", [$0, $1, $2]);
-};
-Object.prototype.copyWithNewType$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "copyWithNewType$2", { value: function($0, $1) {
   return this.noSuchMethod("copyWithNewType", [$0, $1]);
-};
-Object.prototype.end$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "end$0", { value: function() {
   return this.noSuchMethod("end", []);
-};
-Object.prototype.endsWith$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "endsWith$1", { value: function($0) {
   return this.noSuchMethod("endsWith", [$0]);
-};
-Object.prototype.ensureSubtypeOf$3 = function($0, $1, $2) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "ensureSubtypeOf$3", { value: function($0, $1, $2) {
   return this.noSuchMethod("ensureSubtypeOf", [$0, $1, $2]);
-};
-Object.prototype.evalBody$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "evalBody$2", { value: function($0, $1) {
   return this.noSuchMethod("evalBody", [$0, $1]);
-};
-Object.prototype.every$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "every$1", { value: function($0) {
   return this.noSuchMethod("every", [$0]);
-};
-Object.prototype.filter$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "filter$1", { value: function($0) {
   return this.noSuchMethod("filter", [$0]);
-};
-Object.prototype.findTypeByName$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "findTypeByName$1", { value: function($0) {
   return this.noSuchMethod("findTypeByName", [$0]);
-};
-Object.prototype.forEach$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "forEach$1", { value: function($0) {
   return this.noSuchMethod("forEach", [$0]);
-};
-Object.prototype.genValue$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "genValue$2", { value: function($0, $1) {
   return this.noSuchMethod("genValue", [$0, $1]);
-};
-Object.prototype.generate$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "generate$1", { value: function($0) {
   return this.noSuchMethod("generate", [$0]);
-};
-Object.prototype.getColumn$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "getColumn$2", { value: function($0, $1) {
   return this.noSuchMethod("getColumn", [$0, $1]);
-};
-Object.prototype.getConstructor$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "getConstructor$1", { value: function($0) {
   return this.noSuchMethod("getConstructor", [$0]);
-};
-Object.prototype.getFactory$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "getFactory$2", { value: function($0, $1) {
   return this.noSuchMethod("getFactory", [$0, $1]);
-};
-Object.prototype.getGlobalValue$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "getGlobalValue$0", { value: function() {
   return this.noSuchMethod("getGlobalValue", []);
-};
-Object.prototype.getKeys$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "getKeys$0", { value: function() {
   return this.noSuchMethod("getKeys", []);
-};
-Object.prototype.getLine$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "getLine$1", { value: function($0) {
   return this.noSuchMethod("getLine", [$0]);
-};
-Object.prototype.getMember$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "getMember$1", { value: function($0) {
   return this.noSuchMethod("getMember", [$0]);
-};
-Object.prototype.getOrMakeConcreteType$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "getOrMakeConcreteType$1", { value: function($0) {
   return this.noSuchMethod("getOrMakeConcreteType", [$0]);
-};
-Object.prototype.getValues$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "getValues$0", { value: function() {
   return this.noSuchMethod("getValues", []);
-};
-Object.prototype.get_$3 = function($0, $1, $2) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "get_$3", { value: function($0, $1, $2) {
   return this.noSuchMethod("get_", [$0, $1, $2]);
-};
-Object.prototype.hasNext$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "hasNext$0", { value: function() {
   return this.noSuchMethod("hasNext", []);
-};
-Object.prototype.hashCode$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "hashCode$0", { value: function() {
   return this.noSuchMethod("hashCode", []);
-};
-Object.prototype.indexOf$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "indexOf$1", { value: function($0) {
   return this.noSuchMethod("indexOf", [$0]);
-};
-Object.prototype.initFields$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "initFields$0", { value: function() {
   return this.noSuchMethod("initFields", []);
-};
-Object.prototype.instanceOf$3$isTrue$forceCheck = function($0, $1, $2, isTrue, forceCheck) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "instanceOf$3$isTrue$forceCheck", { value: function($0, $1, $2, isTrue, forceCheck) {
   return this.noSuchMethod("instanceOf", [$0, $1, $2, isTrue, forceCheck]);
-};
-Object.prototype.instanceOf$4 = function($0, $1, $2, $3) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "instanceOf$4", { value: function($0, $1, $2, $3) {
   return this.noSuchMethod("instanceOf", [$0, $1, $2, $3]);
-};
-Object.prototype.invoke$4 = function($0, $1, $2, $3) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "invoke$4", { value: function($0, $1, $2, $3) {
   return this.noSuchMethod("invoke", [$0, $1, $2, $3]);
-};
-Object.prototype.invoke$4$isDynamic = function($0, $1, $2, $3, isDynamic) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "invoke$4$isDynamic", { value: function($0, $1, $2, $3, isDynamic) {
   return this.noSuchMethod("invoke", [$0, $1, $2, $3, isDynamic]);
-};
-Object.prototype.invoke$5 = function($0, $1, $2, $3, $4) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "invoke$5", { value: function($0, $1, $2, $3, $4) {
   return this.noSuchMethod("invoke", [$0, $1, $2, $3, $4]);
-};
-Object.prototype.is$List = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "is$List", { value: function() {
   return false;
-};
-Object.prototype.is$RegExp = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "is$RegExp", { value: function() {
   return false;
-};
-Object.prototype.isAssignable$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "isAssignable$1", { value: function($0) {
   return this.noSuchMethod("isAssignable", [$0]);
-};
-Object.prototype.isEmpty$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "isEmpty$0", { value: function() {
   return this.noSuchMethod("isEmpty", []);
-};
-Object.prototype.isSubtypeOf$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "isSubtypeOf$1", { value: function($0) {
   return this.noSuchMethod("isSubtypeOf", [$0]);
-};
-Object.prototype.iterator$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "iterator$0", { value: function() {
   return this.noSuchMethod("iterator", []);
-};
-Object.prototype.last$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "last$0", { value: function() {
   return this.noSuchMethod("last", []);
-};
-Object.prototype.markUsed$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "markUsed$0", { value: function() {
   return this.noSuchMethod("markUsed", []);
-};
-Object.prototype.namesInOrder$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "namesInOrder$1", { value: function($0) {
   return this.noSuchMethod("namesInOrder", [$0]);
-};
-Object.prototype.needsConversion$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "needsConversion$1", { value: function($0) {
   return this.noSuchMethod("needsConversion", [$0]);
-};
-Object.prototype.next$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "next$0", { value: function() {
   return this.noSuchMethod("next", []);
-};
-Object.prototype.provideFieldSyntax$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "provideFieldSyntax$0", { value: function() {
   return this.noSuchMethod("provideFieldSyntax", []);
-};
-Object.prototype.providePropertySyntax$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "providePropertySyntax$0", { value: function() {
   return this.noSuchMethod("providePropertySyntax", []);
-};
-Object.prototype.removeLast$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "removeLast$0", { value: function() {
   return this.noSuchMethod("removeLast", []);
-};
-Object.prototype.replaceFirst$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "replaceFirst$2", { value: function($0, $1) {
   return this.noSuchMethod("replaceFirst", [$0, $1]);
-};
-Object.prototype.resolve$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "resolve$0", { value: function() {
   return this.noSuchMethod("resolve", []);
-};
-Object.prototype.resolveTypeParams$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "resolveTypeParams$1", { value: function($0) {
   return this.noSuchMethod("resolveTypeParams", [$0]);
-};
-Object.prototype.setDefinition$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "setDefinition$1", { value: function($0) {
   return this.noSuchMethod("setDefinition", [$0]);
-};
-Object.prototype.set_$4 = function($0, $1, $2, $3) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "set_$4", { value: function($0, $1, $2, $3) {
   return this.noSuchMethod("set_", [$0, $1, $2, $3]);
-};
-Object.prototype.some$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "some$1", { value: function($0) {
   return this.noSuchMethod("some", [$0]);
-};
-Object.prototype.sort$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "sort$1", { value: function($0) {
   return this.noSuchMethod("sort", [$0]);
-};
-Object.prototype.start$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "start$0", { value: function() {
   return this.noSuchMethod("start", []);
-};
-Object.prototype.startsWith$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "startsWith$1", { value: function($0) {
   return this.noSuchMethod("startsWith", [$0]);
-};
-Object.prototype.substring$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "substring$1", { value: function($0) {
   return this.noSuchMethod("substring", [$0]);
-};
-Object.prototype.substring$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "substring$2", { value: function($0, $1) {
   return this.noSuchMethod("substring", [$0, $1]);
-};
-Object.prototype.toRadixString$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "toRadixString$1", { value: function($0) {
   return this.noSuchMethod("toRadixString", [$0]);
-};
-Object.prototype.toString$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "toString$0", { value: function() {
   return this.toString();
-};
-Object.prototype.unop$3 = function($0, $1, $2) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "unop$3", { value: function($0, $1, $2) {
   return this.noSuchMethod("unop", [$0, $1, $2]);
-};
-Object.prototype.visit$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "visit$1", { value: function($0) {
   return this.noSuchMethod("visit", [$0]);
-};
-Object.prototype.visitBinaryExpression$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "visitBinaryExpression$1", { value: function($0) {
   return this.noSuchMethod("visitBinaryExpression", [$0]);
-};
-Object.prototype.visitPostfixExpression$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "visitPostfixExpression$1", { value: function($0) {
   return this.noSuchMethod("visitPostfixExpression", [$0]);
-};
-Object.prototype.visitSources$0 = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "visitSources$0", { value: function() {
   return this.noSuchMethod("visitSources", []);
-};
-Object.prototype.writeDefinition$2 = function($0, $1) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "writeDefinition$2", { value: function($0, $1) {
   return this.noSuchMethod("writeDefinition", [$0, $1]);
-};
+}, enumerable: false, configurable: true });
 // ********** Code for Clock **************
 function Clock() {}
 Clock.now = function() {
@@ -560,7 +567,7 @@ function _toDartException(e) {
 //  ********** Library dart:coreimpl **************
 // ********** Code for ListFactory **************
 ListFactory = Array;
-ListFactory.prototype.is$List = function(){return true};
+Object.defineProperty(ListFactory.prototype, "is$List", { value: function(){return true}, enumerable: false, configurable: true });
 ListFactory.ListFactory$from$factory = function(other) {
   var list = [];
   for (var $$i = other.iterator(); $$i.hasNext$0(); ) {
@@ -569,60 +576,60 @@ ListFactory.ListFactory$from$factory = function(other) {
   }
   return list;
 }
-ListFactory.prototype.get$length = function() { return this.length; };
-ListFactory.prototype.set$length = function(value) { return this.length = value; };
-ListFactory.prototype.add = function(value) {
+Object.defineProperty(ListFactory.prototype, "get$length", { value: function() { return this.length; }, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "set$length", { value: function(value) { return this.length = value; }, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "add", { value: function(value) {
   this.push(value);
-}
-ListFactory.prototype.addLast = function(value) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "addLast", { value: function(value) {
   this.push(value);
-}
-ListFactory.prototype.addAll = function(collection) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "addAll", { value: function(collection) {
   for (var $$i = collection.iterator(); $$i.hasNext$0(); ) {
     var item = $$i.next$0();
     this.add(item);
   }
-}
-ListFactory.prototype.clear = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "clear", { value: function() {
   this.set$length((0));
-}
-ListFactory.prototype.removeLast = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "removeLast", { value: function() {
   return this.pop();
-}
-ListFactory.prototype.last = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "last", { value: function() {
   return this[this.get$length() - (1)];
-}
-ListFactory.prototype.getRange = function(start, length) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "getRange", { value: function(start, length) {
   return this.slice(start, start + length);
-}
-ListFactory.prototype.isEmpty = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "isEmpty", { value: function() {
   return this.get$length() == (0);
-}
-ListFactory.prototype.iterator = function() {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "iterator", { value: function() {
   return new ListIterator(this);
-}
-ListFactory.prototype.add$1 = ListFactory.prototype.add;
-ListFactory.prototype.addAll$1 = ListFactory.prototype.addAll;
-ListFactory.prototype.every$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "add$1", { value: ListFactory.prototype.add, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "addAll$1", { value: ListFactory.prototype.addAll, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "every$1", { value: function($0) {
   return this.every(to$call$1($0));
-};
-ListFactory.prototype.filter$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "filter$1", { value: function($0) {
   return this.filter(to$call$1($0));
-};
-ListFactory.prototype.forEach$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "forEach$1", { value: function($0) {
   return this.forEach(to$call$1($0));
-};
-ListFactory.prototype.indexOf$1 = ListFactory.prototype.indexOf;
-ListFactory.prototype.isEmpty$0 = ListFactory.prototype.isEmpty;
-ListFactory.prototype.iterator$0 = ListFactory.prototype.iterator;
-ListFactory.prototype.last$0 = ListFactory.prototype.last;
-ListFactory.prototype.removeLast$0 = ListFactory.prototype.removeLast;
-ListFactory.prototype.some$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "indexOf$1", { value: ListFactory.prototype.indexOf, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "isEmpty$0", { value: ListFactory.prototype.isEmpty, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "iterator$0", { value: ListFactory.prototype.iterator, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "last$0", { value: ListFactory.prototype.last, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "removeLast$0", { value: ListFactory.prototype.removeLast, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "some$1", { value: function($0) {
   return this.some(to$call$1($0));
-};
-ListFactory.prototype.sort$1 = function($0) {
+}, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "sort$1", { value: function($0) {
   return this.sort(to$call$2($0));
-};
+}, enumerable: false, configurable: true });
 ListFactory_E = ListFactory;
 ListFactory_Expression = ListFactory;
 ListFactory_K = ListFactory;
@@ -1898,7 +1905,7 @@ EnvMap.prototype.$index = function(key) {
 }
 // ********** Code for ReadableStream **************
 // ********** Code for WritableStream **************
-Object.prototype.$typeNameOf = function() {
+Object.defineProperty(Object.prototype, '$typeNameOf', { value: function() {
   if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
       || typeof(process) != 'undefined') { // fast-path for Chrome and Node
     return this.constructor.name;
@@ -1911,7 +1918,7 @@ Object.prototype.$typeNameOf = function() {
     str = 'HTMLDocument';
   }
   return str;
-}
+}, enumerable: false, configurable: true});
 function $dynamic(name) {
   var f = Object.prototype[name];
   if (f && f.methods) return f.methods;
@@ -1937,12 +1944,16 @@ function $dynamic(name) {
     // Patch the prototype, but don't overwrite an existing stub, like
     // the one on Object.prototype.
     var proto = Object.getPrototypeOf(obj);
-    if (!proto.hasOwnProperty(name)) proto[name] = method;
+    if (!proto.hasOwnProperty(name)) {
+      Object.defineProperty(proto, name, 
+        { value: method, enumerable: false, configurable: true });
+    }
 
     return method.apply(this, Array.prototype.slice.call(arguments));
   };
   $dynamicBind.methods = methods;
-  Object.prototype[name] = $dynamicBind;
+  Object.defineProperty(Object.prototype, name, { value: $dynamicBind,
+    enumerable: false, configurable: true});
   return methods;
 }
 if (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];
@@ -2083,9 +2094,16 @@ CodeWriter.prototype.writeln = function(text) {
   if (!text.endsWith("\n")) this._buf.add("\n");
   this._pendingIndent = true;
 }
+CodeWriter.prototype.writeln.$optional = ['text', 'null']
+CodeWriter.prototype.get$writeln = function() {
+  return this.writeln.bind(this);
+}
 CodeWriter.prototype.enterBlock = function(text) {
   this.writeln(text);
   this._indentation++;
+}
+CodeWriter.prototype.get$enterBlock = function() {
+  return this.enterBlock.bind(this);
 }
 CodeWriter.prototype.exitBlock = function(text) {
   this._indentation--;
@@ -2123,7 +2141,7 @@ CoreJs.prototype.useOperator = function(name) {
 
     case ":eq":
 
-      code = "function $eq(x, y) {\n  if (x == null) return y == null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x == y : x.$eq(y);\n}\n// TODO(jimhug): Should this or should it not match equals?\nObject.prototype.$eq = function(other) { return this === other; }";
+      code = "function $eq(x, y) {\n  if (x == null) return y == null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x == y : x.$eq(y);\n}\n// TODO(jimhug): Should this or should it not match equals?\nObject.defineProperty(Object.prototype, '$eq', { value: function(other) { \n  return this === other; \n}, enumerable: false, configurable: true });";
       break;
 
     case ":bit_not":
@@ -2166,12 +2184,12 @@ CoreJs.prototype.ensureDynamicProto = function() {
   if (this._generatedDynamicProto) return;
   this._generatedDynamicProto = true;
   this.ensureTypeNameOf();
-  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var obj = this;\n    var tag = obj.$typeNameOf();\n    var method = methods[tag];\n    if (!method) {\n      var table = $dynamicMetadata;\n      for (var i = 0; i < table.length; i++) {\n        var entry = table[i];\n        if (entry.map.hasOwnProperty(tag)) {\n          method = methods[entry.tag];\n          if (method) break;\n        }\n      }\n    }\n    method = method || methods.Object;\n    // Patch the prototype, but don't overwrite an existing stub, like\n    // the one on Object.prototype.\n    var proto = Object.getPrototypeOf(obj);\n    if (!proto.hasOwnProperty(name)) proto[name] = method;\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  Object.prototype[name] = $dynamicBind;\n  return methods;\n}\nif (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];\n\nfunction $dynamicSetMetadata(inputTable) {\n  // TODO: Deal with light isolates.\n  var table = [];\n  for (var i = 0; i < inputTable.length; i++) {\n    var tag = inputTable[i][0];\n    var tags = inputTable[i][1];\n    var map = {};\n    var tagNames = tags.split('|');\n    for (var j = 0; j < tagNames.length; j++) {\n      map[tagNames[j]] = true;\n    }\n    table.push({tag: tag, tags: tags, map: map});\n  }\n  $dynamicMetadata = table;\n}\n");
+  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var obj = this;\n    var tag = obj.$typeNameOf();\n    var method = methods[tag];\n    if (!method) {\n      var table = $dynamicMetadata;\n      for (var i = 0; i < table.length; i++) {\n        var entry = table[i];\n        if (entry.map.hasOwnProperty(tag)) {\n          method = methods[entry.tag];\n          if (method) break;\n        }\n      }\n    }\n    method = method || methods.Object;\n    // Patch the prototype, but don't overwrite an existing stub, like\n    // the one on Object.prototype.\n    var proto = Object.getPrototypeOf(obj);\n    if (!proto.hasOwnProperty(name)) {\n      Object.defineProperty(proto, name, \n        { value: method, enumerable: false, configurable: true });\n    }\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  Object.defineProperty(Object.prototype, name, { value: $dynamicBind,\n    enumerable: false, configurable: true});\n  return methods;\n}\nif (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];\n\nfunction $dynamicSetMetadata(inputTable) {\n  // TODO: Deal with light isolates.\n  var table = [];\n  for (var i = 0; i < inputTable.length; i++) {\n    var tag = inputTable[i][0];\n    var tags = inputTable[i][1];\n    var map = {};\n    var tagNames = tags.split('|');\n    for (var j = 0; j < tagNames.length; j++) {\n      map[tagNames[j]] = true;\n    }\n    table.push({tag: tag, tags: tags, map: map});\n  }\n  $dynamicMetadata = table;\n}\n");
 }
 CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
   this._generatedTypeNameOf = true;
-  this.writer.writeln("Object.prototype.$typeNameOf = function() {\n  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')\n      || typeof(process) != 'undefined') { // fast-path for Chrome and Node\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  str = str.substring(8, str.length - 1);\n  if (str == 'Window') {\n    str = 'DOMWindow';\n  } else if (str == 'Document') {\n    str = 'HTMLDocument';\n  }\n  return str;\n}");
+  this.writer.writeln("Object.defineProperty(Object.prototype, '$typeNameOf', { value: function() {\n  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')\n      || typeof(process) != 'undefined') { // fast-path for Chrome and Node\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  str = str.substring(8, str.length - 1);\n  if (str == 'Window') {\n    str = 'DOMWindow';\n  } else if (str == 'Document') {\n    str = 'HTMLDocument';\n  }\n  return str;\n}, enumerable: false, configurable: true});");
 }
 CoreJs.prototype.ensureInheritsHelper = function() {
   if (this._generatedInherits) return;
@@ -2189,10 +2207,10 @@ CoreJs.prototype.generate = function(w) {
     w.writeln("function $throw(e) {\n  // If e is not a value, we can use V8's captureStackTrace utility method.\n  // TODO(jmesserly): capture the stack trace on other JS engines.\n  if (e && (typeof e == 'object') && Error.captureStackTrace) {\n    // TODO(jmesserly): this will clobber the e.stack property\n    Error.captureStackTrace(e, $throw);\n  }\n  throw e;\n}");
   }
   if (this.useIndex) {
-    w.writeln("Object.prototype.$index = function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n}\nArray.prototype.$index = function(i) { return this[i]; }\nString.prototype.$index = function(i) { return this[i]; }");
+    w.writeln("Object.defineProperty(Object.prototype, '$index', { value: function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n}, enumerable: false, configurable: true});\nObject.defineProperty(Array.prototype, '$index', { value: function(i) { \n  return this[i]; \n}, enumerable: false, configurable: true});\nObject.defineProperty(String.prototype, '$index', { value: function(i) { \n  return this[i]; \n}, enumerable: false, configurable: true});");
   }
   if (this.useSetIndex) {
-    w.writeln("Object.prototype.$setindex = function(i, value) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$setindex = function(i, value) { return this[i] = value; }\n  }\n  return this[i] = value;\n}\nArray.prototype.$setindex = function(i, value) { return this[i] = value; }");
+    w.writeln("Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$setindex = function(i, value) { return this[i] = value; }\n  }\n  return this[i] = value;\n}, enumerable: false, configurable: true});\nObject.defineProperty(Array.prototype, '$setindex', { value: function(i, value) { \n  return this[i] = value; }, enumerable: false, configurable: true});");
   }
   if (this.useIsolates) {
     if (this.useWrap0) {
@@ -2218,7 +2236,7 @@ CoreJs.prototype.generate = function(w) {
   }
   if ($globals.world.dom != null) {
     this.ensureTypeNameOf();
-    w.writeln("Object.prototype.get$typeName =  Object.prototype.$typeNameOf;");
+    w.writeln("Object.defineProperty(Object.prototype, \"get$typeName\", { value: Object.prototype.$typeNameOf, enumerable: false, configurable: true});");
   }
 }
 CoreJs.prototype.generate$1 = CoreJs.prototype.generate;
@@ -2501,10 +2519,29 @@ WorldGenerator.prototype._prototypeOf = function(type, name) {
     return ("" + type.get$jsname() + ".prototype." + name);
   }
 }
+WorldGenerator.prototype._writePrototypePatch = function(type, name, functionBody, writer, isOneLiner) {
+  var writeFunction = writer.get$writeln();
+  var ending = ";";
+  if (!isOneLiner) {
+    writeFunction = writer.get$enterBlock();
+    ending = "";
+  }
+  if (type.get$isObject() || type.name == "ListFactory") {
+    if (isOneLiner) {
+      ending = ", enumerable: false, configurable: true })" + ending;
+    }
+    writeFunction.call$1(("Object.defineProperty(" + type.get$jsname() + ".prototype, \"" + name + "\",") + (" { value: " + functionBody + ending));
+    return (!isOneLiner) ? "}, enumerable: false, configurable: true });" : "}";
+  }
+  else {
+    writeFunction.call$1(this._prototypeOf(type, name) + " = " + functionBody + ending);
+    return (!isOneLiner) ? "}" : "";
+  }
+}
 WorldGenerator.prototype._maybeIsTest = function(onType, checkType) {
   var isSubtype = onType.isSubtypeOf(checkType);
   if (checkType.isTested) {
-    this.writer.writeln(this._prototypeOf(onType, ("is$" + checkType.get$jsname())) + (" = function(){return " + isSubtype + "};"));
+    this._writePrototypePatch(onType, ("is$" + checkType.get$jsname()), ("function(){return " + isSubtype + "}"), this.writer, true);
   }
   if (checkType.isChecked) {
     var body = "return this";
@@ -2515,7 +2552,7 @@ WorldGenerator.prototype._maybeIsTest = function(onType, checkType) {
     else if ($eq(onType, $globals.world.stringImplType) || $eq(onType, $globals.world.numImplType)) {
       body = ("return " + onType.get$nativeType().name + "(this)");
     }
-    this.writer.writeln(this._prototypeOf(onType, checkName) + (" = function(){" + body + "};"));
+    this._writePrototypePatch(onType, checkName, ("function(){" + body + "}"), this.writer, true);
   }
 }
 WorldGenerator.prototype.writeType = function(type) {
@@ -2685,9 +2722,9 @@ WorldGenerator.prototype._writeField = function(field) {
     this.writer.writeln(("var " + field.get$jsname() + ";"));
   }
   if (field._providePropertySyntax) {
-    this.writer.writeln(this._prototypeOf(field.declaringType, ("get$" + field.get$jsname())) + (" = function() { return this." + field.get$jsname() + "; };"));
+    this._writePrototypePatch(field.declaringType, ("get$" + field.get$jsname()), ("function() { return this." + field.get$jsname() + "; }"), this.writer, true);
     if (!field.isFinal) {
-      this.writer.writeln(this._prototypeOf(field.declaringType, ("set$" + field.get$jsname())) + (" = function(value) { return this." + field.get$jsname() + " = value; };"));
+      this._writePrototypePatch(field.declaringType, ("set$" + field.get$jsname()), ("function(value) { return this." + field.get$jsname() + " = value; }"), this.writer, true);
     }
   }
 }
@@ -3076,6 +3113,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
   }
   var _params = ("(" + Strings.join(this._paramCode, ", ") + ")");
   var params = ("(" + Strings.join(paramCode, ", ") + ")");
+  var suffix = "}";
   if (this.method.declaringType.get$isTop() && !this.get$isClosure()) {
     defWriter.enterBlock(("function " + this.method.get$jsname() + params + " {"));
   }
@@ -3110,7 +3148,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.enterBlock(("" + this.method.declaringType.get$jsname() + "." + this.method.get$jsname() + " = function" + _params + " {"));
   }
   else {
-    defWriter.enterBlock($globals.world.gen._prototypeOf(this.method.declaringType, this.method.get$jsname()) + (" = function" + _params + " {"));
+    suffix = $globals.world.gen._writePrototypePatch(this.method.declaringType, this.method.get$jsname(), ("function" + _params + " {"), defWriter, false);
   }
   if (this.needsThis) {
     defWriter.writeln("var $this = this; // closure support");
@@ -3131,7 +3169,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.exitBlock("})");
   }
   else {
-    defWriter.exitBlock("}");
+    defWriter.exitBlock(suffix);
   }
   if (this.method.get$isConstructor() && this.method.get$constructorName() != "") {
     defWriter.writeln(("" + this.method.declaringType.get$jsname() + "." + this.method.get$constructorName() + "$ctor.prototype = ") + ("" + this.method.declaringType.get$jsname() + ".prototype;"));
@@ -3143,9 +3181,9 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
 }
 MethodGenerator._maybeGenerateBoundGetter = function(m, defWriter) {
   if (m._providePropertySyntax) {
-    defWriter.enterBlock($globals.world.gen._prototypeOf(m.declaringType, "get$" + m.get$jsname()) + " = function() {");
+    var suffix = $globals.world.gen._writePrototypePatch(m.declaringType, "get$" + m.get$jsname(), "function() {", defWriter, false);
     defWriter.writeln(("return this." + m.get$jsname() + ".bind(this);"));
-    defWriter.exitBlock("}");
+    defWriter.exitBlock(suffix);
     if (m._provideFieldSyntax) {
       $globals.world.internalError(("bound \"" + m.name + "\" accessed with field syntax"), m.definition.span);
     }
@@ -13715,24 +13753,27 @@ VarMethodStub.prototype.get$declaringType = function() {
 }
 VarMethodStub.prototype.generate = function(code) {
   this.isGenerated = true;
-  code.write($globals.world.gen._prototypeOf(this.get$declaringType(), this.name) + " = ");
   if (!this.get$isHidden() && this._useDirectCall(this.args)) {
-    code.writeln($globals.world.gen._prototypeOf(this.get$declaringType(), this.member.get$jsname()) + ";");
-  }
-  else if (this._needsExactTypeCheck()) {
-    code.enterBlock(("function(" + this.args.getCode() + ") {"));
-    code.enterBlock(("if (Object.getPrototypeOf(this).hasOwnProperty(\"" + this.name + "\")) {"));
-    code.writeln(("" + this.body + ";"));
-    code.exitBlock("}");
-    var argsCode = this.args.getCode();
-    if (argsCode != "") argsCode = ", " + argsCode;
-    code.writeln(("return Object.prototype." + this.name + ".call(this" + argsCode + ");"));
-    code.exitBlock("};");
+    $globals.world.gen._writePrototypePatch(this.get$declaringType(), this.name, $globals.world.gen._prototypeOf(this.get$declaringType(), this.member.get$jsname()), code, true);
   }
   else {
-    code.enterBlock(("function(" + this.args.getCode() + ") {"));
-    code.writeln(("" + this.body + ";"));
-    code.exitBlock("};");
+    var suffix = $globals.world.gen._writePrototypePatch(this.get$declaringType(), this.name, ("function(" + this.args.getCode() + ") {"), code, false);
+    if (!suffix.endsWith(";")) {
+      suffix = suffix + ";";
+    }
+    if (this._needsExactTypeCheck()) {
+      code.enterBlock(("if (Object.getPrototypeOf(this).hasOwnProperty(\"" + this.name + "\")) {"));
+      code.writeln(("" + this.body + ";"));
+      code.exitBlock("}");
+      var argsCode = this.args.getCode();
+      if (argsCode != "") argsCode = ", " + argsCode;
+      code.writeln(("return Object.prototype." + this.name + ".call(this" + argsCode + ");"));
+      code.exitBlock(suffix);
+    }
+    else {
+      code.writeln(("" + this.body + ";"));
+      code.exitBlock(suffix);
+    }
   }
 }
 VarMethodStub.prototype._needsExactTypeCheck = function() {
