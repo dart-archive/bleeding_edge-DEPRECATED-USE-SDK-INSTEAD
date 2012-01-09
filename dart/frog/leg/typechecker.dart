@@ -328,7 +328,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
           || name === '>>' || name === '[]') {
         return types.dynamicType;
       } else if (name === '<' || name === '>' || name === '<='
-                 || name === '>=' || name === '==') {
+                 || name === '>=' || name === '==' || name === '!='
+                 || name === '===' || name === '!==') {
         return boolType;
       } else if (name === '||' || name === '&&' || name === '!') {
         checkAssignable(firstArgument, boolType, firstArgumentType);
