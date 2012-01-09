@@ -877,6 +877,8 @@ class Modifiers extends Node {
   Modifiers(NodeList nodes)
     : this.nodes = nodes, flags = computeFlags(nodes.nodes);
 
+  Modifiers.empty() : this(new NodeList.empty()); 
+
   static int computeFlags(Link<Node> nodes) {
     int flags = 0;
     for (; !nodes.isEmpty(); nodes = nodes.tail) {

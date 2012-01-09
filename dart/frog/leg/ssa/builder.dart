@@ -511,7 +511,24 @@ class SsaBuilder implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    compiler.unimplemented('SsaBuilder.visitFunctionExpression');
+    FunctionElement element = elements[node];
+    ClassElement globalizedClosureElement =
+        new ClassElement(const SourceString("Closure"), null);
+    String callName = compiler.namer.closureInvocationName();
+    Modifiers modifiers = new Modifiers.empty();
+    FunctionElement callElement =
+        new FunctionElement(new SourceString(callName),
+                            ElementKind.FUNCTION,
+                            modifiers,
+                            globalizedClosureElement);
+    callElement.node = element.node;
+    callElement.parameters = element.parameters;
+    globalizedClosureElement.backendMembers =
+        const EmptyLink<Element>().prepend(callElement);
+    globalizedClosureElement.isResolved = true;
+    compiler.worklist.add(new WorkElement.toCodegen(callElement, elements));
+    compiler.registerInstantiatedClass(globalizedClosureElement);
+    push(new HForeignNew(globalizedClosureElement, <HInstruction>[]));
   }
 
   visitIdentifier(Identifier node) {
@@ -521,7 +538,9 @@ class SsaBuilder implements Visitor {
       Element element = elements[node];
       compiler.ensure(element !== null);
       HInstruction def = definitions[element];
-      assert(def !== null);
+      if (def === null) {
+        compiler.unimplemented("Ssa.visitIdentifier.", node: node);
+      }
       stack.add(def);
     }
   }
