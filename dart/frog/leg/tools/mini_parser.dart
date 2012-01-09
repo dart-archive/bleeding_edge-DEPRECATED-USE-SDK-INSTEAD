@@ -294,6 +294,10 @@ class MySourceFile extends SourceFile {
     } else {
       if (stringText === null) {
         stringText = new String.fromCharCodes(rawText);
+        if (stringText.endsWith('\u0000')) {
+          // Strip trailing NUL used by ByteArrayScanner to signal EOF.
+          stringText = stringText.substring(0, stringText.length - 1);
+        }
       }
       return stringText;
     }
