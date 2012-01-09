@@ -1,15 +1,34 @@
+#
+# Internal options for the Dart Compiler
+#
+# To run Dart Editor with custom options,
+# copy one or more of these settings to an options file
+# then launch Dart Editor from the command line with 
+#
+#     -debug /path/to/options/file
+#
 com.google.dart.tools.core/debug/build = false
 com.google.dart.tools.core/debug/dartlib = false
-com.google.dart.tools.core/debug/frog = false
 com.google.dart.tools.core/debug/metrics = false
 com.google.dart.tools.core/debug/warmup = false
 com.google.dart.tools.core/debug/verbose = false
 com.google.dart.tools.core/bleedingEdge = false
 com.google.dart.tools.core/debugger = false
-com.google.dart.tools.core/deployFrog = false
 
+########################################################################
+# These options allow you to use the Frog compiler rather than DartC
 
-# These options allow you to override the default libraries used during compilation
+# Set true for automatically building with Frog ...
+com.google.dart.tools.core/build/frog = false
+
+# Set true for using Frog during "Generate Optimized Javascript..."
+com.google.dart.tools.core/deploy/frog = false
+
+# Set true for debugging communication with Frog server
+com.google.dart.tools.core/debug/frog = false
+
+########################################################################
+# These options allow you to override the libraries used during DartC compilation
 #   com.google.dart.tools.core/platform/name
 #     sets the "name" used when locating libraries
 #     "compiler" for DartC
@@ -35,12 +54,18 @@ com.google.dart.tools.core/deployFrog = false
 #            .. other dom files and subdirectories ...
 #          ... other library directories ...
 #
+
 # Using the default Dart Editor DartC libraries ...
 com.google.dart.tools.core/platform/name = compiler
 com.google.dart.tools.core/libraries/embedded = 
 com.google.dart.tools.core/libraries/path = libraries
-#
+
 # Using VM libraries in SDK....
 #com.google.dart.tools.core/platform/name = runtime
 #com.google.dart.tools.core/libraries/embedded = dart:builtin
-#com.google.dart.tools.core/libraries/path = sdk/lib
+#com.google.dart.tools.core/libraries/path = dart-sdk/lib
+
+# Using Frog libraries in SDK....
+#com.google.dart.tools.core/platform/name = frog
+#com.google.dart.tools.core/libraries/embedded = 
+#com.google.dart.tools.core/libraries/path = dart-sdk/lib

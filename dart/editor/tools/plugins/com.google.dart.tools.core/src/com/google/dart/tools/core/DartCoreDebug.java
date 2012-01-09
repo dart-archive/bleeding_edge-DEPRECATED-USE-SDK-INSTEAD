@@ -28,12 +28,14 @@ public class DartCoreDebug {
 
   public static final boolean BUILD = isOptionTrue("debug/build");
   public static final boolean DARTLIB = isOptionTrue("debug/dartlib");
-  public static final boolean FROG = isOptionTrue("debug/frog");
   public static final boolean METRICS = isOptionTrue("debug/metrics");
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
   public static final boolean VERBOSE = isOptionTrue("debug/verbose");
 
-  public static final boolean DEPLOY_FROG = isOptionTrue("deployFrog");
+  public static final boolean BUILD_FROG = isOptionTrue("build/frog");
+  public static final boolean DEPLOY_FROG = isOptionTrue("deploy/frog");
+  public static final boolean FROG = isOptionTrue("debug/frog");
+
   public static final boolean DEBUGGER = isOptionTrue("debugger");
   public static final boolean BLEEDING_EDGE = isOptionTrue("bleedingEdge");
 

@@ -67,7 +67,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
     // TODO(keertip) : remove call to dartc if frog is being used, once indexer is independent
     // If bleeding edge, then dartc does not produce any js files
     if (firstBuildThisSession || hasDartSourceChanged()) {
-      if (DartCoreDebug.BLEEDING_EDGE) {
+      if (DartCoreDebug.BUILD_FROG) {
         SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 
         // call frog builder
@@ -76,7 +76,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
         monitor = subMonitor.newChild(50);
       }
 
-      dartcBuildHandler.buildAllApplications(getProject(), !DartCoreDebug.BLEEDING_EDGE, monitor);
+      dartcBuildHandler.buildAllApplications(getProject(), !DartCoreDebug.BUILD_FROG, monitor);
 
       if (firstBuildThisSession) {
         firstBuildThisSession = false;
@@ -92,7 +92,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
   @Override
   protected void clean(IProgressMonitor monitor) throws CoreException {
-    if (DartCoreDebug.BLEEDING_EDGE) {
+    if (DartCoreDebug.BUILD_FROG) {
       SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
       frogBuilderHandler.clean(getProject(), subMonitor.newChild(50));
       monitor = subMonitor.newChild(50);

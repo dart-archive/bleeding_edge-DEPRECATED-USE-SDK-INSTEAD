@@ -213,6 +213,14 @@ Testing section, click on the 'Launch an Eclipse Application' link. Another inst
 Eclipse should launch, running the Dart Editor!
 
 ====================================
+  Dart Editor Options
+====================================
+
+Dart Editor has some internal options for adjusting what information is logged
+and what technology is used when compiling and launching Dart source.
+See dart/editor/tools/plugins/com.google.dart.tools.core/.options
+
+====================================
   Building the Dart Editor
 ====================================
 
