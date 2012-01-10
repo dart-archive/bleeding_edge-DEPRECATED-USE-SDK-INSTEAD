@@ -269,8 +269,8 @@ class MyCanceller implements Canceler {
       endToken = node.getEndToken();
     }
     String message = formatError(reason, beginToken, endToken, file);
+    if (options.throwOnError) throw new ParserError(message);
     print(message);
-    if (options.throwOnError) new ParserError(message);
   }
 }
 

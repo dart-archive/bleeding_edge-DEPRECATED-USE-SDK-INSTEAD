@@ -196,6 +196,12 @@ class Listener {
   void endSwitchStatement(Token switchKeyword, Token endToken) {
   }
 
+  void beginSwitchBlock(Token token) {
+  }
+
+  void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
+  }
+
   void beginThrowStatement(Token token) {
   }
 
@@ -305,6 +311,10 @@ class Listener {
                                Token continueKeyword, Token endToken) {
   }
 
+  void handleDefaultCase(Token colon, Token defaultKeyword, int statementCount,
+                         Token endToken) {
+  }
+
   void handleEmptyStatement(Token token) {
   }
 
@@ -365,6 +375,10 @@ class Listener {
   }
 
   void handleSuperExpression(Token token) {
+  }
+
+  void handleSwitchCase(Token colon, Token caseKeyword, int statementCount,
+                        Token endToken) {
   }
 
   void handleThisExpression(Token token) {
@@ -1097,11 +1111,36 @@ class NodeListener extends ElementListener {
   }
 
   void endSwitchStatement(Token switchKeyword, Token endToken) {
+    popNode(); // Discard block.
     ParenthesizedExpression expression = popNode();
     SwitchStatement node =
       new SwitchStatement(expression, switchKeyword, endToken);
-    canceler.cancel('switch statement is not implemented', node: node);
     pushNode(node);
+  }
+
+  void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
+    pushNode(makeNodeList(caseCount, beginToken, endToken, null));
+  }
+
+  void handleSwitchCase(Token colon, Token caseKeyword, int statementCount,
+                        Token endToken) {
+    NodeList statements = makeNodeList(statementCount, null, null, null);
+    Expression expression = popNode();
+    if (colon !== null) {
+      popNode(); // Discard label.
+    }
+    pushNode(statements);
+    canceler.cancel('switch cases are not implemented', token: caseKeyword);
+  }
+
+  void handleDefaultCase(Token colon, Token defaultKeyword, int statementCount,
+                         Token endToken) {
+    NodeList statements = makeNodeList(statementCount, null, null, null);
+    if (colon !== null) {
+      popNode(); // Discard label.
+    }
+    pushNode(statements);
+    canceler.cancel('default case is not implemented', token: defaultKeyword);
   }
 
   void handleBreakStatement(bool hasTarget,
