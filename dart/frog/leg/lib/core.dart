@@ -335,6 +335,11 @@ class Expect {
   static void _fail(String message) {
     throw message;
   }
+
+  static void isTrue(var actual) {
+    if (actual === true) return;
+    _fail("Expect.isTrue($actual) fails.");
+  }
 }
 
 class Stopwatch {

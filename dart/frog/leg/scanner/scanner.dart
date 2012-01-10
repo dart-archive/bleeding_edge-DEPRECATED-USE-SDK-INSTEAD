@@ -518,16 +518,27 @@ class AbstractScanner<T> implements Scanner {
   }
 
   int tokenizeMultiLineComment(int next) {
+    int nesting = 1;
     next = advance();
     while (true) {
       if ($EOF === next) {
+        // TODO(ahe): Report error.
         return next;
       } else if ($STAR === next) {
         next = advance();
-        if (next === $SLASH) {
-          return advance();
-        } else if (next === $EOF) {
-          return next;
+        if ($SLASH === next) {
+          --nesting;
+          if (0 === nesting) {
+            return advance();
+          } else {
+            next = advance();
+          }
+        }
+      } else if ($SLASH === next) {
+        next = advance();
+        if ($STAR === next) {
+          next = advance();
+          ++nesting;
         }
       } else {
         next = advance();
