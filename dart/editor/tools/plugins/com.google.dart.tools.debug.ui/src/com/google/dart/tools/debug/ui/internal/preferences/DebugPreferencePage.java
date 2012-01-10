@@ -34,6 +34,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -59,7 +60,8 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
     @Override
     public Image getImage(Object element) {
-      return new Image(Display.getDefault(), ((Program) element).getImageData());
+      ImageData data = ((Program) element).getImageData();
+      return (data == null) ? null : new Image(Display.getDefault(), data);
     }
 
     @Override
