@@ -28,8 +28,15 @@ find .. \( \
     -o -name ClassKeywordTest.dart \
     -o -name Prefix19NegativeTest.dart \
     -o -name Operator2NegativeTest.dart \
+    -o -name 02_1_Class_Construction_A16_t02.dart \
+    -o -name 02_1_Class_Construction_A19_t01.dart \
+    -o -name 02_2_Interface_A02_t02.dart \
+    -o -name 13_4_Interface_Types_A04_t01.dart \
+    -o -name 13_4_Interface_Types_A04_t02.dart \
+    -o -name MapLiteral2Test.dart \
     -o \( -type d -name xcodebuild \) \
     -o \( -type d -name out \) \
+    -o \( -type d -name await \) \
     \) -prune -o \
     -name \*.dart -type f -print \
     | grep -v /editor/tools/plugins/com.google.dart.tools.core_test/src/com/google/dart/tools/core/internal/model/testsource/ClassTest.dart \

@@ -188,7 +188,7 @@ class Parser {
 
   Token skipBlock(Token token) {
     if (!optional('{', token)) {
-      return listener.expectedBlock(token);
+      return listener.unexpected(token);
     }
     BeginGroupToken beginGroupToken = token;
     assert(beginGroupToken.endGroup === null ||
@@ -369,7 +369,7 @@ class Parser {
         if (token.kind === EOF_TOKEN) {
           // TODO(ahe): This is a hack. It would be better to tell the
           // listener more explicitly that it must pop an identifier.
-          listener.endTopLevelFields(0, start, token);
+          listener.endTopLevelFields(1, start, token);
           return token;
         }
       }
@@ -479,7 +479,7 @@ class Parser {
   Token peekAfterType(Token token) {
     // TODO(ahe): Also handle var?
     if ('void' !== token.stringValue && !isIdentifier(token)) {
-      listener.expectedIdentifier(token);
+      listener.unexpected(token);
     }
     // We are looking at "identifier ...".
     Token peek = token.next;
@@ -507,7 +507,9 @@ class Parser {
     Token begin = token;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
-      return listener.expectedBlock(token);
+      token = listener.unexpected(token);
+      listener.endClassBody(0, begin, null);
+      return token;
     }
     token = token.next;
     int count = 0;
@@ -549,6 +551,11 @@ class Parser {
         break;
       } else {
         token = listener.unexpected(token);
+        if (token.kind === EOF_TOKEN) {
+          // TODO(ahe): This is a hack, see parseTopLevelMember.
+          listener.endFields(1, start, token);
+          return token;
+        }
       }
     }
     if (isField) {
@@ -995,7 +1002,10 @@ class Parser {
     BeginGroupToken begin = token;
     token = expect('(', token);
     token = parseExpression(token);
-    assert(begin.endGroup === token);
+    if (begin.endGroup !== token) {
+      listener.unexpected(token);
+      token = begin.endGroup;
+    }
     listener.handleParenthesizedExpression(begin);
     return expect(')', token);
   }
@@ -1110,7 +1120,12 @@ class Parser {
       named = true;
       token = parseIdentifier(token.next);
     }
-    token = parseArguments(token);
+    if (optional('(', token)) {
+      token = parseArguments(token);
+    } else {
+      listener.handleNoArguments(token);
+      token = listener.unexpected(token);
+    }
     listener.handleNewExpression(newKeyword, named);
     return token;
   }

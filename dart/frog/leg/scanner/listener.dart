@@ -392,16 +392,10 @@ class Listener {
 
   void expectedIdentifier(Token token) {
     error("expected identifier, but got '$token'", token);
-    return skipToEof(token);
   }
 
   Token expectedType(Token token) {
     error("expected a type, but got '$token'", token);
-    return skipToEof(token);
-  }
-
-  Token expectedBlock(Token token) {
-    error("expected a block, but got '$token'", token);
     return skipToEof(token);
   }
 
@@ -455,7 +449,11 @@ class ElementListener extends Listener {
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,
                            Token endToken) {
-    discardNodes("implements", interfacesCount);
+    NodeList interfaces =
+        makeNodeList(interfacesCount, implementsKeyword, null, ",");
+    if (interfacesCount !== 0) {
+      canceler.cancel('interfaces are not implemented', node: interfaces);
+    }
     TypeAnnotation supertype = popNode();
     Identifier name = popNode();
     pushElement(new PartialClassElement(
@@ -569,13 +567,6 @@ class ElementListener extends Listener {
     pushNode(new Modifiers(nodes));
   }
 
-  void discardNodes(String reason, int count) {
-    for (; count > 0; --count) {
-      Node node = popNode();
-      canceler.cancel('Unsupported feature $reason', node: node);
-    }
-  }
-
   Token expected(String string, Token token) {
     canceler.cancel("expected '$string', but got '$token'", token: token);
     return skipToEof(token);
@@ -583,16 +574,12 @@ class ElementListener extends Listener {
 
   void expectedIdentifier(Token token) {
     canceler.cancel("expected identifier, but got '$token'", token: token);
-    return skipToEof(token);
+    pushNode(null);
   }
 
   Token expectedType(Token token) {
     canceler.cancel("expected a type, but got '$token'", token: token);
-    return skipToEof(token);
-  }
-
-  Token expectedBlock(Token token) {
-    canceler.cancel("expected a block, but got '$token'", token: token);
+    pushNode(null);
     return skipToEof(token);
   }
 

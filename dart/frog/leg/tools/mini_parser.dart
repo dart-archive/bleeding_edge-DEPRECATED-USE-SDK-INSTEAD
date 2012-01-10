@@ -17,6 +17,7 @@ int charCount = 0;
 Stopwatch stopwatch;
 
 void main() {
+  filesWithCrashes = [];
   stopwatch = new Stopwatch();
   MyOptions options = new MyOptions();
 
@@ -33,7 +34,7 @@ void main() {
       print('Parsed $stats.');
     }
     if (filesWithCrashes.length !== 0) {
-      print('The following files caused a crash:');
+      print('The following ${filesWithCrashes.length} files caused a crash:');
       for (String file in filesWithCrashes) {
         print(file);
       }
@@ -66,7 +67,7 @@ void main() {
       return;
     }
     stopwatch.start();
-    charCount += parseFile(argument, options);
+    parseFile(argument, options);
     stopwatch.stop();
   }
 
@@ -126,7 +127,6 @@ Token scan(MySourceFile source) {
 var filesWithCrashes;
 
 void parseFilesFrom(InputStream input, MyOptions options, Function whenDone) {
-  filesWithCrashes = [];
   void readLine(String line) {
     stopwatch.start();
     try {
@@ -190,13 +190,13 @@ class MyListener extends Listener {
   }
 
   void error(String message, Token token) {
-    ++errorCount;
-    throw new ParserError(formatError(message, beginToken, endToken, file));
+    throw new ParserError(formatError(message, token, token, file));
   }
 }
 
 void formatError(String message, Token beginToken, Token endToken,
                  SourceFile file) {
+  ++errorCount;
   if (beginToken === null) return '${file.filename}: $message';
   String tokenString = endToken.toString();
   int begin = beginToken.charOffset;
