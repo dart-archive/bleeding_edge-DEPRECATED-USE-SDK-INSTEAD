@@ -252,6 +252,7 @@ build system.  The PDE build system has to run under Eclipse.
         </copy>
         
         <!-- dart:nativewrappers -->
+        <mkdir dir="${libraries.out.dir}/nativewrappers"/>
         <echo file="${libraries.out.dir}/nativewrappers/nativewrappers.dart">
 #library("nativewrappers");
 
