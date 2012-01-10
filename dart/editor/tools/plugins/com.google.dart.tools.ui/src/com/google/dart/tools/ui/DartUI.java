@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui;
@@ -134,7 +132,7 @@ public final class DartUI {
    * <code>showView</code>, the returned <code>IViewPart</code> can be safely cast to an
    * <code>ILibrariesViewPart</code>.
    * </p>
-   *
+   * 
    * @see ILibrariesViewPart
    * @see org.eclipse.ui.IWorkbenchPage#findView(java.lang.String)
    * @see org.eclipse.ui.IWorkbenchPage#showView(java.lang.String)
@@ -155,7 +153,7 @@ public final class DartUI {
    * <code>showView</code>, the returned <code>IViewPart</code> can be safely cast to an
    * <code>ITypeHierarchyViewPart</code>.
    * </p>
-   *
+   * 
    * @see ITypeHierarchyViewPart
    * @see org.eclipse.ui.IWorkbenchPage#findView(java.lang.String)
    * @see org.eclipse.ui.IWorkbenchPage#showView(java.lang.String)
@@ -165,16 +163,22 @@ public final class DartUI {
   /**
    * The view part id of the source (declaration) view (value
    * <code>"com.google.dart.tools.ui.SourceView"</code>).
-   *
+   * 
    * @see org.eclipse.ui.IWorkbenchPage#findView(java.lang.String)
    * @see org.eclipse.ui.IWorkbenchPage#showView(java.lang.String)
    */
   public static final String ID_SOURCE_VIEW = "com.google.dart.tools.ui.SourceView"; //$NON-NLS-1$
 
   /**
+   * The view part id of the Files view (value <code>"com.google.dart.tools.ui.FileExplorer"</code>
+   * ).
+   */
+  public static final String ID_FILE_EXPLORER = "com.google.dart.tools.ui.FileExplorer"; //$NON-NLS-1$
+
+  /**
    * The view part id of the JavaScript Documentation view (value
    * <code>"com.google.dart.tools.ui.JavadocView"</code>).
-   *
+   * 
    * @see org.eclipse.ui.IWorkbenchPage#findView(java.lang.String)
    * @see org.eclipse.ui.IWorkbenchPage#showView(java.lang.String)
    */
@@ -215,7 +219,7 @@ public final class DartUI {
    * is responsible for opening the dialog with <code>Window.open</code>, and subsequently
    * extracting the selected package (of type <code>IPackageFragment</code>) via
    * <code>SelectionDialog.getResult</code>.
-   *
+   * 
    * @param parent the parent shell of the dialog to be created
    * @param project the JavaScript project
    * @param style flags defining the style of the dialog; the valid flags are:
@@ -237,7 +241,7 @@ public final class DartUI {
    * is responsible for opening the dialog with <code>Window.open</code>, and subsequently
    * extracting the selected package (of type <code>IPackageFragment</code>) via
    * <code>SelectionDialog.getResult</code>.
-   *
+   * 
    * @param parent the parent shell of the dialog to be created
    * @param project the JavaScript project
    * @param style flags defining the style of the dialog; the valid flags are:
@@ -302,7 +306,7 @@ public final class DartUI {
    * Creates a selection dialog that lists all types in the given project. The caller is responsible
    * for opening the dialog with <code>Window.open</code>, and subsequently extracting the selected
    * type(s) (of type <code>Type</code> ) via <code>SelectionDialog.getResult</code>.
-   *
+   * 
    * @param parent the parent shell of the dialog to be created
    * @param context the runnable context used to show progress when the dialog is being populated
    * @param project the JavaScript project
@@ -333,7 +337,7 @@ public final class DartUI {
    * caller is responsible for opening the dialog with <code>Window.open</code>, and subsequently
    * extracting the selected package (of type <code>IPackageFragment</code>) via
    * <code>SelectionDialog.getResult</code>.
-   *
+   * 
    * @param parent the parent shell of the dialog to be created
    * @param root the package fragment root
    * @return a new selection dialog
@@ -349,7 +353,7 @@ public final class DartUI {
    * caller is responsible for opening the dialog with <code>Window.open</code>, and subsequently
    * extracting the selected package (of type <code>IPackageFragment</code>) via
    * <code>SelectionDialog.getResult</code>.
-   *
+   * 
    * @param parent the parent shell of the dialog to be created
    * @param root the package fragment root
    * @param filter the initial pattern to filter the set of packages. For example "com" shows all
@@ -372,7 +376,7 @@ public final class DartUI {
    * caller is responsible for opening the dialog with <code>Window.open</code>, and subsequently
    * extracting the selected package (of type <code>IPackageFragment</code>) via
    * <code>SelectionDialog.getResult</code>.
-   *
+   * 
    * @param parent the parent shell of the dialog to be created
    * @param context the runnable context to run the search in
    * @param scope the scope defining the available packages.
@@ -402,7 +406,7 @@ public final class DartUI {
    * Creates a selection dialog that lists all types in the given scope. The caller is responsible
    * for opening the dialog with <code>Window.open</code>, and subsequently extracting the selected
    * type(s) (of type <code>Type</code> ) via <code>SelectionDialog.getResult</code>.
-   *
+   * 
    * @param parent the parent shell of the dialog to be created
    * @param context the runnable context used to show progress when the dialog is being populated
    * @param scope the scope that limits which types are included
@@ -428,7 +432,7 @@ public final class DartUI {
    * Creates a selection dialog that lists all types in the given scope. The caller is responsible
    * for opening the dialog with <code>Window.open</code>, and subsequently extracting the selected
    * type(s) (of type <code>Type</code> ) via <code>SelectionDialog.getResult</code>.
-   *
+   * 
    * @param parent the parent shell of the dialog to be created
    * @param context the runnable context used to show progress when the dialog is being populated
    * @param scope the scope that limits which types are included
@@ -459,7 +463,7 @@ public final class DartUI {
    * Creates a selection dialog that lists all types in the given scope. The caller is responsible
    * for opening the dialog with <code>Window.open</code>, and subsequently extracting the selected
    * type(s) (of type <code>Type</code> ) via <code>SelectionDialog.getResult</code>.
-   *
+   * 
    * @param parent the parent shell of the dialog to be created
    * @param context the runnable context used to show progress when the dialog is being populated
    * @param scope the scope that limits which types are included
@@ -504,7 +508,7 @@ public final class DartUI {
   /**
    * Returns the color manager the JavaScript UI plug-in which is used to manage any Java-specific
    * colors needed for such things like syntax highlighting.
-   *
+   * 
    * @return the color manager to be used for JavaScript text viewers
    */
   public static IColorManager getColorManager() {
@@ -514,7 +518,7 @@ public final class DartUI {
   /**
    * Returns the Dartdoc URL for an element. This returned location doesn't have to exist. Returns
    * <code>null</code> if no Dartdoc location has been attached to the element's library or project.
-   *
+   * 
    * @param element the element for which the documentation URL is requested.
    * @param includeAnchor If set, the URL contains an anchor for member references
    * @return the Dartdoc URL for the element
@@ -531,20 +535,20 @@ public final class DartUI {
    * Returns the transfer instance used to copy/paste JavaScript elements to and from the clipboard.
    * Objects managed by this transfer instance are of type <code>DartElement[]</code>. So to access
    * data from the clipboard clients should use the following code snippet:
-   *
+   * 
    * <pre>
    * DartElement[] elements = (DartElement[]) clipboard.getContents(DartUI.getDartElementClipboardTransfer());
    * </pre>
-   *
+   * 
    * To put elements into the clipboard use the following snippet:
-   *
+   * 
    * <pre>
    *    DartElement[] dartElements= ...;
    *    clipboard.setContents(
    *     new Object[] { dartElements },
    *     new Transfer[] { DartUI.getDartElementClipboardTransfer() } );
    * </pre>
-   *
+   * 
    * @return returns the transfer object used to copy/paste Dart elements to and from the clipboard
    */
   public static Transfer getDartElementClipboardTransfer() {
@@ -555,7 +559,7 @@ public final class DartUI {
 
   /**
    * Returns the DocumentProvider used for JavaScript compilation units.
-   *
+   * 
    * @return the DocumentProvider for JavaScript compilation units.
    * @see IDocumentProvider
    */
@@ -565,7 +569,7 @@ public final class DartUI {
 
   /**
    * Returns the Dart element wrapped by the given editor input.
-   *
+   * 
    * @param editorInput the editor input
    * @return the Dart element wrapped by <code>editorInput</code> or <code>null</code> if none
    */
@@ -664,7 +668,7 @@ public final class DartUI {
 
   /**
    * Returns the shared images for the JavaScript UI.
-   *
+   * 
    * @return the shared images manager
    */
   public static ISharedImages getSharedImages() {
@@ -677,7 +681,7 @@ public final class DartUI {
 
   /**
    * Returns the working copy manager for the JavaScript UI plug-in.
-   *
+   * 
    * @return the working copy manager for the JavaScript UI plug-in
    */
   public static IWorkingCopyManager getWorkingCopyManager() {
@@ -689,7 +693,7 @@ public final class DartUI {
    * JavaScript elements that are {@link SourceReference}. For elements inside a compilation unit or
    * class file, the parent is opened in the editor is opened and the element revealed. If there
    * already is an open JavaScript editor for the given element, it is returned.
-   *
+   * 
    * @param element the input element; either a compilation unit ( <code>CompilationUnit</code>) or
    *          a class file ( <code>IClassFile</code>) or source references inside.
    * @return returns the editor part of the opened editor or <code>null</code> if the element is not
@@ -709,7 +713,7 @@ public final class DartUI {
    * JavaScript elements that are {@link SourceReference}. For elements inside a compilation unit or
    * class file, the parent is opened in the editor is opened. If there already is an open
    * JavaScript editor for the given element, it is returned.
-   *
+   * 
    * @param element the input element; either a compilation unit ( <code>CompilationUnit</code>) or
    *          a class file ( <code>IClassFile</code>) or source references inside.
    * @param activate if set, the editor will be activated.
@@ -739,7 +743,7 @@ public final class DartUI {
    * checking is done if the editor displays a compilation unit or class file that contains the
    * source reference element. The editor simply reveals the source range denoted by the given
    * element.
-   *
+   * 
    * @param part the editor displaying a compilation unit or class file
    * @param element the element to be revealed
    */

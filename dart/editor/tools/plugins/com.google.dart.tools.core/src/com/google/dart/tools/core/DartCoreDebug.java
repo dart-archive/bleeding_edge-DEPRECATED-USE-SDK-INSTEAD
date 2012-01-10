@@ -32,12 +32,13 @@ public class DartCoreDebug {
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
   public static final boolean VERBOSE = isOptionTrue("debug/verbose");
 
+  public static final boolean FILES_VIEW = isOptionTrue("experimental/filesview");
+
   public static final boolean BUILD_FROG = isOptionTrue("build/frog");
   public static final boolean DEPLOY_FROG = isOptionTrue("deploy/frog");
   public static final boolean FROG = isOptionTrue("debug/frog");
 
   public static final boolean DEBUGGER = isOptionTrue("debugger");
-  public static final boolean BLEEDING_EDGE = isOptionTrue("bleedingEdge");
 
   public static Collection<String> getLibrariesEmbedded() {
     List<String> result = new ArrayList<String>();

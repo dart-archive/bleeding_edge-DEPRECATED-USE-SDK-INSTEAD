@@ -117,7 +117,13 @@
             <adapter type="org.eclipse.ltk.ui.refactoring.TextEditChangeNode"/>
         </factory>
 
-   </extension>        
+      <factory 
+            class="com.google.dart.tools.ui.internal.filesview.FileStoreAdapterFactory" 
+            adaptableType="org.eclipse.core.filesystem.IFileStore">
+            
+            <adapter type="org.eclipse.ui.model.IWorkbenchAdapter"/>
+      </factory>
+   </extension>
 
    <!-- content assist processors - do not change their order -->  
    <!-- Dart and Dart doc category -->
@@ -406,6 +412,16 @@
             icon="icons/full/eview16/problems_view.gif"
             id="com.google.dart.tools.ui.ProblemsView">
       </view>
+
+      <view
+            allowMultiple="false"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.internal.filesview.FilesView"
+            icon="icons/full/obj16/file_folder.gif"
+            id="com.google.dart.tools.ui.FileExplorer"
+            name="Files"
+            restorable="true">
+      </view>
    </extension>
 
    <extension
@@ -472,7 +488,7 @@
       <editor
             name="%HtmlFileEditorName"
             default="true"
-            icon="$nl$/icons/full/obj16/file_obj.gif"
+            icon="$nl$/icons/full/dart16/html.png"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             class="com.google.dart.tools.ui.internal.htmleditor.HtmlFileEditor"
             symbolicFontName="com.google.dart.tools.ui.editors.textfont"
@@ -1575,6 +1591,13 @@
             description="%category.refactoring.description"
             id="org.eclipse.wst.jsdt.ui.category.refactoring">
       </category>
+      <!-- search -->
+      <command
+            name="%ActionDefinition.referencesInWorkspace.name"
+            description="%ActionDefinition.referencesInWorkspace.description"
+            categoryId="com.google.dart.tools.search.ui.category.search"
+            id="com.google.dart.tools.ui.edit.text.dart.search.references.in.workspace">
+      </command>
 <!-- file -->
       <command
             categoryId="org.eclipse.ui.category.file"
@@ -2402,6 +2425,21 @@
                </objectClass>
                <objectClass name="com.google.dart.tools.core.model.DartElement">
                </objectClass>
+            </or>
+         </enablement>
+      </decorator>
+      <decorator
+         class="com.google.dart.tools.ui.internal.filesview.FilesViewLightweightDecorator"
+         id="com.google.dart.tools.ui.filesview.lightweightDecorator"
+         label="Dart"
+         lightweight="true"
+         location="BOTTOM_RIGHT"
+         state="true">
+
+         <enablement>
+            <or>
+               <objectClass name="org.eclipse.core.filesystem.IFileStore"/>
+               <objectClass name="org.eclipse.core.resources.IFile"/>
             </or>
          </enablement>
       </decorator>
@@ -3538,6 +3576,16 @@
             </with>
          </enabledWhen>
       </handler>
+   </extension>
+
+   <extension
+       id="DartSearchResultPage"
+        point="com.google.dart.tools.search.searchResultViewPages">
+      <viewPage
+         id="com.google.dart.tools.ui.DartSearchResultPage"
+         searchResultClass="com.google.dart.tools.ui.internal.search.DartSearchResult"
+         class="com.google.dart.tools.ui.internal.search.DartSearchResultPage">
+      </viewPage>
    </extension>
 
 </plugin>

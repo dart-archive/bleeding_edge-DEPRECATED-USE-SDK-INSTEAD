@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.deploy;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.ui.launch.RunInBrowserAction;
 import com.google.dart.tools.debug.ui.launch.RunInServerAction;
 import com.google.dart.tools.ui.DartUI;
@@ -722,6 +723,14 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private void addViewActions(MenuManager menu) {
     IViewDescriptor viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(
         IConsoleConstants.ID_CONSOLE_VIEW);
+    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+
+    if (DartCoreDebug.FILES_VIEW) {
+      viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_FILE_EXPLORER);
+      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+    }
+
+    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_LIBRARIES);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(IPageLayout.ID_OUTLINE);
