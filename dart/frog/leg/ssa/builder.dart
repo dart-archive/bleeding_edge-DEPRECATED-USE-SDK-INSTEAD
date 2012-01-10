@@ -92,19 +92,18 @@ class SsaBuilderTask extends CompilerTask {
     return measure(() {
       FunctionElement element = work.element;
       TreeElements elements = work.resolutionTree;
-      FunctionExpression function = element.node;
       HInstruction.idCounter = 0;
       SsaBuilder builder = new SsaBuilder(compiler, elements);
       HGraph graph;
       switch (element.kind) {
         case ElementKind.GENERATIVE_CONSTRUCTOR:
-          graph = compileConstructor(builder, function, element, elements);
+          graph = compileConstructor(builder, element, elements);
           break;
         case ElementKind.GENERATIVE_CONSTRUCTOR_BODY:
-          graph = compileConstructorBody(builder, function, element, elements);
+          graph = compileConstructorBody(builder, element, elements);
           break;
         case ElementKind.FUNCTION:
-          graph = compileMethod(builder, function, element, elements);
+          graph = compileMethod(builder, element, elements);
           break;
       }
       assert(graph.isValid());
@@ -126,34 +125,29 @@ class SsaBuilderTask extends CompilerTask {
   }
 
   HGraph compileConstructor(SsaBuilder builder,
-                            FunctionExpression function,
-                            FunctionElement element,
+                            FunctionElement functionElement,
                             TreeElements elements) {
     // The body of the constructor will be generated in a separate function.
-    ConstructorBodyElement bodyElement = new ConstructorBodyElement(element);
+    ConstructorBodyElement bodyElement =
+        new ConstructorBodyElement(functionElement);
     compiler.worklist.add(new WorkElement.toCodegen(bodyElement, elements));
-    ClassElement classElement = element.enclosingElement;
+    ClassElement classElement = functionElement.enclosingElement;
     classElement.backendMembers =
         classElement.backendMembers.prepend(bodyElement);
     // TODO(floitsch): pass initializer-list to builder.
-    return builder.buildFactory(classElement,
-                                bodyElement,
-                                function.initializers,
-                                function.parameters);
+    return builder.buildFactory(classElement, bodyElement, functionElement);
   }
 
   HGraph compileConstructorBody(SsaBuilder builder,
-                                FunctionExpression function,
                                 FunctionElement element,
                                 TreeElements elements) {
-    return builder.buildMethod(function.parameters, function.body);
+    return builder.buildMethod(element);
   }
 
   HGraph compileMethod(SsaBuilder builder,
-                       FunctionExpression function,
                        FunctionElement element,
                        TreeElements elements) {
-    return builder.buildMethod(function.parameters, function.body);
+    return builder.buildMethod(element);
   }
 }
 
@@ -168,6 +162,7 @@ class SsaBuilder implements Visitor {
   List<HInstruction> stack;
 
   Map<Element, HInstruction> definitions;
+  HInstruction thisDefinition;
 
   // The current block to add instructions to. Might be null, if we are
   // visiting dead code.
@@ -188,18 +183,21 @@ class SsaBuilder implements Visitor {
     methodInterceptionEnabled = true;
   }
 
-  HGraph buildMethod(NodeList parameters, Node body) {
-    openFunction(parameters);
-    body.accept(this);
+  HGraph buildMethod(FunctionElement functionElement) {
+    openFunction(functionElement);
+    FunctionExpression function = functionElement.node;
+    function.body.accept(this);
     return closeFunction();
   }
 
   HGraph buildFactory(ClassElement classElement,
                       ConstructorBodyElement bodyElement,
-                      NodeList initializers,
-                      NodeList parameters) {
-    openFunction(parameters);
+                      FunctionElement functionElement) {
+    openFunction(functionElement);
 
+    FunctionExpression function = functionElement.node;
+    NodeList initializers = function.initializers;
+    NodeList parameters = function.parameters;
     // Run through the initializers.
     if (initializers !== null) {
       for (Link<Node> link = initializers.nodes;
@@ -257,7 +255,7 @@ class SsaBuilder implements Visitor {
     return closeFunction();
   }
 
-  void openFunction(NodeList parameters) {
+  void openFunction(FunctionElement functionElement) {
     stack = new List<HInstruction>();
     definitions = new Map<Element, HInstruction>();
 
@@ -265,7 +263,12 @@ class SsaBuilder implements Visitor {
     HBasicBlock block = graph.addNewBlock();
 
     open(graph.entry);
-    visitParameterValues(parameters);
+    if (functionElement.isInstanceMember()) {
+      thisDefinition = new HThis();
+      add(thisDefinition);
+    }
+    FunctionExpression function = functionElement.node;
+    visitParameterValues(function.parameters);
     close(new HGoto()).addSuccessor(block);
 
     open(block);
@@ -544,7 +547,10 @@ class SsaBuilder implements Visitor {
 
   visitIdentifier(Identifier node) {
     if (node.isThis()) {
-      push(new HThis());
+      if (thisDefinition === null) {
+        compiler.unimplemented("Ssa.visitIdentifier.", node: node);
+      }
+      stack.add(thisDefinition);
     } else {
       Element element = elements[node];
       compiler.ensure(element !== null);
@@ -790,21 +796,18 @@ class SsaBuilder implements Visitor {
   void generateGetter(Send send, Element element) {
     if (Elements.isStaticOrTopLevelField(element)) {
       push(new HStatic(element));
-    } else if (Elements.isInstanceField(element)) {
-      String methodName = compiler.namer.getterName(element.name);
-      HInstruction receiver = new HThis();
-      add(receiver);
-      push(new HInvokeDynamicGetter(element, methodName, receiver));
-    } else if (element == null) {
-      SourceString getterName = send.selector.asIdentifier().source;
+    } else if (element === null || Elements.isInstanceField(element)) {
       HInstruction receiver;
       if (send.receiver == null) {
-        receiver = new HThis();
-        add(receiver);
+        receiver = thisDefinition;
+        if (receiver === null) {
+          compiler.unimplemented("Ssa.generateGetter.", node: node);
+        }
       } else {
         visit(send.receiver);
         receiver = pop();
       }
+      SourceString getterName = send.selector.asIdentifier().source;
       Element staticInterceptor = null;
       if (methodInterceptionEnabled) {
         staticInterceptor = interceptors.getStaticGetInterceptor(getterName);
@@ -834,8 +837,10 @@ class SsaBuilder implements Visitor {
       stack.add(value);
     } else if (Elements.isInstanceField(element)) {
       String methodName = compiler.namer.setterName(element.name);
-      HInstruction receiver = new HThis();
-      add(receiver);
+      HInstruction receiver = thisDefinition;
+      if (receiver === null) {
+        compiler.unimplemented("Ssa.generateSetter.", node: node);
+      }
       add(new HInvokeDynamicSetter(element, methodName, receiver, value));
       stack.add(value);
     } else if (element === null) {
@@ -843,8 +848,10 @@ class SsaBuilder implements Visitor {
       String jsSetterName = compiler.namer.setterName(dartSetterName);
       HInstruction receiver;
       if (send.receiver == null) {
-        receiver = new HThis();
-        add(receiver);
+        receiver = thisDefinition;
+        if (receiver === null) {
+          compiler.unimplemented("Ssa.generateSetter.", node: node);
+        }
       } else {
         visit(send.receiver);
         receiver = pop();
@@ -912,8 +919,10 @@ class SsaBuilder implements Visitor {
     }
 
     if (node.receiver === null) {
-      HThis receiver = new HThis();
-      add(receiver);
+      HThis receiver = thisDefinition;
+      if (receiver === null) {
+        compiler.unimplemented("Ssa.visitDynamicSend.", node: node);
+      }
       inputs.add(receiver);
     } else {
       visit(node.receiver);
