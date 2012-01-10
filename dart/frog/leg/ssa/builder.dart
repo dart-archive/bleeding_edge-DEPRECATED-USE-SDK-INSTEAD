@@ -806,7 +806,7 @@ class SsaBuilder implements Visitor {
         receiver = pop();
       }
       Element staticInterceptor = null;
-      if (methodIntercetionEnabled) {
+      if (methodInterceptionEnabled) {
         staticInterceptor = interceptors.getStaticGetInterceptor(getterName);
       }
       if (staticInterceptor != null) {
