@@ -1,7 +1,7 @@
 vars = {
   # Additions for Dart
   "chromium_url": "http://src.chromium.org/svn",
-  "dartium_chromium_revision": "116980",
+  "chromium_revision": "116980",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_chromium_revision": "29",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
@@ -57,7 +57,7 @@ vars = {
 deps = {
   # Additions for Dart
   "src":
-    Var("chromium_url") + "/trunk/src@" + Var("dartium_chromium_revision"),
+    Var("chromium_url") + "/trunk/src@" + Var("chromium_revision"),
 
   "src/dart":
     "http://dart.googlecode.com/svn/branches/bleeding_edge/dart",
