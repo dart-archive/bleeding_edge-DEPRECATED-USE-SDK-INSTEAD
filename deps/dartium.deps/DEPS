@@ -1,13 +1,12 @@
 vars = {
   # Additions for Dart
   "chromium_url": "http://src.chromium.org/svn",
-  "dart_url": "http://dart.googlecode.com/svn",
+  "dartium_chromium_revision": "116980",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
-  "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
   "dartium_chromium_revision": "29",
+  "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
   "dartium_webkit_revision": "60",
   "dartium_tools_revision": "57",
-  "dartium_closure_revision": "1519",
 
   # Use this googlecode_url variable only if there is an internal mirror for it.
   # If you do not know, use the full path while defining your new deps entry.
@@ -15,10 +14,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "103592",
+  "webkit_revision": "104502",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "7483",
+  "nacl_revision": "7519",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "7139",  # native_client/DEPS: tools_rev
@@ -27,18 +26,18 @@ vars = {
   # After changing nacl_toolchain_revision, run 'gclient runhooks' to get the
   # new values.
   "nacl_toolchain_linux_x86_hash":
-      "bfd8e84a65837c3bbfb0c6a1d49635dea13dfaaa",
+      "e22fdc0a7193de2879c6a0ef5b88884ee6599d88",
   "nacl_toolchain_linux_x86_newlib_hash":
-      "a0d20193184fdddd70c5f64d44eaa7b83fe670b2",
+      "d8a27613182db9cd0da98b472cb2225975a6eb08",
   "nacl_toolchain_mac_x86_hash":
-      "fc6863da2221038fc6e1d4abb27c62e87b1a53ca",
+      "8897131912eb0a3babccc480d1e816b5d217a15d",
   "nacl_toolchain_mac_x86_newlib_hash":
-      "64ea6074283f3c0d43d80145d7868ca84ec8586d",
+      "bcada336c7d9f65c2c88f8b57685e8f90fd40921",
   "nacl_toolchain_win_x86_hash":
-      "1e81299eef3e6f60c64b9826bd5ab664355d50d7",
+      "e1a395b6861cf6fe5973ebf4573ca9a7ae5a1da5",
   "nacl_toolchain_win_x86_newlib_hash":
-      "3a4f5ad6c387cf02ca3058a3a2b79016cc561998",
-  "nacl_toolchain_revision": "7460",
+      "4aaeab49654a40b3699ed705c1ac7d6fe3fe6448",
+  "nacl_toolchain_revision": "7487",
 
   "libjingle_revision": "100",
   "libphonenumber_revision": "407",
@@ -46,25 +45,25 @@ vars = {
   "lss_revision": "9",
   "ffmpeg_revision": "112050",
   "sfntly_revision": "118",
-  "skia_revision": "2922",
+  "skia_revision": "2988",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "10298",
+  "v8_revision": "10339",
   "webrtc_revision": "1264",
-  "jsoncpp_revision": "247",
+  "jsoncpp_revision": "248",
 }
 
 deps = {
   # Additions for Dart
   "src":
-    Var("chromium_url") + "/trunk/src@115697",
+    Var("chromium_url") + "/trunk/src@" + Var("dartium_chromium_revision"),
 
   "src/dart":
-    Var("dart_url") + "/branches/bleeding_edge/dart",
+    "http://dart.googlecode.com/svn/branches/bleeding_edge/dart",
 
   "src/dart/third_party/closure_compiler_src":
-    "http://closure-compiler.googlecode.com/svn/trunk@" + Var("dartium_closure_revision"),
+    "http://closure-compiler.googlecode.com/svn/trunk@1519",
 
   "src/dartium_tools":
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
@@ -76,7 +75,7 @@ deps = {
     Var("chromium_url") + "/trunk/deps/support@20411",
 
   "src/googleurl":
-    (Var("googlecode_url") % "google-url") + "/trunk@162",
+    (Var("googlecode_url") % "google-url") + "/trunk@165",
 
   "src/seccompsandbox":
     (Var("googlecode_url") % "seccompsandbox") + "/trunk@178",
@@ -91,7 +90,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@374",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@930",
+    (Var("googlecode_url") % "angleproject") + "/trunk@939",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -114,7 +113,7 @@ deps = {
 
   "src/third_party/cacheinvalidation/files/src/google":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src/google@143",
+    "/trunk/src/google@151",
 
   "src/third_party/leveldatabase/src":
     (Var("googlecode_url") % "leveldb") + "/trunk@55",
@@ -126,7 +125,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@9",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1119",
+    (Var("googlecode_url") % "gyp") + "/trunk@1135",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -222,15 +221,6 @@ deps = {
     Var("webkit_revision"),
   "src/chrome/test/data/layout_tests/LayoutTests/platform/chromium/fast/workers":
     Var("webkit_trunk") + "/LayoutTests/platform/chromium/fast/workers@" +
-    Var("webkit_revision"),
-  "src/chrome/test/data/layout_tests/LayoutTests/platform/chromium-cg-mac/fast/events":
-    Var("webkit_trunk") + "/LayoutTests/platform/chromium-cg-mac/fast/events@" +
-    Var("webkit_revision"),
-  "src/chrome/test/data/layout_tests/LayoutTests/platform/chromium-cg-mac/http/tests/workers":
-    Var("webkit_trunk") + "/LayoutTests/platform/chromium-cg-mac/http/tests/workers@" +
-    Var("webkit_revision"),
-  "src/chrome/test/data/layout_tests/LayoutTests/platform/chromium-cg-mac/storage/domstorage":
-    Var("webkit_trunk") + "/LayoutTests/platform/chromium-cg-mac/storage/domstorage@" +
     Var("webkit_revision"),
   "src/chrome/test/data/layout_tests/LayoutTests/platform/chromium-win/fast/events":
     Var("webkit_trunk") + "/LayoutTests/platform/chromium-win/fast/events@" +
@@ -390,7 +380,7 @@ deps_os = {
     # Binary level profile guided optimizations. This points to the
     # latest release binaries for the toolchain.
     "src/third_party/syzygy/binaries":
-      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@543",
+      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@596",
 
     # Binaries for nacl sdk.
     "src/third_party/nacl_sdk_binaries":
