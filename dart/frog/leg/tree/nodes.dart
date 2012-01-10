@@ -75,7 +75,7 @@ class Node implements Hashable {
 
   abstract visitChildren(Visitor visitor);
 
-  toString() => unparse();
+  toString() => "${super.toString()}:${unparse()}";
 
   String getObjectDescription() => super.toString();
 
@@ -877,7 +877,7 @@ class Modifiers extends Node {
   Modifiers(NodeList nodes)
     : this.nodes = nodes, flags = computeFlags(nodes.nodes);
 
-  Modifiers.empty() : this(new NodeList.empty()); 
+  Modifiers.empty() : this(new NodeList.empty());
 
   static int computeFlags(Link<Node> nodes) {
     int flags = 0;

@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void print(var obj) {
-  // TODO(ngeoffray): enable when the parser accepts it.
-  // obj = obj.toString();
+  obj = obj.toString();
   var hasConsole = JS("bool", @"typeof console == 'object'");
   if (hasConsole) {
     JS("void", @"console.log($0)", obj);
@@ -61,10 +60,10 @@ add(var a, var b) {
     }
     if (b === null) return JS("String", @"$0 + 'null'", a);
     if (isJSArray(b)) {
-      return JS("String", @"$0 + 'Instance of List'", a);
+      return JS("String", @"$0 + 'Instance of \'List\''", a);
     }
     // No further native values.
-    b = b.toString();
+    b = UNINTERCEPTED(b.toString());
     if (JS("bool", @"typeof $0 === 'string'", b)) {
       return JS("String", @"$0 + $1", a, b);
     }
@@ -286,7 +285,7 @@ builtin$toString$0(var value) {
     if (isJSArray(value)) {
       return "Instance of List";
     }
-    return value.toString();
+    return UNINTERCEPTED(value.toString());
   }
   if (JS("bool", @"$0 === 0 && (1 / $0) < 0", value)) {
     return "-0.0";
@@ -324,12 +323,11 @@ class List<T> {
 class Expect {
   static void equals(var expected, var actual) {
     if (expected == actual) return;
-    _fail('Expect.equals(expected: <' + expected.toString() +
-          '>, actual:<' + actual.toString() + '> fails.');
+    _fail('Expect.equals(expected: <$expected>, actual:<$actual> fails.');
   }
 
   static void fail(String message) {
-    _fail("Expect.fail('" + message + "')");
+    _fail("Expect.fail('$message')");
   }
 
   static void _fail(String message) {

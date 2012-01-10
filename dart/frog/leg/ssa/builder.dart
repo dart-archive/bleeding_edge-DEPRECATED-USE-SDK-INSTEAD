@@ -161,8 +161,8 @@ class SsaBuilder implements Visitor {
   final Compiler compiler;
   final TreeElements elements;
   final Interceptors interceptors;
+  bool methodInterceptionEnabled;
   HGraph graph;
-
 
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
@@ -175,7 +175,18 @@ class SsaBuilder implements Visitor {
 
   SsaBuilder(Compiler compiler, this.elements)
     : this.compiler = compiler,
-      interceptors = compiler.builder.interceptors;
+      interceptors = compiler.builder.interceptors,
+      methodInterceptionEnabled = true;
+
+  void disableMethodInterception() {
+    assert(methodInterceptionEnabled);
+    methodInterceptionEnabled = false;
+  }
+
+  void enableMethodInterception() {
+    assert(!methodInterceptionEnabled);
+    methodInterceptionEnabled = true;
+  }
 
   HGraph buildMethod(NodeList parameters, Node body) {
     openFunction(parameters);
@@ -794,8 +805,10 @@ class SsaBuilder implements Visitor {
         visit(send.receiver);
         receiver = pop();
       }
-      Element staticInterceptor =
-          interceptors.getStaticGetInterceptor(getterName);
+      Element staticInterceptor = null;
+      if (methodIntercetionEnabled) {
+        staticInterceptor = interceptors.getStaticGetInterceptor(getterName);
+      }
       if (staticInterceptor != null) {
         HStatic target = new HStatic(staticInterceptor);
         add(target);
@@ -882,8 +895,11 @@ class SsaBuilder implements Visitor {
 
     SourceString dartMethodName = node.selector.asIdentifier().source;
 
-    Element interceptor =
-        interceptors.getStaticInterceptor(dartMethodName, node.argumentCount());
+    Element interceptor = null;
+    if (methodInterceptionEnabled) {
+      interceptor = interceptors.getStaticInterceptor(dartMethodName,
+                                                      node.argumentCount());
+    }
     if (interceptor != null) {
       HStatic target = new HStatic(interceptor);
       add(target);
@@ -932,19 +948,35 @@ class SsaBuilder implements Visitor {
   }
 
   visitForeignSend(Send node) {
-    Link<Node> link = node.arguments;
-    // If the invoke is on foreign code, don't visit the first
-    // argument, which is the type, and the second argument,
-    // which is the foreign code.
-    link = link.tail.tail;
-    var inputs = <HInstruction>[];
-    addVisitedSendArgumentsToList(link, inputs);
-    LiteralString type = node.arguments.head;
-    LiteralString literal = node.arguments.tail.head;
-    compiler.ensure(literal is LiteralString);
-    compiler.ensure(type is LiteralString);
-    compiler.ensure(literal.value.stringValue[0] == '@');
-    push(new HForeign(unquote(literal, 1), unquote(type, 0), inputs));
+    switch (node.selector.source.stringValue) {
+      case "JS":
+        Link<Node> link = node.arguments;
+        // If the invoke is on foreign code, don't visit the first
+        // argument, which is the type, and the second argument,
+        // which is the foreign code.
+        link = link.tail.tail;
+        var inputs = <HInstruction>[];
+        addVisitedSendArgumentsToList(link, inputs);
+        LiteralString type = node.arguments.head;
+        LiteralString literal = node.arguments.tail.head;
+        compiler.ensure(literal is LiteralString);
+        compiler.ensure(type is LiteralString);
+        compiler.ensure(literal.value.stringValue[0] == '@');
+        push(new HForeign(unquote(literal, 1), unquote(type, 0), inputs));
+        break;
+      case "UNINTERCEPTED":
+        Link<Node> link = node.arguments;
+        if (!link.tail.isEmpty()) {
+          compiler.cancel('More than one expression in UNINTERCEPTED()');
+        }
+        Expression expression = link.head;
+        disableMethodInterception();
+        visit(expression);
+        enableMethodInterception();
+        break;
+      default:
+        throw "Unknown foreign: ${node.selector}";
+    }
   }
 
   visitStaticSend(Send node) {

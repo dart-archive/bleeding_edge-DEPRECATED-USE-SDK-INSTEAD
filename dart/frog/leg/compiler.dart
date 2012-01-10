@@ -123,8 +123,8 @@ class Compiler implements Canceler, Logger {
         readScript(fileName), currentLibrary);
     scanner.scan(currentElement);
     // Make our special function a foreign kind.
-    Element element = new ForeignElement(const SourceString('JS'));
-    universe.define(element);
+    universe.define(new ForeignElement(const SourceString('JS')));
+    universe.define(new ForeignElement(const SourceString('UNINTERCEPTED')));
   }
 
   void enqueueInvokedInstanceMethods() {
