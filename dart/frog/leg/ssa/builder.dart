@@ -808,7 +808,7 @@ class SsaBuilder implements Visitor {
     } else {
       HInstruction instruction = definitions[element];
       if (instruction === null) {
-        compiler.unimplemented("SsaBuilder.visitSend with static");
+        compiler.unimplemented("SsaBuilder.visitSend with static", node: send);
       }
       assert(instruction !== null);
       stack.add(instruction);

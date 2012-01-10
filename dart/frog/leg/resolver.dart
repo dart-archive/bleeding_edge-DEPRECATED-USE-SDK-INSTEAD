@@ -374,7 +374,7 @@ class FullResolverVisitor extends ResolverVisitor {
         getter = target;
       } else {
         // TODO(ngeoffray): Find the getter from the setter.
-        getter = context.lookup(node.selector.asIdentifier().source);
+        getter = target;
       }
       useElement(node.selector, getter);
     }
