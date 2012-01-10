@@ -245,6 +245,39 @@ build system.  The PDE build system has to run under Eclipse.
         
         <!-- dart:json -->
         <copyDartLib name="json" dir="${build.source.root}/client/json"/>
+        
+        <!-- dart:builtin -->
+        <copy todir="${libraries.out.dir}/builtin">
+            <fileset dir="${build.source.root}/runtime/bin" includes="*.dart"/>
+        </copy>
+        
+        <!-- dart:nativewrappers -->
+        <echo file="${libraries.out.dir}/nativewrappers/nativewrappers.dart">
+#library("nativewrappers");
+
+#source("../builtin/buffer_list.dart");
+#source("../builtin/chunked_stream.dart");
+#source("../builtin/debug_server.dart");
+#source("../builtin/directory.dart");
+#source("../builtin/directory_impl.dart");
+#source("../builtin/file.dart");
+#source("../builtin/file_impl.dart");
+#source("../builtin/input_stream.dart");
+#source("../builtin/list_stream.dart");
+#source("../builtin/output_stream.dart");
+#source("../builtin/platform.dart");
+#source("../builtin/platform_impl.dart");
+#source("../builtin/process.dart");
+#source("../builtin/socket.dart");
+#source("../builtin/socket_impl.dart");
+#source("../builtin/socket_stream.dart");
+#source("../builtin/stream_util.dart");
+#source("../builtin/string_stream.dart");
+#source("../builtin/timer.dart");
+        </echo>
+        <!-- #source("../builtin/eventhandler.dart"); -->
+        <!-- #source("../builtin/timer_impl.dart"); -->        
+        <!-- #source("../builtin/process_impl.dart"); -->
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
@@ -415,6 +448,11 @@ build system.  The PDE build system has to run under Eclipse.
             token='#import("../chat/http.dart");'
             value='#import("http.dart");'>
             <include name="*.dart"/>
+        </replace>
+        <replace file="${samples.out.dir}/time/http.dart"
+            token='#library("http");'>
+            <replacevalue>#library("http");
+#import("dart:builtin");</replacevalue>
         </replace>
         
         <!-- Hi -->
