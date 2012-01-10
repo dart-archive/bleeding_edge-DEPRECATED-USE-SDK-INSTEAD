@@ -34,6 +34,7 @@ find .. \( \
     -o -name 13_4_Interface_Types_A04_t01.dart \
     -o -name 13_4_Interface_Types_A04_t02.dart \
     -o -name MapLiteral2Test.dart \
+    -o -name Switch1NegativeTest.dart \
     -o \( -type d -name xcodebuild \) \
     -o \( -type d -name out \) \
     -o \( -type d -name await \) \

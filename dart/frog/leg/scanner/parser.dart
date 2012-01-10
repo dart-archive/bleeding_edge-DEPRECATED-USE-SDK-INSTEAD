@@ -1516,7 +1516,9 @@ class Parser {
       } else {
         value = token.stringValue;
       }
-      if (value === 'case' || value === 'default' || value === '}') {
+      if (value === '}') {
+        break;
+      } else if (value === 'case' || value === 'default') {
         // The default case should be the last case in a switch.
         listener.recoverableError("expected '}'", token: token);
         break;
