@@ -511,12 +511,17 @@ class ElementListener extends Listener {
     for (Link<Node> nodes = variables.nodes; !nodes.isEmpty();
          nodes = nodes.tail) {
       Expression initializedIdentifier = nodes.head;
-      SourceString name = initializedIdentifier.asIdentifier().source;
+      Identifier identifier = initializedIdentifier.asIdentifier();
+      if (identifier === null) {
+        identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
+      }
+      SourceString name = identifier.source;
       buildFieldElement(name, fields);
     }
   }
 
   void endInitializer(Token assignmentOperator) {
+    // TODO(floitsch): Remove this method.
     canceler.cancel("field initializers are not implemented",
                     token: assignmentOperator);
   }
@@ -1206,13 +1211,6 @@ class PartialFieldListElement extends VariableListElement {
     if (node != null) return node;
     node = parse(canceler, logger,
         (p) => p.parseVariablesDeclaration(beginToken));
-    for (Expression definition in node.definitions.nodes) {
-      Send initializedField = definition.asSend();
-      if (initializedField !== null) {
-        canceler.cancel('field initializers are not implemented',
-                        node: initializedField.argumentsNode);
-      }
-    }
     return node;
   }
 }

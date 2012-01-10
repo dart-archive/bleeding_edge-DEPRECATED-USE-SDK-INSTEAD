@@ -90,8 +90,12 @@ class MemberListener extends NodeListener {
   }
 
   void endInitializer(Token assignmentOperator) {
+    // TODO(floitsch): Remove this cancel.
     canceler.cancel("field initializers are not implemented",
                     token: assignmentOperator);
+    pushNode(null); // Super expects an expression, but
+                    // ClassElementParser just skips expressions.
+    super.endInitializer(assignmentOperator);
   }
 
   void endInitializers(int count, Token beginToken, Token endToken) {
