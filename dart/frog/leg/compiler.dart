@@ -25,11 +25,11 @@ class WorkElement {
   int hashCode() => element.hashCode();
 
   String compile(Compiler compiler) {
-    return compiler.compileMethod(this);
+    return compiler.compile(this);
   }
 
   String codegen(Compiler compiler) {
-    return compiler.codegenMethod(this);
+    return compiler.codegen(this);
   }
 }
 
@@ -166,7 +166,7 @@ class Compiler implements Canceler, Logger {
     emitter.assembleProgram();
   }
 
-  TreeElements analyzeMethod(WorkElement work) {
+  TreeElements analyze(WorkElement work) {
     Node tree = parser.parse(work.element);
     validator.validate(tree);
     TreeElements elements = resolver.resolve(work.element);
@@ -175,7 +175,7 @@ class Compiler implements Canceler, Logger {
     return elements;
   }
 
-  String codegenMethod(WorkElement work) {
+  String codegen(WorkElement work) {
     HGraph graph = builder.build(work);
     optimizer.optimize(work, graph);
     String code = generator.generate(work, graph);
@@ -183,11 +183,11 @@ class Compiler implements Canceler, Logger {
     return code;
   }
 
-  String compileMethod(WorkElement work) {
+  String compile(WorkElement work) {
     String code = universe.generatedCode[work.element];
     if (code !== null) return code;
-    analyzeMethod(work);
-    return codegenMethod(work);
+    analyze(work);
+    return codegen(work);
   }
 
   void addToWorklist(Element element) {
@@ -197,7 +197,7 @@ class Compiler implements Canceler, Logger {
     worklist.add(new WorkElement.toCompile(element));
   }
 
-  void registerStaticInvocation(Element element) {
+  void registerStaticUse(Element element) {
     addToWorklist(element);
   }
 

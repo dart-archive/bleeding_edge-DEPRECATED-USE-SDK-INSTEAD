@@ -801,7 +801,7 @@ class SsaBuilder implements Visitor {
       if (send.receiver == null) {
         receiver = thisDefinition;
         if (receiver === null) {
-          compiler.unimplemented("Ssa.generateGetter.", node: node);
+          compiler.unimplemented("Ssa.generateGetter.", node: send);
         }
       } else {
         visit(send.receiver);
@@ -839,7 +839,7 @@ class SsaBuilder implements Visitor {
       String methodName = compiler.namer.setterName(element.name);
       HInstruction receiver = thisDefinition;
       if (receiver === null) {
-        compiler.unimplemented("Ssa.generateSetter.", node: node);
+        compiler.unimplemented("Ssa.generateSetter.", node: send);
       }
       add(new HInvokeDynamicSetter(element, methodName, receiver, value));
       stack.add(value);
@@ -850,7 +850,7 @@ class SsaBuilder implements Visitor {
       if (send.receiver == null) {
         receiver = thisDefinition;
         if (receiver === null) {
-          compiler.unimplemented("Ssa.generateSetter.", node: node);
+          compiler.unimplemented("Ssa.generateSetter.", node: send);
         }
       } else {
         visit(send.receiver);
