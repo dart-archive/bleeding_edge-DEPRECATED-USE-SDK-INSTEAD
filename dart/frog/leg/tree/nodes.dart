@@ -75,7 +75,7 @@ class Node implements Hashable {
 
   abstract visitChildren(Visitor visitor);
 
-  toString() => "${super.toString()}:${unparse()}";
+  toString() => unparse();
 
   String getObjectDescription() => super.toString();
 
