@@ -399,6 +399,11 @@ class Listener {
     return skipToEof(token);
   }
 
+  Token expectedExpression(Token token) {
+    error("Expected an expression, but got '$token'", token);
+    return skipToEof(token);
+  }
+
   Token unexpected(Token token) {
     error("Unexpected token '$token'", token);
     return skipToEof(token);
@@ -579,6 +584,12 @@ class ElementListener extends Listener {
 
   Token expectedType(Token token) {
     canceler.cancel("expected a type, but got '$token'", token: token);
+    pushNode(null);
+    return skipToEof(token);
+  }
+
+  Token expectedExpression(Token token) {
+    canceler.cancel("Expected an expression, but got '$token'", token: token);
     pushNode(null);
     return skipToEof(token);
   }

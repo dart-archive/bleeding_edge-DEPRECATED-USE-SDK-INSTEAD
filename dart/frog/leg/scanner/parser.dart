@@ -947,28 +947,26 @@ class Parser {
       return parseLiteralDouble(token);
     } else if (kind === STRING_TOKEN) {
       return parseLiteralString(token);
-    } else if (kind === KEYWORD_TOKEN) { {
-        final value = token.stringValue;
-        if ((value === 'true') || (value === 'false')) {
-          return parseLiteralBool(token);
-        } else if (value === 'null') {
-          return parseLiteralNull(token);
-        } else if (value === 'this') {
-          return parseThisExpression(token);
-        } else if (value === 'super') {
-          return parseSuperExpression(token);
-        } else if (value === 'new') {
-          return parseNewExpression(token);
-        } else if (value === 'const') {
-          return parseConstExpression(token);
-        } else if (value === 'void') {
-          return parseFunction(token);
-        } else if (isIdentifier(token)) {
-          return parseSendOrFunctionLiteral(token);
-        } else {
-          listener.unexpected(token);
-          throw 'not yet implemented';
-        }
+    } else if (kind === KEYWORD_TOKEN) {
+      final value = token.stringValue;
+      if ((value === 'true') || (value === 'false')) {
+        return parseLiteralBool(token);
+      } else if (value === 'null') {
+        return parseLiteralNull(token);
+      } else if (value === 'this') {
+        return parseThisExpression(token);
+      } else if (value === 'super') {
+        return parseSuperExpression(token);
+      } else if (value === 'new') {
+        return parseNewExpression(token);
+      } else if (value === 'const') {
+        return parseConstExpression(token);
+      } else if (value === 'void') {
+        return parseFunction(token);
+      } else if (isIdentifier(token)) {
+        return parseSendOrFunctionLiteral(token);
+      } else {
+        return listener.expectedExpression(token);
       }
     } else if (kind === OPEN_PAREN_TOKEN) {
       return parseParenthesizedExpressionOrFunctionLiteral(token);
@@ -978,8 +976,7 @@ class Parser {
                token.stringValue === '[]') {
       return parseLiteralListOrMap(token);
     } else {
-      listener.unexpected(token);
-      throw 'not yet implemented';
+      return listener.expectedExpression(token);
     }
   }
 
