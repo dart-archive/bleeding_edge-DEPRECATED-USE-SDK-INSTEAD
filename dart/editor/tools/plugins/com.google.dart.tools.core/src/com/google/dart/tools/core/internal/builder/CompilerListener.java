@@ -146,8 +146,20 @@ class CompilerListener implements DartCompilerListener {
   }
 
   /**
-   * Return the Eclipse resource associated with the given error's source, or the resource
-   * associated with the library's defining compilation unit if the real resource cannot be found.
+   * @return the library's resource, or the project's resource if we get a model exception
+   */
+  private IResource getLibraryResource() {
+    try {
+      return library.getDefiningCompilationUnit().getCorrespondingResource();
+    } catch (DartModelException exception) {
+      // Fall through to use the project as a resource.
+      return project;
+    }
+  }
+
+  /**
+   * Return the Eclipse resource associated with the given error's source, or null if the real
+   * resource cannot be found.
    * 
    * @param error the compilation error defining the source
    * @return the resource associated with the error's source
@@ -156,21 +168,7 @@ class CompilerListener implements DartCompilerListener {
     Source source = error.getSource();
     IResource res = ResourceUtil.getResource(source);
     if (res == null) {
-      if (source != null && source.getUri().toString().startsWith("dart://")) {
-        //
-        // We can't find the source associated with this error. However, this is in system code that
-        // the user has no control over. Don't complain to the user about these
-        //
-        if (DartCoreDebug.VERBOSE) {
-          StringBuilder builder = new StringBuilder();
-          builder.append("Ignoring error reported against core library source \"");
-          builder.append(source.getUri().toString());
-          builder.append("\": ");
-          builder.append(error.getMessage());
-          DartCore.logInformation(builder.toString());
-        }
-        return null;
-      } else if (missingSourceCount <= MISSING_SOURCE_REPORT_LIMIT) {
+      if (DartCoreDebug.VERBOSE || missingSourceCount <= MISSING_SOURCE_REPORT_LIMIT) {
         // Don't flood the log
         missingSourceCount++;
         StringBuilder builder = new StringBuilder();
@@ -190,16 +188,8 @@ class CompilerListener implements DartCompilerListener {
         builder.append(error.getMessage());
         DartCore.logInformation(builder.toString());
       }
-
-      try {
-        res = library.getDefiningCompilationUnit().getCorrespondingResource();
-      } catch (DartModelException exception) {
-        // Fall through to use the project as a resource
-      }
-      if (res == null) {
-        res = project;
-      }
     }
+
     return res;
   }
 
@@ -210,9 +200,13 @@ class CompilerListener implements DartCompilerListener {
    */
   private void processError(DartCompilationError error) {
     IResource res = getResource(error);
-    if (res != null && res.exists() && res.getProject().equals(project)) {
-      createErrorMarker(res, error.getStartPosition(), error.getLength(), error.getLineNumber(),
-          error.getMessage());
+    if (res != null) {
+      if (res.exists() && res.getProject().equals(project)) {
+        createErrorMarker(res, error.getStartPosition(), error.getLength(), error.getLineNumber(),
+            error.getMessage());
+      }
+    } else {
+      createErrorMarker(getLibraryResource(), 0, 0, 1, error.getMessage());
     }
   }
 
@@ -223,9 +217,15 @@ class CompilerListener implements DartCompilerListener {
    */
   private void processWarning(DartCompilationError error) {
     IResource res = getResource(error);
-    if (res != null && res.exists() && res.getProject().equals(project)) {
-      createWarningMarker(res, error.getStartPosition(), error.getLength(), error.getLineNumber(),
-          error.getMessage());
+
+    if (res != null) {
+      if (res.exists() && res.getProject().equals(project)) {
+        createWarningMarker(res, error.getStartPosition(), error.getLength(),
+            error.getLineNumber(), error.getMessage());
+      }
+    } else {
+      createWarningMarker(getLibraryResource(), 0, 0, 1, error.getMessage());
     }
   }
+
 }
