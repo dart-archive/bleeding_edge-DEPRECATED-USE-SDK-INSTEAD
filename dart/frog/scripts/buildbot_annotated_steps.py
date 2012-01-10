@@ -92,7 +92,8 @@ def TestFrog(arch, mode):
 
   if arch != 'frogium': # frog and frogsh
     TestStep("frog", testpy_mode, arch, [], flags)
-    TestStep("frog_extra", testpy_mode, arch, ['frog', 'peg', 'await'], flags)
+    TestStep("frog_extra", testpy_mode, arch, ['frog', 'peg', 'css',
+                                               'await'], flags)
 
     TestStep("leg_extra", testpy_mode, arch, ['leg', 'leg_only'], flags)
 
@@ -105,7 +106,7 @@ def TestFrog(arch, mode):
   else:
     if (TestStep("browser", testpy_mode, 'frogium',
           ['client', 'language', 'corelib', 'isolate', 'frog',
-           'leg', 'peg', 'await'], flags) != 0):
+           'leg', 'peg', 'css', 'await'], flags) != 0):
       return 1
 
   return 0
