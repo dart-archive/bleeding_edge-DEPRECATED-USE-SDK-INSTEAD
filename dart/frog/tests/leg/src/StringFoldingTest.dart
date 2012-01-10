@@ -6,7 +6,6 @@
 
 test(expression, avoid) {
   String generated = compile("foo() => $expression;", "foo");
-  print("$expression\n$generated\n");
   Expect.isFalse(avoid.allMatches(generated).iterator().hasNext());
 }
 
@@ -14,7 +13,7 @@ main() {
   RegExp noEmptyString = new RegExp('""');
   // Adding an empty string to a string is folded.
   test("'a' + ''", noEmptyString);
-  // Adding astring to an empty string is folded.
+  // Adding a string to an empty string is folded.
   test("''+ 'a'", noEmptyString);
 
   // Ditto for non-literal strings.
