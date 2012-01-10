@@ -145,7 +145,7 @@ def main():
       #   than pain.
       # Run frogsh on most of the tests.
       cmd = test_cmd + ['--component=frogsh', 'language', 'corelib',
-                        'isolate', 'peg', 'frog', 'css', 'await']
+                        'isolate', 'peg', 'frog', 'css']
       RunCommand(*cmd, verbose=True)
 
     cmd = test_cmd + ['--component=frogsh', 'leg', 'leg_only']
