@@ -116,6 +116,7 @@ class GsUtil(object):
 
     print ' '.join(args)
 
+    items = []
     p = subprocess.Popen(args, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
                          shell=self._useshell)
@@ -126,7 +127,6 @@ class GsUtil(object):
       self._LogStream(err, failure_message, True)
     else:
       line = ''
-      items = []
       search_string = string.digits + string.letters + string.punctuation
       for ch in out:
         if search_string.find(ch) >= 0:
