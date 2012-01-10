@@ -44,8 +44,8 @@ class MemberListener extends NodeListener {
            enclosingElement.name == name.source;
   }
 
-  void endMethod(Token beginToken, Token period, Token endToken) {
-    super.endMethod(beginToken, period, endToken);
+  void endMethod(Token beginToken, Token endToken) {
+    super.endMethod(beginToken, endToken);
     FunctionExpression method = popNode();
     pushNode(null);
     Identifier name = method.name; // TODO(ahe): Named constructors.

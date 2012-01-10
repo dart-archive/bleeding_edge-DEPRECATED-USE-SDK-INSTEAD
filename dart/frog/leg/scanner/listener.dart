@@ -167,7 +167,7 @@ class Listener {
   void beginMember(Token token) {
   }
 
-  void endMethod(Token beginToken, Token period, Token endToken) {
+  void endMethod(Token beginToken, Token endToken) {
   }
 
   void beginOptionalFormalParameters(Token token) {
@@ -981,14 +981,11 @@ class NodeListener extends ElementListener {
     pushNode(new VariableDefinitions(null, modifiers, variables, endToken));
   }
 
-  void endMethod(Token beginToken, Token period, Token endToken) {
+  void endMethod(Token beginToken, Token endToken) {
     Statement body = popNode();
     NodeList initializers = popNode();
     NodeList formalParameters = popNode();
     Expression name = popNode();
-    if (period !== null) {
-      name = new Send(popNode(), name);
-    }
     Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formalParameters, body, null,
                                     modifiers, initializers));

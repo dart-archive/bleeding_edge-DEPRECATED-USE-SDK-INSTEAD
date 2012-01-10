@@ -163,15 +163,20 @@ class Parser {
       Token defaultKeyword = token;
       listener.beginDefaultClause(defaultKeyword);
       token = parseIdentifier(token.next);
-      if (optional('.', token)) {
-        Token period = token;
-        token = parseIdentifier(token.next);
-        listener.handleQualified(period);
-      }
+      token = parseQualifiedRestOpt(token);
       token = parseTypeVariablesOpt(token);
       listener.endDefaultClause(defaultKeyword);
     } else {
       listener.handleNoDefaultClause(token);
+    }
+    return token;
+  }
+
+  Token parseQualifiedRestOpt(Token token) {
+    if (optional('.', token)) {
+      Token period = token;
+      token = parseIdentifier(token.next);
+      listener.handleQualified(period);
     }
     return token;
   }
@@ -570,15 +575,11 @@ class Parser {
       expectSemicolon(token);
       listener.endFields(fieldCount, start, token);
     } else {
-      Token period = null;
-      if (optional('.', token)) {
-        period = token;
-        token = parseIdentifier(token.next);
-      }
+      token = parseQualifiedRestOpt(token);
       token = parseFormalParameters(token);
       token = parseInitializersOpt(token);
       token = parseFunctionBody(token, false);
-      listener.endMethod(start, period, token);
+      listener.endMethod(start, token);
     }
     return token.next;
   }
@@ -589,11 +590,7 @@ class Parser {
     listener.beginFactoryMethod(factoryKeyword);
     token = token.next; // Skip 'factory'.
     token = parseIdentifier(token);
-    if (optional('.', token)) {
-      Token period = token;
-      token = parseIdentifier(token.next);
-      listener.handleQualified(period);
-    }
+    token = parseQualifiedRestOpt(token);
     token = parseTypeVariablesOpt(token);
     Token period = null;
     if (optional('.', token)) {
@@ -650,6 +647,7 @@ class Parser {
     token = parseReturnTypeOpt(token);
     listener.beginFunctionName(token);
     token = parseIdentifier(token);
+    token = parseQualifiedRestOpt(token);
     listener.endFunctionName(token);
     token = parseFormalParameters(token);
     token = parseInitializersOpt(token);
