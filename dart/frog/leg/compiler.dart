@@ -176,15 +176,26 @@ class Compiler implements Canceler, Logger {
   }
 
   String codegen(WorkElement work) {
+    String code;
     if (work.element.kind == ElementKind.FIELD) {
-      return null;
+      VariableElement element = work.element;
+      Node node = element.parseNode(this, this);
+      SendSet assignment = node.asSendSet();
+      if (assignment === null) {
+        // No initial value.
+        // TODO(floitsch): move the computation of null into the 
+        // compile-time constant handler.
+        code = "(void 0)";
+      } else {
+        unimplemented("codegen for static initialized fields.", node: node);
+      }
     } else {
       HGraph graph = builder.build(work);
       optimizer.optimize(work, graph);
-      String code = generator.generate(work, graph);
-      universe.addGeneratedCode(work, code);
-      return code;
+      code = generator.generate(work, graph);
     }
+    universe.addGeneratedCode(work, code);
+    return code;
   }
 
   String compile(WorkElement work) {
