@@ -1205,7 +1205,6 @@ class HAdd extends HBinaryArithmetic {
     }
     if (right.isString()) return HType.STRING;
     if (isNumber() || left.isNumber() || right.isNumber()) return HType.NUMBER;
-    if (type.isUnknown()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
 }

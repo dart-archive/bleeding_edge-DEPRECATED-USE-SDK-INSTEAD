@@ -48,22 +48,7 @@ add(var a, var b) {
   if (checkNumbers(a, b, "num+ expects a number as second operand.")) {
     return JS("num", @"$0 + $1", a, b);
   } else if (JS("bool", @"typeof $0 === 'string'", a)) {
-    if (JS("bool", @"typeof $0 === 'string'", b) ||
-        JS("bool", @"typeof $0 === 'boolean'", b)) {
-      return JS("String", @"$0 + $1", a, b);
-    }
-    if (JS("bool", @"typeof $0 === 'number'", b)) {
-      if (JS("bool", @"$0 === 0 && (1/$0) < 0", b)) {
-        return JS("String", @"$0 + '-0.0'", a);
-      }
-      return JS("String", @"$0 + $1", a, b);
-    }
-    if (b === null) return JS("String", @"$0 + 'null'", a);
-    if (isJSArray(b)) {
-      return JS("String", @"$0 + 'Instance of \'List\''", a);
-    }
-    // No further native values.
-    b = UNINTERCEPTED(b.toString());
+    b = b.toString();
     if (JS("bool", @"typeof $0 === 'string'", b)) {
       return JS("String", @"$0 + $1", a, b);
     }
@@ -283,7 +268,7 @@ builtin$get$length(var receiver) {
 builtin$toString$0(var value) {
   if (JS("bool", @"typeof $0 == 'object'", value)) {
     if (isJSArray(value)) {
-      return "Instance of List";
+      return "Instance of 'List'";
     }
     return UNINTERCEPTED(value.toString());
   }
@@ -321,8 +306,18 @@ class int {}
 class double {}
 class String {}
 class bool {}
-class Object {}
+class Object {
+  String toString() {
+    String name = JS('String', @'this.constructor.name');
+    if (name === null) {
+      name = JS('String', @'$0.match(/^\s*function\s*(\S*)\s*\(/)[1]',
+                JS('String', @'this.constructor.toString()'));
+    }
+    return "Instance of '$name'";
+  }
+}
 class List<T> /* implements Iterable<T> */ {
+
   static void _checkConstructorInput(n) {
     // TODO(ngeoffray): Inline once we support optional parameters or
     // bailout.

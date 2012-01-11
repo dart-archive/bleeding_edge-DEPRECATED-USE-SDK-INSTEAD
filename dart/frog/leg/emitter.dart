@@ -100,7 +100,7 @@ function(child, parent) {
     }
 
     String className = namer.isolatePropertyAccess(classElement);
-    buffer.add('$className = function(');
+    buffer.add('$className = function ${classElement.name}(');
     StringBuffer bodyBuffer = new StringBuffer();
     generateFieldInits(classElement, buffer, bodyBuffer);
     buffer.add(') {\n');
