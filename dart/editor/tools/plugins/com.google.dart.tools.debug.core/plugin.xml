@@ -13,17 +13,17 @@
             sourcePathComputerId="com.google.dart.tools.debug.core.sourcePathComputer">
       </launchConfigurationType>
 
-      <launchConfigurationType
+      <!--launchConfigurationType
             delegate="com.google.dart.tools.debug.core.configs.DartRemoteLaunchConfigurationDelegate"
             id="com.google.dart.tools.debug.core.remoteLaunchConfig"
             modes="debug"
             name="%launchconfig.remote.name"
             sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
             sourcePathComputerId="com.google.dart.tools.debug.core.sourcePathComputer">
-      </launchConfigurationType>
+      </launchConfigurationType-->
 
       <launchConfigurationType
-            delegate="com.google.dart.tools.debug.core.configs.DartChromeLaunchConfigurationDelegate"
+            delegate="com.google.dart.tools.debug.core.configs.DartChromiumLaunchConfigurationDelegate"
             id="com.google.dart.tools.debug.core.chromeLaunchConfig"
             modes="run,debug"
             name="%launchconfig.chrome.name"

@@ -19,7 +19,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
-import com.google.dart.tools.debug.ui.internal.client.DartJsApplicationLaunchShortcut;
+import com.google.dart.tools.debug.ui.internal.client.DartJsBrowserLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut;
 
 import org.eclipse.core.resources.IContainer;
@@ -48,7 +48,7 @@ import java.util.List;
 /**
  * An abstract parent of Dart launch shortcuts.
  * 
- * @see DartJsApplicationLaunchShortcut
+ * @see DartJsBrowserLaunchShortcut
  * @see DartServerLaunchShortcut
  */
 public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {

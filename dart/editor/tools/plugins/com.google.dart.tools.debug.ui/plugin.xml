@@ -21,17 +21,17 @@
    </extension>
    
    <!-- Client launch configuration -->
-   <!-- extension
+   <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
             delegate="com.google.dart.tools.debug.ui.internal.client.DartJsLaunchConfigurationDelegate"
-            id="com.google.dart.tools.debug.core.clientLaunchConfig"
+            id="com.google.dart.tools.debug.core.browserLaunchConfig"
             modes="run,debug"
             name="%dart.launch.config.client.name">
       </launchConfigurationType>
    </extension>
 
-   <extension
+   <!--extension
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
       <launchConfigurationTypeImage
             configTypeID="com.google.dart.tools.debug.core.clientLaunchConfig"
@@ -123,7 +123,7 @@
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
       <shortcut
-            class="com.google.dart.tools.debug.ui.internal.chrome.DartChromeLaunchShortcut"
+            class="com.google.dart.tools.debug.ui.internal.chrome.DartChromiumLaunchShortcut"
             icon="icons/chromium_16.png"
             id="com.google.dart.tools.debug.ui.dartChromeShortcut"
             label="%dart.chromelaunch.shortcut.label"

@@ -28,10 +28,10 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
  * compiler type checking to what is essentially a property map.
  */
 public class DartLaunchConfigWrapper {
-  public static final String CONNECTION_TYPE_CHROME = "Chrome";
+  public static final String CONNECTION_TYPE_DARTIUM = "Dartium";
 
-  public static final String CONNECTION_TYPE_V8 = "V8";
-  public static final String[] CONNECTION_TYPES = new String[] {"Chrome", "V8"};
+  public static final String CONNECTION_TYPE_OTHER = "Other";
+  public static final String[] CONNECTION_TYPES = new String[] {"Dartium", "Other"};
 
   public static final int DEFAULT_CHROME_PORT = 9222;
   public static final String DEFAULT_HOST = "localhost";

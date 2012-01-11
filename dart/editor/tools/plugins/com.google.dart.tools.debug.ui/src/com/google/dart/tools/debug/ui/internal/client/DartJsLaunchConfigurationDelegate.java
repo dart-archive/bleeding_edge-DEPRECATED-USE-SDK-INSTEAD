@@ -15,14 +15,14 @@ package com.google.dart.tools.debug.ui.internal.client;
 
 import com.google.dart.tools.core.generator.DartHtmlGenerator;
 import com.google.dart.tools.core.internal.builder.DartBuilder;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
-import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -30,96 +30,46 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.MessageDialogWithToggle;
-import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.browser.IWebBrowser;
-import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
+import org.eclipse.swt.program.Program;
 
 import java.io.File;
 
 /**
- * Launches the Dart application as either a web client or server application
+ * Launches the Dart application (compiled to js) in the browser
  */
 public class DartJsLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
-
-  /**
-   *
-   */
-  private static final String EMBEDDED_BROWSER_NA = "embeddedBrowserNotAvailableWarning";
-
-  /** Browser editor identifier */
-  // private static final String BROWSER_ID = "org.eclipse.ui.browser.editor";
 
   @Override
   public void launch(ILaunchConfiguration config, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
 
-    // Determine the launch type
-    int launchType = DartUtil.getLaunchType(config);
+    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(config);
 
-    // Determine the file to be launched/opened
-    final String path = DartUtil.getResourcePath(config);
-    if (path == null || path.length() == 0) {
-      throwCoreException("Unspecified resource to be launched");
-    }
-    IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-    final IFile file = root.getFile(new Path(path));
-    if (!file.exists()) {
-      throwCoreException("Resource to be launched does not exist: " + path);
+    if (!ILaunchManager.RUN_MODE.equals(mode)) {
+      throw new CoreException(
+          DartDebugCorePlugin.createErrorStatus("Dart Browser launch does not support debugging."));
     }
 
-    // Determine if the page should be displayed in an external browser
-    boolean external = DartUtil.isExternalBrowser(config);
+    IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(
+        new Path(launchConfig.getApplicationName()));
+    launchBrowserForHtmlFile(file, launchConfig.getApplicationName());
 
-    if (ILaunchManager.RUN_MODE.equals(mode)) {
-      if (launchType == ILaunchConstants.LAUNCH_TYPE_WEB_CLIENT) {
-        runWebClient(file, external);
-      } else {
-        runServerApplication(file);
-      }
-    } else if (ILaunchManager.DEBUG_MODE.equals(mode)) {
-      if (launchType == ILaunchConstants.LAUNCH_TYPE_WEB_CLIENT) {
-        debugWebClient(file, external);
-      } else {
-        debugServerApplication(file);
-      }
-    } else {
-      throwCoreException("Launch mode not supported: " + mode);
-    }
   }
 
-  /**
-   * Launch the specified server application in a debug session
-   * 
-   * @param file the Dart application or source file
-   */
-  private void debugServerApplication(IFile file) {
-    DartUtil.notYetImplemented(file);
-    String serviceName = "Debug server application";
-    notImplementedYet(serviceName);
-  }
+  private Program findProgram(String name) {
+    Program[] programs = Program.getPrograms();
+    for (Program program : programs) {
+      if (program.getName().equals(name)) {
+        return program;
+      }
+    }
 
-  /**
-   * Launch the specified web client in a debug session
-   * 
-   * @param file the web page or Dart application
-   * @param external <code>true</code> if the debug session should use an external browser or false
-   *          if the web client should be displayed in a browser embedded in Eclipse.
-   */
-  private void debugWebClient(IFile file, boolean external) {
-    DartUtil.notYetImplemented(file);
-    String serviceName = "Debug web client";
-    notImplementedYet(serviceName);
+    return null;
   }
 
   /**
@@ -180,90 +130,25 @@ public class DartJsLaunchConfigurationDelegate extends LaunchConfigurationDelega
     generator.setTitle(title);
     generator.execute(new NullProgressMonitor());
 
-    setDerived(htmlFile);
     return htmlFile;
   }
 
-  // TODO (danrubel) implement callers and remove this method
-  private void notImplementedYet(final String serviceName) {
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        MessageDialog.openInformation(null, "Not Implemented", serviceName
-            + " is not implemented yet.");
-      }
-    });
-  }
+  private void launchBrowserForHtmlFile(IFile file, String location) {
 
-  /**
-   * Run the specified Dart server application
-   * 
-   * @param file the Dart application or source file
-   */
-  private void runServerApplication(IFile file) {
-    DartUtil.notYetImplemented(file);
-    String serviceName = "Run server application";
-    notImplementedYet(serviceName);
-  }
+    // TODO(keertip): change this to use info stored in launch config
+    boolean useDefaultBrowser = false;
+    IEclipsePreferences prefs = DartDebugCorePlugin.getPlugin().getPrefs();
+    useDefaultBrowser = prefs.getBoolean(DartDebugCorePlugin.PREFS_DEFAULT_BROWSER, true);
+    if (!useDefaultBrowser) {
+      String browserName = prefs.get(DartDebugCorePlugin.PREFS_BROWSER_NAME, "");
+      if (!browserName.isEmpty()) {
+        Program program = findProgram(browserName);
+        if (program != null) {
+          program.execute(location);
 
-  /**
-   * Run the specified Dart web client
-   * 
-   * @param file the web page or Dart application
-   * @param external <code>true</code> if the launch session should use an external browser or false
-   *          if the web client should be displayed in a browser embedded in Eclipse.
-   */
-  private void runWebClient(IFile file, final boolean external) throws CoreException {
-    final IFile webpage = getWebPage(file);
-    final IWorkbench workbench = PlatformUI.getWorkbench();
-    workbench.getDisplay().asyncExec(new Runnable() {
-
-      @Override
-      public void run() {
-        try {
-          openBrowser(webpage, external);
-        } catch (Exception e) {
-          DartUtil.logError(e);
         }
       }
-
-      private void openBrowser(final IFile file, final boolean external) throws Exception {
-        IWorkbenchBrowserSupport browserSupport = workbench.getBrowserSupport();
-        IWebBrowser browser;
-        if (external) {
-          try {
-            browser = browserSupport.getExternalBrowser();
-          } catch (PartInitException e) {
-            DebugErrorHandler.errorDialog(null, "Launch Failed", e.getMessage(), e);
-            throw e;
-          }
-        } else {
-          if (!browserSupport.isInternalWebBrowserAvailable()) {
-            warnExternalBrowserNA(workbench);
-          }
-          browser = browserSupport.createBrowser(null);
-        }
-        browser.openURL(file.getLocationURI().toURL());
-      }
-
-      private void warnExternalBrowserNA(final IWorkbench workbench) {
-        Shell shell = workbench.getActiveWorkbenchWindow().getShell();
-        IPreferenceStore prefs = DartDebugUIPlugin.getDefault().getPreferenceStore();
-        if (prefs.getBoolean(EMBEDDED_BROWSER_NA)) {
-          return;
-        }
-        MessageDialogWithToggle.openInformation(shell, "Embedded Browser",
-            "Embedded Browser not available", "Don't show this again", false, prefs,
-            EMBEDDED_BROWSER_NA);
-      }
-    });
-  }
-
-  @SuppressWarnings("deprecation")
-  private void setDerived(IFile htmlFile) throws CoreException {
-    // Switch to Eclipse 3.5 friendly API
-    // htmlFile(true, new NullProgressMonitor());
-    htmlFile.setDerived(true);
+    }
   }
 
   /**
