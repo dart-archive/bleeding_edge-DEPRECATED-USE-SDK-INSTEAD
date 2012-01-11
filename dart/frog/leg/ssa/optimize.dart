@@ -218,7 +218,7 @@ class SsaCheckInserter extends HBaseVisitor {
   }
 
   void visitIndex(HIndex node) {
-    if (!node.builtin) return node;
+    if (!node.builtin) return;
     HInstruction index = insertIntegerCheck(node, node.index);
     index = insertBoundsCheck(node, node.receiver, index);
     HIndex newInstruction = new HIndex(node.target, node.receiver, index);
@@ -229,7 +229,7 @@ class SsaCheckInserter extends HBaseVisitor {
   }
 
   void visitIndexAssign(HIndexAssign node) {
-    if (!node.builtin) return node;
+    if (!node.builtin) return;
     HInstruction index = insertIntegerCheck(node, node.index);
     index = insertBoundsCheck(node, node.receiver, index);
     HIndexAssign newInstruction =

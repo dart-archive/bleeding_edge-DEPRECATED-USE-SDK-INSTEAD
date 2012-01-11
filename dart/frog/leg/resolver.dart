@@ -538,7 +538,7 @@ class FullResolverVisitor extends ResolverVisitor {
     visitIn(node.body, scope);
     // TODO(lrn): Also allow a single identifier.
     if (declaration is !VariableDefinitions ||
-        !declaration.definitions.nodes.tail.isEmpty()) {
+        !declaration.asVariableDefinitions().definitions.nodes.tail.isEmpty()) {
       // The variable declaration is either not a declaration, or it's
       // declaring more than one variable.
       error(node.declaredIdentifier, MessageKind.GENERIC,
