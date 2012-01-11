@@ -17,25 +17,51 @@ class ResolverTask extends CompilerTask {
 
   String get name() => 'Resolver';
 
-  TreeElements resolve(FunctionElement element) {
+  TreeElements resolve(Element element) {
     return measure(() {
-      FunctionExpression tree = element.parseNode(compiler, compiler);
-      // TODO(ahe): Can this be cleaned up to use resolveSignature?
-      ResolverVisitor visitor = new SignatureResolverVisitor(compiler, element);
-      visitor.visit(tree);
+      switch (element.kind) {
+        case ElementKind.GENERATIVE_CONSTRUCTOR:
+        case ElementKind.FUNCTION:
+          return resolveMethodElement(element);
 
-      visitor = new FullResolverVisitor.from(visitor);
-      if (tree.initializers != null) {
-        resolveInitializers(element, tree, visitor);
-      }
-      visitor.visit(tree.body);
+        case ElementKind.FIELD:
+          return resolveFieldElement(element);
 
-      // Resolve the type annotations encountered in the method.
-      while (!toResolve.isEmpty()) {
-        toResolve.removeFirst().resolve(compiler);
+        default:
+          compiler.unimplemented(
+              "resolver", node: element.parseNode(compiler, compiler));
       }
-      return visitor.mapping;
     });
+  }
+
+  TreeElements resolveMethodElement(FunctionElement element) {
+    FunctionExpression tree = element.parseNode(compiler, compiler);
+    // TODO(ahe): Can this be cleaned up to use resolveSignature?
+    ResolverVisitor visitor = new SignatureResolverVisitor(compiler, element);
+    visitor.visit(tree);
+
+    visitor = new FullResolverVisitor.from(visitor);
+    if (tree.initializers != null) {
+      resolveInitializers(element, tree, visitor);
+    }
+    visitor.visit(tree.body);
+
+    // Resolve the type annotations encountered in the method.
+    while (!toResolve.isEmpty()) {
+      toResolve.removeFirst().resolve(compiler);
+    }
+    return visitor.mapping;
+  }
+
+  TreeElements resolveFieldElement(Element element) {
+    Node tree = element.parseNode(compiler, compiler);
+    ResolverVisitor visitor = new FullResolverVisitor(compiler, element);
+    if (tree is SendSet) {
+      compiler.unimplemented("Field initializers", node: tree);
+      SendSet send = tree;
+      visitor.visit(send.arguments.head);
+    }
+    return visitor.mapping;
   }
 
   bool isInitializer(SendSet node) {
@@ -605,7 +631,7 @@ class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
       Element element = new VariableElement(
-          name, variables, kind, resolver.context.element);
+          name, node, variables, kind, resolver.context.element);
       resolver.defineElement(link.head, element);
     }
   }

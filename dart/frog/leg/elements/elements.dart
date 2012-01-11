@@ -87,16 +87,20 @@ class CompilationUnitElement extends Element {
 
 class VariableElement extends Element {
   final VariableListElement variables;
+  final Node node; // The send or the identifier in the variables list.
+
   Modifiers get modifiers() => variables.modifiers;
 
   VariableElement(SourceString name,
+                  Node this.node,
                   VariableListElement this.variables,
                   ElementKind kind,
                   Element enclosing)
     : super(name, kind, enclosing);
 
   Node parseNode(Canceler canceler, Logger logger) {
-    return variables.parseNode(canceler, logger);
+    assert(node != null);
+    return node;
   }
 
   Type computeType(Compiler compiler) {

@@ -176,11 +176,15 @@ class Compiler implements Canceler, Logger {
   }
 
   String codegen(WorkElement work) {
-    HGraph graph = builder.build(work);
-    optimizer.optimize(work, graph);
-    String code = generator.generate(work, graph);
-    universe.addGeneratedCode(work, code);
-    return code;
+    if (work.element.kind == ElementKind.FIELD) {
+      return null;
+    } else {
+      HGraph graph = builder.build(work);
+      optimizer.optimize(work, graph);
+      String code = generator.generate(work, graph);
+      universe.addGeneratedCode(work, code);
+      return code;
+    }
   }
 
   String compile(WorkElement work) {

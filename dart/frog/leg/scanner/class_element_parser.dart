@@ -80,9 +80,9 @@ class MemberListener extends NodeListener {
     VariableDefinitions variableDefinitions = popNode();
     Modifiers modifiers = variableDefinitions.modifiers;
     pushNode(null);
-    void buildFieldElement(SourceString name, Element fields) {
-      Element element = new VariableElement(name, fields, ElementKind.FIELD,
-                                            enclosingElement);
+    void buildFieldElement(SourceString name, Node node, Element fields) {
+      Element element = new VariableElement(
+          name, node, fields, ElementKind.FIELD, enclosingElement);
       enclosingElement.addMember(element);
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,

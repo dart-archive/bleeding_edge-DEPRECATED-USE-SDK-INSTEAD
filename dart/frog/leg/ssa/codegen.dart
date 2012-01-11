@@ -241,7 +241,6 @@ class SsaCodeGenerator implements HVisitor {
       use(node.right);
       buffer.add(')');
     } else if (node.element === equalsNullElement) {
-      compiler.registerStaticUse(node.element);
       use(node.target);
       buffer.add('(');
       use(node.left);
@@ -395,7 +394,6 @@ class SsaCodeGenerator implements HVisitor {
       => visitInvokeDynamic(node);
 
   visitInvokeStatic(HInvokeStatic node) {
-    compiler.registerStaticUse(node.element);
     use(node.target);
     visitArguments(node.inputs);
   }
@@ -604,10 +602,12 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitStatic(HStatic node) {
+    compiler.registerStaticUse(node.element);
     buffer.add(compiler.namer.isolateAccess(node.element));
   }
 
   void visitStaticStore(HStaticStore node) {
+    compiler.registerStaticUse(node.element);
     buffer.add(compiler.namer.isolateAccess(node.element));
     buffer.add(' = ');
     use(node.inputs[0]);

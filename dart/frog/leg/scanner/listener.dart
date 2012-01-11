@@ -506,8 +506,9 @@ class ElementListener extends Listener {
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
-    void buildFieldElement(SourceString name, Element fields) {
-      pushElement(new VariableElement(name, fields, ElementKind.FIELD, null));
+    void buildFieldElement(SourceString name, Node node, Element fields) {
+      pushElement(new VariableElement(
+          name, node, fields, ElementKind.FIELD, compilationUnitElement));
     }
     NodeList variables = makeNodeList(count, null, null, ",");
     Modifiers modifiers = popNode();
@@ -518,10 +519,13 @@ class ElementListener extends Listener {
   void buildFieldElements(Modifiers modifiers,
                           NodeList variables,
                           void buildFieldElement(SourceString name,
+                                                 Node node,
                                                  Element fields),
                           Token beginToken, Token endToken) {
-    Element fields = new PartialFieldListElement(beginToken, endToken,
-                                                 modifiers, null);
+    Element fields = new PartialFieldListElement(beginToken,
+                                                 endToken,
+                                                 modifiers,
+                                                 compilationUnitElement);
     for (Link<Node> nodes = variables.nodes; !nodes.isEmpty();
          nodes = nodes.tail) {
       Expression initializedIdentifier = nodes.head;
@@ -530,7 +534,7 @@ class ElementListener extends Listener {
         identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
       }
       SourceString name = identifier.source;
-      buildFieldElement(name, fields);
+      buildFieldElement(name, initializedIdentifier, fields);
     }
   }
 

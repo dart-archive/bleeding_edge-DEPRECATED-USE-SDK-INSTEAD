@@ -957,7 +957,8 @@ class SsaBuilder implements Visitor {
   }
 
   visitForeignSend(Send node) {
-    switch (node.selector.source.stringValue) {
+    Identifier selector = node.selector;
+    switch (selector.source.stringValue) {
       case "JS":
         Link<Node> link = node.arguments;
         // If the invoke is on foreign code, don't visit the first
