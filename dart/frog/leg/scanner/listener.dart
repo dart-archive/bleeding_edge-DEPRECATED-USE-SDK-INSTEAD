@@ -470,9 +470,6 @@ class ElementListener extends Listener {
                            Token endToken) {
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
-    if (interfacesCount !== 0) {
-      canceler.cancel('interfaces are not implemented', node: interfaces);
-    }
     TypeAnnotation supertype = popNode();
     Identifier name = popNode();
     pushElement(new PartialClassElement(
@@ -490,7 +487,13 @@ class ElementListener extends Listener {
 
   void endInterface(int supertypeCount, Token interfaceKeyword,
                     Token extendsKeyword, Token endToken) {
-    canceler.cancel("interfaces are not implemented", token: interfaceKeyword);
+    // TODO(ahe): Record the defaultClause.
+    Node defaultClause = popNode();
+    NodeList supertypes =
+        makeNodeList(supertypeCount, extendsKeyword, null, ",");
+    Identifier name = popNode();
+    pushElement(new PartialClassElement(
+        name.source, interfaceKeyword, endToken, compilationUnitElement));
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
