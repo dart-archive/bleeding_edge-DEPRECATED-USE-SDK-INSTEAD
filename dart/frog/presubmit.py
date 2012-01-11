@@ -148,9 +148,6 @@ def main():
                         'isolate', 'peg', 'frog', 'css']
       RunCommand(*cmd, verbose=True)
 
-    cmd = test_cmd + ['--component=frogsh', 'leg', 'leg_only']
-    RunCommand(*cmd, verbose=True)
-
     # Run leg on "built-in" tests.
     cmd = test_cmd + ['--component=leg']
     RunCommand(*cmd, verbose=True)
@@ -159,6 +156,9 @@ def main():
     RunCommand(*cmd, verbose=True)
 
     cmd = test_cmd + ['--component=vm', 'leg']
+    RunCommand(*cmd, verbose=True)
+
+    cmd = test_cmd + ['--component=frogsh', 'leg', 'leg_only']
     RunCommand(*cmd, verbose=True)
 
 if __name__ == '__main__':

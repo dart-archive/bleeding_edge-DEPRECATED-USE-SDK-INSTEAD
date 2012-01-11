@@ -1189,7 +1189,8 @@ class SsaBuilder implements Visitor {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    // We currently ignore type annotations for generating code.
+    compiler.internalError('visiting type annotation in SSA builder',
+                           node: node);
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
