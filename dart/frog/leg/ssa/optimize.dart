@@ -13,6 +13,7 @@ class SsaOptimizerTask extends CompilerTask {
         // allow type propagation of instructions we know the type.
         new SsaTypePropagator(compiler).visitGraph(graph);
       }
+      new SsaCheckInserter(compiler).visitGraph(graph);
       new SsaConstantFolder(compiler).visitGraph(graph);
       new SsaRedundantPhiEliminator().visitGraph(graph);
       new SsaDeadPhiEliminator().visitGraph(graph);
@@ -172,103 +173,10 @@ class SsaConstantFolder extends HBaseVisitor {
   }
 }
 
-class SsaTypePropagator extends HGraphVisitor {
-
-  final Map<int, HInstruction> workmap;
-  final List<int> worklist;
-  final Compiler compiler;
-
-  SsaTypePropagator(Compiler this.compiler)
-      : workmap = new Map<int, HInstruction>(),
-        worklist = new List<int>();
-
-  void visitGraph(HGraph graph) {
-    new TypeAnnotationReader(compiler).visitGraph(graph);
-    visitDominatorTree(graph);
-    processWorklist();
-    new CheckInserter(compiler).visitGraph(graph);
-  }
-
-  visitBasicBlock(HBasicBlock block) {
-    if (block.isLoopHeader()) {
-      block.forEachPhi((HPhi phi) {
-        phi.setInitialTypeForLoopPhi();
-        addToWorklist(phi);
-      });
-    } else {
-      block.forEachPhi((HPhi phi) {
-        if (phi.updateType()) addUsersAndInputsToWorklist(phi);
-      });
-    }
-
-    HInstruction instruction = block.first;
-    while (instruction !== null) {
-      if (instruction.updateType()) addUsersAndInputsToWorklist(instruction);
-      instruction = instruction.next;
-    }
-  }
-
-  void processWorklist() {
-    while (!worklist.isEmpty()) {
-      int id = worklist.removeLast();
-      HInstruction instruction = workmap[id];
-      assert(instruction !== null);
-      workmap.remove(id);
-      if (instruction.updateType()) addUsersAndInputsToWorklist(instruction);
-    }
-  }
-
-  void addUsersAndInputsToWorklist(HInstruction instruction) {
-    for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
-      addToWorklist(instruction.usedBy[i]);
-    }
-    for (int i = 0, length = instruction.inputs.length; i < length; i++) {
-      addToWorklist(instruction.inputs[i]);
-    }
-  }
-
-  void addToWorklist(HInstruction instruction) {
-    final int id = instruction.id;
-    if (!workmap.containsKey(id)) {
-      worklist.add(id);
-      workmap[id] = instruction;
-    }
-  }
-}
-
-class TypeAnnotationReader extends HBaseVisitor {
-  final Compiler compiler;
-
-  TypeAnnotationReader(Compiler this.compiler);
-
-  visitParameterValue(HParameterValue parameter) {
-    // element is null for 'this'.
-    if (parameter.element === null) return;
-
-    Type type = parameter.element.computeType(compiler);
-    if (type == null) return;
-
-    HTypeGuard guard = null;
-    if (type.toString() == 'int') {
-      guard = new HTypeGuard(HType.INTEGER, parameter);
-    } else if (type.toString() == 'String') {
-      guard = new HTypeGuard(HType.STRING, parameter);
-    }
-    if (guard == null) return;
-
-    parameter.block.rewrite(parameter, guard);
-    parameter.block.addAfter(parameter, guard);
-  }
-
-  void visitGraph(HGraph graph) {
-    visitDominatorTree(graph);
-  }
-}
-
-class CheckInserter extends HBaseVisitor {
+class SsaCheckInserter extends HBaseVisitor {
   Element lengthInterceptor;
 
-  CheckInserter(Compiler compiler) {
+  SsaCheckInserter(Compiler compiler) {
     SourceString name = const SourceString('length');
     lengthInterceptor =
         compiler.builder.interceptors.getStaticGetInterceptor(name);
@@ -278,37 +186,18 @@ class CheckInserter extends HBaseVisitor {
     visitDominatorTree(graph);
   }
 
-  visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.phis.first;
+  void visitBasicBlock(HBasicBlock block) {
+    HInstruction instruction = block.first;
     while (instruction !== null) {
-      instruction = tryInsertTypeGuard(instruction, block.first);
-    }
-    instruction = block.first;
-    while (instruction !== null) {
+      HInstruction next = instruction.next;
       instruction = instruction.accept(this);
-      instruction = tryInsertTypeGuard(instruction, instruction);
+      instruction = next;
     }
   }
 
-  HInstruction tryInsertTypeGuard(HInstruction instruction,
-                                  HInstruction insertionPoint) {
-    // If we found a type for the instruction, but the instruction
-    // does not know if it produces that type, add a type guard.
-    if (instruction.type.isKnown() && !instruction.hasExpectedType()) {
-      HTypeGuard guard = new HTypeGuard(instruction.type, instruction);
-      // Remove the instruction's type, the guard is now holding that
-      // type.
-      instruction.type = HType.UNKNOWN;
-      instruction.block.rewrite(instruction, guard);
-      insertionPoint.block.addAfter(insertionPoint, guard);
-      return guard.next;
-    }
-    return instruction.next;
-  }
-
-  insertBoundsCheck(HInstruction node,
-                    HInstruction receiver,
-                    HInstruction index) {
+  HBoundsCheck insertBoundsCheck(HInstruction node,
+                                 HInstruction receiver,
+                                 HInstruction index) {
     HStatic interceptor = new HStatic(lengthInterceptor);
     node.block.addBefore(node, interceptor);
     HInvokeInterceptor length =
@@ -322,15 +211,13 @@ class CheckInserter extends HBaseVisitor {
     return check;
   }
 
-  insertIntegerCheck(HInstruction node, HInstruction value) {
+  HIntegerCheck insertIntegerCheck(HInstruction node, HInstruction value) {
     HIntegerCheck check = new HIntegerCheck(value);
     node.block.addBefore(node, check);
     return check;
   }
 
-  visitInstruction(HInstruction node) => node;
-
-  visitIndex(HIndex node) {
+  void visitIndex(HIndex node) {
     if (!node.builtin) return node;
     HInstruction index = insertIntegerCheck(node, node.index);
     index = insertBoundsCheck(node, node.receiver, index);
@@ -339,10 +226,9 @@ class CheckInserter extends HBaseVisitor {
     node.block.addBefore(node, newInstruction);
     node.block.rewrite(node, newInstruction);
     node.block.remove(node);
-    return newInstruction;
   }
 
-  visitIndexAssign(HIndexAssign node) {
+  void visitIndexAssign(HIndexAssign node) {
     if (!node.builtin) return node;
     HInstruction index = insertIntegerCheck(node, node.index);
     index = insertBoundsCheck(node, node.receiver, index);
@@ -352,7 +238,6 @@ class CheckInserter extends HBaseVisitor {
     node.block.addBefore(node, newInstruction);
     node.block.rewrite(node, newInstruction);
     node.block.remove(node);
-    return newInstruction;
   }
 }
 

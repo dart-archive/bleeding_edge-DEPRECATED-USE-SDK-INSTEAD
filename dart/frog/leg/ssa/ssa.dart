@@ -17,5 +17,6 @@
 #source('optimize.dart');
 #source('phi_eliminator.dart');
 #source('tracer.dart');
+#source('types.dart');
 #source('validate.dart');
 #source('value_set.dart');
