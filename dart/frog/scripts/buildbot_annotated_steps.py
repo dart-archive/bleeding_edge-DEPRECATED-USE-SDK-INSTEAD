@@ -96,11 +96,13 @@ def TestFrog(arch, mode):
 
     TestStep("leg_extra", testpy_mode, arch, ['leg', 'leg_only'], flags)
 
-    TestStep("leg", testpy_mode, 'leg', [], flags)
+    if arch == 'frogsh':
+      # There is no need to run these tests both for frog and frogsh.
 
-    TestStep("leg_extra", testpy_mode, 'leg', ['leg_only'], flags)
-    # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
-    TestStep("leg_extra", testpy_mode, 'vm', ['leg'], flags)
+      TestStep("leg", testpy_mode, 'leg', [], flags)
+      TestStep("leg_extra", testpy_mode, 'leg', ['leg_only'], flags)
+      # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
+      TestStep("leg_extra", testpy_mode, 'vm', ['leg'], flags)
 
   else:
     if (TestStep("browser", testpy_mode, 'frogium',
