@@ -66,6 +66,31 @@ main() {
   testTopLevelFields();
   testInitializers();
   testThis();
+  testSuperCalls();
+}
+
+testSuperCalls() {
+  MockCompiler compiler = new MockCompiler();
+  Universe universe = compiler.universe;
+  String script = """class A { foo() {} }
+                     class B extends A { foo() => super.foo(); }""";
+  compiler.parseScript(script);
+  compiler.resolveStatement("B b;");
+
+  ClassElement classB = compiler.universe.find(buildSourceString("B"));
+  FunctionElement fooB = classB.lookupLocalMember(buildSourceString("foo"));
+  ClassElement classA = compiler.universe.find(buildSourceString("A"));
+  FunctionElement fooA = classA.lookupLocalMember(buildSourceString("foo"));
+
+  FullResolverVisitor visitor = new FullResolverVisitor(compiler, fooB);
+  FunctionExpression node = fooB.parseNode(compiler, compiler);
+  visitor.visit(node.body);
+  Map mapping = visitor.mapping.map;
+
+  Send superCall = node.body.asReturn().expression;
+  FunctionElement called = mapping[superCall];
+  Expect.isTrue(called !== null);
+  Expect.equals(fooA, called);
 }
 
 testThis() {
@@ -402,7 +427,7 @@ testTopLevelFields() {
   Element element = compiler.universe.find(buildSourceString("a"));
   Expect.equals(ElementKind.FIELD, element.kind);
   VariableDefinitions node = element.variables.parseNode(compiler, compiler);
-  Expect.equals(node.type.typeName.source.stringValue, 'int');
+  Expect.equals(node.type.typeName.asIdentifier().source.stringValue, 'int');
 
   compiler.parseScript("var b, c;");
   Element bElement = compiler.universe.find(buildSourceString("b"));

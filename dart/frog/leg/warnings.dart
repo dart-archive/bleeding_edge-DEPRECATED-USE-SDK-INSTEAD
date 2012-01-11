@@ -44,12 +44,16 @@ class MessageKind {
       'duplicate definition of #{1}');
   static final NOT_A_TYPE = const MessageKind(
       '#{1} is not a type');
+  static final NO_SUPER_IN_OBJECT = const MessageKind(
+      '\'Object\' does not have a superclass');
   static final CANNOT_FIND_CONSTRUCTOR = const MessageKind(
       'cannot find constructor #{1}');
   static final INVALID_RECEIVER_IN_INITIALIZER = const MessageKind(
       'field initializer expected');
   static final NO_THIS_IN_STATIC = const MessageKind(
       '\'this\' is only available in instance methods');
+  static final NO_SUPER_IN_STATIC = const MessageKind(
+      '\'super\' is only available in instance methods');
   static final DUPLICATE_INITIALIZER = const MessageKind(
       'field #{1} is initialized more than once');
   static final ALREADY_INITIALIZED = const MessageKind(
@@ -74,8 +78,7 @@ class Message {
       message = kind.template;
       int position = 1;
       for (var argument in arguments) {
-        message = message.replaceAll('#{${position++}}',
-                                     argument.toString());
+        message = message.replaceAll('#{${position++}}', argument.toString());
       }
     }
     return message;

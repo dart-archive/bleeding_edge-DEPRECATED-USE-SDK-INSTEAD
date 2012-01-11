@@ -28,6 +28,7 @@ interface HVisitor<R> {
   R visitInvokeDynamicSetter(HInvokeDynamicSetter node);
   R visitInvokeInterceptor(HInvokeInterceptor node);
   R visitInvokeStatic(HInvokeStatic node);
+  R visitInvokeSuper(HInvokeSuper node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
   R visitLoad(HLoad node);
@@ -222,6 +223,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInvokeInterceptor(HInvokeInterceptor node)
       => visitInvokeStatic(node);
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
+  visitInvokeSuper(HInvokeSuper node) => visitInvoke(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLoad(HLoad node) => visitInstruction(node);
@@ -1016,6 +1018,12 @@ class HInvokeStatic extends HInvoke {
   }
 
   bool hasExpectedType() => builtin;
+}
+
+class HInvokeSuper extends HInvokeStatic {
+  HInvokeSuper(inputs) : super(inputs);
+  toString() => 'invoke super: ${element.name}';
+  accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
 }
 
 class HInvokeInterceptor extends HInvokeStatic {

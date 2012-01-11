@@ -398,6 +398,15 @@ class SsaCodeGenerator implements HVisitor {
     visitArguments(node.inputs);
   }
 
+  visitInvokeSuper(HInvokeSuper node) {
+    Element superMethod = node.element;
+    Element superClass = superMethod.enclosingElement;
+    String className = compiler.namer.isolatePropertyAccess(superClass);
+    String methodName = compiler.namer.instanceName(superMethod.name);
+    buffer.add('$className.prototype.$methodName.call');
+    visitArguments(node.inputs);
+  }
+
   visitForeign(HForeign node) {
     String code = '${node.code}';
     List<HInstruction> inputs = node.inputs;

@@ -551,6 +551,9 @@ class SsaBuilder implements Visitor {
         compiler.unimplemented("Ssa.visitIdentifier.", node: node);
       }
       stack.add(thisDefinition);
+    } else if (node.isSuper()) {
+      // super should not be visited as an identifier.
+      compiler.internalError("unexpected identifier: super", node: node);
     } else {
       Element element = elements[node];
       compiler.ensure(element !== null);
@@ -989,6 +992,20 @@ class SsaBuilder implements Visitor {
     }
   }
 
+  visitSuperSend(Send node) {
+    Element element = elements[node];
+    HStatic target = new HStatic(element);
+    HThis context = thisDefinition;
+    if (context === null) {
+      compiler.unimplemented("Ssa.visitSuperSend without thisDefinition.",
+                             node: node);
+    }
+    add(target);
+    var inputs = <HInstruction>[target, context];
+    addVisitedSendArgumentsToList(node.arguments, inputs);
+    push(new HInvokeSuper(inputs));
+  }
+
   visitStaticSend(Send node) {
     Element element = elements[node];
     HStatic target = new HStatic(element);
@@ -1006,6 +1023,8 @@ class SsaBuilder implements Visitor {
       generateGetter(node, elements[node]);
     } else if (Elements.isClosureSend(node, elements)) {
       visitClosureSend(node);
+    } else if (node.isSuperCall) {
+      visitSuperSend(node);
     } else {
       Element element = elements[node];
       if (element === null) {

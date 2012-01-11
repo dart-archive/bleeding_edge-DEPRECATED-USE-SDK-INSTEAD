@@ -269,6 +269,14 @@ class HInstructionStringifier implements HVisitor<String> {
     return visitGenericInvoke("Invoke", target, arguments);
   }
 
+  String visitInvokeSuper(HInvokeSuper invoke) {
+    String target = temporaryId(invoke.target);
+    int offset = HInvoke.ARGUMENTS_OFFSET + 1;
+    List arguments =
+        invoke.inputs.getRange(offset, invoke.inputs.length - offset);
+    return visitGenericInvoke("Invoke super", target, arguments);
+  }
+
   String visitForeign(HForeign foreign) {
     return visitGenericInvoke("Foreign", "${foreign.code}", foreign.inputs);
   }

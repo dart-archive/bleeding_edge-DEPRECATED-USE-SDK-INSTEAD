@@ -220,6 +220,11 @@ class Send extends Expression {
 
   int argumentCount() => argumentsNode.length();
 
+  bool get isSuperCall() {
+    return receiver !== null &&
+           receiver.asIdentifier() !== null &&
+           receiver.asIdentifier().isSuper();
+  }
   bool get isOperator() => selector is Operator;
   bool get isPropertyAccess() => argumentsNode === null;
   bool get isFunctionObjectInvocation() => selector === null;
@@ -655,6 +660,8 @@ class Identifier extends Expression {
   Identifier.synthetic(String name) : token = new StringToken(null, name, null);
 
   bool isThis() => source.stringValue == 'this';
+
+  bool isSuper() => source.stringValue == 'super';
 
   Identifier asIdentifier() => this;
 

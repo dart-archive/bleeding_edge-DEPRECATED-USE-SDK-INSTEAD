@@ -142,6 +142,7 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
   final Element enclosingElement;
   bool inInstanceContext;
   Scope context;
+  ClassElement currentClass;
 
   ResolverVisitor(Compiler compiler, Element element)
     : this.compiler = compiler,
@@ -151,14 +152,16 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
           || element.isGenerativeConstructor(),
       this.context  = element.isMember()
         ? new ClassScope(element.enclosingElement, compiler.universe)
-        : new TopScope(compiler.universe);
+        : new TopScope(compiler.universe),
+      this.currentClass = element.isMember() ? element.enclosingElement : null;
 
   ResolverVisitor.from(ResolverVisitor other)
     : compiler = other.compiler,
       mapping = other.mapping,
       enclosingElement = other.enclosingElement,
       inInstanceContext = other.inInstanceContext,
-      context = other.context;
+      context = other.context,
+      currentClass = other.currentClass;
 
   error(Node node, MessageKind kind, [arguments = const []]) {
     ResolutionError error  = new ResolutionError(kind, arguments);
@@ -197,6 +200,9 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
   visitIdentifier(Identifier node) {
     if (node.isThis()) {
       if (!inInstanceContext) error(node, MessageKind.NO_THIS_IN_STATIC);
+      return null;
+    } else if (node.isSuper()) {
+      if (!inInstanceContext) error(node, MessageKind.NO_SUPER_IN_STATIC);
       return null;
     } else {
       Element element = lookup(node, node.source);
@@ -357,7 +363,17 @@ class FullResolverVisitor extends ResolverVisitor {
     if (isLogicalOperator(selector)) return null;
 
     Element target = null;
-    if (node.isOperator) {
+    if (node.isSuperCall) {
+      if (currentClass !== null) {
+        ClassElement superElement = currentClass.superClass;
+        if (superElement !== null) {
+          target = superElement.lookupLocalMember(name);
+        }
+        if (target == null) {
+          error(node, MessageKind.METHOD_NOT_FOUND, [superElement.name, name]);
+        }
+      }
+    } else if (node.isOperator) {
       return null;
     } else if (node.receiver === null) {
       target = lookup(node, name);
@@ -370,9 +386,9 @@ class FullResolverVisitor extends ResolverVisitor {
       ClassElement receiverClass = receiver;
       target = receiverClass.resolve(compiler).lookupLocalMember(name);
       if (target == null) {
-        error(node, MessageKind.METHOD_NOT_FOUND, [receiver, name]);
+        error(node, MessageKind.METHOD_NOT_FOUND, [receiver.name, name]);
       } else if (target.isInstanceMember()) {
-        error(node, MessageKind.MEMBER_NOT_STATIC, [receiver, name]);
+        error(node, MessageKind.MEMBER_NOT_STATIC, [receiver.name, name]);
       }
     }
     return target;
@@ -580,6 +596,18 @@ class ClassResolverVisitor extends AbstractVisitor/* <Type> */ {
     compiler.ensure(element !== null);
     compiler.ensure(!element.isResolved);
     element.supertype = visit(node.superclass);
+    if (element.name != Types.OBJECT && element.supertype === null) {
+      ClassElement objectElement = context.lookup(Types.OBJECT);
+      if (objectElement !== null && !objectElement.isResolved) {
+        compiler.resolver.toResolve.add(objectElement);
+      } else if (objectElement === null){
+        compiler.reportError(node,
+            new ResolutionError(MessageKind.CANNOT_RESOLVE_TYPE,
+                                [Types.OBJECT]));
+      }
+      element.supertype = new SimpleType(Types.OBJECT,
+                                         objectElement);
+    }
     for (Link<Node> link = node.interfaces.nodes;
          !link.isEmpty();
          link = link.tail) {
