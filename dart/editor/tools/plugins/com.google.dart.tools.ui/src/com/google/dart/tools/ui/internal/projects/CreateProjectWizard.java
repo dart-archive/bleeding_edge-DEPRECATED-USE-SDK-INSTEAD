@@ -14,7 +14,10 @@
 
 package com.google.dart.tools.ui.internal.projects;
 
+import com.google.dart.tools.core.DartCore;
+
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResourceStatus;
@@ -92,9 +95,8 @@ public class CreateProjectWizard extends BasicNewResourceWizard {
     // get a project descriptor
     URI location = page.getLocationURI();
 
-    IWorkspace workspace = ResourcesPlugin.getWorkspace();
-    final IProjectDescription description = workspace.newProjectDescription(newProjectHandle.getName());
-    description.setLocationURI(location);
+    final IProjectDescription description = createProjectDescription(newProjectHandle, location);
+
     // create the new project operation
     IRunnableWithProgress op = new IRunnableWithProgress() {
 
@@ -145,6 +147,17 @@ public class CreateProjectWizard extends BasicNewResourceWizard {
     newProject = newProjectHandle;
 
     return newProject;
+  }
+
+  private IProjectDescription createProjectDescription(IProject project, URI location) {
+    IWorkspace workspace = ResourcesPlugin.getWorkspace();
+    IProjectDescription description = workspace.newProjectDescription(project.getName());
+    description.setLocationURI(location);
+    description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
+    ICommand command = description.newCommand();
+    command.setBuilderName(DartCore.DART_BUILDER_ID);
+    description.setBuildSpec(new ICommand[] {command});
+    return description;
   }
 
 }
