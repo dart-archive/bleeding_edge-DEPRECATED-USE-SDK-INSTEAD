@@ -106,7 +106,7 @@ public class FeedbackUtils {
   }
 
   private static String getOSArch() {
-    return System.getProperty("os.arch");
+    return System.getProperty("os.arch") + " (" + System.getProperty("os.version") + ")";
   }
 
   private static boolean is64bitBinary() throws Exception {
