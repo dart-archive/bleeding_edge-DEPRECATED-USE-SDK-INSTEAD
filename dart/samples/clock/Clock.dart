@@ -54,21 +54,21 @@ class CountDownClock {
     }
   }
 
-  String pad3(int num) {
-    if (num < 10) {
-      return "00${num}";
+  String pad3(int number) {
+    if (number < 10) {
+      return "00${number}";
     }
-    if (num < 100) {
-      return "0${num}";
+    if (number < 100) {
+      return "0${number}";
     }
-    return "${num}";
+    return "${number}";
   }
 
-  String pad2(int num) {
-    if (num < 10) {
-      return "0${num}";
+  String pad2(int number) {
+    if (number < 10) {
+      return "0${number}";
     }
-    return "${num}";
+    return "${number}";
   }
 
   void createNumbers() {

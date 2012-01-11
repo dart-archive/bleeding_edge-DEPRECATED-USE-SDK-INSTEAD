@@ -26,8 +26,8 @@ class Util {
     return elem.getBoundingClientRect();
   }
 
-  static void opacity(HTMLElement elem, double opacity) {
-    elem.style.setProperty("opacity", opacity.toRadixString(10));
+  static void opacity(HTMLElement elem, double value) {
+    elem.style.setProperty("opacity", value.toRadixString(10));
   }
 
   static int currentTimeMillis() {
