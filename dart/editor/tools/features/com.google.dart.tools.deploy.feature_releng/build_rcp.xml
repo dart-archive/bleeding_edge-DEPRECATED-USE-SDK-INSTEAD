@@ -258,7 +258,6 @@ build system.  The PDE build system has to run under Eclipse.
 
 #source("../builtin/buffer_list.dart");
 #source("../builtin/chunked_stream.dart");
-#source("../builtin/debug_server.dart");
 #source("../builtin/directory.dart");
 #source("../builtin/directory_impl.dart");
 #source("../builtin/file.dart");
