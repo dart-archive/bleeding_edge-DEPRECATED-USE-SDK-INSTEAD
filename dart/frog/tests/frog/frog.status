@@ -24,3 +24,6 @@ NativePropertyFrogTest: Fail
 [ $component == frogium || $component == vm ]
 InheritanceOrderingTest: Skip
 PrototypePatchingTest: Skip
+
+[ $component == webdriver ]
+*: Skip

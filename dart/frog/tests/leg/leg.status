@@ -12,7 +12,7 @@ ConstantFoldingStringTest: FAIL
 [ $component == frog ]
 ScannerTest: Skip # Bug 1084 in Frog - no utf8 support when on VM
 
-[ $component == frogium ]
+[ $component == frogium || $component == webdriver ]
 # Tests have # directives (not supported by the browser test architecture)
 *: Skip
 
