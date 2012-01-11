@@ -295,16 +295,34 @@ builtin$toString$0(var value) {
 }
 
 
+builtin$iterator$0(var receiver) {
+  if (isJSArray(receiver)) {
+    return new ListIterator(receiver);
+  }
+  return UNINTERCEPTED(receiver.iterator());
+}
+
+
 bool isInt(var v) {
   return JS("bool", @"($0 | 0) === $1", v, v);
 }
 
+/* Include when interfaces are implemented
+interface Iterable<T> {
+  Iterator<T> iterator();
+}
+
+interface Iterator<T> {
+  bool hasNext();
+  T next();
+}
+*/
 class int {}
 class double {}
 class String {}
 class bool {}
 class Object {}
-class List<T> {
+class List<T> /* implements Iterable<T> */ {
   static void _checkConstructorInput(n) {
     // TODO(ngeoffray): Inline once we support optional parameters or
     // bailout.
@@ -317,6 +335,18 @@ class List<T> {
     if (JS("bool", @"$0 === (void 0)", n)) return JS("Object", @"new Array()");
     _checkConstructorInput(n);
     return JS("Object", @"new Array($0)", n);
+  }
+}
+
+class ListIterator<T> /* implements Iterator<T> */ {
+  int i;
+  List<T> list;
+  ListIterator(List<T> list) : this.list = list, i = 0;
+  bool hasNext() => i < JS("int", @"$0.length", list);
+  T next() {
+    var value = JS("Object", @"$0[$1]", list, i);
+    i += 1;
+    return value;
   }
 }
 

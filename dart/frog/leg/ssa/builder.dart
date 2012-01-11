@@ -1291,7 +1291,68 @@ class SsaBuilder implements Visitor {
   }
 
   visitForInStatement(ForInStatement node) {
-    compiler.unimplemented('SsaBuilder.visitForInStatement', node: node);
+    // Generate a structure equivalent to:
+    //   Iterator<E> $iter = <iterable>.iterator()
+    //   while ($iter.hasNext()) {
+    //     E <declaredIdentifier> = $iter.next();
+    //     <body>
+    //   }
+    SourceString iteratorName = const SourceString("iterator");
+
+    Element interceptor = interceptors.getStaticInterceptor(iteratorName, 0);
+    assert(interceptor != null);
+    HStatic target = new HStatic(interceptor);
+    add(target);
+    visit(node.expression);
+    List<HInstruction> inputs = <HInstruction>[target, pop()];
+    HInstruction iterator = new HInvokeInterceptor("iterator", false, inputs);
+    add(iterator);
+
+    Map initializerDefinitions = startLoop();
+    HBasicBlock conditionBlock = current;
+
+    // The condition.
+    String jsHasNextName =
+        compiler.namer.instanceName(const SourceString("hasNext"));
+    push(new HInvokeDynamicMethod(jsHasNextName, [iterator]));
+    HBasicBlock conditionExitBlock = close(new HLoopBranch(popBoolified()));
+
+    Map conditionDefinitions =
+        new Map<Element, HInstruction>.from(definitions);
+
+    // The body.
+    HBasicBlock bodyBlock = addNewBlock();
+    conditionExitBlock.addSuccessor(bodyBlock);
+    open(bodyBlock);
+
+    VariableDefinitions definition = node.declaredIdentifier;
+    Identifier identifier = definition.definitions.nodes.head;
+    Element variable = elements[identifier];
+    String jsNextName =
+        compiler.namer.instanceName(new SourceString("next"));
+    push(new HInvokeDynamicMethod(jsNextName, [iterator]));
+    definitions[variable] = pop();
+
+    visit(node.body);
+    if (isAborted()) {
+      compiler.unimplemented("SsaBuilder for loop with aborting body",
+                             node: node);
+    }
+    bodyBlock = close(new HGoto());
+
+    // Update.
+    // We create an update block, even if we are in a for-in loop. The
+    // update block is the jump-target for continue statements. We could avoid
+    // the creation if there is no continue, but for now we always create it.
+    HBasicBlock updateBlock = addNewBlock();
+    bodyBlock.addSuccessor(updateBlock);
+    open(updateBlock);
+    updateBlock = close(new HGoto());
+    // The back-edge completing the cycle.
+    updateBlock.addSuccessor(conditionBlock);
+    conditionBlock.postProcessLoopHeader();
+
+    endLoop(conditionBlock, conditionExitBlock, false, conditionDefinitions);
   }
 
   visitLabelledStatement(LabelledStatement node) {

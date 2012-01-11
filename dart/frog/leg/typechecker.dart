@@ -587,7 +587,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitForInStatement(ForInStatement node) {
-    compiler.unimplemented('visitForInStatement', node: node);
+    node.visitChildren(this);
   }
 
   visitLabelledStatement(LabelledStatement node) {

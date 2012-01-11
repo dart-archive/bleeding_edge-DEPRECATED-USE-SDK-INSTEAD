@@ -515,7 +515,19 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitForInStatement(ForInStatement node) {
-    cancel(node, 'unimplemented');
+    visit(node.expression);
+    Scope scope = new BlockScope(context);
+    Node declaration = node.declaredIdentifier;
+    visitIn(declaration, scope);
+    visitIn(node.body, scope);
+    // TODO(lrn): Also allow a single identifier.
+    if (declaration is !VariableDefinitions ||
+        !declaration.definitions.nodes.tail.isEmpty()) {
+      // The variable declaration is either not a declaration, or it's
+      // declaring more than one variable.
+      error(node.declaredIdentifier, MessageKind.GENERIC,
+            ["Invalid variable declaration in for-in"]);
+    }
   }
 
   visitLabelledStatement(LabelledStatement node) {
