@@ -211,16 +211,13 @@ public final class FileTextSearchScope extends TextSearchScope {
       return false; // all resources in a derived folder are considered to be derived, see bug 103576
     }
 
+    //ignore .files (and avoid traversing into folders prefixed with a '.')
+    if (proxy.getName().startsWith(".")) {
+      return false;
+    }
+
     if (proxy.getType() == IResource.FILE) {
-      //exclude .project && .children files
       String name = proxy.getName();
-      if (name.equals(".project") || name.equals(".children")) { //$NON-NLS-1$ //$NON-NLS-2$
-        IPath path = proxy.requestFullPath();
-        // e.g., /MyProject/.project
-        if (path.segmentCount() == 2) {
-          return false;
-        }
-      }
       return matchesFileName(name);
     }
     return true;
