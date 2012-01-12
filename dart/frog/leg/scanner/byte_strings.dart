@@ -32,7 +32,7 @@ class ByteString implements SourceString {
 
   static int decodeTrailing(int byte) {
     if (byte < 0x80 || 0xBF < byte) {
-      return -0xFFFFFFF; // Force bad char.
+      throw new MalformedInputException('Cannot decode UTF-8 $byte');
     } else {
       return byte & 0x3F;
     }
@@ -44,12 +44,12 @@ class ByteString implements SourceString {
       if (bytes[i] < 0x80) {
         result.add(bytes[i]);
       } else if (bytes[i] < 0xC2) {
-        result.add($QUESTION);
+        throw new MalformedInputException('Cannot decode UTF-8 @ $i');
       } else if (bytes[i] < 0xE0) {
         int char = (bytes[i++] & 0x1F) << 6;
         char += decodeTrailing(bytes[i]);
         if (char < 0x80) {
-          result.add($QUESTION);
+          throw new MalformedInputException('Cannot decode UTF-8 @ ${i-1}');
         } else {
           result.add(char);
         }
@@ -59,7 +59,7 @@ class ByteString implements SourceString {
         char <<= 6;
         char += decodeTrailing(bytes[i]);
         if (char < 0x800 || (0xD800 <= char && char <= 0xDFFF)) {
-          result.add($QUESTION);
+          throw new MalformedInputException('Cannot decode UTF-8 @ ${i-2}');
         } else {
           result.add(char);
         }
@@ -71,12 +71,12 @@ class ByteString implements SourceString {
         char <<= 6;
         char += decodeTrailing(bytes[i]);
         if (char < 0x10000) {
-          result.add($QUESTION);
+          throw new MalformedInputException('Cannot decode UTF-8 @ ${i-3}');
         } else {
           result.add(char);
         }
       } else {
-        throw new MalformedInputException('Cannot decode UTF-8 ${bytes[i]}');
+        throw new MalformedInputException('Cannot decode UTF-8 @ $i');
       }
     }
     return result;
