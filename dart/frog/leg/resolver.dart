@@ -537,12 +537,12 @@ class FullResolverVisitor extends ResolverVisitor {
     visitIn(declaration, scope);
     visitIn(node.body, scope);
     // TODO(lrn): Also allow a single identifier.
-    if (declaration is !VariableDefinitions ||
-        !declaration.asVariableDefinitions().definitions.nodes.tail.isEmpty()) {
-      // The variable declaration is either not a declaration, or it's
-      // declaring more than one variable.
-      error(node.declaredIdentifier, MessageKind.GENERIC,
-            ["Invalid variable declaration in for-in"]);
+    if ((declaration is !Send || declaration.selector is !Identifier) &&
+        (declaration is !VariableDefinitions ||
+         !declaration.definitions.nodes.tail.isEmpty())) {
+      // The variable declaration is either not an identifier, not a
+      // declaration, or it's declaring more than one variable.
+      error(node.declaredIdentifier, MessageKind.INVALID_FOR_IN, []);
     }
   }
 

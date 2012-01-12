@@ -62,6 +62,8 @@ class MessageKind {
       'cannot initialize static field #{1}');
   static final NOT_A_FIELD = const MessageKind(
       '#{1} is not a field');
+  static final INVALID_FOR_IN = const MessageKind(
+      'Invalid for-in variable declaration.');
 
   toString() => template;
 }

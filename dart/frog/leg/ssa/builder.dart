@@ -1345,12 +1345,18 @@ class SsaBuilder implements Visitor {
     conditionExitBlock.addSuccessor(bodyBlock);
     open(bodyBlock);
 
-    VariableDefinitions definition = node.declaredIdentifier;
-    Identifier identifier = definition.definitions.nodes.head;
-    Element variable = elements[identifier];
     String jsNextName =
         compiler.namer.instanceName(new SourceString("next"));
     push(new HInvokeDynamicMethod(jsNextName, [iterator]));
+
+    Element variable;
+    if (node.declaredIdentifier.asSend() !== null) {
+      variable = elements[node.declaredIdentifier];
+    } else {
+      assert(node.declaredIdentifier.asVariableDefinitions() !== null);
+      VariableDefinitions definitions = node.declaredIdentifier;
+      variable = elements[definitions.definitions.nodes.head];
+    }
     definitions[variable] = pop();
 
     visit(node.body);

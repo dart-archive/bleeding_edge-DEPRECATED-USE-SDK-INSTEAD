@@ -12,6 +12,15 @@ testIterator(List expect, Iterable input) {
     i += 1;
   }
   Expect.equals(expect.length, i);
+
+  i = 0;
+  var value2;
+  for (value2 in input) {
+    Expect.isTrue(i < expect.length);
+    Expect.equals(expect[i], value2);
+    i += 1;
+  }
+  Expect.equals(expect.length, i);
 }
 
 class MyIterable<T> /* implements Iterable<T> */ {
@@ -39,4 +48,33 @@ void main() {
   testIterator([1,2,3], new MyIterable([1,2,3]));
   testIterator(["a","b","c"], ["a","b","c"]);
   testIterator(["a","b","c"], new MyIterable(["a","b","c"]));
+
+  // Several nested for-in's.
+  for (var x in [[["a"]]]) {
+    for (var y in x) {
+      for (var z in y) {
+        Expect.equals("a", z);
+      }
+    }
+  }
+
+  // Simultaneous iteration of the same iterable.
+  for (var iterable in [[1,2,3], new MyIterable([1,2,3])]) {
+    int result = 0;
+    for (var x in iterable) {
+      for (var y in iterable) {
+        result += x * y;
+      }
+    }
+    Expect.equals(36, result);
+  }
+
+  // Using the same variable (showing that the expression is evaluated
+  // in the outer scope).
+  int result = 0;
+  var x = [1,2,3];
+  for (var x in x) {
+    result += x;
+  }
+  Expect.equals(6, result);
 }
