@@ -21,7 +21,7 @@ class Color {
 
     double h;
     if (max == min) {
-      h = 0;
+      h = 0.0;
     } else if (max == r) {
       h = 60 * (g-b)/d;
     } else if (max == g) {
@@ -34,14 +34,14 @@ class Color {
 
     double s;
     if (max == min) {
-      s = 0;
+      s = 0.0;
     } else if (l < 0.5) {
       s = d/(2*l);
     } else {
       s = d/(2 - 2*l);
     }
 
-    return new Color(h.round() % 360, s, l);
+    return new Color((h.round() % 360).toInt(), s, l);
   }
 
   factory Color.hex(String hex) => new Color.rgb(
