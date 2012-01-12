@@ -4,7 +4,7 @@
 
 #library("pond_ui");
 
-#import("dart:html");
+#import("dart:html", prefix:'html');
 #import("../../frog/lang.dart");
 #import("html_file_system.dart");
 #import("util.dart");
@@ -17,7 +17,7 @@ class PondUI {
   void clearOutput() {
     setEditorText('warningEditor', '');
     setEditorText('jsEditor', '');
-    document.query('#resultFrame').attributes['src'] = 'about:blank';
+    html.document.query('#resultFrame').attributes['src'] = 'about:blank';
     for (Object marker in markers) {
       clearMarker(marker);
     }
@@ -28,18 +28,18 @@ class PondUI {
     setEditorText('dartEditor', SampleCode.DART);
     setEditorText('htmlEditor', SampleCode.HTML);
 
-    document.query('#clearButton').on.click.add((Event e) {
+    html.document.query('#clearButton').on.click.add((e) {
       clearOutput();
     });
 
-    document.query('#runButton').on.click.add((Event e) {
+    html.document.query('#runButton').on.click.add((e) {
       clearOutput();
       String warnings = '';
       HtmlFileSystem fs = new HtmlFileSystem();
       parseOptions('frogroot', ['dummyArg1', 'dummyArg2', 'user.dart'], fs);
       options.useColors = false;
       options.warningsAsErrors =
-        document.query('#warningCheckbox').dynamic.checked;
+        html.document.query('#warningCheckbox').dynamic.checked;
 
       int millis1 = new Date.now().value;
       initializeWorld(fs);
