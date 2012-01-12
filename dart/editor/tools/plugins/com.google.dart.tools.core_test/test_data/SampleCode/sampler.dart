@@ -2,6 +2,8 @@
 
 typedef int FunctionTypeAlias(int a, int b, int c);
 
+typedef int _PrivateFunctionTypeAlias(int a, int b);
+
 class PublicClass {
   int publicField;
   FunctionTypeAlias _privateField;
@@ -81,4 +83,8 @@ void set topLevelSetter(String value) {
 
 double topLevelFunction(double offset) {
   return PublicTopLevelFinalVariable + offset;
+}
+
+int _privateTopLevelFunction(int value) {
+  return value + 1;
 }
