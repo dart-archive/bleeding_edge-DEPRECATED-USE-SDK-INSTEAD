@@ -220,134 +220,137 @@ class TokenKind {
   /** [TokenKind] representing pseudo-keyword 'assert' tokens. */
   static final int ASSERT = 72;
 
+  /** [TokenKind] representing pseudo-keyword 'call' tokens. */
+  static final int CALL = 73;
+
   /** [TokenKind] representing pseudo-keyword 'factory' tokens. */
-  static final int FACTORY = 73;
+  static final int FACTORY = 74;
 
   /** [TokenKind] representing pseudo-keyword 'get' tokens. */
-  static final int GET = 74;
+  static final int GET = 75;
 
   /** [TokenKind] representing pseudo-keyword 'implements' tokens. */
-  static final int IMPLEMENTS = 75;
+  static final int IMPLEMENTS = 76;
 
   /** [TokenKind] representing pseudo-keyword 'import' tokens. */
-  static final int IMPORT = 76;
+  static final int IMPORT = 77;
 
   /** [TokenKind] representing pseudo-keyword 'interface' tokens. */
-  static final int INTERFACE = 77;
+  static final int INTERFACE = 78;
 
   /** [TokenKind] representing pseudo-keyword 'library' tokens. */
-  static final int LIBRARY = 78;
+  static final int LIBRARY = 79;
 
   /** [TokenKind] representing pseudo-keyword 'native' tokens. */
-  static final int NATIVE = 79;
+  static final int NATIVE = 80;
 
   /** [TokenKind] representing pseudo-keyword 'negate' tokens. */
-  static final int NEGATE = 80;
+  static final int NEGATE = 81;
 
   /** [TokenKind] representing pseudo-keyword 'operator' tokens. */
-  static final int OPERATOR = 81;
+  static final int OPERATOR = 82;
 
   /** [TokenKind] representing pseudo-keyword 'set' tokens. */
-  static final int SET = 82;
+  static final int SET = 83;
 
   /** [TokenKind] representing pseudo-keyword 'source' tokens. */
-  static final int SOURCE = 83;
+  static final int SOURCE = 84;
 
   /** [TokenKind] representing pseudo-keyword 'static' tokens. */
-  static final int STATIC = 84;
+  static final int STATIC = 85;
 
   /** [TokenKind] representing pseudo-keyword 'typedef' tokens. */
-  static final int TYPEDEF = 85;
+  static final int TYPEDEF = 86;
 
   /** [TokenKind] representing keyword 'await' tokens. */
-  static final int AWAIT = 86;
+  static final int AWAIT = 87;
 
   /** [TokenKind] representing keyword 'break' tokens. */
-  static final int BREAK = 87;
+  static final int BREAK = 88;
 
   /** [TokenKind] representing keyword 'case' tokens. */
-  static final int CASE = 88;
+  static final int CASE = 89;
 
   /** [TokenKind] representing keyword 'catch' tokens. */
-  static final int CATCH = 89;
+  static final int CATCH = 90;
 
   /** [TokenKind] representing keyword 'class' tokens. */
-  static final int CLASS = 90;
+  static final int CLASS = 91;
 
   /** [TokenKind] representing keyword 'const' tokens. */
-  static final int CONST = 91;
+  static final int CONST = 92;
 
   /** [TokenKind] representing keyword 'continue' tokens. */
-  static final int CONTINUE = 92;
+  static final int CONTINUE = 93;
 
   /** [TokenKind] representing keyword 'default' tokens. */
-  static final int DEFAULT = 93;
+  static final int DEFAULT = 94;
 
   /** [TokenKind] representing keyword 'do' tokens. */
-  static final int DO = 94;
+  static final int DO = 95;
 
   /** [TokenKind] representing keyword 'else' tokens. */
-  static final int ELSE = 95;
+  static final int ELSE = 96;
 
   /** [TokenKind] representing keyword 'extends' tokens. */
-  static final int EXTENDS = 96;
+  static final int EXTENDS = 97;
 
   /** [TokenKind] representing keyword 'false' tokens. */
-  static final int FALSE = 97;
+  static final int FALSE = 98;
 
   /** [TokenKind] representing keyword 'final' tokens. */
-  static final int FINAL = 98;
+  static final int FINAL = 99;
 
   /** [TokenKind] representing keyword 'finally' tokens. */
-  static final int FINALLY = 99;
+  static final int FINALLY = 100;
 
   /** [TokenKind] representing keyword 'for' tokens. */
-  static final int FOR = 100;
+  static final int FOR = 101;
 
   /** [TokenKind] representing keyword 'if' tokens. */
-  static final int IF = 101;
+  static final int IF = 102;
 
   /** [TokenKind] representing keyword 'in' tokens. */
-  static final int IN = 102;
+  static final int IN = 103;
 
   /** [TokenKind] representing keyword 'is' tokens. */
-  static final int IS = 103;
+  static final int IS = 104;
 
   /** [TokenKind] representing keyword 'new' tokens. */
-  static final int NEW = 104;
+  static final int NEW = 105;
 
   /** [TokenKind] representing keyword 'null' tokens. */
-  static final int NULL = 105;
+  static final int NULL = 106;
 
   /** [TokenKind] representing keyword 'return' tokens. */
-  static final int RETURN = 106;
+  static final int RETURN = 107;
 
   /** [TokenKind] representing keyword 'super' tokens. */
-  static final int SUPER = 107;
+  static final int SUPER = 108;
 
   /** [TokenKind] representing keyword 'switch' tokens. */
-  static final int SWITCH = 108;
+  static final int SWITCH = 109;
 
   /** [TokenKind] representing keyword 'this' tokens. */
-  static final int THIS = 109;
+  static final int THIS = 110;
 
   /** [TokenKind] representing keyword 'throw' tokens. */
-  static final int THROW = 110;
+  static final int THROW = 111;
 
   /** [TokenKind] representing keyword 'true' tokens. */
-  static final int TRUE = 111;
+  static final int TRUE = 112;
 
   /** [TokenKind] representing keyword 'try' tokens. */
-  static final int TRY = 112;
+  static final int TRY = 113;
 
   /** [TokenKind] representing keyword 'var' tokens. */
-  static final int VAR = 113;
+  static final int VAR = 114;
 
   /** [TokenKind] representing keyword 'void' tokens. */
-  static final int VOID = 114;
+  static final int VOID = 115;
 
   /** [TokenKind] representing keyword 'while' tokens. */
-  static final int WHILE = 115;
+  static final int WHILE = 116;
 
   static String kindToString(int kind) {
     switch(kind) {
@@ -423,8 +426,7 @@ class TokenKind {
       case TokenKind.IDENTIFIER: return "identifier";
       case TokenKind.ABSTRACT: return "pseudo-keyword 'abstract'";
       case TokenKind.ASSERT: return "pseudo-keyword 'assert'";
-      case TokenKind.CLASS: return "pseudo-keyword 'class'";
-      case TokenKind.EXTENDS: return "pseudo-keyword 'extends'";
+      case TokenKind.CALL: return "pseudo-keyword 'call'";
       case TokenKind.FACTORY: return "pseudo-keyword 'factory'";
       case TokenKind.GET: return "pseudo-keyword 'get'";
       case TokenKind.IMPLEMENTS: return "pseudo-keyword 'implements'";
@@ -442,11 +444,13 @@ class TokenKind {
       case TokenKind.BREAK: return "keyword 'break'";
       case TokenKind.CASE: return "keyword 'case'";
       case TokenKind.CATCH: return "keyword 'catch'";
+      case TokenKind.CLASS: return "keyword 'class'";
       case TokenKind.CONST: return "keyword 'const'";
       case TokenKind.CONTINUE: return "keyword 'continue'";
       case TokenKind.DEFAULT: return "keyword 'default'";
       case TokenKind.DO: return "keyword 'do'";
       case TokenKind.ELSE: return "keyword 'else'";
+      case TokenKind.EXTENDS: return "keyword 'extends'";
       case TokenKind.FALSE: return "keyword 'false'";
       case TokenKind.FINAL: return "keyword 'final'";
       case TokenKind.FINALLY: return "keyword 'finally'";

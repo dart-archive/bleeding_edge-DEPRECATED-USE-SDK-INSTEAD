@@ -274,7 +274,15 @@ class Tokenizer extends TokenizerBase {
       case 4:
         ch = _text.charCodeAt(i0);
         if (ch == 99/*c*/) {
-          if (_text.charCodeAt(i0+1) == 97/*a*/ && _text.charCodeAt(i0+2) == 115/*s*/ && _text.charCodeAt(i0+3) == 101/*e*/) return TokenKind.CASE;
+          ch = _text.charCodeAt(i0+1);
+          if (ch == 97/*a*/) {
+            ch = _text.charCodeAt(i0+2);
+            if (ch == 108/*l*/) {
+              if (_text.charCodeAt(i0+3) == 108/*l*/) return TokenKind.CALL;
+            } else if (ch == 115/*s*/) {
+              if (_text.charCodeAt(i0+3) == 101/*e*/) return TokenKind.CASE;
+            }
+          }
         } else if (ch == 101/*e*/) {
           if (_text.charCodeAt(i0+1) == 108/*l*/ && _text.charCodeAt(i0+2) == 115/*s*/ && _text.charCodeAt(i0+3) == 101/*e*/) return TokenKind.ELSE;
         } else if (ch == 110/*n*/) {

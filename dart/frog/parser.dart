@@ -250,7 +250,7 @@ class Parser {
   classDefinition(int kind) {
     int start = _peekToken.start;
     _eat(kind);
-    var name = identifier();
+    var name = identifierForType();
 
     var typeParams = null;
     if (_peekKind(TokenKind.LT)) {
@@ -321,6 +321,7 @@ class Parser {
     var formals = formalParameterList();
     _eatSemicolon();
 
+    // TODO(jimhug): Validate that di.name is not a pseudo-keyword
     var func = new FunctionDefinition(null, di.type, di.name, formals,
         null, null, null, _makeSpan(start));
 
@@ -1614,6 +1615,18 @@ class Parser {
       _eat(TokenKind.RPAREN);
     }
     return formals;
+  }
+
+  // Type names are not allowed to use pseudo keywords
+  identifierForType() {
+    var tok = _next();
+    if (!_isIdentifier(tok.kind)) {
+      _error('expected identifier, but found $tok', tok.span);
+    }
+    if (tok.kind !== TokenKind.IDENTIFIER && tok.kind != TokenKind.NATIVE) {
+      _error('$tok may not be used as a type name', tok.span);
+    }
+    return new Identifier(tok.text, _makeSpan(tok.start));
   }
 
   identifier() {

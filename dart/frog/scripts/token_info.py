@@ -169,6 +169,7 @@ keywords = [
   Keyword('ASSERT', "assert", True),
   Keyword('AWAIT', "await", False), # experimental feature
   Keyword('BREAK', "break", False),
+  Keyword('CALL', "call", True),
   Keyword('CASE', "case", False),
   Keyword('CATCH', "catch", False),
   Keyword('CLASS', "class", False),

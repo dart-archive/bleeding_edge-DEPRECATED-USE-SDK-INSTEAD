@@ -3470,7 +3470,7 @@ MethodGenerator.prototype.visitDietStatement = function(node) {
 }
 MethodGenerator.prototype.visitVariableDefinition = function(node) {
   var isFinal = false;
-  if (node.modifiers != null && $eq(node.modifiers.$index((0)).get$kind(), (98))) {
+  if (node.modifiers != null && $eq(node.modifiers.$index((0)).get$kind(), (99))) {
     isFinal = true;
   }
   this.writer.write("var ");
@@ -5221,13 +5221,13 @@ FieldMember.prototype.resolve = function() {
     var $$list = this.definition.modifiers;
     for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
       var mod = $$list.$index($$i);
-      if ($eq(mod.get$kind(), (84))) {
+      if ($eq(mod.get$kind(), (85))) {
         if (this.isStatic) {
           $globals.world.error("duplicate static modifier", mod.get$span());
         }
         this.isStatic = true;
       }
-      else if ($eq(mod.get$kind(), (98))) {
+      else if ($eq(mod.get$kind(), (99))) {
         if (this.isFinal) {
           $globals.world.error("duplicate final modifier", mod.get$span());
         }
@@ -5997,13 +5997,13 @@ MethodMember.prototype.resolve = function() {
     var $$list = this.definition.modifiers;
     for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
       var mod = $$list.$index($$i);
-      if ($eq(mod.get$kind(), (84))) {
+      if ($eq(mod.get$kind(), (85))) {
         if (this.isStatic) {
           $globals.world.error("duplicate static modifier", mod.get$span());
         }
         this.isStatic = true;
       }
-      else if (this.get$isConstructor() && $eq(mod.get$kind(), (91))) {
+      else if (this.get$isConstructor() && $eq(mod.get$kind(), (92))) {
         if (this.isConst) {
           $globals.world.error("duplicate const modifier", mod.get$span());
         }
@@ -6012,7 +6012,7 @@ MethodMember.prototype.resolve = function() {
         }
         this.isConst = true;
       }
-      else if ($eq(mod.get$kind(), (73))) {
+      else if ($eq(mod.get$kind(), (74))) {
         if (this.isFactory) {
           $globals.world.error("duplicate factory modifier", mod.get$span());
         }
@@ -7388,18 +7388,18 @@ Tokenizer.prototype.getIdentifierKind = function() {
 
       ch = this._text.charCodeAt(i0);
       if (ch == (100)) {
-        if (this._text.charCodeAt(i0 + (1)) == (111)) return (94);
+        if (this._text.charCodeAt(i0 + (1)) == (111)) return (95);
       }
       else if (ch == (105)) {
         ch = this._text.charCodeAt(i0 + (1));
         if (ch == (102)) {
-          return (101);
-        }
-        else if (ch == (110)) {
           return (102);
         }
-        else if (ch == (115)) {
+        else if (ch == (110)) {
           return (103);
+        }
+        else if (ch == (115)) {
+          return (104);
         }
       }
       return (70);
@@ -7408,22 +7408,22 @@ Tokenizer.prototype.getIdentifierKind = function() {
 
       ch = this._text.charCodeAt(i0);
       if (ch == (102)) {
-        if (this._text.charCodeAt(i0 + (1)) == (111) && this._text.charCodeAt(i0 + (2)) == (114)) return (100);
+        if (this._text.charCodeAt(i0 + (1)) == (111) && this._text.charCodeAt(i0 + (2)) == (114)) return (101);
       }
       else if (ch == (103)) {
-        if (this._text.charCodeAt(i0 + (1)) == (101) && this._text.charCodeAt(i0 + (2)) == (116)) return (74);
+        if (this._text.charCodeAt(i0 + (1)) == (101) && this._text.charCodeAt(i0 + (2)) == (116)) return (75);
       }
       else if (ch == (110)) {
-        if (this._text.charCodeAt(i0 + (1)) == (101) && this._text.charCodeAt(i0 + (2)) == (119)) return (104);
+        if (this._text.charCodeAt(i0 + (1)) == (101) && this._text.charCodeAt(i0 + (2)) == (119)) return (105);
       }
       else if (ch == (115)) {
-        if (this._text.charCodeAt(i0 + (1)) == (101) && this._text.charCodeAt(i0 + (2)) == (116)) return (82);
+        if (this._text.charCodeAt(i0 + (1)) == (101) && this._text.charCodeAt(i0 + (2)) == (116)) return (83);
       }
       else if (ch == (116)) {
-        if (this._text.charCodeAt(i0 + (1)) == (114) && this._text.charCodeAt(i0 + (2)) == (121)) return (112);
+        if (this._text.charCodeAt(i0 + (1)) == (114) && this._text.charCodeAt(i0 + (2)) == (121)) return (113);
       }
       else if (ch == (118)) {
-        if (this._text.charCodeAt(i0 + (1)) == (97) && this._text.charCodeAt(i0 + (2)) == (114)) return (113);
+        if (this._text.charCodeAt(i0 + (1)) == (97) && this._text.charCodeAt(i0 + (2)) == (114)) return (114);
       }
       return (70);
 
@@ -7431,25 +7431,34 @@ Tokenizer.prototype.getIdentifierKind = function() {
 
       ch = this._text.charCodeAt(i0);
       if (ch == (99)) {
-        if (this._text.charCodeAt(i0 + (1)) == (97) && this._text.charCodeAt(i0 + (2)) == (115) && this._text.charCodeAt(i0 + (3)) == (101)) return (88);
+        ch = this._text.charCodeAt(i0 + (1));
+        if (ch == (97)) {
+          ch = this._text.charCodeAt(i0 + (2));
+          if (ch == (108)) {
+            if (this._text.charCodeAt(i0 + (3)) == (108)) return (73);
+          }
+          else if (ch == (115)) {
+            if (this._text.charCodeAt(i0 + (3)) == (101)) return (89);
+          }
+        }
       }
       else if (ch == (101)) {
-        if (this._text.charCodeAt(i0 + (1)) == (108) && this._text.charCodeAt(i0 + (2)) == (115) && this._text.charCodeAt(i0 + (3)) == (101)) return (95);
+        if (this._text.charCodeAt(i0 + (1)) == (108) && this._text.charCodeAt(i0 + (2)) == (115) && this._text.charCodeAt(i0 + (3)) == (101)) return (96);
       }
       else if (ch == (110)) {
-        if (this._text.charCodeAt(i0 + (1)) == (117) && this._text.charCodeAt(i0 + (2)) == (108) && this._text.charCodeAt(i0 + (3)) == (108)) return (105);
+        if (this._text.charCodeAt(i0 + (1)) == (117) && this._text.charCodeAt(i0 + (2)) == (108) && this._text.charCodeAt(i0 + (3)) == (108)) return (106);
       }
       else if (ch == (116)) {
         ch = this._text.charCodeAt(i0 + (1));
         if (ch == (104)) {
-          if (this._text.charCodeAt(i0 + (2)) == (105) && this._text.charCodeAt(i0 + (3)) == (115)) return (109);
+          if (this._text.charCodeAt(i0 + (2)) == (105) && this._text.charCodeAt(i0 + (3)) == (115)) return (110);
         }
         else if (ch == (114)) {
-          if (this._text.charCodeAt(i0 + (2)) == (117) && this._text.charCodeAt(i0 + (3)) == (101)) return (111);
+          if (this._text.charCodeAt(i0 + (2)) == (117) && this._text.charCodeAt(i0 + (3)) == (101)) return (112);
         }
       }
       else if (ch == (118)) {
-        if (this._text.charCodeAt(i0 + (1)) == (111) && this._text.charCodeAt(i0 + (2)) == (105) && this._text.charCodeAt(i0 + (3)) == (100)) return (114);
+        if (this._text.charCodeAt(i0 + (1)) == (111) && this._text.charCodeAt(i0 + (2)) == (105) && this._text.charCodeAt(i0 + (3)) == (100)) return (115);
       }
       return (70);
 
@@ -7457,40 +7466,40 @@ Tokenizer.prototype.getIdentifierKind = function() {
 
       ch = this._text.charCodeAt(i0);
       if (ch == (97)) {
-        if (this._text.charCodeAt(i0 + (1)) == (119) && this._text.charCodeAt(i0 + (2)) == (97) && this._text.charCodeAt(i0 + (3)) == (105) && this._text.charCodeAt(i0 + (4)) == (116)) return (86);
+        if (this._text.charCodeAt(i0 + (1)) == (119) && this._text.charCodeAt(i0 + (2)) == (97) && this._text.charCodeAt(i0 + (3)) == (105) && this._text.charCodeAt(i0 + (4)) == (116)) return (87);
       }
       else if (ch == (98)) {
-        if (this._text.charCodeAt(i0 + (1)) == (114) && this._text.charCodeAt(i0 + (2)) == (101) && this._text.charCodeAt(i0 + (3)) == (97) && this._text.charCodeAt(i0 + (4)) == (107)) return (87);
+        if (this._text.charCodeAt(i0 + (1)) == (114) && this._text.charCodeAt(i0 + (2)) == (101) && this._text.charCodeAt(i0 + (3)) == (97) && this._text.charCodeAt(i0 + (4)) == (107)) return (88);
       }
       else if (ch == (99)) {
         ch = this._text.charCodeAt(i0 + (1));
         if (ch == (97)) {
-          if (this._text.charCodeAt(i0 + (2)) == (116) && this._text.charCodeAt(i0 + (3)) == (99) && this._text.charCodeAt(i0 + (4)) == (104)) return (89);
+          if (this._text.charCodeAt(i0 + (2)) == (116) && this._text.charCodeAt(i0 + (3)) == (99) && this._text.charCodeAt(i0 + (4)) == (104)) return (90);
         }
         else if (ch == (108)) {
-          if (this._text.charCodeAt(i0 + (2)) == (97) && this._text.charCodeAt(i0 + (3)) == (115) && this._text.charCodeAt(i0 + (4)) == (115)) return (90);
+          if (this._text.charCodeAt(i0 + (2)) == (97) && this._text.charCodeAt(i0 + (3)) == (115) && this._text.charCodeAt(i0 + (4)) == (115)) return (91);
         }
         else if (ch == (111)) {
-          if (this._text.charCodeAt(i0 + (2)) == (110) && this._text.charCodeAt(i0 + (3)) == (115) && this._text.charCodeAt(i0 + (4)) == (116)) return (91);
+          if (this._text.charCodeAt(i0 + (2)) == (110) && this._text.charCodeAt(i0 + (3)) == (115) && this._text.charCodeAt(i0 + (4)) == (116)) return (92);
         }
       }
       else if (ch == (102)) {
         ch = this._text.charCodeAt(i0 + (1));
         if (ch == (97)) {
-          if (this._text.charCodeAt(i0 + (2)) == (108) && this._text.charCodeAt(i0 + (3)) == (115) && this._text.charCodeAt(i0 + (4)) == (101)) return (97);
+          if (this._text.charCodeAt(i0 + (2)) == (108) && this._text.charCodeAt(i0 + (3)) == (115) && this._text.charCodeAt(i0 + (4)) == (101)) return (98);
         }
         else if (ch == (105)) {
-          if (this._text.charCodeAt(i0 + (2)) == (110) && this._text.charCodeAt(i0 + (3)) == (97) && this._text.charCodeAt(i0 + (4)) == (108)) return (98);
+          if (this._text.charCodeAt(i0 + (2)) == (110) && this._text.charCodeAt(i0 + (3)) == (97) && this._text.charCodeAt(i0 + (4)) == (108)) return (99);
         }
       }
       else if (ch == (115)) {
-        if (this._text.charCodeAt(i0 + (1)) == (117) && this._text.charCodeAt(i0 + (2)) == (112) && this._text.charCodeAt(i0 + (3)) == (101) && this._text.charCodeAt(i0 + (4)) == (114)) return (107);
+        if (this._text.charCodeAt(i0 + (1)) == (117) && this._text.charCodeAt(i0 + (2)) == (112) && this._text.charCodeAt(i0 + (3)) == (101) && this._text.charCodeAt(i0 + (4)) == (114)) return (108);
       }
       else if (ch == (116)) {
-        if (this._text.charCodeAt(i0 + (1)) == (104) && this._text.charCodeAt(i0 + (2)) == (114) && this._text.charCodeAt(i0 + (3)) == (111) && this._text.charCodeAt(i0 + (4)) == (119)) return (110);
+        if (this._text.charCodeAt(i0 + (1)) == (104) && this._text.charCodeAt(i0 + (2)) == (114) && this._text.charCodeAt(i0 + (3)) == (111) && this._text.charCodeAt(i0 + (4)) == (119)) return (111);
       }
       else if (ch == (119)) {
-        if (this._text.charCodeAt(i0 + (1)) == (104) && this._text.charCodeAt(i0 + (2)) == (105) && this._text.charCodeAt(i0 + (3)) == (108) && this._text.charCodeAt(i0 + (4)) == (101)) return (115);
+        if (this._text.charCodeAt(i0 + (1)) == (104) && this._text.charCodeAt(i0 + (2)) == (105) && this._text.charCodeAt(i0 + (3)) == (108) && this._text.charCodeAt(i0 + (4)) == (101)) return (116);
       }
       return (70);
 
@@ -7501,30 +7510,30 @@ Tokenizer.prototype.getIdentifierKind = function() {
         if (this._text.charCodeAt(i0 + (1)) == (115) && this._text.charCodeAt(i0 + (2)) == (115) && this._text.charCodeAt(i0 + (3)) == (101) && this._text.charCodeAt(i0 + (4)) == (114) && this._text.charCodeAt(i0 + (5)) == (116)) return (72);
       }
       else if (ch == (105)) {
-        if (this._text.charCodeAt(i0 + (1)) == (109) && this._text.charCodeAt(i0 + (2)) == (112) && this._text.charCodeAt(i0 + (3)) == (111) && this._text.charCodeAt(i0 + (4)) == (114) && this._text.charCodeAt(i0 + (5)) == (116)) return (76);
+        if (this._text.charCodeAt(i0 + (1)) == (109) && this._text.charCodeAt(i0 + (2)) == (112) && this._text.charCodeAt(i0 + (3)) == (111) && this._text.charCodeAt(i0 + (4)) == (114) && this._text.charCodeAt(i0 + (5)) == (116)) return (77);
       }
       else if (ch == (110)) {
         ch = this._text.charCodeAt(i0 + (1));
         if (ch == (97)) {
-          if (this._text.charCodeAt(i0 + (2)) == (116) && this._text.charCodeAt(i0 + (3)) == (105) && this._text.charCodeAt(i0 + (4)) == (118) && this._text.charCodeAt(i0 + (5)) == (101)) return (79);
+          if (this._text.charCodeAt(i0 + (2)) == (116) && this._text.charCodeAt(i0 + (3)) == (105) && this._text.charCodeAt(i0 + (4)) == (118) && this._text.charCodeAt(i0 + (5)) == (101)) return (80);
         }
         else if (ch == (101)) {
-          if (this._text.charCodeAt(i0 + (2)) == (103) && this._text.charCodeAt(i0 + (3)) == (97) && this._text.charCodeAt(i0 + (4)) == (116) && this._text.charCodeAt(i0 + (5)) == (101)) return (80);
+          if (this._text.charCodeAt(i0 + (2)) == (103) && this._text.charCodeAt(i0 + (3)) == (97) && this._text.charCodeAt(i0 + (4)) == (116) && this._text.charCodeAt(i0 + (5)) == (101)) return (81);
         }
       }
       else if (ch == (114)) {
-        if (this._text.charCodeAt(i0 + (1)) == (101) && this._text.charCodeAt(i0 + (2)) == (116) && this._text.charCodeAt(i0 + (3)) == (117) && this._text.charCodeAt(i0 + (4)) == (114) && this._text.charCodeAt(i0 + (5)) == (110)) return (106);
+        if (this._text.charCodeAt(i0 + (1)) == (101) && this._text.charCodeAt(i0 + (2)) == (116) && this._text.charCodeAt(i0 + (3)) == (117) && this._text.charCodeAt(i0 + (4)) == (114) && this._text.charCodeAt(i0 + (5)) == (110)) return (107);
       }
       else if (ch == (115)) {
         ch = this._text.charCodeAt(i0 + (1));
         if (ch == (111)) {
-          if (this._text.charCodeAt(i0 + (2)) == (117) && this._text.charCodeAt(i0 + (3)) == (114) && this._text.charCodeAt(i0 + (4)) == (99) && this._text.charCodeAt(i0 + (5)) == (101)) return (83);
+          if (this._text.charCodeAt(i0 + (2)) == (117) && this._text.charCodeAt(i0 + (3)) == (114) && this._text.charCodeAt(i0 + (4)) == (99) && this._text.charCodeAt(i0 + (5)) == (101)) return (84);
         }
         else if (ch == (116)) {
-          if (this._text.charCodeAt(i0 + (2)) == (97) && this._text.charCodeAt(i0 + (3)) == (116) && this._text.charCodeAt(i0 + (4)) == (105) && this._text.charCodeAt(i0 + (5)) == (99)) return (84);
+          if (this._text.charCodeAt(i0 + (2)) == (97) && this._text.charCodeAt(i0 + (3)) == (116) && this._text.charCodeAt(i0 + (4)) == (105) && this._text.charCodeAt(i0 + (5)) == (99)) return (85);
         }
         else if (ch == (119)) {
-          if (this._text.charCodeAt(i0 + (2)) == (105) && this._text.charCodeAt(i0 + (3)) == (116) && this._text.charCodeAt(i0 + (4)) == (99) && this._text.charCodeAt(i0 + (5)) == (104)) return (108);
+          if (this._text.charCodeAt(i0 + (2)) == (105) && this._text.charCodeAt(i0 + (3)) == (116) && this._text.charCodeAt(i0 + (4)) == (99) && this._text.charCodeAt(i0 + (5)) == (104)) return (109);
         }
       }
       return (70);
@@ -7533,25 +7542,25 @@ Tokenizer.prototype.getIdentifierKind = function() {
 
       ch = this._text.charCodeAt(i0);
       if (ch == (100)) {
-        if (this._text.charCodeAt(i0 + (1)) == (101) && this._text.charCodeAt(i0 + (2)) == (102) && this._text.charCodeAt(i0 + (3)) == (97) && this._text.charCodeAt(i0 + (4)) == (117) && this._text.charCodeAt(i0 + (5)) == (108) && this._text.charCodeAt(i0 + (6)) == (116)) return (93);
+        if (this._text.charCodeAt(i0 + (1)) == (101) && this._text.charCodeAt(i0 + (2)) == (102) && this._text.charCodeAt(i0 + (3)) == (97) && this._text.charCodeAt(i0 + (4)) == (117) && this._text.charCodeAt(i0 + (5)) == (108) && this._text.charCodeAt(i0 + (6)) == (116)) return (94);
       }
       else if (ch == (101)) {
-        if (this._text.charCodeAt(i0 + (1)) == (120) && this._text.charCodeAt(i0 + (2)) == (116) && this._text.charCodeAt(i0 + (3)) == (101) && this._text.charCodeAt(i0 + (4)) == (110) && this._text.charCodeAt(i0 + (5)) == (100) && this._text.charCodeAt(i0 + (6)) == (115)) return (96);
+        if (this._text.charCodeAt(i0 + (1)) == (120) && this._text.charCodeAt(i0 + (2)) == (116) && this._text.charCodeAt(i0 + (3)) == (101) && this._text.charCodeAt(i0 + (4)) == (110) && this._text.charCodeAt(i0 + (5)) == (100) && this._text.charCodeAt(i0 + (6)) == (115)) return (97);
       }
       else if (ch == (102)) {
         ch = this._text.charCodeAt(i0 + (1));
         if (ch == (97)) {
-          if (this._text.charCodeAt(i0 + (2)) == (99) && this._text.charCodeAt(i0 + (3)) == (116) && this._text.charCodeAt(i0 + (4)) == (111) && this._text.charCodeAt(i0 + (5)) == (114) && this._text.charCodeAt(i0 + (6)) == (121)) return (73);
+          if (this._text.charCodeAt(i0 + (2)) == (99) && this._text.charCodeAt(i0 + (3)) == (116) && this._text.charCodeAt(i0 + (4)) == (111) && this._text.charCodeAt(i0 + (5)) == (114) && this._text.charCodeAt(i0 + (6)) == (121)) return (74);
         }
         else if (ch == (105)) {
-          if (this._text.charCodeAt(i0 + (2)) == (110) && this._text.charCodeAt(i0 + (3)) == (97) && this._text.charCodeAt(i0 + (4)) == (108) && this._text.charCodeAt(i0 + (5)) == (108) && this._text.charCodeAt(i0 + (6)) == (121)) return (99);
+          if (this._text.charCodeAt(i0 + (2)) == (110) && this._text.charCodeAt(i0 + (3)) == (97) && this._text.charCodeAt(i0 + (4)) == (108) && this._text.charCodeAt(i0 + (5)) == (108) && this._text.charCodeAt(i0 + (6)) == (121)) return (100);
         }
       }
       else if (ch == (108)) {
-        if (this._text.charCodeAt(i0 + (1)) == (105) && this._text.charCodeAt(i0 + (2)) == (98) && this._text.charCodeAt(i0 + (3)) == (114) && this._text.charCodeAt(i0 + (4)) == (97) && this._text.charCodeAt(i0 + (5)) == (114) && this._text.charCodeAt(i0 + (6)) == (121)) return (78);
+        if (this._text.charCodeAt(i0 + (1)) == (105) && this._text.charCodeAt(i0 + (2)) == (98) && this._text.charCodeAt(i0 + (3)) == (114) && this._text.charCodeAt(i0 + (4)) == (97) && this._text.charCodeAt(i0 + (5)) == (114) && this._text.charCodeAt(i0 + (6)) == (121)) return (79);
       }
       else if (ch == (116)) {
-        if (this._text.charCodeAt(i0 + (1)) == (121) && this._text.charCodeAt(i0 + (2)) == (112) && this._text.charCodeAt(i0 + (3)) == (101) && this._text.charCodeAt(i0 + (4)) == (100) && this._text.charCodeAt(i0 + (5)) == (101) && this._text.charCodeAt(i0 + (6)) == (102)) return (85);
+        if (this._text.charCodeAt(i0 + (1)) == (121) && this._text.charCodeAt(i0 + (2)) == (112) && this._text.charCodeAt(i0 + (3)) == (101) && this._text.charCodeAt(i0 + (4)) == (100) && this._text.charCodeAt(i0 + (5)) == (101) && this._text.charCodeAt(i0 + (6)) == (102)) return (86);
       }
       return (70);
 
@@ -7562,21 +7571,21 @@ Tokenizer.prototype.getIdentifierKind = function() {
         if (this._text.charCodeAt(i0 + (1)) == (98) && this._text.charCodeAt(i0 + (2)) == (115) && this._text.charCodeAt(i0 + (3)) == (116) && this._text.charCodeAt(i0 + (4)) == (114) && this._text.charCodeAt(i0 + (5)) == (97) && this._text.charCodeAt(i0 + (6)) == (99) && this._text.charCodeAt(i0 + (7)) == (116)) return (71);
       }
       else if (ch == (99)) {
-        if (this._text.charCodeAt(i0 + (1)) == (111) && this._text.charCodeAt(i0 + (2)) == (110) && this._text.charCodeAt(i0 + (3)) == (116) && this._text.charCodeAt(i0 + (4)) == (105) && this._text.charCodeAt(i0 + (5)) == (110) && this._text.charCodeAt(i0 + (6)) == (117) && this._text.charCodeAt(i0 + (7)) == (101)) return (92);
+        if (this._text.charCodeAt(i0 + (1)) == (111) && this._text.charCodeAt(i0 + (2)) == (110) && this._text.charCodeAt(i0 + (3)) == (116) && this._text.charCodeAt(i0 + (4)) == (105) && this._text.charCodeAt(i0 + (5)) == (110) && this._text.charCodeAt(i0 + (6)) == (117) && this._text.charCodeAt(i0 + (7)) == (101)) return (93);
       }
       else if (ch == (111)) {
-        if (this._text.charCodeAt(i0 + (1)) == (112) && this._text.charCodeAt(i0 + (2)) == (101) && this._text.charCodeAt(i0 + (3)) == (114) && this._text.charCodeAt(i0 + (4)) == (97) && this._text.charCodeAt(i0 + (5)) == (116) && this._text.charCodeAt(i0 + (6)) == (111) && this._text.charCodeAt(i0 + (7)) == (114)) return (81);
+        if (this._text.charCodeAt(i0 + (1)) == (112) && this._text.charCodeAt(i0 + (2)) == (101) && this._text.charCodeAt(i0 + (3)) == (114) && this._text.charCodeAt(i0 + (4)) == (97) && this._text.charCodeAt(i0 + (5)) == (116) && this._text.charCodeAt(i0 + (6)) == (111) && this._text.charCodeAt(i0 + (7)) == (114)) return (82);
       }
       return (70);
 
     case (9):
 
-      if (this._text.charCodeAt(i0) == (105) && this._text.charCodeAt(i0 + (1)) == (110) && this._text.charCodeAt(i0 + (2)) == (116) && this._text.charCodeAt(i0 + (3)) == (101) && this._text.charCodeAt(i0 + (4)) == (114) && this._text.charCodeAt(i0 + (5)) == (102) && this._text.charCodeAt(i0 + (6)) == (97) && this._text.charCodeAt(i0 + (7)) == (99) && this._text.charCodeAt(i0 + (8)) == (101)) return (77);
+      if (this._text.charCodeAt(i0) == (105) && this._text.charCodeAt(i0 + (1)) == (110) && this._text.charCodeAt(i0 + (2)) == (116) && this._text.charCodeAt(i0 + (3)) == (101) && this._text.charCodeAt(i0 + (4)) == (114) && this._text.charCodeAt(i0 + (5)) == (102) && this._text.charCodeAt(i0 + (6)) == (97) && this._text.charCodeAt(i0 + (7)) == (99) && this._text.charCodeAt(i0 + (8)) == (101)) return (78);
       return (70);
 
     case (10):
 
-      if (this._text.charCodeAt(i0) == (105) && this._text.charCodeAt(i0 + (1)) == (109) && this._text.charCodeAt(i0 + (2)) == (112) && this._text.charCodeAt(i0 + (3)) == (108) && this._text.charCodeAt(i0 + (4)) == (101) && this._text.charCodeAt(i0 + (5)) == (109) && this._text.charCodeAt(i0 + (6)) == (101) && this._text.charCodeAt(i0 + (7)) == (110) && this._text.charCodeAt(i0 + (8)) == (116) && this._text.charCodeAt(i0 + (9)) == (115)) return (75);
+      if (this._text.charCodeAt(i0) == (105) && this._text.charCodeAt(i0 + (1)) == (109) && this._text.charCodeAt(i0 + (2)) == (112) && this._text.charCodeAt(i0 + (3)) == (108) && this._text.charCodeAt(i0 + (4)) == (101) && this._text.charCodeAt(i0 + (5)) == (109) && this._text.charCodeAt(i0 + (6)) == (101) && this._text.charCodeAt(i0 + (7)) == (110) && this._text.charCodeAt(i0 + (8)) == (116) && this._text.charCodeAt(i0 + (9)) == (115)) return (76);
       return (70);
 
     default:
@@ -7878,175 +7887,179 @@ TokenKind.kindToString = function(kind) {
 
       return "pseudo-keyword 'assert'";
 
-    case (90):
-
-      return "pseudo-keyword 'class'";
-
-    case (96):
-
-      return "pseudo-keyword 'extends'";
-
     case (73):
 
-      return "pseudo-keyword 'factory'";
+      return "pseudo-keyword 'call'";
 
     case (74):
 
-      return "pseudo-keyword 'get'";
+      return "pseudo-keyword 'factory'";
 
     case (75):
 
-      return "pseudo-keyword 'implements'";
+      return "pseudo-keyword 'get'";
 
     case (76):
 
-      return "pseudo-keyword 'import'";
+      return "pseudo-keyword 'implements'";
 
     case (77):
 
-      return "pseudo-keyword 'interface'";
+      return "pseudo-keyword 'import'";
 
     case (78):
 
-      return "pseudo-keyword 'library'";
+      return "pseudo-keyword 'interface'";
 
     case (79):
 
-      return "pseudo-keyword 'native'";
+      return "pseudo-keyword 'library'";
 
     case (80):
 
-      return "pseudo-keyword 'negate'";
+      return "pseudo-keyword 'native'";
 
     case (81):
 
-      return "pseudo-keyword 'operator'";
+      return "pseudo-keyword 'negate'";
 
     case (82):
 
-      return "pseudo-keyword 'set'";
+      return "pseudo-keyword 'operator'";
 
     case (83):
 
-      return "pseudo-keyword 'source'";
+      return "pseudo-keyword 'set'";
 
     case (84):
 
-      return "pseudo-keyword 'static'";
+      return "pseudo-keyword 'source'";
 
     case (85):
 
-      return "pseudo-keyword 'typedef'";
+      return "pseudo-keyword 'static'";
 
     case (86):
 
-      return "keyword 'await'";
+      return "pseudo-keyword 'typedef'";
 
     case (87):
 
-      return "keyword 'break'";
+      return "keyword 'await'";
 
     case (88):
 
-      return "keyword 'case'";
+      return "keyword 'break'";
 
     case (89):
+
+      return "keyword 'case'";
+
+    case (90):
 
       return "keyword 'catch'";
 
     case (91):
 
-      return "keyword 'const'";
+      return "keyword 'class'";
 
     case (92):
 
-      return "keyword 'continue'";
+      return "keyword 'const'";
 
     case (93):
 
-      return "keyword 'default'";
+      return "keyword 'continue'";
 
     case (94):
 
-      return "keyword 'do'";
+      return "keyword 'default'";
 
     case (95):
+
+      return "keyword 'do'";
+
+    case (96):
 
       return "keyword 'else'";
 
     case (97):
 
-      return "keyword 'false'";
+      return "keyword 'extends'";
 
     case (98):
 
-      return "keyword 'final'";
+      return "keyword 'false'";
 
     case (99):
 
-      return "keyword 'finally'";
+      return "keyword 'final'";
 
     case (100):
 
-      return "keyword 'for'";
+      return "keyword 'finally'";
 
     case (101):
 
-      return "keyword 'if'";
+      return "keyword 'for'";
 
     case (102):
 
-      return "keyword 'in'";
+      return "keyword 'if'";
 
     case (103):
 
-      return "keyword 'is'";
+      return "keyword 'in'";
 
     case (104):
 
-      return "keyword 'new'";
+      return "keyword 'is'";
 
     case (105):
 
-      return "keyword 'null'";
+      return "keyword 'new'";
 
     case (106):
 
-      return "keyword 'return'";
+      return "keyword 'null'";
 
     case (107):
 
-      return "keyword 'super'";
+      return "keyword 'return'";
 
     case (108):
 
-      return "keyword 'switch'";
+      return "keyword 'super'";
 
     case (109):
 
-      return "keyword 'this'";
+      return "keyword 'switch'";
 
     case (110):
 
-      return "keyword 'throw'";
+      return "keyword 'this'";
 
     case (111):
 
-      return "keyword 'true'";
+      return "keyword 'throw'";
 
     case (112):
 
-      return "keyword 'try'";
+      return "keyword 'true'";
 
     case (113):
 
-      return "keyword 'var'";
+      return "keyword 'try'";
 
     case (114):
 
-      return "keyword 'void'";
+      return "keyword 'var'";
 
     case (115):
+
+      return "keyword 'void'";
+
+    case (116):
 
       return "keyword 'while'";
 
@@ -8057,7 +8070,7 @@ TokenKind.kindToString = function(kind) {
   }
 }
 TokenKind.isIdentifier = function(kind) {
-  return kind >= (70) && kind < (86);
+  return kind >= (70) && kind < (87);
 }
 TokenKind.infixPrecedence = function(kind) {
   switch (kind) {
@@ -8205,7 +8218,7 @@ TokenKind.infixPrecedence = function(kind) {
 
       return (10);
 
-    case (103):
+    case (104):
 
       return (10);
 
@@ -8448,7 +8461,7 @@ Parser.prototype._peekIdentifier = function() {
   return this._isIdentifier(this._peekToken.kind);
 }
 Parser.prototype._isIdentifier = function(kind) {
-  return TokenKind.isIdentifier(kind) || (!this.get$enableAwait() && $eq(kind, (86)));
+  return TokenKind.isIdentifier(kind) || (!this.get$enableAwait() && $eq(kind, (87)));
 }
 Parser.prototype._maybeEat = function(kind) {
   if (this._peekToken.kind == kind) {
@@ -8531,15 +8544,15 @@ Parser.prototype.directive = function() {
 }
 Parser.prototype.topLevelDefinition = function() {
   switch (this._peek()) {
-    case (90):
+    case (91):
 
-      return this.classDefinition((90));
+      return this.classDefinition((91));
 
-    case (77):
+    case (78):
 
-      return this.classDefinition((77));
+      return this.classDefinition((78));
 
-    case (85):
+    case (86):
 
       return this.functionTypeAlias();
 
@@ -8552,27 +8565,27 @@ Parser.prototype.topLevelDefinition = function() {
 Parser.prototype.classDefinition = function(kind) {
   var start = this._peekToken.start;
   this._eat(kind);
-  var name = this.identifier();
+  var name = this.identifierForType();
   var typeParams = null;
   if (this._peekKind((52))) {
     typeParams = this.typeParameters();
   }
   var _extends = null;
-  if (this._maybeEat((96))) {
+  if (this._maybeEat((97))) {
     _extends = this.typeList();
   }
   var _implements = null;
-  if (this._maybeEat((75))) {
+  if (this._maybeEat((76))) {
     _implements = this.typeList();
   }
   var _native = null;
-  if (this._maybeEat((79))) {
+  if (this._maybeEat((80))) {
     _native = this.maybeStringLiteral();
     if (_native != null) _native = new NativeType(_native);
   }
-  var oldFactory = this._maybeEat((73));
+  var oldFactory = this._maybeEat((74));
   var defaultType = null;
-  if (oldFactory || this._maybeEat((93))) {
+  if (oldFactory || this._maybeEat((94))) {
     if (oldFactory) {
       $globals.world.warning("factory no longer supported, use \"default\" instead", this._previousToken.get$span());
     }
@@ -8596,11 +8609,11 @@ Parser.prototype.classDefinition = function(kind) {
   else {
     this._errorExpected("block starting with \"{\" or \";\"");
   }
-  return new TypeDefinition(kind == (90), name, typeParams, _extends, _implements, _native, defaultType, body, this._makeSpan(start));
+  return new TypeDefinition(kind == (91), name, typeParams, _extends, _implements, _native, defaultType, body, this._makeSpan(start));
 }
 Parser.prototype.functionTypeAlias = function() {
   var start = this._peekToken.start;
-  this._eat((85));
+  this._eat((86));
   var di = this.declaredIdentifier(false);
   var typeParams = null;
   if (this._peekKind((52))) {
@@ -8673,7 +8686,7 @@ Parser.prototype.finishDefinition = function(start, modifiers, di) {
       if (this._maybeEat((8))) {
         inits = this.initializers();
       }
-      if (this._maybeEat((79))) {
+      if (this._maybeEat((80))) {
         native_ = this.maybeStringLiteral();
         if (native_ == null) native_ = "";
       }
@@ -8703,7 +8716,7 @@ Parser.prototype.finishDefinition = function(start, modifiers, di) {
 }
 Parser.prototype.declaration = function(includeOperators) {
   var start = this._peekToken.start;
-  if (this._peekKind((73))) {
+  if (this._peekKind((74))) {
     return this.factoryConstructorDeclaration();
   }
   var modifiers = this._readModifiers();
@@ -8742,19 +8755,19 @@ Parser.prototype.factoryConstructorDeclaration = function() {
 }
 Parser.prototype.statement = function() {
   switch (this._peek()) {
-    case (87):
+    case (88):
 
       return this.breakStatement();
 
-    case (92):
+    case (93):
 
       return this.continueStatement();
 
-    case (106):
+    case (107):
 
       return this.returnStatement();
 
-    case (110):
+    case (111):
 
       return this.throwStatement();
 
@@ -8762,27 +8775,27 @@ Parser.prototype.statement = function() {
 
       return this.assertStatement();
 
-    case (115):
+    case (116):
 
       return this.whileStatement();
 
-    case (94):
+    case (95):
 
       return this.doStatement();
 
-    case (100):
+    case (101):
 
       return this.forStatement();
 
-    case (101):
+    case (102):
 
       return this.ifStatement();
 
-    case (108):
+    case (109):
 
       return this.switchStatement();
 
-    case (112):
+    case (113):
 
       return this.tryStatement();
 
@@ -8794,11 +8807,11 @@ Parser.prototype.statement = function() {
 
       return this.emptyStatement();
 
-    case (98):
+    case (99):
 
       return this.declaration(false);
 
-    case (113):
+    case (114):
 
       return this.declaration(false);
 
@@ -8872,34 +8885,34 @@ Parser.prototype.emptyStatement = function() {
 }
 Parser.prototype.ifStatement = function() {
   var start = this._peekToken.start;
-  this._eat((101));
+  this._eat((102));
   var test = this.testCondition();
   var trueBranch = this.statement();
   var falseBranch = null;
-  if (this._maybeEat((95))) {
+  if (this._maybeEat((96))) {
     falseBranch = this.statement();
   }
   return new IfStatement(test, trueBranch, falseBranch, this._makeSpan(start));
 }
 Parser.prototype.whileStatement = function() {
   var start = this._peekToken.start;
-  this._eat((115));
+  this._eat((116));
   var test = this.testCondition();
   var body = this.statement();
   return new WhileStatement(test, body, this._makeSpan(start));
 }
 Parser.prototype.doStatement = function() {
   var start = this._peekToken.start;
-  this._eat((94));
+  this._eat((95));
   var body = this.statement();
-  this._eat((115));
+  this._eat((116));
   var test = this.testCondition();
   this._eatSemicolon();
   return new DoStatement(body, test, this._makeSpan(start));
 }
 Parser.prototype.forStatement = function() {
   var start = this._peekToken.start;
-  this._eat((100));
+  this._eat((101));
   this._eatLeftParen();
   var init = this.forInitializerStatement(start);
   if ((init instanceof ForInStatement)) {
@@ -8935,7 +8948,7 @@ Parser.prototype.forInitializerStatement = function(start) {
       var name = this.identifier();
       init = new DeclaredIdentifier(gt, name, this._makeSpan(init.get$span().get$start()));
     }
-    if (this._maybeEat((102))) {
+    if (this._maybeEat((103))) {
       return this._finishForIn(start, this._makeDeclaredIdentifier(init));
     }
     else {
@@ -8951,21 +8964,21 @@ Parser.prototype._finishForIn = function(start, di) {
 }
 Parser.prototype.tryStatement = function() {
   var start = this._peekToken.start;
-  this._eat((112));
+  this._eat((113));
   var body = this.block();
   var catches = [];
-  while (this._peekKind((89))) {
+  while (this._peekKind((90))) {
     catches.add$1(this.catchNode());
   }
   var finallyBlock = null;
-  if (this._maybeEat((99))) {
+  if (this._maybeEat((100))) {
     finallyBlock = this.block();
   }
   return new TryStatement(body, catches, finallyBlock, this._makeSpan(start));
 }
 Parser.prototype.catchNode = function() {
   var start = this._peekToken.start;
-  this._eat((89));
+  this._eat((90));
   this._eatLeftParen();
   var exc = this.declaredIdentifier(false);
   var trace = null;
@@ -8978,7 +8991,7 @@ Parser.prototype.catchNode = function() {
 }
 Parser.prototype.switchStatement = function() {
   var start = this._peekToken.start;
-  this._eat((108));
+  this._eat((109));
   var test = this.testCondition();
   var cases = [];
   this._eat((6));
@@ -8989,7 +9002,7 @@ Parser.prototype.switchStatement = function() {
 }
 Parser.prototype._peekCaseEnd = function() {
   var kind = this._peek();
-  return $eq(kind, (7)) || $eq(kind, (88)) || $eq(kind, (93));
+  return $eq(kind, (7)) || $eq(kind, (89)) || $eq(kind, (94));
 }
 Parser.prototype.caseNode = function() {
   var start = this._peekToken.start;
@@ -9000,11 +9013,11 @@ Parser.prototype.caseNode = function() {
   }
   var cases = [];
   while (true) {
-    if (this._maybeEat((88))) {
+    if (this._maybeEat((89))) {
       cases.add$1(this.expression());
       this._eat((8));
     }
-    else if (this._maybeEat((93))) {
+    else if (this._maybeEat((94))) {
       cases.add$1();
       this._eat((8));
     }
@@ -9018,7 +9031,7 @@ Parser.prototype.caseNode = function() {
   var stmts = [];
   while (!this._peekCaseEnd()) {
     stmts.add$1(this.statement());
-    if (this._recover && !this._recoverTo((7), (88), (93))) {
+    if (this._recover && !this._recoverTo((7), (89), (94))) {
       break;
     }
   }
@@ -9026,7 +9039,7 @@ Parser.prototype.caseNode = function() {
 }
 Parser.prototype.returnStatement = function() {
   var start = this._peekToken.start;
-  this._eat((106));
+  this._eat((107));
   var expr;
   if (this._maybeEat((10))) {
     expr = null;
@@ -9039,7 +9052,7 @@ Parser.prototype.returnStatement = function() {
 }
 Parser.prototype.throwStatement = function() {
   var start = this._peekToken.start;
-  this._eat((110));
+  this._eat((111));
   var expr;
   if (this._maybeEat((10))) {
     expr = null;
@@ -9061,7 +9074,7 @@ Parser.prototype.assertStatement = function() {
 }
 Parser.prototype.breakStatement = function() {
   var start = this._peekToken.start;
-  this._eat((87));
+  this._eat((88));
   var name = null;
   if (this._peekIdentifier()) {
     name = this.identifier();
@@ -9071,7 +9084,7 @@ Parser.prototype.breakStatement = function() {
 }
 Parser.prototype.continueStatement = function() {
   var start = this._peekToken.start;
-  this._eat((92));
+  this._eat((93));
   var name = null;
   if (this._peekIdentifier()) {
     name = this.identifier();
@@ -9145,7 +9158,7 @@ Parser.prototype.finishInfixExpression = function(x, precedence) {
         }
       }
       var op = this._lang_next();
-      if ($eq(op.get$kind(), (103))) {
+      if ($eq(op.get$kind(), (104))) {
         var isTrue = !this._maybeEat((19));
         var typeRef = this.type((0));
         x = new IsExpression(isTrue, x, typeRef, this._makeSpan(x.span.start));
@@ -9191,7 +9204,7 @@ Parser.prototype.unaryExpression = function() {
     var expr = this.unaryExpression();
     return new UnaryExpression(tok, expr, this._makeSpan(start));
   }
-  else if (this.get$enableAwait() && this._maybeEat((86))) {
+  else if (this.get$enableAwait() && this._maybeEat((87))) {
     var expr = this.unaryExpression();
     return new AwaitExpression(expr, this._makeSpan(start));
   }
@@ -9291,19 +9304,19 @@ Parser.prototype._makeLiteral = function(value) {
 Parser.prototype.primary = function() {
   var start = this._peekToken.start;
   switch (this._peek()) {
-    case (109):
+    case (110):
 
-      this._eat((109));
+      this._eat((110));
       return new ThisExpression(this._makeSpan(start));
 
-    case (107):
+    case (108):
 
-      this._eat((107));
+      this._eat((108));
       return new SuperExpression(this._makeSpan(start));
 
-    case (91):
+    case (92):
 
-      this._eat((91));
+      this._eat((92));
       if (this._peekKind((4)) || this._peekKind((56))) {
         return this.finishListLiteral(start, true, null);
       }
@@ -9317,9 +9330,9 @@ Parser.prototype.primary = function() {
         return this.finishNewExpression(start, true);
       }
 
-    case (104):
+    case (105):
 
-      this._eat((104));
+      this._eat((105));
       return this.finishNewExpression(start, false);
 
     case (2):
@@ -9335,19 +9348,19 @@ Parser.prototype.primary = function() {
 
       return this.finishMapLiteral(start, false, null, null);
 
-    case (105):
+    case (106):
 
-      this._eat((105));
+      this._eat((106));
       return this._makeLiteral(Value.fromNull(this._makeSpan(start)));
 
-    case (111):
+    case (112):
 
-      this._eat((111));
+      this._eat((112));
       return this._makeLiteral(Value.fromBool(true, this._makeSpan(start)));
 
-    case (97):
+    case (98):
 
-      this._eat((97));
+      this._eat((98));
       return this._makeLiteral(Value.fromBool(false, this._makeSpan(start)));
 
     case (61):
@@ -9378,9 +9391,9 @@ Parser.prototype.primary = function() {
 
       return this.finishTypedLiteral(start, false);
 
+    case (115):
     case (114):
-    case (113):
-    case (98):
+    case (99):
 
       return this.declaredIdentifier(false);
 
@@ -9404,7 +9417,7 @@ Parser.prototype.stringInterpolation = function() {
       pieces.add$1(this.expression());
       this._eat((7));
     }
-    else if (this._maybeEat((109))) {
+    else if (this._maybeEat((110))) {
       pieces.add$1(new ThisExpression(this._previousToken.get$span()));
     }
     else {
@@ -9503,17 +9516,17 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
       name = this.identifier().get$name();
       break;
 
-    case (109):
+    case (110):
 
-      this._eat((109));
+      this._eat((110));
       this._eat((14));
       name = ("this." + this.identifier().get$name());
       break;
 
-    case (74):
+    case (75):
 
       if (!includeOperators) return null;
-      this._eat((74));
+      this._eat((75));
       if (this._peekIdentifier()) {
         name = ("get:" + this.identifier().get$name());
       }
@@ -9522,10 +9535,10 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
       }
       break;
 
-    case (82):
+    case (83):
 
       if (!includeOperators) return null;
-      this._eat((82));
+      this._eat((83));
       if (this._peekIdentifier()) {
         name = ("set:" + this.identifier().get$name());
       }
@@ -9534,12 +9547,12 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
       }
       break;
 
-    case (81):
+    case (82):
 
       if (!includeOperators) return null;
-      this._eat((81));
+      this._eat((82));
       var kind = this._peek();
-      if ($eq(kind, (80))) {
+      if ($eq(kind, (81))) {
         name = ":negate";
         this._lang_next();
       }
@@ -9654,11 +9667,11 @@ Parser.prototype._readModifiers = function() {
   var modifiers = null;
   while (true) {
     switch (this._peek()) {
-      case (84):
-      case (98):
-      case (91):
+      case (85):
+      case (99):
+      case (92):
       case (71):
-      case (73):
+      case (74):
 
         if (modifiers == null) modifiers = [];
         modifiers.add$1(this._lang_next());
@@ -9676,7 +9689,7 @@ Parser.prototype.typeParameter = function() {
   var start = this._peekToken.start;
   var name = this.identifier();
   var myType = null;
-  if (this._maybeEat((96))) {
+  if (this._maybeEat((97))) {
     myType = this.type((1));
   }
   var tp = new TypeParameter(name, myType, this._makeSpan(start));
@@ -9760,17 +9773,17 @@ Parser.prototype.nameTypeReference = function() {
   var typeArgs = null;
   var isFinal = false;
   switch (this._peek()) {
-    case (114):
+    case (115):
 
       return new TypeReference(this._lang_next().get$span(), $globals.world.voidType);
 
-    case (113):
+    case (114):
 
       return new TypeReference(this._lang_next().get$span(), $globals.world.varType);
 
-    case (98):
+    case (99):
 
-      this._eat((98));
+      this._eat((99));
       isFinal = true;
       name = this.identifier();
       break;
@@ -9851,6 +9864,16 @@ Parser.prototype.formalParameterList = function() {
     this._eat((3));
   }
   return formals;
+}
+Parser.prototype.identifierForType = function() {
+  var tok = this._lang_next();
+  if (!this._isIdentifier(tok.get$kind())) {
+    this._lang_error(("expected identifier, but found " + tok), tok.get$span());
+  }
+  if (tok.get$kind() != (70) && $ne(tok.get$kind(), (80))) {
+    this._lang_error(("" + tok + " may not be used as a type name"), tok.get$span());
+  }
+  return new Identifier(tok.get$text(), this._makeSpan(tok.get$start()));
 }
 Parser.prototype.identifier = function() {
   var tok = this._lang_next();
@@ -11692,7 +11715,7 @@ DefinedType.prototype.addMethod = function(methodName, definition) {
     this.constructors.$setindex(method.get$constructorName(), method);
     return;
   }
-  if (definition.modifiers != null && definition.modifiers.get$length() == (1) && $eq(definition.modifiers.$index((0)).get$kind(), (73))) {
+  if (definition.modifiers != null && definition.modifiers.get$length() == (1) && $eq(definition.modifiers.$index((0)).get$kind(), (74))) {
     if (this.factories.getFactory(method.get$constructorName(), method.get$name()) != null) {
       $globals.world.error(("duplicate factory definition of \"" + method.get$name() + "\""), definition.span);
       return;
