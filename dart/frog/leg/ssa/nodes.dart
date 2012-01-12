@@ -1585,6 +1585,7 @@ class HLiteral extends HInstruction {
   final value;
   HLiteral(this.value, HType type) : super(<HInstruction>[]) {
     this.type = type;
+    tryGenerateAtUseSite();  // Maybe avoid this if the literal is big?
   }
   void prepareGvn() {
     // We allow global value numbering of literals, but we still
@@ -1592,7 +1593,6 @@ class HLiteral extends HInstruction {
     // better GVN'ing of instructions that use literals as input.
     assert(!hasSideEffects());
     setUseGvn();
-    tryGenerateAtUseSite();  // Maybe avoid this if the literal is big?
   }
   toString() => 'literal: $value';
   accept(HVisitor visitor) => visitor.visitLiteral(this);
@@ -1856,12 +1856,13 @@ class HThrow extends HControlFlow {
 
 class HStatic extends HInstruction {
   Element element;
-  HStatic(this.element) : super(<HInstruction>[]);
+  HStatic(this.element) : super(<HInstruction>[]) {
+    tryGenerateAtUseSite();
+  }
   void prepareGvn() {
     assert(!hasSideEffects());
-    if (element != null && !element.isAssignable()) {
+    if (!element.isAssignable()) {
       setUseGvn();
-      tryGenerateAtUseSite();
     }
   }
   toString() => 'static ${element.name}';

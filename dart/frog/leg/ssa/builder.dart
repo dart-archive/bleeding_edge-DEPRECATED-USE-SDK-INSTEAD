@@ -713,7 +713,9 @@ class SsaBuilder implements Visitor {
   }
 
   void visitBinary(HInstruction left, Operator op, HInstruction right) {
-    HInstruction target = new HStatic(interceptors.getOperatorInterceptor(op));
+    Element element = interceptors.getOperatorInterceptor(op);
+    assert(element != null);
+    HInstruction target = new HStatic(element);
     add(target);
     switch (op.source.stringValue) {
       case "+":
