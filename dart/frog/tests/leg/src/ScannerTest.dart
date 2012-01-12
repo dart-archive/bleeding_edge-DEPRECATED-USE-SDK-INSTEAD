@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#import('../../../../utils/utf8/utf8.dart');
 #import('../../../leg/scanner/scannerlib.dart');
 #import('../../../leg/scanner/scanner_implementation.dart');
 #source('../../../leg/scanner/byte_strings.dart');

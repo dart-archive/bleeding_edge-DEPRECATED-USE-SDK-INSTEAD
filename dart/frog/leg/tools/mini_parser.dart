@@ -4,6 +4,8 @@
 
 #library('parser');
 
+#import('../../../utils/utf8/utf8.dart');
+
 #import('../elements/elements.dart');
 #import('../scanner/scanner_implementation.dart');
 #import('../scanner/scannerlib.dart');
