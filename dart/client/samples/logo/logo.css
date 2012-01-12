@@ -3,6 +3,7 @@
  * BSD-style license that can be found in the LICENSE file. */
 
 #icon {text-align: center}
+.inverse path {filter: url(#inverse)}
 
 form {
   width: 500px;
@@ -21,3 +22,5 @@ label {
   width: 90px;
   display: inline-block;
 }
+
+label[for=invert] {top: 0}

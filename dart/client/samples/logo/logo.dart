@@ -141,6 +141,13 @@ void main() {
      version="1.1"
      width="371.6655"
      height="374.14087">
+  <filter id="inverse"> 
+     <feComponentTransfer> 
+         <feFuncR type="table" tableValues="1 0"/> 
+         <feFuncG type="table" tableValues="1 0"/> 
+         <feFuncB type="table" tableValues="1 0"/> 
+     </feComponentTransfer> 
+  </filter>
   <path
      d="m 101.86949,101.86487 -24.192001,-24.192004 0.088,174.807994 0.296,8.164 c 0.12,3.848 0.84,8.18 2.012,12.684 l 191.615991,67.55601 47.89201,-21.216 0.016,-0.056 -217.728,-217.748 z"
      id="path2900"
@@ -179,5 +186,14 @@ void main() {
     saturation.on.change.add(onSliderChange);
     lightness = document.query("input[name=lightness]");
     lightness.on.change.add(onSliderChange);
+
+    document.query("input[name=invert]").on.change.add((Event e) {
+      InputElement invert = e.target;
+      if (invert.checked) {
+        logo.classes = ['inverse'];
+      } else {
+        logo.classes = [];
+      }
+    });
   });
 }
