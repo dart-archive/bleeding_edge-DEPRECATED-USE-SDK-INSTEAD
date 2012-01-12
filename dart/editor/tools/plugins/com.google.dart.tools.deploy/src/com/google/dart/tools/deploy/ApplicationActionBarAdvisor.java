@@ -14,6 +14,10 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.debug.ui.launch.CreateLaunchAction;
+import com.google.dart.tools.debug.ui.launch.DartDebugAction;
+import com.google.dart.tools.debug.ui.launch.DartRunAction;
+import com.google.dart.tools.debug.ui.launch.ManageLaunchesAction;
 import com.google.dart.tools.debug.ui.launch.RunInBrowserAction;
 import com.google.dart.tools.debug.ui.launch.RunInServerAction;
 import com.google.dart.tools.ui.DartUI;
@@ -162,8 +166,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 //  private IAction newWizardAction;
 
   private RunInBrowserAction runInBrowserAction;
-
   private RunInServerAction runServerAction;
+
+  private ManageLaunchesAction manageLaunchesAction;
+  private DartRunAction dartRunAction;
+  private DartDebugAction dartDebugAction;
 
   private IWorkbenchAction deployOptimizedAction;
 
@@ -417,8 +424,15 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 //            helpToolBar.add(searchComboItem);
       // Add the group for applications to contribute
       helpToolBar.add(new GroupMarker(IWorkbenchActionConstants.GROUP_APP));
-      helpToolBar.add(runInBrowserAction);
-      helpToolBar.add(runServerAction);
+
+      if (DartCoreDebug.DEBUGGER) {
+        helpToolBar.add(manageLaunchesAction);
+        helpToolBar.add(dartRunAction);
+        helpToolBar.add(dartDebugAction);
+      } else {
+        helpToolBar.add(runInBrowserAction);
+        helpToolBar.add(runServerAction);
+      }
 
       // Add to the cool bar manager
       coolBar.add(actionBarConfigurer.createToolBarContributionItem(helpToolBar,
@@ -457,8 +471,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     statusLineItem = new StatusLineContributionItem("ModeContributionItem"); //$NON-NLS-1$
 
     runInBrowserAction = new RunInBrowserAction(window);
-
     runServerAction = new RunInServerAction(window);
+
+    manageLaunchesAction = new ManageLaunchesAction(window, true);
+    dartRunAction = new DartRunAction(window);
+    dartDebugAction = new DartDebugAction(window);
 
     deployOptimizedAction = new DeployOptimizedAction(window);
 
@@ -943,8 +960,13 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(new Separator());
 
-    menu.add(runInBrowserAction);
-    menu.add(runServerAction);
+    if (DartCoreDebug.DEBUGGER) {
+      menu.add(new CreateLaunchAction(window));
+      menu.add(new ManageLaunchesAction(window, false));
+    } else {
+      menu.add(runInBrowserAction);
+      menu.add(runServerAction);
+    }
 
     menu.add(new Separator());
 

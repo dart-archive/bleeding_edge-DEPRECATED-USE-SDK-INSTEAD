@@ -1,6 +1,17 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright 2012 Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
+
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.DartCore;
@@ -13,14 +24,21 @@ import org.eclipse.ui.commands.ICommandService;
 
 import java.util.HashMap;
 
+/**
+ * 
+ */
 public class AbstractInstrumentedAction extends Action {
 
   public AbstractInstrumentedAction() {
+
+  }
+
+  public AbstractInstrumentedAction(String name, int flags) {
+    super(name, flags);
   }
 
   protected void EmitInstrumentationCommand() {
     try {
-
       //It doesn't matter which window this command is fired from
       ICommandService cmd = (ICommandService) PlatformUI.getWorkbench().getWorkbenchWindows()[0].getService(ICommandService.class);
       Command ic = cmd.getCommand("com.google.dart.tools.ui.BroadcastCommand");
@@ -35,7 +53,6 @@ public class AbstractInstrumentedAction extends Action {
     } catch (Exception e) {
       DartCore.logError(e);
     }
-
   }
 
 }

@@ -177,6 +177,16 @@
       </launchConfigurationTabGroup>
    </extension>
 
+   <!-- Server launch configuration -->
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="com.google.dart.tools.debug.core.serverLaunchConfig"
+            icon="icons/obj16/osprc_obj.gif"
+            id="com.google.dart.tools.debug.core.serverLaunchConfigTypeImage">
+      </launchConfigurationTypeImage>
+   </extension>
+
    <!-- preference page -->
 
    <extension point="org.eclipse.ui.preferencePages">
