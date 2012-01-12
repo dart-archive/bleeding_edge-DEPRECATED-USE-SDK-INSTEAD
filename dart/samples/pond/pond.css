@@ -1,0 +1,53 @@
+/* Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file. */
+
+.CodeMirror {
+  border: 1px solid black; margin: 2px
+}
+body,
+html {
+  margin:0;
+  padding:0;
+}
+
+#wrap {
+  width: 100%;
+  margin:0 auto;
+}
+
+#dartEditor {
+float:left;
+width:50%;
+}
+#htmlEditor {
+float:left;
+width:50%;
+}
+#jsEditor {
+  float:left;
+  width:50%;
+  height:300px;
+}
+#result {
+  float:left;
+  width:48%;
+  height:300px;
+  border: 3px solid blue;
+}
+#warningEditor {
+  float:left;
+  width:50%;
+}
+#resultFrame {
+  width:100%;
+}
+
+.compile_error {
+  background: red;
+}
+.compile_warning {
+  background: orange;
+}
+
+
