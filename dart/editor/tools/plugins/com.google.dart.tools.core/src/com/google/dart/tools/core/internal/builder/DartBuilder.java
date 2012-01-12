@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -57,7 +57,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
   }
 
   private final DartcBuildHandler dartcBuildHandler = new DartcBuildHandler();
-  private final FrogBuilderHandler frogBuilderHandler = new FrogBuilderHandler();
+  private final FrogBuildHandler frogBuilderHandler = new FrogBuildHandler();
 
   private boolean firstBuildThisSession = true;
 

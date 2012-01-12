@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -94,8 +94,9 @@ class CompilerListener implements DartCompilerListener {
       return;
     }
     IFile file = ResourceUtil.getResource(source);
-    if (file == null) {
-      if (DartCoreDebug.VERBOSE) {
+    if (file == null && source != null) {
+      // Don't report issues removing markers for dart: based source files.
+      if (DartCoreDebug.VERBOSE && !"dart".equals(source.getUri().getScheme())) {
         DartCore.logInformation("Unable to remove markers for source \""
             + source.getUri().toString() + "\"");
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -49,7 +49,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * Called from DartBuilder - this is a Frog specific builder handler to perform a build.
  */
-public class FrogBuilderHandler {
+public class FrogBuildHandler {
   public class CompileResponseHandler extends ResponseHandler {
     private IProject project;
     private CountDownLatch latch;
