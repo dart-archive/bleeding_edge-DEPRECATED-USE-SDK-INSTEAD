@@ -1235,7 +1235,8 @@ class MethodMember extends Member {
     if (isConstructor && !isFactory) {
       returnType = declaringType;
     } else {
-      returnType = resolveType(definition.returnType, false);
+      // This is the one and only place we allow void.
+      returnType = resolveType(definition.returnType, false, allowVoid: true);
     }
     parameters = [];
     for (var formal in definition.formals) {
@@ -1251,10 +1252,14 @@ class MethodMember extends Member {
   }
 
   /** Overriden to ensure that type arguments aren't used in static methods. */
-  Type resolveType(TypeReference node, bool typeErrors) {
+  Type resolveType(TypeReference node, bool typeErrors,
+      [bool allowVoid = false]) {
     Type t = super.resolveType(node, typeErrors);
     if (isStatic && !isFactory && t is ParameterType) {
       world.error('using type parameter in static context.', node.span);
+    }
+    if (!allowVoid && t.isVoid) {
+      world.error('"void" only allowed as return type', node.span);
     }
     return t;
   }

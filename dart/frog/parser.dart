@@ -1251,6 +1251,10 @@ class Parser {
   }
 
   _typeAsIdentifier(type) {
+    if (type.name.name == 'void') {
+      _errorExpected('identifer, but found "${type.name.name}"');
+    }
+
     // TODO(jimhug): lots of errors to check for
     return type.name;
   }
@@ -1655,6 +1659,9 @@ class Parser {
     } else if (expr is DeclaredIdentifier) {
       name = expr.name;
       type = expr.type;
+      if (name == null) {
+        _error('expected name and type', expr.span);
+      }
     } else {
       _error('bad function body', expr.span);
     }

@@ -296,6 +296,9 @@ Object.defineProperty(Object.prototype, "replaceFirst$2", { value: function($0, 
 Object.defineProperty(Object.prototype, "resolve$0", { value: function() {
   return this.noSuchMethod("resolve", []);
 }, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "resolveType$2", { value: function($0, $1) {
+  return this.noSuchMethod("resolveType", [$0, $1]);
+}, enumerable: false, configurable: true });
 Object.defineProperty(Object.prototype, "resolveTypeParams$1", { value: function($0) {
   return this.noSuchMethod("resolveTypeParams", [$0]);
 }, enumerable: false, configurable: true });
@@ -2312,11 +2315,11 @@ Element.prototype.resolveType = function(node, typeErrors) {
     if (typeRef.type != null) {
       return typeRef.type;
     }
-    return this.get$enclosingElement().resolveType(node, typeErrors);
+    return this.get$enclosingElement().resolveType$2(node, typeErrors);
   }
   else if ((node instanceof GenericTypeReference)) {
     var typeRef = node;
-    var baseType = this.resolveType(typeRef.baseType, typeErrors);
+    var baseType = this.resolveType$2(typeRef.baseType, typeErrors);
     if (!baseType.get$isGeneric()) {
       $globals.world.error(("" + baseType.get$name() + " is not generic"), typeRef.span);
       return null;
@@ -2328,7 +2331,7 @@ Element.prototype.resolveType = function(node, typeErrors) {
     var typeArgs = [];
     for (var i = (0);
      i < typeRef.typeArguments.get$length(); i++) {
-      typeArgs.add$1(this.resolveType(typeRef.typeArguments.$index(i), typeErrors));
+      typeArgs.add$1(this.resolveType$2(typeRef.typeArguments.$index(i), typeErrors));
     }
     typeRef.type = baseType.getOrMakeConcreteType$1(typeArgs);
   }
@@ -2347,6 +2350,7 @@ Element.prototype.resolveType = function(node, typeErrors) {
 }
 Element.prototype.hashCode$0 = Element.prototype.hashCode;
 Element.prototype.resolve$0 = Element.prototype.resolve;
+Element.prototype.resolveType$2 = Element.prototype.resolveType;
 // ********** Code for WorldGenerator **************
 function WorldGenerator(main, writer) {
   this.main = main;
@@ -2993,7 +2997,7 @@ BlockScope.prototype.declareParameter = function(p) {
   return this.create(p.name, p.type, p.definition.span, false, true);
 }
 BlockScope.prototype.declare = function(id) {
-  var type = this.enclosingMethod.method.resolveType(id.type, false);
+  var type = this.enclosingMethod.method.resolveType$2(id.type, false);
   return this.create(id.name.name, type, id.span, false, false);
 }
 BlockScope.prototype.getRethrow = function() {
@@ -3474,7 +3478,7 @@ MethodGenerator.prototype.visitVariableDefinition = function(node) {
     isFinal = true;
   }
   this.writer.write("var ");
-  var type = this.method.resolveType(node.type, false);
+  var type = this.method.resolveType$2(node.type, false);
   for (var i = (0);
    i < node.names.get$length(); i++) {
     var thisType = type;
@@ -3642,7 +3646,7 @@ MethodGenerator.prototype._isFinal = function(typeRef) {
   return typeRef != null && typeRef.get$isFinal();
 }
 MethodGenerator.prototype.visitForInStatement = function(node) {
-  var itemType = this.method.resolveType(node.item.type, false);
+  var itemType = this.method.resolveType$2(node.item.type, false);
   var itemName = node.item.name.name;
   var list = node.list.visit(this);
   this._pushBlock(true);
@@ -3689,7 +3693,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
   if (node.catches.get$length() == (1)) {
     var catch_ = node.catches.$index((0));
     this._pushBlock(false);
-    var exType = this.method.resolveType(catch_.get$exception().get$type(), false);
+    var exType = this.method.resolveType$2(catch_.get$exception().get$type(), false);
     var ex = this._scope.declare(catch_.get$exception());
     this._scope.rethrow = ex;
     this.writer.nextBlock(("} catch (" + ex.get$code() + ") {"));
@@ -3724,7 +3728,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
      i < node.catches.get$length(); i++) {
       var catch_ = node.catches.$index(i);
       this._pushBlock(false);
-      var tmpType = this.method.resolveType(catch_.get$exception().get$type(), false);
+      var tmpType = this.method.resolveType$2(catch_.get$exception().get$type(), false);
       var tmp = this._scope.declare(catch_.get$exception());
       if (!tmpType.get$isVarOrObject()) {
         var test = ex.instanceOf$3$isTrue$forceCheck(this, tmpType, catch_.get$exception().get$span(), true, true);
@@ -4150,7 +4154,7 @@ MethodGenerator.prototype.visitNewExpression = function(node) {
     if ($eq(names.get$length(), (0))) names = null;
     typeRef = new NameTypeReference(typeRef.get$isFinal(), typeRef.get$name(), names, typeRef.get$span());
   }
-  var type = this.method.resolveType(typeRef, true);
+  var type = this.method.resolveType$2(typeRef, true);
   if (type.get$isTop()) {
     type = type.get$library().findTypeByName$1(constructorName);
     constructorName = "";
@@ -4188,7 +4192,7 @@ MethodGenerator.prototype.visitListExpression = function(node) {
   var listType = $globals.world.listType;
   var type = $globals.world.varType;
   if (node.itemType != null) {
-    type = this.method.resolveType(node.itemType, true);
+    type = this.method.resolveType$2(node.itemType, true);
     if (node.isConst && ((type instanceof ParameterType) || type.get$hasTypeParams())) {
       $globals.world.error("type parameter cannot be used in const list literals");
     }
@@ -4217,7 +4221,7 @@ MethodGenerator.prototype.visitMapExpression = function(node) {
   var mapType = $globals.world.mapType;
   if (node.valueType != null) {
     if (node.keyType != null) {
-      keyType = this.method.resolveType(node.keyType, true);
+      keyType = this.method.resolveType$2(node.keyType, true);
       if (!keyType.get$isString()) {
         $globals.world.error("the key type of a map literal must be \"String\"", keyType.get$span());
       }
@@ -4225,7 +4229,7 @@ MethodGenerator.prototype.visitMapExpression = function(node) {
         $globals.world.error("type parameter cannot be used in const map literals");
       }
     }
-    valueType = this.method.resolveType(node.valueType, true);
+    valueType = this.method.resolveType$2(node.valueType, true);
     if (node.isConst && ((valueType instanceof ParameterType) || valueType.get$hasTypeParams())) {
       $globals.world.error("type parameter cannot be used in const map literals");
     }
@@ -4257,7 +4261,7 @@ MethodGenerator.prototype.visitConditionalExpression = function(node) {
 }
 MethodGenerator.prototype.visitIsExpression = function(node) {
   var value = this.visitValue(node.x);
-  var type = this.method.resolveType(node.type, false);
+  var type = this.method.resolveType$2(node.type, false);
   return value.instanceOf$4(this, type, node.span, node.isTrue);
 }
 MethodGenerator.prototype.visitParenExpression = function(node) {
@@ -4851,6 +4855,7 @@ Library.prototype.findTypeByName$1 = Library.prototype.findTypeByName;
 Library.prototype.hashCode$0 = Library.prototype.hashCode;
 Library.prototype.postResolveChecks$0 = Library.prototype.postResolveChecks;
 Library.prototype.resolve$0 = Library.prototype.resolve;
+Library.prototype.resolveType$2 = Library.prototype.resolveType;
 Library.prototype.toString$0 = Library.prototype.toString;
 Library.prototype.visitSources$0 = Library.prototype.visitSources;
 // ********** Code for _LibraryVisitor **************
@@ -5068,7 +5073,7 @@ Parameter.prototype.resolve = function() {
     this.name = this.name.substring((5));
     this.isInitializer = true;
   }
-  this.type = this.method.resolveType(this.definition.type, false);
+  this.type = this.method.resolveType$2(this.definition.type, false);
   if (this.definition.value != null) {
     if (!this.get$hasDefaultValue()) return;
     if (this.method.name == ":call") {
@@ -5542,7 +5547,7 @@ ConcreteMember.prototype.set$initDelegate = function(ctor) {
   this.baseMember.set$initDelegate(ctor);
 }
 ConcreteMember.prototype.resolveType = function(node, isRequired) {
-  var type = this.baseMember.resolveType(node, isRequired);
+  var type = this.baseMember.resolveType$2(node, isRequired);
   return type.resolveTypeParams$1(this.declaringType);
 }
 ConcreteMember.prototype.computeValue = function() {
@@ -5593,6 +5598,7 @@ ConcreteMember.prototype.invoke$4$isDynamic = ConcreteMember.prototype.invoke;
 ConcreteMember.prototype.invoke$5 = ConcreteMember.prototype.invoke;
 ConcreteMember.prototype.provideFieldSyntax$0 = ConcreteMember.prototype.provideFieldSyntax;
 ConcreteMember.prototype.providePropertySyntax$0 = ConcreteMember.prototype.providePropertySyntax;
+ConcreteMember.prototype.resolveType$2 = ConcreteMember.prototype.resolveType;
 // ********** Code for MethodMember **************
 $inherits(MethodMember, Member);
 function MethodMember(name, declaringType, definition) {
@@ -6063,7 +6069,7 @@ MethodMember.prototype.resolve = function() {
     this.returnType = this.declaringType;
   }
   else {
-    this.returnType = this.resolveType(this.definition.returnType, false);
+    this.returnType = this.resolveType(this.definition.returnType, false, true);
   }
   this.parameters = [];
   var $$list = this.definition.formals;
@@ -6077,10 +6083,13 @@ MethodMember.prototype.resolve = function() {
     this.get$library()._addMember(this);
   }
 }
-MethodMember.prototype.resolveType = function(node, typeErrors) {
+MethodMember.prototype.resolveType = function(node, typeErrors, allowVoid) {
   var t = Element.prototype.resolveType.call(this, node, typeErrors);
   if (this.isStatic && !this.isFactory && (t instanceof ParameterType)) {
     $globals.world.error("using type parameter in static context.", node.span);
+  }
+  if (!allowVoid && t.get$isVoid()) {
+    $globals.world.error("\"void\" only allowed as return type", node.span);
   }
   return t;
 }
@@ -6105,6 +6114,9 @@ MethodMember.prototype.namesInOrder$1 = MethodMember.prototype.namesInOrder;
 MethodMember.prototype.provideFieldSyntax$0 = MethodMember.prototype.provideFieldSyntax;
 MethodMember.prototype.providePropertySyntax$0 = MethodMember.prototype.providePropertySyntax;
 MethodMember.prototype.resolve$0 = MethodMember.prototype.resolve;
+MethodMember.prototype.resolveType$2 = function($0, $1) {
+  return this.resolveType($0, $1, false);
+};
 // ********** Code for MemberSet **************
 function MemberSet(member, isVar) {
   this.jsname = member.get$jsname();
@@ -9503,6 +9515,9 @@ Parser.prototype._lookaheadAfterParens = function(tokens) {
   }
 }
 Parser.prototype._typeAsIdentifier = function(type) {
+  if ($eq(type.get$name().get$name(), "void")) {
+    this._errorExpected(("identifer, but found \"" + type.get$name().get$name() + "\""));
+  }
   return type.get$name();
 }
 Parser.prototype._specialIdentifier = function(includeOperators) {
@@ -9891,6 +9906,9 @@ Parser.prototype._makeFunction = function(expr, formals, body) {
   else if ((expr instanceof DeclaredIdentifier)) {
     name = expr.get$name();
     type = expr.get$type();
+    if (name == null) {
+      this._lang_error("expected name and type", expr.get$span());
+    }
   }
   else {
     this._lang_error("bad function body", expr.get$span());
@@ -11119,7 +11137,7 @@ ParameterType.prototype.addDirectSubtype = function(type) {
 }
 ParameterType.prototype.resolve = function() {
   if (this.typeParameter.extendsType != null) {
-    this.extendsType = this.get$enclosingElement().resolveType(this.typeParameter.extendsType, true);
+    this.extendsType = this.get$enclosingElement().resolveType$2(this.typeParameter.extendsType, true);
   }
   else {
     this.extendsType = $globals.world.objectType;
@@ -11241,6 +11259,7 @@ NonNullableType.prototype.getMember$1 = NonNullableType.prototype.getMember;
 NonNullableType.prototype.getOrMakeConcreteType$1 = NonNullableType.prototype.getOrMakeConcreteType;
 NonNullableType.prototype.isSubtypeOf$1 = NonNullableType.prototype.isSubtypeOf;
 NonNullableType.prototype.markUsed$0 = NonNullableType.prototype.markUsed;
+NonNullableType.prototype.resolveType$2 = NonNullableType.prototype.resolveType;
 NonNullableType.prototype.resolveTypeParams$1 = NonNullableType.prototype.resolveTypeParams;
 // ********** Code for ConcreteType **************
 $inherits(ConcreteType, Type);
@@ -11409,6 +11428,7 @@ ConcreteType.prototype.getFactory$2 = ConcreteType.prototype.getFactory;
 ConcreteType.prototype.getMember$1 = ConcreteType.prototype.getMember;
 ConcreteType.prototype.getOrMakeConcreteType$1 = ConcreteType.prototype.getOrMakeConcreteType;
 ConcreteType.prototype.markUsed$0 = ConcreteType.prototype.markUsed;
+ConcreteType.prototype.resolveType$2 = ConcreteType.prototype.resolveType;
 ConcreteType.prototype.resolveTypeParams$1 = ConcreteType.prototype.resolveTypeParams;
 // ********** Code for DefinedType **************
 $inherits(DefinedType, Type);
