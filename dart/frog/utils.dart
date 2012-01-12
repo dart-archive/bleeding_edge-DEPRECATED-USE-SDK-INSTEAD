@@ -72,6 +72,7 @@ class FixedCollection<E> implements Collection<E> {
 
   Iterator<E> iterator() => new FixedIterator<E>(value, length);
   void forEach(void f(E element)) { Collections.forEach(this, f); }
+  Collection map(f(E element)) => Collections.map(this, new List(), f);
   Collection<E> filter(bool f(E element)) {
     return Collections.filter(this, new List<E>(), f);
   }

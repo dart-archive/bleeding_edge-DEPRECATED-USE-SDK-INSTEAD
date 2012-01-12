@@ -265,6 +265,8 @@ Object.defineProperty(Object.prototype, "iterator$0", { value: function() {
 }, enumerable: false, configurable: true });
 Object.defineProperty(Object.prototype, "last$0", { value: function() {
   return this.noSuchMethod("last", []);
+Object.defineProperty(Object.prototype, "map$1", { value: function($0) {
+  return this.noSuchMethod("map", [$0]);
 }, enumerable: false, configurable: true });
 Object.defineProperty(Object.prototype, "markUsed$0", { value: function() {
   return this.noSuchMethod("markUsed", []);
@@ -618,6 +620,9 @@ Object.defineProperty(ListFactory.prototype, "indexOf$1", { value: ListFactory.p
 Object.defineProperty(ListFactory.prototype, "isEmpty$0", { value: ListFactory.prototype.isEmpty, enumerable: false, configurable: true });
 Object.defineProperty(ListFactory.prototype, "iterator$0", { value: ListFactory.prototype.iterator, enumerable: false, configurable: true });
 Object.defineProperty(ListFactory.prototype, "last$0", { value: ListFactory.prototype.last, enumerable: false, configurable: true });
+Object.defineProperty(ListFactory.prototype, "map$1", { value: function($0) {
+  return this.map(to$call$1($0));
+}, enumerable: false, configurable: true });
 Object.defineProperty(ListFactory.prototype, "removeLast$0", { value: ListFactory.prototype.removeLast, enumerable: false, configurable: true });
 Object.defineProperty(ListFactory.prototype, "some$1", { value: function($0) {
   return this.some(to$call$1($0));
@@ -1113,6 +1118,14 @@ HashSetImplementation.prototype.forEach = function(f) {
   }
   );
 }
+HashSetImplementation.prototype.map = function(f) {
+  var result = new HashSetImplementation();
+  this._backingMap.forEach(function _(key, value) {
+    result.add(f(key));
+  }
+  );
+  return result;
+}
 HashSetImplementation.prototype.filter = function(f) {
   var result = new HashSetImplementation();
   this._backingMap.forEach(function _(key, value) {
@@ -1152,6 +1165,9 @@ HashSetImplementation.prototype.forEach$1 = function($0) {
 };
 HashSetImplementation.prototype.isEmpty$0 = HashSetImplementation.prototype.isEmpty;
 HashSetImplementation.prototype.iterator$0 = HashSetImplementation.prototype.iterator;
+HashSetImplementation.prototype.map$1 = function($0) {
+  return this.map(to$call$1($0));
+};
 HashSetImplementation.prototype.some$1 = function($0) {
   return this.some(to$call$1($0));
 };
@@ -1479,6 +1495,16 @@ DoubleLinkedQueue.prototype.some = function(f) {
   }
   return false;
 }
+DoubleLinkedQueue.prototype.map = function(f) {
+  var other = new DoubleLinkedQueue();
+  var entry = this._sentinel._next;
+  while (entry !== this._sentinel) {
+    var nextEntry = entry._next;
+    other.addLast(f(entry._element));
+    entry = nextEntry;
+  }
+  return other;
+}
 DoubleLinkedQueue.prototype.filter = function(f) {
   var other = new DoubleLinkedQueue();
   var entry = this._sentinel._next;
@@ -1506,6 +1532,9 @@ DoubleLinkedQueue.prototype.forEach$1 = function($0) {
 DoubleLinkedQueue.prototype.isEmpty$0 = DoubleLinkedQueue.prototype.isEmpty;
 DoubleLinkedQueue.prototype.iterator$0 = DoubleLinkedQueue.prototype.iterator;
 DoubleLinkedQueue.prototype.last$0 = DoubleLinkedQueue.prototype.last;
+DoubleLinkedQueue.prototype.map$1 = function($0) {
+  return this.map(to$call$1($0));
+};
 DoubleLinkedQueue.prototype.removeLast$0 = DoubleLinkedQueue.prototype.removeLast;
 DoubleLinkedQueue.prototype.some$1 = function($0) {
   return this.some(to$call$1($0));
@@ -1761,6 +1790,13 @@ Collections.filter = function(source, destination, f) {
   for (var $$i = source.iterator(); $$i.hasNext$0(); ) {
     var e = $$i.next$0();
     if (f(e)) destination.add(e);
+  }
+  return destination;
+}
+Collections.map = function(source, destination, f) {
+  for (var $$i = source.iterator(); $$i.hasNext$0(); ) {
+    var e = $$i.next$0();
+    destination.add(f(e));
   }
   return destination;
 }

@@ -87,6 +87,10 @@ class Sections implements Collection<Section> {
   List<Section> get sections() => _sections;
 
   // Collection<Section> methods:
+  List map(f(Section element)) {
+    return Collections.map(this, new List(), f);
+  }
+
   List<Section> filter(bool f(Section element)) {
     return Collections.filter(this, new List<Section>(), f);
   }

@@ -108,6 +108,7 @@ class ListFactory<E> implements List<E> native "Array" {
   // Collection<E> members:
   void forEach(void f(E element)) native;
   Collection<E> filter(bool f(E element)) native;
+  Collection map(f(E element)) native;
   bool every(bool f(E element)) native;
   bool some(bool f(E element)) native;
   bool isEmpty() => length == 0;
