@@ -516,9 +516,9 @@ class JsonStringifier {
         needsEscape = true;
 
         if (JsonTokenizer.NEW_LINE == charCode) {
-          charCode = N_SMALL;
+          charCode = JsonTokenizer.N_SMALL;
         } else if (JsonTokenizer.LINE_FEED == charCode) {
-          charCode = R_SMALL;
+          charCode = JsonTokenizer.R_SMALL;
         }
       }
       charCodes.add(charCode);
