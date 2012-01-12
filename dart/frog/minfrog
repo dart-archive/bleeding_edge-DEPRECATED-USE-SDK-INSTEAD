@@ -278,6 +278,9 @@ Object.defineProperty(Object.prototype, "needsConversion$1", { value: function($
 Object.defineProperty(Object.prototype, "next$0", { value: function() {
   return this.noSuchMethod("next", []);
 }, enumerable: false, configurable: true });
+Object.defineProperty(Object.prototype, "postResolveChecks$0", { value: function() {
+  return this.noSuchMethod("postResolveChecks", []);
+}, enumerable: false, configurable: true });
 Object.defineProperty(Object.prototype, "provideFieldSyntax$0", { value: function() {
   return this.noSuchMethod("provideFieldSyntax", []);
 }, enumerable: false, configurable: true });
@@ -503,14 +506,6 @@ function _print(obj) {
     write(obj);
     write('\n');
   }
-}
-function _map(itemsAndKeys) {
-  var ret = new LinkedHashMapImplementation();
-  for (var i = (0);
-   i < itemsAndKeys.get$length(); ) {
-    ret.$setindex(itemsAndKeys.$index(i++), itemsAndKeys.$index(i++));
-  }
-  return ret;
 }
 function _toDartException(e) {
   function attachStack(dartEx) {
@@ -1847,6 +1842,14 @@ _FunctionImplementation.prototype._genStub = function(argsLength, names) {
     
 }
 // ********** Code for top level **************
+function _map(itemsAndKeys) {
+  var ret = new LinkedHashMapImplementation();
+  for (var i = (0);
+   i < itemsAndKeys.get$length(); ) {
+    ret.$setindex(itemsAndKeys.$index(i++), itemsAndKeys.$index(i++));
+  }
+  return ret;
+}
 //  ********** Library node **************
 // ********** Code for Process **************
 function Process(_process) {
@@ -4418,14 +4421,163 @@ Arguments.prototype.toCallStubArgs = function() {
   return new Arguments(this.nodes, result);
 }
 // ********** Code for LibraryImport **************
-function LibraryImport(library, prefix) {
+function LibraryImport(library, prefix, span) {
   this.library = library;
+  this.span = span;
   this.prefix = prefix;
 }
 LibraryImport.prototype.get$prefix = function() { return this.prefix; };
-LibraryImport.prototype.set$prefix = function(value) { return this.prefix = value; };
 LibraryImport.prototype.get$library = function() { return this.library; };
-LibraryImport.prototype.set$library = function(value) { return this.library = value; };
+LibraryImport.prototype.get$span = function() { return this.span; };
+// ********** Code for Member **************
+$inherits(Member, Element);
+function Member(name, declaringType) {
+  this.isGenerated = false;
+  this.declaringType = declaringType;
+  this._provideFieldSyntax = false;
+  this._providePropertySyntax = false;
+  Element.call(this, name, declaringType);
+}
+Member.prototype.get$declaringType = function() { return this.declaringType; };
+Member.prototype.get$isGenerated = function() { return this.isGenerated; };
+Member.prototype.set$isGenerated = function(value) { return this.isGenerated = value; };
+Member.prototype.get$generator = function() { return this.generator; };
+Member.prototype.set$generator = function(value) { return this.generator = value; };
+Member.prototype.get$library = function() {
+  return this.declaringType.get$library();
+}
+Member.prototype.get$isPrivate = function() {
+  return this.name != null && this.name.startsWith("_");
+}
+Member.prototype.get$isConstructor = function() {
+  return false;
+}
+Member.prototype.get$isField = function() {
+  return false;
+}
+Member.prototype.get$isMethod = function() {
+  return false;
+}
+Member.prototype.get$isProperty = function() {
+  return false;
+}
+Member.prototype.get$isAbstract = function() {
+  return false;
+}
+Member.prototype.get$isFinal = function() {
+  return false;
+}
+Member.prototype.get$isConst = function() {
+  return false;
+}
+Member.prototype.get$isFactory = function() {
+  return false;
+}
+Member.prototype.get$isOperator = function() {
+  return this.name.startsWith(":");
+}
+Member.prototype.get$isCallMethod = function() {
+  return this.name == ":call";
+}
+Member.prototype.get$requiresPropertySyntax = function() {
+  return false;
+}
+Member.prototype.get$requiresFieldSyntax = function() {
+  return false;
+}
+Member.prototype.get$isNative = function() {
+  return false;
+}
+Member.prototype.get$constructorName = function() {
+  $globals.world.internalError("can not be a constructor", this.get$span());
+}
+Member.prototype.provideFieldSyntax = function() {
+
+}
+Member.prototype.providePropertySyntax = function() {
+
+}
+Member.prototype.get$initDelegate = function() {
+  $globals.world.internalError("cannot have initializers", this.get$span());
+}
+Member.prototype.set$initDelegate = function(ctor) {
+  $globals.world.internalError("cannot have initializers", this.get$span());
+}
+Member.prototype.computeValue = function() {
+  $globals.world.internalError("cannot have value", this.get$span());
+}
+Member.prototype.get$inferredResult = function() {
+  var t = this.get$returnType();
+  if (t.get$isBool() && (this.get$library().get$isCore() || this.get$library().get$isCoreImpl())) {
+    return $globals.world.nonNullBool;
+  }
+  return t;
+}
+Member.prototype.get$definition = function() {
+  return null;
+}
+Member.prototype.get$parameters = function() {
+  return [];
+}
+Member.prototype.canInvoke = function(context, args) {
+  return this.get$canGet() && new Value(this.get$returnType(), null, null, true).canInvoke(context, ":call", args);
+}
+Member.prototype.invoke = function(context, node, target, args, isDynamic) {
+  var newTarget = this._get(context, node, target, isDynamic);
+  return newTarget.invoke$5(context, ":call", node, args, isDynamic);
+}
+Member.prototype.override = function(other) {
+  if (this.get$isStatic()) {
+    $globals.world.error("static members can not hide parent members", this.get$span(), other.get$span());
+    return false;
+  }
+  else if (other.get$isStatic()) {
+    $globals.world.error("can not override static member", this.get$span(), other.get$span());
+    return false;
+  }
+  return true;
+}
+Member.prototype.get$generatedFactoryName = function() {
+  var prefix = ("" + this.declaringType.get$jsname() + "." + this.get$constructorName() + "$");
+  if (this.name == "") {
+    return ("" + prefix + "factory");
+  }
+  else {
+    return ("" + prefix + this.name + "$factory");
+  }
+}
+Member.prototype.hashCode = function() {
+  var typeCode = this.declaringType == null ? (1) : this.declaringType.hashCode();
+  var nameCode = this.get$isConstructor() ? this.get$constructorName().hashCode() : this.name.hashCode();
+  return (typeCode << (4)) ^ nameCode;
+}
+Member.prototype.$eq = function(other) {
+  return (other instanceof Member) && $eq(this.get$isConstructor(), other.get$isConstructor()) && $eq(this.declaringType, other.get$declaringType()) && (this.get$isConstructor() ? this.get$constructorName() == other.get$constructorName() : this.name == other.get$name());
+}
+Member.prototype._get$3 = Member.prototype._get;
+Member.prototype._get$3$isDynamic = Member.prototype._get;
+Member.prototype._get$4 = Member.prototype._get;
+Member.prototype._set$4 = Member.prototype._set;
+Member.prototype._set$4$isDynamic = Member.prototype._set;
+Member.prototype._set$5 = Member.prototype._set;
+Member.prototype.canInvoke$2 = Member.prototype.canInvoke;
+Member.prototype.computeValue$0 = Member.prototype.computeValue;
+Member.prototype.hashCode$0 = Member.prototype.hashCode;
+Member.prototype.invoke$4 = function($0, $1, $2, $3) {
+  return this.invoke($0, $1, $2, $3, false);
+};
+Member.prototype.invoke$4$isDynamic = Member.prototype.invoke;
+Member.prototype.invoke$5 = Member.prototype.invoke;
+Member.prototype.provideFieldSyntax$0 = Member.prototype.provideFieldSyntax;
+Member.prototype.providePropertySyntax$0 = Member.prototype.providePropertySyntax;
+// ********** Code for AmbiguousMember **************
+$inherits(AmbiguousMember, Member);
+function AmbiguousMember(name, members) {
+  this.members = members;
+  Member.call(this, name, null);
+}
+AmbiguousMember.prototype.get$members = function() { return this.members; };
+AmbiguousMember.prototype.set$members = function(value) { return this.members = value; };
 // ********** Code for Library **************
 $inherits(Library, Element);
 function Library(baseSource) {
@@ -4477,9 +4629,10 @@ Library.prototype.makeFullPath = function(filename) {
   if (filename.startsWith("http://")) return filename;
   return joinPaths(this.sourceDir, filename);
 }
-Library.prototype.addImport = function(fullname, prefix) {
+Library.prototype.addImport = function(fullname, prefix, span) {
   var newLib = $globals.world.getOrAddLibrary(fullname);
-  this.imports.add(new LibraryImport(newLib, prefix));
+  if (newLib.get$isCore()) return;
+  this.imports.add(new LibraryImport(newLib, prefix, span));
   return newLib;
 }
 Library.prototype.addNative = function(fullname) {
@@ -4614,36 +4767,7 @@ Library._getDottedName = function(type) {
   }
 }
 Library.prototype.lookup = function(name, span) {
-  var retType = this.findTypeByName(name);
-  var ret = null;
-  if (retType != null) {
-    ret = retType.get$typeMember();
-  }
-  var newRet = this.topType.getMember(name);
-  if (newRet != null) {
-    if (ret != null && $ne(ret, newRet)) {
-      $globals.world.error(("conflicting members for \"" + name + "\""), span, ret.get$span(), newRet.get$span());
-    }
-    else {
-      ret = newRet;
-    }
-  }
-  var $$list = this.imports;
-  for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
-    var imported = $$list.$index($$i);
-    if (imported.get$prefix() == null) {
-      newRet = imported.get$library().get$topType().getMember$1(name);
-      if (newRet != null) {
-        if (ret != null && $ne(ret, newRet)) {
-          $globals.world.error(("conflicting members for \"" + name + "\""), span, ret.get$span(), newRet.get$span());
-        }
-        else {
-          ret = newRet;
-        }
-      }
-    }
-  }
-  return ret;
+  return this._topNames.$index(name);
 }
 Library.prototype.resolve = function() {
   if (this.name == null) {
@@ -4664,6 +4788,52 @@ Library.prototype.resolve = function() {
     type.resolve$0();
   }
 }
+Library.prototype._addTopName = function(name, member, localSpan) {
+  var existing = this._topNames.$index(name);
+  if (existing == null) {
+    this._topNames.$setindex(name, member);
+  }
+  else {
+    if ((existing instanceof AmbiguousMember)) {
+      existing.get$members().add$1(member);
+    }
+    else {
+      var newMember = new AmbiguousMember(name, [existing, member]);
+      $globals.world.error(("conflicting members for \"" + name + "\""), existing.get$span(), member.get$span(), localSpan);
+      this._topNames.$setindex(name, newMember);
+    }
+  }
+}
+Library.prototype._addTopNames = function(lib) {
+  var $$list = lib.topType.members.getValues();
+  for (var $$i = lib.topType.members.getValues().iterator$0(); $$i.hasNext$0(); ) {
+    var member = $$i.next$0();
+    if (member.get$isPrivate() && $ne(lib, this)) continue;
+    this._addTopName(member.get$name(), member);
+  }
+  var $$list = lib.types.getValues();
+  for (var $$i = lib.types.getValues().iterator$0(); $$i.hasNext$0(); ) {
+    var type = $$i.next$0();
+    if (!type.get$isTop()) {
+      if ($ne(lib, this) && type.get$typeMember().get$isPrivate()) continue;
+      this._addTopName(type.get$name(), type.get$typeMember());
+    }
+  }
+}
+Library.prototype.postResolveChecks = function() {
+  this._topNames = new HashMapImplementation();
+  this._addTopNames(this);
+  var $$list = this.imports;
+  for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
+    var imported = $$list.$index($$i);
+    if (imported.get$prefix() == null) {
+      this._addTopNames(imported.get$library());
+    }
+    else {
+      this._addTopName(imported.get$prefix(), imported.get$library().get$topType().get$typeMember(), imported.get$span());
+    }
+  }
+}
 Library.prototype.visitSources = function() {
   var visitor = new _LibraryVisitor(this);
   visitor.addSource$1(this.baseSource);
@@ -4679,6 +4849,7 @@ Library.prototype.$eq = function(other) {
 }
 Library.prototype.findTypeByName$1 = Library.prototype.findTypeByName;
 Library.prototype.hashCode$0 = Library.prototype.hashCode;
+Library.prototype.postResolveChecks$0 = Library.prototype.postResolveChecks;
 Library.prototype.resolve$0 = Library.prototype.resolve;
 Library.prototype.toString$0 = Library.prototype.toString;
 Library.prototype.visitSources$0 = Library.prototype.visitSources;
@@ -4782,7 +4953,7 @@ _LibraryVisitor.prototype.visitDirectiveDefinition = function(node) {
         $globals.world.error(("duplicate import of \"" + name + "\""), node.span);
         return;
       }
-      var newLib = this.library.addImport(filename, prefix);
+      var newLib = this.library.addImport(filename, prefix, node.span);
       break;
 
     case "source":
@@ -4940,147 +5111,6 @@ Parameter.prototype.get$hasDefaultValue = function() {
 Parameter.prototype.copyWithNewType$2 = Parameter.prototype.copyWithNewType;
 Parameter.prototype.genValue$2 = Parameter.prototype.genValue;
 Parameter.prototype.resolve$0 = Parameter.prototype.resolve;
-// ********** Code for Member **************
-$inherits(Member, Element);
-function Member(name, declaringType) {
-  this.isGenerated = false;
-  this.declaringType = declaringType;
-  this._provideFieldSyntax = false;
-  this._providePropertySyntax = false;
-  Element.call(this, name, declaringType);
-}
-Member.prototype.get$declaringType = function() { return this.declaringType; };
-Member.prototype.get$isGenerated = function() { return this.isGenerated; };
-Member.prototype.set$isGenerated = function(value) { return this.isGenerated = value; };
-Member.prototype.get$generator = function() { return this.generator; };
-Member.prototype.set$generator = function(value) { return this.generator = value; };
-Member.prototype.get$library = function() {
-  return this.declaringType.get$library();
-}
-Member.prototype.get$isPrivate = function() {
-  return this.name.startsWith("_");
-}
-Member.prototype.get$isConstructor = function() {
-  return false;
-}
-Member.prototype.get$isField = function() {
-  return false;
-}
-Member.prototype.get$isMethod = function() {
-  return false;
-}
-Member.prototype.get$isProperty = function() {
-  return false;
-}
-Member.prototype.get$isAbstract = function() {
-  return false;
-}
-Member.prototype.get$isFinal = function() {
-  return false;
-}
-Member.prototype.get$isConst = function() {
-  return false;
-}
-Member.prototype.get$isFactory = function() {
-  return false;
-}
-Member.prototype.get$isOperator = function() {
-  return this.name.startsWith(":");
-}
-Member.prototype.get$isCallMethod = function() {
-  return this.name == ":call";
-}
-Member.prototype.get$requiresPropertySyntax = function() {
-  return false;
-}
-Member.prototype.get$requiresFieldSyntax = function() {
-  return false;
-}
-Member.prototype.get$isNative = function() {
-  return false;
-}
-Member.prototype.get$constructorName = function() {
-  $globals.world.internalError("can not be a constructor", this.get$span());
-}
-Member.prototype.provideFieldSyntax = function() {
-
-}
-Member.prototype.providePropertySyntax = function() {
-
-}
-Member.prototype.get$initDelegate = function() {
-  $globals.world.internalError("cannot have initializers", this.get$span());
-}
-Member.prototype.set$initDelegate = function(ctor) {
-  $globals.world.internalError("cannot have initializers", this.get$span());
-}
-Member.prototype.computeValue = function() {
-  $globals.world.internalError("cannot have value", this.get$span());
-}
-Member.prototype.get$inferredResult = function() {
-  var t = this.get$returnType();
-  if (t.get$isBool() && (this.get$library().get$isCore() || this.get$library().get$isCoreImpl())) {
-    return $globals.world.nonNullBool;
-  }
-  return t;
-}
-Member.prototype.get$definition = function() {
-  return null;
-}
-Member.prototype.get$parameters = function() {
-  return [];
-}
-Member.prototype.canInvoke = function(context, args) {
-  return this.get$canGet() && new Value(this.get$returnType(), null, null, true).canInvoke(context, ":call", args);
-}
-Member.prototype.invoke = function(context, node, target, args, isDynamic) {
-  var newTarget = this._get(context, node, target, isDynamic);
-  return newTarget.invoke$5(context, ":call", node, args, isDynamic);
-}
-Member.prototype.override = function(other) {
-  if (this.get$isStatic()) {
-    $globals.world.error("static members can not hide parent members", this.get$span(), other.get$span());
-    return false;
-  }
-  else if (other.get$isStatic()) {
-    $globals.world.error("can not override static member", this.get$span(), other.get$span());
-    return false;
-  }
-  return true;
-}
-Member.prototype.get$generatedFactoryName = function() {
-  var prefix = ("" + this.declaringType.get$jsname() + "." + this.get$constructorName() + "$");
-  if (this.name == "") {
-    return ("" + prefix + "factory");
-  }
-  else {
-    return ("" + prefix + this.name + "$factory");
-  }
-}
-Member.prototype.hashCode = function() {
-  var typeCode = this.declaringType == null ? (1) : this.declaringType.hashCode();
-  var nameCode = this.get$isConstructor() ? this.get$constructorName().hashCode() : this.name.hashCode();
-  return (typeCode << (4)) ^ nameCode;
-}
-Member.prototype.$eq = function(other) {
-  return (other instanceof Member) && $eq(this.get$isConstructor(), other.get$isConstructor()) && $eq(this.declaringType, other.get$declaringType()) && (this.get$isConstructor() ? this.get$constructorName() == other.get$constructorName() : this.name == other.get$name());
-}
-Member.prototype._get$3 = Member.prototype._get;
-Member.prototype._get$3$isDynamic = Member.prototype._get;
-Member.prototype._get$4 = Member.prototype._get;
-Member.prototype._set$4 = Member.prototype._set;
-Member.prototype._set$4$isDynamic = Member.prototype._set;
-Member.prototype._set$5 = Member.prototype._set;
-Member.prototype.canInvoke$2 = Member.prototype.canInvoke;
-Member.prototype.computeValue$0 = Member.prototype.computeValue;
-Member.prototype.hashCode$0 = Member.prototype.hashCode;
-Member.prototype.invoke$4 = function($0, $1, $2, $3) {
-  return this.invoke($0, $1, $2, $3, false);
-};
-Member.prototype.invoke$4$isDynamic = Member.prototype.invoke;
-Member.prototype.invoke$5 = Member.prototype.invoke;
-Member.prototype.provideFieldSyntax$0 = Member.prototype.provideFieldSyntax;
-Member.prototype.providePropertySyntax$0 = Member.prototype.providePropertySyntax;
 // ********** Code for TypeMember **************
 $inherits(TypeMember, Member);
 function TypeMember(type) {
@@ -5089,7 +5119,7 @@ function TypeMember(type) {
 }
 TypeMember.prototype.get$type = function() { return this.type; };
 TypeMember.prototype.get$span = function() {
-  return this.type.definition.span;
+  return this.type.definition == null ? null : this.type.definition.span;
 }
 TypeMember.prototype.get$isStatic = function() {
   return true;
@@ -12916,7 +12946,7 @@ function MapValue(values, isConst, type, span) {
 }
 MapValue.prototype.get$code = function() {
   var items = new ListValue(this.values, false, $globals.world.listType, this.span);
-  var tp = $globals.world.corelib.topType;
+  var tp = $globals.world.coreimpl.topType;
   var f = this.isConst ? tp.getMember$1("_constMap") : tp.getMember$1("_map");
   var value = f.invoke(null, null, new Value.type$ctor(tp, null), new Arguments(null, [items]), false);
   return value.get$code();
@@ -13376,6 +13406,11 @@ World.prototype.resolveAll = function() {
   for (var $$i = this.libraries.getValues().iterator$0(); $$i.hasNext$0(); ) {
     var lib = $$i.next$0();
     lib.resolve$0();
+  }
+  var $$list = this.libraries.getValues();
+  for (var $$i = this.libraries.getValues().iterator$0(); $$i.hasNext$0(); ) {
+    var lib = $$i.next$0();
+    lib.postResolveChecks$0();
   }
 }
 World.prototype.get$resolveAll = function() {

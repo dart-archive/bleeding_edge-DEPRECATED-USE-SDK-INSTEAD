@@ -1,11 +1,18 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class LibraryImport {
-  String prefix;
-  Library library;
-  LibraryImport(this.library, [this.prefix = null]);
+  final String prefix;
+  final Library library;
+  final SourceSpan span;
+  LibraryImport(this.library, [this.prefix, this.span]);
+}
+
+// TODO(jimhug): Make this more useful for good error messages.
+class AmbiguousMember extends Member {
+  List<Member> members;
+  AmbiguousMember(String name, this.members): super(name, null);
 }
 
 
@@ -18,6 +25,7 @@ class Library extends Element {
   List<SourceFile> natives;
   List<SourceFile> sources;
 
+  Map<String, Member> _topNames;
   Map<String, MemberSet> _privateMembers;
 
   /** The type that holds top level types in the library. */
@@ -59,9 +67,11 @@ class Library extends Element {
   }
 
   /** Adds an import to the library. */
-  addImport(String fullname, String prefix) {
+  addImport(String fullname, String prefix, SourceSpan span) {
     var newLib = world.getOrAddLibrary(fullname);
-    imports.add(new LibraryImport(newLib, prefix));
+    // Special exemption in spec to ensure core is only imported once
+    if (newLib.isCore) return;
+    imports.add(new LibraryImport(newLib, prefix, span));
     return newLib;
   }
 
@@ -163,6 +173,7 @@ class Library extends Element {
     return result;
   }
 
+  // TODO(jimhug): Should be merged with new lookup method's logic.
   Type findTypeByName(String name) {
     var ret = types[name];
 
@@ -217,40 +228,7 @@ class Library extends Element {
   }
 
   Member lookup(String name, SourceSpan span) {
-    var retType = findTypeByName(name);
-    var ret = null;
-
-    if (retType != null) {
-      ret = retType.typeMember;
-    }
-
-    var newRet = topType.getMember(name);
-    // TODO(jimhug): Shares too much code with body of loop.
-    if (newRet != null) {
-      if (ret != null && ret != newRet) {
-        world.error('conflicting members for "$name"',
-          span, ret.span, newRet.span);
-      } else {
-        ret = newRet;
-      }
-    }
-
-    // Check all imports even if ret != null to detect conflicting names.
-    // TODO(jimhug): Only do this on first lookup.
-    for (var imported in imports) {
-      if (imported.prefix == null) {
-        newRet = imported.library.topType.getMember(name);
-        if (newRet != null) {
-          if (ret != null && ret != newRet) {
-            world.error('conflicting members for "$name"',
-              span, ret.span, newRet.span);
-          } else {
-            ret = newRet;
-          }
-        }
-      }
-    }
-    return ret;
+    return _topNames[name];
   }
 
   resolve() {
@@ -272,6 +250,55 @@ class Library extends Element {
 
     for (var type in types.getValues()) {
       type.resolve();
+    }
+  }
+
+  _addTopName(String name, Member member, [SourceSpan localSpan]) {
+    var existing = _topNames[name];
+    if (existing === null) {
+      _topNames[name] = member;
+    } else {
+      if (existing is AmbiguousMember) {
+        existing.members.add(member);
+      } else {
+        var newMember = new AmbiguousMember(name, [existing, member]);
+        world.error('conflicting members for "$name"',
+          existing.span, member.span, localSpan);
+          _topNames[name] = newMember;
+      }
+    }
+  }
+
+  _addTopNames(Library lib) {
+    for (var member in lib.topType.members.getValues()) {
+      if (member.isPrivate && lib != this) continue;
+      _addTopName(member.name, member);
+    }
+    for (var type in lib.types.getValues()) {
+      if (!type.isTop) {
+        if (lib != this && type.typeMember.isPrivate) continue;
+        _addTopName(type.name, type.typeMember);
+      }
+    }
+  }
+
+  /**
+   * This method will check for any conflicts in top-level names in this
+   * library.  It will also build up a map from top-level names to a single
+   * member to be used for future lookups both to keep error messages clean
+   * and as a minor perf optimization.
+   */
+  postResolveChecks() {
+    _topNames = {};
+    // check for conflicts between top-level names
+    _addTopNames(this);
+    for (var imported in imports) {
+      if (imported.prefix == null) {
+        _addTopNames(imported.library);
+      } else {
+        _addTopName(imported.prefix, imported.library.topType.typeMember,
+            imported.span);
+      }
     }
   }
 
@@ -390,7 +417,7 @@ class _LibraryVisitor implements TreeVisitor {
           return;
         }
 
-        var newLib = library.addImport(filename, prefix);
+        var newLib = library.addImport(filename, prefix, node.span);
         // TODO(jimhug): Add check that imported library has a #library
         break;
 

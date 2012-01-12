@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -98,7 +98,7 @@ class Member extends Element {
 
   Library get library() => declaringType.library;
 
-  bool get isPrivate() => name.startsWith('_');
+  bool get isPrivate() => name !== null && name.startsWith('_');
 
   bool get isConstructor() => false;
   bool get isField() => false;
@@ -227,7 +227,7 @@ class TypeMember extends Member {
       : super(type.name, type.library.topType),
         this.type = type;
 
-  SourceSpan get span() => type.definition.span;
+  SourceSpan get span() => type.definition === null ? null : type.definition.span;
 
   bool get isStatic() => true;
 

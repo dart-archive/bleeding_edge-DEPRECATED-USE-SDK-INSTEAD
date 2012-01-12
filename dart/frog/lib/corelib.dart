@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -127,18 +127,6 @@ class Object native "Object" {
   noSuchMethod(String name, List args) {
     throw new NoSuchMethodException(this, name, args);
   }
-}
-
-LinkedHashMapImplementation _map(List itemsAndKeys) {
-  LinkedHashMapImplementation ret = new LinkedHashMapImplementation();
-  for (int i=0; i < itemsAndKeys.length;) {
-    ret[itemsAndKeys[i++]] = itemsAndKeys[i++];
-  }
-  return ret;
-}
-
-ImmutableMap _constMap(List itemsAndKeys) {
-  return new ImmutableMap(itemsAndKeys);
 }
 
 void _assert(var test, String text, String url, int line, int column) {

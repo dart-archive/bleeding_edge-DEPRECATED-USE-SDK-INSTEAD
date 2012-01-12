@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -990,7 +990,7 @@ class MapValue extends EvaluatedValue {
   String get code() {
     // Cache?
     var items = new ListValue(values, false, world.listType, span);
-    var tp = world.corelib.topType;
+    var tp = world.coreimpl.topType;
     Member f = isConst ? tp.getMember('_constMap') : tp.getMember('_map');
     // TODO(jimhug): Clean up invoke signature
     var value = f.invoke(null, null, new Value.type(tp, null),

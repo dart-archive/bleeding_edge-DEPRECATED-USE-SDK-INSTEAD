@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -219,6 +219,19 @@ class ImmutableList<E> extends ListFactory<E> {
   // mplmentation needs correct handling of cycles (isolate tests depend on
   // this), so it's not trivial.
   String toString() => new List.from(this).toString();
+}
+
+
+LinkedHashMapImplementation _map(List itemsAndKeys) {
+  LinkedHashMapImplementation ret = new LinkedHashMapImplementation();
+  for (int i=0; i < itemsAndKeys.length;) {
+    ret[itemsAndKeys[i++]] = itemsAndKeys[i++];
+  }
+  return ret;
+}
+
+ImmutableMap _constMap(List itemsAndKeys) {
+  return new ImmutableMap(itemsAndKeys);
 }
 
 /** An immutable map. */
