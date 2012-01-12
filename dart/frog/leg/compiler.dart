@@ -61,7 +61,7 @@ class Compiler implements Canceler, Logger {
     types = new Types();
     universe = new Universe();
     worklist = new Queue<WorkElement>();
-    namer = new Namer(this);
+    namer = new Namer();
     scanner = new ScannerTask(this);
     parser = new ParserTask(this);
     validator = new TreeValidatorTask(this);

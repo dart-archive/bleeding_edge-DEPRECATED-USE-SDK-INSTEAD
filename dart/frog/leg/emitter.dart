@@ -27,7 +27,7 @@ function(child, parent) {
   CodeEmitterTask(Compiler compiler) : namer = compiler.namer, super(compiler);
   String get name() => 'CodeEmitter';
 
-  String get inheritsName() => '${compiler.namer.ISOLATE}.\$inherits';
+  String get inheritsName() => '${compiler.namer.isolate}.\$inherits';
 
   void addInheritFunctionIfNecessary(StringBuffer buffer) {
     if (addedInheritFunction) return;
@@ -147,7 +147,7 @@ function(child, parent) {
   String assembleProgram() {
     measure(() {
       StringBuffer buffer = new StringBuffer();
-      buffer.add('function ${namer.ISOLATE}() {}\n\n');
+      buffer.add('function ${namer.isolate}() {}\n\n');
       compileClasses(buffer);
       compileIsolateStatic(buffer,
                            compiler.universe.generatedCode,
@@ -155,8 +155,8 @@ function(child, parent) {
       compileIsolateStatic(buffer,
                            compiler.universe.generatedBailoutCode,
                            namer.isolateBailoutPropertyAccess);
-      buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
-      buffer.add('${namer.CURRENT_ISOLATE}.main();\n');
+      buffer.add('var ${namer.currentIsolate} = new ${namer.isolate}();\n');
+      buffer.add('${namer.currentIsolate}.main();\n');
       compiler.assembledCode = buffer.toString();
     });
     return compiler.assembledCode;
