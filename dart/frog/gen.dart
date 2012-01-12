@@ -239,10 +239,10 @@ class WorldGenerator {
   /**
    * Make sure the methods that we add to Array and Object are
    * non-enumerable, so that we don't mess up any other third-party JS
-   * libraries we might be using. 
+   * libraries we might be using.
    * We return the necessary suffix (if any) we need to complete the patching.
    */
-  String _writePrototypePatch(Type type, String name, String functionBody, 
+  String _writePrototypePatch(Type type, String name, String functionBody,
       CodeWriter writer, [bool isOneLiner=true]) {
     var writeFunction = writer.writeln;
     String ending = ';';
@@ -251,7 +251,7 @@ class WorldGenerator {
       ending = '';
     }
     if (type.isObject || type.name == 'ListFactory') {
-      // We special case these two so that by default we can use "= function()" 
+      // We special case these two so that by default we can use "= function()"
       // syntax for better readability.
       if (isOneLiner) {
         ending = ', enumerable: false, configurable: true })' + ending;
@@ -269,7 +269,7 @@ class WorldGenerator {
     bool isSubtype = onType.isSubtypeOf(checkType);
     if (checkType.isTested) {
       // TODO(jmesserly): cache these functions? they just return true or false.
-      _writePrototypePatch(onType, 'is\$${checkType.jsname}', 
+      _writePrototypePatch(onType, 'is\$${checkType.jsname}',
           'function(){return $isSubtype}', writer);
     }
 
@@ -1045,7 +1045,7 @@ class MethodGenerator implements TreeVisitor {
     } else if (method.isStatic) {
       defWriter.enterBlock('${method.declaringType.jsname}.${method.jsname} = function$_params {');
     } else {
-      suffix = world.gen._writePrototypePatch(method.declaringType, 
+      suffix = world.gen._writePrototypePatch(method.declaringType,
           method.jsname, 'function$_params {', defWriter, false);
     }
 
@@ -1086,7 +1086,7 @@ class MethodGenerator implements TreeVisitor {
 
   static _maybeGenerateBoundGetter(MethodMember m, CodeWriter defWriter) {
     if (m._providePropertySyntax) {
-      String suffix = world.gen._writePrototypePatch(m.declaringType, 
+      String suffix = world.gen._writePrototypePatch(m.declaringType,
           'get\$' + m.jsname, 'function() {', defWriter, false);
       // TODO(jimhug): Bind not available in older Safari, need fallback?
       defWriter.writeln('return this.${m.jsname}.bind(this);');
@@ -1660,19 +1660,19 @@ class MethodGenerator implements TreeVisitor {
     // TODO(jimhug): Check that itemType matches list members...
     bool isFinal = _isFinal(node.item.type);
     var item = _scope.create(itemName, itemType, node.item.name.span, isFinal);
-    Value listVar = list;
     if (list.needsTemp) {
-      listVar = _scope.create('\$list', list.type, null);
+      var listVar = _scope.create('\$list', list.type, null);
       writer.writeln('var ${listVar.code} = ${list.code};');
+      list = listVar;
     }
 
     // Special path for list for readability and perf optimization.
     if (list.type.isList) {
       var tmpi = _scope.create('\$i', world.numType, null);
-      var listLength = listVar.get_(this, 'length', node.list);
+      var listLength = list.get_(this, 'length', node.list);
       writer.enterBlock('for (var ${tmpi.code} = 0;' +
           '${tmpi.code} < ${listLength.code}; ${tmpi.code}++) {');
-      var value = listVar.invoke(this, ':index', node.list,
+      var value = list.invoke(this, ':index', node.list,
           new Arguments(null, [tmpi]));
       writer.writeln('var ${item.code} = ${value.code};');
     } else {
