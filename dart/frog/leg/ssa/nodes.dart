@@ -1081,11 +1081,7 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   HInstruction fold() {
     if (name == 'length' && inputs[1].isLiteralString()) {
-      // TODO(lrn): Account for escapes in string. Currently we count characters
-      // in the uninterpreted (but unquoted) string.
-      QuotedString string = inputs[1].value;
-      int contentLength = string.contentEnd - string.contentStart;
-      return new HLiteral(contentLength, HType.INTEGER);
+      // TODO(lrn): Account for escapes in string.
     }
     return this;
   }
@@ -1560,44 +1556,57 @@ class HLoopBranch extends HConditionalBranch {
 
   /**
    * Finds the quote type for a string given a part of it containing the
-   * staring quote. Returns flags, but doesn't include HAS_LEFT_QUOTE
+   * starting quote. Returns flags, but doesn't include HAS_LEFT_QUOTE
    * or HAS_RIGHT_QUOTE.
    */
   static int flagsFromLeftQuote(SourceString sourceString) {
-    String string = sourceString.stringValue;
+    Iterator<int> source = sourceString.iterator();
     int flags = 0;
     int start = 0;
-    String quoteChar = string[0];
-    if (quoteChar == '@') {
+    int quoteChar = source.next();
+    if (quoteChar == '@'.charCodeAt(0)) {
       flags |= RAW;
       start = 1;
-      quoteChar = string[1];
+      quoteChar = source.next();
     }
-    if (quoteChar == '\'') {
+    if (quoteChar == '\''.charCodeAt(0)) {
       flags |= SINGLE_QUOTED;
     } else {
-      assert(quoteChar == '"');
+      assert(quoteChar == '"'.charCodeAt(0));
     }
-    if (string.length > start + 2) {
-      if (string[start + 1] == quoteChar) {
-        assert(string[start + 2] == quoteChar);
-        flags |= MULTI_LINE;
-      }
+    // String has one quote. Check it if has three.
+    // If it only have two, the string must be an empty string literal,
+    // and end after the second quote.
+    if (source.hasNext() && source.next() == quoteChar && source.hasNext()) {
+      assert(source.next() == quoteChar);
+      flags |= MULTI_LINE;
     }
     return flags;
   }
 
   const QuotedString(this.wrappedString, this.flags);
+
   // TODO(lrn): Make flags RAW for a literal string when we support it.
-  const QuotedString.literal(this.wrappedString) : flags = NO_FLAGS;
+  QuotedString.literal(String string) :
+      this(new SourceString(string), NO_FLAGS);
 
   /**
    * Crates a [QuotedString] from a [SourceString] that contains
    * both its quotes.
    */
-  QuotedString.explicit(SourceString string)
-      : this.wrappedString = string,
-        flags = (flagsFromLeftQuote(string) | HAS_BOTH_QUOTES);
+  factory QuotedString.explicit(SourceString string) {
+    int flags = flagsFromLeftQuote(string);
+    int leftQuotes = leftQuoteLengthFromFlags(flags | HAS_LEFT_QUOTE);
+    int rightQuotes = rightQuoteLengthFromFlags(flags | HAS_RIGHT_QUOTE);
+    SourceString unquoted = string.copyWithoutQuotes(leftQuotes, rightQuotes);
+    return new QuotedString(unquoted, flags);
+  }
+
+  SourceString unquotedSource() {
+    if ((flags & HAS_BOTH_QUOTES) == 0) return wrappedString;
+    return wrappedString.copyWithoutQuotes(leftQuoteLength,
+                                           rightQuoteLength);
+  }
 
   bool get hasLeftQuote() => (flags & HAS_LEFT_QUOTE) != 0;
   bool get hasRightQuote() => (flags & HAS_RIGHT_QUOTE) != 0;
@@ -1605,12 +1614,20 @@ class HLoopBranch extends HConditionalBranch {
   bool get isRaw() => (flags & RAW) != 0;
   String get quoteChar() => ((flags & SINGLE_QUOTED) != 0) ? "'" : '"';
 
-  int get contentStart() =>
+  int get leftQuoteLength() =>
      hasLeftQuote ? (isRaw ? 1 : 0) + (isMultiLine ? 3 : 1) : 0;
-  int get contentEnd() =>
-     wrappedString.length - (hasRightQuote ? (isMultiLine ? 3 : 1) : 0);
+  int get rightQuoteLength() =>
+     hasRightQuote ? (isMultiLine ? 3 : 1) : 0;
+  static int leftQuoteLengthFromFlags(int flags) {
+    if ((flags & HAS_LEFT_QUOTE) == 0) return 0;
+    return (flags & (RAW | MULTI_LINE)) + 1;
+  }
+  static int rightQuoteLengthFromFlags(int flags) {
+    if ((flags & HAS_RIGHT_QUOTE) == 0) return 0;
+    return (flags & MULTI_LINE) + 1;
+  }
 
-  bool isEmpty() => contentStart == contentEnd;
+  bool isEmpty() => unquotedSource().isEmpty();
 
   /**
     * Does a conservative test for equality between two quoted strings.
@@ -1623,15 +1640,14 @@ class HLoopBranch extends HConditionalBranch {
   }
 
   void printOn(StringBuffer buffer) {
-    int start = contentStart;
-    int end = contentEnd;
-    int length = wrappedString.length;
-    if (start == 1 && end == length - 1) {
+    int start = leftQuoteLength;
+    int end = rightQuoteLength;
+    if (start == 1 && end == 1) {
       wrappedString.printOn(buffer);
     } else {
       String quote = quoteChar;
       buffer.add(quote);
-      buffer.add(wrappedString.stringValue.substring(start, end));
+      wrappedString.copyWithoutQuotes(start, end).printOn(buffer);
       buffer.add(quote);
     }
   }

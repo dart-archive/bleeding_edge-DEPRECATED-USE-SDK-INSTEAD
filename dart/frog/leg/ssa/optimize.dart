@@ -134,9 +134,7 @@ class SsaConstantFolder extends HBaseVisitor {
             } else {
               str = right.value.toString();
             }
-            SourceString newLiteral = new SourceString(str);
-            return new HLiteral(new QuotedString.literal(newLiteral),
-                                HType.STRING);
+            return new HLiteral(new QuotedString.literal(str), HType.STRING);
           }
         }
         // TODO(lrn): Perform concatenation in Dart.

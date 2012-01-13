@@ -125,11 +125,17 @@ class StringToken extends Token {
 interface SourceString extends Hashable, Iterable<int> default StringWrapper {
   const SourceString(String string);
 
-  int get length();
-
   void printOn(StringBuffer sb);
 
+  /** Gives a [SourceString] that is not including the [initial] first and
+   * [terminal] last characters. This is only intended to be used to remove
+   * quotes from string literals (including an initial '@' for raw strings).
+   */
+  SourceString copyWithoutQuotes(int initial, int terminal);
+
   String get stringValue();
+
+  bool isEmpty();
 }
 
 class StringWrapper implements SourceString {
@@ -145,13 +151,25 @@ class StringWrapper implements SourceString {
 
   Iterator<int> iterator() => new StringCodeIterator(stringValue);
 
-  int get length() => stringValue.length;
-
   void printOn(StringBuffer sb) {
     sb.add(stringValue);
   }
 
   String toString() => stringValue;
+
+  SourceString copyWithoutQuotes(int initial, int terminal) {
+    assert(0 <= initial);
+    assert(0 <= terminal);
+    assert(initial + terminal <= stringValue.length);
+    assert(stringValue.startsWith(["", "'", "@'", "'''", "@'''"][initial]) ||
+           stringValue.startsWith(['', '"', '@"', '"""', '@"""'][initial]));
+    assert(stringValue.endsWith(["", "'", null, "'''"][terminal]) ||
+           stringValue.endsWith(['', '"', null, '"""'][terminal]));
+    return new StringWrapper(
+        stringValue.substring(initial, stringValue.length - terminal));
+  }
+
+  bool isEmpty() => stringValue.isEmpty();
 }
 
 class StringCodeIterator implements Iterator<int> {

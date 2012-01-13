@@ -47,11 +47,6 @@ class SubstringWrapper implements SourceString {
     return other is SourceString && toString() == other.toString();
   }
 
-  Iterator<int> iterator() =>
-      new StringCodeIterator.substring(stringValue, begin, end);
-
-  int get length() => end - begin;
-
   void printOn(StringBuffer sb) {
     sb.add(this);
   }
@@ -59,4 +54,26 @@ class SubstringWrapper implements SourceString {
   String toString() => internalString.substring(begin, end);
 
   String get stringValue() => toString();
+
+  Iterator<int> iterator() =>
+      new StringCodeIterator.substring(internalString, begin, end);
+
+  SourceString copyWithoutQuotes(int initial, int terminal) {
+    assert(0 <= initial);
+    assert(0 <= terminal);
+    assert(initial + terminal <= internalString.length);
+    assert((internalString.substring(begin, begin + initial) ==
+                ["", "'", "@'", "'''", "@'''"][initial]) ||
+           (internalString.substring(begin, begin + initial) ==
+                ['', '"', '@"', '"""', '@"""'][initial]));
+    assert((internalString.substring(end - terminal, end) ==
+                ["", "'", null, "'''"][terminal]) ||
+           (internalString.substring(end - terminal, end) ==
+                ['', '"', null, '"""'][terminal]));
+
+    return new SubstringWrapper(internalString,
+                                begin + initial, end - terminal);
+  }
+
+  bool isEmpty() => begin == end;
 }

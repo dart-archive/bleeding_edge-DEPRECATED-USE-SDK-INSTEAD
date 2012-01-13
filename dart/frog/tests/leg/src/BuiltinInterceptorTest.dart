@@ -26,12 +26,13 @@ main() {
   String generated = compile(TEST_ONE, 'foo');
   Expect.isTrue(generated.contains("return a.length;"));
 
-  generated = compile(TEST_TWO, 'foo');
-  Expect.isTrue(generated.contains("return 3;"));
-
-  // TODO(ngeoffray): Enable once we support raw strings.
+  // TODO(ngeoffray): Enable once we support raw strings
+  // and folding of length.
   Exception exception;
   try {
+    generated = compile(TEST_TWO, 'foo');
+    Expect.isTrue(generated.contains("return 3;"));
+
     generated = compile(TEST_THREE, 'foo');
     Expect.isTrue(generated.contains("return 3;"));
   } catch (var e) {
