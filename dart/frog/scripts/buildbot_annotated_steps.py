@@ -52,16 +52,16 @@ def ConvertConfiguration(arch, mode):
     flags = ['--checked']
   return (testpy_mode, flags)
 
-def TestStep(name, mode, component, targets, flags):
+def TestStep(name, mode, system, component, targets, flags):
   print '@@@BUILD_STEP %s tests: %s@@@' % (name, component)
-  if component == 'frogium' or component == 'webdriver':
+  if (component == 'frogium' or component == 'webdriver') and system == 'linux':
     cmd = ['xvfb-run', '-a']
   else:
     cmd = []
 
   cmd = (cmd
       + [sys.executable,
-          '../tools/test_wrapper.py',
+          os.path.join('..', 'tools', 'test_wrapper.py'),
           '--mode=' + mode,
           '--component=' + component,
           '--time',
@@ -96,24 +96,25 @@ def TestFrog(arch, mode, system):
     return 1
 
   if arch != 'frogium': # frog and frogsh
-    TestStep("frog", testpy_mode, arch, [], flags)
-    TestStep("frog_extra", testpy_mode, arch, ['frog', 'peg', 'css'], flags)
+    TestStep("frog", testpy_mode, system, arch, [], flags)
+    TestStep("frog_extra", testpy_mode, system,
+        arch, ['frog', 'peg', 'css'], flags)
 
-    TestStep("leg_extra", testpy_mode, arch, ['leg', 'leg_only'], flags)
+    TestStep("leg_extra", testpy_mode, system, arch, ['leg', 'leg_only'], flags)
 
     if arch == 'frogsh':
       # There is no need to run these tests both for frog and frogsh.
 
-      TestStep("leg", testpy_mode, 'leg', [], flags)
-      TestStep("leg_extra", testpy_mode, 'leg', ['leg_only'], flags)
+      TestStep("leg", testpy_mode, system, 'leg', [], flags)
+      TestStep("leg_extra", testpy_mode, system, 'leg', ['leg_only'], flags)
       # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
-      TestStep("leg_extra", testpy_mode, 'vm', ['leg'], flags)
+      TestStep("leg_extra", testpy_mode, system, 'vm', ['leg'], flags)
 
   else:
     # DumpRenderTree tests:
     tests = [
       'client', 'language', 'corelib', 'isolate', 'frog', 'leg', 'peg', 'css']
-    TestStep("browser", testpy_mode, 'frogium', tests, flags)
+    TestStep("browser", testpy_mode, system, 'frogium', tests, flags)
 
     # Webdriver tests.
     if system == 'linux':
@@ -124,7 +125,7 @@ def TestFrog(arch, mode, system):
       browsers = ['ff', 'chrome', 'ie']
 
     for browser in browsers:
-      TestStep(browser, testpy_mode, 'webdriver', tests,
+      TestStep(browser, testpy_mode, system, 'webdriver', tests,
           flags + ['--browser=' + browser])
 
   return 0
