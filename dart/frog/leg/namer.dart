@@ -34,8 +34,8 @@ class Namer {
     return '\$call';
   }
 
-  String instanceName(SourceString instanceName) {
-    String candidate = '$instanceName';
+  String instanceName(SourceString name) {
+    String candidate = '$name';
     // TODO(floitsch): mangle, while preserving uniqueness.
     return candidate;
   }
@@ -104,8 +104,8 @@ class Namer {
       return instanceName(element.name);
     }
 
-    String name = globals[element];
-    if (name !== null) return name;
+    String cached = globals[element];
+    if (cached !== null) return cached;
 
     String guess = _computeGuess(element);
     switch (element.kind) {

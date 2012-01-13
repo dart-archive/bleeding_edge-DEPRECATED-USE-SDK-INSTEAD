@@ -167,7 +167,7 @@ class Compiler implements Canceler, Logger {
       while (!worklist.isEmpty()) {
         WorkItem work = worklist.removeLast();
         currentElement = work.element;
-        work.run(this);
+        (work.run)(this);
       }
       enqueueInvokedInstanceMethods();
     } while (!worklist.isEmpty());

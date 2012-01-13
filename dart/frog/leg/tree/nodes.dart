@@ -177,12 +177,18 @@ class Expression extends Node {
   Expression();
 
   Expression asExpression() => this;
+
+  // TODO(ahe): make class abstract instead of adding an abstract method.
+  abstract accept(Visitor visitor);
 }
 
 class Statement extends Node {
   Statement();
 
   Statement asStatement() => this;
+
+  // TODO(ahe): make class abstract instead of adding an abstract method.
+  abstract accept(Visitor visitor);
 }
 
 /**
@@ -1075,6 +1081,9 @@ class GotoStatement extends Statement {
   Token getBeginToken() => keywordToken;
 
   Token getEndToken() => semicolonToken;
+
+  // TODO(ahe): make class abstract instead of adding an abstract method.
+  abstract accept(Visitor visitor);
 }
 
 class BreakStatement extends GotoStatement {

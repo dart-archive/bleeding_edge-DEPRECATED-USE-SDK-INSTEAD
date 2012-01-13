@@ -181,7 +181,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
     }
   }
 
-  visitInstruction(HInstruction) {}
+  visitInstruction(HInstruction instruction) {}
 
   visitBinaryArithmetic(HBinaryArithmetic node) => visitInvokeBinary(node);
   visitBinaryBitOp(HBinaryBitOp node) => visitBinaryArithmetic(node);
@@ -877,6 +877,9 @@ class HCheck extends HInstruction {
   // A check should never be generate at use site, otherwise we
   // cannot throw.
   void tryGenerateAtUseSite() {}
+
+  // TODO(floitsch): make class abstract instead of adding an abstract method.
+  abstract accept(HVisitor visitor);
 }
 
 class HTypeGuard extends HInstruction {
@@ -978,6 +981,9 @@ class HInvoke extends HInstruction {
     */
   HInvoke(List<HInstruction> inputs) : super(inputs);
   static final int ARGUMENTS_OFFSET = 1;
+
+  // TODO(floitsch): make class abstract instead of adding an abstract method.
+  abstract accept(HVisitor visitor);
 }
 
 class HInvokeDynamic extends HInvoke {
@@ -989,6 +995,9 @@ class HInvokeDynamic extends HInvoke {
   HInvokeDynamic(this.name, List<HInstruction> inputs) : super(inputs);
   toString() => 'invoke dynamic: $name';
   HInstruction get receiver() => inputs[0];
+
+  // TODO(floitsch): make class abstract instead of adding an abstract method.
+  abstract accept(HVisitor visitor);
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
@@ -1002,6 +1011,9 @@ class HInvokeDynamicField extends HInvokeDynamic {
   Element element;
   HInvokeDynamicField(this.element, name, inputs) : super(name, inputs);
   toString() => 'invoke dynamic field: $name';
+
+  // TODO(floitsch): make class abstract instead of adding an abstract method.
+  abstract accept(HVisitor visitor);
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
@@ -1310,6 +1322,9 @@ class HBinaryBitOp extends HBinaryArithmetic {
     }
     return this;
   }
+
+  // TODO(floitsch): make class abstract instead of adding an abstract method.
+  abstract accept(HVisitor visitor);
 }
 
 class HShiftLeft extends HBinaryBitOp {
@@ -2032,6 +2047,9 @@ class HNonSsaInstruction extends HInstruction {
   void prepareGvn() { unreachable(); }
   bool useGvn() { unreachable(); }
   void setUseGvn() { unreachable(); }
+
+  // TODO(floitsch): make class abstract instead of adding an abstract method.
+  abstract accept(HVisitor visitor);
 }
 
 class HLoad extends HNonSsaInstruction {

@@ -46,9 +46,16 @@ class Element implements Hashable {
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
-  abstract Node parseNode(Canceler canceler, Logger logger);
-  abstract Type computeType(Compiler compiler);
   Modifiers get modifiers() => null;
+
+
+  Node parseNode(Canceler canceler, Logger logger) {
+    canceler.cancel("Internal Error: Element.parseNode");
+  }
+
+  Type computeType(Compiler compiler) {
+    compiler.internalError("Element.computeType.");
+  }
 
   bool isFunction() => kind == ElementKind.FUNCTION;
   bool isMember() =>

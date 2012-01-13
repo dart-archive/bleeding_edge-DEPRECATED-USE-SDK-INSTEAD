@@ -32,8 +32,10 @@ class CompileTimeConstantHandler extends CompilerTask {
   }
 
   compileField(VariableElement element) {
-    if (fieldValues.containsKey(element)) return fieldValues[element];
-    definitions = compiler.analyzeElement(element);
+    if (initialFieldValues.containsKey(element)) {
+      return initialFieldValues[element];
+    }
+    TreeElements definitions = compiler.analyzeElement(element);
     return compileFieldWithDefinitions(element, definitions);
   }
 

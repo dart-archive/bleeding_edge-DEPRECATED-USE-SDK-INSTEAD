@@ -158,4 +158,7 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
       groupingStack = groupingStack.tail;
     }
   }
+
+  // TODO(ahe): make class abstract instead of adding an abstract method.
+  abstract peek();
 }
