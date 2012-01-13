@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Dart Editor SWTBot Tests
+Bundle-SymbolicName: com.google.dart.tools.ui.swtbot_test
+Bundle-Version: 0.1.0.qualifier
+Bundle-Activator: com.google.dart.tools.ui.swtbot.Activator
+Bundle-Vendor: Google
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.junit,
+ org.hamcrest,
+ org.eclipse.swtbot.junit4_x,
+ org.eclipse.swtbot.swt.finder,
+ org.eclipse.swtbot.eclipse.core,
+ org.eclipse.swtbot.eclipse.finder,
+ org.eclipse.swtbot.forms.finder,
+ com.google.dart.tools.core,
+ com.google.dart.tools.core_test,
+ com.google.dart.tools.ui
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy

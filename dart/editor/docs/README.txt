@@ -15,6 +15,16 @@ Notes about Dart Editor workspace setup, development, build, and deploy.
     http://dev.chromium.org/developers/how-tos/depottools
     (username is full email address)
 
+* Install SWTBot (optional -- needed for UI tests)
+    Install from the Eclipse SWTBot download page
+      http://www.eclipse.org/swtbot/downloads.php
+      http://download.eclipse.org/technology/swtbot/helios/dev-build/update-site
+    the following features
+      SWTBot Eclipse Features
+      SWTBot IDE Support
+      SWTBot JUnit 4.x Headless Execution
+      SWTBot SWT Features
+
 ====================================
   Get the Source
 ====================================
