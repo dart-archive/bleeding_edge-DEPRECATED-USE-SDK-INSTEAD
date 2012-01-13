@@ -6,7 +6,11 @@
  * Represents a meta-value for code generation.
  */
 class Value {
-  Type _type;
+  /** The statically declared [Type] of the [Value]. */
+  Type staticType;
+
+  /** The [Type] of the [Value]. */
+  Type type;
 
   /** The javascript code to generate this value. */
   String code;
@@ -23,43 +27,53 @@ class Value {
   /** Is this a final variable? */
   bool isFinal = false;
 
-  /**
-   * May value be forced to varType by the forceDynamic option? Note that
-   * [isSuper], [isType], and [isConst] imply `!allowDynamic`.
-   */
-  bool allowDynamic = true;
-
   /** If we reference this value multiple times, do we need a temp? */
   bool needsTemp;
 
-  // TODO(jmesserly): until reified generics are fixed, treat ParameterType as
-  // "var".
-  bool get _typeIsVarOrParameterType() => type.isVar || type is ParameterType;
+  Value(this.type, this.code, this.span, [this.needsTemp = true,
+      this.staticType]) {
 
-  /** The [Type] of the [Value]. */
-  Type get type() {
-    if (!options.forceDynamic || !allowDynamic || isType || isSuper ||
-        isConst) {
-      return _type;
-    } else {
-      return world.varType;
+    if (type == null) world.internalError('type passed as null', span);
+    if (staticType == null) staticType = type;
+
+    if (options.forceDynamic) {
+      // TODO(jmesserly): this feels really hacky... I suspect moving
+      // forceDynamic into member resolution would simplify.
+      if (!(isSuper || isConst || code == 'this' || code == '\$this'
+          || this is BareValue)) {
+        type = world.varType;
+      }
     }
   }
 
-  Value(this._type, this.code, this.span, [this.needsTemp = true]) {
-    if (_type == null) world.internalError('type passed as null', span);
-  }
-
   // TODO(jimhug): Replace with TypeValue.
-  Value.type(this._type, this.span)
+  Value.type(this.type, this.span)
     : code = null, needsTemp = false, isType = true {
-    if (_type == null) world.internalError('type passed as null', span);
+    if (type == null) world.internalError('type passed as null', span);
+    staticType = type;
   }
 
-  Value union(Value other) {
-    // TODO(jimhug): What the hell is right here?
-    if (this == other) return this;
-    world.internalError('not yet ready for union');
+  // TODO(jimhug): What the hell is right here?
+  static Value union(Value x, Value y) {
+    if (y === null || x == y) return x;
+    if (x === null) return y;
+
+    // TODO(jmesserly): should use something like UnionValue and track the
+    // precise set of types. For now we find the Type.union.
+    var t = Type.union(x.type, y.type);
+
+    // Note: removed an optimization to return "x" or "y", because that
+    // breaks cases like visitConditionalExpression due to "code" not being
+    // writable on evaluated values.
+
+    // TODO(jmesserly): This code looks suspiciously like MemberSet._tryUnion,
+    // (except we're intentionally throwing away the code/span because they're
+    // meaningless with the current flow-insensitive inference.)
+    var ret = new Value(t, null, null);
+    ret.isSuper = x.isSuper && y.isSuper;
+    ret.needsTemp = y.needsTemp || y.needsTemp;
+    ret.isType = x.isType && y.isType;
+    return ret;
   }
 
   /** Is this value a constant expression? */
@@ -73,6 +87,35 @@ class Value {
 
   // Nothing to do in general?
   validateInitialized(SourceSpan span) { }
+
+  /**
+   * Clones the value. Only used [convertTo] right now. Use [replaceCode] if
+   * you want to change the code.
+   */
+  Value clone() {
+    var v = new Value(type, code, span, needsTemp, staticType);
+    v.isSuper = isSuper;
+    v.isType = isType;
+    v.isFinal = isFinal;
+    return v;
+  }
+
+  // TODO(jmesserly): this is ugly, but we need a way to change the code when
+  // Values are assigned.
+  Value replaceCode(String code, SourceSpan span, [bool needsTemp,
+      Type staticType]) {
+    // Note: don't use clone() becuase EvaluatedValues can't have their code
+    // replaced. And we don't compute fixed point over intermediate values in a
+    // loop, leading to amusing situations like "if (i > 0)" conditions that are
+    // inferred as "false".
+    if (needsTemp == null) needsTemp = this.needsTemp;
+    if (staticType == null) staticType = this.staticType;
+    var v = new Value(type, code, span, needsTemp, staticType);
+    v.isSuper = isSuper;
+    v.isType = isType;
+    v.isFinal = isFinal;
+    return v;
+  }
 
   // TODO(jimhug): Fix these names once get/set are truly pseudo-keywords.
   //   See issue #379.
@@ -179,29 +222,38 @@ class Value {
   // TODO(jmesserly): should we be doing this?
   bool _hasOverriddenNoSuchMethod() {
     if (isSuper) {
-      var m = type.getMember('noSuchMethod');
+      var m = staticType.getMember('noSuchMethod');
       return m != null && !m.declaringType.isObject;
     } else {
-      var m = type.resolveMember('noSuchMethod');
+      var m = staticType.resolveMember('noSuchMethod');
       return m != null && m.members.length > 1;
     }
   }
 
-  _tryResolveMember(MethodGenerator context, String name) {
+  _tryResolveMember(MethodGenerator context, Type resolvetype, String name) {
     if (isSuper) {
-      return type.getMember(name);
+      return resolvetype.getMember(name);
     } else {
-      return type.resolveMember(name);
+      return resolvetype.resolveMember(name);
     }
   }
+
+  // TODO(jmesserly): until reified generics are fixed, treat ParameterType as
+  // "var".
+  bool _isVarOrParameterType(Type t) => t.isVar || t is ParameterType;
 
   // TODO(jimhug): Better type here - currently is union(Member, MemberSet)
   _resolveMember(MethodGenerator context, String name, Node node,
         [bool isDynamic=false]) {
 
+    // TODO(jmesserly): this has gotten ugly again.
     var member;
-    if (!_typeIsVarOrParameterType) {
-      member = _tryResolveMember(context, name);
+    if (!_isVarOrParameterType(type)) {
+      member = _tryResolveMember(context, type, name);
+
+      if (member == null && type != staticType) {
+        member = _tryResolveMember(context, staticType, name);
+      }
 
       if (member != null && isType && !member.isStatic) {
         if (!isDynamic) {
@@ -210,8 +262,11 @@ class Value {
         return null;
       }
 
-      if (member == null && !isDynamic && !_hasOverriddenNoSuchMethod()) {
-        var typeName = type.name == null ? type.library.name : type.name;
+      if (member == null && !isDynamic &&
+         !_isVarOrParameterType(staticType) && !_hasOverriddenNoSuchMethod()) {
+        // warn if the member was not found, or error if it is a static lookup.
+        var typeName = staticType.name;
+        if (typeName == null) typeName = staticType.library.name;
         var message = 'can not resolve "$name" on "${typeName}"';
         if (isType) {
           world.error(message, node.span);
@@ -254,7 +309,8 @@ class Value {
 
   /** True if convertTo would generate a conversion. */
   bool needsConversion(Type toType) {
-    return this != convertTo(null, toType, isDynamic:true);
+    var c = convertTo(null, toType, isDynamic:true);
+    return c == null || code != c.code;
   }
 
   /**
@@ -295,7 +351,7 @@ class Value {
     bool bothNum = type.isNum && toType.isNum;
     if (fromType.isSubtypeOf(toType) || bothNum) {
       // No checks needed for a widening conversion.
-      return this;
+      return changeStaticType(toType);
     }
 
     if (checked && !toType.isSubtypeOf(type)) {
@@ -306,17 +362,26 @@ class Value {
     // Generate a runtime checks if they're turned on, otherwise skip it.
     if (options.enableTypeChecks) {
       if (context == null && isDynamic) {
-        // If we're just testing if we need the conversion, not actually doing
-        // it we don't need a context. Just return something that is != this.
-        // TODO(jmesserly): I don't like using null in this fashion, but it's
-        // better than before where we had two code paths that needed to be
-        // kept in sync.
+        // If we're called from needsConversion, we don't need a context.
+        // Just return null so it knows a conversion is required.
         return null;
       }
       return _typeAssert(context, toType, isDynamic);
     } else {
-      return this;
+      return changeStaticType(toType);
     }
+  }
+
+  // TODO(jmesserly): I think we can replace our usage of the "isDynamic" flag
+  // by changing the static type of the target to "Dynamic" instead.
+  changeStaticType(Type toType) {
+    if (toType == type) return this;
+
+    // Ensure that we return something with the right type for inference
+    // purposes.
+    var ret = clone();
+    ret.staticType = toType;
+    return ret;
   }
 
   /**
@@ -354,6 +419,7 @@ class Value {
       result = new Value(toType, '\$wrap_call\$$arity(${result.code})', span);
     }
 
+    if (result === this) result = changeStaticType(toType);
     return result;
   }
 
@@ -441,6 +507,7 @@ function \$assert_${toType.name}(x) {
             throwTypeError('this')));
     }
 
+    context.counters.typeAsserts++;
     return new Value(toType, check, span);
   }
 
@@ -631,6 +698,8 @@ class BoolValue extends EvaluatedValue {
   BoolValue(this.actualValue, bool isConst, SourceSpan span):
     super(isConst, world.nonNullBool, span);
 
+  clone() => new BoolValue(actualValue, isConst, span);
+
   String get code() => actualValue ? 'true' : 'false';
 
   Value unop(int kind, MethodGenerator context, var node) {
@@ -669,6 +738,8 @@ class IntValue extends EvaluatedValue {
 
   IntValue(this.actualValue, bool isConst, SourceSpan span):
     super(isConst, world.intType, span);
+
+  clone() => new IntValue(actualValue, isConst, span);
 
   // TODO(jimhug): Only add parens when needed.
   String get code() => '(${actualValue})';
@@ -779,6 +850,8 @@ class DoubleValue extends EvaluatedValue {
   DoubleValue(this.actualValue, bool isConst, SourceSpan span):
     super(isConst, world.doubleType, span);
 
+  clone() => new DoubleValue(actualValue, isConst, span);
+
   String get code() => '(${actualValue})';
 
   Value unop(int kind, MethodGenerator context, var node) {
@@ -873,6 +946,8 @@ class StringValue extends EvaluatedValue {
   StringValue(this.actualValue, bool isConst, SourceSpan span):
     super(isConst, world.stringType, span);
 
+  clone() => new StringValue(actualValue, isConst, span);
+
   Value binop(int kind, var other, MethodGenerator context, var node) {
     if (other is! StringValue) return super.binop(kind, other, context, node);
 
@@ -938,6 +1013,8 @@ class ListValue extends EvaluatedValue {
   ListValue(this.values, bool isConst, Type type, SourceSpan span):
     super(isConst, type, span);
 
+  clone() => new ListValue(values, isConst, type, span);
+
   String get code() {
     final buf = new StringBuffer();
     buf.add('[');
@@ -986,6 +1063,8 @@ class MapValue extends EvaluatedValue {
 
   MapValue(this.values, bool isConst, Type type, SourceSpan span):
     super(isConst, type, span);
+
+  clone() => new MapValue(values, isConst, type, span);
 
   String get code() {
     // Cache?
@@ -1141,17 +1220,26 @@ class GlobalValue extends Value implements Comparable {
 
   GlobalValue(Type type, String code, bool isConst,
       this.field, this.name, this.exp,
-      SourceSpan span, List<Value> _dependencies)
-      : super(type, code, span, !isConst),
-        dependencies = [], isConst = isConst {
-    // store transitive-dependencies so sorting algorithm works correctly.
-    for (var dep in _dependencies) {
-      if (dep is GlobalValue) {
-        dependencies.add(dep);
-        dependencies.addAll(dep.dependencies);
+      SourceSpan span, List<Value> deps, [bool walkDeps = true])
+      : isConst = isConst, super(type, code, span, !isConst) {
+
+    if (walkDeps) {
+      // store transitive-dependencies so sorting algorithm works correctly.
+      dependencies = <GlobalValue>[];
+      for (var dep in deps) {
+        if (dep is GlobalValue) {
+          dependencies.add(dep);
+          dependencies.addAll(dep.dependencies);
+        }
       }
+    } else {
+      dependencies = deps;
     }
   }
+
+
+  clone() => new GlobalValue(type, code, isConst, field, name, exp, span,
+      dependencies, /*walkDeps:*/false);
 
   int compareTo(GlobalValue other) {
     // order by dependencies, o.w. by name
@@ -1190,10 +1278,7 @@ class BareValue extends Value {
     isType = outermost.isStatic;
   }
 
-  // Bare values should never be treated as though they have a var type. If we
-  // do end up calling an instance method that should be forced dynamic, we can
-  // handle that in `_tryResolveMember`.
-  Type get type() => _type;
+  clone() => new BareValue(home, home._getOutermostMethod(), span);
 
   // TODO(jimhug): Lazy initialization here is weird!
   _ensureCode() {
@@ -1205,11 +1290,11 @@ class BareValue extends Value {
     }
   }
 
-  _tryResolveMember(MethodGenerator context, String name) {
+  _tryResolveMember(MethodGenerator context, Type resolveType, String name) {
     assert(context == home);
 
-    // First look for members directly defined on my type.
-    var member = type.resolveMember(name);
+    // First look for members directly defined on my resolveType.
+    var member = resolveType.resolveMember(name);
     if (member != null) {
       if (options.forceDynamic && !member.isStatic) {
         member = context.findMembers(name);
@@ -1232,3 +1317,4 @@ class BareValue extends Value {
 String _escapeForComment(String text) {
   return text.replaceAll('/*', '/ *').replaceAll('*/', '* /');
 }
+

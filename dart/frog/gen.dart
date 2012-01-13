@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -250,7 +250,10 @@ class WorldGenerator {
       writeFunction = writer.enterBlock;
       ending = '';
     }
-    if (type.isObject || type.name == 'ListFactory') {
+    if (type.isObject) {
+      world.counters.objectProtoMembers++;
+    }
+    if (type.isObject || type.genericType == world.listFactoryType) {
       // We special case these two so that by default we can use "= function()"
       // syntax for better readability.
       if (isOneLiner) {
@@ -258,10 +261,11 @@ class WorldGenerator {
       }
       writeFunction('Object.defineProperty(${type.jsname}.prototype, "$name",' +
         ' { value: $functionBody$ending');
-      return (!isOneLiner)? '}, enumerable: false, configurable: true });' : '}';
+      if (isOneLiner) return '}';
+      return '}, enumerable: false, configurable: true });';
     } else {
       writeFunction(_prototypeOf(type, name) + ' = ' + functionBody + ending);
-      return (!isOneLiner)? '}' : '';
+      return (!isOneLiner) ? '}' : '';
     }
   }
 
@@ -730,10 +734,14 @@ function $inheritsMembers(child, parent) {
 }
 
 
+// TODO(jmesserly): move into its own file
 class BlockScope {
   MethodGenerator enclosingMethod;
   BlockScope parent;
-  Map<String, Value> _vars; // TODO(jimhug): Using a list may improve perf.
+
+  // TODO(jimhug): Using a list or tree-based map may improve perf; the list
+  // is normally small.
+  CopyOnWriteMap<String, Value> _vars;
 
   /** Used JS names, if different from the Dart name. */
   Set<String> _jsNames;
@@ -745,7 +753,7 @@ class BlockScope {
   Set<String> _closedOver;
 
   /** If we are in a catch block, this is the exception variable to rethrow. */
-  Value rethrow;
+  String rethrow;
 
   /**
    * True if the block is reentrant while the current method is executing.
@@ -753,8 +761,17 @@ class BlockScope {
    */
   bool reentrant;
 
-  BlockScope(this.enclosingMethod, this.parent, [reentrant = false])
-    : this.reentrant = reentrant, _vars = {}, _jsNames = new Set() {
+  /** Tracks the node that this scope is associated with, for debugging */
+  Node node;
+
+  /** True if we should try to infer types for this block. */
+  bool inferTypes;
+
+  BlockScope(this.enclosingMethod, this.parent, this.node,
+      [bool reentrant = false])
+    : this.reentrant = reentrant,
+      _vars = new CopyOnWriteMap<String, Value>(),
+      _jsNames = new Set<String>() {
 
     if (isMethodScope) {
       _closedOver = new Set<String>();
@@ -762,7 +779,20 @@ class BlockScope {
       // Blocks within a reentrant block are also reentrant.
       this.reentrant = reentrant || parent.reentrant;
     }
+    inferTypes = options.inferTypes && (parent == null || parent.inferTypes);
   }
+
+  /** See the [snapshot] method for a description. */
+  BlockScope._snapshot(BlockScope original)
+    : enclosingMethod = original.enclosingMethod,
+      parent = original.parent == null ? null : original.parent.snapshot(),
+      _vars = original._vars.clone(),
+      node = original.node,
+      inferTypes = original.inferTypes,
+      rethrow = original.rethrow,
+      // TODO(jmesserly): are these this right?
+      _jsNames = original._jsNames,
+      _closedOver = original._closedOver;
 
   /** True if this is the top level scope of the method. */
   bool get isMethodScope() {
@@ -778,30 +808,43 @@ class BlockScope {
     return s;
   }
 
-  lookup(String name) {
-    var ret = _vars[name];
-    if (ret != null) return ret;
+  Value lookup(String name) {
+    for (var s = this; s != null; s = s.parent) {
+      Value ret = s._vars[name];
+      if (ret != null) return _capture(s, ret);
+    }
+    return null;
+  }
 
-    for (var s = parent; s != null; s = s.parent) {
-      ret = s._vars[name];
-      if (ret != null) {
-        // If this variable is from a different method, it means we closed over
-        // it in the child lambda. Time for some bookeeping!
-        if (s.enclosingMethod != enclosingMethod) {
-          // Make sure the parent method doesn't reuse this variable to mean
-          // something else.
-          s.methodScope._closedOver.add(ret.code);
+  void assign(String name, Value value) {
+    if (!inferTypes) return;
 
-          // If the scope we found this variable in is reentrant, remember the
-          // variable. The lambda we're in will capture it with Function.bind.
-          if (enclosingMethod.captures != null && s.reentrant) {
-            enclosingMethod.captures.add(ret.code);
-          }
-        }
-
-        return ret;
+    for (var s = this; s != null; s = s.parent) {
+      var existing = s._vars[name];
+      if (existing != null) {
+        s._vars[name] = value.replaceCode(existing.code, existing.span,
+          existing.needsTemp, existing.staticType);
+        return;
       }
     }
+    world.internalError("assigning variable '${name}' that doesn't exist.");
+  }
+
+  Value _capture(BlockScope other, Value value) {
+    // If this variable is from a different method, it means we closed over
+    // it in the child lambda. Time for some bookeeping!
+    if (other.enclosingMethod != enclosingMethod) {
+      // Make sure the parent method doesn't reuse this variable to mean
+      // something else.
+      other.methodScope._closedOver.add(value.code);
+
+      // If the scope we found this variable in is reentrant, remember the
+      // variable. The lambda we're in will capture it with Function.bind.
+      if (enclosingMethod.captures != null && other.reentrant) {
+        enclosingMethod.captures.add(value.code);
+      }
+    }
+    return value;
   }
 
   /**
@@ -869,12 +912,51 @@ class BlockScope {
    * Finds the first lexically enclosing catch block, if any, and returns its
    * exception variable.
    */
-  Value getRethrow() {
+  String getRethrow() {
     var scope = this;
     while (scope.rethrow == null && scope.parent != null) {
       scope = scope.parent;
     }
     return scope.rethrow;
+  }
+
+  /**
+   * Creates a snapshot of an existing BlockScope. Both the original and the
+   * returned copy are writable. Clones all the way to the root node.
+   */
+  // TODO(jmesserly): this might need to be optimized.
+  BlockScope snapshot() => new BlockScope._snapshot(this);
+
+  /**
+   * Unifies variable values with the ones in [other]. Returns `true` if
+   * anything changed, `false` otherwise.
+   */
+  bool unionWith(BlockScope other) {
+    bool changed = false;
+    if (parent != null) {
+      changed = parent.unionWith(other.parent);
+    }
+
+    // Optimization: check if the copy-on-write maps are the same
+    if (_vars._map !== other._vars._map) {
+      other._vars.forEach((String key, Value v) {
+        Value myVar = _vars[key];
+        if (myVar == null) {
+          world.internalError('got unexpected new variable ${v.code}', v.span);
+        } else {
+          v = Value.union(myVar, v);
+        }
+        if (v !== myVar) {
+          v.code = myVar.code;
+          v.span = myVar.span;
+          v.staticType = myVar.staticType;
+          _vars[key] = v;
+          changed = true;
+        }
+      });
+    }
+
+    return changed;
   }
 }
 
@@ -904,16 +986,19 @@ class MethodGenerator implements TreeVisitor {
    */
   Set<String> captures;
 
+  CounterLog counters;
+
   MethodGenerator(this.method, this.enclosingMethod)
       : writer = new CodeWriter(), needsThis = false {
     if (enclosingMethod != null) {
-      _scope = new BlockScope(this, enclosingMethod._scope);
+      _scope = new BlockScope(this, enclosingMethod._scope, method.definition);
       captures = new Set();
     } else {
-      _scope = new BlockScope(this, null);
+      _scope = new BlockScope(this, null, method.definition);
     }
     _usedTemps = new Set();
     _freeTemps = [];
+    counters = world.counters;
   }
 
   Library get library() => method.library;
@@ -1293,8 +1378,6 @@ class MethodGenerator implements TreeVisitor {
     } else {
       world.error('bad call in initializers', node.span);
     }
-    target.allowDynamic = false;
-
 
     var m = targetType.getConstructor(contructorName);
     if (m == null) {
@@ -1379,12 +1462,74 @@ class MethodGenerator implements TreeVisitor {
     return false;
   }
 
-  _pushBlock([bool reentrant = false]) {
-    _scope = new BlockScope(this, _scope, reentrant);
+  _pushBlock(Node node, [bool reentrant = false]) {
+    _scope = new BlockScope(this, _scope, node, reentrant);
   }
 
-  _popBlock() {
+  _popBlock(Node node) {
+    if (_scope.node !== node) {
+      spanOf(n) => n != null ? n.span : null;
+      world.internalError('scope mismatch. Trying to pop "${node}" but found '
+        + ' "${_scope.node}"', spanOf(node), spanOf(_scope.node));
+    }
     _scope = _scope.parent;
+  }
+
+  /** Visits a loop body and handles fixed point for type inference. */
+  _visitLoop(Node node, void visitBody()) {
+    if (_scope.inferTypes) {
+      _loopFixedPoint(node, visitBody);
+    } else {
+      _pushBlock(node, reentrant:true);
+      visitBody();
+      _popBlock(node);
+    }
+  }
+
+  // TODO(jmesserly): we're evaluating the body multiple times, how do we
+  // prevent duplicate warnings/errors?
+  // We either need a way to collect them before printing, or a check that
+  // prevents multiple identical errors at the same source location.
+  _loopFixedPoint(Node node, void visitBody()) {
+
+    // TODO(jmesserly): should we move the writer/counters into the scope?
+    // Also should we save the scope on the node, like how we save
+    // MethodGenerator? That would reduce the required work for nested loops.
+    var savedCounters = counters;
+    var savedWriter = writer;
+    int tries = 0;
+    var startScope = _scope.snapshot();
+    var s = startScope;
+    while (true) {
+      // Create a nested writer so we can easily discard it.
+      // TODO(jmesserly): does this belong on BlockScope?
+      writer = new CodeWriter();
+      counters = new CounterLog();
+
+      _pushBlock(node, reentrant:true);
+
+      // If we've tried too many times and haven't converged, disable inference
+      if (tries++ >= options.maxInferenceIterations) {
+        // TODO(jmesserly): needs more information to actually be useful
+        _scope.inferTypes = false;
+      }
+
+      visitBody();
+      _popBlock(node);
+
+      if (!_scope.inferTypes || !_scope.unionWith(s)) {
+        // We've converged!
+        break;
+      }
+
+      s = _scope.snapshot();
+    }
+
+    // We're done! Write the final code.
+    savedWriter.write(writer.text);
+    writer = savedWriter;
+    savedCounters.add(counters);
+    counters = savedCounters;
   }
 
   MethodMember _makeLambdaMethod(String name, FunctionDefinition func) {
@@ -1453,22 +1598,16 @@ class MethodGenerator implements TreeVisitor {
     writer.write('var ');
     var type = method.resolveType(node.type, false);
     for (int i=0; i < node.names.length; i++) {
-      var thisType = type;
       if (i > 0) {
         writer.write(', ');
       }
       final name = node.names[i].name;
       var value = visitValue(node.values[i]);
-      if (isFinal) {
-        if (value == null) {
-          world.error('no value specified for final variable', node.span);
-        } else {
-          // TODO(jimhug): Mark inferred types as special for correct errors.
-          if (thisType.isVar) thisType = value.type;
-        }
+      if (isFinal && value == null) {
+        world.error('no value specified for final variable', node.span);
       }
 
-      var val = _scope.create(name, thisType, node.names[i].span, isFinal);
+      var val = _scope.create(name, type, node.names[i].span, isFinal);
 
       if (value == null) {
         if (_scope.reentrant) {
@@ -1480,6 +1619,7 @@ class MethodGenerator implements TreeVisitor {
         }
       } else {
         value = value.convertTo(this, type);
+        _scope.assign(name, value);
         writer.write('${val.code} = ${value.code}');
       }
     }
@@ -1531,7 +1671,7 @@ class MethodGenerator implements TreeVisitor {
         world.error('rethrow outside of catch', node.span);
       } else {
         // Use a normal throw instead of $throw so we don't capture a new stack
-        writer.writeln('throw ${rethrow.code};');
+        writer.writeln('throw ${rethrow};');
       }
     }
     return true;
@@ -1601,46 +1741,53 @@ class MethodGenerator implements TreeVisitor {
   bool visitWhileStatement(WhileStatement node) {
     var test = visitBool(node.test);
     writer.write('while (${test.code}) ');
-    _pushBlock(reentrant:true);
-    node.body.visit(this);
-    _popBlock();
+    _visitLoop(node, () {
+      node.body.visit(this);
+    });
     return false;
   }
 
   bool visitDoStatement(DoStatement node) {
     writer.write('do ');
-    _pushBlock(reentrant:true);
-    node.body.visit(this);
-    _popBlock();
+    _visitLoop(node, () {
+      node.body.visit(this);
+    });
     var test = visitBool(node.test);
     writer.writeln('while (${test.code})');
     return false;
   }
 
   bool visitForStatement(ForStatement node) {
-    _pushBlock();
+    _pushBlock(node);
     writer.write('for (');
-    if (node.init != null) node.init.visit(this);
-    else writer.write(';');
-    if (node.test != null) {
-      var test = visitBool(node.test);
-      writer.write(' ${test.code}; ');
+    if (node.init != null) {
+      node.init.visit(this);
     } else {
-      writer.write('; ');
+      writer.write(';');
     }
 
-    bool needsComma = false;
-    for (var s in node.step) {
-      if (needsComma) writer.write(', ');
-      var sv = visitVoid(s);
-      writer.write(sv.code);
-      needsComma = true;
-    }
-    writer.write(') ');
-    _pushBlock(reentrant:true);
-    node.body.visit(this);
-    _popBlock();
-    _popBlock();
+    _visitLoop(node, () {
+      if (node.test != null) {
+        var test = visitBool(node.test);
+        writer.write(' ${test.code}; ');
+      } else {
+        writer.write('; ');
+      }
+
+      bool needsComma = false;
+      for (var s in node.step) {
+        if (needsComma) writer.write(', ');
+        var sv = visitVoid(s);
+        writer.write(sv.code);
+        needsComma = true;
+      }
+      writer.write(') ');
+
+      _pushBlock(node.body);
+      node.body.visit(this);
+      _popBlock(node.body);
+    });
+    _popBlock(node);
     return false;
   }
 
@@ -1654,11 +1801,17 @@ class MethodGenerator implements TreeVisitor {
   bool visitForInStatement(ForInStatement node) {
     // TODO(jimhug): visitValue and other cleanups here.
     var itemType = method.resolveType(node.item.type, false);
-    var itemName = node.item.name.name;
     var list = node.list.visit(this);
-    _pushBlock(reentrant:true);
+    _visitLoop(node, () {
+      _visitForInBody(node, itemType, list);
+    });
+    return false;
+  }
+
+  void _visitForInBody(ForInStatement node, Type itemType, Value list) {
     // TODO(jimhug): Check that itemType matches list members...
     bool isFinal = _isFinal(node.item.type);
+    var itemName = node.item.name.name;
     var item = _scope.create(itemName, itemType, node.item.name.span, isFinal);
     if (list.needsTemp) {
       var listVar = _scope.create('\$list', list.type, null);
@@ -1689,8 +1842,6 @@ class MethodGenerator implements TreeVisitor {
 
     visitStatementsInBlock(node.body);
     writer.exitBlock('}');
-    _popBlock();
-    return false;
   }
 
   void _genToDartException(Value ex) {
@@ -1705,18 +1856,18 @@ class MethodGenerator implements TreeVisitor {
 
   bool visitTryStatement(TryStatement node) {
     writer.enterBlock('try {');
-    _pushBlock();
+    _pushBlock(node.body);
     visitStatementsInBlock(node.body);
-    _popBlock();
+    _popBlock(node.body);
 
     if (node.catches.length == 1) {
       // Handle a single catch. We can generate simple code here compared to the
       // multiple catch, such as no extra temp or if-else-if chain.
       var catch_ = node.catches[0];
-      _pushBlock();
+      _pushBlock(catch_);
       var exType = method.resolveType(catch_.exception.type, false);
       var ex = _scope.declare(catch_.exception);
-      _scope.rethrow = ex;
+      _scope.rethrow = ex.code;
       writer.nextBlock('} catch (${ex.code}) {');
       if (catch_.trace != null) {
         var trace = _scope.declare(catch_.trace);
@@ -1730,12 +1881,12 @@ class MethodGenerator implements TreeVisitor {
         writer.writeln('if (${test.code}) throw ${ex.code};');
       }
       visitStatementsInBlock(node.catches[0].body);
-      _popBlock();
+      _popBlock(catch_);
     } else if (node.catches.length > 0) {
       // Handle more than one catch
-      _pushBlock();
+      _pushBlock(node);
       var ex = _scope.create('\$ex', world.varType, null);
-      _scope.rethrow = ex;
+      _scope.rethrow = ex.code;
       writer.nextBlock('} catch (${ex.code}) {');
       var trace = null;
       if (node.catches.some((c) => c.trace != null)) {
@@ -1750,7 +1901,7 @@ class MethodGenerator implements TreeVisitor {
       for (int i = 0; i < node.catches.length; i++) {
         var catch_ = node.catches[i];
 
-        _pushBlock();
+        _pushBlock(catch_);
         var tmpType = method.resolveType(catch_.exception.type, false);
         var tmp = _scope.declare(catch_.exception);
         if (!tmpType.isVarOrObject) {
@@ -1773,7 +1924,7 @@ class MethodGenerator implements TreeVisitor {
         }
 
         visitStatementsInBlock(catch_.body);
-        _popBlock();
+        _popBlock(catch_);
 
         if (tmpType.isVarOrObject) {
           // We matched this for sure; no need to keep going
@@ -1796,14 +1947,14 @@ class MethodGenerator implements TreeVisitor {
         writer.exitBlock('}');
       }
 
-      _popBlock();
+      _popBlock(node);
     }
 
     if (node.finallyBlock != null) {
       writer.nextBlock('} finally {');
-      _pushBlock();
+      _pushBlock(node.finallyBlock);
       visitStatementsInBlock(node.finallyBlock);
-      _popBlock();
+      _popBlock(node.finallyBlock);
     }
 
     // Close the try-catch-finally
@@ -1822,7 +1973,7 @@ class MethodGenerator implements TreeVisitor {
       if (case_.label != null) {
         world.error('unimplemented: labeled case statement', case_.span);
       }
-      _pushBlock();
+      _pushBlock(case_);
       for (int i=0; i < case_.cases.length; i++) {
         var expr = case_.cases[i];
         if (expr == null) {
@@ -1845,7 +1996,7 @@ class MethodGenerator implements TreeVisitor {
         world.gen.corejs.useThrow = true;
       }
       writer.exitBlock('');
-      _popBlock();
+      _popBlock(case_);
     }
     writer.exitBlock('}');
     // TODO(efortuna): When we are passing more information back about
@@ -1869,11 +2020,11 @@ class MethodGenerator implements TreeVisitor {
   }
 
   bool visitBlockStatement(BlockStatement node) {
-    _pushBlock();
+    _pushBlock(node);
     writer.enterBlock('{');
     var exits = _visitAllStatements(node.body, false);
     writer.exitBlock('}');
-    _popBlock();
+    _popBlock(node);
     return exits;
   }
 
@@ -1949,8 +2100,8 @@ class MethodGenerator implements TreeVisitor {
         node != null ? node.span : null, /*needsTemp:*/false);
     } else {
       _checkNonStatic(node);
-      return new Value(method.declaringType, 'this', node != null ? node.span : null,
-        /*needsTemp:*/false);
+      return new Value(method.declaringType, 'this',
+          node != null ? node.span : null, /*needsTemp:*/false);
     }
   }
 
@@ -1967,7 +2118,7 @@ class MethodGenerator implements TreeVisitor {
       // allowed to shadow it. So we create an extra scope for it to go into.
       lambdaGen._scope.create(name, meth.functionType, meth.definition.span,
           isFinal:true);
-      lambdaGen._pushBlock();
+      lambdaGen._pushBlock(node);
     }
     lambdaGen.run();
 
@@ -1988,7 +2139,7 @@ class MethodGenerator implements TreeVisitor {
     } else if (node.target is VarExpression) {
       VarExpression varExpr = node.target;
       name = varExpr.name.name;
-     // First check in block scopes.
+      // First check in block scopes.
       target = _scope.lookup(name);
       if (target != null) {
         return target.invoke(this, ':call', node, _makeArgs(node.arguments));
@@ -2075,7 +2226,13 @@ class MethodGenerator implements TreeVisitor {
     var x = _scope.lookup(name);
     var y = visitValue(yn);
 
-    if (x == null) {
+    if (x != null) {
+      y = y.convertTo(this, x.staticType);
+      // Update the inferred type
+      // Note: for now we aren't very flow sensitive, so this is a "union"
+      // rather than simply setting it to "y"
+      _scope.assign(name, Value.union(x, y));
+    } else {
       // TODO(jmesserly): this needs serious cleanup...
       // Look for a setter in the class
       var members = method.declaringType.resolveMember(name);
@@ -2120,14 +2277,13 @@ class MethodGenerator implements TreeVisitor {
 
       // Otherwise treat it as a field.
       // This makes for nicer code in the $op= case
+      y = y.convertTo(this, x.staticType);
     }
 
     if (x.isFinal) {
       world.error('final variable "${x.code}" is not assignable',
           position.span);
     }
-
-    y = y.convertTo(this, x.type);
 
     if (kind == 0) {
       x = captureOriginal(x);
@@ -2428,9 +2584,9 @@ class MethodGenerator implements TreeVisitor {
     var trueBranch = visitValue(node.trueBranch);
     var falseBranch = visitValue(node.falseBranch);
 
-    var code = '${test.code} ? ${trueBranch.code} : ${falseBranch.code}';
-    return new Value(Type.union(trueBranch.type, falseBranch.type), code,
-      node.span);
+    return Value.union(trueBranch, falseBranch).replaceCode(
+      '${test.code} ? ${trueBranch.code} : ${falseBranch.code}',
+      node.span, needsTemp: true);
   }
 
   visitIsExpression(IsExpression node) {

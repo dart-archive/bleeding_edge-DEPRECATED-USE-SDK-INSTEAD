@@ -1465,7 +1465,7 @@ class Parser {
       var tp = typeParameter();
       ret.add(tp);
       if (tp.typeParameter.extendsType is GenericTypeReference &&
-          tp.typeParameter.extendsType.depth == 0) {
+          tp.typeParameter.extendsType.dynamic.depth == 0) {
         closed = true;
         break;
       }

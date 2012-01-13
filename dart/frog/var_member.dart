@@ -137,10 +137,10 @@ class VarMethodStub extends VarMember {
   void generate(CodeWriter code) {
     isGenerated = true;
     if (!isHidden && _useDirectCall(args)) {
-      world.gen._writePrototypePatch(declaringType, name, 
+      world.gen._writePrototypePatch(declaringType, name,
           world.gen._prototypeOf(declaringType, member.jsname), code);
     } else {
-      String suffix = world.gen._writePrototypePatch(declaringType, name, 
+      String suffix = world.gen._writePrototypePatch(declaringType, name,
           'function(${args.getCode()}) {', code, false);
       if (!suffix.endsWith(';')) {
         suffix += ';';

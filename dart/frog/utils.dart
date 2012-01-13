@@ -99,3 +99,81 @@ String _GREEN_COLOR = '\u001b[32m';
 String _RED_COLOR = '\u001b[31m';
 String _MAGENTA_COLOR = '\u001b[35m';
 String _NO_COLOR = '\u001b[0m';
+
+
+/**
+ * An implementation detail of [CopyOnWriteMap]. Essentially just
+ * [HashMapImplementation] plus an additional [shared] field.
+ */
+class _SharedBackingMap<K, V> extends HashMapImplementation<K, V> {
+  /**
+   * The number of [CopyOnWriteMap] instances sharing this excluding the
+   * original, i.e. it is safe to write iff `shared == 0`;
+   */
+  int shared = 0;
+  _SharedBackingMap();
+  factory _SharedBackingMap.from(Map<K, V> other) {
+    final result = new _SharedBackingMap<K, V>();
+    other.forEach((K k, V v) { result[k] = v; });
+    return result;
+  }
+}
+
+/** A copy-on-write [Map] implementation. */
+// TODO(jmesserly): A persistent tree-based implementation of Map would be much
+// nicer. This is just a quick hack to get things working.
+class CopyOnWriteMap<K extends Hashable, V> implements HashMap<K, V> {
+  _SharedBackingMap<K, V> _map;
+
+  CopyOnWriteMap(): _map = new _SharedBackingMap<K, V>();
+  CopyOnWriteMap._wrap(this._map);
+  factory CopyOnWriteMap.from(Map<K, V> other) {
+    if (other is CopyOnWriteMap<K, V>) {
+      return other.clone();
+    }
+    return new CopyOnWriteMap<K, V>._wrap(
+        new _SharedBackingMap<K, V>.from(other));
+  }
+
+  CopyOnWriteMap<K, V> clone() {
+    _map.shared++;
+    return new CopyOnWriteMap<K, V>._wrap(_map);
+  }
+
+  void _ensureWritable() {
+    if (_map.shared > 0) {
+      _map.shared--;
+      _map = new _SharedBackingMap<K, V>.from(_map);
+    }
+  }
+
+  void operator []=(K key, V value) {
+    _ensureWritable();
+    _map[key] = value;
+  }
+
+  V putIfAbsent(K key, V ifAbsent()) {
+    _ensureWritable();
+    return _map.putIfAbsent(key, ifAbsent);
+  }
+
+  void clear() {
+    _ensureWritable();
+    _map.clear();
+  }
+
+  V remove(K key) {
+    _ensureWritable();
+    return _map.remove(key);
+  }
+
+  // Forwarding methods:
+  V operator [](K key) => _map[key];
+  bool isEmpty() => _map.isEmpty();
+  int get length() => _map.length;
+  void forEach(void f(K key, V value)) => _map.forEach(f);
+  Collection<K> getKeys() => _map.getKeys();
+  Collection<V> getValues() => _map.getValues();
+  bool containsKey(K key) => _map.containsKey(key);
+  bool containsValue(V value) => _map.containsValue(value);
+}

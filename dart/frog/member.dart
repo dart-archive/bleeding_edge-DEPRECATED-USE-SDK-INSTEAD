@@ -34,7 +34,8 @@ class Parameter {
         // TODO(jimhug): Need simpler way to detect "true" function types vs.
         //   regular methods being used as function types for closures.
         // TODO(sigmund): Disallow non-null default values for native calls?
-        if (method.definition.body == null && !method.isNative) {
+        var methodDef = method.definition;
+        if (methodDef.body == null && !method.isNative) {
           world.error('default value not allowed on function type',
               definition.span);
         }
@@ -657,6 +658,9 @@ class ConcreteMember extends Member {
   Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
       [bool isDynamic=false]) {
     // TODO(jimhug): Check arg types in context of concrete type.
+    // TODO(jmesserly): I think what needs to happen is to move MethodMember's
+    // invoke so that it's run against the "parameters" and "returnType" of the
+    // ConcreteMember instead.
     Value ret = baseMember.invoke(context, node, target, args, isDynamic);
     var code = ret.code;
     if (isConstructor) {
@@ -930,6 +934,7 @@ class MethodMember extends Member {
     if (!namesInOrder(args)) {
       // Names aren't in order. For now, use a var call because it's an
       // easy way to get the right eval order for out of order arguments.
+      // TODO(jmesserly): temps would be better.
       return context.findMembers(name).invokeOnVar(context, node, target, args);
     }
 
@@ -1463,6 +1468,7 @@ class MemberSet {
 
   Value invokeOnVar(MethodGenerator context, Node node, Value target,
       Arguments args) {
+    context.counters.dynamicMethodCalls++;
     var member = getVarMember(context, node, args);
     return member.invoke(context, node, target, args);
   }

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -37,6 +37,7 @@ class FrogOptions {
   bool forceDynamic = false;
   bool dietParse = false;
   bool compileOnly = false;
+  bool inferTypes = false;
 
   // Message support
   bool throwOnErrors = false;
@@ -45,6 +46,11 @@ class FrogOptions {
   bool showInfo = false;
   bool showWarnings = true;
   bool useColors = true;
+
+  // Not currently settable via command line.
+  // Intended for use by compiler implementer during debugging.
+  // TODO(jmesserly): what are the right values for these?
+  int maxInferenceIterations = 4;
 
   /**
    * Options to be used later for passing to the generated code. These are all
@@ -138,6 +144,10 @@ class FrogOptions {
 
         case '--no_colors':
           useColors = false;
+          break;
+
+        case '--infer_types':
+          inferTypes = true;
           break;
 
         default:

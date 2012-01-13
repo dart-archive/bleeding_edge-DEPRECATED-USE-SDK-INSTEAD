@@ -57,11 +57,30 @@ class CompilerException implements Exception {
   }
 }
 
+/** Logging used for debugging the compiler itself. */
+class CounterLog {
+  int dynamicMethodCalls = 0;
+  int typeAsserts = 0;
+  int objectProtoMembers = 0;
+
+  info() {
+    world.info('Dynamically typed method calls: $dynamicMethodCalls');
+    world.info('Generated type assertions: $typeAsserts');
+    world.info('Members on Object.prototype: $objectProtoMembers');
+  }
+
+  add(CounterLog other) {
+    dynamicMethodCalls += other.dynamicMethodCalls;
+    typeAsserts += other.typeAsserts;
+    objectProtoMembers += other.objectProtoMembers;
+  }
+}
 
 /** Represents a Dart "world" of code. */
 class World {
   WorldGenerator gen;
   String legCode; // TODO(kasperl): Remove this temporary kludge.
+  String frogCode;
 
   FileSystem files;
   final LibraryReader reader;
@@ -112,16 +131,20 @@ class World {
 
   NonNullableType nonNullBool;
 
+  CounterLog counters;
+
+
   World(this.files)
     : libraries = {}, _todo = [], _members = {}, _topNames = {},
       // TODO(jmesserly): these two types don't actually back our Date and
       // RegExp yet, so we need to add them manually.
-      reader = new LibraryReader() {
+      reader = new LibraryReader(), counters = new CounterLog() {
   }
 
   void reset() {
     // TODO(jimhug): Use a smaller hammer in the future.
     libraries = {}; _todo = []; _members = {}; _topNames = {};
+    counters = new CounterLog();
     errors = warnings = 0;
     seenFatal = false;
     init();
@@ -374,7 +397,7 @@ class World {
       assert(options.enableLeg);
       return legCode;
     } else {
-      return gen.writer.text;
+      return frogCode;
     }
   }
 
@@ -452,10 +475,11 @@ class World {
   }
 
   generateCode(Library lib) {
-    var codeWriter = new CodeWriter();
-    gen = new WorldGenerator(findMainMethod(lib), codeWriter);
+    gen = new WorldGenerator(findMainMethod(lib), new CodeWriter());
     gen.run();
-    jsBytesWritten = codeWriter.text.length;
+    frogCode = gen.writer.text;
+    jsBytesWritten = frogCode.length;
+    gen = null;
   }
 
   // ********************** Message support ***********************
@@ -557,6 +581,7 @@ class World {
   bool get hasErrors() => errors > 0;
 
   void printStatus() {
+    counters.info();
     info('compiled $dartBytesRead bytes Dart -> $jsBytesWritten bytes JS');
     if (hasErrors) {
       print('compilation failed with $errors errors');
