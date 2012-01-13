@@ -6,6 +6,8 @@
  * Assigns JavaScript identifiers to Dart variables, class-names and members.
  */
 class Namer {
+  final Compiler compiler;
+
   static Set<String> _jsReserved = null;
   Set<String> get jsReserved() {
     if (_jsReserved === null) {
@@ -19,12 +21,12 @@ class Namer {
   Map<Element, String> globals;
   Map<String, int> usedGlobals;
 
-  Namer()
+  Namer(this.compiler)
       : globals = new Map<Element, String>(),
         usedGlobals = new Map<String, int>();
 
-  String get currentIsolate() => "\$";
-  String get isolate() => "Isolate";
+  final String CURRENT_ISOLATE = "\$";
+  final String ISOLATE = "Isolate";
 
 
   String closureInvocationName() {
@@ -36,6 +38,14 @@ class Namer {
     String candidate = '$instanceName';
     // TODO(floitsch): mangle, while preserving uniqueness.
     return candidate;
+  }
+
+  String setterName(SourceString name) {
+    return 'set\$$name';
+  }
+
+  String getterName(SourceString name) {
+    return 'get\$$name';
   }
 
   /**
@@ -59,78 +69,87 @@ class Namer {
    * static variables there might be clashes. In the latter case the caller
    * needs to ensure uniqueness.
    */
-  String getName(Element element) {
-    switch (element.kind) {
-      case ElementKind.GENERATIVE_CONSTRUCTOR_BODY:
-        ConstructorBodyElement bodyElement = element;
-        return constructorBodyName(bodyElement.constructor);
-
-      case ElementKind.GENERATIVE_CONSTRUCTOR:
-      default:
-        if (element.isInstanceMember()) {
-          return instanceName(element.name);
-        }
-        // TODO(floitsch): deal with named constructors.
-        String name = '${element.name}';
-        // Prefix the name with '$' if it is reserved.
-        if (jsReserved.contains(name)) {
-          name = "\$$name";
-          assert(!jsReserved.contains(name));
-        }
-        return name;
+  String _computeGuess(Element element) {
+    if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+      ConstructorBodyElement bodyElement = element;
+      return constructorBodyName(bodyElement.constructor);
     }
+
+    if (element.isInstanceMember()) return instanceName(element.name);
+
+    // TODO(floitsch): deal with named constructors.
+    String name = '${element.name}';
+    // Prefix the name with '$' if it is reserved.
+    if (jsReserved.contains(name)) {
+      name = "\$$name";
+      assert(!jsReserved.contains(name));
+    }
+    return name;
   }
 
   String getBailoutName(Element element) {
     return '${getName(element)}\$bailout';
   }
 
-  String setterName(SourceString name) {
-    return 'set\$$name';
-  }
-
-  String getterName(SourceString name) {
-    return 'get\$$name';
-  }
-
   /**
-    * Don't use this method from the outside. Go through [isolateAccess] or
-    * [isolatePropertyAccess] instead.
-    */
-  String define(Element element) {
-    assert(globals[element] === null);
+   * Returns a preferred JS-id for the given element. The returned id is
+   * guaranteed to be a valid JS-id. Globals and static fields are furthermore
+   * guaranteed to be unique.
+   *
+   * For accessing statics consider calling
+   * [isolateAccess]/[isolateBailoutAccess] or [isolatePropertyAccess] instead.
+   */
+  String getName(Element element) {
+    if (element.isInstanceMember()) {
+      return instanceName(element.name);
+    }
 
-    String name = getName(element);
-    int usedCount = usedGlobals[name];
-    if (usedCount === null) {
-      // No element with this name has been used before.
-      usedGlobals[name] = 1;
-      globals[element] = name;
-      return name;
-    } else {
-      // Not the first time we see an element with this name. Append a number
-      // to make it unique.
-      String id;
-      do {
-        usedCount++;
-        id = '$name$usedCount';
-      } while (usedGlobals[id] !== null);
-      usedGlobals[name] = usedCount;
-      globals[element] = id;
-      return id;
+    String name = globals[element];
+    if (name !== null) return name;
+
+    String guess = _computeGuess(element);
+    switch (element.kind) {
+      case ElementKind.VARIABLE:
+      case ElementKind.PARAMETER:
+        // The name is not guaranteed to be unique.
+        return guess;
+
+      case ElementKind.FUNCTION:
+      case ElementKind.CLASS:
+      case ElementKind.GENERATIVE_CONSTRUCTOR:
+      case ElementKind.FIELD:
+        // We need to make sure the name is unique.
+        int usedCount = usedGlobals[guess];
+        if (usedCount === null) {
+          // No element with this name has been used before.
+          usedGlobals[guess] = 1;
+          globals[element] = guess;
+          return guess;
+        } else {
+          // Not the first time we see an element with this name. Append a
+          // number to make it unique.
+          String name;
+          do {
+            usedCount++;
+            name = '$guess$usedCount';
+          } while (usedGlobals[name] !== null);
+          usedGlobals[guess] = usedCount;
+          globals[element] = name;
+          return name;
+        }
+      
+      default:
+        compiler.unreachable('getName for unknown kind: ${element.kind}',
+                             node: element.parseNode(compiler, compiler));
     }
   }
 
   String isolateAccess(Element element) {
-    String jsId = globals[element];
-    if (jsId === null) jsId = define(element);
-    return "$currentIsolate.$jsId";
+    return "$CURRENT_ISOLATE.${getName(element)}";
   }
 
   String isolatePropertyAccess(Element element) {
-    String jsId = globals[element];
-    if (jsId === null) jsId = define(element);
-    return "$isolate.prototype.$jsId";
+    return "$ISOLATE.prototype.${getName(element)}";
   }
 
   String isolateBailoutPropertyAccess(Element element) {
