@@ -65,7 +65,8 @@ public class CreateProjectWizard extends BasicNewResourceWizard {
       return false;
     }
 
-    // TODO(pquitslund): reveal, etc.
+    selectAndReveal(newProject);
+
     return true;
   }
 

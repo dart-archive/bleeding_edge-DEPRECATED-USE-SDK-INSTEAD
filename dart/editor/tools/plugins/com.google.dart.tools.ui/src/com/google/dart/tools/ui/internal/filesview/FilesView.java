@@ -32,6 +32,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
@@ -48,13 +49,14 @@ import org.eclipse.ui.actions.MoveResourceAction;
 import org.eclipse.ui.actions.RenameResourceAction;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
+import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.ViewPart;
 
 /**
  * File-oriented view for navigating Dart projects.
  */
 @SuppressWarnings("deprecation")
-public class FilesView extends ViewPart {
+public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private TreeViewer treeViewer;
 
@@ -125,6 +127,11 @@ public class FilesView extends ViewPart {
   @Override
   public void saveState(IMemento memento) {
     memento.putBoolean("linkWithEditor", linkWithEditorAction.getLinkWithEditor());
+  }
+
+  @Override
+  public void selectReveal(ISelection selection) {
+    treeViewer.setSelection(selection);
   }
 
   @Override
