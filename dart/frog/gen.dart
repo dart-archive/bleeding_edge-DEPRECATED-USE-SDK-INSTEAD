@@ -257,15 +257,16 @@ class WorldGenerator {
       // We special case these two so that by default we can use "= function()"
       // syntax for better readability.
       if (isOneLiner) {
-        ending = ', enumerable: false, configurable: true })' + ending;
+        ending = ', enumerable: false, writable: true, configurable: true })' +
+            ending;
       }
       writeFunction('Object.defineProperty(${type.jsname}.prototype, "$name",' +
         ' { value: $functionBody$ending');
       if (isOneLiner) return '}';
-      return '}, enumerable: false, configurable: true });';
+      return '}, enumerable: false, writable: true, configurable: true });';
     } else {
       writeFunction(_prototypeOf(type, name) + ' = ' + functionBody + ending);
-      return (!isOneLiner) ? '}' : '';
+      return isOneLiner? '': '}';
     }
   }
 

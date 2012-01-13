@@ -160,7 +160,7 @@ class CoreJs {
       // here.
       w.writeln('Object.defineProperty(Object.prototype, "get\$typeName", ' +
           '{ value: Object.prototype.\$typeNameOf, enumerable: false, ' +
-          'configurable: true});');
+          'writable: true, configurable: true});');
     }
   }
 }
@@ -187,8 +187,8 @@ function $eq(x, y) {
 }
 // TODO(jimhug): Should this or should it not match equals?
 Object.defineProperty(Object.prototype, '$eq', { value: function(other) { 
-  return this === other; 
-}, enumerable: false, configurable: true });""";
+  return this === other;
+}, enumerable: false, writable: true, configurable: true });""";
 
 /** Snippet for `$bit_not`. */
 final String _BIT_NOT_FUNCTION = @"""
@@ -279,19 +279,18 @@ function $dynamic(name) {
       }
     }
     method = method || methods.Object;
-    // Patch the prototype, but don't overwrite an existing stub, like
-    // the one on Object.prototype.
     var proto = Object.getPrototypeOf(obj);
     if (!proto.hasOwnProperty(name)) {
-      Object.defineProperty(proto, name, 
-        { value: method, enumerable: false, configurable: true });
+      Object.defineProperty(proto, name,
+        { value: method, enumerable: false, writable: true, 
+        configurable: true });
     }
 
     return method.apply(this, Array.prototype.slice.call(arguments));
   };
   $dynamicBind.methods = methods;
   Object.defineProperty(Object.prototype, name, { value: $dynamicBind,
-    enumerable: false, configurable: true});
+      enumerable: false, writable: true, configurable: true});
   return methods;
 }
 if (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];
@@ -328,7 +327,7 @@ Object.defineProperty(Object.prototype, '$typeNameOf', { value: function() {
     str = 'HTMLDocument';
   }
   return str;
-}, enumerable: false, configurable: true});""";
+}, enumerable: false, writable: true, configurable: true});""";
 
 /** Snippet for `$inherits`. */
 final String _INHERITS_FUNCTION = @"""
@@ -395,13 +394,13 @@ Object.defineProperty(Object.prototype, '$index', { value: function(i) {
     proto.$index = function(i) { return this[i]; }
   }
   return this[i];
-}, enumerable: false, configurable: true});
+}, enumerable: false, writable: true, configurable: true});
 Object.defineProperty(Array.prototype, '$index', { value: function(i) { 
   return this[i]; 
-}, enumerable: false, configurable: true});
+}, enumerable: false, writable: true, configurable: true});
 Object.defineProperty(String.prototype, '$index', { value: function(i) { 
   return this[i]; 
-}, enumerable: false, configurable: true});""";
+}, enumerable: false, writable: true, configurable: true});""";
 
 /** Snippet for `$setindex` in Object, Array, and String. */
 // TODO(jimhug): Add array bounds checking in checked mode
@@ -419,9 +418,10 @@ Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value)
     proto.$setindex = function(i, value) { return this[i] = value; }
   }
   return this[i] = value;
-}, enumerable: false, configurable: true});
+}, enumerable: false, writable: true, configurable: true});
 Object.defineProperty(Array.prototype, '$setindex', { value: function(i, value) { 
-  return this[i] = value; }, enumerable: false, configurable: true});""";
+  return this[i] = value; }, enumerable: false, writable: true, 
+  configurable: true});""";
 
 /** Snippet for `$wrap_call$0`. */
 final String _WRAP_CALL0_FUNCTION = @"""
