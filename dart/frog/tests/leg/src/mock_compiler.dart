@@ -42,6 +42,7 @@ class MockCompiler extends Compiler {
   List<WarningMessage> warnings;
   List<WarningMessage> errors;
   Node parsedTree;
+  WorkItem lastBailoutWork;
 
   MockCompiler([String corelib = DEFAULT_CORELIB])
       : super(), warnings = [], errors = [] {
@@ -99,6 +100,11 @@ class MockCompiler extends Compiler {
          link = link.tail) {
       universe.define(link.head);
     }
+  }
+
+  void enqueue(WorkItem work) {
+    if (work.isBailoutVersion()) lastBailoutWork = work;
+    super.enqueue(work);
   }
 
   resolve(ClassElement element) {

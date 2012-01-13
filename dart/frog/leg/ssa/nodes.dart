@@ -4,6 +4,7 @@
 
 interface HVisitor<R> {
   R visitAdd(HAdd node);
+  R visitBailoutTarget(HBailoutTarget node);
   R visitBitAnd(HBitAnd node);
   R visitBitNot(HBitNot node);
   R visitBitOr(HBitOr node);
@@ -198,6 +199,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBitNot(HBitNot node) => visitInvokeUnary(node);
   visitBitOr(HBitOr node) => visitBinaryBitOp(node);
   visitBitXor(HBitXor node) => visitBinaryBitOp(node);
+  visitBailoutTarget(HBailoutTarget node) => visitInstruction(node);
   visitBoolify(HBoolify node) => visitInstruction(node);
   visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
   visitCheck(HCheck node) => visitInstruction(node);
@@ -878,7 +880,17 @@ class HCheck extends HInstruction {
 }
 
 class HTypeGuard extends HInstruction {
-  HTypeGuard(type, value) : super(<HInstruction>[value]) {
+  final int originalBlockNumber = null;
+  final int instructionNumber = null;
+
+  HTypeGuard(HType type, HInstruction value) : super(<HInstruction>[value]) {
+    this.type = type;
+  }
+
+  HTypeGuard.forBailout(HType type,
+                        List<HInstruction> env,
+                        int this.originalBlockNumber,
+                        int this.instructionNumber) : super(env) {
     this.type = type;
   }
 
@@ -886,6 +898,8 @@ class HTypeGuard extends HInstruction {
     assert(!hasSideEffects());
     setUseGvn();
   }
+
+  HInstruction get guarded() => inputs.last();
 
   HType computeType() => type;
   bool hasExpectedType() => true;
@@ -897,6 +911,11 @@ class HTypeGuard extends HInstruction {
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   bool typeEquals(other) => other is HTypeGuard;
   bool dataEquals(HTypeGuard other) => type == other.type;
+}
+
+class HBailoutTarget extends HInstruction {
+  HBailoutTarget(inputs) : super(inputs);
+  accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
 }
 
 class HBoundsCheck extends HCheck {
@@ -1473,12 +1492,49 @@ class HIf extends HConditionalBranch {
   HIf(HInstruction condition, this.hasElse) : super(<HInstruction>[condition]);
   toString() => 'if';
   accept(HVisitor visitor) => visitor.visitIf(this);
+
+  HBasicBlock get thenBlock() {
+    assert(block.dominatedBlocks[0] === block.successors[0]);
+    return block.successors[0];
+  }
+
+  HBasicBlock get elseBlock() {
+    if (hasElse) {
+      assert(block.dominatedBlocks[1] === block.successors[1]);
+      return block.successors[1];
+    } else {
+      return null;
+    }
+  }
+
+  HBasicBlock get endBlock() {
+    List<HBasicBlock> dominated = block.dominatedBlocks;
+    if (hasElse) {
+      if (dominated.length > 2) return dominated[2];
+    } else {
+      if (dominated.length > 1) return dominated[1];
+    }
+    return null;
+  }
 }
 
 class HLoopBranch extends HConditionalBranch {
   HLoopBranch(HInstruction condition) : super(<HInstruction>[condition]);
   toString() => 'loop-branch';
   accept(HVisitor visitor) => visitor.visitLoopBranch(this);
+
+  bool isDoWhile() {
+    bool result = block.dominatedBlocks.length == 1;
+    if (result) {
+      // The first successor is the loop-body and thus a back-edge.
+      assert(block.successors[0].id < block.id);
+      assert(block.dominatedBlocks[0] === block.successors[1]);
+    } else {
+      assert(block.dominatedBlocks[0] === block.successors[0]);
+      assert(block.dominatedBlocks[1] === block.successors[1]);;
+    }
+    return result;
+  }
 }
 
 /**

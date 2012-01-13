@@ -173,6 +173,10 @@ class HInstructionStringifier implements HVisitor<String> {
     return "$prefix${instruction.id}";
   }
 
+  String visitBailoutTarget(HBailoutTarget node) {
+    return "Bailout target";
+  }
+
   String visitBoolify(HBoolify node) {
     return "Boolify: ${temporaryId(node.inputs[0])}";
   }

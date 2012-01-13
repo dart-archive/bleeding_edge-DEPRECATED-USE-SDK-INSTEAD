@@ -53,12 +53,34 @@ class SsaCodeGeneratorTask extends CompilerTask {
     SsaCodeGenerator codegen = new SsaCodeGenerator(
         compiler, work, buffer, parameters, parameterNames);
     codegen.visitGraph(graph);
-    if (codegen.hasBailouts) {
-      assert(!work.bailoutVersion);
-      compiler.enqueue(new WorkItem.bailoutVersion(
-          work.element, work.resolutionTree));
+    if (!codegen.guards.isEmpty()) {
+      assert(!work.isBailoutVersion());
+      addBailoutVersion(codegen.guards, work);
     }
-    return 'function($parameters) {\n$buffer}';
+
+    if (work.isBailoutVersion()) {
+      String check =
+          "  if (typeof env !== 'undefined') throw 'Unimplemented bailout';";
+      String newParameters = parameterNames.isEmpty()
+          ? 'env'
+          : '$parameters, env';
+      return 'function($newParameters) {\n$check\n$buffer}';
+    } else {
+      return 'function($parameters) {\n$buffer}';
+    }
+  }
+
+  void addBailoutVersion(List<HTypeGuard> guards, WorkItem work) {
+    int length = guards.length;
+    Set<BailoutInfo> bailouts = new Set<BailoutInfo>();
+    guards.forEach((HTypeGuard guard) {
+      if (guard.guarded is !HParameterValue) {
+        bailouts.add(new BailoutInfo(
+            guard.originalBlockNumber, guard.instructionNumber));
+      }
+    });
+    compiler.enqueue(new WorkItem.bailoutVersion(
+        work.element, work.resolutionTree, bailouts));
   }
 }
 
@@ -71,9 +93,9 @@ class SsaCodeGenerator implements HVisitor {
   final Map<Element, String> parameterNames;
   final Map<int, String> names;
   final Map<String, int> prefixes;
+  final List<HTypeGuard> guards;
 
   Element equalsNullElement;
-  bool hasBailouts = false;
   int indent = 0;
   HGraph currentGraph;
   HBasicBlock currentBlock;
@@ -84,7 +106,8 @@ class SsaCodeGenerator implements HVisitor {
                    this.parameters,
                    this.parameterNames)
     : names = new Map<int, String>(),
-      prefixes = new Map<String, int>() {
+      prefixes = new Map<String, int>(),
+      guards = <HTypeGuard>[] {
     for (final name in parameterNames.getValues()) {
       prefixes[name] = 0;
     }
@@ -286,7 +309,6 @@ class SsaCodeGenerator implements HVisitor {
 
   visitBoolify(HBoolify node) {
     assert(node.inputs.length == 1);
-    assert(!node.inputs[0].isBoolean());
     buffer.add('(');
     use(node.inputs[0]);
     buffer.add(' === true)');
@@ -314,25 +336,19 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitIf(HIf node) {
-    // The currentBlock will be changed when we visit the successors. So keep
-    // a local copy around.
-    HBasicBlock ifBlock = currentBlock;
     assert(!node.generateAtUseSite());
     buffer.add('if (');
     use(node.inputs[0]);
     buffer.add(') {\n');
-    List<HBasicBlock> dominated = ifBlock.dominatedBlocks;
-    assert(dominated[0] === ifBlock.successors[0]);
     indent++;
-    visitBasicBlock(ifBlock.successors[0]);
+    visitBasicBlock(node.thenBlock);
     indent--;
     addIndentation();
     int nextDominatedIndex;
     if (node.hasElse) {
       buffer.add('} else {\n');
       indent++;
-      assert(dominated[1] === ifBlock.successors[1]);
-      visitBasicBlock(ifBlock.successors[1]);
+      visitBasicBlock(node.elseBlock);
       indent--;
       addIndentation();
     }
@@ -348,6 +364,7 @@ class SsaCodeGenerator implements HVisitor {
     // three dominated blocks: the then, the code after the if, and the exit
     // block.
 
+    List<HBasicBlock> dominated = node.block.dominatedBlocks;
     int dominatedCount = dominated.length;
     if (node.hasElse && (dominatedCount == 3 || dominatedCount == 4)) {
       // Normal case. The third dominated block is either the join-block or
@@ -462,16 +479,8 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(')) break;\n');
     List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
     HBasicBlock loopSuccessor;
-    if (dominated.length == 1) {
-      // Do While.
-      // The first successor is the loop-body and thus a back-edge.
-      assert(branchBlock.successors[0].id < branchBlock.id);
-      assert(dominated[0] === branchBlock.successors[1]);
-      // The body has already been visited. Nothing to do in this branch.
-    } else {
-      // A normal while loop. Visit the body.
-      assert(dominated[0] === branchBlock.successors[0]);
-      assert(dominated[1] === branchBlock.successors[1]);
+    // For a do while loop, the body has already been visited.
+    if (!node.isDoWhile()) {
       visitBasicBlock(dominated[0]);
     }
     indent--;
@@ -544,26 +553,40 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   bailout(HTypeGuard guard, String reason) {
-    assert(!work.bailoutVersion);
-    hasBailouts = true;
-    HInstruction input = guard.inputs[0];
+    assert(!work.isBailoutVersion());
+    guards.add(guard);
+    HInstruction input = guard.guarded;
     Namer namer = compiler.namer;
     Element element = work.element;
-    if (input is HParameterValue) {
-      buffer.add('return ');
-      if (element.isInstanceMember()) {
-        buffer.add('this.${namer.getBailoutName(element)}');
-      } else {
-        buffer.add(namer.isolateBailoutAccess(element));
-      }
-      buffer.add('($parameters)');
+    buffer.add('return ');
+    if (element.isInstanceMember()) {
+      buffer.add('this.${namer.getBailoutName(element)}');
     } else {
-      buffer.add('throw "$reason"');
+      buffer.add(namer.isolateBailoutAccess(element));
     }
+    int parametersCount = parameterNames.length;
+    buffer.add('($parameters');
+    if (parametersCount < guard.inputs.length) {
+      if (parametersCount != 0) buffer.add(', ');
+      buffer.add('[');
+      bool first = true;
+      for (int i = 0; i < guard.inputs.length; i++) {
+        HInstruction input = guard.inputs[i];
+        if (input.generateAtUseSite()) continue;
+        if (!first) {
+          buffer.add(', ');
+        } else {
+          first = false;
+        }
+        use(guard.inputs[i]);
+      }
+      buffer.add(']');
+    }
+    buffer.add(')');
   }
 
   visitTypeGuard(HTypeGuard node) {
-    HInstruction input = node.inputs[0];
+    HInstruction input = node.guarded;
     assert(!input.generateAtUseSite() || input is HParameterValue);
     if (node.isInteger()) {
       buffer.add('if (');
@@ -602,6 +625,10 @@ class SsaCodeGenerator implements HVisitor {
     } else {
       unreachable();
     }
+  }
+
+  visitBailoutTarget(HBailoutTarget node) {
+    buffer.add('// Bailout target');
   }
 
   void addIndentation() {
@@ -785,7 +812,7 @@ class SsaCheckInstructionUnuser extends HBaseVisitor {
 
   void visitTypeGuard(HTypeGuard node) {
     assert(!node.generateAtUseSite());
-    HInstruction guarded = node.inputs[0];
+    HInstruction guarded = node.guarded;
     currentBlock.rewrite(node, guarded);
     // Remove generate at use site for the input, except for
     // parameters, since they do not introduce any computation.

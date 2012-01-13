@@ -10,6 +10,7 @@
 #import('../tree/tree.dart');
 #import('../util/util.dart');
 
+#source('bailout.dart');
 #source('builder.dart');
 #source('codegen.dart');
 #source('js_names.dart');

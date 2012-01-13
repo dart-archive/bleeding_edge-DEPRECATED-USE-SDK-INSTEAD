@@ -6,7 +6,7 @@ class WorkItem {
   final Element element;
   TreeElements resolutionTree;
   Function run;
-  bool bailoutVersion = false;
+  Set<BailoutInfo> bailouts = null;
 
   WorkItem.toCompile(this.element) : resolutionTree = null {
     run = this.compile;
@@ -16,12 +16,14 @@ class WorkItem {
     run = this.codegen;
   }
 
-  WorkItem.bailoutVersion(this.element, this.resolutionTree) {
+  WorkItem.bailoutVersion(this.element, this.resolutionTree, this.bailouts) {
     run = this.codegen;
-    bailoutVersion = true;
   }
 
+  bool isBailoutVersion() => bailouts != null;
+
   bool isAnalyzed() => resolutionTree != null;
+
   int hashCode() => element.hashCode();
 
   String compile(Compiler compiler) {

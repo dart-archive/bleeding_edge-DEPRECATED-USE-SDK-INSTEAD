@@ -8,18 +8,21 @@ class SsaOptimizerTask extends CompilerTask {
 
   void optimize(WorkItem work, HGraph graph) {
     measure(() {
-      if (!work.bailoutVersion) {
+      if (!work.isBailoutVersion()) {
         // TODO(ngeoffray): We should be more fine-grained and still
         // allow type propagation of instructions we know the type.
         new SsaTypePropagator(compiler).visitGraph(graph);
+        new SsaTypeGuardBuilder(compiler).visitGraph(graph);
+        new SsaCheckInserter(compiler).visitGraph(graph);
+        new SsaConstantFolder(compiler).visitGraph(graph);
+        new SsaRedundantPhiEliminator().visitGraph(graph);
+        new SsaDeadPhiEliminator().visitGraph(graph);
+        new SsaGlobalValueNumberer(compiler).visitGraph(graph);
+        new SsaCodeMotion().visitGraph(graph);
+        new SsaDeadCodeEliminator().visitGraph(graph);
+      } else {
+        new SsaBailoutBuilder(compiler, work.bailouts).visitGraph(graph);
       }
-      new SsaCheckInserter(compiler).visitGraph(graph);
-      new SsaConstantFolder(compiler).visitGraph(graph);
-      new SsaRedundantPhiEliminator().visitGraph(graph);
-      new SsaDeadPhiEliminator().visitGraph(graph);
-      new SsaGlobalValueNumberer(compiler).visitGraph(graph);
-      new SsaCodeMotion().visitGraph(graph);
-      new SsaDeadCodeEliminator().visitGraph(graph);
     });
   }
 }
@@ -163,7 +166,7 @@ class SsaConstantFolder extends HBaseVisitor {
   }
 
   HInstruction visitTypeGuard(HTypeGuard node) {
-    HInstruction value = node.inputs[0];
+    HInstruction value = node.guarded;
     return (value.type.combine(node.type) == value.type) ? value : node;
   }
 
