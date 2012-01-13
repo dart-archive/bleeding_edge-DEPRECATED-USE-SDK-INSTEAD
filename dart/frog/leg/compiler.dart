@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -56,14 +56,16 @@ class Compiler implements Canceler, Logger {
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
+  CompileTimeConstantHandler compileTimeConstantHandler;
 
   static final SourceString MAIN = const SourceString('main');
 
-  Compiler() {
-    types = new Types();
-    universe = new Universe();
-    worklist = new Queue<WorkItem>();
+  Compiler()
+      : types = new Types(),
+        universe = new Universe(),
+        worklist = new Queue<WorkItem>() {
     namer = new Namer(this);
+    compileTimeConstantHandler = new CompileTimeConstantHandler(this);
     scanner = new ScannerTask(this);
     parser = new ParserTask(this);
     validator = new TreeValidatorTask(this);
@@ -74,7 +76,7 @@ class Compiler implements Canceler, Logger {
     generator = new SsaCodeGeneratorTask(this);
     emitter = new CodeEmitterTask(this);
     tasks = [scanner, parser, resolver, checker, builder, optimizer, generator,
-             emitter];
+             emitter, compileTimeConstantHandler];
   }
 
   void ensure(bool condition) {
@@ -172,36 +174,31 @@ class Compiler implements Canceler, Logger {
     emitter.assembleProgram();
   }
 
-  TreeElements analyze(WorkItem work) {
-    Node tree = parser.parse(work.element);
+  TreeElements analyzeElement(Element element) {
+    Node tree = parser.parse(element);
     validator.validate(tree);
-    TreeElements elements = resolver.resolve(work.element);
-    work.resolutionTree = elements;
+    TreeElements elements = resolver.resolve(element);
     checker.check(tree, elements);
     return elements;
+  }
+
+  TreeElements analyze(WorkItem work) {
+    work.resolutionTree = analyzeElement(work.element);
+    return work.resolutionTree;
   }
 
   String codegen(WorkItem work) {
     String code;
     if (work.element.kind == ElementKind.FIELD) {
-      VariableElement element = work.element;
-      Node node = element.parseNode(this, this);
-      SendSet assignment = node.asSendSet();
-      if (assignment === null) {
-        // No initial value.
-        // TODO(floitsch): move the computation of null into the 
-        // compile-time constant handler.
-        code = "(void 0)";
-      } else {
-        unimplemented("codegen for static initialized fields.", node: node);
-      }
+      compileTimeConstantHandler.compileWorkItem(work);
+      return null;
     } else {
       HGraph graph = builder.build(work);
       optimizer.optimize(work, graph);
       code = generator.generate(work, graph);
+      universe.addGeneratedCode(work, code);
+      return code;
     }
-    universe.addGeneratedCode(work, code);
-    return code;
   }
 
   String compile(WorkItem work) {

@@ -22,6 +22,7 @@
 #source('warnings.dart');
 #source('emitter.dart');
 #source('namer.dart');
+#source('compile_time_constants.dart');
 
 final bool GENERATE_SSA_TRACE = false;
 

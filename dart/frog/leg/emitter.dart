@@ -125,36 +125,72 @@ function(child, parent) {
     }
   }
 
-  void compileClasses(StringBuffer buffer) {
+  void emitClasses(StringBuffer buffer) {
     Set seenClasses = new Set<ClassElement>();
     for (ClassElement element in compiler.universe.instantiatedClasses) {
       generateClass(element, buffer, seenClasses);
     }
   }
 
-  void compileIsolateStatic(StringBuffer buffer,
-                            Map<Element, String> generatedCode,
-                            String namer(Element element)) {
+  void emitStaticFunctionsWithNamer(StringBuffer buffer,
+                                    Map<Element, String> generatedCode,
+                                    String functionNamer(Element element)) {
     generatedCode.forEach((Element element, String codeBlock) {
       if (!element.isInstanceMember()) {
-        buffer.add('${namer(element)} = ');
+        buffer.add('${functionNamer(element)} = ');
         buffer.add(codeBlock);
         buffer.add(';\n\n');
       }
     });
   }
 
+  void emitStaticFunctions(StringBuffer buffer) {
+    emitStaticFunctionsWithNamer(buffer,
+                                 compiler.universe.generatedCode,
+                                 namer.isolatePropertyAccess);
+    emitStaticFunctionsWithNamer(buffer,
+                                 compiler.universe.generatedBailoutCode,
+                                 namer.isolateBailoutPropertyAccess);
+  }
+
+  void emitStaticNonFinalFieldInitializations(StringBuffer buffer) {
+    // Adds initializations inside the Isolate constructor.
+    // Example:
+    //    function Isolate() {
+    //       this.staticNonFinal1 = Isolate.prototype.someVal;
+    //       ...
+    //    }
+    CompileTimeConstantHandler constants = compiler.compileTimeConstantHandler;
+    List<VariableElement> staticNonFinalFields =
+        constants.getStaticNonFinalFieldsForEmission();
+    if (!staticNonFinalFields.isEmpty()) buffer.add('\n');
+    for (Element element in staticNonFinalFields) {
+      buffer.add('  this.${namer.getName(element)} = ');
+      constants.emitJsCodeForField(element, buffer);
+      buffer.add(';\n');
+    }
+  }
+
+  void emitStaticFinalFieldInitializations(StringBuffer buffer) {
+    CompileTimeConstantHandler constants = compiler.compileTimeConstantHandler;
+    List<VariableElement> staticFinalFields =
+        constants.getStaticFinalFieldsForEmission();
+    for (VariableElement element in staticFinalFields) {
+      buffer.add('${namer.isolatePropertyAccess(element)} = ');
+      constants.emitJsCodeForField(element, buffer);
+      buffer.add(';\n');
+    }
+  }
+
   String assembleProgram() {
     measure(() {
       StringBuffer buffer = new StringBuffer();
-      buffer.add('function ${namer.ISOLATE}() {}\n\n');
-      compileClasses(buffer);
-      compileIsolateStatic(buffer,
-                           compiler.universe.generatedCode,
-                           namer.isolatePropertyAccess);
-      compileIsolateStatic(buffer,
-                           compiler.universe.generatedBailoutCode,
-                           namer.isolateBailoutPropertyAccess);
+      buffer.add('function ${namer.ISOLATE}() {');
+      emitStaticNonFinalFieldInitializations(buffer);
+      buffer.add('}\n\n');
+      emitClasses(buffer);
+      emitStaticFunctions(buffer);
+      emitStaticFinalFieldInitializations(buffer);
       buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
       buffer.add('${namer.CURRENT_ISOLATE}.main();\n');
       compiler.assembledCode = buffer.toString();
