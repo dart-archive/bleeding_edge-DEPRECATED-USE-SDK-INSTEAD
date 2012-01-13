@@ -88,7 +88,7 @@ class SsaBuilderTask extends CompilerTask {
   String get name() => 'SSA builder';
   Interceptors interceptors;
 
-  HGraph build(WorkElement work) {
+  HGraph build(WorkItem work) {
     return measure(() {
       FunctionElement element = work.element;
       TreeElements elements = work.resolutionTree;
@@ -130,7 +130,7 @@ class SsaBuilderTask extends CompilerTask {
     // The body of the constructor will be generated in a separate function.
     ConstructorBodyElement bodyElement =
         new ConstructorBodyElement(functionElement);
-    compiler.worklist.add(new WorkElement.toCodegen(bodyElement, elements));
+    compiler.enqueue(new WorkItem.toCodegen(bodyElement, elements));
     ClassElement classElement = functionElement.enclosingElement;
     classElement.backendMembers =
         classElement.backendMembers.prepend(bodyElement);
@@ -540,7 +540,7 @@ class SsaBuilder implements Visitor {
     globalizedClosureElement.backendMembers =
         const EmptyLink<Element>().prepend(callElement);
     globalizedClosureElement.isResolved = true;
-    compiler.worklist.add(new WorkElement.toCodegen(callElement, elements));
+    compiler.enqueue(new WorkItem.toCodegen(callElement, elements));
     compiler.registerInstantiatedClass(globalizedClosureElement);
     push(new HForeignNew(globalizedClosureElement, <HInstruction>[]));
   }

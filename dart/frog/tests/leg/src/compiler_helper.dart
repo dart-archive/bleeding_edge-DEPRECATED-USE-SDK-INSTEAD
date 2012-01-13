@@ -22,7 +22,7 @@ String compile(String code, [String entry = 'main']) {
   compiler.parseScript(code);
   lego.Element element = compiler.universe.find(buildSourceString(entry));
   if (element === null) return null;
-  String generated = compiler.compile(new leg.WorkElement.toCompile(element));
+  String generated = compiler.compile(new leg.WorkItem.toCompile(element));
   return generated;
 }
 

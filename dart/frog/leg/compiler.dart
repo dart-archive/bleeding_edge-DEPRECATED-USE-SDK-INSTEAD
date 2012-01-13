@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class WorkElement {
+class WorkItem {
   final Element element;
   TreeElements resolutionTree;
   Function run;
   bool bailoutVersion = false;
 
-  WorkElement.toCompile(this.element) : resolutionTree = null {
+  WorkItem.toCompile(this.element) : resolutionTree = null {
     run = this.compile;
   }
 
-  WorkElement.toCodegen(this.element, this.resolutionTree) {
+  WorkItem.toCodegen(this.element, this.resolutionTree) {
     run = this.codegen;
   }
 
-  WorkElement.bailoutVersion(this.element, this.resolutionTree) {
+  WorkItem.bailoutVersion(this.element, this.resolutionTree) {
     run = this.codegen;
     bailoutVersion = true;
   }
@@ -34,7 +34,7 @@ class WorkElement {
 }
 
 class Compiler implements Canceler, Logger {
-  Queue<WorkElement> worklist;
+  Queue<WorkItem> worklist;
   Universe universe;
   String assembledCode;
   Namer namer;
@@ -60,7 +60,7 @@ class Compiler implements Canceler, Logger {
   Compiler() {
     types = new Types();
     universe = new Universe();
-    worklist = new Queue<WorkElement>();
+    worklist = new Queue<WorkItem>();
     namer = new Namer();
     scanner = new ScannerTask(this);
     parser = new ParserTask(this);
@@ -96,6 +96,10 @@ class Compiler implements Canceler, Logger {
 
   void log(message) {
     // Do nothing.
+  }
+
+  void enqueue(WorkItem work) {
+    worklist.add(work);
   }
 
   bool run(Script script) {
@@ -154,10 +158,10 @@ class Compiler implements Canceler, Logger {
     scanner.scan(currentElement);
     Element element = universe.find(MAIN);
     if (element === null) cancel('Could not find $MAIN');
-    worklist.add(new WorkElement.toCompile(element));
+    worklist.add(new WorkItem.toCompile(element));
     do {
       while (!worklist.isEmpty()) {
-        WorkElement work = worklist.removeLast();
+        WorkItem work = worklist.removeLast();
         currentElement = work.element;
         work.run(this);
       }
@@ -166,7 +170,7 @@ class Compiler implements Canceler, Logger {
     emitter.assembleProgram();
   }
 
-  TreeElements analyze(WorkElement work) {
+  TreeElements analyze(WorkItem work) {
     Node tree = parser.parse(work.element);
     validator.validate(tree);
     TreeElements elements = resolver.resolve(work.element);
@@ -175,7 +179,7 @@ class Compiler implements Canceler, Logger {
     return elements;
   }
 
-  String codegen(WorkElement work) {
+  String codegen(WorkItem work) {
     String code;
     if (work.element.kind == ElementKind.FIELD) {
       VariableElement element = work.element;
@@ -198,7 +202,7 @@ class Compiler implements Canceler, Logger {
     return code;
   }
 
-  String compile(WorkElement work) {
+  String compile(WorkItem work) {
     String code = universe.generatedCode[work.element];
     if (code !== null) return code;
     analyze(work);
@@ -209,7 +213,7 @@ class Compiler implements Canceler, Logger {
     if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
       registerInstantiatedClass(element.enclosingElement);
     }
-    worklist.add(new WorkElement.toCompile(element));
+    worklist.add(new WorkItem.toCompile(element));
   }
 
   void registerStaticUse(Element element) {

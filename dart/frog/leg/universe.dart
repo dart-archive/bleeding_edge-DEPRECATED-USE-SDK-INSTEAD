@@ -28,7 +28,7 @@ class Universe {
     elements[element.name] = element;
   }
 
-  void addGeneratedCode(WorkElement work, String code) {
+  void addGeneratedCode(WorkItem work, String code) {
     if (work.bailoutVersion) {
       generatedBailoutCode[work.element] = code;
     } else {

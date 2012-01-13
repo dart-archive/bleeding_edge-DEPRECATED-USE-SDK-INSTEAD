@@ -6,7 +6,7 @@ class SsaOptimizerTask extends CompilerTask {
   SsaOptimizerTask(Compiler compiler) : super(compiler);
   String get name() => 'SSA optimizer';
 
-  void optimize(WorkElement work, HGraph graph) {
+  void optimize(WorkItem work, HGraph graph) {
     measure(() {
       if (!work.bailoutVersion) {
         // TODO(ngeoffray): We should be more fine-grained and still

@@ -6,7 +6,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   SsaCodeGeneratorTask(Compiler compiler) : super(compiler);
   String get name() => 'SSA code generator';
 
-  String generate(WorkElement work, HGraph graph) {
+  String generate(WorkItem work, HGraph graph) {
     return measure(() {
       FunctionElement function = work.element;
       Map<Element, String> parameterNames =
@@ -40,7 +40,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   String generateMethod(Map<Element, String> parameterNames,
-                        WorkElement work,
+                        WorkItem work,
                         HGraph graph) {
     preGenerateMethod(graph);
     StringBuffer buffer = new StringBuffer();
@@ -55,7 +55,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     codegen.visitGraph(graph);
     if (codegen.hasBailouts) {
       assert(!work.bailoutVersion);
-      compiler.worklist.add(new WorkElement.bailoutVersion(
+      compiler.enqueue(new WorkItem.bailoutVersion(
           work.element, work.resolutionTree));
     }
     return 'function($parameters) {\n$buffer}';
@@ -64,7 +64,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
 class SsaCodeGenerator implements HVisitor {
   final Compiler compiler;
-  final WorkElement work;
+  final WorkItem work;
   final StringBuffer buffer;
   final StringBuffer parameters;
 
