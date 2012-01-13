@@ -14,15 +14,15 @@
 #import('util/util.dart');
 
 #source('compiler.dart');
+#source('compile_time_constants.dart');
+#source('emitter.dart');
+#source('namer.dart');
 #source('resolver.dart');
 #source('script.dart');
 #source('tree_validator.dart');
 #source('typechecker.dart');
 #source('universe.dart');
 #source('warnings.dart');
-#source('emitter.dart');
-#source('namer.dart');
-#source('compile_time_constants.dart');
 
 final bool GENERATE_SSA_TRACE = false;
 

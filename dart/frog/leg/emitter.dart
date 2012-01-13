@@ -157,7 +157,7 @@ function(child, parent) {
     // Adds initializations inside the Isolate constructor.
     // Example:
     //    function Isolate() {
-    //       this.staticNonFinal1 = Isolate.prototype.someVal;
+    //       this.staticNonFinal = Isolate.prototype.someVal;
     //       ...
     //    }
     CompileTimeConstantHandler constants = compiler.compileTimeConstantHandler;
