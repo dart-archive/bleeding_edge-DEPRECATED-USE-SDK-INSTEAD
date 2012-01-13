@@ -7,6 +7,7 @@
 #import('dart:coreimpl');
 #import('file_system.dart');
 
+#source('block_scope.dart');
 #source('code_writer.dart');
 #source('corejs.dart');
 #source('element.dart');

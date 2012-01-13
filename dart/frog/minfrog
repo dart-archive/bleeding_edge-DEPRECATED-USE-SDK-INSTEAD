@@ -2336,6 +2336,158 @@ NodeFileSystem.prototype.fileExists = function(filename) {
 }
 // ********** Code for top level **************
 //  ********** Library lang **************
+// ********** Code for BlockScope **************
+function BlockScope(enclosingMethod, parent, node, reentrant) {
+  this.enclosingMethod = enclosingMethod;
+  this._vars = new CopyOnWriteMap_dart_core_String$Value();
+  this.parent = parent;
+  this.node = node;
+  this.reentrant = reentrant;
+  this._jsNames = new HashSetImplementation();
+  if (this.get$isMethodScope()) {
+    this._closedOver = new HashSetImplementation();
+  }
+  else {
+    this.reentrant = reentrant || this.parent.reentrant;
+  }
+  this.inferTypes = $globals.options.inferTypes && (this.parent == null || this.parent.inferTypes);
+}
+BlockScope._snapshot$ctor = function(original) {
+  this.enclosingMethod = original.enclosingMethod;
+  this._vars = original._vars.clone();
+  this.parent = original.parent == null ? null : original.parent.snapshot();
+  this.node = original.node;
+  this.inferTypes = original.inferTypes;
+  this._jsNames = original._jsNames;
+  this._closedOver = original._closedOver;
+  this.rethrow = original.rethrow;
+}
+BlockScope._snapshot$ctor.prototype = BlockScope.prototype;
+BlockScope.prototype.get$enclosingMethod = function() { return this.enclosingMethod; };
+BlockScope.prototype.set$enclosingMethod = function(value) { return this.enclosingMethod = value; };
+BlockScope.prototype.get$parent = function() { return this.parent; };
+BlockScope.prototype.set$parent = function(value) { return this.parent = value; };
+BlockScope.prototype.get$_vars = function() { return this._vars; };
+BlockScope.prototype.set$_vars = function(value) { return this._vars = value; };
+BlockScope.prototype.get$_jsNames = function() { return this._jsNames; };
+BlockScope.prototype.set$_jsNames = function(value) { return this._jsNames = value; };
+BlockScope.prototype.get$_closedOver = function() { return this._closedOver; };
+BlockScope.prototype.set$_closedOver = function(value) { return this._closedOver = value; };
+BlockScope.prototype.get$rethrow = function() { return this.rethrow; };
+BlockScope.prototype.set$rethrow = function(value) { return this.rethrow = value; };
+BlockScope.prototype.get$isMethodScope = function() {
+  return this.parent == null || $ne(this.parent.enclosingMethod, this.enclosingMethod);
+}
+BlockScope.prototype.get$methodScope = function() {
+  var s = this;
+  while (!s.get$isMethodScope()) s = s.get$parent();
+  return s;
+}
+BlockScope.prototype.lookup = function(name) {
+  for (var s = this;
+   s != null; s = s.get$parent()) {
+    var ret = s.get$_vars().$index(name);
+    if (ret != null) return this._capture(s, ret);
+  }
+  return null;
+}
+BlockScope.prototype.assign = function(name, value) {
+  if (!this.inferTypes) return;
+  for (var s = this;
+   s != null; s = s.get$parent()) {
+    var existing = s.get$_vars().$index(name);
+    if (existing != null) {
+      s.get$_vars().$setindex(name, value.replaceCode(existing.get$code(), existing.get$span(), existing.get$needsTemp(), existing.get$staticType()));
+      return;
+    }
+  }
+  $globals.world.internalError(("assigning variable '" + name + "' that doesn't exist."));
+}
+BlockScope.prototype._capture = function(other, value) {
+  if ($ne(other.enclosingMethod, this.enclosingMethod)) {
+    other.get$methodScope()._closedOver.add(value.get$code());
+    if (this.enclosingMethod.captures != null && other.reentrant) {
+      this.enclosingMethod.captures.add(value.get$code());
+    }
+  }
+  return value;
+}
+BlockScope.prototype._isDefinedInParent = function(name) {
+  if (this.get$isMethodScope() && this._closedOver.contains(name)) return true;
+  for (var s = this.parent;
+   s != null; s = s.get$parent()) {
+    if (s.get$_vars().containsKey$1(name)) return true;
+    if (s.get$_jsNames().contains$1(name)) return true;
+    if (s.get$isMethodScope() && s.get$_closedOver().contains$1(name)) return true;
+  }
+  var type = this.enclosingMethod.method.declaringType;
+  if (type.get$library().lookup$2(name) != null) return true;
+  return false;
+}
+BlockScope.prototype.create = function(name, type, span, isFinal, isParameter) {
+  var jsName = $globals.world.toJsIdentifier(name);
+  if (this._vars.containsKey(name)) {
+    $globals.world.error(("duplicate name \"" + name + "\""), span);
+  }
+  if (!isParameter) {
+    var index = (0);
+    while (this._isDefinedInParent(jsName)) {
+      jsName = ("" + name + (index++));
+    }
+  }
+  var ret = new Value(type, jsName, span, false);
+  ret.set$isFinal(isFinal);
+  this._vars.$setindex(name, ret);
+  if (name != jsName) this._jsNames.add(jsName);
+  return ret;
+}
+BlockScope.prototype.declareParameter = function(p) {
+  return this.create(p.name, p.type, p.definition.span, false, true);
+}
+BlockScope.prototype.declare = function(id) {
+  var type = this.enclosingMethod.method.resolveType$2(id.type, false);
+  return this.create(id.name.name, type, id.span, false, false);
+}
+BlockScope.prototype.getRethrow = function() {
+  var scope = this;
+  while (scope.get$rethrow() == null && scope.get$parent() != null) {
+    scope = scope.get$parent();
+  }
+  return scope.get$rethrow();
+}
+BlockScope.prototype.snapshot = function() {
+  return new BlockScope._snapshot$ctor(this);
+}
+BlockScope.prototype.unionWith = function(other) {
+  var $this = this; // closure support
+  var changed = false;
+  if (this.parent != null) {
+    changed = this.parent.unionWith(other.parent);
+  }
+  if (this._vars._lang_map != other._vars._lang_map) {
+    other._vars.forEach((function (key, v) {
+      var myVar = $this._vars.$index(key);
+      if (myVar == null) {
+        $globals.world.internalError(("got unexpected new variable " + v.get$code()), v.span);
+      }
+      else {
+        v = Value.union(myVar, v);
+      }
+      if (v != myVar) {
+        v.code = myVar.get$code();
+        v.span = myVar.span;
+        v.staticType = myVar.staticType;
+        $this._vars.$setindex(key, v);
+        changed = true;
+      }
+    })
+    );
+  }
+  return changed;
+}
+BlockScope.prototype.create$3$isFinal = function($0, $1, $2, isFinal) {
+  return this.create($0, $1, $2, isFinal, false);
+};
 // ********** Code for CodeWriter **************
 function CodeWriter() {
   this._indentation = (0);
@@ -3198,158 +3350,6 @@ WorldGenerator.prototype.get$_compareMembers = function() {
   return this._compareMembers.bind(this);
 }
 WorldGenerator.prototype.run$0 = WorldGenerator.prototype.run;
-// ********** Code for BlockScope **************
-function BlockScope(enclosingMethod, parent, node, reentrant) {
-  this.enclosingMethod = enclosingMethod;
-  this._vars = new CopyOnWriteMap_dart_core_String$Value();
-  this.parent = parent;
-  this.node = node;
-  this.reentrant = reentrant;
-  this._jsNames = new HashSetImplementation();
-  if (this.get$isMethodScope()) {
-    this._closedOver = new HashSetImplementation();
-  }
-  else {
-    this.reentrant = reentrant || this.parent.reentrant;
-  }
-  this.inferTypes = $globals.options.inferTypes && (this.parent == null || this.parent.inferTypes);
-}
-BlockScope._snapshot$ctor = function(original) {
-  this.enclosingMethod = original.enclosingMethod;
-  this._vars = original._vars.clone();
-  this.parent = original.parent == null ? null : original.parent.snapshot();
-  this.node = original.node;
-  this.inferTypes = original.inferTypes;
-  this._jsNames = original._jsNames;
-  this._closedOver = original._closedOver;
-  this.rethrow = original.rethrow;
-}
-BlockScope._snapshot$ctor.prototype = BlockScope.prototype;
-BlockScope.prototype.get$enclosingMethod = function() { return this.enclosingMethod; };
-BlockScope.prototype.set$enclosingMethod = function(value) { return this.enclosingMethod = value; };
-BlockScope.prototype.get$parent = function() { return this.parent; };
-BlockScope.prototype.set$parent = function(value) { return this.parent = value; };
-BlockScope.prototype.get$_vars = function() { return this._vars; };
-BlockScope.prototype.set$_vars = function(value) { return this._vars = value; };
-BlockScope.prototype.get$_jsNames = function() { return this._jsNames; };
-BlockScope.prototype.set$_jsNames = function(value) { return this._jsNames = value; };
-BlockScope.prototype.get$_closedOver = function() { return this._closedOver; };
-BlockScope.prototype.set$_closedOver = function(value) { return this._closedOver = value; };
-BlockScope.prototype.get$rethrow = function() { return this.rethrow; };
-BlockScope.prototype.set$rethrow = function(value) { return this.rethrow = value; };
-BlockScope.prototype.get$isMethodScope = function() {
-  return this.parent == null || $ne(this.parent.enclosingMethod, this.enclosingMethod);
-}
-BlockScope.prototype.get$methodScope = function() {
-  var s = this;
-  while (!s.get$isMethodScope()) s = s.get$parent();
-  return s;
-}
-BlockScope.prototype.lookup = function(name) {
-  for (var s = this;
-   s != null; s = s.get$parent()) {
-    var ret = s.get$_vars().$index(name);
-    if (ret != null) return this._capture(s, ret);
-  }
-  return null;
-}
-BlockScope.prototype.assign = function(name, value) {
-  if (!this.inferTypes) return;
-  for (var s = this;
-   s != null; s = s.get$parent()) {
-    var existing = s.get$_vars().$index(name);
-    if (existing != null) {
-      s.get$_vars().$setindex(name, value.replaceCode(existing.get$code(), existing.get$span(), existing.get$needsTemp(), existing.get$staticType()));
-      return;
-    }
-  }
-  $globals.world.internalError(("assigning variable '" + name + "' that doesn't exist."));
-}
-BlockScope.prototype._capture = function(other, value) {
-  if ($ne(other.enclosingMethod, this.enclosingMethod)) {
-    other.get$methodScope()._closedOver.add(value.get$code());
-    if (this.enclosingMethod.captures != null && other.reentrant) {
-      this.enclosingMethod.captures.add(value.get$code());
-    }
-  }
-  return value;
-}
-BlockScope.prototype._isDefinedInParent = function(name) {
-  if (this.get$isMethodScope() && this._closedOver.contains(name)) return true;
-  for (var s = this.parent;
-   s != null; s = s.get$parent()) {
-    if (s.get$_vars().containsKey$1(name)) return true;
-    if (s.get$_jsNames().contains$1(name)) return true;
-    if (s.get$isMethodScope() && s.get$_closedOver().contains$1(name)) return true;
-  }
-  var type = this.enclosingMethod.method.declaringType;
-  if (type.get$library().lookup$2(name) != null) return true;
-  return false;
-}
-BlockScope.prototype.create = function(name, type, span, isFinal, isParameter) {
-  var jsName = $globals.world.toJsIdentifier(name);
-  if (this._vars.containsKey(name)) {
-    $globals.world.error(("duplicate name \"" + name + "\""), span);
-  }
-  if (!isParameter) {
-    var index = (0);
-    while (this._isDefinedInParent(jsName)) {
-      jsName = ("" + name + (index++));
-    }
-  }
-  var ret = new Value(type, jsName, span, false);
-  ret.set$isFinal(isFinal);
-  this._vars.$setindex(name, ret);
-  if (name != jsName) this._jsNames.add(jsName);
-  return ret;
-}
-BlockScope.prototype.declareParameter = function(p) {
-  return this.create(p.name, p.type, p.definition.span, false, true);
-}
-BlockScope.prototype.declare = function(id) {
-  var type = this.enclosingMethod.method.resolveType$2(id.type, false);
-  return this.create(id.name.name, type, id.span, false, false);
-}
-BlockScope.prototype.getRethrow = function() {
-  var scope = this;
-  while (scope.get$rethrow() == null && scope.get$parent() != null) {
-    scope = scope.get$parent();
-  }
-  return scope.get$rethrow();
-}
-BlockScope.prototype.snapshot = function() {
-  return new BlockScope._snapshot$ctor(this);
-}
-BlockScope.prototype.unionWith = function(other) {
-  var $this = this; // closure support
-  var changed = false;
-  if (this.parent != null) {
-    changed = this.parent.unionWith(other.parent);
-  }
-  if (this._vars._lang_map != other._vars._lang_map) {
-    other._vars.forEach((function (key, v) {
-      var myVar = $this._vars.$index(key);
-      if (myVar == null) {
-        $globals.world.internalError(("got unexpected new variable " + v.get$code()), v.span);
-      }
-      else {
-        v = Value.union(myVar, v);
-      }
-      if (v != myVar) {
-        v.code = myVar.get$code();
-        v.span = myVar.span;
-        v.staticType = myVar.staticType;
-        $this._vars.$setindex(key, v);
-        changed = true;
-      }
-    })
-    );
-  }
-  return changed;
-}
-BlockScope.prototype.create$3$isFinal = function($0, $1, $2, isFinal) {
-  return this.create($0, $1, $2, isFinal, false);
-};
 // ********** Code for MethodGenerator **************
 function MethodGenerator(method, enclosingMethod) {
   this.enclosingMethod = enclosingMethod;
