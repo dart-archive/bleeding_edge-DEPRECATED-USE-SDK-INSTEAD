@@ -133,12 +133,16 @@ class Keyword implements SourceString {
     return other is SourceString && toString() == other.toString();
   }
 
+  Iterator<int> iterator() => new StringCodeIterator(syntax);
+
   void printOn(StringBuffer sb) {
     sb.add(syntax);
   }
 
   String toString() => syntax;
   String get stringValue() => syntax;
+
+  bool isEmtpy() => false;
 }
 
 /**
