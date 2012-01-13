@@ -13,6 +13,7 @@
 #source('bailout.dart');
 #source('builder.dart');
 #source('codegen.dart');
+#source('codegen_helpers.dart');
 #source('js_names.dart');
 #source('nodes.dart');
 #source('optimize.dart');
