@@ -116,7 +116,9 @@ def main(args):
     print ' ' + build_file + ' -m release'
     return 1
 
-  if subprocess.call("node --help >/dev/null 2>&1", shell=True):
+  proc = subprocess.Popen("node --help",
+      stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+  if proc.wait() != 0:
     if not exists(D8):
       print "No engine available for running JS code."
       print "See frog/README.txt for instructions."

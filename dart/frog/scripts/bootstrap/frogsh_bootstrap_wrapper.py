@@ -1,6 +1,7 @@
 # Copyright 2011 Google Inc. All Rights Reserved.
 
 import os
+import platform
 import shutil
 import stat
 import sys
@@ -25,6 +26,9 @@ def main(args):
   product_dir = args[1]
   js_out = os.path.join(product_dir, 'frog', 'bin', 'frogsh')
   vm = os.path.join(product_dir, 'dart')
+  id = platform.system()
+  if id == 'Windows' or id == 'Microsoft':
+    vm = vm + '.exe'
   frog_args = ['frog.py', '--vm=' + vm, '--', '--out=' + js_out, 'frog.dart']
 
   # TODO(ngeoffray): Compile frogsh without checks integrated.

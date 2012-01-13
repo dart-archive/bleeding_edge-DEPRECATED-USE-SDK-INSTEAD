@@ -1,6 +1,7 @@
 # Copyright 2011 Google Inc. All Rights Reserved.
 
 import os
+import platform
 import shutil
 import stat
 import sys
@@ -17,6 +18,9 @@ if __name__ == '__main__':
 def main(args):
   product_dir = args[1]
   vm = os.path.join(product_dir, 'dart')
+  id = platform.system()
+  if id == 'Windows' or id == 'Microsoft':
+    vm = vm + '.exe'
   frog = os.path.join(product_dir, 'frog', 'bin', 'frog')
 
   # TODO(ngeoffray): Create a script that will run the VM in production mode.
