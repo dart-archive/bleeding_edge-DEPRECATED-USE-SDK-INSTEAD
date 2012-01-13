@@ -137,10 +137,10 @@ class Namer {
           globals[element] = name;
           return name;
         }
-      
+
       default:
-        compiler.unreachable('getName for unknown kind: ${element.kind}',
-                             node: element.parseNode(compiler, compiler));
+        compiler.internalError('getName for unknown kind: ${element.kind}',
+                               node: element.parseNode(compiler, compiler));
     }
   }
 
