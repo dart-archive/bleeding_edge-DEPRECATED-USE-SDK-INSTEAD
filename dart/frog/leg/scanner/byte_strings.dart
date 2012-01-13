@@ -15,11 +15,14 @@ class ByteString implements SourceString {
 
   abstract String get charset();
 
-  String toString() => new Utf8Decoder(bytes, offset, length).toString();
+  String toString() => new String.fromCharCodes(
+      new Utf8Decoder(bytes, offset, length).decodeRest());
 
   bool operator ==(other) {
     throw "should be overridden in subclass";
   }
+
+  Iterator<int> iterator() => new Utf8Decoder(bytes, offset, length);
 
   int hashCode() {
     if (_hashCode === null) {

@@ -122,7 +122,7 @@ class StringToken extends Token {
   String toString() => value.toString();
 }
 
-interface SourceString extends Hashable default StringWrapper {
+interface SourceString extends Hashable, Iterable<int> default StringWrapper {
   const SourceString(String string);
 
   int get length();
@@ -143,6 +143,8 @@ class StringWrapper implements SourceString {
     return other is SourceString && toString() == other.toString();
   }
 
+  Iterator<int> iterator() => new StringCodeIterator(stringValue);
+
   int get length() => stringValue.length;
 
   void printOn(StringBuffer sb) {
@@ -150,6 +152,24 @@ class StringWrapper implements SourceString {
   }
 
   String toString() => stringValue;
+}
+
+class StringCodeIterator implements Iterator<int> {
+  final String string;
+  int index;
+  final int end;
+
+  StringCodeIterator(String string) :
+    this.string = string, index = 0, end = string.length;
+
+  StringCodeIterator.substring(this.string, this.index, this.end) {
+    assert(0 <= index);
+    assert(index <= end);
+    assert(end <= string.length);
+  }
+
+  bool hasNext() => index < end;
+  int next() => string.charCodeAt(index++);
 }
 
 class BeginGroupToken extends StringToken {
