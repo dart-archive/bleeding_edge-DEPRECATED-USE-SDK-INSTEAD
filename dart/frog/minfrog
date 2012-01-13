@@ -13171,10 +13171,6 @@ IntValue.prototype.binop = function(kind, other, context, node) {
 
         return new IntValue(x >> y, c, s);
 
-      case (41):
-
-        return new IntValue(x >>> y, c, s);
-
       case (42):
 
         return new IntValue(x + y, c, s);

@@ -782,8 +782,6 @@ class IntValue extends EvaluatedValue {
           return new IntValue(x << y, c, s);
         case TokenKind.SAR:
           return new IntValue(x >> y, c, s);
-        case TokenKind.SHR:
-          return new IntValue(x >>> y, c, s);
         case TokenKind.ADD:
           return new IntValue(x + y, c, s);
         case TokenKind.SUB:

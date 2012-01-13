@@ -54,7 +54,4 @@ interface num extends Comparable, Hashable {
   int operator ~();
   int operator <<(int shiftAmount);
   int operator >>(int shiftAmount);
-
-  // bit operation missing in corelib?
-  int operator >>>(int shiftAmount);
 }
