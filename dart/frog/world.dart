@@ -62,15 +62,11 @@ class CounterLog {
   int dynamicMethodCalls = 0;
   int typeAsserts = 0;
   int objectProtoMembers = 0;
-  int invokeCalls = 0;
-  int msetN = 0;
 
   info() {
     world.info('Dynamically typed method calls: $dynamicMethodCalls');
     world.info('Generated type assertions: $typeAsserts');
     world.info('Members on Object.prototype: $objectProtoMembers');
-    world.info('Invoke calls: $invokeCalls');
-    world.info('msetN calls: $msetN');
   }
 
   // We need to push a new counter when we are abstract interpreting, so we
@@ -82,11 +78,8 @@ class CounterLog {
     dynamicMethodCalls += other.dynamicMethodCalls;
     typeAsserts += other.typeAsserts;
     objectProtoMembers += other.objectProtoMembers;
-    invokeCalls += other.invokeCalls;
-    msetN += other.msetN;
   }
 }
-
 
 /** Represents a Dart "world" of code. */
 class World {
@@ -471,9 +464,17 @@ class World {
   }
 
   findMainMethod(Library lib) {
-    var main = lib.lookup('main', lib.span);
-    if (main == null) {
+    var mainMembers = lib.topType.resolveMember('main');
+    var main = null;
+    if (mainMembers == null || mainMembers.members.length == 0) {
       fatal('no main method specified');
+    } else if (mainMembers.members.length > 1) {
+      for (var m in mainMembers.members) {
+        main = m;
+        error('more than one main member (using last?)', main.span);
+      }
+    } else {
+      main = mainMembers.members[0];
     }
     return main;
   }

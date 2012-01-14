@@ -4,19 +4,19 @@
 
 prefix frog
 
-# TODO(jimhug): Leave this disabled until we're ready to reengage on repl.
-EvaluatorTest: Skip
-
 [ $component == frogsh ]
-# TODO(jimhug): Understand and fix flakiness issues - and then reenable
-InheritanceOrderingTest: Skip # Flaky, no data yet. Two flaky tests is starting to look like a pattern ...
-PrototypePatchingTest: Skip # Flaky. issue 1162.
+EvaluatorTest: Pass, Crash # flaky, no data yet available to track it down.
+InheritanceOrderingTest: Pass, Crash # Flaky, no data yet. Two flaky tests is starting to look like a pattern ...
+PrototypePatchingTest: Pass, Crash # Flaky. issue 1162.
 
 [ $component == frogsh && $checked]
 NodeProcessTest: Fail # Checked mode failure -- looked like it failed to find assert$WritableStream
 
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == frog || $component == leg]
 Node*Test: Skip
+
+[ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium ]
+EvaluatorTest: Skip
 
 [ $component == frog || $component == frogsh || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == leg ]
 FrogServerTest: Skip
