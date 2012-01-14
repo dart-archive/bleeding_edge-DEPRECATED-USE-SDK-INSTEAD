@@ -280,7 +280,8 @@ class Type extends Element {
     if (x.isNum && y.isNum) return world.numType;
     if (x.isString && y.isString) return world.stringType;
 
-    // TODO(jmesserly): better abstraction for union types
+    // TODO(jmesserly): make this more precise when we can. Or add UnionValue
+    // and have Value do the heavy lifting of tracking sets of types.
     return world.varType;
   }
 

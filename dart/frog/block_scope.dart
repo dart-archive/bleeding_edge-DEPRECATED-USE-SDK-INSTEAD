@@ -9,7 +9,7 @@ class BlockScope {
 
   // TODO(jimhug): Using a list or tree-based map may improve perf; the list
   // is normally small.
-  CopyOnWriteMap<String, Value> _vars;
+  CopyOnWriteMap<String, VariableValue> _vars;
 
   /** Used JS names, if different from the Dart name. */
   Set<String> _jsNames;
@@ -38,7 +38,7 @@ class BlockScope {
   BlockScope(this.enclosingMethod, this.parent, this.node,
       [bool reentrant = false])
     : this.reentrant = reentrant,
-      _vars = new CopyOnWriteMap<String, Value>(),
+      _vars = new CopyOnWriteMap<String, VariableValue>(),
       _jsNames = new Set<String>() {
 
     if (isMethodScope) {
@@ -76,22 +76,23 @@ class BlockScope {
     return s;
   }
 
-  Value lookup(String name) {
+  VariableValue lookup(String name) {
     for (var s = this; s != null; s = s.parent) {
-      Value ret = s._vars[name];
+      VariableValue ret = s._vars[name];
       if (ret != null) return _capture(s, ret);
     }
     return null;
   }
 
-  void assign(String name, Value value) {
-    if (!inferTypes) return;
+  void inferAssign(String name, Value value) {
+    if (inferTypes) assign(name, value);
+  }
 
+  void assign(String name, Value value) {
     for (var s = this; s != null; s = s.parent) {
       var existing = s._vars[name];
       if (existing != null) {
-        s._vars[name] = value.replaceCode(existing.code, existing.span,
-          existing.needsTemp, existing.staticType);
+        s._vars[name] = existing.replaceValue(value);
         return;
       }
     }
@@ -143,7 +144,7 @@ class BlockScope {
   }
 
 
-  Value create(String name, Type type, SourceSpan span,
+  VariableValue create(String name, Type type, SourceSpan span,
       [bool isFinal = false, bool isParameter = false]) {
 
     var jsName = world.toJsIdentifier(name);
@@ -159,8 +160,7 @@ class BlockScope {
       }
     }
 
-    var ret = new Value(type, jsName, span, false);
-    ret.isFinal = isFinal;
+    var ret = new VariableValue(type, jsName, span, isFinal);
     _vars[name] = ret;
     if (name != jsName) _jsNames.add(jsName);
     return ret;
@@ -207,18 +207,11 @@ class BlockScope {
 
     // Optimization: check if the copy-on-write maps are the same
     if (_vars._map !== other._vars._map) {
-      other._vars.forEach((String key, Value v) {
-        Value myVar = _vars[key];
-        if (myVar == null) {
-          world.internalError('got unexpected new variable ${v.code}', v.span);
-        } else {
-          v = Value.union(myVar, v);
-        }
-        if (v !== myVar) {
-          v.code = myVar.code;
-          v.span = myVar.span;
-          v.staticType = myVar.staticType;
-          _vars[key] = v;
+      other._vars.forEach((String key, VariableValue otherVar) {
+        VariableValue myVar = _vars[key];
+        Value v = Value.union(myVar.value, otherVar.value);
+        if (myVar.value !== v) {
+          _vars[key] = myVar.replaceValue(v);
           changed = true;
         }
       });

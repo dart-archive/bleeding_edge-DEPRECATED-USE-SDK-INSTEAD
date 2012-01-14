@@ -138,7 +138,7 @@ class FrogOptions {
           compileOnly = true;
           break;
 
-        case '--force_dynamic':
+        case '--Xforce_dynamic':
           forceDynamic = true;
           break;
 
@@ -146,7 +146,7 @@ class FrogOptions {
           useColors = false;
           break;
 
-        case '--infer_types':
+        case '--Xinfer_types':
           inferTypes = true;
           break;
 

@@ -37,7 +37,7 @@ class WorldGenerator {
 
   run() {
     var metaGen = new MethodGenerator(main, null);
-    var mainTarget = new Value.type(main.declaringType, main.span);
+    var mainTarget = new TypeValue(main.declaringType, main.span);
     var mainCall = main.invoke(metaGen, null, mainTarget, Arguments.EMPTY);
     main.declaringType.markUsed();
 
@@ -63,7 +63,7 @@ class WorldGenerator {
       corejs.useIsolates = true;
       MethodMember isolateMain =
           world.coreimpl.topType.resolveMember('startRootIsolate').members[0];
-      var isolateMainTarget = new Value.type(world.coreimpl.topType, main.span);
+      var isolateMainTarget = new TypeValue(world.coreimpl.topType, main.span);
       mainCall = isolateMain.invoke(metaGen, null, isolateMainTarget,
           new Arguments(null, [main._get(metaGen, main.definition, null)]));
     }
@@ -790,7 +790,7 @@ class MethodGenerator implements TreeVisitor {
     return value.needsTemp ? forceTemp(value) : value;
   }
 
-  Value forceTemp(Value value) {
+  VariableValue forceTemp(Value value) {
     String name;
     if (_freeTemps.length > 0) {
       name = _freeTemps.removeLast();
@@ -798,7 +798,7 @@ class MethodGenerator implements TreeVisitor {
       name = '\$' + _usedTemps.length;
     }
     _usedTemps.add(name);
-    return new Value(value.type, name, value.span, /*needsTemp:*/false);
+    return new VariableValue(value.staticType, name, value.span, false, value);
   }
 
   Value assignTemp(Value tmp, Value v) {
@@ -807,11 +807,12 @@ class MethodGenerator implements TreeVisitor {
     } else {
       // TODO(jmesserly): we should mark this returned value with the temp
       // somehow, so getTemp will reuse it instead of allocating a new one.
+      // (we could do this now if we had a "TempValue" or something like that)
       return new Value(v.type, '(${tmp.code} = ${v.code})', v.span);
     }
   }
 
-  void freeTemp(Value value) {
+  void freeTemp(VariableValue value) {
     if (_usedTemps.remove(value.code)) {
       _freeTemps.add(value.code);
     } else {
@@ -1040,7 +1041,7 @@ class MethodGenerator implements TreeVisitor {
         var paramValue = _scope.declareParameter(p);
         _paramCode.add(paramValue.code);
         if (newObject != null && newObject.isConst) {
-          _scope._vars[p.name] = currentArg;
+          _scope.assign(p.name, currentArg.convertTo(this, p.type));
         }
       }
     }
@@ -1393,7 +1394,7 @@ class MethodGenerator implements TreeVisitor {
         }
       } else {
         value = value.convertTo(this, type);
-        _scope.assign(name, value);
+        _scope.inferAssign(name, value);
         writer.write('${val.code} = ${value.code}');
       }
     }
@@ -1473,7 +1474,7 @@ class MethodGenerator implements TreeVisitor {
 
       var tp = world.corelib.topType;
       Member f = tp.getMember('_assert');
-      var value = f.invoke(this, node, new Value.type(tp, null),
+      var value = f.invoke(this, node, new TypeValue(tp, null),
         new Arguments(null, args));
       writer.writeln('${value.code};');
     }
@@ -1836,10 +1837,7 @@ class MethodGenerator implements TreeVisitor {
     if (parentType == null) {
       world.error('no super class', node.span);
     }
-    // TODO(jimhug): Replace with SuperValue.
-    var ret = new Value(parentType, 'this', node.span, false);
-    ret.isSuper = true;
-    return ret;
+    return new SuperValue(parentType, node.span);
   }
 
   _getOutermostMethod() {
@@ -1870,12 +1868,12 @@ class MethodGenerator implements TreeVisitor {
       var outermostMethod = _getOutermostMethod();
       outermostMethod._checkNonStatic(node);
       outermostMethod.needsThis = true;
-      return new Value(outermostMethod.method.declaringType, '\$this',
-        node != null ? node.span : null, /*needsTemp:*/false);
+      return new ThisValue(outermostMethod.method.declaringType, '\$this',
+          node != null ? node.span : null);
     } else {
       _checkNonStatic(node);
-      return new Value(method.declaringType, 'this',
-          node != null ? node.span : null, /*needsTemp:*/false);
+      return new ThisValue(method.declaringType, 'this',
+          node != null ? node.span : null);
     }
   }
 
@@ -2002,10 +2000,10 @@ class MethodGenerator implements TreeVisitor {
 
     if (x != null) {
       y = y.convertTo(this, x.staticType);
-      // Update the inferred type
+      // Update the inferred value
       // Note: for now we aren't very flow sensitive, so this is a "union"
       // rather than simply setting it to "y"
-      _scope.assign(name, Value.union(x, y));
+      _scope.inferAssign(name, Value.union(x, y));
     } else {
       // TODO(jmesserly): this needs serious cleanup...
       // Look for a setter in the class
@@ -2080,14 +2078,17 @@ class MethodGenerator implements TreeVisitor {
   _visitIndexAssign(int kind, IndexExpression xn, Expression yn, Node position,
       Value captureOriginal(Value right), [bool isVoid = false]) {
     var target = visitValue(xn.target);
-    var index = visitValue(xn.index);
-    var y = visitValue(yn);
 
+    // Note: need to get temps eagerly so they don't get reused
     var tmptarget = target;
+    if (kind != 0) tmptarget = getTemp(target);
+
+    var index = visitValue(xn.index);
     var tmpindex = index;
+    if (kind != 0) tmpindex = getTemp(index);
+
+    var y = visitValue(yn);
     if (kind != 0) {
-      tmptarget = getTemp(target);
-      tmpindex = getTemp(index);
       index = assignTemp(tmpindex, index);
       var right = tmptarget.invoke(this, ':index',
           position, new Arguments(null, [tmpindex]));
@@ -2269,7 +2270,7 @@ class MethodGenerator implements TreeVisitor {
     // NOTE: this is important for correct type checking of factories.
     // If the user calls "new Interface()" we want the result type to be the
     // interface, not the class.
-    var target = new Value.type(type, typeRef.span);
+    var target = new TypeValue(type, typeRef.span);
     return m.invoke(this, node, target, _makeArgs(node.arguments));
   }
 
@@ -2304,7 +2305,7 @@ class MethodGenerator implements TreeVisitor {
     // Special case the empty non-const map.
     if (node.items.length == 0 && !node.isConst) {
       return world.mapType.getConstructor('').invoke(this, node,
-        new Value.type(world.mapType, node.span), Arguments.EMPTY);
+        new TypeValue(world.mapType, node.span), Arguments.EMPTY);
     }
 
     var values = <Value>[];
@@ -2358,9 +2359,10 @@ class MethodGenerator implements TreeVisitor {
     var trueBranch = visitValue(node.trueBranch);
     var falseBranch = visitValue(node.falseBranch);
 
-    return Value.union(trueBranch, falseBranch).replaceCode(
-      '${test.code} ? ${trueBranch.code} : ${falseBranch.code}',
-      node.span, needsTemp: true);
+    // TODO(jmesserly): is there a way to use Value.union here, even though
+    // we need different code?
+    return new Value(Type.union(trueBranch.type, falseBranch.type),
+        '${test.code} ? ${trueBranch.code} : ${falseBranch.code}', node.span);
   }
 
   visitIsExpression(IsExpression node) {
@@ -2466,7 +2468,7 @@ class Arguments {
     var values = [];
     for (int i = 0; i < arity; i++) {
       // TODO(jimhug): Need a firm rule about null SourceSpans are allowed.
-      values.add(new Value(world.varType, '\$$i', null, /*needsTemp:*/false));
+      values.add(new VariableValue(world.varType, '\$$i', null));
     }
     return new Arguments(null, values);
   }
@@ -2554,12 +2556,12 @@ class Arguments {
   Arguments toCallStubArgs() {
     var result = [];
     for (int i = 0; i < bareCount; i++) {
-      result.add(new Value(world.varType, '\$$i', null, /*needsTemp:*/false));
+      result.add(new VariableValue(world.varType, '\$$i', null));
     }
     for (int i = bareCount; i < length; i++) {
       var name = getName(i);
       if (name == null) name = '\$$i';
-      result.add(new Value(world.varType, name, null, /*needsTemp:*/false));
+      result.add(new VariableValue(world.varType, name, null));
     }
     return new Arguments(nodes, result);
   }

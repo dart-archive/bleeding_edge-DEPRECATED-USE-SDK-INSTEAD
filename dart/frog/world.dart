@@ -57,7 +57,7 @@ class CompilerException implements Exception {
   }
 }
 
-/** Logging used for debugging the compiler itself. */
+/** Counters that track statistics about the generated code. */
 class CounterLog {
   int dynamicMethodCalls = 0;
   int typeAsserts = 0;
@@ -69,6 +69,11 @@ class CounterLog {
     world.info('Members on Object.prototype: $objectProtoMembers');
   }
 
+  // We need to push a new counter when we are abstract interpreting, so we
+  // can discard it if we discard the code.
+  // TODO(jmesserly): this is ugly but I'm not sure how to make it cleaner,
+  // other than splitting abstract interpretation and code generation (which
+  // has its own problems).
   add(CounterLog other) {
     dynamicMethodCalls += other.dynamicMethodCalls;
     typeAsserts += other.typeAsserts;

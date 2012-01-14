@@ -243,7 +243,7 @@ class TypeMember extends Member {
 
   Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic=false]) {
-    return new Value.type(type, node.span);
+    return new TypeValue(type, node.span);
   }
 
   Value _set(MethodGenerator context, Node node, Value target, Value value,
@@ -1482,6 +1482,7 @@ class MemberSet {
     return result;
   }
 
+  // TODO(jimhug): This is icky - but this whole class needs cleanup.
   Value _tryUnion(Value x, Value y, Node node) {
     if (x == null) return y;
     var type = Type.union(x.type, y.type);
@@ -1491,12 +1492,7 @@ class MemberSet {
       } else if (x.isConst || y.isConst) {
         world.internalError("unexpected: union of const values ");
       } else {
-        // TODO(jimhug): This is icky - but this whole class needs cleanup.
-        var ret = new Value(type, x.code, node.span);
-        ret.isSuper = x.isSuper && y.isSuper;
-        ret.needsTemp = x.needsTemp || y.needsTemp;
-        ret.isType = x.isType && y.isType;
-        return ret;
+        return Value.union(x, y);
       }
     } else {
       return new Value(type, null, node.span);
