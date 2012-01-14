@@ -169,7 +169,7 @@ class VarMethodStub extends VarMember {
   bool _needsExactTypeCheck() {
     if (member == null || member.declaringType.isObject) return false;
 
-    var members = member.declaringType.resolveMember(member.name).members;
+    var members = member.potentialMemberSet.members;
     return members.filter((m) => m != member
         && m.declaringType.isHiddenNativeType).length >= 1;
   }

@@ -160,6 +160,82 @@ class Member extends Element {
 
   List<Parameter> get parameters() => [];
 
+  MemberSet _preciseMemberSet, _potentialMemberSet;
+
+  MemberSet get preciseMemberSet() {
+    if (_preciseMemberSet === null) {
+      _preciseMemberSet = new MemberSet(this);
+    }
+    return _preciseMemberSet;
+  }
+
+  MemberSet get potentialMemberSet() {
+    if (_potentialMemberSet === null) {
+      if (declaringType.isObject) {
+        _potentialMemberSet = world._members[name];
+        return _potentialMemberSet;
+      }
+
+      final mems = new Set<Member>();
+      if (declaringType.isClass) mems.add(this);
+
+
+      for (var subtype in declaringType.subtypes) {
+        if (!subtype.isClass) continue;
+        var mem = subtype.members[name];
+        if (mem !== null) {
+          mems.add(mem);
+        } else if (!declaringType.isClass) {
+          // Handles weird interface case.
+          mem = subtype.getMember(name);
+          if (mem !== null) {
+            mems.add(mem);
+          }
+        }
+      }
+
+      if (mems.length != 0) {
+        for (var mem in mems) {
+          if (_potentialMemberSet === null) {
+            _potentialMemberSet = new MemberSet(mem);
+          } else {
+            _potentialMemberSet.add(mem);
+          }
+        }
+      }
+    }
+    return _potentialMemberSet;
+  }
+
+  // If I have an object of [type] could I be invoking this member?
+  bool isDefinedOn(Type type) {
+    if (type.isClass) {
+      if (declaringType.isSubtypeOf(type)) {
+        return true;
+      } else if (type.isSubtypeOf(declaringType)) {
+        // maybe - but not if overridden somewhere
+        // !!! horrible hack for today - awful perf props
+        return type.getMember(name) == this;
+        //return true;
+      } else {
+        return false;
+      }
+    } else {
+       if (declaringType.isSubtypeOf(type)) {
+         return true;
+       } else {
+         // If this is an interface, the actual implementation may
+         // come from a class that does not implement this interface.
+         for (var t in declaringType.subtypes) {
+           if (t.isSubtypeOf(type) && t.getMember(name) == this) {
+             return true;
+           }
+         }
+         return false;
+       }
+    }
+  }
+
   // TODO(jmesserly): isDynamic isn't a great name for this, something better?
   abstract Value _get(MethodGenerator context, Node node, Value target,
       [bool isDynamic]);
@@ -274,10 +350,9 @@ class FieldMember extends Member {
     if (isStatic) return false;
 
     if (declaringType.parent != null) {
-      var p = declaringType.parent.resolveMember(name);
-      if (p != null && p.containsProperties) {
-        return true;
-      }
+      var p = declaringType.parent.getProperty(name);
+      if (p != null && p.isProperty) return true;
+      if (p is FieldMember && p != this) return p.overridesProperty;
     }
     return false;
   }
@@ -1329,6 +1404,11 @@ class MemberSet {
     // If this is the global MemberSet from world, always bind dynamically.
     // Note: we need this for proper noSuchMethod and REPL behavior.
     Value returnValue;
+    if (members.length == 1 && !isVar) {
+      return members[0]._get(context, node, target, isDynamic);
+    }
+
+
     final targets = members.filter((m) => m.canGet);
     if (isVar) {
       targets.forEach((m) => m._get(context, node, target, isDynamic: true));
@@ -1365,6 +1445,10 @@ class MemberSet {
       [bool isDynamic=false]) {
     // If this is the global MemberSet from world, always bind dynamically.
     // Note: we need this for proper noSuchMethod and REPL behavior.
+    if (members.length == 1 && !isVar) {
+      return members[0]._set(context, node, target, value, isDynamic);
+    }
+
     Value returnValue;
     final targets = members.filter((m) => m.canSet);
     if (isVar) {
@@ -1407,26 +1491,31 @@ class MemberSet {
       return invokeOnVar(context, node, target, args);
     }
 
-    if (members.length == 1) {
+    if (members.length == 1 && !isVar) {
       return members[0].invoke(context, node, target, args, isDynamic);
     }
+
     final targets = members.filter((m) => m.canInvoke(context, args));
     if (targets.length == 1) {
       return targets[0].invoke(context, node, target, args, isDynamic);
     }
 
     Value returnValue = null;
-    for (var member in targets) {
-      final res = member.invoke(context, node, target, args, isDynamic:true);
-      // TODO(jmesserly): If the code has different type checks, it will fail to
-      // unify and go through a dynamic stub. Good so far. However, we'll end
-      // up with a bogus unused temp generated (usually "var $0"). We need a way
-      // to throw away temps when we throw away the code.
-      returnValue = _tryUnion(returnValue, res, node);
-    }
+    if (targets.length < 1000) {
+      for (var member in targets) {
+        final res = member.invoke(context, node, target, args, isDynamic:true);
+        // TODO(jmesserly): If the code has different type checks, it will fail to
+        // unify and go through a dynamic stub. Good so far. However, we'll end
+        // up with a bogus unused temp generated (usually "var $0"). We need a way
+        // to throw away temps when we throw away the code.
+        returnValue = _tryUnion(returnValue, res, node);
+      }
 
-    if (returnValue == null) {
-      return _makeError(node, target, 'method');
+      if (returnValue == null) {
+        return _makeError(node, target, 'method');
+      }
+    } else {
+      returnValue = new Value(world.varType, null, node.span);
     }
 
     if (returnValue.code == null) {
