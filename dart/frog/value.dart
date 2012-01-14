@@ -1338,11 +1338,9 @@ class VariableValue extends Value {
     // these are not really first class
     assert(value === null || !value.isType && !value.isSuper);
 
-    // Value should've been converted already
-    // TODO(jmesserly): should this setter do the conversion?
-    // Or maybe we should we have an "assign" method that returns a Value with
-    // code to do the assignment?
-    assert(value === null || value.staticType == staticType);
+    // TODO(jmesserly): should we do convertTo here, so the check doesn't get
+    // missed? There are some cases where this assert doesn't hold.
+    // assert(value === null || value.staticType == staticType);
   }
 
   static Value _unwrap(Value v) {
