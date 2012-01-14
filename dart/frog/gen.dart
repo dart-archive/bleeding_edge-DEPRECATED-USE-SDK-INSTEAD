@@ -192,12 +192,21 @@ class WorldGenerator {
     }
     lib.topType.markUsed(); // TODO(jimhug): EGREGIOUS HACK
 
-    for (var type in _orderValues(lib.types)) {
-      // TODO(jmesserly): we can't accurately track if DOM types are
-      // created or not, so we need to prepare to handle them.
-      // This should be fixed by tightening up the return types in DOM.
-      if ((type.isUsed || type.library.isDom
-          || type.isHiddenNativeType) && type.isClass) {
+    var orderedTypes = _orderValues(lib.types);
+
+    // TODO(jmesserly): we can't accurately track if DOM types are
+    // created or not, so we need to prepare to handle them.
+    // This should be fixed by tightening up the return types in DOM.
+    // Until then, this 'analysis' just marks all the DOM types as used.
+    for (var type in orderedTypes) {
+      if ((type.library.isDom || type.isHiddenNativeType) &&
+          type.isClass) {
+        type.markUsed();
+      }
+    }
+
+    for (var type in orderedTypes) {
+      if (type.isUsed && type.isClass) {
         writeType(type);
 
         if (type.isGeneric) {
