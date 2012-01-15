@@ -1545,6 +1545,12 @@ class MemberSet {
     // Most operator calls need to be emitted as function calls, so we don't
     // box numbers accidentally. Indexing is the exception.
     if (name == ':index' || name == ':setindex') {
+      // TODO(jimhug): should not need this test both here and in invoke
+      if (name == ':index') {
+        world.gen.corejs.useIndex = true;
+      } else if (name == ':setindex') {
+        world.gen.corejs.useSetIndex = true;
+      }
       return new Value(returnType, '${target.code}.$jsname($argsString)',
           target.span);
     } else {

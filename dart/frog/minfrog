@@ -6705,6 +6705,12 @@ MemberSet.prototype.invoke = function(context, node, target, args, isDynamic) {
 MemberSet.prototype.invokeSpecial = function(target, args, returnType) {
   var argsString = args.getCode();
   if (this.name == ":index" || this.name == ":setindex") {
+    if (this.name == ":index") {
+      $globals.world.gen.corejs.useIndex = true;
+    }
+    else if (this.name == ":setindex") {
+      $globals.world.gen.corejs.useSetIndex = true;
+    }
     return new Value(returnType, ("" + target.get$code() + "." + this.jsname + "(" + argsString + ")"), target.span);
   }
   else {
