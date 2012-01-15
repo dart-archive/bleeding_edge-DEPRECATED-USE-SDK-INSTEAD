@@ -18,10 +18,10 @@ class Type extends Element {
   /** Stubs used to call into this method dynamically. */
   Map<String, VarMember> varStubs;
 
-  /** Cache of [MemberSet]s that have been resolved. */
-  Map<String, MemberSet> _resolvedMembers;
+  /** Cache of [Member]s that have been found. */
+  Map<String, Member> _foundMembers;
 
-  Type(String name): _resolvedMembers = {}, varStubs = {}, super(name, null);
+  Type(String name): _foundMembers = {}, varStubs = {}, super(name, null);
 
   void markUsed() {}
   abstract void genMethod(Member method);
@@ -200,41 +200,6 @@ class Type extends Element {
         }
       }
       return world.objectType.getMember(memberName);
-    }
-  }
-
-  MemberSet resolveMember(String memberName) {
-    MemberSet ret = _resolvedMembers[memberName];
-    if (ret != null) return ret;
-
-    Member member = getMember(memberName);
-    if (member == null) {
-      // TODO(jimhug): Check for members on subtypes given dart's dynamism.
-      return null;
-    }
-
-    // TODO(jimhug): Move this adding subtypes logic to MemberSet?
-    ret = new MemberSet(member);
-    _resolvedMembers[memberName] = ret;
-    if (member.isStatic) {
-      return ret;
-    } else {
-      for (var t in subtypes) {
-        if (!isClass && t.isClass) {
-          // If this is an interface, the actual implementation may
-          // come from a class that does not implement this interface.
-          // TODO(vsm): Use a more efficient lookup strategy.
-          // TODO(jimhug): This is made uglier by need to avoid dups.
-          final m = t.getMember(memberName);
-          if (m != null && ret.members.indexOf(m) == -1) {
-            ret.add(m);
-          }
-        } else {
-          final m = t.members[memberName];
-          if (m != null) ret.add(m);
-        }
-      }
-      return ret;
     }
   }
 
@@ -470,10 +435,6 @@ class ParameterType extends Type {
   //bool isSubtypeOf(Type other) => extendsType.isSubtypeOf(other);
   bool isSubtypeOf(Type other) => true;
 
-  MemberSet resolveMember(String memberName) {
-    return extendsType.resolveMember(memberName);
-  }
-
   MethodMember getConstructor(String constructorName) {
     world.internalError('no constructors on type parameters yet');
   }
@@ -534,7 +495,6 @@ class NonNullableType extends Type {
   void markUsed() { type.markUsed(); }
   void genMethod(Member method) { type.genMethod(method); }
   SourceSpan get span() => type.span;
-  MemberSet resolveMember(String name) => type.resolveMember(name);
   Member getMember(String name) => type.getMember(name);
   MethodMember getConstructor(String name) => type.getConstructor(name);
   MethodMember getFactory(Type t, String name) => type.getFactory(t, name);
@@ -705,9 +665,14 @@ class ConcreteType extends Type {
   }
 
   Member getMember(String memberName) {
-    Member member = members[memberName];
+    Member member = _foundMembers[memberName];
+    if (member != null) return member;
+
+
+    member = members[memberName];
     if (member != null) {
       _checkOverride(member);
+      _foundMembers[memberName] = member;
       return member;
     }
 
@@ -717,10 +682,13 @@ class ConcreteType extends Type {
     if (genericMember != null) {
       member = new ConcreteMember(genericMember.name, this, genericMember);
       members[memberName] = member;
+      _foundMembers[memberName] = member;
       return member;
     }
 
-    return _getMemberInParents(memberName);
+    member = _getMemberInParents(memberName);
+    _foundMembers[memberName] = member;
+    return member;
   }
 
   Type resolveType(TypeReference node, bool isRequired) {
@@ -836,8 +804,8 @@ class DefinedType extends Type {
 
   // TODO(jimhug): Reconcile different number types on JS.
   bool get isNum() {
-    return library != null && library.isCore &&
-      (name == 'num' || name == 'int' || name == 'double');
+    return this == world.numType || this == world.intType ||
+      this == world.doubleType || this == world.numImplType;
   }
 
   bool get isInt() => this == world.intType;
@@ -1249,11 +1217,16 @@ class DefinedType extends Type {
     return null;
   }
 
+  // TODO(jimhug): Too much copy-paster with ConcreteType...
   Member getMember(String memberName) {
-    Member member = members[memberName];
+    Member member = _foundMembers[memberName];
+    if (member != null) return member;
 
+
+    member = members[memberName];
     if (member != null) {
       _checkOverride(member);
+      _foundMembers[memberName] = member;
       return member;
     }
 
@@ -1263,11 +1236,15 @@ class DefinedType extends Type {
       // getters.
       var libType = this.library.findTypeByName(memberName);
       if (libType != null) {
-        return libType.typeMember;
+        member = libType.typeMember;
+        _foundMembers[memberName] = member;
+        return member;
       }
     }
 
-    return _getMemberInParents(memberName);
+    member = _getMemberInParents(memberName);
+    _foundMembers[memberName] = member;
+    return member;
   }
 
   Type resolveTypeParams(ConcreteType inType) => this;

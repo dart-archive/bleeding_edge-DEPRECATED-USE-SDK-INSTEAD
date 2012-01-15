@@ -62,7 +62,7 @@ class WorldGenerator {
 
       corejs.useIsolates = true;
       MethodMember isolateMain =
-          world.coreimpl.topType.resolveMember('startRootIsolate').members[0];
+        world.coreimpl.lookup('startRootIsolate', main.span);
       var isolateMainTarget = new TypeValue(world.coreimpl.topType, main.span);
       mainCall = isolateMain.invoke(metaGen, null, isolateMainTarget,
           new Arguments(null, [main._get(metaGen, main.definition, null)]));
@@ -822,20 +822,16 @@ class MethodGenerator implements TreeVisitor {
   }
 
   void freeTemp(VariableValue value) {
+    // TODO(jimhug): Need to do this right - for now we can just skip freeing.
+    /*
     if (_usedTemps.remove(value.code)) {
       _freeTemps.add(value.code);
     } else {
       world.internalError(
         'tried to free unused value or non-temp "${value.code}"');
     }
+    */
   }
-
-  /*
-  run1(Value thisValue, Arguments args) {
-    // Use some sort of key to do a lookup
-
-
-  }*/
 
   run() {
     if (method.isGenerated) return;
@@ -923,7 +919,7 @@ class MethodGenerator implements TreeVisitor {
     }
 
     if (_usedTemps.length > 0 || _freeTemps.length > 0) {
-      assert(_usedTemps.length == 0); // all temps should be freed.
+      //TODO(jimhug): assert(_usedTemps.length == 0); // all temps should be freed.
       _freeTemps.addAll(_usedTemps);
       _freeTemps.sort((x, y) => x.compareTo(y));
       defWriter.writeln('var ${Strings.join(_freeTemps, ", ")};');
@@ -1966,32 +1962,26 @@ class MethodGenerator implements TreeVisitor {
       return x.binop(kind, y, this, node);
     } else if ((assignKind != 0) && _expressionNeedsParens(node.y)) {
       return _visitAssign(assignKind, node.x,
-          new ParenExpression(node.y, node.y.span), node, null, isVoid);
+          new ParenExpression(node.y, node.y.span), node,
+            isVoid ? ReturnKind.IGNORE : ReturnKind.POST);
     } else {
-      return _visitAssign(assignKind, node.x, node.y, node, null, isVoid);
+      return _visitAssign(assignKind, node.x, node.y, node,
+          isVoid ? ReturnKind.IGNORE : ReturnKind.POST);
     }
   }
 
   /**
    * Visits an assignment expression.
-   * Note: captureOriginal can optionally capture the original value of the
-   * left side. This is used by postfix expressions to ensure they return the
-   * original value, before it has been modified.
    */
   _visitAssign(int kind, Expression xn, Expression yn, Node position,
-      Value captureOriginal(Value right), [bool isVoid = false]) {
-
-    if (captureOriginal == null) {
-      captureOriginal = (x) => x;
-    }
-
+      int returnKind) {
     // TODO(jimhug): The usual battle with making assign impl not look ugly.
     if (xn is VarExpression) {
-      return _visitVarAssign(kind, xn, yn, position, captureOriginal);
+      return _visitVarAssign(kind, xn, yn, position, returnKind);
     } else if (xn is IndexExpression) {
-      return _visitIndexAssign(kind, xn, yn, position, captureOriginal, isVoid);
+      return _visitIndexAssign(kind, xn, yn, position, returnKind);
     } else if (xn is DotExpression) {
-      return _visitDotAssign(kind, xn, yn, position, captureOriginal);
+      return _visitDotAssign(kind, xn, yn, position, returnKind);
     } else {
       world.error('illegal lhs', xn.span);
     }
@@ -2000,7 +1990,7 @@ class MethodGenerator implements TreeVisitor {
   // TODO(jmesserly): it'd be nice if we didn't have to deal directly with
   // MemberSets here and in visitVarExpression.
   _visitVarAssign(int kind, VarExpression xn, Expression yn, Node position,
-      Value captureOriginal(Value right)) {
+      int returnKind) {
     final name = xn.name.name;
 
     // First check in block scopes.
@@ -2013,136 +2003,63 @@ class MethodGenerator implements TreeVisitor {
       // Note: for now we aren't very flow sensitive, so this is a "union"
       // rather than simply setting it to "y"
       _scope.inferAssign(name, Value.union(x, y));
-    } else {
-      // TODO(jmesserly): this needs serious cleanup...
-      // Look for a setter in the class
-      var members = method.declaringType.resolveMember(name);
-      x = _makeThisOrType(position.span);
-      if (members != null) {
-        if (options.forceDynamic && !members.isStatic) {
-          members = findMembers(xn.name.name);
-        }
-        if (kind == 0) {
-          return x.set_(this, name, position, y);
-        } else if (!members.treatAsField || members.containsMethods) {
-          var right = x.get_(this, name, position);
-          right = captureOriginal(right);
-          y = right.invoke(this, TokenKind.binaryMethodName(kind),
-              position, new Arguments(null, [y]));
-          return x.set_(this, name, position, y);
-        } else {
-          x = x.get_(this, name, position);
-        }
-      } else {
-        // Look for a top-level setter
-        final member = library.lookup(name, xn.name.span);
-        if (member == null) {
-          world.warning('can not resolve ${name}', xn.span);
-          return _makeMissingValue(name);
-        }
-        members = new MemberSet(member);
-        // If we can't treat it as a field, generate a setter call.
-        // Also make sure we dont't try to set a method.
-        if (!members.treatAsField || members.containsMethods) {
-          if (kind != 0) {
-            var right = members._get(this, position, x);
-            right = captureOriginal(right);
-            y = right.invoke(this, TokenKind.binaryMethodName(kind),
-                position, new Arguments(null, [y]));
-          }
-          return members._set(this, position, x, y);
-        } else {
-          x = members._get(this, position, x);
-        }
+
+      // TODO(jimhug): This is "legacy" and should be cleaned ASAP
+      if (x.isFinal) {
+        world.error('final variable "${x.code}" is not assignable',
+            position.span);
       }
 
-      // Otherwise treat it as a field.
-      // This makes for nicer code in the $op= case
-      y = y.convertTo(this, x.staticType);
-    }
-
-    if (x.isFinal) {
-      world.error('final variable "${x.code}" is not assignable',
-          position.span);
-    }
-
-    if (kind == 0) {
-      x = captureOriginal(x);
-      return new Value(y.type, '${x.code} = ${y.code}', position.span);
-    } else if (x.type.isNum && y.type.isNum && (kind != TokenKind.TRUNCDIV)) {
-      // Process everything but ~/ , which has no equivalent JS operator
-      x = captureOriginal(x);
-      // Very localized optimization for numbers!
-      final op = TokenKind.kindToString(kind);
-      return new Value(y.type, '${x.code} $op= ${y.code}', position.span);
+      // Handle different ReturnKind values here...
+      if (kind == 0) {
+        return new Value(y.type, '${x.code} = ${y.code}', position.span);
+      } else if (x.type.isNum && y.type.isNum && (kind != TokenKind.TRUNCDIV)) {
+        // Process everything but ~/ , which has no equivalent JS operator
+        // Very localized optimization for numbers!
+        if (returnKind == ReturnKind.PRE) {
+          world.internalError('should not be here', position.span);
+        }
+        final op = TokenKind.kindToString(kind);
+        return new Value(y.type, '${x.code} $op= ${y.code}', position.span);
+      } else {
+        var right = x;
+        y = right.binop(kind, y, this, position);
+        if (returnKind == ReturnKind.PRE) {
+          var tmp = forceTemp(x);
+          var ret = new Value(x.type,
+            '(${tmp.code} = ${x.code}, ${x.code} = ${y.code}, ${tmp.code})',
+            position.span);
+          freeTemp(tmp);
+          return ret;
+        } else {
+          return new Value(x.type, '${x.code} = ${y.code}', position.span);
+        }
+      }
     } else {
-      var right = x;
-      right = captureOriginal(right);
-      y = right.invoke(this, TokenKind.binaryMethodName(kind),
-        position, new Arguments(null, [y]));
-      return new Value(y.type, '${x.code} = ${y.code}', position.span);
+      x = _makeThisOrType(position.span);
+      return x.set_(this, name, position, y, kind: kind,
+        returnKind: returnKind);
     }
   }
 
-  _visitIndexAssign(int kind, IndexExpression xn, Expression yn, Node position,
-      Value captureOriginal(Value right), [bool isVoid = false]) {
+  _visitIndexAssign(int kind, IndexExpression xn, Expression yn,
+      Node position, int returnKind) {
     var target = visitValue(xn.target);
-
-    // Note: need to get temps eagerly so they don't get reused
-    var tmptarget = target;
-    if (kind != 0) tmptarget = getTemp(target);
-
     var index = visitValue(xn.index);
-    var tmpindex = index;
-    if (kind != 0) tmpindex = getTemp(index);
-
     var y = visitValue(yn);
-    if (kind != 0) {
-      index = assignTemp(tmpindex, index);
-      var right = tmptarget.invoke(this, ':index',
-          position, new Arguments(null, [tmpindex]));
-      right = captureOriginal(right);
-      y = right.invoke(this, TokenKind.binaryMethodName(kind),
-          position, new Arguments(null, [y]));
-    }
 
-    var tmpy = null;
-    // If the assignment is an expression statement (x[i] = y;) it is translated
-    // as (x.$setindex(i, y)), otherwise as (x.$setindex(i, t = y), t).
-    if (!isVoid) {
-      tmpy = getTemp(y);
-      y = assignTemp(tmpy, y);
-    }
-    var ret = assignTemp(tmptarget, target).invoke(this, ':setindex',
-        position, new Arguments(null, [index, y]));
-    if (tmpy != null) {
-      ret = new Value(ret.type, '(${ret.code}, ${tmpy.code})', ret.span);
-      if (tmpy != y) freeTemp(tmpy);
-    }
-    if (tmptarget != target) freeTemp(tmptarget);
-    if (tmpindex != index) freeTemp(tmpindex);
-    return ret;
+    return target.setIndex(this, index, position, y, kind: kind,
+      returnKind: returnKind);
   }
 
   _visitDotAssign(int kind, DotExpression xn, Expression yn, Node position,
-      Value captureOriginal(Value right)) {
-
-    // This is not visitValue because types are assignable through .
+      int returnKind) {
+    // This is not visitValue because types members are assignable.
     var target = xn.self.visit(this);
-
     var y = visitValue(yn);
-    var tmptarget = target;
-    if (kind != 0) {
-      tmptarget = getTemp(target);
-      var right = tmptarget.get_(this, xn.name.name, xn.name);
-      right = captureOriginal(right);
-      y = right.invoke(this, TokenKind.binaryMethodName(kind),
-          position, new Arguments(null, [y]));
-    }
-    var ret = assignTemp(tmptarget, target).set_(
-        this, xn.name.name, xn.name, y);
-    if (tmptarget != target) freeTemp(tmptarget);
-    return ret;
+
+    return target.set_(this, xn.name.name, xn.name, y, kind: kind,
+      returnKind: returnKind);
   }
 
   visitUnaryExpression(UnaryExpression node) {
@@ -2163,7 +2080,8 @@ class MethodGenerator implements TreeVisitor {
           var operand = new LiteralExpression(Value.fromInt(1, node.span),
             node.span);
 
-          var assignValue = _visitAssign(kind, node.self, operand, node, null);
+          var assignValue = _visitAssign(kind, node.self, operand, node,
+              ReturnKind.POST);
           return new Value(assignValue.type, '(${assignValue.code})',
               node.span);
         }
@@ -2183,6 +2101,7 @@ class MethodGenerator implements TreeVisitor {
 
   visitPostfixExpression(PostfixExpression node, [bool isVoid = false]) {
     var value = visitValue(node.body);
+    // TODO(jimhug): Move and validate this code with nullable ints.
     if (value.type.isNum && !value.isFinal) {
       return new Value(value.type, '${value.code}${node.op}', node.span);
     }
@@ -2190,34 +2109,13 @@ class MethodGenerator implements TreeVisitor {
     // x++ is equivalent to (t = x, x = t + 1, t), where we capture all temps
     // needed to evaluate x so we're not evaluating multiple times. Likewise,
     // x-- is equivalent to (t = x, x = t - 1, t).
-    var kind = (TokenKind.INCR == node.op.kind) ? TokenKind.ADD : TokenKind.SUB;
+    var kind = (TokenKind.INCR == node.op.kind) ?
+      TokenKind.ADD : TokenKind.SUB;
     // TODO(jimhug): Shouldn't need a full-expression here.
     var operand = new LiteralExpression(Value.fromInt(1, node.span),
       node.span);
-
-    // Use _visitAssign to do most of the work, but save the right side in a
-    // temporary variable if needed.
-    // TODO(jmesserly): I don't like passing function args like this, but the
-    // alternative is duplicating most of the _visitAssign logic. Needs cleanup.
-    var tmpleft = null, left = null;
-    var ret = _visitAssign(kind, node.body, operand, node, (l) {
-      if (isVoid) {
-        // No need for a temp if we're throwing away the result.
-        return l;
-      } else {
-        // We always need a temp to capture the old value
-        left = l;
-        tmpleft = forceTemp(l);
-        return assignTemp(tmpleft, left);
-      }
-    });
-
-    if (tmpleft != null) {
-      ret = new Value(ret.type, "(${ret.code}, ${tmpleft.code})", node.span);
-    }
-    if (tmpleft != left) {
-      freeTemp(tmpleft);
-    }
+    var ret = _visitAssign(kind, node.body, operand, node,
+      isVoid ? ReturnKind.IGNORE : ReturnKind.PRE);
     return ret;
   }
 
@@ -2574,4 +2472,10 @@ class Arguments {
     }
     return new Arguments(nodes, result);
   }
+}
+
+class ReturnKind {
+  static final int IGNORE = 1;
+  static final int POST = 2;
+  static final int PRE = 3;
 }

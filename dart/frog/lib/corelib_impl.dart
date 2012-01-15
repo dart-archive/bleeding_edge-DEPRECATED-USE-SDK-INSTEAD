@@ -141,31 +141,28 @@ class ListIterator<T> implements Iterator<T> {
   int _pos;
 }
 
+// TODO(jimhug): Enforce immutability on IE
+ImmutableList _constList(List other) native '''
+  other.__proto__ = ImmutableList.prototype;
+  return other;
+'''
+{ new ImmutableList(other.length); }
+
+
 /** An immutable list. Attempting to modify the list will throw an exception. */
 class ImmutableList<E> extends ListFactory<E> {
-  final int _length;
-
-  // TODO(sigmund): remove this when we stop overriding the [length] property
-  // in Array.
-  int get length() => _length;
+  // TODO(jimhug): Can this go away now?
+  int get length() native "return this.length;";
 
   void set length(int length) {
     throw const IllegalAccessException();
   }
 
-  ImmutableList([int length]) : _length = length, super(length);
+  ImmutableList(int length) : super(length);
 
   factory ImmutableList.from(List other) {
-    final list = new ImmutableList(other.length);
-    for (int i = 0; i < other.length; i++) {
-      // Note: push invokes the setter of [length], which we override. So
-      // instead we use the native []= operator that cannot be overriden.
-      list._setindex(i, other[i]);
-    }
-    return list;
+    return _constList(other);
   }
-
-  void _setindex(int index, E value) native "return this[index] = value;";
 
   void operator []=(int index, E value) {
     throw const IllegalAccessException();
@@ -409,6 +406,33 @@ class _AllMatchesIterator implements Iterator<Match> {
 
 
 class NumImplementation implements int, double native "Number" {
+  // Arithmetic operations.
+  num operator +(num other) native;
+  num operator -(num other) native;
+  num operator *(num other) native;
+  num operator %(num other) native;
+  num operator /(num other) native;
+  // Truncating division.
+  // TODO(jimhug): Implement
+  num operator ~/(num other) native;
+  // The unary '-' operator.
+  num operator negate() native "'use strict'; return -this;";
+
+  // Relational operations.
+  bool operator <(num other) native;
+  bool operator <=(num other) native;
+  bool operator >(num other) native;
+  bool operator >=(num other) native;
+
+  // Bitwise operations
+  int operator &(int other) native;
+  int operator |(int other) native;
+  int operator ^(int other) native;
+  int operator ~() native;
+  int operator <<(int shiftAmount) native;
+  int operator >>(int shiftAmount) native;
+
+
   // TODO(jimhug): Move these out of methods to avoid boxing when not needed.
   // TODO(jmesserly): for now I'm avoiding boxing with "use strict", however,
   // we might want to do something better. It would be nice if operators and

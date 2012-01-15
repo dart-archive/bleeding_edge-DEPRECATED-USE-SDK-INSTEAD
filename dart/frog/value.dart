@@ -47,6 +47,10 @@ class Value {
   /** If [isConst], the [EvaluatedValue] that defines this value. */
   EvaluatedValue get constValue() => null;
 
+  static Value comma(Value x, Value y) {
+    return new Value(y.type, '(${x.code}, ${y.code})', null);
+  }
+
   // TODO(jmesserly): more work is needed to make unifying all kinds of Values
   // work properly.
   static Value union(Value x, Value y) {
@@ -89,16 +93,100 @@ class Value {
   }
 
   Value set_(MethodGenerator context, String name, Node node, Value value,
-      [bool isDynamic=false]) {
-
+      [bool isDynamic=false, int kind=0, int returnKind=ReturnKind.IGNORE]) {
     final member = _resolveMember(context, name, node, isDynamic);
     if (member != null) {
-      return member._set(context, node, this, value, isDynamic);
+      var thisValue = this;
+      var thisTmp = null;
+      var retTmp = null;
+      if (kind != 0) {
+        // TODO(jimhug): Very special number optimizations will go here...
+        thisTmp = context.getTemp(thisValue);
+        thisValue = context.assignTemp(thisTmp, thisValue);
+        var lhs = member._get(context, node, thisTmp);
+        if (returnKind == ReturnKind.PRE) {
+          retTmp = context.forceTemp(lhs);
+          lhs = context.assignTemp(retTmp, lhs);
+        }
+        value = lhs.binop(kind, value, context, node);
+      }
+
+      if (returnKind == ReturnKind.POST) {
+        // TODO(jimhug): Optimize this away when native JS is detected.
+        retTmp = context.forceTemp(value);
+        value = context.assignTemp(retTmp, value);
+      }
+
+      var ret = member._set(context, node, thisValue, value, isDynamic);
+      if (thisTmp != null && thisTmp != this) context.freeTemp(thisTmp);
+      if (retTmp != null) {
+        context.freeTemp(retTmp);
+        return Value.comma(ret, retTmp);
+      } else {
+        return ret;
+      }
     } else {
+      // TODO(jimhug): Need to support += and noSuchMethod better.
       return invokeNoSuchMethod(context, 'set:$name', node,
           new Arguments(null, [value]));
     }
   }
+
+  // TODO(jimhug): This method body has too much in common with set_ above.
+  Value setIndex(MethodGenerator context, Value index, Node node, Value value,
+      [bool isDynamic=false, int kind=0, int returnKind=ReturnKind.IGNORE]) {
+    final member = _resolveMember(context, ':setindex', node, isDynamic);
+    if (member != null) {
+      var thisValue = this;
+      var indexValue = index;
+      var thisTmp = null;
+      var indexTmp = null;
+      var retTmp = null;
+      if (returnKind == ReturnKind.POST) {
+        // TODO(jimhug): Optimize this away when native JS works.
+        retTmp = context.forceTemp(value);
+      }
+      if (kind != 0) {
+        // TODO(jimhug): Very special number optimizations will go here...
+        thisTmp = context.getTemp(this);
+        indexTmp = context.getTemp(index);
+        thisValue = context.assignTemp(thisTmp, thisValue);
+        indexValue = context.assignTemp(indexTmp, indexValue);
+
+        if (returnKind == ReturnKind.PRE) {
+          retTmp = context.forceTemp(value);
+        }
+
+        var lhs = thisTmp.invoke(context, ':index', node,
+          new Arguments(null, [indexTmp]));
+        if (returnKind == ReturnKind.PRE) {
+          lhs = context.assignTemp(retTmp, lhs);
+        }
+        value = lhs.binop(kind, value, context, node);
+      }
+      if (returnKind == ReturnKind.POST) {
+        value = context.assignTemp(retTmp, value);
+      }
+
+      var ret = member.invoke(context, node, thisValue,
+        new Arguments(null, [indexValue, value]), isDynamic);
+      if (thisTmp != null && thisTmp != this) context.freeTemp(thisTmp);
+      if (indexTmp != null && indexTmp != index) context.freeTemp(indexTmp);
+      if (retTmp != null) {
+        context.freeTemp(retTmp);
+        return Value.comma(ret, retTmp);
+      } else {
+        return ret;
+      }
+    } else {
+      // TODO(jimhug): Need to support += and noSuchMethod better.
+      return invokeNoSuchMethod(context, ':index', node,
+          new Arguments(null, [index, value]));
+    }
+  }
+
+  //Value getIndex(MethodGenerator context, Value index, var node) {
+  //}
 
   Value unop(int kind, MethodGenerator context, var node) {
     switch (kind) {
@@ -181,20 +269,53 @@ class Value {
    */
   // TODO(jmesserly): should we be doing this?
   bool _hasOverriddenNoSuchMethod() {
-    if (isSuper) {
-      var m = staticType.getMember('noSuchMethod');
-      return m != null && !m.declaringType.isObject;
-    } else {
-      var m = staticType.resolveMember('noSuchMethod');
-      return m != null && m.members.length > 1;
+    var m = type.getMember('noSuchMethod');
+    return m != null && !m.declaringType.isObject;
+  }
+
+  // TODO(jimhug): Handle more precise types here, i.e. consts or closed...
+  bool get isPreciseType() => isSuper || isType;
+
+  void _missingMemberError(MethodGenerator context, String name, bool isDynamic, Node node) {
+    bool onStaticType = false;
+    if (type != staticType) {
+      onStaticType = staticType.getMember(name) !== null;
+    }
+
+    if (!onStaticType && !isDynamic &&
+      !_isVarOrParameterType(staticType) && !_hasOverriddenNoSuchMethod()) {
+      // warn if the member was not found, or error if it is a static lookup.
+      var typeName = staticType.name;
+      if (typeName == null) typeName = staticType.library.name;
+      var message = 'can not resolve "$name" on "${typeName}"';
+      if (isType) {
+        world.error(message, node.span);
+      } else {
+        world.warning(message, node.span);
+      }
     }
   }
 
-  _tryResolveMember(MethodGenerator context, Type resolvetype, String name) {
-    if (isSuper) {
-      return resolvetype.getMember(name);
+
+
+  MemberSet _tryResolveMember(MethodGenerator context, String name, bool isDynamic, Node node) {
+    var member = type.getMember(name);
+    if (member == null) {
+      _missingMemberError(context, name, isDynamic, node);
+      return null;
     } else {
-      return resolvetype.resolveMember(name);
+      if (isType && !member.isStatic) {
+        if (!isDynamic) {
+          world.error('can not refer to instance member as static', node.span);
+        }
+        return null;
+      }
+    }
+
+    if (isPreciseType || member.isStatic) {
+      return member.preciseMemberSet;
+    } else {
+      return member.potentialMemberSet;
     }
   }
 
@@ -207,37 +328,11 @@ class Value {
   }
 
   // TODO(jimhug): Better type here - currently is union(Member, MemberSet)
-  _resolveMember(MethodGenerator context, String name, Node node,
+  MemberSet _resolveMember(MethodGenerator context, String name, Node node,
         [bool isDynamic=false]) {
-
-    // TODO(jmesserly): this has gotten ugly again.
-    var member;
+    var member = null;
     if (!_shouldBindDynamically()) {
-      member = _tryResolveMember(context, type, name);
-
-      if (member == null && type != staticType) {
-        member = _tryResolveMember(context, staticType, name);
-      }
-
-      if (member != null && isType && !member.isStatic) {
-        if (!isDynamic) {
-          world.error('can not refer to instance member as static', node.span);
-        }
-        return null;
-      }
-
-      if (member == null && !isDynamic &&
-         !_isVarOrParameterType(staticType) && !_hasOverriddenNoSuchMethod()) {
-        // warn if the member was not found, or error if it is a static lookup.
-        var typeName = staticType.name;
-        if (typeName == null) typeName = staticType.library.name;
-        var message = 'can not resolve "$name" on "${typeName}"';
-        if (isType) {
-          world.error(message, node.span);
-        } else {
-          world.warning(message, node.span);
-        }
-      }
+      member = _tryResolveMember(context, name, isDynamic, node);
     }
 
     // Fall back to a dynamic operation for instance members
@@ -550,6 +645,10 @@ function \$assert_${toType.name}(x) {
 
   Value invokeNoSuchMethod(MethodGenerator context, String name, Node node,
       [Arguments args]) {
+    if (isType) {
+      world.error('member lookup failed for "$name"', node.span);
+    }
+
     var pos = '';
     if (args != null) {
       var argsCode = [];
@@ -1236,27 +1335,20 @@ class BareValue extends Value {
     if (_code === null) _code = isType ? type.jsname : home._makeThisCode();
   }
 
-  _tryResolveMember(MethodGenerator context, Type resolveType, String name) {
+  MemberSet _tryResolveMember(MethodGenerator context, String name, bool isDynamic, Node node) {
     assert(context == home);
 
-    // First look for members directly defined on my resolveType.
-    var member = resolveType.resolveMember(name);
-    if (member != null) {
-      if (options.forceDynamic && !member.isStatic) {
-        member = context.findMembers(name);
+    // TODO(jimhug): Confirm this matches final resolution of issue 641.
+    var member = type.getMember(name);
+    if (member == null || member.declaringType != type) {
+      var libMember = home.library.lookup(name, span);
+      if (libMember !== null) {
+        return libMember.preciseMemberSet;
       }
-      _ensureCode();
-      return member;
-    }
-
-    // Then look for members in my library.
-    member = home.library.lookup(name, span);
-    if (member != null) {
-      return member;
     }
 
     _ensureCode();
-    return null;
+    return super._tryResolveMember(context, name, isDynamic, node);
   }
 }
 
