@@ -42,7 +42,7 @@
             'scripts/bootstrap/frog_bootstrap_wrapper.py',
             'scripts/bootstrap/frog_wrapper.py',
             'frog.py',
-            '../runtime/dart-runtime.gyp:dart',
+            '<(PRODUCT_DIR)/dart',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/frog/bin/frog',
@@ -88,7 +88,7 @@
             '<!@(["python", "scripts/list_frog_files.py"])',
             'scripts/bootstrap/frogsh_bootstrap_wrapper.py',
             'frog.py',
-            '../runtime/dart-runtime.gyp:dart',
+            '<(PRODUCT_DIR)/dart',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/frog/bin/frogsh',
