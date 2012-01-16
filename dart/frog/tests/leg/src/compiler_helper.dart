@@ -7,7 +7,7 @@
 
 #import("../../../leg/leg.dart", prefix: "leg");
 #import("../../../leg/elements/elements.dart", prefix: "lego");
-#import("../../../leg/ssa/ssa.dart");
+#import("../../../leg/ssa/ssa.dart", prefix: "ssa");
 #import("parser_helper.dart");
 #import("mock_compiler.dart");
 
@@ -39,9 +39,9 @@ class HGraphPair {
   HGraphPair(this.optimized, this.unoptimized);
 }
 
-HGraph getGraph(MockCompiler compiler, leg.WorkItem work) {
+ssa.HGraph getGraph(MockCompiler compiler, leg.WorkItem work) {
   compiler.analyze(work);
-  HGraph graph = compiler.builder.build(work);
+  ssa.HGraph graph = compiler.builder.build(work);
   compiler.optimizer.optimize(work, graph);
   // Also run the code generator to get the unoptimized version in the
   // queue.
@@ -55,8 +55,8 @@ HGraphPair getGraphs(String code, String entry) {
   lego.Element element = compiler.universe.find(buildSourceString(entry));
   if (element === null) return null;
   leg.WorkItem work = new leg.WorkItem.toCompile(element);
-  HGraph optimized = getGraph(compiler, work);
-  HGraph unoptimized = null;
+  ssa.HGraph optimized = getGraph(compiler, work);
+  ssa.HGraph unoptimized = null;
   work = compiler.lastBailoutWork;
   if (work != null && work.element == element) {
     unoptimized = getGraph(compiler, work);

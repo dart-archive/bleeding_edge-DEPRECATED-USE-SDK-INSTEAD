@@ -41,9 +41,9 @@ testLocals(List variables) {
   for (final variable in variables) {
     final name = variable[0];
     Identifier id = buildIdentifier(name);
-    final element = visitor.visit(id);
+    final VariableElement variableElement = visitor.visit(id);
     MethodScope scope = visitor.context;
-    Expect.equals(element, scope.elements[buildSourceString(name)]);
+    Expect.equals(variableElement, scope.elements[buildSourceString(name)]);
   }
   return compiler;
 }
@@ -426,14 +426,14 @@ testNewExpression() {
 testTopLevelFields() {
   MockCompiler compiler = new MockCompiler();
   compiler.parseScript("int a;");
-  Element element = compiler.universe.find(buildSourceString("a"));
+  VariableElement element = compiler.universe.find(buildSourceString("a"));
   Expect.equals(ElementKind.FIELD, element.kind);
   VariableDefinitions node = element.variables.parseNode(compiler, compiler);
   Expect.equals(node.type.typeName.asIdentifier().source.stringValue, 'int');
 
   compiler.parseScript("var b, c;");
-  Element bElement = compiler.universe.find(buildSourceString("b"));
-  Element cElement = compiler.universe.find(buildSourceString("c"));
+  VariableElement bElement = compiler.universe.find(buildSourceString("b"));
+  VariableElement cElement = compiler.universe.find(buildSourceString("c"));
   Expect.equals(ElementKind.FIELD, bElement.kind);
   Expect.equals(ElementKind.FIELD, cElement.kind);
   Expect.isTrue(bElement != cElement);
