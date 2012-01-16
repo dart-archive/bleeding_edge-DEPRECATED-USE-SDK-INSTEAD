@@ -1,7 +1,7 @@
 vars = {
   # Additions for Dart
   "chromium_url": "http://src.chromium.org/svn",
-  "chromium_revision": "116980",
+  "chromium_revision": "117836",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_chromium_revision": "29",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
@@ -14,10 +14,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "104502",
+  "webkit_revision": "105014",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "7519",
+  "nacl_revision": "7561",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "7139",  # native_client/DEPS: tools_rev
@@ -26,26 +26,26 @@ vars = {
   # After changing nacl_toolchain_revision, run 'gclient runhooks' to get the
   # new values.
   "nacl_toolchain_linux_x86_hash":
-      "e22fdc0a7193de2879c6a0ef5b88884ee6599d88",
+      "9db88d4b92913d494d47ceb936d8a0c4af9b7ddb",
   "nacl_toolchain_linux_x86_newlib_hash":
-      "d8a27613182db9cd0da98b472cb2225975a6eb08",
+      "d091970ba08e6d0349568184e6d91980447ff827",
   "nacl_toolchain_mac_x86_hash":
-      "8897131912eb0a3babccc480d1e816b5d217a15d",
+      "ab054c9fad027ce705f6c7be17569c4a58ff0b73",
   "nacl_toolchain_mac_x86_newlib_hash":
-      "bcada336c7d9f65c2c88f8b57685e8f90fd40921",
+      "36744d062e149563b948accf5f88221e4be4f4c2",
   "nacl_toolchain_win_x86_hash":
-      "e1a395b6861cf6fe5973ebf4573ca9a7ae5a1da5",
+      "396ca98c3021666a08819b89eecb69a79fd7bad8",
   "nacl_toolchain_win_x86_newlib_hash":
-      "4aaeab49654a40b3699ed705c1ac7d6fe3fe6448",
-  "nacl_toolchain_revision": "7487",
+      "b41a2e565716b3ddc0212d185afa79881e971c58",
+  "nacl_toolchain_revision": "7537",
 
   "libjingle_revision": "100",
   "libphonenumber_revision": "407",
-  "libvpx_revision": "109236",
+  "libvpx_revision": "117274",
   "lss_revision": "9",
   "ffmpeg_revision": "112050",
   "sfntly_revision": "118",
-  "skia_revision": "2988",
+  "skia_revision": "3035",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -69,7 +69,7 @@ deps = {
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
 
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@897",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@902",
 
   "src/build/util/support":
     Var("chromium_url") + "/trunk/deps/support@20411",
@@ -90,7 +90,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@374",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@939",
+    (Var("googlecode_url") % "angleproject") + "/trunk@941",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -125,7 +125,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@9",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1135",
+    (Var("googlecode_url") % "gyp") + "/trunk@1160",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -172,7 +172,7 @@ deps = {
     Var("dartium_webkit_trunk") + "/Tools/TestWebKitAPI@" + Var("dartium_webkit_revision"),
 
   "src/third_party/ots":
-    (Var("googlecode_url") % "ots") + "/trunk@77",
+    (Var("googlecode_url") % "ots") + "/trunk@78",
 
   "src/tools/page_cycler/acid3":
     Var("chromium_url") + "/trunk/deps/page_cycler/acid3@102714",
@@ -240,6 +240,9 @@ deps = {
   "src/chrome/test/data/layout_tests/LayoutTests/storage/domstorage":
     Var("webkit_trunk") + "/LayoutTests/storage/domstorage@" +
     Var("webkit_revision"),
+  "src/chrome/test/data/layout_tests/LayoutTests/storage/indexeddb":
+    Var("webkit_trunk") + "/LayoutTests/storage/indexeddb@" +
+    Var("webkit_revision"),
   "src/chrome/test/data/layout_tests/LayoutTests/media":
     Var("webkit_trunk") + "/LayoutTests/media@" +
     Var("webkit_revision"),
@@ -306,7 +309,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@119",
+    (Var("googlecode_url") % "libyuv") + "/trunk@124",
 
   "src/third_party/mozc/session":
     (Var("googlecode_url") % "mozc") + "/trunk/src/session@83",
@@ -424,6 +427,9 @@ deps_os = {
 
     "src/third_party/openssl":
       Var("chromium_url") + "/trunk/deps/third_party/openssl@105093",
+
+    "src/third_party/WebKit/Tools/gdb":
+      Var("webkit_trunk") + "/Tools/gdb@" + Var("webkit_revision"),
   },
 }
 
@@ -492,6 +498,7 @@ hooks = [
              Var("nacl_toolchain_linux_x86_hash"),
          "--save-downloads-dir",
              "src/native_client_sdk/src/build_tools/toolchain_archives",
+         "--keep",
     ],
   },
   {
