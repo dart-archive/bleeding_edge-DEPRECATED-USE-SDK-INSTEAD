@@ -340,6 +340,7 @@ class HBasicBlock extends HInstructionList {
 
   HLoopInformation loopInformation = null;
   HBasicBlock parentLoopHeader = null;
+  List<HBailoutTarget> bailouts;
 
   final List<HBasicBlock> predecessors;
   List<HBasicBlock> successors;
@@ -352,13 +353,15 @@ class HBasicBlock extends HInstructionList {
       : phis = new HInstructionList(),
         predecessors = <HBasicBlock>[],
         successors = const <HBasicBlock>[],
-        dominatedBlocks = <HBasicBlock>[];
+        dominatedBlocks = <HBasicBlock>[],
+        bailouts = <HBailoutTarget>[];
 
   bool isNew() => status == STATUS_NEW;
   bool isOpen() => status == STATUS_OPEN;
   bool isClosed() => status == STATUS_CLOSED;
 
   bool isLoopHeader() => loopInformation !== null;
+  bool hasBailouts() => !bailouts.isEmpty();
 
   void open() {
     assert(isNew());
@@ -917,7 +920,8 @@ class HTypeGuard extends HInstruction {
 }
 
 class HBailoutTarget extends HInstruction {
-  HBailoutTarget(inputs) : super(inputs);
+  final int state;
+  HBailoutTarget(this.state, inputs) : super(inputs);
   accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
 }
 
@@ -1518,7 +1522,7 @@ class HIf extends HConditionalBranch {
     }
   }
 
-  HBasicBlock get endBlock() {
+  HBasicBlock get joinBlock() {
     List<HBasicBlock> dominated = block.dominatedBlocks;
     if (hasElse) {
       if (dominated.length > 2) return dominated[2];

@@ -5,7 +5,8 @@
 class BailoutInfo implements Hashable {
   int blockId;
   int instructionId;
-  BailoutInfo(this.blockId, this.instructionId);
+  int state;
+  BailoutInfo(this.blockId, this.instructionId, this.state);
   int hashCode() => ((blockId << 16) & 0xFFF0000) + instructionId;
   bool operator ==(other) {
     if (other is !BailoutInfo) return false;
@@ -104,6 +105,10 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     }
   }
 
+  void visitParameterValue(HParameterValue parameter) {
+    environment.add(parameter);
+  }
+
   void visitInstruction(HInstruction instruction) {
     // Cheapest liveness analysis.
     // TODO(ngeoffray): Compute liveness.
@@ -122,7 +127,7 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
   void visitIf(HIf instruction) {
     enterBlock(instruction.thenBlock);
     enterBlock(instruction.elseBlock);
-    enterBlock(instruction.endBlock);
+    enterBlock(instruction.joinBlock);
   }
 
   void visitGoto(HGoto goto) {
@@ -158,7 +163,7 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
                            instruction: instruction);
   }
 
-  // Instructions that are dealt specialy. We know we don't need to
+  // Instructions that are dealt specially. We know we don't need to
   // put them in the environment.
   void visitStatic(HStatic instruction) {}
   void visitLiteral(HLiteral literal) {}
@@ -198,17 +203,19 @@ class SsaTypeGuardBuilder extends SsaEnvironmentBuilder {
  * the optimized version had [HTypeGuard] instructions.
  */
 class SsaBailoutBuilder extends SsaEnvironmentBuilder {
-  final Set<BailoutInfo> bailouts;
+  final Map<BailoutInfo, BailoutInfo> bailouts;
   final BailoutInfo cached;
 
   SsaBailoutBuilder(Compiler compiler, this.bailouts)
-    : super(compiler), cached = new BailoutInfo(null, null);
+    : super(compiler), cached = new BailoutInfo(null, null, null);
 
   void checkBailout(HInstruction instruction) {
     cached.blockId = instruction.block.id;
     cached.instructionId = instructionId;
-    if (bailouts.contains(cached)) {
-      HBailoutTarget bailout = new HBailoutTarget(environment.build());
+    BailoutInfo original = bailouts[cached];
+    if (original != null) {
+      HBailoutTarget bailout =
+          new HBailoutTarget(original.state, environment.build());
       instruction.block.addAfter(instruction, bailout);
     }
   }
@@ -222,5 +229,75 @@ class SsaBailoutBuilder extends SsaEnvironmentBuilder {
   visitInstruction(HInstruction instruction) {
     super.visitInstruction(instruction);
     checkBailout(instruction);
+  }
+}
+
+/**
+ * Propagates bailout information to blocks that need it. This visitor
+ * is run before codegen, to know which blocks have to deal with
+ * bailouts.
+ */
+class SsaBailoutPropagator extends HBaseVisitor {
+  final Compiler compiler;
+  final List<HBasicBlock> blocks;
+
+  SsaBailoutPropagator(Compiler this.compiler) : blocks = <HBasicBlock>[];
+
+  void visitGraph(HGraph graph) {
+    visitBasicBlock(graph.entry);
+  }
+
+  void visitBasicBlock(HBasicBlock block) {
+    if (block.isLoopHeader()) blocks.addLast(block);
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      instruction = instruction.accept(this);
+    }
+  }
+
+  void enterBlock(HBasicBlock block) {
+    if (block == null) return;
+    blocks.addLast(block);
+    visitBasicBlock(block);
+    blocks.removeLast(block);
+  }
+
+  void visitIf(HIf instruction) {
+    enterBlock(instruction.thenBlock);
+    enterBlock(instruction.elseBlock);
+    enterBlock(instruction.joinBlock);
+  }
+
+  void visitGoto(HGoto goto) {
+    HBasicBlock block = goto.block;
+    if (block.successors[0].dominator != block) return;
+    visitBasicBlock(block.successors[0]);
+  }
+
+  void visitLoopBranch(HLoopBranch branch) {
+    HBasicBlock branchBlock = branch.block;
+    if (!branch.isDoWhile()) {
+      // Not a do while loop. We visit the body of the loop.
+      visitBasicBlock(branchBlock.dominatedBlocks[0]);
+    }
+    blocks.removeLast();
+    visitBasicBlock(branchBlock.successors[1]);
+  }
+
+  // Deal with all kinds of control flow instructions. In case we add
+  // a new one, we will hit an internal error.
+  void visitExit(HExit exit) {}
+  void visitReturn(HReturn instruction) {}
+  void visitThrow(HThrow instruction) {}
+
+  void visitControlFlow(HControlFlow instruction) {
+    compiler.internalError('Control flow instructions already dealt with.',
+                           instruction: instruction);
+  }
+
+  visitBailoutTarget(HBailoutTarget target) {
+    blocks.forEach((HBasicBlock block) {
+      block.bailouts.add(target);
+    });
   }
 }

@@ -50,33 +50,39 @@ class SsaCodeGeneratorTask extends CompilerTask {
       if (i != 0) parameters.add(', ');
       parameters.add(names[i]);
     }
-    SsaCodeGenerator codegen = new SsaCodeGenerator(
-        compiler, work, buffer, parameters, parameterNames);
-    codegen.visitGraph(graph);
-    if (!codegen.guards.isEmpty()) {
-      assert(!work.isBailoutVersion());
-      addBailoutVersion(codegen.guards, work);
-    }
 
     if (work.isBailoutVersion()) {
+      new SsaBailoutPropagator(compiler).visitGraph(graph);
+      SsaCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
+          compiler, work, buffer, parameters, parameterNames);
+      codegen.visitGraph(graph);
       String check =
-          "  if (typeof env !== 'undefined') throw 'Unimplemented bailout';";
+          "  if (state !== 0) throw 'Unimplemented bailout';";
       String newParameters = parameterNames.isEmpty()
-          ? 'env'
-          : '$parameters, env';
+          ? 'state, env'
+          : '$parameters, state, env';
       return 'function($newParameters) {\n$check\n$buffer}';
     } else {
+      SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
+          compiler, work, buffer, parameters, parameterNames);
+      codegen.visitGraph(graph);
+      if (!codegen.guards.isEmpty()) {
+        addBailoutVersion(codegen.guards, work);
+      }
       return 'function($parameters) {\n$buffer}';
     }
   }
 
   void addBailoutVersion(List<HTypeGuard> guards, WorkItem work) {
     int length = guards.length;
-    Set<BailoutInfo> bailouts = new Set<BailoutInfo>();
+    Map<BailoutInfo, BailoutInfo> bailouts =
+        new Map<BailoutInfo, BailoutInfo>();
+    int state = 1;
     guards.forEach((HTypeGuard guard) {
       if (guard.guarded is !HParameterValue) {
-        bailouts.add(new BailoutInfo(
-            guard.originalBlockNumber, guard.instructionNumber));
+        BailoutInfo info = new BailoutInfo(
+            guard.originalBlockNumber, guard.instructionNumber, state++);
+        bailouts[info] = info;
       }
     });
     compiler.enqueue(new WorkItem.bailoutVersion(
@@ -93,7 +99,6 @@ class SsaCodeGenerator implements HVisitor {
   final Map<Element, String> parameterNames;
   final Map<int, String> names;
   final Map<String, int> prefixes;
-  final List<HTypeGuard> guards;
 
   Element equalsNullElement;
   int indent = 0;
@@ -106,14 +111,16 @@ class SsaCodeGenerator implements HVisitor {
                    this.parameters,
                    this.parameterNames)
     : names = new Map<int, String>(),
-      prefixes = new Map<String, int>(),
-      guards = <HTypeGuard>[] {
+      prefixes = new Map<String, int>() {
     for (final name in parameterNames.getValues()) {
       prefixes[name] = 0;
     }
     equalsNullElement =
         compiler.builder.interceptors.getEqualsNullInterceptor();
   }
+
+  abstract visitTypeGuard(HTypeGuard node);
+  abstract visitBailoutTarget(HBailoutTarget node);
 
   visitGraph(HGraph graph) {
     currentGraph = graph;
@@ -458,7 +465,6 @@ class SsaCodeGenerator implements HVisitor {
     return literal.toString();
   }
 
-
   visitLiteral(HLiteral node) {
     if (node.isLiteralNull()) {
       buffer.add("(void 0)");
@@ -552,85 +558,6 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(" | 0)) throw 'Illegal argument'");
   }
 
-  bailout(HTypeGuard guard, String reason) {
-    assert(!work.isBailoutVersion());
-    guards.add(guard);
-    HInstruction input = guard.guarded;
-    Namer namer = compiler.namer;
-    Element element = work.element;
-    buffer.add('return ');
-    if (element.isInstanceMember()) {
-      buffer.add('this.${namer.getBailoutName(element)}');
-    } else {
-      buffer.add(namer.isolateBailoutAccess(element));
-    }
-    int parametersCount = parameterNames.length;
-    buffer.add('($parameters');
-    if (parametersCount < guard.inputs.length) {
-      if (parametersCount != 0) buffer.add(', ');
-      buffer.add('[');
-      bool first = true;
-      for (int i = 0; i < guard.inputs.length; i++) {
-        HInstruction input = guard.inputs[i];
-        if (input.generateAtUseSite()) continue;
-        if (!first) {
-          buffer.add(', ');
-        } else {
-          first = false;
-        }
-        use(guard.inputs[i]);
-      }
-      buffer.add(']');
-    }
-    buffer.add(')');
-  }
-
-  visitTypeGuard(HTypeGuard node) {
-    HInstruction input = node.guarded;
-    assert(!input.generateAtUseSite() || input is HParameterValue);
-    if (node.isInteger()) {
-      buffer.add('if (');
-      use(input);
-      buffer.add(' !== (');
-      use(input);
-      buffer.add(' | 0)) ');
-      bailout(node, 'Not an integer');
-    } else if (node.isNumber()) {
-      buffer.add('if (typeof ');
-      use(input);
-      buffer.add(" !== 'number') ");
-      bailout(node, 'Not a number');
-    } else if (node.isBoolean()) {
-      buffer.add('if (typeof ');
-      use(input);
-      buffer.add(" !== 'boolean') ");
-      bailout(node, 'Not a boolean');
-    } else if (node.isString()) {
-      buffer.add('if (typeof ');
-      use(input);
-      buffer.add(" !== 'string') ");
-      bailout(node, 'Not a string');
-    } else if (node.isArray()) {
-      buffer.add('if (');
-      use(input);
-      buffer.add(".constructor !== Array) ");
-      bailout(node, 'Not an array');
-    } else if (node.isStringOrArray()) {
-      buffer.add('if (typeof ');
-      use(input);
-      buffer.add(" !== 'string' && ");
-      use(input);
-      buffer.add(".constructor !== Array) ");
-      bailout(node, 'Not a string or array');
-    } else {
-      unreachable();
-    }
-  }
-
-  visitBailoutTarget(HBailoutTarget node) {
-    buffer.add('// Bailout target');
-  }
-
   void addIndentation() {
     for (int i = 0; i < indent; i++) {
       buffer.add('  ');
@@ -715,5 +642,111 @@ class SsaCodeGenerator implements HVisitor {
     } else {
       return visitInvokeStatic(node);
     }
+  }
+}
+
+class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
+  final List<HTypeGuard> guards;
+  int state = 0;
+
+  SsaOptimizedCodeGenerator(compiler, work, buffer, parameters, parameterNames)
+    : super(compiler, work, buffer, parameters, parameterNames),
+      guards = <HTypeGuard>[];
+
+  bailout(HTypeGuard guard, String reason) {
+    guards.add(guard);
+    HInstruction input = guard.guarded;
+    Namer namer = compiler.namer;
+    Element element = work.element;
+    buffer.add('return ');
+    if (element.isInstanceMember()) {
+      // TODO(ngeoffray): This does not work in case we come from a
+      // super call. We must make bailout names unique.
+      buffer.add('this.${namer.getBailoutName(element)}');
+    } else {
+      buffer.add(namer.isolateBailoutAccess(element));
+    }
+    int parametersCount = parameterNames.length;
+    buffer.add('($parameters');
+    if (parametersCount != 0) buffer.add(', ');
+    if (parametersCount < guard.inputs.length) {
+      buffer.add('${++state}, [');
+      bool first = true;
+      for (int i = 0; i < guard.inputs.length; i++) {
+        HInstruction input = guard.inputs[i];
+        if (input.generateAtUseSite()) continue;
+        if (!first) {
+          buffer.add(', ');
+        } else {
+          first = false;
+        }
+        use(guard.inputs[i]);
+      }
+      buffer.add(']');
+    } else {
+      assert(guard.guarded is HParameterValue);
+      buffer.add(' 0');
+    }
+    buffer.add(')');
+  }
+
+  visitTypeGuard(HTypeGuard node) {
+    HInstruction input = node.guarded;
+    assert(!input.generateAtUseSite() || input is HParameterValue);
+    if (node.isInteger()) {
+      buffer.add('if (');
+      use(input);
+      buffer.add(' !== (');
+      use(input);
+      buffer.add(' | 0)) ');
+      bailout(node, 'Not an integer');
+    } else if (node.isNumber()) {
+      buffer.add('if (typeof ');
+      use(input);
+      buffer.add(" !== 'number') ");
+      bailout(node, 'Not a number');
+    } else if (node.isBoolean()) {
+      buffer.add('if (typeof ');
+      use(input);
+      buffer.add(" !== 'boolean') ");
+      bailout(node, 'Not a boolean');
+    } else if (node.isString()) {
+      buffer.add('if (typeof ');
+      use(input);
+      buffer.add(" !== 'string') ");
+      bailout(node, 'Not a string');
+    } else if (node.isArray()) {
+      buffer.add('if (');
+      use(input);
+      buffer.add(".constructor !== Array) ");
+      bailout(node, 'Not an array');
+    } else if (node.isStringOrArray()) {
+      buffer.add('if (typeof ');
+      use(input);
+      buffer.add(" !== 'string' && ");
+      use(input);
+      buffer.add(".constructor !== Array) ");
+      bailout(node, 'Not a string or array');
+    } else {
+      unreachable();
+    }
+  }
+
+  void visitBailoutTarget(HBailoutTarget target) {
+    compiler.internalError('Bailout target in an optimized method');
+  }
+}
+
+class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
+  SsaUnoptimizedCodeGenerator(
+      compiler, work, buffer, parameters, parameterNames)
+    : super(compiler, work, buffer, parameters, parameterNames);
+
+  void visitTypeGuard(HTypeGuard guard) {
+    compiler.internalError('Type guard in an unoptimized method');
+  }
+
+  visitBailoutTarget(HBailoutTarget node) {
+    buffer.add('// Bailout target ${node.state}');
   }
 }
