@@ -244,6 +244,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
   SsaBailoutPropagator(Compiler this.compiler) : blocks = <HBasicBlock>[];
 
   void visitGraph(HGraph graph) {
+    blocks.addLast(graph.entry);
     visitBasicBlock(graph.entry);
   }
 
@@ -251,7 +252,8 @@ class SsaBailoutPropagator extends HBaseVisitor {
     if (block.isLoopHeader()) blocks.addLast(block);
     HInstruction instruction = block.first;
     while (instruction != null) {
-      instruction = instruction.accept(this);
+      instruction.accept(this);
+      instruction = instruction.next;
     }
   }
 
@@ -259,7 +261,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
     if (block == null) return;
     blocks.addLast(block);
     visitBasicBlock(block);
-    blocks.removeLast(block);
+    blocks.removeLast();
   }
 
   void visitIf(HIf instruction) {
