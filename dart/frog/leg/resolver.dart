@@ -143,6 +143,7 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
   bool inInstanceContext;
   Scope context;
   ClassElement currentClass;
+  bool typeRequired = false;
 
   ResolverVisitor(Compiler compiler, Element element)
     : this.compiler = compiler,
@@ -219,12 +220,22 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
     if (name.source == const SourceString('void')) return null;
     Element element = context.lookup(name.source);
     if (element === null) {
-      warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [name]);
+      if (typeRequired) {
+        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [name]);
+      } else {
+        warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [name]);
+      }
     } else if (element.kind !== ElementKind.CLASS) {
-      warning(node, MessageKind.NOT_A_TYPE, [name]);
+      if (typeRequired) {
+        error(node, MessageKind.NOT_A_TYPE, [name]);
+      } else {
+        warning(node, MessageKind.NOT_A_TYPE, [name]);
+      }
     } else {
       ClassElement cls = element;
       compiler.resolver.toResolve.add(element);
+      // TODO(ahe): This should be a Type.
+      useElement(node, element);
     }
     return element;
   }
@@ -346,11 +357,11 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   Element resolveSend(Send node) {
-    Element receiver = visit(node.receiver);
-    visit(node.argumentsNode);
-
     Identifier selector = node.selector.asIdentifier();
+    Element receiver = visit(node.receiver);
+
     if (selector === null) {
+      visit(node.argumentsNode);
       // We are calling a closure returned from an expression.
       assert(node.selector.asExpression() !== null);
       assert(receiver === null);
@@ -359,6 +370,15 @@ class FullResolverVisitor extends ResolverVisitor {
     }
 
     SourceString name = selector.source;
+    if (name.stringValue === 'is') {
+      assert(node.asSendSet() === null);
+      resolveTypeTest(node.arguments.head);
+      assert(node.arguments.tail.isEmpty());
+      return null;
+    }
+
+    visit(node.argumentsNode);
+
     // No need to assign an element for a logical operation.
     if (isLogicalOperator(selector)) return null;
 
@@ -392,6 +412,17 @@ class FullResolverVisitor extends ResolverVisitor {
       }
     }
     return target;
+  }
+
+  resolveTypeTest(TypeAnnotation node) {
+    ClassElement cls = resolveTypeRequired(node);
+    if (cls.name == const SourceString('String') ||
+        cls.name == const SourceString('List') ||
+        cls.name == const SourceString('int') ||
+        cls.name == const SourceString('num') ||
+        cls.name == const SourceString('double')) {
+      cancel(node, "type test for ${cls.name} is not implemented");
+    }
   }
 
   visitSend(Send node) {
@@ -477,7 +508,7 @@ class FullResolverVisitor extends ResolverVisitor {
 
     visit(node.send.argumentsNode);
 
-    ClassElement cls = visit(node.send.selector);
+    ClassElement cls = resolveTypeRequired(node.send.selector);
     Element constructor = null;
     if (cls !== null) {
       // TODO(ngeoffray): set constructor-name correctly.
@@ -491,13 +522,18 @@ class FullResolverVisitor extends ResolverVisitor {
       if (constructor === null) {
         error(node, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node]);
       }
-    } else {
-      Node selector = node.send.selector;
-      error(selector, MessageKind.CANNOT_RESOLVE_TYPE, [selector]);
     }
 
     useElement(node.send, constructor);
     return null;
+  }
+
+  ClassElement resolveTypeRequired(Node node) {
+    bool old = typeRequired;
+    typeRequired = true;
+    ClassElement cls = visit(node);
+    typeRequired = old;
+    return cls;
   }
 
   visitModifiers(Modifiers node) {

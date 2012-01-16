@@ -248,7 +248,7 @@ testFor() {
 
   BlockScope scope = visitor.context;
   Expect.equals(0, scope.elements.length);
-  Expect.equals(5, visitor.mapping.map.length);
+  Expect.equals(6, visitor.mapping.map.length);
 
   VariableDefinitions initializer = tree.initializer;
   Node iNode = initializer.definitions.nodes.head;
@@ -260,22 +260,24 @@ testFor() {
   List<Node> nodes = visitor.mapping.map.getKeys();
   List<Element> elements = visitor.mapping.map.getValues();
 
-  Expect.isTrue(nodes[0] is SendSet);  // i = 0
-  Expect.equals(elements[0], iElement);
+  Expect.isTrue(nodes[0] is TypeAnnotation);  // int
 
-  Expect.isTrue(nodes[1] is Send);     // i (in i < 10)
-  Expect.isTrue(nodes[1] is !SendSet);
+  Expect.isTrue(nodes[1] is SendSet);  // i = 0
   Expect.equals(elements[1], iElement);
 
-  Expect.isTrue(nodes[2] is Send);     // i (in i + 1)
+  Expect.isTrue(nodes[2] is Send);     // i (in i < 10)
   Expect.isTrue(nodes[2] is !SendSet);
   Expect.equals(elements[2], iElement);
 
-  Expect.isTrue(nodes[3] is SendSet);  // i = i + 1
+  Expect.isTrue(nodes[3] is Send);     // i (in i + 1)
+  Expect.isTrue(nodes[3] is !SendSet);
   Expect.equals(elements[3], iElement);
 
-  Expect.isTrue(nodes[4] is SendSet);  // i = 5
+  Expect.isTrue(nodes[4] is SendSet);  // i = i + 1
   Expect.equals(elements[4], iElement);
+
+  Expect.isTrue(nodes[5] is SendSet);  // i = 5
+  Expect.equals(elements[5], iElement);
 }
 
 testTypeAnnotation() {
@@ -300,7 +302,7 @@ testTypeAnnotation() {
   // Test that there is no warning after defining Foo.
   compiler.parseScript("class Foo {}");
   mapping = compiler.resolveStatement(statement).map;
-  Expect.equals(1, mapping.length);
+  Expect.equals(2, mapping.length);
   Expect.equals(0, compiler.warnings.length);
 
   // Test that 'var' does not create a warning.
@@ -323,7 +325,7 @@ testSuperclass() {
   compiler.parseScript("class Foo extends Bar {}");
   compiler.parseScript("class Bar {}");
   Map mapping = compiler.resolveStatement("Foo bar;").map;
-  Expect.equals(1, mapping.length);
+  Expect.equals(2, mapping.length);
 
   ClassElement fooElement = compiler.universe.find(buildSourceString('Foo'));
   ClassElement barElement = compiler.universe.find(buildSourceString('Bar'));
@@ -390,7 +392,7 @@ testFunctionExpression() {
   MockCompiler compiler = new MockCompiler();
   ResolverVisitor visitor = compiler.resolverVisitor();
   Map mapping = compiler.resolveStatement("int f() {}").map;
-  Expect.equals(1, mapping.length);
+  Expect.equals(2, mapping.length);
   Element element;
   Node node;
   mapping.forEach((Node n, Element e) {

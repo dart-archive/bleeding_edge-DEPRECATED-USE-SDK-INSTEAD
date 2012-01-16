@@ -24,20 +24,21 @@ interface HVisitor<R> {
   R visitIndex(HIndex node);
   R visitIndexAssign(HIndexAssign node);
   R visitIntegerCheck(HIntegerCheck node);
-  R visitInvokeDynamicMethod(HInvokeDynamicMethod node);
   R visitInvokeDynamicGetter(HInvokeDynamicGetter node);
+  R visitInvokeDynamicMethod(HInvokeDynamicMethod node);
   R visitInvokeDynamicSetter(HInvokeDynamicSetter node);
   R visitInvokeInterceptor(HInvokeInterceptor node);
   R visitInvokeStatic(HInvokeStatic node);
   R visitInvokeSuper(HInvokeSuper node);
+  R visitIs(HIs node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
+  R visitLiteral(HLiteral node);
+  R visitLiteralList(HLiteralList node);
   R visitLoad(HLoad node);
   R visitLocal(HLocal node);
   R visitLogicalOperator(HLogicalOperator node);
   R visitLoopBranch(HLoopBranch node);
-  R visitLiteral(HLiteral node);
-  R visitLiteralList(HLiteralList node);
   R visitModulo(HModulo node);
   R visitMultiply(HMultiply node);
   R visitNegate(HNegate node);
@@ -251,6 +252,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   visitTypeGuard(HTypeGuard node) => visitInstruction(node);
+  visitIs(HIs node) => visitInstruction(node);
 }
 
 class HInstructionList {
@@ -2094,4 +2096,21 @@ class HLogicalOperator extends HNonSsaInstruction {
   HInstruction get right() => inputs[1];
   HType computeType() => HType.BOOLEAN;
   bool hasExpectedType() => true;
+}
+
+class HIs extends HInstruction {
+  // TODO(ahe): This should be a Type, not ClassElement.
+  final ClassElement typeExpression;
+
+  HIs(this.typeExpression, HInstruction expression)
+    : super(<HInstruction>[expression]);
+
+  HInstruction get expression() => inputs[0];
+
+  HType computeType() => HType.BOOLEAN;
+  bool hasExpectedType() => true;
+
+  accept(HVisitor visitor) => visitor.visitIs(this);
+
+  toString() => "$expression is $typeExpression";
 }

@@ -1200,6 +1200,9 @@ class NodeListener extends ElementListener {
   }
 
   void handleIsOperator(Token operathor, Token not, Token endToken) {
+    if (not !== null) {
+      canceler.cancel('negated is-operator is not implemented', token: not);
+    }
     TypeAnnotation type = popNode();
     Expression expression = popNode();
     NodeList arguments = new NodeList.singleton(type);

@@ -123,6 +123,7 @@ function(child, parent) {
         addInstanceMember(member, prototype, buffer);
       }
     }
+    buffer.add('$prototype.${namer.operatorIs(classElement)} = true;\n');
   }
 
   void emitClasses(StringBuffer buffer) {

@@ -159,4 +159,8 @@ class Namer {
   String isolateBailoutAccess(Element element) {
     return '${isolateAccess(element)}\$bailout';
   }
+
+  String operatorIs(ClassElement element) {
+    return 'is\$${getName(element)}';
+  }
 }

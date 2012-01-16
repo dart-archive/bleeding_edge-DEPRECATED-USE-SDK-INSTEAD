@@ -338,6 +338,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
           checkAssignable(secondArgument, boolType, secondArgumentType);
         }
         return boolType;
+      } else if (name === 'is') {
+        return boolType;
       }
       fail(selector, 'unexpected operator ${name}');
 

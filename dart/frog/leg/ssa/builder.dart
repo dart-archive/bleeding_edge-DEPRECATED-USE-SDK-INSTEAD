@@ -886,6 +886,10 @@ class SsaBuilder implements Visitor {
       visitLogicalNot(node);
     } else if (node.argumentsNode is Prefix) {
       visitUnary(node, op);
+    } else if (const SourceString("is") == op.source) {
+      visit(node.receiver);
+      HInstruction expression = pop();
+      push(new HIs(elements[node.arguments.head], expression));
     } else {
       visit(node.receiver);
       visit(node.argumentsNode);
@@ -1104,6 +1108,8 @@ class SsaBuilder implements Visitor {
       visit(link.head);
       HInstruction value = pop();
       generateSetter(node, element, value);
+    } else if (op.source.stringValue === "is") {
+      compiler.internalError("is-operator as SendSet", node: op);
     } else {
       assert(const SourceString("++") == op.source ||
              const SourceString("--") == op.source ||

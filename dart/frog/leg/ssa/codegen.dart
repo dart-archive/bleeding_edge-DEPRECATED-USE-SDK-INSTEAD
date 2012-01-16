@@ -643,6 +643,26 @@ class SsaCodeGenerator implements HVisitor {
       return visitInvokeStatic(node);
     }
   }
+
+  void visitIs(HIs node) {
+    // TODO(ahe): Get Object class from somewhere instead.
+    if (node.typeExpression.name == const SourceString('Object')) {
+      // TODO(ahe): This probably belongs in the constant folder.
+      if (node.expression.generateAtUseSite()) {
+        buffer.add('((');
+        visit(node.expression);
+        buffer.add('), true)');
+      } else {
+        buffer.add('true');
+      }
+    } else {
+      buffer.add('((');
+      use(node.expression);
+      buffer.add(').');
+      buffer.add(compiler.namer.operatorIs(node.typeExpression));
+      buffer.add(' === true)');
+    }
+  }
 }
 
 class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
