@@ -18,7 +18,9 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.libraryview.DeleteAction;
+import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.projects.OpenNewProjectWizardAction;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
@@ -29,12 +31,16 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
@@ -58,6 +64,17 @@ import org.eclipse.ui.part.ViewPart;
 @SuppressWarnings("deprecation")
 public class FilesView extends ViewPart implements ISetSelectionTarget {
 
+  private class FontPropertyChangeListener implements IPropertyChangeListener {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      if (treeViewer != null) {
+        if (DartBasePreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+          updateTreeFont();
+        }
+      }
+    }
+  }
+
   private TreeViewer treeViewer;
 
   private IMemento memento;
@@ -66,8 +83,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private MoveResourceAction moveAction;
   private RenameResourceAction renameAction;
 
-  public FilesView() {
+  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
+  public FilesView() {
   }
 
   @Override
@@ -106,6 +124,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.addSelectionChangedListener(renameAction);
     moveAction = new MoveResourceAction(getShell());
     treeViewer.addSelectionChangedListener(moveAction);
+
+    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
+    updateTreeFont();
   }
 
   @Override
@@ -211,6 +232,13 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         DartToolsPlugin.log(e);
       }
     }
+  }
+
+  protected void updateTreeFont() {
+    Font newFont = JFaceResources.getFont(DartBasePreferencePage.BASE_FONT_KEY);
+    Font oldFont = treeViewer.getTree().getFont();
+    Font font = SWTUtil.changeFontSize(oldFont, newFont);
+    treeViewer.getTree().setFont(font);
   }
 
   private Shell getShell() {

@@ -18,6 +18,7 @@ import com.google.dart.tools.core.MessageConsole.MessageStream;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DeployConsolePatternMatcher;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 
@@ -235,6 +236,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
       final MessageConsoleStream stream = console.newMessageStream();
       stream.setActivateOnWrite(false);
       JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
+      updateConsoleFont(PreferenceConstants.EDITOR_TEXT_FONT);
 
       DartCore.getConsole().addStream(new MessageStream() {
         @Override
@@ -550,7 +552,9 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
   private void updateConsoleFont(String name) {
     if (console != null) {
-      console.setFont(JFaceResources.getFont(name));
+      if (name.equals(PreferenceConstants.EDITOR_TEXT_FONT)) {
+        console.setFont(JFaceResources.getFont(name));
+      }
     }
   }
 }

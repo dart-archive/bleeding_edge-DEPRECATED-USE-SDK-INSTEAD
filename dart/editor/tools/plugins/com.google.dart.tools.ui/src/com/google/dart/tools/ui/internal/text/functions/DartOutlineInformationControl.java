@@ -28,6 +28,7 @@ import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.StandardDartElementContentProvider;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.util.StringMatcher;
 import com.google.dart.tools.ui.internal.viewsupport.AppearanceAwareLabelProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
@@ -49,7 +50,6 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
@@ -612,12 +612,9 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 
     treeViewer.getTree().addKeyListener(getKeyAdapter());
 
-    Font newFont = JFaceResources.getFont(DartBasePreferencePage.EDITOR_FONT_KEY);
+    Font newFont = JFaceResources.getFont(DartBasePreferencePage.BASE_FONT_KEY);
     Font oldFont = treeViewer.getTree().getFont();
-    FontData[] data = oldFont.getFontData();
-    int height = newFont.getFontData()[0].getHeight();
-    FontData newData = new FontData(data[0].getName(), height, data[0].getStyle());
-    Font font = new Font(oldFont.getDevice(), newData);
+    Font font = SWTUtil.changeFontSize(oldFont, newFont);
     treeViewer.getTree().setFont(font);
 
     return treeViewer;

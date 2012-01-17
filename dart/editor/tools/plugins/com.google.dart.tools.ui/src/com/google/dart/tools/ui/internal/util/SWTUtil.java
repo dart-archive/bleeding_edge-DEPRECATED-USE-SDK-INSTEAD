@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.util;
@@ -21,6 +19,9 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Caret;
@@ -33,12 +34,78 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Widget;
 
+import java.util.WeakHashMap;
+
 /**
  * Utility class to simplify access to some SWT resources.
  */
 public class SWTUtil {
 
   private static final int COMBO_VISIBLE_ITEM_COUNT = 30;
+
+  /**
+   * Font cache. A weak reference is used so that fonts may be disposed when no longer needed. Note:
+   * this does not "solve the font problem" since Eclipse code does not always dispose fonts.
+   */
+  private static WeakHashMap<String, Font> fontCache = new WeakHashMap<String, Font>();
+
+  /**
+   * Create a new font with the same attributes as the given <code>oldFont</code> except that its
+   * size is taken from the <code>newFont</code> Font.
+   * 
+   * @param oldFont The font whose size is to be changed (not null)
+   * @param newFont The Font that defines the new font size (may be null)
+   * @return A new Font like the original but with a new size
+   */
+  public static Font changeFontSize(Font oldFont, Font newFont) {
+    if (newFont == null) {
+      return oldFont;
+    }
+    FontData[] fontData = newFont.getFontData();
+    return changeFontSize(oldFont, fontData);
+  }
+
+  /**
+   * Create a new font with the same attributes as the given <code>oldFont</code> except that its
+   * size is taken from the <code>sizedFontData</code> FontData.
+   * 
+   * @param oldFont The font whose size is to be changed (not null)
+   * @param sizedFontData The FontData[] containing the new font size (may be null or zero length)
+   * @return A new Font like the original but with a new size
+   */
+  public static Font changeFontSize(Font oldFont, FontData[] sizedFontData) {
+    if (sizedFontData == null || sizedFontData.length == 0) {
+      return oldFont;
+    }
+    int height = sizedFontData[0].getHeight();
+    return changeFontSize(oldFont, height);
+  }
+
+  /**
+   * Create a new font with the same attributes as the given <code>oldFont</code> except that its
+   * size is given by <code>height</code>.
+   * 
+   * @param oldFont The font whose size is to be changed (not null)
+   * @param height The new font height
+   * @return A new Font like the original but with a new size
+   */
+  public static Font changeFontSize(Font oldFont, int height) {
+    FontData[] data = oldFont.getFontData();
+    FontData newData = new FontData(data[0].getName(), height, data[0].getStyle());
+    return getFont(oldFont.getDevice(), new FontData[] {newData});
+  }
+
+  /**
+   * Make a FontData array similar to the given <code>data</code> but having font height determined
+   * by <code>height</code>.
+   * 
+   * @param height New font height
+   * @return A font data array with the new height
+   */
+  public static FontData[] changeFontSize(FontData[] data, int height) {
+    FontData newData = new FontData(data[0].getName(), height, data[0].getStyle());
+    return new FontData[] {newData};
+  }
 
   /**
    * Returns a width hint for a button control.
@@ -49,6 +116,33 @@ public class SWTUtil {
     PixelConverter converter = new PixelConverter(button);
     int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
     return Math.max(widthHint, button.computeSize(SWT.DEFAULT, SWT.DEFAULT, true).x);
+  }
+
+  /**
+   * Get a font for the given <code>device</code> as specified by the given <code>data</code>.
+   * <p>
+   * This implementation maintains a cache of fonts.
+   * 
+   * @param device The device the font applies to.
+   * @param data The array of font data that defines the characteristics of the desired font.
+   * @return The font
+   */
+  public static Font getFont(Device device, FontData[] data) {
+    String name = data[0].getName();
+    int style = data[0].getStyle();
+    int height = data[0].getHeight();
+    StringBuilder keyBuilder = new StringBuilder();
+    keyBuilder.append(name).append(';');
+    keyBuilder.append(height).append(';');
+    keyBuilder.append(style);
+    String key = keyBuilder.toString();
+    Font font = fontCache.get(key);
+    if (font == null) {
+      FontData newData = new FontData(name, height, style);
+      font = new Font(device, newData);
+      fontCache.put(key, font);
+    }
+    return font;
   }
 
   /**
@@ -133,4 +227,6 @@ public class SWTUtil {
     combo.setVisibleItemCount(COMBO_VISIBLE_ITEM_COUNT);
   }
 
+  private SWTUtil() {
+  }
 }

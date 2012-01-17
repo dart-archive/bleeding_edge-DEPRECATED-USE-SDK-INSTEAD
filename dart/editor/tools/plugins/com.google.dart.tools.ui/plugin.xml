@@ -517,13 +517,42 @@
    <extension
          point="org.eclipse.ui.themes">
         <themeElementCategory label="%javaPresentation.label" id="org.eclipse.wst.jsdt.ui.presentation"/>
+        <themeElementCategory label="%dartPresentation.label" id="com.google.dart.tools.ui.presentation"/>
+      <!-- defaultsTo="org.eclipse.jface.textfont" -->
       <fontDefinition
             label="%javaEditorFontDefiniton.label"
-            defaultsTo="org.eclipse.jface.textfont"
-            categoryId="org.eclipse.wst.jsdt.ui.presentation"
+            defaultsTo="com.google.dart.tools.ui.editors.textfont.default"
+            categoryId="com.google.dart.tools.ui.presentation"
             id="com.google.dart.tools.ui.editors.textfont">
          <description>
             %javaEditorFontDefintion.description
+         </description>
+      </fontDefinition>
+      <fontDefinition
+            label="%baseEditorFontDefiniton.label"
+            defaultsTo="com.google.dart.tools.ui.editors.basefont.default"
+            categoryId="com.google.dart.tools.ui.presentation"
+            id="com.google.dart.tools.ui.editors.basefont">
+         <description>
+            %baseEditorFontDefintion.description
+         </description>
+      </fontDefinition>
+      <fontDefinition
+            label="%baseEditorFontDefiniton.label"
+            defaultsTo="org.eclipse.jface.textfont"
+            categoryId="com.google.dart.tools.ui.presentation"
+            id="com.google.dart.tools.ui.editors.basefont.default">
+         <description>
+            %baseEditorFontDefintion.description
+         </description>
+      </fontDefinition>
+      <fontDefinition
+            label="%defaultEditorFontDefiniton.label"
+            defaultsTo="org.eclipse.jface.textfont"
+            categoryId="com.google.dart.tools.ui.presentation"
+            id="com.google.dart.tools.ui.editors.textfont.default">
+         <description>
+            %defaultEditorFontDefintion.description
          </description>
       </fontDefinition>
       <fontDefinition

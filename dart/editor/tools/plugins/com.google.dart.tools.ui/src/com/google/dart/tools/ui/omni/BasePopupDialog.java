@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.omni;
 
+import com.google.dart.tools.ui.internal.util.SWTUtil;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
@@ -1304,7 +1306,7 @@ public class BasePopupDialog extends Window {
       for (int i = 0; i < fontDatas.length; i++) {
         fontDatas[i].setStyle(SWT.BOLD);
       }
-      titleFont = new Font(titleLabel.getDisplay(), fontDatas);
+      titleFont = SWTUtil.getFont(titleLabel.getDisplay(), fontDatas);
       titleLabel.setFont(titleFont);
     }
 
@@ -1314,7 +1316,7 @@ public class BasePopupDialog extends Window {
       for (int i = 0; i < fontDatas.length; i++) {
         fontDatas[i].setHeight(fontDatas[i].getHeight() * 9 / 10);
       }
-      infoFont = new Font(infoLabel.getDisplay(), fontDatas);
+      infoFont = SWTUtil.getFont(infoLabel.getDisplay(), fontDatas);
       infoLabel.setFont(infoFont);
     }
   }

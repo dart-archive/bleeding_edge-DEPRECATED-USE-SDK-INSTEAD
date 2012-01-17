@@ -30,6 +30,7 @@ import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.preferences.MembersOrderPreferenceCache;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.util.SelectionUtil;
 import com.google.dart.tools.ui.internal.util.Strings;
 import com.google.dart.tools.ui.internal.viewsupport.AppearanceAwareLabelProvider;
@@ -71,7 +72,6 @@ import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
@@ -125,7 +125,9 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
     @Override
     public void propertyChange(PropertyChangeEvent event) {
       if (viewer != null) {
-        viewer.updateTreeFont(event.getProperty());
+        if (DartBasePreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+          viewer.updateTreeFont();
+        }
       }
     }
   }
@@ -191,13 +193,10 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
       super.handleInvalidSelection(invalidSelection, newSelection);
     }
 
-    protected void updateTreeFont(String name) {
-      Font newFont = JFaceResources.getFont(DartBasePreferencePage.EDITOR_FONT_KEY);
+    protected void updateTreeFont() {
+      Font newFont = JFaceResources.getFont(DartBasePreferencePage.BASE_FONT_KEY);
       Font oldFont = getTree().getFont();
-      FontData[] data = oldFont.getFontData();
-      int height = newFont.getFontData()[0].getHeight();
-      FontData newData = new FontData(data[0].getName(), height, data[0].getStyle());
-      Font font = new Font(oldFont.getDevice(), newData);
+      Font font = SWTUtil.changeFontSize(oldFont, newFont);
       getTree().setFont(font);
     }
   }
@@ -444,7 +443,7 @@ public class LibraryExplorerPart extends ViewPart implements ISetSelectionTarget
     }
     viewer = createViewer(parent);
     viewer.setUseHashlookup(true);
-    viewer.updateTreeFont(DartBasePreferencePage.EDITOR_FONT_KEY);
+    viewer.updateTreeFont();
 
     setProviders();
 

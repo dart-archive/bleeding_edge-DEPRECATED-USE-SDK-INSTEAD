@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.problemsview;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -432,7 +433,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     @Override
     public void propertyChange(PropertyChangeEvent event) {
       if (tableViewer != null) {
-        updateTableFont(event.getProperty());
+        if (DartBasePreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+          updateTableFont();
+        }
       }
     }
   }
@@ -783,7 +786,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     table.setLayoutData(new GridData(GridData.FILL_BOTH));
 //    table.setFont(parent.getFont());
-    updateTableFont(DartBasePreferencePage.EDITOR_FONT_KEY);
+    updateTableFont();
 
     table.setLinesVisible(true);
     table.setHeaderVisible(true);
@@ -998,14 +1001,12 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     setContentDescription(desc);
   }
 
-  protected void updateTableFont(String name) {
-    Font newFont = JFaceResources.getFont(DartBasePreferencePage.EDITOR_FONT_KEY);
+  protected void updateTableFont() {
+    Font newFont = JFaceResources.getFont(DartBasePreferencePage.BASE_FONT_KEY);
     Font oldFont = tableViewer.getTable().getFont();
-    FontData[] data = oldFont.getFontData();
-    int height = newFont.getFontData()[0].getHeight();
-    FontData newData = new FontData(data[0].getName(), height, data[0].getStyle());
-    Font font = new Font(oldFont.getDevice(), newData);
+    Font font = SWTUtil.changeFontSize(oldFont, newFont);
     tableViewer.getTable().setFont(font);
+    tableViewer.getTable().layout(true, true); // bug: row height never decreases
   }
 
   private void addActionsForSelection(IMenuManager menuManager) {

@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.html;
@@ -24,6 +22,8 @@ package com.google.dart.tools.ui.internal.text.html;
  * http://www.eclipse.org/legal/epl-v10.html Contributors: IBM Corporation - initial API and
  * implementation
  *******************************************************************************/
+
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.text.IInformationControl;
@@ -102,7 +102,7 @@ public class BrowserInformationControl implements IInformationControl,
 
   /**
    * Tells whether the SWT Browser widget and hence this information control is available.
-   *
+   * 
    * @param parent the parent component used for checking or <code>null</code> if none
    * @return <code>true</code> if this control is available
    */
@@ -148,7 +148,7 @@ public class BrowserInformationControl implements IInformationControl,
    * Creates a default information control with the given shell as parent. No information presenter
    * is used to process the information to be displayed. No additional styles are applied to the
    * styled text widget.
-   *
+   * 
    * @param parent the parent shell
    */
   public BrowserInformationControl(Shell parent) {
@@ -159,7 +159,7 @@ public class BrowserInformationControl implements IInformationControl,
    * Creates a default information control with the given shell as parent. The given information
    * presenter is used to process the information to be displayed. The given styles are applied to
    * the created styled text widget.
-   *
+   * 
    * @param parent the parent shell
    * @param style the additional styles for the browser widget
    */
@@ -171,7 +171,7 @@ public class BrowserInformationControl implements IInformationControl,
    * Creates a default information control with the given shell as parent. The given information
    * presenter is used to process the information to be displayed. The given styles are applied to
    * the created styled text widget.
-   *
+   * 
    * @param parent the parent shell
    * @param shellStyle the additional styles for the shell
    * @param style the additional styles for the styled text widget
@@ -184,7 +184,7 @@ public class BrowserInformationControl implements IInformationControl,
    * Creates a default information control with the given shell as parent. The given information
    * presenter is used to process the information to be displayed. The given styles are applied to
    * the created styled text widget.
-   *
+   * 
    * @param parent the parent shell
    * @param shellStyle the additional styles for the shell
    * @param style the additional styles for the styled text widget
@@ -288,7 +288,7 @@ public class BrowserInformationControl implements IInformationControl,
       for (int i = 0; i < fontDatas.length; i++) {
         fontDatas[i].setHeight(fontDatas[i].getHeight() * 9 / 10);
       }
-      fStatusTextFont = new Font(fStatusTextField.getDisplay(), fontDatas);
+      fStatusTextFont = SWTUtil.getFont(fStatusTextField.getDisplay(), fontDatas);
       fStatusTextField.setFont(fStatusTextFont);
       gd = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_BEGINNING
           | GridData.VERTICAL_ALIGN_BEGINNING);
@@ -629,7 +629,7 @@ public class BrowserInformationControl implements IInformationControl,
     for (int i = 0; i < fontData.length; i++) {
       fontData[i].setStyle(SWT.BOLD);
     }
-    font = new Font(fShell.getDisplay(), fontData);
+    font = SWTUtil.getFont(fShell.getDisplay(), fontData);
     fBoldStyle = new TextStyle(font, null, null);
 
     // Compute and set tab width

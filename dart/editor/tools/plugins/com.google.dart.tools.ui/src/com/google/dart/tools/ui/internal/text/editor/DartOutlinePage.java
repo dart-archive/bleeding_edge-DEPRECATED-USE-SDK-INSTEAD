@@ -40,6 +40,7 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.viewsupport.AppearanceAwareLabelProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
 import com.google.dart.tools.ui.internal.viewsupport.SourcePositionComparator;
@@ -74,7 +75,6 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -534,13 +534,10 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       }
     }
 
-    protected void updateTreeFont(String name) {
-      Font newFont = JFaceResources.getFont(DartBasePreferencePage.EDITOR_FONT_KEY);
+    protected void updateTreeFont() {
+      Font newFont = JFaceResources.getFont(DartBasePreferencePage.BASE_FONT_KEY);
       Font oldFont = getTree().getFont();
-      FontData[] data = oldFont.getFontData();
-      int height = newFont.getFontData()[0].getHeight();
-      FontData newData = new FontData(data[0].getName(), height, data[0].getStyle());
-      Font font = new Font(oldFont.getDevice(), newData);
+      Font font = SWTUtil.changeFontSize(oldFont, newFont);
       getTree().setFont(font);
     }
 
@@ -787,7 +784,9 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     @Override
     public void propertyChange(PropertyChangeEvent event) {
       if (fOutlineViewer != null) {
-        fOutlineViewer.updateTreeFont(event.getProperty());
+        if (DartBasePreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+          fOutlineViewer.updateTreeFont();
+        }
       }
     }
   }
@@ -892,7 +891,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     fOutlineViewer.setContentProvider(new LibraryExplorerContentProvider(true));
     fOutlineViewer.setComparator(new DartElementComparator());
     fOutlineViewer.setLabelProvider(new DartElementLabelProvider());
-    fOutlineViewer.updateTreeFont(DartBasePreferencePage.EDITOR_FONT_KEY);
+    fOutlineViewer.updateTreeFont();
 
     Object[] listeners = fSelectionChangedListeners.getListeners();
     for (int i = 0; i < listeners.length; i++) {

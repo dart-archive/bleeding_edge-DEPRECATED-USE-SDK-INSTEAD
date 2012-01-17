@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart.hover;
@@ -20,6 +18,7 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.editor.DartSourceViewer;
 import com.google.dart.tools.ui.internal.text.functions.SimpleDartSourceViewerConfiguration;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.IDartColorConstants;
 
@@ -246,7 +245,7 @@ public class SourceViewerInformationControl implements IInformationControl,
       for (int i = 0; i < fontDatas.length; i++) {
         fontDatas[i].setHeight(fontDatas[i].getHeight() * 9 / 10);
       }
-      fStatusTextFont = new Font(fStatusField.getDisplay(), fontDatas);
+      fStatusTextFont = SWTUtil.getFont(fStatusField.getDisplay(), fontDatas);
       fStatusField.setFont(fStatusTextFont);
       GridData gd2 = new GridData(GridData.FILL_VERTICAL | GridData.FILL_HORIZONTAL
           | GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
