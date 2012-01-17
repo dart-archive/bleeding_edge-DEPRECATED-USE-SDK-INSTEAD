@@ -12,9 +12,9 @@ class ScannerTask extends CompilerTask {
       for (Link<Element> link = elements; !link.isEmpty(); link = link.tail) {
         Element existing = compiler.universe.find(link.head.name);
         if (existing !== null) {
+          Node node = link.head.parseNode(compiler, compiler);
           // TODO(ahe): Is this the right place to handle this?
-          compiler.cancel('Duplicate definition',
-                          token: link.head.dynamic.beginToken);
+          compiler.cancel('Duplicate definition', node: node);
         }
         compiler.universe.define(link.head);
       }

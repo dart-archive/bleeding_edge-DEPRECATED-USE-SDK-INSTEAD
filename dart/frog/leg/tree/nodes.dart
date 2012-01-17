@@ -536,7 +536,8 @@ class FunctionExpression extends Expression {
   }
 
   Token getBeginToken() {
-    return firstBeginToken(returnType, name);
+    if (returnType === null) return firstBeginToken(name, parameters);
+    return returnType.getBeginToken();
   }
 
   Token getEndToken() {
@@ -708,7 +709,10 @@ class Return extends Statement {
 
   Token getBeginToken() => beginToken;
 
-  Token getEndToken() => endToken;
+  Token getEndToken() {
+    if (endToken === null) return expression.getEndToken();
+    return endToken;
+  }
 }
 
 class ExpressionStatement extends Statement {

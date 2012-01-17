@@ -94,20 +94,32 @@ class CompilationUnitElement extends Element {
 
 class VariableElement extends Element {
   final VariableListElement variables;
-  final Node node; // The send or the identifier in the variables list.
+  Expression node; // The send or the identifier in the variables list.
 
   Modifiers get modifiers() => variables.modifiers;
 
   VariableElement(SourceString name,
-                  Node this.node,
                   VariableListElement this.variables,
                   ElementKind kind,
                   Element enclosing)
     : super(name, kind, enclosing);
 
   Node parseNode(Canceler canceler, Logger logger) {
-    assert(node != null);
-    return node;
+    if (node !== null) return node;
+    VariableDefinitions definitions = variables.parseNode(canceler, logger);
+    for (Link<Node> link = definitions.definitions.nodes;
+         !link.isEmpty(); link = link.tail) {
+      Expression initializedIdentifier = link.head;
+      Identifier identifier = initializedIdentifier.asIdentifier();
+      if (identifier === null) {
+        identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
+      }
+      if (name === identifier.source) {
+        node = initializedIdentifier;
+        return node;
+      }
+    }
+    canceler.cancel('internal error: could not find $name', node: variables);
   }
 
   Type computeType(Compiler compiler) {

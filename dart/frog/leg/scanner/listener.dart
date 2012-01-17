@@ -509,9 +509,9 @@ class ElementListener extends Listener {
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
-    void buildFieldElement(SourceString name, Node node, Element fields) {
+    void buildFieldElement(SourceString name, Element fields) {
       pushElement(new VariableElement(
-          name, node, fields, ElementKind.FIELD, compilationUnitElement));
+          name, fields, ElementKind.FIELD, compilationUnitElement));
     }
     NodeList variables = makeNodeList(count, null, null, ",");
     Modifiers modifiers = popNode();
@@ -522,7 +522,6 @@ class ElementListener extends Listener {
   void buildFieldElements(Modifiers modifiers,
                           NodeList variables,
                           void buildFieldElement(SourceString name,
-                                                 Node node,
                                                  Element fields),
                           Token beginToken, Token endToken) {
     Element fields = new PartialFieldListElement(beginToken,
@@ -537,14 +536,8 @@ class ElementListener extends Listener {
         identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
       }
       SourceString name = identifier.source;
-      buildFieldElement(name, initializedIdentifier, fields);
+      buildFieldElement(name, fields);
     }
-  }
-
-  void endInitializer(Token assignmentOperator) {
-    // TODO(floitsch): Remove this method.
-    canceler.cancel("field initializers are not implemented",
-                    token: assignmentOperator);
   }
 
   void handleIdentifier(Token token) {
@@ -1253,7 +1246,7 @@ class PartialFieldListElement extends VariableListElement {
                           Element enclosing)
     : super(ElementKind.VARIABLE_LIST, modifiers, enclosing);
 
-  Node parseNode(Canceler canceler, Logger logger) {
+  VariableDefinitions parseNode(Canceler canceler, Logger logger) {
     if (node != null) return node;
     node = parse(canceler, logger,
         (p) => p.parseVariablesDeclaration(beginToken));

@@ -48,7 +48,11 @@ class MemberListener extends NodeListener {
     super.endMethod(beginToken, endToken);
     FunctionExpression method = popNode();
     pushNode(null);
-    Identifier name = method.name; // TODO(ahe): Named constructors.
+    Expression qualified = method.name;
+    Identifier name = qualified.asIdentifier();
+    if (name === null) {
+      canceler.cancel('qualified names are not implemented', node: qualified);
+    }
     ElementKind kind = isConstructor(name) ?
                        ElementKind.GENERATIVE_CONSTRUCTOR :
                        ElementKind.FUNCTION;
@@ -80,9 +84,9 @@ class MemberListener extends NodeListener {
     VariableDefinitions variableDefinitions = popNode();
     Modifiers modifiers = variableDefinitions.modifiers;
     pushNode(null);
-    void buildFieldElement(SourceString name, Node node, Element fields) {
+    void buildFieldElement(SourceString name, Element fields) {
       Element element = new VariableElement(
-          name, node, fields, ElementKind.FIELD, enclosingElement);
+          name, fields, ElementKind.FIELD, enclosingElement);
       enclosingElement.addMember(element);
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,
@@ -90,9 +94,6 @@ class MemberListener extends NodeListener {
   }
 
   void endInitializer(Token assignmentOperator) {
-    // TODO(floitsch): Remove this cancel.
-    canceler.cancel("field initializers are not implemented",
-                    token: assignmentOperator);
     pushNode(null); // Super expects an expression, but
                     // ClassElementParser just skips expressions.
     super.endInitializer(assignmentOperator);

@@ -215,7 +215,11 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    Identifier name = node.typeName;
+    Identifier name = node.typeName.asIdentifier();
+    if (name === null) {
+      // TODO(karlklose): In progress.
+      cancel(node.typeName, "not implemented");
+    }
     if (name.source == const SourceString('var')) return null;
     if (name.source == const SourceString('void')) return null;
     Element element = context.lookup(name.source);
@@ -330,6 +334,12 @@ class FullResolverVisitor extends ResolverVisitor {
 
   visitFunctionExpression(FunctionExpression node) {
     visit(node.returnType);
+    if (node.name === null) {
+      cancel(node, "anonymous functions are not implemented");
+    }
+    if (node.name.asIdentifier() === null) {
+      cancel(node.name, "named constructors are not implemented");
+    }
     FunctionElement enclosingElement = new FunctionElement.node(
         node, ElementKind.FUNCTION, null, context.element);
     defineElement(node, enclosingElement);
@@ -707,8 +717,9 @@ class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
-      Element element = new VariableElement(
-          name, node, variables, kind, resolver.context.element);
+      VariableElement element = new VariableElement(
+          name, variables, kind, resolver.context.element);
+      element.node = link.head;
       resolver.defineElement(link.head, element);
     }
   }
