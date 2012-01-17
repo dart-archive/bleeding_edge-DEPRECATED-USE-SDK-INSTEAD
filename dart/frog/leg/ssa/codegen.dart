@@ -23,7 +23,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     });
   }
 
-  void preGenerateMethod(HGraph graph) {
+  void preGenerateMethod(HGraph graph, WorkItem work) {
     if (GENERATE_SSA_TRACE) {
       new HTracer.singleton().traceGraph("codegen", graph);
     }
@@ -33,7 +33,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     // since we don't do code motion after this point.
     new SsaCheckInstructionUnuser().visitGraph(graph);
     new SsaConditionMerger().visitGraph(graph);
-    new SsaPhiEliminator().visitGraph(graph);
+    new SsaPhiEliminator(work).visitGraph(graph);
     if (GENERATE_SSA_TRACE) {
       new HTracer.singleton().traceGraph("no-phi", graph);
     }
@@ -42,7 +42,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   String generateMethod(Map<Element, String> parameterNames,
                         WorkItem work,
                         HGraph graph) {
-    preGenerateMethod(graph);
+    preGenerateMethod(graph, work);
     StringBuffer buffer = new StringBuffer();
     StringBuffer parameters = new StringBuffer();
     List<String> names = parameterNames.getValues();
@@ -53,15 +53,13 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
     if (work.isBailoutVersion()) {
       new SsaBailoutPropagator(compiler).visitGraph(graph);
-      SsaCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
+      SsaUnoptimizedCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
           compiler, work, buffer, parameters, parameterNames);
       codegen.visitGraph(graph);
-      String check =
-          "  if (state !== 0) throw 'Unimplemented bailout';";
       String newParameters = parameterNames.isEmpty()
           ? 'state, env'
           : '$parameters, state, env';
-      return 'function($newParameters) {\n$check\n$buffer}';
+      return 'function($newParameters) {\n${codegen.setup}$buffer}';
     } else {
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           compiler, work, buffer, parameters, parameterNames);
@@ -122,10 +120,26 @@ class SsaCodeGenerator implements HVisitor {
   abstract visitTypeGuard(HTypeGuard node);
   abstract visitBailoutTarget(HBailoutTarget node);
 
+  abstract beginGraph(HGraph graph);
+  abstract endGraph(HGraph graph);
+
+  abstract beginLoop(HBasicBlock block);
+  abstract endLoop(HBasicBlock block);
+  abstract handleLoopCondition(HLoopBranch node);
+
+  abstract startIf(HIf node);
+  abstract endIf(HIf node);
+  abstract startThen(HIf node);
+  abstract endThen(HIf node);
+  abstract startElse(HIf node);
+  abstract endElse(HIf node);
+
   visitGraph(HGraph graph) {
     currentGraph = graph;
     indent++;  // We are already inside a function.
+    beginGraph(graph);
     visitBasicBlock(graph.entry);
+    endGraph(graph);
   }
 
   String parameter(HParameterValue parameter) => parameterNames[parameter.element];
@@ -201,31 +215,27 @@ class SsaCodeGenerator implements HVisitor {
 
   visitBasicBlock(HBasicBlock node) {
     currentBlock = node;
-    for (HPhi phi = node.phis.first; phi != null; phi = phi.next) {
-      if (!phi.generateAtUseSite()) visit(phi);
-    }
 
     // While loop will be closed by the conditional loop-branch.
     // TODO(floitsch): HACK HACK HACK.
-    if (node.isLoopHeader()) {
-      addIndentation();
-      buffer.add('while (true) {\n');
-      indent++;
-    }
+    if (currentBlock.isLoopHeader()) beginLoop(node);
+
     HInstruction instruction = node.first;
     while (instruction != null) {
       if (instruction is HGoto || instruction is HExit) {
         visit(instruction);
         return;
       } else if (!instruction.generateAtUseSite()) {
-        addIndentation();
+        if (instruction is !HIf && instruction is !HBailoutTarget) {
+          addIndentation();
+        }
         if (instruction.usedBy.isEmpty() || instruction is HLocal) {
           visit(instruction);
         } else {
           define(instruction);
         }
         // Control flow instructions know how to handle ';'.
-        if (instruction is !HControlFlow) {
+        if (instruction is !HControlFlow && instruction is !HBailoutTarget) {
           buffer.add(';\n');
         }
       } else if (instruction is HIf) {
@@ -343,23 +353,17 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitIf(HIf node) {
+    startIf(node);
     assert(!node.generateAtUseSite());
-    buffer.add('if (');
-    use(node.inputs[0]);
-    buffer.add(') {\n');
-    indent++;
+    startThen(node);
     visitBasicBlock(node.thenBlock);
-    indent--;
-    addIndentation();
-    int nextDominatedIndex;
+    endThen(node);
     if (node.hasElse) {
-      buffer.add('} else {\n');
-      indent++;
+      startElse(node);
       visitBasicBlock(node.elseBlock);
-      indent--;
-      addIndentation();
+      endElse(node);
     }
-    buffer.add("}\n");
+    endIf(node);
 
     // Normally the HIf dominates the join-block. In this case there is one
     // dominated block that we need to visit:
@@ -480,18 +484,13 @@ class SsaCodeGenerator implements HVisitor {
 
   visitLoopBranch(HLoopBranch node) {
     HBasicBlock branchBlock = currentBlock;
-    buffer.add('if (!(');
-    use(node.inputs[0]);
-    buffer.add(')) break;\n');
+    handleLoopCondition(node);
     List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
-    HBasicBlock loopSuccessor;
     // For a do while loop, the body has already been visited.
     if (!node.isDoWhile()) {
       visitBasicBlock(dominated[0]);
     }
-    indent--;
-    addIndentation();
-    buffer.add('}\n');  // Close 'while' loop.
+    endLoop(node.block);
     visitBasicBlock(branchBlock.successors[1]);
     // TODO(floitsch): with labeled breaks we can have more dominated blocks.
     assert(dominated.length <= 3);
@@ -673,7 +672,10 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     : super(compiler, work, buffer, parameters, parameterNames),
       guards = <HTypeGuard>[];
 
-  bailout(HTypeGuard guard, String reason) {
+  void beginGraph(HGraph graph) {}
+  void endGraph(HGraph graph) {}
+
+  void bailout(HTypeGuard guard, String reason) {
     guards.add(guard);
     HInstruction input = guard.guarded;
     Namer namer = compiler.namer;
@@ -694,7 +696,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       bool first = true;
       for (int i = 0; i < guard.inputs.length; i++) {
         HInstruction input = guard.inputs[i];
-        if (input.generateAtUseSite()) continue;
         if (!first) {
           buffer.add(', ');
         } else {
@@ -710,7 +711,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     buffer.add(')');
   }
 
-  visitTypeGuard(HTypeGuard node) {
+  void visitTypeGuard(HTypeGuard node) {
     HInstruction input = node.guarded;
     assert(!input.generateAtUseSite() || input is HParameterValue);
     if (node.isInteger()) {
@@ -752,21 +753,259 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     }
   }
 
+  void beginLoop(HBasicBlock block) {
+    addIndentation();
+    buffer.add('while (true) {\n');
+    indent++;
+  }
+
+  void endLoop(HBasicBlock block) {
+    indent--;
+    addIndentation();
+    buffer.add('}\n');  // Close 'while' loop.
+  }
+
+  void handleLoopCondition(HLoopBranch node) {
+    buffer.add('if (!(');
+    use(node.inputs[0]);
+    buffer.add(')) break;\n');
+  }
+
+  void startIf(HIf node) {
+  }
+
+  void endIf(HIf node) {
+    indent--;
+    addIndentation();
+    buffer.add('}\n');
+  }
+
+  void startThen(HIf node) {
+    addIndentation();
+    buffer.add('if (');
+    use(node.inputs[0]);
+    buffer.add(') {\n');
+    indent++;
+  }
+
+  void endThen(HIf node) {
+  }
+
+  void startElse(HIf node) {
+    indent--;
+    addIndentation();
+    buffer.add('} else {\n');
+    indent++;
+  }
+
+  void endElse(HIf node) {
+  }
+
   void visitBailoutTarget(HBailoutTarget target) {
     compiler.internalError('Bailout target in an optimized method');
   }
 }
 
 class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
+
+  final StringBuffer setup;
+  final List<String> labels;
+  int labelId = 0;
+
   SsaUnoptimizedCodeGenerator(
       compiler, work, buffer, parameters, parameterNames)
-    : super(compiler, work, buffer, parameters, parameterNames);
+    : super(compiler, work, buffer, parameters, parameterNames),
+      setup = new StringBuffer(),
+      labels = <String>[];
+
+  String pushLabel() {
+    String label = 'L${labelId++}';
+    labels.addLast(label);
+    return label;
+  }
+
+  String popLabel() {
+    return labels.removeLast();
+  }
+
+  String currentLabel() {
+    return labels.last();
+  }
+
+  void beginGraph(HGraph graph) {
+    if (!graph.entry.hasBailouts()) return;
+    addIndentation();
+    buffer.add('switch (state) {\n');
+    indent++;
+    addIndentation();
+    buffer.add('case 0:\n');
+    indent++;
+
+    // The setup phase of a bailout function sets up the environment for
+    // each bailout target. Each bailout target will populate this
+    // setup phase. It is put at the beginning of the function.
+    setup.add('  switch (state) {\n');
+  }
+
+  void endGraph(HGraph graph) {
+    if (!graph.entry.hasBailouts()) return;
+    indent--; // Close original case.
+    indent--;
+    addIndentation();
+    buffer.add('}\n');  // Close 'switch'.
+    setup.add('  }\n');
+  }
 
   void visitTypeGuard(HTypeGuard guard) {
     compiler.internalError('Type guard in an unoptimized method');
   }
 
-  visitBailoutTarget(HBailoutTarget node) {
-    buffer.add('// Bailout target ${node.state}');
+  void visitBailoutTarget(HBailoutTarget node) {
+    indent--;
+    addIndentation();
+    buffer.add('case ${node.state}:\n');
+    indent++;
+    addIndentation();
+    buffer.add('state = 0;\n');
+
+    setup.add('    case ${node.state}:\n');
+    int i = 0;
+    for (HInstruction input in node.inputs) {
+      setup.add('      ${temporary(input)} = env[$i];\n');
+      if (input is HLoad) {
+        // We get the load of a phi that was turned into a local in
+        // the environment. Update the local with that load.
+        HLoad load = input;
+        setup.add('      ${local(input.local)} = env[$i];\n');
+      }
+      i++;
+    }
+    setup.add('      break;\n');
+  }
+
+  void startBailoutCase(List<HBailoutTarget> bailouts1,
+                        List<HBailoutTarget> bailouts2) {
+    indent--;
+    handleBailoutCase(bailouts1);
+    handleBailoutCase(bailouts2);
+    indent++;
+  }
+
+  void handleBailoutCase(List<HBailoutTarget> bailouts) {
+    for (int i = 0, len = bailouts.length; i < len; i++) {
+      addIndentation();
+      buffer.add('case ${bailouts[i].state}:\n');
+    }
+  }
+
+  void startBailoutSwitch() {
+    addIndentation();
+    buffer.add('switch (state) {\n');
+    indent++;
+    addIndentation();
+    buffer.add('case 0:\n');
+    indent++;
+  }
+
+  void endBailoutSwitch() {
+    indent--; // Close 'case'.
+    indent--;
+    addIndentation();
+    buffer.add('}\n');  // Close 'switch'.
+  }
+
+  void beginLoop(HBasicBlock block) {
+    // TODO(ngeoffray): Don't put labels on loops that don't bailout.
+    String newLabel = pushLabel();
+    if (block.hasBailouts()) {
+      startBailoutCase(block.bailouts, const <HBailoutTarget>[]);
+    }
+
+    addIndentation();
+    buffer.add('$newLabel: while (true) {\n');
+    indent++;
+
+    if (block.hasBailouts()) {
+      startBailoutSwitch();
+    }
+  }
+
+  void endLoop(HBasicBlock block) {
+    popLabel();
+    HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
+    if (header.hasBailouts()) {
+      endBailoutSwitch();
+    }
+    indent--;
+    addIndentation();
+    buffer.add('}\n');  // Close 'while'.
+  }
+
+  void handleLoopCondition(HLoopBranch node) {
+    buffer.add('if (!(');
+    use(node.inputs[0]);
+    buffer.add(')) break ${currentLabel()};\n');
+  }
+
+  void startIf(HIf node) {
+    bool hasBailouts = node.thenBlock.hasBailouts()
+        || (node.hasElse && node.elseBlock.hasBailouts());
+    if (hasBailouts) {
+      startBailoutCase(node.thenBlock.bailouts,
+          node.hasElse ? node.elseBlock.bailouts : const <HBailoutTarget>[]);
+    }
+  }
+
+  void endIf(HIf node) {
+    indent--;
+    addIndentation();
+    buffer.add('}\n');
+  }
+
+  void startThen(HIf node) {
+    addIndentation();
+    bool hasBailouts = node.thenBlock.hasBailouts()
+        || (node.hasElse && node.elseBlock.hasBailouts());
+    buffer.add('if (');
+    if (hasBailouts) {
+      // TODO(ngeoffray): Put the condition initialization in the
+      // [setup] buffer.
+      List<HBailoutTarget> bailouts = node.thenBlock.bailouts;
+      for (int i = 0, len = bailouts.length; i < len; i++) {
+        buffer.add('state == ${bailouts[i].state} || ');
+      }
+      buffer.add('(state == 0 && ');
+    }
+    use(node.inputs[0]);
+    if (hasBailouts) {
+      buffer.add(')');
+    }
+    buffer.add(') {\n');
+    indent++;
+    if (node.thenBlock.hasBailouts()) {
+      startBailoutSwitch();
+    }
+  }
+
+  void endThen(HIf node) {
+    if (node.thenBlock.hasBailouts()) {
+      endBailoutSwitch();
+    }
+  }
+
+  void startElse(HIf node) {
+    indent--;
+    addIndentation();
+    buffer.add('} else {\n');
+    indent++;
+    if (node.elseBlock.hasBailouts()) {
+      startBailoutSwitch();
+    }
+  }
+
+  void endElse(HIf node) {
+    if (node.elseBlock.hasBailouts()) {
+      endBailoutSwitch();
+    }
   }
 }

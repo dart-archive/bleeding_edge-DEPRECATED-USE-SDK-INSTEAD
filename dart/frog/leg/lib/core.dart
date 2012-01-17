@@ -216,7 +216,7 @@ neg(var a) {
 }
 
 index(var a, var index) {
-  if (isJSArray(a)) {
+  if (JS("bool", @"typeof $0 === 'string'", a) || isJSArray(a)) {
     if (!isInt(index)) $throw('Illegal argument');
     if (index < 0 || index >= a.length) $throw('Out of bounds');
     return JS("Object", @"$0[$1]", a, index);

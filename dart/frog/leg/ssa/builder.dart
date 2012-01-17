@@ -8,7 +8,6 @@ class Interceptors {
 
   SourceString mapOperatorToMethodName(Operator op) {
     String name = op.source.stringValue;
-    if (name === '-') return const SourceString('neg');
     if (name === '+') return const SourceString('add');
     if (name === '-') return const SourceString('sub');
     if (name === '*') return const SourceString('mul');

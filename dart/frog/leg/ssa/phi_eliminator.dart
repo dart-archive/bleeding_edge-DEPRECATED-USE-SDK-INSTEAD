@@ -5,6 +5,9 @@
 class SsaPhiEliminator extends HGraphVisitor {
   HBasicBlock entry;
   HBasicBlock currentBlock;
+  final bool bailoutVersion;
+
+  SsaPhiEliminator(WorkItem work) : bailoutVersion = work.isBailoutVersion();
 
   visitGraph(HGraph graph) {
     entry = graph.entry;
@@ -17,37 +20,42 @@ class SsaPhiEliminator extends HGraphVisitor {
                   HInstruction value) {
     HStore store = new HStore(local, value);
     HBasicBlock current = predecessor;
-    do {
-      if (value.block === current) {
-        HInstruction insertBefore;
-        if (value is HPhi) {
-          insertBefore = current.first;
-        } else {
-          insertBefore = value.next;
-        }
+    if (!bailoutVersion) {
+      // For bailout methods, we cannot optimize a store, because it
+      // needs to happen at the very end. Otherwise, a bailout point
+      // will not be able to have the right value for the local.
+      do {
+        if (value.block === current) {
+          HInstruction insertBefore;
+          if (value is HPhi) {
+            insertBefore = current.first;
+          } else {
+            insertBefore = value.next;
+          }
 
-        // Check if this store is redundant.
-        // If there is a store already on that local, it must be the next
-        // instruction, because we insert stores right next to
-        // their definition.
-        if (insertBefore is HStore && insertBefore.dynamic.local === local) {
-          assert(store.value === value);
-          store = null;
-        } else {
-          current.addBefore(insertBefore, store);
-        }
+          // Check if this store is redundant.
+          // If there is a store already on that local, it must be the next
+          // instruction, because we insert stores right next to
+          // their definition.
+          if (insertBefore is HStore && insertBefore.dynamic.local === local) {
+            assert(store.value === value);
+            store = null;
+          } else {
+            current.addBefore(insertBefore, store);
+          }
 
-        // Check if it's only the store and the phi that uses value.
-        // This is also valid if the store is null: it checks whether
-        // the existing store and the current phi are the only users.
-        if (value.usedBy.length == 2) {
-          value.tryGenerateAtUseSite();
+          // Check if it's only the store and the phi that uses value.
+          // This is also valid if the store is null: it checks whether
+          // the existing store and the current phi are the only users.
+          if (value.usedBy.length == 2) {
+            value.tryGenerateAtUseSite();
+          }
+          return store;
         }
-        return store;
-      }
-      if (current.isLoopHeader()) break;
-      current = current.dominator;
-    } while (current != dominator);
+        if (current.isLoopHeader()) break;
+        current = current.dominator;
+      } while (current != dominator);
+    }
 
     // We could not get to the definition, just put the store in the
     // predecessor.

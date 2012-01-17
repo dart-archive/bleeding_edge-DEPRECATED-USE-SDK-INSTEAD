@@ -4,8 +4,7 @@
 
 main() {
   foo(true, [0]);
-  // TODO(ngeoffray): Avoid bailout if argument isn't array.
-  // foo(false, "bar");
+  foo(false, "bar");
 }
 
 foo(check, listOrString) {
