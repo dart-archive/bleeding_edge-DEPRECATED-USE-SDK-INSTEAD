@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -28,6 +28,7 @@ import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
@@ -297,6 +298,15 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
             DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation) parent;
             if (node == invocation.getTarget()) {
               targetSymbol = invocation.getReferencedElement();
+            }
+          } else if (parent instanceof DartParameterizedTypeNode) {
+            DartParameterizedTypeNode typeNode = (DartParameterizedTypeNode) parent;
+            DartNode grandparent = typeNode.getParent();
+            if (grandparent instanceof DartClass) {
+              DartClass classDef = (DartClass) grandparent;
+              if (typeNode == classDef.getDefaultClass()) {
+                targetSymbol = classDef.getSymbol().getDefaultClass().getElement();
+              }
             }
           } else if (includeDeclarations) {
             DartNode nameNode = node;
