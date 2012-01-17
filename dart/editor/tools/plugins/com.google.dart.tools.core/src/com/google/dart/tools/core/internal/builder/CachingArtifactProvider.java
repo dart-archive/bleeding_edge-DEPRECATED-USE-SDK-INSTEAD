@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import com.google.common.io.Closeables;
 import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -77,17 +78,20 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
   private final Map<String, CacheElement> cache = new HashMap<String, CacheElement>();
 
   /**
-   * Remove all artifacts from the cache
+   * Remove all artifacts from the cache.
    */
   public void clearCachedArtifacts() {
     synchronized (cache) {
       cache.clear();
       cacheSize = 0;
     }
+    if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+      DartCore.logInformation("CachingArtifactProvider.clearCachedArtifacts()");
+    }
   }
 
   /**
-   * Return the last modified time if the artifact is cached locally, or -1 if not
+   * Return the last modified time if the artifact is cached locally, or -1 if not.
    * 
    * @param source the source file
    * @param base the base of the artifact to which the comparison is made
@@ -98,12 +102,21 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
       CacheElement elem = cache.get(base.getName());
       while (elem != null) {
         if (elem.match("", extension)) {
+          if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+            DartCore.logInformation("CachingArtifactProvider.getArtifactLastModified("
+                + source.getName() + ", " + base.getName() + ", " + extension + ") => "
+                + elem.lastModified);
+          }
           return elem.lastModified;
         }
         elem = elem.nextElement;
       }
-      return -1;
     }
+    if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+      DartCore.logInformation("CachingArtifactProvider.getArtifactLastModified(" + source.getName()
+          + ", " + base.getName() + ", " + extension + ") => -1");
+    }
+    return -1;
   }
 
   /**
@@ -112,15 +125,22 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
    */
   @Override
   public Reader getArtifactReader(Source source, String part, String extension) throws IOException {
-    CacheElement elem;
     synchronized (cache) {
-      elem = cache.get(source.getName());
+      CacheElement elem = cache.get(source.getName());
       while (elem != null) {
         if (elem.match(part, extension)) {
+          if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+            DartCore.logInformation("CachingArtifactProvider.getArtifactReader(" + source.getName()
+                + ", " + part + ", " + extension + ") => content size = " + elem.content.length());
+          }
           return new StringReader(elem.content);
         }
         elem = elem.nextElement;
       }
+    }
+    if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+      DartCore.logInformation("CachingArtifactProvider.getArtifactReader(" + source.getName()
+          + ", " + part + ", " + extension + ") => null");
     }
     return null;
   }
@@ -139,7 +159,12 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
     }
     builder.append(".");
     builder.append(extension);
-    return URI.create(builder.toString());
+    String uri = builder.toString();
+    if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+      DartCore.logInformation("CachingArtifactProvider.getArtifactUri(" + source.getName() + ", "
+          + part + ", " + extension + ") => " + uri);
+    }
+    return URI.create(uri);
   }
 
   /**
@@ -149,6 +174,10 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
   @Override
   public Writer getArtifactWriter(final Source source, final String part, final String extension)
       throws IOException {
+    if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+      DartCore.logInformation("CachingArtifactProvider.getArtifactWriter(" + source.getName()
+          + ", " + part + ", " + extension + ") => StringWriter");
+    }
     return new StringWriter(4096) {
       @Override
       public void close() throws IOException {
@@ -183,6 +212,9 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
 
   public int getCacheSize() {
     synchronized (cache) {
+      if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+        DartCore.logInformation("CachingArtifactProvider.getCacheSize() => " + cacheSize);
+      }
       return cacheSize;
     }
   }
@@ -197,7 +229,12 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
    */
   @Override
   public boolean isOutOfDate(Source source, Source base, String extension) {
-    return getArtifactLastModified(source, base, extension) < source.getLastModified();
+    boolean result = getArtifactLastModified(source, base, extension) < source.getLastModified();
+    if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+      DartCore.logInformation("CachingArtifactProvider.getArtifactWriter(" + source.getName()
+          + ", " + base.getName() + ", " + extension + ") => " + result);
+    }
+    return result;
   }
 
   /**
@@ -213,6 +250,10 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
       // Guard code because this method assumes that the cache is empty 
       // so that it does not have to deal with merging loaded elements in with existing elements.
       if (cacheSize != 0) {
+        if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+          DartCore.logInformation("CachingArtifactProvider.loadCachedArtifacts("
+              + file.getAbsolutePath() + ") => throw UnsupportedOperationException");
+        }
         throw new UnsupportedOperationException();
       }
 
@@ -230,6 +271,10 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
           version.append((char) ch);
         }
         if (!version.toString().equals(getExpectedVersion())) {
+          if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+            DartCore.logInformation("CachingArtifactProvider.loadCachedArtifacts("
+                + file.getAbsolutePath() + ") => throw IOException");
+          }
           throw new IOException(INVALID_FORMAT_PREFIX + ": expected=" + getExpectedVersion()
               + " actual=" + version.toString());
         }
@@ -247,6 +292,10 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
           int ch = reader.read();
           if (ch == -1) {
             if (state != 0) {
+              if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+                DartCore.logInformation("CachingArtifactProvider.loadCachedArtifacts("
+                    + file.getAbsolutePath() + ") => throw IOException");
+              }
               throw new IOException("Unexpected end of artifact file");
             }
             break;
@@ -309,10 +358,18 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
                 }
                 int readLength = reader.read(buf, 0, contentLength);
                 if (readLength != contentLength) {
+                  if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+                    DartCore.logInformation("CachingArtifactProvider.loadCachedArtifacts("
+                        + file.getAbsolutePath() + ") => throw IOException");
+                  }
                   throw new IOException("Expected " + contentLength + " characters, but read "
                       + readLength);
                 }
                 if (reader.read() != '\n') {
+                  if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+                    DartCore.logInformation("CachingArtifactProvider.loadCachedArtifacts("
+                        + file.getAbsolutePath() + ") => throw IOException");
+                  }
                   throw new IOException("Expected newline after artifact");
                 }
 
@@ -333,6 +390,10 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
               break;
 
             default:
+              if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+                DartCore.logInformation("CachingArtifactProvider.loadCachedArtifacts("
+                    + file.getAbsolutePath() + ") => throw IllegalStateException");
+              }
               throw new IllegalStateException("Invalid state: " + state);
           }
         }
@@ -342,6 +403,10 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
         if (failed) {
           clearCachedArtifacts();
         }
+      }
+      if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+        DartCore.logInformation("CachingArtifactProvider.loadCachedArtifacts("
+            + file.getAbsolutePath() + ") => " + cacheSize);
       }
       return cacheSize;
     }
@@ -357,6 +422,10 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
         cacheSize--;
         elem = elem.nextElement;
       }
+    }
+    if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+      DartCore.logInformation("CachingArtifactProvider.removeArtifactsFor(" + source.getName()
+          + ")");
     }
   }
 
@@ -403,6 +472,10 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
       failed = false;
     } finally {
       Closeables.close(writer, failed);
+    }
+    if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+      DartCore.logInformation("CachingArtifactProvider.saveCachedArtifacts("
+          + file.getAbsolutePath() + ") => " + count);
     }
     return count;
   }

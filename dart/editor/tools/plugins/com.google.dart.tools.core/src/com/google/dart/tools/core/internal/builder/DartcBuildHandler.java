@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -117,6 +117,11 @@ public class DartcBuildHandler {
       if (extension.startsWith(AbstractJsBackend.EXTENSION_APP_JS)) {
         File appJsFile = getAppJsFile(source, part, extension);
         if (appJsFile != null) {
+          if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+            DartCore.logInformation("DartcBuildHandler.ArtifactProvider.getArtifactReader("
+                + source.getName() + ", " + part + ", " + extension + ") => file = "
+                + appJsFile.getAbsolutePath());
+          }
           return new BufferedReader(new FileReader(appJsFile));
         }
         // Artifacts with an "app.js*" extension
@@ -137,10 +142,19 @@ public class DartcBuildHandler {
       if (extension.startsWith(AbstractJsBackend.EXTENSION_APP_JS)) {
         final File appJsFile = getAppJsFile(source, part, extension);
         if (appJsFile != null) {
+          if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+            DartCore.logInformation("DartcBuildHandler.ArtifactProvider.getArtifactWriter("
+                + source.getName() + ", " + part + ", " + extension + ") => file = "
+                + appJsFile.getAbsolutePath());
+          }
           return new BufferedWriter(new FileWriter(appJsFile));
         }
         // Don't bother caching or writing source maps until we need them
         if (extension.equals(AbstractJsBackend.EXTENSION_APP_JS_SRC_MAP)) {
+          if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+            DartCore.logInformation("DartcBuildHandler.ArtifactProvider.getArtifactWriter("
+                + source.getName() + ", " + part + ", " + extension + ") => NullWriter");
+          }
           return new NullWriter();
         }
         // Otherwise, any artifact with an "app.js*" extension
