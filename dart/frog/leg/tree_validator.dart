@@ -12,10 +12,10 @@ class TreeValidatorTask extends CompilerTask {
   bool check(Node tree) {
     List<InvalidNodeError> errors = [];
     void report(node, message) {
-           final error = new InvalidNodeError(node, message);
-           errors.add(error);
-           compiler.log(error);
-         };
+      final error = new InvalidNodeError(node, message);
+      errors.add(error);
+      compiler.reportWarning(node, message);
+    };
     final validator = new ValidatorVisitor(report);
     tree.accept(new TraversingVisitor(validator));
 

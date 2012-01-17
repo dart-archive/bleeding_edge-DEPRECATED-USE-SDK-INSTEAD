@@ -23,7 +23,21 @@ class ScannerTask extends CompilerTask {
 
   Link<Element> scanElements(CompilationUnitElement compilationUnit) {
     Script script = compilationUnit.script;
-    Token tokens = new StringScanner(script.text).tokenize();
+    Token tokens;
+    try {
+      tokens = new StringScanner(script.text).tokenize();
+    } catch (MalformedInputException ex) {
+      Token token;
+      var message;
+      if (ex.message is int) {
+        token = new Token(EOF_INFO, ex.message);
+        message = 'unexpected character';
+      } else {
+        token = new Token(EOF_INFO, 0);
+        message = ex.message;
+      }
+      compiler.cancel(message, token: token);
+    }
     ElementListener listener = new ElementListener(compiler, compilationUnit);
     PartialParser parser = new PartialParser(listener);
     parser.parseUnit(tokens);
