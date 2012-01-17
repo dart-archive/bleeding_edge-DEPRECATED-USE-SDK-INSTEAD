@@ -12856,7 +12856,7 @@ Value.prototype._maybeWrapFunction = function(toType, callMethod) {
     var stub = $globals.world.functionType.getCallStub(Arguments.Arguments$bare$factory(arity));
     result = new Value(toType, ("to$" + stub.get$name() + "(" + this.get$code() + ")"), this.span);
   }
-  if (toType.get$library().get$isDom() && !this.get$type().get$library().get$isDom()) {
+  if ($eq(toType.get$library(), $globals.world.dom) && $ne(this.get$type().get$library(), $globals.world.dom)) {
     if (arity == (0)) {
       $globals.world.gen.corejs.useWrap0 = true;
     }

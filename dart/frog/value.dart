@@ -459,7 +459,8 @@ class Value {
       result = new Value(toType, 'to\$${stub.name}($code)', span);
     }
 
-    if (toType.library.isDom && !type.library.isDom) {
+    // TODO(jmesserly): handle when type or toType are type parameters.
+    if (toType.library == world.dom && type.library != world.dom) {
       // TODO(jmesserly): either remove this or make it a more first class
       // feature of our native interop. We shouldn't be checking for the DOM
       // library--any host environment (like node.js) might need this feature
