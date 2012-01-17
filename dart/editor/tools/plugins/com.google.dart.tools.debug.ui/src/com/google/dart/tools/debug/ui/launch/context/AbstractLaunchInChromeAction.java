@@ -15,7 +15,7 @@
  */
 package com.google.dart.tools.debug.ui.launch.context;
 
-import com.google.dart.tools.debug.ui.internal.chrome.DartChromeLaunchShortcut;
+import com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchShortcut;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -37,7 +37,7 @@ public abstract class AbstractLaunchInChromeAction implements IObjectActionDeleg
   @Override
   public void run(IAction action) {
 
-    DartChromeLaunchShortcut launchShorcut = new DartChromeLaunchShortcut();
+    DartiumLaunchShortcut launchShorcut = new DartiumLaunchShortcut();
     launchShorcut.launch(selection, mode);
   }
 

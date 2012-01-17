@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -62,6 +62,8 @@ public class DartDebugCorePlugin extends Plugin {
   public static final boolean CONNECTION_LOGGING = Boolean.getBoolean("dart.debug.logging.connection");
 
   public static final String BROWSER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.browserLaunchConfig";
+
+  public static final String REMOTE_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.remoteLaunchConfig";
 
   public static final String SERVER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.serverLaunchConfig";
 

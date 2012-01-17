@@ -23,8 +23,8 @@
       </launchConfigurationType-->
 
       <launchConfigurationType
-            delegate="com.google.dart.tools.debug.core.configs.DartChromiumLaunchConfigurationDelegate"
-            id="com.google.dart.tools.debug.core.chromeLaunchConfig"
+            delegate="com.google.dart.tools.debug.core.configs.DartiumLaunchConfigurationDelegate"
+            id="com.google.dart.tools.debug.core.dartiumLaunchConfig"
             modes="run,debug"
             name="%launchconfig.chrome.name"
             sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"

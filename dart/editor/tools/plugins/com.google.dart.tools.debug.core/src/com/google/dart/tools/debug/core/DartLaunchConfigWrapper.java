@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.debug.core;
@@ -28,10 +26,6 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
  * compiler type checking to what is essentially a property map.
  */
 public class DartLaunchConfigWrapper {
-  public static final String CONNECTION_TYPE_DARTIUM = "Dartium";
-
-  public static final String CONNECTION_TYPE_OTHER = "Other";
-  public static final String[] CONNECTION_TYPES = new String[] {"Dartium", "Other"};
 
   public static final int DEFAULT_CHROME_PORT = 9222;
   public static final String DEFAULT_HOST = "localhost";
@@ -145,19 +139,6 @@ public class DartLaunchConfigWrapper {
     }
   }
 
-  /**
-   * @return the remote debug protocol connection type (Chrome, V8, ...)
-   */
-  public String getConnectionType() {
-    try {
-      return launchConfig.getAttribute(CONNECTION_TYPE, CONNECTION_TYPES[0]);
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return CONNECTION_TYPES[0];
-    }
-  }
-
   public String getLibraryLocation() {
 
     try {
@@ -250,13 +231,6 @@ public class DartLaunchConfigWrapper {
    */
   public void setConnectionPort(int value) {
     getWorkingCopy().setAttribute(CONNECTION_PORT, value);
-  }
-
-  /**
-   * @see #getConnectionType()
-   */
-  public void setConnectionType(String value) {
-    getWorkingCopy().setAttribute(CONNECTION_TYPE, value);
   }
 
   public void setLibraryLocation(String location) {

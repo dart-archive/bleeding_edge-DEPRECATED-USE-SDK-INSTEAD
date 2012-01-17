@@ -24,7 +24,7 @@
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
-            delegate="com.google.dart.tools.debug.ui.internal.client.DartJsLaunchConfigurationDelegate"
+            delegate="com.google.dart.tools.debug.ui.internal.client.BrowserLaunchConfigurationDelegate"
             id="com.google.dart.tools.debug.core.browserLaunchConfig"
             modes="run,debug"
             name="%dart.launch.config.client.name">
@@ -105,7 +105,7 @@
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
       <launchConfigurationTypeImage
-            configTypeID="com.google.dart.tools.debug.core.chromeLaunchConfig"
+            configTypeID="com.google.dart.tools.debug.core.dartiumLaunchConfig"
             icon="icons/chromium_16.png"
             id="com.google.dart.tools.debug.core.chromeLaunchConfigImage">
       </launchConfigurationTypeImage>
@@ -114,22 +114,22 @@
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            class="com.google.dart.tools.debug.ui.internal.chrome.DartChromeTabGroup"
+            class="com.google.dart.tools.debug.ui.internal.dartium.DartChromeTabGroup"
             id="com.google.dart.tools.debug.core.chromeLaunchConfigTabGroup"
-            type="com.google.dart.tools.debug.core.chromeLaunchConfig">
+            type="com.google.dart.tools.debug.core.dartiumLaunchConfig">
       </launchConfigurationTabGroup>
    </extension>
 
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
       <shortcut
-            class="com.google.dart.tools.debug.ui.internal.chrome.DartChromiumLaunchShortcut"
+            class="com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchShortcut"
             icon="icons/chromium_16.png"
             id="com.google.dart.tools.debug.ui.dartChromeShortcut"
             label="%dart.chromelaunch.shortcut.label"
             modes="run,debug">
          <configurationType
-               id="com.google.dart.tools.debug.core.chromeLaunchConfig">
+               id="com.google.dart.tools.debug.core.dartiumLaunchConfig">
          </configurationType>
          <contextualLaunch>
             <enablement>
@@ -159,7 +159,7 @@
    
    <!-- Remote launch configuration -->
 
-   <extension
+   <!--extension
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
       <launchConfigurationTypeImage
             configTypeID="com.google.dart.tools.debug.core.remoteLaunchConfig"
@@ -175,7 +175,7 @@
             id="com.google.dart.tools.debug.core.remoteLaunchConfigTabGroup"
             type="com.google.dart.tools.debug.core.remoteLaunchConfig">
       </launchConfigurationTabGroup>
-   </extension>
+   </extension-->
 
    <!-- Server launch configuration -->
    <extension
@@ -257,7 +257,7 @@
    <!-- Debug UI factory -->
 
    <extension point="com.google.dart.tools.debug.core.debugUIFactory">
-      <uiFactory class="com.google.dart.tools.debug.ui.internal.chrome.DebugUIHelperImpl"/>
+      <uiFactory class="com.google.dart.tools.debug.ui.internal.dartium.DebugUIHelperImpl"/>
    </extension>
 
    <!-- debugger view -->

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -41,16 +41,16 @@ import java.io.File;
  * the browser as configured. This involves running an existing launch configuration or creating a
  * new one if an appropriate launch configuration does not already exist.
  */
-public class DartJsBrowserLaunchShortcut extends AbstractLaunchShortcut {
+public class BrowserLaunchShortcut extends AbstractLaunchShortcut {
 
   public static File getJsAppArtifactFile(IPath sourceLocation) {
     return sourceLocation.addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
   }
 
   /**
-   * Create a new DartJsApplicationLaunchShortcut.
+   * Create a new BrowserLaunchShortcut.
    */
-  public DartJsBrowserLaunchShortcut() {
+  public BrowserLaunchShortcut() {
     super("Application");
   }
 
@@ -63,8 +63,7 @@ public class DartJsBrowserLaunchShortcut extends AbstractLaunchShortcut {
   }
 
   /**
-   * Launch the Dart application associated with the specified resource or open in a browser if the
-   * resource is a web page.
+   * Open in a browser the url or page specified
    * 
    * @param resource the resource
    * @param mode the launch mode ("run", "debug", ...)

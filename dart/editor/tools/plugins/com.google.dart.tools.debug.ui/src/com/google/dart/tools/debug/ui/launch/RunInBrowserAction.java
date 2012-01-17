@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,13 +15,16 @@ package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
+import com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchShortcut;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
 import com.google.dart.tools.ui.actions.AbstractInstrumentedAction;
@@ -34,6 +37,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -237,6 +241,15 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
                 }
               }
 
+              if (DartCoreDebug.DEBUGGER) {
+                // check if Dartium is available and launch as first option
+                File dartiumFile = DartSdk.getInstance().getDartiumExecutable();
+                if (dartiumFile != null) {
+                  DartiumLaunchShortcut launchShortcut = new DartiumLaunchShortcut();
+                  launchShortcut.launch(new StructuredSelection(file), ILaunchManager.RUN_MODE);
+                  return;
+                }
+              }
               String editorId = IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID;
               page.openEditor(new FileEditorInput(file), editorId, true, MATCH_BOTH);
             } catch (PartInitException e) {
@@ -286,10 +299,10 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
         }
 
         RunInBrowserJob job = new RunInBrowserJob(page, file);
-
         // If we saved any files, delay for a bit to allow the builder to fire off a build.
         // Once the builder starts, we will automatically wait for it to complete before launching.
         job.schedule(isSaveNeeded ? 100 : 0);
+
       }
     } catch (DartModelException e) {
       MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_title,

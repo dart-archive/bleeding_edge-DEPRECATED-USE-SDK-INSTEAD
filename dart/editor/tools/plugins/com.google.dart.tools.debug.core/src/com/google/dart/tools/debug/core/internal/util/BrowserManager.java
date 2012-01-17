@@ -13,10 +13,10 @@
  */
 package com.google.dart.tools.debug.core.internal.util;
 
-import com.google.dart.tools.debug.core.ChromeBrowserConfig;
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.core.configs.DartChromeLaunchConfigurationDelegate;
+import com.google.dart.tools.debug.core.configs.DartiumLaunchConfigurationDelegate;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -64,14 +64,17 @@ public class BrowserManager {
    */
   public void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
       IProgressMonitor monitor, boolean debug) throws CoreException {
-    monitor.beginTask("Launching Chrome...", debug ? 9 : 3);
+    monitor.beginTask("Launching Chromium...", debug ? 9 : 3);
 
-    String browserName = launchConfig.getBrowserConfig();
-    ChromeBrowserConfig browserConfig = DartDebugCorePlugin.getPlugin().getChromeBrowserConfig(
-        browserName);
-    IPath browserLocation = new Path(browserConfig.getPath());
+//    String browserName = launchConfig.getBrowserConfig();
+//    ChromeBrowserConfig browserConfig = DartDebugCorePlugin.getPlugin().getChromeBrowserConfig(
+//        browserName);
+    File dartium = DartSdk.getInstance().getDartiumExecutable();
 
-    LogTimer timer = new LogTimer(browserConfig.getName() + " startup");
+    IPath browserLocation = new Path(dartium.getAbsolutePath());
+
+    String browserName = dartium.getName();
+    LogTimer timer = new LogTimer(browserName + " startup");
 
     // for now, check if browser is open, if so, exit and restart again
     if (browserProcesses.containsKey(browserName)) {
@@ -138,7 +141,7 @@ public class BrowserManager {
     }
 
     // In order to start up multiple Chrome processes, we need to specify a different user dir.
-    arguments.add("--user-data-dir=" + getUserDataDirectoryPath());
+   // arguments.add("--user-data-dir=" + getUserDataDirectoryPath());
 
     //arguments.add("--disable-breakpad");
 
@@ -277,7 +280,7 @@ public class BrowserManager {
       defaultDir.mkdir();
 
       // Create the Preferences file.
-      InputStream in = DartChromeLaunchConfigurationDelegate.class.getResourceAsStream("Preferences");
+      InputStream in = DartiumLaunchConfigurationDelegate.class.getResourceAsStream("Preferences");
 
       File prefFile = new File(defaultDir, "Preferences");
       FileOutputStream out = new FileOutputStream(prefFile);

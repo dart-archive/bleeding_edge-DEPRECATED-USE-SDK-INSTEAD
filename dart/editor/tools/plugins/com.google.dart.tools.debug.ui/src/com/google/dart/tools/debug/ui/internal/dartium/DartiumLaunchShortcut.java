@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,41 +11,29 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.debug.ui.internal.chrome;
+package com.google.dart.tools.debug.ui.internal.dartium;
 
-import com.google.dart.tools.debug.core.ChromeBrowserConfig;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
-import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
-import com.google.dart.tools.debug.ui.internal.preferences.DebugPreferencePage;
 import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
-import org.eclipse.jface.preference.PreferenceDialog;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.dialogs.PreferencesUtil;
-
-import java.util.List;
 
 /**
  * A launch shortcut to allow users to launch Dart applications in Chrome.
  */
-public class DartChromeLaunchShortcut extends AbstractLaunchShortcut {
+public class DartiumLaunchShortcut extends AbstractLaunchShortcut {
 
-  public DartChromeLaunchShortcut() {
-    super("Chrome");
+  public DartiumLaunchShortcut() {
+    super("Chromium");
   }
 
   @Override
@@ -83,36 +71,18 @@ public class DartChromeLaunchShortcut extends AbstractLaunchShortcut {
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(launchConfig);
 
     launchWrapper.setApplicationName(resource.getFullPath().toString());
+    launchWrapper.setProjectName(resource.getProject().getName());
+    launchConfig.setMappedResources(new IResource[] {resource});
 
-    List<ChromeBrowserConfig> browsers = DartDebugCorePlugin.getPlugin().getConfiguredBrowsers();
-
-    if (browsers.size() == 0) {
-      String message = "In order to run a Dart application you first need to configure a Chrome browser.";
-
-      DebugErrorHandler.errorDialog((Shell) null, "Unable to Launch Chrome", message, new Status(
-          IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, message));
-
-      PreferenceDialog pref = PreferencesUtil.createPreferenceDialogOn(
-          PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-          DebugPreferencePage.PAGE_ID, null, null);
-      if (pref != null) {
-        pref.open();
-      }
-    } else {
-      launchWrapper.setProjectName(resource.getProject().getName());
-      launchWrapper.setBrowserConfig(browsers.get(0).getName());
-
-      launchConfig.setMappedResources(new IResource[] {resource});
-
-      try {
-        config = launchConfig.doSave();
-      } catch (CoreException e) {
-        DartUtil.logError(e);
-        return;
-      }
-
-      DebugUITools.launch(config, mode);
+    try {
+      config = launchConfig.doSave();
+    } catch (CoreException e) {
+      DartUtil.logError(e);
+      return;
     }
+
+    DebugUITools.launch(config, mode);
+
   }
 
   @Override

@@ -47,15 +47,15 @@ public class DartRemoteLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
 
-    String connectionType = launchConfig.getConnectionType();
+//    String connectionType = launchConfig.getConnectionType();
 
 //    if (DartLaunchConfigWrapper.CONNECTION_TYPE_CHROME.equals(connectionType)) {
 //      connectToChrome(launch, launchConfig);
 //    } else if (DartLaunchConfigWrapper.CONNECTION_TYPE_V8.equals(connectionType)) {
 //      connectToV8(launch, launchConfig);
 //    } else {
-    throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-        "Connection type '" + connectionType + "' is not supported."));
+//    throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+//        "Connection type '" + connectionType + "' is not supported."));
 //    }
   }
 

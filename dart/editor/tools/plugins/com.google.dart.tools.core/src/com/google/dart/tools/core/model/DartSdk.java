@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Dart project authors.
+ * Copyright 2012 Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -29,8 +29,9 @@ import java.io.IOException;
  * 
  * <pre>
  *    dart-sdk/
+ *       Chromium    <-- Dartium
  *       bin/
- *          dart[.exe]  <-- VM
+ *          dart[.exe]  <-- VM   
  *       lib/
  *          core/
  *             core_runtime.dart
@@ -67,9 +68,36 @@ public class DartSdk {
 
   private final IPath sdkPath;
   private File vm;
+  private File dartium;
 
   private DartSdk(IPath path) {
     sdkPath = path;
+  }
+
+  /**
+   * Answer the VM executable or <code>null</code> if it does not exist
+   */
+  public File getDartiumExecutable() {
+    synchronized (lock) {
+      if (dartium == null) {
+        File file = sdkPath.append(getDartiumBinaryName()).toFile();
+        if (file.exists()) {
+          dartium = file;
+        }
+      }
+    }
+    return dartium;
+  }
+
+  /**
+   * Returns the directory where dartium can be found in the dart-sdk
+   */
+  public String getDartiumWorkingDirectory() {
+    if (isWindows() || isMac()) {
+      return sdkPath.toOSString();
+    } else {
+      return sdkPath.toOSString().concat("/chromium");
+    }
   }
 
   /**
@@ -126,6 +154,21 @@ public class DartSdk {
     } else {
       return "dart";
     }
+  }
+
+  private String getDartiumBinaryName() {
+    if (isWindows()) {
+      return "Chromium.exe";
+    } else if (isMac()) {
+      return "Chromium.app/Contents/MacOS/Chromium";
+    } else {
+      return "chromium/chrome";
+    }
+  }
+
+  private boolean isMac() {
+    // Look for the "Mac" OS name.
+    return System.getProperty("os.name").toLowerCase().startsWith("mac");
   }
 
   private boolean isWindows() {

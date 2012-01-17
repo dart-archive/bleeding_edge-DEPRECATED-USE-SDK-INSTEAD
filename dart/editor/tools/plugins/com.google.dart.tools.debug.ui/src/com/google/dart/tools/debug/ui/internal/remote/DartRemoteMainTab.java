@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.debug.ui.internal.remote;
@@ -108,7 +106,7 @@ public class DartRemoteMainTab extends AbstractLaunchConfigurationTab {
     GridLayoutFactory.swtDefaults().applyTo(group);
 
     connectionTypesCombo = new Combo(group, SWT.READ_ONLY | SWT.DROP_DOWN);
-    connectionTypesCombo.setItems(DartLaunchConfigWrapper.CONNECTION_TYPES);
+//    connectionTypesCombo.setItems(DartLaunchConfigWrapper.CONNECTION_TYPES);
     connectionTypesCombo.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
@@ -195,7 +193,7 @@ public class DartRemoteMainTab extends AbstractLaunchConfigurationTab {
 
     projectText.setText(dartLauncher.getProjectName());
 
-    connectionTypesCombo.setText(dartLauncher.getConnectionType());
+    //   connectionTypesCombo.setText(dartLauncher.getConnectionType());
 
     hostText.setText(dartLauncher.getConnectionHost());
     portText.setText(Integer.toString(dartLauncher.getConnectionPort()));
@@ -214,7 +212,7 @@ public class DartRemoteMainTab extends AbstractLaunchConfigurationTab {
 
     dartLauncher.setProjectName(projectText.getText());
 
-    dartLauncher.setConnectionType(connectionTypesCombo.getText());
+//    dartLauncher.setConnectionType(connectionTypesCombo.getText());
 
     dartLauncher.setConnectionHost(hostText.getText());
     dartLauncher.setConnectionPort(getPort());
@@ -226,7 +224,7 @@ public class DartRemoteMainTab extends AbstractLaunchConfigurationTab {
 
     dartLauncher.setProjectName("");
 
-    dartLauncher.setConnectionType(DartLaunchConfigWrapper.CONNECTION_TYPES[0]);
+//    dartLauncher.setConnectionType(DartLaunchConfigWrapper.CONNECTION_TYPES[0]);
 
     dartLauncher.setConnectionHost(DartLaunchConfigWrapper.DEFAULT_HOST);
     dartLauncher.setConnectionPort(DartLaunchConfigWrapper.DEFAULT_CHROME_PORT);
@@ -295,20 +293,20 @@ public class DartRemoteMainTab extends AbstractLaunchConfigurationTab {
   private void updateInstructionText() {
     String connectionType = connectionTypesCombo.getText();
 
-    if (DartLaunchConfigWrapper.CONNECTION_TYPE_DARTIUM.equals(connectionType)) {
-      connectionTypeInstructions.setText("Start Chrome with: chrome --remote-shell-port="
-          + portText.getText());
-    } else if (DartLaunchConfigWrapper.CONNECTION_TYPE_OTHER.equals(connectionType)) {
-//    node --debug[=port] NodeApp.js
-//      or
-//    node --debug-brk[=port] NodeApp.js
-
-      connectionTypeInstructions.setText("If using Node.js, start it using: node --debug="
-          + portText.getText() + " NodeApp.js");
-    } else {
-      connectionTypeInstructions.setText("");
-    }
-
-    connectionTypeInstructions.getParent().layout();
+//    if (DartLaunchConfigWrapper.CONNECTION_TYPE_DARTIUM.equals(connectionType)) {
+//      connectionTypeInstructions.setText("Start Chrome with: chrome --remote-shell-port="
+//          + portText.getText());
+//    } else if (DartLaunchConfigWrapper.CONNECTION_TYPE_OTHER.equals(connectionType)) {
+////    node --debug[=port] NodeApp.js
+////      or
+////    node --debug-brk[=port] NodeApp.js
+//
+//      connectionTypeInstructions.setText("If using Node.js, start it using: node --debug="
+//          + portText.getText() + " NodeApp.js");
+//    } else {
+//      connectionTypeInstructions.setText("");
+//    }
+//
+//    connectionTypeInstructions.getParent().layout();
   }
 }

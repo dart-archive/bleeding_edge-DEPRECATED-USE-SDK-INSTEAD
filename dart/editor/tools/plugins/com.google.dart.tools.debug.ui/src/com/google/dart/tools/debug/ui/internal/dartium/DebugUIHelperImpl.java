@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.debug.ui.internal.chrome;
+package com.google.dart.tools.debug.ui.internal.dartium;
 
 import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
