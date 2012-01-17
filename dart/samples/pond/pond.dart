@@ -4,12 +4,13 @@
 
 #import("ui.dart");
 #import("editors_isolate.dart"); // TODO(sigmund): remove this dependency
-#import("dart:html");
+#import("editors_stub.dart");
 
 void main() {
   // TODO(sigmund): rewrite as spawnFromCode('editors_isolate.dart.js');
+  Future<SendPort> editorsPort = new EditorsIsolate().spawn();
   PondUI ui = new PondUI();
-  window.setTimeout(() {
-    ui.setupAndRun(new JsEditorFactory());
-  }, 0);
+  editorsPort.then((SendPort port) {
+    ui.setupAndRun(new EditorFactoryProxy(editorsPort));
+  });
 }

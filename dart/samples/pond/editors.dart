@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Dart-API to communicate with an editor service (currently running in the same
-// isolate).
+// A thin Dart-API to communicate with an editor service that is running in a
+// separate isolate.
 #library("editors");
 
 /** An editor factory that creates new editor instances. */
@@ -13,25 +13,28 @@ interface EditorFactory {
    * Create an editor of a specific [type] (dart, js, html) and display it under
    * a DOM element with the given [id].
    */
-  Editor newEditor(String id, String type);
+  Future<Editor> newEditor(String id, String type);
 }
 
 /** A remote-editor interface. */
 interface Editor {
 
-  /** Retrieve the contents of the editor. */
-  String getText();
+  /** Asynchronously retrieve the contents of the editor. */
+  Future<String> getText();
 
-  /** Update the contents of the editor. */
-  void setText(String value);
+  /**
+   * Asynchronously update the contents of the editor. The returned future will
+   * be completed when the text has been updated.
+   */
+  Future setText(String value);
 
   /** Create an error or warning marker between [start] and [end]. */
-  Marker mark(Position start, Position end, int kind);
+  Future<Marker> mark(Position start, Position end, int kind);
 }
 
 /** Interface for a text-marker in an editor. */
 interface Marker {
-  void clear();
+  Future clear();
 }
 
 /** Enumeration of kinds of markers. */

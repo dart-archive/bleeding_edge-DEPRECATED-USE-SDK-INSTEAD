@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(sigmund,mattsh): convert this to be an isolate
+// An isolate that presents itself as an editor service, it internally uses
+// code-mirror to create editor instances.
 // TODO(sigmund,mattsh): rewrite in JS, we want to remove all uses of 'native'
 #library('editor_isolate');
 
@@ -19,9 +20,9 @@
 #native('codemirror/mode/diff/diff.js');
 
 /** An editor factory that creates editors using codemirror. */
-class JsEditorFactory implements EditorFactory {
+class JsEditorFactory {
   JsEditorFactory();
-  Editor newEditor(String id, String type) native '''
+  JsEditor newEditor(String id, String type) native '''
     return CodeMirror(document.getElementById(id), {
       mode: type,
       tabSize: 2,
@@ -32,20 +33,14 @@ class JsEditorFactory implements EditorFactory {
 }
 
 /** Dart-JS adapter to a code mirror editor instance. */
-class JsEditor implements Editor native '*Object' {
-  String getText() native '''
+class JsEditor native '*Object' {
+  String get text() native '''
      return this.getValue();
   ''';
 
-  setText(String value) native 'this.setValue(value);';
+  set text(String value) native 'this.setValue(value);';
 
-  Marker mark(Position start, Position end, int kind) {
-    return _mark(start.line, start.column, end.line, end.column,
-        (kind == Marks.ERROR) ? 'compile_error'
-        : ((kind == Marks.WARNING) ? 'compile_warning' : ''));
-  }
-
-  Marker _mark(int startLine, int startCol, int endLine, int endCol,
+  JsMarker mark(int startLine, int startCol, int endLine, int endCol,
       String className) native '''
     return this.markText({line: startLine, ch: startCol},
       {line:endLine, ch:endCol}, className);
@@ -54,6 +49,84 @@ class JsEditor implements Editor native '*Object' {
 }
 
 /** Dart-JS adapter for CodeMirror's TextMarker. */
-class JsMarker implements Marker native '*TextMarker' {
+class JsMarker native '*TextMarker' {
   void clear() native;
+}
+
+// ------------------------------------------------------------
+// All of the following code should be generated automatically.
+// ------------------------------------------------------------
+
+/** A [RpcReceiver] that delegates to an editor factory. */
+class EditorFactoryReceiver extends RpcReceiver<JsEditorFactory> {
+  EditorFactoryReceiver(ReceivePort receivePort)
+      : super(new JsEditorFactory(), receivePort) {}
+  Object receiveCommand(String command, List args) {
+    switch(command) {
+      case "newEditor":
+        String id = args[0];
+        String type = args[1];
+        JsEditor editor = target.newEditor(id, type);
+        return new EditorReceiver(editor, new ReceivePort());
+      case "close":
+        RpcReceiver.closeAll();
+        return "close command processed";
+      default:
+          throw "EditorFactory unrecognized command";
+      }
+  }
+}
+
+/** A [RpcReceiver] that delegates to a codemirror editor. */
+class EditorReceiver extends RpcReceiver<JsEditor> {
+
+  EditorReceiver(JsEditor editor, ReceivePort receivePort)
+    : super(editor, receivePort) {}
+
+  Object receiveCommand(String command, List args) {
+    switch(command) {
+      case "getText":
+        return target.text;
+      case "setText":
+        String value = args[0];
+        target.text = value;
+        return null;
+      case "mark":
+        return new MarkerReceiver(
+            target.mark(args[0], args[1], args[2], args[3],
+                (args[4] == Marks.ERROR) ? 'compile_error'
+                : ((args[4] == Marks.WARNING) ? 'compile_warning' : '')),
+            new ReceivePort());
+      default:
+        throw "EditorReceiver unrecognized command";
+    }
+  }
+}
+
+/** A [RpcReceiver] that delegates to a text marker. */
+class MarkerReceiver extends RpcReceiver<JsMarker> {
+
+  MarkerReceiver(JsMarker marker, ReceivePort receivePort)
+    : super(marker, receivePort) {}
+
+  Object receiveCommand(String command, List args) {
+    switch(command) {
+      case "clear":
+        return target.clear();
+      default:
+        throw "MarkerReceiver unrecognized command";
+    }
+  }
+}
+
+/** Entry-point to this isolate. */
+// TODO(sigmund): rewrite. This should be replaced so that this code is compiled
+// separately from pond, and spawned with a new isolate spawn API.
+class EditorsIsolate extends Isolate {
+  EditorsIsolate() : super.light() {}
+
+  void main() {
+    // Associate the default port with the editor-factory receiver
+    new EditorFactoryReceiver(port);
+  }
 }

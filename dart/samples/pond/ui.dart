@@ -31,11 +31,26 @@ class PondUI {
   }
 
   void setupAndRun(EditorFactory editors) {
-    dartEditor = editors.newEditor("dartEditor", "dart");
-    htmlEditor = editors.newEditor("htmlEditor", "htmlmixed");
-    jsEditor = editors.newEditor("jsEditor", "javascript");
-    warningEditor = editors.newEditor("warningEditor", "diff");
-    run();
+    // TODO(sigmund): cleanup using 'await' as follows:
+    //   dartEditor = await editors.newEditor("dartEditor", "dart");
+    //   htmlEditor = await editors.newEditor("htmlEditor", "htmlmixed");
+    //   jsEditor = await editors.newEditor("jsEditor", "javascript");
+    //   warningEditor = await editors.newEditor("warningEditor", "diff");
+    //   await run();
+
+    editors.newEditor("dartEditor", "dart").then((Editor e) {
+      dartEditor = e;
+      editors.newEditor("htmlEditor", "htmlmixed").then((Editor e) {
+        htmlEditor = e;
+        editors.newEditor("jsEditor", "javascript").then((Editor e) {
+          jsEditor = e;
+          editors.newEditor("warningEditor", "diff").then((Editor e) {
+            warningEditor = e;
+            run();
+          });
+        });
+      });
+    });
   }
 
   void run() {
@@ -52,52 +67,61 @@ class PondUI {
       String warnings = '';
       HtmlFileSystem fs = new HtmlFileSystem();
       parseOptions('frogroot', ['dummyArg1', 'dummyArg2', 'user.dart'], fs);
-      String userCode = dartEditor.getText();
-      fs.writeString("user.dart", userCode);
-      options.useColors = false;
-      options.warningsAsErrors =
-        html.document.query('#warningCheckbox').dynamic.checked;
+      // TODO(sigmund): cleanup using 'await' as follows:
+      // String userCode = await dartEditor.getText();
+      dartEditor.getText().then((userCode) {
+        fs.writeString("user.dart", userCode);
+        options.useColors = false;
+        options.warningsAsErrors =
+          html.document.query('#warningCheckbox').dynamic.checked;
 
-      int millis1 = new Date.now().value;
-      initializeWorld(fs);
-      world.messageHandler = (String prefix, String msg, SourceSpan span) {
-        warnings += prefix + msg;
-        if (span != null) {
-          warnings += ' [' + span.locationText + '] \n';
-          if (span.file.filename == 'user.dart') {
-            final start = new Position(
-                SpanHelper.startLine(span), SpanHelper.startCol(span));
-            final end = new Position(
-                SpanHelper.endLine(span), SpanHelper.endCol(span));
-            int kind = Marks.NONE;
-            if (prefix.startsWith('error') || prefix.startsWith('fatal')) {
-              kind = Marks.ERROR;
-            } else if (prefix.startsWith('warning')) {
-              kind = Marks.WARNING;
+        int millis1 = new Date.now().value;
+        initializeWorld(fs);
+        world.messageHandler = (String prefix, String msg, SourceSpan span) {
+          warnings += prefix + msg;
+          if (span != null) {
+            warnings += ' [' + span.locationText + '] \n';
+            if (span.file.filename == 'user.dart') {
+              final start = new Position(
+                  SpanHelper.startLine(span), SpanHelper.startCol(span));
+              final end = new Position(
+                  SpanHelper.endLine(span), SpanHelper.endCol(span));
+              int kind = Marks.NONE;
+              if (prefix.startsWith('error') || prefix.startsWith('fatal')) {
+                kind = Marks.ERROR;
+              } else if (prefix.startsWith('warning')) {
+                kind = Marks.WARNING;
+              }
+              // TODO(sigmund): cleanup using 'await' as follows:
+              // markers.add(await dartEditor.mark(start, end, kind));
+              dartEditor.mark(start, end, kind).then(
+                  (Marker m) { markers.add(m); });
             }
-            markers.add(dartEditor.mark(start, end, kind));
+          } else {
+            warnings += '\n';
           }
-        } else {
-          warnings += '\n';
+        };
+        bool success = world.compile();
+        if (success) {
+          String code = world.getGeneratedCode();
+          jsEditor.setText(code);
+          // TODO(sigmund): cleanup using 'await' as follows:
+          // String htmlTxt = await htmlEditor.getText();
+          htmlEditor.getText().then((htmlText) {
+            var start = htmlText.indexOf("{{DART}}");
+            htmlText = htmlText.substring(0, start) + code
+              + htmlText.substring(start + "{{DART}}".length);
+            htmlText = htmlText.replaceAll(
+                "application/dart", "text/javascript");
+            html.document.query("#resultFrame").attributes["src"] =
+              _toDataURL(htmlText);
+          });
         }
-      };
-      bool success = world.compile();
-      if (success) {
-        String code = world.getGeneratedCode();
-        jsEditor.setText(code);
-        String htmlText = htmlEditor.getText();
-        var start = htmlText.indexOf("{{DART}}");
-        htmlText = htmlText.substring(0, start) + code
-          + htmlText.substring(start + "{{DART}}".length);
-        htmlText = htmlText.replaceAll(
-            "application/dart", "text/javascript");
-        html.document.query("#resultFrame").attributes["src"] =
-          _toDataURL(htmlText);
-      }
-      int millis2 = new Date.now().value;
-      warnings += '\ncompile time: ${millis2 - millis1}ms\n';
-      warnings += '\ntotal time: ${millis2 - millis0}ms\n';
-      warningEditor.setText(warnings);
+        int millis2 = new Date.now().value;
+        warnings += '\ncompile time: ${millis2 - millis1}ms\n';
+        warnings += '\ntotal time: ${millis2 - millis0}ms\n';
+        warningEditor.setText(warnings);
+      });
     });
   }
 
