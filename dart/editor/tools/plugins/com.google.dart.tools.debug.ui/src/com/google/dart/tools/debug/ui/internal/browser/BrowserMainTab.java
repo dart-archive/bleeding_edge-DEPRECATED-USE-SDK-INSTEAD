@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.debug.ui.internal.client;
+package com.google.dart.tools.debug.ui.internal.browser;
 
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -35,16 +35,16 @@ import org.eclipse.swt.widgets.Control;
 /**
  * Main Dart Launch/Debug configuration tab
  */
-public class MainDartJsLaunchConfigurationTab extends AbstractLaunchConfigurationTab {
+public class BrowserMainTab extends AbstractLaunchConfigurationTab {
 
-  private MainDartJsLaunchConfigurationPanel panel;
+  private BrowserLaunchConfigurationPanel panel;
   private int initialLaunchType;
   private String initialResPath;
   private boolean initialExternal;
 
   @Override
   public void createControl(Composite parent) {
-    panel = new MainDartJsLaunchConfigurationPanel(parent, SWT.NONE, this);
+    panel = new BrowserLaunchConfigurationPanel(parent, SWT.NONE, this);
     setControl(panel);
 
     // TODO (danrubel) implement help
@@ -138,7 +138,7 @@ public class MainDartJsLaunchConfigurationTab extends AbstractLaunchConfiguratio
   }
 
   /**
-   * Called by the {@link MainDartJsLaunchConfigurationPanel} when the user has changed the panel
+   * Called by the {@link BrowserLaunchConfigurationPanel} when the user has changed the panel
    * content.
    */
   void panelChanged() {

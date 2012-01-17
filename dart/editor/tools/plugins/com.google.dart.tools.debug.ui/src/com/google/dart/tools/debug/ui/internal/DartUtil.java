@@ -16,7 +16,7 @@ package com.google.dart.tools.debug.ui.internal;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.debug.ui.internal.client.ILaunchConstants;
+import com.google.dart.tools.debug.ui.internal.browser.ILaunchConstants;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;

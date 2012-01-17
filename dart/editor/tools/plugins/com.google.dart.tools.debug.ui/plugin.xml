@@ -20,87 +20,36 @@
       </propertyTester>
    </extension>
    
-   <!-- Client launch configuration -->
+   <!-- Browser launch configuration -->
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
-            delegate="com.google.dart.tools.debug.ui.internal.client.BrowserLaunchConfigurationDelegate"
+            delegate="com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationDelegate"
             id="com.google.dart.tools.debug.core.browserLaunchConfig"
             modes="run,debug"
             name="%dart.launch.config.client.name">
       </launchConfigurationType>
    </extension>
 
-   <!--extension
+   <extension
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
       <launchConfigurationTypeImage
-            configTypeID="com.google.dart.tools.debug.core.clientLaunchConfig"
+            configTypeID="com.google.dart.tools.debug.core.browserLaunchConfig"
             icon="icons/dart_app.png"
-            id="com.google.dart.tools.debug.ui.dartJsLaunchConfigurationTypeImage">
+            id="com.google.dart.tools.debug.core.browserLaunchConfigImage">
       </launchConfigurationTypeImage>
    </extension>
 
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            class="com.google.dart.tools.debug.ui.internal.client.DartJsLaunchConfigurationTabGroup"
-            id="com.google.dart.tools.debug.ui.dartJsLaunchConfigurationTabGroup"
-            type="com.google.dart.tools.debug.core.clientLaunchConfig">
+            class="com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationTabGroup"
+            id="com.google.dart.tools.debug.core.browserLaunchConfigTabGroup"
+            type="com.google.dart.tools.debug.core.browserLaunchConfig">
       </launchConfigurationTabGroup>
    </extension>
 
-   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTabs">
-      <tab
-            class="com.google.dart.tools.debug.ui.internal.client.MainDartJsLaunchConfigurationTab"
-            group="com.google.dart.tools.debug.ui.dartJsLaunchConfigurationTabGroup"
-            id="com.google.dart.tools.debug.ui.dartJsLaunchConfigurationTab"
-            name="%dart.launch.config.tab.main">
-      </tab>
-   </extension -->
-
-   <!-- TODO(devoncarew): commented out for the 8/1/2011 demo -->
-   <!-- extension
-         point="org.eclipse.debug.ui.launchShortcuts">
-      <shortcut
-            class="com.google.dart.tools.debug.ui.internal.client.DartJsApplicationLaunchShortcut"
-            icon="icons/dart_app.png"
-            id="com.google.dart.tools.debug.ui.dartJsAppShortcut"
-            label="%dart.launch.shortcut.label"
-            modes="run,debug">
-         <configurationType
-               id="com.google.dart.tools.debug.core.clientLaunchConfig">
-         </configurationType>
-         <contextualLaunch>
-            <enablement>
-               <with
-                     variable="selection">
-                  <count
-                        value="1">
-                  </count>
-                  <iterate>
-                     <adapt
-                           type="org.eclipse.core.resources.IResource">
-                        <or>
-                           <test
-                                 property="org.eclipse.core.resources.extension"
-                                 value="app">
-                           </test>
-                           <test
-                                 property="org.eclipse.core.resources.extension"
-                                 value="html">
-                           </test>
-                        </or>
-                     </adapt>
-                  </iterate>
-               </with>
-            </enablement>
-         </contextualLaunch>
-      </shortcut>
-   </extension -->
-
-  
-   <!-- Chrome launch configuration -->
+   <!-- Dartium launch configuration -->
 
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
@@ -114,7 +63,7 @@
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            class="com.google.dart.tools.debug.ui.internal.dartium.DartChromeTabGroup"
+            class="com.google.dart.tools.debug.ui.internal.dartium.DartiumTabGroup"
             id="com.google.dart.tools.debug.core.chromeLaunchConfigTabGroup"
             type="com.google.dart.tools.debug.core.dartiumLaunchConfig">
       </launchConfigurationTabGroup>

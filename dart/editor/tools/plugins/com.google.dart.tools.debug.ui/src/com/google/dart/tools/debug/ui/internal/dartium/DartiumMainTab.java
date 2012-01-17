@@ -63,7 +63,7 @@ import java.util.List;
 /**
  * The main launch configuration UI for running Dart applications in Chrome.
  */
-public class DartChromeMainTab extends AbstractLaunchConfigurationTab {
+public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Text applicationHtmlText;
   private Combo browserCombo;
@@ -79,7 +79,7 @@ public class DartChromeMainTab extends AbstractLaunchConfigurationTab {
   /**
    * Create a new instance of DartServerMainTab.
    */
-  public DartChromeMainTab() {
+  public DartiumMainTab() {
 
   }
 

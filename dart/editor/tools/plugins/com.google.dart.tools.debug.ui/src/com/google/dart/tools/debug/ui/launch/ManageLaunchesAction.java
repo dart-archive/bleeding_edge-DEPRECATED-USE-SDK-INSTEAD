@@ -25,6 +25,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 /**
  * An action to open the manage launch configurations dialog.
  */
+@SuppressWarnings("restriction")
 public class ManageLaunchesAction extends AbstractInstrumentedAction {
   private IWorkbenchWindow window;
 

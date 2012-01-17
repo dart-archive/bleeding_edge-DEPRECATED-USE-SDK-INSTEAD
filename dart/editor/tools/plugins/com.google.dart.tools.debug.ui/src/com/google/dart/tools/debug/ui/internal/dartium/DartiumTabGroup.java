@@ -18,20 +18,20 @@ import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
 
 /**
- * The tab group for the Dart Chrome launch config. See {@link DartChromeMainTab}.
+ * The tab group for the Dart Chrome launch config. See {@link DartiumMainTab}.
  */
-public class DartChromeTabGroup extends AbstractLaunchConfigurationTabGroup {
+public class DartiumTabGroup extends AbstractLaunchConfigurationTabGroup {
 
   /**
    * Create a new DartChromeTabGroup.
    */
-  public DartChromeTabGroup() {
+  public DartiumTabGroup() {
 
   }
 
   @Override
   public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
-    setTabs(new ILaunchConfigurationTab[] {new DartChromeMainTab()});
+    setTabs(new ILaunchConfigurationTab[] {new DartiumMainTab()});
     //new DartChromeMainTab(), new SourceLookupTab(), new CommonTab()});
   }
 

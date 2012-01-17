@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,11 +19,11 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.FilteredResourcesSelectionDialog;
 
 /**
- * A dialog to choose a main launch config target (a, .app or .html file).
+ * A dialog to choose a main launch config target (a, .dart or .html file).
  */
 public class AppSelectionDialog extends FilteredResourcesSelectionDialog {
   private boolean includeHtmlFiles;
-  private boolean includeAppFiles;
+  private boolean includeDartFiles;
 
   /**
    * Create a new AppSelectionDialog.
@@ -35,10 +35,11 @@ public class AppSelectionDialog extends FilteredResourcesSelectionDialog {
     this(shell, container, true, false);
   }
 
-  public AppSelectionDialog(Shell shell, IContainer container, boolean includeAppFiles,
+  public AppSelectionDialog(Shell shell, IContainer container, boolean includeDartFiles,
       boolean includeHtmlFiles) {
     super(shell, false, container, IResource.FILE);
-    this.includeAppFiles = includeAppFiles;
+
+    this.includeDartFiles = includeDartFiles;
     this.includeHtmlFiles = includeHtmlFiles;
   }
 
@@ -66,7 +67,7 @@ public class AppSelectionDialog extends FilteredResourcesSelectionDialog {
 
         String ext = resource.getFileExtension();
 
-        if (includeAppFiles && "app".equals(ext)) {
+        if (includeDartFiles && "dart".equals(ext)) {
           return true;
         } else if (includeHtmlFiles
             && ("html".equalsIgnoreCase(ext) || "htm".equalsIgnoreCase(ext))) {
@@ -77,4 +78,5 @@ public class AppSelectionDialog extends FilteredResourcesSelectionDialog {
       }
     };
   }
+
 }

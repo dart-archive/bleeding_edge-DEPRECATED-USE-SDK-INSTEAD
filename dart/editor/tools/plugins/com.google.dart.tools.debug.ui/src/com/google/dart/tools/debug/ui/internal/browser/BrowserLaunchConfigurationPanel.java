@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.debug.ui.internal.client;
+package com.google.dart.tools.debug.ui.internal.browser;
 
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 
@@ -38,7 +38,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 import org.eclipse.ui.dialogs.FilteredResourcesSelectionDialog;
 
-public class MainDartJsLaunchConfigurationPanel extends Composite {
+public class BrowserLaunchConfigurationPanel extends Composite {
   private Text appPathField;
   private Label appPathLabel;
   private Button externalBrowserCheckbox;
@@ -49,8 +49,8 @@ public class MainDartJsLaunchConfigurationPanel extends Composite {
    * @param parent the parent component
    * @param style the style
    */
-  public MainDartJsLaunchConfigurationPanel(Composite parent, int style,
-      final MainDartJsLaunchConfigurationTab launchTab) {
+  public BrowserLaunchConfigurationPanel(Composite parent, int style,
+      final BrowserMainTab launchTab) {
     super(parent, style);
     setLayout(new GridLayout(3, false));
 

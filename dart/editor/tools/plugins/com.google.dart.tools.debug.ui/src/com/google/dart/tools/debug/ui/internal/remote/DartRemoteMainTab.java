@@ -291,8 +291,8 @@ public class DartRemoteMainTab extends AbstractLaunchConfigurationTab {
   }
 
   private void updateInstructionText() {
-    String connectionType = connectionTypesCombo.getText();
-
+//    String connectionType = connectionTypesCombo.getText();
+//
 //    if (DartLaunchConfigWrapper.CONNECTION_TYPE_DARTIUM.equals(connectionType)) {
 //      connectionTypeInstructions.setText("Start Chrome with: chrome --remote-shell-port="
 //          + portText.getText());
