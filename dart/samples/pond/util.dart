@@ -11,17 +11,17 @@ class SpanHelper {
   static int startLine(SourceSpan span) {
     return span.file.getLine(span.start);
   }
-  
+
   static int startCol(SourceSpan span) {
     return span.file.getColumn(span.file.getLine(span.start), span.start);
   }
-  
+
   static int endLine(SourceSpan span) {
     return span.file.getLine(span.end);
   }
-  
-  static int endCol(SourceSpan span) {    
+
+  static int endCol(SourceSpan span) {
     return span.file.getColumn(span.file.getLine(span.end), span.end);
-  }    
+  }
 }
 

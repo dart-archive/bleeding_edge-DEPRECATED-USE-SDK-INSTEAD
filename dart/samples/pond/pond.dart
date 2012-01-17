@@ -3,16 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("ui.dart");
+#import("editors_isolate.dart"); // TODO(sigmund): remove this dependency
+#import("dart:html");
 
 void main() {
-  // TODO(mattsh): temporary, the if(false) here is so that tree-shaking doesn't
-  // delete frogPondMain.  (We want to be able to call frogPondMain at
-  // the appropriate time after js setup.)
-  if (false) {
-    pondMain();
-  }
-}
-
-void pondMain() {
-  new PondUI().run();
+  // TODO(sigmund): rewrite as spawnFromCode('editors_isolate.dart.js');
+  PondUI ui = new PondUI();
+  window.setTimeout(() {
+    ui.setupAndRun(new JsEditorFactory());
+  }, 0);
 }

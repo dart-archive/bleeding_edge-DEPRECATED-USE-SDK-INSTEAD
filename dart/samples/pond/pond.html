@@ -6,19 +6,10 @@
 <html>
   <head>
     <title>Frog Pond</title>
-    <script src="codemirror/lib/codemirror.js"></script>
-    <link rel="stylesheet" href="codemirror/lib/codemirror.css">
-
-    <script src="codemirror/mode/dart/dart.js"></script>
-    <script src="codemirror/mode/htmlmixed/htmlmixed.js"></script>
-    <script src="codemirror/mode/xml/xml.js"></script>
-    <script src="codemirror/mode/javascript/javascript.js"></script>
-    <script src="codemirror/mode/css/css.js"></script>
-    <script src="codemirror/mode/diff/diff.js"></script>
-
-    <script type="text/javascript" src="pond.dart.js"></script>
     <link rel="stylesheet" type="text/css" href="pond.css"/>
-    <script type="text/javascript" src="editors.js"></script>
+    <link rel="stylesheet" type="text/css"
+          href="codemirror/lib/codemirror.css"/>
+    <script type="text/javascript" src="pond.dart.js"></script>
   </head>
   <body>
     <div id="wrap">
@@ -27,7 +18,7 @@
       <div>
         <input type="button" value="run" id="runButton">
         <input type="button" value="clear output" id="clearButton">
-        <input type="button" value="test" id="testButton" style="display:none;">
+        <input type="button" value="test" id="testButton" style="display:none">
         <input type="checkbox" id="warningCheckbox">
         <label>treat warnings as errors</label>
       </div>
@@ -35,6 +26,6 @@
       <div id="result"><iframe id="resultFrame" ></iframe></div>
       <div id="warningEditor"></div>
     </div>
-    <iframe src="dart_lib.html" id="dartlibFrame" style="display:none;"></iframe>
+    <iframe src="dart_lib.html" id="dartlibFrame" style="display:none"></iframe>
   </body>
 </html>

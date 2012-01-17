@@ -13593,7 +13593,7 @@ class ProxyBase extends PromiseImpl<bool> {
         }
         if (marshalled[i] is ReceivePort) {
           throw new Exception("Despite the documentation, you cannot send a ReceivePort");
-        } 
+        }
       }
       return process(marshalled);
     }).flatten();
@@ -26106,7 +26106,7 @@ interface BodyElementEvents extends ElementEvents {
   EventListenerList get unLoad();
 }
 
-interface BodyElement extends Element { 
+interface BodyElement extends Element {
   BodyElementEvents get on();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -28151,7 +28151,7 @@ interface Document extends Element /*, common.NodeSelector */ {
 // BSD-style license that can be found in the LICENSE file.
 
 interface DocumentFragment extends Element default DocumentFragmentWrappingImplementation {
- 
+
   DocumentFragment();
 
   DocumentFragment.html(String html);
@@ -28168,7 +28168,7 @@ interface DOMApplicationCacheEvents extends Events {
   EventListenerList get noUpdate();
   EventListenerList get obsolete();
   EventListenerList get progress();
-  EventListenerList get updateReady();  
+  EventListenerList get updateReady();
 }
 
 interface DOMApplicationCache extends EventTarget {
@@ -29636,7 +29636,7 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
 // BSD-style license that can be found in the LICENSE file.
 
 interface Text extends CharacterData default TextWrappingImplementation {
-  
+
   Text(String content);
 
   String get wholeText();
@@ -30137,7 +30137,7 @@ interface Window extends EventTarget {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface WorkerEvents extends AbstractWorkerEvents {  
+interface WorkerEvents extends AbstractWorkerEvents {
   EventListenerList get message();
 }
 
@@ -31217,7 +31217,7 @@ class CSSKeyframesRuleWrappingImplementation extends CSSRuleWrappingImplementati
 class CSSMatrixWrappingImplementation extends DOMWrapperBase implements CSSMatrix {
   CSSMatrixWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
   factory CSSMatrixWrappingImplementation([String cssValue = null]) {
-    
+
     if (cssValue === null) {
       return LevelDom.wrapCSSMatrix(new dom.WebKitCSSMatrix());
     } else {
@@ -48654,7 +48654,7 @@ class _Lists {
 
 class AbstractWorkerEventsImplementation extends EventsImplementation implements AbstractWorkerEvents {
   AbstractWorkerEventsImplementation._wrap(_ptr) : super._wrap(_ptr);
-  
+
   EventListenerList get error() => _get('error');
 }
 
@@ -52488,7 +52488,7 @@ class DOMApplicationCacheWrappingImplementation extends EventTargetWrappingImple
     if (_on === null) {
       _on = new DOMApplicationCacheEventsImplementation._wrap(_ptr);
     }
-    return _on;  
+    return _on;
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -52958,15 +52958,15 @@ class ElementRectWrappingImplementation implements ElementRect {
   // TODO(jacobr): should we move these outside of ElementRect to avoid the
   // overhead of computing them every time even though they are rarely used.
   // This should be type dom.ClientRect but that fails on dartium. b/5522629
-  final _boundingClientRect; 
+  final _boundingClientRect;
   // an exception due to a dartium bug.
   final _clientRects; // TODO(jacobr): should be dom.ClientRectList
 
   ElementRectWrappingImplementation(dom.HTMLElement element) :
     client = new SimpleClientRect(element.clientLeft,
                                   element.clientTop,
-                                  element.clientWidth, 
-                                  element.clientHeight), 
+                                  element.clientWidth,
+                                  element.clientHeight),
     offset = new SimpleClientRect(element.offsetLeft,
                                   element.offsetTop,
                                   element.offsetWidth,
@@ -52992,7 +52992,7 @@ class ElementRectWrappingImplementation implements ElementRect {
 
 /** @domName Element, HTMLElement */
 class ElementWrappingImplementation extends NodeWrappingImplementation implements Element {
-  
+
     static final _START_TAG_REGEXP = const RegExp('<(\\w+)');
     static final _CUSTOM_PARENT_TAG_MAP = const {
       'body' : 'html',
@@ -53031,7 +53031,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     temp.innerHTML = html;
 
     if (temp.childElementCount == 1) {
-      return LevelDom.wrapElement(temp.firstElementChild);     
+      return LevelDom.wrapElement(temp.firstElementChild);
     } else if (parentTag == 'html' && temp.childElementCount == 2) {
       // Work around for edge case in WebKit and possibly other browsers where
       // both body and head elements are created even though the inner html
@@ -53240,7 +53240,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set scrollLeft(int value) { _ptr.scrollLeft = value; }
- 
+
   void set scrollTop(int value) { _ptr.scrollTop = value; }
 
   /**
@@ -53345,7 +53345,7 @@ class EventsImplementation implements Events {
   EventListenerList operator [](String type) {
     return _get(type.toLowerCase());
   }
-  
+
   EventListenerList _get(String type) {
     return _listenerMap.putIfAbsent(type,
       () => new EventListenerListImplementation(_ptr, type));

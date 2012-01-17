@@ -5,6 +5,7 @@
 #library('html_file_system');
 #import('../../frog/file_system.dart');
 #import('ui.dart', prefix: 'ui'); // TODO(sigmund): remove dependency
+#import('dart:dom');
 
 /**
  * Implement an ad-hoc file-system for frog, that reads files from an iframe
@@ -12,39 +13,33 @@
  */
 // TODO(sigmund,mattsh): replace once we move frog to a background worker.
 class HtmlFileSystem implements FileSystem {
-  final Object frameDocument;
+  final Document frame;
+  final Map<String, String> files;
 
-  HtmlFileSystem() : frameDocument = getFrameDocument() {}
-
-  // TODO - remove native
-  static Object getFrameDocument() native
-    'return document.getElementById("dartlibFrame").contentDocument;';
-
-  // TODO - remove native
-  static String getElementText(Object frame, String id) native
-    'return frame.getElementById(id).text;';
+  HtmlFileSystem() : frame = _getFrameDocument(), files = {};
 
   String readAll(String filename) {
-    if (filename == 'user.dart') {
-      // TODO(sigmund): remove this dependency
-      return ui.getEditorText('dartEditor');
+    if (files.containsKey(filename)) {
+      return files[filename];
     }
     int slash1 = filename.lastIndexOf('/', filename.length);
     if (slash1 < 0) {
-      throw new Exception("can't find slash1");
+      return null;
     }
     int slash2 = filename.lastIndexOf('/', slash1 - 1);
     String name = filename.substring(slash2 + 1);
     String id = name.replaceAll('.', '_').replaceAll('/', '_');
-    return getElementText(frameDocument, id);
+    String res = _getElementText(frame, id);
+    files[filename] = res;
+    return res;
   }
 
   void writeString(String outfile, String text) {
-    throw new UnsupportedOperationException();
+    files[outfile] = text;
   }
 
   bool fileExists(String filename) {
-    return true;
+    return readAll(filename) != null;
   }
 
   void createDirectory(String path, [bool recursive]) {
@@ -53,5 +48,16 @@ class HtmlFileSystem implements FileSystem {
   void removeDirectory(String path, [bool recursive]) {
     throw new UnsupportedOperationException();
   }
-}
 
+  // TODO(sigmund): this code should go away. Accessing another's IFrame's
+  // content is not going to be supported by the DOM library in the future.
+  static Document _getFrameDocument() {
+    HTMLIFrameElement frameElem = document.getElementById("dartlibFrame");
+    return frameElem.contentDocument;
+  }
+
+  static String _getElementText(Document frame, String id) {
+    HTMLScriptElement script = frame.getElementById(id);
+    return script == null ? null : script.text;
+  }
+}

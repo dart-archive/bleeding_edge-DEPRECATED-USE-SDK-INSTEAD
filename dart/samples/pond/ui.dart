@@ -8,57 +8,74 @@
 #import("../../frog/lang.dart");
 #import("html_file_system.dart");
 #import("util.dart");
+#import("editors.dart");
 
 class PondUI {
-  final List<Object> markers;
+  Editor dartEditor;
+  final List<Marker> markers;
 
-  PondUI() : markers = new List() {}
+  Editor warningEditor;
+  Editor jsEditor;
+  Editor htmlEditor;
+
+  PondUI() : markers = [] {}
 
   void clearOutput() {
-    setEditorText('warningEditor', '');
-    setEditorText('jsEditor', '');
+    warningEditor.setText('');
+    jsEditor.setText('');
     html.document.query('#resultFrame').attributes['src'] = 'about:blank';
-    for (Object marker in markers) {
-      clearMarker(marker);
+    for (Marker marker in markers) {
+      marker.clear();
     }
     markers.clear();
   }
 
+  void setupAndRun(EditorFactory editors) {
+    dartEditor = editors.newEditor("dartEditor", "dart");
+    htmlEditor = editors.newEditor("htmlEditor", "htmlmixed");
+    jsEditor = editors.newEditor("jsEditor", "javascript");
+    warningEditor = editors.newEditor("warningEditor", "diff");
+    run();
+  }
+
   void run() {
-    setEditorText('dartEditor', SampleCode.DART);
-    setEditorText('htmlEditor', SampleCode.HTML);
+    dartEditor.setText(SampleCode.DART);
+    htmlEditor.setText(SampleCode.HTML);
 
     html.document.query('#clearButton').on.click.add((e) {
       clearOutput();
     });
 
     html.document.query('#runButton').on.click.add((e) {
+      int millis0 = new Date.now().value;
       clearOutput();
       String warnings = '';
       HtmlFileSystem fs = new HtmlFileSystem();
       parseOptions('frogroot', ['dummyArg1', 'dummyArg2', 'user.dart'], fs);
+      String userCode = dartEditor.getText();
+      fs.writeString("user.dart", userCode);
       options.useColors = false;
       options.warningsAsErrors =
         html.document.query('#warningCheckbox').dynamic.checked;
 
       int millis1 = new Date.now().value;
       initializeWorld(fs);
-      world.messageHandler = (String prefix, String message, SourceSpan span) {
-        warnings += prefix + message;
+      world.messageHandler = (String prefix, String msg, SourceSpan span) {
+        warnings += prefix + msg;
         if (span != null) {
           warnings += ' [' + span.locationText + '] \n';
           if (span.file.filename == 'user.dart') {
-            int startLine = SpanHelper.startLine(span);
-            int startCol = SpanHelper.startCol(span);
-            int endLine = SpanHelper.endLine(span);
-            int endCol = SpanHelper.endCol(span);
-            String cssClass = null;
+            final start = new Position(
+                SpanHelper.startLine(span), SpanHelper.startCol(span));
+            final end = new Position(
+                SpanHelper.endLine(span), SpanHelper.endCol(span));
+            int kind = Marks.NONE;
             if (prefix.startsWith('error') || prefix.startsWith('fatal')) {
-              cssClass = 'compile_error';
+              kind = Marks.ERROR;
             } else if (prefix.startsWith('warning')) {
-              cssClass = 'compile_warning';
+              kind = Marks.WARNING;
             }
-            markers.add(markText(startLine, startCol, endLine, endCol, cssClass));
+            markers.add(dartEditor.mark(start, end, kind));
           }
         } else {
           warnings += '\n';
@@ -67,30 +84,30 @@ class PondUI {
       bool success = world.compile();
       if (success) {
         String code = world.getGeneratedCode();
-        setEditorText('jsEditor', code);
+        jsEditor.setText(code);
+        String htmlText = htmlEditor.getText();
+        var start = htmlText.indexOf("{{DART}}");
+        htmlText = htmlText.substring(0, start) + code
+          + htmlText.substring(start + "{{DART}}".length);
+        htmlText = htmlText.replaceAll(
+            "application/dart", "text/javascript");
+        html.document.query("#resultFrame").attributes["src"] =
+          _toDataURL(htmlText);
       }
       int millis2 = new Date.now().value;
       warnings += '\ncompile time: ${millis2 - millis1}ms\n';
-      setEditorText('warningEditor', warnings);
+      warnings += '\ntotal time: ${millis2 - millis0}ms\n';
+      warningEditor.setText(warnings);
     });
   }
+
+  // TODO(sigmund): remove use of 'native'.
+  String _toDataURL(text) native '''
+    var preamble = "data:text/html;charset=utf-8,";
+    var escaped = window.encodeURIComponent(text);
+    return preamble + escaped;
+  ''';
 }
-
-// APIs to access the JS editor component of the UI.
-// TODO(sigmund,mattsh): remove 'native' thoughout this file, and replace this
-// with an appropriate JS interop layer.
-
-String markText(int startLine, int startCol,
-      int endLine, int endCol, String cssClass) native
-   'return window.markText(startLine, startCol, endLine, endCol, cssClass);';
-
-void clearMarker(Object marker) native 'marker.clear();';
-
-String getEditorText(String id) native
-  'return window.getEditorText(id)';
-
-String setEditorText(String id, String text) native
-  'window.setEditorText(id, text);';
 
 class SampleCode {
   final static String DART = '''
