@@ -8,39 +8,40 @@ class Interceptors {
 
   SourceString mapOperatorToMethodName(Operator op) {
     String name = op.source.stringValue;
-    if (name === '-') return const SourceString('neg');
-    if (name === '+') return const SourceString('add');
-    if (name === '-') return const SourceString('sub');
-    if (name === '*') return const SourceString('mul');
-    if (name === '/') return const SourceString('div');
-    if (name === '~/') return const SourceString('tdiv');
-    if (name === '%') return const SourceString('mod');
-    if (name === '<<') return const SourceString('shl');
-    if (name === '>>') return const SourceString('shr');
-    if (name === '|') return const SourceString('or');
-    if (name === '&') return const SourceString('and');
-    if (name === '^') return const SourceString('xor');
-    if (name === '<') return const SourceString('lt');
-    if (name === '<=') return const SourceString('le');
-    if (name === '>') return const SourceString('gt');
-    if (name === '>=') return const SourceString('ge');
-    if (name === '==') return const SourceString('eq');
-    if (name === '!=') return const SourceString('eq');
-    if (name === '===') return const SourceString('eqq');
-    if (name === '!==') return const SourceString('eqq');
-    if (name === '+=') return const SourceString('add');
-    if (name === '-=') return const SourceString('sub');
-    if (name === '*=') return const SourceString('mul');
-    if (name === '/=') return const SourceString('div');
-    if (name === '~/=') return const SourceString('tdiv');
-    if (name === '%=') return const SourceString('mod');
-    if (name === '<<=') return const SourceString('shl');
-    if (name === '>>=') return const SourceString('shr');
-    if (name === '|=') return const SourceString('or');
-    if (name === '&=') return const SourceString('and');
-    if (name === '^=') return const SourceString('xor');
-    if (name === '++') return const SourceString('add');
-    if (name === '--') return const SourceString('sub');
+    // TODO(lrn): Make this a switch.
+    if (name == '-') return const SourceString('neg');
+    if (name == '+') return const SourceString('add');
+    if (name == '-') return const SourceString('sub');
+    if (name == '*') return const SourceString('mul');
+    if (name == '/') return const SourceString('div');
+    if (name == '~/') return const SourceString('tdiv');
+    if (name == '%') return const SourceString('mod');
+    if (name == '<<') return const SourceString('shl');
+    if (name == '>>') return const SourceString('shr');
+    if (name == '|') return const SourceString('or');
+    if (name == '&') return const SourceString('and');
+    if (name == '^') return const SourceString('xor');
+    if (name == '<') return const SourceString('lt');
+    if (name == '<=') return const SourceString('le');
+    if (name == '>') return const SourceString('gt');
+    if (name == '>=') return const SourceString('ge');
+    if (name == '==') return const SourceString('eq');
+    if (name == '!=') return const SourceString('eq');
+    if (name == '===') return const SourceString('eqq');
+    if (name == '!==') return const SourceString('eqq');
+    if (name == '+=') return const SourceString('add');
+    if (name == '-=') return const SourceString('sub');
+    if (name == '*=') return const SourceString('mul');
+    if (name == '/=') return const SourceString('div');
+    if (name == '~/=') return const SourceString('tdiv');
+    if (name == '%=') return const SourceString('mod');
+    if (name == '<<=') return const SourceString('shl');
+    if (name == '>>=') return const SourceString('shr');
+    if (name == '|=') return const SourceString('or');
+    if (name == '&=') return const SourceString('and');
+    if (name == '^=') return const SourceString('xor');
+    if (name == '++') return const SourceString('add');
+    if (name == '--') return const SourceString('sub');
     compiler.unimplemented('Unknown operator', node: op);
   }
 
@@ -64,8 +65,8 @@ class Interceptors {
 
   Element getPrefixOperatorInterceptor(Operator op) {
     String name = op.source.stringValue;
-    if (name === '~') return compiler.universe.find(const SourceString('not'));
-    if (name === '-') return compiler.universe.find(const SourceString('neg'));
+    if (name == '~') return compiler.universe.find(const SourceString('not'));
+    if (name == '-') return compiler.universe.find(const SourceString('neg'));
     compiler.unimplemented('Unknown operator', node: op);
   }
 
@@ -645,7 +646,7 @@ class SsaBuilder implements Visitor {
     String str = '${literal.value}';
     int quotes = 1;
     String quote = str[start];
-    while (str[quotes + start] === quote) quotes++;
+    while (str[quotes + start] == quote) quotes++;
     return new SourceString(str.substring(quotes + start, str.length - quotes));
   }
 

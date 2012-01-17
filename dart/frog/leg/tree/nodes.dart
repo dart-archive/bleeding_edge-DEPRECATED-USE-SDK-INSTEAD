@@ -164,7 +164,7 @@ class ClassNode extends Node {
     if (interfaces !== null) interfaces.accept(visitor);
   }
 
-  bool get isInterface() => beginToken.stringValue === 'interface';
+  bool get isInterface() => beginToken.stringValue == 'interface';
 
   bool get isClass() => !isInterface;
 
@@ -237,7 +237,7 @@ class Send extends Expression {
   bool get isPrefix() => argumentsNode is Prefix;
   bool get isPostfix() => argumentsNode is Postfix;
   bool get isIndex() =>
-      isOperator && selector.asOperator().source.stringValue === '[]';
+      isOperator && selector.asOperator().source.stringValue == '[]';
 
   Token getBeginToken() {
     return firstBeginToken(receiver, selector);
@@ -316,7 +316,7 @@ class NewExpression extends Expression {
     if (send !== null) send.accept(visitor);
   }
 
-  bool isConst() => newToken.stringValue === 'const';
+  bool isConst() => newToken.stringValue == 'const';
 
   Token getBeginToken() => newToken;
 
@@ -896,12 +896,12 @@ class Modifiers extends Node {
     int flags = 0;
     for (; !nodes.isEmpty(); nodes = nodes.tail) {
       String value = nodes.head.asIdentifier().source.stringValue;
-      if (value === 'static') flags += FLAG_STATIC;
-      else if (value === 'abstract') flags += FLAG_ABSTRACT;
-      else if (value === 'final') flags += FLAG_FINAL;
-      else if (value === 'var') flags += FLAG_VAR;
-      else if (value === 'const') flags += FLAG_CONST;
-      else if (value === 'factory') flags += FLAG_FACTORY;
+      if (value == 'static') flags += FLAG_STATIC;
+      else if (value == 'abstract') flags += FLAG_ABSTRACT;
+      else if (value == 'final') flags += FLAG_FINAL;
+      else if (value == 'var') flags += FLAG_VAR;
+      else if (value == 'const') flags += FLAG_CONST;
+      else if (value == 'factory') flags += FLAG_FACTORY;
       else throw 'internal error: ${nodes.head}';
     }
     return flags;
