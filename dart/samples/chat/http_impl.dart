@@ -917,12 +917,12 @@ class SendBuffer {
   int _count;
   List<int> _buffer;
 
-  static final DEFAULT_SEND_BUFFER_SIZE = 1024;
+  static final DEFAULT_SEND_BUFFER_SIZE = 1500;
 }
 
 
 class HTTPConnectionBase {
-  static final BUFFER_SIZE = 80;
+  static final BUFFER_SIZE = 1500;
 
   HTTPConnectionBase(Socket this._socket)
       : _sendBuffers = new Queue(),
@@ -1105,7 +1105,7 @@ class HTTPConnection extends HTTPConnectionBase {
 // managed by the server and as requests are received the request.
 class HTTPServerImplementation implements HTTPServer {
 
-  static final BUFFER_SIZE = 80;
+  static final BUFFER_SIZE = 1500;
 
   HTTPServerImplementation () : _debugTrace = false;
 
