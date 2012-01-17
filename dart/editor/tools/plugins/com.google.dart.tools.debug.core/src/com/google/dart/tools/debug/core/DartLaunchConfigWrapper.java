@@ -21,6 +21,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A wrapper class around ILaunchConfiguration and ILaunchConfigurationWorkingCopy objects. It adds
  * compiler type checking to what is essentially a property map.
@@ -30,9 +33,10 @@ public class DartLaunchConfigWrapper {
   public static final int DEFAULT_CHROME_PORT = 9222;
   public static final String DEFAULT_HOST = "localhost";
 
-  private static final String VM_ARGUMENTS = "vmArguments";
   private static final String APPLICATION_ARGUMENTS = "applicationArguments";
   private static final String APPLICATION_NAME = "applicationName";
+  private static final String VM_CHECKED_MODE = "vmCheckedMode";
+  private static final String VM_HEAP_MB = "vmHeapMB";
 
   private static final String BROWSER_CONFIG = "browserConfig";
   private static final String CONNECTION_HOST = "connectionHost";
@@ -106,6 +110,16 @@ public class DartLaunchConfigWrapper {
     }
   }
 
+  public boolean getCheckedMode() {
+    try {
+      return launchConfig.getAttribute(VM_CHECKED_MODE, false);
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return false;
+    }
+  }
+
   /**
    * @return the launch configuration that this DartLaucnConfigWrapper wraps
    */
@@ -139,15 +153,24 @@ public class DartLaunchConfigWrapper {
     }
   }
 
-  public String getLibraryLocation() {
+  public String getHeapMB() {
+    try {
+      return launchConfig.getAttribute(VM_HEAP_MB, "");
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
 
+      return "";
+    }
+  }
+
+  public String getLibraryLocation() {
     try {
       return launchConfig.getAttribute(LIBRARY_LOCATION, "");
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);
+
       return "";
     }
-
   }
 
   /**
@@ -172,30 +195,26 @@ public class DartLaunchConfigWrapper {
   }
 
   /**
-   * @return the arguments string for the Dart VM
-   */
-  public String getVmArguments() {
-    try {
-      return launchConfig.getAttribute(VM_ARGUMENTS, "");
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return "";
-    }
-  }
-
-  /**
    * @return the arguments for the Dart VM
    */
   public String[] getVmArgumentsAsArray() {
-    // TODO(keertip): add --new_gen_heap_size=64 to list of vm args
-    String command = getVmArguments();
+    List<String> args = new ArrayList<String>();
 
-    if (command == null || command.length() == 0) {
-      return new String[0];
+    if (getCheckedMode()) {
+      args.add("--enable-type-checks");
     }
 
-    return command.split(" ");
+    try {
+      int heap = Integer.parseInt(getHeapMB());
+
+      if (heap > 0) {
+        args.add("--new_gen_heap_size=" + heap);
+      }
+    } catch (NumberFormatException ex) {
+
+    }
+
+    return args.toArray(new String[args.size()]);
   }
 
   /**
@@ -219,6 +238,10 @@ public class DartLaunchConfigWrapper {
     getWorkingCopy().setAttribute(BROWSER_CONFIG, value);
   }
 
+  public void setCheckedMode(boolean value) {
+    getWorkingCopy().setAttribute(VM_CHECKED_MODE, value);
+  }
+
   /**
    * @see #getConnectionHost()
    */
@@ -233,6 +256,10 @@ public class DartLaunchConfigWrapper {
     getWorkingCopy().setAttribute(CONNECTION_PORT, value);
   }
 
+  public void setHeapMB(String value) {
+    getWorkingCopy().setAttribute(VM_HEAP_MB, value);
+  }
+
   public void setLibraryLocation(String location) {
     getWorkingCopy().setAttribute(LIBRARY_LOCATION, location);
   }
@@ -242,13 +269,6 @@ public class DartLaunchConfigWrapper {
    */
   public void setProjectName(String value) {
     getWorkingCopy().setAttribute(PROJECT_NAME, value);
-  }
-
-  /**
-   * @see #getVmArguments()
-   */
-  public void setVmArguments(String value) {
-    getWorkingCopy().setAttribute(VM_ARGUMENTS, value);
   }
 
   protected ILaunchConfigurationWorkingCopy getWorkingCopy() {

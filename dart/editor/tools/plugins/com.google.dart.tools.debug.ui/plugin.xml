@@ -187,6 +187,15 @@
       </launchConfigurationTypeImage>
    </extension>
 
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="com.google.dart.tools.debug.ui.internal.server.DartServerTabGroup"
+            id="com.google.dart.tools.debug.core.serverLaunchConfigTabGroup"
+            type="com.google.dart.tools.debug.core.serverLaunchConfig">
+      </launchConfigurationTabGroup>
+   </extension>
+   
    <!-- preference page -->
 
    <extension point="org.eclipse.ui.preferencePages">

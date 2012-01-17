@@ -71,6 +71,7 @@ public class BrowserManager {
 //        browserName);
     File dartium = DartSdk.getInstance().getDartiumExecutable();
 
+    // TODO(devoncarew): we should fail gracefully if dartium == null
     IPath browserLocation = new Path(dartium.getAbsolutePath());
 
     String browserName = dartium.getName();
@@ -141,7 +142,7 @@ public class BrowserManager {
     }
 
     // In order to start up multiple Chrome processes, we need to specify a different user dir.
-   // arguments.add("--user-data-dir=" + getUserDataDirectoryPath());
+    // arguments.add("--user-data-dir=" + getUserDataDirectoryPath());
 
     //arguments.add("--disable-breakpad");
 

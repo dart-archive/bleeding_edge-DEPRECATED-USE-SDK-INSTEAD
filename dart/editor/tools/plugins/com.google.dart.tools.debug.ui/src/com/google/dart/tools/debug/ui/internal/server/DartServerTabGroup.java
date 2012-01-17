@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,28 +11,28 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.debug.ui.internal.dartium;
+
+package com.google.dart.tools.debug.ui.internal.server;
 
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
 
 /**
- * The tab group for the Dart Chrome launch config. See {@link DartChromeMainTab}.
+ * The tab group for the Dart Server launch config. See {@link DartServerMainTab}.
  */
-public class DartChromeTabGroup extends AbstractLaunchConfigurationTabGroup {
+public class DartServerTabGroup extends AbstractLaunchConfigurationTabGroup {
 
   /**
-   * Create a new DartChromeTabGroup.
+   * Create a new Dart server tab group.
    */
-  public DartChromeTabGroup() {
+  public DartServerTabGroup() {
 
   }
 
   @Override
   public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
-    setTabs(new ILaunchConfigurationTab[] {new DartChromeMainTab()});
-    //new DartChromeMainTab(), new SourceLookupTab(), new CommonTab()});
+    setTabs(new ILaunchConfigurationTab[] {new DartServerMainTab()});
   }
 
 }

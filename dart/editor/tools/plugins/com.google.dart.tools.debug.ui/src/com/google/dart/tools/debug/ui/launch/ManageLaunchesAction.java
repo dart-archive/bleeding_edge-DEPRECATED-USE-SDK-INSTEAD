@@ -17,7 +17,9 @@ package com.google.dart.tools.debug.ui.launch;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.ui.actions.AbstractInstrumentedAction;
 
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.debug.internal.ui.DebugUIPlugin;
+import org.eclipse.debug.ui.IDebugUIConstants;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IWorkbenchWindow;
 
 /**
@@ -26,18 +28,21 @@ import org.eclipse.ui.IWorkbenchWindow;
 public class ManageLaunchesAction extends AbstractInstrumentedAction {
   private IWorkbenchWindow window;
 
-  public ManageLaunchesAction(IWorkbenchWindow window, boolean useCreateLaunchIcon) {
+  public ManageLaunchesAction(IWorkbenchWindow window) {
     this.window = window;
 
     setText("Manage Launches...");
-    setImageDescriptor(DartDebugUIPlugin.getImageDescriptor(useCreateLaunchIcon
-        ? "obj16/create_launch.png" : "obj16/manage_launches.png"));
+    setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/manage_launches.png"));
   }
 
   @Override
   public void run() {
     // TODO(devoncarew): open a dialog to manage existing launch configurations
-    MessageDialog.openInformation(window.getShell(), "TODO", "ManageLaunchesAction.run()");
+    //MessageDialog.openInformation(window.getShell(), "TODO", "ManageLaunchesAction.run()");
+
+    // TODO: selection
+    DebugUIPlugin.openLaunchConfigurationsDialog(window.getShell(), new StructuredSelection(),
+        IDebugUIConstants.ID_RUN_LAUNCH_GROUP, true);
   }
 
 }

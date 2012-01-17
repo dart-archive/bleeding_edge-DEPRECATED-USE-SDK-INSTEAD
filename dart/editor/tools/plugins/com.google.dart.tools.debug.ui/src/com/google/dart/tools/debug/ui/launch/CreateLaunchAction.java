@@ -15,9 +15,9 @@
 package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
+import com.google.dart.tools.debug.ui.internal.dialogs.CreateLaunchDialog;
 import com.google.dart.tools.ui.actions.AbstractInstrumentedAction;
 
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 
 /**
@@ -35,8 +35,9 @@ public class CreateLaunchAction extends AbstractInstrumentedAction {
 
   @Override
   public void run() {
-    // TODO(devoncarew): open a dialog to create launch a configuration.
-    MessageDialog.openInformation(window.getShell(), "TODO", "CreateLaunchAction.run()");
+    CreateLaunchDialog dialog = new CreateLaunchDialog(window);
+
+    dialog.open();
   }
 
 }

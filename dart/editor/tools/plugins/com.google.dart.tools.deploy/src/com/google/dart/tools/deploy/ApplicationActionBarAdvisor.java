@@ -168,7 +168,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private RunInBrowserAction runInBrowserAction;
   private RunInServerAction runServerAction;
 
-  private ManageLaunchesAction manageLaunchesAction;
+  private CreateLaunchAction createLaunchAction;
   private DartRunAction dartRunAction;
   private DartDebugAction dartDebugAction;
 
@@ -426,7 +426,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       helpToolBar.add(new GroupMarker(IWorkbenchActionConstants.GROUP_APP));
 
       if (DartCoreDebug.DEBUGGER) {
-        helpToolBar.add(manageLaunchesAction);
+        helpToolBar.add(createLaunchAction);
         helpToolBar.add(dartRunAction);
         helpToolBar.add(dartDebugAction);
       } else {
@@ -473,7 +473,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     runInBrowserAction = new RunInBrowserAction(window);
     runServerAction = new RunInServerAction(window);
 
-    manageLaunchesAction = new ManageLaunchesAction(window, true);
+    createLaunchAction = new CreateLaunchAction(window);
     dartRunAction = new DartRunAction(window);
     dartDebugAction = new DartDebugAction(window);
 
@@ -962,7 +962,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     if (DartCoreDebug.DEBUGGER) {
       menu.add(new CreateLaunchAction(window));
-      menu.add(new ManageLaunchesAction(window, false));
+      menu.add(new ManageLaunchesAction(window));
     } else {
       menu.add(runInBrowserAction);
       menu.add(runServerAction);
