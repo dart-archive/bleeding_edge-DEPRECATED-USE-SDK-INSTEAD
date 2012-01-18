@@ -13,5 +13,5 @@ class LegOnlyTestSuite extends StandardTestSuite {
               "frog/tests/leg_only/src",
               ["frog/tests/leg_only/leg_only.status"]);
 
-  List<String> additionalOptions() => ['--leg_only'];
+  List<String> additionalOptions(String filename) => ['--leg_only'];
 }

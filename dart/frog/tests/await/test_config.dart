@@ -13,13 +13,7 @@ class AwaitTestSuite extends StandardTestSuite {
               "frog/tests/await/src",
               ["frog/tests/await/await.status"]);
 
-  List<String> additionalOptions() {
-    // Support running the tests from the frog as well as the
-    // top-level directory.
-    var awaitFile = new File("await/awaitc.dart");
-    if (!awaitFile.existsSync()) {
-      awaitFile = new File("frog/await/awaitc.dart");
-    }
-    return [awaitFile.fullPathSync()];
+  List<String> additionalOptions(String filename) {
+    return ['$dartDir/frog/await/awaitc.dart'];
   }
 }
