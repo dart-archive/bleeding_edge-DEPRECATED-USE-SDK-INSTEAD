@@ -88,12 +88,12 @@ class CompileTimeConstantHandler extends CompilerTask {
     var value = initialFieldValues[element];
     if (value === null) {
       buffer.add("(void 0)");
+    } else if (value is num) {
+      buffer.add("$value");
     } else if (value === true) {
       buffer.add("true");
     } else if (value === false) {
       buffer.add("false");
-    } else if (value is num) {
-      buffer.add("$value");
     } else {
       // TODO(floitsch): support more values.
       compiler.unimplemented("CompileTimeConstantHandler.emitJsCodeForField",
