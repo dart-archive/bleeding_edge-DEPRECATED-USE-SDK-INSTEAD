@@ -35,6 +35,8 @@ class CompileTimeConstantHandler extends CompilerTask {
     if (initialFieldValues.containsKey(element)) {
       return initialFieldValues[element];
     }
+    // TODO(floitsch): keep track of currently compiling elements so that we
+    // don't end up in an infinite loop: final x = y; final y = x;
     TreeElements definitions = compiler.analyzeElement(element);
     return compileFieldWithDefinitions(element, definitions);
   }
@@ -50,8 +52,10 @@ class CompileTimeConstantHandler extends CompilerTask {
         // No initial value.
         value = null;
       } else {
-        compiler.unimplemented("CTC for static initialized fields.",
-                               node: node);
+        Node right = node.arguments.head;
+        CompileTimeConstantEvaluator evaluator =
+            new CompileTimeConstantEvaluator(this, definitions, compiler);
+        value = evaluator.evaluate(right);
       }
       initialFieldValues[element] = value;
       return value;
@@ -82,8 +86,62 @@ class CompileTimeConstantHandler extends CompilerTask {
 
   void emitJsCodeForField(VariableElement element, StringBuffer buffer) {
     var value = initialFieldValues[element];
-    // TODO(floitsch): support more values.
-    assert(value === null);
-    buffer.add("(void 0)");
+    if (value === null) {
+      buffer.add("(void 0)");
+    } else if (value === true) {
+      buffer.add("true");
+    } else if (value === false) {
+      buffer.add("false");
+    } else if (value is num) {
+      buffer.add("$value");
+    } else {
+      // TODO(floitsch): support more values.
+      compiler.unimplemented("CompileTimeConstantHandler.emitJsCodeForField",
+                             node: element.parseNode(compiler, compiler));
+    }
+  }
+}
+
+class CompileTimeConstantEvaluator extends AbstractVisitor {
+  final CompileTimeConstantHandler constantHandler;
+  final TreeElements definitions;
+  final Compiler compiler;
+
+  CompileTimeConstantEvaluator(this.constantHandler,
+                               this.definitions,
+                               this.compiler);
+
+  evaluate(Node node) {
+    return node.accept(this);
+  }
+
+  visitNode(Node node) {
+    compiler.unimplemented("CompileTimeConstantEvaluator", node: node);
+  }
+
+  visitLiteral(Literal literal) {
+    return literal.value;
+  }
+
+  visitSend(Send send) {
+    Element element = definitions[send];
+    if (element !== null && element.kind == ElementKind.FIELD) {
+      if (element.isInstanceMember() ||
+          element.modifiers === null ||
+          !element.modifiers.isFinal()) {
+        error(element);
+      }
+      return constantHandler.compileField(element);
+    }
+    return super.visitSend(send);
+  }
+
+  error(Element element) {
+    // TODO(floitsch): get the list of constants that are currently compiled
+    // and present some kind of stack-trace.
+    MessageKind kind = MessageKind.NOT_A_COMPILE_TIME_CONSTANT;
+    List arguments = [element.name];
+    Node node = element.parseNode(compiler, compiler);
+    compiler.reportError(node, new CompileTimeConstantError(kind, arguments));
   }
 }

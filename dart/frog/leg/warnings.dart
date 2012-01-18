@@ -65,6 +65,9 @@ class MessageKind {
   static final INVALID_FOR_IN = const MessageKind(
       'Invalid for-in variable declaration.');
 
+  static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
+      '#{1} cannot be used as compile-time constant.');
+
   toString() => template;
 }
 
@@ -114,4 +117,12 @@ class ResolutionWarning {
   ResolutionWarning(MessageKind kind, List<Type> arguments)
     : message = new Message(kind, arguments);
   String toString() => message.toString();
+}
+
+class CompileTimeConstantError {
+  final Message message;
+  CompileTimeConstantError.message(this.message);
+  CompileTimeConstantError(MessageKind kind, List<Type> arguments)
+    : message = new Message(kind, arguments);
+  String toString() => message.toString();  
 }

@@ -57,7 +57,6 @@ class ResolverTask extends CompilerTask {
     Node tree = element.parseNode(compiler, compiler);
     ResolverVisitor visitor = new FullResolverVisitor(compiler, element);
     if (tree is SendSet) {
-      compiler.unimplemented("Field initializers", node: tree);
       SendSet send = tree;
       visitor.visit(send.arguments.head);
     }
