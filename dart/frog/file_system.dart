@@ -20,8 +20,19 @@ interface FileSystem {
   void removeDirectory(String path, [bool recursive]);
 }
 
+/** 
+ * Replaces all back slashes (\) with forward slashes (/) in [path] and 
+ * return the result.
+ */
+String canonicalizePath(String path) {
+  return path.replaceAll('\\', '/');
+}
+
 /** Join [path1] to [path2]. */
 String joinPaths(String path1, String path2) {
+  path1 = canonicalizePath(path1);
+  path2 = canonicalizePath(path2);
+
   var pieces = path1.split('/');
   for (var piece in path2.split('/')) {
     if (piece == '..' && pieces.length > 0 && pieces.last() != '.'
@@ -39,6 +50,8 @@ String joinPaths(String path1, String path2) {
 
 /** Returns the directory name for the [path]. */
 String dirname(String path) {
+  path = canonicalizePath(path);
+
   int lastSlash = path.lastIndexOf('/', path.length);
   if (lastSlash == -1) {
     return '.';
@@ -49,6 +62,8 @@ String dirname(String path) {
 
 /** Returns the file name without directory for the [path]. */
 String basename(String path) {
+  path = canonicalizePath(path);
+
   int lastSlash = path.lastIndexOf('/', path.length);
   if (lastSlash == -1) {
     return path;
