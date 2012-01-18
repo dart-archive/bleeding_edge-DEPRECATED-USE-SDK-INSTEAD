@@ -117,7 +117,7 @@ class AntWrapper(object):
         args.append(arg)
 
     print ' '.join(args)
-    status = subprocess.call(args)
+    status = subprocess.call(args, shell=useshell)
     os.chdir(cwd)
     return status
 
