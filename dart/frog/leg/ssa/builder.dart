@@ -1055,7 +1055,10 @@ class SsaBuilder implements Visitor {
   visitNewExpression(NewExpression node) => visitSend(node.send);
 
   HInstruction updateDefinition(Node node, HInstruction value) {
-    VariableElement element = elements[node];
+    Element element = elements[node];
+    if (element is !VariableElement) {
+      compiler.internalError("expected a variable", node: node);
+    }
     definitions[element] = value;
     return value;
   }

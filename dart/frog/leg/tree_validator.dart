@@ -43,7 +43,11 @@ class ValidatorVisitor extends AbstractVisitor {
     expect(node, selector is Identifier, 'selector is not assignable');
     if (name === '++' || name === '--') {
       expect(node, node.assignmentOperator is Operator);
-      expect(node, node.arguments.isEmpty());
+      if (node.isIndex) {
+        expect(node.arguments.tail.head, node.arguments.tail.isEmpty());
+      } else {
+        expect(node.arguments.head, node.arguments.isEmpty());
+      }
     } else {
       expect(node, !node.arguments.isEmpty());
     }
