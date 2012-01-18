@@ -26,7 +26,7 @@
           set the osfamily, isWindows, and notWindows properties
          - - - - - - - - - - - - - - - - - -->
     <target name="setOS">
-        <condition property="osfamily" value="windows">
+        <condition property="osfamily" value="win32">
             <os family="windows"/>
         </condition>
         <condition property="build.eclipse.os.ws" value="win32.win32">
@@ -120,15 +120,16 @@
         <attribute name="arch" />
         <attribute name="os.ws" />
         <sequential>
-            <echo message="setting up Eclipse @{version} (@{arch}) in @{location}" />
+            <echo message="setting up Eclipse @{version} (@{arch} @{os.ws} in @{location})" />
             <mkdir dir="${build.downloads}" />
+            <echo message="${eclipse-sdk-@{os.ws}.ext}"/>
             <get src="${eclipse-sdk.@{version}.url}/${eclipse-sdk.@{version}.@{os.ws}.@{arch}.zip}"
-                 dest="${build.downloads}/eclipse-SDK-@{version}-@{os.ws}-@{arch}.tar.gz" 
+                 dest="${build.downloads}/eclipse-SDK-@{version}-@{os.ws}-@{arch}.${eclipse-sdk-@{os.ws}.ext}" 
                  verbose="true" 
                  usetimestamp="true"/>
             <mkdir dir="@{location}"/>
-            <untar src="${build.downloads}/eclipse-SDK-@{version}-@{os.ws}-@{arch}.tar.gz"
-                   dest="@{location}" compression="gzip" />
+            <expandArchive archive-name="${build.downloads}/eclipse-SDK-@{version}-@{os.ws}-@{arch}.${eclipse-sdk-@{os.ws}.ext}" 
+                           output-dir="@{location}"/>
         </sequential>
     </macrodef>
 
@@ -424,7 +425,63 @@
             <fileset dir="${build.stage}/workspace/.metadata" includes=".log" />
         </concat>
     </target>
+	
+    <!--
+    ***************************************************************************
+      Macro: expandArchive
+
+        Expand the given archive based on it's name
+
+      required attributes:
+       archive-name - the path to the arvhive
+       output-dir   - the directory to expand into
+
+      ant properties required
+       none
+
+      ant properties set
+       target.@{archive-name}.zip  - flag indicating if the archive is a zip
+
+    ***************************************************************************
+    -->
+    <macrodef name="expandArchive">
+        <attribute name="archive-name" />
+        <attribute name="output-dir" />
+        <sequential>
+            <condition property="target.@{archive-name}.zip" value="true">
+                <matches string="@{archive-name}" pattern="\.zip$" 
+                         casesensitive="false"    />
+            </condition>
+            <property name="target.@{archive-name}.zip" value="false" />
+            <echo message="target.@{archive-name}.zip = " />
+            <echo message="  ${target.@{archive-name}.zip}" />
+            <echoproperties prefix="target" />
+            <antcall>
+                <param name="is.zip" value="${target.@{archive-name}.zip}" />
+                <param name="archive.name" value="@{archive-name}" />
+                <param name="output.dir" value="@{output-dir}" />
+                <target name="-unarchive" />
+            </antcall>
+        </sequential>
+    </macrodef>
+
+    <target name="-unarchive" 
+            depends="-testUnarchive, -unzipFile, -untarFile" />
+
+    <target name="-testUnarchive">
+        <condition property="do.unzip">
+            <istrue value="${is.zip}"/>
+        </condition>
+    </target>
+
+    <target name="-unzipFile" if="do.unzip">
+        <unzip src="${archive.name}" dest="${output.dir}" />
+    </target>
     
+    <target name="-untarFile" unless="do.unzip">
+        <untar  src="${archive.name}" dest="${output.dir}" compression="gzip" />
+    </target>
+
     <!--
     ********************************************************************************
       Macro: copyDartLib

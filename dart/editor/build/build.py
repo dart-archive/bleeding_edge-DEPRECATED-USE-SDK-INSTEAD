@@ -38,8 +38,9 @@ class AntWrapper(object):
     self._antpath = antpath
     self._bzippath = bzippath
     self._propertyfile = propertyfile
-    print 'AntWrapper.__init__({0}, {1})'.format(self._antpath,
-                                                 self._bzippath)
+    print 'AntWrapper.__init__({0}, {1}, {2})'.format(self._propertyfile,
+                                                      self._antpath,
+                                                      self._bzippath)
 
   def RunAnt(self, build_dir, antfile, revision, name,
              buildroot, buildout, sourcepath, buildos,
@@ -79,13 +80,14 @@ class AntWrapper(object):
     print 'cwd = {0}'.format(os.getcwd())
     print 'ant path = {0}'.format(self._antpath)
     # run the ant file given
-    args = [os_shell,
-            os.path.join(self._antpath, ant_exec),
-            '-lib',
-            os.path.join(self._bzippath, 'bzip2.jar'),
-            '-noinput',
-            '-nouserlib'
-           ]
+    args = []
+    if not useshell:
+      args.append(os_shell)
+    args.append(os.path.join(self._antpath, ant_exec))
+    args.append('-lib')
+    args.append(os.path.join(self._bzippath, 'bzip2.jar'))
+    args.append('-noinput')
+    args.append('-nouserlib')
     if antfile:
       args.append('-f')
       args.append(antfile)
@@ -103,6 +105,8 @@ class AntWrapper(object):
       args.append('-Dbuild.out.property.file=' + self._propertyfile)
     if buildos:
       args.append('-Dbuild.os={0}'.format(buildos))
+    if useshell:
+      args.append('-autoproxy')
     if extra_args:
       args.extend(extra_args)
 
@@ -319,6 +323,9 @@ def main():
     #processing
     properties = _ReadPropertyFile(ant_property_file.name)
 
+    if not properties:
+      raise Exception('no data was found in file {0}'.
+                      format(ant_property_file.name))
     if status and properties['build.runtime']:
       _PrintErrorLog(properties['build.runtime'])
       #This build script is currently not using any post processing

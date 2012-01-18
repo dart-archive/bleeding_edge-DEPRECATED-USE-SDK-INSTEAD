@@ -17,7 +17,7 @@ class TestGsutil(unittest.TestCase):
   test_prefix = 'gs://'
   test_bucket = 'dart-editor-archive-testing'
   test_folder = 'testing'
-  build_count = 5
+  build_count = 3
 
   def setUp(self):
     self._iswindows = False
