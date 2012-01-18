@@ -42,13 +42,7 @@ class StatementType implements Type {
 
   /** Combine the information about two control-flow edges that are joined. */
   StatementType join(StatementType other) {
-    if (this === RETURNING && other === NOT_RETURNING) {
-      return MAYBE_RETURNING;
-    } else if (this === NOT_RETURNING && other === RETURNING) {
-      return MAYBE_RETURNING;
-    } else {
-      return other;
-    }
+    return (this === other) ? this : MAYBE_RETURNING;
   }
 
   String toString() => stringName;

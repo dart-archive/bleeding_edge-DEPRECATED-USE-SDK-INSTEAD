@@ -991,8 +991,9 @@ HashMapImplementation.prototype.forEach = function(f) {
   var length = this._keys.get$length();
   for (var i = (0);
    i < length; i++) {
-    if ((this._keys[i] != null) && (this._keys[i] != const$0001)) {
-      f.call$2(this._keys[i], this._values[i]);
+    var key = this._keys[i];
+    if ((key != null) && (key != const$0001)) {
+      f.call$2(key, this._values[i]);
     }
   }
 }
@@ -1125,8 +1126,9 @@ HashMapImplementation_E$E.prototype.forEach = function(f) {
   var length = this._keys.get$length();
   for (var i = (0);
    i < length; i++) {
-    if ((this._keys[i] != null) && (this._keys[i] != const$0001)) {
-      f.call$2(this._keys[i], this._values[i]);
+    var key = this._keys[i];
+    if ((key != null) && (key != const$0001)) {
+      f.call$2(key, this._values[i]);
     }
   }
 }
@@ -1258,8 +1260,9 @@ HashMapImplementation_K$V.prototype.forEach = function(f) {
   var length = this._keys.get$length();
   for (var i = (0);
    i < length; i++) {
-    if ((this._keys[i] != null) && (this._keys[i] != const$0001)) {
-      f.call$2(this._keys[i], this._values[i]);
+    var key = this._keys[i];
+    if ((key != null) && (key != const$0001)) {
+      f.call$2(key, this._values[i]);
     }
   }
 }
@@ -1387,8 +1390,9 @@ HashMapImplementation_dart_core_String$VariableValue.prototype.forEach = functio
   var length = this._keys.get$length();
   for (var i = (0);
    i < length; i++) {
-    if ((this._keys[i] != null) && (this._keys[i] != const$0001)) {
-      f.call$2(this._keys[i], this._values[i]);
+    var key = this._keys[i];
+    if ((key != null) && (key != const$0001)) {
+      f.call$2(key, this._values[i]);
     }
   }
 }

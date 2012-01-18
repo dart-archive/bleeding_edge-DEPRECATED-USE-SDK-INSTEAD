@@ -219,6 +219,12 @@ void testControlFlow() {
       }""";
   analyzeTopLevel(qux);
   analyzeTopLevel("int hest() {}", MessageKind.MISSING_RETURN);
+  final fisk = """int fisk() {
+                    if (true) {
+                      if (true) { return 1; } else {}
+                    } else { return 1; }
+                  }""";
+  analyzeTopLevel(fisk, MessageKind.MAYBE_MISSING_RETURN);
 }
 
 testNewExpression() {
