@@ -40,9 +40,7 @@ expectThrows(action()) {
   Expect.isTrue(threw);
 }
 
-main() {
-  setup();
-
+checkedModeTest() {
   var things = [makeA(), makeB()];
   var a = things[0];
   var b = things[1];
@@ -60,4 +58,29 @@ main() {
   Expect.equals(0, b.cmp(b));
   expectThrows(() => b.cmp(a));
   expectThrows(() => b.cmp(5));
+}
+
+uncheckedModeTest() {
+  // TODO. Verify unchecked behaviour.
+}
+
+bool isCheckedMode() {
+  var stuff = [1, 'string'];
+  var a = stuff[0];
+  // Checked-mode detection.
+  try {
+    String s = a;
+    return false;
+  } catch (var e) { }
+  return true;
+}
+
+main() {
+  setup();
+
+  if (isCheckedMode()) {
+    checkedModeTest();
+  } else {
+    uncheckedModeTest();
+  }
 }
