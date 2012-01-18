@@ -10,6 +10,7 @@
 #import('../scanner/scanner_implementation.dart');
 #import('../scanner/scannerlib.dart');
 #import('../tree/tree.dart');
+#import('../util/characters.dart');
 
 #source('../../source.dart');
 #source('../scanner/byte_array_scanner.dart');

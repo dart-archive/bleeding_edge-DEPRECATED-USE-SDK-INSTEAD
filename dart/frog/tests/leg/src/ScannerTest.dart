@@ -5,6 +5,7 @@
 #import('../../../../utils/utf8/utf8.dart');
 #import('../../../leg/scanner/scannerlib.dart');
 #import('../../../leg/scanner/scanner_implementation.dart');
+#import('../../../leg/util/characters.dart');
 #source('../../../leg/scanner/byte_strings.dart');
 #source('../../../leg/scanner/byte_array_scanner.dart');
 

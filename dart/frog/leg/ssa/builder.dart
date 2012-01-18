@@ -1150,9 +1150,6 @@ class SsaBuilder implements Visitor {
   }
 
   void visitLiteralString(LiteralString node) {
-    if (node.value.stringValue[0] == '@') {
-      compiler.unimplemented("SsaBuilder: raw strings", node: node);
-    }
     push(new HLiteral(new QuotedString.explicit(node.value), HType.STRING));
   }
 

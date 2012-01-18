@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library("characters");
+
 final int $EOF = 0;
 final int $STX = 2;
 final int $TAB = 9;
@@ -103,3 +105,5 @@ final int $BAR = 124;
 final int $CLOSE_CURLY_BRACKET = 125;
 final int $TILDE = 126;
 final int $DEL = 127;
+final int $LS = 0x2028;
+final int $PS = 0x2029;

@@ -629,6 +629,12 @@ class AbstractScanner<T> implements Scanner {
     }
   }
 
+  static bool isHexDigit(int character) {
+    if ($0 <= character && character <= $9) return true;
+    character |= 0x20;
+    return ($a <= character && character <= $f);
+  }
+
   int tokenizeSingleLineString(int next, int q1, int start) {
     while (next !== $EOF) {
       if (next === q1) {

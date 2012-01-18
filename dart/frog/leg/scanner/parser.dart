@@ -232,6 +232,7 @@ class Parser {
     return token.next;
   }
 
+
   Token parseString(Token token) {
     if (token.kind === STRING_TOKEN) {
       listener.handleLiteralString(token);

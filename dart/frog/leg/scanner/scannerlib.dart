@@ -9,6 +9,7 @@
 #import('../util/util.dart');
 #import('../tree/tree.dart');
 #import('../elements/elements.dart');
+#import('../util/characters.dart');
 
 #source('class_element_parser.dart');
 #source('keyword.dart');

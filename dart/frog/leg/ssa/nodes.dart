@@ -1585,15 +1585,15 @@ class HLoopBranch extends HConditionalBranch {
     int flags = 0;
     int start = 0;
     int quoteChar = source.next();
-    if (quoteChar == '@'.charCodeAt(0)) {
+    if (quoteChar == $AT) {
       flags |= RAW;
       start = 1;
       quoteChar = source.next();
     }
-    if (quoteChar == '\''.charCodeAt(0)) {
+    if (quoteChar == $SQ) {
       flags |= SINGLE_QUOTED;
     } else {
-      assert(quoteChar == '"'.charCodeAt(0));
+      assert(quoteChar == $DQ);
     }
     // String has one quote. Check it if has three.
     // If it only have two, the string must be an empty string literal,
@@ -1634,6 +1634,7 @@ class HLoopBranch extends HConditionalBranch {
   bool get isMultiLine() => (flags & MULTI_LINE) != 0;
   bool get isRaw() => (flags & RAW) != 0;
   String get quoteChar() => ((flags & SINGLE_QUOTED) != 0) ? "'" : '"';
+  int get quoteCharCode() => ((flags & SINGLE_QUOTED) != 0) ? $SQ : $DQ;
 
   int get leftQuoteLength() =>
      hasLeftQuote ? (isRaw ? 1 : 0) + (isMultiLine ? 3 : 1) : 0;
@@ -1649,6 +1650,160 @@ class HLoopBranch extends HConditionalBranch {
   }
 
   bool isEmpty() => unquotedSource().isEmpty();
+
+  static int hexValue(int hexDigit) {
+    // hexDigit is one of '0'..'9', 'A'..'F' and 'a'..'f'.
+    if (hexDigit <= $9) {
+      return hexDigit - $0;
+    }
+    // Make letters lowercase.
+    hexDigit |= $a ^ $A;
+    hexDigit -= $a - 10;
+    assert(10 <= hexDigit && hexDigit <= 15);
+    return hexDigit;
+  }
+
+  static bool isHexDigit(int characterCode) {
+    if ($0 <= characterCode && characterCode <= $9) return true;
+    characterCode |= $a ^ $A;
+    return ($a <= characterCode && characterCode <= $f);
+  }
+
+  static int readUnicodeEscape(Iterator<int> iter,
+                                void cancel(String s)) {
+    if (!iter.hasNext()) cancel("Incomplete unicode escape.");
+    int code = iter.next();
+    if (code == $OPEN_CURLY_BRACKET) {
+      // In Dart, '\u{'x{0..7}'}' is a valid escape, but not in
+      // JS. Convert to a \uxxxx escape.
+      int value = 0;
+      int length = 0;
+      if (!iter.hasNext()) cancel("Incomplete unicode escape.");
+      int hexDigit = iter.next();
+      do {
+        if (!isHexDigit(hexDigit)) {
+          cancel("Invalid character in unicode escape");
+        }
+        value = value * 16 + hexValue(hexDigit);
+        length++;
+        if (length > 7) {
+          cancel("Invalid unicode escape length.");
+        }
+        if (!iter.hasNext()) cancel("Incomplete unicode escape.");
+        hexDigit = iter.next();
+      } while (hexDigit !== $CLOSE_CURLY_BRACKET);  // until '}'.
+      return value;
+    }
+    // Simple four-digit unicode escape.
+    int value = 0;
+    for (int i = 0; i < 4; i++) {
+      if (i > 0) {
+        if (!iter.hasNext()) cancel("Incomplete unicode escape.");
+        code = iter.next();
+      }
+      if (!isHexDigit(code)) cancel("Invalid character in unicode escape");
+      value = value * 16 + hexValue(code);
+    }
+    return value;
+  }
+
+  /**
+   * Write the contents of the quoted string to a [StringBuffer] in
+   * a form that is valid as JavaScript string literal content.
+   * The string is assumed quoted by [quote] characters.
+   * This method doesn't try to make the shortest string, but rather
+   * to be as close to the original string as possible.
+   */
+  void writeEscaped(StringBuffer buffer, int quote, void cancel(String s)) {
+    bool raw = this.isRaw;
+    Iterator<int> iter =
+        wrappedString.copyWithoutQuotes(leftQuoteLength,
+                                        rightQuoteLength).iterator();
+    while (iter.hasNext()) {
+      int code = iter.next();
+      if (code == quote) {
+        // We need to add a backslash before quotes, both in normal
+        // and in raw strings.
+        buffer.add(@'\');
+        buffer.add(code == $SQ ? "'" : '"');
+      } else if (code == $LF) {
+        // Newlines in strings only occour in multiline strings.
+        // They need to be written using escapes in JS..
+        assert(isMultiLine);
+        buffer.add(@'\n');
+      } else if (code == $CR) {
+        assert(isMultiLine);
+        buffer.add(@'\r');
+      } else if (code == $LS || code == $PS) {
+        // These Unicode line terminators are invalid in JS strings.
+        buffer.add(code == $LS ? @'\u2028' : @'\u2029');
+      } else if (code != $BACKSLASH) {
+        buffer.add(new String.fromCharCodes([code]));
+      } else if (raw) {
+        buffer.add(@'\\');
+      } else {
+        code = iter.next();
+        // TODO(lrn): Reading \x and \u escapes also validates the
+        // escape sequences. This should be done at an earlier step
+        // to catch errors even in dead code.
+        switch (code) {
+          case $u:
+            int value = readUnicodeEscape(iter, cancel);
+            if (value >= 0xD800 && value <= 0xDFFF || value > 0x10ffff) {
+              cancel('Invalid unicode scalar value.');
+            }
+            if (value > 0xffff) {
+              cancel('Unhandled Unicode value: $value - outside the BMP.');
+            }
+            buffer.add(@'\u');
+            for (int j = 12; j >= 0; j -= 4) {
+              int digit = (value >> j) & 0xf;
+              buffer.add("0123456789abcdef"[digit]);
+            }
+            break;
+          case $x:
+            buffer.add(@'\x');
+            List<int> codes = <int>[];
+            for (int i = 0; i < 2; i++) {
+              if (!iter.hasNext()) cancel("Incomplete hex escape");
+              code = iter.next();
+              if (!isHexDigit(code)) {
+                cancel("Invalid hex digit: " +
+                       "${new String.fromCharCodes([code])}");
+              }
+              codes.add(code);
+            }
+            buffer.add(new String.fromCharCodes(codes));
+            break;
+          // Character escapes that identical in meaning in JS.
+          case $b: buffer.add(@'\b'); break;
+          case $f: buffer.add(@'\f'); break;
+          case $n: buffer.add(@'\n'); break;
+          case $r: buffer.add(@'\r'); break;
+          case $t: buffer.add(@'\t'); break;
+          case $v: buffer.add(@'\v'); break;
+          // Identity escapes that must be escaped in JS strings.
+          case $BACKSLASH: buffer.add(@'\\'); break;
+          case $LF: buffer.add(@'\n'); break;
+          case $CR: buffer.add(@'\r'); break;
+          case $LS: buffer.add(@'\u2028'); break;
+          case $PS: buffer.add(@'\u2029'); break;
+          // Quotes may or may not need the escape.
+          case $SQ:
+          case $DQ:
+            // Only escape quotes if they match the generated string quotes.
+            if (code == quote) buffer.add(@'\');
+            buffer.add(code === $SQ ? "'" : '"');
+            break;
+          default:
+            // All other escaped characters are identity escapes,
+            // and don't need a backslash in JS.
+            buffer.add(new String.fromCharCodes([code]));
+            break;
+        }
+      }
+    }
+  }
 
   /**
     * Does a conservative test for equality between two quoted strings.

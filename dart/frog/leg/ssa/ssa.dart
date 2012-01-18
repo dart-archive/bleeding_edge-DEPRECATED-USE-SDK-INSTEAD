@@ -9,6 +9,7 @@
 #import('../scanner/scannerlib.dart');
 #import('../tree/tree.dart');
 #import('../util/util.dart');
+#import('../util/characters.dart');
 
 #source('bailout.dart');
 #source('builder.dart');

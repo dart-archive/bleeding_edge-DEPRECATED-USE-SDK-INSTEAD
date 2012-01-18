@@ -400,3 +400,7 @@ final PrecedenceInfo STRING_INTERPOLATION_INFO =
 
 final PrecedenceInfo HEXADECIMAL_INFO =
   const PrecedenceInfo(const SourceString('hexadecimal'), 0, HEXADECIMAL_TOKEN);
+
+// For reporting lexical errors.
+final PrecedenceInfo ERROR_INFO =
+  const PrecedenceInfo(const SourceString('?'), 0, UNKNOWN_TOKEN);

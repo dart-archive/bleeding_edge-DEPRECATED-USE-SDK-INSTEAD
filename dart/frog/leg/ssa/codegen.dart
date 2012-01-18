@@ -464,11 +464,6 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(')');
   }
 
-  static String makeStringLiteral(SourceString literal) {
-    // TODO(lrn): Escape string content.
-    return literal.toString();
-  }
-
   visitLiteral(HLiteral node) {
     if (node.isLiteralNull()) {
       buffer.add("(void 0)");
@@ -476,7 +471,13 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add('(${node.value})');
     } else if (node.isLiteralString()) {
       QuotedString string = node.value;
-      string.printOn(buffer);
+      String quote = string.quoteChar;
+      buffer.add(quote);
+      string.writeEscaped(buffer, string.quoteCharCode,
+                          (String reason) {
+                               compiler.cancel(reason, instruction: node);
+                          });
+      buffer.add(quote);
     } else {
       buffer.add(node.value);
     }

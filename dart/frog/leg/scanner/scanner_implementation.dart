@@ -5,5 +5,5 @@
 #library('scanner_implementation');
 #import('scannerlib.dart');
 #import('../util/util.dart');
+#import('../util/characters.dart');
 #source('array_based_scanner.dart');
-#source('characters.dart');
