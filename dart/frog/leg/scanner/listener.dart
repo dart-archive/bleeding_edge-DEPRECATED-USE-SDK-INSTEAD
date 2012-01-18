@@ -1230,9 +1230,9 @@ class PartialFunctionElement extends FunctionElement {
     : super(name, kind, modifiers, enclosing);
 
   FunctionExpression parseNode(Canceler canceler, Logger logger) {
-    if (node != null) return node;
-    node = parse(canceler, logger, (p) => p.parseFunction(beginToken));
-    return node;
+    if (cachedNode != null) return cachedNode;
+    cachedNode = parse(canceler, logger, (p) => p.parseFunction(beginToken));
+    return cachedNode;
   }
 }
 
@@ -1247,10 +1247,10 @@ class PartialFieldListElement extends VariableListElement {
     : super(ElementKind.VARIABLE_LIST, modifiers, enclosing);
 
   VariableDefinitions parseNode(Canceler canceler, Logger logger) {
-    if (node != null) return node;
-    node = parse(canceler, logger,
-        (p) => p.parseVariablesDeclaration(beginToken));
-    return node;
+    if (cachedNode != null) return cachedNode;
+    cachedNode = parse(canceler, logger,
+                       (p) => p.parseVariablesDeclaration(beginToken));
+    return cachedNode;
   }
 }
 

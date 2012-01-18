@@ -94,18 +94,19 @@ class CompilationUnitElement extends Element {
 
 class VariableElement extends Element {
   final VariableListElement variables;
-  Expression node; // The send or the identifier in the variables list.
+  Expression cachedNode; // The send or the identifier in the variables list.
 
   Modifiers get modifiers() => variables.modifiers;
 
   VariableElement(SourceString name,
                   VariableListElement this.variables,
                   ElementKind kind,
-                  Element enclosing)
-    : super(name, kind, enclosing);
+                  Element enclosing,
+                  [Node node])
+    : super(name, kind, enclosing), cachedNode = node;
 
   Node parseNode(Canceler canceler, Logger logger) {
-    if (node !== null) return node;
+    if (cachedNode !== null) return cachedNode;
     VariableDefinitions definitions = variables.parseNode(canceler, logger);
     for (Link<Node> link = definitions.definitions.nodes;
          !link.isEmpty(); link = link.tail) {
@@ -115,8 +116,8 @@ class VariableElement extends Element {
         identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
       }
       if (name === identifier.source) {
-        node = initializedIdentifier;
-        return node;
+        cachedNode = initializedIdentifier;
+        return cachedNode;
       }
     }
     canceler.cancel('internal error: could not find $name', node: variables);
@@ -138,7 +139,7 @@ class VariableElement extends Element {
 // references its [VariableListElement]. It forwards its
 // [computeType] and [parseNode] methods to this element.
 class VariableListElement extends Element {
-  VariableDefinitions node;
+  VariableDefinitions cachedNode;
   Type type;
   final Modifiers modifiers;
 
@@ -151,11 +152,11 @@ class VariableListElement extends Element {
                            ElementKind kind,
                            Element enclosing)
     : super(null, kind, enclosing),
-      this.node = node,
+      this.cachedNode = node,
       this.modifiers = node.modifiers;
 
   VariableDefinitions parseNode(Canceler canceler, Logger logger) {
-    return node;
+    return cachedNode;
   }
 
   Type computeType(Compiler compiler) {
@@ -205,21 +206,22 @@ Type getType(TypeAnnotation typeAnnotation, compiler, types) {
 
 class FunctionElement extends Element {
   Link<Element> parameters;
-  FunctionExpression node;
+  FunctionExpression cachedNode;
   Type type;
   final Modifiers modifiers;
 
   FunctionElement(SourceString name,
                   ElementKind kind,
                   Modifiers this.modifiers,
-                  Element enclosing)
-    : super(name, kind, enclosing);
+                  Element enclosing,
+                  [Node node])
+    : super(name, kind, enclosing), cachedNode = node;
   FunctionElement.node(FunctionExpression node,
                        ElementKind kind,
                        Modifiers this.modifiers,
                        Element enclosing)
     : super(node.name.asIdentifier().source, kind, enclosing),
-      this.node = node;
+      this.cachedNode = node;
 
   bool isInstanceMember() {
     return isMember()
@@ -245,7 +247,7 @@ class FunctionElement extends Element {
     return type;
   }
 
-  Node parseNode(Canceler canceler, Logger logger) => node;
+  Node parseNode(Canceler canceler, Logger logger) => cachedNode;
 }
 
 class ConstructorBodyElement extends FunctionElement {
@@ -257,15 +259,19 @@ class ConstructorBodyElement extends FunctionElement {
               ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
               null,
               constructor.enclosingElement) {
-    assert(constructor.node !== null);
     this.parameters = constructor.parameters;
-    this.node = constructor.node;
   }
 
   bool isInstanceMember() => true;
 
   FunctionType computeType(Compiler compiler) { unreachable(); }
-  Node parseNode(Canceler canceler, Logger logger) => node;
+
+  Node parseNode(Canceler canceler, Logger logger) {
+    if (cachedNode !== null) return cachedNode;
+    cachedNode = constructor.parseNode(canceler, logger);
+    assert(cachedNode !== null);
+    return cachedNode;
+  }
 }
 
 class SynthesizedConstructorElement extends FunctionElement {
@@ -283,13 +289,13 @@ class SynthesizedConstructorElement extends FunctionElement {
   }
 
   Node parseNode(Canceler canceler, Logger logger) {
-    if (node != null) return node;
-    node = new FunctionExpression(
+    if (cachedNode != null) return cachedNode;
+    cachedNode = new FunctionExpression(
         new Identifier.synthetic(''),
         new NodeList.empty(),
         new Block(new NodeList.empty()),
         null, null, null);
-    return node;
+    return cachedNode;
   }
 }
 
@@ -299,7 +305,6 @@ class ClassElement extends Element {
   Link<Element> members = const EmptyLink<Element>();
   Link<Type> interfaces = const EmptyLink<Type>();
   bool isResolved = false;
-  ClassNode node;
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.
   Link<Element> backendMembers = const EmptyLink<Element>();
@@ -364,8 +369,6 @@ class ClassElement extends Element {
     }
     return synthesizedConstructor;
   }
-
-  parseNode(Canceler canceler, Logger logger) => node;
 
   /**
    * Returns the super class, if any.

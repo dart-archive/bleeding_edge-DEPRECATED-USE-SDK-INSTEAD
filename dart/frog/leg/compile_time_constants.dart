@@ -52,7 +52,7 @@ class CompileTimeConstantHandler extends CompilerTask {
         // No initial value.
         value = null;
       } else {
-        Node right = node.arguments.head;
+        Node right = assignment.arguments.head;
         CompileTimeConstantEvaluator evaluator =
             new CompileTimeConstantEvaluator(this, definitions, compiler);
         value = evaluator.evaluate(right);

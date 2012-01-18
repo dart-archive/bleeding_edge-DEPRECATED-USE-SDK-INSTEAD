@@ -11,6 +11,7 @@ class ClassElementParser extends PartialParser {
 class PartialClassElement extends ClassElement {
   final Token beginToken;
   final Token endToken;
+  Node cachedNode;
 
   PartialClassElement(SourceString name,
                       Token this.beginToken,
@@ -19,15 +20,15 @@ class PartialClassElement extends ClassElement {
     : super(name, enclosing);
 
   ClassNode parseNode(Canceler canceler, Logger logger) {
-    if (node != null) return node;
+    if (cachedNode != null) return cachedNode;
     MemberListener listener = new MemberListener(canceler, logger, this);
     Parser parser = new ClassElementParser(listener);
     Token token = parser.parseClass(beginToken);
     assert(token === endToken.next);
-    node = listener.popNode();
+    cachedNode = listener.popNode();
     assert(listener.nodes.isEmpty());
     assert(listener.topLevelElements.isEmpty());
-    return node;
+    return cachedNode;
   }
 }
 

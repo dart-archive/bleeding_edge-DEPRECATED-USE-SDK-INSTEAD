@@ -118,7 +118,7 @@ class ResolverTask extends CompilerTask {
 
   void resolveType(ClassElement element) {
     measure(() {
-      ClassNode tree = element.node;
+      ClassNode tree = element.parseNode(compiler, compiler);
       ClassResolverVisitor visitor = new ClassResolverVisitor(compiler);
       visitor.visit(tree);
     });
@@ -126,7 +126,7 @@ class ResolverTask extends CompilerTask {
 
   void resolveSignature(FunctionElement element) {
     measure(() {
-      FunctionExpression node = element.node;
+      FunctionExpression node = element.parseNode(compiler, compiler);
       SignatureResolverVisitor visitor =
           new SignatureResolverVisitor(compiler, element);
       visitor.visitFunctionExpression(node);
@@ -717,8 +717,7 @@ class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
       VariableElement element = new VariableElement(
-          name, variables, kind, resolver.context.element);
-      element.node = link.head;
+          name, variables, kind, resolver.context.element, node: link.head);
       resolver.defineElement(link.head, element);
     }
   }
