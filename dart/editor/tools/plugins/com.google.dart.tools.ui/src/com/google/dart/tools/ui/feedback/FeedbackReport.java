@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.util.PrintStringWriter;
 
 /**
@@ -59,6 +60,22 @@ public class FeedbackReport {
     new FeedbackWriter(this).writeDetails(writer);
     writer.flush();
     return writer.toString();
+  }
+
+  /**
+   * Get any interesting preferences and options that have been set to non-default values
+   * 
+   * @return text describing preferences and options with non-default values
+   */
+  public String getOptionsText() {
+    StringBuilder msg = new StringBuilder();
+    if (DartCoreDebug.BUILD_FROG) {
+      msg.append("build/frog = true\n");
+    }
+    if (DartCoreDebug.DEPLOY_FROG) {
+      msg.append("deploy/frog = true\n");
+    }
+    return msg.toString();
   }
 
   /**
