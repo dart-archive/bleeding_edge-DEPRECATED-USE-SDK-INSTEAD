@@ -1505,7 +1505,7 @@ class HTTPClientImplementation implements HTTPClient{
     _openHandler = callback;
   }
 
-  void set errorHandler(void callback(HTTPStatus status)) {
+  void set errorHandler(void callback(int status)) {
     _errorHandler = callback;
   }
 

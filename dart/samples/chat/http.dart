@@ -229,7 +229,7 @@ interface HTTPClient default HTTPClientImplementation {
   /**
    * Set the error handler that is called on failure to open a connection.
    */
-  void set errorHandler(void handler(HTTPStatus status));
+  void set errorHandler(void handler(int status));
 }
 
 
