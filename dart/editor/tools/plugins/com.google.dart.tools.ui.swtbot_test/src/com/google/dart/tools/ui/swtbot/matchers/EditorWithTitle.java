@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.swtbot;
+package com.google.dart.tools.ui.swtbot.matchers;
 
 import org.eclipse.ui.IEditorReference;
 import org.hamcrest.BaseMatcher;
@@ -23,7 +23,7 @@ import org.hamcrest.Description;
 public class EditorWithTitle extends BaseMatcher<IEditorReference> {
   private final String title;
 
-  EditorWithTitle(String title) {
+  public EditorWithTitle(String title) {
     this.title = title;
   }
 

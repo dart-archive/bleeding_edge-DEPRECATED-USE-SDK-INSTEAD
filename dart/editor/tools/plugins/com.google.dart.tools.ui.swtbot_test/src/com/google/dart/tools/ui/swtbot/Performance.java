@@ -13,14 +13,18 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
+import com.google.dart.tools.core.DartCore;
+
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.TreeSet;
 
 public class Performance {
 
@@ -30,6 +34,10 @@ public class Performance {
   public static class Metric {
     public final String name;
     public final long threshold;
+    private int resultCount = 0;
+    private long resultAverage = 0;
+    private long resultHigh = 0;
+    private long resultLow = 0;
 
     Metric(String name, long threshold) {
       this.name = name;
@@ -46,6 +54,16 @@ public class Performance {
       result.print();
       synchronized (allResults) {
         allResults.add(result);
+        resultCount++;
+        if (resultCount == 1) {
+          resultAverage = result.elapsed;
+          resultHigh = result.elapsed;
+          resultLow = result.elapsed;
+        } else {
+          resultAverage = (resultAverage * (resultCount - 1) + result.elapsed) / resultCount;
+          resultHigh = Math.max(resultHigh, result.elapsed);
+          resultLow = Math.min(resultLow, result.elapsed);
+        }
       }
     }
 
@@ -114,9 +132,8 @@ public class Performance {
               //$FALL-THROUGH$
             }
             if (System.currentTimeMillis() > limit) {
-              String[] more = new String[comments.length + 1];
-              System.arraycopy(comments, 0, more, 0, comments.length);
-              more[comments.length] = exception != null ? exception.getMessage() : "<<< timed out";
+              String anotherComment = exception != null ? exception.getMessage() : "<<< timed out";
+              String[] more = append(comments, anotherComment);
               log(start, more);
               break;
             }
@@ -126,6 +143,23 @@ public class Performance {
           }
         };
       }.start();
+    }
+
+    public void printAverage() {
+      StringBuilder line = new StringBuilder();
+      appendLong(line, resultCount, 2);
+      line.append(' ');
+      appendText(line, name, 20);
+      appendLong(line, threshold);
+      line.append(" ms ");
+      line.append(threshold < resultAverage ? '<' : ' ');
+      appendLong(line, resultAverage);
+      line.append(" ms");
+      appendLong(line, resultHigh);
+      line.append(" ms");
+      appendLong(line, resultLow);
+      line.append(" ms");
+      System.out.println(line.toString());
     }
   }
 
@@ -148,7 +182,7 @@ public class Performance {
      */
     void print() {
       StringBuilder line = new StringBuilder();
-      appendText(line, 20, metric.name);
+      appendText(line, metric.name, 20);
       appendLong(line, metric.threshold);
       line.append(" ms ");
       line.append(metric.threshold < elapsed ? '<' : ' ');
@@ -163,8 +197,10 @@ public class Performance {
   }
 
   public static final Metric NEW_APP = new Metric("New App", 300);
+  public static final Metric OPEN_LIB = new Metric("Open Library", 300);
   public static final Metric LAUNCH_APP = new Metric("Launch App", 3000);
-  public static final Metric COMPILE = new Metric("Compile", 3000);
+  public static final Metric COMPILE_FULL = new Metric("Compile (Full)", 3000);
+  public static final Metric COMPILE_INCREMENTAL = new Metric("Compile (Inc)", 500);
   public static final Metric CODE_COMPLETION = new Metric("Code Completion", 200);
   public static final Metric COMPILER_WARMUP = new Metric("Compiler Warmup", 5000);
 
@@ -172,24 +208,45 @@ public class Performance {
   private static int pending = 0;
 
   /**
+   * Append the specified {@link String} to an array of {@link String}
+   */
+  public static String[] append(String[] comments, String anotherComment) {
+    String[] result = new String[comments.length + 1];
+    System.arraycopy(comments, 0, result, 0, comments.length);
+    result[comments.length] = anotherComment;
+    return result;
+  }
+
+  /**
+   * Prepend the specified {@link String} to an array of {@link String}
+   */
+  public static String[] prepend(String newFirstComment, String[] comments) {
+    String[] result = new String[comments.length + 1];
+    System.arraycopy(comments, 0, result, 1, comments.length);
+    result[0] = newFirstComment;
+    return result;
+  }
+
+  /**
    * Echo the allResults to standard out.
    * 
    * @see #waitForResults(SWTWorkbenchBot)
    */
   public static void printResults() {
-    System.out.println("=============================================================");
-    Result[] sortedResults;
-    synchronized (allResults) {
-      sortedResults = allResults.toArray(new Result[allResults.size()]);
-    }
-    Arrays.sort(sortedResults, new Comparator<Result>() {
-      @Override
-      public int compare(Result r1, Result r2) {
-        return r1.metric.name.compareTo(r2.metric.name);
-      }
-    });
-    for (Result result : sortedResults) {
+    System.out.println("==========================================================================");
+    System.out.println("Editor Version: " + getEditorVersion());
+    System.out.println("OS: " + getOsInfo());
+    System.out.println();
+    System.out.println("Metric               Expected    Actual    Comments");
+    System.out.println("==================== ========= = ========= ===============================");
+    for (Result result : allResults) {
       result.print();
+    }
+    System.out.println();
+    System.out.println("#  Metric              Expected     Average    High       Low");
+    System.out.println("== =================== ========== = ========== ========== ==========");
+    for (Metric metric : getMetricsWithResults()) {
+      metric.printAverage();
     }
   }
 
@@ -227,8 +284,12 @@ public class Performance {
   }
 
   private static void appendLong(StringBuilder line, long num) {
+    appendLong(line, num, 7);
+  }
+
+  private static void appendLong(StringBuilder line, long num, int width) {
     String text = Long.toString(num);
-    appendSpaces(line, 7 - text.length());
+    appendSpaces(line, width - text.length());
     line.append(text);
   }
 
@@ -238,8 +299,35 @@ public class Performance {
     }
   }
 
-  private static void appendText(StringBuilder line, int count, String text) {
+  private static void appendText(StringBuilder line, String text, int count) {
     line.append(text);
     appendSpaces(line, count - text.length());
+  }
+
+  private static String getEditorVersion() {
+    String version = DartCore.getBuildId();
+    if (version.startsWith("@")) {
+      version = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+    }
+    return version;
+  }
+
+  private static Collection<Metric> getMetricsWithResults() {
+    TreeSet<Metric> metrics = new TreeSet<Metric>(new Comparator<Metric>() {
+
+      @Override
+      public int compare(Metric m1, Metric m2) {
+        return m1.name.compareTo(m2.name);
+      }
+    });
+    for (Result result : allResults) {
+      metrics.add(result.metric);
+    }
+    return metrics;
+  }
+
+  private static String getOsInfo() {
+    return System.getProperty("os.name") + " - " + System.getProperty("os.arch") + " ("
+        + System.getProperty("os.version") + ")";
   }
 }

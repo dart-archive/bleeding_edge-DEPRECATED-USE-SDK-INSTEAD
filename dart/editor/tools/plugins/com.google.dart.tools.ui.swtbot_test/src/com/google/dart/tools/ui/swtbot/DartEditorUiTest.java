@@ -13,107 +13,56 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
-import com.google.dart.tools.core.test.util.FileUtilities;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerWarmup;
-import com.google.dart.tools.ui.swtbot.Performance.Metric;
+import com.google.dart.tools.ui.swtbot.conditions.CompilerWarmedUp;
+import com.google.dart.tools.ui.swtbot.conditions.ProblemsViewCount;
+import com.google.dart.tools.ui.swtbot.dialog.LaunchBrowserHelper;
+import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
+import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
+import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
 
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Table;
+import static com.google.dart.tools.ui.swtbot.DartLib.SLIDER_SAMPLE;
+import static com.google.dart.tools.ui.swtbot.DartLib.TIME_SERVER_SAMPLE;
+
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
-import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
-import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.eclipse.swtbot.swt.finder.keyboard.Keystrokes;
-import org.eclipse.swtbot.swt.finder.waits.Conditions;
-import org.eclipse.swtbot.swt.finder.waits.ICondition;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
-import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
 import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.eclipse.swtbot.eclipse.finder.waits.Conditions.waitForEditor;
-import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 import static org.eclipse.swtbot.swt.finder.waits.Conditions.shellCloses;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.io.File;
 
 @RunWith(SWTBotJunit4ClassRunner.class)
 public class DartEditorUiTest {
+  private static SWTWorkbenchBot bot;
+  private static String workbenchTitle;
 
-  public class ProblemsViewCount implements ICondition {
-    private final int expectedProblemsCount;
-    private SWTBotTable table;
-
-    public ProblemsViewCount(int expectedProblemsCount) {
-      this.expectedProblemsCount = expectedProblemsCount;
-    }
-
-    @Override
-    public String getFailureMessage() {
-      return "Gave up waiting for problems: expected=" + expectedProblemsCount + " actual="
-          + table.rowCount();
-    }
-
-    @Override
-    public void init(SWTBot bot) {
-      SWTBotView problemsView = ((SWTWorkbenchBot) bot).viewByTitle("Problems");
-      Composite composite = (Composite) problemsView.getWidget();
-      Table problemsTable = bot.widget(widgetOfType(Table.class), composite);
-      table = new SWTBotTable(problemsTable);
-    }
-
-    @Override
-    public boolean test() throws Exception {
-      return table.rowCount() == expectedProblemsCount;
-    }
+  @AfterClass
+  public static void printResults() {
+    Performance.waitForResults(bot);
+    Performance.printResults();
   }
 
-  private class App {
-    String name;
-    File dir;
-    File dartFile;
-    File jsFile;
-    SWTBotEclipseEditor editor;
+  @AfterClass
+  public static void saveAllEditors() {
+    bot.saveAllEditors();
   }
 
-  private SWTWorkbenchBot bot;
-  private SWTBotShell workbenchShell;
-  private String workbenchTitle;
-
-  @Before
-  public void setUp() {
+  @BeforeClass
+  public static void setUp() {
     bot = new SWTWorkbenchBot();
-    workbenchShell = bot.activeShell();
-    workbenchTitle = workbenchShell.getText();
-    Performance.COMPILER_WARMUP.log(bot, new ICondition() {
-
-      @Override
-      public String getFailureMessage() {
-        return "Gave up waiting for compiler warmup";
-      }
-
-      @Override
-      public void init(SWTBot bot) {
-      }
-
-      @Override
-      public boolean test() throws Exception {
-        return DartCompilerWarmup.isComplete();
-      }
-    });
+    workbenchTitle = bot.activeShell().getText();
+    CompilerWarmedUp.waitUntilWarmedUp(bot);
   }
 
   @After
-  public void tearDown() {
+  public void closeAllDialogs() {
     while (true) {
       SWTBotShell shell;
       try {
@@ -129,104 +78,58 @@ public class DartEditorUiTest {
       shell.pressShortcut(Keystrokes.ESC);
       bot.waitUntil(shellCloses(shell), 20000);
     }
-    bot.saveAllEditors();
   }
 
   @Test
   public void testDartEditorUI() throws Exception {
 
-    App app = createNewApp("NewAppTest");
-    launchInBrowser(app);
+    SLIDER_SAMPLE.deleteJsFile();
+    new OpenLibraryHelper(bot).open(SLIDER_SAMPLE);
+    new LaunchBrowserHelper(bot).launch(SLIDER_SAMPLE);
+
+    DartLib app = new NewApplicationHelper(bot).create("NewAppTest");
+    new LaunchBrowserHelper(bot).launch(app);
     modifySourceInEditor(app);
-    launchInBrowser(app);
+    new LaunchBrowserHelper(bot).launch(app);
 
-    createNewApp("NewAppTest2");
+    new NewApplicationHelper(bot).create("NewAppTest2");
 
-    Performance.waitForResults(bot);
-    Performance.printResults();
-  }
-
-  /**
-   * Create a new Dart application and wait for the editor to appear
-   * 
-   * @param appName the name of the application to be created
-   * @return a data structure containing information related to the created application
-   */
-  private App createNewApp(String appName) {
-    App app = new App();
-    app.name = appName;
-
-    // Open wizard
-    bot.menu("File").menu("New Application...").click();
-    SWTBotShell shell = bot.shell("New Dart Application");
-    shell.activate();
-
-    // Assert content
-    SWTBotText appNameField = bot.text();
-    SWTBotText appDirField = bot.textWithLabel("Directory: ");
-    assertEquals("", appNameField.getText());
-    assertTrue(appDirField.getText().length() > 0);
-
-    // Ensure that the directory to be created does not exist
-    app.dir = new File(appDirField.getText(), appName);
-    app.dartFile = new File(app.dir, appName + ".dart");
-    if (app.dartFile.exists()) {
-      System.out.println("Deleting directory " + app.dir);
-      FileUtilities.delete(app.dir);
+    for (DartLib lib : DartLib.getAllSamples()) {
+      if (lib == SLIDER_SAMPLE) {
+        continue;
+      }
+      lib.deleteJsFile();
+      new OpenLibraryHelper(bot).open(lib);
+      if (lib == TIME_SERVER_SAMPLE) {
+        continue;
+      }
+      new LaunchBrowserHelper(bot).launch(lib);
     }
 
-    // Enter name of new app
-    appNameField.typeText(appName);
-
-    // Press Enter and wait for the operation to complete
-    shell.pressShortcut(Keystrokes.LF);
-    app.jsFile = new File(app.dir, appName + ".dart.app.js");
-    Performance.COMPILE.logInBackground(new FileExists(app.jsFile), appName);
-    EditorWithTitle matcher = new EditorWithTitle(app.dartFile.getName());
-    Performance.NEW_APP.log(bot, waitForEditor(matcher), appName);
-    app.editor = bot.editor(matcher).toTextEditor();
-    return app;
+    new ProblemsViewHelper(bot).assertNoProblems();
   }
 
-  /**
-   * Click the toolbar button to launch a browser based application and wait for the operation to
-   * complete.
-   * 
-   * @param title the name of the application being launched (not <code>null</code>)
-   */
-  private void launchInBrowser(App app) {
-    long start = System.currentTimeMillis();
-    bot.toolbarButtonWithTooltip("Run in Browser").click();
-    Metric metric = Performance.LAUNCH_APP;
+  protected void modifySourceInEditor(DartLib lib) throws Exception {
     try {
-      bot.waitUntil(Conditions.shellIsActive("Launching browser"));
-    } catch (TimeoutException e) {
-      metric.log(start, app.name, "<<< progress dialog not detected");
-      return;
-    }
-    metric.log(bot, start, shellCloses(bot.shell("Launching browser")), app.name);
-  }
-
-  private void modifySourceInEditor(App app) throws Exception {
-    try {
-      app.editor.setFocus();
-      navigateToLineContaining(app.editor, "Hello");
-      app.editor.pressShortcut(Keystrokes.DOWN, Keystrokes.LEFT, Keystrokes.LF);
+      lib.editor.setFocus();
+      navigateToLineContaining(lib.editor, "Hello");
+      lib.editor.pressShortcut(Keystrokes.DOWN, Keystrokes.LEFT, Keystrokes.LF);
       long start = System.currentTimeMillis();
-      app.editor.autoCompleteProposal("wri", "write(String message) : void - " + app.name);
-      Performance.CODE_COMPLETION.log(start);
-      app.editor.typeText("\"Goodbye.\"");
-      app.editor.save();
-      Performance.COMPILE.log(bot, new ProblemsViewCount(1), app.name, "(with error in src)");
+      lib.editor.autoCompleteProposal("wri", "write(String message) : void - " + lib.name);
+      Performance.CODE_COMPLETION.log(start, "includes time to select and insert completion");
+      lib.editor.typeText("\"Goodbye.\"");
+      lib.editor.save();
+      lib.logIncrementalCompileTime("(with error in src)");
+      bot.waitUntil(new ProblemsViewCount(1), 20000);
 
-      app.editor.setFocus();
-      app.editor.pressShortcut(Keystrokes.RIGHT);
-      app.editor.typeText(";");
-      app.editor.save();
-      Performance.COMPILE.log(bot, new FileExists(app.jsFile), app.name);
-      bot.waitUntil(new ProblemsViewCount(0));
+      lib.editor.setFocus();
+      lib.editor.pressShortcut(Keystrokes.RIGHT);
+      lib.editor.typeText(";");
+      lib.editor.save();
+      lib.logIncrementalCompileTime();
+      bot.waitUntil(new ProblemsViewCount(0), 20000);
 
-      app.editor.setFocus();
+      lib.editor.setFocus();
 
     } catch (Exception e) {
       printActiveEditorText();

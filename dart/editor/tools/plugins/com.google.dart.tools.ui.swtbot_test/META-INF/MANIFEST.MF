@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Dart Editor SWTBot Tests
 Bundle-SymbolicName: com.google.dart.tools.ui.swtbot_test
 Bundle-Version: 0.1.0.qualifier
-Bundle-Activator: com.google.dart.tools.ui.swtbot.Activator
 Bundle-Vendor: Google
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,

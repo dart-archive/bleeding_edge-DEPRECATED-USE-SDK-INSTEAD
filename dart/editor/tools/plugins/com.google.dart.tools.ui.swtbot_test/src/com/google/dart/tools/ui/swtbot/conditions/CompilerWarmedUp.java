@@ -11,38 +11,28 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.swtbot;
+package com.google.dart.tools.ui.swtbot.conditions;
 
+import com.google.dart.tools.core.utilities.compiler.DartCompilerWarmup;
+import com.google.dart.tools.ui.swtbot.Performance;
+
+import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
 
-import java.io.File;
-
 /**
- * Condition that waits for a specified file to exist
+ * Condition that waits until the Dart Compiler is warmed up
+ * 
+ * @see #waitUntilWarmedUp(SWTWorkbenchBot)
  */
-final class FileExists implements ICondition {
-  private final File file;
-
-  FileExists(File file) {
-    this.file = file;
-  }
-
-  FileExists(File dir, String name) {
-    this(new File(dir, name));
-  }
-
-  FileExists(String path) {
-    this(new File(path));
-  }
-
-  FileExists(String dir, String name) {
-    this(new File(dir, name));
+public class CompilerWarmedUp implements ICondition {
+  public static void waitUntilWarmedUp(SWTWorkbenchBot bot) {
+    Performance.COMPILER_WARMUP.log(bot, new CompilerWarmedUp());
   }
 
   @Override
   public String getFailureMessage() {
-    return "File does not exist: " + file;
+    return "Gave up waiting for compiler warmup";
   }
 
   @Override
@@ -51,6 +41,6 @@ final class FileExists implements ICondition {
 
   @Override
   public boolean test() throws Exception {
-    return file.exists();
+    return DartCompilerWarmup.isComplete();
   }
 }

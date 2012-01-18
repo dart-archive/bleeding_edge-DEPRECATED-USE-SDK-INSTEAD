@@ -244,3 +244,22 @@ login name. Adjust the two properties in that file to point to:
 Run the build_rcp.xml ant script in the com.google.dart.tools.deploy.feature_releng project
 (ant -f build_rcp.xml). It will create Windows, Linux, and Mac builds in the 'out' directory
 of the build directory specified above.
+
+====================================
+Running SWTBot UI tests
+====================================
+
+Install SWTBot (see optional installation step above)
+Import com.google.dart.tools.ui.swtbot_test (if not already imported)
+
+Right click on DartEditorUiTest and select Run > Run Configurations...
+Click on "Main" tab
+In "Run a product:" select "com.google.dart.tools.deploy.product"
+Click on "Arguments" tab
+Change "VM Arguments" to "-Xms128m -Xmx1024m"
+Click on "Plugins" tab
+Change "Launch with" to "Plugins selected below only"
+Uncheck all "Target Platform" plugins
+Check the workspace com...swtbot_test plugin only
+Click "Add required plugins"
+Click Run
