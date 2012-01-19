@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -21,6 +21,7 @@ import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.indexer.location.TypeLocation;
+import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
 
@@ -60,9 +61,8 @@ public class TypeReferencesContributor extends ScopedDartContributor {
     Type type = getDartElement(binding.asRawType());
     if (type != null) {
       try {
-        // TODO(brianwilkerson) The "target" is wrong. We're pointing to the right model element,
-        // but have the wrong source range. It should be "new SourceRangeImpl(node)".
-        recordRelationship(peekTarget(), new TypeLocation(type, type.getNameRange()));
+        recordRelationship(peekTarget(new SourceRangeImpl(node)),
+            new TypeLocation(type, type.getNameRange()));
       } catch (DartModelException exception) {
         DartCore.logInformation("Could not get range for type " + type.getElementName()
             + " referenced from type " + peekTarget().getDartElement().getElementName(), exception);

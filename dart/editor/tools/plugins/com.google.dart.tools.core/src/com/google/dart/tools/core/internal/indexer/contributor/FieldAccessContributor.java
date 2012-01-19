@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,6 +19,7 @@ import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.tools.core.internal.indexer.location.FieldLocation;
 import com.google.dart.tools.core.internal.indexer.location.VariableLocation;
+import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
@@ -44,19 +45,19 @@ public class FieldAccessContributor extends ScopedDartContributor {
   private void processVariable(DartIdentifier node, FieldElement binding) {
     if (binding.getKind() == ElementKind.FIELD) {
       CompilationUnitElement fieldOrVariable = getDartElement(binding);
-      // TODO(brianwilkerson) In both cases below the "target" is wrong. We're pointing to the right
-      // model element, but have the wrong source range. It should be "new SourceRangeImpl(node)".
       if (fieldOrVariable instanceof Field) {
         Field field = (Field) fieldOrVariable;
         try {
-          recordRelationship(peekTarget(), new FieldLocation(field, field.getNameRange()));
+          recordRelationship(peekTarget(new SourceRangeImpl(node)),
+              new FieldLocation(field, field.getNameRange()));
         } catch (DartModelException exception) {
           // Ignored
         }
       } else if (fieldOrVariable instanceof DartVariableDeclaration) {
         DartVariableDeclaration variable = (DartVariableDeclaration) fieldOrVariable;
         try {
-          recordRelationship(peekTarget(), new VariableLocation(variable, variable.getNameRange()));
+          recordRelationship(peekTarget(new SourceRangeImpl(node)), new VariableLocation(variable,
+              variable.getNameRange()));
         } catch (DartModelException exception) {
           // Ignored
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,13 +13,18 @@
  */
 package com.google.dart.tools.core.utilities.bindings;
 
+import com.google.dart.compiler.LibrarySource;
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFunction;
+import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
@@ -46,13 +51,16 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The class <code>BindingUtils</code> defines a number of utility methods. These methods ought to
@@ -112,6 +120,34 @@ public class BindingUtils {
    * that library.
    */
   private static final HashMap<String, CacheEntry> libraryCache = new HashMap<String, CacheEntry>();
+
+  /**
+   * Return the Dart model element corresponding to the given type element.
+   * 
+   * @param element the type element used to locate the model element
+   * @return the Dart model element corresponding to the resolved type
+   */
+  public static Type getDartElement(ClassElement element) {
+    if (element == null) {
+      return null;
+    }
+    EnclosingElement parent = element.getEnclosingElement();
+    if (parent instanceof LibraryElement) {
+      DartLibrary library = getDartElement((LibraryElement) parent);
+      return getDartElement(library, element);
+    }
+    String typeName = element.getName();
+    try {
+      Set<Type> matchingTypes = new HashSet<Type>();
+      addTypes(matchingTypes, typeName);
+      if (matchingTypes.size() == 1) {
+        return matchingTypes.iterator().next();
+      }
+    } catch (DartModelException exception) {
+      DartCore.logError(exception);
+    }
+    return null;
+  }
 
   public static DartFunctionTypeAlias getDartElement(CompilationUnit unit,
       com.google.dart.compiler.ast.DartFunctionTypeAlias node) {
@@ -178,11 +214,53 @@ public class BindingUtils {
     if (node == null) {
       return null;
     }
-    DartCore.notYetImplemented();
+    DartNode parent = node.getParent();
+    if (parent instanceof DartMethodDefinition) {
+      // This function is essentially the body of the method.
+      return getDartElement(unit, (DartMethodDefinition) parent);
+    }
+    while (parent != null) {
+      if (parent instanceof DartUnit) {
+        try {
+          return findFunction(node, unit.getChildren());
+        } catch (DartModelException exception) {
+          DartCore.logError("Could not get children of " + unit.getElementName(), exception);
+        }
+        return null;
+      } else if (parent instanceof DartMethodDefinition) {
+        com.google.dart.tools.core.model.DartFunction method = getDartElement(unit,
+            (DartMethodDefinition) parent);
+        if (method != null) {
+          try {
+            return findFunction(node, method.getChildren());
+          } catch (DartModelException exception) {
+            DartCore.logError("Could not get children of " + method.getElementName(), exception);
+          }
+        }
+        return null;
+      } else if (parent instanceof DartFunction
+          && !(parent.getParent() instanceof DartMethodDefinition)) {
+        com.google.dart.tools.core.model.DartFunction function = getDartElement(unit,
+            (DartFunction) parent);
+        if (function != null) {
+          try {
+            return findFunction(node, function.getChildren());
+          } catch (DartModelException exception) {
+            DartCore.logError("Could not get children of " + function.getElementName(), exception);
+          }
+        }
+        return null;
+      }
+      // TODO(brianwilkerson) There are other places that can contain functions that are not yet
+      // being handled, such as field declarations.
+      DartCore.notYetImplemented();
+      parent = parent.getParent();
+    }
     return null;
   }
 
-  public static Method getDartElement(CompilationUnit unit, DartMethodDefinition node) {
+  public static com.google.dart.tools.core.model.DartFunction getDartElement(CompilationUnit unit,
+      DartMethodDefinition node) {
     if (node == null) {
       return null;
     }
@@ -190,15 +268,29 @@ public class BindingUtils {
     if (symbol == null) {
       return null;
     }
+    String methodName = symbol.getOriginalSymbolName();
     DartClass enclosingType = getEnclosingType(node);
     if (enclosingType == null) {
+      try {
+        for (DartElement element : unit.getChildren()) {
+          if (element instanceof com.google.dart.tools.core.model.DartFunction) {
+            if (element.getElementName().equals(methodName)) {
+              return (com.google.dart.tools.core.model.DartFunction) element;
+            }
+          }
+        }
+      } catch (DartModelException exception) {
+        DartCore.logError("Could not get children of " + unit.getElementName(), exception);
+      }
       return null;
     }
     Type definingType = getDartElement(unit, enclosingType);
     if (definingType == null) {
       return null;
     }
-    String methodName = symbol.getOriginalSymbolName();
+    if (methodName.isEmpty()) {
+      methodName = definingType.getElementName();
+    }
     try {
       for (Method method : definingType.getMethods()) {
         if (method.getElementName().equals(methodName)) {
@@ -207,6 +299,41 @@ public class BindingUtils {
       }
     } catch (DartModelException exception) {
       // Fall through to return null
+    }
+    return null;
+  }
+
+  /**
+   * Return the Dart model element corresponding to the given type element.
+   * 
+   * @param library the library containing the type in which the method is declared
+   * @param element the type element used to locate the model element
+   * @return the Dart model element corresponding to the resolved type
+   */
+  public static Type getDartElement(DartLibrary library, ClassElement element) {
+    if (element == null) {
+      return null;
+    } else if (library == null) {
+      return getDartElement(element);
+    }
+    if (element.isDynamic()) {
+      return null;
+    }
+    String typeName = element.getName();
+    try {
+      LibraryElement declaringLibraryElement = element.getLibrary();
+      if (declaringLibraryElement == null) {
+        DartCore.logError("Could not access declaring library for type " + typeName,
+            new Throwable());
+        return null;
+      }
+      DartLibrary declaringLibrary = getDartElement(library, declaringLibraryElement);
+      List<Type> matchingTypes = getImmediateTypes(declaringLibrary, typeName);
+      if (matchingTypes.size() == 1) {
+        return matchingTypes.get(0);
+      }
+    } catch (DartModelException exception) {
+      DartCore.logError(exception);
     }
     return null;
   }
@@ -248,7 +375,21 @@ public class BindingUtils {
    * @return the Dart model element corresponding to the resolved field
    */
   public static CompilationUnitElement getDartElement(DartLibrary library, FieldElement fieldBinding) {
-    if (fieldBinding == null) {
+    return getDartElement(library, fieldBinding, false, false);
+  }
+
+  /**
+   * Return the Dart model element corresponding to the given resolved field.
+   * 
+   * @param library the library containing the type in which the field is declared
+   * @param fieldBinding the resolved field used to locate the model element
+   * @param allowGetter <code>true</code> if a getter is allowed to be returned
+   * @param allowSetter <code>true</code> if a setter is allowed to be returned
+   * @return the Dart model element corresponding to the resolved field
+   */
+  public static CompilationUnitElement getDartElement(DartLibrary library,
+      FieldElement fieldBinding, boolean allowGetter, boolean allowSetter) {
+    if (library == null || fieldBinding == null) {
       return null;
     }
     EnclosingElement parent = fieldBinding.getEnclosingElement();
@@ -291,6 +432,12 @@ public class BindingUtils {
       for (Field field : declaringType.getFields()) {
         if (fieldName.equals(field.getElementName())) {
           return field;
+        }
+      }
+      for (Method method : declaringType.getMethods()) {
+        if (fieldName.equals(method.getElementName())
+            && ((allowGetter && method.isGetter()) || (allowSetter && method.isSetter()))) {
+          return method;
         }
       }
     } catch (DartModelException exception) {
@@ -347,43 +494,7 @@ public class BindingUtils {
     } else if (library == null) {
       return getDartElement(typeBinding);
     }
-    ClassElement element = typeBinding.getElement();
-    if (element.isDynamic()) {
-      return null;
-    }
-    String typeName = element.getName();
-    try {
-      LibraryElement declaringLibraryElement = element.getLibrary();
-      if (declaringLibraryElement == null) {
-        DartCore.logError("Could not access declaring library for type " + typeName,
-            new Throwable());
-        return null;
-      }
-      DartLibrary declaringLibrary = getDartElement(library, declaringLibraryElement);
-//      long time1 = System.nanoTime();
-      List<Type> matchingTypes = getImmediateTypes(declaringLibrary, typeName);
-//      long time2 = System.nanoTime();
-//      List<Type> matchingTypes2 = new ArrayList<Type>();
-//      addImmediateTypesUncached(matchingTypes2, declaringLibrary, typeName);
-//      long time3 = System.nanoTime();
-//      long duration1 = time2 - time1;
-//      long duration2 = time3 - time2;
-//      if (duration1 <= duration2) {
-//        System.out.println("C : " + (duration2 - duration1) + " [" + duration1 + ", " + duration2
-//            + "] - " + library.getDisplayName() + " -> " + typeName + " in "
-//            + declaringLibrary.getDisplayName());
-//      } else {
-//        System.out.println("U : " + (duration1 - duration2) + " [" + duration1 + ", " + duration2
-//            + "] - " + library.getDisplayName() + " -> " + typeName + " in "
-//            + declaringLibrary.getDisplayName());
-//      }
-      if (matchingTypes.size() == 1) {
-        return matchingTypes.get(0);
-      }
-    } catch (DartModelException exception) {
-      DartCore.logError(exception);
-    }
-    return null;
+    return getDartElement(library, typeBinding.getElement());
   }
 
   /**
@@ -431,6 +542,7 @@ public class BindingUtils {
     if (methodBinding == null) {
       return null;
     }
+    String methodName = methodBinding.getName();
     EnclosingElement enclosingElement = methodBinding.getEnclosingElement();
     if (enclosingElement == null) {
       // We don't have enough information to find the method or function.
@@ -448,6 +560,22 @@ public class BindingUtils {
       }
       DartCore.notYetImplemented();
       return null;
+    } else if (enclosingElement instanceof MethodElement) {
+      com.google.dart.tools.core.model.DartFunction method = getDartElement(library,
+          ((MethodElement) enclosingElement));
+      if (method == null) {
+        return null;
+      }
+      try {
+        for (DartElement child : method.getChildren()) {
+          if (child instanceof com.google.dart.tools.core.model.DartFunction
+              && methodName.equals(child.getElementName())) {
+            return (com.google.dart.tools.core.model.DartFunction) child;
+          }
+        }
+      } catch (DartModelException exception) {
+        DartCore.logError("Could not get children of method " + method.getElementName(), exception);
+      }
     }
     com.google.dart.compiler.type.Type enclosingType = enclosingElement.getType();
     if (!(enclosingType instanceof InterfaceType)) {
@@ -457,11 +585,20 @@ public class BindingUtils {
     if (declaringType == null) {
       return null;
     }
-    String methodName = methodBinding.getName();
     if (methodName == null) {
       return null;
-    } else if (methodName.length() == 0) {
-      methodName = declaringType.getElementName();
+    } else if (methodBinding.isConstructor()) {
+      String typeName;
+      if (methodBinding instanceof ConstructorElement) {
+        typeName = ((ConstructorElement) methodBinding).getConstructorType().getName();
+      } else {
+        typeName = declaringType.getElementName();
+      }
+      if (methodName.length() == 0) {
+        methodName = typeName;
+      } else {
+        methodName = typeName + "." + methodName;
+      }
     }
     try {
       for (Method method : declaringType.getMethods()) {
@@ -544,15 +681,39 @@ public class BindingUtils {
     if (typeBinding == null) {
       return null;
     }
-    String typeName = typeBinding.getElement().getName();
+    return getDartElement(typeBinding.getElement());
+  }
+
+  /**
+   * Return the library corresponding to the given library element.
+   * 
+   * @param library the library element representing the library to be returned
+   * @return the library corresponding to the given library element
+   */
+  public static DartLibrary getDartElement(LibraryElement library) {
+    if (library == null) {
+      return null;
+    }
+    LibrarySource librarySource = library.getLibraryUnit().getSource();
+    URI uri = librarySource.getUri();
+    if (SystemLibraryManager.isDartUri(uri)) {
+      return new DartLibraryImpl(librarySource);
+    }
+    String targetUri = uri.toString();
+    IFile file = com.google.dart.tools.core.internal.util.ResourceUtil.getResource(uri);
+    if (file != null) {
+      return findLibrary(DartCore.create(file.getProject()), targetUri);
+    }
     try {
-      List<Type> matchingTypes = new ArrayList<Type>();
-      addTypes(matchingTypes, typeName);
-      if (matchingTypes.size() == 1) {
-        return matchingTypes.get(0);
+      for (DartProject project : DartModelManager.getInstance().getDartModel().getDartProjects()) {
+        DartLibrary foundLibrary = findLibrary(project, targetUri);
+        if (foundLibrary != null) {
+          return foundLibrary;
+        }
       }
     } catch (DartModelException exception) {
-      DartCore.logError(exception);
+      DartCore.logError("Could not access Dart projects while trying to find library with URI "
+          + targetUri, exception);
     }
     return null;
   }
@@ -576,6 +737,21 @@ public class BindingUtils {
    */
   public static DartVariableDeclaration getDartElement(VariableElement fieldBinding) {
     return getDartElement(null, fieldBinding);
+  }
+
+  /**
+   * Return the class element representing the type in which the given method is declared, or
+   * <code>null</code> if the method is not defined in a type.
+   * 
+   * @param method the method whose declaring class is to be returned
+   * @return the type in which the given method is declared
+   */
+  public static ClassElement getDeclaringType(MethodElement method) {
+    EnclosingElement element = method.getEnclosingElement();
+    if (element instanceof ClassElement) {
+      return (ClassElement) element;
+    }
+    return null;
   }
 
   /**
@@ -634,6 +810,69 @@ public class BindingUtils {
       candidate = candidate.getEnclosingElement();
     }
     return null;
+  }
+
+  /**
+   * Search the supertypes of the given method's declaring type for any types that define a method
+   * that is overridden by the given method. Return an array containing all of the overridden
+   * methods, or an empty array if there are no overridden methods. The methods in the array are not
+   * guaranteed to be in any particular order.
+   * <p>
+   * The result will contain only immediately overridden methods. For example, given a class
+   * <code>A</code>, a class <code>B</code> that extends <code>A</code>, and a class <code>C</code>
+   * that extends <code>B</code>, all three of which define a method <code>m</code>, asking the
+   * method defined in class <code>C</code> for it's overridden methods will return an array
+   * containing only the method defined in <code>B</code>.
+   * 
+   * @param methodElement the method that overrides the methods to be returned
+   * @return an array containing all of the methods declared in supertypes of the given method's
+   *         declaring type that are overridden by the given method
+   */
+  public static MethodElement[] getOverriddenMethods(MethodElement methodElement) {
+    List<MethodElement> overriddenMethods = new ArrayList<MethodElement>();
+    String methodName = methodElement.getName();
+    EnclosingElement enclosingElement = methodElement.getEnclosingElement();
+    if (enclosingElement instanceof ClassElement) {
+      Set<ClassElement> visitedTypes = new HashSet<ClassElement>();
+      List<ClassElement> targetTypes = new ArrayList<ClassElement>();
+      targetTypes.add((ClassElement) enclosingElement);
+      while (!targetTypes.isEmpty()) {
+        ClassElement targetType = targetTypes.remove(0);
+        for (InterfaceType supertype : getImmediateSupertypes(targetType)) {
+          if (supertype != null) {
+            ClassElement supertypeElement = supertype.getElement();
+            Iterator<Element> members = supertypeElement.getMembers().iterator();
+            if (members.hasNext()) {
+              while (members.hasNext()) {
+                Element member = members.next();
+                if (member instanceof MethodElement && member.getName().equals(methodName)) {
+                  overriddenMethods.add((MethodElement) member);
+                }
+              }
+            } else if (!visitedTypes.contains(supertypeElement)) {
+              visitedTypes.add(supertypeElement);
+              targetTypes.add(supertypeElement);
+            }
+          }
+        }
+      }
+    }
+    return overriddenMethods.toArray(new MethodElement[overriddenMethods.size()]);
+  }
+
+  /**
+   * Return <code>true</code> if the given method is an abstract method (either explicitly declared
+   * as to be abstract or defined in an interface).
+   * 
+   * @param method the method whose declaring class is to be returned
+   * @return the type in which the given method is declared
+   */
+  public static boolean isAbstract(MethodElement method) {
+    if (method.getModifiers().isAbstract()) {
+      return true;
+    }
+    ClassElement declaringType = getDeclaringType(method);
+    return declaringType != null && declaringType.isInterface();
   }
 
   /**
@@ -716,7 +955,7 @@ public class BindingUtils {
    * @param typeName the name of the types to be returned
    * @throws DartModelException if some portion of the workspace cannot be traversed
    */
-  private static void addImmediateTypes(List<Type> matchingTypes, DartLibrary library,
+  private static void addImmediateTypes(Set<Type> matchingTypes, DartLibrary library,
       String typeName) throws DartModelException {
     CacheEntry entry = getLibraryCache(library);
     if (entry != null) {
@@ -765,7 +1004,7 @@ public class BindingUtils {
    * @param typeName the name of the types to be returned
    * @throws DartModelException if some portion of the workspace cannot be traversed
    */
-  private static void addTypes(List<Type> matchingTypes, DartLibrary library, String typeName)
+  private static void addTypes(Set<Type> matchingTypes, DartLibrary library, String typeName)
       throws DartModelException {
     addImmediateTypes(matchingTypes, library, typeName);
     for (DartLibrary importedLibrary : getAllImportedLibraries(library)) {
@@ -780,7 +1019,7 @@ public class BindingUtils {
    * @param typeName the name of the types to be returned
    * @throws DartModelException if some portion of the workspace cannot be traversed
    */
-  private static void addTypes(List<Type> matchingTypes, String typeName) throws DartModelException {
+  private static void addTypes(Set<Type> matchingTypes, String typeName) throws DartModelException {
     for (DartProject project : DartModelManager.getInstance().getDartModel().getDartProjects()) {
       for (DartElement child : project.getChildren()) {
         if (child instanceof DartLibrary) {
@@ -788,6 +1027,34 @@ public class BindingUtils {
         }
       }
     }
+  }
+
+  private static com.google.dart.tools.core.model.DartFunction findFunction(DartFunction node,
+      DartElement[] elements) {
+    String targetName = null;
+    Symbol symbol = node.getSymbol();
+    if (symbol == null) {
+      DartNode parent = node.getParent();
+      if (parent instanceof DartFunctionExpression) {
+        targetName = ((DartFunctionExpression) parent).getFunctionName();
+      }
+    } else {
+      targetName = symbol.getOriginalSymbolName();
+    }
+    if (targetName == null) {
+      // We cannot locate unnamed functions
+      return null;
+    }
+    for (DartElement element : elements) {
+      if (element instanceof com.google.dart.tools.core.model.DartFunction) {
+        com.google.dart.tools.core.model.DartFunction function = (com.google.dart.tools.core.model.DartFunction) element;
+        String functionName = function.getElementName();
+        if (functionName != null && functionName.equals(targetName)) {
+          return function;
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -820,6 +1087,34 @@ public class BindingUtils {
       }
     } catch (DartModelException exception) {
       DartCore.logError("Could not get imported libraries for " + libraryUri, exception);
+    }
+    return null;
+  }
+
+  /**
+   * Search the libraries defined in the given project for a library with the given URI.
+   * 
+   * @param project the project to be searched
+   * @param targetUri the URI of the library being searched for
+   * @return the library that was found, or <code>null</code> if there is no library in the project
+   *         with the given URI
+   */
+  private static DartLibrary findLibrary(DartProject project, String targetUri) {
+    if (project == null) {
+      return null;
+    }
+    try {
+      for (DartElement child : project.getChildren()) {
+        if (child instanceof DartLibrary) {
+          String libraryUri = ((DartLibraryImpl) child).getLibrarySourceFile().getUri().toString();
+          if (targetUri.equals(libraryUri)) {
+            return (DartLibrary) child;
+          }
+        }
+      }
+    } catch (DartModelException exception) {
+      DartCore.logError("Could not get children of project " + project.getElementName()
+          + " while trying to find library with URI " + targetUri, exception);
     }
     return null;
   }
@@ -904,6 +1199,22 @@ public class BindingUtils {
     List<com.google.dart.tools.core.model.DartFunction> matchingFunctions = new ArrayList<com.google.dart.tools.core.model.DartFunction>();
 //    addImmediateFunctionsUncached(matchingFunctions, library, functionName);
     return matchingFunctions;
+  }
+
+  /**
+   * Return the immediate supertypes of the given class element.
+   * 
+   * @param targetType the type whose supertypes are to be returned.
+   * @return the immediate supertypes of the given class element
+   */
+  private static Set<InterfaceType> getImmediateSupertypes(ClassElement targetType) {
+    Set<InterfaceType> supertypes = new HashSet<InterfaceType>();
+    InterfaceType supertype = targetType.getSupertype();
+    if (supertype != null) {
+      supertypes.add(supertype);
+    }
+    supertypes.addAll(targetType.getInterfaces());
+    return supertypes;
   }
 
   /**

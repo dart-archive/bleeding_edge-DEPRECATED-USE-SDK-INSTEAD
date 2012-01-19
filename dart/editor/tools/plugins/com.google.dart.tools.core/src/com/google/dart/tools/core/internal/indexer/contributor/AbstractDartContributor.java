@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -270,9 +270,15 @@ public abstract class AbstractDartContributor extends DartNodeTraverser<Void> im
    * @throws IndexRequestFailedUnchecked if the relationship could not be recorded
    */
   protected void recordRelationship(DartMethodDefinition source, Location target) {
-    Method method = BindingUtils.getDartElement(compilationUnit, source);
-    if (method != null) {
-      recordRelationship(new MethodLocation(method, getSourceRange(method, (Element) null)), target);
+    com.google.dart.tools.core.model.DartFunction function = BindingUtils.getDartElement(
+        getCompilationUnit(), source);
+    if (function instanceof Method) {
+      Location location = new MethodLocation((Method) function, getSourceRange(function,
+          (Element) null));
+      recordRelationship(location, target);
+    } else if (function != null) {
+      Location location = new FunctionLocation(function, getSourceRange(function, (Element) null));
+      recordRelationship(location, target);
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -28,6 +28,7 @@ import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 
@@ -124,6 +125,10 @@ public abstract class ScopedDartContributor extends AbstractDartContributor {
    */
   @Override
   public Void visitFunction(DartFunction node) {
+    if (node.getParent() instanceof DartMethodDefinition) {
+      super.visitFunction(node);
+      return null;
+    }
     com.google.dart.tools.core.model.DartFunction function = BindingUtils.getDartElement(
         getCompilationUnit(), node);
     if (function == null) {
@@ -154,11 +159,14 @@ public abstract class ScopedDartContributor extends AbstractDartContributor {
    */
   @Override
   public Void visitMethodDefinition(DartMethodDefinition node) {
-    Method method = BindingUtils.getDartElement(getCompilationUnit(), node);
-    if (method == null) {
-      pushTarget(null);
+    com.google.dart.tools.core.model.DartFunction function = BindingUtils.getDartElement(
+        getCompilationUnit(), node);
+    if (function instanceof Method) {
+      pushTarget(new MethodLocation((Method) function, new SourceRangeImpl(node.getName())));
+    } else if (function != null) {
+      pushTarget(new FunctionLocation(function, new SourceRangeImpl(node.getName())));
     } else {
-      pushTarget(new MethodLocation(method, new SourceRangeImpl(node.getName())));
+      pushTarget(null);
     }
     try {
       super.visitMethodDefinition(node);
@@ -199,6 +207,24 @@ public abstract class ScopedDartContributor extends AbstractDartContributor {
       DartElementLocation location = locationStack.get(i);
       if (location != null) {
         return location;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the location of the inner-most enclosing scope, but substitute the given source range
+   * for the default source range.
+   * 
+   * @param sourceRange the source range to use for the returned location
+   * @return the location of the inner-most enclosing scope
+   */
+  protected DartElementLocation peekTarget(SourceRange sourceRange) {
+    for (int i = locationStack.size() - 1; i >= 0; i--) {
+      DartElementLocation location = locationStack.get(i);
+      if (location != null) {
+        return location;
+//        return DartElementLocations.byDartElement(location.getDartElement(), sourceRange);
       }
     }
     return null;

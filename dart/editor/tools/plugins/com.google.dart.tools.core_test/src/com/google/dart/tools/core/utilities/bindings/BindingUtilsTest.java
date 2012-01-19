@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,13 +14,18 @@
 package com.google.dart.tools.core.utilities.bindings;
 
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartExprStmt;
+import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunction;
+import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -39,7 +44,65 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import junit.framework.TestCase;
 
 public class BindingUtilsTest extends TestCase {
-  public void test_BindingUtils_getDartElement_field_global() throws Exception {
+  public void test_BindingUtils_getDartElement_classElement_notNull() throws Exception {
+    CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
+    Type expectedType = getType(compilationUnit, "SimpleMoney");
+    DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
+    DartClass classNode = getType(ast, expectedType.getElementName());
+    Type actualType = BindingUtils.getDartElement(classNode.getSymbol());
+    assertEquals(expectedType, actualType);
+  }
+
+  public void test_BindingUtils_getDartElement_classElement_null() throws Exception {
+    Type actualType = BindingUtils.getDartElement((ClassElement) null);
+    assertNull(actualType);
+  }
+
+  public void test_BindingUtils_getDartElement_cu_function_method() throws Exception {
+    CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
+    Type type = getType(compilationUnit, "SimpleMoney");
+    Method expectedMethod = getMethod(type, "addComplexMoney");
+    DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
+    DartClass classNode = getType(ast, type.getElementName());
+    DartMethodDefinition methodNode = getMethod(classNode, expectedMethod.getElementName());
+    com.google.dart.tools.core.model.DartFunction actualMethod = BindingUtils.getDartElement(
+        compilationUnit, methodNode.getFunction());
+    assertEquals(expectedMethod, actualMethod);
+  }
+
+  public void test_BindingUtils_getDartElement_cu_function_nonMethod() throws Exception {
+    CompilationUnit compilationUnit = getSampleCompilationUnit("sampler.dart");
+    Type type = getType(compilationUnit, "PublicClass");
+    Method method = getMethod(type, "publicMethod");
+    com.google.dart.tools.core.model.DartFunction expectedFunction = (com.google.dart.tools.core.model.DartFunction) method.getChildren()[3];
+    DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
+    DartClass classNode = getType(ast, type.getElementName());
+    DartMethodDefinition methodNode = getMethod(classNode, method.getElementName());
+    DartFunction functionNode = ((DartFunctionExpression) ((DartExprStmt) methodNode.getFunction().getBody().getStatements().get(
+        0)).getExpression()).getFunction();
+    com.google.dart.tools.core.model.DartFunction actualFunction = BindingUtils.getDartElement(
+        compilationUnit, functionNode);
+    assertEquals(expectedFunction, actualFunction);
+  }
+
+  public void test_BindingUtils_getDartElement_library_classElement_notNull_notNull()
+      throws Exception {
+    CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
+    Type expectedType = getType(compilationUnit, "SimpleMoney");
+    DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
+    DartClass classNode = getType(ast, expectedType.getElementName());
+    Type actualType = BindingUtils.getDartElement(compilationUnit.getLibrary(),
+        classNode.getSymbol());
+    assertEquals(expectedType, actualType);
+  }
+
+  public void test_BindingUtils_getDartElement_library_classElement_notNull_null() throws Exception {
+    CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
+    Type actualType = BindingUtils.getDartElement(compilationUnit.getLibrary(), (ClassElement) null);
+    assertNull(actualType);
+  }
+
+  public void test_BindingUtils_getDartElement_library_field_global() throws Exception {
     CompilationUnit compilationUnit = getSampleCompilationUnit("sampler.dart");
     DartVariableDeclaration expectedField = getGlobalVariable(compilationUnit);
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
@@ -49,10 +112,10 @@ public class BindingUtilsTest extends TestCase {
     assertEquals(expectedField, actualField);
   }
 
-  public void test_BindingUtils_getDartElement_field_notNull() throws Exception {
+  public void test_BindingUtils_getDartElement_library_field_notNull_notNull() throws Exception {
     CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
-    Type type = compilationUnit.getTypes()[0];
-    Field expectedField = type.getFields()[0];
+    Type type = getType(compilationUnit, "SimpleMoney");
+    Field expectedField = getField(type, "amount");
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartClass classNode = getType(ast, type.getElementName());
     DartField fieldNode = getField(classNode, expectedField.getElementName());
@@ -61,16 +124,17 @@ public class BindingUtilsTest extends TestCase {
     assertEquals(expectedField, actualField);
   }
 
-  public void test_BindingUtils_getDartElement_field_null() throws Exception {
+  public void test_BindingUtils_getDartElement_library_field_notNull_null() throws Exception {
     DartLibrary library = getMoneyLibrary();
     CompilationUnitElement field = BindingUtils.getDartElement(library, (FieldElement) null);
     assertNull(field);
   }
 
-  public void test_BindingUtils_getDartElement_method_constructor() throws Exception {
+  public void test_BindingUtils_getDartElement_library_method_notNull_constructor()
+      throws Exception {
     CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
-    Type type = compilationUnit.getTypes()[0];
-    Method expectedMethod = type.getMethods()[0];
+    Type type = getType(compilationUnit, "SimpleMoney");
+    Method expectedMethod = getMethod(type, "SimpleMoney");
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartClass classNode = getType(ast, type.getElementName());
     DartMethodDefinition methodNode = getMethod(classNode, expectedMethod.getElementName());
@@ -79,10 +143,24 @@ public class BindingUtilsTest extends TestCase {
     assertEquals(expectedMethod, actualMethod);
   }
 
-  public void test_BindingUtils_getDartElement_method_nonConstructor() throws Exception {
+  public void test_BindingUtils_getDartElement_library_method_notNull_namedConstructor()
+      throws Exception {
+    CompilationUnit compilationUnit = getSampleCompilationUnit("sampler.dart");
+    Type type = getType(compilationUnit, "PublicClass");
+    Method expectedMethod = getMethod(type, "PublicClass.factoryMethod");
+    DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
+    DartClass classNode = getType(ast, type.getElementName());
+    DartMethodDefinition methodNode = getMethod(classNode, "factoryMethod");
+    com.google.dart.tools.core.model.DartFunction actualMethod = BindingUtils.getDartElement(
+        compilationUnit.getLibrary(), methodNode.getSymbol());
+    assertEquals(expectedMethod, actualMethod);
+  }
+
+  public void test_BindingUtils_getDartElement_library_method_notNull_nonConstructor()
+      throws Exception {
     CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
-    Type type = compilationUnit.getTypes()[0];
-    Method expectedMethod = type.getMethods()[1];
+    Type type = getType(compilationUnit, "SimpleMoney");
+    Method expectedMethod = getMethod(type, "addComplexMoney");
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartClass classNode = getType(ast, type.getElementName());
     DartMethodDefinition methodNode = getMethod(classNode, expectedMethod.getElementName());
@@ -91,11 +169,23 @@ public class BindingUtilsTest extends TestCase {
     assertEquals(expectedMethod, actualMethod);
   }
 
-  public void test_BindingUtils_getDartElement_method_null() throws Exception {
+  public void test_BindingUtils_getDartElement_library_method_notNull_null() throws Exception {
     DartLibrary library = getMoneyLibrary();
     com.google.dart.tools.core.model.DartFunction method = BindingUtils.getDartElement(library,
         (MethodElement) null);
     assertNull(method);
+  }
+
+  public void test_BindingUtils_getDeclaringType() throws Exception {
+    CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
+    Type type = getType(compilationUnit, "SimpleMoney");
+    Method method = getMethod(type, "addComplexMoney");
+    DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
+    DartClass classNode = getType(ast, type.getElementName());
+    ClassElement expectedType = classNode.getSymbol();
+    DartMethodDefinition methodNode = getMethod(classNode, method.getElementName());
+    ClassElement actualType = BindingUtils.getDeclaringType(methodNode.getSymbol());
+    assertEquals(expectedType, actualType);
   }
 
   public void test_BindingUtils_getEnclosingFunction_nonNull() throws Exception {
@@ -126,6 +216,18 @@ public class BindingUtilsTest extends TestCase {
     assertNull(BindingUtils.getEnclosingType(ast));
   }
 
+  public void test_BindingUtils_getOverriddenMethods() throws Exception {
+    CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
+    Type type = getType(compilationUnit, "SimpleMoney");
+    Method method = getMethod(type, "addComplexMoney");
+    DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
+    DartClass classNode = getType(ast, type.getElementName());
+    DartMethodDefinition methodNode = getMethod(classNode, method.getElementName());
+    MethodElement[] result = BindingUtils.getOverriddenMethods(methodNode.getSymbol());
+    assertNotNull(result);
+    assertEquals(1, result.length);
+  }
+
   private CompilationUnit getCompilationUnit(DartLibrary library, String unitName) throws Exception {
     if (library == null) {
       return null;
@@ -147,6 +249,15 @@ public class BindingUtilsTest extends TestCase {
             return field;
           }
         }
+      }
+    }
+    return null;
+  }
+
+  private Field getField(Type type, String fieldName) throws DartModelException {
+    for (Field field : type.getFields()) {
+      if (field.getElementName().equals(fieldName)) {
+        return field;
       }
     }
     return null;
@@ -200,9 +311,23 @@ public class BindingUtilsTest extends TestCase {
     for (DartNode node : classNode.getMembers()) {
       if (node instanceof DartMethodDefinition) {
         DartMethodDefinition method = (DartMethodDefinition) node;
-        if (((DartIdentifier) method.getName()).getTargetName().equals(methodName)) {
+        DartExpression name = method.getName();
+        if (name instanceof DartIdentifier
+            && ((DartIdentifier) name).getTargetName().equals(methodName)) {
+          return method;
+        } else if (name instanceof DartPropertyAccess
+            && ((DartPropertyAccess) name).getName().getTargetName().equals(methodName)) {
           return method;
         }
+      }
+    }
+    return null;
+  }
+
+  private Method getMethod(Type type, String methodName) throws DartModelException {
+    for (Method method : type.getMethods()) {
+      if (method.getElementName().equals(methodName)) {
+        return method;
       }
     }
     return null;
@@ -222,6 +347,15 @@ public class BindingUtilsTest extends TestCase {
 
   private DartLibrary getSampleLibrary() throws Exception {
     return getLibrary("SampleCode");
+  }
+
+  private Type getType(CompilationUnit compilationUnit, String typeName) throws DartModelException {
+    for (Type type : compilationUnit.getTypes()) {
+      if (type.getElementName().equals(typeName)) {
+        return type;
+      }
+    }
+    return null;
   }
 
   private DartClass getType(DartUnit ast, String typeName) {
