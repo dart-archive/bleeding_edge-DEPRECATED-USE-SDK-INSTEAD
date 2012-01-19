@@ -58,8 +58,21 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.ViewPart;
 
+import java.util.Iterator;
+
 /**
  * File-oriented view for navigating Dart projects.
+ * <p>
+ * This view will replace the current "Libraries" view once a few tasks are completed:
+ * <p>
+ * TODO Remove the deprecated CreateFileAction and CreateFolderActions with new Dart Editor specific
+ * versions
+ * <p>
+ * TODO modify the builder to ensure that the correct libraries are built when the user makes
+ * changes to Dart code
+ * <p>
+ * TODO re-visit the DeltaProcessor and ensure that all user actions result in a correct update of
+ * the model in the viewer
  */
 @SuppressWarnings("deprecation")
 public class FilesView extends ViewPart implements ISetSelectionTarget {
@@ -79,9 +92,15 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private IMemento memento;
 
+  /**
+   * A final static String for the Link with Editor momento.
+   */
+  private static final String LINK_WITH_EDITOR_ID = "linkWithEditor";
+
   private LinkWithEditorAction linkWithEditorAction;
   private MoveResourceAction moveAction;
   private RenameResourceAction renameAction;
+  private DeleteAction deleteAction;
 
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
@@ -93,7 +112,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new ResourceContentProvider());
     //TODO (pquitslund): replace with WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider() 
-    //when we have the linked resource story straightened out
+    // when we have the linked resource story straightened out
 //    treeViewer.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
     treeViewer.setLabelProvider(new DecoratingLabelProvider(new WorkbenchLabelProvider(),
         new ProblemsLabelDecorator()));
@@ -125,6 +144,11 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     moveAction = new MoveResourceAction(getShell());
     treeViewer.addSelectionChangedListener(moveAction);
 
+    deleteAction = new DeleteAction(getSite());
+    deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(
+        ISharedImages.IMG_TOOL_DELETE));
+    treeViewer.addSelectionChangedListener(deleteAction);
+
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
     updateTreeFont();
   }
@@ -147,7 +171,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   @Override
   public void saveState(IMemento memento) {
-    memento.putBoolean("linkWithEditor", linkWithEditorAction.getLinkWithEditor());
+    memento.putBoolean(LINK_WITH_EDITOR_ID, linkWithEditorAction.getLinkWithEditor());
   }
 
   @Override
@@ -174,38 +198,58 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     getSite().registerContextMenu(menuMgr, treeViewer);
   }
 
+  @SuppressWarnings("rawtypes")
   protected void fillContextMenu(IMenuManager manager) {
-    //TODO (pquitslund): replace with our new file wizard when it is updated
+
+    // New File/ New Folder/ New Project
+
+    //TODO (jwren/pquitslund): replace with our new file wizard when it is updated
     manager.add(new CreateFileAction(getShell()));
     //manager.add(new OpenNewFileWizardAction(getViewSite().getWorkbenchWindow()));
     //manager.add(new OpenNewApplicationWizardAction());
+    // TODO (jwren) replace New Folder Action with a custom version
     manager.add(new CreateFolderAction(getShell()));
     manager.add(new OpenNewProjectWizardAction());
 
+    // Rename... / Move..., iff single element and is an IResource
+
     IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
     Object element = selection.getFirstElement();
-    if (element instanceof IResource) {
+    if (selection.size() == 1 && element instanceof IResource) {
       manager.add(new Separator());
       manager.add(renameAction);
       manager.add(moveAction);
     }
-    if (!treeViewer.getSelection().isEmpty() && element instanceof IResource) {
+
+    // Delete, iff non-empty selection, all elements are IResources
+
+    boolean allEltsAreIResources = true;
+    for (Iterator iterator = selection.iterator(); iterator.hasNext();) {
+      Object selectedElement = iterator.next();
+      if (!(selectedElement instanceof IResource)) {
+        allEltsAreIResources = false;
+        break;
+      }
+    }
+    if (!selection.isEmpty() && allEltsAreIResources) {
       manager.add(new Separator());
-      DeleteAction deleteAction = new DeleteAction(getSite());
-      deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(
-          ISharedImages.IMG_TOOL_DELETE));
       manager.add(deleteAction);
     }
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {
+
+    // Link with Editor
+
     linkWithEditorAction = new LinkWithEditorAction(getViewSite().getPage(), treeViewer);
 
-    if (memento != null && memento.getBoolean("linkWithEditor") != null) {
-      linkWithEditorAction.setLinkWithEditor(memento.getBoolean("linkWithEditor").booleanValue());
+    if (memento != null && memento.getBoolean(LINK_WITH_EDITOR_ID) != null) {
+      linkWithEditorAction.setLinkWithEditor(memento.getBoolean(LINK_WITH_EDITOR_ID).booleanValue());
     } else {
       linkWithEditorAction.setLinkWithEditor(true);
     }
+
+    // Collapse All
 
     toolbar.add(new CollapseAllAction(treeViewer));
     toolbar.add(linkWithEditorAction);
