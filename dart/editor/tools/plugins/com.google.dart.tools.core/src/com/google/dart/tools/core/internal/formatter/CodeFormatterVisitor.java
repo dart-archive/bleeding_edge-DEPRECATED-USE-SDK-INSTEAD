@@ -130,14 +130,14 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
   final static long EXPRESSIONS_POS_MASK = EXPRESSIONS_POS_BETWEEN_TWO;
 
   private static final Token[] CLOSING_GENERICS_EXPECTEDTOKENS = new Token[] {
-      Token.SAR, Token.SHR, Token.GT};
+      Token.SAR, Token.GT};
   private static final Token[] BOOLEAN_LITERAL_EXPECTEDTOKENS = new Token[] {
       Token.TRUE_LITERAL, Token.FALSE_LITERAL};
   // IDENTIFIER is included to make "negate" legal
   // NE, EQ_STRICT, and NE_STRICT are not legal but why should the formatter
   // disallow them?
   private static final Token[] DEFINABLE_OPERATOR_EXPECTEDTOKENS = new Token[] {
-      Token.BIT_OR, Token.BIT_XOR, Token.BIT_AND, Token.SHL, Token.SAR, Token.SHR, Token.ADD,
+      Token.BIT_OR, Token.BIT_XOR, Token.BIT_AND, Token.SHL, Token.SAR, Token.ADD,
       Token.SUB, Token.MUL, Token.DIV, Token.TRUNC, Token.MOD, Token.EQ, Token.NE, Token.EQ_STRICT,
       Token.NE_STRICT, Token.LT, Token.GT, Token.LTE, Token.GTE, Token.BIT_NOT, Token.INDEX,
       Token.ASSIGN_INDEX, Token.IDENTIFIER};
@@ -3310,7 +3310,6 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
       }
       switch (token) {
         case SAR:
-        case SHR:
         case GT:
           return true;
       }
