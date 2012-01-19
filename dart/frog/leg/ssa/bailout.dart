@@ -3,15 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class BailoutInfo implements Hashable {
-  int blockId;
   int instructionId;
-  int state;
-  BailoutInfo(this.blockId, this.instructionId, this.state);
-  int hashCode() => ((blockId << 16) & 0xFFF0000) + instructionId;
-  bool operator ==(other) {
-    if (other is !BailoutInfo) return false;
-    return blockId == other.blockId && instructionId == other.instructionId;
-  }
+  int bailoutId;
+  BailoutInfo(this.instructionId, this.bailoutId);
 }
 
 /*
@@ -77,7 +71,6 @@ class Environment {
 class SsaEnvironmentBuilder extends HBaseVisitor {
   final Compiler compiler;
   final Environment environment;
-  int instructionId;
 
   SsaEnvironmentBuilder(Compiler this.compiler)
     : environment = new Environment();
@@ -92,27 +85,21 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     }
 
     for (HPhi phi = block.phis.first; phi != null; phi = phi.next) {
-      environment.add(phi);
+      phi.accept(this);
     }
 
     HInstruction instruction = block.first;
-    instructionId = 0;
     while (instruction != null) {
       HInstruction next = instruction.next;
       instruction.accept(this);
       instruction = next;
-      instructionId++;
     }
-  }
-
-  void visitParameterValue(HParameterValue parameter) {
-    environment.add(parameter);
   }
 
   void visitInstruction(HInstruction instruction) {
     // Cheapest liveness analysis.
     // TODO(ngeoffray): Compute liveness.
-    if (!instruction.usedBy.isEmpty()) {
+    if (!instruction.usedBy.isEmpty() || instruction is HParameterValue) {
       environment.add(instruction);
     }
   }
@@ -180,21 +167,36 @@ class SsaTypeGuardBuilder extends SsaEnvironmentBuilder {
 
   SsaTypeGuardBuilder(Compiler compiler) : super(compiler);
 
-  void visitTypeGuard(HTypeGuard guard) {
-    // The bailout version will not have the type guards, so we remove
-    // this instruction from the ids.
-    instructionId--;
-    List<HInstruction> env = environment.build();
-    if (env.isEmpty() || (env.last() != guard.guarded)) {
-      // Guarding something that we don't put in the environment, e.g.
-      // static.
-      env.addLast(guard.guarded);
+  void tryInsertTypeGuard(HInstruction instruction,
+                          HInstruction insertionPoint) {
+    // If we found a type for the instruction, but the instruction
+    // does not know if it produces that type, add a type guard.
+    if (instruction.type.isKnown() && !instruction.hasExpectedType()) {
+      List<HInstruction> inputs = environment.build();
+      if (inputs.isEmpty() || (inputs.last() != instruction)) {
+        // Guarding something that we don't put in the environment, e.g.
+        // static. We put it at the end of [inputs] because that's a
+        // requirement of [HTypeGuard].
+        inputs.addLast(instruction);
+      }
+      HTypeGuard guard = new HTypeGuard(
+          instruction.type, inputs, instruction.id);
+      // Remove the instruction's type, the guard is now holding that
+      // type.
+      instruction.type = HType.UNKNOWN;
+      instruction.block.rewrite(instruction, guard);
+      insertionPoint.block.addBefore(insertionPoint, guard);
     }
-    HTypeGuard newGuard = new HTypeGuard.forBailout(
-        guard.type, env, guard.block.id, instructionId);
-    guard.block.addBefore(guard, newGuard);
-    guard.block.rewrite(guard, newGuard);
-    guard.block.remove(guard);
+  }
+
+  void visitInstruction(HInstruction instruction) {
+    super.visitInstruction(instruction);
+    tryInsertTypeGuard(instruction, instruction.next);
+  }
+
+  void visitPhi(HPhi phi) {
+    super.visitInstruction(phi);
+    tryInsertTypeGuard(phi, phi.block.first);
   }
 }
 
@@ -203,32 +205,33 @@ class SsaTypeGuardBuilder extends SsaEnvironmentBuilder {
  * the optimized version had [HTypeGuard] instructions.
  */
 class SsaBailoutBuilder extends SsaEnvironmentBuilder {
-  final Map<BailoutInfo, BailoutInfo> bailouts;
-  final BailoutInfo cached;
+  final Map<int, BailoutInfo> bailouts;
 
-  SsaBailoutBuilder(Compiler compiler, this.bailouts)
-    : super(compiler), cached = new BailoutInfo(null, null, null);
+  SsaBailoutBuilder(Compiler compiler, this.bailouts) : super(compiler);
 
-  void checkBailout(HInstruction instruction) {
-    cached.blockId = instruction.block.id;
-    cached.instructionId = instructionId;
-    BailoutInfo original = bailouts[cached];
-    if (original != null) {
+  void checkBailout(HInstruction instruction, HInstruction insertionPoint) {
+    BailoutInfo info = bailouts[instruction.id];
+    if (info != null) {
       HBailoutTarget bailout =
-          new HBailoutTarget(original.state, environment.build());
-      instruction.block.addAfter(instruction, bailout);
+          new HBailoutTarget(info.bailoutId, environment.build());
+      instruction.block.addBefore(insertionPoint, bailout);
     }
   }
 
   // An [HStatic] is not put in the environment, but there may be a
   // type guard on it.
   void visitStatic(HStatic instruction) {
-    checkBailout(instruction);
+    checkBailout(instruction, instruction.next);
   }
 
   visitInstruction(HInstruction instruction) {
     super.visitInstruction(instruction);
-    checkBailout(instruction);
+    checkBailout(instruction, instruction.next);
+  }
+
+  visitPhi(HPhi phi) {
+    super.visitInstruction(phi);
+    checkBailout(phi, phi.block.first);
   }
 }
 

@@ -6,7 +6,7 @@ class WorkItem {
   final Element element;
   TreeElements resolutionTree;
   Function run;
-  Map<BailoutInfo, BailoutInfo> bailouts = null;
+  Map<int, BailoutInfo> bailouts = null;
 
   WorkItem.toCompile(this.element) : resolutionTree = null {
     run = this.compile;

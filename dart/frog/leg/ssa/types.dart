@@ -16,7 +16,6 @@ class SsaTypePropagator extends HGraphVisitor {
     new TypeAnnotationReader(compiler).visitGraph(graph);
     visitDominatorTree(graph);
     processWorklist();
-    new TypeGuardInserter().visitGraph(graph);
   }
 
   visitBasicBlock(HBasicBlock block) {
@@ -87,41 +86,5 @@ class TypeAnnotationReader extends HBaseVisitor {
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
-  }
-}
-
-class TypeGuardInserter extends HBaseVisitor {
-
-  TypeGuardInserter();
-
-  void visitGraph(HGraph graph) {
-    visitDominatorTree(graph);
-  }
-
-  visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.phis.first;
-    while (instruction !== null) {
-      instruction = tryInsertTypeGuard(instruction, block.first);
-    }
-    instruction = block.first;
-    while (instruction !== null) {
-      instruction = tryInsertTypeGuard(instruction, instruction);
-    }
-  }
-
-  HInstruction tryInsertTypeGuard(HInstruction instruction,
-                                  HInstruction insertionPoint) {
-    // If we found a type for the instruction, but the instruction
-    // does not know if it produces that type, add a type guard.
-    if (instruction.type.isKnown() && !instruction.hasExpectedType()) {
-      HTypeGuard guard = new HTypeGuard(instruction.type, instruction);
-      // Remove the instruction's type, the guard is now holding that
-      // type.
-      instruction.type = HType.UNKNOWN;
-      instruction.block.rewrite(instruction, guard);
-      insertionPoint.block.addAfter(insertionPoint, guard);
-      return guard.next;
-    }
-    return instruction.next;
   }
 }

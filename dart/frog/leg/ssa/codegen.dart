@@ -73,14 +73,13 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   void addBailoutVersion(List<HTypeGuard> guards, WorkItem work) {
     int length = guards.length;
-    Map<BailoutInfo, BailoutInfo> bailouts =
-        new Map<BailoutInfo, BailoutInfo>();
-    int state = 1;
+    Map<int, BailoutInfo> bailouts = new Map<int, BailoutInfo>();
+    int bailoutId = 1;
     guards.forEach((HTypeGuard guard) {
       if (guard.guarded is !HParameterValue) {
-        BailoutInfo info = new BailoutInfo(
-            guard.originalBlockNumber, guard.instructionNumber, state++);
-        bailouts[info] = info;
+        int originalGuardedId = guard.originalGuardedId;
+        BailoutInfo info = new BailoutInfo(originalGuardedId, bailoutId++);
+        bailouts[originalGuardedId] = info;
       }
     });
     compiler.enqueue(new WorkItem.bailoutVersion(

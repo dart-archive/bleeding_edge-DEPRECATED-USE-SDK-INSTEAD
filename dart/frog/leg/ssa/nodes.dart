@@ -888,17 +888,11 @@ class HCheck extends HInstruction {
 }
 
 class HTypeGuard extends HInstruction {
-  final int originalBlockNumber = null;
-  final int instructionNumber = null;
+  // Instruction id of the original guarded instruction.
+  final int originalGuardedId;
 
-  HTypeGuard(HType type, HInstruction value) : super(<HInstruction>[value]) {
-    this.type = type;
-  }
-
-  HTypeGuard.forBailout(HType type,
-                        List<HInstruction> env,
-                        int this.originalBlockNumber,
-                        int this.instructionNumber) : super(env) {
+  HTypeGuard(HType type, List<HInstruction> env, int this.originalGuardedId)
+    : super(env) {
     this.type = type;
   }
 
@@ -1561,7 +1555,7 @@ class HLoopBranch extends HConditionalBranch {
  * parts of strings from a string interpolation might be missing one or
  * both quotes.
  */
- class QuotedString {
+class QuotedString {
   // Bits of flag values.
   static final int NO_FLAGS = 0;
   static final int RAW = 1 << 0;
