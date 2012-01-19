@@ -132,3 +132,26 @@ class Element implements Hashable {
     return node.type;
   }
 }
+
+/**
+ * An [Element] representing something in the top level JavaScript environment.
+ */
+class ExistingJsGlobal extends Element {
+  /** The element causing this alias. */
+  final Element declaringElement;
+
+  ExistingJsGlobal(name, this.declaringElement) : super(name, null);
+
+  /** Should this element be treated as native JS? */
+  bool get isNative() => true;
+
+  /** This must be the highest possible priority. */
+  int get jsnamePriority() => 10;
+
+  /** A source location for messages to the user about this [Element]. */
+  SourceSpan get span() => declaringElement.span;
+
+  /** A library for messages. */
+  Library get library() => declaringElement.library;
+
+}

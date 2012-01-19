@@ -2320,7 +2320,12 @@ function get$process() {
 }
 //  ********** Library file_system **************
 // ********** Code for top level **************
+function canonicalizePath(path) {
+  return path.replaceAll("\\", "/");
+}
 function joinPaths(path1, path2) {
+  path1 = canonicalizePath(path1);
+  path2 = canonicalizePath(path2);
   var pieces = path1.split("/");
   var $$list = path2.split("/");
   for (var $$i = 0;$$i < $$list.get$length(); $$i++) {
@@ -2338,6 +2343,7 @@ function joinPaths(path1, path2) {
   return Strings.join(pieces, "/");
 }
 function dirname(path) {
+  path = canonicalizePath(path);
   var lastSlash = path.lastIndexOf("/", path.length);
   if (lastSlash == (-1)) {
     return ".";
@@ -2347,6 +2353,7 @@ function dirname(path) {
   }
 }
 function basename(path) {
+  path = canonicalizePath(path);
   var lastSlash = path.lastIndexOf("/", path.length);
   if (lastSlash == (-1)) {
     return path;
@@ -2814,6 +2821,24 @@ Element.prototype.resolveType = function(node, typeErrors) {
 Element.prototype.hashCode$0 = Element.prototype.hashCode;
 Element.prototype.resolve$0 = Element.prototype.resolve;
 Element.prototype.resolveType$2 = Element.prototype.resolveType;
+// ********** Code for ExistingJsGlobal **************
+$inherits(ExistingJsGlobal, Element);
+function ExistingJsGlobal(name, declaringElement) {
+  this.declaringElement = declaringElement;
+  Element.call(this, name, null);
+}
+ExistingJsGlobal.prototype.get$isNative = function() {
+  return true;
+}
+ExistingJsGlobal.prototype.get$jsnamePriority = function() {
+  return (10);
+}
+ExistingJsGlobal.prototype.get$span = function() {
+  return this.declaringElement.get$span();
+}
+ExistingJsGlobal.prototype.get$library = function() {
+  return this.declaringElement.get$library();
+}
 // ********** Code for WorldGenerator **************
 function WorldGenerator(main, writer) {
   this.main = main;
@@ -12095,7 +12120,7 @@ DefinedType.prototype.resolve = function() {
     var $$list = this.members.getValues();
     for (var $$i = $$list.iterator$0(); $$i.hasNext$0(); ) {
       var m = $$i.next$0();
-      if (!m.get$isStatic()) $globals.world._addTopName(m);
+      if (!m.get$isStatic()) $globals.world._addTopName(new ExistingJsGlobal(m.get$name(), m));
     }
   }
 }
@@ -14009,39 +14034,41 @@ World.prototype._addMember = function(member) {
 }
 World.prototype._addTopName = function(named) {
   if ((named instanceof Type) && named.get$isNative()) {
-    this._addJavascriptTopName(named, named.get$nativeName());
+    if (named.get$avoidNativeName()) {
+      this._addJavascriptTopName(new ExistingJsGlobal(named.get$nativeName(), named), named.get$nativeName());
+    }
+    else {
+      this._addJavascriptTopName(named, named.get$nativeName());
+    }
   }
   this._addJavascriptTopName(named, named.get$jsname());
 }
 World.prototype._addJavascriptTopName = function(named, name) {
   var existing = this._topNames.$index(name);
-  if (existing == named) {
-    if (named.get$avoidNativeName()) {
-      this._renameJavascriptTopName(named);
-    }
+  if (existing == null) {
+    this._topNames.$setindex(name, named);
+    return;
   }
-  else if (existing != null) {
-    this.info(("mangling matching top level name \"" + named.get$jsname() + "\" in ") + ("both \"" + named.get$library().get$jsname() + "\" and \"" + existing.get$library().get$jsname() + "\""));
-    var existingPri = existing.get$jsnamePriority();
-    var namedPri = named.get$jsnamePriority();
-    if (existingPri > namedPri || namedPri == (0)) {
-      this._renameJavascriptTopName(named);
-    }
-    else if (namedPri > existingPri) {
-      this._renameJavascriptTopName(existing);
-    }
-    else {
-      var msg = ("conflicting JS name \"" + name + "\" of same ") + ("priority " + existingPri + ": (already defined in) ") + ("" + existing.get$span().get$locationText() + " with priority " + namedPri + ")");
-      if (named.get$isNative()) {
-        $globals.world.info(msg, named.get$span(), existing.get$span());
-      }
-      else {
-        $globals.world.internalError(msg, named.get$span(), existing.get$span());
-      }
-    }
+  if (existing == named) {
+    return;
+  }
+  this.info(("mangling matching top level name \"" + named.get$jsname() + "\" in ") + ("both \"" + named.get$library().get$jsname() + "\" and \"" + existing.get$library().get$jsname() + "\""));
+  var existingPri = existing.get$jsnamePriority();
+  var namedPri = named.get$jsnamePriority();
+  if (existingPri > namedPri || namedPri == (0)) {
+    this._renameJavascriptTopName(named);
+  }
+  else if (namedPri > existingPri) {
+    this._renameJavascriptTopName(existing);
   }
   else {
-    this._topNames.$setindex(name, named);
+    var msg = ("conflicting JS name \"" + name + "\" of same ") + ("priority " + existingPri + ": (already defined in) ") + ("" + existing.get$span().get$locationText() + " with priority " + namedPri + ")");
+    if (named.get$isNative()) {
+      $globals.world.info(msg, named.get$span(), existing.get$span());
+    }
+    else {
+      $globals.world.internalError(msg, named.get$span(), existing.get$span());
+    }
   }
 }
 World.prototype._renameJavascriptTopName = function(named) {

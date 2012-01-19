@@ -1008,7 +1008,7 @@ class DefinedType extends Type {
     // native names, so we don't clobber them with other Dart top-level names.
     if (isJsGlobalObject) {
       for (var m in members.getValues()) {
-        if (!m.isStatic) world._addTopName(m);
+        if (!m.isStatic) world._addTopName(new ExistingJsGlobal(m.name, m));
       }
     }
   }

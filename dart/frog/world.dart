@@ -219,26 +219,8 @@ class World {
    */
   _addTopName(Element named) {
     if (named is Type && named.isNative) {
-      // Reserve the native name if we have one. This ensures no other type
-      // will take our native name.
-      _addJavascriptTopName(named, named.nativeName);
-    }
-    _addJavascriptTopName(named, named.jsname);
-  }
-
-  /**
-   * Reserves [name] in the generated JS, or renames the lower priority
-   * [Element] if the name we wanted was already taken.
-   */
-  _addJavascriptTopName(Element named, String name) {
-    var existing = _topNames[name];
-    if (existing === named) {
-      // We're conflicting with ourself:
-
       if (named.avoidNativeName) {
-        // Avoid using hidden native class names, because we want to use it in
-        // our native implementation code.
-        //
+        // Mark the native name as unavailable for any type.
         // Consider:
         //  #library('public');
         //   interface DOMWindow { ... }
@@ -249,42 +231,66 @@ class World {
         //
         // The global name 'DOMWindow' will be reserved for the native
         // implementation, so all of them need to be renamed to avoid conflict.
-        _renameJavascriptTopName(named);
-      }
+        _addJavascriptTopName(new ExistingJsGlobal(named.nativeName, named),
+                              named.nativeName);
 
-      // Otherwise the conflict is harmless. Do nothing.
-    } else if (existing != null) {
-      info('mangling matching top level name "${named.jsname}" in '
-          + 'both "${named.library.jsname}" and "${existing.library.jsname}"');
-
-      // resolve conflicts based on priority
-      int existingPri = existing.jsnamePriority;
-      int namedPri = named.jsnamePriority;
-      if (existingPri > namedPri || namedPri == 0) {
-        // Either existing was higher priority, or they're both 0 so first one
-        // wins.
-        _renameJavascriptTopName(named);
-      } else if (namedPri > existingPri) {
-        // New one takes priority over existing
-        _renameJavascriptTopName(existing);
       } else {
-        final msg = 'conflicting JS name "$name" of same '
-            + 'priority $existingPri: (already defined in) '
-            + '${existing.span.locationText} with priority $namedPri)';
-        if (named.isNative) {
-          // We trust that conflicting native names in builtin libraries are
-          // harmless. Most cases there are no conflicts, currently isolates
-          // in coreimpl and dart:dom define web workers to avoid adding a
-          // dependency from corelib to dart:dom.
-          world.info(msg, named.span, existing.span);
-        } else {
-          // Conflicting name in corelib needs to be fixed.
-          world.internalError(msg, named.span, existing.span);
-        }
+        // Reserve the native name for this type. This ensures no other type
+        // will take the native name.  In the above example removing '*':
+        //
+        //   class DOMWindow implements public.DOMWindow native 'DOMWindow' { }
+        //
+        // class impl.DOMWindow gets the JS name 'DOMWindow'.
+        _addJavascriptTopName(named, named.nativeName);
       }
-    } else {
+    }
+    _addJavascriptTopName(named, named.jsname);
+  }
+
+  /**
+   * Reserves [name] in the generated JS, or renames the lower priority
+   * [Element] if the name we wanted was already taken.
+   */
+  _addJavascriptTopName(Element named, String name) {
+    var existing = _topNames[name];
+    if (existing == null) {
       // No one was using the name. Take it for ourselves.
       _topNames[name] = named;
+      return;
+    }
+    if (existing === named) {
+      // This happens for a simple non-hidden native class where the native name
+      // is the same as the default jsname, e.g. class A native 'A' {}.
+      return;
+    }
+
+    info('mangling matching top level name "${named.jsname}" in '
+         + 'both "${named.library.jsname}" and "${existing.library.jsname}"');
+
+    // resolve conflicts based on priority
+    int existingPri = existing.jsnamePriority;
+    int namedPri = named.jsnamePriority;
+    if (existingPri > namedPri || namedPri == 0) {
+      // Either existing was higher priority, or they're both 0 so first one
+      // wins.
+      _renameJavascriptTopName(named);
+    } else if (namedPri > existingPri) {
+      // New one takes priority over existing
+      _renameJavascriptTopName(existing);
+    } else {
+      final msg = 'conflicting JS name "$name" of same '
+          + 'priority $existingPri: (already defined in) '
+          + '${existing.span.locationText} with priority $namedPri)';
+      if (named.isNative) {
+        // We trust that conflicting native names in builtin libraries are
+        // harmless. Most cases there are no conflicts, currently isolates
+        // in coreimpl and dart:dom both define web workers to avoid adding a
+        // dependency from corelib to dart:dom.
+        world.info(msg, named.span, existing.span);
+      } else {
+        // Conflicting name in corelib needs to be fixed.
+        world.internalError(msg, named.span, existing.span);
+      }
     }
   }
 
