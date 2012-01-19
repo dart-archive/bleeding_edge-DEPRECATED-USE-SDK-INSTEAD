@@ -36,7 +36,7 @@ testLocals(List variables) {
   Element element = visitor.visit(createLocals(variables));
   // A VariableDefinitions does not have an element.
   Expect.equals(null, element);
-  Expect.equals(variables.length, visitor.mapping.map.length);
+  Expect.equals(variables.length, map(visitor).length);
 
   for (final variable in variables) {
     final name = variable[0];
@@ -85,7 +85,7 @@ testSuperCalls() {
   FullResolverVisitor visitor = new FullResolverVisitor(compiler, fooB);
   FunctionExpression node = fooB.parseNode(compiler, compiler);
   visitor.visit(node.body);
-  Map mapping = visitor.mapping.map;
+  Map mapping = map(visitor);
 
   Send superCall = node.body.asReturn().expression;
   FunctionElement called = mapping[superCall];
@@ -104,7 +104,7 @@ testThis() {
   FullResolverVisitor visitor = new FullResolverVisitor(compiler, funElement);
   FunctionExpression function = funElement.parseNode(compiler, compiler);
   visitor.visit(function.body);
-  Map mapping = visitor.mapping.map;
+  Map mapping = map(visitor);
   List<Element> values = mapping.getValues();
   Expect.equals(0, mapping.length);
   Expect.equals(0, compiler.warnings.length);
@@ -161,9 +161,9 @@ testLocalsTwo() {
   Expect.equals(null, element);
   BlockScope scope = visitor.context;
   Expect.equals(0, scope.elements.length);
-  Expect.equals(2, visitor.mapping.map.length);
+  Expect.equals(2, map(visitor).length);
 
-  List<Element> elements = visitor.mapping.map.getValues();
+  List<Element> elements = map(visitor).getValues();
   Expect.notEquals(elements[0], elements[1]);
 }
 
@@ -175,8 +175,8 @@ testLocalsThree() {
   Expect.equals(null, element);
   BlockScope scope = visitor.context;
   Expect.equals(0, scope.elements.length);
-  Expect.equals(2, visitor.mapping.map.length);
-  List<Element> elements = visitor.mapping.map.getValues();
+  Expect.equals(2, map(visitor).length);
+  List<Element> elements = map(visitor).getValues();
   Expect.equals(elements[0], elements[1]);
 }
 
@@ -188,8 +188,8 @@ testLocalsFour() {
   Expect.equals(null, element);
   BlockScope scope = visitor.context;
   Expect.equals(0, scope.elements.length);
-  Expect.equals(2, visitor.mapping.map.length);
-  List<Element> elements = visitor.mapping.map.getValues();
+  Expect.equals(2, map(visitor).length);
+  List<Element> elements = map(visitor).getValues();
   Expect.notEquals(elements[0], elements[1]);
 }
 
@@ -201,7 +201,7 @@ testLocalsFive() {
   Expect.equals(null, element);
   BlockScope scope = visitor.context;
   Expect.equals(0, scope.elements.length);
-  Expect.equals(4, visitor.mapping.map.length);
+  Expect.equals(4, map(visitor).length);
 
   Block thenPart = tree.thenPart;
   List statements1 = thenPart.statements.nodes.toList();
@@ -248,7 +248,7 @@ testFor() {
 
   BlockScope scope = visitor.context;
   Expect.equals(0, scope.elements.length);
-  Expect.equals(6, visitor.mapping.map.length);
+  Expect.equals(6, map(visitor).length);
 
   VariableDefinitions initializer = tree.initializer;
   Node iNode = initializer.definitions.nodes.head;
@@ -256,9 +256,9 @@ testFor() {
 
   // Check that we have the expected nodes. This test relies on the mapping
   // field to be a linked hash map (preserving insertion order).
-  Expect.isTrue(visitor.mapping.map is LinkedHashMap);
-  List<Node> nodes = visitor.mapping.map.getKeys();
-  List<Element> elements = visitor.mapping.map.getValues();
+  Expect.isTrue(map(visitor) is LinkedHashMap);
+  List<Node> nodes = map(visitor).getKeys();
+  List<Element> elements = map(visitor).getValues();
 
   Expect.isTrue(nodes[0] is TypeAnnotation);  // int
 
@@ -459,7 +459,7 @@ resolveConstructor(String script, String statement, String className,
   FunctionExpression tree = element.parseNode(compiler, compiler);
   ResolverVisitor visitor = new FullResolverVisitor(compiler, element);
   compiler.resolver.resolveInitializers(element, tree, visitor);
-  Expect.equals(expectedElementCount, visitor.mapping.map.length);
+  Expect.equals(expectedElementCount, map(visitor).length);
 
   compareWarningKinds(script, expectedWarnings, compiler.warnings);
   compareWarningKinds(script, expectedErrors, compiler.errors);
@@ -501,6 +501,11 @@ testInitializers() {
               }""";
   resolveConstructor(script, "A a = new A();", "A", "A", 2,
                      [], [MessageKind.NOT_STATIC]);
+}
+
+map(FullResolverVisitor visitor) {
+  TreeElementMapping elements = visitor.mapping;
+  return elements.map;
 }
 
 length(Link link) => link.isEmpty() ? 0 : length(link.tail) + 1;

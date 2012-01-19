@@ -340,7 +340,7 @@ void setup() {
 Type analyzeType(String text) {
   var node = parseExpression(text);
   TypeCheckerVisitor visitor =
-      new TypeCheckerVisitor(compiler, new TreeElements(), types);
+      new TypeCheckerVisitor(compiler, new TreeElementMapping(), types);
   return visitor.analyze(node);
 }
 

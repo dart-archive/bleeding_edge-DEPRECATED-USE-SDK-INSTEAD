@@ -877,7 +877,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
         // We get the load of a phi that was turned into a local in
         // the environment. Update the local with that load.
         HLoad load = input;
-        setup.add('      ${local(input.local)} = env[$i];\n');
+        setup.add('      ${local(load.local)} = env[$i];\n');
       }
       i++;
     }

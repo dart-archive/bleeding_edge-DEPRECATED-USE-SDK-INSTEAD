@@ -2,9 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class TreeElements {
+interface TreeElements {
+  Element operator[](Node node);
+}
+
+class TreeElementMapping implements TreeElements {
   Map<Node, Element> map;
-  TreeElements() : map = new LinkedHashMap<Node, Element>();
+  TreeElementMapping() : map = new LinkedHashMap<Node, Element>();
   operator []=(Node node, Element element) => map[node] = element;
   operator [](Node node) => map[node];
 }
@@ -137,7 +141,7 @@ class ResolverTask extends CompilerTask {
 // TODO(ahe): Frog cannot handle generic types.
 class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
   final Compiler compiler;
-  final TreeElements mapping;
+  final TreeElementMapping mapping;
   final Element enclosingElement;
   bool inInstanceContext;
   Scope context;
@@ -146,7 +150,7 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
 
   ResolverVisitor(Compiler compiler, Element element)
     : this.compiler = compiler,
-      this.mapping  = new TreeElements(),
+      this.mapping  = new TreeElementMapping(),
       this.enclosingElement = element,
       inInstanceContext = element.isInstanceMember()
           || element.isGenerativeConstructor(),

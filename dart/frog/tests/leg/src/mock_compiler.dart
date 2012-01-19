@@ -65,12 +65,12 @@ class MockCompiler extends Compiler {
     errors = [];
   }
 
-  TreeElements resolveStatement(String text) {
+  TreeElementMapping resolveStatement(String text) {
     parsedTree = parseStatement(text);
     return resolveNodeStatement(parsedTree);
   }
 
-  TreeElements resolveNodeStatement(Node tree, [ClassElement element]) {
+  TreeElementMapping resolveNodeStatement(Node tree, [ClassElement element]) {
     ResolverVisitor visitor = resolverVisitor();
     if (element != null) {
       visitor.context = new ClassScope(element, universe);
