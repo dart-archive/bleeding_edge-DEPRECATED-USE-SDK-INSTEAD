@@ -25,23 +25,18 @@ import static com.google.dart.tools.ui.swtbot.DartLib.TIME_SERVER_SAMPLE;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
-import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.eclipse.swtbot.swt.finder.keyboard.Keystrokes;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.eclipse.swtbot.swt.finder.waits.Conditions.shellCloses;
 import static org.junit.Assert.fail;
 
 @RunWith(SWTBotJunit4ClassRunner.class)
 public class DartEditorUiTest {
   private static SWTWorkbenchBot bot;
-  private static String workbenchTitle;
 
   @AfterClass
   public static void printResults() {
@@ -57,27 +52,7 @@ public class DartEditorUiTest {
   @BeforeClass
   public static void setUp() {
     bot = new SWTWorkbenchBot();
-    workbenchTitle = bot.activeShell().getText();
     CompilerWarmedUp.waitUntilWarmedUp(bot);
-  }
-
-  @After
-  public void closeAllDialogs() {
-    while (true) {
-      SWTBotShell shell;
-      try {
-        shell = bot.activeShell();
-      } catch (WidgetNotFoundException e) {
-        // ignored
-        break;
-      }
-      if (shell == null || shell.getText().equals(workbenchTitle)) {
-        break;
-      }
-      System.out.println("Closing " + shell);
-      shell.pressShortcut(Keystrokes.ESC);
-      bot.waitUntil(shellCloses(shell), 20000);
-    }
   }
 
   @Test

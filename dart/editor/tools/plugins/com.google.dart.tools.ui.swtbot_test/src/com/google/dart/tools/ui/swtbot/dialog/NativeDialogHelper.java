@@ -19,7 +19,9 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
+import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
 
 import java.util.concurrent.CountDownLatch;
@@ -41,6 +43,22 @@ class NativeDialogHelper {
     this.bot = bot;
     this.display = bot.getDisplay();
     this.originalShell = getActiveShell();
+  }
+
+  /**
+   * Ensure that the native shell opened by this helper has been closed
+   */
+  protected void ensureNativeShellClosed() {
+    SWTBotShell activeShell = null;
+    try {
+      activeShell = bot.activeShell();
+    } catch (WidgetNotFoundException e) {
+      //$FALL-THROUGH$
+    }
+    if (activeShell == null) {
+      System.out.println("Active shell is null or not found... attempting to close native dialog");
+      typeKeyCode(SWT.ESC);
+    }
   }
 
   /**

@@ -46,17 +46,22 @@ public class OpenLibraryHelper extends NativeDialogHelper {
     bot.menu("File").menu("Open...").click();
     waitForNativeShellShowing();
 
-    // Type the absolute path to the library
-    typeKeyCode(SWT.MOD1 | 'a'); // Select all
-    bot.sleep(100);
-    typeText(lib.dartFile.getAbsolutePath());
-    bot.sleep(1000);
+    try {
+      // Type the absolute path to the library
+      typeKeyCode(SWT.MOD1 | 'a'); // Select all
+      bot.sleep(100);
+      typeText(lib.dartFile.getAbsolutePath());
+      bot.sleep(1000);
 
-    // Press Enter and wait for the operation to complete
-    typeChar(SWT.CR);
-    lib.logFullCompileTime();
-    EditorWithTitle matcher = new EditorWithTitle(lib.dartFile.getName());
-    Performance.OPEN_LIB.log(bot, waitForEditor(matcher), lib.name);
-    lib.editor = bot.editor(matcher).toTextEditor();
+      // Press Enter and wait for the operation to complete
+      typeChar(SWT.CR);
+      lib.logFullCompileTime();
+      EditorWithTitle matcher = new EditorWithTitle(lib.dartFile.getName());
+      Performance.OPEN_LIB.log(bot, waitForEditor(matcher), lib.name);
+      lib.editor = bot.editor(matcher).toTextEditor();
+
+    } finally {
+      ensureNativeShellClosed();
+    }
   }
 }
