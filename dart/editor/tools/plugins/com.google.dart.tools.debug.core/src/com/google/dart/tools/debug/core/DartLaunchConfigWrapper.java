@@ -37,7 +37,8 @@ public class DartLaunchConfigWrapper {
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
   private static final String VM_HEAP_MB = "vmHeapMB";
 
-  private static final String BROWSER_CONFIG = "browserConfig";
+  private static final String IS_FILE = "launchHtmlFile";
+  private static final String BROWSER_NAME = "browserName";
   private static final String CONNECTION_HOST = "connectionHost";
   private static final String CONNECTION_PORT = "connectionPort";
 
@@ -103,11 +104,11 @@ public class DartLaunchConfigWrapper {
   }
 
   /**
-   * @return the browser config to use for the launch configuration
+   * @return the name of browser to use for the launch configuration
    */
-  public String getBrowserConfig() {
+  public String getBrowserName() {
     try {
-      return launchConfig.getAttribute(BROWSER_CONFIG, "");
+      return launchConfig.getAttribute(BROWSER_NAME, "");
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);
 
@@ -165,6 +166,16 @@ public class DartLaunchConfigWrapper {
       DartDebugCorePlugin.logError(e);
 
       return "";
+    }
+  }
+
+  public boolean getShouldLaunchFile() {
+    try {
+      return launchConfig.getAttribute(IS_FILE, true);
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return true;
     }
   }
 
@@ -238,10 +249,10 @@ public class DartLaunchConfigWrapper {
   }
 
   /**
-   * @see #getBrowserConfig()
+   * @see #getBrowserName()
    */
-  public void setBrowserConfig(String value) {
-    getWorkingCopy().setAttribute(BROWSER_CONFIG, value);
+  public void setBrowserName(String value) {
+    getWorkingCopy().setAttribute(BROWSER_NAME, value);
   }
 
   public void setCheckedMode(boolean value) {
@@ -264,6 +275,10 @@ public class DartLaunchConfigWrapper {
 
   public void setHeapMB(String value) {
     getWorkingCopy().setAttribute(VM_HEAP_MB, value);
+  }
+
+  public void setShouldLaunchFile(boolean value) {
+    getWorkingCopy().setAttribute(IS_FILE, value);
   }
 
   /**

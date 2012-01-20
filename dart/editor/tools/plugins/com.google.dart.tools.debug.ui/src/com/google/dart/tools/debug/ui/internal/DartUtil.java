@@ -16,34 +16,16 @@ package com.google.dart.tools.debug.ui.internal;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.debug.ui.internal.browser.ILaunchConstants;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.debug.core.ILaunchConfiguration;
 
 /**
  * Utility methods for the Dart Debug UI
  */
 public class DartUtil {
-
-  /**
-   * Answer the launch type specified in the given configuration
-   * 
-   * @param config the configuration (not <code>null</code>)
-   * @return the launch type
-   */
-  public static int getLaunchType(ILaunchConfiguration config) {
-    try {
-      return config.getAttribute(ILaunchConstants.ATTR_LAUNCH_TYPE,
-          ILaunchConstants.LAUNCH_TYPE_WEB_CLIENT);
-    } catch (CoreException e) {
-      logError(e);
-      return ILaunchConstants.LAUNCH_TYPE_WEB_CLIENT;
-    }
-  }
 
   /**
    * Return <code>true</code> if the given element is a Dart application file.
@@ -72,23 +54,6 @@ public class DartUtil {
       return false;
     }
     return isDartApp(DartCore.create(resource));
-  }
-
-  /**
-   * Determine if the web client should be displayed in an external web browser
-   * 
-   * @param config the configuration (not <code>null</code>)
-   * @return <code>true</code> if the page should be displayed in an external web browser or
-   *         <code>false</code> if the page should be displayed in a web browser embedded in
-   *         Eclipse.
-   */
-  public static boolean isExternalBrowser(ILaunchConfiguration config) {
-    try {
-      return config.getAttribute(ILaunchConstants.ATTR_EXTERNAL_BROWSER, false);
-    } catch (CoreException e) {
-      logError(e);
-      return false;
-    }
   }
 
   /**

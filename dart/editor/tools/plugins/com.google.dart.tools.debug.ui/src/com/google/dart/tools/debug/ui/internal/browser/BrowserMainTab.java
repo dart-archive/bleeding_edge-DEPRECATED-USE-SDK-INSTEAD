@@ -15,45 +15,111 @@ package com.google.dart.tools.debug.ui.internal.browser;
 
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
-import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.debug.ui.internal.dartium.DartiumMainTab;
+import com.google.dart.tools.debug.ui.internal.preferences.DebugPreferenceMessages;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.layout.PixelConverter;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.program.Program;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.dialogs.ListDialog;
 
 /**
- * Main Dart Launch/Debug configuration tab
+ * Main launch tab for Browser launch configurations
  */
-public class BrowserMainTab extends AbstractLaunchConfigurationTab {
+public class BrowserMainTab extends DartiumMainTab {
 
-  private BrowserLaunchConfigurationPanel panel;
-  private int initialLaunchType;
-  private String initialResPath;
-  private boolean initialExternal;
+  private class ProgramLabelProvider extends LabelProvider {
+
+    @Override
+    public Image getImage(Object element) {
+      ImageData data = ((Program) element).getImageData();
+      return (data == null) ? null : new Image(Display.getDefault(), data);
+    }
+
+    @Override
+    public String getText(Object element) {
+      return ((Program) element).getName();
+    }
+
+  }
+
+  private Text browserText;;
+
+  private ModifyListener textModifyListener = new ModifyListener() {
+    @Override
+    public void modifyText(ModifyEvent e) {
+      notifyPanelChanged();
+    }
+  };
 
   @Override
   public void createControl(Composite parent) {
-    panel = new BrowserLaunchConfigurationPanel(parent, SWT.NONE, this);
-    setControl(panel);
 
-    // TODO (danrubel) implement help
-    // if (helpContextId != null) {
-    // PlatformUI.getWorkbench().getHelpSystem().setHelp(group, helpContextId);
-    // }
+    Composite composite = new Composite(parent, SWT.NONE);
+    GridLayoutFactory.swtDefaults().spacing(1, 3).applyTo(composite);
 
-    // Use asyncExec(...) rather then scheduleUpdateJob()
-    // so that this code will execute in Eclipse 3.5
-    parent.getDisplay().asyncExec(new Runnable() {
+    // Project group
+    Group group = new Group(composite, SWT.NONE);
+    group.setText(Messages.BrowserMainTab_LaunchTarget);
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
+
+    createHtmlField(group);
+
+    Label filler = new Label(group, SWT.NONE);
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(filler);
+
+    createUrlField(group);
+
+    Label filler2 = new Label(group, SWT.NONE);
+    GridDataFactory.swtDefaults().grab(true, false).applyTo(filler2);
+
+    Group browserGroup = new Group(composite, SWT.NONE);
+    browserGroup.setText(Messages.BrowserMainTab_Browser);
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(browserGroup);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(browserGroup);
+
+    Label browserLabel = new Label(browserGroup, SWT.NONE);
+    browserLabel.setText(Messages.BrowserMainTab_Browser);
+    browserText = new Text(browserGroup, SWT.BORDER | SWT.SINGLE);
+    browserText.addModifyListener(textModifyListener);
+    browserText.setEditable(false);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(browserText);
+
+    Button selectBrowserButton = new Button(browserGroup, SWT.PUSH);
+    selectBrowserButton.setText(Messages.BrowserMainTab_Select);
+    PixelConverter converter = new PixelConverter(selectBrowserButton);
+    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
+    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(selectBrowserButton);
+    selectBrowserButton.addSelectionListener(new SelectionAdapter() {
       @Override
-      public void run() {
-        updateLaunchConfigurationDialog();
+      public void widgetSelected(SelectionEvent e) {
+        handleBrowserConfigBrowseButton();
       }
     });
+
+    setControl(composite);
   }
 
   @Override
@@ -65,12 +131,32 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
     }
   }
 
+  @Override
+  public String getErrorMessage() {
+
+    String message = super.getErrorMessage();
+    if (message != null) {
+      return message;
+    }
+
+    if (browserText.getText().length() == 0) {
+      return Messages.BrowserMainTab_BrowserNotSpecifiedErrorMessage;
+    }
+    return null;
+
+  }
+
   /**
    * Answer the image to show in the configuration tab or <code>null</code> if none
    */
   @Override
   public Image getImage() {
-    return DartDebugUIPlugin.getImage("dart_app.png");
+    return DartDebugUIPlugin.getImage("dart_app.png"); //$NON-NLS-1$
+  }
+
+  @Override
+  public String getMessage() {
+    return Messages.BrowserMainTab_Description;
   }
 
   /**
@@ -78,7 +164,7 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
    */
   @Override
   public String getName() {
-    return "Main";
+    return Messages.BrowserMainTab_Name;
   }
 
   /**
@@ -86,34 +172,10 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
    */
   @Override
   public void initializeFrom(ILaunchConfiguration config) {
-    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
+    super.initializeFrom(config);
+    DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(config);
+    browserText.setText(dartLauncher.getBrowserName());
 
-    initialLaunchType = DartUtil.getLaunchType(config);
-    initialResPath = launchWrapper.getApplicationName();
-    initialExternal = DartUtil.isExternalBrowser(config);
-
-    panel.setLaunchType(initialLaunchType);
-    panel.setResourcePath(initialResPath);
-    panel.setExternalBrowser(initialExternal);
-  }
-
-  /**
-   * Determine if the configuration can be launched
-   */
-  @Override
-  public boolean isValid(ILaunchConfiguration config) {
-    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
-
-    IResource resource = launchWrapper.getApplicationResource();
-
-    if (resource == null) {
-      return false;
-    }
-    if (!resource.exists()) {
-      return false;
-    }
-
-    return DartUtil.isWebPage(resource) || DartUtil.isDartApp(resource);
   }
 
   /**
@@ -121,30 +183,28 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
    */
   @Override
   public void performApply(ILaunchConfigurationWorkingCopy config) {
-    initialLaunchType = panel.getLaunchType();
-    initialResPath = panel.getResourcePath();
-    initialExternal = panel.isExternalBrowser();
+    super.performApply(config);
 
-    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
+    DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(config);
+    dartLauncher.setBrowserName(browserText.getText().trim());
 
-    launchWrapper.setApplicationName(initialResPath);
-
-    config.setAttribute(ILaunchConstants.ATTR_LAUNCH_TYPE, initialLaunchType);
-    //config.setAttribute(ILaunchConstants.ATTR_RESOURCE_PATH, initialResPath);
-    config.setAttribute(ILaunchConstants.ATTR_EXTERNAL_BROWSER, initialExternal);
   }
 
-  @Override
-  public void setDefaults(ILaunchConfigurationWorkingCopy config) {
-    DartUtil.notYetImplemented(config);
+  private void handleBrowserConfigBrowseButton() {
+
+    ListDialog listDialog = new ListDialog(getShell());
+    listDialog.setTitle(DebugPreferenceMessages.DebugPreferencePage_DialogTitle);
+    listDialog.setMessage(DebugPreferenceMessages.DebugPreferencePage_DialogMessage);
+
+    listDialog.setLabelProvider(new ProgramLabelProvider());
+    listDialog.setContentProvider(new ArrayContentProvider());
+    listDialog.setInput(Program.getPrograms());
+
+    if (listDialog.open() == Window.OK) {
+      Object[] result = listDialog.getResult();
+      browserText.setText(((Program) result[0]).getName());
+    }
+
   }
 
-  /**
-   * Called by the {@link BrowserLaunchConfigurationPanel} when the user has changed the panel
-   * content.
-   */
-  void panelChanged() {
-    setDirty(true);
-    updateLaunchConfigurationDialog();
-  }
 }

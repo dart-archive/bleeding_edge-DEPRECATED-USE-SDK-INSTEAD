@@ -55,7 +55,7 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
    * Create a new BrowserLaunchShortcut.
    */
   public BrowserLaunchShortcut() {
-    super("Application");
+    super("Application"); //$NON-NLS-1$
   }
 
   @Override
@@ -103,10 +103,11 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
     DartElement element = DartCore.create(resource);
 
     if (element == null) {
-      DartDebugCorePlugin.logError("File is not associated with a Dart library");
+      DartDebugCorePlugin.logError(Messages.BrowserLaunchShortcut_NotInLibraryErrorMessage);
     } else if (!(element instanceof HTMLFile)) {
-      DartDebugCorePlugin.logError("File is not an html file");
+      DartDebugCorePlugin.logError(Messages.BrowserLaunchShortcut_NotHtmlFileErrorMessage);
     } else {
+
       HTMLFile htmlFile = (HTMLFile) element;
 
       try {
@@ -115,7 +116,7 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
           File jsOutFile = getJsAppArtifactFile(library.getCorrespondingResource().getLocation());
 
           if (!jsOutFile.exists()) {
-            DartDebugCorePlugin.logError("The Javascript output was not generated for the library");
+            DartDebugCorePlugin.logError(Messages.BrowserLaunchShortcut_NoJavascriptErrorMessage);
 //            MessageDialog.openError(
 //                window.getShell(),
 //                NLS.bind("Unable to Launch File {0}", resource.getName()),

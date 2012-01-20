@@ -29,7 +29,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
@@ -53,8 +52,22 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     IResource resource = launchConfig.getApplicationResource();
 
     if (resource instanceof IFile) {
-      launchBrowserForHtmlFile((IFile) resource, launchConfig.getApplicationName());
+      String url = resource.getLocation().toOSString();
+      String browserName = launchConfig.getBrowserName();
+
+      // TODO(keertip): check for js file is done in shortcut, move it here
+      if (!browserName.isEmpty()) {
+        Program program = findProgram(browserName);
+        if (program != null) {
+          program.execute(url);
+        } else {
+          throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+              "Could not find specified browser"));
+        }
+      }
+
     }
+
   }
 
   private Program findProgram(String name) {
@@ -89,7 +102,7 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     if (extension != null) {
       name = name.substring(0, name.length() - extension.length() - 1);
     }
-    name += ".html";
+    name += ".html"; //$NON-NLS-1$
     IContainer container = file.getParent();
     while (container.getType() != IResource.ROOT) {
       IFile htmlFile = container.getFile(new Path(name));
@@ -102,10 +115,11 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     // Otherwise, assume it is a Dart app, and return a web page displaying it
     File appJsFile = DartBuilder.getJsAppArtifactFile(file);
     if (!appJsFile.exists()) {
-      throwCoreException("Compiled Dart application does not exist: " + appJsFile);
+      throwCoreException(Messages.BrowserLaunchConfigurationDelegate_NoJavascriptErrorMessage
+          + appJsFile);
     }
     container = file.getParent();
-    IFile htmlFile = container.getFile(new Path(file.getName()).removeFileExtension().append("html"));
+    IFile htmlFile = container.getFile(new Path(file.getName()).removeFileExtension().append("html")); //$NON-NLS-1$
     if (htmlFile.exists()) {
       return htmlFile;
     }
@@ -129,22 +143,6 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     return htmlFile;
   }
 
-  private void launchBrowserForHtmlFile(IFile file, String location) {
-    // TODO(keertip): change this to use info stored in launch config
-    boolean useDefaultBrowser = false;
-    IEclipsePreferences prefs = DartDebugCorePlugin.getPlugin().getPrefs();
-    useDefaultBrowser = prefs.getBoolean(DartDebugCorePlugin.PREFS_DEFAULT_BROWSER, true);
-    if (!useDefaultBrowser) {
-      String browserName = prefs.get(DartDebugCorePlugin.PREFS_BROWSER_NAME, "");
-      if (!browserName.isEmpty()) {
-        Program program = findProgram(browserName);
-        if (program != null) {
-          program.execute(location);
-        }
-      }
-    }
-  }
-
   /**
    * Throw a core exception with the specified message
    * 
@@ -153,5 +151,4 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
   private void throwCoreException(String message) throws CoreException {
     throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, message));
   }
-
 }

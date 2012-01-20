@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A manager that launches and manages configured browsers.
@@ -66,12 +67,13 @@ public class BrowserManager {
       IProgressMonitor monitor, boolean debug) throws CoreException {
     monitor.beginTask("Launching Chromium...", debug ? 9 : 3);
 
-//    String browserName = launchConfig.getBrowserConfig();
-//    ChromeBrowserConfig browserConfig = DartDebugCorePlugin.getPlugin().getChromeBrowserConfig(
-//        browserName);
     File dartium = DartSdk.getInstance().getDartiumExecutable();
 
-    // TODO(devoncarew): we should fail gracefully if dartium == null
+    if (dartium == null) {
+      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+          "Could not find Chromium"));
+    }
+
     IPath browserLocation = new Path(dartium.getAbsolutePath());
 
     String browserName = dartium.getName();
@@ -90,11 +92,25 @@ public class BrowserManager {
       }
     }
 
+    Process process = null;
     monitor.worked(1);
 
-    List<String> arguments = buildArgumentsList(browserLocation, file.getLocation(), debug);
+    ProcessBuilder builder = new ProcessBuilder();
+    Map<String, String> env = builder.environment();
+    // due to differences in 32bit and 64 bit environments, dartium 32bit launch does not work on linux with 
+    // this property
+    env.remove("LD_LIBRARY_PATH");
 
-    Process process = DebugPlugin.exec(arguments.toArray(new String[arguments.size()]), null, null);
+    List<String> arguments = buildArgumentsList(browserLocation, file.getLocation(), debug);
+    builder.command(arguments);
+    builder.directory(new File(DartSdk.getInstance().getDartiumWorkingDirectory()));
+
+    try {
+      process = builder.start();
+    } catch (IOException e) {
+
+      DebugPlugin.logMessage("Exception while starting browser", e);
+    }
 
     if (process == null) {
       throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
