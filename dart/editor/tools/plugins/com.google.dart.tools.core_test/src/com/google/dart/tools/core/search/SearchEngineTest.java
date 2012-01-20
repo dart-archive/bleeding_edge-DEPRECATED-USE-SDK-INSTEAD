@@ -108,7 +108,7 @@ public class SearchEngineTest extends TestCase {
     engine.searchReferences(type, new WorkspaceSearchScope(), null, listener,
         new NullProgressMonitor());
     List<SearchMatch> matches = listener.getMatches();
-    assertEquals(8, matches.size()); // I believe that this should eventually be 17.
+    assertEquals(9, matches.size()); // I believe that this should eventually be 17.
   }
 
   public void test_SearchEngine_searchTypeDeclarations() throws Exception {
