@@ -278,6 +278,8 @@ build system.  The PDE build system has to run under Eclipse.
         <!-- #source("../builtin/eventhandler.dart"); -->
         <!-- #source("../builtin/timer_impl.dart"); -->        
         <!-- #source("../builtin/process_impl.dart"); -->
+        
+        <makeReadonly directoryName="${libraries.out.dir}"/>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
@@ -329,6 +331,7 @@ build system.  The PDE build system has to run under Eclipse.
         <copy todir="${libraries.dev.dir}">
           <fileset dir="${libraries.out.dir}"/>
         </copy>
+        <makeReadonly directoryName="${libraries.dev.dir}"/>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 

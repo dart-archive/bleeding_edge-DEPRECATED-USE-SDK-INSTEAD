@@ -93,6 +93,42 @@
 
     <!--
     ********************************************************************************
+      Macro: makeReadonly
+
+        make all files under the given directory readonly
+
+      required attributes:
+       directoryName      - the starting directory
+
+      optional attributes:
+       none
+
+      ant properties required
+       none
+
+      ant properties set
+       none
+
+    ********************************************************************************
+    -->
+    <macrodef name="makeReadonly">
+        <attribute name="directoryName" />
+        <sequential>
+            <!-- attrib works on windows, and is a no-op on other platforms -->
+            <attrib readonly="true">
+               <fileset dir="@{directoryName}" includes="**/*.dart,**/*.js"/>
+            </attrib>
+            
+            <!-- chmod is a no-op on windows -->
+            <!-- maxparallel is used to avoid max command-line problems -->
+            <chmod perm="a-w" maxparallel="300">
+                <fileset dir="@{directoryName}" includes="**/*.dart,**/*.js"/>
+            </chmod>
+        </sequential>
+    </macrodef>
+    
+    <!--
+    ********************************************************************************
       Macro: setupEclipse
 
         Install Eclipse from the Eclipse Classic zip file into the given location, this macro is 
