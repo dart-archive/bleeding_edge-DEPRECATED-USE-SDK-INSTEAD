@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -808,16 +808,19 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         _scrolledByKeyboard = false;
         return;
       }
-      int scrollTop = _tableScrollContainer.scrollTop;
-      int row = _getAbsRowOrColumn(scrollTop, ROW) - 1;
-      int col = _getAbsRowOrColumn(_tableScrollContainer.scrollLeft, COL) - 1;
-      int newRowShift = Math.max(0, row);
-      int newColumnShift = Math.max(0, col);
-      if (newRowShift != _rowShift || newColumnShift != _columnShift) {
-        _rowShift = newRowShift;
-        _columnShift = newColumnShift;
-        _spreadsheet.refresh();
-      }
+      Future<ElementRect> future = _tableScrollContainer.rect;
+      future.then((ElementRect rect) {
+        int scrollTop = rect.scroll.top;
+        int row = _getAbsRowOrColumn(scrollTop, ROW) - 1;
+        int col = _getAbsRowOrColumn(rect.scroll.left, COL) - 1;
+        int newRowShift = Math.max(0, row);
+        int newColumnShift = Math.max(0, col);
+        if (newRowShift != _rowShift || newColumnShift != _columnShift) {
+          _rowShift = newRowShift;
+          _columnShift = newColumnShift;
+          _spreadsheet.refresh();
+        }
+      });
     });
   }
 
