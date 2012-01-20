@@ -39,26 +39,44 @@ class MemberListener extends NodeListener {
                  [Element this.enclosingElement = null])
     : super(canceler, logger);
 
-  bool isConstructor(Identifier name) {
-    return enclosingElement !== null &&
-           enclosingElement.kind == ElementKind.CLASS &&
-           enclosingElement.name == name.source;
+  bool isConstructorName(Node nameNode) {
+    if (enclosingElement === null ||
+        enclosingElement.kind != ElementKind.CLASS) {
+      return false;
+    }
+    SourceString name;
+    if (nameNode.asIdentifier() != null) {
+      name = nameNode.asIdentifier().source;
+    } else {
+      Send send = nameNode.asSend();
+      name = send.receiver.asIdentifier().source;
+    }
+    return enclosingElement.name == name;
   }
 
   void endMethod(Token beginToken, Token endToken) {
     super.endMethod(beginToken, endToken);
     FunctionExpression method = popNode();
     pushNode(null);
-    Expression qualified = method.name;
-    Identifier name = qualified.asIdentifier();
-    if (name === null) {
-      canceler.cancel('qualified names are not implemented', node: qualified);
+    bool isConstructor = isConstructorName(method.name);
+    SourceString name;
+    Node methodName = method.name;
+    if (methodName.asSend() != null) {
+      Send send = methodName.asSend();
+      // TODO(karlklose): find a better place for the construction of the name.
+      Identifier receiver = send.receiver.asIdentifier();
+      Identifier selector = send.selector.asIdentifier();
+      SourceString className = receiver.source;
+      SourceString constructorName = selector.source;
+      name = new SourceString('$className.$constructorName');
+    } else {
+      name = methodName.asIdentifier().source;
     }
-    ElementKind kind = isConstructor(name) ?
+    ElementKind kind = isConstructor ?
                        ElementKind.GENERATIVE_CONSTRUCTOR :
                        ElementKind.FUNCTION;
     Element memberElement =
-        new PartialFunctionElement(name.source, beginToken, endToken,
+        new PartialFunctionElement(name, beginToken, endToken,
                                    kind, method.modifiers, enclosingElement);
     enclosingElement.addMember(memberElement);
   }

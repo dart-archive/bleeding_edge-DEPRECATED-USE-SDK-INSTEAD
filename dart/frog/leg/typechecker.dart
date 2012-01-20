@@ -504,8 +504,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     if (node.typeName === null) return types.dynamicType;
     Identifier identifier = node.typeName.asIdentifier();
     if (identifier === null) {
-      compiler.cancel('library prefix not implemented',
-                      node: node.typeName);
+      fail(node.typeName, 'library prefix not implemented');
     }
     // TODO(ahe): Why wasn't this resolved by the resolver?
     Type type = lookupType(identifier.source, compiler, types);

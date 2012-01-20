@@ -46,7 +46,7 @@ class ResolverTask extends CompilerTask {
 
     visitor = new FullResolverVisitor.from(visitor);
     if (tree.initializers != null) {
-      resolveInitializers(element, tree, visitor);
+      new InitializerResolver(visitor, element).resolveInitializers(tree);
     }
     visitor.visit(tree.body);
 
@@ -67,59 +67,6 @@ class ResolverTask extends CompilerTask {
     return visitor.mapping;
   }
 
-  bool isInitializer(SendSet node) {
-    if (node.selector.asIdentifier() == null) return false;
-    if (node.receiver == null) return true;
-    if (node.receiver.asIdentifier() == null) return false;
-    return node.receiver.asIdentifier().isThis();
-  }
-
-  SourceString getInitializerFieldName(SendSet node, onError(node)) {
-    if (!isInitializer(node)) onError(node);
-    return node.selector.asIdentifier().source;
-  }
-
-  void resolveInitializers(Element element, FunctionExpression node,
-                           ResolverVisitor visitor) {
-    void onError(node) {
-      visitor.error(node, MessageKind.INVALID_RECEIVER_IN_INITIALIZER);
-    }
-    Map<SourceString, Node> initialized = new Map<SourceString, Node>();
-    for (Link<Node> link = node.initializers.nodes;
-         !link.isEmpty();
-         link = link.tail) {
-      if (link.head.asSendSet() != null) {
-        SendSet init = link.head;
-        SourceString name = getInitializerFieldName(init, onError);
-        ClassElement classElement = element.enclosingElement;
-        Element target = classElement.lookupLocalMember(name);
-        Node selector = init.selector;
-        if (target == null) {
-          visitor.error(selector, MessageKind.CANNOT_RESOLVE, [name]);
-        } else if (target.kind != ElementKind.FIELD) {
-          visitor.error(selector, MessageKind.NOT_A_FIELD, [name]);
-        } else if (!target.isInstanceMember()) {
-          visitor.error(selector, MessageKind.INIT_STATIC_FIELD, [name]);
-        }
-        visitor.useElement(init, target);
-        if (initialized.containsKey(name)) {
-          visitor.error(init, MessageKind.DUPLICATE_INITIALIZER, [name]);
-          visitor.warning(initialized[name], MessageKind.ALREADY_INITIALIZED,
-                          [name]);
-        }
-        initialized[name] = init;
-        Node value = init.arguments.head;
-        visitor.visitInStaticContext(value);
-      } else if (link.head.asSend() !== null) {
-        // TODO(karlklose): super(...), this(...).
-        compiler.cancel('uniplemented', node:link.head);
-      } else {
-        compiler.cancel('internal error: invalid initializer',
-                        node: link.head);
-      }
-    }
-  }
-
   void resolveType(ClassElement element) {
     measure(() {
       ClassNode tree = element.parseNode(compiler, compiler);
@@ -137,6 +84,172 @@ class ResolverTask extends CompilerTask {
     });
   }
 }
+
+
+class InitializerResolver {
+  final ResolverVisitor visitor;
+  final FunctionElement constructor;
+  final Map<SourceString, Node> initialized;
+  Link<Node> initializers;
+  bool hasSuper;
+
+  bool isSuperConstructorCall(Send node) {
+    return (node.receiver === null &&
+            node.selector.asIdentifier() !== null &&
+            node.selector.asIdentifier().isSuper()) ||
+           (node.receiver !== null &&
+            node.receiver.asIdentifier() !== null &&
+            node.receiver.asIdentifier().isSuper() &&
+            node.selector.asIdentifier() !== null);
+  }
+
+  bool isConstructorRedirect(Send node) {
+    return (node.receiver === null &&
+            node.selector.asIdentifier() !== null &&
+            node.selector.asIdentifier().isThis()) ||
+           (node.receiver !== null &&
+            node.receiver.asIdentifier() !== null &&
+            node.receiver.asIdentifier().isThis() &&
+            node.selector.asIdentifier() !== null);
+  }
+
+  InitializerResolver(this.visitor, this.constructor)
+    : initialized = new Map<SourceString, Node>(), hasSuper = false;
+
+  error(Node node, MessageKind kind, [arguments = const []]) {
+    visitor.error(node, kind, arguments);
+  }
+
+  warning(Node node, MessageKind kind, [arguments = const []]) {
+    visitor.warning(node, kind, arguments);
+  }
+
+  bool isFieldInitializer(SendSet node) {
+    if (node.selector.asIdentifier() == null) return false;
+    if (node.receiver == null) return true;
+    if (node.receiver.asIdentifier() == null) return false;
+    return node.receiver.asIdentifier().isThis();
+  }
+
+  void resolveFieldInitializer(SendSet init) {
+    // init is of the form [this.]field = value.
+    final Node selector = init.selector;
+    final SourceString name = selector.asIdentifier().source;
+    // Lookup target field.
+    Element target;
+    if (isFieldInitializer(init)) {
+      final ClassElement classElement = constructor.enclosingElement;
+      target = classElement.lookupLocalMember(name);
+      if (target === null) {
+        error(selector, MessageKind.CANNOT_RESOLVE, [name]);
+      } else if (target.kind != ElementKind.FIELD) {
+        error(selector, MessageKind.NOT_A_FIELD, [name]);
+      } else if (!target.isInstanceMember()) {
+        error(selector, MessageKind.INIT_STATIC_FIELD, [name]);
+      }
+    } else {
+      error(init, MessageKind.INVALID_RECEIVER_IN_INITIALIZER);
+    }
+    visitor.useElement(init, target);
+    // Check for duplicate initializers.
+    if (initialized.containsKey(name)) {
+      error(init, MessageKind.DUPLICATE_INITIALIZER, [name]);
+      warning(initialized[name], MessageKind.ALREADY_INITIALIZED, [name]);
+    }
+    initialized[name] = init;
+    // Resolve initializing value.
+    visitor.visitInStaticContext(init.arguments.head);
+  }
+
+  SourceString getConstructorName(Send node) {
+    if (node.receiver !== null) {
+      return node.selector.asIdentifier().source;
+    } else {
+      return const SourceString('');
+    }
+  }
+
+  void resolveSuperOrThis(Send call) {
+    noConstructor(e) {
+      if (e !== null) error(call, MessageKind.NO_CONSTRUCTOR, [e.name, e.kind]);
+    }
+
+    ClassElement lookupTarget = constructor.enclosingElement;
+    bool validTarget = true;
+    if (isSuperConstructorCall(call)) {
+      // Check for invalid initializers.
+      if (hasSuper) {
+        error(call, MessageKind.DUPLICATE_SUPER_INITIALIZER);
+      }
+      hasSuper = true;
+      // Calculate correct lookup target and constructor name.
+      if (lookupTarget.name == Types.OBJECT) {
+        error(call, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
+      } else {
+        lookupTarget = lookupTarget.supertype.element;
+      }
+    } else if (isConstructorRedirect(call)) {
+      // Check that there are no other initializers.
+      if (!initializers.tail.isEmpty()) {
+        error(call, MessageKind.REDIRECTING_CTOR_HAS_INITIALIZER);
+      }
+    } else {
+      visitor.error(call, MessageKind.CONSTRUCTOR_CALL_EXPECTED);
+      validTarget = false;
+    }
+
+    if (validTarget) {
+      final SourceString className = lookupTarget.name;
+      final SourceString constructorName = getConstructorName(call);
+      FunctionElement target =
+          lookupTarget.lookupConstructor(className, constructorName,
+                                         noConstructor);
+      if (target === null && call.arguments.isEmpty()) {
+        target = lookupTarget.getSynthesizedConstructor();
+      }
+      if (target === null) {
+        String name = (constructorName === const SourceString(''))
+                          ? className.stringValue
+                          : "$className.$constructorName";
+        error(call, MessageKind.CANNOT_RESOLVE_CONSTRUCTOR, [name]);
+      } else {
+        final Compiler compiler = visitor.compiler;
+        // TODO(karlklose): support optional arguments.
+        if (target.parameterCount(compiler) != call.argumentCount()) {
+          error(call, MessageKind.NO_MATCHING_CONSTRUCTOR);
+        }
+      }
+      visitor.useElement(call, target);
+    }
+    // Resolve the arguments of the call.
+    for (Link<Node> arguments = call.arguments;
+         !arguments.isEmpty();
+         arguments = arguments.tail) {
+      visitor.visitInStaticContext(arguments.head);
+    }
+  }
+
+  void resolveInitializers(FunctionExpression node) {
+    if (node.initializers === null) return;
+    initializers = node.initializers.nodes;
+    Compiler compiler = visitor.compiler;
+    for (Link<Node> link = initializers;
+         !link.isEmpty();
+         link = link.tail) {
+      if (link.head.asSendSet() != null) {
+        final SendSet init = link.head.asSendSet();
+        resolveFieldInitializer(init);
+      } else if (link.head.asSend() !== null) {
+        final Send call = link.head.asSend();
+        resolveSuperOrThis(call);
+      } else {
+        visitor.compiler.cancel('internal error: invalid initializer',
+                                node: link.head);
+      }
+    }
+  }
+}
+
 
 // TODO(ahe): Frog cannot handle generic types.
 class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
@@ -184,7 +297,7 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
   Element lookup(Node node, SourceString name) {
     Element result = context.lookup(name);
     if (!inInstanceContext && result != null && result.isInstanceMember()) {
-      error(node, MessageKind.NOT_STATIC, [node]);
+      error(node, MessageKind.NO_INSTANCE_AVAILABLE, [node]);
     }
     return result;
   }
@@ -203,7 +316,9 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
 
   visitIdentifier(Identifier node) {
     if (node.isThis()) {
-      if (!inInstanceContext) error(node, MessageKind.NO_THIS_IN_STATIC);
+      if (!inInstanceContext) {
+        error(node, MessageKind.NO_INSTANCE_AVAILABLE, [node]);
+      }
       return null;
     } else if (node.isSuper()) {
       if (!inInstanceContext) error(node, MessageKind.NO_SUPER_IN_STATIC);
@@ -218,25 +333,29 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    Identifier name = node.typeName.asIdentifier();
-    if (name === null) {
-      // TODO(karlklose): In progress.
-      cancel(node.typeName, "not implemented");
+    SourceString className;
+    if (node.typeName.asSend() !== null) {
+      // In new and const expressions, the type name can be a Send to
+      // denote named constructors or library prefixes.
+      Send send = node.typeName.asSend();
+      className = send.receiver.asIdentifier().source;
+    } else {
+      className = node.typeName.asIdentifier().source;
     }
-    if (name.source == const SourceString('var')) return null;
-    if (name.source == const SourceString('void')) return null;
-    Element element = context.lookup(name.source);
+    if (className == const SourceString('var')) return null;
+    if (className == const SourceString('void')) return null;
+    Element element = context.lookup(className);
     if (element === null) {
       if (typeRequired) {
-        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [name]);
+        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [className]);
       } else {
-        warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [name]);
+        warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [className]);
       }
     } else if (element.kind !== ElementKind.CLASS) {
       if (typeRequired) {
-        error(node, MessageKind.NOT_A_TYPE, [name]);
+        error(node, MessageKind.NOT_A_TYPE, [className]);
       } else {
-        warning(node, MessageKind.NOT_A_TYPE, [name]);
+        warning(node, MessageKind.NOT_A_TYPE, [className]);
       }
     } else {
       ClassElement cls = element;
@@ -337,14 +456,13 @@ class FullResolverVisitor extends ResolverVisitor {
 
   visitFunctionExpression(FunctionExpression node) {
     visit(node.returnType);
+    SourceString name;
     if (node.name === null) {
       cancel(node, "anonymous functions are not implemented");
     }
-    if (node.name.asIdentifier() === null) {
-      cancel(node.name, "named constructors are not implemented");
-    }
+    name = node.name.asIdentifier().source;
     FunctionElement enclosingElement = new FunctionElement.node(
-        node, ElementKind.FUNCTION, null, context.element);
+        name, node, ElementKind.FUNCTION, null, context.element);
     defineElement(node, enclosingElement);
     context = new MethodScope(context, enclosingElement);
 
@@ -521,22 +639,39 @@ class FullResolverVisitor extends ResolverVisitor {
 
     visit(node.send.argumentsNode);
 
+    SourceString constructorName;
+    Node typeName = node.send.selector.asTypeAnnotation().typeName;
+    if (typeName.asSend() !== null) {
+      Identifier receiver = typeName.asSend().receiver.asIdentifier();
+      Identifier selector = typeName.asSend().selector.asIdentifier();
+      SourceString className = receiver.source;
+      SourceString name = selector.source;
+      constructorName = new SourceString('$className.$name');
+    } else {
+      constructorName = typeName.asIdentifier().source;
+    }
     ClassElement cls = resolveTypeRequired(node.send.selector);
     Element constructor = null;
     if (cls !== null) {
-      // TODO(ngeoffray): set constructor-name correctly.
-      SourceString name = cls.name;
-      constructor = cls.resolve(compiler).lookupConstructor(name);
-      if (name == cls.name
+      constructor = cls.resolve(compiler).lookupConstructor(constructorName);
+      if (constructorName == cls.name
           && constructor === null
           && node.send.argumentsNode.isEmpty()) {
         constructor = cls.getSynthesizedConstructor();
       }
       if (constructor === null) {
-        error(node, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node]);
+        error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
+      } else {
+        FunctionElement function = constructor;
+        // TODO(karlklose): handle optional arguments.
+        if (node.send.argumentCount() != function.parameterCount(compiler)) {
+          error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
+        }
       }
+    } else {
+      Node selector = node.send.selector;
+      error(selector, MessageKind.CANNOT_RESOLVE_TYPE, [selector]);
     }
-
     useElement(node.send, constructor);
     return null;
   }

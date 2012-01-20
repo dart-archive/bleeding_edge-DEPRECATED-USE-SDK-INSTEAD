@@ -26,8 +26,8 @@ class MessageKind {
       'no method named #{2} in class #{1}');
   static final MEMBER_NOT_STATIC = const MessageKind(
       '#{1}.#{2} is not static');
-  static final NOT_STATIC = const MessageKind(
-      '#{1} is not static');
+  static final NO_INSTANCE_AVAILABLE = const MessageKind(
+      '#{1} is only available in instance methods');
 
   static final UNREACHABLE_CODE = const MessageKind(
       'unreachable code');
@@ -38,6 +38,8 @@ class MessageKind {
 
   static final CANNOT_RESOLVE = const MessageKind(
       'cannot resolve #{1}');
+  static final CANNOT_RESOLVE_CONSTRUCTOR = const MessageKind(
+      'cannot resolve constructor #{1}');
   static final CANNOT_RESOLVE_TYPE = const MessageKind(
       'cannot resolve type #{1}');
   static final DUPLICATE_DEFINITION = const MessageKind(
@@ -45,15 +47,13 @@ class MessageKind {
   static final NOT_A_TYPE = const MessageKind(
       '#{1} is not a type');
   static final NO_SUPER_IN_OBJECT = const MessageKind(
-      '\'Object\' does not have a superclass');
+      "'Object' does not have a superclass");
   static final CANNOT_FIND_CONSTRUCTOR = const MessageKind(
       'cannot find constructor #{1}');
   static final INVALID_RECEIVER_IN_INITIALIZER = const MessageKind(
       'field initializer expected');
-  static final NO_THIS_IN_STATIC = const MessageKind(
-      '\'this\' is only available in instance methods');
   static final NO_SUPER_IN_STATIC = const MessageKind(
-      '\'super\' is only available in instance methods');
+      "'super' is only available in instance methods");
   static final DUPLICATE_INITIALIZER = const MessageKind(
       'field #{1} is initialized more than once');
   static final ALREADY_INITIALIZED = const MessageKind(
@@ -62,8 +62,20 @@ class MessageKind {
       'cannot initialize static field #{1}');
   static final NOT_A_FIELD = const MessageKind(
       '#{1} is not a field');
+  static final CONSTRUCTOR_CALL_EXPECTED = const MessageKind(
+      "only call to 'this' or 'super' constructor allowed");
   static final INVALID_FOR_IN = const MessageKind(
       'Invalid for-in variable declaration.');
+  static final REDIRECTING_CTOR_HAS_INITIALIZER = const MessageKind(
+      'redirecting constructor cannot have other initializers');
+  static final SUPER_INITIALIZER_IN_OBJECT = const MessageKind(
+      "'Object' cannot have a super initializer");
+  static final DUPLICATE_SUPER_INITIALIZER = const MessageKind(
+      'cannot have more than one super initializer');
+  static final NO_MATCHING_CONSTRUCTOR = const MessageKind(
+      'no matching constructor found');
+  static final NO_CONSTRUCTOR = const MessageKind(
+      '#{1} is a #{2}, not a constructor');
 
   static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       '#{1} cannot be used as compile-time constant.');

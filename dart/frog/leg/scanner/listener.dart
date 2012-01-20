@@ -860,7 +860,8 @@ class NodeListener extends ElementListener {
     Statement body = popNode();
     NodeList initializers = popNode();
     NodeList formals = popNode();
-    Identifier name = popNode();
+    // The name can be an identifier or a send in case of named constructors.
+    Expression name = popNode();
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formals, body, type,

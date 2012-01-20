@@ -91,6 +91,11 @@ class Namer {
     return '${getName(element)}\$bailout';
   }
 
+  SourceString getConstructorName(FunctionElement constructor) {
+    String dartName = constructor.name.stringValue;
+    return new SourceString(dartName.replaceFirst('\.', '\$'));
+  }
+
   /**
    * Returns a preferred JS-id for the given element. The returned id is
    * guaranteed to be a valid JS-id. Globals and static fields are furthermore
@@ -101,22 +106,33 @@ class Namer {
    */
   String getName(Element element) {
     if (element.isInstanceMember()) {
-      return instanceName(element.name);
+      SourceString name;
+      if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+        ConstructorBodyElement bodyElement = element;
+        name = getConstructorName(bodyElement.constructor);
+      } else {
+        name = element.name;
+      }
+      return instanceName(name);
     }
-
     String cached = globals[element];
     if (cached !== null) return cached;
 
-    String guess = _computeGuess(element);
+    String guess;
+    if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+      guess = getConstructorName(element).stringValue;
+    } else {
+      guess = _computeGuess(element);
+    }
     switch (element.kind) {
       case ElementKind.VARIABLE:
       case ElementKind.PARAMETER:
         // The name is not guaranteed to be unique.
         return guess;
 
+      case ElementKind.GENERATIVE_CONSTRUCTOR:
       case ElementKind.FUNCTION:
       case ElementKind.CLASS:
-      case ElementKind.GENERATIVE_CONSTRUCTOR:
       case ElementKind.FIELD:
         // We need to make sure the name is unique.
         int usedCount = usedGlobals[guess];

@@ -209,6 +209,7 @@ class FunctionElement extends Element {
   FunctionExpression cachedNode;
   Type type;
   final Modifiers modifiers;
+  int cachedParameterCount;
 
   FunctionElement(SourceString name,
                   ElementKind kind,
@@ -216,11 +217,12 @@ class FunctionElement extends Element {
                   Element enclosing,
                   [Node node])
     : super(name, kind, enclosing), cachedNode = node;
-  FunctionElement.node(FunctionExpression node,
+  FunctionElement.node(SourceString name,
+                       FunctionExpression node,
                        ElementKind kind,
                        Modifiers this.modifiers,
                        Element enclosing)
-    : super(node.name.asIdentifier().source, kind, enclosing),
+    : super(name, kind, enclosing),
       this.cachedNode = node;
 
   bool isInstanceMember() {
@@ -228,6 +230,17 @@ class FunctionElement extends Element {
            && kind != ElementKind.GENERATIVE_CONSTRUCTOR
            && !modifiers.isFactory()
            && !modifiers.isStatic();
+  }
+
+  int parameterCount(Compiler compiler) {
+    if (cachedParameterCount === null) {
+      cachedParameterCount = 0;
+      if (parameters == null) compiler.resolveSignature(this);
+      for (Link l = parameters; !l.isEmpty(); l = l.tail) {
+        cachedParameterCount++;
+      }
+    }
+    return cachedParameterCount;
   }
 
   FunctionType computeType(Compiler compiler) {
@@ -303,6 +316,8 @@ class ClassElement extends Element {
   Type type;
   Type supertype;
   Link<Element> members = const EmptyLink<Element>();
+  Map<SourceString, Element> localMembers;
+  Map<SourceString, Element> constructors;
   Link<Type> interfaces = const EmptyLink<Type>();
   bool isResolved = false;
   // backendMembers are members that have been added by the backend to simplify
@@ -311,10 +326,18 @@ class ClassElement extends Element {
   SynthesizedConstructorElement synthesizedConstructor;
 
   ClassElement(SourceString name, CompilationUnitElement enclosing)
-    : super(name, ElementKind.CLASS, enclosing);
+    : localMembers = new Map<SourceString, Element>(),
+      constructors = new Map<SourceString, Element>(),
+      super(name, ElementKind.CLASS, enclosing);
 
   void addMember(Element element) {
     members = members.prepend(element);
+    if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR ||
+        element.modifiers.isFactory()) {
+      constructors[element.name] = element;
+    } else {
+      localMembers[element.name] = element;
+    }
   }
 
   Type computeType(compiler) {
@@ -332,36 +355,30 @@ class ClassElement extends Element {
     return this;
   }
 
-  Element lookupLocalElement(SourceString name, bool matches(Element)) {
-    // TODO(karlklose): replace with more efficient solution.
-    for (Link<Element> link = members;
-         link !== null && !link.isEmpty();
-         link = link.tail) {
-      Element element = link.head;
-      if (matches(element)) return element;
-    }
-    return null;
-  }
-
   Element lookupLocalMember(SourceString name) {
-    bool matches(Element element) {
-      return element.name == name
-             && element.kind != ElementKind.GENERATIVE_CONSTRUCTOR;
-    }
-    return lookupLocalElement(name, matches);
+    return localMembers[name];
   }
 
-  Element lookupConstructor(SourceString name) {
-    bool matches(Element element) {
-      return element.name == name
-             && (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR
-                 || element.modifiers.isFactory());
+  Element lookupConstructor(SourceString className,
+                            [SourceString constructorName =
+                                 const SourceString(''),
+                            Element noMatch(Element)]) {
+    // TODO(karlklose): have a map from class names to a map of constructors
+    //                  instead of creating the name here?
+    SourceString name;
+    if (constructorName !== const SourceString('')) {
+      name = new SourceString('$className.$constructorName');
+    } else {
+      name = className;
     }
-    return lookupLocalElement(name, matches);
+    Element result = constructors[name];
+    if (result === null && noMatch !== null) {
+      result = noMatch(lookupLocalMember(constructorName));
+    }
+    return result;
   }
 
-  // TODO(ngeoffray): Implement these.
-  bool canHaveDefaultConstructor() => true;
+  bool canHaveDefaultConstructor() => constructors.length == 0;
 
   SynthesizedConstructorElement getSynthesizedConstructor() {
     if (synthesizedConstructor === null && canHaveDefaultConstructor()) {

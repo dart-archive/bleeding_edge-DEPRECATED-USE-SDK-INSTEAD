@@ -49,7 +49,7 @@ function(child, parent) {
       }
       codeBlock = compiler.universe.generatedBailoutCode[member];
       if (codeBlock !== null) {
-        String name = namer.getBailoutName(member);;
+        String name = namer.getBailoutName(member);
         buffer.add('$prototype.$name = $codeBlock;\n');
       }
     } else {

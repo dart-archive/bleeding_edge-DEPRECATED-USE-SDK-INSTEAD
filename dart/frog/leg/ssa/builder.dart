@@ -205,13 +205,14 @@ class SsaBuilder implements Visitor {
         assert(link.head is Send);
         if (link.head is !SendSet) {
           compiler.unimplemented('SsaBuilder.buildFactory super-init');
+        } else {
+          SendSet init = link.head;
+          Link<Node> arguments = init.arguments;
+          assert(!arguments.isEmpty() && arguments.tail.isEmpty());
+          visit(arguments.head);
+          HInstruction value = pop();
+          updateDefinition(init, value);
         }
-        SendSet init = link.head;
-        Link<Node> arguments = init.arguments;
-        assert(!arguments.isEmpty() && arguments.tail.isEmpty());
-        visit(arguments.head);
-        HInstruction value = pop();
-        updateDefinition(init, value);
       }
     }
 
@@ -241,8 +242,7 @@ class SsaBuilder implements Visitor {
       // We expect exactly one identifier.
       assert(!identifierLink.isEmpty() && identifierLink.tail.isEmpty());
       if (identifierLink.head is !Identifier) {
-        compiler.unimplemented(
-            "SsaBuilder.buildFactory non-identifier");
+        compiler.unimplemented("SsaBuilder.buildFactory non-identifier");
       }
       Identifier name = identifierLink.head;
       Element parameterElement = elements[name];
@@ -805,7 +805,7 @@ class SsaBuilder implements Visitor {
       if (send.receiver == null) {
         receiver = thisDefinition;
         if (receiver === null) {
-          compiler.unimplemented("Ssa.generateGetter.", node: send);
+          compiler.unimplemented("SsaBuilder.generateGetter.", node: send);
         }
       } else {
         visit(send.receiver);

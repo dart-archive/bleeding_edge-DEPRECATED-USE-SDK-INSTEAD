@@ -113,7 +113,7 @@ testThis() {
   compiler.resolveStatement("main() { return this; }");
   Expect.equals(0, compiler.warnings.length);
   Expect.equals(1, compiler.errors.length);
-  Expect.equals(MessageKind.NO_THIS_IN_STATIC,
+  Expect.equals(MessageKind.NO_INSTANCE_AVAILABLE,
                 compiler.errors[0].message.kind);
 
   compiler = new MockCompiler();
@@ -128,7 +128,7 @@ testThis() {
   visitor.visit(function.body);
   Expect.equals(0, compiler.warnings.length);
   Expect.equals(1, compiler.errors.length);
-  Expect.equals(MessageKind.NO_THIS_IN_STATIC,
+  Expect.equals(MessageKind.NO_INSTANCE_AVAILABLE,
                 compiler.errors[0].message.kind);
 }
 
@@ -429,7 +429,8 @@ testTopLevelFields() {
   VariableElement element = compiler.universe.find(buildSourceString("a"));
   Expect.equals(ElementKind.FIELD, element.kind);
   VariableDefinitions node = element.variables.parseNode(compiler, compiler);
-  Expect.equals(node.type.typeName.asIdentifier().source.stringValue, 'int');
+  Identifier typeName = node.type.typeName;
+  Expect.equals(typeName.source.stringValue, 'int');
 
   compiler.parseScript("var b, c;");
   VariableElement bElement = compiler.universe.find(buildSourceString("b"));
@@ -448,8 +449,9 @@ testTopLevelFields() {
 resolveConstructor(String script, String statement, String className,
                    String constructor, int expectedElementCount,
                    [List expectedWarnings = const [],
-                   List expectedErrors = const []]) {
-  MockCompiler compiler = new MockCompiler();
+                    List expectedErrors = const [],
+                    String corelib = DEFAULT_CORELIB]) {
+  MockCompiler compiler = new MockCompiler(corelib);
   compiler.parseScript(script);
   compiler.resolveStatement(statement);
   ClassElement classElement =
@@ -458,7 +460,8 @@ resolveConstructor(String script, String statement, String className,
       classElement.lookupConstructor(buildSourceString(constructor));
   FunctionExpression tree = element.parseNode(compiler, compiler);
   ResolverVisitor visitor = new FullResolverVisitor(compiler, element);
-  compiler.resolver.resolveInitializers(element, tree, visitor);
+  new InitializerResolver(visitor, element).resolveInitializers(tree);
+  visitor.visit(tree.body);
   Expect.equals(expectedElementCount, map(visitor).length);
 
   compareWarningKinds(script, expectedWarnings, compiler.warnings);
@@ -477,7 +480,7 @@ testInitializers() {
                 int foo; A a;
                 A() : a.foo = 1;
                 }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 1,
+  resolveConstructor(script, "A a = new A();", "A", "A", 0,
                      [], [MessageKind.INVALID_RECEIVER_IN_INITIALIZER]);
 
   script = """class A {
@@ -500,7 +503,55 @@ testInitializers() {
                 A() : this.foo = bar;
               }""";
   resolveConstructor(script, "A a = new A();", "A", "A", 2,
-                     [], [MessageKind.NOT_STATIC]);
+                     [], [MessageKind.NO_INSTANCE_AVAILABLE]);
+
+  script = """class A {
+                int foo() => 42;
+                A() : foo();
+              }""";
+  resolveConstructor(script, "A a = new A();", "A", "A", 0,
+                     [], [MessageKind.CONSTRUCTOR_CALL_EXPECTED]);
+
+  script = """class A {
+                int i;
+                A.a() : this.b(0);
+                A.b(int i);
+              }""";
+  resolveConstructor(script, "A a = new A.a();", "A", "A.a", 1,
+                     [], []);
+
+  script = """class A {
+                int i;
+                A.a() : i = 42, this(0);
+                A(int i);
+              }""";
+  resolveConstructor(script, "A a = new A.a();", "A", "A.a", 2,
+                     [], [MessageKind.REDIRECTING_CTOR_HAS_INITIALIZER]);
+
+  script = """class A {
+                int i;
+                A(i);
+              }
+              class B extends A {
+                B() : super(0);
+              }""";
+  resolveConstructor(script, "B a = new B();", "B", "B", 1,
+                     [], []);
+
+  script = """class A {
+                int i;
+                A(i);
+              }
+              class B extends A {
+                B() : super(0), super(1);
+              }""";
+  resolveConstructor(script, "B b = new B();", "B", "B", 2,
+                     [], [MessageKind.DUPLICATE_SUPER_INITIALIZER]);
+
+  script = "class Object { Object() : super(); }";
+  resolveConstructor(script, "Object o = new Object();", "Object", "Object", 1,
+                     [], [MessageKind.SUPER_INITIALIZER_IN_OBJECT],
+                     corelib: "");
 }
 
 map(FullResolverVisitor visitor) {
