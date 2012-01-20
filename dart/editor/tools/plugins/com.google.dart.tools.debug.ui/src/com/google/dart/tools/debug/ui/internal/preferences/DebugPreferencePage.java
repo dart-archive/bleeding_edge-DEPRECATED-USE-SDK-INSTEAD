@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -57,7 +57,6 @@ import java.util.List;
 public class DebugPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
   private class ProgramLabelProvider extends LabelProvider {
-
     @Override
     public Image getImage(Object element) {
       ImageData data = ((Program) element).getImageData();
@@ -68,7 +67,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     public String getText(Object element) {
       return ((Program) element).getName();
     }
-
   }; //$NON-NLS-1$
 
   public static final String PAGE_ID = "com.google.dart.tools.debug.debugPreferencePage"; //$NON-NLS-1$
@@ -315,6 +313,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     return findUniqueName(name, 0, existingBrowsers);
   }
 
+  @SuppressWarnings("unused")
   private void handleAddButton() {
     FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
     fileDialog.setText("Select Chrome based browser"); //$NON-NLS-1$
@@ -358,6 +357,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
   }
 
+  @SuppressWarnings("unused")
   private void handleRemoveButton() {
     ChromeBrowserConfig browserConfig = (ChromeBrowserConfig) ((IStructuredSelection) browserViewer.getSelection()).getFirstElement();
 
@@ -368,6 +368,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     updateButtons();
   }
 
+  @SuppressWarnings("unused")
   private void handleRenameButton() {
     final ChromeBrowserConfig browserConfig = (ChromeBrowserConfig) ((IStructuredSelection) browserViewer.getSelection()).getFirstElement();
 
@@ -459,4 +460,5 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
       browseButton.setEnabled(true);
     }
   }
+
 }

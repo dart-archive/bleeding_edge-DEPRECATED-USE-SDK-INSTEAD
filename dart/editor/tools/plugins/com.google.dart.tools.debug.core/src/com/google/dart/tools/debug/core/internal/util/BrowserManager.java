@@ -158,7 +158,7 @@ public class BrowserManager {
     }
 
     // In order to start up multiple Chrome processes, we need to specify a different user dir.
-    // arguments.add("--user-data-dir=" + getUserDataDirectoryPath());
+    arguments.add("--user-data-dir=" + getUserDataDirectoryPath());
 
     //arguments.add("--disable-breakpad");
 
@@ -283,6 +283,7 @@ public class BrowserManager {
    * 
    * @param dataDir the location of the Chrome data directory
    */
+  @SuppressWarnings("unused")
   private void createChromeDataDir(File dataDir) {
     try {
       // Create the data directory.
@@ -321,13 +322,13 @@ public class BrowserManager {
    * @return the user data directory path
    */
   private String getUserDataDirectoryPath() {
-    String userHome = System.getProperty("user.home");
-    String dataDirPath = userHome + File.separator + ".dartChromeSettings";
+    String dataDirPath = System.getProperty("user.home") + File.separator + ".dartChromeSettings";
 
     File dataDir = new File(dataDirPath);
 
     if (!dataDir.exists()) {
-      createChromeDataDir(dataDir);
+      dataDir.mkdir();
+      //createChromeDataDir(dataDir);
     }
 
     return dataDirPath;

@@ -40,13 +40,10 @@ import java.util.List;
  * TODO(devoncarew):
  */
 public class CreateLaunchDialog extends TitleAreaDialog {
-  private IWorkbenchWindow window;
   private List<ILaunchConfigurationType> launchTypes;
 
   public CreateLaunchDialog(IWorkbenchWindow window) {
     super(window.getShell());
-
-    this.window = window;
 
     initLaunchInfo();
   }

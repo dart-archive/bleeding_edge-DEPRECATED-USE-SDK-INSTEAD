@@ -152,6 +152,11 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
   }
 
   @Override
+  public String getMessage() {
+    return "Create a configuration to launch a Dart application on the command line";
+  }
+
+  @Override
   public String getName() {
     return "Main";
   }

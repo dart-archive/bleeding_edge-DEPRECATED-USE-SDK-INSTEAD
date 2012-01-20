@@ -50,7 +50,6 @@ import org.eclipse.ui.dialogs.ListDialog;
 public class BrowserMainTab extends DartiumMainTab {
 
   private class ProgramLabelProvider extends LabelProvider {
-
     @Override
     public Image getImage(Object element) {
       ImageData data = ((Program) element).getImageData();
@@ -61,7 +60,6 @@ public class BrowserMainTab extends DartiumMainTab {
     public String getText(Object element) {
       return ((Program) element).getName();
     }
-
   }
 
   private Text browserText;;
@@ -75,7 +73,6 @@ public class BrowserMainTab extends DartiumMainTab {
 
   @Override
   public void createControl(Composite parent) {
-
     Composite composite = new Composite(parent, SWT.NONE);
     GridLayoutFactory.swtDefaults().spacing(1, 3).applyTo(composite);
 
@@ -92,9 +89,6 @@ public class BrowserMainTab extends DartiumMainTab {
 
     createUrlField(group);
 
-    Label filler2 = new Label(group, SWT.NONE);
-    GridDataFactory.swtDefaults().grab(true, false).applyTo(filler2);
-
     Group browserGroup = new Group(composite, SWT.NONE);
     browserGroup.setText(Messages.BrowserMainTab_Browser);
     GridDataFactory.fillDefaults().grab(true, false).applyTo(browserGroup);
@@ -102,6 +96,7 @@ public class BrowserMainTab extends DartiumMainTab {
 
     Label browserLabel = new Label(browserGroup, SWT.NONE);
     browserLabel.setText(Messages.BrowserMainTab_Browser);
+
     browserText = new Text(browserGroup, SWT.BORDER | SWT.SINGLE);
     browserText.addModifyListener(textModifyListener);
     browserText.setEditable(false);
@@ -133,8 +128,8 @@ public class BrowserMainTab extends DartiumMainTab {
 
   @Override
   public String getErrorMessage() {
-
     String message = super.getErrorMessage();
+
     if (message != null) {
       return message;
     }
@@ -142,8 +137,8 @@ public class BrowserMainTab extends DartiumMainTab {
     if (browserText.getText().length() == 0) {
       return Messages.BrowserMainTab_BrowserNotSpecifiedErrorMessage;
     }
-    return null;
 
+    return null;
   }
 
   /**
@@ -187,11 +182,9 @@ public class BrowserMainTab extends DartiumMainTab {
 
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(config);
     dartLauncher.setBrowserName(browserText.getText().trim());
-
   }
 
   private void handleBrowserConfigBrowseButton() {
-
     ListDialog listDialog = new ListDialog(getShell());
     listDialog.setTitle(DebugPreferenceMessages.DebugPreferencePage_DialogTitle);
     listDialog.setMessage(DebugPreferenceMessages.DebugPreferencePage_DialogMessage);
@@ -204,7 +197,6 @@ public class BrowserMainTab extends DartiumMainTab {
       Object[] result = listDialog.getResult();
       browserText.setText(((Program) result[0]).getName());
     }
-
   }
 
 }

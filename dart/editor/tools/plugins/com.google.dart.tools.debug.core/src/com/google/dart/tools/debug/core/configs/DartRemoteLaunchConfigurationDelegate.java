@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,7 +14,6 @@
 package com.google.dart.tools.debug.core.configs;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
-import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -45,7 +44,7 @@ public class DartRemoteLaunchConfigurationDelegate extends LaunchConfigurationDe
           "Execution mode '" + mode + "' is not supported."));
     }
 
-    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
+//    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
 
 //    String connectionType = launchConfig.getConnectionType();
 

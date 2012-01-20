@@ -68,23 +68,13 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     @Override
     protected ItemsFilter createFilter() {
-
       return new ResourceFilter() {
-
         @Override
         public boolean matchItem(Object item) {
-          if (!(item instanceof IResource)) {
-            return false;
-          }
-          IResource resource = (IResource) item;
-          if (resource instanceof IProject) {
-            return true;
-          }
-          return false;
+          return item instanceof IProject;
         }
       };
     }
-
   }
 
   private Text htmlText;
@@ -138,10 +128,10 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   @Override
   public String getErrorMessage() {
-
     if (htmlButton.getSelection() && htmlText.getText().length() == 0) {
       return "HTML file not specified";
     }
+
     if (urlButton.getSelection()) {
       if (urlText.getText().length() == 0) {
         return "URL not specified";
@@ -149,17 +139,18 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
         return "Project not specified";
       }
     }
+
     return null;
   }
 
   @Override
   public Image getImage() {
-    return DartDebugUIPlugin.getImage("chromium_16_server.png");
+    return DartDebugUIPlugin.getImage("chromium_16.png");
   }
 
   @Override
   public String getMessage() {
-    return "Create a configuration to launch Dart application";
+    return "Create a configuration to launch a Dart application in Dartium";
   }
 
   @Override
@@ -270,7 +261,6 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
         handleApplicationBrowseButton();
       }
     });
-
   }
 
   protected void createUrlField(Composite composite) {
@@ -283,18 +273,22 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
         notifyPanelChanged();
       }
     });
+
     urlText = new Text(composite, SWT.BORDER | SWT.SINGLE);
     urlText.addModifyListener(textModifyListener);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(urlText);
 
-    Label filler = new Label(composite, SWT.NONE);
+    // spacer
+    new Label(composite, SWT.NONE);
 
     Label projectLabel = new Label(composite, SWT.NONE);
     projectLabel.setText("Project:");
     GridDataFactory.swtDefaults().indent(20, 0).applyTo(projectLabel);
+
     projectText = new Text(composite, SWT.BORDER | SWT.SINGLE);
     projectText.addModifyListener(textModifyListener);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(projectText);
+
     projectBrowseButton = new Button(composite, SWT.PUSH);
     projectBrowseButton.setText("Browse...");
     PixelConverter converter = new PixelConverter(htmlBrowsebutton);

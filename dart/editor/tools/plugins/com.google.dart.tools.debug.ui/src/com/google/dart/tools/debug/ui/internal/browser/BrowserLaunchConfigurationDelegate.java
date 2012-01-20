@@ -13,29 +13,20 @@
  */
 package com.google.dart.tools.debug.ui.internal.browser;
 
-import com.google.dart.tools.core.generator.DartHtmlGenerator;
-import com.google.dart.tools.core.internal.builder.DartBuilder;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
-import com.google.dart.tools.debug.ui.internal.DartUtil;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.swt.program.Program;
-
-import java.io.File;
 
 /**
  * Launches the Dart application (compiled to js) in the browser
@@ -65,9 +56,7 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
               "Could not find specified browser"));
         }
       }
-
     }
-
   }
 
   private Program findProgram(String name) {
@@ -81,74 +70,74 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     return null;
   }
 
-  /**
-   * Based upon the specified file, return the web page to be displayed in the browser. If the
-   * specified file is a web page, then return it. Otherwise create a new web page referencing that
-   * file.
-   * 
-   * @param file a web page or a Dart application
-   * @return a web page to display the Dart application (not <code>null</code>)
-   */
-  @SuppressWarnings("unused")
-  private IFile getWebPage(IFile file) throws CoreException {
-    // If it is already a web page, then just return it
-    if (DartUtil.isWebPage(file)) {
-      return file;
-    }
+//  /**
+//   * Based upon the specified file, return the web page to be displayed in the browser. If the
+//   * specified file is a web page, then return it. Otherwise create a new web page referencing that
+//   * file.
+//   * 
+//   * @param file a web page or a Dart application
+//   * @return a web page to display the Dart application (not <code>null</code>)
+//   */
+//  private IFile getWebPage(IFile file) throws CoreException {
+//    // If it is already a web page, then just return it
+//    if (DartUtil.isWebPage(file)) {
+//      return file;
+//    }
+//
+//    // Look for an HTML file with the same name in the folder hierarchy
+//    String name = file.getName();
+//    String extension = file.getFileExtension();
+//    if (extension != null) {
+//      name = name.substring(0, name.length() - extension.length() - 1);
+//    }
+//    name += ".html"; //$NON-NLS-1$
+//    IContainer container = file.getParent();
+//    while (container.getType() != IResource.ROOT) {
+//      IFile htmlFile = container.getFile(new Path(name));
+//      if (htmlFile.exists()) {
+//        return htmlFile;
+//      }
+//      container = container.getParent();
+//    }
+//
+//    // Otherwise, assume it is a Dart app, and return a web page displaying it
+//    File appJsFile = DartBuilder.getJsAppArtifactFile(file);
+//    if (!appJsFile.exists()) {
+//      throwCoreException(Messages.BrowserLaunchConfigurationDelegate_NoJavascriptErrorMessage
+//          + appJsFile);
+//    }
+//    container = file.getParent();
+//    IFile htmlFile = container.getFile(new Path(file.getName()).removeFileExtension().append("html")); //$NON-NLS-1$
+//    if (htmlFile.exists()) {
+//      return htmlFile;
+//    }
+//
+//    // Exclude the file extension from the title
+//    String title = file.getName();
+//    int index = title.lastIndexOf('.');
+//    if (index > 0) {
+//      title = title.substring(0, index);
+//    }
+//
+//    // If the web page does not exist, then create it
+//    DartHtmlGenerator generator = new DartHtmlGenerator(true);
+//    generator.setContainer(container);
+//    // TODO (danrubel) need to modify generator to take a File rather than IFile
+//    //generator.setDartAppFile(jsFile);
+//    generator.setName(appJsFile.getName());
+//    generator.setTitle(title);
+//    generator.execute(new NullProgressMonitor());
+//
+//    return htmlFile;
+//  }
+//
+//  /**
+//   * Throw a core exception with the specified message
+//   * 
+//   * @param message the message
+//   */
+//  private void throwCoreException(String message) throws CoreException {
+//    throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, message));
+//  }
 
-    // Look for an HTML file with the same name in the folder hierarchy
-    String name = file.getName();
-    String extension = file.getFileExtension();
-    if (extension != null) {
-      name = name.substring(0, name.length() - extension.length() - 1);
-    }
-    name += ".html"; //$NON-NLS-1$
-    IContainer container = file.getParent();
-    while (container.getType() != IResource.ROOT) {
-      IFile htmlFile = container.getFile(new Path(name));
-      if (htmlFile.exists()) {
-        return htmlFile;
-      }
-      container = container.getParent();
-    }
-
-    // Otherwise, assume it is a Dart app, and return a web page displaying it
-    File appJsFile = DartBuilder.getJsAppArtifactFile(file);
-    if (!appJsFile.exists()) {
-      throwCoreException(Messages.BrowserLaunchConfigurationDelegate_NoJavascriptErrorMessage
-          + appJsFile);
-    }
-    container = file.getParent();
-    IFile htmlFile = container.getFile(new Path(file.getName()).removeFileExtension().append("html")); //$NON-NLS-1$
-    if (htmlFile.exists()) {
-      return htmlFile;
-    }
-
-    // Exclude the file extension from the title
-    String title = file.getName();
-    int index = title.lastIndexOf('.');
-    if (index > 0) {
-      title = title.substring(0, index);
-    }
-
-    // If the web page does not exist, then create it
-    DartHtmlGenerator generator = new DartHtmlGenerator(true);
-    generator.setContainer(container);
-    // TODO (danrubel) need to modify generator to take a File rather than IFile
-    //generator.setDartAppFile(jsFile);
-    generator.setName(appJsFile.getName());
-    generator.setTitle(title);
-    generator.execute(new NullProgressMonitor());
-
-    return htmlFile;
-  }
-
-  /**
-   * Throw a core exception with the specified message
-   * 
-   * @param message the message
-   */
-  private void throwCoreException(String message) throws CoreException {
-    throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, message));
-  }
 }
