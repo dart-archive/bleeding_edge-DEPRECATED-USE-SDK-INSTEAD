@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,8 +19,6 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
-import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchShortcut;
-import com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
@@ -47,9 +45,6 @@ import java.util.List;
 
 /**
  * An abstract parent of Dart launch shortcuts.
- * 
- * @see BrowserLaunchShortcut
- * @see DartServerLaunchShortcut
  */
 public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
   private String launchTypeLabel;
@@ -61,6 +56,27 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    */
   public AbstractLaunchShortcut(String launchTypeLabel) {
     this.launchTypeLabel = launchTypeLabel;
+  }
+
+  public ILaunchConfiguration[] getAssociatedLaunchConfigurations(IResource resource) {
+    List<ILaunchConfiguration> results = new ArrayList<ILaunchConfiguration>();
+
+    try {
+      ILaunchConfiguration[] configs = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations(
+          getConfigurationType());
+
+      for (int i = 0; i < configs.length; i++) {
+        ILaunchConfiguration config = configs[i];
+
+        if (testSimilar(resource, config)) {
+          results.add(config);
+        }
+      }
+    } catch (CoreException e) {
+      DartUtil.logError(e);
+    }
+
+    return results.toArray(new ILaunchConfiguration[results.size()]);
   }
 
   @Override
@@ -147,6 +163,11 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
     launch(getLaunchableResource(selection), mode);
   }
 
+  @Override
+  public String toString() {
+    return getClass().getSimpleName();
+  }
+
   /**
    * Returns a configuration from the given collection of configurations that should be launched, or
    * <code>null</code> to cancel. Default implementation opens a selection dialog that allows the
@@ -222,8 +243,8 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    * @return the Dart resource to be launched or <code>null</code>
    */
   protected IResource getLaunchableResource(Object originalResource) throws DartModelException {
-    
-    if (originalResource == null){
+
+    if (originalResource == null) {
       return null;
     }
     DartElement elem = null;

@@ -1,29 +1,23 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.debug.ui.internal.browser;
 
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
@@ -92,8 +86,10 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
    */
   @Override
   public void initializeFrom(ILaunchConfiguration config) {
+    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
+
     initialLaunchType = DartUtil.getLaunchType(config);
-    initialResPath = DartUtil.getResourcePath(config);
+    initialResPath = launchWrapper.getApplicationName();
     initialExternal = DartUtil.isExternalBrowser(config);
 
     panel.setLaunchType(initialLaunchType);
@@ -106,16 +102,18 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
    */
   @Override
   public boolean isValid(ILaunchConfiguration config) {
-    IWorkspace workspace = ResourcesPlugin.getWorkspace();
-    IPath path = new Path(DartUtil.getResourcePath(config));
-    if (!workspace.validatePath(path.toString(), IResource.FILE).isOK()) {
+    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
+
+    IResource resource = launchWrapper.getApplicationResource();
+
+    if (resource == null) {
       return false;
     }
-    IFile file = workspace.getRoot().getFile(path);
-    if (!file.exists()) {
+    if (!resource.exists()) {
       return false;
     }
-    return DartUtil.isWebPage(file) || DartUtil.isDartApp(file);
+
+    return DartUtil.isWebPage(resource) || DartUtil.isDartApp(resource);
   }
 
   /**
@@ -127,8 +125,12 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
     initialResPath = panel.getResourcePath();
     initialExternal = panel.isExternalBrowser();
 
+    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
+
+    launchWrapper.setApplicationName(initialResPath);
+
     config.setAttribute(ILaunchConstants.ATTR_LAUNCH_TYPE, initialLaunchType);
-    config.setAttribute(ILaunchConstants.ATTR_RESOURCE_PATH, initialResPath);
+    //config.setAttribute(ILaunchConstants.ATTR_RESOURCE_PATH, initialResPath);
     config.setAttribute(ILaunchConstants.ATTR_EXTERNAL_BROWSER, initialExternal);
   }
 

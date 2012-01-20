@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,9 +13,8 @@
  */
 package com.google.dart.tools.debug.core;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartProject;
-
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -42,11 +41,7 @@ public class DartLaunchConfigWrapper {
   private static final String CONNECTION_HOST = "connectionHost";
   private static final String CONNECTION_PORT = "connectionPort";
 
-  private static final String CONNECTION_TYPE = "connectionType";
-
   private static final String PROJECT_NAME = "projectName";
-
-  private static final String LIBRARY_LOCATION = "libraryLocation";
 
   private ILaunchConfiguration launchConfig;
 
@@ -68,6 +63,16 @@ public class DartLaunchConfigWrapper {
       DartDebugCorePlugin.logError(e);
 
       return "";
+    }
+  }
+
+  public IResource getApplicationResource() {
+    String path = getApplicationName();
+
+    if (path == null || path.length() == 0) {
+      return null;
+    } else {
+      return ResourcesPlugin.getWorkspace().getRoot().findMember(getApplicationName());
     }
   }
 
@@ -163,22 +168,23 @@ public class DartLaunchConfigWrapper {
     }
   }
 
-  public String getLibraryLocation() {
-    try {
-      return launchConfig.getAttribute(LIBRARY_LOCATION, "");
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return "";
-    }
-  }
-
   /**
    * @return the DartProject that contains the application to run
    */
-  public DartProject getProject() {
-    return DartCore.create(ResourcesPlugin.getWorkspace().getRoot()).getDartProject(
-        getProjectName());
+  public IProject getProject() {
+    String projectName = getProjectName();
+
+    if (projectName.length() == 0) {
+      IResource resource = getApplicationResource();
+
+      if (resource == null) {
+        return null;
+      } else {
+        return resource.getProject();
+      }
+    } else {
+      return ResourcesPlugin.getWorkspace().getRoot().getProject(getProjectName());
+    }
   }
 
   /**
@@ -258,10 +264,6 @@ public class DartLaunchConfigWrapper {
 
   public void setHeapMB(String value) {
     getWorkingCopy().setAttribute(VM_HEAP_MB, value);
-  }
-
-  public void setLibraryLocation(String location) {
-    getWorkingCopy().setAttribute(LIBRARY_LOCATION, location);
   }
 
   /**

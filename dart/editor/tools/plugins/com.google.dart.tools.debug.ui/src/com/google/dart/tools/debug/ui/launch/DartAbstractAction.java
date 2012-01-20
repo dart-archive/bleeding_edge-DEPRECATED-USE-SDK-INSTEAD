@@ -22,10 +22,12 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
+import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuCreator;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
@@ -33,6 +35,9 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowPulldownDelegate2;
+
+import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * The abstract superclass of the run and debug actions.
@@ -48,7 +53,9 @@ public abstract class DartAbstractAction extends AbstractInstrumentedAction impl
 
     this.window = window;
 
-    setMenuCreator(this);
+    if ((flags & IAction.AS_DROP_DOWN_MENU) != 0) {
+      setMenuCreator(this);
+    }
   }
 
   @Override
@@ -96,21 +103,28 @@ public abstract class DartAbstractAction extends AbstractInstrumentedAction impl
 
   }
 
-  /**
-   * @return implemented by subclasses; either "run" or "debug"
-   */
-  protected abstract String getLaunchMode();
-
   protected IWorkbenchWindow getWindow() {
     return window;
   }
 
-  protected boolean supportsLaunchConfig(ILaunchConfiguration launch) {
+  protected void launch(ILaunchConfiguration config) {
+    boolean supportsDebug = false;
+
     try {
-      return launch.getType().supportsMode(getLaunchMode());
+      supportsDebug = config.supportsMode(ILaunchManager.DEBUG_MODE);
     } catch (CoreException e) {
-      return false;
+
     }
+
+    if (supportsDebug) {
+      DebugUITools.launch(config, ILaunchManager.DEBUG_MODE);
+    } else {
+      DebugUITools.launch(config, ILaunchManager.RUN_MODE);
+    }
+  }
+
+  protected void launch(ILaunchShortcut shortcut, ISelection selection) {
+    shortcut.launch(selection, ILaunchManager.DEBUG_MODE);
   }
 
   private void fillMenu(Menu menu) {
@@ -118,19 +132,23 @@ public abstract class DartAbstractAction extends AbstractInstrumentedAction impl
       ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
 
       // Iterate through all the launch configurations and add them to the pulldown menu.
-      for (final ILaunchConfiguration launch : manager.getLaunchConfigurations()) {
-        if (supportsLaunchConfig(launch)) {
-          Action launchAction = new Action(launch.getName(),
-              DebugUITools.getDefaultImageDescriptor(launch)) {
-            @Override
-            public void run() {
-              DebugUITools.launch(launch, getLaunchMode());
-            }
-          };
+      for (final ILaunchConfiguration config : sort(manager.getLaunchConfigurations())) {
+        Action launchAction = new Action(config.getName(),
+            DebugUITools.getDefaultImageDescriptor(config)) {
+          @Override
+          public void run() {
+            launch(config);
+          }
+        };
 
-          new ActionContributionItem(launchAction).fill(menu, -1);
-        }
+        new ActionContributionItem(launchAction).fill(menu, -1);
       }
+
+      if (menu.getItemCount() > 0) {
+        new Separator().fill(menu, -1);
+      }
+
+      new ActionContributionItem(new ManageLaunchesAction(window)).fill(menu, -1);
     } catch (CoreException exception) {
       DartUtil.logError(exception);
     }
@@ -146,6 +164,17 @@ public abstract class DartAbstractAction extends AbstractInstrumentedAction impl
     }
 
     menu = inMenu;
+  }
+
+  private ILaunchConfiguration[] sort(ILaunchConfiguration[] configs) {
+    Arrays.sort(configs, new Comparator<ILaunchConfiguration>() {
+      @Override
+      public int compare(ILaunchConfiguration config1, ILaunchConfiguration config2) {
+        return config1.getName().compareToIgnoreCase(config2.getName());
+      }
+    });
+
+    return configs;
   }
 
 }

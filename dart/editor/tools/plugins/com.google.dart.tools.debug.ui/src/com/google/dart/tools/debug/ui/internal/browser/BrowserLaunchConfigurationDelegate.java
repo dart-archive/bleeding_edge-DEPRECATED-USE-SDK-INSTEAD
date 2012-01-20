@@ -23,7 +23,6 @@ import com.google.dart.tools.debug.ui.internal.DartUtil;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -47,18 +46,15 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
   @Override
   public void launch(ILaunchConfiguration config, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
+    mode = ILaunchManager.RUN_MODE;
 
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(config);
 
-    if (!ILaunchManager.RUN_MODE.equals(mode)) {
-      throw new CoreException(
-          DartDebugCorePlugin.createErrorStatus("Dart Browser launch does not support debugging."));
+    IResource resource = launchConfig.getApplicationResource();
+
+    if (resource instanceof IFile) {
+      launchBrowserForHtmlFile((IFile) resource, launchConfig.getApplicationName());
     }
-
-    IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(
-        new Path(launchConfig.getApplicationName()));
-    launchBrowserForHtmlFile(file, launchConfig.getApplicationName());
-
   }
 
   private Program findProgram(String name) {
@@ -80,8 +76,8 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
    * @param file a web page or a Dart application
    * @return a web page to display the Dart application (not <code>null</code>)
    */
+  @SuppressWarnings("unused")
   private IFile getWebPage(IFile file) throws CoreException {
-
     // If it is already a web page, then just return it
     if (DartUtil.isWebPage(file)) {
       return file;
@@ -134,7 +130,6 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
   }
 
   private void launchBrowserForHtmlFile(IFile file, String location) {
-
     // TODO(keertip): change this to use info stored in launch config
     boolean useDefaultBrowser = false;
     IEclipsePreferences prefs = DartDebugCorePlugin.getPlugin().getPrefs();
@@ -145,7 +140,6 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
         Program program = findProgram(browserName);
         if (program != null) {
           program.execute(location);
-
         }
       }
     }
@@ -159,4 +153,5 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
   private void throwCoreException(String message) throws CoreException {
     throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, message));
   }
+
 }

@@ -20,35 +20,6 @@
       </propertyTester>
    </extension>
    
-   <!-- Browser launch configuration -->
-   <extension
-         point="org.eclipse.debug.core.launchConfigurationTypes">
-      <launchConfigurationType
-            delegate="com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationDelegate"
-            id="com.google.dart.tools.debug.core.browserLaunchConfig"
-            modes="run,debug"
-            name="%dart.launch.config.client.name">
-      </launchConfigurationType>
-   </extension>
-
-   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
-      <launchConfigurationTypeImage
-            configTypeID="com.google.dart.tools.debug.core.browserLaunchConfig"
-            icon="icons/dart_app.png"
-            id="com.google.dart.tools.debug.core.browserLaunchConfigImage">
-      </launchConfigurationTypeImage>
-   </extension>
-
-   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
-      <launchConfigurationTabGroup
-            class="com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationTabGroup"
-            id="com.google.dart.tools.debug.core.browserLaunchConfigTabGroup"
-            type="com.google.dart.tools.debug.core.browserLaunchConfig">
-      </launchConfigurationTabGroup>
-   </extension>
-
    <!-- Dartium launch configuration -->
 
    <extension
@@ -93,7 +64,6 @@
                               <or>
                                  <test property="org.eclipse.core.resources.extension" value="html"/>
                                  <test property="org.eclipse.core.resources.extension" value="dart"/>
-                                 <test property="org.eclipse.core.resources.extension" value="app"/>
                               </or>
                            </and>
                            <test property="com.google.dart.tools.debug.isDartProject"/>
@@ -106,6 +76,49 @@
       </shortcut>
    </extension>
    
+   <!-- Browser launch configuration -->
+   <extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            delegate="com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationDelegate"
+            id="com.google.dart.tools.debug.core.browserLaunchConfig"
+            modes="run"
+            name="%dart.launch.config.client.name">
+      </launchConfigurationType>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="com.google.dart.tools.debug.core.browserLaunchConfig"
+            icon="icons/dart_app.png"
+            id="com.google.dart.tools.debug.core.browserLaunchConfigImage">
+      </launchConfigurationTypeImage>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationTabGroup"
+            id="com.google.dart.tools.debug.core.browserLaunchConfigTabGroup"
+            type="com.google.dart.tools.debug.core.browserLaunchConfig">
+      </launchConfigurationTabGroup>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+            class="com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchShortcut"
+            icon="icons/dart_app.png"
+            id="com.google.dart.tools.debug.ui.dartBrowserShortcut"
+            label="%dart.launch.config.client.name"
+            modes="run">
+         <configurationType
+               id="com.google.dart.tools.debug.core.browserLaunchConfig">
+         </configurationType>
+      </shortcut>
+   </extension>
+       
    <!-- Remote launch configuration -->
 
    <!--extension
@@ -143,6 +156,39 @@
             id="com.google.dart.tools.debug.core.serverLaunchConfigTabGroup"
             type="com.google.dart.tools.debug.core.serverLaunchConfig">
       </launchConfigurationTabGroup>
+   </extension>
+   
+   <extension
+         point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+            class="com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut"
+            id="com.google.dart.tools.debug.ui.serverLaunchShortcut"
+            label="Dart Server Application"
+            icon="icons/obj16/osprc_obj.gif"
+            modes="run">
+         <configurationType
+               id="com.google.dart.tools.debug.core.serverLaunchConfig">
+         </configurationType>
+         <contextualLaunch>
+            <enablement>
+               <with variable="selection">
+                  <count value="1">
+                  </count>
+                  <iterate>
+                     <adapt type="org.eclipse.core.resources.IResource">
+                        <or>
+                           <and>
+                              <test property="com.google.dart.tools.debug.isInDartProject"/>
+                              <test property="org.eclipse.core.resources.extension" value="dart"/>
+                           </and>
+                           <test property="com.google.dart.tools.debug.isDartProject"/>
+                        </or>
+                     </adapt>
+                  </iterate>
+               </with>
+            </enablement>
+         </contextualLaunch>
+      </shortcut>
    </extension>
    
    <!-- preference page -->

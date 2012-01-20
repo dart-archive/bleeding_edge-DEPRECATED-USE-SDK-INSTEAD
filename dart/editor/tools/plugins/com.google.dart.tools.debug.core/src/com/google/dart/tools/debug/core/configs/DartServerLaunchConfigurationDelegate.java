@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -16,15 +16,15 @@ package com.google.dart.tools.debug.core.configs;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 
@@ -52,30 +52,20 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
   public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
 
-    if (!ILaunchManager.RUN_MODE.equals(mode) && !ILaunchManager.DEBUG_MODE.equals(mode)) {
-      throw new CoreException(DartDebugCorePlugin.createErrorStatus("Execution mode '" + mode
-          + "' is not supported."));
-    }
-
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
 
-    launchVM(launch, launchConfig, monitor, true);
-
+    launchVM(launch, launchConfig, monitor);
   }
 
   protected void launchVM(ILaunch launch, DartLaunchConfigWrapper launchConfig,
-      IProgressMonitor monitor, boolean runMode) throws CoreException {
-    if (!runMode) {
-      // TODO(devoncarew): implement this
-      throw new CoreException(
-          DartDebugCorePlugin.createErrorStatus("Dart Server launch config does not yet support debugging."));
-    }
-
+      IProgressMonitor monitor) throws CoreException {
     // Usage: dart [options] script.dart [arguments]
 
-    File outputDirectory = new Path(launchConfig.getLibraryLocation()).makeAbsolute().toFile();
+    File outputDirectory = launchConfig.getProject().getLocation().toFile();
 
     String scriptPath = launchConfig.getApplicationName();
+
+    scriptPath = translateToFilePath(scriptPath);
 
     String vmExecPath = DartDebugCorePlugin.getPlugin().getDartVmExecutablePath();
     if (vmExecPath.length() == 0) {
@@ -131,7 +121,6 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     eclipseProcess.setAttribute(IProcess.ATTR_CMDLINE, generateCommandLine(commands));
 
     monitor.done();
-
   }
 
   private String generateCommandLine(String[] commands) {
@@ -146,6 +135,16 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     }
 
     return builder.toString();
+  }
+
+  private String translateToFilePath(String scriptPath) {
+    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(scriptPath);
+
+    if (resource != null) {
+      return resource.getLocation().toFile().getAbsolutePath();
+    } else {
+      return scriptPath;
+    }
   }
 
 }

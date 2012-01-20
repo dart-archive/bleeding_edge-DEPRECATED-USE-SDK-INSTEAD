@@ -97,6 +97,8 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
     label = new Label(group, SWT.NONE);
     label.setText("Script arguments:");
+    label.pack();
+    int labelWidth = label.getSize().x;
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).applyTo(label);
 
     argsText = new Text(group, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL);
@@ -125,6 +127,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
     label = new Label(group, SWT.NONE);
     label.setText("Heap (MB):");
+    GridDataFactory.swtDefaults().hint(labelWidth, -1).applyTo(label);
 
     heapText = new Text(group, SWT.BORDER | SWT.SINGLE);
     heapText.setTextLimit(5);

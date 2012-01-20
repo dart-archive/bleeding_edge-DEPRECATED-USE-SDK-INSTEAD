@@ -1,28 +1,27 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.debug.ui.internal.server;
 
-import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
-import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
+import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
+import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -31,37 +30,125 @@ import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
+import org.eclipse.debug.ui.ILaunchShortcut;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IEditorPart;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * The launch shortcut for the Dart Server Application launch configuration.
  */
-public class DartServerLaunchShortcut extends AbstractLaunchShortcut {
+public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcutExt {
 
   /**
    * Create a new DartServerLaunchShortcut.
    */
   public DartServerLaunchShortcut() {
-    super("Server");
+
   }
 
   @Override
+  public boolean canLaunch(IResource resource) {
+    if (!(resource instanceof IFile)) {
+      return false;
+    }
+
+    DartLibrary library = LaunchUtils.getDartLibrary(resource);
+
+    if (library instanceof DartLibraryImpl) {
+      return ((DartLibraryImpl) library).isServerApplication();
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public ILaunchConfiguration[] getAssociatedLaunchConfigurations(IResource resource) {
+    List<ILaunchConfiguration> results = new ArrayList<ILaunchConfiguration>();
+
+    try {
+      ILaunchConfiguration[] configs = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations(
+          getConfigurationType());
+
+      for (int i = 0; i < configs.length; i++) {
+        ILaunchConfiguration config = configs[i];
+
+        if (testSimilar(resource, config)) {
+          results.add(config);
+        }
+      }
+    } catch (CoreException e) {
+      DartUtil.logError(e);
+    }
+
+    return results.toArray(new ILaunchConfiguration[results.size()]);
+  }
+
+  @Override
+  public void launch(IEditorPart editor, String mode) {
+    IResource resource = (IResource) editor.getEditorInput().getAdapter(IResource.class);
+
+    if (resource != null) {
+      launch(resource, mode);
+    }
+  }
+
+  @Override
+  public void launch(ISelection selection, String mode) {
+    if (selection instanceof IStructuredSelection) {
+      Object sel = ((IStructuredSelection) selection).getFirstElement();
+
+      if (sel instanceof IResource) {
+        launch((IResource) sel, mode);
+      }
+    }
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName();
+  }
+
+  protected final ILaunchConfiguration findConfig(IResource resource) {
+    List<ILaunchConfiguration> candidateConfigs = Collections.emptyList();
+
+    try {
+      ILaunchConfiguration[] configs = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations(
+          getConfigurationType());
+
+      candidateConfigs = new ArrayList<ILaunchConfiguration>(configs.length);
+
+      for (int i = 0; i < configs.length; i++) {
+        ILaunchConfiguration config = configs[i];
+
+        if (testSimilar(resource, config)) {
+          candidateConfigs.add(config);
+        }
+      }
+    } catch (CoreException e) {
+      DartUtil.logError(e);
+    }
+
+    int candidateCount = candidateConfigs.size();
+
+    if (candidateCount == 1) {
+      return candidateConfigs.get(0);
+    } else if (candidateCount > 1) {
+      return LaunchUtils.chooseConfiguration(candidateConfigs);
+    }
+
+    return null;
+  }
+
   protected ILaunchConfigurationType getConfigurationType() {
     ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
     ILaunchConfigurationType type = manager.getLaunchConfigurationType(DartDebugCorePlugin.SERVER_LAUNCH_CONFIG_ID);
 
     return type;
-  }
-
-  @Override
-  protected IResource getLaunchableResource(Object originalResource) throws DartModelException {
-    if (originalResource instanceof DartElement) {
-      DartLibrary parentLibrary = ((DartElement) originalResource).getAncestor(DartLibrary.class);
-      return parentLibrary.getCorrespondingResource();
-    }
-    if (originalResource instanceof IResource) {
-      return (IResource) originalResource;
-    }
-    return null;
   }
 
   /**
@@ -70,8 +157,9 @@ public class DartServerLaunchShortcut extends AbstractLaunchShortcut {
    * @param resource the resource
    * @param mode the launch mode ("run", "debug", ...)
    */
-  @Override
   protected void launch(IResource resource, String mode) {
+    mode = ILaunchManager.RUN_MODE;
+
     if (resource == null) {
       return;
     }
@@ -96,10 +184,7 @@ public class DartServerLaunchShortcut extends AbstractLaunchShortcut {
 
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(launchConfig);
 
-    launchWrapper.setProjectName(resource.getProject().getName());
-    launchWrapper.setApplicationName(resource.getLocation().toOSString());
-    launchWrapper.setLibraryLocation(resource.getLocation().removeLastSegments(1).toOSString());
-
+    launchWrapper.setApplicationName(resource.getFullPath().toString());
     launchConfig.setMappedResources(new IResource[] {resource});
 
     try {
@@ -112,18 +197,8 @@ public class DartServerLaunchShortcut extends AbstractLaunchShortcut {
     DebugUITools.launch(config, mode);
   }
 
-  @Override
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
-    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
-
-    if (!resource.getProject().getName().equals(launchWrapper.getProjectName())) {
-      return false;
-    }
-
-    String resourcePath = resource.getLocation().toOSString();
-    String applicationPath = launchWrapper.getApplicationName();
-
-    return resourcePath.equals(applicationPath);
+    return LaunchUtils.isLaunchableWith(resource, config);
   }
 
 }

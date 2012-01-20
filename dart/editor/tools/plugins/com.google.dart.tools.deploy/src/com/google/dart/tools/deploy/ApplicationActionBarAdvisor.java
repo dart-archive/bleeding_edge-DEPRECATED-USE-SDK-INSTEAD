@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,8 +14,6 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.debug.ui.launch.CreateLaunchAction;
-import com.google.dart.tools.debug.ui.launch.DartDebugAction;
 import com.google.dart.tools.debug.ui.launch.DartRunAction;
 import com.google.dart.tools.debug.ui.launch.ManageLaunchesAction;
 import com.google.dart.tools.debug.ui.launch.RunInBrowserAction;
@@ -168,9 +166,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private RunInBrowserAction runInBrowserAction;
   private RunInServerAction runServerAction;
 
-  private CreateLaunchAction createLaunchAction;
   private DartRunAction dartRunAction;
-  private DartDebugAction dartDebugAction;
 
   private IWorkbenchAction deployOptimizedAction;
 
@@ -426,9 +422,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       helpToolBar.add(new GroupMarker(IWorkbenchActionConstants.GROUP_APP));
 
       if (DartCoreDebug.DEBUGGER) {
-        helpToolBar.add(createLaunchAction);
         helpToolBar.add(dartRunAction);
-        helpToolBar.add(dartDebugAction);
       } else {
         helpToolBar.add(runInBrowserAction);
         helpToolBar.add(runServerAction);
@@ -473,9 +467,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     runInBrowserAction = new RunInBrowserAction(window);
     runServerAction = new RunInServerAction(window);
 
-    createLaunchAction = new CreateLaunchAction(window);
     dartRunAction = new DartRunAction(window);
-    dartDebugAction = new DartDebugAction(window);
 
     deployOptimizedAction = new DeployOptimizedAction(window);
 
@@ -961,7 +953,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new Separator());
 
     if (DartCoreDebug.DEBUGGER) {
-      menu.add(new CreateLaunchAction(window));
+      menu.add(new DartRunAction(window, true));
       menu.add(new ManageLaunchesAction(window));
     } else {
       menu.add(runInBrowserAction);

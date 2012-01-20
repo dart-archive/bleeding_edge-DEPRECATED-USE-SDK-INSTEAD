@@ -13,11 +13,16 @@
  */
 package com.google.dart.tools.debug.ui.internal.dartium;
 
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
+import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
+import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -28,12 +33,31 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 
 /**
- * A launch shortcut to allow users to launch Dart applications in Chrome.
+ * A launch shortcut to allow users to launch Dart applications in Chromium / Dartium.
  */
-public class DartiumLaunchShortcut extends AbstractLaunchShortcut {
+public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILaunchShortcutExt {
 
   public DartiumLaunchShortcut() {
     super("Chromium");
+  }
+
+  @Override
+  public boolean canLaunch(IResource resource) {
+    if (resource instanceof IFile) {
+      if ("html".equalsIgnoreCase(resource.getFileExtension())) {
+        return true;
+      }
+    }
+
+    DartLibrary library = LaunchUtils.getDartLibrary(resource);
+
+    if (library instanceof DartLibraryImpl) {
+      DartLibraryImpl impl = (DartLibraryImpl) library;
+
+      return impl.isBrowserApplication();
+    } else {
+      return false;
+    }
   }
 
   @Override
@@ -87,18 +111,7 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut {
 
   @Override
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
-    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
-
-    String resourcePath = resource.getFullPath().toString();
-    String applicationPath = launchWrapper.getApplicationName();
-
-    if (resourcePath.equals(applicationPath)) {
-      return true;
-    }
-
-    resourcePath = resource.getProjectRelativePath().toString();
-
-    return resourcePath.equals(applicationPath);
+    return LaunchUtils.isLaunchableWith(resource, config);
   }
 
 }

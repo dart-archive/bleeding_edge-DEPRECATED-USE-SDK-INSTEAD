@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.ui.internal.browser;
 
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -23,7 +24,10 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
+import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
+import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -41,7 +45,7 @@ import java.io.File;
  * the browser as configured. This involves running an existing launch configuration or creating a
  * new one if an appropriate launch configuration does not already exist.
  */
-public class BrowserLaunchShortcut extends AbstractLaunchShortcut {
+public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILaunchShortcutExt {
 
   public static File getJsAppArtifactFile(IPath sourceLocation) {
     return sourceLocation.addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
@@ -52,6 +56,25 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut {
    */
   public BrowserLaunchShortcut() {
     super("Application");
+  }
+
+  @Override
+  public boolean canLaunch(IResource resource) {
+    if (resource instanceof IFile) {
+      if ("html".equalsIgnoreCase(resource.getFileExtension())) {
+        return true;
+      }
+    }
+
+    DartLibrary library = LaunchUtils.getDartLibrary(resource);
+
+    if (library instanceof DartLibraryImpl) {
+      DartLibraryImpl impl = (DartLibraryImpl) library;
+
+      return impl.isBrowserApplication();
+    } else {
+      return false;
+    }
   }
 
   @Override
@@ -70,6 +93,8 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut {
    */
   @Override
   protected void launch(IResource resource, String mode) {
+    mode = ILaunchManager.RUN_MODE;
+
     if (resource == null) {
       return;
     }
@@ -82,7 +107,6 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut {
     } else if (!(element instanceof HTMLFile)) {
       DartDebugCorePlugin.logError("File is not an html file");
     } else {
-
       HTMLFile htmlFile = (HTMLFile) element;
 
       try {
@@ -101,12 +125,13 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut {
           }
         }
       } catch (DartModelException e) {
-
         DartDebugCorePlugin.logError(e);
       }
     }
+
     // Launch an existing configuration if one exists
     ILaunchConfiguration config = findConfig(resource);
+
     if (config != null) {
       DebugUITools.launch(config, mode);
       return;
@@ -136,19 +161,13 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut {
       DartUtil.logError(e);
       return;
     }
+
     DebugUITools.launch(config, mode);
   }
 
   @Override
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
-
-    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
-
-    String resourcePath = resource.getLocation().toOSString();
-
-    // TODO(keertip): Check for more launch config params to match
-    return resourcePath.equals(launchWrapper.getApplicationName());
-
+    return LaunchUtils.isLaunchableWith(resource, config);
   }
 
 }
