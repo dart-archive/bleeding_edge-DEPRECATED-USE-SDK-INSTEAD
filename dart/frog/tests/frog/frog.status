@@ -12,6 +12,9 @@ EvaluatorTest: Skip
 InheritanceOrderingTest: Skip # Flaky, no data yet. Two flaky tests is starting to look like a pattern ...
 PrototypePatchingTest: Skip # Flaky. issue 1162.
 
+[ $component == frogsh && $checked]
+NodeProcessTest: Fail # Checked mode failure -- looked like it failed to find assert$WritableStream
+
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == frog || $component == leg]
 Node*Test: Skip
 
