@@ -6,6 +6,8 @@
 
 #import('file_system.dart');
 #import('lib/node/node.dart');
+#import('lib/node/fs.dart');
+#import('lib/node/path.dart');
 
 /** File system implementation using nodejs api's (for self-hosted compiler). */
 class NodeFileSystem implements FileSystem {

@@ -10,47 +10,39 @@
  */
 #library('node');
 
-// The sandbox needs to import the constructor functions for all the non-hidden native types we use.
+#import('dart:coreimpl');
+#import('nodeimpl.dart');
+#import('fs.dart');
+
+var require(String module) native;
+
+// The sandbox needs to import the constructor functions for all the
+// non-hidden native types we use.
 
 var createSandbox() native
-  """return {'require': require, 'process': process, 'console': console,
+  """return {
+      'require': require,
+      'process': process,
+      'console': console,
       'Buffer' : Buffer,
-      'setTimeout': setTimeout, 'clearTimeout': clearTimeout};""";
+      'setTimeout': setTimeout,
+      'clearTimeout': clearTimeout,
+      'setInterval': setInterval,
+      'clearInterval': clearInterval,
+      'module' : module,
+      'ArrayBuffer': ArrayBuffer,
+      'Int8Array': Int8Array,
+      'Uint8Array': Uint8Array,
+      'Int16Array': Int16Array,
+      'Uint16Array': Uint16Array,
+      'Int32Array': Int32Array,
+      'Uint32Array': Uint32Array,
+      'Float32Array': Float32Array,
+      'Float64Array': Float64Array,
+      'DataView': DataView
+      };""";
 
-typedef void RequestListener(ServerRequest request, ServerResponse response);
-
-// TODO(nweiz): properly title-case these class names
-
-class http native "require('http')" {
-  static Server createServer(RequestListener listener) native;
-}
-
-class Server native "http.Server" {
-  void listen(int port, [String hostname, Function callback]) native;
-}
-
-class ServerRequest native "http.IncomingMessage" {
-  final String method;
-  final String url;
-  final Map<String, String> headers;
-  final String httpVersion;
-
-  void setEncoding([String encoding]) {}
-}
-
-class ServerResponse native "http.ServerResponse" {
-  int statusCode;
-
-  void setHeader(String name, String value) native;
-
-  String getHeader(String name) native;
-
-  void removeHeader(String name) native;
-
-  void write(String data, [String encoding = 'utf8']) native;
-
-  void end([String data, String encoding = 'utf8']) native;
-}
+// global console
 
 class Console native "Console" {
   // TODO(jimhug): Map node.js's ability to take multiple args to what?
@@ -84,8 +76,102 @@ interface EventEmitter {
 //  List<EventListener> listeners(String event);
   void removeAllListeners(String event);
   void setMaxListeners(num n);
-  // TODO(jackpal): use rest arguments
-  void emit(String event, [var arg1, var arg2, var arg3]);
+}
+
+typedef void StreamErrorListener(Error exception);
+typedef void StreamCloseListener();
+
+interface CommonStream extends EventEmitter {
+  // Error event
+  void emitError(Error error);
+  void addListenerError(StreamErrorListener listener);
+  void onError(StreamErrorListener listener);
+  void onceError(StreamErrorListener listener);
+  void removeListenerError(StreamErrorListener listener);
+  List<StreamErrorListener> listenersError();
+  
+  // Close event
+  void emitClose();
+  void addListenerClose(StreamCloseListener listener);
+  void onClose(StreamCloseListener listener);
+  void onceClose(StreamCloseListener listener);
+  void removeListenerClose(StreamCloseListener listener);
+  List<StreamCloseListener> listenersClose();
+
+  void destroy();
+  void destroySoon();
+}
+
+// data is either a Buffer or a String, depending upon whether setEncoding
+// has been called.
+typedef void ReadableStreamDataListener(var data);
+typedef void ReadableStreamEndListener();
+
+interface ReadableStream extends CommonStream {
+  // Data event
+  void emitData(var data);
+  void addListenerData(ReadableStreamDataListener listener);
+  void onData(ReadableStreamDataListener listener);
+  void onceData(ReadableStreamDataListener listener);
+  void removeListenerData(ReadableStreamDataListener listener);
+  List<ReadableStreamDataListener> listenersData();
+
+  // End event
+  void emitEnd();
+  void addListenerEnd(ReadableStreamEndListener listener);
+  void onEnd(ReadableStreamEndListener listener);
+  void onceEnd(ReadableStreamEndListener listener);
+  void removeListenerEnd(ReadableStreamEndListener listener);
+  List<ReadableStreamEndListener> listenersEnd();
+    
+  bool readable;
+  void setEncoding(String encoding);
+  void pause();
+  void resume();
+  WritableStream pipe(WritableStream destination, [Map options]);
+}
+
+typedef void WritableStreamDrainListener();
+typedef void WritableStreamPipeListener(ReadableStream src);
+
+interface WritableStream extends CommonStream {
+  // Drain event
+  void emitDrain();
+  void addListenerDrain(WritableStreamDrainListener listener);
+  void onDrain(WritableStreamDrainListener listener);
+  void onceDrain(WritableStreamDrainListener listener);
+  void removeListenerDrain(WritableStreamDrainListener listener);
+  List<WritableStreamDrainListener> listenersDrain();
+    
+  // Pipe event
+  void emitPipe(ReadableStream src);
+  void addListenerPipe(WritableStreamPipeListener listener);
+  void onPipe(WritableStreamPipeListener listener);
+  void oncePipe(WritableStreamPipeListener listener);
+  void removeListenerPipe(WritableStreamPipeListener listener);
+  List<WritableStreamPipeListener> listenersPipe();
+
+  bool writable;
+  bool write(String string, [String encoding, int fd]);
+  bool writeBuffer(Buffer buffer);
+  void end([String string, String encoding]);
+  void endBuffer(Buffer buffer);
+}
+
+interface ReadWriteStream extends ReadableStream, WritableStream {
+  // No additional methods.
+}
+
+typedef void FsStreamOpenListener(int fd);
+
+interface FsStream {
+  // Open event
+  void emitOpen(int fd);
+  void addListenerOpen(FsStreamOpenListener listener);
+  void onOpen(FsStreamOpenListener listener);
+  void onceOpen(FsStreamOpenListener listener);
+  void removeListenerOpen(FsStreamOpenListener listener);
+  List<FsStreamOpenListener> listenersOpen();
 }
 
 typedef void ProcessExitListener();
@@ -138,8 +224,6 @@ class Process implements EventEmitter native "Process" {
     native "this._process.removeAllListeners(event);";
   void setMaxListeners(num n)
     native "this._process.setMaxListeners(n);";
-  void emit(String event, [var arg1, var arg2, var arg3])
-    native "this._process.emit(event, arg1, arg2, arg3)";
   
   // Exit event
   void emitExit()
@@ -184,11 +268,11 @@ class Process implements EventEmitter native "Process" {
   List<ProcessSignalListener> listenersSignal(String signal)
     native "return this._process.listeners(signal);";
 
-  WritableStream get stdout()
+  WriteStream get stdout()
     native "return this._process.stdout;";
-  WritableStream get stderr()
+  WriteStream get stderr()
     native "return this._process.stderr;";
-  ReadableStream get stdin()
+  ReadStream get stdin()
     native "return this._process.stdin;";
   
   List<String> get argv()
@@ -203,7 +287,9 @@ class Process implements EventEmitter native "Process" {
   String cwd()
     native "return this._process.cwd();";
 
-  EnvMap get env() => new EnvMap(_process);
+  Map<String,String> get env()
+      => new _EnvMap(_env());
+  var _env() native "return this._process.env;";
 
   void exit([int code = 0])
     native "this._process.exit(code);";
@@ -217,6 +303,9 @@ class Process implements EventEmitter native "Process" {
     native "this._process.setuid(uid_or_groupname);";
   String get version()
     native "return this._process.version;";
+  Map<String,String> get versions()
+    => new _NativeMapPrimitiveValue<String>(_versions());
+  var _versions() native "return this._process._versions;";
   String get installPrefix()
     native "return this._process.installPrefix;";
   void kill(int pid, [String signal=SIGTERM])
@@ -225,14 +314,18 @@ class Process implements EventEmitter native "Process" {
     native "return this._process.pid;";
   String get title()
     native "return this._process.title;";
+  String get arch()
+    native "return this._process.arch;";
   String get platform()
     native "return this._process.platform;";
-
-  // TODO(jackpal) implement Map memoryUsage() native;
+  MemoryUsage memoryUsage() => new MemoryUsage._from(_memoryUsage());
+  var _memoryUsage() native "return this._process.memoryUsage()";
   void nextTick(Function callback)
     native "return this._process.nextTick(callback);";
   int umask([int mask])
     native "return this._process.umask(mask);";
+  int uptime()
+    native "return this._process.uptime();";
 }
 
 var get _process()
@@ -242,347 +335,167 @@ Process get process() {
   return new Process(_process);
 }
 
-class EnvMap {
-  var _process;
-  const EnvMap(this._process);
-  operator [](key) native "return this._process.env[key];";
-  
+class _EnvMap extends NativeMapPrimitiveValue<String>{
+  _EnvMap(var env) : super(env);
+  // process.env doesn't implement hasOwnProperty
+  void _forEachKey(var map, void f(String key))
+   native """
+       for (var i in map) {
+         f(i);
+       }
+     """;
 }
 
-typedef void UtilPumpCallback(var error);
-
-class util native "require('util')" {
-  static void debug(String string) native;
-  static void log(String string) native;
-  static void inspect(var object, [bool showHidden=false, num depth=2]) native;
-  static pump(ReadableStream readableStream, WritableStream writeableStream,
-    [UtilPumpCallback callback]) native;
-  // the method inherits(a,b) doesn't make sense for Dart
-}
-
-// Object is either a Buffer or a String, depending upon whether setEncoding has been called.
-typedef void ReadableStreamDataListener(var object);
-typedef void ReadableStreamEndListener();
-typedef void ReadableStreamErrorListener(Object exception);
-typedef void ReadableStreamCloseListener();
-
-class ReadableStream implements EventEmitter native "*ReadStream" {
-  // EventEmitter
-  void removeAllListeners(String event) native;
-  void setMaxListeners(num n) native;
-  void emit(String event, [var arg1, var arg2, var arg3]) native;
-  
-  // Data event
-  void emitData(var data)
-    native "this.emit('data', data);";
-  void addListenerData(ReadableStreamDataListener listener)
-    native "this.addListener('data', listener);";
-  void onData(ReadableStreamDataListener listener)
-    native "this.on('data', listener);";
-  void onceData(ReadableStreamDataListener listener)
-    native "this.once('data', listener);";
-  void removeListenerData(ReadableStreamDataListener listener)
-    native "this.removeListener('data', listener);";
-  List<ReadableStreamDataListener> listenersData()
-    native "return this._process.listeners('data');";
-
-  // End event
-  void emitEnd()
-    native "this.emit('end');";
-  void addListenerEnd(ReadableStreamEndListener listener)
-    native "this.addListener('end', listener);";
-  void onEnd(ReadableStreamEndListener listener)
-    native "this.on('end', listener);";
-  void onceEnd(ReadableStreamEndListener listener)
-    native "this.once('end', listener);";
-  void removeListenerEnd(ReadableStreamEndListener listener)
-    native "this.removeListener('end', listener);";
-  List<ReadableStreamEndListener> listenersEnd()
-    native "return this._process.listeners('end');";
-  
-  // Error event
-  void emitError(Object exception)
-    native "this.emit('error', exception);";
-  void addListenerError(ReadableStreamErrorListener listener)
-    native "this.addListener('error', listener);";
-  void onError(ReadableStreamErrorListener listener)
-    native "this.on('error', listener);";
-  void onceError(ReadableStreamErrorListener listener)
-    native "this.once('error', listener);";
-  void removeListenerError(ReadableStreamErrorListener listener)
-    native "this.removeListener('error', listener);";
-  List<ReadableStreamErrorListener> listenersError()
-    native "return this._process.listeners('error');";
-
-  // Close event
-  void emitClose()
-    native "this.emit('close');";
-  void addListenerClose(ReadableStreamCloseListener listener)
-    native "this.addListener('close', listener);";
-  void onClose(ReadableStreamCloseListener listener)
-    native "this.on('close', listener);";
-  void onceClose(ReadableStreamCloseListener listener)
-    native "this.once('close', listener);";
-  void removeListenerClose(ReadableStreamCloseListener listener)
-    native "this.removeListener('close', listener);";
-  List<ReadableStreamCloseListener> listenersClose()
-    native "return this._process.listeners('close');";
-    
-  bool readable;
-  void setEncoding(String encoding) native;
-  void pause() native;
-  void resume() native;
-  void destroy() native;
-  void destroySoon() native;
-  void pipe(WritableStream destination, [bool end=true])
-    native "this.pipe(destination, {'end': end});";
-}
-
-typedef void WritableStreamDrainListener();
-typedef void WritableStreamErrorListener(Object exception);
-typedef void WritableStreamCloseListener();
-typedef void WritableStreamPipeListener(ReadableStream src);
-
-class WritableStream implements EventEmitter native "*WriteStream" {
-  // EventEmitter
-  void removeAllListeners(String event) native "this._writeStream.removeAllListeners(event);";
-  void setMaxListeners(num n) native;
-  void emit(String event, [var arg1, var arg2, var arg3]) native;
-  
-  // Drain event
-  void emitDrain()
-    native "this.emit('drain');";
-  void addListenerDrain(WritableStreamDrainListener listener)
-    native "this.addListener('drain', listener);";
-  void onDrain(WritableStreamDrainListener listener)
-    native "this.on('drain', listener);";
-  void onceDrain(WritableStreamDrainListener listener)
-    native "this.once('drain', listener);";
-  void removeListenerDrain(WritableStreamDrainListener listener)
-    native "this.removeListener('drain', listener);";
-  List<WritableStreamDrainListener> listenersDrain()
-    native "return this._process.listeners('drain');";
-    
-  // Error event
-  void emitError(Object exception)
-    native "this.emit('error', exception);";
-  void addListenerError(WritableStreamErrorListener listener)
-    native "this.addListener('error', listener);";
-  void onError(WritableStreamErrorListener listener)
-    native "this.on('error', listener);";
-  void onceError(WritableStreamErrorListener listener)
-    native "this.once('error', listener);";
-  void removeListenerError(WritableStreamErrorListener listener)
-    native "this.removeListener('error', listener);";
-  List<WritableStreamErrorListener> listenersError()
-    native "return this._process.listeners('error');";
-
-  // Close event
-  void emitClose()
-    native "this.emit('close');";
-  void addListenerClose(WritableStreamCloseListener listener)
-    native "this.addListener('close', listener);";
-  void onClose(WritableStreamCloseListener listener)
-    native "this.on('close', listener);";
-  void onceClose(WritableStreamCloseListener listener)
-    native "this.once('close', listener);";
-  void removeListenerClose(WritableStreamCloseListener listener)
-    native "this.removeListener('close', listener);";
-  List<WritableStreamCloseListener> listenersClose()
-    native "return this._process.listeners('close');";
-
-  // Pipe event
-  void emitPipe(ReadableStream src)
-    native "this.emit('pipe', src);";
-  void addListenerPipe(WritableStreamPipeListener listener)
-    native "this.addListener('pipe', listener);";
-  void onPipe(WritableStreamPipeListener listener)
-    native "this.on('pipe', listener);";
-  void oncePipe(WritableStreamPipeListener listener)
-    native "this.once('pipe', listener);";
-  void removeListenerPipe(WritableStreamPipeListener listener)
-    native "this.removeListener('pipe', listener);";
-  List<WritableStreamPipeListener> listenersPipe()
-    native "return this._process.listeners('pipe');";
-
-  bool writable;
-  bool write(String string, [String encoding='utf8', int fd]) native;
-  bool writeBuffer(Buffer buffer) native;
-  void end([String string, String encoding='utf8']) native;
-  void endBuffer(Buffer buffer) native "this.end(buffer);";
-  void destroy() native;
-  void destroySoon() native;
-}
-
-class vm native "require('vm')" {
-  static void runInThisContext(String code, [String filename]) native;
-  static void runInNewContext(String code, [var sandbox, String filename])
-    native;
-  static Script createScript(String code, [String filename]) native;
-  static Context createContext([sandbox]) native;
-  static runInContext(String code, Context context, [String filename]) native;
-}
-
-interface Context {}
-
-class Script native "vm.Script" {
-  void runInThisContext() native;
-  void runInNewContext([Map sandbox]) native;
-}
-
-class fs native "require('fs')" {
-  static void writeFileSync(String outfile, String text) native;
-
-  static String readFileSync(String filename, [String encoding = 'utf8'])
-    native;
-
-  static String realpathSync(String path) native;
-
-  static void mkdirSync(String path, [num mode = 511 /* 0777 octal */]) native;
-  static List<String> readdirSync(String path) native;
-  static void rmdirSync(String path) native;
-  static Stats statSync(String path) native;
-  static void unlinkSync(String path) native;
-
-  static void writeSync(int fd, String text) native;  
-  static int openSync(String path, String flags,
-    [num mode = 438] /* 0666 octal */) native;
-  static void closeSync(int fd) native;
-}
-
-class Stats native "fs.Stats" {
-  bool isFile() native;
-  bool isDirectory() native;
-  bool isBlockDevice() native;
-  bool isCharacterDevice() native;
-  bool isSymbolicLink() native;
-  bool isFIFO() native;
-  bool isSocket() native;
-
-  // TODO(rnystrom): There are also the other fields we can add here if needed.
-  // See: http://nodejs.org/docs/v0.6.1/api/fs.html#fs.Stats.
-}
-
-class path native "require('path')" {
-  static bool existsSync(String filename) native;
-  static String dirname(String path) native;
-  static String basename(String path) native;
-  static String extname(String path) native;
-  static String normalize(String path) native;
-  // TODO(jimhug): Get the right signatures for normalizeArray and join
-}
-
-class Readline native "require('readline')" {
-  static ReadlineInterface createInterface(input, output) native;
-}
-
-class ReadlineInterface native "Readline.Interface" {
-  void setPrompt(String prompt, [int length]) native;
-  void prompt() native;
-  void on(String event, Function callback) native;
+class MemoryUsage {
+  MemoryUsage._from(var mu) {
+    rss = NativeGetIntProperty(mu, 'rss');
+    heapTotal = NativeGetIntProperty(mu, 'heapTotal');
+    heapUsed = NativeGetIntProperty(mu, 'heapUsed');
+  }
+  int rss;
+  int heapTotal;
+  int heapUsed;
 }
 
 interface TimeoutId {}
 
-TimeoutId setTimeout(Function callback, num delay, [arg]) native;
-clearTimeout(TimeoutId id) native;
+TimeoutId setTimeout(callback(), int delay, [arg /* ... */]) native;
+clearTimeout(TimeoutId timeoutId) native;
 
-typedef void ChildProcessExitListener(int code, String signal);
+interface IntervalId {}
 
-class ChildProcess implements EventEmitter native "ChildProcess" {
-  var _childprocess;
-  
-  ChildProcess(this._childprocess);
-  
-  // EventEmitter
-  void removeAllListeners(String event)
-    native "this._childprocess.removeAllListeners(event);";
-  void setMaxListeners(num n)
-    native "this._childprocess.setMaxListeners(n);";
-  void emit(String event, [var arg1, var arg2, var arg3])
-      native "this._childprocess.emit(event, arg1, arg2, arg3);";
-  
-  // 'exit' event
-  void addListenerExit(ChildProcessExitListener listener)
-    native "this._childprocess.addListener('exit', listener);";
-  void onExit(ChildProcessExitListener listener)
-    native "this._childprocess.on('exit', listener);";
-  void onceExit(ChildProcessExitListener listener)
-    native "this._childprocess.once('exit', listener);";
-  void removeListenerExit(ChildProcessExitListener listener)
-    native "this._childprocess.removeListener('exit', listener);";
-  List<ChildProcessExitListener> listenersExit()
-    native "return this._childprocess.listeners('exit');";
-  
-  WritableStream get stdin()
-    native "return this._childprocess.stdin;";
+IntervalId setInterval(callback(), int delay, [arg  /* ... */]) native;
+clearInterval(IntervalId intervalId) native;
 
-  ReadableStream get stdout()
-    native "return this._childprocess.stdout;";
-  ReadableStream get stderr()
-    native "return this._childprocess.stderr;";
-  int get pid()
-    native "return this._childprocess.pid;";
+// buffer
+
+interface Buffer extends List<int> default _BufferImplementation {  
+  Buffer(int size);
+  Buffer.fromSize(int size);
+  Buffer.fromList(List<int> list);
+  Buffer.fromString(String string, [String encoding]);
+
+  int write(String string, int offset, int length, [String encoding]);
+  String toString(String encoding, int start, int end);
+  
+  void copy(Buffer targetBuffer, int targetStart, int sourceStart, int sourceEnd);
+  Buffer slice(int start, int end);
+
+  int readUInt8(int offset, [bool noAssert]);
+  int readUInt16LE(int offset, [bool noAssert]);
+  int readUInt16BE(int offset, [bool noAssert]);
+  int readUInt32LE(int offset, [bool noAssert]);
+  int readUInt32BE(int offset, [bool noAssert]);
+
+  int readInt8(int offset, [bool noAssert]);
+  int readInt16LE(int offset, [bool noAssert]);
+  int readInt16BE(int offset, [bool noAssert]);
+  int readInt32LE(int offset, [bool noAssert]);
+  int readInt32BE(int offset, [bool noAssert]);
+
+  double readFloatLE(int offset, [bool noAssert]);
+  double readFloatBE(int offset, [bool noAssert]);
+  double readDoubleLE(int offset, [bool noAssert]);
+  double readDoubleBE(int offset, [bool noAssert]);
+
+  void writeUInt8(int value, int offset, [bool noAssert]);
+  void writeUInt16LE(int value, int offset, [bool noAssert]);
+  void writeUInt16BE(int value, int offset, [bool noAssert]);
+  void writeUInt32LE(int value, int offset, [bool noAssert]);
+  void writeUInt32BE(int value, int offset, [bool noAssert]);
+
+  void writeInt8(int value, int offset, [bool noAssert]);
+  void writeInt16LE(int value, int offset, [bool noAssert]);
+  void writeInt16BE(int value, int offset, [bool noAssert]);
+  void writeInt32LE(int value, int offset, [bool noAssert]);
+  void writeInt32BE(int value, int offset, [bool noAssert]);
+
+  void writeFloatLE(double value, int offset, [bool noAssert]);
+  void writeFloatBE(double value, int offset, [bool noAssert]);
+  void writeDoubleLE(double value, int offset, [bool noAssert]);
+  void writeDoubleBE(double value, int offset, [bool noAssert]);
+  
+  // end defaults to buffer.length
+  void fill(int value, int offset, int end);
 }
 
-typedef void Child_processCallback(Error error, String stdout, String stderr);
+/** Static methods that apply to all buffers */
 
-class Child_process native {
-  var _cp;
-  
-  Child_process() {
-    _cp = _get_child_process();
-  }
-  
-  // TODOO(jackpal): translate options into a Javascript dictionary
-  ChildProcess spawn(String command, [List<String> args,
-    Map<String, Object> options]){
-    return new ChildProcess(_spawn(_cp, command, args, options));
-  }
-  
-  // TODOO(jackpal): translate options into a Javascript dictionary
-  ChildProcess exec(String command, Child_processCallback callback,
-      [Map<String, Object> options]) {
-    // Note the argument order to exec is different than to _exec,
-    // because Dart can't have optional arguments in the middle of
-    // an argument list.
-    return new ChildProcess(_exec(_cp, command, options, callback));
-  }
-  
-  static var _spawn(var cp, String command, List<String> args)
-    native "return cp.spawn(command, args);";
-  static var _exec(var cp, String command, Map<String, Object> options,
-    Child_processCallback callback)
-    native "return cp.exec(command, options, callback);";
-
-  static var _get_child_process()
-    native "return require('child_process');";
+class Buffers {
+  static int get charsWritten() native "return Buffer._charsWritten;";
+  static bool isBuffer(obj) native "return Buffer.isBuffer(obj);";
+  static int byteLength(String string, [String encoding])
+    native "return Buffer.byteLength(string, encoding);";
+  static int get INSPECT_MAX_BYTES() native "return Buffer.INSPECT_MAX_BYTES;";  
+  static void set INSPECT_MAX_BYTES(int v) native "Buffer.INSPECT_MAX_BYTES = v;";  
 }
 
-var get child_process() {
-  return new Child_process();
-}
-
-class Buffer native "Buffer" {
-  Buffer(int size) native;
-  Buffer.fromSize(int size)
+class _BufferImplementation implements Buffer native "Buffer" {  
+  _BufferImplementation(int size) native;
+  _BufferImplementation.fromSize(int size)
     native "return new Buffer(size);";
-  Buffer.fromList(List<int> list)
+  _BufferImplementation.fromList(List<int> list)
     native "return new Buffer(list);";
-  Buffer.fromString(String string, [String encoding='utf8'])
+  _BufferImplementation.fromString(String string, [String encoding='utf8'])
     native "return new Buffer(string, encoding);";
-  // the default length is buffer.length-offset
+
   int write(String string, int offset, int length, [String encoding='utf8'])
     native;
   static int get charsWritten()
     native "return Buffer._charsWritten;";
   String toString(String encoding, int start, int end) native;
+  
+  // List<int> protocol
   int operator[](int index) native;
   int operator[]=(int index, int value) native;
+  
+  void _throwUnsupported() {
+    throw new UnsupportedOperationException('not extendable');
+  }
+  void add(int value) => _throwUnsupported();
+  void addAll(Collection<int> collection) => _throwUnsupported();
+  void addLast(int value) => _throwUnsupported();
+  void clear() => _throwUnsupported();
+  List<int> getRange(int start, int length) {
+    FixedLists.getRangeCheck(this.length, start, length);
+    Buffer b = new Buffer(length);
+    this.copy(b, 0, start, start + length);
+    return b;
+  }
+  int indexOf(int element, [int start])
+      => FixedLists.indexOf(this, element, start);
+  void insertRange(int start, int length, [int initialValue])
+      => _throwUnsupported();
+  int last()
+      => FixedLists.last(this);
+  int lastIndexOf(int element, [int start])
+      => FixedLists.lastIndexOf(this, element, start);
+  void set length(int newLength) => _throwUnsupported();
+  int removeLast() {_throwUnsupported(); return 0; }
+  void removeRange(int start, int length) => _throwUnsupported();
+  void setRange(int start, int length, List<int> from, [int startFrom])
+      => _throwUnsupported();
+  void sort(int compare(int a, int b))
+      => DualPivotQuicksort.sort(this, compare);
+
+  // Collection<int> members:
+  void forEach(void f(int element)) => FixedLists.forEach(this, f);
+  Buffer filter(bool f(int element))
+      => FixedLists.filter(this, f, (length) => new Buffer(length));
+  Buffer map(f(int element))
+      => FixedLists.map(this, f, new Buffer(this.length));
+  bool every(bool f(int element)) => FixedLists.every(this, f);
+  bool some(bool f(int element)) => FixedLists.some(this, f);
+  bool isEmpty() => FixedLists.isEmpty(this);
+
+  // Iterable<int> members:
+  Iterator<int> iterator() => new ListIterator(this);
+
   static bool isBuffer(obj) native;
   static int byteLength(String string, [String encoding='utf8']) native;
-  int length;
-  void copy(Buffer targetBuffer, int targetStart, int sourceStart, int sourceEnd) native;
+  int get length() native "return this.length;";
+  void copy(Buffer targetBuffer, int targetStart, int sourceStart, int sourceEnd
+      ) native;
   Buffer slice(int start, int end) native;
 
   int readUInt8(int offset, [bool noAssert=false]) native;
@@ -633,4 +546,562 @@ class Error native "Error" {
   bool killed;
   int code;
   String signal;
+}
+
+// TODO: module dgram
+
+// TODO: module https
+
+// module assert TODO: (or maybe not, isn't there a Dart assert?)
+
+// Typed arrays
+
+class ArrayBuffer native "ArrayBuffer" {
+  ArrayBuffer(int length) native;
+  int byteLength;
+}
+
+interface ArrayBufferView {
+  final ArrayBuffer buffer;
+  final int byteOffset;
+  final int byteLength;
+}
+
+interface TypedArrayBufferView<E> extends ArrayBufferView, List<E> {
+  final int BYTES_PER_ELEMENT;
+  
+  void set(TypedArrayBufferView<E> array, [int offset]);
+  TypedArrayBufferView<E> subarray(int begin, [int end]);
+}
+
+class Int8Array implements TypedArrayBufferView<int> native "Int8Array" {
+  final ArrayBuffer buffer;
+  final int byteOffset;
+  final int byteLength;
+
+  final int BYTES_PER_ELEMENT;
+  final int length;
+
+  Int8Array(int length) native;
+  factory Int8Array.fromArray(Int8Array array) native "return new Int8Array(array);";
+  factory Int8Array.fromList(List<int> list) native "return new Int8Array(list);";
+  factory Int8Array.fromArrayBuffer(ArrayBuffer buffer, [int byteOffset, int length])
+      native """if (byteOffset === undefined) return new Int8Array(buffer);
+          if (length === undefined) return new Int8Array(buffer, byteOffset);
+          return new Int8Array(buffer, byteOffset, length);""";
+
+  // List protocol
+  int operator[](int index) native;
+  void operator[]=(int index, int value) native;
+  void _throwUnsupported() {
+     throw new UnsupportedOperationException('not extendable');
+   }
+   void add(int value) => _throwUnsupported();
+   void addAll(Collection<int> collection) => _throwUnsupported();
+   void addLast(int value) => _throwUnsupported();
+   void clear() => _throwUnsupported();
+   int indexOf(int element, [int start])
+       => FixedLists.indexOf(this, element, start);
+   void insertRange(int start, int length, [int initialValue])
+       => _throwUnsupported();
+  Int8Array getRange(int start, int length) {
+    FixedLists.getRangeCheck(this.length, start, length);
+    return new Int8Array.fromArray(subarray(start, start+length));
+  }
+  int last()
+      => FixedLists.last(this);
+  int lastIndexOf(int element, [int start])
+      => FixedLists.lastIndexOf(this, element, start);
+  int removeLast() => _throwUnsupported();
+  void removeRange(int start, int length) => _throwUnsupported();
+  void setRange(int start, int length, List<int> from, [int startFrom])
+      => _throwUnsupported();
+  void sort(int compare(int a, int b))
+      => DualPivotQuicksort.sort(this, compare);
+
+  // Collection<int> members:
+  void forEach(void f(int element)) => FixedLists.forEach(this, f);
+  Int8Array filter(bool f(int element))
+      => FixedLists.filter(this, f, (length) => new Int8Array(length));
+  Int8Array map(f(int))
+      => FixedLists.map(this, f, new Int8Array(this.length));
+  bool every(bool f(int element)) => FixedLists.every(this, f);
+  bool some(bool f(int element)) => FixedLists.some(this, f);
+  bool isEmpty() => FixedLists.isEmpty(this);
+
+  // Iterable<int> members:
+  Iterator<int> iterator() => new ListIterator(this);
+
+  void set(Int8Array array, [int offset]) native;
+  Int8Array subarray(int begin, [int end])
+      native "return end == null ? this.subarray(begin) : this.subarray(begin, end);";
+}
+
+class Uint8Array implements TypedArrayBufferView<int> native "Uint8Array" {
+  final ArrayBuffer buffer;
+  final int byteOffset;
+  final int byteLength;
+
+  final int BYTES_PER_ELEMENT;
+  final int length;
+
+  Uint8Array(int length) native;
+  factory Uint8Array.fromArray(Uint8Array array) native "return new Uint8Array(array);";
+  factory Uint8Array.fromList(List<int> list) native "return new Uint8Array(list);";
+  factory Uint8Array.fromArrayBuffer(ArrayBuffer buffer, [int byteOffset, int length])
+      native """if (byteOffset === undefined) return new Uint8Array(buffer);
+          if (length === undefined) return new Uint8Array(buffer, byteOffset);
+          return new Uint8Array(buffer, byteOffset, length);""";
+
+  // List protocol
+  int operator[](int index) native;
+  void operator[]=(int index, int value) native;
+  void _throwUnsupported() {
+     throw new UnsupportedOperationException('not extendable');
+  }
+  void add(int value) => _throwUnsupported();
+  void addAll(Collection<int> collection) => _throwUnsupported();
+  void addLast(int value) => _throwUnsupported();
+  void clear() => _throwUnsupported();
+  int indexOf(int element, [int start])
+      => FixedLists.indexOf(this, element, start);
+  void insertRange(int start, int length, [int initialValue])
+      => _throwUnsupported();
+  Uint8Array getRange(int start, int length) {
+    FixedLists.getRangeCheck(this.length, start, length);
+    return new Uint8Array.fromArray(subarray(start, start+length));
+  }
+  int last()
+      => FixedLists.last(this);
+  int lastIndexOf(int element, [int start])
+      => FixedLists.lastIndexOf(this, element, start);
+  int removeLast() => _throwUnsupported();
+  void removeRange(int start, int length) => _throwUnsupported();
+  void setRange(int start, int length, List<int> from, [int startFrom])
+      => _throwUnsupported();
+  void sort(int compare(int a, int b))
+      => DualPivotQuicksort.sort(this, compare);
+
+  // Collection<int> members:
+  void forEach(void f(int element)) => FixedLists.forEach(this, f);
+  Uint8Array filter(bool f(int element))
+      => FixedLists.filter(this, f, (length) => new Uint8Array(length));
+  Uint8Array map(f(int))
+      => FixedLists.map(this, f, new Uint8Array(this.length));
+  bool every(bool f(int element)) => FixedLists.every(this, f);
+  bool some(bool f(int element)) => FixedLists.some(this, f);
+  bool isEmpty() => FixedLists.isEmpty(this);
+
+  // Iterable<int> members:
+  Iterator<int> iterator() => new ListIterator(this);
+
+  void set(Uint8Array array, [int offset]) native;
+  Uint8Array subarray(int begin, [int end])
+      native "return end == null ? this.subarray(begin) : this.subarray(begin, end);";
+}
+
+class Int16Array implements TypedArrayBufferView<int> native "Int16Array" {
+  final ArrayBuffer buffer;
+  final int byteOffset;
+  final int byteLength;
+
+  final int BYTES_PER_ELEMENT;
+  final int length;
+
+  Int16Array(int length) native;
+  factory Int16Array.fromArray(Int16Array array) native "return new Int16Array(array);";
+  factory Int16Array.fromList(List<int> list) native "return new Int16Array(list);";
+  factory Int16Array.fromArrayBuffer(ArrayBuffer buffer, [int byteOffset, int length])
+      native """if (byteOffset === undefined) return new Int16Array(buffer);
+          if (length === undefined) return new Int16Array(buffer, byteOffset);
+          return new Int16Array(buffer, byteOffset, length);""";
+
+  // List protocol
+  int operator[](int index) native;
+  void operator[]=(int index, int value) native;
+  void _throwUnsupported() {
+     throw new UnsupportedOperationException('not extendable');
+   }
+   void add(int value) => _throwUnsupported();
+   void addAll(Collection<int> collection) => _throwUnsupported();
+   void addLast(int value) => _throwUnsupported();
+   void clear() => _throwUnsupported();
+   int indexOf(int element, [int start])
+       => FixedLists.indexOf(this, element, start);
+   void insertRange(int start, int length, [int initialValue])
+       => _throwUnsupported();
+  Int16Array getRange(int start, int length) {
+    FixedLists.getRangeCheck(this.length, start, length);
+    return new Int16Array.fromArray(subarray(start, start+length));
+  }
+  int last()
+      => FixedLists.last(this);
+  int lastIndexOf(int element, [int start])
+      => FixedLists.lastIndexOf(this, element, start);
+  int removeLast() => _throwUnsupported();
+  void removeRange(int start, int length) => _throwUnsupported();
+  void setRange(int start, int length, List<int> from, [int startFrom])
+      => _throwUnsupported();
+  void sort(int compare(int a, int b))
+      => DualPivotQuicksort.sort(this, compare);
+
+  // Collection<int> members:
+  void forEach(void f(int element)) => FixedLists.forEach(this, f);
+  Int16Array filter(bool f(int element))
+      => FixedLists.filter(this, f, (length) => new Int16Array(length));
+  Int16Array map(f(int))
+      => FixedLists.map(this, f, new Int16Array(this.length));
+  bool every(bool f(int element)) => FixedLists.every(this, f);
+  bool some(bool f(int element)) => FixedLists.some(this, f);
+  bool isEmpty() => FixedLists.isEmpty(this);
+
+  // Iterable<int> members:
+  Iterator<int> iterator() => new ListIterator(this);
+
+  void set(Int16Array array, [int offset]) native;
+  Int16Array subarray(int begin, [int end])
+      native "return end == null ? this.subarray(begin) : this.subarray(begin, end);";
+}
+
+class Uint16Array implements TypedArrayBufferView<int> native "Uint16Array" {
+  final ArrayBuffer buffer;
+  final int byteOffset;
+  final int byteLength;
+
+  final int BYTES_PER_ELEMENT;
+  final int length;
+
+  Uint16Array(int length) native;
+  factory Uint16Array.fromArray(Uint16Array array) native "return new Uint16Array(array);";
+  factory Uint16Array.fromList(List<int> list) native "return new Uint16Array(list);";
+  factory Uint16Array.fromArrayBuffer(ArrayBuffer buffer, [int byteOffset, int length])
+      native """if (byteOffset === undefined) return new Uint16Array(buffer);
+          if (length === undefined) return new Uint16Array(buffer, byteOffset);
+          return new Uint16Array(buffer, byteOffset, length);""";
+
+  // List protocol
+  int operator[](int index) native;
+  void operator[]=(int index, int value) native;
+  void _throwUnsupported() {
+     throw new UnsupportedOperationException('not extendable');
+   }
+   void add(int value) => _throwUnsupported();
+   void addAll(Collection<int> collection) => _throwUnsupported();
+   void addLast(int value) => _throwUnsupported();
+   void clear() => _throwUnsupported();
+   int indexOf(int element, [int start])
+       => FixedLists.indexOf(this, element, start);
+   void insertRange(int start, int length, [int initialValue])
+       => _throwUnsupported();
+  Uint16Array getRange(int start, int length) {
+    FixedLists.getRangeCheck(this.length, start, length);
+    return new Uint16Array.fromArray(subarray(start, start+length));
+  }
+  int last()
+      => FixedLists.last(this);
+  int lastIndexOf(int element, [int start])
+      => FixedLists.lastIndexOf(this, element, start);
+  int removeLast() => _throwUnsupported();
+  void removeRange(int start, int length) => _throwUnsupported();
+  void setRange(int start, int length, List<int> from, [int startFrom])
+      => _throwUnsupported();
+  void sort(int compare(int a, int b))
+      => DualPivotQuicksort.sort(this, compare);
+
+  // Collection<int> members:
+  void forEach(void f(int element)) => FixedLists.forEach(this, f);
+  Uint16Array filter(bool f(int element))
+      => FixedLists.filter(this, f, (length) => new Uint16Array(length));
+  Uint16Array map(f(int))
+      => FixedLists.map(this, f, new Uint16Array(this.length));
+  bool every(bool f(int element)) => FixedLists.every(this, f);
+  bool some(bool f(int element)) => FixedLists.some(this, f);
+  bool isEmpty() => FixedLists.isEmpty(this);
+
+  // Iterable<int> members:
+  Iterator<int> iterator() => new ListIterator(this);
+
+  void set(Uint16Array array, [int offset]) native;
+  Uint16Array subarray(int begin, [int end])
+      native "return end == null ? this.subarray(begin) : this.subarray(begin, end);";
+}
+
+class Int32Array implements TypedArrayBufferView<int> native "Int32Array" {
+  final ArrayBuffer buffer;
+  final int byteOffset;
+  final int byteLength;
+
+  final int BYTES_PER_ELEMENT;
+  final int length;
+
+  Int32Array(int length) native;
+  factory Int32Array.fromArray(Int32Array array) native "return new Int32Array(array);";
+  factory Int32Array.fromList(List<int> list) native "return new Int32Array(list);";
+  factory Int32Array.fromArrayBuffer(ArrayBuffer buffer, [int byteOffset, int length])
+      native """if (byteOffset === undefined) return new Int32Array(buffer);
+          if (length === undefined) return new Int32Array(buffer, byteOffset);
+          return new Int32Array(buffer, byteOffset, length);""";
+
+  // List protocol
+  int operator[](int index) native;
+  void operator[]=(int index, int value) native;
+  void _throwUnsupported() {
+    throw new UnsupportedOperationException('not extendable');
+  }
+  void add(int value) => _throwUnsupported();
+  void addAll(Collection<int> collection) => _throwUnsupported();
+  void addLast(int value) => _throwUnsupported();
+  void clear() => _throwUnsupported();
+  int indexOf(int element, [int start])
+      => FixedLists.indexOf(this, element, start);
+  void insertRange(int start, int length, [int initialValue])
+      => _throwUnsupported();
+  Int32Array getRange(int start, int length) {
+   FixedLists.getRangeCheck(this.length, start, length);
+   return new Int32Array.fromArray(subarray(start, start+length));
+  }
+  int last()
+     => FixedLists.last(this);
+  int lastIndexOf(int element, [int start])
+     => FixedLists.lastIndexOf(this, element, start);
+  int removeLast() => _throwUnsupported();
+  void removeRange(int start, int length) => _throwUnsupported();
+  void setRange(int start, int length, List<int> from, [int startFrom])
+     => _throwUnsupported();
+  void sort(int compare(int a, int b))
+     => DualPivotQuicksort.sort(this, compare);
+
+  // Collection<int> members:
+  void forEach(void f(int element)) => FixedLists.forEach(this, f);
+  Int32Array filter(bool f(int element))
+      => FixedLists.filter(this, f, (length) => new Int32Array(length));
+  Int32Array map(f(int))
+      => FixedLists.map(this, f, new Int32Array(this.length));
+  bool every(bool f(int element)) => FixedLists.every(this, f);
+  bool some(bool f(int element)) => FixedLists.some(this, f);
+  bool isEmpty() => FixedLists.isEmpty(this);
+
+  // Iterable<int> members:
+  Iterator<int> iterator() => new ListIterator(this);
+
+  void set(Int32Array array, [int offset]) native;
+  Int32Array subarray(int begin, [int end])
+      native "return end == null ? this.subarray(begin) : this.subarray(begin, end);";
+}
+
+class Uint32Array implements TypedArrayBufferView<int> native "Uint32Array" {
+  final ArrayBuffer buffer;
+  final int byteOffset;
+  final int byteLength;
+
+  final int BYTES_PER_ELEMENT;
+  final int length;
+
+  Uint32Array(int length) native;
+  factory Uint32Array.fromArray(Uint32Array array) native "return new Uint32Array(array);";
+  factory Uint32Array.fromList(List<int> list) native "return new Uint32Array(list);";
+  factory Uint32Array.fromArrayBuffer(ArrayBuffer buffer, [int byteOffset, int length])
+      native """if (byteOffset === undefined) return new Uint32Array(buffer);
+          if (length === undefined) return new Uint32Array(buffer, byteOffset);
+          return new Uint32Array(buffer, byteOffset, length);""";
+
+  // List protocol
+  int operator[](int index) native;
+  void operator[]=(int index, int value) native;
+  void _throwUnsupported() {
+    throw new UnsupportedOperationException('not extendable');
+  }
+  void add(int value) => _throwUnsupported();
+  void addAll(Collection<int> collection) => _throwUnsupported();
+  void addLast(int value) => _throwUnsupported();
+  void clear() => _throwUnsupported();
+  int indexOf(int element, [int start])
+      => FixedLists.indexOf(this, element, start);
+  void insertRange(int start, int length, [int initialValue])
+      => _throwUnsupported();
+  Uint32Array getRange(int start, int length) {
+   FixedLists.getRangeCheck(this.length, start, length);
+   return new Uint32Array.fromArray(subarray(start, start+length));
+  }
+  int last()
+     => FixedLists.last(this);
+  int lastIndexOf(int element, [int start])
+     => FixedLists.lastIndexOf(this, element, start);
+  int removeLast() => _throwUnsupported();
+  void removeRange(int start, int length) => _throwUnsupported();
+  void setRange(int start, int length, List<int> from, [int startFrom])
+     => _throwUnsupported();
+  void sort(int compare(int a, int b))
+     => DualPivotQuicksort.sort(this, compare);
+
+  // Collection<int> members:
+  void forEach(void f(int element)) => FixedLists.forEach(this, f);
+  Uint32Array filter(bool f(int element))
+      => FixedLists.filter(this, f, (length) => new Uint32Array(length));
+  Uint32Array map(f(int))
+      => FixedLists.map(this, f, new Uint32Array(this.length));
+  bool every(bool f(int element)) => FixedLists.every(this, f);
+  bool some(bool f(int element)) => FixedLists.some(this, f);
+  bool isEmpty() => FixedLists.isEmpty(this);
+
+  // Iterable<int> members:
+  Iterator<int> iterator() => new ListIterator(this);
+
+  void set(Uint32Array array, [int offset]) native;
+  Uint32Array subarray(int begin, [int end])
+      native "return end == null ? this.subarray(begin) : this.subarray(begin, end);";
+}
+
+class Float32Array implements TypedArrayBufferView<num> native "Float32Array" {
+  final ArrayBuffer buffer;
+  final int byteOffset;
+  final int byteLength;
+
+  final int BYTES_PER_ELEMENT;
+  final int length;
+
+  Float32Array(int length) native;
+  factory Float32Array.fromArray(Float32Array array) native "return new Float32Array(array);";
+  factory Float32Array.fromList(List<double> list) native "return new Float32Array(list);";
+  factory Float32Array.fromArrayBuffer(ArrayBuffer buffer, [int byteOffset, int length])
+      native """if (byteOffset === undefined) return new Float32Array(buffer);
+          if (length === undefined) return new Float32Array(buffer, byteOffset);
+          return new Float32Array(buffer, byteOffset, length);""";
+
+  // List protocol
+  int operator[](int index) native;
+  void operator[]=(int index, int value) native;
+  void _throwUnsupported() {
+    throw new UnsupportedOperationException('not extendable');
+  }
+  void add(int value) => _throwUnsupported();
+  void addAll(Collection<int> collection) => _throwUnsupported();
+  void addLast(int value) => _throwUnsupported();
+  void clear() => _throwUnsupported();
+  int indexOf(int element, [int start])
+      => FixedLists.indexOf(this, element, start);
+  void insertRange(int start, int length, [int initialValue])
+      => _throwUnsupported();
+  Float32Array getRange(int start, int length) {
+   FixedLists.getRangeCheck(this.length, start, length);
+   return new Float32Array.fromArray(subarray(start, start+length));
+  }
+  int last()
+     => FixedLists.last(this);
+  int lastIndexOf(int element, [int start])
+     => FixedLists.lastIndexOf(this, element, start);
+  int removeLast() => _throwUnsupported();
+  void removeRange(int start, int length) => _throwUnsupported();
+  void setRange(int start, int length, List<int> from, [int startFrom])
+     => _throwUnsupported();
+  void sort(int compare(int a, int b))
+     => DualPivotQuicksort.sort(this, compare);
+
+  // Collection<int> members:
+  void forEach(void f(int element)) => FixedLists.forEach(this, f);
+  Float32Array filter(bool f(int element))
+      => FixedLists.filter(this, f, (length) => new Float32Array(length));
+  Float32Array map(f(int))
+      => FixedLists.map(this, f, new Float32Array(this.length));
+  bool every(bool f(int element)) => FixedLists.every(this, f);
+  bool some(bool f(int element)) => FixedLists.some(this, f);
+  bool isEmpty() => FixedLists.isEmpty(this);
+
+  // Iterable<int> members:
+  Iterator<int> iterator() => new ListIterator(this);
+
+  void set(Float32Array array, [int offset]) native;
+  Float32Array subarray(int begin, [int end])
+      native "return end == null ? this.subarray(begin) : this.subarray(begin, end);";
+}
+
+class Float64Array implements TypedArrayBufferView<num> native "Float64Array" {
+  final ArrayBuffer buffer;
+  final int byteOffset;
+  final int byteLength;
+
+  final int BYTES_PER_ELEMENT;
+  final int length;
+
+  Float64Array(int length) native;
+  factory Float64Array.fromArray(Float64Array array) native "return new Float64Array(array);";
+  factory Float64Array.fromList(List<double> list) native "return new Float64Array(list);";
+  factory Float64Array.fromArrayBuffer(ArrayBuffer buffer, [int byteOffset, int length])
+      native """if (byteOffset === undefined) return new Float64Array(buffer);
+          if (length === undefined) return new Float64Array(buffer, byteOffset);
+          return new Float64Array(buffer, byteOffset, length);""";
+
+  // List protocol
+  int operator[](int index) native;
+  void operator[]=(int index, int value) native;
+  void _throwUnsupported() {
+    throw new UnsupportedOperationException('not extendable');
+  }
+  void add(int value) => _throwUnsupported();
+  void addAll(Collection<int> collection) => _throwUnsupported();
+  void addLast(int value) => _throwUnsupported();
+  void clear() => _throwUnsupported();
+  int indexOf(int element, [int start])
+      => FixedLists.indexOf(this, element, start);
+  void insertRange(int start, int length, [int initialValue])
+      => _throwUnsupported();
+  Float64Array getRange(int start, int length) {
+    FixedLists.getRangeCheck(this.length, start, length);
+    return new Float64Array.fromArray(subarray(start, start+length));
+  }
+  int last()
+     => FixedLists.last(this);
+  int lastIndexOf(int element, [int start])
+     => FixedLists.lastIndexOf(this, element, start);
+  int removeLast() => _throwUnsupported();
+  void removeRange(int start, int length) => _throwUnsupported();
+  void setRange(int start, int length, List<int> from, [int startFrom])
+     => _throwUnsupported();
+  void sort(int compare(int a, int b))
+     => DualPivotQuicksort.sort(this, compare);
+
+  // Collection<int> members:
+  void forEach(void f(int element)) => FixedLists.forEach(this, f);
+  Float64Array filter(bool f(int element))
+      => FixedLists.filter(this, f, (length) => new Float64Array(length));
+  Float64Array map(f(int))
+      => FixedLists.map(this, f, new Float64Array(this.length));
+  bool every(bool f(int element)) => FixedLists.every(this, f);
+  bool some(bool f(int element)) => FixedLists.some(this, f);
+  bool isEmpty() => FixedLists.isEmpty(this);
+
+  // Iterable<int> members:
+  Iterator<int> iterator() => new ListIterator(this);
+  void set(Float64Array array, [int offset]) native;
+  Float64Array subarray(int begin, [int end])
+      native "return end == null ? this.subarray(begin) : this.subarray(begin, end);";
+}
+
+class DataView implements ArrayBufferView native "DataView" {
+  final ArrayBuffer buffer;
+  final int byteOffset;
+  final int byteLength;
+  
+  DataView.fromArray(ArrayBuffer buffer, [int byteOffset, int byteLength])
+      native """if (byteOffset === undefined) return new DataView(buffer);
+          if (length === undefined) return new DataView(buffer, byteOffset);
+          return new DataView(buffer, byteOffset, length);""";
+  
+  int getInt8(int byteOffset) native;
+  int getUint8(int byteOffset) native;
+  int getInt16(int byteOffset, [bool littleEndian=false]) native;
+  int getUint16(int byteOffset, [bool littleEndian=false]) native;
+  int getInt32(int byteOffset, [bool littleEndian=false]) native;
+  int getUint32(int byteOffset, [bool littleEndian=false]) native;
+  num getFloat32(int byteOffset, [bool littleEndian=false]) native;
+  num getFloat64(int byteOffset, [bool littleEndian=false]) native;
+  
+  void setInt8(int byteOffset, int value) native;
+  void setUint8(int byteOffset, int value) native;
+  void setInt16(int byteOffset, int value, [bool littleEndian=false]) native;
+  void setUint16(int byteOffset, int value, [bool littleEndian=false]) native;
+  void setInt32(int byteOffset, int value, [bool littleEndian=false]) native;
+  void setUint32(int byteOffset, int value, [bool littleEndian=false]) native;
+  void setFloat32(int byteOffset, num value, [bool littleEndian=false]) native;
+  void setFloat64(int byteOffset, num value, [bool littleEndian=false]) native;
 }

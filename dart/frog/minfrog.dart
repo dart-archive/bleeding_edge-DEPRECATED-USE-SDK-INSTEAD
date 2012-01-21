@@ -5,6 +5,9 @@
 #library('minfrog');
 
 #import('lib/node/node.dart');
+#import('lib/node/path.dart');
+#import('lib/node/fs.dart');
+#import('lib/node/vm.dart');
 #import('file_system_node.dart');
 #import('lang.dart');
 
