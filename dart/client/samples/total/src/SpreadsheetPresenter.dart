@@ -664,8 +664,8 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     _moveDragger = new Element.tag("div");
     _moveDragger.id = "moveDragger-${_spreadsheet.name}";
     _moveDragger.attributes["class"] = "moveDragger";
-    _moveDragger.style.left = HtmlUtils.toPx(3);
-    _moveDragger.style.top = HtmlUtils.toPx(3);
+    _moveDragger.style.setProperty("left", HtmlUtils.toPx(3));
+    _moveDragger.style.setProperty("top", HtmlUtils.toPx(3));
     _spreadsheetElement.nodes.add(_moveDragger);
 
     _moveDragger.on.mouseDown.add((MouseEvent e) {
@@ -675,28 +675,26 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
       int mouseStartX = e.x;
       int mouseStartY = e.y;
 
-      window.requestMeasurementFrame(() {
-        ClientRect rect = _spreadsheetElement.rect.bounding;
+      _spreadsheetElement.rect.then((ElementRect elementRect) {
+        ClientRect rect = elementRect.bounding;
         int startX = rect.left;
         int startY = rect.top;
-        return () {
-          _window.document.body.style.cursor = "move";
+        _window.document.body.style.setProperty("cursor", "move");
 
-          _setDragFunction((MouseEvent e_) {
-            int x = startX + e_.x - mouseStartX;
-            int y = startY + e_.y - mouseStartY;
+        _setDragFunction((MouseEvent e_) {
+          int x = startX + e_.x - mouseStartX;
+          int y = startY + e_.y - mouseStartY;
 
-            x = Math.max(x, CssStyles.OBJECTBAR_WIDTH);
-            y = Math.max(y, CssStyles.SANDBAR_HEIGHT);
-            // Move the spreadsheet container
-            _spreadsheetElement.style.left = HtmlUtils.toPx(x);
-            _spreadsheetElement.style.top = HtmlUtils.toPx(y);
-          });
-        };
-      });
+          x = Math.max(x, CssStyles.OBJECTBAR_WIDTH);
+          y = Math.max(y, CssStyles.SANDBAR_HEIGHT);
+          // Move the spreadsheet container
+          _spreadsheetElement.style.setProperty("left", HtmlUtils.toPx(x));
+          _spreadsheetElement.style.setProperty("top", HtmlUtils.toPx(y));
+        });
+        });
 
       _setUndragFunction((MouseEvent e_) {
-        _window.document.body.style.cursor = "auto";
+        _window.document.body.style.setProperty("cursor", "auto");
       });
     });
   }
@@ -810,8 +808,8 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         _scrolledByKeyboard = false;
         return;
       }
-      window.requestMeasurementFrame(() {
-        final rect = _tableScrollContainer.rect;
+      Future<ElementRect> future = _tableScrollContainer.rect;
+      future.then((ElementRect rect) {
         int scrollTop = rect.scroll.top;
         int row = _getAbsRowOrColumn(scrollTop, ROW) - 1;
         int col = _getAbsRowOrColumn(rect.scroll.left, COL) - 1;
@@ -820,7 +818,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         if (newRowShift != _rowShift || newColumnShift != _columnShift) {
           _rowShift = newRowShift;
           _columnShift = newColumnShift;
-          return () { _spreadsheet.refresh(); };
+          _spreadsheet.refresh();
         }
       });
     });
@@ -892,19 +890,17 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
       CSSStyleDeclaration divStyle = div.style;
       int borderWidth = 2 + 2;
       CellRange cellRange = new CellRange(_spreadsheet, minCorner, maxCorner);
-      window.requestMeasurementFrame(() {
-        final box = _selectionManager.getBoundingBoxForRange(cellRange);
-        return () {
-          if (box != null) {
-            divStyle.left = HtmlUtils.toPx(box.left);
-            divStyle.top = HtmlUtils.toPx(box.top);
-            divStyle.width = HtmlUtils.toPx(box.width - borderWidth);
-            divStyle.height = HtmlUtils.toPx(box.height - borderWidth);
-            divStyle.removeProperty("display");
-          } else {
-            divStyle.setProperty("display", "none");
-          }
-        };
+      _selectionManager.getBoundingBoxForRange(cellRange).then(
+          (BoundingBox box) {
+        if (box != null) {
+          divStyle.setProperty("left", HtmlUtils.toPx(box.left));
+          divStyle.setProperty("top", HtmlUtils.toPx(box.top));
+          divStyle.setProperty("width", HtmlUtils.toPx(box.width - borderWidth));
+          divStyle.setProperty("height", HtmlUtils.toPx(box.height - borderWidth));
+          divStyle.removeProperty("display");
+        } else {
+          divStyle.setProperty("display", "none");
+        }
       });
     }
   }
@@ -1081,13 +1077,11 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   // Resize the formula input field to fit the contained text
   void _growFormulaInput() {
     _formulaInputMeasure.text = _formulaInput.value;
-    window.requestMeasurementFrame(() {
-      int textWidth = _formulaInputMeasure.rect.client.width;
+    _formulaInputMeasure.rect.then((ElementRect rect) {
+      int textWidth = rect.client.width;
       int width = Math.max(textWidth + 25, _formulaCellWidth);
-      return () {
-        _formulaDiv.style.width = HtmlUtils.toPx(width);
-        _formulaInput.style.width = HtmlUtils.toPx(width);
-      };
+      _formulaDiv.style.setProperty("width", HtmlUtils.toPx(width));
+      _formulaInput.style.setProperty("width", HtmlUtils.toPx(width));
     });
   }
 
@@ -1156,16 +1150,15 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
   }
 
   void _refreshResizeDragger() {
-   window.requestMeasurementFrame(() {
+    _table.rect.then((ElementRect elementRect) {
       // We may be called before the dragger is ready
       if (_resizeDragger == null) {
         return;
       }
-      ClientRect rect =  _table.rect.bounding;
-      return () {
-        _resizeDragger.style.setProperty("left", HtmlUtils.toPx(rect.width));
-        _resizeDragger.style.setProperty("top", HtmlUtils.toPx(rect.height));
-      };
+      ClientRect rect = elementRect.bounding;
+
+      _resizeDragger.style.setProperty("left", HtmlUtils.toPx(rect.width));
+      _resizeDragger.style.setProperty("top", HtmlUtils.toPx(rect.height));
     });
   }
 
@@ -1477,10 +1470,10 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     CellLocation currentSelectedSingleCell = null;
 
     void mouseMove(MouseEvent e) {
-      window.requestMeasurementFrame(() {
+      _table.rect.then((ElementRect rect) {
         // Set x and y to the mouse coordinates, relative to the top left of
         // the spreadsheet table.
-        ClientRect boundingRect = _table.rect.bounding;
+        ClientRect boundingRect = rect.bounding;
         int scrollOffsetX = -boundingRect.left.toInt();
         int scrollOffsetY = -boundingRect.top.toInt();
         x = e.x + scrollOffsetX;
@@ -1549,13 +1542,11 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
       // Right click toggles and positions the context menu
       if (e.button == 2 || (e.button == 0 && e.ctrlKey)) {
-        window.requestMeasurementFrame(() {
-          ClientRect boundingRect = _table.rect.bounding;
-          return () {
-            int scrollOffsetX = -boundingRect.left;
-            int scrollOffsetY = -boundingRect.top;
-            _contextMenu.show(e.x + scrollOffsetX, e.y + scrollOffsetY);
-          };
+        _table.rect.then((ElementRect rect) {
+          ClientRect boundingRect = rect.bounding;
+          int scrollOffsetX = -boundingRect.left;
+          int scrollOffsetY = -boundingRect.top;
+          _contextMenu.show(e.x + scrollOffsetX, e.y + scrollOffsetY);
         });
         return;
       }
@@ -1697,27 +1688,26 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   // Update the scroll mechanism due to a change in the visible table area
   void _tableSizeChanged() {
-    window.requestMeasurementFrame(() {
-      ClientRect rect = _table.rect.bounding;
-      return () {
-        _tableScrollContainer.style.width = HtmlUtils.toPx(rect.width + 10);
-        _spreadsheetElement.style.width = HtmlUtils.toPx(rect.width);
+    _table.rect.then((ElementRect elementRect) {
+      ClientRect rect = elementRect.bounding;
 
-        _tableScrollContainer.style.height = HtmlUtils.toPx(rect.height + 10);
-        _spreadsheetElement.style.height = HtmlUtils.toPx(rect.height);
+      _tableScrollContainer.style.width = HtmlUtils.toPx(rect.width + 10);
+      _spreadsheetElement.style.width = HtmlUtils.toPx(rect.width);
 
-        _tableScrollDiv.style.width = HtmlUtils.toPx(
-            _spreadsheet.getColumnEnd(_spreadsheet.columnCount()));
-        int extra = _activeInnerMenu == null ?
-            0 : _activeInnerMenu.currentRowHeight;
-        _tableScrollDiv.style.height = HtmlUtils.toPx(_spreadsheet.getRowEnd(
-            _spreadsheet.rowCount()) + extra);
+      _tableScrollContainer.style.height = HtmlUtils.toPx(rect.height + 10);
+      _spreadsheetElement.style.height = HtmlUtils.toPx(rect.height);
 
-        // Reposition the scroll bars
-        _scroll(_rowShift, _columnShift);
-        // Move the resize dragger to the bottom-right corner
-        _refreshResizeDragger();
-      };
+      _tableScrollDiv.style.width = HtmlUtils.toPx(
+          _spreadsheet.getColumnEnd(_spreadsheet.columnCount()));
+      int extra = _activeInnerMenu == null ?
+          0 : _activeInnerMenu.currentRowHeight;
+      _tableScrollDiv.style.height = HtmlUtils.toPx(_spreadsheet.getRowEnd(
+          _spreadsheet.rowCount()) + extra);
+
+      // Reposition the scroll bars
+      _scroll(_rowShift, _columnShift);
+      // Move the resize dragger to the bottom-right corner
+      _refreshResizeDragger();
     });
   }
 

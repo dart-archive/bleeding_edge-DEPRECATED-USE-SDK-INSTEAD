@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -55,7 +55,7 @@ class SelectionManager {
     _selectionDiv = new Element.tag("div");
     _selectionDiv.id = "selection-${_spreadsheet.name}";
     _selectionDiv.attributes["class"] = "selection";
-    _selectionDiv.style.display = "none";
+    _selectionDiv.style.setProperty("display", "none");
     spreadsheetElement.nodes.add(_selectionDiv);
 
     Element thumb = new Element.tag("div");
@@ -95,15 +95,14 @@ class SelectionManager {
 
   // Hide the selection marquee and empty the selection range
   void clearSelection() {
-    _selectionDiv.style.display = "none";
+    _selectionDiv.style.setProperty("display", "none");
     _selectedCell = _selectionCorner = null;
     selectionChanged();
   }
 
   // Return a BoundingBox for the given CellRange, clipped to the visible region of the table
   // TODO:  deal with full row and/or column selection
-  BoundingBox getBoundingBoxForRange(CellRange r) {
-    assert(window.inMeasurementFrame);
+  Future<BoundingBox> getBoundingBoxForRange(CellRange r) {
     // Modify the overlay for entire row/column selection
     int minRow = r.minCorner.row;
     int maxRow = r.maxCorner.row;
@@ -152,15 +151,21 @@ class SelectionManager {
 
     // We need bounding box relative to the container which will be offset by
     // css.
+    final tableRect = _table.rect;
+    final minCellElmtRect = minCellElmt.rect;
+    final maxCellElmtRect = maxCellElmt.rect;
 
-    final orgP = _table.rect.bounding;
-    final minP = minCellElmt.rect.bounding;
-    final maxP = maxCellElmt.rect.bounding;
-    return new BoundingBox(
-        (minP.left - orgP.left).toInt(),
-        (minP.top - orgP.top).toInt(),
-        (maxP.left - minP.left + maxCellElmt.rect.client.width).toInt(),
-        (maxP.top - minP.top + maxCellElmt.rect.client.height).toInt());
+    window.requestLayoutFrame(() {
+      ClientRect orgP = tableRect.value.bounding;
+      ClientRect minP = minCellElmtRect.value.bounding;
+      ClientRect maxP = maxCellElmtRect.value.bounding;
+      completer.complete(new BoundingBox(
+          (minP.left - orgP.left).toInt(),
+          (minP.top - orgP.top).toInt(),
+          (maxP.left - minP.left + maxCellElmtRect.value.client.width).toInt(),
+          (maxP.top - minP.top + maxCellElmtRect.value.client.height).toInt()));
+    });
+    return completer.future;
   }
 
   CellRange getSelectionRange() => _getSelectionRange(_selectedCell, _selectionCorner);
@@ -222,19 +227,16 @@ class SelectionManager {
       return;
     }
 
-    window.requestMeasurementFrame(() {
-      final box = getBoundingBoxForRange(r);
-      return () {
-        if (box != null) {
-          _selectionDiv.style.left = HtmlUtils.toPx(box.left);
-          _selectionDiv.style.top = HtmlUtils.toPx(box.top);
-          _selectionDiv.style.width = HtmlUtils.toPx(box.width);
-          _selectionDiv.style.height = HtmlUtils.toPx(box.height);
-          _selectionDiv.style.removeProperty("display");
-        } else {
-          _selectionDiv.style.display = "none";
-        }
-      };
+    getBoundingBoxForRange(r).then((BoundingBox box) {
+      if (box != null) {
+        _selectionDiv.style.setProperty("left", HtmlUtils.toPx(box.left));
+        _selectionDiv.style.setProperty("top", HtmlUtils.toPx(box.top));
+        _selectionDiv.style.setProperty("width", HtmlUtils.toPx(box.width));
+        _selectionDiv.style.setProperty("height", HtmlUtils.toPx(box.height));
+        _selectionDiv.style.removeProperty("display");
+      } else {
+        _selectionDiv.style.setProperty("display", "none");
+      }
     });
   }
 

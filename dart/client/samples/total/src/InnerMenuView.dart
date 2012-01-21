@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -47,14 +47,13 @@ class InnerMenuView {
   // cell.
   static void _pinHeight(Window window, TableRowElement row) {
     Element firstCell = row.cells[0];
-    window.requestMeasurementFrame(() {
-      final firstCellRect = firstCell.rect;
-      final style = firstCell.computedStyle;
-
-      int height = firstCell.rect.client.height
-          - HtmlUtils.fromPx(style.paddingTop)
-          - HtmlUtils.fromPx(style.paddingBottom);
-      return () { firstCell.style.height = HtmlUtils.toPx(height); };
+    final firstCellRect = firstCell.rect;
+    final style = firstCell.computedStyle;
+    window.requestLayoutFrame(() {
+      int height = firstCellRect.value.client.height
+          - HtmlUtils.fromPx(style.value.getPropertyValue('padding-top'))
+          - HtmlUtils.fromPx(style.value.getPropertyValue('padding-bottom'));
+      firstCell.style.setProperty('height', HtmlUtils.toPx(height));
     });
   }
 
@@ -213,11 +212,13 @@ class InnerMenuView {
     }
 
     // Must take into account the top of the table due to scrolling.
-    window.requestMeasurementFrame(() {
-      int tableTop = _row.offsetParent.rect.bounding.top.toInt();
+    final offsetParentRect = _row.offsetParent.rect;
+    final rowRect = _row.rect;
+    window.requestLayoutFrame(() {
+      int tableTop = offsetParentRect.value.bounding.top.toInt();
 
       // Get the current bounding box of the row we're attached to.
-      ClientRect boundingRowRect = _row.rect.bounding;
+      ClientRect boundingRowRect = rowRect.value.bounding;
       CSSStyleDeclaration style = _bar.style;
 
       int top = boundingRowRect.top.toInt() + _initialRowHeight - tableTop;
@@ -225,12 +226,10 @@ class InnerMenuView {
 
       _currentRowHeight = height;
 
-      return () {
-        style.setProperty("top", HtmlUtils.toPx(top));
-        style.setProperty("height", HtmlUtils.toPx(height));
+      style.setProperty("top", HtmlUtils.toPx(top));
+      style.setProperty("height", HtmlUtils.toPx(height));
 
-        _innerMenuMoved();
-      };
+      _innerMenuMoved();
     });
   }
 
