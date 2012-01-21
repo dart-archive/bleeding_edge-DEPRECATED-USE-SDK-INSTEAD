@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -288,25 +288,27 @@ class GenericListView<D> extends View {
 
 
   void onResize() {
-    int lastViewLength = _viewLength;
-    node.rect.then((ElementRect rect) {
-      _viewLength = _vertical ? rect.offset.height : rect.offset.width;
+    window.requestMeasurementFrame(() {
+      int lastViewLength = _viewLength;
+      final offset = node.rect.offset;
+      _viewLength = _vertical ? offset.height : offset.width;
       if (_viewLength != lastViewLength) {
-        if (_scrollbar != null) {
-          _scrollbar.refresh();
-        }
-        renderVisibleItems(true);
+        return () {
+          if (_scrollbar != null) {
+            _scrollbar.refresh();
+          }
+          renderVisibleItems(true);
+        };
       }
     }); 
   }
 
   void enterDocument() {
     if (scroller != null) {
-      onResize();
-
       if (_scrollbar != null) {
         _scrollbar.initialize();
       }
+      onResize();
     }
   }
 
