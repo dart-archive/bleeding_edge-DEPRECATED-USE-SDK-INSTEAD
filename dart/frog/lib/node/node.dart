@@ -54,7 +54,7 @@ class Console native "Console" {
   void time(String label) native;
   void timeEnd(String label) native;
   void trace() native;
-  void assert(bool value, [String message]) native; 
+  void assert(bool value, [String message]) native;
 }
 
 Console get console()
@@ -89,7 +89,7 @@ interface CommonStream extends EventEmitter {
   void onceError(StreamErrorListener listener);
   void removeListenerError(StreamErrorListener listener);
   List<StreamErrorListener> listenersError();
-  
+
   // Close event
   void emitClose();
   void addListenerClose(StreamCloseListener listener);
@@ -123,7 +123,7 @@ interface ReadableStream extends CommonStream {
   void onceEnd(ReadableStreamEndListener listener);
   void removeListenerEnd(ReadableStreamEndListener listener);
   List<ReadableStreamEndListener> listenersEnd();
-    
+
   bool readable;
   void setEncoding(String encoding);
   void pause();
@@ -142,7 +142,7 @@ interface WritableStream extends CommonStream {
   void onceDrain(WritableStreamDrainListener listener);
   void removeListenerDrain(WritableStreamDrainListener listener);
   List<WritableStreamDrainListener> listenersDrain();
-    
+
   // Pipe event
   void emitPipe(ReadableStream src);
   void addListenerPipe(WritableStreamPipeListener listener);
@@ -180,11 +180,11 @@ typedef void ProcessSignalListener();
 
 class Process implements EventEmitter native "Process" {
   var _process;
-  
+
   // Note: This is not an exhaustive list of signals. Check with your
   // OS documentation for sigaction to see which signals are
   // available in your OS.
-  
+
   final SIGHUP='SIGHUP';
   final SIGINT='SIGINT';
   final SIGQUIT='SIGQUIT';
@@ -216,7 +216,7 @@ class Process implements EventEmitter native "Process" {
   final SIGINFO='SIGINFO';
   final SIGUSR1='SIGUSR1';
   final SIGUSR2='SIGUSR2';
-  
+
   Process(var this._process);
 
   // Implement EventEmitter
@@ -224,7 +224,7 @@ class Process implements EventEmitter native "Process" {
     native "this._process.removeAllListeners(event);";
   void setMaxListeners(num n)
     native "this._process.setMaxListeners(n);";
-  
+
   // Exit event
   void emitExit()
     native "this._process.emit('exit');";
@@ -253,7 +253,7 @@ class Process implements EventEmitter native "Process" {
     native "this._process.removeListener('uncaughtException', listener);";
   List<ProcessUncaughtExceptionListener> listenersUncaughtException()
     native "return this._process.listeners('uncaughtException');";
-  
+
   // Signal events
   void emitSignal(String signal)
     native "this._process.emit(signal);";
@@ -274,7 +274,7 @@ class Process implements EventEmitter native "Process" {
     native "return this._process.stderr;";
   ReadStream get stdin()
     native "return this._process.stdin;";
-  
+
   List<String> get argv()
     native "return this._process.argv;";
   void set argv(List<String> value)
@@ -369,7 +369,7 @@ clearInterval(IntervalId intervalId) native;
 
 // buffer
 
-interface Buffer extends List<int> default _BufferImplementation {  
+interface Buffer extends List<int> default _BufferImplementation {
   Buffer(int size);
   Buffer.fromSize(int size);
   Buffer.fromList(List<int> list);
@@ -377,7 +377,7 @@ interface Buffer extends List<int> default _BufferImplementation {
 
   int write(String string, int offset, int length, [String encoding]);
   String toString(String encoding, int start, int end);
-  
+
   void copy(Buffer targetBuffer, int targetStart, int sourceStart, int sourceEnd);
   Buffer slice(int start, int end);
 
@@ -414,7 +414,7 @@ interface Buffer extends List<int> default _BufferImplementation {
   void writeFloatBE(double value, int offset, [bool noAssert]);
   void writeDoubleLE(double value, int offset, [bool noAssert]);
   void writeDoubleBE(double value, int offset, [bool noAssert]);
-  
+
   // end defaults to buffer.length
   void fill(int value, int offset, int end);
 }
@@ -426,11 +426,11 @@ class Buffers {
   static bool isBuffer(obj) native "return Buffer.isBuffer(obj);";
   static int byteLength(String string, [String encoding])
     native "return Buffer.byteLength(string, encoding);";
-  static int get INSPECT_MAX_BYTES() native "return Buffer.INSPECT_MAX_BYTES;";  
-  static void set INSPECT_MAX_BYTES(int v) native "Buffer.INSPECT_MAX_BYTES = v;";  
+  static int get INSPECT_MAX_BYTES() native "return Buffer.INSPECT_MAX_BYTES;";
+  static void set INSPECT_MAX_BYTES(int v) native "Buffer.INSPECT_MAX_BYTES = v;";
 }
 
-class _BufferImplementation implements Buffer native "Buffer" {  
+class _BufferImplementation implements Buffer native "Buffer" {
   _BufferImplementation(int size) native;
   _BufferImplementation.fromSize(int size)
     native "return new Buffer(size);";
@@ -444,11 +444,11 @@ class _BufferImplementation implements Buffer native "Buffer" {
   static int get charsWritten()
     native "return Buffer._charsWritten;";
   String toString(String encoding, int start, int end) native;
-  
+
   // List<int> protocol
   int operator[](int index) native;
   int operator[]=(int index, int value) native;
-  
+
   void _throwUnsupported() {
     throw new UnsupportedOperationException('not extendable');
   }
@@ -531,10 +531,10 @@ class _BufferImplementation implements Buffer native "Buffer" {
   void writeFloatBE(double value, int offset, [bool noAssert=false]) native;
   void writeDoubleLE(double value, int offset, [bool noAssert=false]) native;
   void writeDoubleBE(double value, int offset, [bool noAssert=false]) native;
-  
+
   // end defaults to buffer.length
   void fill(int value, int offset, int end) native;
-  
+
   static int INSPECT_MAX_BYTES;
 }
 
@@ -569,7 +569,7 @@ interface ArrayBufferView {
 
 interface TypedArrayBufferView<E> extends ArrayBufferView, List<E> {
   final int BYTES_PER_ELEMENT;
-  
+
   void set(TypedArrayBufferView<E> array, [int offset]);
   TypedArrayBufferView<E> subarray(int begin, [int end]);
 }
@@ -1081,12 +1081,12 @@ class DataView implements ArrayBufferView native "DataView" {
   final ArrayBuffer buffer;
   final int byteOffset;
   final int byteLength;
-  
+
   DataView.fromArray(ArrayBuffer buffer, [int byteOffset, int byteLength])
       native """if (byteOffset === undefined) return new DataView(buffer);
           if (length === undefined) return new DataView(buffer, byteOffset);
           return new DataView(buffer, byteOffset, length);""";
-  
+
   int getInt8(int byteOffset) native;
   int getUint8(int byteOffset) native;
   int getInt16(int byteOffset, [bool littleEndian=false]) native;
@@ -1095,7 +1095,7 @@ class DataView implements ArrayBufferView native "DataView" {
   int getUint32(int byteOffset, [bool littleEndian=false]) native;
   num getFloat32(int byteOffset, [bool littleEndian=false]) native;
   num getFloat64(int byteOffset, [bool littleEndian=false]) native;
-  
+
   void setInt8(int byteOffset, int value) native;
   void setUint8(int byteOffset, int value) native;
   void setInt16(int byteOffset, int value, [bool littleEndian=false]) native;

@@ -4,16 +4,18 @@
 
 #library('PrototypePatchingTest');
 
-/** 
- * This simple little test ensures that the methods we add to the JavaScript 
+/**
+ * This simple little test ensures that the methods we add to the JavaScript
  * objects Array and Object with frog are non-enumerable so we don't break
- * arbitrary third-party JavaScript (!).  
+ * arbitrary third-party JavaScript (!).
  */
 
 #import('unittest_node.dart');
 #import('../../../lang.dart');
 #import('../../../file_system_node.dart');
 #import('../../../lib/node/node.dart');
+#import('../../../lib/node/path.dart');
+#import('../../../lib/node/fs.dart');
 
 class Veggies {
   int radishes;
@@ -35,7 +37,7 @@ function findMethodCount(obj) {
 }
 return findMethodCount(testObject);""";
 
-  
+
 
 main() {
 
@@ -47,8 +49,8 @@ main() {
 
   parseOptions(homedir, argv, new NodeFileSystem());
   initializeWorld(new NodeFileSystem());
- 
-  world.runCompilationPhases(); 
+
+  world.runCompilationPhases();
   var code = world.getGeneratedCode();
   List foo = new List();
   foo.add('e');
@@ -56,13 +58,13 @@ main() {
   int count1 = testMethodCount(foo);
   foo = new List();
   int count2 = testMethodCount(foo);
- 
+
 
   test('Testing method count for Lists (Arrays)', () {
     Expect.equals(true, count1 == 2);
     Expect.equals(true, count2 == 0);
   });
-  
+
   Veggies veg =  new Veggies();
   veg.prefs();
   veg.favorites(); // Called so they don't get optimized away.

@@ -4,8 +4,8 @@
 
 #library('InheritanceOrderingTest');
 
-/** 
- * This test ensures the order that the javascript classes that are printed out 
+/**
+ * This test ensures the order that the javascript classes that are printed out
  * when using frog are ordered such that the prototype is always printed first.
  * This is important for Internet Explorer to work since we can't just modify
  * __proto__.
@@ -15,6 +15,8 @@
 #import('../../../lang.dart');
 #import('../../../file_system_node.dart');
 #import('../../../lib/node/node.dart');
+#import('../../../lib/node/path.dart');
+#import('../../../lib/node/fs.dart');
 
 class D extends B {
   String msg() => 'd';
@@ -59,8 +61,8 @@ main() {
 
   parseOptions(homedir, argv, new NodeFileSystem());
   initializeWorld(new NodeFileSystem());
- 
-  world.runCompilationPhases(); 
+
+  world.runCompilationPhases();
   var code = world.getGeneratedCode();
   A a = new A();
   B b = new B();
@@ -84,28 +86,28 @@ main() {
 
   // Ensure that class prototypes are printed in an appropriate order.
   test('class prototype order', () {
-    Expect.equals(true, 
+    Expect.equals(true,
         code.indexOf('function A() {') < code.indexOf('function B() {'));
-    Expect.equals(true, 
+    Expect.equals(true,
         code.indexOf('function B() {') < code.indexOf('function D() {'));
-    Expect.equals(true, 
+    Expect.equals(true,
         code.indexOf('function A() {') < code.indexOf('function C() {'));
-    Expect.equals(true, 
+    Expect.equals(true,
         code.indexOf('function E() {') < code.indexOf('function F() {'));
-    Expect.equals(true, 
+    Expect.equals(true,
         code.indexOf('function F() {') < code.indexOf('function G() {'));
-    Expect.equals(true, 
+    Expect.equals(true,
         code.indexOf('function E() {') < code.indexOf('function H() {'));
   });
-  
+
   // Ensure that the $iherits function is printed in the correct order related
   // to the class declaration
   test('inherit statement ordering', () {
-    Expect.equals(true, 
+    Expect.equals(true,
         code.indexOf('\$inherits(F, E)') < code.indexOf('function F() {'));
-    Expect.equals(true, 
+    Expect.equals(true,
         code.indexOf('\$inherits(G, F)') < code.indexOf('function G() {'));
-    Expect.equals(true, 
+    Expect.equals(true,
         code.indexOf('\$inherits(B, A)') < code.indexOf('function B() {'));
   });
 }
