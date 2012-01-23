@@ -24,6 +24,7 @@ interface HVisitor<R> {
   R visitIndex(HIndex node);
   R visitIndexAssign(HIndexAssign node);
   R visitIntegerCheck(HIntegerCheck node);
+  R visitInvokeClosure(HInvokeClosure node);
   R visitInvokeDynamicGetter(HInvokeDynamicGetter node);
   R visitInvokeDynamicMethod(HInvokeDynamicMethod node);
   R visitInvokeDynamicSetter(HInvokeDynamicSetter node);
@@ -217,6 +218,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIndex(HIndex node) => visitInvokeStatic(node);
   visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
   visitIntegerCheck(HIntegerCheck node) => visitCheck(node);
+  visitInvokeClosure(HInvokeClosure node)
+      => visitInvokeDynamic(node);
   visitInvokeDynamicMethod(HInvokeDynamicMethod node)
       => visitInvokeDynamic(node);
   visitInvokeDynamicGetter(HInvokeDynamicGetter node)
@@ -987,11 +990,7 @@ class HInvoke extends HInstruction {
 }
 
 class HInvokeDynamic extends HInvoke {
-  /**
-    * The [name] must be mangled.
-    * The first input must be the receiver.
-    */
-  String name;
+  SourceString name;
   HInvokeDynamic(this.name, List<HInstruction> inputs) : super(inputs);
   toString() => 'invoke dynamic: $name';
   HInstruction get receiver() => inputs[0];
@@ -1000,8 +999,15 @@ class HInvokeDynamic extends HInvoke {
   abstract accept(HVisitor visitor);
 }
 
+class HInvokeClosure extends HInvokeDynamic {
+  Element element;
+  HInvokeClosure(List<HInstruction> inputs)
+    : super(const SourceString('call'), inputs);
+  accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
+}
+
 class HInvokeDynamicMethod extends HInvokeDynamic {
-  HInvokeDynamicMethod(String methodName, List<HInstruction> inputs)
+  HInvokeDynamicMethod(SourceString methodName, List<HInstruction> inputs)
     : super(methodName, inputs);
   toString() => 'invoke dynamic method: $name';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
@@ -1058,22 +1064,23 @@ class HInvokeSuper extends HInvokeStatic {
 }
 
 class HInvokeInterceptor extends HInvokeStatic {
-  final String name;
+  final SourceString name;
   final bool getter;
   String builtinJsName;
 
-  HInvokeInterceptor(String this.name, bool this.getter, inputs)
+  HInvokeInterceptor(SourceString this.name, bool this.getter, inputs)
     : super(inputs);
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
   HType computeType() {
-    if (name == 'length' && inputs[1].isStringOrArray()) {
+    if (name == const SourceString('length') && inputs[1].isStringOrArray()) {
       builtinJsName = 'length';
       return HType.INTEGER;
-    } else if (name == 'add' && inputs[1].isArray()) {
+    } else if (name == const SourceString('add') && inputs[1].isArray()) {
       builtinJsName = 'push';
-    } else if (name == 'removeLast' && inputs[1].isArray()) {
+    } else if (name == const SourceString('removeLast')
+               && inputs[1].isArray()) {
       builtinJsName = 'pop';
     }
     return HType.UNKNOWN;
@@ -1082,7 +1089,8 @@ class HInvokeInterceptor extends HInvokeStatic {
   HType computeDesiredInputType(HInstruction input) {
     if (input == inputs[0]) return HType.UNKNOWN;
     if (input == inputs[1] && input.isStringOrArray()) {
-      if (name == 'add' || name == 'removeLast') {
+      if (name == const SourceString('add')
+          || name == const SourceString('removeLast')) {
         return HType.ARRAY;
       }
     }
@@ -1092,7 +1100,7 @@ class HInvokeInterceptor extends HInvokeStatic {
   bool hasExpectedType() => builtinJsName != null;
 
   HInstruction fold() {
-    if (name == 'length' && inputs[1].isLiteralString()) {
+    if (name == const SourceString('length') && inputs[1].isLiteralString()) {
       // TODO(lrn): Account for escapes in string.
     }
     return this;
@@ -1108,7 +1116,7 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   bool typeEquals(other) => other is HInvokeInterceptor;
   bool dataEquals(HInvokeInterceptor other) {
-    return builtinJsName == other.builtinJsName;
+    return builtinJsName == other.builtinJsName && name == other.name;
   }
 }
 

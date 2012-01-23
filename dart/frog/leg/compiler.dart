@@ -148,7 +148,7 @@ class Compiler implements Canceler, Logger {
           SourceString name = member.name;
           if (Elements.isInstanceMethod(member) &&
               universe.generatedCode[member] === null &&
-              universe.invokedNames.contains(namer.instanceName(name))) {
+              universe.invokedNames.contains(name.stringValue)) {
             addToWorklist(member);
           }
         }
@@ -219,8 +219,16 @@ class Compiler implements Canceler, Logger {
     addToWorklist(element);
   }
 
-  void registerDynamicInvocation(String methodName) {
-    universe.invokedNames.add(methodName);
+  void registerDynamicInvocation(SourceString methodName) {
+    universe.invokedNames.add(methodName.stringValue);
+  }
+
+  void registerDynamicGetter(SourceString methodName) {
+    universe.invokedGetters.add(methodName.stringValue);
+  }
+
+  void registerDynamicSetter(SourceString methodName) {
+    universe.invokedSetters.add(methodName.stringValue);
   }
 
   void registerInstantiatedClass(ClassElement element) {

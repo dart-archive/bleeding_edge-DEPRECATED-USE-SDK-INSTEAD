@@ -403,22 +403,36 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
-  visitInvokeDynamic(HInvokeDynamic node) {
+  visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     use(node.receiver);
     buffer.add('.');
-    buffer.add(node.name);
+    buffer.add(compiler.namer.instanceName(node.name));
     visitArguments(node.inputs);
     compiler.registerDynamicInvocation(node.name);
   }
 
-  visitInvokeDynamicMethod(HInvokeDynamicMethod node)
-      => visitInvokeDynamic(node);
+  visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
+    use(node.receiver);
+    buffer.add('.');
+    buffer.add(compiler.namer.setterName(node.name));
+    visitArguments(node.inputs);
+    compiler.registerDynamicSetter(node.name);
+  }
 
-  visitInvokeDynamicSetter(HInvokeDynamicSetter node)
-      => visitInvokeDynamic(node);
+  visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
+    use(node.receiver);
+    buffer.add('.');
+    buffer.add(compiler.namer.getterName(node.name));
+    visitArguments(node.inputs);
+    compiler.registerDynamicGetter(node.name);
+  }
 
-  visitInvokeDynamicGetter(HInvokeDynamicGetter node)
-      => visitInvokeDynamic(node);
+  visitInvokeClosure(HInvokeClosure node) {
+    use(node.receiver);
+    buffer.add('.');
+    buffer.add(compiler.namer.closureInvocationName());
+    visitArguments(node.inputs);
+  }
 
   visitInvokeStatic(HInvokeStatic node) {
     use(node.target);

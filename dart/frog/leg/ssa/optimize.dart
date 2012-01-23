@@ -201,8 +201,8 @@ class SsaCheckInserter extends HBaseVisitor {
                                  HInstruction index) {
     HStatic interceptor = new HStatic(lengthInterceptor);
     node.block.addBefore(node, interceptor);
-    HInvokeInterceptor length =
-        new HInvokeInterceptor("length", true, [interceptor, receiver]);
+    HInvokeInterceptor length = new HInvokeInterceptor(
+        const SourceString("length"), true, [interceptor, receiver]);
     length.builtinJsName = "length";
     length.type = HType.NUMBER;
     node.block.addBefore(node, length);

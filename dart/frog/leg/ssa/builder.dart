@@ -234,7 +234,8 @@ class SsaBuilder implements Visitor {
     add(newObject);
 
     // Call the method body.
-    String methodName = compiler.namer.getName(bodyElement);
+    SourceString methodName = compiler.namer.getConstructorName(bodyElement);
+
     List bodyCallInputs = <HInstruction>[];
     bodyCallInputs.add(newObject);
     for (Link link = parameters.nodes; !link.isEmpty(); link = link.tail) {
@@ -820,10 +821,9 @@ class SsaBuilder implements Visitor {
         HStatic target = new HStatic(staticInterceptor);
         add(target);
         List<HInstruction> inputs = <HInstruction>[target, receiver];
-        push(new HInvokeInterceptor(getterName.stringValue, true, inputs));
+        push(new HInvokeInterceptor(getterName, true, inputs));
       } else {
-        String jsGetterName = compiler.namer.getterName(getterName);
-        push(new HInvokeDynamicGetter(null, jsGetterName, receiver));
+        push(new HInvokeDynamicGetter(null, getterName, receiver));
       }
     } else {
       HInstruction instruction = definitions[element];
@@ -840,7 +840,7 @@ class SsaBuilder implements Visitor {
       add(new HStaticStore(element, value));
       stack.add(value);
     } else if (Elements.isInstanceField(element)) {
-      String methodName = compiler.namer.setterName(element.name);
+      SourceString methodName = element.name;
       HInstruction receiver = thisDefinition;
       if (receiver === null) {
         compiler.unimplemented("Ssa.generateSetter.", node: send);
@@ -849,7 +849,6 @@ class SsaBuilder implements Visitor {
       stack.add(value);
     } else if (element === null) {
       SourceString dartSetterName = send.selector.asIdentifier().source;
-      String jsSetterName = compiler.namer.setterName(dartSetterName);
       HInstruction receiver;
       if (send.receiver == null) {
         receiver = thisDefinition;
@@ -860,7 +859,7 @@ class SsaBuilder implements Visitor {
         visit(send.receiver);
         receiver = pop();
       }
-      add(new HInvokeDynamicSetter(null, jsSetterName, receiver, value));
+      add(new HInvokeDynamicSetter(null, dartSetterName, receiver, value));
       stack.add(value);
     } else {
       stack.add(updateDefinition(send, value));
@@ -922,7 +921,7 @@ class SsaBuilder implements Visitor {
       visit(node.receiver);
       inputs.add(pop());
       addVisitedSendArgumentsToList(node.arguments, inputs);
-      push(new HInvokeInterceptor(dartMethodName.stringValue, false, inputs));
+      push(new HInvokeInterceptor(dartMethodName, false, inputs));
       return;
     }
 
@@ -939,9 +938,8 @@ class SsaBuilder implements Visitor {
 
     addVisitedSendArgumentsToList(node.arguments, inputs);
 
-    String jsMethodName = compiler.namer.instanceName(dartMethodName);
     // The first entry in the inputs list is the receiver.
-    push(new HInvokeDynamicMethod(jsMethodName, inputs));
+    push(new HInvokeDynamicMethod(dartMethodName, inputs));
   }
 
   visitClosureSend(Send node) {
@@ -960,8 +958,7 @@ class SsaBuilder implements Visitor {
     var inputs = <HInstruction>[];
     inputs.add(closureTarget);
     addVisitedSendArgumentsToList(node.arguments, inputs);
-    String jsMethodName = compiler.namer.closureInvocationName();
-    push(new HInvokeDynamicMethod(jsMethodName, inputs));
+    push(new HInvokeClosure(inputs));
   }
 
   visitForeignSend(Send node) {
@@ -1332,16 +1329,14 @@ class SsaBuilder implements Visitor {
     add(target);
     visit(node.expression);
     List<HInstruction> inputs = <HInstruction>[target, pop()];
-    HInstruction iterator = new HInvokeInterceptor("iterator", false, inputs);
+    HInstruction iterator = new HInvokeInterceptor(iteratorName, false, inputs);
     add(iterator);
 
     Map initializerDefinitions = startLoop();
     HBasicBlock conditionBlock = current;
 
     // The condition.
-    String jsHasNextName =
-        compiler.namer.instanceName(const SourceString("hasNext"));
-    push(new HInvokeDynamicMethod(jsHasNextName, [iterator]));
+    push(new HInvokeDynamicMethod(const SourceString('hasNext'), [iterator]));
     HBasicBlock conditionExitBlock = close(new HLoopBranch(popBoolified()));
 
     Map conditionDefinitions =
@@ -1352,9 +1347,7 @@ class SsaBuilder implements Visitor {
     conditionExitBlock.addSuccessor(bodyBlock);
     open(bodyBlock);
 
-    String jsNextName =
-        compiler.namer.instanceName(new SourceString("next"));
-    push(new HInvokeDynamicMethod(jsNextName, [iterator]));
+    push(new HInvokeDynamicMethod(const SourceString('next'), [iterator]));
 
     Element variable;
     if (node.declaredIdentifier.asSend() !== null) {
