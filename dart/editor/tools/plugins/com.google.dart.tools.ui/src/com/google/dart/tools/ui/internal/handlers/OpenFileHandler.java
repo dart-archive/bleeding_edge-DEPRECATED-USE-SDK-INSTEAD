@@ -61,6 +61,10 @@ public class OpenFileHandler extends AbstractHandler {
   @Override
   public Object execute(ExecutionEvent event) throws ExecutionException {
     Shell shell = HandlerUtil.getActiveShell(event);
+    return execute(shell);
+  }
+
+  public Object execute(Shell shell) throws ExecutionException {
     String selectedFilePath = promptForFile(shell);
     if (selectedFilePath == null) {
       return null;

@@ -18,20 +18,26 @@ import com.google.dart.tools.debug.ui.launch.DartRunAction;
 import com.google.dart.tools.debug.ui.launch.ManageLaunchesAction;
 import com.google.dart.tools.debug.ui.launch.RunInBrowserAction;
 import com.google.dart.tools.debug.ui.launch.RunInServerAction;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.DeployOptimizedAction;
 import com.google.dart.tools.ui.actions.OpenNewApplicationWizardAction;
+import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
+import com.google.dart.tools.ui.internal.handlers.OpenFileHandler;
+import com.google.dart.tools.ui.internal.projects.OpenNewProjectWizardAction;
 
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Preferences;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IContributionItem;
@@ -47,6 +53,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.util.Util;
+import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPageListener;
@@ -57,6 +64,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 import org.eclipse.ui.actions.ContributionItemFactory;
+import org.eclipse.ui.actions.CreateFileAction;
 import org.eclipse.ui.actions.NewWizardMenu;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
@@ -806,10 +814,49 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     MenuManager menu = new MenuManager(IDEWorkbenchMessages.Workbench_file,
         IWorkbenchActionConstants.M_FILE);
     menu.add(new GroupMarker(IWorkbenchActionConstants.FILE_START));
-    menu.add(new GroupMarker(IWorkbenchActionConstants.NEW_EXT));
-    menu.add(new Separator());
 
-    menu.add(new GroupMarker(IWorkbenchActionConstants.OPEN_EXT));
+    //TODO (pquitslund): remove conditional logic when files view lands for real
+    if (DartCoreDebug.FILES_VIEW) {
+
+      Action newProjectAction = new OpenNewProjectWizardAction();
+      newProjectAction.setText("New Project...");
+      Action newFileAction = new CreateFileAction(new IShellProvider() {
+        @Override
+        public Shell getShell() {
+          return getWindow().getShell();
+        }
+      });
+      newFileAction.setText("New File...");
+      menu.add(newProjectAction);
+      menu.add(newFileAction);
+      menu.add(new Separator());
+
+    } else {
+
+      menu.add(new OpenNewApplicationWizardAction());
+      menu.add(new OpenNewFileWizardAction(getWindow()));
+      menu.add(new GroupMarker(IWorkbenchActionConstants.NEW_EXT));
+      menu.add(new Separator());
+
+      Action openFileAction = new Action() {
+        OpenFileHandler handler = new OpenFileHandler();
+
+        @Override
+        public void run() {
+          try {
+            handler.execute(getWindow().getShell());
+          } catch (ExecutionException e) {
+            DartToolsPlugin.log(e);
+          }
+        }
+      };
+      openFileAction.setText("Open...");
+      openFileAction.setDescription("Open a file and the application or library that contains it");
+
+      menu.add(openFileAction);
+      menu.add(new GroupMarker(IWorkbenchActionConstants.OPEN_EXT));
+    }
+
     menu.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
 
     menu.add(new Separator());
