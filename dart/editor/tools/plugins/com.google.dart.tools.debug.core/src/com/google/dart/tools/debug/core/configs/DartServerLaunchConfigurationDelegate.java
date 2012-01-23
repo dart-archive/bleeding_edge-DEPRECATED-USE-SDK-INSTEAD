@@ -71,7 +71,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     if (vmExecPath.length() == 0) {
 
       throw new CoreException(
-          DartDebugCorePlugin.createErrorStatus("The executable path for the Dart VM has not been set"));
+          DartDebugCorePlugin.createErrorStatus("The executable path for the Dart VM has not been set."));
     }
 
     List<String> commandsList = new ArrayList<String>();

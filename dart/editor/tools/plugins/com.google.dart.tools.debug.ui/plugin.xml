@@ -91,7 +91,7 @@
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
       <launchConfigurationTypeImage
             configTypeID="com.google.dart.tools.debug.core.browserLaunchConfig"
-            icon="icons/dart_app.png"
+            icon="icons/obj16/globe_dark.png"
             id="com.google.dart.tools.debug.core.browserLaunchConfigImage">
       </launchConfigurationTypeImage>
    </extension>
@@ -109,7 +109,7 @@
          point="org.eclipse.debug.ui.launchShortcuts">
       <shortcut
             class="com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchShortcut"
-            icon="icons/dart_app.png"
+            icon="icons/obj16/globe_dark.png"
             id="com.google.dart.tools.debug.ui.dartBrowserShortcut"
             label="%dart.launch.config.client.name"
             modes="run">
@@ -144,7 +144,7 @@
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
       <launchConfigurationTypeImage
             configTypeID="com.google.dart.tools.debug.core.serverLaunchConfig"
-            icon="icons/obj16/osprc_obj.gif"
+            icon="icons/obj16/osprc_obj.png"
             id="com.google.dart.tools.debug.core.serverLaunchConfigTypeImage">
       </launchConfigurationTypeImage>
    </extension>
@@ -164,7 +164,7 @@
             class="com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut"
             id="com.google.dart.tools.debug.ui.serverLaunchShortcut"
             label="Dart Server Application"
-            icon="icons/obj16/osprc_obj.gif"
+            icon="icons/obj16/osprc_obj.png"
             modes="run">
          <configurationType
                id="com.google.dart.tools.debug.core.serverLaunchConfig">
@@ -296,6 +296,7 @@
          </visibility>
       </viewerContribution>
    </extension>
+
    <extension
          point="org.eclipse.core.runtime.adapters">
       <factory
@@ -305,6 +306,17 @@
                type="org.eclipse.ui.IActionFilter">
          </adapter>
       </factory>
+   </extension>
+
+   <extension
+      point="org.eclipse.ui.commands">
+      <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.DartRunHandler"
+            description="%runCommandName"
+            id="com.google.dart.tools.debug.ui.run"
+            name="%runCommandName">
+      </command>
    </extension>
 
  <!--extension

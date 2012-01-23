@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.ui.internal.dartium;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -128,6 +129,10 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   @Override
   public String getErrorMessage() {
+    if (performSdkCheck() != null) {
+      return performSdkCheck();
+    }
+
     if (htmlButton.getSelection() && htmlText.getText().length() == 0) {
       return "HTML file not specified";
     }
@@ -358,6 +363,14 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     setDirty(true);
     updateLaunchConfigurationDialog();
+  }
+
+  protected String performSdkCheck() {
+    if (!DartSdk.isInstalled()) {
+      return "Dart SDK not installed (" + DartSdk.getInstallDirectory() + ")";
+    } else {
+      return null;
+    }
   }
 
   private void updateEnablements(boolean isFile) {

@@ -148,7 +148,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
   @Override
   public Image getImage() {
-    return DartDebugUIPlugin.getImage("obj16/osprc_obj.gif");
+    return DartDebugUIPlugin.getImage("obj16/osprc_obj.png");
   }
 
   @Override

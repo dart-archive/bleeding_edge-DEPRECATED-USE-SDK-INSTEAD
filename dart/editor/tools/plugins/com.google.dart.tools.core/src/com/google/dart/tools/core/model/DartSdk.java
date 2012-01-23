@@ -45,13 +45,20 @@ public class DartSdk {
   private static DartSdk defaultSdk;
 
   /**
+   * @return the location where the Dart SDK is installed
+   */
+  public static File getInstallDirectory() {
+    return new File(Platform.getInstallLocation().getURL().getFile());
+  }
+
+  /**
    * Answer the default SDK that ships with Dart Editor or <code>null</code> if the SDK is not
    * installed
    */
   public static DartSdk getInstance() {
     synchronized (lock) {
       if (defaultSdk == null) {
-        File eclipseInstallDir = new File(Platform.getInstallLocation().getURL().getFile());
+        File eclipseInstallDir = getInstallDirectory();
         File dir = new File(eclipseInstallDir, "dart-sdk");
         if (dir.exists()) {
           try {
@@ -64,6 +71,13 @@ public class DartSdk {
       }
     }
     return defaultSdk;
+  }
+
+  /**
+   * @return whether the Dart SDK is installed
+   */
+  public static boolean isInstalled() {
+    return getInstance() != null;
   }
 
   private final IPath sdkPath;

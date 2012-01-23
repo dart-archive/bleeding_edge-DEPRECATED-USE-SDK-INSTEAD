@@ -146,7 +146,7 @@ public class BrowserMainTab extends DartiumMainTab {
    */
   @Override
   public Image getImage() {
-    return DartDebugUIPlugin.getImage("dart_app.png"); //$NON-NLS-1$
+    return DartDebugUIPlugin.getImage("obj16/globe_dark.png"); //$NON-NLS-1$
   }
 
   @Override
@@ -182,6 +182,13 @@ public class BrowserMainTab extends DartiumMainTab {
 
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(config);
     dartLauncher.setBrowserName(browserText.getText().trim());
+  }
+
+  @Override
+  protected String performSdkCheck() {
+    // This tab does not care if the Dart SDK is installed or not.
+
+    return null;
   }
 
   private void handleBrowserConfigBrowseButton() {
