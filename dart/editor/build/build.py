@@ -66,22 +66,23 @@ class AntWrapper(object):
     """
     os_shell = '/bin/bash'
     ant_exec = 'ant'
-    useshell = False
+    is_windows = False
     if not os.path.exists(os_shell):
       os_shell = os.environ['COMSPEC']
       if os_shell is None:
         raise Exception('could not find shell')
       else:
         ant_exec = 'ant.bat'
-        useshell = True
+        is_windows = True
 
     cwd = os.getcwd()
     os.chdir(build_dir)
     print 'cwd = {0}'.format(os.getcwd())
     print 'ant path = {0}'.format(self._antpath)
     # run the ant file given
+    local_env = os.environ
     args = []
-    if not useshell:
+    if not is_windows:
       args.append(os_shell)
     args.append(os.path.join(self._antpath, ant_exec))
     args.append('-lib')
@@ -105,8 +106,10 @@ class AntWrapper(object):
       args.append('-Dbuild.out.property.file=' + self._propertyfile)
     if buildos:
       args.append('-Dbuild.os={0}'.format(buildos))
-    if useshell:
+    if is_windows:
       args.append('-autoproxy')
+      #add the JAVA_HOME to the environment for the windows builds
+      local_env['JAVA_HOME'] = 'C:\Program Files\Java\jdk1.6.0_29'
     if extra_args:
       args.extend(extra_args)
 
@@ -117,7 +120,7 @@ class AntWrapper(object):
         args.append(arg)
 
     print ' '.join(args)
-    status = subprocess.call(args, shell=useshell)
+    status = subprocess.call(args, shell=is_windows)
     os.chdir(cwd)
     return status
 
