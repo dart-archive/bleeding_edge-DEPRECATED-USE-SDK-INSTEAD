@@ -665,7 +665,9 @@ class FullResolverVisitor extends ResolverVisitor {
         FunctionElement function = constructor;
         // TODO(karlklose): handle optional arguments.
         if (node.send.argumentCount() != function.parameterCount(compiler)) {
-          error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
+          // TODO(ngeoffray): reslution error with wrong number of
+          // parameters. We cannot do this rigth now because of the
+          // List constructor.
         }
       }
     } else {

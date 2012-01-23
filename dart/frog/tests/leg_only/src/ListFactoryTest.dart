@@ -12,4 +12,14 @@ main() {
   for (int i = 0; i < a.length; i++) {
     Expect.equals(42 + i, a[i]);
   }
+
+  a = new List();
+  a.add(42);
+  a.add(43);
+  a.add(44);
+  a.add(45);
+  Expect.equals(4, a.length);
+  for (int i = 0; i < a.length; i++) {
+    Expect.equals(42 + i, a[i]);
+  }
 }
