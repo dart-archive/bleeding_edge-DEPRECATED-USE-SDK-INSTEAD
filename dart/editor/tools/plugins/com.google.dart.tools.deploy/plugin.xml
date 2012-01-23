@@ -217,6 +217,10 @@
             content-type="org.eclipse.core.runtime.text"
             file-extensions="css">
       </file-association>
+      <file-association
+            content-type="org.eclipse.core.runtime.text"
+            file-extensions="js">
+      </file-association>
    </extension>
 
 </plugin>
