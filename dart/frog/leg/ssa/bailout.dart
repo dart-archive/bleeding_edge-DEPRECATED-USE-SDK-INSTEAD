@@ -25,6 +25,10 @@ class Environment {
   void add(HInstruction instruction) {
     if (!instruction.generateAtUseSite()) {
       lives.add(instruction);
+    } else {
+      for (int i = 0, len = instruction.inputs.length; i < len; i++) {
+        add(instruction.inputs[i]);
+      }
     }
   }
 
