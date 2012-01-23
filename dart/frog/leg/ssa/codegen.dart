@@ -56,9 +56,12 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaUnoptimizedCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
           compiler, work, buffer, parameters, parameterNames);
       codegen.visitGraph(graph);
-      String newParameters = parameterNames.isEmpty()
-          ? 'state, env'
-          : '$parameters, state, env';
+      StringBuffer newParameters = new StringBuffer();
+      if (!parameterNames.isEmpty()) newParameters.add('$parameters, ');
+      newParameters.add('state');
+      for (int i = 0; i < codegen.maxBailoutParameters; i++) {
+        newParameters.add(', env$i');
+      }
       return 'function($newParameters) {\n${codegen.setup}$buffer}';
     } else {
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
@@ -706,18 +709,18 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     buffer.add('($parameters');
     if (parametersCount != 0) buffer.add(', ');
     if (guard.guarded is !HParameterValue) {
-      buffer.add('${++state}, [');
+      buffer.add('${++state}');
       bool first = true;
+      // TODO(ngeoffray): if the bailout method takes more arguments,
+      // fill the remaining arguments with undefined.
+      // TODO(ngeoffray): try to put a variable at a deterministic
+      // location, so that multiple bailout calls put the variable at
+      // the same parameter index.
       for (int i = 0; i < guard.inputs.length; i++) {
         HInstruction input = guard.inputs[i];
-        if (!first) {
-          buffer.add(', ');
-        } else {
-          first = false;
-        }
+        buffer.add(', ');
         use(guard.inputs[i]);
       }
-      buffer.add(']');
     } else {
       assert(guard.guarded is HParameterValue);
       buffer.add(' 0');
@@ -825,6 +828,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   final StringBuffer setup;
   final List<String> labels;
   int labelId = 0;
+  int maxBailoutParameters = 0;
 
   SsaUnoptimizedCodeGenerator(
       compiler, work, buffer, parameters, parameterNames)
@@ -885,15 +889,16 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     setup.add('    case ${node.state}:\n');
     int i = 0;
     for (HInstruction input in node.inputs) {
-      setup.add('      ${temporary(input)} = env[$i];\n');
+      setup.add('      ${temporary(input)} = env$i;\n');
       if (input is HLoad) {
         // We get the load of a phi that was turned into a local in
         // the environment. Update the local with that load.
         HLoad load = input;
-        setup.add('      ${local(load.local)} = env[$i];\n');
+        setup.add('      ${local(load.local)} = env$i;\n');
       }
       i++;
     }
+    if (i > maxBailoutParameters) maxBailoutParameters = i;
     setup.add('      break;\n');
   }
 
