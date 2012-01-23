@@ -239,7 +239,7 @@ class WorldGenerator {
           }
         }
       } else if (type.isFunction && type.varStubs.length > 0) {
-        // Emit stubs on "Function" or hidden types if needed
+        // Emit stubs on "Function" if needed
         writer.comment('// ********** Code for ${type.jsname} **************');
         _writeDynamicStubs(type);
       }
@@ -343,8 +343,7 @@ class WorldGenerator {
         writer.writeln('function ${type.jsname}() {}');
       } else if (type.jsname != nativeName) {
         if (type.isHiddenNativeType) {
-          if (_typeNeedsHolderForStaticMethods(type)) {
-            // This is a holder for static methods.
+          if (_hasStaticMethods(type)) {
             writer.writeln('var ${type.jsname} = {};');
           }
         } else {
@@ -353,32 +352,15 @@ class WorldGenerator {
       }
     }
 
-    // TODO(jimhug): This comment below seems out-of-order now?
-    // We need the $inherits function to be declared before factory constructors
-    // so that inheritance ($inherits) will work correctly in IE.
+    // We need the $inherits call to immediately follow the standard constructor
+    // declaration. In particular, it needs to be called before factory
+    // constructors are declared, otherwise $inherits will clear out the
+    // prototype on IE (which does not have writable __proto__).
     if (!type.isTop) {
       if (type.genericType !== type) {
         corejs.ensureInheritsHelper();
         writer.writeln('\$inherits(${type.jsname}, ${type.genericType.jsname});');
-      }
-
-      // TODO(jimhug): Do we still need this code below?
-      /*if (type is ConcreteType) {
-        ConcreteType c = type;
-        corejs.ensureInheritsHelper();
-        writer.writeln('\$inherits(${c.jsname}, ${c.genericType.jsname});');
-
-        // Mixin members from concrete specializations of base types too.
-        // TODO(jmesserly): emit this sooner instead of at the end.
-        // But it needs to come after we've emitted both types.
-        // TODO(jmesserly): HACK: using _parent instead of parent so we don't
-        // try to inherit things that we didn't actually use.
-        for (var p = c._parent; p is ConcreteType; p = p._parent) {
-          _ensureInheritMembersHelper();
-          _mixins.writeln('\$inheritsMembers(${c.jsname}, ${p.jsname});');
-        }
-      } else*/
-      else if (!type.isNative) {
+      } else if (!type.isNative) {
         if (type.parent != null && !type.parent.isObject) {
           corejs.ensureInheritsHelper();
           writer.writeln('\$inherits(${type.jsname}, ${type.parent.jsname});');
@@ -459,9 +441,8 @@ class WorldGenerator {
   }
 
   /**
-   * Returns [:true:] if the type has any methods that are namespaced in
-   * JavaScript by putting them on the constructor or, for a hidden native
-   * class, the surrogate 'holder'.
+   * Returns [:true:] if the hidden native type has any static or factory
+   * methods.
    *
    *  class Float32Array native '*Float32Array' {
    *    factory Float32Array(int len) => _construct(len);
@@ -475,27 +456,11 @@ class WorldGenerator {
    *
    * This predicate determines when we need to define lib_Float32Array.
    */
-  _typeNeedsHolderForStaticMethods(Type type) {
-    return type.isUsed;
-  }
-
-  /**
-   * Generates the $inheritsMembers function when it's first used.
-   * This is used to mix in specialized generic members from the base class.
-   */
-  _ensureInheritMembersHelper() {
-    if (_mixins != null) return;
-    _mixins = new CodeWriter();
-    _mixins.comment('// ********** Generic Type Inheritance **************');
-    _mixins.writeln(@"""
-/** Implements extends for generic types. */
-function $inheritsMembers(child, parent) {
-  child = child.prototype;
-  parent = parent.prototype;
-  Object.getOwnPropertyNames(parent).forEach(function(name) {
-    if (typeof(child[name]) == 'undefined') child[name] = parent[name];
-  });
-}""");
+  bool _hasStaticMethods(Type type) {
+    // TODO(jmesserly): better tracking if the methods are actually called.
+    // For now we assume that if the type is used, the method is used.
+    return type.members.getValues().some(
+        (m) => m.isMethod && m.isStatic || m.isFactory);
   }
 
   _writeDynamicStubs(Type type) {
@@ -1014,7 +979,6 @@ class MethodGenerator implements TreeVisitor, CallingContext {
     for (int i = 0; i < method.parameters.length; i++) {
       var p = method.parameters[i];
       Value currentArg = null;
-      // TODO(jimhug): bareCount is O(N)
       if (i < args.bareCount) {
         currentArg = args.values[i];
       } else {

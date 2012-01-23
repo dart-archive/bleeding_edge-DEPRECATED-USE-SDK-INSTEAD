@@ -1287,7 +1287,6 @@ StringImplementation.prototype.contains$1 = StringImplementation.prototype.conta
 StringImplementation.prototype.indexOf$1 = StringImplementation.prototype.indexOf;
 StringImplementation.prototype.substring$1 = StringImplementation.prototype.substring;
 // ********** Code for _Worker **************
-var _Worker = {};
 // ********** Code for _ArgumentMismatchException **************
 $inherits(_ArgumentMismatchException, ClosureArgumentMismatchException);
 function _ArgumentMismatchException(_message) {
@@ -1433,9 +1432,7 @@ EnvMap.prototype.$index = function(key) {
   return this._process.env[key];
 }
 // ********** Code for ReadableStream **************
-var ReadableStream = {};
 // ********** Code for WritableStream **************
-var WritableStream = {};
 Object.defineProperty(Object.prototype, '$typeNameOf', { value: function() {
   if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
       || typeof(process) != 'undefined') { // fast-path for Chrome and Node
@@ -3044,7 +3041,7 @@ WorldGenerator.prototype.writeType = function(type) {
     }
     else if (type.get$jsname() != nativeName) {
       if (type.get$isHiddenNativeType()) {
-        if (this._typeNeedsHolderForStaticMethods(type)) {
+        if (this._hasStaticMethods(type)) {
           this.writer.writeln(("var " + type.get$jsname() + " = {};"));
         }
       }
@@ -3136,8 +3133,11 @@ WorldGenerator.prototype.writeType = function(type) {
   }
   this._writeDynamicStubs(type);
 }
-WorldGenerator.prototype._typeNeedsHolderForStaticMethods = function(type) {
-  return type.get$isUsed();
+WorldGenerator.prototype._hasStaticMethods = function(type) {
+  return type.get$members().getValues().some((function (m) {
+    return m.get$isMethod() && m.get$isStatic() || m.get$isFactory();
+  })
+  );
 }
 WorldGenerator.prototype._writeDynamicStubs = function(type) {
   var $$list = orderValuesByKeys(type.varStubs);
