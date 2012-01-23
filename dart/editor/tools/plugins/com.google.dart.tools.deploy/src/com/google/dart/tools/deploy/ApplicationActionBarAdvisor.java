@@ -385,7 +385,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     coolBar.add(new GroupMarker(IIDEActionConstants.GROUP_FILE));
     { // File Group
       IToolBarManager fileToolBar = actionBarConfigurer.createToolBarManager();
-      fileToolBar.add(newApplicationWizardAction);
+      //TODO (pquitslund): remove when the files view lands and replace with a new action
+      if (!DartCoreDebug.FILES_VIEW) {
+        fileToolBar.add(newApplicationWizardAction);
+      }
       fileToolBar.add(new GroupMarker(IWorkbenchActionConstants.NEW_EXT));
       fileToolBar.add(new GroupMarker(IWorkbenchActionConstants.SAVE_GROUP));
       fileToolBar.add(saveAction);
