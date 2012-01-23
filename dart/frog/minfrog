@@ -12461,6 +12461,7 @@ PureStaticValue.prototype.getMem = function(context, name, node) {
   var member = this.get$type().getMember(name);
   if ($eq(member)) {
     $globals.world.warning(("can not find \"" + name + "\" on \"" + this.get$type().name + "\""), node.span);
+    return null;
   }
   if (this.isType && !member.get$isStatic()) {
     $globals.world.error("can not refer to instance member as static", node.span);

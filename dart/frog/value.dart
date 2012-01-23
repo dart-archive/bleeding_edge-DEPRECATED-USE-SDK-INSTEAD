@@ -44,6 +44,7 @@ class PureStaticValue extends Value {
 
     if (member == null) {
       world.warning('can not find "$name" on "${type.name}"', node.span);
+      return null;
     }
 
     if (isType && !member.isStatic) {
