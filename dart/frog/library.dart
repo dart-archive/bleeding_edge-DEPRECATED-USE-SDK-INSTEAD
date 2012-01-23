@@ -63,6 +63,7 @@ class Library extends Element {
     if (filename.startsWith('/')) return filename;
     if (filename.startsWith('file:///')) return filename;
     if (filename.startsWith('http://')) return filename;
+    if (const RegExp('^[a-zA-Z]:/').hasMatch(filename)) return filename;
     return joinPaths(sourceDir, filename);
   }
 
