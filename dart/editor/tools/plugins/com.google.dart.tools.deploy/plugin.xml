@@ -11,8 +11,9 @@
          </run>
       </application>
    </extension>
- 
-   <extension
+
+   <!-- TODO(pquitslund): slated for removal once the files view lands --> 
+   <!--extension
          point="org.eclipse.ui.menus">
               <menuContribution
             locationURI="menu:file?after=new.ext">
@@ -32,15 +33,16 @@
                style="push">
          </command>
       </menuContribution>
-   </extension>
+   </extension-->
    <extension
          point="org.eclipse.ui.bindings">
-      <key
+      <!-- TODO(pquitslund): when the files view lands rebind a revamped version of this command -->
+      <!--key
             commandId="com.google.dart.tools.ui.file.open"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+O">
-      </key>
+      </key-->
       <key
             commandId="com.google.dart.tools.ui.omnibox"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
