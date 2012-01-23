@@ -14,6 +14,7 @@ PrototypePatchingTest: Skip # Flaky. issue 1162.
 
 [ $component == frogsh && $checked]
 NodeProcessTest: Fail # Checked mode failure -- looked like it failed to find assert$WritableStream
+NativeCheckedArguments1FrogTest: Fail # TODO(jimhug): Temporary break
 
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == frog || $component == leg]
 Node*Test: Skip

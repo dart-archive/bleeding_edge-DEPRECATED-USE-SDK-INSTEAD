@@ -22,7 +22,7 @@ class Parameter {
       isInitializer = true;
     }
 
-    type = method.resolveType(definition.type, false);
+    type = method.resolveType(definition.type, false, true);
 
     if (definition.value != null) {
       // To match VM, detect cases where value was not actually specified in
@@ -49,7 +49,7 @@ class Parameter {
     }
   }
 
-  genValue(MethodMember method, MethodGenerator context) {
+  genValue(MethodMember method, CallingContext context) {
     if (definition.value == null || value != null) return;
 
     if (context == null) { // interface method
@@ -84,11 +84,10 @@ class Parameter {
 class Member extends Element {
   final Type declaringType;
 
-  bool isGenerated;
-  MethodGenerator generator;
+  Member genericMember;
 
   Member(String name, Type declaringType)
-      : isGenerated = false, this.declaringType = declaringType,
+      : this.declaringType = declaringType,
         super(name, declaringType);
 
   abstract bool get isStatic();
@@ -119,16 +118,12 @@ class Member extends Element {
 
   bool get requiresPropertySyntax() => false;
   bool _providePropertySyntax = false;
-  bool get requiresFieldSyntax() => false;
-  bool _provideFieldSyntax = false;
 
   bool get isNative() => false;
   String get constructorName() {
     world.internalError('can not be a constructor', span);
   }
 
-  // Don't display an error here; we'll get a better error later.
-  void provideFieldSyntax() {}
   void providePropertySyntax() {}
 
   Member get initDelegate() {
@@ -170,31 +165,45 @@ class Member extends Element {
   }
 
   MemberSet get potentialMemberSet() {
+    // TODO(jimhug): This needs one more redesign - move to TypeSets...
+
     if (_potentialMemberSet === null) {
-      if (declaringType.isObject) {
-        _potentialMemberSet = world._members[name];
+      if (name == ':call') {
+        _potentialMemberSet = preciseMemberSet;
         return _potentialMemberSet;
       }
 
       final mems = new Set<Member>();
       if (declaringType.isClass) mems.add(this);
 
-
-      for (var subtype in declaringType.subtypes) {
+      for (var subtype in declaringType.genericType.subtypes) {
         if (!subtype.isClass) continue;
         var mem = subtype.members[name];
         if (mem !== null) {
-          mems.add(mem);
+          if (mem.isDefinedOn(declaringType)) {
+            mems.add(mem);
+          }
         } else if (!declaringType.isClass) {
           // Handles weird interface case.
           mem = subtype.getMember(name);
-          if (mem !== null) {
+          if (mem !== null && mem.isDefinedOn(declaringType)) {
             mems.add(mem);
           }
         }
       }
 
       if (mems.length != 0) {
+        // TODO(jimhug): This hack needs to be rationalized.
+        for (var mem in mems) {
+          if (declaringType.genericType != declaringType &&
+              mem.genericMember != null && mems.contains(mem.genericMember)) {
+            //world.info('skip ${name} on ${mem.genericMember.declaringType.name}' +
+            //  ' because we have on ${mem.declaringType.name} for ${declaringType.name}');
+            mems.remove(mem.genericMember);
+          }
+        }
+
+
         for (var mem in mems) {
           if (_potentialMemberSet === null) {
             _potentialMemberSet = new MemberSet(mem);
@@ -214,9 +223,8 @@ class Member extends Element {
         return true;
       } else if (type.isSubtypeOf(declaringType)) {
         // maybe - but not if overridden somewhere
-        // !!! horrible hack for today - awful perf props
+        // TODO(jimhug): This lookup is not great for perf of this method.
         return type.getMember(name) == this;
-        //return true;
       } else {
         return false;
       }
@@ -236,23 +244,25 @@ class Member extends Element {
     }
   }
 
-  // TODO(jmesserly): isDynamic isn't a great name for this, something better?
-  abstract Value _get(MethodGenerator context, Node node, Value target,
-      [bool isDynamic]);
+  abstract Value _get(CallingContext context, Node node, Value target);
 
-  abstract Value _set(MethodGenerator context, Node node, Value target,
-      Value value, [bool isDynamic]);
+  abstract Value _set(CallingContext context, Node node, Value target,
+      Value value);
 
-  bool canInvoke(MethodGenerator context, Arguments args) {
-    // No source location needed because canInvoke may not produce errors.
-    return canGet &&
-        new Value(returnType, null, null).canInvoke(context, ':call', args);
+
+  bool canInvoke(CallingContext context, Arguments args) {
+    // Any gettable member whose return type is callable can be "invoked".
+    if (canGet && (isField || isProperty)) {
+      return this.returnType.isFunction || this.returnType.isVar ||
+        this.returnType.getCallMethod() != null;
+    }
+    return false;
   }
 
-  Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
-      [bool isDynamic=false]) {
-    var newTarget = _get(context, node, target, isDynamic);
-    return newTarget.invoke(context, ':call', node, args, isDynamic);
+  Value invoke(CallingContext context, Node node, Value target,
+    Arguments args) {
+    var newTarget = _get(context, node, target);
+    return newTarget.invoke(context, ':call', node, args);
   }
 
   bool override(Member other) {
@@ -269,7 +279,7 @@ class Member extends Element {
 
   String get generatedFactoryName() {
     assert(this.isFactory);
-    String prefix = '${declaringType.jsname}.${constructorName}\$';
+    String prefix = '${declaringType.genericType.jsname}.${constructorName}\$';
     if (name == '') {
       return '${prefix}factory';
     } else {
@@ -288,6 +298,18 @@ class Member extends Element {
     return other is Member && isConstructor == other.isConstructor &&
         declaringType == other.declaringType && (isConstructor ?
             constructorName == other.constructorName : name == other.name);
+  }
+
+  /** Overriden to ensure that type arguments aren't used in static mems. */
+  Type resolveType(TypeReference node, bool typeErrors, bool allowTypeParams) {
+    allowTypeParams = allowTypeParams && !(isStatic && !isFactory);
+
+    return super.resolveType(node, typeErrors, allowTypeParams);
+  }
+
+  // TODO(jimhug): Make this abstract.
+  Member makeConcrete(Type concreteType) {
+    world.internalError('can not make this concrete', span);
   }
 }
 
@@ -311,24 +333,20 @@ class TypeMember extends Member {
   // If this really becomes first class, this should return typeof(Type)
   Type get returnType() => world.varType;
 
-  bool canInvoke(MethodGenerator context, Arguments args) => false;
+  bool canInvoke(CallingContext context, Arguments args) => false;
   bool get canGet() => true;
   bool get canSet() => false;
 
-  bool get requiresFieldSyntax() => true;
-
-  Value _get(MethodGenerator context, Node node, Value target,
-      [bool isDynamic=false]) {
+  Value _get(CallingContext context, Node node, Value target) {
     return new TypeValue(type, node.span);
   }
 
-  Value _set(MethodGenerator context, Node node, Value target, Value value,
-      [bool isDynamic=false]) {
+  Value _set(CallingContext context, Node node, Value target, Value value) {
     world.error('cannot set type', node.span);
   }
 
-  Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
-      [bool isDynamic=false]) {
+  Value invoke(CallingContext context, Node node, Value target,
+      Arguments args) {
     world.error('cannot invoke type', node.span);
   }
 }
@@ -373,11 +391,23 @@ class FieldMember extends Member {
     }
   }
 
-  void provideFieldSyntax() {} // Nothing to do.
-  void providePropertySyntax() { _providePropertySyntax = true; }
+  void providePropertySyntax() {
+    _providePropertySyntax = true;
+    if (genericMember !== null) {
+      genericMember.providePropertySyntax();
+    }
+  }
 
   FieldMember(String name, Type declaringType, this.definition, this.value)
       : super(name, declaringType), isNative = false;
+
+  Member makeConcrete(Type concreteType) {
+    var ret = new FieldMember(name, concreteType, definition, value);
+    ret.genericMember = this;
+    ret._jsname = _jsname;
+    return ret;
+  }
+
 
   SourceSpan get span() => definition == null ? null : definition.span;
 
@@ -408,17 +438,13 @@ class FieldMember extends Member {
         }
       }
     }
-    type = resolveType(definition.type, false);
-    if (isStatic && !isFactory && type.hasTypeParams) {
-      world.error('using type parameter in static context',
-          definition.type.span);
-    }
+    type = resolveType(definition.type, false, true);
 
     if (isStatic && isFinal && value == null) {
       world.error('static final field is missing initializer', span);
     }
 
-    library._addMember(this);
+    if (declaringType.isClass) library._addMember(this);
   }
 
 
@@ -463,8 +489,11 @@ class FieldMember extends Member {
     return _computedValue;
   }
 
-  Value _get(MethodGenerator context, Node node, Value target,
-      [bool isDynamic=false]) {
+  Value _get(CallingContext context, Node node, Value target) {
+    if (!context.needsCode) {
+      return new PureStaticValue(type, node.span, isStatic && isFinal);
+    }
+
     if (isNative && returnType != null) {
       returnType.markUsed();
       if (returnType is DefinedType) {
@@ -511,10 +540,14 @@ class FieldMember extends Member {
     return new Value(type, '${target.code}.$jsname', node.span);
   }
 
-  Value _set(MethodGenerator context, Node node, Value target, Value value,
-      [bool isDynamic=false]) {
-    var lhs = _get(context, node, target, isDynamic);
-    value = value.convertTo(context, type, isDynamic);
+  Value _set(CallingContext context, Node node, Value target, Value value) {
+    if (!context.needsCode) {
+      // TODO(jimhug): Add type checks here.
+      return new PureStaticValue(type, node.span);
+    }
+
+    var lhs = _get(context, node, target);
+    value = value.convertTo(context, type);
     return new Value(type, '${lhs.code} = ${value.code}', node.span);
   }
 }
@@ -535,15 +568,11 @@ class PropertyMember extends Member {
   // field syntax in the generated code.
   bool get requiresPropertySyntax() => declaringType.isClass;
 
-  void provideFieldSyntax() { _provideFieldSyntax = true; }
-  void providePropertySyntax() {
-    // when overriding native fields, we still provide a field syntax to ensure
-    // that native functions will find the appropriate property implementation.
-    // TODO(sigmund): should check for this transitively...
-    if (_overriddenField != null && _overriddenField.isNative) {
-      provideFieldSyntax();
-    }
-  }
+  // when overriding native fields, we still provide a field syntax to ensure
+  // that native functions will find the appropriate property implementation.
+  // TODO(sigmund): should check for this transitively...
+  bool get needsFieldSyntax() =>
+    _overriddenField != null && _overriddenField.isNative;
 
   // TODO(jimhug): Union of getter and setters sucks!
   bool get isStatic() => getter == null ? setter.isStatic : getter.isStatic;
@@ -555,6 +584,14 @@ class PropertyMember extends Member {
   }
 
   PropertyMember(String name, Type declaringType): super(name, declaringType);
+
+  Member makeConcrete(Type concreteType) {
+    var ret = new PropertyMember(name, concreteType);
+    if (getter !== null) ret.getter = getter.makeConcrete(concreteType);
+    if (setter !== null) ret.setter = setter.makeConcrete(concreteType);
+    ret._jsname = _jsname;
+    return ret;
+  }
 
   bool override(Member other) {
     if (!super.override(other)) return false;
@@ -573,39 +610,29 @@ class PropertyMember extends Member {
     }
   }
 
-  Value _get(MethodGenerator context, Node node, Value target,
-      [bool isDynamic=false]) {
+  Value _get(CallingContext context, Node node, Value target) {
     if (getter == null) {
       if (_overriddenField != null) {
-        return _overriddenField._get(context, node, target, isDynamic);
+        return _overriddenField._get(context, node, target);
       }
       return target.invokeNoSuchMethod(context, 'get:$name', node);
     }
     return getter.invoke(context, node, target, Arguments.EMPTY);
   }
 
-  Value _set(MethodGenerator context, Node node, Value target, Value value,
-      [bool isDynamic=false]) {
+  Value _set(CallingContext context, Node node, Value target, Value value) {
     if (setter == null) {
       if (_overriddenField != null) {
-        return _overriddenField._set(context, node, target, value, isDynamic);
+        return _overriddenField._set(context, node, target, value);
       }
       return target.invokeNoSuchMethod(context, 'set:$name', node,
         new Arguments(null, [value]));
     }
-    return setter.invoke(context, node, target, new Arguments(null, [value]),
-        isDynamic);
+    return setter.invoke(context, node, target, new Arguments(null, [value]));
   }
 
   addFromParent(Member parentMember) {
-    // TODO(jimhug): Egregious Hack!
-    PropertyMember parent;
-    if (parentMember is ConcreteMember) {
-      ConcreteMember c = parentMember;
-      parent = c.baseMember;
-    } else {
-      parent = parentMember;
-    }
+    final parent = parentMember;
 
     if (getter == null) getter = parent.getter;
     if (setter == null) setter = parent.setter;
@@ -637,116 +664,7 @@ class PropertyMember extends Member {
       }
     }
 
-    library._addMember(this);
-  }
-}
-
-
-class ConcreteMember extends Member {
-  final Member baseMember;
-  Type returnType;
-  List<Parameter> parameters;
-
-  ConcreteMember(String name, ConcreteType declaringType, this.baseMember)
-      : super(name, declaringType) {
-    parameters = [];
-    returnType = baseMember.returnType.resolveTypeParams(declaringType);
-    // TODO(jimhug): Optimize not creating new array if no new param types.
-    for (var p in baseMember.parameters) {
-      var newType = p.type.resolveTypeParams(declaringType);
-      if (newType != p.type) {
-        parameters.add(p.copyWithNewType(this, newType));
-      } else {
-        parameters.add(p);
-      }
-    }
-  }
-
-  SourceSpan get span() => baseMember.span;
-
-  bool get isStatic() => baseMember.isStatic;
-  bool get isAbstract() => baseMember.isAbstract;
-  bool get isConst() => baseMember.isConst;
-  bool get isFactory() => baseMember.isFactory;
-  bool get isFinal() => baseMember.isFinal;
-  bool get isNative() => baseMember.isNative;
-
-  String get jsname() => baseMember.jsname;
-  set jsname(String name) =>
-    world.internalError('bad set of jsname on ConcreteMember');
-
-
-  bool get canGet() => baseMember.canGet;
-  bool get canSet() => baseMember.canSet;
-  bool canInvoke(MethodGenerator context, Arguments args) =>
-    baseMember.canInvoke(context, args);
-
-  bool get isField() => baseMember.isField;
-  bool get isMethod() => baseMember.isMethod;
-  bool get isProperty() => baseMember.isProperty;
-
-  bool get requiresPropertySyntax() => baseMember.requiresPropertySyntax;
-  bool get requiresFieldSyntax() => baseMember.requiresFieldSyntax;
-
-  void provideFieldSyntax() => baseMember.provideFieldSyntax();
-  void providePropertySyntax() => baseMember.providePropertySyntax();
-
-  bool get isConstructor() => name == declaringType.name;
-
-  String get constructorName() => baseMember.constructorName;
-
-  Definition get definition() => baseMember.definition;
-
-  // TODO(sigmund): this is EGREGIOUS
-  Member get initDelegate() => baseMember.initDelegate;
-  void set initDelegate(ctor) { baseMember.initDelegate = ctor; }
-
-  Type resolveType(TypeReference node, bool isRequired) {
-    var type = baseMember.resolveType(node, isRequired);
-    return type.resolveTypeParams(declaringType);
-  }
-
-  Value computeValue() => baseMember.computeValue();
-
-  // TODO(jimhug): Add support for type params.
-  bool override(Member other) => baseMember.override(other);
-
-  Value _get(MethodGenerator context, Node node, Value target,
-      [bool isDynamic=false]) {
-    Value ret = baseMember._get(context, node, target, isDynamic);
-    return new Value(inferredResult, ret.code, node.span);
-  }
-
-  Value _set(MethodGenerator context, Node node, Value target, Value value,
-      [bool isDynamic=false]) {
-    // TODO(jimhug): Check arg types in context of concrete type.
-    Value ret = baseMember._set(context, node, target, value, isDynamic);
-    return new Value(returnType, ret.code, node.span);
-  }
-
-  _evalConstConstructor(ObjectValue newObject, Arguments args) {
-    // TODO(jimhug): Concrete type probably matters somehow here
-    return baseMember.dynamic._evalConstConstructor(newObject, args);
-  }
-
-
-  Value invoke(MethodGenerator context, Node node, Value target, Arguments args,
-      [bool isDynamic=false]) {
-    // TODO(jimhug): Check arg types in context of concrete type.
-    // TODO(jmesserly): I think what needs to happen is to move MethodMember's
-    // invoke so that it's run against the "parameters" and "returnType" of the
-    // ConcreteMember instead.
-    Value ret = baseMember.invoke(context, node, target, args, isDynamic);
-    var code = ret.code;
-    if (isConstructor) {
-      // TODO(jimhug): Egregious hack - won't live through the year.
-      code = code.replaceFirst(
-          declaringType.genericType.jsname, declaringType.jsname);
-    }
-    if (baseMember is MethodMember) {
-      declaringType.genMethod(this);
-    }
-    return new Value(inferredResult, code, node.span);
+    if (declaringType.isClass) library._addMember(this);
   }
 }
 
@@ -756,6 +674,8 @@ class MethodMember extends Member {
   FunctionDefinition definition;
   Type returnType;
   List<Parameter> parameters;
+
+  MethodData _methodData;
 
   Type _functionType;
   bool isStatic = false;
@@ -782,6 +702,23 @@ class MethodMember extends Member {
 
   MethodMember(String name, Type declaringType, this.definition)
       : super(name, declaringType);
+
+  Member makeConcrete(Type concreteType) {
+    var _name = isConstructor ? concreteType.name : name;
+    var ret = new MethodMember(_name, concreteType, definition);
+    ret.genericMember = this;
+    ret._jsname = _jsname;
+    return ret;
+  }
+
+  MethodData get methodData() {
+    if (genericMember !== null) return genericMember.dynamic.methodData;
+
+    if (_methodData === null) {
+      _methodData = new MethodData(this);
+    }
+    return _methodData;
+  }
 
   bool get isConstructor() => name == declaringType.name;
   bool get isMethod() => !isConstructor;
@@ -813,8 +750,8 @@ class MethodMember extends Member {
 
   Type get functionType() {
     if (_functionType == null) {
-      _functionType =
-          library.getOrAddFunctionType(declaringType, name, definition);
+      _functionType = library.getOrAddFunctionType(declaringType, name,
+          definition, methodData);
       // TODO(jimhug): Better resolution checks.
       if (parameters == null) {
         resolve();
@@ -838,7 +775,7 @@ class MethodMember extends Member {
     }
   }
 
-  bool canInvoke(MethodGenerator context, Arguments args) {
+  bool canInvoke(CallingContext context, Arguments args) {
     int bareCount = args.bareCount;
 
     if (bareCount > parameters.length) return false;
@@ -870,16 +807,17 @@ class MethodMember extends Member {
     return -1;
   }
 
-  void provideFieldSyntax() { _provideFieldSyntax = true; }
   void providePropertySyntax() { _providePropertySyntax = true; }
 
-  Value _set(MethodGenerator context, Node node, Value target, Value value,
-      [bool isDynamic=false]) {
+  Value _set(CallingContext context, Node node, Value target, Value value) {
     world.error('cannot set method', node.span);
   }
 
-  Value _get(MethodGenerator context, Node node, Value target,
-      [bool isDynamic=false]) {
+  Value _get(CallingContext context, Node node, Value target) {
+    if (!context.needsCode) {
+      return new PureStaticValue(functionType, node.span);
+    }
+
     // TODO(jimhug): Would prefer to invoke!
     declaringType.genMethod(this);
     _provideOptionalParamInfo = true;
@@ -944,7 +882,6 @@ class MethodMember extends Member {
     }
 
     if (bareCount < parameters.length) {
-      genParameterValues();
       for (int i = bareCount; i < parameters.length; i++) {
         var arg = args.getValue(parameters[i].name);
         if (arg != null && arg.needsConversion(parameters[i].type)) {
@@ -961,7 +898,7 @@ class MethodMember extends Member {
         '${atLeast ? "at least " : ""}$expected but found $actual';
   }
 
-  Value _argError(MethodGenerator context, Node node, Value target,
+  Value _argError(CallingContext context, Node node, Value target,
       Arguments args, String msg, int argIndex) {
     SourceSpan span;
     if ((args.nodes == null) || (argIndex >= args.nodes.length)) {
@@ -977,21 +914,20 @@ class MethodMember extends Member {
     return target.invokeNoSuchMethod(context, name, node, args);
   }
 
-  genParameterValues() {
-    // Pure lazy?
-    for (var p in parameters) p.genValue(this, generator);
+  genParameterValues(CallingContext context) {
+    // TODO(jimhug): Is this the right context?
+    for (var p in parameters) p.genValue(this, context);
   }
 
   /**
    * Invokes this method on the given [target] with the given [args].
    * [node] provides a [SourceSpan] for any error messages.
    */
-  Value invoke(MethodGenerator context, Node node, Value target,
-      Arguments args, [bool isDynamic=false]) {
-    // TODO(jimhug): Fix this hack for ensuring a method is resolved.
-    if (parameters == null) {
-      world.info('surprised to need to resolve: ${declaringType.name}.$name');
-      resolve();
+  Value invoke(CallingContext context, Node node, Value target,
+      Arguments args) {
+    if (!context.needsCode) {
+      // TODO(jimhug): Add argument type and name checks here.
+      return new PureStaticValue(returnType, node.span);
     }
 
     declaringType.genMethod(this);
@@ -1025,20 +961,20 @@ class MethodMember extends Member {
         var msg = _argCountMsg(args.length, parameters.length);
         return _argError(context, node, target, args, msg, i);
       }
-      arg = arg.convertTo(context, parameters[i].type, isDynamic);
+      arg = arg.convertTo(context, parameters[i].type);
       argsCode.add(arg.code);
     }
 
     int namedArgsUsed = 0;
     if (bareCount < parameters.length) {
-      genParameterValues();
+      genParameterValues(context);
 
       for (int i = bareCount; i < parameters.length; i++) {
         var arg = args.getValue(parameters[i].name);
         if (arg == null) {
           arg = parameters[i].value;
         } else {
-          arg = arg.convertTo(context, parameters[i].type, isDynamic);
+          arg = arg.convertTo(context, parameters[i].type);
           namedArgsUsed++;
         }
 
@@ -1090,7 +1026,7 @@ class MethodMember extends Member {
     }
 
     if (isOperator) {
-      return _invokeBuiltin(context, node, target, args, argsCode, isDynamic);
+      return _invokeBuiltin(context, node, target, args, argsCode);
     }
 
     if (isFactory) {
@@ -1117,7 +1053,7 @@ class MethodMember extends Member {
     return new Value(inferredResult, code, node.span);
   }
 
-  Value _invokeConstructor(MethodGenerator context, Node node,
+  Value _invokeConstructor(CallingContext context, Node node,
       Value target, Arguments args, argsString) {
     declaringType.markUsed();
 
@@ -1155,45 +1091,52 @@ class MethodMember extends Member {
 
   _evalConstConstructor(Value newObject, Arguments args) {
     declaringType.markUsed();
-    var generator = new MethodGenerator(this, null);
-    generator.evalBody(newObject, args);
+    methodData.eval(this, newObject, args);
   }
 
-  Value _invokeBuiltin(MethodGenerator context, Node node, Value target,
-      Arguments args, argsCode, bool isDynamic) {
+  Value _invokeBuiltin(CallingContext context, Node node, Value target,
+      Arguments args, argsCode) {
     // Handle some fast paths for Number, String, List and DOM.
-    if (declaringType.isNum) {
+    if (target.type.isNum) {
       // TODO(jimhug): This fails in bad ways when argsCode[1] is not num.
       // TODO(jimhug): What about null?
-      var code;
-      if (name == ':negate') {
-        code = '-${target.code}';
-      } else if (name == ':bit_not') {
-        code = '~${target.code}';
-      } else if (name == ':truncdiv' || name == ':mod') {
-        world.gen.corejs.useOperator(name);
-        code = '$jsname(${target.code}, ${argsCode[0]})';
-      } else {
-        var op = TokenKind.rawOperatorFromMethod(name);
-        code = '${target.code} $op ${argsCode[0]}';
+      var code = null;
+      if (args.length == 0) {
+        if (name == ':negate') {
+          code = '-${target.code}';
+        } else if (name == ':bit_not') {
+          code = '~${target.code}';
+        }
+      } else if (args.length == 1 && args.values[0].type.isNum) {
+        if (name == ':truncdiv' || name == ':mod') {
+          world.gen.corejs.useOperator(name);
+          code = '$jsname(${target.code}, ${argsCode[0]})';
+        } else {
+          var op = TokenKind.rawOperatorFromMethod(name);
+          code = '${target.code} $op ${argsCode[0]}';
+        }
       }
-
-      return new Value(inferredResult, code, node.span);
-    } else if (declaringType.isString) {
-      if (name == ':index') {
+      if (code !== null) {
+        return new Value(inferredResult, code, node.span);
+      }
+    } else if (target.type.isString) {
+      if (name == ':index' && args.values[0].type.isNum) {
         return new Value(declaringType, '${target.code}[${argsCode[0]}]',
           node.span);
-      } else if (name == ':add') {
+      } else if (name == ':add' && args.values[0].type.isNum) {
         return new Value(declaringType, '${target.code} + ${argsCode[0]}',
           node.span);
       }
     } else if (declaringType.isNative) {
-      if (name == ':index') {
-        return
-            new Value(returnType, '${target.code}[${argsCode[0]}]', node.span);
-      } else if (name == ':setindex') {
-        return new Value(returnType,
-            '${target.code}[${argsCode[0]}] = ${argsCode[1]}', node.span);
+      if (args.length > 0 && args.values[0].type.isNum) {
+        // TODO(jimhug): make more accurate/reliable
+        if (name == ':index') {
+          return
+              new Value(returnType, '${target.code}[${argsCode[0]}]', node.span);
+        } else if (name == ':setindex') {
+          return new Value(returnType,
+              '${target.code}[${argsCode[0]}] = ${argsCode[1]}', node.span);
+        }
       }
     }
 
@@ -1203,7 +1146,7 @@ class MethodMember extends Member {
 
       if (name == ':ne') {
         // Ensure == is generated.
-        target.invoke(context, ':eq', node, args, isDynamic);
+        target.invoke(context, ':eq', node, args);
       }
 
       // Optimize test when null is on the rhs.
@@ -1226,10 +1169,16 @@ class MethodMember extends Member {
           '${target.code}(${Strings.join(argsCode, ", ")})', node.span);
     }
 
+    // TODO(jimhug): Reconcile with MethodSet version - ideally just eliminate
     if (name == ':index') {
       world.gen.corejs.useIndex = true;
     } else if (name == ':setindex') {
       world.gen.corejs.useSetIndex = true;
+    } else {
+      world.gen.corejs.useOperator(name);
+      var argsString = argsCode.length == 0 ? '' : ', ${argsCode[0]}';
+      return new Value(returnType, '$jsname(${target.code}${argsString})',
+        node.span);
     }
 
     // Fall back to normal method invocation.
@@ -1316,7 +1265,12 @@ class MethodMember extends Member {
       returnType = declaringType;
     } else {
       // This is the one and only place we allow void.
-      returnType = resolveType(definition.returnType, false, allowVoid: true);
+      if (definition.returnType is SimpleTypeReference &&
+          definition.returnType.dynamic.type == world.voidType) {
+        returnType = world.voidType;
+      } else {
+        returnType = resolveType(definition.returnType, false, !isStatic);
+      }
     }
     parameters = [];
     for (var formal in definition.formals) {
@@ -1326,309 +1280,12 @@ class MethodMember extends Member {
       parameters.add(param);
     }
 
-    if (!isLambda) {
+    if (!isLambda && declaringType.isClass) {
       library._addMember(this);
     }
   }
-
-  /** Overriden to ensure that type arguments aren't used in static methods. */
-  Type resolveType(TypeReference node, bool typeErrors,
-      [bool allowVoid = false]) {
-    Type t = super.resolveType(node, typeErrors);
-    if (isStatic && !isFactory && t is ParameterType) {
-      world.error('using type parameter in static context.', node.span);
-    }
-    if (!allowVoid && t.isVoid) {
-      world.error('"void" only allowed as return type', node.span);
-    }
-    return t;
-  }
 }
 
-
-class MemberSet {
-  final String name;
-  final List<Member> members;
-  final String jsname;
-  final bool isVar;
-
-  MemberSet(Member member, [bool isVar=false]):
-    name = member.name, members = [member], jsname = member.jsname,
-    isVar = isVar;
-
-  toString() => '$name:${members.length}';
-
-  // TODO(jimhug): Still working towards the right logic for conflicts...
-  bool get containsProperties() => members.some((m) => m is PropertyMember);
-  bool get containsMethods() => members.some((m) => m is MethodMember);
-
-
-  void add(Member member) => members.add(member);
-
-  // TODO(jimhug): Always false, or is this needed?
-  bool get isStatic() => members.length == 1 && members[0].isStatic;
-  bool get isOperator() => members[0].isOperator;
-
-  bool canInvoke(MethodGenerator context, Arguments args) =>
-    members.some((m) => m.canInvoke(context, args));
-
-  Value _makeError(Node node, Value target, String action) {
-    if (!target.type.isVar) {
-      world.warning('could not find applicable $action for "$name"', node.span);
-    }
-    return new Value(world.varType,
-        '${target.code}.$jsname() /*no applicable $action*/', node.span);
-  }
-
-  bool _treatAsField;
-  bool get treatAsField() {
-    if (_treatAsField == null) {
-      // If this is the global MemberSet from world, always bind dynamically.
-      // Note: we need this for proper noSuchMethod and REPL behavior.
-      _treatAsField = !isVar && (members.some((m) => m.requiresFieldSyntax)
-          || members.every((m) => !m.requiresPropertySyntax));
-
-      for (var member in members) {
-        if (_treatAsField) {
-          member.provideFieldSyntax();
-        } else {
-          member.providePropertySyntax();
-        }
-      }
-    }
-    return _treatAsField;
-  }
-
-  Value _get(MethodGenerator context, Node node, Value target,
-      [bool isDynamic=false]) {
-    // If this is the global MemberSet from world, always bind dynamically.
-    // Note: we need this for proper noSuchMethod and REPL behavior.
-    Value returnValue;
-    if (members.length == 1 && !isVar) {
-      return members[0]._get(context, node, target, isDynamic);
-    }
-
-
-    final targets = members.filter((m) => m.canGet);
-    if (isVar) {
-      targets.forEach((m) => m._get(context, node, target, isDynamic: true));
-      returnValue = new Value(_foldTypes(targets), null, node.span);
-    } else {
-      if (members.length == 1) {
-        return members[0]._get(context, node, target, isDynamic);
-      } else if (targets.length == 1) {
-        return targets[0]._get(context, node, target, isDynamic);
-      }
-
-      for (var member in targets) {
-        final value = member._get(context, node, target, isDynamic:true);
-        returnValue = _tryUnion(returnValue, value, node);
-      }
-      if (returnValue == null) {
-        return _makeError(node, target, 'getter');
-      }
-    }
-
-    if (returnValue.code == null) {
-      if (treatAsField) {
-        return new Value(returnValue.type, '${target.code}.$jsname',
-            node.span);
-      } else {
-        return new Value(returnValue.type, '${target.code}.get\$$jsname()',
-            node.span);
-      }
-    }
-    return returnValue;
-  }
-
-  Value _set(MethodGenerator context, Node node, Value target, Value value,
-      [bool isDynamic=false]) {
-    // If this is the global MemberSet from world, always bind dynamically.
-    // Note: we need this for proper noSuchMethod and REPL behavior.
-    if (members.length == 1 && !isVar) {
-      return members[0]._set(context, node, target, value, isDynamic);
-    }
-
-    Value returnValue;
-    final targets = members.filter((m) => m.canSet);
-    if (isVar) {
-      targets.forEach((m) =>
-          m._set(context, node, target, value, isDynamic: true));
-      returnValue = new Value(_foldTypes(targets), null, node.span);
-    } else {
-      if (members.length == 1) {
-        return members[0]._set(context, node, target, value, isDynamic);
-      } else if (targets.length == 1) {
-        return targets[0]._set(context, node, target, value, isDynamic);
-      }
-
-      for (var member in targets) {
-        final res = member._set(context, node, target, value, isDynamic:true);
-        returnValue = _tryUnion(returnValue, res, node);
-      }
-      if (returnValue == null) {
-        return _makeError(node, target, 'setter');
-      }
-    }
-
-    if (returnValue.code == null) {
-      if (treatAsField) {
-        return new Value(returnValue.type,
-          '${target.code}.$jsname = ${value.code}', node.span);
-      } else {
-        return new Value(returnValue.type,
-          '${target.code}.set\$$jsname(${value.code})', node.span);
-      }
-    }
-    return returnValue;
-  }
-
-  Value invoke(MethodGenerator context, Node node, Value target,
-      Arguments args, [bool isDynamic=false]) {
-    // If this is the global MemberSet from world, always bind dynamically.
-    // Note: we need this for proper noSuchMethod and REPL behavior.
-    if (isVar && !isOperator) {
-      return invokeOnVar(context, node, target, args);
-    }
-
-    if (members.length == 1 && !isVar) {
-      return members[0].invoke(context, node, target, args, isDynamic);
-    }
-
-    final targets = members.filter((m) => m.canInvoke(context, args));
-    if (targets.length == 1) {
-      return targets[0].invoke(context, node, target, args, isDynamic);
-    }
-
-    Value returnValue = null;
-    if (targets.length < 1000) {
-      for (var member in targets) {
-        final res = member.invoke(context, node, target, args, isDynamic:true);
-        // TODO(jmesserly): If the code has different type checks, it will fail to
-        // unify and go through a dynamic stub. Good so far. However, we'll end
-        // up with a bogus unused temp generated (usually "var $0"). We need a way
-        // to throw away temps when we throw away the code.
-        returnValue = _tryUnion(returnValue, res, node);
-      }
-
-      if (returnValue == null) {
-        return _makeError(node, target, 'method');
-      }
-    } else {
-      returnValue = new Value(world.varType, null, node.span);
-    }
-
-    if (returnValue.code == null) {
-      if (name == ':call') {
-        // TODO(jmesserly): reconcile this with similar code in Value
-        return target._varCall(context, node, args);
-      } else if (isOperator) {
-        // TODO(jmesserly): make operators less special.
-        return invokeSpecial(target, args, returnValue.type);
-      } else {
-        return invokeOnVar(context, node, target, args);
-      }
-    }
-
-    return returnValue;
-  }
-
-  Value invokeSpecial(Value target, Arguments args, Type returnType) {
-    assert(name.startsWith(':'));
-    assert(!args.hasNames);
-    // TODO(jimhug): We need to do this a little bit more like get and set on
-    // properties.  We should check the set of members for something
-    // like "requiresNativeIndexer" and "requiresDartIndexer" to
-    // decide on a strategy.
-
-    var argsString = args.getCode();
-    // Most operator calls need to be emitted as function calls, so we don't
-    // box numbers accidentally. Indexing is the exception.
-    if (name == ':index' || name == ':setindex') {
-      // TODO(jimhug): should not need this test both here and in invoke
-      if (name == ':index') {
-        world.gen.corejs.useIndex = true;
-      } else if (name == ':setindex') {
-        world.gen.corejs.useSetIndex = true;
-      }
-      return new Value(returnType, '${target.code}.$jsname($argsString)',
-          target.span);
-    } else {
-      if (argsString.length > 0) argsString = ', $argsString';
-      world.gen.corejs.useOperator(name);
-      return new Value(returnType, '$jsname(${target.code}$argsString)',
-          target.span);
-    }
-  }
-
-  Value invokeOnVar(MethodGenerator context, Node node, Value target,
-      Arguments args) {
-    context.counters.dynamicMethodCalls++;
-    var member = getVarMember(context, node, args);
-    return member.invoke(context, node, target, args);
-  }
-
-  Value _union(Value x, Value y, Node node) {
-    var result = _tryUnion(x, y, node);
-    if (result.code == null) {
-      world.internalError('mismatched code for $name (${x.code}, ${y.code})',
-          node.span);
-    }
-    return result;
-  }
-
-  // TODO(jimhug): This is icky - but this whole class needs cleanup.
-  Value _tryUnion(Value x, Value y, Node node) {
-    if (x == null) return y;
-    var type = Type.union(x.type, y.type);
-    if (x.code == y.code) {
-      if (type == x.type) {
-        return x;
-      } else if (x.isConst || y.isConst) {
-        world.internalError("unexpected: union of const values ");
-      } else {
-        return Value.union(x, y);
-      }
-    } else {
-      return new Value(type, null, node.span);
-    }
-  }
-
-  dumpAllMembers() {
-    for (var member in members) {
-      world.warning('hard-multi $name on ${member.declaringType.name}',
-          member.span);
-    }
-  }
-
-  VarMember getVarMember(MethodGenerator context, Node node, Arguments args) {
-    if (world.objectType.varStubs == null) {
-      world.objectType.varStubs = {};
-    }
-
-    var stubName = _getCallStubName(name, args);
-    var stub = world.objectType.varStubs[stubName];
-    if (stub == null) {
-      // Ensure that we're making stub with all possible members of this name.
-      // We need this canonicalization step because only one VarMemberSet can
-      // live on Object.prototype
-      // TODO(jmesserly): this is ugly--we're throwing away type information!
-      // The right solution is twofold:
-      //   1. put stubs on a more precise type when possible
-      //   2. merge VarMemberSets together if necessary
-      final mset = context.findMembers(name).members;
-
-      final targets = mset.filter((m) => m.canInvoke(context, args));
-      stub = new VarMethodSet(name, stubName, targets, args,
-          _foldTypes(targets));
-      world.objectType.varStubs[stubName] = stub;
-    }
-    return stub;
-  }
-
-  Type _foldTypes(List<Member> targets) =>
-    reduce(map(targets, (t) => t.returnType), Type.union, world.varType);
-}
 
 /**
  * A [FactoryMap] maps type names to a list of factory constructors.

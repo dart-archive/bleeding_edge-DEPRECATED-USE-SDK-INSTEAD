@@ -19,6 +19,8 @@ class WorldGenerator {
   CodeWriter writer;
   CodeWriter _mixins;
 
+  CallingContext mainContext;
+
   /**
    * Whether the app has any static fields used. Note this could still be true
    * and [globals] be empty if no static field has a default initialization.
@@ -35,10 +37,31 @@ class WorldGenerator {
   WorldGenerator(this.main, this.writer)
     : globals = {}, corejs = new CoreJs();
 
+  analyze() {
+    // Walk all code and find all NewExpressions - to determine possible types
+    int nlibs=0, ntypes=0, nmems=0, nnews=0;
+    //Set<Type> newedTypes = new Set<Type>();
+    for (var lib in world.libraries.getValues()) {
+      nlibs += 1;
+      for (var type in lib.types.getValues()) {
+        ntypes += 1;
+        var allMembers = [];
+        allMembers.addAll(type.constructors.getValues());
+        allMembers.addAll(type.members.getValues());
+        type.factories.forEach((f) => allMembers.add(f));
+        for (var m in allMembers) {
+          if (m.isAbstract || !m.isMethod) continue;
+
+          m.methodData.analyze();
+        }
+      }
+    }
+  }
+
   run() {
-    var metaGen = new MethodGenerator(main, null);
+    mainContext = new MethodGenerator(main, null);
     var mainTarget = new TypeValue(main.declaringType, main.span);
-    var mainCall = main.invoke(metaGen, null, mainTarget, Arguments.EMPTY);
+    var mainCall = main.invoke(mainContext, null, mainTarget, Arguments.EMPTY);
     main.declaringType.markUsed();
 
     if (options.compileAll) {
@@ -64,8 +87,8 @@ class WorldGenerator {
       MethodMember isolateMain =
         world.coreimpl.lookup('startRootIsolate', main.span);
       var isolateMainTarget = new TypeValue(world.coreimpl.topType, main.span);
-      mainCall = isolateMain.invoke(metaGen, null, isolateMainTarget,
-          new Arguments(null, [main._get(metaGen, main.definition, null)]));
+      mainCall = isolateMain.invoke(mainContext, null, isolateMainTarget,
+          new Arguments(null, [main._get(mainContext, main.definition, null)]));
     }
 
     writeTypes(world.coreimpl);
@@ -208,10 +231,11 @@ class WorldGenerator {
     for (var type in orderedTypes) {
       if (type.isUsed && type.isClass) {
         writeType(type);
-
-        if (type.isGeneric) {
+        // TODO(jimhug): Performance is terrible if we use current
+        // reified generics approach for reified generic Arrays.
+        if (type.isGeneric && type !== world.listFactoryType) {
           for (var ct in _orderValues(type._concreteTypes)) {
-            writeType(ct);
+            if (ct.isUsed) writeType(ct);
           }
         }
       } else if (type.isFunction && type.varStubs.length > 0) {
@@ -226,10 +250,8 @@ class WorldGenerator {
     }
   }
 
-  genMethod(Member meth, [MethodGenerator enclosingMethod=null]) {
-    if (!meth.isGenerated && !meth.isAbstract && meth.definition != null) {
-      new MethodGenerator(meth, enclosingMethod).run();
-    }
+  genMethod(MethodMember meth) {
+    meth.methodData.run(meth);
   }
 
   String _prototypeOf(Type type, String name) {
@@ -313,17 +335,9 @@ class WorldGenerator {
       writeType(type.parent);
     }
 
-    // TODO(jimhug): Workaround for problems with reified generic Array.
-    if (type.name != null && type is ConcreteType &&
-        type.library == world.coreimpl &&
-        type.name.startsWith('ListFactory')) {
-      writer.writeln('${type.jsname} = ${type.genericType.jsname};');
-      return;
-    }
-
     var typeName = type.jsname != null ? type.jsname : 'top level';
     writer.comment('// ********** Code for ${typeName} **************');
-    if (type.isNative && !type.isTop) {
+    if (type.isNative && !type.isTop && !type.isConcreteGeneric) {
       var nativeName = type.definition.nativeType.name;
       if (nativeName == '') {
         writer.writeln('function ${type.jsname}() {}');
@@ -339,10 +353,17 @@ class WorldGenerator {
       }
     }
 
+    // TODO(jimhug): This comment below seems out-of-order now?
     // We need the $inherits function to be declared before factory constructors
     // so that inheritance ($inherits) will work correctly in IE.
     if (!type.isTop) {
-      if (type is ConcreteType) {
+      if (type.genericType !== type) {
+        corejs.ensureInheritsHelper();
+        writer.writeln('\$inherits(${type.jsname}, ${type.genericType.jsname});');
+      }
+
+      // TODO(jimhug): Do we still need this code below?
+      /*if (type is ConcreteType) {
         ConcreteType c = type;
         corejs.ensureInheritsHelper();
         writer.writeln('\$inherits(${c.jsname}, ${c.genericType.jsname});');
@@ -356,7 +377,8 @@ class WorldGenerator {
           _ensureInheritMembersHelper();
           _mixins.writeln('\$inheritsMembers(${c.jsname}, ${p.jsname});');
         }
-      } else if (!type.isNative) {
+      } else*/
+      else if (!type.isNative) {
         if (type.parent != null && !type.parent.isObject) {
           corejs.ensureInheritsHelper();
           writer.writeln('\$inherits(${type.jsname}, ${type.parent.jsname});');
@@ -367,31 +389,26 @@ class WorldGenerator {
     if (type.isTop) {
       // no preludes for top type
     } else if (type.constructors.length == 0) {
-      if (!type.isNative) {
+      if (!type.isNative || type.isConcreteGeneric) {
         // TODO(jimhug): More guards to guarantee staticness
         writer.writeln('function ${type.jsname}() {}');
       }
     } else {
-      Member standardConstructor = type.constructors[''];
-      if (standardConstructor == null ||
-          standardConstructor.generator == null) {
-        if (!type.isNative) {
-          writer.writeln('function ${type.jsname}() {}');
+      bool wroteStandard = false;
+      for (var c in type.constructors.getValues()) {
+        if (c.methodData.writeDefinition(c, writer)) {
+          if (c.isConstructor && c.constructorName == '') wroteStandard = true;
         }
-      } else {
-        standardConstructor.generator.writeDefinition(writer, null);
       }
 
-      for (var c in type.constructors.getValues()) {
-        if (c.generator != null && c != standardConstructor) {
-          c.generator.writeDefinition(writer, null);
-        }
+      if (!wroteStandard && (!type.isNative || type.genericType !== type)) {
+        writer.writeln('function ${type.jsname}() {}');
       }
     }
 
     // Concrete types (like List<String>) will have this already defined on
     // their prototype from the generic type (like List)
-    if (type is! ConcreteType) {
+    if (!type.isConcreteGeneric) {
       _maybeIsTest(type, type);
     }
     if (type.genericType._concreteTypes != null) {
@@ -459,16 +476,7 @@ class WorldGenerator {
    * This predicate determines when we need to define lib_Float32Array.
    */
   _typeNeedsHolderForStaticMethods(Type type) {
-    for (var member in type.members.getValues()) {
-      if (member.isMethod) {
-        if (member.isConstructor || member.isStatic) {
-          if (member.isGenerated) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
+    return type.isUsed;
   }
 
   /**
@@ -520,7 +528,8 @@ function $inheritsMembers(child, parent) {
     }
 
     // generate code for instance fields
-    if (field._providePropertySyntax) {
+    if (field._providePropertySyntax &&
+        !field.declaringType.isConcreteGeneric) {
       _writePrototypePatch(field.declaringType, 'get\$${field.jsname}',
           'function() { return this.${field.jsname}; }', writer);
       if (!field.isFinal) {
@@ -539,7 +548,7 @@ function $inheritsMembers(child, parent) {
     if (property.setter != null) _writeMethod(property.setter);
 
     // TODO(jmesserly): make sure we don't do this on hidden native types!
-    if (property._provideFieldSyntax) {
+    if (property.needsFieldSyntax) {
       writer.enterBlock('Object.defineProperty(' +
         '${property.declaringType.jsname}.prototype, "${property.jsname}", {');
       if (property.getter != null) {
@@ -557,11 +566,10 @@ function $inheritsMembers(child, parent) {
     }
   }
 
-  _writeMethod(Member m) {
-    if (m.generator != null) {
-      m.generator.writeDefinition(writer, null);
-    } else if (m is MethodMember && m.isNative
-        && m._providePropertySyntax && !m._provideFieldSyntax) {
+  _writeMethod(MethodMember m) {
+    m.methodData.writeDefinition(m, writer);
+
+    if (m.isNative && m._providePropertySyntax) {
       MethodGenerator._maybeGenerateBoundGetter(m, writer);
     }
   }
@@ -747,7 +755,7 @@ function $inheritsMembers(child, parent) {
 /**
  * A naive code generator for Dart.
  */
-class MethodGenerator implements TreeVisitor {
+class MethodGenerator implements TreeVisitor, CallingContext {
   Member method;
   CodeWriter writer;
   BlockScope _scope;
@@ -790,6 +798,9 @@ class MethodGenerator implements TreeVisitor {
   MemberSet findMembers(String name) {
     return library._findMembers(name);
   }
+
+  bool get needsCode() => true;
+  bool get showWarnings() => false;
 
   bool get isClosure() => (enclosingMethod != null);
 
@@ -834,12 +845,6 @@ class MethodGenerator implements TreeVisitor {
   }
 
   run() {
-    if (method.isGenerated) return;
-
-    // This avoids any attempts to infer across recursion.
-    method.isGenerated = true;
-    method.generator = this;
-
     // Create most generic possible call for this method.
     var thisObject;
     if (method.isConstructor) {
@@ -855,17 +860,6 @@ class MethodGenerator implements TreeVisitor {
     var args = new Arguments(null, values);
 
     evalBody(thisObject, args);
-
-    if (method.definition.nativeBody != null) {
-      // Throw away the code--it was just used for tree shaking purposes.
-      writer = new CodeWriter();
-      if (method.definition.nativeBody == '') {
-        method.generator = null;
-      } else {
-        _paramCode = map(method.parameters, (p) => p.name);
-        writer.write(method.definition.nativeBody);
-      }
-    }
   }
 
 
@@ -956,11 +950,6 @@ class MethodGenerator implements TreeVisitor {
       // TODO(jimhug): Bind not available in older Safari, need fallback?
       defWriter.writeln('return this.${m.jsname}.bind(this);');
       defWriter.exitBlock(suffix);
-
-      if (m._provideFieldSyntax) {
-        world.internalError('bound "${m.name}" accessed with field syntax',
-            m.definition.span);
-      }
     }
   }
 
@@ -975,7 +964,7 @@ class MethodGenerator implements TreeVisitor {
       if (meth._provideOptionalParamInfo) {
         var optNames = [];
         var optValues = [];
-        meth.genParameterValues();
+        meth.genParameterValues(this);
         for (var param in meth.parameters) {
           if (param.isOptional) {
             optNames.add(param.name);
@@ -1033,7 +1022,7 @@ class MethodGenerator implements TreeVisitor {
         currentArg = args.getValue(p.name);
         if (currentArg === null) {
           // Ensure default value for param has been generated
-          p.genValue(method, method.generator);
+          p.genValue(method, this);
           currentArg = p.value;
         }
       }
@@ -1052,7 +1041,7 @@ class MethodGenerator implements TreeVisitor {
     }
 
     var initializerCall = null;
-    final declaredInitializers = method.definition.initializers;
+    final declaredInitializers = method.definition.dynamic.initializers;
     if (declaredInitializers != null) {
       for (var init in declaredInitializers) {
         if (init is CallExpression) {
@@ -1120,7 +1109,7 @@ class MethodGenerator implements TreeVisitor {
       }
     }
 
-    var body = method.definition.body;
+    var body = method.definition.dynamic.body;
 
     if (body === null) {
       // TODO(jimhug): Move check into resolve on method.
@@ -1316,6 +1305,7 @@ class MethodGenerator implements TreeVisitor {
     var meth = new MethodMember(name, method.declaringType, func);
     meth.isLambda = true;
     meth.enclosingElement = method;
+    meth._methodData = new MethodData(meth, this);
     meth.resolve();
     return meth;
   }
@@ -1376,7 +1366,7 @@ class MethodGenerator implements TreeVisitor {
       isFinal = true;
     }
     writer.write('var ');
-    var type = method.resolveType(node.type, false);
+    var type = method.resolveType(node.type, false, true);
     for (int i=0; i < node.names.length; i++) {
       if (i > 0) {
         writer.write(', ');
@@ -1413,8 +1403,7 @@ class MethodGenerator implements TreeVisitor {
     var funcValue = _scope.create(meth.name, meth.functionType,
         method.definition.span, isFinal:true);
 
-    world.gen.genMethod(meth, this);
-    meth.generator.writeDefinition(writer, null);
+    meth.methodData.createFunction(writer);
     return false;
   }
 
@@ -1574,13 +1563,15 @@ class MethodGenerator implements TreeVisitor {
   bool _isFinal(typeRef) {
     if (typeRef is GenericTypeReference) {
       typeRef = typeRef.baseType;
+    } else if (typeRef is SimpleTypeReference) {
+      return false;
     }
     return typeRef != null && typeRef.isFinal;
   }
 
   bool visitForInStatement(ForInStatement node) {
     // TODO(jimhug): visitValue and other cleanups here.
-    var itemType = method.resolveType(node.item.type, false);
+    var itemType = method.resolveType(node.item.type, false, true);
     var list = node.list.visit(this);
     _visitLoop(node, () {
       _visitForInBody(node, itemType, list);
@@ -1599,8 +1590,8 @@ class MethodGenerator implements TreeVisitor {
       list = listVar;
     }
 
-    // Special path for list for readability and perf optimization.
-    if (list.type.isList) {
+    // Special path for concrete Arrays for readability and perf optimization.
+    if (list.type.genericType == world.listFactoryType) {
       var tmpi = _scope.create('\$i', world.numType, null);
       var listLength = list.get_(this, 'length', node.list);
       writer.enterBlock('for (var ${tmpi.code} = 0;' +
@@ -1645,7 +1636,7 @@ class MethodGenerator implements TreeVisitor {
       // multiple catch, such as no extra temp or if-else-if chain.
       var catch_ = node.catches[0];
       _pushBlock(catch_);
-      var exType = method.resolveType(catch_.exception.type, false);
+      var exType = method.resolveType(catch_.exception.type, false, true);
       var ex = _scope.declare(catch_.exception);
       _scope.rethrow = ex.code;
       writer.nextBlock('} catch (${ex.code}) {');
@@ -1682,7 +1673,7 @@ class MethodGenerator implements TreeVisitor {
         var catch_ = node.catches[i];
 
         _pushBlock(catch_);
-        var tmpType = method.resolveType(catch_.exception.type, false);
+        var tmpType = method.resolveType(catch_.exception.type, false, true);
         var tmp = _scope.declare(catch_.exception);
         if (!tmpType.isVarOrObject) {
           var test = ex.instanceOf(this, tmpType, catch_.exception.span,
@@ -1887,21 +1878,7 @@ class MethodGenerator implements TreeVisitor {
     var name = (node.func.name != null) ? node.func.name.name : '';
 
     MethodMember meth = _makeLambdaMethod(name, node.func);
-    final lambdaGen = new MethodGenerator(meth, this);
-    if (name != '') {
-      // Note: we don't want to put this in our enclosing scope because the
-      // name shouldn't be visible except inside the lambda. We also don't want
-      // to put the name directly in the lambda's scope because parameters are
-      // allowed to shadow it. So we create an extra scope for it to go into.
-      lambdaGen._scope.create(name, meth.functionType, meth.definition.span,
-          isFinal:true);
-      lambdaGen._pushBlock(node);
-    }
-    lambdaGen.run();
-
-    var w = new CodeWriter();
-    meth.generator.writeDefinition(w, node);
-    return new Value(meth.functionType, w.text, node.span);
+    return meth.methodData.createLambda(node, this);
   }
 
   visitCallExpression(CallExpression node) {
@@ -2067,13 +2044,12 @@ class MethodGenerator implements TreeVisitor {
     switch (node.op.kind) {
       case TokenKind.INCR:
       case TokenKind.DECR:
-        // TODO(jimhug): Requires non-null num to be correct.
-        if (value.type.isNum) {
+        // TODO(jimhug): Hackish optimization not always correct
+        if (value.type.isNum && !value.isFinal && node.self is VarExpression) {
           return new Value(value.type, '${node.op}${value.code}', node.span);
         } else {
           // ++x becomes x += 1
           // --x becomes x -= 1
-          // TODO(jimhug): Confirm that --x becomes x -= 1 as it is in VM.
           var kind = (TokenKind.INCR == node.op.kind ?
               TokenKind.ADD : TokenKind.SUB);
           // TODO(jimhug): Shouldn't need a full-expression here.
@@ -2100,9 +2076,10 @@ class MethodGenerator implements TreeVisitor {
   }
 
   visitPostfixExpression(PostfixExpression node, [bool isVoid = false]) {
+    // TODO(jimhug): Hackish optimization here to revisit in many ways...
     var value = visitValue(node.body);
-    // TODO(jimhug): Move and validate this code with nullable ints.
-    if (value.type.isNum && !value.isFinal) {
+    if (value.type.isNum && !value.isFinal && node.body is VarExpression) {
+      // Would like to also do on "pure" fields - check to see if possible...
       return new Value(value.type, '${value.code}${node.op}', node.span);
     }
 
@@ -2129,7 +2106,7 @@ class MethodGenerator implements TreeVisitor {
 
     // Named constructors and library prefixes, oh my!
     // At last, we can collapse the ambiguous wave function...
-    if (constructorName == '' && typeRef is !GenericTypeReference &&
+    if (constructorName == '' && typeRef is NameTypeReference &&
         typeRef.names != null) {
 
       // Pull off the last name from the type, guess it's the constructor name.
@@ -2141,7 +2118,7 @@ class MethodGenerator implements TreeVisitor {
           typeRef.isFinal, typeRef.name, names, typeRef.span);
     }
 
-    var type = method.resolveType(typeRef, true);
+    var type = method.resolveType(typeRef, true, true);
     if (type.isTop) {
       type = type.library.findTypeByName(constructorName);
       constructorName = '';
@@ -2186,7 +2163,7 @@ class MethodGenerator implements TreeVisitor {
     var listType = world.listType;
     var type = world.varType;
     if (node.itemType != null) {
-      type = method.resolveType(node.itemType, true);
+      type = method.resolveType(node.itemType, true, !node.isConst);
       if (node.isConst && (type is ParameterType || type.hasTypeParams)) {
         world.error('type parameter cannot be used in const list literals');
       }
@@ -2220,7 +2197,7 @@ class MethodGenerator implements TreeVisitor {
     var mapType = world.mapType; // TODO(jimhug): immutable type?
     if (node.valueType !== null) {
       if (node.keyType !== null) {
-        keyType = method.resolveType(node.keyType, true);
+        keyType = method.resolveType(node.keyType, true, !node.isConst);
         // TODO(jimhug): Would be nice to allow arbitrary keys here (this is
         // currently not allowed by the spec).
         if (!keyType.isString) {
@@ -2233,7 +2210,7 @@ class MethodGenerator implements TreeVisitor {
         }
       }
 
-      valueType = method.resolveType(node.valueType, true);
+      valueType = method.resolveType(node.valueType, true, !node.isConst);
       if (node.isConst &&
           (valueType is ParameterType || valueType.hasTypeParams)) {
         world.error('type parameter cannot be used in const map literals');
@@ -2274,7 +2251,11 @@ class MethodGenerator implements TreeVisitor {
 
   visitIsExpression(IsExpression node) {
     var value = visitValue(node.x);
-    var type = method.resolveType(node.type, false);
+    var type = method.resolveType(node.type, true, true);
+    if (type.isVar) {
+      return Value.comma(value, Value.fromBool(true, node.span));
+    }
+
     return value.instanceOf(this, type, node.span, node.isTrue);
   }
 
@@ -2472,6 +2453,18 @@ class Arguments {
     }
     return new Arguments(nodes, result);
   }
+
+  bool matches(Arguments other) {
+    if (length != other.length) return false;
+    if (bareCount != other.bareCount) return false;
+
+    for (int i = 0; i < bareCount; i++) {
+      if (values[i].type != other.values[i].type) return false;
+    }
+    // TODO(jimhug): Needs to check that named args also match!
+    return true;
+  }
+
 }
 
 class ReturnKind {

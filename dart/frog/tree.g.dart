@@ -377,6 +377,14 @@ class StringInterpExpression extends Expression {
   visit(TreeVisitor visitor) => visitor.visitStringInterpExpression(this);
 }
 
+class SimpleTypeReference extends TypeReference {
+  Type type;
+
+  SimpleTypeReference(this.type, SourceSpan span): super(span) {}
+
+  visit(TreeVisitor visitor) => visitor.visitSimpleTypeReference(this);
+}
+
 class NameTypeReference extends TypeReference {
   bool isFinal;
   Identifier name;
@@ -567,6 +575,8 @@ interface TreeVisitor {
 
   visitStringInterpExpression(StringInterpExpression node);
 
+  visitSimpleTypeReference(SimpleTypeReference node);
+
   visitNameTypeReference(NameTypeReference node);
 
   visitGenericTypeReference(GenericTypeReference node);
@@ -588,8 +598,6 @@ interface TreeVisitor {
   visitIdentifier(Identifier node);
 
   visitDeclaredIdentifier(DeclaredIdentifier node);
-
-  visitTypeReference(TypeReference node);
 
 }
 
@@ -843,6 +851,10 @@ class TreePrinter implements TreeVisitor {
     output.writeNodeList('pieces', node.pieces);
   }
 
+  void visitSimpleTypeReference(SimpleTypeReference node) {
+    output.heading('SimpleTypeReference(' + output.toValue(node.type) + ")", node.span);
+  }
+
   void visitNameTypeReference(NameTypeReference node) {
     output.heading('NameTypeReference', node.span);
     output.writeValue('isFinal', node.isFinal);
@@ -913,10 +925,6 @@ class TreePrinter implements TreeVisitor {
     output.heading('DeclaredIdentifier', node.span);
     output.writeNode('type', node.type);
     output.writeNode('name', node.name);
-  }
-
-  void visitTypeReference(TypeReference node) {
-    output.heading('TypeReference(' + output.toValue(node.type) + ")", node.span);
   }
 
 }

@@ -13,6 +13,8 @@ if (Object.getPrototypeOf(charCodes) !== Array.prototype) {
 }
 return String.fromCharCode.apply(null, charCodes);
 ''' {
+   // we may need to iterate over charCodes
+    var i = charCodes.iterator();  i.next(); i.hasNext();
     new ListFactory.from(charCodes); // ensure List.from is generated
   }
 

@@ -424,6 +424,8 @@ class NumImplementation implements int, double native "Number" {
   bool operator >(num other) native;
   bool operator >=(num other) native;
 
+  bool operator ==(var other) native;
+
   // Bitwise operations
   int operator &(int other) native;
   int operator |(int other) native;

@@ -180,6 +180,7 @@ nodes = [
   Expression('StringInterp', 'List<Expression> pieces'),
 
   # TODO(jimhug): Split into Simple and Qualified names
+  TypeReference('Simple', 'Type type'),
   TypeReference('Name',
     'bool isFinal, Identifier name, List<Identifier> names'),
 
@@ -187,6 +188,7 @@ nodes = [
     'TypeReference baseType, List<TypeReference> typeArguments, int depth'),
   TypeReference('Function',
     'bool isFinal, FunctionDefinition func'),
+  # TODO(jimhug): This shouldn't be a subtype of TypeReference.
   TypeReference('Default', 'bool oldFactory, NameTypeReference baseType, '+
     'List<ParameterType> typeParameters'),
 
@@ -216,10 +218,6 @@ def main():
   for node in nodes:
     node.write(cw)
     cw.writeln()
-
-  # TypeReference is a bit special: it's a base type, but we also create it
-  # directly. Add it to nodes after we've generated the nodes.
-  nodes.append(TypeReference('', 'Type type'))
 
   cw.writeln()
   cw.enterBlock('interface TreeVisitor {')

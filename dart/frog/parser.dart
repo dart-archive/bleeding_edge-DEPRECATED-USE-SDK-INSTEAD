@@ -285,12 +285,12 @@ class Parser {
       // Note: this can't be type() because it has type parameters not type
       // arguments.
       var baseType = nameTypeReference();
-      var typeParams = null;
+      var factTypeParams = null;
       if (_peekKind(TokenKind.LT)) {
-        typeParams = typeParameters();
+        factTypeParams = typeParameters();
       }
       defaultType = new DefaultTypeReference(oldFactory,
-          baseType, typeParams, _makeSpan(baseType.span.start));
+          baseType, factTypeParams, _makeSpan(baseType.span.start));
     }
 
     var body = [];
@@ -1406,7 +1406,7 @@ class Parser {
         keyType = null;
         valueType = typeArgs[0];
       } else if (typeArgs.length == 2) {
-        var keyType = typeArgs[0];
+        keyType = typeArgs[0];
         // making key explicit is just a warning.
         world.warning(
             'a map literal takes one type argument specifying the value type',
@@ -1533,9 +1533,9 @@ class Parser {
 
     switch (_peek()) {
       case TokenKind.VOID:
-        return new TypeReference(_next().span, world.voidType);
+        return new SimpleTypeReference(world.voidType, _next().span);
       case TokenKind.VAR:
-        return new TypeReference(_next().span, world.varType);
+        return new SimpleTypeReference(world.varType, _next().span);
       case TokenKind.FINAL:
         _eat(TokenKind.FINAL);
         isFinal = true;

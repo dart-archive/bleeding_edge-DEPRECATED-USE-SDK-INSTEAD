@@ -406,6 +406,7 @@ class World {
     if (experimentalAwaitPhase != null) {
       withTiming('await translation', experimentalAwaitPhase);
     }
+    withTiming('analyze pass', () { analyzeCode(lib); });
     withTiming('generate code', () { generateCode(lib); });
   }
 
@@ -484,8 +485,18 @@ class World {
     return main;
   }
 
-  generateCode(Library lib) {
+  /**
+   * Walks all code in lib and imports for analysis.
+   */
+  analyzeCode(Library lib) {
     gen = new WorldGenerator(findMainMethod(lib), new CodeWriter());
+    gen.analyze();
+  }
+
+  /**
+   * Walks all live code to generate JS source for output.
+   */
+  generateCode(Library lib) {
     gen.run();
     frogCode = gen.writer.text;
     jsBytesWritten = frogCode.length;

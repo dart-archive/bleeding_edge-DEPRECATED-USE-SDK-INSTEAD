@@ -56,7 +56,10 @@ class Element implements Hashable {
    * types and the semi-magical generic factory methods - but it will
    * not be used for any other members in the current dart language.
    */
+  // TODO(jimhug): Confirm whether or not these are still on factories.
   List<ParameterType> get typeParameters() => null;
+
+  List<Type> get typeArgsInOrder() => const [];
 
   // TODO(jimhug): Probably kill this.
   Element get enclosingElement() =>
@@ -65,6 +68,17 @@ class Element implements Hashable {
   // TODO(jimhug): Absolutely kill this one.
   set enclosingElement(Element e) => _enclosingElement = e;
 
+  Type lookupTypeParam(String name) {
+    if (typeParameters == null) return null;
+
+    for (int i=0; i < typeParameters.length; i++) {
+      if (typeParameters[i].name == name) {
+        return typeArgsInOrder[i];
+      }
+    }
+    return null;
+  }
+
 
   /**
    * Resolves [node] in the context of this element.  Will
@@ -72,16 +86,21 @@ class Element implements Hashable {
    * If [typeErrors] then types that are not found will create errors,
    * otherwise they will only signal warnings.
    */
-  Type resolveType(TypeReference node, bool typeErrors) {
+  Type resolveType(TypeReference node, bool typeErrors, bool allowTypeParams) {
     if (node == null) return world.varType;
-
-    if (node.type != null) return node.type;
 
     // TODO(jmesserly): if we failed to resolve a type, we need a way to save
     // that it was an error, so we don't try to resolve it again and show the
     // same message twice.
 
-    if (node is NameTypeReference) {
+    if (node is SimpleTypeReference) {
+      var ret = node.dynamic.type;
+      if (ret == world.voidType) {
+        world.error('"void" only allowed as return type', node.span);
+        return world.varType;
+      }
+      return ret;
+    } else if (node is NameTypeReference) {
       NameTypeReference typeRef = node;
       String name;
       if (typeRef.names != null) {
@@ -89,47 +108,44 @@ class Element implements Hashable {
       } else {
         name = typeRef.name.name;
       }
-      if (typeParameters != null) {
-        for (var tp in typeParameters) {
-          if (tp.name == name) {
-            typeRef.type = tp;
-          }
+      var typeParamType = lookupTypeParam(name);
+      if (typeParamType != null) {
+        if (!allowTypeParams) {
+          world.error('using type parameter in illegal context.', node.span);
         }
-      }
-      if (typeRef.type != null) {
-        return typeRef.type;
+        return typeParamType;
       }
 
-      return enclosingElement.resolveType(node, typeErrors);
+      return enclosingElement.resolveType(node, typeErrors, allowTypeParams);
     } else if (node is GenericTypeReference) {
       GenericTypeReference typeRef = node;
       // TODO(jimhug): Expand the handling of typeErrors to generics and funcs
-      var baseType = resolveType(typeRef.baseType, typeErrors);
+      var baseType = resolveType(typeRef.baseType, typeErrors,
+          allowTypeParams);
+      //!!!print('resolving generic: ${baseType.name}');
       if (!baseType.isGeneric) {
         world.error('${baseType.name} is not generic', typeRef.span);
-        return null;
+        return world.varType;
       }
       if (typeRef.typeArguments.length != baseType.typeParameters.length) {
         world.error('wrong number of type arguments', typeRef.span);
-        return null;
+        return world.varType;
       }
       var typeArgs = [];
       for (int i=0; i < typeRef.typeArguments.length; i++) {
-        typeArgs.add(resolveType(typeRef.typeArguments[i], typeErrors));
+        typeArgs.add(resolveType(typeRef.typeArguments[i], typeErrors,
+            allowTypeParams));
       }
-      typeRef.type = baseType.getOrMakeConcreteType(typeArgs);
+      return baseType.getOrMakeConcreteType(typeArgs);
     } else if (node is FunctionTypeReference) {
       FunctionTypeReference typeRef = node;
       var name = '';
       if (typeRef.func.name != null) {
         name = typeRef.func.name.name;
       }
-      // Totally bogus!
-      typeRef.type = library.getOrAddFunctionType(this, name, typeRef.func);
-    } else {
-      world.internalError('unknown type reference', node.span);
+      return library.getOrAddFunctionType(this, name, typeRef.func, null);
     }
-    return node.type;
+    world.internalError('unexpected TypeReference', node.span);
   }
 }
 

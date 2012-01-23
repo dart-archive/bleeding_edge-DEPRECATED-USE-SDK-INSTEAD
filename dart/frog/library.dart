@@ -118,7 +118,7 @@ class Library extends Element {
 
   // TODO(jimhug): Cache and share the types as interfaces!
   Type getOrAddFunctionType(Element enclosingElement, String name,
-      FunctionDefinition func) {
+      FunctionDefinition func, MethodData data) {
     // TODO(jimhug): This is redundant now that FunctionDef has type params.
     final def = new FunctionTypeDefinition(func, null, func.span);
     final type = new DefinedType(name, this, def, false);
@@ -126,6 +126,7 @@ class Library extends Element {
     var m = type.members[':call'];
     m.enclosingElement = enclosingElement;
     m.resolve();
+    m._methodData = data;
     // Function types implement the Function interface.
     type.interfaces = [world.functionType];
     return type;
@@ -198,24 +199,24 @@ class Library extends Element {
     return ret;
   }
 
-  Type resolveType(TypeReference node, bool typeErrors) {
+
+  // TODO(jimhug): Why is it okay to assume node is NameTypeReference in here?
+  Type resolveType(TypeReference node, bool typeErrors, bool allowTypeParams) {
     if (node == null) return world.varType;
 
-    if (node.type != null) return node.type;
+    var ret = findType(node);
 
-    node.type = findType(node);
-
-    if (node.type == null) {
+    if (ret == null) {
       var message = 'cannot find type ${_getDottedName(node)}';
       if (typeErrors) {
         world.error(message, node.span);
-        node.type = world.objectType;
+        return world.objectType;
       } else {
         world.warning(message, node.span);
-        node.type = world.varType;
+        return world.varType;
       }
     }
-    return node.type;
+    return ret;
   }
 
   static String _getDottedName(NameTypeReference type) {
@@ -361,8 +362,8 @@ class _LibraryVisitor implements TreeVisitor {
     isTop = false;
     var newSources = sources;
     sources = [];
-    for (var source in newSources) {
-      addSource(source);
+    for (var newSource in newSources) {
+      addSource(newSource);
     }
   }
 

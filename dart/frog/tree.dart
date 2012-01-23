@@ -27,7 +27,7 @@ class Definition extends Statement {
   Definition(SourceSpan span): super(span) {}
 
   List<TypeParameter> get typeParameters() => null;
-  String get nativeType() => null;
+  NativeType get nativeType() => null;
 }
 
 /** The base type for statements. */
@@ -40,13 +40,9 @@ class Expression extends Node {
   Expression(SourceSpan span): super(span) {}
 }
 
+/** The base type for a reference to a [Type]. */
 class TypeReference extends Node {
-  Type type;
-  TypeReference(SourceSpan span, [this.type=null]): super(span) {}
-
-  visit(TreeVisitor visitor) => visitor.visitTypeReference(this);
-
-  bool get isFinal() => false;
+  TypeReference(SourceSpan span): super(span) {}
 }
 
 // TODO(jimhug): Clean-up and factor out of core.

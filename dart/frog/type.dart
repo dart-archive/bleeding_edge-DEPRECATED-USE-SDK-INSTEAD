@@ -33,8 +33,6 @@ class Type extends Element {
     return _typeMember;
   }
 
-  abstract Type resolveTypeParams(ConcreteType inType);
-
   Member getMember(String name) => null;
   abstract MethodMember getConstructor(String name);
   abstract MethodMember getFactory(Type type, String name);
@@ -53,7 +51,6 @@ class Type extends Element {
   bool get isString() => false;
   bool get isBool() => false;
   bool get isFunction() => false;
-  bool get isList() => false;
   bool get isNum() => false;
   bool get isInt() => false;
   bool get isDouble() => false;
@@ -96,10 +93,11 @@ class Type extends Element {
   Definition get definition() => null;
   FactoryMap get factories() => null;
 
-  // TODO(jmesserly): should try using a const list instead of null to represent
-  // the absence of type parameters.
-  Collection<Type> get typeArgsInOrder() => null;
+  List<Type> get typeArgsInOrder() => const [];
   DefinedType get genericType() => this;
+
+  /** Indicates a concrete version of a generic type, such as List<String>. */
+  bool get isConcreteGeneric() => genericType != this;
 
   // TODO(jmesserly): what should these do for ParameterType?
   List<Type> get interfaces() => null;
@@ -111,8 +109,8 @@ class Type extends Element {
   String get nativeName() => isNative ? definition.nativeType.name : jsname;
 
   /**
-   * Avoid the native name if hidden native. It might exist on some browsers and
-   * we want to use it if it does.
+   * Avoid the native name if hidden native. It might exist on some browsers
+   * and we want to use it if it does.
    */
   bool get avoidNativeName() => isHiddenNativeType;
 
@@ -126,16 +124,12 @@ class Type extends Element {
 
   void _checkExtends() {
     var typeParams = genericType.typeParameters;
-    if (typeParams != null && typeArgsInOrder != null) {
-      // TODO(jmesserly): making typeArgsInOrder be a List instead of a
-      // Collection would clean this up.
-      var args = typeArgsInOrder.iterator();
-      var params = typeParams.iterator();
-      while (args.hasNext() && params.hasNext()) {
-        var typeParam = params.next();
-        var typeArg = args.next();
-        if (typeParam.extendsType != null && typeArg != null) {
-          typeArg.ensureSubtypeOf(typeParam.extendsType, typeParam.span, true);
+    if (typeParams != null) {
+      for (int i = 0; i < typeParams.length; i++) {
+        if (typeParams[i].extendsType != null) {
+          // TODO(jimhug): This dynamic shouldn't be needed...
+          typeArgsInOrder[i].dynamic.ensureSubtypeOf(typeParams[i].extendsType,
+            typeParams[i].span, false);
         }
       }
     }
@@ -171,7 +165,6 @@ class Type extends Element {
       return;
     }
     final ne = new MethodMember(':ne', this, eq.definition);
-    ne.isGenerated = true;
     ne.returnType = eq.returnType;
     ne.parameters = eq.parameters;
     ne.isStatic = eq.isStatic;
@@ -301,23 +294,12 @@ class Type extends Element {
   // machinery? Possible issues: needing this during resolve(), integrating
   // the more accurate generics/function subtype handling.
   bool isSubtypeOf(Type other) {
-    if (other is ParameterType) {
-      // TODO(jmesserly): treating type variables as Dynamic is totally busted.
-      // It's a workaround for bugs in our our current type system, where
-      // "new List()" produces a ListFactory that inherits from List<E>
-      // instead of List<Dynamic>.
-
-      //ParameterType p = other;
-      //other = p.extendsType;
-      return true;
-    }
-
     if (this == other) return true;
+
     // Note: the extra "isVar" check here is the difference between << and <:
     // Since we don't implement the << relation itself, we can just pretend
     // "null" literals are Dynamic and not worry about the Bottom type.
-    if (isVar) return true;
-    if (other.isVar) return true;
+    if (isVar || other.isVar) return true;
     if (other._isDirectSupertypeOf(this)) return true;
 
     var call = getCallMethod();
@@ -326,15 +308,16 @@ class Type extends Element {
       return _isFunctionSubtypeOf(call, otherCall);
     }
 
-    if (genericType == other.genericType
-        && typeArgsInOrder != null && other.typeArgsInOrder != null
-        && typeArgsInOrder.length == other.typeArgsInOrder.length) {
+    if (genericType === other.genericType) {
+      // These must be true for matching generic types.
+      assert(typeArgsInOrder.length == other.typeArgsInOrder.length);
 
-      var t = typeArgsInOrder.iterator();
-      var s = other.typeArgsInOrder.iterator();
-      while (t.hasNext()) {
+      for (int i = 0; i < typeArgsInOrder.length; i++) {
         // Type args don't have subtype relationship
-        if (!t.next().isSubtypeOf(s.next())) return false;
+        // TODO(jimhug): This dynamic shouldn't be needed...
+        if (!typeArgsInOrder[i].dynamic.isSubtypeOf(other.typeArgsInOrder[i])) {
+          return false;
+        }
       }
       return true;
     }
@@ -443,17 +426,14 @@ class ParameterType extends Type {
     world.internalError('no concrete types of type parameters yet', span);
   }
 
-  Type resolveTypeParams(ConcreteType inType) {
-    return inType.typeArguments[name];
-  }
-
   addDirectSubtype(Type type) {
     world.internalError('no subtypes of type parameters yet', span);
   }
 
   resolve() {
     if (typeParameter.extendsType != null) {
-      extendsType = enclosingElement.resolveType(typeParameter.extendsType, true);
+      extendsType =
+        enclosingElement.resolveType(typeParameter.extendsType, true, true);
     } else {
       extendsType = world.objectType;
     }
@@ -488,9 +468,8 @@ class NonNullableType extends Type {
       this == other || type == other || type.isSubtypeOf(other);
 
   // Forward everything. This is overkill for now; might be useful later.
-  Type resolveType(TypeReference node, bool isRequired) =>
-      type.resolveType(node, isRequired);
-  Type resolveTypeParams(ConcreteType inType) => type.resolveTypeParams(inType);
+  Type resolveType(TypeReference node, bool isRequired, bool allowTypeParams) =>
+      type.resolveType(node, isRequired, allowTypeParams);
   void addDirectSubtype(Type subtype) { type.addDirectSubtype(subtype); }
   void markUsed() { type.markUsed(); }
   void genMethod(Member method) { type.genMethod(method); }
@@ -511,196 +490,12 @@ class NonNullableType extends Type {
   Map<String, Member> get members() => type.members;
   Definition get definition() => type.definition;
   FactoryMap get factories() => type.factories;
-  Collection<Type> get typeArgsInOrder() => type.typeArgsInOrder;
+  List<Type> get typeArgsInOrder() => type.typeArgsInOrder;
   DefinedType get genericType() => type.genericType;
   List<Type> get interfaces() => type.interfaces;
   Type get parent() => type.parent;
   Map<String, Member> getAllMembers() => type.getAllMembers();
   bool get isNative() => type.isNative;
-}
-
-/** A concrete version of a generic type. */
-class ConcreteType extends Type {
-  final DefinedType genericType;
-  Map<String, Type> typeArguments;
-  List<Type> _interfaces;
-  Type _parent;
-  Set<Type> _subtypes;
-  List<Type> typeArgsInOrder;
-
-  bool get isList() => genericType.isList;
-  bool get isClass() => genericType.isClass;
-  Library get library() => genericType.library;
-  SourceSpan get span()  => genericType.span;
-
-  bool get hasTypeParams() =>
-    typeArguments.getValues().some((e) => e is ParameterType);
-
-  bool isUsed = false;
-
-  /**
-   * Keeps a collection of members for which a concrete version needed to
-   * be created.  For constructors we always create this.  For other methods,
-   * we will do this for methods whose bodies need to be specialized for
-   * a type parameter and in checked mode for methods that we need to
-   * generate appropriate concrete checks on.
-   */
-  Map<String, Member> members;
-  Map<String, MethodMember> constructors;
-  FactoryMap factories;
-
-  ConcreteType(String name,
-               this.genericType,
-               this.typeArguments,
-               this.typeArgsInOrder):
-    super(name), constructors = {}, members = {}, factories = new FactoryMap();
-
-  Type resolveTypeParams(ConcreteType inType) {
-    var newTypeArgs = [];
-    var needsNewType = false;
-    for (var t in typeArgsInOrder) {
-      var newType = t.resolveTypeParams(inType);
-      if (newType != t) needsNewType = true;
-      newTypeArgs.add(newType);
-    }
-    if (!needsNewType) return this;
-    return genericType.getOrMakeConcreteType(newTypeArgs);
-  }
-
-  Type getOrMakeConcreteType(List<Type> typeArgs) {
-    return genericType.getOrMakeConcreteType(typeArgs);
-  }
-
-  Type get parent() {
-    if (_parent == null && genericType.parent != null) {
-      _parent = genericType.parent.resolveTypeParams(this);
-    }
-    return _parent;
-  }
-
-  List<Type> get interfaces() {
-    if (_interfaces == null && genericType.interfaces != null) {
-      _interfaces = [];
-      for (var i in genericType.interfaces) {
-        _interfaces.add(i.resolveTypeParams(this));
-      }
-    }
-    return _interfaces;
-  }
-
-  Set<Type> get subtypes() {
-    if (_subtypes == null) {
-      _subtypes = new Set<Type>();
-      for (var s in genericType.subtypes) {
-        // TODO(jmesserly): this substitution is not right if type names are
-        // different in the subtype.
-        _subtypes.add(s.resolveTypeParams(this));
-      }
-    }
-    return _subtypes;
-  }
-
-  // TODO(jmesserly): fill in type args?
-  // We can't look in our own members, because we'll get a ConcreteMember
-  // which is not fully compatible with MethodMember.
-  MethodMember getCallMethod() => genericType.getCallMethod();
-
-  /**
-   * Gets all members in the type. Some of these are concrete, others are
-   * generic, depending on if we've decided to specialize it.
-   */
-  Map<String, Member> getAllMembers() {
-    var result = genericType.getAllMembers();
-    for (var memberName in result.getKeys()) {
-      var myMember = members[memberName];
-      if (myMember != null) {
-        result[memberName] = myMember;
-      }
-    }
-    return result;
-  }
-
-  void markUsed() {
-    if (isUsed) return;
-
-    isUsed = true;
-    _checkExtends();
-    genericType.markUsed();
-  }
-
-  void genMethod(Member method) => genericType.genMethod(method);
-
-  getFactory(Type type, String constructorName) {
-    return genericType.getFactory(type, constructorName);
-  }
-
-  getConstructor(String constructorName) {
-    var ret = constructors[constructorName];
-    if (ret != null) return ret;
-
-    ret = factories.getFactory(name, constructorName);
-    if (ret != null) return ret;
-
-    var genericMember = genericType.getConstructor(constructorName);
-    if (genericMember == null) return null;
-
-    // In case the constructor is defined in another class.
-    if (genericMember.declaringType != genericType) {
-      if (!genericMember.declaringType.isGeneric) return genericMember;
-      var newDeclaringType =
-        genericMember.declaringType.getOrMakeConcreteType(typeArgsInOrder);
-      var factory = newDeclaringType.getFactory(genericType, constructorName);
-      if (factory != null) return factory;
-      return newDeclaringType.getConstructor(constructorName);
-    }
-
-    if (genericMember.isFactory) {
-      ret = new ConcreteMember(genericMember.name, this, genericMember);
-      factories.addFactory(name, constructorName, ret);
-    } else {
-      ret = new ConcreteMember(name, this, genericMember);
-      constructors[constructorName] = ret;
-    }
-    return ret;
-  }
-
-  Member getMember(String memberName) {
-    Member member = _foundMembers[memberName];
-    if (member != null) return member;
-
-
-    member = members[memberName];
-    if (member != null) {
-      _checkOverride(member);
-      _foundMembers[memberName] = member;
-      return member;
-    }
-
-    // Note: only look directly in the generic type. The transitive search
-    // through superclass/interfaces is handled below.
-    var genericMember = genericType.members[memberName];
-    if (genericMember != null) {
-      member = new ConcreteMember(genericMember.name, this, genericMember);
-      members[memberName] = member;
-      _foundMembers[memberName] = member;
-      return member;
-    }
-
-    member = _getMemberInParents(memberName);
-    _foundMembers[memberName] = member;
-    return member;
-  }
-
-  Type resolveType(TypeReference node, bool isRequired) {
-    var ret = genericType.resolveType(node, isRequired);
-    // add type info
-    return ret;
-  }
-
-  addDirectSubtype(Type type) {
-    // TODO(jimhug): Does this go on the generic type or the concrete one?
-    genericType.addDirectSubtype(type);
-  }
 }
 
 
@@ -724,19 +519,25 @@ class DefinedType extends Type {
   Set<Type> _subtypes;
 
   List<ParameterType> typeParameters;
-  Collection<Type> _typeArgsInOrder;
+  List<Type> typeArgsInOrder;
 
   Map<String, MethodMember> constructors;
   Map<String, Member> members;
   FactoryMap factories;
 
-  Map<String, ConcreteType> _concreteTypes;
+  Map<String, Type> _concreteTypes;
 
   /** Methods to be generated once we know for sure that the type is used. */
   Map<String, Member> _lazyGenMethods;
 
   bool isUsed = false;
   bool isNative = false;
+
+  Type baseGenericType;
+
+  DefinedType get genericType() =>
+    baseGenericType === null ? this : baseGenericType;
+
 
   DefinedType(String name, this.library, Definition definition, this.isClass)
       : super(name), directSubtypes = new Set<Type>(), constructors = {},
@@ -753,22 +554,18 @@ class DefinedType extends Type {
     if (definition != null && definition.typeParameters != null) {
       _concreteTypes = {};
       typeParameters = definition.typeParameters;
+      // TODO(jimhug): Should share these very generic lists better.
+      typeArgsInOrder = new List(typeParameters.length);
+      for (int i=0; i < typeArgsInOrder.length; i++) {
+        typeArgsInOrder[i] = world.varType;
+      }
+    } else {
+      typeArgsInOrder = const [];
     }
   }
 
   NativeType get nativeType() =>
       (definition != null ? definition.nativeType : null);
-
-  // TODO(jmesserly): this is a workaround for generic types not filling in
-  // "Dynamic" as their type arguments.
-  Collection<Type> get typeArgsInOrder() {
-    if (typeParameters == null) return null;
-    if (_typeArgsInOrder == null) {
-      _typeArgsInOrder = new FixedCollection<Type>(
-          world.varType, typeParameters.length);
-    }
-    return _typeArgsInOrder;
-  }
 
   bool get isVar() => this == world.varType;
   bool get isVoid() => this == world.voidType;
@@ -777,15 +574,16 @@ class DefinedType extends Type {
   bool get isTop() => name == null;
 
   // TODO(jimhug) -> this == world.objectType, etc.
-  bool get isObject() => library.isCore && name == 'Object';
+  bool get isObject() => this == world.objectType;
 
   // TODO(jimhug): Really hating on the interface + impl pattern by now...
-  bool get isString() => library.isCore && name == 'String' ||
-    library.isCoreImpl && name == 'StringImplementation';
+  bool get isString() => this == world.stringType ||
+    this == world.stringImplType;
 
-  bool get isBool() => library.isCore && name == 'bool';
-  bool get isFunction() => library.isCore && name == 'Function';
-  bool get isList() => library.isCore && name == 'List';
+  // TODO(jimhug): Where is boolImplType?
+  bool get isBool() => this == world.boolType;
+  bool get isFunction() => this == world.functionType ||
+    this == world.functionImplType;
 
   bool get isGeneric() => typeParameters != null;
 
@@ -811,7 +609,8 @@ class DefinedType extends Type {
   bool get isInt() => this == world.intType;
   bool get isDouble() => this == world.doubleType;
 
-  MethodMember getCallMethod() => members[':call'];
+  // TODO(jimhug): Understand complicated generics here...
+  MethodMember getCallMethod() => genericType.members[':call'];
 
   Map<String, Member> getAllMembers() => new Map.from(members);
 
@@ -833,7 +632,8 @@ class DefinedType extends Type {
   }
 
   void genMethod(Member method) {
-    if (isUsed) {
+    // TODO(jimhug): Remove baseGenericType check from here.
+    if (isUsed || baseGenericType != null) {
       world.gen.genMethod(method);
     } else if (isClass) {
       if (_lazyGenMethods == null) _lazyGenMethods = {};
@@ -845,7 +645,7 @@ class DefinedType extends Type {
     if (types == null) return [];
     var interfaces = [];
     for (final type in types) {
-      var resolvedInterface = resolveType(type, true);
+      var resolvedInterface = resolveType(type, true, true);
       if (resolvedInterface.isClosed &&
           !(library.isCore || library.isCoreImpl)) {
         world.error(
@@ -861,6 +661,10 @@ class DefinedType extends Type {
 
   addDirectSubtype(Type type) {
     directSubtypes.add(type);
+    // TODO(jimhug): Shouldn't need this in both places.
+    if (baseGenericType != null) {
+      baseGenericType.addDirectSubtype(type);
+    }
   }
 
   Set<Type> get subtypes() {
@@ -938,13 +742,14 @@ class DefinedType extends Type {
           }
           var extendsTypeRef = typeDef.extendsTypes[0];
           if (extendsTypeRef is GenericTypeReference) {
+            // TODO(jimhug): Understand and verify comment below.
             // If we are extending a generic type first resolve against the
             // base type, then the full generic type. This makes circular
             // "extends" checks on generic type args work correctly.
             GenericTypeReference g = extendsTypeRef;
-            parent = resolveType(g.baseType, true);
+            parent = resolveType(g.baseType, true, true);
           }
-          parent = resolveType(extendsTypeRef, true);
+          parent = resolveType(extendsTypeRef, true, true);
           if (!parent.isClass) {
             world.error('class may not extend an interface - use implements',
               typeDef.extendsTypes[0].span);
@@ -980,12 +785,18 @@ class DefinedType extends Type {
         }
 
         if (typeDef.defaultType != null) {
-          defaultType = resolveType(typeDef.defaultType.baseType, true);
+          defaultType = resolveType(typeDef.defaultType.baseType, true, true);
           if (defaultType == null) {
             // TODO(jimhug): Appropriate warning levels;
             world.warning('unresolved default class', typeDef.defaultType.span);
           } else {
-            defaultType._resolveTypeParams(typeDef.defaultType.typeParameters);
+            if (baseGenericType != null) {
+              if (!defaultType.isGeneric) {
+                world.error('default type of generic interface must be generic',
+                  typeDef.defaultType.span);
+              }
+              defaultType = defaultType.getOrMakeConcreteType(typeArgsInOrder);
+            }
           }
         }
       }
@@ -998,7 +809,9 @@ class DefinedType extends Type {
 
     if (isObject) _createNotEqualMember();
 
-    world._addType(this);
+    // Concrete specializations of ListFactory === Array are never actually
+    // created as the performance suffers too badly in most JS engines.
+    if (baseGenericType != world.listFactoryType) world._addType(this);
 
     for (var c in constructors.getValues()) c.resolve();
     for (var m in members.getValues()) m.resolve();
@@ -1108,9 +921,23 @@ class DefinedType extends Type {
   }
 
   getFactory(Type type, String constructorName) {
+    if (baseGenericType != null) {
+      var rr = baseGenericType.factories.getFactory(type.genericType.name,
+        constructorName);
+      if (rr != null) {
+        // TODO(jimhug): Understand and fix this case.
+        world.info(
+          'need to remap factory on ${name} from ${rr.declaringType.name}');
+        return rr;
+      } else {
+        var ret = getConstructor(constructorName);
+        return ret;
+      }
+    }
+
     // Try to find factory method with the given type.
     // TODO(jimhug): Use jsname as key here or something better?
-    var ret = factories.getFactory(type.name, constructorName);
+    var ret = factories.getFactory(type.genericType.name, constructorName);
     if (ret != null) return ret;
 
     // TODO(ngeoffray): Here we should actually check if the current
@@ -1128,11 +955,39 @@ class DefinedType extends Type {
 
 
   getConstructor(String constructorName) {
+    // cheat and reuse constructors here to be any resolved cons...
+    if (baseGenericType != null) {
+      var rr = constructors[constructorName];
+      if (rr != null) return rr;
+
+      rr = baseGenericType.constructors[constructorName];
+      if (rr != null) {
+        if (defaultType != null) {
+          var ret = defaultType.getFactory(this, constructorName);
+          return ret;
+        }
+      } else {
+        rr = baseGenericType.factories.getFactory(baseGenericType.name,
+          constructorName);
+      }
+      if (rr == null) {
+        rr = baseGenericType.dynamic._tryCreateDefaultConstructor(
+          constructorName);
+      }
+      if (rr == null) return null;
+
+      // re-resolve rr in this
+      var rr1 = rr.makeConcrete(this);
+      rr1.resolve();
+
+      constructors[constructorName] = rr1;
+      return rr1;
+    }
+
+
     var ret = constructors[constructorName];
     if (ret != null) {
       if (defaultType != null) {
-        // TODO(jmesserly): only need to check once.
-        _checkDefaultTypeParams();
         return defaultType.getFactory(this, constructorName);
       }
       return ret;
@@ -1143,6 +998,7 @@ class DefinedType extends Type {
     return _tryCreateDefaultConstructor(constructorName);
   }
 
+  // TODO(jimhug): Can we remove this with version in resolve + new spec?
   /**
    * Checks that default type parameters match between all 3 locations:
    *   1. the interface (this)
@@ -1217,11 +1073,35 @@ class DefinedType extends Type {
     return null;
   }
 
-  // TODO(jimhug): Too much copy-paster with ConcreteType...
   Member getMember(String memberName) {
     Member member = _foundMembers[memberName];
     if (member != null) return member;
 
+    if (baseGenericType != null) {
+      member = baseGenericType.getMember(memberName);
+      // TODO(jimhug): Need much more elaborate lookup duplication here <frown>
+
+      if (member == null) return null;
+
+      // TODO(jimhug): There will be a few of these we need to specialize for
+      // type params, skipping anything not on my direct super is not accurate
+      if (member.isStatic || member.declaringType != baseGenericType) {
+        _foundMembers[memberName] = member;
+        return member;
+      }
+
+
+      var rr = member.makeConcrete(this);
+      if (member.definition !== null || member is PropertyMember) {
+        rr.resolve();
+      } else {
+        world.info('no definition for ${member.name} on ${name}');
+      }
+      // TODO(jimhug): Why do I need to put this in both maps?
+      members[memberName] = rr;
+      _foundMembers[memberName] = rr;
+      return rr;
+    }
 
     member = members[memberName];
     if (member != null) {
@@ -1247,19 +1127,28 @@ class DefinedType extends Type {
     return member;
   }
 
-  Type resolveTypeParams(ConcreteType inType) => this;
-
   Type getOrMakeConcreteType(List<Type> typeArgs) {
     assert(isGeneric);
     var jsnames = [];
     var names = [];
     var typeMap = {};
+    bool allVar = true;
     for (int i=0; i < typeArgs.length; i++) {
+      var typeArg = typeArgs[i];
+      if (typeArg is ParameterType) {
+        typeArg = world.varType;
+        typeArgs[i] = typeArg;
+      }
+      if (!typeArg.isVar) allVar = false;
+
       var paramName = typeParameters[i].name;
-      typeMap[paramName] = typeArgs[i];
-      names.add(typeArgs[i].name);
-      jsnames.add(typeArgs[i].jsname);
+      typeMap[paramName] = typeArg;
+      names.add(typeArg.name);
+      jsnames.add(typeArg.jsname);
     }
+
+    // If all type args are var or effectively var, just return this
+    if (allVar) return this;
 
     var jsname = '${jsname}_${Strings.join(jsnames, '\$')}';
     var simpleName = '${name}<${Strings.join(names, ', ')}>';
@@ -1268,10 +1157,12 @@ class DefinedType extends Type {
     var key = Strings.join(names, '\$');
     var ret = _concreteTypes[key];
     if (ret == null) {
-      ret = new ConcreteType(simpleName, this, typeMap, typeArgs);
+      ret = new DefinedType(simpleName, library, definition, isClass);
+      ret.baseGenericType = this;
+      ret.typeArgsInOrder = typeArgs;
       ret._jsname = jsname;
-
       _concreteTypes[key] = ret;
+      ret.resolve();
     }
     return ret;
   }

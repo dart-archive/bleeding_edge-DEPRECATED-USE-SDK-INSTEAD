@@ -129,7 +129,7 @@ class CopyOnWriteMap<K extends Hashable, V> implements HashMap<K, V> {
   CopyOnWriteMap._wrap(this._map);
   factory CopyOnWriteMap.from(Map<K, V> other) {
     if (other is CopyOnWriteMap<K, V>) {
-      return other.clone();
+      return other.dynamic.clone();
     }
     return new CopyOnWriteMap<K, V>._wrap(
         new _SharedBackingMap<K, V>.from(other));

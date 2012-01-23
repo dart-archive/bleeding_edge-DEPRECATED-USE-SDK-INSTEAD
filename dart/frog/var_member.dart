@@ -11,9 +11,11 @@ class VarMember {
 
   abstract void generate(CodeWriter code);
 
+  String get body() => null;
+
   Type get returnType() => world.varType;
 
-  Value invoke(MethodGenerator context, Node node, Value target, Arguments args) {
+  Value invoke(CallingContext context, Node node, Value target, Arguments args) {
     return new Value(returnType,
       '${target.code}.$name(${args.getCode()})', node.span);
   }
@@ -73,7 +75,7 @@ class VarFunctionStub extends VarMember {
     world.gen.genMethod(world.functionImplType.getMember('_genStub'));
   }
 
-  Value invoke(MethodGenerator context, Node node, Value target,
+  Value invoke(CallingContext context, Node node, Value target,
       Arguments args) {
     return super.invoke(context, node, target, args);
   }
@@ -218,14 +220,14 @@ class VarMethodSet extends VarMember {
     : super(name), args = callArgs.toCallStubArgs() {
   }
 
-  Value invoke(MethodGenerator context, Node node, Value target,
+  Value invoke(CallingContext context, Node node, Value target,
       Arguments args) {
     _invokeMembers(context, node);
     return super.invoke(context, node, target, args);
   }
 
   /** Invokes members to ensure they're generated. */
-  _invokeMembers(MethodGenerator context, Node node) {
+  _invokeMembers(CallingContext context, Node node) {
     if (invoked) return;
     invoked = true;
 
@@ -235,7 +237,7 @@ class VarMethodSet extends VarMember {
       // then create the stub method.
       final type = member.declaringType;
       final target = new Value(type, 'this', node.span);
-      var result = member.invoke(context, node, target, args, isDynamic:true);
+      var result = member.invoke(context, node, target, args);
       var stub = new VarMethodStub(name, member, args, 'return ' + result.code);
       type.varStubs[stub.name] = stub;
       if (type.isObject) hasObjectType = true;
@@ -261,14 +263,14 @@ String _getCallStubName(String name, Arguments args) {
   // to have methods called 'foo' and 'foo$0'.
   final nameBuilder = new StringBuffer('${name}\$${args.bareCount}');
   for (int i = args.bareCount; i < args.length; i++) {
-    var name = args.getName(i);
+    var argName = args.getName(i);
     nameBuilder.add('\$');
-    if (name.contains('\$')) {
+    if (argName.contains('\$')) {
       // Disambiguate "a:b:" from "a$b:".  Using the length works well because
       // the names can't start with digits.
-      nameBuilder.add('${name.length}');
+      nameBuilder.add('${argName.length}');
     }
-    nameBuilder.add(name);
+    nameBuilder.add(argName);
   }
   return nameBuilder.toString();
 }

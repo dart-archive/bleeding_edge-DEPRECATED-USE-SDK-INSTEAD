@@ -23,6 +23,10 @@ interface num extends Comparable, Hashable {
   bool operator >(num other);
   bool operator >=(num other);
 
+  // TODO(jimhug): Cheap trick...
+  bool operator ==(var other);
+
+
   // Predicates.
   bool isEven();
   bool isOdd();

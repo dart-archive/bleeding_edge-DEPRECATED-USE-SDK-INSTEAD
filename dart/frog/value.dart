@@ -3,6 +3,138 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
+interface CallingContext {
+  MemberSet findMembers(String name);
+  CounterLog get counters();
+  Library get library();
+  bool get isStatic();
+  MethodMember get method();
+
+  bool get needsCode();
+  bool get showWarnings();
+
+  // Hopefully remove the 5 members below that are only used for code gen.
+  String _makeThisCode();
+
+  Value getTemp(Value value);
+  VariableValue forceTemp(Value value);
+  Value assignTemp(Value tmp, Value v);
+  void freeTemp(VariableValue value);
+}
+
+// TODO(jimhug): Value needs better separation into three parts:
+//  1. Static analysis
+//  2. Type inferred abstract interpretation analysis
+//  3. Actual code generation
+/**
+ * This subtype of value is the one and only version used for static
+ * analysis.  It has no code and its type is always the static type.
+ */
+class PureStaticValue extends Value {
+  bool isConst;
+  bool isType;
+
+  // TODO(jimhug): Can we remove span?
+  PureStaticValue(Type type, SourceSpan span,
+    [this.isConst = false, this.isType = false]):
+    super(type, null, span);
+
+  Member getMem(CallingContext context, String name, Node node) {
+    var member = type.getMember(name);
+
+    if (member == null) {
+      world.warning('can not find "$name" on "${type.name}"', node.span);
+    }
+
+    if (isType && !member.isStatic) {
+      world.error('can not refer to instance member as static', node.span);
+    }
+
+    return member;
+  }
+
+  Value get_(CallingContext context, String name, Node node) {
+    if (type.isVar) return new PureStaticValue(world.varType, node.span);
+    var member = getMem(context, name, node);
+    if (member == null) return new PureStaticValue(world.varType, node.span);
+
+    return member._get(context, node, this);
+  }
+
+  Value set_(CallingContext context, String name, Node node, Value value,
+      [int kind=0, int returnKind=ReturnKind.IGNORE]) {
+    if (type.isVar) return new PureStaticValue(world.varType, node.span);
+
+    var member = getMem(context, name, node);
+    if (member != null) {
+      member._set(context, node, this, value);
+    }
+    return new PureStaticValue(value.type, node.span);
+  }
+
+  Value setIndex(CallingContext context, Value index, Node node, Value value,
+      [int kind=0, int returnKind=ReturnKind.IGNORE]) {
+    return invoke(context, ':setindex', node,
+      new Arguments(null, [index, value]));
+  }
+
+  Value unop(int kind, CallingContext context, var node) {
+    switch (kind) {
+      case TokenKind.NOT:
+        // TODO(jimhug): Issue #359 seeks to clarify this behavior.
+        // ?var newVal = convertTo(context, world.nonNullBool);
+        return new PureStaticValue(world.boolType, node.span);
+      case TokenKind.ADD:
+        if (!isConst && !type.isNum) {
+          world.error('no unary add operator in dart', node.span);
+        }
+        return new PureStaticValue(world.numType, node.span);
+      case TokenKind.SUB:
+        return invoke(context, ':negate', node, Arguments.EMPTY);
+      case TokenKind.BIT_NOT:
+        return invoke(context, ':bit_not', node, Arguments.EMPTY);
+    }
+    world.internalError('unimplemented: ${node.op}', node.span);
+  }
+
+  Value binop(int kind, Value other, CallingContext context, var node) {
+    var isConst = isConst && other.isConst;
+
+
+    switch (kind) {
+      case TokenKind.AND:
+      case TokenKind.OR:
+        return new PureStaticValue(world.boolType, node.span, isConst);
+      case TokenKind.EQ_STRICT:
+        return new PureStaticValue(world.boolType, node.span, isConst);
+      case TokenKind.NE_STRICT:
+        return new PureStaticValue(world.boolType, node.span, isConst);
+    }
+
+    var name = kind == TokenKind.NE ? ':ne': TokenKind.binaryMethodName(kind);
+    var ret = invoke(context, name, node, new Arguments(null, [other]));
+    if (isConst) {
+      ret = new PureStaticValue(ret.type, node.span, isConst);
+    }
+    return ret;
+  }
+
+
+  Value invoke(CallingContext context, String name, Node node,
+      Arguments args) {
+    if (type.isVar) return new PureStaticValue(world.varType, node.span);
+    if (type.isFunction && name == ':call') {
+      return new PureStaticValue(world.varType, node.span);
+    }
+
+    var member = getMem(context, name, node);
+    if (member == null) return new PureStaticValue(world.varType, node.span);
+
+    return member.invoke(context, node, this, args);
+  }
+}
+
+
 /**
  * Represents a meta-value for code generation.
  */
@@ -83,7 +215,7 @@ class Value {
 
   // TODO(jimhug): Fix these names once get/set are truly pseudo-keywords.
   //   See issue #379.
-  Value get_(MethodGenerator context, String name, Node node) {
+  Value get_(CallingContext context, String name, Node node) {
     final member = _resolveMember(context, name, node);
     if (member != null) {
       return member._get(context, node, this);
@@ -92,9 +224,9 @@ class Value {
     }
   }
 
-  Value set_(MethodGenerator context, String name, Node node, Value value,
-      [bool isDynamic=false, int kind=0, int returnKind=ReturnKind.IGNORE]) {
-    final member = _resolveMember(context, name, node, isDynamic);
+  Value set_(CallingContext context, String name, Node node, Value value,
+      [int kind=0, int returnKind=ReturnKind.IGNORE]) {
+    final member = _resolveMember(context, name, node);
     if (member != null) {
       var thisValue = this;
       var thisTmp = null;
@@ -117,7 +249,7 @@ class Value {
         value = context.assignTemp(retTmp, value);
       }
 
-      var ret = member._set(context, node, thisValue, value, isDynamic);
+      var ret = member._set(context, node, thisValue, value);
       if (thisTmp != null && thisTmp != this) context.freeTemp(thisTmp);
       if (retTmp != null) {
         context.freeTemp(retTmp);
@@ -133,9 +265,9 @@ class Value {
   }
 
   // TODO(jimhug): This method body has too much in common with set_ above.
-  Value setIndex(MethodGenerator context, Value index, Node node, Value value,
-      [bool isDynamic=false, int kind=0, int returnKind=ReturnKind.IGNORE]) {
-    final member = _resolveMember(context, ':setindex', node, isDynamic);
+  Value setIndex(CallingContext context, Value index, Node node, Value value,
+      [int kind=0, int returnKind=ReturnKind.IGNORE]) {
+    final member = _resolveMember(context, ':setindex', node);
     if (member != null) {
       var thisValue = this;
       var indexValue = index;
@@ -169,7 +301,7 @@ class Value {
       }
 
       var ret = member.invoke(context, node, thisValue,
-        new Arguments(null, [indexValue, value]), isDynamic);
+        new Arguments(null, [indexValue, value]));
       if (thisTmp != null && thisTmp != this) context.freeTemp(thisTmp);
       if (indexTmp != null && indexTmp != index) context.freeTemp(indexTmp);
       if (retTmp != null) {
@@ -185,10 +317,10 @@ class Value {
     }
   }
 
-  //Value getIndex(MethodGenerator context, Value index, var node) {
+  //Value getIndex(CallingContext context, Value index, var node) {
   //}
 
-  Value unop(int kind, MethodGenerator context, var node) {
+  Value unop(int kind, CallingContext context, var node) {
     switch (kind) {
       case TokenKind.NOT:
         // TODO(jimhug): Issue #359 seeks to clarify this behavior.
@@ -205,19 +337,49 @@ class Value {
     world.internalError('unimplemented: ${node.op}', node.span);
   }
 
-  Value binop(int kind, Value other, MethodGenerator context, var node) {
+  bool _mayOverrideEqual() {
+    // TODO(jimhug): Need to check subtypes as well
+    return type.isVar || type.isObject ||
+      !type.getMember(':eq').declaringType.isObject;
+  }
+
+  Value binop(int kind, Value other, CallingContext context, var node) {
     switch (kind) {
       case TokenKind.AND:
       case TokenKind.OR:
         final code = '${code} ${node.op} ${other.code}';
         return new Value(world.nonNullBool, code, node.span);
-      // TODO(jimhug): Lot's to resolve here.
+      // TODO(jimhug): Wrong on primitives, need new fix for null == undefined
       case TokenKind.EQ_STRICT:
         return new Value(world.nonNullBool, '${code} == ${other.code}',
           node.span);
       case TokenKind.NE_STRICT:
         return new Value(world.nonNullBool, '${code} != ${other.code}',
           node.span);
+
+      case TokenKind.EQ:
+        if (other.code == 'null') {
+          if (!_mayOverrideEqual()) {
+            return new Value(world.nonNullBool, '${code} == ${other.code}',
+              node.span);
+          }
+        } else if (code == 'null') {
+          return new Value(world.nonNullBool, '${code} == ${other.code}',
+            node.span);
+        }
+        break;
+      case TokenKind.NE:
+        if (other.code == 'null') {
+          if (!_mayOverrideEqual()) {
+            return new Value(world.nonNullBool, '${code} != ${other.code}',
+              node.span);
+          }
+        } else if (code == 'null') {
+          return new Value(world.nonNullBool, '${code} != ${other.code}',
+            node.span);
+        }
+        break;
+
     }
 
     var name = kind == TokenKind.NE ? ':ne': TokenKind.binaryMethodName(kind);
@@ -225,9 +387,8 @@ class Value {
   }
 
 
-  Value invoke(MethodGenerator context, String name, Node node, Arguments args,
-      [bool isDynamic=false]) {
-
+  Value invoke(CallingContext context, String name, Node node,
+      Arguments args) {
     // TODO(jmesserly): it'd be nice to remove these special cases
     // We could create a :call in world members, and have that handle the
     // canInvoke/Invoke logic.
@@ -246,21 +407,12 @@ class Value {
       }
     }
 
-    var member = _resolveMember(context, name, node, isDynamic);
+    var member = _resolveMember(context, name, node);
     if (member == null) {
       return invokeNoSuchMethod(context, name, node, args);
     } else {
-      return member.invoke(context, node, this, args, isDynamic);
+      return member.invoke(context, node, this, args);
     }
-  }
-
-  bool canInvoke(MethodGenerator context, String name, Arguments args) {
-    if (type.isVarOrFunction && name == ':call') {
-      return true;
-    }
-
-    var member = _resolveMember(context, name, null, isDynamic:true);
-    return member != null && member.canInvoke(context, args);
   }
 
   /**
@@ -276,13 +428,13 @@ class Value {
   // TODO(jimhug): Handle more precise types here, i.e. consts or closed...
   bool get isPreciseType() => isSuper || isType;
 
-  void _missingMemberError(MethodGenerator context, String name, bool isDynamic, Node node) {
+  void _missingMemberError(CallingContext context, String name, Node node) {
     bool onStaticType = false;
     if (type != staticType) {
       onStaticType = staticType.getMember(name) !== null;
     }
 
-    if (!onStaticType && !isDynamic &&
+    if (!onStaticType && context.showWarnings &&
       !_isVarOrParameterType(staticType) && !_hasOverriddenNoSuchMethod()) {
       // warn if the member was not found, or error if it is a static lookup.
       var typeName = staticType.name;
@@ -298,16 +450,14 @@ class Value {
 
 
 
-  MemberSet _tryResolveMember(MethodGenerator context, String name, bool isDynamic, Node node) {
+  MemberSet _tryResolveMember(CallingContext context, String name, Node node) {
     var member = type.getMember(name);
     if (member == null) {
-      _missingMemberError(context, name, isDynamic, node);
+      _missingMemberError(context, name, node);
       return null;
     } else {
-      if (isType && !member.isStatic) {
-        if (!isDynamic) {
-          world.error('can not refer to instance member as static', node.span);
-        }
+      if (isType && !member.isStatic && context.showWarnings) {
+        world.error('can not refer to instance member as static', node.span);
         return null;
       }
     }
@@ -328,17 +478,16 @@ class Value {
   }
 
   // TODO(jimhug): Better type here - currently is union(Member, MemberSet)
-  MemberSet _resolveMember(MethodGenerator context, String name, Node node,
-        [bool isDynamic=false]) {
+  MemberSet _resolveMember(CallingContext context, String name, Node node) {
     var member = null;
     if (!_shouldBindDynamically()) {
-      member = _tryResolveMember(context, name, isDynamic, node);
+      member = _tryResolveMember(context, name, node);
     }
 
     // Fall back to a dynamic operation for instance members
     if (member == null && !isSuper && !isType) {
       member = context.findMembers(name);
-      if (member == null && !isDynamic) {
+      if (member == null && context.showWarnings) {
         var where = 'the world';
         if (name.startsWith('_')) {
           where = 'library "${context.library.name}"';
@@ -358,7 +507,7 @@ class Value {
   }
 
   /** Generate a call to an unknown function type. */
-  Value _varCall(MethodGenerator context, Node node, Arguments args) {
+  Value _varCall(CallingContext context, Node node, Arguments args) {
     // TODO(jmesserly): calls to unknown functions will bypass type checks,
     // which normally happen on the caller side, or in the generated stub for
     // dynamic method calls. What should we do?
@@ -368,7 +517,7 @@ class Value {
 
   /** True if convertTo would generate a conversion. */
   bool needsConversion(Type toType) {
-    var c = convertTo(null, toType, isDynamic:true);
+    var c = convertTo(null, toType);
     return c == null || code != c.code;
   }
 
@@ -378,11 +527,10 @@ class Value {
    * checks when --enable_type_checks is enabled, and wrapping callback
    * functions passed to the dom so we can restore their isolate context.
    */
-  Value convertTo(MethodGenerator context, Type toType,
-      [bool isDynamic=false]) {
+  Value convertTo(CallingContext context, Type toType) {
 
     // Issue type warnings unless we are processing a dynamic operation.
-    bool checked = !isDynamic;
+    bool checked = context != null && context.showWarnings;
 
     var callMethod = toType.getCallMethod();
     if (callMethod != null) {
@@ -420,19 +568,17 @@ class Value {
 
     // Generate a runtime checks if they're turned on, otherwise skip it.
     if (options.enableTypeChecks) {
-      if (context == null && isDynamic) {
+      if (context == null) {
         // If we're called from needsConversion, we don't need a context.
         // Just return null so it knows a conversion is required.
         return null;
       }
-      return _typeAssert(context, toType, isDynamic);
+      return _typeAssert(context, toType);
     } else {
       return changeStaticType(toType);
     }
   }
 
-  // TODO(jmesserly): I think we can replace our usage of the "isDynamic" flag
-  // by changing the static type of the target to "Dynamic" instead.
   changeStaticType(Type toType) {
     // Ensure that we return something with the right type for inference
     // purposes.
@@ -484,7 +630,7 @@ class Value {
    * [instanceOf], but it allows null since Dart types are nullable.
    * Also it will throw a TypeError if it gets the wrong type.
    */
-  Value _typeAssert(MethodGenerator context, Type toType, bool isDynamic) {
+  Value _typeAssert(CallingContext context, Type toType) {
     if (toType is ParameterType) {
       ParameterType p = toType;
       toType = p.extendsType;
@@ -506,8 +652,7 @@ class Value {
           new TypeValue(world.typeErrorType, null),
           new Arguments(null, [
             new Value(world.objectType, paramName, null),
-            new Value(world.stringType, '"${toType.name}"', null)]),
-          isDynamic);
+            new Value(world.stringType, '"${toType.name}"', null)]));
       world.gen.corejs.useThrow = true;
       return '\$throw(${result.code})';
     });
@@ -575,7 +720,7 @@ function \$assert_${toType.name}(x) {
    * - Otherwise add a fake member to test for.  This value is generated
    *   as a function so that it can be called for a runtime failure.
    */
-  Value instanceOf(MethodGenerator context, Type toType, SourceSpan span,
+  Value instanceOf(CallingContext context, Type toType, SourceSpan span,
       [bool isTrue=true, bool forceCheck=false]) {
     // TODO(jimhug): Optimize away tests that will always pass unless
     //    forceCheck is true.
@@ -601,8 +746,9 @@ function \$assert_${toType.name}(x) {
         testCode = "(typeof($code) ${isTrue ? '==' : '!='} '$typeofName')";
       }
     }
-    if (toType.isClass && toType is !ConcreteType
-        && !toType.isHiddenNativeType) {
+
+    if (toType.isClass
+        && !toType.isHiddenNativeType && !toType.isConcreteGeneric) {
       toType.markUsed();
       testCode = '($code instanceof ${toType.jsname})';
       if (!isTrue) {
@@ -644,7 +790,7 @@ function \$assert_${toType.name}(x) {
         span);
   }
 
-  Value invokeNoSuchMethod(MethodGenerator context, String name, Node node,
+  Value invokeNoSuchMethod(CallingContext context, String name, Node node,
       [Arguments args]) {
     if (isType) {
       world.error('member lookup failed for "$name"', node.span);
@@ -735,7 +881,7 @@ class NullValue extends EvaluatedValue {
 
   String get code() => 'null';
 
-  Value binop(int kind, var other, MethodGenerator context, var node) {
+  Value binop(int kind, var other, CallingContext context, var node) {
     if (other is! NullValue) return super.binop(kind, other, context, node);
 
     final c = isConst && other.isConst;
@@ -761,7 +907,7 @@ class BoolValue extends EvaluatedValue {
 
   String get code() => actualValue ? 'true' : 'false';
 
-  Value unop(int kind, MethodGenerator context, var node) {
+  Value unop(int kind, CallingContext context, var node) {
     switch (kind) {
       case TokenKind.NOT:
         return new BoolValue(!actualValue, isConst, node.span);
@@ -769,7 +915,7 @@ class BoolValue extends EvaluatedValue {
     return super.unop(kind, context, node);
   }
 
-  Value binop(int kind, var other, MethodGenerator context, var node) {
+  Value binop(int kind, var other, CallingContext context, var node) {
     if (other is! BoolValue) return super.binop(kind, other, context, node);
 
     final c = isConst && other.isConst;
@@ -801,7 +947,7 @@ class IntValue extends EvaluatedValue {
   // TODO(jimhug): Only add parens when needed.
   String get code() => '(${actualValue})';
 
-  Value unop(int kind, MethodGenerator context, var node) {
+  Value unop(int kind, CallingContext context, var node) {
     switch (kind) {
       case TokenKind.ADD:
         // This is allowed on numeric constants only
@@ -815,7 +961,7 @@ class IntValue extends EvaluatedValue {
   }
 
 
-  Value binop(int kind, var other, MethodGenerator context, var node) {
+  Value binop(int kind, var other, CallingContext context, var node) {
     final c = isConst && other.isConst;
     final s = node.span;
     if (other is IntValue) {
@@ -907,7 +1053,7 @@ class DoubleValue extends EvaluatedValue {
 
   String get code() => '(${actualValue})';
 
-  Value unop(int kind, MethodGenerator context, var node) {
+  Value unop(int kind, CallingContext context, var node) {
     switch (kind) {
       case TokenKind.ADD:
         // This is allowed on numeric constants only
@@ -918,7 +1064,7 @@ class DoubleValue extends EvaluatedValue {
     return super.unop(kind, context, node);
   }
 
-  Value binop(int kind, var other, MethodGenerator context, var node) {
+  Value binop(int kind, var other, CallingContext context, var node) {
     final c = isConst && other.isConst;
     final s = node.span;
     if (other is DoubleValue) {
@@ -999,7 +1145,7 @@ class StringValue extends EvaluatedValue {
   StringValue(this.actualValue, bool isConst, SourceSpan span):
     super(isConst, world.stringType, span);
 
-  Value binop(int kind, var other, MethodGenerator context, var node) {
+  Value binop(int kind, var other, CallingContext context, var node) {
     if (other is! StringValue) return super.binop(kind, other, context, node);
 
     final c = isConst && other.isConst;
@@ -1078,12 +1224,12 @@ class ListValue extends EvaluatedValue {
 
     var v = new Value(world.listType, listCode, span);
     final immutableListCtor = world.immutableListType.getConstructor('from');
-    final result = immutableListCtor.invoke(null, null,
+    final result = immutableListCtor.invoke(world.gen.mainContext, null,
         new TypeValue(v.type, span), new Arguments(null, [v]));
     return result.code;
   }
 
-  Value binop(int kind, var other, MethodGenerator context, var node) {
+  Value binop(int kind, var other, CallingContext context, var node) {
     // TODO(jimhug): Support int/double better
     if (other is! ListValue) return super.binop(kind, other, context, node);
 
@@ -1119,7 +1265,7 @@ class MapValue extends EvaluatedValue {
     var tp = world.coreimpl.topType;
     Member f = isConst ? tp.getMember('_constMap') : tp.getMember('_map');
     // TODO(jimhug): Clean up invoke signature
-    var value = f.invoke(null, null, new TypeValue(tp, null),
+    var value = f.invoke(world.gen.mainContext, null, new TypeValue(tp, null),
       new Arguments(null, [items]));
     return value.code;
   }
@@ -1130,7 +1276,7 @@ class MapValue extends EvaluatedValue {
     return world.gen.globalForConst(this, values);
   }
 
-  Value binop(int kind, var other, MethodGenerator context, var node) {
+  Value binop(int kind, var other, CallingContext context, var node) {
     if (other is! MapValue) return super.binop(kind, other, context, node);
 
     switch (kind) {
@@ -1162,7 +1308,7 @@ class ObjectValue extends EvaluatedValue {
   }
 
   initFields() {
-    var allMembers = world.gen._orderValues(type.getAllMembers());
+    var allMembers = world.gen._orderValues(type.genericType.getAllMembers());
     for (var f in allMembers) {
       if (f.isField && !f.isStatic && f.declaringType.isClass) {
         fields[f] = f.computeValue();
@@ -1220,7 +1366,7 @@ class ObjectValue extends EvaluatedValue {
     _code = buf.toString();
   }
 
-  Value binop(int kind, var other, MethodGenerator context, var node) {
+  Value binop(int kind, var other, CallingContext context, var node) {
     if (other is! ObjectValue) return super.binop(kind, other, context, node);
 
     switch (kind) {
@@ -1318,11 +1464,11 @@ class GlobalValue extends Value implements Comparable {
  */
 class BareValue extends Value {
   final bool isType;
-  final MethodGenerator home;
+  final CallingContext home;
 
   String _code;
 
-  BareValue(this.home, MethodGenerator outermost, SourceSpan span):
+  BareValue(this.home, CallingContext outermost, SourceSpan span):
     isType = outermost.isStatic,
     super(outermost.method.declaringType, null, span);
 
@@ -1336,7 +1482,7 @@ class BareValue extends Value {
     if (_code === null) _code = isType ? type.jsname : home._makeThisCode();
   }
 
-  MemberSet _tryResolveMember(MethodGenerator context, String name, bool isDynamic, Node node) {
+  MemberSet _tryResolveMember(CallingContext context, String name, Node node) {
     assert(context == home);
 
     // TODO(jimhug): Confirm this matches final resolution of issue 641.
@@ -1349,7 +1495,7 @@ class BareValue extends Value {
     }
 
     _ensureCode();
-    return super._tryResolveMember(context, name, isDynamic, node);
+    return super._tryResolveMember(context, name, node);
   }
 }
 
@@ -1411,8 +1557,6 @@ class ConvertedValue extends Value {
   Value _tryUnion(Value right) => Value.union(value, right);
 
   // TODO(jmessery): override get/set/invoke/unop/binop?
-  // (The tricky part is we want them to use our staticType for warning
-  // purposes. It's like the whole ConcreteType/ConcreteMember issues...)
 }
 
 /**
@@ -1461,13 +1605,13 @@ class VariableValue extends Value {
       new VariableValue(staticType, code, span, isFinal, v);
 
   // TODO(jmesserly): anything else to override?
-  Value unop(int kind, MethodGenerator context, var node) {
+  Value unop(int kind, CallingContext context, var node) {
     if (value != null) {
       return replaceValue(value.unop(kind, context, node));
     }
     return super.unop(kind, context, node);
   }
-  Value binop(int kind, var other, MethodGenerator context, var node) {
+  Value binop(int kind, var other, CallingContext context, var node) {
     if (value != null) {
       return replaceValue(value.binop(kind, _unwrap(other), context, node));
     }

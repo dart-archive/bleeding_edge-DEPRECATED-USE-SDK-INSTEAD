@@ -172,7 +172,7 @@ class BlockScope {
 
   /** Declares a variable in the current scope for this identifier. */
   Value declare(DeclaredIdentifier id) {
-    var type = enclosingMethod.method.resolveType(id.type, false);
+    var type = enclosingMethod.method.resolveType(id.type, false, true);
     return create(id.name.name, type, id.span);
   }
 

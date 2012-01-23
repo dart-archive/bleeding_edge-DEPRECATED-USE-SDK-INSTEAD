@@ -7,6 +7,8 @@
 #import('dart:coreimpl');
 #import('file_system.dart');
 
+#source('analyze.dart');
+#source('analyze_frame.dart');
 #source('block_scope.dart');
 #source('code_writer.dart');
 #source('corejs.dart');
@@ -14,6 +16,8 @@
 #source('gen.dart');
 #source('library.dart');
 #source('member.dart');
+#source('member_set.dart');
+#source('method_data.dart');
 #source('token.dart');
 #source('source.dart');
 #source('tokenizer.dart');
