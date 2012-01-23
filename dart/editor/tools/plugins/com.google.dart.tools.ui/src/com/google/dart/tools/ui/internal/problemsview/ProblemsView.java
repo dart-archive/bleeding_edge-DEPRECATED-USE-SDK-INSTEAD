@@ -931,7 +931,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
-        tableViewer.setInput(markers);
+        if (tableViewer.getControl() != null && !tableViewer.getControl().isDisposed()) {
+          tableViewer.setInput(markers);
+        }
       }
     });
   }
