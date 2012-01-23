@@ -705,7 +705,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     int parametersCount = parameterNames.length;
     buffer.add('($parameters');
     if (parametersCount != 0) buffer.add(', ');
-    if (parametersCount < guard.inputs.length) {
+    if (guard.guarded is !HParameterValue) {
       buffer.add('${++state}, [');
       bool first = true;
       for (int i = 0; i < guard.inputs.length; i++) {
