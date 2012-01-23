@@ -157,6 +157,9 @@ Object.defineProperty(Object.prototype, "remove$1", { value: function($0) {
 Object.defineProperty(Object.prototype, "run$0", { value: function() {
   return this.noSuchMethod("run", []);
 }, enumerable: false, writable: true, configurable: true });
+Object.defineProperty(Object.prototype, "set$1", { value: function($0) {
+  return this.noSuchMethod("set", [$0]);
+}, enumerable: false, writable: true, configurable: true });
 Object.defineProperty(Object.prototype, "setIndex$4$kind", { value: function($0, $1, $2, $3, kind) {
   return this.noSuchMethod("setIndex", [$0, $1, $2, $3, kind]);
 }, enumerable: false, writable: true, configurable: true });
@@ -903,25 +906,25 @@ KeyValuePair.prototype.get$value = function() { return this.value; };
 KeyValuePair.prototype.set$value = function(value) { return this.value = value; };
 // ********** Code for LinkedHashMapImplementation **************
 function LinkedHashMapImplementation() {
-  this._map = new HashMapImplementation_Dynamic$DoubleLinkedQueueEntry_KeyValuePair();
-  this._list = new DoubleLinkedQueue_KeyValuePair();
+  this._dart_coreimpl_map = new HashMapImplementation_Dynamic$DoubleLinkedQueueEntry_KeyValuePair();
+  this._dart_coreimpl_list = new DoubleLinkedQueue_KeyValuePair();
 }
 LinkedHashMapImplementation.prototype.$setindex = function(key, value) {
-  if (this._map.containsKey(key)) {
-    this._map.$index(key).get$element().set$value(value);
+  if (this._dart_coreimpl_map.containsKey(key)) {
+    this._dart_coreimpl_map.$index(key).get$element().set$value(value);
   }
   else {
-    this._list.addLast(new KeyValuePair(key, value));
-    this._map.$setindex(key, this._list.lastEntry());
+    this._dart_coreimpl_list.addLast(new KeyValuePair(key, value));
+    this._dart_coreimpl_map.$setindex(key, this._dart_coreimpl_list.lastEntry());
   }
 }
 LinkedHashMapImplementation.prototype.$index = function(key) {
-  var entry = this._map.$index(key);
+  var entry = this._dart_coreimpl_map.$index(key);
   if (entry == null) return null;
   return entry.get$element().get$value();
 }
 LinkedHashMapImplementation.prototype.remove = function(key) {
-  var entry = this._map.remove(key);
+  var entry = this._dart_coreimpl_map.remove(key);
   if (entry == null) return null;
   entry.remove();
   return entry.get$element().get$value();
@@ -937,7 +940,7 @@ LinkedHashMapImplementation.prototype.putIfAbsent = function(key, ifAbsent) {
 LinkedHashMapImplementation.prototype.getKeys = function() {
   var list = new Array(this.get$length());
   var index = (0);
-  this._list.forEach(function _(entry) {
+  this._dart_coreimpl_list.forEach(function _(entry) {
     list.$setindex(index++, entry.key);
   }
   );
@@ -946,23 +949,23 @@ LinkedHashMapImplementation.prototype.getKeys = function() {
 LinkedHashMapImplementation.prototype.getValues = function() {
   var list = new Array(this.get$length());
   var index = (0);
-  this._list.forEach(function _(entry) {
+  this._dart_coreimpl_list.forEach(function _(entry) {
     list.$setindex(index++, entry.value);
   }
   );
   return list;
 }
 LinkedHashMapImplementation.prototype.forEach = function(f) {
-  this._list.forEach(function _(entry) {
+  this._dart_coreimpl_list.forEach(function _(entry) {
     f(entry.key, entry.value);
   }
   );
 }
 LinkedHashMapImplementation.prototype.containsKey = function(key) {
-  return this._map.containsKey(key);
+  return this._dart_coreimpl_map.containsKey(key);
 }
 LinkedHashMapImplementation.prototype.get$length = function() {
-  return this._map.get$length();
+  return this._dart_coreimpl_map.get$length();
 }
 LinkedHashMapImplementation.prototype.isEmpty = function() {
   return this.get$length() == (0);
@@ -1172,16 +1175,16 @@ function StringBufferImpl(content) {
   this.add(content);
 }
 StringBufferImpl.prototype.get$length = function() {
-  return this._length;
+  return this._dart_coreimpl_length;
 }
 StringBufferImpl.prototype.isEmpty = function() {
-  return this._length == (0);
+  return this._dart_coreimpl_length == (0);
 }
 StringBufferImpl.prototype.add = function(obj) {
   var str = obj.toString$0();
   if (str == null || str.isEmpty()) return this;
   this._buffer.add(str);
-  this._length = this._length + str.length;
+  this._dart_coreimpl_length = this._dart_coreimpl_length + str.length;
   return this;
 }
 StringBufferImpl.prototype.addAll = function(objects) {
@@ -1193,12 +1196,12 @@ StringBufferImpl.prototype.addAll = function(objects) {
 }
 StringBufferImpl.prototype.clear = function() {
   this._buffer = new Array();
-  this._length = (0);
+  this._dart_coreimpl_length = (0);
   return this;
 }
 StringBufferImpl.prototype.toString = function() {
   if (this._buffer.get$length() == (0)) return "";
-  if (this._buffer.get$length() == (1)) return this._buffer[(0)];
+  if (this._buffer.get$length() == (1)) return this._buffer.$index((0));
   var result = StringBase.concatAll(this._buffer);
   this._buffer.clear();
   this._buffer.add(result);
@@ -1215,10 +1218,10 @@ StringBase.createFromCharCodes = function(charCodes) {
 }
 StringBase.join = function(strings, separator) {
   if (strings.get$length() == (0)) return "";
-  var s = strings[(0)];
+  var s = strings.$index((0));
   for (var i = (1);
    i < strings.get$length(); i++) {
-    s = $add($add(s, separator), strings[i]);
+    s = $add($add(s, separator), strings.$index(i));
   }
   return s;
 }
@@ -1376,63 +1379,73 @@ function _map(itemsAndKeys) {
   }
   return ret;
 }
-//  ********** Library node **************
-// ********** Code for Process **************
-function Process(_process) {
-  this.SIGSYS = "SIGSYS";
-  this.SIGALRM = "SIGALRM";
-  this.SIGXCPU = "SIGXCPU";
-  this.SIGTSTP = "SIGTSTP";
-  this.SIGSEGV = "SIGSEGV";
-  this.SIGQUIT = "SIGQUIT";
-  this.SIGABRT = "SIGABRT";
-  this.SIGKILL = "SIGKILL";
-  this.SIGHUP = "SIGHUP";
-  this.SIGUSR2 = "SIGUSR2";
-  this.SIGXFSZ = "SIGXFSZ";
-  this.SIGCONT = "SIGCONT";
-  this.SIGTTOU = "SIGTTOU";
-  this.SIGINT = "SIGINT";
-  this.SIGURG = "SIGURG";
-  this.SIGFPE = "SIGFPE";
-  this.SIGUSR1 = "SIGUSR1";
-  this.SIGEMT = "SIGEMT";
-  this.SIGPIPE = "SIGPIPE";
-  this.SIGTTIN = "SIGTTIN";
-  this.SIGTERM = "SIGTERM";
-  this._process = _process;
-  this.SIGBUS = "SIGBUS";
-  this.SIGPROF = "SIGPROF";
-  this.SIGSTOP = "SIGSTOP";
-  this.SIGCHLD = "SIGCHLD";
-  this.SIGILL = "SIGILL";
-  this.SIGTRAP = "SIGTRAP";
-  this.SIGINFO = "SIGINFO";
-  this.SIGIO = "SIGIO";
-  this.SIGVTALRM = "SIGVTALRM";
-  this.SIGWINCH = "SIGWINCH";
+//  ********** Library nodeimpl **************
+// ********** Code for NativeMapBase **************
+function NativeMapBase() {}
+NativeMapBase.prototype.get$length = function() {
+  return this._length(this._map);
 }
-Process.prototype.get$argv = function() {
-  return this._process.argv;
+NativeMapBase.prototype._length = function(map) {
+  return map.length;
 }
-Process.prototype.set$argv = function(value) {
-  this._process.argv = value;
+NativeMapBase.prototype.isEmpty = function() {
+  return this.get$length() == (0);
 }
-Process.prototype.get$env = function() {
-  return new EnvMap(this._process);
+NativeMapBase.prototype.getKeys = function() {
+  var keys = new Array();
+  NativeMapBase._forEachKey(this._map, (function (key) {
+    return keys.add(key);
+  })
+  );
+  return keys;
 }
-Process.prototype.exit = function(code) {
-  this._process.exit(code);
+NativeMapBase.prototype.getValues = function() {
+  var $this = this; // closure support
+  var values = new Array();
+  NativeMapBase._forEachKey(this._map, (function (key) {
+    return values.add($this.$index(key));
+  })
+  );
+  return values;
 }
-// ********** Code for EnvMap **************
-function EnvMap(_process) {
-  this._process = _process;
+NativeMapBase.prototype.forEach = function(f) {
+  var $this = this; // closure support
+  return NativeMapBase._forEachKey(this._map, (function (k) {
+    return f(k, $this.$index(k));
+  })
+  );
 }
-EnvMap.prototype.$index = function(key) {
-  return this._process.env[key];
+NativeMapBase._forEachKey = function(map, f) {
+        for (var i in map) {
+          if (map.hasOwnProperty(i)) {
+            f(i);
+          }
+        }
+      
 }
-// ********** Code for ReadableStream **************
-// ********** Code for WritableStream **************
+// ********** Code for NativeMapBase_dart_core_String **************
+$inherits(NativeMapBase_dart_core_String, NativeMapBase);
+function NativeMapBase_dart_core_String(_map) {
+  this._map = _map;
+}
+// ********** Code for NativeMapPrimitiveValue **************
+$inherits(NativeMapPrimitiveValue, NativeMapBase);
+function NativeMapPrimitiveValue() {}
+NativeMapPrimitiveValue.prototype.$index = function(key) {
+  return this._at(this._map, key);
+}
+NativeMapPrimitiveValue.prototype._at = function(map, key) {
+  return map[key];
+}
+// ********** Code for NativeMapPrimitiveValue_dart_core_String **************
+$inherits(NativeMapPrimitiveValue_dart_core_String, NativeMapPrimitiveValue);
+function NativeMapPrimitiveValue_dart_core_String(map) {
+  NativeMapBase_dart_core_String.call(this, map);
+}
+// ********** Code for top level **************
+//  ********** Library fs **************
+// ********** Code for fs_ReadStream **************
+// ********** Code for fs_WriteStream **************
 Object.defineProperty(Object.prototype, '$typeNameOf', { value: function() {
   if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
       || typeof(process) != 'undefined') { // fast-path for Chrome and Node
@@ -1501,22 +1514,95 @@ function $dynamicSetMetadata(inputTable) {
   $dynamicMetadata = table;
 }
 $dynamic("end$0").WriteStream = function() {
-  return this.end(null, "utf8");
+  return this.end();
 };
 $dynamic("write$1").WriteStream = function($0) {
   return this.write($0, "utf8");
 };
-// ********** Code for vm **************
-vm = require('vm');
-// ********** Code for fs **************
-fs = require('fs');
-// ********** Code for path **************
-path = require('path');
+// ********** Code for fs_FSWatcher **************
+// ********** Code for top level **************
+function get$fs() {
+  return require("fs");
+}
+//  ********** Library node **************
+// ********** Code for Process **************
+function Process(_process) {
+  this.SIGSYS = "SIGSYS";
+  this.SIGALRM = "SIGALRM";
+  this.SIGXCPU = "SIGXCPU";
+  this.SIGTSTP = "SIGTSTP";
+  this.SIGSEGV = "SIGSEGV";
+  this.SIGQUIT = "SIGQUIT";
+  this.SIGABRT = "SIGABRT";
+  this.SIGKILL = "SIGKILL";
+  this.SIGHUP = "SIGHUP";
+  this.SIGUSR2 = "SIGUSR2";
+  this.SIGXFSZ = "SIGXFSZ";
+  this.SIGCONT = "SIGCONT";
+  this.SIGTTOU = "SIGTTOU";
+  this.SIGINT = "SIGINT";
+  this.SIGURG = "SIGURG";
+  this.SIGFPE = "SIGFPE";
+  this.SIGUSR1 = "SIGUSR1";
+  this.SIGEMT = "SIGEMT";
+  this.SIGPIPE = "SIGPIPE";
+  this.SIGTTIN = "SIGTTIN";
+  this.SIGTERM = "SIGTERM";
+  this._process = _process;
+  this.SIGBUS = "SIGBUS";
+  this.SIGPROF = "SIGPROF";
+  this.SIGSTOP = "SIGSTOP";
+  this.SIGCHLD = "SIGCHLD";
+  this.SIGILL = "SIGILL";
+  this.SIGTRAP = "SIGTRAP";
+  this.SIGINFO = "SIGINFO";
+  this.SIGIO = "SIGIO";
+  this.SIGVTALRM = "SIGVTALRM";
+  this.SIGWINCH = "SIGWINCH";
+}
+Process.prototype.get$argv = function() {
+  return this._process.argv;
+}
+Process.prototype.set$argv = function(value) {
+  this._process.argv = value;
+}
+Process.prototype.get$env = function() {
+  return new _EnvMap(this._env());
+}
+Process.prototype._env = function() {
+  return this._process.env;
+}
+Process.prototype.exit = function(code) {
+  this._process.exit(code);
+}
+// ********** Code for _EnvMap **************
+$inherits(_EnvMap, NativeMapPrimitiveValue_dart_core_String);
+function _EnvMap(env) {
+  NativeMapPrimitiveValue_dart_core_String.call(this, env);
+}
 // ********** Code for top level **************
 function createSandbox() {
-  return {'require': require, 'process': process, 'console': console,
+  return {
+        'require': require,
+        'process': process,
+        'console': console,
         'Buffer' : Buffer,
-        'setTimeout': setTimeout, 'clearTimeout': clearTimeout};
+        'setTimeout': setTimeout,
+        'clearTimeout': clearTimeout,
+        'setInterval': setInterval,
+        'clearInterval': clearInterval,
+        'module' : module,
+        'ArrayBuffer': ArrayBuffer,
+        'Int8Array': Int8Array,
+        'Uint8Array': Uint8Array,
+        'Int16Array': Int16Array,
+        'Uint16Array': Uint16Array,
+        'Int32Array': Int32Array,
+        'Uint32Array': Uint32Array,
+        'Float32Array': Float32Array,
+        'Float64Array': Float64Array,
+        'DataView': DataView
+        };
 }
 function get$_process() {
   return process;
@@ -1524,6 +1610,14 @@ function get$_process() {
 function get$process() {
   return new Process(get$_process());
 }
+//  ********** Library path **************
+// ********** Code for path **************
+path = require('path');
+// ********** Code for top level **************
+//  ********** Library vm **************
+// ********** Code for vm **************
+vm = require('vm');
+// ********** Code for top level **************
 //  ********** Library file_system **************
 // ********** Code for top level **************
 function canonicalizePath(path) {
@@ -1574,10 +1668,10 @@ function NodeFileSystem() {
 
 }
 NodeFileSystem.prototype.writeString = function(outfile, text) {
-  fs.writeFileSync(outfile, text);
+  get$fs().writeFileSync(outfile, text, "utf8");
 }
 NodeFileSystem.prototype.readAll = function(filename) {
-  return fs.readFileSync(filename, "utf8");
+  return get$fs().readFileSync(filename, "utf8");
 }
 NodeFileSystem.prototype.fileExists = function(filename) {
   return path.existsSync(filename);
@@ -1644,7 +1738,7 @@ MethodAnalyzer.prototype.makeNeutral = function(inValue, span) {
 MethodAnalyzer.prototype._bindArguments = function(args) {
   for (var i = (0);
    i < this.method.parameters.get$length(); i++) {
-    var p = this.method.parameters[i];
+    var p = this.method.parameters.$index(i);
     var currentArg = null;
     if (i < args.get$bareCount()) {
       currentArg = args.values.$index(i);
@@ -1726,15 +1820,15 @@ MethodAnalyzer.prototype.visitDietStatement = function(node) {
 }
 MethodAnalyzer.prototype.visitVariableDefinition = function(node) {
   var isFinal = false;
-  if (node.modifiers != null && node.modifiers[(0)].kind == (99)) {
+  if (node.modifiers != null && node.modifiers.$index((0)).get$kind() == (99)) {
     isFinal = true;
   }
   var type = this.resolveType(node.type, false, true);
   for (var i = (0);
    i < node.names.get$length(); i++) {
-    var name = node.names[i].name;
-    var value = this.visitValue(node.values[i]);
-    this._frame.create(name, type, node.names[i], isFinal, value);
+    var name = node.names.$index(i).get$name();
+    var value = this.visitValue(node.values.$index(i));
+    this._frame.create(name, type, node.names.$index(i), isFinal, value);
   }
 }
 MethodAnalyzer.prototype.visitFunctionDefinition = function(node) {
@@ -1830,7 +1924,7 @@ MethodAnalyzer.prototype.visitTryStatement = function(node) {
   if (node.catches.get$length() > (0)) {
     for (var i = (0);
      i < node.catches.get$length(); i++) {
-      var catch_ = node.catches[i];
+      var catch_ = node.catches.$index(i);
       this._pushBlock(catch_);
       this._createDI(catch_.get$exception());
       if (catch_.get$trace() != null) {
@@ -1962,7 +2056,7 @@ MethodAnalyzer.prototype._visitVarAssign = function(kind, xn, yn, node) {
   var name = xn.name.name;
   var slot = this._frame.lookup(name);
   if ($ne(slot)) {
-    slot.set(value);
+    slot.set$1(value);
   }
   else {
     var member = this._resolveBare(name, xn.name);
@@ -2095,9 +2189,9 @@ MethodAnalyzer.prototype.visitMapExpression = function(node) {
   }
   for (var i = (0);
    i < node.items.get$length(); i += (2)) {
-    var key = this.visitTypedValue(node.items[i], keyType);
+    var key = this.visitTypedValue(node.items.$index(i), keyType);
     values.add(key);
-    var value = this.visitTypedValue(node.items[i + (1)], valueType);
+    var value = this.visitTypedValue(node.items.$index(i + (1)), valueType);
     if (node.isConst && !value.get$isConst()) {
       $globals.world.error("const map can only contain const values", value.get$span());
     }
@@ -2286,6 +2380,7 @@ VariableSlot.prototype.toString = function() {
   var valueString = this.value != null ? (" = " + this.value.get$type().name) : "";
   return ("" + this.staticType.name + " " + this.name + valueString);
 }
+VariableSlot.prototype.set$1 = VariableSlot.prototype.set;
 VariableSlot.prototype.toString$0 = VariableSlot.prototype.toString;
 // ********** Code for AnalyzeScope **************
 function AnalyzeScope(parent, frame, node) {
@@ -2303,7 +2398,7 @@ AnalyzeScope.prototype._lookup = function(name) {
    $ne(s); s = s.get$parent()) {
     for (var i = (0);
      i < s.get$_slots().get$length(); i++) {
-      var ret = s.get$_slots()[i];
+      var ret = s.get$_slots().$index(i);
       if ($eq(ret.get$name(), name)) return ret;
     }
   }
@@ -2700,7 +2795,7 @@ Element.prototype.lookupTypeParam = function(name) {
   if (this.get$typeParameters() == null) return null;
   for (var i = (0);
    i < this.get$typeParameters().get$length(); i++) {
-    if (this.get$typeParameters()[i].name == name) {
+    if ($eq(this.get$typeParameters().$index(i).get$name(), name)) {
       return this.get$typeArgsInOrder().$index(i);
     }
   }
@@ -2720,7 +2815,7 @@ Element.prototype.resolveType = function(node, typeErrors, allowTypeParams) {
     var typeRef = node;
     var name;
     if (typeRef.names != null) {
-      name = typeRef.names.last().name;
+      name = typeRef.names.last().get$name();
     }
     else {
       name = typeRef.name.name;
@@ -2748,7 +2843,7 @@ Element.prototype.resolveType = function(node, typeErrors, allowTypeParams) {
     var typeArgs = [];
     for (var i = (0);
      i < typeRef.typeArguments.get$length(); i++) {
-      typeArgs.add(this.resolveType(typeRef.typeArguments[i], typeErrors, allowTypeParams));
+      typeArgs.add(this.resolveType(typeRef.typeArguments.$index(i), typeErrors, allowTypeParams));
     }
     return baseType.getOrMakeConcreteType(typeArgs);
   }
@@ -2926,7 +3021,7 @@ WorldGenerator.prototype.writeTypes = function(lib) {
   }
   for (var i = (0);
    i < lib.sources.get$length(); i++) {
-    lib.sources[i].orderInLibrary = i;
+    lib.sources.$index(i).set$orderInLibrary(i);
   }
   this.writer.comment(("//  ********** Library " + lib.name + " **************"));
   if (lib.get$isCore()) {
@@ -3575,7 +3670,7 @@ MethodGenerator.prototype.evalBody = function(newObject, args) {
   this._paramCode = [];
   for (var i = (0);
    i < this.method.get$parameters().get$length(); i++) {
-    var p = this.method.get$parameters()[i];
+    var p = this.method.get$parameters().$index(i);
     var currentArg = null;
     if (i < args.get$bareCount()) {
       currentArg = args.values.$index(i);
@@ -3845,7 +3940,7 @@ MethodGenerator.prototype.visitDietStatement = function(node) {
 }
 MethodGenerator.prototype.visitVariableDefinition = function(node) {
   var isFinal = false;
-  if (node.modifiers != null && node.modifiers[(0)].kind == (99)) {
+  if (node.modifiers != null && node.modifiers.$index((0)).get$kind() == (99)) {
     isFinal = true;
   }
   this.writer.write("var ");
@@ -3855,12 +3950,12 @@ MethodGenerator.prototype.visitVariableDefinition = function(node) {
     if (i > (0)) {
       this.writer.write(", ");
     }
-    var name = node.names[i].name;
-    var value = this.visitValue(node.values[i]);
+    var name = node.names.$index(i).get$name();
+    var value = this.visitValue(node.values.$index(i));
     if (isFinal && $eq(value)) {
       $globals.world.error("no value specified for final variable", node.span);
     }
-    var val = this._scope.create(name, type, node.names[i].span, isFinal, false);
+    var val = this._scope.create(name, type, node.names.$index(i).get$span(), isFinal, false);
     if ($eq(value)) {
       if (this._scope.reentrant) {
         this.writer.write(("" + val.get$code() + " = null"));
@@ -4076,7 +4171,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
   this.visitStatementsInBlock(node.body);
   this._popBlock(node.body);
   if (node.catches.get$length() == (1)) {
-    var catch_ = node.catches[(0)];
+    var catch_ = node.catches.$index((0));
     this._pushBlock(catch_, false);
     var exType = this.method.resolveType(catch_.get$exception().get$type(), false, true);
     var ex = this._scope.declare(catch_.get$exception());
@@ -4091,7 +4186,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
       var test = ex.instanceOf$3$isTrue$forceCheck(this, exType, catch_.get$exception().get$span(), false, true);
       this.writer.writeln(("if (" + test.get$code() + ") throw " + ex.get$code() + ";"));
     }
-    this.visitStatementsInBlock(node.catches[(0)].body);
+    this.visitStatementsInBlock(node.catches.$index((0)).get$body());
     this._popBlock(catch_);
   }
   else if (node.catches.get$length() > (0)) {
@@ -4111,7 +4206,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
     var needsRethrow = true;
     for (var i = (0);
      i < node.catches.get$length(); i++) {
-      var catch_ = node.catches[i];
+      var catch_ = node.catches.$index(i);
       this._pushBlock(catch_, false);
       var tmpType = this.method.resolveType(catch_.get$exception().get$type(), false, true);
       var tmp = this._scope.declare(catch_.get$exception());
@@ -4136,7 +4231,7 @@ MethodGenerator.prototype.visitTryStatement = function(node) {
       this._popBlock(catch_);
       if (tmpType.get$isVarOrObject()) {
         if (i + (1) < node.catches.get$length()) {
-          $globals.world.error("Unreachable catch clause", node.catches[i + (1)].span);
+          $globals.world.error("Unreachable catch clause", node.catches.$index(i + (1)).get$span());
         }
         if (i > (0)) {
           this.writer.exitBlock("}");
@@ -4187,7 +4282,7 @@ MethodGenerator.prototype.visitSwitchStatement = function(node) {
     }
     this.writer.enterBlock("");
     var caseExits = this._visitAllStatements(case_.get$statements(), false);
-    if ($ne(case_, node.cases[node.cases.get$length() - (1)]) && !caseExits) {
+    if ($ne(case_, node.cases.$index(node.cases.get$length() - (1))) && !caseExits) {
       var span = case_.get$statements().$index(case_.get$statements().get$length() - (1)).get$span();
       this.writer.writeln("$throw(new FallThroughError());");
       $globals.world.gen.corejs.useThrow = true;
@@ -4532,12 +4627,12 @@ MethodGenerator.prototype.visitMapExpression = function(node) {
   }
   for (var i = (0);
    i < node.items.get$length(); i += (2)) {
-    var key = this.visitTypedValue(node.items[i], keyType);
+    var key = this.visitTypedValue(node.items.$index(i), keyType);
     if (node.isConst && !key.get$isConst()) {
       $globals.world.error("const map can only contain const keys", key.get$span());
     }
     values.add(key);
-    var value = this.visitTypedValue(node.items[i + (1)], valueType);
+    var value = this.visitTypedValue(node.items.$index(i + (1)), valueType);
     if (node.isConst && !value.get$isConst()) {
       $globals.world.error("const map can only contain const values", value.get$span());
     }
@@ -4656,7 +4751,7 @@ Arguments.prototype.get$length = function() {
   return this.values.get$length();
 }
 Arguments.prototype.getName = function(i) {
-  return this.nodes[i].label.name;
+  return this.nodes.$index(i).get$label().name;
 }
 Arguments.prototype.getIndexOfName = function(name) {
   for (var i = this.get$bareCount();
@@ -4677,7 +4772,7 @@ Arguments.prototype.get$bareCount = function() {
     if (this.nodes != null) {
       for (var i = (0);
        i < this.nodes.get$length(); i++) {
-        if (this.nodes[i].label != null) {
+        if (this.nodes.$index(i).get$label() != null) {
           this._bareCount = i;
           break;
         }
@@ -5082,7 +5177,7 @@ Library.prototype.findType = function(type) {
     if (!result.get$isTop()) {
       return null;
     }
-    return result.get$library().findTypeByName(type.names[(0)].name);
+    return result.get$library().findTypeByName(type.names.$index((0)).get$name());
   }
   return result;
 }
@@ -5360,7 +5455,7 @@ _LibraryVisitor.prototype.getFirstStringArg = function(node) {
   if (node.arguments.get$length() < (1)) {
     $globals.world.error(("expected at least one argument but found " + node.arguments.get$length()), node.span);
   }
-  var arg = node.arguments[(0)];
+  var arg = node.arguments.$index((0));
   if (arg.get$label() != null) {
     $globals.world.error("label not allowed for directive", node.span);
   }
@@ -5831,7 +5926,7 @@ MethodMember.prototype.get$constructorName = function() {
     return "";
   }
   if (returnType.get$names() != null) {
-    return returnType.get$names()[(0)].name;
+    return returnType.get$names().$index((0)).get$name();
   }
   else if ($ne(returnType.get$name())) {
     return returnType.get$name().get$name();
@@ -5864,7 +5959,7 @@ MethodMember.prototype.canInvoke = function(context, args) {
     if (bareCount != args.get$length()) return false;
   }
   else {
-    if (!this.parameters[bareCount].get$isOptional()) return false;
+    if (!this.parameters.$index(bareCount).get$isOptional()) return false;
     for (var i = bareCount;
      i < args.get$length(); i++) {
       if (this.indexOfParameter(args.getName(i)) < (0)) {
@@ -5877,7 +5972,7 @@ MethodMember.prototype.canInvoke = function(context, args) {
 MethodMember.prototype.indexOfParameter = function(name) {
   for (var i = (0);
    i < this.parameters.get$length(); i++) {
-    var p = this.parameters[i];
+    var p = this.parameters.$index(i);
     if (p.get$isOptional() && $eq(p.get$name(), name)) {
       return i;
     }
@@ -5911,7 +6006,7 @@ MethodMember.prototype.namesInHomePositions = function(args) {
     if (i >= this.parameters.get$length()) {
       return false;
     }
-    if (args.getName(i) != this.parameters[i].name) {
+    if (args.getName(i) != this.parameters.$index(i).get$name()) {
       return false;
     }
   }
@@ -5922,7 +6017,7 @@ MethodMember.prototype.namesInOrder = function(args) {
   var lastParameter = null;
   for (var i = args.get$bareCount();
    i < this.parameters.get$length(); i++) {
-    var p = args.getIndexOfName(this.parameters[i].name);
+    var p = args.getIndexOfName(this.parameters.$index(i).get$name());
     if ($gte(p, (0)) && args.values.$index(p).get$needsTemp()) {
       if (lastParameter != null && $gt(lastParameter, p)) {
         return false;
@@ -5937,15 +6032,15 @@ MethodMember.prototype.needsArgumentConversion = function(args) {
   for (var i = (0);
    i < bareCount; i++) {
     var arg = args.values.$index(i);
-    if (arg.needsConversion(this.parameters[i].type)) {
+    if (arg.needsConversion(this.parameters.$index(i).get$type())) {
       return true;
     }
   }
   if (bareCount < this.parameters.get$length()) {
     for (var i = bareCount;
      i < this.parameters.get$length(); i++) {
-      var arg = args.getValue(this.parameters[i].name);
-      if ($ne(arg) && arg.needsConversion(this.parameters[i].type)) {
+      var arg = args.getValue(this.parameters.$index(i).get$name());
+      if ($ne(arg) && arg.needsConversion(this.parameters.$index(i).get$type())) {
         return true;
       }
     }
@@ -5961,7 +6056,7 @@ MethodMember.prototype._argError = function(context, node, target, args, msg, ar
     span = node.span;
   }
   else {
-    span = args.nodes[argIndex].span;
+    span = args.nodes.$index(argIndex).get$span();
   }
   if (this.isStatic || this.get$isConstructor()) {
     $globals.world.error(msg, span);
@@ -6002,7 +6097,7 @@ MethodMember.prototype.invoke = function(context, node, target, args) {
       var msg = MethodMember._argCountMsg(args.get$length(), this.parameters.get$length(), false);
       return this._argError(context, node, target, args, msg, i);
     }
-    arg = arg.convertTo(context, this.parameters[i].type);
+    arg = arg.convertTo(context, this.parameters.$index(i).get$type());
     argsCode.add(arg.get$code());
   }
   var namedArgsUsed = (0);
@@ -6010,15 +6105,15 @@ MethodMember.prototype.invoke = function(context, node, target, args) {
     this.genParameterValues(context);
     for (var i = bareCount;
      i < this.parameters.get$length(); i++) {
-      var arg = args.getValue(this.parameters[i].name);
+      var arg = args.getValue(this.parameters.$index(i).get$name());
       if ($eq(arg)) {
-        arg = this.parameters[i].value;
+        arg = this.parameters.$index(i).get$value();
       }
       else {
-        arg = arg.convertTo(context, this.parameters[i].type);
+        arg = arg.convertTo(context, this.parameters.$index(i).get$type());
         namedArgsUsed++;
       }
-      if ($eq(arg) || !this.parameters[i].get$isOptional()) {
+      if ($eq(arg) || !this.parameters.$index(i).get$isOptional()) {
         var msg = MethodMember._argCountMsg(Math.min(i, args.get$length()), i + (1), true);
         return this._argError(context, node, target, args, msg, i);
       }
@@ -6320,7 +6415,7 @@ MemberSet.prototype.add = function(member) {
   this.members.add(member);
 }
 MemberSet.prototype.get$isOperator = function() {
-  return this.members[(0)].get$isOperator();
+  return this.members.$index((0)).get$isOperator();
 }
 MemberSet.prototype.get$treatAsField = function() {
   if (this._treatAsField == null) {
@@ -6338,7 +6433,7 @@ MemberSet.unionTypes = function(t1, t2) {
 }
 MemberSet.prototype._get = function(context, node, target) {
   if (this.members.get$length() == (1) && !this.isVar) {
-    return this.members[(0)]._get(context, node, target);
+    return this.members.$index((0))._get(context, node, target);
   }
   if (this._returnTypeForGet == null) {
     var $$list = this.members;
@@ -6362,7 +6457,7 @@ MemberSet.prototype._get = function(context, node, target) {
 }
 MemberSet.prototype._set = function(context, node, target, value) {
   if (this.members.get$length() == (1) && !this.isVar) {
-    return this.members[(0)]._set(context, node, target, value);
+    return this.members.$index((0))._set(context, node, target, value);
   }
   if (!this._preparedForSet) {
     this._preparedForSet = true;
@@ -6383,7 +6478,7 @@ MemberSet.prototype._set = function(context, node, target, value) {
 }
 MemberSet.prototype.invoke = function(context, node, target, args) {
   if (this.members.get$length() == (1) && !this.isVar) {
-    return this.members[(0)].invoke(context, node, target, args);
+    return this.members.$index((0)).invoke(context, node, target, args);
   }
   var invokeKey = null;
   if (this._invokes == null) {
@@ -6491,7 +6586,7 @@ InvokeKey.prototype.matches = function(args) {
   if (this.namedArgs == null) return true;
   for (var i = (0);
    i < this.namedArgs.get$length(); i++) {
-    if (this.namedArgs[i] != args.getName(this.bareArgs + i)) return false;
+    if ($ne(this.namedArgs.$index(i), args.getName(this.bareArgs + i))) return false;
   }
   return true;
 }
@@ -6675,6 +6770,8 @@ function SourceFile(filename, _text) {
   this.filename = filename;
 }
 SourceFile.prototype.get$filename = function() { return this.filename; };
+SourceFile.prototype.get$orderInLibrary = function() { return this.orderInLibrary; };
+SourceFile.prototype.set$orderInLibrary = function(value) { return this.orderInLibrary = value; };
 SourceFile.prototype.get$text = function() {
   return this._text;
 }
@@ -6701,7 +6798,7 @@ SourceFile.prototype.getLine = function(position) {
   $globals.world.internalError("bad position");
 }
 SourceFile.prototype.getColumn = function(line, position) {
-  return position - this.get$lineStarts()[line];
+  return $sub(position, this.get$lineStarts().$index(line));
 }
 SourceFile.prototype.getLocationMessage = function(message, start, end, includeText) {
   var line = this.getLine(start);
@@ -9682,7 +9779,7 @@ Parser.prototype._eatLeftParen = function() {
 }
 Parser.prototype._peekAfterCloseParen = function() {
   if (this._afterParensIndex < this._afterParens.get$length()) {
-    return this._afterParens[this._afterParensIndex];
+    return this._afterParens.$index(this._afterParensIndex);
   }
   this._afterParensIndex = (0);
   this._afterParens.clear();
@@ -10151,7 +10248,7 @@ function DivertedTokenSource(tokens, parser, previousTokenizer) {
   this.previousTokenizer = previousTokenizer;
 }
 DivertedTokenSource.prototype.next = function() {
-  var token = this.tokens[this._lang_pos];
+  var token = this.tokens.$index(this._lang_pos);
   ++this._lang_pos;
   if (this._lang_pos == this.tokens.get$length()) {
     this.parser.tokenizer = this.previousTokenizer;
@@ -11536,16 +11633,16 @@ DefinedType.prototype.resolve = function() {
     if (this.isClass) {
       if (typeDef.extendsTypes != null && typeDef.extendsTypes.get$length() > (0)) {
         if (typeDef.extendsTypes.get$length() > (1)) {
-          $globals.world.error("more than one base class", typeDef.extendsTypes[(1)].span);
+          $globals.world.error("more than one base class", typeDef.extendsTypes.$index((1)).get$span());
         }
-        var extendsTypeRef = typeDef.extendsTypes[(0)];
+        var extendsTypeRef = typeDef.extendsTypes.$index((0));
         if ((extendsTypeRef instanceof GenericTypeReference)) {
           var g = extendsTypeRef;
           this.set$parent(this.resolveType(g.baseType, true, true));
         }
         this.set$parent(this.resolveType(extendsTypeRef, true, true));
         if (!this.get$parent().get$isClass()) {
-          $globals.world.error("class may not extend an interface - use implements", typeDef.extendsTypes[(0)].span);
+          $globals.world.error("class may not extend an interface - use implements", typeDef.extendsTypes.$index((0)).get$span());
         }
         this.get$parent().addDirectSubtype(this);
         if (this._cycleInClassExtends()) {
@@ -11565,12 +11662,12 @@ DefinedType.prototype.resolve = function() {
     }
     else {
       if (typeDef.implementsTypes != null && typeDef.implementsTypes.get$length() > (0)) {
-        $globals.world.error("implements not allowed on interfaces (use extends)", typeDef.implementsTypes[(0)].span);
+        $globals.world.error("implements not allowed on interfaces (use extends)", typeDef.implementsTypes.$index((0)).get$span());
       }
       this.interfaces = this._resolveInterfaces(typeDef.extendsTypes);
       var res = this._cycleInInterfaceExtends();
       if ($gte(res, (0))) {
-        $globals.world.error(("interface \"" + this.name + "\" has a cycle in its inheritance chain"), typeDef.extendsTypes.$index(res).span);
+        $globals.world.error(("interface \"" + this.name + "\" has a cycle in its inheritance chain"), typeDef.extendsTypes.$index(res).get$span());
       }
       if (typeDef.defaultType != null) {
         this.defaultType = this.resolveType(typeDef.defaultType.baseType, true, true);
@@ -11635,7 +11732,7 @@ DefinedType.prototype.addMethod = function(methodName, definition) {
     this.constructors.$setindex(method.get$constructorName(), method);
     return;
   }
-  if (definition.modifiers != null && definition.modifiers.get$length() == (1) && definition.modifiers[(0)].kind == (74)) {
+  if (definition.modifiers != null && definition.modifiers.get$length() == (1) && definition.modifiers.$index((0)).get$kind() == (74)) {
     if (this.factories.getFactory(method.get$constructorName(), method.get$name()) != null) {
       $globals.world.error(("duplicate factory definition of \"" + method.get$name() + "\""), definition.span);
       return;
@@ -11677,14 +11774,14 @@ DefinedType.prototype.addMethod = function(methodName, definition) {
 DefinedType.prototype.addField = function(definition) {
   for (var i = (0);
    i < definition.names.get$length(); i++) {
-    var name = definition.names[i].name;
+    var name = definition.names.$index(i).get$name();
     if (this.members.containsKey(name)) {
       $globals.world.error(("duplicate field definition of \"" + name + "\""), definition.span);
       return;
     }
     var value = null;
     if (definition.values != null) {
-      value = definition.values[i];
+      value = definition.values.$index(i);
     }
     var field = new FieldMember(name, this, definition, value);
     this.members.$setindex(name, field);
@@ -11819,7 +11916,7 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
       typeArgs.$setindex(i, typeArg);
     }
     if (!typeArg.get$isVar()) allVar = false;
-    var paramName = this.typeParameters[i].name;
+    var paramName = this.typeParameters.$index(i).get$name();
     typeMap.$setindex(paramName, typeArg);
     names.add(typeArg.get$name());
     jsnames.add(typeArg.get$jsname());
@@ -13242,10 +13339,10 @@ GlobalValue.prototype.compareTo = function(other) {
   if ($eq(other, this)) {
     return (0);
   }
-  else if (this.dependencies.indexOf(other) >= (0)) {
+  else if ($gte(this.dependencies.indexOf$1(other), (0))) {
     return (1);
   }
-  else if (other.dependencies.indexOf(this) >= (0)) {
+  else if ($gte(other.dependencies.indexOf$1(this), (0))) {
     return (-1);
   }
   else if (this.dependencies.get$length() > other.dependencies.get$length()) {
@@ -13855,7 +13952,7 @@ function FrogOptions(homedir, args, files) {
   loop:
   for (var i = (2);
    i < args.get$length(); i++) {
-    var arg = args[i];
+    var arg = args.$index(i);
     switch (arg) {
       case "--enable_leg":
 
@@ -14119,7 +14216,7 @@ VarMethodStub.prototype._useDirectCall = function(args) {
     }
     for (var i = args.get$length();
      i < method.parameters.get$length(); i++) {
-      if (method.parameters[i].value.get$code() != "null") {
+      if ($ne(method.parameters.$index(i).get$value().get$code(), "null")) {
         return false;
       }
     }
@@ -14247,11 +14344,11 @@ function _getCallStubName(name, args) {
 //  ********** Library minfrog **************
 // ********** Code for top level **************
 function main() {
-  var homedir = path.dirname(fs.realpathSync(get$process().get$argv()[(1)]));
+  var homedir = path.dirname(get$fs().realpathSync(get$process().get$argv().$index((1))));
   var argv = [];
   for (var i = (0);
    i < get$process().get$argv().get$length(); i++) {
-    argv.add(get$process().get$argv()[i]);
+    argv.add(get$process().get$argv().$index(i));
     if (i == (1)) {
       var terminal = get$process().get$env().$index("TERM");
       if ($eq(terminal) || !terminal.startsWith("xterm")) {
