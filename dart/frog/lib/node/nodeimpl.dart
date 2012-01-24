@@ -24,10 +24,10 @@ class NativeListBase<E> implements List<E>{
   int get length() => _length(_list);
   static int _length(var list) native "return list.length;";
   abstract E operator[](int index);
-  
+
   // List<E> protocol
-  
-  void _throwUnsupported() {
+
+  _throwUnsupported() {
     throw new UnsupportedOperationException('not extendable');
   }
   void add(E value) => _throwUnsupported();
@@ -77,11 +77,11 @@ class NativeMapBase<V> implements Map<String, V> {
   NativeMapBase(this._map);
   int get length() => _length(_map);
   int _length(var map) native "return map.length;";
-  
+
   // Map<String, V>
 
   bool isEmpty() => length == 0;
-  
+
   abstract V operator[](String key);
 
   Collection<String> getKeys() {
@@ -89,16 +89,16 @@ class NativeMapBase<V> implements Map<String, V> {
     _forEachKey(_map, (String key) => keys.add(key));
     return keys;
   }
-  
+
   Collection<V> getValues() {
     List<V> values = new List<V>();
     _forEachKey(_map, (String key) => values.add(this[key]));
     return values;
   }
-  
+
   void forEach(void f(String key, V value)) =>
       _forEachKey(_map, (String k) => f(k, this[k]));
-  
+
   static void _forEachKey(var map, void f(String key))
     native """
       for (var i in map) {
@@ -110,7 +110,7 @@ class NativeMapBase<V> implements Map<String, V> {
 }
 
 class NativeMap<V> extends NativeMapBase<V> {
-  NativeValueWrapper _ctor;  
+  NativeValueWrapper _ctor;
   NativeMap(var map, this._ctor) : super(map);
   V operator[](String key) => _ctor(_at(_map, key));
   var _at(var map, String key) native "return map[key];";
@@ -182,7 +182,7 @@ class FixedLists {
     if (end <= 0) {
       throw new IndexOutOfRangeException(0);
     }
-    return list[end-1]; 
+    return list[end-1];
   }
 
   static void forEach(List list, void f(var element)) {
@@ -221,7 +221,7 @@ class FixedLists {
     }
     return true;
   }
-  
+
   static Collection map(List list, f(element), List result) {
     int len = list.length;
     for (int i = 0; i < len; i++) {
@@ -229,7 +229,7 @@ class FixedLists {
     }
     return result;
   }
-  
+
 
   static bool some(List list, bool f(num element)) {
     int len = list.length;

@@ -145,6 +145,9 @@ Object.defineProperty(Object.prototype, "instanceOf$3$isTrue$forceCheck", { valu
 Object.defineProperty(Object.prototype, "instanceOf$4", { value: function($0, $1, $2, $3) {
   return this.noSuchMethod("instanceOf", [$0, $1, $2, $3]);
 }, enumerable: false, writable: true, configurable: true });
+Object.defineProperty(Object.prototype, "invokeNoSuchMethod$3", { value: function($0, $1, $2) {
+  return this.noSuchMethod("invokeNoSuchMethod", [$0, $1, $2]);
+}, enumerable: false, writable: true, configurable: true });
 Object.defineProperty(Object.prototype, "is$List", { value: function() {
   return false;
 }, enumerable: false, writable: true, configurable: true });
@@ -437,6 +440,17 @@ Object.defineProperty(ListFactory.prototype, "last", { value: function() {
 Object.defineProperty(ListFactory.prototype, "getRange", { value: function(start, length) {
   return this.slice(start, start + length);
 }, enumerable: false, writable: true, configurable: true });
+Object.defineProperty(ListFactory.prototype, "insertRange", { value: function(start, length, initialValue) {
+      // Splice in the values with a minimum of array allocations.
+      var args = new Array(length + 2);
+      args[0] = start;
+      args[1] = 0;
+      for (var i = 0; i < length; i++) {
+        args[i + 2] = initialValue;
+      }
+      this.splice.apply(this, args);
+      
+}, enumerable: false, writable: true, configurable: true });
 Object.defineProperty(ListFactory.prototype, "isEmpty", { value: function() {
   return this.get$length() == (0);
 }, enumerable: false, writable: true, configurable: true });
@@ -486,6 +500,9 @@ ImmutableList.prototype.set$length = function(length) {
 ImmutableList.prototype.$setindex = function(index, value) {
   $throw(const$0006);
 }
+ImmutableList.prototype.insertRange = function(start, length, initialValue) {
+  $throw(const$0006);
+}
 ImmutableList.prototype.sort = function(compare) {
   $throw(const$0006);
 }
@@ -508,6 +525,99 @@ ImmutableList.prototype.toString = function() {
   return ListFactory.ListFactory$from$factory(this).toString$0();
 }
 ImmutableList.prototype.toString$0 = ImmutableList.prototype.toString;
+// ********** Code for JSSyntaxRegExp **************
+function JSSyntaxRegExp(pattern, multiLine, ignoreCase) {
+  JSSyntaxRegExp._create$ctor.call(this, pattern, $add(($eq(multiLine, true) ? "m" : ""), ($eq(ignoreCase, true) ? "i" : "")));
+}
+JSSyntaxRegExp._create$ctor = function(pattern, flags) {
+  this.re = new RegExp(pattern, flags);
+      this.pattern = pattern;
+      this.multiLine = this.re.multiline;
+      this.ignoreCase = this.re.ignoreCase;
+}
+JSSyntaxRegExp._create$ctor.prototype = JSSyntaxRegExp.prototype;
+JSSyntaxRegExp.prototype.is$RegExp = function(){return true};
+JSSyntaxRegExp.prototype.firstMatch = function(str) {
+  var m = this._exec(str);
+  return m == null ? null : new MatchImplementation(this.pattern, str, this._matchStart(m), this.get$_lastIndex(), m);
+}
+JSSyntaxRegExp.prototype._exec = function(str) {
+  return this.re.exec(str);
+}
+JSSyntaxRegExp.prototype._matchStart = function(m) {
+  return m.index;
+}
+JSSyntaxRegExp.prototype.get$_lastIndex = function() {
+  return this.re.lastIndex;
+}
+JSSyntaxRegExp.prototype.hasMatch = function(str) {
+  return this.re.test(str);
+}
+JSSyntaxRegExp.prototype.allMatches = function(str) {
+  return new _AllMatchesIterable(this, str);
+}
+JSSyntaxRegExp.prototype.get$_global = function() {
+  return new JSSyntaxRegExp._create$ctor(this.pattern, $add($add("g", (this.multiLine ? "m" : "")), (this.ignoreCase ? "i" : "")));
+}
+// ********** Code for MatchImplementation **************
+function MatchImplementation(pattern, str, _start, _end, _groups) {
+  this.str = str;
+  this._start = _start;
+  this._groups = _groups;
+  this.pattern = pattern;
+  this._end = _end;
+}
+MatchImplementation.prototype.start = function() {
+  return this._start;
+}
+MatchImplementation.prototype.get$start = function() {
+  return this.start.bind(this);
+}
+MatchImplementation.prototype.end = function() {
+  return this._end;
+}
+MatchImplementation.prototype.$index = function(group) {
+  return this._groups.$index(group);
+}
+MatchImplementation.prototype.end$0 = MatchImplementation.prototype.end;
+// ********** Code for _AllMatchesIterable **************
+function _AllMatchesIterable(_re, _str) {
+  this._re = _re;
+  this._str = _str;
+}
+_AllMatchesIterable.prototype.iterator = function() {
+  return new _AllMatchesIterator(this._re, this._str);
+}
+// ********** Code for _AllMatchesIterator **************
+function _AllMatchesIterator(re, _str) {
+  this._done = false;
+  this._re = re.get$_global();
+  this._str = _str;
+}
+_AllMatchesIterator.prototype.next = function() {
+  if (!this.hasNext()) {
+    $throw(const$0001);
+  }
+  var next = this._next;
+  this._next = null;
+  return next;
+}
+_AllMatchesIterator.prototype.hasNext = function() {
+  if (this._done) {
+    return false;
+  }
+  else if (this._next != null) {
+    return true;
+  }
+  this._next = this._re.firstMatch(this._str);
+  if (this._next == null) {
+    this._done = true;
+    return false;
+  }
+  else {
+    return true;
+  }
+}
 // ********** Code for NumImplementation **************
 NumImplementation = Number;
 NumImplementation.prototype.$negate = function() {
@@ -812,6 +922,14 @@ HashSetImplementation.prototype.forEach = function(f) {
   }
   );
 }
+HashSetImplementation.prototype.map = function(f) {
+  var result = new HashSetImplementation();
+  this._backingMap.forEach(function _(key, value) {
+    result.add(f(key));
+  }
+  );
+  return result;
+}
 HashSetImplementation.prototype.filter = function(f) {
   var result = new HashSetImplementation();
   this._backingMap.forEach(function _(key, value) {
@@ -1098,6 +1216,16 @@ DoubleLinkedQueue.prototype.some = function(f) {
     entry = nextEntry;
   }
   return false;
+}
+DoubleLinkedQueue.prototype.map = function(f) {
+  var other = new DoubleLinkedQueue();
+  var entry = this._sentinel._next;
+  while (entry != this._sentinel) {
+    var nextEntry = entry._next;
+    other.addLast(f(entry._element));
+    entry = nextEntry;
+  }
+  return other;
 }
 DoubleLinkedQueue.prototype.filter = function(f) {
   var other = new DoubleLinkedQueue();
@@ -1768,7 +1896,7 @@ MethodAnalyzer.prototype.visitValue = function(node) {
 }
 MethodAnalyzer.prototype.visitTypedValue = function(node, expectedType) {
   var val = this.visitValue(node);
-  return val;
+  return val == null ? null : val.convertTo(this._frame, expectedType);
 }
 MethodAnalyzer.prototype.visitVoid = function(node) {
   return this.visitValue(node);
@@ -1999,7 +2127,7 @@ MethodAnalyzer.prototype.visitCallExpression = function(node) {
     name = varExpr.name.name;
     target = this._frame.lookup(name);
     if ($ne(target)) {
-      return target.get().invoke(this._frame, ":call", node, this._visitArgs(node.arguments));
+      return target.get(position).invoke(this._frame, ":call", node, this._visitArgs(node.arguments));
     }
     var member = this._resolveBare(name, varExpr.name);
     if (member != null) {
@@ -2221,7 +2349,7 @@ MethodAnalyzer.prototype.visitVarExpression = function(node) {
   var name = node.name.name;
   var slot = this._frame.lookup(name);
   if ($ne(slot)) {
-    return slot.get();
+    return slot.get(node);
   }
   var member = this._resolveBare(name, node.name);
   if (member != null) {
@@ -2359,6 +2487,9 @@ function VariableSlot(scope, name, staticType, node, isFinal, value) {
   this.node = node;
   this.staticType = staticType;
   this.isFinal = isFinal;
+  if (this.value != null) {
+    this.value = this.value.convertTo(this.scope.frame, this.staticType);
+  }
 }
 VariableSlot.prototype.get$scope = function() { return this.scope; };
 VariableSlot.prototype.set$scope = function(value) { return this.scope = value; };
@@ -2369,12 +2500,14 @@ VariableSlot.prototype.get$isFinal = function() { return this.isFinal; };
 VariableSlot.prototype.set$isFinal = function(value) { return this.isFinal = value; };
 VariableSlot.prototype.get$value = function() { return this.value; };
 VariableSlot.prototype.set$value = function(value) { return this.value = value; };
-VariableSlot.prototype.get = function() {
-  return this.scope.frame._makeValue(this.staticType, null);
+VariableSlot.prototype.get = function(position) {
+  return this.scope.frame._makeValue(this.staticType, position);
 }
 VariableSlot.prototype.set = function(newValue) {
-  if (this.value == null) this.value = newValue;
-  else this.value = Value.union(this.value, newValue);
+  if (newValue != null) {
+    newValue = newValue.convertTo(this.scope.frame, this.staticType);
+  }
+  this.value = Value.union(this.value, newValue);
 }
 VariableSlot.prototype.toString = function() {
   var valueString = this.value != null ? (" = " + this.value.get$type().name) : "";
@@ -5093,6 +5226,7 @@ Library.prototype.makeFullPath = function(filename) {
   if (filename.startsWith("/")) return filename;
   if (filename.startsWith("file:///")) return filename;
   if (filename.startsWith("http://")) return filename;
+  if (const$0009.hasMatch(filename)) return filename;
   return joinPaths(this.sourceDir, filename);
 }
 Library.prototype.addImport = function(fullname, prefix, span) {
@@ -5547,14 +5681,14 @@ Parameter.prototype.resolve = function() {
 }
 Parameter.prototype.genValue = function(method, context) {
   if (this.definition.value == null || this.value != null) return;
-  if (context == null) {
-    context = new MethodGenerator(method, null);
+  if ((context instanceof MethodGenerator)) {
+    var gen = context;
+    this.value = this.definition.value.visit(gen);
+    if (!this.value.get$isConst()) {
+      $globals.world.error("default parameter values must be constant", this.value.span);
+    }
+    this.value = this.value.convertTo(context, this.type);
   }
-  this.value = this.definition.value.visit(context);
-  if (!this.value.get$isConst()) {
-    $globals.world.error("default parameter values must be constant", this.value.span);
-  }
-  this.value = this.value.convertTo(context, this.type);
 }
 Parameter.prototype.get$isOptional = function() {
   return this.definition != null && this.definition.value != null;
@@ -5816,7 +5950,7 @@ PropertyMember.prototype._get = function(context, node, target) {
     if (this._overriddenField != null) {
       return this._overriddenField._get(context, node, target);
     }
-    return target.invokeNoSuchMethod(context, ("get:" + this.name), node);
+    return target.invokeNoSuchMethod$3(context, ("get:" + this.name), node);
   }
   return this.getter.invoke(context, node, target, Arguments.get$EMPTY());
 }
@@ -6051,44 +6185,34 @@ MethodMember._argCountMsg = function(actual, expected, atLeast) {
   return $add("wrong number of positional arguments, expected ", ("" + (atLeast ? "at least " : "") + expected + " but found " + actual));
 }
 MethodMember.prototype._argError = function(context, node, target, args, msg, argIndex) {
-  var span;
-  if ((args.nodes == null) || (argIndex >= args.nodes.get$length())) {
-    span = node.span;
-  }
-  else {
-    span = args.nodes.$index(argIndex).get$span();
-  }
-  if (this.isStatic || this.get$isConstructor()) {
-    $globals.world.error(msg, span);
-  }
-  else {
-    $globals.world.warning(msg, span);
+  if (context.get$showWarnings()) {
+    var span;
+    if ((args.nodes == null) || (argIndex >= args.nodes.get$length())) {
+      span = node.span;
+    }
+    else {
+      span = args.nodes.$index(argIndex).get$span();
+    }
+    if (this.isStatic || this.get$isConstructor()) {
+      $globals.world.error(msg, span);
+    }
+    else {
+      $globals.world.warning(msg, span);
+    }
   }
   return target.invokeNoSuchMethod(context, this.name, node, args);
 }
 MethodMember.prototype.genParameterValues = function(context) {
-  var $$list = this.parameters;
-  for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
-    var p = $$i.next();
-    p.genValue(this, context);
+  if (context.get$needsCode()) {
+    var $$list = this.parameters;
+    for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
+      var p = $$i.next();
+      p.genValue(this, context);
+    }
   }
 }
 MethodMember.prototype.invoke = function(context, node, target, args) {
-  if (!context.get$needsCode()) {
-    return new PureStaticValue(this.returnType, node.span, false, false);
-  }
-  this.declaringType.genMethod(this);
-  if (this.isStatic || this.isFactory) {
-    this.declaringType.markUsed();
-  }
-  if (this.get$isNative() && this.returnType != null) this.returnType.markUsed();
-  if (!this.namesInOrder(args)) {
-    return context.findMembers(this.name).invokeOnVar(context, node, target, args);
-  }
-  var argsCode = [];
-  if (!target.get$isType() && (this.get$isConstructor() || target.get$isSuper())) {
-    argsCode.add("this");
-  }
+  var argValues = [];
   var bareCount = args.get$bareCount();
   for (var i = (0);
    i < bareCount; i++) {
@@ -6097,17 +6221,20 @@ MethodMember.prototype.invoke = function(context, node, target, args) {
       var msg = MethodMember._argCountMsg(args.get$length(), this.parameters.get$length(), false);
       return this._argError(context, node, target, args, msg, i);
     }
-    arg = arg.convertTo(context, this.parameters.$index(i).get$type());
-    argsCode.add(arg.get$code());
+    argValues.add(arg.convertTo(context, this.parameters.$index(i).get$type()));
   }
   var namedArgsUsed = (0);
   if (bareCount < this.parameters.get$length()) {
     this.genParameterValues(context);
     for (var i = bareCount;
      i < this.parameters.get$length(); i++) {
-      var arg = args.getValue(this.parameters.$index(i).get$name());
+      var param = this.parameters.$index(i);
+      var arg = args.getValue(param.get$name());
       if ($eq(arg)) {
-        arg = this.parameters.$index(i).get$value();
+        arg = param.get$value();
+        if ($eq(arg)) {
+          arg = new PureStaticValue(param.get$type(), param.get$definition().get$span(), true, false);
+        }
       }
       else {
         arg = arg.convertTo(context, this.parameters.$index(i).get$type());
@@ -6118,10 +6245,9 @@ MethodMember.prototype.invoke = function(context, node, target, args) {
         return this._argError(context, node, target, args, msg, i);
       }
       else {
-        argsCode.add(arg.get$code());
+        argValues.add(arg);
       }
     }
-    Arguments.removeTrailingNulls(argsCode);
   }
   if (namedArgsUsed < args.get$nameCount()) {
     var seen = new HashSetImplementation_dart_core_String();
@@ -6141,6 +6267,27 @@ MethodMember.prototype.invoke = function(context, node, target, args) {
       }
     }
     $globals.world.internalError(("wrong named arguments calling " + this.name), node.span);
+  }
+  if (!context.get$needsCode()) {
+    return new PureStaticValue(this.returnType, node.span, false, false);
+  }
+  this.declaringType.genMethod(this);
+  if (this.isStatic || this.isFactory) {
+    this.declaringType.markUsed();
+  }
+  if (this.get$isNative() && this.returnType != null) this.returnType.markUsed();
+  if (!this.namesInOrder(args)) {
+    return context.findMembers(this.name).invokeOnVar(context, node, target, args);
+  }
+  var argsCode = argValues.map((function (v) {
+    return v.get$code();
+  })
+  );
+  if (!target.get$isType() && (this.get$isConstructor() || target.get$isSuper())) {
+    argsCode.insertRange((0), (1), "this");
+  }
+  if (bareCount < this.parameters.get$length()) {
+    Arguments.removeTrailingNulls(argsCode);
   }
   var argsString = Strings.join(argsCode, ", ");
   if (this.get$isConstructor()) {
@@ -12101,7 +12248,7 @@ Value.prototype.get_ = function(context, name, node) {
     return member._get(context, node, this);
   }
   else {
-    return this.invokeNoSuchMethod(context, ("get:" + name), node);
+    return this.invokeNoSuchMethod$3(context, ("get:" + name), node);
   }
 }
 Value.prototype.set_ = function(context, name, node, value, kind, returnKind) {
@@ -12361,24 +12508,21 @@ Value.prototype.convertTo = function(context, toType) {
     fromType = $globals.world.objectType;
   }
   var bothNum = this.get$type().get$isNum() && toType.get$isNum();
-  if (fromType.isSubtypeOf(toType) || bothNum) {
-    return this.changeStaticType(toType);
-  }
-  if (checked && !toType.isSubtypeOf(this.get$type())) {
-    this.convertWarning(toType);
-  }
-  if ($globals.options.enableTypeChecks) {
-    if (context == null) {
-      return null;
+  if (!fromType.isSubtypeOf(toType) && !bothNum) {
+    if (checked && !toType.isSubtypeOf(this.get$type())) {
+      this.convertWarning(toType);
     }
-    return this._typeAssert(context, toType);
+    if ($globals.options.enableTypeChecks) {
+      if (context == null) {
+        return null;
+      }
+      return this._typeAssert(context, toType);
+    }
   }
-  else {
-    return this.changeStaticType(toType);
-  }
+  return this._changeStaticType(toType);
 }
-Value.prototype.changeStaticType = function(toType) {
-  return ($eq(toType, this.get$type())) ? this : new ConvertedValue(this, toType);
+Value.prototype._changeStaticType = function(toType) {
+  return this;
 }
 Value.prototype._maybeWrapFunction = function(toType, callMethod) {
   var arity = callMethod.parameters.get$length();
@@ -12397,8 +12541,7 @@ Value.prototype._maybeWrapFunction = function(toType, callMethod) {
     }
     result = new Value(toType, ("$wrap_call$" + arity + "(" + result.get$code() + ")"), this.span);
   }
-  if (result == this) result = this.changeStaticType(toType);
-  return result;
+  return result._changeStaticType(toType);
 }
 Value.prototype._typeAssert = function(context, toType) {
   var $0;
@@ -12535,6 +12678,7 @@ Value.prototype.instanceOf$3$isTrue$forceCheck = Value.prototype.instanceOf;
 Value.prototype.instanceOf$4 = function($0, $1, $2, $3) {
   return this.instanceOf($0, $1, $2, $3, false);
 };
+Value.prototype.invokeNoSuchMethod$3 = Value.prototype.invokeNoSuchMethod;
 Value.prototype.setIndex$4$kind = function($0, $1, $2, $3, kind) {
   return this.setIndex($0, $1, $2, $3, kind, (1));
 };
@@ -12639,6 +12783,23 @@ PureStaticValue.prototype.invoke = function(context, name, node, args) {
   if ($eq(member)) return new PureStaticValue($globals.world.varType, node.span, false, false);
   return member.invoke(context, node, this, args);
 }
+PureStaticValue.prototype.invokeNoSuchMethod = function(context, name, node, args) {
+  if (this.isType) {
+    $globals.world.error(("member lookup failed for \"" + name + "\""), node.span);
+  }
+  var member = this.getMem(context, "noSuchMethod", node);
+  if ($eq(member)) return new PureStaticValue($globals.world.varType, node.span, false, false);
+  var noSuchArgs = new Arguments(null, [new PureStaticValue($globals.world.stringType, node.span, false, false), new PureStaticValue($globals.world.listType, node.span, false, false)]);
+  return member.invoke(context, node, this, noSuchArgs);
+}
+PureStaticValue.prototype._typeAssert = function(context, toType) {
+  return this._changeStaticType(toType);
+}
+PureStaticValue.prototype._changeStaticType = function(toType) {
+  if (toType == this.get$type()) return this;
+  return new PureStaticValue(toType, this.span, this.isConst, this.isType);
+}
+PureStaticValue.prototype.invokeNoSuchMethod$3 = PureStaticValue.prototype.invokeNoSuchMethod;
 PureStaticValue.prototype.setIndex$4$kind = function($0, $1, $2, $3, kind) {
   return this.setIndex($0, $1, $2, $3, kind, (1));
 };
@@ -13443,27 +13604,6 @@ TypeValue.prototype._shouldBindDynamically = function() {
 TypeValue.prototype._tryUnion = function(right) {
   return (right instanceof TypeValue) ? this : null;
 }
-// ********** Code for ConvertedValue **************
-$inherits(ConvertedValue, Value);
-function ConvertedValue(value, staticType) {
-  this.staticType = staticType;
-  this.value = ((value instanceof ConvertedValue) ? value.get$dynamic().get$value() : value);
-  Value.call(this, value.get$type(), value.get$code(), value.span);
-}
-ConvertedValue.prototype.get$staticType = function() { return this.staticType; };
-ConvertedValue.prototype.get$value = function() { return this.value; };
-ConvertedValue.prototype.get$needsTemp = function() {
-  return this.value.get$needsTemp();
-}
-ConvertedValue.prototype.get$isFinal = function() {
-  return this.value.get$isFinal();
-}
-ConvertedValue.prototype.get$isConst = function() {
-  return this.value.get$isConst();
-}
-ConvertedValue.prototype._tryUnion = function(right) {
-  return Value.union(this.value, right);
-}
 // ********** Code for VariableValue **************
 $inherits(VariableValue, Value);
 function VariableValue(staticType, code, span, isFinal, value) {
@@ -13475,9 +13615,6 @@ VariableValue.prototype.get$isFinal = function() { return this.isFinal; };
 VariableValue.prototype.get$value = function() { return this.value; };
 VariableValue._unwrap = function(v) {
   if (v == null) return null;
-  if ((v instanceof ConvertedValue)) {
-    v = v.get$dynamic().get$value();
-  }
   if ((v instanceof VariableValue)) {
     v = v.get$dynamic().get$value();
   }
@@ -14391,6 +14528,7 @@ var const$0001 = Object.create(NoMoreElementsException.prototype, {});
 var const$0002 = Object.create(EmptyQueueException.prototype, {});
 var const$0006 = Object.create(IllegalAccessException.prototype, {});
 var const$0007 = ImmutableList.ImmutableList$from$factory([]);
+var const$0009 = new JSSyntaxRegExp("^[a-zA-Z]:/");
 var $globals = {};
 $static_init();
 main();

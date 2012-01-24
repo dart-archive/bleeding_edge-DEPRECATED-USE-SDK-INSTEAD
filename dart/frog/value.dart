@@ -133,6 +133,34 @@ class PureStaticValue extends Value {
 
     return member.invoke(context, node, this, args);
   }
+
+  Value invokeNoSuchMethod(CallingContext context, String name, Node node,
+      [Arguments args]) {
+    if (isType) {
+      world.error('member lookup failed for "$name"', node.span);
+    }
+
+    var member = getMem(context, 'noSuchMethod', node);
+    if (member == null) return new PureStaticValue(world.varType, node.span);
+
+    final noSuchArgs = new Arguments(null, [
+        new PureStaticValue(world.stringType, node.span),
+        new PureStaticValue(world.listType, node.span)]);
+
+    return member.invoke(context, node, this, noSuchArgs);
+  }
+
+  // These are implementation details of convertTo. (Eventually we might find it
+  // easier to just implement convertTo itself).
+
+  Value _typeAssert(CallingContext context, Type toType) {
+    return _changeStaticType(toType);
+  }
+
+  Value _changeStaticType(Type toType) {
+    if (toType === type) return this;
+    return new PureStaticValue(toType, span, isConst, isType);
+  }
 }
 
 
@@ -557,34 +585,29 @@ class Value {
     // TODO(jmesserly): remove the special case for "num" when our num handling
     // is better.
     bool bothNum = type.isNum && toType.isNum;
-    if (fromType.isSubtypeOf(toType) || bothNum) {
-      // No checks needed for a widening conversion.
-      return changeStaticType(toType);
-    }
+    if (!fromType.isSubtypeOf(toType) && !bothNum) {
+      // If it is a narrowing conversion, we'll need a check in checked mode.
 
-    if (checked && !toType.isSubtypeOf(type)) {
-      // According to the static types, this conversion can't work.
-      convertWarning(toType);
-    }
-
-    // Generate a runtime checks if they're turned on, otherwise skip it.
-    if (options.enableTypeChecks) {
-      if (context == null) {
-        // If we're called from needsConversion, we don't need a context.
-        // Just return null so it knows a conversion is required.
-        return null;
+      if (checked && !toType.isSubtypeOf(type)) {
+        // According to the static types, this conversion can't work.
+        convertWarning(toType);
       }
-      return _typeAssert(context, toType);
-    } else {
-      return changeStaticType(toType);
+
+      if (options.enableTypeChecks) {
+        if (context == null) {
+          // If we're called from needsConversion, we don't need a context.
+          // Just return null so it knows a conversion is required.
+          return null;
+        }
+        return _typeAssert(context, toType);
+      }
     }
+
+    return _changeStaticType(toType);
   }
 
-  changeStaticType(Type toType) {
-    // Ensure that we return something with the right type for inference
-    // purposes.
-    return (toType == type) ? this : new ConvertedValue(this, toType);
-  }
+  // Nothing to do in general.
+  Value _changeStaticType(Type toType) => this;
 
   /**
    * Wraps a function with a conversion, so it can be called directly from
@@ -622,8 +645,7 @@ class Value {
       result = new Value(toType, '\$wrap_call\$$arity(${result.code})', span);
     }
 
-    if (result === this) result = changeStaticType(toType);
-    return result;
+    return result._changeStaticType(toType);
   }
 
   /**
@@ -1536,29 +1558,6 @@ class TypeValue extends Value {
   Value _tryUnion(Value right) => right is TypeValue ? this : null;
 }
 
-/** A value whose [staticType] has been changed, but is otherwise the same. */
-// TODO(jmesserly): we could make this object cheaper, if we were willing to
-// create a different kind of base Value that doesn't have storage on it.
-class ConvertedValue extends Value {
-  final Type staticType;
-  final Value value;
-
-  ConvertedValue(Value value, this.staticType):
-    value = (value is ConvertedValue ? value.dynamic.value : value),
-    super(value.type, value.code, value.span) {
-    // these are not really first class
-    assert(!value.isType && !value.isSuper);
-  }
-
-  bool get needsTemp() => value.needsTemp;
-  bool get isFinal() => value.isFinal;
-  bool get isConst() => value.isConst;
-
-  // TODO(jmesserly): preserve the staticType?
-  Value _tryUnion(Value right) => Value.union(value, right);
-
-  // TODO(jmessery): override get/set/invoke/unop/binop?
-}
 
 /**
  * A value that represents a variable or parameter. The [assigned] value can be
@@ -1583,9 +1582,6 @@ class VariableValue extends Value {
 
   static Value _unwrap(Value v) {
     if (v === null) return null;
-    if (v is ConvertedValue) {
-      v = v.dynamic.value;
-    }
     if (v is VariableValue) {
       v = v.dynamic.value;
     }

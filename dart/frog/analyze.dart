@@ -89,6 +89,9 @@ class MethodAnalyzer implements TreeVisitor {
         // Handle named or missing arguments
         currentArg = args.getValue(p.name);
         if (currentArg === null) {
+          // TODO(jmesserly): this path won't work if we ever get here, because
+          // Paramter.genValue assumes it has a MethodGenerator.
+
           // Ensure default value for param has been generated
           p.genValue(method, _frame); // TODO(jimhug): Needed here?
           if (p.value === null) {
@@ -124,8 +127,7 @@ class MethodAnalyzer implements TreeVisitor {
    */
   visitTypedValue(Expression node, Type expectedType) {
     final val = visitValue(node);
-    return val;
-    // TODO(jimhug): val.convertTo(this, expectedType);
+    return val === null ? null : val.convertTo(_frame, expectedType);
   }
 
   visitVoid(Expression node) {
@@ -407,7 +409,7 @@ class MethodAnalyzer implements TreeVisitor {
       // First check in block scopes.
       target = _frame.lookup(name);
       if (target != null) {
-        return target.get().invoke(_frame, ':call', node,
+        return target.get(position).invoke(_frame, ':call', node,
           _visitArgs(node.arguments));
       }
 
@@ -700,7 +702,7 @@ class MethodAnalyzer implements TreeVisitor {
     // First check in block scopes.
     var slot = _frame.lookup(name);
     if (slot != null) {
-      return slot.get();
+      return slot.get(node);
     }
 
     var member = _resolveBare(name, node.name);

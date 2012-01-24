@@ -41,6 +41,10 @@ var createSandbox() native
       'DataView': DataView
       };""";
 
+_throwUnsupported() {
+  throw new UnsupportedOperationException('not extendable');
+}
+
 // global console
 
 class Console native "Console" {
@@ -453,9 +457,6 @@ class _BufferImplementation implements Buffer native "Buffer" {
   int operator[](int index) native;
   int operator[]=(int index, int value) native;
 
-  void _throwUnsupported() {
-    throw new UnsupportedOperationException('not extendable');
-  }
   void add(int value) => _throwUnsupported();
   void addAll(Collection<int> collection) => _throwUnsupported();
   void addLast(int value) => _throwUnsupported();
@@ -599,17 +600,14 @@ class Int8Array implements TypedArrayBufferView<int> native "Int8Array" {
   // List protocol
   int operator[](int index) native;
   void operator[]=(int index, int value) native;
-  void _throwUnsupported() {
-     throw new UnsupportedOperationException('not extendable');
-   }
-   void add(int value) => _throwUnsupported();
-   void addAll(Collection<int> collection) => _throwUnsupported();
-   void addLast(int value) => _throwUnsupported();
-   void clear() => _throwUnsupported();
-   int indexOf(int element, [int start])
-       => FixedLists.indexOf(this, element, start);
-   void insertRange(int start, int length, [int initialValue])
-       => _throwUnsupported();
+  void add(int value) => _throwUnsupported();
+  void addAll(Collection<int> collection) => _throwUnsupported();
+  void addLast(int value) => _throwUnsupported();
+  void clear() => _throwUnsupported();
+  int indexOf(int element, [int start])
+     => FixedLists.indexOf(this, element, start);
+  void insertRange(int start, int length, [int initialValue])
+     => _throwUnsupported();
   Int8Array getRange(int start, int length) {
     FixedLists.getRangeCheck(this.length, start, length);
     return new Int8Array.fromArray(subarray(start, start+length));
@@ -662,9 +660,6 @@ class Uint8Array implements TypedArrayBufferView<int> native "Uint8Array" {
   // List protocol
   int operator[](int index) native;
   void operator[]=(int index, int value) native;
-  void _throwUnsupported() {
-     throw new UnsupportedOperationException('not extendable');
-  }
   void add(int value) => _throwUnsupported();
   void addAll(Collection<int> collection) => _throwUnsupported();
   void addLast(int value) => _throwUnsupported();
@@ -725,17 +720,14 @@ class Int16Array implements TypedArrayBufferView<int> native "Int16Array" {
   // List protocol
   int operator[](int index) native;
   void operator[]=(int index, int value) native;
-  void _throwUnsupported() {
-     throw new UnsupportedOperationException('not extendable');
-   }
-   void add(int value) => _throwUnsupported();
-   void addAll(Collection<int> collection) => _throwUnsupported();
-   void addLast(int value) => _throwUnsupported();
-   void clear() => _throwUnsupported();
-   int indexOf(int element, [int start])
-       => FixedLists.indexOf(this, element, start);
-   void insertRange(int start, int length, [int initialValue])
-       => _throwUnsupported();
+  void add(int value) => _throwUnsupported();
+  void addAll(Collection<int> collection) => _throwUnsupported();
+  void addLast(int value) => _throwUnsupported();
+  void clear() => _throwUnsupported();
+  int indexOf(int element, [int start])
+     => FixedLists.indexOf(this, element, start);
+  void insertRange(int start, int length, [int initialValue])
+     => _throwUnsupported();
   Int16Array getRange(int start, int length) {
     FixedLists.getRangeCheck(this.length, start, length);
     return new Int16Array.fromArray(subarray(start, start+length));
@@ -788,17 +780,14 @@ class Uint16Array implements TypedArrayBufferView<int> native "Uint16Array" {
   // List protocol
   int operator[](int index) native;
   void operator[]=(int index, int value) native;
-  void _throwUnsupported() {
-     throw new UnsupportedOperationException('not extendable');
-   }
-   void add(int value) => _throwUnsupported();
-   void addAll(Collection<int> collection) => _throwUnsupported();
-   void addLast(int value) => _throwUnsupported();
-   void clear() => _throwUnsupported();
-   int indexOf(int element, [int start])
-       => FixedLists.indexOf(this, element, start);
-   void insertRange(int start, int length, [int initialValue])
-       => _throwUnsupported();
+  void add(int value) => _throwUnsupported();
+  void addAll(Collection<int> collection) => _throwUnsupported();
+  void addLast(int value) => _throwUnsupported();
+  void clear() => _throwUnsupported();
+  int indexOf(int element, [int start])
+     => FixedLists.indexOf(this, element, start);
+  void insertRange(int start, int length, [int initialValue])
+     => _throwUnsupported();
   Uint16Array getRange(int start, int length) {
     FixedLists.getRangeCheck(this.length, start, length);
     return new Uint16Array.fromArray(subarray(start, start+length));
@@ -851,9 +840,6 @@ class Int32Array implements TypedArrayBufferView<int> native "Int32Array" {
   // List protocol
   int operator[](int index) native;
   void operator[]=(int index, int value) native;
-  void _throwUnsupported() {
-    throw new UnsupportedOperationException('not extendable');
-  }
   void add(int value) => _throwUnsupported();
   void addAll(Collection<int> collection) => _throwUnsupported();
   void addLast(int value) => _throwUnsupported();
@@ -914,9 +900,6 @@ class Uint32Array implements TypedArrayBufferView<int> native "Uint32Array" {
   // List protocol
   int operator[](int index) native;
   void operator[]=(int index, int value) native;
-  void _throwUnsupported() {
-    throw new UnsupportedOperationException('not extendable');
-  }
   void add(int value) => _throwUnsupported();
   void addAll(Collection<int> collection) => _throwUnsupported();
   void addLast(int value) => _throwUnsupported();
@@ -977,9 +960,6 @@ class Float32Array implements TypedArrayBufferView<num> native "Float32Array" {
   // List protocol
   int operator[](int index) native;
   void operator[]=(int index, int value) native;
-  void _throwUnsupported() {
-    throw new UnsupportedOperationException('not extendable');
-  }
   void add(int value) => _throwUnsupported();
   void addAll(Collection<int> collection) => _throwUnsupported();
   void addLast(int value) => _throwUnsupported();
@@ -1040,9 +1020,6 @@ class Float64Array implements TypedArrayBufferView<num> native "Float64Array" {
   // List protocol
   int operator[](int index) native;
   void operator[]=(int index, int value) native;
-  void _throwUnsupported() {
-    throw new UnsupportedOperationException('not extendable');
-  }
   void add(int value) => _throwUnsupported();
   void addAll(Collection<int> collection) => _throwUnsupported();
   void addLast(int value) => _throwUnsupported();

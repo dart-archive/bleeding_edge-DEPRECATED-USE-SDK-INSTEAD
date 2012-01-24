@@ -52,14 +52,15 @@ class Parameter {
   genValue(MethodMember method, CallingContext context) {
     if (definition.value == null || value != null) return;
 
-    if (context == null) { // interface method
-      context = new MethodGenerator(method, null);
+    // TODO(jmesserly): what should we do when context is not a MethodGenerator?
+    if (context is MethodGenerator) {
+      MethodGenerator gen = context;
+      value = definition.value.visit(gen);
+      if (!value.isConst) {
+        world.error('default parameter values must be constant', value.span);
+      }
+      value = value.convertTo(context, type);
     }
-    value = definition.value.visit(context);
-    if (!value.isConst) {
-      world.error('default parameter values must be constant', value.span);
-    }
-    value = value.convertTo(context, type);
   }
 
   Parameter copyWithNewType(Member newMethod, Type newType) {
@@ -900,23 +901,27 @@ class MethodMember extends Member {
 
   Value _argError(CallingContext context, Node node, Value target,
       Arguments args, String msg, int argIndex) {
-    SourceSpan span;
-    if ((args.nodes == null) || (argIndex >= args.nodes.length)) {
-      span = node.span;
-    } else {
-      span = args.nodes[argIndex].span;
-    }
-    if (isStatic || isConstructor) {
-      world.error(msg, span);
-    } else {
-      world.warning(msg, span);
+    if (context.showWarnings) {
+      SourceSpan span;
+      if ((args.nodes == null) || (argIndex >= args.nodes.length)) {
+        span = node.span;
+      } else {
+        span = args.nodes[argIndex].span;
+      }
+      if (isStatic || isConstructor) {
+        world.error(msg, span);
+      } else {
+        world.warning(msg, span);
+      }
     }
     return target.invokeNoSuchMethod(context, name, node, args);
   }
 
   genParameterValues(CallingContext context) {
     // TODO(jimhug): Is this the right context?
-    for (var p in parameters) p.genValue(this, context);
+    if (context.needsCode) {
+      for (var p in parameters) p.genValue(this, context);
+    }
   }
 
   /**
@@ -925,35 +930,8 @@ class MethodMember extends Member {
    */
   Value invoke(CallingContext context, Node node, Value target,
       Arguments args) {
-    if (!context.needsCode) {
-      // TODO(jimhug): Add argument type and name checks here.
-      return new PureStaticValue(returnType, node.span);
-    }
 
-    declaringType.genMethod(this);
-
-    if (isStatic || isFactory) {
-      // TODO(sigmund): can we avoid generating the entire type, but only what
-      // we need?
-      declaringType.markUsed();
-    }
-
-    // TODO(jmesserly): get rid of this in favor of using the native method
-    // "bodies" to tell the compiler about valid return types.
-    if (isNative && returnType != null) returnType.markUsed();
-
-    if (!namesInOrder(args)) {
-      // Names aren't in order. For now, use a var call because it's an
-      // easy way to get the right eval order for out of order arguments.
-      // TODO(jmesserly): temps would be better.
-      return context.findMembers(name).invokeOnVar(context, node, target, args);
-    }
-
-    var argsCode = [];
-    if (!target.isType && (isConstructor || target.isSuper)) {
-      argsCode.add('this');
-    }
-
+    var argValues = <Value>[];
     int bareCount = args.bareCount;
     for (int i = 0; i < bareCount; i++) {
       var arg = args.values[i];
@@ -961,8 +939,7 @@ class MethodMember extends Member {
         var msg = _argCountMsg(args.length, parameters.length);
         return _argError(context, node, target, args, msg, i);
       }
-      arg = arg.convertTo(context, parameters[i].type);
-      argsCode.add(arg.code);
+      argValues.add(arg.convertTo(context, parameters[i].type));
     }
 
     int namedArgsUsed = 0;
@@ -970,9 +947,14 @@ class MethodMember extends Member {
       genParameterValues(context);
 
       for (int i = bareCount; i < parameters.length; i++) {
-        var arg = args.getValue(parameters[i].name);
+        var param = parameters[i];
+        var arg = args.getValue(param.name);
         if (arg == null) {
-          arg = parameters[i].value;
+          arg = param.value;
+          if (arg == null) {
+            // TODO(jmesserly): should we be use the actual constant value here?
+            arg = new PureStaticValue(param.type, param.definition.span, true);
+          }
         } else {
           arg = arg.convertTo(context, parameters[i].type);
           namedArgsUsed++;
@@ -982,10 +964,9 @@ class MethodMember extends Member {
           var msg = _argCountMsg(Math.min(i, args.length), i + 1, atLeast:true);
           return _argError(context, node, target, args, msg, i);
         } else {
-          argsCode.add(arg.code);
+          argValues.add(arg);
         }
       }
-      Arguments.removeTrailingNulls(argsCode);
     }
 
     if (namedArgsUsed < args.nameCount) {
@@ -1013,6 +994,36 @@ class MethodMember extends Member {
       world.internalError('wrong named arguments calling $name', node.span);
     }
 
+    if (!context.needsCode) {
+      return new PureStaticValue(returnType, node.span);
+    }
+
+    declaringType.genMethod(this);
+
+    if (isStatic || isFactory) {
+      // TODO(sigmund): can we avoid generating the entire type, but only what
+      // we need?
+      declaringType.markUsed();
+    }
+
+    // TODO(jmesserly): get rid of this in favor of using the native method
+    // "bodies" to tell the compiler about valid return types.
+    if (isNative && returnType != null) returnType.markUsed();
+
+    if (!namesInOrder(args)) {
+      // Names aren't in order. For now, use a var call because it's an
+      // easy way to get the right eval order for out of order arguments.
+      // TODO(jmesserly): temps would be better.
+      return context.findMembers(name).invokeOnVar(context, node, target, args);
+    }
+
+    var argsCode = argValues.map((v) => v.code);
+    if (!target.isType && (isConstructor || target.isSuper)) {
+      argsCode.insertRange(0, 1, 'this');
+    }
+    if (bareCount < parameters.length) {
+      Arguments.removeTrailingNulls(argsCode);
+    }
     var argsString = Strings.join(argsCode, ', ');
 
     if (isConstructor) {

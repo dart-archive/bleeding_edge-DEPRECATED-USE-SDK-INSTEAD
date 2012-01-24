@@ -22,7 +22,7 @@ class crypto native "require('crypto')" {
   static DiffieHellman createDiffieHellman(int prime_length) native;
   static DiffieHellman createDiffieHellmanFromPrime(String prime, [String encoding])
       native "return this.createDiffieHellman(prime, encoding);";
-  static void pbkdf2(String password, String salt, int iterations, int keylen, 
+  static void pbkdf2(String password, String salt, int iterations, int keylen,
       void callback(Error err, String derivedKey)) native;
   static SlowBuffer randomBytes(size,
       [void callback(Error error, SlowBuffer sb)]) native;
@@ -37,14 +37,11 @@ class SlowBuffer implements Buffer native '*SlowBuffer' {
   int write(String string, int offset, int length, [String encoding='utf8'])
     native;
   String toString(String encoding, int start, int end) native;
-  
+
   // List<int> protocol
   int operator[](int index) native;
   int operator[]=(int index, int value) native;
-  
-  void _throwUnsupported() {
-    throw new UnsupportedOperationException('not extendable');
-  }
+
   void add(int value) => _throwUnsupported();
   void addAll(Collection<int> collection) => _throwUnsupported();
   void addLast(int value) => _throwUnsupported();
@@ -121,7 +118,7 @@ class SlowBuffer implements Buffer native '*SlowBuffer' {
   void writeFloatBE(double value, int offset, [bool noAssert=false]) native;
   void writeDoubleLE(double value, int offset, [bool noAssert=false]) native;
   void writeDoubleBE(double value, int offset, [bool noAssert=false]) native;
-  
+
   // end defaults to buffer.length
   void fill(int value, int offset, int end) native;
 }
@@ -139,7 +136,7 @@ class Hash native "require('crypto').Hash" {
 class Hmac native "require('crypto').Hmac" {
   void update(var data) native;
   void updateBuffer(Buffer buffer) native "this.update(buffer);";
-  String digest([String encoding]) native;  
+  String digest([String encoding]) native;
 }
 
 class Cipher native "require('crypto').Cipher" {

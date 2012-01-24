@@ -57,7 +57,7 @@ class CallFrame implements CallingContext {
   }
 
   Value getReturnValue() {
-    return _returnSlot.get();
+    return _returnSlot.get(null);
   }
 
   void returns(Value value) {
@@ -128,16 +128,22 @@ class VariableSlot {
   Value value;
 
   VariableSlot(this.scope, this.name, this.staticType, this.node,
-    this.isFinal, [this.value]);
+    this.isFinal, [this.value]) {
+    if (value !== null) {
+      value = value.convertTo(scope.frame, staticType);
+    }
+  }
 
-  Value get() {
-    return scope.frame._makeValue(staticType, null);
+  Value get(Node position) {
+    return scope.frame._makeValue(staticType, position);
   }
 
   void set(Value newValue) {
-    if (value == null) value = newValue;
-    else value = Value.union(value, newValue);
-    // TODO(jimhug): Add type checks.
+    if (newValue !== null) {
+      newValue = newValue.convertTo(scope.frame, staticType);
+    }
+
+    value = Value.union(value, newValue);
   }
 
   String toString() {

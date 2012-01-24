@@ -17,9 +17,9 @@ typedef void ChildProcessExitListener(int code, String signal);
 
 class ChildProcess implements EventEmitter native {
   var _childprocess;
-  
+
   ChildProcess._from(this._childprocess);
-  
+
   // EventEmitter
   void removeAllListeners(String event)
     native "this._childprocess.removeAllListeners(event);";
@@ -27,7 +27,7 @@ class ChildProcess implements EventEmitter native {
     native "this._childprocess.setMaxListeners(n);";
   _listeners(String key)
     native "return this._childprocess.listeners(key);";
-  
+
   // 'exit' event
   void emitExit(int code, String signal)
       native "this._childprocess.emit('exit', code, signal);";
@@ -56,17 +56,17 @@ typedef void Child_processCallback(Error error, String stdout, String stderr);
 
 class Child_process native {
   var _cp;
-  
+
   Child_process() {
     _cp = _child_process;
   }
-  
+
   // TODOO(jackpal): translate options into a Javascript dictionary
   ChildProcess spawn(String command, [List<String> args,
     Map<String, Object> options]){
-    return new ChildProcess._from(_spawn(_cp, command, args, options));
+    return new ChildProcess._from(_spawn(_cp, command, args));
   }
-  
+
   // TODOO(jackpal): translate options into a Javascript dictionary
   ChildProcess exec(String command, Child_processCallback callback,
       [Map<String, Object> options]) {
@@ -75,7 +75,7 @@ class Child_process native {
     // an argument list.
     return new ChildProcess._from(_exec(_cp, command, options, callback));
   }
-  
+
   static var _spawn(var cp, String command, List<String> args)
     native "return cp.spawn(command, args);";
   static var _exec(var cp, String command, Map<String, Object> options,
