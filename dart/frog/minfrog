@@ -1697,10 +1697,25 @@ $dynamic("end$0").WriteStream = function() {
 $dynamic("write$1").WriteStream = function($0) {
   return this.write($0, "utf8");
 };
+// ********** Code for Fs **************
+Fs.from$ctor = function(_fs) {
+  this._fs = _fs;
+}
+Fs.from$ctor.prototype = Fs.prototype;
+function Fs() {}
+Fs.prototype.realpathSync = function(path) {
+  return this._fs.realpathSync(path);
+}
+Fs.prototype.readFileSync = function(filename, encoding) {
+  return this._fs.readFileSync(filename, encoding);
+}
+Fs.prototype.writeFileSync = function(filename, data, encoding) {
+  this._fs.writeFileSync(filename, data, encoding);
+}
 // ********** Code for fs_FSWatcher **************
 // ********** Code for top level **************
 function get$fs() {
-  return require("fs");
+  return new Fs.from$ctor(require("fs"));
 }
 //  ********** Library node **************
 // ********** Code for Process **************
@@ -11289,6 +11304,9 @@ Type.prototype.get$hasTypeParams = function() {
 Type.prototype.get$typeofName = function() {
   return null;
 }
+Type.prototype.get$fullname = function() {
+  return this.get$library().name != null ? ("" + this.get$library().name + "." + this.name) : this.name;
+}
 Type.prototype.get$members = function() {
   return null;
 }
@@ -12141,14 +12159,13 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
   if (allVar) return this;
   var jsname = ("" + this.get$jsname() + "_" + Strings.join(jsnames, "$"));
   var simpleName = ("" + this.name + "<" + Strings.join(names, ", ") + ">");
-  var key = Strings.join(names, "$");
-  var ret = this._concreteTypes.$index(key);
+  var ret = this._concreteTypes.$index(jsname);
   if ($eq(ret)) {
     ret = new DefinedType(simpleName, this.library, this.definition, this.isClass);
     ret.set$baseGenericType(this);
     ret.set$typeArgsInOrder(typeArgs);
     ret.set$_jsname(jsname);
-    this._concreteTypes.$setindex(key, ret);
+    this._concreteTypes.$setindex(jsname, ret);
     ret.resolve();
   }
   return ret;
@@ -12711,7 +12728,7 @@ Value.prototype.instanceOf = function(context, toType, span, isTrue, forceCheck)
   return new Value($globals.world.nonNullBool, testCode, span);
 }
 Value.prototype.convertWarning = function(toType) {
-  $globals.world.warning(("type \"" + this.get$type().name + "\" is not assignable to \"" + toType.name + "\""), this.span);
+  $globals.world.warning(("type \"" + this.get$type().get$fullname() + "\" is not assignable to \"" + toType.get$fullname() + "\""), this.span);
 }
 Value.prototype.invokeNoSuchMethod = function(context, name, node, args) {
   if (this.get$isType()) {
@@ -12794,7 +12811,8 @@ PureStaticValue.prototype.set_ = function(context, name, node, value, kind, retu
   return new PureStaticValue(value.get$type(), node.span, false, false);
 }
 PureStaticValue.prototype.setIndex = function(context, index, node, value, kind, returnKind) {
-  return this.invoke(context, ":setindex", node, new Arguments(null, [index, value]));
+  var tmp = this.invoke(context, ":setindex", node, new Arguments(null, [index, value]));
+  return new PureStaticValue(value.get$type(), node.span, false, false);
 }
 PureStaticValue.prototype.unop = function(kind, context, node) {
   switch (kind) {

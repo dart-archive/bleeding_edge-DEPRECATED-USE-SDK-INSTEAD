@@ -206,7 +206,7 @@ class FixedLists {
     }
     int filteredLength = filtered.length;
     List result = ctor(filteredLength);
-    for (int i = 0; i < len; i++) {
+    for (int i = 0; i < filteredLength; i++) {
       result[i] = filtered[i];
     }
     return result;

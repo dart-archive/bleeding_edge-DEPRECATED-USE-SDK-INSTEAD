@@ -75,8 +75,9 @@ class PureStaticValue extends Value {
 
   Value setIndex(CallingContext context, Value index, Node node, Value value,
       [int kind=0, int returnKind=ReturnKind.IGNORE]) {
-    return invoke(context, ':setindex', node,
+    var tmp = invoke(context, ':setindex', node,
       new Arguments(null, [index, value]));
+    return new PureStaticValue(value.type, node.span);
   }
 
   Value unop(int kind, CallingContext context, var node) {
@@ -809,7 +810,8 @@ function \$assert_${toType.name}(x) {
 
   void convertWarning(Type toType) {
     // TODO(jmesserly): better error messages for type conversion failures
-    world.warning('type "${type.name}" is not assignable to "${toType.name}"',
+    world.warning(
+        'type "${type.fullname}" is not assignable to "${toType.fullname}"',
         span);
   }
 

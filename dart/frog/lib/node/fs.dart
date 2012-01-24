@@ -16,9 +16,9 @@ class ReadStream implements ReadableStream, FsStream native "*ReadStream" {
   void setMaxListeners(num n) native;
   _listeners(String key)
     native "return this.listeners(key);";
-  
+
   // CommonStream
-  
+
   // Error event
   void emitError(Error error)
     native "this.emit('error', error);";
@@ -48,7 +48,7 @@ class ReadStream implements ReadableStream, FsStream native "*ReadStream" {
     => _listeners('close');
 
   // ReadableStream
-  
+
   // Data event
   void emitData(var data)
     native "this.emit('data', data);";
@@ -62,7 +62,7 @@ class ReadStream implements ReadableStream, FsStream native "*ReadStream" {
     native "this.removeListener('data', listener);";
   List<ReadableStreamDataListener> listenerData()
     => _listeners('data');
-    
+
   // End event
   void emitEnd()
     native "this.emit('end');";
@@ -78,7 +78,7 @@ class ReadStream implements ReadableStream, FsStream native "*ReadStream" {
     => _listeners('end');
 
   // FsStream
-  
+
   // Open event
   void emitOpen(int fd)
     native "this.emit('open', fd);";
@@ -92,7 +92,7 @@ class ReadStream implements ReadableStream, FsStream native "*ReadStream" {
     native "this.removeListener('open', listener);";
   List<FsStreamOpenListener> listenersOpen()
     => _listeners('open');
-    
+
   bool readable;
   void setEncoding(String encoding) native;
   void pause() native;
@@ -110,7 +110,7 @@ class WriteStream implements WritableStream, FsStream native "*WriteStream" {
     native "return this.listeners(key);";
 
   // CommonStream
-  
+
   // Error event
   void emitError(Error error)
     native "this.emit('error', error);";
@@ -140,7 +140,7 @@ class WriteStream implements WritableStream, FsStream native "*WriteStream" {
     => _listeners('close');
 
   // WritableStream
-  
+
   // Drain event
   void emitDrain()
     native "this.emit('drain');";
@@ -154,7 +154,7 @@ class WriteStream implements WritableStream, FsStream native "*WriteStream" {
     native "this.removeListener('drain', listener);";
   List<WritableStreamDrainListener> listenersDrain()
     => _listeners('drain');
-    
+
   // Pipe event
   void emitPipe(ReadableStream src)
     native "this.emit('pipe', src);";
@@ -184,7 +184,7 @@ class WriteStream implements WritableStream, FsStream native "*WriteStream" {
     native "this.removeListener('open', listener);";
   List<FsStreamOpenListener> listenersOpen()
     => _listeners('open');
-      
+
   bool writable;
   bool write(String string, [String encoding='utf8', int fd]) native;
   bool writeBuffer(Buffer buffer) native;
@@ -192,9 +192,9 @@ class WriteStream implements WritableStream, FsStream native "*WriteStream" {
   void endBuffer(Buffer buffer) native "this.end(buffer);";
   void destroy() native;
   void destroySoon() native;
-  
+
   List<int> getWindowSize() native;
-  
+
   int bytesWritten;
 }
 
@@ -233,7 +233,7 @@ typedef void FsWatchFileListener(Stats curr, Stats prev);
 class Fs {
   var _fs;
   Fs.from(this._fs);
-  
+
   void rename(String path1, String path2, [FsRenameCallback callback])
       native "this._fs.rename(path1, path2, callback);";
   void renameSync(String path1, String path2)
@@ -411,8 +411,8 @@ class Fs {
       native "return this._fs.createWriteStream(path, options);";
 }
 
-Fs get fs() => require('fs');
-  
+Fs get fs() => new Fs.from(require('fs'));
+
 class Stats native "fs.Stats" {
   bool isFile() native;
   bool isDirectory() native;
@@ -462,7 +462,7 @@ class FSWatcher native "*FSWatcher" {
     native "this.removeListener('error', listener);";
   List<FSWatcherErrorListener> listenersError()
     => _listeners('error');
-    
+
   // Change event
   void emitChange(String event, String filename)
     native "this.emit('change', event, filename);";

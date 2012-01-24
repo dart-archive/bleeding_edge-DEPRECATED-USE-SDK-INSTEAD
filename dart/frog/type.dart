@@ -89,6 +89,9 @@ class Type extends Element {
 
   String get typeofName() => null;
 
+  String get fullname() =>
+    library.name !== null ? '${library.name}.$name' : name;
+
   Map<String, Member> get members() => null;
   Definition get definition() => null;
   FactoryMap get factories() => null;
@@ -1153,15 +1156,13 @@ class DefinedType extends Type {
     var jsname = '${jsname}_${Strings.join(jsnames, '\$')}';
     var simpleName = '${name}<${Strings.join(names, ', ')}>';
 
-    // TODO(jimhug): Should use jsnames or better type keys.
-    var key = Strings.join(names, '\$');
-    var ret = _concreteTypes[key];
+    var ret = _concreteTypes[jsname];
     if (ret == null) {
       ret = new DefinedType(simpleName, library, definition, isClass);
       ret.baseGenericType = this;
       ret.typeArgsInOrder = typeArgs;
       ret._jsname = jsname;
-      _concreteTypes[key] = ret;
+      _concreteTypes[jsname] = ret;
       ret.resolve();
     }
     return ret;

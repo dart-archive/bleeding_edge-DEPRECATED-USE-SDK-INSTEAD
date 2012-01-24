@@ -7,30 +7,18 @@ prefix frog
 # TODO(jimhug): Leave this disabled until we're ready to reengage on repl.
 EvaluatorTest: Skip
 NativeCheckedArguments1FrogTest: Skip # TODO(jimhug): Fix after CL stabilizes
-NodeBufferTest: Skip # TODO(jimhug): Conflicts with array bounds checking
-NodeTypedArrayTest: Skip # TODO(jimhug): Conflicts with array bounds checking
+InheritanceOrderingTest: Skip # TODO(jimhug): Fix flakiness uniformly
+PrototypePatchingTest: Skip # TODO(jimhug): Fix flakiness uniformly
 
-[ $component == frogsh ]
-# TODO(jimhug): Understand and fix flakiness issues - and then reenable
-InheritanceOrderingTest: Skip # Flaky, no data yet. Two flaky tests is starting to look like a pattern ...
-PrototypePatchingTest: Skip # Flaky. issue 1162.
-
-# TODO(jmesserly): these are failing due to bad generated type checks for native
-# types like "fs"
-[ $component == frog && $checked ]
-InheritanceOrderingTest: Fail
-PrototypePatchingTest: Fail
 
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == frog || $component == leg]
 Node*Test: Skip
+
 
 [ $component == frog || $component == frogsh || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == leg ]
 FrogServerTest: Skip
 NativePropertyFrogTest: Fail
 
-[ $component == frogium || $component == vm ]
-InheritanceOrderingTest: Skip
-PrototypePatchingTest: Skip
 
 [ $component == webdriver ]
 *: Skip
