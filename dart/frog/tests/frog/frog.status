@@ -13,6 +13,11 @@ NativeCheckedArguments1FrogTest: Skip # TODO(jimhug): Fix after CL stabilizes
 InheritanceOrderingTest: Skip # Flaky, no data yet. Two flaky tests is starting to look like a pattern ...
 PrototypePatchingTest: Skip # Flaky. issue 1162.
 
+# TODO(jmesserly): these are failing due to bad generated type checks for native
+# types like "fs"
+[ $component == frog && $checked ]
+InheritanceOrderingTest: Fail
+PrototypePatchingTest: Fail
 
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == frog || $component == leg]
 Node*Test: Skip
