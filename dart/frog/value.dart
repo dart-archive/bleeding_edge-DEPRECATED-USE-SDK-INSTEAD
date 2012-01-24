@@ -43,12 +43,12 @@ class PureStaticValue extends Value {
     var member = type.getMember(name);
 
     if (member == null) {
-      world.warning('can not find "$name" on "${type.name}"', node.span);
+      world.warning('cannot find "$name" on "${type.name}"', node.span);
       return null;
     }
 
     if (isType && !member.isStatic) {
-      world.error('can not refer to instance member as static', node.span);
+      world.error('cannot refer to instance member as static', node.span);
     }
 
     return member;
@@ -468,7 +468,7 @@ class Value {
       // warn if the member was not found, or error if it is a static lookup.
       var typeName = staticType.name;
       if (typeName == null) typeName = staticType.library.name;
-      var message = 'can not resolve "$name" on "${typeName}"';
+      var message = 'cannot resolve "$name" on "${typeName}"';
       if (isType) {
         world.error(message, node.span);
       } else {
@@ -486,7 +486,7 @@ class Value {
       return null;
     } else {
       if (isType && !member.isStatic && context.showWarnings) {
-        world.error('can not refer to instance member as static', node.span);
+        world.error('cannot refer to instance member as static', node.span);
         return null;
       }
     }
@@ -749,7 +749,7 @@ function \$assert_${toType.name}(x) {
     //    forceCheck is true.
 
     if (toType.isVar) {
-      world.error('can not resolve type', span);
+      world.error('cannot resolve type', span);
     }
 
     String testCode = null;
@@ -1352,7 +1352,7 @@ class ObjectValue extends EvaluatedValue {
     if (currentValue === null) {
       fields[field] = value;
       if (field.isFinal && !duringInit) {
-        world.error('can not initialize final fields outside of initializer',
+        world.error('cannot initialize final fields outside of initializer',
           value.span);
       }
     } else {

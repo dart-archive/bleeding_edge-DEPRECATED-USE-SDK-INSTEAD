@@ -1153,7 +1153,7 @@ class MethodGenerator implements TreeVisitor, CallingContext {
         seenLabel = true;
       } else if (seenLabel) {
         // TODO(jimhug): Move this into parser?
-        world.error('bare argument can not follow named arguments', arg.span);
+        world.error('bare argument cannot follow named arguments', arg.span);
       }
       args.add(visitValue(arg.value));
     }

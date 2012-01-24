@@ -122,7 +122,7 @@ class Member extends Element {
 
   bool get isNative() => false;
   String get constructorName() {
-    world.internalError('can not be a constructor', span);
+    world.internalError('cannot be a constructor', span);
   }
 
   void providePropertySyntax() {}
@@ -268,11 +268,11 @@ class Member extends Element {
 
   bool override(Member other) {
     if (isStatic) {
-      world.error('static members can not hide parent members',
+      world.error('static members cannot hide parent members',
           span, other.span);
       return false;
     } else if (other.isStatic) {
-      world.error('can not override static member', span, other.span);
+      world.error('cannot override static member', span, other.span);
       return false;
     }
     return true;
@@ -310,7 +310,7 @@ class Member extends Element {
 
   // TODO(jimhug): Make this abstract.
   Member makeConcrete(Type concreteType) {
-    world.internalError('can not make this concrete', span);
+    world.internalError('cannot make this concrete', span);
   }
 }
 
@@ -386,7 +386,7 @@ class FieldMember extends Member {
       return true;
       // TODO(jimhug): Merge in overridesProperty logic here.
     } else {
-      world.error('field can not override anything but property',
+      world.error('field cannot override anything but property',
           span, other.span);
       return false;
     }
@@ -1260,11 +1260,11 @@ class MethodMember extends Member {
           declaringType.definition is! FunctionTypeDefinition) {
         // TODO(jimhug): Creating function types for concrete methods is
         //   steadily feeling uglier...
-        world.error('abstract method can not have a body', span);
+        world.error('abstract method cannot have a body', span);
       }
       if (isStatic &&
           declaringType.definition is! FunctionTypeDefinition) {
-        world.error('static method can not be abstract', span);
+        world.error('static method cannot be abstract', span);
       }
     } else {
       if (definition.body == null && !isConstructor && !isNative) {

@@ -336,7 +336,7 @@ class _LibraryVisitor implements TreeVisitor {
   addSourceFromName(String name, SourceSpan span) {
     var filename = library.makeFullPath(name);
     if (filename == library.baseSource.filename) {
-      world.error('library can not source itself', span);
+      world.error('library cannot source itself', span);
       return;
     } else if (sources.some((s) => s.filename == filename)) {
       world.error('file "$filename" has already been sourced', span);

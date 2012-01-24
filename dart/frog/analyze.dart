@@ -144,7 +144,7 @@ class MethodAnalyzer implements TreeVisitor {
         seenLabel = true;
       } else if (seenLabel) {
         // TODO(jimhug): Move this into parser?
-        world.error('bare argument can not follow named arguments', arg.span);
+        world.error('bare argument cannot follow named arguments', arg.span);
       }
       args.add(visitValue(arg.value));
     }
@@ -177,7 +177,7 @@ class MethodAnalyzer implements TreeVisitor {
     }
 
     if (member !== null && !member.isStatic && _frame.isStatic) {
-      world.error('can not refer to instance member from static method',
+      world.error('cannot refer to instance member from static method',
         node.span);
     }
     return member;
@@ -418,7 +418,7 @@ class MethodAnalyzer implements TreeVisitor {
         return member.invoke(_frame, node, _frame.makeThisValue(node),
                              _visitArgs(node.arguments));
       } else {
-        world.warning('can not find "$name"', node.span);
+        world.warning('cannot find "$name"', node.span);
         return _frame._makeValue(world.varType, node);
       }
     } else {
@@ -484,7 +484,7 @@ class MethodAnalyzer implements TreeVisitor {
       if (member !== null) {
         member._set(_frame, node, _frame.makeThisValue(node), value);
       } else {
-        world.warning('can not find "$name"', node.span);
+        world.warning('cannot find "$name"', node.span);
       }
     }
     return _frame._makeValue(value.type, node);
@@ -714,7 +714,7 @@ class MethodAnalyzer implements TreeVisitor {
         return member._get(_frame, node, _frame.makeThisValue(node));
       }
     } else {
-      world.warning('can not find "$name"', node.span);
+      world.warning('cannot find "$name"', node.span);
       return _frame._makeValue(world.varType, node);
     }
   }

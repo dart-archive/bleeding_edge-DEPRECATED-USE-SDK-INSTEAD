@@ -1910,7 +1910,7 @@ MethodAnalyzer.prototype._visitArgs = function(arguments) {
       seenLabel = true;
     }
     else if (seenLabel) {
-      $globals.world.error("bare argument can not follow named arguments", arg.get$span());
+      $globals.world.error("bare argument cannot follow named arguments", arg.get$span());
     }
     args.add(this.visitValue(arg.get$value()));
   }
@@ -1938,7 +1938,7 @@ MethodAnalyzer.prototype._resolveBare = function(name, node) {
     if (libMember != null) return libMember;
   }
   if (member != null && !member.get$isStatic() && this._frame.get$isStatic()) {
-    $globals.world.error("can not refer to instance member from static method", node.span);
+    $globals.world.error("cannot refer to instance member from static method", node.span);
   }
   return member;
 }
@@ -2134,7 +2134,7 @@ MethodAnalyzer.prototype.visitCallExpression = function(node) {
       return member.invoke(this._frame, node, this._frame.makeThisValue(node), this._visitArgs(node.arguments));
     }
     else {
-      $globals.world.warning(("can not find \"" + name + "\""), node.span);
+      $globals.world.warning(("cannot find \"" + name + "\""), node.span);
       return this._frame._makeValue($globals.world.varType, node);
     }
   }
@@ -2192,7 +2192,7 @@ MethodAnalyzer.prototype._visitVarAssign = function(kind, xn, yn, node) {
       member._set(this._frame, node, this._frame.makeThisValue(node), value);
     }
     else {
-      $globals.world.warning(("can not find \"" + name + "\""), node.span);
+      $globals.world.warning(("cannot find \"" + name + "\""), node.span);
     }
   }
   return this._frame._makeValue(value.get$type(), node);
@@ -2361,7 +2361,7 @@ MethodAnalyzer.prototype.visitVarExpression = function(node) {
     }
   }
   else {
-    $globals.world.warning(("can not find \"" + name + "\""), node.span);
+    $globals.world.warning(("cannot find \"" + name + "\""), node.span);
     return this._frame._makeValue($globals.world.varType, node);
   }
 }
@@ -3258,7 +3258,7 @@ WorldGenerator.prototype.writeType = function(type) {
   if (type.isWritten) return;
   type.isWritten = true;
   this.writeType(type.get$genericType());
-  if (type.get$parent() != null && !type.get$isNative()) {
+  if (type.get$parent() != null) {
     this.writeType(type.get$parent());
   }
   var typeName = type.get$jsname() != null ? type.get$jsname() : "top level";
@@ -3955,7 +3955,7 @@ MethodGenerator.prototype._makeArgs = function(arguments) {
       seenLabel = true;
     }
     else if (seenLabel) {
-      $globals.world.error("bare argument can not follow named arguments", arg.get$span());
+      $globals.world.error("bare argument cannot follow named arguments", arg.get$span());
     }
     args.add(this.visitValue(arg.get$value()));
   }
@@ -5021,7 +5021,7 @@ Member.prototype.get$isNative = function() {
   return false;
 }
 Member.prototype.get$constructorName = function() {
-  $globals.world.internalError("can not be a constructor", this.get$span());
+  $globals.world.internalError("cannot be a constructor", this.get$span());
 }
 Member.prototype.providePropertySyntax = function() {
 
@@ -5139,11 +5139,11 @@ Member.prototype.invoke = function(context, node, target, args) {
 }
 Member.prototype.override = function(other) {
   if (this.get$isStatic()) {
-    $globals.world.error("static members can not hide parent members", this.get$span(), other.get$span());
+    $globals.world.error("static members cannot hide parent members", this.get$span(), other.get$span());
     return false;
   }
   else if (other.get$isStatic()) {
-    $globals.world.error("can not override static member", this.get$span(), other.get$span());
+    $globals.world.error("cannot override static member", this.get$span(), other.get$span());
     return false;
   }
   return true;
@@ -5170,7 +5170,7 @@ Member.prototype.resolveType = function(node, typeErrors, allowTypeParams) {
   return Element.prototype.resolveType.call(this, node, typeErrors, allowTypeParams);
 }
 Member.prototype.makeConcrete = function(concreteType) {
-  $globals.world.internalError("can not make this concrete", this.get$span());
+  $globals.world.internalError("cannot make this concrete", this.get$span());
 }
 // ********** Code for AmbiguousMember **************
 $inherits(AmbiguousMember, Member);
@@ -5465,7 +5465,7 @@ _LibraryVisitor.prototype.set$isTop = function(value) { return this.isTop = valu
 _LibraryVisitor.prototype.addSourceFromName = function(name, span) {
   var filename = this.library.makeFullPath(name);
   if ($eq(filename, this.library.baseSource.filename)) {
-    $globals.world.error("library can not source itself", span);
+    $globals.world.error("library cannot source itself", span);
     return;
   }
   else if (this.sources.some((function (s) {
@@ -5756,7 +5756,7 @@ FieldMember.prototype.override = function(other) {
     return true;
   }
   else {
-    $globals.world.error("field can not override anything but property", this.get$span(), other.get$span());
+    $globals.world.error("field cannot override anything but property", this.get$span(), other.get$span());
     return false;
   }
 }
@@ -6481,10 +6481,10 @@ MethodMember.prototype.resolve = function() {
   }
   if (this.isAbstract) {
     if (this.definition.body != null && !(this.declaringType.get$definition() instanceof FunctionTypeDefinition)) {
-      $globals.world.error("abstract method can not have a body", this.get$span());
+      $globals.world.error("abstract method cannot have a body", this.get$span());
     }
     if (this.isStatic && !(this.declaringType.get$definition() instanceof FunctionTypeDefinition)) {
-      $globals.world.error("static method can not be abstract", this.get$span());
+      $globals.world.error("static method cannot be abstract", this.get$span());
     }
   }
   else {
@@ -11708,7 +11708,7 @@ DefinedType.prototype._resolveInterfaces = function(types) {
     var type = $$i.next();
     var resolvedInterface = this.resolveType(type, true, true);
     if (resolvedInterface.get$isClosed() && !(this.library.get$isCore() || this.library.get$isCoreImpl())) {
-      $globals.world.error($add(("can not implement \"" + resolvedInterface.get$name() + "\": "), "only native implementation allowed"), type.get$span());
+      $globals.world.error($add(("cannot implement \"" + resolvedInterface.get$name() + "\": "), "only native implementation allowed"), type.get$span());
     }
     resolvedInterface.addDirectSubtype(this);
     interfaces.add(resolvedInterface);
@@ -12431,7 +12431,7 @@ Value.prototype._missingMemberError = function(context, name, node) {
   if (!onStaticType && context.get$showWarnings() && !this._isVarOrParameterType(this.get$staticType()) && !this._hasOverriddenNoSuchMethod()) {
     var typeName = this.get$staticType().name;
     if ($eq(typeName)) typeName = this.get$staticType().get$library().name;
-    var message = ("can not resolve \"" + name + "\" on \"" + typeName + "\"");
+    var message = ("cannot resolve \"" + name + "\" on \"" + typeName + "\"");
     if (this.get$isType()) {
       $globals.world.error(message, node.span);
     }
@@ -12448,7 +12448,7 @@ Value.prototype._tryResolveMember = function(context, name, node) {
   }
   else {
     if (this.get$isType() && !member.get$isStatic() && context.get$showWarnings()) {
-      $globals.world.error("can not refer to instance member as static", node.span);
+      $globals.world.error("cannot refer to instance member as static", node.span);
       return null;
     }
   }
@@ -12598,7 +12598,7 @@ Value.prototype._typeAssert = function(context, toType) {
 }
 Value.prototype.instanceOf = function(context, toType, span, isTrue, forceCheck) {
   if (toType.get$isVar()) {
-    $globals.world.error("can not resolve type", span);
+    $globals.world.error("cannot resolve type", span);
   }
   var testCode = null;
   if (toType.get$isVar() || toType.get$isObject() || (toType instanceof ParameterType)) {
@@ -12702,11 +12702,11 @@ PureStaticValue.prototype.set$isType = function(value) { return this.isType = va
 PureStaticValue.prototype.getMem = function(context, name, node) {
   var member = this.get$type().getMember(name);
   if ($eq(member)) {
-    $globals.world.warning(("can not find \"" + name + "\" on \"" + this.get$type().name + "\""), node.span);
+    $globals.world.warning(("cannot find \"" + name + "\" on \"" + this.get$type().name + "\""), node.span);
     return null;
   }
   if (this.isType && !member.get$isStatic()) {
-    $globals.world.error("can not refer to instance member as static", node.span);
+    $globals.world.error("cannot refer to instance member as static", node.span);
   }
   return member;
 }
@@ -13418,7 +13418,7 @@ ObjectValue.prototype.setField = function(field, value, duringInit) {
   if (currentValue == null) {
     this.fields.$setindex(field, value);
     if (field.get$isFinal() && !duringInit) {
-      $globals.world.error("can not initialize final fields outside of initializer", value.span);
+      $globals.world.error("cannot initialize final fields outside of initializer", value.span);
     }
   }
   else {
