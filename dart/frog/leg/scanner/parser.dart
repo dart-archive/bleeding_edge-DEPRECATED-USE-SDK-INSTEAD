@@ -527,6 +527,11 @@ class Parser {
     return token;
   }
 
+  bool isGetOrSet(Token token) {
+    final String value = token.stringValue;
+    return (value === 'get') || (value === 'set');
+  }
+
   Token parseMember(Token token) {
     if (optional('factory', token)) {
       return parseFactoryMethod(token);
@@ -534,10 +539,39 @@ class Parser {
     Token start = token;
     listener.beginMember(token);
     token = parseModifiers(token);
-    Token peek = peekAfterType(token);
-    while (isIdentifier(peek)) {
-      token = peek;
+    Token peek;
+    Token getOrSet;
+    if (isGetOrSet(token)) {
+      if (optional('<', token.next)) {
+        // For example: get<T> ...
+        peek = peekAfterType(token);
+        if (isGetOrSet(peek) && isIdentifier(peek.next)) {
+          // For example: get<T> get identifier
+          getOrSet = peek;
+          token = peek.next;
+        }
+      } else {
+        // For example: get ...
+        if (isGetOrSet(token.next) && isIdentifier(token.next.next)) {
+          // For example: get get identifier
+          getOrSet = token.next;
+          token = token.next.next;
+        } else {
+          // For example: get identifier
+          getOrSet = token;
+          token = token.next;
+        }
+      }
+    } else {
       peek = peekAfterType(token);
+      if (isGetOrSet(peek) && isIdentifier(peek.next)) {
+        // type? get identifier
+        getOrSet = token;
+        token = peek.next;
+      } else if (isIdentifier(peek)) {
+        token = peek;
+        peek = peekAfterType(token);
+      }
     }
     if (optional('operator', token)) {
       token = parseOperatorName(token);
