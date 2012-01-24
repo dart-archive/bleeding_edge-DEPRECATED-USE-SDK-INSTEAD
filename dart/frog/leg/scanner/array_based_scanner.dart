@@ -58,6 +58,7 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     tail = tail.next;
     // EOF points to itself so there's always infinite look-ahead.
     tail.next = tail;
+    discardOpenLt();
     if (!groupingStack.isEmpty()) {
       BeginGroupToken begin = groupingStack.head;
       throw new MalformedInputException('Unbalanced ${begin.stringValue}',
