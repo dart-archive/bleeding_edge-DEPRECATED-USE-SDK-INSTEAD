@@ -332,7 +332,7 @@ class WorldGenerator {
     writeType(type.genericType);
     // Ensure parent has been written before the child. Important ordering for
     // IE when we're using $inherits, since we don't have __proto__ available.
-    if (type.parent !=  null && !type.isNative) {
+    if (type.parent !=  null) {
       writeType(type.parent);
     }
 
