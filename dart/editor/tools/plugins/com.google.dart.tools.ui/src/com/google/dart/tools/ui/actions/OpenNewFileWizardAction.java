@@ -13,11 +13,13 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.projects.CreateFileWizard;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.wizard.NewFileWizard;
 import com.google.dart.tools.ui.wizard.NewFileWizardPage;
@@ -60,12 +62,6 @@ public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements
 
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart,
-   * org.eclipse.jface.viewers.ISelection)
-   */
   @Override
   public void selectionChanged(IWorkbenchPart part, ISelection selection) {
     DartModelImpl dartModel = DartModelManager.getInstance().getDartModel();
@@ -83,6 +79,10 @@ public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements
 
   @Override
   protected final INewWizard createWizard() throws CoreException {
+    //TODO (pquitslund): remove conditional when files view lands for real
+    if (DartCoreDebug.FILES_VIEW) {
+      return new CreateFileWizard();
+    }
     return new NewFileWizard();
   }
 

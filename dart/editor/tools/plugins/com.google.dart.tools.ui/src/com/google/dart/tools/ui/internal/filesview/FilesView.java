@@ -19,6 +19,7 @@ import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.libraryview.DeleteAction;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
+import com.google.dart.tools.ui.internal.projects.CreateFileWizard;
 import com.google.dart.tools.ui.internal.projects.OpenNewProjectWizardAction;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
@@ -89,6 +90,28 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
   }
 
+  private final class OpenNewFileWizardAction extends CreateFileAction {
+
+    private OpenNewFileWizardAction(Shell shell) {
+      super(shell);
+    }
+
+    /**
+     * Override to use our custom CreateFileWizard.
+     */
+    @Override
+    public void run() {
+      CreateFileWizard wizard = new CreateFileWizard();
+      wizard.init(PlatformUI.getWorkbench(), getStructuredSelection());
+      wizard.setNeedsProgressMonitor(true);
+      WizardDialog dialog = new WizardDialog(shellProvider.getShell(), wizard);
+      dialog.create();
+      dialog.getShell().setText("New");
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(dialog.getShell(), "New File");
+      dialog.open();
+    }
+  }
+
   private TreeViewer treeViewer;
 
   private IMemento memento;
@@ -102,6 +125,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private MoveResourceAction moveAction;
   private RenameResourceAction renameAction;
   private DeleteAction deleteAction;
+  private OpenNewFileWizardAction createFileAction;
 
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
@@ -140,6 +164,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     });
 
+    createFileAction = new OpenNewFileWizardAction(getShell());
+    treeViewer.addSelectionChangedListener(createFileAction);
     renameAction = new RenameResourceAction(getShell(), treeViewer.getTree());
     treeViewer.addSelectionChangedListener(renameAction);
     moveAction = new MoveResourceAction(getShell());
@@ -204,24 +230,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     // New File/ New Folder/ New Project
 
-    //TODO (jwren/pquitslund): replace with our new file wizard when it is updated
-    manager.add(new CreateFileAction(getShell()) {
-      /**
-       * Override run() to use our version of BasicNewFileResourceWizard which will update the model
-       * appropriately with the new file, if it is a dart file.
-       */
-      @Override
-      public void run() {
-        BasicNewFileResourceWizard wizard = new BasicNewFileResourceWizard();
-        wizard.init(PlatformUI.getWorkbench(), getStructuredSelection());
-        wizard.setNeedsProgressMonitor(true);
-        WizardDialog dialog = new WizardDialog(shellProvider.getShell(), wizard);
-        dialog.create();
-        dialog.getShell().setText("New");
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(dialog.getShell(), "New File");
-        dialog.open();
-      }
-    });
+    manager.add(createFileAction);
+
     //manager.add(new OpenNewFileWizardAction(getViewSite().getWorkbenchWindow()));
     //manager.add(new OpenNewApplicationWizardAction());
     // TODO (jwren) replace New Folder Action with a custom version
