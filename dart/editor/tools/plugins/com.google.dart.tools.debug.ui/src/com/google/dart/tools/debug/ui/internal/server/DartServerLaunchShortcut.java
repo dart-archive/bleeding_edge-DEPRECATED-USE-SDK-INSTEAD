@@ -185,7 +185,6 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(launchConfig);
 
     launchWrapper.setApplicationName(resource.getFullPath().toString());
-    launchConfig.setMappedResources(new IResource[] {resource});
 
     try {
       config = launchConfig.doSave();

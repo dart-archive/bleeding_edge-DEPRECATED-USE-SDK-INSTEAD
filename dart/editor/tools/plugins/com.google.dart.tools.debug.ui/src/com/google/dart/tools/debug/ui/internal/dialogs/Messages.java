@@ -19,10 +19,9 @@ import org.eclipse.osgi.util.NLS;
 public class Messages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.debug.ui.internal.dialogs.messages"; //$NON-NLS-1$
 
-  public static String CreateLaunchDialog_createLaunch;
-  public static String CreateLaunchDialog_createNewLaunch;
-  public static String CreateLaunchDialog_launchDebug;
-  public static String CreateLaunchDialog_launchRun;
+  public static String ManageLaunchesDialog_createLaunch;
+  public static String ManageLaunchesDialog_manageLaunches;
+  public static String ManageLaunchesDialog_launchRun;
 
   static {
     // initialize resource bundle

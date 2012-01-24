@@ -33,8 +33,7 @@ public class DartUtil {
    * @param element the element being tested
    * @return <code>true</code> if the element is a Dart application file
    */
-  public static boolean isDartApp(DartElement element) {
-    // TODO(brianwilkerson) Rename this to isDartLibrary
+  public static boolean isDartLibrary(DartElement element) {
     if (element == null) {
       return false;
     }
@@ -48,12 +47,11 @@ public class DartUtil {
    * @param resource the resource (not <code>null</code>)
    * @return <code>true</code> if the resource is a Dart application
    */
-  public static boolean isDartApp(IResource resource) {
-    // TODO(brianwilkerson) Rename this to isDartLibrary
+  public static boolean isDartLibrary(IResource resource) {
     if (resource == null || !resource.exists()) {
       return false;
     }
-    return isDartApp(DartCore.create(resource));
+    return isDartLibrary(DartCore.create(resource));
   }
 
   /**
@@ -88,29 +86,8 @@ public class DartUtil {
    * @param e the exception
    */
   public static void logError(Throwable e) {
-    // TODO (danrubel) show error to user and log
     DartDebugUIPlugin.getDefault().getLog().log(
-        new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, "Exception Occurred", e));
+        new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, e.toString(), e));
   }
 
-  /**
-   * Simple debugging utility that echos the arguments and a stack trace to the console... used when
-   * fleshing out the debug functionality.
-   * 
-   * @param args the arguments to echo
-   */
-  // TODO (danrubel) Remove references and delete method
-  public static void notYetImplemented(Object... args) {
-//    System.err.println("===============================================");
-//    if (args != null) {
-//      for (Object arg : args) {
-//        System.err.println(arg != null ? arg.toString() : "null");
-//      }
-//    }
-//    try {
-//      throw new RuntimeException("Tracing...");
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//    }
-  }
 }

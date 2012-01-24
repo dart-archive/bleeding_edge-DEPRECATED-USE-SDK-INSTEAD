@@ -201,7 +201,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       if (!resource.exists()) {
         return false;
       }
-      return (DartUtil.isWebPage(resource) || DartUtil.isDartApp(resource));
+      return (DartUtil.isWebPage(resource) || DartUtil.isDartLibrary(resource));
     } else {
 
       IResource project = ResourcesPlugin.getWorkspace().getRoot().findMember(

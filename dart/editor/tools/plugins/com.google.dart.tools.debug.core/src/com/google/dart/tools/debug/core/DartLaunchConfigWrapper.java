@@ -262,6 +262,14 @@ public class DartLaunchConfigWrapper {
    */
   public void setApplicationName(String value) {
     getWorkingCopy().setAttribute(APPLICATION_NAME, value);
+
+    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(value);
+
+    if (resource != null) {
+      getWorkingCopy().setMappedResources(new IResource[] {resource});
+    } else {
+      getWorkingCopy().setMappedResources(new IResource[0]);
+    }
   }
 
   /**
@@ -305,6 +313,16 @@ public class DartLaunchConfigWrapper {
    */
   public void setProjectName(String value) {
     getWorkingCopy().setAttribute(PROJECT_NAME, value);
+
+    if (getApplicationResource() == null) {
+      IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(value);
+
+      if (resource != null) {
+        getWorkingCopy().setMappedResources(new IResource[] {resource});
+      } else {
+        getWorkingCopy().setMappedResources(new IResource[0]);
+      }
+    }
   }
 
   public void setShouldLaunchFile(boolean value) {

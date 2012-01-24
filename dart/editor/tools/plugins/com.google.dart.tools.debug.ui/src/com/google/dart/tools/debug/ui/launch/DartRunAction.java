@@ -14,12 +14,17 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
+import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.action.IAction;
@@ -36,6 +41,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -62,7 +68,7 @@ public class DartRunAction extends DartAbstractAction {
     IResource resource = getSelectedResource();
 
     if (resource == null) {
-      // TODO(devoncarew): no selection - display a dialog of all the existing launch configurations?
+      chooseAndLaunch(getAllLaunches());
 
       return;
     }
@@ -83,30 +89,29 @@ public class DartRunAction extends DartAbstractAction {
 
     ISelection sel = new StructuredSelection(resource);
 
-    if (candidates.size() == 0) {
-      MessageDialog.openInformation(getWindow().getShell(), "Unable to Run", "Unable to run "
-          + resource.getName() + ".");
-    } else if (candidates.size() == 1) {
-      launch(candidates.get(0), sel);
+    if (candidates.size() == 0 && resource instanceof IProject) {
+      IProject project = (IProject) resource;
+
+      chooseAndLaunch(getLaunchesFor(project));
     } else {
-      Set<ILaunchConfiguration> configs = new LinkedHashSet<ILaunchConfiguration>();
-
-      for (ILaunchShortcut shortcut : candidates) {
-        ILaunchShortcutExt handler = (ILaunchShortcutExt) shortcut;
-
-        configs.addAll(Arrays.asList(handler.getAssociatedLaunchConfigurations(resource)));
-      }
-
-      if (configs.size() == 0) {
+      if (candidates.size() == 0) {
+        MessageDialog.openInformation(getWindow().getShell(), "Unable to Run", "Unable to run "
+            + resource.getName() + ".");
+      } else if (candidates.size() == 1) {
         launch(candidates.get(0), sel);
-      } else if (configs.size() == 1) {
-        launch(configs.toArray(new ILaunchConfiguration[configs.size()])[0]);
       } else {
-        ILaunchConfiguration config = LaunchUtils.chooseConfiguration(new ArrayList<ILaunchConfiguration>(
-            configs));
+        Set<ILaunchConfiguration> configs = new LinkedHashSet<ILaunchConfiguration>();
 
-        if (config != null) {
-          launch(config);
+        for (ILaunchShortcut shortcut : candidates) {
+          ILaunchShortcutExt handler = (ILaunchShortcutExt) shortcut;
+
+          configs.addAll(Arrays.asList(handler.getAssociatedLaunchConfigurations(resource)));
+        }
+
+        if (configs.size() == 0) {
+          launch(candidates.get(0), sel);
+        } else if (configs.size() > 0) {
+          chooseAndLaunch(new ArrayList<ILaunchConfiguration>(configs));
         }
       }
     }
@@ -143,6 +148,10 @@ public class DartRunAction extends DartAbstractAction {
               while (iterator.hasNext()) {
                 Object next = iterator.next();
 
+                if (next instanceof DartElement) {
+                  next = ((DartElement) next).getResource();
+                }
+
                 IResource resource = (IResource) Platform.getAdapterManager().getAdapter(next,
                     IResource.class);
 
@@ -163,4 +172,57 @@ public class DartRunAction extends DartAbstractAction {
     return null;
   }
 
+  private boolean chooseAndLaunch(List<ILaunchConfiguration> launches) {
+    if (launches.size() == 0) {
+      return false;
+    } else if (launches.size() == 1) {
+      launch(launches.get(0));
+
+      return true;
+    } else {
+      ILaunchConfiguration config = LaunchUtils.chooseConfiguration(launches);
+
+      if (config != null) {
+        launch(config);
+
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  private List<ILaunchConfiguration> getAllLaunches() {
+    try {
+      return Arrays.asList(DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations());
+    } catch (CoreException exception) {
+      DartUtil.logError(exception);
+
+      return Collections.emptyList();
+    }
+  }
+
+  private List<ILaunchConfiguration> getLaunchesFor(IProject project) {
+    List<ILaunchConfiguration> launches = new ArrayList<ILaunchConfiguration>();
+
+    for (ILaunchConfiguration config : getAllLaunches()) {
+      try {
+        if (config.getMappedResources() == null) {
+          continue;
+        }
+
+        for (IResource resource : config.getMappedResources()) {
+          if (project.equals(resource.getProject())) {
+            if (!launches.contains(config)) {
+              launches.add(config);
+            }
+          }
+        }
+      } catch (CoreException exception) {
+        DartUtil.logError(exception);
+      }
+    }
+
+    return launches;
+  }
 }

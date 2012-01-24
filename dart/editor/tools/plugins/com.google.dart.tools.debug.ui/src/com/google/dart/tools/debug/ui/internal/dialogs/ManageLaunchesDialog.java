@@ -16,19 +16,27 @@ package com.google.dart.tools.debug.ui.internal.dialogs;
 
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.internal.ui.launchConfigurations.LaunchConfigurationTreeContentProvider;
+import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.model.WorkbenchViewerComparator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,14 +44,19 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+// TODO: see LaunchConfigurationsDialog
+
 /**
- * TODO(devoncarew):
+ * A dialog to create, edit, and manage launch configurations.
  */
-public class CreateLaunchDialog extends TitleAreaDialog {
+@SuppressWarnings("restriction")
+public class ManageLaunchesDialog extends TitleAreaDialog {
   private List<ILaunchConfigurationType> launchTypes;
 
-  public CreateLaunchDialog(IWorkbenchWindow window) {
+  public ManageLaunchesDialog(IWorkbenchWindow window) {
     super(window.getShell());
+
+    setShellStyle(getShellStyle() | SWT.RESIZE);
 
     initLaunchInfo();
   }
@@ -52,28 +65,27 @@ public class CreateLaunchDialog extends TitleAreaDialog {
   protected void configureShell(Shell newShell) {
     super.configureShell(newShell);
 
-    newShell.setText(Messages.CreateLaunchDialog_createLaunch);
+    newShell.setText(Messages.ManageLaunchesDialog_createLaunch);
   }
 
   @Override
   protected void createButtonsForButtonBar(Composite parent) {
     createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-    createButton(parent, IDialogConstants.OK_ID, Messages.CreateLaunchDialog_launchRun, true);
-    Button debugButton = createButton(parent, IDialogConstants.CLIENT_ID,
-        Messages.CreateLaunchDialog_launchDebug, false);
-    debugButton.setEnabled(false);
+    createButton(parent, IDialogConstants.CLIENT_ID, Messages.ManageLaunchesDialog_launchRun, true);
+    Button runButton = createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL,
+        false);
+    runButton.setEnabled(false);
   }
 
   @Override
   protected Control createDialogArea(Composite parent) {
     Composite contents = (Composite) super.createDialogArea(parent);
 
-    setTitle(Messages.CreateLaunchDialog_createNewLaunch);
+    setTitle(Messages.ManageLaunchesDialog_manageLaunches);
     setMessage("TODO: describe what to do here");
     setTitleImage(DartDebugUIPlugin.getImage("wiz/run_wiz.png")); //$NON-NLS-1$
 
     Composite composite = new Composite(contents, SWT.NONE);
-    GridLayoutFactory.fillDefaults().margins(12, 6).applyTo(composite);
     createDialogUI(composite);
 
     return contents;
@@ -93,16 +105,31 @@ public class CreateLaunchDialog extends TitleAreaDialog {
     });
   }
 
-  private void createDialogUI(Composite composite) {
-    List<String> launchNames = new ArrayList<String>();
+  private void createDialogUI(Composite parent) {
+    GridLayoutFactory.fillDefaults().numColumns(2).margins(12, 6).applyTo(parent);
 
-    for (ILaunchConfigurationType launch : launchTypes) {
-      launchNames.add(launch.getName());
-    }
+    Label label = new Label(parent, SWT.NONE);
+    label.setText("foo");
 
-    Combo combo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
-    combo.setItems(launchNames.toArray(new String[launchNames.size()]));
-    combo.select(0);
+    // spacer
+    new Label(parent, SWT.NONE);
+
+    ListViewer treeViewer = new ListViewer(parent);
+    treeViewer.setLabelProvider(new DecoratingLabelProvider(
+        DebugUITools.newDebugModelPresentation(),
+        PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator()));
+    treeViewer.setComparator(new WorkbenchViewerComparator());
+    treeViewer.setContentProvider(new LaunchConfigurationTreeContentProvider(
+        ILaunchManager.RUN_MODE, getShell()));
+    //treeViewer.addFilter(new LaunchGroupFilter(ILaunchManager.RUN_MODE));
+    treeViewer.setInput(ResourcesPlugin.getWorkspace().getRoot());
+    GridDataFactory.swtDefaults().grab(false, true).hint(120, 200).align(SWT.FILL, SWT.FILL).applyTo(
+        treeViewer.getControl());
+
+    label = new Label(parent, SWT.NONE);
+    label.setText("bar");
+    GridDataFactory.swtDefaults().grab(true, true).hint(200, 200).align(SWT.FILL, SWT.FILL).applyTo(
+        label);
 
     // TODO:
 

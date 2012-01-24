@@ -38,13 +38,11 @@ public class ManageLaunchesAction extends AbstractInstrumentedAction {
 
   @Override
   public void run() {
-    // TODO(devoncarew):
-//    CreateLaunchDialog dialog = new CreateLaunchDialog(window);
-//
-//    dialog.open();
-
     DebugUIPlugin.openLaunchConfigurationsDialog(window.getShell(), new StructuredSelection(),
         IDebugUIConstants.ID_RUN_LAUNCH_GROUP, true);
+
+//    ManageLaunchesDialog dialog = new ManageLaunchesDialog(window);
+//    dialog.open();
   }
 
 }
