@@ -38,15 +38,15 @@ void compileAndTest(String code, String entry, RegExp regexp) {
 
 main() {
   compileAndTest(
-      NUMBER_FOLDING, 'main', const RegExp("print\\(7\\)"));
+      NUMBER_FOLDING, 'main', const RegExp(@"print\$1\(7\)"));
   compileAndTest(
-      NEGATIVE_NUMBER_FOLDING, 'main', const RegExp("print\\(1\\)"));
+      NEGATIVE_NUMBER_FOLDING, 'main', const RegExp(@"print\$1\(1\)"));
 
   String generated = compile(NULL_EQUALS_FOLDING, 'foo');
-  RegExp regexp = const RegExp('eqNull\\(a\\)');
+  RegExp regexp = const RegExp(@'eqNull\$1\(a\)');
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp('\\(void 0\\) === b');
+  regexp = const RegExp(@'\(void 0\) === b');
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp('4 === c');

@@ -15,7 +15,7 @@ foo(a) {
 
 final String TEST_TWO = @"""
 bar(a) {}
-foo() {
+foo(d) {
   int a = 1;
   int c = foo(1);
   if (true) {}
@@ -47,7 +47,7 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, 'foo');
-  regexp = const RegExp("foo\\(1\\)");
+  regexp = const RegExp("foo\\\$1\\(1\\)");
   matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
 

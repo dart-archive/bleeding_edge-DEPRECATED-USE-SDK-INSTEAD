@@ -29,11 +29,11 @@ main() {
 
 closureInvocation() {
   String generated = compile(TEST_INVOCATION0);
-  Expect.isTrue(generated.contains(".\$call()"));
+  Expect.isTrue(generated.contains(".\$call\$0()"));
   generated = compile(TEST_INVOCATION1);
-  Expect.isTrue(generated.contains(".\$call(1)"));
+  Expect.isTrue(generated.contains(".\$call\$1(1)"));
   generated = compile(TEST_INVOCATION2);
-  Expect.isTrue(generated.contains(".\$call(1, 2)"));
+  Expect.isTrue(generated.contains(".\$call\$2(1, 2)"));
 }
 
 main() {

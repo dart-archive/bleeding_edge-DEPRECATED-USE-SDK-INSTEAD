@@ -59,6 +59,7 @@ class Compiler implements Canceler, Logger {
   CompileTimeConstantHandler compileTimeConstantHandler;
 
   static final SourceString MAIN = const SourceString('main');
+  static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
 
   Compiler()
       : types = new Types(),
@@ -133,6 +134,8 @@ class Compiler implements Canceler, Logger {
     // Make our special function a foreign kind.
     universe.define(new ForeignElement(const SourceString('JS')));
     universe.define(new ForeignElement(const SourceString('UNINTERCEPTED')));
+    // TODO(ngeoffray): Lazily add this method.
+    universe.invokedNames[NO_SUCH_METHOD] = new Set<int>.from(<int>[2]);
   }
 
   void enqueueInvokedInstanceMethods() {
@@ -147,9 +150,13 @@ class Compiler implements Canceler, Logger {
         for (Element member in currentClass.members) {
           SourceString name = member.name;
           if (Elements.isInstanceMethod(member) &&
-              universe.generatedCode[member] === null &&
-              universe.invokedNames.contains(name.stringValue)) {
-            addToWorklist(member);
+              universe.generatedCode[member] === null) {
+            FunctionElement element = member;
+            Set<int> invocations = universe.invokedNames[name];
+            if (invocations != null
+                && invocations.contains(element.parameterCount(this))) {
+              addToWorklist(member);
+            }
           }
         }
       }
@@ -219,16 +226,21 @@ class Compiler implements Canceler, Logger {
     addToWorklist(element);
   }
 
-  void registerDynamicInvocation(SourceString methodName) {
-    universe.invokedNames.add(methodName.stringValue);
+  void registerDynamicInvocation(SourceString methodName, int arity) {
+    Set<int> existing = universe.invokedNames[methodName];
+    if (existing == null) {
+      universe.invokedNames[methodName] = new Set.from(<int>[arity]);
+    } else {
+      existing.add(arity);
+    }
   }
 
   void registerDynamicGetter(SourceString methodName) {
-    universe.invokedGetters.add(methodName.stringValue);
+    universe.invokedGetters.add(methodName);
   }
 
   void registerDynamicSetter(SourceString methodName) {
-    universe.invokedSetters.add(methodName.stringValue);
+    universe.invokedSetters.add(methodName);
   }
 
   void registerInstantiatedClass(ClassElement element) {

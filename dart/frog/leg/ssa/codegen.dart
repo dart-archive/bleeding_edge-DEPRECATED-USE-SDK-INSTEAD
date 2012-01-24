@@ -409,9 +409,15 @@ class SsaCodeGenerator implements HVisitor {
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     use(node.receiver);
     buffer.add('.');
-    buffer.add(compiler.namer.instanceName(node.name));
+    // Remove 'this' from the number of arguments.
+    int argumentCount = node.inputs.length - 1;
+    buffer.add(compiler.namer.instanceMethodName(node.name, argumentCount));
     visitArguments(node.inputs);
-    compiler.registerDynamicInvocation(node.name);
+    // Avoid adding the generative constructor name to the list of
+    // seen selectors.
+    if (node.inputs[0] is !HForeignNew) {
+      compiler.registerDynamicInvocation(node.name, argumentCount);
+    }
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -433,7 +439,7 @@ class SsaCodeGenerator implements HVisitor {
   visitInvokeClosure(HInvokeClosure node) {
     use(node.receiver);
     buffer.add('.');
-    buffer.add(compiler.namer.closureInvocationName());
+    buffer.add(compiler.namer.closureInvocationName(node.inputs.length - 1));
     visitArguments(node.inputs);
   }
 
@@ -445,8 +451,11 @@ class SsaCodeGenerator implements HVisitor {
   visitInvokeSuper(HInvokeSuper node) {
     Element superMethod = node.element;
     Element superClass = superMethod.enclosingElement;
+    // Remove the element and 'this'.
+    int argumentCount = node.inputs.length - 2;
     String className = compiler.namer.isolatePropertyAccess(superClass);
-    String methodName = compiler.namer.instanceName(superMethod.name);
+    String methodName = compiler.namer.instanceMethodName(
+        superMethod.name, argumentCount);
     buffer.add('$className.prototype.$methodName.call');
     visitArguments(node.inputs);
   }

@@ -64,19 +64,21 @@ main() {
 
 twoClasses() {
   String generated = compileClasses(TEST_ONE);
-  Expect.isTrue(generated.contains("Isolate.prototype.A2 = function A() {\n};"));
-  Expect.isTrue(generated.contains("Isolate.prototype.B2 = function B() {\n};"));
+  Expect.isTrue(generated.contains(
+      "Isolate.prototype.A = function A() {\n};"));
+  Expect.isTrue(generated.contains(
+      "Isolate.prototype.B = function B() {\n};"));
 }
 
 subClass() {
   checkOutput(String generated) {
     Expect.isTrue(
-        generated.contains("Isolate.prototype.A2 = function A() {\n};"));
+        generated.contains("Isolate.prototype.A = function A() {\n};"));
     Expect.isTrue(
-        generated.contains("Isolate.prototype.B2 = function B() {\n};"));
+        generated.contains("Isolate.prototype.B = function B() {\n};"));
     Expect.isTrue(generated.contains(@"Isolate.$inherits = function"));
     Expect.isTrue(generated.contains(
-        "Isolate.\$inherits(Isolate.prototype.B2, Isolate.prototype.A2);\n"));
+        "Isolate.\$inherits(Isolate.prototype.B, Isolate.prototype.A);\n"));
   }
 
   checkOutput(compileClasses(TEST_TWO));
@@ -86,16 +88,16 @@ subClass() {
 fieldTest() {
   String generated = compileClasses(TEST_FOUR);
   Expect.isTrue(generated.contains("""
-Isolate.prototype.B2 = function B(B2_z, B2_y, A_x) {
-  this.z = B2_z;
-  this.y = B2_y;
+Isolate.prototype.B = function B(B_z, B_y, A_x) {
+  this.z = B_z;
+  this.y = B_y;
   this.x = A_x;
 };"""));
 }
 
 constructor1() {
   String generated = compileClasses(TEST_FIVE);
-  Expect.isTrue(generated.contains("new \$.A2(x);"));
+  Expect.isTrue(generated.contains("new \$.A(x);"));
 }
 
 main() {

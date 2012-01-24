@@ -70,18 +70,18 @@ int foo(var start, bool test) {
 main() {
   String generated = compile(FOO, 'foo');
   // TODO(ngeoffray): Use 'contains' when frog supports it.
-  RegExp regexp = const RegExp("function\\(a, b\\) {");
+  RegExp regexp = const RegExp(@"function\(a, b\) {");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(BAR, 'bar');
-  regexp = const RegExp("function\\(\\\$eval, _\\\$eval\\) {");
+  regexp = const RegExp(@"function\(\$eval, _\$eval\) {");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(PARAMETER_AND_TEMP, 'bar');
-  regexp = const RegExp("print\\(t0\\)");
+  regexp = const RegExp(@"print\$1\(t0\)");
   Expect.isTrue(regexp.hasMatch(generated));
   // Check that the second 't0' got another name.
-  regexp = const RegExp("print\\(t0_0\\)");
+  regexp = const RegExp(@"print\$1\(t0_0\)");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(NO_LOCAL, 'foo');

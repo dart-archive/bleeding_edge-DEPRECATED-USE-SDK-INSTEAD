@@ -8,6 +8,8 @@
 class Namer {
   final Compiler compiler;
 
+  static final CLOSURE_INVOCATION_NAME = const SourceString('\$call');
+
   static Set<String> _jsReserved = null;
   Set<String> get jsReserved() {
     if (_jsReserved === null) {
@@ -29,15 +31,18 @@ class Namer {
   final String ISOLATE = "Isolate";
 
 
-  String closureInvocationName() {
+  String closureInvocationName(int arity) {
     // TODO(floitsch): mangle, while not conflicting with instance names.
-    return '\$call';
+    return instanceMethodName(CLOSURE_INVOCATION_NAME, arity);
   }
 
-  String instanceName(SourceString name) {
-    String candidate = '$name';
+  String instanceMethodName(SourceString name, int arity) {
     // TODO(floitsch): mangle, while preserving uniqueness.
-    return candidate;
+    return '$name\$$arity';
+  }
+
+  String instanceFieldName(SourceString name) {
+    return '$name';
   }
 
   String setterName(SourceString name) {
@@ -49,42 +54,28 @@ class Namer {
   }
 
   /**
-   * The constructor-body name is computed from the corresponding
-   * constructor element because, in the case of a super-initialization, the
-   * body element is not accessible.
-   */
-  String constructorBodyName(Element element) {
-    assert(element.kind == ElementKind.GENERATIVE_CONSTRUCTOR);
-    // TODO(floitsch): the constructor-body name must not conflict with other
-    // instance fields.
-    // TOD(floitsch): deal with named constructors.
-    return instanceName(element.name);
-  }
-
-  /**
-   * Returns a preferred JS-id for the given element. The returned id is
-   * guaranteed to be a valid JS-id.
-   *
-   * For instance-members the returned strings are guaranteed not to clash. For
-   * static variables there might be clashes. In the latter case the caller
-   * needs to ensure uniqueness.
+   * Returns a preferred JS-id for the given top-level or static element.
+   * The returned id is guaranteed to be a valid JS-id.
    */
   String _computeGuess(Element element) {
-    if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
-      ConstructorBodyElement bodyElement = element;
-      return constructorBodyName(bodyElement.constructor);
+    assert(!element.isInstanceMember());
+    if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+      SourceString name = getConstructorName(element);
+      return instanceMethodName(name, element.parameterCount(compiler));
+    } else {
+      // TODO(floitsch): deal with named constructors.
+      String name = '${element.name}';
+      if (element.kind == ElementKind.FUNCTION) {
+        FunctionElement functionElement = element;
+        name = '$name\$${functionElement.parameterCount(compiler)}';
+      }
+      // Prefix the name with '$' if it is reserved.
+      if (jsReserved.contains(name)) {
+        name = "\$$name";
+        assert(!jsReserved.contains(name));
+      }
+      return name;
     }
-
-    if (element.isInstanceMember()) return instanceName(element.name);
-
-    // TODO(floitsch): deal with named constructors.
-    String name = '${element.name}';
-    // Prefix the name with '$' if it is reserved.
-    if (jsReserved.contains(name)) {
-      name = "\$$name";
-      assert(!jsReserved.contains(name));
-    }
-    return name;
   }
 
   String getBailoutName(Element element) {
@@ -109,54 +100,55 @@ class Namer {
       SourceString name;
       if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
         ConstructorBodyElement bodyElement = element;
-        name = getConstructorName(bodyElement.constructor);
+        SourceString name = getConstructorName(bodyElement.constructor);
+        return instanceMethodName(name, bodyElement.parameterCount(compiler));
+      } else if (element.kind == ElementKind.FUNCTION) {
+        FunctionElement functionElement = element;
+        int parameterCount = functionElement.parameterCount(compiler);
+        return instanceMethodName(element.name, parameterCount);
       } else {
-        name = element.name;
+        return instanceFieldName(element.name);
       }
-      return instanceName(name);
-    }
-    String cached = globals[element];
-    if (cached !== null) return cached;
-
-    String guess;
-    if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-      guess = getConstructorName(element).stringValue;
     } else {
-      guess = _computeGuess(element);
-    }
-    switch (element.kind) {
-      case ElementKind.VARIABLE:
-      case ElementKind.PARAMETER:
-        // The name is not guaranteed to be unique.
-        return guess;
+      // Dealing with a top-level or static element.
+      String cached = globals[element];
+      if (cached !== null) return cached;
 
-      case ElementKind.GENERATIVE_CONSTRUCTOR:
-      case ElementKind.FUNCTION:
-      case ElementKind.CLASS:
-      case ElementKind.FIELD:
-        // We need to make sure the name is unique.
-        int usedCount = usedGlobals[guess];
-        if (usedCount === null) {
-          // No element with this name has been used before.
-          usedGlobals[guess] = 1;
-          globals[element] = guess;
+      String guess = _computeGuess(element);
+      switch (element.kind) {
+        case ElementKind.VARIABLE:
+        case ElementKind.PARAMETER:
+          // The name is not guaranteed to be unique.
           return guess;
-        } else {
-          // Not the first time we see an element with this name. Append a
-          // number to make it unique.
-          String name;
-          do {
-            usedCount++;
-            name = '$guess$usedCount';
-          } while (usedGlobals[name] !== null);
-          usedGlobals[guess] = usedCount;
-          globals[element] = name;
-          return name;
-        }
 
-      default:
-        compiler.internalError('getName for unknown kind: ${element.kind}',
-                               node: element.parseNode(compiler, compiler));
+        case ElementKind.GENERATIVE_CONSTRUCTOR:
+        case ElementKind.FUNCTION:
+        case ElementKind.CLASS:
+        case ElementKind.FIELD:
+          // We need to make sure the name is unique.
+          int usedCount = usedGlobals[guess];
+          if (usedCount === null) {
+            // No element with this name has been used before.
+            usedGlobals[guess] = 1;
+            globals[element] = guess;
+            return guess;
+          } else {
+            // Not the first time we see an element with this name. Append a
+            // number to make it unique.
+            String name;
+            do {
+              usedCount++;
+              name = '$guess$usedCount';
+            } while (usedGlobals[name] !== null);
+            usedGlobals[guess] = usedCount;
+            globals[element] = name;
+            return name;
+          }
+
+        default:
+          compiler.internalError('getName for unknown kind: ${element.kind}',
+                                 node: element.parseNode(compiler, compiler));
+      }
     }
   }
 

@@ -11,15 +11,15 @@ class Universe {
   final Set<ClassElement> instantiatedClasses;
   // TODO(floitsch): we want more information than just the method name. For
   // example the number of arguments, etc.
-  final Set<String> invokedNames;
-  final Set<String> invokedGetters;
-  final Set<String> invokedSetters;
+  final Map<SourceString, Set<int>> invokedNames;
+  final Set<SourceString> invokedGetters;
+  final Set<SourceString> invokedSetters;
 
   Universe() : elements = {}, generatedCode = {}, generatedBailoutCode = {},
                instantiatedClasses = new Set<ClassElement>(),
-               invokedNames = new Set<String>(),
-               invokedGetters = new Set<String>(),
-               invokedSetters = new Set<String>(),
+               invokedNames = new Map<SourceString, Set<int>>(),
+               invokedGetters = new Set<SourceString>(),
+               invokedSetters = new Set<SourceString>(),
                scope = new Element(const SourceString('global scope'),
                                    null, null);
 

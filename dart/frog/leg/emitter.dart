@@ -56,12 +56,12 @@ function(child, parent) {
       // TODO(ngeoffray): Have another class generate the code for the
       // fields.
       assert(member.kind === ElementKind.FIELD);
-      if (compiler.universe.invokedSetters.contains(member.name.stringValue)) {
+      if (compiler.universe.invokedSetters.contains(member.name)) {
         String setterName = namer.setterName(member.name);
         buffer.add('$prototype.$setterName = function(v){\n' +
           '  this.${namer.getName(member)} = v;\n}\n');
       }
-      if (compiler.universe.invokedGetters.contains(member.name.stringValue)) {
+      if (compiler.universe.invokedGetters.contains(member.name)) {
         String getterName = namer.getterName(member.name);
         buffer.add('$prototype.$getterName = function(){\n' +
           '  return this.${namer.getName(member)};\n}\n');
@@ -80,7 +80,7 @@ function(child, parent) {
         if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
           if (!isFirst) argumentsBuffer.add(', ');
           isFirst = false;
-          String memberName = namer.instanceName(member.name);
+          String memberName = namer.instanceFieldName(member.name);
           argumentsBuffer.add('${className}_$memberName');
           bodyBuffer.add('  this.$memberName = ${className}_$memberName;\n');
         }
@@ -183,6 +183,53 @@ function(child, parent) {
     }
   }
 
+  void emitNoSuchMethodCalls(StringBuffer buffer) {
+    // Do not generate no such method calls if there is no class.
+    if (compiler.universe.instantiatedClasses.isEmpty()) return;
+
+    // TODO(ngeoffray): We don't need to generate these methods if
+    // nobody overwrites noSuchMethod.
+
+    ClassElement objectClass =
+        compiler.universe.find(const SourceString('Object'));
+    String className = namer.isolatePropertyAccess(objectClass);
+    String prototype = '$className.prototype';
+    String noSuchMethodName =
+        namer.instanceMethodName(Compiler.NO_SUCH_METHOD, 2);
+
+    void generateMethod(String methodName, String jsName, int arity) {
+      buffer.add('$prototype.$jsName = function');
+      StringBuffer args = new StringBuffer();
+      for (int i = 0; i < arity; i++) {
+        if (i != 0) args.add(', ');
+        args.add('arg$i');
+      }
+      buffer.add(' ($args) {\n');
+      buffer.add("  return this.$noSuchMethodName('$methodName', [$args]);\n");
+      buffer.add('}\n');
+    }
+
+    compiler.universe.invokedNames.forEach((SourceString methodName,
+                                            Set<int> arities) {
+      if (objectClass.lookupLocalMember(methodName) === null) {
+        for (int arity in arities) {
+          String jsName = namer.instanceMethodName(methodName, arity);
+          generateMethod(methodName.stringValue, jsName, arity);
+        }
+      }
+    });
+
+    compiler.universe.invokedGetters.forEach((SourceString getterName) {
+      String jsName = namer.getterName(getterName);
+      generateMethod('get $getterName', jsName, 0);
+    });
+
+    compiler.universe.invokedSetters.forEach((SourceString setterName) {
+      String jsName = namer.setterName(setterName);
+      generateMethod('set $setterName', jsName, 1);
+    });
+  }
+
   String assembleProgram() {
     measure(() {
       StringBuffer buffer = new StringBuffer();
@@ -190,10 +237,12 @@ function(child, parent) {
       emitStaticNonFinalFieldInitializations(buffer);
       buffer.add('}\n\n');
       emitClasses(buffer);
+      emitNoSuchMethodCalls(buffer);
       emitStaticFunctions(buffer);
       emitStaticFinalFieldInitializations(buffer);
       buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
-      buffer.add('${namer.CURRENT_ISOLATE}.main();\n');
+      Element main = compiler.universe.find(Compiler.MAIN);
+      buffer.add('${namer.isolateAccess(main)}();\n');
       compiler.assembledCode = buffer.toString();
     });
     return compiler.assembledCode;

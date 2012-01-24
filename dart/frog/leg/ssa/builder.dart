@@ -528,10 +528,9 @@ class SsaBuilder implements Visitor {
     FunctionElement element = elements[node];
     ClassElement globalizedClosureElement =
         new ClassElement(const SourceString("Closure"), null);
-    String callName = compiler.namer.closureInvocationName();
     Modifiers modifiers = new Modifiers.empty();
     FunctionElement callElement =
-        new FunctionElement(new SourceString(callName),
+        new FunctionElement(Namer.CLOSURE_INVOCATION_NAME,
                             ElementKind.FUNCTION,
                             modifiers,
                             globalizedClosureElement,

@@ -287,6 +287,21 @@ builtin$iterator$0(var receiver) {
   return UNINTERCEPTED(receiver.iterator());
 }
 
+builtin$charCodeAt$1(var receiver, int index) {
+  if (JS("bool", @"typeof receiver === 'string'")) {
+    return JS("string", @"$0.charCodeAt($1)", receiver, index);
+  } else {
+    return UNINTERCEPTED(receiver.charCodeAt(index));
+  }
+}
+
+builtin$isEmpty$0(var receiver) {
+  if (JS("bool", @"typeof $0 === 'string'", receiver) || isJSArray(receiver)) {
+    return JS("bool", @"$0.length === 0", receiver);
+  }
+  return UNINTERCEPTED(receiver.isEmpty());
+}
+
 
 bool isInt(var v) {
   return JS("bool", @"($0 | 0) === $1", v, v);
@@ -315,7 +330,24 @@ class Object {
     }
     return "Instance of '$name'";
   }
+
+  void noSuchMethod(String name, List args) {
+    throw new NoSuchMethodException(this, name, args);
+  }
 }
+
+class NoSuchMethodException {
+  Object receiver;
+  String name;
+  List args;
+  NoSuchMethodException(Object r, String n, List a)
+      : receiver = r, name = n, args = a;
+  String toString() {
+    return "NoSuchMethodException - receiver: '$receiver'" +
+        "function name: '$name' arguments: [$args]";
+  }
+}
+
 class List<T> /* implements Iterable<T> */ {
 
   static void _checkConstructorInput(n) {
