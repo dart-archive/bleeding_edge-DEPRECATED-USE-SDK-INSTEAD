@@ -152,7 +152,8 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(launchConfig);
 
     launchWrapper.setProjectName(resource.getProject().getName());
-    launchWrapper.setApplicationName(resource.getLocation().toOSString());
+    launchWrapper.setApplicationName(resource.getFullPath().toPortableString());
+    launchWrapper.setUseDefaultBrowser(true);
 
     launchConfig.setMappedResources(new IResource[] {resource});
 

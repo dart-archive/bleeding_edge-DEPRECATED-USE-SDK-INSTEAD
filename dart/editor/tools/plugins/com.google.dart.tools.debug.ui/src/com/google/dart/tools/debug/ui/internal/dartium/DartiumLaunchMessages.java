@@ -31,7 +31,6 @@ public class DartiumLaunchMessages extends NLS {
   public static String DartiumMainTab_ProjectLabel;
   public static String DartiumMainTab_SelectHtml;
   public static String DartiumMainTab_SelectProject;
-  public static String DartiumMainTab_UrlError;
   public static String DartiumMainTab_UrlLabel;
   static {
     // initialize resource bundle

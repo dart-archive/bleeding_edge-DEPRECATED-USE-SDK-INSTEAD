@@ -22,6 +22,7 @@ public class Messages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.debug.ui.internal.browser.messages"; //$NON-NLS-1$
   public static String BrowserLaunchConfigurationDelegate_BrowserNotFound;
   public static String BrowserLaunchConfigurationDelegate_HtmlFileNotFound;
+  public static String BrowserLaunchConfigurationDelegate_UrlError;
   public static String BrowserLaunchConfigurationDelegate_NoDebugSupportMessage;
   public static String BrowserLaunchConfigurationDelegate_NoJavascriptErrorMessage;
   public static String BrowserLaunchShortcut_NoJavascriptErrorMessage;

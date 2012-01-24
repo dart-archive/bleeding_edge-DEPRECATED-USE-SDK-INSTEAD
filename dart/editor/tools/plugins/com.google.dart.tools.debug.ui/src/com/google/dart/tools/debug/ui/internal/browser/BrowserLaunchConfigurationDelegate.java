@@ -27,6 +27,9 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.swt.program.Program;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 /**
  * Launches the Dart application (compiled to js) in the browser
  */
@@ -50,9 +53,19 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
         throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_HtmlFileNotFound));
       }
-      url = resource.getLocation().toOSString();
+      url = resource.getLocationURI().toString();
     } else {
       url = launchConfig.getUrl();
+      try {
+        String scheme = new URI(url).getScheme();
+        if (scheme == null) { // add scheme else browser will not launch
+          url = "http://" + url;
+        }
+      } catch (URISyntaxException e) {
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+            Messages.BrowserLaunchConfigurationDelegate_UrlError));
+      }
+
     }
 
     if (launchConfig.getUseDefaultBrowser()) {

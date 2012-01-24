@@ -16,8 +16,8 @@ package com.google.dart.tools.debug.ui.internal.dartium;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -141,8 +141,6 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     if (urlButton.getSelection()) {
       if (urlText.getText().length() == 0) {
         return DartiumLaunchMessages.DartiumMainTab_NoUrl;
-      } else if (!urlText.getText().startsWith("http")) { //$NON-NLS-1$
-        return DartiumLaunchMessages.DartiumMainTab_UrlError;
       } else if (projectText.getText().length() == 0) {
         return DartiumLaunchMessages.DartiumMainTab_NoProject;
       }
@@ -222,20 +220,10 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   @Override
   public void performApply(ILaunchConfigurationWorkingCopy configuration) {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
-    if (htmlButton.getSelection()) {
-      dartLauncher.setShouldLaunchFile(true);
-      dartLauncher.setApplicationName(htmlText.getText());
-      if (!htmlText.getText().trim().isEmpty()) {
-        IResource file = ResourcesPlugin.getWorkspace().getRoot().findMember(
-            new Path(htmlText.getText().trim()));
-        dartLauncher.setProjectName(file.getProject().getName());
-      }
-
-    } else {
-      dartLauncher.setShouldLaunchFile(false);
-      dartLauncher.setUrl(urlText.getText().trim());
-      dartLauncher.setProjectName(projectText.getText().trim());
-    }
+    dartLauncher.setShouldLaunchFile(htmlButton.getSelection());
+    dartLauncher.setApplicationName(htmlText.getText());
+    dartLauncher.setUrl(urlText.getText().trim());
+    dartLauncher.setProjectName(projectText.getText().trim());
   }
 
   @Override
