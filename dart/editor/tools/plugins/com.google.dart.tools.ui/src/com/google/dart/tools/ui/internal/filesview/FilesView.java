@@ -40,6 +40,7 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
@@ -204,7 +205,23 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     // New File/ New Folder/ New Project
 
     //TODO (jwren/pquitslund): replace with our new file wizard when it is updated
-    manager.add(new CreateFileAction(getShell()));
+    manager.add(new CreateFileAction(getShell()) {
+      /**
+       * Override run() to use our version of BasicNewFileResourceWizard which will update the model
+       * appropriately with the new file, if it is a dart file.
+       */
+      @Override
+      public void run() {
+        BasicNewFileResourceWizard wizard = new BasicNewFileResourceWizard();
+        wizard.init(PlatformUI.getWorkbench(), getStructuredSelection());
+        wizard.setNeedsProgressMonitor(true);
+        WizardDialog dialog = new WizardDialog(shellProvider.getShell(), wizard);
+        dialog.create();
+        dialog.getShell().setText("New");
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(dialog.getShell(), "New File");
+        dialog.open();
+      }
+    });
     //manager.add(new OpenNewFileWizardAction(getViewSite().getWorkbenchWindow()));
     //manager.add(new OpenNewApplicationWizardAction());
     // TODO (jwren) replace New Folder Action with a custom version

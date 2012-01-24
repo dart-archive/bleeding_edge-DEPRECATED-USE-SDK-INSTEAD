@@ -16,6 +16,7 @@ package com.google.dart.tools.core.model;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
@@ -29,6 +30,17 @@ import java.util.Map;
  * that has a Dart nature.
  */
 public interface DartProject extends ParentElement, OpenableElement {
+
+  /**
+   * Adds the new {@link IFile} to the <code>.children</code> file for the project, and updates the
+   * model's info objects with a new Dart library.
+   * <p>
+   * While not enforced, the file name should end with a valid extension such that
+   * {@link DartCore#isDartLikeFileName(String)} returns <code>true</code>.
+   * 
+   * @param file the new library file
+   */
+  public void addLibraryFile(IFile file);
 
   /**
    * Find the type defined in this project with the given qualified name.
