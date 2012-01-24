@@ -1629,14 +1629,14 @@
       </command>
 <!-- file -->
       <!-- TODO(pquitslund): remove entirely when new files view lands -->
-      <!--command
+      <command
             categoryId="org.eclipse.ui.category.file"
             defaultHandler="com.google.dart.tools.ui.internal.handlers.OpenFileHandler"
             description="%Command.openFile.description"
             id="com.google.dart.tools.ui.file.open"
             name="%Command.openFile.name">
       </command>
-      <command
+      <!-- command
             categoryId="org.eclipse.ui.category.file"
             description="%Command.newFile.description"
             id="com.google.dart.tools.ui.file.new"
