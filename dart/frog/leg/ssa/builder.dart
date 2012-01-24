@@ -241,14 +241,11 @@ class SsaBuilder implements Visitor {
     List bodyCallInputs = <HInstruction>[];
     bodyCallInputs.add(newObject);
     for (Link link = parameters.nodes; !link.isEmpty(); link = link.tail) {
-      Link<Node> identifierLink = link.head.definitions.nodes;
+      Link<Node> nodeLink = link.head.definitions.nodes;
       // We expect exactly one identifier.
-      assert(!identifierLink.isEmpty() && identifierLink.tail.isEmpty());
-      if (identifierLink.head is !Identifier) {
-        compiler.unimplemented("SsaBuilder.buildFactory non-identifier");
-      }
-      Identifier name = identifierLink.head;
-      Element parameterElement = elements[name];
+      assert(!nodeLink.isEmpty() && nodeLink.tail.isEmpty());
+      Node current = nodeLink.head;
+      Element parameterElement = elements[current];
       HInstruction currentValue = definitions[parameterElement];
       bodyCallInputs.add(currentValue);
     }
@@ -270,7 +267,7 @@ class SsaBuilder implements Visitor {
       add(thisDefinition);
     }
     FunctionExpression function = functionElement.parseNode(compiler, compiler);
-    visitParameterValues(function.parameters);
+    handleParameterValues(function.parameters);
     close(new HGoto()).addSuccessor(block);
 
     open(block);
@@ -334,21 +331,17 @@ class SsaBuilder implements Visitor {
     if (node !== null) node.accept(this);
   }
 
-  visitParameterValues(NodeList parameters) {
+  handleParameterValues(NodeList parameters) {
     int parameterIndex = 0;
     for (Link<Node> link = parameters.nodes;
          !link.isEmpty();
          link = link.tail) {
       VariableDefinitions container = link.head;
-      Link<Node> identifierLink = container.definitions.nodes;
+      Link<Node> nodeLink = container.definitions.nodes;
       // The identifier link must contain exactly one argument.
-      assert(!identifierLink.isEmpty() && identifierLink.tail.isEmpty());
-      if (identifierLink.head is !Identifier) {
-        compiler.unimplemented(
-            "SsaBuilder.visitParameterValues non-identifier", node: parameters);
-      }
-      Identifier parameterId = identifierLink.head;
-      VariableElement element = elements[parameterId];
+      assert(!nodeLink.isEmpty() && nodeLink.tail.isEmpty());
+      Node current = nodeLink.head;
+      VariableElement element = elements[current];
       HParameterValue parameter = new HParameterValue(element);
       add(parameter);
       definitions[element] = parameter;

@@ -340,8 +340,7 @@ class NoSuchMethodException {
   Object receiver;
   String name;
   List args;
-  NoSuchMethodException(Object r, String n, List a)
-      : receiver = r, name = n, args = a;
+  NoSuchMethodException(Object this.receiver, String this.name, List this.args);
   String toString() {
     return "NoSuchMethodException - receiver: '$receiver'" +
         "function name: '$name' arguments: [$args]";
@@ -368,7 +367,7 @@ class List<T> /* implements Iterable<T> */ {
 class ListIterator<T> /* implements Iterator<T> */ {
   int i;
   List<T> list;
-  ListIterator(List<T> list) : this.list = list, i = 0;
+  ListIterator(List<T> this.list) : i = 0;
   bool hasNext() => i < JS("int", @"$0.length", list);
   T next() {
     var value = JS("Object", @"$0[$1]", list, i);

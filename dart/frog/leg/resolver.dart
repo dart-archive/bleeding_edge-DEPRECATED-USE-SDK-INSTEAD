@@ -636,6 +636,10 @@ class FullResolverVisitor extends ResolverVisitor {
 
   visitNewExpression(NewExpression node) {
     if (node.isConst()) cancel(node, 'const expressions are not implemented');
+    if (node.send.selector.asTypeAnnotation() === null) {
+      cancel(
+          node, 'named constructors with type parameters are not implemented');
+    }
 
     visit(node.send.argumentsNode);
 
@@ -857,13 +861,41 @@ class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
-      VariableElement element = new VariableElement(
-          name, variables, kind, resolver.context.element, node: link.head);
-      resolver.defineElement(link.head, element);
+      if (name !== null) {
+        VariableElement element = new VariableElement(
+            name, variables, kind, resolver.context.element, node: link.head);
+        resolver.defineElement(link.head, element);
+      }
     }
   }
 
   visit(Node node) => node.accept(this);
+
+  visitSend(Node node) {
+    // The lhs is a property access. The parser never accepts this
+    // code right now if it's not a field initializer.
+    if (kind !== ElementKind.PARAMETER || node.receiver === null) {
+      resolver.cancel('internal error');
+    }
+
+    if (resolver.element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR) {
+      resolver.error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED, []);
+    } else if (node.receiver.asIdentifier() === null ||
+               !node.receiver.asIdentifier().isThis()) {
+      resolver.error(node, MessageKind.INVALID_FIELD_PARAMETER, []);
+    } else {
+      SourceString name = node.selector.asIdentifier().source;
+      Element field = resolver.currentClass.lookupLocalMember(name);
+      if (field.kind !== ElementKind.FIELD) {
+        resolver.error(node, MessageKind.NOT_A_FIELD, [name]);
+      } else if (!field.isInstanceMember()) {
+        resolver.error(node, MessageKind.NOT_INSTANCE_FIELD, [name]);
+      } else {
+        resolver.defineElement(node, field);
+      }
+    }
+    return null;
+  }
 
   visitNode(Node node) {
     resolver.cancel(node, 'not implemented');
