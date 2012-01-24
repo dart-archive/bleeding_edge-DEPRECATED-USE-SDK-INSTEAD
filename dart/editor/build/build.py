@@ -342,6 +342,14 @@ def main():
 
     #return on any builder but dart-editor
     if buildos:
+      found_zips = _FindRcpZipFiles(properties['build.out'])
+      if not found_zips:
+        _PrintError('could not find any zipped up RCP files.'
+                    '  The Ant build must have failed')
+        return 1
+      else:
+        _DeployRcpsToTest(buildos, 'gs://dart-editor-archive-testing/testing',
+                          found_zips, gsu)
       return 0
 
     #if the build passed run the deploy artifacts
@@ -504,6 +512,25 @@ def _DeployArtifacts(fromd, to, tmp, svnid, gsu):
   return status
 
 
+def _DeployRcpsToTest(build_os, to_bucket, zip_files, gsu):
+  """Deploy the build RCP's to the test bucket.
+
+  Args:
+    build_os: the os for this build
+    to_bucket: the location on GoogleStorage to copy the files
+    zip_files: list of zip files to copy to GoogleStorage
+    gsu: the GoogleStorage wrapper
+  """
+  print '_DeployRcpsToTest({0}, {1}, {2}, gsu)'.format(to_bucket, zip_files,
+                                                       build_os)
+  for element in zip_files:
+    base_name = os.path.basename(element)
+    to = '{0}/{1}/{2}'.format(to_bucket, build_os, base_name)
+    status = gsu.Copy(element, to)
+    if not status:
+      _SetAcl(to, gsu)
+
+
 def _SetAclOnArtifacts(to, bucket_tags, gsu):
   """Set the ACL's on the GoogleStorage Objects.
 
@@ -565,6 +592,23 @@ def _CopySdk(buildos, revision, bucket_to, bucket_from, gsu):
   print 'copying {0} to {1}'.format(gssdkzip, gseditorlatestzip)
   gsu.Copy(gssdkzip, gseditorlatestzip)
   _SetAcl(gseditorlatestzip, gsu)
+
+
+def _FindRcpZipFiles(out_dir):
+  """Fint the Zipped RCP files.
+
+  Args:
+    out_dir: the directory the files will be located in
+
+  Returns:
+    a collection of rcp zip files
+  """
+  rcp_out_dir = os.listdir(out_dir)
+  found_zips = []
+  for element in rcp_out_dir:
+    if element.startswith('DartBuild') and element.endswith('.zip'):
+      found_zips.append(os.path.join(out_dir, element))
+  return found_zips
 
 
 def _PrintSeparator(text):
