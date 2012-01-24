@@ -80,6 +80,14 @@ class Element implements Hashable {
   // the same hash code. Replace this with a simple id in the element?
   int hashCode() => name.hashCode();
 
+  CompilationUnitElement getEnclosingCompilationUnit() {
+    Element element = this;
+    while (element !== null && !element.isCompilationUnit()) {
+      element = element.enclosingElement;
+    }
+    return element;
+  }
+
   toString() => '$kind($name)';
 }
 

@@ -521,8 +521,10 @@ class SsaBuilder implements Visitor {
 
   visitFunctionExpression(FunctionExpression node) {
     FunctionElement element = elements[node];
+    CompilationUnitElement compilationUnit =
+        element.getEnclosingCompilationUnit();
     ClassElement globalizedClosureElement =
-        new ClassElement(const SourceString("Closure"), null);
+        new ClassElement(const SourceString("Closure"), compilationUnit);
     Modifiers modifiers = new Modifiers.empty();
     FunctionElement callElement =
         new FunctionElement(Namer.CLOSURE_INVOCATION_NAME,
