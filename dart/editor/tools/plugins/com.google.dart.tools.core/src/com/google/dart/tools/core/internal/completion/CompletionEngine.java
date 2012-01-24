@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -230,6 +230,14 @@ public class CompletionEngine {
     public Void visitIfStatement(DartIfStatement completionNode) {
       // { if (v!) }
       proposeIdentifierPrefixCompletions(completionNode);
+      return null;
+    }
+
+    @Override
+    public Void visitMethodDefinition(DartMethodDefinition node) {
+      if (node.getName() == identifier) {
+        proposeIdentifierPrefixCompletions(identifier);
+      }
       return null;
     }
 
@@ -586,8 +594,16 @@ public class CompletionEngine {
 
     @Override
     public Void visitFunction(DartFunction node) {
-      DartNode parentNode = node.getParent();
       if (node instanceof FunctionCompleter) {
+        if (node.getParent() instanceof DartMethodDefinition) {
+          DartMethodDefinition methodDef = (DartMethodDefinition) node.getParent();
+          DartExpression methodName = methodDef.getName();
+          if ((methodName instanceof DartIdentifier) && isCompletionNode(methodName)) {
+            // { const B!ara(); }
+            methodDef.accept(new IdentifierCompletionProposer((DartIdentifier) methodName));
+            return null;
+          }
+        }
         // new parameter: bar(!) {} or bar(! int x) {} or bar(x, B !) {}
         List<DartParameter> params = node.getParams();
         if (params.isEmpty()) {
@@ -671,12 +687,15 @@ public class CompletionEngine {
         if (resolvedMember != null) {
           // TODO generalize and reuse single definition of this block
           boolean isStatic = resolvedMember.getModifiers().isStatic();
-          createCompletionsForLocalVariables(node, null, resolvedMember);
+          String name = lastCh == 'w' ? "new" : "const";
+          SyntheticIdentifier synth = new SyntheticIdentifier(name, actualCompletionPosition
+              - name.length() + 1, name.length());
+          createCompletionsForLocalVariables(node, synth, resolvedMember);
           Element parentElement = resolvedMember.getSymbol().getEnclosingElement();
           if (parentElement.getKind() == ElementKind.CLASS) {
             Type type = ((ClassElement) parentElement).getType();
-            createCompletionsForPropertyAccess(null, type, false, isStatic);
-            createCompletionsForMethodInvocation(null, type, false, isStatic);
+            createCompletionsForPropertyAccess(synth, type, false, isStatic);
+            createCompletionsForMethodInvocation(synth, type, false, isStatic);
           }
           return null;
         }
@@ -832,6 +851,26 @@ public class CompletionEngine {
     }
   }
 
+  private static class SyntheticIdentifier extends DartIdentifier {
+    int srcStart, srcLen;
+
+    SyntheticIdentifier(String name, int srcStart, int srcLen) {
+      super(name);
+      this.srcStart = srcStart;
+      this.srcLen = srcLen;
+    }
+
+    @Override
+    public int getSourceLength() {
+      return srcLen;
+    }
+
+    @Override
+    public int getSourceStart() {
+      return srcStart;
+    }
+  }
+
   private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/CompletionEngine"));
   private static final boolean DEBUG_TIMING = true | "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/ResultCollector"));
 
@@ -932,7 +971,6 @@ public class CompletionEngine {
   public HashMap<Object, Object> typeCache;
 
   private CompletionEnvironment environment;
-
   private CompletionRequestor requestor;
   private DartProject project;
   private WorkingCopyOwner owner;
@@ -1238,6 +1276,10 @@ public class CompletionEngine {
       proposal.setDeclarationSignature(name.toCharArray());
       proposal.setTypeName(typeName.toCharArray());
       proposal.setName(name.toCharArray());
+      if (isMethod) {
+        proposal.setParameterNames(getParameterNames((MethodElement) element));
+        proposal.setParameterTypeNames(getParameterTypeNames((MethodElement) element));
+      }
       setSourceLoc(proposal, node, prefix);
       proposal.setRelevance(1);
       requestor.accept(proposal);
@@ -1607,6 +1649,13 @@ public class CompletionEngine {
   private CompilationUnit getCurrentCompilationUnit() {
     // This is actually useful -- type search does not find local defs
     return currentCompilationUnit;
+  }
+
+  private boolean isCompletionNode(DartNode node) {
+    int completionPos = actualCompletionPosition + 1;
+    int nodeStart = node.getSourceStart();
+    int nodeEnd = node.getSourceLength() + nodeStart;
+    return nodeStart <= completionPos && completionPos <= nodeEnd;
   }
 
   private void proposeClassOrInterfaceNamesForPrefix(DartIdentifier identifier, boolean isClass) {
