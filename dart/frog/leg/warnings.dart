@@ -78,8 +78,8 @@ class MessageKind {
       '#{1} is a #{2}, not a constructor');
   static final FIELD_PARAMETER_NOT_ALLOWED = const MessageKind(
       'A field parameter is only allowed in generative constructors');
-  static final INVALID_FIELD_PARAMETER = const MessageKind(
-      "A field parameter must be preceded by 'this'");
+  static final INVALID_PARAMETER = const MessageKind(
+      "Cannot resolve parameter");
   static final NOT_INSTANCE_FIELD = const MessageKind(
       '#{1} is not an instance field');
 

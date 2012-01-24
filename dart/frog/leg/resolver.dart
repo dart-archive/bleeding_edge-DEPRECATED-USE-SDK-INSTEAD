@@ -638,7 +638,7 @@ class FullResolverVisitor extends ResolverVisitor {
     if (node.isConst()) cancel(node, 'const expressions are not implemented');
     if (node.send.selector.asTypeAnnotation() === null) {
       cancel(
-          node, 'named constructors with type parameters are not implemented');
+          node, 'named constructors with type arguments are not implemented');
     }
 
     visit(node.send.argumentsNode);
@@ -871,18 +871,19 @@ class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
 
   visit(Node node) => node.accept(this);
 
-  visitSend(Node node) {
+  visitSend(Send node) {
     // The lhs is a property access. The parser never accepts this
     // code right now if it's not a field initializer.
     if (kind !== ElementKind.PARAMETER || node.receiver === null) {
-      resolver.cancel('internal error');
+      resolver.cancel(node, 'internal error');
     }
 
-    if (resolver.element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR) {
+    if (node.receiver.asIdentifier() === null ||
+        !node.receiver.asIdentifier().isThis()) {
+      resolver.error(node, MessageKind.INVALID_PARAMETER, []);
+    } else if (resolver.enclosingElement.kind !==
+                  ElementKind.GENERATIVE_CONSTRUCTOR) {
       resolver.error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED, []);
-    } else if (node.receiver.asIdentifier() === null ||
-               !node.receiver.asIdentifier().isThis()) {
-      resolver.error(node, MessageKind.INVALID_FIELD_PARAMETER, []);
     } else {
       SourceString name = node.selector.asIdentifier().source;
       Element field = resolver.currentClass.lookupLocalMember(name);
@@ -890,9 +891,8 @@ class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
         resolver.error(node, MessageKind.NOT_A_FIELD, [name]);
       } else if (!field.isInstanceMember()) {
         resolver.error(node, MessageKind.NOT_INSTANCE_FIELD, [name]);
-      } else {
-        resolver.defineElement(node, field);
       }
+      resolver.defineElement(node, field);
     }
     return null;
   }

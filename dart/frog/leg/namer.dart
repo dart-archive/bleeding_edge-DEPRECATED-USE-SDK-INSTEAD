@@ -61,7 +61,8 @@ class Namer {
     assert(!element.isInstanceMember());
     if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       SourceString name = getConstructorName(element);
-      return instanceMethodName(name, element.parameterCount(compiler));
+      FunctionElement functionElement = element;
+      return instanceMethodName(name, functionElement.parameterCount(compiler));
     } else {
       // TODO(floitsch): deal with named constructors.
       String name = '${element.name}';
