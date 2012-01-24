@@ -3257,6 +3257,7 @@ WorldGenerator.prototype._maybeIsTest = function(onType, checkType) {
 WorldGenerator.prototype.writeType = function(type) {
   if (type.isWritten) return;
   type.isWritten = true;
+  this.writeType(type.get$genericType());
   if (type.get$parent() != null && !type.get$isNative()) {
     this.writeType(type.get$parent());
   }
