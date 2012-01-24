@@ -69,3 +69,11 @@ String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 String getIntTypeCheck(String variable) {
   return "\\($variable !== \\($variable \\| 0\\)\\)";
 }
+
+bool checkNumberOfMatches(Iterator it, int nb) {
+  for (int i = 0; i < nb; i++) {
+    Expect.isTrue(it.hasNext());
+    it.next();
+  }
+  Expect.isFalse(it.hasNext());
+}

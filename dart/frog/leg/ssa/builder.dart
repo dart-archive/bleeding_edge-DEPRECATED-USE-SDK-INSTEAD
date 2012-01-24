@@ -96,13 +96,11 @@ class SsaBuilderTask extends CompilerTask {
       HGraph graph;
       switch (element.kind) {
         case ElementKind.GENERATIVE_CONSTRUCTOR:
-          graph = compileConstructor(builder, element, elements);
+          graph = compileConstructor(builder, work);
           break;
         case ElementKind.GENERATIVE_CONSTRUCTOR_BODY:
-          graph = compileConstructorBody(builder, element, elements);
-          break;
         case ElementKind.FUNCTION:
-          graph = compileMethod(builder, element, elements);
+          graph = builder.buildMethod(work.element);
           break;
       }
       assert(graph.isValid());
@@ -123,30 +121,34 @@ class SsaBuilderTask extends CompilerTask {
     });
   }
 
-  HGraph compileConstructor(SsaBuilder builder,
-                            FunctionElement functionElement,
-                            TreeElements elements) {
+  HGraph compileConstructor(SsaBuilder builder, WorkItem work) {
     // The body of the constructor will be generated in a separate function.
-    ConstructorBodyElement bodyElement =
-        new ConstructorBodyElement(functionElement);
-    compiler.enqueue(new WorkItem.toCodegen(bodyElement, elements));
-    ClassElement classElement = functionElement.enclosingElement;
-    classElement.backendMembers =
-        classElement.backendMembers.prepend(bodyElement);
+    ClassElement classElement = work.element.enclosingElement;
+    ConstructorBodyElement bodyElement;
+    // In case of a bailout version, the constructor body has already
+    // been created.
+    if (work.isBailoutVersion()) {
+      for (Link<Element> backendMembers = classElement.backendMembers;
+           !backendMembers.isEmpty();
+           backendMembers = backendMembers.tail) {
+        Element current = backendMembers.head;
+        if (current.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+          ConstructorBodyElement temp = current;
+          if (temp.constructor == work.element) {
+            bodyElement = temp;
+            break;
+          }
+        }
+      }
+    } else {
+      bodyElement = new ConstructorBodyElement(work.element);
+      compiler.enqueue(
+          new WorkItem.toCodegen(bodyElement, work.resolutionTree));
+      classElement.backendMembers =
+          classElement.backendMembers.prepend(bodyElement);
+    }
     // TODO(floitsch): pass initializer-list to builder.
-    return builder.buildFactory(classElement, bodyElement, functionElement);
-  }
-
-  HGraph compileConstructorBody(SsaBuilder builder,
-                                FunctionElement element,
-                                TreeElements elements) {
-    return builder.buildMethod(element);
-  }
-
-  HGraph compileMethod(SsaBuilder builder,
-                       FunctionElement element,
-                       TreeElements elements) {
-    return builder.buildMethod(element);
+    return builder.buildFactory(classElement, bodyElement, work.element);
   }
 }
 

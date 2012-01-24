@@ -29,13 +29,6 @@ foo(int param1, int param2) {
 }
 """;
 
-bool checkNumberOfMatches(Iterator it, int nb) {
-  for (int i = 0; i < nb; i++) {
-    Expect.isTrue(it.hasNext());
-    it.next();
-  }
-  Expect.isFalse(it.hasNext());
-}
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
