@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("http");
+#import("dart:io");
 #source("http_impl.dart");
 
 /**
