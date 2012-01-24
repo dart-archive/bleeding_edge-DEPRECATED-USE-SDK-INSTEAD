@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -265,10 +266,10 @@ public class DartLaunchConfigWrapper {
 
     IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(value);
 
-    if (resource != null) {
+    if (resource != null && !(resource instanceof IWorkspaceRoot)) {
       getWorkingCopy().setMappedResources(new IResource[] {resource});
     } else {
-      getWorkingCopy().setMappedResources(new IResource[0]);
+      getWorkingCopy().setMappedResources(null);
     }
   }
 
@@ -317,10 +318,10 @@ public class DartLaunchConfigWrapper {
     if (getApplicationResource() == null) {
       IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(value);
 
-      if (resource != null) {
+      if (resource != null && !(resource instanceof IWorkspaceRoot)) {
         getWorkingCopy().setMappedResources(new IResource[] {resource});
       } else {
-        getWorkingCopy().setMappedResources(new IResource[0]);
+        getWorkingCopy().setMappedResources(null);
       }
     }
   }
