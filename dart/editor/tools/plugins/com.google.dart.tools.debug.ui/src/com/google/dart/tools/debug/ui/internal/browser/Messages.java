@@ -20,19 +20,24 @@ import org.eclipse.osgi.util.NLS;
  */
 public class Messages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.debug.ui.internal.browser.messages"; //$NON-NLS-1$
+  public static String BrowserLaunchConfigurationDelegate_BrowserNotFound;
+  public static String BrowserLaunchConfigurationDelegate_HtmlFileNotFound;
   public static String BrowserLaunchConfigurationDelegate_NoDebugSupportMessage;
   public static String BrowserLaunchConfigurationDelegate_NoJavascriptErrorMessage;
   public static String BrowserLaunchShortcut_NoJavascriptErrorMessage;
   public static String BrowserLaunchShortcut_NotHtmlFileErrorMessage;
   public static String BrowserLaunchShortcut_NotInLibraryErrorMessage;
-  
+
   public static String BrowserMainTab_Browser;
   public static String BrowserMainTab_BrowserNotSpecifiedErrorMessage;
+  public static String BrowserMainTab_DefaultBrowserMessage;
   public static String BrowserMainTab_Description;
   public static String BrowserMainTab_LaunchTarget;
   public static String BrowserMainTab_Name;
   public static String BrowserMainTab_Select;
-  
+  public static String BrowserMainTab_DialogTitle;
+  public static String BrowserMainTab_DialogMessage;
+
   static {
     // initialize resource bundle
     NLS.initializeMessages(BUNDLE_NAME, Messages.class);

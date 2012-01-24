@@ -16,7 +16,6 @@ package com.google.dart.tools.debug.ui.internal.browser;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.dartium.DartiumMainTab;
-import com.google.dart.tools.debug.ui.internal.preferences.DebugPreferenceMessages;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -28,8 +27,6 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -41,7 +38,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ListDialog;
 
 /**
@@ -62,14 +58,9 @@ public class BrowserMainTab extends DartiumMainTab {
     }
   }
 
-  private Text browserText;;
-
-  private ModifyListener textModifyListener = new ModifyListener() {
-    @Override
-    public void modifyText(ModifyEvent e) {
-      notifyPanelChanged();
-    }
-  };
+  private Label browserText;
+  private Button defaultBrowserButton;
+  private Button selectBrowserButton;
 
   @Override
   public void createControl(Composite parent) {
@@ -94,15 +85,28 @@ public class BrowserMainTab extends DartiumMainTab {
     GridDataFactory.fillDefaults().grab(true, false).applyTo(browserGroup);
     GridLayoutFactory.swtDefaults().numColumns(3).applyTo(browserGroup);
 
+    defaultBrowserButton = new Button(browserGroup, SWT.CHECK);
+    defaultBrowserButton.setText(Messages.BrowserMainTab_DefaultBrowserMessage);
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(defaultBrowserButton);
+    defaultBrowserButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        if (defaultBrowserButton.getSelection()) {
+          selectBrowserButton.setEnabled(false);
+        } else {
+          selectBrowserButton.setEnabled(true);
+        }
+        notifyPanelChanged();
+      }
+    });
+
     Label browserLabel = new Label(browserGroup, SWT.NONE);
     browserLabel.setText(Messages.BrowserMainTab_Browser);
-
-    browserText = new Text(browserGroup, SWT.BORDER | SWT.SINGLE);
-    browserText.addModifyListener(textModifyListener);
-    browserText.setEditable(false);
+    browserText = new Label(browserGroup, SWT.NONE);
+    browserText.setBackground(composite.getDisplay().getSystemColor(SWT.COLOR_WHITE));
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(browserText);
 
-    Button selectBrowserButton = new Button(browserGroup, SWT.PUSH);
+    selectBrowserButton = new Button(browserGroup, SWT.PUSH);
     selectBrowserButton.setText(Messages.BrowserMainTab_Select);
     PixelConverter converter = new PixelConverter(selectBrowserButton);
     int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
@@ -134,7 +138,7 @@ public class BrowserMainTab extends DartiumMainTab {
       return message;
     }
 
-    if (browserText.getText().length() == 0) {
+    if (!defaultBrowserButton.getSelection() && browserText.getText().length() == 0) {
       return Messages.BrowserMainTab_BrowserNotSpecifiedErrorMessage;
     }
 
@@ -169,6 +173,15 @@ public class BrowserMainTab extends DartiumMainTab {
   public void initializeFrom(ILaunchConfiguration config) {
     super.initializeFrom(config);
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(config);
+    if (dartLauncher.getUseDefaultBrowser()) {
+      defaultBrowserButton.setSelection(true);
+      selectBrowserButton.setEnabled(false);
+      browserText.setEnabled(false);
+    } else {
+      defaultBrowserButton.setSelection(false);
+      selectBrowserButton.setEnabled(true);
+      browserText.setEnabled(true);
+    }
     browserText.setText(dartLauncher.getBrowserName());
 
   }
@@ -181,7 +194,16 @@ public class BrowserMainTab extends DartiumMainTab {
     super.performApply(config);
 
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(config);
+    dartLauncher.setUseDefaultBrowser(defaultBrowserButton.getSelection());
     dartLauncher.setBrowserName(browserText.getText().trim());
+  }
+
+  @Override
+  public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
+    super.setDefaults(configuration);
+    DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
+    dartLauncher.setUseDefaultBrowser(true);
+
   }
 
   @Override
@@ -193,8 +215,8 @@ public class BrowserMainTab extends DartiumMainTab {
 
   private void handleBrowserConfigBrowseButton() {
     ListDialog listDialog = new ListDialog(getShell());
-    listDialog.setTitle(DebugPreferenceMessages.DebugPreferencePage_DialogTitle);
-    listDialog.setMessage(DebugPreferenceMessages.DebugPreferencePage_DialogMessage);
+    listDialog.setTitle(Messages.BrowserMainTab_DialogTitle);
+    listDialog.setMessage(Messages.BrowserMainTab_DialogMessage);
 
     listDialog.setLabelProvider(new ProgramLabelProvider());
     listDialog.setContentProvider(new ArrayContentProvider());
@@ -203,7 +225,9 @@ public class BrowserMainTab extends DartiumMainTab {
     if (listDialog.open() == Window.OK) {
       Object[] result = listDialog.getResult();
       browserText.setText(((Program) result[0]).getName());
+      notifyPanelChanged();
     }
+
   }
 
 }

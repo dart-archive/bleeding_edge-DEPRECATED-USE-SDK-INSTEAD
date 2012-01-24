@@ -19,6 +19,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.preferences.DebugPreferencePage;
@@ -43,6 +44,8 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.internal.dialogs.FilteredPreferenceDialog;
 import org.eclipse.ui.internal.dialogs.WorkbenchPreferenceDialog;
+
+import java.io.File;
 
 /**
  * Launch a Dart server application.
@@ -98,11 +101,19 @@ public class RunInServerAction extends Action implements ISelectionListener,
 
   @Override
   public void run() {
-    String vmExecPath = DartDebugCorePlugin.getPlugin().getDartVmExecutablePath();
+    String vmExecPath = "";
 
-    if (vmExecPath.length() == 0) {
-      if (showPreferenceDialog() != Window.OK) {
-        return;
+    if (DartSdk.isInstalled()) {
+      File vmExec = DartSdk.getInstance().getVmExecutable();
+      if (vmExec != null) {
+        vmExecPath = vmExec.getAbsolutePath().toString();
+      }
+    } else {
+      vmExecPath = DartDebugCorePlugin.getPlugin().getDartVmExecutablePath();
+      if (vmExecPath.length() == 0) {
+        if (showPreferenceDialog() != Window.OK) {
+          return;
+        }
       }
     }
 

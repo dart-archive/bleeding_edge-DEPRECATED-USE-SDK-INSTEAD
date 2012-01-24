@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.ui.internal.dartium;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
@@ -95,7 +96,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Text urlText;
 
-  private Text projectText;
+  private Label projectText;
 
   private Button projectBrowseButton;
 
@@ -113,7 +114,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     // Project group
     Group group = new Group(composite, SWT.NONE);
-    group.setText("Launch Target:");
+    group.setText(DartiumLaunchMessages.DartiumMainTab_LaunchTarget);
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
     GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
 
@@ -134,14 +135,16 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     }
 
     if (htmlButton.getSelection() && htmlText.getText().length() == 0) {
-      return "HTML file not specified";
+      return DartiumLaunchMessages.DartiumMainTab_NoHtmlFile;
     }
 
     if (urlButton.getSelection()) {
       if (urlText.getText().length() == 0) {
-        return "URL not specified";
+        return DartiumLaunchMessages.DartiumMainTab_NoUrl;
+      } else if (!urlText.getText().startsWith("http")) { //$NON-NLS-1$
+        return DartiumLaunchMessages.DartiumMainTab_UrlError;
       } else if (projectText.getText().length() == 0) {
-        return "Project not specified";
+        return DartiumLaunchMessages.DartiumMainTab_NoProject;
       }
     }
 
@@ -150,17 +153,17 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   @Override
   public Image getImage() {
-    return DartDebugUIPlugin.getImage("chromium_16.png");
+    return DartDebugUIPlugin.getImage("chromium_16.png"); //$NON-NLS-1$
   }
 
   @Override
   public String getMessage() {
-    return "Create a configuration to launch a Dart application in Dartium";
+    return DartiumLaunchMessages.DartiumMainTab_Message;
   }
 
   @Override
   public String getName() {
-    return "Main";
+    return DartiumLaunchMessages.DartiumMainTab_Name;
   }
 
   @Override
@@ -169,12 +172,15 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     if (dartLauncher.getShouldLaunchFile()) {
       htmlButton.setSelection(true);
       htmlText.setText(dartLauncher.getApplicationName());
+      urlText.setText(dartLauncher.getUrl());
+      projectText.setText(dartLauncher.getProjectName());
       urlButton.setSelection(false);
       updateEnablements(true);
     } else {
       urlButton.setSelection(true);
-      urlText.setText(dartLauncher.getApplicationName());
+      urlText.setText(dartLauncher.getUrl());
       projectText.setText(dartLauncher.getProjectName());
+      htmlText.setText(dartLauncher.getApplicationName());
       htmlButton.setSelection(false);
       updateEnablements(false);
     }
@@ -220,14 +226,14 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       dartLauncher.setShouldLaunchFile(true);
       dartLauncher.setApplicationName(htmlText.getText());
       if (!htmlText.getText().trim().isEmpty()) {
-        IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(
+        IResource file = ResourcesPlugin.getWorkspace().getRoot().findMember(
             new Path(htmlText.getText().trim()));
         dartLauncher.setProjectName(file.getProject().getName());
       }
 
     } else {
       dartLauncher.setShouldLaunchFile(false);
-      dartLauncher.setApplicationName(urlText.getText().trim());
+      dartLauncher.setUrl(urlText.getText().trim());
       dartLauncher.setProjectName(projectText.getText().trim());
     }
   }
@@ -235,12 +241,13 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   @Override
   public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
-    dartLauncher.setApplicationName("");
+    dartLauncher.setShouldLaunchFile(true);
+    dartLauncher.setApplicationName(""); //$NON-NLS-1$
   }
 
   protected void createHtmlField(Composite composite) {
     htmlButton = new Button(composite, SWT.RADIO);
-    htmlButton.setText("HTML file:");
+    htmlButton.setText(DartiumLaunchMessages.DartiumMainTab_HtmlFileLabel);
     htmlButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
@@ -255,7 +262,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
         false).applyTo(htmlText);
 
     htmlBrowsebutton = new Button(composite, SWT.PUSH);
-    htmlBrowsebutton.setText("Browse...");
+    htmlBrowsebutton.setText(DartiumLaunchMessages.DartiumMainTab_Browse);
     PixelConverter converter = new PixelConverter(htmlBrowsebutton);
     int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(
@@ -270,7 +277,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   protected void createUrlField(Composite composite) {
     urlButton = new Button(composite, SWT.RADIO);
-    urlButton.setText("URL:");
+    urlButton.setText(DartiumLaunchMessages.DartiumMainTab_UrlLabel);
     urlButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
@@ -287,15 +294,15 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     new Label(composite, SWT.NONE);
 
     Label projectLabel = new Label(composite, SWT.NONE);
-    projectLabel.setText("Project:");
+    projectLabel.setText(DartiumLaunchMessages.DartiumMainTab_ProjectLabel);
     GridDataFactory.swtDefaults().indent(20, 0).applyTo(projectLabel);
 
-    projectText = new Text(composite, SWT.BORDER | SWT.SINGLE);
-    projectText.addModifyListener(textModifyListener);
+    projectText = new Label(composite, SWT.NONE);
+    projectText.setBackground(composite.getDisplay().getSystemColor(SWT.COLOR_WHITE));
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(projectText);
 
     projectBrowseButton = new Button(composite, SWT.PUSH);
-    projectBrowseButton.setText("Browse...");
+    projectBrowseButton.setText(DartiumLaunchMessages.DartiumMainTab_Browse);
     PixelConverter converter = new PixelConverter(htmlBrowsebutton);
     int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(
@@ -311,8 +318,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   protected void handleApplicationBrowseButton() {
     IWorkspace workspace = ResourcesPlugin.getWorkspace();
     AppSelectionDialog dialog = new AppSelectionDialog(getShell(), workspace.getRoot(), false, true);
-    dialog.setTitle("Select a HTML page to launch");
-    dialog.setInitialPattern(".", FilteredItemsSelectionDialog.FULL_SELECTION);
+    dialog.setTitle(DartiumLaunchMessages.DartiumMainTab_SelectHtml);
+    dialog.setInitialPattern(".", FilteredItemsSelectionDialog.FULL_SELECTION); //$NON-NLS-1$
     IPath path = new Path(htmlText.getText());
     if (workspace.validatePath(path.toString(), IResource.FILE).isOK()) {
       IFile file = workspace.getRoot().getFile(path);
@@ -334,8 +341,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   protected void handleProjectBrowseButton() {
     IWorkspace workspace = ResourcesPlugin.getWorkspace();
     ProjectSelectionDialog dialog = new ProjectSelectionDialog(getShell(), workspace.getRoot());
-    dialog.setTitle("Select a project to launch");
-    dialog.setInitialPattern(".", FilteredItemsSelectionDialog.FULL_SELECTION);
+    dialog.setTitle(DartiumLaunchMessages.DartiumMainTab_SelectProject);
+    dialog.setInitialPattern(".", FilteredItemsSelectionDialog.FULL_SELECTION); //$NON-NLS-1$
 
     try {
       DartProject[] dartProjects = DartModelManager.getInstance().getDartModel().getDartProjects();
@@ -345,8 +352,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       }
       dialog.setInitialSelections(projects.toArray());
     } catch (DartModelException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      DartDebugCorePlugin.logError(e);
     }
 
     dialog.open();
@@ -354,8 +360,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     Object[] results = dialog.getResult();
     if ((results != null) && (results.length > 0) && (results[0] instanceof IProject)) {
       String pathStr = ((IProject) results[0]).getFullPath().toPortableString();
-
       projectText.setText(pathStr);
+      notifyPanelChanged();
     }
   }
 

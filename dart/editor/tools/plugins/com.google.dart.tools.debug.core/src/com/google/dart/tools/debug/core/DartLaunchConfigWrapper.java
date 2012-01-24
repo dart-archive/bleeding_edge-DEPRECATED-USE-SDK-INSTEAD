@@ -38,7 +38,10 @@ public class DartLaunchConfigWrapper {
   private static final String VM_HEAP_MB = "vmHeapMB";
 
   private static final String IS_FILE = "launchHtmlFile";
+  private static final String URL = "url";
+  private static final String USE_DEFAULT_BROWSER = "systemDefaultBrowser";
   private static final String BROWSER_NAME = "browserName";
+
   private static final String CONNECTION_HOST = "connectionHost";
   private static final String CONNECTION_PORT = "connectionPort";
 
@@ -169,16 +172,6 @@ public class DartLaunchConfigWrapper {
     }
   }
 
-  public boolean getShouldLaunchFile() {
-    try {
-      return launchConfig.getAttribute(IS_FILE, true);
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return true;
-    }
-  }
-
   /**
    * @return the DartProject that contains the application to run
    */
@@ -208,6 +201,36 @@ public class DartLaunchConfigWrapper {
       DartDebugCorePlugin.logError(e);
 
       return "";
+    }
+  }
+
+  public boolean getShouldLaunchFile() {
+    try {
+      return launchConfig.getAttribute(IS_FILE, true);
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return true;
+    }
+  }
+
+  public String getUrl() {
+    try {
+      return launchConfig.getAttribute(URL, "");
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return "";
+    }
+  }
+
+  public boolean getUseDefaultBrowser() {
+    try {
+      return launchConfig.getAttribute(USE_DEFAULT_BROWSER, true);
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return true;
     }
   }
 
@@ -277,15 +300,26 @@ public class DartLaunchConfigWrapper {
     getWorkingCopy().setAttribute(VM_HEAP_MB, value);
   }
 
-  public void setShouldLaunchFile(boolean value) {
-    getWorkingCopy().setAttribute(IS_FILE, value);
-  }
-
   /**
    * @see #getProjectName()
    */
   public void setProjectName(String value) {
     getWorkingCopy().setAttribute(PROJECT_NAME, value);
+  }
+
+  public void setShouldLaunchFile(boolean value) {
+    getWorkingCopy().setAttribute(IS_FILE, value);
+  }
+
+  /**
+   * @see #getUrl()
+   */
+  public void setUrl(String value) {
+    getWorkingCopy().setAttribute(URL, value);
+  }
+
+  public void setUseDefaultBrowser(boolean value) {
+    getWorkingCopy().setAttribute(USE_DEFAULT_BROWSER, value);
   }
 
   protected ILaunchConfigurationWorkingCopy getWorkingCopy() {

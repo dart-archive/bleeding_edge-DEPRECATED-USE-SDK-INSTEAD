@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.core.configs;
 
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
@@ -67,9 +68,17 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     scriptPath = translateToFilePath(scriptPath);
 
-    String vmExecPath = DartDebugCorePlugin.getPlugin().getDartVmExecutablePath();
-    if (vmExecPath.length() == 0) {
+    String vmExecPath = "";
 
+    if (DartSdk.isInstalled()) {
+      File vmExec = DartSdk.getInstance().getVmExecutable();
+      if (vmExec != null) {
+        vmExecPath = vmExec.getAbsolutePath().toString();
+      }
+    } else {
+      vmExecPath = DartDebugCorePlugin.getPlugin().getDartVmExecutablePath();
+    }
+    if (vmExecPath.length() == 0) {
       throw new CoreException(
           DartDebugCorePlugin.createErrorStatus("The executable path for the Dart VM has not been set."));
     }

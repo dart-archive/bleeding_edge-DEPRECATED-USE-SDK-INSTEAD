@@ -17,12 +17,10 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.internal.util.BrowserManager;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -55,17 +53,22 @@ public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
 
     // launch the browser - show errors if we couldn't
+    String url;
 
-    IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(
-        new Path(launchConfig.getApplicationName()));
-    if (!file.exists()) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          "HTML file could not be found"));
+    if (launchConfig.getShouldLaunchFile()) {
+      IResource resource = launchConfig.getApplicationResource();
+      if (resource == null) {
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+            "HTML file could not be found"));
+      }
+      url = resource.getLocationURI().toString();
+    } else {
+      url = launchConfig.getUrl();
     }
 
     BrowserManager manager = BrowserManager.getManager();
 
-    manager.launchBrowser(launch, launchConfig, file, monitor, debugLaunch);
+    manager.launchBrowser(launch, launchConfig, url, monitor, debugLaunch);
   }
 
 }

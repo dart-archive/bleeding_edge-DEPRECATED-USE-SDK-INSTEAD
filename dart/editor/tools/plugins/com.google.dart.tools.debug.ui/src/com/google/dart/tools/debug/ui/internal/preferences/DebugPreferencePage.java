@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.debug.ui.internal.preferences;
 
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.ChromeBrowserConfig;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
@@ -100,15 +102,18 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
   @Override
   public boolean performOk() {
-//    DartDebugCorePlugin.getPlugin().setConfiguredBrowsers(browsers);
 
-    DartDebugCorePlugin.getPlugin().setDartVmExecutablePath(vmField.getText());
+    if (vmField != null) {
+      DartDebugCorePlugin.getPlugin().setDartVmExecutablePath(vmField.getText());
+    }
 
-    if (defaultBrowserButton.getSelection()) {
-      DartDebugCorePlugin.getPlugin().setDefaultBrowser(true);
-    } else {
-      DartDebugCorePlugin.getPlugin().setDefaultBrowser(false);
-      DartDebugCorePlugin.getPlugin().setBrowserExecutablePath(browserField.getText());
+    if (defaultBrowserButton != null) {
+      if (defaultBrowserButton.getSelection()) {
+        DartDebugCorePlugin.getPlugin().setDefaultBrowser(true);
+      } else {
+        DartDebugCorePlugin.getPlugin().setDefaultBrowser(false);
+        DartDebugCorePlugin.getPlugin().setBrowserExecutablePath(browserField.getText());
+      }
     }
     return true;
   }
@@ -120,94 +125,23 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
         composite);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
 
-//    // Chrome browser
-//    Group browersGroup = new Group(composite, SWT.NONE);
-//    browersGroup.setText("Chrome browsers");
-//    GridDataFactory.fillDefaults().grab(true, false).applyTo(browersGroup);
-//    GridLayoutFactory.swtDefaults().numColumns(2).spacing(5, 2).applyTo(browersGroup);
-//
-//    browserViewer = new TableViewer(browersGroup, SWT.SINGLE | SWT.V_SCROLL | SWT.H_SCROLL
-//        | SWT.BORDER);
-//    browserViewer.setContentProvider(new ArrayContentProvider());
-//    browserViewer.setLabelProvider(new BrowsersLabelProvider());
-//    browserViewer.setComparator(new ViewerComparator());
-//    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.TOP).grab(true, false).hint(100, 75).applyTo(
-//        browserViewer.getControl());
-//    browserViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-//      @Override
-//      public void selectionChanged(SelectionChangedEvent event) {
-//        updateButtons();
-//      }
-//    });
-//
-//    Composite buttonComposite = new Composite(browersGroup, SWT.NONE);
-//    GridDataFactory.fillDefaults().applyTo(buttonComposite);
-//    GridLayout buttonLayout = new GridLayout();
-//    buttonLayout.horizontalSpacing = 0;
-//    buttonLayout.verticalSpacing = convertVerticalDLUsToPixels(3);
-//    buttonLayout.marginWidth = 0;
-//    buttonLayout.marginHeight = 0;
-//    buttonLayout.numColumns = 1;
-//    buttonComposite.setLayout(buttonLayout);
-//
-//    addBrowserButton = new Button(buttonComposite, SWT.PUSH);
-//    addBrowserButton.setText("Add...");
-//    PixelConverter converter = new PixelConverter(addBrowserButton);
-//    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-//    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(addBrowserButton);
-//    addBrowserButton.addSelectionListener(new SelectionAdapter() {
-//      @Override
-//      public void widgetSelected(SelectionEvent e) {
-//        handleAddButton();
-//      }
-//    });
-//
-//    renameBrowserButton = new Button(buttonComposite, SWT.PUSH);
-//    renameBrowserButton.setText("Rename...");
-//    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(renameBrowserButton);
-//    renameBrowserButton.addSelectionListener(new SelectionAdapter() {
-//      @Override
-//      public void widgetSelected(SelectionEvent e) {
-//        handleRenameButton();
-//      }
-//    });
-//
-//    removeBrowserButton = new Button(buttonComposite, SWT.PUSH);
-//    removeBrowserButton.setText("Remove");
-//    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(removeBrowserButton);
-//    removeBrowserButton.addSelectionListener(new SelectionAdapter() {
-//      @Override
-//      public void widgetSelected(SelectionEvent e) {
-//        handleRemoveButton();
-//      }
-//    });
-
-//    Label label = new Label(browersGroup, SWT.NONE);
-//    label.setText("Enter one or more Chrome / Chromium based browsers");
-//    GridDataFactory.swtDefaults().span(2, 1).applyTo(label);
-
     // Browser
-    createBrowserConfig(composite);
+    if (!DartCoreDebug.DEBUGGER) {
+      createBrowserConfig(composite);
+
+      if (DartDebugCorePlugin.getPlugin().getBrowserExecutablePath() != null) {
+        browserField.setText(DartDebugCorePlugin.getPlugin().getBrowserExecutablePath());
+      }
+
+      updateEnablements(DartDebugCorePlugin.getPlugin().getIsDefaultBrowser());
+    }
 
     // Dart VM
-//    Label label = new Label(composite, SWT.NONE);
-    createVmConfig(composite);
-
-    // browsers
-//    browsers = new ArrayList<ChromeBrowserConfig>(
-//        DartDebugCorePlugin.getPlugin().getConfiguredBrowsers());
-//    browserViewer.setInput(browsers);
-
-//    updateButtons();
-
-    // vmField
-    if (DartDebugCorePlugin.getPlugin().getDartVmExecutablePath() != null) {
-      vmField.setText(DartDebugCorePlugin.getPlugin().getDartVmExecutablePath());
-    }
-    updateEnablements(DartDebugCorePlugin.getPlugin().getIsDefaultBrowser());
-
-    if (DartDebugCorePlugin.getPlugin().getBrowserExecutablePath() != null) {
-      browserField.setText(DartDebugCorePlugin.getPlugin().getBrowserExecutablePath());
+    if (!DartSdk.isInstalled()) { // no sdk is installed
+      createVmConfig(composite);
+      if (DartDebugCorePlugin.getPlugin().getDartVmExecutablePath() != null) {
+        vmField.setText(DartDebugCorePlugin.getPlugin().getDartVmExecutablePath());
+      }
     }
 
     return composite;

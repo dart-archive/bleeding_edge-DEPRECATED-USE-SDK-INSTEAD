@@ -18,7 +18,6 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.configs.DartiumLaunchConfigurationDelegate;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -63,7 +62,7 @@ public class BrowserManager {
   /**
    * Launch browser and open file url. If debug mode also connect to browser.
    */
-  public void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
+  public void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, String url,
       IProgressMonitor monitor, boolean debug) throws CoreException {
     monitor.beginTask("Launching Chromium...", debug ? 9 : 3);
 
@@ -101,7 +100,7 @@ public class BrowserManager {
     // this property
     env.remove("LD_LIBRARY_PATH");
 
-    List<String> arguments = buildArgumentsList(browserLocation, file.getLocation(), debug);
+    List<String> arguments = buildArgumentsList(browserLocation, url, debug);
     builder.command(arguments);
     builder.directory(new File(DartSdk.getInstance().getDartiumWorkingDirectory()));
 
@@ -148,7 +147,7 @@ public class BrowserManager {
     monitor.done();
   }
 
-  private List<String> buildArgumentsList(IPath browserLocation, IPath fileLocation, boolean debug) {
+  private List<String> buildArgumentsList(IPath browserLocation, String url, boolean debug) {
     List<String> arguments = new ArrayList<String>();
 
     arguments.add(browserLocation.toOSString());
@@ -175,7 +174,7 @@ public class BrowserManager {
     // Bypass the error dialog when the profile lock couldn't be attained.
     arguments.add("--no-process-singleton-dialog");
 
-    arguments.add("file://" + fileLocation.toOSString());
+    arguments.add(url);
 
     return arguments;
   }

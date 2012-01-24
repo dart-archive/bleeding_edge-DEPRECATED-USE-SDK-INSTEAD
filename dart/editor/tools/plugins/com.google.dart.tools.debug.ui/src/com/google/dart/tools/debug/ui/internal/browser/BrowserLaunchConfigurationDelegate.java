@@ -16,7 +16,6 @@ package com.google.dart.tools.debug.ui.internal.browser;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -33,30 +32,35 @@ import org.eclipse.swt.program.Program;
  */
 public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
 
+  /**
+   * Match both the input and id, so that different types of editor can be opened on the same input.
+   */
+
   @Override
   public void launch(ILaunchConfiguration config, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
+
     mode = ILaunchManager.RUN_MODE;
-
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(config);
+    String url;
 
-    IResource resource = launchConfig.getApplicationResource();
-
-    if (resource instanceof IFile) {
-      String url = resource.getLocation().toOSString();
-      String browserName = launchConfig.getBrowserName();
-
-      // TODO(keertip): check for js file is done in shortcut, move it here
-      if (!browserName.isEmpty()) {
-        Program program = findProgram(browserName);
-        if (program != null) {
-          program.execute(url);
-        } else {
-          throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-              "Could not find specified browser"));
-        }
+    if (launchConfig.getShouldLaunchFile()) {
+      IResource resource = launchConfig.getApplicationResource();
+      if (resource == null) {
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+            Messages.BrowserLaunchConfigurationDelegate_HtmlFileNotFound));
       }
+      url = resource.getLocation().toOSString();
+    } else {
+      url = launchConfig.getUrl();
     }
+
+    if (launchConfig.getUseDefaultBrowser()) {
+      Program.launch(url);
+    } else {
+      launchInExternalBrowser(launchConfig, url);
+    }
+
   }
 
   private Program findProgram(String name) {
@@ -68,6 +72,20 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     }
 
     return null;
+  }
+
+  private void launchInExternalBrowser(DartLaunchConfigWrapper launchConfig, String url)
+      throws CoreException {
+    String browserName = launchConfig.getBrowserName();
+    if (!browserName.isEmpty()) {
+      Program program = findProgram(browserName);
+      if (program != null) {
+        program.execute(url);
+      } else {
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+            Messages.BrowserLaunchConfigurationDelegate_BrowserNotFound));
+      }
+    }
   }
 
 //  /**
