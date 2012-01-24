@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,9 +13,15 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
+import com.google.dart.compiler.ast.DartDirective;
+import com.google.dart.compiler.ast.DartSourceDirective;
+import com.google.dart.compiler.ast.DartStringLiteral;
+import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.indexer.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartLibraryInfo;
@@ -29,12 +35,15 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceProxy;
+import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -54,6 +63,7 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -687,6 +697,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     childPaths = new ArrayList<String>();
     File file = getChildrenFile();
     if (!file.exists()) {
+      computeChildPaths(childPaths);
       return childPaths;
     }
     FileReader fileReader = null;
@@ -799,6 +810,56 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   }
 
   /**
+   * Assuming that this is the first time the project has been opened, compute the set of child
+   * paths that should be represented as libraries.
+   * 
+   * @param childPaths the array to which child paths should be added
+   */
+  private void computeChildPaths(List<String> childPaths) {
+    final ArrayList<IFile> dartFiles = new ArrayList<IFile>();
+    try {
+      project.accept(new IResourceProxyVisitor() {
+        @Override
+        public boolean visit(IResourceProxy proxy) throws CoreException {
+          if (proxy.getType() == IResource.FILE && DartCore.isDartLikeFileName(proxy.getName())) {
+            dartFiles.add((IFile) proxy.requestResource());
+          }
+          return true;
+        }
+      }, 0);
+    } catch (CoreException exception) {
+      // This should never happen.
+      DartCore.logError(
+          "Could not traverse resource structure in project " + project.getLocation(), exception);
+    }
+    HashSet<IFile> libraryFiles = new HashSet<IFile>(dartFiles);
+    for (IFile dartFile : dartFiles) {
+      DartUnit dartUnit = parseDartFile(dartFile);
+      if (dartUnit != null) {
+        LibrarySource librarySource = new UrlLibrarySource(dartFile.getLocation().toFile());
+        for (DartDirective directive : dartUnit.getDirectives()) {
+          if (directive instanceof DartSourceDirective) {
+            DartSourceDirective sourceDirective = (DartSourceDirective) directive;
+            String relativePath = getRelativePath(sourceDirective.getSourceUri());
+            if (relativePath != null && relativePath.length() > 0) {
+              DartSource source = librarySource.getSourceFor(relativePath);
+              if (source != null) {
+                IFile[] compilationUnitFiles = ResourceUtil.getResources(source);
+                if (compilationUnitFiles != null && compilationUnitFiles.length == 1) {
+                  libraryFiles.remove(compilationUnitFiles[0]);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    for (IFile dartFile : libraryFiles) {
+      childPaths.add(dartFile.getProjectRelativePath().toString());
+    }
+  }
+
+  /**
    * Find the file within this project that is associated with the given URI.
    * 
    * @param uri the URI used to identify the file to be returned
@@ -824,6 +885,36 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
    */
   private File getChildrenFile() {
     return new File(getProject().getLocation().append(CHILDREN_FILE_NAME).toOSString());
+  }
+
+  private String getRelativePath(DartStringLiteral literal) {
+    if (literal == null) {
+      return null;
+    }
+    String relativePath = literal.getValue();
+    if (relativePath == null || relativePath.length() == 0) {
+      return null;
+    }
+    return relativePath;
+  }
+
+  /**
+   * Return the result of parsing the file that defines this library, or <code>null</code> if the
+   * contents of the file cannot be accessed for some reason.
+   * 
+   * @return the result of parsing the file that defines this library
+   */
+  private DartUnit parseDartFile(IFile dartFile) {
+    String fileName = null;
+    try {
+      fileName = dartFile.getName();
+      return DartCompilerUtilities.parseSource(fileName,
+          FileUtilities.getContents(dartFile.getLocation().toFile()), null);
+    } catch (Exception exception) {
+      DartCore.logInformation("Could not read and parse the file " + fileName, exception);
+      // Fall through to return null.
+    }
+    return null;
   }
 
   // /**

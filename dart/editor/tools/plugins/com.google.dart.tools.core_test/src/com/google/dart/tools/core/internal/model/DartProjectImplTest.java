@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,6 +18,7 @@ import com.google.dart.tools.core.internal.model.info.DartProjectInfo;
 import com.google.dart.tools.core.mock.MockProject;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.test.util.FileOperation;
+import com.google.dart.tools.core.test.util.MoneyProjectUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
@@ -32,6 +33,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DartProjectImplTest extends TestCase {
+  public void test_DartProjectImpl_computeChildPaths_money() throws Exception {
+    DartProjectImpl project = (DartProjectImpl) MoneyProjectUtilities.getMoneyProject();
+    ArrayList<String> paths = new ArrayList<String>();
+    computeChildPaths(project, paths);
+    assertEquals(1, paths.size());
+    assertEquals("money.dart", paths.get(0));
+  }
+
   public void test_DartProjectImpl_getChildren() {
     // TODO Implement this
   }
@@ -99,6 +108,19 @@ public class DartProjectImplTest extends TestCase {
         assertEquals(path, paths.get(0));
       }
     });
+  }
+
+  /**
+   * Invoke the private method {@link DartProjectImpl#computeChildPaths(List<String>)}.
+   * 
+   * @param impl the project impl on which the method is to be invoked
+   * @param paths the list argument to be passed to the method
+   * @throws Exception if the method could not be executed or itself throws an exception
+   */
+  private void computeChildPaths(DartProjectImpl impl, List<String> paths) throws Exception {
+    Method method = DartProjectImpl.class.getDeclaredMethod("computeChildPaths", List.class);
+    method.setAccessible(true);
+    method.invoke(impl, paths);
   }
 
   /**
