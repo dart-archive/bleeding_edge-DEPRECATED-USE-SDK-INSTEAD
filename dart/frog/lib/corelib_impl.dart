@@ -69,8 +69,14 @@ class ListFactory<E> implements List<E> native "Array" {
 
   E last() => this[this.length-1];
 
-  List<E> getRange(int start, int length) native
-    "return this.slice(start, start + length);";
+  List<E> getRange(int start, int length) native """
+    if (length == 0) return [];
+    if (length < 0) throw new IllegalArgumentException('length');
+    if (start < 0 || start + length > this.length)
+      throw new IndexOutOfRangeException(start);
+    return this.slice(start, start + length);
+  """ { throw new IllegalArgumentException('');
+        throw new IndexOutOfRangeException(0); }
 
   void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
     // length of 0 prevails and should not throw exceptions.
@@ -91,10 +97,21 @@ class ListFactory<E> implements List<E> native "Array" {
       this[start + i] = from[startFrom + i];
   }
 
-  void removeRange(int start, int length) native "this.splice(start, length);";
+  void removeRange(int start, int length) native """
+    if (length == 0) return;
+    if (length < 0) throw new IllegalArgumentException('length');
+    if (start < 0 || start + length > this.length)
+      throw new IndexOutOfRangeException(start);
+    this.splice(start, length);
+  """ { throw new IllegalArgumentException('');
+        throw new IndexOutOfRangeException(0); }
 
-  void insertRange(int start, int length, [E initialValue]) native
-    """
+  void insertRange(int start, int length, [E initialValue]) native """
+    if (length == 0) return;
+    if (length < 0) throw new IllegalArgumentException('length');
+    if (start < 0 || start > this.length)
+      throw new IndexOutOfRangeException(start);
+
     // Splice in the values with a minimum of array allocations.
     var args = new Array(length + 2);
     args[0] = start;
@@ -103,7 +120,8 @@ class ListFactory<E> implements List<E> native "Array" {
       args[i + 2] = initialValue;
     }
     this.splice.apply(this, args);
-    """;
+    """ { throw new IllegalArgumentException('');
+          throw new IndexOutOfRangeException(0); }
 
   // Collection<E> members:
   void forEach(void f(E element)) native;

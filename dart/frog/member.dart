@@ -1138,12 +1138,11 @@ class MethodMember extends Member {
         return new Value(declaringType, '${target.code} + ${argsCode[0]}',
           node.span);
       }
-    } else if (declaringType.isNative) {
+    } else if (declaringType.isNative && options.disableBoundsChecks) {
       if (args.length > 0 && args.values[0].type.isNum) {
-        // TODO(jimhug): make more accurate/reliable
         if (name == ':index') {
-          return
-              new Value(returnType, '${target.code}[${argsCode[0]}]', node.span);
+          return new Value(returnType,
+            '${target.code}[${argsCode[0]}]', node.span);
         } else if (name == ':setindex') {
           return new Value(returnType,
               '${target.code}[${argsCode[0]}] = ${argsCode[1]}', node.span);

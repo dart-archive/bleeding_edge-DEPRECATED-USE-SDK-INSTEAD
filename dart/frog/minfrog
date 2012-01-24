@@ -17,11 +17,17 @@ Object.defineProperty(Object.prototype, '$index', { value: function(i) {
   }
   return this[i];
 }, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(Array.prototype, '$index', { value: function(i) { 
-  return this[i]; 
+Object.defineProperty(Array.prototype, '$index', { value: function(index) {
+  var i = index | 0;
+  if (i !== index) {
+    throw new IllegalArgumentException('index is not int');
+  } else if (i < 0 || i >= this.length) {
+    throw new IndexOutOfRangeException(index);
+  }
+  return this[i];
 }, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(String.prototype, '$index', { value: function(i) { 
-  return this[i]; 
+Object.defineProperty(String.prototype, '$index', { value: function(i) {
+  return this[i];
 }, enumerable: false, writable: true, configurable: true});
 Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value) {
   var proto = Object.getPrototypeOf(this);
@@ -30,8 +36,14 @@ Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value)
   }
   return this[i] = value;
 }, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(Array.prototype, '$setindex', { value: function(i, value) { 
-  return this[i] = value; }, enumerable: false, writable: true, 
+Object.defineProperty(Array.prototype, '$setindex', { value: function(index, value) {
+  var i = index | 0;
+  if (i !== index) {
+    throw new IllegalArgumentException('index is not int');
+  } else if (i < 0 || i >= this.length) {
+    throw new IndexOutOfRangeException(index);
+  }
+  return this[i] = value; }, enumerable: false, writable: true,
   configurable: true});
 function $add(x, y) {
   return ((typeof(x) == 'number' && typeof(y) == 'number') ||
@@ -50,7 +62,7 @@ function $eq(x, y) {
     ? x == y : x.$eq(y);
 }
 // TODO(jimhug): Should this or should it not match equals?
-Object.defineProperty(Object.prototype, '$eq', { value: function(other) { 
+Object.defineProperty(Object.prototype, '$eq', { value: function(other) {
   return this === other;
 }, enumerable: false, writable: true, configurable: true });
 function $gt(x, y) {
@@ -198,6 +210,15 @@ Clock.now = function() {
 Clock.frequency = function() {
   return (1000);
 }
+// ********** Code for IndexOutOfRangeException **************
+function IndexOutOfRangeException(_index) {
+  this._index = _index;
+}
+IndexOutOfRangeException.prototype.is$IndexOutOfRangeException = function(){return true};
+IndexOutOfRangeException.prototype.toString = function() {
+  return ("IndexOutOfRangeException: " + this._index);
+}
+IndexOutOfRangeException.prototype.toString$0 = IndexOutOfRangeException.prototype.toString;
 // ********** Code for IllegalAccessException **************
 function IllegalAccessException() {
 
@@ -241,6 +262,15 @@ ObjectNotClosureException.prototype.toString = function() {
   return "Object is not closure";
 }
 ObjectNotClosureException.prototype.toString$0 = ObjectNotClosureException.prototype.toString;
+// ********** Code for IllegalArgumentException **************
+function IllegalArgumentException(args) {
+  this._args = args;
+}
+IllegalArgumentException.prototype.is$IllegalArgumentException = function(){return true};
+IllegalArgumentException.prototype.toString = function() {
+  return ("Illegal argument(s): " + this._args);
+}
+IllegalArgumentException.prototype.toString$0 = IllegalArgumentException.prototype.toString;
 // ********** Code for StackOverflowException **************
 function StackOverflowException() {
 
@@ -281,6 +311,15 @@ EmptyQueueException.prototype.toString = function() {
   return "EmptyQueueException";
 }
 EmptyQueueException.prototype.toString$0 = EmptyQueueException.prototype.toString;
+// ********** Code for IntegerDivisionByZeroException **************
+function IntegerDivisionByZeroException() {
+
+}
+IntegerDivisionByZeroException.prototype.is$IntegerDivisionByZeroException = function(){return true};
+IntegerDivisionByZeroException.prototype.toString = function() {
+  return "IntegerDivisionByZeroException";
+}
+IntegerDivisionByZeroException.prototype.toString$0 = IntegerDivisionByZeroException.prototype.toString;
 // ********** Code for dart_core_Function **************
 Function.prototype.to$call$0 = function() {
   this.call$0 = this._genStub(0);
@@ -435,12 +474,22 @@ Object.defineProperty(ListFactory.prototype, "removeLast", { value: function() {
   return this.pop();
 }, enumerable: false, writable: true, configurable: true });
 Object.defineProperty(ListFactory.prototype, "last", { value: function() {
-  return this[this.get$length() - (1)];
+  return this.$index(this.get$length() - (1));
 }, enumerable: false, writable: true, configurable: true });
 Object.defineProperty(ListFactory.prototype, "getRange", { value: function(start, length) {
-  return this.slice(start, start + length);
+      if (length == 0) return [];
+      if (length < 0) throw new IllegalArgumentException('length');
+      if (start < 0 || start + length > this.length)
+        throw new IndexOutOfRangeException(start);
+      return this.slice(start, start + length);
+    
 }, enumerable: false, writable: true, configurable: true });
 Object.defineProperty(ListFactory.prototype, "insertRange", { value: function(start, length, initialValue) {
+      if (length == 0) return;
+      if (length < 0) throw new IllegalArgumentException('length');
+      if (start < 0 || start > this.length)
+        throw new IndexOutOfRangeException(start);
+
       // Splice in the values with a minimum of array allocations.
       var args = new Array(length + 2);
       args[0] = start;
@@ -1613,7 +1662,7 @@ function $dynamic(name) {
     var proto = Object.getPrototypeOf(obj);
     if (!proto.hasOwnProperty(name)) {
       Object.defineProperty(proto, name,
-        { value: method, enumerable: false, writable: true, 
+        { value: method, enumerable: false, writable: true,
         configurable: true });
     }
 
@@ -2749,7 +2798,6 @@ CodeWriter.prototype.nextBlock = function(text) {
 CodeWriter.prototype.write$1 = CodeWriter.prototype.write;
 // ********** Code for CoreJs **************
 function CoreJs() {
-  this.useAssert = false;
   this.useIsolates = false;
   this._generatedTypeNameOf = false;
   this._usedOperators = new HashMapImplementation();
@@ -2776,7 +2824,7 @@ CoreJs.prototype.useOperator = function(name) {
 
     case ":eq":
 
-      code = "function $eq(x, y) {\n  if (x == null) return y == null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x == y : x.$eq(y);\n}\n// TODO(jimhug): Should this or should it not match equals?\nObject.defineProperty(Object.prototype, '$eq', { value: function(other) { \n  return this === other;\n}, enumerable: false, writable: true, configurable: true });";
+      code = "function $eq(x, y) {\n  if (x == null) return y == null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x == y : x.$eq(y);\n}\n// TODO(jimhug): Should this or should it not match equals?\nObject.defineProperty(Object.prototype, '$eq', { value: function(other) {\n  return this === other;\n}, enumerable: false, writable: true, configurable: true });";
       break;
 
     case ":bit_not":
@@ -2797,6 +2845,7 @@ CoreJs.prototype.useOperator = function(name) {
     case ":truncdiv":
 
       this.useThrow = true;
+      $globals.world.gen.markTypeUsed($globals.world.corelib.types.$index("IntegerDivisionByZeroException"));
       code = "function $truncdiv(x, y) {\n  if (typeof(x) == 'number' && typeof(y) == 'number') {\n    if (y == 0) $throw(new IntegerDivisionByZeroException());\n    var tmp = x / y;\n    return (tmp < 0) ? Math.ceil(tmp) : Math.floor(tmp);\n  } else {\n    return x.$truncdiv(y);\n  }\n}";
       break;
 
@@ -2819,7 +2868,7 @@ CoreJs.prototype.ensureDynamicProto = function() {
   if (this._generatedDynamicProto) return;
   this._generatedDynamicProto = true;
   this.ensureTypeNameOf();
-  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var obj = this;\n    var tag = obj.$typeNameOf();\n    var method = methods[tag];\n    if (!method) {\n      var table = $dynamicMetadata;\n      for (var i = 0; i < table.length; i++) {\n        var entry = table[i];\n        if (entry.map.hasOwnProperty(tag)) {\n          method = methods[entry.tag];\n          if (method) break;\n        }\n      }\n    }\n    method = method || methods.Object;\n    var proto = Object.getPrototypeOf(obj);\n    if (!proto.hasOwnProperty(name)) {\n      Object.defineProperty(proto, name,\n        { value: method, enumerable: false, writable: true, \n        configurable: true });\n    }\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  Object.defineProperty(Object.prototype, name, { value: $dynamicBind,\n      enumerable: false, writable: true, configurable: true});\n  return methods;\n}\nif (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];\n\nfunction $dynamicSetMetadata(inputTable) {\n  // TODO: Deal with light isolates.\n  var table = [];\n  for (var i = 0; i < inputTable.length; i++) {\n    var tag = inputTable[i][0];\n    var tags = inputTable[i][1];\n    var map = {};\n    var tagNames = tags.split('|');\n    for (var j = 0; j < tagNames.length; j++) {\n      map[tagNames[j]] = true;\n    }\n    table.push({tag: tag, tags: tags, map: map});\n  }\n  $dynamicMetadata = table;\n}\n");
+  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var obj = this;\n    var tag = obj.$typeNameOf();\n    var method = methods[tag];\n    if (!method) {\n      var table = $dynamicMetadata;\n      for (var i = 0; i < table.length; i++) {\n        var entry = table[i];\n        if (entry.map.hasOwnProperty(tag)) {\n          method = methods[entry.tag];\n          if (method) break;\n        }\n      }\n    }\n    method = method || methods.Object;\n    var proto = Object.getPrototypeOf(obj);\n    if (!proto.hasOwnProperty(name)) {\n      Object.defineProperty(proto, name,\n        { value: method, enumerable: false, writable: true,\n        configurable: true });\n    }\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  Object.defineProperty(Object.prototype, name, { value: $dynamicBind,\n      enumerable: false, writable: true, configurable: true});\n  return methods;\n}\nif (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];\n\nfunction $dynamicSetMetadata(inputTable) {\n  // TODO: Deal with light isolates.\n  var table = [];\n  for (var i = 0; i < inputTable.length; i++) {\n    var tag = inputTable[i][0];\n    var tags = inputTable[i][1];\n    var map = {};\n    var tagNames = tags.split('|');\n    for (var j = 0; j < tagNames.length; j++) {\n      map[tagNames[j]] = true;\n    }\n    table.push({tag: tag, tags: tags, map: map});\n  }\n  $dynamicMetadata = table;\n}\n");
 }
 CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
@@ -2842,10 +2891,10 @@ CoreJs.prototype.generate = function(w) {
     w.writeln("function $throw(e) {\n  // If e is not a value, we can use V8's captureStackTrace utility method.\n  // TODO(jmesserly): capture the stack trace on other JS engines.\n  if (e && (typeof e == 'object') && Error.captureStackTrace) {\n    // TODO(jmesserly): this will clobber the e.stack property\n    Error.captureStackTrace(e, $throw);\n  }\n  throw e;\n}");
   }
   if (this.useIndex) {
-    w.writeln("Object.defineProperty(Object.prototype, '$index', { value: function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n}, enumerable: false, writable: true, configurable: true});\nObject.defineProperty(Array.prototype, '$index', { value: function(i) { \n  return this[i]; \n}, enumerable: false, writable: true, configurable: true});\nObject.defineProperty(String.prototype, '$index', { value: function(i) { \n  return this[i]; \n}, enumerable: false, writable: true, configurable: true});");
+    w.writeln($globals.options.disableBoundsChecks ? "Object.defineProperty(Object.prototype, '$index', { value: function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n}, enumerable: false, writable: true, configurable: true});\nObject.defineProperty(Array.prototype, '$index', { value: function(i) {\n  return this[i];\n}, enumerable: false, writable: true, configurable: true});\nObject.defineProperty(String.prototype, '$index', { value: function(i) {\n  return this[i];\n}, enumerable: false, writable: true, configurable: true});" : "Object.defineProperty(Object.prototype, '$index', { value: function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n}, enumerable: false, writable: true, configurable: true});\nObject.defineProperty(Array.prototype, '$index', { value: function(index) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i];\n}, enumerable: false, writable: true, configurable: true});\nObject.defineProperty(String.prototype, '$index', { value: function(i) {\n  return this[i];\n}, enumerable: false, writable: true, configurable: true});");
   }
   if (this.useSetIndex) {
-    w.writeln("Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$setindex = function(i, value) { return this[i] = value; }\n  }\n  return this[i] = value;\n}, enumerable: false, writable: true, configurable: true});\nObject.defineProperty(Array.prototype, '$setindex', { value: function(i, value) { \n  return this[i] = value; }, enumerable: false, writable: true, \n  configurable: true});");
+    w.writeln($globals.options.disableBoundsChecks ? "Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$setindex = function(i, value) { return this[i] = value; }\n  }\n  return this[i] = value;\n}, enumerable: false, writable: true, configurable: true});\nObject.defineProperty(Array.prototype, '$setindex', { value: function(i, value) {\n  return this[i] = value; }, enumerable: false, writable: true,\n  configurable: true});" : "Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$setindex = function(i, value) { return this[i] = value; }\n  }\n  return this[i] = value;\n}, enumerable: false, writable: true, configurable: true});\nObject.defineProperty(Array.prototype, '$setindex', { value: function(index, value) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i] = value; }, enumerable: false, writable: true,\n  configurable: true});");
   }
   if (this.useIsolates) {
     if (this.useWrap0) {
@@ -3053,6 +3102,12 @@ WorldGenerator.prototype.run = function() {
   }
   $globals.world.numImplType.markUsed();
   $globals.world.stringImplType.markUsed();
+  if (this.corejs.useIndex || this.corejs.useSetIndex) {
+    if (!$globals.options.disableBoundsChecks) {
+      this.markTypeUsed($globals.world.corelib.types.$index("IndexOutOfRangeException"));
+      this.markTypeUsed($globals.world.corelib.types.$index("IllegalArgumentException"));
+    }
+  }
   if ($globals.world.corelib.types.$index("Isolate").get$isUsed() || $globals.world.coreimpl.types.$index("ReceivePortImpl").get$isUsed()) {
     if (this.corejs.useWrap0 || this.corejs.useWrap1) {
       this.genMethod($globals.world.coreimpl.types.$index("IsolateContext").getMember("eval"));
@@ -6379,7 +6434,7 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
       return new Value(this.declaringType, ("" + target.get$code() + " + " + argsCode.$index((0))), node.span);
     }
   }
-  else if (this.declaringType.get$isNative()) {
+  else if (this.declaringType.get$isNative() && $globals.options.disableBoundsChecks) {
     if (args.get$length() > (0) && args.values.$index((0)).get$type().get$isNum()) {
       if (this.name == ":index") {
         return new Value(this.returnType, ("" + target.get$code() + "[" + argsCode.$index((0)) + "]"), node.span);
@@ -14056,22 +14111,23 @@ World.prototype.withTiming = function(name, f) {
 // ********** Code for FrogOptions **************
 function FrogOptions(homedir, args, files) {
   this.legOnly = false;
-  this.throwOnFatal = false;
+  this.disableBoundsChecks = false;
   this.maxInferenceIterations = (4);
-  this.config = "dev";
   this.throwOnWarnings = false;
   this.inferTypes = false;
-  this.verifyImplements = false;
   this.warningsAsErrors = false;
-  this.enableLeg = false;
   this.enableAsserts = false;
-  this.enableTypeChecks = false;
   this.forceDynamic = false;
-  this.showInfo = false;
   this.dietParse = false;
-  this.useColors = true;
   this.compileOnly = false;
   this.showWarnings = true;
+  this.throwOnFatal = false;
+  this.config = "dev";
+  this.verifyImplements = false;
+  this.enableLeg = false;
+  this.enableTypeChecks = false;
+  this.showInfo = false;
+  this.useColors = true;
   this.compileAll = false;
   this.throwOnErrors = false;
   if ($eq(this.config, "dev")) {
@@ -14177,6 +14233,17 @@ function FrogOptions(homedir, args, files) {
       case "--Xinfer_types":
 
         this.inferTypes = true;
+        break;
+
+      case "--checked":
+
+        this.enableTypeChecks = true;
+        this.enableAsserts = true;
+        break;
+
+      case "--unchecked":
+
+        this.disableBoundsChecks = true;
         break;
 
       default:

@@ -13,7 +13,6 @@
 class CoreJs {
   // These values track if the helper is actually used. If it is we generate it.
   bool useThrow = false;
-  bool useAssert = false;
   bool useNotNullBool = false;
   bool useIndex = false;
   bool useSetIndex = false;
@@ -27,6 +26,7 @@ class CoreJs {
   bool _generatedTypeNameOf = false;
   bool _generatedDynamicProto = false;
   bool _generatedInherits = false;
+
 
   Map<String, String> _usedOperators;
 
@@ -66,6 +66,9 @@ class CoreJs {
 
       case ':truncdiv':
         useThrow = true;
+        // TODO(jimhug): Only do this once!
+        world.gen.markTypeUsed(
+          world.corelib.types['IntegerDivisionByZeroException']);
         code = _TRUNCDIV_FUNCTION;
         break;
 
@@ -124,11 +127,13 @@ class CoreJs {
     }
 
     if (useIndex) {
-      w.writeln(_INDEX_OPERATORS);
+      w.writeln(options.disableBoundsChecks ?
+        _INDEX_OPERATORS : _CHECKED_INDEX_OPERATORS);
     }
 
     if (useSetIndex) {
-      w.writeln(_SETINDEX_OPERATORS);
+      w.writeln(options.disableBoundsChecks ?
+        _SETINDEX_OPERATORS : _CHECKED_SETINDEX_OPERATORS);
     }
 
     if (useIsolates) {
@@ -186,7 +191,7 @@ function $eq(x, y) {
     ? x == y : x.$eq(y);
 }
 // TODO(jimhug): Should this or should it not match equals?
-Object.defineProperty(Object.prototype, '$eq', { value: function(other) { 
+Object.defineProperty(Object.prototype, '$eq', { value: function(other) {
   return this === other;
 }, enumerable: false, writable: true, configurable: true });""";
 
@@ -282,7 +287,7 @@ function $dynamic(name) {
     var proto = Object.getPrototypeOf(obj);
     if (!proto.hasOwnProperty(name)) {
       Object.defineProperty(proto, name,
-        { value: method, enumerable: false, writable: true, 
+        { value: method, enumerable: false, writable: true,
         configurable: true });
     }
 
@@ -395,22 +400,37 @@ Object.defineProperty(Object.prototype, '$index', { value: function(i) {
   }
   return this[i];
 }, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(Array.prototype, '$index', { value: function(i) { 
-  return this[i]; 
+Object.defineProperty(Array.prototype, '$index', { value: function(i) {
+  return this[i];
 }, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(String.prototype, '$index', { value: function(i) { 
-  return this[i]; 
+Object.defineProperty(String.prototype, '$index', { value: function(i) {
+  return this[i];
 }, enumerable: false, writable: true, configurable: true});""";
 
-/** Snippet for `$setindex` in Object, Array, and String. */
-// TODO(jimhug): Add array bounds checking in checked mode
-/*
-function $inlineArrayIndexCheck(array, index) {
-  if (index >= 0 && index < array.length) {
-    return index;
+final String _CHECKED_INDEX_OPERATORS = @"""
+Object.defineProperty(Object.prototype, '$index', { value: function(i) {
+  var proto = Object.getPrototypeOf(this);
+  if (proto !== Object) {
+    proto.$index = function(i) { return this[i]; }
   }
-  native__ArrayJsUtil__throwIndexOutOfRangeException(index);
-}*/
+  return this[i];
+}, enumerable: false, writable: true, configurable: true});
+Object.defineProperty(Array.prototype, '$index', { value: function(index) {
+  var i = index | 0;
+  if (i !== index) {
+    throw new IllegalArgumentException('index is not int');
+  } else if (i < 0 || i >= this.length) {
+    throw new IndexOutOfRangeException(index);
+  }
+  return this[i];
+}, enumerable: false, writable: true, configurable: true});
+Object.defineProperty(String.prototype, '$index', { value: function(i) {
+  return this[i];
+}, enumerable: false, writable: true, configurable: true});""";
+
+
+
+/** Snippet for `$setindex` in Object, Array, and String. */
 final String _SETINDEX_OPERATORS = @"""
 Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value) {
   var proto = Object.getPrototypeOf(this);
@@ -419,8 +439,26 @@ Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value)
   }
   return this[i] = value;
 }, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(Array.prototype, '$setindex', { value: function(i, value) { 
-  return this[i] = value; }, enumerable: false, writable: true, 
+Object.defineProperty(Array.prototype, '$setindex', { value: function(i, value) {
+  return this[i] = value; }, enumerable: false, writable: true,
+  configurable: true});""";
+
+final String _CHECKED_SETINDEX_OPERATORS = @"""
+Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value) {
+  var proto = Object.getPrototypeOf(this);
+  if (proto !== Object) {
+    proto.$setindex = function(i, value) { return this[i] = value; }
+  }
+  return this[i] = value;
+}, enumerable: false, writable: true, configurable: true});
+Object.defineProperty(Array.prototype, '$setindex', { value: function(index, value) {
+  var i = index | 0;
+  if (i !== index) {
+    throw new IllegalArgumentException('index is not int');
+  } else if (i < 0 || i >= this.length) {
+    throw new IndexOutOfRangeException(index);
+  }
+  return this[i] = value; }, enumerable: false, writable: true,
   configurable: true});""";
 
 /** Snippet for `$wrap_call$0`. */

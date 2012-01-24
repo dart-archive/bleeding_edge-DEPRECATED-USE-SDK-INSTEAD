@@ -73,6 +73,14 @@ class WorldGenerator {
     world.numImplType.markUsed();
     world.stringImplType.markUsed();
 
+    if (corejs.useIndex || corejs.useSetIndex) {
+      if (!options.disableBoundsChecks) {
+        // These exceptions might be thrown by array bounds checks.
+        markTypeUsed(world.corelib.types['IndexOutOfRangeException']);
+        markTypeUsed(world.corelib.types['IllegalArgumentException']);
+      }
+    }
+
     // Only include isolate-specific code if isolates are used.
     if (world.corelib.types['Isolate'].isUsed
         || world.coreimpl.types['ReceivePortImpl'].isUsed) {

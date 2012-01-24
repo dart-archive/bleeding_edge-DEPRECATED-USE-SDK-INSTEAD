@@ -39,6 +39,10 @@ class FrogOptions {
   bool compileOnly = false;
   bool inferTypes = false;
 
+  // Specifies non-compliant behavior where array bounds checks are
+  // not implemented in generated code.
+  bool disableBoundsChecks = false;
+
   // Message support
   bool throwOnErrors = false;
   bool throwOnWarnings = false;
@@ -148,6 +152,15 @@ class FrogOptions {
 
         case '--Xinfer_types':
           inferTypes = true;
+          break;
+
+        case '--checked':
+          enableTypeChecks = true;
+          enableAsserts = true;
+          break;
+
+        case '--unchecked':
+          disableBoundsChecks = true;
           break;
 
         default:
