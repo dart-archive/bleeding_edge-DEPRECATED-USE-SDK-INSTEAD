@@ -202,7 +202,7 @@ class AbstractScanner<T> implements Scanner {
       return $EOF;
     }
     if (next < 0x1f) {
-      throw new MalformedInputException(charOffset);
+      throw new MalformedInputException("illegal character $next", charOffset);
     }
     // Non-ascii identifier.
     return tokenizeIdentifier(next, byteOffset, true);
@@ -424,7 +424,7 @@ class AbstractScanner<T> implements Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          throw new MalformedInputException(charOffset);
+          throw new MalformedInputException("hex digit expected", charOffset);
         }
         appendByteStringToken(HEXADECIMAL_INFO, asciiString(start, 0));
         return next;
@@ -485,7 +485,7 @@ class AbstractScanner<T> implements Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          throw new MalformedInputException(charOffset);
+          throw new MalformedInputException("digit expected", charOffset);
         }
         return next;
       }
@@ -604,7 +604,7 @@ class AbstractScanner<T> implements Scanner {
     if (next === $DQ || next === $SQ) {
       return tokenizeString(next, start, true);
     } else {
-      throw new MalformedInputException(charOffset);
+      throw new MalformedInputException("expected ' or \"", charOffset);
     }
   }
 
@@ -643,7 +643,8 @@ class AbstractScanner<T> implements Scanner {
       } else if (next === $BACKSLASH) {
         next = advance();
         if (next === $EOF) {
-          throw new MalformedInputException(charOffset);
+          throw new MalformedInputException("unterminated string literal",
+                                            charOffset);
         }
       } else if (next === $$) {
         beginToken();
@@ -656,11 +657,13 @@ class AbstractScanner<T> implements Scanner {
         start = byteOffset;
         continue;
       } else if (next === $LF || next === $CR) {
-        throw new MalformedInputException(charOffset);
+        throw new MalformedInputException("unterminated string literal",
+                                          charOffset);
       }
       next = advance();
     }
-    throw new MalformedInputException(charOffset);
+    throw new MalformedInputException("unterminated string literal",
+                                      charOffset);
   }
 
   int tokenizeInterpolatedExpression(int next, int start) {
@@ -689,11 +692,13 @@ class AbstractScanner<T> implements Scanner {
         appendByteStringToken(STRING_INFO, utf8String(start, 0));
         return advance();
       } else if (next === $LF || next === $CR) {
-        throw new MalformedInputException(charOffset);
+        throw new MalformedInputException("unterminated string literal",
+                                          charOffset);
       }
       next = advance();
     }
-    throw new MalformedInputException(charOffset);
+    throw new MalformedInputException("unterminated string literal",
+                                      charOffset);
   }
 
   int tokenizeMultiLineString(int q, int start, bool raw) {
@@ -718,7 +723,8 @@ class AbstractScanner<T> implements Scanner {
 }
 
 class MalformedInputException {
-  final message;
-  MalformedInputException(this.message);
-  toString() => message.toString();
+  final String message;
+  final position;
+  MalformedInputException(this.message, this.position);
+  toString() => message;
 }

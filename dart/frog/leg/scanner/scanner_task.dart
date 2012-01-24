@@ -29,14 +29,13 @@ class ScannerTask extends CompilerTask {
     } catch (MalformedInputException ex) {
       Token token;
       var message;
-      if (ex.message is int) {
-        token = new Token(EOF_INFO, ex.message);
-        message = 'unexpected character';
+      if (ex.position is num) {
+        // TODO(ahe): Always use tokens in MalformedInputException.
+        token = new Token(EOF_INFO, ex.position);
       } else {
-        token = new Token(EOF_INFO, 0);
-        message = ex.message;
+        token = ex.position;
       }
-      compiler.cancel(message, token: token);
+      compiler.cancel(ex.message, token: token);
     }
     ElementListener listener = new ElementListener(compiler, compilationUnit);
     PartialParser parser = new PartialParser(listener);

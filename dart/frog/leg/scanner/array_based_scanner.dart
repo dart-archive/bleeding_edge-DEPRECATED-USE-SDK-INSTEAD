@@ -12,7 +12,7 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
   /** Since the input is UTF8, some characters are represented by more
    * than one byte. [extraCharOffset] tracks the difference. */
   int extraCharOffset;
-  Link<Token> groupingStack = const EmptyLink<Token>();
+  Link<BeginGroupToken> groupingStack = const EmptyLink<BeginGroupToken>();
 
   ArrayBasedScanner()
     : this.extraCharOffset = 0,
@@ -58,6 +58,11 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
     tail = tail.next;
     // EOF points to itself so there's always infinite look-ahead.
     tail.next = tail;
+    if (!groupingStack.isEmpty()) {
+      BeginGroupToken begin = groupingStack.head;
+      throw new MalformedInputException('Unbalanced ${begin.stringValue}',
+                                        begin);
+    }
   }
 
   void beginToken() {
@@ -100,7 +105,8 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
       if (openKind !== OPEN_CURLY_BRACKET_TOKEN ||
           begin.kind !== STRING_INTERPOLATION_TOKEN) {
         // Not ending string interpolation.
-        throw new MalformedInputException('Unmatched ${begin.stringValue}');
+        throw new MalformedInputException('Unmatched ${begin.stringValue}',
+                                          begin);
       }
       // We're ending an interpolated expression.
       begin.endGroup = tail;

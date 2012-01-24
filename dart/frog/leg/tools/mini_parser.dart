@@ -100,7 +100,7 @@ void parseFile(String filename, MyOptions options) {
       print(ex);
     }
   } catch (MalformedInputException ex) {
-    print('$filename: $ex');
+    // Already diagnosed.
   } catch (var ex) {
     print('Error in file: $filename');
     throw;
@@ -121,10 +121,12 @@ Token scan(MySourceFile source) {
   try {
     return scanner.tokenize();
   } catch (MalformedInputException ex) {
-    var message = ex.message;
-    if (message is !String) message = "unexpected character";
-    Token fakeToken = new Token(QUESTION_INFO, scanner.charOffset);
-    print(formatError(message, fakeToken, fakeToken, source));
+    if (ex.position is Token) {
+      print(formatError(ex.message, ex.position, ex.position, source));
+    } else {
+      Token fakeToken = new Token(QUESTION_INFO, ex.position);
+      print(formatError(ex.message, fakeToken, fakeToken, source));
+    }
     throw;
   }
 }
