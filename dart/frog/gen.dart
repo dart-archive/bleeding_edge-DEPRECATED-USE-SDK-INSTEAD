@@ -294,15 +294,15 @@ class WorldGenerator {
     }
     if (type.isObject || type.genericType == world.listFactoryType) {
       // We special case these two so that by default we can use "= function()"
-      // syntax for better readability.
+      // syntax for better readability of the others.
       if (isOneLiner) {
-        ending = ', enumerable: false, writable: true, configurable: true })' +
-            ending;
+        ending = ')' + ending;
       }
-      writeFunction('Object.defineProperty(${type.jsname}.prototype, "$name",' +
-        ' { value: $functionBody$ending');
+      corejs.ensureDefProp();
+      writeFunction(
+          '\$defProp(${type.jsname}.prototype, "$name", $functionBody$ending');
       if (isOneLiner) return '}';
-      return '}, enumerable: false, writable: true, configurable: true });';
+      return '});';
     } else {
       writeFunction(_prototypeOf(type, name) + ' = ' + functionBody + ending);
       return isOneLiner? '': '}';

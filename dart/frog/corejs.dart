@@ -26,6 +26,7 @@ class CoreJs {
   bool _generatedTypeNameOf = false;
   bool _generatedDynamicProto = false;
   bool _generatedInherits = false;
+  bool _generatedDefProp = false;
 
 
   Map<String, String> _usedOperators;
@@ -49,6 +50,7 @@ class CoreJs {
         break;
 
       case ':eq':
+        ensureDefProp();
         code = _EQ_FUNCTION;
         break;
 
@@ -94,12 +96,14 @@ class CoreJs {
     if (_generatedDynamicProto) return;
     _generatedDynamicProto = true;
     ensureTypeNameOf();
+    ensureDefProp();
     writer.writeln(_DYNAMIC_FUNCTION);
   }
 
   void ensureTypeNameOf() {
     if (_generatedTypeNameOf) return;
     _generatedTypeNameOf = true;
+    ensureDefProp();
     writer.writeln(_TYPE_NAME_OF_FUNCTION);
   }
 
@@ -108,6 +112,13 @@ class CoreJs {
     if (_generatedInherits) return;
     _generatedInherits = true;
     writer.writeln(_INHERITS_FUNCTION);
+  }
+
+  /** Generates the $defProp function when it's first used. */
+  void ensureDefProp() {
+    if (_generatedDefProp) return;
+    _generatedDefProp = true;
+    writer.writeln(_DEF_PROP_FUNCTION);
   }
 
   void generate(CodeWriter w) {
@@ -127,11 +138,13 @@ class CoreJs {
     }
 
     if (useIndex) {
+      ensureDefProp();
       w.writeln(options.disableBoundsChecks ?
         _INDEX_OPERATORS : _CHECKED_INDEX_OPERATORS);
     }
 
     if (useSetIndex) {
+      ensureDefProp();
       w.writeln(options.disableBoundsChecks ?
         _SETINDEX_OPERATORS : _CHECKED_SETINDEX_OPERATORS);
     }
@@ -160,12 +173,12 @@ class CoreJs {
 
     if (world.dom != null) {
       ensureTypeNameOf();
+      ensureDefProp();
       // TODO(jmesserly): we need to find a way to avoid conflicts with other
       // generated "typeName" fields. Ideally we wouldn't be patching 'Object'
       // here.
-      w.writeln('Object.defineProperty(Object.prototype, "get\$typeName", ' +
-          '{ value: Object.prototype.\$typeNameOf, enumerable: false, ' +
-          'writable: true, configurable: true});');
+      w.writeln('\$defProp(Object.prototype, "get\$typeName", ' +
+                'Object.prototype.\$typeNameOf);');
     }
   }
 }
@@ -191,9 +204,9 @@ function $eq(x, y) {
     ? x == y : x.$eq(y);
 }
 // TODO(jimhug): Should this or should it not match equals?
-Object.defineProperty(Object.prototype, '$eq', { value: function(other) {
+$defProp(Object.prototype, '$eq', function(other) {
   return this === other;
-}, enumerable: false, writable: true, configurable: true });""";
+});""";
 
 /** Snippet for `$bit_not`. */
 final String _BIT_NOT_FUNCTION = @"""
@@ -286,16 +299,13 @@ function $dynamic(name) {
     method = method || methods.Object;
     var proto = Object.getPrototypeOf(obj);
     if (!proto.hasOwnProperty(name)) {
-      Object.defineProperty(proto, name,
-        { value: method, enumerable: false, writable: true,
-        configurable: true });
+      $defProp(proto, name, method);
     }
 
     return method.apply(this, Array.prototype.slice.call(arguments));
   };
   $dynamicBind.methods = methods;
-  Object.defineProperty(Object.prototype, name, { value: $dynamicBind,
-      enumerable: false, writable: true, configurable: true});
+  $defProp(Object.prototype, name, $dynamicBind);
   return methods;
 }
 if (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];
@@ -319,7 +329,7 @@ function $dynamicSetMetadata(inputTable) {
 
 /** Snippet for `$typeNameOf`. */
 final String _TYPE_NAME_OF_FUNCTION = @"""
-Object.defineProperty(Object.prototype, '$typeNameOf', { value: function() {
+$defProp(Object.prototype, '$typeNameOf', function() {
   if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
       || typeof(process) != 'undefined') { // fast-path for Chrome and Node
     return this.constructor.name;
@@ -332,7 +342,7 @@ Object.defineProperty(Object.prototype, '$typeNameOf', { value: function() {
     str = 'HTMLDocument';
   }
   return str;
-}, enumerable: false, writable: true, configurable: true});""";
+});""";
 
 /** Snippet for `$inherits`. */
 final String _INHERITS_FUNCTION = @"""
@@ -346,6 +356,13 @@ function $inherits(child, parent) {
     child.prototype = new tmp();
     child.prototype.constructor = child;
   }
+}""";
+
+/** Snippet for `$defProp`. */
+final String _DEF_PROP_FUNCTION = @"""
+function $defProp(obj, prop, value) {
+  Object.defineProperty(obj, prop,
+      {value: value, enumerable: false, writable: true, configurable: true});
 }""";
 
 /** Snippet for `$stackTraceOf`. */
@@ -393,29 +410,29 @@ function $throw(e) {
 // prototype. TODO(jmesserly): make this go away by handling index more
 // like a normal method.
 final String _INDEX_OPERATORS = @"""
-Object.defineProperty(Object.prototype, '$index', { value: function(i) {
+$defProp(Object.prototype, '$index', function(i) {
   var proto = Object.getPrototypeOf(this);
   if (proto !== Object) {
     proto.$index = function(i) { return this[i]; }
   }
   return this[i];
-}, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(Array.prototype, '$index', { value: function(i) {
-  return this[i];
-}, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(String.prototype, '$index', { value: function(i) {
-  return this[i];
-}, enumerable: false, writable: true, configurable: true});""";
+});
+$defProp(Array.prototype, '$index', function(i) { 
+  return this[i]; 
+});
+$defProp(String.prototype, '$index', function(i) { 
+  return this[i]; 
+});""";
 
 final String _CHECKED_INDEX_OPERATORS = @"""
-Object.defineProperty(Object.prototype, '$index', { value: function(i) {
+$defProp(Object.prototype, '$index', function(i) {
   var proto = Object.getPrototypeOf(this);
   if (proto !== Object) {
     proto.$index = function(i) { return this[i]; }
   }
   return this[i];
-}, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(Array.prototype, '$index', { value: function(index) {
+});
+$defProp(Array.prototype, '$index', function(index) {
   var i = index | 0;
   if (i !== index) {
     throw new IllegalArgumentException('index is not int');
@@ -423,43 +440,42 @@ Object.defineProperty(Array.prototype, '$index', { value: function(index) {
     throw new IndexOutOfRangeException(index);
   }
   return this[i];
-}, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(String.prototype, '$index', { value: function(i) {
+});
+$defProp(String.prototype, '$index', function(i) {
   return this[i];
-}, enumerable: false, writable: true, configurable: true});""";
+});""";
 
 
 
 /** Snippet for `$setindex` in Object, Array, and String. */
 final String _SETINDEX_OPERATORS = @"""
-Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value) {
+$defProp(Object.prototype, '$setindex', function(i, value) {
   var proto = Object.getPrototypeOf(this);
   if (proto !== Object) {
     proto.$setindex = function(i, value) { return this[i] = value; }
   }
   return this[i] = value;
-}, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(Array.prototype, '$setindex', { value: function(i, value) {
-  return this[i] = value; }, enumerable: false, writable: true,
-  configurable: true});""";
+});
+$defProp(Array.prototype, '$setindex',
+    function(i, value) { return this[i] = value; });""";
 
 final String _CHECKED_SETINDEX_OPERATORS = @"""
-Object.defineProperty(Object.prototype, '$setindex', { value: function(i, value) {
+$defProp(Object.prototype, '$setindex', function(i, value) {
   var proto = Object.getPrototypeOf(this);
   if (proto !== Object) {
     proto.$setindex = function(i, value) { return this[i] = value; }
   }
   return this[i] = value;
-}, enumerable: false, writable: true, configurable: true});
-Object.defineProperty(Array.prototype, '$setindex', { value: function(index, value) {
+});
+$defProp(Array.prototype, '$setindex', function(index, value) {
   var i = index | 0;
   if (i !== index) {
     throw new IllegalArgumentException('index is not int');
   } else if (i < 0 || i >= this.length) {
     throw new IndexOutOfRangeException(index);
   }
-  return this[i] = value; }, enumerable: false, writable: true,
-  configurable: true});""";
+  return this[i] = value;
+});""";
 
 /** Snippet for `$wrap_call$0`. */
 final String _WRAP_CALL0_FUNCTION = @"""
