@@ -33,6 +33,9 @@ compileCommand(Map request, OutputStream output) {
   world.reset();
   options.dartScript = request['input'];
   options.outfile = request['output'];
+  if (options.outfile == null) {
+    options.checkOnly = true;
+  }
   print('starting compile with id $id, ' +
       '${options.dartScript} -> ${options.outfile}');
 
