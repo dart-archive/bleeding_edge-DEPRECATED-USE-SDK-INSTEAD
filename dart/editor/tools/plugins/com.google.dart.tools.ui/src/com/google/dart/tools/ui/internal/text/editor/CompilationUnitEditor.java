@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,6 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.SourceRange;
@@ -30,8 +31,8 @@ import com.google.dart.tools.ui.IWorkingCopyManager;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.GenerateActionGroup;
 import com.google.dart.tools.ui.actions.IJavaEditorActionDefinitionIds;
-import com.google.dart.tools.ui.internal.text.DartStatusConstants;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartStatusConstants;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingContext;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
 import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
@@ -1553,7 +1554,19 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    */
   @Override
   protected DartElement getElementAt(int offset, boolean reconcile) {
-    CompilationUnit unit = (CompilationUnit) getInputDartElement();
+    DartElement element = getInputDartElement();
+    if (element instanceof DartLibrary) {
+      try {
+        element = ((DartLibrary) element).getDefiningCompilationUnit();
+      } catch (DartModelException exception) {
+        DartToolsPlugin.log(
+            "Unable to access defining compilation unit for " + element.getElementName(), exception);
+      }
+    }
+    if (!(element instanceof CompilationUnit)) {
+      return null;
+    }
+    CompilationUnit unit = (CompilationUnit) element;
 
     if (unit != null) {
       try {
