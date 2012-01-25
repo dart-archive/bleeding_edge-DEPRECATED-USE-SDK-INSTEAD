@@ -8,20 +8,17 @@ class ScannerTask extends CompilerTask {
 
   void scan(CompilationUnitElement compilationUnit) {
     measure(() {
-      Link<Element> elements = scanElements(compilationUnit);
-      for (Link<Element> link = elements; !link.isEmpty(); link = link.tail) {
-        Element existing = compiler.universe.find(link.head.name);
-        if (existing !== null) {
-          Node node = link.head.parseNode(compiler, compiler);
-          // TODO(ahe): Is this the right place to handle this?
-          compiler.cancel('Duplicate definition', node: node);
-        }
-        compiler.universe.define(link.head);
+      scanElements(compilationUnit);
+      for (Element element in compilationUnit.topLevelElements) {
+        compiler.universe.define(element, compiler);
+      }
+      for (ScriptTag tag in compilationUnit.tags) {
+        compiler.reportWarning(tag, "library tags are not implemented");
       }
     });
   }
 
-  Link<Element> scanElements(CompilationUnitElement compilationUnit) {
+  void scanElements(CompilationUnitElement compilationUnit) {
     Script script = compilationUnit.script;
     Token tokens;
     try {
@@ -40,6 +37,5 @@ class ScannerTask extends CompilerTask {
     ElementListener listener = new ElementListener(compiler, compilationUnit);
     PartialParser parser = new PartialParser(listener);
     parser.parseUnit(tokens);
-    return listener.topLevelElements;
   }
 }

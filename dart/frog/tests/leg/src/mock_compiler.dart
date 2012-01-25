@@ -98,7 +98,7 @@ class MockCompiler extends Compiler {
     for (Link<Element> link = parseUnit(text, this);
          !link.isEmpty();
          link = link.tail) {
-      universe.define(link.head);
+      universe.define(link.head, this);
     }
   }
 

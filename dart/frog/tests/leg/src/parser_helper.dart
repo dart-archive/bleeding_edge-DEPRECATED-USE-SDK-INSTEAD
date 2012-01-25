@@ -41,16 +41,23 @@ Node parseStatement(String text) =>
 Node parseFunction(String text, Compiler compiler) {
   Element element = parseUnit(text, compiler).head;
   Expect.equals(ElementKind.FUNCTION, element.kind);
-  compiler.universe.define(element);
+  compiler.universe.define(element, compiler);
   return element.parseNode(compiler, compiler);
+}
+
+class MockFile {
+  final filename = '<string>';
+  final text;
+  MockFile(this.text);
 }
 
 Link<Element> parseUnit(String text, Compiler compiler) {
   Token tokens = scan(text);
-  ElementListener listener = new ElementListener(compiler, null);
+  var unit = new CompilationUnitElement(new Script(new MockFile(text)), null);
+  ElementListener listener = new ElementListener(compiler, unit);
   PartialParser parser = new PartialParser(listener);
   parser.parseUnit(tokens);
-  return listener.topLevelElements;
+  return unit.topLevelElements;
 }
 
 // TODO(ahe): We define this method to avoid having to import

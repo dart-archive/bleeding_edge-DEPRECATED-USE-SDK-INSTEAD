@@ -27,9 +27,12 @@ class Universe {
     return elements[name];
   }
 
-  void define(Element element) {
-    assert(elements[element.name] == null);
-    elements[element.name] = element;
+  void define(Element element, Compiler compiler) {
+    Element existing = elements.putIfAbsent(element.name, () => element);
+    if (existing !== element) {
+      compiler.cancel('duplicate definition', token: element.position());
+      compiler.cancel('existing definition', token: existing.position());
+    }
   }
 
   void addGeneratedCode(WorkItem work, String code) {

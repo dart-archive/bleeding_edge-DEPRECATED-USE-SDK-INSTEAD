@@ -456,13 +456,22 @@ class ElementListener extends Listener {
   final CompilationUnitElement compilationUnitElement;
 
   Link<Node> nodes = const EmptyLink<Node>();
-  Link<Element> topLevelElements = const EmptyLink<Element>();
 
   ElementListener(Canceler this.canceler,
                   CompilationUnitElement this.compilationUnitElement);
 
   void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
-    canceler.cancel("library tags are not implemented", token: beginToken);
+    LiteralString prefix = null;
+    Identifier argumentName = null;
+    if (hasPrefix) {
+      prefix = popNode();
+      argumentName = popNode();
+    }
+    LiteralString firstArgument = popNode();
+    Identifier tag = popNode();
+    compilationUnitElement.addTag(new ScriptTag(tag, firstArgument,
+                                                argumentName, prefix,
+                                                beginToken, endToken));
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
@@ -623,7 +632,7 @@ class ElementListener extends Listener {
   }
 
   void pushElement(Element element) {
-    topLevelElements = topLevelElements.prepend(element);
+    compilationUnitElement.addMember(element, canceler);
   }
 
   void pushNode(Node node) {
@@ -662,6 +671,10 @@ class ElementListener extends Listener {
         (delimiter === null) ? null : new SourceString(delimiter);
     return new NodeList(beginToken, nodes, endToken, sourceDelimiter);
   }
+
+  void handleLiteralString(Token token) {
+    pushNode(new LiteralString(token));
+  }
 }
 
 class NodeListener extends ElementListener {
@@ -689,19 +702,6 @@ class NodeListener extends ElementListener {
     TypeAnnotation returnType = popNode();
     pushNode(new Typedef(returnType, name, typeParameters, formals,
                          typedefKeyword, endToken));
-  }
-
-  void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
-    LiteralString prefix = null;
-    Identifier argumentName = null;
-    if (hasPrefix) {
-      prefix = popNode();
-      argumentName = popNode();
-    }
-    LiteralString firstArgument = popNode();
-    Identifier tag = popNode();
-    pushNode(new ScriptTag(tag, firstArgument, argumentName, prefix,
-                           beginToken, endToken));
   }
 
   void endInterface(int supertypeCount, Token interfaceKeyword,
@@ -786,10 +786,6 @@ class NodeListener extends ElementListener {
 
   void handleLiteralBool(Token token) {
     pushNode(new LiteralBool(token, (t, e) => handleOnError(t, e)));
-  }
-
-  void handleLiteralString(Token token) {
-    pushNode(new LiteralString(token));
   }
 
   void handleLiteralNull(Token token) {

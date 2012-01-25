@@ -50,7 +50,6 @@ class Element implements Hashable {
   final Element enclosingElement;
   Modifiers get modifiers() => null;
 
-
   Node parseNode(Canceler canceler, Logger logger) {
     canceler.cancel("Internal Error: Element.parseNode");
   }
@@ -95,13 +94,31 @@ class Element implements Hashable {
   toString() => '$kind($name)';
 }
 
-class CompilationUnitElement extends Element {
+class ContainerElement extends Element {
+  ContainerElement(name, kind, enclosingElement) :
+    super(name, kind, enclosingElement);
+
+  abstract void addMember(Element element, Canceler canceler);
+}
+
+class CompilationUnitElement extends ContainerElement {
   final Script script;
+  Link<Element> topLevelElements = const EmptyLink<Element>();
+  Link<ScriptTag> tags = const EmptyLink<ScriptTag>();
+
   CompilationUnitElement(Script script, Element enclosing)
     : super(new SourceString(script.name),
             ElementKind.COMPILATION_UNIT,
             enclosing),
       this.script = script;
+
+  void addMember(Element element, Canceler canceler) {
+    topLevelElements = topLevelElements.prepend(element);
+  }
+
+  void addTag(ScriptTag tag) {
+    tags = tags.prepend(tag);
+  }
 }
 
 class VariableElement extends Element {
@@ -339,7 +356,7 @@ class SynthesizedConstructorElement extends FunctionElement {
   Token position() => null;
 }
 
-class ClassElement extends Element {
+class ClassElement extends ContainerElement {
   Type type;
   Type supertype;
   Link<Element> members = const EmptyLink<Element>();
@@ -357,7 +374,7 @@ class ClassElement extends Element {
       constructors = new Map<SourceString, Element>(),
       super(name, ElementKind.CLASS, enclosing);
 
-  void addMember(Element element) {
+  void addMember(Element element, Canceler canceler) {
     members = members.prepend(element);
     if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR ||
         element.modifiers.isFactory()) {

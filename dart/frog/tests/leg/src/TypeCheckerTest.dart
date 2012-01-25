@@ -351,18 +351,15 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   Universe universe = compiler.universe;
   compiler.universe = new ExtendedUniverse(compiler.universe);
 
-  Token tokens = scan(text);
-  ElementListener listener = new ElementListener(compiler, null);
-  PartialParser parser = new PartialParser(listener);
-  parser.parseUnit(tokens);
+  Link<Element> topLevelElements = parseUnit(text, compiler);
 
-  for (Link<Element> elements = listener.topLevelElements;
+  for (Link<Element> elements = topLevelElements;
        !elements.isEmpty();
        elements = elements.tail) {
-    compiler.universe.define(elements.head);
+    compiler.universe.define(elements.head, compiler);
   }
 
-  for (Link<Element> elements = listener.topLevelElements;
+  for (Link<Element> elements = topLevelElements;
        !elements.isEmpty();
        elements = elements.tail) {
     Node node = elements.head.parseNode(compiler, compiler);
@@ -433,8 +430,8 @@ class ExtendedUniverse extends Universe {
     return result;
   }
 
-  void define(Element element) {
+  void define(Element element, Compiler compiler) {
     assert(base.elements[element.name] == null);
-    super.define(element);
+    super.define(element, compiler);
   }
 }

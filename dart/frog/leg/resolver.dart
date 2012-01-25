@@ -808,7 +808,10 @@ class ClassResolverVisitor extends AbstractVisitor/* <Type> */ {
   }
 
   Type visitTypeAnnotation(TypeAnnotation node) {
-    Identifier name = node.typeName;
+    Identifier name = node.typeName.asIdentifier();
+    if (name === null) {
+      compiler.unimplemented("prefixes", node: node.typeName);
+    }
     Element element = context.lookup(name.source);
     if (element === null) {
       compiler.reportError(node,

@@ -27,7 +27,6 @@ class PartialClassElement extends ClassElement {
     assert(token === endToken.next);
     cachedNode = listener.popNode();
     assert(listener.nodes.isEmpty());
-    assert(listener.topLevelElements.isEmpty());
     return cachedNode;
   }
 
@@ -87,7 +86,7 @@ class MemberListener extends NodeListener {
     Element memberElement =
         new PartialFunctionElement(name, beginToken, endToken,
                                    kind, method.modifiers, enclosingElement);
-    enclosingElement.addMember(memberElement);
+    enclosingElement.addMember(memberElement, canceler);
   }
 
   void endFactoryMethod(Token factoryKeyword, Token periodBeforeName,
@@ -104,7 +103,7 @@ class MemberListener extends NodeListener {
     Element memberElement =
         new PartialFunctionElement(name.source, factoryKeyword, endToken, kind,
                                    method.modifiers, enclosingElement);
-    enclosingElement.addMember(memberElement);
+    enclosingElement.addMember(memberElement, canceler);
   }
 
   void endFields(int count, Token beginToken, Token endToken) {
@@ -115,7 +114,7 @@ class MemberListener extends NodeListener {
     void buildFieldElement(SourceString name, Element fields) {
       Element element = new VariableElement(
           name, fields, ElementKind.FIELD, enclosingElement);
-      enclosingElement.addMember(element);
+      enclosingElement.addMember(element, canceler);
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,
                        buildFieldElement, beginToken, endToken);
