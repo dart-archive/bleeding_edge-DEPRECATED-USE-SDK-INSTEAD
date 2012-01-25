@@ -167,7 +167,7 @@ class Listener {
   void beginMember(Token token) {
   }
 
-  void endMethod(Token beginToken, Token endToken) {
+  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
   }
 
   void beginOptionalFormalParameters(Token token) {
@@ -982,7 +982,7 @@ class NodeListener extends ElementListener {
     pushNode(new VariableDefinitions(null, modifiers, variables, endToken));
   }
 
-  void endMethod(Token beginToken, Token endToken) {
+  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     Statement body = popNode();
     NodeList initializers = popNode();
     NodeList formalParameters = popNode();
@@ -1235,6 +1235,8 @@ class PartialFunctionElement extends FunctionElement {
     cachedNode = parse(canceler, logger, (p) => p.parseFunction(beginToken));
     return cachedNode;
   }
+
+  Token position() => beginToken;
 }
 
 class PartialFieldListElement extends VariableListElement {
@@ -1253,6 +1255,8 @@ class PartialFieldListElement extends VariableListElement {
                        (p) => p.parseVariablesDeclaration(beginToken));
     return cachedNode;
   }
+
+  Token position() => beginToken;
 }
 
 Node parse(Canceler canceler, Logger logger, doParse(Parser parser)) {

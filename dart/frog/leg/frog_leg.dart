@@ -88,7 +88,7 @@ class WorldCompiler extends Compiler {
 
   String get legDirectory() => io.join([frog.options.libDir, '..', 'leg']);
 
-  void cancel([String reason, Node node, token, instruction]) {
+  void cancel([String reason, Node node, token, instruction, element]) {
     Script script = currentScript();
     if (node !== null) {
       print(spanFromNode(node, script).toMessageString("cancel leg: $reason"));
@@ -98,6 +98,9 @@ class WorldCompiler extends Compiler {
       int end = begin + tokenString.length;
       print(script.file.getLocationMessage("cancel leg: $reason",
                                            begin, end, true));
+    } else if (element !== null) {
+      currentElement = element;
+      cancel(reason: reason, token: element.position());
     }
     if (throwOnError) {
       throw new AbortLeg(reason);

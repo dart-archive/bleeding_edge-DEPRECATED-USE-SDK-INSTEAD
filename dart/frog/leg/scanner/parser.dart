@@ -601,6 +601,9 @@ class Parser {
     if (isField) {
       int fieldCount = 1;
       token = parseVariableInitializerOpt(token);
+      if (getOrSet !== null) {
+        listener.recoverableError("unexpected", token: getOrSet);
+      }
       while (optional(',', token)) {
         // TODO(ahe): Count these.
         token = parseIdentifier(token.next);
@@ -614,7 +617,7 @@ class Parser {
       token = parseFormalParameters(token);
       token = parseInitializersOpt(token);
       token = parseFunctionBody(token, false);
-      listener.endMethod(start, token);
+      listener.endMethod(getOrSet, start, token);
     }
     return token.next;
   }

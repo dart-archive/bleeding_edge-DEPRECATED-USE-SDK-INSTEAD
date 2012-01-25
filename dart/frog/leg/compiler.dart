@@ -90,12 +90,13 @@ class Compiler implements Canceler, Logger {
   }
 
   void internalError(String message,
-                     [Node node, Token token, HInstruction instruction]) {
-    cancel("Internal Error: $message", node, token, instruction);
+                     [Node node, Token token, HInstruction instruction,
+                      Element element]) {
+    cancel("Internal Error: $message", node, token, instruction, element);
   }
 
   void cancel([String reason, Node node, Token token,
-               HInstruction instruction]) {
+               HInstruction instruction, Element element]) {
     throw new CompilerCancelledException(reason);
   }
 

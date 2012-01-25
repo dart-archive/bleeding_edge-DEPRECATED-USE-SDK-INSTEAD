@@ -30,6 +30,8 @@ class PartialClassElement extends ClassElement {
     assert(listener.topLevelElements.isEmpty());
     return cachedNode;
   }
+
+  Token position() => beginToken;
 }
 
 class MemberListener extends NodeListener {
@@ -54,8 +56,8 @@ class MemberListener extends NodeListener {
     return enclosingElement.name == name;
   }
 
-  void endMethod(Token beginToken, Token endToken) {
-    super.endMethod(beginToken, endToken);
+  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
+    super.endMethod(getOrSet, beginToken, endToken);
     FunctionExpression method = popNode();
     pushNode(null);
     bool isConstructor = isConstructorName(method.name);
@@ -72,9 +74,16 @@ class MemberListener extends NodeListener {
     } else {
       name = methodName.asIdentifier().source;
     }
-    ElementKind kind = isConstructor ?
-                       ElementKind.GENERATIVE_CONSTRUCTOR :
-                       ElementKind.FUNCTION;
+    ElementKind kind = ElementKind.FUNCTION;
+    if (isConstructor) {
+      if (getOrSet !== null) {
+        recoverableError('illegal modifier', token: getOrSet);
+      }
+      kind = ElementKind.GENERATIVE_CONSTRUCTOR;
+    } else if (getOrSet !== null) {
+      kind = (getOrSet.stringValue === 'get')
+             ? ElementKind.GETTER : ElementKind.SETTER;
+    }
     Element memberElement =
         new PartialFunctionElement(name, beginToken, endToken,
                                    kind, method.modifiers, enclosingElement);

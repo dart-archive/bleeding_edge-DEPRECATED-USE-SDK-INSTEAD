@@ -38,6 +38,8 @@ class ElementKind {
       const ElementKind('generative_constructor_body');
   static final ElementKind COMPILATION_UNIT =
       const ElementKind('compilation_unit');
+  static final ElementKind GETTER = const ElementKind('getter');
+  static final ElementKind SETTER = const ElementKind('setter');
 
   toString() => id;
 }
@@ -72,6 +74,8 @@ class Element implements Hashable {
     if (isFunction() || isGenerativeConstructor()) return false;
     return true;
   }
+
+  Token position() => null;
 
   const Element(this.name, this.kind, this.enclosingElement);
 
@@ -140,6 +144,13 @@ class VariableElement extends Element {
   bool isInstanceMember() {
     return isMember() && !modifiers.isStatic();
   }
+
+  Token position() {
+    // TODO(ahe): Record the token corresponding to name instead of
+    // returning different values at different points in time.
+    return (cachedNode !== null)
+        ? cachedNode.getBeginToken() : variables.position();
+  }
 }
 
 // This element represents a list of variable or field declaration.
@@ -173,6 +184,8 @@ class VariableListElement extends Element {
                    compiler.types);
     return type;
   }
+
+  Token position() => cachedNode.getBeginToken();
 }
 
 class ForeignElement extends Element {
@@ -269,6 +282,8 @@ class FunctionElement extends Element {
   }
 
   Node parseNode(Canceler canceler, Logger logger) => cachedNode;
+
+  Token position() => cachedNode.getBeginToken();
 }
 
 class ConstructorBodyElement extends FunctionElement {
@@ -293,6 +308,8 @@ class ConstructorBodyElement extends FunctionElement {
     assert(cachedNode !== null);
     return cachedNode;
   }
+
+  Token position() => constructor.position();
 }
 
 class SynthesizedConstructorElement extends FunctionElement {
@@ -318,6 +335,8 @@ class SynthesizedConstructorElement extends FunctionElement {
         null, null, null);
     return cachedNode;
   }
+
+  Token position() => null;
 }
 
 class ClassElement extends Element {
